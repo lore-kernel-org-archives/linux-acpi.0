@@ -2,260 +2,163 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64A55C43381
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 23:07:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B11CFC433E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 00:08:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D57822DD3
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 23:07:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DF4B23104
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 00:08:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387889AbhASORO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Jan 2021 09:17:14 -0500
-Received: from mga14.intel.com ([192.55.52.115]:53291 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732905AbhASJ0I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 19 Jan 2021 04:26:08 -0500
-IronPort-SDR: yzdCDtBwq/+mi8eOFSqsfskx3ZG6xw11n0a36+IuoO3KYTadCogrNbpyFfFtSBjGFvKkH4xhdB
- 3G8yRoIxvY8w==
-X-IronPort-AV: E=McAfee;i="6000,8403,9868"; a="178121666"
-X-IronPort-AV: E=Sophos;i="5.79,358,1602572400"; 
-   d="scan'208";a="178121666"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 01:23:53 -0800
-IronPort-SDR: fYt+TwSxnqP24B6kl7d2nh0cJr09mHy0C1J1P/Qytt9UO+g+k4EOGUs6oJi25/lwBBzKbgw85E
- ZQrfueVFWWzQ==
-X-IronPort-AV: E=Sophos;i="5.79,358,1602572400"; 
-   d="scan'208";a="350454613"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 01:23:46 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1l1nFo-003L1D-9R; Tue, 19 Jan 2021 11:24:48 +0200
-Date:   Tue, 19 Jan 2021 11:24:48 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Daniel Scally <djrscally@gmail.com>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, devel@acpica.org,
-        rjw@rjwysocki.net, lenb@kernel.org, andy@kernel.org,
-        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
-        bgolaszewski@baylibre.com, wsa@kernel.org, lee.jones@linaro.org,
-        hdegoede@redhat.com, mgross@linux.intel.com,
-        robert.moore@intel.com, erik.kaneda@intel.com,
-        sakari.ailus@linux.intel.com, kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 6/7] platform: x86: Add intel_skl_int3472 driver
-Message-ID: <20210119092448.GN4077@smile.fi.intel.com>
-References: <20210118003428.568892-1-djrscally@gmail.com>
- <20210118003428.568892-7-djrscally@gmail.com>
- <YAVRqWeUsLjvU62P@pendragon.ideasonboard.com>
- <20210118144606.GO4077@smile.fi.intel.com>
- <75e99a06-4579-44ee-5f20-8f2ee3309a68@gmail.com>
+        id S1730166AbhATABJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Jan 2021 19:01:09 -0500
+Received: from frasgout.his.huawei.com ([185.176.79.56]:2379 "EHLO
+        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394961AbhASNxX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2021 08:53:23 -0500
+Received: from fraeml711-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4DKqhc4w8Yz67ZHY;
+        Tue, 19 Jan 2021 21:47:12 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml711-chm.china.huawei.com (10.206.15.60) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2106.2; Tue, 19 Jan 2021 14:52:39 +0100
+Received: from localhost (10.47.77.36) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Tue, 19 Jan
+ 2021 13:52:38 +0000
+Date:   Tue, 19 Jan 2021 13:51:58 +0000
+From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
+CC:     <joro@8bytes.org>, <will@kernel.org>, <lorenzo.pieralisi@arm.com>,
+        <robh+dt@kernel.org>, <guohanjun@huawei.com>,
+        <sudeep.holla@arm.com>, <rjw@rjwysocki.net>, <lenb@kernel.org>,
+        <robin.murphy@arm.com>, <eric.auger@redhat.com>,
+        <iommu@lists.linux-foundation.org>, <devicetree@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-accelerators@lists.ozlabs.org>, <baolu.lu@linux.intel.com>,
+        <vdumpa@nvidia.com>, <zhangfei.gao@linaro.org>,
+        <shameerali.kolothum.thodi@huawei.com>, <vivek.gautam@arm.com>
+Subject: Re: [PATCH v9 07/10] iommu/arm-smmu-v3: Maintain a SID->device
+ structure
+Message-ID: <20210119135158.00001995@Huawei.com>
+In-Reply-To: <20210108145217.2254447-8-jean-philippe@linaro.org>
+References: <20210108145217.2254447-1-jean-philippe@linaro.org>
+        <20210108145217.2254447-8-jean-philippe@linaro.org>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <75e99a06-4579-44ee-5f20-8f2ee3309a68@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.47.77.36]
+X-ClientProxiedBy: lhreml735-chm.china.huawei.com (10.201.108.86) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 18, 2021 at 09:19:52PM +0000, Daniel Scally wrote:
-> On 18/01/2021 14:46, Andy Shevchenko wrote:
-> > On Mon, Jan 18, 2021 at 11:15:21AM +0200, Laurent Pinchart wrote:
-> >> On Mon, Jan 18, 2021 at 12:34:27AM +0000, Daniel Scally wrote:
+On Fri, 8 Jan 2021 15:52:15 +0100
+Jean-Philippe Brucker <jean-philippe@linaro.org> wrote:
+
+> When handling faults from the event or PRI queue, we need to find the
+> struct device associated with a SID. Add a rb_tree to keep track of
+> SIDs.
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+One totally trivial point if you happen to be spinning again.
+
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+with or without that.
+
+> ---
+>  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h |  13 +-
+>  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 161 ++++++++++++++++----
+>  2 files changed, 144 insertions(+), 30 deletions(-)
+> 
 
 ...
 
-> >>> +static struct i2c_driver int3472_tps68470 = {
-> >>> +	.driver = {
-> >>> +		.name = "int3472-tps68470",
-> >>> +		.acpi_match_table = int3472_device_id,
-> >>> +	},
-> >>> +	.probe_new = skl_int3472_tps68470_probe,
-> >>> +};
-> > I'm not sure we want to have like this. If I'm not mistaken the I²C driver can
-> > be separated without ACPI IDs (just having I²C IDs) and you may instantiate it
-> > via i2c_new_client_device() or i2c_acpi_new_device() whichever suits better...
-> 
-> Sorry, I'm a bit confused by this. The i2c device is already
-> present...we just want the driver to bind to them, so what role do those
-> functions have there?
+>  
+> +static int arm_smmu_insert_master(struct arm_smmu_device *smmu,
+> +				  struct arm_smmu_master *master)
+> +{
+> +	int i;
+> +	int ret = 0;
+> +	struct arm_smmu_stream *new_stream, *cur_stream;
+> +	struct rb_node **new_node, *parent_node = NULL;
+> +	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(master->dev);
+> +
+> +	master->streams = kcalloc(fwspec->num_ids,
+> +				  sizeof(struct arm_smmu_stream), GFP_KERNEL);
+				  sizeof(*master->streams)
 
-What I meant is something like
+nitpick :) Saves reviewer going to check that master->streams is of the type they expect.
 
- *_i2c.c
-	real I²C driver for the TPS chip, but solely with I²C ID table, no ACPI
-	involved (and it sounds like it should be mfd/tps one, in which you
-	just cut out ACPI IDs and convert to pure I²C one, that what I had
-	suggested in the first place)
 
- *_proxy.c
-	GPIO proxy as library
-
- *.c
-	platform driver with ACPI ID, in which ->probe() we actually instantiate
-	above via calling i2c_acpi_new_device(), *if needed*, along with GPIO
-	proxy
-
+> +	if (!master->streams)
+> +		return -ENOMEM;
+> +	master->num_streams = fwspec->num_ids;
+> +
+> +	mutex_lock(&smmu->streams_mutex);
+> +	for (i = 0; i < fwspec->num_ids && !ret; i++) {
+> +		u32 sid = fwspec->ids[i];
+> +
+> +		new_stream = &master->streams[i];
+> +		new_stream->id = sid;
+> +		new_stream->master = master;
+> +
+> +		/*
+> +		 * Check the SIDs are in range of the SMMU and our stream table
+> +		 */
+> +		if (!arm_smmu_sid_in_range(smmu, sid)) {
+> +			ret = -ERANGE;
+> +			break;
+> +		}
+> +
+> +		/* Ensure l2 strtab is initialised */
+> +		if (smmu->features & ARM_SMMU_FEAT_2_LVL_STRTAB) {
+> +			ret = arm_smmu_init_l2_strtab(smmu, sid);
+> +			if (ret)
+> +				break;
+> +		}
+> +
+> +		/* Insert into SID tree */
+> +		new_node = &(smmu->streams.rb_node);
+> +		while (*new_node) {
+> +			cur_stream = rb_entry(*new_node, struct arm_smmu_stream,
+> +					      node);
+> +			parent_node = *new_node;
+> +			if (cur_stream->id > new_stream->id) {
+> +				new_node = &((*new_node)->rb_left);
+> +			} else if (cur_stream->id < new_stream->id) {
+> +				new_node = &((*new_node)->rb_right);
+> +			} else {
+> +				dev_warn(master->dev,
+> +					 "stream %u already in tree\n",
+> +					 cur_stream->id);
+> +				ret = -EINVAL;
+> +				break;
+> +			}
+> +		}
+> +
+> +		if (!ret) {
+> +			rb_link_node(&new_stream->node, parent_node, new_node);
+> +			rb_insert_color(&new_stream->node, &smmu->streams);
+> +		}
+> +	}
+> +
+> +	if (ret) {
+> +		for (; i > 0; i--)
+> +			rb_erase(&master->streams[i].node, &smmu->streams);
+> +		kfree(master->streams);
+> +	}
+> +	mutex_unlock(&smmu->streams_mutex);
+> +
+> +	return ret;
+> +}
 ...
-
-> >>> +struct int3472_gpio_clock {
-> >>> +	struct clk *clk;
-> >>> +	struct clk_hw clk_hw;
-> >>> +	struct clk_lookup *cl;
-> >>> +	struct gpio_desc *gpio;
-> >>> +};
-
-> >>> +static const struct clk_ops skl_int3472_clock_ops = {
-> >>> +	.prepare = skl_int3472_clk_prepare,
-> >>> +	.unprepare = skl_int3472_clk_unprepare,
-> >>> +	.enable = skl_int3472_clk_enable,
-> >>> +	.disable = skl_int3472_clk_disable,
-> >>> +};
-
-> > Wondering if this has some similarities with and actually can utilize clk-gpio
-> > driver.
-> > Yeah, sounds like reinventing clk-gpio.c.
-> >
-> > static const struct clk_ops clk_gpio_gate_ops = {
-> > 	.enable = clk_gpio_gate_enable,
-> > 	.disable = clk_gpio_gate_disable,
-> > 	.is_enabled = clk_gpio_gate_is_enabled,
-> > };
-> >
-> > Or is it mux? It has support there as well.
-> >
-> Hmm, yeah, this looks like it would work actually. So I think I'd need to:
-> 
-> 
-> 1. Make enabling INTEL_SKL_INT3472 also enable the clk-gpio driver
-> 
-> 2. Register a platform device to bind to the clk-gpio driver
-> 
-> 3. Register a gpio lookup table so that the clk-gpio driver can find the
-> gpio in question using gpiod_get()
-> 
-> And that looks like it will work; I'll try it.
-
-You need to modify clk-gpio.c to export
-
-clk_hw_register_gpio_gate()
-clk_hw_register_gpio_mux()
-
-(perhaps it will require to add *_unregister() counterparts) and call it from
-your code.
-
-See, for example, how clk_hw_unregister_fixed_rate() is being used. Another
-case is to add a helper directly into clk-gpio and call it instead of
-clk_hw_*() one, see how clk_register_fractional_divider() is implemented and
-used.
-
-...
-
-> >>> +	/* Lenovo Miix 510-12ISK - OV5648, Rear */
-> >>> +	{ "GEFF150023R", REGULATOR_SUPPLY("avdd", "i2c-OVTI5648:00"), NULL},
-> >>> +	/* Surface Go 1&2 - OV5693, Front */
-> >>> +	{ "YHCU", REGULATOR_SUPPLY("avdd", "i2c-INT33BE:00"), NULL},
-> > I'm wondering if you should use same I2C format macro and create this
-> > dynamically? Or rather find a corresponding ACPI device instance and
-> > copy it's name? ...
-> 
-> The supply name needs hard-coding really, but the device name I suppose
-> can come from int3472->sensor_name.
-
-To be strict in terms you are using "device instance name" in the
-REGULATOR_SUPPLY() second parameter. Because "device name" is generic and
-doesn't point to the actual *instance* of the device in the system.
-
-So, and "device name instance" we may get only by traversing through the (ACPI)
-bus and find corresponding struct device and derive name from it. Same way like
-you have done in previous patch series.
-
-Because there is no guarantee that, e.g., i2c-INT33BE:00 will be present on
-the system and moreover there is no guarantee that if two INT33BE or more
-devices are present you will get :00 always for the one you need!
-
-...
-
-> >>> +	ret = ERR_PTR(-ENODEV);
-> > This seems redundant. Or are you expecting ARRAY_SIZE() to be 0?
-> > If no, you may add static_assert() near to the array definition.
-> 
-> It **could** become 0, if the entries I've added are removed in future
-> because the sensors are no longer supported or something. There might be
-> no sensor_module_config for a given device. We only need to supply one if
-> 
-> a) The platform has a 0x0b type GPIO, which means we need to define a
-> supply name the driver is expecting
-> 
-> b) The GPIO functions deviate from documented purpose, which means we
-> need to supply a remapping struct
-> 
-> Otherwise, there's no need for it.
-
-I see. So, up to you then.
-
-> 
-> 
-> >>> +
-> >>> +	int3472->regulator.rdev = regulator_register(&int3472->regulator.rdesc,
-> >>> +						     &cfg);
-> >>> +	if (IS_ERR(int3472->regulator.rdev)) {
-> >>> +		ret = PTR_ERR(int3472->regulator.rdev);
-> >>> +		goto err_free_gpio;
-> >>> +	}
-> > Similar here, can we utilize gpio-regulator.c?
-> >
-> 
-> Also yes probably, with the same steps as for the clocks. Again, I'll
-> try that out, thanks very much.
-
-You may look at arch/x86/platform/intel-mid/device_libs/platform_bcm43xx.c
-(but in your case you probably don't need a GPIO lookup table, just check).
-
-...
-
-> >>> +		dev_warn(&int3472->pdev->dev,
-> >>> +			 "GPIO type 0x%llx unknown; the sensor may not work\n",
-> >>> +			 (obj->integer.value & 0xff));
-> >> No need for parentheses.
-> > And instead of "%llx" with " & 0xff" you may use "%x" with "(u8)" cast.
-> > However, I don't think we need to show only last byte, because it may give
-> > wrong impression on values like "0x100".
-> 
-> But in this case only the last byte holds the type information, second
-> lowest byte is the pin number. So as we understand it, 0x100 would be
-> invalid anyway.
-
-Ah, indeed. So, I think the best is to have %hhx and see if you can supply just
-obj->integer.value and compiler won't warn about type mismatch.
-
-...
-
-> >>> +	} else {
-> >>> +		opregion_dev = skl_int3472_register_pdev("tps68470_pmic_opregion",
-> >>> +							 &client->dev);
-> >>> +		if (IS_ERR(opregion_dev)) {
-> >>> +			ret = PTR_ERR(opregion_dev);
-> >>> +			goto err_free_gpio;
-> >>> +		}
-> >>> +	}
-> >> I wonder if this could be simplified by using devm_mfd_add_devices. You
-> >> could have two arrays of mfd_cell, one for each case.
-> > Yeah, which effectively means that we should have some kind of mfd/tps68470 in
-> > place.
-> 
-> Can you expand on what you mean by that a little, please?
-
-The very first comment in this reply should hopefully shed a light on my idea.
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
