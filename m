@@ -2,53 +2,72 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C52BC433DB
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 22:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 266EAC433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 23:06:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4705C230FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 22:34:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01CD82242A
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Jan 2021 23:06:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728027AbhASWc7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Jan 2021 17:32:59 -0500
-Received: from mga18.intel.com ([134.134.136.126]:24755 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727669AbhASRoS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 19 Jan 2021 12:44:18 -0500
-IronPort-SDR: dJV84DJ/vSSJ+Hn8A+Wxhhtm3za3Zz/j8Sqwl21dBj00sBMoTG3/iIJ32hKObH1S0bMA52ZeqM
- W5dm7lHYx3mw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9869"; a="166632754"
-X-IronPort-AV: E=Sophos;i="5.79,359,1602572400"; 
-   d="scan'208";a="166632754"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 09:42:19 -0800
-IronPort-SDR: EL58UZk+sJ19P4ixy5WWw7RUj9/Yx+9c2hUyTbYVWS2dSrkQoe04HMeVAzYEqHzQNh6FuH/9zD
- F+SVCiy3PhJQ==
-X-IronPort-AV: E=Sophos;i="5.79,359,1602572400"; 
-   d="scan'208";a="501005745"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 09:42:13 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1l1v2B-004oA2-Fm; Tue, 19 Jan 2021 19:43:15 +0200
-Date:   Tue, 19 Jan 2021 19:43:15 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Daniel Scally <djrscally@gmail.com>, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-i2c@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        devel@acpica.org, rjw@rjwysocki.net, lenb@kernel.org,
-        andy@kernel.org, mika.westerberg@linux.intel.com,
-        linus.walleij@linaro.org, bgolaszewski@baylibre.com,
-        wsa@kernel.org, lee.jones@linaro.org, hdegoede@redhat.com,
-        mgross@linux.intel.com, robert.moore@intel.com,
-        erik.kaneda@intel.com, sakari.ailus@linux.intel.com,
-        kieran.bingham@ideasonboard.com
+        id S1732614AbhASORU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Jan 2021 09:17:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45812 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387569AbhASJey (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2021 04:34:54 -0500
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD2AAC061757;
+        Tue, 19 Jan 2021 01:34:13 -0800 (PST)
+Received: by mail-wm1-x32d.google.com with SMTP id u14so11856930wmq.4;
+        Tue, 19 Jan 2021 01:34:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=MVmfHpv1dqQMC+/17HbeSr8gZKRBSbuLaqGXcEQcgHk=;
+        b=SsEI2cPmmm+oLI+ZZGbU+c63k+ebf/JYDG7XvRNGOYwaDFX0faD48+9eaCoDN1A8sf
+         OhLUZLP4OocLGpbEChsbsls0TjUnV2rd7UJ+RHSzdSd57F0Q+UuBjl18zI8VnCmtFHoA
+         nxMqUQlSyqzlTTlYP/dpE7VaNMeiw1k3I8y1UeohLWSuXtsWM+Dofa9YjPxdVT92dp3R
+         9eekQ/Dnys1/sfHLwyBX+L5rTIoQXkZ1FDemKljcOIaMMilEn7o2pka/1kqjnx8wgN6/
+         X06L5Fy7R1IsmLiVwbareaZoXxGTNsQ8oC3ZiqOijKgoZOEO01r9LWq5IDpNaxwI4GFT
+         TM6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=MVmfHpv1dqQMC+/17HbeSr8gZKRBSbuLaqGXcEQcgHk=;
+        b=F1gKN6o/swZyT0EJ6a01GPDVSOXk4r7yMcLVMnRJ9YDgAHos420vZkj4yTBkZyhgz6
+         GEJEEq0WEm+sPhbBrRDl37SrfaIfQQzmspXZ/a1k9sEDcJbsm+oGN5/Bjszh9RBgx+FN
+         gMnQeuNGpdj2xIGqaA8oxp9mS4KYhSbcwIUcR7lXhWPgFHFeSc6bPaF/txFUrosa+OGH
+         1BeSVJWlIzCF1l9jkSLYAbaqsDAYQ+e6TSN2KW1hUQ3uc1W4IulBGkifkkGo3fo40r9N
+         DE2CmP6w0mH6nU5zTKfWA3TnYlNxsULcYRtGoGVc4mh8+9oiJrlOH+PcrOSiHaVDR0pz
+         Lthg==
+X-Gm-Message-State: AOAM530N2D1d+I7uzClUFzoUMLUmabZH5xeq5dNtAS7vB9XTw5CDxIAf
+        MWSqf/oZ+lKmbEjavWxLLmY=
+X-Google-Smtp-Source: ABdhPJwYG2+3uoFvFp6GVLGj68M1KOo01VGgg6KN5PSx7K0AsWLwl+7t1PTTmgagt75wnM5n8A7DVA==
+X-Received: by 2002:a1c:2945:: with SMTP id p66mr3221327wmp.110.1611048852535;
+        Tue, 19 Jan 2021 01:34:12 -0800 (PST)
+Received: from [192.168.1.211] ([2.29.208.120])
+        by smtp.gmail.com with ESMTPSA id h16sm34544932wrq.29.2021.01.19.01.34.10
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 19 Jan 2021 01:34:11 -0800 (PST)
 Subject: Re: [PATCH v2 6/7] platform: x86: Add intel_skl_int3472 driver
-Message-ID: <YAcaM9Tcif1rS3V/@smile.fi.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, devel@acpica.org,
+        rjw@rjwysocki.net, lenb@kernel.org, andy@kernel.org,
+        mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, wsa@kernel.org, lee.jones@linaro.org,
+        hdegoede@redhat.com, mgross@linux.intel.com,
+        robert.moore@intel.com, erik.kaneda@intel.com,
+        sakari.ailus@linux.intel.com, kieran.bingham@ideasonboard.com
 References: <20210118003428.568892-1-djrscally@gmail.com>
  <20210118003428.568892-7-djrscally@gmail.com>
  <YAVRqWeUsLjvU62P@pendragon.ideasonboard.com>
@@ -56,51 +75,59 @@ References: <20210118003428.568892-1-djrscally@gmail.com>
  <75e99a06-4579-44ee-5f20-8f2ee3309a68@gmail.com>
  <1053125f-7cb2-8aa0-3204-24df62986184@gmail.com>
  <20210119093358.GO4077@smile.fi.intel.com>
- <YAcKj9fyNZY8QETd@pendragon.ideasonboard.com>
+From:   Daniel Scally <djrscally@gmail.com>
+Message-ID: <b01e1439-d503-2989-5769-971d75c1cae6@gmail.com>
+Date:   Tue, 19 Jan 2021 09:34:10 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YAcKj9fyNZY8QETd@pendragon.ideasonboard.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20210119093358.GO4077@smile.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 19, 2021 at 06:36:31PM +0200, Laurent Pinchart wrote:
-> On Tue, Jan 19, 2021 at 11:33:58AM +0200, Andy Shevchenko wrote:
-> > On Tue, Jan 19, 2021 at 12:11:40AM +0000, Daniel Scally wrote:
-> > > On 18/01/2021 21:19, Daniel Scally wrote:
+Morning Andy
 
-...
-
-> > See my previous reply. TL;DR: you have to modify clk-gpio.c to export couple of
-> > methods to be able to use it as a library.
-> 
-> That seems really overkill given the very simple implementation of the
-> clock provided here.
-
-Less code in the end is called an overkill? Hmm...
-I think since we in Linux it's better to utilize what it provides. Do you want
-me to prepare a patch to show that there is no overkill at all?
-
-...
-
-> > > (also, Laurent, if we did it this way we wouldn't be able to also handle
-> > > the led-indicator GPIO here without some fairly major rework)
-> > 
-> > LED indicators are done as LED class devices (see plenty of examples in PDx86
-> > drivers: drivers/platform/x86/)
-> 
-> How do you expose the link between the sensor and its indicator LED to
-> userspace ? Isn't it better to handle it in the kernel to avoid rogue
-> userspace turning the camera on without notifying the user ?
-
-I didn't get this. It's completely a LED handling driver business. We may
-expose it to user space or not, but it's orthogonal to the usage of LED class
-IIUC. Am I mistaken here?
-
--- 
-With Best Regards,
-Andy Shevchenko
+On 19/01/2021 09:33, Andy Shevchenko wrote:
+> On Tue, Jan 19, 2021 at 12:11:40AM +0000, Daniel Scally wrote:
+>> On 18/01/2021 21:19, Daniel Scally wrote:
+>> I'm more and more confident that this will work, but it has some
+>> knock-on effects:
+>>
+>> The both clk and regulator gpio driver expects to be able to fetch the
+>> GPIO using devm_gpiod_get(&pdev->dev, "enable", ...). That won't work of
+>> course, so we need to add another GPIO lookup table so those drivers can
+>> see the GPIOs. For that, we need to know what dev_name(&pdev->dev) will
+>> be so we can set the .dev_id member of a gpiod_lookup_table to that
+>> value, but that isn't set until _after_ the pdev is registered (because
+>> it has to figure out the id, we can't manually set the IDs because there
+>> could be more than one instance of int3472-discrete bound to multiple
+>> PMIC devices, and we don't know which id the current one should have).
+>> Finally, we can't wait until the device is registered because it
+>> immediately probes, can't find the GPIO and then fails probe.
+>>
+>> It's similar problem that causes us to need the i2c-acpi name format
+>> macros, but complicated by the dynamic ID part of dev_name(&pdev->dev)
+>>
+>> Solving it is a bit of a sticky one; perhaps something like moving the
+>> dev_set_name() part of platform_device_add() [1] to its own function,
+>> that's called in both platform_device_alloc() and
+>> platform_device_register(). That way it would be available before the
+>> device itself was registered, meaning we could create the lookup table
+>> before it probes the driver.
+> See my previous reply. TL;DR: you have to modify clk-gpio.c to export couple of
+> methods to be able to use it as a library.
 
 
+Ack! Ok, I thought about that the wrong way. I'll take another look
+tonight then.
+
+
+>> (also, Laurent, if we did it this way we wouldn't be able to also handle
+>> the led-indicator GPIO here without some fairly major rework)
+> LED indicators are done as LED class devices (see plenty of examples in PDx86
+> drivers: drivers/platform/x86/)
+And this too - thanks very much
