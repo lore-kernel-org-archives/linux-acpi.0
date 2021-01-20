@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F30FC433DB
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B62DBC433DB
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:07:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D0B7233FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64FE9233F6
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:07:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392316AbhATTDX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Jan 2021 14:03:23 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:50644 "EHLO
+        id S1729736AbhATTGy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Jan 2021 14:06:54 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:52034 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392408AbhATTDV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 14:03:21 -0500
+        with ESMTP id S2392433AbhATTD0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 14:03:26 -0500
 Received: from 89-64-80-175.dynamic.chello.pl (89.64.80.175) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
- id 9a478b5d78da3b74; Wed, 20 Jan 2021 20:02:11 +0100
+ id 1695341e921a8916; Wed, 20 Jan 2021 20:02:15 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v1 5/6] ACPI: utils: Clean up printing messages
-Date:   Wed, 20 Jan 2021 20:00:32 +0100
-Message-ID: <4589427.MynsCsldvn@kreacher>
+Subject: [PATCH v1 2/6] ACPI: PM: Clean up printing messages
+Date:   Wed, 20 Jan 2021 19:58:18 +0100
+Message-ID: <1984297.f6DJSeQy12@kreacher>
 In-Reply-To: <2809410.8bz27usjlQ@kreacher>
 References: <2809410.8bz27usjlQ@kreacher>
 MIME-Version: 1.0
@@ -40,159 +40,114 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Replace all of the ACPI_DEBUG_PRINT() instances in utils.c with
-pr_debug() and acpi_handle_debug(), drop the _COMPONENT and
-ACPI_MODULE_NAME() definitions that are not used any more and
-replace direct printk() invocations with pr_debug() calls (the log
-level in there is way excessive).
-
-Also add a special pr_fmt() definition, but this only affects the
-pr_debug() messages mentioned above.
+Replace the remaining ACPI_DEBUG_PRINT() instances in device_pm.c
+with dev_dbg() invocations, drop the _COMPONENT and ACPI_MODULE_NAME()
+definitions that are not used any more, and drop the no longer needed
+ACPI_POWER_COMPONENT definition from the headers and documentation.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/utils.c |   56 ++++++++++++++++-----------------------------------
- 1 file changed, 18 insertions(+), 38 deletions(-)
+ Documentation/firmware-guide/acpi/debug.rst |    1 -
+ drivers/acpi/device_pm.c                    |   20 ++++++++------------
+ drivers/acpi/sysfs.c                        |    1 -
+ include/acpi/acpi_drivers.h                 |    1 -
+ 4 files changed, 8 insertions(+), 15 deletions(-)
 
-Index: linux-pm/drivers/acpi/utils.c
+Index: linux-pm/Documentation/firmware-guide/acpi/debug.rst
 ===================================================================
---- linux-pm.orig/drivers/acpi/utils.c
-+++ linux-pm/drivers/acpi/utils.c
-@@ -6,6 +6,8 @@
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+--- linux-pm.orig/Documentation/firmware-guide/acpi/debug.rst
++++ linux-pm/Documentation/firmware-guide/acpi/debug.rst
+@@ -59,7 +59,6 @@ shows the supported mask values, current
+     ACPI_SBS_COMPONENT              0x00100000
+     ACPI_FAN_COMPONENT              0x00200000
+     ACPI_PCI_COMPONENT              0x00400000
+-    ACPI_POWER_COMPONENT            0x00800000
+     ACPI_CONTAINER_COMPONENT        0x01000000
+     ACPI_SYSTEM_COMPONENT           0x02000000
+     ACPI_THERMAL_COMPONENT          0x04000000
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -10,6 +10,8 @@
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   */
  
-+#define pr_fmt(fmt) "ACPI: utils: " fmt
++#define pr_fmt(fmt) "ACPI: PM: " fmt
 +
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -18,24 +20,12 @@
+ #include <linux/acpi.h>
+ #include <linux/export.h>
+ #include <linux/mutex.h>
+@@ -20,9 +22,6 @@
+ 
  #include "internal.h"
- #include "sleep.h"
  
--#define _COMPONENT		ACPI_BUS_COMPONENT
--ACPI_MODULE_NAME("utils");
+-#define _COMPONENT	ACPI_POWER_COMPONENT
+-ACPI_MODULE_NAME("device_pm");
 -
- /* --------------------------------------------------------------------------
-                             Object Evaluation Helpers
-    -------------------------------------------------------------------------- */
--static void
--acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
-+static void acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
- {
--#ifdef ACPI_DEBUG_OUTPUT
--	char prefix[80] = {'\0'};
--	struct acpi_buffer buffer = {sizeof(prefix), prefix};
--	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",
--		(char *) prefix, p, acpi_format_exception(s)));
--#else
--	return;
--#endif
-+	acpi_handle_debug(h, "Evaluate [%s]: %s\n", p, acpi_format_exception(s));
+ /**
+  * acpi_power_state_string - String representation of ACPI device power state.
+  * @state: ACPI device power state to return the string representation of.
+@@ -130,8 +129,8 @@ int acpi_device_get_power(struct acpi_de
+ 	*state = result;
+ 
+  out:
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] power state is %s\n",
+-			  device->pnp.bus_id, acpi_power_state_string(*state)));
++	dev_dbg(&device->dev, "Device power state is %s\n",
++		acpi_power_state_string(*state));
+ 
+ 	return 0;
  }
+@@ -174,9 +173,8 @@ int acpi_device_set_power(struct acpi_de
  
- acpi_status
-@@ -53,25 +43,24 @@ acpi_extract_package(union acpi_object *
- 
- 	if (!package || (package->type != ACPI_TYPE_PACKAGE)
- 	    || (package->package.count < 1)) {
--		printk(KERN_WARNING PREFIX "Invalid package argument\n");
-+		pr_debug("Invalid package argument\n");
- 		return AE_BAD_PARAMETER;
+ 	/* There is a special case for D0 addressed below. */
+ 	if (state > ACPI_STATE_D0 && state == device->power.state) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already in %s\n",
+-				  device->pnp.bus_id,
+-				  acpi_power_state_string(state)));
++		dev_dbg(&device->dev, "Device already in %s\n",
++			acpi_power_state_string(state));
+ 		return 0;
  	}
  
- 	if (!format || !format->pointer || (format->length < 1)) {
--		printk(KERN_WARNING PREFIX "Invalid format argument\n");
-+		pr_debug("Invalid format argument\n");
- 		return AE_BAD_PARAMETER;
+@@ -276,10 +274,8 @@ int acpi_device_set_power(struct acpi_de
+ 			 acpi_power_state_string(target_state));
+ 	} else {
+ 		device->power.state = target_state;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Device [%s] transitioned to %s\n",
+-				  device->pnp.bus_id,
+-				  acpi_power_state_string(target_state)));
++		dev_dbg(&device->dev, "Power state changed to %s\n",
++			acpi_power_state_string(target_state));
  	}
  
- 	if (!buffer) {
--		printk(KERN_WARNING PREFIX "Invalid buffer argument\n");
-+		pr_debug("Invalid buffer argument\n");
- 		return AE_BAD_PARAMETER;
- 	}
- 
- 	format_count = (format->length / sizeof(char)) - 1;
- 	if (format_count > package->package.count) {
--		printk(KERN_WARNING PREFIX "Format specifies more objects [%d]"
--			      " than exist in package [%d].\n",
--			      format_count, package->package.count);
-+		pr_debug("Format specifies more objects [%d] than present [%d]\n",
-+			 format_count, package->package.count);
- 		return AE_BAD_DATA;
- 	}
- 
-@@ -99,10 +88,8 @@ acpi_extract_package(union acpi_object *
- 				tail_offset += sizeof(char *);
- 				break;
- 			default:
--				printk(KERN_WARNING PREFIX "Invalid package element"
--					      " [%d]: got number, expecting"
--					      " [%c]\n",
--					      i, format_string[i]);
-+				pr_debug("Invalid package element [%d]: got number, expected [%c]\n",
-+					 i, format_string[i]);
- 				return AE_BAD_DATA;
- 			}
- 			break;
-@@ -123,10 +110,8 @@ acpi_extract_package(union acpi_object *
- 				tail_offset += sizeof(u8 *);
- 				break;
- 			default:
--				printk(KERN_WARNING PREFIX "Invalid package element"
--					      " [%d] got string/buffer,"
--					      " expecting [%c]\n",
--					      i, format_string[i]);
-+				pr_debug("Invalid package element [%d] got string/buffer, expected [%c]\n",
-+					 i, format_string[i]);
- 				return AE_BAD_DATA;
- 			}
- 			break;
-@@ -137,19 +122,15 @@ acpi_extract_package(union acpi_object *
- 				tail_offset += sizeof(void *);
- 				break;
- 			default:
--				printk(KERN_WARNING PREFIX "Invalid package element"
--					      " [%d] got reference,"
--					      " expecting [%c]\n",
--					      i, format_string[i]);
-+				pr_debug("Invalid package element [%d] got reference, expected [%c]\n",
-+					 i, format_string[i]);
- 				return AE_BAD_DATA;
- 			}
- 			break;
- 
- 		case ACPI_TYPE_PACKAGE:
- 		default:
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "Found unsupported element at index=%d\n",
--					  i));
-+			pr_debug("Unsupported element at index=%d\n", i);
- 			/* TBD: handle nested packages... */
- 			return AE_SUPPORT;
- 		}
-@@ -289,7 +270,7 @@ acpi_evaluate_integer(acpi_handle handle
- 
- 	*data = element.integer.value;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%llu]\n", *data));
-+	acpi_handle_debug(handle, "Return value [%llu]\n", *data);
- 
- 	return AE_OK;
- }
-@@ -363,8 +344,7 @@ acpi_evaluate_reference(acpi_handle hand
- 		/* Get the  acpi_handle. */
- 
- 		list->handles[i] = element->reference.handle;
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found reference [%p]\n",
--				  list->handles[i]));
-+		acpi_handle_debug(list->handles[i], "Found in reference list\n");
- 	}
- 
-       end:
+ 	return result;
+Index: linux-pm/drivers/acpi/sysfs.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sysfs.c
++++ linux-pm/drivers/acpi/sysfs.c
+@@ -59,7 +59,6 @@ static const struct acpi_dlayer acpi_deb
+ 	ACPI_DEBUG_INIT(ACPI_SBS_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_FAN_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_PCI_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_POWER_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_CONTAINER_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_SYSTEM_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_THERMAL_COMPONENT),
+Index: linux-pm/include/acpi/acpi_drivers.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_drivers.h
++++ linux-pm/include/acpi/acpi_drivers.h
+@@ -22,7 +22,6 @@
+ #define ACPI_SBS_COMPONENT		0x00100000
+ #define ACPI_FAN_COMPONENT		0x00200000
+ #define ACPI_PCI_COMPONENT		0x00400000
+-#define ACPI_POWER_COMPONENT		0x00800000
+ #define ACPI_CONTAINER_COMPONENT	0x01000000
+ #define ACPI_SYSTEM_COMPONENT		0x02000000
+ #define ACPI_THERMAL_COMPONENT		0x04000000
 
 
 
