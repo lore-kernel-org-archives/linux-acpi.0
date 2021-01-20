@@ -2,51 +2,66 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 956DDC433E0
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:15:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52EFCC433E6
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:17:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C267233FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:15:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1DAF233F6
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:17:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392192AbhATTOM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Jan 2021 14:14:12 -0500
-Received: from mail-wm1-f42.google.com ([209.85.128.42]:38206 "EHLO
-        mail-wm1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388578AbhATTNo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 14:13:44 -0500
-Received: by mail-wm1-f42.google.com with SMTP id y187so3807021wmd.3;
-        Wed, 20 Jan 2021 11:13:28 -0800 (PST)
+        id S1731366AbhATTQk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Jan 2021 14:16:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53152 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2392251AbhATSvy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 13:51:54 -0500
+Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAB99C061575;
+        Wed, 20 Jan 2021 10:51:13 -0800 (PST)
+Received: by mail-pj1-x1036.google.com with SMTP id x20so2766122pjh.3;
+        Wed, 20 Jan 2021 10:51:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=8Hs2DcL35t0kl1yCFHjjFssW9wT5FyIR7wKEzzsdbpo=;
+        b=dRav0suxujHDPp6A8CK2JWKAEtKakYb5QGn9YEZzwzGCtYrYK14SCri4gnR5bxb+Us
+         lGUMCX39l82e11zEbX5HZOfIXR715YY8bU84qeW0W9tmRDo2fT36BlvGcsZry0L3ZPBz
+         H4mlxJ0cKy97A6D2uqaBkhs0t4ujUmNSbDvXRAq/VCVNWZtC+tc5lS8ROvv/AW/ZW5Y2
+         U4nVx2BBEcO4UBbPiSaPA/DX6cb7UWpZEtVfghF8oqMRhWlmF4C3xdwOjc/snLriUl7X
+         rrugv/vNvJGyOnM6ZxNhGyWOLtguohjdDIRgkQY3Vd83pX81q+UP3VjPY9k4wjNCQCoP
+         NNhg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=MBnGinpLx/odbS3fMalb2PzzBTxTBoYrscYbO4dcTx4=;
-        b=jQK8KsomxkfnpfpF06mYjwHfydEhZZRMxmpaztn9NkUx54MfEK9fn9wocyoa1BbVzt
-         YW1La+uX/oiAQCLmr5ZpNZTpmySgblUJyuYpmkTnGe4aPM2U2mvXFgElHDqlyct2V45U
-         cjMAPCbch1jICD3HqdjgveCuw+VxZ+YxfgZo55fPPxszNNPJwZtotvt5nwbZCWAde9Ol
-         hx8RpgaMedSXfmYUbMhgGob4A13g177bHE8J8Vw6twC2ooBArPUfeQChlazn/3dZxXSz
-         VitUO0K8ej/iG/7nelG33ZTHKLN1cEJmqXjoW97xnM47laEPY5Oi+uEBprMlFZL526k/
-         sOEg==
-X-Gm-Message-State: AOAM5307vz7dJHGgOy4N5jjq62h1jE3cNC+rwzPAQOZwZb/yo9YQe9yy
-        ot5MPwJ1miARJQIO0jJvUMblkqNS6zD2489tiq8=
-X-Google-Smtp-Source: ABdhPJw8c6qlkHR9iOkx8qE2vXeyMZs0yuZj2aqvZqkBYp8IXyAbHDidFzxsbIm2t+aeBTe9BpPR7HOZC2oOs1VO7wQ=
-X-Received: by 2002:a1c:a593:: with SMTP id o141mr5723964wme.92.1611169982589;
- Wed, 20 Jan 2021 11:13:02 -0800 (PST)
+        bh=8Hs2DcL35t0kl1yCFHjjFssW9wT5FyIR7wKEzzsdbpo=;
+        b=TaBDbpB7dJx4r5B7Iq4+h67SXokBvbm8DiECJSqWo4cJPz9+ksybw5qHNi8R3btaIn
+         hoX6WX8WJXyc9boPAglN01IoIwOiV8RfX1WqEgps0I4d9lHB+sEsoF/O4b1SSDWBHiTr
+         FDNDSOcLACdYpdMBJt5dJVw5hPMPAuW6ZkJkWmytZ/Ic6hqkxb8N3N7TbLUeB6bMMBhq
+         5a57E6UAldL0MGuWpspVzX4b+50ZXRKLRqzwGttUj5ewgVxviFVDKGpRyynnle15QnfZ
+         XjG9o+LQvouiXVtQ/s+GAADt/EWzHwGc6kx+UuuV8R2T5cHcP0zbfZaeHid1QF+khyRT
+         AuKA==
+X-Gm-Message-State: AOAM530nOjNIV2a9G9Pp6pSlUIDZfvLyLIlhcztA2CT+/qFIK1DH2X/9
+        hXYycWh3mK+6KtGj3riU931MXC2h1xmePtVVdqQ=
+X-Google-Smtp-Source: ABdhPJzv8KOKKxqz3FzB3J06cEYWD65UwnYAnvtnchLHoC0Fyy3OdQsBe2nstf01pUlHCsnd7GvQhp0Qu1G3Y8TFe/4=
+X-Received: by 2002:a17:90a:1050:: with SMTP id y16mr7368838pjd.181.1611168673398;
+ Wed, 20 Jan 2021 10:51:13 -0800 (PST)
 MIME-Version: 1.0
 References: <20210112134054.342-1-calvin.johnson@oss.nxp.com>
- <20210112134054.342-10-calvin.johnson@oss.nxp.com> <CAHp75VdyPWD-cM5Q_9k8yRAutMSjm-3kwE0pQT3+ztKGwcU+4A@mail.gmail.com>
- <CAJZ5v0hic-Yf74Rn06kui4z+KZBES_uiH-pRmmRcFcYjuDZ=CA@mail.gmail.com> <CAHp75Vc=b8tXmv7yussXNVKPOovmpKAB1b9cWSAw5rpKDcvLiQ@mail.gmail.com>
-In-Reply-To: <CAHp75Vc=b8tXmv7yussXNVKPOovmpKAB1b9cWSAw5rpKDcvLiQ@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 20 Jan 2021 20:12:26 +0100
-Message-ID: <CAJZ5v0ivSmgAbfH9JhGHRp9411F14XtrimESHftZGMLYKLfKmQ@mail.gmail.com>
+ <20210112134054.342-10-calvin.johnson@oss.nxp.com> <CAGETcx-7JVz=QLCMWicHqoagWYjeBXdFJmSv1v6MQhtPt2RS=Q@mail.gmail.com>
+ <20210112180343.GI4077@smile.fi.intel.com> <CAJZ5v0iW0jJUcXtiQtLOakkSejZCJD=hTFLL4mvoAN3ZTB+1Tw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0iW0jJUcXtiQtLOakkSejZCJD=hTFLL4mvoAN3ZTB+1Tw@mail.gmail.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Wed, 20 Jan 2021 20:52:02 +0200
+Message-ID: <CAHp75VcJS10KMA5amUc36PFgj0FLddj1fXD4dUtuAchrVhhzPg@mail.gmail.com>
 Subject: Re: [net-next PATCH v3 09/15] device property: Introduce fwnode_get_id()
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Saravana Kannan <saravanak@google.com>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
         Grant Likely <grant.likely@arm.com>,
         Jeremy Linton <jeremy.linton@arm.com>,
@@ -62,42 +77,30 @@ Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
         Jon <jon@solid-run.com>,
         Diana Madalina Craciun <diana.craciun@nxp.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
         netdev <netdev@vger.kernel.org>,
         Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         "linux.cj" <linux.cj@gmail.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Saravana Kannan <saravanak@google.com>
+        Randy Dunlap <rdunlap@infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jan 20, 2021 at 7:44 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Wed, Jan 20, 2021 at 8:18 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > On Tue, Jan 12, 2021 at 4:47 PM Andy Shevchenko
-> > <andy.shevchenko@gmail.com> wrote:
-> > > On Tue, Jan 12, 2021 at 3:42 PM Calvin Johnson
+On Wed, Jan 20, 2021 at 8:18 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Tue, Jan 12, 2021 at 7:02 PM Andy Shevchenko
+> <andy.shevchenko@gmail.com> wrote:
+> > On Tue, Jan 12, 2021 at 09:30:31AM -0800, Saravana Kannan wrote:
+> > > On Tue, Jan 12, 2021 at 5:42 AM Calvin Johnson
 > > > <calvin.johnson@oss.nxp.com> wrote:
->
-> ...
->
-> > > > +int fwnode_get_id(struct fwnode_handle *fwnode, u32 *id)
-> > > > +{
-> > > > +#ifdef CONFIG_ACPI
-> > > > +       unsigned long long adr;
-> > > > +       acpi_status status;
-> > > > +#endif
-> > > > +       int ret;
-> > > > +
+
+...
+
 > > > > +       ret = fwnode_property_read_u32(fwnode, "reg", id);
 > > > > +       if (!(ret && is_acpi_node(fwnode)))
 > > > > +               return ret;
@@ -108,23 +111,31 @@ On Wed, Jan 20, 2021 at 7:44 PM Andy Shevchenko
 > > > > +       if (ACPI_FAILURE(status))
 > > > > +               return -EINVAL;
 > > > > +       *id = (u32)adr;
-> > >
-> > > Shouldn't be
-> > >
-> > >        return 0;
-> > > #else
-> > >        return -EINVAL;
-> > > #endif
-> > >
-> > > ?
-> > >
-> > > Yes, it's a theoretical case when is_acpi_node() returns true when
-> > > CONFIG_ACPI=n.
-> >
-> > How so?  is_acpi_node() is defined as a static inline returning false then.
->
-> I understand that, that's why it's pure theoretical when, for example,
-> the semantics is changed. But I believe it's unlucky to happen.
+> > > > +#endif
+> > > > +       return 0;
 
-Changing the definition of it for CONFIG_ACPI=n would be a regression
-given the current usage of it.
+> > > Also ACPI and DT
+> > > aren't mutually exclusive if I'm not mistaken.
+> >
+> > That's why we try 'reg' property for both cases first.
+> >
+> > is_acpi_fwnode() conditional is that what I don't like though.
+>
+> I'm not sure what you mean here, care to elaborate?
+
+I meant is_acpi_node(fwnode) in the conditional.
+
+I think it's redundant and we can simple do something like this:
+
+  if (ret) {
+#ifdef ACPI
+    ...
+#else
+    return ret;
+#endif
+  }
+  return 0;
+
+-- 
+With Best Regards,
+Andy Shevchenko
