@@ -2,152 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D97C433DB
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 18:20:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 140E7C433E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BEA2233ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 18:20:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE68B233FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404262AbhATSTh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Jan 2021 13:19:37 -0500
-Received: from mail-ot1-f50.google.com ([209.85.210.50]:39512 "EHLO
-        mail-ot1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391964AbhATSSo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 13:18:44 -0500
-Received: by mail-ot1-f50.google.com with SMTP id i30so11348535ota.6;
-        Wed, 20 Jan 2021 10:18:27 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=IgWDE0PErg3ORn5MUSyThw1N3Ecrc6Z8pCtsc577ahI=;
-        b=ojM9r7PCtlxNYXItFNuFj/iw6hmuaeCLkNxVczASwTCTvtBngMAekwLoUvvd6etJaI
-         ybFnwSmuTOkJoyBjly/xRwbNLWye/NhawA2DdPwZRVj/ilBSIhz5Eo7crOy2+itv0nNV
-         CVcL7Tsw77M7BMHNUNHT3u/vQOlMggZ8R77Fl2P0wfSyzjuFrAvDQuFe5AZDM2sTKUxE
-         yJSK1lErEmX26ucnQWobUn2fJ32RYt5FYhrlWU+jLaHSWABujrBDC5nZod/Jlx1JOMjZ
-         P7B/LQPO1JeBtWjEkwgI/+b06V5MWh8DoJrkiWvy5Lpq27Ii0kQ8mgg6OWZMhhuBvo7e
-         6a0Q==
-X-Gm-Message-State: AOAM5319XFPLIJwgtWTE35qCnVYCoOV0ZimRJ132nvoFjO4vSDacAFK4
-        vDHXGKIyblYZqlCEhS0v3Ikp3kcOQLjtnVeNQHs=
-X-Google-Smtp-Source: ABdhPJwN77JI0VoJPEv4UVgKZFKkiy2aKaFZpzEAoON0ded46fj5YtH3TNGxm9cmcPfHk60ojzmuOupUQn33CroVRy0=
-X-Received: by 2002:a05:6830:138f:: with SMTP id d15mr1588674otq.321.1611166682565;
- Wed, 20 Jan 2021 10:18:02 -0800 (PST)
+        id S2392463AbhATTDY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Jan 2021 14:03:24 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:43302 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2392380AbhATTDV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 14:03:21 -0500
+Received: from 89-64-80-175.dynamic.chello.pl (89.64.80.175) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
+ id 37c59415165b22d5; Wed, 20 Jan 2021 20:02:10 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH v1 6/6] ACPI: bus: Drop ACPI_BUS_COMPONENT which is not used any more
+Date:   Wed, 20 Jan 2021 20:01:18 +0100
+Message-ID: <1953409.1HvooF2U0O@kreacher>
+In-Reply-To: <2809410.8bz27usjlQ@kreacher>
+References: <2809410.8bz27usjlQ@kreacher>
 MIME-Version: 1.0
-References: <20210112134054.342-1-calvin.johnson@oss.nxp.com>
- <20210112134054.342-10-calvin.johnson@oss.nxp.com> <CAHp75VdyPWD-cM5Q_9k8yRAutMSjm-3kwE0pQT3+ztKGwcU+4A@mail.gmail.com>
-In-Reply-To: <CAHp75VdyPWD-cM5Q_9k8yRAutMSjm-3kwE0pQT3+ztKGwcU+4A@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 20 Jan 2021 19:17:51 +0100
-Message-ID: <CAJZ5v0hic-Yf74Rn06kui4z+KZBES_uiH-pRmmRcFcYjuDZ=CA@mail.gmail.com>
-Subject: Re: [net-next PATCH v3 09/15] device property: Introduce fwnode_get_id()
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     Calvin Johnson <calvin.johnson@oss.nxp.com>,
-        Grant Likely <grant.likely@arm.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
-        Jon <jon@solid-run.com>,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "linux.cj" <linux.cj@gmail.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Saravana Kannan <saravanak@google.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 12, 2021 at 4:47 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Tue, Jan 12, 2021 at 3:42 PM Calvin Johnson
-> <calvin.johnson@oss.nxp.com> wrote:
-> >
-> > Using fwnode_get_id(), get the reg property value for DT node
-> > or get the _ADR object value for ACPI node.
-> >
-> > Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-> > ---
-> >
-> > Changes in v3:
-> > - Modified to retrieve reg property value for ACPI as well
-> > - Resolved compilation issue with CONFIG_ACPI = n
-> > - Added more info into documentation
-> >
-> > Changes in v2: None
-> >
-> >  drivers/base/property.c  | 33 +++++++++++++++++++++++++++++++++
-> >  include/linux/property.h |  1 +
-> >  2 files changed, 34 insertions(+)
-> >
-> > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > index 35b95c6ac0c6..2d51108cb936 100644
-> > --- a/drivers/base/property.c
-> > +++ b/drivers/base/property.c
-> > @@ -580,6 +580,39 @@ const char *fwnode_get_name_prefix(const struct fwnode_handle *fwnode)
-> >         return fwnode_call_ptr_op(fwnode, get_name_prefix);
-> >  }
-> >
-> > +/**
-> > + * fwnode_get_id - Get the id of a fwnode.
-> > + * @fwnode: firmware node
-> > + * @id: id of the fwnode
-> > + *
-> > + * This function provides the id of a fwnode which can be either
-> > + * DT or ACPI node. For ACPI, "reg" property value, if present will
-> > + * be provided or else _ADR value will be provided.
-> > + * Returns 0 on success or a negative errno.
-> > + */
-> > +int fwnode_get_id(struct fwnode_handle *fwnode, u32 *id)
-> > +{
-> > +#ifdef CONFIG_ACPI
-> > +       unsigned long long adr;
-> > +       acpi_status status;
-> > +#endif
-> > +       int ret;
-> > +
-> > +       ret = fwnode_property_read_u32(fwnode, "reg", id);
-> > +       if (!(ret && is_acpi_node(fwnode)))
-> > +               return ret;
-> > +
-> > +#ifdef CONFIG_ACPI
-> > +       status = acpi_evaluate_integer(ACPI_HANDLE_FWNODE(fwnode),
-> > +                                      METHOD_NAME__ADR, NULL, &adr);
-> > +       if (ACPI_FAILURE(status))
-> > +               return -EINVAL;
-> > +       *id = (u32)adr;
->
-> Shouldn't be
->
->        return 0;
-> #else
->        return -EINVAL;
-> #endif
->
-> ?
->
-> Yes, it's a theoretical case when is_acpi_node() returns true when
-> CONFIG_ACPI=n.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-How so?  is_acpi_node() is defined as a static inline returning false then.
+After dropping all of the code using ACPI_BUS_COMPONENT drop it
+too and modify the example in the documentation using it.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/firmware-guide/acpi/debug.rst |   13 ++++++-------
+ drivers/acpi/sysfs.c                        |    1 -
+ include/acpi/acpi_drivers.h                 |    1 -
+ 3 files changed, 6 insertions(+), 9 deletions(-)
+
+Index: linux-pm/Documentation/firmware-guide/acpi/debug.rst
+===================================================================
+--- linux-pm.orig/Documentation/firmware-guide/acpi/debug.rst
++++ linux-pm/Documentation/firmware-guide/acpi/debug.rst
+@@ -52,7 +52,6 @@ shows the supported mask values, current
+     ACPI_CA_DISASSEMBLER            0x00000800
+     ACPI_COMPILER                   0x00001000
+     ACPI_TOOLS                      0x00002000
+-    ACPI_BUS_COMPONENT              0x00010000
+     ACPI_AC_COMPONENT               0x00020000
+     ACPI_BATTERY_COMPONENT          0x00040000
+     ACPI_BUTTON_COMPONENT           0x00080000
+@@ -117,15 +116,15 @@ currently these::
+ Examples
+ ========
+ 
+-For example, drivers/acpi/bus.c contains this::
++For example, drivers/acpi/acpica/evxfevnt.c contains this::
+ 
+-    #define _COMPONENT              ACPI_BUS_COMPONENT
++    #define _COMPONENT          ACPI_EVENTS
+     ...
+-    ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device insertion detected\n"));
++    ACPI_DEBUG_PRINT((ACPI_DB_INIT, "ACPI mode disabled\n"));
+ 
+-To turn on this message, set the ACPI_BUS_COMPONENT bit in acpi.debug_layer
+-and the ACPI_LV_INFO bit in acpi.debug_level.  (The ACPI_DEBUG_PRINT
+-statement uses ACPI_DB_INFO, which is macro based on the ACPI_LV_INFO
++To turn on this message, set the ACPI_EVENTS bit in acpi.debug_layer
++and the ACPI_LV_INIT bit in acpi.debug_level.  (The ACPI_DEBUG_PRINT
++statement uses ACPI_DB_INIT, which is a macro based on the ACPI_LV_INIT
+ definition.)
+ 
+ Enable all AML "Debug" output (stores to the Debug object while interpreting
+Index: linux-pm/drivers/acpi/sysfs.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sysfs.c
++++ linux-pm/drivers/acpi/sysfs.c
+@@ -52,7 +52,6 @@ static const struct acpi_dlayer acpi_deb
+ 	ACPI_DEBUG_INIT(ACPI_COMPILER),
+ 	ACPI_DEBUG_INIT(ACPI_TOOLS),
+ 
+-	ACPI_DEBUG_INIT(ACPI_BUS_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_AC_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_BATTERY_COMPONENT),
+ 	ACPI_DEBUG_INIT(ACPI_BUTTON_COMPONENT),
+Index: linux-pm/include/acpi/acpi_drivers.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_drivers.h
++++ linux-pm/include/acpi/acpi_drivers.h
+@@ -15,7 +15,6 @@
+  * Please update drivers/acpi/debug.c and Documentation/firmware-guide/acpi/debug.rst
+  * if you add to this list.
+  */
+-#define ACPI_BUS_COMPONENT		0x00010000
+ #define ACPI_AC_COMPONENT		0x00020000
+ #define ACPI_BATTERY_COMPONENT		0x00040000
+ #define ACPI_BUTTON_COMPONENT		0x00080000
+
+
+
