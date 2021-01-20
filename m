@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40D66C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B70DC433E6
 	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E159B23433
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 142012343E
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Jan 2021 19:03:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392484AbhATTD2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Jan 2021 14:03:28 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:52026 "EHLO
+        id S2392490AbhATTDb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Jan 2021 14:03:31 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:45850 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392425AbhATTDY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 14:03:24 -0500
+        with ESMTP id S2392413AbhATTDX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2021 14:03:23 -0500
 Received: from 89-64-80-175.dynamic.chello.pl (89.64.80.175) (HELO kreacher.localnet)
  by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
- id 7fd8987296b51fa0; Wed, 20 Jan 2021 20:02:16 +0100
+ id 3b1bfd3e35caa5f7; Wed, 20 Jan 2021 20:02:13 +0100
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v1 1/6] ACPI: power: Clean up printing messages
-Date:   Wed, 20 Jan 2021 19:57:03 +0100
-Message-ID: <2085818.bEvWYRANqJ@kreacher>
+Subject: [PATCH v1 4/6] ACPI: scan: Clean up printing messages
+Date:   Wed, 20 Jan 2021 19:59:51 +0100
+Message-ID: <32235625.20C0QTXHV0@kreacher>
 In-Reply-To: <2809410.8bz27usjlQ@kreacher>
 References: <2809410.8bz27usjlQ@kreacher>
 MIME-Version: 1.0
@@ -40,154 +40,109 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Replace all of the ACPI_DEBUG_PRINT() instances in power.c with
-acpi_handle_debug() or pr_debug(), depending on the context,
-drop the _COMPONENT and ACPI_MODULE_NAME() definitions that
-are not used any more, and replace the direct invocations of
-printk() in there with acpi_handle_info() or pr_info(), depending
-on the context.
+Replace all of the ACPI_DEBUG_PRINT() and ACPI_EXCEPTION() instances
+in scan.c with acpi_handle_debug() and acpi_handle_info(), respectively,
+and drop the _COMPONENT and ACPI_MODULE_NAME() definitions that
+are not used any more.
+
+While at it, drop the redundant "Memory allocation error" message
+from acpi_add_single_object() and clean up the list of local variables
+in that function.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/power.c |   44 +++++++++++++++-----------------------------
- 1 file changed, 15 insertions(+), 29 deletions(-)
+ drivers/acpi/scan.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
-Index: linux-pm/drivers/acpi/power.c
+Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/power.c
-+++ linux-pm/drivers/acpi/power.c
-@@ -21,6 +21,8 @@
-  * may be shared by multiple devices.
-  */
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -19,8 +19,6 @@
  
-+#define pr_fmt(fmt) "ACPI: PM: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -32,8 +34,6 @@
- #include "sleep.h"
  #include "internal.h"
  
--#define _COMPONENT			ACPI_POWER_COMPONENT
--ACPI_MODULE_NAME("power");
- #define ACPI_POWER_CLASS		"power_resource"
- #define ACPI_POWER_DEVICE_NAME		"Power Resource"
- #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
-@@ -181,9 +181,6 @@ static int acpi_power_get_state(acpi_han
+-#define _COMPONENT		ACPI_BUS_COMPONENT
+-ACPI_MODULE_NAME("scan");
+ extern struct acpi_device *acpi_root;
+ 
+ #define ACPI_BUS_CLASS			"system_bus"
+@@ -265,8 +263,7 @@ static int acpi_scan_hot_remove(struct a
+ 			return error;
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-		"Hot-removing device %s...\n", dev_name(&device->dev)));
++	acpi_handle_debug(handle, "Ejecting\n");
+ 
+ 	acpi_bus_trim(device);
+ 
+@@ -827,7 +824,8 @@ static int acpi_bus_extract_wakeup_devic
+ 	/* _PRW */
+ 	status = acpi_evaluate_object(handle, "_PRW", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRW"));
++		acpi_handle_info(handle, "_PRW evaluation failed: %s\n",
++				 acpi_format_exception(status));
+ 		return err;
+ 	}
+ 
+@@ -932,7 +930,7 @@ static void acpi_bus_get_wakeup_device_f
+ 
+ 	err = acpi_bus_extract_wakeup_device_power_package(device);
+ 	if (err) {
+-		dev_err(&device->dev, "_PRW evaluation error: %d\n", err);
++		dev_err(&device->dev, "Unable to extract wakeup power resources");
+ 		return;
+ 	}
+ 
+@@ -1168,8 +1166,7 @@ acpi_backlight_cap_match(acpi_handle han
+ 
+ 	if (acpi_has_method(handle, "_BCM") &&
+ 	    acpi_has_method(handle, "_BCL")) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
+-				  "support\n"));
++		acpi_handle_debug(handle, "Found generic backlight support\n");
+ 		*cap |= ACPI_VIDEO_BACKLIGHT;
+ 		/* We have backlight support, no need to scan further */
+ 		return AE_CTRL_TERMINATE;
+@@ -1660,17 +1657,15 @@ static int acpi_add_single_object(struct
+ 				  acpi_handle handle, int type,
+ 				  unsigned long long sta)
  {
- 	acpi_status status = AE_OK;
- 	unsigned long long sta = 0;
--	char node_name[5];
--	struct acpi_buffer buffer = { sizeof(node_name), node_name };
--
+-	int result;
+-	struct acpi_device *device;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_device_info *info = NULL;
++	struct acpi_device *device;
++	int result;
  
- 	if (!handle || !state)
- 		return -EINVAL;
-@@ -195,11 +192,8 @@ static int acpi_power_get_state(acpi_han
- 	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
- 			      ACPI_POWER_RESOURCE_STATE_OFF;
+ 	if (handle != ACPI_ROOT_OBJECT && type == ACPI_BUS_TYPE_DEVICE)
+ 		acpi_get_object_info(handle, &info);
  
--	acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
--			  node_name,
--				*state ? "on" : "off"));
-+	acpi_handle_debug(handle, "Power resource is %s\n",
-+			  *state ? "on" : "off");
- 
- 	return 0;
- }
-@@ -229,8 +223,7 @@ static int acpi_power_get_list_state(str
- 			break;
+ 	device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
+ 	if (!device) {
+-		printk(KERN_ERR PREFIX "Memory allocation error\n");
+ 		kfree(info);
+ 		return -ENOMEM;
  	}
+@@ -1697,11 +1692,11 @@ static int acpi_add_single_object(struct
  
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource list is %s\n",
--			  cur_state ? "on" : "off"));
-+	pr_debug("Power resource list is %s\n", cur_state ? "on" : "off");
- 
- 	*state = cur_state;
- 	return 0;
-@@ -357,8 +350,7 @@ static int __acpi_power_on(struct acpi_p
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
--			  resource->name));
-+	pr_debug("Power resource [%s] turned on\n", resource->name);
- 
- 	/*
- 	 * If there are other dependents on this power resource we need to
-@@ -383,9 +375,7 @@ static int acpi_power_on_unlocked(struct
- 	int result = 0;
- 
- 	if (resource->ref_count++) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Power resource [%s] already on\n",
--				  resource->name));
-+		pr_debug("Power resource [%s] already on\n", resource->name);
- 	} else {
- 		result = __acpi_power_on(resource);
- 		if (result)
-@@ -413,8 +403,8 @@ static int __acpi_power_off(struct acpi_
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned off\n",
--			  resource->name));
-+	pr_debug("Power resource [%s] turned off\n", resource->name);
+ 	acpi_power_add_remove_device(device, true);
+ 	acpi_device_add_finalize(device);
+-	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Added %s [%s] parent %s\n",
+-		dev_name(&device->dev), (char *) buffer.pointer,
+-		device->parent ? dev_name(&device->parent->dev) : "(null)"));
+-	kfree(buffer.pointer);
 +
++	acpi_handle_debug(handle, "Added as %s, parent %s\n",
++			  dev_name(&device->dev), device->parent ?
++				dev_name(&device->parent->dev) : "(null)");
++
+ 	*child = device;
  	return 0;
  }
- 
-@@ -423,16 +413,12 @@ static int acpi_power_off_unlocked(struc
- 	int result = 0;
- 
- 	if (!resource->ref_count) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Power resource [%s] already off\n",
--				  resource->name));
-+		pr_debug("Power resource [%s] already off\n", resource->name);
- 		return 0;
- 	}
- 
- 	if (--resource->ref_count) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Power resource [%s] still in use\n",
--				  resource->name));
-+		pr_debug("Power resource [%s] still in use\n", resource->name);
- 	} else {
- 		result = __acpi_power_off(resource);
- 		if (result)
-@@ -672,7 +658,7 @@ int acpi_device_sleep_wake(struct acpi_d
- 	if (ACPI_SUCCESS(status)) {
- 		return 0;
- 	} else if (status != AE_NOT_FOUND) {
--		printk(KERN_ERR PREFIX "_DSW execution failed\n");
-+		acpi_handle_info(dev->handle, "_DSW execution failed\n");
- 		dev->wakeup.flags.valid = 0;
- 		return -ENODEV;
- 	}
-@@ -680,7 +666,7 @@ int acpi_device_sleep_wake(struct acpi_d
- 	/* Execute _PSW */
- 	status = acpi_execute_simple_method(dev->handle, "_PSW", enable);
- 	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--		printk(KERN_ERR PREFIX "_PSW execution failed\n");
-+		acpi_handle_info(dev->handle, "_PSW execution failed\n");
- 		dev->wakeup.flags.valid = 0;
- 		return -ENODEV;
- 	}
-@@ -960,8 +946,8 @@ int acpi_add_power_resource(acpi_handle
- 	if (result)
- 		goto err;
- 
--	printk(KERN_INFO PREFIX "%s [%s] (%s)\n", acpi_device_name(device),
--	       acpi_device_bid(device), state ? "on" : "off");
-+	pr_info("%s [%s] (%s)\n", acpi_device_name(device),
-+		acpi_device_bid(device), state ? "on" : "off");
- 
- 	device->flags.match_driver = true;
- 	result = acpi_device_add(device, acpi_release_power_resource);
 
 
 
