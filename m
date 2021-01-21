@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C3A9C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A16A8C433E6
 	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 12:44:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A69223A21
+	by mail.kernel.org (Postfix) with ESMTP id 5A05B23A24
 	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 12:44:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729351AbhAUMmw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Jan 2021 07:42:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57032 "EHLO
+        id S1731037AbhAUMnM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Jan 2021 07:43:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731386AbhAUMlD (ORCPT
+        with ESMTP id S1731358AbhAUMlD (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jan 2021 07:41:03 -0500
-Received: from mail-wm1-x334.google.com (mail-wm1-x334.google.com [IPv6:2a00:1450:4864:20::334])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1483C061798
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Jan 2021 04:39:38 -0800 (PST)
-Received: by mail-wm1-x334.google.com with SMTP id c128so1395436wme.2
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Jan 2021 04:39:38 -0800 (PST)
+Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15335C061786
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Jan 2021 04:39:36 -0800 (PST)
+Received: by mail-wr1-x433.google.com with SMTP id a12so1587409wrv.8
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Jan 2021 04:39:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=2eRhKsVau0r7rYJc5kg9wODttGekaxkRDREYSkG2V3g=;
-        b=QuUMjiy5ho1cz1ta5kVsxHS6pccVZgC9l6zL1qsFa7+VqjNpuf/uQnkpICVteQGTmp
-         5LfYliJDrpBW/gPgpB7ezB5xGV1T8K0b2SaRShfvi4yMh0bYjCt/utdFGEstkQVoNjiA
-         eFM8A9hStx44vAI2iPyPAZRme9cDQULk4hw1TIurC9IApmOLPwdVgoG+9t85+7OtvPu/
-         k//FGUbAqr9XsDSOm8HxrfdVW2FadDrap3RhH4vIsdF4h1+6UmL/+ThjrnrGApVO3mss
-         VFwc3rD61MYEuRJPv+T1m/isVhd6pid/9m4XbVK/WijzMQ62V4m7JSmViDa9OzIQA9hl
-         UX6g==
+        bh=uiSdj3ahcV4jfiq23D9UAVEBduTBnIEfUfM+Rzx87y0=;
+        b=mEVIzmJOt7Xtq5tBdG3qYyH/ROr0C/ACsTWq5nMIVXbuXPKMonC/E83/Y9dlzba62i
+         87+fSmjK3xudRPVJ6Eq7pB4RZg0COl2Uz3KqEBVGBlJv3FflTp1FxOChOQ4vuCHIeFkT
+         ZKnKPW62M/2Xsmq8G/xyItQ1oX//QRXxxPTF+HYrLIr+7E+xu2D+HywmtlocgBoCu4Wt
+         xUUDR6giwTNLfTanQ7daWKJ5vSUpWmtVanw3nkgz3iTejfXfAROIiOonnY5HEFLwvzJs
+         YEoY+BCdHVqhC357mpmP83xqwNpcz/PiRTCoF0da5MgYmFlg8WduhxTpfepytXEJU9Nd
+         gF5w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=2eRhKsVau0r7rYJc5kg9wODttGekaxkRDREYSkG2V3g=;
-        b=pTGQUrVUNp4xhm4RwafEAb6CIfIsSpsE8JtzMl82kD74zr3fkqcitu1u5RL2qz2JnS
-         Pd8EF3DUgeIKXKJp8ta6cCScSfczUodiiG2KgBE2FbHyaeZ4LfksEk2uMpKZNWpigeod
-         7V8Lkmagi/HEK3DD+XenuXC5aZFjYFEKKgyqMyAJokUmtCxofQ/9NfRinccsGZPpzGma
-         rkSALeN8/R/bPvzpTteXPOuf60/AaRvswAviaMrfZ2zBbge3eklmlju/3cZnDIwiFAq8
-         /t+jLpVbSHg/RS5F4zZqXJ7DRogYQCkuTg58+bhKwXYlNkLaFcuIMfFjwZMKPEmL177d
-         38ig==
-X-Gm-Message-State: AOAM532mYVk62Z2QkO30OWOEWG/7rGSc/Ew3TOExITN5i+TUliXz7388
-        GFcxotqCZDhcO8972Z4jAEEHdw==
-X-Google-Smtp-Source: ABdhPJzCnYjI4iIxIrFa+qg5mD+IvE1eNZJ/zCswHjZr0Pa6EmPz7F9ZjjKy3/Xym3kXCMfttFAK5g==
-X-Received: by 2002:a05:600c:1986:: with SMTP id t6mr8703507wmq.93.1611232777425;
-        Thu, 21 Jan 2021 04:39:37 -0800 (PST)
+        bh=uiSdj3ahcV4jfiq23D9UAVEBduTBnIEfUfM+Rzx87y0=;
+        b=gsysqu/C31BTbGB8/GkLu8M1w3m1po3MfqGU56MvAmKx114bB73zAAmlQ81hECEm/I
+         qgiRU4TiDFTMC84QjPdYR1qJxn90nNdYXgpvYzoh8cXIy93WrsczxutWLFZKDpp2TnfR
+         ufbipm+6NaoxQYk82VFpI2GaExtQEOrmjN4C4dRiHClcbcBgsG+w3pkhutchnph/QMZJ
+         tJZmPyOok0/TmVYOpQwu08fq+Db2z5eNKwYciPct7GIJWEgSvy7tzFR/Uo1/6B7Uw5rt
+         2fOybEIdUzhibOPuPXs9zWP1673EgmZ30E67a3n45FHTKkJnVcTIhDIyTKzu+sb00iS5
+         I5Mw==
+X-Gm-Message-State: AOAM530CDnm1c5+bBuH9+z/KETP44mhiVE0ykmAKda3IT4Wxi1mIYOEz
+        CDBE9JhmmB28A2Nes3Kau1NYgw==
+X-Google-Smtp-Source: ABdhPJw8AvvW+MlHpoiAy5gn8AEuJrdo9yr2py8gTgiO2JaFC6Egx+dlUYfvYIO1wQ4CWNJYDDEavQ==
+X-Received: by 2002:a05:6000:1188:: with SMTP id g8mr14533730wrx.111.1611232774874;
+        Thu, 21 Jan 2021 04:39:34 -0800 (PST)
 Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id p18sm7979248wmc.31.2021.01.21.04.39.36
+        by smtp.gmail.com with ESMTPSA id p18sm7979248wmc.31.2021.01.21.04.39.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 04:39:36 -0800 (PST)
+        Thu, 21 Jan 2021 04:39:34 -0800 (PST)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     joro@8bytes.org, will@kernel.org
 Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
@@ -69,11 +69,12 @@ Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
         shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
         Jean-Philippe Brucker <jean-philippe@linaro.org>,
         Arnd Bergmann <arnd@arndb.de>,
+        David Woodhouse <dwmw2@infradead.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Zhou Wang <wangzhou1@hisilicon.com>
-Subject: [PATCH v10 05/10] uacce: Enable IOMMU_DEV_FEAT_IOPF
-Date:   Thu, 21 Jan 2021 13:36:19 +0100
-Message-Id: <20210121123623.2060416-6-jean-philippe@linaro.org>
+Subject: [PATCH v10 03/10] iommu: Separate IOMMU_DEV_FEAT_IOPF from IOMMU_DEV_FEAT_SVA
+Date:   Thu, 21 Jan 2021 13:36:17 +0100
+Message-Id: <20210121123623.2060416-4-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210121123623.2060416-1-jean-philippe@linaro.org>
 References: <20210121123623.2060416-1-jean-philippe@linaro.org>
@@ -83,97 +84,59 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The IOPF (I/O Page Fault) feature is now enabled independently from the
-SVA feature, because some IOPF implementations are device-specific and
-do not require IOMMU support for PCIe PRI or Arm SMMU stall.
+Some devices manage I/O Page Faults (IOPF) themselves instead of relying
+on PCIe PRI or Arm SMMU stall. Allow their drivers to enable SVA without
+mandating IOMMU-managed IOPF. The other device drivers now need to first
+enable IOMMU_DEV_FEAT_IOPF before enabling IOMMU_DEV_FEAT_SVA. Enabling
+IOMMU_DEV_FEAT_IOPF on its own doesn't have any effect visible to the
+device driver, it is used in combination with other features.
 
-Enable IOPF unconditionally when enabling SVA for now. In the future, if
-a device driver implementing a uacce interface doesn't need IOPF
-support, it will need to tell the uacce module, for example with a new
-flag.
-
-Acked-by: Zhangfei Gao <zhangfei.gao@linaro.org>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Lu Baolu <baolu.lu@linux.intel.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
 Cc: Zhou Wang <wangzhou1@hisilicon.com>
 ---
- drivers/misc/uacce/uacce.c | 39 +++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ include/linux/iommu.h | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/misc/uacce/uacce.c b/drivers/misc/uacce/uacce.c
-index d07af4edfcac..6db7a98486ec 100644
---- a/drivers/misc/uacce/uacce.c
-+++ b/drivers/misc/uacce/uacce.c
-@@ -385,6 +385,33 @@ static void uacce_release(struct device *dev)
- 	kfree(uacce);
- }
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index b7ea11fc1a93..00348e4c3c26 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -156,10 +156,24 @@ struct iommu_resv_region {
+ 	enum iommu_resv_type	type;
+ };
  
-+static unsigned int uacce_enable_sva(struct device *parent, unsigned int flags)
-+{
-+	if (!(flags & UACCE_DEV_SVA))
-+		return flags;
-+
-+	flags &= ~UACCE_DEV_SVA;
-+
-+	if (iommu_dev_enable_feature(parent, IOMMU_DEV_FEAT_IOPF))
-+		return flags;
-+
-+	if (iommu_dev_enable_feature(parent, IOMMU_DEV_FEAT_SVA)) {
-+		iommu_dev_disable_feature(parent, IOMMU_DEV_FEAT_IOPF);
-+		return flags;
-+	}
-+
-+	return flags | UACCE_DEV_SVA;
-+}
-+
-+static void uacce_disable_sva(struct uacce_device *uacce)
-+{
-+	if (!(uacce->flags & UACCE_DEV_SVA))
-+		return;
-+
-+	iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_SVA);
-+	iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_IOPF);
-+}
-+
- /**
-  * uacce_alloc() - alloc an accelerator
-  * @parent: pointer of uacce parent device
-@@ -404,11 +431,7 @@ struct uacce_device *uacce_alloc(struct device *parent,
- 	if (!uacce)
- 		return ERR_PTR(-ENOMEM);
+-/* Per device IOMMU features */
++/**
++ * enum iommu_dev_features - Per device IOMMU features
++ * @IOMMU_DEV_FEAT_AUX: Auxiliary domain feature
++ * @IOMMU_DEV_FEAT_SVA: Shared Virtual Addresses
++ * @IOMMU_DEV_FEAT_IOPF: I/O Page Faults such as PRI or Stall. Generally
++ *			 enabling %IOMMU_DEV_FEAT_SVA requires
++ *			 %IOMMU_DEV_FEAT_IOPF, but some devices manage I/O Page
++ *			 Faults themselves instead of relying on the IOMMU. When
++ *			 supported, this feature must be enabled before and
++ *			 disabled after %IOMMU_DEV_FEAT_SVA.
++ *
++ * Device drivers query whether a feature is supported using
++ * iommu_dev_has_feature(), and enable it using iommu_dev_enable_feature().
++ */
+ enum iommu_dev_features {
+-	IOMMU_DEV_FEAT_AUX,	/* Aux-domain feature */
+-	IOMMU_DEV_FEAT_SVA,	/* Shared Virtual Addresses */
++	IOMMU_DEV_FEAT_AUX,
++	IOMMU_DEV_FEAT_SVA,
++	IOMMU_DEV_FEAT_IOPF,
+ };
  
--	if (flags & UACCE_DEV_SVA) {
--		ret = iommu_dev_enable_feature(parent, IOMMU_DEV_FEAT_SVA);
--		if (ret)
--			flags &= ~UACCE_DEV_SVA;
--	}
-+	flags = uacce_enable_sva(parent, flags);
- 
- 	uacce->parent = parent;
- 	uacce->flags = flags;
-@@ -432,8 +455,7 @@ struct uacce_device *uacce_alloc(struct device *parent,
- 	return uacce;
- 
- err_with_uacce:
--	if (flags & UACCE_DEV_SVA)
--		iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_SVA);
-+	uacce_disable_sva(uacce);
- 	kfree(uacce);
- 	return ERR_PTR(ret);
- }
-@@ -487,8 +509,7 @@ void uacce_remove(struct uacce_device *uacce)
- 	mutex_unlock(&uacce->queues_lock);
- 
- 	/* disable sva now since no opened queues */
--	if (uacce->flags & UACCE_DEV_SVA)
--		iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_SVA);
-+	uacce_disable_sva(uacce);
- 
- 	if (uacce->cdev)
- 		cdev_device_del(uacce->cdev, &uacce->dev);
+ #define IOMMU_PASID_INVALID	(-1U)
 -- 
 2.30.0
 
