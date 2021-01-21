@@ -5,24 +5,24 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C455AC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD17EC433E6
 	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 00:53:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AB782342C
+	by mail.kernel.org (Postfix) with ESMTP id AD71023730
 	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 00:53:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728539AbhAUAwX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Jan 2021 19:52:23 -0500
-Received: from mx2.suse.de ([195.135.220.15]:54756 "EHLO mx2.suse.de"
+        id S1728628AbhAUAw3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Jan 2021 19:52:29 -0500
+Received: from mx2.suse.de ([195.135.220.15]:56374 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732716AbhAUAdw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 20 Jan 2021 19:33:52 -0500
+        id S1726671AbhAUAgl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 20 Jan 2021 19:36:41 -0500
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 8290FAD29;
-        Thu, 21 Jan 2021 00:33:07 +0000 (UTC)
+        by mx2.suse.de (Postfix) with ESMTP id 5E99DAC9B;
+        Thu, 21 Jan 2021 00:35:59 +0000 (UTC)
 From:   Giovanni Gherdovich <ggherdovich@suse.cz>
 To:     Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
@@ -41,8 +41,8 @@ Cc:     Jon Grimm <Jon.Grimm@amd.com>,
         linux-acpi@vger.kernel.org,
         Giovanni Gherdovich <ggherdovich@suse.cz>
 Subject: [PATCH] x86,sched: On AMD EPYC set freq_max = max_boost in schedutil invariant formula
-Date:   Thu, 21 Jan 2021 01:32:23 +0100
-Message-Id: <20210121003223.20257-1-ggherdovich@suse.cz>
+Date:   Thu, 21 Jan 2021 01:35:50 +0100
+Message-Id: <20210121003550.20415-1-ggherdovich@suse.cz>
 X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
