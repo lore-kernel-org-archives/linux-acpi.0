@@ -2,141 +2,169 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A16A8C433E6
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 12:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42FB0C433E6
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 14:48:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A05B23A24
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 12:44:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AD6523A04
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jan 2021 14:48:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731037AbhAUMnM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Jan 2021 07:43:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57024 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731358AbhAUMlD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jan 2021 07:41:03 -0500
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15335C061786
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Jan 2021 04:39:36 -0800 (PST)
-Received: by mail-wr1-x433.google.com with SMTP id a12so1587409wrv.8
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Jan 2021 04:39:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=uiSdj3ahcV4jfiq23D9UAVEBduTBnIEfUfM+Rzx87y0=;
-        b=mEVIzmJOt7Xtq5tBdG3qYyH/ROr0C/ACsTWq5nMIVXbuXPKMonC/E83/Y9dlzba62i
-         87+fSmjK3xudRPVJ6Eq7pB4RZg0COl2Uz3KqEBVGBlJv3FflTp1FxOChOQ4vuCHIeFkT
-         ZKnKPW62M/2Xsmq8G/xyItQ1oX//QRXxxPTF+HYrLIr+7E+xu2D+HywmtlocgBoCu4Wt
-         xUUDR6giwTNLfTanQ7daWKJ5vSUpWmtVanw3nkgz3iTejfXfAROIiOonnY5HEFLwvzJs
-         YEoY+BCdHVqhC357mpmP83xqwNpcz/PiRTCoF0da5MgYmFlg8WduhxTpfepytXEJU9Nd
-         gF5w==
+        id S1729453AbhAUOlR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Jan 2021 09:41:17 -0500
+Received: from mail-ot1-f53.google.com ([209.85.210.53]:45994 "EHLO
+        mail-ot1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731621AbhAUOk5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jan 2021 09:40:57 -0500
+Received: by mail-ot1-f53.google.com with SMTP id n42so1754160ota.12;
+        Thu, 21 Jan 2021 06:40:33 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=uiSdj3ahcV4jfiq23D9UAVEBduTBnIEfUfM+Rzx87y0=;
-        b=gsysqu/C31BTbGB8/GkLu8M1w3m1po3MfqGU56MvAmKx114bB73zAAmlQ81hECEm/I
-         qgiRU4TiDFTMC84QjPdYR1qJxn90nNdYXgpvYzoh8cXIy93WrsczxutWLFZKDpp2TnfR
-         ufbipm+6NaoxQYk82VFpI2GaExtQEOrmjN4C4dRiHClcbcBgsG+w3pkhutchnph/QMZJ
-         tJZmPyOok0/TmVYOpQwu08fq+Db2z5eNKwYciPct7GIJWEgSvy7tzFR/Uo1/6B7Uw5rt
-         2fOybEIdUzhibOPuPXs9zWP1673EgmZ30E67a3n45FHTKkJnVcTIhDIyTKzu+sb00iS5
-         I5Mw==
-X-Gm-Message-State: AOAM530CDnm1c5+bBuH9+z/KETP44mhiVE0ykmAKda3IT4Wxi1mIYOEz
-        CDBE9JhmmB28A2Nes3Kau1NYgw==
-X-Google-Smtp-Source: ABdhPJw8AvvW+MlHpoiAy5gn8AEuJrdo9yr2py8gTgiO2JaFC6Egx+dlUYfvYIO1wQ4CWNJYDDEavQ==
-X-Received: by 2002:a05:6000:1188:: with SMTP id g8mr14533730wrx.111.1611232774874;
-        Thu, 21 Jan 2021 04:39:34 -0800 (PST)
-Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id p18sm7979248wmc.31.2021.01.21.04.39.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 04:39:34 -0800 (PST)
-From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
-To:     joro@8bytes.org, will@kernel.org
-Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
-        guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
-        lenb@kernel.org, robin.murphy@arm.com, Jonathan.Cameron@huawei.com,
-        eric.auger@redhat.com, iommu@lists.linux-foundation.org,
-        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-accelerators@lists.ozlabs.org, baolu.lu@linux.intel.com,
-        jacob.jun.pan@linux.intel.com, kevin.tian@intel.com,
-        vdumpa@nvidia.com, zhangfei.gao@linaro.org,
-        shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Zhou Wang <wangzhou1@hisilicon.com>
-Subject: [PATCH v10 03/10] iommu: Separate IOMMU_DEV_FEAT_IOPF from IOMMU_DEV_FEAT_SVA
-Date:   Thu, 21 Jan 2021 13:36:17 +0100
-Message-Id: <20210121123623.2060416-4-jean-philippe@linaro.org>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210121123623.2060416-1-jean-philippe@linaro.org>
-References: <20210121123623.2060416-1-jean-philippe@linaro.org>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=e2wC/gqTSVsEHUIwD9i+N/18O78gZ5uCZkeTAoDdvWM=;
+        b=N/Dm8JP1SX8I81Iak5zh5Lc1eM6okSBElw7EryE1P35cBxz2Z7gktT6Rfu/D8CwG5a
+         7+pzRGeQtoUELB7LOHVRQLONWOAI2H4A5FL+k3tglrNexAuxL4Qhbrb6zKAXPRb0tMLe
+         9+m2DYlpHwwtDkiFsu6gJVXSFaLopRHi9hmU0IWUOA8hL7onSWrDOD7Vba2Wv0UuizlM
+         a7KhgAWIo4eIUsb1k3E49stKjzCfnEPzUMlfrD4jfUCSQbPPvW/JbjikFRW2X5uDPjjh
+         kgOLcoSN3Wk9aMD+ZdTsa84SjFe/r7pKAoNRsyZHk44/XzRI8eHzTl45sDlCDN8RXntq
+         smZg==
+X-Gm-Message-State: AOAM531+sL7HuYayhPMFJQtH+pHe21FVVco7Yt5j2EltybfUH5t332B6
+        6QrAMxW5VIuIC5KJx5w8hzJ/nj8KYuyM1gopmRA=
+X-Google-Smtp-Source: ABdhPJxygx7O8j/Cs5KFm/tGd04SykZqet5/kp/3jkr6W6fOeKCg3atmGLgcAGJqtDf4Cqjy9l1O2Q+aMR5sGiyOhng=
+X-Received: by 2002:a9d:1710:: with SMTP id i16mr10445162ota.260.1611240007526;
+ Thu, 21 Jan 2021 06:40:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210118003428.568892-1-djrscally@gmail.com> <20210118003428.568892-3-djrscally@gmail.com>
+ <CAJZ5v0gVQsZ4rxXW8uMidW9zfY_S50zpfrL-Gq0J3Z4-qqBiww@mail.gmail.com>
+ <b381b48e-1bf2-f3e7-10a6-e51cd261f43c@gmail.com> <CAJZ5v0iU2m4Hs6APuauQ645DwbjYaB8nJFjYH0+7yQnR-FPZBQ@mail.gmail.com>
+ <e2d7e5e9-920f-7227-76a6-b166e30e11e5@gmail.com> <CAJZ5v0gg5oXG3yOO9iDvPKSsadYrFojW6JcKfZcQbFFpO78zAQ@mail.gmail.com>
+ <85ccf00d-7c04-b1da-a4bc-82c805df69c9@gmail.com>
+In-Reply-To: <85ccf00d-7c04-b1da-a4bc-82c805df69c9@gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 21 Jan 2021 15:39:55 +0100
+Message-ID: <CAJZ5v0jO9O1zhBMNRNB5kRt1o86BTjr1kRuFUe=nNVTDwBQhEg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/7] acpi: utils: Add function to fetch dependent acpi_devices
+To:     Daniel Scally <djrscally@gmail.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-gpio@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, andy@kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Wolfram Sang <wsa@kernel.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <mgross@linux.intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some devices manage I/O Page Faults (IOPF) themselves instead of relying
-on PCIe PRI or Arm SMMU stall. Allow their drivers to enable SVA without
-mandating IOMMU-managed IOPF. The other device drivers now need to first
-enable IOMMU_DEV_FEAT_IOPF before enabling IOMMU_DEV_FEAT_SVA. Enabling
-IOMMU_DEV_FEAT_IOPF on its own doesn't have any effect visible to the
-device driver, it is used in combination with other features.
+On Thu, Jan 21, 2021 at 1:04 PM Daniel Scally <djrscally@gmail.com> wrote:
+>
+>
+> On 21/01/2021 11:58, Rafael J. Wysocki wrote:
+> > On Thu, Jan 21, 2021 at 10:47 AM Daniel Scally <djrscally@gmail.com> wrote:
+> >> Hi Rafael
+> >>
+> >> On 19/01/2021 13:15, Rafael J. Wysocki wrote:
+> >>> On Mon, Jan 18, 2021 at 9:51 PM Daniel Scally <djrscally@gmail.com> wrote:
+> >>>> On 18/01/2021 16:14, Rafael J. Wysocki wrote:
+> >>>>> On Mon, Jan 18, 2021 at 1:37 AM Daniel Scally <djrscally@gmail.com> wrote:
+> >>>>>> In some ACPI tables we encounter, devices use the _DEP method to assert
+> >>>>>> a dependence on other ACPI devices as opposed to the OpRegions that the
+> >>>>>> specification intends. We need to be able to find those devices "from"
+> >>>>>> the dependee, so add a function to parse all ACPI Devices and check if
+> >>>>>> the include the handle of the dependee device in their _DEP buffer.
+> >>>>> What exactly do you need this for?
+> >>>> So, in our DSDT we have devices with _HID INT3472, plus sensors which
+> >>>> refer to those INT3472's in their _DEP method. The driver binds to the
+> >>>> INT3472 device, we need to find the sensors dependent on them.
+> >>>>
+> >>> Well, this is an interesting concept. :-)
+> >>>
+> >>> Why does _DEP need to be used for that?  Isn't there any other way to
+> >>> look up the dependent sensors?
+> >>>
+> >>>>> Would it be practical to look up the suppliers in acpi_dep_list instead?
+> >>>>>
+> >>>>> Note that supplier drivers may remove entries from there, but does
+> >>>>> that matter for your use case?
+> >>>> Ah - that may work, yes. Thank you, let me test that.
+> >>> Even if that doesn't work right away, but it can be made work, I would
+> >>> very much prefer that to the driver parsing _DEP for every device in
+> >>> the namespace by itself.
+> >>
+> >> This does work; do you prefer it in scan.c, or in utils.c (in which case
+> >> with acpi_dep_list declared as external var in internal.h)?
+> > Let's put it in scan.c for now, because there is the lock protecting
+> > the list in there too.
+> >
+> > How do you want to implement this?  Something like "walk the list and
+> > run a callback for the matching entries" or do you have something else
+> > in mind?
+>
+>
+> Something like this (though with a mutex_lock()). It could be simplified
+> by dropping the prev stuff, but we have seen INT3472 devices with
+> multiple sensors declaring themselves dependent on the same device
+>
+>
+> struct acpi_device *
+> acpi_dev_get_next_dependent_dev(struct acpi_device *supplier,
+>                 struct acpi_device *prev)
+> {
+>     struct acpi_dep_data *dep;
+>     struct acpi_device *adev;
+>     int ret;
+>
+>     if (!supplier)
+>         return ERR_PTR(-EINVAL);
+>
+>     if (prev) {
+>         /*
+>          * We need to find the previous device in the list, so we know
+>          * where to start iterating from.
+>          */
+>         list_for_each_entry(dep, &acpi_dep_list, node)
+>             if (dep->consumer == prev->handle &&
+>                 dep->supplier == supplier->handle)
+>                 break;
+>
+>         dep = list_next_entry(dep, node);
+>     } else {
+>         dep = list_first_entry(&acpi_dep_list, struct acpi_dep_data,
+>                        node);
+>     }
+>
+>
+>     list_for_each_entry_from(dep, &acpi_dep_list, node) {
+>         if (dep->supplier == supplier->handle) {
+>             ret = acpi_bus_get_device(dep->consumer, &adev);
+>             if (ret)
+>                 return ERR_PTR(ret);
+>
+>             return adev;
+>         }
+>     }
+>
+>     return NULL;
+> }
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
----
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Lu Baolu <baolu.lu@linux.intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
-Cc: Zhou Wang <wangzhou1@hisilicon.com>
----
- include/linux/iommu.h | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index b7ea11fc1a93..00348e4c3c26 100644
---- a/include/linux/iommu.h
-+++ b/include/linux/iommu.h
-@@ -156,10 +156,24 @@ struct iommu_resv_region {
- 	enum iommu_resv_type	type;
- };
- 
--/* Per device IOMMU features */
-+/**
-+ * enum iommu_dev_features - Per device IOMMU features
-+ * @IOMMU_DEV_FEAT_AUX: Auxiliary domain feature
-+ * @IOMMU_DEV_FEAT_SVA: Shared Virtual Addresses
-+ * @IOMMU_DEV_FEAT_IOPF: I/O Page Faults such as PRI or Stall. Generally
-+ *			 enabling %IOMMU_DEV_FEAT_SVA requires
-+ *			 %IOMMU_DEV_FEAT_IOPF, but some devices manage I/O Page
-+ *			 Faults themselves instead of relying on the IOMMU. When
-+ *			 supported, this feature must be enabled before and
-+ *			 disabled after %IOMMU_DEV_FEAT_SVA.
-+ *
-+ * Device drivers query whether a feature is supported using
-+ * iommu_dev_has_feature(), and enable it using iommu_dev_enable_feature().
-+ */
- enum iommu_dev_features {
--	IOMMU_DEV_FEAT_AUX,	/* Aux-domain feature */
--	IOMMU_DEV_FEAT_SVA,	/* Shared Virtual Addresses */
-+	IOMMU_DEV_FEAT_AUX,
-+	IOMMU_DEV_FEAT_SVA,
-+	IOMMU_DEV_FEAT_IOPF,
- };
- 
- #define IOMMU_PASID_INVALID	(-1U)
--- 
-2.30.0
-
+That would work I think, but would it be practical to modify
+acpi_walk_dep_device_list() so that it runs a callback for every
+consumer found instead of or in addition to the "delete from the list
+and free the entry" operation?
