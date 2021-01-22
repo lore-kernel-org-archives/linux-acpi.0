@@ -2,91 +2,195 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58054C433E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 15:34:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CCFAC433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 15:44:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15FD7206A4
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 15:34:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E93A21D81
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 15:44:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728828AbhAVPeA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Jan 2021 10:34:00 -0500
-Received: from mail-ot1-f42.google.com ([209.85.210.42]:39442 "EHLO
-        mail-ot1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729201AbhAVPds (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 10:33:48 -0500
-Received: by mail-ot1-f42.google.com with SMTP id i30so5416144ota.6;
-        Fri, 22 Jan 2021 07:33:32 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=dH4mL8XiIr5tXI9uOJYWrjHPyyDGTmGdAo3u+JoYNyI=;
-        b=oBZF5E+O37tD7mXR5R+EPg9fv910Lpu+09blql9o9OFNIXlAa7Xk8ZO2/8cO9xlbGO
-         UVocxpLqd9EJSnsBnBLFvWH1UWCieaV9zAwdZi7c36nIbX6j9BNtqOMBpyXWtz3eJZeg
-         v54pFzwxUTrj1l5KBPeEgoH7C/YOhFvmKcgQgXkkOWpG5rIseUHnkb+2h6P/Vh4QEOLq
-         xPIA384o3j6iIS9JqPdk77hi5743O+oAJY47PSJOTT5cSE0gxXUDz0TGPfgFHg4htnen
-         1pbIx7Pgg3RziKq3x9IwBWoKCJ3Kn0IdpagQ+cDbIl/aYzSXraveBeiwuO2q4LhH85JE
-         UJiQ==
-X-Gm-Message-State: AOAM530SDdgFbkjH7APXSWICE7kywA6J+4sIhJ9XaIgTxTlVwcR8mrqk
-        JKWYD9Vf3NHNg2PquWTzWtXgFIxX0sTg9NiRRkw=
-X-Google-Smtp-Source: ABdhPJzvvYGMEOddIwDfbu1Ch1Ldzr38ZXPQBNQ7cEfEJMp99F9DE2EAd0/mfH2G3gSE7PO0L9iUsXXe2XtRwLJdvX0=
-X-Received: by 2002:a05:6830:2313:: with SMTP id u19mr534710ote.321.1611329586496;
- Fri, 22 Jan 2021 07:33:06 -0800 (PST)
+        id S1729124AbhAVPoI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Jan 2021 10:44:08 -0500
+Received: from mga06.intel.com ([134.134.136.31]:63805 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729084AbhAVPn4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Jan 2021 10:43:56 -0500
+IronPort-SDR: +DnACV0wGxOILPzIwTQW9HZrAZHZP6Qw3Rb2PgSANa0dXSe8fVeRZaa0kiQkU/G0LfRfGg03YR
+ MzbLntBAwN2w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9872"; a="241001783"
+X-IronPort-AV: E=Sophos;i="5.79,366,1602572400"; 
+   d="scan'208";a="241001783"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jan 2021 07:43:14 -0800
+IronPort-SDR: HhVvVYp9UNmAue99p2JpAnb8MYodJe2PpnP5Q2H5t3j+vb7w+TRaAAehQbJmESyDt/fKxv9iqK
+ jTA3C8i7r2Gg==
+X-IronPort-AV: E=Sophos;i="5.79,366,1602572400"; 
+   d="scan'208";a="367469522"
+Received: from djiang5-mobl1.amr.corp.intel.com (HELO [10.212.160.72]) ([10.212.160.72])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jan 2021 07:43:12 -0800
+Subject: Re: [PATCH v9 05/10] uacce: Enable IOMMU_DEV_FEAT_IOPF
+To:     Zhou Wang <wangzhou1@hisilicon.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        joro@8bytes.org, will@kernel.org
+Cc:     vivek.gautam@arm.com, guohanjun@huawei.com,
+        linux-acpi@vger.kernel.org, zhangfei.gao@linaro.org,
+        lenb@kernel.org, devicetree@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>, eric.auger@redhat.com,
+        vdumpa@nvidia.com, robh+dt@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        rjw@rjwysocki.net, shameerali.kolothum.thodi@huawei.com,
+        iommu@lists.linux-foundation.org, sudeep.holla@arm.com,
+        robin.murphy@arm.com, linux-accelerators@lists.ozlabs.org,
+        baolu.lu@linux.intel.com, Dan Williams <dan.j.williams@intel.com>,
+        "Pan, Jacob jun" <jacob.jun.pan@intel.com>
+References: <20210108145217.2254447-1-jean-philippe@linaro.org>
+ <20210108145217.2254447-6-jean-philippe@linaro.org>
+ <e14f47bd-1b0c-1905-3bb7-62e1c5b096c7@intel.com>
+ <d25faa15-eaaf-a3b8-adaf-f7c81653f688@hisilicon.com>
+From:   Dave Jiang <dave.jiang@intel.com>
+Message-ID: <ee066d95-c8ef-887b-35bc-d47d641c9f58@intel.com>
+Date:   Fri, 22 Jan 2021 08:43:11 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.1
 MIME-Version: 1.0
-References: <20210108152447.116871-1-f.suligoi@asem.it> <CAHp75Vf54TTXr4HH6TxMo0QRTBa5V3=La1LCDxSizaYZjJM9Qg@mail.gmail.com>
-In-Reply-To: <CAHp75Vf54TTXr4HH6TxMo0QRTBa5V3=La1LCDxSizaYZjJM9Qg@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 22 Jan 2021 16:32:55 +0100
-Message-ID: <CAJZ5v0iVp8z7WAqX1NxQNKx55tfwUJtx-gK67x=Npxjf05g4Kg@mail.gmail.com>
-Subject: Re: [PATCH v1] Documentation: ACPI: add new rule for gpio-line-names
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Flavio Suligoi <f.suligoi@asem.it>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <d25faa15-eaaf-a3b8-adaf-f7c81653f688@hisilicon.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jan 8, 2021 at 5:03 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Fri, Jan 8, 2021 at 5:28 PM Flavio Suligoi <f.suligoi@asem.it> wrote:
-> >
-> > The gpio-line-names lists must respect some rules.
-> >
-> > This patch adds a new rule in documentation, to avoid
-> > the use of duplicate names in the same gpiochip.
->
-> Thanks!
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->
-> > Signed-off-by: Flavio Suligoi <f.suligoi@asem.it>
-> > ---
-> >  Documentation/firmware-guide/acpi/gpio-properties.rst | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/Documentation/firmware-guide/acpi/gpio-properties.rst b/Documentation/firmware-guide/acpi/gpio-properties.rst
-> > index b36aa3e743d8..4e264c16ddff 100644
-> > --- a/Documentation/firmware-guide/acpi/gpio-properties.rst
-> > +++ b/Documentation/firmware-guide/acpi/gpio-properties.rst
-> > @@ -146,6 +146,7 @@ following rules (see also the examples):
-> >      other words, it is not mandatory to fill all the GPIO lines
-> >    - empty names are allowed (two quotation marks ``""`` correspond to an empty
-> >      name)
-> > +  - names inside one GPIO controller/expander must be unique
-> >
-> >  Example of a GPIO controller of 16 lines, with an incomplete list with two
-> >  empty names::
-> > --
 
-Applied as 5.12 material, thanks!
+On 1/22/2021 4:53 AM, Zhou Wang wrote:
+> On 2021/1/21 4:47, Dave Jiang wrote:
+>> On 1/8/2021 7:52 AM, Jean-Philippe Brucker wrote:
+>>> The IOPF (I/O Page Fault) feature is now enabled independently from the
+>>> SVA feature, because some IOPF implementations are device-specific and
+>>> do not require IOMMU support for PCIe PRI or Arm SMMU stall.
+>>>
+>>> Enable IOPF unconditionally when enabling SVA for now. In the future, if
+>>> a device driver implementing a uacce interface doesn't need IOPF
+>>> support, it will need to tell the uacce module, for example with a new
+>>> flag.
+>>>
+>>> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+>>> ---
+>>> Cc: Arnd Bergmann <arnd@arndb.de>
+>>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>> Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
+>>> Cc: Zhou Wang <wangzhou1@hisilicon.com>
+>>> ---
+>>>    drivers/misc/uacce/uacce.c | 32 +++++++++++++++++++++++++-------
+>>>    1 file changed, 25 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/drivers/misc/uacce/uacce.c b/drivers/misc/uacce/uacce.c
+>>> index d07af4edfcac..41ef1eb62a14 100644
+>>> --- a/drivers/misc/uacce/uacce.c
+>>> +++ b/drivers/misc/uacce/uacce.c
+>>> @@ -385,6 +385,24 @@ static void uacce_release(struct device *dev)
+>>>        kfree(uacce);
+>>>    }
+>>>    +static unsigned int uacce_enable_sva(struct device *parent, unsigned int flags)
+>>> +{
+>>> +    if (!(flags & UACCE_DEV_SVA))
+>>> +        return flags;
+>>> +
+>>> +    flags &= ~UACCE_DEV_SVA;
+>>> +
+>>> +    if (iommu_dev_enable_feature(parent, IOMMU_DEV_FEAT_IOPF))
+>>> +        return flags;
+>>> +
+>>> +    if (iommu_dev_enable_feature(parent, IOMMU_DEV_FEAT_SVA)) {
+>>> +        iommu_dev_disable_feature(parent, IOMMU_DEV_FEAT_IOPF);
+>>> +        return flags;
+>>> +    }
+>> Sorry to jump in a bit late on this and not specifically towards the
+>> intent of this patch. But I'd like to start a discussion on if we want
+>> to push the iommu dev feature enabling to the device driver itself rather
+>> than having UACCE control this? Maybe allow the device driver to manage
+>> the feature bits and UACCE only verify that they are enabled?
+>>
+>> 1. The device driver knows what platform it's on and what specific
+>>     feature bits its devices supports. Maybe in the future if there are
+>>     feature bits that's needed on one platform and not on another?
+> Hi Dave,
+>
+>  From the discussion in this series, the meaning of IOMMU_DEV_FEAT_IOPF here
+> is the IOPF capability of iommu device itself. So I think check it in UACCE
+> will be fine.
+>
+>> 2. This allows the possibility of multiple uacce device registered to 1
+>>     pci dev, which for a device with asymmetric queues (Intel DSA/idxd
+>>     driver) that is desirable feature. The current setup forces a single
+>>     uacce device per pdev. If additional uacce devs are registered, the
+>>     first removal of uacce device will disable the feature bit for the
+>>     rest of the registered devices. With uacce managing the feature bit,
+>>     it would need to add device context to the parent pdev and ref
+>>     counting. It may be cleaner to just allow device driver to manage
+>>     the feature bits and the driver should have all the information on
+>>     when the feature needs to be turned on and off.
+> Yes, we have this problem, however, this problem exists for IOMMU_DEV_FEAT_SVA
+> too. How about to fix it in another patch?
+
+Hi Zhou,
+
+Right that's what I'm implying. I'm not pushing back on the IOPF feature 
+set. Just trying to survey  the opinions from people on moving the 
+feature settings to the actual drivers rather than having it in UACCE. I 
+will create some patches to show what I mean for comments.
+
+
+>
+> Best,
+> Zhou
+>
+>> - DaveJ
+>>
+>>
+>>> +
+>>> +    return flags | UACCE_DEV_SVA;
+>>> +}
+>>> +
+>>>    /**
+>>>     * uacce_alloc() - alloc an accelerator
+>>>     * @parent: pointer of uacce parent device
+>>> @@ -404,11 +422,7 @@ struct uacce_device *uacce_alloc(struct device *parent,
+>>>        if (!uacce)
+>>>            return ERR_PTR(-ENOMEM);
+>>>    -    if (flags & UACCE_DEV_SVA) {
+>>> -        ret = iommu_dev_enable_feature(parent, IOMMU_DEV_FEAT_SVA);
+>>> -        if (ret)
+>>> -            flags &= ~UACCE_DEV_SVA;
+>>> -    }
+>>> +    flags = uacce_enable_sva(parent, flags);
+>>>          uacce->parent = parent;
+>>>        uacce->flags = flags;
+>>> @@ -432,8 +446,10 @@ struct uacce_device *uacce_alloc(struct device *parent,
+>>>        return uacce;
+>>>      err_with_uacce:
+>>> -    if (flags & UACCE_DEV_SVA)
+>>> +    if (flags & UACCE_DEV_SVA) {
+>>>            iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_SVA);
+>>> +        iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_IOPF);
+>>> +    }
+>>>        kfree(uacce);
+>>>        return ERR_PTR(ret);
+>>>    }
+>>> @@ -487,8 +503,10 @@ void uacce_remove(struct uacce_device *uacce)
+>>>        mutex_unlock(&uacce->queues_lock);
+>>>          /* disable sva now since no opened queues */
+>>> -    if (uacce->flags & UACCE_DEV_SVA)
+>>> +    if (uacce->flags & UACCE_DEV_SVA) {
+>>>            iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_SVA);
+>>> +        iommu_dev_disable_feature(uacce->parent, IOMMU_DEV_FEAT_IOPF);
+>>> +    }
+>>>          if (uacce->cdev)
+>>>            cdev_device_del(uacce->cdev, &uacce->dev);
+>> .
+>>
