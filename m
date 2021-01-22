@@ -2,158 +2,162 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F68C433E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 17:59:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B543C433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 18:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6060923A6A
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 17:59:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57D6323A9A
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 18:05:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729410AbhAVR7F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Jan 2021 12:59:05 -0500
-Received: from mail-pj1-f46.google.com ([209.85.216.46]:51297 "EHLO
-        mail-pj1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729329AbhAVRvb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 12:51:31 -0500
-Received: by mail-pj1-f46.google.com with SMTP id a20so1302835pjs.1;
-        Fri, 22 Jan 2021 09:51:15 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=+6tbIaVmVydfUOxunVkBD+uE/c035INEbGofWx3LmuY=;
-        b=nMgdO6SpY1bs3Es22hg5/01h/eWcidW4nlHMu0lud3swVE4eHYkUNJ8P3CttrmLYu1
-         lpoB/bnN6CrNNAmESLKEZZu6/Og08wr2uasx7GUFhqnNEMPS3KwuMfu08tIiXFT3db8z
-         EGk4OO5j4WWGRiBxi0LI9TZR5N3FI1eO5LPuY/5rcYPTlf/1KACP6f/NDxE+47t+YwfW
-         t2xfYsh2cGq9vAPdSYlV0kohYaWSpGMy3UoP95YOIfdVaBg4mGiUToz0gOiqrLiclILt
-         XkO04h/r6LxGZLGkGBt32T3SfaTajZMdo1JeIgWpn8UVulMlbj+t/tUi+76RWCJm81Qy
-         e4KA==
-X-Gm-Message-State: AOAM532BszS/iPXCCwEbPMJFMqEqgM/QobT3RLzjLV7b/YrfH6qf9LTB
-        u1xGReBp87d4oCDSCMueKzs=
-X-Google-Smtp-Source: ABdhPJwl1ImD4+FbMec5wOTo5OrxWV7FJQFgogfslczPKz1oDhsMYMekZw/oHBQS1M61wGNp9MBEJg==
-X-Received: by 2002:a17:90b:1a87:: with SMTP id ng7mr6889308pjb.211.1611337845501;
-        Fri, 22 Jan 2021 09:50:45 -0800 (PST)
-Received: from localhost ([2601:647:5b00:1162:1ac0:17a6:4cc6:d1ef])
-        by smtp.gmail.com with ESMTPSA id j6sm9362292pfg.159.2021.01.22.09.50.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 Jan 2021 09:50:43 -0800 (PST)
-Date:   Fri, 22 Jan 2021 09:50:40 -0800
-From:   Moritz Fischer <mdf@kernel.org>
-To:     Robin Murphy <robin.murphy@arm.com>
-Cc:     Moritz Fischer <mdf@kernel.org>, lorenzo.pieralisi@arm.com,
-        guohanjun@huawei.com, rjw@rjwysocki.net,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        moritzf@google.com, sudeep.holla@arm.com, will@kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] ACPI/IORT: Do not blindly trust DMA masks from
- firmware
-Message-ID: <YAsQcLqvi0Lh8PVv@archbook>
-References: <20210122012419.95010-1-mdf@kernel.org>
- <e01e2fd6-7f78-354e-374c-f93a5d1b8fd6@arm.com>
+        id S1729781AbhAVSFd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Jan 2021 13:05:33 -0500
+Received: from mail-mw2nam12on2063.outbound.protection.outlook.com ([40.107.244.63]:40449
+        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729309AbhAVSEm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Jan 2021 13:04:42 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Xav+grgVS2bXF0n/QywQCAj7vJnJL1rh6zi+Dzh19OAoeic2zUBjMD35Z28BWxqql9V0sUt3eaZkr85c2aVutal3NuSkX1BI3VoSMqWsthBr3EbF8OgsBJWPL5dj8LhvpFFrydJ4l2iodaumsK/Hi9NwEn70/S5nrD0NjvcjPET2moYNUj9esWx2pzOfvbo3ZZXp2niyQplNK3U4IpYF6+0QS7vXgsnyBXi97oMbIOrE/cDD+Nt/W1QgtG71K2BULDaEfJHgYDmMwhP4ZwUN+o8svFvhq1YQ4o+CN8zhhq8l8i0wTP5dV21vF77aGh3LQDmt25pjHqrmETfijjyq1g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=sFiLuNTtMo4Z7w8jm7baXDwpEng6CQGMtjShtLB9E1k=;
+ b=JVxDLEe1PWAgcSXHSbArI3QSEpfMIDSfl6JaMwDCKFeyRwgNPYtlRj4K8OEoTxv2gT2+NA/NaCAtHa9uBZoQbOknsNqrt9HNcU+9kIlvoLC9xb9EwvPd4mlB9ABSoXhljBvd17IIfAeK5A5SpPOzaykyO4ImFKuAn9wHIL0US3Lxj6Ii+b9vVsa+kL2jDxyL5h73hunOvgCnhy+/5na2tlA5+8En5IVZaU9T01BgTnzA1PmJ9FN9NyhZ3nEiAkdbEiKWDimahWfxWskLMNrA67FZOxHMroAxCoHuim3ptlK+qMFPm8Pg55/TE6LNHl0acwqP6RMTlI2oeEtT16fbbA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=sFiLuNTtMo4Z7w8jm7baXDwpEng6CQGMtjShtLB9E1k=;
+ b=xGXY2bE+17b1VBDCwEdwNLwidsFmyxpYpB7qWySPOOwcZdzrbMWG7n0jEZgri3IM8MxQac2iBqfLPKroSzkvAlIyhChEgUcLMQStW+DtUM4Kjf9pMrqQmauR1gINNCWMSZuMzfWdCnBC/WvZD0yN++U/BOc8qg8x5QSSgUPyLjc=
+Authentication-Results: rjwysocki.net; dkim=none (message not signed)
+ header.d=none;rjwysocki.net; dmarc=none action=none header.from=amd.com;
+Received: from SA0PR12MB4512.namprd12.prod.outlook.com (2603:10b6:806:71::9)
+ by SA0PR12MB4509.namprd12.prod.outlook.com (2603:10b6:806:9e::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.13; Fri, 22 Jan
+ 2021 18:03:36 +0000
+Received: from SA0PR12MB4512.namprd12.prod.outlook.com
+ ([fe80::ed7d:d788:82d2:edd4]) by SA0PR12MB4512.namprd12.prod.outlook.com
+ ([fe80::ed7d:d788:82d2:edd4%5]) with mapi id 15.20.3784.013; Fri, 22 Jan 2021
+ 18:03:36 +0000
+From:   Terry Bowman <terry.bowman@amd.com>
+Cc:     rjw@rjwysocki.net, lenb@kernel.org, james.morse@arm.com,
+        tony.luck@intel.com, bp@alien8.de, yazen.ghannam@amd.com,
+        terry.bowman@amd.com, guohanjun@huawei.com,
+        colin.king@canonical.com, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, jon.grimm@amd.com
+Subject: [PATCH] ACPI / APEI: Add is_ghes_type() to identify GHES sources
+Date:   Fri, 22 Jan 2021 12:03:22 -0600
+Message-Id: <20210122180322.1720413-1-terry.bowman@amd.com>
+X-Mailer: git-send-email 2.27.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [165.204.78.2]
+X-ClientProxiedBy: CH0PR04CA0047.namprd04.prod.outlook.com
+ (2603:10b6:610:77::22) To SA0PR12MB4512.namprd12.prod.outlook.com
+ (2603:10b6:806:71::9)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e01e2fd6-7f78-354e-374c-f93a5d1b8fd6@arm.com>
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from ethanolxb27ehost.amd.com (165.204.78.2) by CH0PR04CA0047.namprd04.prod.outlook.com (2603:10b6:610:77::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.11 via Frontend Transport; Fri, 22 Jan 2021 18:03:34 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 2ef48018-88e6-4e3f-43d4-08d8bf0009fb
+X-MS-TrafficTypeDiagnostic: SA0PR12MB4509:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <SA0PR12MB45092295EF5CC7519B96C93083A09@SA0PR12MB4509.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:288;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: IMRSLniZt6XthhhOU0HS2mAp1tCh9sezbXeFxE9LAkOAgeJx+OxqDV2mLUoeusc0F15hHScoyyIIIAmt+Kbzxr+rsNPwrcfLmp9FUfrZxy/85tBLyc91uwC3N42C2SQtU/hvFb2xdUan0NsTT/cPi6/WHz6BQtzuacSZQGeSBrJktaE1ZetzqOzBR7xAF0Hd887yFfDYZ5ybrV421G+ZW2MDKDJ/v6kRtRfIKoKN0gkTYrwWumLy5EqSd+hECnqqdVOYYltct44Omyd++TxikSXKa5pGXXMAl2OISK9GNFsexlfoD9ZAbKvM9EMzdnPafBHxGzY3IuC2I7XBKwsKZHRflX4KwZzdSjzUcs5NHpVTVf+J6jimc2wWmFhEiqrilLAFugZV9zQdbvKHX3glIRDTlEuXBtHAVX9hewVTRRJHfN6CcsbOgZiycuU1R0FkWaBceirejc62zwpZz4Upv7OJrOF9dN2UYNCB2TKoKa0epHAo3xUmXHHDHg3pcJ0JmfMA2yvgT0rvoMP5Ol1rUy42WLYQmir1gTxOb76rMcSbmZ+8S7XCabr1Pc0WjQPd
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4512.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(396003)(39860400002)(366004)(376002)(2616005)(44832011)(36756003)(956004)(86362001)(186003)(8676002)(16526019)(66946007)(66476007)(83380400001)(26005)(66556008)(2906002)(52116002)(7696005)(6666004)(4326008)(109986005)(478600001)(6486002)(1076003)(316002)(8936002)(5660300002)(266003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?r9HwTS8qTLd855f6iHg6cKZ1pi7NsUfP/AXMKMZOfaLEcW7+cT8Kd1Al22PH?=
+ =?us-ascii?Q?oXWiRT6VgK8EjfJ9N07uhFe+q9IAIwOCvPzhF6VN1K/fN1+fhmij6l80Tysc?=
+ =?us-ascii?Q?s2q4Cgayj5WNnoHqzdM4BM/D85rsnGixVOD2LrC9zMOcYJh7z/cBpPAAoYtY?=
+ =?us-ascii?Q?huTGJn2TnHtZ2z76TB19rW42A9hCQDzCAtc9UIEnoi0CgSB7xP4tr/QpLyQQ?=
+ =?us-ascii?Q?td/hqX8l3lcsFoL+/OspI5QLO2OVjbBIQpX6zmfpZuJ8c8ptJwOIRSiSncml?=
+ =?us-ascii?Q?raB/m3qHgcpOH9cBKRhFBBLLKkAx+ogdV9tMazPZqGY30IPWah3AG9QO50I3?=
+ =?us-ascii?Q?yKb/OWETVr8rRfWCY0fpQ5deRG+svXsxbQykz9oGbnuZwGQxnA0sGgoGwcfR?=
+ =?us-ascii?Q?VLsNa5jFniUVLf//50iVp9FhMv04umyVP5S2Rj52Zo3aWDXN95LwkxGhR2xG?=
+ =?us-ascii?Q?2txX4gsgWeKez/FqbWeI7FeaKMuEVlmv8bHqfNbdhZKWyObqc/8INL5X7ceS?=
+ =?us-ascii?Q?iR4Nw6PZLA1Xi96MB0/KCRr6pF5sWa5S/6FrGeNRpOUOVwbKdM0vkDZ/2/mI?=
+ =?us-ascii?Q?kJ8TdCwBwyjYE4JTPbCPwUXiUHWiuua8bxb9yCqIUujSHLuJospp7ExBgQhM?=
+ =?us-ascii?Q?ODV02nUoB8LyZGVbmYLNds9hCvBSCTDot0R5DRgNxxjZiYknmU6xk96OUFp3?=
+ =?us-ascii?Q?gq+mEpTLuIyIoENnweCKwsEoulp4ZNVedjj2Jh7XzEIL0x2Q42WajesFEesS?=
+ =?us-ascii?Q?B7yuPGu/qEsD4qwWSNB2vuzAyAn++rUgDN3JvWppqgDg6U8vphsh3cHiNmPM?=
+ =?us-ascii?Q?H55GAnAS0OK6WpmV0ZtC1PSLKgij14isblKC7N1enPCXDZP+MKAObz22uufB?=
+ =?us-ascii?Q?AyOV6h7HhYN4cCoFXg9C17S67aBSZKJlnYt6s2nFhCsDLj2j2nRXFQDw7LzU?=
+ =?us-ascii?Q?ejeTfA2RdQ0fFPkpgMwRFw654X5v7lyRdzvjdx46fFQ+n9+eDlrUxV3IC5Gv?=
+ =?us-ascii?Q?mkQM?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2ef48018-88e6-4e3f-43d4-08d8bf0009fb
+X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4512.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jan 2021 18:03:36.3562
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: jYFqWyQZEmOV+W7I4mAuiSXBlWCeoUP68K9Q8r9jodguIoILRuvuRhstI078C+mylSQOi0CF7b0egAroq6ps5Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4509
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Robin,
+From: Yazen Ghannam <yazen.ghannam@amd.com>
 
-On Fri, Jan 22, 2021 at 02:42:05PM +0000, Robin Murphy wrote:
-> On 2021-01-22 01:24, Moritz Fischer wrote:
-> > Address issue observed on real world system with suboptimal IORT table
-> > where DMA masks of PCI devices would get set to 0 as result.
-> > 
-> > iort_dma_setup() would query the root complex'/named component IORT
-> > entry for a DMA mask, and use that over the one the device has been
-> > configured with earlier.
-> > 
-> > Ideally we want to use the minimum mask of what the IORT contains for
-> > the root complex and what the device was configured with.
-> > 
-> > Fixes: 5ac65e8c8941 ("ACPI/IORT: Support address size limit for root complexes")
-> > Signed-off-by: Moritz Fischer <mdf@kernel.org>
-> > ---
-> > 
-> > Changes from v1:
-> > - Changed warning to FW_BUG
-> > - Warn for both Named Component or Root Complex
-> > - Replaced min_not_zero() with min()
-> > 
-> > ---
-> >   drivers/acpi/arm64/iort.c | 14 ++++++++++++--
-> >   1 file changed, 12 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index d4eac6d7e9fb..2494138a6905 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -1107,6 +1107,11 @@ static int nc_dma_get_range(struct device *dev, u64 *size)
-> >   	ncomp = (struct acpi_iort_named_component *)node->node_data;
-> > +	if (!ncomp->memory_address_limit) {
-> > +		pr_warn(FW_BUG "Named component missing memory address limit\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> >   	*size = ncomp->memory_address_limit >= 64 ? U64_MAX :
-> >   			1ULL<<ncomp->memory_address_limit;
-> > @@ -1126,6 +1131,11 @@ static int rc_dma_get_range(struct device *dev, u64 *size)
-> >   	rc = (struct acpi_iort_root_complex *)node->node_data;
-> > +	if (!rc->memory_address_limit) {
-> > +		pr_warn(FW_BUG "Root complex missing memory address limit\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> >   	*size = rc->memory_address_limit >= 64 ? U64_MAX :
-> >   			1ULL<<rc->memory_address_limit;
-> > @@ -1173,8 +1183,8 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
-> >   		end = dmaaddr + size - 1;
-> >   		mask = DMA_BIT_MASK(ilog2(end) + 1);
-> >   		dev->bus_dma_limit = end;
-> > -		dev->coherent_dma_mask = mask;
-> > -		*dev->dma_mask = mask;
-> > +		dev->coherent_dma_mask = min(dev->coherent_dma_mask, mask);
-> > +		*dev->dma_mask = min(*dev->dma_mask, mask);
-> 
-> Oops, I got so distracted by the "not_zero" aspect in v1 that I ended up
-> thinking purely about smaller-than-default masks, but of course this *does*
-> matter the other way round. And it is what we've always done on the DT side,
-> so at least it makes us consistent.
-> 
-> FWIW I've already started writing up a patch to kill off this bit entirely,
-> but either way we still can't meaningfully interpret a supposed DMA limit of
-> 0 bits in a table describing DMA-capable devices, so for this patch as a
-> fix,
-> 
-> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+Refactor duplicated GHES identity logic into is_ghes_type().
 
-I think there's another issue the comparisons for revision should be
-against < 2 not < 1.
+Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
+Reviewed-by: Robert Richter <rrichter@amd.com>
+Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+---
+ drivers/acpi/apei/hest.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-From what I could find DEN0049D (IORT) spec introduced the fields
-(curiously the C doc seems to be missing).
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 6e980fe16772..bd702e0ef339 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -49,6 +49,12 @@ static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
+ 	[ACPI_HEST_TYPE_IA32_DEFERRED_CHECK] = -1,
+ };
+ 
++static inline bool is_ghes_type(struct acpi_hest_header *hest_hdr)
++{
++	return hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR ||
++	       hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR_V2;
++}
++
+ static int hest_esrc_len(struct acpi_hest_header *hest_hdr)
+ {
+ 	u16 hest_type = hest_hdr->type;
+@@ -141,8 +147,7 @@ static int __init hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void
+ {
+ 	int *count = data;
+ 
+-	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR ||
+-	    hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR_V2)
++	if (is_ghes_type(hest_hdr))
+ 		(*count)++;
+ 	return 0;
+ }
+@@ -153,8 +158,7 @@ static int __init hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
+ 	struct ghes_arr *ghes_arr = data;
+ 	int rc, i;
+ 
+-	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR &&
+-	    hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR_V2)
++	if (!is_ghes_type(hest_hdr))
+ 		return 0;
+ 
+ 	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
+-- 
+2.27.0
 
-DEN0049B specifies revision as '0', DEN0049C (missing?), DEN0049D
-specifies new fields for memory_size_limit and both Named Component and
-Root Complex nodes set revision to 2.
-
-so I think it should be:
-
-if (!node || node->revision < 2)
-	return -ENODEV;
-
-Only if we go past this and there is no address limit is it really a
-firmware bug.
-> 
-> Thanks,
-> Robin.
-> 
-> >   	}
-> >   	*dma_addr = dmaaddr;
-> > 
-
-- Moritz
