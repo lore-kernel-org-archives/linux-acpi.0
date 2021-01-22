@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68062C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBF1C433E0
 	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 18:19:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3672723A9C
+	by mail.kernel.org (Postfix) with ESMTP id 6ED0823A9C
 	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 18:19:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728996AbhAVSTW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Jan 2021 13:19:22 -0500
-Received: from mail-eopbgr70048.outbound.protection.outlook.com ([40.107.7.48]:21476
+        id S1729113AbhAVST3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Jan 2021 13:19:29 -0500
+Received: from mail-eopbgr70042.outbound.protection.outlook.com ([40.107.7.42]:4995
         "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729136AbhAVPp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 22 Jan 2021 10:45:59 -0500
+        id S1729167AbhAVPqF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Jan 2021 10:46:05 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VbRoIfNeim54e4fyb/qfpwxTkNZ3+VRpsiEjgJvSGdG4P0MSPwkA47xZDTpmPSJaTMC8m6F/yQhjh84LrYSk5gRSpmzbpBOv9PEW2ksP6dkNI16dpeiyetMGr3oUmQRKAh05jBzJnRkp706tmiAJYpziFXQFWqTrGmpp2zprkFu2bf5qhsoRbiQ9gsKJswzu/AZDewDn9iEOD3CI/k6yU/Nl9Z3g4rH1NBHTs75YzH6CZwF2HMAYtqi/lPi7WnD/7NKMm17hutj818TMZHxjn3r62+WgewbIXSPDZ2VLkwqoNETxZ9aZYvYlCY3PBRlRrGXGF6Z11nOfNw3FCjjtuw==
+ b=RCjcrvefY+4hBz3uVOJWyfaeSbhF6c0vXe77hqBeJRqJC6MV5OVY1qc9u6XkBfdxRtLEhjlZpUbf3g5t2sBFULmdZqUBSGi1+r/0i30Zjnppcr7vQQK1eeG+7D1o7Khg8ubhUDcNODgVsPUZ9Ez7jIwqcU2IqeGzhNXATOqafDnRKHxc8IJT+nRc8etGb/cMdaGoaie11gZAPqaS+GeCveZ9dqOnp4mHkY7jJqJT3ORY6xHBzruykvPhGV6Tj45oE/+2uFqYGCCzoycFdKNYwXyn2ryWI0cmtJoAf46ExvxBIUQco/32RD7//YJWW/tdEWcou/jfTwhXVtWSWX2w4Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iJ2smfaUneArAo4LdK1zXMSBOITFv94TpLE+4NmDJgE=;
- b=Tr4ogXHhef/4jaVR9pzRIlOuR5KChajh6JtXNxUkkIDLqYBDohbCALnJGd6LTkJrzZKXU3AaOT1k9of4JK4VdLQvKVDQjqZtOIO5o0nnMGVmxzYFb2LazvUSO/8bQAtez8OD7g811ZXVNr0h1MgKOGiZjungMxWJEWFwS/iskiUhUTVEQ1CFVuCBNMKzkn65VZ9VJAwZxhQcRhBkkoM6SGuLNL5Hn8AotsImg/iv2ZfVDg6w631CGa/VO4jn8MmIUBwENTORd80xkSqWgmv08ZhTw/ErokLNBrQgbbJvLBaOgQ1QpRWMq9PQab2k4AnADstbfr4oDMAIdRRYPSjtdA==
+ bh=nkyyugcVZXBAnF29aC5M48+TcLFQfMp0V5THskW2dLI=;
+ b=h1SvUNerlifnUSt/mEzlidb1ngA3xQGXrXhBVNdImCV53B97nuA7ZirotZolTZjPNarO4UDOxfBf6yYtyi35DBdVnEQAjky1/oEhrB6WICO/IcC1wG53qRtwwOlidiDnmQeLlcfsQZc7vXIE4Ul+FqNwt+XaZtesUplmhftejx9JRVL/leYqxjoJzojG4hGVQ+OMy3XpaSx5hAUqOz6n8EcFsLCIywvUK5ghEVs5osj0I15jTY9j7LyIlM3tBfohWTW10si2KZArNZy0bw1ER/u0vOz1SrvLKAUmoEw8HKjJo2rWvzYN0v6simFA0T4opk/lNXhrXBpsE9w6oypgGQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector2-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iJ2smfaUneArAo4LdK1zXMSBOITFv94TpLE+4NmDJgE=;
- b=MopWTBgRkl5yCsc2o/1byESl5EAOLwjFP3Keuw6lrpnbcJ21ye0Wu+K03FE92DWYVWOVfqPG73qBXvz3WZikpac2iB7f1oPsa8UiROmOp2tW20TAZhrfPnOpzstRlL2tt1ZL3+q43TvqpBsx1VGVCVj9uopSySblhmSgcvMxONs=
+ bh=nkyyugcVZXBAnF29aC5M48+TcLFQfMp0V5THskW2dLI=;
+ b=BzGmYIh1mIvX5eKtRLs5tU29ahmiKo5tYRCzEPSKkiTYWNFE1b6NvEdRZQLCo2lDZ+ANBZWvgOz1zfI8Kx3ZF1u0ghfoFYsUIciwPCYLjkG3ud2GVP0bAI2LJ7HawxElw04lvosL5hVEHdOZiJUSrVtN7x+aa7OzBLSPuY+EPjA=
 Authentication-Results: arm.com; dkim=none (message not signed)
  header.d=none;arm.com; dmarc=none action=none header.from=oss.nxp.com;
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
  by AM0PR0402MB3443.eurprd04.prod.outlook.com (2603:10a6:208:1b::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12; Fri, 22 Jan
- 2021 15:44:16 +0000
+ 2021 15:45:34 +0000
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::e90e:b1d6:18a2:2d42]) by AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::e90e:b1d6:18a2:2d42%5]) with mapi id 15.20.3784.015; Fri, 22 Jan 2021
- 15:44:16 +0000
+ 15:45:34 +0000
 From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -69,11 +69,11 @@ Cc:     linux.cj@gmail.com, Diana Madalina Craciun <diana.craciun@nxp.com>,
         Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
+        Ioana Radulescu <ruxandra.radulescu@nxp.com>,
         Jakub Kicinski <kuba@kernel.org>
-Subject: [net-next PATCH v4 05/15] net: phy: Introduce fwnode_get_phy_id()
-Date:   Fri, 22 Jan 2021 21:12:50 +0530
-Message-Id: <20210122154300.7628-6-calvin.johnson@oss.nxp.com>
+Subject: [net-next PATCH v4 15/15] net: dpaa2-mac: Add ACPI support for DPAA2 MAC driver
+Date:   Fri, 22 Jan 2021 21:13:00 +0530
+Message-Id: <20210122154300.7628-16-calvin.johnson@oss.nxp.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20210122154300.7628-1-calvin.johnson@oss.nxp.com>
 References: <20210122154300.7628-1-calvin.johnson@oss.nxp.com>
@@ -84,126 +84,254 @@ X-ClientProxiedBy: SG2PR06CA0117.apcprd06.prod.outlook.com
  (2603:10a6:208:130::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR06CA0117.apcprd06.prod.outlook.com (2603:1096:1:1d::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12 via Frontend Transport; Fri, 22 Jan 2021 15:44:10 +0000
+Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR06CA0117.apcprd06.prod.outlook.com (2603:1096:1:1d::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12 via Frontend Transport; Fri, 22 Jan 2021 15:45:28 +0000
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 4e049d92-9a23-47e9-413b-08d8beec931e
+X-MS-Office365-Filtering-Correlation-Id: 1f71c28b-2762-49b9-7e64-08d8beecc1d1
 X-MS-TrafficTypeDiagnostic: AM0PR0402MB3443:
 X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR0402MB34434251CD9B192B4DCD14DFD2A00@AM0PR0402MB3443.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4714;
+X-Microsoft-Antispam-PRVS: <AM0PR0402MB34439E75AFF7C07CD7B92009D2A00@AM0PR0402MB3443.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:5236;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: uGhNar0+3+Hu9OA5+J0K25Ax4xRXdjOcylSjpNEH59l+ElY9jSGcXHrS3/qlA5q5wDtovyM91LRWIRenvf66dRh29QMs3y3TrUJjcuYUNLqbEdaRaxMmmvYmn49QQ5vC3gihs1FhIctXW5hRvw0jMrCXiwKM0axDpwuohznJ+tGjl9kK4yy+5uiHd9aKRXJpaLrRuPZRKaR0/CuBJC0qxjfMWMLiNOVq4P++o/WbbjLwBVejV6vBDKcXUYAg8oq73dVpeMClHUb6QWnbTTRPU8yPt3KR1wbkUecDC++PhYni0E8Y+4IK6Wg+dSJ9Efgb5hwYqoheC8xipmfcAuptPFD4af9jYnXN34nXrWE1NWvspo8m/UtLjGHtrJpqwIsKS7vOsQYdBQa3CfGs2KX7XH9M4aHagIM2Zq5eLqlOIVdUdawLglHe3Ca8FdnC4E4CepaRK7i0a5jTFYy91fhnxg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(346002)(136003)(396003)(39850400004)(366004)(2906002)(6506007)(921005)(6512007)(6666004)(186003)(5660300002)(1006002)(16526019)(52116002)(54906003)(956004)(55236004)(8676002)(66556008)(8936002)(66476007)(2616005)(66946007)(1076003)(478600001)(26005)(110136005)(86362001)(316002)(7416002)(4326008)(6486002)(44832011)(110426009);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?+6P6wZqMBeZIe9KWsOi0Muxreb/tWPy7zXa/K9yNyxh6EoIi9mo0FTzhY/Xl?=
- =?us-ascii?Q?vGnTL1enYQUxMv80Q8y5qyNwrHBij2urqMpaZ7cykOc/+fzlz1gHIzjFe3Os?=
- =?us-ascii?Q?MGlgS9pROHMkaqEK9j7/qUNX2xUWoJojQjnMHWtRFM7kVWpJea+oiy96JFQC?=
- =?us-ascii?Q?UOxUoII4J2D5p5haMA/rhm1S2CL54dQAzM4eGRMkAiNpL5M95NvKVV615w8t?=
- =?us-ascii?Q?LCEIn4seuWrrJ1bcXc9+ayCIzL0WvwiVfH8Po+ZEdMV8VUdPkYHKG1Sv+zRN?=
- =?us-ascii?Q?hVyLz+OmjBrrYjAUj2R3dL+8Ol5+zKkzDE/aDwcJjpTMpcT5vncGRSD8vgS9?=
- =?us-ascii?Q?VrF38nSxgJFIUlHPgoYx6M+7JSQOJbT4a7s0rR1Lh0w5tTPU3DQGspCEpf97?=
- =?us-ascii?Q?U7bdPsxbYF0DcjE5175EvSZ4Gukq4y8CxotW3j5ISjfw+pIs23j4Mk4PGwcc?=
- =?us-ascii?Q?Yn29F6Gf9MxriXj+E3UZjA5rD8zVhzJLSSCND4mXhyptBT02gZmViuKuD8jW?=
- =?us-ascii?Q?9LJEY64hSny0bc/VjTfMjnnVJbaOtlLCL1dCnxxqJ9CwwRR1ITrnDXk311U/?=
- =?us-ascii?Q?lK8pRGABGBZ1YXtjdwO5wKoJsvr0H/eUQVyT+NJMXUVAguFnwFoTYlmHFhUc?=
- =?us-ascii?Q?3MdyoglD9bj+tQti0GqZbrJvyxIsTi4ICO/Ys2nlNP6tVey+wBVJvDzNASEQ?=
- =?us-ascii?Q?P+q5MJn/8rXrI8JrJp9vNIHtSbZnPdsOqaRSEohNzbsKOmGz/2rNvbpyyI/W?=
- =?us-ascii?Q?YI8fnmf0h2fv5xQjvMRJ/3jTjST8s8j88c1UMjf3hZ3TKPKGXeJslvTPdyXR?=
- =?us-ascii?Q?9Bxb3EQnswhAOVxVNmzO8J92q+sU2fDPksJGxvy1oXcGQkRCV6BhmFUPPzCd?=
- =?us-ascii?Q?Sie/wdBCkWIMifojC2b0aMqWV0BIiLP+ZYKBH+4GEMtPXTSq60fV/4S5b7L7?=
- =?us-ascii?Q?WaVrhU3nTajPpsTsn5scvqufqUbJ0YCiHUnJT1xKxURB8sYDiPLpJFX9MQRM?=
- =?us-ascii?Q?JFBuTSeeXEqZnpq2GX+DpnOuOyF6IFiFDZfi4Heyysc5FN0nkKBiiBbIpFOO?=
- =?us-ascii?Q?rvFvn7ZH?=
+X-Microsoft-Antispam-Message-Info: pa5EvtOHNN5yyIyozXxlROzERWvGkHv3Qes0l4eRtU33tGtrzmRaT5btJYgqUC3K04NidCzG6jdq/KCE8Xnz61MAlPl6fHy4JZnIYNOmNYIEq91/vAaDUpmTyt4RnYNOoP6fdR+8EdKgRqz6SCDHVVePqBn88uoNezrPvuzvj5VVAq0djj8MitdPv0hGW2GhUWsRSYNuzBnApnJbsYuXzg27Q/Jk5IhpvN1gaUAKwzY7DjevJejQ7/uN8wNc0q4kB/5vWjn6d1NqDt2doyJld52xi4hw7Ijz49VG+ESlz9TzUeRLFuslzA0MlCLVg6nFRW9FvTBz2QzuOKIhEDMiqMvvYxDjs4FoNJyYQf7JODTSY18UAqVuRChZPqkzQ4xImsF9WOR/amRJiom11MZJW7SCnk3vDEdhDL9/xmwsR7rUbkGsdyZrYMYFD0taXQJzqYsOX6EF0W2cEDuME+u7xQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(346002)(39860400002)(136003)(396003)(366004)(2906002)(6506007)(921005)(6512007)(6666004)(186003)(5660300002)(1006002)(16526019)(52116002)(54906003)(956004)(55236004)(8676002)(66556008)(8936002)(83380400001)(66476007)(2616005)(66946007)(1076003)(478600001)(26005)(110136005)(86362001)(316002)(7416002)(4326008)(6486002)(44832011)(110426009);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?mtR6z84gFR0/V2r8fNATkd6IszqDxg76HYhMIqvACqdPjvx48qFsXJyFwoNO?=
+ =?us-ascii?Q?GV20biliVSx7KJK2UXBqRgZSZ9NIi8YvQVSS9U6ENTWkFU8laZeRSiDnMs+G?=
+ =?us-ascii?Q?Eemuocma6ZVKuWIximgR4SLzIVz+r49ZOPhaGMSpqN0XNnDhGKYXjNvZMWL0?=
+ =?us-ascii?Q?Uye+G6VGy7NFv+5j9HdXz/itOgDDJl+vBtDf7spZN41k0AP5W/uTd2tCJ+F0?=
+ =?us-ascii?Q?lu4ONex2ce5xtMBV5ChKB+lkuTqR5E+DJh+eIRuSM30f68J+ObLo3VbLIBQI?=
+ =?us-ascii?Q?yxCb0fDiE9Suf+XV5tmycbZ1ohUbExAglaYj+TIZ0JhMCDDwCrZ+xFucwMiK?=
+ =?us-ascii?Q?WYcqFl24UT4LCLO7Y5ue30MiGhmYBAGBbhhJgfTLKVsNketvqkA/Waj7I51b?=
+ =?us-ascii?Q?TS6PTj90BpmZ87aZnJoxhyjveJvXeeFxcK5CdI104rHPPd5EWW79BTz5aa84?=
+ =?us-ascii?Q?P9ydUuBjIjOK4TbsntjoYtcgcGyqFw42LFMy+Ig5iq81tcn8p5T4MyjHIqh0?=
+ =?us-ascii?Q?yF0c8VHtrnenMe/CkgJYrHsION5zwDmEwyhamOaNDCrVqJzZPhw5KJhL014f?=
+ =?us-ascii?Q?H10/5LxlS1TJlnNvdG6CsjLHC/nesP9SU5Rad0Snqh9glxc100do1IpF9lPO?=
+ =?us-ascii?Q?4VqsG3sCsiRxWfC63zyXE/INECpDTcpZ62/luoJP7mdtcvXlu8PV2d5/8WP9?=
+ =?us-ascii?Q?ul7Gl7PHqJYiau26mIPqlzQ0LsSqoRTwooj2/18guF+Zs+wFyRqFo/q30zHw?=
+ =?us-ascii?Q?Y13eYqDXODUQs/u7w0iuIlAZ2wzefF3G9+iVA/bpbfespl027wg7iCDmox1p?=
+ =?us-ascii?Q?DmKvur2gJ58Nxz1WSAodFX+wWcrZ0z8uRqdxMW8R1mE4dw6fx6SZf3neLoAB?=
+ =?us-ascii?Q?2X+u6XUnlKHyvwsoVzZ3Qk/9NKf0Lxpd7j31npQ7uiKTI/XeCWmn8DVcKrQZ?=
+ =?us-ascii?Q?J4r+YtlM/ekXHIYsTd4rP027GoCzITDf1pIaInPKzkrpB1TvjKpO0muGqeE/?=
+ =?us-ascii?Q?xGu7+zKlC8pjEpsDHD2d0SFGfr4G5GD6J0ei6zvTI3Xw835WYXypWCih9ste?=
+ =?us-ascii?Q?whlfd43+?=
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4e049d92-9a23-47e9-413b-08d8beec931e
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1f71c28b-2762-49b9-7e64-08d8beecc1d1
 X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB5636.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jan 2021 15:44:16.5676
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jan 2021 15:45:34.8455
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: kpSzEIF3cCBE/r/V7i4Y4sivPpIw1S6oy+YHLVrjbwIIzvc+ikG721OpNtVugzb0eFIVF2gX+NWJ+vvCO/dydQ==
+X-MS-Exchange-CrossTenant-UserPrincipalName: bigSAEZifMey8zoRTP9gEYJX8cGr/1nu8sAP1KuCkPqTqmxhV9DjsT7YHC9jKYzj2it+DNC0Q7ZbZRP/neAjUQ==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0402MB3443
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Extract phy_id from compatible string. This will be used by
-fwnode_mdiobus_register_phy() to create phy device using the
-phy_id.
+Modify dpaa2_mac_connect() to support ACPI along with DT.
+Modify dpaa2_mac_get_node() to get the dpmac fwnode from either
+DT or ACPI.
+
+Replace of_get_phy_mode with fwnode_get_phy_mode to get
+phy-mode for a dpmac_node.
+
+Use helper function phylink_fwnode_phy_connect() to find phy_dev and
+connect to mac->phylink.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 ---
 
 Changes in v4: None
-Changes in v3:
-- Use traditional comparison pattern
-- Use GENMASK
+Changes in v3: None
+Changes in v2:
+- Refactor OF functions to use fwnode functions
 
-Changes in v2: None
+ .../net/ethernet/freescale/dpaa2/dpaa2-mac.c  | 87 +++++++++++--------
+ 1 file changed, 50 insertions(+), 37 deletions(-)
 
- drivers/net/phy/phy_device.c | 21 +++++++++++++++++++++
- include/linux/phy.h          |  5 +++++
- 2 files changed, 26 insertions(+)
-
-diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index 66e779cd905a..6ebb67a19e69 100644
---- a/drivers/net/phy/phy_device.c
-+++ b/drivers/net/phy/phy_device.c
-@@ -846,6 +846,27 @@ static int get_phy_c22_id(struct mii_bus *bus, int addr, u32 *phy_id)
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c b/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c
+index 69ad869446cf..2aa320fd84ce 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c
+@@ -1,6 +1,9 @@
+ // SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+ /* Copyright 2019 NXP */
+ 
++#include <linux/acpi.h>
++#include <linux/property.h>
++
+ #include "dpaa2-eth.h"
+ #include "dpaa2-mac.h"
+ 
+@@ -34,39 +37,47 @@ static int phy_mode(enum dpmac_eth_if eth_if, phy_interface_t *if_mode)
  	return 0;
  }
  
-+/* Extract the phy ID from the compatible string of the form
-+ * ethernet-phy-idAAAA.BBBB.
-+ */
-+int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
-+{
-+	unsigned int upper, lower;
-+	const char *cp;
-+	int ret;
-+
-+	ret = fwnode_property_read_string(fwnode, "compatible", &cp);
-+	if (ret)
-+		return ret;
-+
-+	if (sscanf(cp, "ethernet-phy-id%4x.%4x", &upper, &lower) != 2)
-+		return -EINVAL;
-+
-+	*phy_id = ((upper & GENMASK(15, 0)) << 16) | (lower & GENMASK(15, 0));
-+	return 0;
-+}
-+EXPORT_SYMBOL(fwnode_get_phy_id);
-+
- /**
-  * get_phy_device - reads the specified PHY device and returns its @phy_device
-  *		    struct
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index dee7064ea4eb..957ce3c9b058 100644
---- a/include/linux/phy.h
-+++ b/include/linux/phy.h
-@@ -1349,6 +1349,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- 				     bool is_c45,
- 				     struct phy_c45_device_ids *c45_ids);
- #if IS_ENABLED(CONFIG_PHYLIB)
-+int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id);
- struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode);
- struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode);
- struct phy_device *device_phy_find_device(struct device *dev);
-@@ -1357,6 +1358,10 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
- int phy_device_register(struct phy_device *phy);
- void phy_device_free(struct phy_device *phydev);
- #else
-+static inline int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
-+{
-+	return 0;
-+}
- static inline
- struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
+-/* Caller must call of_node_put on the returned value */
+-static struct device_node *dpaa2_mac_get_node(u16 dpmac_id)
++static struct fwnode_handle *dpaa2_mac_get_node(struct device *dev,
++						u16 dpmac_id)
  {
+-	struct device_node *dpmacs, *dpmac = NULL;
+-	u32 id;
++	struct device_node *dpmacs = NULL;
++	struct fwnode_handle *parent, *child  = NULL;
+ 	int err;
++	u32 id;
+ 
+-	dpmacs = of_find_node_by_name(NULL, "dpmacs");
+-	if (!dpmacs)
+-		return NULL;
++	if (is_of_node(dev->parent->fwnode)) {
++		dpmacs = of_find_node_by_name(NULL, "dpmacs");
++		if (!dpmacs)
++			return NULL;
++		parent = of_fwnode_handle(dpmacs);
++	} else if (is_acpi_node(dev->parent->fwnode)) {
++		parent = dev->parent->fwnode;
++	}
+ 
+-	while ((dpmac = of_get_next_child(dpmacs, dpmac)) != NULL) {
+-		err = of_property_read_u32(dpmac, "reg", &id);
+-		if (err)
++	fwnode_for_each_child_node(parent, child) {
++		err = fwnode_get_id(child, &id);
++		if (err) {
+ 			continue;
+-		if (id == dpmac_id)
+-			break;
++		} else if (id == dpmac_id) {
++			if (is_of_node(dev->parent->fwnode))
++				of_node_put(dpmacs);
++			return child;
++		}
+ 	}
+-
+-	of_node_put(dpmacs);
+-
+-	return dpmac;
++	if (is_of_node(dev->parent->fwnode))
++		of_node_put(dpmacs);
++	return NULL;
+ }
+ 
+-static int dpaa2_mac_get_if_mode(struct device_node *node,
++static int dpaa2_mac_get_if_mode(struct fwnode_handle *dpmac_node,
+ 				 struct dpmac_attr attr)
+ {
+ 	phy_interface_t if_mode;
+ 	int err;
+ 
+-	err = of_get_phy_mode(node, &if_mode);
+-	if (!err)
+-		return if_mode;
++	err = fwnode_get_phy_mode(dpmac_node);
++	if (err > 0)
++		return err;
+ 
+ 	err = phy_mode(attr.eth_if, &if_mode);
+ 	if (!err)
+@@ -221,26 +232,27 @@ static const struct phylink_mac_ops dpaa2_mac_phylink_ops = {
+ };
+ 
+ static int dpaa2_pcs_create(struct dpaa2_mac *mac,
+-			    struct device_node *dpmac_node, int id)
++			    struct fwnode_handle *dpmac_node,
++			    int id)
+ {
+ 	struct mdio_device *mdiodev;
+-	struct device_node *node;
++	struct fwnode_handle *node;
+ 
+-	node = of_parse_phandle(dpmac_node, "pcs-handle", 0);
+-	if (!node) {
++	node = fwnode_find_reference(dpmac_node, "pcs-handle", 0);
++	if (IS_ERR(node)) {
+ 		/* do not error out on old DTS files */
+ 		netdev_warn(mac->net_dev, "pcs-handle node not found\n");
+ 		return 0;
+ 	}
+ 
+-	if (!of_device_is_available(node)) {
++	if (!of_device_is_available(to_of_node(node))) {
+ 		netdev_err(mac->net_dev, "pcs-handle node not available\n");
+-		of_node_put(node);
++		of_node_put(to_of_node(node));
+ 		return -ENODEV;
+ 	}
+ 
+-	mdiodev = of_mdio_find_device(node);
+-	of_node_put(node);
++	mdiodev = fwnode_mdio_find_device(node);
++	fwnode_handle_put(node);
+ 	if (!mdiodev)
+ 		return -EPROBE_DEFER;
+ 
+@@ -269,13 +281,12 @@ static void dpaa2_pcs_destroy(struct dpaa2_mac *mac)
+ int dpaa2_mac_connect(struct dpaa2_mac *mac)
+ {
+ 	struct net_device *net_dev = mac->net_dev;
+-	struct device_node *dpmac_node;
++	struct fwnode_handle *dpmac_node = NULL;
+ 	struct phylink *phylink;
+ 	int err;
+ 
+ 	mac->if_link_type = mac->attr.link_type;
+-
+-	dpmac_node = dpaa2_mac_get_node(mac->attr.id);
++	dpmac_node = dpaa2_mac_get_node(&mac->mc_dev->dev, mac->attr.id);
+ 	if (!dpmac_node) {
+ 		netdev_err(net_dev, "No dpmac@%d node found.\n", mac->attr.id);
+ 		return -ENODEV;
+@@ -292,7 +303,7 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
+ 	 * error out if the interface mode requests them and there is no PHY
+ 	 * to act upon them
+ 	 */
+-	if (of_phy_is_fixed_link(dpmac_node) &&
++	if (of_phy_is_fixed_link(to_of_node(dpmac_node)) &&
+ 	    (mac->if_mode == PHY_INTERFACE_MODE_RGMII_ID ||
+ 	     mac->if_mode == PHY_INTERFACE_MODE_RGMII_RXID ||
+ 	     mac->if_mode == PHY_INTERFACE_MODE_RGMII_TXID)) {
+@@ -312,7 +323,7 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
+ 	mac->phylink_config.type = PHYLINK_NETDEV;
+ 
+ 	phylink = phylink_create(&mac->phylink_config,
+-				 of_fwnode_handle(dpmac_node), mac->if_mode,
++				 dpmac_node, mac->if_mode,
+ 				 &dpaa2_mac_phylink_ops);
+ 	if (IS_ERR(phylink)) {
+ 		err = PTR_ERR(phylink);
+@@ -323,13 +334,14 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
+ 	if (mac->pcs)
+ 		phylink_set_pcs(mac->phylink, &mac->pcs->pcs);
+ 
+-	err = phylink_of_phy_connect(mac->phylink, dpmac_node, 0);
++	err = phylink_fwnode_phy_connect(mac->phylink, dpmac_node, 0);
+ 	if (err) {
+-		netdev_err(net_dev, "phylink_of_phy_connect() = %d\n", err);
++		netdev_err(net_dev, "phylink_fwnode_phy_connect() = %d\n", err);
+ 		goto err_phylink_destroy;
+ 	}
+ 
+-	of_node_put(dpmac_node);
++	if (is_of_node(dpmac_node))
++		fwnode_handle_put(dpmac_node);
+ 
+ 	return 0;
+ 
+@@ -338,7 +350,8 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
+ err_pcs_destroy:
+ 	dpaa2_pcs_destroy(mac);
+ err_put_node:
+-	of_node_put(dpmac_node);
++	if (is_of_node(dpmac_node))
++		fwnode_handle_put(dpmac_node);
+ 
+ 	return err;
+ }
 -- 
 2.17.1
 
