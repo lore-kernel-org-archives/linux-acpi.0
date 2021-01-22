@@ -2,142 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06FADC433DB
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 11:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEC0C433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 12:55:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA1FE238EE
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 11:56:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 475EB23106
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 12:55:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727174AbhAVLz5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Jan 2021 06:55:57 -0500
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2399 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728020AbhAVK76 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 05:59:58 -0500
-Received: from fraeml710-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4DMbkY5sG2z67dSX;
-        Fri, 22 Jan 2021 18:55:01 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml710-chm.china.huawei.com (10.206.15.59) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Fri, 22 Jan 2021 11:59:15 +0100
-Received: from localhost (10.47.73.222) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Fri, 22 Jan
- 2021 10:59:13 +0000
-Date:   Fri, 22 Jan 2021 10:58:32 +0000
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
-CC:     <joro@8bytes.org>, <will@kernel.org>, <lorenzo.pieralisi@arm.com>,
-        <robh+dt@kernel.org>, <guohanjun@huawei.com>,
-        <sudeep.holla@arm.com>, <rjw@rjwysocki.net>, <lenb@kernel.org>,
-        <robin.murphy@arm.com>, <eric.auger@redhat.com>,
-        <iommu@lists.linux-foundation.org>, <devicetree@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-accelerators@lists.ozlabs.org>, <baolu.lu@linux.intel.com>,
-        <jacob.jun.pan@linux.intel.com>, <kevin.tian@intel.com>,
-        <vdumpa@nvidia.com>, <zhangfei.gao@linaro.org>,
-        <shameerali.kolothum.thodi@huawei.com>, <vivek.gautam@arm.com>
-Subject: Re: [PATCH v10 10/10] iommu/arm-smmu-v3: Add stall support for
- platform devices
-Message-ID: <20210122105832.00002dcb@Huawei.com>
-In-Reply-To: <YAqSCKeN2o+GsISZ@myrica>
-References: <20210121123623.2060416-1-jean-philippe@linaro.org>
-        <20210121123623.2060416-11-jean-philippe@linaro.org>
-        <20210121191236.00000103@Huawei.com>
-        <YAqSCKeN2o+GsISZ@myrica>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
+        id S1727497AbhAVMyL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Jan 2021 07:54:11 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:41018 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726515AbhAVMyI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 07:54:08 -0500
+Received: from 1.general.khfeng.us.vpn ([10.172.68.174] helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <kai.heng.feng@canonical.com>)
+        id 1l2vw8-0005pv-5u; Fri, 22 Jan 2021 12:53:13 +0000
+From:   Kai-Heng Feng <kai.heng.feng@canonical.com>
+To:     rjw@rjwysocki.net
+Cc:     Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        AceLan Kao <acelan.kao@canonical.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org (open list:ACPI),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] ACPI / device_sysfs: Prefer "compatible" modalias
+Date:   Fri, 22 Jan 2021 20:53:02 +0800
+Message-Id: <20210122125302.991591-1-kai.heng.feng@canonical.com>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.47.73.222]
-X-ClientProxiedBy: lhreml750-chm.china.huawei.com (10.201.108.200) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 22 Jan 2021 09:51:20 +0100
-Jean-Philippe Brucker <jean-philippe@linaro.org> wrote:
+Commit 8765c5ba1949 ("ACPI / scan: Rework modalias creation when
+"compatible" is present") may create two "MODALIAS=" in uevent file if
+conditions are met.
 
-> On Thu, Jan 21, 2021 at 07:12:36PM +0000, Jonathan Cameron wrote:
-> > > @@ -2502,6 +2647,7 @@ static void arm_smmu_release_device(struct device *dev)
-> > >  
-> > >  	master = dev_iommu_priv_get(dev);
-> > >  	WARN_ON(arm_smmu_master_sva_enabled(master));
-> > > +	iopf_queue_remove_device(master->smmu->evtq.iopf, dev);
-> > >  	arm_smmu_detach_dev(master);
-> > >  	arm_smmu_disable_pasid(master);
-> > >  	arm_smmu_remove_master(master);  
-> > 
-> > The lack of symmetry here bothers me a bit, but it's already true, so I guess
-> > this case is fine as well.  
-> 
-> Normally the device driver calls iommu_dev_feat_disable(SVA) which does
-> iopf_queue_remove_device(). This is just a safety net in case the device
-> gets removed without the driver properly cleaning up (which will WARN as
-> well) 
+This breaks systemd-udevd, which assumes each "key" in uevent file is
+unique. The internal implementation of systemd-udevd overwrites the
+first MODALIAS with the second one, so its kmod rule doesn't load driver
+for the first MODALIAS.
 
-Ah makes sense.  Maybe it's worth a comment in the code for future generations
-of tired code readers?
+So if both ACPI modalias and OF modalias are present, use the latter
+one to ensure there's only one MODALIAS.
 
-> 
-> > 
-> > ...  
-> > >  
-> > > @@ -2785,6 +2946,7 @@ static int arm_smmu_cmdq_init(struct arm_smmu_device *smmu)
-> > >  static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
-> > >  {
-> > >  	int ret;
-> > > +	bool sva = smmu->features & ARM_SMMU_FEAT_STALLS;  
-> > 
-> > FEAT_SVA?  
-> 
-> Ugh yes, thanks. I left this as a bool instead of moving into the test
-> below because the PRI patch reuses it, but I think I'll just move it down
-> when resending.
+Reference: https://github.com/systemd/systemd/pull/18163
+Cc: AceLan Kao <acelan.kao@canonical.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Fixes: 8765c5ba1949 ("ACPI / scan: Rework modalias creation when "compatible" is present")
+Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+---
+ drivers/acpi/device_sysfs.c | 20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-Makes sense.
-
-> 
-> Thanks,
-> Jean
-> 
-> >   
-> > >  
-> > >  	/* cmdq */
-> > >  	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, ARM_SMMU_CMDQ_PROD,
-> > > @@ -2804,6 +2966,12 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
-> > >  	if (ret)
-> > >  		return ret;
-> > >  
-> > > +	if (sva && smmu->features & ARM_SMMU_FEAT_STALLS) {  
-> > 
-> > Isn't this checking same thing twice?
-> >   
-> > > +		smmu->evtq.iopf = iopf_queue_alloc(dev_name(smmu->dev));
-> > > +		if (!smmu->evtq.iopf)
-> > > +			return -ENOMEM;
-> > > +	}
-> > > +
-> > >  	/* priq */
-> > >  	if (!(smmu->features & ARM_SMMU_FEAT_PRI))
-> > >  		return 0;
-> > > @@ -3718,6 +3886,7 @@ static int arm_smmu_device_remove(struct platform_device *pdev)
-> > >  	iommu_device_unregister(&smmu->iommu);
-> > >  	iommu_device_sysfs_remove(&smmu->iommu);
-> > >  	arm_smmu_device_disable(smmu);
-> > > +	iopf_queue_free(smmu->evtq.iopf);
-> > >  
-> > >  	return 0;
-> > >  }  
-> >   
+diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+index 96869f1538b9..bfca116482b8 100644
+--- a/drivers/acpi/device_sysfs.c
++++ b/drivers/acpi/device_sysfs.c
+@@ -251,20 +251,12 @@ int __acpi_device_uevent_modalias(struct acpi_device *adev,
+ 	if (add_uevent_var(env, "MODALIAS="))
+ 		return -ENOMEM;
+ 
+-	len = create_pnp_modalias(adev, &env->buf[env->buflen - 1],
+-				  sizeof(env->buf) - env->buflen);
+-	if (len < 0)
+-		return len;
+-
+-	env->buflen += len;
+-	if (!adev->data.of_compatible)
+-		return 0;
+-
+-	if (len > 0 && add_uevent_var(env, "MODALIAS="))
+-		return -ENOMEM;
+-
+-	len = create_of_modalias(adev, &env->buf[env->buflen - 1],
+-				 sizeof(env->buf) - env->buflen);
++	if (adev->data.of_compatible)
++		len = create_of_modalias(adev, &env->buf[env->buflen - 1],
++					 sizeof(env->buf) - env->buflen);
++	else
++		len = create_pnp_modalias(adev, &env->buf[env->buflen - 1],
++					  sizeof(env->buf) - env->buflen);
+ 	if (len < 0)
+ 		return len;
+ 
+-- 
+2.29.2
 
