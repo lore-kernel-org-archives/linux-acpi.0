@@ -2,153 +2,165 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1355C433DB
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 21:10:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 520EDC433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 22:42:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1DE323A7A
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 21:10:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E41923A84
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 22:42:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730106AbhAVVKB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Jan 2021 16:10:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53560 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729693AbhAVVIr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 16:08:47 -0500
-Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23900C061786
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Jan 2021 13:08:06 -0800 (PST)
-Received: by mail-yb1-xb29.google.com with SMTP id y4so6803719ybn.3
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Jan 2021 13:08:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qVc/JMkhbZ642gWanQRDHxa/CH0+8991b/z+xpWJCVE=;
-        b=sv6yjs1f0h/jilFnfWEYscV2TwPHz046JX1vja4M1fRL7/hPcAimzjsx09ndnGML1+
-         R1dYHaoAPYi/shuH4sdW1QblpzxI+u7SkGi3MNPi+El6gPb+WhnRHFnDiaz77PyejxFE
-         bnlC79MJ79AWbokEVsWQaIgH4NFvplailCmo3cPt7yPvl3blKaOiFXfBUpasnfE4IK9r
-         7wvBHXRMAI9Qdf83Jkdbgx9puJ8gL8d0sUEX1S8mMSLen7WXn9rifkY8zRhBpmsCmZJt
-         nzUKXEqWgZeUtPVfru5jeTmT17iJVykkgsqIfG57gyHnRFVvjTp2xRRjltHv51NQUBgf
-         HgIQ==
+        id S1728222AbhAVWmb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Jan 2021 17:42:31 -0500
+Received: from mail-pg1-f173.google.com ([209.85.215.173]:40092 "EHLO
+        mail-pg1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730432AbhAVToV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 14:44:21 -0500
+Received: by mail-pg1-f173.google.com with SMTP id 15so4497086pgx.7;
+        Fri, 22 Jan 2021 11:44:05 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qVc/JMkhbZ642gWanQRDHxa/CH0+8991b/z+xpWJCVE=;
-        b=KVUrfcpPZJZ058JBpH0PVMw2DGyqNmgU8GMubQ/2qzifBTpg7aYTX0fJwWD//2GLDF
-         4RdIL/ktzUoya4Tr82J9kryDZrRHoWuImiykLYDLwa4wrP77ClcRXnnXdZPlcxPiWODT
-         wbFEQS5jCkQMpOn3V2dy35vq5DGVcnglcCZnExSLT83RcQL4Zr/of0OnCAJJRJCNh7rF
-         sXcMqRCL+lo+KHg576d7PXRsHzbWglGqpDy1BLYUW1L8xKdTyqkgA3mN6c1yhyZ/Hhpm
-         6VmFqa7vKV3PtYlXc7Qp2sJEvQ4JxfTlX40UscIhAojs+v3eJfAxjUeJlyl/XVNQdlDc
-         2DFQ==
-X-Gm-Message-State: AOAM5333abQVUsbTpTYCWWWBpIbDRu+rSmSGRnKsKi8ZU4mtumTtd/MQ
-        2XgliipTh4MTHubvfKVawa/t3svGjAltHiOMJvo2Gw==
-X-Google-Smtp-Source: ABdhPJzl3B4tmnY6/Kaav43wpplRGKE3E6UPYGKpTFTuTVbPUkkV4q2p8tfyfjSW1l1la2fC7GPmuC9hUaiU1fTvO1w=
-X-Received: by 2002:a25:3345:: with SMTP id z66mr9256594ybz.466.1611349685124;
- Fri, 22 Jan 2021 13:08:05 -0800 (PST)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=ATG0GXwb6cHOMUq0Deoow7zIfUyiL9nWB+7HYnwDTXA=;
+        b=TfriNOBwYDmEoIFXqwsX+2TlcTN+fXn+ThmM6BA1GQlXB8g7VakXdWMlSbPYximhtk
+         RJtzlBZ/CJfjw+LSkGge9HlOEMkHJWVnTyQueutoT+HDvb+4S+/Yr/0HrY56/7GERFik
+         gxlB2Zfs11KkY25AC+rXMRbtzQ9lew5l15pO6AvyAzT2OqgPrOhzW2HAjcphbxXvz2EA
+         812d9i4G2SH2EoyznFClnBBZHdNeMiIsHWGi+s0n/xktYxd8nBpWMOOXapFNyDZtL7+E
+         91WZ3PrRy/Rg+M4MlQ2ddptLRnt+SVniQsxgSQzgV4F0uQvxB8WLYj2kR07VUL+uw6ru
+         3O8A==
+X-Gm-Message-State: AOAM533YesQZ9n8wgdXOO68lhEDD9pMzbIdbqfsopq+YFRp137oKx5X/
+        S665J48E9AwuBOu0u6PC2kA=
+X-Google-Smtp-Source: ABdhPJxYQr1Ch6qIKOrEYXGLMhs510aFr2+YqABRUXxW3HRV5y/SFkvSXB7CqcVBI21jxE2gabFISw==
+X-Received: by 2002:a62:cf02:0:b029:1a4:6899:618e with SMTP id b2-20020a62cf020000b02901a46899618emr1068870pfg.70.1611344620089;
+        Fri, 22 Jan 2021 11:43:40 -0800 (PST)
+Received: from localhost ([2601:647:5b00:1162:1ac0:17a6:4cc6:d1ef])
+        by smtp.gmail.com with ESMTPSA id i62sm6223677pfe.84.2021.01.22.11.43.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 Jan 2021 11:43:38 -0800 (PST)
+Date:   Fri, 22 Jan 2021 11:43:37 -0800
+From:   Moritz Fischer <mdf@kernel.org>
+To:     Robin Murphy <robin.murphy@arm.com>
+Cc:     Moritz Fischer <mdf@kernel.org>, lorenzo.pieralisi@arm.com,
+        guohanjun@huawei.com, rjw@rjwysocki.net,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        moritzf@google.com, sudeep.holla@arm.com, will@kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] ACPI/IORT: Do not blindly trust DMA masks from
+ firmware
+Message-ID: <YAsq6XE4okZbPf9Z@archbook>
+References: <20210122012419.95010-1-mdf@kernel.org>
+ <e01e2fd6-7f78-354e-374c-f93a5d1b8fd6@arm.com>
+ <YAsQcLqvi0Lh8PVv@archbook>
+ <29575ef5-a1c1-16d7-5fed-7fc34d772a7a@arm.com>
 MIME-Version: 1.0
-References: <20210112134054.342-1-calvin.johnson@oss.nxp.com>
- <20210112134054.342-10-calvin.johnson@oss.nxp.com> <CAGETcx-7JVz=QLCMWicHqoagWYjeBXdFJmSv1v6MQhtPt2RS=Q@mail.gmail.com>
- <20210112180343.GI4077@smile.fi.intel.com> <CAJZ5v0iW0jJUcXtiQtLOakkSejZCJD=hTFLL4mvoAN3ZTB+1Tw@mail.gmail.com>
- <CAHp75VcJS10KMA5amUc36PFgj0FLddj1fXD4dUtuAchrVhhzPg@mail.gmail.com>
- <CAJZ5v0ga5RqwFzbBqSChJ7=gBBM-7dWNQPz6bqvqsNAkWZJ=vQ@mail.gmail.com>
- <CAGETcx8DP8J53ntxX2VCSnbMfq1qki7gD-md+NC_jVfOkTam3g@mail.gmail.com>
- <CAJZ5v0gUCUxJX9sGJiZ+zTVYrc3rjuUO2B2fx+O6PewbG7F8aw@mail.gmail.com>
- <CAGETcx-904Cr11nVW6PC=OqWnwM-ZC-DdEUa8+7JmhsH3UOqHw@mail.gmail.com> <CAHp75VcVNj0+KZiLEsPgfz=fZoLr9g1=6ikeUo7FZ1rd4FKpWQ@mail.gmail.com>
-In-Reply-To: <CAHp75VcVNj0+KZiLEsPgfz=fZoLr9g1=6ikeUo7FZ1rd4FKpWQ@mail.gmail.com>
-From:   Saravana Kannan <saravanak@google.com>
-Date:   Fri, 22 Jan 2021 13:07:29 -0800
-Message-ID: <CAGETcx-CFPa6hckV6RjWfOcYnrfoU1_vYYpLZtV_LgxNSDzthQ@mail.gmail.com>
-Subject: Re: [net-next PATCH v3 09/15] device property: Introduce fwnode_get_id()
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Calvin Johnson <calvin.johnson@oss.nxp.com>,
-        Grant Likely <grant.likely@arm.com>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
-        Jon <jon@solid-run.com>,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "linux.cj" <linux.cj@gmail.com>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Randy Dunlap <rdunlap@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <29575ef5-a1c1-16d7-5fed-7fc34d772a7a@arm.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jan 22, 2021 at 1:05 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Fri, Jan 22, 2021 at 10:59 PM Saravana Kannan <saravanak@google.com> wrote:
-> > On Fri, Jan 22, 2021 at 8:34 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > > On Wed, Jan 20, 2021 at 9:01 PM Saravana Kannan <saravanak@google.com> wrote:
-> > > > On Wed, Jan 20, 2021 at 11:15 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
->
-> > > > I'd rather this new function be an ops instead of a bunch of #ifdef or
-> > > > if (acpi) checks. Thoughts?
-> > >
-> > > Well, it looks more like a helper function than like an op and I'm not
-> > > even sure how many potential users of it will expect that _ADR should
-> > > be evaluated in the absence of the "reg" property.
-> > >
-> > > It's just that the "reg" property happens to be kind of an _ADR
-> > > equivalent in this particular binding AFAICS.
-> >
-> > I agree it is not clear how useful this helper function is going to be.
-> >
-> > But in general, to me, any time the wrapper/helper functions in
-> > drivers/base/property.c need to do something like this:
-> >
-> > if (ACPI)
-> >    ACPI specific code
-> > if (OF)
-> >    OF specific code
-> >
-> > I think the code should be pushed to the fwnode ops. That's one of the
-> > main point of fwnode. So that firmware specific stuff is done by
-> > firmware specific code. Also, when adding support for new firmware,
-> > it's pretty clear what support the firmware needs to implement.
-> > Instead of having to go fix up a bunch of code all over the place.
->
-> Wishful thinking.
-> In the very case of GPIO it's related to framework using headers local
-> to framework. Are you suggesting to open its guts to the entire wild
-> world?
+On Fri, Jan 22, 2021 at 07:17:59PM +0000, Robin Murphy wrote:
+> On 2021-01-22 17:50, Moritz Fischer wrote:
+> > Hi Robin,
+> > 
+> > On Fri, Jan 22, 2021 at 02:42:05PM +0000, Robin Murphy wrote:
+> > > On 2021-01-22 01:24, Moritz Fischer wrote:
+> > > > Address issue observed on real world system with suboptimal IORT table
+> > > > where DMA masks of PCI devices would get set to 0 as result.
+> > > > 
+> > > > iort_dma_setup() would query the root complex'/named component IORT
+> > > > entry for a DMA mask, and use that over the one the device has been
+> > > > configured with earlier.
+> > > > 
+> > > > Ideally we want to use the minimum mask of what the IORT contains for
+> > > > the root complex and what the device was configured with.
+> > > > 
+> > > > Fixes: 5ac65e8c8941 ("ACPI/IORT: Support address size limit for root complexes")
+> > > > Signed-off-by: Moritz Fischer <mdf@kernel.org>
+> > > > ---
+> > > > 
+> > > > Changes from v1:
+> > > > - Changed warning to FW_BUG
+> > > > - Warn for both Named Component or Root Complex
+> > > > - Replaced min_not_zero() with min()
+> > > > 
+> > > > ---
+> > > >    drivers/acpi/arm64/iort.c | 14 ++++++++++++--
+> > > >    1 file changed, 12 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > > > index d4eac6d7e9fb..2494138a6905 100644
+> > > > --- a/drivers/acpi/arm64/iort.c
+> > > > +++ b/drivers/acpi/arm64/iort.c
+> > > > @@ -1107,6 +1107,11 @@ static int nc_dma_get_range(struct device *dev, u64 *size)
+> > > >    	ncomp = (struct acpi_iort_named_component *)node->node_data;
+> > > > +	if (!ncomp->memory_address_limit) {
+> > > > +		pr_warn(FW_BUG "Named component missing memory address limit\n");
+> > > > +		return -EINVAL;
+> > > > +	}
+> > > > +
+> > > >    	*size = ncomp->memory_address_limit >= 64 ? U64_MAX :
+> > > >    			1ULL<<ncomp->memory_address_limit;
+> > > > @@ -1126,6 +1131,11 @@ static int rc_dma_get_range(struct device *dev, u64 *size)
+> > > >    	rc = (struct acpi_iort_root_complex *)node->node_data;
+> > > > +	if (!rc->memory_address_limit) {
+> > > > +		pr_warn(FW_BUG "Root complex missing memory address limit\n");
+> > > > +		return -EINVAL;
+> > > > +	}
+> > > > +
+> > > >    	*size = rc->memory_address_limit >= 64 ? U64_MAX :
+> > > >    			1ULL<<rc->memory_address_limit;
+> > > > @@ -1173,8 +1183,8 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+> > > >    		end = dmaaddr + size - 1;
+> > > >    		mask = DMA_BIT_MASK(ilog2(end) + 1);
+> > > >    		dev->bus_dma_limit = end;
+> > > > -		dev->coherent_dma_mask = mask;
+> > > > -		*dev->dma_mask = mask;
+> > > > +		dev->coherent_dma_mask = min(dev->coherent_dma_mask, mask);
+> > > > +		*dev->dma_mask = min(*dev->dma_mask, mask);
+> > > 
+> > > Oops, I got so distracted by the "not_zero" aspect in v1 that I ended up
+> > > thinking purely about smaller-than-default masks, but of course this *does*
+> > > matter the other way round. And it is what we've always done on the DT side,
+> > > so at least it makes us consistent.
+> > > 
+> > > FWIW I've already started writing up a patch to kill off this bit entirely,
+> > > but either way we still can't meaningfully interpret a supposed DMA limit of
+> > > 0 bits in a table describing DMA-capable devices, so for this patch as a
+> > > fix,
+> > > 
+> > > Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> > 
+> > I think there's another issue the comparisons for revision should be
+> > against < 2 not < 1.
+> > 
+> >  From what I could find DEN0049D (IORT) spec introduced the fields
+> > (curiously the C doc seems to be missing).
+> 
+> I guess it got lost in the documentation system move. FWIW I still have a
+> copy of issue C, and root complex nodes are unchanged at revision 0 there.
+> 
+> > DEN0049B specifies revision as '0', DEN0049C (missing?), DEN0049D
+> > specifies new fields for memory_size_limit and both Named Component and
+> > Root Complex nodes set revision to 2.
+> 
+> My copy of issue D says Root Complex nodes are at revision 1, with memory
+> address size limit added.
+> 
+> (Note that Named Component nodes did bump to rev. 1 in issue C, then to rev.
+> 2 in issue D)
+> 
+> Issue E bumped Root Complex nodes to revision 2 with the addition of the PRI
+> flag, then E.a made a mess of everything by deprecating the revision numbers
+> for individual tables - we probably need to deal with *that*, since
+> otherwise we'll think new tables are back at rev. 0 again, but AFAICS the
+> current check is correct for anything written against the first 5 releases.
 
-What are you even talking about? How is whatever you are saying
-remotely related to getting an "id" for a fwnode?
+Ok, yeah, I double checked this, you're right. Then patch should be fine
+as is.
 
-> I don't think it's a good idea. You see, here we have different
-> layering POD types,
-
-POD?
-
-> which are natural and quite low level that ops
-> suits best for them and quite different resource types like GPIO. And
-> the latter is closer to certain framework rather than to POD handling
-> cases.
->
-
--Saravana
+Thanks!
