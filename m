@@ -2,286 +2,353 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 103F7C433E6
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 19:52:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57D8DC433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 20:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D391223B16
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 19:52:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CA0123B08
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 20:46:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728807AbhAVTv7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Jan 2021 14:51:59 -0500
-Received: from mail-ot1-f46.google.com ([209.85.210.46]:38508 "EHLO
-        mail-ot1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729001AbhAVTXO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2021 14:23:14 -0500
-Received: by mail-ot1-f46.google.com with SMTP id s2so3975086otp.5;
-        Fri, 22 Jan 2021 11:22:57 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=AcWL/Daw/XNoId/ExdNCO9ieLMb3o6Tm1Cik9cvjN0Y=;
-        b=KUtkAnRLFQpVFxbEEtYDyCj7N56rrgcYPN8N7bqTDkEr8ucG5dTuVE4QGC/QSau+oK
-         geuOFHKplFc265ckq1YTCTLwRBM7KrpaCiyJ8M+tV/YlxibX7yYuPVxZ/B8+e1xaGfe+
-         y/3TPqJxfQAyxrJnSuy1nOFiTfLamz96lNQnRGd/yXsYuRVuleHFIItEkBYoZdKlXrPM
-         fILgG55w33OLPZCycqRhsU+Tm/bKhCYjUX8Gv7cyqwnHn91TZe9J5HSYpEFepVJ/g77w
-         jRlonfsD4IAsUdxjQ8g01/fKWjldaKOCd3tBoh/MIx6HzCzhaWvdPt5ubDuDAleW8duJ
-         pnPg==
-X-Gm-Message-State: AOAM530NVKAX7+cHvnm/sdLyogeYVZ5MhOI9VSixDMYWpt+6XVyMva5S
-        DMWAfJv/EUsyrgSieFRZkxWdyR98+0Mw2H+xC73H1XR6JM4sRw==
-X-Google-Smtp-Source: ABdhPJzweY2mg/zFWP93YsFHVJt5xaD20MtLkVatRFMIokm+C6mB13HNhebPzAWgGsPX6kHU3X2VmvszA6UQsk6dJgw=
-X-Received: by 2002:a05:6830:2313:: with SMTP id u19mr1341091ote.321.1611343352346;
- Fri, 22 Jan 2021 11:22:32 -0800 (PST)
+        id S1729052AbhAVUql (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Jan 2021 15:46:41 -0500
+Received: from mx2.suse.de ([195.135.220.15]:52124 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730382AbhAVUlg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Jan 2021 15:41:36 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id BBAC6ABDA;
+        Fri, 22 Jan 2021 20:40:46 +0000 (UTC)
+From:   Giovanni Gherdovich <ggherdovich@suse.cz>
+To:     Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Viresh Kumar <viresh.kumar@linaro.org>
+Cc:     Jon Grimm <Jon.Grimm@amd.com>,
+        Nathan Fontenot <Nathan.Fontenot@amd.com>,
+        Yazen Ghannam <Yazen.Ghannam@amd.com>,
+        Thomas Lendacky <Thomas.Lendacky@amd.com>,
+        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Michael Larabel <Michael@phoronix.com>, x86@kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        Giovanni Gherdovich <ggherdovich@suse.cz>
+Subject: [PATCH v2 1/1] x86,sched: On AMD EPYC set freq_max = max_boost in schedutil invariant formula
+Date:   Fri, 22 Jan 2021 21:40:38 +0100
+Message-Id: <20210122204038.3238-2-ggherdovich@suse.cz>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20210122204038.3238-1-ggherdovich@suse.cz>
+References: <20210122204038.3238-1-ggherdovich@suse.cz>
 MIME-Version: 1.0
-References: <20210122154300.7628-1-calvin.johnson@oss.nxp.com> <20210122154300.7628-2-calvin.johnson@oss.nxp.com>
-In-Reply-To: <20210122154300.7628-2-calvin.johnson@oss.nxp.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 22 Jan 2021 20:22:21 +0100
-Message-ID: <CAJZ5v0iX3uU36448ALA20hiVk968VKTsvgwLrp8ur96MQo3Acw@mail.gmail.com>
-Subject: Re: [net-next PATCH v4 01/15] Documentation: ACPI: DSD: Document MDIO PHY
-To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
-Cc:     Grant Likely <grant.likely@arm.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
-        Jon <jon@solid-run.com>, Saravana Kannan <saravanak@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        "linux.cj" <linux.cj@gmail.com>,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jan 22, 2021 at 4:43 PM Calvin Johnson
-<calvin.johnson@oss.nxp.com> wrote:
->
-> Introduce ACPI mechanism to get PHYs registered on a MDIO bus and
-> provide them to be connected to MAC.
->
-> Describe properties "phy-handle" and "phy-mode".
->
-> Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-> ---
->
-> Changes in v4:
-> - More cleanup
+Phoronix.com discovered a severe performance regression on AMD EPYC
+introduced on schedutil [see link 1] by the following commits from v5.11-rc1
 
-This looks much better that the previous versions IMV, some nits below.
+    commit 41ea667227ba ("x86, sched: Calculate frequency invariance for AMD systems")
+    commit 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for frequency invariance on AMD EPYC")
 
-> Changes in v3: None
-> Changes in v2:
-> - Updated with more description in document
->
->  Documentation/firmware-guide/acpi/dsd/phy.rst | 129 ++++++++++++++++++
->  1 file changed, 129 insertions(+)
->  create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
->
-> diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
-> new file mode 100644
-> index 000000000000..76fca994bc99
-> --- /dev/null
-> +++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
-> @@ -0,0 +1,129 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +=========================
-> +MDIO bus and PHYs in ACPI
-> +=========================
-> +
-> +The PHYs on an MDIO bus [1] are probed and registered using
-> +fwnode_mdiobus_register_phy().
+Furthermore commit db865272d9c4 ("cpufreq: Avoid configuring old governors as
+default with intel_pstate") from v5.10 made it extremely easy to default to
+schedutil even if the preferred driver is acpi_cpufreq. Distros are likely to
+build both intel_pstate and acpi_cpufreq on x86, and the presence of the
+former removes ondemand from the defaults. This situation amplifies the
+visibility of the bug we're addressing.
 
-Empty line here, please.
+[link 1] https://www.phoronix.com/scan.php?page=article&item=linux511-amd-schedutil&num=1
 
-> +Later, for connecting these PHYs to MAC, the PHYs registered on the
-> +MDIO bus have to be referenced.
-> +
-> +The UUID given below should be used as mentioned in the "Device Properties
-> +UUID For _DSD" [2] document.
-> +   - UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301
+1. PROBLEM DESCRIPTION   : over-utilization and schedutil
+2. PROPOSED SOLUTION     : raise freq_max in schedutil formula
+3. DATA TABLE            : image processing benchmark
+4. ANALYSIS AND COMMENTS : with over-utilization, freq-invariance is lost
 
-I would drop the above paragraph.
+1. PROBLEM DESCRIPTION (over-utilization and schedutil)
 
-> +
-> +This document introduces two _DSD properties that are to be used
-> +for PHYs on the MDIO bus.[3]
+The problem happens on CPU-bound workloads spanning a large number of cores.
+In this case schedutil won't select the maximum P-State. Actually, it's
+likely that it will select the minimum one.
 
-I'd say "for connecting PHYs on the MDIO bus [3] to the MAC layer."
-above and add the following here:
+A CPU-bound workload puts the machine in a state generally called
+"over-utilization": an increase in CPU speed doesn't result in an increase of
+capacity. The fraction of time tasks spend on CPU becomes constant regardless
+of clock frequency (the tasks eat whatever we throw at them), and the PELT
+invariant util goes up and down with the frequency (i.e. it's not invariant
+anymore).
 
-"These properties are defined in accordance with the "Device
-Properties UUID For _DSD" [2] document and the
-daffd814-6eba-4d8c-8a91-bc9bbf4aa301 UUID must be used in the Device
-Data Descriptors containing them."
+2. PROPOSED SOLUTION (raise freq_max in schedutil formula)
 
-> +
-> +phy-handle
-> +----------
-> +For each MAC node, a device property "phy-handle" is used to reference
-> +the PHY that is registered on an MDIO bus. This is mandatory for
-> +network interfaces that have PHYs connected to MAC via MDIO bus.
-> +
-> +During the MDIO bus driver initialization, PHYs on this bus are probed
-> +using the _ADR object as shown below and are registered on the MDIO bus.
+The solution we implement here is a stop-gap one: when the driver is
+acpi_cpufreq and the machine an AMD EPYC, schedutil will use max_boost instead
+of max_P as the value for freq_max in its formula
 
-Do you want to mention the "reg" property here?  I think it would be
-useful to do that.
+    freq_next = 1.25 * freq_max * util
 
-> +
-> +::
-> +      Scope(\_SB.MDI0)
-> +      {
-> +        Device(PHY1) {
-> +          Name (_ADR, 0x1)
-> +        } // end of PHY1
-> +
-> +        Device(PHY2) {
-> +          Name (_ADR, 0x2)
-> +        } // end of PHY2
-> +      }
-> +
-> +Later, during the MAC driver initialization, the registered PHY devices
-> +have to be retrieved from the MDIO bus. For this, MAC driver needs
+essentially giving freq_next some more headroom to grow in the over-utilized
+case. This is the approach also followed by intel_pstate in passive mode.
 
-"the MAC driver" I suppose?
+The correct way to attack this problem would be to have schedutil detect
+over-utilization and select freq_max irrespective of the util value, which has
+no meaning at that point. This approach is too risky for an -rc5 submission so
+we defer it to the next cycle.
 
-> +reference to the previously registered PHYs which are provided
+3. DATA TABLE (image processing benchmark)
 
-s/reference/references/ (plural)
+What follows is a more detailed account of the effects on a specific test.
 
-> +using reference to the device as {\_SB.MDI0.PHY1}.
+TEST        : Intel Open Image Denoise, www.openimagedenoise.org
+INVOCATION  : ./denoise -hdr memorial.pfm -out out.pfm -bench 200 -threads $NTHREADS
+CPU         : MODEL            : 2x AMD EPYC 7742
+              FREQUENCY TABLE  : P2: 1.50 GHz
+                                 P1: 2.00 GHz
+				 P0: 2.25 GHz
+              MAX BOOST        :     3.40 GHz
 
-"as device object references (e.g. \_SB.MDI0.PHY1}."
+Results: threads, msecs (ratio). Lower is better.
 
-> +
-> +phy-mode
-> +--------
-> +The "phy-mode" _DSD property is used to describe the connection to
-> +the PHY. The valid values for "phy-mode" are defined in [4].
-> +
+               v5.10          v5.11-rc4    v5.11-rc4-patch
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      1   1069.85 (1.00)   1071.84 (1.00)   1070.42 (1.00)
+      2    542.24 (1.00)    544.40 (1.00)    544.48 (1.00)
+      4    278.00 (1.00)    278.44 (1.00)    277.72 (1.00)
+      8    149.81 (1.00)    149.61 (1.00)    149.87 (1.00)
+     16     79.01 (1.00)     79.31 (1.00)     78.94 (1.00)
+     24     58.01 (1.00)     58.51 (1.01)     58.15 (1.00)
+     32     46.58 (1.00)     48.30 (1.04)     46.66 (1.00)
+     48     37.29 (1.00)     51.29 (1.38)     37.27 (1.00)
+     64     34.01 (1.00)     49.59 (1.46)     33.71 (0.99)
+     80     31.09 (1.00)     44.27 (1.42)     31.33 (1.01)
+     96     28.56 (1.00)     40.82 (1.43)     28.47 (1.00)
+    112     28.09 (1.00)     40.06 (1.43)     28.63 (1.02)
+    120     28.73 (1.00)     39.78 (1.38)     28.14 (0.98)
+    128     28.93 (1.00)     39.60 (1.37)     29.38 (1.02)
 
-One empty line should be sufficient.
+See how the 128 threads case is almost 40% worse than baseline in v5.11-rc4.
 
-> +
-> +An ASL example of this is shown below.
+4. ANALYSIS AND COMMENTS (with over-utilization freq-invariance is lost)
 
-"The following ASL example illustrates the usage of these properties."
+Statistics for NTHREADS=128 (number of physical cores of the machine)
 
-> +
-> +DSDT entry for MDIO node
-> +------------------------
+                                      v5.10          v5.11-rc4
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~
+CPU activity (mpstat)                 80-90%         80-90%
+schedutil requests (tracepoint)       always P0      mostly P2
+CPU frequency (HW feedback)           ~2.2 GHz       ~1.5 GHz
+PELT root rq util (tracepoint)        ~825           ~450
 
-Empty line here, please.
+mpstat shows that the workload is CPU-bound and usage doesn't change with
+clock speed. What is striking is that the PELT util of any root runqueue in
+v5.11-rc4 is half of what used to be before the frequency invariant support
+(v5.10), leading to wrong frequency choices. How did we get there?
 
-> +The MDIO bus has an SoC component(MDIO controller) and a platform
+This workload is constant in time, so instead of using the PELT sum we can
+pretend that scale invariance is obtained with
 
-Missing space after "component".
+    util_inv = util_raw * freq_curr / freq_max1        [formula-1]
 
-> +component (PHYs on the MDIO bus).
-> +
-> +a) Silicon Component
-> +This node describes the MDIO controller, MDI0
-> +---------------------------------------------
-> +::
-> +       Scope(_SB)
-> +       {
-> +         Device(MDI0) {
-> +           Name(_HID, "NXP0006")
-> +           Name(_CCA, 1)
-> +           Name(_UID, 0)
-> +           Name(_CRS, ResourceTemplate() {
-> +             Memory32Fixed(ReadWrite, MDI0_BASE, MDI_LEN)
-> +             Interrupt(ResourceConsumer, Level, ActiveHigh, Shared)
-> +              {
-> +                MDI0_IT
-> +              }
-> +           }) // end of _CRS for MDI0
-> +         } // end of MDI0
-> +       }
-> +
-> +b) Platform Component
-> +This node defines the PHYs that are connected to the MDIO bus, MDI0
+where util_raw is the PELT util from v5.10 (which is to say, not invariant),
+and util_inv is the PELT util from v5.11-rc4. freq_max1 comes from
+commit 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for
+frequency invariance on AMD EPYC") and is (P0+max_boost)/2 = (2.25+3.4)/2 =
+2.825 GHz.  Then we have the schedutil formula
 
-"The PHY1 and PHY2 nodes represent the PHYs connected to MDIO bus MDI0."
+    freq_next = 1.25 * freq_max2 * util_inv            [formula-2]
 
-> +-------------------------------------------------------------------
-> +::
-> +       Scope(\_SB.MDI0)
-> +       {
-> +         Device(PHY1) {
-> +           Name (_ADR, 0x1)
-> +         } // end of PHY1
-> +
-> +         Device(PHY2) {
-> +           Name (_ADR, 0x2)
-> +         } // end of PHY2
-> +       }
-> +
-> +
+Here v5.11-rc4 uses freq_max2 = P0 = 2.25 GHz (and this patch changes it to
+3.4 GHz).
 
-"DSDT entries representing MAC nodes
------------------------------------"
+Since all cores are busy, there is no boost available. Let's be generous and say
+the tasks initially get P0, i.e. freq_curr = 2.25 GHz. Combining the formulas
+above and taking util_raw = 825/1024 = 0.8, freq_next is:
 
-Plus an empty line.
+    freq_next = 1.25 * 2.25 * 0.8 * 2.25 / 2.825 = 1.79 GHz
 
-> +Below are the MAC nodes where PHY nodes are referenced.
-> +phy-mode and phy-handle are used as explained earlier.
-> +------------------------------------------------------
-> +::
-> +       Scope(\_SB.MCE0.PR17)
-> +       {
-> +         Name (_DSD, Package () {
-> +            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +                Package () {
-> +                    Package (2) {"phy-mode", "rgmii-id"},
-> +                    Package (2) {"phy-handle", \_SB.MDI0.PHY1}
-> +             }
-> +          })
-> +       }
-> +
-> +       Scope(\_SB.MCE0.PR18)
-> +       {
-> +         Name (_DSD, Package () {
-> +           ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +               Package () {
-> +                   Package (2) {"phy-mode", "rgmii-id"},
-> +                   Package (2) {"phy-handle", \_SB.MDI0.PHY2}}
-> +           }
-> +         })
-> +       }
-> +
-> +References
-> +==========
-> +
-> +[1] Documentation/networking/phy.rst
-> +
-> +[2] https://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-> +
-> +[3] Documentation/firmware-guide/acpi/DSD-properties-rules.rst
-> +
-> +[4] Documentation/devicetree/bindings/net/ethernet-controller.yaml
-> --
-> 2.17.1
->
+After quantization (pick the next frequency up in the table), freq_next is
+P1 = 2.0 GHz. See how we lost 250 MHz in the process. Iterate once more,
+freq_next become 1.59 GHz. Since it's > P2, it's saved by quantization and P1
+is selected, but if util_raw fluctuates a little and goes below 0.75, P0 is
+selected and that kills util_inv by formula-1, which gives util_inv = 0.4.
+
+The culprit of the problem is that with over-utilization, util_raw and
+freq_curr in formula-1 are independent. In the nominal case, if freq_curr goes
+up then util_raw goes down and viceversa. Here util_raw doesn't care and stays
+constant. If freq_curr descrease, util_inv decreases too and so forth (it's a
+feedback loop).
+
+Fixes: 41ea667227ba ("x86, sched: Calculate frequency invariance for AMD systems")
+Fixes: 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for frequency invariance on AMD EPYC")
+Reported-by: Michael Larabel <Michael@phoronix.com>
+Signed-off-by: Giovanni Gherdovich <ggherdovich@suse.cz>
+---
+ drivers/cpufreq/acpi-cpufreq.c   | 64 +++++++++++++++++++++++++++++++-
+ drivers/cpufreq/cpufreq.c        |  3 ++
+ include/linux/cpufreq.h          |  5 +++
+ kernel/sched/cpufreq_schedutil.c |  8 +++-
+ 4 files changed, 76 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+index 1e4fbb002a31..2378bc1bf2c4 100644
+--- a/drivers/cpufreq/acpi-cpufreq.c
++++ b/drivers/cpufreq/acpi-cpufreq.c
+@@ -27,6 +27,10 @@
+ 
+ #include <acpi/processor.h>
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++#include <acpi/cppc_acpi.h>
++#endif
++
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include <asm/cpufeature.h>
+@@ -628,11 +632,57 @@ static int acpi_cpufreq_blacklist(struct cpuinfo_x86 *c)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++static bool amd_max_boost(unsigned int max_freq,
++			  unsigned int *max_boost)
++{
++	struct cppc_perf_caps perf_caps;
++	u64 highest_perf, nominal_perf, perf_ratio;
++	int ret;
++
++	ret = cppc_get_perf_caps(0, &perf_caps);
++	if (ret) {
++		pr_debug("Could not retrieve perf counters (%d)\n", ret);
++		return false;
++	}
++
++	highest_perf = perf_caps.highest_perf;
++	nominal_perf = perf_caps.nominal_perf;
++
++	if (!highest_perf || !nominal_perf) {
++		pr_debug("Could not retrieve highest or nominal performance\n");
++		return false;
++	}
++
++	perf_ratio = div_u64(highest_perf * SCHED_CAPACITY_SCALE, nominal_perf);
++	if (perf_ratio <= SCHED_CAPACITY_SCALE) {
++		pr_debug("Either perf_ratio is 0, or nominal >= highest performance\n");
++		return false;
++	}
++
++	*max_boost = max_freq * perf_ratio >> SCHED_CAPACITY_SHIFT;
++	if (!*max_boost) {
++		pr_debug("max_boost seems to be zero\n");
++		return false;
++	}
++
++	return true;
++}
++#else
++static bool amd_max_boost(unsigned int max_freq,
++			  unsigned int *max_boost)
++{
++	return false;
++}
++#endif
++
+ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ {
+ 	unsigned int i;
+ 	unsigned int valid_states = 0;
+ 	unsigned int cpu = policy->cpu;
++	unsigned int freq, max_freq = 0;
++	unsigned int max_boost;
+ 	struct acpi_cpufreq_data *data;
+ 	unsigned int result = 0;
+ 	struct cpuinfo_x86 *c = &cpu_data(policy->cpu);
+@@ -779,15 +829,25 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 		    freq_table[valid_states-1].frequency / 1000)
+ 			continue;
+ 
++		freq = perf->states[i].core_frequency * 1000;
+ 		freq_table[valid_states].driver_data = i;
+-		freq_table[valid_states].frequency =
+-		    perf->states[i].core_frequency * 1000;
++		freq_table[valid_states].frequency = freq;
++
++		if (freq > max_freq)
++			max_freq = freq;
++
+ 		valid_states++;
+ 	}
+ 	freq_table[valid_states].frequency = CPUFREQ_TABLE_END;
+ 	policy->freq_table = freq_table;
+ 	perf->state = 0;
+ 
++	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
++	    amd_max_boost(max_freq, &max_boost)) {
++		policy->cpuinfo.max_boost = max_boost;
++		static_branch_enable(&cpufreq_amd_max_boost);
++	}
++
+ 	switch (perf->control_register.space_id) {
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		/*
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index d0a3525ce27f..b96677f6b57e 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -2721,6 +2721,9 @@ int cpufreq_boost_enabled(void)
+ }
+ EXPORT_SYMBOL_GPL(cpufreq_boost_enabled);
+ 
++DEFINE_STATIC_KEY_FALSE(cpufreq_amd_max_boost);
++EXPORT_SYMBOL_GPL(cpufreq_amd_max_boost);
++
+ /*********************************************************************
+  *               REGISTER / UNREGISTER CPUFREQ DRIVER                *
+  *********************************************************************/
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index 9c8b7437b6cd..341cac76d254 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -40,9 +40,14 @@ enum cpufreq_table_sorting {
+ 	CPUFREQ_TABLE_SORTED_DESCENDING
+ };
+ 
++DECLARE_STATIC_KEY_FALSE(cpufreq_amd_max_boost);
++
++#define cpufreq_driver_has_max_boost() static_branch_unlikely(&cpufreq_amd_max_boost)
++
+ struct cpufreq_cpuinfo {
+ 	unsigned int		max_freq;
+ 	unsigned int		min_freq;
++	unsigned int		max_boost;
+ 
+ 	/* in 10^(-9) s = nanoseconds */
+ 	unsigned int		transition_latency;
+diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
+index 6931f0cdeb80..541f3db3f576 100644
+--- a/kernel/sched/cpufreq_schedutil.c
++++ b/kernel/sched/cpufreq_schedutil.c
+@@ -159,8 +159,12 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
+ 				  unsigned long util, unsigned long max)
+ {
+ 	struct cpufreq_policy *policy = sg_policy->policy;
+-	unsigned int freq = arch_scale_freq_invariant() ?
+-				policy->cpuinfo.max_freq : policy->cur;
++	unsigned int freq, max_freq;
++
++	max_freq = cpufreq_driver_has_max_boost() ?
++			policy->cpuinfo.max_boost : policy->cpuinfo.max_freq;
++
++	freq = arch_scale_freq_invariant() ? max_freq : policy->cur;
+ 
+ 	freq = map_util_freq(util, freq, max);
+ 
+-- 
+2.26.2
+
