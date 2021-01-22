@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16F16C433E9
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 00:58:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D672CC433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 00:58:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDC7A23A54
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 00:58:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9941222CAE
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jan 2021 00:58:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726288AbhAVA57 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Jan 2021 19:57:59 -0500
-Received: from mga06.intel.com ([134.134.136.31]:34968 "EHLO mga06.intel.com"
+        id S1726205AbhAVA6d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Jan 2021 19:58:33 -0500
+Received: from mga06.intel.com ([134.134.136.31]:35025 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726296AbhAVA5l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 21 Jan 2021 19:57:41 -0500
-IronPort-SDR: eXfF5PzLQHySGniOiscNSLc2Peec/Xh0UAySDXkbpDQMd/sosnYaMEgpPs0CpJHZ++Vspkp4B0
- BG56vtdmpmmg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9871"; a="240908711"
+        id S1726057AbhAVA6L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 21 Jan 2021 19:58:11 -0500
+IronPort-SDR: SvrMTw5VlNffCx0TuTd7VKEmFtHRq+A4yQEtXl7oBE/vdIS2zpXBPc4A4E1mlS4jhrUYmnTjw5
+ X7R+NOR7zXXQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9871"; a="240908709"
 X-IronPort-AV: E=Sophos;i="5.79,365,1602572400"; 
-   d="scan'208";a="240908711"
+   d="scan'208";a="240908709"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2021 16:56:22 -0800
-IronPort-SDR: 1nrWr7qcyQqxlOqheP8tDlyxy1Bjl2j0R8ghZaL8UIIibHR5TWWR1HahfDyajQDF3uWE0DogRv
- t3VeqKLwmYHg==
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2021 16:56:21 -0800
+IronPort-SDR: R9Ez2DH8LSsppE7yhqSl2pDZ6l7jHgWnCAVFQdMqSgYblqw89nCUY63uNfirdfoGOv0c6AxnWd
+ Z3477qgjI8CA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,365,1602572400"; 
-   d="scan'208";a="427595539"
+   d="scan'208";a="427595530"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga001.jf.intel.com with ESMTP; 21 Jan 2021 16:56:21 -0800
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Bob Moore <robert.moore@intel.com>,
+Cc:     Maximilian Luz <luzmaximilian@gmail.com>,
+        Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v2 4/9] ACPICA: add type casts for string functions
-Date:   Thu, 21 Jan 2021 16:23:52 -0800
-Message-Id: <20210122002357.370836-5-erik.kaneda@intel.com>
+Subject: [PATCH v2 2/9] ACPICA: Clean up exception code class checks
+Date:   Thu, 21 Jan 2021 16:23:50 -0800
+Message-Id: <20210122002357.370836-3-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210122002357.370836-1-erik.kaneda@intel.com>
 References: <20210122002357.370836-1-erik.kaneda@intel.com>
@@ -50,64 +51,77 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Maximilian Luz <luzmaximilian@gmail.com>
 
-Detected by gcc 10.2.0
+ACPICA commit 5a8390fbd4c5c60da0b6d4ba53b5ee34fda9a0cb
 
-ACPICA commit 608559800e1ad48b819744aeb1866d94335e2655
+With the exception code class check macros fixed in the previous commit,
+let us now use those to simplify exception class checks across acpica.
 
-Link: https://github.com/acpica/acpica/commit/60855980
+Link: https://github.com/acpica/acpica/commit/5a8390fb
+Signed-off-by: Maximilian Luz <luzmaximilian@gmail.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/acpica/dbinput.c    | 4 ++--
- drivers/acpi/acpica/utstrsuppt.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/dbobject.c | 2 +-
+ drivers/acpi/acpica/dsdebug.c  | 2 +-
+ drivers/acpi/acpica/psloop.c   | 3 +--
+ drivers/acpi/acpica/psparse.c  | 2 +-
+ 4 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
-index 2952856b8a67..b8a48923064f 100644
---- a/drivers/acpi/acpica/dbinput.c
-+++ b/drivers/acpi/acpica/dbinput.c
-@@ -473,7 +473,7 @@ char *acpi_db_get_next_token(char *string,
+diff --git a/drivers/acpi/acpica/dbobject.c b/drivers/acpi/acpica/dbobject.c
+index 4b4c530a0654..95ab91b35f29 100644
+--- a/drivers/acpi/acpica/dbobject.c
++++ b/drivers/acpi/acpica/dbobject.c
+@@ -47,7 +47,7 @@ acpi_db_dump_method_info(acpi_status status, struct acpi_walk_state *walk_state)
  
- 	/* Remove any spaces at the beginning, ignore blank lines */
+ 	/* Ignore control codes, they are not errors */
  
--	while (*string && isspace(*string)) {
-+	while (*string && isspace((int)*string)) {
- 		string++;
+-	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL) {
++	if (ACPI_CNTL_EXCEPTION(status)) {
+ 		return;
  	}
  
-@@ -571,7 +571,7 @@ char *acpi_db_get_next_token(char *string,
+diff --git a/drivers/acpi/acpica/dsdebug.c b/drivers/acpi/acpica/dsdebug.c
+index 63bc5f19fb82..2c22e3eff535 100644
+--- a/drivers/acpi/acpica/dsdebug.c
++++ b/drivers/acpi/acpica/dsdebug.c
+@@ -100,7 +100,7 @@ acpi_ds_dump_method_stack(acpi_status status,
  
- 		/* Find end of token */
+ 	/* Ignore control codes, they are not errors */
  
--		while (*string && !isspace(*string)) {
-+		while (*string && !isspace((int)*string)) {
- 			string++;
+-	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL) {
++	if (ACPI_CNTL_EXCEPTION(status)) {
+ 		return_VOID;
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 3cf0687b9915..1ba17cf16c41 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -264,8 +264,7 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 								ACPI_TO_POINTER
+ 								(TRUE));
+ 				if (ACPI_FAILURE(status)
+-				    && ((status & AE_CODE_MASK) !=
+-					AE_CODE_CONTROL)) {
++				    && !ACPI_CNTL_EXCEPTION(status)) {
+ 					if (status == AE_AML_NO_RETURN_VALUE) {
+ 						ACPI_EXCEPTION((AE_INFO, status,
+ 								"Invoked method did not return a value"));
+diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
+index bd3caf735be3..06490a137982 100644
+--- a/drivers/acpi/acpica/psparse.c
++++ b/drivers/acpi/acpica/psparse.c
+@@ -383,7 +383,7 @@ acpi_ps_next_parse_state(struct acpi_walk_state *walk_state,
+ 	default:
+ 
+ 		status = callback_status;
+-		if ((callback_status & AE_CODE_MASK) == AE_CODE_CONTROL) {
++		if (ACPI_CNTL_EXCEPTION(callback_status)) {
+ 			status = AE_OK;
  		}
  		break;
-diff --git a/drivers/acpi/acpica/utstrsuppt.c b/drivers/acpi/acpica/utstrsuppt.c
-index 2d91003fcf26..199982a6fb16 100644
---- a/drivers/acpi/acpica/utstrsuppt.c
-+++ b/drivers/acpi/acpica/utstrsuppt.c
-@@ -104,7 +104,7 @@ acpi_status acpi_ut_convert_decimal_string(char *string, u64 *return_value_ptr)
- 		 * 1) Runtime: terminate with no error, per the ACPI spec
- 		 * 2) Compiler: return an error
- 		 */
--		if (!isdigit(*string)) {
-+		if (!isdigit((int)*string)) {
- #ifdef ACPI_ASL_COMPILER
- 			status = AE_BAD_DECIMAL_CONSTANT;
- #endif
-@@ -158,7 +158,7 @@ acpi_status acpi_ut_convert_hex_string(char *string, u64 *return_value_ptr)
- 		 * 1) Runtime: terminate with no error, per the ACPI spec
- 		 * 2) Compiler: return an error
- 		 */
--		if (!isxdigit(*string)) {
-+		if (!isxdigit((int)*string)) {
- #ifdef ACPI_ASL_COMPILER
- 			status = AE_BAD_HEX_CONSTANT;
- #endif
 -- 
 2.29.2
 
