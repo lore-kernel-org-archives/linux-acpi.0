@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE59AC433E6
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 01:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FC1AC433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 01:48:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AB8523108
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 01:24:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D56B2207B3
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 01:48:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732058AbhAYTmX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 25 Jan 2021 14:42:23 -0500
-Received: from mga17.intel.com ([192.55.52.151]:32929 "EHLO mga17.intel.com"
+        id S1729811AbhAZBZW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 25 Jan 2021 20:25:22 -0500
+Received: from mga01.intel.com ([192.55.52.88]:17883 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731999AbhAYTlw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 25 Jan 2021 14:41:52 -0500
-IronPort-SDR: hNLogTmN1sCD9dYKwiEzw7GSYCP4l0dpCA5XaT6Bf/lx6PztZfZc1sJEsQ1iDS5p6lHIi4KB2X
- PT/e7oN5g0RQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="159564594"
+        id S1731544AbhAYTnQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Jan 2021 14:43:16 -0500
+IronPort-SDR: ZfXsxJ7kphNwEL2LQBoQl9b6ip4cwrkUKXexwi+3A36YwGE2nvc1VjO6mxowLLUoooRz4/jrNN
+ u4lKq+5Qmlnw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="198569930"
 X-IronPort-AV: E=Sophos;i="5.79,374,1602572400"; 
-   d="scan'208";a="159564594"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 11:39:55 -0800
-IronPort-SDR: c4kclBX+wmrOM5s8QBBN74awLmejnQmc6fVzU7/6a6QWgnf2FIptIKiOy6HrSMS6N3+qqEP9+r
- AKTGSuAaggvg==
+   d="scan'208";a="198569930"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 11:39:59 -0800
+IronPort-SDR: lb5qUEhjIIpknyDvzEvXHN6V5CUl/IsE9g7AMHqQ2+BfJyvnrrNtV1X9wUhIlzBqkPi7zv4mya
+ ryhyWKYfT4bQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,374,1602572400"; 
-   d="scan'208";a="368803633"
+   d="scan'208";a="577536003"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga002.jf.intel.com with ESMTP; 25 Jan 2021 11:39:52 -0800
+  by fmsmga005.fm.intel.com with ESMTP; 25 Jan 2021 11:39:55 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id A946517F; Mon, 25 Jan 2021 21:39:51 +0200 (EET)
+        id B510A214; Mon, 25 Jan 2021 21:39:51 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
@@ -43,9 +43,9 @@ To:     Thomas Gleixner <tglx@linutronix.de>,
         linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>
-Subject: [PATCH v1 04/10] x86/platform/intel-mid: Remove unused leftovers (msic_gpio)
-Date:   Mon, 25 Jan 2021 21:39:42 +0200
-Message-Id: <20210125193948.56760-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 05/10] x86/platform/intel-mid: Remove unused leftovers (msic_power_btn)
+Date:   Mon, 25 Jan 2021 21:39:43 +0200
+Message-Id: <20210125193948.56760-6-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
 References: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
@@ -57,75 +57,158 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 There is no driver present, remove the device creation and other leftovers.
 
+Note, for Intel Merrifield there is another driver which is instantiated by
+a certain MFD one and does not need any support from device_libs.
+
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Acked-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- .../platform/intel-mid/device_libs/Makefile   |  1 -
- .../device_libs/platform_msic_gpio.c          | 43 -------------------
- 2 files changed, 44 deletions(-)
- delete mode 100644 arch/x86/platform/intel-mid/device_libs/platform_msic_gpio.c
+ .../platform/intel-mid/device_libs/Makefile   |  2 -
+ .../device_libs/platform_mrfld_power_btn.c    | 78 -------------------
+ .../device_libs/platform_msic_power_btn.c     | 31 --------
+ 3 files changed, 111 deletions(-)
+ delete mode 100644 arch/x86/platform/intel-mid/device_libs/platform_mrfld_power_btn.c
+ delete mode 100644 arch/x86/platform/intel-mid/device_libs/platform_msic_power_btn.c
 
 diff --git a/arch/x86/platform/intel-mid/device_libs/Makefile b/arch/x86/platform/intel-mid/device_libs/Makefile
-index cf041a9882c0..3688e62ccf80 100644
+index 3688e62ccf80..177e91d565ca 100644
 --- a/arch/x86/platform/intel-mid/device_libs/Makefile
 +++ b/arch/x86/platform/intel-mid/device_libs/Makefile
 @@ -8,7 +8,6 @@ obj-$(subst m,y,$(CONFIG_BRCMFMAC_SDIO)) += platform_bcm43xx.o
  obj-$(subst m,y,$(CONFIG_BT_HCIUART_BCM)) += platform_bt.o
  # IPC Devices
  obj-$(subst m,y,$(CONFIG_MFD_INTEL_MSIC)) += platform_msic.o
--obj-$(subst m,y,$(CONFIG_GPIO_MSIC)) += platform_msic_gpio.o
- obj-$(subst m,y,$(CONFIG_INTEL_MID_POWER_BUTTON)) += platform_msic_power_btn.o
+-obj-$(subst m,y,$(CONFIG_INTEL_MID_POWER_BUTTON)) += platform_msic_power_btn.o
  obj-$(subst m,y,$(CONFIG_INTEL_MFLD_THERMAL)) += platform_msic_thermal.o
  # SPI Devices
-diff --git a/arch/x86/platform/intel-mid/device_libs/platform_msic_gpio.c b/arch/x86/platform/intel-mid/device_libs/platform_msic_gpio.c
+ obj-$(subst m,y,$(CONFIG_SPI_SPIDEV)) += platform_mrfld_spidev.o
+@@ -24,5 +23,4 @@ obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_pcal9555a.o
+ obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_tca6416.o
+ # MISC Devices
+ obj-$(subst m,y,$(CONFIG_KEYBOARD_GPIO)) += platform_gpio_keys.o
+-obj-$(subst m,y,$(CONFIG_INTEL_MID_POWER_BUTTON)) += platform_mrfld_power_btn.o
+ obj-$(subst m,y,$(CONFIG_RTC_DRV_CMOS)) += platform_mrfld_rtc.o
+diff --git a/arch/x86/platform/intel-mid/device_libs/platform_mrfld_power_btn.c b/arch/x86/platform/intel-mid/device_libs/platform_mrfld_power_btn.c
 deleted file mode 100644
-index 71a7d6db3878..000000000000
---- a/arch/x86/platform/intel-mid/device_libs/platform_msic_gpio.c
+index ec2afb41b34a..000000000000
+--- a/arch/x86/platform/intel-mid/device_libs/platform_mrfld_power_btn.c
 +++ /dev/null
-@@ -1,43 +0,0 @@
+@@ -1,78 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- * platform_msic_gpio.c: MSIC GPIO platform data initialization file
+- * Intel Merrifield power button support
+- *
+- * (C) Copyright 2017 Intel Corporation
+- *
+- * Author: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+- */
+-
+-#include <linux/init.h>
+-#include <linux/ioport.h>
+-#include <linux/platform_device.h>
+-#include <linux/sfi.h>
+-
+-#include <asm/intel-mid.h>
+-#include <asm/intel_scu_ipc.h>
+-
+-static struct resource mrfld_power_btn_resources[] = {
+-	{
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct platform_device mrfld_power_btn_dev = {
+-	.name		= "msic_power_btn",
+-	.id		= PLATFORM_DEVID_NONE,
+-	.num_resources	= ARRAY_SIZE(mrfld_power_btn_resources),
+-	.resource	= mrfld_power_btn_resources,
+-};
+-
+-static int mrfld_power_btn_scu_status_change(struct notifier_block *nb,
+-					     unsigned long code, void *data)
+-{
+-	if (code == SCU_DOWN) {
+-		platform_device_unregister(&mrfld_power_btn_dev);
+-		return 0;
+-	}
+-
+-	return platform_device_register(&mrfld_power_btn_dev);
+-}
+-
+-static struct notifier_block mrfld_power_btn_scu_notifier = {
+-	.notifier_call	= mrfld_power_btn_scu_status_change,
+-};
+-
+-static int __init register_mrfld_power_btn(void)
+-{
+-	if (intel_mid_identify_cpu() != INTEL_MID_CPU_CHIP_TANGIER)
+-		return -ENODEV;
+-
+-	/*
+-	 * We need to be sure that the SCU IPC is ready before
+-	 * PMIC power button device can be registered:
+-	 */
+-	intel_scu_notifier_add(&mrfld_power_btn_scu_notifier);
+-
+-	return 0;
+-}
+-arch_initcall(register_mrfld_power_btn);
+-
+-static void __init *mrfld_power_btn_platform_data(void *info)
+-{
+-	struct resource *res = mrfld_power_btn_resources;
+-	struct sfi_device_table_entry *pentry = info;
+-
+-	res->start = res->end = pentry->irq;
+-	return NULL;
+-}
+-
+-static const struct devs_id mrfld_power_btn_dev_id __initconst = {
+-	.name			= "bcove_power_btn",
+-	.type			= SFI_DEV_TYPE_IPC,
+-	.delay			= 1,
+-	.msic			= 1,
+-	.get_platform_data	= &mrfld_power_btn_platform_data,
+-};
+-
+-sfi_device(mrfld_power_btn_dev_id);
+diff --git a/arch/x86/platform/intel-mid/device_libs/platform_msic_power_btn.c b/arch/x86/platform/intel-mid/device_libs/platform_msic_power_btn.c
+deleted file mode 100644
+index 3d3de2d59726..000000000000
+--- a/arch/x86/platform/intel-mid/device_libs/platform_msic_power_btn.c
++++ /dev/null
+@@ -1,31 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * platform_msic_power_btn.c: MSIC power btn platform data initialization file
 - *
 - * (C) Copyright 2013 Intel Corporation
 - * Author: Sathyanarayanan Kuppuswamy <sathyanarayanan.kuppuswamy@intel.com>
 - */
--
 -#include <linux/kernel.h>
 -#include <linux/interrupt.h>
 -#include <linux/scatterlist.h>
 -#include <linux/sfi.h>
 -#include <linux/init.h>
--#include <linux/gpio.h>
 -#include <linux/mfd/intel_msic.h>
 -#include <asm/intel-mid.h>
 -
 -#include "platform_msic.h"
 -
--static void __init *msic_gpio_platform_data(void *info)
+-static void __init *msic_power_btn_platform_data(void *info)
 -{
--	static struct intel_msic_gpio_pdata msic_gpio_pdata;
--
--	int gpio = get_gpio_by_name("msic_gpio_base");
--
--	if (gpio < 0)
--		return NULL;
--
--	msic_gpio_pdata.gpio_base = gpio;
--	msic_pdata.gpio = &msic_gpio_pdata;
--
--	return msic_generic_platform_data(info, INTEL_MSIC_BLOCK_GPIO);
+-	return msic_generic_platform_data(info, INTEL_MSIC_BLOCK_POWER_BTN);
 -}
 -
--static const struct devs_id msic_gpio_dev_id __initconst = {
--	.name = "msic_gpio",
+-static const struct devs_id msic_power_btn_dev_id __initconst = {
+-	.name = "msic_power_btn",
 -	.type = SFI_DEV_TYPE_IPC,
 -	.delay = 1,
 -	.msic = 1,
--	.get_platform_data = &msic_gpio_platform_data,
+-	.get_platform_data = &msic_power_btn_platform_data,
 -};
 -
--sfi_device(msic_gpio_dev_id);
+-sfi_device(msic_power_btn_dev_id);
 -- 
 2.29.2
 
