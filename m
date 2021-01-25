@@ -2,144 +2,169 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08533C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 Jan 2021 19:45:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE14EC4332D
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 Jan 2021 22:44:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB4172251F
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 Jan 2021 19:45:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C985E20756
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 Jan 2021 22:44:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731555AbhAYToX convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 25 Jan 2021 14:44:23 -0500
-Received: from mail1.bemta23.messagelabs.com ([67.219.246.115]:23146 "EHLO
-        mail1.bemta23.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732119AbhAYToO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 25 Jan 2021 14:44:14 -0500
-Received: from [100.112.4.31] (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256 bits))
-        by server-4.bemta.az-c.us-east-1.aws.symcld.net id 80/91-56876-E6E1F006; Mon, 25 Jan 2021 19:39:26 +0000
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrEKsWRWlGSWpSXmKPExsWSLveKTTdPjj/
-  BYMkhFouv326zW7w5Pp3JYvm+fkaL1XteMFucOX2J1YHV49e2NSwe7/ddZfPYcrWdxePzJrkA
-  lijWzLyk/IoE1oxnx9azF7znq1jw8hpTA+Nlni5GLg4hgf+MEh2bT7NDOC8YJRb8/sgK4exll
-  Lj0fxpbFyMnB5uAnsS5s3uZQWwRgSCJp7/fgNnMAhsYJX5/YgWxhQUKJJZMvMYKUVMosfXuGS
-  jbSGLlzt3sIDaLgKrExl2/WEBsXgFLidcft4PZQgIpEk1b94HZnAIWEueurAWzGQXEJL6fWsM
-  EsUtc4taT+WC2hICAxJI955khbFGJl4//sULY8hK7z/2GqteRWLD7ExuErS2xbOFrZoi9ghIn
-  Zz5hmcAoOgvJ2FlIWmYhaZmFpGUBI8sqRtOkosz0jJLcxMwcXUMDA11DQyNdM10zM73EKt1kv
-  dJi3dTE4hJdQ73E8mK94src5JwUvbzUkk2MwIhMKWBz2sF4+/UHvUOMkhxMSqK8AY/4EoT4kv
-  JTKjMSizPii0pzUosPMcpwcChJ8C6Q4U8QEixKTU+tSMvMASYHmLQEB4+SCK8gSJq3uCAxtzg
-  zHSJ1itGYY8LLuYuYOQ4enbeIWYglLz8vVUqcd7IsUKkASGlGaR7cIFjSusQoKyXMy8jAwCDE
-  U5BalJtZgir/ilGcg1FJmFcdZApPZl4J3L5XQKcwAZ3y5AwfyCkliQgpqQamCby8p7nKprU5R
-  nQyPXdIiiu1Oz3f9fDf4ovGuXfv9NxZ3l/y5L1NgWCl9FGGQO+o6sfRVcoXOgSt3mmcCPxpcd
-  XvRf/ZtXubmnu5gu3Yz0Y+tgjfXygYmrTlyNszkRlJk2rKFaY5ubg4T/wU+nWuxLKW2ZvV5q6
-  s+7CqdWr5Fp4dzJ05Qr+9cmdmcc4O/Lyp983OnY+1tjpuW+Fw38vseQv3nJ62LR8uaVz3Z3sQ
-  dZnpgIr4yuQO+VXS5yTjd1hqCKq7bcqYdr7oYNOfh1yOZ3dGZn7ZytmWv5Eju/TB/HsVU2YrZ
-  VcWfvevMX/zQLXP4GtitmJtx32/F74W2+MXMzz4lLTgvcnrnssMSdeVWIozEg21mIuKEwHpa7
-  bq1QMAAA==
-X-Env-Sender: markpearson@lenovo.com
-X-Msg-Ref: server-13.tower-416.messagelabs.com!1611603564!592724!1
-X-Originating-IP: [103.30.234.6]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received: 
-X-StarScan-Version: 9.60.3; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 5506 invoked from network); 25 Jan 2021 19:39:25 -0000
-Received: from unknown (HELO lenovo.com) (103.30.234.6)
-  by server-13.tower-416.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 25 Jan 2021 19:39:25 -0000
-Received: from reswpmail03.lenovo.com (unknown [10.62.32.22])
-        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by Forcepoint Email with ESMTPS id 9042E44D725A5280A362;
-        Tue, 26 Jan 2021 03:39:22 +0800 (CST)
-Received: from reswpmail02.lenovo.com (10.62.32.21) by reswpmail03.lenovo.com
- (10.62.32.22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2044.4; Mon, 25 Jan
- 2021 14:39:09 -0500
-Received: from reswpmail02.lenovo.com ([fe80::9926:4849:da71:32a2]) by
- reswpmail02.lenovo.com ([fe80::9926:4849:da71:32a2%11]) with mapi id
- 15.01.2044.006; Mon, 25 Jan 2021 14:39:20 -0500
-From:   Mark RH Pearson <markpearson@lenovo.com>
-To:     Hans de Goede <hdegoede@redhat.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>
-CC:     Bastien Nocera <hadess@hadess.net>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>
-Subject: RE: [External]  [PATCH 1/1] ACPI: platform-profile: Fix possible
- deadlock in platform_profile_remove()
-Thread-Topic: [External]  [PATCH 1/1] ACPI: platform-profile: Fix possible
- deadlock in platform_profile_remove()
-Thread-Index: AQHW802a5N+n/u79qUWPR70nMVIfVKo4vGjA
-Date:   Mon, 25 Jan 2021 19:39:20 +0000
-Message-ID: <71f4b64a29c24f929b578c5127f8a835@lenovo.com>
-References: <20210125190909.4384-1-hdegoede@redhat.com>
- <20210125190909.4384-2-hdegoede@redhat.com>
-In-Reply-To: <20210125190909.4384-2-hdegoede@redhat.com>
-Accept-Language: en-US
+        id S1732386AbhAYWno (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 25 Jan 2021 17:43:44 -0500
+Received: from mail-mw2nam12on2074.outbound.protection.outlook.com ([40.107.244.74]:12033
+        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1732787AbhAYWna (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Jan 2021 17:43:30 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=OT8bbqartBXHn5G9fCq2umhd/TTB7VGZldc8njdeU3fZlUn1nzihIf75fNtj/k08RZQXrA5CYhzeXxa+8R+Pdk7E7h50PrcP4wfTGPB80Ud3waRtS0RrXAznr74AaDG2sxd5SxDjUAwlXCAfi7hT7sZQw+iX5fZ5KTYPqTSKYwFVvN87H9KUWgJkHiGK0SlOw3Qq3cgD+8OcxscRBWKic93v4BXWVgLqnNQRv4hHysc/jzIcSsy+DGhJ3KuUfScRAB2YL4wbyL7bpHuVg54qTlzsbV/6Ssx5hODIhexSf6OZ5d88bOMg1DWTtNVjVL8j+V4bSGL2E6czrB9f0e1T2w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=PxPdOY0lSV4rVKBD8gJpn9GbEQuHj1lvy0aweMzYXXE=;
+ b=P55Rv2LQPQe6iOLWouaI6iW8yy9LRakjfiQtb8yC9QDScHdi6SGhSU98f9QGLo7orPNR433p+nnvcnfoTsHkyiAa1Fr755umrpYJLB81Pgq3roASGVYoyPA4lKbHCKHZE54ip/IVWL5pkvnF1PHmzASYeQ4pIjxFDq0ehgwXg/fKhRJzdyYMnxQ/PQpimeGWmLEnXNwZfbU0hmHDYlUG5eKhU94etX6cJo8N0NjK9tpjur4LDF4IOyxLu2jgPKdFaYKjuu5agjpAAS7dCR+JKJD0TYLzf6mRs/fDhN9m2qYo7l8T/gVsW6YF+aNEmraQ9V6VqI1TXTKJfUJfXfcYtA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=PxPdOY0lSV4rVKBD8gJpn9GbEQuHj1lvy0aweMzYXXE=;
+ b=Sk7c9XcReIoQCVjNQ/ijxL3+AqGE9tFMaO/xyK1XWF2CL7jDY/JfmiCjaWhUZgJZHax2ezK6S9zLVfen9KH3rusvuQbAndWa6rFWk4BP6iui7mJC/WhB1/+VZF2oW5YGsmHjGzSAELhtnYeC10Jg/VuX5iU8iqf2YlkJfj5CXjw=
+Authentication-Results: amd.com; dkim=none (message not signed)
+ header.d=none;amd.com; dmarc=none action=none header.from=amd.com;
+Received: from SA0PR12MB4512.namprd12.prod.outlook.com (2603:10b6:806:71::9)
+ by SA0PR12MB4574.namprd12.prod.outlook.com (2603:10b6:806:94::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.16; Mon, 25 Jan
+ 2021 22:42:32 +0000
+Received: from SA0PR12MB4512.namprd12.prod.outlook.com
+ ([fe80::ed7d:d788:82d2:edd4]) by SA0PR12MB4512.namprd12.prod.outlook.com
+ ([fe80::ed7d:d788:82d2:edd4%5]) with mapi id 15.20.3784.019; Mon, 25 Jan 2021
+ 22:42:32 +0000
+From:   Terry Bowman <terry.bowman@amd.com>
+Subject: Re: [PATCH] ACPI / APEI: Add is_ghes_type() to identify GHES sources
+To:     Borislav Petkov <bp@alien8.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     James Morse <james.morse@arm.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
+        Yazen Ghannam <yazen.ghannam@amd.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        jon.grimm@amd.com
+References: <20210122180322.1720413-1-terry.bowman@amd.com>
+ <CAJZ5v0hoMe=XbwD-oRGiRxAia94JB1CfBiqEXGwan+pN5_pzqw@mail.gmail.com>
+ <20210125171431.GI23070@zn.tnic>
+Message-ID: <672fad2a-b8aa-25ab-ec0c-900e54f7ee2e@amd.com>
+Date:   Mon, 25 Jan 2021 16:42:28 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.1
+In-Reply-To: <20210125171431.GI23070@zn.tnic>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.46.52.30]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+X-Originating-IP: [165.204.77.11]
+X-ClientProxiedBy: CH2PR10CA0005.namprd10.prod.outlook.com
+ (2603:10b6:610:4c::15) To SA0PR12MB4512.namprd12.prod.outlook.com
+ (2603:10b6:806:71::9)
 MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [172.31.10.186] (165.204.77.11) by CH2PR10CA0005.namprd10.prod.outlook.com (2603:10b6:610:4c::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.11 via Frontend Transport; Mon, 25 Jan 2021 22:42:29 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 40972004-6216-42ec-19cb-08d8c1828038
+X-MS-TrafficTypeDiagnostic: SA0PR12MB4574:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <SA0PR12MB4574FB8A1DBFCD244DD8F19983BD9@SA0PR12MB4574.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:1060;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: xmnBUNnfGTd5QSf6Pu0LEBfclld7g5r9t4SbGxCSAhd1JDwVTbN9I4xPf54pUAKEaasxVtOCAOeGJ0xNEhMOQhJcKQ7S3F0CHBZ8nHjg1WWyQrkMDhUWJ0LSl2wijMeTeRsVkMhGBGEBh3TAlVqWjO2Y7ZjIQyQCw0VS0bydzYP4C2DhpA18D9EDu6uVHQiTEPk5FFUOC/Q4Z406iut5pWJCLeh2fyLVcLoUqZ8ocKnRTxGNbn/NvE9+px8MH4QqyEUC3AIuz7wv3HN9ccXPYlEgskoEBLiihTd6rYd8KTGM/X9+xddWJ7D9FBC071+v11g5hffvGV2eXCVPb97WxzNJZEFBWRh+teWXVh3GNppaXLhUaPwXxdaprlfWMvL/0vPo5MV+0JQ7dRRjjKn4EAiGqHSKQ+/6nLVStPl98t/Tm63RagwqDh/MpZWwyVHT4i3WbZyLZbFMKigUAHdXSk2eslB3Sy85CnqNjFirI/8=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4512.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(346002)(136003)(396003)(366004)(39860400002)(86362001)(54906003)(31696002)(66946007)(110136005)(52116002)(956004)(7416002)(5660300002)(66556008)(83380400001)(478600001)(8936002)(44832011)(2906002)(4326008)(66476007)(53546011)(16526019)(6486002)(186003)(8676002)(26005)(31686004)(36756003)(16576012)(316002)(2616005)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?utf-8?B?NXhQcXBMUkdFSUFUZU5lNW44NVNTMW13eWltMDZiQVhnc1lDTGpWY0xyeEZ3?=
+ =?utf-8?B?UURUMjZQaVVlZnJ5ZExZdVVJV2NVMWhSSDBzQmVlMEdtUVlKMkhoN1RJKzR5?=
+ =?utf-8?B?bWd3b2FVZ1M5TWEyMlI5QjBRK0d1Q2JlM0R6YzN5blRsS2F4dUIxSlEvTklq?=
+ =?utf-8?B?ZmgzdGwxRkllNlRQbVgrczlsYlVURGx4bUZaSGFCcFFLcUNYVkR0M3dzdEdx?=
+ =?utf-8?B?OGJlVHA3bkQxK3h4VjR3Qnl2aEFTV1R3RDVQRXlhQkpRRW1mbTZiZ1dyZWdN?=
+ =?utf-8?B?NVRtK2I3ZSs0dlJkTU1TRHZ1eGFkY2E3N2ZtUUhXSVR4YTBOMzhlVE9XQ21h?=
+ =?utf-8?B?Tnpnc0NQbG5BZ1hGSnViZEZnR001ZnF6OXZocC93MUN2SzlDKzRFSUlGRE1G?=
+ =?utf-8?B?RHVZeHVZb3J4MktXeUxPclVIekdWSnhiNFI1VWwrUHVwaXZvSms3NE9yd0VN?=
+ =?utf-8?B?NGVmVmRpTCtuOXJnQ0FFenBEbldHbWJrdWJBVUs0VkZZL1pvNGhESW14cGY2?=
+ =?utf-8?B?Q2dMNytiNGtaQnprcVgrN0xnVEpENENaZC8ybDAyeWRGc05zRllPR0Jmc3Ir?=
+ =?utf-8?B?QmJqSklFSGJzRTN0TEsrSmlhbVkxZ3pGeDhwR2NKNnVob0NrWEJaeXdoUnNY?=
+ =?utf-8?B?M1htMnhPY0ErZldleWJwc3IzMHg1VjdFT083cElyU3VueFhMUHd6cDlRMXRo?=
+ =?utf-8?B?T3JGWE1obHZvSTFRSENvNE80c0hKWXlnZjlpQSs2SlZKZWVMMHZiWEdnUWNI?=
+ =?utf-8?B?SWRQUE01SHpwd2tSNjFNd2gwSXJkUGZ3MHF3NnZUOC9xK2J6TW5EVUgrQlFy?=
+ =?utf-8?B?UGxVajdzK3NIM0Rpb0xtSFZ6UjlKeStjY05KMk1FdUwwWGdKVUxtd2tIdFV5?=
+ =?utf-8?B?S2RKWXYzZHhpSjc1alcwU21STmNBZ1hyYnRpbGs5OWVPK1c1THAvNFdHNDZI?=
+ =?utf-8?B?ODU5MWZwam90Qit0eXhmd0xwYStTdXFJUUxhdWZhT1YzanY4b04wK083MHRS?=
+ =?utf-8?B?SnJhVHoxQ1Q3ZEZYTElHdGRVMWdmcTdqcHNwdUdHYkJmZitISFNPaHZiNk4z?=
+ =?utf-8?B?U3plYm0vVURaNEhxSjlMVjJ1WE5adkY5U2Y3cDFWWW50SlBxZXZGbVRZdDhs?=
+ =?utf-8?B?SUFDWjJwMXczTlM1OHN5MGpQTHBRUXBQV3lKL0o3QVQraEJoUGIyNjlEWHQ3?=
+ =?utf-8?B?YnVweFd5YmJZOWFIczVkRlQzMVBUMjgxeXEyTUFwemlXRG8xWnJxS2l4Rm5U?=
+ =?utf-8?B?M3NNWUpqL21IZ20vVXRuVmtSOXdweW4xT05nVDNLNlJsQXVobCtNS1RjOGNH?=
+ =?utf-8?B?VGNSUmxBcjVudlNKcUYvWXBkR1YvSjIrU2pSZURFajZMSThPZG1aYWRmWlRS?=
+ =?utf-8?B?YVA4Um1WZTRHZUZhVnVJZ2NZb1RZZHZKbWVJTmIyTFJmdXFobjh2ZGczVVJk?=
+ =?utf-8?Q?uU/Lpnf4?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 40972004-6216-42ec-19cb-08d8c1828038
+X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4512.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jan 2021 22:42:32.1013
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: s3mimjt9gq+Pvr86agqxDLlyz4W3KwLQ38Ngd9MBmEyW0XjW6tlB0UpNIlP0Aa50mRHxl7hNf/2BYgMtPF7NaA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4574
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> -----Original Message-----
-> From: Hans de Goede <hdegoede@redhat.com>
-> Sent: Monday, January 25, 2021 2:09 PM
-> 
-> After a rmmod thinkpad_acpi, lockdep pointed out this possible deadlock:
-> 
-> Our _show and _store sysfs attr functions get called with the kn->active
-> lock held for the sysfs attr and then take the profile_lock.
-> sysfs_remove_group() also takes the kn->active lock for the sysfs attr,
-> so if we call it with the profile_lock held, then we get an ABBA deadlock.
-> 
-> platform_profile_remove() must only be called by drivers which have
-> first *successfully* called platform_profile_register(). Anything else
-> is a driver bug. So the check for cur_profile being set before calling
-> sysfs_remove_group() is not necessary and it can be dropped.
-> 
-> It is safe to call sysfs_remove_group() without holding the profile_lock
-> since the attr-group group cannot be re-added until after we clear
-> cur_profile.
-> 
-> Change platform_profile_remove() to only hold the profile_lock while
-> clearing the cur_profile, fixing the deadlock.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/platform_profile.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
-> index 80e9df427eb8..4a59c5993bde 100644
-> --- a/drivers/acpi/platform_profile.c
-> +++ b/drivers/acpi/platform_profile.c
-> @@ -164,13 +164,9 @@ EXPORT_SYMBOL_GPL(platform_profile_register);
-> 
->  int platform_profile_remove(void)
->  {
-> -	mutex_lock(&profile_lock);
-> -	if (!cur_profile) {
-> -		mutex_unlock(&profile_lock);
-> -		return -ENODEV;
-> -	}
-> -
->  	sysfs_remove_group(acpi_kobj, &platform_profile_group);
-> +
-> +	mutex_lock(&profile_lock);
->  	cur_profile = NULL;
->  	mutex_unlock(&profile_lock);
->  	return 0;
-> --
-> 2.29.2
-Thanks Hans - good catch! Looks good to me.
-Mark
+On 1/25/21 11:14 AM, Borislav Petkov wrote:
+> On Mon, Jan 25, 2021 at 05:41:04PM +0100, Rafael J. Wysocki wrote:
+>> On Fri, Jan 22, 2021 at 7:05 PM Terry Bowman<terry.bowman@amd.com>  wrote:
+>>> From: Yazen Ghannam<yazen.ghannam@amd.com>
+>>>
+>>> Refactor duplicated GHES identity logic into is_ghes_type().
+>>>
+>>> Signed-off-by: Yazen Ghannam<yazen.ghannam@amd.com>
+>>> Reviewed-by: Robert Richter<rrichter@amd.com>
+>>> Signed-off-by: Terry Bowman<terry.bowman@amd.com>
+>> If Terry was a co-author of the patch, please add a Co-developed-by:
+>> tag for him in addition to the s-o-b.  Otherwise the meaning of his
+>> s-o-b is unclear.
+I will add "co-developed-by" in V2.
+>> Boris, James, any objections to the changes below?
+>>
+>>> ---
+>>>   drivers/acpi/apei/hest.c | 12 ++++++++----
+>>>   1 file changed, 8 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+>>> index 6e980fe16772..bd702e0ef339 100644
+>>> --- a/drivers/acpi/apei/hest.c
+>>> +++ b/drivers/acpi/apei/hest.c
+>>> @@ -49,6 +49,12 @@ static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
+>>>          [ACPI_HEST_TYPE_IA32_DEFERRED_CHECK] = -1,
+>>>   };
+>>>
+>>> +static inline bool is_ghes_type(struct acpi_hest_header *hest_hdr)
+>>> +{
+>>> +       return hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR ||
+>>> +              hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR_V2;
+> I realize that this is supposed to test whether the table point to a
+> generic hardware error source but everything in our code pertaining to
+> GHES is called, well, "ghes".
+>
+> So I'd prefer to call that is_generic_error() or so.
+Sure, I'll rename is_ghes_type() to is_generic_error() in v2.
+> Thx.
+>
