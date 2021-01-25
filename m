@@ -2,94 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB357C433E9
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 18:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23A6BC433DB
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 19:09:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7553222286
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 18:48:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EADBE22EBD
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 19:09:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732407AbhAZRRs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 12:17:48 -0500
-Received: from mx2.suse.de ([195.135.220.15]:48038 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390906AbhAZJKO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Jan 2021 04:10:14 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 57DE5B254;
-        Tue, 26 Jan 2021 09:09:28 +0000 (UTC)
-Message-ID: <1611652167.11983.65.camel@suse.cz>
-Subject: Re: [PATCH v2 1/1] x86,sched: On AMD EPYC set freq_max = max_boost
- in schedutil invariant formula
-From:   Giovanni Gherdovich <ggherdovich@suse.cz>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Jon Grimm <Jon.Grimm@amd.com>,
-        Nathan Fontenot <Nathan.Fontenot@amd.com>,
-        Yazen Ghannam <Yazen.Ghannam@amd.com>,
-        Thomas Lendacky <Thomas.Lendacky@amd.com>,
-        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Michael Larabel <Michael@phoronix.com>, x86@kernel.org,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Date:   Tue, 26 Jan 2021 10:09:27 +0100
-In-Reply-To: <YA6YEK4/rjtPLdkG@hirez.programming.kicks-ass.net>
-References: <20210122204038.3238-1-ggherdovich@suse.cz>
-         <20210122204038.3238-2-ggherdovich@suse.cz>
-         <YA6YEK4/rjtPLdkG@hirez.programming.kicks-ass.net>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1727047AbhAZF6O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:58:14 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:49884 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731617AbhAYTKl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Jan 2021 14:10:41 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1611601755;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=f1V+LPuoBvB9sYfJwGxS3yrxFQp3mMYgaVtf/y9Yvg4=;
+        b=Fh2lyT1dRX4jw9QpfxpCHqo3m/U9G2nlODu4M9wDOnBoY0debhCEPV/5e45FdL+U4RuNnN
+        hx+zOmrvr+TzzVdogrS9D5Li63yUAI4sBKqU/kVRrfQu0ue/d+++J+LuqxTvbcEPIW/lBt
+        LyUUmf/zVOJw/HjeMNwjs4mu6UcgQOM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-478-z02yBCcDP1m1LdWVwmQKoQ-1; Mon, 25 Jan 2021 14:09:13 -0500
+X-MC-Unique: z02yBCcDP1m1LdWVwmQKoQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F3F9610054FF;
+        Mon, 25 Jan 2021 19:09:11 +0000 (UTC)
+Received: from x1.localdomain (ovpn-112-56.ams2.redhat.com [10.36.112.56])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 878325E1A4;
+        Mon, 25 Jan 2021 19:09:10 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Mark Pearson <mpearson@lenovo.com>,
+        Bastien Nocera <hadess@hadess.net>, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: [PATCH 0/1] ACPI: platform-profile: Fix possible deadlock in platform_profile_remove()
+Date:   Mon, 25 Jan 2021 20:09:08 +0100
+Message-Id: <20210125190909.4384-1-hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 2021-01-25 at 11:06 +0100, Peter Zijlstra wrote:
-> On Fri, Jan 22, 2021 at 09:40:38PM +0100, Giovanni Gherdovich wrote:
-> > 1. PROBLEM DESCRIPTION (over-utilization and schedutil)
-> > 
-> > The problem happens on CPU-bound workloads spanning a large number of cores.
-> > In this case schedutil won't select the maximum P-State. Actually, it's
-> > likely that it will select the minimum one.
-> > 
-> > A CPU-bound workload puts the machine in a state generally called
-> > "over-utilization": an increase in CPU speed doesn't result in an increase of
-> > capacity. The fraction of time tasks spend on CPU becomes constant regardless
-> > of clock frequency (the tasks eat whatever we throw at them), and the PELT
-> > invariant util goes up and down with the frequency (i.e. it's not invariant
-> > anymore).
-> >                                       v5.10          v5.11-rc4
-> >                                       ~~~~~~~~~~~~~~~~~~~~~~~~
-> > CPU activity (mpstat)                 80-90%         80-90%
-> > schedutil requests (tracepoint)       always P0      mostly P2
-> > CPU frequency (HW feedback)           ~2.2 GHz       ~1.5 GHz
-> > PELT root rq util (tracepoint)        ~825           ~450
-> > 
-> > mpstat shows that the workload is CPU-bound and usage doesn't change with
-> 
-> So I'm having trouble with calling a 80%-90% workload CPU bound, because
-> clearly there's a ton of idle time.
+Hi Rafael,
 
-Yes you're right. There is considerable idle time and calling it CPU-bound is
-a bit of a stretch.
+Sorry for throwing another patch into the mix for the acpi-platform
+branch. I always build my local kernels with lockdep enabled and
+while testing an unrelated acpi_thinkpad patch I did "rmmod acpi_thinkpad"
+and lockdep pointed out this potential deadlock.
 
-Yet I don't think I'm completely off the mark. The busy time is the same with
-the machine running at 1.5 GHz and at 2.2 GHz (it just takes longer to
-finish). To me it seems like the CPU is the bottleneck, with some overhead on
-top.
+The fix is simple enough, although it does rely on the assumption
+that drivers will only call platform_profile_remove() after they
+have first successfully called platform_profile_register().
 
-I will confirm what causes the idle time.
+See the actual patch for more details.
+
+Regards,
+
+Hans
 
 
-Giovanni
+Hans de Goede (1):
+  ACPI: platform-profile: Fix possible deadlock in platform_profile_remove()
+
+ drivers/acpi/platform_profile.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
