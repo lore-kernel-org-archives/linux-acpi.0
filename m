@@ -2,95 +2,123 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BDFDC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D1E4C433E6
 	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE3E8207B1
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1869A207B1
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388833AbhAZF5b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:57:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43020 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727291AbhAYKAN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2021 05:00:13 -0500
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FF3CC061351;
-        Mon, 25 Jan 2021 00:35:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=merlin.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=XJYeiAvL4VeVAenUSsgyMYNM2qEv0ZjDoysHFmUMJos=; b=jgTw6YQpQch96Jh2NAY77ZJaOK
-        Z/CXctZ/YGYOQ29vtW6E7aXdigyHfW+hPf06Z0lUPiwnC9h7NU4CsZKFhWScilSj+ffNdBTqLswS8
-        N2TfhsHCtqtmI/TzHn5tD1qjhxtEhx/jJGLxK1eDTMFXbxNWar/1wvxc5rM/4qUePeZkrgHD/RHo5
-        PF5LQQFEX8vKLYcnS75Buw78QaV4YUZbgxgFExzAAOtCbOT1UE3gd30f1CCQM51nUZjK/nqVCdHte
-        R356/Mu24kfBMqxvoePR48L/8PH2Wr2WnX474tEKcLKVsT+5Q2AaJiBvkvlDpIottlxUkLwpwa89o
-        9HKDCL+A==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1l3xKp-0001tn-Ez; Mon, 25 Jan 2021 08:34:55 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 2AF1D3010C8;
-        Mon, 25 Jan 2021 09:34:50 +0100 (CET)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id DEFA1207D3C61; Mon, 25 Jan 2021 09:34:49 +0100 (CET)
-Date:   Mon, 25 Jan 2021 09:34:49 +0100
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Michael Larabel <Michael@phoronix.com>
-Cc:     Giovanni Gherdovich <ggherdovich@suse.cz>,
-        Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Jon Grimm <Jon.Grimm@amd.com>,
-        Nathan Fontenot <Nathan.Fontenot@amd.com>,
-        Yazen Ghannam <Yazen.Ghannam@amd.com>,
-        Thomas Lendacky <Thomas.Lendacky@amd.com>,
-        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>, x86@kernel.org,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 0/1] AMD EPYC: fix schedutil perf regression
- (freq-invariance)
-Message-ID: <YA6CqYcaEhUoyJdH@hirez.programming.kicks-ass.net>
-References: <20210122204038.3238-1-ggherdovich@suse.cz>
- <a5071cb5-6a5b-d2e4-ff06-fa7810b8127c@phoronix.com>
+        id S1726957AbhAZF5g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:57:36 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:42603 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727853AbhAYMOJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Jan 2021 07:14:09 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1611576721;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=qFYGXPSLNwIoMSm+97j34GHslVZxB/S/yGvgs080vfg=;
+        b=SUONJrzFpCTedPd48O1wM1OTd0xw2dzAFcRwj6PH9qsF173jKSlPS48dbBfh7vcqmU0p5P
+        dKmqe57J9XESngvxmV+8QrsOcFLQEX6UlNNgGpHrDzGT3uFhOtanNmxDr37HHWy+eX+CKj
+        NduMDNgNRLQN2R4RwVRhVBn3ThbNtXA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-470-3CETjn75OdGqFRqkPGCJGA-1; Mon, 25 Jan 2021 07:00:32 -0500
+X-MC-Unique: 3CETjn75OdGqFRqkPGCJGA-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0C752192203E;
+        Mon, 25 Jan 2021 12:00:26 +0000 (UTC)
+Received: from x1.localdomain.com (ovpn-112-170.ams2.redhat.com [10.36.112.170])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 6DA3960C90;
+        Mon, 25 Jan 2021 12:00:02 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Mark Pearson <mpearson@lenovo.com>,
+        Bastien Nocera <hadess@hadess.net>, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: [PATCH v2 2/2] ACPI: platform-profile: Introduce object pointers to callbacks
+Date:   Mon, 25 Jan 2021 12:59:57 +0100
+Message-Id: <20210125115957.3292-3-hdegoede@redhat.com>
+In-Reply-To: <20210125115957.3292-1-hdegoede@redhat.com>
+References: <20210125115957.3292-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a5071cb5-6a5b-d2e4-ff06-fa7810b8127c@phoronix.com>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Jan 24, 2021 at 04:30:57PM -0600, Michael Larabel wrote:
-> From ongoing tests of this patch, it still certainly shows to address most
-> of the Linux 5.11 performance regression previously encountered when using
-> Schedutil. Additionally, for a number of workloads where not seeing a
-> regression from 5.10 to 5.11 Git is still showing even better performance
-> with this patch. The power monitoring on the AMD EPYC server is showing
-> higher power spikes but the average power consumption rate is roughly
-> comparable to that of Linux 5.11 Git, which is higher than 5.10 by just
-> about 3%.
-> 
-> So this patch still seems to be working out well and indeed taking care of
-> some wide losses seen otherwise on Linux 5.11 when using Schedutil on AMD
-> Zen2/Zen3. Still have some other tests running but so far no unexpected
-> results.
-> 
+From: Jiaxun Yang <jiaxun.yang@flygoat.com>
 
-Did you do all this writing and forget to add:
+Add an object pointer to handler callbacks to avoid the need for
+drivers to have a global variable to get to their driver-data
+struct.
 
-Tested-by: Michael Larabel <Michael@phoronix.com>
+Link: https://lore.kernel.org/linux-acpi/6a29f338-d9e4-150c-81dd-2ffb54f5bc35@redhat.com/
+Link: https://lore.kernel.org/r/20210114073429.176462-3-jiaxun.yang@flygoat.com
+Signed-off-by: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Suggested-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+Changes in v2 (Hans de Goede):
+- Tweak the commit message wording a bit
+---
+ drivers/acpi/platform_profile.c  | 4 ++--
+ include/linux/platform_profile.h | 6 ++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-?
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+index f65c61db7921..80e9df427eb8 100644
+--- a/drivers/acpi/platform_profile.c
++++ b/drivers/acpi/platform_profile.c
+@@ -64,7 +64,7 @@ static ssize_t platform_profile_show(struct device *dev,
+ 		return -ENODEV;
+ 	}
+ 
+-	err = cur_profile->profile_get(&profile);
++	err = cur_profile->profile_get(cur_profile, &profile);
+ 	mutex_unlock(&profile_lock);
+ 	if (err)
+ 		return err;
+@@ -104,7 +104,7 @@ static ssize_t platform_profile_store(struct device *dev,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	err = cur_profile->profile_set(i);
++	err = cur_profile->profile_set(cur_profile, i);
+ 	mutex_unlock(&profile_lock);
+ 	if (err)
+ 		return err;
+diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
+index c797fdb3d91a..a26542d53058 100644
+--- a/include/linux/platform_profile.h
++++ b/include/linux/platform_profile.h
+@@ -28,8 +28,10 @@ enum platform_profile_option {
+ 
+ struct platform_profile_handler {
+ 	unsigned long choices[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
+-	int (*profile_get)(enum platform_profile_option *profile);
+-	int (*profile_set)(enum platform_profile_option profile);
++	int (*profile_get)(struct platform_profile_handler *pprof,
++				enum platform_profile_option *profile);
++	int (*profile_set)(struct platform_profile_handler *pprof,
++				enum platform_profile_option profile);
+ };
+ 
+ int platform_profile_register(struct platform_profile_handler *pprof);
+-- 
+2.29.2
+
