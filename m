@@ -2,123 +2,108 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F78C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 01:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 896B3C433DB
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 02:10:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85DBD22DD6
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 01:55:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 533192080D
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 02:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731993AbhAYT3S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 25 Jan 2021 14:29:18 -0500
-Received: from mga18.intel.com ([134.134.136.126]:32117 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731885AbhAYT2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 25 Jan 2021 14:28:19 -0500
-IronPort-SDR: 4lhUEB5TGtOBA0ofmr2YM1/niq99NpVYiMwHW9Vlr5hZOoTxAdoVWk+5woZw4T4A0eSQoJvno1
- fiP6hNRC2gMw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="167463005"
-X-IronPort-AV: E=Sophos;i="5.79,374,1602572400"; 
-   d="scan'208";a="167463005"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 11:26:26 -0800
-IronPort-SDR: i0giKRscpjDIzWE8QSyp/tHZLHCQLXmt1z//xPjprBTAb7DxkFQCIoJxRjQ2jQ1LCJG8MhYsRx
- Kh6JLFqH0r9A==
-X-IronPort-AV: E=Sophos;i="5.79,374,1602572400"; 
-   d="scan'208";a="572656872"
-Received: from rrusnak-mobl2.amr.corp.intel.com (HELO [10.212.246.231]) ([10.212.246.231])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 11:26:25 -0800
-Subject: Re: Crash in acpi_ns_validate_handle triggered by soundwire on Linux
- 5.10
-To:     Salvatore Bonaccorso <carnil@debian.org>
-Cc:     "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." 
-        <alsa-devel@alsa-project.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Vinod Koul <vkoul@kernel.org>,
-        =?UTF-8?Q?Marcin_=c5=9alusarz?= <marcin.slusarz@gmail.com>,
-        Kubo Hiroshi <hkubo@jiubao.jp>,
-        Bard Liao <yung-chuan.liao@linux.intel.com>,
-        Len Brown <lenb@kernel.org>
-References: <CA+GA0_sPC3rp5K4qwZm-u+W1C=+2Y2p-dbF4DMdHkKaTpeKKkg@mail.gmail.com>
- <CAJZ5v0iapmc8ywuySwexwTagKr89Hj7TPXkAvd_HXMhdLoyyQQ@mail.gmail.com>
- <1f0f7273-597e-cdf0-87d1-908e56c13133@linux.intel.com>
- <YA8QM98xrHyefa7g@eldamar.lan>
-From:   Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Message-ID: <fb2808ba-d5e5-8d8f-1ba2-c7a94be805e8@linux.intel.com>
-Date:   Mon, 25 Jan 2021 13:26:23 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1731480AbhAYTK5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 25 Jan 2021 14:10:57 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:24227 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731618AbhAYTKq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Jan 2021 14:10:46 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1611601757;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=+lWKLwxMgB8k9HPpVmv4K8bwd8xRT+dLD+7+TjXu/wY=;
+        b=HqV/nEAUAQNkykF18T/fOCka++gU0sRc6sRYYhV2XmVjxNwyx/euJlu6rRehSanGFFwp53
+        QQF873NS4JDwXEzC8v6ywcaPtUT0CUWjmUsWQEJb1O/ox7PXcf+i3h8muWFOB508ugY7gy
+        SOzzeO138V+biSmDqX1Bj2nU5r/pHAY=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-203-Q4L7LbstMnitI2Si0bFjTQ-1; Mon, 25 Jan 2021 14:09:14 -0500
+X-MC-Unique: Q4L7LbstMnitI2Si0bFjTQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8851F8066EA;
+        Mon, 25 Jan 2021 19:09:13 +0000 (UTC)
+Received: from x1.localdomain (ovpn-112-56.ams2.redhat.com [10.36.112.56])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 48D3E61D2E;
+        Mon, 25 Jan 2021 19:09:12 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Mark Pearson <mpearson@lenovo.com>,
+        Bastien Nocera <hadess@hadess.net>, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: [PATCH 1/1] ACPI: platform-profile: Fix possible deadlock in platform_profile_remove()
+Date:   Mon, 25 Jan 2021 20:09:09 +0100
+Message-Id: <20210125190909.4384-2-hdegoede@redhat.com>
+In-Reply-To: <20210125190909.4384-1-hdegoede@redhat.com>
+References: <20210125190909.4384-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <YA8QM98xrHyefa7g@eldamar.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+After a rmmod thinkpad_acpi, lockdep pointed out this possible deadlock:
 
->>>> Linux 5.10 fails to boot on my IceLake laptop, where 5.9 worked fine.
->>>> I'm not sure whether it's a bug in ACPI or Soundwire subsystem, so I'm
->>>> sending this to both
->>>> lists. The W taint flag is because of an unrelated nouveau failure (It
->>>> was busted on 5.9, and is
->>>> still on 5.10). Full kernel log down below.
->>>> It's from a distro kernel, but I can build my own kernel with patches if needed.
->>>
->>> Please try to add a check for handle against NULL to
->>> snd_intel_dsp_check_soundwire() after
->>>
->>> handle = ACPI_HANDLE(&pci->dev);
->>>
->>> and see if this makes any difference.
->>>
->>> This should check handle against NULL anyway, even if it didn't crash later on.
->>
->> Is there a way you can share the DSDT?
->>
->> The only thing we do in that sdw_intel_acpi_scan() function is check for an
->> _ADR and read two _DSD properties. I think it's been 2 years since we wrote
->> it and never had an issue, never say never I guess...
->>
->> If you want to bypass this problem for the time being, you can add a kernel
->> option in /etc/modprobe.d/alsa-base.conf
->>
->> options snd-intel-dspcfg dsp_driver=1
->>
->> that will force the use of the HDaudio legacy driver and bypass the driver
->> autodetection.
-> 
-> A user in Debian,  Kubo Hiroshi reported what seems to be the same
-> issue in https://bugs.debian.org/981003 .
+Our _show and _store sysfs attr functions get called with the kn->active
+lock held for the sysfs attr and then take the profile_lock.
+sysfs_remove_group() also takes the kn->active lock for the sysfs attr,
+so if we call it with the profile_lock held, then we get an ABBA deadlock.
 
-Thanks for connecting the dots.
+platform_profile_remove() must only be called by drivers which have
+first *successfully* called platform_profile_register(). Anything else
+is a driver bug. So the check for cur_profile being set before calling
+sysfs_remove_group() is not necessary and it can be dropped.
 
-I can only suggest the following patch, similar to what Rafael suggested 
-but this time done inside of the sdw_intel_acpi_scan() function which 
-has multiple users.
+It is safe to call sysfs_remove_group() without holding the profile_lock
+since the attr-group group cannot be re-added until after we clear
+cur_profile.
 
-I still don't see what happens though, the code in drivers/acpi seems to 
-already check for bad pointers?
+Change platform_profile_remove() to only hold the profile_lock while
+clearing the cur_profile, fixing the deadlock.
 
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/platform_profile.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/soundwire/intel_init.c b/drivers/soundwire/intel_init.c
-index cabdadb09a1b..91f57f75a9e2 100644
---- a/drivers/soundwire/intel_init.c
-+++ b/drivers/soundwire/intel_init.c
-@@ -405,6 +405,9 @@ int sdw_intel_acpi_scan(acpi_handle *parent_handle,
-  {
-         acpi_status status;
-
-+       if (!parent_handle)
-+               return -ENODEV;
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+index 80e9df427eb8..4a59c5993bde 100644
+--- a/drivers/acpi/platform_profile.c
++++ b/drivers/acpi/platform_profile.c
+@@ -164,13 +164,9 @@ EXPORT_SYMBOL_GPL(platform_profile_register);
+ 
+ int platform_profile_remove(void)
+ {
+-	mutex_lock(&profile_lock);
+-	if (!cur_profile) {
+-		mutex_unlock(&profile_lock);
+-		return -ENODEV;
+-	}
+-
+ 	sysfs_remove_group(acpi_kobj, &platform_profile_group);
 +
-         status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
-                                      parent_handle, 1,
-                                      sdw_intel_acpi_cb,
++	mutex_lock(&profile_lock);
+ 	cur_profile = NULL;
+ 	mutex_unlock(&profile_lock);
+ 	return 0;
+-- 
+2.29.2
+
