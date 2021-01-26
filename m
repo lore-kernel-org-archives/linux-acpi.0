@@ -2,159 +2,110 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1E77C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:01:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7971C433DB
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:18:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B68252082D
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:01:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91F8F2074A
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:18:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391332AbhAZP7e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 10:59:34 -0500
-Received: from mga12.intel.com ([192.55.52.136]:8773 "EHLO mga12.intel.com"
+        id S2391230AbhAZQSh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Jan 2021 11:18:37 -0500
+Received: from mx2.suse.de ([195.135.220.15]:38434 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404398AbhAZP7Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Jan 2021 10:59:16 -0500
-IronPort-SDR: /9B17KPWgeKddBnpiNAA0yfPzYx6IdumXBYYiRHmrXh4gd8rXlSOSA7p5W46AV4jKeoKLp7eWc
- ghSeAq1DY99Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9876"; a="159097256"
-X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="159097256"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2021 07:57:27 -0800
-IronPort-SDR: BDQjXphgcuUODvQYURSRw8HXhmoiH5TskUs/6ZflevEMn5dB9XXP87TLDiX1V7wbks79oUR+10
- uLll+fB9D5Jw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="574085209"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga006.fm.intel.com with ESMTP; 26 Jan 2021 07:57:25 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 46E77288; Tue, 26 Jan 2021 17:57:24 +0200 (EET)
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     linux-usb@vger.kernel.org
-Cc:     Michael Jamet <michael.jamet@intel.com>,
-        Yehezkel Bernat <YehezkelShB@gmail.com>,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Lukas Wunner <lukas@wunner.de>,
-        Mario Limonciello <mario.limonciello@dell.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Christian Kellner <christian@kellner.me>,
-        Len Brown <lenb@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        id S2391034AbhAZJ3N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 26 Jan 2021 04:29:13 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 44A9EB2D0;
+        Tue, 26 Jan 2021 09:28:31 +0000 (UTC)
+Message-ID: <1611653310.11983.66.camel@suse.cz>
+Subject: Re: [PATCH v2 1/1] x86,sched: On AMD EPYC set freq_max = max_boost
+ in schedutil invariant formula
+From:   Giovanni Gherdovich <ggherdovich@suse.cz>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Jon Grimm <Jon.Grimm@amd.com>,
+        Nathan Fontenot <Nathan.Fontenot@amd.com>,
+        Yazen Ghannam <Yazen.Ghannam@amd.com>,
+        Thomas Lendacky <Thomas.Lendacky@amd.com>,
+        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Michael Larabel <Michael@phoronix.com>, x86@kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 4/6] ACPI: Execute platform _OSC also with query bit clear
-Date:   Tue, 26 Jan 2021 18:57:21 +0300
-Message-Id: <20210126155723.9388-5-mika.westerberg@linux.intel.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210126155723.9388-1-mika.westerberg@linux.intel.com>
-References: <20210126155723.9388-1-mika.westerberg@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Date:   Tue, 26 Jan 2021 10:28:30 +0100
+In-Reply-To: <YA6XmO2nuivdpE8M@hirez.programming.kicks-ass.net>
+References: <20210122204038.3238-1-ggherdovich@suse.cz>
+         <20210122204038.3238-2-ggherdovich@suse.cz>
+         <YA6XmO2nuivdpE8M@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.26.6 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Mario Limonciello <mario.limonciello@dell.com>
+On Mon, 2021-01-25 at 11:04 +0100, Peter Zijlstra wrote:
+> On Fri, Jan 22, 2021 at 09:40:38PM +0100, Giovanni Gherdovich wrote:
+> > This workload is constant in time, so instead of using the PELT sum we can
+> > pretend that scale invariance is obtained with
+> > 
+> >     util_inv = util_raw * freq_curr / freq_max1        [formula-1]
+> > 
+> > where util_raw is the PELT util from v5.10 (which is to say, not invariant),
+> > and util_inv is the PELT util from v5.11-rc4. freq_max1 comes from
+> > commit 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for
+> > frequency invariance on AMD EPYC") and is (P0+max_boost)/2 = (2.25+3.4)/2 =
+> > 2.825 GHz.  Then we have the schedutil formula
+> > 
+> >     freq_next = 1.25 * freq_max2 * util_inv            [formula-2]
+> > 
+> > Here v5.11-rc4 uses freq_max2 = P0 = 2.25 GHz (and this patch changes it to
+> > 3.4 GHz).
+> > 
+> > Since all cores are busy, there is no boost available. Let's be generous and say
+> > the tasks initially get P0, i.e. freq_curr = 2.25 GHz. Combining the formulas
+> > above and taking util_raw = 825/1024 = 0.8, freq_next is:
+> > 
+> >     freq_next = 1.25 * 2.25 * 0.8 * 2.25 / 2.825 = 1.79 GHz
+> 
+> Right, so here's a 'problem' between schedutil and cpufreq, they don't
+> use the same f_max at all times.
+> 
+> And this is also an inconsistency between acpi_cpufreq and intel_pstate
+> (passive). IIRC the intel_pstate cpufreq drivers uses 4C/1C/P0 resp,
+> while ACPI seems to stick to P0 f_max.
 
-The platform _OSC can change the hardware state when query bit is not
-set. According to ACPI spec it is recommended that the OS runs _OSC with
-query bit set until the platform does not mask any of the capabilities.
-Then it should run it with query bit clear in order to actually commit
-the changes. At the moment Linux only runs the _OSC with query bit set
-and this is going to cause problems with the USB4 CM (Connection
-Manager) switch that is going to commit the switch only when the OS
-requests control over the feature.
+That's correct. A different f_max is used depending on the occasion. Let me
+rephrase with:
 
-For this reason modify the _OSC support so that we first execute it with
-query bit set, then use the returned valu as base of the features we
-want to control and run the _OSC again with query bit clear.
+cpufreq core asks the driver what's the f_max. What's the answer?
 
-Also rename the function to better match what it does.
+intel_pstate says: 1C
+acpi_cpufreq says: P0
 
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/bus.c | 43 +++++++++++++++++++++++++++++++------------
- 1 file changed, 31 insertions(+), 12 deletions(-)
+scheduler asks the freq-invariance machinery what's f_max, because it needs to
+compute f_curr/f_max. What's the answer?
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 1682f8b454a2..ca7c7b2bf56e 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -282,9 +282,9 @@ bool osc_pc_lpi_support_confirmed;
- EXPORT_SYMBOL_GPL(osc_pc_lpi_support_confirmed);
- 
- static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
--static void acpi_bus_osc_support(void)
-+static void acpi_bus_osc_negotiate_platform_control(void)
- {
--	u32 capbuf[2];
-+	u32 capbuf[2], *capbuf_ret;
- 	struct acpi_osc_context context = {
- 		.uuid_str = sb_uuid_str,
- 		.rev = 1,
-@@ -321,17 +321,36 @@ static void acpi_bus_osc_support(void)
- 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
- 		return;
--	if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
--		u32 *capbuf_ret = context.ret.pointer;
--		if (context.ret.length > OSC_SUPPORT_DWORD) {
--			osc_sb_apei_support_acked =
--				capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
--			osc_pc_lpi_support_confirmed =
--				capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
--		}
-+
-+	if (ACPI_FAILURE(acpi_run_osc(handle, &context)))
-+		return;
-+
-+	capbuf_ret = context.ret.pointer;
-+	if (context.ret.length <= OSC_SUPPORT_DWORD) {
- 		kfree(context.ret.pointer);
-+		return;
- 	}
--	/* do we need to check other returned cap? Sounds no */
-+
-+	/*
-+	 * Now run _OSC again with query flag clean and with the caps
-+	 * both platform and OS supports.
-+	 */
-+	capbuf[OSC_QUERY_DWORD] = 0;
-+	capbuf[OSC_SUPPORT_DWORD] = capbuf_ret[OSC_SUPPORT_DWORD];
-+	kfree(context.ret.pointer);
-+
-+	if (ACPI_FAILURE(acpi_run_osc(handle, &context)))
-+		return;
-+
-+	capbuf_ret = context.ret.pointer;
-+	if (context.ret.length > OSC_SUPPORT_DWORD) {
-+		osc_sb_apei_support_acked =
-+			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
-+		osc_pc_lpi_support_confirmed =
-+			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
-+	}
-+
-+	kfree(context.ret.pointer);
- }
- 
- /* --------------------------------------------------------------------------
-@@ -1168,7 +1187,7 @@ static int __init acpi_bus_init(void)
- 	 * _OSC method may exist in module level code,
- 	 * so it must be run after ACPI_FULL_INITIALIZATION
- 	 */
--	acpi_bus_osc_support();
-+	acpi_bus_osc_negotiate_platform_control();
- 
- 	/*
- 	 * _PDC control method may load dynamic SSDT tables,
--- 
-2.29.2
+Intel CPUs: 4C in most cases, 1C on Atom, something else on Xeon Phi.
+AMD CPUs: (P0 + 1C) / 2.
 
+
+Legend:
+1C = 1-core boost
+4C = 4-cores boost
+P0 = max non-boost P-States
+
+> 
+> Rafael; should ACPI change that behaviour rather than adding yet another
+> magic variable?
