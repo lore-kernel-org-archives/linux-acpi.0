@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D9C2C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:00:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60037C433DB
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:01:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1471621E92
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:00:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30A1621E92
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:01:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404310AbhAZP7j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 10:59:39 -0500
-Received: from mga17.intel.com ([192.55.52.151]:61152 "EHLO mga17.intel.com"
+        id S2404259AbhAZQA4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Jan 2021 11:00:56 -0500
+Received: from mga06.intel.com ([134.134.136.31]:61215 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404388AbhAZP7R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Jan 2021 10:59:17 -0500
-IronPort-SDR: O5LRL8qcsrvnhNtWjvMsjAS8WBLJo6VJqqRK4h9UeQaWZVBn4sVIQbZnpwTo/DUSiF+G0KVc4l
- eBx142Xu2iMA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9876"; a="159697372"
+        id S2404817AbhAZQAm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 26 Jan 2021 11:00:42 -0500
+IronPort-SDR: T5uM2Lzwrx3ep6SOFikIeV7XYbtkOX+pRPOVFp9AYdRvrJIpEaSZaO2+hk5Q411ogy9xVbE1dS
+ Dd3rXccbayAQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9876"; a="241451044"
 X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="159697372"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2021 07:57:27 -0800
-IronPort-SDR: 9fSmgMqIDQjSwY19s7lpKfgUUw3LcDaQq/bD0dGe8vRLZ+q9CyqXqYryWS8JQJMOHGIck1FPGy
- l00wip3Mg07w==
+   d="scan'208";a="241451044"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2021 07:57:32 -0800
+IronPort-SDR: u21nFRlciH5GWRkNVNQTD8FBZo89WqHHhxd/jjhWPYnHlCCoT5P+PwAUfcOHsC0WS8NhOI+1Tl
+ opUpvgPIZr2A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="406758725"
+   d="scan'208";a="356757334"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga002.fm.intel.com with ESMTP; 26 Jan 2021 07:57:25 -0800
+  by orsmga006.jf.intel.com with ESMTP; 26 Jan 2021 07:57:28 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 3B0B4214; Tue, 26 Jan 2021 17:57:24 +0200 (EET)
+        id 50C00173; Tue, 26 Jan 2021 17:57:24 +0200 (EET)
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     linux-usb@vger.kernel.org
 Cc:     Michael Jamet <michael.jamet@intel.com>,
@@ -48,9 +48,9 @@ Cc:     Michael Jamet <michael.jamet@intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 3/6] thunderbolt: Allow disabling XDomain protocol
-Date:   Tue, 26 Jan 2021 18:57:20 +0300
-Message-Id: <20210126155723.9388-4-mika.westerberg@linux.intel.com>
+Subject: [PATCH 5/6] ACPI: Add support for native USB4 control _OSC
+Date:   Tue, 26 Jan 2021 18:57:22 +0300
+Message-Id: <20210126155723.9388-6-mika.westerberg@linux.intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210126155723.9388-1-mika.westerberg@linux.intel.com>
 References: <20210126155723.9388-1-mika.westerberg@linux.intel.com>
@@ -60,110 +60,160 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This allows disabling XDomain protocol completely if the user does not
-plan to use the USB4/Thunderbolt peer-to-peer functionality, or for
-security reasons.
+ACPI 6.4 introduced a new _OSC capability that is used negotiate native
+connection manager support. Connection manager is the entity that is
+responsible for tunneling over the USB4 fabric. If the platform rejects
+the native access then firmware based connection manager is used.
 
-XDomain protocol is enabled by default but with this commit it is
-possible to disable it by passing "xdomain=0" as module parameter (or
-through the kernel command line).
+The new _OSC also includes a set of bits that can be used to disable
+certain tunnel types such as PCIe for security reasons for instance.
 
+This implements the new USB4 _OSC so that we try to negotiate native
+USB4 support if the Thunderbolt/USB4 (CONFIG_USB4) driver is enabled.
+Drivers can determine what was negotiated by checking two new variables
+exposed in this patch.
+
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/thunderbolt/domain.c  | 4 +++-
- drivers/thunderbolt/icm.c     | 6 ++++--
- drivers/thunderbolt/tb.c      | 3 +++
- drivers/thunderbolt/tb.h      | 1 +
- drivers/thunderbolt/xdomain.c | 9 +++++++++
- 5 files changed, 20 insertions(+), 3 deletions(-)
+ drivers/acpi/bus.c   | 76 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h | 10 ++++++
+ 2 files changed, 86 insertions(+)
 
-diff --git a/drivers/thunderbolt/domain.c b/drivers/thunderbolt/domain.c
-index a1c79c9c4f66..89ae614eaba2 100644
---- a/drivers/thunderbolt/domain.c
-+++ b/drivers/thunderbolt/domain.c
-@@ -412,7 +412,9 @@ static bool tb_domain_event_cb(void *data, enum tb_cfg_pkg_type type,
- 	switch (type) {
- 	case TB_CFG_PKG_XDOMAIN_REQ:
- 	case TB_CFG_PKG_XDOMAIN_RESP:
--		return tb_xdomain_handle_request(tb, type, buf, size);
-+		if (tb_is_xdomain_enabled())
-+			return tb_xdomain_handle_request(tb, type, buf, size);
-+		break;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index ca7c7b2bf56e..f7ad2d283e51 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -281,6 +281,12 @@ bool osc_sb_apei_support_acked;
+ bool osc_pc_lpi_support_confirmed;
+ EXPORT_SYMBOL_GPL(osc_pc_lpi_support_confirmed);
  
- 	default:
- 		tb->cm_ops->handle_event(tb, type, buf, size);
-diff --git a/drivers/thunderbolt/icm.c b/drivers/thunderbolt/icm.c
-index 8b7f941a9bb7..6b853c59aa34 100644
---- a/drivers/thunderbolt/icm.c
-+++ b/drivers/thunderbolt/icm.c
-@@ -1701,10 +1701,12 @@ static void icm_handle_notification(struct work_struct *work)
- 			icm->device_disconnected(tb, n->pkg);
- 			break;
- 		case ICM_EVENT_XDOMAIN_CONNECTED:
--			icm->xdomain_connected(tb, n->pkg);
-+			if (tb_is_xdomain_enabled())
-+				icm->xdomain_connected(tb, n->pkg);
- 			break;
- 		case ICM_EVENT_XDOMAIN_DISCONNECTED:
--			icm->xdomain_disconnected(tb, n->pkg);
-+			if (tb_is_xdomain_enabled())
-+				icm->xdomain_disconnected(tb, n->pkg);
- 			break;
- 		case ICM_EVENT_RTD3_VETO:
- 			icm->rtd3_veto(tb, n->pkg);
-diff --git a/drivers/thunderbolt/tb.c b/drivers/thunderbolt/tb.c
-index d08879849abe..4a99cc3913c9 100644
---- a/drivers/thunderbolt/tb.c
-+++ b/drivers/thunderbolt/tb.c
-@@ -179,6 +179,9 @@ static void tb_scan_xdomain(struct tb_port *port)
- 	struct tb_xdomain *xd;
- 	u64 route;
- 
-+	if (!tb_is_xdomain_enabled())
-+		return;
++/*
++ * ACPI 6.4 Operating System Capabilities for USB.
++ */
++bool osc_sb_native_usb4_support_confirmed;
++EXPORT_SYMBOL_GPL(osc_sb_native_usb4_support_confirmed);
 +
- 	route = tb_downstream_route(port);
- 	xd = tb_xdomain_find_by_route(tb, route);
- 	if (xd) {
-diff --git a/drivers/thunderbolt/tb.h b/drivers/thunderbolt/tb.h
-index 31468de658e4..01fe849e9d4c 100644
---- a/drivers/thunderbolt/tb.h
-+++ b/drivers/thunderbolt/tb.h
-@@ -953,6 +953,7 @@ static inline u64 tb_downstream_route(struct tb_port *port)
- 	       | ((u64) port->port << (port->sw->config.depth * 8));
- }
+ static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
+ static void acpi_bus_osc_negotiate_platform_control(void)
+ {
+@@ -317,6 +323,9 @@ static void acpi_bus_osc_negotiate_platform_control(void)
+ 	if (IS_ENABLED(CONFIG_SCHED_MC_PRIO))
+ 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_DIVERSE_HIGH_SUPPORT;
  
-+bool tb_is_xdomain_enabled(void);
- bool tb_xdomain_handle_request(struct tb *tb, enum tb_cfg_pkg_type type,
- 			       const void *buf, size_t size);
- struct tb_xdomain *tb_xdomain_alloc(struct tb *tb, struct device *parent,
-diff --git a/drivers/thunderbolt/xdomain.c b/drivers/thunderbolt/xdomain.c
-index f2d4db1cd84d..655ae4fefd69 100644
---- a/drivers/thunderbolt/xdomain.c
-+++ b/drivers/thunderbolt/xdomain.c
-@@ -30,6 +30,10 @@ struct xdomain_request_work {
- 	struct tb *tb;
- };
- 
-+static bool tb_xdomain_enabled = true;
-+module_param_named(xdomain, tb_xdomain_enabled, bool, 0444);
-+MODULE_PARM_DESC(xdomain, "allow XDomain protocol (default: true)");
++	if (IS_ENABLED(CONFIG_USB4))
++		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_NATIVE_USB4_SUPPORT;
 +
- /* Serializes access to the properties and protocol handlers below */
- static DEFINE_MUTEX(xdomain_lock);
- 
-@@ -47,6 +51,11 @@ static const uuid_t tb_xdp_uuid =
- 	UUID_INIT(0xb638d70e, 0x42ff, 0x40bb,
- 		  0x97, 0xc2, 0x90, 0xe2, 0xc0, 0xb2, 0xff, 0x07);
- 
-+bool tb_is_xdomain_enabled(void)
-+{
-+	return tb_xdomain_enabled;
+ 	if (!ghes_disable)
+ 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+@@ -348,8 +357,74 @@ static void acpi_bus_osc_negotiate_platform_control(void)
+ 			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
+ 		osc_pc_lpi_support_confirmed =
+ 			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
++		osc_sb_native_usb4_support_confirmed =
++			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_NATIVE_USB4_SUPPORT;
++	}
++
++	kfree(context.ret.pointer);
 +}
 +
- static bool tb_xdomain_match(const struct tb_cfg_request *req,
- 			     const struct ctl_pkg *pkg)
- {
++/*
++ * Native control of USB4 capabilities. If any of the tunneling bits is
++ * set it means OS is in control and we use software based connection
++ * manager.
++ */
++u32 osc_sb_native_usb4_control;
++EXPORT_SYMBOL_GPL(osc_sb_native_usb4_control);
++
++static void acpi_bus_decode_usb_osc(const char *msg, u32 bits)
++{
++	printk(KERN_INFO PREFIX "%s USB3%c DisplayPort%c PCIe%c XDomain%c\n", msg,
++	       (bits & OSC_USB_USB3_TUNNELING) ? '+' : '-',
++	       (bits & OSC_USB_DP_TUNNELING) ? '+' : '-',
++	       (bits & OSC_USB_PCIE_TUNNELING) ? '+' : '-',
++	       (bits & OSC_USB_XDOMAIN) ? '+' : '-');
++}
++
++static u8 sb_usb_uuid_str[] = "23A0D13A-26AB-486C-9C5F-0FFA525A575A";
++static void acpi_bus_osc_negotiate_usb_control(void)
++{
++	u32 capbuf[3];
++	struct acpi_osc_context context = {
++		.uuid_str = sb_usb_uuid_str,
++		.rev = 1,
++		.cap.length = sizeof(capbuf),
++		.cap.pointer = capbuf,
++	};
++	acpi_handle handle;
++	acpi_status status;
++	u32 control;
++
++	if (!osc_sb_native_usb4_support_confirmed)
++		return;
++
++	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
++		return;
++
++	control = OSC_USB_USB3_TUNNELING | OSC_USB_DP_TUNNELING |
++		  OSC_USB_PCIE_TUNNELING | OSC_USB_XDOMAIN;
++
++	capbuf[OSC_QUERY_DWORD] = 0;
++	capbuf[OSC_SUPPORT_DWORD] = 0;
++	capbuf[OSC_CONTROL_DWORD] = control;
++
++	status = acpi_run_osc(handle, &context);
++	if (ACPI_FAILURE(status))
++		return;
++
++	if (context.ret.length != sizeof(capbuf)) {
++		printk(KERN_INFO PREFIX "USB4 _OSC: returned invalid length buffer\n");
++		goto out_free;
+ 	}
+ 
++	osc_sb_native_usb4_control =
++		control & ((u32 *)context.ret.pointer)[OSC_CONTROL_DWORD];
++
++	acpi_bus_decode_usb_osc("USB4 _OSC: OS supports", control);
++	acpi_bus_decode_usb_osc("USB4 _OSC: OS controls",
++				osc_sb_native_usb4_control);
++
++out_free:
+ 	kfree(context.ret.pointer);
+ }
+ 
+@@ -1188,6 +1263,7 @@ static int __init acpi_bus_init(void)
+ 	 * so it must be run after ACPI_FULL_INITIALIZATION
+ 	 */
+ 	acpi_bus_osc_negotiate_platform_control();
++	acpi_bus_osc_negotiate_usb_control();
+ 
+ 	/*
+ 	 * _PDC control method may load dynamic SSDT tables,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 2630c2e953f7..ac68c2d4e393 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -546,9 +546,19 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
+ #define OSC_SB_OSLPI_SUPPORT			0x00000100
+ #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
+ #define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
++#define OSC_SB_NATIVE_USB4_SUPPORT		0x00040000
+ 
+ extern bool osc_sb_apei_support_acked;
+ extern bool osc_pc_lpi_support_confirmed;
++extern bool osc_sb_native_usb4_support_confirmed;
++
++/* USB4 Capabilities */
++#define OSC_USB_USB3_TUNNELING			0x00000001
++#define OSC_USB_DP_TUNNELING			0x00000002
++#define OSC_USB_PCIE_TUNNELING			0x00000004
++#define OSC_USB_XDOMAIN				0x00000008
++
++extern u32 osc_sb_native_usb4_control;
+ 
+ /* PCI Host Bridge _OSC: Capabilities DWORD 2: Support Field */
+ #define OSC_PCI_EXT_CONFIG_SUPPORT		0x00000001
 -- 
 2.29.2
 
