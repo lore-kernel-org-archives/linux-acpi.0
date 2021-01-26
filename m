@@ -6,35 +6,35 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF26C433E9
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 14:59:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF90C433E0
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 15:00:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5030C64DF8
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 14:59:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FED964DF9
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 15:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232045AbhA1O7n (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Jan 2021 09:59:43 -0500
-Received: from mga09.intel.com ([134.134.136.24]:62215 "EHLO mga09.intel.com"
+        id S232410AbhA1O7x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Jan 2021 09:59:53 -0500
+Received: from mga14.intel.com ([192.55.52.115]:44452 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232192AbhA1O6z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 28 Jan 2021 09:58:55 -0500
-IronPort-SDR: pGJEmnsf9FJgT6Ho2gdKWgYjYGzoul/O5PvSHD+KxKS92zo6q+aGB5DnoG6TPLkEQZWeBX+5uR
- RhYRYD/CWkeQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9877"; a="180388448"
+        id S231489AbhA1O7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 28 Jan 2021 09:59:42 -0500
+IronPort-SDR: bZ7q9eThSllxpDpZJV2+mNa3N0Hp6WQjI3LYWTN2n5DHASqvCKF5MEg+EG2WaABl5YkHVutdhZ
+ sbNsewsm9R+g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9877"; a="179463014"
 X-IronPort-AV: E=Sophos;i="5.79,382,1602572400"; 
-   d="scan'208";a="180388448"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 06:57:27 -0800
-IronPort-SDR: qH82HAqKQwaR86kayRDB2iNbmYBa1ThXbpNluaYRhKh3flnSZ9lG4BC436KprlaeKaLnLbiAo8
- vFE3EgG9KydA==
+   d="scan'208";a="179463014"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 06:59:01 -0800
+IronPort-SDR: 9XMvVtX3dXuxB352Ar42LfyVq0+gbxk4Zp10yckmIH2uYWP3NJVsuN3pU2YHad5H88cGhBFDpn
+ aPfWAzbthRsQ==
 X-IronPort-AV: E=Sophos;i="5.79,382,1602572400"; 
-   d="scan'208";a="369879800"
+   d="scan'208";a="363783125"
 Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 06:57:24 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 06:59:00 -0800
 Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1l58jZ-0004aQ-Rd; Thu, 28 Jan 2021 16:57:21 +0200
-Date:   Thu, 28 Jan 2021 16:57:21 +0200
+        (envelope-from <andriy.shevchenko@intel.com>)
+        id 1l58l8-0004bM-D5; Thu, 28 Jan 2021 16:58:58 +0200
+Date:   Tue, 26 Jan 2021 12:39:59 +0200
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Lee Jones <lee.jones@linaro.org>
 Cc:     Thomas Gleixner <tglx@linutronix.de>,
@@ -43,10 +43,14 @@ Cc:     Thomas Gleixner <tglx@linutronix.de>,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [PATCH v1 00/10] mfd, x86: remove msic driver and leftovers
-Message-ID: <YBLQ0TjbrV8/Thfb@smile.fi.intel.com>
+Message-ID: <YA/xfxcwCabETug6@smile.fi.intel.com>
+References: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
+ <20210126082101.GD4903@dell>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20210126082101.GD4903@dell>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -81,4 +85,5 @@ Android tablet for sure they never ever run any kind of Linux than Android.
 -- 
 With Best Regards,
 Andy Shevchenko
+
 
