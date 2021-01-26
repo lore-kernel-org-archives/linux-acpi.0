@@ -2,124 +2,99 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0869FC4332E
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F37E4C433E6
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 08:23:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BDCA022B3B
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A13CC2310C
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 08:23:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728395AbhAZF6K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:58:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51688 "EHLO
+        id S2388786AbhAZIXp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Jan 2021 03:23:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728400AbhAYMuX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2021 07:50:23 -0500
-Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3DACC061354
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Jan 2021 03:08:52 -0800 (PST)
-Received: by mail-wr1-x42d.google.com with SMTP id a1so11880514wrq.6
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Jan 2021 03:08:52 -0800 (PST)
+        with ESMTP id S2389840AbhAZIVq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2021 03:21:46 -0500
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79923C061573
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jan 2021 00:21:05 -0800 (PST)
+Received: by mail-wm1-x32d.google.com with SMTP id e15so1931941wme.0
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jan 2021 00:21:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=Iza7ai+1pJVkOiREPpK3tUFt/+4KEOcT4kmdIoRu1W4=;
-        b=fzAYzsIviLsnsdHkwnDD4zLK+G98O29ATNRd/oDswbowaY7Zr+nLaOcFcmXmf/bj2w
-         sN5e/n3UT20Fr7KGxcyNYL303yAvJlogHiVtLgMj77MlPdSuYi0HnX/67z3hcp3eSnvq
-         6kNOn44rjrxRPk6uUBmXRSa0IA+4zGDWl9YWMyRArq4MyJGnCsb8/+uHR9Idp9Kiu6Lg
-         66pDSi3HhXCfpnVf2sDoKPzg4CMYQh1IAjWuFBrDf/8dfeBlJOKz1mZAKZXCVMehWrzE
-         W2wpnBuYldvz0puu5+hXREtPgOQTBgA611k1XcR4jfdmMFLTxChzyjB04qECL/Q97yvB
-         9gqw==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=+jmRovbHoJFIPsxdXAY7r0V1zGJfwiz2YjhcYRzpajM=;
+        b=PxUN3nqggnDRnjIg//589fa4L1h6sSUPQup32s/k9tsY1DOKHbiY07oQpUffQPQ0S6
+         Hjyb6TEEApQdEuHzAXuTm9jOnPEHJWUxI/neKhqfWxZgx576UI8YQORSxwI0f8HpTvnB
+         3Y8arwDxSK4Mbl+fWIXurbvmHeZ1c9tRuCK1JXRa4pQa6OEIsgk1kkKdyWwicY+PiHvw
+         FmbZkaml8GNQNpNkeeMS+I2iClvaXvN6gHPAy6D7mkLhLMOpt/mqS5lCBHCxhCOpDmJ8
+         DtaDUBVZCPdvJBF/RbcoF7YqQ/RbEYvcRYz59yrYb0Al1URb4qryjElzKZ0vmWu4kMlK
+         f4rQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=Iza7ai+1pJVkOiREPpK3tUFt/+4KEOcT4kmdIoRu1W4=;
-        b=jZM5XoiSqSJ+yoQTCYY9whst7ULxiUbumbCql9kuRVv/YdJ+Fz8j2oVymWGtMN9EGB
-         uxKa7DM5DU4j91EQYJA7sNh4BnifeDQNwFrCSQeRTn0WpEihpEs9+Maeuct2RTnoNEST
-         Zu2TCZzIQk9zD5zbXlbtBtP5fAFJjI1aB0B7RlgUeXKWZgXP46bs21Sk+IZkj0uMpQsQ
-         eFGGrugxoPvhm+PREOxLwE77P6fGfYGiGfgh0Wk4zTxZ7lYZuLPm7eTSDBBi5pvR9NyN
-         K8yEu/cQhyPyie8ZPwNoIPKgy2+JTeypdBVMOK6YpnU0wrxjKDNP3ehTGydM9htkk2uI
-         xAMw==
-X-Gm-Message-State: AOAM530FWaiq1MwLOUe80eEMXKkbuAfEXlsdLuyOaq3E7pe0C8f5VTYy
-        q12xmPPcX0iD6Vd6nOxRYdEYSE25jNEbqQ==
-X-Google-Smtp-Source: ABdhPJy5f//eiJub6eaRvFPmpLLEWtAjFwGFdZCIc36qdqavYTJmd6vDKljNYCIOSv4uyC5e0tiFcQ==
-X-Received: by 2002:adf:b1da:: with SMTP id r26mr348225wra.198.1611572931725;
-        Mon, 25 Jan 2021 03:08:51 -0800 (PST)
-Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id u6sm16636014wro.75.2021.01.25.03.08.50
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=+jmRovbHoJFIPsxdXAY7r0V1zGJfwiz2YjhcYRzpajM=;
+        b=iJh7EKQ23NulNWxSNlu0tsOAnjbP46I6ciT/i2iXLn8XcXNuMc+XpvgGbmag/fdocG
+         l8S9OhpCyq1s/2KpaUXSGhz2N7nPpdvhEVQnhT7TuNm5t9kUtO6X+NJnN+uVWQkD5uW8
+         QZiY+x4Q0/UeD22CnZfHwFsWi6x5nNyI3vL0aPgU/MkHhSfH6pDRfUwavIX7NQIz9f0N
+         Xl/6yiybZgXXnqWpFgGgVp/rU0uYA/udmuQzI66OBhPXwee/DNujTxrU/PNfLtKe8F+y
+         DMBqa+ecdo6ySdhW4k3Q8biTeyyXxwIgLuaEdZpsh/nOLLGBNQ54a5Li6aX61vby2wr5
+         WCqA==
+X-Gm-Message-State: AOAM532+e7xoIzykux06n9A2v2op5eoqZtBeJVrkM7FID217VIPwd83s
+        X99aDWrX0ZViJlnMJOzT56opng==
+X-Google-Smtp-Source: ABdhPJzWMEJBAbelnI6VV/+tPmVfTI0FrXf0cV2oFryj7tJwUA85QEhadchYojFzQ1oygPTv16rZ2w==
+X-Received: by 2002:a1c:26c1:: with SMTP id m184mr3611308wmm.49.1611649264241;
+        Tue, 26 Jan 2021 00:21:04 -0800 (PST)
+Received: from dell ([91.110.221.188])
+        by smtp.gmail.com with ESMTPSA id g194sm2259715wme.39.2021.01.26.00.21.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 Jan 2021 03:08:51 -0800 (PST)
-From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
-To:     joro@8bytes.org, will@kernel.org
-Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
-        guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
-        lenb@kernel.org, robin.murphy@arm.com, Jonathan.Cameron@huawei.com,
-        eric.auger@redhat.com, iommu@lists.linux-foundation.org,
-        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-accelerators@lists.ozlabs.org, baolu.lu@linux.intel.com,
-        jacob.jun.pan@linux.intel.com, kevin.tian@intel.com,
-        vdumpa@nvidia.com, zhangfei.gao@linaro.org,
-        shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v11 08/10] dt-bindings: document stall property for IOMMU masters
-Date:   Mon, 25 Jan 2021 12:06:49 +0100
-Message-Id: <20210125110650.3232195-9-jean-philippe@linaro.org>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210125110650.3232195-1-jean-philippe@linaro.org>
-References: <20210125110650.3232195-1-jean-philippe@linaro.org>
+        Tue, 26 Jan 2021 00:21:03 -0800 (PST)
+Date:   Tue, 26 Jan 2021 08:21:01 +0000
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v1 00/10] mfd, x86: remove msic driver and leftovers
+Message-ID: <20210126082101.GD4903@dell>
+References: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On ARM systems, some platform devices behind an IOMMU may support stall,
-which is the ability to recover from page faults. Let the firmware tell us
-when a device supports stall.
+On Mon, 25 Jan 2021, Andy Shevchenko wrote:
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
----
- .../devicetree/bindings/iommu/iommu.txt        | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+> This is a second part of the Intel MID outdated platforms removal.
+> First part is available as immutable branch [1]. The series has functional
+> and build dependencies, so the mentioned branch should be used as a base
+> for these changes.
+> 
+> Note, that some of the drivers, that arch/x86 covers, seems never appeared
+> in the upstream (like msic_ocd).
 
-diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
-index 3c36334e4f94..26ba9e530f13 100644
---- a/Documentation/devicetree/bindings/iommu/iommu.txt
-+++ b/Documentation/devicetree/bindings/iommu/iommu.txt
-@@ -92,6 +92,24 @@ Optional properties:
-   tagging DMA transactions with an address space identifier. By default,
-   this is 0, which means that the device only has one address space.
- 
-+- dma-can-stall: When present, the master can wait for a transaction to
-+  complete for an indefinite amount of time. Upon translation fault some
-+  IOMMUs, instead of aborting the translation immediately, may first
-+  notify the driver and keep the transaction in flight. This allows the OS
-+  to inspect the fault and, for example, make physical pages resident
-+  before updating the mappings and completing the transaction. Such IOMMU
-+  accepts a limited number of simultaneous stalled transactions before
-+  having to either put back-pressure on the master, or abort new faulting
-+  transactions.
-+
-+  Firmware has to opt-in stalling, because most buses and masters don't
-+  support it. In particular it isn't compatible with PCI, where
-+  transactions have to complete before a time limit. More generally it
-+  won't work in systems and masters that haven't been designed for
-+  stalling. For example the OS, in order to handle a stalled transaction,
-+  may attempt to retrieve pages from secondary storage in a stalled
-+  domain, leading to a deadlock.
-+
- 
- Notes:
- ======
+What platforms stop working after this removal?
+
+Are you sure no-one is using them?
+
+I wouldn't be keen on breaking Janet's PC that she's been using daily
+and keeping up-to-date since the 90's.
+
 -- 
-2.30.0
-
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
