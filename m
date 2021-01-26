@@ -2,110 +2,93 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7971C433DB
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:18:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8C33C433E9
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:20:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91F8F2074A
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:18:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8AB9522EBD
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Jan 2021 16:20:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391230AbhAZQSh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 11:18:37 -0500
-Received: from mx2.suse.de ([195.135.220.15]:38434 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391034AbhAZJ3N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Jan 2021 04:29:13 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 44A9EB2D0;
-        Tue, 26 Jan 2021 09:28:31 +0000 (UTC)
-Message-ID: <1611653310.11983.66.camel@suse.cz>
-Subject: Re: [PATCH v2 1/1] x86,sched: On AMD EPYC set freq_max = max_boost
- in schedutil invariant formula
-From:   Giovanni Gherdovich <ggherdovich@suse.cz>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Jon Grimm <Jon.Grimm@amd.com>,
-        Nathan Fontenot <Nathan.Fontenot@amd.com>,
-        Yazen Ghannam <Yazen.Ghannam@amd.com>,
-        Thomas Lendacky <Thomas.Lendacky@amd.com>,
-        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Michael Larabel <Michael@phoronix.com>, x86@kernel.org,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        id S2391018AbhAZQTv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Jan 2021 11:19:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41422 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391113AbhAZQTp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2021 11:19:45 -0500
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C276FC061797;
+        Tue, 26 Jan 2021 08:19:04 -0800 (PST)
+Received: by mail-ed1-x531.google.com with SMTP id c6so20483255ede.0;
+        Tue, 26 Jan 2021 08:19:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=QipIjt+uBCsYaw/A90Tt+IbpJbpCFCsG7g/7AL0vBWI=;
+        b=miaxiC+WS/vBt9/lVPQ0ut9jTmA2iv5gqIP3Q/NYBIXmsRDk5eGDNvWKAyc7E34xuV
+         j3aj630ZiG2HOVR73dvzQUz323UkzNHvd2x9WXmEAabGaylX/gNz20PiWIS8y/3ffeIB
+         EHkre64MNOKYEYdhtltL4iNQL4hRBMSlvhldmH0pWmwT3sHBPdrkBetb8DZMQPnHEUIn
+         YwdtXEmEFD9LGGpB87BIvucwXwrENgO41Xi+o4ZvVm+ixf2tJxGXwQ0qSBV1nHazueE7
+         RvOyVLjSYG2PHwfwLnJTuqDV4UaiSH6nXHwo/wTsNrijhguzXrWHFcUxrcA4FvqqcH/y
+         hs5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=QipIjt+uBCsYaw/A90Tt+IbpJbpCFCsG7g/7AL0vBWI=;
+        b=mAdztDPADYxXfaj1MjnVqliCxQrYSsVWZs8+rWkfzdpy8vjqyV+NhznxubINHNnVbb
+         N1Xl4VzhJPGfYgJPE/oFClPrL1F3BALDKrxRmA5zTO1z4/Phua3ePNhmQJ+l10GuPI/X
+         6FJHYlpta+ogMfyjKwM68EaepVY26cQHJqn4rCBYPv8XHtntEkC+PXJcOiSRiOqqMSj8
+         w5Nex2HXbpPfkzvD11lRYo4/zP7Q1CXPINhOJ9MVsxsRKmP4gfxETMfxgs9E3S0CqNK2
+         vN+z5eWIZDFKbOcpkktgHp6iavOyB6bmcKjvufVvhGtDmnPwze8mErBI/jHaIgnDcYx4
+         qPNA==
+X-Gm-Message-State: AOAM531+OoWES+pEXbuVh3biGfS53rxPqu6MJ3iBkmrbenJZMr+Xflf/
+        Z3q+cZTglmKSIB6dgRox5speLr7CO3qtqd9u6CQ=
+X-Google-Smtp-Source: ABdhPJxLSLsYfO08q1+h9uOTF6V9AnF7nUi2K4AFp1Ly6GzB9D2wpTUHj5mJVALJ2sYC9m93Fx9CkAdOQDO6+QnHMso=
+X-Received: by 2002:a50:b223:: with SMTP id o32mr5236582edd.79.1611677943482;
+ Tue, 26 Jan 2021 08:19:03 -0800 (PST)
+MIME-Version: 1.0
+References: <20210126155723.9388-1-mika.westerberg@linux.intel.com> <20210126155723.9388-3-mika.westerberg@linux.intel.com>
+In-Reply-To: <20210126155723.9388-3-mika.westerberg@linux.intel.com>
+From:   Yehezkel Bernat <yehezkelshb@gmail.com>
+Date:   Tue, 26 Jan 2021 18:18:47 +0200
+Message-ID: <CA+CmpXscOVjn20ffw37GRLBWhQDRJ9J8svYvU1-VWg5eA-Bm4A@mail.gmail.com>
+Subject: Re: [PATCH 2/6] thunderbolt: Add support for PCIe tunneling disabled (SL5)
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     linux-usb@vger.kernel.org, Michael Jamet <michael.jamet@intel.com>,
+        Andreas Noever <andreas.noever@gmail.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        Mario Limonciello <mario.limonciello@dell.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Christian Kellner <christian@kellner.me>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-acpi@vger.kernel.org
-Date:   Tue, 26 Jan 2021 10:28:30 +0100
-In-Reply-To: <YA6XmO2nuivdpE8M@hirez.programming.kicks-ass.net>
-References: <20210122204038.3238-1-ggherdovich@suse.cz>
-         <20210122204038.3238-2-ggherdovich@suse.cz>
-         <YA6XmO2nuivdpE8M@hirez.programming.kicks-ass.net>
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 2021-01-25 at 11:04 +0100, Peter Zijlstra wrote:
-> On Fri, Jan 22, 2021 at 09:40:38PM +0100, Giovanni Gherdovich wrote:
-> > This workload is constant in time, so instead of using the PELT sum we can
-> > pretend that scale invariance is obtained with
-> > 
-> >     util_inv = util_raw * freq_curr / freq_max1        [formula-1]
-> > 
-> > where util_raw is the PELT util from v5.10 (which is to say, not invariant),
-> > and util_inv is the PELT util from v5.11-rc4. freq_max1 comes from
-> > commit 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for
-> > frequency invariance on AMD EPYC") and is (P0+max_boost)/2 = (2.25+3.4)/2 =
-> > 2.825 GHz.  Then we have the schedutil formula
-> > 
-> >     freq_next = 1.25 * freq_max2 * util_inv            [formula-2]
-> > 
-> > Here v5.11-rc4 uses freq_max2 = P0 = 2.25 GHz (and this patch changes it to
-> > 3.4 GHz).
-> > 
-> > Since all cores are busy, there is no boost available. Let's be generous and say
-> > the tasks initially get P0, i.e. freq_curr = 2.25 GHz. Combining the formulas
-> > above and taking util_raw = 825/1024 = 0.8, freq_next is:
-> > 
-> >     freq_next = 1.25 * 2.25 * 0.8 * 2.25 / 2.825 = 1.79 GHz
-> 
-> Right, so here's a 'problem' between schedutil and cpufreq, they don't
-> use the same f_max at all times.
-> 
-> And this is also an inconsistency between acpi_cpufreq and intel_pstate
-> (passive). IIRC the intel_pstate cpufreq drivers uses 4C/1C/P0 resp,
-> while ACPI seems to stick to P0 f_max.
+On Tue, Jan 26, 2021 at 5:57 PM Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+>
+> Recent Intel Thunderbolt firmware connection manager has support for
+> another security level, SL5, that disables PCIe tunneling. This option
+> can be turned on from the BIOS.
+>
+> When this is set the driver exposes a new security level "nopcie" to the
+> userspace and hides the authorized attribute under connected devices.
+>
+> While there we also hide it when "dponly" security level is enabled
+> since it is not really usable in that case anyway.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
 
-That's correct. A different f_max is used depending on the occasion. Let me
-rephrase with:
-
-cpufreq core asks the driver what's the f_max. What's the answer?
-
-intel_pstate says: 1C
-acpi_cpufreq says: P0
-
-scheduler asks the freq-invariance machinery what's f_max, because it needs to
-compute f_curr/f_max. What's the answer?
-
-Intel CPUs: 4C in most cases, 1C on Atom, something else on Xeon Phi.
-AMD CPUs: (P0 + 1C) / 2.
-
-
-Legend:
-1C = 1-core boost
-4C = 4-cores boost
-P0 = max non-boost P-States
-
-> 
-> Rafael; should ACPI change that behaviour rather than adding yet another
-> magic variable?
+Looks good to me, I'm just not sure I understand how this is different from
+dponly mode. Is this just because it comes from the new _OSC?
