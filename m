@@ -2,141 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 384BDC4332B
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 15:47:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF322C433E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 15:47:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00F0320829
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 15:47:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AE7E207C4
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 15:47:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236679AbhA0PrL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 27 Jan 2021 10:47:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60818 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236597AbhA0PpT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2021 10:45:19 -0500
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1304C061793
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2021 07:44:38 -0800 (PST)
-Received: by mail-wm1-x32b.google.com with SMTP id i9so2081190wmq.1
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2021 07:44:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=uiSdj3ahcV4jfiq23D9UAVEBduTBnIEfUfM+Rzx87y0=;
-        b=Mrx2fWY2rsbi1BLTyPkIpFFj1S95FTrb66KJsxbFJgvM+8jkmHybwZuT/uj2GyWSLn
-         dTZlf3d5ggBEtQJVU1JMBsZJaRmAfVfM5257W62qCe/W8//8I4bOuDWGMwebfaSU5SOG
-         xtztN8LNapip2/77JVFc1aRqgfg1tTvKUweHlQ0c4sB9B0Z5BMSK5/gPD6hi+kJ43i7A
-         14KnhgsBvK7j5+kIOT8IeBEBNpRdSgZatwC8vPLINLrQYzrqDsxn2UFQ/6s98efXxZtp
-         pVNIwL2mjFs+mTlq8X/6x03Xrt1e0+vBfm/XstFBcxptX6POl5gEQ29G8nnJ/4ROC+Jj
-         xpTQ==
+        id S236597AbhA0PrM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 Jan 2021 10:47:12 -0500
+Received: from mail-oi1-f173.google.com ([209.85.167.173]:46063 "EHLO
+        mail-oi1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236511AbhA0Poz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2021 10:44:55 -0500
+Received: by mail-oi1-f173.google.com with SMTP id g69so2538558oib.12;
+        Wed, 27 Jan 2021 07:44:38 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=uiSdj3ahcV4jfiq23D9UAVEBduTBnIEfUfM+Rzx87y0=;
-        b=Kk1H5my0g6OQVFKgutWA5ZxomUhoyFTe2RjgkiC2VOOVkxFcYKjwC/8BCb2wYacobx
-         7+BUffgl5I/jbVQMZsLf4JQUZV3wsXwP6iImvmByMjg6urH2miescXdOu94E9pMsmDub
-         ZTQ0i1FCcULXvLORAN7jQBeRS48iuD+4PQbT93F1Df9nHoFr8KnT8nBqqTnvtxiXm0ly
-         yFTtU+Sc2KL+2BKlaPh9+KKN5CSaRfYnGhDKVwABCHtcTw68JAktVPdcGQIgkcPnzNw0
-         ViG6/lJQ6IMhAsFKiu4We7+b3Ahha2Kavbx9sA7VDR5SdIVSdF8AMFZZUnctRecptTxR
-         u6ZA==
-X-Gm-Message-State: AOAM532+EEktOyewEd6CXjBSqc/ZJ0ltkOa6cFxZR3a+FMLAoka6RXIa
-        67rUnfqTmHIKDwAXrLS2e7v+gA==
-X-Google-Smtp-Source: ABdhPJwX5c9WHQvg18Gz9XuxMNONYUxp2DhAyUzAjv7EFKCA7Yg+sUNaNdG1XL4EXschcvUWjjZ+bg==
-X-Received: by 2002:a1c:2341:: with SMTP id j62mr4832905wmj.34.1611762277458;
-        Wed, 27 Jan 2021 07:44:37 -0800 (PST)
-Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id r13sm3046921wmh.9.2021.01.27.07.44.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Jan 2021 07:44:36 -0800 (PST)
-From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
-To:     joro@8bytes.org, will@kernel.org
-Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
-        guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
-        lenb@kernel.org, robin.murphy@arm.com, Jonathan.Cameron@huawei.com,
-        eric.auger@redhat.com, iommu@lists.linux-foundation.org,
-        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-accelerators@lists.ozlabs.org, baolu.lu@linux.intel.com,
-        jacob.jun.pan@linux.intel.com, kevin.tian@intel.com,
-        vdumpa@nvidia.com, zhangfei.gao@linaro.org,
-        shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Zhou Wang <wangzhou1@hisilicon.com>
-Subject: [PATCH v12 03/10] iommu: Separate IOMMU_DEV_FEAT_IOPF from IOMMU_DEV_FEAT_SVA
-Date:   Wed, 27 Jan 2021 16:43:16 +0100
-Message-Id: <20210127154322.3959196-4-jean-philippe@linaro.org>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210127154322.3959196-1-jean-philippe@linaro.org>
-References: <20210127154322.3959196-1-jean-philippe@linaro.org>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=mKSsdWM+4/PJcslQINc+CYwOklvwIWIB07uvc/J/vlk=;
+        b=NX4HMljMu9Ej/KJ+BMSXa14bYdoQpIUDw3CREYMpYNCvOpRHRlp1CAlEFzHtY0J1KS
+         J0lKfY5dm67Q4/EOe3hpi+CLqNwlf3Ip2KrtLEHVALC4q+SZDj2PKUms5kWH0VEemvWT
+         4U90vSlQENL4PV+t86oM9mEtO9eYKXsIkGL12uTNobF+kXrRkhjW5EdfoniP3v1FltdB
+         Emmba3RLRi30abWVfnZoCAKfdoMFs7+JrAzzowNxRqpLuB/3/RhFMCWl4/Xk81lOtilk
+         FgSJQCl8DVwaYgEH0x+hgTg3P/UqbXtusSlfIbxu7L5DcuurK1l9TQTNHeGstiKMdfdg
+         +5/A==
+X-Gm-Message-State: AOAM530wYrJyMO9DMQU5QrZqYbQ4WIroMl52hUeGjIFugs1HsASchiW5
+        +Eu46U/iux68olcmLxY3I3UpBJUhaRW+Wlucntg=
+X-Google-Smtp-Source: ABdhPJyGYnzCLCgmUpX6BZg27NxRlq7hf3IvEKBXZL0LTkdyV6wPNtwJmSJGeCPint6S81BushRMZF17XVyz6Aa3ljk=
+X-Received: by 2002:aca:308a:: with SMTP id w132mr3432211oiw.69.1611762253600;
+ Wed, 27 Jan 2021 07:44:13 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210126202317.2914080-1-helgaas@kernel.org> <20210127151426.GA2984275@bjorn-Precision-5520>
+In-Reply-To: <20210127151426.GA2984275@bjorn-Precision-5520>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 27 Jan 2021 16:44:02 +0100
+Message-ID: <CAJZ5v0ir4=urUviCR_4N96revWZkHVDyNNUiaJ3jjGzpX8zLVQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: Test for ACPI_SUCCESS rather than !ACPI_FAILURE
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Jean Delvare <jdelvare@suse.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Corentin Chary <corentin.chary@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        linux-spi <linux-spi@vger.kernel.org>,
+        acpi4asus-user@lists.sourceforge.net, linux-hwmon@vger.kernel.org,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." 
+        <alsa-devel@alsa-project.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some devices manage I/O Page Faults (IOPF) themselves instead of relying
-on PCIe PRI or Arm SMMU stall. Allow their drivers to enable SVA without
-mandating IOMMU-managed IOPF. The other device drivers now need to first
-enable IOMMU_DEV_FEAT_IOPF before enabling IOMMU_DEV_FEAT_SVA. Enabling
-IOMMU_DEV_FEAT_IOPF on its own doesn't have any effect visible to the
-device driver, it is used in combination with other features.
+On Wed, Jan 27, 2021 at 4:16 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+>
+> On Tue, Jan 26, 2021 at 02:23:17PM -0600, Bjorn Helgaas wrote:
+> > From: Bjorn Helgaas <bhelgaas@google.com>
+> >
+> > The double negative makes it hard to read "if (!ACPI_FAILURE(status))".
+> > Replace it with "if (ACPI_SUCCESS(status))".
+> >
+> > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> > ---
+> >
+> > This isn't really an ACPI patch, but I'm sending it to you, Rafael, since
+> > it seems easier to just apply these all at once.  But I'd be happy to split
+> > them up into individual patches if you'd rather.
+>
+> Thanks, everybody.  Rafael, I'll just merge this via my tree to avoid
+> burdening you.
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
----
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Lu Baolu <baolu.lu@linux.intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
-Cc: Zhou Wang <wangzhou1@hisilicon.com>
----
- include/linux/iommu.h | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+It may conflict with some janitorial stuff I'm doing, though, so
+unless you've already applied it, I'd prefer to take it via the ACPI
+tree.
 
-diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index b7ea11fc1a93..00348e4c3c26 100644
---- a/include/linux/iommu.h
-+++ b/include/linux/iommu.h
-@@ -156,10 +156,24 @@ struct iommu_resv_region {
- 	enum iommu_resv_type	type;
- };
- 
--/* Per device IOMMU features */
-+/**
-+ * enum iommu_dev_features - Per device IOMMU features
-+ * @IOMMU_DEV_FEAT_AUX: Auxiliary domain feature
-+ * @IOMMU_DEV_FEAT_SVA: Shared Virtual Addresses
-+ * @IOMMU_DEV_FEAT_IOPF: I/O Page Faults such as PRI or Stall. Generally
-+ *			 enabling %IOMMU_DEV_FEAT_SVA requires
-+ *			 %IOMMU_DEV_FEAT_IOPF, but some devices manage I/O Page
-+ *			 Faults themselves instead of relying on the IOMMU. When
-+ *			 supported, this feature must be enabled before and
-+ *			 disabled after %IOMMU_DEV_FEAT_SVA.
-+ *
-+ * Device drivers query whether a feature is supported using
-+ * iommu_dev_has_feature(), and enable it using iommu_dev_enable_feature().
-+ */
- enum iommu_dev_features {
--	IOMMU_DEV_FEAT_AUX,	/* Aux-domain feature */
--	IOMMU_DEV_FEAT_SVA,	/* Shared Virtual Addresses */
-+	IOMMU_DEV_FEAT_AUX,
-+	IOMMU_DEV_FEAT_SVA,
-+	IOMMU_DEV_FEAT_IOPF,
- };
- 
- #define IOMMU_PASID_INVALID	(-1U)
--- 
-2.30.0
-
+Cheers!
