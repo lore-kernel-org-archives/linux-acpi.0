@@ -2,73 +2,106 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B44C433E0
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 12:54:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51D9CC433DB
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 12:55:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40E6B2079A
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 12:54:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0357C207A2
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jan 2021 12:55:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S313348AbhAZWud (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Jan 2021 17:50:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50238 "EHLO mail.kernel.org"
+        id S237943AbhA0Mzb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 Jan 2021 07:55:31 -0500
+Received: from mga11.intel.com ([192.55.52.93]:48650 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728014AbhAZWD5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Jan 2021 17:03:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26C5020656;
-        Tue, 26 Jan 2021 22:03:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611698596;
-        bh=PjLdb1g4kw8PtYtdIzAw1ZX71mqARuQm1ANuAin2i8g=;
-        h=From:To:Cc:Subject:Date:From;
-        b=rd5O9y+HYCDiR6M1Z8iC1O0vFayxIYIjBbW2wcJg7d72ma/uhBK/uCMnvA8pC6Vyh
-         HGXUvnOJtqznNUQsx3SUO6jVPNvRgN8V7feEEea8CFrctBBdrzfFFOV/Ce+U0K1san
-         NPOqYOpIc6p3y4s08UzsEuB5J+5XNiin3tR7pYb8dwx3jNOA7nrJaGkpB6jSNcF738
-         4ZvBx4D+pD9VAXNStULo7vp0mGMoes24mTKteOxFH5Zn+u1O4wAg6OM9WdkPPiVINb
-         fDigwegBurip6lDKw6A66OwVdnUOIUkh++qdWZTsx4itHgzNWC7V1g9EbKqB1Slv8b
-         l8Bn6cbVFT7sA==
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     Sinan Kaya <okaya@kernel.org>,
-        Yicong Yang <yangyicong@hisilicon.com>,
-        Sean V Kelley <sean.v.kelley@intel.com>,
-        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 0/3] PCI/ACPI: _OSC cleanups
-Date:   Tue, 26 Jan 2021 16:03:08 -0600
-Message-Id: <20210126220311.2925565-1-helgaas@kernel.org>
-X-Mailer: git-send-email 2.25.1
+        id S238066AbhA0Mwi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 27 Jan 2021 07:52:38 -0500
+IronPort-SDR: CZB6JRl299cKdDBLVezpuoH95l8KaZPXMy87ZusmDfMXf820Ge0MaFAB1rT8XSbayo3MVNU7Oq
+ /HEOEehY/jnQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9876"; a="176551754"
+X-IronPort-AV: E=Sophos;i="5.79,379,1602572400"; 
+   d="scan'208";a="176551754"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2021 04:49:44 -0800
+IronPort-SDR: NJDK9KRqBG61tdPn3HyFnSon9wtk2ujx9vVoCAGI5VRYIYZ7c7AZDO6Raw4eqkCxGCsEMa8N96
+ 97IuSuPBu5Tg==
+X-IronPort-AV: E=Sophos;i="5.79,379,1602572400"; 
+   d="scan'208";a="362420090"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.163])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2021 04:49:38 -0800
+Received: by lahna (sSMTP sendmail emulation); Wed, 27 Jan 2021 14:49:35 +0200
+Date:   Wed, 27 Jan 2021 14:49:35 +0200
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     "Limonciello, Mario" <Mario.Limonciello@dell.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        "open list:ULTRA-WIDEBAND (UWB) SUBSYSTEM:" 
+        <linux-usb@vger.kernel.org>,
+        Michael Jamet <michael.jamet@intel.com>,
+        Yehezkel Bernat <YehezkelShB@gmail.com>,
+        Andreas Noever <andreas.noever@gmail.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Christian Kellner <christian@kellner.me>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH 4/6] ACPI: Execute platform _OSC also with query bit clear
+Message-ID: <20210127124935.GC2542@lahna.fi.intel.com>
+References: <20210126155723.9388-1-mika.westerberg@linux.intel.com>
+ <20210126155723.9388-5-mika.westerberg@linux.intel.com>
+ <CAJZ5v0i+wCOFZOhyx6i=TUGMeWyQR4vXzDN06G6xheFwC66Tuw@mail.gmail.com>
+ <SA1PR19MB4926907D028D3F924FF42A36FABC9@SA1PR19MB4926.namprd19.prod.outlook.com>
+ <CAJZ5v0hQ_JZVfOpSZY0hxc01He9x7uzgU2rsKffmQubaeKy=EA@mail.gmail.com>
+ <SA1PR19MB4926A9A1E4D0AD96FAE236B3FABC9@SA1PR19MB4926.namprd19.prod.outlook.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <SA1PR19MB4926A9A1E4D0AD96FAE236B3FABC9@SA1PR19MB4926.namprd19.prod.outlook.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bjorn Helgaas <bhelgaas@google.com>
+On Tue, Jan 26, 2021 at 10:43:32PM +0000, Limonciello, Mario wrote:
+> > I would put that information into the changelog.
+> 
+> Thanks, @Mika Westerberg can you collapse that in when you re-spin the
+> series?
 
-Clean up a few _OSC-related things.
+Sure.
 
-We talked about the _OSC failure message in the last patch long ago, and I
-just dropped the ball, sorry about that.  Previous discussion:
-https://lore.kernel.org/linux-pci/20200602223618.GA845676@bjorn-Precision-5520/
+> > 
+> > Moreover, have you looked at acpi_pci_osc_control_set()?
+> > 
+> > What it does is analogous to what you are proposing, but a bit
+> > different, and I would like to preserve consistency between _OSC use
+> > cases.
+> > 
+> > So would it be possible to adjust the _SB _OSC evaluation flow to
+> > follow the PCI _OSC one?  That is, if any control bits are there, pass
+> > them along with the last evaluation of _OSC with the query flag clear.
+> > Or is the latter defective and if so then why?
+> 
+> Basically the only difference is another line cloning OSC_CONTROL_DWORD from
+> capbuf_ret to capbuf?
+> 
+> Yes, this actually sounds like it better adheres to the spec to me.
+> 
+> Quoting spec:
+> " If the OS is granted control of a feature in the Control Field in one call to
+> _OSC, then it must preserve the set state of that bit (requesting that feature)
+> in all subsequent calls."
 
-I'm happy to merge these given your ack, Rafael, or you can take them if
-they look good to you.
+However, the platform wide _OSC does not actually have this
+OSC_CONTROL_DWORD at all ;-)
 
-Bjorn Helgaas (3):
-  PCI/ACPI: Make acpi_pci_osc_control_set() static
-  PCI/ACPI: Remove unnecessary osc_lock
-  PCI/ACPI: Clarify message about _OSC failure
+I think what we do in this patch is already equivalent to what the PCI
+_OSC is doing:
 
- drivers/acpi/pci_root.c | 40 ++++++++++++++--------------------------
- include/linux/acpi.h    |  3 ---
- 2 files changed, 14 insertions(+), 29 deletions(-)
+  1. Query bit set _OSC
+  2. Take the returned OSC_SUPPORT_DWORD buffer and
+  3. Pass it to the _OSC with query bit clear.
 
--- 
-2.25.1
-
+I may be missing something, though.
