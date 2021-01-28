@@ -2,39 +2,64 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5E24C43381
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 09:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A1E2C433E0
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 09:25:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6847664DE1
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 09:01:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 111FD64DD8
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 09:25:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231728AbhA1JAM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Jan 2021 04:00:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49334 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229709AbhA1JAL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 28 Jan 2021 04:00:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EDCB64D9A;
-        Thu, 28 Jan 2021 09:00:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611824456;
-        bh=0L3aHlbV9lGw/pwOLtUtCbTsuwnYQQ6OL1z4Tf1UkSs=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=kB1wCwOZLoPTen+92GJbcpkCz6Jti3sicvzQdRYpS5aL1gBN/XQAT6L7Dks/fNDUb
-         bbu8z/tbap7g7kAEy0m3cs+ttQaA+QgEETmvsPluXeW3EluF5clx7KNgoeiCrSp+nP
-         deWUfFXHvod5gsc7FMrd5SogzahQmdzIL8fRJqoOWkgzfcMlzPE64uBeWfmfNjJNSu
-         0MWRUIps9xo+VY70lp1I1RBTp56RF9VM8rvogU1e2mWIasogQwJqgIBOH2wf/dlxXT
-         bYtE9RKwJL4DcrkQvgIgVRVOZH9512UCEHxoUy4OwkB19nScMbJeuswWn9Aa/mTz0S
-         Lu1uXCa3/ZXTw==
-Date:   Thu, 28 Jan 2021 10:00:53 +0100
-From:   Wolfram Sang <wsa@kernel.org>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Daniel Scally <djrscally@gmail.com>,
+        id S232447AbhA1JYv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Jan 2021 04:24:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33620 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232528AbhA1JWp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jan 2021 04:22:45 -0500
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C031C0613ED;
+        Thu, 28 Jan 2021 01:22:04 -0800 (PST)
+Received: by mail-wr1-x42e.google.com with SMTP id c12so4630174wrc.7;
+        Thu, 28 Jan 2021 01:22:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=z7EPhmIjo+KbSUa0ut+cvBYxFBb4G2Nq2zdf32V7DIw=;
+        b=RS9c9N/woOhHsYLuIyAo3ZCyrceqxPD9puelQl+Ux2gcIYHT+h0nF6LnWBQhKlNIFe
+         SYGowDMkQ8i6vcvKjEjeHTQqRxSpSnkagwvunMX4A/MiCAq6uMMnQVKAlosqiDLcqPdb
+         LamejcXkRIX7a6ZTBrJ4FwWOe/J4EjirrCvU2daAnprG3z2h2sQJjTxiv2FZ71qQYibE
+         NRuCVbX0lcJWIGjuiCcxz1nbWNYuEhqAR0NvlMkZ1S7uPbmfasMicoRpMurR6+T5J/vH
+         lxdlLpBr/SLMlNhBpNGGql5DMl93KJQha0gRqgQTZdPNfQfetFILrBqiUFVr0gFKB/Gq
+         6YLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=z7EPhmIjo+KbSUa0ut+cvBYxFBb4G2Nq2zdf32V7DIw=;
+        b=jCNQlwMrMIfI+OBddITFwYY5VMf5hVorbctm0nitDLaOZjRjIE5cyVHFgjJ+OznyBZ
+         Nx2wBIXkuedWrwizMT2DnUTMx4/Kv1oug8EbI6CSkOIB/r6k1gOzYKs+FCko7LkGfzwK
+         KTR6MZ9DXu7bfdewG1mg7bzaeQWD/D1Fv//TCcqCgHdW7H5dgkuT6r1Cva0Y/LbCn7rC
+         1JF/wxOB4q042OvqS1JsjSyf26h/MyXEl5F3Ir1Y/eycNLVWIv6YOl+WwlOGRU4lqRRe
+         adbVZ7vkoi09idkaAxS1yzVseJb/SeYmjia2ragogy6tMbvT7tTKEXuTgysR7GF7lxXG
+         JR9w==
+X-Gm-Message-State: AOAM532m3Afs7vuLfk+r7+vRob+KJtEGIPisCH94+1xRS0+cm8yPJAbI
+        M8k0EeUu9kdG3wabWeUSJYk=
+X-Google-Smtp-Source: ABdhPJwce8ZO5zFUH5o60/Ig3Ntkd6tK0EKoFiA7rMWRnTY5ZjwwXNIznsCFiVN27FZjcUzyfeIT1w==
+X-Received: by 2002:a5d:4b47:: with SMTP id w7mr15379796wrs.194.1611825723322;
+        Thu, 28 Jan 2021 01:22:03 -0800 (PST)
+Received: from [192.168.1.211] ([2.29.208.120])
+        by smtp.gmail.com with ESMTPSA id o12sm6137583wrx.82.2021.01.28.01.22.02
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 28 Jan 2021 01:22:02 -0800 (PST)
+Subject: Re: [PATCH v2 4/7] i2c: i2c-core-acpi: Add i2c_acpi_dev_name()
+To:     Wolfram Sang <wsa@kernel.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         linux-gpio@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>,
@@ -53,58 +78,31 @@ Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v2 4/7] i2c: i2c-core-acpi: Add i2c_acpi_dev_name()
-Message-ID: <20210128090053.GE963@ninjato>
 References: <20210118003428.568892-1-djrscally@gmail.com>
  <20210118003428.568892-5-djrscally@gmail.com>
  <YAVSf7+iTPNYf5XS@pendragon.ideasonboard.com>
  <CAJZ5v0hUELtKc9CK=z47XQvSAAx=wTWvoVwP-PaMqugaXaCgZQ@mail.gmail.com>
+ <20210128090053.GE963@ninjato>
+ <7e7a8614-3cdb-e160-b10f-8aa0e11b15e5@gmail.com>
+ <20210128091741.GJ963@ninjato>
+From:   Daniel Scally <djrscally@gmail.com>
+Message-ID: <5423f70e-2bab-7f6a-a9b2-97a058c0eb20@gmail.com>
+Date:   Thu, 28 Jan 2021 09:22:01 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="dFWYt1i2NyOo1oI9"
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hUELtKc9CK=z47XQvSAAx=wTWvoVwP-PaMqugaXaCgZQ@mail.gmail.com>
+In-Reply-To: <20210128091741.GJ963@ninjato>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 
---dFWYt1i2NyOo1oI9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-> > There's a real danger of a memory leak, as the function name sounds very
-> > similar to dev_name() or acpi_dev_name() and those don't allocate
-> > memory. I'm not sure what a better name would be, but given that this
-> > function is only used in patch 6/7 and not in the I2C subsystem itself,
-> > I wonder if we should inline this kasprintf() call in the caller and
-> > drop this patch.
->=20
-> IMO if this is a one-off usage, it's better to open-code it.
-
-Sounds reasonable to me, too.
-
-
---dFWYt1i2NyOo1oI9
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmASfUUACgkQFA3kzBSg
-KbY9PRAAjVQXWyde1sa4VM3SZZiem5T6eY2LSnbYh9L717+Npfw3qTdRvsWN0klU
-1+ZO5n3IkqvbY3/N70ONHrw1kvhC+u+8CvPMN+sBZqrCLApC0E1CEnL1WzqgjIRf
-7qpzTOv20TCb5REdvBj2FBPoCd3jdBWBfYUvR3SmbQBhSYo4m8EutoYiBw35cjUy
-P6lV52Z6bUb9KW+iUUNnqBNqGPyWN6sELoh9t4H8BvTfavaXUZjotFt00PdJV0Ya
-KBLfanATBa9iwH7BZr2jUNpgDZHMQHnHY/bmFvPFc7exd+trCSjJiFg/SxOWh9HV
-uUSg25rj699WMJq67QQleo1RVnTkM5uG3vtUa3cQssxp3fCsnvCNvY7xB24APHJx
-foJqDMCICM4YnUIkAOsIenwzxL3kptt5mD95qzRKUI8+ENY07QjQOEnp3BhLcJIQ
-vE0CVEGZ/nlhxciaXt+5KkOgDNkQ/zbazYSKhRJ0i7NtAGuL1ageey/x9b32+xi5
-zQcEChNhfWOVPdaW95jZRaM/hAHyRB/em35So7tmw3AllrUIWscXk22xS+o2N0Ur
-kTEK5JEUeXz3/oNcYIQSc+mClHINxq8k65Fy34bWBRv5ZFXOvpMMIR6Ayzzvj9Xd
-p8ZNIoPeRclQ6557C0nGGgiTo1+o7/YPQMo/J4utGGRoB9NhK18=
-=9VIP
------END PGP SIGNATURE-----
-
---dFWYt1i2NyOo1oI9--
+On 28/01/2021 09:17, Wolfram Sang wrote:
+>> Just to clarify; "open-code" meaning inline it in the caller like
+>> Laurent said, right?
+> Yes.
+>
+Thanks - will do that and drop this one then
