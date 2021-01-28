@@ -2,88 +2,92 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF90C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 15:00:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89A3DC4332B
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 17:15:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FED964DF9
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 15:00:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E8BC64E26
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 17:15:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232410AbhA1O7x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Jan 2021 09:59:53 -0500
-Received: from mga14.intel.com ([192.55.52.115]:44452 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231489AbhA1O7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 28 Jan 2021 09:59:42 -0500
-IronPort-SDR: bZ7q9eThSllxpDpZJV2+mNa3N0Hp6WQjI3LYWTN2n5DHASqvCKF5MEg+EG2WaABl5YkHVutdhZ
- sbNsewsm9R+g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9877"; a="179463014"
-X-IronPort-AV: E=Sophos;i="5.79,382,1602572400"; 
-   d="scan'208";a="179463014"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 06:59:01 -0800
-IronPort-SDR: 9XMvVtX3dXuxB352Ar42LfyVq0+gbxk4Zp10yckmIH2uYWP3NJVsuN3pU2YHad5H88cGhBFDpn
- aPfWAzbthRsQ==
-X-IronPort-AV: E=Sophos;i="5.79,382,1602572400"; 
-   d="scan'208";a="363783125"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 06:59:00 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@intel.com>)
-        id 1l58l8-0004bM-D5; Thu, 28 Jan 2021 16:58:58 +0200
-Date:   Tue, 26 Jan 2021 12:39:59 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Lee Jones <lee.jones@linaro.org>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 00/10] mfd, x86: remove msic driver and leftovers
-Message-ID: <YA/xfxcwCabETug6@smile.fi.intel.com>
-References: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
- <20210126082101.GD4903@dell>
+        id S232635AbhA1ROq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Jan 2021 12:14:46 -0500
+Received: from mail-pg1-f175.google.com ([209.85.215.175]:43903 "EHLO
+        mail-pg1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232965AbhA1RMm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jan 2021 12:12:42 -0500
+Received: by mail-pg1-f175.google.com with SMTP id n10so4676195pgl.10;
+        Thu, 28 Jan 2021 09:12:26 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=7IZgfmQPy76ebRsuihPtDZZCFVdTlHAyz3G2qFI1HQw=;
+        b=n8aY1DjBrdZL0L0LObg4DGj4tb9lgKqritlJqUBfBFCWIlnztMbwyRmO9Pv++/bePP
+         rRG5WXD0hkdWLSTN/JjUzQ2zMKrjxbeA8mIHMvMZ9IZhUr4UJ7Ab8HHj8Mbilq4z9vZU
+         ZAoy5HxmCXbmmecbCUS1bCPLK1b3Xdtg6vSbdPyhVNte3Fxd9rjkViSWWzm9JNZZEjaB
+         JyoAh74r2wl34xGIDRJj5Ic1xkrLJ4xpeptXQN9fpKnKmMazNsmRLd/NVMBt9ByJzEBD
+         sq94dx2HcMfWAn/gH1fsQ628LOxX78IoLBhgioOs/tTcl3USTheWmr61oIlqq5AbG+6R
+         RMhg==
+X-Gm-Message-State: AOAM533hxN5v+6YvXQC5ps8CNhVWvkRr96QeFg5UgRcPWWesIgGHopYK
+        /R50mXQesxrzYIte/TSN8zI=
+X-Google-Smtp-Source: ABdhPJzPaExRZtIKUJvIRjA8Cw4fxIv70iGyA6SNDMcUfKU1EIESlQSKazH5tToRW2b3DphD4uynrQ==
+X-Received: by 2002:a63:4a1a:: with SMTP id x26mr520693pga.260.1611853920802;
+        Thu, 28 Jan 2021 09:12:00 -0800 (PST)
+Received: from localhost ([2601:647:5b00:1161:a4cc:eef9:fbc0:2781])
+        by smtp.gmail.com with ESMTPSA id y22sm6295168pfb.132.2021.01.28.09.11.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 Jan 2021 09:11:59 -0800 (PST)
+Date:   Thu, 28 Jan 2021 09:11:58 -0800
+From:   Moritz Fischer <mdf@kernel.org>
+To:     Catalin Marinas <catalin.marinas@arm.com>
+Cc:     lorenzo.pieralisi@arm.com, Moritz Fischer <mdf@kernel.org>,
+        Will Deacon <will@kernel.org>, guohanjun@huawei.com,
+        sudeep.holla@arm.com, linux-acpi@vger.kernel.org,
+        moritzf@google.com, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net
+Subject: Re: [PATCH v2] ACPI/IORT: Do not blindly trust DMA masks from
+ firmware
+Message-ID: <YBLwXgUJR4L6IiSl@epycbox.lan>
+References: <20210122012419.95010-1-mdf@kernel.org>
+ <161175296410.16506.7622624950228429208.b4-ty@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210126082101.GD4903@dell>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <161175296410.16506.7622624950228429208.b4-ty@arm.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 26, 2021 at 08:21:01AM +0000, Lee Jones wrote:
-> On Mon, 25 Jan 2021, Andy Shevchenko wrote:
-> 
-> > This is a second part of the Intel MID outdated platforms removal.
-> > First part is available as immutable branch [1]. The series has functional
-> > and build dependencies, so the mentioned branch should be used as a base
-> > for these changes.
+Hi Catalin,
+
+On Wed, Jan 27, 2021 at 01:09:36PM +0000, Catalin Marinas wrote:
+> On Thu, 21 Jan 2021 17:24:19 -0800, Moritz Fischer wrote:
+> > Address issue observed on real world system with suboptimal IORT table
+> > where DMA masks of PCI devices would get set to 0 as result.
 > > 
-> > Note, that some of the drivers, that arch/x86 covers, seems never appeared
-> > in the upstream (like msic_ocd).
+> > iort_dma_setup() would query the root complex'/named component IORT
+> > entry for a DMA mask, and use that over the one the device has been
+> > configured with earlier.
+> > 
+> > [...]
 > 
-> What platforms stop working after this removal?
+> Applied to arm64 (for-next/fixes), thanks!
+> 
+> [1/1] ACPI/IORT: Do not blindly trust DMA masks from firmware
+>       https://git.kernel.org/arm64/c/a1df829ead58
+> 
+> -- 
+> Catalin
+> 
 
-Intel Moorstown, Medfield, Clovertrail.
+Should we consider this for stable, too? If so I can send an email to
+stable@ once it's in Linus' tree, since I'm the one forgetting to CC
+stable in the first place :)
 
-> Are you sure no-one is using them?
+It would be nice if at least 5.10 would get this.
 
-Definitely.
-
-> I wouldn't be keen on breaking Janet's PC that she's been using daily
-> and keeping up-to-date since the 90's.
-
-They never were in PCs.
-
-All of them were supported by Android and Janet won't update her phone or even
-Android tablet for sure they never ever run any kind of Linux than Android.
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Cheers,
+Moritz
