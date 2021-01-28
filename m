@@ -2,165 +2,161 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE83FC433DB
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 12:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEAE2C433DB
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 12:08:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C42864DDB
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 12:02:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A589264DD8
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 12:08:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbhA1MCK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Jan 2021 07:02:10 -0500
-Received: from mail-ot1-f47.google.com ([209.85.210.47]:34380 "EHLO
-        mail-ot1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231467AbhA1MBd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jan 2021 07:01:33 -0500
-Received: by mail-ot1-f47.google.com with SMTP id a109so4921098otc.1;
-        Thu, 28 Jan 2021 04:01:17 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=YFd+ePX8uVw6q9k4sjKVG2onbgLoQUdjhM3fDLy+Btw=;
-        b=LKAWVBS4m/h6/48Dn7N3w/0wd/2/YrXf3YGyPnTCTcha00mJP7Bcd7j0kSVCxIlT1a
-         nRFIRNFxyLbsSFE1bIT9E6R9RfRE7Ix+IkidxlxQidzV63n//jEn7JK2dOYUPYXuVNrx
-         4346xc/BYZWanIKx34Gua+023jjAl8+GnV2eGbNp45x4NIPODrXb+SlG+mQ1VBNe10q3
-         9JeQJ0cI0kiuFN5ygg7dL5JMWfNVcCCVhqJ8FL9HtpoZ04zafFjdCpS2DxHeY0YYC3zR
-         UYAKxHRuBfPUsJ3BjyAQSHy3UchLkW4+UDe5YZLud5VJV7vgoDk5RqgIbSozJUiK4v99
-         KO8w==
-X-Gm-Message-State: AOAM531WQHwOAHnXHH+l80TuECAHVajGLwz9Dy6O7jQ2nLfXvqSiOsUq
-        EIoTjc1NkZoADqscNK7YHWNL92mg1xZLgmgNTe0=
-X-Google-Smtp-Source: ABdhPJzw7uAHH10wT+hfkmC7l6BXx19Gtl05Ag3LL5T55Scni979vNQ+rXgR5Evx5NIc8UxTLZi8I+qmU3q2QMTkMfc=
-X-Received: by 2002:a9d:7a4a:: with SMTP id z10mr11396877otm.206.1611835251636;
- Thu, 28 Jan 2021 04:00:51 -0800 (PST)
+        id S231461AbhA1MIv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Jan 2021 07:08:51 -0500
+Received: from mga11.intel.com ([192.55.52.93]:27803 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231368AbhA1MIu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 28 Jan 2021 07:08:50 -0500
+IronPort-SDR: uz6FIVrlZbvZTOsSyvxxA8SNtOYQnFrRMcHnEY/NIiZkET+wv1A5PPQtu+ugdAqorhfh1gZgCX
+ vTvoxF8SL0Jw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9877"; a="176714786"
+X-IronPort-AV: E=Sophos;i="5.79,382,1602572400"; 
+   d="scan'208";a="176714786"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 04:08:07 -0800
+IronPort-SDR: QHqBFmuIZepoAWIouaMwRHAbyJPh2vjlqsnJwepKQIrxnJ/lxKN1W916tPcgz+SGr5kUnU7fSj
+ gcVaPgaoWPfg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.79,382,1602572400"; 
+   d="scan'208";a="408968704"
+Received: from lkp-server02.sh.intel.com (HELO 625d3a354f04) ([10.239.97.151])
+  by fmsmga002.fm.intel.com with ESMTP; 28 Jan 2021 04:08:06 -0800
+Received: from kbuild by 625d3a354f04 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1l565l-0002sV-F1; Thu, 28 Jan 2021 12:08:05 +0000
+Date:   Thu, 28 Jan 2021 20:07:44 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [pm:bleeding-edge] BUILD SUCCESS
+ d8eafbfd2e76d83b8740c90ab8466243c93d61b4
+Message-ID: <6012a910.MY+w+Ue0LNA4hchw%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-References: <20210122154300.7628-1-calvin.johnson@oss.nxp.com>
- <20210122154300.7628-2-calvin.johnson@oss.nxp.com> <CAJZ5v0iX3uU36448ALA20hiVk968VKTsvgwLrp8ur96MQo3Acw@mail.gmail.com>
- <20210128112729.GA28413@lsv03152.swis.in-blr01.nxp.com>
-In-Reply-To: <20210128112729.GA28413@lsv03152.swis.in-blr01.nxp.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 28 Jan 2021 13:00:40 +0100
-Message-ID: <CAJZ5v0id1i57K_=7eiK0cpOE6UtsKNfR7L7UEBcN1=G+WS+1TA@mail.gmail.com>
-Subject: Re: [net-next PATCH v4 01/15] Documentation: ACPI: DSD: Document MDIO PHY
-To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Grant Likely <grant.likely@arm.com>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
-        Jon <jon@solid-run.com>, Saravana Kannan <saravanak@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        "linux.cj" <linux.cj@gmail.com>,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 28, 2021 at 12:27 PM Calvin Johnson
-<calvin.johnson@oss.nxp.com> wrote:
->
-> Hi Rafael,
->
-> Thanks for the review. I'll work on all the comments.
->
-> On Fri, Jan 22, 2021 at 08:22:21PM +0100, Rafael J. Wysocki wrote:
-> > On Fri, Jan 22, 2021 at 4:43 PM Calvin Johnson
-> > <calvin.johnson@oss.nxp.com> wrote:
-> > >
-> > > Introduce ACPI mechanism to get PHYs registered on a MDIO bus and
-> > > provide them to be connected to MAC.
-> > >
-> > > Describe properties "phy-handle" and "phy-mode".
-> > >
-> > > Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-> > > ---
-> > >
-> > > Changes in v4:
-> > > - More cleanup
-> >
-> > This looks much better that the previous versions IMV, some nits below.
-> >
-> > > Changes in v3: None
-> > > Changes in v2:
-> > > - Updated with more description in document
-> > >
-> > >  Documentation/firmware-guide/acpi/dsd/phy.rst | 129 ++++++++++++++++++
-> > >  1 file changed, 129 insertions(+)
-> > >  create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
-> > >
-> > > diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
-> > > new file mode 100644
-> > > index 000000000000..76fca994bc99
-> > > --- /dev/null
-> > > +++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
-> > > @@ -0,0 +1,129 @@
-> > > +.. SPDX-License-Identifier: GPL-2.0
-> > > +
-> > > +=========================
-> > > +MDIO bus and PHYs in ACPI
-> > > +=========================
-> > > +
-> > > +The PHYs on an MDIO bus [1] are probed and registered using
-> > > +fwnode_mdiobus_register_phy().
-> >
-> > Empty line here, please.
-> >
-> > > +Later, for connecting these PHYs to MAC, the PHYs registered on the
-> > > +MDIO bus have to be referenced.
-> > > +
-> > > +The UUID given below should be used as mentioned in the "Device Properties
-> > > +UUID For _DSD" [2] document.
-> > > +   - UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301
-> >
-> > I would drop the above paragraph.
-> >
-> > > +
-> > > +This document introduces two _DSD properties that are to be used
-> > > +for PHYs on the MDIO bus.[3]
-> >
-> > I'd say "for connecting PHYs on the MDIO bus [3] to the MAC layer."
-> > above and add the following here:
-> >
-> > "These properties are defined in accordance with the "Device
-> > Properties UUID For _DSD" [2] document and the
-> > daffd814-6eba-4d8c-8a91-bc9bbf4aa301 UUID must be used in the Device
-> > Data Descriptors containing them."
-> >
-> > > +
-> > > +phy-handle
-> > > +----------
-> > > +For each MAC node, a device property "phy-handle" is used to reference
-> > > +the PHY that is registered on an MDIO bus. This is mandatory for
-> > > +network interfaces that have PHYs connected to MAC via MDIO bus.
-> > > +
-> > > +During the MDIO bus driver initialization, PHYs on this bus are probed
-> > > +using the _ADR object as shown below and are registered on the MDIO bus.
-> >
-> > Do you want to mention the "reg" property here?  I think it would be
-> > useful to do that.
->
-> No. I think we should adhere to _ADR in MDIO case. The "reg" property for ACPI
-> may be useful for other use cases that Andy is aware of.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: d8eafbfd2e76d83b8740c90ab8466243c93d61b4  Merge branch 'pm-clk' into bleeding-edge
 
-The code should reflect this, then.  I mean it sounds like you want to
-check the "reg" property only if this is a non-ACPI node.
+elapsed time: 732m
+
+configs tested: 90
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+powerpc                      mgcoge_defconfig
+powerpc                          g5_defconfig
+arm                       aspeed_g4_defconfig
+c6x                        evmc6678_defconfig
+mips                          malta_defconfig
+arc                           tb10x_defconfig
+powerpc                  mpc885_ads_defconfig
+nios2                         3c120_defconfig
+powerpc                 xes_mpc85xx_defconfig
+powerpc                 mpc8313_rdb_defconfig
+arc                            hsdk_defconfig
+mips                        bcm63xx_defconfig
+mips                  cavium_octeon_defconfig
+sparc                            allyesconfig
+powerpc                  storcenter_defconfig
+x86_64                              defconfig
+m68k                                defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                               defconfig
+i386                               tinyconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a001-20210128
+i386                 randconfig-a002-20210128
+i386                 randconfig-a004-20210128
+i386                 randconfig-a005-20210128
+i386                 randconfig-a003-20210128
+i386                 randconfig-a006-20210128
+x86_64               randconfig-a012-20210128
+x86_64               randconfig-a015-20210128
+x86_64               randconfig-a016-20210128
+x86_64               randconfig-a011-20210128
+x86_64               randconfig-a013-20210128
+x86_64               randconfig-a014-20210128
+i386                 randconfig-a013-20210128
+i386                 randconfig-a011-20210128
+i386                 randconfig-a012-20210128
+i386                 randconfig-a016-20210128
+i386                 randconfig-a014-20210128
+i386                 randconfig-a015-20210128
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a002-20210128
+x86_64               randconfig-a003-20210128
+x86_64               randconfig-a001-20210128
+x86_64               randconfig-a005-20210128
+x86_64               randconfig-a006-20210128
+x86_64               randconfig-a004-20210128
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
