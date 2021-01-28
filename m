@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48763C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 23:29:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57E2EC4332E
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 23:30:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFB2A64DFA
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 23:29:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 306C764DFB
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Jan 2021 23:30:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231688AbhA1X3Z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Jan 2021 18:29:25 -0500
-Received: from mga06.intel.com ([134.134.136.31]:55147 "EHLO mga06.intel.com"
+        id S231776AbhA1X35 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Jan 2021 18:29:57 -0500
+Received: from mga11.intel.com ([192.55.52.93]:4529 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231645AbhA1X3T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 28 Jan 2021 18:29:19 -0500
-IronPort-SDR: +D+eCNrfk5MvQp6uFh98y8H3pkxk0rjufz1J18yq3jonoyC8WhIl0edG+3OgkczZif0LELRYRy
- LyWgt364o2Fw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9878"; a="241856473"
+        id S231716AbhA1X3X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 28 Jan 2021 18:29:23 -0500
+IronPort-SDR: mgDMOhO0nkpXPz0URwuX/JYXp7F6/ziXjT36x6R656MO+bQwAqC3eFDHjFhDB1NlJcYbloZdoV
+ 1CX4P6gmORUA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9878"; a="176824531"
 X-IronPort-AV: E=Sophos;i="5.79,383,1602572400"; 
-   d="scan'208";a="241856473"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 15:27:33 -0800
-IronPort-SDR: hlr8EkA9peJ/k/cPmqW8tP0oIOQguldpmVA+yYsXDKWOaT8MJr+JcfiX2QqN9sXlLPhoFtmUzM
- zaLbHek99NSg==
+   d="scan'208";a="176824531"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 15:27:37 -0800
+IronPort-SDR: lFKxtB3Xuv8REmfggSX5QXJUb9ljAv5w+FI+6V5ANE0nQPHo+aHt6ZEJOPMoIwaYdjMIqjYMUR
+ 2ISAMVKwfpfg==
 X-IronPort-AV: E=Sophos;i="5.79,383,1602572400"; 
-   d="scan'208";a="411236742"
+   d="scan'208";a="354359332"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 15:27:29 -0800
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2021 15:27:34 -0800
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id C8A2521B1D;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id E27F82230C;
         Fri, 29 Jan 2021 01:27:27 +0200 (EET)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1l5GhF-0004FG-ON; Fri, 29 Jan 2021 01:27:29 +0200
+        id 1l5GhF-0004FT-Rc; Fri, 29 Jan 2021 01:27:29 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-i2c@vger.kernel.org
 Cc:     Wolfram Sang <wsa@the-dreams.de>,
@@ -50,97 +50,113 @@ Cc:     Wolfram Sang <wsa@the-dreams.de>,
         Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
         Hyungwoo Yang <hyungwoo.yang@intel.com>,
         linux-media@vger.kernel.org
-Subject: [PATCH v9 3/7] Documentation: ACPI: Document _PRE object usage for enum power state
-Date:   Fri, 29 Jan 2021 01:27:25 +0200
-Message-Id: <20210128232729.16064-3-sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 7/7] at24: Support probing while off
+Date:   Fri, 29 Jan 2021 01:27:29 +0200
+Message-Id: <20210128232729.16064-7-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200903081550.6012-1-sakari.ailus@linux.intel.com>
 References: <20200903081550.6012-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Document the use of the _PRE object for setting desirable power state
-during probe.
+In certain use cases (where the chip is part of a camera module, and the
+camera module is wired together with a camera privacy LED), powering on
+the device during probe is undesirable. Add support for the at24 to
+execute probe while being powered off. For this to happen, a hint in form
+of a device property is required from the firmware.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/firmware-guide/acpi/index.rst   |  1 +
- .../firmware-guide/acpi/low-power-probe.rst   | 51 +++++++++++++++++++
- 2 files changed, 52 insertions(+)
- create mode 100644 Documentation/firmware-guide/acpi/low-power-probe.rst
+ drivers/misc/eeprom/at24.c | 43 +++++++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index f72b5f1769fb2..d02712acccbc0 100644
---- a/Documentation/firmware-guide/acpi/index.rst
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -25,5 +25,6 @@ ACPI Support
-    acpi-lid
-    lpit
-    video_extension
-+   low-power-probe
-    extcon-intel-int3496
-    intel-pmc-mux
-diff --git a/Documentation/firmware-guide/acpi/low-power-probe.rst b/Documentation/firmware-guide/acpi/low-power-probe.rst
-new file mode 100644
-index 0000000000000..3437f8c8f233a
---- /dev/null
-+++ b/Documentation/firmware-guide/acpi/low-power-probe.rst
-@@ -0,0 +1,51 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+======================================
-+Probing I²C devices in low power state
-+======================================
-+
-+Introduction
-+============
-+
-+In some cases it may be preferred to leave certain devices powered off for the
-+entire system bootup if powering on these devices has adverse side effects,
-+beyond just powering on the said device.
-+
-+How it works
-+============
-+
-+The _PRE object that evaluates to integer 0 may be used to tell Linux that the
-+device should remain in the low power state during probe. If the driver
-+indicates its support for this by setting the I2C_DRV_FL_ALLOW_LOW_POWER_PROBE
-+flag in struct i2c_driver.flags field and the _PRE object evaluates to integer
-+0, the device will not be powered on for probe.
-+
-+The downside is that as the device is not powered on, even if there's a problem
-+with the device, the driver likely probes just fine but the first user will
-+find out the device doesn't work, instead of a failure at probe time. This
-+feature should thus be used sparingly.
-+
-+Example
-+=======
-+
-+An ASL example describing an ACPI device using this property looks like
-+this. Some objects not relevant from the example point of view have been
-+omitted.
-+
-+.. code-block:: text
-+
-+	Device (CAM0)
-+        {
-+		Name (_HID, "SONY319A")
-+		Name (_UID, Zero)
-+		Name (_CRS, ResourceTemplate ()
-+		{
-+			I2cSerialBus(0x0020, ControllerInitiated, 0x00061A80,
-+				     AddressingMode7Bit, "\\_SB.PCI0.I2C0",
-+				     0x00, ResourceConsumer)
-+		})
-+		Name (_PRE, 0, NotSerialized)
-+		{
-+			Return (0x0)
-+                }
+diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
+index 926408b41270c..dd0b3f24e3808 100644
+--- a/drivers/misc/eeprom/at24.c
++++ b/drivers/misc/eeprom/at24.c
+@@ -595,6 +595,7 @@ static int at24_probe(struct i2c_client *client)
+ 	bool i2c_fn_i2c, i2c_fn_block;
+ 	unsigned int i, num_addresses;
+ 	struct at24_data *at24;
++	bool low_power;
+ 	struct regmap *regmap;
+ 	bool writable;
+ 	u8 test_byte;
+@@ -750,14 +751,16 @@ static int at24_probe(struct i2c_client *client)
+ 
+ 	i2c_set_clientdata(client, at24);
+ 
+-	err = regulator_enable(at24->vcc_reg);
+-	if (err) {
+-		dev_err(dev, "Failed to enable vcc regulator\n");
+-		return err;
+-	}
++	low_power = acpi_dev_state_low_power(&client->dev);
++	if (!low_power) {
++		err = regulator_enable(at24->vcc_reg);
++		if (err) {
++			dev_err(dev, "Failed to enable vcc regulator\n");
++			return err;
++		}
+ 
+-	/* enable runtime pm */
+-	pm_runtime_set_active(dev);
++		pm_runtime_set_active(dev);
 +	}
+ 	pm_runtime_enable(dev);
+ 
+ 	at24->nvmem = devm_nvmem_register(dev, &nvmem_config);
+@@ -768,14 +771,17 @@ static int at24_probe(struct i2c_client *client)
+ 	}
+ 
+ 	/*
+-	 * Perform a one-byte test read to verify that the
+-	 * chip is functional.
++	 * Perform a one-byte test read to verify that the chip is functional,
++	 * unless powering on the device is to be avoided during probe (i.e.
++	 * it's powered off right now).
+ 	 */
+-	err = at24_read(at24, 0, &test_byte, 1);
+-	if (err) {
+-		pm_runtime_disable(dev);
+-		regulator_disable(at24->vcc_reg);
+-		return -ENODEV;
++	if (!low_power) {
++		err = at24_read(at24, 0, &test_byte, 1);
++		if (err) {
++			pm_runtime_disable(dev);
++			regulator_disable(at24->vcc_reg);
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	pm_runtime_idle(dev);
+@@ -795,9 +801,11 @@ static int at24_remove(struct i2c_client *client)
+ 	struct at24_data *at24 = i2c_get_clientdata(client);
+ 
+ 	pm_runtime_disable(&client->dev);
+-	if (!pm_runtime_status_suspended(&client->dev))
+-		regulator_disable(at24->vcc_reg);
+-	pm_runtime_set_suspended(&client->dev);
++	if (!acpi_dev_state_low_power(&client->dev)) {
++		if (!pm_runtime_status_suspended(&client->dev))
++			regulator_disable(at24->vcc_reg);
++		pm_runtime_set_suspended(&client->dev);
++	}
+ 
+ 	return 0;
+ }
+@@ -834,6 +842,7 @@ static struct i2c_driver at24_driver = {
+ 	.probe_new = at24_probe,
+ 	.remove = at24_remove,
+ 	.id_table = at24_ids,
++	.flags = I2C_DRV_FL_ALLOW_LOW_POWER_PROBE,
+ };
+ 
+ static int __init at24_init(void)
 -- 
 2.20.1
 
