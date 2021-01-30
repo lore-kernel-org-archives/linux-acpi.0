@@ -2,67 +2,66 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-23.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+X-Spam-Status: No, score=-18.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CB69C433E9
-	for <linux-acpi@archiver.kernel.org>; Sat, 30 Jan 2021 23:53:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45866C433DB
+	for <linux-acpi@archiver.kernel.org>; Sat, 30 Jan 2021 23:54:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BEF364E1F
-	for <linux-acpi@archiver.kernel.org>; Sat, 30 Jan 2021 23:53:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0758864E15
+	for <linux-acpi@archiver.kernel.org>; Sat, 30 Jan 2021 23:54:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232589AbhA3Xw5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 30 Jan 2021 18:52:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44944 "EHLO
+        id S232619AbhA3XyP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 30 Jan 2021 18:54:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232636AbhA3XwV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Jan 2021 18:52:21 -0500
-Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3297C061756
-        for <linux-acpi@vger.kernel.org>; Sat, 30 Jan 2021 15:51:41 -0800 (PST)
-Received: by mail-pj1-x1036.google.com with SMTP id d2so2771676pjs.4
-        for <linux-acpi@vger.kernel.org>; Sat, 30 Jan 2021 15:51:41 -0800 (PST)
+        with ESMTP id S232777AbhA3XyB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Jan 2021 18:54:01 -0500
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D71B9C061351
+        for <linux-acpi@vger.kernel.org>; Sat, 30 Jan 2021 15:52:03 -0800 (PST)
+Received: by mail-pf1-x436.google.com with SMTP id w18so9038081pfu.9
+        for <linux-acpi@vger.kernel.org>; Sat, 30 Jan 2021 15:52:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:from:to:cc:subject:in-reply-to:message-id:references
          :mime-version;
-        bh=cxvqbAo1IAIrwLB5kk+h8Luaw/WcNq7od57uwR/z/0A=;
-        b=PjLjww8QTw6X6rVMAjtISyXtX7JMmqVaUJx3F60RM3ylFSLWRRcZCFrQlsjCSBGBqx
-         Oj3eIeIel+lx5s/2LzA2cqzsOlBvs+jrSV4AXQBePenX9TqRNh4fBF2xa1vy/ZURdeOn
-         +lhC0/eWjRwZcBS/1uE7a0/fxUpCmQEsIlkvVUw8XTrYgT7HEkD84ilH2PhECtGuizOl
-         3L/Qf/himoTN1JGUyeYCivImS0tAyPYb9OeJvkMbXST578xzSCdUkQFxivOMQrwZRtAE
-         nxCiaSxwoehw8rIP5fQZOuvdxKVzXZHozdLwXh4cjAQrPf6k9Zf1rWPHmWo72HtJywGU
-         U2Sg==
+        bh=Ui0BeJCwGOKq8ej5x7M1Q9u0lMO3l7TRN0DCBw5DBWc=;
+        b=MzV7DeqSQEU06RPg78K/siciEFk1jfbTpumwWmLQl6H6Gtps4XMqo2d69/O5cLG2ib
+         sWHVna8f+tRiTekQ27iMrabwakv/X6Gbl2kRVK/U/BGlRXp3T9i1yQQSuVnU6lr+dm/x
+         8FEPu29yNnBux/VASHH7ScQ+Jl0IiYohkU6+RCuQUg1EgQPqAcab+9vyY4J5yCbNcTRR
+         nr53UK6NJNWZfhq5VD+V3Le0HG/nMeKhW74bPHwhTL5zw+kABM4AX6dL+VwufuqFX1nq
+         tUL0JTNvh8Ct349k+VfR9Xo8+biP3GeU+ESkvAHVcmQEBivIFsiEhTmpY/WaIHhwMGhe
+         hhVw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:in-reply-to:message-id
          :references:mime-version;
-        bh=cxvqbAo1IAIrwLB5kk+h8Luaw/WcNq7od57uwR/z/0A=;
-        b=csEjpbqry00cEK5AhVvH3uw+1Q0rDyTNlDew9Imt5mhEQcqVg/8PBx1uRNeofRoOU7
-         W/DBhokhERoNSm4xyF7g7Dje9nJl3jh7KmIBldY/9zNNp/CDKJ6Q6os2ZoJfjvfZ1n9e
-         Xo44Z7Fr5+7gyIxSX6lnBxkhDsGmT9Q+cEcNHF5ldYnIe0dgveDnDgEOG2uHf57zfSuC
-         q+5W4wOjPkH0esoH6Y4n90At0jkKhVwkqrIYjtkBFS20yKnqkRz63nqP2nRS21HKf3Lp
-         XUXgOoQwXMfIuop8QCaoqzQO+KVGIEuGXeDOvOz+476Fli2KgKf4CS/PWhkT1851PmBi
-         wuGw==
-X-Gm-Message-State: AOAM531UKBoU9y1oqIwaZ46a8Ytd19OLqwCzKdQA+uH4zMVM/7qTEVnn
-        s9ihLicN/EKxZUKYOpF8GhZ/wQ==
-X-Google-Smtp-Source: ABdhPJyDODycXpp/h5ITu3myrcAhtELZTjRYPPBKofKsdhKWkycX4cAiMkSboMfRs6hOUzcld1n8Cw==
-X-Received: by 2002:a17:902:edcd:b029:df:d2b1:ecf0 with SMTP id q13-20020a170902edcdb02900dfd2b1ecf0mr11639635plk.15.1612050701068;
-        Sat, 30 Jan 2021 15:51:41 -0800 (PST)
+        bh=Ui0BeJCwGOKq8ej5x7M1Q9u0lMO3l7TRN0DCBw5DBWc=;
+        b=O1Mz4wTQ5CBG1VPWrZlwc+Zi9WuOJ9pC3F2BwlI4jBk2W49jsy6IR5IS4sMioqrikt
+         TrSzV0/3h5bUO0COEaU42Ciw6ss+37hx2tni4GBvRqvY41nFmVSPpk79QS/3y0XcGOYF
+         H/EIkIC8U6bjyBMT6JYXuL1LJey8928A0j154m/vWjXGO4aIsyDCwNzJnaQ15Pei828Q
+         mCJjzY2JxYBcjV8bVGOy0o0PMuYKuTD9p881rKtVEmpPlMrdDRo0T/H0jiXRpwH6zQ+M
+         zRnebJjuq8E0bJWrCUKzfKqrfh3guiTRh3eArVE8FBPXVukh9iUKA4Ou4+dAEXG2uWfB
+         Vuaw==
+X-Gm-Message-State: AOAM5302VRpJOXCA38KRzC46j4aEIrYvLyyLu44dl3VCm8qY9FgJjmMd
+        W65vJtzGvRfdmApEl74gkQwTb3HNiZMr6g==
+X-Google-Smtp-Source: ABdhPJwhLUNT7kvzAUWFbzT9Lc1dFYnkmDtxMuvH7NNwX3Q8WOwnNGrRfaRhmDarU4sLoHVBNmVU6w==
+X-Received: by 2002:a63:7947:: with SMTP id u68mr3474320pgc.451.1612050723241;
+        Sat, 30 Jan 2021 15:52:03 -0800 (PST)
 Received: from [2620:15c:17:3:4a0f:cfff:fe51:6667] ([2620:15c:17:3:4a0f:cfff:fe51:6667])
-        by smtp.gmail.com with ESMTPSA id c5sm12745797pfi.5.2021.01.30.15.51.39
+        by smtp.gmail.com with ESMTPSA id e12sm13104562pga.13.2021.01.30.15.52.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 30 Jan 2021 15:51:40 -0800 (PST)
-Date:   Sat, 30 Jan 2021 15:51:39 -0800 (PST)
+        Sat, 30 Jan 2021 15:52:02 -0800 (PST)
+Date:   Sat, 30 Jan 2021 15:52:01 -0800 (PST)
 From:   David Rientjes <rientjes@google.com>
 To:     Ben Widawsky <ben.widawsky@intel.com>
 cc:     linux-cxl@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org,
+        Bjorn Helgaas <helgaas@kernel.org>,
         Chris Browy <cbrowy@avery-design.com>,
         Christoph Hellwig <hch@infradead.org>,
         Ira Weiny <ira.weiny@intel.com>,
@@ -74,11 +73,10 @@ cc:     linux-cxl@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>,
         daniel.lll@alibaba-inc.com,
         "John Groves (jgroves)" <jgroves@micron.com>,
         "Kelley, Sean V" <sean.v.kelley@intel.com>
-Subject: Re: [PATCH 01/14] cxl/mem: Introduce a driver for CXL-2.0-Type-3
- endpoints
-In-Reply-To: <20210130002438.1872527-2-ben.widawsky@intel.com>
-Message-ID: <54655f17-2e4a-cc1e-262c-b365e3de9b20@google.com>
-References: <20210130002438.1872527-1-ben.widawsky@intel.com> <20210130002438.1872527-2-ben.widawsky@intel.com>
+Subject: Re: [PATCH 05/14] cxl/mem: Register CXL memX devices
+In-Reply-To: <20210130002438.1872527-6-ben.widawsky@intel.com>
+Message-ID: <ecd93422-b272-2b76-1ec-cf6af744ae@google.com>
+References: <20210130002438.1872527-1-ben.widawsky@intel.com> <20210130002438.1872527-6-ben.widawsky@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
@@ -87,31 +85,37 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 On Fri, 29 Jan 2021, Ben Widawsky wrote:
 
-> diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
 > new file mode 100644
-> index 000000000000..3b66b46af8a0
+> index 000000000000..fe7b87eba988
 > --- /dev/null
-> +++ b/drivers/cxl/Kconfig
-> @@ -0,0 +1,35 @@
-> +# SPDX-License-Identifier: GPL-2.0-only
-> +menuconfig CXL_BUS
-> +	tristate "CXL (Compute Express Link) Devices Support"
-> +	depends on PCI
-> +	help
-> +	  CXL is a bus that is electrically compatible with PCI Express, but
-> +	  layers three protocols on that signalling (CXL.io, CXL.cache, and
-> +	  CXL.mem). The CXL.cache protocol allows devices to hold cachelines
-> +	  locally, the CXL.mem protocol allows devices to be fully coherent
-> +	  memory targets, the CXL.io protocol is equivalent to PCI Express.
-> +	  Say 'y' to enable support for the configuration and management of
-> +	  devices supporting these protocols.
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -0,0 +1,26 @@
+> +What:		/sys/bus/cxl/devices/memX/firmware_version
+> +Date:		December, 2020
+> +KernelVersion:	v5.12
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) "FW Revision" string as reported by the Identify
+> +		Memory Device Output Payload in the CXL-2.0
+> +		specification.
 > +
-> +if CXL_BUS
+> +What:		/sys/bus/cxl/devices/memX/ram/size
+> +Date:		December, 2020
+> +KernelVersion:	v5.12
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) "Volatile Only Capacity" as reported by the
+> +		Identify Memory Device Output Payload in the CXL-2.0
+> +		specification.
 > +
-> +config CXL_MEM
-> +	tristate "CXL.mem: Endpoint Support"
+> +What:		/sys/bus/cxl/devices/memX/pmem/size
+> +Date:		December, 2020
+> +KernelVersion:	v5.12
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) "Persistent Only Capacity" as reported by the
+> +		Identify Memory Device Output Payload in the CXL-2.0
+> +		specification.
 
-Nit: "CXL.mem: Memory Devices" or "CXL Memory Devices: CXL.mem" might look 
-better, but feel free to ignore.
-
-Acked-by: David Rientjes <rientjes@google.com>
+Aren't volatile and persistent capacities expressed in multiples of 256MB?
