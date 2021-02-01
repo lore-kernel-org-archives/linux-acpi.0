@@ -6,112 +6,88 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 161B6C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Feb 2021 18:38:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FA6C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 Feb 2021 18:45:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D925264E9A
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Feb 2021 18:38:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 434EB64E31
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 Feb 2021 18:45:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232997AbhBAShL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 1 Feb 2021 13:37:11 -0500
-Received: from mga12.intel.com ([192.55.52.136]:30823 "EHLO mga12.intel.com"
+        id S230346AbhBASpQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 1 Feb 2021 13:45:16 -0500
+Received: from mga03.intel.com ([134.134.136.65]:24072 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232747AbhBASfk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 1 Feb 2021 13:35:40 -0500
-IronPort-SDR: eb5ne3CQoN6MJZEmWUYCu0+ivqgwXhPk3P+3t5zjksACCsFYrbz7DQf/vSuJQoRyLCIpWLKcgX
- Wqic+wUlPvBg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9882"; a="159899885"
+        id S231152AbhBASpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 1 Feb 2021 13:45:10 -0500
+IronPort-SDR: vSIJQNRp1JEvOzMxRayKrkA+Spvw2xBeqTj6lKRNJ7fy9xcaCAYvelTSZf6A+Ru/sYnXDVcHav
+ H0XGTG5X87Ew==
+X-IronPort-AV: E=McAfee;i="6000,8403,9882"; a="180810324"
 X-IronPort-AV: E=Sophos;i="5.79,393,1602572400"; 
-   d="scan'208";a="159899885"
+   d="scan'208";a="180810324"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2021 10:34:58 -0800
-IronPort-SDR: 2nH8t8/c+4stZ/sLd9CRvDKJQVvEtoDO5fWXWNPS17Xeu0Z+5yQgq5tPL/lE+iYxcH8yEzg95U
- mZhVmj6F73ng==
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2021 10:43:10 -0800
+IronPort-SDR: fXVApzUD+SS2KQ4MwTnMPLroI1Gw5OZ8k5DiAKNxJflikACXO0KOAWAK38eXNEmv/V/HbCvMSQ
+ pZH/dx9SHGtw==
 X-IronPort-AV: E=Sophos;i="5.79,393,1602572400"; 
-   d="scan'208";a="371650563"
-Received: from jambrizm-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.133.15])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2021 10:34:57 -0800
-Date:   Mon, 1 Feb 2021 10:34:55 -0800
-From:   Ben Widawsky <ben.widawsky@intel.com>
-To:     Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc:     linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
-        Chris Browy <cbrowy@avery-design.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Jon Masters <jcm@jonmasters.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        daniel.lll@alibaba-inc.com,
-        "John Groves (jgroves)" <jgroves@micron.com>,
-        "Kelley, Sean V" <sean.v.kelley@intel.com>
-Subject: Re: [PATCH 08/14] taint: add taint for direct hardware access
-Message-ID: <20210201183455.3dndfwyswwvs2dlm@intel.com>
-References: <20210130002438.1872527-1-ben.widawsky@intel.com>
- <20210130002438.1872527-9-ben.widawsky@intel.com>
- <20210201181845.GJ197521@fedora>
+   d="scan'208";a="371652732"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2021 10:43:07 -0800
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1l6eAC-001Cl9-MC; Mon, 01 Feb 2021 20:43:04 +0200
+Date:   Mon, 1 Feb 2021 20:43:04 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Lee Jones <lee.jones@linaro.org>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v1 00/10] mfd, x86: remove msic driver and leftovers
+Message-ID: <YBhLuNZ7xmHdhurU@smile.fi.intel.com>
+References: <20210125193948.56760-1-andriy.shevchenko@linux.intel.com>
+ <20210126082101.GD4903@dell>
+ <YA/xfxcwCabETug6@smile.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210201181845.GJ197521@fedora>
+In-Reply-To: <YA/xfxcwCabETug6@smile.fi.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 21-02-01 13:18:45, Konrad Rzeszutek Wilk wrote:
-> On Fri, Jan 29, 2021 at 04:24:32PM -0800, Ben Widawsky wrote:
-> > For drivers that moderate access to the underlying hardware it is
-> > sometimes desirable to allow userspace to bypass restrictions. Once
-> > userspace has done this, the driver can no longer guarantee the sanctity
-> > of either the OS or the hardware. When in this state, it is helpful for
-> > kernel developers to be made aware (via this taint flag) of this fact
-> > for subsequent bug reports.
+On Tue, Jan 26, 2021 at 12:39:59PM +0200, Andy Shevchenko wrote:
+> On Tue, Jan 26, 2021 at 08:21:01AM +0000, Lee Jones wrote:
+> > On Mon, 25 Jan 2021, Andy Shevchenko wrote:
 > > 
-> > Example usage:
-> > - Hardware xyzzy accepts 2 commands, waldo and fred.
-> > - The xyzzy driver provides an interface for using waldo, but not fred.
-> > - quux is convinced they really need the fred command.
-> > - xyzzy driver allows quux to frob hardware to initiate fred.
+> > > This is a second part of the Intel MID outdated platforms removal.
+> > > First part is available as immutable branch [1]. The series has functional
+> > > and build dependencies, so the mentioned branch should be used as a base
+> > > for these changes.
+> > > 
+> > > Note, that some of the drivers, that arch/x86 covers, seems never appeared
+> > > in the upstream (like msic_ocd).
+> > 
+> > What platforms stop working after this removal?
 > 
-> Would it not be easier to _not_ frob the hardware for fred-operation?
-> Aka not implement it or just disallow in the first place?
-
-Yeah. So the idea is you either are in a transient phase of the command and some
-future kernel will have real support for fred - or a vendor is being short
-sighted and not adding support for fred.
-
+> Intel Moorstown, Medfield, Clovertrail.
 > 
+> > Are you sure no-one is using them?
 > 
-> >   - kernel gets tainted.
-> > - turns out fred command is borked, and scribbles over memory.
-> > - developers laugh while closing quux's subsequent bug report.
+> Definitely.
 > 
-> Yeah good luck with that theory in-the-field. The customer won't
-> care about this and will demand a solution for doing fred-operation.
+> > I wouldn't be keen on breaking Janet's PC that she's been using daily
+> > and keeping up-to-date since the 90's.
 > 
-> Just easier to not do fred-operation in the first place,no?
+> They never were in PCs.
+> 
+> All of them were supported by Android and Janet won't update her phone or even
+> Android tablet for sure they never ever run any kind of Linux than Android.
 
-The short answer is, in an ideal world you are correct. See nvdimm as an example
-of the real world.
+So, I hope you are satisfied and we may proceed with removal.
 
-The longer answer. Unless we want to wait until we have all the hardware we're
-ever going to see, it's impossible to have a fully baked, and validated
-interface. The RAW interface is my admission that I make no guarantees about
-being able to provide the perfect interface and giving the power back to the
-hardware vendors and their driver writers.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-As an example, suppose a vendor shipped a device with their special vendor
-opcode. They can enable their customers to use that opcode on any driver
-version. That seems pretty powerful and worthwhile to me.
 
-Or a more realistic example, we ship a driver that adds a command which is
-totally broken. Customers can utilize the RAW interface until it gets fixed in a
-subsequent release which might be quite a ways out.
-
-I'll say the RAW interface isn't an encouraged usage, but it's one that I expect
-to be needed, and if it's not we can always try to kill it later. If nobody is
-actually using it, nobody will complain, right :D
