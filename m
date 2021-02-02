@@ -2,91 +2,128 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DA99C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:40:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B2CAC43381
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:42:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0ADBC64ED7
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:40:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F06F64F50
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:42:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234506AbhBBOht (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Feb 2021 09:37:49 -0500
-Received: from mx2.suse.de ([195.135.220.15]:49700 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231524AbhBBORt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Feb 2021 09:17:49 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id D77EBABD5;
-        Tue,  2 Feb 2021 14:17:06 +0000 (UTC)
-Message-ID: <1612275425.27785.70.camel@suse.cz>
-Subject: Re: [PATCH v2 1/1] x86,sched: On AMD EPYC set freq_max = max_boost
- in schedutil invariant formula
-From:   Giovanni Gherdovich <ggherdovich@suse.cz>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc:     Peter Zijlstra <peterz@infradead.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Jon Grimm <Jon.Grimm@amd.com>,
-        Nathan Fontenot <Nathan.Fontenot@amd.com>,
-        Yazen Ghannam <Yazen.Ghannam@amd.com>,
-        Thomas Lendacky <Thomas.Lendacky@amd.com>,
-        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
-        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Michael Larabel <Michael@phoronix.com>, x86@kernel.org,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Date:   Tue, 02 Feb 2021 15:17:05 +0100
-In-Reply-To: <1611933781.15858.48.camel@suse.cz>
-References: <20210122204038.3238-1-ggherdovich@suse.cz>
-         <20210122204038.3238-2-ggherdovich@suse.cz>
-         <YA6YEK4/rjtPLdkG@hirez.programming.kicks-ass.net>
-         <1611652167.11983.65.camel@suse.cz>
-         <20210126093140.GB3592@techsingularity.net>
-         <YA/pYrvvjf8AxPEv@hirez.programming.kicks-ass.net>
-         <1611933781.15858.48.camel@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
-Mime-Version: 1.0
+        id S234685AbhBBOma (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Feb 2021 09:42:30 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:33462 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234695AbhBBOhX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2021 09:37:23 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1612276557;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=yuioLk+QBKsBksw92DnH4UnwQxafZS+S4qY6HXlBF3g=;
+        b=a+2Uhu9fQAHaRQOo9pvpQdqkKW/OnC2yTkWy2Cq6mIe8ONvz8ogPSZLkfZCfeZd4/d5YSG
+        uh120LQgHNgO1g0aAOXCpmbYgZWNEOiQInPZKNbt4oSbRApxnSolKUcpAMQd0SOGhmhnxn
+        TK15vIPR8pxqMhcccn8lL8Xl+Vhsaj0=
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
+ [209.85.218.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-472-5f30lGN0MNeejRSNZ5HOiA-1; Tue, 02 Feb 2021 09:35:55 -0500
+X-MC-Unique: 5f30lGN0MNeejRSNZ5HOiA-1
+Received: by mail-ej1-f72.google.com with SMTP id k3so10023060ejr.16
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Feb 2021 06:35:54 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=yuioLk+QBKsBksw92DnH4UnwQxafZS+S4qY6HXlBF3g=;
+        b=iqPJpTRjlwL6hT9iNtLSYLWSZfiz3wmd96mU82iTS3QfHuWRF/f+fumI8yDo3O/Jkf
+         2B4nrmR/2bblDt1+1uejK+OA7+yghKli8+AOcK+edVb9l06bmRmelfbnOyCDLbAIeZhG
+         xWq+mnuJ1HGOE4a64kuiBN3jCcSLvmAIGEE/TmWh5KR3cU0bAajwYDXoAAzQxbgmuIrY
+         prXemgPiIqUlK/+LHaMXq0dtSB4gs2+z1pGLDYNQpTWPoGCNHuvRDhT719rG5IBpj2MA
+         qxKH4AxC1Ui4YZd7rayxK1gfybbjgUmTJ++oCbSALNz63uutSjmpiaxdZEtypJjW4rm8
+         V7+Q==
+X-Gm-Message-State: AOAM531IOAllkKS7hpzW7tnqZOoHgE6d7DtsK17efnFxAdRvMCCv5XEz
+        IuR0Ej/40Hs2VHXxQeB6mTj3zY+yDwBqhVMLpWOauumC/Q+aWlBTyyJ8D5F0R7byMcITt11I/nc
+        K638BKB1ez4uwbI9Sr4VabA==
+X-Received: by 2002:a17:906:8555:: with SMTP id h21mr13769671ejy.403.1612276553516;
+        Tue, 02 Feb 2021 06:35:53 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJzX376850pRzW8rhJndm8qGoRK4hnvatMT4A3h6h/V51T3FYCBdyNuksIIYpZES05LFx/deHQ==
+X-Received: by 2002:a17:906:8555:: with SMTP id h21mr13769660ejy.403.1612276553364;
+        Tue, 02 Feb 2021 06:35:53 -0800 (PST)
+Received: from x1.localdomain (2001-1c00-0c1e-bf00-37a3-353b-be90-1238.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:37a3:353b:be90:1238])
+        by smtp.gmail.com with ESMTPSA id dm6sm9232402ejc.32.2021.02.02.06.35.52
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 02 Feb 2021 06:35:52 -0800 (PST)
+Subject: Re: How to detect Cherry Trail vs Brasswell inside the kernel ?
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org,
+        x86@kernel.org,
+        "platform-driver-x86@vger.kernel.org" 
+        <platform-driver-x86@vger.kernel.org>
+References: <37906985-e026-48d3-cda8-6e63696e72aa@redhat.com>
+ <X/XQak3+YtbyeAqM@hirez.programming.kicks-ass.net>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <2d5b3911-b4b0-70bd-6ac0-c418fef0c682@redhat.com>
+Date:   Tue, 2 Feb 2021 15:35:52 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.1
+MIME-Version: 1.0
+In-Reply-To: <X/XQak3+YtbyeAqM@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 2021-01-29 at 16:23 +0100, Giovanni Gherdovich wrote:
-> On Tue, 2021-01-26 at 11:05 +0100, Peter Zijlstra wrote:
-> > On Tue, Jan 26, 2021 at 09:31:40AM +0000, Mel Gorman wrote:
-> > 
-> > > So, should this patch be merged for 5.11 as a stopgap, fix up
-> > > schedutil/cpufreq and then test both AMD and Intel chips reporting the
-> > > correct max non-turbo and max-turbo frequencies? That would give time to
-> > > give some testing in linux-next before merging to reduce the chance
-> > > something else falls out.
-> > 
-> > Yeah, we should probably do this now. Rafael, you want this or should I
-> > take it?
+Hi,
+
+On 1/6/21 3:59 PM, Peter Zijlstra wrote:
+> On Wed, Jan 06, 2021 at 01:31:46PM +0100, Hans de Goede wrote:
+>> Hi All,
+>>
+>> I've 2 different kernel bugs where the fix requires differentiating between
+>> Cherry Trail vs Brasswell, just checking the CPU model does not allow to
+>> differentiate between these 2 since they are both using Airmont cores.
+>>
+>> I have the same issue with the Bay Trail laptop SoCs vs the
+>> Bay Trail-T tablet SoCs, but for now lets focus on
+>> Cherry Trail vs Brasswell since that is less confusing:
+>>
+>> https://ark.intel.com/content/www/us/en/ark/products/codename/46629/cherry-trail.html
+>> https://ark.intel.com/content/www/us/en/ark/products/codename/66094/braswell.html
+>>
+>> So I see a number of possible solutions here:
+>>
+>> 1) Do a (substring) check on the CPU model-name checking for "x5-Z8" and "x7-Z8"
+>> 2) Check for presence of some embedded peripheral which is present on one but not the
+>> other. E.g. The Braswell devices have HDA audio where as the Cherry Trail devices
+>> use the "Low Power Engine (LPE) Audio Controller"
+>> 3) Check for acpi_gbl_reduced_hardware, but I'm not sure if that is a reliable
+>> indicator of running on the tablet versions of the SoCs.
+>>
+>> 1 and 2 will work but neither is very pretty, I guess I could try to spend some
+>> more time investigating 3. But I only have limited access to the non tablet versions
+>> of the Bay Trail and I'm not sure if I have any Braswell devices at all. 
+>>
+>> So I was wondering if anyone else has any better ideas here?
 > 
-> Hello Rafael,
-> 
-> did you have a chance to check this patch?
-> 
-> It fixes a performance regression from 5.11-rc1, I hoped it could be included
-> before v5.11 is released.
+> Does MSR_PLATFORM_ID (0x17) bits 50-52 work to differentiate these?
 
-Hello Rafael,
+Thank you, that is (was) a good idea.
 
-you haven't replied to this patch, which was written aiming at v5.11.
+So since you send this email I've added a debug print to the kernel for these
+bits and collected the output of that debug print on various devices.
 
-Do you see any problem with it?
-Frequency-invariant schedutil needs the driver to advertise a high max_freq to
-work properly; the patch addresses this for AMD EPYC.
+Unfortunately these bits always read 0 on all Bay Trail / Bay Trail-T /
+Cherry Trail devices which I've tested, so these bits do not help.
 
+Regards,
 
-Thanks,
-Giovanni
+Hans
+
