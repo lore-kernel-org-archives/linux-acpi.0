@@ -2,78 +2,84 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-17.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B2CAC43381
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:42:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22653C433E0
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:43:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F06F64F50
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:42:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0D9764F4D
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Feb 2021 14:43:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234685AbhBBOma (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Feb 2021 09:42:30 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:33462 "EHLO
+        id S232349AbhBBOn1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Feb 2021 09:43:27 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:49289 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234695AbhBBOhX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2021 09:37:23 -0500
+        by vger.kernel.org with ESMTP id S234504AbhBBOlX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2021 09:41:23 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1612276557;
+        s=mimecast20190719; t=1612276796;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=yuioLk+QBKsBksw92DnH4UnwQxafZS+S4qY6HXlBF3g=;
-        b=a+2Uhu9fQAHaRQOo9pvpQdqkKW/OnC2yTkWy2Cq6mIe8ONvz8ogPSZLkfZCfeZd4/d5YSG
-        uh120LQgHNgO1g0aAOXCpmbYgZWNEOiQInPZKNbt4oSbRApxnSolKUcpAMQd0SOGhmhnxn
-        TK15vIPR8pxqMhcccn8lL8Xl+Vhsaj0=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-472-5f30lGN0MNeejRSNZ5HOiA-1; Tue, 02 Feb 2021 09:35:55 -0500
-X-MC-Unique: 5f30lGN0MNeejRSNZ5HOiA-1
-Received: by mail-ej1-f72.google.com with SMTP id k3so10023060ejr.16
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Feb 2021 06:35:54 -0800 (PST)
+        bh=XwLM1qr8Fq0WkUl5xjaI4hjLYikgWJiraoZrsEvsnpU=;
+        b=B6fmJ8Jw9V9seIEYLi1ZzbPYkac6gLxtG3rNoiBJzVRrqwcVGsr1W+xzU8bX2YVcX68jFq
+        RwLkYy8vC+UhXudrvDDb94qseNqKgNj/FPLWTb9LrkH53EMA9uVzJAdKFGMGMgc2gM3GQt
+        M90BW4s49mr0AOWVBDo/Glo51CRNa5o=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-21-cNc06EX3MEipN8DMSFcp-A-1; Tue, 02 Feb 2021 09:39:54 -0500
+X-MC-Unique: cNc06EX3MEipN8DMSFcp-A-1
+Received: by mail-ej1-f69.google.com with SMTP id ox17so10047514ejb.2
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Feb 2021 06:39:54 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=yuioLk+QBKsBksw92DnH4UnwQxafZS+S4qY6HXlBF3g=;
-        b=iqPJpTRjlwL6hT9iNtLSYLWSZfiz3wmd96mU82iTS3QfHuWRF/f+fumI8yDo3O/Jkf
-         2B4nrmR/2bblDt1+1uejK+OA7+yghKli8+AOcK+edVb9l06bmRmelfbnOyCDLbAIeZhG
-         xWq+mnuJ1HGOE4a64kuiBN3jCcSLvmAIGEE/TmWh5KR3cU0bAajwYDXoAAzQxbgmuIrY
-         prXemgPiIqUlK/+LHaMXq0dtSB4gs2+z1pGLDYNQpTWPoGCNHuvRDhT719rG5IBpj2MA
-         qxKH4AxC1Ui4YZd7rayxK1gfybbjgUmTJ++oCbSALNz63uutSjmpiaxdZEtypJjW4rm8
-         V7+Q==
-X-Gm-Message-State: AOAM531IOAllkKS7hpzW7tnqZOoHgE6d7DtsK17efnFxAdRvMCCv5XEz
-        IuR0Ej/40Hs2VHXxQeB6mTj3zY+yDwBqhVMLpWOauumC/Q+aWlBTyyJ8D5F0R7byMcITt11I/nc
-        K638BKB1ez4uwbI9Sr4VabA==
-X-Received: by 2002:a17:906:8555:: with SMTP id h21mr13769671ejy.403.1612276553516;
-        Tue, 02 Feb 2021 06:35:53 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJzX376850pRzW8rhJndm8qGoRK4hnvatMT4A3h6h/V51T3FYCBdyNuksIIYpZES05LFx/deHQ==
-X-Received: by 2002:a17:906:8555:: with SMTP id h21mr13769660ejy.403.1612276553364;
-        Tue, 02 Feb 2021 06:35:53 -0800 (PST)
+        bh=XwLM1qr8Fq0WkUl5xjaI4hjLYikgWJiraoZrsEvsnpU=;
+        b=iDCgiIGMjzOsLu5/qFVUPqLUiM1uRbNEp764SNhWtT3EEyDwFFwwmDDe4zPAb66feJ
+         7AUAGhTVDJnIQz7GfeI85TGDroXXCkoWRaHs4CYkAETvI0xxm1C+OqXtkKNAN5mJpp1h
+         Ym0L51lb9aLjsXWmb4JwUK3BUZx+S8VTCPm7G9ZMW73Zi6WZF/YipHIqIlBQlBWpX/pD
+         C7DH1LAvI1+SLqXRbaG2sXE4h/W76r44i1Q3QzvaxG+czTYxvb9+kOMBGEZn24QiLAgq
+         mnXJGs+YjeL68mGizZBkTU1ZwWH1790tzj8LPXTwT+zQGA6ASMGpgC2lnvf5jmxaR0w4
+         XReQ==
+X-Gm-Message-State: AOAM532fHqf+yezpBK9eBVqF68IjsBTU0ZC+RER8BoR5b2WQeVhrasc5
+        tW+/KA2RLfA/kAqbSe4Wawp6xkELaLcJk8lLZLNwNaUocJLrVOKnJYJyAD3ig2N8HIOamAxvV3b
+        SWmbXAxfBnGe0ngTMf1ab4g==
+X-Received: by 2002:a50:8466:: with SMTP id 93mr12131983edp.55.1612276793209;
+        Tue, 02 Feb 2021 06:39:53 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJwATqBa2bC9fPDIzxTOmTh2LWCs80TuPFub0bxqt9MpNy54OydCvXDdUc7w1r93lUAiocEdVw==
+X-Received: by 2002:a50:8466:: with SMTP id 93mr12131965edp.55.1612276793017;
+        Tue, 02 Feb 2021 06:39:53 -0800 (PST)
 Received: from x1.localdomain (2001-1c00-0c1e-bf00-37a3-353b-be90-1238.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:37a3:353b:be90:1238])
-        by smtp.gmail.com with ESMTPSA id dm6sm9232402ejc.32.2021.02.02.06.35.52
+        by smtp.gmail.com with ESMTPSA id i4sm9441404eje.90.2021.02.02.06.39.52
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 02 Feb 2021 06:35:52 -0800 (PST)
-Subject: Re: How to detect Cherry Trail vs Brasswell inside the kernel ?
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org,
-        x86@kernel.org,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>
-References: <37906985-e026-48d3-cda8-6e63696e72aa@redhat.com>
- <X/XQak3+YtbyeAqM@hirez.programming.kicks-ass.net>
+        Tue, 02 Feb 2021 06:39:52 -0800 (PST)
+Subject: Re: [PATCH v2 2/2] ACPI: platform-profile: Introduce object pointers
+ to callbacks
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Mark Pearson <mpearson@lenovo.com>,
+        Bastien Nocera <hadess@hadess.net>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>
+References: <20210125115957.3292-1-hdegoede@redhat.com>
+ <20210125115957.3292-3-hdegoede@redhat.com>
+ <CAJZ5v0iVGpUxUVMAO4R9bz8dogFRoYun-9-4G_Mgzq0_WP305Q@mail.gmail.com>
+ <CAJZ5v0iCWXmtAApSvVwmWT_p8QXoK9oivTFkxynf3LPEjCE7+A@mail.gmail.com>
 From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <2d5b3911-b4b0-70bd-6ac0-c418fef0c682@redhat.com>
-Date:   Tue, 2 Feb 2021 15:35:52 +0100
+Message-ID: <054e36fc-edeb-043c-7842-cfb29bf6f98d@redhat.com>
+Date:   Tue, 2 Feb 2021 15:39:51 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.6.1
 MIME-Version: 1.0
-In-Reply-To: <X/XQak3+YtbyeAqM@hirez.programming.kicks-ass.net>
+In-Reply-To: <CAJZ5v0iCWXmtAApSvVwmWT_p8QXoK9oivTFkxynf3LPEjCE7+A@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -83,45 +89,34 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 Hi,
 
-On 1/6/21 3:59 PM, Peter Zijlstra wrote:
-> On Wed, Jan 06, 2021 at 01:31:46PM +0100, Hans de Goede wrote:
->> Hi All,
+On 2/1/21 2:55 PM, Rafael J. Wysocki wrote:
+> On Wed, Jan 27, 2021 at 6:47 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >>
->> I've 2 different kernel bugs where the fix requires differentiating between
->> Cherry Trail vs Brasswell, just checking the CPU model does not allow to
->> differentiate between these 2 since they are both using Airmont cores.
+>> On Tue, Jan 26, 2021 at 6:58 AM Hans de Goede <hdegoede@redhat.com> wrote:
+>>>
+>>> From: Jiaxun Yang <jiaxun.yang@flygoat.com>
+>>>
+>>> Add an object pointer to handler callbacks to avoid the need for
+>>> drivers to have a global variable to get to their driver-data
+>>> struct.
+>>>
+>>> Link: https://lore.kernel.org/linux-acpi/6a29f338-d9e4-150c-81dd-2ffb54f5bc35@redhat.com/
+>>> Link: https://lore.kernel.org/r/20210114073429.176462-3-jiaxun.yang@flygoat.com
+>>> Signed-off-by: Jiaxun Yang <jiaxun.yang@flygoat.com>
+>>> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 >>
->> I have the same issue with the Bay Trail laptop SoCs vs the
->> Bay Trail-T tablet SoCs, but for now lets focus on
->> Cherry Trail vs Brasswell since that is less confusing:
->>
->> https://ark.intel.com/content/www/us/en/ark/products/codename/46629/cherry-trail.html
->> https://ark.intel.com/content/www/us/en/ark/products/codename/66094/braswell.html
->>
->> So I see a number of possible solutions here:
->>
->> 1) Do a (substring) check on the CPU model-name checking for "x5-Z8" and "x7-Z8"
->> 2) Check for presence of some embedded peripheral which is present on one but not the
->> other. E.g. The Braswell devices have HDA audio where as the Cherry Trail devices
->> use the "Low Power Engine (LPE) Audio Controller"
->> 3) Check for acpi_gbl_reduced_hardware, but I'm not sure if that is a reliable
->> indicator of running on the tablet versions of the SoCs.
->>
->> 1 and 2 will work but neither is very pretty, I guess I could try to spend some
->> more time investigating 3. But I only have limited access to the non tablet versions
->> of the Bay Trail and I'm not sure if I have any Braswell devices at all. 
->>
->> So I was wondering if anyone else has any better ideas here?
+>> Applied on top of the previous platform-profile patches, thanks!
 > 
-> Does MSR_PLATFORM_ID (0x17) bits 50-52 work to differentiate these?
+> And the entire acpi-platform-profile material is now available for you
+> to pull in the git branch at:
+> 
+>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+>  acpi-platform
+> 
+> which is not going to be rebased going forward.
 
-Thank you, that is (was) a good idea.
-
-So since you send this email I've added a debug print to the kernel for these
-bits and collected the output of that debug print on various devices.
-
-Unfortunately these bits always read 0 on all Bay Trail / Bay Trail-T /
-Cherry Trail devices which I've tested, so these bits do not help.
+Thank you. I've merged this into pdx86/for-next now.
 
 Regards,
 
