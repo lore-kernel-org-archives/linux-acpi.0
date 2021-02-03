@@ -8,51 +8,51 @@ X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB585C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F6AC433E6
 	for <linux-acpi@archiver.kernel.org>; Wed,  3 Feb 2021 18:19:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84D4A64DE1
+	by mail.kernel.org (Postfix) with ESMTP id 57BB764F91
 	for <linux-acpi@archiver.kernel.org>; Wed,  3 Feb 2021 18:19:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231880AbhBCSSn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Feb 2021 13:18:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47226 "EHLO
+        id S231475AbhBCSSm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Feb 2021 13:18:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232837AbhBCSNg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2021 13:13:36 -0500
-Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E073C061354
-        for <linux-acpi@vger.kernel.org>; Wed,  3 Feb 2021 10:12:19 -0800 (PST)
-Received: by mail-il1-x133.google.com with SMTP id y5so127178ilg.4
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Feb 2021 10:12:19 -0800 (PST)
+        with ESMTP id S232926AbhBCSNv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2021 13:13:51 -0500
+Received: from mail-io1-xd36.google.com (mail-io1-xd36.google.com [IPv6:2607:f8b0:4864:20::d36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F28CCC061223
+        for <linux-acpi@vger.kernel.org>; Wed,  3 Feb 2021 10:12:26 -0800 (PST)
+Received: by mail-io1-xd36.google.com with SMTP id u20so258226iot.9
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Feb 2021 10:12:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linuxfoundation.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Us34ijyq5YldDgoM68M19WNAuZlemdS7tunn1EAeqK0=;
-        b=AGLM7izY/rKHCOxp7cxBmTm/tVSqPW7ZIDhByLc5ZUs5fT9iVWlpKxs0rLvrlh1mCo
-         rUiu/sshU1xp9YhketiJr9uBHZ5yjx9c65M+Ez/Sds7s9ZGZ30Vm/e1O5nR7ry/Ri6kk
-         55jue1iwccIWPtSDFXvnqOff+FiLMnDHgx7uo=
+        bh=t4wenknjZ2bs5eKNUbWK97l2NFAOkxWA8p4z0taSinQ=;
+        b=bK/hwc7BdBaznbintn00c0zRwBKC2JVyZWt36DBGWZYS3p6BVpJeOJEEamHAM+6vyC
+         PXMgKamY4JH2XBuWrtRG8FAQpXZ0SLZ28VkyLw2OPhYx4rxDJ1ScO65tUPG+qdprJ9XJ
+         vV1RasCSNiAfnS8ol5pPlvaIVj8bQiMEHpw8M=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Us34ijyq5YldDgoM68M19WNAuZlemdS7tunn1EAeqK0=;
-        b=tMr0ODBdR3qpYuByFnchBgIeFwH4JOUcKykqcMvVmTV6o2aXrRPa6ZuviTRQcU6pMv
-         omkGbEvtxC/uctr5Shj5KKPWiRWOpsdq0bL01zwpqU/xPlH1QrBQF5bHyKAixmSe6ioL
-         9TAY40UIgjprOvmorKt+2CYZf4wjdiFohjh5+RTEB8sqpGAPt9ZQJYtAeGY27bhNJylS
-         qbaAJIm8PXVv67Q9nixUw1flWJalIBGJd5Qb0I1mRwdsCm5J8Q3UkRtk/zwTikIIiLml
-         HZ6eZpw8A0V7UT/6W+NN9srjUSDkFixvvHzLGR0PxeymbWJIuOLCEvI/VAyHarphUTRP
-         gNLQ==
-X-Gm-Message-State: AOAM532gKV20fLDM2e5Aamg3nVUIrlRTIvp2zLFRDwpDtu9+j04SAEgL
-        RQ+mholOYItW8oXFBOhe0hq5rQ==
-X-Google-Smtp-Source: ABdhPJyuJchmuxTVpwILYv0SxXq+AaTfD/pPbWAbbGIQDB/rEG3yKWTEsN9alX7Ngl05yOUMaGN1bA==
-X-Received: by 2002:a05:6e02:152f:: with SMTP id i15mr3711883ilu.277.1612375935896;
-        Wed, 03 Feb 2021 10:12:15 -0800 (PST)
+        bh=t4wenknjZ2bs5eKNUbWK97l2NFAOkxWA8p4z0taSinQ=;
+        b=QfD36oZCQoY5KXhHOlYdRLYyHlG1melUGi3wei625H0Rllc8x5PWyUkaMqE+0QVTsQ
+         X1U80ju3KXXxzkhnnLwohW/KsCowd1vmtbwgH2U4n9AuiDt7KBwR6+7BCWOmHDs9dwMg
+         vQSUN31/HRonoNxq+dJ4IkY5838tnTyOq2+wF4gK9sA+itk/RHPb7old2ksbe5pAYJHr
+         xDuRbzMfX1WGgQ9XBPQsPOjJ/MfhsEqMs41ZGCkxl7rND2KvRmBXuE+Egiw0huKomfzo
+         z80qAaHSXETv7/qPgu9fOucYzCD0wUilPSom5G3iuVGjy08hUDdqoLVF66ILTMAN6X5E
+         NG0Q==
+X-Gm-Message-State: AOAM531KAvIBZuJQ8Tu0j5r+oxrxQUjCY4EXflmwRi8kj7D2cLTFX2SO
+        dtJ5npgOIcEpAAaQCGgc0uqIJA==
+X-Google-Smtp-Source: ABdhPJzuni/KqIxziQLcVYre754B6JcsdqYKUpMJ3ElrpM0fP5ipHxD7+qBAafURTEbI1MVyvOBomg==
+X-Received: by 2002:a5e:a911:: with SMTP id c17mr2982344iod.20.1612375946517;
+        Wed, 03 Feb 2021 10:12:26 -0800 (PST)
 Received: from shuah-t480s.internal (c-24-9-64-241.hsd1.co.comcast.net. [24.9.64.241])
-        by smtp.gmail.com with ESMTPSA id h21sm399684iob.30.2021.02.03.10.12.14
+        by smtp.gmail.com with ESMTPSA id h21sm399684iob.30.2021.02.03.10.12.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Feb 2021 10:12:15 -0800 (PST)
+        Wed, 03 Feb 2021 10:12:26 -0800 (PST)
 From:   Shuah Khan <skhan@linuxfoundation.org>
 To:     corbet@lwn.net, gregkh@linuxfoundation.org, peterz@infradead.org,
         keescook@chromium.org, rafael@kernel.org, lenb@kernel.org,
@@ -61,9 +61,9 @@ Cc:     Shuah Khan <skhan@linuxfoundation.org>,
         linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
         devel@driverdev.osuosl.org
-Subject: [PATCH v3 2/7] selftests: lib:test_seqnum_ops: add new test for seqnum_ops
-Date:   Wed,  3 Feb 2021 11:11:58 -0700
-Message-Id: <08e6ceb7608d008faf9e28e4f08361af5618cf07.1612314468.git.skhan@linuxfoundation.org>
+Subject: [PATCH v3 7/7] kobject: convert uevent_seqnum to seqnum_ops
+Date:   Wed,  3 Feb 2021 11:12:03 -0700
+Message-Id: <3ddd122c266e8cb460542d852e9b703c6eef2141.1612314468.git.skhan@linuxfoundation.org>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <cover.1612314468.git.skhan@linuxfoundation.org>
 References: <cover.1612314468.git.skhan@linuxfoundation.org>
@@ -73,112 +73,96 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a new selftest for testing seqnum_ops. This test loads test_seqnum_ops
-test module and unloads it. The test module runs tests and prints results
-to dmesg.
-
 Sequence Number api provides interfaces for unsigned atomic up counters
 leveraging atomic_t and atomic64_t ops underneath.
 
-There are a number of atomic_t usages in the kernel where atomic_t api
-is used for counting sequence numbers and other statistical counters.
-Several of these usages, convert atomic_read() and atomic_inc_return()
-return values to unsigned. Introducing sequence number ops supports
-these use-cases with a standard core-api.
-
-Sequence Number ops provide interfaces to initialize, increment and get
-the sequence number. These ops also check for overflow and log message to
-indicate when overflow occurs.
+Convert uevent_seqnum atomic counter to use seqnum_ops.
 
 Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
 ---
- Documentation/core-api/seqnum_ops.rst          |  9 +++++++++
- MAINTAINERS                                    |  1 +
- include/linux/seqnum_ops.h                     |  2 ++
- tools/testing/selftests/lib/Makefile           |  1 +
- tools/testing/selftests/lib/config             |  1 +
- tools/testing/selftests/lib/test_seqnum_ops.sh | 10 ++++++++++
- 6 files changed, 24 insertions(+)
- create mode 100755 tools/testing/selftests/lib/test_seqnum_ops.sh
+ include/linux/kobject.h | 3 ++-
+ kernel/ksysfs.c         | 3 ++-
+ lib/kobject_uevent.c    | 9 ++++++---
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/core-api/seqnum_ops.rst b/Documentation/core-api/seqnum_ops.rst
-index ed4eba394799..6db2c9120885 100644
---- a/Documentation/core-api/seqnum_ops.rst
-+++ b/Documentation/core-api/seqnum_ops.rst
-@@ -51,3 +51,12 @@ Returns sequence number value. ::
+diff --git a/include/linux/kobject.h b/include/linux/kobject.h
+index ea30529fba08..8990e40344a2 100644
+--- a/include/linux/kobject.h
++++ b/include/linux/kobject.h
+@@ -27,6 +27,7 @@
+ #include <linux/atomic.h>
+ #include <linux/workqueue.h>
+ #include <linux/uidgid.h>
++#include <linux/seqnum_ops.h>
  
- .. warning::
-         seqnum32 wraps around to INT_MIN when it overflows.
-+
-+Where are the seqnum_ops and how to use and test them?
-+------------------------------------------------------
-+
-+.. kernel-doc:: include/linux/seqnum_ops.h
-+
-+Please see lib/test_seqnum_ops.c for examples usages and test module.
-+Please find selftest: testing/selftests/lib/test_seqnum_ops.sh
-+Please check dmesg for results after running test_seqnum_ops.sh.
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f9fe1438a8cd..70b9eeb995f7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -16241,6 +16241,7 @@ L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	include/linux/seqnum_ops.h
- F:	lib/test_seqnum_ops.c
-+F:	tools/testing/selftests/lib/test_seqnum_ops.sh
+ #define UEVENT_HELPER_PATH_LEN		256
+ #define UEVENT_NUM_ENVP			64	/* number of env pointers */
+@@ -38,7 +39,7 @@ extern char uevent_helper[];
+ #endif
  
- SIMPLE FIRMWARE INTERFACE (SFI)
- S:	Obsolete
-diff --git a/include/linux/seqnum_ops.h b/include/linux/seqnum_ops.h
-index e8d8481445d3..d540b62d1aa4 100644
---- a/include/linux/seqnum_ops.h
-+++ b/include/linux/seqnum_ops.h
-@@ -18,6 +18,8 @@
-  *
-  * Reference and API guide:
-  *	Documentation/core-api/seqnum_ops.rst for more information.
-+ *	lib/test_seqnum_ops.c - example usages and test module
-+ *	tools/testing/selftests/lib/test_seqnum_ops.sh
-  */
+ /* counter to tag the uevent, read only except for the kobject core */
+-extern u64 uevent_seqnum;
++extern struct seqnum64 uevent_seqnum;
  
- #ifndef __LINUX_SEQNUM_OPS_H
-diff --git a/tools/testing/selftests/lib/Makefile b/tools/testing/selftests/lib/Makefile
-index a105f094676e..1818444f0e97 100644
---- a/tools/testing/selftests/lib/Makefile
-+++ b/tools/testing/selftests/lib/Makefile
-@@ -5,5 +5,6 @@
- all:
+ /*
+  * The actions here must match the index to the string array
+diff --git a/kernel/ksysfs.c b/kernel/ksysfs.c
+index 35859da8bd4f..15836f6e5998 100644
+--- a/kernel/ksysfs.c
++++ b/kernel/ksysfs.c
+@@ -17,6 +17,7 @@
+ #include <linux/sched.h>
+ #include <linux/capability.h>
+ #include <linux/compiler.h>
++#include <linux/seqnum_ops.h>
  
- TEST_PROGS := printf.sh bitmap.sh prime_numbers.sh strscpy.sh
-+TEST_PROGS += test_seqnum_ops.sh
+ #include <linux/rcupdate.h>	/* rcu_expedited and rcu_normal */
  
- include ../lib.mk
-diff --git a/tools/testing/selftests/lib/config b/tools/testing/selftests/lib/config
-index b80ee3f6e265..674ed2a2ac82 100644
---- a/tools/testing/selftests/lib/config
-+++ b/tools/testing/selftests/lib/config
-@@ -3,3 +3,4 @@ CONFIG_TEST_BITMAP=m
- CONFIG_PRIME_NUMBERS=m
- CONFIG_TEST_STRSCPY=m
- CONFIG_TEST_BITOPS=m
-+CONFIG_TEST_SEQNUM_OPS=m
-diff --git a/tools/testing/selftests/lib/test_seqnum_ops.sh b/tools/testing/selftests/lib/test_seqnum_ops.sh
-new file mode 100755
-index 000000000000..fdce16b220ba
---- /dev/null
-+++ b/tools/testing/selftests/lib/test_seqnum_ops.sh
-@@ -0,0 +1,10 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Copyright (c) 2020 Shuah Khan <skhan@linuxfoundation.org>
-+# Copyright (c) 2020 The Linux Foundation
-+#
-+# Tests the Sequence Number Ops interfaces using test_seqnum_ops
-+# kernel module
-+#
-+$(dirname $0)/../kselftest/module.sh "test_seqnum_ops" test_seqnum_ops
+@@ -31,7 +32,7 @@ static struct kobj_attribute _name##_attr = \
+ static ssize_t uevent_seqnum_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%llu\n", (unsigned long long)uevent_seqnum);
++	return sprintf(buf, "%llu\n", seqnum64_get(&uevent_seqnum));
+ }
+ KERNEL_ATTR_RO(uevent_seqnum);
+ 
+diff --git a/lib/kobject_uevent.c b/lib/kobject_uevent.c
+index 7998affa45d4..3a7b2648f084 100644
+--- a/lib/kobject_uevent.c
++++ b/lib/kobject_uevent.c
+@@ -28,9 +28,10 @@
+ #include <net/sock.h>
+ #include <net/netlink.h>
+ #include <net/net_namespace.h>
++#include <linux/seqnum_ops.h>
+ 
+ 
+-u64 uevent_seqnum;
++struct seqnum64  uevent_seqnum;
+ #ifdef CONFIG_UEVENT_HELPER
+ char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
+ #endif
+@@ -584,7 +585,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+ 
+ 	mutex_lock(&uevent_sock_mutex);
+ 	/* we will send an event, so request a new sequence number */
+-	retval = add_uevent_var(env, "SEQNUM=%llu", ++uevent_seqnum);
++	retval = add_uevent_var(env, "SEQNUM=%llu",
++				seqnum64_inc(&uevent_seqnum));
+ 	if (retval) {
+ 		mutex_unlock(&uevent_sock_mutex);
+ 		goto exit;
+@@ -687,7 +689,8 @@ static int uevent_net_broadcast(struct sock *usk, struct sk_buff *skb,
+ 	int ret;
+ 
+ 	/* bump and prepare sequence number */
+-	ret = snprintf(buf, sizeof(buf), "SEQNUM=%llu", ++uevent_seqnum);
++	ret = snprintf(buf, sizeof(buf), "SEQNUM=%llu",
++			seqnum64_inc(&uevent_seqnum));
+ 	if (ret < 0 || (size_t)ret >= sizeof(buf))
+ 		return -ENOMEM;
+ 	ret++;
 -- 
 2.27.0
 
