@@ -2,167 +2,283 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F6AC433E6
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Feb 2021 18:19:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B42C433E0
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Feb 2021 18:26:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 57BB764F91
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Feb 2021 18:19:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7ED2E64F51
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Feb 2021 18:26:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231475AbhBCSSm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Feb 2021 13:18:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47298 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232926AbhBCSNv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2021 13:13:51 -0500
-Received: from mail-io1-xd36.google.com (mail-io1-xd36.google.com [IPv6:2607:f8b0:4864:20::d36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F28CCC061223
-        for <linux-acpi@vger.kernel.org>; Wed,  3 Feb 2021 10:12:26 -0800 (PST)
-Received: by mail-io1-xd36.google.com with SMTP id u20so258226iot.9
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Feb 2021 10:12:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=t4wenknjZ2bs5eKNUbWK97l2NFAOkxWA8p4z0taSinQ=;
-        b=bK/hwc7BdBaznbintn00c0zRwBKC2JVyZWt36DBGWZYS3p6BVpJeOJEEamHAM+6vyC
-         PXMgKamY4JH2XBuWrtRG8FAQpXZ0SLZ28VkyLw2OPhYx4rxDJ1ScO65tUPG+qdprJ9XJ
-         vV1RasCSNiAfnS8ol5pPlvaIVj8bQiMEHpw8M=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=t4wenknjZ2bs5eKNUbWK97l2NFAOkxWA8p4z0taSinQ=;
-        b=QfD36oZCQoY5KXhHOlYdRLYyHlG1melUGi3wei625H0Rllc8x5PWyUkaMqE+0QVTsQ
-         X1U80ju3KXXxzkhnnLwohW/KsCowd1vmtbwgH2U4n9AuiDt7KBwR6+7BCWOmHDs9dwMg
-         vQSUN31/HRonoNxq+dJ4IkY5838tnTyOq2+wF4gK9sA+itk/RHPb7old2ksbe5pAYJHr
-         xDuRbzMfX1WGgQ9XBPQsPOjJ/MfhsEqMs41ZGCkxl7rND2KvRmBXuE+Egiw0huKomfzo
-         z80qAaHSXETv7/qPgu9fOucYzCD0wUilPSom5G3iuVGjy08hUDdqoLVF66ILTMAN6X5E
-         NG0Q==
-X-Gm-Message-State: AOAM531KAvIBZuJQ8Tu0j5r+oxrxQUjCY4EXflmwRi8kj7D2cLTFX2SO
-        dtJ5npgOIcEpAAaQCGgc0uqIJA==
-X-Google-Smtp-Source: ABdhPJzuni/KqIxziQLcVYre754B6JcsdqYKUpMJ3ElrpM0fP5ipHxD7+qBAafURTEbI1MVyvOBomg==
-X-Received: by 2002:a5e:a911:: with SMTP id c17mr2982344iod.20.1612375946517;
-        Wed, 03 Feb 2021 10:12:26 -0800 (PST)
-Received: from shuah-t480s.internal (c-24-9-64-241.hsd1.co.comcast.net. [24.9.64.241])
-        by smtp.gmail.com with ESMTPSA id h21sm399684iob.30.2021.02.03.10.12.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Feb 2021 10:12:26 -0800 (PST)
-From:   Shuah Khan <skhan@linuxfoundation.org>
-To:     corbet@lwn.net, gregkh@linuxfoundation.org, peterz@infradead.org,
-        keescook@chromium.org, rafael@kernel.org, lenb@kernel.org,
-        james.morse@arm.com, tony.luck@intel.com, bp@alien8.de
-Cc:     Shuah Khan <skhan@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v3 7/7] kobject: convert uevent_seqnum to seqnum_ops
-Date:   Wed,  3 Feb 2021 11:12:03 -0700
-Message-Id: <3ddd122c266e8cb460542d852e9b703c6eef2141.1612314468.git.skhan@linuxfoundation.org>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <cover.1612314468.git.skhan@linuxfoundation.org>
-References: <cover.1612314468.git.skhan@linuxfoundation.org>
+        id S231475AbhBCS0p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Feb 2021 13:26:45 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:44476 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231648AbhBCS0o (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2021 13:26:44 -0500
+Received: from 89-64-80-249.dynamic.chello.pl (89.64.80.249) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
+ id ba3fbfd0a36681d3; Wed, 3 Feb 2021 19:25:59 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Giovanni Gherdovich <ggherdovich@suse.cz>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Jon Grimm <Jon.Grimm@amd.com>,
+        Nathan Fontenot <Nathan.Fontenot@amd.com>,
+        Yazen Ghannam <Yazen.Ghannam@amd.com>,
+        Thomas Lendacky <Thomas.Lendacky@amd.com>,
+        Suthikulpanit Suravee <Suravee.Suthikulpanit@amd.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Pu Wen <puwen@hygon.cn>, Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Michael Larabel <Michael@phoronix.com>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH v3 1/1] x86,sched: On AMD EPYC set freq_max = max_boost in schedutil invariant formula
+Date:   Wed, 03 Feb 2021 19:25:58 +0100
+Message-ID: <5470319.60Xv9dOaFs@kreacher>
+In-Reply-To: <CAJZ5v0g1SWRnV1QfZG3o+hvBg9akakhDMomGCFjwERyG2ENKww@mail.gmail.com>
+References: <20210203135321.12253-1-ggherdovich@suse.cz> <20210203135321.12253-2-ggherdovich@suse.cz> <CAJZ5v0g1SWRnV1QfZG3o+hvBg9akakhDMomGCFjwERyG2ENKww@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Sequence Number api provides interfaces for unsigned atomic up counters
-leveraging atomic_t and atomic64_t ops underneath.
+On Wednesday, February 3, 2021 3:11:37 PM CET Rafael J. Wysocki wrote:
+> On Wed, Feb 3, 2021 at 2:53 PM Giovanni Gherdovich <ggherdovich@suse.cz> wrote:
+> >
+> 
+> [cut]
+> 
+> > Fixes: 41ea667227ba ("x86, sched: Calculate frequency invariance for AMD systems")
+> > Fixes: 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for frequency invariance on AMD EPYC")
+> > Reported-by: Michael Larabel <Michael@phoronix.com>
+> > Tested-by: Michael Larabel <Michael@phoronix.com>
+> > Signed-off-by: Giovanni Gherdovich <ggherdovich@suse.cz>
+> > ---
+> >  drivers/cpufreq/acpi-cpufreq.c   | 61 ++++++++++++++++++++++++++++++--
+> >  drivers/cpufreq/cpufreq.c        |  3 ++
+> >  include/linux/cpufreq.h          |  5 +++
+> >  kernel/sched/cpufreq_schedutil.c |  8 +++--
+> 
+> I don't really think that it is necessary to modify schedutil to
+> address this issue.
 
-Convert uevent_seqnum atomic counter to use seqnum_ops.
+So below is a prototype of an alternative fix for the issue at hand.
 
-Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
+I can't really test it here, because there's no _CPC in the ACPI tables of my
+test machines, so testing it would be appreciated.  However, AFAICS these
+machines are affected by the performance issue related to the scale-invariance
+when they are running acpi-cpufreq, so what we are doing here is not entirely
+sufficient.
+
+It looks like the scale-invariance code should ask the cpufreq driver about
+the maximum frequency and note that cpufreq drivers may be changed on the
+fly.
+
+What the patch below does is to add an extra entry to the frequency table for
+each CPU to represent the maximum "boost" frequency, so as to cause that
+frequency to be used as cpuinfo.max_freq.
+
+The reason why I think it is better to extend the frequency tables instead
+of simply increasing the frequency for the "P0" entry is because the latter
+may cause "turbo" frequency to be asked for less often.
+
 ---
- include/linux/kobject.h | 3 ++-
- kernel/ksysfs.c         | 3 ++-
- lib/kobject_uevent.c    | 9 ++++++---
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/cpufreq/acpi-cpufreq.c |  107 ++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 95 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/kobject.h b/include/linux/kobject.h
-index ea30529fba08..8990e40344a2 100644
---- a/include/linux/kobject.h
-+++ b/include/linux/kobject.h
-@@ -27,6 +27,7 @@
- #include <linux/atomic.h>
- #include <linux/workqueue.h>
- #include <linux/uidgid.h>
-+#include <linux/seqnum_ops.h>
+Index: linux-pm/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-pm/drivers/cpufreq/acpi-cpufreq.c
+@@ -26,6 +26,7 @@
+ #include <linux/uaccess.h>
  
- #define UEVENT_HELPER_PATH_LEN		256
- #define UEVENT_NUM_ENVP			64	/* number of env pointers */
-@@ -38,7 +39,7 @@ extern char uevent_helper[];
- #endif
+ #include <acpi/processor.h>
++#include <acpi/cppc_acpi.h>
  
- /* counter to tag the uevent, read only except for the kobject core */
--extern u64 uevent_seqnum;
-+extern struct seqnum64 uevent_seqnum;
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+@@ -53,6 +54,7 @@ struct acpi_cpufreq_data {
+ 	unsigned int resume;
+ 	unsigned int cpu_feature;
+ 	unsigned int acpi_perf_cpu;
++	unsigned int first_perf_state;
+ 	cpumask_var_t freqdomain_cpus;
+ 	void (*cpu_freq_write)(struct acpi_pct_register *reg, u32 val);
+ 	u32 (*cpu_freq_read)(struct acpi_pct_register *reg);
+@@ -221,10 +223,10 @@ static unsigned extract_msr(struct cpufr
  
- /*
-  * The actions here must match the index to the string array
-diff --git a/kernel/ksysfs.c b/kernel/ksysfs.c
-index 35859da8bd4f..15836f6e5998 100644
---- a/kernel/ksysfs.c
-+++ b/kernel/ksysfs.c
-@@ -17,6 +17,7 @@
- #include <linux/sched.h>
- #include <linux/capability.h>
- #include <linux/compiler.h>
-+#include <linux/seqnum_ops.h>
+ 	perf = to_perf_data(data);
  
- #include <linux/rcupdate.h>	/* rcu_expedited and rcu_normal */
- 
-@@ -31,7 +32,7 @@ static struct kobj_attribute _name##_attr = \
- static ssize_t uevent_seqnum_show(struct kobject *kobj,
- 				  struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%llu\n", (unsigned long long)uevent_seqnum);
-+	return sprintf(buf, "%llu\n", seqnum64_get(&uevent_seqnum));
+-	cpufreq_for_each_entry(pos, policy->freq_table)
++	cpufreq_for_each_entry(pos, policy->freq_table + data->first_perf_state)
+ 		if (msr == perf->states[pos->driver_data].status)
+ 			return pos->frequency;
+-	return policy->freq_table[0].frequency;
++	return policy->freq_table[data->first_perf_state].frequency;
  }
- KERNEL_ATTR_RO(uevent_seqnum);
  
-diff --git a/lib/kobject_uevent.c b/lib/kobject_uevent.c
-index 7998affa45d4..3a7b2648f084 100644
---- a/lib/kobject_uevent.c
-+++ b/lib/kobject_uevent.c
-@@ -28,9 +28,10 @@
- #include <net/sock.h>
- #include <net/netlink.h>
- #include <net/net_namespace.h>
-+#include <linux/seqnum_ops.h>
+ static unsigned extract_freq(struct cpufreq_policy *policy, u32 val)
+@@ -363,6 +365,7 @@ static unsigned int get_cur_freq_on_cpu(
+ 	struct cpufreq_policy *policy;
+ 	unsigned int freq;
+ 	unsigned int cached_freq;
++	unsigned int state;
  
+ 	pr_debug("%s (%d)\n", __func__, cpu);
  
--u64 uevent_seqnum;
-+struct seqnum64  uevent_seqnum;
- #ifdef CONFIG_UEVENT_HELPER
- char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
+@@ -374,7 +377,11 @@ static unsigned int get_cur_freq_on_cpu(
+ 	if (unlikely(!data || !policy->freq_table))
+ 		return 0;
+ 
+-	cached_freq = policy->freq_table[to_perf_data(data)->state].frequency;
++	state = to_perf_data(data)->state;
++	if (state < data->first_perf_state)
++		state = data->first_perf_state;
++
++	cached_freq = policy->freq_table[state].frequency;
+ 	freq = extract_freq(policy, get_cur_val(cpumask_of(cpu), data));
+ 	if (freq != cached_freq) {
+ 		/*
+@@ -628,16 +635,54 @@ static int acpi_cpufreq_blacklist(struct
+ }
  #endif
-@@ -584,7 +585,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
  
- 	mutex_lock(&uevent_sock_mutex);
- 	/* we will send an event, so request a new sequence number */
--	retval = add_uevent_var(env, "SEQNUM=%llu", ++uevent_seqnum);
-+	retval = add_uevent_var(env, "SEQNUM=%llu",
-+				seqnum64_inc(&uevent_seqnum));
- 	if (retval) {
- 		mutex_unlock(&uevent_sock_mutex);
- 		goto exit;
-@@ -687,7 +689,8 @@ static int uevent_net_broadcast(struct sock *usk, struct sk_buff *skb,
- 	int ret;
++#ifdef CONFIG_ACPI_CPPC_LIB
++static u64 get_max_boost_ratio(unsigned int cpu)
++{
++	struct cppc_perf_caps perf_caps;
++	u64 highest_perf, nominal_perf;
++	int ret;
++
++	if (acpi_pstate_strict)
++		return 0;
++
++	ret = cppc_get_perf_caps(cpu, &perf_caps);
++	if (ret) {
++		pr_debug("CPU%d: Unable to get performance capabilities (%d)\n",
++			 cpu, ret);
++		return 0;
++	}
++
++	highest_perf = perf_caps.highest_perf;
++	nominal_perf = perf_caps.nominal_perf;
++
++	if (!highest_perf || !nominal_perf) {
++		pr_debug("CPU%d: highest or nominal performance missing\n", cpu);
++		return 0;
++	}
++
++	if (highest_perf < nominal_perf) {
++		pr_debug("CPU%d: nominal performance above highest\n", cpu);
++		return 0;
++	}
++
++	return div_u64(highest_perf << SCHED_CAPACITY_SHIFT, nominal_perf);
++}
++#else
++static inline u64 get_max_boost_ratio(unsigned int cpu) { return 0; }
++#endif
++
+ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ {
+-	unsigned int i;
+-	unsigned int valid_states = 0;
+-	unsigned int cpu = policy->cpu;
++	struct cpufreq_frequency_table *freq_table;
++	struct acpi_processor_performance *perf;
+ 	struct acpi_cpufreq_data *data;
++	unsigned int cpu = policy->cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
++	unsigned int valid_states = 0;
+ 	unsigned int result = 0;
+-	struct cpuinfo_x86 *c = &cpu_data(policy->cpu);
+-	struct acpi_processor_performance *perf;
+-	struct cpufreq_frequency_table *freq_table;
++	unsigned int state_count;
++	u64 max_boost_ratio;
++	unsigned int i;
+ #ifdef CONFIG_SMP
+ 	static int blacklisted;
+ #endif
+@@ -750,8 +795,20 @@ static int acpi_cpufreq_cpu_init(struct
+ 		goto err_unreg;
+ 	}
  
- 	/* bump and prepare sequence number */
--	ret = snprintf(buf, sizeof(buf), "SEQNUM=%llu", ++uevent_seqnum);
-+	ret = snprintf(buf, sizeof(buf), "SEQNUM=%llu",
-+			seqnum64_inc(&uevent_seqnum));
- 	if (ret < 0 || (size_t)ret >= sizeof(buf))
- 		return -ENOMEM;
- 	ret++;
--- 
-2.27.0
+-	freq_table = kcalloc(perf->state_count + 1, sizeof(*freq_table),
+-			     GFP_KERNEL);
++	state_count = perf->state_count + 1;
++
++	max_boost_ratio = get_max_boost_ratio(cpu);
++	if (max_boost_ratio) {
++		/*
++		 * Make a room for one more entry to represent the highest
++		 * available "boost" frequency.
++		 */
++		state_count++;
++		valid_states++;
++		data->first_perf_state = valid_states;
++	}
++
++	freq_table = kcalloc(state_count, sizeof(*freq_table), GFP_KERNEL);
+ 	if (!freq_table) {
+ 		result = -ENOMEM;
+ 		goto err_unreg;
+@@ -785,6 +842,30 @@ static int acpi_cpufreq_cpu_init(struct
+ 		valid_states++;
+ 	}
+ 	freq_table[valid_states].frequency = CPUFREQ_TABLE_END;
++
++	if (max_boost_ratio) {
++		unsigned int state = data->first_perf_state;
++		unsigned int freq = freq_table[state].frequency;
++
++		/*
++		 * Because the loop above sorts the freq_table entries in the
++		 * descending order, freq is the maximum frequency in the table.
++		 * Assume that it corresponds to the CPPC nominal frequency and
++		 * use it to populate the frequency field of the extra "boost"
++		 * frequency entry.
++		 */
++		freq_table[0].frequency = freq * max_boost_ratio >> SCHED_CAPACITY_SHIFT;
++		/*
++		 * The purpose of the extra "boost" frequency entry is to make
++		 * the rest of cpufreq aware of the real maximum frequency, but
++		 * the way to request it is the same as for the first_perf_state
++		 * entry that is expected to cover the entire range of "boost"
++		 * frequencies of the CPU, so copy the driver_data value from
++		 * that entry.
++		 */
++		freq_table[0].driver_data = freq_table[state].driver_data;
++	}
++
+ 	policy->freq_table = freq_table;
+ 	perf->state = 0;
+ 
+@@ -858,8 +939,10 @@ static void acpi_cpufreq_cpu_ready(struc
+ {
+ 	struct acpi_processor_performance *perf = per_cpu_ptr(acpi_perf_data,
+ 							      policy->cpu);
++	struct acpi_cpufreq_data *data = policy->driver_data;
++	unsigned int freq = policy->freq_table[data->first_perf_state].frequency;
+ 
+-	if (perf->states[0].core_frequency * 1000 != policy->cpuinfo.max_freq)
++	if (perf->states[0].core_frequency * 1000 != freq)
+ 		pr_warn(FW_WARN "P-state 0 is not max freq\n");
+ }
+ 
+
+
 
