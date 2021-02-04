@@ -2,75 +2,74 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-26.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF2B9C4332B
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 22:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B129CC433E0
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 22:40:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 864E064F95
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 22:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C2A464FAD
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 22:40:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229963AbhBDWkK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 4 Feb 2021 17:40:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47170 "EHLO
+        id S230050AbhBDWkb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 4 Feb 2021 17:40:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229908AbhBDWkJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2021 17:40:09 -0500
-Received: from mail-qt1-x84a.google.com (mail-qt1-x84a.google.com [IPv6:2607:f8b0:4864:20::84a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEC89C0617A9
-        for <linux-acpi@vger.kernel.org>; Thu,  4 Feb 2021 14:39:28 -0800 (PST)
-Received: by mail-qt1-x84a.google.com with SMTP id f5so3774819qtf.15
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Feb 2021 14:39:28 -0800 (PST)
+        with ESMTP id S230023AbhBDWk2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2021 17:40:28 -0500
+Received: from mail-qv1-xf49.google.com (mail-qv1-xf49.google.com [IPv6:2607:f8b0:4864:20::f49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F77BC06121F
+        for <linux-acpi@vger.kernel.org>; Thu,  4 Feb 2021 14:39:34 -0800 (PST)
+Received: by mail-qv1-xf49.google.com with SMTP id a12so3460296qvo.3
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Feb 2021 14:39:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=sender:date:in-reply-to:message-id:mime-version:references:subject
          :from:to:cc;
-        bh=58Q92i4qhAAZTYBbk8UC1mmmTkThlWpH1fHFDUtPMuM=;
-        b=euGAzslFXlbXVGiKL4nhk1Q3eNfg/xIlvg3MNxWZglXy0l/XNlmEKbPoQOPny89Rnu
-         VHSsxEtvQzzkUSk+y0N8TUyncyHpoIXLoTsUcZTXng3m9IMZ1gHMV/PPyNjR8O84I4tH
-         pf+HWg+hzsUH1NuugKSzWYwMbV/Dzwg8AXydTx1r/VCrRagfMgr+1QxTOpS7O7Bi6NyL
-         un+XbQbh9AGCMcj0b7jV9R+X3KsJOfhga0oZEfTS6Bwb/A6ZvHb7/VkrJffbKbKykDsT
-         L+CLjoVhjJCbW7m/MbpXvriyV10s4xdRt+K9GXF4vB+pEGkNLj/B39BFDuYM60qdykjz
-         pXIg==
+        bh=gziCZeOtguvR7/4aBYbBoYzK8/554eSy4zrpV/kkJaA=;
+        b=MHR4Xli2I24AgwyqdRLzwHrMHNz+YM3B3CFbZSeGTIC9ecnhC6BTfbFshQf9VDrOib
+         Dku27VBPwSlAgujBVLjbKGsE7CbggU3xzinvdRqIASUenJvR2fqAHmH1Lml2Jy02U8vB
+         +irs4Nhrfo4sDOF1oj2TLfQSCIXyeFQGkPLQo7+rzdMqh3LxQuN5Eu+/jFHN6FCmnQPY
+         K+lh/eyJDpDBirApdHC8h4+CkwW90qnk+HaglF8oqOQ2D1+lasYCsM4gJRIIdaoqbiyj
+         pbeYqd9s06YjMTiWxYOmrnsbPvDkXkJ1+TkSalZoV0EMcSTbFgYEqsw62Tyve2rIphOO
+         lrfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=58Q92i4qhAAZTYBbk8UC1mmmTkThlWpH1fHFDUtPMuM=;
-        b=CnWicqHjHpByNz9AmNfLu4ZgQHoUtjbTBRg0yJWyeZKQfuAsiSDdzz4Rta/l/oIWt/
-         8aq/QX1Dlp5gaEcSyoIHUhRKmds9PVNjQFsO81KCnEnxadjHtmP2xJDkauFRlDc9MKNv
-         8/rmGeTdV0zTE82jfkdn/4gkU/JsVGEgg40Su/ZVIfC4QGii+awoSYBkYKJ3QjwFd/F7
-         7T/FpYD6haCCeOwKWMErNKZjpDMuvk7METpSoP0n2Gt3xRWt0cG8fNqNelwCVcVlFeZ7
-         0gP8psbyFsv2oDAFdfNOHAyoikyrPR28ApzqefBhRLkBEd/0gUlFayMJrplL0rhbxLrv
-         ELHg==
-X-Gm-Message-State: AOAM530etJaVccBMTizhd5efH3iTz9dRn+8wT5rup0y2D/2swjz5vgrF
-        NKT/2iB7WkJRJlhfGnD3A7mljnbBHV33bWs=
-X-Google-Smtp-Source: ABdhPJyxupvoFcIfn7LkQf7okwYnUiD48Y4PFWbc4IZvT5ysgPT3kDUrc+h3fQQ4xTLjSywFcy/7gtG/YZuSLo4=
+        bh=gziCZeOtguvR7/4aBYbBoYzK8/554eSy4zrpV/kkJaA=;
+        b=YDOjdWDVzrU+bVvouLYzIrb8Rm195+ViJTMoIavCljH3nbQKZTlYgqK8qK8K2y4mmJ
+         CH91PMSG8/T7xTYx6KLxheutcq7Q40LSeoJmGeJWsMofiTzkKk+GrhGl9OkG3gpBq9sE
+         wBzSHOp+wH+AIccHzidqnJfJIWg6PqZUpSh2DKKjqTl2tyBz1zOtJ5Esie986cfcW5rL
+         H1dbAZ8P1SKYDt9Eiex+rRM9B2j43jrbaRlBopgPXPHHOfFkNihA+zueN1Gz0dTp6AYt
+         g6c4TYy67ULHk8zPeusunrWJwwf/ass0amwYizdWq3HzYIe8D+4VxkL3nbOC1O1GgorW
+         gDFA==
+X-Gm-Message-State: AOAM530289reQ2A94iaDLSgpCw+3PM6S+MU3QC+iE880uAfViSGT4yqG
+        LfR/0/iPI9deL/3smBd2lraJ2k/n93ss3W4=
+X-Google-Smtp-Source: ABdhPJwXyRBXE/1Uh19s4fjUEN6pHJQGzbSU9PJuDLDzC9SG8AghYE2YKw0bDYwV0yzV+iVGC4j3lO96SpvvN+Y=
 Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:8475:2f1d:e8b4:f65a])
- (user=saravanak job=sendgmr) by 2002:ad4:5a48:: with SMTP id
- ej8mr1537016qvb.41.1612478368174; Thu, 04 Feb 2021 14:39:28 -0800 (PST)
-Date:   Thu,  4 Feb 2021 14:39:18 -0800
+ (user=saravanak job=sendgmr) by 2002:a0c:a99e:: with SMTP id
+ a30mr1594869qvb.38.1612478373421; Thu, 04 Feb 2021 14:39:33 -0800 (PST)
+Date:   Thu,  4 Feb 2021 14:39:20 -0800
 In-Reply-To: <20210204223921.1693487-1-saravanak@google.com>
-Message-Id: <20210204223921.1693487-2-saravanak@google.com>
+Message-Id: <20210204223921.1693487-4-saravanak@google.com>
 Mime-Version: 1.0
 References: <20210204223921.1693487-1-saravanak@google.com>
 X-Mailer: git-send-email 2.30.0.365.g02bc693789-goog
-Subject: [PATCH v3 1/4] driver core: fw_devlink: Detect supplier devices that
- will never be added
+Subject: [PATCH v3 3/4] driver core: Add fw_devlink.strict kernel param
 From:   Saravana Kannan <saravanak@google.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-        Saravana Kannan <saravanak@google.com>
-Cc:     kernel-team@android.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
+        Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>
+Cc:     Saravana Kannan <saravanak@google.com>, kernel-team@android.com,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
         Marek Szyprowski <m.szyprowski@samsung.com>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
         Marc Zyngier <maz@kernel.org>,
@@ -83,100 +82,75 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-During the initial parsing of firmware by fw_devlink, fw_devlink might
-infer that some supplier firmware nodes would get populated as devices.
-But the inference is not always correct. This patch tries to logically
-detect and fix such mistakes as boot progresses or more devices probe.
+This param allows forcing all dependencies to be treated as mandatory.
+This will be useful for boards in which all optional dependencies like
+IOMMUs and DMAs need to be treated as mandatory dependencies.
 
-fw_devlink makes a fundamental assumption that once a device binds to a
-driver, it will populate (i.e: add as struct devices) all the child
-firmware nodes that could be populated as devices (if they aren't
-populated already).
-
-So, whenever a device probes, we check all its child firmware nodes. If
-a child firmware node has a corresponding device populated, we don't
-modify the child node or its descendants. However, if a child firmware
-node has not been populated as a device, we delete all the fwnode links
-where the child node or its descendants are suppliers. This ensures that
-no other device is blocked on a firmware node that will never be
-populated as a device. We also mark such fwnodes as NOT_DEVICE, so that
-no new fwnode links are created with these nodes as suppliers.
-
-Fixes: e590474768f1 ("driver core: Set fw_devlink=on by default")
 Signed-off-by: Saravana Kannan <saravanak@google.com>
-Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 ---
- drivers/base/core.c    | 31 ++++++++++++++++++++++++++++---
- include/linux/fwnode.h |  2 ++
- 2 files changed, 30 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |  5 +++++
+ drivers/base/core.c                             | 12 ++++++++++++
+ include/linux/fwnode.h                          |  1 +
+ 3 files changed, 18 insertions(+)
 
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index a10b545c2070..692b63644133 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -1433,6 +1433,11 @@
+ 				to enforce probe and suspend/resume ordering.
+ 			rpm --	Like "on", but also use to order runtime PM.
+ 
++	fw_devlink.strict=<bool>
++			[KNL] Treat all inferred dependencies as mandatory
++			dependencies. This only applies for fw_devlink=on|rpm.
++			Format: <bool>
++
+ 	gamecon.map[2|3]=
+ 			[HW,JOY] Multisystem joystick and NES/SNES/PSX pad
+ 			support via parallel port (up to 5 devices per port)
 diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 484a942884ba..c95b1daabac7 100644
+index c95b1daabac7..f466ab4f1c35 100644
 --- a/drivers/base/core.c
 +++ b/drivers/base/core.c
-@@ -148,6 +148,21 @@ void fwnode_links_purge(struct fwnode_handle *fwnode)
- 	fwnode_links_purge_consumers(fwnode);
+@@ -1521,6 +1521,13 @@ static int __init fw_devlink_setup(char *arg)
+ }
+ early_param("fw_devlink", fw_devlink_setup);
+ 
++static bool fw_devlink_strict;
++static int __init fw_devlink_strict_setup(char *arg)
++{
++	return strtobool(arg, &fw_devlink_strict);
++}
++early_param("fw_devlink.strict", fw_devlink_strict_setup);
++
+ u32 fw_devlink_get_flags(void)
+ {
+ 	return fw_devlink_flags;
+@@ -1531,6 +1538,11 @@ static bool fw_devlink_is_permissive(void)
+ 	return fw_devlink_flags == FW_DEVLINK_FLAGS_PERMISSIVE;
  }
  
-+static void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode)
++bool fw_devlink_is_strict(void)
 +{
-+	struct fwnode_handle *child;
-+
-+	/* Don't purge consumer links of an added child */
-+	if (fwnode->dev)
-+		return;
-+
-+	fwnode->flags |= FWNODE_FLAG_NOT_DEVICE;
-+	fwnode_links_purge_consumers(fwnode);
-+
-+	fwnode_for_each_available_child_node(fwnode, child)
-+		fw_devlink_purge_absent_suppliers(child);
++	return fw_devlink_strict && !fw_devlink_is_permissive();
 +}
 +
- #ifdef CONFIG_SRCU
- static DEFINE_MUTEX(device_links_lock);
- DEFINE_STATIC_SRCU(device_links_srcu);
-@@ -1154,12 +1169,22 @@ void device_links_driver_bound(struct device *dev)
- 	LIST_HEAD(sync_list);
- 
- 	/*
--	 * If a device probes successfully, it's expected to have created all
-+	 * If a device binds successfully, it's expected to have created all
- 	 * the device links it needs to or make new device links as it needs
--	 * them. So, it no longer needs to wait on any suppliers.
-+	 * them. So, fw_devlink no longer needs to create device links to any
-+	 * of the device's suppliers.
-+	 *
-+	 * Also, if a child firmware node of this bound device is not added as
-+	 * a device by now, assume it is never going to be added and make sure
-+	 * other devices don't defer probe indefinitely by waiting for such a
-+	 * child device.
- 	 */
--	if (dev->fwnode && dev->fwnode->dev == dev)
-+	if (dev->fwnode && dev->fwnode->dev == dev) {
-+		struct fwnode_handle *child;
- 		fwnode_links_purge_suppliers(dev->fwnode);
-+		fwnode_for_each_available_child_node(dev->fwnode, child)
-+			fw_devlink_purge_absent_suppliers(child);
-+	}
- 	device_remove_file(dev, &dev_attr_waiting_for_supplier);
- 
- 	device_links_write_lock();
+ static void fw_devlink_parse_fwnode(struct fwnode_handle *fwnode)
+ {
+ 	if (fwnode->flags & FWNODE_FLAG_LINKS_ADDED)
 diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index fde4ad97564c..21082f11473f 100644
+index 21082f11473f..d5caefe39d93 100644
 --- a/include/linux/fwnode.h
 +++ b/include/linux/fwnode.h
-@@ -19,8 +19,10 @@ struct device;
-  * fwnode link flags
-  *
-  * LINKS_ADDED: The fwnode has already be parsed to add fwnode links.
-+ * NOT_DEVICE: The fwnode will never be populated as a struct device.
-  */
- #define FWNODE_FLAG_LINKS_ADDED		BIT(0)
-+#define FWNODE_FLAG_NOT_DEVICE		BIT(1)
+@@ -162,6 +162,7 @@ static inline void fwnode_init(struct fwnode_handle *fwnode,
+ }
  
- struct fwnode_handle {
- 	struct fwnode_handle *secondary;
+ extern u32 fw_devlink_get_flags(void);
++extern bool fw_devlink_is_strict(void);
+ int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup);
+ void fwnode_links_purge(struct fwnode_handle *fwnode);
+ 
 -- 
 2.30.0.365.g02bc693789-goog
 
