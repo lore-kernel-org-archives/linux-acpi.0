@@ -2,177 +2,292 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.4 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 768F9C433DB
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 15:47:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF539C433E9
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 17:37:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3CC3264F4D
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 15:47:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86B7164E4E
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Feb 2021 17:37:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237388AbhBDPr0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 4 Feb 2021 10:47:26 -0500
-Received: from mail1.bemta24.messagelabs.com ([67.219.250.112]:61137 "EHLO
-        mail1.bemta24.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S237475AbhBDPqa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2021 10:46:30 -0500
-Received: from [100.112.133.249] (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256 bits))
-        by server-1.bemta.az-b.us-west-2.aws.symcld.net id 43/1D-17150-9851C106; Thu, 04 Feb 2021 15:40:57 +0000
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprCKsWRWlGSWpSXmKPExsWS8eIhr26HqEy
-  CwftnGhZfv91mt3hzfDqTxfJ9/YwWnzsms1is3vOC2eLM6UusDmwev7atYfGYdzLQ4/2+q2we
-  W662s3h83iQXwBrFmpmXlF+RwJpxrO04U8EOqYp5l/tYGxhniXUxcnEICfxnlGj8f5MNwnnOK
-  PG1cy9TFyMHh7BAosSxlxFdjJwcIgLqElM7esBqmAUWM0pMnnWUHaLhLaPEjqefmEGq2AS0Jb
-  Zs+cUGYvMK2Eoc3/OcCcRmEVCReHWtnRHEFhUIl3i96TMjRI2gxMmZT1hAbE4BO4lLT0E2cAB
-  t0JRYv0sfJMwsIC5x68l8JghbXmL72znMICUSAgoSm5fzgYQlBBIkev49YpvAKDgLydBZCINm
-  IRk0C8mgBYwsqxjNk4oy0zNKchMzc3QNDQx0DQ2NdA2NTXVNTfQSq3ST9EqLdctTi0t0jfQSy
-  4v1iitzk3NS9PJSSzYxAiMopaDdbAfjzdcf9A4xSnIwKYnyvnglnSDEl5SfUpmRWJwRX1Sak1
-  p8iFGGg0NJgpdHRCZBSLAoNT21Ii0zBxjNMGkJDh4lEd5FgkBp3uKCxNzizHSI1ClGXY7L1+c
-  tYhZiycvPS5US590OMkMApCijNA9uBCyxXGKUlRLmZWRgYBDiKUgtys0sQZV/xSjOwagkzPtS
-  GGgKT2ZeCdymV0BHMAEdkbxaCuSIkkSElFQDk3dy+8+N4ZqCrN61RX+ds3elMz2SkFBdVGhuc
-  0jRfhfvyhUvYp/+uKFUPVl1UTf3ieW+pa3y00pmlV7epHezWDr8yEeTLW/496W67JObKrPo5Y
-  kTBsK7d/LItPu7L2JcejJ7p+NhlvQ32fL8KhOz5+bkTcib2z1v/T0Z5saqC/8LGNdZ5Jd/jpl
-  5sHDVv2sWU8r5/f/p+cRqJ/9rDFdadaJgUdjjKh5b19z/woz/vMM8aha18G9kCjv07SLDZaW1
-  FYqdQmGPPiU1zpri5XxhHpPjB4nrGsfVvNKuXb2wpy18hs/cbn/WE465t0xiXHcIxQm8Lmazs
-  C7JvmO27+X9BxZ7WD3vOpi0qLlYprEpsRRnJBpqMRcVJwIAer5WPqcDAAA=
-X-Env-Sender: markpearson@lenovo.com
-X-Msg-Ref: server-27.tower-356.messagelabs.com!1612453255!3328!1
-X-Originating-IP: [104.232.225.13]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received: 
-X-StarScan-Version: 9.60.3; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 19943 invoked from network); 4 Feb 2021 15:40:56 -0000
-Received: from unknown (HELO lenovo.com) (104.232.225.13)
-  by server-27.tower-356.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 4 Feb 2021 15:40:56 -0000
-Received: from reswpmail01.lenovo.com (unknown [10.62.32.20])
-        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by Forcepoint Email with ESMTPS id 677B173832B7126B3664;
-        Thu,  4 Feb 2021 10:40:55 -0500 (EST)
-Received: from localhost.localdomain (10.38.61.203) by reswpmail01.lenovo.com
- (10.62.32.20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Thu, 4 Feb 2021
- 10:40:29 -0500
-Subject: Re: [External] Re: [PATCH v9] platform/x86: thinkpad_acpi: Add
- platform profile support
-To:     Hans de Goede <hdegoede@redhat.com>
-CC:     <mgross@linux.intel.com>, <rjw@rjwysocki.net>,
-        <linux-acpi@vger.kernel.org>,
-        <platform-driver-x86@vger.kernel.org>, <hadess@hadess.net>,
-        <njoshi1@lenovo.com>
-References: <markpearson@lenovo.com>
- <20210111162237.3469-1-markpearson@lenovo.com>
- <39c453b5-c6f2-7e45-ee82-64344e800711@redhat.com>
- <ab6d9113-2bc6-3c02-bc08-65a0aa217325@lenovo.com>
- <48752174-26c3-fb83-ddf6-01bf2cafd1ab@redhat.com>
-From:   Mark Pearson <markpearson@lenovo.com>
-Message-ID: <3c886ad6-9b23-b60b-6422-6bf71627ebcc@lenovo.com>
-Date:   Thu, 4 Feb 2021 10:40:53 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.0
+        id S238664AbhBDRgu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 4 Feb 2021 12:36:50 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:50188 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238635AbhBDRgO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2021 12:36:14 -0500
+Received: from 89-64-81-64.dynamic.chello.pl (89.64.81.64) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.537)
+ id 4257cd42a0606640; Thu, 4 Feb 2021 18:35:00 +0100
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Giovanni Gherdovich <ggherdovich@suse.cz>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Michael Larabel <Michael@phoronix.com>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>
+Subject: [PATCH v1 1/2] cpufreq: ACPI: Extend frequency tables to cover boost frequencies
+Date:   Thu, 04 Feb 2021 18:25:37 +0100
+Message-ID: <8467867.3EdU9UaQ17@kreacher>
+In-Reply-To: <13690581.X0sz4iL7V8@kreacher>
+References: <13690581.X0sz4iL7V8@kreacher>
 MIME-Version: 1.0
-In-Reply-To: <48752174-26c3-fb83-ddf6-01bf2cafd1ab@redhat.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.38.61.203]
-X-ClientProxiedBy: reswpmail04.lenovo.com (10.62.32.23) To
- reswpmail01.lenovo.com (10.62.32.20)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Hans
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-On 04/02/2021 04:18, Hans de Goede wrote:
-> Hi,
-> 
-> On 2/3/21 3:46 PM, Mark Pearson wrote:
->> On 02/02/2021 09:49, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 1/11/21 5:22 PM, Mark Pearson wrote:
->>>> Add support to thinkpad_acpi for Lenovo platforms that have DYTC
->>>> version 5 support or newer to use the platform profile feature.
->>>>
->>>> This will allow users to determine and control the platform modes
->>>> between low-power, balanced operation and performance modes.
->>>>
->>>> Signed-off-by: Mark Pearson <markpearson@lenovo.com>
->>>
->>> Now that the acpi/platform_profile changes have landed I have
->>> merged this patch (solving a trivial conflict caused by the
->>> keyboard_lang changes).
->>>
->>> Thank you for your patch, I've applied this patch to my review-hans 
->>> branch:
->>> https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/log/?h=review-hans
->>>
->>> Note it will show up in my review-hans branch once I've pushed my
->>> local branch there, which might take a while.
->>>
->>> Once I've run some tests on this branch the patches there will be
->>> added to the platform-drivers-x86/for-next branch and eventually
->>> will be included in the pdx86 pull-request to Linus for the next
->>> merge-window.
->>>
->> Thanks Hans - sounds great.
->> Let me know if you find any issues or need any extra tests running.
-> 
-> So the build-bots have found 2 issues:
-> 
-> 1. Some symbols which are not exported need to be marked static (I will fix this myself,
-> that is the easiest / fastest):
-> 
-> drivers/platform/x86/thinkpad_acpi.c:10081:5: warning: no previous prototype for 'dytc_profile_get' [-Wmissing-prototypes]
-> drivers/platform/x86/thinkpad_acpi.c:10095:5: warning: no previous prototype for 'dytc_cql_command' [-Wmissing-prototypes]
-> drivers/platform/x86/thinkpad_acpi.c:10133:5: warning: no previous prototype for 'dytc_profile_set' [-Wmissing-prototypes]
-> 
-> 2. This is a bigger problem, this is the result of a random-config test-build and I'm
-> pretty sure that the issue is that acpi_platform was build as a module while
-> thinkpad_acpi was builtin and builtin code cannot rely on modules.
-> 
-> drivers/platform/x86/thinkpad_acpi.c:10186: undefined reference to `platform_profile_notify'
-> drivers/platform/x86/thinkpad_acpi.c:10226: undefined reference to `platform_profile_register'
-> drivers/platform/x86/thinkpad_acpi.c:10246: undefined reference to `platform_profile_remove'
-> 
-> There are 2 ways to solve this:
-> 
-> 1. Change
-> 
-> #if IS_ENABLED(CONFIG_ACPI_PLATFORM_PROFILE)
-> 
-> to:
-> 
-> #if IS_REACHABLE(CONFIG_ACPI_PLATFORM_PROFILE)
-> 
-> Which will disable the platform-profile support in acpi_thinkpad in the above scenario.
-> 
-> or.
-> 
-> 2. Drop the #if IS_ENABLED(...) and add a
-> 
->         depends on ACPI_PLATFORM_PROFILE
-> 
-> To the THINKPAD_ACPI Kconfig symbol.
-> 
-> 
-> I personally think 2. would be slightly better as it ensures that platform-profile
-> support is always available when thinkpad_acpi is build, hopefully leading to less
-> confusing bug-reports about it sometimes not working.
-> 
-> If you can let me know what you want, then I can fix this locally too and get
-> the fix in place before the merge-window opens.
-> 
-> Regards,
-> 
-> Hans
-> 
-I think you've fixed both of those already - and I agree with #2. Thanks
-for jumping on these.
-Let me know if I need to do anything to help.
-Thanks!
-Mark
+A severe performance regression on AMD EPYC processors when using
+the schedutil scaling governor was discovered by Phoronix.com and
+attributed to the following commits:
+
+    41ea667227ba ("x86, sched: Calculate frequency invariance for
+    AMD systems")
+
+    976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P
+    for frequency invariance on AMD EPYC")
+
+The source of the problem is that the maximum performance level taken
+for computing the arch_max_freq_ratio value used in the x86 scale-
+invariance code is higher than the one corresponding to the
+cpuinfo.max_freq value coming from the acpi_cpufreq driver.
+
+This effectively causes the scale-invariant utilization to fall below
+100% even if the CPU runs at cpuinfo.max_freq or slightly faster, so
+the schedutil governor selects a frequency below cpuinfo.max_freq
+then.  That frequency corresponds to a frequency table entry below
+the maximum performance level necessary to get to the "boost" range
+of CPU frequencies.
+
+However, if the cpuinfo.max_freq value coming from acpi_cpufreq was
+higher, the schedutil governor would select higher frequencies which
+in turn would allow acpi_cpufreq to set more adequate performance
+levels and to get to the "boost" range of CPU frequencies more often.
+
+This issue affects any systems where acpi_cpufreq is used and the
+"boost" (or "turbo") frequencies are enabled, not just AMD EPYC.
+Moreover, commit db865272d9c4 ("cpufreq: Avoid configuring old
+governors as default with intel_pstate") from the 5.10 development
+cycle made it extremely easy to default to schedutil even if the
+preferred driver is acpi_cpufreq as long as intel_pstate is built
+too, because the mere presence of the latter effectively removes the
+ondemand governor from the defaults.  Distro kernels are likely to
+include both intel_pstate and acpi_cpufreq on x86, so their users
+who cannot use intel_pstate or choose to use acpi_cpufreq may
+easily be affectecd by this issue.
+
+To address this issue, extend the frequency table constructed by
+acpi_cpufreq for each CPU to cover the entire range of available
+frequencies (including the "boost" ones) if CPPC is available and
+indicates that "boost" (or "turbo") frequencies are enabled.  That
+causes cpuinfo.max_freq to become the maximum "boost" frequency of
+the given CPU (instead of the maximum frequency returned by the ACPI
+_PSS object that corresponds to the "nominal" performance level).
+
+Fixes: 41ea667227ba ("x86, sched: Calculate frequency invariance for AMD systems")
+Fixes: 976df7e5730e ("x86, sched: Use midpoint of max_boost and max_P for frequency invariance on AMD EPYC")
+Fixes: db865272d9c4 ("cpufreq: Avoid configuring old governors as default with intel_pstate")
+Link: https://www.phoronix.com/scan.php?page=article&item=linux511-amd-schedutil&num=1
+Link: https://lore.kernel.org/linux-pm/20210203135321.12253-2-ggherdovich@suse.cz/
+Reported-by: Michael Larabel <Michael@phoronix.com>
+Diagnosed-by: Giovanni Gherdovich <ggherdovich@suse.cz>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/cpufreq/acpi-cpufreq.c |  107 ++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 95 insertions(+), 12 deletions(-)
+
+Index: linux-pm/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-pm/drivers/cpufreq/acpi-cpufreq.c
+@@ -26,6 +26,7 @@
+ #include <linux/uaccess.h>
+ 
+ #include <acpi/processor.h>
++#include <acpi/cppc_acpi.h>
+ 
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+@@ -53,6 +54,7 @@ struct acpi_cpufreq_data {
+ 	unsigned int resume;
+ 	unsigned int cpu_feature;
+ 	unsigned int acpi_perf_cpu;
++	unsigned int first_perf_state;
+ 	cpumask_var_t freqdomain_cpus;
+ 	void (*cpu_freq_write)(struct acpi_pct_register *reg, u32 val);
+ 	u32 (*cpu_freq_read)(struct acpi_pct_register *reg);
+@@ -221,10 +223,10 @@ static unsigned extract_msr(struct cpufr
+ 
+ 	perf = to_perf_data(data);
+ 
+-	cpufreq_for_each_entry(pos, policy->freq_table)
++	cpufreq_for_each_entry(pos, policy->freq_table + data->first_perf_state)
+ 		if (msr == perf->states[pos->driver_data].status)
+ 			return pos->frequency;
+-	return policy->freq_table[0].frequency;
++	return policy->freq_table[data->first_perf_state].frequency;
+ }
+ 
+ static unsigned extract_freq(struct cpufreq_policy *policy, u32 val)
+@@ -363,6 +365,7 @@ static unsigned int get_cur_freq_on_cpu(
+ 	struct cpufreq_policy *policy;
+ 	unsigned int freq;
+ 	unsigned int cached_freq;
++	unsigned int state;
+ 
+ 	pr_debug("%s (%d)\n", __func__, cpu);
+ 
+@@ -374,7 +377,11 @@ static unsigned int get_cur_freq_on_cpu(
+ 	if (unlikely(!data || !policy->freq_table))
+ 		return 0;
+ 
+-	cached_freq = policy->freq_table[to_perf_data(data)->state].frequency;
++	state = to_perf_data(data)->state;
++	if (state < data->first_perf_state)
++		state = data->first_perf_state;
++
++	cached_freq = policy->freq_table[state].frequency;
+ 	freq = extract_freq(policy, get_cur_val(cpumask_of(cpu), data));
+ 	if (freq != cached_freq) {
+ 		/*
+@@ -628,16 +635,54 @@ static int acpi_cpufreq_blacklist(struct
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_CPPC_LIB
++static u64 get_max_boost_ratio(unsigned int cpu)
++{
++	struct cppc_perf_caps perf_caps;
++	u64 highest_perf, nominal_perf;
++	int ret;
++
++	if (acpi_pstate_strict)
++		return 0;
++
++	ret = cppc_get_perf_caps(cpu, &perf_caps);
++	if (ret) {
++		pr_debug("CPU%d: Unable to get performance capabilities (%d)\n",
++			 cpu, ret);
++		return 0;
++	}
++
++	highest_perf = perf_caps.highest_perf;
++	nominal_perf = perf_caps.nominal_perf;
++
++	if (!highest_perf || !nominal_perf) {
++		pr_debug("CPU%d: highest or nominal performance missing\n", cpu);
++		return 0;
++	}
++
++	if (highest_perf < nominal_perf) {
++		pr_debug("CPU%d: nominal performance above highest\n", cpu);
++		return 0;
++	}
++
++	return div_u64(highest_perf << SCHED_CAPACITY_SHIFT, nominal_perf);
++}
++#else
++static inline u64 get_max_boost_ratio(unsigned int cpu) { return 0; }
++#endif
++
+ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ {
+-	unsigned int i;
+-	unsigned int valid_states = 0;
+-	unsigned int cpu = policy->cpu;
++	struct cpufreq_frequency_table *freq_table;
++	struct acpi_processor_performance *perf;
+ 	struct acpi_cpufreq_data *data;
++	unsigned int cpu = policy->cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
++	unsigned int valid_states = 0;
+ 	unsigned int result = 0;
+-	struct cpuinfo_x86 *c = &cpu_data(policy->cpu);
+-	struct acpi_processor_performance *perf;
+-	struct cpufreq_frequency_table *freq_table;
++	unsigned int state_count;
++	u64 max_boost_ratio;
++	unsigned int i;
+ #ifdef CONFIG_SMP
+ 	static int blacklisted;
+ #endif
+@@ -750,8 +795,20 @@ static int acpi_cpufreq_cpu_init(struct
+ 		goto err_unreg;
+ 	}
+ 
+-	freq_table = kcalloc(perf->state_count + 1, sizeof(*freq_table),
+-			     GFP_KERNEL);
++	state_count = perf->state_count + 1;
++
++	max_boost_ratio = get_max_boost_ratio(cpu);
++	if (max_boost_ratio) {
++		/*
++		 * Make a room for one more entry to represent the highest
++		 * available "boost" frequency.
++		 */
++		state_count++;
++		valid_states++;
++		data->first_perf_state = valid_states;
++	}
++
++	freq_table = kcalloc(state_count, sizeof(*freq_table), GFP_KERNEL);
+ 	if (!freq_table) {
+ 		result = -ENOMEM;
+ 		goto err_unreg;
+@@ -785,6 +842,30 @@ static int acpi_cpufreq_cpu_init(struct
+ 		valid_states++;
+ 	}
+ 	freq_table[valid_states].frequency = CPUFREQ_TABLE_END;
++
++	if (max_boost_ratio) {
++		unsigned int state = data->first_perf_state;
++		unsigned int freq = freq_table[state].frequency;
++
++		/*
++		 * Because the loop above sorts the freq_table entries in the
++		 * descending order, freq is the maximum frequency in the table.
++		 * Assume that it corresponds to the CPPC nominal frequency and
++		 * use it to populate the frequency field of the extra "boost"
++		 * frequency entry.
++		 */
++		freq_table[0].frequency = freq * max_boost_ratio >> SCHED_CAPACITY_SHIFT;
++		/*
++		 * The purpose of the extra "boost" frequency entry is to make
++		 * the rest of cpufreq aware of the real maximum frequency, but
++		 * the way to request it is the same as for the first_perf_state
++		 * entry that is expected to cover the entire range of "boost"
++		 * frequencies of the CPU, so copy the driver_data value from
++		 * that entry.
++		 */
++		freq_table[0].driver_data = freq_table[state].driver_data;
++	}
++
+ 	policy->freq_table = freq_table;
+ 	perf->state = 0;
+ 
+@@ -858,8 +939,10 @@ static void acpi_cpufreq_cpu_ready(struc
+ {
+ 	struct acpi_processor_performance *perf = per_cpu_ptr(acpi_perf_data,
+ 							      policy->cpu);
++	struct acpi_cpufreq_data *data = policy->driver_data;
++	unsigned int freq = policy->freq_table[data->first_perf_state].frequency;
+ 
+-	if (perf->states[0].core_frequency * 1000 != policy->cpuinfo.max_freq)
++	if (perf->states[0].core_frequency * 1000 != freq)
+ 		pr_warn(FW_WARN "P-state 0 is not max freq\n");
+ }
+ 
+
+
+
