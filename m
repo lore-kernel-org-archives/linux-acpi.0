@@ -2,95 +2,123 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3CDC433E6
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E73D4C433E6
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:36:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC2D964FEF
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:36:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF51465011
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:36:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbhBFCfF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Feb 2021 21:35:05 -0500
-Received: from mga17.intel.com ([192.55.52.151]:63121 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230179AbhBFCco (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Feb 2021 21:32:44 -0500
-IronPort-SDR: e82Z/HV77K0RwfvWAG1RxHw8KWJc44XrZkABKWI/8Qi2A6VwXqcaydkpdflxmRzZ2eAdLmreIL
- u/0TNtR5WM+g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9886"; a="161249243"
-X-IronPort-AV: E=Sophos;i="5.81,156,1610438400"; 
-   d="scan'208";a="161249243"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 14:16:23 -0800
-IronPort-SDR: NRaIsHFlw3uFgHarMm4gK9o7SP+5teoIs0kpMxEdiegNa2O3M7s2Wf+xkk6NnQ8XS9giwlZgWq
- Vu92meHKWIDA==
-X-IronPort-AV: E=Sophos;i="5.81,156,1610438400"; 
-   d="scan'208";a="394033953"
-Received: from agluck-desk2.sc.intel.com (HELO agluck-desk2.amr.corp.intel.com) ([10.3.52.146])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 14:16:23 -0800
-Date:   Fri, 5 Feb 2021 14:16:21 -0800
-From:   "Luck, Tony" <tony.luck@intel.com>
-To:     Shuah Khan <skhan@linuxfoundation.org>
-Cc:     Greg KH <gregkh@linuxfoundation.org>, corbet@lwn.net,
-        peterz@infradead.org, keescook@chromium.org, rafael@kernel.org,
-        lenb@kernel.org, james.morse@arm.com, bp@alien8.de,
-        devel@driverdev.osuosl.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH v3 1/7] seqnum_ops: Introduce Sequence Number Ops
-Message-ID: <20210205221621.GA74059@agluck-desk2.amr.corp.intel.com>
-References: <cover.1612314468.git.skhan@linuxfoundation.org>
- <23f6347a7bb9f902babe7351f71b23644035673d.1612314468.git.skhan@linuxfoundation.org>
- <YB0WzBnLd+OcpxEE@kroah.com>
- <2fe15f90-2e33-d018-0d5d-cabe3846ed98@linuxfoundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2fe15f90-2e33-d018-0d5d-cabe3846ed98@linuxfoundation.org>
+        id S229615AbhBFCgD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Feb 2021 21:36:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37188 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230326AbhBFCdd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2021 21:33:33 -0500
+Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03721C08EB2D
+        for <linux-acpi@vger.kernel.org>; Fri,  5 Feb 2021 14:27:08 -0800 (PST)
+Received: by mail-yb1-xb4a.google.com with SMTP id l10so8815066ybt.6
+        for <linux-acpi@vger.kernel.org>; Fri, 05 Feb 2021 14:27:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=sender:date:in-reply-to:message-id:mime-version:references:subject
+         :from:to:cc;
+        bh=hqgmXDFwubR/4OnYp87mHqkgPgat9JpTuiz1JNw02ec=;
+        b=HlWJductGnrWtiPlz4VOZAKZtOtHqGtLYG+/m1uG/3j65UbnLXs2ZbOsEsXyQxmcET
+         g5WBXP+ZNdGYsnDNt1AesV/YgtyYbWi8DAfFoP0DUlB0H5AivhCjx7cacjqpzdvJGJkd
+         KJC2axaJVKWb1aZIsjpltmtFIvFilsr/MFeX+VgPTcT+ctffNfukCK16/1DH2bNHZiHq
+         Hs7/PR9SRig14irkeZyDibp5UYV06N4v4E99Aa8HWCyCWoP6sXyRZruGYn7FnGjIrZAc
+         i9RLCHWExeGNkOCk36mOaRKleCDV2qf/Or99/FRsSW4kmlVWj7q6WRTD/+sE9+7tZQaK
+         FlQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=hqgmXDFwubR/4OnYp87mHqkgPgat9JpTuiz1JNw02ec=;
+        b=R7e8f+Fniy8KygQTTKSnZZmregF5Umv6JF7TF+z1JpGDkxKKrngbH5cBoc0AIx0SuK
+         mC+6Ck9iMcwc/jyI0WZUOmIkfuaNR3bCd1GQMSfokyVMjwzf1u8ppHW4vTrjl8gBwE0m
+         sQIaCLfHisU/IhsFDknpQWtEJvRVZe31DC1zKce57BB0cvG6Jt9l0KS5yd4NVrk19Co7
+         fyIMDd0RXZe3J9IBW4MTSD7JlXNrVScvpywMM15skIA+C/pZWFUXKpemjCKxtQryfWAX
+         fFUSexHAFLwoTZzJWBCNdEPgFuswNJBAVlJxVbb4NBSL7ISXdcuG3LPOPIHv1Eo0Rvcz
+         5Z9A==
+X-Gm-Message-State: AOAM533iUxLqtT4k/Ge5A84kPoQIxUviPBAZurWELhZHJQHwx6U7HRx2
+        mo+O8caM/BTddPwlcOXtM5WeQkU7e9X2Shg=
+X-Google-Smtp-Source: ABdhPJypj8OxFVj8NpBAu+RA/WW+/KzA+etEoUDFgMecuxAKnsbx9dKd514JBTdlGgxWwGx8SVTerVvqi1AS370=
+Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
+X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:6d36:b798:55d7:f5c5])
+ (user=saravanak job=sendgmr) by 2002:a25:5b8a:: with SMTP id
+ p132mr10020763ybb.67.1612564027217; Fri, 05 Feb 2021 14:27:07 -0800 (PST)
+Date:   Fri,  5 Feb 2021 14:26:43 -0800
+In-Reply-To: <20210205222644.2357303-1-saravanak@google.com>
+Message-Id: <20210205222644.2357303-8-saravanak@google.com>
+Mime-Version: 1.0
+References: <20210205222644.2357303-1-saravanak@google.com>
+X-Mailer: git-send-email 2.30.0.478.g8a0d178c01-goog
+Subject: [PATCH v4 7/8] PM: domains: Mark fwnodes when their powerdomain is added/removed
+From:   Saravana Kannan <saravanak@google.com>
+To:     Jonathan Corbet <corbet@lwn.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Marc Zyngier <maz@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Saravana Kannan <saravanak@google.com>, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-clk@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        kernel-team@android.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Feb 05, 2021 at 01:03:18PM -0700, Shuah Khan wrote:
-> On 2/5/21 2:58 AM, Greg KH wrote:
-> > On Wed, Feb 03, 2021 at 11:11:57AM -0700, Shuah Khan wrote:
-> > > +static inline u32 seqnum32_inc(struct seqnum32 *seq)
-> > > +{
-> > > +	atomic_t val = ATOMIC_INIT(seq->seqnum);
-> > > +
-> > > +	seq->seqnum = (u32) atomic_inc_return(&val);
-> > > +	if (seq->seqnum >= UINT_MAX)
-> > > +		pr_info("Sequence Number overflow %u detected\n",
-> > > +			seq->seqnum);
-> > > +	return seq->seqnum;
-> > 
-> > As Peter points out, this is doing doing what you think it is doing :(
-> > 
-> > Why do you not just have seq->seqnum be a real atomic variable?  Trying
-> > to switch to/from one like this does not work as there is no
-> > "atomic-ness" happening here at all.
-> > 
-> 
-> Yes. This is sloppy on my part. As Peter and Rafael also pointed. I have
-> to start paying more attention to my inner voice.
+This allows fw_devlink to recognize power domain drivers that don't use
+the device-driver model to initialize the device. fw_devlink will use
+this information to make sure consumers of such power domain aren't
+indefinitely blocked from probing, waiting for the power domain device
+to appear and bind to a driver.
 
-What's the end goal with this sequence number type?
+Signed-off-by: Saravana Kannan <saravanak@google.com>
+---
+ drivers/base/power/domain.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Apart from the functional issues with this code already pointed
-out, it doesn't seem overly useful to just print the *value* of
-the sequence number when it hits the max value.  It might be
-more helpful if each instance had a seq->name field that is
-used here to tell the user *which* user of sequence numbers
-had seen the wrap arounnd.
+diff --git a/drivers/base/power/domain.c b/drivers/base/power/domain.c
+index 9a14eedacb92..6ac52a038bb9 100644
+--- a/drivers/base/power/domain.c
++++ b/drivers/base/power/domain.c
+@@ -2164,6 +2164,7 @@ static int genpd_add_provider(struct device_node *np, genpd_xlate_t xlate,
+ 	cp->node = of_node_get(np);
+ 	cp->data = data;
+ 	cp->xlate = xlate;
++	fwnode_dev_initialized(&np->fwnode, true);
+ 
+ 	mutex_lock(&of_genpd_mutex);
+ 	list_add(&cp->link, &of_genpd_providers);
+@@ -2353,6 +2354,7 @@ void of_genpd_del_provider(struct device_node *np)
+ 				}
+ 			}
+ 
++			fwnode_dev_initialized(&cp->node->fwnode, false);
+ 			list_del(&cp->link);
+ 			of_node_put(cp->node);
+ 			kfree(cp);
+-- 
+2.30.0.478.g8a0d178c01-goog
 
-But that just begs the question of what should users of sequence
-numbers do when wrap around occurs? Any user that can run through
-sequence numbers at greater than 10 Hz is going to cause a problem
-for systems that stay running for years.
-
-Maybe you should force users to code for wraparound by initializing
-to something like 0xffffff00 so that they all get a wraparound event
-quickly, rather than slowly, (same as was done with jiffies)?
