@@ -2,86 +2,72 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7502C433DB
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 22:56:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A3C7C433DB
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 23:24:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90C6064E0F
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 22:56:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BEB764FE9
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 23:24:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231428AbhBEW4f (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Feb 2021 17:56:35 -0500
-Received: from mail-ot1-f48.google.com ([209.85.210.48]:39776 "EHLO
-        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232381AbhBEMuI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2021 07:50:08 -0500
-Received: by mail-ot1-f48.google.com with SMTP id d7so4488790otq.6;
-        Fri, 05 Feb 2021 04:49:51 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=NqRyDP3o2KaV0mpb9HT15XfChTbTMwx2Qv/rMgDpYEw=;
-        b=HO8f70FOkY5D8wPKrghr5StiDc3/DdYaU6vwgAtnXGgLMW8G4iQtgUT811KSoOvv3v
-         7xv95k2qfvsU2GcomK48P8c7PrLCFRqOByEOiBJCdywkoWO+0HsUXWuoZovPvFRpIEOr
-         fquJwOrOszLwE4V/2/7Kke380P41EYIC2+czY5iHRWM9zce/7QtIBz2IvQUC3at4KQ6G
-         myY3FHPbeQk6Eq4mo/tnuuKIyUgf2hMTO4D15KU4SLO9/eV9FRXLxoUp9cHL2oml7iWg
-         Z7AQXM6lvDR2nvj+mIrwIaOx9KsU8iLF5+/2OveaZBdFgbiiwK0xRPpT0rJAmGJVR9CQ
-         wdcw==
-X-Gm-Message-State: AOAM531Rxf1gSQNcGlFbUPMd4HZRRLpuRB+4z+1J7qARlpxws4UPXzwh
-        12D3bWsqa1F9iAbiklldkhMx7fxwRHwj7bNOEYA=
-X-Google-Smtp-Source: ABdhPJxIPFvDHycbQBhWwuaGY1zHG6BD0M4BzNHUb6Ucxne4yGWgioJ9OdGOLZrLRU3//xDNrSTzUBj0T6tt0Kk847c=
-X-Received: by 2002:a9d:7a4a:: with SMTP id z10mr3364809otm.206.1612529366005;
- Fri, 05 Feb 2021 04:49:26 -0800 (PST)
+        id S229508AbhBEXXo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Feb 2021 18:23:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51030 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230395AbhBEJ7T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Feb 2021 04:59:19 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2F3AD64E2C;
+        Fri,  5 Feb 2021 09:58:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1612519118;
+        bh=nV/rbqwWRF8qM4CIyf4ANBmKaUDGONxRBkHMpb/7CR4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=suxX5FVBS+WooJ8axVdYhFfyaX4TTMrJP9y6L6NxvLOb22YUJK1w1qsAyy6vSL1p8
+         WC4DhmtWEfw/bFhWsVLHvEUUYJ6kMLxYk8dbBMSsn+7qONou9MHKzqST1PRylbUKQs
+         Jg9D26ueFHg0n4uFtR7jbEz/yFPmQaDGgHJf8PHU=
+Date:   Fri, 5 Feb 2021 10:58:36 +0100
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Shuah Khan <skhan@linuxfoundation.org>
+Cc:     corbet@lwn.net, peterz@infradead.org, keescook@chromium.org,
+        rafael@kernel.org, lenb@kernel.org, james.morse@arm.com,
+        tony.luck@intel.com, bp@alien8.de, devel@driverdev.osuosl.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH v3 1/7] seqnum_ops: Introduce Sequence Number Ops
+Message-ID: <YB0WzBnLd+OcpxEE@kroah.com>
+References: <cover.1612314468.git.skhan@linuxfoundation.org>
+ <23f6347a7bb9f902babe7351f71b23644035673d.1612314468.git.skhan@linuxfoundation.org>
 MIME-Version: 1.0
-References: <20210203154437.15949-1-unixbhaskar@gmail.com>
-In-Reply-To: <20210203154437.15949-1-unixbhaskar@gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 5 Feb 2021 13:49:11 +0100
-Message-ID: <CAJZ5v0i63RqvJNT1xfeX2yRvLkraj+89DW8z0XUZ2jHp0Bt40w@mail.gmail.com>
-Subject: Re: [PATCH] include: acpi: Correct spelling in the file acoutput.h is
- optimzation to optimization
-To:     Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Cc:     Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Randy Dunlap <rdunlap@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <23f6347a7bb9f902babe7351f71b23644035673d.1612314468.git.skhan@linuxfoundation.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Feb 3, 2021 at 4:45 PM Bhaskar Chowdhury <unixbhaskar@gmail.com> wrote:
->
->
-> s/optimzation/optimization/
->
-> Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-> ---
->  include/acpi/acoutput.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-> index c5d900c0ecda..1ba212372e79 100644
-> --- a/include/acpi/acoutput.h
-> +++ b/include/acpi/acoutput.h
-> @@ -362,7 +362,7 @@
->   *
->   * A less-safe version of the macros is provided for optional use if the
->   * compiler uses excessive CPU stack (for example, this may happen in the
-> - * debug case if code optimzation is disabled.)
-> + * debug case if code optimization is disabled.)
->   */
->
->  /* Exit trace helper macro */
-> --
+On Wed, Feb 03, 2021 at 11:11:57AM -0700, Shuah Khan wrote:
+> +static inline u32 seqnum32_inc(struct seqnum32 *seq)
+> +{
+> +	atomic_t val = ATOMIC_INIT(seq->seqnum);
+> +
+> +	seq->seqnum = (u32) atomic_inc_return(&val);
+> +	if (seq->seqnum >= UINT_MAX)
+> +		pr_info("Sequence Number overflow %u detected\n",
+> +			seq->seqnum);
+> +	return seq->seqnum;
 
-The file being updated is part of ACPICA, so I'm leaving this to Erik
-& Bob, thanks!
+As Peter points out, this is doing doing what you think it is doing :(
+
+Why do you not just have seq->seqnum be a real atomic variable?  Trying
+to switch to/from one like this does not work as there is no
+"atomic-ness" happening here at all.
+
+Oh, and checkpatch should have complained about the extra ' ' in your
+cast :)
+
+thanks,
+
+greg k-h
