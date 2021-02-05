@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72FD8C433E0
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 13:33:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A87CC433DB
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 13:35:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3012A64FC0
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 13:33:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE5CE64FBC
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Feb 2021 13:35:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229690AbhBENco (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Feb 2021 08:32:44 -0500
-Received: from mga17.intel.com ([192.55.52.151]:27051 "EHLO mga17.intel.com"
+        id S229981AbhBENei (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Feb 2021 08:34:38 -0500
+Received: from mga09.intel.com ([134.134.136.24]:26783 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229941AbhBEN2w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Feb 2021 08:28:52 -0500
-IronPort-SDR: HMda+JDJ6wSQaig/Y66hxemEet48FqLM3w/x/zYpwarsGgvF0Jg1FJUaq5kwgE072slJ/2HMBb
- fxIqNThzQ8Wg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9885"; a="161185331"
+        id S229986AbhBENcR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Feb 2021 08:32:17 -0500
+IronPort-SDR: G9HSbYOHf+zjsiFuHRdL+Ci5DUgBv9+0ButCcvbE8HE3aOrG2gLQRT1BUQMSiBCGNFFXUkC8KV
+ mITvep/RDx2g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9885"; a="181578728"
 X-IronPort-AV: E=Sophos;i="5.81,154,1610438400"; 
-   d="scan'208";a="161185331"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 05:24:57 -0800
-IronPort-SDR: 8xB7uGNbhzbDEtmhZopEqMhzKsMzmDhzd70XXHPvml2U/KrUhlS+Pa6rErtslb1cKlfUN56Tx+
- FKMAWbhLpY1g==
+   d="scan'208";a="181578728"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 05:25:01 -0800
+IronPort-SDR: SVoxw9OfMZrC1wXygP9As+pPtInJSF7e03U1YzeFhiToz+fW9LiChSsdA7BMCqI6HNA7EralAs
+ YfvjIXRMh0qg==
 X-IronPort-AV: E=Sophos;i="5.81,154,1610438400"; 
-   d="scan'208";a="357699229"
+   d="scan'208";a="357959766"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 05:24:53 -0800
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 05:24:58 -0800
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 98A9820D41;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id B1680216F2;
         Fri,  5 Feb 2021 15:24:51 +0200 (EET)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.92)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1l816f-0005GO-Cw; Fri, 05 Feb 2021 15:25:05 +0200
+        id 1l816f-0005GX-G0; Fri, 05 Feb 2021 15:25:05 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-i2c@vger.kernel.org
 Cc:     Wolfram Sang <wsa@the-dreams.de>,
@@ -50,9 +50,9 @@ Cc:     Wolfram Sang <wsa@the-dreams.de>,
         Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
         Hyungwoo Yang <hyungwoo.yang@intel.com>,
         linux-media@vger.kernel.org
-Subject: [PATCH v10 4/7] ACPI: Add a convenience function to tell a device is in low power state
-Date:   Fri,  5 Feb 2021 15:25:02 +0200
-Message-Id: <20210205132505.20173-5-sakari.ailus@linux.intel.com>
+Subject: [PATCH v10 7/7] at24: Support probing while off
+Date:   Fri,  5 Feb 2021 15:25:05 +0200
+Message-Id: <20210205132505.20173-8-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210205132505.20173-1-sakari.ailus@linux.intel.com>
 References: <20210205132505.20173-1-sakari.ailus@linux.intel.com>
@@ -62,77 +62,102 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a convenience function to tell whether a device is in low power state,
-primarily for use in drivers' probe or remove functions on busses where
-the custom is to power on the device for the duration of both.
+In certain use cases (where the chip is part of a camera module, and the
+camera module is wired together with a camera privacy LED), powering on
+the device during probe is undesirable. Add support for the at24 to
+execute probe while being powered off. For this to happen, a hint in form
+of a device property is required from the firmware.
 
-Returns false on non-ACPI systems.
-
-Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/acpi/device_pm.c | 23 +++++++++++++++++++++++
- include/linux/acpi.h     |  6 ++++++
- 2 files changed, 29 insertions(+)
+ drivers/misc/eeprom/at24.c | 43 +++++++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index 096153761ebc3..5a58be779a8cd 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -1336,4 +1336,27 @@ int acpi_dev_pm_attach(struct device *dev, bool power_on)
- 	return 1;
- }
- EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
-+
-+/**
-+ * acpi_dev_state_low_power - Check the current ACPI power state of a device.
-+ * @dev: Physical device the ACPI power state of which to check
-+ *
-+ * On a system without ACPI, return false. On a system with ACPI, return true if
-+ * the current ACPI power state of the device is not D0, or false otherwise.
-+ *
-+ * Note that the power state of a device is not well-defined after it has been
-+ * passed to acpi_device_set_power() and before that function returns, so it is
-+ * not valid to ask for the ACPI power state of the device in that time frame.
-+ */
-+bool acpi_dev_state_low_power(struct device *dev)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+
-+	if (!adev)
-+		return false;
-+
-+	return adev->power.state != ACPI_STATE_D0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_state_low_power);
-+
- #endif /* CONFIG_PM */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4703daafcce9e..864786adb567c 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -982,6 +982,7 @@ int acpi_dev_resume(struct device *dev);
- int acpi_subsys_runtime_suspend(struct device *dev);
- int acpi_subsys_runtime_resume(struct device *dev);
- int acpi_dev_pm_attach(struct device *dev, bool power_on);
-+bool acpi_dev_state_low_power(struct device *dev);
- #else
- static inline int acpi_subsys_runtime_suspend(struct device *dev) { return 0; }
- static inline int acpi_subsys_runtime_resume(struct device *dev) { return 0; }
-@@ -989,6 +990,11 @@ static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
- {
+diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
+index 926408b41270c..69a5e4023d9e1 100644
+--- a/drivers/misc/eeprom/at24.c
++++ b/drivers/misc/eeprom/at24.c
+@@ -595,6 +595,7 @@ static int at24_probe(struct i2c_client *client)
+ 	bool i2c_fn_i2c, i2c_fn_block;
+ 	unsigned int i, num_addresses;
+ 	struct at24_data *at24;
++	bool off_during_probe;
+ 	struct regmap *regmap;
+ 	bool writable;
+ 	u8 test_byte;
+@@ -750,14 +751,16 @@ static int at24_probe(struct i2c_client *client)
+ 
+ 	i2c_set_clientdata(client, at24);
+ 
+-	err = regulator_enable(at24->vcc_reg);
+-	if (err) {
+-		dev_err(dev, "Failed to enable vcc regulator\n");
+-		return err;
+-	}
++	off_during_probe = acpi_dev_state_low_power(&client->dev);
++	if (!off_during_probe) {
++		err = regulator_enable(at24->vcc_reg);
++		if (err) {
++			dev_err(dev, "Failed to enable vcc regulator\n");
++			return err;
++		}
+ 
+-	/* enable runtime pm */
+-	pm_runtime_set_active(dev);
++		pm_runtime_set_active(dev);
++	}
+ 	pm_runtime_enable(dev);
+ 
+ 	at24->nvmem = devm_nvmem_register(dev, &nvmem_config);
+@@ -768,14 +771,17 @@ static int at24_probe(struct i2c_client *client)
+ 	}
+ 
+ 	/*
+-	 * Perform a one-byte test read to verify that the
+-	 * chip is functional.
++	 * Perform a one-byte test read to verify that the chip is functional,
++	 * unless powering on the device is to be avoided during probe (i.e.
++	 * it's powered off right now).
+ 	 */
+-	err = at24_read(at24, 0, &test_byte, 1);
+-	if (err) {
+-		pm_runtime_disable(dev);
+-		regulator_disable(at24->vcc_reg);
+-		return -ENODEV;
++	if (!off_during_probe) {
++		err = at24_read(at24, 0, &test_byte, 1);
++		if (err) {
++			pm_runtime_disable(dev);
++			regulator_disable(at24->vcc_reg);
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	pm_runtime_idle(dev);
+@@ -795,9 +801,11 @@ static int at24_remove(struct i2c_client *client)
+ 	struct at24_data *at24 = i2c_get_clientdata(client);
+ 
+ 	pm_runtime_disable(&client->dev);
+-	if (!pm_runtime_status_suspended(&client->dev))
+-		regulator_disable(at24->vcc_reg);
+-	pm_runtime_set_suspended(&client->dev);
++	if (!acpi_dev_state_low_power(&client->dev)) {
++		if (!pm_runtime_status_suspended(&client->dev))
++			regulator_disable(at24->vcc_reg);
++		pm_runtime_set_suspended(&client->dev);
++	}
+ 
  	return 0;
  }
-+
-+static inline bool acpi_dev_state_low_power(struct device *dev)
-+{
-+	return false;
-+}
- #endif
+@@ -834,6 +842,7 @@ static struct i2c_driver at24_driver = {
+ 	.probe_new = at24_probe,
+ 	.remove = at24_remove,
+ 	.id_table = at24_ids,
++	.flags = I2C_DRV_FL_ALLOW_LOW_POWER_PROBE,
+ };
  
- #if defined(CONFIG_ACPI) && defined(CONFIG_PM_SLEEP)
+ static int __init at24_init(void)
 -- 
 2.20.1
 
