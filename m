@@ -2,160 +2,126 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E931C4332D
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 03:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E5C3C4361A
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 03:22:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30B7364FD4
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 03:22:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65B8C64FDA
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 03:22:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231171AbhBFDUl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:20:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41488 "EHLO
+        id S229742AbhBFDWK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:22:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231596AbhBFCuo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2021 21:50:44 -0500
-Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C19FC03C04F
-        for <linux-acpi@vger.kernel.org>; Fri,  5 Feb 2021 14:26:57 -0800 (PST)
-Received: by mail-yb1-xb49.google.com with SMTP id 134so8728569ybd.3
-        for <linux-acpi@vger.kernel.org>; Fri, 05 Feb 2021 14:26:57 -0800 (PST)
+        with ESMTP id S229736AbhBFDMf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2021 22:12:35 -0500
+Received: from mail-pg1-x530.google.com (mail-pg1-x530.google.com [IPv6:2607:f8b0:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2BE4C0613D6
+        for <linux-acpi@vger.kernel.org>; Fri,  5 Feb 2021 19:11:53 -0800 (PST)
+Received: by mail-pg1-x530.google.com with SMTP id o21so4472441pgn.12
+        for <linux-acpi@vger.kernel.org>; Fri, 05 Feb 2021 19:11:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=sender:date:in-reply-to:message-id:mime-version:references:subject
-         :from:to:cc;
-        bh=b4KyYLVrTLECRx+jmWSgUnKVrTsTSqPSowT6HXuVPvs=;
-        b=OHW6wSTP29Ue99rfiI7cWlnG+iIdDrF/RFLn7uoMGaydP+0SO7iq4Wq4d3/eqO21ya
-         KLmXP2JX5TSvNzDYoK5EV6DL9JdJSYMFn/F1Hp7y6d44BhceOCszy5fv7mkcI/x3YxAh
-         xifCY/lhRuqpYU9xhi89Nys/lnLzdiyzix5IWrtJ/UWGBQrClmZRfFVt91VbD8X7eoQI
-         2Png0NqhsXQZ7vz6M4N1fZn/vcqGhrLWGbEWE5mv2GRT3g9PI82H9hTXw4D2uizG5j9B
-         ZxcCTRk1HSgG6v0SC8Wo+iqzvg2U5sjEO1EbK7JZfh6t3yDpITS6bKeEhMEzd8jVwfLv
-         0Egg==
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=03Irav0Kn7d3PmwdWltq8yhVeaa7+Yo6U0jt6YgZEOM=;
+        b=DFmxgNlGvwe3ViCthiyT2nkSLaQNiDYG62IdcIyg60j76khiIWkG7ZL85g/T/7FKrU
+         OgrzGWOdftRv8IHcr0+PsU/nRTlgiC8Au4wV7DUkVkE9mtP/wAReUXv9qtUtxV3a7crt
+         8Ili36d2Ox8kFn/d1XX2mw2XaAaWF5VckKs4EIkTebWbOgDfZzt4tiLHbZSkIsEg6C1l
+         FS8z8PWGIAIWh6ISTUTF+C6vHzMxBihpLduERWDRf3sx1iCQu0WS+a1KiB61ZL3OnreY
+         9nbgDin9ULICHYmKKpMUikJ4PqhKYl5AIEWMejBekc/JGZNFhYlRs6d55dOA3LPjTQgZ
+         xLdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=b4KyYLVrTLECRx+jmWSgUnKVrTsTSqPSowT6HXuVPvs=;
-        b=f3NbrrDsnPIrW40GHfusojFmkQnmYx7yKcZ1LwR5cM2d/bjERinY25O6fPciHEd6Ky
-         HlUbg+wydXxcR8FbyfS9T5PeyuBv590awb+LTMfg261wHc/vK8USW2pDCZIHvfuJQW0V
-         KuJikq8C1fQsijTUMCaBH9nDADUDfT2I8fRgZSFKCFsaTUlI2gI6yClxT5hazgO5sY7t
-         V0Y0wiRV3GbwVb+61gpaPF2Ncme8g5bGjsSskkndtly2fMqOUId9gDNlqi8PfDKpjFs2
-         ubP9Vc5TbonbjV7WkAEn7MgWKxTPx8RYK/XaXDO1FC9Vix+6RimxR5D6NV3Qo4T+f0YG
-         C66A==
-X-Gm-Message-State: AOAM533Dp5NoI2Pqxn6iI9beQuA8gcze+ImXvBLdjnJm2r4kqMg5fRoz
-        LMKo7liYOHhcXRPsDIUMVkKcWXZEZTBxcU0=
-X-Google-Smtp-Source: ABdhPJw60eK9Ayb2Dfnm6izl3OAD/ZSexeT7MabEdfxzu+ks3+x2ogPf1BgHRmP6XVGyEvP6jtupQy7fiaM7V/g=
-Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
-X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:6d36:b798:55d7:f5c5])
- (user=saravanak job=sendgmr) by 2002:a25:1188:: with SMTP id
- 130mr9154088ybr.138.1612564016624; Fri, 05 Feb 2021 14:26:56 -0800 (PST)
-Date:   Fri,  5 Feb 2021 14:26:39 -0800
-In-Reply-To: <20210205222644.2357303-1-saravanak@google.com>
-Message-Id: <20210205222644.2357303-4-saravanak@google.com>
-Mime-Version: 1.0
-References: <20210205222644.2357303-1-saravanak@google.com>
-X-Mailer: git-send-email 2.30.0.478.g8a0d178c01-goog
-Subject: [PATCH v4 3/8] driver core: Add fw_devlink.strict kernel param
-From:   Saravana Kannan <saravanak@google.com>
-To:     Jonathan Corbet <corbet@lwn.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-Cc:     Saravana Kannan <saravanak@google.com>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-clk@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        kernel-team@android.com
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=03Irav0Kn7d3PmwdWltq8yhVeaa7+Yo6U0jt6YgZEOM=;
+        b=bFTmC021aSkEOgxPvIDeRyp+b5bwl9L989Pe5JSpPNeAZ5ZD4lvOpfrw3jHJFSbBIC
+         /oM6tQjIeL1I0CaoXFBhr0I3yhWsJijgvt2QRVIZoHVXM2Vy20QwrbaAY+ytDVbHblsh
+         K99xTf+e80bvOGHGwmjbHuPpFouPozytphfA32uzQaP7xE3coG9hFIIqOCddjQokJyiS
+         8Nma3KVx7aYMrfO5LzISmLC7TLKT4w/b3FkoMNpi3LsR9gatAbsGK6T8vf1EagewEKOt
+         rZlOeui0b60E2nJjSBradJ3rLjtFWnzhorsHryGFuPwDs+Pn6mn35Nc4//2HD0VcPDyQ
+         nncg==
+X-Gm-Message-State: AOAM532PMXi/2vLSL3lWdjND1+rMzj1BsGv5Yff2jSjVwNNzYKu7rHPv
+        9FOBQGouIs76KDioC685L6Qggw==
+X-Google-Smtp-Source: ABdhPJwrsGW2P1pW+WkekABo8xTR+L+k0eCCXm8bQCwQQOAOFnKsiA1f6hb8gX5zfR74LatrZKR/7A==
+X-Received: by 2002:a62:5e44:0:b029:1a4:daae:e765 with SMTP id s65-20020a625e440000b02901a4daaee765mr7426181pfb.8.1612581113257;
+        Fri, 05 Feb 2021 19:11:53 -0800 (PST)
+Received: from dragon (80.251.214.228.16clouds.com. [80.251.214.228])
+        by smtp.gmail.com with ESMTPSA id cq2sm9725597pjb.55.2021.02.05.19.11.50
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 05 Feb 2021 19:11:52 -0800 (PST)
+Date:   Sat, 6 Feb 2021 11:11:46 +0800
+From:   Shawn Guo <shawn.guo@linaro.org>
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com,
+        kernel-hardening@lists.openwall.com, catalin.marinas@arm.com,
+        linux-acpi@vger.kernel.org, sudeep.holla@arm.com, will@kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] arm64/acpi: disallow writeable AML opregion
+ mapping for EFI code regions
+Message-ID: <20210206031145.GA27503@dragon>
+References: <20200626155832.2323789-1-ardb@kernel.org>
+ <20200626155832.2323789-3-ardb@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200626155832.2323789-3-ardb@kernel.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This param allows forcing all dependencies to be treated as mandatory.
-This will be useful for boards in which all optional dependencies like
-IOMMUs and DMAs need to be treated as mandatory dependencies.
+Hi Ard,
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- Documentation/admin-guide/kernel-parameters.txt |  5 +++++
- drivers/base/core.c                             | 12 ++++++++++++
- include/linux/fwnode.h                          |  1 +
- 3 files changed, 18 insertions(+)
+On Fri, Jun 26, 2020 at 05:58:32PM +0200, Ard Biesheuvel wrote:
+> Given that the contents of EFI runtime code and data regions are
+> provided by the firmware, as well as the DSDT, it is not unimaginable
+> that AML code exists today that accesses EFI runtime code regions using
+> a SystemMemory OpRegion. There is nothing fundamentally wrong with that,
+> but since we take great care to ensure that executable code is never
+> mapped writeable and executable at the same time, we should not permit
+> AML to create writable mapping.
+> 
+> Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
 
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index a10b545c2070..692b63644133 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -1433,6 +1433,11 @@
- 				to enforce probe and suspend/resume ordering.
- 			rpm --	Like "on", but also use to order runtime PM.
- 
-+	fw_devlink.strict=<bool>
-+			[KNL] Treat all inferred dependencies as mandatory
-+			dependencies. This only applies for fw_devlink=on|rpm.
-+			Format: <bool>
-+
- 	gamecon.map[2|3]=
- 			[HW,JOY] Multisystem joystick and NES/SNES/PSX pad
- 			support via parallel port (up to 5 devices per port)
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index c95b1daabac7..f466ab4f1c35 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -1521,6 +1521,13 @@ static int __init fw_devlink_setup(char *arg)
- }
- early_param("fw_devlink", fw_devlink_setup);
- 
-+static bool fw_devlink_strict;
-+static int __init fw_devlink_strict_setup(char *arg)
-+{
-+	return strtobool(arg, &fw_devlink_strict);
-+}
-+early_param("fw_devlink.strict", fw_devlink_strict_setup);
-+
- u32 fw_devlink_get_flags(void)
- {
- 	return fw_devlink_flags;
-@@ -1531,6 +1538,11 @@ static bool fw_devlink_is_permissive(void)
- 	return fw_devlink_flags == FW_DEVLINK_FLAGS_PERMISSIVE;
- }
- 
-+bool fw_devlink_is_strict(void)
-+{
-+	return fw_devlink_strict && !fw_devlink_is_permissive();
-+}
-+
- static void fw_devlink_parse_fwnode(struct fwnode_handle *fwnode)
- {
- 	if (fwnode->flags & FWNODE_FLAG_LINKS_ADDED)
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 21082f11473f..d5caefe39d93 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -162,6 +162,7 @@ static inline void fwnode_init(struct fwnode_handle *fwnode,
- }
- 
- extern u32 fw_devlink_get_flags(void);
-+extern bool fw_devlink_is_strict(void);
- int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup);
- void fwnode_links_purge(struct fwnode_handle *fwnode);
- 
--- 
-2.30.0.478.g8a0d178c01-goog
+I'm booting Lenovo Flex 5G laptop with ACPI, and seeing this change
+causes a memory abort[1] when upgrading ACPI tables via initrd[2].
+Dropping this change seems to fix the issue for me.  But does that
+looks like a correct fix to you?
 
+Shawn
+
+[1] https://fileserver.linaro.org/s/iDe9SaZeNNkyNxG
+[2] Documentation/admin-guide/acpi/initrd_table_override.rst
+
+> ---
+>  arch/arm64/kernel/acpi.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 01b861e225b0..455966401102 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -301,6 +301,15 @@ void __iomem *acpi_os_ioremap(acpi_physical_address phys, acpi_size size)
+>  			pr_warn(FW_BUG "requested region covers kernel memory @ %pa\n", &phys);
+>  			return NULL;
+>  
+> +		case EFI_RUNTIME_SERVICES_CODE:
+> +			/*
+> +			 * This would be unusual, but not problematic per se,
+> +			 * as long as we take care not to create a writable
+> +			 * mapping for executable code.
+> +			 */
+> +			prot = PAGE_KERNEL_RO;
+> +			break;
+> +
+>  		case EFI_ACPI_RECLAIM_MEMORY:
+>  			/*
+>  			 * ACPI reclaim memory is used to pass firmware tables
+> -- 
+> 2.27.0
