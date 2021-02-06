@@ -2,186 +2,157 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-17.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DA75C4332E
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:43:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B73EAC433E6
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:43:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1141365026
-	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:43:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A4A864FE4
+	for <linux-acpi@archiver.kernel.org>; Sat,  6 Feb 2021 02:43:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230310AbhBFCmw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Feb 2021 21:42:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38880 "EHLO
+        id S231487AbhBFCnC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Feb 2021 21:43:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231259AbhBFCil (ORCPT
+        with ESMTP id S230110AbhBFCil (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2021 21:38:41 -0500
-Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDD72C08E85D
-        for <linux-acpi@vger.kernel.org>; Fri,  5 Feb 2021 14:27:02 -0800 (PST)
-Received: by mail-yb1-xb4a.google.com with SMTP id s7so8772769ybj.0
-        for <linux-acpi@vger.kernel.org>; Fri, 05 Feb 2021 14:27:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=sender:date:in-reply-to:message-id:mime-version:references:subject
-         :from:to:cc;
-        bh=nTYZSPOjkc18IliuMfnfRh5H/pVF22NJbjiTgx5RAVQ=;
-        b=Mm6nmK+U9sWgdy5Kl5FWR72rOFcOPFvROrGTmdoXRpZIiuZV62ELOWH/ANFl9FZv48
-         WKXxbas72ewJwQSAlM+tuQ5oro9iQc2J6lQg3Fj4ZGY95z4hvdDMslQ/xFUCHGw9JTQW
-         ozCrQLXZ4ZZwk460RT8jQymPqzGWnn6RzLezbUwlZbxeN6sZ9i9EFrxpHIMJXDCZ+GtS
-         ZxX35V5B8D7JFLk2l9CMndHRKsILANotrh6ov6yUqsjE4ZkLpQq/qs+6ILuymjBzW/t3
-         lfMT6f+nRYfVGGUpAXuGaHE3M4iW6zmvvcop6V9w3pEKg6VttIn53oZg6LRjtoP47yQC
-         LIaA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=nTYZSPOjkc18IliuMfnfRh5H/pVF22NJbjiTgx5RAVQ=;
-        b=VmewKU2NK1iG9mTQ2LifDx4XvyYlIPT7AFxIpr+e5nPbVSe2tcSRAOiYT1PcFmLBMb
-         uxazQerphv1qYkxa+B9AdfcGpUSNdJmsyM2RboNOCcTOWKCZ9DN51HwgrC4KNiOBOK3G
-         7pgNjJLrzxoURa4JngNO1RHhna67OezB8KxP1I58Axuv/LrrYoQQ9wHyQZfUWk425UZ7
-         m60mepeOl2RIqOG6vYu5umStyoglAyLiFsrVOarx9nLcp9z5OiNiTse3ggylOPmaoPhF
-         D0QfhwWfr5pdYrx9xwxp442m0Ov8aLvqPy8bMe31m9W0iarY/hDyavR5f+mL8GyPFZw2
-         JCpw==
-X-Gm-Message-State: AOAM532rHv9e+xGEYY1NyuL0wixwyM3pq0ta0DOVb0Z6eiNbIisTvpFG
-        Uz6gdw7G9kGADaV4q02mqL7ovgvwHa4qeEw=
-X-Google-Smtp-Source: ABdhPJyW1m9SbXAqH09239WynVsuVFpGwpuvcunwzfCPoBBzTTIBp5GlOy/wl0ZJFwtPTfMh78OkuipnUZY/zB8=
-Sender: "saravanak via sendgmr" <saravanak@saravanak.san.corp.google.com>
-X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:6d36:b798:55d7:f5c5])
- (user=saravanak job=sendgmr) by 2002:a25:3104:: with SMTP id
- x4mr9895088ybx.141.1612564022147; Fri, 05 Feb 2021 14:27:02 -0800 (PST)
-Date:   Fri,  5 Feb 2021 14:26:41 -0800
-In-Reply-To: <20210205222644.2357303-1-saravanak@google.com>
-Message-Id: <20210205222644.2357303-6-saravanak@google.com>
-Mime-Version: 1.0
-References: <20210205222644.2357303-1-saravanak@google.com>
-X-Mailer: git-send-email 2.30.0.478.g8a0d178c01-goog
-Subject: [PATCH v4 5/8] driver core: fw_devlink: Handle suppliers that don't
- use driver core
-From:   Saravana Kannan <saravanak@google.com>
-To:     Jonathan Corbet <corbet@lwn.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EF03C03326A;
+        Fri,  5 Feb 2021 16:56:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+        :Reply-To:Content-ID:Content-Description;
+        bh=+ki+EFl/WrIsWbKRBevt5fPDWwKi1CJ9stHU3UVX1R8=; b=taOVumLO2GIni4YawGywwRtBYO
+        NchH7GPRkUu+oioh4zUnzQLz1qVqJkZ75Je3+xCAVPCj+DnJhio9GLXFGSgoQTTljwUxXYfqNBsLh
+        a0kad225Oieqhttojck6wzgP1Ihj7Ak+qRClGfXpMtH3texyGrv2TQViid/k13Rt4el2RXnMvUZhI
+        BJjMj/NRFASA8kJwcjyI+8Lj+OxoIqNs1v8poCvg8zhvTwNAAIFH+6SPzc708xECXUoACfwKqsZpX
+        dVOn3x1COqfbLDQqd8CLY+0xZVHptYXorlADw8Ml/Pl2P/sGGCvY+I49gjjrZreQGOZeLHbVcYXXE
+        lrJBG1WA==;
+Received: from [2601:1c0:6280:3f0::aec2]
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1l8Bu9-0005FZ-A1; Sat, 06 Feb 2021 00:56:53 +0000
+Subject: Re: [PATCH v10 3/7] Documentation: ACPI: Document _DSE object usage
+ for enum power state
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-i2c@vger.kernel.org
+Cc:     Wolfram Sang <wsa@the-dreams.de>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-Cc:     Saravana Kannan <saravanak@google.com>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-clk@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        kernel-team@android.com
-Content-Type: text/plain; charset="UTF-8"
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>,
+        linux-media@vger.kernel.org
+References: <20210205132505.20173-1-sakari.ailus@linux.intel.com>
+ <20210205132505.20173-4-sakari.ailus@linux.intel.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <4894ef52-71f5-c651-c45b-4788f0e24162@infradead.org>
+Date:   Fri, 5 Feb 2021 16:56:47 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
+MIME-Version: 1.0
+In-Reply-To: <20210205132505.20173-4-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Device links only work between devices that use the driver core to match
-and bind a driver to a device. So, add an API for frameworks to let the
-driver core know that a fwnode has been initialized by a driver without
-using the driver core.
+On 2/5/21 5:25 AM, Sakari Ailus wrote:
+> Document the use of the _DSE object for setting desirable power state
+> during probe.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+> ---
+>  Documentation/firmware-guide/acpi/index.rst   |  1 +
+>  .../firmware-guide/acpi/low-power-probe.rst   | 69 +++++++++++++++++++
+>  2 files changed, 70 insertions(+)
+>  create mode 100644 Documentation/firmware-guide/acpi/low-power-probe.rst
+> 
 
-Then use this information to make sure that fw_devlink doesn't make the
-consumers wait indefinitely on suppliers that'll never bind to a driver.
+> diff --git a/Documentation/firmware-guide/acpi/low-power-probe.rst b/Documentation/firmware-guide/acpi/low-power-probe.rst
+> new file mode 100644
+> index 0000000000000..b96804d959a6c
+> --- /dev/null
+> +++ b/Documentation/firmware-guide/acpi/low-power-probe.rst
+> @@ -0,0 +1,69 @@
+> +.. SPDX-License-Identifier: GPL-2.0
+> +
+> +======================================
+> +Probing I²C devices in low power state
+> +======================================
+> +
+> +Introduction
+> +============
+> +
+> +In some cases it may be preferred to leave certain devices powered off for the
+> +entire system bootup if powering on these devices has adverse side effects,
+> +beyond just powering on the said device.
+> +
+> +How it works
+> +============
+>
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- drivers/base/core.c    | 15 +++++++++++++++
- include/linux/fwnode.h | 19 +++++++++++++++++--
- 2 files changed, 32 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index f466ab4f1c35..ea710b33bda6 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -1636,6 +1636,17 @@ static int fw_devlink_create_devlink(struct device *con,
- 
- 	sup_dev = get_dev_from_fwnode(sup_handle);
- 	if (sup_dev) {
-+		/*
-+		 * If it's one of those drivers that don't actually bind to
-+		 * their device using driver core, then don't wait on this
-+		 * supplier device indefinitely.
-+		 */
-+		if (sup_dev->links.status == DL_DEV_NO_DRIVER &&
-+		    sup_handle->flags & FWNODE_FLAG_INITIALIZED) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
- 		/*
- 		 * If this fails, it is due to cycles in device links.  Just
- 		 * give up on this link and treat it as invalid.
-@@ -1655,6 +1666,10 @@ static int fw_devlink_create_devlink(struct device *con,
- 		goto out;
- 	}
- 
-+	/* Supplier that's already initialized without a struct device. */
-+	if (sup_handle->flags & FWNODE_FLAG_INITIALIZED)
-+		return -EINVAL;
-+
- 	/*
- 	 * DL_FLAG_SYNC_STATE_ONLY doesn't block probing and supports
- 	 * cycles. So cycle detection isn't necessary and shouldn't be
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index d5caefe39d93..dfefd43a737c 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -11,6 +11,7 @@
- 
- #include <linux/types.h>
- #include <linux/list.h>
-+#include <linux/err.h>
- 
- struct fwnode_operations;
- struct device;
-@@ -18,11 +19,13 @@ struct device;
- /*
-  * fwnode link flags
-  *
-- * LINKS_ADDED: The fwnode has already be parsed to add fwnode links.
-- * NOT_DEVICE: The fwnode will never be populated as a struct device.
-+ * LINKS_ADDED:	The fwnode has already be parsed to add fwnode links.
-+ * NOT_DEVICE:	The fwnode will never be populated as a struct device.
-+ * INITIALIZED: The hardware corresponding to fwnode has been initialized.
-  */
- #define FWNODE_FLAG_LINKS_ADDED		BIT(0)
- #define FWNODE_FLAG_NOT_DEVICE		BIT(1)
-+#define FWNODE_FLAG_INITIALIZED		BIT(2)
- 
- struct fwnode_handle {
- 	struct fwnode_handle *secondary;
-@@ -161,6 +164,18 @@ static inline void fwnode_init(struct fwnode_handle *fwnode,
- 	INIT_LIST_HEAD(&fwnode->suppliers);
- }
- 
-+static inline void fwnode_dev_initialized(struct fwnode_handle *fwnode,
-+					  bool initialized)
-+{
-+	if (IS_ERR_OR_NULL(fwnode))
-+		return;
-+
-+	if (initialized)
-+		fwnode->flags |= FWNODE_FLAG_INITIALIZED;
-+	else
-+		fwnode->flags &= ~FWNODE_FLAG_INITIALIZED;
-+}
-+
- extern u32 fw_devlink_get_flags(void);
- extern bool fw_devlink_is_strict(void);
- int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup);
+Please don't use ============ underlines for all section levels.
+Here is what Documentation/doc-guide/sphinx.rst says:
+
+Specific guidelines for the kernel documentation
+------------------------------------------------
+
+Here are some specific guidelines for the kernel documentation:
+
+* Please don't go overboard with reStructuredText markup. Keep it
+  simple. For the most part the documentation should be plain text with
+  just enough consistency in formatting that it can be converted to
+  other formats.
+
+* Please keep the formatting changes minimal when converting existing
+  documentation to reStructuredText.
+
+* Also update the content, not just the formatting, when converting
+  documentation.
+
+* Please stick to this order of heading adornments:
+
+  1. ``=`` with overline for document title::
+
+       ==============
+       Document title
+       ==============
+
+  2. ``=`` for chapters::
+
+       Chapters
+       ========
+
+  3. ``-`` for sections::
+
+       Section
+       -------
+
+  4. ``~`` for subsections::
+
+       Subsection
+       ~~~~~~~~~~
+
+  Although RST doesn't mandate a specific order ("Rather than imposing a fixed
+  number and order of section title adornment styles, the order enforced will be
+  the order as encountered."), having the higher levels the same overall makes
+  it easier to follow the documents.
+
+
+
+thanks.
 -- 
-2.30.0.478.g8a0d178c01-goog
+~Randy
 
