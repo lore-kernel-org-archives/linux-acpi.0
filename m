@@ -2,140 +2,73 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47808C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Feb 2021 20:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57535C433E0
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Feb 2021 20:49:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F18C564E49
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Feb 2021 20:03:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05B3464E74
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Feb 2021 20:49:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234889AbhBHUDB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Feb 2021 15:03:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58176 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236612AbhBHUCw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2021 15:02:52 -0500
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E49DC061786;
-        Mon,  8 Feb 2021 12:02:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-        :Reply-To:Content-ID:Content-Description;
-        bh=KEVihHrH3SS79oWMEH67DVoOPklE1uT1jn0P7NuEG4M=; b=wMhUXlj5RnosMi7s8pVfo6DDyX
-        0jkjN6g9frlYUYPUy7en2RfJlG/c1Fv5v/LYqnTXVMT4oeMwOLiOKMcdV3G1KY34QTVloDCJq61CH
-        IfuOSPhRBY0aYb8V3DL5Hpt6jARfgXoXuAIJJCEluD1+t1RvxYNHjAo+D85etPuqnW363o6/kyoSd
-        lS/fTRHpiM8HrW4TBmZLJoyHE+ISLDcR06pUh1f1CPDeEqr74wQEkrqYJGJ99R2Vp0+LcDRO8yldf
-        vzbhNFX2kUs4dsf355PbiFs/5b75pkbHekbWcrEgw1v0X3CVds/M2xBL+SuMqts1dGRmqNWh7DcLO
-        a7FLKT5w==;
-Received: from [2601:1c0:6280:3f0::cf3b]
-        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1l9CjW-0001t4-8B; Mon, 08 Feb 2021 20:02:06 +0000
-Subject: Re: [net-next PATCH v5 01/15] Documentation: ACPI: DSD: Document MDIO
- PHY
-To:     Calvin Johnson <calvin.johnson@oss.nxp.com>,
-        Grant Likely <grant.likely@arm.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Jeremy Linton <jeremy.linton@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
-        Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Madalin Bucur <madalin.bucur@oss.nxp.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
-        Jon <jon@solid-run.com>, Saravana Kannan <saravanak@google.com>
-Cc:     Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        linux-kernel@vger.kernel.org, linux.cj@gmail.com,
-        Diana Madalina Craciun <diana.craciun@nxp.com>,
-        netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-References: <20210208151244.16338-1-calvin.johnson@oss.nxp.com>
- <20210208151244.16338-2-calvin.johnson@oss.nxp.com>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <0a347d2a-f885-5b26-4477-ff267527d8c4@infradead.org>
-Date:   Mon, 8 Feb 2021 12:01:57 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.0
+        id S234424AbhBHUsw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Feb 2021 15:48:52 -0500
+Received: from smtprelay0124.hostedemail.com ([216.40.44.124]:59598 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S233439AbhBHUqi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2021 15:46:38 -0500
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay05.hostedemail.com (Postfix) with ESMTP id C66FA18484D83;
+        Mon,  8 Feb 2021 20:45:33 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: rice92_5b00f7527601
+X-Filterd-Recvd-Size: 1747
+Received: from [192.168.1.159] (unknown [47.151.137.21])
+        (Authenticated sender: joe@perches.com)
+        by omf12.hostedemail.com (Postfix) with ESMTPA;
+        Mon,  8 Feb 2021 20:45:32 +0000 (UTC)
+Message-ID: <337f970b0643d2f67f9a388ff8bbddcf673a1c6b.camel@perches.com>
+Subject: Re: [PATCH v1 2/2] ACPI: OSL: Clean up printing messages
+From:   Joe Perches <joe@perches.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Hanjun Gou <gouhanjun@huawei.com>
+Date:   Mon, 08 Feb 2021 12:45:31 -0800
+In-Reply-To: <3297462.0emgCRZMdL@kreacher>
+References: <4653881.kBYL0eE9gL@kreacher> <3297462.0emgCRZMdL@kreacher>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.38.1-1 
 MIME-Version: 1.0
-In-Reply-To: <20210208151244.16338-2-calvin.johnson@oss.nxp.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-Just a couple of nits below:
-
-On 2/8/21 7:12 AM, Calvin Johnson wrote:
-> Introduce ACPI mechanism to get PHYs registered on a MDIO bus and
-> provide them to be connected to MAC.
+On Mon, 2021-02-08 at 19:59 +0100, Rafael J. Wysocki wrote:
+> Replace the ACPI_DEBUG_PRINT() instance in osl.c unrelated to the
+> ACPICA debug with acpi_handle_debug(), add a pr_fmt() definition
+> to osl.c and replace direct printk() usage in that file with the
+> suitable pr_*() calls.
+[]
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/osl.c
+> +++ linux-pm/drivers/acpi/osl.c
+[]
+> @@ -528,13 +531,13 @@ acpi_os_predefined_override(const struct
+>  
 > 
-> Describe properties "phy-handle" and "phy-mode".
-> 
-> Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-> ---
+>  	*new_val = NULL;
+>  	if (!memcmp(init_val->name, "_OS_", 4) && strlen(acpi_os_name)) {
+> -		printk(KERN_INFO PREFIX "Overriding _OS definition to '%s'\n",
+> +		pr_info("Overriding _OS definition to '%s'\n",
+>  		       acpi_os_name);
 
->  Documentation/firmware-guide/acpi/dsd/phy.rst | 133 ++++++++++++++++++
->  1 file changed, 133 insertions(+)
->  create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
-> 
-> diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
-> new file mode 100644
-> index 000000000000..e1e99cae5eb2
-> --- /dev/null
-> +++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
-> @@ -0,0 +1,133 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +=========================
-> +MDIO bus and PHYs in ACPI
-> +=========================
-> +
-> +The PHYs on an MDIO bus [1] are probed and registered using
-> +fwnode_mdiobus_register_phy().
-> +
-> +Later, for connecting these PHYs to MAC, the PHYs registered on the
+If you do more of these, perhaps rewrap lines to 80 columns when possible.
 
-                                    to a MAC,
+		pr_info("Overriding _OS definition to '%s'\n", acpi_os_name);
 
-> +MDIO bus have to be referenced.
-> +
-> +This document introduces two _DSD properties that are to be used
-> +for connecting PHYs on the MDIO bus [3] to the MAC layer.
-> +
-> +These properties are defined in accordance with the "Device
-> +Properties UUID For _DSD" [2] document and the
-> +daffd814-6eba-4d8c-8a91-bc9bbf4aa301 UUID must be used in the Device
-> +Data Descriptors containing them.
-> +
-> +phy-handle
-> +----------
+etc...
 
-...
-
-> +
-> +Later, during the MAC driver initialization, the registered PHY devices
-> +have to be retrieved from the MDIO bus. For this, the MAC driver need
-
-                                                                    needs
-
-> +references to the previously registered PHYs which are provided
-> +as device object references (e.g. \_SB.MDI0.PHY1).
-
-
-thanks.
--- 
-~Randy
 
