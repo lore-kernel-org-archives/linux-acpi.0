@@ -2,100 +2,87 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FBEEC433E9
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 21:50:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03633C433E6
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 22:30:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B08FF64EE5
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 21:50:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D10AF64DEC
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 22:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234114AbhBIVrP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Feb 2021 16:47:15 -0500
-Received: from sauhun.de ([88.99.104.3]:33320 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233684AbhBIVF7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 Feb 2021 16:05:59 -0500
-Received: from localhost (p5486c396.dip0.t-ipconnect.de [84.134.195.150])
-        by pokefinder.org (Postfix) with ESMTPSA id 731632C04E4;
-        Tue,  9 Feb 2021 22:04:13 +0100 (CET)
-Date:   Tue, 9 Feb 2021 22:04:10 +0100
-From:   Wolfram Sang <wsa@the-dreams.de>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-i2c@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        id S234013AbhBIW3P (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Feb 2021 17:29:15 -0500
+Received: from mail-yb1-f181.google.com ([209.85.219.181]:44812 "EHLO
+        mail-yb1-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234096AbhBIWOD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Feb 2021 17:14:03 -0500
+Received: by mail-yb1-f181.google.com with SMTP id r2so19723786ybk.11;
+        Tue, 09 Feb 2021 14:13:47 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=VE2EhdIByMacgmRTG1LkrJDJV8t/c6l+WLOiRcExhRk=;
+        b=P8wXqjrDeDo/u+ocFH/ssSayb70LQqtWWOspBYXQcaYmbmToZopaTHf8UltF/wEHPx
+         DL2lNeFGqzjMc+Gqz2VF/aSqGSUHF7Wqk0Nr0nI9li6PWLZQmI0DSmtYsjrP5gAHcUxt
+         cLC4CZbFd8Gatcp+hLpjoCEuRAJP9hK/FjhbCqD+oYWvE8eKcXvK1epCISkmazqDSjNO
+         wUv5dwqLgQvN8u9hrpIBFb5tPYyDAl0gOm+gz/V9JlI4pObgG8jR3Z/hqnFNBe3Z3hTd
+         10pnw5HwixOYTBw8JzPOKD7ANXbB5vXdeKPo2kAhYWxAIS1oN8zNIJB1NyU/2eWveUXk
+         doUg==
+X-Gm-Message-State: AOAM533ZyantgnKemp3v8sxPgizl4fdrveWTuoBCxsdga4CNEHXGCrkO
+        BjSYpLKiwpgjEYS2VGJsNcVgwD3T5A==
+X-Google-Smtp-Source: ABdhPJwOKR7aLyRiaGSdsTsdDouEbfAmDLNj7QHCR08u3CsoA27ruITo6RAAWtqCOIVCqMufvZQOmg==
+X-Received: by 2002:a9d:32f4:: with SMTP id u107mr11203135otb.308.1612905924777;
+        Tue, 09 Feb 2021 13:25:24 -0800 (PST)
+Received: from robh.at.kernel.org (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id c2sm4302590ooo.17.2021.02.09.13.25.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 09 Feb 2021 13:25:23 -0800 (PST)
+Received: (nullmailer pid 218136 invoked by uid 1000);
+        Tue, 09 Feb 2021 21:25:21 -0000
+Date:   Tue, 9 Feb 2021 15:25:21 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Saravana Kannan <saravanak@google.com>
+Cc:     linux-clk@vger.kernel.org, Kevin Hilman <khilman@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 2/7] i2c: Allow an ACPI driver to manage the device's
- power state during probe
-Message-ID: <20210209210410.GA2380@kunai>
-Mail-Followup-To: Wolfram Sang <wsa@the-dreams.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-i2c@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rajmohan.mani@intel.com, Tomasz Figa <tfiga@chromium.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        linux-media@vger.kernel.org
-References: <20210205132505.20173-1-sakari.ailus@linux.intel.com>
- <20210205132505.20173-3-sakari.ailus@linux.intel.com>
+        Thomas Gleixner <tglx@linutronix.de>, kernel-team@android.com,
+        Michael Turquette <mturquette@baylibre.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, linux-doc@vger.kernel.org,
+        Len Brown <lenb@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-kernel@vger.kernel.org, Marc Zyngier <maz@kernel.org>,
+        linux-pm@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>,
+        Len Brown <len.brown@intel.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH v4 2/8] of: property: Don't add links to absent suppliers
+Message-ID: <20210209212521.GA218083@robh.at.kernel.org>
+References: <20210205222644.2357303-1-saravanak@google.com>
+ <20210205222644.2357303-3-saravanak@google.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210205132505.20173-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20210205222644.2357303-3-saravanak@google.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Fri, 05 Feb 2021 14:26:38 -0800, Saravana Kannan wrote:
+> If driver core marks a firmware node as not a device, don't add fwnode
+> links where it's a supplier.
+> 
+> Fixes: e590474768f1 ("driver core: Set fw_devlink=on by default")
+> Signed-off-by: Saravana Kannan <saravanak@google.com>
+> ---
+>  drivers/of/property.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-
-> + * @I2C_DRV_FL_ALLOW_LOW_POWER_PROBE: Let the ACPI driver manage the device's
-> + *				      power state during probe and remove
-
-Well, for the functional change, I am happy if the ACPI guys are happy.
-The only minor nit for me would be removing the "_FL" snipplet from the
-name of the define because I think it is clear enough that this is a
-flag. If you need to resend anyhow, maybe it is worth a thought. It is
-not a big issue, so anyway:
-
-Acked-by: Wolfram Sang <wsa@kernel.org>
-
-because I assume this will go in via the ACPI tree?
-
-
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmAi+MYACgkQFA3kzBSg
-Kba6/xAAtMdyI3C2JF5zUtXQxsmy1dTtr0C3ypMSMTb22o36hVCD5m0MrEk1Ism2
-FTlAoKDK2RhPjsANQLuDg5GyktNmk0aNX1ucmromKdNfHHnJQcEtKWSDm0lVEyyy
-b5RJnv1Zu7zc+Xk5sHKnfidY6YyGXx+HwS8D+w5UNvcTf/dpyhZLIEvn6Dl8tU1E
-WRsrMgmXqDVjEUukEr/j/g+ZwqjMfSj1be9hl3yPp29i4qaSmgKygp2i3/4iOC3f
-IXMIV/pOEN/rMbRCYeTBBccmsH3u67xXV2XFjHs6G2mMQ7n8ydbpAZjtkcQDh4Df
-ZWBzAWdIhtDZBEZ0CiyzcgnSP6QGLtNGfHGUYjuq7Sg8ea7kP1Acm1WHhwXcdvgT
-ZCuNSw48Cc8KYTjpJ4amx6HHmhFs/JcOu+j+psGVg3B/s7L3A+uq6iX6vBKgRcQ6
-0MS8VT04R+F1Z1UaFlIbidQbp/se2PCaUs7182afHSWnESwtebZ0y2oKwWvnmC6F
-/TmC3maOf0a1bUyV6tbAZ6fY5H5zQue+pzhsBfIALgYGe9mQsHDU+W7yklmYTwP8
-jxquIbwNqtwaaG0BHiAnCmH2eRIyM/yDDl0RLKqD6m3HSEM3vJaeBS2adzjShXnp
-pekggUfypFw/gpc5axQAEHkoGST+/M8g9ekR2EZ8IYdQZc1SVz8=
-=10SL
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
+Acked-by: Rob Herring <robh@kernel.org>
