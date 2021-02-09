@@ -2,111 +2,116 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA917C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 22:55:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DF3FC433DB
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 23:55:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 972B964E02
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 22:55:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DCDE64E0D
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 23:54:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233679AbhBIWy7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Feb 2021 17:54:59 -0500
-Received: from foss.arm.com ([217.140.110.172]:57414 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234158AbhBIWhX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 Feb 2021 17:37:23 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 30A251042;
-        Tue,  9 Feb 2021 10:15:43 -0800 (PST)
-Received: from [192.168.0.14] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E3E9B3F73B;
-        Tue,  9 Feb 2021 10:15:29 -0800 (PST)
-Subject: Re: How can a userspace program tell if the system supports the ACPI
- S4 state (Suspend-to-Disk)?
-To:     Dexuan Cui <decui@microsoft.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-        Michael Kelley <mikelley@microsoft.com>,
-        Leandro Pereira <Leandro.Pereira@microsoft.com>
-References: <MWHPR21MB0863BA3D689DDEC3CA6BC262BFC91@MWHPR21MB0863.namprd21.prod.outlook.com>
- <CAJZ5v0jRgeAsyZXpm-XdL6GCKWk5=yVh1s4fZ3m0++NJK-gYBg@mail.gmail.com>
- <MW2PR2101MB1787B5253CAA640F8B7D2860BFB29@MW2PR2101MB1787.namprd21.prod.outlook.com>
-From:   James Morse <james.morse@arm.com>
-Message-ID: <204fa040-115e-552a-5fc1-5520f10bc402@arm.com>
-Date:   Tue, 9 Feb 2021 18:15:17 +0000
-User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+        id S233411AbhBIXyS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Feb 2021 18:54:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55600 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233668AbhBIWHM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Feb 2021 17:07:12 -0500
+Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C852C08EB2B
+        for <linux-acpi@vger.kernel.org>; Tue,  9 Feb 2021 13:55:29 -0800 (PST)
+Received: by mail-yb1-xb33.google.com with SMTP id k4so19703033ybp.6
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Feb 2021 13:55:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/PGZ6373hwX21uII2yTNlUq0BGVrzE4VOh9IUqL/yOY=;
+        b=QMbKQ/jadoFRzkunArX38Q12u3yrUElD5NaALMt6Gr5sASFNErzU750CisBVhEKxbZ
+         BKsBL/FAnK6bP4RsSApVhEr6Anv9KwZcAzCeS1G5UxYly2GzVAHU4nj+zBK7fQzg9KWS
+         hkfl7KFyNbN8Fd9hOTVkK+MlD2a++rRtv0rbzXsbf6CmGOD5Z55NCopVLSQg80Mu4oam
+         hJAOgavYCPe0Z0AGKoON1zf9X5fDwPt+LVwlbW0+8R9wFlkxS77ze0Dn3fWBZ9FdZdEz
+         0aa6qtJavWGV6X8bmsNRzFp7OLc33PfIGmHAIOrdFBs0JOWb5NOoqY193QJVgrCECaYu
+         /f3g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/PGZ6373hwX21uII2yTNlUq0BGVrzE4VOh9IUqL/yOY=;
+        b=cChUlMvBWh5TK/qj1nbBq0TDkOU3WnUVDvFaTz2m2DO9yqItNBurmexL2QfDGZNRx4
+         j55DiT1A5/EvxBdn9ZFD8vJ2zPvLxm1XqOPR+Fq3FHvZrPVnaMBRVXx5iT2ISL/ify+l
+         Lb+/vcdGUd2UsAS1w4kDgavzXHShFcyI+0ObSNIITmci4IRutO0zrfpiPyM5fznGkGQv
+         g8pvqDbfYSSKwyb3X9O2iRcF9XR53fDJrnQbUOKnjo6dt5jHYZd5yDLLHD/JNf8j2CGA
+         sBKDxMT58qXgbUBwOHpgG+3oUo9mjzI9WcNr8UGdvDkppqqy/cRtKeU5S7sJWtodgvfs
+         b8Hg==
+X-Gm-Message-State: AOAM5334jrWeXGcb1HsfBWRemUsydCddVknsF1TNFvzuM9KtlSoWg0Mv
+        I/QqdjhRtXh/TGpu02NNFU/BKoqpt2cvx1RrloRLog==
+X-Google-Smtp-Source: ABdhPJyj1xOOpj4onlG2/WW3umTyJvCVg8fQGOPytjYVlJXvUchM6BAlnaXUWge9bvj0zPdNDJIpSnxTV2zaYfiH3IQ=
+X-Received: by 2002:a25:b74c:: with SMTP id e12mr37996841ybm.20.1612907728418;
+ Tue, 09 Feb 2021 13:55:28 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <MW2PR2101MB1787B5253CAA640F8B7D2860BFB29@MW2PR2101MB1787.namprd21.prod.outlook.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+References: <20210205222644.2357303-1-saravanak@google.com>
+ <20210205222644.2357303-5-saravanak@google.com> <20210209213320.GA219007@robh.at.kernel.org>
+In-Reply-To: <20210209213320.GA219007@robh.at.kernel.org>
+From:   Saravana Kannan <saravanak@google.com>
+Date:   Tue, 9 Feb 2021 13:54:52 -0800
+Message-ID: <CAGETcx_gHRd9UYHvSsHX_=NFF+HEJkamJp3JcpojuJob_a8_DA@mail.gmail.com>
+Subject: Re: [PATCH v4 4/8] of: property: Add fw_devlink support for optional properties
+To:     Rob Herring <robh@kernel.org>
+Cc:     Jonathan Corbet <corbet@lwn.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Marc Zyngier <maz@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        linux-clk <linux-clk@vger.kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Android Kernel Team <kernel-team@android.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Dexuan,
+On Tue, Feb 9, 2021 at 1:33 PM Rob Herring <robh@kernel.org> wrote:
+>
+> On Fri, Feb 05, 2021 at 02:26:40PM -0800, Saravana Kannan wrote:
+> > Not all DT bindings are mandatory bindings. Add support for optional DT
+> > bindings and mark iommus, iommu-map, dmas as optional DT bindings.
+>
+> I don't think we can say these are optional or not. It's got to be a
+> driver decision somehow.
 
-On 05/02/2021 19:36, Dexuan Cui wrote:
->> From: Rafael J. Wysocki <rafael@kernel.org>
->> Sent: Friday, February 5, 2021 5:06 AM
->> To: Dexuan Cui <decui@microsoft.com>
->> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
->> linux-hyperv@vger.kernel.org; Michael Kelley <mikelley@microsoft.com>
->> Subject: Re: How can a userspace program tell if the system supports the ACPI
->> S4 state (Suspend-to-Disk)?
->>
->> On Sat, Dec 12, 2020 at 2:22 AM Dexuan Cui <decui@microsoft.com> wrote:
->>>
->>> Hi all,
->>> It looks like Linux can hibernate even if the system does not support the ACPI
->>> S4 state, as long as the system can shut down, so "cat /sys/power/state"
->>> always contains "disk", unless we specify the kernel parameter "nohibernate"
->>> or we use LOCKDOWN_HIBERNATION.
+Right, so maybe the word "optional" isn't a good name for it. I can
+change that if you want.
 
->>> In some scenarios IMO it can still be useful if the userspace is able to detect
->>> if the ACPI S4 state is supported or not, e.g. when a Linux guest runs on
->>> Hyper-V, Hyper-V uses the virtual ACPI S4 state as an indicator of the proper
->>> support of the tool stack on the host, i.e. the guest is discouraged from
->>> trying hibernation if the state is not supported.
+The point being, fw_devlink can't block the probe of this driver based
+on iommu property. We let the driver decide if it wants to
+-EPROBE_DEFER or not or however it wants to handle this.
 
-What goes wrong? This sounds like a funny way of signalling hypervisor policy.
+> For example, if IOMMU is optional, what happens with this sequence:
+>
+> driver probes without IOMMU
+> driver calls dma_map_?()
+> IOMMU driver probes
+> h/w accesses DMA buffer --> BOOM!
 
+Right. But how is this really related to fw_devlink? AFAICT, this is
+an issue even today. If the driver needs the IOMMU, then it needs to
+make sure the IOMMU has probed? What am I missing?
 
->>> I know we can check the S4 state by 'dmesg':
->>>
->>> # dmesg |grep ACPI: | grep support
->>> [    3.034134] ACPI: (supports S0 S4 S5)
->>>
->>> But this method is unreliable because the kernel msg buffer can be filled
->>> and overwritten. Is there any better method? If not, do you think if the
->>> below patch is appropriate? Thanks!
->>
->> Sorry for the delay.
->>
->> If ACPI S4 is supported, /sys/power/disk will list "platform" as one
->> of the options (and it will be the default one then).  Otherwise,
->> "platform" is not present in /sys/power/disk, because ACPI is the only
->> user of hibernation_ops.
-
-> This works on x86. Thanks a lot!
-> 
-> BTW, does this also work on ARM64?
-
-Not today. The S4/S5 stuff is part of 'ACPI_SYSTEM_POWER_STATES_SUPPORT', which arm64
-doesn't enable as it has a firmware mechanism that covers this on both DT and ACPI
-systems. That code is what calls hibernation_set_ops() to enable ACPI's platform mode.
-
-Regardless: hibernate works fine. What does your hypervisor do that causes problems?
-(I think all we expect from firmware is it doesn't randomise the placement of the ACPI
-tables as they aren't necessarily part of the hibernate image)
-
-
-Thanks,
-
-James
+-Saravana
