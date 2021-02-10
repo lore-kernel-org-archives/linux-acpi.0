@@ -2,91 +2,164 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE74FC433E6
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:51:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37F94C433E9
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 12:29:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B46864DF6
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:51:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0609564E5A
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 12:29:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230494AbhBJLvS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Feb 2021 06:51:18 -0500
-Received: from mga02.intel.com ([134.134.136.20]:64430 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230412AbhBJLtB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Feb 2021 06:49:01 -0500
-IronPort-SDR: SSi05y+sTmDcrqvLKPVbUwy0FDgO97qkKbu+fLxx+EMnPUfI+8F2xbkBx+eGsWLn5aMMO1G8nq
- eRAKblJNDHgg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9890"; a="169181917"
-X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
-   d="scan'208";a="169181917"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2021 03:43:36 -0800
-IronPort-SDR: vsAvMH9/oRNgKCElQhKCw64FRSzP8p8ckNi6QPc3GTgVrLW0AKEOMExsh94BJpuvuHS/1LhcvH
- Am/cYDa4ZyYg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
-   d="scan'208";a="488729862"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 10 Feb 2021 03:43:35 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 71064525; Wed, 10 Feb 2021 13:43:32 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Calvin Johnson <calvin.johnson@oss.nxp.com>
-Subject: [PATCH v1 7/7] ACPI: property: Allow counting a single value as an array of 1 element
-Date:   Wed, 10 Feb 2021 13:43:20 +0200
-Message-Id: <20210210114320.3478-7-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
-References: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
+        id S231703AbhBJM3L (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Feb 2021 07:29:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43522 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231814AbhBJM1p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Feb 2021 07:27:45 -0500
+Received: from mail-ed1-x535.google.com (mail-ed1-x535.google.com [IPv6:2a00:1450:4864:20::535])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B5E4C061756
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Feb 2021 04:27:04 -0800 (PST)
+Received: by mail-ed1-x535.google.com with SMTP id g10so2763027eds.2
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Feb 2021 04:27:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Phx2Df+hBBWF6//uqqDU9bgwk8wPxGzI8wPThN0e6e4=;
+        b=XWEkebRiibdEdE+6ZB77pkBDh+47f7G/U8vuVdUs3ojDxrmD+oIRSWGm5kX5MXCP3L
+         8FOw4XysMFBMfDCFK8HdIucqIu9o0gChIV8kqjE01MFl65rUCpSPso/3leXmhQch2tYd
+         O5bhkzF/tafxn+1JrQIFDtPYHfUVBDSm/vzvn6Semntf5QSpf3XIsRH6aPDS2FdzsriJ
+         NyKxsx2ZIxSV/G0Q+hHt8Y5ofXa1XgUI4Z4Hz2UDxq3XrOD2IknCK8R+7oL5mdybpmU0
+         djiKokRfEBYKqIwNmiJsY9cG4LzSv8D6grvkhuaWb4XJeeE1D/StTKSbGG5UGVcxT8aU
+         eQzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Phx2Df+hBBWF6//uqqDU9bgwk8wPxGzI8wPThN0e6e4=;
+        b=mnCNiWl1NWr57VgJjjbBxevloM/50kwwZGuHVnhP48+B8UYzVxjF5lrUim5E2By3Mz
+         x56NXPs9NWR+Erwc4+svzJWo/diTt1lJMJDva7IVxXBSIuhRHr/2I0rgkCwWmvat0Z0l
+         JtxPE68hMGq1TqkEu7ErI+pf4o8jLJ49iRP1mA89P3UvXPKn/hn9xSKbalLWHRyMpEK7
+         ssj2awE066Ysu+TzbaPWsuUuiMU9+eQxiWGci0LDX9d19nfxJcKrSyNigRW/EWtSD6o+
+         9Gvm28C6R0yeYy31yngnNVhZjZoRbtRebL0CVKTFZQs20QuOMdyuNwCn8RkI4tDPZ0Eb
+         T4LA==
+X-Gm-Message-State: AOAM5313st/25zcwSiKLwnZwkuPm+5gC+wfawf6YQMlc75XB3DsRNYnC
+        RfrXXNOFxxP3Y9ifpCJwrfxYq7pUE5c4lxhKXoZwBQ==
+X-Google-Smtp-Source: ABdhPJw4C1QO6SGuO1XGeekpJcbdpNnmdoqCX6g5HqEjse/xlq4shvpaq+kQrErxohP4VuoElKjQrAOmM15IICl0GCQ=
+X-Received: by 2002:a50:fe11:: with SMTP id f17mr2919405edt.88.1612960022961;
+ Wed, 10 Feb 2021 04:27:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210205132505.20173-1-sakari.ailus@linux.intel.com>
+ <20210205132505.20173-8-sakari.ailus@linux.intel.com> <CAMpxmJU7J9JBSwCN+GLDpuOL=iZ1PH=oZZuGiAyovuf2TQ=o9A@mail.gmail.com>
+ <CAJZ5v0jUqtYDpBn-ezsftCrY=9iD3sAKhyyFf_+CMkthLnsZow@mail.gmail.com>
+ <CAMpxmJW61Bd1SR3-i6=OV6RgafiEdfp4sNN0M6EYa7NSeOTFKg@mail.gmail.com>
+ <20210209162343.GF32460@paasikivi.fi.intel.com> <CAJZ5v0h2=zKNMictJtJE5LuEi9E3n=Uf-xNO3udHxL2hqXL7Fg@mail.gmail.com>
+ <20210209165418.GG32460@paasikivi.fi.intel.com> <CAJZ5v0jc9HZ-Qa9ooN40sgispqo5BUE6ngnVMCqAO3qnUU+uqw@mail.gmail.com>
+ <20210210080311.GA3@paasikivi.fi.intel.com>
+In-Reply-To: <20210210080311.GA3@paasikivi.fi.intel.com>
+From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date:   Wed, 10 Feb 2021 13:26:51 +0100
+Message-ID: <CAMpxmJWogKNk3me76_O2nyaJCQO-Amb=rmhM9APEhFLd9ui4rg@mail.gmail.com>
+Subject: Re: [PATCH v10 7/7] at24: Support probing while off
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-i2c <linux-i2c@vger.kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rajmohan Mani <rajmohan.mani@intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We allow to read the single value as a first element in the array.
-Unfortunately the counting doesn't work in this case and we can't
-call fwnode_property_count_*() API without getting an error.
+On Wed, Feb 10, 2021 at 9:41 AM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> On Tue, Feb 09, 2021 at 05:58:12PM +0100, Rafael J. Wysocki wrote:
+> > On Tue, Feb 9, 2021 at 5:54 PM Sakari Ailus
+> > <sakari.ailus@linux.intel.com> wrote:
+> > >
+> > > On Tue, Feb 09, 2021 at 05:42:45PM +0100, Rafael J. Wysocki wrote:
+> > > > On Tue, Feb 9, 2021 at 5:23 PM Sakari Ailus
+> > > > <sakari.ailus@linux.intel.com> wrote:
+> > > > >
+> > > > > Hi Bartosz, Rafael,
+> > > > >
+> > > > > On Tue, Feb 09, 2021 at 04:49:37PM +0100, Bartosz Golaszewski wrote:
+> > > > > > On Mon, Feb 8, 2021 at 5:54 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > > > > > >
+> > > > > > > On Mon, Feb 8, 2021 at 5:44 PM Bartosz Golaszewski
+> > > > > > > <bgolaszewski@baylibre.com> wrote:
+> > > > > > > >
+> > > > > > > > On Fri, Feb 5, 2021 at 2:25 PM Sakari Ailus
+> > > > > > > > <sakari.ailus@linux.intel.com> wrote:
+> > > > > > > > >
+> > > > > > > > > In certain use cases (where the chip is part of a camera module, and the
+> > > > > > > > > camera module is wired together with a camera privacy LED), powering on
+> > > > > > > > > the device during probe is undesirable. Add support for the at24 to
+> > > > > > > > > execute probe while being powered off. For this to happen, a hint in form
+> > > > > > > > > of a device property is required from the firmware.
+> > > > > > > > >
+> > > > > > > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > > > > > > Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+> > > > > > > > > ---
+> > > > > > > >
+> > > > > > > > I'll ack this but I still claim that the name
+> > > > > > > > acpi_dev_state_low_power() is super misleading for this use-case and
+> > > > > > > > I've been saying that for 10 versions now with everyone just ignoring
+> > > > > > > > my remarks. :/
+> > > > > > >
+> > > > > > > Well, the function in question simply checks if the current ACPI power
+> > > > > > > state of the device is different from "full power", so its name
+> > > > > > > appears to be quite adequate to me.
+> > > > > > >
+> > > > > > > If the way in which it is used is confusing, though, I guess
+> > > > > > > explaining what's going on would be welcome.
+> > > > > > >
+> > > > > >
+> > > > > > Yes, I have explained it multiple time already - last time at v9 of this series:
+> > > > > >
+> > > > > >     https://www.spinics.net/lists/kernel/msg3816807.html
+> > > > >
+> > > > > How about adding this to the description of acpi_dev_state_low_power():
+> > > > >
+> > > > > -----------8<--------------
+> > > > >  * This function is intended to be used by drivers to tell whether the device
+> > > > >  * is in low power state (D1--D3cold) in driver's probe or remove function. See
+> > > > >  * Documentation/firmware-guide/acpi/low-power-probe.rst for more information.
+> > > > > -----------8<--------------
+> > > >
+> > > > This information is already there in the kerneldoc description of that
+> > > > function AFAICS.
+> > >
+> > > Ok, the D states are mentioned already. But how to use it is not, nor
+> > > there's a reference to the ReST file. I think that wouldn't hurt.
+> > >
+> > > >
+> > > > I was thinking about adding an explanation comment to the caller.
+> > >
+> > > I think it'd be best if the function name would convey that without a
+> > > comment that should then be added to all callers. How about calling the
+> > > function e.g. acpi_dev_state_d0() and negating the return value? The D0
+> > > state is well defined and we could do this without adding new terms.
+> >
+> > That would work for me.
+>
+> Bartosz, would that work for you?
+>
+> I'd call the temporary variable in the at24 driver e.g. "full_power".
+>
 
-Modify acpi_data_prop_read() to always try the single value read
-and thus allow counting the single value as an array of 1 element.
+Yes, that works, go ahead and thank you.
 
-Reported-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/property.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 236316ee0e25..d6100585fceb 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -913,12 +913,14 @@ static int acpi_data_prop_read(const struct acpi_device_data *data,
- 	const union acpi_object *items;
- 	int ret;
- 
--	if (val && nval == 1) {
-+	/* Try to read as a single value first */
-+	if (!val || nval == 1) {
- 		ret = acpi_data_prop_read_single(data, propname, proptype, val);
- 		if (ret >= 0)
--			return ret;
-+			return val ? ret : 1;
- 	}
- 
-+	/* It's not the single value, get an array instead */
- 	ret = acpi_data_get_property_array(data, propname, ACPI_TYPE_ANY, &obj);
- 	if (ret)
- 		return ret;
--- 
-2.30.0
-
+Bartosz
