@@ -2,143 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14367C433E6
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 141AEC433DB
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:48:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC67864E58
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:48:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC84164E3B
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:48:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230245AbhBJLr5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Feb 2021 06:47:57 -0500
-Received: from mga02.intel.com ([134.134.136.20]:64430 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230388AbhBJLpk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Feb 2021 06:45:40 -0500
-IronPort-SDR: wSheto1sOsf4cVLgtdomFFgtfAe3a8Tg6kX3ts0pqY0nNi6j5Ip5Ivlyg4sEE4v3B0Qr1kK4Yf
- KmkvHIpb53wg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9890"; a="169181911"
-X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
-   d="scan'208";a="169181911"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2021 03:43:34 -0800
-IronPort-SDR: 1EEOWmLHG9eeh7iZ+/W2gJzwBCcl3cmva7DnQ3zFVjiueCBigrBqOO6PdDMNCgiP5ZazAIjcOv
- mkz29nzXwLew==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
-   d="scan'208";a="488729858"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 10 Feb 2021 03:43:33 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 5FDF235E; Wed, 10 Feb 2021 13:43:32 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 5/7] ACPI: property: Refactor acpi_data_prop_read_single()
-Date:   Wed, 10 Feb 2021 13:43:18 +0200
-Message-Id: <20210210114320.3478-5-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
-References: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
+        id S231213AbhBJLsP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Feb 2021 06:48:15 -0500
+Received: from esa.microchip.iphmx.com ([68.232.153.233]:53048 "EHLO
+        esa.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231260AbhBJLqN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Feb 2021 06:46:13 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1612957572; x=1644493572;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=HiRooR0JRPW34th/7QSHeDW6g1Xmz/WY9IkNdXFN45o=;
+  b=XfUqdweFbC/6vzRVj/mX53tPvRbWTx2asMr2LtKB+S27ggN2Iz5USJ6H
+   toWzlY0NF28TrX/n6NELdiNqu0kr7+OiY+sVItJ30Sgh7Z6A6OpkZ+2uh
+   CX9+nNBO5mhAUPKmNxPjYYL10QSELyBIIfLa2keByWbNhKh6u1eDf38Xq
+   RprVo2Ql/dRESLvgsmiHzgYdDf2zE7fOgz79t2vSSg8sRRv6i6ikymtwa
+   gALslvPkMakBlP5ubrJIOOcstZbvvxuJU2m2W08BX3XoXGYgTHmbhm88q
+   tpcTFR30ONpkd7Awy0i1t3ipp09cWKv1i37HIcSEvTX16Gx6WD58NIsmE
+   g==;
+IronPort-SDR: OJzOT1L7uR9EmsWc/byKWwNOkbxZX5ra5Qezzd8kgRQ5TkFJOnClQLYVRAhlaYG4DOUZBeg/Du
+ tc8jDnu5zgYjn1ZPne5vnQclQ/SYOg7EDOT27/vbn4zYVlcGyyBzd7dsK8QHtlPv3W9LLuWXs5
+ fA0+sXRCAF8SDN7JnFwc5KXcjkH2HaRAjecHslK0blQ16mHCN17TgsS3p4WSbpWKZS89oiviWC
+ In5HEVkM+jLk/NmesobzktSTduQGvBR6xxpa4cZzRegMmsvSlTBAHcBublgXQlWf3a5D+JaVrx
+ yBY=
+X-IronPort-AV: E=Sophos;i="5.81,168,1610434800"; 
+   d="scan'208";a="114541425"
+Received: from smtpout.microchip.com (HELO email.microchip.com) ([198.175.253.82])
+  by esa1.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 10 Feb 2021 04:44:54 -0700
+Received: from chn-vm-ex01.mchp-main.com (10.10.85.143) by
+ chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1979.3; Wed, 10 Feb 2021 04:44:53 -0700
+Received: from atudor-ThinkPad-T470p.amer.actel.com (10.10.115.15) by
+ chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server id
+ 15.1.1979.3 via Frontend Transport; Wed, 10 Feb 2021 04:44:47 -0700
+From:   Tudor Ambarus <tudor.ambarus@microchip.com>
+To:     <corbet@lwn.net>, <gregkh@linuxfoundation.org>,
+        <rafael@kernel.org>, <khilman@kernel.org>,
+        <ulf.hansson@linaro.org>, <len.brown@intel.com>, <lenb@kernel.org>,
+        <pavel@ucw.cz>, <mturquette@baylibre.com>, <sboyd@kernel.org>,
+        <robh+dt@kernel.org>, <frowand.list@gmail.com>, <maz@kernel.org>,
+        <tglx@linutronix.de>, <saravanak@google.com>
+CC:     <nicolas.ferre@microchip.com>, <claudiu.beznea@microchip.com>,
+        <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-pm@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <m.szyprowski@samsung.com>, <geert@linux-m68k.org>,
+        <kernel-team@android.com>,
+        Tudor Ambarus <tudor.ambarus@microchip.com>
+Subject: [PATCH] clk: Mark fwnodes when their clock provider is added
+Date:   Wed, 10 Feb 2021 13:44:34 +0200
+Message-ID: <20210210114435.122242-1-tudor.ambarus@microchip.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210205222644.2357303-9-saravanak@google.com>
+References: <20210205222644.2357303-9-saravanak@google.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Refactor acpi_data_prop_read_single() for less LOCs and better maintenance.
+This is a follow-up for:
+commit 3c9ea42802a1 ("clk: Mark fwnodes when their clock provider is added/removed")
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The above commit updated the deprecated of_clk_add_provider(),
+but missed to update the preferred of_clk_add_hw_provider().
+Update it now.
+
+Signed-off-by: Tudor Ambarus <tudor.ambarus@microchip.com>
 ---
- drivers/acpi/property.c | 59 +++++++++++++++++++----------------------
- 1 file changed, 28 insertions(+), 31 deletions(-)
+ drivers/clk/clk.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 167338fe9b04..f2386ef32ff1 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -785,47 +785,44 @@ static int acpi_data_prop_read_single(const struct acpi_device_data *data,
- 				      enum dev_prop_type proptype, void *val)
- {
- 	const union acpi_object *obj;
--	int ret;
-+	int ret = 0;
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 27ff90eacb1f..9370e4dfecae 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -4594,6 +4594,8 @@ int of_clk_add_hw_provider(struct device_node *np,
+ 	if (ret < 0)
+ 		of_clk_del_provider(np);
  
- 	if (!val)
- 		return -EINVAL;
- 
--	if (proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64) {
-+	if (proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64)
- 		ret = acpi_data_get_property(data, propname, ACPI_TYPE_INTEGER, &obj);
--		if (ret)
--			return ret;
--
--		switch (proptype) {
--		case DEV_PROP_U8:
--			if (obj->integer.value > U8_MAX)
--				return -EOVERFLOW;
--			*(u8 *)val = obj->integer.value;
--			break;
--		case DEV_PROP_U16:
--			if (obj->integer.value > U16_MAX)
--				return -EOVERFLOW;
--			*(u16 *)val = obj->integer.value;
--			break;
--		case DEV_PROP_U32:
--			if (obj->integer.value > U32_MAX)
--				return -EOVERFLOW;
--			*(u32 *)val = obj->integer.value;
--			break;
--		default:
--			*(u64 *)val = obj->integer.value;
--			break;
--		}
--	} else if (proptype == DEV_PROP_STRING) {
-+	else if (proptype == DEV_PROP_STRING)
- 		ret = acpi_data_get_property(data, propname, ACPI_TYPE_STRING, &obj);
--		if (ret)
--			return ret;
-+	if (ret)
-+		return ret;
- 
-+	switch (proptype) {
-+	case DEV_PROP_U8:
-+		if (obj->integer.value > U8_MAX)
-+			return -EOVERFLOW;
-+		*(u8 *)val = obj->integer.value;
-+		break;
-+	case DEV_PROP_U16:
-+		if (obj->integer.value > U16_MAX)
-+			return -EOVERFLOW;
-+		*(u16 *)val = obj->integer.value;
-+		break;
-+	case DEV_PROP_U32:
-+		if (obj->integer.value > U32_MAX)
-+			return -EOVERFLOW;
-+		*(u32 *)val = obj->integer.value;
-+		break;
-+	case DEV_PROP_U64:
-+		*(u64 *)val = obj->integer.value;
-+		break;
-+	case DEV_PROP_STRING:
- 		*(char **)val = obj->string.pointer;
--
- 		return 1;
--	} else {
--		ret = -EINVAL;
-+	default:
-+		return -EINVAL;
- 	}
++	fwnode_dev_initialized(&np->fwnode, true);
 +
  	return ret;
  }
- 
+ EXPORT_SYMBOL_GPL(of_clk_add_hw_provider);
 -- 
-2.30.0
+2.25.1
 
