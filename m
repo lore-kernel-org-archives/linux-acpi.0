@@ -2,223 +2,81 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB20FC433DB
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:27:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2672BC433DB
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:47:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B308E64E3B
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:27:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B419D64E3B
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231334AbhBJL1S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Feb 2021 06:27:18 -0500
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2528 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230384AbhBJLZQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Feb 2021 06:25:16 -0500
-Received: from fraeml741-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4DbHLD5vVrz67mjg;
-        Wed, 10 Feb 2021 19:17:56 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml741-chm.china.huawei.com (10.206.15.222) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Wed, 10 Feb 2021 12:24:32 +0100
-Received: from localhost (10.47.67.2) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Wed, 10 Feb
- 2021 11:24:31 +0000
-Date:   Wed, 10 Feb 2021 11:23:30 +0000
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Dan Williams <dan.j.williams@intel.com>
-CC:     <linux-cxl@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        "Natu, Mahesh" <mahesh.natu@intel.com>,
-        Chet R Douglas <chet.r.douglas@intel.com>,
-        Ben Widawsky <ben.widawsky@intel.com>,
-        "Vishal L Verma" <vishal.l.verma@intel.com>
-Subject: Re: [RFC] ACPI Code First ECR: Generic Target
-Message-ID: <20210210112330.00003e74@Huawei.com>
-In-Reply-To: <CAPcyv4gmd_cygXK0PpGkXmJLC3_ctEpRvpi5P-QcuXusFX5oNQ@mail.gmail.com>
-References: <CAPcyv4gmd_cygXK0PpGkXmJLC3_ctEpRvpi5P-QcuXusFX5oNQ@mail.gmail.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
+        id S230213AbhBJLrt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Feb 2021 06:47:49 -0500
+Received: from mga07.intel.com ([134.134.136.100]:24123 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230161AbhBJLpl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Feb 2021 06:45:41 -0500
+IronPort-SDR: EKCXni8O5E4v4lFPfjAvwo8zyr922PfGLUXCGXxWxlGkuav/eFKW1IYvwezpB+xWTfHsvbC8yp
+ Keh+ZL2yd/lw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9890"; a="246122912"
+X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
+   d="scan'208";a="246122912"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2021 03:43:34 -0800
+IronPort-SDR: Lc9PJZFDPYuC33GHRYjdu45H7Dxod7Lgb3mXlP+SgqcGO69J3AxZjp6z1CeS2tkEUDl8FlzEAV
+ IZtFVVD/DOXQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
+   d="scan'208";a="399136329"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga007.jf.intel.com with ESMTP; 10 Feb 2021 03:43:33 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 579CE35A; Wed, 10 Feb 2021 13:43:32 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/7] ACPI: property: Satisfy kernel doc validator (part 2)
+Date:   Wed, 10 Feb 2021 13:43:17 +0200
+Message-Id: <20210210114320.3478-4-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
+References: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.47.67.2]
-X-ClientProxiedBy: lhreml725-chm.china.huawei.com (10.201.108.76) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 9 Feb 2021 19:55:05 -0800
-Dan Williams <dan.j.williams@intel.com> wrote:
+CHECK   drivers/acpi/property.c
+ warning: Function parameter or member '__fwnode' not described in 'acpi_graph_get_remote_endpoint'
+ warning: Excess function parameter 'fwnode' description in 'acpi_graph_get_remote_endpoint'
+ warning: Excess function parameter 'endpoint' description in 'acpi_graph_get_remote_endpoint'
 
-> While the platform BIOS is able to describe the performance
-> characteristics of CXL memory that is present at boot, it is unable to
-> statically enumerate the performance of CXL memory hot inserted
-> post-boot. The OS can enumerate most of the characteristics from link
-> registers and CDAT, but the performance from the CPU to the host
-> bridge, for example, is not enumerated by PCIE or CXL. Introduce an
-> ACPI mechanism for this purpose. Critically this is achieved with a
-> small tweak to how the existing Generic Initiator proximity domain is
-> utilized in the HMAT.
+Fixes: 0ef7478639c5 ("ACPI: property: Make the ACPI graph API private")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/property.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Hi Dan,
-
-Agree there is a hole here, but I think the proposed solution has some
-issues for backwards compatibility.
-
-Just to clarify, I believe CDAT from root ports is sufficient for the
-other direction (GI on CXL, memory in host).  I wondered initially if
-this was a two way issue, but after a reread, I think that is fine
-with the root port providing CDAT or potentially treating the root
-port as a GI (though that runs into the same naming / representation issue
-as below and I think would need some clarifying text in UEFI GI description)
-
-http://uefi.org/sites/default/files/resources/Coherent%20Device%20Attribute%20Table_1.01.pdf
-
-For the case you are dealing with here potentially we 'could' add something
-to CDAT as alternative to changing SRAT, but it would be more complex
-so your approach here makes more sense to me.
-
-> 
-> ---
-> 
-> # Title: Introduce a Generic Target for CXL
-> 
-> # Status: Draft
-> 
-> # Document: ACPI Specification 6.4
-> 
-> # License
-> SPDX-License Identifier: CC-BY-4.0
-> 
-> # Submitter:
-> * Sponsor: Dan Williams, Intel
-> * Creators/Contributors:
->     * Mahesh Natu, Intel
->     * Chet Douglas, Intel
->     * Deepak Shivakumar, Intel
-> 
-> # Summary of the Change
-> Introduce a "Generic Target" concept to the SRAT to describe the root
-> performance parameters in the path to dynamically discovered (outside of
-> ACPI enumeration) CXL memory target endpoints.
-> 
-> # Benefits of the Change
-> Consider the case of a system with a set of CXL host bridges (ACPI0016),
-
-Superficially feels like this new SRAT entry might reference the CXL 2.0 Root
-ports or the host bridge.
-
-> and no devices attached at initial system power-on. In this scenario
-> platform firmware is unable to perform the end-to-end enumeration
-> necessary to populate SRAT and HMAT for the endpoints that may be
-> hot-inserted behind those bridges post power-on. The address-range is
-> unknown so SRAT can not be pre-populated, the performance is unknown (no
-> CDAT nor interleave configuration) so HMAT can not be pre-populated.
-> 
-> However, what is known to platform firmware that generates the SRAT and
-> HMAT is the performance characteristics of the path between CPU and
-> Generic Initiators to the CXL host bridge target. With either
-> CPU-to-Generic-Target, or Generic-Initiator-to-Generic-Target entries in
-> the HMAT the OS CXL subsystem can enumerate the remaining details (PCIE
-> link status, device CDAT, interleave configuration) to calculate the
-> bandwidth and latency of a dynamically discovered CXL memory target.
-
-I'm wondering if the term "generic target" is a good name.
-Would something like "generic target bridge" be clearer?
-The point being this isn't an actual target but a point along the way.
-Mind you this is close to bike shedding.
-
-As mentioned above, maybe "generic bridge" that can give us a node to hang
-data off for both, a) GI on CXL to host memory, and b) Initiator in host to CXL memory
-and hence give cleaner representation.
-
-> 
-> # Impact of the Change
-> The existing Generic Initiator Affinity Structure (ACPI 6.4 Section
-> 5.2.16.6) already contains all the fields necessary to enumerate a
-> generic target proximity domain. All that is missing is the
-> interpretation of that proximity domain optionally as a target
-> identifier in the HMAT.
-> 
-> Given that the OS still needs to dynamically enumerate and instantiate
-> the memory ranges behind the host bridge. The assumption is that
-> operating systems that do not support native CXL enumeration will ignore
-> this data in the HMAT, while CXL native enumeration aware environments
-> will use this fragment of the performance path to calculate the
-> performance characteristics.
-
-I don't think it is true that OS not supporting native CXL will ignore the
-data.
-
-Linux will create a small amount of infrastructure to reflect them (more or
-less the same as a memoryless node) and also they will appear in places
-like access0 as a possible initiator of transactions.  It's small stuff,
-but I'd rather the impact on legacy was zero.
-
-So my gut feeling here is we shouldn't reuse the generic initiator, but
-should invent something new.  Would look similar to GI, but with a different
-ID - to ensure legacy OS ignores it.
-
-Unfortunately we can't just add a flag because backwards compatibility
-with old OS would mean it was ignored.  Hence I think this needs to be
-a new type.
-
-If we define a new node type rather than extend GI, we need to be careful
-around the same issue with _PXM that we had when introducing Generic
-Initiators (not sure the protections on that made it back to stable)
-so might need to modify DSDT _PXM responses based on appropriate _OSC.
-May well be fine but I'm not convinced yet.  Perhaps we need to say
-that using _PXM to place anything in a node defined only via this new means
-is not valid.
-
-Jonathan
-
-> 
-> # References
-> * Compute Express Link Specification v2.0,
-> <https://www.computeexpresslink.org/>
-> 
-> # Detailed Description of the Change
-> 
-> * Replace "Generic Initiator" with "Generic Initiator / Target" in all
-> locations except where an "initiator" or "target" is implied.
-> Specifically 5.2.27.3 "Memory Proximity Domain Attributes Structure"
-> need not replace occurrences of "generic initiator" in field: "Proximity
-> Domain for Attached Initiator". Additionally field: "Proximity Domain
-> for the Memory" must be renamed to "Proximity Domain for the Memory /
-> Generic Target" with a new description "Integer that represents the
-> memory / generic target proximity domain to which this memory belongs."
-> 
-> * Revise "5.2.16.6 Generic Initiator Affinity Structure" to make it
->   consistent with being referenced as either a target or initiator.
-> 
->         * Description: (replace all text)
-> 
->         > The Generic Initiator / Target Affinity Structure provides the
->         > association between a Generic Initiator and a Memory Proximity
->         > Domain, or another Generic Target Proximity Domain. The
->         > distinction as to whether this structure represents an
->         > Initiator, a Target, or both depends on how it is referenced
->         > in the HMAT. See Section 5.2.27.3 for details.  
-> 
->         > Support of Generic Initiator / Target Affinity Structures by
->         > OSPM is optional, and the platform may query whether the OS
->         > supports it via the _OSC method. See Section 6.2.11.2.  
-> 
->         * Architectural transactions: (append after current text)
-> 
->         > If this proximity domain is referenced as a target then it
->         > supports all the transaction types inferred above.  
-> 
->         * Other updates are simple Initiator => Initiator / Target
->           replacements.
-
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index a6b096575fc8..167338fe9b04 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1190,8 +1190,7 @@ static struct fwnode_handle *acpi_graph_get_child_prop_value(
+ 
+ /**
+  * acpi_graph_get_remote_endpoint - Parses and returns remote end of an endpoint
+- * @fwnode: Endpoint firmware node pointing to a remote device
+- * @endpoint: Firmware node of remote endpoint is filled here if not %NULL
++ * @__fwnode: Endpoint firmware node pointing to a remote device
+  *
+  * Returns the remote endpoint corresponding to @__fwnode. NULL on error.
+  */
+-- 
+2.30.0
 
