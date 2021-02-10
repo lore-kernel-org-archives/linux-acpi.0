@@ -2,105 +2,79 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E6E9C4332D
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:48:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01803C433E9
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5E2464DF6
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:48:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB4A764DE3
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 11:51:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231271AbhBJLs1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Feb 2021 06:48:27 -0500
-Received: from esa.microchip.iphmx.com ([68.232.153.233]:53072 "EHLO
-        esa.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231274AbhBJLqR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Feb 2021 06:46:17 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
-  t=1612957576; x=1644493576;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=HiRooR0JRPW34th/7QSHeDW6g1Xmz/WY9IkNdXFN45o=;
-  b=EUoy18tJpFtBwDKPjQZW2bKumgPneRtSZOrWKJTwZvf+518vchPLcjeV
-   NmoGoLo7m2ruplzpCZGbX9eFqJ5SFiJ36DIw3tZVtyDpyWORnYdzL/NUo
-   O97KFtpKO+ADBX5cb7YzokppL7L4cbMUfwFl/3WLxq9lofW8hPeAjL6sP
-   7wAyNsb68O6j73iO4+v1ADWJR2PXVN83t7d1NW9h6bHCjzekxwtEFSHvy
-   PT7Y15nXvXowJoNVodlZUG9qHFuR2IRHotuAJMPICJukItAoUPl5pX9mW
-   dLcN4C9CfFqd7ChFzkEeabaIiX1+Jnsu2JEEDHx//tIKHo5bMpWI+xOs5
-   g==;
-IronPort-SDR: VRlDMKK2cHa3TxUR1JcmsJssA6kfjrVR7Z5f3Ls10/pKx5MNfbGzJXh0KqrAy6OgoxHnvFnykg
- xUIkDzlfEUgsWVTMJI6exxnVy6E2cZyksQSIZ9X7Qg+J1oajssVGB+YxTkbGImT7cAYeG/aF4s
- xhPVW6KZqdiT/345FloQXjz2v8LKSC/bROy7v1NYu9SxtBAD4SuVSYwtAM3otWs0cOpS264QX7
- 0GXcd8BB/xVxPezvoMlkvU++SuivhTUGOJt2Ns8Exffejay8FjVRuDMDkhMO21YWorfBxuGz2r
- pAI=
-X-IronPort-AV: E=Sophos;i="5.81,168,1610434800"; 
-   d="scan'208";a="114541474"
-Received: from smtpout.microchip.com (HELO email.microchip.com) ([198.175.253.82])
-  by esa1.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 10 Feb 2021 04:44:59 -0700
-Received: from chn-vm-ex01.mchp-main.com (10.10.85.143) by
- chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1979.3; Wed, 10 Feb 2021 04:44:59 -0700
-Received: from atudor-ThinkPad-T470p.amer.actel.com (10.10.115.15) by
- chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server id
- 15.1.1979.3 via Frontend Transport; Wed, 10 Feb 2021 04:44:53 -0700
-From:   Tudor Ambarus <tudor.ambarus@microchip.com>
-To:     <corbet@lwn.net>, <gregkh@linuxfoundation.org>,
-        <rafael@kernel.org>, <khilman@kernel.org>,
-        <ulf.hansson@linaro.org>, <len.brown@intel.com>, <lenb@kernel.org>,
-        <pavel@ucw.cz>, <mturquette@baylibre.com>, <sboyd@kernel.org>,
-        <robh+dt@kernel.org>, <frowand.list@gmail.com>, <maz@kernel.org>,
-        <tglx@linutronix.de>, <saravanak@google.com>
-CC:     <nicolas.ferre@microchip.com>, <claudiu.beznea@microchip.com>,
-        <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-pm@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <m.szyprowski@samsung.com>, <geert@linux-m68k.org>,
-        <kernel-team@android.com>,
-        Tudor Ambarus <tudor.ambarus@microchip.com>
-Subject: [PATCH] clk: Mark fwnodes when their clock provider is added
-Date:   Wed, 10 Feb 2021 13:44:35 +0200
-Message-ID: <20210210114435.122242-2-tudor.ambarus@microchip.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210210114435.122242-1-tudor.ambarus@microchip.com>
-References: <20210205222644.2357303-9-saravanak@google.com>
- <20210210114435.122242-1-tudor.ambarus@microchip.com>
+        id S231310AbhBJLvW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Feb 2021 06:51:22 -0500
+Received: from mga07.intel.com ([134.134.136.100]:24123 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231253AbhBJLtB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Feb 2021 06:49:01 -0500
+IronPort-SDR: QUd48rqjBXst2QXEx5j2x77Aq/JLO9/ONQ+zw+Q6S6Mcl9RVqgfsQ6m9JaxpigZjLY10hjE/jA
+ 9+H/HLykmswA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9890"; a="246122909"
+X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
+   d="scan'208";a="246122909"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2021 03:43:34 -0800
+IronPort-SDR: fmT3ddd9slATGK1BkhnsvO+nHZRfHFKqO2xUDALiZdOuFbK0gsZ+3lhpZD5IGXTFyoRI9uF3rY
+ qynayBIBqBgQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
+   d="scan'208";a="396674874"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga008.jf.intel.com with ESMTP; 10 Feb 2021 03:43:33 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 4EF4A2BE; Wed, 10 Feb 2021 13:43:32 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 3/7] ACPI: property: Satisfy kernel doc validator (part 1)
+Date:   Wed, 10 Feb 2021 13:43:16 +0200
+Message-Id: <20210210114320.3478-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
+References: <20210210114320.3478-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is a follow-up for:
-commit 3c9ea42802a1 ("clk: Mark fwnodes when their clock provider is added/removed")
+CHECK   drivers/acpi/property.c
+ warning: Function parameter or member 'data' not described in 'acpi_data_get_property_array'
+ warning: Excess function parameter 'adev' description in 'acpi_data_get_property_array'
 
-The above commit updated the deprecated of_clk_add_provider(),
-but missed to update the preferred of_clk_add_hw_provider().
-Update it now.
-
-Signed-off-by: Tudor Ambarus <tudor.ambarus@microchip.com>
+Fixes: 3a7a2ab839ad ("ACPI / property: Extend fwnode_property_* to data-only subnodes")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/clk/clk.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/property.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 27ff90eacb1f..9370e4dfecae 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -4594,6 +4594,8 @@ int of_clk_add_hw_provider(struct device_node *np,
- 	if (ret < 0)
- 		of_clk_del_provider(np);
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 9304c88ce446..a6b096575fc8 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -564,7 +564,7 @@ int acpi_node_prop_get(const struct fwnode_handle *fwnode,
  
-+	fwnode_dev_initialized(&np->fwnode, true);
-+
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(of_clk_add_hw_provider);
+ /**
+  * acpi_data_get_property_array - return an ACPI array property with given name
+- * @adev: ACPI data object to get the property from
++ * @data: ACPI data object to get the property from
+  * @name: Name of the property
+  * @type: Expected type of array elements
+  * @obj: Location to store a pointer to the property value (if not NULL)
 -- 
-2.25.1
+2.30.0
 
