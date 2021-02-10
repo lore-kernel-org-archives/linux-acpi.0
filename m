@@ -2,537 +2,584 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86BA8C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 23:55:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFCEC433E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 00:31:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C8E664E37
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Feb 2021 23:55:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B042860C3E
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Feb 2021 00:31:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233632AbhBIXys (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Feb 2021 18:54:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38184 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234449AbhBIW47 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Feb 2021 17:56:59 -0500
-Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39A30C061574;
-        Tue,  9 Feb 2021 14:48:20 -0800 (PST)
-Received: by mail-qv1-xf2b.google.com with SMTP id r13so9502422qvm.11;
-        Tue, 09 Feb 2021 14:48:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=6IRubA7TTNClirT+hB/10ffmOLH+PQXPZ7yX4dK2jA4=;
-        b=dM7kLPp8/C/UWyO63F87+/b+M2Ibtglv6crAUeUXBabjzdt1gu50E6L1JER4ynu3GP
-         sajQCr9QB/LLSNN3NlALwY5kC/iPrjgshWqjFfwApuhx8f3fo4yU1+IFtFvpXvGmpQln
-         kBvk6qYbNCTnVHkt9jJ3mqd11dU7ZF+RoqiPORSvgPUeXFDYyRKxpOabPuT40Och3uD5
-         NfPjfSNfdRPtUqHkZclNUTTwD1lRm/WOwvskB4va+DFeim6Zvtnj5fr3zZcBwDg9ukoW
-         7aJP1tN9HuSRo6/nEbZvwrOHuDYHgOzcDbIHK1PQBZ2H9+yBiAEEKMpqAyrlGkO7pJDB
-         5i1w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=6IRubA7TTNClirT+hB/10ffmOLH+PQXPZ7yX4dK2jA4=;
-        b=Pxnr7v1Vwnud8RAqSaVoKo8Rh8xVY682z13KXvlMY0PJZs8lXrUux7rcGAE39ZVA6/
-         OWfgX0V9BIUHiFI9Hu8TOFai+R3Aj3ugRmsFfrfck7N6RSa3oPKSLQkMX3GwlVqh25lP
-         46ElvpEBl2N7ThucAJbqjh8QZlt8eJCkJzNI0MS5zHTdgz37aLgq22qEVQp412dDueaQ
-         4SlgJPWWc0WBkIf4WokhSYFDMhcvmjBwmtwb3wkR7qwFyB5scO/jt6gQKHm9xAkZVmYw
-         E5wb+qj+w8OVTP2ePzlADQA4lC3NmempB/VQZ+OJmLF+n77SlTZJCFMr2qAN/cscp/E/
-         vSrQ==
-X-Gm-Message-State: AOAM533iv3N/8z4jLk/q8nnMZ3EJsCxGrNkFwtkCa19yWREIxH5Lfzal
-        va6hRjUusQVhypyUpAe/1Q==
-X-Google-Smtp-Source: ABdhPJydEFjEFNUsczgSsGEyA9kp5gG6YKKkrIHiikCKDCnMsROSdk2CL06s26iZA8gVuCKYxyZMvQ==
-X-Received: by 2002:a0c:fe0b:: with SMTP id x11mr248366qvr.18.1612910899263;
-        Tue, 09 Feb 2021 14:48:19 -0800 (PST)
-Received: from gabell (209-6-122-159.s2973.c3-0.arl-cbr1.sbo-arl.ma.cable.rcncustomer.com. [209.6.122.159])
-        by smtp.gmail.com with ESMTPSA id 82sm137774qkd.48.2021.02.09.14.48.17
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 09 Feb 2021 14:48:18 -0800 (PST)
-Date:   Tue, 9 Feb 2021 17:48:15 -0500
-From:   Masayoshi Mizuma <msys.mizuma@gmail.com>
-To:     Barry Song <song.bao.hua@hisilicon.com>
-Cc:     valentin.schneider@arm.com, catalin.marinas@arm.com,
-        will@kernel.org, rjw@rjwysocki.net, vincent.guittot@linaro.org,
-        lenb@kernel.org, gregkh@linuxfoundation.org,
-        jonathan.cameron@huawei.com, mingo@redhat.com,
-        peterz@infradead.org, juri.lelli@redhat.com,
-        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
-        mgorman@suse.de, mark.rutland@arm.com, sudeep.holla@arm.com,
-        aubrey.li@linux.intel.com, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linuxarm@openeuler.org, xuwei5@huawei.com,
-        prime.zeng@hisilicon.com, tiantao6@hisilicon.com
-Subject: Re: [RFC PATCH v3 1/2] topology: Represent clusters of CPUs within a
- die.
-Message-ID: <20210209224815.duxcnlu2ra64xb4b@gabell>
-References: <20210106083026.40444-1-song.bao.hua@hisilicon.com>
- <20210106083026.40444-2-song.bao.hua@hisilicon.com>
+        id S234655AbhBJAa4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 9 Feb 2021 19:30:56 -0500
+Received: from mga02.intel.com ([134.134.136.20]:49746 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234799AbhBJAD7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 Feb 2021 19:03:59 -0500
+IronPort-SDR: g07wDANoGSpeVPQTTlq3kcHype9GxfcEZDU6sGNV3gO25eahSNbHTNEQkb6QEKbBnFDx3MzcGc
+ GD+RgatioTmw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9890"; a="169109179"
+X-IronPort-AV: E=Sophos;i="5.81,166,1610438400"; 
+   d="scan'208";a="169109179"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2021 16:03:13 -0800
+IronPort-SDR: 6EYqOKAixe5cTTTh0799EQrwuvkVSll6yShxokOMOj7rwWnO9WilwSD19H/RFeWD2Q7Ya/MTDg
+ EfRO6Cl3P3Gg==
+X-IronPort-AV: E=Sophos;i="5.81,166,1610438400"; 
+   d="scan'208";a="419865837"
+Received: from sitira7x-mobl1.gar.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.134.68])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2021 16:03:12 -0800
+From:   Ben Widawsky <ben.widawsky@intel.com>
+To:     linux-cxl@vger.kernel.org
+Cc:     Ben Widawsky <ben.widawsky@intel.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
+        Chris Browy <cbrowy@avery-design.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        David Rientjes <rientjes@google.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Jon Masters <jcm@jonmasters.org>,
+        Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+        Rafael Wysocki <rafael.j.wysocki@intel.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "John Groves (jgroves)" <jgroves@micron.com>,
+        "Kelley, Sean V" <sean.v.kelley@intel.com>
+Subject: [PATCH v2 3/8] cxl/mem: Register CXL memX devices
+Date:   Tue,  9 Feb 2021 16:02:54 -0800
+Message-Id: <20210210000259.635748-4-ben.widawsky@intel.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210210000259.635748-1-ben.widawsky@intel.com>
+References: <20210210000259.635748-1-ben.widawsky@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210106083026.40444-2-song.bao.hua@hisilicon.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jan 06, 2021 at 09:30:25PM +1300, Barry Song wrote:
-> From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> 
-> Both ACPI and DT provide the ability to describe additional layers of
-> topology between that of individual cores and higher level constructs
-> such as the level at which the last level cache is shared.
-> In ACPI this can be represented in PPTT as a Processor Hierarchy
-> Node Structure [1] that is the parent of the CPU cores and in turn
-> has a parent Processor Hierarchy Nodes Structure representing
-> a higher level of topology.
-> 
-> For example Kunpeng 920 has 6 clusters in each NUMA node, and each
-> cluster has 4 cpus. All clusters share L3 cache data, but each cluster
-> has local L3 tag. On the other hand, each clusters will share some
-> internal system bus.
-> 
-> +-----------------------------------+                          +---------+
-> |  +------+    +------+            +---------------------------+         |
-> |  | CPU0 |    | cpu1 |             |    +-----------+         |         |
-> |  +------+    +------+             |    |           |         |         |
-> |                                   +----+    L3     |         |         |
-> |  +------+    +------+   cluster   |    |    tag    |         |         |
-> |  | CPU2 |    | CPU3 |             |    |           |         |         |
-> |  +------+    +------+             |    +-----------+         |         |
-> |                                   |                          |         |
-> +-----------------------------------+                          |         |
-> +-----------------------------------+                          |         |
-> |  +------+    +------+             +--------------------------+         |
-> |  |      |    |      |             |    +-----------+         |         |
-> |  +------+    +------+             |    |           |         |         |
-> |                                   |    |    L3     |         |         |
-> |  +------+    +------+             +----+    tag    |         |         |
-> |  |      |    |      |             |    |           |         |         |
-> |  +------+    +------+             |    +-----------+         |         |
-> |                                   |                          |         |
-> +-----------------------------------+                          |   L3    |
->                                                                |   data  |
-> +-----------------------------------+                          |         |
-> |  +------+    +------+             |    +-----------+         |         |
-> |  |      |    |      |             |    |           |         |         |
-> |  +------+    +------+             +----+    L3     |         |         |
-> |                                   |    |    tag    |         |         |
-> |  +------+    +------+             |    |           |         |         |
-> |  |      |    |      |            ++    +-----------+         |         |
-> |  +------+    +------+            |---------------------------+         |
-> +-----------------------------------|                          |         |
-> +-----------------------------------|                          |         |
-> |  +------+    +------+            +---------------------------+         |
-> |  |      |    |      |             |    +-----------+         |         |
-> |  +------+    +------+             |    |           |         |         |
-> |                                   +----+    L3     |         |         |
-> |  +------+    +------+             |    |    tag    |         |         |
-> |  |      |    |      |             |    |           |         |         |
-> |  +------+    +------+             |    +-----------+         |         |
-> |                                   |                          |         |
-> +-----------------------------------+                          |         |
-> +-----------------------------------+                          |         |
-> |  +------+    +------+             +--------------------------+         |
-> |  |      |    |      |             |   +-----------+          |         |
-> |  +------+    +------+             |   |           |          |         |
-> |                                   |   |    L3     |          |         |
-> |  +------+    +------+             +---+    tag    |          |         |
-> |  |      |    |      |             |   |           |          |         |
-> |  +------+    +------+             |   +-----------+          |         |
-> |                                   |                          |         |
-> +-----------------------------------+                          |         |
-> +-----------------------------------+                         ++         |
-> |  +------+    +------+             +--------------------------+         |
-> |  |      |    |      |             |  +-----------+           |         |
-> |  +------+    +------+             |  |           |           |         |
-> |                                   |  |    L3     |           |         |
-> |  +------+    +------+             +--+    tag    |           |         |
-> |  |      |    |      |             |  |           |           |         |
-> |  +------+    +------+             |  +-----------+           |         |
-> |                                   |                          +---------+
-> +-----------------------------------+
-> 
-> That means the cost to transfer ownership of a cacheline between CPUs
-> within a cluster is lower than between CPUs in different clusters on
-> the same die. Hence, it can make sense to tell the scheduler to use
-> the cache affinity of the cluster to make better decision on thread
-> migration.
-> 
-> This patch simply exposes this information to userspace libraries
-> like hwloc by providing cluster_cpus and related sysfs attributes.
-> PoC of HWLOC support at [2].
-> 
-> Note this patch only handle the ACPI case.
-> 
-> Special consideration is needed for SMT processors, where it is
-> necessary to move 2 levels up the hierarchy from the leaf nodes
-> (thus skipping the processor core level).
-> 
-> Currently the ID provided is the offset of the Processor
-> Hierarchy Nodes Structure within PPTT.  Whilst this is unique
-> it is not terribly elegant so alternative suggestions welcome.
-> 
-> Note that arm64 / ACPI does not provide any means of identifying
-> a die level in the topology but that may be unrelate to the cluster
-> level.
-> 
-> [1] ACPI Specification 6.3 - section 5.2.29.1 processor hierarchy node
->     structure (Type 0)
-> [2] https://github.com/hisilicon/hwloc/tree/linux-cluster
-> 
-> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-> ---
->  -v3:
->  * no real change(v2 comments not addressed);
->  * rebased againest 5.11-rc2;
-> 
->  Documentation/admin-guide/cputopology.rst | 26 +++++++++++---
->  arch/arm64/kernel/topology.c              |  2 ++
->  drivers/acpi/pptt.c                       | 60 +++++++++++++++++++++++++++++++
->  drivers/base/arch_topology.c              | 14 ++++++++
->  drivers/base/topology.c                   | 10 ++++++
->  include/linux/acpi.h                      |  5 +++
->  include/linux/arch_topology.h             |  5 +++
->  include/linux/topology.h                  |  6 ++++
->  8 files changed, 124 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/admin-guide/cputopology.rst b/Documentation/admin-guide/cputopology.rst
-> index b90dafc..f9d3745 100644
-> --- a/Documentation/admin-guide/cputopology.rst
-> +++ b/Documentation/admin-guide/cputopology.rst
-> @@ -24,6 +24,12 @@ core_id:
->  	identifier (rather than the kernel's).  The actual value is
->  	architecture and platform dependent.
->  
-> +cluster_id:
-> +
-> +	the Cluster ID of cpuX.  Typically it is the hardware platform's
-> +	identifier (rather than the kernel's).  The actual value is
-> +	architecture and platform dependent.
-> +
->  book_id:
->  
->  	the book ID of cpuX. Typically it is the hardware platform's
-> @@ -56,6 +62,14 @@ package_cpus_list:
->  	human-readable list of CPUs sharing the same physical_package_id.
->  	(deprecated name: "core_siblings_list")
->  
-> +cluster_cpus:
-> +
-> +	internal kernel map of CPUs within the same cluster.
-> +
-> +cluster_cpus_list:
-> +
-> +	human-readable list of CPUs within the same cluster.
-> +
->  die_cpus:
->  
->  	internal kernel map of CPUs within the same die.
-> @@ -96,11 +110,13 @@ these macros in include/asm-XXX/topology.h::
->  
->  	#define topology_physical_package_id(cpu)
->  	#define topology_die_id(cpu)
-> +	#define topology_cluster_id(cpu)
->  	#define topology_core_id(cpu)
->  	#define topology_book_id(cpu)
->  	#define topology_drawer_id(cpu)
->  	#define topology_sibling_cpumask(cpu)
->  	#define topology_core_cpumask(cpu)
-> +	#define topology_cluster_cpumask(cpu)
->  	#define topology_die_cpumask(cpu)
->  	#define topology_book_cpumask(cpu)
->  	#define topology_drawer_cpumask(cpu)
-> @@ -116,10 +132,12 @@ not defined by include/asm-XXX/topology.h:
->  
->  1) topology_physical_package_id: -1
->  2) topology_die_id: -1
-> -3) topology_core_id: 0
-> -4) topology_sibling_cpumask: just the given CPU
-> -5) topology_core_cpumask: just the given CPU
-> -6) topology_die_cpumask: just the given CPU
-> +3) topology_cluster_id: -1
-> +4) topology_core_id: 0
-> +5) topology_sibling_cpumask: just the given CPU
-> +6) topology_core_cpumask: just the given CPU
-> +7) topology_cluster_cpumask: just the given CPU
-> +8) topology_die_cpumask: just the given CPU
->  
->  For architectures that don't support books (CONFIG_SCHED_BOOK) there are no
->  default definitions for topology_book_id() and topology_book_cpumask().
-> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-> index f6faa69..fe076b3 100644
-> --- a/arch/arm64/kernel/topology.c
-> +++ b/arch/arm64/kernel/topology.c
-> @@ -103,6 +103,8 @@ int __init parse_acpi_topology(void)
->  			cpu_topology[cpu].thread_id  = -1;
->  			cpu_topology[cpu].core_id    = topology_id;
->  		}
-> +		topology_id = find_acpi_cpu_topology_cluster(cpu);
-> +		cpu_topology[cpu].cluster_id = topology_id;
->  		topology_id = find_acpi_cpu_topology_package(cpu);
->  		cpu_topology[cpu].package_id = topology_id;
->  
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index 4ae9335..8646a93 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -737,6 +737,66 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
->  }
->  
->  /**
-> + * find_acpi_cpu_topology_cluster() - Determine a unique CPU cluster value
-> + * @cpu: Kernel logical CPU number
-> + *
-> + * Determine a topology unique cluster ID for the given CPU/thread.
-> + * This ID can then be used to group peers, which will have matching ids.
-> + *
-> + * The cluster, if present is the level of topology above CPUs. In a
-> + * multi-thread CPU, it will be the level above the CPU, not the thread.
-> + * It may not exist in single CPU systems. In simple multi-CPU systems,
-> + * it may be equal to the package topology level.
-> + *
-> + * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be found
-> + * or there is no toplogy level above the CPU..
-> + * Otherwise returns a value which represents the package for this CPU.
-> + */
-> +
-> +int find_acpi_cpu_topology_cluster(unsigned int cpu)
-> +{
-> +	struct acpi_table_header *table;
-> +	acpi_status status;
-> +	struct acpi_pptt_processor *cpu_node, *cluster_node;
-> +	int retval;
-> +	int is_thread;
-> +
-> +	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
-> +	if (ACPI_FAILURE(status)) {
-> +		acpi_pptt_warn_missing();
-> +		return -ENOENT;
-> +	}
+From: Dan Williams <dan.j.williams@intel.com>
 
-> +	cpu_node = acpi_find_processor_node(table, cpu);
+Create the /sys/bus/cxl hierarchy to enumerate:
 
-The second argument of acpi_find_processor_node() expects ACPI Processor ID,
-not the logical cpu number.
-How about the following?
+* Memory Devices (per-endpoint control devices)
 
-       acpi_cpu_id = get_acpi_id_for_cpu(cpu);
-       cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+* Memory Address Space Devices (platform address ranges with
+  interleaving, performance, and persistence attributes)
 
-Thanks,
-Masa
+* Memory Regions (active provisioned memory from an address space device
+  that is in use as System RAM or delegated to libnvdimm as Persistent
+  Memory regions).
 
-> +	if (cpu_node == NULL || !cpu_node->parent) {
-> +		retval = -ENOENT;
-> +		goto put_table;
-> +	}
-> +
-> +	is_thread = cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_IS_THREAD;
-> +	cluster_node = fetch_pptt_node(table, cpu_node->parent);
-> +	if (cluster_node == NULL) {
-> +		retval = -ENOENT;
-> +		goto put_table;
-> +	}
-> +	if (is_thread) {
-> +		if (!cluster_node->parent) {
-> +			retval = -ENOENT;
-> +			goto put_table;
-> +		}
-> +		cluster_node = fetch_pptt_node(table, cluster_node->parent);
-> +		if (cluster_node == NULL) {
-> +			retval = -ENOENT;
-> +			goto put_table;
-> +		}
-> +	}
-> +	retval = ACPI_PTR_DIFF(cluster_node, table);
-> +put_table:
-> +	acpi_put_table(table);
-> +
-> +	return retval;
-> +}
-> +
-> +/**
->   * find_acpi_cpu_topology_hetero_id() - Get a core architecture tag
->   * @cpu: Kernel logical CPU number
->   *
-> diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-> index de8587c..3079232 100644
-> --- a/drivers/base/arch_topology.c
-> +++ b/drivers/base/arch_topology.c
-> @@ -506,6 +506,11 @@ const struct cpumask *cpu_coregroup_mask(int cpu)
->  	return core_mask;
->  }
->  
-> +const struct cpumask *cpu_clustergroup_mask(int cpu)
-> +{
-> +	return &cpu_topology[cpu].cluster_sibling;
-> +}
-> +
->  void update_siblings_masks(unsigned int cpuid)
->  {
->  	struct cpu_topology *cpu_topo, *cpuid_topo = &cpu_topology[cpuid];
-> @@ -523,6 +528,11 @@ void update_siblings_masks(unsigned int cpuid)
->  		if (cpuid_topo->package_id != cpu_topo->package_id)
->  			continue;
->  
-> +		if (cpuid_topo->cluster_id == cpu_topo->cluster_id) {
-> +			cpumask_set_cpu(cpu, &cpuid_topo->cluster_sibling);
-> +			cpumask_set_cpu(cpuid, &cpu_topo->cluster_sibling);
-> +		}
-> +
->  		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
->  		cpumask_set_cpu(cpu, &cpuid_topo->core_sibling);
->  
-> @@ -541,6 +551,9 @@ static void clear_cpu_topology(int cpu)
->  	cpumask_clear(&cpu_topo->llc_sibling);
->  	cpumask_set_cpu(cpu, &cpu_topo->llc_sibling);
->  
-> +	cpumask_clear(&cpu_topo->cluster_sibling);
-> +	cpumask_set_cpu(cpu, &cpu_topo->cluster_sibling);
-> +
->  	cpumask_clear(&cpu_topo->core_sibling);
->  	cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
->  	cpumask_clear(&cpu_topo->thread_sibling);
-> @@ -571,6 +584,7 @@ void remove_cpu_topology(unsigned int cpu)
->  		cpumask_clear_cpu(cpu, topology_core_cpumask(sibling));
->  	for_each_cpu(sibling, topology_sibling_cpumask(cpu))
->  		cpumask_clear_cpu(cpu, topology_sibling_cpumask(sibling));
-> +
->  	for_each_cpu(sibling, topology_llc_cpumask(cpu))
->  		cpumask_clear_cpu(cpu, topology_llc_cpumask(sibling));
->  
-> diff --git a/drivers/base/topology.c b/drivers/base/topology.c
-> index 4d254fc..7157ac0 100644
-> --- a/drivers/base/topology.c
-> +++ b/drivers/base/topology.c
-> @@ -46,6 +46,9 @@ static DEVICE_ATTR_RO(physical_package_id);
->  define_id_show_func(die_id);
->  static DEVICE_ATTR_RO(die_id);
->  
-> +define_id_show_func(cluster_id);
-> +static DEVICE_ATTR_RO(cluster_id);
-> +
->  define_id_show_func(core_id);
->  static DEVICE_ATTR_RO(core_id);
->  
-> @@ -61,6 +64,10 @@ define_siblings_show_func(core_siblings, core_cpumask);
->  static DEVICE_ATTR_RO(core_siblings);
->  static DEVICE_ATTR_RO(core_siblings_list);
->  
-> +define_siblings_show_func(cluster_cpus, cluster_cpumask);
-> +static DEVICE_ATTR_RO(cluster_cpus);
-> +static DEVICE_ATTR_RO(cluster_cpus_list);
-> +
->  define_siblings_show_func(die_cpus, die_cpumask);
->  static DEVICE_ATTR_RO(die_cpus);
->  static DEVICE_ATTR_RO(die_cpus_list);
-> @@ -88,6 +95,7 @@ static DEVICE_ATTR_RO(drawer_siblings_list);
->  static struct attribute *default_attrs[] = {
->  	&dev_attr_physical_package_id.attr,
->  	&dev_attr_die_id.attr,
-> +	&dev_attr_cluster_id.attr,
->  	&dev_attr_core_id.attr,
->  	&dev_attr_thread_siblings.attr,
->  	&dev_attr_thread_siblings_list.attr,
-> @@ -95,6 +103,8 @@ static struct attribute *default_attrs[] = {
->  	&dev_attr_core_cpus_list.attr,
->  	&dev_attr_core_siblings.attr,
->  	&dev_attr_core_siblings_list.attr,
-> +	&dev_attr_cluster_cpus.attr,
-> +	&dev_attr_cluster_cpus_list.attr,
->  	&dev_attr_die_cpus.attr,
->  	&dev_attr_die_cpus_list.attr,
->  	&dev_attr_package_cpus.attr,
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 2630c2e..8f603cd 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1325,6 +1325,7 @@ static inline int lpit_read_residency_count_address(u64 *address)
->  #ifdef CONFIG_ACPI_PPTT
->  int acpi_pptt_cpu_is_thread(unsigned int cpu);
->  int find_acpi_cpu_topology(unsigned int cpu, int level);
-> +int find_acpi_cpu_topology_cluster(unsigned int cpu);
->  int find_acpi_cpu_topology_package(unsigned int cpu);
->  int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
->  int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
-> @@ -1337,6 +1338,10 @@ static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
->  {
->  	return -EINVAL;
->  }
-> +static inline int find_acpi_cpu_topology_cluster(unsigned int cpu)
-> +{
-> +	return -EINVAL;
-> +}
->  static inline int find_acpi_cpu_topology_package(unsigned int cpu)
->  {
->  	return -EINVAL;
-> diff --git a/include/linux/arch_topology.h b/include/linux/arch_topology.h
-> index 0f6cd6b..987c7ea 100644
-> --- a/include/linux/arch_topology.h
-> +++ b/include/linux/arch_topology.h
-> @@ -49,10 +49,12 @@ void topology_set_thermal_pressure(const struct cpumask *cpus,
->  struct cpu_topology {
->  	int thread_id;
->  	int core_id;
-> +	int cluster_id;
->  	int package_id;
->  	int llc_id;
->  	cpumask_t thread_sibling;
->  	cpumask_t core_sibling;
-> +	cpumask_t cluster_sibling;
->  	cpumask_t llc_sibling;
->  };
->  
-> @@ -60,13 +62,16 @@ struct cpu_topology {
->  extern struct cpu_topology cpu_topology[NR_CPUS];
->  
->  #define topology_physical_package_id(cpu)	(cpu_topology[cpu].package_id)
-> +#define topology_cluster_id(cpu)	(cpu_topology[cpu].cluster_id)
->  #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
->  #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
->  #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
-> +#define topology_cluster_cpumask(cpu)	(&cpu_topology[cpu].cluster_sibling)
->  #define topology_llc_cpumask(cpu)	(&cpu_topology[cpu].llc_sibling)
->  void init_cpu_topology(void);
->  void store_cpu_topology(unsigned int cpuid);
->  const struct cpumask *cpu_coregroup_mask(int cpu);
-> +const struct cpumask *cpu_clustergroup_mask(int cpu);
->  void update_siblings_masks(unsigned int cpu);
->  void remove_cpu_topology(unsigned int cpuid);
->  void reset_cpu_topology(void);
-> diff --git a/include/linux/topology.h b/include/linux/topology.h
-> index ad03df1..bf2cc3c 100644
-> --- a/include/linux/topology.h
-> +++ b/include/linux/topology.h
-> @@ -185,6 +185,9 @@ static inline int cpu_to_mem(int cpu)
->  #ifndef topology_die_id
->  #define topology_die_id(cpu)			((void)(cpu), -1)
->  #endif
-> +#ifndef topology_cluster_id
-> +#define topology_cluster_id(cpu)		((void)(cpu), -1)
-> +#endif
->  #ifndef topology_core_id
->  #define topology_core_id(cpu)			((void)(cpu), 0)
->  #endif
-> @@ -194,6 +197,9 @@ static inline int cpu_to_mem(int cpu)
->  #ifndef topology_core_cpumask
->  #define topology_core_cpumask(cpu)		cpumask_of(cpu)
->  #endif
-> +#ifndef topology_cluster_cpumask
-> +#define topology_cluster_cpumask(cpu)		cpumask_of(cpu)
-> +#endif
->  #ifndef topology_die_cpumask
->  #define topology_die_cpumask(cpu)		cpumask_of(cpu)
->  #endif
-> -- 
-> 2.7.4
-> 
+For now, only the per-endpoint control devices are registered on the
+'cxl' bus. However, going forward it will provide a mechanism to
+coordinate cross-device interleave.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+---
+ Documentation/ABI/testing/sysfs-bus-cxl       |  26 ++
+ .../driver-api/cxl/memory-devices.rst         |  17 +
+ drivers/cxl/Makefile                          |   3 +
+ drivers/cxl/bus.c                             |  29 ++
+ drivers/cxl/cxl.h                             |   4 +
+ drivers/cxl/mem.c                             | 301 +++++++++++++++++-
+ 6 files changed, 378 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-cxl
+ create mode 100644 drivers/cxl/bus.c
+
+diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+new file mode 100644
+index 000000000000..2fe7490ad6a8
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-bus-cxl
+@@ -0,0 +1,26 @@
++What:		/sys/bus/cxl/devices/memX/firmware_version
++Date:		December, 2020
++KernelVersion:	v5.12
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) "FW Revision" string as reported by the Identify
++		Memory Device Output Payload in the CXL-2.0
++		specification.
++
++What:		/sys/bus/cxl/devices/memX/ram/size
++Date:		December, 2020
++KernelVersion:	v5.12
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) "Volatile Only Capacity" as bytes. Represents the
++		identically named field in the Identify Memory Device Output
++		Payload in the CXL-2.0 specification.
++
++What:		/sys/bus/cxl/devices/memX/pmem/size
++Date:		December, 2020
++KernelVersion:	v5.12
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) "Persistent Only Capacity" as bytes. Represents the
++		identically named field in the Identify Memory Device Output
++		Payload in the CXL-2.0 specification.
+diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
+index 43177e700d62..1bad466f9167 100644
+--- a/Documentation/driver-api/cxl/memory-devices.rst
++++ b/Documentation/driver-api/cxl/memory-devices.rst
+@@ -27,3 +27,20 @@ CXL Memory Device
+ 
+ .. kernel-doc:: drivers/cxl/mem.c
+    :internal:
++
++CXL Bus
++-------
++.. kernel-doc:: drivers/cxl/bus.c
++   :doc: cxl bus
++
++External Interfaces
++===================
++
++CXL IOCTL Interface
++-------------------
++
++.. kernel-doc:: include/uapi/linux/cxl_mem.h
++   :doc: UAPI
++
++.. kernel-doc:: include/uapi/linux/cxl_mem.h
++   :internal:
+diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
+index 4a30f7c3fc4a..a314a1891f4d 100644
+--- a/drivers/cxl/Makefile
++++ b/drivers/cxl/Makefile
+@@ -1,4 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
++obj-$(CONFIG_CXL_BUS) += cxl_bus.o
+ obj-$(CONFIG_CXL_MEM) += cxl_mem.o
+ 
++ccflags-y += -DDEFAULT_SYMBOL_NAMESPACE=CXL
++cxl_bus-y := bus.o
+ cxl_mem-y := mem.o
+diff --git a/drivers/cxl/bus.c b/drivers/cxl/bus.c
+new file mode 100644
+index 000000000000..58f74796d525
+--- /dev/null
++++ b/drivers/cxl/bus.c
+@@ -0,0 +1,29 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Copyright(c) 2020 Intel Corporation. All rights reserved. */
++#include <linux/device.h>
++#include <linux/module.h>
++
++/**
++ * DOC: cxl bus
++ *
++ * The CXL bus provides namespace for control devices and a rendezvous
++ * point for cross-device interleave coordination.
++ */
++struct bus_type cxl_bus_type = {
++	.name = "cxl",
++};
++EXPORT_SYMBOL_GPL(cxl_bus_type);
++
++static __init int cxl_bus_init(void)
++{
++	return bus_register(&cxl_bus_type);
++}
++
++static void cxl_bus_exit(void)
++{
++	bus_unregister(&cxl_bus_type);
++}
++
++module_init(cxl_bus_init);
++module_exit(cxl_bus_exit);
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 745f5e0bfce3..b3c56fa6e126 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -3,6 +3,7 @@
+ 
+ #ifndef __CXL_H__
+ #define __CXL_H__
++#include <linux/range.h>
+ 
+ #include <linux/bitfield.h>
+ #include <linux/bitops.h>
+@@ -55,6 +56,7 @@
+ 	(FIELD_GET(CXLMDEV_RESET_NEEDED_MASK, status) !=                       \
+ 	 CXLMDEV_RESET_NEEDED_NOT)
+ 
++struct cxl_memdev;
+ /**
+  * struct cxl_mem - A CXL memory device
+  * @pdev: The PCI device associated with this CXL device.
+@@ -72,6 +74,7 @@
+ struct cxl_mem {
+ 	struct pci_dev *pdev;
+ 	void __iomem *regs;
++	struct cxl_memdev *cxlmd;
+ 
+ 	void __iomem *status_regs;
+ 	void __iomem *mbox_regs;
+@@ -90,4 +93,5 @@ struct cxl_mem {
+ 	} ram;
+ };
+ 
++extern struct bus_type cxl_bus_type;
+ #endif /* __CXL_H__ */
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index 0a868a15badc..8bbd2495e237 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -1,11 +1,36 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
+ #include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/cdev.h>
++#include <linux/idr.h>
+ #include <linux/pci.h>
+ #include <linux/io.h>
+ #include "pci.h"
+ #include "cxl.h"
+ 
++/**
++ * DOC: cxl mem
++ *
++ * This implements a CXL memory device ("type-3") as it is defined by the
++ * Compute Express Link specification.
++ *
++ * The driver has several responsibilities, mainly:
++ *  - Create the memX device and register on the CXL bus.
++ *  - Enumerate device's register interface and map them.
++ *  - Probe the device attributes to establish sysfs interface.
++ *  - Provide an IOCTL interface to userspace to communicate with the device for
++ *    things like firmware update.
++ *  - Support management of interleave sets.
++ *  - Handle and manage error conditions.
++ */
++
++/*
++ * An entire PCI topology full of devices should be enough for any
++ * config
++ */
++#define CXL_MEM_MAX_DEVS 65536
++
+ #define cxl_doorbell_busy(cxlm)                                                \
+ 	(readl((cxlm)->mbox_regs + CXLDEV_MBOX_CTRL_OFFSET) &                  \
+ 	 CXLDEV_MBOX_CTRL_DOORBELL)
+@@ -44,6 +69,27 @@ struct mbox_cmd {
+ #define CXL_MBOX_SUCCESS 0
+ };
+ 
++/**
++ * struct cxl_memdev - CXL bus object representing a Type-3 Memory Device
++ * @dev: driver core device object
++ * @cdev: char dev core object for ioctl operations
++ * @cxlm: pointer to the parent device driver data
++ * @ops_active: active user of @cxlm in ops handlers
++ * @ops_dead: completion when all @cxlm ops users have exited
++ * @id: id number of this memdev instance.
++ */
++struct cxl_memdev {
++	struct device dev;
++	struct cdev cdev;
++	struct cxl_mem *cxlm;
++	struct percpu_ref ops_active;
++	struct completion ops_dead;
++	int id;
++};
++
++static int cxl_mem_major;
++static DEFINE_IDA(cxl_memdev_ida);
++
+ static int cxl_mem_wait_for_doorbell(struct cxl_mem *cxlm)
+ {
+ 	const unsigned long start = jiffies;
+@@ -267,6 +313,33 @@ static void cxl_mem_mbox_put(struct cxl_mem *cxlm)
+ 	mutex_unlock(&cxlm->mbox_mutex);
+ }
+ 
++static long cxl_memdev_ioctl(struct file *file, unsigned int cmd,
++			     unsigned long arg)
++{
++	struct cxl_memdev *cxlmd;
++	struct inode *inode;
++	int rc = -ENOTTY;
++
++	inode = file_inode(file);
++	cxlmd = container_of(inode->i_cdev, typeof(*cxlmd), cdev);
++
++	if (!percpu_ref_tryget_live(&cxlmd->ops_active))
++		return -ENXIO;
++
++	/* TODO: ioctl body */
++
++	percpu_ref_put(&cxlmd->ops_active);
++
++	return rc;
++}
++
++static const struct file_operations cxl_memdev_fops = {
++	.owner = THIS_MODULE,
++	.unlocked_ioctl = cxl_memdev_ioctl,
++	.compat_ioctl = compat_ptr_ioctl,
++	.llseek = noop_llseek,
++};
++
+ /**
+  * cxl_mem_setup_regs() - Setup necessary MMIO.
+  * @cxlm: The CXL memory device to communicate with.
+@@ -423,6 +496,197 @@ static int cxl_mem_dvsec(struct pci_dev *pdev, int dvsec)
+ 	return 0;
+ }
+ 
++static struct cxl_memdev *to_cxl_memdev(struct device *dev)
++{
++	return container_of(dev, struct cxl_memdev, dev);
++}
++
++static void cxl_memdev_release(struct device *dev)
++{
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
++
++	percpu_ref_exit(&cxlmd->ops_active);
++	ida_free(&cxl_memdev_ida, cxlmd->id);
++	kfree(cxlmd);
++}
++
++static char *cxl_memdev_devnode(struct device *dev, umode_t *mode, kuid_t *uid,
++				kgid_t *gid)
++{
++	return kasprintf(GFP_KERNEL, "cxl/%s", dev_name(dev));
++}
++
++static ssize_t firmware_version_show(struct device *dev,
++				     struct device_attribute *attr, char *buf)
++{
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
++	struct cxl_mem *cxlm = cxlmd->cxlm;
++
++	return sprintf(buf, "%.16s\n", cxlm->firmware_version);
++}
++static DEVICE_ATTR_RO(firmware_version);
++
++static ssize_t payload_max_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
++	struct cxl_mem *cxlm = cxlmd->cxlm;
++
++	return sprintf(buf, "%zu\n", cxlm->payload_size);
++}
++static DEVICE_ATTR_RO(payload_max);
++
++static ssize_t ram_size_show(struct device *dev, struct device_attribute *attr,
++			     char *buf)
++{
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
++	struct cxl_mem *cxlm = cxlmd->cxlm;
++	unsigned long long len = range_len(&cxlm->ram.range);
++
++	return sprintf(buf, "%#llx\n", len);
++}
++
++static struct device_attribute dev_attr_ram_size =
++	__ATTR(size, 0444, ram_size_show, NULL);
++
++static ssize_t pmem_size_show(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
++	struct cxl_mem *cxlm = cxlmd->cxlm;
++	unsigned long long len = range_len(&cxlm->pmem.range);
++
++	return sprintf(buf, "%#llx\n", len);
++}
++
++static struct device_attribute dev_attr_pmem_size =
++	__ATTR(size, 0444, pmem_size_show, NULL);
++
++static struct attribute *cxl_memdev_attributes[] = {
++	&dev_attr_firmware_version.attr,
++	&dev_attr_payload_max.attr,
++	NULL,
++};
++
++static struct attribute *cxl_memdev_pmem_attributes[] = {
++	&dev_attr_pmem_size.attr,
++	NULL,
++};
++
++static struct attribute *cxl_memdev_ram_attributes[] = {
++	&dev_attr_ram_size.attr,
++	NULL,
++};
++
++static struct attribute_group cxl_memdev_attribute_group = {
++	.attrs = cxl_memdev_attributes,
++};
++
++static struct attribute_group cxl_memdev_ram_attribute_group = {
++	.name = "ram",
++	.attrs = cxl_memdev_ram_attributes,
++};
++
++static struct attribute_group cxl_memdev_pmem_attribute_group = {
++	.name = "pmem",
++	.attrs = cxl_memdev_pmem_attributes,
++};
++
++static const struct attribute_group *cxl_memdev_attribute_groups[] = {
++	&cxl_memdev_attribute_group,
++	&cxl_memdev_ram_attribute_group,
++	&cxl_memdev_pmem_attribute_group,
++	NULL,
++};
++
++static const struct device_type cxl_memdev_type = {
++	.name = "cxl_memdev",
++	.release = cxl_memdev_release,
++	.devnode = cxl_memdev_devnode,
++	.groups = cxl_memdev_attribute_groups,
++};
++
++static void cxlmdev_unregister(void *_cxlmd)
++{
++	struct cxl_memdev *cxlmd = _cxlmd;
++	struct device *dev = &cxlmd->dev;
++
++	percpu_ref_kill(&cxlmd->ops_active);
++	cdev_device_del(&cxlmd->cdev, dev);
++	wait_for_completion(&cxlmd->ops_dead);
++	cxlmd->cxlm = NULL;
++	put_device(dev);
++}
++
++static void cxlmdev_ops_active_release(struct percpu_ref *ref)
++{
++	struct cxl_memdev *cxlmd =
++		container_of(ref, typeof(*cxlmd), ops_active);
++
++	complete(&cxlmd->ops_dead);
++}
++
++static int cxl_mem_add_memdev(struct cxl_mem *cxlm)
++{
++	struct pci_dev *pdev = cxlm->pdev;
++	struct cxl_memdev *cxlmd;
++	struct device *dev;
++	struct cdev *cdev;
++	int rc;
++
++	cxlmd = kzalloc(sizeof(*cxlmd), GFP_KERNEL);
++	if (!cxlmd)
++		return -ENOMEM;
++	init_completion(&cxlmd->ops_dead);
++
++	/*
++	 * @cxlm is deallocated when the driver unbinds so operations
++	 * that are using it need to hold a live reference.
++	 */
++	cxlmd->cxlm = cxlm;
++	rc = percpu_ref_init(&cxlmd->ops_active, cxlmdev_ops_active_release, 0,
++			     GFP_KERNEL);
++	if (rc)
++		goto err_ref;
++
++	rc = ida_alloc_range(&cxl_memdev_ida, 0, CXL_MEM_MAX_DEVS, GFP_KERNEL);
++	if (rc < 0)
++		goto err_id;
++	cxlmd->id = rc;
++
++	dev = &cxlmd->dev;
++	device_initialize(dev);
++	dev->parent = &pdev->dev;
++	dev->bus = &cxl_bus_type;
++	dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
++	dev->type = &cxl_memdev_type;
++	dev_set_name(dev, "mem%d", cxlmd->id);
++
++	cdev = &cxlmd->cdev;
++	cdev_init(cdev, &cxl_memdev_fops);
++
++	rc = cdev_device_add(cdev, dev);
++	if (rc)
++		goto err_add;
++
++	return devm_add_action_or_reset(dev->parent, cxlmdev_unregister, cxlmd);
++
++err_add:
++	ida_free(&cxl_memdev_ida, cxlmd->id);
++err_id:
++	/*
++	 * Theoretically userspace could have already entered the fops,
++	 * so flush ops_active.
++	 */
++	percpu_ref_kill(&cxlmd->ops_active);
++	wait_for_completion(&cxlmd->ops_dead);
++	percpu_ref_exit(&cxlmd->ops_active);
++err_ref:
++	kfree(cxlmd);
++
++	return rc;
++}
++
+ /**
+  * cxl_mem_identify() - Send the IDENTIFY command to the device.
+  * @cxlm: The device to identify.
+@@ -546,7 +810,11 @@ static int cxl_mem_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	if (rc)
+ 		return rc;
+ 
+-	return cxl_mem_identify(cxlm);
++	rc = cxl_mem_identify(cxlm);
++	if (rc)
++		return rc;
++
++	return cxl_mem_add_memdev(cxlm);
+ }
+ 
+ static const struct pci_device_id cxl_mem_pci_tbl[] = {
+@@ -566,5 +834,34 @@ static struct pci_driver cxl_mem_driver = {
+ 	},
+ };
+ 
++static __init int cxl_mem_init(void)
++{
++	int rc;
++	dev_t devt;
++
++	rc = alloc_chrdev_region(&devt, 0, CXL_MEM_MAX_DEVS, "cxl");
++	if (rc)
++		return rc;
++
++	cxl_mem_major = MAJOR(devt);
++
++	rc = pci_register_driver(&cxl_mem_driver);
++	if (rc) {
++		unregister_chrdev_region(MKDEV(cxl_mem_major, 0),
++					 CXL_MEM_MAX_DEVS);
++		return rc;
++	}
++
++	return 0;
++}
++
++static __exit void cxl_mem_exit(void)
++{
++	pci_unregister_driver(&cxl_mem_driver);
++	unregister_chrdev_region(MKDEV(cxl_mem_major, 0), CXL_MEM_MAX_DEVS);
++}
++
+ MODULE_LICENSE("GPL v2");
+-module_pci_driver(cxl_mem_driver);
++module_init(cxl_mem_init);
++module_exit(cxl_mem_exit);
++MODULE_IMPORT_NS(CXL);
+-- 
+2.30.0
+
