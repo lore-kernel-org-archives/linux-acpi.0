@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89FE7C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:49:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 363EDC433E6
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:49:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AFBE64E87
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:49:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 031C264DEE
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:49:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231480AbhBKNr3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Feb 2021 08:47:29 -0500
-Received: from mga04.intel.com ([192.55.52.120]:57332 "EHLO mga04.intel.com"
+        id S232183AbhBKNtE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Feb 2021 08:49:04 -0500
+Received: from mga02.intel.com ([134.134.136.20]:48915 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231803AbhBKNop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 Feb 2021 08:44:45 -0500
-IronPort-SDR: pVt0NuKM7Bm8Ju0gKJPfc29JYkfOHW9mJsELdAcFgDPaQgEuBCCk9Jy/YCSBnLiVmZxlXt2QGz
- 2L53AIS1IvpA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9891"; a="179681622"
+        id S231755AbhBKNoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Feb 2021 08:44:44 -0500
+IronPort-SDR: mHtRjXkzbeOKu+FjUGdff6tl6UCQySAVqJJ3545p5hXcNwyjzB861APgYhoEgOnmFKoL4sIeup
+ R3we8R5Pwrxw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9891"; a="169366832"
 X-IronPort-AV: E=Sophos;i="5.81,170,1610438400"; 
-   d="scan'208";a="179681622"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2021 05:40:54 -0800
-IronPort-SDR: 24JqG9J6olWdNdGOKCNiNGyIJoQrHfgkUuRc8sj/LgieDg/H+Exf1wVSo4hUC9086U2jfQcg+n
- J9wumpXAB+SA==
+   d="scan'208";a="169366832"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2021 05:41:01 -0800
+IronPort-SDR: y3sXK0kKzjrX/UZlMbVpzk5vcxjGtKjkPDr9P4YqcE/9aj5Pxnqt8K33GmKRlpxxgkfuy9+Dsi
+ hJ5EbIqfuJGA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,170,1610438400"; 
-   d="scan'208";a="510853242"
+   d="scan'208";a="588798000"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga004.jf.intel.com with ESMTP; 11 Feb 2021 05:40:47 -0800
+  by fmsmga005.fm.intel.com with ESMTP; 11 Feb 2021 05:40:54 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id CF9A6C5; Thu, 11 Feb 2021 15:40:45 +0200 (EET)
+        id 3408A579; Thu, 11 Feb 2021 15:40:46 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -61,9 +61,9 @@ Cc:     Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v1 1/9] media: atomisp: Remove unused header
-Date:   Thu, 11 Feb 2021 15:40:00 +0200
-Message-Id: <20210211134008.38282-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 8/9] x86/platform/intel-mid: Remove unused header inclusion in intel-mid.h
+Date:   Thu, 11 Feb 2021 15:40:07 +0200
+Message-Id: <20210211134008.38282-9-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210211134008.38282-1-andriy.shevchenko@linux.intel.com>
 References: <20210211134008.38282-1-andriy.shevchenko@linux.intel.com>
@@ -73,27 +73,27 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-sfi.h is not anyhow used by the driver. Remove it.
+After the commit f1be6cdaf57c ("x86/platform/intel-mid: Make
+intel_scu_device_register() static") the platform_device.h is not being
+used anymore by intel-mid.h. Remove it.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/staging/media/atomisp/include/linux/atomisp_platform.h | 1 -
+ arch/x86/include/asm/intel-mid.h | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
-index 5a5121d958ed..8c65733e0255 100644
---- a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
-+++ b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
-@@ -22,7 +22,6 @@
- #include <asm/processor.h>
+diff --git a/arch/x86/include/asm/intel-mid.h b/arch/x86/include/asm/intel-mid.h
+index c2c7da4c60cf..c043e91f45ad 100644
+--- a/arch/x86/include/asm/intel-mid.h
++++ b/arch/x86/include/asm/intel-mid.h
+@@ -8,7 +8,6 @@
+ #define _ASM_X86_INTEL_MID_H
  
- #include <linux/i2c.h>
--#include <linux/sfi.h>
- #include <media/v4l2-subdev.h>
- #include "atomisp.h"
+ #include <linux/pci.h>
+-#include <linux/platform_device.h>
  
+ extern int intel_mid_pci_init(void);
+ extern int intel_mid_pci_set_power_state(struct pci_dev *pdev, pci_power_t state);
 -- 
 2.30.0
 
