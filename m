@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3195C433E6
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:45:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89FE7C433E0
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:49:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A257664E87
-	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:45:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AFBE64E87
+	for <linux-acpi@archiver.kernel.org>; Thu, 11 Feb 2021 13:49:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232076AbhBKNpf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Feb 2021 08:45:35 -0500
-Received: from mga06.intel.com ([134.134.136.31]:32463 "EHLO mga06.intel.com"
+        id S231480AbhBKNr3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 11 Feb 2021 08:47:29 -0500
+Received: from mga04.intel.com ([192.55.52.120]:57332 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232018AbhBKNnC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 Feb 2021 08:43:02 -0500
-IronPort-SDR: JzOmRVpIAnd1DVMULS81c36CJkn9N0zwLb5f6Xqq+EBy4PNSdTT5bzd+TumVhtZRwi9Q0GsbzC
- LJN6DI04sQ2Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9891"; a="243731534"
+        id S231803AbhBKNop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Feb 2021 08:44:45 -0500
+IronPort-SDR: pVt0NuKM7Bm8Ju0gKJPfc29JYkfOHW9mJsELdAcFgDPaQgEuBCCk9Jy/YCSBnLiVmZxlXt2QGz
+ 2L53AIS1IvpA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9891"; a="179681622"
 X-IronPort-AV: E=Sophos;i="5.81,170,1610438400"; 
-   d="scan'208";a="243731534"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2021 05:40:53 -0800
-IronPort-SDR: Q39XVtNXwgLLoTu2Y1h5v/7ttbGiA/VbPz59me3cbmB7Dm1YVucub5Kh7xw2LCTmStyw+6kPCB
- ujSdVpdMxW4Q==
+   d="scan'208";a="179681622"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2021 05:40:54 -0800
+IronPort-SDR: 24JqG9J6olWdNdGOKCNiNGyIJoQrHfgkUuRc8sj/LgieDg/H+Exf1wVSo4hUC9086U2jfQcg+n
+ J9wumpXAB+SA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,170,1610438400"; 
-   d="scan'208";a="490341617"
+   d="scan'208";a="510853242"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 11 Feb 2021 05:40:46 -0800
+  by orsmga004.jf.intel.com with ESMTP; 11 Feb 2021 05:40:47 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 0A71B35A; Thu, 11 Feb 2021 15:40:46 +0200 (EET)
+        id CF9A6C5; Thu, 11 Feb 2021 15:40:45 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -61,9 +61,9 @@ Cc:     Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH v1 4/9] x86/PCI: Get rid of custom x86 model comparison
-Date:   Thu, 11 Feb 2021 15:40:03 +0200
-Message-Id: <20210211134008.38282-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/9] media: atomisp: Remove unused header
+Date:   Thu, 11 Feb 2021 15:40:00 +0200
+Message-Id: <20210211134008.38282-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210211134008.38282-1-andriy.shevchenko@linux.intel.com>
 References: <20210211134008.38282-1-andriy.shevchenko@linux.intel.com>
@@ -73,67 +73,27 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Switch the platform code to use x86_id_table and accompanying API
-instead of custom comparison against x86 CPU model.
-
-This is one of the last users of custom API for that and following
-changes will remove it for the good.
+sfi.h is not anyhow used by the driver. Remove it.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- arch/x86/pci/intel_mid_pci.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/staging/media/atomisp/include/linux/atomisp_platform.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
-index 95e2e6bd8d8c..938a8b7bfe7f 100644
---- a/arch/x86/pci/intel_mid_pci.c
-+++ b/arch/x86/pci/intel_mid_pci.c
-@@ -28,10 +28,12 @@
- #include <linux/io.h>
- #include <linux/smp.h>
+diff --git a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
+index 5a5121d958ed..8c65733e0255 100644
+--- a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
++++ b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
+@@ -22,7 +22,6 @@
+ #include <asm/processor.h>
  
-+#include <asm/cpu_device_id.h>
- #include <asm/segment.h>
- #include <asm/pci_x86.h>
- #include <asm/hw_irq.h>
- #include <asm/io_apic.h>
-+#include <asm/intel-family.h>
- #include <asm/intel-mid.h>
- #include <asm/acpi.h>
+ #include <linux/i2c.h>
+-#include <linux/sfi.h>
+ #include <media/v4l2-subdev.h>
+ #include "atomisp.h"
  
-@@ -212,10 +214,17 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
- 			       where, size, value);
- }
- 
-+static const struct x86_cpu_id intel_mid_cpu_ids[] = {
-+	X86_MATCH_INTEL_FAM6_MODEL(ATOM_SILVERMONT_MID, NULL),
-+	{}
-+};
-+
- static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- {
-+	const struct x86_cpu_id *id;
- 	struct irq_alloc_info info;
- 	bool polarity_low;
-+	u16 model = 0;
- 	int ret;
- 	u8 gsi;
- 
-@@ -228,8 +237,12 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- 		return ret;
- 	}
- 
--	switch (intel_mid_identify_cpu()) {
--	case INTEL_MID_CPU_CHIP_TANGIER:
-+	id = x86_match_cpu(intel_mid_cpu_ids);
-+	if (id)
-+		model = id->model;
-+
-+	switch (model) {
-+	case INTEL_FAM6_ATOM_SILVERMONT_MID:
- 		polarity_low = false;
- 
- 		/* Special treatment for IRQ0 */
 -- 
 2.30.0
 
