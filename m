@@ -2,79 +2,177 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B843C433E0
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Feb 2021 14:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77CEFC433E0
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Feb 2021 14:32:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25EF564E3B
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Feb 2021 14:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FAB864E57
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Feb 2021 14:32:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232065AbhBLORY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 Feb 2021 09:17:24 -0500
-Received: from mga07.intel.com ([134.134.136.100]:44070 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232045AbhBLORE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Feb 2021 09:17:04 -0500
-IronPort-SDR: GvgyzfJQMryv3XuImxt8wLR3v9fzFDTmzQ2ftS6KwToIjy5u8aRA5LnQ9cKSEZyDa8ohINUBJl
- n1gNHYS9uQ/g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9892"; a="246483867"
-X-IronPort-AV: E=Sophos;i="5.81,173,1610438400"; 
-   d="scan'208";a="246483867"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2021 06:11:37 -0800
-IronPort-SDR: cM62hL94wrmVdz258pXNXcsB5XhwZiA5XBxPQ7Vcz/aoiNLBjYID0O5hQ2DFOs9RrJ+9itcJQU
- +OkFaM8cjPUg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,173,1610438400"; 
-   d="scan'208";a="360386123"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga003.jf.intel.com with ESMTP; 12 Feb 2021 06:11:36 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 9E47935A; Fri, 12 Feb 2021 16:11:34 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Subject: [PATCH v2 3/5] ACPI: property: Satisfy kernel doc validator (part 1)
-Date:   Fri, 12 Feb 2021 16:11:19 +0200
-Message-Id: <20210212141121.62115-3-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210212141121.62115-1-andriy.shevchenko@linux.intel.com>
-References: <20210212141121.62115-1-andriy.shevchenko@linux.intel.com>
+        id S229648AbhBLOcU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Feb 2021 09:32:20 -0500
+Received: from mail-oo1-f44.google.com ([209.85.161.44]:36425 "EHLO
+        mail-oo1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229797AbhBLOcQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2021 09:32:16 -0500
+Received: by mail-oo1-f44.google.com with SMTP id x10so2105191oor.3;
+        Fri, 12 Feb 2021 06:32:00 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=HxRNPbFxKlelvDHRdiVRulQ6mXfnpI+cjkddw+lx5XA=;
+        b=fB/RBX0PrRc9HIvwXwoKe2IUTT7GRLAj+gcLq3JizJMOofENcU05dzzrOsG4AVbFDE
+         hKOKUkuCpjRujbv5Oulm4W456q98w9xkErBVy9rJeQCFy5QEvNDBcNyFHzDFFjyU9cHg
+         /pILdFqEak0n9HPehXFEzBki26kJjrOU9Ijwvh9risoumyvRHbNceWg32aCAL+UJClx1
+         l7S9Ac9Fk+7EGooee7ntAqtnMVDudYGQcVGWyiYEiFszCRzquUw2HtTpDfowqOi8d3oH
+         7rUGV+u78rCZbjmY4cVAjBdW75KFIH7uTA6eD0OV1c8AempS8bXy2UjBt/cRsDOClZib
+         qXwg==
+X-Gm-Message-State: AOAM532h8ESs5AVRs27gbl2pXXaiZttgnK18zWWT5ExonDdBRAGsLS6k
+        RVH2iYD1h65pcAnurQceubcd6xTqK08OGcOuB0czXFoJ
+X-Google-Smtp-Source: ABdhPJy1j2t7k6mb1KF1GD37mX1x73j24pmMwznWqZDxQIFHvv+IlLrC6qyvoT3jeVOtONV+jMwEhsn7hJ37LJt0m/0=
+X-Received: by 2002:a4a:d50d:: with SMTP id m13mr2053955oos.2.1613140295448;
+ Fri, 12 Feb 2021 06:31:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210212141121.62115-1-andriy.shevchenko@linux.intel.com> <20210212141121.62115-5-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20210212141121.62115-5-andriy.shevchenko@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 12 Feb 2021 15:31:24 +0100
+Message-ID: <CAJZ5v0jot6w2AdTCmxn4Hw2zOzJk2JSrTaeH9cQR4or2N9HjCg@mail.gmail.com>
+Subject: Re: [PATCH v2 5/5] ACPI: property: Refactor acpi_data_prop_read_single()
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-CHECK   drivers/acpi/property.c
- warning: Function parameter or member 'data' not described in 'acpi_data_get_property_array'
- warning: Excess function parameter 'adev' description in 'acpi_data_get_property_array'
+On Fri, Feb 12, 2021 at 3:14 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+ >
+> Refactor acpi_data_prop_read_single() for less LOCs and better maintenance.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/acpi/property.c | 80 ++++++++++++++++++-----------------------
+>  1 file changed, 34 insertions(+), 46 deletions(-)
+>
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index e312ebaed8db..494cf283a573 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -785,60 +785,48 @@ static int acpi_data_prop_read_single(const struct acpi_device_data *data,
+>                                       enum dev_prop_type proptype, void *val)
+>  {
+>         const union acpi_object *obj;
+> -       int ret;
+> +       int ret = 0;
+>
+> -       if (proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64) {
+> +       if (proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64)
+>                 ret = acpi_data_get_property(data, propname, ACPI_TYPE_INTEGER, &obj);
+> -               if (ret)
+> -                       return ret;
+> -
+> -               switch (proptype) {
+> -               case DEV_PROP_U8:
+> -                       if (obj->integer.value > U8_MAX)
+> -                               return -EOVERFLOW;
+> -
+> -                       if (val)
+> -                               *(u8 *)val = obj->integer.value;
+> -
+> -                       break;
 
-Fixes: 3a7a2ab839ad ("ACPI / property: Extend fwnode_property_* to data-only subnodes")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/property.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The empty lines of code above are intentional, so please retain them.
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 2b65ad9b4c0d..ab4d7c734b0d 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -564,7 +564,7 @@ int acpi_node_prop_get(const struct fwnode_handle *fwnode,
- 
- /**
-  * acpi_data_get_property_array - return an ACPI array property with given name
-- * @adev: ACPI data object to get the property from
-+ * @data: ACPI data object to get the property from
-  * @name: Name of the property
-  * @type: Expected type of array elements
-  * @obj: Location to store a pointer to the property value (if not NULL)
--- 
-2.30.0
+> -               case DEV_PROP_U16:
+> -                       if (obj->integer.value > U16_MAX)
+> -                               return -EOVERFLOW;
+> -
+> -                       if (val)
+> -                               *(u16 *)val = obj->integer.value;
+> -
+> -                       break;
+> -               case DEV_PROP_U32:
+> -                       if (obj->integer.value > U32_MAX)
+> -                               return -EOVERFLOW;
+> -
+> -                       if (val)
+> -                               *(u32 *)val = obj->integer.value;
+> -
+> -                       break;
+> -               default:
+> -                       if (val)
+> -                               *(u64 *)val = obj->integer.value;
+> -
+> -                       break;
+> -               }
+> -
+> -               if (!val)
+> -                       return 1;
+> -       } else if (proptype == DEV_PROP_STRING) {
+> +       else if (proptype == DEV_PROP_STRING)
+>                 ret = acpi_data_get_property(data, propname, ACPI_TYPE_STRING, &obj);
+> -               if (ret)
+> -                       return ret;
+> +       if (ret)
+> +               return ret;
 
+else if (!val)
+        ret = 1;
+
+>
+> +       switch (proptype) {
+> +       case DEV_PROP_U8:
+> +               if (obj->integer.value > U8_MAX)
+> +                       return -EOVERFLOW;
+> +               if (val)
+> +                       *(u8 *)val = obj->integer.value;
+> +               break;
+> +       case DEV_PROP_U16:
+> +               if (obj->integer.value > U16_MAX)
+> +                       return -EOVERFLOW;
+> +               if (val)
+> +                       *(u16 *)val = obj->integer.value;
+> +               break;
+> +       case DEV_PROP_U32:
+> +               if (obj->integer.value > U32_MAX)
+> +                       return -EOVERFLOW;
+> +               if (val)
+> +                       *(u32 *)val = obj->integer.value;
+> +               break;
+> +       case DEV_PROP_U64:
+> +               if (val)
+> +                       *(u64 *)val = obj->integer.value;
+> +               break;
+> +       case DEV_PROP_STRING:
+>                 if (val)
+>                         *(char **)val = obj->string.pointer;
+> -
+>                 return 1;
+> -       } else {
+> -               ret = -EINVAL;
+> +       default:
+> +               return -EINVAL;
+>         }
+> -       return ret;
+
+Retain this.
+
+> +
+> +       /* When no storage provided return number of available values */
+> +       return val ? 0 : 1;
+
+And this is just not looking good to me, sorry.
+
+>  }
+>
+>  static int acpi_copy_property_array_u8(const union acpi_object *items, u8 *val,
+> --
