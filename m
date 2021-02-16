@@ -2,188 +2,357 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AB33C433E6
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Feb 2021 21:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDEECC433E6
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Feb 2021 01:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 461D464E10
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Feb 2021 21:58:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4C0264DEC
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Feb 2021 01:46:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229833AbhBOV6U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Feb 2021 16:58:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37088 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229775AbhBOV6S (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2021 16:58:18 -0500
-Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37941C061788
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Feb 2021 13:57:38 -0800 (PST)
-Received: by mail-yb1-xb2b.google.com with SMTP id c131so3751231ybf.7
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Feb 2021 13:57:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=6sRa/U5Kzs1JI5RnyoYklyv1NRbU9v8LrTPHarr/PE8=;
-        b=gJEho7HAFjs40VouEGob2eg5Oy9aEdcZUBjHihE6mZQzi6czZHwv0m73BpYkXKdo5q
-         68ZV+goSq9Fae1dld8Dj2zZYLuDTZktAzE0ZwFkpES3da8W1hs5RObUljgUwwZubEMQR
-         Ca4nrFf96n+Kq21fygN6AVWqtnC1b+1lh90Ad/OFDLwRqlp57eBni+kkmVmwYsQmfAjJ
-         NcDt4L5//G6ue+WDbsA4Z4M/o7lFxOzbQQJ4D6/zpk72I1HGrEAZGi0vXqowaDBLiSCa
-         tPx3s6gkUPD/Kyv6NGu1ljv+0hfUIqhnOIrU799/0jGVFl7RUVlE+Da+9mHdD+VFVUH6
-         Lj/Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=6sRa/U5Kzs1JI5RnyoYklyv1NRbU9v8LrTPHarr/PE8=;
-        b=CTpNudBol7qb8s2P63yyY6SK8Fv53loQouCVM/wXXxSx9F3TtpcM9NIQqIV2LSw+iy
-         tgPqhMd4ZMqAF0tfM0FSlPNR26QbMIgONyt80s11zEmGasW+GUiKvZ68gKW/xnknJfYg
-         19gkbhutdXw+AV8nXl2QRWUQRqROQugnJedhqNaN2w8Ssk9ryaTFTEeEiVR/0Ctdc851
-         t/SFhLkriyKtlnjo4tXqOMAQVZVZz72kyAk/6Cw4hAK9aCubZ3A2FHl12T7uXxNeJ51p
-         thXQaMRtk5h5jlh+RlABDaoU133aiIij3Ef6HGSMCZWlWAtr+xdTa6wFFyiYA5gPpSrT
-         6Q7w==
-X-Gm-Message-State: AOAM533XztWOdIcz6h6+39UtVkQXqKrusJgmBF9p93SsG0ZWD/ukd3T0
-        OlUVgm1k7LOC06qPfvi07g5reOgOHwUiNmCItob4+Q==
-X-Google-Smtp-Source: ABdhPJwKttGJ/WSxMO3AOYN0BMrFeAFmWmg7rlKUzB3nt2oaOmB07PQ56EVlNxhui2daNXPCPW1sMy0iGvA9c5ZrRD4=
-X-Received: by 2002:a25:aa43:: with SMTP id s61mr27067882ybi.32.1613426257227;
- Mon, 15 Feb 2021 13:57:37 -0800 (PST)
+        id S229662AbhBPBqi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 Feb 2021 20:46:38 -0500
+Received: from mga07.intel.com ([134.134.136.100]:3270 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229652AbhBPBqh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 Feb 2021 20:46:37 -0500
+IronPort-SDR: grZTXeuWxHt6dJTy3X2LPb+l4kTFWCW5fpn07Ry6xATJ9rLxEKc0MxW9S2+37cyhitON0H6K/M
+ GD4XT8wWmZMQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9896"; a="246852864"
+X-IronPort-AV: E=Sophos;i="5.81,182,1610438400"; 
+   d="scan'208";a="246852864"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Feb 2021 17:45:53 -0800
+IronPort-SDR: BjlJl2BQG4rm4ODesMxm4yLYOYG7JWiatG4ypdvhE+hx2o3tpXsNH0/+YjkZdD5PUN1K4sy4Nv
+ oI8CVLXga/rg==
+X-IronPort-AV: E=Sophos;i="5.81,182,1610438400"; 
+   d="scan'208";a="399296060"
+Received: from dlbingha-mobl1.amr.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.134.31])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Feb 2021 17:45:53 -0800
+From:   Ben Widawsky <ben.widawsky@intel.com>
+To:     linux-cxl@vger.kernel.org
+Cc:     Ben Widawsky <ben.widawsky@intel.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
+        Chris Browy <cbrowy@avery-design.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        David Rientjes <rientjes@google.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Jon Masters <jcm@jonmasters.org>,
+        Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+        Rafael Wysocki <rafael.j.wysocki@intel.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "John Groves (jgroves)" <jgroves@micron.com>,
+        "Kelley, Sean V" <sean.v.kelley@intel.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH v4 1/9] cxl/mem: Introduce a driver for CXL-2.0-Type-3 endpoints
+Date:   Mon, 15 Feb 2021 17:45:30 -0800
+Message-Id: <20210216014538.268106-2-ben.widawsky@intel.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210216014538.268106-1-ben.widawsky@intel.com>
+References: <20210216014538.268106-1-ben.widawsky@intel.com>
 MIME-Version: 1.0
-References: <20210205222644.2357303-1-saravanak@google.com>
- <CAMuHMdVL-1RKJ5u-HDVA4F4w_+8yGvQQuJQBcZMsdV4yXzzfcw@mail.gmail.com>
- <CAGETcx-668+uGigaOMcsvv00mo6o_eGPcH0YyD28OCVEyVbw+w@mail.gmail.com> <CAMuHMdWFp_teT5Lgxe6BOpOb4UMM2_4FrKJm-2C6kuCH2YUMrw@mail.gmail.com>
-In-Reply-To: <CAMuHMdWFp_teT5Lgxe6BOpOb4UMM2_4FrKJm-2C6kuCH2YUMrw@mail.gmail.com>
-From:   Saravana Kannan <saravanak@google.com>
-Date:   Mon, 15 Feb 2021 13:57:00 -0800
-Message-ID: <CAGETcx9AZct4h0AdjbNzF5vjoYxT+M+zJ2ddsEN5SV9ALqV48A@mail.gmail.com>
-Subject: Re: [PATCH v4 0/8] Make fw_devlink=on more forgiving
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Jonathan Corbet <corbet@lwn.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux PM list <linux-pm@vger.kernel.org>,
-        linux-clk <linux-clk@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Android Kernel Team <kernel-team@android.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Geert,
+From: Dan Williams <dan.j.williams@intel.com>
 
-On Mon, Feb 15, 2021 at 7:16 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->
-> Hi Saravana,
->
-> On Fri, Feb 12, 2021 at 4:00 AM Saravana Kannan <saravanak@google.com> wrote:
-> > On Thu, Feb 11, 2021 at 5:00 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> > >   1. R-Car Gen2 (Koelsch), R-Car Gen3 (Salvator-X(S), Ebisu).
-> > >
-> > >       - Commit 2dfc564bda4a31bc ("soc: renesas: rcar-sysc: Mark device
-> > >         node OF_POPULATED after init") is no longer needed (but already
-> > >         queued for v5.12 anyway)
-> >
-> > Rob doesn't like the proliferation of OF_POPULATED and we don't need
-> > it anymore, so maybe work it out with him? It's a balance between some
-> > wasted memory (struct device(s)) vs not proliferating OF_POPULATED.
->
-> > >   2. SH/R-Mobile AG5 (kzm9g), APE6 (ape6evm), A1 (armadillo800-eva)
-> > >
-> > >       - "PATCH] soc: renesas: rmobile-sysc: Set OF_POPULATED and absorb
-> > >         reset handling" is no longer needed
-> > >         https://lore.kernel.org/linux-arm-kernel/20210205133319.1921108-1-geert+renesas@glider.be/
-> >
-> > Good to see more evidence that this series is fixing things at a more
-> > generic level.
->
-> I spoke too soon: if CONFIG_POWER_RESET_RMOBILE=n,
-> booting fails again, as everything is waiting on the system controller,
-> which never becomes available.
-> Rcar-sysc doesn't suffer from this problem, cfr. above.
-> Perhaps because the rmobile-sysc bindings use a hierarchical instead
-> of a linear PM domain description, and thus consumers point to the
-> children of the system controller node?
-> Cfr. system-controller@e6180000 in arch/arm/boot/dts/r8a7740.dtsi.
+The CXL.mem protocol allows a device to act as a provider of "System
+RAM" and/or "Persistent Memory" that is fully coherent as if the memory
+was attached to the typical CPU memory controller.
 
-Ok, I see what's going on. The problem is that the "power domain"
-fwnode being registered is not the node that contains the "compatible"
-property and becomes a device. So this patch[1] is not helping here.
-Fix is to do something like this (to avoid using OF_POPULATED flag and
-breaking reset):
+With the CXL-2.0 specification a PCI endpoint can implement a "Type-3"
+device interface and give the operating system control over "Host
+Managed Device Memory". See section 2.3 Type 3 CXL Device.
 
-diff --git a/drivers/soc/renesas/rmobile-sysc.c
-b/drivers/soc/renesas/rmobile-sysc.c
-index 9046b8c933cb..b7e66139ef7d 100644
---- a/drivers/soc/renesas/rmobile-sysc.c
-+++ b/drivers/soc/renesas/rmobile-sysc.c
-@@ -344,6 +344,7 @@ static int __init rmobile_init_pm_domains(void)
-                        of_node_put(np);
-                        break;
-                }
-+               fwnode_dev_initialized(&np->fwnode, true);
-        }
+The memory range exported by the device may optionally be described by
+the platform firmware memory map, or by infrastructure like LIBNVDIMM to
+provision persistent memory capacity from one, or more, CXL.mem devices.
 
-        put_special_pds();
+A pre-requisite for Linux-managed memory-capacity provisioning is this
+cxl_mem driver that can speak the mailbox protocol defined in section
+8.2.8.4 Mailbox Registers.
 
-Can you give it a shot?
+For now just land the initial driver boiler-plate and Documentation/
+infrastructure.
 
-[1] - https://lore.kernel.org/lkml/20210205222644.2357303-8-saravanak@google.com/
+Link: https://www.computeexpresslink.org/download-the-specification
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+Acked-by: David Rientjes <rientjes@google.com> (v1)
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ Documentation/driver-api/cxl/index.rst        | 12 ++++
+ .../driver-api/cxl/memory-devices.rst         | 29 +++++++++
+ Documentation/driver-api/index.rst            |  1 +
+ drivers/Kconfig                               |  1 +
+ drivers/Makefile                              |  1 +
+ drivers/cxl/Kconfig                           | 35 +++++++++++
+ drivers/cxl/Makefile                          |  4 ++
+ drivers/cxl/mem.c                             | 62 +++++++++++++++++++
+ drivers/cxl/pci.h                             | 17 +++++
+ include/linux/pci_ids.h                       |  1 +
+ 10 files changed, 163 insertions(+)
+ create mode 100644 Documentation/driver-api/cxl/index.rst
+ create mode 100644 Documentation/driver-api/cxl/memory-devices.rst
+ create mode 100644 drivers/cxl/Kconfig
+ create mode 100644 drivers/cxl/Makefile
+ create mode 100644 drivers/cxl/mem.c
+ create mode 100644 drivers/cxl/pci.h
 
-> > >       - On R-Mobile A1, I get a BUG and a memory leak:
-> > >
-> > >             BUG: spinlock bad magic on CPU#0, swapper/1
-> > >              lock: lcdc0_device+0x10c/0x308, .magic: 00000000, .owner:
-> > > <none>/-1, .owner_cpu: 0
-> > >             CPU: 0 PID: 1 Comm: swapper Not tainted
-> > > 5.11.0-rc5-armadillo-00032-gf0a85c26907e #266
-> > >             Hardware name: Generic R8A7740 (Flattened Device Tree)
-> > >             [<c010c3c8>] (unwind_backtrace) from [<c010a49c>]
-> > > (show_stack+0x10/0x14)
-> > >             [<c010a49c>] (show_stack) from [<c0159534>]
-> > > (do_raw_spin_lock+0x20/0x94)
-> > >             [<c0159534>] (do_raw_spin_lock) from [<c04089d8>]
-> > > (dev_pm_get_subsys_data+0x30/0xa0)
-> > >             [<c04089d8>] (dev_pm_get_subsys_data) from [<c0413698>]
-> > > (genpd_add_device+0x34/0x1c0)
-> > >             [<c0413698>] (genpd_add_device) from [<c041389c>]
-> > > (of_genpd_add_device+0x34/0x4c)
-> > >             [<c041389c>] (of_genpd_add_device) from [<c0a1e9bc>]
-> > > (board_staging_register_device+0xf8/0x118)
-> > >             [<c0a1e9bc>] (board_staging_register_device) from
->
-> This is indeed a pre-existing problem.
-> of_genpd_add_device() is called before platform_device_register(),
-> as it needs to attach the genpd before the device is probed.
-> But the spinlock is only initialized when the device is registered.
-> This was masked before due to an unrelated wait context check failure,
-> which disabled any further spinlock checks, and exposed by fw_devlinks
-> changing probe order.
-> Patch sent.
-> "[PATCH] staging: board: Fix uninitialized spinlock when attaching genpd"
-> https://lore.kernel.org/r/20210215151405.2551143-1-geert+renesas@glider.be
->
+diff --git a/Documentation/driver-api/cxl/index.rst b/Documentation/driver-api/cxl/index.rst
+new file mode 100644
+index 000000000000..036e49553542
+--- /dev/null
++++ b/Documentation/driver-api/cxl/index.rst
+@@ -0,0 +1,12 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++====================
++Compute Express Link
++====================
++
++.. toctree::
++   :maxdepth: 1
++
++   memory-devices
++
++.. only::  subproject and html
+diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
+new file mode 100644
+index 000000000000..43177e700d62
+--- /dev/null
++++ b/Documentation/driver-api/cxl/memory-devices.rst
+@@ -0,0 +1,29 @@
++.. SPDX-License-Identifier: GPL-2.0
++.. include:: <isonum.txt>
++
++===================================
++Compute Express Link Memory Devices
++===================================
++
++A Compute Express Link Memory Device is a CXL component that implements the
++CXL.mem protocol. It contains some amount of volatile memory, persistent memory,
++or both. It is enumerated as a PCI device for configuration and passing
++messages over an MMIO mailbox. Its contribution to the System Physical
++Address space is handled via HDM (Host Managed Device Memory) decoders
++that optionally define a device's contribution to an interleaved address
++range across multiple devices underneath a host-bridge or interleaved
++across host-bridges.
++
++Driver Infrastructure
++=====================
++
++This section covers the driver infrastructure for a CXL memory device.
++
++CXL Memory Device
++-----------------
++
++.. kernel-doc:: drivers/cxl/mem.c
++   :doc: cxl mem
++
++.. kernel-doc:: drivers/cxl/mem.c
++   :internal:
+diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
+index 2456d0a97ed8..d246a18fd78f 100644
+--- a/Documentation/driver-api/index.rst
++++ b/Documentation/driver-api/index.rst
+@@ -35,6 +35,7 @@ available subsections can be seen below.
+    usb/index
+    firewire
+    pci/index
++   cxl/index
+    spi
+    i2c
+    ipmb
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index dcecc9f6e33f..62c753a73651 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -6,6 +6,7 @@ menu "Device Drivers"
+ source "drivers/amba/Kconfig"
+ source "drivers/eisa/Kconfig"
+ source "drivers/pci/Kconfig"
++source "drivers/cxl/Kconfig"
+ source "drivers/pcmcia/Kconfig"
+ source "drivers/rapidio/Kconfig"
+ 
+diff --git a/drivers/Makefile b/drivers/Makefile
+index fd11b9ac4cc3..678ea810410f 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -73,6 +73,7 @@ obj-$(CONFIG_NVM)		+= lightnvm/
+ obj-y				+= base/ block/ misc/ mfd/ nfc/
+ obj-$(CONFIG_LIBNVDIMM)		+= nvdimm/
+ obj-$(CONFIG_DAX)		+= dax/
++obj-$(CONFIG_CXL_BUS)		+= cxl/
+ obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf/
+ obj-$(CONFIG_NUBUS)		+= nubus/
+ obj-y				+= macintosh/
+diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+new file mode 100644
+index 000000000000..9e80b311e928
+--- /dev/null
++++ b/drivers/cxl/Kconfig
+@@ -0,0 +1,35 @@
++# SPDX-License-Identifier: GPL-2.0-only
++menuconfig CXL_BUS
++	tristate "CXL (Compute Express Link) Devices Support"
++	depends on PCI
++	help
++	  CXL is a bus that is electrically compatible with PCI Express, but
++	  layers three protocols on that signalling (CXL.io, CXL.cache, and
++	  CXL.mem). The CXL.cache protocol allows devices to hold cachelines
++	  locally, the CXL.mem protocol allows devices to be fully coherent
++	  memory targets, the CXL.io protocol is equivalent to PCI Express.
++	  Say 'y' to enable support for the configuration and management of
++	  devices supporting these protocols.
++
++if CXL_BUS
++
++config CXL_MEM
++	tristate "CXL.mem: Memory Devices"
++	help
++	  The CXL.mem protocol allows a device to act as a provider of
++	  "System RAM" and/or "Persistent Memory" that is fully coherent
++	  as if the memory was attached to the typical CPU memory
++	  controller.
++
++	  Say 'y/m' to enable a driver (named "cxl_mem.ko" when built as
++	  a module) that will attach to CXL.mem devices for
++	  configuration, provisioning, and health monitoring. This
++	  driver is required for dynamic provisioning of CXL.mem
++	  attached memory which is a prerequisite for persistent memory
++	  support. Typically volatile memory is mapped by platform
++	  firmware and included in the platform memory map, but in some
++	  cases the OS is responsible for mapping that memory. See
++	  Chapter 2.3 Type 3 CXL Device in the CXL 2.0 specification.
++
++	  If unsure say 'm'.
++endif
+diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
+new file mode 100644
+index 000000000000..4a30f7c3fc4a
+--- /dev/null
++++ b/drivers/cxl/Makefile
+@@ -0,0 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0
++obj-$(CONFIG_CXL_MEM) += cxl_mem.o
++
++cxl_mem-y := mem.o
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+new file mode 100644
+index 000000000000..ce33c5ee77c9
+--- /dev/null
++++ b/drivers/cxl/mem.c
+@@ -0,0 +1,62 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Copyright(c) 2020 Intel Corporation. All rights reserved. */
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/io.h>
++#include "pci.h"
++
++static int cxl_mem_dvsec(struct pci_dev *pdev, int dvsec)
++{
++	int pos;
++
++	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_DVSEC);
++	if (!pos)
++		return 0;
++
++	while (pos) {
++		u16 vendor, id;
++
++		pci_read_config_word(pdev, pos + PCI_DVSEC_HEADER1, &vendor);
++		pci_read_config_word(pdev, pos + PCI_DVSEC_HEADER2, &id);
++		if (vendor == PCI_DVSEC_VENDOR_ID_CXL && dvsec == id)
++			return pos;
++
++		pos = pci_find_next_ext_capability(pdev, pos,
++						   PCI_EXT_CAP_ID_DVSEC);
++	}
++
++	return 0;
++}
++
++static int cxl_mem_probe(struct pci_dev *pdev, const struct pci_device_id *id)
++{
++	struct device *dev = &pdev->dev;
++	int regloc;
++
++	regloc = cxl_mem_dvsec(pdev, PCI_DVSEC_ID_CXL_REGLOC_OFFSET);
++	if (!regloc) {
++		dev_err(dev, "register location dvsec not found\n");
++		return -ENXIO;
++	}
++
++	return 0;
++}
++
++static const struct pci_device_id cxl_mem_pci_tbl[] = {
++	/* PCI class code for CXL.mem Type-3 Devices */
++	{ PCI_DEVICE_CLASS((PCI_CLASS_MEMORY_CXL << 8 | CXL_MEMORY_PROGIF), ~0)},
++	{ /* terminate list */ },
++};
++MODULE_DEVICE_TABLE(pci, cxl_mem_pci_tbl);
++
++static struct pci_driver cxl_mem_driver = {
++	.name			= KBUILD_MODNAME,
++	.id_table		= cxl_mem_pci_tbl,
++	.probe			= cxl_mem_probe,
++	.driver	= {
++		.probe_type	= PROBE_PREFER_ASYNCHRONOUS,
++	},
++};
++
++MODULE_LICENSE("GPL v2");
++module_pci_driver(cxl_mem_driver);
+diff --git a/drivers/cxl/pci.h b/drivers/cxl/pci.h
+new file mode 100644
+index 000000000000..e464bea3f4d3
+--- /dev/null
++++ b/drivers/cxl/pci.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/* Copyright(c) 2020 Intel Corporation. All rights reserved. */
++#ifndef __CXL_PCI_H__
++#define __CXL_PCI_H__
++
++#define CXL_MEMORY_PROGIF	0x10
++
++/*
++ * See section 8.1 Configuration Space Registers in the CXL 2.0
++ * Specification
++ */
++#define PCI_DVSEC_VENDOR_ID_CXL		0x1E98
++#define PCI_DVSEC_ID_CXL		0x0
++
++#define PCI_DVSEC_ID_CXL_REGLOC_OFFSET		0x8
++
++#endif /* __CXL_PCI_H__ */
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index d8156a5dbee8..766260a9b247 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -51,6 +51,7 @@
+ #define PCI_BASE_CLASS_MEMORY		0x05
+ #define PCI_CLASS_MEMORY_RAM		0x0500
+ #define PCI_CLASS_MEMORY_FLASH		0x0501
++#define PCI_CLASS_MEMORY_CXL		0x0502
+ #define PCI_CLASS_MEMORY_OTHER		0x0580
+ 
+ #define PCI_BASE_CLASS_BRIDGE		0x06
+-- 
+2.30.1
 
-Great!
-
-Thanks,
-Saravana
