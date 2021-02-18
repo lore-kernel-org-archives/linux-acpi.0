@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05120C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B66C433E6
 	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 05:29:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A426564E68
+	by mail.kernel.org (Postfix) with ESMTP id CA53864E4B
 	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 05:29:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230306AbhBRF3e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Feb 2021 00:29:34 -0500
-Received: from mail-am6eur05on2057.outbound.protection.outlook.com ([40.107.22.57]:24352
-        "EHLO EUR05-AM6-obe.outbound.protection.outlook.com"
+        id S229658AbhBRF3k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Feb 2021 00:29:40 -0500
+Received: from mail-eopbgr70047.outbound.protection.outlook.com ([40.107.7.47]:25319
+        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S230211AbhBRF2y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Feb 2021 00:28:54 -0500
+        id S230223AbhBRF27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 Feb 2021 00:28:59 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=QOG+rQXv2+dGcWpB9FRmD0iQnemootuHT13OFrSUYFqBHiKOy0y7P7x+y57eaINDO0doHmXnK/oEschtS1eGwlapJ2u79Mb61NZJXGwvn+2owEPFInc3pM4xeVSYu8UxojgBLuAqW3qfftgRkQmhomwwUBGEtPNE7ebilG/Ii+JL7q+TALefnnH/8BpyVq3NKttnD3pnG7G2rI/Rs2KGHzaa8RvwbOuJEJKep2WjHog7ccqitPbml5+mLI6f3b1sXQS1Se0iSnQhA1K3gNwc7HWpB/g5xXux1kmEGCeWzqoslfY7PLUwzmXjKk8n6hwBRDIvMLtH+qi7AYQyaPxOeA==
+ b=cH/j2RuxoRea0ndiEeMMM1FbaJfUf0dxB7wssa0P8bN3XSUhNdYbOI2/CsjaaEeWnZsmdHOmkzBZZZFjWT2WeTOdojCbyqHjgI4DON5IJ4VVfgAOmS54IdgvGk+bkZEEIfMM5nOhZoakGUBTFbhLyCmcbGkO3sz6fE3e9riR9TGjaxVlQf6Y4EB2hnpvCOFPjn+H2hq3n0Fjf9p5jHhnqiz6my/X+/NzxxjgI3ZEStJYTQem6/jVG04fgVeP2HqrVRpDW72uhzmXUUDKfis81LuQPZ/o9BwxTJpxxOyojUseYgMPWui3iYoqkpHaIAssAmMvGoBiFWk9NEjW519nkQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=psdIIdC5o86VoFSAPcW+NYKghds32St8M1Sjrzx6zwk=;
- b=kUaoXhbiWrRVh4qciarrQcXpio38XTjOvTgOHANo7EiQszmX2VPe0F4TnJhpL/JmBLyygZdSrXRXGpyqkcGdDvtkNSUgSlIf/6vixrY8nwtkb9kD2NGnZIrW+8xenbYAyjTpoegVy8/oCqQV3EH/yB8f1fXwDAMPtSIpi3OHc4ZF0UxqDvFgKnqm2lYwaAPadaT7u6aylo9IA3BxCo9kYmwT6ZTRkO9cgB/JbrmvrVDPSX1TvhNyzm0Hj77RpxKuVVpULFtDqUOgdhukDuwYsDAs2CDG7Zutj2B2kFMFCO+pXFR/OOuA1M5x2Nb92nSoSpvvh3FSvxjAYyZ3I4232w==
+ bh=ESGZo8bqGib84VHyZ/HCjwvaf9VDwIETrOUyoP6oJNI=;
+ b=kj+EBhBmiE8Ic82EK1L8AKXr3seUeDKNGFtNj8oYMe1GoKqp83A8OEHLuD9pr1mUqZorOwHULQesFOjWuPmZDn3ol5bHxLqyPjxjFwx1/st3zH4IT/9aWYM1Xc6/iVz5RUQkb6EzWowKcjQdgrxwID4ymh0GS7k1mlQh38FEftF35Eh3lMP6RmAWN0JcAfRL0oi8j9cHIdi/WXMobLSRMu8g66jmJXoKVoaOuC0rYcFa1RzD5PMmC/su7pV0/NTYHzhAUotAZl5FY5Z52j5t/8IkYQfCnGBWWnFAZMOg/6WqoflbTGiW152Nb+4/DdtrMEPrOZSdNT6ARknuX2b6SA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector2-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=psdIIdC5o86VoFSAPcW+NYKghds32St8M1Sjrzx6zwk=;
- b=K7MSogCyHL9CtOptV/OUs8xZaKUC4VIMHA42lElSCrc2u4SuA2cSevyC9N6ANaW1ccAeFcbkS+t8KdmzJogLc0gvRVbROZLQg2lIH/IMf14U0GJgOU7xfy+8k2TNegtzRCECsYX6hggjhf+VLgGhpbKGeqzVIhVo9APn1aJ3Tz4=
+ bh=ESGZo8bqGib84VHyZ/HCjwvaf9VDwIETrOUyoP6oJNI=;
+ b=a37BPUWO0jfLXi8Xmc06QtNS/QjtqVW3Wv6m24G3sbxR6P02Ohb+pYl4Ci1VUo4wZQ2W244oS4K9eHS6e/aJ4PW3j6U14ix4WDgz9mKmtfA6ceqi1nmImrXtROyc3SKCVu258jgQCXyocjx5lZTljUg0IDbO98Wli9Nhyk+o8QE=
 Authentication-Results: arm.com; dkim=none (message not signed)
  header.d=none;arm.com; dmarc=none action=none header.from=oss.nxp.com;
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com (2603:10a6:208:130::22)
- by AM0PR0402MB3442.eurprd04.prod.outlook.com (2603:10a6:208:21::30) with
+ by AM8PR04MB7730.eurprd04.prod.outlook.com (2603:10a6:20b:242::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.42; Thu, 18 Feb
- 2021 05:27:32 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3868.27; Thu, 18 Feb
+ 2021 05:28:08 +0000
 Received: from AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::e90e:b1d6:18a2:2d42]) by AM0PR04MB5636.eurprd04.prod.outlook.com
  ([fe80::e90e:b1d6:18a2:2d42%6]) with mapi id 15.20.3846.042; Thu, 18 Feb 2021
- 05:27:32 +0000
+ 05:28:08 +0000
 From:   Calvin Johnson <calvin.johnson@oss.nxp.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -69,11 +69,12 @@ Cc:     linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         Diana Madalina Craciun <diana.craciun@nxp.com>,
         linux-arm-kernel@lists.infradead.org, linux.cj@gmail.com,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
-        Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [net-next PATCH v6 01/15] Documentation: ACPI: DSD: Document MDIO PHY
-Date:   Thu, 18 Feb 2021 10:56:40 +0530
-Message-Id: <20210218052654.28995-2-calvin.johnson@oss.nxp.com>
+        "David S. Miller" <davem@davemloft.net>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>
+Subject: [net-next PATCH v6 06/15] of: mdio: Refactor of_get_phy_id()
+Date:   Thu, 18 Feb 2021 10:56:45 +0530
+Message-Id: <20210218052654.28995-7-calvin.johnson@oss.nxp.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20210218052654.28995-1-calvin.johnson@oss.nxp.com>
 References: <20210218052654.28995-1-calvin.johnson@oss.nxp.com>
@@ -84,221 +85,95 @@ X-ClientProxiedBy: SG2PR02CA0051.apcprd02.prod.outlook.com
  (2603:10a6:208:130::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR02CA0051.apcprd02.prod.outlook.com (2603:1096:4:54::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3868.27 via Frontend Transport; Thu, 18 Feb 2021 05:27:26 +0000
+Received: from lsv03152.swis.in-blr01.nxp.com (14.142.151.118) by SG2PR02CA0051.apcprd02.prod.outlook.com (2603:1096:4:54::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3868.27 via Frontend Transport; Thu, 18 Feb 2021 05:28:01 +0000
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 9b0dfb8d-6112-4766-64ba-08d8d3cde402
-X-MS-TrafficTypeDiagnostic: AM0PR0402MB3442:
+X-MS-Office365-Filtering-Correlation-Id: 540093a1-8761-4595-930d-08d8d3cdf934
+X-MS-TrafficTypeDiagnostic: AM8PR04MB7730:
 X-MS-Exchange-SharedMailbox-RoutingAgent-Processed: True
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR0402MB34420780DB2125CE35D3D130D2859@AM0PR0402MB3442.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-Microsoft-Antispam-PRVS: <AM8PR04MB7730BFF3F95BDF9A2A7BCED2D2859@AM8PR04MB7730.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4502;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: fwZjy3mR7XVObJfC9tBlY9YFvGHHBjHojWEk/qV3tv2f9WvsBrKjQQ3UfhE/S38miEFDl1azH13dnPC8fPkg0pgklwM8+OFVoBIILArOODcO9QsflmUtTDJZcCo2nu7LeMlvUwVoUBzvJsmsUiCD2W5h7RsZKruzFob2bZkKHE26IHEbyyWEOg7MV7O+abCcMY82IX7kUc/1bSKatgHj9NtNgohmifNsUQR2lJ7kH4dJtK6wW31w6lFWMESvZqgs7KRl77Pogbvi5rGM53us8doa/AIgcsGqRnfo1W+elrLBGzpUK1rpY4IICBF7XXSdMBv8pnbjn3T1Xt+rYEdSl3xA8LwPQLnWhwdZT/2MYAx4HlJoTqvHOmYuCvugf/o2kd13EDNEtodMAyFJHG80GsxwPpQfnGIrnVUwxD8qbjBimfG9EumL5mLRVM/oNtOpFJbA91Xv46NZFIeN3r6Tvj3cvOfanQjG02bV8K/PFfevPlHSSG1bcszb09EuaUbzs2mc4PJwIQTT0TYK0ko2GlOAuIY2HwlI1AseGa6xabWLRne3oZgaU33rPu1WXprUbsIGULKxlFH+WuArPtjHZuvVbqpEhEWu0nI3QgSpNugGlREFzgta7F/u32YuqdOjJqv85NZR0rMX5CF02Yrwe81QAij/h3uTci9IDwbHan0=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(346002)(136003)(39860400002)(376002)(396003)(44832011)(6486002)(26005)(7416002)(16526019)(110136005)(956004)(2616005)(186003)(55236004)(83380400001)(1076003)(6666004)(4326008)(316002)(1006002)(54906003)(8936002)(5660300002)(921005)(2906002)(52116002)(478600001)(86362001)(8676002)(6512007)(966005)(66946007)(6506007)(66476007)(66556008)(110426009);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?bz2omJtklhn6s4o+MH4Ck2n4mxPK5iJ/gQsauzwMhgjbwpAKDAgZE/gkdJju?=
- =?us-ascii?Q?AErCwSzj+QRVwapVsURr1jkh+qW0Gkqswzgk0Oe3vI5q5dlvHRtvWVn85mun?=
- =?us-ascii?Q?Z272HdaC9GrHh/HPwRrQ2KojAeNRccvz4397oCfYpY1Bvba+QYL/1aW3eMg7?=
- =?us-ascii?Q?NojUtp4IxDAvgRTgICCeXovY9yCxBqBkzV94FqiWxrhWNLy4JLl1gZLbh/VP?=
- =?us-ascii?Q?3lDF198JUpFzsM/uOx/XLmIKv52OIyz/eJjrAS36YBAlllW6+OZq3wYuBQ50?=
- =?us-ascii?Q?Np8qkivQNJIJe7rc7EFFlKsyMZ+LbgQ4AR/sL1nmMJDYijlfY+kDt6dmcwBo?=
- =?us-ascii?Q?3P1wlL6cu781Pm0mWUSqZ/2lEyi85U2XDwsn5f1PI62Ek9pU8ot1LjS3bcdH?=
- =?us-ascii?Q?EFPvjFImAoj5m0G1lf27YWs1hxH1E4P2NddeKfuvsQBKZswbkU7pia2D0n9Z?=
- =?us-ascii?Q?MKcombzv1mJ4fn1NsBEAcMudcEwxUMCQxnc+fP20Yh+Pu7ipJAnbADYJT1uV?=
- =?us-ascii?Q?qdBQwS/HjNJo8d+Ejg2mqW9WICSvMMCK9lQ+kjbaHkPi25Sz+XxkrQODvh2s?=
- =?us-ascii?Q?XcXdzvvVkgmf7VTh5TiD02rHLZwyCXrxm27ZbmRS8hJhQWlo7OA0uFjMRdFU?=
- =?us-ascii?Q?s4XIOpUKvTIeiakzhr8CN5Kd/bwUCyRpBncA+/mrQT32Uf3lzeQVqQqCSh1U?=
- =?us-ascii?Q?YmOPjNnTXGuCk/4oagkmyGnlxBYPQJ2adhb7/1nPP+7gA7xqHEAVwxYKnsZT?=
- =?us-ascii?Q?b0VXfwP/Zo73zePoQlPbKL9p/mzwtuKVt9dVfPFbWqboTA4UNuz6ptY5QP8W?=
- =?us-ascii?Q?iiu60Y+T7CdaJkAoW4QcF4DqR736FWYgyQd+kQg8QyIZbwVnGe+/eqdh1O2n?=
- =?us-ascii?Q?cRJjhJ1lqETkOkdsfFeZbnmYhHyaUERckLNrI/U6w5MPDjiZwQLETv1tLLlt?=
- =?us-ascii?Q?jaTCBxf8+ub88JmrgmzvapEgLavefn7rEXmUlsMVVBczb3hwyvP4VK1mTBtO?=
- =?us-ascii?Q?oIqDI9SXIk1WmvPaiYdplEOEH+r5+jplzoRZBbkKgio6yB3vor3HvNs8vwTI?=
- =?us-ascii?Q?25SX74EV9JRqbcpO5aO8iFias784SRRQR552Zx2Zvqjwg5DIFJXCh8oP/dNv?=
- =?us-ascii?Q?VbSKjnQpgj1reyWyqGOJgTuLSQ+cZF3qUIO15LA5FNhc+UO6hmETeseI0TV+?=
- =?us-ascii?Q?EPmc2GGraX6bCDzUsM74dVYZOB06BFTH3lj6n8MmnioSNcLBxr9qCu5hz768?=
- =?us-ascii?Q?fiOkDNKD/0pM++/TJzQ0AUAQcLuHJiCh0DCxdt2XtXcSiv5ysrkBJ2VDxAik?=
- =?us-ascii?Q?sUzjMMiMWIFyYZcW7AjibX/BAZfiTP+M1sMEL5lMG9WRCg=3D=3D?=
+X-Microsoft-Antispam-Message-Info: 3zL425YfwdWp5JYFcNVRsSmc1LIqeLiI1BoSsN94pOsXPBOrWT3hr/s45CAIYzbgrEmm0bPlI49p29mU9X27R5lWFe1nY8qoXp0ej1rMxZ6XHWlOMXpE6pXXBOIAU5kcOFptF3+yk26NzqM6cHR61d9fKGZfZ8EiwJjCQD4m4Ej8KRzC612Gorb3UK4NWbP2MWTN++8bbggEU/NGMCP6nQQvSfsj2WxynsQh2z5JJdNR4EMFvmncjio3xU6BpmeMwUgsxmBtb0PZ9gLnihSih+OScn74QpHfDaNgHmux9Rrp1nvVzI1TDaghaVXd2FGs8JfRg5gAKpFx1lGVkjtKmi8y7pX4Bdxcp4+yxJ7Q1NmVVqOZHwhK5St1v9QhnRRvpBTBGZBFjcD20qUSUDld0TCPvaozCmG2t+/GxqkwMhvDNtmSblDDJN8/UeO7gSTOcpXI7EUDDTf3jBpVIQhgv0m0rc3Mrh1fr2EtaRP+JIVV3VeWd8XctoL+MB5LR/qXlH0k/sMvhX2Q9h6kJUPFgT+R230F0KcSHq9yzGsynjbV2D2CwxwyXw62YLqPpNVoW3OG2ncIPD1LI/41YWT9mw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB5636.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(376002)(346002)(366004)(39860400002)(136003)(26005)(8936002)(52116002)(16526019)(921005)(478600001)(1076003)(6486002)(8676002)(55236004)(83380400001)(5660300002)(186003)(44832011)(110136005)(6512007)(956004)(54906003)(316002)(66946007)(2906002)(2616005)(1006002)(66476007)(86362001)(7416002)(6506007)(6666004)(4326008)(66556008)(110426009);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?v7HqfRrisP7kr2/6ZLUYsKTyuZEBAKkXqd+s76a33s/j0+Bki0MoG3wNHNMr?=
+ =?us-ascii?Q?XIPJgyZGim1YWV2w6x4NiB0l2afOk/88H4A1vhykdT9eauJnojgIwtek56y9?=
+ =?us-ascii?Q?J6oy1EL3F8Q5fJllIjn+9Wni8Uv0e4u59n64x7cr5RNvoNMkuwafsDeekn18?=
+ =?us-ascii?Q?ZRCzEHe87CbPZVosZb7PjFQ9y4Shh+E3O8OD8mJJfW7F/HBjPHeUeza8F1X6?=
+ =?us-ascii?Q?y2vsKI3YubcOHn4vF7IhEoqA/0sgVTkV/R6aU7ylcrIi3/dJjmmcqICPZz7J?=
+ =?us-ascii?Q?VsMJsrMQmiZxbxbM+yBPPIEjUBY9PM9uA0YYkMY/XRKt55OKgsPstNEX3DUE?=
+ =?us-ascii?Q?U+E6/0WKmWBenQsleW9VhAT4n/MkWJA/UUEyWK6eQiMcJ1sv1u2LMl8rH6/K?=
+ =?us-ascii?Q?rgvWLs7G5Z+fAeaWlvxxLdA/N59a21lTPUOBJpenpTS44u7NBu1Mhga1u1Ru?=
+ =?us-ascii?Q?fzT2PNoweaTnHSHfDMj3PDCxVw2HID42UlikY6+hLGZCITc3LP7GW34y4ydR?=
+ =?us-ascii?Q?IFx8FRgKX3kqljtko0cSsxoRICKsYt9YGCH8ETxQWip6e7tD1Z+VeGzU2mN2?=
+ =?us-ascii?Q?01f8P12obdJQPjWbfttxXtcn9Pil5Xa7aW+Plz0HMV1fwIyQokiP2S7gXMgE?=
+ =?us-ascii?Q?RBi8CulClofT1ZcA4loBNId/MVdBzntfJiERhVcHiwg1pmZI5RDNirSuLLTH?=
+ =?us-ascii?Q?Fm9BJ9ySHdi7XGNJj3n+2Kp/NtD+TsmdVWB/wrkHCF+BOl/8wyTD5dn55mtG?=
+ =?us-ascii?Q?iQ4C7Sdpi0S3e+QahWmeTp54tvt85KvuQBQqC6naxJwvJ/9iQU0sMIUj6cR8?=
+ =?us-ascii?Q?EzG1SeINAGzQ5Hh8AvqLPY3DC5Vfc2h9tH1R64wj+uqByghAU+aOLZn14C5u?=
+ =?us-ascii?Q?igXoUiIfBeSvwRqSm4FToG3WxZxaLDV1fuAU1A/7l4zCbgmdSQBrHd4/twfm?=
+ =?us-ascii?Q?vuAy6WJUrPZhvaAVhPiW1UwXH2+IfoOFIMT9wElI3qelMJLPaQlaOvo8kJiT?=
+ =?us-ascii?Q?4aTFfrLkZCMlD3wNw6U8UkRxK8av0YBon6FhqoQG2r1NtDuf7eqLKcAsd05f?=
+ =?us-ascii?Q?RpkhYFO1X2wEwwArXVGWiNJZbVsQUnCl6iktr6xldbRM69EFQTw6sUE1d4vn?=
+ =?us-ascii?Q?ptH3Ci+qhhB8hbjhMjlQkOfLOLFPQzPdlnTaIGhWkj5X4mhoQI2VMLN/pYmN?=
+ =?us-ascii?Q?ahqzq06a+tuDskx38Rwal3CbDeMol6ucQKU42krJLL1gf1FdMJvoLtj5FRht?=
+ =?us-ascii?Q?uWzaHp2JGRAXc55t6/ioWLyQfkf78ouJWU75DP1GcvaqxsylTUQ51XjKE52H?=
+ =?us-ascii?Q?XuTVhjuzuOvkORoV9p37GkvG?=
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9b0dfb8d-6112-4766-64ba-08d8d3cde402
+X-MS-Exchange-CrossTenant-Network-Message-Id: 540093a1-8761-4595-930d-08d8d3cdf934
 X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB5636.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Feb 2021 05:27:32.4531
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Feb 2021 05:28:07.9971
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: MW7WRwujPJKzoML86uDEFBrkQ9mNMRrYdOXYO33SxnitjkdwM+V57zzBn6yz9tuASLuhxCxcv40q4IUYNBvDJQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0402MB3442
+X-MS-Exchange-CrossTenant-UserPrincipalName: suJoJ2OZafhImMYwlB8APyPoe73gqMljDmFwynAdyeimiJJEk7+siXovy1mYdvesfMKViwouIPyDHYnmth+/Eg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM8PR04MB7730
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Introduce ACPI mechanism to get PHYs registered on a MDIO bus and
-provide them to be connected to MAC.
-
-Describe properties "phy-handle" and "phy-mode".
+With the introduction of fwnode_get_phy_id(), refactor of_get_phy_id()
+to use fwnode equivalent.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 ---
 
-Changes in v6:
-- Minor cleanup
-
-Changes in v5:
-- More cleanup
-
-Changes in v4:
-- More cleanup
-
+Changes in v6: None
+Changes in v5: None
+Changes in v4: None
 Changes in v3: None
-Changes in v2:
-- Updated with more description in document
+Changes in v2: None
 
- Documentation/firmware-guide/acpi/dsd/phy.rst | 133 ++++++++++++++++++
- 1 file changed, 133 insertions(+)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
+ drivers/net/mdio/of_mdio.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
-new file mode 100644
-index 000000000000..7d01ae8b3cc6
---- /dev/null
-+++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
-@@ -0,0 +1,133 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=========================
-+MDIO bus and PHYs in ACPI
-+=========================
-+
-+The PHYs on an MDIO bus [1] are probed and registered using
-+fwnode_mdiobus_register_phy().
-+
-+Later, for connecting these PHYs to their respective MACs, the PHYs registered
-+on the MDIO bus have to be referenced.
-+
-+This document introduces two _DSD properties that are to be used
-+for connecting PHYs on the MDIO bus [3] to the MAC layer.
-+
-+These properties are defined in accordance with the "Device
-+Properties UUID For _DSD" [2] document and the
-+daffd814-6eba-4d8c-8a91-bc9bbf4aa301 UUID must be used in the Device
-+Data Descriptors containing them.
-+
-+phy-handle
-+----------
-+For each MAC node, a device property "phy-handle" is used to reference
-+the PHY that is registered on an MDIO bus. This is mandatory for
-+network interfaces that have PHYs connected to MAC via MDIO bus.
-+
-+During the MDIO bus driver initialization, PHYs on this bus are probed
-+using the _ADR object as shown below and are registered on the MDIO bus.
-+
-+::
-+      Scope(\_SB.MDI0)
-+      {
-+        Device(PHY1) {
-+          Name (_ADR, 0x1)
-+        } // end of PHY1
-+
-+        Device(PHY2) {
-+          Name (_ADR, 0x2)
-+        } // end of PHY2
-+      }
-+
-+Later, during the MAC driver initialization, the registered PHY devices
-+have to be retrieved from the MDIO bus. For this, the MAC driver needs
-+references to the previously registered PHYs which are provided
-+as device object references (e.g. \_SB.MDI0.PHY1).
-+
-+phy-mode
-+--------
-+The "phy-mode" _DSD property is used to describe the connection to
-+the PHY. The valid values for "phy-mode" are defined in [4].
-+
-+The following ASL example illustrates the usage of these properties.
-+
-+DSDT entry for MDIO node
-+------------------------
-+
-+The MDIO bus has an SoC component (MDIO controller) and a platform
-+component (PHYs on the MDIO bus).
-+
-+a) Silicon Component
-+This node describes the MDIO controller, MDI0
-+---------------------------------------------
-+::
-+	Scope(_SB)
-+	{
-+	  Device(MDI0) {
-+	    Name(_HID, "NXP0006")
-+	    Name(_CCA, 1)
-+	    Name(_UID, 0)
-+	    Name(_CRS, ResourceTemplate() {
-+	      Memory32Fixed(ReadWrite, MDI0_BASE, MDI_LEN)
-+	      Interrupt(ResourceConsumer, Level, ActiveHigh, Shared)
-+	       {
-+		 MDI0_IT
-+	       }
-+	    }) // end of _CRS for MDI0
-+	  } // end of MDI0
-+	}
-+
-+b) Platform Component
-+The PHY1 and PHY2 nodes represent the PHYs connected to MDIO bus MDI0
-+---------------------------------------------------------------------
-+::
-+	Scope(\_SB.MDI0)
-+	{
-+	  Device(PHY1) {
-+	    Name (_ADR, 0x1)
-+	  } // end of PHY1
-+
-+	  Device(PHY2) {
-+	    Name (_ADR, 0x2)
-+	  } // end of PHY2
-+	}
-+
-+DSDT entries representing MAC nodes
-+-----------------------------------
-+
-+Below are the MAC nodes where PHY nodes are referenced.
-+phy-mode and phy-handle are used as explained earlier.
-+------------------------------------------------------
-+::
-+	Scope(\_SB.MCE0.PR17)
-+	{
-+	  Name (_DSD, Package () {
-+	     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		 Package () {
-+		     Package (2) {"phy-mode", "rgmii-id"},
-+		     Package (2) {"phy-handle", \_SB.MDI0.PHY1}
-+	      }
-+	   })
-+	}
-+
-+	Scope(\_SB.MCE0.PR18)
-+	{
-+	  Name (_DSD, Package () {
-+	    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package (2) {"phy-mode", "rgmii-id"},
-+		    Package (2) {"phy-handle", \_SB.MDI0.PHY2}}
-+	    }
-+	  })
-+	}
-+
-+References
-+==========
-+
-+[1] Documentation/networking/phy.rst
-+
-+[2] https://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-+
-+[3] Documentation/firmware-guide/acpi/DSD-properties-rules.rst
-+
-+[4] Documentation/devicetree/bindings/net/ethernet-controller.yaml
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index b5e0b5b22f1a..612a37970f14 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -29,17 +29,7 @@ MODULE_LICENSE("GPL");
+  * ethernet-phy-idAAAA.BBBB */
+ static int of_get_phy_id(struct device_node *device, u32 *phy_id)
+ {
+-	struct property *prop;
+-	const char *cp;
+-	unsigned int upper, lower;
+-
+-	of_property_for_each_string(device, "compatible", prop, cp) {
+-		if (sscanf(cp, "ethernet-phy-id%4x.%4x", &upper, &lower) == 2) {
+-			*phy_id = ((upper & 0xFFFF) << 16) | (lower & 0xFFFF);
+-			return 0;
+-		}
+-	}
+-	return -EINVAL;
++	return fwnode_get_phy_id(of_fwnode_handle(device), phy_id);
+ }
+ 
+ static struct mii_timestamper *of_find_mii_timestamper(struct device_node *node)
 -- 
 2.17.1
 
