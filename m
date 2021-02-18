@@ -2,67 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC45CC4332D
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 16:48:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F4DDC433E6
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 19:39:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DF5564EB3
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 16:48:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD2ED64EB3
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 19:39:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233401AbhBRQr7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Feb 2021 11:47:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54382 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231178AbhBRPJY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2021 10:09:24 -0500
-Received: from mail-pg1-x52c.google.com (mail-pg1-x52c.google.com [IPv6:2607:f8b0:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 756EBC06178C;
-        Thu, 18 Feb 2021 07:08:22 -0800 (PST)
-Received: by mail-pg1-x52c.google.com with SMTP id z68so1336620pgz.0;
-        Thu, 18 Feb 2021 07:08:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=egGZTevWS9XGPb3i0ABiHZIAsAw10Vof+gwW4ybtKxc=;
-        b=iyWwNGi8FIEgpgnK1hUDSXo6IG2oL2TsczdBEdFtsBa7jDTG1BlBAK2fVaggR4MaX1
-         JniomodCnubVGqED+0E7iEvBfSo7LPr9JgZidAJRdI7kOUJTZCojyYSU6kFBK1XZDugx
-         xpAflkmZYkAaTXC9CtgxIUza54Cbl0YbmMAdAsHQ2haIqEg4U4rXjFZXuH8VaXJ1WLpS
-         xWVitG1whZ4zqZ/ZOCzN9UoWp8B64a9BKPcREs65kgL6zwvf/Y4avz6c8cXTHkwBRm8u
-         EWWJxq8URmFkDr6zu6C+JbsHW2aUJmJ5jHnvb+kxWf20wqoBzbE1AtkG9kH6Kb0puIdv
-         PSPQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=egGZTevWS9XGPb3i0ABiHZIAsAw10Vof+gwW4ybtKxc=;
-        b=OzpauNDZFrjy1BboBg5uwZkZOst3s5dIUjVuJf++8yi9tgJPSpT3tMQxa4IDfOw8Kc
-         Y5XtnaI9t8RC1yL9QUsDezR0qrYIXbt0210fikQrc7LqqwXgCcZRgKaCLUxGa2JEbU/l
-         7DPvH8NGdallbebFd/qJBpEbrVzvsoeOlbGlrquf+ZiSUcL1szmsFBvArMA4cxqwZ+71
-         HdL5zDcvX0Sx71dn6Zgvvx36y5uKFKHdTbd+8XPsCYHc7C5IxlMn+KEPOR4AdqEUInae
-         Sj04+VJQScu4MONpi45HKEE6kCPFSfbDNsjSlEpJ7jEwZaDO9ZAy94xPMZwbBGEbYCn6
-         DJtg==
-X-Gm-Message-State: AOAM531eQRtp6LGonQw7i7rMaL4hUewbHbysHc8lfJ0g9x2XvGYLWYAS
-        gW1ILa9wsdOKQ1LNcnd98g/afnP9qb1RqekbPRw=
-X-Google-Smtp-Source: ABdhPJwzKmQIscP5gMyNk11NE+OeO6zQZ+P+DxHQqm4nhVMVX9j973HwWzfReya7dq9I/BjChToqhmmtsF+tOC9vqmI=
-X-Received: by 2002:a65:4c08:: with SMTP id u8mr4291801pgq.203.1613660901928;
- Thu, 18 Feb 2021 07:08:21 -0800 (PST)
-MIME-Version: 1.0
-References: <20210218052654.28995-1-calvin.johnson@oss.nxp.com> <20210218052654.28995-11-calvin.johnson@oss.nxp.com>
-In-Reply-To: <20210218052654.28995-11-calvin.johnson@oss.nxp.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 18 Feb 2021 17:08:05 +0200
-Message-ID: <CAHp75VdpvTN2R-FTb81GnwvAr_eoprEhsOMx+akukaDNBrptsQ@mail.gmail.com>
-Subject: Re: [net-next PATCH v6 10/15] net: mdio: Add ACPI support code for mdio
+        id S232578AbhBRTjv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Feb 2021 14:39:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52320 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232474AbhBRTGD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 Feb 2021 14:06:03 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 523DB64E79;
+        Thu, 18 Feb 2021 19:05:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1613675122;
+        bh=R4gsCZgMwDgngZ9qyYmkJ+oFMXRTckcvHATUvxlt/JE=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Whm2zE7EeuTvM69X4g8Gc7a/abB6P97YSfEeTZg9ybvSaTRqWfXdJbOZ6v/VY5Yk6
+         4WUVOuCtYUaznHCoL/LQCUEYFwhR0hOZPwqpWha5v573IpnZzSx3CUsSRfz2+XIaMq
+         BdkU3WQO/TIsAgvDRLAZaYPwUQn5Or0Ur/lR6lB8lnBS8wruUmuW08HpiYOpbtU0My
+         GvyZxikx/CPFHKsyfereJrXRfNjJYZvwe5OoxNn/kSUgvTfM2U4rxQUWiBlKdeqhsJ
+         AF1Ccg35n2kBgKX2wmugoQvkAMAgqjRG0nS47dggKjnUjz6dK8bDPGZ1VAOsTmGSU7
+         3GGicHzc/fmVw==
+Date:   Thu, 18 Feb 2021 11:05:20 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
 To:     Calvin Johnson <calvin.johnson@oss.nxp.com>
 Cc:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
         Jeremy Linton <jeremy.linton@arm.com>,
         Andrew Lunn <andrew@lunn.ch>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Russell King - ARM Linux admin <linux@armlinux.org.uk>,
         Cristi Sovaiala <cristian.sovaiala@nxp.com>,
@@ -74,40 +49,36 @@ Cc:     Grant Likely <grant.likely@arm.com>,
         Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
         Jon <jon@solid-run.com>, Saravana Kannan <saravanak@google.com>,
         Randy Dunlap <rdunlap@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
         Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         Diana Madalina Craciun <diana.craciun@nxp.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        "linux.cj" <linux.cj@gmail.com>,
+        linux-arm-kernel@lists.infradead.org, linux.cj@gmail.com,
         "David S. Miller" <davem@davemloft.net>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Heiner Kallweit <hkallweit1@gmail.com>
+Subject: Re: [net-next PATCH v6 02/15] net: phy: Introduce
+ fwnode_mdio_find_device()
+Message-ID: <20210218110520.727d24b7@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20210218052654.28995-3-calvin.johnson@oss.nxp.com>
+References: <20210218052654.28995-1-calvin.johnson@oss.nxp.com>
+        <20210218052654.28995-3-calvin.johnson@oss.nxp.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Feb 18, 2021 at 7:28 AM Calvin Johnson
-<calvin.johnson@oss.nxp.com> wrote:
->
-> Define acpi_mdiobus_register() to Register mii_bus and create PHYs for
-> each ACPI child node.
+On Thu, 18 Feb 2021 10:56:41 +0530 Calvin Johnson wrote:
+> +/**
+> + * fwnode_mdio_find_device - Given a fwnode, find the mdio_device
+> + * @np: pointer to the mdio_device's fwnode
+> + *
+> + * If successful, returns a pointer to the mdio_device with the embedded
+> + * struct device refcount incremented by one, or NULL on failure.
+> + * The caller should call put_device() on the mdio_device after its use
+> + */
+> +struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
 
-> +#include <linux/acpi.h>
-> +#include <linux/acpi_mdio.h>
-
-Perhaps it's better to provide the headers that this file is direct
-user of, i.e.
- bits.h
- dev_printk.h
- module.h
- types.h
-
-The rest seems fine because they are guaranteed to be included by
-acpi.h (IIUC about fwnode API and acpi_mdio includes MDIO PHY APIs).
-
--- 
-With Best Regards,
-Andy Shevchenko
+drivers/net/phy/phy_device.c:2834: warning: Function parameter or member 'fwnode' not described in 'fwnode_mdio_find_device'
+drivers/net/phy/phy_device.c:2834: warning: Excess function parameter 'np' description in 'fwnode_mdio_find_device'
