@@ -2,114 +2,86 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF387C433E6
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 23:50:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C09C433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Feb 2021 15:09:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F5F764ECA
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Feb 2021 23:50:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B33BD64EB2
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Feb 2021 15:09:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229468AbhBRXuc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Feb 2021 18:50:32 -0500
-Received: from mga17.intel.com ([192.55.52.151]:26836 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229656AbhBRXua (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Feb 2021 18:50:30 -0500
-IronPort-SDR: VN+xaZBqUv6dXGpZQVZG17LIK1ENouyOVocFntgmUKZVPpBFCH93UD7wQCt+He6+LOsiBsiq5N
- Mts1Z9lFXhVw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9899"; a="163462498"
-X-IronPort-AV: E=Sophos;i="5.81,187,1610438400"; 
-   d="scan'208";a="163462498"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2021 15:49:50 -0800
-IronPort-SDR: nFkoHG3HO5RG8A8XSl4qOqMdpNmI4Vpaev6UL1rdXhIvU9TDgsmfi+uhClQQ1DFka5DLykvkTv
- Jqh+7qN7uoMg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,187,1610438400"; 
-   d="scan'208";a="367723367"
-Received: from sibelius.jf.intel.com ([10.54.75.166])
-  by fmsmga007.fm.intel.com with ESMTP; 18 Feb 2021 15:49:49 -0800
-From:   Erik Kaneda <erik.kaneda@intel.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        id S229527AbhBSPJZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 19 Feb 2021 10:09:25 -0500
+Received: from mail-oi1-f169.google.com ([209.85.167.169]:34121 "EHLO
+        mail-oi1-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229498AbhBSPJY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2021 10:09:24 -0500
+Received: by mail-oi1-f169.google.com with SMTP id j5so6147978oie.1
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Feb 2021 07:09:05 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=XU9GRZDjG43k30K8bcy2ASfNWSd3qrAVk7Cix6nglRw=;
+        b=AJhApN6K3zhzdl2sPyg5ufuds972qCK7yTNoM61vjgI1Yom6wFGiV1B79GMCYI66Se
+         RQgC7lVBgzD4iqZclcl5Y7n1Ite/770zqumQ8zQnt5GAA7D4uEY+1WXqj0ONRxI9fCL1
+         nNtgPPKCi5EZyPUFuuXAddqaw71yNnTzKY6czarGotYFeaVktrC3XkyzpSUehKhg6QYE
+         jtdkzXhhnhxJQ5qfygWh1muz2jp2MbzC52LKVeK3U+E5p3iAVgcvle3mpwPtnn1incbu
+         AToZCfmihVhXdK7YCH2t3tE7JwBZaeiS37ZSBePT7cU8ePxVS1/bFrLGNizEc+46hPis
+         BgLA==
+X-Gm-Message-State: AOAM530sq/FEDFUgnWfSUOzMAyUBM1dlzCGVkMZEzyP1oNI8an/GvqLE
+        DNaD6eLdqkxbO8iZbfjMQu93ZL3qNbWi+S9kuVZOXBGL
+X-Google-Smtp-Source: ABdhPJyB++IRJ9cUgYPjpTyZ/+23n2oyywAe4awb/klfDJxUNgSBNaKApEFTDqZzQ7hLoKie2bhOCBvdXWIYlDwjeTs=
+X-Received: by 2002:aca:5dc4:: with SMTP id r187mr1101198oib.69.1613747319526;
+ Fri, 19 Feb 2021 07:08:39 -0800 (PST)
+MIME-Version: 1.0
+References: <20210218231708.1143640-1-erik.kaneda@intel.com>
+In-Reply-To: <20210218231708.1143640-1-erik.kaneda@intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 19 Feb 2021 16:08:26 +0100
+Message-ID: <CAJZ5v0iepscLNOisfwKz-KMVJ5afOQiMGHbdyKWvx-k5CwupzQ@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Hans's generic serial bus fix
+To:     Erik Kaneda <erik.kaneda@intel.com>
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Hans de Goede <hdegoede@redhat.com>
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 2/2] ACPICA: Remove some code duplication from acpi_ev_address_space_dispatch
-Date:   Thu, 18 Feb 2021 15:17:08 -0800
-Message-Id: <20210218231708.1143640-3-erik.kaneda@intel.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210218231708.1143640-1-erik.kaneda@intel.com>
-References: <20210218231708.1143640-1-erik.kaneda@intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+On Fri, Feb 19, 2021 at 12:49 AM Erik Kaneda <erik.kaneda@intel.com> wrote:
+>
+> Hi Hans and Rafael,
+>
+> Sorry about the late responses. I've accidentally dropped the ball on
+> the comunication of this pull request. Bob has merged it now and here
+> are the linux-ized versions of them.
+>
+> Rafael, if you haven't merged the patches, please consider taking
+> these as it will keep things easier to maintain on my end..
+>
+> Thanks and apologies,
+> Erik Kaneda
+>
+>
+> Hans de Goede (2):
+>   ACPICA: Fix race in generic_serial_bus (I2C) and GPIO op_region
+>     parameter handling
+>   ACPICA: Remove some code duplication from
+>     acpi_ev_address_space_dispatch
+>
+>  drivers/acpi/acpica/acobject.h  |  1 +
+>  drivers/acpi/acpica/evhandler.c |  7 ++++
+>  drivers/acpi/acpica/evregion.c  | 69 ++++++++++++++++++++-------------
+>  drivers/acpi/acpica/evxfregn.c  |  2 +
+>  4 files changed, 53 insertions(+), 26 deletions(-)
+>
+> --
 
-ACPICA commit 383f50ff8cb7424ca16a6c0234f103b41d4a783e
+Both applied, thanks!
 
-The handling of the space_id == ACPI_ADR_SPACE_GSBUS and
-space_id == ACPI_ADR_SPACE_GPIO cases is almost identical,
-fold the 2 cases into 1 to remove some code duplication.
-
-Link: https://github.com/acpica/acpica/commit/383f50ff
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
----
- drivers/acpi/acpica/evregion.c | 23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index 2a3c13e97555..4ef43c8ef5e7 100644
---- a/drivers/acpi/acpica/evregion.c
-+++ b/drivers/acpi/acpica/evregion.c
-@@ -244,7 +244,8 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
- 	 *      the previous Connection)
- 	 *   2) bit_width is the actual bit length of the field (number of pins)
- 	 */
--	if ((region_obj->region.space_id == ACPI_ADR_SPACE_GSBUS) &&
-+	if ((region_obj->region.space_id == ACPI_ADR_SPACE_GSBUS ||
-+	     region_obj->region.space_id == ACPI_ADR_SPACE_GPIO) &&
- 	    context && field_obj) {
- 
- 		status =
-@@ -260,25 +261,11 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
- 		context->connection = field_obj->field.resource_buffer;
- 		context->length = field_obj->field.resource_length;
- 		context->access_length = field_obj->field.access_length;
--	}
--	if ((region_obj->region.space_id == ACPI_ADR_SPACE_GPIO) &&
--	    context && field_obj) {
- 
--		status =
--		    acpi_os_acquire_mutex(context_mutex, ACPI_WAIT_FOREVER);
--		if (ACPI_FAILURE(status)) {
--			goto re_enter_interpreter;
-+		if (region_obj->region.space_id == ACPI_ADR_SPACE_GPIO) {
-+			address = field_obj->field.pin_number_index;
-+			bit_width = field_obj->field.bit_length;
- 		}
--
--		context_locked = TRUE;
--
--		/* Get the Connection (resource_template) buffer */
--
--		context->connection = field_obj->field.resource_buffer;
--		context->length = field_obj->field.resource_length;
--		context->access_length = field_obj->field.access_length;
--		address = field_obj->field.pin_number_index;
--		bit_width = field_obj->field.bit_length;
- 	}
- 
- 	/* Call the handler */
--- 
-2.29.2
-
+Note that I will send a pull request containing them only after the
+previous ACPI pull request has been processed, though.
