@@ -2,98 +2,120 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F7A0C433E0
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 19:33:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C8B6C4332D
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 20:07:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2635064E12
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 19:33:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3E6A64E6B
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 20:07:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233988AbhBWTdV convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Feb 2021 14:33:21 -0500
-Received: from mga09.intel.com ([134.134.136.24]:39422 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233954AbhBWTdU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Feb 2021 14:33:20 -0500
-IronPort-SDR: t5mlXov26QGofHhbi5dW6U1a9S2Vt04xZTyDRggvFabOCJQROJIKrj39oQgZwOv/7gcPyuQJq1
- vzVFfWgXHdXQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9904"; a="185039188"
-X-IronPort-AV: E=Sophos;i="5.81,200,1610438400"; 
-   d="scan'208";a="185039188"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2021 11:32:38 -0800
-IronPort-SDR: jiCJmiMzgVQD1IYy3BRdRasT6qcgZeE0faiDmCw/LtvasEeAVmOqewZgXn4jKyvouLxF3LUQAB
- yJwGBvq1RQoA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,200,1610438400"; 
-   d="scan'208";a="431065712"
-Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
-  by FMSMGA003.fm.intel.com with ESMTP; 23 Feb 2021 11:32:37 -0800
-Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Tue, 23 Feb 2021 11:32:37 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Tue, 23 Feb 2021 11:32:37 -0800
-Received: from fmsmsx610.amr.corp.intel.com ([10.18.126.90]) by
- fmsmsx610.amr.corp.intel.com ([10.18.126.90]) with mapi id 15.01.2106.002;
- Tue, 23 Feb 2021 11:32:37 -0800
-From:   "Luck, Tony" <tony.luck@intel.com>
-To:     Aili Yao <yaoaili@kingsoft.com>
-CC:     Borislav Petkov <bp@alien8.de>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "james.morse@arm.com" <james.morse@arm.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-        "yangfeng1@kingsoft.com" <yangfeng1@kingsoft.com>
-Subject: RE: [PATCH v2] Dump cper error table in mce_panic
-Thread-Topic: [PATCH v2] Dump cper error table in mce_panic
-Thread-Index: AQHW9W1UcvZJLq301kWjYofz6/0Q7Ko9Rv/QgCjd3ICAACSCsA==
-Date:   Tue, 23 Feb 2021 19:32:37 +0000
-Message-ID: <434eba7a568a4b9f8eb7ee11a5c8b04f@intel.com>
-References: <20201104065057.40442-1-yaoaili126@163.com>
-        <20201117175804.39bbbdc3.yaoaili@kingsoft.com>
-        <20201118124538.GI7472@zn.tnic>
-        <20201119134057.37ca2c19.yaoaili@kingsoft.com>
-        <20201119174508.GE3769@zn.tnic>
-        <20201120172235.620eb826.yaoaili@kingsoft.com>  <20201120102422.GA712@zn.tnic>
-        <20210128200128.6f022993.yaoaili@kingsoft.com>
-        <e9645a3ff93e46d4aabdf7dd45bfc4d7@intel.com>
- <20210223171809.7df62b08@alex-virtual-machine>
-In-Reply-To: <20210223171809.7df62b08@alex-virtual-machine>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.5.1.3
-x-originating-ip: [10.1.200.100]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S234136AbhBWUHJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Feb 2021 15:07:09 -0500
+Received: from mail-ot1-f47.google.com ([209.85.210.47]:41691 "EHLO
+        mail-ot1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233143AbhBWUGU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Feb 2021 15:06:20 -0500
+Received: by mail-ot1-f47.google.com with SMTP id s107so16889387otb.8;
+        Tue, 23 Feb 2021 12:06:02 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=GR50Cg3/a4uZ0hQeKt4wjkzEAKKZSTaWGiA/JDHOJss=;
+        b=ID1+YKT4Om7sWVeIoZ6CVAYnqq7TvX6HAfT+F7s40To6soMUnKfolptauC7DFUjRCK
+         U+yks46F4l3LqUdhQM9rBB6dXB33k1DlE/RNytxzTLe210GwY6q5Mf/BvWYB6vUZg3DQ
+         csl+R92U8kBpLwu63Ly4G5uKSeeTNJkvXZ083SwjF4vmWUciiQKjP+ooUXvLOYbG3rht
+         FNemJoDftR4Guabi5btLuC8dsygbo1DEGbR/B/BwUxQHGRf2JEw6xjhs3DrZpd11cmH+
+         XjxJBDrZ3jdW/rZiD1Kg7bQMzsbnLxDdp6ZMMyXV8Fni0iuX0IkoyTXWOXD3+cjsKrsa
+         olgg==
+X-Gm-Message-State: AOAM532oj/YUiSEqtyTCEbJVZbvZf6Iy8AboBNOtXGcePyhzQmiLfMLQ
+        ZrgbTHg4hnO/KbD5DOy5DGTovJ2iFDpQM7cAD2TLKxIVgPE=
+X-Google-Smtp-Source: ABdhPJxhb2pQ0hxYuUlulW381EYLw7BjdlvWk7Lj2lFId3lfCdvCRQFbXMbIvNIwwx2NDAFisISKfJqwZpMdo1YcZjw=
+X-Received: by 2002:a05:6830:1e03:: with SMTP id s3mr1063134otr.260.1614110737318;
+ Tue, 23 Feb 2021 12:05:37 -0800 (PST)
 MIME-Version: 1.0
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 23 Feb 2021 21:05:26 +0100
+Message-ID: <CAJZ5v0gOvJ4OXK2Sqt6ncm-G0BVeC1Aiuettd02E=7wq73g=oA@mail.gmail.com>
+Subject: [GIT PULL] More power management updates for v5.12-rc1
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> I am not smart enough to get the point. I have paid a lot of time for this patch, 
-> I need an result even it doesn't work. so i like the reply like this:
->
-> 1. this patch is meaningless, and should be rejected.   
-> 2. this issue is real, but we need other methond, not this patch.
-> 3. the patch need to improve.
+Hi Linus,
 
-I don't want to say that the patch is meaningless ... it may be useful to you
-in your environment to help sort out machine checks due to h/w issues vs.
-programming errors in the machine check recovery code.
+Please pull from the tag
 
-But I don't think it is generally useful in the upstream code.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-5.12-rc1-2
 
--Tony
+with top-most commit 08c2a406b974eea893dd9b2f159d715f2b15c683
+
+ Merge branches 'pm-cpufreq' and 'pm-opp'
+
+on top of commit a9a939cb34dfffb9f43b988a681d2566ca157b74
+
+ Merge branches 'powercap' and 'pm-misc'
+
+to receive more power management updates for 5.12-rc1.
+
+These are fixes and cleanups on top of the power management
+material for 5.12-rc1 merged previously.
+
+Specifics:
+
+ - Address cpufreq regression introduced in 5.11 that causes
+   CPU frequency reporting to be distorted on systems with CPPC
+   that use acpi-cpufreq as the scaling driver (Rafael Wysocki).
+
+ - Fix regression introduced during the 5.10 development cycle
+   related to CPU hotplug and policy recreation in the
+   qcom-cpufreq-hw driver (Shawn Guo).
+
+ - Fix recent regression in the operating performance points (OPP)
+   framework that may cause frequency updates to be skipped by
+   mistake in some cases (Jonathan Marek).
+
+ - Simplify schedutil governor code and remove a misleading comment
+   from it (Yue Hu).
+
+ - Fix kerneldoc comment typo in the cpufreq core (Yue Hu).
+
+Thanks!
+
+
+---------------
+
+Jonathan Marek (1):
+      opp: Don't skip freq update for different frequency
+
+Rafael J. Wysocki (1):
+      cpufreq: ACPI: Set cpuinfo.max_freq directly if max boost is known
+
+Shawn Guo (1):
+      cpufreq: qcom-hw: drop devm_xxx() calls from init/exit hooks
+
+Yue Hu (3):
+      cpufreq: schedutil: Remove needless sg_policy parameter from
+ignore_dl_rate_limit()
+      cpufreq: schedutil: Remove update_lock comment from struct
+sugov_policy definition
+      cpufreq: Fix typo in kerneldoc comment
+
+---------------
+
+ drivers/cpufreq/acpi-cpufreq.c    | 62 ++++++++++-----------------------------
+ drivers/cpufreq/cpufreq.c         |  2 +-
+ drivers/cpufreq/freq_table.c      |  8 ++++-
+ drivers/cpufreq/qcom-cpufreq-hw.c | 40 ++++++++++++++++++++-----
+ drivers/opp/core.c                |  8 +++--
+ drivers/opp/opp.h                 |  2 ++
+ kernel/sched/cpufreq_schedutil.c  | 14 ++++-----
+ 7 files changed, 69 insertions(+), 67 deletions(-)
