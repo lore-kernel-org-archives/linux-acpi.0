@@ -2,67 +2,92 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F9B3C433DB
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 11:51:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB556C433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 11:56:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2B2361481
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 11:51:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FA706023C
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Feb 2021 11:56:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232326AbhBWLvO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Feb 2021 06:51:14 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:12200 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232217AbhBWLvN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Feb 2021 06:51:13 -0500
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DlHPV4GyfzlNJW;
-        Tue, 23 Feb 2021 19:48:30 +0800 (CST)
-Received: from [10.174.178.147] (10.174.178.147) by
- DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
- 14.3.498.0; Tue, 23 Feb 2021 19:50:25 +0800
-Subject: Re: [PATCH v1 0/4] ACPI: Get rid of ACPICA message printing from core
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>
-CC:     Linux PM <linux-pm@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-References: <5138173.kHyPcihzTF@kreacher>
-From:   Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <daadf47e-dac2-93a8-3070-9e9cbc0dae50@huawei.com>
-Date:   Tue, 23 Feb 2021 19:50:25 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+        id S232604AbhBWLzs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Feb 2021 06:55:48 -0500
+Received: from mga05.intel.com ([192.55.52.43]:65336 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232486AbhBWLxr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Feb 2021 06:53:47 -0500
+IronPort-SDR: 8tSXin3+bco3R6WqXZmtAAelM+UCHjqQWHo6Sd/7fkZcYySpA2glvdZnB+MJbQSEZlSoLAOVF4
+ E6BIPzR8dFjA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9903"; a="269731710"
+X-IronPort-AV: E=Sophos;i="5.81,199,1610438400"; 
+   d="scan'208";a="269731710"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2021 03:51:57 -0800
+IronPort-SDR: Z70yGT6vdj9FcaJm+eGuAEr7cnH9rluhBMbEuaRkYtkcqDy20YufmC+J7K+6Vv6pANkx+Nkgc8
+ h9AgGEW+84DQ==
+X-IronPort-AV: E=Sophos;i="5.81,199,1610438400"; 
+   d="scan'208";a="380457690"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2021 03:51:55 -0800
+Received: from andy by smile with local (Exim 4.94)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1lEWEL-007Ndn-9s; Tue, 23 Feb 2021 13:51:53 +0200
+Date:   Tue, 23 Feb 2021 13:51:53 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Yang Li <yang.lee@linux.alibaba.com>
+Cc:     mika.westerberg@linux.intel.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] gpiolib: acpi: Add missing IRQF_ONESHOT
+Message-ID: <YDTsWR/kXhd96ICI@smile.fi.intel.com>
+References: <1614069358-50943-1-git-send-email-yang.lee@linux.alibaba.com>
 MIME-Version: 1.0
-In-Reply-To: <5138173.kHyPcihzTF@kreacher>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.178.147]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1614069358-50943-1-git-send-email-yang.lee@linux.alibaba.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2021/2/23 2:57, Rafael J. Wysocki wrote:
-> Hi All,
+On Tue, Feb 23, 2021 at 04:35:58PM +0800, Yang Li wrote:
+> fixed the following coccicheck:
+> ./drivers/gpio/gpiolib-acpi.c:176:7-27: ERROR: Threaded IRQ with no
+> primary handler requested without IRQF_ONESHOT
 > 
-> This series replaces ACPI_DEBUG_PRINT() and ACPI_EXCEPTION() in the ACPI
-> processor driver and sysfs code and drops definitions of related symbols
-> that are not used for anything meaningful any more.
+> Make sure threaded IRQs without a primary handler are always request
+> with IRQF_ONESHOT
+
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+> Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+> Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
+> ---
+>  drivers/gpio/gpiolib-acpi.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Please refer to the patch changelogs for details.
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index e37a57d..86efa2d 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -174,7 +174,7 @@ static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
+>  	int ret, value;
+>  
+>  	ret = request_threaded_irq(event->irq, NULL, event->handler,
+> -				   event->irqflags, "ACPI:Event", event);
+> +				   event->irqflags | IRQF_ONESHOT, "ACPI:Event", event);
+>  	if (ret) {
+>  		dev_err(acpi_gpio->chip->parent,
+>  			"Failed to setup interrupt handler for %d\n",
+> -- 
+> 1.8.3.1
+> 
 
-Except patch 1/4, others are looking good to me. some
-legacy printk(PRIFIX ...) are still there, but we can
-clean up them later.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Feel feel to add my review tag with minor issue addressed.
 
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
-
-Thanks
-Hanjun
