@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97586C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Feb 2021 16:35:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA8F2C433E6
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Feb 2021 16:35:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6487A64F03
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Feb 2021 16:35:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74EEF64F1B
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Feb 2021 16:35:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232203AbhBYQf1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Feb 2021 11:35:27 -0500
-Received: from mga04.intel.com ([192.55.52.120]:23417 "EHLO mga04.intel.com"
+        id S232471AbhBYQf2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Feb 2021 11:35:28 -0500
+Received: from mga11.intel.com ([192.55.52.93]:64509 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229491AbhBYQfZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S229548AbhBYQfZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Thu, 25 Feb 2021 11:35:25 -0500
-IronPort-SDR: BWmZn0nrYFxX/yPng1Oq6YrRVddigAtqdrikFOEkF2iKBoYiGYybvLq6g7lRjEDlS4joXXTAqC
- Gy8m2yauFA+w==
-X-IronPort-AV: E=McAfee;i="6000,8403,9906"; a="183121944"
+IronPort-SDR: 9MROr3sVW4uVNbMPfjENwq3SDhrTbZZsTpOUBTXjD4anoCv4HzU5048n0ZC1lKn0E8dWlda7NA
+ n4nonc9ldwng==
+X-IronPort-AV: E=McAfee;i="6000,8403,9906"; a="182156002"
 X-IronPort-AV: E=Sophos;i="5.81,206,1610438400"; 
-   d="scan'208";a="183121944"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Feb 2021 08:33:36 -0800
-IronPort-SDR: T1Ge9WxhzvXEhcooAwOVp0+pMeHWXu+34JcatmVsdKVaP+LDAul7MBuVbJTZNi/DKlOrImNeQG
- 3qVbV8GgkJgw==
+   d="scan'208";a="182156002"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Feb 2021 08:33:37 -0800
+IronPort-SDR: fjDB3eGn2eE2JeLHekf1/qYF0tXgnHKtLDmvwTwVZZuQzwWsKi7fKvdtZDv9eVy1BTbJqg+Uu2
+ /v3DPK/LO3TQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,206,1610438400"; 
-   d="scan'208";a="371780954"
+   d="scan'208";a="432360281"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 25 Feb 2021 08:33:34 -0800
+  by FMSMGA003.fm.intel.com with ESMTP; 25 Feb 2021 08:33:34 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id ED713F2; Thu, 25 Feb 2021 18:33:33 +0200 (EET)
+        id 10DA854A; Thu, 25 Feb 2021 18:33:34 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
@@ -44,71 +44,142 @@ To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 1/3] gpiolib: acpi: Add ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk
-Date:   Thu, 25 Feb 2021 18:33:18 +0200
-Message-Id: <20210225163320.71267-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 3/3] gpio: pca953x: Set IRQ type when handle Intel Galileo Gen 2
+Date:   Thu, 25 Feb 2021 18:33:20 +0200
+Message-Id: <20210225163320.71267-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210225163320.71267-1-andriy.shevchenko@linux.intel.com>
 References: <20210225163320.71267-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On some systems the ACPI tables has wrong pin number and instead of
-having a relative one it provides an absolute one in the global GPIO
-number space.
+The commit 0ea683931adb ("gpio: dwapb: Convert driver to using the
+GPIO-lib-based IRQ-chip") indeliberately made a regression on how
+IRQ line from GPIO I²C expander is handled. I.e. it reveals that
+the quirk for Intel Galileo Gen 2 misses the part of setting IRQ type
+which previously was predefined by gpio-dwapb driver. Now, we have to
+reorganize the approach to call necessary parts, which can be done via
+ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk.
 
-Add ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk to cope with such cases.
+Without this fix and with above mentioned change the kernel hangs
+on the first IRQ event with:
+
+    gpio gpiochip3: Persistence not supported for GPIO 1
+    irq 32, desc: 62f8fb50, depth: 0, count: 0, unhandled: 0
+    ->handle_irq():  41c7b0ab, handle_bad_irq+0x0/0x40
+    ->irq_data.chip(): e03f1e72, 0xc2539218
+    ->action(): 0ecc7e6f
+    ->action->handler(): 8a3db21e, irq_default_primary_handler+0x0/0x10
+       IRQ_NOPROBE set
+    unexpected IRQ trap at vector 20
 
 Fixes: ba8c90c61847 ("gpio: pca953x: Override IRQ for one of the expanders on Galileo Gen 2")
 Depends-on: 0ea683931adb ("gpio: dwapb: Convert driver to using the GPIO-lib-based IRQ-chip")
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/gpio/gpiolib-acpi.c   | 7 ++++++-
- include/linux/gpio/consumer.h | 2 ++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/gpio/gpio-pca953x.c | 78 +++++++++++--------------------------
+ 1 file changed, 23 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index e37a57d0a2f0..026ef258d4b9 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -677,6 +677,7 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
- 	if (!lookup->desc) {
- 		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
- 		bool gpioint = agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-+		struct gpio_desc *desc;
- 		u16 pin_index;
+diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
+index 825b362eb4b7..6898c27f71f8 100644
+--- a/drivers/gpio/gpio-pca953x.c
++++ b/drivers/gpio/gpio-pca953x.c
+@@ -112,8 +112,29 @@ MODULE_DEVICE_TABLE(i2c, pca953x_id);
+ #ifdef CONFIG_GPIO_PCA953X_IRQ
  
- 		if (lookup->info.quirks & ACPI_GPIO_QUIRK_ONLY_GPIOIO && gpioint)
-@@ -689,8 +690,12 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
- 		if (pin_index >= agpio->pin_table_length)
- 			return 1;
+ #include <linux/dmi.h>
+-#include <linux/gpio.h>
+-#include <linux/list.h>
++
++static const struct acpi_gpio_params pca953x_irq_gpios = { 0, 0, true };
++
++static const struct acpi_gpio_mapping pca953x_acpi_irq_gpios[] = {
++	{ "irq-gpios", &pca953x_irq_gpios, 1, ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER },
++	{ }
++};
++
++static int pca953x_acpi_get_irq(struct device *dev)
++{
++	int ret;
++
++	ret = devm_acpi_dev_add_driver_gpios(dev, pca953x_acpi_irq_gpios);
++	if (ret)
++		dev_warn(dev, "can't add GPIO ACPI mapping\n");
++
++	ret = acpi_dev_gpio_irq_get_by(ACPI_COMPANION(dev), "irq-gpios", 0);
++	if (ret < 0)
++		return ret;
++
++	dev_info(dev, "ACPI interrupt quirk (IRQ %d)\n", ret);
++	return ret;
++}
  
--		lookup->desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
-+		if (lookup->info.quirks & ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER)
-+			desc = gpio_to_desc(agpio->pin_table[pin_index]);
-+		else
-+			desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
- 					      agpio->pin_table[pin_index]);
-+		lookup->desc = desc;
- 		lookup->info.pin_config = agpio->pin_config;
- 		lookup->info.debounce = agpio->debounce_timeout;
- 		lookup->info.gpioint = gpioint;
-diff --git a/include/linux/gpio/consumer.h b/include/linux/gpio/consumer.h
-index ef49307611d2..c73b25bc9213 100644
---- a/include/linux/gpio/consumer.h
-+++ b/include/linux/gpio/consumer.h
-@@ -674,6 +674,8 @@ struct acpi_gpio_mapping {
-  * get GpioIo type explicitly, this quirk may be used.
-  */
- #define ACPI_GPIO_QUIRK_ONLY_GPIOIO		BIT(1)
-+/* Use given pin as an absolute GPIO number in the system */
-+#define ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER		BIT(2)
- 
- 	unsigned int quirks;
+ static const struct dmi_system_id pca953x_dmi_acpi_irq_info[] = {
+ 	{
+@@ -132,59 +153,6 @@ static const struct dmi_system_id pca953x_dmi_acpi_irq_info[] = {
+ 	},
+ 	{}
  };
+-
+-#ifdef CONFIG_ACPI
+-static int pca953x_acpi_get_pin(struct acpi_resource *ares, void *data)
+-{
+-	struct acpi_resource_gpio *agpio;
+-	int *pin = data;
+-
+-	if (acpi_gpio_get_irq_resource(ares, &agpio))
+-		*pin = agpio->pin_table[0];
+-	return 1;
+-}
+-
+-static int pca953x_acpi_find_pin(struct device *dev)
+-{
+-	struct acpi_device *adev = ACPI_COMPANION(dev);
+-	int pin = -ENOENT, ret;
+-	LIST_HEAD(r);
+-
+-	ret = acpi_dev_get_resources(adev, &r, pca953x_acpi_get_pin, &pin);
+-	acpi_dev_free_resource_list(&r);
+-	if (ret < 0)
+-		return ret;
+-
+-	return pin;
+-}
+-#else
+-static inline int pca953x_acpi_find_pin(struct device *dev) { return -ENXIO; }
+-#endif
+-
+-static int pca953x_acpi_get_irq(struct device *dev)
+-{
+-	int pin, ret;
+-
+-	pin = pca953x_acpi_find_pin(dev);
+-	if (pin < 0)
+-		return pin;
+-
+-	dev_info(dev, "Applying ACPI interrupt quirk (GPIO %d)\n", pin);
+-
+-	if (!gpio_is_valid(pin))
+-		return -EINVAL;
+-
+-	ret = gpio_request(pin, "pca953x interrupt");
+-	if (ret)
+-		return ret;
+-
+-	ret = gpio_to_irq(pin);
+-
+-	/* When pin is used as an IRQ, no need to keep it requested */
+-	gpio_free(pin);
+-
+-	return ret;
+-}
+ #endif
+ 
+ static const struct acpi_device_id pca953x_acpi_ids[] = {
 -- 
 2.30.0
 
