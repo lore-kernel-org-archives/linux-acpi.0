@@ -2,95 +2,164 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5330C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Mar 2021 14:13:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE83BC433E0
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Feb 2021 17:13:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3D9564DCF
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Mar 2021 14:13:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E1EE64EBD
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Feb 2021 17:13:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236259AbhCAOMh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 1 Mar 2021 09:12:37 -0500
-Received: from mail-oi1-f173.google.com ([209.85.167.173]:46003 "EHLO
-        mail-oi1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236109AbhCAOMU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Mar 2021 09:12:20 -0500
-Received: by mail-oi1-f173.google.com with SMTP id m25so5118738oie.12;
-        Mon, 01 Mar 2021 06:12:03 -0800 (PST)
+        id S231298AbhB1RMn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 28 Feb 2021 12:12:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49154 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230461AbhB1RMj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Feb 2021 12:12:39 -0500
+Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10048C06174A;
+        Sun, 28 Feb 2021 09:11:58 -0800 (PST)
+Received: by mail-ej1-x635.google.com with SMTP id g5so23843438ejt.2;
+        Sun, 28 Feb 2021 09:11:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=dfQ46OGWItLgoKPUR/Czwfd0qqTUSj25+jf5yrElG/4=;
+        b=GzeA/aDB2UBhnNVhm++I/Jk3Up7Sjll8FWko6UUVrR8GbwUj6tdWvj7U7T3p1JnaWE
+         tuDT5n8KyfWwgonEFcDAlbP9Wnm/lzI5ynLZd5zXrmZLcqy0e5qJFV+Ury6tgPUdhcIC
+         ZnUpySrUVv3A0oExsLsVOkNej6wDTO/NVed1e1lRxfeovoJIixufVCuML3LKRgEXHaK6
+         AQIpA41ncR2vIctG/YIpRBR7PPh4Vs9caRlig7rCLuPUPKUXlteysI6kNYwN/3Yc//ci
+         tD2NQsug/MYd9mQ+dWSVvw0ZV+w1YK/V6hQL8df04yN35+nWGaht76tutf0kiQ1Fxgq5
+         E6Vw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=lod01F2gi753lgz6hSX8V0Vv54kwq8xzww6I7WJ5rRk=;
-        b=Crx+BjlP7h+OqWHlOzoQhHiogf6bRv72mq8RTpf62LeGUuWCRL0AwaYrnAxOK3Thgs
-         KmXl9/L+bFOCytpabuW9wHZmhiozNFBMtuye3mo6aISN2EwsvzgP0zWo0ySbI/r+038a
-         32hv0aym2HxXtCwnVKWjbsrtaS71maEz3Vi3Cry5feBrPn59eyaaQAPcXmY/4w0uOw9E
-         Sb+NVj5V4l9Eiwd0G6A7bP97gGmEC+6bZwF4v/e/KuTE/gPMo4N/PSpuXioh/FRxpN0n
-         dxDz9qzAfu/50w+pwWAoltH6+KEbYY1gwoJl/y3qJAtSc5+YXsxoGTCbuexqLgyYzil6
-         ZljA==
-X-Gm-Message-State: AOAM5306fY6BtoUNoVisxuzmc0T60Wnkkk16r02GavEiXmp9vWAa7MWc
-        ixkNk9agz8M+1DRqBOGODUGOMIzdSecl/i2B/knF3TBN
-X-Google-Smtp-Source: ABdhPJznWYEz0nSJMAIKsm/EiLQc07fLscL4z3c1Nc5/ixWrTp2TGuNmjEBDbNVT+qpzuvGPQkXfa3Wu2bCv3qYBF9w=
-X-Received: by 2002:aca:5dc4:: with SMTP id r187mr11284327oib.69.1614607898492;
- Mon, 01 Mar 2021 06:11:38 -0800 (PST)
+        h=x-gm-message-state:date:from:to:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=dfQ46OGWItLgoKPUR/Czwfd0qqTUSj25+jf5yrElG/4=;
+        b=DFk3PQk4Tg5+x/JyUn1GIB9WRKbs4ZjvCjYZr9JKO8621MT6/JMbxVEVcdDoUwHVL+
+         For3KnKO03QZ25kxJo4JrfZHSkIeuz8ttxAxFkjgF2q6WYdlaegFsyL7pwebxMCJOuh/
+         NrMre9pjnYhb6I4oOeQe6UNOpaC6IPz2m13QnfLeVZ2YZGlmr1DYxmPi+bvVPkKasB7e
+         u9RBjICZzwxg7kg714yWmesb+O+Rtbcpc99VRzJxNj+AhqwCvcU1kFYQqrqosKdGeMu3
+         qv1KRTCKEbd/EDeY1ITs68EsyfQGwPqrqB4AdfJhZ2zoof+PofoZAtTFpktFx3ZcE2nA
+         XTjg==
+X-Gm-Message-State: AOAM5304vRkhWj/qH8naxa3syBxpk1crx5yAp/FsV3b7mRkxQxwuuOcN
+        4SYwXjH8z05UBhk34i8rBvOfdoP18tGg
+X-Google-Smtp-Source: ABdhPJw5sLbCUCcgxkhNvC6IgO3vmNaTgOeasYPBEho60Poa4WNRXoZ/cPiXNkLCHgbgyBJUziViqw==
+X-Received: by 2002:a17:906:acb:: with SMTP id z11mr3855755ejf.193.1614532316774;
+        Sun, 28 Feb 2021 09:11:56 -0800 (PST)
+Received: from localhost.localdomain ([46.53.249.223])
+        by smtp.gmail.com with ESMTPSA id fw3sm6654338ejb.82.2021.02.28.09.11.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 28 Feb 2021 09:11:56 -0800 (PST)
+Date:   Sun, 28 Feb 2021 20:11:54 +0300
+From:   Alexey Dobriyan <adobriyan@gmail.com>
+To:     torvalds@linux-foundation.org, linux-kernel@vger.kernel.org,
+        akpm@linux-foundation.org, linux-arch@vger.kernel.org
+Subject: [PATCH 12/11] pragma once: scripted treewide conversion
+Message-ID: <YDvO2kmidKZaK26j@localhost.localdomain>
+References: <YDvLYzsGu+l1pQ2y@localhost.localdomain>
 MIME-Version: 1.0
-References: <1709720.Zl72FGBfpD@kreacher> <eaeba4a0-7bb9-7b17-9ba6-49921f6e834c@oracle.com>
-In-Reply-To: <eaeba4a0-7bb9-7b17-9ba6-49921f6e834c@oracle.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 1 Mar 2021 15:11:21 +0100
-Message-ID: <CAJZ5v0jr5Mxs9NYBz1ot8O+6dKYbfAo=cJqSVAOnrFEqUNwuTA@mail.gmail.com>
-Subject: Re: [PATCH v1] xen: ACPI: Get rid of ACPICA message printing
-To:     Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Juergen Gross <jgross@suse.com>,
-        xen-devel@lists.xenproject.org,
-        Konrad Wilk <konrad.wilk@oracle.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YDvLYzsGu+l1pQ2y@localhost.localdomain>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Feb 28, 2021 at 2:49 AM Boris Ostrovsky
-<boris.ostrovsky@oracle.com> wrote:
->
->
-> On 2/24/21 1:47 PM, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > The ACPI_DEBUG_PRINT() macro is used in a few places in
-> > xen-acpi-cpuhotplug.c and xen-acpi-memhotplug.c for printing debug
-> > messages, but that is questionable, because that macro belongs to
-> > ACPICA and it should not be used elsewhere.  In addition,
-> > ACPI_DEBUG_PRINT() requires special enabling to allow it to actually
-> > print the message and the _COMPONENT symbol generally needed for
-> > that is not defined in any of the files in question.
-> >
-> > For this reason, replace all of the ACPI_DEBUG_PRINT() instances in
-> > the Xen code with acpi_handle_debug() (with the additional benefit
-> > that the source object can be identified more easily after this
-> > change) and drop the ACPI_MODULE_NAME() definitions that are only
-> > used by the ACPICA message printing macros from that code.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/xen/xen-acpi-cpuhotplug.c |   12 +++++-------
-> >  drivers/xen/xen-acpi-memhotplug.c |   16 +++++++---------
->
->
-> As I was building with this patch I (re-)discovered that since 2013 it depends on BROKEN (commit 76fc253723add). Despite commit message there saying that it's a temporary patch it seems to me by now that it's more than that.
->
->
-> And clearly noone tried to build these files since at least 2015 because memhotplug file doesn't compile due to commit cfafae940381207.
->
->
-> While this is easily fixable the question is whether we want to keep these files. Obviously noone cares about this functionality.
+[  Bcc a lot of lists so that people understand what's this is all         ]
+[  about without creating uber-cc-thread.                                  ]
+[  Apologies if I missed your subsystem                                    ]
+[  Please see [PATCH 11/11: pragma once: conversion script (in Python 2)]  ]
 
-Well, I would be for dropping them.
+Hi, Linus.
 
-Do you want me to send a patch to do that?
+Please run the script below from top-level directory, it will convert
+most kernel headers to #pragma once directive advancing them into
+21-st century.
+
+The advantages are:
+
+* less LOC
+
+	18087 files changed, 18878 insertions(+), 99804 deletions(-)
+	= -81 kLOC (give or take)
+
+* less mental tax on developers forced to name things which aren't even
+  real code
+
+* less junk in preprocessor hashtables and editors/IDEs autocompletion
+  lists
+
+There are two bit exceptions: UAPI headers and ACPICA.
+Given ubiquity of #pragma once, I personally think even these subsystems
+should be converted in the future.
+
+Compile tested on alpha, arc, arm, arm64, h8300, ia64, m68k, microblaze,
+mips, nios2, parisc, powerpc, riscv, s390, sh, sparc, um-i386, um-x86_64,
+i386, x86_64, xtensa (allnoconfig, all defconfigs, allmodconfig with or
+without SMP/DEBUG_KERNEL + misc stuff).
+
+Not compile tested on csky, hexagon, nds32, openrisc. 
+
+Love,
+	Alexey
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+
+
+
+#!/bin/sh -x
+find . -type f -name '*.h' -print	|\
+LC_ALL=C sort				|\
+sed -e 's#^./##g'			|\
+xargs ./scripts/pragma-once.py
+
+find . -type d -name 'uapi' | xargs git checkout -f
+git checkout -f arch/alpha/include/asm/cmpxchg.h
+git checkout -f arch/arm/mach-imx/hardware.h
+git checkout -f arch/arm/mach-ixp4xx/include/mach/hardware.h
+git checkout -f arch/arm/mach-sa1100/include/mach/hardware.h
+git checkout -f arch/mips/include/asm/mips-cps.h
+git checkout -f arch/x86/boot/boot.h
+git checkout -f arch/x86/boot/ctype.h
+git checkout -f arch/x86/include/asm/cpufeatures.h
+git checkout -f arch/x86/include/asm/disabled-features.h
+git checkout -f arch/x86/include/asm/required-features.h
+git checkout -f arch/x86/include/asm/vmxfeatures.h
+git checkout -f arch/x86/include/asm/vvar.h
+git checkout -f drivers/acpi/acpica/
+git checkout -f drivers/gpu/drm/amd/pm/inc/vega10_ppsmc.h
+git checkout -f drivers/gpu/drm/amd/pm/powerplay/ppsmc.h
+git checkout -f drivers/input/misc/yealink.h
+git checkout -f drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+git checkout -f drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
+git checkout -f drivers/pcmcia/yenta_socket.h
+git checkout -f drivers/staging/rtl8723bs/include/hal_com_h2c.h
+git checkout -f include/linux/acpi.h
+git checkout -f include/linux/bitops.h
+git checkout -f include/linux/compiler_types.h
+git checkout -f include/linux/device.h
+git checkout -f include/linux/kbuild.h
+git checkout -f include/linux/libfdt_env.h
+git checkout -f include/linux/local_lock.h
+git checkout -f include/linux/spinlock.h
+git checkout -f include/linux/spinlock_api_smp.h
+git checkout -f include/linux/spinlock_types.h
+git checkout -f include/linux/tracepoint.h
+git checkout -f mm/gup_test.h
+git checkout -f net/batman-adv/main.h
+git checkout -f scripts/dtc/
+git checkout -f tools/include/linux/bitops.h
+git checkout -f tools/include/linux/compiler.h
+git checkout -f tools/testing/selftests/clone3/clone3_selftests.h
+git checkout -f tools/testing/selftests/futex/include/atomic.h
+git checkout -f tools/testing/selftests/futex/include/futextest.h
+git checkout -f tools/testing/selftests/futex/include/logging.h
+git checkout -f tools/testing/selftests/kselftest.h
+git checkout -f tools/testing/selftests/kselftest_harness.h
+git checkout -f tools/testing/selftests/pidfd/pidfd.h
+git checkout -f tools/testing/selftests/x86/helpers.h
