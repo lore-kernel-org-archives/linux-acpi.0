@@ -2,70 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA1B4C433DB
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3525EC433E6
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FAB464EBA
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E88E864EBA
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353074AbhCCE4e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Mar 2021 23:56:34 -0500
-Received: from mga01.intel.com ([192.55.52.88]:42598 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1443736AbhCBNkJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Mar 2021 08:40:09 -0500
-IronPort-SDR: rWj1AbbLZNH62JPn2Gx/jOq+5rWadgKPSfOGzoGiWz59DxmBMQyBrLPMTAf6P9cnRWWCD5LVwT
- wG3xQ7kDXxMg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9910"; a="206447801"
-X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
-   d="scan'208";a="206447801"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2021 05:37:55 -0800
-IronPort-SDR: G1fW5sdk4Dy1+HAokgZG1kozWLuckxJ8i2tjnXBSimIgEi9PvOr7fs9MDtXKm8AtgD8Mu97OUX
- 6BalTeVuOV4w==
-X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
-   d="scan'208";a="368962687"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2021 05:37:53 -0800
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with SMTP id 81F082011B;
-        Tue,  2 Mar 2021 15:37:21 +0200 (EET)
-Date:   Tue, 2 Mar 2021 15:37:21 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+        id S1353103AbhCCE5d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Mar 2021 23:57:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45062 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1384494AbhCBPFT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Mar 2021 10:05:19 -0500
+Received: from mail-lj1-x22d.google.com (mail-lj1-x22d.google.com [IPv6:2a00:1450:4864:20::22d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C0F5C0611BC
+        for <linux-acpi@vger.kernel.org>; Tue,  2 Mar 2021 06:50:07 -0800 (PST)
+Received: by mail-lj1-x22d.google.com with SMTP id m11so23397947lji.10
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Mar 2021 06:50:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=8hMgVPyqEroq6mUvpTnCafuO0NxGOj5n7scddeeUGCM=;
+        b=Z75INBuEVQQ30cCskP0pcL89OTBkPhRoBvdarUf6+vsKOwOBP9QlM/TQfG6Cc6alkE
+         JpZoVrrxpBJNFoeiVdFCDnh4ZfdZxKIskCJp3P2vza+yybgZnd43iTBFK0LiUe3CAzhY
+         M92Gx1JjF6SDlFCaBt/5o9Kjxba+gWXyHL5lIwenfTwQtkYQOV9Ah8w0+9zF1APOM4Aa
+         qSp+Zmgdo1KaA85gSv4GJGs51mPC4PHlf2UStbyWhTBChAcPejClzvudWaFAa7KwCnC1
+         sFK8OYgNFhiCD+F/lRV9Af78WHcGx5hXGq642FTBHiuZNc4K7pMm2VeRhPV/T4nz29kh
+         MyLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=8hMgVPyqEroq6mUvpTnCafuO0NxGOj5n7scddeeUGCM=;
+        b=lYrooJIbU1oaRWPNHxOW9mzMgF011qpOjysjhY75xUpsps/An1+tXaOvnJSZC/GJa9
+         zTVE8N4EBru4WH7GXF8VhhZWvXO3VYonIhvWaP9i8k0FrBUXNHbINHNnMPDu/2HufBgA
+         n1uIxIGSGP5C91sSBy7KposiMZL4PlYvLub7b9sAQETrRglh3t1C9Kjh+uRtV4KkLrm2
+         ycDn7JfkXyOmmQCumXNrv6jmuvhz1MuzwlnwNhQtoQZVQQc6KossScbMO1MXS/wyKh9s
+         LgEWMqrSqdeer12XyWp3Rfehsw4ino/FT70MYTi2jv8yXXm1d1ZY/wpuJvAKLQEzHvdg
+         RPUQ==
+X-Gm-Message-State: AOAM530TlmYjl5v8eCH33goEwqA8eOOiCOpB6pMvjMoL7s9Anc0QlvHl
+        ZLYkke5NCIxGoaYVfNkWL4aW92eBzvDIFBOsOhyvzg==
+X-Google-Smtp-Source: ABdhPJyeSH+nLIU1qBeIvU6FymMympjF4AlZp3ZZ1BPO3/f368e5ngNK7Lpx21W/uNz7ZyxV2F6ctnxj2hHUXtaqRzY=
+X-Received: by 2002:a2e:700a:: with SMTP id l10mr12397816ljc.368.1614696604877;
+ Tue, 02 Mar 2021 06:50:04 -0800 (PST)
+MIME-Version: 1.0
+References: <20210225163320.71267-1-andriy.shevchenko@linux.intel.com> <20210225163320.71267-3-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20210225163320.71267-3-andriy.shevchenko@linux.intel.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Tue, 2 Mar 2021 15:49:53 +0100
+Message-ID: <CACRpkdZugk02ia2iq4uy1n=jMb0VKQ4v5xd6z7M9RCtjoAmmgg@mail.gmail.com>
+Subject: Re: [PATCH v1 2/3] gpiolib: acpi: Allow to find GpioInt() resource by
+ name and index
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 1/1] ACPI: bus: Constify is_acpi_node() and friends
- (part 2)
-Message-ID: <20210302133721.GG3@paasikivi.fi.intel.com>
-References: <20210302133548.88230-1-andriy.shevchenko@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210302133548.88230-1-andriy.shevchenko@linux.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 02, 2021 at 03:35:48PM +0200, Andy Shevchenko wrote:
-> The commit 8b9d6802583a ("ACPI: Constify acpi_bus helper functions,
-> switch to macros") only changed functions for CONFIG_ACPI=y case.
-> This part adjusts the rest.
-> 
-> Fixes: 8b9d6802583a ("ACPI: Constify acpi_bus helper functions, switch to macros")
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Thu, Feb 25, 2021 at 5:33 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+
+> Currently only search by index is supported. However, in some cases
+> we might need to pass the quirks to the acpi_dev_gpio_irq_get().
+>
+> For this, split out acpi_dev_gpio_irq_get_by() and replace
+> acpi_dev_gpio_irq_get() by calling above with NULL for name parameter.
+>
+> Fixes: ba8c90c61847 ("gpio: pca953x: Override IRQ for one of the expanders on Galileo Gen 2")
+> Depends-on: 0ea683931adb ("gpio: dwapb: Convert driver to using the GPIO-lib-based IRQ-chip")
 > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Thanks!
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
--- 
-Sakari Ailus
+Yours,
+Linus Walleij
