@@ -2,93 +2,139 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B02BFC4332D
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D965C4332E
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7EA0B64E90
+	by mail.kernel.org (Postfix) with ESMTP id DC2FA64E90
 	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353113AbhCCE5s (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Mar 2021 23:57:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48990 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384606AbhCBPWn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Mar 2021 10:22:43 -0500
-Received: from mail-lj1-x22e.google.com (mail-lj1-x22e.google.com [IPv6:2a00:1450:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7518C061224
-        for <linux-acpi@vger.kernel.org>; Tue,  2 Mar 2021 06:48:55 -0800 (PST)
-Received: by mail-lj1-x22e.google.com with SMTP id q23so24254303lji.8
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Mar 2021 06:48:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=nFqgaXSqlQUQdPy3nY8PRtKYz9p0g0esCemDZNz6EmY=;
-        b=fgwMUlhDupxFzSQVAdzZ2MamJBz7SFNsLGCfxSUbrDuDE8RnK9abPwY0MK5BYFz0cf
-         C7wG0fAwq3JcAbCQE0w5Pw57fNibT4Q9i8Ebcl41yqoTSdbtsnveGZD7RWEwwlxGEPn4
-         nikh/0chKEC3oA+CxAXJBOWRnHKRioT/wKveUVvyUCOpUBzgNlmhs/8LOG2jT78AwsWj
-         1HW1RNZjr1FhXr9AQt9eoZJhQt/2/9QI43U23COktxAhYYt5A88aQuI9noST9sFM1PQG
-         HxOHP56gjNA0pVDNl3t0l1NWFH77GvjWtXmy803148z99zvXMBIr0KwWgwniZBlHpdmg
-         2mwQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nFqgaXSqlQUQdPy3nY8PRtKYz9p0g0esCemDZNz6EmY=;
-        b=mK3bB8ueQylWnk97rEjJ0XglT+ubwaFcBSFClpaAV4mJUM/nWGVzZT9hZ+2mcLERIx
-         AsnYm6dVwzMUokqCcL6sEkMCcj5fHNnbqiyvdaQwqpkzIc3MgesJTvonuwNukjPhjvrx
-         F7wrZYhdQkqJdU1lNs0MNpwMs0fdmojqpN1KHiNIVLrYVXz+3zMeRjL1QCpMMfFR+3s5
-         a8u41Wiu7HruUkY2CI6HW6FM2/PoHQjjdq9tZVM8qGYjU7Pcy8VqbyxsD9LxHoppxzm4
-         bVR37oDTNLMqn7NimigsDhThsnWzD6OBal9TFTXCosMNbZsDQ6zsrN/GzP6ForUxOmCr
-         +BsA==
-X-Gm-Message-State: AOAM531+T65IkL1MODVYfNiYA/jBUF5Zu6+l3eHDAwOBTbfLTdKnWLqz
-        AwCM3UcuSCLhVVWazekTNPUTKNkyUTgAAgf58GBGXA==
-X-Google-Smtp-Source: ABdhPJxbxJWuTTRCgvRJT3XIAMjSeAKmqFJ3gfSSoP5sNHsmHmoMyaYsUaYNlfWERaagQf+eQpCP75td8ntOgunSOxk=
-X-Received: by 2002:a2e:700a:: with SMTP id l10mr12395110ljc.368.1614696534389;
- Tue, 02 Mar 2021 06:48:54 -0800 (PST)
+        id S1353123AbhCCE6K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Mar 2021 23:58:10 -0500
+Received: from mga05.intel.com ([192.55.52.43]:13563 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1448687AbhCBPhL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 Mar 2021 10:37:11 -0500
+IronPort-SDR: DrB8s6oR9pxje8+VdYNVlccTzmzw93PiJkWT3r+kUdZD/DrwbvSzWSZTekFoM5TU2N/i8Yv06n
+ /H2P+1AY1e5g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9911"; a="271859602"
+X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
+   d="scan'208";a="271859602"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2021 07:35:07 -0800
+IronPort-SDR: 5vj6m/PZ3I2TO5brj7Ucb832XdB2x8EKteZwSy6Pkv4XobsQuuUq3dkzV97oND/svhTRB4ZpZy
+ O+WwFBaQKO0g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
+   d="scan'208";a="595831038"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga006.fm.intel.com with ESMTP; 02 Mar 2021 07:35:05 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 6894213A; Tue,  2 Mar 2021 17:35:05 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH v1 4/4] gpiolib: Reuse device's fwnode to create IRQ domain
+Date:   Tue,  2 Mar 2021 17:34:51 +0200
+Message-Id: <20210302153451.50593-4-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210302153451.50593-1-andriy.shevchenko@linux.intel.com>
+References: <20210302153451.50593-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <20210225163320.71267-1-andriy.shevchenko@linux.intel.com> <20210225163320.71267-2-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20210225163320.71267-2-andriy.shevchenko@linux.intel.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 2 Mar 2021 15:48:43 +0100
-Message-ID: <CACRpkdZj4TqOoJmfDhL1MuZCT9quz+5Gj8C6ckZ1i6cYCq9SOA@mail.gmail.com>
-Subject: Re: [PATCH v1 1/3] gpiolib: acpi: Add ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Feb 25, 2021 at 5:33 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+When IRQ domain is created for an ACPI case, the name of it becomes unknown-%d
+since for now it utilizes of_node member only and doesn't consider fwnode case.
+Convert IRQ domain creation code to utilize fwnode instead.
 
-> On some systems the ACPI tables has wrong pin number and instead of
-> having a relative one it provides an absolute one in the global GPIO
-> number space.
->
-> Add ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk to cope with such cases.
->
-> Fixes: ba8c90c61847 ("gpio: pca953x: Override IRQ for one of the expanders on Galileo Gen 2")
-> Depends-on: 0ea683931adb ("gpio: dwapb: Convert driver to using the GPIO-lib-based IRQ-chip")
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Before/After the change on Intel Galileo Gen 2 with two GPIO (IRQ) controllers:
 
-OH THE HORROR!
-However, we discussed it before. It is as it is.
+  unknown-1	==>	\_SB.PCI0.GIP0.GPO
+  unknown-2	==>	\_SB.NIO3
 
-It's the right place to fix the problem, so:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpiolib.c | 32 ++++++++++++--------------------
+ 1 file changed, 12 insertions(+), 20 deletions(-)
 
-Yours,
-Linus Walleij
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 6827736ba05c..54cfea4e4a03 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1457,9 +1457,9 @@ static int gpiochip_add_irqchip(struct gpio_chip *gc,
+ 				struct lock_class_key *lock_key,
+ 				struct lock_class_key *request_key)
+ {
++	struct fwnode_handle *fwnode = dev_fwnode(&gc->gpiodev->dev);
+ 	struct irq_chip *irqchip = gc->irq.chip;
+-	const struct irq_domain_ops *ops = NULL;
+-	struct device_node *np;
++	const struct irq_domain_ops *ops;
+ 	unsigned int type;
+ 	unsigned int i;
+ 
+@@ -1471,7 +1471,6 @@ static int gpiochip_add_irqchip(struct gpio_chip *gc,
+ 		return -EINVAL;
+ 	}
+ 
+-	np = gc->gpiodev->dev.of_node;
+ 	type = gc->irq.default_type;
+ 
+ 	/*
+@@ -1479,16 +1478,10 @@ static int gpiochip_add_irqchip(struct gpio_chip *gc,
+ 	 * used to configure the interrupts, as you may end up with
+ 	 * conflicting triggers. Tell the user, and reset to NONE.
+ 	 */
+-	if (WARN(np && type != IRQ_TYPE_NONE,
+-		 "%s: Ignoring %u default trigger\n", np->full_name, type))
++	if (WARN(fwnode && type != IRQ_TYPE_NONE,
++		 "%pfw: Ignoring %u default trigger\n", fwnode, type))
+ 		type = IRQ_TYPE_NONE;
+ 
+-	if (has_acpi_companion(gc->parent) && type != IRQ_TYPE_NONE) {
+-		acpi_handle_warn(ACPI_HANDLE(gc->parent),
+-				 "Ignoring %u default trigger\n", type);
+-		type = IRQ_TYPE_NONE;
+-	}
+-
+ 	if (gc->to_irq)
+ 		chip_warn(gc, "to_irq is redefined in %s and you shouldn't rely on it\n", __func__);
+ 
+@@ -1504,15 +1497,14 @@ static int gpiochip_add_irqchip(struct gpio_chip *gc,
+ 			return ret;
+ 	} else {
+ 		/* Some drivers provide custom irqdomain ops */
+-		if (gc->irq.domain_ops)
+-			ops = gc->irq.domain_ops;
+-
+-		if (!ops)
+-			ops = &gpiochip_domain_ops;
+-		gc->irq.domain = irq_domain_add_simple(np,
+-			gc->ngpio,
+-			gc->irq.first,
+-			ops, gc);
++		ops = gc->irq.domain_ops ?: &gpiochip_domain_ops;
++		if (gc->irq.first)
++			gc->irq.domain = irq_domain_create_legacy(fwnode, gc->ngpio,
++								  gc->irq.first, 0,
++								  ops, gc);
++		else
++			gc->irq.domain = irq_domain_create_linear(fwnode, gc->ngpio,
++								  ops, gc);
+ 		if (!gc->irq.domain)
+ 			return -EINVAL;
+ 	}
+-- 
+2.30.1
+
