@@ -2,100 +2,121 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA5FC4332B
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2579FC433E0
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B14B64EEB
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFC1E64E58
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Mar 2021 05:01:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353111AbhCCE5x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Mar 2021 23:57:53 -0500
-Received: from mga07.intel.com ([134.134.136.100]:2413 "EHLO mga07.intel.com"
+        id S1353129AbhCCE6P (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Mar 2021 23:58:15 -0500
+Received: from mga11.intel.com ([192.55.52.93]:45308 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1575654AbhCBPYQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Mar 2021 10:24:16 -0500
-IronPort-SDR: tGSC/RbeZnFav9QCKAOs5qn9iNXSPXtO3EI37PFcoyyF4YMPUf7b8Cl1aIwd4JTc58fJ+rXr3c
- erP0UOO0MKog==
-X-IronPort-AV: E=McAfee;i="6000,8403,9911"; a="250893647"
+        id S1575753AbhCBPoC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 Mar 2021 10:44:02 -0500
+IronPort-SDR: SZRfZNVxEl/tHr9r5BvYAOibe+11yo4C7gZEVMRp6mqgqfT07T4Xv78niyjZS7eaTatUPtx7it
+ vHPgQkepiyTQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9911"; a="183457082"
 X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
-   d="scan'208";a="250893647"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2021 07:21:25 -0800
-IronPort-SDR: SfmgQ+HsK7TbX7TCF729/nx9mUGp32CqL5L/NzQNT0qBl/taPvBd/q3+zKAYoCyKk0dq5eYNr8
- e8cUndjyEBRw==
+   d="scan'208";a="183457082"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2021 07:36:13 -0800
+IronPort-SDR: drYOvbiGuDNZ1H8x7/J/wyKXTBQSin7Lu0AbxgATrquuGyOTjIds7HMNRTQX11PIpfw5IQvrUB
+ 0OLYrrARjrPw==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
-   d="scan'208";a="399062802"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2021 07:21:23 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1lH6pp-009PqC-Px; Tue, 02 Mar 2021 17:21:17 +0200
-Date:   Tue, 2 Mar 2021 17:21:17 +0200
+   d="scan'208";a="435736821"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga002.fm.intel.com with ESMTP; 02 Mar 2021 07:35:13 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id C33981F4; Tue,  2 Mar 2021 17:35:04 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 1/3] gpiolib: acpi: Add
- ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk
-Message-ID: <YD5X7XUrx9AQvaXP@smile.fi.intel.com>
-References: <20210225163320.71267-1-andriy.shevchenko@linux.intel.com>
- <20210225163320.71267-2-andriy.shevchenko@linux.intel.com>
- <CACRpkdZj4TqOoJmfDhL1MuZCT9quz+5Gj8C6ckZ1i6cYCq9SOA@mail.gmail.com>
- <YD5VJMDC1TmIN/T8@smile.fi.intel.com>
- <20210302151430.GY2542@lahna.fi.intel.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH v1 3/4] gpiolib: Introduce acpi_gpio_dev_init() and call it from core
+Date:   Tue,  2 Mar 2021 17:34:50 +0200
+Message-Id: <20210302153451.50593-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210302153451.50593-1-andriy.shevchenko@linux.intel.com>
+References: <20210302153451.50593-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210302151430.GY2542@lahna.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 02, 2021 at 05:14:30PM +0200, Mika Westerberg wrote:
-> On Tue, Mar 02, 2021 at 05:09:24PM +0200, Andy Shevchenko wrote:
-> > On Tue, Mar 02, 2021 at 03:48:43PM +0100, Linus Walleij wrote:
-> > > On Thu, Feb 25, 2021 at 5:33 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > 
-> > > > On some systems the ACPI tables has wrong pin number and instead of
-> > > > having a relative one it provides an absolute one in the global GPIO
-> > > > number space.
-> > > >
-> > > > Add ACPI_GPIO_QUIRK_ABSOLUTE_NUMBER quirk to cope with such cases.
-> > > >
-> > > > Fixes: ba8c90c61847 ("gpio: pca953x: Override IRQ for one of the expanders on Galileo Gen 2")
-> > > > Depends-on: 0ea683931adb ("gpio: dwapb: Convert driver to using the GPIO-lib-based IRQ-chip")
-> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > 
-> > > OH THE HORROR!
-> > > However, we discussed it before. It is as it is.
-> > 
-> > Unfortunately :-( (And recently it seems MS does something really "creative" on
-> > ARM ACPI platform)
-> > 
-> > > It's the right place to fix the problem, so:
-> > > Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> > 
-> > I am waiting for Mika, but if he keeps silent let's say to the end of the day,
-> > I will submit it as is to the v5.12-rcX fixes.
-> 
-> Sorry for the delay - I somehow missed this. Feel free to add my ACK too.
+In the ACPI case we may use the firmware node in the similar way
+as it's done for OF case. We may use that fwnode for other purposes
+in the future.
 
-Thanks, Mika!
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 7 +++++++
+ drivers/gpio/gpiolib-acpi.h | 4 ++++
+ drivers/gpio/gpiolib.c      | 1 +
+ 3 files changed, 12 insertions(+)
 
-
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 495f779b2ab9..27a4a4e0a48d 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -1291,6 +1291,13 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
+ 	kfree(acpi_gpio);
+ }
+ 
++void acpi_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev)
++{
++	/* Set default fwnode to parent's one if present */
++	if (gc->parent)
++		ACPI_COMPANION_SET(&gdev->dev, ACPI_COMPANION(gc->parent));
++}
++
+ static int acpi_gpio_package_count(const union acpi_object *obj)
+ {
+ 	const union acpi_object *element = obj->package.elements;
+diff --git a/drivers/gpio/gpiolib-acpi.h b/drivers/gpio/gpiolib-acpi.h
+index e2edb632b2cc..e476558d9471 100644
+--- a/drivers/gpio/gpiolib-acpi.h
++++ b/drivers/gpio/gpiolib-acpi.h
+@@ -36,6 +36,8 @@ struct acpi_gpio_info {
+ void acpi_gpiochip_add(struct gpio_chip *chip);
+ void acpi_gpiochip_remove(struct gpio_chip *chip);
+ 
++void acpi_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev);
++
+ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
+ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip);
+ 
+@@ -58,6 +60,8 @@ int acpi_gpio_count(struct device *dev, const char *con_id);
+ static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
+ static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
+ 
++static inline void acpi_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev) { }
++
+ static inline void
+ acpi_gpiochip_request_interrupts(struct gpio_chip *chip) { }
+ 
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 4af8a8c1316e..6827736ba05c 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -590,6 +590,7 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+ 	gc->gpiodev = gdev;
+ 
+ 	of_gpio_dev_init(gc, gdev);
++	acpi_gpio_dev_init(gc, gdev);
+ 
+ 	gdev->id = ida_alloc(&gpio_ida, GFP_KERNEL);
+ 	if (gdev->id < 0) {
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.1
 
