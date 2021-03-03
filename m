@@ -2,190 +2,93 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D715C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B348C43381
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7375E64E6F
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF68964E6F
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349596AbhCDAMA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:12:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53906 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344506AbhCCP6o (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2021 10:58:44 -0500
-Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D47CCC061762
-        for <linux-acpi@vger.kernel.org>; Wed,  3 Mar 2021 07:58:01 -0800 (PST)
-Received: by mail-oi1-x22d.google.com with SMTP id a13so26488280oid.0
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Mar 2021 07:58:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=zhVr6K8r2z3/ZhGqFoxBH1FeHeZIi/F72+oBarEiB3k=;
-        b=R3XSi8RRCP7cWEkBhtOnB6s+tSUjGfn7qu4k9MPRMFcBrKr2JMNcSd1m1/eCi5hALz
-         +VIdhI4eddycL5AVJYfCkbU2CDPRqa2yx9TAZg98pMEtaEuLfvx8PQy+ZilUECuKxvRo
-         PnAMqOuBVoF/NZ5Utk9I8NiOspiAryZXLXN44VgxiXGcSLIVAjsGGa59RtlLNlXEqLnb
-         z8wCCS/Ib9OqUGX5+o7VrK50PsCYX8sUmvtof/uZV4XU0v/A668yJtQbFXexepAUKrYq
-         n05au0P2g8pLk5M4lj868L7yTg9j609h7iQ1dvy9KlOYdVNGkklMhSmveyW3T/V06Plu
-         2K3w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=zhVr6K8r2z3/ZhGqFoxBH1FeHeZIi/F72+oBarEiB3k=;
-        b=tJdrmPuWen5nERbA7xDnFpZsYnhWg44AnwDxGCULxHOphNxhdijS5FHXLh8xjoNzO1
-         8SeHymGGVGt+e6lL22qpVDjcMvkaFHdTtEyqfr3Y3buf7RthA/vpGtvx/IjsOmR6xJWC
-         16x3PEuJomjbxs5BxiBgui6f/gv7CDPpDefP8LSzIO1KJv/z/bmv9cdhCBhkXLv7r6hg
-         GVIZAl8LXk1VX2jYDe82uhHf/7+2l9SCrqVXsTD8ATtMpIn0EIOaI++3SPmtQyjTues+
-         +6Q9BecMJLDPl8rpAdVGCpz+m9v03xLMqumogLdSpAPx4KEKGc3vBwTYjWjT2XueV4Qw
-         wPrw==
-X-Gm-Message-State: AOAM532Uw2ILT3PSXPMH4W9EQ6cCmwlaRyqHGeEPykJRXnz94q5bYwvT
-        8uxGSaC91o2n8K7bmAFaLPehqg==
-X-Google-Smtp-Source: ABdhPJwflt5EacJvsf71Ng2vkB1o2dwBvAXm7b8Y/L3vy6Om6bfpgOP+bEnyr+ddS9MnA6/YObV0xw==
-X-Received: by 2002:aca:3285:: with SMTP id y127mr7674441oiy.98.1614787081022;
-        Wed, 03 Mar 2021 07:58:01 -0800 (PST)
-Received: from builder.lan (104-57-184-186.lightspeed.austtx.sbcglobal.net. [104.57.184.186])
-        by smtp.gmail.com with ESMTPSA id w9sm4711161oia.46.2021.03.03.07.58.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Mar 2021 07:58:00 -0800 (PST)
-Date:   Wed, 3 Mar 2021 09:57:58 -0600
-From:   Bjorn Andersson <bjorn.andersson@linaro.org>
-To:     Jeffrey Hugo <jhugo@codeaurora.org>
-Cc:     Shawn Guo <shawn.guo@linaro.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: support override broken GPIO number in
- ACPI table
-Message-ID: <YD+yBmPrKm1n8Tjm@builder.lan>
-References: <20210226093925.GA24428@dragon>
- <CAHp75Vc6xYv+197SOrSefQHD2h4Xy_N20gQajW4uF2PU=sJfLg@mail.gmail.com>
- <YDjZOU+VMWasjzUb@smile.fi.intel.com>
- <20210227031944.GB24428@dragon>
- <YDzbQqHspfvpYS7Z@smile.fi.intel.com>
- <20210302002725.GE24428@dragon>
- <YD4twyAGvDDOCv+n@smile.fi.intel.com>
- <abbfcdfa-c287-3828-ed6f-bc1e1f13c6b2@codeaurora.org>
- <20210303094300.GB17424@dragon>
- <41593c7e-368b-cfb8-b24a-2e4dca48b465@codeaurora.org>
+        id S1388041AbhCDAMF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:12:05 -0500
+Received: from mga18.intel.com ([134.134.136.126]:48141 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234126AbhCCSfu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 Mar 2021 13:35:50 -0500
+IronPort-SDR: ee6TOyeIEDuomTqbzXr3J0xgldnlusRCRozBGHoSdbR5BXugZotUPJNsvkYp7FAnWS0cwYje1C
+ x93FCUUyly4w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9912"; a="174893768"
+X-IronPort-AV: E=Sophos;i="5.81,220,1610438400"; 
+   d="scan'208";a="174893768"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2021 10:34:02 -0800
+IronPort-SDR: dNnm3riT/7iRr/+P6cRiMU4ZgdyvTBUh6WFIfxcQD/gSTHhF+ZJY/BVXlhzMZLktWhbLt3oJrC
+ XD4jS0hoN94Q==
+X-IronPort-AV: E=Sophos;i="5.81,220,1610438400"; 
+   d="scan'208";a="407363306"
+Received: from schen9-mobl.amr.corp.intel.com ([10.252.135.223])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2021 10:34:01 -0800
+Subject: Re: [RFC PATCH v4 3/3] scheduler: Add cluster scheduler level for x86
+To:     Peter Zijlstra <peterz@infradead.org>,
+        Barry Song <song.bao.hua@hisilicon.com>
+Cc:     catalin.marinas@arm.com, will@kernel.org, rjw@rjwysocki.net,
+        vincent.guittot@linaro.org, bp@alien8.de, tglx@linutronix.de,
+        mingo@redhat.com, lenb@kernel.org, dietmar.eggemann@arm.com,
+        rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+        msys.mizuma@gmail.com, valentin.schneider@arm.com,
+        gregkh@linuxfoundation.org, jonathan.cameron@huawei.com,
+        juri.lelli@redhat.com, mark.rutland@arm.com, sudeep.holla@arm.com,
+        aubrey.li@linux.intel.com, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        x86@kernel.org, xuwei5@huawei.com, prime.zeng@hisilicon.com,
+        guodong.xu@linaro.org, yangyicong@huawei.com,
+        liguozhu@hisilicon.com, linuxarm@openeuler.org, hpa@zytor.com
+References: <20210301225940.16728-1-song.bao.hua@hisilicon.com>
+ <20210301225940.16728-4-song.bao.hua@hisilicon.com>
+ <YD4T0qBBgR6fPbQb@hirez.programming.kicks-ass.net>
+From:   Tim Chen <tim.c.chen@linux.intel.com>
+Message-ID: <a8474bae-5d9a-8c0b-766a-7188ed71320b@linux.intel.com>
+Date:   Wed, 3 Mar 2021 10:34:00 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <41593c7e-368b-cfb8-b24a-2e4dca48b465@codeaurora.org>
+In-Reply-To: <YD4T0qBBgR6fPbQb@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed 03 Mar 09:10 CST 2021, Jeffrey Hugo wrote:
 
-> On 3/3/2021 2:43 AM, Shawn Guo wrote:
-> > On Tue, Mar 02, 2021 at 10:02:49PM -0700, Jeffrey Hugo wrote:
-> > > Sorry, just joining the thread now.  Hopefully I'm addressing everything
-> > > targeted at me.
-> > > 
-> > > I used to do kernel work on MSMs, then kernel work on server CPUs, but now I
-> > > do kernel work on AI accelerators.  Never was on the firmware team, but I
-> > > have a lot of contacts in those areas.  On my own time, I support Linux on
-> > > the Qualcomm laptops.
-> > > 
-> > > Its not MS that needs to fix things (although there is plenty of things I
-> > > could point to that MS could fix), its the Qualcomm Windows FW folks.  They
-> > > have told me a while ago they were planning on fixing this issue on some
-> > > future chipset, but apparently that hasn't happened yet.  Sadly, once these
-> > > laptops ship, they are in a frozen maintenance mode.
-> > > 
-> > > In my opinion, MS has allowed Qualcomm to get away with doing bad things in
-> > > ACPI on the Qualcomm laptops.  The ACPI is not a true hardware description
-> > > that is OS agnostic as it should be, and probably violates the spec in many
-> > > ways.  Instead, the ACPI is written against the Windows drivers, and has a
-> > > lot of OS driver crap pushed into it.
-> > > 
-> > > The GPIO description is one such thing.
-> > > 
-> > > As I understand it, any particular SoC will have a number of GPIOs supported
-> > > by the TLMM.  0 - N.  Linux understands this.  However, in the ACPI of the
-> > > Qualcomm Windows laptops, you will likely find atleast one GPIO number which
-> > > exceeds this N.  These are "virtual" GPIOs, and are a construct of the
-> > > Windows Qualcomm TLMM driver and how it interfaces with the frameworks
-> > > within Windows.
-> > > 
-> > > Some GPIO lines can be configured as wakeup sources by routing them to a
-> > > specific hardware block in the SoC (which block it is varies from SoC to
-> > > SoC).  Windows has a specific weird way of handling this which requires a
-> > > unique "GPIO chip" to handle.  GPIO chips in Windows contain 32 GPIOs, so
-> > > for each wakeup GPIO, the TLMM driver creates a GPIO chip (essentially
-> > > creating 32 GPIOs), and assigns the added GPIOs numbers which exceed N.  The
-> > > TLMM driver has an internal mapping of which virtual GPIO number corresponds
-> > > to which real GPIO.
-> > > 
-> > > So, ACPI says that some peripheral has GPIO N+X, which is not a real GPIO.
-> > > That peripheral goes and requests that GPIO, which gets routed to the TLMM
-> > > driver, and the TLMM driver translates that number to the real GPIO, and
-> > > provides the reference back to the peripheral, while also setting up the
-> > > special wakeup hardware.
-> > > 
-> > > So, N+1 is the first supported wakup GPIO, N+1+32 is the next one, then
-> > > N+1+32+32, and so on.
-> > 
-> > Jeffrey,
-> > 
-> > Thanks so much for these great information!
-> > 
-> > May I ask a bit more about how the virtual number N+1+32*n maps back to
-> > the real number (R)?  For example of touchpad GPIO on Flex 5G, I think
-> > we have:
-> > 
-> >    N+1+32*n = 0x0280
-> >    N = 191
 
-There's 190 GPIOs on SC8180x, but then the math doesn't add up to a
-whole number...
-
-> >    R = 24
-> > 
-> > If my math not bad, n = 14.  How does 14 map to 24?
+On 3/2/21 2:30 AM, Peter Zijlstra wrote:
+> On Tue, Mar 02, 2021 at 11:59:40AM +1300, Barry Song wrote:
+>> From: Tim Chen <tim.c.chen@linux.intel.com>
+>>
+>> There are x86 CPU architectures (e.g. Jacobsville) where L2 cahce
+>> is shared among a cluster of cores instead of being exclusive
+>> to one single core.
 > 
-> 
-> So, if this was 845, the wakeup hardware would be the PDC.  Only a specific
-> number of GPIOs are routed to the PDC.  When the TLMM is powered off in
-> suspend, the PDC pays attention to the GPIOs that are routed to it, and are
-> configured in the PDC as wakeup sources.  When the GPIO is asserted, the
-> signal to the TLMM gets lost, but the PDC catches it.  The PDC will kick the
-> CPU/SoC out of suspend, and then once the wakup process is complete, replay
-> the GPIO so that the TLMM has the signal.
+> Isn't that most atoms one way or another? Tremont seems to have it per 4
+> cores, but earlier it was per 2 cores.
 > 
 
-SC8180x has the same hardware design.
+Yes, older Atoms have 2 cores sharing L2.  I probably should
+rephrase my comments to not leave the impression that sharing
+L2 among cores is new for Atoms.
 
-> In your example, 14 would be the 14th GPIO that is routed to the PDC. You
-> would need SoC hardware documentation to know the mapping from PDC line 14
-> to GPIO line X.  This is going to be SoC specific, so 845 documentation is
-> not going to help you for SC8XXX.
-> 
-> Chances are, you are going to need to get this documentation from Qualcomm
-> (I don't know if its in IPCatalog or not), and put SoC specific lookup
-> tables in the TLMM driver.
-> 
+Tremont based Atom CPUs increases the possible load imbalance more
+with 4 cores per L2 instead of 2.  And also with more overall cores on a die, the
+chance increases for packing running tasks on a few clusters while leaving
+others empty on light/medium loaded systems.  We did see
+this effect on Jacobsville.
 
-I added the table in the driver, see sc8180x_pdc_map[], and it has gpio
-14 at position 7, with the 14th entry being gpio 38 - which seems like
-an unlikely change from the reference schematics.
+So load balancing between the L2 clusters is more
+useful on Tremont based Atom CPUs compared to the older Atoms.
 
-> Does that make sense, or did I not answer the question you were actually
-> asking?
-> 
-
-It does.
-
-Regards,
-Bjorn
+Tim
