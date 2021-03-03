@@ -2,84 +2,84 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31FF2C43603
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:13:32 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F160364F4B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A969C4332D
 	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:13:31 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id D695F64EFE
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:13:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379489AbhCDALu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:11:50 -0500
-Received: from mga14.intel.com ([192.55.52.115]:20768 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238662AbhCCLAL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 3 Mar 2021 06:00:11 -0500
-IronPort-SDR: fFsNjE3se6JYkLykEnYn4I0lbIdULwwxa6JBsZOeNwZPwJko7peWt8PVZzgK68v6w4emGRCQ4+
- RdXgEaeczGPA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9911"; a="186505399"
-X-IronPort-AV: E=Sophos;i="5.81,219,1610438400"; 
-   d="scan'208";a="186505399"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2021 01:47:50 -0800
-IronPort-SDR: iS4RDMSwRDBs32PrXvaiQgDpCOotXPt2HWc60QWTgjHL16H/T3tWXuAyI6ICBBzqM0HMkEtt0N
- 0pL7lHZbyqZQ==
-X-IronPort-AV: E=Sophos;i="5.81,219,1610438400"; 
-   d="scan'208";a="445186885"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2021 01:47:48 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1lHO6b-009bhq-MZ; Wed, 03 Mar 2021 11:47:45 +0200
-Date:   Wed, 3 Mar 2021 11:47:45 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Shawn Guo <shawn.guo@linaro.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: support override broken GPIO number in
- ACPI table
-Message-ID: <YD9bQXBD+9k3Lf/4@smile.fi.intel.com>
-References: <20210226033919.8871-1-shawn.guo@linaro.org>
+        id S1382321AbhCDALl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:11:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37822 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1843054AbhCCKY7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2021 05:24:59 -0500
+Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14EBDC0698D5
+        for <linux-acpi@vger.kernel.org>; Wed,  3 Mar 2021 01:16:39 -0800 (PST)
+Received: by mail-lf1-x135.google.com with SMTP id z11so35904763lfb.9
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Mar 2021 01:16:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=buRZjTCkPRscNUcgouTsLvhNWylzQC2Vu2Jj2dnDvlY=;
+        b=JanEXoUqmSxDacqDR+nKEc/kxryraHtUeHFnwycu6BONzCTOiWRBjALBiBwlfx5e78
+         ZM4cbGNZDa80DIBjWjbZ2BTmh/bTfU/pztwWhDbOXCyuO5Inl7kwcij9ZURFHJn6dGoD
+         UD6u/e6GJGukxlR4C+JGktCNDZNFhYJdJo+HsUD9jewcpNbVAwYRmV9TXTLefeLCaANA
+         FA5vJsiIvKMa/cADkYmxpsh4aeA4oA4nDt98zTYblsM9ibdNDEdD4FamSm1JsFm98Eha
+         3iVWyXyVIs5Cf9aq0+KyuHzX3J8Zv+J7qB2v9YJn8rfo7WOSw4qYG64AzrHWwI0RI4LT
+         PsmQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=buRZjTCkPRscNUcgouTsLvhNWylzQC2Vu2Jj2dnDvlY=;
+        b=L81pn7GOF7vsAb3BCPafFmMYzRtoTzxjHbDR8G3Jt6CP2LgTPSazmiHbiCVMMxVJUR
+         Gj/algf6CAYSmBcAzQsU/lXsO6Zz24cJFm8w8WrHrNpqvWH3p+xrt9qGniVyaEUmmAJl
+         6UG/+vvlz2K0T+dPUXKaN06TaDjk8RQ9kccisTMZc7bYfmO71XbM/kvXzRtse6lrvtLl
+         rEB6ajzeZCTEh7PLSCEbMXK/PqnlF35Z+PdDtGCgJLnr6cD6Vm88Uzf4nWtrOQ1G+L8S
+         nfV8wiJu4l4gVVWDnGcm6VBjSAVX5TrW+RlckFtsT4cDAppYeILZwHTPG3geQ3VJR078
+         Iueg==
+X-Gm-Message-State: AOAM532OgkRmd6rv1ovG4VwZsGIk4cV5DsoGKH4+PW+kQ0kYxg79AzD/
+        Kchdxa/hAF/YYTM9NIWHLK7TgbjCXOwcscMjhLbUvA==
+X-Google-Smtp-Source: ABdhPJy9aRQHMyc4qKY1gO36BOHVs6AyUE+pwQt9Kzv2pXSSRggMKgV9EEBjNSTc07PFy8N4HS0999U1MZ6NLJp5Nn0=
+X-Received: by 2002:ac2:5d21:: with SMTP id i1mr14044766lfb.649.1614762997648;
+ Wed, 03 Mar 2021 01:16:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210226033919.8871-1-shawn.guo@linaro.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20210302153451.50593-1-andriy.shevchenko@linux.intel.com> <20210302153451.50593-3-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20210302153451.50593-3-andriy.shevchenko@linux.intel.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Wed, 3 Mar 2021 10:16:26 +0100
+Message-ID: <CACRpkdYX-CuSmNk1Yx24y15+R7q=UbXqdhgKKdeWa+dzy3wKgQ@mail.gmail.com>
+Subject: Re: [PATCH v1 3/4] gpiolib: Introduce acpi_gpio_dev_init() and call
+ it from core
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Feb 26, 2021 at 11:39:19AM +0800, Shawn Guo wrote:
-> Running kernel with ACPI on Lenovo Flex 5G laptop, touchpad is just
-> not working.  That's because the GpioInt number of TSC2 node in ACPI
-> table is simply wrong, and the number even exceeds the maximum GPIO
-> lines.  As the touchpad works fine with Windows on the same machine,
-> presumably this is something Windows-ism.  Although it's obviously
-> a specification violation, believe of that Microsoft will fix this in
-> the near future is not really realistic.
-> 
-> It adds the support of overriding broken GPIO number in ACPI table
-> on particular machines, which are matched using DMI info.  Such
-> mechanism for fixing up broken firmware and ACPI table is not uncommon
-> in kernel.  And hopefully it can be useful for other machines that get
-> broken GPIO number coded in ACPI table.
+On Tue, Mar 2, 2021 at 4:36 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
+> In the ACPI case we may use the firmware node in the similar way
+> as it's done for OF case. We may use that fwnode for other purposes
+> in the future.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-+Cc: Hans.
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-Hans, would appreciate your opinion on this thread. Maybe I'm mistaken in my
-conclusions.
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Yours,
+Linus Walleij
