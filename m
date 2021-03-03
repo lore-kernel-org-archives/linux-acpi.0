@@ -2,74 +2,79 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A4DAC433E9
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A28FC4332D
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6CB1E64EFD
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6222164E6F
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 00:14:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387985AbhCDAME (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:12:04 -0500
-Received: from mail-oi1-f172.google.com ([209.85.167.172]:37747 "EHLO
-        mail-oi1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1579945AbhCCScs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2021 13:32:48 -0500
-Received: by mail-oi1-f172.google.com with SMTP id l133so27042400oib.4;
-        Wed, 03 Mar 2021 10:32:33 -0800 (PST)
+        id S1388185AbhCDAML (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:12:11 -0500
+Received: from mail-ot1-f48.google.com ([209.85.210.48]:40550 "EHLO
+        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239656AbhCCSkA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2021 13:40:00 -0500
+Received: by mail-ot1-f48.google.com with SMTP id b8so24531297oti.7
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Mar 2021 10:38:54 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=WZY0tUHu6hLONyVYVjIAaxzNB+f61DoThMHd4BdYBAI=;
-        b=X4tZH0H9R4tFrX732HHJ1jT+HE0HuNtMCM82HsfepL9zUtmUfNMTORdKMK0LnzZsF2
-         KKXHmEaQAZtIeOkj3IM/bBiWh+GDsN9L6rwsapm7vefGV8TE8gGxevzC5JWy4PV7Ct1B
-         mVl4UEhAg1ewmt+UD3xl1VoXUZFaWuT97KxbPr/d8EzdeEKtEMcgTozPJGc5k+Dp2sVF
-         YhrhfZfOFTFDekdRRyzuKONU6luGx25EkH/i3cTy/dgYw+nlhvwYp5IJsVqcfYaY2ysx
-         699e7Jn0MpT37h3nWAcnFdpnsZVUak+ZExrolQvxvSamB0+mZZembflNVG4SfLG7TN99
-         pkYg==
-X-Gm-Message-State: AOAM530MOBpC5Tr0nYJEpt4slYC8dWQVpofgcZ4zuBzazr8Thar1yJG0
-        VShPxsM8iuCcIxWVyRcHKVnSt9Fq3W/iryyrdPY=
-X-Google-Smtp-Source: ABdhPJxRZiwCxfjQ6YQPd5xzCEoDWawYZdCETLZONsXJyxbwnui8GXBZ0orhSdLgwXeq7BWI6duGV59e1B4X/AirAD8=
-X-Received: by 2002:aca:3d85:: with SMTP id k127mr111298oia.157.1614796327952;
- Wed, 03 Mar 2021 10:32:07 -0800 (PST)
+        bh=QNfMFUqnbfRpKmfbEhIdl0ckJQF8TkIoj1h40G0Tu3k=;
+        b=axa5T3Dx7f9rms3CWMAkBwtlA0kOqtLNlDPkYJRi0iHjLm5Imr+yKyCXOZSG+bfIy2
+         ZaMIjdmBtMI1iUtZZc9z0O4a7BNc4vfs6ImWYlJwVDxfGrVmf/3iTJPfobTVqmS1xtHE
+         LSG9YOm/8VDAc5YJ3V/iG5mRTmSD1LLTFfhIa1vlmPddykqIc7xPaJ7oMTsyy3fi+MRg
+         BnvAjToTykm+DKvRYc9kusHHlgdw6tU98l3Q4Gezhqa2m08XKwISCAsqpYDKZsTXYOVE
+         CFA0HX7gw8R9cZ+o8c68uB5EVmURMGJ47xcfysBMm9K4iTOFSIFyS8F0gtB19sFRFHgX
+         PW0g==
+X-Gm-Message-State: AOAM531gPvrNFWgk6pULg39u9gx+m/842DKbDViClYD6cT3ZNjX4yktD
+        PUTX0ucEClsOKOx8YXJPFgoqgi9vPO5MDZPCAPAjnFN8
+X-Google-Smtp-Source: ABdhPJxmCC/yDMuO9tMBebnhdnU57Pz1ckuktYXiXAS6ScP/TEtG/cIrYqqo7cqBZVnhAS1mQfqfvnTaKrTMiod1y5o=
+X-Received: by 2002:a05:6830:2046:: with SMTP id f6mr319605otp.321.1614796709635;
+ Wed, 03 Mar 2021 10:38:29 -0800 (PST)
 MIME-Version: 1.0
-References: <4822757.tvZ08WQ2Gl@kreacher> <7de92ec8-3a15-6165-2384-15d301e7b568@huawei.com>
-In-Reply-To: <7de92ec8-3a15-6165-2384-15d301e7b568@huawei.com>
+References: <1614041789-28216-1-git-send-email-tiantao6@hisilicon.com>
+In-Reply-To: <1614041789-28216-1-git-send-email-tiantao6@hisilicon.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 3 Mar 2021 19:31:56 +0100
-Message-ID: <CAJZ5v0iHN5Z2O141c-E4ehGJFSU=NhwK+6p_9==QJT2edj-LqQ@mail.gmail.com>
-Subject: Re: [PATCH v1 0/4] ACPI: PCI: Unify printing of messages
-To:     Hanjun Guo <guohanjun@huawei.com>,
-        Linux ACPI <linux-acpi@vger.kernel.org>
+Date:   Wed, 3 Mar 2021 19:38:18 +0100
+Message-ID: <CAJZ5v0gc_pWr0hOHU0A_rohMijji_u2p4yxwGzA6+P1NaPBfkA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: processor: Remove initialization of static variables
+To:     Tian Tao <tiantao6@hisilicon.com>
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Feb 20, 2021 at 10:25 AM Hanjun Guo <guohanjun@huawei.com> wrote:
+On Tue, Feb 23, 2021 at 1:57 AM Tian Tao <tiantao6@hisilicon.com> wrote:
 >
-> On 2021/2/20 2:14, Rafael J. Wysocki wrote:
-> > Hi All,
-> >
-> > This series gets rid of ACPICA debugging from non-ACPICA code related to PCI
-> > (patches [1-3/4]) and replaces direct printk() usage in pci_link.c with
-> > pr_*() or acpi_handle_*().
-> >
-> > Please refer to the patch changelogs for details.
+> Address the following checkpatch errors:
+> ERROR: do not initialise statics to false
 >
-> Looks good to me,
+> Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+> ---
+>  drivers/acpi/processor_perflib.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> index 32f0f55..91c401e 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -459,7 +459,7 @@ int acpi_processor_pstate_control(void)
+>
+>  int acpi_processor_notify_smm(struct module *calling_module)
+>  {
+> -       static int is_done = 0;
+> +       static int is_done;
+>         int result;
+>
+>         if (!acpi_processor_cpufreq_init)
+> --
 
-Thanks!
-
-Given the absence of any further comments I will be queuing up this
-series for 5.13, thanks!
+Applied as 5.13 material with minor edits in the subject and changelog, thanks!
