@@ -2,140 +2,136 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8955BC433DB
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 19:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2E42C433E9
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 20:16:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44E7964F6A
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 19:34:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A481764F72
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 20:16:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237391AbhCDTeL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 4 Mar 2021 14:34:11 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:31144 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S237323AbhCDTdp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2021 14:33:45 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1614886339;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=wrPAflFGNHOXutzM/wry07r42DdisR9sPKXbgj55UKc=;
-        b=MOs5TDKo49Y0W9moDx9xJhLFiLJOLjMng8mls7+8c0uO3xUqNKurUKI4fLli4sxL4i2lQl
-        9YsuSFuvmWHHcX0ZfrIE5ie1vdDAcK3Fv19em557TS8HPsEiXkYUhiS16lKWQDg2bHiDII
-        gCpAVHb48phWGi2dWB0wGNOd1JGfRtQ=
-Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
- [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-357-X1JHvopZPh6_3RYSthdr2w-1; Thu, 04 Mar 2021 14:32:17 -0500
-X-MC-Unique: X1JHvopZPh6_3RYSthdr2w-1
-Received: by mail-ej1-f69.google.com with SMTP id m4so12601485ejc.14
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Mar 2021 11:32:17 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=wrPAflFGNHOXutzM/wry07r42DdisR9sPKXbgj55UKc=;
-        b=BtL4BIYs+2lz7KiEx/hfhPr95evrCXo8C3J3L8HkR/Rrmc2BAuaacKZHp3VcdJJzZv
-         giK7tFoTsR5ObrOuShlYGN69u/46R139lOz4fpQ8MDwDaIPputXsp84x5tdcWzN8zG0y
-         KfhawGPbzEJV2NvgPeU+wU5XyQuwPm5VZe59FJZWsWFTY1TYy9AbgSAUTUcujRC6rOSq
-         ZTo4U1ULBWFLrJka9vSyEjBfpOeXXHsmhPSbSDsid9GafD8d1O3UWu+3e32XNrYFgsVW
-         L8P+aEuOCFopF2JCfC3mejJlPHBYNIudBYrd7gaFzbztFzge9XV+h7JKEltuzlEKNp/0
-         IBvA==
-X-Gm-Message-State: AOAM531d9mhxa8LQxw8h4fZHJmg9SG4/xryTkluP4ZweiZq6wO4ozvwb
-        vxexGR4wUKl6E0y1jbXd6SQHSjGYMY/vfQwHIC4qXHTIocx8WG2nB8DI9+Or+WAoPs4Wti/KuP/
-        w0uwttzYCur8nQp29RGS1aw==
-X-Received: by 2002:a05:6402:646:: with SMTP id u6mr6302898edx.250.1614886336783;
-        Thu, 04 Mar 2021 11:32:16 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJyuucKpF2WrPMi/NcdJCn1dAHIe6ryR+51VfWliz/aifrAH633s+zLkKmPjsJM9f4VsLejYqQ==
-X-Received: by 2002:a05:6402:646:: with SMTP id u6mr6302888edx.250.1614886336593;
-        Thu, 04 Mar 2021 11:32:16 -0800 (PST)
-Received: from x1.localdomain (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
-        by smtp.gmail.com with ESMTPSA id u14sm119725ejx.60.2021.03.04.11.32.15
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 04 Mar 2021 11:32:15 -0800 (PST)
-Subject: Re: [PATCH] gpiolib: acpi: support override broken GPIO number in
- ACPI table
+        id S236098AbhCDUPR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 4 Mar 2021 15:15:17 -0500
+Received: from mga04.intel.com ([192.55.52.120]:44580 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232049AbhCDUOu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 Mar 2021 15:14:50 -0500
+IronPort-SDR: +w8cJvAokE4zmdBMzlmMWrgXK/Z1J5bNQa3lkl2hdsT85xRz2gcbnMu19JA92kOXYTU15gOKDJ
+ f9E6NwkxN0hg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9913"; a="185091347"
+X-IronPort-AV: E=Sophos;i="5.81,223,1610438400"; 
+   d="scan'208";a="185091347"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2021 12:13:05 -0800
+IronPort-SDR: 9BvWGDsfn+yqJvSNB/jCpOizBB3vYdQStCf6oWHjICd4IwmPPwEF0i/fWSgO/YJ2EaqTjaPwUr
+ tc2Uw7zcS53g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,223,1610438400"; 
+   d="scan'208";a="368308590"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga003.jf.intel.com with ESMTP; 04 Mar 2021 12:13:01 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 8557F2B7; Thu,  4 Mar 2021 22:13:00 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Shawn Guo <shawn.guo@linaro.org>
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc:     Marc Zyngier <maz@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-References: <20210226033919.8871-1-shawn.guo@linaro.org>
- <YD9bQXBD+9k3Lf/4@smile.fi.intel.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <2ed0d4dc-2756-9a55-3f54-1377732e35fc@redhat.com>
-Date:   Thu, 4 Mar 2021 20:32:14 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.0
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH v3 2/5] gpiolib: Unify the checks on fwnode type
+Date:   Thu,  4 Mar 2021 22:12:50 +0200
+Message-Id: <20210304201253.14652-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210304201253.14652-1-andriy.shevchenko@linux.intel.com>
+References: <20210304201253.14652-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <YD9bQXBD+9k3Lf/4@smile.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+We have (historically) different approaches how we identify the type
+of a given fwnode. Let's standardize them across the library code.
 
-On 3/3/21 10:47 AM, Andy Shevchenko wrote:
-> On Fri, Feb 26, 2021 at 11:39:19AM +0800, Shawn Guo wrote:
->> Running kernel with ACPI on Lenovo Flex 5G laptop, touchpad is just
->> not working.  That's because the GpioInt number of TSC2 node in ACPI
->> table is simply wrong, and the number even exceeds the maximum GPIO
->> lines.  As the touchpad works fine with Windows on the same machine,
->> presumably this is something Windows-ism.  Although it's obviously
->> a specification violation, believe of that Microsoft will fix this in
->> the near future is not really realistic.
->>
->> It adds the support of overriding broken GPIO number in ACPI table
->> on particular machines, which are matched using DMI info.  Such
->> mechanism for fixing up broken firmware and ACPI table is not uncommon
->> in kernel.  And hopefully it can be useful for other machines that get
->> broken GPIO number coded in ACPI table.
-> 
-> 
-> +Cc: Hans.
-> 
-> Hans, would appreciate your opinion on this thread. Maybe I'm mistaken in my
-> conclusions.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/gpio/gpiolib.c | 28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-So I've read the entire thread here:
-https://lore.kernel.org/linux-gpio/20210226033919.8871-1-shawn.guo@linaro.org/T/#u
-
-And I agree wih Andy, this is not something which should be fixed up in the
-generic gpiolib-acpi code.
-
-Note that we have similar things going on on x86 platforms. There are cases
-there where there are e.g. holes in the GPIO ranges advertised by the Intel
-pinctrl drivers. And in the beginning as i2c (and thus GpioIRQ) HID devices
-started to become more common there were also several rounds of work to make
-sure that the GPIO numbering (per ACPI-device / island) exported to the rest
-of the kernel (and thus to gpiolib-acpi) matched with the numbering which
-the ACPI tables expected (so the numbering which the Windows driver use).
-
-It seems to me, esp. in the light that there are a lot of "crazy high" GPIO
-indexes in the DSDT of the Lenovo Flex 5G, that the right thing to do here
-is to fix the qualcom pinctrl/GPIO driver to number its GPIOs in the way
-expected by these ACPI tables. This will break use of existing devicetrees,
-so it will likely need to detect if the main firmware of the system is ACPI
-or DT based and then use 2 different numbering schemes depending on the
-outcome of that check.
-
-Please also do not try ti fix this with some quirks in e.g. the i2c-hid driver,
-I will definitely NACK such attempts. From what we can see now any fix clearly
-should be done inside the qualcom GPIO driver.
-
-Regards,
-
-Hans
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index adf55db080d8..083d7e1c7cde 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -3678,11 +3678,12 @@ EXPORT_SYMBOL_GPL(fwnode_gpiod_get_index);
+  */
+ int gpiod_count(struct device *dev, const char *con_id)
+ {
++	const struct fwnode_handle *fwnode = dev ? dev_fwnode(dev) : NULL;
+ 	int count = -ENOENT;
+ 
+-	if (IS_ENABLED(CONFIG_OF) && dev && dev->of_node)
++	if (is_of_node(fwnode))
+ 		count = of_gpio_get_count(dev, con_id);
+-	else if (IS_ENABLED(CONFIG_ACPI) && dev && ACPI_HANDLE(dev))
++	else if (is_acpi_node(fwnode))
+ 		count = acpi_gpio_count(dev, con_id);
+ 
+ 	if (count < 0)
+@@ -3820,18 +3821,17 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
+ 	int ret;
+ 	/* Maybe we have a device name, maybe not */
+ 	const char *devname = dev ? dev_name(dev) : "?";
++	const struct fwnode_handle *fwnode = dev ? dev_fwnode(dev) : NULL;
+ 
+ 	dev_dbg(dev, "GPIO lookup for consumer %s\n", con_id);
+ 
+-	if (dev) {
+-		/* Using device tree? */
+-		if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+-			dev_dbg(dev, "using device tree for GPIO lookup\n");
+-			desc = of_find_gpio(dev, con_id, idx, &lookupflags);
+-		} else if (ACPI_COMPANION(dev)) {
+-			dev_dbg(dev, "using ACPI for GPIO lookup\n");
+-			desc = acpi_find_gpio(dev, con_id, idx, &flags, &lookupflags);
+-		}
++	/* Using device tree? */
++	if (is_of_node(fwnode)) {
++		dev_dbg(dev, "using device tree for GPIO lookup\n");
++		desc = of_find_gpio(dev, con_id, idx, &lookupflags);
++	} else if (is_acpi_node(fwnode)) {
++		dev_dbg(dev, "using ACPI for GPIO lookup\n");
++		desc = acpi_find_gpio(dev, con_id, idx, &flags, &lookupflags);
+ 	}
+ 
+ 	/*
+@@ -3915,9 +3915,6 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
+ 	struct gpio_desc *desc = ERR_PTR(-ENODEV);
+ 	int ret;
+ 
+-	if (!fwnode)
+-		return ERR_PTR(-EINVAL);
+-
+ 	if (is_of_node(fwnode)) {
+ 		desc = gpiod_get_from_of_node(to_of_node(fwnode),
+ 					      propname, index,
+@@ -3933,7 +3930,8 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
+ 
+ 		acpi_gpio_update_gpiod_flags(&dflags, &info);
+ 		acpi_gpio_update_gpiod_lookup_flags(&lflags, &info);
+-	}
++	} else
++		return ERR_PTR(-EINVAL);
+ 
+ 	/* Currently only ACPI takes this path */
+ 	ret = gpiod_request(desc, label);
+-- 
+2.30.1
 
