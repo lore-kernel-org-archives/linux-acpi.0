@@ -2,75 +2,129 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF6BC433E0
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 20:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFF0CC433DB
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 20:17:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7C0C64F4C
-	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 20:16:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7060D64F6D
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 Mar 2021 20:17:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231700AbhCDUPu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 4 Mar 2021 15:15:50 -0500
-Received: from mga09.intel.com ([134.134.136.24]:51698 "EHLO mga09.intel.com"
+        id S237971AbhCDUQV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 4 Mar 2021 15:16:21 -0500
+Received: from mga07.intel.com ([134.134.136.100]:17133 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233551AbhCDUPZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 4 Mar 2021 15:15:25 -0500
-IronPort-SDR: AcOUKR8SFHqKIVIre+FYi4+titko+hWui7jjXmJwMsCYGb5jHG9hf+UIq6mIS7K/8067vGtS3L
- kLSj8FrJqphQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9913"; a="187607434"
+        id S237483AbhCDUQK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 Mar 2021 15:16:10 -0500
+IronPort-SDR: FJ/WzgRQoDv+2VzFgA/E46hdQvXw3ZEDiTyOMkfKUrz6wZ7hkZ/VSdOnuQQO17gZ0WH2BBmg6h
+ AgaAyTtj2BJg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9913"; a="251537524"
 X-IronPort-AV: E=Sophos;i="5.81,223,1610438400"; 
-   d="scan'208";a="187607434"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2021 12:13:39 -0800
-IronPort-SDR: V6+l76/uiezSct0jjCoKbVkaqppcJD7GAc8jWNDu0+tyqjlsOBzpFrFHKmLrSlJYbPzO+DQZJM
- hK74uWNz08jQ==
+   d="scan'208";a="251537524"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2021 12:13:03 -0800
+IronPort-SDR: jDvoZbqh1YyXX2x7kCfpMk0WbIt+wBeQ6z8VNiOjeUQAf47LnitebRNrPQqO08piskAjNBZe16
+ dYtnP1XBW/YA==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,223,1610438400"; 
-   d="scan'208";a="435967426"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2021 12:13:37 -0800
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1lHuLm-009xyA-6O; Thu, 04 Mar 2021 22:13:34 +0200
-Date:   Thu, 4 Mar 2021 22:13:34 +0200
+   d="scan'208";a="518783505"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga004.jf.intel.com with ESMTP; 04 Mar 2021 12:13:00 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 9009F29E; Thu,  4 Mar 2021 22:13:00 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Marc Zyngier <maz@kernel.org>
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Jonathan Corbet <corbet@lwn.net>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc:     Marc Zyngier <maz@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/5] irqdomain: Introduce irq_domain_create_simple()
- API
-Message-ID: <YEE/bnLUXhOibq3/@smile.fi.intel.com>
-References: <20210304150215.80652-1-andriy.shevchenko@linux.intel.com>
- <20210304150215.80652-2-andriy.shevchenko@linux.intel.com>
- <87lfb2zsab.wl-maz@kernel.org>
+Subject: [PATCH v3 3/5] gpiolib: Move of_node operations to gpiolib-of and correct fwnode use
+Date:   Thu,  4 Mar 2021 22:12:51 +0200
+Message-Id: <20210304201253.14652-4-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210304201253.14652-1-andriy.shevchenko@linux.intel.com>
+References: <20210304201253.14652-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87lfb2zsab.wl-maz@kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Mar 04, 2021 at 06:29:32PM +0000, Marc Zyngier wrote:
-> On Thu, 04 Mar 2021 15:02:11 +0000,
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
+The initial value of the OF node based on presence of parent, but
+at the same time this operation somehow appeared separately from others
+that handle the OF case. On the other hand there is no need to assign
+dev->fwnode in the OF case if code properly retrieves fwnode, i.e.
+via dev_fwnode() helper.
 
-> Please move this as an inline helper in linux/irqdomain.h, so that we
-> can drop this export altogether.
+Amend gpiolib.c and gpiolib-of.c code in order to group OF operations.
 
-Done in v3, thanks!
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/gpio/gpiolib-of.c | 6 ++++--
+ drivers/gpio/gpiolib.c    | 9 ++++-----
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index baf0153b7bca..bbcc7c073f63 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -1042,11 +1042,13 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+ 
+ void of_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev)
+ {
++	/* Set default OF node to parent's one if present */
++	if (gc->parent)
++		gdev->dev.of_node = gc->parent->of_node;
++
+ 	/* If the gpiochip has an assigned OF node this takes precedence */
+ 	if (gc->of_node)
+ 		gdev->dev.of_node = gc->of_node;
+ 	else
+ 		gc->of_node = gdev->dev.of_node;
+-	if (gdev->dev.of_node)
+-		gdev->dev.fwnode = of_fwnode_handle(gdev->dev.of_node);
+ }
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 083d7e1c7cde..2a3d562eb8c1 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -585,12 +585,9 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+ 	if (!gdev)
+ 		return -ENOMEM;
+ 	gdev->dev.bus = &gpio_bus_type;
++	gdev->dev.parent = gc->parent;
+ 	gdev->chip = gc;
+ 	gc->gpiodev = gdev;
+-	if (gc->parent) {
+-		gdev->dev.parent = gc->parent;
+-		gdev->dev.of_node = gc->parent->of_node;
+-	}
+ 
+ 	of_gpio_dev_init(gc, gdev);
+ 
+@@ -4212,11 +4209,13 @@ EXPORT_SYMBOL_GPL(gpiod_put_array);
+ 
+ static int gpio_bus_match(struct device *dev, struct device_driver *drv)
+ {
++	struct fwnode_handle *fwnode = dev_fwnode(dev);
++
+ 	/*
+ 	 * Only match if the fwnode doesn't already have a proper struct device
+ 	 * created for it.
+ 	 */
+-	if (dev->fwnode && dev->fwnode->dev != dev)
++	if (fwnode && fwnode->dev != dev)
+ 		return 0;
+ 	return 1;
+ }
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.1
 
