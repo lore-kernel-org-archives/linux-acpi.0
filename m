@@ -2,108 +2,129 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB52C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Mar 2021 19:44:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0670BC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Mar 2021 19:46:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76509652B2
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Mar 2021 19:44:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC1BF652AB
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Mar 2021 19:46:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231359AbhCHTno (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Mar 2021 14:43:44 -0500
-Received: from mail-ot1-f50.google.com ([209.85.210.50]:44540 "EHLO
-        mail-ot1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231254AbhCHTnb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Mar 2021 14:43:31 -0500
-Received: by mail-ot1-f50.google.com with SMTP id f33so10373331otf.11;
-        Mon, 08 Mar 2021 11:43:31 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0HNv84JQX4/NDOa1VknCFUJOHmOgLmHruHi0GFdspBM=;
-        b=aeBM5iYD7UaH2PeOSmAluyCqdVqfp0FOH2A6edyaTIH4RIlDVfrzStdJQFgNE+AHPt
-         Qiiy78tgplaMDuzXx0HcfjoRw4gj9RhV7L/pwxeeC8GydtjoIQJn2NU9F9IRi6mIi8bJ
-         G5elkeP2PheybFfgf9g3VUWLGtB9AG4I6huO+HesiPZ57Q8LN/qDmmfj4UWPOdl+GtVB
-         bgw6IM6DdYevtfT7W6rdaM9S03vcHom5fiYMv3OWIFOjZhS/lTer1Ynsk9SgoXoXJRsV
-         fZC1gZyaRdcGpTArn3cAznIUj9Wczi5qDfF+f/Vx+Ao4fhgqIXQfFA8cipjK4HCrkXil
-         l9vg==
-X-Gm-Message-State: AOAM530YeTYXN5Sq/pqSZoVVKQGHea3TSCNONgUoK7qGmpofVFtiWHMq
-        V/oLNI5bJkpGRkJo9MBrZbPz/M6ES3jUxcl/4PKR1U0xAdY=
-X-Google-Smtp-Source: ABdhPJzL6lY/qcC5OhuUgViwDJUUZATGQDB3Js0xiIq7lQ4DaLMY3aCTs4rH9So5NyhbrV8nc3COFSmyA3td9hidQFA=
-X-Received: by 2002:a05:6830:1057:: with SMTP id b23mr21869147otp.206.1615232610761;
- Mon, 08 Mar 2021 11:43:30 -0800 (PST)
-MIME-Version: 1.0
-References: <20210308193146.65585-1-andriy.shevchenko@linux.intel.com> <20210308193146.65585-2-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20210308193146.65585-2-andriy.shevchenko@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 8 Mar 2021 20:43:19 +0100
-Message-ID: <CAJZ5v0gpNzyBDKfBXoBYskUXs15GrZAe-E2vzhSEu2Nrj7wa7g@mail.gmail.com>
-Subject: Re: [PATCH v4 2/2] gpiolib: Fold conditionals into simple ternary operator
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
+        id S229813AbhCHTpy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Mar 2021 14:45:54 -0500
+Received: from mga12.intel.com ([192.55.52.136]:25773 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231506AbhCHTpp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Mar 2021 14:45:45 -0500
+IronPort-SDR: e3La57l6xwQ13cTILa2AvPv5Q4nxgWtulC++37tvjbxzlfo5sII65a3ZEgEQmmeEYpgGuY97Rh
+ b8Z4DIfsdpUA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9917"; a="167365980"
+X-IronPort-AV: E=Sophos;i="5.81,233,1610438400"; 
+   d="scan'208";a="167365980"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Mar 2021 11:45:45 -0800
+IronPort-SDR: vJBqOLGzVjpARZY9Njj4s0cDhOrhydj4e4cIX7G6IQ79Kf2rFDXj+xDeFBkVerMO+x712dN6+8
+ yV84DCp6eZFA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,233,1610438400"; 
+   d="scan'208";a="588166607"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga005.jf.intel.com with ESMTP; 08 Mar 2021 11:45:41 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id EFBD5490; Mon,  8 Mar 2021 21:45:41 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc:     Marc Zyngier <maz@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Content-Type: text/plain; charset="UTF-8"
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH v5 3/6] gpiolib: Move of_node operations to gpiolib-of and correct fwnode use
+Date:   Mon,  8 Mar 2021 21:45:32 +0200
+Message-Id: <20210308194535.66394-4-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210308194535.66394-1-andriy.shevchenko@linux.intel.com>
+References: <20210308194535.66394-1-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Mar 8, 2021 at 8:33 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> It's quite spread code to initialize IRQ domain options.
-> Let's fold it into a simple oneliner.
->
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
-> v4: new patch (see changelog of previous one)
->  drivers/gpio/gpiolib.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> index afee48e7dd41..8c5ce377accc 100644
-> --- a/drivers/gpio/gpiolib.c
-> +++ b/drivers/gpio/gpiolib.c
-> @@ -1458,7 +1458,7 @@ static int gpiochip_add_irqchip(struct gpio_chip *gc,
->  {
->         struct fwnode_handle *fwnode = dev_fwnode(&gc->gpiodev->dev);
->         struct irq_chip *irqchip = gc->irq.chip;
-> -       const struct irq_domain_ops *ops = NULL;
-> +       const struct irq_domain_ops *ops;
+The initial value of the OF node based on presence of parent, but
+at the same time this operation somehow appeared separately from others
+that handle the OF case. On the other hand there is no need to assign
+dev->fwnode in the OF case if code properly retrieves fwnode, i.e.
+via dev_fwnode() helper.
 
-It looks like the ops local var is redundant.
+Amend gpiolib.c and gpiolib-of.c code in order to group OF operations.
 
->         unsigned int type;
->         unsigned int i;
->
-> @@ -1496,11 +1496,7 @@ static int gpiochip_add_irqchip(struct gpio_chip *gc,
->                         return ret;
->         } else {
->                 /* Some drivers provide custom irqdomain ops */
-> -               if (gc->irq.domain_ops)
-> -                       ops = gc->irq.domain_ops;
-> -
-> -               if (!ops)
-> -                       ops = &gpiochip_domain_ops;
-> +               ops = gc->irq.domain_ops ?: &gpiochip_domain_ops;
->                 gc->irq.domain = irq_domain_create_simple(fwnode,
->                         gc->ngpio,
->                         gc->irq.first,
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/gpio/gpiolib-of.c | 6 ++++--
+ drivers/gpio/gpiolib.c    | 9 ++++-----
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-Because this can be
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index baf0153b7bca..bbcc7c073f63 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -1042,11 +1042,13 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+ 
+ void of_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev)
+ {
++	/* Set default OF node to parent's one if present */
++	if (gc->parent)
++		gdev->dev.of_node = gc->parent->of_node;
++
+ 	/* If the gpiochip has an assigned OF node this takes precedence */
+ 	if (gc->of_node)
+ 		gdev->dev.of_node = gc->of_node;
+ 	else
+ 		gc->of_node = gdev->dev.of_node;
+-	if (gdev->dev.of_node)
+-		gdev->dev.fwnode = of_fwnode_handle(gdev->dev.of_node);
+ }
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 1b3b0acdb803..41a57f042843 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -585,12 +585,9 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+ 	if (!gdev)
+ 		return -ENOMEM;
+ 	gdev->dev.bus = &gpio_bus_type;
++	gdev->dev.parent = gc->parent;
+ 	gdev->chip = gc;
+ 	gc->gpiodev = gdev;
+-	if (gc->parent) {
+-		gdev->dev.parent = gc->parent;
+-		gdev->dev.of_node = gc->parent->of_node;
+-	}
+ 
+ 	of_gpio_dev_init(gc, gdev);
+ 
+@@ -4211,11 +4208,13 @@ EXPORT_SYMBOL_GPL(gpiod_put_array);
+ 
+ static int gpio_bus_match(struct device *dev, struct device_driver *drv)
+ {
++	struct fwnode_handle *fwnode = dev_fwnode(dev);
++
+ 	/*
+ 	 * Only match if the fwnode doesn't already have a proper struct device
+ 	 * created for it.
+ 	 */
+-	if (dev->fwnode && dev->fwnode->dev != dev)
++	if (fwnode && fwnode->dev != dev)
+ 		return 0;
+ 	return 1;
+ }
+-- 
+2.30.1
 
-gc->irq.domain = irq_domain_add_simple(np,
-                        gc->ngpio,
-                        gc->irq.first,
-                        gc->irq.domain_ops ?: &gpiochip_domain_ops,
-                        gc);
-
-(modulo white space / formatting) and this is the only place where ops
-is used in this function.
