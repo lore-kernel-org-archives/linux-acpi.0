@@ -2,167 +2,94 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 635D1C43381
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Mar 2021 19:48:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9621AC433E0
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Mar 2021 23:16:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3982C64FDD
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Mar 2021 19:48:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68ADD64FCE
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Mar 2021 23:16:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233606AbhCJTrv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Mar 2021 14:47:51 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:54585 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233633AbhCJTrt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 Mar 2021 14:47:49 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1615405668;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=15J7/6/60u4JfGCD3qHIlb5hU7kTjQauSUUO0B/9ZRI=;
-        b=JHweXBPHGC71ZqsAZpUamZn9b+CC1nSzKi8qD+FGQISgkkOrzg+RGISzZNsv8h+II67rZu
-        wCCZVf2PBgwgfnDUNtyIVffpNE2SK7Ee+fHfVUfbfNnRtR76+OBoapOjxBiQ0wbGZ3aweR
-        MSTtAS1Fcd79NNB0rp7EA83ofiBDQQk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-104-D_wRruRRMOKqBTFeObd7-A-1; Wed, 10 Mar 2021 14:47:44 -0500
-X-MC-Unique: D_wRruRRMOKqBTFeObd7-A-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 41D601019623;
-        Wed, 10 Mar 2021 19:47:42 +0000 (UTC)
-Received: from [10.36.112.107] (ovpn-112-107.ams2.redhat.com [10.36.112.107])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A415A59453;
-        Wed, 10 Mar 2021 19:47:38 +0000 (UTC)
-To:     Mike Rapoport <rppt@linux.ibm.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        George Kennedy <george.kennedy@oracle.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Dhaval Giani <dhaval.giani@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Oscar Salvador <osalvador@suse.de>,
-        Wei Yang <richard.weiyang@linux.alibaba.com>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        Michal Hocko <mhocko@suse.com>
-References: <1614802160-29362-1-git-send-email-george.kennedy@oracle.com>
- <CAJZ5v0j3=82x1hV9SCdinJQPkDXmJd9BFoqvNxNHSb6iS8PHVQ@mail.gmail.com>
- <9c3bc1b2-bb8d-194d-6faf-e4d7d346dc9b@oracle.com>
- <CAJZ5v0j8udd0R6A1wwpNvZL5Dr1pRcdiZr2if5y50o7OkHOMqg@mail.gmail.com>
- <1ae44491-4404-6873-4ee6-6cf58c1ae6fb@redhat.com>
- <CAJZ5v0gC+60n0-UkMw8h5JPBc6grQtD1ambSOCAHV2HLm886yQ@mail.gmail.com>
- <CAJZ5v0g_ztenDY-ER6A0fKD-ZHhLfF3zQdRYYxQb5jSXudd8xQ@mail.gmail.com>
- <e8593eae-40b8-bc9a-78db-529d28d2be88@redhat.com>
- <YEkgP0G94uQBGDa9@linux.ibm.com>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat GmbH
-Subject: Re: [PATCH 1/1] ACPI: fix acpi table use after free
-Message-ID: <0d05364c-4881-d78a-9721-bd15f5eb822b@redhat.com>
-Date:   Wed, 10 Mar 2021 20:47:37 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.0
+        id S233615AbhCJXPx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Mar 2021 18:15:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60942 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233643AbhCJXPn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Mar 2021 18:15:43 -0500
+Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22260C061760
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Mar 2021 15:15:43 -0800 (PST)
+Received: by mail-lf1-x12c.google.com with SMTP id p21so36423271lfu.11
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Mar 2021 15:15:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FvgqzQ3J8j30csPWmBVtuOz65ao5kSPhlDNVxVSpFEc=;
+        b=I3yoB+2Jz9M77UGRHjOQ21FENV/4rcf8+OthqQA31JhtTKZUynjkLmtKEf0HMj+NLJ
+         8jvPlfUVgF98rs95p39XYZc7yFb68WICkPO/kQvt6Q1c8J+jFT7QEG8y7D7kdoqxOKRJ
+         DMvE5N7lFIevdpnTIj5+Slb00i7pEud0WDbJWaNU6iv3eZS9zVGUZtE2fpS3+EVmb/ec
+         gxuW8mdqT5QZr8E/D68kK+oKbchcF9jIscvwr/plgHJf3SvvLbj/ikY77bD8rHw/9yWj
+         yAbzJKsg98OHJB07f4Nlku0qvpt94YACmKgcRBfReIi1j5LWoP2M0muZ8nMy/pBj6pTI
+         Bdmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FvgqzQ3J8j30csPWmBVtuOz65ao5kSPhlDNVxVSpFEc=;
+        b=OvzHha/+4nnNZffwzkNPjgq8WjKczyocAlwjb9i/6YOa4cvxI2CbYqLqmgQ8VAkwiI
+         XNqsaJqV7X6z8XGZFHQtDMsrvWnvax4lm32lNBvDBhLvRg/4Lawo5y98ycTID4GBhvUY
+         H1YY8U7Yx0zwoaUm+kNO9FfckQ/BT1IMmaDYQgN4c2UszyKX0CzR5lQtBh82dVsiUF0U
+         oGPVLj4g7/vtkWIFKRBLL0YYXHQDpZjL4wmW4YHuD9Jmuoe3WWilK6Sp36rUreP6XafK
+         uc9VNYvZ0XTlGcpaxeWX3vagSUoz/hJLM3nYH8yA7gEpVu0Wgzlh6ezGdo0cUFlr/oXr
+         /iCw==
+X-Gm-Message-State: AOAM532zVwNNFEDV6hnMW5tEHWZgnCa7u4IEkRHWUV4Ikf1I0dxPodd4
+        TSfmJekVLx3FS5Adg3C0P8jrev72uLOPo1bvDUSu/g==
+X-Google-Smtp-Source: ABdhPJz6sqRctIaxVCY7bLqYO+NzPpIJ6vlSe8TnV452GfK18RjK/YOYwyudDIEPPPFgwGG+hoX2MGiC29xhnianDGc=
+X-Received: by 2002:ac2:4d95:: with SMTP id g21mr508729lfe.29.1615418140326;
+ Wed, 10 Mar 2021 15:15:40 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <YEkgP0G94uQBGDa9@linux.ibm.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+References: <20210304201253.14652-1-andriy.shevchenko@linux.intel.com> <20210304201253.14652-2-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20210304201253.14652-2-andriy.shevchenko@linux.intel.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 11 Mar 2021 00:15:29 +0100
+Message-ID: <CACRpkdbA+Q24JV3Uct2dHtGfBb1AaF4uHwCbzcrOFAxoGQ4wXQ@mail.gmail.com>
+Subject: Re: [PATCH v3 1/5] irqdomain: Introduce irq_domain_create_simple() API
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Marc Zyngier <maz@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
->>>>> The same could be reproduced via zone shuffling with a little luck.
->>>>
->>>> But nobody does that in practice.
->>>>
->>
->> Dan will most certainly object. And I don't know what makes you speak in
->> absolute words here.
->>
->>>> This would be relatively straightforward to address if ACPICA was not
->>>> involved in it, but unfortunately that's not the case.
->>>>
->>>> Changing this part of ACPICA is risky, because such changes may affect
->>>> other OSes using it, so that requires some serious consideration.
->>>> Alternatively, the previous memory allocation order in Linux could be
->>>> restored.
->>>
->>> Of course, long-term this needs to be addressed in the ACPI
->>> initialization code, because it clearly is not robust enough, but in
->>> the meantime there's practical breakage observable in the field, so
->>> what can be done about that?
->>
->> *joke* enable zone shuffling.
->>
->> No seriously, fix the latent BUG. What again is problematic about excluding
->> these pages from the page allcoator, for example, via memblock_reserve()?
->>
->> @Mike?
-> 
-> There is some care that should be taken to make sure we get the order
-> right, but I don't see a fundamental issue here.
-> 
-> If I understand correctly, Rafael's concern is about changing the parts of
-> ACPICA that should be OS agnostic, so I think we just need another place to
-> call memblock_reserve() rather than acpi_tb_install_table_with_override().
-> 
-> Since the reservation should be done early in x86::setup_arch() (and
-> probably in arm64::setup_arch()) we might just have a function that parses
-> table headers and reserves them, similarly to how we parse the tables
-> during KASLR setup.
-> 
+On Thu, Mar 4, 2021 at 9:13 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-FWIW, something like below would hide our latent BUG again properly (lol).
-But I guess I don't have to express how ugly and wrong that is. Not to mention
-what happens if memblock decides to allocate that memory area earlier
-for some other user (including CMA, ...).
+> Linus Walleij pointed out that ird_domain_add_simple() gained
+> additional functionality and can't be anymore replaced with
+> a simple conditional. In preparation to upgrade GPIO library
+> to use fwnode, introduce irq_domain_create_simple() API which is
+> functional equivalent to the existing irq_domain_add_simple(),
+> but takes a pointer to the struct fwnode_handle as a parameter.
+>
+> While at it, amend documentation to mention irq_domain_create_*()
+> functions where it makes sense.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 3e4b29ee2b1e..ec71b7c63dbe 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1566,6 +1566,21 @@ void __free_pages_core(struct page *page, unsigned int order)
-  
-         atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
-  
-+       /*
-+        * BUG ALERT: x86-64 ACPI code has latent BUGs where ACPI tables
-+        * that must not get allocated/modified will get exposed to the buddy
-+        * as free pages; anybody can allocate and use them once in the free
-+        * lists.
-+        *
-+        * Instead of fixing the BUG, revert the change to the
-+        * freeing/allocation order during boot that revealed it and cross
-+        * fingers that everything will be fine.
-+        */
-+       if (system_state < SYSTEM_RUNNING) {
-+               __free_pages_ok(page, order, FPI_NONE);
-+               return;
-+       }
-+
-         /*
-          * Bypass PCP and place fresh pages right to the tail, primarily
-          * relevant for memory onlining.
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-
--- 
-Thanks,
-
-David / dhildenb
-
+Yours,
+Linus Walleij
