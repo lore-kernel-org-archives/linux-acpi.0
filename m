@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4167C433DB
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Mar 2021 16:20:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C294BC433E0
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Mar 2021 18:06:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C52C64E09
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 Mar 2021 16:20:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92A8064F40
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 Mar 2021 18:06:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229874AbhCOQTq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 Mar 2021 12:19:46 -0400
-Received: from mail-ot1-f53.google.com ([209.85.210.53]:45993 "EHLO
-        mail-ot1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229862AbhCOQTl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Mar 2021 12:19:41 -0400
-Received: by mail-ot1-f53.google.com with SMTP id f73-20020a9d03cf0000b02901b4d889bce0so5412094otf.12;
-        Mon, 15 Mar 2021 09:19:41 -0700 (PDT)
+        id S229821AbhCOSFj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 Mar 2021 14:05:39 -0400
+Received: from mail-ot1-f48.google.com ([209.85.210.48]:43321 "EHLO
+        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233487AbhCOSFg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Mar 2021 14:05:36 -0400
+Received: by mail-ot1-f48.google.com with SMTP id m1so7306362ote.10;
+        Mon, 15 Mar 2021 11:05:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=lhDXdT+Qk1yZgYcJ7G0DPhjw1AHmHsmXi9SEBVXA2Gw=;
-        b=sB9fjvAT5QxOwnbpGLlYLH3URFQjwdGcY1prDpGFqeSi32XxFs0BseANS7mmwDycie
-         tkouF52Bti1024vb9YQxqtqFJTx5VxfyoSvh7sC/O4M97wmsviXWJcuLYvlqY8Lg4HcQ
-         N0MyLj+V29wuI48dyBGq/AHLABd8Luu2y9pSrZ52fIvxcVkyKDntVEonOkVvXGa2Ak6O
-         uWJcXny4DXfUaj0a4020QfErzRUk84Yh63QT3ltKxr+j+rdxZ4OFnUNUo5qmD/LflXo/
-         j7w+35FKHEn5PGHA0bXUinXbo0oUOz0A0ktmGQYiLXtLxdjlBX4dclgjCmmF4RinOXsI
-         I3EA==
-X-Gm-Message-State: AOAM531A7PeiQyrGCIzV9HaFrvbSvAypLtHKzma1z+aQach/oy2XduQP
-        NnCa2K+ERdeEEzC07hxnl24GKFTft0so9fQXmhfl2dN9RTw=
-X-Google-Smtp-Source: ABdhPJzHxsaszMe8pnfqRcU6lgYlCbAiR4iynVcVsvhI3THx7YrFgWZV0cy2S6yGRVehH46qz2UuFWnBzmQXvE9fkPE=
-X-Received: by 2002:a9d:3422:: with SMTP id v31mr14622147otb.260.1615825180891;
- Mon, 15 Mar 2021 09:19:40 -0700 (PDT)
+        bh=kYvoa+5VswjFlDSSpBWOO17EI4UbXXlkC2EPDqysY+c=;
+        b=YxOg2N6/m1A7dv6XgcaaHm3ZqWfMrlqkn7NHnn8GU2PcD7cwdJscnLS9st8KLumgoY
+         4lpKujbyyRVqgBxdCLUIUfPdoOg0FY7vTZSeQ7UE6n0z/XMcw3/2Nz1/zztoEQyKbo3+
+         6fKQnOT7uM5rx0Ibtmd6JP3h2AHjb1B3q3aYlhpxcZkFlULVPAr40N1k2tFDVIey96IX
+         YwmGavc6X/98ekhv0txTrnHJHuTaNlj9FVyvzckqhZbnOKOBqx2PP75AE+4pNgW3LWQ3
+         OrImy8+sSR5yO0/tpxhi10iaqPzaC8NhPxLES4RgsVEI2EoWg6lqF5HCUkVANct4oh0N
+         24+g==
+X-Gm-Message-State: AOAM532/Vyf8ya1GQsN0fGlmQkZcrHBJDJAZqfdin6N8IJLGVbxlpAIG
+        iir9i1VawH1kSjvL2fxTIYGMLnpWeeN/s94U7hZSV58c
+X-Google-Smtp-Source: ABdhPJw2XnHiPAm/ITuD5SczdCtCPvzrGVEtc8XxUXu9T87Pvtfn/2FifaEO+4xHErSiK6StpXGV6Re4SnLOGLXWMvQ=
+X-Received: by 2002:a9d:3422:: with SMTP id v31mr296092otb.260.1615831535970;
+ Mon, 15 Mar 2021 11:05:35 -0700 (PDT)
 MIME-Version: 1.0
 References: <CAJZ5v0j3=82x1hV9SCdinJQPkDXmJd9BFoqvNxNHSb6iS8PHVQ@mail.gmail.com>
  <9c3bc1b2-bb8d-194d-6faf-e4d7d346dc9b@oracle.com> <CAJZ5v0j8udd0R6A1wwpNvZL5Dr1pRcdiZr2if5y50o7OkHOMqg@mail.gmail.com>
@@ -42,14 +42,14 @@ References: <CAJZ5v0j3=82x1hV9SCdinJQPkDXmJd9BFoqvNxNHSb6iS8PHVQ@mail.gmail.com>
  <CAJZ5v0g_ztenDY-ER6A0fKD-ZHhLfF3zQdRYYxQb5jSXudd8xQ@mail.gmail.com>
  <e8593eae-40b8-bc9a-78db-529d28d2be88@redhat.com> <YEkgP0G94uQBGDa9@linux.ibm.com>
  <0d05364c-4881-d78a-9721-bd15f5eb822b@redhat.com> <CAJZ5v0jOpNJrOt5xn-1YkSB9Q15NZS2cxmsGKAU945YNbs+hOw@mail.gmail.com>
- <YE5dJ6U3nPWsXY4D@linux.ibm.com>
-In-Reply-To: <YE5dJ6U3nPWsXY4D@linux.ibm.com>
+ <YE5dJ6U3nPWsXY4D@linux.ibm.com> <CAJZ5v0g1H6hCVbAAFajhn0AYRMU4GkZOqggOB6LVdgFx_vfwOA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0g1H6hCVbAAFajhn0AYRMU4GkZOqggOB6LVdgFx_vfwOA@mail.gmail.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 15 Mar 2021 17:19:29 +0100
-Message-ID: <CAJZ5v0g1H6hCVbAAFajhn0AYRMU4GkZOqggOB6LVdgFx_vfwOA@mail.gmail.com>
+Date:   Mon, 15 Mar 2021 19:05:24 +0100
+Message-ID: <CAJZ5v0jf-DppG2PWwH+rQPy5untyp2inaoFg46GkxniPzRKnyA@mail.gmail.com>
 Subject: Re: [PATCH 1/1] ACPI: fix acpi table use after free
-To:     Mike Rapoport <rppt@linux.ibm.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Mike Rapoport <rppt@linux.ibm.com>,
         David Hildenbrand <david@redhat.com>,
         George Kennedy <george.kennedy@oracle.com>,
         Robert Moore <robert.moore@intel.com>,
@@ -73,77 +73,79 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Mar 14, 2021 at 8:00 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+On Mon, Mar 15, 2021 at 5:19 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
-> On Thu, Mar 11, 2021 at 04:36:31PM +0100, Rafael J. Wysocki wrote:
-> > On Wed, Mar 10, 2021 at 8:47 PM David Hildenbrand <david@redhat.com> wrote:
-> > > >
-> > > > There is some care that should be taken to make sure we get the order
-> > > > right, but I don't see a fundamental issue here.
+> On Sun, Mar 14, 2021 at 8:00 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
 > >
-> > Me neither.
+> > On Thu, Mar 11, 2021 at 04:36:31PM +0100, Rafael J. Wysocki wrote:
+> > > On Wed, Mar 10, 2021 at 8:47 PM David Hildenbrand <david@redhat.com> wrote:
+> > > > >
+> > > > > There is some care that should be taken to make sure we get the order
+> > > > > right, but I don't see a fundamental issue here.
+> > >
+> > > Me neither.
+> > >
+> > > > > If I understand correctly, Rafael's concern is about changing the parts of
+> > > > > ACPICA that should be OS agnostic, so I think we just need another place to
+> > > > > call memblock_reserve() rather than acpi_tb_install_table_with_override().
+> > >
+> > > Something like this.
+> > >
+> > > There is also the problem that memblock_reserve() needs to be called
+> > > for all of the tables early enough, which will require some reordering
+> > > of the early init code.
+> > >
+> > > > > Since the reservation should be done early in x86::setup_arch() (and
+> > > > > probably in arm64::setup_arch()) we might just have a function that parses
+> > > > > table headers and reserves them, similarly to how we parse the tables
+> > > > > during KASLR setup.
+> > >
+> > > Right.
 > >
-> > > > If I understand correctly, Rafael's concern is about changing the parts of
-> > > > ACPICA that should be OS agnostic, so I think we just need another place to
-> > > > call memblock_reserve() rather than acpi_tb_install_table_with_override().
-> >
-> > Something like this.
-> >
-> > There is also the problem that memblock_reserve() needs to be called
-> > for all of the tables early enough, which will require some reordering
-> > of the early init code.
-> >
-> > > > Since the reservation should be done early in x86::setup_arch() (and
-> > > > probably in arm64::setup_arch()) we might just have a function that parses
-> > > > table headers and reserves them, similarly to how we parse the tables
-> > > > during KASLR setup.
-> >
-> > Right.
+> > I've looked at it a bit more and we do something like the patch below that
+> > nearly duplicates acpi_tb_parse_root_table() which is not very nice.
 >
-> I've looked at it a bit more and we do something like the patch below that
-> nearly duplicates acpi_tb_parse_root_table() which is not very nice.
+> It looks to me that the code need not be duplicated (see below).
+>
+> > Besides, reserving ACPI tables early and then calling acpi_table_init()
+> > (and acpi_tb_parse_root_table() again would mean doing the dance with
+> > early_memremap() twice for no good reason.
+>
+> That'd be simply inefficient which is kind of acceptable to me to start with.
+>
+> And I changing the ACPICA code can be avoided at least initially, it
+> by itself would be a good enough reason.
+>
+> > I believe the most effective way to deal with this would be to have a
+> > function that does parsing, reservation and installs the tables supplied by
+> > the firmware which can be called really early and then another function
+> > that overrides tables if needed a some later point.
+>
+> I agree that this should be the direction to go into.
+>
+> However, it looks to me that something like the following could be
+> done to start with:
+>
+> (a) Make __acpi_map_table() call memblock_reserve() in addition to
+> early_memremap().
+>
+> My assumption here is that the memblock_reserve() will simply be
+> ignored if it is called too late.
+>
+> (b) Introduce acpi_reserve_tables() as something like
+>
+> void __init acpi_table_reserve(void)
+> {
+>         acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+> }
+>
+> Because initial_tables is passed to acpi_initialize_tables() above and
+> allow_resize is 0, the array used by it will simply get overwritten
+> when acpi_table_init() gets called.
+>
+> (c) Make setup_arch() call acpi_table_reserve() like in the original
+> patch from George.
+>
+> Would that work?
 
-It looks to me that the code need not be duplicated (see below).
-
-> Besides, reserving ACPI tables early and then calling acpi_table_init()
-> (and acpi_tb_parse_root_table() again would mean doing the dance with
-> early_memremap() twice for no good reason.
-
-That'd be simply inefficient which is kind of acceptable to me to start with.
-
-And I changing the ACPICA code can be avoided at least initially, it
-by itself would be a good enough reason.
-
-> I believe the most effective way to deal with this would be to have a
-> function that does parsing, reservation and installs the tables supplied by
-> the firmware which can be called really early and then another function
-> that overrides tables if needed a some later point.
-
-I agree that this should be the direction to go into.
-
-However, it looks to me that something like the following could be
-done to start with:
-
-(a) Make __acpi_map_table() call memblock_reserve() in addition to
-early_memremap().
-
-My assumption here is that the memblock_reserve() will simply be
-ignored if it is called too late.
-
-(b) Introduce acpi_reserve_tables() as something like
-
-void __init acpi_table_reserve(void)
-{
-        acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
-}
-
-Because initial_tables is passed to acpi_initialize_tables() above and
-allow_resize is 0, the array used by it will simply get overwritten
-when acpi_table_init() gets called.
-
-(c) Make setup_arch() call acpi_table_reserve() like in the original
-patch from George.
-
-Would that work?
-
-If so, I'll cut a patch along these lines.
+Well, that doesn't work, so more digging ...
