@@ -2,161 +2,159 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1EF8C433DB
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Mar 2021 19:48:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA5DC433E0
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Mar 2021 22:29:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7833564F5E
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Mar 2021 19:48:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32F2064F2A
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Mar 2021 22:29:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233534AbhCPTre (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Mar 2021 15:47:34 -0400
-Received: from mail-dm6nam10on2059.outbound.protection.outlook.com ([40.107.93.59]:40928
-        "EHLO NAM10-DM6-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S230526AbhCPTrB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Mar 2021 15:47:01 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=J5sT5E7afBMEIyH6bKwR2VHPfts7R+buKTxe8U7p6DmMgaePvIn31pv6iVjypFHPjESymwAUUpAZFfJ8wxxuhIplLvII1Myqh4+12sMOKvEMOfFOX2N0piITV/yQiZnGWh5hurMd3X2G9k4B7A9hOoejmXhmRFmDylTcFyGa3fZbuad8txOSguITct+ArgchDLeYX17ZvH3D1KChn53zUHdQU0VG4+gOJpOWgdpcWvCubUpmLLTu9NcFhPIunhkh0Jm5AdaD2+nNNBWU3BGLAjt77N/YIRQkw0s9R83FvJr0eS/r3vrTiMZ/bRWW83yxyKzQK6hS/KyHUPkbeLJHHw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=CaMuIgOu3qGCjr45dldYDhvi7o9xP3pHG5FlCdSFQO8=;
- b=JfzDphWFJKKaN0ldLPlftt3cI3vDGOOkci6jyAn5TSHlH1oOMWGRuwusZjL8mw9f4n4Qw3RsafzN3pbDPGbp7x77ZGScBXbBtgkgjjNgUbxHR1A+/qQolpHRS3eT1PXKlfDAK1vzOUTxgujoQYNRdz8AOYnQvm/+/uXlewOD7ZItaiVDvBtQCWy5cZ5jEncduYZHsQwHb1AcBx7Do2jNahs328Pwmu+JwJdLodnmzYdwePnRvGfSjn79I1ECDu4F9r/A14duEdJTEKwZpe15MQmVZgd56/v1wzT/V+gMWwukNuJHV5hSLi9I5gEjh/OoKSRlaOB/CuXLWFLjeVZXSg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=CaMuIgOu3qGCjr45dldYDhvi7o9xP3pHG5FlCdSFQO8=;
- b=bKeltOutlygTJfCrYudN8CnSpREzDgo/JU8jhjicM+fV0KcNkIatYUabEhaiXtkIAR7goq9oJYztOY8iYFqLz4sfs1eBAj4gxh6nYf8VIV1ttSkOE6asZV2inyrikqIJC4SpHw4xIYRA00dxaGxHzJcDldGfGqccps//Rj32QmY=
-Authentication-Results: lists.freedesktop.org; dkim=none (message not signed)
- header.d=none;lists.freedesktop.org; dmarc=none action=none
- header.from=amd.com;
-Received: from MN2PR12MB4488.namprd12.prod.outlook.com (2603:10b6:208:24e::19)
- by MN2PR12MB4503.namprd12.prod.outlook.com (2603:10b6:208:264::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3933.32; Tue, 16 Mar
- 2021 19:46:59 +0000
-Received: from MN2PR12MB4488.namprd12.prod.outlook.com
- ([fe80::5deb:dba7:1bd4:f39c]) by MN2PR12MB4488.namprd12.prod.outlook.com
- ([fe80::5deb:dba7:1bd4:f39c%5]) with mapi id 15.20.3933.032; Tue, 16 Mar 2021
- 19:46:59 +0000
-From:   Alex Deucher <alexander.deucher@amd.com>
-To:     amd-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org,
-        rjw@rjwysocki.net, lenb@kernel.org
-Cc:     hdegoede@redhat.com, Prike.Liang@amd.com, Shyam-sundar.S-k@amd.com,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Marcin Bachry <hegel666@gmail.com>
-Subject: [PATCH 1/2] platform/x86: Add missing LPS0 functions for AMD
-Date:   Tue, 16 Mar 2021 15:46:38 -0400
-Message-Id: <20210316194639.287216-1-alexander.deucher@amd.com>
-X-Mailer: git-send-email 2.30.2
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [192.161.79.247]
-X-ClientProxiedBy: MN2PR13CA0004.namprd13.prod.outlook.com
- (2603:10b6:208:160::17) To MN2PR12MB4488.namprd12.prod.outlook.com
- (2603:10b6:208:24e::19)
+        id S231277AbhCPW3D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Mar 2021 18:29:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42968 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231288AbhCPW2r (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Mar 2021 18:28:47 -0400
+Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33530C06174A;
+        Tue, 16 Mar 2021 15:28:47 -0700 (PDT)
+Received: by mail-wm1-x329.google.com with SMTP id g25so409728wmh.0;
+        Tue, 16 Mar 2021 15:28:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=1TBeHHwKh/cw+rd4agcrdioYHPRg/phJM2sm+tNaUf8=;
+        b=CrArDqjdaDPuAqxTLp9W59v0Y8VugU5Ewe6wMt6hT8H3W8SqK9udJQD0tj8adWV7RT
+         FsEfaIfNqTh30ZhEE2T6obhRtqwTyBb/4vxgvM1N/Cv5ZN6VAJ9mocS+c7lVTRFKmbhy
+         ThC2unLjCsCCmK4st+En9/u8hgYD7TTYgdXamXWATrVosk8F/8tk7SWCaHoGiN/zUSgK
+         OnodNmKOEYo9w3eg2lkkXjMnUzBPhmNBi3SS54nZupyt8vlXeexhPGAMUcv5NK+KOlcE
+         AEe39+QBwHWLziYnZ3Jcjb7W3fRCF27ZWft1Sy4/Ikygi7hQu9Sd45xyR7lw+/wy+Fyh
+         NUew==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=1TBeHHwKh/cw+rd4agcrdioYHPRg/phJM2sm+tNaUf8=;
+        b=Kq3XE21uOmZDNRUbiQUUns5glkWLRoixQpEIjV7JMPt+eG4zr7u4MY3hdT1qlGZv3R
+         x6cdZ1/HAADNydTRBGAKzg4OiaZANeAMWp5JyZE+QU7jhtHJXhch9b472Z/LlPHPAF4B
+         qw2kEydGloveUe8oAKlkMMYRU7+urySTpiXp7mok+cbWVvIV9O8bponBVff+rSdBa3vD
+         C6Nj4d3KXwbkKfZeskLNRcfVnz2jPHJWxY7gvwvZpiK5JRCQ9gVFtbxAqDoTSEhCtZ5R
+         w2abHY0NdCW2X9hFt1nJ/dpL9F0OFo8nZdTjqC1paO2AE8WrfQQqb+6tbCO1g3cRluFb
+         Y1NA==
+X-Gm-Message-State: AOAM5317cUlay6LvCvCamzgvKolSJmtvSlDyv9H7rLhuCMJRqzOlaPIZ
+        wydso3nuBv35b6whCmyyRARyipNxZBY=
+X-Google-Smtp-Source: ABdhPJwS0gfCGHw+e+W53ahlAmyh8WOs47r6GDLD7R/fNzsIE2744X996ZPU+1wvhXfMjteS92e01Q==
+X-Received: by 2002:a1c:9d51:: with SMTP id g78mr875873wme.5.1615933725482;
+        Tue, 16 Mar 2021 15:28:45 -0700 (PDT)
+Received: from [192.168.2.202] (p5487b93a.dip0.t-ipconnect.de. [84.135.185.58])
+        by smtp.gmail.com with ESMTPSA id m14sm590903wmi.27.2021.03.16.15.28.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 16 Mar 2021 15:28:45 -0700 (PDT)
+Subject: Re: [PATCH] PCI: PM: Do not read power state in
+ pci_enable_device_flags()
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Bjorn Helgaas <helgaas@kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+References: <3219454.74lMxhSOWB@kreacher>
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+Message-ID: <05e3ae3e-1a5f-c413-dae1-4c24e61a8b1b@gmail.com>
+Date:   Tue, 16 Mar 2021 23:28:43 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.1
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from localhost.localdomain (192.161.79.247) by MN2PR13CA0004.namprd13.prod.outlook.com (2603:10b6:208:160::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3955.9 via Frontend Transport; Tue, 16 Mar 2021 19:46:59 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: f3ed7972-7bfd-4b41-4701-08d8e8b44374
-X-MS-TrafficTypeDiagnostic: MN2PR12MB4503:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <MN2PR12MB4503C5732EECC93DF7544458F76B9@MN2PR12MB4503.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3826;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: QU/8DjuJYmaM6wWXfw6h3rO0FmeMbrz3CtwNQCp4BIpk4Om8lOAWN/8EIpe3po8rlCEO+3Upi2TNwozzDLI7eMAL50nqeh//VALSeAxriE/pgNYKxTC3g+i/cLCBb4bolf5z3ECgA9IqnroSaJSPexNokoW7Qz75Hs1RZqlrNPm6mMU3wFCPhcqtWqmQmgr7bP3dAqlliHpgw/xPcdQ8MOxGH2KH6TMnya9K7Iy0LYb5MMrW8+Fe1ExgX/PVaG/z8SFegMxXzzFTnrCabLX/aZziDgKYTLxpc/yUtqd+Sjjql/18bsZGMCsmIGhxc29YEBDlck21snrA8C1nwUnKVO5thgQmrN2Y5k7Adxz/O+o/Hdw82mhoKswQb8ErWdX/eXVIq9W76F0VNyRRU1suQhNaCUUCcHQQIy1h76WoiJafmK0PmCv+SrYaJKe8P/+9Jg75twzJkbRuW3LgqJbqIt4JZaIgMux8+xMYLLxRLPVwabG9tJqgNF5xCygjhmePdPDdvHFiWRRxod054R7L6KipwogrOpf3LbXcCoem3u/l945cqxlrxow5KiLqTEem7r5gvP5txOjasNoOHNthwxu/Rb6MMivfBOm4T2ATZn++6/WFK7D73OK7rSP1U5FnvGt4t+rJqGvoJT+FFZJUpdidAMabPR+VT9kLxGrkgYw=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4488.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(39860400002)(346002)(366004)(376002)(136003)(2906002)(69590400012)(1076003)(6666004)(54906003)(6486002)(478600001)(86362001)(5660300002)(66946007)(26005)(2616005)(966005)(316002)(66476007)(956004)(83380400001)(6512007)(52116002)(16526019)(6506007)(4326008)(8936002)(186003)(36756003)(66556008)(8676002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?TqMqyyY8xTiNl8x8Rb4cmv6cMI/IhCPiKawJy6+JIFAtgYJPlB6dNJlFxy5p?=
- =?us-ascii?Q?hBtw/E3qEBYH03GTONhp/4AAQOsuRGNViZFTeywbcZFiajxERgZz3pGzihno?=
- =?us-ascii?Q?mVFssdzgo25p1B7l9CSMj9IqjdOvIZ70EjyDnuzLd9BUKXMrAG82KNr2EDKU?=
- =?us-ascii?Q?NXfdeLFU0b9JAQ4H7ny7IOdMHq/SPxWHZOCi3ZZOccZthEC0UNKNljSC00OY?=
- =?us-ascii?Q?bvO9o9gCadLyXOqHwpbS/sxFfl5G6yVIsSBYcywqch4LBwTEy4ggXp51bIRI?=
- =?us-ascii?Q?63PYrfhtbm8urS1zgud0xnpHQOaDkjtGKpQX07jLMEpgaKKHrFwh2NfExxWM?=
- =?us-ascii?Q?y5Un9AEs+V01rzV0y7wWDAcDWxDd3dVaSFJv26bme4YppTrPg6oL+KU4TZ8P?=
- =?us-ascii?Q?IjYGAMIF0/KyCNfPjaFRzOZkwrnuvyf24HEjRn/qHSSs8ubEU7y1WsdKy/cE?=
- =?us-ascii?Q?DWMqmHvhNjDSk0lCoE+uMAqXBA+flltWbMG3SnhzQ9L+Vadg5gW/A5i74I3b?=
- =?us-ascii?Q?JQvfpdkY6xetvb6dKbtQ7Ymh1KFNf8/dpOT9Ev+21siXaFbtOX6FqBB2yqv0?=
- =?us-ascii?Q?Lz4iTmhXzIRgKO6ioJ9pW1ujwCgrhPiLnW2QXzYoI6rKz2lVUzVn7c1nePAQ?=
- =?us-ascii?Q?PJTfdY40bXUWe+wMkK+jVDTsgJaCQiFg0KPiio/t/3560ezqyA2Jo5k1jbe2?=
- =?us-ascii?Q?wtPfHAxW0jd0rr+vKxA1rJd3fH0DxeYngdFvg9cPdoIFZwEufCr6rzqZCvs5?=
- =?us-ascii?Q?4zcbDlGTajJMht+/jSvnOIg3v3MaoYHSNXm8994qJN7iWuoahBtlj+Tsilc+?=
- =?us-ascii?Q?omZCl1OsXmFCgEKKC7HQq/8Gfvvfdu4EewR/Qj8ExtQcuM55lW0ZSmBxgRjz?=
- =?us-ascii?Q?c8k8dVC4PJL/2s1wRh6yCzZc1x2Rtz+PHOorcGYn4OSBMpwKMc7YiVieTmrZ?=
- =?us-ascii?Q?ThwO6HnOpQGi59yePT3bS7VKCPTIG3++zX/1qfEAP4qvTmXvxjer9Ge0hbeQ?=
- =?us-ascii?Q?o/8c5UE7XgLwv3NukZZUll42QhNZihtaJUFnPLcneEGtP2pBrS+90lyiHm6f?=
- =?us-ascii?Q?YU3dbWqSDYzhfq8HAKseBHmPgOUH2/vISlwuWRvTtEKBNvyY2cGejZT7CFVC?=
- =?us-ascii?Q?zsp2lIFfarP2RdWegbTaGi8s+AlpLecAMSN6j/rbTq/45w2YT4tgYlxn/YSd?=
- =?us-ascii?Q?+7NzApnQOkXNF5HHlwCrRp1jamtze0hLt8hoyjxmT0rhq6C8Pf9xfUC/CDiP?=
- =?us-ascii?Q?WQoGEznpqCQK6XAva5KQ+L6sqltI1kUt72X+a7q6APEdBQGmVMKJx4QIlFXS?=
- =?us-ascii?Q?VEwr4cMH/mUUrLka1xuqDfof?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f3ed7972-7bfd-4b41-4701-08d8e8b44374
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4488.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Mar 2021 19:46:59.8596
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: oBCv4WTz8fMLpqr9DkzG7xJPxxY3X2Z4D/0iQYPg6ElTgn9N0XvTMrmDvxkKucMlZCX9qyGuDUhR5YYl74JZWQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4503
+In-Reply-To: <3219454.74lMxhSOWB@kreacher>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-These are supposedly not required for AMD platforms,
-but at least some HP laptops seem to require it to
-properly turn off the keyboard backlight.
 
-Based on a patch from Marcin Bachry <hegel666@gmail.com>.
 
-Bug: https://gitlab.freedesktop.org/drm/amd/-/issues/1230
-Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
-Cc: Marcin Bachry <hegel666@gmail.com>
----
- drivers/acpi/x86/s2idle.c | 4 ++++
- 1 file changed, 4 insertions(+)
+On 3/16/21 4:51 PM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> It should not be necessary to update the current_state field of
+> struct pci_dev in pci_enable_device_flags() before calling
+> do_pci_enable_device() for the device, because none of the
+> code between that point and the pci_set_power_state() call in
+> do_pci_enable_device() invoked later depends on it.
+> 
+> Moreover, doing that is actively harmful in some cases.  For example,
+> if the given PCI device depends on an ACPI power resource whose _STA
+> method initially returns 0 ("off"), but the config space of the PCI
+> device is accessible and the power state retrieved from the
+> PCI_PM_CTRL register is D0, the current_state field in the struct
+> pci_dev representing that device will get out of sync with the
+> power.state of its ACPI companion object and that will lead to
+> power management issues going forward.
+> 
+> To avoid such issues it is better to leave the current_state value
+> as is until it is changed to PCI_D0 by do_pci_enable_device() as
+> appropriate.  However, the power state of the device is not changed
+> to PCI_D0 if it is already enabled when pci_enable_device_flags()
+> gets called for it, so update its current_state in that case, but
+> use pci_update_current_state() covering platform PM too for that.
+> 
+> Link: https://lore.kernel.org/lkml/20210314000439.3138941-1-luzmaximilian@gmail.com/
+> Reported-by: Maximilian Luz <luzmaximilian@gmail.com>
+> Tested-by: Maximilian Luz <luzmaximilian@gmail.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> Max, I've added a T-by from you even though the patch is slightly different
+> from what you have tested, but the difference shouldn't matter for your case.
 
-diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 2b69536cdccb..2d7ddb8a8cb6 100644
---- a/drivers/acpi/x86/s2idle.c
-+++ b/drivers/acpi/x86/s2idle.c
-@@ -42,6 +42,8 @@ static const struct acpi_device_id lps0_device_ids[] = {
- 
- /* AMD */
- #define ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37721"
-+#define ACPI_LPS0_ENTRY_AMD         2
-+#define ACPI_LPS0_EXIT_AMD          3
- #define ACPI_LPS0_SCREEN_OFF_AMD    4
- #define ACPI_LPS0_SCREEN_ON_AMD     5
- 
-@@ -408,6 +410,7 @@ int acpi_s2idle_prepare_late(void)
- 
- 	if (acpi_s2idle_vendor_amd()) {
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF_AMD);
-+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD);
- 	} else {
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
-@@ -422,6 +425,7 @@ void acpi_s2idle_restore_early(void)
- 		return;
- 
- 	if (acpi_s2idle_vendor_amd()) {
-+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT_AMD);
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON_AMD);
- 	} else {
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
--- 
-2.30.2
+Thanks! I've tested this now as well, all looks good.
 
+Regards,
+Max
+
+> 
+> ---
+>   drivers/pci/pci.c |   16 +++-------------
+>   1 file changed, 3 insertions(+), 13 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.c
+> +++ linux-pm/drivers/pci/pci.c
+> @@ -1870,20 +1870,10 @@ static int pci_enable_device_flags(struc
+>   	int err;
+>   	int i, bars = 0;
+>   
+> -	/*
+> -	 * Power state could be unknown at this point, either due to a fresh
+> -	 * boot or a device removal call.  So get the current power state
+> -	 * so that things like MSI message writing will behave as expected
+> -	 * (e.g. if the device really is in D0 at enable time).
+> -	 */
+> -	if (dev->pm_cap) {
+> -		u16 pmcsr;
+> -		pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
+> -		dev->current_state = (pmcsr & PCI_PM_CTRL_STATE_MASK);
+> -	}
+> -
+> -	if (atomic_inc_return(&dev->enable_cnt) > 1)
+> +	if (atomic_inc_return(&dev->enable_cnt) > 1) {
+> +		pci_update_current_state(dev, dev->current_state);
+>   		return 0;		/* already enabled */
+> +	}
+>   
+>   	bridge = pci_upstream_bridge(dev);
+>   	if (bridge)
+> 
+> 
+> 
