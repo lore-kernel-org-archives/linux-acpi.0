@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB36BC43333
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Mar 2021 00:57:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7426C2BA57
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Mar 2021 01:00:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C50E764FC0
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Mar 2021 00:57:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8782465006
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Mar 2021 01:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230105AbhCQA4d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Mar 2021 20:56:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33060 "EHLO mail.kernel.org"
+        id S231289AbhCQA75 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Mar 2021 20:59:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230136AbhCQA4C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Mar 2021 20:56:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0569664F9C;
-        Wed, 17 Mar 2021 00:56:00 +0000 (UTC)
+        id S232266AbhCQA7F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Mar 2021 20:59:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 774C664FBD;
+        Wed, 17 Mar 2021 00:59:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615942561;
-        bh=N8mUPfhIURrlI4VLLvEay4gWGYNCB3IFf3F9N1JEDNc=;
+        s=k20201202; t=1615942743;
+        bh=x/d2VF/3A3poxqsgLamUeBQ3qhEg9TOMAM6esh+e0qY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qlQP0/yoa0upLephLwGqHFNXREt32ygDHS8PQ9rdc2VO+vCsWrTiPQ7/Xd4ZOspZ3
-         9JtZg345mR+gj8zvZ3ADC5lAbJ59832LrsfThnaUFsUpMDvaR4QD1n9t3wmS+yH+Or
-         Zq6ooVr8KzsMJmwriXPBXjM+GevHIOGaUg6pMa81ZzSteakneih2nd2LWKE4Cxi2OL
-         FLUG9jreapCnnLlbguC7wYOP/bHJWsiJOUlULAo1si3E90KEbTkHRd3j74OcgUkJen
-         F1z17L20HX3+upv16gp6go1QBknLe0t4I2uTMXy/TdKJbz56MjDCI1tPCgLqJWMQCa
-         LoHdQa9j3hW7w==
+        b=WI4xWOtyhIr3nnfmI3/Q7pUkYpYbcfAg5ReRBeBVpMrd00mdqGqVxgk6TNyk8nds+
+         13+Hng06c2XeFtlrmZxzZInXNvZD+AGLH4JMzx1Imr/ZeQ/1/Bgy0CCrCH8qDFhezf
+         tMeZgQ1sqvcsGw2VlkuuEdRezVYOXqo2EK+MUL/KonLLyQqD0ULBvwHFfTU+srF3yR
+         wBDbGN3iIDAbXY9nb+sxuMw6GkL8Dx44w+t0z2ScCcwzE/EaqjdJpyYGGYa+biMLN6
+         yqCfusU1qR10oJ5AhVbEVPBytAQZZv3w0waf8NArKEv+ytEwfVWbilY9I3bOVGILSY
+         xtsholnlNZ+4Q==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Yang Li <yang.lee@linux.alibaba.com>,
@@ -38,12 +38,12 @@ Cc:     Yang Li <yang.lee@linux.alibaba.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-gpio@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.11 20/61] gpiolib: acpi: Add missing IRQF_ONESHOT
-Date:   Tue, 16 Mar 2021 20:54:54 -0400
-Message-Id: <20210317005536.724046-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 10/23] gpiolib: acpi: Add missing IRQF_ONESHOT
+Date:   Tue, 16 Mar 2021 20:58:36 -0400
+Message-Id: <20210317005850.726479-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210317005536.724046-1-sashal@kernel.org>
-References: <20210317005536.724046-1-sashal@kernel.org>
+In-Reply-To: <20210317005850.726479-1-sashal@kernel.org>
+References: <20210317005850.726479-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -73,10 +73,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index e37a57d0a2f0..86efa2d9bf7f 100644
+index 18f5973b9697..4ad34c6803ad 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -174,7 +174,7 @@ static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
+@@ -177,7 +177,7 @@ static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
  	int ret, value;
  
  	ret = request_threaded_irq(event->irq, NULL, event->handler,
