@@ -4,46 +4,46 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9ABEC433DB
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5742CC4332D
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D02464E31
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D21564F2B
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232320AbhCRS3N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Mar 2021 14:29:13 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:51586 "EHLO
+        id S232357AbhCRS3O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Mar 2021 14:29:14 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:63892 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230164AbhCRS3I (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Mar 2021 14:29:08 -0400
+        with ESMTP id S232262AbhCRS3K (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Mar 2021 14:29:10 -0400
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 2.0.3)
- id b1fe4718ae2cca52; Thu, 18 Mar 2021 19:29:07 +0100
+ id 820c3476cb80a778; Thu, 18 Mar 2021 19:29:08 +0100
 Received: from kreacher.localnet (89-64-80-250.dynamic.chello.pl [89.64.80.250])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 018B0668FA9;
-        Thu, 18 Mar 2021 19:29:05 +0100 (CET)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 42D9D668FA9;
+        Thu, 18 Mar 2021 19:29:08 +0100 (CET)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Linux PM <linux-pm@vger.kernel.org>,
         David Box <david.e.box@linux.intel.com>
-Subject: [PATCH v2 2/2] ACPI: power: Turn off unused power resources unconditionally
-Date:   Thu, 18 Mar 2021 19:28:28 +0100
-Message-ID: <20994880.EfDdHjke4D@kreacher>
+Subject: [PATCH v2 1/2] ACPI: scan: Turn off unused power resources during initialization
+Date:   Thu, 18 Mar 2021 19:25:12 +0100
+Message-ID: <9860889.nUPlyArG6x@kreacher>
 In-Reply-To: <3108574.44csPzL39Z@kreacher>
 References: <3108574.44csPzL39Z@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeduledrudefiedgudduhecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepgfegudduheduleetheduhefgueefffeujeffheeggeetgeekgeetheevffehjedunecuffhomhgrihhnpehuvghfihdrohhrghdpkhgvrhhnvghlrdhorhhgnecukfhppeekledrieegrdektddrvdehtdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeekledrieegrdektddrvdehtddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghvihgurdgvrdgsohigsehlihhn
- uhigrdhinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeduledrudefiedgudduhecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttddvnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhephfekveffledtuefgueevudetgfeukeegudeufeeljeetgfetleefudevledvtdejnecuffhomhgrihhnpehuvghfihdrohhrghenucfkphepkeelrdeigedrkedtrddvhedtnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepkeelrdeigedrkedtrddvhedtpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepuggrvhhiugdrvgdrsghogieslhhinhhugidrihhnthgvlhdrtgho
+ mh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -51,52 +51,90 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-According to the ACPI specification (section 7.2.2 in ACPI 6.4), the
-OS may evaluate the _OFF method of a power resource that is "off"
-already [1], and in particular that can be done in the case of unused
-power resources.
+It is reported that on certain platforms there are power resources
+that are not associated with any devices physically present in the
+platform.  Those power resources are expected to be turned off by
+the OS in accordance with the ACPI specification (section 7.3 of
+ACPI 6.4) which currently is not done by Linux and that may lead
+to obscure issues.
 
-Accordingly, modify acpi_turn_off_unused_power_resources() to
-evaluate the _OFF method for each of the unused power resources
-unconditionally which may help to work around BIOS issues where the
-return value of _STA for a power resource does not reflect the
-actual state of the power resource [2].
+For instance, leaving those power resources in the "on" state may
+prevent the platform from reaching the lowest power state in
+suspend-to-idle which leads to excessive power draw.
 
-Link: https://uefi.org/specs/ACPI/6.4/07_Power_and_Performance_Mgmt/declaring-a-power-resource-object.html#off # [1]
-Link: https://lore.kernel.org/lkml/20210314000439.3138941-1-luzmaximilian@gmail.com/ # [2]
+For this reason, turn all of the unused ACPI power resources off
+at the end of the initial namespace scan for devices in analogy with
+resume from suspend-to-RAM.
+
+Link: https://uefi.org/specs/ACPI/6.4/07_Power_and_Performance_Mgmt/device-power-management-objects.html
+Reported-by: David Box <david.e.box@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
-New patch in v2.
+-> v2: Expand the changelog somewhat and make it build with CONFIG_PM_SLEEP
+       unset.
 
 ---
- drivers/acpi/power.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/power.c    |    2 +-
+ drivers/acpi/scan.c     |    2 ++
+ drivers/acpi/sleep.h    |    1 -
+ 4 files changed, 4 insertions(+), 2 deletions(-)
 
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -139,6 +139,7 @@ int acpi_device_sleep_wake(struct acpi_d
+ int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
+ int acpi_power_on_resources(struct acpi_device *device, int state);
+ int acpi_power_transition(struct acpi_device *device, int state);
++void acpi_turn_off_unused_power_resources(void);
+ 
+ /* --------------------------------------------------------------------------
+                               Device Power Management
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -2360,6 +2360,8 @@ int __init acpi_scan_init(void)
+ 		}
+ 	}
+ 
++	acpi_turn_off_unused_power_resources();
++
+ 	acpi_scan_initialized = true;
+ 
+  out:
+Index: linux-pm/drivers/acpi/sleep.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.h
++++ linux-pm/drivers/acpi/sleep.h
+@@ -8,7 +8,6 @@ extern struct list_head acpi_wakeup_devi
+ extern struct mutex acpi_device_lock;
+ 
+ extern void acpi_resume_power_resources(void);
+-extern void acpi_turn_off_unused_power_resources(void);
+ 
+ static inline acpi_status acpi_set_waking_vector(u32 wakeup_address)
+ {
 Index: linux-pm/drivers/acpi/power.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/power.c
 +++ linux-pm/drivers/acpi/power.c
-@@ -1005,18 +1005,9 @@ void acpi_turn_off_unused_power_resource
- 	mutex_lock(&power_resource_list_lock);
+@@ -996,6 +996,7 @@ void acpi_resume_power_resources(void)
  
- 	list_for_each_entry_reverse(resource, &acpi_power_resource_list, list_node) {
--		int result, state;
--
- 		mutex_lock(&resource->resource_lock);
+ 	mutex_unlock(&power_resource_list_lock);
+ }
++#endif
  
--		result = acpi_power_get_state(resource->device.handle, &state);
--		if (result) {
--			mutex_unlock(&resource->resource_lock);
--			continue;
--		}
--
--		if (state == ACPI_POWER_RESOURCE_STATE_ON
--		    && !resource->ref_count) {
-+		if (!resource->ref_count) {
- 			dev_info(&resource->device.dev, "Turning OFF\n");
- 			__acpi_power_off(resource);
- 		}
+ void acpi_turn_off_unused_power_resources(void)
+ {
+@@ -1025,4 +1026,3 @@ void acpi_turn_off_unused_power_resource
+ 
+ 	mutex_unlock(&power_resource_list_lock);
+ }
+-#endif
 
 
 
