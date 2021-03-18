@@ -2,117 +2,63 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D79C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FE7C433E6
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FF5B64F2B
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B524464F38
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230442AbhCRS2j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Mar 2021 14:28:39 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:57084 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229469AbhCRS2J (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Mar 2021 14:28:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1616092089;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=tnHnMyJqosN4g4HqZoYksr2OdNUO3XXErmR0Dj0ujns=;
-        b=OdDrUtOAV+9YYzdDbaB+r1l7UC57E8R27wPY8zv3fNuCKBBvbE3HVA9f9+udATHYH0JHuj
-        1dAuKB3vG3WXCKcCtT0G8Ao3Ikcq4dnb6CEMN87rObkdqoy2K+VH6+jwO0xA7HmI3ymNyc
-        hELCLsy3uaVmE2f3g3ArNm4fpo5vWqw=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-141-fgaguGZ2PPq0x1RyW3o0mw-1; Thu, 18 Mar 2021 14:28:07 -0400
-X-MC-Unique: fgaguGZ2PPq0x1RyW3o0mw-1
-Received: by mail-wr1-f70.google.com with SMTP id p12so17916000wrn.18
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Mar 2021 11:28:07 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=tnHnMyJqosN4g4HqZoYksr2OdNUO3XXErmR0Dj0ujns=;
-        b=Y5F4I+hI6qVv8yTvdoXgJ2N+oO4Ome/ggNsrHJ47zyZzyNrneojOCHUtQD/Rp19Yyv
-         pgc569OMorECFPshyg8n89Tt8rlpzdzPGVJCeIaQUNHmngPklnM3lrAUBV+cGql8L+j0
-         F9CH1kv06QLUVqBD8J71ignIsNJbE5zNxMu9dg9wzRlx2iRijiq8xY0wLgBcPE8/zuKt
-         aNAmmvY1SJEXVokQaxakXGCWLVSYNfRN2FZvPIUxabn0k6wBGgF2TWG0liwAEHT6u18k
-         CyrbJvNG6pIsxPq/qnAwuu1FMRTMa1BcXYGwHgX0BTck1LlIp7w2mXRmr29nJzLt2aUo
-         sNpA==
-X-Gm-Message-State: AOAM532bo6nyMy0GY4ymMukXoul4z3xkmTxHeitdfT2cygF9ji7T9iRt
-        4Z4Gq8x8TkagX3IsDJuZZAaJotU8FFyJuMThOtFlsmg1vBky6oURyQ7pwIVn5+veBUz7hLZvVW1
-        N1sJ/uSiJWnQjqU1vFRzc8Q==
-X-Received: by 2002:a1c:4e07:: with SMTP id g7mr445893wmh.29.1616092086136;
-        Thu, 18 Mar 2021 11:28:06 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJzAhfnko6xreV0Aev/lGLY50U+s9V+kNR5evCF+1y99zRAKKI8v26JTFwGZ8CX5kgIkHS1h+g==
-X-Received: by 2002:a1c:4e07:: with SMTP id g7mr445882wmh.29.1616092086000;
-        Thu, 18 Mar 2021 11:28:06 -0700 (PDT)
-Received: from redhat.com (bzq-79-180-2-31.red.bezeqint.net. [79.180.2.31])
-        by smtp.gmail.com with ESMTPSA id z7sm4007814wrt.70.2021.03.18.11.28.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Mar 2021 11:28:05 -0700 (PDT)
-Date:   Thu, 18 Mar 2021 14:28:02 -0400
-From:   "Michael S. Tsirkin" <mst@redhat.com>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
-Cc:     rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org,
-        will@kernel.org, linux-acpi@vger.kernel.org,
-        iommu@lists.linux-foundation.org,
-        virtualization@lists.linux-foundation.org, eric.auger@redhat.com,
-        sebastien.boeuf@intel.com, robin.murphy@arm.com,
-        kevin.tian@intel.com, lorenzo.pieralisi@arm.com
-Subject: Re: [PATCH 3/3] iommu/virtio: Enable x86 support
-Message-ID: <20210318142709-mutt-send-email-mst@kernel.org>
-References: <20210316191652.3401335-1-jean-philippe@linaro.org>
- <20210316191652.3401335-4-jean-philippe@linaro.org>
+        id S232465AbhCRS3O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Mar 2021 14:29:14 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:51570 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232291AbhCRS3N (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Mar 2021 14:29:13 -0400
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 2.0.3)
+ id 90fddb0d8e680081; Thu, 18 Mar 2021 19:29:11 +0100
+Received: from kreacher.localnet (89-64-80-250.dynamic.chello.pl [89.64.80.250])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 2A6C9668FA9;
+        Thu, 18 Mar 2021 19:29:10 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        David Box <david.e.box@linux.intel.com>
+Subject: [PATCH v2 0/2] ACPI: scan: Turn off unused power resources during initialization
+Date:   Thu, 18 Mar 2021 19:23:38 +0100
+Message-ID: <3108574.44csPzL39Z@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210316191652.3401335-4-jean-philippe@linaro.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeduledrudefiedgudduiecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgggfgtsehtufertddttddvnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvedufefggeeutdejvdfhteevgeeludevueevvdejkeelfefhudfhfeehkefffeevnecukfhppeekledrieegrdektddrvdehtdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeekledrieegrdektddrvdehtddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghvihgurdgvrdgsohigsehlihhnuhigrdhinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 16, 2021 at 08:16:54PM +0100, Jean-Philippe Brucker wrote:
-> With the VIOT support in place, x86 platforms can now use the
-> virtio-iommu.
-> 
-> The arm64 Kconfig selects IOMMU_DMA, while x86 IOMMU drivers select it
-> themselves.
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+Hi,
 
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Power resources that aren't associated with any devices are expected to be
+turned off by the OS, but Linux only does that during resume from
+suspend-to-RAM.  That turns out to be problematic, so turn them off during
+system initialization too (patch [1/2]).
 
-> ---
->  drivers/iommu/Kconfig | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-> index 2819b5c8ec30..ccca83ef2f06 100644
-> --- a/drivers/iommu/Kconfig
-> +++ b/drivers/iommu/Kconfig
-> @@ -400,8 +400,9 @@ config HYPERV_IOMMU
->  config VIRTIO_IOMMU
->  	tristate "Virtio IOMMU driver"
->  	depends on VIRTIO
-> -	depends on ARM64
-> +	depends on (ARM64 || X86)
->  	select IOMMU_API
-> +	select IOMMU_DMA if X86
+In addition to that, turn them off unconditionally, without checking the
+current status, which should be safe and may help to work around firmware
+issues (patch [2/2]).
 
-Would it hurt to just select unconditionally? Seems a bit cleaner
-...
+Please refer to the patch changelogs for details.
 
->  	select INTERVAL_TREE
->  	select ACPI_VIOT if ACPI
->  	help
-> -- 
-> 2.30.2
+Thanks!
+
+
 
