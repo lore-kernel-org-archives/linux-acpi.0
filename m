@@ -2,186 +2,117 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-22.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D31E7C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 17:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D79C433E0
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2BC564F2A
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 17:53:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FF5B64F2B
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 18:29:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229958AbhCRRxK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Mar 2021 13:53:10 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:37063 "EHLO
+        id S230442AbhCRS2j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Mar 2021 14:28:39 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:57084 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229734AbhCRRxB (ORCPT
+        by vger.kernel.org with ESMTP id S229469AbhCRS2J (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Mar 2021 13:53:01 -0400
+        Thu, 18 Mar 2021 14:28:09 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1616089980;
+        s=mimecast20190719; t=1616092089;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=uruINJSWaWFLlku1MQ1qt468Ob8HB9qLPxmAmX6H9nc=;
-        b=hGczqCXRG9demSmTE8hnBPyD00MKI0vk/7jlfNhRCR6+XHjCckJrvpK1POvRNiMMUaeE1Y
-        Soty8Y99czWjMpfc4kNKp8POrMEYZOtdZ+Is5oj/QXSTAKhrjq16E1ZTrDkNefMyvxYi7O
-        AEXs48ij70hWd7HIzeKU63mU8NoSMv0=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-46-HNdaGIRbPOiZUUxEWpstlA-1; Thu, 18 Mar 2021 13:52:56 -0400
-X-MC-Unique: HNdaGIRbPOiZUUxEWpstlA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B072A81431C;
-        Thu, 18 Mar 2021 17:52:54 +0000 (UTC)
-Received: from [10.36.112.6] (ovpn-112-6.ams2.redhat.com [10.36.112.6])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 70BB95D9C6;
-        Thu, 18 Mar 2021 17:52:46 +0000 (UTC)
-Subject: Re: [PATCH 1/3] ACPICA: iASL: Add definitions for the VIOT table
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org, mst@redhat.com
-Cc:     will@kernel.org, linux-acpi@vger.kernel.org,
+        bh=tnHnMyJqosN4g4HqZoYksr2OdNUO3XXErmR0Dj0ujns=;
+        b=OdDrUtOAV+9YYzdDbaB+r1l7UC57E8R27wPY8zv3fNuCKBBvbE3HVA9f9+udATHYH0JHuj
+        1dAuKB3vG3WXCKcCtT0G8Ao3Ikcq4dnb6CEMN87rObkdqoy2K+VH6+jwO0xA7HmI3ymNyc
+        hELCLsy3uaVmE2f3g3ArNm4fpo5vWqw=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-141-fgaguGZ2PPq0x1RyW3o0mw-1; Thu, 18 Mar 2021 14:28:07 -0400
+X-MC-Unique: fgaguGZ2PPq0x1RyW3o0mw-1
+Received: by mail-wr1-f70.google.com with SMTP id p12so17916000wrn.18
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Mar 2021 11:28:07 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=tnHnMyJqosN4g4HqZoYksr2OdNUO3XXErmR0Dj0ujns=;
+        b=Y5F4I+hI6qVv8yTvdoXgJ2N+oO4Ome/ggNsrHJ47zyZzyNrneojOCHUtQD/Rp19Yyv
+         pgc569OMorECFPshyg8n89Tt8rlpzdzPGVJCeIaQUNHmngPklnM3lrAUBV+cGql8L+j0
+         F9CH1kv06QLUVqBD8J71ignIsNJbE5zNxMu9dg9wzRlx2iRijiq8xY0wLgBcPE8/zuKt
+         aNAmmvY1SJEXVokQaxakXGCWLVSYNfRN2FZvPIUxabn0k6wBGgF2TWG0liwAEHT6u18k
+         CyrbJvNG6pIsxPq/qnAwuu1FMRTMa1BcXYGwHgX0BTck1LlIp7w2mXRmr29nJzLt2aUo
+         sNpA==
+X-Gm-Message-State: AOAM532bo6nyMy0GY4ymMukXoul4z3xkmTxHeitdfT2cygF9ji7T9iRt
+        4Z4Gq8x8TkagX3IsDJuZZAaJotU8FFyJuMThOtFlsmg1vBky6oURyQ7pwIVn5+veBUz7hLZvVW1
+        N1sJ/uSiJWnQjqU1vFRzc8Q==
+X-Received: by 2002:a1c:4e07:: with SMTP id g7mr445893wmh.29.1616092086136;
+        Thu, 18 Mar 2021 11:28:06 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJzAhfnko6xreV0Aev/lGLY50U+s9V+kNR5evCF+1y99zRAKKI8v26JTFwGZ8CX5kgIkHS1h+g==
+X-Received: by 2002:a1c:4e07:: with SMTP id g7mr445882wmh.29.1616092086000;
+        Thu, 18 Mar 2021 11:28:06 -0700 (PDT)
+Received: from redhat.com (bzq-79-180-2-31.red.bezeqint.net. [79.180.2.31])
+        by smtp.gmail.com with ESMTPSA id z7sm4007814wrt.70.2021.03.18.11.28.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 18 Mar 2021 11:28:05 -0700 (PDT)
+Date:   Thu, 18 Mar 2021 14:28:02 -0400
+From:   "Michael S. Tsirkin" <mst@redhat.com>
+To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
+Cc:     rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org,
+        will@kernel.org, linux-acpi@vger.kernel.org,
         iommu@lists.linux-foundation.org,
-        virtualization@lists.linux-foundation.org,
+        virtualization@lists.linux-foundation.org, eric.auger@redhat.com,
         sebastien.boeuf@intel.com, robin.murphy@arm.com,
         kevin.tian@intel.com, lorenzo.pieralisi@arm.com
+Subject: Re: [PATCH 3/3] iommu/virtio: Enable x86 support
+Message-ID: <20210318142709-mutt-send-email-mst@kernel.org>
 References: <20210316191652.3401335-1-jean-philippe@linaro.org>
- <20210316191652.3401335-2-jean-philippe@linaro.org>
-From:   Auger Eric <eric.auger@redhat.com>
-Message-ID: <83d8f573-0a96-5869-2c22-249bf2db7399@redhat.com>
-Date:   Thu, 18 Mar 2021 18:52:44 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.0
+ <20210316191652.3401335-4-jean-philippe@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <20210316191652.3401335-2-jean-philippe@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210316191652.3401335-4-jean-philippe@linaro.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Jean,
-
-On 3/16/21 8:16 PM, Jean-Philippe Brucker wrote:
-> Just here for reference, don't merge!
+On Tue, Mar 16, 2021 at 08:16:54PM +0100, Jean-Philippe Brucker wrote:
+> With the VIOT support in place, x86 platforms can now use the
+> virtio-iommu.
 > 
-> The actual commits will be pulled from the next ACPICA release.
-> I squashed the three relevant commits:
+> The arm64 Kconfig selects IOMMU_DMA, while x86 IOMMU drivers select it
+> themselves.
 > 
-> ACPICA commit fc4e33319c1ee08f20f5c44853dd8426643f6dfd
-> ACPICA commit 2197e354fb5dcafaddd2016ffeb0620e5bc3d5e2
-> ACPICA commit 856a96fdf4b51b2b8da17529df0255e6f51f1b5b
-> 
-> Link: https://github.com/acpica/acpica/commit/fc4e3331
-> Link: https://github.com/acpica/acpica/commit/2197e354
-> Link: https://github.com/acpica/acpica/commit/856a96fd
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
 > Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+
 > ---
->  include/acpi/actbl3.h | 67 +++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 67 insertions(+)
+>  drivers/iommu/Kconfig | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-> index df5f4b27f3aa..09d15898e9a8 100644
-> --- a/include/acpi/actbl3.h
-> +++ b/include/acpi/actbl3.h
-> @@ -33,6 +33,7 @@
->  #define ACPI_SIG_TCPA           "TCPA"	/* Trusted Computing Platform Alliance table */
->  #define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
->  #define ACPI_SIG_UEFI           "UEFI"	/* Uefi Boot Optimization Table */
-> +#define ACPI_SIG_VIOT           "VIOT"	/* Virtual I/O Translation Table */
->  #define ACPI_SIG_WAET           "WAET"	/* Windows ACPI Emulated devices Table */
->  #define ACPI_SIG_WDAT           "WDAT"	/* Watchdog Action Table */
->  #define ACPI_SIG_WDDT           "WDDT"	/* Watchdog Timer Description Table */
-> @@ -483,6 +484,72 @@ struct acpi_table_uefi {
->  	u16 data_offset;	/* Offset of remaining data in table */
->  };
->  
-> +/*******************************************************************************
-> + *
-> + * VIOT - Virtual I/O Translation Table
-> + *        Version 1
-For other tables I see
-Conforms to ../.. Shouldn't we have such section too
-> + *
-> + ******************************************************************************/
-> +
-> +struct acpi_table_viot {
-> +	struct acpi_table_header header;	/* Common ACPI table header */
-> +	u16 node_count;
-> +	u16 node_offset;
-> +	u8 reserved[8];
-> +};
-> +
-> +/* VIOT subtable header */
-> +
-> +struct acpi_viot_header {
-> +	u8 type;
-> +	u8 reserved;
-> +	u16 length;
-> +};
-> +
-> +/* Values for Type field above */
-> +
-> +enum acpi_viot_node_type {
-> +	ACPI_VIOT_NODE_PCI_RANGE = 0x01,
-> +	ACPI_VIOT_NODE_MMIO = 0x02,
-> +	ACPI_VIOT_NODE_VIRTIO_IOMMU_PCI = 0x03,
-> +	ACPI_VIOT_NODE_VIRTIO_IOMMU_MMIO = 0x04,
-> +	ACPI_VIOT_RESERVED = 0x05
-> +};
-> +
-> +/* VIOT subtables */
-> +
-> +struct acpi_viot_pci_range {
-> +	struct acpi_viot_header header;
-> +	u32 endpoint_start;
-> +	u16 segment_start;
-> +	u16 segment_end;
-> +	u16 bdf_start;
-> +	u16 bdf_end;
-> +	u16 output_node;
-> +	u8 reserved[6];
-> +};
-> +
-> +struct acpi_viot_mmio {
-> +	struct acpi_viot_header header;
-> +	u32 endpoint;
-> +	u64 base_address;
-> +	u16 output_node;
-> +	u8 reserved[6];
-> +};
-> +
-> +struct acpi_viot_virtio_iommu_pci {
-> +	struct acpi_viot_header header;
-> +	u16 segment;
-> +	u16 bdf;
-> +	u8 reserved[8];
-> +};
-> +
-> +struct acpi_viot_virtio_iommu_mmio {
-> +	struct acpi_viot_header header;
-> +	u8 reserved[4];
-> +	u64 base_address;
-> +};
-> +
->  /*******************************************************************************
->   *
->   * WAET - Windows ACPI Emulated devices Table
-> 
+> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+> index 2819b5c8ec30..ccca83ef2f06 100644
+> --- a/drivers/iommu/Kconfig
+> +++ b/drivers/iommu/Kconfig
+> @@ -400,8 +400,9 @@ config HYPERV_IOMMU
+>  config VIRTIO_IOMMU
+>  	tristate "Virtio IOMMU driver"
+>  	depends on VIRTIO
+> -	depends on ARM64
+> +	depends on (ARM64 || X86)
+>  	select IOMMU_API
+> +	select IOMMU_DMA if X86
 
-Besides
-Reviewed-by: Eric Auger <eric.auger@redhat.com>
+Would it hurt to just select unconditionally? Seems a bit cleaner
+...
 
-Thanks
-
-Eric
+>  	select INTERVAL_TREE
+>  	select ACPI_VIOT if ACPI
+>  	help
+> -- 
+> 2.30.2
 
