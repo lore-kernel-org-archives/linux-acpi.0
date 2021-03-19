@@ -2,28 +2,29 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 026B5C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E69C43381
 	for <linux-acpi@archiver.kernel.org>; Fri, 19 Mar 2021 04:24:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFE5164EFD
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Mar 2021 04:24:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1775D64EBD
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Mar 2021 04:24:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233533AbhCSEXq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 19 Mar 2021 00:23:46 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:13203 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbhCSEXJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Mar 2021 00:23:09 -0400
+        id S233619AbhCSEXr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 19 Mar 2021 00:23:47 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:13991 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231599AbhCSEXZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Mar 2021 00:23:25 -0400
 Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F1rKd3fhwzmZbk;
-        Fri, 19 Mar 2021 12:20:37 +0800 (CST)
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F1rLc4ztPzrXP7;
+        Fri, 19 Mar 2021 12:21:28 +0800 (CST)
 Received: from SWX921481.china.huawei.com (10.126.203.211) by
  DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.498.0; Fri, 19 Mar 2021 12:22:54 +0800
+ 14.3.498.0; Fri, 19 Mar 2021 12:23:15 +0800
 From:   Barry Song <song.bao.hua@hisilicon.com>
 To:     <tim.c.chen@linux.intel.com>, <catalin.marinas@arm.com>,
         <will@kernel.org>, <rjw@rjwysocki.net>,
@@ -41,10 +42,12 @@ CC:     <msys.mizuma@gmail.com>, <valentin.schneider@arm.com>,
         <guodong.xu@linaro.org>, <yangyicong@huawei.com>,
         <liguozhu@hisilicon.com>, <linuxarm@openeuler.org>,
         <hpa@zytor.com>, Barry Song <song.bao.hua@hisilicon.com>
-Subject: [RFC PATCH v5 0/4] scheduler: expose the topology of clusters and add cluster scheduler 
-Date:   Fri, 19 Mar 2021 17:16:14 +1300
-Message-ID: <20210319041618.14316-1-song.bao.hua@hisilicon.com>
+Subject: [RFC PATCH v5 3/4] scheduler: scan idle cpu in cluster before scanning the whole llc
+Date:   Fri, 19 Mar 2021 17:16:17 +1300
+Message-ID: <20210319041618.14316-4-song.bao.hua@hisilicon.com>
 X-Mailer: git-send-email 2.21.0.windows.1
+In-Reply-To: <20210319041618.14316-1-song.bao.hua@hisilicon.com>
+References: <20210319041618.14316-1-song.bao.hua@hisilicon.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -54,176 +57,222 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ARM64 server chip Kunpeng 920 has 6 or 8 clusters in each NUMA node, and each
-cluster has 4 cpus. All clusters share L3 cache data while each cluster has
-local L3 tag. On the other hand, each cluster will share some internal system
-bus. This means cache is much more affine inside one cluster than across
-clusters.
+On kunpeng920, cpus within one cluster can communicate wit each other
+much faster than cpus across different clusters. A simple hackbench
+can prove that.
+hackbench running on 4 cpus in single one cluster and 4 cpus in
+different clusters shows a large contrast:
+(1) within a cluster:
+root@ubuntu:~# taskset -c 0,1,2,3 hackbench -p -T -l 20000 -g 1
+Running in threaded mode with 1 groups using 40 file descriptors each
+(== 40 tasks)
+Each sender will pass 20000 messages of 100 bytes
+Time: 4.285
 
-    +-----------------------------------+                          +---------+
-    |  +------+    +------+            +---------------------------+         |
-    |  | CPU0 |    | cpu1 |             |    +-----------+         |         |
-    |  +------+    +------+             |    |           |         |         |
-    |                                   +----+    L3     |         |         |
-    |  +------+    +------+   cluster   |    |    tag    |         |         |
-    |  | CPU2 |    | CPU3 |             |    |           |         |         |
-    |  +------+    +------+             |    +-----------+         |         |
-    |                                   |                          |         |
-    +-----------------------------------+                          |         |
-    +-----------------------------------+                          |         |
-    |  +------+    +------+             +--------------------------+         |
-    |  |      |    |      |             |    +-----------+         |         |
-    |  +------+    +------+             |    |           |         |         |
-    |                                   |    |    L3     |         |         |
-    |  +------+    +------+             +----+    tag    |         |         |
-    |  |      |    |      |             |    |           |         |         |
-    |  +------+    +------+             |    +-----------+         |         |
-    |                                   |                          |         |
-    +-----------------------------------+                          |   L3    |
-                                                                   |   data  |
-    +-----------------------------------+                          |         |
-    |  +------+    +------+             |    +-----------+         |         |
-    |  |      |    |      |             |    |           |         |         |
-    |  +------+    +------+             +----+    L3     |         |         |
-    |                                   |    |    tag    |         |         |
-    |  +------+    +------+             |    |           |         |         |
-    |  |      |    |      |            ++    +-----------+         |         |
-    |  +------+    +------+            |---------------------------+         |
-    +-----------------------------------|                          |         |
-    +-----------------------------------|                          |         |
-    |  +------+    +------+            +---------------------------+         |
-    |  |      |    |      |             |    +-----------+         |         |
-    |  +------+    +------+             |    |           |         |         |
-    |                                   +----+    L3     |         |         |
-    |  +------+    +------+             |    |    tag    |         |         |
-    |  |      |    |      |             |    |           |         |         |
-    |  +------+    +------+             |    +-----------+         |         |
-    |                                   |                          |         |
-    +-----------------------------------+                          |         |
-    +-----------------------------------+                          |         |
-    |  +------+    +------+             +--------------------------+         |
-    |  |      |    |      |             |   +-----------+          |         |
-    |  +------+    +------+             |   |           |          |         |
+(2) across clusters:
+root@ubuntu:~# taskset -c 0,4,8,12 hackbench -p -T -l 20000 -g 1
+Running in threaded mode with 1 groups using 40 file descriptors each
+(== 40 tasks)
+Each sender will pass 20000 messages of 100 bytes
+Time: 5.524
 
+This inspires us to change the wake_affine path to scan cluster before
+scanning the whole LLC to try to gatter related tasks in one cluster,
+which is done by this patch.
 
-There is a similar need for clustering in x86.  Some x86 cores could share L2 caches
-that is similar to the cluster in Kupeng 920 (e.g. on Jacobsville there are 6 clusters
-of 4 Atom cores, each cluster sharing a separate L2, and 24 cores sharing L3).  
+To evaluate the performance impact to related tasks talking with each
+other, we run the below hackbench with different -g parameter from 2
+to 14, for each different g, we run the command 10 times and get the
+average time:
+$ numactl -N 0 hackbench -p -T -l 20000 -g $1
 
-Having a sched_domain for clusters will bring two aspects of improvement:
-1. spreading unrelated tasks among clusters, which decreases the contention of resources
-and improve the throughput.
-unrelated tasks might be put randomly without cluster sched_domain:
-+-------------------+            +-----------------+
-| +----+   +----+   |            |                 |
-| |task|   |task|   |            |                 |
-| |1   |   |2   |   |            |                 |
-| +----+   +----+   |            |                 |
-|                   |            |                 |
-|       cluster1    |            |     cluster2    |
-+-------------------+            +-----------------+
+hackbench will report the time which is needed to complete a certain number
+of messages transmissions between a certain number of tasks, for example:
+$ numactl -N 0 hackbench -p -T -l 20000 -g 10
+Running in threaded mode with 10 groups using 40 file descriptors each
+(== 400 tasks)
+Each sender will pass 20000 messages of 100 bytes
 
-but with cluster sched_domain, they are likely to spread due to LB:
-+-------------------+            +-----------------+
-| +----+            |            | +----+          |
-| |task|            |            | |task|          |
-| |1   |            |            | |2   |          |
-| +----+            |            | +----+          |
-|                   |            |                 |
-|       cluster1    |            |     cluster2    |
-+-------------------+            +-----------------+
+The below is the result of hackbench w/ and w/o cluster patch:
+g=    2      4     6       8      10     12      14
+w/o: 1.8151 3.8499 5.5142 7.2491 9.0340 10.7345 12.0929
+w/ : 1.7881 3.7371 5.3301 6.9747 8.6909  9.9235 11.2608
 
-2. gathering related tasks within a cluster, which improves the cache affinity of tasks
-talking with each other.
-Without cluster sched_domain, related tasks might be put randomly. In case task1-8 have
-relationship as below:
-Task1 wakes up task4
-Task2 wakes up task5
-Task3 wakes up task6
-Task4 wakes up task7
-With the tuning of select_idle_cpu() to scan local cluster first, those tasks might
-get a chance to be gathered like:
-+---------------------------+    +----------------------+
-| +----+        +-----+     |    | +----+      +-----+  |
-| |task|        |task |     |    | |task|      |task |  |
-| |1   |        | 4   |     |    | |2   |      |5    |  |
-| +----+        +-----+     |    | +----+      +-----+  |
-|                           |    |                      |
-|       cluster1            |    |     cluster2         |
-|                           |    |                      |
-|                           |    |                      |
-| +-----+       +------+    |    | +-----+     +------+ |
-| |task |       | task |    |    | |task |     |task  | |
-| |3    |       |  6   |    |    | |4    |     |8     | |
-| +-----+       +------+    |    | +-----+     +------+ |
-+---------------------------+    +----------------------+
-Otherwise, the result might be:
-+---------------------------+    +----------------------+
-| +----+        +-----+     |    | +----+      +-----+  |
-| |task|        |task |     |    | |task|      |task |  |
-| |1   |        | 2   |     |    | |5   |      |6    |  |
-| +----+        +-----+     |    | +----+      +-----+  |
-|                           |    |                      |
-|       cluster1            |    |     cluster2         |
-|                           |    |                      |
-|                           |    |                      |
-| +-----+       +------+    |    | +-----+     +------+ |
-| |task |       | task |    |    | |task |     |task  | |
-| |3    |       |  4   |    |    | |7    |     |8     | |
-| +-----+       +------+    |    | +-----+     +------+ |
-+---------------------------+    +----------------------+
+Obviously some recent commits have improved the hackbench. So the change
+in wake_affine path brings less increase on hackbench compared to what
+we got in RFC v4.
+And obviously it is much more tricky to leverage wake_affine compared to
+leveraging the scatter of tasks in the previous patch as load balance
+might pull tasks which have been compact in a cluster so alternative
+suggestions welcome.
 
--v5:
-  * split "add scheduler level for clusters" into two patches to evaluate the
-    impact of spreading and gathering separately;
-  * add a tracepoint of select_idle_cpu for debug purpose; add bcc script in
-    commit log;
-  * add cluster_id = -1 in reset_cpu_topology()
-  * rebased to tip/sched/core
+In order to figure out how many times cpu is picked from the cluster and
+how many times cpu is picked out of the cluster, a tracepoint for debug
+purpose is added in this patch. And an userspace bcc script to print the
+histogram of the result of select_idle_cpu():
+#!/usr/bin/python
+#
+# selectidlecpu.py	select idle cpu histogram.
+#
+# A Ctrl-C will print the gathered histogram then exit.
+#
+# 18-March-2021 Barry Song Created this.
 
--v4:
-  * rebased to tip/sched/core with the latest unified code of select_idle_cpu
-  * added Tim's patch for x86 Jacobsville
-  * also added benchmark data of spreading unrelated tasks
-  * avoided the iteration of sched_domain by moving to static_key(addressing
-    Vincent's comment
-  * used acpi_cpu_id for acpi_find_processor_node(addressing Masa's comment)
+from __future__ import print_function
+from bcc import BPF
+from time import sleep
 
-Barry Song (2):
-  scheduler: add scheduler level for clusters
-  scheduler: scan idle cpu in cluster before scanning the whole llc
+# load BPF program
+b = BPF(text="""
 
-Jonathan Cameron (1):
-  topology: Represent clusters of CPUs within a die
+BPF_HISTOGRAM(dist);
 
-Tim Chen (1):
-  scheduler: Add cluster scheduler level for x86
+TRACEPOINT_PROBE(sched, sched_select_idle_cpu)
+{
+	u32 e;
+	if (args->idle / 4 == args->target/4)
+		e = 0; /* idle cpu from same cluster */
+	else if (args->idle != -1)
+		e = 1; /* idle cpu from different clusters */
+	else
+		e = 2; /* no idle cpu */
 
- Documentation/admin-guide/cputopology.rst | 26 +++++++++++--
- arch/arm64/Kconfig                        |  7 ++++
- arch/arm64/kernel/topology.c              |  2 +
- arch/x86/Kconfig                          |  8 ++++
- arch/x86/include/asm/smp.h                |  7 ++++
- arch/x86/include/asm/topology.h           |  1 +
- arch/x86/kernel/cpu/cacheinfo.c           |  1 +
- arch/x86/kernel/cpu/common.c              |  3 ++
- arch/x86/kernel/smpboot.c                 | 43 ++++++++++++++++++++-
- drivers/acpi/pptt.c                       | 63 +++++++++++++++++++++++++++++++
- drivers/base/arch_topology.c              | 15 ++++++++
- drivers/base/topology.c                   | 10 +++++
- include/linux/acpi.h                      |  5 +++
- include/linux/arch_topology.h             |  5 +++
- include/linux/sched/cluster.h             | 19 ++++++++++
- include/linux/sched/topology.h            |  7 ++++
- include/linux/topology.h                  | 13 +++++++
- include/trace/events/sched.h              | 22 +++++++++++
- kernel/sched/core.c                       | 20 ++++++++++
- kernel/sched/fair.c                       | 36 +++++++++++++++++-
- kernel/sched/sched.h                      |  1 +
- kernel/sched/topology.c                   |  5 +++
- 22 files changed, 313 insertions(+), 6 deletions(-)
- create mode 100644 include/linux/sched/cluster.h
+	dist.increment(e);
+	return 0;
+}
+""")
 
+# header
+print("Tracing... Hit Ctrl-C to end.")
+
+# trace until Ctrl-C
+try:
+	sleep(99999999)
+except KeyboardInterrupt:
+	print()
+
+# output
+
+print("\nlinear histogram")
+print("~~~~~~~~~~~~~~~~")
+b["dist"].print_linear_hist("idle")
+
+Even while g=14 and the system is quite busy, we can see there are some
+chances idle cpu is picked from local cluster:
+linear histogram
+~~~~~~~~~~~~~~
+     idle          : count     distribution
+        0          : 15234281 |***********                             |
+        1          : 18494    |                                        |
+        2          : 53066152 |****************************************|
+
+0: local cluster
+1: out of the cluster
+2: select_idle_cpu() returns -1
+
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+---
+ include/trace/events/sched.h | 22 ++++++++++++++++++++++
+ kernel/sched/fair.c          | 32 +++++++++++++++++++++++++++++++-
+ 2 files changed, 53 insertions(+), 1 deletion(-)
+
+diff --git a/include/trace/events/sched.h b/include/trace/events/sched.h
+index cbe3e15..86608cf 100644
+--- a/include/trace/events/sched.h
++++ b/include/trace/events/sched.h
+@@ -136,6 +136,28 @@
+ );
+ 
+ /*
++ * Tracepoint for select_idle_cpu:
++ */
++TRACE_EVENT(sched_select_idle_cpu,
++
++	TP_PROTO(int target, int idle),
++
++	TP_ARGS(target, idle),
++
++	TP_STRUCT__entry(
++		__field(	int,	target			)
++		__field(	int,	idle			)
++	),
++
++	TP_fast_assign(
++		__entry->target	= target;
++		__entry->idle = idle;
++	),
++
++	TP_printk("target=%d idle=%d", __entry->target, __entry->idle)
++);
++
++/*
+  * Tracepoint for waking up a task:
+  */
+ DECLARE_EVENT_CLASS(sched_wakeup_template,
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index c92ad9f2..3892d42 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -6150,7 +6150,12 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
+ 	if (!this_sd)
+ 		return -1;
+ 
+-	cpumask_and(cpus, sched_domain_span(sd), p->cpus_ptr);
++	if (!sched_cluster_active())
++		cpumask_and(cpus, sched_domain_span(sd), p->cpus_ptr);
++#ifdef CONFIG_SCHED_CLUSTER
++	if (sched_cluster_active())
++		cpumask_and(cpus, cpu_cluster_mask(target), p->cpus_ptr);
++#endif
+ 
+ 	if (sched_feat(SIS_PROP) && !smt) {
+ 		u64 avg_cost, avg_idle, span_avg;
+@@ -6171,6 +6176,29 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
+ 		time = cpu_clock(this);
+ 	}
+ 
++#ifdef CONFIG_SCHED_CLUSTER
++	if (sched_cluster_active()) {
++		for_each_cpu_wrap(cpu, cpus, target) {
++			if (smt) {
++				i = select_idle_core(p, cpu, cpus, &idle_cpu);
++				if ((unsigned int)i < nr_cpumask_bits)
++					return i;
++
++			} else {
++				if (!--nr)
++					return -1;
++				idle_cpu = __select_idle_cpu(cpu);
++				if ((unsigned int)idle_cpu < nr_cpumask_bits) {
++					goto done;
++				}
++			}
++		}
++
++		cpumask_and(cpus, sched_domain_span(sd), p->cpus_ptr);
++		cpumask_andnot(cpus, cpus, cpu_cluster_mask(target));
++	}
++#endif
++
+ 	for_each_cpu_wrap(cpu, cpus, target) {
+ 		if (smt) {
+ 			i = select_idle_core(p, cpu, cpus, &idle_cpu);
+@@ -6186,6 +6214,7 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
+ 		}
+ 	}
+ 
++done:
+ 	if (smt)
+ 		set_idle_cores(this, false);
+ 
+@@ -6324,6 +6353,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
+ 		return target;
+ 
+ 	i = select_idle_cpu(p, sd, target);
++	trace_sched_select_idle_cpu(target, i);
+ 	if ((unsigned)i < nr_cpumask_bits)
+ 		return i;
+ 
 -- 
 1.8.3.1
 
