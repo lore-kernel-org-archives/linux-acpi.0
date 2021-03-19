@@ -2,202 +2,340 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1431C433E0
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 19:38:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F774C433DB
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Mar 2021 04:24:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A43464F1D
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Mar 2021 19:38:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7CBB64EBD
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Mar 2021 04:24:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229958AbhCRTh1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Mar 2021 15:37:27 -0400
-Received: from foss.arm.com ([217.140.110.172]:47522 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230008AbhCRTg7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 Mar 2021 15:36:59 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DD7F8ED1;
-        Thu, 18 Mar 2021 12:36:58 -0700 (PDT)
-Received: from [10.57.50.37] (unknown [10.57.50.37])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F39423F70D;
-        Thu, 18 Mar 2021 12:36:56 -0700 (PDT)
-Subject: Re: [PATCH 2/3] ACPI: Add driver for the VIOT table
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org, mst@redhat.com
-Cc:     kevin.tian@intel.com, virtualization@lists.linux-foundation.org,
-        linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org,
-        sebastien.boeuf@intel.com, will@kernel.org
-References: <20210316191652.3401335-1-jean-philippe@linaro.org>
- <20210316191652.3401335-3-jean-philippe@linaro.org>
-From:   Robin Murphy <robin.murphy@arm.com>
-Message-ID: <2f081b8f-98e2-2ce1-6be6-bb81aab8e153@arm.com>
-Date:   Thu, 18 Mar 2021 19:36:50 +0000
-User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+        id S233568AbhCSEXr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 19 Mar 2021 00:23:47 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:14379 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230459AbhCSEXU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Mar 2021 00:23:20 -0400
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F1rLW6GyBz913l;
+        Fri, 19 Mar 2021 12:21:23 +0800 (CST)
+Received: from SWX921481.china.huawei.com (10.126.203.211) by
+ DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
+ 14.3.498.0; Fri, 19 Mar 2021 12:23:08 +0800
+From:   Barry Song <song.bao.hua@hisilicon.com>
+To:     <tim.c.chen@linux.intel.com>, <catalin.marinas@arm.com>,
+        <will@kernel.org>, <rjw@rjwysocki.net>,
+        <vincent.guittot@linaro.org>, <bp@alien8.de>, <tglx@linutronix.de>,
+        <mingo@redhat.com>, <lenb@kernel.org>, <peterz@infradead.org>,
+        <dietmar.eggemann@arm.com>, <rostedt@goodmis.org>,
+        <bsegall@google.com>, <mgorman@suse.de>
+CC:     <msys.mizuma@gmail.com>, <valentin.schneider@arm.com>,
+        <gregkh@linuxfoundation.org>, <jonathan.cameron@huawei.com>,
+        <juri.lelli@redhat.com>, <mark.rutland@arm.com>,
+        <sudeep.holla@arm.com>, <aubrey.li@linux.intel.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <x86@kernel.org>, <xuwei5@huawei.com>, <prime.zeng@hisilicon.com>,
+        <guodong.xu@linaro.org>, <yangyicong@huawei.com>,
+        <liguozhu@hisilicon.com>, <linuxarm@openeuler.org>,
+        <hpa@zytor.com>, Barry Song <song.bao.hua@hisilicon.com>
+Subject: [RFC PATCH v5 2/4] scheduler: add scheduler level for clusters
+Date:   Fri, 19 Mar 2021 17:16:16 +1300
+Message-ID: <20210319041618.14316-3-song.bao.hua@hisilicon.com>
+X-Mailer: git-send-email 2.21.0.windows.1
+In-Reply-To: <20210319041618.14316-1-song.bao.hua@hisilicon.com>
+References: <20210319041618.14316-1-song.bao.hua@hisilicon.com>
 MIME-Version: 1.0
-In-Reply-To: <20210316191652.3401335-3-jean-philippe@linaro.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.126.203.211]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2021-03-16 19:16, Jean-Philippe Brucker wrote:
-> The ACPI Virtual I/O Translation Table describes topology of
-> para-virtual platforms. For now it describes the relation between
-> virtio-iommu and the endpoints it manages. Supporting that requires
-> three steps:
-> 
-> (1) acpi_viot_init(): parse the VIOT table, build a list of endpoints
->      and vIOMMUs.
-> 
-> (2) acpi_viot_set_iommu_ops(): when the vIOMMU driver is loaded and the
->      device probed, register it to the VIOT driver. This step is required
->      because unlike similar drivers, VIOT doesn't create the vIOMMU
->      device.
+ARM64 chip Kunpeng 920 has 6 or 8 clusters in each NUMA node, and each
+cluster has 4 cpus. All clusters share L3 cache data, but each cluster
+has local L3 tag. On the other hand, each clusters will share some
+internal system bus. This means cache coherence overhead inside one
+cluster is much less than the overhead across clusters.
 
-Note that you're basically the same as the DT case in this regard, so 
-I'd expect things to be closer to that pattern than to that of IORT.
+This patch adds the sched_domain for clusters. On kunpeng 920, without
+this patch, domain0 of cpu0 would be MC with cpu0~cpu23 with ; with this
+patch, MC becomes domain1, a new domain0 "CLS" including cpu0-cpu3.
 
-[...]
-> @@ -1506,12 +1507,17 @@ int acpi_dma_configure_id(struct device *dev, enum dev_dma_attr attr,
->   {
->   	const struct iommu_ops *iommu;
->   	u64 dma_addr = 0, size = 0;
-> +	int ret;
->   
->   	if (attr == DEV_DMA_NOT_SUPPORTED) {
->   		set_dma_ops(dev, &dma_dummy_ops);
->   		return 0;
->   	}
->   
-> +	ret = acpi_viot_dma_setup(dev, attr);
-> +	if (ret)
-> +		return ret > 0 ? 0 : ret;
+This will help spread unrelated tasks among clusters, thus decrease the
+contention and improve the throughput, for example, stream benchmark can
+improve 20%+ while parallelism is 6 and improve around 5% while paralle-
+lism is 12:
 
-I think things could do with a fair bit of refactoring here. Ideally we 
-want to process a possible _DMA method (acpi_dma_get_range()) regardless 
-of which flavour of IOMMU table might be present, and the amount of 
-duplication we fork into at this point is unfortunate.
+(1) -P <parallelism> 6
+$ numactl -N 0 /usr/lib/lmbench/bin/stream -P 6 -M 1024M -N 5
 
-> +
->   	iort_dma_setup(dev, &dma_addr, &size);
+w/o patch:
+STREAM copy latency: 2.46 nanoseconds
+STREAM copy bandwidth: 39096.28 MB/sec
+STREAM scale latency: 2.46 nanoseconds
+STREAM scale bandwidth: 38970.26 MB/sec
+STREAM add latency: 4.45 nanoseconds
+STREAM add bandwidth: 32332.04 MB/sec
+STREAM triad latency: 4.07 nanoseconds
+STREAM triad bandwidth: 35387.69 MB/sec
 
-For starters I think most of that should be dragged out to this level 
-here - it's really only the {rc,nc}_dma_get_range() bit that deserves to 
-be the IORT-specific call.
+w/ patch:
+STREAM copy latency: 2.02 nanoseconds
+STREAM copy bandwidth: 47604.47 MB/sec   +21.7%
+STREAM scale latency: 2.04 nanoseconds
+STREAM scale bandwidth: 47066.84 MB/sec  +20.8%
+STREAM add latency: 3.35 nanoseconds
+STREAM add bandwidth: 42942.15 MB/sec    +32.8%
+STREAM triad latency: 3.16 nanoseconds
+STREAM triad bandwidth: 45619.18 MB/sec  +28.9%
 
->   	iommu = iort_iommu_configure_id(dev, input_id);
+On the other hand,stream result could change significantly during different
+tests without the patch, eg:
+a.
+STREAM copy latency: 2.16 nanoseconds
+STREAM copy bandwidth: 44448.45 MB/sec
+STREAM scale latency: 2.17 nanoseconds
+STREAM scale bandwidth: 44320.77 MB/sec
+STREAM add latency: 3.77 nanoseconds
+STREAM add bandwidth: 38230.54 MB/sec
+STREAM triad latency: 3.88 nanoseconds
+STREAM triad bandwidth: 37072.10 MB/sec
 
-Similarly, it feels like it's only the table scan part in the middle of 
-that that needs dispatching between IORT/VIOT, and its head and tail 
-pulled out into a common path.
+b.
+STREAM copy latency: 2.16 nanoseconds
+STREAM copy bandwidth: 44403.22 MB/sec
+STREAM scale latency: 2.39 nanoseconds
+STREAM scale bandwidth: 40173.69 MB/sec
+STREAM add latency: 3.77 nanoseconds
+STREAM add bandwidth: 38232.56 MB/sec
+STREAM triad latency: 3.38 nanoseconds
+STREAM triad bandwidth: 42592.04 MB/sec
 
-[...]
-> +static const struct iommu_ops *viot_iommu_setup(struct device *dev)
-> +{
-> +	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-> +	struct viot_iommu *viommu = NULL;
-> +	struct viot_endpoint *ep;
-> +	u32 epid;
-> +	int ret;
-> +
-> +	/* Already translated? */
-> +	if (fwspec && fwspec->ops)
-> +		return NULL;
-> +
-> +	mutex_lock(&viommus_lock);
-> +	list_for_each_entry(ep, &viot_endpoints, list) {
-> +		if (viot_device_match(dev, &ep->dev_id, &epid)) {
-> +			epid += ep->endpoint_id;
-> +			viommu = ep->viommu;
-> +			break;
-> +		}
-> +	}
-> +	mutex_unlock(&viommus_lock);
-> +	if (!viommu)
-> +		return NULL;
-> +
-> +	/* We're not translating ourself */
-> +	if (viot_device_match(dev, &viommu->dev_id, &epid))
-> +		return NULL;
-> +
-> +	/*
-> +	 * If we found a PCI range managed by the viommu, we're the one that has
-> +	 * to request ACS.
-> +	 */
-> +	if (dev_is_pci(dev))
-> +		pci_request_acs();
-> +
-> +	if (!viommu->ops || WARN_ON(!viommu->dev))
-> +		return ERR_PTR(-EPROBE_DEFER);
+Obviously it is because the 6 threads are put randomly in 6 cores. Sometimes
+they are packed in clusters, sometimes they are spread widely.
 
-Can you create (or look up) a viommu->fwnode when initially parsing the 
-VIOT to represent the IOMMU devices to wait for, such that the 
-viot_device_match() lookup can resolve to that and let you fall into the 
-standard iommu_ops_from_fwnode() path? That's what I mean about 
-following the DT pattern - I guess it might need a bit of trickery to 
-rewrite things if iommu_device_register() eventually turns up with a new 
-fwnode, so I doubt we can get away without *some* kind of private 
-interface between virtio-iommu and VIOT, but it would be nice for the 
-common(ish) DMA paths to stay as unaware of the specifics as possible.
+(2) -P <parallelism> 12
+$ numactl -N 0 /usr/lib/lmbench/bin/stream -P 12 -M 1024M -N 5
 
-> +
-> +	ret = iommu_fwspec_init(dev, viommu->dev->fwnode, viommu->ops);
-> +	if (ret)
-> +		return ERR_PTR(ret);
-> +
-> +	iommu_fwspec_add_ids(dev, &epid, 1);
-> +
-> +	/*
-> +	 * If we have reason to believe the IOMMU driver missed the initial
-> +	 * add_device callback for dev, replay it to get things in order.
-> +	 */
-> +	if (dev->bus && !device_iommu_mapped(dev))
-> +		iommu_probe_device(dev);
-> +
-> +	return viommu->ops;
-> +}
-> +
-> +/**
-> + * acpi_viot_dma_setup - Configure DMA for an endpoint described in VIOT
-> + * @dev: the endpoint
-> + * @attr: coherency property of the endpoint
-> + *
-> + * Setup the DMA and IOMMU ops for an endpoint described by the VIOT table.
-> + *
-> + * Return:
-> + * * 0 - @dev doesn't match any VIOT node
-> + * * 1 - ops for @dev were successfully installed
-> + * * -EPROBE_DEFER - ops for @dev aren't yet available
-> + */
-> +int acpi_viot_dma_setup(struct device *dev, enum dev_dma_attr attr)
-> +{
-> +	const struct iommu_ops *iommu_ops = viot_iommu_setup(dev);
-> +
-> +	if (IS_ERR_OR_NULL(iommu_ops)) {
-> +		int ret = PTR_ERR(iommu_ops);
-> +
-> +		if (ret == -EPROBE_DEFER || ret == 0)
-> +			return ret;
-> +		dev_err(dev, "error %d while setting up virt IOMMU\n", ret);
-> +		return 0;
-> +	}
-> +
-> +#ifdef CONFIG_ARCH_HAS_SETUP_DMA_OPS
-> +	arch_setup_dma_ops(dev, 0, ~0ULL, iommu_ops, attr == DEV_DMA_COHERENT);
-> +#else
-> +	iommu_setup_dma_ops(dev, 0, ~0ULL);
-> +#endif
+w/o patch:
+STREAM copy latency: 3.37 nanoseconds
+STREAM copy bandwidth: 57008.80 MB/sec
+STREAM scale latency: 3.38 nanoseconds
+STREAM scale bandwidth: 56848.47 MB/sec
+STREAM add latency: 5.50 nanoseconds
+STREAM add bandwidth: 52398.62 MB/sec
+STREAM triad latency: 5.09 nanoseconds
+STREAM triad bandwidth: 56591.60 MB/sec
 
-Duplicating all of this feels particularly wrong... :(
+w/ patch:
+STREAM copy latency: 3.24 nanoseconds
+STREAM copy bandwidth: 59338.60 MB/sec  +4.1%
+STREAM scale latency: 3.25 nanoseconds
+STREAM scale bandwidth: 58993.23 MB/sec +3.7%
+STREAM add latency: 5.19 nanoseconds
+STREAM add bandwidth: 55517.45 MB/sec   +5.9%
+STREAM triad latency: 4.86 nanoseconds
+STREAM triad bandwidth: 59245.34 MB/sec +4.7%
 
-Robin.
+To evaluate the performance impact to related tasks talking with each
+other, we run the below hackbench with different -g parameter from 2
+to 14, for each different g, we run the command 10 times and get the
+average time:
+$ numactl -N 0 hackbench -p -T -l 20000 -g $1
 
-> +	return 1;
-> +}
+hackbench will report the time which is needed to complete a certain number
+of messages transmissions between a certain number of tasks, for example:
+$ numactl -N 0 hackbench -p -T -l 20000 -g 10
+Running in threaded mode with 10 groups using 40 file descriptors each
+(== 400 tasks)
+Each sender will pass 20000 messages of 100 bytes
+
+The below is the result of hackbench w/ and w/o the patch:
+g=    2      4     6       8      10     12      14
+w/o: 1.8151 3.8499 5.5142 7.2491 9.0340 10.7345 12.0929
+w/ : 1.8396 3.8250 5.4780 7.3442 9.0172 10.5950 11.9113
+
+Obviously this patch doesn't impact hackbench too much.
+
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+---
+ arch/arm64/Kconfig             |  7 +++++++
+ include/linux/sched/cluster.h  | 19 +++++++++++++++++++
+ include/linux/sched/topology.h |  7 +++++++
+ include/linux/topology.h       |  7 +++++++
+ kernel/sched/core.c            | 20 ++++++++++++++++++++
+ kernel/sched/fair.c            |  4 ++++
+ kernel/sched/sched.h           |  1 +
+ kernel/sched/topology.c        |  5 +++++
+ 8 files changed, 70 insertions(+)
+ create mode 100644 include/linux/sched/cluster.h
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 1f212b4..9432a30 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -977,6 +977,13 @@ config SCHED_MC
+ 	  making when dealing with multi-core CPU chips at a cost of slightly
+ 	  increased overhead in some places. If unsure say N here.
+ 
++config SCHED_CLUSTER
++	bool "Cluster scheduler support"
++	help
++	  Cluster scheduler support improves the CPU scheduler's decision
++	  making when dealing with machines that have clusters(sharing internal
++	  bus or sharing LLC cache tag). If unsure say N here.
++
+ config SCHED_SMT
+ 	bool "SMT scheduler support"
+ 	help
+diff --git a/include/linux/sched/cluster.h b/include/linux/sched/cluster.h
+new file mode 100644
+index 0000000..ea6c475
+--- /dev/null
++++ b/include/linux/sched/cluster.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_SCHED_CLUSTER_H
++#define _LINUX_SCHED_CLUSTER_H
++
++#include <linux/static_key.h>
++
++#ifdef CONFIG_SCHED_CLUSTER
++extern struct static_key_false sched_cluster_present;
++
++static __always_inline bool sched_cluster_active(void)
++{
++	return static_branch_likely(&sched_cluster_present);
++}
++#else
++static inline bool sched_cluster_active(void) { return false; }
++
++#endif
++
++#endif
+diff --git a/include/linux/sched/topology.h b/include/linux/sched/topology.h
+index 8f0f778..2f9166f 100644
+--- a/include/linux/sched/topology.h
++++ b/include/linux/sched/topology.h
+@@ -42,6 +42,13 @@ static inline int cpu_smt_flags(void)
+ }
+ #endif
+ 
++#ifdef CONFIG_SCHED_CLUSTER
++static inline int cpu_cluster_flags(void)
++{
++	return SD_SHARE_PKG_RESOURCES;
++}
++#endif
++
+ #ifdef CONFIG_SCHED_MC
+ static inline int cpu_core_flags(void)
+ {
+diff --git a/include/linux/topology.h b/include/linux/topology.h
+index 80d27d7..0b3704a 100644
+--- a/include/linux/topology.h
++++ b/include/linux/topology.h
+@@ -212,6 +212,13 @@ static inline const struct cpumask *cpu_smt_mask(int cpu)
+ }
+ #endif
+ 
++#if defined(CONFIG_SCHED_CLUSTER) && !defined(cpu_cluster_mask)
++static inline const struct cpumask *cpu_cluster_mask(int cpu)
++{
++	return topology_cluster_cpumask(cpu);
++}
++#endif
++
+ static inline const struct cpumask *cpu_cpu_mask(int cpu)
+ {
+ 	return cpumask_of_node(cpu_to_node(cpu));
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 28c4df6..19e2536 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -7840,6 +7840,17 @@ int sched_cpu_activate(unsigned int cpu)
+ 	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+ 		static_branch_inc_cpuslocked(&sched_smt_present);
+ #endif
++
++#ifdef CONFIG_SCHED_CLUSTER
++	/*
++	 * When going up, increment the number of cluster cpus with
++	 * cluster present.
++	 */
++	if (cpumask_weight(cpu_cluster_mask(cpu)) > cpumask_weight(cpu_smt_mask(cpu)) &&
++	    cpumask_weight(cpu_cluster_mask(cpu)) < cpumask_weight(cpu_coregroup_mask(cpu)))
++		static_branch_inc_cpuslocked(&sched_cluster_present);
++#endif
++
+ 	set_cpu_active(cpu, true);
+ 
+ 	if (sched_smp_initialized) {
+@@ -7916,6 +7927,15 @@ int sched_cpu_deactivate(unsigned int cpu)
+ 		static_branch_dec_cpuslocked(&sched_smt_present);
+ #endif
+ 
++#ifdef CONFIG_SCHED_CLUSTER
++	/*
++	 * When going down, decrement the number of cpus with cluster present.
++	 */
++	if (cpumask_weight(cpu_cluster_mask(cpu)) > cpumask_weight(cpu_smt_mask(cpu)) &&
++	    cpumask_weight(cpu_cluster_mask(cpu)) < cpumask_weight(cpu_coregroup_mask(cpu)))
++		static_branch_dec_cpuslocked(&sched_cluster_present);
++#endif
++
+ 	if (!sched_smp_initialized)
+ 		return 0;
+ 
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index 2e2ab1e..c92ad9f2 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -6021,6 +6021,10 @@ static inline int __select_idle_cpu(int cpu)
+ 	return -1;
+ }
+ 
++#ifdef CONFIG_SCHED_CLUSTER
++DEFINE_STATIC_KEY_FALSE(sched_cluster_present);
++#endif
++
+ #ifdef CONFIG_SCHED_SMT
+ DEFINE_STATIC_KEY_FALSE(sched_smt_present);
+ EXPORT_SYMBOL_GPL(sched_smt_present);
+diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+index d2e09a6..73f7406 100644
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/sched/autogroup.h>
+ #include <linux/sched/clock.h>
++#include <linux/sched/cluster.h>
+ #include <linux/sched/coredump.h>
+ #include <linux/sched/cpufreq.h>
+ #include <linux/sched/cputime.h>
+diff --git a/kernel/sched/topology.c b/kernel/sched/topology.c
+index 12f8058..ae1fa00 100644
+--- a/kernel/sched/topology.c
++++ b/kernel/sched/topology.c
+@@ -1511,6 +1511,11 @@ static void claim_allocations(int cpu, struct sched_domain *sd)
+ #ifdef CONFIG_SCHED_SMT
+ 	{ cpu_smt_mask, cpu_smt_flags, SD_INIT_NAME(SMT) },
+ #endif
++
++#ifdef CONFIG_SCHED_CLUSTER
++       { cpu_clustergroup_mask, cpu_cluster_flags, SD_INIT_NAME(CLS) },
++#endif
++
+ #ifdef CONFIG_SCHED_MC
+ 	{ cpu_coregroup_mask, cpu_core_flags, SD_INIT_NAME(MC) },
+ #endif
+-- 
+1.8.3.1
+
