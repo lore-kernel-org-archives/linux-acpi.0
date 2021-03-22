@@ -2,115 +2,200 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22520C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8502DC433E1
 	for <linux-acpi@archiver.kernel.org>; Mon, 22 Mar 2021 23:10:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB1AB6199E
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Mar 2021 23:10:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56BF1619A4
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Mar 2021 23:10:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230031AbhCVXKK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Mar 2021 19:10:10 -0400
+        id S230189AbhCVXKM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Mar 2021 19:10:12 -0400
 Received: from mga06.intel.com ([134.134.136.31]:20267 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230095AbhCVXJi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Mar 2021 19:09:38 -0400
-IronPort-SDR: lmGrAHVnVB7y6BnD1KW4HzQ6zT6kE4gYfc/z89/InlOJOhg9835TE1+QyqHK4Ww/sFgIUQPKKY
- Fv6LoqjC5Jyw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9931"; a="251718881"
+        id S230167AbhCVXJj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Mar 2021 19:09:39 -0400
+IronPort-SDR: mCsnSVcirBx9ct9KCaUco82pCgY1rspmWjBXdGbWVXMn9sIN9oUEyCCU8akEEE6g+blaiKdY7e
+ Tt5O/tdZmQEw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9931"; a="251718883"
 X-IronPort-AV: E=Sophos;i="5.81,269,1610438400"; 
-   d="scan'208";a="251718881"
+   d="scan'208";a="251718883"
 Received: from fmsmga005.fm.intel.com ([10.253.24.32])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2021 16:09:37 -0700
-IronPort-SDR: zKQ+WIFL5+FL5gxXKb6qlpFa7cVFzx5UKdN/50t37YAACb74V3vb7JlxEpz/6VsNE+HYggay8L
- o4QESAjZ5voA==
+IronPort-SDR: hC0Sogm/hJ4oAUyOQRuXJ3TUSRX1YIm9Uzw5IGRT2kVsftQzFYk8UphCU74lF3BpcUyv4GL+GU
+ axiF7XswcS8w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,269,1610438400"; 
-   d="scan'208";a="607510493"
+   d="scan'208";a="607510499"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by fmsmga005.fm.intel.com with ESMTP; 22 Mar 2021 16:09:37 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Erik Kaneda <erik.kaneda@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ashok Raj <ashok.raj@intel.com>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>
-Subject: [PATCH v3 0/4] Implement Platform Runtime Mechanism plumbing
-Date:   Mon, 22 Mar 2021 15:37:03 -0700
-Message-Id: <20210322223707.1838823-1-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH v3 2/4] ACPICA: Add support for PlatformRtMechanism OperationRegion handler
+Date:   Mon, 22 Mar 2021 15:37:05 -0700
+Message-Id: <20210322223707.1838823-3-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210322223707.1838823-1-erik.kaneda@intel.com>
+References: <20210322223707.1838823-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Platform Runtime Mechanism (PRM) is a firmware interface that exposes
-a set of binary executables that can either be called from the AML
-interpreter or device drivers by bypassing the AML interpreter.
-
-This mechanism offers a more performant way to execute native code
-than ASL and a less disruptive approach than ASL invoking SMI by writing
-to the SMI command port.
-
-This patch seies adds linux support to invoke PRM through a new ACPI
-OperationRegion address type. The native code is ran as if it were a
-UEFI runtime service by calling efi_call_virt_pointer to function
-pointers exposed in the PRMT ACPI table.
-
-According to the PRM specification, the PRM binary should only consist
-of unprivleged instructions. Code that enables Linux to run PRM in CPL3
-is currently in-progress and will be released in the future.
-
-The code follows the PRM specification and has been tested on QEMU
-running an OVMF image that was integrated with a sample implementation
-in Michael Kubacki's EDK2 staging branch.
-
-Links: 
-
-PRM specification:
-https://uefi.org/sites/default/files/resources/Platform%20Runtime%20Mechanism%20-%20with%20legal%20notice.pdf
-
-The EDK2 staging branch:
-https://github.com/tianocore/edk2-staging/tree/PlatformRuntimeMechanism/PrmPkg
-
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
+Writing a buffer to a PlatformRtMechanism fieldunit invokes a
+bidirectional transaction. The input buffer contains 26 bytes
+containing 9 bytes of status, a command byte and a 16-byte UUID.
+This change will will simply pass this incoming buffer to a handler
+registered by the OS.
 
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+---
+ drivers/acpi/acpica/acutils.h  |  2 ++
+ drivers/acpi/acpica/exfield.c  |  8 +++++--
+ drivers/acpi/acpica/exserial.c | 12 ++++++++++
+ drivers/acpi/acpica/utuuid.c   | 41 ++++++++++++++++++++++++++++++++++
+ include/acpi/acconfig.h        |  2 ++
+ 5 files changed, 63 insertions(+), 2 deletions(-)
 
-
-Erik Kaneda (4):
-  ACPICA: iASL: add disassembler support for PRMT
-  ACPICA: Add support for PlatformRtMechanism OperationRegion handler
-  PRM: implement OperationRegion handler for the PlatformRtMechanism
-    subtype
-  ACPI: Add \_SB._OSC bit for PRM
-
- drivers/acpi/Kconfig           |   5 +
- drivers/acpi/Makefile          |   1 +
- drivers/acpi/acpica/acutils.h  |   2 +
- drivers/acpi/acpica/exfield.c  |   8 +-
- drivers/acpi/acpica/exserial.c |  12 ++
- drivers/acpi/acpica/utuuid.c   |  41 +++++
- drivers/acpi/bus.c             |   3 +
- drivers/acpi/prmt.c            | 302 +++++++++++++++++++++++++++++++++
- drivers/acpi/tables.c          |   9 +
- include/acpi/acconfig.h        |   2 +
- include/acpi/actbl2.h          |  40 +++++
- include/linux/acpi.h           |   2 +
- include/linux/prmt.h           |   7 +
- 13 files changed, 432 insertions(+), 2 deletions(-)
- create mode 100644 drivers/acpi/prmt.c
- create mode 100644 include/linux/prmt.h
-
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index be6de7149e67..dd72d589babe 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -736,6 +736,8 @@ const char *acpi_ah_match_uuid(u8 *data);
+  */
+ #if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_HELP_APP)
+ void acpi_ut_convert_string_to_uuid(char *in_string, u8 *uuid_buffer);
++
++acpi_status acpi_ut_convert_uuid_to_string(char *uuid_buffer, char *out_string);
+ #endif
+ 
+ #endif				/* _ACUTILS_H */
+diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+index 32f03ee81785..06f3c9df1e22 100644
+--- a/drivers/acpi/acpica/exfield.c
++++ b/drivers/acpi/acpica/exfield.c
+@@ -139,7 +139,9 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
+ 		    || obj_desc->field.region_obj->region.space_id ==
+ 		    ACPI_ADR_SPACE_GSBUS
+ 		    || obj_desc->field.region_obj->region.space_id ==
+-		    ACPI_ADR_SPACE_IPMI)) {
++		    ACPI_ADR_SPACE_IPMI
++		    || obj_desc->field.region_obj->region.space_id ==
++		    ACPI_ADR_SPACE_PLATFORM_RT)) {
+ 
+ 		/* SMBus, GSBus, IPMI serial */
+ 
+@@ -301,7 +303,9 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
+ 		    || obj_desc->field.region_obj->region.space_id ==
+ 		    ACPI_ADR_SPACE_GSBUS
+ 		    || obj_desc->field.region_obj->region.space_id ==
+-		    ACPI_ADR_SPACE_IPMI)) {
++		    ACPI_ADR_SPACE_IPMI
++		    || obj_desc->field.region_obj->region.space_id ==
++		    ACPI_ADR_SPACE_PLATFORM_RT)) {
+ 
+ 		/* SMBus, GSBus, IPMI serial */
+ 
+diff --git a/drivers/acpi/acpica/exserial.c b/drivers/acpi/acpica/exserial.c
+index 8e8d95f7947b..10d68a5f76a3 100644
+--- a/drivers/acpi/acpica/exserial.c
++++ b/drivers/acpi/acpica/exserial.c
+@@ -195,6 +195,12 @@ acpi_ex_read_serial_bus(union acpi_operand_object *obj_desc,
+ 		function = ACPI_READ | (accessor_type << 16);
+ 		break;
+ 
++	case ACPI_ADR_SPACE_PLATFORM_RT:
++
++		buffer_length = ACPI_PRM_INPUT_BUFFER_SIZE;
++		function = ACPI_READ;
++		break;
++
+ 	default:
+ 		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
+ 	}
+@@ -311,6 +317,12 @@ acpi_ex_write_serial_bus(union acpi_operand_object *source_desc,
+ 		function = ACPI_WRITE | (accessor_type << 16);
+ 		break;
+ 
++	case ACPI_ADR_SPACE_PLATFORM_RT:
++
++		buffer_length = ACPI_PRM_INPUT_BUFFER_SIZE;
++		function = ACPI_WRITE;
++		break;
++
+ 	default:
+ 		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
+ 	}
+diff --git a/drivers/acpi/acpica/utuuid.c b/drivers/acpi/acpica/utuuid.c
+index 090e44b6b6c7..dca9061518ab 100644
+--- a/drivers/acpi/acpica/utuuid.c
++++ b/drivers/acpi/acpica/utuuid.c
+@@ -61,4 +61,45 @@ void acpi_ut_convert_string_to_uuid(char *in_string, u8 *uuid_buffer)
+ 					       1]);
+ 	}
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_convert_uuid_to_string
++ *
++ * PARAMETERS:  uuid_buffer         - 16-byte UUID buffer
++ *              out_string          - 36-byte formatted UUID string
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Convert 16-byte UUID buffer to 36-byte formatted UUID string
++ *              out_string must be 37 bytes to include null terminator.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_ut_convert_uuid_to_string(char *uuid_buffer, char *out_string)
++{
++	u32 i;
++
++	if (!uuid_buffer || !out_string) {
++		return (AE_BAD_PARAMETER);
++	}
++
++	for (i = 0; i < UUID_BUFFER_LENGTH; i++) {
++		out_string[acpi_gbl_map_to_uuid_offset[i]] =
++		    acpi_ut_hex_to_ascii_char(uuid_buffer[i], 4);
++
++		out_string[acpi_gbl_map_to_uuid_offset[i] + 1] =
++		    acpi_ut_hex_to_ascii_char(uuid_buffer[i], 0);
++	}
++
++	/* Insert required hyphens (dashes) */
++
++	out_string[UUID_HYPHEN1_OFFSET] =
++	    out_string[UUID_HYPHEN2_OFFSET] =
++	    out_string[UUID_HYPHEN3_OFFSET] =
++	    out_string[UUID_HYPHEN4_OFFSET] = '-';
++
++	out_string[UUID_STRING_LENGTH] = 0;	/* Null terminate */
++	return (AE_OK);
++}
+ #endif
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index e92f84fa8c68..0362cbb72359 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -188,6 +188,8 @@
+ #define ACPI_MAX_GSBUS_DATA_SIZE        255
+ #define ACPI_MAX_GSBUS_BUFFER_SIZE      ACPI_SERIAL_HEADER_SIZE + ACPI_MAX_GSBUS_DATA_SIZE
+ 
++#define ACPI_PRM_INPUT_BUFFER_SIZE      26
++
+ /* _sx_d and _sx_w control methods */
+ 
+ #define ACPI_NUM_sx_d_METHODS           4
 -- 
 2.29.2
 
