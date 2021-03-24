@@ -2,171 +2,273 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB624C433C1
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Mar 2021 15:59:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E98C433E1
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Mar 2021 21:31:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6F3B619FC
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Mar 2021 15:59:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC6E261A1E
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Mar 2021 21:31:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236864AbhCXP6y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Mar 2021 11:58:54 -0400
-Received: from mail-ot1-f41.google.com ([209.85.210.41]:46767 "EHLO
-        mail-ot1-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236856AbhCXP6K (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Mar 2021 11:58:10 -0400
-Received: by mail-ot1-f41.google.com with SMTP id 68-20020a9d0f4a0000b02901b663e6258dso23448432ott.13;
-        Wed, 24 Mar 2021 08:58:10 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=OlQTEcFIX4CEIQrrUQfNWdtuKLtwMJSDttBcSM05XpU=;
-        b=QcaxAnY5td0g8x3yegr5vKkFAUDcEaNyHwFCvSK1Va3+iU9lqqbOCKeGY1jUfyj+xv
-         5Lxdmvws+w0GYFkKKgWGi9s1a56YtqZCbHg6Ah499+mebJmiVLKmxRGgkkFcYS7Mb95o
-         1lk4hVf2soGU6vL5f75VXOpWi7lOsvGmngsrpDSH5jBxmYDc21oHSrLAKv2Lm1NUA7gJ
-         8PAxg6qc4Xu9myf2v0t2SWtDVGVcs6T0KAFGlxIh9hrFPpGcEZ6d/D+wU+050l2wBmLg
-         U072IvCS7j2n56ithuieUjsbhbY3c9nw0kp4HazvNalAkX45E4Eo561V3jSAesWEr2Bs
-         MIag==
-X-Gm-Message-State: AOAM530OKxhvow2XcaJTJNS2ieq4X4dSPjFXX7EbE+P09X9gy2vzmJDZ
-        tWPYifsdUZafx38ZR8EuNehLghH8VYF2ush4zdg=
-X-Google-Smtp-Source: ABdhPJxRkauSgaeZexanMigrLc+47QM8X3xovRTwIMoO05eQKkTFZpMof8Y1BDIRjltAbiN4A7lTd+zU5bgYNMJEx2M=
-X-Received: by 2002:a05:6830:1e03:: with SMTP id s3mr3837681otr.321.1616601490292;
- Wed, 24 Mar 2021 08:58:10 -0700 (PDT)
+        id S238362AbhCXVac (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Mar 2021 17:30:32 -0400
+Received: from mga18.intel.com ([134.134.136.126]:32604 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S238368AbhCXVab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Mar 2021 17:30:31 -0400
+IronPort-SDR: CeZIPP6KRbx5Gx2Pa1zMXWBqoHYhc2sgROrwdGFZAYPwWPCcq9N6ycUe1APN1vpfEsVVlyD2G3
+ Bp8Nt9SSMoqg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9933"; a="178343998"
+X-IronPort-AV: E=Sophos;i="5.81,275,1610438400"; 
+   d="scan'208";a="178343998"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2021 14:30:30 -0700
+IronPort-SDR: givUmYSB9sMX/pM8eTqe4OEq4ApwEarIeoxhQktMm/caVih0tfVBBYs0n5Sc3j9E08v4sY0Epv
+ 7VwIr9sSRtbw==
+X-IronPort-AV: E=Sophos;i="5.81,275,1610438400"; 
+   d="scan'208";a="442425792"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2021 14:30:29 -0700
+Subject: [PATCH 1/8] cxl/mem: Move some definitions to mem.h
+From:   Dan Williams <dan.j.williams@intel.com>
+To:     linux-cxl@vger.kernel.org
+Cc:     linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+        ira.weiny@intel.com, vishal.l.verma@intel.com,
+        alison.schofield@intel.com, ben.widawsky@intel.com,
+        linux-kernel@vger.kernel.org
+Date:   Wed, 24 Mar 2021 14:30:29 -0700
+Message-ID: <161662142918.1723715.7277721673646893637.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <161662142382.1723715.5934723983022398253.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <161662142382.1723715.5934723983022398253.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-References: <1616504247-48744-1-git-send-email-tanxiaofei@huawei.com>
-In-Reply-To: <1616504247-48744-1-git-send-email-tanxiaofei@huawei.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 24 Mar 2021 16:57:59 +0100
-Message-ID: <CAJZ5v0jKBXuvuhMiLCRJKhk9Ctbmh6mTcRqSh-_WnwHVZ0PabQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: AC: fix some errors and warnings reported by checkpatch.pl
-To:     Xiaofei Tan <tanxiaofei@huawei.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linuxarm@openeuler.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 23, 2021 at 2:01 PM Xiaofei Tan <tanxiaofei@huawei.com> wrote:
->
-> Fix some errors and warnings reported by checkpatch.pl, including
-> following five types:
+In preparation for sharing cxl.h with other generic CXL consumers,
+move / consolidate some of the memory device specifics to mem.h.
 
-Well, they are coding style issues rather than errors.
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/cxl/cxl.h |   57 ------------------------------------
+ drivers/cxl/mem.c |   25 +---------------
+ drivers/cxl/mem.h |   85 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 86 insertions(+), 81 deletions(-)
+ create mode 100644 drivers/cxl/mem.h
 
-> ERROR: "foo * bar" should be "foo *bar"
-> ERROR: code indent should use tabs where possible
-> WARNING: Block comments use a trailing */ on a separate line
-> WARNING: braces {} are not necessary for single statement blocks
-> WARNING: void function return statements are not generally useful
->
-> Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
-> ---
->  drivers/acpi/ac.c | 32 +++++++++++++-------------------
->  1 file changed, 13 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index b86ee6e..07987854 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -78,17 +78,16 @@ static struct acpi_driver acpi_ac_driver = {
->  struct acpi_ac {
->         struct power_supply *charger;
->         struct power_supply_desc charger_desc;
-> -       struct acpi_device * device;
-> +       struct acpi_device *device;
->         unsigned long long state;
->         struct notifier_block battery_nb;
->  };
->
->  #define to_acpi_ac(x) power_supply_get_drvdata(x)
->
-> -/* --------------------------------------------------------------------------
-> -                               AC Adapter Management
-> -   -------------------------------------------------------------------------- */
-> -
-> +/*
-> + * AC Adapter Management
-> + */
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 6f14838c2d25..2e3bdacb32e7 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -34,62 +34,5 @@
+ #define CXLDEV_MBOX_BG_CMD_STATUS_OFFSET 0x18
+ #define CXLDEV_MBOX_PAYLOAD_OFFSET 0x20
+ 
+-/* CXL 2.0 8.2.8.5.1.1 Memory Device Status Register */
+-#define CXLMDEV_STATUS_OFFSET 0x0
+-#define   CXLMDEV_DEV_FATAL BIT(0)
+-#define   CXLMDEV_FW_HALT BIT(1)
+-#define   CXLMDEV_STATUS_MEDIA_STATUS_MASK GENMASK(3, 2)
+-#define     CXLMDEV_MS_NOT_READY 0
+-#define     CXLMDEV_MS_READY 1
+-#define     CXLMDEV_MS_ERROR 2
+-#define     CXLMDEV_MS_DISABLED 3
+-#define CXLMDEV_READY(status)                                                  \
+-	(FIELD_GET(CXLMDEV_STATUS_MEDIA_STATUS_MASK, status) ==                \
+-	 CXLMDEV_MS_READY)
+-#define   CXLMDEV_MBOX_IF_READY BIT(4)
+-#define   CXLMDEV_RESET_NEEDED_MASK GENMASK(7, 5)
+-#define     CXLMDEV_RESET_NEEDED_NOT 0
+-#define     CXLMDEV_RESET_NEEDED_COLD 1
+-#define     CXLMDEV_RESET_NEEDED_WARM 2
+-#define     CXLMDEV_RESET_NEEDED_HOT 3
+-#define     CXLMDEV_RESET_NEEDED_CXL 4
+-#define CXLMDEV_RESET_NEEDED(status)                                           \
+-	(FIELD_GET(CXLMDEV_RESET_NEEDED_MASK, status) !=                       \
+-	 CXLMDEV_RESET_NEEDED_NOT)
+-
+-struct cxl_memdev;
+-/**
+- * struct cxl_mem - A CXL memory device
+- * @pdev: The PCI device associated with this CXL device.
+- * @regs: IO mappings to the device's MMIO
+- * @status_regs: CXL 2.0 8.2.8.3 Device Status Registers
+- * @mbox_regs: CXL 2.0 8.2.8.4 Mailbox Registers
+- * @memdev_regs: CXL 2.0 8.2.8.5 Memory Device Registers
+- * @payload_size: Size of space for payload
+- *                (CXL 2.0 8.2.8.4.3 Mailbox Capabilities Register)
+- * @mbox_mutex: Mutex to synchronize mailbox access.
+- * @firmware_version: Firmware version for the memory device.
+- * @enabled_commands: Hardware commands found enabled in CEL.
+- * @pmem_range: Persistent memory capacity information.
+- * @ram_range: Volatile memory capacity information.
+- */
+-struct cxl_mem {
+-	struct pci_dev *pdev;
+-	void __iomem *regs;
+-	struct cxl_memdev *cxlmd;
+-
+-	void __iomem *status_regs;
+-	void __iomem *mbox_regs;
+-	void __iomem *memdev_regs;
+-
+-	size_t payload_size;
+-	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
+-	char firmware_version[0x10];
+-	unsigned long *enabled_cmds;
+-
+-	struct range pmem_range;
+-	struct range ram_range;
+-};
+-
+ extern struct bus_type cxl_bus_type;
+ #endif /* __CXL_H__ */
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index 244cb7d89678..45871ef65152 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -12,6 +12,7 @@
+ #include <linux/io-64-nonatomic-lo-hi.h>
+ #include "pci.h"
+ #include "cxl.h"
++#include "mem.h"
+ 
+ /**
+  * DOC: cxl mem
+@@ -29,12 +30,6 @@
+  *  - Handle and manage error conditions.
+  */
+ 
+-/*
+- * An entire PCI topology full of devices should be enough for any
+- * config
+- */
+-#define CXL_MEM_MAX_DEVS 65536
+-
+ #define cxl_doorbell_busy(cxlm)                                                \
+ 	(readl((cxlm)->mbox_regs + CXLDEV_MBOX_CTRL_OFFSET) &                  \
+ 	 CXLDEV_MBOX_CTRL_DOORBELL)
+@@ -91,24 +86,6 @@ struct mbox_cmd {
+ #define CXL_MBOX_SUCCESS 0
+ };
+ 
+-/**
+- * struct cxl_memdev - CXL bus object representing a Type-3 Memory Device
+- * @dev: driver core device object
+- * @cdev: char dev core object for ioctl operations
+- * @cxlm: pointer to the parent device driver data
+- * @ops_active: active user of @cxlm in ops handlers
+- * @ops_dead: completion when all @cxlm ops users have exited
+- * @id: id number of this memdev instance.
+- */
+-struct cxl_memdev {
+-	struct device dev;
+-	struct cdev cdev;
+-	struct cxl_mem *cxlm;
+-	struct percpu_ref ops_active;
+-	struct completion ops_dead;
+-	int id;
+-};
+-
+ static int cxl_mem_major;
+ static DEFINE_IDA(cxl_memdev_ida);
+ static struct dentry *cxl_debugfs;
+diff --git a/drivers/cxl/mem.h b/drivers/cxl/mem.h
+new file mode 100644
+index 000000000000..daa9aba0e218
+--- /dev/null
++++ b/drivers/cxl/mem.h
+@@ -0,0 +1,85 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/* Copyright(c) 2020-2021 Intel Corporation. */
++#ifndef __CXL_MEM_H__
++#define __CXL_MEM_H__
++
++/* CXL 2.0 8.2.8.5.1.1 Memory Device Status Register */
++#define CXLMDEV_STATUS_OFFSET 0x0
++#define   CXLMDEV_DEV_FATAL BIT(0)
++#define   CXLMDEV_FW_HALT BIT(1)
++#define   CXLMDEV_STATUS_MEDIA_STATUS_MASK GENMASK(3, 2)
++#define     CXLMDEV_MS_NOT_READY 0
++#define     CXLMDEV_MS_READY 1
++#define     CXLMDEV_MS_ERROR 2
++#define     CXLMDEV_MS_DISABLED 3
++#define CXLMDEV_READY(status)                                                  \
++	(FIELD_GET(CXLMDEV_STATUS_MEDIA_STATUS_MASK, status) ==                \
++	 CXLMDEV_MS_READY)
++#define   CXLMDEV_MBOX_IF_READY BIT(4)
++#define   CXLMDEV_RESET_NEEDED_MASK GENMASK(7, 5)
++#define     CXLMDEV_RESET_NEEDED_NOT 0
++#define     CXLMDEV_RESET_NEEDED_COLD 1
++#define     CXLMDEV_RESET_NEEDED_WARM 2
++#define     CXLMDEV_RESET_NEEDED_HOT 3
++#define     CXLMDEV_RESET_NEEDED_CXL 4
++#define CXLMDEV_RESET_NEEDED(status)                                           \
++	(FIELD_GET(CXLMDEV_RESET_NEEDED_MASK, status) !=                       \
++	 CXLMDEV_RESET_NEEDED_NOT)
++
++/*
++ * An entire PCI topology full of devices should be enough for any
++ * config
++ */
++#define CXL_MEM_MAX_DEVS 65536
++
++/**
++ * struct cxl_memdev - CXL bus object representing a Type-3 Memory Device
++ * @dev: driver core device object
++ * @cdev: char dev core object for ioctl operations
++ * @cxlm: pointer to the parent device driver data
++ * @ops_active: active user of @cxlm in ops handlers
++ * @ops_dead: completion when all @cxlm ops users have exited
++ * @id: id number of this memdev instance.
++ */
++struct cxl_memdev {
++	struct device dev;
++	struct cdev cdev;
++	struct cxl_mem *cxlm;
++	struct percpu_ref ops_active;
++	struct completion ops_dead;
++	int id;
++};
++
++/**
++ * struct cxl_mem - A CXL memory device
++ * @pdev: The PCI device associated with this CXL device.
++ * @regs: IO mappings to the device's MMIO
++ * @status_regs: CXL 2.0 8.2.8.3 Device Status Registers
++ * @mbox_regs: CXL 2.0 8.2.8.4 Mailbox Registers
++ * @memdev_regs: CXL 2.0 8.2.8.5 Memory Device Registers
++ * @payload_size: Size of space for payload
++ *                (CXL 2.0 8.2.8.4.3 Mailbox Capabilities Register)
++ * @mbox_mutex: Mutex to synchronize mailbox access.
++ * @firmware_version: Firmware version for the memory device.
++ * @enabled_commands: Hardware commands found enabled in CEL.
++ * @pmem_range: Persistent memory capacity information.
++ * @ram_range: Volatile memory capacity information.
++ */
++struct cxl_mem {
++	struct pci_dev *pdev;
++	void __iomem *regs;
++	struct cxl_memdev *cxlmd;
++
++	void __iomem *status_regs;
++	void __iomem *mbox_regs;
++	void __iomem *memdev_regs;
++
++	size_t payload_size;
++	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
++	char firmware_version[0x10];
++	unsigned long *enabled_cmds;
++
++	struct range pmem_range;
++	struct range ram_range;
++};
++#endif /* __CXL_MEM_H__ */
 
-Please use the /* ... */ (one-line) comment format here and below for
-comments that aren't longer than one line.
-
->  static int acpi_ac_get_state(struct acpi_ac *ac)
->  {
->         acpi_status status = AE_OK;
-> @@ -109,9 +108,9 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
->         return 0;
->  }
->
-> -/* --------------------------------------------------------------------------
-> -                            sysfs I/F
-> -   -------------------------------------------------------------------------- */
-> +/*
-> + * sysfs I/F
-> + */
->  static int get_ac_property(struct power_supply *psy,
->                            enum power_supply_property psp,
->                            union power_supply_propval *val)
-> @@ -138,10 +137,9 @@ static enum power_supply_property ac_props[] = {
->         POWER_SUPPLY_PROP_ONLINE,
->  };
->
-> -/* --------------------------------------------------------------------------
-> -                                   Driver Model
-> -   -------------------------------------------------------------------------- */
-> -
-> +/*
-> + * Driver Model
-> + */
->  static void acpi_ac_notify(struct acpi_device *device, u32 event)
->  {
->         struct acpi_ac *ac = acpi_driver_data(device);
-> @@ -174,8 +172,6 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
->                 acpi_notifier_call_chain(device, event, (u32) ac->state);
->                 kobject_uevent(&ac->charger->dev.kobj, KOBJ_CHANGE);
->         }
-> -
-> -       return;
->  }
->
->  static int acpi_ac_battery_notify(struct notifier_block *nb,
-> @@ -282,9 +278,8 @@ static int acpi_ac_add(struct acpi_device *device)
->         ac->battery_nb.notifier_call = acpi_ac_battery_notify;
->         register_acpi_notifier(&ac->battery_nb);
->  end:
-> -       if (result) {
-> +       if (result)
->                 kfree(ac);
-> -       }
->
->         return result;
->  }
-> @@ -293,7 +288,7 @@ static int acpi_ac_add(struct acpi_device *device)
->  static int acpi_ac_resume(struct device *dev)
->  {
->         struct acpi_ac *ac;
-> -       unsigned old_state;
-> +       unsigned int old_state;
->
->         if (!dev)
->                 return -EINVAL;
-> @@ -352,9 +347,8 @@ static int __init acpi_ac_init(void)
->         }
->
->         result = acpi_bus_register_driver(&acpi_ac_driver);
-> -       if (result < 0) {
-> +       if (result < 0)
->                 return -ENODEV;
-> -       }
->
->         return 0;
->  }
-> --
