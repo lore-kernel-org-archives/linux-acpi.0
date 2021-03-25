@@ -2,71 +2,63 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C86D6C433E1
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Mar 2021 07:51:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E71DC433C1
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Mar 2021 08:17:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85C3261A26
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Mar 2021 07:51:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7D9961A26
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Mar 2021 08:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229866AbhCYHuy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Mar 2021 03:50:54 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14585 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229913AbhCYHuV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Mar 2021 03:50:21 -0400
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F5cfT4fbgz19JBc;
-        Thu, 25 Mar 2021 15:48:17 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.498.0; Thu, 25 Mar 2021 15:50:08 +0800
-From:   Xiongfeng Wang <wangxiongfeng2@huawei.com>
-To:     <bhelgaas@google.com>, <rjw@rjwysocki.net>, <ruscur@russell.cc>
-CC:     <linux-pci@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <wangxiongfeng2@huawei.com>
-Subject: [PATCH 3/4] PCI/PME: Correct pcie_pme_init() function name in the header
-Date:   Thu, 25 Mar 2021 15:51:43 +0800
-Message-ID: <20210325075144.180030-4-wangxiongfeng2@huawei.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210325075144.180030-1-wangxiongfeng2@huawei.com>
-References: <20210325075144.180030-1-wangxiongfeng2@huawei.com>
+        id S229576AbhCYIQn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Mar 2021 04:16:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54648 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229676AbhCYIQY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Mar 2021 04:16:24 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76FE4C06174A;
+        Thu, 25 Mar 2021 01:16:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=/exH9O9awcWsxCz7+eapTVCjP1xnjzd++2TmK3g0wUA=; b=mza4LLBSMR5tgg00tK6/RqwQry
+        EAWd+m3DmQ5LsHRZKpQcVroIj4hHPKMXZeiDU6H8WaOSWgA3Px6N+76itUWRjbryxa4/LU5SIjTi4
+        kvOAg5i2hzYGoVV88qRszX0+ZYbQV2Oj460JUXXQc/Nf4PqndcOxoEzXahqHyolGihggvuIyBmkjc
+        vdRP9Kv8oS1sskhHLDQ7mVC4ucvxbxolI7CPsrMYx3Ud13XsNnHJHs9F7CaRYGF9XinZCMZrBb6eO
+        XWEvbq7mPzOiPd92WTnq8e0rKsrRKASUqwZ71WJTXp8wY5EldPpCxwS8yjlommcB3dE2wgohUPhsp
+        vQJgoTpQ==;
+Received: from hch by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+        id 1lPL9n-00CWsM-Ov; Thu, 25 Mar 2021 08:16:05 +0000
+Date:   Thu, 25 Mar 2021 08:15:55 +0000
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-cxl@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, ira.weiny@intel.com,
+        vishal.l.verma@intel.com, alison.schofield@intel.com,
+        ben.widawsky@intel.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/8] cxl/mem: Introduce 'struct cxl_regs'
+Message-ID: <20210325081555.GA2983117@infradead.org>
+References: <161662142382.1723715.5934723983022398253.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <161662143530.1723715.15800475088422813585.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <161662143530.1723715.15800475088422813585.stgit@dwillia2-desk3.amr.corp.intel.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fixes the following W=1 kernel build warning(s):
+On Wed, Mar 24, 2021 at 02:30:35PM -0700, Dan Williams wrote:
+> In preparation for common register mapping facility, introduce a generic
+> container, 'struct cxl_regs', for CXL device register and later
+> component register block base pointers. Some CXL device types implement
+> both.
 
- drivers/pci/pcie/pme.c:469: warning: expecting prototype for pcie_pme_service_init(). Prototype was for pcie_pme_init() instead
-
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
----
- drivers/pci/pcie/pme.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/pci/pcie/pme.c b/drivers/pci/pcie/pme.c
-index 3fc08488d65f..1d0dd77fed3a 100644
---- a/drivers/pci/pcie/pme.c
-+++ b/drivers/pci/pcie/pme.c
-@@ -463,7 +463,7 @@ static struct pcie_port_service_driver pcie_pme_driver = {
- };
- 
- /**
-- * pcie_pme_service_init - Register the PCIe PME service driver.
-+ * pcie_pme_init - Register the PCIe PME service driver.
-  */
- int __init pcie_pme_init(void)
- {
--- 
-2.20.1
-
+The code looks like complete gibberish to me with a struct of a union of
+a struct declaring members in a macro.  This needs a much more detailed
+explanation and rationale.
