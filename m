@@ -2,38 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C899C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9813EC433E6
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 07:50:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49EE7619AE
+	by mail.kernel.org (Postfix) with ESMTP id 5D769619C9
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 07:50:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231202AbhC0Htl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 03:49:41 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:14923 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230236AbhC0HtP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 03:49:15 -0400
+        id S231342AbhC0Htn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 03:49:43 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:15344 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230415AbhC0HtS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 03:49:18 -0400
 Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4F6rXg4V2szkjRn;
-        Sat, 27 Mar 2021 15:47:31 +0800 (CST)
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F6rXK4p77z93yj;
+        Sat, 27 Mar 2021 15:47:13 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.498.0; Sat, 27 Mar 2021 15:49:01 +0800
+ 14.3.498.0; Sat, 27 Mar 2021 15:49:07 +0800
 From:   Xiaofei Tan <tanxiaofei@huawei.com>
 To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
         <bhelgaas@google.com>
 CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH v2 00/15] acpi: fix some coding style issues
-Date:   Sat, 27 Mar 2021 15:46:18 +0800
-Message-ID: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
+Subject: [PATCH v2 15/15] ACPI: dock: fix some coding style issues
+Date:   Sat, 27 Mar 2021 15:46:33 +0800
+Message-ID: <1616831193-17920-16-git-send-email-tanxiaofei@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
+References: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -42,46 +45,60 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fix some coding style issues reported by checkpatch.pl.
+Fix some coding style issues reported by checkpatch.pl, including
+following types:
 
-Differences from v1 to v2:
-- Add subsystem and module name in the name of patch 05/15.
-- Change to use more proper module name for some patch names.
+WARNING: Missing a blank line after declarations
+ERROR: spaces required around that ':'
+WARNING: Statements should start on a tabstop
 
-Xiaofei Tan (15):
-  ACPI: APD: fix a block comment align issue
-  ACPI: processor: fix some coding style issues
-  ACPI: debug: fix some coding style issues
-  ACPI: table: replace __attribute__((packed)) by __packed
-  ACPI: ipmi: remove useless return statement for void function
-  ACPI: LPSS: fix some coding style issues
-  ACPI: memhotplug: fix a coding style issue
-  ACPI: acpi_pad: fix a coding style issue
-  ACPI: battery: fix some coding style issues
-  ACPI: button: fix some coding style issues
-  ACPI: CPPC: fix some coding style issues
-  ACPI: custom_method: fix a coding style issue
-  ACPI: PM: fix some coding style issues
-  ACPI: sysfs: fix some coding style issues
-  ACPI: dock: fix some coding style issues
+Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
+---
+ drivers/acpi/dock.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
- drivers/acpi/acpi_apd.c        |  8 ++---
- drivers/acpi/acpi_dbg.c        | 40 +++++++++++-------------
- drivers/acpi/acpi_fpdt.c       |  6 ++--
- drivers/acpi/acpi_ipmi.c       |  1 -
- drivers/acpi/acpi_lpss.c       |  4 ++-
- drivers/acpi/acpi_memhotplug.c |  2 +-
- drivers/acpi/acpi_pad.c        |  4 +++
- drivers/acpi/acpi_processor.c  | 18 +++--------
- drivers/acpi/battery.c         | 64 +++++++++++++++++++++----------------
- drivers/acpi/button.c          | 10 +++---
- drivers/acpi/cppc_acpi.c       | 71 +++++++++++++++++++++---------------------
- drivers/acpi/custom_method.c   |  2 +-
- drivers/acpi/device_pm.c       |  3 ++
- drivers/acpi/device_sysfs.c    | 15 ++++++---
- drivers/acpi/dock.c            |  7 +++--
- 15 files changed, 138 insertions(+), 117 deletions(-)
-
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 0937cea..7cf9215 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -271,6 +271,7 @@ static void hotplug_dock_devices(struct dock_station *ds, u32 event)
+ 
+ 		if (!acpi_device_enumerated(adev)) {
+ 			int ret = acpi_bus_scan(adev->handle);
++
+ 			if (ret)
+ 				dev_dbg(&adev->dev, "scan error %d\n", -ret);
+ 		}
+@@ -502,6 +503,7 @@ static ssize_t flags_show(struct device *dev,
+ 			  struct device_attribute *attr, char *buf)
+ {
+ 	struct dock_station *dock_station = dev->platform_data;
++
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_station->flags);
+ 
+ }
+@@ -523,7 +525,7 @@ static ssize_t undock_store(struct device *dev, struct device_attribute *attr,
+ 	begin_undock(dock_station);
+ 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
+ 	acpi_scan_lock_release();
+-	return ret ? ret: count;
++	return ret ? ret : count;
+ }
+ static DEVICE_ATTR_WO(undock);
+ 
+@@ -535,10 +537,11 @@ static ssize_t uid_show(struct device *dev,
+ {
+ 	unsigned long long lbuf;
+ 	struct dock_station *dock_station = dev->platform_data;
++
+ 	acpi_status status = acpi_evaluate_integer(dock_station->handle,
+ 					"_UID", NULL, &lbuf);
+ 	if (ACPI_FAILURE(status))
+-	    return 0;
++		return 0;
+ 
+ 	return snprintf(buf, PAGE_SIZE, "%llx\n", lbuf);
+ }
 -- 
 2.8.1
 
