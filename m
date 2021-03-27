@@ -2,122 +2,88 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5ED4C433DB
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 10:01:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 316CAC433DB
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7B62161A18
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 10:01:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E73D9619C9
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231352AbhC0KBM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 06:01:12 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:15010 "EHLO
+        id S229980AbhC0MLM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 08:11:12 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:15013 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231240AbhC0KAk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 06:00:40 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F6vRG6dGczPmdJ;
-        Sat, 27 Mar 2021 17:58:02 +0800 (CST)
-Received: from [127.0.0.1] (10.40.192.162) by DGGEMS403-HUB.china.huawei.com
- (10.3.19.203) with Microsoft SMTP Server id 14.3.498.0; Sat, 27 Mar 2021
- 18:00:34 +0800
-Subject: Re: [PATCH 00/15] acpi: fix some coding style issues
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-References: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
- <CAHp75VcwuFYWRYfVPxbqa4TFGgqOhHc_soefmTAZcGGk3bLuhw@mail.gmail.com>
-CC:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "rui.zhang@intel.com" <rui.zhang@intel.com>,
-        "bhelgaas@google.com" <bhelgaas@google.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+        with ESMTP id S229627AbhC0MLL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 08:11:11 -0400
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F6yKv0bG6zPsyJ;
+        Sat, 27 Mar 2021 20:08:35 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
+ 14.3.498.0; Sat, 27 Mar 2021 20:11:01 +0800
 From:   Xiaofei Tan <tanxiaofei@huawei.com>
-Message-ID: <f8fa1fd8-e9b1-041d-936b-cd0646860d65@huawei.com>
-Date:   Sat, 27 Mar 2021 18:00:34 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.7.1
+To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
+        <bhelgaas@google.com>
+CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linuxarm@openeuler.org>
+Subject: [PATCH v3 07/12] ACPI: button: fix some coding style issues
+Date:   Sat, 27 Mar 2021 20:08:19 +0800
+Message-ID: <1616846904-25719-8-git-send-email-tanxiaofei@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1616846904-25719-1-git-send-email-tanxiaofei@huawei.com>
+References: <1616846904-25719-1-git-send-email-tanxiaofei@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHp75VcwuFYWRYfVPxbqa4TFGgqOhHc_soefmTAZcGGk3bLuhw@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.40.192.162]
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-OK. thanks for reviewing this patch set.
+Fix some coding style issues reported by checkpatch.pl, including
+following types:
 
-On 2021/3/27 16:21, Andy Shevchenko wrote:
->
->
-> On Saturday, March 27, 2021, Xiaofei Tan <tanxiaofei@huawei.com
-> <mailto:tanxiaofei@huawei.com>> wrote:
->
->     Fix some coding style issues reported by checkpatch.pl
->     <http://checkpatch.pl>.
->
->
->
-> NAK until it’s proven that you have tested each change on the real
-> system (virtual more or less okay).
->
->
->
->     Differences from v1 to v2:
->     - Add subsystem and module name in the name of patch 05/15.
->     - Change to use more proper module name for some patch names.
->
->     Xiaofei Tan (15):
->       ACPI: APD: fix a block comment align issue
->       ACPI: processor: fix some coding style issues
->       ACPI: debug: fix some coding style issues
->       ACPI: table: replace __attribute__((packed)) by __packed
->       ACPI: ipmi: remove useless return statement for void function
->       ACPI: LPSS: fix some coding style issues
->       ACPI: memhotplug: fix a coding style issue
->       ACPI: acpi_pad: fix a coding style issue
->       ACPI: battery: fix some coding style issues
->       ACPI: button: fix some coding style issues
->       ACPI: CPPC: fix some coding style issues
->       ACPI: custom_method: fix a coding style issue
->       ACPI: PM: fix some coding style issues
->       ACPI: sysfs: fix some coding style issues
->       ACPI: dock: fix some coding style issues
->
->      drivers/acpi/acpi_apd.c        |  8 ++---
->      drivers/acpi/acpi_dbg.c        | 40 +++++++++++-------------
->      drivers/acpi/acpi_fpdt.c       |  6 ++--
->      drivers/acpi/acpi_ipmi.c       |  1 -
->      drivers/acpi/acpi_lpss.c       |  4 ++-
->      drivers/acpi/acpi_memhotplug.c |  2 +-
->      drivers/acpi/acpi_pad.c        |  4 +++
->      drivers/acpi/acpi_processor.c  | 18 +++--------
->      drivers/acpi/battery.c         | 64
->     +++++++++++++++++++++----------------
->      drivers/acpi/button.c          | 10 +++---
->      drivers/acpi/cppc_acpi.c       | 71
->     +++++++++++++++++++++---------------------
->      drivers/acpi/custom_method.c   |  2 +-
->      drivers/acpi/device_pm.c       |  3 ++
->      drivers/acpi/device_sysfs.c    | 15 ++++++---
->      drivers/acpi/dock.c            |  7 +++--
->      15 files changed, 138 insertions(+), 117 deletions(-)
->
->     --
->     2.8.1
->
->
->
-> --
-> With Best Regards,
-> Andy Shevchenko
->
->
+WARNING: Block comments use * on subsequent lines
+WARNING: Block comments use a trailing */ on a separate line
+ERROR: code indent should use tabs where possible
+
+Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
+---
+ drivers/acpi/button.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 85e5e03..f25bd33 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -156,10 +156,7 @@ static unsigned long lid_report_interval __read_mostly = 500;
+ module_param(lid_report_interval, ulong, 0644);
+ MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
+ 
+-/* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-
++/* FS Interface (/proc) */
+ static struct proc_dir_entry *acpi_button_dir;
+ static struct proc_dir_entry *acpi_lid_dir;
+ 
+@@ -348,9 +345,7 @@ static int acpi_button_remove_fs(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-/* --------------------------------------------------------------------------
+-                                Driver Interface
+-   -------------------------------------------------------------------------- */
++/* Driver Interface */
+ int acpi_lid_open(void)
+ {
+ 	if (!lid_device)
+-- 
+2.8.1
 
