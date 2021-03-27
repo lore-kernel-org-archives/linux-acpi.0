@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 773E5C433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B49E2C433E4
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E8D661999
+	by mail.kernel.org (Postfix) with ESMTP id 84FA1619A0
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231220AbhC0WUm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 18:20:42 -0400
-Received: from mga14.intel.com ([192.55.52.115]:65376 "EHLO mga14.intel.com"
+        id S231205AbhC0WUl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 18:20:41 -0400
+Received: from mga12.intel.com ([192.55.52.136]:20237 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231190AbhC0WUR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S231192AbhC0WUR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Sat, 27 Mar 2021 18:20:17 -0400
-IronPort-SDR: D53/jTRqBiC8KHfLxdTKpY0b0HvldNRYeVdVpdN+2mdgwwItW3UmEP7DJgFqOdW+gi/e4FbY/y
- Fqhdoqlb5YzQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="190792947"
+IronPort-SDR: pM0Dis63SoBZ7fNy4JwA+Gf6AuttayFpCX5qJCu4TfAXG3rLzl55OitmJGpLRZEmsC+POmWO84
+ CtQmjzwOD2Sw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="170732004"
 X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
-   d="scan'208";a="190792947"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:16 -0700
-IronPort-SDR: 5DfQiHwmGsP7+A7jagnJtH2O2k9EIk8wQElRcu5zLIITcLtIGtySJgxt+NcWLaU5zxGLyti+F3
- Rvybxj7xrn6w==
+   d="scan'208";a="170732004"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:17 -0700
+IronPort-SDR: LkmIsYHL0BkahnxczuekWaqkoWewS8vWFqP55myOp50unfu6GOYYoKajQLSDypCzBBlJKtVTxp
+ oAVFpbAFz3vw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
-   d="scan'208";a="594591279"
+   d="scan'208";a="417064275"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 27 Mar 2021 15:20:13 -0700
+  by orsmga008.jf.intel.com with ESMTP; 27 Mar 2021 15:20:13 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 0110ECC4; Sun, 28 Mar 2021 00:20:27 +0200 (EET)
+        id EB6C26F1; Sun, 28 Mar 2021 00:20:27 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Daniel Scally <djrscally@gmail.com>,
@@ -48,9 +48,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Tianshu Qiu <tian.shu.qiu@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v1 5/8] software node: Imply kobj_to_swnode() to be no-op
-Date:   Sun, 28 Mar 2021 00:20:09 +0200
-Message-Id: <20210327222012.54103-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/8] software node: Deduplicate code in fwnode_create_software_node()
+Date:   Sun, 28 Mar 2021 00:20:08 +0200
+Message-Id: <20210327222012.54103-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
 References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
@@ -60,37 +60,43 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Since we don't use structure field layout randomization
-the manual shuffling can affect some macros, in particular
-kobj_to_swnode(), which becomes a no-op when kobj member
-is the first one in the struct swnode.
-
-Bloat-o-meter statistics:
-
-  add/remove: 0/0 grow/shrink: 2/10 up/down: 9/-100 (-91)
-  Total: Before=7217, After=7126, chg -1.26%
+Deduplicate conditional and assignment in fwnode_create_software_node(),
+i.e. parent is checked in two out of three cases and parent software node
+is assigned by to_swnode() call.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/swnode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/swnode.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 22f81688af2c..ae53c48f84b1 100644
+index d7fe1a887d2d..22f81688af2c 100644
 --- a/drivers/base/swnode.c
 +++ b/drivers/base/swnode.c
-@@ -13,10 +13,10 @@
- #include <linux/sysfs.h>
+@@ -1100,15 +1100,14 @@ fwnode_create_software_node(const struct property_entry *properties,
+ {
+ 	struct fwnode_handle *fwnode;
+ 	struct software_node *node;
+-	struct swnode *p = NULL;
+-
+-	if (parent) {
+-		if (IS_ERR(parent))
+-			return ERR_CAST(parent);
+-		if (!is_software_node(parent))
+-			return ERR_PTR(-EINVAL);
+-		p = to_swnode(parent);
+-	}
++	struct swnode *p;
++
++	if (IS_ERR(parent))
++		return ERR_CAST(parent);
++
++	p = to_swnode(parent);
++	if (parent && !p)
++		return ERR_PTR(-EINVAL);
  
- struct swnode {
--	int id;
- 	struct kobject kobj;
- 	struct fwnode_handle fwnode;
- 	const struct software_node *node;
-+	int id;
- 
- 	/* properties in sysfs */
- 	struct kobj_attribute *property_attrs;
+ 	node = software_node_alloc(properties);
+ 	if (IS_ERR(node))
 -- 
 2.30.2
 
