@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76918C433C1
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3233AC433F8
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E24161A02
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BE2E61A58
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231372AbhC0GoV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 02:44:21 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:15339 "EHLO
+        id S231375AbhC0GoW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 02:44:22 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:15336 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231249AbhC0GoC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 02:44:02 -0400
+        with ESMTP id S231254AbhC0GoB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 02:44:01 -0400
 Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F6q4m1tf3z93nX;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F6q4m28hQz93nY;
         Sat, 27 Mar 2021 14:41:44 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.498.0; Sat, 27 Mar 2021 14:43:35 +0800
+ 14.3.498.0; Sat, 27 Mar 2021 14:43:34 +0800
 From:   Xiaofei Tan <tanxiaofei@huawei.com>
 To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
         <bhelgaas@google.com>
 CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH 05/15] remove useless return statement for void function
-Date:   Sat, 27 Mar 2021 14:40:46 +0800
-Message-ID: <1616827256-51840-6-git-send-email-tanxiaofei@huawei.com>
+Subject: [PATCH 02/15] ACPI: processor: fix some coding style issues
+Date:   Sat, 27 Mar 2021 14:40:43 +0800
+Message-ID: <1616827256-51840-3-git-send-email-tanxiaofei@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1616827256-51840-1-git-send-email-tanxiaofei@huawei.com>
 References: <1616827256-51840-1-git-send-email-tanxiaofei@huawei.com>
@@ -45,31 +45,76 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Remove useless return statement for void function, reported by
-checkpatch.pl.
+Fix some coding style issues reported by checkpatch.pl, including
+following types:
 
-WARNING: void function return statements are not generally useful
-FILE: drivers/acpi/acpi_ipmi.c:482:
-+       return;
-+}
+ERROR: code indent should use tabs where possible
+WARNING: Block comments use a trailing */ on a separate line
+WARNING: Missing a blank line after declarations
+WARNING: labels should not be indented
 
 Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 ---
- drivers/acpi/acpi_ipmi.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/acpi_processor.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index 9d6c0fc..bbd00d9 100644
---- a/drivers/acpi/acpi_ipmi.c
-+++ b/drivers/acpi/acpi_ipmi.c
-@@ -478,7 +478,6 @@ static void ipmi_register_bmc(int iface, struct device *dev)
- 	ipmi_dev_release(ipmi_device);
- err_ref:
- 	put_device(smi_data.dev);
--	return;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index fc89f3a..2d5bd2a 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -25,10 +25,7 @@
+ DEFINE_PER_CPU(struct acpi_processor *, processors);
+ EXPORT_PER_CPU_SYMBOL(processors);
+ 
+-/* --------------------------------------------------------------------------
+-                                Errata Handling
+-   -------------------------------------------------------------------------- */
+-
++/* Errata Handling */
+ struct acpi_processor_errata errata __read_mostly;
+ EXPORT_SYMBOL_GPL(errata);
+ 
+@@ -151,10 +148,7 @@ static int acpi_processor_errata(void)
+ 	return result;
  }
  
- static void ipmi_bmc_gone(int iface)
+-/* --------------------------------------------------------------------------
+-                                Initialization
+-   -------------------------------------------------------------------------- */
+-
++/* Initialization */
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ int __weak acpi_map_cpu(acpi_handle handle,
+ 		phys_cpuid_t physid, u32 acpi_id, int *pcpu)
+@@ -306,6 +300,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	 */
+ 	if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id)) {
+ 		int ret = acpi_processor_hotadd_init(pr);
++
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -431,10 +426,7 @@ static int acpi_processor_add(struct acpi_device *device,
+ }
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+-/* --------------------------------------------------------------------------
+-                                    Removal
+-   -------------------------------------------------------------------------- */
+-
++/* Removal */
+ static void acpi_processor_remove(struct acpi_device *device)
+ {
+ 	struct acpi_processor *pr;
+@@ -892,7 +884,7 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 
+ 	info->count = last_index;
+ 
+-      end:
++end:
+ 	kfree(buffer.pointer);
+ 
+ 	return ret;
 -- 
 2.8.1
 
