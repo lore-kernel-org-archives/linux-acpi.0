@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73933C433E0
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9F8FC433C1
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 372E061A18
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C070E619FC
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230264AbhC0Gnp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 02:43:45 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14155 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230111AbhC0Gno (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 02:43:44 -0400
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F6q424B3DzndSM;
-        Sat, 27 Mar 2021 14:41:06 +0800 (CST)
+        id S231304AbhC0GoS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 02:44:18 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:15330 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231222AbhC0Gn7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 02:43:59 -0400
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F6q4l5BQ5z93nN;
+        Sat, 27 Mar 2021 14:41:43 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.498.0; Sat, 27 Mar 2021 14:43:34 +0800
+ 14.3.498.0; Sat, 27 Mar 2021 14:43:36 +0800
 From:   Xiaofei Tan <tanxiaofei@huawei.com>
 To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
         <bhelgaas@google.com>
 CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH 01/15] ACPI: APD: fix a block comment align issue
-Date:   Sat, 27 Mar 2021 14:40:42 +0800
-Message-ID: <1616827256-51840-2-git-send-email-tanxiaofei@huawei.com>
+Subject: [PATCH 06/15] ACPI: acpi_lpss: fix some coding style issues
+Date:   Sat, 27 Mar 2021 14:40:47 +0800
+Message-ID: <1616827256-51840-7-git-send-email-tanxiaofei@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1616827256-51840-1-git-send-email-tanxiaofei@huawei.com>
 References: <1616827256-51840-1-git-send-email-tanxiaofei@huawei.com>
@@ -45,35 +45,46 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fix the following coding style issue reported by checkpatch.pl.
-WARNING: Block comments should align the * on each line
-+/**
-+* Create platform device during acpi scan attach handle.
+Fix some coding style issues reported by checkpatch.pl, including
+following types:
+
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: Missing a blank line after declarations
 
 Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 ---
- drivers/acpi/acpi_apd.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/acpi_lpss.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 39359ce..0ec5b3f 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -176,10 +176,10 @@ static const struct apd_device_desc hip08_spi_desc = {
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index be73974..2df231e 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -187,7 +187,7 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
  
- #endif
+ 	/* Expected to always be true, but better safe then sorry */
+ 	if (uid_str)
+-		uid = simple_strtol(uid_str, NULL, 10);
++		uid = kstrtol(uid_str, NULL, 10);
  
--/**
--* Create platform device during acpi scan attach handle.
--* Return value > 0 on success of creating device.
--*/
-+/*
-+ * Create platform device during acpi scan attach handle.
-+ * Return value > 0 on success of creating device.
-+ */
- static int acpi_apd_create_device(struct acpi_device *adev,
- 				   const struct acpi_device_id *id)
+ 	/* Detect I2C bus shared with PUNIT and ignore its d3 status */
+ 	status = acpi_evaluate_integer(handle, "_SEM", NULL, &shared_host);
+@@ -377,6 +377,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ static int is_memory(struct acpi_resource *res, void *not_used)
  {
+ 	struct resource r;
++
+ 	return !acpi_dev_resource_memory(res, &r);
+ }
+ 
+@@ -1200,6 +1201,7 @@ static int acpi_lpss_poweroff_noirq(struct device *dev)
+ 	if (pdata->dev_desc->resume_from_noirq) {
+ 		/* This is analogous to the acpi_lpss_suspend_noirq() case. */
+ 		int ret = acpi_lpss_do_poweroff_late(dev);
++
+ 		if (ret)
+ 			return ret;
+ 	}
 -- 
 2.8.1
 
