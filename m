@@ -4,36 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E8FBC433FC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19968C433DB
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3302461A26
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E06BF61A26
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 06:44:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231408AbhC0GoX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 02:44:23 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:15332 "EHLO
+        id S231390AbhC0GoW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 02:44:22 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:15334 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231270AbhC0GoD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 02:44:03 -0400
+        with ESMTP id S231258AbhC0GoB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 02:44:01 -0400
 Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F6q4m0868z93nQ;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4F6q4m1JvZz93nV;
         Sat, 27 Mar 2021 14:41:44 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.498.0; Sat, 27 Mar 2021 14:43:37 +0800
+ 14.3.498.0; Sat, 27 Mar 2021 14:43:36 +0800
 From:   Xiaofei Tan <tanxiaofei@huawei.com>
 To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
         <bhelgaas@google.com>
 CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH 08/15] ACPI: acpi_pad: fix a coding style issue
-Date:   Sat, 27 Mar 2021 14:40:49 +0800
-Message-ID: <1616827256-51840-9-git-send-email-tanxiaofei@huawei.com>
+Subject: [PATCH 07/15] ACPI: acpi_memhotplug: fix a coding style issue
+Date:   Sat, 27 Mar 2021 14:40:48 +0800
+Message-ID: <1616827256-51840-8-git-send-email-tanxiaofei@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1616827256-51840-1-git-send-email-tanxiaofei@huawei.com>
 References: <1616827256-51840-1-git-send-email-tanxiaofei@huawei.com>
@@ -47,49 +47,28 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 Fix the following coding style issue reported by checkpatch.pl
 
-WARNING: Missing a blank line after declarations
+WARNING: __initdata should be placed after acpi_no_memhotplug
+FILE: drivers/acpi/acpi_memhotplug.c:326:
++static bool __initdata acpi_no_memhotplug;
 
 Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 ---
- drivers/acpi/acpi_pad.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpi_memhotplug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index b84ab72..df4adeb 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -128,6 +128,7 @@ static void round_robin_cpu(unsigned int tsk_index)
- static void exit_round_robin(unsigned int tsk_index)
- {
- 	struct cpumask *pad_busy_cpus = to_cpumask(pad_busy_cpus_bits);
-+
- 	cpumask_clear_cpu(tsk_in_cpu[tsk_index], pad_busy_cpus);
- 	tsk_in_cpu[tsk_index] = -1;
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 8cc195c..5c5ed22 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -323,7 +323,7 @@ static void acpi_memory_device_remove(struct acpi_device *device)
+ 	acpi_memory_device_free(mem_device);
  }
-@@ -265,6 +266,7 @@ static ssize_t rrtime_store(struct device *dev,
- 	struct device_attribute *attr, const char *buf, size_t count)
+ 
+-static bool __initdata acpi_no_memhotplug;
++static bool acpi_no_memhotplug __initdata;
+ 
+ void __init acpi_memory_hotplug_init(void)
  {
- 	unsigned long num;
-+
- 	if (kstrtoul(buf, 0, &num))
- 		return -EINVAL;
- 	if (num < 1 || num >= 100)
-@@ -286,6 +288,7 @@ static ssize_t idlepct_store(struct device *dev,
- 	struct device_attribute *attr, const char *buf, size_t count)
- {
- 	unsigned long num;
-+
- 	if (kstrtoul(buf, 0, &num))
- 		return -EINVAL;
- 	if (num < 1 || num >= 100)
-@@ -307,6 +310,7 @@ static ssize_t idlecpus_store(struct device *dev,
- 	struct device_attribute *attr, const char *buf, size_t count)
- {
- 	unsigned long num;
-+
- 	if (kstrtoul(buf, 0, &num))
- 		return -EINVAL;
- 	mutex_lock(&isolated_cpus_lock);
 -- 
 2.8.1
 
