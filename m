@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9367FC433C1
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEC4DC433E1
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 71D8D619D3
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83F02619B4
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229901AbhC0MLR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 08:11:17 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:15020 "EHLO
+        id S230409AbhC0MLV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 08:11:21 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:15022 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230239AbhC0MLQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 08:11:16 -0400
+        with ESMTP id S230264AbhC0MLR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 08:11:17 -0400
 Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F6yKt5Vc4zPqLZ;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F6yKt669KzPqrm;
         Sat, 27 Mar 2021 20:08:34 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.498.0; Sat, 27 Mar 2021 20:11:00 +0800
+ 14.3.498.0; Sat, 27 Mar 2021 20:10:58 +0800
 From:   Xiaofei Tan <tanxiaofei@huawei.com>
 To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
         <bhelgaas@google.com>
 CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH v3 05/12] ACPI: acpi_pad: add a missed blank line after declarations
-Date:   Sat, 27 Mar 2021 20:08:17 +0800
-Message-ID: <1616846904-25719-6-git-send-email-tanxiaofei@huawei.com>
+Subject: [PATCH v3 01/12] ACPI: APD: fix a block comment align issue
+Date:   Sat, 27 Mar 2021 20:08:13 +0800
+Message-ID: <1616846904-25719-2-git-send-email-tanxiaofei@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1616846904-25719-1-git-send-email-tanxiaofei@huawei.com>
 References: <1616846904-25719-1-git-send-email-tanxiaofei@huawei.com>
@@ -45,49 +45,35 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a missed blank line after declarations, reported by checkpatch.pl.
+Fix the following coding style issue reported by checkpatch.pl.
+WARNING: Block comments should align the * on each line
++/**
++* Create platform device during acpi scan attach handle.
 
 Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 ---
- drivers/acpi/acpi_pad.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpi_apd.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index b84ab72..df4adeb 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -128,6 +128,7 @@ static void round_robin_cpu(unsigned int tsk_index)
- static void exit_round_robin(unsigned int tsk_index)
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 39359ce..0ec5b3f 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -176,10 +176,10 @@ static const struct apd_device_desc hip08_spi_desc = {
+ 
+ #endif
+ 
+-/**
+-* Create platform device during acpi scan attach handle.
+-* Return value > 0 on success of creating device.
+-*/
++/*
++ * Create platform device during acpi scan attach handle.
++ * Return value > 0 on success of creating device.
++ */
+ static int acpi_apd_create_device(struct acpi_device *adev,
+ 				   const struct acpi_device_id *id)
  {
- 	struct cpumask *pad_busy_cpus = to_cpumask(pad_busy_cpus_bits);
-+
- 	cpumask_clear_cpu(tsk_in_cpu[tsk_index], pad_busy_cpus);
- 	tsk_in_cpu[tsk_index] = -1;
- }
-@@ -265,6 +266,7 @@ static ssize_t rrtime_store(struct device *dev,
- 	struct device_attribute *attr, const char *buf, size_t count)
- {
- 	unsigned long num;
-+
- 	if (kstrtoul(buf, 0, &num))
- 		return -EINVAL;
- 	if (num < 1 || num >= 100)
-@@ -286,6 +288,7 @@ static ssize_t idlepct_store(struct device *dev,
- 	struct device_attribute *attr, const char *buf, size_t count)
- {
- 	unsigned long num;
-+
- 	if (kstrtoul(buf, 0, &num))
- 		return -EINVAL;
- 	if (num < 1 || num >= 100)
-@@ -307,6 +310,7 @@ static ssize_t idlecpus_store(struct device *dev,
- 	struct device_attribute *attr, const char *buf, size_t count)
- {
- 	unsigned long num;
-+
- 	if (kstrtoul(buf, 0, &num))
- 		return -EINVAL;
- 	mutex_lock(&isolated_cpus_lock);
 -- 
 2.8.1
 
