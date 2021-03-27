@@ -4,23 +4,23 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3AF2C433E0
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 07:50:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38A2AC433E1
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 07:50:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B888A619AE
+	by mail.kernel.org (Postfix) with ESMTP id ECE66619AE
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 07:50:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231298AbhC0Htm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 03:49:42 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:14924 "EHLO
+        id S231259AbhC0Htl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 03:49:41 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:14921 "EHLO
         szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230195AbhC0HtQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 03:49:16 -0400
+        with ESMTP id S230203AbhC0HtP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 03:49:15 -0400
 Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4F6rXg5JqhzkjTN;
+        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4F6rXg52SCzkjT0;
         Sat, 27 Mar 2021 15:47:31 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
@@ -31,9 +31,9 @@ To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
 CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH v2 01/15] ACPI: APD: fix a block comment align issue
-Date:   Sat, 27 Mar 2021 15:46:19 +0800
-Message-ID: <1616831193-17920-2-git-send-email-tanxiaofei@huawei.com>
+Subject: [PATCH v2 03/15] ACPI: debug: fix some coding style issues
+Date:   Sat, 27 Mar 2021 15:46:21 +0800
+Message-ID: <1616831193-17920-4-git-send-email-tanxiaofei@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
 References: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
@@ -45,35 +45,82 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fix the following coding style issue reported by checkpatch.pl.
-WARNING: Block comments should align the * on each line
-+/**
-+* Create platform device during acpi scan attach handle.
+Fix some coding style issues reported by checkpatch.pl, including
+following types:
+
+WARNING: space prohibited between function name and open parenthesis
+WARNING: else is not generally useful after a break or return
 
 Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 ---
- drivers/acpi/acpi_apd.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/acpi_dbg.c | 40 +++++++++++++++++++---------------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 39359ce..0ec5b3f 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -176,10 +176,10 @@ static const struct apd_device_desc hip08_spi_desc = {
+diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
+index d50261d..e641bc1 100644
+--- a/drivers/acpi/acpi_dbg.c
++++ b/drivers/acpi/acpi_dbg.c
+@@ -21,7 +21,7 @@
+ #include <linux/acpi.h>
+ #include "internal.h"
  
- #endif
+-#define ACPI_AML_BUF_ALIGN	(sizeof (acpi_size))
++#define ACPI_AML_BUF_ALIGN	(sizeof(acpi_size))
+ #define ACPI_AML_BUF_SIZE	PAGE_SIZE
  
--/**
--* Create platform device during acpi scan attach handle.
--* Return value > 0 on success of creating device.
--*/
-+/*
-+ * Create platform device during acpi scan attach handle.
-+ * Return value > 0 on success of creating device.
-+ */
- static int acpi_apd_create_device(struct acpi_device *adev,
- 				   const struct acpi_device_id *id)
- {
+ #define circ_count(circ) \
+@@ -613,16 +613,15 @@ static ssize_t acpi_aml_read(struct file *file, char __user *buf,
+ 		if (ret == -EAGAIN) {
+ 			if (file->f_flags & O_NONBLOCK)
+ 				break;
+-			else {
+-				ret = wait_event_interruptible(acpi_aml_io.wait,
+-					acpi_aml_user_readable());
+-				/*
+-				 * We need to retry when the condition
+-				 * becomes true.
+-				 */
+-				if (ret == 0)
+-					goto again;
+-			}
++
++			ret = wait_event_interruptible(acpi_aml_io.wait,
++				acpi_aml_user_readable());
++			/*
++			 * We need to retry when the condition
++			 * becomes true.
++			 */
++			if (ret == 0)
++				goto again;
+ 		}
+ 		if (ret < 0) {
+ 			if (!acpi_aml_running())
+@@ -683,16 +682,15 @@ static ssize_t acpi_aml_write(struct file *file, const char __user *buf,
+ 		if (ret == -EAGAIN) {
+ 			if (file->f_flags & O_NONBLOCK)
+ 				break;
+-			else {
+-				ret = wait_event_interruptible(acpi_aml_io.wait,
+-					acpi_aml_user_writable());
+-				/*
+-				 * We need to retry when the condition
+-				 * becomes true.
+-				 */
+-				if (ret == 0)
+-					goto again;
+-			}
++
++			ret = wait_event_interruptible(acpi_aml_io.wait,
++				acpi_aml_user_writable());
++			/*
++			 * We need to retry when the condition
++			 * becomes true.
++			 */
++			if (ret == 0)
++				goto again;
+ 		}
+ 		if (ret < 0) {
+ 			if (!acpi_aml_running())
 -- 
 2.8.1
 
