@@ -2,107 +2,163 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE338C433DB
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 16:41:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 109B2C433DB
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 93DA761984
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 16:41:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C987461992
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230319AbhC0Qkf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 12:40:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48746 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230409AbhC0QkN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 12:40:13 -0400
-Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FA91C0613B1;
-        Sat, 27 Mar 2021 09:40:13 -0700 (PDT)
-Received: by mail-pj1-x1030.google.com with SMTP id q6-20020a17090a4306b02900c42a012202so3912144pjg.5;
-        Sat, 27 Mar 2021 09:40:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JL70rgGydsxus+JeTgWi5wl5fpmwQg+GhwZ0mAf8iok=;
-        b=HynBWYBX2IKzobwhkHmWP4fkpfSIcVB+IJYj7uu8/XVRTxQe2sJEYX7uqBKBvJERAl
-         vAdYsyMcKJyBEJQUoVPPwucofi7koI0hfIU56u1dnoXxkv1spnoEET8FWg76udE7Cq92
-         +ignPdPJft2HgToIx34j5ChbtBI5wdlbMkP7OqIBR925U1ZnwHiZHB3g/Glz625YXhnu
-         fJt1vx/GX4PEnhEConuSa0UNCtz717UeDb3SAa4YGFUpfwLOh0MzNmHbco901+Wq4bOY
-         3QbiPCJ0F4lVl/w7fY1Zjyl//esaeYokd/kBB/ZcO5dpb5kc2qdlkNPxz17W0pVCWX+9
-         0HXw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JL70rgGydsxus+JeTgWi5wl5fpmwQg+GhwZ0mAf8iok=;
-        b=eSDE5antLHVy62kbT7uVHs3Os9/Rf8DNa8/TvABOkvEcAN8DCL2VRiZZKkNUHmO8mZ
-         5fdKK/OBqf8nJBPK8wpov7icDeKVjUGA6D38hPC8zHcJqPL3ZSPk3k4k6uuYYcXnfHQi
-         OIT6LzAPjqaE+smRMRLiSJmC5AwdsPXKUi90LmEZZLR4/dEzhzZbUV0OAT9PUwPVdoFz
-         aL4u2T3eN3rjMzocoMg4BAjZLA4FLQa/95OMKjZ8NHp1SVhaQM09wl+edrvvF++zVRPZ
-         pFumcLh3GvoyJqsO/COLIyMq2FGPbGe2eu8dIINMyWpiZIla7w2b2rYNenUimsYF4ff3
-         dXUg==
-X-Gm-Message-State: AOAM532RI9V7iy7EAdi1uN00fvVDQ2rurUt7BhUOGusiGwToaYijU2dk
-        XJ9C8lJFxJrw5TYitwqHvbNkwoNCcS1DHPIuME8=
-X-Google-Smtp-Source: ABdhPJzkyo6zxijfjanBnyXsLv3vXhLo28Y8FI2srMcNyQbFZa4Pfz1G4do6IfD8ml1liHwXCz5mMkQanyooX+lE3sc=
-X-Received: by 2002:a17:90a:b311:: with SMTP id d17mr19406689pjr.228.1616863212901;
- Sat, 27 Mar 2021 09:40:12 -0700 (PDT)
+        id S231184AbhC0WUl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 18:20:41 -0400
+Received: from mga17.intel.com ([192.55.52.151]:30344 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231189AbhC0WUQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 Mar 2021 18:20:16 -0400
+IronPort-SDR: S/FeV6jDuC0WhUs6evgYV6ZuiWjmDfbiAh/U9C74peyXmnffOkFbCW+p5PQDflLoH+xyugpRT3
+ O6cjAVapJSYA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="171343878"
+X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
+   d="scan'208";a="171343878"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:16 -0700
+IronPort-SDR: zQiDHXu7GDLDsku6wxtsgSBjXCscK30U39o3qbUErh4jkFkJNrGfZ8zbV5WpTbTKTNJn08D1sW
+ 1OsT1Qr+PZRA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
+   d="scan'208";a="410447020"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga008.fm.intel.com with ESMTP; 27 Mar 2021 15:20:13 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id D524C103; Sun, 28 Mar 2021 00:20:27 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tianshu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH v1 2/8] software node: Introduce software_node_alloc()/software_node_free()
+Date:   Sun, 28 Mar 2021 00:20:06 +0200
+Message-Id: <20210327222012.54103-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
+References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
- <1616831193-17920-7-git-send-email-tanxiaofei@huawei.com> <CAHp75Vd0hVqsfsZK=d1dz98Kbchqz-w4RqQQp6FwisxSGG5BzA@mail.gmail.com>
- <50e838ca74c56b9fd5cbbc2d7234829f0e0b4131.camel@perches.com>
-In-Reply-To: <50e838ca74c56b9fd5cbbc2d7234829f0e0b4131.camel@perches.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Sat, 27 Mar 2021 18:39:56 +0200
-Message-ID: <CAHp75Vcr5DTiQ=WWSC+Ch-jEw7H+f13A=4=U3QVF5ttvRr1D7w@mail.gmail.com>
-Subject: Re: [PATCH v2 06/15] ACPI: LPSS: fix some coding style issues
-To:     Joe Perches <joe@perches.com>
-Cc:     Xiaofei Tan <tanxiaofei@huawei.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "rui.zhang@intel.com" <rui.zhang@intel.com>,
-        "bhelgaas@google.com" <bhelgaas@google.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Mar 27, 2021 at 3:39 PM Joe Perches <joe@perches.com> wrote:
->
-> On Sat, 2021-03-27 at 10:19 +0200, Andy Shevchenko wrote:
-> > On Saturday, March 27, 2021, Xiaofei Tan <tanxiaofei@huawei.com> wrote:
-> >
-> > > Fix some coding style issues reported by checkpatch.pl, including
-> > > following types:
-> > >
-> > > WARNING: simple_strtol is obsolete, use kstrtol instead
-> >
-> >
-> > And one more thing, the above message is bogus. Read what the comments in
-> > the code says about use cases for simple_*() vs. kstrto*() ones.
-> >
-> > Joe?
->
-> This check and message is nearly 10 years old and was appropriate for
-> when it was implemented.
->
-> kernel.h currently has:
->  * Use these functions if and only if you cannot use kstrto<foo>, because
->
-> So the message could be changed to something like:
->
-> WARNING: simple_strtol should be used only when kstrtol can not be used.
+Introduce software_node_alloc() and software_node_free() helpers.
+This will help with code readability and maintenance.
 
-Fine with me, thanks!
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/base/swnode.c | 47 ++++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
 
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 456f5fe58b58..19aa44bc2628 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -720,19 +720,30 @@ software_node_find_by_name(const struct software_node *parent, const char *name)
+ }
+ EXPORT_SYMBOL_GPL(software_node_find_by_name);
+ 
+-static int
+-software_node_register_properties(struct software_node *node,
+-				  const struct property_entry *properties)
++static struct software_node *software_node_alloc(const struct property_entry *properties)
+ {
+ 	struct property_entry *props;
++	struct software_node *node;
+ 
+ 	props = property_entries_dup(properties);
+ 	if (IS_ERR(props))
+-		return PTR_ERR(props);
++		return ERR_CAST(props);
++
++	node = kzalloc(sizeof(*node), GFP_KERNEL);
++	if (!node) {
++		property_entries_free(props);
++		return ERR_PTR(-ENOMEM);
++	}
+ 
+ 	node->properties = props;
+ 
+-	return 0;
++	return node;
++}
++
++static void software_node_free(const struct software_node *node)
++{
++	property_entries_free(node->properties);
++	kfree(node);
+ }
+ 
+ static void software_node_release(struct kobject *kobj)
+@@ -746,10 +757,9 @@ static void software_node_release(struct kobject *kobj)
+ 		ida_simple_remove(&swnode_root_ids, swnode->id);
+ 	}
+ 
+-	if (swnode->allocated) {
+-		property_entries_free(swnode->node->properties);
+-		kfree(swnode->node);
+-	}
++	if (swnode->allocated)
++		software_node_free(swnode->node);
++
+ 	ida_destroy(&swnode->child_ids);
+ 	kfree(swnode);
+ }
+@@ -964,7 +974,6 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 	struct fwnode_handle *fwnode;
+ 	struct software_node *node;
+ 	struct swnode *p = NULL;
+-	int ret;
+ 
+ 	if (parent) {
+ 		if (IS_ERR(parent))
+@@ -974,23 +983,15 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 		p = to_swnode(parent);
+ 	}
+ 
+-	node = kzalloc(sizeof(*node), GFP_KERNEL);
+-	if (!node)
+-		return ERR_PTR(-ENOMEM);
+-
+-	ret = software_node_register_properties(node, properties);
+-	if (ret) {
+-		kfree(node);
+-		return ERR_PTR(ret);
+-	}
++	node = software_node_alloc(properties);
++	if (IS_ERR(node))
++		return ERR_CAST(node);
+ 
+ 	node->parent = p ? p->node : NULL;
+ 
+ 	fwnode = swnode_register(node, p, 1);
+-	if (IS_ERR(fwnode)) {
+-		property_entries_free(node->properties);
+-		kfree(node);
+-	}
++	if (IS_ERR(fwnode))
++		software_node_free(node);
+ 
+ 	return fwnode;
+ }
 -- 
-With Best Regards,
-Andy Shevchenko
+2.30.2
+
