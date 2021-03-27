@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9A15C433E6
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B590C433EC
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5A4E619BA
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69137619CB
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231233AbhC0WUm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 18:20:42 -0400
-Received: from mga14.intel.com ([192.55.52.115]:65376 "EHLO mga14.intel.com"
+        id S231255AbhC0WUn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 18:20:43 -0400
+Received: from mga03.intel.com ([134.134.136.65]:17399 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231194AbhC0WUS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 27 Mar 2021 18:20:18 -0400
-IronPort-SDR: oPHnaxeppvo/LCaOuep+NReZ/2+0pPgXRcHjXuo6PUVg56O30BymMWmtodsUtQi19wqy6paJBC
- YUhfYLhM+HTg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="190792951"
+        id S230487AbhC0WUV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 Mar 2021 18:20:21 -0400
+IronPort-SDR: jk0J+ETNiFr24/iBYFTzMup16JU+HRFbSmfBDJmZo9vZEZ9l4TVOXdUmwBC3AOBiQO/C6uRR9I
+ hfK+CoDrw8NQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="191370247"
 X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
-   d="scan'208";a="190792951"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:17 -0700
-IronPort-SDR: dupuPbrfXH4RC8cEJMOLs68HpZO6BskZtP3jLI8WbGP268LyMFnzosOdeUxY6lLtQeJHcBhuRc
- K3xDECKlStGg==
+   d="scan'208";a="191370247"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:20 -0700
+IronPort-SDR: 0fvhwCC9+0j/t7nQJoBLlVBy4I8mEvnIy94rHmIXlyeQntd0Fz5xnnF/GbbQSAzeDhyMwCMRAv
+ 8NXPr6RGJsRw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
-   d="scan'208";a="526476385"
+   d="scan'208";a="515505908"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga004.jf.intel.com with ESMTP; 27 Mar 2021 15:20:13 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 27 Mar 2021 15:20:17 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id E136A236; Sun, 28 Mar 2021 00:20:27 +0200 (EET)
+        id 143DB10B0; Sun, 28 Mar 2021 00:20:28 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Daniel Scally <djrscally@gmail.com>,
@@ -48,9 +48,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Tianshu Qiu <tian.shu.qiu@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v1 3/8] software node: Show properties and their values in sysfs
-Date:   Sun, 28 Mar 2021 00:20:07 +0200
-Message-Id: <20210327222012.54103-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 7/8] software node: Introduce SOFTWARE_NODE_REFERENCE() helper macro
+Date:   Sun, 28 Mar 2021 00:20:11 +0200
+Message-Id: <20210327222012.54103-7-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
 References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
@@ -60,217 +60,70 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-It's very convenient to see what properties and their values
-are currently being assigned in the registered software nodes.
-
-Show properties and their values in sysfs.
+This is useful to assign software node reference with arguments
+in a common way. Moreover, we have already couple of users that
+may be converted. And by the fact, one of them is moved right here
+to use the helper.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/swnode.c | 137 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 132 insertions(+), 5 deletions(-)
+ drivers/base/test/property-entry-test.c | 11 ++---------
+ include/linux/property.h                | 13 ++++++++-----
+ 2 files changed, 10 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 19aa44bc2628..d7fe1a887d2d 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/property.h>
- #include <linux/slab.h>
-+#include <linux/sysfs.h>
+diff --git a/drivers/base/test/property-entry-test.c b/drivers/base/test/property-entry-test.c
+index abe03315180f..c2e455d46ffd 100644
+--- a/drivers/base/test/property-entry-test.c
++++ b/drivers/base/test/property-entry-test.c
+@@ -370,15 +370,8 @@ static void pe_test_reference(struct kunit *test)
+ 	};
  
- struct swnode {
- 	int id;
-@@ -17,6 +18,10 @@ struct swnode {
- 	struct fwnode_handle fwnode;
- 	const struct software_node *node;
+ 	static const struct software_node_ref_args refs[] = {
+-		{
+-			.node = &nodes[0],
+-			.nargs = 0,
+-		},
+-		{
+-			.node = &nodes[1],
+-			.nargs = 2,
+-			.args = { 3, 4 },
+-		},
++		SOFTWARE_NODE_REFERENCE(&nodes[0]),
++		SOFTWARE_NODE_REFERENCE(&nodes[1], 3, 4),
+ 	};
  
-+	/* properties in sysfs */
-+	struct kobj_attribute *property_attrs;
-+	struct attribute_group property_group;
-+
- 	/* hierarchy */
- 	struct ida child_ids;
- 	struct list_head entry;
-@@ -25,6 +30,7 @@ struct swnode {
- 
- 	unsigned int allocated:1;
- 	unsigned int managed:1;
-+	unsigned int properties:1;
+ 	const struct property_entry entries[] = {
+diff --git a/include/linux/property.h b/include/linux/property.h
+index dd4687b56239..0d876316e61d 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -254,6 +254,13 @@ struct software_node_ref_args {
+ 	u64 args[NR_FWNODE_REFERENCE_ARGS];
  };
  
- static DEFINE_IDA(swnode_root_ids);
-@@ -299,6 +305,18 @@ static int property_entry_copy_data(struct property_entry *dst,
- 	return 0;
- }
- 
-+static int property_entries_count(const struct property_entry *properties)
-+{
-+	int n = 0;
-+
-+	if (properties) {
-+		while (properties[n].name)
-+			n++;
-+	}
-+
-+	return n;
++#define SOFTWARE_NODE_REFERENCE(_ref_, ...)			\
++(const struct software_node_ref_args) {				\
++	.node = _ref_,						\
++	.nargs = ARRAY_SIZE(((u64[]){ 0, ##__VA_ARGS__ })) - 1,	\
++	.args = { __VA_ARGS__ },				\
 +}
 +
  /**
-  * property_entries_dup - duplicate array of properties
-  * @properties: array of properties to copy
-@@ -310,15 +328,13 @@ struct property_entry *
- property_entries_dup(const struct property_entry *properties)
- {
- 	struct property_entry *p;
--	int i, n = 0;
-+	int i, n;
- 	int ret;
- 
--	if (!properties)
-+	n = property_entries_count(properties);
-+	if (n == 0)
- 		return NULL;
- 
--	while (properties[n].name)
--		n++;
--
- 	p = kcalloc(n + 1, sizeof(*p), GFP_KERNEL);
- 	if (!p)
- 		return ERR_PTR(-ENOMEM);
-@@ -746,6 +762,108 @@ static void software_node_free(const struct software_node *node)
- 	kfree(node);
+  * struct property_entry - "Built-in" device property representation.
+  * @name: Name of the property.
+@@ -362,11 +369,7 @@ struct property_entry {
+ 	.name = _name_,							\
+ 	.length = sizeof(struct software_node_ref_args),		\
+ 	.type = DEV_PROP_REF,						\
+-	{ .pointer = &(const struct software_node_ref_args) {		\
+-		.node = _ref_,						\
+-		.nargs = ARRAY_SIZE(((u64[]){ 0, ##__VA_ARGS__ })) - 1,	\
+-		.args = { __VA_ARGS__ },				\
+-	} },								\
++	{ .pointer = &SOFTWARE_NODE_REFERENCE(_ref_, ##__VA_ARGS__), },	\
  }
  
-+static ssize_t
-+swnode_property_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-+{
-+	struct swnode *swnode = kobj_to_swnode(kobj);
-+	const struct property_entry *prop;
-+	const void *pointer;
-+	ssize_t len = 0;
-+	int i;
-+
-+	prop = property_entry_get(swnode->node->properties, attr->attr.name);
-+	if (!prop)
-+		return -EINVAL;
-+
-+	/* We can't fail here, because it means boolean property */
-+	pointer = property_get_pointer(prop);
-+	if (!pointer)
-+		return sysfs_emit(buf, "\n");
-+
-+	switch (prop->type) {
-+	case DEV_PROP_U8:
-+		for (i = 0; i < prop->length / sizeof(u8); i++)
-+			len += sysfs_emit_at(buf, len, "%u,", ((u8 *)pointer)[i]);
-+		break;
-+	case DEV_PROP_U16:
-+		for (i = 0; i < prop->length / sizeof(u16); i++)
-+			len += sysfs_emit_at(buf, len, "%u,", ((u16 *)pointer)[i]);
-+		break;
-+	case DEV_PROP_U32:
-+		for (i = 0; i < prop->length / sizeof(u32); i++)
-+			len += sysfs_emit_at(buf, len, "%u,", ((u32 *)pointer)[i]);
-+		break;
-+	case DEV_PROP_U64:
-+		for (i = 0; i < prop->length / sizeof(u64); i++)
-+			len += sysfs_emit_at(buf, len, "%llu,", ((u64 *)pointer)[i]);
-+		break;
-+	case DEV_PROP_STRING:
-+		for (i = 0; i < prop->length / sizeof(const char **); i++)
-+			len += sysfs_emit_at(buf, len, "\"%s\",", ((const char **)pointer)[i]);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	sysfs_emit_at(buf, len ? len - 1 : 0, "\n");
-+	return len;
-+}
-+
-+static int swnode_register_properties(struct swnode *swnode)
-+{
-+	const struct property_entry *props = swnode->node->properties;
-+	struct attribute **group_attrs;
-+	struct kobj_attribute *attrs;
-+	int n;
-+	int ret;
-+
-+	n = property_entries_count(props);
-+	if (n == 0)
-+		return 0;
-+
-+	group_attrs = kcalloc(n + 1, sizeof(*group_attrs), GFP_KERNEL);
-+	if (!group_attrs)
-+		return -ENOMEM;
-+
-+	attrs = kcalloc(n, sizeof(*attrs), GFP_KERNEL);
-+	if (!attrs) {
-+		kfree(group_attrs);
-+		return -ENOMEM;
-+	}
-+
-+	while (n--) {
-+		sysfs_attr_init(&attrs[n]);
-+		attrs[n].attr.mode = 0444;
-+		attrs[n].attr.name = props[n].name;
-+		attrs[n].show = swnode_property_show;
-+		group_attrs[n] = &attrs[n].attr;
-+	}
-+
-+	swnode->property_group.name = "properties";
-+	swnode->property_group.attrs = group_attrs;
-+
-+	ret = sysfs_create_group(&swnode->kobj, &swnode->property_group);
-+	if (ret) {
-+		kfree(attrs);
-+		kfree(group_attrs);
-+		return ret;
-+	}
-+
-+	swnode->property_attrs = attrs;
-+	swnode->properties = true;
-+	return 0;
-+}
-+
-+static void swnode_unregister_properties(struct swnode *swnode)
-+{
-+	/*
-+	 * Nodes under sysfs are removed by __kobject_del(),
-+	 * we don't need to call sysfs_remove_group() explicitly.
-+	 */
-+	kfree(swnode->property_group.attrs);
-+	kfree(swnode->property_attrs);
-+}
-+
- static void software_node_release(struct kobject *kobj)
- {
- 	struct swnode *swnode = kobj_to_swnode(kobj);
-@@ -757,6 +875,9 @@ static void software_node_release(struct kobject *kobj)
- 		ida_simple_remove(&swnode_root_ids, swnode->id);
- 	}
- 
-+	if (swnode->properties)
-+		swnode_unregister_properties(swnode);
-+
- 	if (swnode->allocated)
- 		software_node_free(swnode->node);
- 
-@@ -810,6 +931,12 @@ swnode_register(const struct software_node *node, struct swnode *parent,
- 		return ERR_PTR(ret);
- 	}
- 
-+	ret = swnode_register_properties(swnode);
-+	if (ret) {
-+		kobject_put(&swnode->kobj);
-+		return ERR_PTR(ret);
-+	}
-+
- 	/*
- 	 * Assign the flag only in the successful case, so
- 	 * the above kobject_put() won't mess up with properties.
+ struct property_entry *
 -- 
 2.30.2
 
