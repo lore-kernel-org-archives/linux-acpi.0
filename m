@@ -2,119 +2,87 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F299C433E4
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C17ACC433C1
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 13:46:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE2DE619B4
-	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 12:11:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B136619BB
+	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 13:46:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230243AbhC0MLO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 08:11:14 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:15012 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230202AbhC0MLN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2021 08:11:13 -0400
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F6yKt6lJszPrjS;
-        Sat, 27 Mar 2021 20:08:34 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.498.0; Sat, 27 Mar 2021 20:10:59 +0800
-From:   Xiaofei Tan <tanxiaofei@huawei.com>
-To:     <rjw@rjwysocki.net>, <lenb@kernel.org>, <rui.zhang@intel.com>,
-        <bhelgaas@google.com>
-CC:     Xiaofei Tan <tanxiaofei@huawei.com>, <linux-acpi@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        <linuxarm@openeuler.org>
-Subject: [PATCH v3 02/12] ACPI: processor: fix some coding style issues
-Date:   Sat, 27 Mar 2021 20:08:14 +0800
-Message-ID: <1616846904-25719-3-git-send-email-tanxiaofei@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1616846904-25719-1-git-send-email-tanxiaofei@huawei.com>
-References: <1616846904-25719-1-git-send-email-tanxiaofei@huawei.com>
+        id S229990AbhC0Nq1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 09:46:27 -0400
+Received: from smtprelay0003.hostedemail.com ([216.40.44.3]:53332 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S229901AbhC0Np5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 Mar 2021 09:45:57 -0400
+X-Greylist: delayed 407 seconds by postgrey-1.27 at vger.kernel.org; Sat, 27 Mar 2021 09:45:57 EDT
+Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
+        by smtpgrave02.hostedemail.com (Postfix) with ESMTP id 7E57C18043D20;
+        Sat, 27 Mar 2021 13:39:11 +0000 (UTC)
+Received: from omf20.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay01.hostedemail.com (Postfix) with ESMTP id 27C20100E7B40;
+        Sat, 27 Mar 2021 13:39:10 +0000 (UTC)
+Received: from [192.168.1.159] (unknown [47.151.137.21])
+        (Authenticated sender: joe@perches.com)
+        by omf20.hostedemail.com (Postfix) with ESMTPA id 6092A18A608;
+        Sat, 27 Mar 2021 13:39:08 +0000 (UTC)
+Message-ID: <50e838ca74c56b9fd5cbbc2d7234829f0e0b4131.camel@perches.com>
+Subject: Re: [PATCH v2 06/15] ACPI: LPSS: fix some coding style issues
+From:   Joe Perches <joe@perches.com>
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Xiaofei Tan <tanxiaofei@huawei.com>
+Cc:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "rui.zhang@intel.com" <rui.zhang@intel.com>,
+        "bhelgaas@google.com" <bhelgaas@google.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Date:   Sat, 27 Mar 2021 06:39:07 -0700
+In-Reply-To: <CAHp75Vd0hVqsfsZK=d1dz98Kbchqz-w4RqQQp6FwisxSGG5BzA@mail.gmail.com>
+References: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
+         <1616831193-17920-7-git-send-email-tanxiaofei@huawei.com>
+         <CAHp75Vd0hVqsfsZK=d1dz98Kbchqz-w4RqQQp6FwisxSGG5BzA@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.38.1-1 
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Server: rspamout03
+X-Rspamd-Queue-Id: 6092A18A608
+X-Stat-Signature: or65y7ksn6r8hjdwk1z5k5ok7iqhenqo
+X-HE-Tag: 1616852348-647392
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fix some coding style issues reported by checkpatch.pl, including
-following types:
+On Sat, 2021-03-27 at 10:19 +0200, Andy Shevchenko wrote:
+> On Saturday, March 27, 2021, Xiaofei Tan <tanxiaofei@huawei.com> wrote:
+> 
+> > Fix some coding style issues reported by checkpatch.pl, including
+> > following types:
+> > 
+> > WARNING: simple_strtol is obsolete, use kstrtol instead
+> 
+> 
+> And one more thing, the above message is bogus. Read what the comments in
+> the code says about use cases for simple_*() vs. kstrto*() ones.
+> 
+> Joe?
 
-ERROR: code indent should use tabs where possible
-WARNING: Block comments use a trailing */ on a separate line
-WARNING: Missing a blank line after declarations
-WARNING: labels should not be indented
+This check and message is nearly 10 years old and was appropriate for
+when it was implemented.
 
-Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
----
- drivers/acpi/acpi_processor.c | 18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+kernel.h currently has:
+ * Use these functions if and only if you cannot use kstrto<foo>, because
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index fc89f3a..2d5bd2a 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -25,10 +25,7 @@
- DEFINE_PER_CPU(struct acpi_processor *, processors);
- EXPORT_PER_CPU_SYMBOL(processors);
- 
--/* --------------------------------------------------------------------------
--                                Errata Handling
--   -------------------------------------------------------------------------- */
--
-+/* Errata Handling */
- struct acpi_processor_errata errata __read_mostly;
- EXPORT_SYMBOL_GPL(errata);
- 
-@@ -151,10 +148,7 @@ static int acpi_processor_errata(void)
- 	return result;
- }
- 
--/* --------------------------------------------------------------------------
--                                Initialization
--   -------------------------------------------------------------------------- */
--
-+/* Initialization */
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- int __weak acpi_map_cpu(acpi_handle handle,
- 		phys_cpuid_t physid, u32 acpi_id, int *pcpu)
-@@ -306,6 +300,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	 */
- 	if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id)) {
- 		int ret = acpi_processor_hotadd_init(pr);
-+
- 		if (ret)
- 			return ret;
- 	}
-@@ -431,10 +426,7 @@ static int acpi_processor_add(struct acpi_device *device,
- }
- 
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
--/* --------------------------------------------------------------------------
--                                    Removal
--   -------------------------------------------------------------------------- */
--
-+/* Removal */
- static void acpi_processor_remove(struct acpi_device *device)
- {
- 	struct acpi_processor *pr;
-@@ -892,7 +884,7 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
- 
- 	info->count = last_index;
- 
--      end:
-+end:
- 	kfree(buffer.pointer);
- 
- 	return ret;
--- 
-2.8.1
+So the message could be changed to something like:
+
+WARNING: simple_strtol should be used only when kstrtol can not be used.
+
+
 
