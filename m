@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B49E2C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3989C433E5
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84FA1619A0
+	by mail.kernel.org (Postfix) with ESMTP id AEAB561999
 	for <linux-acpi@archiver.kernel.org>; Sat, 27 Mar 2021 22:21:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231205AbhC0WUl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 27 Mar 2021 18:20:41 -0400
-Received: from mga12.intel.com ([192.55.52.136]:20237 "EHLO mga12.intel.com"
+        id S231238AbhC0WUm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 27 Mar 2021 18:20:42 -0400
+Received: from mga14.intel.com ([192.55.52.115]:65376 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231192AbhC0WUR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 27 Mar 2021 18:20:17 -0400
-IronPort-SDR: pM0Dis63SoBZ7fNy4JwA+Gf6AuttayFpCX5qJCu4TfAXG3rLzl55OitmJGpLRZEmsC+POmWO84
- CtQmjzwOD2Sw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="170732004"
+        id S231195AbhC0WUU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 Mar 2021 18:20:20 -0400
+IronPort-SDR: Q7Ero3yrRke3CGQyaRc7UAtqiJhfTfddVO3lbdCc7cuR/xNSU7w8StPBvJnwadObDS7jBtXHZv
+ MNi6m0VqI6hQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9936"; a="190792953"
 X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
-   d="scan'208";a="170732004"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:17 -0700
-IronPort-SDR: LkmIsYHL0BkahnxczuekWaqkoWewS8vWFqP55myOp50unfu6GOYYoKajQLSDypCzBBlJKtVTxp
- oAVFpbAFz3vw==
+   d="scan'208";a="190792953"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2021 15:20:20 -0700
+IronPort-SDR: LhG7xf+BuoyNl4R4hy8jxmugAsxSSOE8VsQgak4lujKzEqWNii4HddQ+TONzEADfJsGOn9JkMi
+ MO7VYCMrzlUg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,284,1610438400"; 
-   d="scan'208";a="417064275"
+   d="scan'208";a="605906453"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga008.jf.intel.com with ESMTP; 27 Mar 2021 15:20:13 -0700
+  by fmsmga006.fm.intel.com with ESMTP; 27 Mar 2021 15:20:17 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id EB6C26F1; Sun, 28 Mar 2021 00:20:27 +0200 (EET)
+        id 0B0D9CDD; Sun, 28 Mar 2021 00:20:28 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Daniel Scally <djrscally@gmail.com>,
@@ -48,9 +48,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Tianshu Qiu <tian.shu.qiu@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v1 4/8] software node: Deduplicate code in fwnode_create_software_node()
-Date:   Sun, 28 Mar 2021 00:20:08 +0200
-Message-Id: <20210327222012.54103-4-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 6/8] software node: Simplify swnode_register() a bit
+Date:   Sun, 28 Mar 2021 00:20:10 +0200
+Message-Id: <20210327222012.54103-6-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
 References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
@@ -60,43 +60,52 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Deduplicate conditional and assignment in fwnode_create_software_node(),
-i.e. parent is checked in two out of three cases and parent software node
-is assigned by to_swnode() call.
+By introducing two temporary variables simplify swnode_register() a bit.
+No functional change intended.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/swnode.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/base/swnode.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index d7fe1a887d2d..22f81688af2c 100644
+index ae53c48f84b1..1e81aaf5f6a1 100644
 --- a/drivers/base/swnode.c
 +++ b/drivers/base/swnode.c
-@@ -1100,15 +1100,14 @@ fwnode_create_software_node(const struct property_entry *properties,
+@@ -894,6 +894,8 @@ static struct fwnode_handle *
+ swnode_register(const struct software_node *node, struct swnode *parent,
+ 		unsigned int allocated)
  {
- 	struct fwnode_handle *fwnode;
- 	struct software_node *node;
--	struct swnode *p = NULL;
--
--	if (parent) {
--		if (IS_ERR(parent))
--			return ERR_CAST(parent);
--		if (!is_software_node(parent))
--			return ERR_PTR(-EINVAL);
--		p = to_swnode(parent);
--	}
-+	struct swnode *p;
-+
-+	if (IS_ERR(parent))
-+		return ERR_CAST(parent);
-+
-+	p = to_swnode(parent);
-+	if (parent && !p)
-+		return ERR_PTR(-EINVAL);
++	struct ida *ids = parent ? &parent->child_ids : &swnode_root_ids;
++	struct kobject *kobj_parent = parent ? &parent->kobj : NULL;
+ 	struct swnode *swnode;
+ 	int ret;
  
- 	node = software_node_alloc(properties);
- 	if (IS_ERR(node))
+@@ -901,8 +903,7 @@ swnode_register(const struct software_node *node, struct swnode *parent,
+ 	if (!swnode)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	ret = ida_simple_get(parent ? &parent->child_ids : &swnode_root_ids,
+-			     0, 0, GFP_KERNEL);
++	ret = ida_simple_get(ids, 0, 0, GFP_KERNEL);
+ 	if (ret < 0) {
+ 		kfree(swnode);
+ 		return ERR_PTR(ret);
+@@ -920,12 +921,10 @@ swnode_register(const struct software_node *node, struct swnode *parent,
+ 
+ 	if (node->name)
+ 		ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+-					   parent ? &parent->kobj : NULL,
+-					   "%s", node->name);
++					   kobj_parent, "%s", node->name);
+ 	else
+ 		ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+-					   parent ? &parent->kobj : NULL,
+-					   "node%d", swnode->id);
++					   kobj_parent, "node%d", swnode->id);
+ 	if (ret) {
+ 		kobject_put(&swnode->kobj);
+ 		return ERR_PTR(ret);
 -- 
 2.30.2
 
