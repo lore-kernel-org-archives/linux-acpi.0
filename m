@@ -2,169 +2,111 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0486AC433DB
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 11:20:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B026C433DB
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 12:51:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C53456192F
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 11:20:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10E9761969
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 12:51:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229593AbhC1LU0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 28 Mar 2021 07:20:26 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:37151 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229543AbhC1LUS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 28 Mar 2021 07:20:18 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1616930407;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=6+EKCE354c33h9thDLEaaDg4xcXRSjgg3NTk2TKYAYQ=;
-        b=htGuHIirXb0W5Qe298VHE9QwXqbxivhEuQPWJbrsRSPGqZePEuRPPSZ3RibOiEF/TaHKMJ
-        F67XHXYn9IaRYksYv3fN8n+rwFUWrp/TkhYl5BH9xMKnD/zWrkioBXe56R0EHMI2G7u/Uc
-        lgfBABdysGepBXaTJ/tEq3AFMYqkW34=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-365-gQj0yNNzMKmiERAH3y2puQ-1; Sun, 28 Mar 2021 07:20:04 -0400
-X-MC-Unique: gQj0yNNzMKmiERAH3y2puQ-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BEF87107ACCA;
-        Sun, 28 Mar 2021 11:20:03 +0000 (UTC)
-Received: from x1.localdomain (ovpn-112-83.ams2.redhat.com [10.36.112.83])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id CA8B214106;
-        Sun, 28 Mar 2021 11:20:02 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 2/2] ACPI: scan: Fix _STA getting called on devices with unmet dependencies
-Date:   Sun, 28 Mar 2021 13:20:00 +0200
-Message-Id: <20210328112000.12502-2-hdegoede@redhat.com>
-In-Reply-To: <20210328112000.12502-1-hdegoede@redhat.com>
-References: <20210328112000.12502-1-hdegoede@redhat.com>
+        id S231219AbhC1Mu6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 28 Mar 2021 08:50:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52300 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229503AbhC1Muu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Mar 2021 08:50:50 -0400
+Received: from mail-pg1-x535.google.com (mail-pg1-x535.google.com [IPv6:2607:f8b0:4864:20::535])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0C7BC061762;
+        Sun, 28 Mar 2021 05:50:50 -0700 (PDT)
+Received: by mail-pg1-x535.google.com with SMTP id p12so3037596pgj.10;
+        Sun, 28 Mar 2021 05:50:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=M/f6JcSAxpYcQMaAnW5qhIERWhNfQqqFaf/lVQHff/0=;
+        b=R9F2oyHJuKHCiCMbvDBSiCGciPYeXBLxw/cGofmCcHz2QUFhmdPGv7qkdtdii5cUyk
+         Af9ggEX9DREMPgGHAMYVThJLSTuOAc+u/JYn812eHYAA56LUxTgnn8+/n9ScuEuxo5Kr
+         c+3DZJQl4ynMmZQoFXo/odaaAlmhaM0a172km0naKrn+BtATaBVetwowih9GshmTHMRg
+         oNXlNm03OAuTNF5llOZmBPlPp3l9VRTjmM03Eqt3EU3u2P26SeVXoKPdnIH3cUErmmO0
+         CRsUvSs1/CAsvu1k5uX9zmMdqiEcq2Qj62pwDv3kuG+rZCi10m4h8csQ6+rvLpao6Ljx
+         O/GQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=M/f6JcSAxpYcQMaAnW5qhIERWhNfQqqFaf/lVQHff/0=;
+        b=HlQjWc8Tbc/5dIYndqHdVmhgF645IlIrWbWzCmrX4DpuAEdAJIdrZBL4rHiq2hxh/V
+         WhvvKhZiSLtj4VnJ0HiFu6juwgsLbuKPEiNIygquFCICuNIRu3RE2fBzYOMKBtP2TYYB
+         jvQkFwnBwdOFRuCpnd20xa5+jkkbSHoYBfer/R+HAeXYE/c90iv9Mv0GQyxQVptAo15H
+         jIbtlSuxd4SowUBe6UuOoGjvmRcQVwY4UeMXJW1dpKUqkoeMRdfznd38hmrj8j1hgwur
+         az326WiT3/phy0lckJhsFx/t68D9/UAXL4yEMpyC5mQNhIPhB3LHXeDOvRf47wO1GNFf
+         Nkpg==
+X-Gm-Message-State: AOAM533PKMCM+trEmOrz7X7ghOg5KuQoAMqWHB8IJa8k/CeCiQabgD+U
+        itKtTMCQpSkAdRhOxXcXRK9XYocGdCjkMxBkwmfhDHyyejs=
+X-Google-Smtp-Source: ABdhPJwyVengmsYTLXT8Ek198TXirsG56lWDdJccyVIjngZL5NxLnvSor4kK/J8s3OsZtzdVAMQSu5o7/qLLs6VKLNw=
+X-Received: by 2002:a65:4c08:: with SMTP id u8mr19616609pgq.203.1616935850229;
+ Sun, 28 Mar 2021 05:50:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
+ <20210327222012.54103-6-andriy.shevchenko@linux.intel.com> <YGBB7D98tNxYsTXo@kroah.com>
+In-Reply-To: <YGBB7D98tNxYsTXo@kroah.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Sun, 28 Mar 2021 15:50:34 +0300
+Message-ID: <CAHp75VcuAs_n+g4Cy7Sj99hZLavWBEJrW3xgXCwHaN_GkB-K8g@mail.gmail.com>
+Subject: Re: [PATCH v1 6/8] software node: Simplify swnode_register() a bit
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tianshu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Commit 71da201f38df ("ACPI: scan: Defer enumeration of devices with
-_DEP lists") dropped the following 2 lines from acpi_init_device_object():
+On Sun, Mar 28, 2021 at 11:48 AM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Sun, Mar 28, 2021 at 12:20:10AM +0200, Andy Shevchenko wrote:
+> > By introducing two temporary variables simplify swnode_register() a bit.
+> > No functional change intended.
+> >
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > ---
+> >  drivers/base/swnode.c | 11 +++++------
+> >  1 file changed, 5 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> > index ae53c48f84b1..1e81aaf5f6a1 100644
+> > --- a/drivers/base/swnode.c
+> > +++ b/drivers/base/swnode.c
+> > @@ -894,6 +894,8 @@ static struct fwnode_handle *
+> >  swnode_register(const struct software_node *node, struct swnode *parent,
+> >               unsigned int allocated)
+> >  {
+> > +     struct ida *ids = parent ? &parent->child_ids : &swnode_root_ids;
+> > +     struct kobject *kobj_parent = parent ? &parent->kobj : NULL;
+>
+> ?: operations are horrid.  Please spell this out in real if statements
+> so that we can properly understand and maintain them for the next 20+
+> years.
 
-	/* Assume there are unmet deps until acpi_device_dep_initialize() runs */
-	device->dep_unmet = 1;
+Will do, thanks!
 
-Leaving the initial value of dep_unmet at the 0 from the kzalloc(). This
-causes the acpi_bus_get_status() call in acpi_add_single_object() to
-actually call _STA, even though there maybe unmet deps, leading to errors
-like these:
-
-[    0.123579] ACPI Error: No handler for Region [ECRM] (00000000ba9edc4c)
-               [GenericSerialBus] (20170831/evregion-166)
-[    0.123601] ACPI Error: Region GenericSerialBus (ID=9) has no handler
-               (20170831/exfldio-299)
-[    0.123618] ACPI Error: Method parse/execution failed
-               \_SB.I2C1.BAT1._STA, AE_NOT_EXIST (20170831/psparse-550)
-
-Fix this by moving the acpi_scan_dep_init() call done for devices added
-during the second pass done by acpi_bus_scan() to inside
-acpi_add_single_object(), so that dep_unmet is properly initialized
-before the acpi_bus_get_status() call.
-
-This re-fixes the issue initially fixed by
-commit 63347db0affa ("ACPI / scan: Use acpi_bus_get_status() to initialize
-ACPI_TYPE_DEVICE devs"), which introduced the removed
-"device->dep_unmet = 1;" statement.
-
-This issue was noticed; and the fix tested on a Dell Venue 10 Pro 5055.
-
-Fixes: 71da201f38df ("ACPI: scan: Defer enumeration of devices with _DEP lists")
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/scan.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 19f8fd6ea17a..0d0176559bc2 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1671,7 +1671,8 @@ static void acpi_scan_dep_init(struct acpi_device *adev)
- 
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type,
--				  unsigned long long sta)
-+				  unsigned long long sta,
-+				  bool init_dep)
- {
- 	struct acpi_device_info *info = NULL;
- 	struct acpi_device *device;
-@@ -1693,9 +1694,13 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	 * that we can call acpi_bus_get_status() and use its quirk handling.
- 	 * Note this must be done before the get power-/wakeup_dev-flags calls.
- 	 */
--	if (type == ACPI_BUS_TYPE_DEVICE)
-+	if (type == ACPI_BUS_TYPE_DEVICE) {
-+		if (init_dep)
-+			acpi_scan_dep_init(device);
-+
- 		if (acpi_bus_get_status(device) < 0)
- 			acpi_set_device_status(device, 0);
-+	}
- 
- 	acpi_bus_get_power_flags(device);
- 	acpi_bus_get_wakeup_device_flags(device);
-@@ -1952,13 +1957,11 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, bool check_dep,
- 		}
- 	}
- 
--	acpi_add_single_object(&device, handle, type, sta);
-+	acpi_add_single_object(&device, handle, type, sta, !check_dep);
- 	if (!device)
- 		return AE_CTRL_DEPTH;
- 
- 	acpi_scan_init_hotplug(device);
--	if (!check_dep)
--		acpi_scan_dep_init(device);
- 
- out:
- 	if (!*adev_p)
-@@ -2221,7 +2224,7 @@ int acpi_bus_register_early_device(int type)
- 	int result;
- 
- 	result = acpi_add_single_object(&device, NULL,
--					type, ACPI_STA_DEFAULT);
-+					type, ACPI_STA_DEFAULT, false);
- 	if (result)
- 		return result;
- 
-@@ -2242,7 +2245,7 @@ static int acpi_bus_scan_fixed(void)
- 
- 		result = acpi_add_single_object(&device, NULL,
- 						ACPI_BUS_TYPE_POWER_BUTTON,
--						ACPI_STA_DEFAULT);
-+						ACPI_STA_DEFAULT, false);
- 		if (result)
- 			return result;
- 
-@@ -2259,7 +2262,7 @@ static int acpi_bus_scan_fixed(void)
- 
- 		result = acpi_add_single_object(&device, NULL,
- 						ACPI_BUS_TYPE_SLEEP_BUTTON,
--						ACPI_STA_DEFAULT);
-+						ACPI_STA_DEFAULT, false);
- 		if (result)
- 			return result;
- 
--- 
-2.30.2
-
+--
+With Best Regards,
+Andy Shevchenko
