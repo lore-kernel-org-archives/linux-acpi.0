@@ -2,64 +2,63 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DDCC433E0
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 12:51:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55B68C433C1
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 12:57:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7B256196B
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 12:51:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 205CF619AB
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 12:57:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbhC1Mu6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 28 Mar 2021 08:50:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52234 "EHLO
+        id S231135AbhC1M5H (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 28 Mar 2021 08:57:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231187AbhC1Mud (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Mar 2021 08:50:33 -0400
-Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A151C061762;
-        Sun, 28 Mar 2021 05:50:33 -0700 (PDT)
-Received: by mail-pj1-x1035.google.com with SMTP id nh23-20020a17090b3657b02900c0d5e235a8so4653273pjb.0;
-        Sun, 28 Mar 2021 05:50:33 -0700 (PDT)
+        with ESMTP id S229503AbhC1M4n (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Mar 2021 08:56:43 -0400
+Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56432C061762;
+        Sun, 28 Mar 2021 05:56:43 -0700 (PDT)
+Received: by mail-pj1-x102c.google.com with SMTP id kr3-20020a17090b4903b02900c096fc01deso4632552pjb.4;
+        Sun, 28 Mar 2021 05:56:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=wjdr4p4c1SUhVLd42l0vy2P5QT8htThYmXSTsLM/fJM=;
-        b=o+3GRxcoDW09J9XuRpWqYVZNLsNnexx1amFimstXIXPvIFYXrrhVtxgiYk9xAm3dDP
-         37AX/agnG8YByg3X5SZtOzbrZxTEeMmx/I0+nDiCbYlwhfA745FZHluNPaeOeW1Z+4B3
-         uAB+4z/gZfJb5LEiKZoNI0tk9E8ZbJ8CceQl/2Jsucf4Wz9WLTW/g1IUhmP3AipPPs7+
-         HRq+l6e0Y9J2BB42U75J5/L94XjbH3pryplAmlCgA7dfC/xejazIuo+xr+y6IuqdOJb0
-         sxx4xqIF7USlKJvpLAouwxSwJDwfYAopybJ869thrlW9gwqWggZE1IC02/EKH6Uw58hL
-         qPcg==
+        bh=I1/uzyA6pOZdXeSGhWpWxUqNW6ImJob8Xs5Y1LIUHB4=;
+        b=ZmnxaWCFRLQNuORE+CiqHdSKgtBFDVCOXTV97sbfSZ6MKnuZLc0Bl6aWX6HzgBQGqi
+         iwcC/C1sTgXzUDTWFONn/1xmSTnfjTPCJy0XO0t8OfMI19HlugXbQ5o5vpK81JtgpVry
+         zgvlpQmmOpjs+1ycYK4YyjIdbeTRAazsFgUlobpBuz4m45+HjsP9f25wgNIfgJwpSUfk
+         m3WA8nLXQ95LHyFwluu92fY24GZqRUqyiq5rtG9mHxKIQyRewqZIOc2lpHEmTQ/AmMYI
+         iPw8wOUzw1F2i3lPGR4peG5CZid0DcZG3LiMUDOpBUe26iJsFW1eBiIJ/6OikfgjEUH3
+         wIwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=wjdr4p4c1SUhVLd42l0vy2P5QT8htThYmXSTsLM/fJM=;
-        b=AuR/K/VMLH+T+MA2m2XdoV/vPutgjU6G9DNNyqu2IGabl0KM45lTwvDeMGV8XW+14K
-         Gn86AnUvjdFfTsfhcq35NOEmCaSek44vcxPtWvqMuqd+87w6v+srwOEzrQtFMGtJpsh0
-         Cy/ZT/nCc1Oa9SQXQKJvXw7EGiQJpjBbzNvxfaE73Qtui4IucixoSNZxVIhXPuRnF2pF
-         +BYPf+RofmhWomBT38IjV62xqLK8mmb3ti7Muy0TyjRqg5StDMTytD6ORqM2+Xv58hVD
-         xyS0+9DijHS2I7Hb54ZjN/kBT1SVLX0Xeymle9m3XC74m3ssRLt0RBKFc/wHlQcR7LaD
-         KUJg==
-X-Gm-Message-State: AOAM533OUfw6wj0yvvHHPQOjg9Ms336PoYtf8ByTUMiB8AmObr7TW7Ob
-        riggtMnU2z3A0qVzUloXjFlw5os7hoYLXgjNXcHe4eETGaA=
-X-Google-Smtp-Source: ABdhPJyaQZAMk4Pim1F4UnINI1LvuiRAQwnNfXpaKdOnxG4TX4cwldUQ+wH57otF3+J6Xa3zonGF/4hg7yJdjaCko1c=
-X-Received: by 2002:a17:90a:db49:: with SMTP id u9mr23030584pjx.181.1616935832529;
- Sun, 28 Mar 2021 05:50:32 -0700 (PDT)
+        bh=I1/uzyA6pOZdXeSGhWpWxUqNW6ImJob8Xs5Y1LIUHB4=;
+        b=nyrjQN9HjnJ5mbgWg5wDL/ZysAkeVRHE//1GBokSDyPAxkjPEMPV2qjOxdyVkWj1CC
+         fW6MKYTycgOOvbjG5QmNVHx4pPykbXMSubBMUVmk86EarksBux7Xqw144uFN887e6zIl
+         3CiJRCBvueeTuRrxTtScNnb4wTjlFe1P1anM6F79g8z/d0NS4HJQqmov/TsqY8BmUEC8
+         AtKhVN94KFN7j8oY0N1NjDCTSXHbHvN9i2coN3Ya1BZ7wo1rG3Ytbp0hDeSfvPuSVd9r
+         1MoFjNMxF6qE00KgwyiJfkD+puBXiReiLZEPeFHvDyRKAwO6TW5yYjTjKPyXy0KuEcbN
+         LIRg==
+X-Gm-Message-State: AOAM5326MiY30TEhP8W2LVROMSWtk7SCsDTeBbx/R9042W7SqElLpxYW
+        auS+7sR00XBMH23/6L6I3yOydlRdhp8zzYAe90w=
+X-Google-Smtp-Source: ABdhPJyU9Hy3d1197aDUhlttjiGcwGkNFX4GQCuCMDvaNr68A8LQuVQ530N59OuIntaX43Oo9olLQgL8kya8YgibJtQ=
+X-Received: by 2002:a17:90a:b311:: with SMTP id d17mr22663294pjr.228.1616936202828;
+ Sun, 28 Mar 2021 05:56:42 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
- <20210327222012.54103-5-andriy.shevchenko@linux.intel.com> <YGBBlCBMp0P4mVJG@kroah.com>
-In-Reply-To: <YGBBlCBMp0P4mVJG@kroah.com>
+ <20210327222012.54103-3-andriy.shevchenko@linux.intel.com> <YGAmB2Nwph6pArXc@kroah.com>
+In-Reply-To: <YGAmB2Nwph6pArXc@kroah.com>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Sun, 28 Mar 2021 15:50:16 +0300
-Message-ID: <CAHp75Vf2h1s-p43q41+Dnw6FP0L-vtb0YkjGHpSdkERYJW6xZw@mail.gmail.com>
-Subject: Re: [PATCH v1 5/8] software node: Imply kobj_to_swnode() to be no-op
+Date:   Sun, 28 Mar 2021 15:56:26 +0300
+Message-ID: <CAHp75VfFzqpdR+6p9vQww-ujQcw3L-V_N7ezUTGhcRmvwvqMZg@mail.gmail.com>
+Subject: Re: [PATCH v1 3/8] software node: Show properties and their values in sysfs
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Daniel Scally <djrscally@gmail.com>,
@@ -78,43 +77,36 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Mar 28, 2021 at 11:47 AM Greg Kroah-Hartman
+On Sun, Mar 28, 2021 at 9:47 AM Greg Kroah-Hartman
 <gregkh@linuxfoundation.org> wrote:
 >
-> On Sun, Mar 28, 2021 at 12:20:09AM +0200, Andy Shevchenko wrote:
-> > Since we don't use structure field layout randomization
-> > the manual shuffling can affect some macros, in particular
-> > kobj_to_swnode(), which becomes a no-op when kobj member
-> > is the first one in the struct swnode.
+> On Sun, Mar 28, 2021 at 12:20:07AM +0200, Andy Shevchenko wrote:
+> > It's very convenient to see what properties and their values
+> > are currently being assigned in the registered software nodes.
 > >
-> > Bloat-o-meter statistics:
-> >
-> >   add/remove: 0/0 grow/shrink: 2/10 up/down: 9/-100 (-91)
-> >   Total: Before=7217, After=7126, chg -1.26%
-> >
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> >  drivers/base/swnode.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> > index 22f81688af2c..ae53c48f84b1 100644
-> > --- a/drivers/base/swnode.c
-> > +++ b/drivers/base/swnode.c
-> > @@ -13,10 +13,10 @@
-> >  #include <linux/sysfs.h>
-> >
-> >  struct swnode {
-> > -     int id;
-> >       struct kobject kobj;
-> >       struct fwnode_handle fwnode;
-> >       const struct software_node *node;
-> > +     int id;
->
-> So you remove one math operation on a pointer and get a 1% size decrease
-> of the whole kernel?  Or just one file?
+> > Show properties and their values in sysfs.
 
-One file, swnode.o. I'll clarify this in the commit message.
+...
+
+> > +             for (i = 0; i < prop->length / sizeof(u8); i++)
+> > +                     len += sysfs_emit_at(buf, len, "%u,", ((u8 *)pointer)[i]);
+>
+> No, sysfs is "one value per file", and that is not what you are showing
+> here at all :(
+
+It is following: it's a "one value" for property in question,
+
+As we may read in [1]: "...so it is socially acceptable to express an
+array of values of the same type."
+
+And here is exactly the case: *values of the same type*.
+
+> Also, there is no Documentation/ABI/ entries for your new sysfs files,
+> so that means we couldn't take this patcheset anyway :(
+
+True, I'll fix this, thanks!
+
+[1]: https://www.kernel.org/doc/html/latest/filesystems/sysfs.html
 
 -- 
 With Best Regards,
