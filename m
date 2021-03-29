@@ -2,503 +2,186 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D2C8C433E0
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 22:40:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CD8FC433DB
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 22:46:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6660661996
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 22:40:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0F3761989
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 22:46:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231897AbhC2Wjf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Mar 2021 18:39:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38224 "EHLO
+        id S231864AbhC2WqC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Mar 2021 18:46:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231631AbhC2WjD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2021 18:39:03 -0400
-Received: from mail-pl1-x629.google.com (mail-pl1-x629.google.com [IPv6:2607:f8b0:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C81FC061762
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Mar 2021 15:39:03 -0700 (PDT)
-Received: by mail-pl1-x629.google.com with SMTP id h20so5132292plr.4
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Mar 2021 15:39:03 -0700 (PDT)
+        with ESMTP id S230237AbhC2Wpt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2021 18:45:49 -0400
+Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46DBDC061762;
+        Mon, 29 Mar 2021 15:45:49 -0700 (PDT)
+Received: by mail-wr1-x42c.google.com with SMTP id v4so14315589wrp.13;
+        Mon, 29 Mar 2021 15:45:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=platinasystems-com.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=kt+/KTchiEi7SRqxK7aMCZQW49hw+aThg0jidlExq98=;
-        b=oR3NzwyZzBfo9kEnzyV5vBSb2VSgssDHyQsvopt2CAWVjo4x0SC37sfkune2S2xnwE
-         L3Jd51xuuJetASuuHItNskLXdViv4w/XUt33e34X8PniD6yzh2FcN6qICSAZXlu3HEAi
-         vz3GiIVy8yWp0VzE4uuioxX6VR9jpJLVtXaj2lbvPVnSx7gn0ML3EXwiOiiyh8VarrHG
-         C7Oc4BbaOoJ8l4tSxuQf7wLKv/XHnofQWNZOD0ubZ8Jy16q5fCcTFWkh84NdLUYoWWi4
-         91IMVzaganWxJWZySiRxdHUpa9d5rmlPD7/QrtdVKlP/JOaNPaoL3kX5bYCieuqUz9K3
-         /vXg==
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=puc4F2ZnjQMhHuMpsfbm17RPo3S8OhUZZKJo6ZoQWoo=;
+        b=a9t8sWlAljKzDwku1gTNdK0a+2gm/Jk184NTjgaxqMEH3jxIKu2UPJKvLtkgLi1wvU
+         G+iFrAHXsgHlzHPYHIKxKVkzMsnqLJhTT2Wj2RhdbHeRrvaNeaXEy4g26bnxWRi/NgMa
+         cheKoRrQ/7HLOctaYISbJf70Ygcen+C/Jm20IdXtESIMsq+d04v9DkShPpJ6ecaTxFCl
+         mZzP0eUaOddoINtbchIqkA5MHcEeLVD+dnBlChZZ71TpINBGriqdRsu6bgudRMhw5KuB
+         hYUebkQpeMbvah9NLzNuT/voNvGMr/VKeISuqpzDzHeJn9v7N9WTXInA2HFW9ruZ1aO2
+         UmbA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=kt+/KTchiEi7SRqxK7aMCZQW49hw+aThg0jidlExq98=;
-        b=ZHLGaOXzByGXS0YJT9ojMVMnTAihP/j4USusHcz8nHuADVerUcfUYSE1xTL1F3wb76
-         Iipco0ej4/n4FZM9mn7NIbVOvEWsBp4xosxfpXvyQX2BbM5/V0n+J9zsntKsavhqfRp8
-         eZZFvIAdp8YuyoMDLu5wD0TnTuHkqCIl7s132MX1NwB1utgxIWs6phz2hN7RIqPIf20d
-         rOWsW+4MUa/Ga1rc+MLHg0f2HTHcepjmqUwfpOHAjtittSDcA7XhqaN17koO7/TEhHBp
-         hQt2kCgEaHzNEEaKYInq51YOmZBWfvN8loFXF+QHVsi8Yzu/eMVPaIRgl0X5tyji8qz8
-         Z+jA==
-X-Gm-Message-State: AOAM533wZ9e7nkfKfVwDQ6W21FsZIZ/eKXsW906drp21kTY9UJ3mBh8n
-        gS80JLtg39BpiOtp6rdFdEpGow==
-X-Google-Smtp-Source: ABdhPJxgrTMdNaXnmufpECMBW46sGGnkKIdnNAEAp7UrCVwOznH1fdKc35SbsUFWwkKbxChVqMR/Rw==
-X-Received: by 2002:a17:90a:5d8f:: with SMTP id t15mr1293430pji.28.1617057542658;
-        Mon, 29 Mar 2021 15:39:02 -0700 (PDT)
-Received: from localhost.localdomain ([207.53.255.56])
-        by smtp.gmail.com with ESMTPSA id y23sm18229857pfo.50.2021.03.29.15.39.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 29 Mar 2021 15:39:02 -0700 (PDT)
-From:   Kevin Paul Herbert <kph@platinasystems.com>
-To:     Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        devicetree@vger.kernel.org,
-        Tom Grennan <tgrennan@platinasystems.com>,
-        linux-kernel@vger.kernel.org,
-        Kevin Paul Herbert <kph@platinasystems.com>
-Subject: [PATCH] nvmem: Change to unified property interface
-Date:   Mon, 29 Mar 2021 15:38:27 -0700
-Message-Id: <20210329223827.2851916-1-kph@platinasystems.com>
-X-Mailer: git-send-email 2.25.1
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=puc4F2ZnjQMhHuMpsfbm17RPo3S8OhUZZKJo6ZoQWoo=;
+        b=DlhhwGlrWMO4VRmuLqctFUi7fta1hD/lgSK61kRUMD0R8G4IE3kiuhgr+KL4/IOKiX
+         lv7mrkmA9aIafQtpD/xsbmf4dto8mj9h0jn5uuEn+5jXsQ+dGrfUoKjuYsptX1s8+R8H
+         H2zr0/cP5mlJXcfBUP6zg5wEtuZx68qNlX60oC6a0YQqj3t8JnusGnjrW930L+8lFQE7
+         euXVFs5cXAqzEJafhoOgxn+SAUZqjGz6/WV6fzJCzoXEQnKALGcJkx2Bgy6mcZQwJcSM
+         leoohlK+ectj/uZJiZdONBzStcg3WIv6AFkZ7VeAYYzziXZSGiN/aX8PynNCTDs1sPLz
+         vjFg==
+X-Gm-Message-State: AOAM531W50RfBCfeXgIe0Yq0HzxjzKDwop9Af6cEIsunnq6NDPHTrT5W
+        xYuASu4nlbQSwMYQ1Hm19yw=
+X-Google-Smtp-Source: ABdhPJzit7y1R+uG2U9xJOLgkbrjFRmk3WaDhMPDrTw9OzeCS2ZozED46gd8TbfRAi+6GvQd235LBQ==
+X-Received: by 2002:adf:ea8d:: with SMTP id s13mr30577726wrm.32.1617057948100;
+        Mon, 29 Mar 2021 15:45:48 -0700 (PDT)
+Received: from [192.168.1.211] ([91.110.20.103])
+        by smtp.gmail.com with ESMTPSA id y1sm805296wmq.29.2021.03.29.15.45.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 29 Mar 2021 15:45:47 -0700 (PDT)
+Subject: Re: [PATCH v2 1/6] software node: Free resources explicitly when
+ swnode_register() fails
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tianshu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>
+References: <20210329151207.36619-1-andriy.shevchenko@linux.intel.com>
+From:   Daniel Scally <djrscally@gmail.com>
+Message-ID: <16227f6b-c52e-2b29-2b2c-53cd8935d5dd@gmail.com>
+Date:   Mon, 29 Mar 2021 23:45:47 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210329151207.36619-1-andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Change from using device tree (Open Firmware) APIs to the unified
-'fwnode' interface.
+Hi Andy
 
-Change of_nvmem_cell_get() to fwnode_nvmem_cell_get(), and add a
-wrapper for of_nvmem_cell_get().
+On 29/03/2021 16:12, Andy Shevchenko wrote:
+> Currently we have a slightly twisted logic in swnode_register().
+> It frees resources that it doesn't allocate on error path and
+> in once case it relies on the ->release() implementation.
+>
+> Untwist the logic by freeing resources explicitly when swnode_register()
+> fails. Currently it happens only in fwnode_create_software_node().
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Change of_nvmem_device_get() to fwnode_nvmem_device_get(). There
-are no known accessors to the OF interface, so no need for a wrapper.
 
-Signed-off-by: Kevin Paul Herbert <kph@platinasystems.com>
----
- drivers/nvmem/core.c           | 176 ++++++++++++++++++++-------------
- include/linux/nvmem-consumer.h |  27 ++---
- 2 files changed, 123 insertions(+), 80 deletions(-)
+Reviewed-by: Daniel Scally <djrscally@gmail.com>
 
-diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
-index a5ab1e0c74cf..2e49304cd9a8 100644
---- a/drivers/nvmem/core.c
-+++ b/drivers/nvmem/core.c
-@@ -6,6 +6,7 @@
-  * Copyright (C) 2013 Maxime Ripard <maxime.ripard@free-electrons.com>
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/device.h>
- #include <linux/export.h>
- #include <linux/fs.h>
-@@ -17,6 +18,7 @@
- #include <linux/nvmem-provider.h>
- #include <linux/gpio/consumer.h>
- #include <linux/of.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- 
- struct nvmem_device {
-@@ -52,7 +54,7 @@ struct nvmem_cell {
- 	int			bytes;
- 	int			bit_offset;
- 	int			nbits;
--	struct device_node	*np;
-+	struct fwnode_handle	*fwnode;
- 	struct nvmem_device	*nvmem;
- 	struct list_head	node;
- };
-@@ -424,7 +426,7 @@ static void nvmem_cell_drop(struct nvmem_cell *cell)
- 	mutex_lock(&nvmem_mutex);
- 	list_del(&cell->node);
- 	mutex_unlock(&nvmem_mutex);
--	of_node_put(cell->np);
-+	fwnode_handle_put(cell->fwnode);
- 	kfree_const(cell->name);
- 	kfree(cell);
- }
-@@ -670,39 +672,40 @@ static int nvmem_validate_keepouts(struct nvmem_device *nvmem)
- 	return 0;
- }
- 
--static int nvmem_add_cells_from_of(struct nvmem_device *nvmem)
-+static int nvmem_add_cells_from_fw(struct nvmem_device *nvmem)
- {
--	struct device_node *parent, *child;
-+	struct fwnode_handle *parent, *child;
- 	struct device *dev = &nvmem->dev;
- 	struct nvmem_cell *cell;
--	const __be32 *addr;
--	int len;
-+	int rval;
-+	u32 vals[2];
- 
--	parent = dev->of_node;
-+	parent = dev_fwnode(dev);
- 
--	for_each_child_of_node(parent, child) {
--		addr = of_get_property(child, "reg", &len);
--		if (!addr)
-+	fwnode_for_each_child_node(parent, child) {
-+		rval = fwnode_property_read_u32_array(child, "reg", NULL, 2);
-+		if (rval < 0)
- 			continue;
--		if (len < 2 * sizeof(u32)) {
--			dev_err(dev, "nvmem: invalid reg on %pOF\n", child);
-+		if (rval < 2) {
-+			dev_err(dev, "nvmem: invalid reg %d on %pfw\n",
-+				rval, child);
- 			return -EINVAL;
- 		}
--
-+		rval = fwnode_property_read_u32_array(child, "reg", vals, 2);
- 		cell = kzalloc(sizeof(*cell), GFP_KERNEL);
- 		if (!cell)
- 			return -ENOMEM;
- 
- 		cell->nvmem = nvmem;
--		cell->np = of_node_get(child);
--		cell->offset = be32_to_cpup(addr++);
--		cell->bytes = be32_to_cpup(addr);
--		cell->name = kasprintf(GFP_KERNEL, "%pOFn", child);
--
--		addr = of_get_property(child, "bits", &len);
--		if (addr && len == (2 * sizeof(u32))) {
--			cell->bit_offset = be32_to_cpup(addr++);
--			cell->nbits = be32_to_cpup(addr);
-+		cell->fwnode = child;
-+		cell->offset = vals[0];
-+		cell->bytes = vals[1];
-+		cell->name = kasprintf(GFP_KERNEL, "%pfwn", child);
-+
-+		rval = fwnode_property_read_u32_array(child, "bits", vals, 2);
-+		if (rval >= 0) {
-+			cell->bit_offset = vals[0];
-+			cell->nbits = vals[1];
- 		}
- 
- 		if (cell->nbits)
-@@ -715,7 +718,7 @@ static int nvmem_add_cells_from_of(struct nvmem_device *nvmem)
- 				cell->name, nvmem->stride);
- 			/* Cells already added will be freed later. */
- 			kfree_const(cell->name);
--			of_node_put(cell->np);
-+			fwnode_handle_put(cell->fwnode);
- 			kfree(cell);
- 			return -EINVAL;
- 		}
-@@ -789,8 +792,10 @@ struct nvmem_device *nvmem_register(const struct nvmem_config *config)
- 	nvmem->reg_write = config->reg_write;
- 	nvmem->keepout = config->keepout;
- 	nvmem->nkeepout = config->nkeepout;
--	if (!config->no_of_node)
-+	if (!config->no_of_node) {
- 		nvmem->dev.of_node = config->dev->of_node;
-+		nvmem->dev.fwnode = config->dev->fwnode;
-+	}
- 
- 	switch (config->id) {
- 	case NVMEM_DEVID_NONE:
-@@ -841,7 +846,7 @@ struct nvmem_device *nvmem_register(const struct nvmem_config *config)
- 	if (rval)
- 		goto err_remove_cells;
- 
--	rval = nvmem_add_cells_from_of(nvmem);
-+	rval = nvmem_add_cells_from_fw(nvmem);
- 	if (rval)
- 		goto err_remove_cells;
- 
-@@ -984,36 +989,46 @@ static void __nvmem_device_put(struct nvmem_device *nvmem)
- 	kref_put(&nvmem->refcnt, nvmem_device_release);
- }
- 
--#if IS_ENABLED(CONFIG_OF)
- /**
-- * of_nvmem_device_get() - Get nvmem device from a given id
-+ * fwnode_nvmem_device_get() - Get nvmem device from a given id
-  *
-- * @np: Device tree node that uses the nvmem device.
-+ * @fwnode: Firmware node that uses the nvmem device.
-  * @id: nvmem name from nvmem-names property.
-  *
-  * Return: ERR_PTR() on error or a valid pointer to a struct nvmem_device
-  * on success.
-  */
--struct nvmem_device *of_nvmem_device_get(struct device_node *np, const char *id)
-+struct nvmem_device *fwnode_nvmem_device_get(struct fwnode_handle *fwnode, const char *id)
- {
--
--	struct device_node *nvmem_np;
-+	struct fwnode_handle *nvmem_fwnode;
- 	struct nvmem_device *nvmem;
- 	int index = 0;
- 
- 	if (id)
--		index = of_property_match_string(np, "nvmem-names", id);
--
--	nvmem_np = of_parse_phandle(np, "nvmem", index);
--	if (!nvmem_np)
--		return ERR_PTR(-ENOENT);
-+		index = fwnode_property_match_string(fwnode, "nvmem-names", id);
-+
-+	if (is_of_node(fwnode)) {
-+		struct device_node *nvmem_np = of_parse_phandle(to_of_node(fwnode),
-+								"nvmem", index);
-+		if (!nvmem_np)
-+			return ERR_PTR(-ENOENT);
-+		nvmem_fwnode = &nvmem_np->fwnode;
-+	} else if (is_acpi_device_node(fwnode)) {
-+		struct fwnode_reference_args args;
-+		int rval = acpi_node_get_property_reference(fwnode,
-+							    "nvmem", index, &args);
-+		if (rval)
-+			return ERR_PTR(rval);
-+		nvmem_fwnode = args.fwnode;
-+	} else {
-+		return ERR_PTR(-ENXIO);
-+	}
- 
--	nvmem = __nvmem_device_get(nvmem_np, device_match_of_node);
--	of_node_put(nvmem_np);
-+	nvmem = __nvmem_device_get(nvmem_fwnode, device_match_fwnode);
-+	fwnode_handle_put(nvmem_fwnode);
- 	return nvmem;
- }
--EXPORT_SYMBOL_GPL(of_nvmem_device_get);
--#endif
-+EXPORT_SYMBOL_GPL(fwnode_nvmem_device_get);
- 
- /**
-  * nvmem_device_get() - Get nvmem device from a given id
-@@ -1026,16 +1041,15 @@ EXPORT_SYMBOL_GPL(of_nvmem_device_get);
-  */
- struct nvmem_device *nvmem_device_get(struct device *dev, const char *dev_name)
- {
--	if (dev->of_node) { /* try dt first */
--		struct nvmem_device *nvmem;
-+	struct fwnode_handle *fwnode = dev_fwnode(dev);
- 
--		nvmem = of_nvmem_device_get(dev->of_node, dev_name);
-+	if (fwnode) { /* try firmware tree first */
-+		struct nvmem_device *nvmem;
- 
-+		nvmem = fwnode_nvmem_device_get(fwnode, dev_name);
- 		if (!IS_ERR(nvmem) || PTR_ERR(nvmem) == -EPROBE_DEFER)
- 			return nvmem;
--
- 	}
--
- 	return __nvmem_device_get((void *)dev_name, device_match_name);
- }
- EXPORT_SYMBOL_GPL(nvmem_device_get);
-@@ -1171,15 +1185,14 @@ nvmem_cell_get_from_lookup(struct device *dev, const char *con_id)
- 	return cell;
- }
- 
--#if IS_ENABLED(CONFIG_OF)
- static struct nvmem_cell *
--nvmem_find_cell_by_node(struct nvmem_device *nvmem, struct device_node *np)
-+nvmem_find_cell_by_fwnode(struct nvmem_device *nvmem, struct fwnode_handle *fwnode)
- {
- 	struct nvmem_cell *iter, *cell = NULL;
- 
- 	mutex_lock(&nvmem_mutex);
- 	list_for_each_entry(iter, &nvmem->cells, node) {
--		if (np == iter->np) {
-+		if (fwnode == iter->fwnode) {
- 			cell = iter;
- 			break;
- 		}
-@@ -1190,42 +1203,67 @@ nvmem_find_cell_by_node(struct nvmem_device *nvmem, struct device_node *np)
- }
- 
- /**
-- * of_nvmem_cell_get() - Get a nvmem cell from given device node and cell id
-+ * fwnode_nvmem_cell_get() - Get a nvmem cell from given firmwar node and cell id
-  *
-- * @np: Device tree node that uses the nvmem cell.
-+ * @fwnode: Firmware node that uses the nvmem cell.
-  * @id: nvmem cell name from nvmem-cell-names property, or NULL
-- *      for the cell at index 0 (the lone cell with no accompanying
-- *      nvmem-cell-names property).
-+ *	for the cell at index 0 (the lone cell with no accompanying
-+ *	nvmem-cell-names property).
-  *
-  * Return: Will be an ERR_PTR() on error or a valid pointer
-  * to a struct nvmem_cell.  The nvmem_cell will be freed by the
-  * nvmem_cell_put().
-  */
--struct nvmem_cell *of_nvmem_cell_get(struct device_node *np, const char *id)
-+struct nvmem_cell *fwnode_nvmem_cell_get(struct fwnode_handle *fwnode,
-+					 const char *id)
- {
--	struct device_node *cell_np, *nvmem_np;
-+	struct fwnode_handle *nvmem_fwnode, *cell_fwnode;
- 	struct nvmem_device *nvmem;
- 	struct nvmem_cell *cell;
- 	int index = 0;
- 
- 	/* if cell name exists, find index to the name */
--	if (id)
--		index = of_property_match_string(np, "nvmem-cell-names", id);
-+	if (id) {
-+		index = fwnode_property_match_string(fwnode, "nvmem-cell-names", id);
-+		if (index < 0)
-+			return ERR_PTR(index);
-+	}
- 
--	cell_np = of_parse_phandle(np, "nvmem-cells", index);
--	if (!cell_np)
--		return ERR_PTR(-ENOENT);
-+	if (is_of_node(fwnode)) {
-+		struct device_node *np = to_of_node(fwnode);
-+		struct device_node *cell_np = of_parse_phandle(np, "nvmem-cells", index);
-+
-+		if (!cell_np)
-+			return ERR_PTR(-EINVAL);
-+		cell_fwnode = &cell_np->fwnode;
-+	} else if (is_acpi_device_node(fwnode)) {
-+		struct fwnode_reference_args args;
-+		struct fwnode_handle *dev_fwnode;
-+		int rval;
- 
--	nvmem_np = of_get_next_parent(cell_np);
--	if (!nvmem_np)
-+		rval = acpi_node_get_property_reference(fwnode,
-+							"nvmem-cells", index, &args);
-+		if (rval)
-+			return ERR_PTR(rval);
-+		dev_fwnode = args.fwnode;
-+		cell_fwnode = fwnode_get_named_child_node(dev_fwnode,
-+							  id ? id : "nvmem");
-+		if (!cell_fwnode)
-+			return ERR_PTR(-EINVAL);
-+	} else {
-+		return ERR_PTR(-ENXIO);
-+	}
-+
-+	nvmem_fwnode = fwnode_get_next_parent(cell_fwnode);
-+	if (!nvmem_fwnode)
- 		return ERR_PTR(-EINVAL);
- 
--	nvmem = __nvmem_device_get(nvmem_np, device_match_of_node);
--	of_node_put(nvmem_np);
-+	nvmem = __nvmem_device_get(nvmem_fwnode, device_match_fwnode);
-+	fwnode_handle_put(nvmem_fwnode);
- 	if (IS_ERR(nvmem))
- 		return ERR_CAST(nvmem);
- 
--	cell = nvmem_find_cell_by_node(nvmem, cell_np);
-+	cell = nvmem_find_cell_by_fwnode(nvmem, cell_fwnode);
- 	if (!cell) {
- 		__nvmem_device_put(nvmem);
- 		return ERR_PTR(-ENOENT);
-@@ -1233,8 +1271,7 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np, const char *id)
- 
- 	return cell;
- }
--EXPORT_SYMBOL_GPL(of_nvmem_cell_get);
--#endif
-+EXPORT_SYMBOL_GPL(fwnode_nvmem_cell_get);
- 
- /**
-  * nvmem_cell_get() - Get nvmem cell of device form a given cell name
-@@ -1251,14 +1288,15 @@ EXPORT_SYMBOL_GPL(of_nvmem_cell_get);
- struct nvmem_cell *nvmem_cell_get(struct device *dev, const char *id)
- {
- 	struct nvmem_cell *cell;
-+	struct fwnode_handle *fwnode = dev_fwnode(dev);
- 
--	if (dev->of_node) { /* try dt first */
--		cell = of_nvmem_cell_get(dev->of_node, id);
-+	if (fwnode) { /* try firmware tree first */
-+		cell = fwnode_nvmem_cell_get(fwnode, id);
- 		if (!IS_ERR(cell) || PTR_ERR(cell) == -EPROBE_DEFER)
- 			return cell;
- 	}
- 
--	/* NULL cell id only allowed for device tree; invalid otherwise */
-+	/* NULL cell_id only allowed for firmware tree; invalid otherwise */
- 	if (!id)
- 		return ERR_PTR(-EINVAL);
- 
-diff --git a/include/linux/nvmem-consumer.h b/include/linux/nvmem-consumer.h
-index 052293f4cbdb..e52c587d0a23 100644
---- a/include/linux/nvmem-consumer.h
-+++ b/include/linux/nvmem-consumer.h
-@@ -12,12 +12,14 @@
- #include <linux/err.h>
- #include <linux/errno.h>
- #include <linux/notifier.h>
-+#include <linux/of.h>
- 
- struct device;
- struct device_node;
- /* consumer cookie */
- struct nvmem_cell;
- struct nvmem_device;
-+struct fwnode_handle;
- 
- struct nvmem_cell_info {
- 	const char		*name;
-@@ -94,6 +96,10 @@ int nvmem_unregister_notifier(struct notifier_block *nb);
- struct nvmem_device *nvmem_device_find(void *data,
- 			int (*match)(struct device *dev, const void *data));
- 
-+struct nvmem_cell *fwnode_nvmem_cell_get(struct fwnode_handle *np,
-+					 const char *name);
-+struct nvmem_device *fwnode_nvmem_device_get(struct fwnode_handle *np,
-+					     const char *name);
- #else
- 
- static inline struct nvmem_cell *nvmem_cell_get(struct device *dev,
-@@ -221,25 +227,24 @@ static inline struct nvmem_device *nvmem_device_find(void *data,
- 	return NULL;
- }
- 
--#endif /* CONFIG_NVMEM */
-+static inline struct nvmem_cell *fwnode_nvmem_cell_get(struct fwnode_handle *np,
-+						       const char *name)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
- 
--#if IS_ENABLED(CONFIG_NVMEM) && IS_ENABLED(CONFIG_OF)
--struct nvmem_cell *of_nvmem_cell_get(struct device_node *np,
--				     const char *id);
--struct nvmem_device *of_nvmem_device_get(struct device_node *np,
--					 const char *name);
--#else
--static inline struct nvmem_cell *of_nvmem_cell_get(struct device_node *np,
--						   const char *id)
-+static inline struct nvmem_device *fwnode_nvmem_device_get(struct fwnode_handle *np,
-+							   const char *name)
- {
- 	return ERR_PTR(-EOPNOTSUPP);
- }
- 
-+#endif /* CONFIG_NVMEM */
-+
- static inline struct nvmem_device *of_nvmem_device_get(struct device_node *np,
- 						       const char *name)
- {
--	return ERR_PTR(-EOPNOTSUPP);
-+	return np ? fwnode_nvmem_device_get(&np->fwnode, name) : NULL;
- }
--#endif /* CONFIG_NVMEM && CONFIG_OF */
- 
- #endif  /* ifndef _LINUX_NVMEM_CONSUMER_H */
--- 
-2.25.1
+and
 
+Tested-by: Daniel Scally <djrscally@gmail.com>
+
+> ---
+> v2: no changes
+>  drivers/base/swnode.c | 29 +++++++++++++++++------------
+>  1 file changed, 17 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index fa3719ef80e4..456f5fe58b58 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -767,22 +767,19 @@ swnode_register(const struct software_node *node, struct swnode *parent,
+>  	int ret;
+>  
+>  	swnode = kzalloc(sizeof(*swnode), GFP_KERNEL);
+> -	if (!swnode) {
+> -		ret = -ENOMEM;
+> -		goto out_err;
+> -	}
+> +	if (!swnode)
+> +		return ERR_PTR(-ENOMEM);
+>  
+>  	ret = ida_simple_get(parent ? &parent->child_ids : &swnode_root_ids,
+>  			     0, 0, GFP_KERNEL);
+>  	if (ret < 0) {
+>  		kfree(swnode);
+> -		goto out_err;
+> +		return ERR_PTR(ret);
+>  	}
+>  
+>  	swnode->id = ret;
+>  	swnode->node = node;
+>  	swnode->parent = parent;
+> -	swnode->allocated = allocated;
+>  	swnode->kobj.kset = swnode_kset;
+>  	fwnode_init(&swnode->fwnode, &software_node_ops);
+>  
+> @@ -803,16 +800,17 @@ swnode_register(const struct software_node *node, struct swnode *parent,
+>  		return ERR_PTR(ret);
+>  	}
+>  
+> +	/*
+> +	 * Assign the flag only in the successful case, so
+> +	 * the above kobject_put() won't mess up with properties.
+> +	 */
+> +	swnode->allocated = allocated;
+> +
+>  	if (parent)
+>  		list_add_tail(&swnode->entry, &parent->children);
+>  
+>  	kobject_uevent(&swnode->kobj, KOBJ_ADD);
+>  	return &swnode->fwnode;
+> -
+> -out_err:
+> -	if (allocated)
+> -		property_entries_free(node->properties);
+> -	return ERR_PTR(ret);
+>  }
+>  
+>  /**
+> @@ -963,6 +961,7 @@ struct fwnode_handle *
+>  fwnode_create_software_node(const struct property_entry *properties,
+>  			    const struct fwnode_handle *parent)
+>  {
+> +	struct fwnode_handle *fwnode;
+>  	struct software_node *node;
+>  	struct swnode *p = NULL;
+>  	int ret;
+> @@ -987,7 +986,13 @@ fwnode_create_software_node(const struct property_entry *properties,
+>  
+>  	node->parent = p ? p->node : NULL;
+>  
+> -	return swnode_register(node, p, 1);
+> +	fwnode = swnode_register(node, p, 1);
+> +	if (IS_ERR(fwnode)) {
+> +		property_entries_free(node->properties);
+> +		kfree(node);
+> +	}
+> +
+> +	return fwnode;
+>  }
+>  EXPORT_SYMBOL_GPL(fwnode_create_software_node);
+>  
