@@ -2,92 +2,132 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF77C433DB
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 13:03:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EB05C433E2
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 10:10:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D88496196E
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Mar 2021 13:03:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2AA9460230
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 10:10:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbhC1NCa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 28 Mar 2021 09:02:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53148 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229543AbhC1NC2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 28 Mar 2021 09:02:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 446516186A;
-        Sun, 28 Mar 2021 13:02:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1616936547;
-        bh=5i4jugDvs90F+iFZ+7J6N2DF93Rc5dBsxwcqjs6tLTc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Nj0R/QZV7zvE4JFVtr4DPDcuRCCM6y2ekZPxJVggQT4BLoGBFR8KJDT2b+lwjLPzU
-         azeVVrjV/7xn0I47ttdQdzN7mFNDnxSFalpn25oWVWFRsuClpLuNsi+q/MLEw3/qMe
-         rUD8RXvKNTN5+XAgt/+CXWXxuREw/yf4Aou9JxgI=
-Date:   Sun, 28 Mar 2021 15:02:24 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Tianshu Qiu <tian.shu.qiu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v1 3/8] software node: Show properties and their values
- in sysfs
-Message-ID: <YGB+YMh1MsQao3zS@kroah.com>
-References: <20210327222012.54103-1-andriy.shevchenko@linux.intel.com>
- <20210327222012.54103-3-andriy.shevchenko@linux.intel.com>
- <YGAmB2Nwph6pArXc@kroah.com>
- <CAHp75VfFzqpdR+6p9vQww-ujQcw3L-V_N7ezUTGhcRmvwvqMZg@mail.gmail.com>
+        id S232070AbhC2KJe convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Mar 2021 06:09:34 -0400
+Received: from eu-smtp-delivery-151.mimecast.com ([185.58.85.151]:22682 "EHLO
+        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232473AbhC2KJZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 29 Mar 2021 06:09:25 -0400
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
+ TLS) by relay.mimecast.com with ESMTP id
+ uk-mta-88-4yJ4TLFFOSu6qY5lPx_EXg-1; Mon, 29 Mar 2021 11:09:14 +0100
+X-MC-Unique: 4yJ4TLFFOSu6qY5lPx_EXg-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.2; Mon, 29 Mar 2021 11:09:13 +0100
+Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
+ AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
+ 15.00.1497.012; Mon, 29 Mar 2021 11:09:13 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     'Xiaofei Tan' <tanxiaofei@huawei.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "rui.zhang@intel.com" <rui.zhang@intel.com>,
+        "bhelgaas@google.com" <bhelgaas@google.com>
+CC:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: RE: [PATCH v2 04/15] ACPI: table: replace __attribute__((packed)) by
+ __packed
+Thread-Topic: [PATCH v2 04/15] ACPI: table: replace __attribute__((packed)) by
+ __packed
+Thread-Index: AQHXIt3reusKxfb1K0qiX/864DlgraqavWWQ
+Date:   Mon, 29 Mar 2021 10:09:13 +0000
+Message-ID: <6df04be78e544e17b3b57f159312541f@AcuMS.aculab.com>
+References: <1616831193-17920-1-git-send-email-tanxiaofei@huawei.com>
+ <1616831193-17920-5-git-send-email-tanxiaofei@huawei.com>
+In-Reply-To: <1616831193-17920-5-git-send-email-tanxiaofei@huawei.com>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHp75VfFzqpdR+6p9vQww-ujQcw3L-V_N7ezUTGhcRmvwvqMZg@mail.gmail.com>
+Authentication-Results: relay.mimecast.com;
+        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Mar 28, 2021 at 03:56:26PM +0300, Andy Shevchenko wrote:
-> On Sun, Mar 28, 2021 at 9:47 AM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> >
-> > On Sun, Mar 28, 2021 at 12:20:07AM +0200, Andy Shevchenko wrote:
-> > > It's very convenient to see what properties and their values
-> > > are currently being assigned in the registered software nodes.
-> > >
-> > > Show properties and their values in sysfs.
+From: Xiaofei Tan
+> Sent: 27 March 2021 07:46
 > 
-> ...
+> Replace __attribute__((packed)) by __packed following the
+> advice of checkpatch.pl.
 > 
-> > > +             for (i = 0; i < prop->length / sizeof(u8); i++)
-> > > +                     len += sysfs_emit_at(buf, len, "%u,", ((u8 *)pointer)[i]);
-> >
-> > No, sysfs is "one value per file", and that is not what you are showing
-> > here at all :(
+> Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
+> ---
+>  drivers/acpi/acpi_fpdt.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> It is following: it's a "one value" for property in question,
+> diff --git a/drivers/acpi/acpi_fpdt.c b/drivers/acpi/acpi_fpdt.c
+> index a89a806..690a88a 100644
+> --- a/drivers/acpi/acpi_fpdt.c
+> +++ b/drivers/acpi/acpi_fpdt.c
+> @@ -53,7 +53,7 @@ struct resume_performance_record {
+>  	u32 resume_count;
+>  	u64 resume_prev;
+>  	u64 resume_avg;
+> -} __attribute__((packed));
+> +} __packed;
 > 
-> As we may read in [1]: "...so it is socially acceptable to express an
-> array of values of the same type."
+>  struct boot_performance_record {
+>  	struct fpdt_record_header header;
+> @@ -63,13 +63,13 @@ struct boot_performance_record {
+>  	u64 bootloader_launch;
+>  	u64 exitbootservice_start;
+>  	u64 exitbootservice_end;
+> -} __attribute__((packed));
+> +} __packed;
 > 
-> And here is exactly the case: *values of the same type*.
+>  struct suspend_performance_record {
+>  	struct fpdt_record_header header;
+>  	u64 suspend_start;
+>  	u64 suspend_end;
+> -} __attribute__((packed));
+> +} __packed;
 
-So what is it going to look like exactly?  And what tool is going to be
-there to parse this mess?  Who is going to to use it?
+My standard question about 'packed' is whether it is actually needed.
+It should only be used if the structures might be misaligned in memory.
+If the only problem is that a 64bit item needs to be 32bit aligned
+then a suitable type should be used for those specific fields.
 
-Arrays of data are not "one value".
+Those all look very dubious - the standard header isn't packed
+so everything must eb assumed to be at least 32bit aligned.
 
-thanks,
+There are also other sub-structures that contain 64bit values.
+These don't contain padding - but that requires 64bit alignement.
 
-greg k-h
+The only problematic structure is the last one - which would have
+a 32bit pad after the header.
+Is this even right given than there are explicit alignment pads
+in some of the other structures.
+
+If 64bit alignment isn't guaranteed then a '64bit aligned to 32bit'
+type should be used for the u64 fields.
+
+	David
+
+-
+Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+Registration No: 1397386 (Wales)
+
