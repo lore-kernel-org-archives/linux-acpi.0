@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BCB1C433E4
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 15:12:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D0AC433E9
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 15:12:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30DE661976
+	by mail.kernel.org (Postfix) with ESMTP id BCD656196C
 	for <linux-acpi@archiver.kernel.org>; Mon, 29 Mar 2021 15:12:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230213AbhC2PMR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Mar 2021 11:12:17 -0400
-Received: from mga11.intel.com ([192.55.52.93]:47554 "EHLO mga11.intel.com"
+        id S230424AbhC2PMS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Mar 2021 11:12:18 -0400
+Received: from mga05.intel.com ([192.55.52.43]:63003 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230482AbhC2PMC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 29 Mar 2021 11:12:02 -0400
-IronPort-SDR: rdkX5hPtM7PDPUGKdX6XvEprGIoDYeYNh6ndvaJp+IkZa7ul/cDIDj5Gn2MONzRBeBOUXBdDCU
- GA2zTPZEYE3Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9938"; a="188300278"
+        id S230522AbhC2PMG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 29 Mar 2021 11:12:06 -0400
+IronPort-SDR: 7uU0xg+GgC9gIF08ThzdOejUE1dE5QTljuQ2cO3bVA8fjlsYanXM8RMsoU4DHFW37VFsJmx9m2
+ 51ARlQb3E0XQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9938"; a="276730834"
 X-IronPort-AV: E=Sophos;i="5.81,288,1610438400"; 
-   d="scan'208";a="188300278"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2021 08:12:01 -0700
-IronPort-SDR: ZPRg0QQkeKRY1DVFuSYZ2NCp2b4sHnVvQ1cdHpw7gtTBAmG76oFQGDAX5FeEBvDQ/xE9FvdtaL
- x1Z3s9QD/0Mw==
+   d="scan'208";a="276730834"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2021 08:12:02 -0700
+IronPort-SDR: xSUKaYj+AoGcgw9VlJLUci1NBKKxL4WelFvRMAkmhNl7hOVkjtG3V3C0AN63hkm929WW2dJol7
+ 5XGWSbpm+RPw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,288,1610438400"; 
-   d="scan'208";a="437926748"
+   d="scan'208";a="383599171"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga004.fm.intel.com with ESMTP; 29 Mar 2021 08:11:58 -0700
+  by fmsmga007.fm.intel.com with ESMTP; 29 Mar 2021 08:11:58 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 2FAA21CB; Mon, 29 Mar 2021 18:12:13 +0300 (EEST)
+        id 175E2132; Mon, 29 Mar 2021 18:12:13 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Daniel Scally <djrscally@gmail.com>,
@@ -48,9 +48,9 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Tianshu Qiu <tian.shu.qiu@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 5/6] software node: Introduce SOFTWARE_NODE_REFERENCE() helper macro
-Date:   Mon, 29 Mar 2021 18:12:06 +0300
-Message-Id: <20210329151207.36619-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/6] software node: Deduplicate code in fwnode_create_software_node()
+Date:   Mon, 29 Mar 2021 18:12:04 +0300
+Message-Id: <20210329151207.36619-3-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210329151207.36619-1-andriy.shevchenko@linux.intel.com>
 References: <20210329151207.36619-1-andriy.shevchenko@linux.intel.com>
@@ -60,71 +60,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is useful to assign software node reference with arguments
-in a common way. Moreover, we have already couple of users that
-may be converted. And by the fact, one of them is moved right here
-to use the helper.
+Deduplicate conditional and assignment in fwnode_create_software_node(),
+i.e. parent is checked in two out of three cases and parent software node
+is assigned by to_swnode() call.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
 v2: no changes
- drivers/base/test/property-entry-test.c | 11 ++---------
- include/linux/property.h                | 13 ++++++++-----
- 2 files changed, 10 insertions(+), 14 deletions(-)
+ drivers/base/swnode.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/base/test/property-entry-test.c b/drivers/base/test/property-entry-test.c
-index abe03315180f..c2e455d46ffd 100644
---- a/drivers/base/test/property-entry-test.c
-+++ b/drivers/base/test/property-entry-test.c
-@@ -370,15 +370,8 @@ static void pe_test_reference(struct kunit *test)
- 	};
- 
- 	static const struct software_node_ref_args refs[] = {
--		{
--			.node = &nodes[0],
--			.nargs = 0,
--		},
--		{
--			.node = &nodes[1],
--			.nargs = 2,
--			.args = { 3, 4 },
--		},
-+		SOFTWARE_NODE_REFERENCE(&nodes[0]),
-+		SOFTWARE_NODE_REFERENCE(&nodes[1], 3, 4),
- 	};
- 
- 	const struct property_entry entries[] = {
-diff --git a/include/linux/property.h b/include/linux/property.h
-index dd4687b56239..0d876316e61d 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -254,6 +254,13 @@ struct software_node_ref_args {
- 	u64 args[NR_FWNODE_REFERENCE_ARGS];
- };
- 
-+#define SOFTWARE_NODE_REFERENCE(_ref_, ...)			\
-+(const struct software_node_ref_args) {				\
-+	.node = _ref_,						\
-+	.nargs = ARRAY_SIZE(((u64[]){ 0, ##__VA_ARGS__ })) - 1,	\
-+	.args = { __VA_ARGS__ },				\
-+}
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 19aa44bc2628..db982859171e 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -973,15 +973,14 @@ fwnode_create_software_node(const struct property_entry *properties,
+ {
+ 	struct fwnode_handle *fwnode;
+ 	struct software_node *node;
+-	struct swnode *p = NULL;
+-
+-	if (parent) {
+-		if (IS_ERR(parent))
+-			return ERR_CAST(parent);
+-		if (!is_software_node(parent))
+-			return ERR_PTR(-EINVAL);
+-		p = to_swnode(parent);
+-	}
++	struct swnode *p;
 +
- /**
-  * struct property_entry - "Built-in" device property representation.
-  * @name: Name of the property.
-@@ -362,11 +369,7 @@ struct property_entry {
- 	.name = _name_,							\
- 	.length = sizeof(struct software_node_ref_args),		\
- 	.type = DEV_PROP_REF,						\
--	{ .pointer = &(const struct software_node_ref_args) {		\
--		.node = _ref_,						\
--		.nargs = ARRAY_SIZE(((u64[]){ 0, ##__VA_ARGS__ })) - 1,	\
--		.args = { __VA_ARGS__ },				\
--	} },								\
-+	{ .pointer = &SOFTWARE_NODE_REFERENCE(_ref_, ##__VA_ARGS__), },	\
- }
++	if (IS_ERR(parent))
++		return ERR_CAST(parent);
++
++	p = to_swnode(parent);
++	if (parent && !p)
++		return ERR_PTR(-EINVAL);
  
- struct property_entry *
+ 	node = software_node_alloc(properties);
+ 	if (IS_ERR(node))
 -- 
 2.30.2
 
