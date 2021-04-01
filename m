@@ -2,173 +2,102 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E18FC43619
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40413C001B3
 	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:32:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E08E460FEA
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:32:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1119C61107
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:32:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235548AbhDASb6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 1 Apr 2021 14:31:58 -0400
-Received: from mga18.intel.com ([134.134.136.126]:38709 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237782AbhDAS2B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Apr 2021 14:28:01 -0400
-IronPort-SDR: x27x1ulyE78LX0NN3oo9Bw0itMj8zJkImUTnoTgTJiozrSbaPetIH6MKvbyroh9eSdC9tdV2ij
- cv+jddw58sMQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9941"; a="179789433"
-X-IronPort-AV: E=Sophos;i="5.81,296,1610438400"; 
-   d="scan'208";a="179789433"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2021 07:30:58 -0700
-IronPort-SDR: XxjuKf5pxI35kLYTzlvbchxzw09/Qazynfmqaoj5UF3yZjAsFGTnIi7S+qClNRhDOYE/827Th6
- MihUFrqKnBjg==
-X-IronPort-AV: E=Sophos;i="5.81,296,1610438400"; 
-   d="scan'208";a="416687041"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2021 07:30:58 -0700
-Subject: [PATCH v2 3/8] cxl/core: Rename bus.c to core.c
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-cxl@vger.kernel.org
-Cc:     linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        ira.weiny@intel.com, vishal.l.verma@intel.com,
-        alison.schofield@intel.com, ben.widawsky@intel.com,
-        linux-kernel@vger.kernel.org
-Date:   Thu, 01 Apr 2021 07:30:58 -0700
-Message-ID: <161728745839.2474040.8224160078719308484.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+        id S235594AbhDASb7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 1 Apr 2021 14:31:59 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:44377 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S240307AbhDASaC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2021 14:30:02 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1617301802;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=BYqcPFvd7erxJJQksdxDiamrI2D3JHsuC1F2bJEaarg=;
+        b=N7a7d+h9Wh+JtGP5gAlbib4fomLJLF/DDXYj2taiBobbrzhxIo9qjx6SSJ4Rm0lvEAI+/X
+        RkW1atvlBk1oqkywnb07ofFy/ZL9BujwB3FHjDXc9CTbp97SYLsjsQ4NprdF7hd+qY1Vq0
+        QyAWKAQGC9YvsEzs2dydaLGTimt2lSs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-577-yFeNfdZDMlazm9Y6sTUXBg-1; Thu, 01 Apr 2021 12:27:44 -0400
+X-MC-Unique: yFeNfdZDMlazm9Y6sTUXBg-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8B1EBA0CA0;
+        Thu,  1 Apr 2021 16:27:42 +0000 (UTC)
+Received: from x1.localdomain (ovpn-112-79.ams2.redhat.com [10.36.112.79])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2BD5517BB6;
+        Thu,  1 Apr 2021 16:27:40 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Linus Walleij <linus.walleij@linaro.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH] gpiolib: acpi: Add quirk to ignore EC wakeups on Dell Venue 10 Pro 5055
+Date:   Thu,  1 Apr 2021 18:27:40 +0200
+Message-Id: <20210401162740.4602-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In preparation for more generic shared functionality across endpoint
-consumers of core cxl resources, and platform-firmware producers of
-those resources, rename bus.c to core.c. In addition to the central
-rendezvous for interleave coordination, the core will also define common
-routines like CXL register block mapping.
+Like some other Bay and Cherry Trail SoC based devices the Dell Venue
+10 Pro 5055 has an embedded-controller which uses ACPI GPIO events to
+report events instead of using the standard ACPI EC interface for this.
 
-Acked-by: Ben Widawsky <ben.widawsky@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The EC interrupt is only used to report battery-level changes and
+it keeps doing this while the system is suspended, causing the system
+to not stay suspended.
+
+Add an ignore-wake quirk for the GPIO pin used by the EC to fix the
+spurious wakeups from suspend.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- Documentation/driver-api/cxl/memory-devices.rst |    6 ++---
- drivers/cxl/Makefile                            |    4 ++-
- drivers/cxl/bus.c                               |   29 ----------------------
- drivers/cxl/core.c                              |   30 +++++++++++++++++++++++
- 4 files changed, 35 insertions(+), 34 deletions(-)
- delete mode 100644 drivers/cxl/bus.c
- create mode 100644 drivers/cxl/core.c
+ drivers/gpio/gpiolib-acpi.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
-index 1bad466f9167..71495ed77069 100644
---- a/Documentation/driver-api/cxl/memory-devices.rst
-+++ b/Documentation/driver-api/cxl/memory-devices.rst
-@@ -28,10 +28,10 @@ CXL Memory Device
- .. kernel-doc:: drivers/cxl/mem.c
-    :internal:
- 
--CXL Bus
-+CXL Core
- -------
--.. kernel-doc:: drivers/cxl/bus.c
--   :doc: cxl bus
-+.. kernel-doc:: drivers/cxl/core.c
-+   :doc: cxl core
- 
- External Interfaces
- ===================
-diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
-index a314a1891f4d..3808e39dd31f 100644
---- a/drivers/cxl/Makefile
-+++ b/drivers/cxl/Makefile
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
--obj-$(CONFIG_CXL_BUS) += cxl_bus.o
-+obj-$(CONFIG_CXL_BUS) += cxl_core.o
- obj-$(CONFIG_CXL_MEM) += cxl_mem.o
- 
- ccflags-y += -DDEFAULT_SYMBOL_NAMESPACE=CXL
--cxl_bus-y := bus.o
-+cxl_core-y := core.o
- cxl_mem-y := mem.o
-diff --git a/drivers/cxl/bus.c b/drivers/cxl/bus.c
-deleted file mode 100644
-index 58f74796d525..000000000000
---- a/drivers/cxl/bus.c
-+++ /dev/null
-@@ -1,29 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/* Copyright(c) 2020 Intel Corporation. All rights reserved. */
--#include <linux/device.h>
--#include <linux/module.h>
--
--/**
-- * DOC: cxl bus
-- *
-- * The CXL bus provides namespace for control devices and a rendezvous
-- * point for cross-device interleave coordination.
-- */
--struct bus_type cxl_bus_type = {
--	.name = "cxl",
--};
--EXPORT_SYMBOL_GPL(cxl_bus_type);
--
--static __init int cxl_bus_init(void)
--{
--	return bus_register(&cxl_bus_type);
--}
--
--static void cxl_bus_exit(void)
--{
--	bus_unregister(&cxl_bus_type);
--}
--
--module_init(cxl_bus_init);
--module_exit(cxl_bus_exit);
--MODULE_LICENSE("GPL v2");
-diff --git a/drivers/cxl/core.c b/drivers/cxl/core.c
-new file mode 100644
-index 000000000000..7f8d2034038a
---- /dev/null
-+++ b/drivers/cxl/core.c
-@@ -0,0 +1,30 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/* Copyright(c) 2020 Intel Corporation. All rights reserved. */
-+#include <linux/device.h>
-+#include <linux/module.h>
-+
-+/**
-+ * DOC: cxl core
-+ *
-+ * The CXL core provides a sysfs hierarchy for control devices and a rendezvous
-+ * point for cross-device interleave coordination through cxl ports.
-+ */
-+
-+struct bus_type cxl_bus_type = {
-+	.name = "cxl",
-+};
-+EXPORT_SYMBOL_GPL(cxl_bus_type);
-+
-+static __init int cxl_core_init(void)
-+{
-+	return bus_register(&cxl_bus_type);
-+}
-+
-+static void cxl_core_exit(void)
-+{
-+	bus_unregister(&cxl_bus_type);
-+}
-+
-+module_init(cxl_core_init);
-+module_exit(cxl_core_exit);
-+MODULE_LICENSE("GPL v2");
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 1aacd2a5a1fd..174839f3772f 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -1438,6 +1438,20 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+ 			.no_edge_events_on_boot = true,
+ 		},
+ 	},
++	{
++		/*
++		 * The Dell Venue 10 Pro 5055, with Bay Trail SoC + TI PMIC uses an
++		 * external embedded-controller connected via I2C + an ACPI GPIO
++		 * event handler on INT33FFC:02 pin 12, causing spurious wakeups.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Venue 10 Pro 5055"),
++		},
++		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
++			.ignore_wake = "INT33FC:02@12",
++		},
++	},
+ 	{
+ 		/*
+ 		 * HP X2 10 models with Cherry Trail SoC + TI PMIC use an
+-- 
+2.30.2
 
