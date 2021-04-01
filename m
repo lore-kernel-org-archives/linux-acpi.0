@@ -2,102 +2,92 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40413C001B3
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:32:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C987BC4363E
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:31:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1119C61107
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:32:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A762F60FDB
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 18:31:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235594AbhDASb7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 1 Apr 2021 14:31:59 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:44377 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S240307AbhDASaC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2021 14:30:02 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1617301802;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=BYqcPFvd7erxJJQksdxDiamrI2D3JHsuC1F2bJEaarg=;
-        b=N7a7d+h9Wh+JtGP5gAlbib4fomLJLF/DDXYj2taiBobbrzhxIo9qjx6SSJ4Rm0lvEAI+/X
-        RkW1atvlBk1oqkywnb07ofFy/ZL9BujwB3FHjDXc9CTbp97SYLsjsQ4NprdF7hd+qY1Vq0
-        QyAWKAQGC9YvsEzs2dydaLGTimt2lSs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-577-yFeNfdZDMlazm9Y6sTUXBg-1; Thu, 01 Apr 2021 12:27:44 -0400
-X-MC-Unique: yFeNfdZDMlazm9Y6sTUXBg-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8B1EBA0CA0;
-        Thu,  1 Apr 2021 16:27:42 +0000 (UTC)
-Received: from x1.localdomain (ovpn-112-79.ams2.redhat.com [10.36.112.79])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 2BD5517BB6;
-        Thu,  1 Apr 2021 16:27:40 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH] gpiolib: acpi: Add quirk to ignore EC wakeups on Dell Venue 10 Pro 5055
-Date:   Thu,  1 Apr 2021 18:27:40 +0200
-Message-Id: <20210401162740.4602-1-hdegoede@redhat.com>
+        id S235407AbhDASbz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 1 Apr 2021 14:31:55 -0400
+Received: from eu-smtp-delivery-151.mimecast.com ([185.58.85.151]:43504 "EHLO
+        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S238091AbhDASYT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2021 14:24:19 -0400
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
+ TLS) by relay.mimecast.com with ESMTP id
+ uk-mta-121-k3M7_sOBMMSUMd0vtI6_sg-1; Thu, 01 Apr 2021 15:23:18 +0100
+X-MC-Unique: k3M7_sOBMMSUMd0vtI6_sg-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.2; Thu, 1 Apr 2021 15:23:17 +0100
+Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
+ AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
+ 15.00.1497.012; Thu, 1 Apr 2021 15:23:17 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     "'Rafael J. Wysocki'" <rafael@kernel.org>
+CC:     Bjorn Helgaas <helgaas@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Xiaofei Tan <tanxiaofei@huawei.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "bhelgaas@google.com" <bhelgaas@google.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: RE: [PATCH v2 04/15] ACPI: table: replace __attribute__((packed)) by
+ __packed
+Thread-Topic: [PATCH v2 04/15] ACPI: table: replace __attribute__((packed)) by
+ __packed
+Thread-Index: AQHXJlJheusKxfb1K0qiX/864DlgraqfWwQwgABDWwCAABZkEA==
+Date:   Thu, 1 Apr 2021 14:23:17 +0000
+Message-ID: <a0ec3dbdffc145ac909089048e552eb6@AcuMS.aculab.com>
+References: <e0d626837e577e60f226b8bbf354bd8cbb1fe40a.camel@intel.com>
+ <20210331172210.GA1397554@bjorn-Precision-5520>
+ <100f5a45dae14c77b341b7f1c5ea1db0@AcuMS.aculab.com>
+ <CAJZ5v0jJ2XDYSwqP3AyKuUvuxhwuNwvk3Z=xwtAL3hG5uYGG-Q@mail.gmail.com>
+In-Reply-To: <CAJZ5v0jJ2XDYSwqP3AyKuUvuxhwuNwvk3Z=xwtAL3hG5uYGG-Q@mail.gmail.com>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Authentication-Results: relay.mimecast.com;
+        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Like some other Bay and Cherry Trail SoC based devices the Dell Venue
-10 Pro 5055 has an embedded-controller which uses ACPI GPIO events to
-report events instead of using the standard ACPI EC interface for this.
-
-The EC interrupt is only used to report battery-level changes and
-it keeps doing this while the system is suspended, causing the system
-to not stay suspended.
-
-Add an ignore-wake quirk for the GPIO pin used by the EC to fix the
-spurious wakeups from suspend.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/gpio/gpiolib-acpi.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 1aacd2a5a1fd..174839f3772f 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -1438,6 +1438,20 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
- 			.no_edge_events_on_boot = true,
- 		},
- 	},
-+	{
-+		/*
-+		 * The Dell Venue 10 Pro 5055, with Bay Trail SoC + TI PMIC uses an
-+		 * external embedded-controller connected via I2C + an ACPI GPIO
-+		 * event handler on INT33FFC:02 pin 12, causing spurious wakeups.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Venue 10 Pro 5055"),
-+		},
-+		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
-+			.ignore_wake = "INT33FC:02@12",
-+		},
-+	},
- 	{
- 		/*
- 		 * HP X2 10 models with Cherry Trail SoC + TI PMIC use an
--- 
-2.30.2
+RnJvbTogUmFmYWVsIEouIFd5c29ja2kNCj4gU2VudDogMDEgQXByaWwgMjAyMSAxNDo1MA0KLi4u
+DQo+IFNvIHdoYXQgZXhhY3RseSBpcyB3cm9uZyB3aXRoIHVzaW5nICJwYWNrZWQiPyAgSXQgaXMg
+d2F5IGVhc2llciB0bw0KPiB1bmRlcnN0YW5kIGZvciBhIGNhc3VhbCByZWFkZXIgb2YgdGhlIGNv
+ZGUuDQoNCkJlY2F1c2UgaXQgaXMgdXN1YWxseSB3cm9uZyENCg0KSWYgSSBoYXZlOg0KCXN0cnVj
+dCBmb28gew0KCQl1NjQgdmFsOw0KCX0gX19wYWNrZWQ7DQoNCkFuZCB0aGVuIGhhdmU6DQp1NjQg
+YmFyKHN0cnVjdCBmb28gKmZvbykNCnsNCglyZXR1cm4gZm9vLT52YWw7DQp9DQoNClRoZSBvbiBz
+b21lIGNwdSB0aGUgY29tcGlsZXIgaGFzIHRvIGdlbmVyYXRlIHRoZSBlcXVpdmFsZW50IG9mOg0K
+CXU4ICp4ID0gKHZvaWQgKikmZm9vLT52YWw7DQoJcmV0dXJuIHhbMF0gfCB4WzFdIDw8IDggfCB4
+WzJdIDw8IDE2IHwgeFszXSA8PCAyNCB8IHhbNF0gPDwgMzIgfCB4WzVdIDw8IDQwIHwgeFs2XSA8
+PCA0OCB8IHhbN10gPDwgNTY7DQoNCklmIHlvdSBjYW4gZ3VhcmFudGVlIHRoYXQgdGhlIHN0cnVj
+dHVyZSBpcyAzMmJpdCBhbGlnbmVkDQp0aGVuIGl0IGNhbiBnZW5lcmF0ZSB0aGUgc2ltcGxlcjoN
+Cgl1MzIgKnggPSAodm9pZCAqKSZmb28tPnZhbDsNCglyZXR1cm4geFswXSB8IHhbMV0gPDwgMzI7
+DQoNCihZZXMgSSd2ZSBtaXNzZWQgb3V0IHRoZSA2NC1iaXQgY2FzdHMpDQoNClRoaXMgaXMgd2h5
+IHlvdSBzaG91bGQgYWxtb3N0IG5ldmVyIHVzZSBfX3BhY2tlZC4NCg0KVGhlcmUgYXJlIGhpc3Rv
+cmljIHN0cnVjdHVyZXMgd2l0aCA2NCBiaXQgaXRlbXMgb24gNCBieXRlIGJvdW5kYXJpZXMNCihh
+bmQgMzIgYml0IHZhbHVlcyBvbiAyIGJ5dGUgYm91bmRhcmllcykuDQpUeXBpY2FsbHkgbW9zdCBv
+ZiB0aGUgZmllbGRzIGFyZSBzaG9ydGVyIHNvIGNhbiBiZSByZWFkIGRpcmVjdGx5DQooYWx0aG91
+Z2ggdGhleSBtaWdodCBuZWVkIGEgYnl0ZS1zd2FwcGluZyBsb2FkKS4NCg0KCURhdmlkDQoNCi0N
+ClJlZ2lzdGVyZWQgQWRkcmVzcyBMYWtlc2lkZSwgQnJhbWxleSBSb2FkLCBNb3VudCBGYXJtLCBN
+aWx0b24gS2V5bmVzLCBNSzEgMVBULCBVSw0KUmVnaXN0cmF0aW9uIE5vOiAxMzk3Mzg2IChXYWxl
+cykNCg==
 
