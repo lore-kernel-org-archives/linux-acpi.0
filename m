@@ -2,178 +2,72 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNWANTED_LANGUAGE_BODY autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BA55C43462
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD947C433B4
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:57:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3039611ED
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:57:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E0FD61108
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:57:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236096AbhDAR5g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S236170AbhDAR5g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 1 Apr 2021 13:57:36 -0400
-Received: from mga02.intel.com ([134.134.136.20]:34705 "EHLO mga02.intel.com"
+Received: from mail.kernel.org ([198.145.29.99]:57204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236369AbhDARyR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:54:17 -0400
-IronPort-SDR: UnMUne0xLMr5lhy0REfGPXdAlaLJmBC/IZ7bJjlQ5e8V21YHdTj6vPK0Y/qdjT0UlbxbJJV7PI
- ccFKJyU5Zagg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9941"; a="179387826"
-X-IronPort-AV: E=Sophos;i="5.81,296,1610438400"; 
-   d="scan'208";a="179387826"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2021 07:31:26 -0700
-IronPort-SDR: wa6hs9oGtoxrHuvyQg19fYNaeBrJU6JaiVXyUtqlV3gT9q4lxonpLVTVr0CtnWZqLbk9E8NpZ9
- zMmOBtKt+aDw==
-X-IronPort-AV: E=Sophos;i="5.81,296,1610438400"; 
-   d="scan'208";a="412711168"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2021 07:31:26 -0700
-Subject: [PATCH v2 8/8] cxl/acpi: Add module parameters to stand in for ACPI
- tables
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-cxl@vger.kernel.org
-Cc:     linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        ira.weiny@intel.com, vishal.l.verma@intel.com,
-        alison.schofield@intel.com, ben.widawsky@intel.com,
-        linux-kernel@vger.kernel.org
-Date:   Thu, 01 Apr 2021 07:31:26 -0700
-Message-ID: <161728748604.2474040.9352867415899369103.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+        id S236641AbhDARzA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Apr 2021 13:55:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D9EF613BC;
+        Thu,  1 Apr 2021 17:15:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1617297309;
+        bh=Ph9+lnZtIzSHhSU0K6hxMEjAX5FATLhumPexdh/21YE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Ri+XLAtbo6oc/14qf6Nc6kPi+TD8uNByUFcX9gAWNIrqfgTCdfJl62m0qAureFoaL
+         vQsb20+HbosVH32lv0CWBjvCmH+4LFWlfr/Ew1I7yi4nqfA5VH+jLvv7MdhXQUc7TN
+         n8QrOpYaXLw/Y5MbKHhSF+31FYlygg8xNhSz48Hycir/Pzebgu2afUkQdg2iq/nJe6
+         92SaK/Y1oz8iCxjc6OS3EftTfhpde626t0I0Y/u22Wv4aOevCEyP7JrGivO7Xq/X55
+         OtqVoeUtTnYozo22/PNi9ALkon1ZN/S+BWzGPLe3cPH7ldlB23iV6KBzmLPiZMsGb3
+         /I/HrkcR1fqIQ==
+Date:   Thu, 1 Apr 2021 18:15:02 +0100
+From:   Will Deacon <will@kernel.org>
+To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
+Cc:     joro@8bytes.org, lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
+        guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
+        lenb@kernel.org, robin.murphy@arm.com, Jonathan.Cameron@huawei.com,
+        eric.auger@redhat.com, iommu@lists.linux-foundation.org,
+        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-accelerators@lists.ozlabs.org, baolu.lu@linux.intel.com,
+        jacob.jun.pan@linux.intel.com, kevin.tian@intel.com,
+        vdumpa@nvidia.com, zhangfei.gao@linaro.org,
+        shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
+        zhukeqian1@huawei.com, wangzhou1@hisilicon.com
+Subject: Re: [PATCH v14 00/10] iommu: I/O page faults for SMMUv3
+Message-ID: <20210401171501.GC9447@willie-the-truck>
+References: <20210401154718.307519-1-jean-philippe@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210401154718.307519-1-jean-philippe@linaro.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-[debug / to-be-replaced / not-for-upstream]
+On Thu, Apr 01, 2021 at 05:47:09PM +0200, Jean-Philippe Brucker wrote:
+> Add stall support to the SMMUv3 driver, along with a common I/O Page
+> Fault handler.
+> 
+> Since [v13] I added review and ack tags (Thanks!), and a lockdep_assert.
+> It would be good to have all of it in v5.13, since patch 10 introduces
+> the first user for the IOPF interface from patch 6.  But if that's not
+> possible, please pick patches 1-6 so the Vt-d driver can start using
+> them.
 
-Given ACPICA support is needed before drivers can integrate ACPI
-functionality add some module parameters as proxies.
----
- drivers/cxl/acpi.c |   81 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 79 insertions(+), 2 deletions(-)
+Patches 1-7 look good to me, but I'm not convinced about the utility of
+stalling faults so I'd prefer the later patches to come along with a
+real user.
 
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index bc2a35ae880b..2a48a728f3e0 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -4,10 +4,84 @@
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/kernel.h>
-+#include <linux/range.h>
- #include <linux/acpi.h>
- #include <linux/pci.h>
- #include "cxl.h"
- 
-+/*
-+ * TODO: Replace all of the below module parameters with ACPI CXL
-+ * resource descriptions once ACPICA makes them available.
-+ */
-+static unsigned long chbcr[4];
-+module_param_named(chbcr0, chbcr[0], ulong, 0400);
-+module_param_named(chbcr1, chbcr[1], ulong, 0400);
-+module_param_named(chbcr2, chbcr[2], ulong, 0400);
-+module_param_named(chbcr3, chbcr[3], ulong, 0400);
-+
-+/* TODO: cross-bridge interleave */
-+static struct cxl_address_space cxl_space[] = {
-+	[0] = { .range = { 0, -1 }, .targets = 0x1, },
-+	[1] = { .range = { 0, -1 }, .targets = 0x1, },
-+	[2] = { .range = { 0, -1 }, .targets = 0x1, },
-+	[3] = { .range = { 0, -1 }, .targets = 0x1, },
-+};
-+
-+static int set_range(const char *val, const struct kernel_param *kp)
-+{
-+	unsigned long long size, base;
-+	struct cxl_address_space *space;
-+	unsigned long flags;
-+	char *p;
-+	int rc;
-+
-+	size = memparse(val, &p);
-+	if (*p != '@')
-+		return -EINVAL;
-+
-+	base = memparse(p + 1, &p);
-+	if (*p != ':')
-+		return -EINVAL;
-+
-+	rc = kstrtoul(p + 1, 0, &flags);
-+	if (rc)
-+		return rc;
-+	if (!flags || flags > CXL_ADDRSPACE_MASK)
-+		return rc;
-+
-+	space = kp->arg;
-+	*space = (struct cxl_address_space) {
-+		.range = {
-+			.start = base,
-+			.end = base + size - 1,
-+		},
-+		.flags = flags,
-+	};
-+
-+	return 0;
-+}
-+
-+static int get_range(char *buf, const struct kernel_param *kp)
-+{
-+	struct cxl_address_space *space = kp->arg;
-+
-+	if (!range_len(&space->range))
-+		return -EINVAL;
-+
-+	return sysfs_emit(buf, "%#llx@%#llx :%s%s%s%s\n",
-+			  (unsigned long long)range_len(&space->range),
-+			  (unsigned long long)space->range.start,
-+			  space->flags & CXL_ADDRSPACE_RAM ? " ram" : "",
-+			  space->flags & CXL_ADDRSPACE_PMEM ? " pmem" : "",
-+			  space->flags & CXL_ADDRSPACE_TYPE2 ? " type2" : "",
-+			  space->flags & CXL_ADDRSPACE_TYPE3 ? " type3" : "");
-+}
-+
-+module_param_call(range0, set_range, get_range, &cxl_space[0], 0400);
-+module_param_call(range1, set_range, get_range, &cxl_space[1], 0400);
-+module_param_call(range2, set_range, get_range, &cxl_space[2], 0400);
-+module_param_call(range3, set_range, get_range, &cxl_space[3], 0400);
-+
- static int match_ACPI0016(struct device *dev, const void *host)
- {
- 	struct acpi_device *adev = to_acpi_device(dev);
-@@ -67,13 +141,16 @@ static int cxl_acpi_register_ports(struct device *dev, struct acpi_device *root,
- 				   struct cxl_port *port, int idx)
- {
- 	struct acpi_pci_root *pci_root = acpi_pci_find_root(root->handle);
-+	resource_size_t chbcr_base = ~0ULL;
- 	struct cxl_walk_context ctx;
- 
- 	if (!pci_root)
- 		return -ENXIO;
- 
- 	/* TODO: fold in CEDT.CHBS retrieval */
--	port = devm_cxl_add_port(dev, port, &root->dev, idx, ~0ULL);
-+	if (idx < ARRAY_SIZE(chbcr))
-+		chbcr_base = chbcr[idx];
-+	port = devm_cxl_add_port(dev, port, &root->dev, idx, chbcr_base);
- 	if (IS_ERR(port))
- 		return PTR_ERR(port);
- 	dev_dbg(dev, "%s: register: %s\n", dev_name(&root->dev),
-@@ -99,7 +176,7 @@ static int cxl_acpi_probe(struct platform_device *pdev)
- 	struct cxl_root *cxl_root;
- 	int rc, i = 0;
- 
--	cxl_root = devm_cxl_add_root(dev, NULL, 0);
-+	cxl_root = devm_cxl_add_root(dev, cxl_space, ARRAY_SIZE(cxl_space));
- 	if (IS_ERR(cxl_root))
- 		return PTR_ERR(cxl_root);
- 	dev_dbg(dev, "register: %s\n", dev_name(&cxl_root->port.dev));
-
+Will
