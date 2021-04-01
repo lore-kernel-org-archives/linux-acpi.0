@@ -2,219 +2,114 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67D4AC433B4
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:42:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E42EC43462
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:43:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41A6D61369
+	by mail.kernel.org (Postfix) with ESMTP id 544CB61286
 	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:42:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234393AbhDARmu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:42:50 -0400
-Received: from mga01.intel.com ([192.55.52.88]:46951 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234759AbhDARjo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:39:44 -0400
-IronPort-SDR: +LmthehJ1PLZRvDXjJyW8F8GO6VjqneIUKxIXwZ2ueD4sPW0DJ9MqAtRIgximA6k+IHBfbWCG1
- lw3hRpaltkbw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9941"; a="212511861"
-X-IronPort-AV: E=Sophos;i="5.81,296,1610438400"; 
-   d="scan'208";a="212511861"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2021 07:31:04 -0700
-IronPort-SDR: rBUmT0zYTZoXy45GsDdBfMPzKc/L60oJswgxrTXJX4YVzRDMUnwFaW1LhZp4wcQC5hjtZnfHgy
- A6pu1u1ZYGfw==
-X-IronPort-AV: E=Sophos;i="5.81,296,1610438400"; 
-   d="scan'208";a="384864735"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2021 07:31:03 -0700
-Subject: [PATCH v2 4/8] cxl/core: Refactor CXL register lookup for bridge
- reuse
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-cxl@vger.kernel.org
-Cc:     linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        ira.weiny@intel.com, vishal.l.verma@intel.com,
-        alison.schofield@intel.com, ben.widawsky@intel.com,
-        linux-kernel@vger.kernel.org
-Date:   Thu, 01 Apr 2021 07:31:03 -0700
-Message-ID: <161728746354.2474040.14531317270409827157.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+        id S235481AbhDARmv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 1 Apr 2021 13:42:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57162 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234942AbhDARl1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2021 13:41:27 -0400
+Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB44AC0319DA;
+        Thu,  1 Apr 2021 10:29:50 -0700 (PDT)
+Received: by mail-ot1-x32f.google.com with SMTP id t23-20020a0568301e37b02901b65ab30024so2807917otr.4;
+        Thu, 01 Apr 2021 10:29:50 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=h/Y0TLuXldSxTdiqZd7pJGoS1WrwZ+szrP8juLbRVoE=;
+        b=hkd7Wgr66M1x3TUeOgNtvPYD41ItceMUGmm+DHR2TWouNeWTt67Cns2aAymq6g1XmO
+         n5V4nJoAEbaoimndwP7DHBygrmjKWwCb4mbPR1UYov3TV7o1naepBdQsZc+dkQYBgMRu
+         58TPsNL9QBkh1DJDdAZYCiPpCizXN1FUwJkSWJlHrFBriMCSEwfB4R3rCF37l1YKpeM5
+         rqkAywyqa1eekp5AphuzGVgc9p9/p9BwRliJX9NQXBiZTu0HdLgp4+hzWSICCYrCmQkK
+         w3+GwpFTOlkk5JD1pEdMP7LlyYrEp457kNnmPwX1wCDt2Xr/5d0jo5WOu8sHxUx3tHyP
+         4P7Q==
+X-Gm-Message-State: AOAM5303bpa38PgLut9l40K6wVo/yiQ02waGCsdaas0px6qgO35shlsP
+        roCFROnmnp7Didz9y/VaOl3p92wp8SSAgeGnqcs=
+X-Google-Smtp-Source: ABdhPJxB+a85xzGa1aBcrm1XeVIq1EGWAh8fIgqpKk8CzFKZH4xWv4cuKYRlQXuKB+REgIX3kbXuq7r8gsu4V4bQt6c=
+X-Received: by 2002:a05:6830:55b:: with SMTP id l27mr7147365otb.260.1617298188698;
+ Thu, 01 Apr 2021 10:29:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <e0d626837e577e60f226b8bbf354bd8cbb1fe40a.camel@intel.com>
+ <20210331172210.GA1397554@bjorn-Precision-5520> <100f5a45dae14c77b341b7f1c5ea1db0@AcuMS.aculab.com>
+ <CAJZ5v0jJ2XDYSwqP3AyKuUvuxhwuNwvk3Z=xwtAL3hG5uYGG-Q@mail.gmail.com> <a0ec3dbdffc145ac909089048e552eb6@AcuMS.aculab.com>
+In-Reply-To: <a0ec3dbdffc145ac909089048e552eb6@AcuMS.aculab.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 1 Apr 2021 19:29:37 +0200
+Message-ID: <CAJZ5v0h0XMkrYYyOLd8bDcngxnei7VbAh=cYWA4Sy3qm2b69iQ@mail.gmail.com>
+Subject: Re: [PATCH v2 04/15] ACPI: table: replace __attribute__((packed)) by __packed
+To:     David Laight <David.Laight@aculab.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Xiaofei Tan <tanxiaofei@huawei.com>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "bhelgaas@google.com" <bhelgaas@google.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-While CXL Memory Device endpoints locate the CXL MMIO registers in a PCI
-BAR, CXL root bridges have their MMIO base address described by platform
-firmware. Refactor the existing register lookup into a generic facility
-for endpoints and bridges to share.
+On Thu, Apr 1, 2021 at 4:23 PM David Laight <David.Laight@aculab.com> wrote:
+>
+> From: Rafael J. Wysocki
+> > Sent: 01 April 2021 14:50
+> ...
+> > So what exactly is wrong with using "packed"?  It is way easier to
+> > understand for a casual reader of the code.
+>
+> Because it is usually wrong!
+>
+> If I have:
+>         struct foo {
+>                 u64 val;
+>         } __packed;
+>
+> And then have:
+> u64 bar(struct foo *foo)
+> {
+>         return foo->val;
+> }
+>
+> The on some cpu the compiler has to generate the equivalent of:
+>         u8 *x = (void *)&foo->val;
+>         return x[0] | x[1] << 8 | x[2] << 16 | x[3] << 24 | x[4] << 32 | x[5] << 40 | x[6] << 48 | x[7] << 56;
+>
+> If you can guarantee that the structure is 32bit aligned
+> then it can generate the simpler:
+>         u32 *x = (void *)&foo->val;
+>         return x[0] | x[1] << 32;
+>
+> (Yes I've missed out the 64-bit casts)
+>
+> This is why you should almost never use __packed.
+>
+> There are historic structures with 64 bit items on 4 byte boundaries
+> (and 32 bit values on 2 byte boundaries).
+> Typically most of the fields are shorter so can be read directly
+> (although they might need a byte-swapping load).
 
-Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/cxl/core.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/cxl/cxl.h  |    3 +++
- drivers/cxl/mem.c  |   50 +++++-----------------------------------------
- 3 files changed, 65 insertions(+), 45 deletions(-)
+The possible overhead impact is clear to me, but I really don't like
+the "local" typedef idea.
 
-diff --git a/drivers/cxl/core.c b/drivers/cxl/core.c
-index 7f8d2034038a..2ab467ef9909 100644
---- a/drivers/cxl/core.c
-+++ b/drivers/cxl/core.c
-@@ -1,7 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0-only
--/* Copyright(c) 2020 Intel Corporation. All rights reserved. */
-+/* Copyright(c) 2020-2021 Intel Corporation. All rights reserved. */
- #include <linux/device.h>
- #include <linux/module.h>
-+#include "cxl.h"
- 
- /**
-  * DOC: cxl core
-@@ -10,6 +11,60 @@
-  * point for cross-device interleave coordination through cxl ports.
-  */
- 
-+/*
-+ * cxl_setup_device_regs() - Detect CXL Device register blocks
-+ * @dev: Host device of the @base mapping
-+ * @base: mapping of CXL 2.0 8.2.8 CXL Device Register Interface
-+ */
-+void cxl_setup_device_regs(struct device *dev, void __iomem *base,
-+			   struct cxl_device_regs *regs)
-+{
-+	int cap, cap_count;
-+	u64 cap_array;
-+
-+	*regs = (struct cxl_device_regs) { 0 };
-+
-+	cap_array = readq(base + CXLDEV_CAP_ARRAY_OFFSET);
-+	if (FIELD_GET(CXLDEV_CAP_ARRAY_ID_MASK, cap_array) !=
-+	    CXLDEV_CAP_ARRAY_CAP_ID)
-+		return;
-+
-+	cap_count = FIELD_GET(CXLDEV_CAP_ARRAY_COUNT_MASK, cap_array);
-+
-+	for (cap = 1; cap <= cap_count; cap++) {
-+		void __iomem *register_block;
-+		u32 offset;
-+		u16 cap_id;
-+
-+		cap_id = FIELD_GET(CXLDEV_CAP_HDR_CAP_ID_MASK,
-+				   readl(base + cap * 0x10));
-+		offset = readl(base + cap * 0x10 + 0x4);
-+		register_block = base + offset;
-+
-+		switch (cap_id) {
-+		case CXLDEV_CAP_CAP_ID_DEVICE_STATUS:
-+			dev_dbg(dev, "found Status capability (0x%x)\n", offset);
-+			regs->status = register_block;
-+			break;
-+		case CXLDEV_CAP_CAP_ID_PRIMARY_MAILBOX:
-+			dev_dbg(dev, "found Mailbox capability (0x%x)\n", offset);
-+			regs->mbox = register_block;
-+			break;
-+		case CXLDEV_CAP_CAP_ID_SECONDARY_MAILBOX:
-+			dev_dbg(dev, "found Secondary Mailbox capability (0x%x)\n", offset);
-+			break;
-+		case CXLDEV_CAP_CAP_ID_MEMDEV:
-+			dev_dbg(dev, "found Memory Device capability (0x%x)\n", offset);
-+			regs->memdev = register_block;
-+			break;
-+		default:
-+			dev_dbg(dev, "Unknown cap ID: %d (0x%x)\n", cap_id, offset);
-+			break;
-+		}
-+	}
-+}
-+EXPORT_SYMBOL_GPL(cxl_setup_device_regs);
-+
- struct bus_type cxl_bus_type = {
- 	.name = "cxl",
- };
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 37325e504fb7..cbd29650c4e2 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -67,5 +67,8 @@ struct cxl_regs {
- 	};
- };
- 
-+void cxl_setup_device_regs(struct device *dev, void __iomem *base,
-+			   struct cxl_device_regs *regs);
-+
- extern struct bus_type cxl_bus_type;
- #endif /* __CXL_H__ */
-diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-index 6951243d128e..ee55abfa147e 100644
---- a/drivers/cxl/mem.c
-+++ b/drivers/cxl/mem.c
-@@ -865,53 +865,15 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, u16 opcode,
- static int cxl_mem_setup_regs(struct cxl_mem *cxlm)
- {
- 	struct device *dev = &cxlm->pdev->dev;
--	int cap, cap_count;
--	u64 cap_array;
-+	struct cxl_regs *regs = &cxlm->regs;
- 
--	cap_array = readq(cxlm->base + CXLDEV_CAP_ARRAY_OFFSET);
--	if (FIELD_GET(CXLDEV_CAP_ARRAY_ID_MASK, cap_array) !=
--	    CXLDEV_CAP_ARRAY_CAP_ID)
--		return -ENODEV;
--
--	cap_count = FIELD_GET(CXLDEV_CAP_ARRAY_COUNT_MASK, cap_array);
--
--	for (cap = 1; cap <= cap_count; cap++) {
--		void __iomem *register_block;
--		u32 offset;
--		u16 cap_id;
--
--		cap_id = FIELD_GET(CXLDEV_CAP_HDR_CAP_ID_MASK,
--				   readl(cxlm->base + cap * 0x10));
--		offset = readl(cxlm->base + cap * 0x10 + 0x4);
--		register_block = cxlm->base + offset;
--
--		switch (cap_id) {
--		case CXLDEV_CAP_CAP_ID_DEVICE_STATUS:
--			dev_dbg(dev, "found Status capability (0x%x)\n", offset);
--			cxlm->regs.status = register_block;
--			break;
--		case CXLDEV_CAP_CAP_ID_PRIMARY_MAILBOX:
--			dev_dbg(dev, "found Mailbox capability (0x%x)\n", offset);
--			cxlm->regs.mbox = register_block;
--			break;
--		case CXLDEV_CAP_CAP_ID_SECONDARY_MAILBOX:
--			dev_dbg(dev, "found Secondary Mailbox capability (0x%x)\n", offset);
--			break;
--		case CXLDEV_CAP_CAP_ID_MEMDEV:
--			dev_dbg(dev, "found Memory Device capability (0x%x)\n", offset);
--			cxlm->regs.memdev = register_block;
--			break;
--		default:
--			dev_dbg(dev, "Unknown cap ID: %d (0x%x)\n", cap_id, offset);
--			break;
--		}
--	}
-+	cxl_setup_device_regs(dev, cxlm->base, &regs->device_regs);
- 
--	if (!cxlm->regs.status || !cxlm->regs.mbox || !cxlm->regs.memdev) {
-+	if (!regs->status || !regs->mbox || !regs->memdev) {
- 		dev_err(dev, "registers not found: %s%s%s\n",
--			!cxlm->regs.status ? "status " : "",
--			!cxlm->regs.mbox ? "mbox " : "",
--			!cxlm->regs.memdev ? "memdev" : "");
-+			!regs->status ? "status " : "",
-+			!regs->mbox ? "mbox " : "",
-+			!regs->memdev ? "memdev" : "");
- 		return -ENXIO;
- 	}
- 
+It at least would need to be accompanied by a comment explaining why
+it is there and why using it is better than using __packed and why
+this needs to be defined locally and not in some generic header file.
 
+Also, the FPDT code is just one function that parses the entire table
+and there is no object passing between functions in it etc, so is
+__packed still problematic in there?
