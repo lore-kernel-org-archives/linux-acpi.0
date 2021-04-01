@@ -2,59 +2,59 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC3BAC001BE
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:42:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3317EC43461
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9308361005
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:42:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E327861286
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Apr 2021 17:46:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235464AbhDARmt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:42:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57142 "EHLO
+        id S234491AbhDARqk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 1 Apr 2021 13:46:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234397AbhDARhF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2021 13:37:05 -0400
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDB2DC02D561
-        for <linux-acpi@vger.kernel.org>; Thu,  1 Apr 2021 08:48:23 -0700 (PDT)
-Received: by mail-wr1-x433.google.com with SMTP id j7so2311135wrd.1
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Apr 2021 08:48:23 -0700 (PDT)
+        with ESMTP id S234273AbhDARmR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2021 13:42:17 -0400
+Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C03DBC02D558
+        for <linux-acpi@vger.kernel.org>; Thu,  1 Apr 2021 08:48:18 -0700 (PDT)
+Received: by mail-wr1-x431.google.com with SMTP id j18so2303110wra.2
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Apr 2021 08:48:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Pua2Ae+rON0ZlDGkY5ERFS3L6AfCPNmqgc0wotIPcEI=;
-        b=AQvPYJQL0dmJB8IZi8mOx5ajxcUoc5TP5FrCan7PcbU1GTN0XGGjNban28AqG/S1eT
-         OudspSuh2Y3yKLRQat1UH9wPkhK7kK1V4/Nse8fGfuXTANeCQz/6GNyEkkuQ892jAlBN
-         uLktlNmlJ+cpmtV+v1kZNPG9+f9Je/j0w4TkbAnbKuaTJsEudCj75aijL+6mht/qNUdC
-         N3MdPwLKorkokFBX8FVIOAgztR5GGcUSmgB+MNc9zvwZOzl3Fl/HJ+GVNCrbohS5mLLd
-         zQV/qSheXVl+YDvYbKfJ9D0XLZOoNDYB9n3zFvZmrgJ75fH8m/Xm/ZvqRNEWYW1jeHdB
-         Vz1Q==
+        bh=sUWtTRDLrHxGgocdCnYzpMC09q0TV2vzmGZT++QRllg=;
+        b=iglZ+Ee6thHgb0bhSj83X5eaiV9O2aLtAksg9FEqCkLGGs18RszyBaVuM1/s8cdLcC
+         IC6YDWk+v/FZKsUaiwqmmv146BYVIt0m70lItcr2N0SuGaAkzdNF3M0tRz+11Qokz7l1
+         lskzXakxl9mU3PS1s7L4BTyQ0eK93mtQnY+okmAo1IBlpkX6MrRL5ciIT6uPpZOEsdD7
+         PCYWlLuq1ic0CY7/r/lsDmNH5/RrrfsKoLfLEEgEJuPQWWhMYaCZQy43ZW4xaUV9U5L9
+         l8OeftUntEw+OtfNSMz85YRfPFW3x1uIs2+8p5Y2Nn2nZOTnnwMJIelLUA576ha6F+yf
+         17tQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Pua2Ae+rON0ZlDGkY5ERFS3L6AfCPNmqgc0wotIPcEI=;
-        b=FIfqx07644vMDvAuUt5Mb2raXgs0P/Z9/UVZEUy5ld/LPKkuOh2WewMltXWY/z6ZFw
-         ISx4boAyJclCmzW1Se5kXQgpUJjfn4bHbOeUMMHIFb9OhJnYrUOvi/HagYBEo1EKqfq2
-         sn2mWMNjCrJCNjZWUgTu/G4sTv8k/8ZtVdg0DWO+NIORVC1r0+vGPx4KKZ0DoK6Hshkb
-         04EAo3hjwGomTKi+sj5xQ99keH40XqQ7IQmcl5MSyW+JRC/Dz6lHhuBo80JUBEfxffQD
-         x406yuNXUz2dzU4X9mPzzblfekwpPB2mibEtk8AajFPuE+IK5gSDpcilCMruEf2xvxDI
-         S20w==
-X-Gm-Message-State: AOAM530Jy7PrU/iHkMbdtQyW98lm+mzNvS6FMCpC7g8vKByn9x65GH8P
-        ZdLvccyzNZOOqghYh0kyED8vqg==
-X-Google-Smtp-Source: ABdhPJyrIah1qqCxNJvBbipg66vyVTPCXXhRfRjwHTQ1aqsgM2ee8hefPg9PttDsuRkr/f0yUE7kcA==
-X-Received: by 2002:adf:d1c5:: with SMTP id b5mr10474358wrd.126.1617292102724;
-        Thu, 01 Apr 2021 08:48:22 -0700 (PDT)
+        bh=sUWtTRDLrHxGgocdCnYzpMC09q0TV2vzmGZT++QRllg=;
+        b=D/29EJnNb7Djnm+sSD8WfuybJ5nXllEhBwcC2QdLKX1uFXk2LVvwlUoi2E4RU7MsvD
+         3Ah0YVRDjyEYqndtmmVpr3RVNB0xV8l1Uv1RNTmf811fCojdytMWkechjtlonCExdd1a
+         wUyLOwq5ob7+poxWYMslTdokdHBR0lLxGD9cKcA968pIyN+MlPnUMa/Ee+XRU0ONGMiy
+         eF0D1YzhDCFpcCifZdFO5wln4/wUsPH4aaTwDMqnmJMFe+uKXRCpsuovmF1gto5AaEpS
+         KAJ+/5YNZGmbxszHptXxmstPxtpnmK8RSTF2Ckz1Lpx2DpatXI/jg2QsrnCcB0qUXfB9
+         uMLA==
+X-Gm-Message-State: AOAM533FspHm5KPXJ3S6VaJa89qT0TALNJBlIe2E6A4sWI+bWvSuVzO2
+        5le5fcVM1xWl2YXSvIM4dOqsrQ==
+X-Google-Smtp-Source: ABdhPJz1Rfdsjw9gzRYBDHIMKFUYkmB2ZhwgBz9419vLWB1onBeKqnNMtOUXwIBAc9XzC92qWWLxhQ==
+X-Received: by 2002:a5d:5047:: with SMTP id h7mr10862243wrt.111.1617292097577;
+        Thu, 01 Apr 2021 08:48:17 -0700 (PDT)
 Received: from localhost.localdomain ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
-        by smtp.gmail.com with ESMTPSA id y8sm8722505wmi.46.2021.04.01.08.48.21
+        by smtp.gmail.com with ESMTPSA id y8sm8722505wmi.46.2021.04.01.08.48.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Apr 2021 08:48:22 -0700 (PDT)
+        Thu, 01 Apr 2021 08:48:17 -0700 (PDT)
 From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
 To:     joro@8bytes.org, will@kernel.org
 Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
@@ -68,10 +68,11 @@ Cc:     lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
         vdumpa@nvidia.com, zhangfei.gao@linaro.org,
         shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
         zhukeqian1@huawei.com, wangzhou1@hisilicon.com,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>
-Subject: [PATCH v14 09/10] ACPI/IORT: Enable stall support for platform devices
-Date:   Thu,  1 Apr 2021 17:47:18 +0200
-Message-Id: <20210401154718.307519-10-jean-philippe@linaro.org>
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>
+Subject: [PATCH v14 04/10] iommu/vt-d: Support IOMMU_DEV_FEAT_IOPF
+Date:   Thu,  1 Apr 2021 17:47:13 +0200
+Message-Id: <20210401154718.307519-5-jean-philippe@linaro.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210401154718.307519-1-jean-philippe@linaro.org>
 References: <20210401154718.307519-1-jean-philippe@linaro.org>
@@ -81,36 +82,58 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Copy the "Stall supported" bit, that tells whether a named component
-supports stall, into the dma-can-stall device property.
+Allow drivers to query and enable IOMMU_DEV_FEAT_IOPF, which amounts to
+checking whether PRI is enabled.
 
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Lu Baolu <baolu.lu@linux.intel.com>
 Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 ---
- drivers/acpi/arm64/iort.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Lu Baolu <baolu.lu@linux.intel.com>
+---
+ drivers/iommu/intel/iommu.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 3912a1f6058e..0828f70cb782 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -968,13 +968,15 @@ static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
- static void iort_named_component_init(struct device *dev,
- 				      struct acpi_iort_node *node)
+diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
+index ee0932307d64..c5c5fd444779 100644
+--- a/drivers/iommu/intel/iommu.c
++++ b/drivers/iommu/intel/iommu.c
+@@ -5343,6 +5343,8 @@ static int siov_find_pci_dvsec(struct pci_dev *pdev)
+ static bool
+ intel_iommu_dev_has_feat(struct device *dev, enum iommu_dev_features feat)
  {
--	struct property_entry props[2] = {};
-+	struct property_entry props[3] = {};
- 	struct acpi_iort_named_component *nc;
++	struct device_domain_info *info = get_domain_info(dev);
++
+ 	if (feat == IOMMU_DEV_FEAT_AUX) {
+ 		int ret;
  
- 	nc = (struct acpi_iort_named_component *)node->node_data;
- 	props[0] = PROPERTY_ENTRY_U32("pasid-num-bits",
- 				      FIELD_GET(ACPI_IORT_NC_PASID_BITS,
- 						nc->node_flags));
-+	if (nc->node_flags & ACPI_IORT_NC_STALL_SUPPORTED)
-+		props[1] = PROPERTY_ENTRY_BOOL("dma-can-stall");
+@@ -5357,13 +5359,13 @@ intel_iommu_dev_has_feat(struct device *dev, enum iommu_dev_features feat)
+ 		return !!siov_find_pci_dvsec(to_pci_dev(dev));
+ 	}
  
- 	if (device_add_properties(dev, props))
- 		dev_warn(dev, "Could not add device properties\n");
+-	if (feat == IOMMU_DEV_FEAT_SVA) {
+-		struct device_domain_info *info = get_domain_info(dev);
++	if (feat == IOMMU_DEV_FEAT_IOPF)
++		return info && info->pri_supported;
+ 
++	if (feat == IOMMU_DEV_FEAT_SVA)
+ 		return info && (info->iommu->flags & VTD_FLAG_SVM_CAPABLE) &&
+ 			info->pasid_supported && info->pri_supported &&
+ 			info->ats_supported;
+-	}
+ 
+ 	return false;
+ }
+@@ -5374,6 +5376,9 @@ intel_iommu_dev_enable_feat(struct device *dev, enum iommu_dev_features feat)
+ 	if (feat == IOMMU_DEV_FEAT_AUX)
+ 		return intel_iommu_enable_auxd(dev);
+ 
++	if (feat == IOMMU_DEV_FEAT_IOPF)
++		return intel_iommu_dev_has_feat(dev, feat) ? 0 : -ENODEV;
++
+ 	if (feat == IOMMU_DEV_FEAT_SVA) {
+ 		struct device_domain_info *info = get_domain_info(dev);
+ 
 -- 
 2.31.1
 
