@@ -2,119 +2,98 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 033EFC433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53311C433B4
 	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8BF8613C3
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F24D613C7
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241740AbhDEVuH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Apr 2021 17:50:07 -0400
-Received: from mga01.intel.com ([192.55.52.88]:26874 "EHLO mga01.intel.com"
+        id S241765AbhDEVuI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Apr 2021 17:50:08 -0400
+Received: from mga07.intel.com ([134.134.136.100]:38284 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241688AbhDEVuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Apr 2021 17:50:05 -0400
-IronPort-SDR: IPSetev/C9/pKn0CTekh/qbdkvffa6GRfoAD6FBSvrua1frmcsI7reBbp6OxuJZ1K/yqM63PFV
- V39y+6PN1EuQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="213278750"
+        id S241689AbhDEVuG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Apr 2021 17:50:06 -0400
+IronPort-SDR: CSvt6EQIAA6+CGJBEmo4Em8arWsm3T5/5C3SvikKsmwfBx2QPc3lOoRH1oTyYL1IneQBVF5+NE
+ QgGtuLuqP5dA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="256914964"
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="213278750"
+   d="scan'208";a="256914964"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:58 -0700
-IronPort-SDR: nULLDJ6T4h8Jr8rwOP1NU4D1LVqnq8BQmUNIIGQr/6V/ElLuUoInx9VOqe67aIzAcMHiPEFEW8
- tr7Y6KzUH4aw==
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:59 -0700
+IronPort-SDR: jVia7AlPlZsng9vPnEwx6xQ+HwFqX0sOAFmriNM4F6e4++suIKbrxOYST8yiUduBF1v7SmamUY
+ NETxq5wktdhg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="380673574"
+   d="scan'208";a="380673594"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga006.jf.intel.com with ESMTP; 05 Apr 2021 14:49:58 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 00/22] ACPICA release 20210331 (ACPI 6.4 support)
-Date:   Mon,  5 Apr 2021 14:14:48 -0700
-Message-Id: <20210405211510.484603-1-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Elyes HAOUAS <ehaouas@noos.fr>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 07/22] ACPICA: ACPI 6.4: PPTT: add new version of subtable type 1
+Date:   Mon,  5 Apr 2021 14:14:55 -0700
+Message-Id: <20210405211510.484603-8-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210405211510.484603-1-erik.kaneda@intel.com>
+References: <20210405211510.484603-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This series contains the Linux-ized patches of ACPICA version 20210331.
-This release implements changes to implement the ACPI 6.4 specification
-as well as several new tables defined outside of the ACPI specification.
+This commit squashes the following:
 
-This patch set is also available here:
+ACPICA commit 475c5e89f8f701ccdfee6ca567e33c854ecd6c9e
+ACPICA commit 82cf78ac175a4b7d8842c5b786be24031c817cfd
 
-https://github.com/SchmErik/linux/tree/20210331
+This new subtable is only valid for PPTT version 3.
 
-Alexander Monakov (1):
-  ACPICA: Add parsing for IVRS IVHD 40h and device entry F0h
+Elyes fixed a misspelled identifier in this commit.
 
-Ben Widawsky (1):
-  ACPICA: CXL 2.0: CEDT: Add new CEDT table
+Link: https://github.com/acpica/acpica/commit/475c5e89
+Link: https://github.com/acpica/acpica/commit/82cf78ac
+Signed-off-by: Elyes HAOUAS <ehaouas@noos.fr>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ include/acpi/actbl2.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Bob Moore (8):
-  ACPICA: ACPI 6.4: NFIT: add Location Cookie field
-  ACPICA: ACPI 6.4: HMAT: add new fields/flags
-  ACPICA: ACPI 6.4: Add new flags in SRAT
-  ACPICA: ACPI 6.4: PMTT: add new fields/structures
-  ACPICA: ACPI 6.4: add CSI2Bus resource template
-  ACPICA: iASL: Add support for CEDT table
-  ACPICA: iASL: Decode subtable type field for VIOT
-  ACPICA: Update version to 20210331
-
-Colin Ian King (1):
-  ACPICA: Tree-wide: fix various typos and spelling mistakes
-
-Erik Kaneda (8):
-  ACPICA: ACPI 6.4: Add new predefined objects _BPC, _BPS, and _BPT
-  ACPICA: ACPI 6.4: add USB4 capabilities UUID
-  ACPICA: ACPI 6.4: add CXL ACPI device ID and _CBR object
-  ACPICA: ACPI 6.4: MADT: add Multiprocessor Wakeup Structure
-  ACPICA: ACPI 6.4: PCCT: add support for subtable type 5
-  ACPICA: ACPI 6.4: PPTT: add new version of subtable type 1
-  ACPICA: ACPI 6.4: add SDEV secure access components
-  ACPICA: ACPI 6.4: add support for PHAT table
-
-Jean-Philippe Brucker (2):
-  ACPICA: iASL: Add definitions for the VIOT table
-  ACPICA: acpisrc: Add missing conversion for VIOT support
-
-Shameer Kolothum (1):
-  ACPICA: IORT: Updates for revision E.b
-
- drivers/acpi/acpica/acpredef.h    |  15 ++
- drivers/acpi/acpica/acresrc.h     |   4 +
- drivers/acpi/acpica/acutils.h     |   1 +
- drivers/acpi/acpica/amlresrc.h    |  19 ++-
- drivers/acpi/acpica/rscalc.c      |   4 +-
- drivers/acpi/acpica/rsdump.c      |   8 +
- drivers/acpi/acpica/rsdumpinfo.c  |  26 ++++
- drivers/acpi/acpica/rsinfo.c      |   6 +-
- drivers/acpi/acpica/rslist.c      |   9 +-
- drivers/acpi/acpica/rsmisc.c      |  19 +++
- drivers/acpi/acpica/rsserial.c    |  75 ++++++++++
- drivers/acpi/acpica/utresdecode.c |  10 +-
- drivers/acpi/acpica/utresrc.c     |   1 +
- include/acpi/acoutput.h           |   2 +-
- include/acpi/acpixf.h             |   2 +-
- include/acpi/acrestyp.h           |   9 +-
- include/acpi/actbl1.h             |  54 ++++++-
- include/acpi/actbl2.h             | 240 ++++++++++++++++++++++++++----
- include/acpi/actbl3.h             |  70 ++++++++-
- include/acpi/acuuid.h             |   1 +
- include/acpi/platform/acgcc.h     |   2 +-
- tools/power/acpi/common/cmfsize.c |   2 +-
- 22 files changed, 536 insertions(+), 43 deletions(-)
-
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 9c674e03eb05..32467a7133c9 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -1529,6 +1529,12 @@ struct acpi_pptt_cache {
+ 	u16 line_size;
+ };
+ 
++/* 1: Cache Type Structure for PPTT version 3 */
++
++struct acpi_pptt_cache_v1 {
++	u32 cache_id;
++};
++
+ /* Flags */
+ 
+ #define ACPI_PPTT_SIZE_PROPERTY_VALID       (1)	/* Physical property valid */
+@@ -1538,6 +1544,7 @@ struct acpi_pptt_cache {
+ #define ACPI_PPTT_CACHE_TYPE_VALID          (1<<4)	/* Cache type valid */
+ #define ACPI_PPTT_WRITE_POLICY_VALID        (1<<5)	/* Write policy valid */
+ #define ACPI_PPTT_LINE_SIZE_VALID           (1<<6)	/* Line size valid */
++#define ACPI_PPTT_CACHE_ID_VALID            (1<<7)	/* Cache ID valid */
+ 
+ /* Masks for Attributes */
+ 
 -- 
 2.29.2
 
