@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09A8BC43470
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BBCC43600
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CEAEE613CF
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02523613CF
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241688AbhDEVuL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Apr 2021 17:50:11 -0400
-Received: from mga01.intel.com ([192.55.52.88]:26882 "EHLO mga01.intel.com"
+        id S241727AbhDEVuM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Apr 2021 17:50:12 -0400
+Received: from mga07.intel.com ([134.134.136.100]:38289 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241762AbhDEVuI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Apr 2021 17:50:08 -0400
-IronPort-SDR: kcqsJqfwnTv5Ya4B/orws3RGmYvUSYzPK52QUjGAy75B4z/pTEub+CK6TMFUUh8to8+YHBcZ9I
- v/yifJGl8hFg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="213278755"
+        id S241805AbhDEVuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Apr 2021 17:50:11 -0400
+IronPort-SDR: QSl+Iq42T/cwiVkzZigb4PZSJyQGDQzsHGj3mePNSUVaj0laDf2Zmo28xm0ufqB6oqM05rFIM1
+ zaB07g/fsZXA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="256914967"
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="213278755"
+   d="scan'208";a="256914967"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:59 -0700
-IronPort-SDR: y1XqeLwMbBji8FV15pGvPlryzKK2V4EU/n2dVZxqYCyZ/7qCnaEuyNJyQdyp9iFZOoYNM12kau
- v3KO0zhxX4tA==
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:59 -0700
+IronPort-SDR: pi173Z09pIkXlzKeWJC/WMM4GVdzTtkrmn0ML8hgtOK/jPdOD2/TIDjCojE66xcoWm8WDpHGLr
+ EPHS39/LAObQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="380673588"
+   d="scan'208";a="380673601"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga006.jf.intel.com with ESMTP; 05 Apr 2021 14:49:58 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Erik Kaneda <erik.kaneda@intel.com>,
-        Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 05/22] ACPICA: ACPI 6.4: MADT: add Multiprocessor Wakeup Structure
-Date:   Mon,  5 Apr 2021 14:14:53 -0700
-Message-Id: <20210405211510.484603-6-erik.kaneda@intel.com>
+Cc:     Bob Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 09/22] ACPICA: ACPI 6.4: NFIT: add Location Cookie field
+Date:   Mon,  5 Apr 2021 14:14:57 -0700
+Message-Id: <20210405211510.484603-10-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210405211510.484603-1-erik.kaneda@intel.com>
 References: <20210405211510.484603-1-erik.kaneda@intel.com>
@@ -50,45 +50,36 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPICA commit b9eb6f3a19b816824d6f47a6bc86fd8ce690e04b
+From: Bob Moore <robert.moore@intel.com>
 
-Link: https://github.com/acpica/acpica/commit/b9eb6f3a
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+ACPICA commit af60199a9a1de9e6844929fd4cc22334522ed195
+
+Link: https://github.com/acpica/acpica/commit/af60199a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ include/acpi/actbl2.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index d1178427aa40..c91be6f04fa6 100644
+index 32467a7133c9..31ed30208c8a 100644
 --- a/include/acpi/actbl2.h
 +++ b/include/acpi/actbl2.h
-@@ -531,7 +531,8 @@ enum acpi_madt_type {
- 	ACPI_MADT_TYPE_GENERIC_MSI_FRAME = 13,
- 	ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR = 14,
- 	ACPI_MADT_TYPE_GENERIC_TRANSLATOR = 15,
--	ACPI_MADT_TYPE_RESERVED = 16	/* 16 and greater are reserved */
-+	ACPI_MADT_TYPE_MULTIPROC_WAKEUP = 16,
-+	ACPI_MADT_TYPE_RESERVED = 17	/* 17 and greater are reserved */
+@@ -1008,12 +1008,14 @@ struct acpi_nfit_system_address {
+ 	u64 address;
+ 	u64 length;
+ 	u64 memory_mapping;
++	u64 location_cookie;	/* ACPI 6.4 */
  };
  
- /*
-@@ -738,6 +739,15 @@ struct acpi_madt_generic_translator {
- 	u32 reserved2;
- };
+ /* Flags */
  
-+/* 16: Multiprocessor wakeup (ACPI 6.4) */
-+
-+struct acpi_madt_multiproc_wakeup {
-+	struct acpi_subtable_header header;
-+	u16 mailbox_version;
-+	u32 reserved;		/* reserved - must be zero */
-+	u64 base_address;
-+};
-+
- /*
-  * Common flags fields for MADT subtables
-  */
+ #define ACPI_NFIT_ADD_ONLINE_ONLY       (1)	/* 00: Add/Online Operation Only */
+ #define ACPI_NFIT_PROXIMITY_VALID       (1<<1)	/* 01: Proximity Domain Valid */
++#define ACPI_NFIT_LOCATION_COOKIE_VALID (1<<2)	/* 02: SPA location cookie valid (ACPI 6.4) */
+ 
+ /* Range Type GUIDs appear in the include/acuuid.h file */
+ 
 -- 
 2.29.2
 
