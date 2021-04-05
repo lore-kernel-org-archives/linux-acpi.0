@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F1A9C433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3F60C43611
 	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18B1F613D4
+	by mail.kernel.org (Postfix) with ESMTP id 963D6613D0
 	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242413AbhDEVuP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S242453AbhDEVuP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 5 Apr 2021 17:50:15 -0400
-Received: from mga01.intel.com ([192.55.52.88]:26874 "EHLO mga01.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:38284 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242331AbhDEVuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Apr 2021 17:50:11 -0400
-IronPort-SDR: RX2a3ninTge4TfGtWKTKyarOhBwaLeZLNOfnOuvFRKv15H21QXAaTBIyNzYjMBX7EMsHDWyo3d
- xVbSIKfhwERA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="213278760"
+        id S242340AbhDEVuM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Apr 2021 17:50:12 -0400
+IronPort-SDR: rPYeKcM8z4XRXhtAl/nAcg6ZB5hHinYXUsFeUOIGQXSKYtPrbO14obz4n6/AY+WYnG/u8DzO+d
+ PnOOAxVqZE2A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="256914970"
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="213278760"
+   d="scan'208";a="256914970"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:59 -0700
-IronPort-SDR: uSskN1DU7uQyQqojk8xVko6i2svCw/CxN8CjUwK/oWQWstP9eEnyUVM439XMpiGDCu+k6xrkRO
- UfKDF/QHr86Q==
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:59 -0700
+IronPort-SDR: yHV6ZXTOlh0kRwBB8ilnB7+EABFlLu3Ibq+lwByPWY87c0f3WYC1mqXBHA1xcPecd+bn3mjHiQ
+ m97asRcDAolg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="380673633"
+   d="scan'208";a="380673610"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga006.jf.intel.com with ESMTP; 05 Apr 2021 14:49:58 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
@@ -38,9 +38,9 @@ To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 19/22] ACPICA: iASL: Decode subtable type field for VIOT
-Date:   Mon,  5 Apr 2021 14:15:07 -0700
-Message-Id: <20210405211510.484603-20-erik.kaneda@intel.com>
+Subject: [PATCH 11/22] ACPICA: ACPI 6.4: Add new flags in SRAT
+Date:   Mon,  5 Apr 2021 14:14:59 -0700
+Message-Id: <20210405211510.484603-12-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210405211510.484603-1-erik.kaneda@intel.com>
 References: <20210405211510.484603-1-erik.kaneda@intel.com>
@@ -52,29 +52,29 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-For the table disassembler, decode the subtable type field to a descriptive string.
+ACPICA commit 44633fa72f1e4ede718733aec16e7fb7572042f8
 
-ACPICA commit 2197e354fb5dcafaddd2016ffeb0620e5bc3d5e2
-
-Link: https://github.com/acpica/acpica/commit/2197e354
+Link: https://github.com/acpica/acpica/commit/44633fa7
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl3.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/acpi/actbl3.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index e9bd7ce65f7c..c0e68331f1fc 100644
+index df5f4b27f3aa..bf61a70deb22 100644
 --- a/include/acpi/actbl3.h
 +++ b/include/acpi/actbl3.h
-@@ -514,6 +514,7 @@ enum acpi_viot_node_type {
- 	ACPI_VIOT_NODE_MMIO = 0x02,
- 	ACPI_VIOT_NODE_VIRTIO_IOMMU_PCI = 0x03,
- 	ACPI_VIOT_NODE_VIRTIO_IOMMU_MMIO = 0x04,
-+	ACPI_VIOT_RESERVED = 0x05
- };
+@@ -285,7 +285,8 @@ struct acpi_srat_generic_affinity {
  
- /* VIOT subtables */
+ /* Flags for struct acpi_srat_generic_affinity */
+ 
+-#define ACPI_SRAT_GENERIC_AFFINITY_ENABLED (1)	/* 00: Use affinity structure */
++#define ACPI_SRAT_GENERIC_AFFINITY_ENABLED     (1)	/* 00: Use affinity structure */
++#define ACPI_SRAT_ARCHITECTURAL_TRANSACTIONS   (1<<1)	/* ACPI 6.4 */
+ 
+ /*******************************************************************************
+  *
 -- 
 2.29.2
 
