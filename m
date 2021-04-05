@@ -7,43 +7,40 @@ X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F06AC433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA097C433B4
 	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7AE6F613D3
+	by mail.kernel.org (Postfix) with ESMTP id 9E59B613D5
 	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237567AbhDEVuL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S241747AbhDEVuL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 5 Apr 2021 17:50:11 -0400
-Received: from mga07.intel.com ([134.134.136.100]:38289 "EHLO mga07.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:26877 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241747AbhDEVuH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Apr 2021 17:50:07 -0400
-IronPort-SDR: nebSh9Z9dR+ZlFw6yCex8l2lYEMd3dYdi1O4H1XyZndQx8AScrSnX3SloKn9P/YPcvl0gpvMJa
- yZyhHZ8cyS6Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="256914966"
+        id S241688AbhDEVuI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Apr 2021 17:50:08 -0400
+IronPort-SDR: e8LB7UoIuoi4sK+MQj/15YEDzFUrcc4xKmDVR6aIz39D+NdnF+rYSIJ+OirMn+Pmvry2GekTpL
+ oDOY2rmIj//A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="213278754"
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="256914966"
+   d="scan'208";a="213278754"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:59 -0700
-IronPort-SDR: FpbXA3SlGkEVk79JRcLitcL2jLhgV12ytqmVGNmgZiVX9OKhM1EOcDdDbBFrr5B9izQvG2ZD3u
- 7naTZHK4epEw==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:58 -0700
+IronPort-SDR: bIxkh3ffuvQwdwFt8QIesxjz+CkFOvODgtUq6R+zsV1HDZQAv0mj6/OZH/hh5cEw4n3OCZ3XUQ
+ WGQQEDbnhhxw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
-   d="scan'208";a="380673598"
+   d="scan'208";a="380673585"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga006.jf.intel.com with ESMTP; 05 Apr 2021 14:49:58 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Colin Ian King <colin.king@canonical.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Bhaskar Chowdhury <unixbhaskar@gmail.com>,
-        Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 08/22] ACPICA: Tree-wide: fix various typos and spelling mistakes
-Date:   Mon,  5 Apr 2021 14:14:56 -0700
-Message-Id: <20210405211510.484603-9-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 04/22] ACPICA: ACPI 6.4: add CXL ACPI device ID and _CBR object
+Date:   Mon,  5 Apr 2021 14:14:52 -0700
+Message-Id: <20210405211510.484603-5-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210405211510.484603-1-erik.kaneda@intel.com>
 References: <20210405211510.484603-1-erik.kaneda@intel.com>
@@ -53,70 +50,33 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+ACPICA commit 7f634ac53fe1e480c01ceff7532cd8dc6430f1b9
 
-This commit squashes the following:
-ACPICA commit bc8939e2d902653e71bb1601b129a993c37fcfad
-ACPICA commit 2d9e5e98e23f2a569e5691e6bed183146e25798d
-ACPICA commit 937358156631ea7a0eef3569c213c82a031097d5
+The ACPI device ID represents the CXL host bridge. _CBR objects gets
+the memory location of CXL Host Bridge Registers.
 
-Fix more spelling issues found using the codespell checker and found
-without tools.
-
-Link: https://github.com/acpica/acpica/commit/bc8939e2
-Link: https://github.com/acpica/acpica/commit/2d9e5e98
-Link: https://github.com/acpica/acpica/commit/93735815
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/7f634ac5
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/acoutput.h           | 2 +-
- include/acpi/platform/acgcc.h     | 2 +-
- tools/power/acpi/common/cmfsize.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/acpredef.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index 1538a6853822..1b4c45815695 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -362,7 +362,7 @@
-  *
-  * A less-safe version of the macros is provided for optional use if the
-  * compiler uses excessive CPU stack (for example, this may happen in the
-- * debug case if code optimzation is disabled.)
-+ * debug case if code optimization is disabled.)
-  */
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index 32af9c9d0b38..5951b433c304 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -358,6 +358,10 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
+ 	{{"_CBA", METHOD_0ARGS,
+ 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},	/* See PCI firmware spec 3.0 */
  
- /* Exit trace helper macro */
-diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
-index 0cd4f61d4248..f6656be81760 100644
---- a/include/acpi/platform/acgcc.h
-+++ b/include/acpi/platform/acgcc.h
-@@ -61,7 +61,7 @@ typedef __builtin_va_list va_list;
- #endif
++	{{"_CBR", METHOD_0ARGS,
++	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (3 Int) */
++	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0, 0, 0),
++
+ 	{{"_CCA", METHOD_0ARGS,
+ 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},	/* ACPI 5.1 */
  
- /*
-- * Explictly mark intentional explicit fallthrough to silence
-+ * Explicitly mark intentional explicit fallthrough to silence
-  * -Wimplicit-fallthrough in GCC 7.1+.
-  */
- 
-diff --git a/tools/power/acpi/common/cmfsize.c b/tools/power/acpi/common/cmfsize.c
-index 9ea2c0aeb86c..185b8c588e1d 100644
---- a/tools/power/acpi/common/cmfsize.c
-+++ b/tools/power/acpi/common/cmfsize.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: BSD-3-Clause OR GPL-2.0
- /******************************************************************************
-  *
-- * Module Name: cfsize - Common get file size function
-+ * Module Name: cmfsize - Common get file size function
-  *
-  * Copyright (C) 2000 - 2021, Intel Corp.
-  *
 -- 
 2.29.2
 
