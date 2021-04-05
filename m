@@ -2,65 +2,119 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA6CC433B4
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Apr 2021 22:44:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 033EFC433ED
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55C0961154
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Apr 2021 22:44:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8BF8613C3
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Apr 2021 21:50:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235538AbhDBWon (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Apr 2021 18:44:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50224 "EHLO mail.kernel.org"
+        id S241740AbhDEVuH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Apr 2021 17:50:07 -0400
+Received: from mga01.intel.com ([192.55.52.88]:26874 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235567AbhDBWom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Apr 2021 18:44:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id D9E7861184;
-        Fri,  2 Apr 2021 22:44:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617403480;
-        bh=rkDhXU156TQPnbeRmlP99Zm0oznIao1oF2mfY2kUCbw=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=SHjJVmIf748KI5RKZRUScMKuMwKtVqP1YQZsc8NU7UiUXpR8i4ayHzvOCxnCTg+QQ
-         4+uB6QyryFOjjbAzuQIdXFj8IVQZcmeO+i5dH8iFej++NwoP7StV/6Dki4254iZsrb
-         r5nuBovSq/sTmiJyrmY630xa/f7jJWxddwOUNqHId5nIVWq+EK3KTY0kDOyV7BTIo6
-         rZHf8daQMTO/Q8qCgL9igE9PDAaLXYgb+CyvjMse/54MpZj8oJowVY0nOtg1mTv5E9
-         i2Q276m/7QGFg2X6m43OQePUxtnTZWWWGqe60aFlH3ytO3raDNdYOG6YygEDZvLBzG
-         FLvkVWSO6yBFA==
-Subject: Re: [GIT PULL] ACPI fixes for v5.12-rc6
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0i0xTJfQuS5QK1Mkc-wkBAf1F4ga=tuNLrp9uHcQPUKNw@mail.gmail.com>
-References: <CAJZ5v0i0xTJfQuS5QK1Mkc-wkBAf1F4ga=tuNLrp9uHcQPUKNw@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0i0xTJfQuS5QK1Mkc-wkBAf1F4ga=tuNLrp9uHcQPUKNw@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.12-rc6
-X-PR-Tracked-Commit-Id: 91463ebff32d3e6fc71134784ae6aa91402bfe3d
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 0a84c2e440f74cbb2064084cc7ff4f74f5565ba7
-Message-Id: <161740348085.31502.7898647118295775851.pr-tracker-bot@kernel.org>
-Date:   Fri, 02 Apr 2021 22:44:40 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>
+        id S241688AbhDEVuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Apr 2021 17:50:05 -0400
+IronPort-SDR: IPSetev/C9/pKn0CTekh/qbdkvffa6GRfoAD6FBSvrua1frmcsI7reBbp6OxuJZ1K/yqM63PFV
+ V39y+6PN1EuQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9945"; a="213278750"
+X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
+   d="scan'208";a="213278750"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2021 14:49:58 -0700
+IronPort-SDR: nULLDJ6T4h8Jr8rwOP1NU4D1LVqnq8BQmUNIIGQr/6V/ElLuUoInx9VOqe67aIzAcMHiPEFEW8
+ tr7Y6KzUH4aw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,307,1610438400"; 
+   d="scan'208";a="380673574"
+Received: from sibelius.jf.intel.com ([10.54.75.166])
+  by orsmga006.jf.intel.com with ESMTP; 05 Apr 2021 14:49:58 -0700
+From:   Erik Kaneda <erik.kaneda@intel.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 00/22] ACPICA release 20210331 (ACPI 6.4 support)
+Date:   Mon,  5 Apr 2021 14:14:48 -0700
+Message-Id: <20210405211510.484603-1-erik.kaneda@intel.com>
+X-Mailer: git-send-email 2.29.2
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 2 Apr 2021 18:04:09 +0200:
+This series contains the Linux-ized patches of ACPICA version 20210331.
+This release implements changes to implement the ACPI 6.4 specification
+as well as several new tables defined outside of the ACPI specification.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.12-rc6
+This patch set is also available here:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/0a84c2e440f74cbb2064084cc7ff4f74f5565ba7
+https://github.com/SchmErik/linux/tree/20210331
 
-Thank you!
+Alexander Monakov (1):
+  ACPICA: Add parsing for IVRS IVHD 40h and device entry F0h
+
+Ben Widawsky (1):
+  ACPICA: CXL 2.0: CEDT: Add new CEDT table
+
+Bob Moore (8):
+  ACPICA: ACPI 6.4: NFIT: add Location Cookie field
+  ACPICA: ACPI 6.4: HMAT: add new fields/flags
+  ACPICA: ACPI 6.4: Add new flags in SRAT
+  ACPICA: ACPI 6.4: PMTT: add new fields/structures
+  ACPICA: ACPI 6.4: add CSI2Bus resource template
+  ACPICA: iASL: Add support for CEDT table
+  ACPICA: iASL: Decode subtable type field for VIOT
+  ACPICA: Update version to 20210331
+
+Colin Ian King (1):
+  ACPICA: Tree-wide: fix various typos and spelling mistakes
+
+Erik Kaneda (8):
+  ACPICA: ACPI 6.4: Add new predefined objects _BPC, _BPS, and _BPT
+  ACPICA: ACPI 6.4: add USB4 capabilities UUID
+  ACPICA: ACPI 6.4: add CXL ACPI device ID and _CBR object
+  ACPICA: ACPI 6.4: MADT: add Multiprocessor Wakeup Structure
+  ACPICA: ACPI 6.4: PCCT: add support for subtable type 5
+  ACPICA: ACPI 6.4: PPTT: add new version of subtable type 1
+  ACPICA: ACPI 6.4: add SDEV secure access components
+  ACPICA: ACPI 6.4: add support for PHAT table
+
+Jean-Philippe Brucker (2):
+  ACPICA: iASL: Add definitions for the VIOT table
+  ACPICA: acpisrc: Add missing conversion for VIOT support
+
+Shameer Kolothum (1):
+  ACPICA: IORT: Updates for revision E.b
+
+ drivers/acpi/acpica/acpredef.h    |  15 ++
+ drivers/acpi/acpica/acresrc.h     |   4 +
+ drivers/acpi/acpica/acutils.h     |   1 +
+ drivers/acpi/acpica/amlresrc.h    |  19 ++-
+ drivers/acpi/acpica/rscalc.c      |   4 +-
+ drivers/acpi/acpica/rsdump.c      |   8 +
+ drivers/acpi/acpica/rsdumpinfo.c  |  26 ++++
+ drivers/acpi/acpica/rsinfo.c      |   6 +-
+ drivers/acpi/acpica/rslist.c      |   9 +-
+ drivers/acpi/acpica/rsmisc.c      |  19 +++
+ drivers/acpi/acpica/rsserial.c    |  75 ++++++++++
+ drivers/acpi/acpica/utresdecode.c |  10 +-
+ drivers/acpi/acpica/utresrc.c     |   1 +
+ include/acpi/acoutput.h           |   2 +-
+ include/acpi/acpixf.h             |   2 +-
+ include/acpi/acrestyp.h           |   9 +-
+ include/acpi/actbl1.h             |  54 ++++++-
+ include/acpi/actbl2.h             | 240 ++++++++++++++++++++++++++----
+ include/acpi/actbl3.h             |  70 ++++++++-
+ include/acpi/acuuid.h             |   1 +
+ include/acpi/platform/acgcc.h     |   2 +-
+ tools/power/acpi/common/cmfsize.c |   2 +-
+ 22 files changed, 536 insertions(+), 43 deletions(-)
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.29.2
+
