@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1352C43460
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E46AEC43461
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF4AD613DE
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD8A9613D2
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243459AbhDFWFa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Apr 2021 18:05:30 -0400
-Received: from mga17.intel.com ([192.55.52.151]:51781 "EHLO mga17.intel.com"
+        id S242751AbhDFWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Apr 2021 18:05:32 -0400
+Received: from mga12.intel.com ([192.55.52.136]:54928 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239613AbhDFWFV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Apr 2021 18:05:21 -0400
-IronPort-SDR: ns1i05Cyae+dcttSyuhCA3bquWXc6S5LGQKMyudpjCqhzej75OsJQ/hm/k49n1rv/+4Frpzbg1
- xxtwfyp/tQGA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="173244344"
+        id S233015AbhDFWFY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Apr 2021 18:05:24 -0400
+IronPort-SDR: 8fVE8PG/dmc/EFd+Af5sDPwl4eb3Tx+WDt1ybQ637Wyng+e+txeTKAhR0AlCiJmTlf4uuj7Wi9
+ Sp+nAlryXtRw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640463"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="173244344"
+   d="scan'208";a="172640463"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:10 -0700
-IronPort-SDR: wKtydB0ohkIdlBCI1XvR20IloMaUSAAgf5dqcRcXEk5plEj57gkybafRY2bV9NfXBF0W/EGGFS
- /qEboh4tmHnQ==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:09 -0700
+IronPort-SDR: 1l+UvTDF3eATuh3BzT/B+Ajo3pH0ZhfoBTmzmdWtu1oATHhuMceuNugDcn9mooTSDmbtYar/x+
+ s8nZ+d/eQo6g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="379581754"
+   d="scan'208";a="379581736"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:08 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc:     Bob Moore <robert.moore@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v2 15/22] ACPICA: ACPI 6.4: PMTT: add new fields/structures
-Date:   Tue,  6 Apr 2021 14:30:21 -0700
-Message-Id: <20210406213028.718796-16-erik.kaneda@intel.com>
+Subject: [PATCH v2 09/22] ACPICA: ACPI 6.4: NFIT: add Location Cookie field
+Date:   Tue,  6 Apr 2021 14:30:15 -0700
+Message-Id: <20210406213028.718796-10-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210406213028.718796-1-erik.kaneda@intel.com>
 References: <20210406213028.718796-1-erik.kaneda@intel.com>
@@ -52,115 +53,51 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 036290735ad8020f762c4d94bcbc0e84b2e307b6
+Also, update struct size to reflect these changes in nfit core driver.
 
-Link: https://github.com/acpica/acpica/commit/03629073
+ACPICA commit af60199a9a1de9e6844929fd4cc22334522ed195
+
+Link: https://github.com/acpica/acpica/commit/af60199a
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 53 ++++++++++++++++++++++++++++---------------
- 1 file changed, 35 insertions(+), 18 deletions(-)
+ drivers/acpi/nfit/core.c | 2 +-
+ include/acpi/actbl2.h    | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 8c5dde628405..09b05f720b25 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3831,7 +3831,7 @@ static __init int nfit_init(void)
+ 	int ret;
+ 
+ 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
+-	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
++	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 64);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_interleave) != 20);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_smbios) != 9);
 diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 2ae925fb7728..d8e1db5d5e55 100644
+index 32467a7133c9..31ed30208c8a 100644
 --- a/include/acpi/actbl2.h
 +++ b/include/acpi/actbl2.h
-@@ -1410,7 +1410,11 @@ struct acpi_pdtt_channel {
- 
- struct acpi_table_pmtt {
- 	struct acpi_table_header header;	/* Common ACPI table header */
--	u32 reserved;
-+	u32 memory_device_count;
-+	/*
-+	 * Immediately followed by:
-+	 * MEMORY_DEVICE memory_device_struct[memory_device_count];
-+	 */
+@@ -1008,12 +1008,14 @@ struct acpi_nfit_system_address {
+ 	u64 address;
+ 	u64 length;
+ 	u64 memory_mapping;
++	u64 location_cookie;	/* ACPI 6.4 */
  };
  
- /* Common header for PMTT subtables that follow main table */
-@@ -1421,6 +1425,12 @@ struct acpi_pmtt_header {
- 	u16 length;
- 	u16 flags;
- 	u16 reserved2;
-+	u32 memory_device_count;	/* Zero means no memory device structs follow */
-+	/*
-+	 * Immediately followed by:
-+	 * u8 type_specific_data[]
-+	 * MEMORY_DEVICE memory_device_struct[memory_device_count];
-+	 */
- };
+ /* Flags */
  
- /* Values for Type field above */
-@@ -1428,7 +1438,8 @@ struct acpi_pmtt_header {
- #define ACPI_PMTT_TYPE_SOCKET           0
- #define ACPI_PMTT_TYPE_CONTROLLER       1
- #define ACPI_PMTT_TYPE_DIMM             2
--#define ACPI_PMTT_TYPE_RESERVED         3	/* 0x03-0xFF are reserved */
-+#define ACPI_PMTT_TYPE_RESERVED         3	/* 0x03-0xFE are reserved */
-+#define ACPI_PMTT_TYPE_VENDOR           0xFF
+ #define ACPI_NFIT_ADD_ONLINE_ONLY       (1)	/* 00: Add/Online Operation Only */
+ #define ACPI_NFIT_PROXIMITY_VALID       (1<<1)	/* 01: Proximity Domain Valid */
++#define ACPI_NFIT_LOCATION_COOKIE_VALID (1<<2)	/* 02: SPA location cookie valid (ACPI 6.4) */
  
- /* Values for Flags field above */
+ /* Range Type GUIDs appear in the include/acuuid.h file */
  
-@@ -1447,37 +1458,43 @@ struct acpi_pmtt_socket {
- 	u16 socket_id;
- 	u16 reserved;
- };
-+	/*
-+	 * Immediately followed by:
-+	 * MEMORY_DEVICE memory_device_struct[memory_device_count];
-+	 */
- 
- /* 1: Memory Controller subtable */
- 
- struct acpi_pmtt_controller {
- 	struct acpi_pmtt_header header;
--	u32 read_latency;
--	u32 write_latency;
--	u32 read_bandwidth;
--	u32 write_bandwidth;
--	u16 access_width;
--	u16 alignment;
-+	u16 controller_id;
- 	u16 reserved;
--	u16 domain_count;
--};
--
--/* 1a: Proximity Domain substructure */
--
--struct acpi_pmtt_domain {
--	u32 proximity_domain;
- };
-+	/*
-+	 * Immediately followed by:
-+	 * MEMORY_DEVICE memory_device_struct[memory_device_count];
-+	 */
- 
- /* 2: Physical Component Identifier (DIMM) */
- 
- struct acpi_pmtt_physical_component {
- 	struct acpi_pmtt_header header;
--	u16 component_id;
--	u16 reserved;
--	u32 memory_size;
- 	u32 bios_handle;
- };
- 
-+/* 0xFF: Vendor Specific Data */
-+
-+struct acpi_pmtt_vendor_specific {
-+	struct acpi_pmtt_header header;
-+	u8 type_uuid[16];
-+	u8 specific[];
-+	/*
-+	 * Immediately followed by:
-+	 * u8 vendor_specific_data[];
-+	 * MEMORY_DEVICE memory_device_struct[memory_device_count];
-+	 */
-+};
-+
- /*******************************************************************************
-  *
-  * PPTT - Processor Properties Topology Table (ACPI 6.2)
 -- 
 2.29.2
 
