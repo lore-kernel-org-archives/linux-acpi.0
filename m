@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A60AC433B4
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50E40C43460
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0340D613CC
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29B19613CC
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240292AbhDFWFu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Apr 2021 18:05:50 -0400
-Received: from mga12.intel.com ([192.55.52.136]:54928 "EHLO mga12.intel.com"
+        id S243477AbhDFWFv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Apr 2021 18:05:51 -0400
+Received: from mga12.intel.com ([192.55.52.136]:54929 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243477AbhDFWFg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Apr 2021 18:05:36 -0400
-IronPort-SDR: b5GW0lBfeBYSnPULgjJD5Lz23v3iC7Gsp7asM3CgAe000ENnu6KEu1RTuubufBkIEb5W9CZKKm
- iiXn9ukBLvPg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640470"
+        id S243501AbhDFWFj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Apr 2021 18:05:39 -0400
+IronPort-SDR: IfqlS5UHzdYlCitPYe+dHYtLqWocFzNoXlpvNzb2aqOpD4VXzQKuB8BP7M4pBVIfYlEaGf3p1z
+ zcUic3g1bhcw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640472"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="172640470"
+   d="scan'208";a="172640472"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
   by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:10 -0700
-IronPort-SDR: U2FIVSwkfzF4PI1X3jpnn13ZCtUOT6CC1OGL8fJimQBXm+t8Ot0ONbJOUH2BoxCrJ0npnFzuQA
- s5gfuzppiEWA==
+IronPort-SDR: nyKuTZ+6Xlva63mOZ23w7pMoRJ3x8dgbtom/fSZqGgmA6KUPXkSacxoO8tO4NG7fqdR7saR9vk
+ ahIg6Anh88KQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="379581769"
+   d="scan'208";a="379581777"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:09 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Bob Moore <robert.moore@intel.com>,
+Cc:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
+        Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v2 19/22] ACPICA: iASL: Decode subtable type field for VIOT
-Date:   Tue,  6 Apr 2021 14:30:25 -0700
-Message-Id: <20210406213028.718796-20-erik.kaneda@intel.com>
+Subject: [PATCH v2 21/22] ACPICA: IORT: Updates for revision E.b
+Date:   Tue,  6 Apr 2021 14:30:27 -0700
+Message-Id: <20210406213028.718796-22-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210406213028.718796-1-erik.kaneda@intel.com>
 References: <20210406213028.718796-1-erik.kaneda@intel.com>
@@ -50,31 +51,97 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 
-For the table disassembler, decode the subtable type field to a descriptive string.
+ACPICA commit 8710a708faed728ea2672b8da842b2e9af1cf5bd
 
-ACPICA commit 2197e354fb5dcafaddd2016ffeb0620e5bc3d5e2
+IORT revision E.b (ARM DEN 0049E.b) contains a few additions like,
+    -Added an identifier field in the node descriptors to aid table
+     cross-referencing.
+    -Introduced the Reserved Memory Range(RMR) node. This is used
+     to describe memory ranges that are used by endpoints and require
+     a unity mapping in SMMU.
+    -Introduced a flag in the RC node to express support for PRI.
+    -Added a flag in the RC node to declare support for PASID forward
+     information.
 
-Link: https://github.com/acpica/acpica/commit/2197e354
+Please note that IORT Rev E and E.a have known issues and are not
+supported.
+
+Link: https://github.com/acpica/acpica/commit/8710a708
+Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl3.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/acpi/actbl2.h | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index e9bd7ce65f7c..c0e68331f1fc 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -514,6 +514,7 @@ enum acpi_viot_node_type {
- 	ACPI_VIOT_NODE_MMIO = 0x02,
- 	ACPI_VIOT_NODE_VIRTIO_IOMMU_PCI = 0x03,
- 	ACPI_VIOT_NODE_VIRTIO_IOMMU_MMIO = 0x04,
-+	ACPI_VIOT_RESERVED = 0x05
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 8383446295a5..18cafe3ebddc 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -68,7 +68,7 @@
+  * IORT - IO Remapping Table
+  *
+  * Conforms to "IO Remapping Table System Software on ARM Platforms",
+- * Document number: ARM DEN 0049D, March 2018
++ * Document number: ARM DEN 0049E.b, Feb 2021
+  *
+  ******************************************************************************/
+ 
+@@ -86,7 +86,7 @@ struct acpi_iort_node {
+ 	u8 type;
+ 	u16 length;
+ 	u8 revision;
+-	u32 reserved;
++	u32 identifier;
+ 	u32 mapping_count;
+ 	u32 mapping_offset;
+ 	char node_data[1];
+@@ -100,7 +100,8 @@ enum acpi_iort_node_type {
+ 	ACPI_IORT_NODE_PCI_ROOT_COMPLEX = 0x02,
+ 	ACPI_IORT_NODE_SMMU = 0x03,
+ 	ACPI_IORT_NODE_SMMU_V3 = 0x04,
+-	ACPI_IORT_NODE_PMCG = 0x05
++	ACPI_IORT_NODE_PMCG = 0x05,
++	ACPI_IORT_NODE_RMR = 0x06,
  };
  
- /* VIOT subtables */
+ struct acpi_iort_id_mapping {
+@@ -167,10 +168,11 @@ struct acpi_iort_root_complex {
+ 	u8 reserved[3];		/* Reserved, must be zero */
+ };
+ 
+-/* Values for ats_attribute field above */
++/* Masks for ats_attribute field above */
+ 
+-#define ACPI_IORT_ATS_SUPPORTED         0x00000001	/* The root complex supports ATS */
+-#define ACPI_IORT_ATS_UNSUPPORTED       0x00000000	/* The root complex doesn't support ATS */
++#define ACPI_IORT_ATS_SUPPORTED         (1)	/* The root complex ATS support */
++#define ACPI_IORT_PRI_SUPPORTED         (1<<1)	/* The root complex PRI support */
++#define ACPI_IORT_PASID_FWD_SUPPORTED   (1<<2)	/* The root complex PASID forward support */
+ 
+ struct acpi_iort_smmu {
+ 	u64 base_address;	/* SMMU base address */
+@@ -241,6 +243,18 @@ struct acpi_iort_pmcg {
+ 	u64 page1_base_address;
+ };
+ 
++struct acpi_iort_rmr {
++	u32 flags;
++	u32 rmr_count;
++	u32 rmr_offset;
++};
++
++struct acpi_iort_rmr_desc {
++	u64 base_address;
++	u64 length;
++	u32 reserved;
++};
++
+ /*******************************************************************************
+  *
+  * IVRS - I/O Virtualization Reporting Structure
 -- 
 2.29.2
 
