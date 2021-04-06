@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E46AEC43461
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 026DEC43462
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD8A9613D2
+	by mail.kernel.org (Postfix) with ESMTP id D1F75613CD
 	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242751AbhDFWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S243391AbhDFWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Tue, 6 Apr 2021 18:05:32 -0400
-Received: from mga12.intel.com ([192.55.52.136]:54928 "EHLO mga12.intel.com"
+Received: from mga17.intel.com ([192.55.52.151]:51781 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233015AbhDFWFY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Apr 2021 18:05:24 -0400
-IronPort-SDR: 8fVE8PG/dmc/EFd+Af5sDPwl4eb3Tx+WDt1ybQ637Wyng+e+txeTKAhR0AlCiJmTlf4uuj7Wi9
- Sp+nAlryXtRw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640463"
+        id S242751AbhDFWF3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Apr 2021 18:05:29 -0400
+IronPort-SDR: t2/GVA9tezKLdiIGNO00UhRpyfynkz9yaK6bmlKJvW+MESa7l7ufkAcSRP/nQW4C93YNLxaS4M
+ lM4/+mXsnsEA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="173244347"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="172640463"
+   d="scan'208";a="173244347"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:09 -0700
-IronPort-SDR: 1l+UvTDF3eATuh3BzT/B+Ajo3pH0ZhfoBTmzmdWtu1oATHhuMceuNugDcn9mooTSDmbtYar/x+
- s8nZ+d/eQo6g==
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:10 -0700
+IronPort-SDR: yROs6zBxjyH5ONG1dS5v0WeETsXSHNm1qKjce7k+tvN8OA4ViutYcjIJwmGRJaptnt3uOqDNrA
+ nsUxA7fmH/RQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="379581736"
+   d="scan'208";a="379581773"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
-  by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:08 -0700
+  by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:09 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
+Cc:     Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v2 09/22] ACPICA: ACPI 6.4: NFIT: add Location Cookie field
-Date:   Tue,  6 Apr 2021 14:30:15 -0700
-Message-Id: <20210406213028.718796-10-erik.kaneda@intel.com>
+Subject: [PATCH v2 20/22] ACPICA: acpisrc: Add missing conversion for VIOT support
+Date:   Tue,  6 Apr 2021 14:30:26 -0700
+Message-Id: <20210406213028.718796-21-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210406213028.718796-1-erik.kaneda@intel.com>
 References: <20210406213028.718796-1-erik.kaneda@intel.com>
@@ -51,53 +51,60 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Jean-Philippe Brucker <jean-philippe@linaro.org>
 
-Also, update struct size to reflect these changes in nfit core driver.
+ACPICA commit 856a96fdf4b51b2b8da17529df0255e6f51f1b5b
 
-ACPICA commit af60199a9a1de9e6844929fd4cc22334522ed195
+struct acpi_viot_header is missing from identifier table, causing linuxize
+failures.
 
-Link: https://github.com/acpica/acpica/commit/af60199a
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://github.com/acpica/acpica/commit/856a96fd
+Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/nfit/core.c | 2 +-
- include/acpi/actbl2.h    | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/acpi/actbl3.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 8c5dde628405..09b05f720b25 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3831,7 +3831,7 @@ static __init int nfit_init(void)
- 	int ret;
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index c0e68331f1fc..86903ac5bbc5 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -520,7 +520,7 @@ enum acpi_viot_node_type {
+ /* VIOT subtables */
  
- 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
--	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
-+	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 64);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_interleave) != 20);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_smbios) != 9);
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 32467a7133c9..31ed30208c8a 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -1008,12 +1008,14 @@ struct acpi_nfit_system_address {
- 	u64 address;
- 	u64 length;
- 	u64 memory_mapping;
-+	u64 location_cookie;	/* ACPI 6.4 */
+ struct acpi_viot_pci_range {
+-	ACPI_VIOT_HEADER header;
++	struct acpi_viot_header header;
+ 	u32 endpoint_start;
+ 	u16 segment_start;
+ 	u16 segment_end;
+@@ -531,7 +531,7 @@ struct acpi_viot_pci_range {
  };
  
- /* Flags */
+ struct acpi_viot_mmio {
+-	ACPI_VIOT_HEADER header;
++	struct acpi_viot_header header;
+ 	u32 endpoint;
+ 	u64 base_address;
+ 	u16 output_node;
+@@ -539,14 +539,14 @@ struct acpi_viot_mmio {
+ };
  
- #define ACPI_NFIT_ADD_ONLINE_ONLY       (1)	/* 00: Add/Online Operation Only */
- #define ACPI_NFIT_PROXIMITY_VALID       (1<<1)	/* 01: Proximity Domain Valid */
-+#define ACPI_NFIT_LOCATION_COOKIE_VALID (1<<2)	/* 02: SPA location cookie valid (ACPI 6.4) */
+ struct acpi_viot_virtio_iommu_pci {
+-	ACPI_VIOT_HEADER header;
++	struct acpi_viot_header header;
+ 	u16 segment;
+ 	u16 bdf;
+ 	u8 reserved[8];
+ };
  
- /* Range Type GUIDs appear in the include/acuuid.h file */
- 
+ struct acpi_viot_virtio_iommu_mmio {
+-	ACPI_VIOT_HEADER header;
++	struct acpi_viot_header header;
+ 	u8 reserved[4];
+ 	u64 base_address;
+ };
 -- 
 2.29.2
 
