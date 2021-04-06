@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 654D8C433ED
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 169A4C43600
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42924613D0
+	by mail.kernel.org (Postfix) with ESMTP id E14D9613CF
 	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243468AbhDFWFb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Apr 2021 18:05:31 -0400
-Received: from mga17.intel.com ([192.55.52.151]:51785 "EHLO mga17.intel.com"
+        id S243463AbhDFWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Apr 2021 18:05:32 -0400
+Received: from mga12.intel.com ([192.55.52.136]:54929 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243391AbhDFWFV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Apr 2021 18:05:21 -0400
-IronPort-SDR: XsZcWh4R4FPUt+9F3rmjYjssNQ5F8HvjI+C3j13Wo99SB5PwQgYcUeqKXu4uy8koDIRIMH4tKK
- dsJePFDfjlGQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="173244345"
+        id S242361AbhDFWF3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Apr 2021 18:05:29 -0400
+IronPort-SDR: 8mvzsGI2+5hInFeKwp3Q8kdR09ayvl4WLcAXpNW/MsfAaFJE95NmYOw1peTfdrOokwP3ByOuAr
+ 0NUbV2RIjy7w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640466"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="173244345"
+   d="scan'208";a="172640466"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:10 -0700
-IronPort-SDR: yrMQInZiuW7ubPej9Qkjgm0TSYfinqqen44Li+Nlb8CCjOu5vjxuF2XzyTI0EKd8mbelSZB/1h
- Fy+8Uk8T1zJg==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:09 -0700
+IronPort-SDR: 1UfJSm2+Xj1H9INtHCB8mSZOVTIjp7otd3TUo0+Ni8RaRwYw2wrJmKKfmscTSa/yWTjU7OH0nQ
+ 4GcNPZvVvW9A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="379581765"
+   d="scan'208";a="379581742"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
-  by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:09 -0700
+  by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:08 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v2 18/22] ACPICA: iASL: Add support for CEDT table
-Date:   Tue,  6 Apr 2021 14:30:24 -0700
-Message-Id: <20210406213028.718796-19-erik.kaneda@intel.com>
+Subject: [PATCH v2 11/22] ACPICA: ACPI 6.4: Add new flags in SRAT
+Date:   Tue,  6 Apr 2021 14:30:17 -0700
+Message-Id: <20210406213028.718796-12-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210406213028.718796-1-erik.kaneda@intel.com>
 References: <20210406213028.718796-1-erik.kaneda@intel.com>
@@ -52,38 +52,29 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Also, update the CEDT template.
+ACPICA commit 44633fa72f1e4ede718733aec16e7fb7572042f8
 
-ACPICA commit 1e6dded267b13c4aa0c3e16de0fa89d3b9c880e9
-
-Link: https://github.com/acpica/acpica/commit/1e6dded2
+Link: https://github.com/acpica/acpica/commit/44633fa7
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl1.h | 3 ++-
+ include/acpi/actbl3.h | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 7b286766e810..ce59903c2695 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -327,6 +327,7 @@ struct acpi_cedt_header {
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index df5f4b27f3aa..bf61a70deb22 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -285,7 +285,8 @@ struct acpi_srat_generic_affinity {
  
- enum acpi_cedt_type {
- 	ACPI_CEDT_TYPE_CHBS = 0,
-+	ACPI_CEDT_TYPE_RESERVED = 1
- };
+ /* Flags for struct acpi_srat_generic_affinity */
  
- /*
-@@ -336,7 +337,7 @@ enum acpi_cedt_type {
- /* 0: CXL Host Bridge Structure */
+-#define ACPI_SRAT_GENERIC_AFFINITY_ENABLED (1)	/* 00: Use affinity structure */
++#define ACPI_SRAT_GENERIC_AFFINITY_ENABLED     (1)	/* 00: Use affinity structure */
++#define ACPI_SRAT_ARCHITECTURAL_TRANSACTIONS   (1<<1)	/* ACPI 6.4 */
  
- struct acpi_cedt_chbs {
--	ACPI_CEDT_HEADER header;
-+	struct acpi_cedt_header header;
- 	u32 uid;
- 	u32 cxl_version;
- 	u32 reserved;
+ /*******************************************************************************
+  *
 -- 
 2.29.2
 
