@@ -7,40 +7,42 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24BFDC43470
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7483C433B4
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0110A61396
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1E0661396
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242361AbhDFWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Apr 2021 18:05:32 -0400
-Received: from mga12.intel.com ([192.55.52.136]:54926 "EHLO mga12.intel.com"
+        id S243481AbhDFWFg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Apr 2021 18:05:36 -0400
+Received: from mga12.intel.com ([192.55.52.136]:54928 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243422AbhDFWF0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Apr 2021 18:05:26 -0400
-IronPort-SDR: YjpdSrGO6+WHJxfYDZg2yB/K74KYczHREhrMmrolRY+ZBsEdA8r7cXz37NEBrSndGnTJmI3ZXQ
- IepF3XBaLXZA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640464"
+        id S243376AbhDFWFa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Apr 2021 18:05:30 -0400
+IronPort-SDR: YbOqHHY3a4nDcrDnT2iqy5aixKLpX/uJ0dzTc7zu4ZqXNylePE+er+FlQTnAy2p1KtZAkDB7FU
+ w3DkV45qLFDg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="172640467"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="172640464"
+   d="scan'208";a="172640467"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:09 -0700
-IronPort-SDR: NmTK/mRlK8qwzKdwS0mDME9QT74DL21zT5duGGLyVLtqnLoz+tamEVT5Fm/FM09DFqcqEUtWA9
- EUAhH6goWDhw==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:10 -0700
+IronPort-SDR: uV5iHovWg/FosKOT2Ht6aHqiC4GlpDbVOSMmYBp4F//nF72YuzLIePe5Q4CUlBWVvhaDFSOG2M
+ FsBZ9PvRmQyg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="379581745"
+   d="scan'208";a="379581752"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:08 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Erik Kaneda <erik.kaneda@intel.com>,
-        Bob Moore <robert.moore@intel.com>
-Subject: [PATCH v2 12/22] ACPICA: ACPI 6.4: add SDEV secure access components
-Date:   Tue,  6 Apr 2021 14:30:18 -0700
-Message-Id: <20210406213028.718796-13-erik.kaneda@intel.com>
+Cc:     Ben Widawsky <ben@bwidawsk.net>,
+        Ben Widawsky <ben.widawsky@intel.com>,
+        Bob Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH v2 14/22] ACPICA: CXL 2.0: CEDT: Add new CEDT table
+Date:   Tue,  6 Apr 2021 14:30:20 -0700
+Message-Id: <20210406213028.718796-15-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210406213028.718796-1-erik.kaneda@intel.com>
 References: <20210406213028.718796-1-erik.kaneda@intel.com>
@@ -50,79 +52,82 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPICA commit 44ca5f4f9be24bf64524cdb1de46322509319056
+From: Ben Widawsky <ben@bwidawsk.net>
 
-This entails adding an optional subtable indicating secure access
-components as well as two different types of secure access components
-(ID-based or Memory). For definitons and uses, consult the ACPI
-specification.
+ACPICA commit 0b03aa8ebd7a5b2b9407893f123ee587af45926f
 
-Link: https://github.com/acpica/acpica/commit/44ca5f4f
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+This sets up all of the boilerplate without actually doing anything.
+
+Link: https://github.com/acpica/acpica/commit/0b03aa8e
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+Signed-off-by: Ben Widawsky <ben@bwidawsk.net>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ include/acpi/actbl1.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 31ed30208c8a..2ae925fb7728 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -1732,6 +1732,7 @@ enum acpi_sdev_type {
- /* Values for flags above */
- 
- #define ACPI_SDEV_HANDOFF_TO_UNSECURE_OS    (1)
-+#define ACPI_SDEV_SECURE_COMPONENTS_PRESENT (1<<1)
- 
- /*
-  * SDEV subtables
-@@ -1747,6 +1748,46 @@ struct acpi_sdev_namespace {
- 	u16 vendor_data_length;
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 2ee7eeea783b..7b286766e810 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -28,6 +28,7 @@
+ #define ACPI_SIG_BERT           "BERT"	/* Boot Error Record Table */
+ #define ACPI_SIG_BGRT           "BGRT"	/* Boot Graphics Resource Table */
+ #define ACPI_SIG_BOOT           "BOOT"	/* Simple Boot Flag Table */
++#define ACPI_SIG_CEDT           "CEDT"	/* CXL Early Discovery Table */
+ #define ACPI_SIG_CPEP           "CPEP"	/* Corrected Platform Error Polling table */
+ #define ACPI_SIG_CSRT           "CSRT"	/* Core System Resource Table */
+ #define ACPI_SIG_DBG2           "DBG2"	/* Debug Port table type 2 */
+@@ -301,6 +302,48 @@ struct acpi_table_boot {
+ 	u8 reserved[3];
  };
  
-+struct acpi_sdev_secure_component {
-+	u16 secure_component_offset;
-+	u16 secure_component_length;
++/*******************************************************************************
++ *
++ * CEDT - CXL Early Discovery Table
++ *        Version 1
++ *
++ * Conforms to the "CXL Early Discovery Table" (CXL 2.0)
++ *
++ ******************************************************************************/
++
++struct acpi_table_cedt {
++	struct acpi_table_header header;	/* Common ACPI table header */
++};
++
++/* CEDT subtable header (Performance Record Structure) */
++
++struct acpi_cedt_header {
++	u8 type;
++	u8 reserved;
++	u16 length;
++};
++
++/* Values for Type field above */
++
++enum acpi_cedt_type {
++	ACPI_CEDT_TYPE_CHBS = 0,
 +};
 +
 +/*
-+ * SDEV sub-subtables ("Components") for above
++ * CEDT subtables
 + */
-+struct acpi_sdev_component {
-+	struct acpi_sdev_header header;
-+};
 +
-+/* Values for sub-subtable type above */
++/* 0: CXL Host Bridge Structure */
 +
-+enum acpi_sac_type {
-+	ACPI_SDEV_TYPE_ID_COMPONENT = 0,
-+	ACPI_SDEV_TYPE_MEM_COMPONENT = 1
-+};
-+
-+struct acpi_sdev_id_component {
-+	struct acpi_sdev_header header;
-+	u16 hardware_id_offset;
-+	u16 hardware_id_length;
-+	u16 subsystem_id_offset;
-+	u16 subsystem_id_length;
-+	u16 hardware_revision;
-+	u8 hardware_rev_present;
-+	u8 class_code_present;
-+	u8 pci_base_class;
-+	u8 pci_sub_class;
-+	u8 pci_programming_xface;
-+};
-+
-+struct acpi_sdev_mem_component {
-+	struct acpi_sdev_header header;
++struct acpi_cedt_chbs {
++	ACPI_CEDT_HEADER header;
++	u32 uid;
++	u32 cxl_version;
 +	u32 reserved;
-+	u64 memory_base_address;
-+	u64 memory_length;
++	u64 base;
++	u64 length;
 +};
 +
- /* 1: PCIe Endpoint Device Based Device Structure */
- 
- struct acpi_sdev_pcie {
+ /*******************************************************************************
+  *
+  * CPEP - Corrected Platform Error Polling table (ACPI 4.0)
 -- 
 2.29.2
 
