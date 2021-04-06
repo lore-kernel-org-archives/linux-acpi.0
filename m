@@ -7,41 +7,40 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 026DEC43462
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 654D8C433ED
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1F75613CD
+	by mail.kernel.org (Postfix) with ESMTP id 42924613D0
 	for <linux-acpi@archiver.kernel.org>; Tue,  6 Apr 2021 22:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243391AbhDFWFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Apr 2021 18:05:32 -0400
-Received: from mga17.intel.com ([192.55.52.151]:51781 "EHLO mga17.intel.com"
+        id S243468AbhDFWFb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Apr 2021 18:05:31 -0400
+Received: from mga17.intel.com ([192.55.52.151]:51785 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242751AbhDFWF3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Apr 2021 18:05:29 -0400
-IronPort-SDR: t2/GVA9tezKLdiIGNO00UhRpyfynkz9yaK6bmlKJvW+MESa7l7ufkAcSRP/nQW4C93YNLxaS4M
- lM4/+mXsnsEA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="173244347"
+        id S243391AbhDFWFV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Apr 2021 18:05:21 -0400
+IronPort-SDR: XsZcWh4R4FPUt+9F3rmjYjssNQ5F8HvjI+C3j13Wo99SB5PwQgYcUeqKXu4uy8koDIRIMH4tKK
+ dsJePFDfjlGQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="173244345"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="173244347"
+   d="scan'208";a="173244345"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
   by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 15:05:10 -0700
-IronPort-SDR: yROs6zBxjyH5ONG1dS5v0WeETsXSHNm1qKjce7k+tvN8OA4ViutYcjIJwmGRJaptnt3uOqDNrA
- nsUxA7fmH/RQ==
+IronPort-SDR: yrMQInZiuW7ubPej9Qkjgm0TSYfinqqen44Li+Nlb8CCjOu5vjxuF2XzyTI0EKd8mbelSZB/1h
+ Fy+8Uk8T1zJg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="379581773"
+   d="scan'208";a="379581765"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by orsmga003.jf.intel.com with ESMTP; 06 Apr 2021 15:05:09 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Bob Moore <robert.moore@intel.com>,
+Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH v2 20/22] ACPICA: acpisrc: Add missing conversion for VIOT support
-Date:   Tue,  6 Apr 2021 14:30:26 -0700
-Message-Id: <20210406213028.718796-21-erik.kaneda@intel.com>
+Subject: [PATCH v2 18/22] ACPICA: iASL: Add support for CEDT table
+Date:   Tue,  6 Apr 2021 14:30:24 -0700
+Message-Id: <20210406213028.718796-19-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210406213028.718796-1-erik.kaneda@intel.com>
 References: <20210406213028.718796-1-erik.kaneda@intel.com>
@@ -51,60 +50,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jean-Philippe Brucker <jean-philippe@linaro.org>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 856a96fdf4b51b2b8da17529df0255e6f51f1b5b
+Also, update the CEDT template.
 
-struct acpi_viot_header is missing from identifier table, causing linuxize
-failures.
+ACPICA commit 1e6dded267b13c4aa0c3e16de0fa89d3b9c880e9
 
-Link: https://github.com/acpica/acpica/commit/856a96fd
-Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+Link: https://github.com/acpica/acpica/commit/1e6dded2
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl3.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/acpi/actbl1.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index c0e68331f1fc..86903ac5bbc5 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -520,7 +520,7 @@ enum acpi_viot_node_type {
- /* VIOT subtables */
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 7b286766e810..ce59903c2695 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -327,6 +327,7 @@ struct acpi_cedt_header {
  
- struct acpi_viot_pci_range {
--	ACPI_VIOT_HEADER header;
-+	struct acpi_viot_header header;
- 	u32 endpoint_start;
- 	u16 segment_start;
- 	u16 segment_end;
-@@ -531,7 +531,7 @@ struct acpi_viot_pci_range {
+ enum acpi_cedt_type {
+ 	ACPI_CEDT_TYPE_CHBS = 0,
++	ACPI_CEDT_TYPE_RESERVED = 1
  };
  
- struct acpi_viot_mmio {
--	ACPI_VIOT_HEADER header;
-+	struct acpi_viot_header header;
- 	u32 endpoint;
- 	u64 base_address;
- 	u16 output_node;
-@@ -539,14 +539,14 @@ struct acpi_viot_mmio {
- };
+ /*
+@@ -336,7 +337,7 @@ enum acpi_cedt_type {
+ /* 0: CXL Host Bridge Structure */
  
- struct acpi_viot_virtio_iommu_pci {
--	ACPI_VIOT_HEADER header;
-+	struct acpi_viot_header header;
- 	u16 segment;
- 	u16 bdf;
- 	u8 reserved[8];
- };
- 
- struct acpi_viot_virtio_iommu_mmio {
--	ACPI_VIOT_HEADER header;
-+	struct acpi_viot_header header;
- 	u8 reserved[4];
- 	u64 base_address;
- };
+ struct acpi_cedt_chbs {
+-	ACPI_CEDT_HEADER header;
++	struct acpi_cedt_header header;
+ 	u32 uid;
+ 	u32 cxl_version;
+ 	u32 reserved;
 -- 
 2.29.2
 
