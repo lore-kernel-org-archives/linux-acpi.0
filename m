@@ -2,57 +2,172 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF045C433ED
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 08:55:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72F5CC433B4
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2AA661359
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 08:55:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51E2E61353
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349764AbhDGIzp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Apr 2021 04:55:45 -0400
-Received: from 8bytes.org ([81.169.241.247]:33758 "EHLO theia.8bytes.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345831AbhDGIzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Apr 2021 04:55:19 -0400
-Received: by theia.8bytes.org (Postfix, from userid 1000)
-        id 2BDC52A6; Wed,  7 Apr 2021 10:55:09 +0200 (CEST)
-Date:   Wed, 7 Apr 2021 10:55:07 +0200
-From:   Joerg Roedel <joro@8bytes.org>
-To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
-Cc:     will@kernel.org, lorenzo.pieralisi@arm.com, robh+dt@kernel.org,
-        guohanjun@huawei.com, sudeep.holla@arm.com, rjw@rjwysocki.net,
-        lenb@kernel.org, robin.murphy@arm.com, Jonathan.Cameron@huawei.com,
-        eric.auger@redhat.com, iommu@lists.linux-foundation.org,
-        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-accelerators@lists.ozlabs.org, baolu.lu@linux.intel.com,
-        jacob.jun.pan@linux.intel.com, kevin.tian@intel.com,
-        vdumpa@nvidia.com, zhangfei.gao@linaro.org,
-        shameerali.kolothum.thodi@huawei.com, vivek.gautam@arm.com,
-        zhukeqian1@huawei.com, wangzhou1@hisilicon.com
-Subject: Re: [PATCH v14 00/10] iommu: I/O page faults for SMMUv3
-Message-ID: <YG1za3CYd/Y2JAB3@8bytes.org>
-References: <20210401154718.307519-1-jean-philippe@linaro.org>
+        id S245157AbhDGOeQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Apr 2021 10:34:16 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:42118 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1352977AbhDGOeD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Apr 2021 10:34:03 -0400
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 2.0.3)
+ id ebc5461653ed92d7; Wed, 7 Apr 2021 16:33:53 +0200
+Received: from kreacher.localnet (89-64-81-116.dynamic.chello.pl [89.64.81.116])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 69565669203;
+        Wed,  7 Apr 2021 16:33:52 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v1 5/5] ACPI: scan: Call acpi_get_object_info() from acpi_set_pnp_ids()
+Date:   Wed, 07 Apr 2021 16:33:38 +0200
+Message-ID: <2137295.iZASKD2KPV@kreacher>
+In-Reply-To: <2192169.ElGaqSPkdT@kreacher>
+References: <2192169.ElGaqSPkdT@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210401154718.307519-1-jean-philippe@linaro.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 89.64.81.116
+X-CLIENT-HOSTNAME: 89-64-81-116.dynamic.chello.pl
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeduledrudejjedgjeekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepkeelrdeigedrkedurdduudeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepkeelrdeigedrkedurdduudeipdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Apr 01, 2021 at 05:47:09PM +0200, Jean-Philippe Brucker wrote:
-> Jean-Philippe Brucker (10):
->   iommu: Fix comment for struct iommu_fwspec
->   iommu/arm-smmu-v3: Use device properties for pasid-num-bits
->   iommu: Separate IOMMU_DEV_FEAT_IOPF from IOMMU_DEV_FEAT_SVA
->   iommu/vt-d: Support IOMMU_DEV_FEAT_IOPF
->   uacce: Enable IOMMU_DEV_FEAT_IOPF
->   iommu: Add a page fault handler
->   iommu/arm-smmu-v3: Maintain a SID->device structure
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applied the first 7 patches, thanks.
+Notice that it is not necessary to call acpi_get_object_info() from
+acpi_add_single_object() in order to pass the pointer returned by it
+to acpi_init_device_object() and from there to acpi_set_pnp_ids().
+
+It is more straightforward to call acpi_get_object_info() from
+acpi_set_pnp_ids() and avoid unnecessary pointer passing, so change
+the code accordingly.
+
+No intentional functional impact.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/internal.h |    2 +-
+ drivers/acpi/power.c    |    2 +-
+ drivers/acpi/scan.c     |   21 +++++++++------------
+ 3 files changed, 11 insertions(+), 14 deletions(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1307,8 +1307,9 @@ static bool acpi_object_is_system_bus(ac
+ }
+ 
+ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+-				int device_type, struct acpi_device_info *info)
++			     int device_type)
+ {
++	struct acpi_device_info *info = NULL;
+ 	struct acpi_pnp_device_id_list *cid_list;
+ 	int i;
+ 
+@@ -1319,6 +1320,7 @@ static void acpi_set_pnp_ids(acpi_handle
+ 			break;
+ 		}
+ 
++		acpi_get_object_info(handle, &info);
+ 		if (!info) {
+ 			pr_err(PREFIX "%s: Error reading device info\n",
+ 					__func__);
+@@ -1344,6 +1346,8 @@ static void acpi_set_pnp_ids(acpi_handle
+ 		if (info->valid & ACPI_VALID_CLS)
+ 			acpi_add_id(pnp, info->class_code.string);
+ 
++		kfree(info);
++
+ 		/*
+ 		 * Some devices don't reliably have _HIDs & _CIDs, so add
+ 		 * synthetic HIDs to make sure drivers can find them.
+@@ -1649,7 +1653,7 @@ static bool acpi_device_enumeration_by_p
+ }
+ 
+ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+-			     int type, struct acpi_device_info *info)
++			     int type)
+ {
+ 	INIT_LIST_HEAD(&device->pnp.ids);
+ 	device->device_type = type;
+@@ -1658,7 +1662,7 @@ void acpi_init_device_object(struct acpi
+ 	fwnode_init(&device->fwnode, &acpi_device_fwnode_ops);
+ 	acpi_set_device_status(device, ACPI_STA_DEFAULT);
+ 	acpi_device_get_busid(device);
+-	acpi_set_pnp_ids(handle, &device->pnp, type, info);
++	acpi_set_pnp_ids(handle, &device->pnp, type);
+ 	acpi_init_properties(device);
+ 	acpi_bus_get_flags(device);
+ 	device->flags.match_driver = false;
+@@ -1688,21 +1692,14 @@ static void acpi_scan_init_status(struct
+ static int acpi_add_single_object(struct acpi_device **child,
+ 				  acpi_handle handle, int type)
+ {
+-	struct acpi_device_info *info = NULL;
+ 	struct acpi_device *device;
+ 	int result;
+ 
+-	if (type == ACPI_BUS_TYPE_DEVICE && handle != ACPI_ROOT_OBJECT)
+-		acpi_get_object_info(handle, &info);
+-
+ 	device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
+-	if (!device) {
+-		kfree(info);
++	if (!device)
+ 		return -ENOMEM;
+-	}
+ 
+-	acpi_init_device_object(device, handle, type, info);
+-	kfree(info);
++	acpi_init_device_object(device, handle, type);
+ 	/*
+ 	 * Getting the status is delayed till here so that we can call
+ 	 * acpi_bus_get_status() and use its quirk handling.  Note that
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -109,7 +109,7 @@ struct acpi_device_bus_id {
+ int acpi_device_add(struct acpi_device *device,
+ 		    void (*release)(struct device *));
+ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+-			     int type, struct acpi_device_info *info);
++			     int type);
+ int acpi_device_setup_files(struct acpi_device *dev);
+ void acpi_device_remove_files(struct acpi_device *dev);
+ void acpi_device_add_finalize(struct acpi_device *device);
+Index: linux-pm/drivers/acpi/power.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -925,7 +925,7 @@ int acpi_add_power_resource(acpi_handle
+ 		return -ENOMEM;
+ 
+ 	device = &resource->device;
+-	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER, NULL);
++	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER);
+ 	mutex_init(&resource->resource_lock);
+ 	INIT_LIST_HEAD(&resource->list_node);
+ 	INIT_LIST_HEAD(&resource->dependents);
+
+
+
