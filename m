@@ -2,150 +2,99 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33A13C433ED
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85445C433B4
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:46:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1557161279
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52CC46121E
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:46:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353059AbhDGOeR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Apr 2021 10:34:17 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:49220 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352993AbhDGOeG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Apr 2021 10:34:06 -0400
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 2.0.3)
- id 3570bd9b78a477a8; Wed, 7 Apr 2021 16:33:55 +0200
-Received: from kreacher.localnet (89-64-81-116.dynamic.chello.pl [89.64.81.116])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 9AA71669203;
-        Wed,  7 Apr 2021 16:33:54 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v1 3/5] ACPI: scan: Drop sta argument from acpi_add_single_object()
-Date:   Wed, 07 Apr 2021 16:31:54 +0200
-Message-ID: <3102232.aeNJFYEL58@kreacher>
-In-Reply-To: <2192169.ElGaqSPkdT@kreacher>
+        id S1345264AbhDGOqa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Apr 2021 10:46:30 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:30187 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S244998AbhDGOq2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Apr 2021 10:46:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1617806778;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=mg+fAs8HiCSf9usDBnxdCzvZm/dqxv2o27VRQ8dpGpE=;
+        b=jPKzwiE/9AoSGrNd6RS6OlZy9VUmoO3MiNoeuBRWjLsQ+vNITic18iddsbp42livXzPLHo
+        p1Pc7bJNBdgyFQeDatDNH8efOGixIhiZmVVV2L1PS9QCoPCjGo2ANNIB6CfCkUarzS6jxd
+        wbmegmsLEDUPPfXB0/4LjcupsH2YUuM=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-209-gDW4DfkzNLapO_dRws_m8Q-1; Wed, 07 Apr 2021 10:46:16 -0400
+X-MC-Unique: gDW4DfkzNLapO_dRws_m8Q-1
+Received: by mail-ej1-f69.google.com with SMTP id zn19so3093228ejb.14
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Apr 2021 07:46:16 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=mg+fAs8HiCSf9usDBnxdCzvZm/dqxv2o27VRQ8dpGpE=;
+        b=bIdsby+DzBoDloK46W6shhOF9iWeuL9Gz0yqVDIQnT1WB5dzMwnRaxZEEPM7EwQI1D
+         SPLL0i71+lKchvb0fiLzrVRWty7y2NT5PvFcK5lEPpaiIX5u/j6iXrAvtZn6mImXVy+D
+         C5uTvUT7ONNVA29nwJczhp7Gsm1MbOYszw1zkDjPReZpVR0NdDWhZpR9lK8TOCTPDF+c
+         jL5tFaNfGyTM36e3xN6JXMGvX5BpVre9P8ViuQ2hgv8du/o/cW3E9zB39JYx1UMW+XQD
+         feaPIQSb7h5STXzosxdsVtR07Q7dOjVKUWS4xFbKKogFOW9bFPSI9Cw+uqxRWbotAMxE
+         9ZHw==
+X-Gm-Message-State: AOAM530W9bSXF5zGiU02rAnu61p2y8bcu8vermbbQXafG9+BsJC4kS2T
+        yCiCb37xPr4pTA8x3sHbDewuk7t3q+hsDYtet1sH6Wm2xi9OdhCpmpm9khQ6DzM5ON72O/y9KRW
+        kz+saWHw9OnLBCJjLYKRJow==
+X-Received: by 2002:a17:907:628a:: with SMTP id nd10mr4143793ejc.326.1617806775283;
+        Wed, 07 Apr 2021 07:46:15 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJzHhBqm26Mm7YFhs88gM9OOeiQCRSbPAmpao8DVnIAjK0sCenydd7fdhGuJ2WWq8h5whHoFsw==
+X-Received: by 2002:a17:907:628a:: with SMTP id nd10mr4143783ejc.326.1617806775169;
+        Wed, 07 Apr 2021 07:46:15 -0700 (PDT)
+Received: from x1.localdomain (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
+        by smtp.gmail.com with ESMTPSA id x17sm12698028ejd.68.2021.04.07.07.46.14
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 07 Apr 2021 07:46:14 -0700 (PDT)
+Subject: Re: [PATCH v1 0/5] ACPI: scan: acpi_bus_check_add() simplifications
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>
 References: <2192169.ElGaqSPkdT@kreacher>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <c50d3bc1-e40c-a66d-35fe-823a1398989d@redhat.com>
+Date:   Wed, 7 Apr 2021 16:46:14 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 89.64.81.116
-X-CLIENT-HOSTNAME: 89-64-81-116.dynamic.chello.pl
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeduledrudejjedgjeejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepkeelrdeigedrkedurdduudeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepkeelrdeigedrkedurdduudeipdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
+In-Reply-To: <2192169.ElGaqSPkdT@kreacher>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-Move the initial status check for ACPI_BUS_TYPE_PROCESSOR objects
-into acpi_add_single_object() so it is not necessary to pass the
-"sta" argument to it, get rid of that argument from there and update
-the callers of that function accordingly.
+On 4/7/21 4:27 PM, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> This series simplifies acpi_bus_check_add() and related code.
+> 
+> It mostly is not expected to alter functionality, except for patch [4/5] that
+> unifies the handling of device and processor objects.
+> 
+> Please refer to the patch changelogs for details.
 
-No intentional functional impact.
+Thanks, the entire series looks good to me:
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1681,15 +1681,18 @@ void acpi_device_add_finalize(struct acp
- }
- 
- static int acpi_add_single_object(struct acpi_device **child,
--				  acpi_handle handle, int type,
--				  unsigned long long sta)
-+				  acpi_handle handle, int type)
- {
- 	struct acpi_device_info *info = NULL;
-+	unsigned long long sta = ACPI_STA_DEFAULT;
- 	struct acpi_device *device;
- 	int result;
- 
--	if (handle != ACPI_ROOT_OBJECT && type == ACPI_BUS_TYPE_DEVICE)
-+	if (type == ACPI_BUS_TYPE_DEVICE && handle != ACPI_ROOT_OBJECT)
- 		acpi_get_object_info(handle, &info);
-+	else if (type == ACPI_BUS_TYPE_PROCESSOR &&
-+		 ACPI_FAILURE(acpi_bus_get_status_handle(handle, &sta)))
-+		return -ENODEV;
- 
- 	device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
- 	if (!device) {
-@@ -1910,7 +1913,6 @@ static acpi_status acpi_bus_check_add(ac
- 				      struct acpi_device **adev_p)
- {
- 	struct acpi_device *device = NULL;
--	unsigned long long sta = ACPI_STA_DEFAULT;
- 	acpi_object_type acpi_type;
- 	int type;
- 
-@@ -1938,9 +1940,6 @@ static acpi_status acpi_bus_check_add(ac
- 		break;
- 
- 	case ACPI_TYPE_PROCESSOR:
--		if (ACPI_FAILURE(acpi_bus_get_status_handle(handle, &sta)))
--			return AE_OK;
--
- 		type = ACPI_BUS_TYPE_PROCESSOR;
- 		break;
- 
-@@ -1955,7 +1954,7 @@ static acpi_status acpi_bus_check_add(ac
- 		return AE_OK;
- 	}
- 
--	acpi_add_single_object(&device, handle, type, sta);
-+	acpi_add_single_object(&device, handle, type);
- 	if (!device)
- 		return AE_CTRL_DEPTH;
- 
-@@ -2229,8 +2228,7 @@ int acpi_bus_register_early_device(int t
- 	struct acpi_device *device = NULL;
- 	int result;
- 
--	result = acpi_add_single_object(&device, NULL,
--					type, ACPI_STA_DEFAULT);
-+	result = acpi_add_single_object(&device, NULL, type);
- 	if (result)
- 		return result;
- 
-@@ -2250,8 +2248,7 @@ static int acpi_bus_scan_fixed(void)
- 		struct acpi_device *device = NULL;
- 
- 		result = acpi_add_single_object(&device, NULL,
--						ACPI_BUS_TYPE_POWER_BUTTON,
--						ACPI_STA_DEFAULT);
-+						ACPI_BUS_TYPE_POWER_BUTTON);
- 		if (result)
- 			return result;
- 
-@@ -2267,8 +2264,7 @@ static int acpi_bus_scan_fixed(void)
- 		struct acpi_device *device = NULL;
- 
- 		result = acpi_add_single_object(&device, NULL,
--						ACPI_BUS_TYPE_SLEEP_BUTTON,
--						ACPI_STA_DEFAULT);
-+						ACPI_BUS_TYPE_SLEEP_BUTTON);
- 		if (result)
- 			return result;
- 
+Regards,
 
-
+Hans
 
