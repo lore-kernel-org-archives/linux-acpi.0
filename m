@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2802C43460
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83975C43461
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA5B261353
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6994F61279
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Apr 2021 14:34:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353058AbhDGOeR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1352980AbhDGOeR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 7 Apr 2021 10:34:17 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:53148 "EHLO
+Received: from cloudserver094114.home.pl ([79.96.170.134]:50430 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352985AbhDGOeF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Apr 2021 10:34:05 -0400
+        with ESMTP id S1352999AbhDGOeH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Apr 2021 10:34:07 -0400
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 2.0.3)
- id 3fefc9d137ea351f; Wed, 7 Apr 2021 16:33:54 +0200
+ id 6ec13df0c764e0e7; Wed, 7 Apr 2021 16:33:56 +0200
 Received: from kreacher.localnet (89-64-81-116.dynamic.chello.pl [89.64.81.116])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 86987669203;
-        Wed,  7 Apr 2021 16:33:53 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id AE642669203;
+        Wed,  7 Apr 2021 16:33:55 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v1 4/5] ACPI: scan: Drop sta argument from acpi_init_device_object()
-Date:   Wed, 07 Apr 2021 16:32:43 +0200
-Message-ID: <7894723.T7Z3S40VBb@kreacher>
+Subject: [PATCH v1 2/5] ACPI: scan: Rearrange checks in acpi_bus_check_add()
+Date:   Wed, 07 Apr 2021 16:30:56 +0200
+Message-ID: <12741615.uLZWGnKmhe@kreacher>
 In-Reply-To: <2192169.ElGaqSPkdT@kreacher>
 References: <2192169.ElGaqSPkdT@kreacher>
 MIME-Version: 1.0
@@ -51,123 +51,83 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Use the observation that the initial status check for
-ACPI_BUS_TYPE_PROCESSOR objects can be carried out in the same way
-as for ACPI_BUS_TYPE_DEVICE objects and it is not necessary to fail
-acpi_add_single_object() if acpi_bus_get_status_handle() returns an
-error for a processor (its status can be set to 0 instead) to
-simplify acpi_add_single_object().
+Rearrange the checks in acpi_bus_check_add() to avoid checking
+the "type" twice and take "check_dep" into account only for
+ACPI_TYPE_DEVICE objects.
 
-Accordingly, drop the "sta" argument from acpi_init_device_object()
-as it can always set the initial status to ACPI_STA_DEFAULT and let
-its caller correct that later on.
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/internal.h |    3 +--
- drivers/acpi/power.c    |    3 +--
- drivers/acpi/scan.c     |   28 ++++++++++++++--------------
- 3 files changed, 16 insertions(+), 18 deletions(-)
+ drivers/acpi/scan.c |   30 +++++++++++-------------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
 
 Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/scan.c
 +++ linux-pm/drivers/acpi/scan.c
-@@ -1649,15 +1649,14 @@ static bool acpi_device_enumeration_by_p
+@@ -1831,7 +1831,7 @@ static void acpi_scan_init_hotplug(struc
+ 	}
  }
  
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
--			     int type, unsigned long long sta,
--			     struct acpi_device_info *info)
-+			     int type, struct acpi_device_info *info)
+-static u32 acpi_scan_check_dep(acpi_handle handle)
++static u32 acpi_scan_check_dep(acpi_handle handle, bool check_dep)
  {
- 	INIT_LIST_HEAD(&device->pnp.ids);
- 	device->device_type = type;
- 	device->handle = handle;
- 	device->parent = acpi_bus_get_parent(handle);
- 	fwnode_init(&device->fwnode, &acpi_device_fwnode_ops);
--	acpi_set_device_status(device, sta);
-+	acpi_set_device_status(device, ACPI_STA_DEFAULT);
- 	acpi_device_get_busid(device);
- 	acpi_set_pnp_ids(handle, &device->pnp, type, info);
- 	acpi_init_properties(device);
-@@ -1680,19 +1679,21 @@ void acpi_device_add_finalize(struct acp
- 	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
- }
+ 	struct acpi_handle_list dep_devices;
+ 	acpi_status status;
+@@ -1844,7 +1844,8 @@ static u32 acpi_scan_check_dep(acpi_hand
+ 	 * 2. ACPI nodes describing USB ports.
+ 	 * Still, checking for _HID catches more then just these cases ...
+ 	 */
+-	if (!acpi_has_method(handle, "_DEP") || !acpi_has_method(handle, "_HID"))
++	if (!check_dep || !acpi_has_method(handle, "_DEP") ||
++	    !acpi_has_method(handle, "_HID"))
+ 		return 0;
  
-+static void acpi_scan_init_status(struct acpi_device *adev)
-+{
-+	if (acpi_bus_get_status(adev))
-+		acpi_set_device_status(adev, 0);
-+}
+ 	status = acpi_evaluate_reference(handle, "_DEP", NULL, &dep_devices);
+@@ -1925,6 +1926,12 @@ static acpi_status acpi_bus_check_add(ac
+ 		if (acpi_device_should_be_hidden(handle))
+ 			return AE_OK;
+ 
++		/* Bail out if there are dependencies. */
++		if (acpi_scan_check_dep(handle, check_dep) > 0) {
++			acpi_bus_scan_second_pass = true;
++			return AE_CTRL_DEPTH;
++		}
 +
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type)
- {
- 	struct acpi_device_info *info = NULL;
--	unsigned long long sta = ACPI_STA_DEFAULT;
- 	struct acpi_device *device;
- 	int result;
+ 		fallthrough;
+ 	case ACPI_TYPE_ANY:	/* for ACPI_ROOT_OBJECT */
+ 		type = ACPI_BUS_TYPE_DEVICE;
+@@ -1942,27 +1949,12 @@ static acpi_status acpi_bus_check_add(ac
+ 		break;
  
- 	if (type == ACPI_BUS_TYPE_DEVICE && handle != ACPI_ROOT_OBJECT)
- 		acpi_get_object_info(handle, &info);
--	else if (type == ACPI_BUS_TYPE_PROCESSOR &&
--		 ACPI_FAILURE(acpi_bus_get_status_handle(handle, &sta)))
--		return -ENODEV;
- 
- 	device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
- 	if (!device) {
-@@ -1700,16 +1701,15 @@ static int acpi_add_single_object(struct
- 		return -ENOMEM;
+ 	case ACPI_TYPE_POWER:
+-		type = ACPI_BUS_TYPE_POWER;
+-		break;
+-
+-	default:
+-		return AE_OK;
+-	}
+-
+-	if (type == ACPI_BUS_TYPE_POWER) {
+ 		acpi_add_power_resource(handle);
++		fallthrough;
++	default:
+ 		return AE_OK;
  	}
  
--	acpi_init_device_object(device, handle, type, sta, info);
-+	acpi_init_device_object(device, handle, type, info);
- 	kfree(info);
- 	/*
--	 * For ACPI_BUS_TYPE_DEVICE getting the status is delayed till here so
--	 * that we can call acpi_bus_get_status() and use its quirk handling.
--	 * Note this must be done before the get power-/wakeup_dev-flags calls.
-+	 * Getting the status is delayed till here so that we can call
-+	 * acpi_bus_get_status() and use its quirk handling.  Note that
-+	 * this must be done before the get power-/wakeup_dev-flags calls.
- 	 */
--	if (type == ACPI_BUS_TYPE_DEVICE)
--		if (acpi_bus_get_status(device) < 0)
--			acpi_set_device_status(device, 0);
-+	if (type == ACPI_BUS_TYPE_DEVICE || type == ACPI_BUS_TYPE_PROCESSOR)
-+		acpi_scan_init_status(device);
- 
- 	acpi_bus_get_power_flags(device);
- 	acpi_bus_get_wakeup_device_flags(device);
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -109,8 +109,7 @@ struct acpi_device_bus_id {
- int acpi_device_add(struct acpi_device *device,
- 		    void (*release)(struct device *));
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
--			     int type, unsigned long long sta,
--			     struct acpi_device_info *info);
-+			     int type, struct acpi_device_info *info);
- int acpi_device_setup_files(struct acpi_device *dev);
- void acpi_device_remove_files(struct acpi_device *dev);
- void acpi_device_add_finalize(struct acpi_device *device);
-Index: linux-pm/drivers/acpi/power.c
-===================================================================
---- linux-pm.orig/drivers/acpi/power.c
-+++ linux-pm/drivers/acpi/power.c
-@@ -925,8 +925,7 @@ int acpi_add_power_resource(acpi_handle
- 		return -ENOMEM;
- 
- 	device = &resource->device;
--	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER,
--				ACPI_STA_DEFAULT, NULL);
-+	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER, NULL);
- 	mutex_init(&resource->resource_lock);
- 	INIT_LIST_HEAD(&resource->list_node);
- 	INIT_LIST_HEAD(&resource->dependents);
+-	if (type == ACPI_BUS_TYPE_DEVICE && check_dep) {
+-		u32 count = acpi_scan_check_dep(handle);
+-		/* Bail out if the number of recorded dependencies is not 0. */
+-		if (count > 0) {
+-			acpi_bus_scan_second_pass = true;
+-			return AE_CTRL_DEPTH;
+-		}
+-	}
+-
+ 	acpi_add_single_object(&device, handle, type, sta);
+ 	if (!device)
+ 		return AE_CTRL_DEPTH;
 
 
 
