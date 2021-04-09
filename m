@@ -2,174 +2,156 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52958C433ED
-	for <linux-acpi@archiver.kernel.org>; Fri,  9 Apr 2021 02:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68D37C43460
+	for <linux-acpi@archiver.kernel.org>; Fri,  9 Apr 2021 06:55:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19AD46102A
-	for <linux-acpi@archiver.kernel.org>; Fri,  9 Apr 2021 02:13:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E76A610FC
+	for <linux-acpi@archiver.kernel.org>; Fri,  9 Apr 2021 06:55:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232725AbhDICOB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Apr 2021 22:14:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36492 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232662AbhDICOA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Apr 2021 22:14:00 -0400
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E148C061761
-        for <linux-acpi@vger.kernel.org>; Thu,  8 Apr 2021 19:13:48 -0700 (PDT)
-Received: by mail-ed1-x531.google.com with SMTP id f8so4685498edd.11
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Apr 2021 19:13:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=f2qaiiK1miGaHFDZOcjWpGbeY0G0GNPiEFJnOCok4zM=;
-        b=yq7NYbntAfC6ZE5vwPH8NQp6c/9DeWBTAw85Zl/9kTUELym7jNaKZMPofpwWuOyxsJ
-         6mJ4tatrCAM9QChJP/npb9QyVmqALziSs6c7fz+iuUmZVNruPf/JiFvbq0g1HpWdlYrL
-         S9Qd+pkmOR7AQHG3HJ35aWygLAKS4+dqQhxjd5nqjQKdm2H5VYcFFoYiQ6BXSkp2bdAl
-         ryk5rZpGoSACoNx6dG78mU2GzUYrtVKazPdGcCcXymf/Fo+vPSpxo6ak7nfq2r2vDRnZ
-         nTiFgCxxIeIkAuJe1VGd39aTB4KIJ2TgwzPa0oNEeA+C65tQx45HtnEsbwdRq9GNyJPc
-         bfWA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=f2qaiiK1miGaHFDZOcjWpGbeY0G0GNPiEFJnOCok4zM=;
-        b=L9rzZqzkpTLPMUBDpNRUmn2CZEfKpx2VAT40qN7/P61LaW/WFpbqobdhnd4g+kBpiS
-         V7tfd7TdlKlIpZBIcCa1gjzxWnDymNUQ+GF0e9zn/xXTvghMogLMLdCfQi/YPaD+lL0E
-         v+npNfEnO2eeveM8UkcTWfn1etG8IdewPy38LBAEOEDDnSCFlL4/1d6VWl/wXKKEyuJA
-         L77vZ0L/FhvUGqNcjU8NTRDpg/BQzGcKHoMDh2W5W9PlwKiOx9Fj6MLTNgv9ZrqoEsRw
-         +FxiXMdH48ZB+z3Vx1LxjjlaYsYKTzuqCxriKDk1XAhU/AWt7n/XLiLkEBfDLanVKkXr
-         HHNw==
-X-Gm-Message-State: AOAM533WFOSyIhXWZYrvoId1TUK8KGjfQ8kilMQf0o/iCMg6NDaWL9Hw
-        pWr1k33h3U2v6sMYcA+cJaj4g06Vq6zX682XwMp+qA==
-X-Google-Smtp-Source: ABdhPJy8T/A/b0CcVSuNgdFN6MQiQW7XBPZq78CD/4+wYIqurY2iw+THk2r3Sw/gRB14TkMR0lGHk1vunwcPz60JRjU=
-X-Received: by 2002:a05:6402:30ae:: with SMTP id df14mr14946235edb.97.1617934426999;
- Thu, 08 Apr 2021 19:13:46 -0700 (PDT)
+        id S233335AbhDIGzN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 9 Apr 2021 02:55:13 -0400
+Received: from mga12.intel.com ([192.55.52.136]:40391 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231540AbhDIGzN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Apr 2021 02:55:13 -0400
+IronPort-SDR: d1yiPPasJ9R79uehsvCUEDVkOWsbpivla7BwiEWvWDfLxF3CI/DICbSL/3a66ZK8Su2FS5e6vt
+ MGGl10tDwX6A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9948"; a="173181663"
+X-IronPort-AV: E=Sophos;i="5.82,208,1613462400"; 
+   d="scan'208";a="173181663"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Apr 2021 23:55:00 -0700
+IronPort-SDR: pjGxxRloPxYmczMy6KLK8xypZTeXgKK+qC4pJL/3sz5IxyZVCUc5ZwXDOf8ki6XE1Blo32mwmo
+ dJoBEwPi2GIQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.82,208,1613462400"; 
+   d="scan'208";a="416140990"
+Received: from lkp-server01.sh.intel.com (HELO 69d8fcc516b7) ([10.239.97.150])
+  by fmsmga008.fm.intel.com with ESMTP; 08 Apr 2021 23:54:59 -0700
+Received: from kbuild by 69d8fcc516b7 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1lUl2f-000GJE-WA; Fri, 09 Apr 2021 06:54:57 +0000
+Date:   Fri, 09 Apr 2021 14:54:32 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [pm:bleeding-edge] BUILD SUCCESS
+ d632b6ec9bc410cf46b6e4b0c142c93f6a7713f4
+Message-ID: <606ffa28.ovHX0V7D09apt73R%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-References: <161728748083.2474040.753623311074560290.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210408224215.GA1964510@bjorn-Precision-5520>
-In-Reply-To: <20210408224215.GA1964510@bjorn-Precision-5520>
-From:   Dan Williams <dan.j.williams@intel.com>
-Date:   Thu, 8 Apr 2021 19:13:38 -0700
-Message-ID: <CAPcyv4hAc=DERr1z8kr=V01+NSi74f-kSfMAdeArLmVb112_Dw@mail.gmail.com>
-Subject: Re: [PATCH v2 7/8] cxl/port: Introduce cxl_port objects
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        "Weiny, Ira" <ira.weiny@intel.com>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        "Schofield, Alison" <alison.schofield@intel.com>,
-        Ben Widawsky <ben.widawsky@intel.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Matthew Wilcox <willy@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Bjorn, thanks for taking a look.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: d632b6ec9bc410cf46b6e4b0c142c93f6a7713f4  Merge branch 'pm-cpuidle' into bleeding-edge
 
+elapsed time: 727m
 
-On Thu, Apr 8, 2021 at 3:42 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
->
-> [+cc Greg, Rafael, Matthew: device model questions]
->
-> Hi Dan,
->
-> On Thu, Apr 01, 2021 at 07:31:20AM -0700, Dan Williams wrote:
-> > Once the cxl_root is established then other ports in the hierarchy can
-> > be attached. The cxl_port object, unlike cxl_root that is associated
-> > with host bridges, is associated with PCIE Root Ports or PCIE Switch
-> > Ports. Add cxl_port instances for all PCIE Root Ports in an ACPI0016
-> > host bridge.
->
-> I'm not a device model expert, but I'm not sure about adding a new
-> /sys/bus/cxl/devices hierarchy.  I'm under the impression that CXL
-> devices will be enumerated by the PCI core as PCIe devices.
+configs tested: 85
+configs skipped: 2
 
-Yes, PCIe is involved, but mostly only for the CXL.io slow path
-(configuration and provisioning via mailbox) when we're talking about
-memory expander devices (CXL calls these Type-3). So-called "Type-3"
-support is the primary driver of this infrastructure.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-You might be thinking of CXL accelerator devices that will look like
-plain PCIe devices that happen to participate in the CPU cache
-hierarchy (CXL calls these Type-1). There will also be accelerator
-devices that want to share coherent memory with the system (CXL calls
-these Type-2).
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+s390                          debug_defconfig
+arm                          pxa3xx_defconfig
+um                           x86_64_defconfig
+mips                         rt305x_defconfig
+arm                            xcep_defconfig
+riscv                               defconfig
+ia64                            zx1_defconfig
+sh                  sh7785lcr_32bit_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+parisc                              defconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a004-20210408
+x86_64               randconfig-a005-20210408
+x86_64               randconfig-a003-20210408
+x86_64               randconfig-a001-20210408
+x86_64               randconfig-a002-20210408
+x86_64               randconfig-a006-20210408
+i386                 randconfig-a006-20210408
+i386                 randconfig-a003-20210408
+i386                 randconfig-a001-20210408
+i386                 randconfig-a004-20210408
+i386                 randconfig-a005-20210408
+i386                 randconfig-a002-20210408
+i386                 randconfig-a014-20210408
+i386                 randconfig-a016-20210408
+i386                 randconfig-a011-20210408
+i386                 randconfig-a012-20210408
+i386                 randconfig-a013-20210408
+i386                 randconfig-a015-20210408
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+um                               allmodconfig
+um                                allnoconfig
+um                               allyesconfig
+um                                  defconfig
+x86_64                           allyesconfig
+x86_64                    rhel-8.3-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
 
-The infrastructure being proposed here is primarily for the memory
-expander (Type-3) device case where the PCI sysfs hierarchy is wholly
-unsuited for modeling it. A single CXL memory region device may span
-multiple endpoints, switches, and host bridges. It poses similar
-stress to an OS device model as RAID where there is a driver for the
-component contributors to an upper level device / driver that exposes
-the RAID Volume (CXL memory region interleave set). The CXL memory
-decode space (HDM: Host Managed Device Memory) is independent of the
-PCIe MMIO BAR space.
+clang tested configs:
+x86_64               randconfig-a014-20210408
+x86_64               randconfig-a015-20210408
+x86_64               randconfig-a012-20210408
+x86_64               randconfig-a011-20210408
+x86_64               randconfig-a013-20210408
+x86_64               randconfig-a016-20210408
 
-That's where the /sys/bus/cxl hierarchy is needed, to manage the HDM
-space across the CXL topology in a way that is foreign to PCIE (HDM
-Decoder hierarchy).
-
-> Doesn't
-> that mean we will have one struct device in the pci_dev, and another
-> one in the cxl_port?
-
-Yes, that is the proposal.
-
-> That seems like an issue to me.  More below.
-
-hmm...
-
->
-> > The cxl_port instances for PCIE Switch Ports are not
-> > included here as those are to be modeled as another service device
-> > registered on the pcie_port_bus_type.
->
-> I'm hesitant about the idea of adding more uses of pcie_port_bus_type.
-> I really dislike portdrv because it makes a parallel hierarchy:
->
->   /sys/bus/pci
->   /sys/bus/pci_express
->
-> for things that really should not be different.  There's a struct
-> device in pci_dev, and potentially several pcie_devices, each with
-> another struct device.  We make these pcie_device things for AER, DPC,
-> hotplug, etc.  E.g.,
->
->   /sys/bus/pci/devices/0000:00:1c.0
->   /sys/bus/pci_express/devices/0000:00:1c.0:pcie002  # AER
->   /sys/bus/pci_express/devices/0000:00:1c.0:pcie010  # BW notification
->
-> These are all the same PCI device.  AER is a PCI capability.
-> Bandwidth notification is just a feature of all Downstream Ports.  I
-> think it makes zero sense to have extra struct devices for them.  From
-> a device point of view (enumeration, power management, VM assignment),
-> we can't manage them separately from the underlying PCI device.  For
-> example, we have three separate "power/" directories, but obviously
-> there's only one point of control (00:1c.0):
->
->   /sys/devices/pci0000:00/0000:00:1c.0/power/
->   /sys/devices/pci0000:00/0000:00:1c.0/0000:00:1c.0:pcie002/power/
->   /sys/devices/pci0000:00/0000:00:1c.0/0000:00:1c.0:pcie010/power/
-
-The superfluous power/ issue can be cleaned up with
-device_set_pm_not_required().
-
-What are the other problems this poses, because in other areas this
-ability to subdivide a device's functionality into sub-drivers is a
-useful organization principle? So much so that several device writer
-teams came together to create the auxiliary-bus for the purpose of
-allowing sub-drivers to be carved off for independent functionality
-similar to the portdrv organization.
-
-That said, I'm open to CXL switch support *not* building on the
-portdrv model, but I'm not yet on the same page with your concern.
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
