@@ -2,146 +2,122 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDF13C43460
-	for <linux-acpi@archiver.kernel.org>; Tue, 13 Apr 2021 17:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED295C433ED
+	for <linux-acpi@archiver.kernel.org>; Tue, 13 Apr 2021 17:53:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE9A460FEA
-	for <linux-acpi@archiver.kernel.org>; Tue, 13 Apr 2021 17:43:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC365613BB
+	for <linux-acpi@archiver.kernel.org>; Tue, 13 Apr 2021 17:53:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345074AbhDMRn2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 13 Apr 2021 13:43:28 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34058 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232398AbhDMRn2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Apr 2021 13:43:28 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1618335788;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=beOkS0kcTwMmsNGMKh0unRk5anjh46vtYQDhAjaR480=;
-        b=I77DpvM+2MycF2GPyos+9VTPHxt7pMwSxqFQw9RWLlaSCHFUKAlSEldDqn066v4T82InDN
-        diDo0xRJpkIAvlCUAS0HdtEvfceqQc6QAQLHxmWBLjyUxNem44XSt93+up7nVrM+24HgVy
-        PgCesWpGT5UMSTc7zDnxDz7KtbUvV/s=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-101-TvPZcA5uO6i2X6s7NM9C1w-1; Tue, 13 Apr 2021 13:43:06 -0400
-X-MC-Unique: TvPZcA5uO6i2X6s7NM9C1w-1
-Received: by mail-ed1-f69.google.com with SMTP id b9-20020a05640202c9b029038276b571ddso1664884edx.11
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Apr 2021 10:43:06 -0700 (PDT)
+        id S231493AbhDMRyR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 13 Apr 2021 13:54:17 -0400
+Received: from mail-ot1-f44.google.com ([209.85.210.44]:35638 "EHLO
+        mail-ot1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231235AbhDMRyR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Apr 2021 13:54:17 -0400
+Received: by mail-ot1-f44.google.com with SMTP id v24-20020a9d69d80000b02901b9aec33371so16910202oto.2;
+        Tue, 13 Apr 2021 10:53:57 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:organization
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=beOkS0kcTwMmsNGMKh0unRk5anjh46vtYQDhAjaR480=;
-        b=cAA76THjHsD5gFtEK1xAfWh+CeyHNp6ahwq3okRenWQ09eXb5C9ssjJXpC8f9VRWOS
-         kXukU7WCZ7VsTbh5Pk/3+XIc3UW6zUEAhpqpfGcI2OiwwDCTSkwnECQS3YM6jjRCQ+pG
-         /kJP9ZuFBBwxlT6meDpCS0KiEkb2GRS03x0RiNGflSUEGj0h7J9t2FIWjqbqrdOlvm/7
-         ymBFXlCunoojkmhdcVnSE03sdAKeDnFmA201M2Ch4vUl/x0MXBc1T5ypWLH0RUtMONQf
-         zeJCvHxQ4lxb8O8ALwVBbCjgAAL1oorhSQtcogK1nX+0rJenQ4zJ/uUzYbizIMMEgDZm
-         qu4g==
-X-Gm-Message-State: AOAM532PqmjiywMQsa+8LiqEASm1ic8/kNm0ByrjFnd0pmJEG8JXhYDC
-        9AoKigHVIGI0qXjtYSZzUzotCVTQZ7ekPAbBb7U8ygH9by7uHIVOh/jv6MYxKvSW73h1boo7MwJ
-        QmsKooiuuGqWAPkF6h2Vs7w==
-X-Received: by 2002:a17:907:2d0c:: with SMTP id gs12mr19768979ejc.443.1618335785199;
-        Tue, 13 Apr 2021 10:43:05 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJzpgzFux6nkdNqUfv6qkAT92npTNxVvR1HWogGtm6C9PrwyY9ABfw/Itc31fSMl8+qAFyaJJQ==
-X-Received: by 2002:a17:907:2d0c:: with SMTP id gs12mr19768968ejc.443.1618335784976;
-        Tue, 13 Apr 2021 10:43:04 -0700 (PDT)
-Received: from [192.168.3.132] (p5b0c62e9.dip0.t-ipconnect.de. [91.12.98.233])
-        by smtp.gmail.com with ESMTPSA id s5sm5243051ejq.52.2021.04.13.10.43.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 13 Apr 2021 10:43:04 -0700 (PDT)
-Subject: Re: [PATCH] ACPI: x86: Call acpi_boot_table_init() after
- acpi_table_upgrade()
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=4ZAoDkrR42DaMFPAXYSwp4F1d1CFF/3apQEZeTX5xO4=;
+        b=g+Ntzh3UyzcEe5T/BQF2HQxxCHV3LYelAICaRWuBWqBW5/b7bpFf4Ad+zmS6c7hIw6
+         K7uMQ5KsxQhVaPEYzhm/ZPRC37K7QoRAiUUUKe3CuqL5w5tlbm1iSD8m/ADjFRnV7yWu
+         jWsvR10jcHYk6bNlE/SecomXi7ZkuBNqiS/1OJtE6FfWEkS6aEvRR8tOHWLBCjLWciHZ
+         65WgOi3KO5+onS+0hSJLVMhYIJKPi+1VZ1TZP+iEC35rK7git0z+AQGsm4KwpAmvTpAP
+         01fUmx6dD8N1+iyTJR2p1FYUcXAzlJrLHrajtm4N9gdZy6h6vcYf6uCZmUAs8uy8gqm9
+         3D9A==
+X-Gm-Message-State: AOAM530vfijMVrcQcc7EI/ulRS7ZflIBbSmN3Pn7W9KPrzFd9aPDo6Q7
+        yBx9oyU5qjsNlpeaHSs4uEPxg+DHqp8mEq1QGng=
+X-Google-Smtp-Source: ABdhPJwWioBmb0kiRyTRIBrrGZrxVitvcdnynaqpvKueWlIFsIK2+hVxNJbd3BqNEE3WEQ0QYlmmb5GKr+9a04IMB1A=
+X-Received: by 2002:a9d:6951:: with SMTP id p17mr16507793oto.206.1618336437080;
+ Tue, 13 Apr 2021 10:53:57 -0700 (PDT)
+MIME-Version: 1.0
+References: <11752259.O9o76ZdvQC@kreacher> <dea11d82-4fe5-ac23-585c-a1f74e076ca7@redhat.com>
+In-Reply-To: <dea11d82-4fe5-ac23-585c-a1f74e076ca7@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 13 Apr 2021 19:53:46 +0200
+Message-ID: <CAJZ5v0hHJYT6kSxoH-v7QQ7oOh=OgQXDpNB7BW7rPwrc0L3SOQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: x86: Call acpi_boot_table_init() after acpi_table_upgrade()
+To:     David Hildenbrand <david@redhat.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Linux ACPI <linux-acpi@vger.kernel.org>,
-        George Kennedy <george.kennedy@oracle.com>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
+        George Kennedy <george.kennedy@oracle.com>,
+        LKML <linux-kernel@vger.kernel.org>,
         x86 Maintainers <x86@kernel.org>,
         Hans de Goede <hdegoede@redhat.com>,
         Mike Rapoport <rppt@linux.ibm.com>
-References: <11752259.O9o76ZdvQC@kreacher>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Message-ID: <dea11d82-4fe5-ac23-585c-a1f74e076ca7@redhat.com>
-Date:   Tue, 13 Apr 2021 19:43:04 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
-MIME-Version: 1.0
-In-Reply-To: <11752259.O9o76ZdvQC@kreacher>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 13.04.21 16:01, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Commit 1a1c130ab757 ("ACPI: tables: x86: Reserve memory occupied by
-> ACPI tables") attempted to address an issue with reserving the memory
-> occupied by ACPI tables, but it broke the initrd-based table override
-> mechanism relied on by multiple users.
-> 
-> To restore the initrd-based ACPI table override functionality, move
-> the acpi_boot_table_init() invocation in setup_arch() on x86 after
-> the acpi_table_upgrade() one.
-> 
-> Fixes: 1a1c130ab757 ("ACPI: tables: x86: Reserve memory occupied by ACPI tables")
-> Reported-by: Hans de Goede <hdegoede@redhat.com>
-> Tested-by: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> George, can you please check if this reintroduces the issue addressed by
-> the above commit for you?
-> 
-> ---
->   arch/x86/kernel/setup.c |    5 ++---
->   1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> Index: linux-pm/arch/x86/kernel/setup.c
-> ===================================================================
-> --- linux-pm.orig/arch/x86/kernel/setup.c
-> +++ linux-pm/arch/x86/kernel/setup.c
-> @@ -1045,9 +1045,6 @@ void __init setup_arch(char **cmdline_p)
->   
->   	cleanup_highmap();
->   
-> -	/* Look for ACPI tables and reserve memory occupied by them. */
-> -	acpi_boot_table_init();
-> -
->   	memblock_set_current_limit(ISA_END_ADDRESS);
->   	e820__memblock_setup();
->   
-> @@ -1132,6 +1129,8 @@ void __init setup_arch(char **cmdline_p)
->   	reserve_initrd();
->   
->   	acpi_table_upgrade();
-> +	/* Look for ACPI tables and reserve memory occupied by them. */
-> +	acpi_boot_table_init();
->   
->   	vsmp_init();
+On Tue, Apr 13, 2021 at 7:43 PM David Hildenbrand <david@redhat.com> wrote:
+>
+> On 13.04.21 16:01, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Commit 1a1c130ab757 ("ACPI: tables: x86: Reserve memory occupied by
+> > ACPI tables") attempted to address an issue with reserving the memory
+> > occupied by ACPI tables, but it broke the initrd-based table override
+> > mechanism relied on by multiple users.
+> >
+> > To restore the initrd-based ACPI table override functionality, move
+> > the acpi_boot_table_init() invocation in setup_arch() on x86 after
+> > the acpi_table_upgrade() one.
+> >
+> > Fixes: 1a1c130ab757 ("ACPI: tables: x86: Reserve memory occupied by ACPI tables")
+> > Reported-by: Hans de Goede <hdegoede@redhat.com>
+> > Tested-by: Hans de Goede <hdegoede@redhat.com>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >
+> > George, can you please check if this reintroduces the issue addressed by
+> > the above commit for you?
+> >
+> > ---
+> >   arch/x86/kernel/setup.c |    5 ++---
+> >   1 file changed, 2 insertions(+), 3 deletions(-)
+> >
+> > Index: linux-pm/arch/x86/kernel/setup.c
+> > ===================================================================
+> > --- linux-pm.orig/arch/x86/kernel/setup.c
+> > +++ linux-pm/arch/x86/kernel/setup.c
+> > @@ -1045,9 +1045,6 @@ void __init setup_arch(char **cmdline_p)
+> >
+> >       cleanup_highmap();
+> >
+> > -     /* Look for ACPI tables and reserve memory occupied by them. */
+> > -     acpi_boot_table_init();
+> > -
+> >       memblock_set_current_limit(ISA_END_ADDRESS);
+> >       e820__memblock_setup();
+> >
+> > @@ -1132,6 +1129,8 @@ void __init setup_arch(char **cmdline_p)
+> >       reserve_initrd();
+> >
+> >       acpi_table_upgrade();
+> > +     /* Look for ACPI tables and reserve memory occupied by them. */
+> > +     acpi_boot_table_init();
+> >
+> >       vsmp_init();
+>
+> This is fairly late; especially, it's after actual allocations -- see
+> e820__memblock_alloc_reserved_mpc_new().
+>
+> Can't the table upgrade mechanism fix up when adjusting something?
 
-This is fairly late; especially, it's after actual allocations -- see 
-e820__memblock_alloc_reserved_mpc_new().
+Not at this point of the cycle I'm afraid.
 
-Can't the table upgrade mechanism fix up when adjusting something? Some 
-details on what actually breaks would be helpful.
+> Some details on what actually breaks would be helpful.
 
--- 
-Thanks,
+Generally speaking, the table overrides that come from the initrd are
+not taken into account if acpi_boot_table_init() runs before
+acpi_table_upgrade() and the latter cannot run before
+reserve_initrd().
 
-David / dhildenb
-
+Honestly, I'm not sure how much effort it would take to untangle this ATM.
