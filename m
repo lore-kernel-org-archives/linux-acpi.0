@@ -2,144 +2,106 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03B02C433ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 12:40:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C622C43462
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 13:51:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D31486128E
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 12:40:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DFAC611C9
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 13:51:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233028AbhDNMkt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 14 Apr 2021 08:40:49 -0400
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2854 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233746AbhDNMiu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Apr 2021 08:38:50 -0400
-Received: from fraeml707-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4FL21x1tzBz68B6P;
-        Wed, 14 Apr 2021 20:33:09 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml707-chm.china.huawei.com (10.206.15.35) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Wed, 14 Apr 2021 14:38:26 +0200
-Received: from localhost (10.52.122.47) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2106.2; Wed, 14 Apr
- 2021 13:38:25 +0100
-Date:   Wed, 14 Apr 2021 13:36:58 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Ben Widawsky <ben.widawsky@intel.com>
-CC:     <linux-cxl@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>, <ira.weiny@intel.com>,
-        <vishal.l.verma@intel.com>, <alison.schofield@intel.com>,
-        <dan.j.williams@intel.com>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] cxl/mem: Add media provisioning required commands
-Message-ID: <20210414133658.00004b79@Huawei.com>
-In-Reply-To: <20210413140907.534404-1-ben.widawsky@intel.com>
-References: <20210413140907.534404-1-ben.widawsky@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
+        id S1351683AbhDNNv3 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 14 Apr 2021 09:51:29 -0400
+Received: from mail-oi1-f176.google.com ([209.85.167.176]:36601 "EHLO
+        mail-oi1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1349187AbhDNNvZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Apr 2021 09:51:25 -0400
+Received: by mail-oi1-f176.google.com with SMTP id c16so20666667oib.3;
+        Wed, 14 Apr 2021 06:51:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=wBROHEdqHjbHn2xOAzD9zl5G4PP8Iw0t5oCeREsbRUI=;
+        b=F2D6psmUzXXC1AdCBajhfRvsnbwY7cIDXsB1Y3274pR9nLpR9203y6zEZ3tLFlZMr2
+         9BYsg4Ubsqu/yXblNfO99k1JiyNvMCqksp3BqbTOQ/Vm2KdFaOU2JfDJlsKuVLmyJaSd
+         A6kyQD8Fd9JkL9OifZ88alXyJLSx2stiyjLvra/1tZAY7g7RFv3J6TuWp2DQG8PXXCJq
+         coCiscT2+NiLVayvYjlfKH8Lrk+CS2YAL+cZebcd/LHB4+QSd8YoUFExsQexgFQbpV0C
+         /0Fc+02oGpHYkH5WmKXBQhrpZi8G88vKskfp0BvTg7/w7dASfnJfiV1Trpf3eJAC7w1+
+         FB3A==
+X-Gm-Message-State: AOAM5323I084gmIbVzV0c5T9bIb1+iiT9DdDAiRe3k75kVPsM1A+2sjo
+        QWWJqi0FA8LTK/A68nATNMT95J8r5ik8Q6GNk4E=
+X-Google-Smtp-Source: ABdhPJyhYaDnUaYnzBxw8igmmnt23AyoMpasJJWHn8h31YSoD28txunXdSxgxZg0g8G7IlVS4hI/flsMyB1LxHSZP2c=
+X-Received: by 2002:aca:5fc3:: with SMTP id t186mr2337394oib.69.1618408264317;
+ Wed, 14 Apr 2021 06:51:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.52.122.47]
-X-ClientProxiedBy: lhreml701-chm.china.huawei.com (10.201.108.50) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <20210413063435.18111-1-me@fabwu.ch> <20210414083022.25453-1-me@fabwu.ch>
+ <20210414083022.25453-2-me@fabwu.ch>
+In-Reply-To: <20210414083022.25453-2-me@fabwu.ch>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 14 Apr 2021 15:50:53 +0200
+Message-ID: <CAJZ5v0ich7DA47ybP552MJJg6-TkShnJyGcrz0PpWYETHHREHQ@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] ACPI: Add _PLD panel positions
+To:     =?UTF-8?Q?Fabian_W=C3=BCthrich?= <me@fabwu.ch>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Dan Scally <djrscally@gmail.com>,
+        Tianshu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 13 Apr 2021 07:09:07 -0700
-Ben Widawsky <ben.widawsky@intel.com> wrote:
+On Wed, Apr 14, 2021 at 10:30 AM Fabian Wüthrich <me@fabwu.ch> wrote:
+>
+> The ACPI specification v6.3 defines the panel positions in chapter 6.1.8
+> "_PLD (Physical Location of Device)"
+>
+> Signed-off-by: Fabian Wüthrich <me@fabwu.ch>
+> Reviewed-by: Daniel Scally <djrscally@gmail.com>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-> Some of the commands have already been defined for the support of RAW
-> commands (to be blocked). Unlike their usage in the RAW interface, when
-> used through the supported interface, they will be coordinated and
-> marshalled along with other commands being issued by userspace and the
-> driver itself. That coordination will be added later.
-> 
-> The list of commands was determined based on the learnings from
-> libnvdimm and this list is provided directly from Dan.
-> 
-> Recommended-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+This is ACPICA material.
 
-Checked all the numbers (not much else in this one ;)
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-You could give more info on why this particular list, but to my
-mind it's all fairly obvious so perhaps not worth bothering.
+Erik, can you pick up this one, please?
 
 > ---
->  drivers/cxl/mem.c            | 19 +++++++++++++++++++
->  include/uapi/linux/cxl_mem.h | 12 ++++++++++++
->  2 files changed, 31 insertions(+)
-> 
-> diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-> index e915e3743b76..e3306aa560cf 100644
-> --- a/drivers/cxl/mem.c
-> +++ b/drivers/cxl/mem.c
-> @@ -50,7 +50,14 @@ enum opcode {
->  	CXL_MBOX_OP_GET_LSA		= 0x4102,
->  	CXL_MBOX_OP_SET_LSA		= 0x4103,
->  	CXL_MBOX_OP_GET_HEALTH_INFO	= 0x4200,
-> +	CXL_MBOX_OP_GET_ALERT_CONFIG	= 0x4201,
-> +	CXL_MBOX_OP_SET_ALERT_CONFIG	= 0x4202,
-> +	CXL_MBOX_OP_GET_SHUTDOWN_STATE	= 0x4203,
->  	CXL_MBOX_OP_SET_SHUTDOWN_STATE	= 0x4204,
-> +	CXL_MBOX_OP_GET_POISON		= 0x4300,
-> +	CXL_MBOX_OP_INJECT_POISON	= 0x4301,
-> +	CXL_MBOX_OP_CLEAR_POISON	= 0x4302,
-> +	CXL_MBOX_OP_GET_SCAN_MEDIA_CAPS	= 0x4303,
->  	CXL_MBOX_OP_SCAN_MEDIA		= 0x4304,
->  	CXL_MBOX_OP_GET_SCAN_MEDIA	= 0x4305,
->  	CXL_MBOX_OP_MAX			= 0x10000
-> @@ -158,6 +165,18 @@ static struct cxl_mem_command mem_commands[CXL_MEM_COMMAND_ID_MAX] = {
->  	CXL_CMD(GET_LSA, 0x8, ~0, 0),
->  	CXL_CMD(GET_HEALTH_INFO, 0, 0x12, 0),
->  	CXL_CMD(GET_LOG, 0x18, ~0, CXL_CMD_FLAG_FORCE_ENABLE),
-> +	CXL_CMD(SET_PARTITION_INFO, 0x0a, 0, 0),
-> +	CXL_CMD(SET_LSA, ~0, 0, 0),
-> +	CXL_CMD(GET_ALERT_CONFIG, 0, 0x10, 0),
-> +	CXL_CMD(SET_ALERT_CONFIG, 0xc, 0, 0),
-> +	CXL_CMD(GET_SHUTDOWN_STATE, 0, 0x1, 0),
-> +	CXL_CMD(SET_SHUTDOWN_STATE, 0x1, 0, 0),
-> +	CXL_CMD(GET_POISON, 0x10, ~0, 0),
-> +	CXL_CMD(INJECT_POISON, 0x8, 0, 0),
-> +	CXL_CMD(CLEAR_POISON, 0x48, 0, 0),
-> +	CXL_CMD(GET_SCAN_MEDIA_CAPS, 0x10, 0x4, 0),
-> +	CXL_CMD(SCAN_MEDIA, 0x11, 0, 0),
-> +	CXL_CMD(GET_SCAN_MEDIA, 0, ~0, 0),
->  };
->  
->  /*
-> diff --git a/include/uapi/linux/cxl_mem.h b/include/uapi/linux/cxl_mem.h
-> index 3155382dfc9b..f6e8a005b113 100644
-> --- a/include/uapi/linux/cxl_mem.h
-> +++ b/include/uapi/linux/cxl_mem.h
-> @@ -29,6 +29,18 @@
->  	___C(GET_LSA, "Get Label Storage Area"),                          \
->  	___C(GET_HEALTH_INFO, "Get Health Info"),                         \
->  	___C(GET_LOG, "Get Log"),                                         \
-> +	___C(SET_PARTITION_INFO, "Set Partition Information"),            \
-> +	___C(SET_LSA, "Set Label Storage Area"),                          \
-> +	___C(GET_ALERT_CONFIG, "Get Alert Configuration"),                \
-> +	___C(SET_ALERT_CONFIG, "Set Alert Configuration"),                \
-> +	___C(GET_SHUTDOWN_STATE, "Get Shutdown State"),                   \
-> +	___C(SET_SHUTDOWN_STATE, "Set Shutdown State"),                   \
-> +	___C(GET_POISON, "Get Poison List"),                              \
-> +	___C(INJECT_POISON, "Inject Poison"),                             \
-> +	___C(CLEAR_POISON, "Clear Poison"),                               \
-> +	___C(GET_SCAN_MEDIA_CAPS, "Get Scan Media Capabilities"),         \
-> +	___C(SCAN_MEDIA, "Scan Media"),                                   \
-> +	___C(GET_SCAN_MEDIA, "Get Scan Media Results"),                   \
->  	___C(MAX, "invalid / last command")
->  
->  #define ___C(a, b) CXL_MEM_COMMAND_ID_##a
-
+>  include/acpi/acbuffer.h | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/include/acpi/acbuffer.h b/include/acpi/acbuffer.h
+> index 18197c16149f..d42e82a82852 100644
+> --- a/include/acpi/acbuffer.h
+> +++ b/include/acpi/acbuffer.h
+> @@ -207,4 +207,13 @@ struct acpi_pld_info {
+>  #define ACPI_PLD_GET_HORIZ_OFFSET(dword)        ACPI_GET_BITS (dword, 16, ACPI_16BIT_MASK)
+>  #define ACPI_PLD_SET_HORIZ_OFFSET(dword,value)  ACPI_SET_BITS (dword, 16, ACPI_16BIT_MASK, value)      /* Offset 128+16=144, Len 16 */
+>
+> +/* Panel position defined in _PLD section of ACPI Specification 6.3 */
+> +#define ACPI_PLD_PANEL_TOP                     0
+> +#define ACPI_PLD_PANEL_BOTTOM                  1
+> +#define ACPI_PLD_PANEL_LEFT                    2
+> +#define ACPI_PLD_PANEL_RIGHT                   3
+> +#define ACPI_PLD_PANEL_FRONT                   4
+> +#define ACPI_PLD_PANEL_BACK                    5
+> +#define ACPI_PLD_PANEL_UNKNOWN                 6
+> +
+>  #endif                         /* ACBUFFER_H */
+> --
+> 2.31.1
+>
