@@ -2,66 +2,87 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A6B9C433ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 12:35:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AB8C433ED
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 12:39:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19DC76117A
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 12:35:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 986A3613B3
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Apr 2021 12:39:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350929AbhDNMgN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 14 Apr 2021 08:36:13 -0400
-Received: from mail-02.mail-europe.com ([51.89.119.103]:50690 "EHLO
-        mail-02.mail-europe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229765AbhDNMgM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Apr 2021 08:36:12 -0400
-Date:   Wed, 14 Apr 2021 12:35:42 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-        s=protonmail; t=1618403747;
-        bh=LBjI5Lfie9IfkopTYu8hIHm2MPYXBjYl387JLU+7p6o=;
-        h=Date:To:From:Cc:Reply-To:Subject:From;
-        b=ujQI1iniE56dRsjfjt1M+1ia3ALoGd6YuwOk955EO/YxeXWXJKF8qSFgSKRMQ5Qoa
-         Y6Oi5q7yaV2N51xFABWBg11LdpvZmsQLes1NkB+dT5c3dSFlgUGvAUWqhLLsrwPzWg
-         T3SpNc5RYdfc4qvO3AqHnrccTbwk1KVt++V7GQBQ=
-To:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-From:   w4v3 <vv4v3@protonmail.com>
-Cc:     "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Reply-To: w4v3 <vv4v3@protonmail.com>
-Subject: Calling _WAK on boot
-Message-ID: <JhJJOq9M37qi7rg1RcBQ-XBPrf3pvws9oaDxtseX1SnEStVYW5kT7krgx7YUITmovSL-tZTmfawGwoWTcXHEbDJd1tPDt7xleJhy6H8v49g=@protonmail.com>
+        id S233070AbhDNMjp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 14 Apr 2021 08:39:45 -0400
+Received: from frasgout.his.huawei.com ([185.176.79.56]:2855 "EHLO
+        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1347201AbhDNMjl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Apr 2021 08:39:41 -0400
+Received: from fraeml737-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4FL22x4pRgz68B8f;
+        Wed, 14 Apr 2021 20:34:01 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml737-chm.china.huawei.com (10.206.15.218) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2106.2; Wed, 14 Apr 2021 14:39:18 +0200
+Received: from localhost (10.52.122.47) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2106.2; Wed, 14 Apr
+ 2021 13:39:17 +0100
+Date:   Wed, 14 Apr 2021 13:37:50 +0100
+From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To:     Ben Widawsky <ben.widawsky@intel.com>
+CC:     <linux-cxl@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>, <ira.weiny@intel.com>,
+        <vishal.l.verma@intel.com>, <alison.schofield@intel.com>,
+        <dan.j.williams@intel.com>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] cxl/mem: Clarify UAPI documentation
+Message-ID: <20210414133750.000042b1@Huawei.com>
+In-Reply-To: <20210413143247.546256-1-ben.widawsky@intel.com>
+References: <20210413143247.546256-1-ben.widawsky@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.52.122.47]
+X-ClientProxiedBy: lhreml701-chm.china.huawei.com (10.201.108.50) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi everyone,
+On Tue, 13 Apr 2021 07:32:47 -0700
+Ben Widawsky <ben.widawsky@intel.com> wrote:
 
-As I understand ACPI spec =C2=A716.3.3, the _WAK method should also
-be called when waking up from S5. Currently this doesn't
-seem to be the case.
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
 
-On my device (Lenovo Yoga 7i), the brightness hotkeys depend
-on initialization carried out in _WAK, so they currently only
-work after resuming from S3 or S4 sleep, but not after booting
-normally.
+Sensible update.
 
-I really don't know what would be the right way to do this,
-but as an example, patching the acpi_init function as follows
-seems to work fine.
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -1094,6 +1094,7 @@
- =09acpi_debugfs_init();
- =09acpi_sleep_proc_init();
- =09acpi_wakeup_device_init();
-+        acpi_leave_sleep_state(ACPI_STATE_S5);
- =09return 0;
- }
+> ---
+>  include/uapi/linux/cxl_mem.h | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/include/uapi/linux/cxl_mem.h b/include/uapi/linux/cxl_mem.h
+> index f6e8a005b113..8dd516ddb098 100644
+> --- a/include/uapi/linux/cxl_mem.h
+> +++ b/include/uapi/linux/cxl_mem.h
+> @@ -81,6 +81,13 @@ static const struct {
+>   *  - @size_in = -1
+>   *  - @size_out = 0
+>   *
+> + * Commands which have a variable length input likely have a minimum length.
+> + * This is not enforced by the UAPI, and therefore might look like the command
+> + * succeeded when sending too small of an input payload. Caution should be taken
+> + * by checking the @cxl_send_command.retval for such cases. For commands with a
+> + * variable length output, the caller is free to consume as little or as much as
+> + * they want.
+> + *
+>   * See struct cxl_mem_query_commands.
+>   */
+>  struct cxl_command_info {
+
