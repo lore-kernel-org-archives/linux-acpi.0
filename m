@@ -2,68 +2,86 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77654C43460
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 14:38:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FC19C433B4
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 14:47:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D1DE611F1
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 14:38:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE57861029
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 14:47:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233513AbhDOOi2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 15 Apr 2021 10:38:28 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:52070 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233489AbhDOOi1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Apr 2021 10:38:27 -0400
-Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <colin.king@canonical.com>)
-        id 1lX382-0007o5-AS; Thu, 15 Apr 2021 14:37:58 +0000
-From:   Colin King <colin.king@canonical.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>, linux-acpi@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: APEI: remove redundant assignment to variable rc
-Date:   Thu, 15 Apr 2021 15:37:58 +0100
-Message-Id: <20210415143758.1962567-1-colin.king@canonical.com>
-X-Mailer: git-send-email 2.30.2
+        id S233497AbhDOOrn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 15 Apr 2021 10:47:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42478 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233311AbhDOOrm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Apr 2021 10:47:42 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DBAAC061574
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Apr 2021 07:47:19 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id h10so28369157edt.13
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Apr 2021 07:47:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=n4QXf+cOw2jRuJk6NYVPzxIPebbr2HANj3LDOYShp5I=;
+        b=Jd109QuvoPbeOBhKixUtBt5/Xnwa4xQuAOpVjrA87QwRWKtQDFDLIibyYB0+5GQIEJ
+         aHUKSd66q6DYdd5JpKX4S150mKovE2TxkNTVe3vl2MLvTAzMdKOrCTHKx25rOnCWhR/F
+         OO4Cr2eqsGRjUtNMQeJd1kDyoNYi5qwmQzWyAgVUOQnLYaqJf3mXGFsDGn57h5DDvtGD
+         KhoiVuXcprEmmgcifdilXVTen5ekgIhIs4/XfFslUGr+rZWJmekmcoEtSDRWtOdWei9G
+         1YVduS3e4+0pra7kKAPLQTYuiyZs1aOvYfMfhDDV7Bo6XiJq/rMj/UIUDB3UkQewSxvl
+         gPTQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=n4QXf+cOw2jRuJk6NYVPzxIPebbr2HANj3LDOYShp5I=;
+        b=QggTZUQw4uDrnCKIs0NjWi8EBltTrllcSSxVQwmZsKmH5WX2iYWViLPuCBFywDelOq
+         GKZjLN+ST6/vMTmc13jZ6SQEk22rEh8t34v0BvEqdUsoD7LW05/GhmV0MsicMYIOUKzN
+         AsEnHCL9B3COjDhUzizPt94JUua8H/+kp0glaqgSudGfigchi6k2mC30eO91ng/cc2eJ
+         uAbV3Q251yIPN0XJCz3ZX5kb8Cb7MQvyu7gyWobFcO3IjsESD2n6T7yWPdFcwIhGaOFH
+         07TwDMN5psqTaRoltFre9XOqsxCXwdThSP36v9Rs8bTUhGYEKKqaxbp631OFtKC4EkGt
+         nVbg==
+X-Gm-Message-State: AOAM531RPiUvohkGbfa2gYKY0aqz1fBPJb2DTMoyqeePljZvepVpT9gS
+        AAlK2yAVAuD4k8abpdQubQ3qkA==
+X-Google-Smtp-Source: ABdhPJz2+0NTKepbuICEjxCSs4LahmAuUZrrzKCZRlpZy/ROS/vkdkyyfjikrFbRCEfvo5bTe/kvaA==
+X-Received: by 2002:a05:6402:614:: with SMTP id n20mr4606117edv.58.1618498038320;
+        Thu, 15 Apr 2021 07:47:18 -0700 (PDT)
+Received: from myrica ([2001:1715:4e26:a7e0:116c:c27a:3e7f:5eaf])
+        by smtp.gmail.com with ESMTPSA id f10sm2627950edd.29.2021.04.15.07.47.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Apr 2021 07:47:17 -0700 (PDT)
+Date:   Thu, 15 Apr 2021 16:46:58 +0200
+From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
+To:     Auger Eric <eric.auger@redhat.com>
+Cc:     rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org,
+        mst@redhat.com, will@kernel.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org,
+        virtualization@lists.linux-foundation.org,
+        sebastien.boeuf@intel.com, robin.murphy@arm.com,
+        kevin.tian@intel.com, lorenzo.pieralisi@arm.com
+Subject: Re: [PATCH 2/3] ACPI: Add driver for the VIOT table
+Message-ID: <YHhR4nSKYogouGMJ@myrica>
+References: <20210316191652.3401335-1-jean-philippe@linaro.org>
+ <20210316191652.3401335-3-jean-philippe@linaro.org>
+ <cea43eef-35d2-b6c5-2bf0-ab7ba8473fb6@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cea43eef-35d2-b6c5-2bf0-ab7ba8473fb6@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Fri, Mar 19, 2021 at 11:44:26AM +0100, Auger Eric wrote:
+> add some kernel-doc comments matching the explanation in the commit message?
 
-The variable rc is being assigned a value that is never read,
-the assignment is redundant and can be removed.
+Yes, I'll add some comments. I got rid of the other issues you pointed out
+while reworking the driver, should be more straightforward now
 
-Addresses-Coverity: ("Unused value")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/acpi/apei/einj.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 133156759551..328e8aeece6c 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -725,7 +725,6 @@ static int __init einj_init(void)
- 		goto err_release;
- 	}
- 
--	rc = -ENOMEM;
- 	einj_param = einj_get_parameter_address();
- 	if ((param_extension || acpi5) && einj_param) {
- 		debugfs_create_x32("flags", S_IRUSR | S_IWUSR, einj_debug_dir,
--- 
-2.30.2
+Thanks,
+Jean
 
