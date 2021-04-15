@@ -2,273 +2,155 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B667C433ED
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 05:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E37C433ED
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 07:27:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E7E761074
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 05:21:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA05C61222
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Apr 2021 07:27:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229922AbhDOFVy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 15 Apr 2021 01:21:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58902 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229503AbhDOFVw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Apr 2021 01:21:52 -0400
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4536AC061574
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Apr 2021 22:21:27 -0700 (PDT)
-Received: by mail-ej1-x62e.google.com with SMTP id l4so34857826ejc.10
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Apr 2021 22:21:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=yfHpVPgTxoCb2Y8HlsquPo4Y9DrlaYo1kZmF94VXk9g=;
-        b=LXXLMqN91EHunpLCu7HVsmlVUG/34MyNVDrXjCBRS9736Y2tjgx8x5winXvUs+zXj3
-         rwJ2uqJvK+Ob9ZnzAq6SV8qDx560IxhxYHiKKDTjSCc3HhCjcN06qslXMvmQviI9D39N
-         gzmgaCj3t58bChjcG6ShEnLdx9HdOE7gzP8smWqB08wTMDb1tokv7X41knp4J6lxAD1q
-         lTsSC2ry2mqH679hBxf+j+QML696u6DHJQvTYAP5DUsW4HeR7hBbdPePcYsnw9SJn8CU
-         Fd3XWLdEtnwU8nuPNXFOlApKcKsPG2hhNPfLIqc3yJXU/guySXKE4vlF7vRSJ1aR18Jz
-         M8cA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=yfHpVPgTxoCb2Y8HlsquPo4Y9DrlaYo1kZmF94VXk9g=;
-        b=ldgQ91o75gBIqFyuhQAFAd1YOwhgRyiG0vWyK296G5N9hgWFgUEvASvxLBgoLA7zrf
-         fbxVZiEf1TjsnMK21lfBU7NRwTodbaDx7pJAaOdU9i+4cLuopTT2Jl3mc7/Mv3RwleLU
-         099PgRWI30oMeVodqaE6+5bVt8Jdj2Z3gkLIo08c60dRXY8TGtAkKxNc4H9rP8b1a6al
-         c9X7SjfMLAYbvwdjYWN2z0eo5lPRVQQ9BY2muSyEKdslCbRJNJ3ARtv59UyAGPeh6mNs
-         wZf2QFQVsbvSihfPSF/YNCvXMExZSmUtKK71F/OnCZSbMncvvFNeHE0dH4rMHyEMY/3r
-         dJVA==
-X-Gm-Message-State: AOAM530yCQznvYpd2niylh4uLOOYh3/tuwTLo865DFCuV0wdx3q4gmPJ
-        68Fgpfl/NJgVNca/mQLXwVE8sF+KIm7qrSbMETCnxA==
-X-Google-Smtp-Source: ABdhPJwBKg5W4y/Mf5LNN3YaLgfsq6e9XlkPVLczLmK+QZIR3hWfVS2xvwGTnxXu7rmqfj/yjLTszCzhcNe5KyBvip4=
-X-Received: by 2002:a17:906:ef2:: with SMTP id x18mr1581794eji.323.1618464085912;
- Wed, 14 Apr 2021 22:21:25 -0700 (PDT)
+        id S230481AbhDOH1r (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 15 Apr 2021 03:27:47 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:24373 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230090AbhDOH1p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Apr 2021 03:27:45 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1618471641;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Ekzj4mcW27qGn3lH96EGgzNbzBUSOojlu95Su7o6jyE=;
+        b=iobPDCtj1JOahsPcEtmTVaYmxGfKIoYAiFGrNta/cYkhoF+JkUNOzAvyyIYF0VYpq8XgQH
+        uEG2awGqVYQzDeQyQQILpNEbYeEuhlt3ynKtnm0bQweTgvnvfG6pWcT/jZ+Dw625QESloB
+        Db3PgNoLXm+LVHCXfyXGw5w5sIKp7f0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-317-roGooyyyNJGAwnRl2CDabA-1; Thu, 15 Apr 2021 03:27:19 -0400
+X-MC-Unique: roGooyyyNJGAwnRl2CDabA-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 80CE39F92F;
+        Thu, 15 Apr 2021 07:27:17 +0000 (UTC)
+Received: from [10.36.114.81] (ovpn-114-81.ams2.redhat.com [10.36.114.81])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id D3AE41969E;
+        Thu, 15 Apr 2021 07:27:12 +0000 (UTC)
+Subject: Re: [RFC PATCH v2 1/8] ACPICA: IORT: Update for revision E
+To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
+        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org, devel@acpica.org
+Cc:     linuxarm@huawei.com, steven.price@arm.com, guohanjun@huawei.com,
+        Sami.Mujawar@arm.com, robin.murphy@arm.com, wanghuiqiang@huawei.com
+References: <20201119121150.3316-1-shameerali.kolothum.thodi@huawei.com>
+ <20201119121150.3316-2-shameerali.kolothum.thodi@huawei.com>
+From:   Auger Eric <eric.auger@redhat.com>
+Message-ID: <da7b36fb-b30c-2d87-0934-7021d1093a1a@redhat.com>
+Date:   Thu, 15 Apr 2021 09:27:10 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.0
 MIME-Version: 1.0
-References: <CAPcyv4hAc=DERr1z8kr=V01+NSi74f-kSfMAdeArLmVb112_Dw@mail.gmail.com>
- <20210414011448.GA2266325@bjorn-Precision-5520>
-In-Reply-To: <20210414011448.GA2266325@bjorn-Precision-5520>
-From:   Dan Williams <dan.j.williams@intel.com>
-Date:   Wed, 14 Apr 2021 22:21:14 -0700
-Message-ID: <CAPcyv4iu8D-hJoujLXw8a4myS7trOE1FcUhESLB_imGMECVfrg@mail.gmail.com>
-Subject: Re: [PATCH v2 7/8] cxl/port: Introduce cxl_port objects
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        "Weiny, Ira" <ira.weiny@intel.com>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        "Schofield, Alison" <alison.schofield@intel.com>,
-        Ben Widawsky <ben.widawsky@intel.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Matthew Wilcox <willy@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20201119121150.3316-2-shameerali.kolothum.thodi@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Apr 13, 2021 at 6:15 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
->
-> On Thu, Apr 08, 2021 at 07:13:38PM -0700, Dan Williams wrote:
-> > Hi Bjorn, thanks for taking a look.
-> >
-> > On Thu, Apr 8, 2021 at 3:42 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > >
-> > > [+cc Greg, Rafael, Matthew: device model questions]
-> > >
-> > > Hi Dan,
-> > >
-> > > On Thu, Apr 01, 2021 at 07:31:20AM -0700, Dan Williams wrote:
-> > > > Once the cxl_root is established then other ports in the hierarchy can
-> > > > be attached. The cxl_port object, unlike cxl_root that is associated
-> > > > with host bridges, is associated with PCIE Root Ports or PCIE Switch
-> > > > Ports. Add cxl_port instances for all PCIE Root Ports in an ACPI0016
-> > > > host bridge.
->
-> Incidentally, "PCIe" is the abbreviation used in the PCIe specs, so I
-> try to use that instead of "PCIE" in drivers/pci/.
+Hi Shameer,
 
-Noted.
+On 11/19/20 1:11 PM, Shameer Kolothum wrote:
+> IORT revision E contains a few additions like,
+>     -Added an identifier field in the node descriptors to aid table
+>      cross-referencing.
+>     -Introduced the Reserved Memory Range(RMR) node. This is used
+>      to describe memory ranges that are used by endpoints and requires
+>      a unity mapping in SMMU.
+>     -Introduced a flag in the RC node to express support for PRI.
+> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  include/acpi/actbl2.h | 25 +++++++++++++++++++------
+>  1 file changed, 19 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+> index ec66779cb193..274fce7b5c01 100644
+> --- a/include/acpi/actbl2.h
+> +++ b/include/acpi/actbl2.h
+> @@ -68,7 +68,7 @@
+>   * IORT - IO Remapping Table
+>   *
+>   * Conforms to "IO Remapping Table System Software on ARM Platforms",
+> - * Document number: ARM DEN 0049D, March 2018
+> + * Document number: ARM DEN 0049E, June 2020
+>   *
+>   ******************************************************************************/
+>  
+> @@ -86,7 +86,8 @@ struct acpi_iort_node {
+>  	u8 type;
+>  	u16 length;
+>  	u8 revision;
+> -	u32 reserved;
+> +	u16 reserved;
+> +	u16 identifier;
+>  	u32 mapping_count;
+>  	u32 mapping_offset;
+>  	char node_data[1];
+> @@ -100,7 +101,8 @@ enum acpi_iort_node_type {
+>  	ACPI_IORT_NODE_PCI_ROOT_COMPLEX = 0x02,
+>  	ACPI_IORT_NODE_SMMU = 0x03,
+>  	ACPI_IORT_NODE_SMMU_V3 = 0x04,
+> -	ACPI_IORT_NODE_PMCG = 0x05
+> +	ACPI_IORT_NODE_PMCG = 0x05,
+> +	ACPI_IORT_NODE_RMR = 0x06,
+>  };
+>  
+>  struct acpi_iort_id_mapping {
+> @@ -167,10 +169,10 @@ struct acpi_iort_root_complex {
+>  	u8 reserved[3];		/* Reserved, must be zero */
+>  };
+>  
+> -/* Values for ats_attribute field above */
+> +/* Masks for ats_attribute field above */
+>  
+> -#define ACPI_IORT_ATS_SUPPORTED         0x00000001	/* The root complex supports ATS */
+> -#define ACPI_IORT_ATS_UNSUPPORTED       0x00000000	/* The root complex doesn't support ATS */
+> +#define ACPI_IORT_ATS_SUPPORTED         (1)	/* The root complex supports ATS */
+> +#define ACPI_IORT_PRI_SUPPORTED         (1<<1)	/* The root complex supports PRI */
+>  
+>  struct acpi_iort_smmu {
+>  	u64 base_address;	/* SMMU base address */
+> @@ -241,6 +243,17 @@ struct acpi_iort_pmcg {
+>  	u64 page1_base_address;
+>  };
+>  
+> +struct acpi_iort_rmr {
+so indeed in E.b there is a new field here.
+u32 flags
+> +	u32 rmr_count;
+> +	u32 rmr_offset;
+> +};
+> +
+> +struct acpi_iort_rmr_desc {
+> +	u64 base_address;
+> +	u64 length;
+> +	u32 reserved;
+> +};
+> +
+>  /*******************************************************************************
+>   *
+>   * IVRS - I/O Virtualization Reporting Structure
+> 
+Thanks
 
->
-> > > I'm not a device model expert, but I'm not sure about adding a new
-> > > /sys/bus/cxl/devices hierarchy.  I'm under the impression that CXL
-> > > devices will be enumerated by the PCI core as PCIe devices.
-> >
-> > Yes, PCIe is involved, but mostly only for the CXL.io slow path
-> > (configuration and provisioning via mailbox) when we're talking about
-> > memory expander devices (CXL calls these Type-3). So-called "Type-3"
-> > support is the primary driver of this infrastructure.
-> >
-> > You might be thinking of CXL accelerator devices that will look like
-> > plain PCIe devices that happen to participate in the CPU cache
-> > hierarchy (CXL calls these Type-1). There will also be accelerator
-> > devices that want to share coherent memory with the system (CXL calls
-> > these Type-2).
->
-> IIUC all these CXL devices will be enumerated by the PCI core.  They
-> seem to have regular PCI BARs (separate from the HDM stuff), so the
-> PCI core will presumably manage address allocation for them.  It looks
-> like Function Level Reset and hotplug are supposed to use the regular
-> PCIe code.  I guess this will all be visible via lspci just like
-> regular PCI devices, right?
+Eric
 
-Yes. the CXL.io protocol is synonymous with PCIe. Hotplug is native
-PCIe hotplug to negotiate getting the card online and offline.
-Although, for offline an additional constraint is to deny removal
-whenever the card has active pages in the page allocator. Similar to
-what happens today for ACPI memory hotplug where the OS can say "nope,
-there's still active pages in the range you asked to eject".
-
-FLR has no effect on CXL.cache or CXL.mem state, only CXL.io.
-
-> > The infrastructure being proposed here is primarily for the memory
-> > expander (Type-3) device case where the PCI sysfs hierarchy is wholly
-> > unsuited for modeling it. A single CXL memory region device may span
-> > multiple endpoints, switches, and host bridges. It poses similar
-> > stress to an OS device model as RAID where there is a driver for the
-> > component contributors to an upper level device / driver that exposes
-> > the RAID Volume (CXL memory region interleave set). The CXL memory
-> > decode space (HDM: Host Managed Device Memory) is independent of the
-> > PCIe MMIO BAR space.
->
-> It looks like you add a cxl_port for each ACPI0016 device and every
-> PCIe Root Port below it.  So I guess the upper level spanning is at a
-> higher level than cxl_port?
-
-A memory interleave can span any level of the hierarchy. It can be
-across host bridges at the top level, but also incorporate a leaf
-device at the bottom of a CXL switch hierarchy. There will be a
-cxl_port instance for each side of each link.
-
-> > That's where the /sys/bus/cxl hierarchy is needed, to manage the HDM
-> > space across the CXL topology in a way that is foreign to PCIE (HDM
-> > Decoder hierarchy).
->
-> When we do FLR on the PCIe device, what happens to these CXL clients?
-> Do they care?  Are they notified?  Do they need to do anything before
-> or after the FLR?
-
-Per CXL Spec:
-
-"FLR has no effect on the CXL.cache and CXL.mem protocol. Any
-CXL.cache and CXL.mem related control registers including CXL DVSEC
-structures and state held by the CXL device are not affected by FLR.
-The memory controller hosting the HDM is not reset by FLR."
-
-> What about hotplug?  Spec says it leverages PCIe hotplug, but it looks
-> like maybe this all requires ACPI hotplug (acpiphp) for adding
-> ACPI0017 devices and notifying of hot remove requests?  If it uses
-> PCIe native hotplug (pciehp), what connects the CXL side to the PCI
-> side?
-
-No ACPI hotplug is not involved. ACPI0017 is essentially just a dummy
-anchor device to hang the interleave set coordination. The connect
-from native hotplug to CXL is the cxl_mem driver. When that it detects
-a new device it walks the cxl_port hierarchy to see if one is a parent
-of this endpoint. Then it registers its HDM decoders with the CXL core
-and the CXL core can online it as a standalone interneleave set or
-consolidate it with others to make a wider set. For persistent memory
-there is on-device metadata to recall whether this device was part of
-a set previously. For volatile-only devices it would need to rely on
-some policy to decide if devices are immediately onlined standalone,
-or wait for an administrator to configure them.
-
-> I guess the HDM address space management is entirely outside the scope
-> of PCI -- the address space is not described by the CXL host bridge
-> _CRS and not described by CXL endpoint BARs?
-
-Correct.
-
-> Where *is* it described
-> and who manages and allocates it?
-
-ACPI0017 will communicate a set of address spaces that the CXL core
-can allocate interleave sets.
-
->  I guess any transaction routing
-> through the CXL fabric for HDM space is also completely outside the
-> scope of PCI -- we don't need to worry about managing PCI-to-PCI
-> bridge windows, for instance?
-
-Correct. For example a PCIe switch could disable all I/O space and
-Memory (MMIO) space, but still decode Host-managed Device Memory (HDM)
-space.
-
-> Is there a cxl_register_driver() or something?  I assume there will be
-> drivers that need to manage CXL devices?  Or will they use
-> pci_register_driver() and search for a CXL capability?
-
-A bit of both. The cxl_mem driver does pci_register_driver(), but for
-ports there will be a driver on the CXL bus for that component
-capability. Both endpoints and switches will produce cxl_port
-instances to be connected / driven by a core driver and coordinated
-with a root level driver for address space and interleave management.
-
-> > > Doesn't that mean we will have one struct device in the pci_dev,
-> > > and another one in the cxl_port?
-> >
-> > Yes, that is the proposal.
->
-> > The superfluous power/ issue can be cleaned up with
-> > device_set_pm_not_required().
->
-> Thanks, we might be able to use that for portdrv.  I added it to my
-> list to investigate.
->
-> > What are the other problems this poses, because in other areas this
-> > ability to subdivide a device's functionality into sub-drivers is a
-> > useful organization principle?
->
-> Well, I'm thinking about things like enumeration, hotplug, reset,
-> resource management (BARs, bridge windows, etc), interrupts, power
-> management (suspend, resume, etc), and error reporting.  These are all
-> things that PCIe defines on a per-Function basis and seem kind of hard
-> to cleanly subdivide.
-
-Right, I'm hoping like FLR there is little need to coordinate PCI /
-CXL.io operations with CXL.mem operations, or that once a PCI driver
-registers some CXL capabilities it never needs to look back. The only
-hook that violates this so far is NAKing device removal when CXL.mem
-for that device is busy.
-
-> > So much so that several device writer teams came together to create
-> > the auxiliary-bus for the purpose of allowing sub-drivers to be
-> > carved off for independent functionality similar to the portdrv
-> > organization.
->
-> Is "auxiliary-bus" a specific thing?  I'm not familiar with it but
-> again I'd like to read up on it in case it has ideas we could
-> leverage.
-
-auxiliary-bus is not a specific thing, it's a generic way for any
-driver to register a custom device for a sub-driver to drive. One of
-the primary examples are PCI Ethernet drivers exporting RDMA device
-interfaces for common RDMA functionality. So you could have multiple
-generations of Ethernet devices all producing a common RDMA interface
-and rather than have an equivalent RDMA driver per generation just
-create a shared common one that attaches to all the different baseline
-Ethernet implementations.
-
-See:
-
-Documentation/driver-api/auxiliary_bus.rst
-
-That document is still a bit too generic, and I have an item on my
-backlog to flesh it out with more practical guidelines.
-
-> Sub-drivers *is* an issue for PCI in general, although mostly I think
-> it tends to be historical devices where people made the design mistake
-> of putting several unrelated pieces of functionality in the same PCI
-> function, so I don't think PCI has good infrastructure for doing that.
-
-Auxiliary-bus might help especially if those unrelated pieces have
-been duplicated across multiple different device implementations.
-Aux-bus might clean up the driver model for those pieces.
