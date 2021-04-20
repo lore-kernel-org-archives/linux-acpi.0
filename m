@@ -2,245 +2,253 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B29C43460
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 00:19:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47316C433ED
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 00:26:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCC76613AA
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 00:19:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16D646135F
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 00:26:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230498AbhDTAUJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Apr 2021 20:20:09 -0400
-Received: from mga18.intel.com ([134.134.136.126]:31177 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230042AbhDTAUI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Apr 2021 20:20:08 -0400
-IronPort-SDR: NI0ii8vuNFTKM49JB/aQejlPDTSzU3z1Pw9dyz/txoyoMLE6Cjzkv6rGtxcndQs2XFmglOWTY+
- WGmF8WTN9TZA==
-X-IronPort-AV: E=McAfee;i="6200,9189,9959"; a="182912756"
-X-IronPort-AV: E=Sophos;i="5.82,235,1613462400"; 
-   d="scan'208";a="182912756"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Apr 2021 17:19:37 -0700
-IronPort-SDR: dW+vUhBQ0V/1k9WbuJZlP/ArZtgsRjL/gwVVvsQUBLx7LAk/3qjsbT1RCgyxQs3pLqmjHMVg29
- +mVsC/OTaiKw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.82,235,1613462400"; 
-   d="scan'208";a="445336525"
-Received: from lkp-server01.sh.intel.com (HELO a48ff7ddd223) ([10.239.97.150])
-  by fmsmga004.fm.intel.com with ESMTP; 19 Apr 2021 17:19:34 -0700
-Received: from kbuild by a48ff7ddd223 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1lYe74-0001zW-8O; Tue, 20 Apr 2021 00:19:34 +0000
-Date:   Tue, 20 Apr 2021 08:19:08 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [pm:bleeding-edge] BUILD SUCCESS
- 304bbea920d32fc73cdc144d3db268dba0b585df
-Message-ID: <607e1dfc.wOZoGnAp8ZS2fx85%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S229880AbhDTA0d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Apr 2021 20:26:33 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:16136 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229758AbhDTA0c (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Apr 2021 20:26:32 -0400
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FPPXj076pzmdWf;
+        Tue, 20 Apr 2021 08:23:01 +0800 (CST)
+Received: from SWX921481.china.huawei.com (10.126.200.79) by
+ DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
+ 14.3.498.0; Tue, 20 Apr 2021 08:25:52 +0800
+From:   Barry Song <song.bao.hua@hisilicon.com>
+To:     <tim.c.chen@linux.intel.com>, <catalin.marinas@arm.com>,
+        <will@kernel.org>, <rjw@rjwysocki.net>,
+        <vincent.guittot@linaro.org>, <bp@alien8.de>, <tglx@linutronix.de>,
+        <mingo@redhat.com>, <lenb@kernel.org>, <peterz@infradead.org>,
+        <dietmar.eggemann@arm.com>, <rostedt@goodmis.org>,
+        <bsegall@google.com>, <mgorman@suse.de>
+CC:     <msys.mizuma@gmail.com>, <valentin.schneider@arm.com>,
+        <gregkh@linuxfoundation.org>, <jonathan.cameron@huawei.com>,
+        <juri.lelli@redhat.com>, <mark.rutland@arm.com>,
+        <sudeep.holla@arm.com>, <aubrey.li@linux.intel.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <x86@kernel.org>, <xuwei5@huawei.com>, <prime.zeng@hisilicon.com>,
+        <guodong.xu@linaro.org>, <yangyicong@huawei.com>,
+        <liguozhu@hisilicon.com>, <linuxarm@openeuler.org>,
+        <hpa@zytor.com>, Barry Song <song.bao.hua@hisilicon.com>
+Subject: [RFC PATCH v6 0/4] scheduler: expose the topology of clusters and add cluster scheduler
+Date:   Tue, 20 Apr 2021 12:18:40 +1200
+Message-ID: <20210420001844.9116-1-song.bao.hua@hisilicon.com>
+X-Mailer: git-send-email 2.21.0.windows.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.126.200.79]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 304bbea920d32fc73cdc144d3db268dba0b585df  Merge branch 'devprop' into linux-next
+ARM64 server chip Kunpeng 920 has 6 or 8 clusters in each NUMA node, and each
+cluster has 4 cpus. All clusters share L3 cache data while each cluster has
+local L3 tag. On the other hand, each cluster will share some internal system
+bus. This means cache is much more affine inside one cluster than across
+clusters.
 
-elapsed time: 724m
+    +-----------------------------------+                          +---------+
+    |  +------+    +------+            +---------------------------+         |
+    |  | CPU0 |    | cpu1 |             |    +-----------+         |         |
+    |  +------+    +------+             |    |           |         |         |
+    |                                   +----+    L3     |         |         |
+    |  +------+    +------+   cluster   |    |    tag    |         |         |
+    |  | CPU2 |    | CPU3 |             |    |           |         |         |
+    |  +------+    +------+             |    +-----------+         |         |
+    |                                   |                          |         |
+    +-----------------------------------+                          |         |
+    +-----------------------------------+                          |         |
+    |  +------+    +------+             +--------------------------+         |
+    |  |      |    |      |             |    +-----------+         |         |
+    |  +------+    +------+             |    |           |         |         |
+    |                                   |    |    L3     |         |         |
+    |  +------+    +------+             +----+    tag    |         |         |
+    |  |      |    |      |             |    |           |         |         |
+    |  +------+    +------+             |    +-----------+         |         |
+    |                                   |                          |         |
+    +-----------------------------------+                          |   L3    |
+                                                                   |   data  |
+    +-----------------------------------+                          |         |
+    |  +------+    +------+             |    +-----------+         |         |
+    |  |      |    |      |             |    |           |         |         |
+    |  +------+    +------+             +----+    L3     |         |         |
+    |                                   |    |    tag    |         |         |
+    |  +------+    +------+             |    |           |         |         |
+    |  |      |    |      |            ++    +-----------+         |         |
+    |  +------+    +------+            |---------------------------+         |
+    +-----------------------------------|                          |         |
+    +-----------------------------------|                          |         |
+    |  +------+    +------+            +---------------------------+         |
+    |  |      |    |      |             |    +-----------+         |         |
+    |  +------+    +------+             |    |           |         |         |
+    |                                   +----+    L3     |         |         |
+    |  +------+    +------+             |    |    tag    |         |         |
+    |  |      |    |      |             |    |           |         |         |
+    |  +------+    +------+             |    +-----------+         |         |
+    |                                   |                          |         |
+    +-----------------------------------+                          |         |
+    +-----------------------------------+                          |         |
+    |  +------+    +------+             +--------------------------+         |
+    |  |      |    |      |             |   +-----------+          |         |
+    |  +------+    +------+             |   |           |          |         |
 
-configs tested: 175
-configs skipped: 5
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+There is a similar need for clustering in x86.  Some x86 cores could share L2 caches
+that is similar to the cluster in Kupeng 920 (e.g. on Jacobsville there are 6 clusters
+of 4 Atom cores, each cluster sharing a separate L2, and 24 cores sharing L3).  
 
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-x86_64                           allyesconfig
-riscv                            allmodconfig
-i386                             allyesconfig
-riscv                            allyesconfig
-powerpc                      chrp32_defconfig
-arm                        mvebu_v5_defconfig
-powerpc                      ppc6xx_defconfig
-powerpc                     mpc5200_defconfig
-m68k                          atari_defconfig
-arc                    vdk_hs38_smp_defconfig
-powerpc                     kmeter1_defconfig
-openrisc                 simple_smp_defconfig
-m68k                        mvme16x_defconfig
-powerpc                 mpc832x_mds_defconfig
-mips                           xway_defconfig
-sh                             espt_defconfig
-sparc64                          alldefconfig
-arm                        realview_defconfig
-powerpc                     pseries_defconfig
-arm                      pxa255-idp_defconfig
-arm                       versatile_defconfig
-arm                       multi_v4t_defconfig
-powerpc                   motionpro_defconfig
-sh                         ap325rxa_defconfig
-nds32                             allnoconfig
-mips                      pic32mzda_defconfig
-xtensa                           allyesconfig
-sh                          urquell_defconfig
-arc                     haps_hs_smp_defconfig
-sh                      rts7751r2d1_defconfig
-xtensa                         virt_defconfig
-arm                            mmp2_defconfig
-arm                           omap1_defconfig
-arm                        multi_v5_defconfig
-powerpc                     tqm8540_defconfig
-sh                                  defconfig
-powerpc                    adder875_defconfig
-powerpc                     sbc8548_defconfig
-arm                          ixp4xx_defconfig
-powerpc                 mpc836x_rdk_defconfig
-arm                     davinci_all_defconfig
-h8300                     edosk2674_defconfig
-mips                          ath79_defconfig
-sh                         ecovec24_defconfig
-i386                             alldefconfig
-powerpc                     rainier_defconfig
-arm                         vf610m4_defconfig
-powerpc                     tqm8548_defconfig
-powerpc                 mpc834x_itx_defconfig
-xtensa                    smp_lx200_defconfig
-arm                        mini2440_defconfig
-arm                        neponset_defconfig
-mips                        bcm63xx_defconfig
-powerpc                 mpc837x_rdb_defconfig
-powerpc                         ps3_defconfig
-powerpc                 mpc832x_rdb_defconfig
-sparc                       sparc64_defconfig
-riscv             nommu_k210_sdcard_defconfig
-sh                            hp6xx_defconfig
-powerpc                 linkstation_defconfig
-sh                          sdk7786_defconfig
-s390                             allmodconfig
-arm                        vexpress_defconfig
-mips                           gcw0_defconfig
-arm                         assabet_defconfig
-alpha                            alldefconfig
-arm                            lart_defconfig
-powerpc                          g5_defconfig
-powerpc                      bamboo_defconfig
-mips                        nlm_xlr_defconfig
-nds32                               defconfig
-arm                           h3600_defconfig
-arm                         lubbock_defconfig
-arm                          ep93xx_defconfig
-powerpc                     kilauea_defconfig
-mips                      fuloong2e_defconfig
-parisc                generic-64bit_defconfig
-mips                        maltaup_defconfig
-arm                           h5000_defconfig
-powerpc                     mpc83xx_defconfig
-powerpc                      ppc64e_defconfig
-powerpc                         wii_defconfig
-mips                            e55_defconfig
-sparc                               defconfig
-mips                         tb0287_defconfig
-powerpc                     powernv_defconfig
-m68k                        m5407c3_defconfig
-powerpc                       ppc64_defconfig
-ia64                             allmodconfig
-powerpc                 xes_mpc85xx_defconfig
-ia64                                defconfig
-powerpc                      katmai_defconfig
-sh                          rsk7201_defconfig
-riscv                    nommu_virt_defconfig
-mips                      maltaaprp_defconfig
-arm                        spear3xx_defconfig
-powerpc                      pcm030_defconfig
-powerpc                    klondike_defconfig
-powerpc                      arches_defconfig
-m68k                         amcore_defconfig
-arc                              alldefconfig
-nios2                         3c120_defconfig
-sh                          landisk_defconfig
-arm                          pcm027_defconfig
-sparc                       sparc32_defconfig
-arm                          imote2_defconfig
-arm                          gemini_defconfig
-arm                          exynos_defconfig
-powerpc                 mpc834x_mds_defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-parisc                           allyesconfig
-s390                                defconfig
-sparc                            allyesconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a003-20210419
-x86_64               randconfig-a001-20210419
-x86_64               randconfig-a005-20210419
-x86_64               randconfig-a002-20210419
-x86_64               randconfig-a006-20210419
-x86_64               randconfig-a004-20210419
-i386                 randconfig-a003-20210419
-i386                 randconfig-a001-20210419
-i386                 randconfig-a006-20210419
-i386                 randconfig-a005-20210419
-i386                 randconfig-a004-20210419
-i386                 randconfig-a002-20210419
-i386                 randconfig-a015-20210419
-i386                 randconfig-a013-20210419
-i386                 randconfig-a014-20210419
-i386                 randconfig-a016-20210419
-i386                 randconfig-a012-20210419
-i386                 randconfig-a011-20210419
-riscv                    nommu_k210_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-um                               allmodconfig
-um                                allnoconfig
-um                               allyesconfig
-um                                  defconfig
-x86_64                    rhel-8.3-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                      rhel-8.3-kbuiltin
-x86_64                                  kexec
+Having a sched_domain for clusters will bring two aspects of improvement:
+1. spreading unrelated tasks among clusters, which decreases the contention of resources
+and improve the throughput.
+unrelated tasks might be put randomly without cluster sched_domain:
++-------------------+            +-----------------+
+| +----+   +----+   |            |                 |
+| |task|   |task|   |            |                 |
+| |1   |   |2   |   |            |                 |
+| +----+   +----+   |            |                 |
+|                   |            |                 |
+|       cluster1    |            |     cluster2    |
++-------------------+            +-----------------+
 
-clang tested configs:
-x86_64               randconfig-a014-20210419
-x86_64               randconfig-a015-20210419
-x86_64               randconfig-a013-20210419
-x86_64               randconfig-a011-20210419
-x86_64               randconfig-a012-20210419
-x86_64               randconfig-a016-20210419
+but with cluster sched_domain, they are likely to spread due to LB:
++-------------------+            +-----------------+
+| +----+            |            | +----+          |
+| |task|            |            | |task|          |
+| |1   |            |            | |2   |          |
+| +----+            |            | +----+          |
+|                   |            |                 |
+|       cluster1    |            |     cluster2    |
++-------------------+            +-----------------+
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+2. gathering related tasks within a cluster, which improves the cache affinity of tasks
+talking with each other.
+Without cluster sched_domain, related tasks might be put randomly. In case task1-8 have
+relationship as below:
+Task1 talks with task5
+Task2 talks with task6
+Task3 talks with task7
+Task4 talks with task8
+With the tuning of select_idle_cpu() to scan local cluster first, those tasks might
+get a chance to be gathered like:
++---------------------------+    +----------------------+
+| +----+        +-----+     |    | +----+      +-----+  |
+| |task|        |task |     |    | |task|      |task |  |
+| |1   |        | 5   |     |    | |3   |      |7    |  |
+| +----+        +-----+     |    | +----+      +-----+  |
+|                           |    |                      |
+|       cluster1            |    |     cluster2         |
+|                           |    |                      |
+|                           |    |                      |
+| +-----+       +------+    |    | +-----+     +------+ |
+| |task |       | task |    |    | |task |     |task  | |
+| |2    |       |  6   |    |    | |4    |     |8     | |
+| +-----+       +------+    |    | +-----+     +------+ |
++---------------------------+    +----------------------+
+Otherwise, the result might be:
++---------------------------+    +----------------------+
+| +----+        +-----+     |    | +----+      +-----+  |
+| |task|        |task |     |    | |task|      |task |  |
+| |1   |        | 2   |     |    | |5   |      |6    |  |
+| +----+        +-----+     |    | +----+      +-----+  |
+|                           |    |                      |
+|       cluster1            |    |     cluster2         |
+|                           |    |                      |
+|                           |    |                      |
+| +-----+       +------+    |    | +-----+     +------+ |
+| |task |       | task |    |    | |task |     |task  | |
+| |3    |       |  4   |    |    | |7    |     |8     | |
+| +-----+       +------+    |    | +-----+     +------+ |
++---------------------------+    +----------------------+
+
+-v6:
+  * added topology_cluster_cpumask() for x86, code provided by Tim.
+
+  * emulated a two-level spreading/packing heuristic by only scanning cluster
+    in wake_affine path for tasks running in same LLC(also NUMA).
+
+    This partially addressed Dietmar's comment in RFC v3:
+    "In case we would like to further distinguish between llc-packing and
+     even narrower (cluster or MC-L2)-packing, we would introduce a 2. level
+     packing vs. spreading heuristic further down in sis().
+   
+     IMHO, Barry's current implementation doesn't do this right now. Instead
+     he's trying to pack on cluster first and if not successful look further
+     among the remaining llc CPUs for an idle CPU."
+
+  * adjusted the hackbench parameter to make relatively low and high load.
+    previous patchsets with "-f 10" ran under an extremely high load with
+    hundreds of threads, which seems not real use cases.
+
+    This also addressed Vincent's question in RFC v4:
+    "In particular, I'm still not convinced that the modification of the wakeup
+    path is the root of the hackbench improvement; especially with g=14 where
+    there should not be much idle CPUs with 14*40 tasks on at most 32 CPUs."
+
+-v5:
+  * split "add scheduler level for clusters" into two patches to evaluate the
+    impact of spreading and gathering separately;
+  * add a tracepoint of select_idle_cpu for debug purpose; add bcc script in
+    commit log;
+  * add cluster_id = -1 in reset_cpu_topology()
+  * rebased to tip/sched/core
+
+-v4:
+  * rebased to tip/sched/core with the latest unified code of select_idle_cpu
+  * added Tim's patch for x86 Jacobsville
+  * also added benchmark data of spreading unrelated tasks
+  * avoided the iteration of sched_domain by moving to static_key(addressing
+    Vincent's comment
+  * used acpi_cpu_id for acpi_find_processor_node(addressing Masa's comment)
+
+Barry Song (2):
+  scheduler: add scheduler level for clusters
+  scheduler: scan idle cpu in cluster for tasks within one LLC
+
+Jonathan Cameron (1):
+  topology: Represent clusters of CPUs within a die
+
+Tim Chen (1):
+  scheduler: Add cluster scheduler level for x86
+
+ Documentation/admin-guide/cputopology.rst | 26 +++++++++++--
+ arch/arm64/Kconfig                        |  7 ++++
+ arch/arm64/kernel/topology.c              |  2 +
+ arch/x86/Kconfig                          |  8 ++++
+ arch/x86/include/asm/smp.h                |  7 ++++
+ arch/x86/include/asm/topology.h           |  2 +
+ arch/x86/kernel/cpu/cacheinfo.c           |  1 +
+ arch/x86/kernel/cpu/common.c              |  3 ++
+ arch/x86/kernel/smpboot.c                 | 43 ++++++++++++++++++++-
+ block/blk-mq.c                            |  2 +-
+ drivers/acpi/pptt.c                       | 63 +++++++++++++++++++++++++++++++
+ drivers/base/arch_topology.c              | 15 ++++++++
+ drivers/base/topology.c                   | 10 +++++
+ include/linux/acpi.h                      |  5 +++
+ include/linux/arch_topology.h             |  5 +++
+ include/linux/sched/cluster.h             | 19 ++++++++++
+ include/linux/sched/sd_flags.h            |  9 +++++
+ include/linux/sched/topology.h            | 12 +++++-
+ include/linux/topology.h                  | 13 +++++++
+ kernel/sched/core.c                       | 29 ++++++++++++--
+ kernel/sched/fair.c                       | 51 +++++++++++++++----------
+ kernel/sched/sched.h                      |  4 ++
+ kernel/sched/topology.c                   | 18 +++++++++
+ 23 files changed, 324 insertions(+), 30 deletions(-)
+ create mode 100644 include/linux/sched/cluster.h
+
+-- 
+1.8.3.1
+
