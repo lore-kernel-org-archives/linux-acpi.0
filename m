@@ -2,157 +2,202 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EDCAC433ED
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 09:06:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20DE4C433B4
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 09:28:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11A5261354
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 09:06:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEF1D613AF
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Apr 2021 09:28:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230090AbhDTJGs convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 20 Apr 2021 05:06:48 -0400
-Received: from frasgout.his.huawei.com ([185.176.79.56]:2888 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231287AbhDTJFo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Apr 2021 05:05:44 -0400
-Received: from fraeml745-chm.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4FPd0y21dmz70gMr;
-        Tue, 20 Apr 2021 16:59:46 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml745-chm.china.huawei.com (10.206.15.226) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 20 Apr 2021 11:05:11 +0200
-Received: from localhost (10.52.127.46) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2176.2; Tue, 20 Apr
- 2021 10:05:10 +0100
-Date:   Tue, 20 Apr 2021 10:03:42 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Dan Williams <dan.j.williams@intel.com>
-CC:     Vikram Sethi <vsethi@nvidia.com>,
-        "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "Natu, Mahesh" <mahesh.natu@intel.com>,
-        "Douglas, Chet R" <chet.r.douglas@intel.com>,
-        "Verma, Vishal L" <vishal.l.verma@intel.com>,
-        "Widawsky, Ben" <ben.widawsky@intel.com>,
-        "Samer El-Haj-Mahmoud" <Samer.El-Haj-Mahmoud@arm.com>,
-        Thanu Rangarajan <Thanu.Rangarajan@arm.com>
-Subject: Re: [ACPI Code First ECN v2]: Generic Port, performace data for
- hotplug memory
-Message-ID: <20210420100342.00000253@Huawei.com>
-In-Reply-To: <CAPcyv4jMQbHYQssaDDDQFEbOR1v14VUnejcSwOP9VGUnZSsCKw@mail.gmail.com>
-References: <e1a52da9aec90766da5de51b1b839fd95d63a5af.camel@intel.com>
-        <BL0PR12MB25321D18363AD50ACC7A2643BD499@BL0PR12MB2532.namprd12.prod.outlook.com>
-        <CAPcyv4jztOGShTF+pVSMAtGeK4giHvC3mGNa5bC0pXz=2ZcrJw@mail.gmail.com>
-        <BL0PR12MB2532D6AD41E6CF4F3252EE59BD489@BL0PR12MB2532.namprd12.prod.outlook.com>
-        <CAPcyv4jMQbHYQssaDDDQFEbOR1v14VUnejcSwOP9VGUnZSsCKw@mail.gmail.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
+        id S230204AbhDTJ2j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 20 Apr 2021 05:28:39 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:16483 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229494AbhDTJ2j (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Apr 2021 05:28:39 -0400
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FPdZw5MNSzrfkt;
+        Tue, 20 Apr 2021 17:25:44 +0800 (CST)
+Received: from A2006125610.china.huawei.com (10.47.83.26) by
+ DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
+ 14.3.498.0; Tue, 20 Apr 2021 17:27:59 +0800
+From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+To:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>
+CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
+        <joro@8bytes.org>, <robin.murphy@arm.com>,
+        <wanghuiqiang@huawei.com>, <guohanjun@huawei.com>,
+        <steven.price@arm.com>, <Sami.Mujawar@arm.com>,
+        <jon@solid-run.com>, <eric.auger@redhat.com>
+Subject: [PATCH v3 00/10] ACPI/IORT: Support for IORT RMR node
+Date:   Tue, 20 Apr 2021 10:27:41 +0200
+Message-ID: <20210420082751.1829-1-shameerali.kolothum.thodi@huawei.com>
+X-Mailer: git-send-email 2.12.0.windows.1
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-X-Originating-IP: [10.52.127.46]
-X-ClientProxiedBy: lhreml725-chm.china.huawei.com (10.201.108.76) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.47.83.26]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 19 Apr 2021 22:08:39 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+Hi,
 
-> On Mon, Apr 19, 2021 at 9:22 PM Vikram Sethi <vsethi@nvidia.com> wrote:
-> >  
-> > > From: Dan Williams <dan.j.williams@intel.com>
-> > > On Mon, Apr 19, 2021 at 3:56 PM Vikram Sethi <vsethi@nvidia.com> wrote:
-> > > [..]  
-> > > > > * Replace all instances of "Initiator" with "Initiator / Port" in "Table
-> > > > >   5.59 Flags - Generic Initiator Affinity Structure", including the
-> > > > >   table name.  
-> > > >
-> > > > I wanted to discuss the implications of a CXL host bridge implementation that
-> > > > does not set the "Architectural Transactions" bit/flag in the aforementioned
-> > > > Flags in Table 5.59.
-> > > >
-> > > > Since the kernel would be expecting all "System RAM" to have equivalent
-> > > > Functional properties, if HDM cannot have all the same functionality, then in
-> > > > the absence of ISA specific ACPI tables clarifying what architectural feature isn't
-> > > > supported, the kernel may be forced to not online the HDM memory as system
-> > > > RAM. If there is more granular expression of what features are lacking in a ISA
-> > > > Specific table (eg Memory Tagging/Memory Protection keys not supported),
-> > > > the kernel could choose to not enable that feature in all of system RAM (if
-> > > > discrepancy discovered at boot), but still online the HDM as System RAM.
-> > > >
-> > > > To that end, it may be useful to clarify this to host vendors by way of an
-> > > > Implementation note (ideally in the CXL specification). Something like:
-> > > > "CXL hosts are encouraged to support all architectural features in HDM
-> > > > as they do in CPU attached memory to avoid either the memory from
-> > > > being onlined as System RAM, or the architectural feature being disabled.
-> > > > Hosts must indicate architectural parity for HDM in ACPI SRAT
-> > > > “Generic Port” flags “Architectural transactions” bit by setting it to 1.
-> > > > A port that sets this bit to 0 will need ISA specific ways/ACPI tables to
-> > > > describe which specific ISA features would not work in HDM, so an OS
-> > > > could disable that memory or that feature."
-> > > >
-> > > > Thoughts?  
-> > >
-> > > The problem, as you know, is that those features are already defined
-> > > without those "ISA specific ways / ACPI tables". I think it simply
-> > > must be the case that the only agent in the system that is aware of
-> > > the intersection of capabilities between ISA and CXL (platform
-> > > firmware) must mitigate the conflict. I.e. so that the CXL
-> > > infrastructure need not worry about ISA feature capability and vice
-> > > versa. To me, this looks like a platform firmware pre-boot
-> > > configuration menu / switch that turns off CXL (declines to publish
-> > > ACPI0016 devices) if incompatible ISA feature "X" is enabled, or the
-> > > reverse turns off ISA feature "X" if CXL is enabled. In other words,
-> > > the conflict needs to be resolved before the OS boots, setting this
-> > > bit to 0 is not a viable option for mitigating the conflict because
-> > > there is no requirement for the OS to even look at this flag.  
-> >
-> > Leaving it to Firmware is easier for the OS, but could be a couple
-> > of issues with that:
-> > Platform firmware may not have a way of disabling ISA feature
-> > if it is directly visible to the OS via CPU ID registers, and the
-> > registers can't be trapped to some FW and values adjusted
-> > on access
-> > Platform Firmware may not know if the OS supports a specific
-> > Feature (code may not exist or not default option etc) so it
-> > may be premature/suboptimal to disable CXL hostbridge
-> > altogether. Although I suppose a UEFI variable type knob
-> > could be adjusted in this case and take effect on reboot.
-> >
-> > Also, for some *future* ISA features where it may be possible and
-> > practical to define ISA feature support discovery per NUMA
-> > node/address range w/ ACPI (prior to userspace ABI being set),
-> > the platform would want to enable the CXL host bridge and leave
-> > selective enablement of the feature to the OS. Yes, this is messy
-> > and best avoided, but it may make sense depending on ISA
-> > feature and how messy it makes user space. I'm personally
-> > not in favor of this latter option, but I'm told this was discussed
-> > in other Coherent interconnect forums and chosen as a path
-> > forward.  
-> 
-> I think it's reasonable for new stuff to define _OSC or other opt-in
-> requirements to allow the OS to manage ISA vs CXL conflict policy. For
-> existing conflicts the only reliable mechanism is decline to publish
-> ACPI0016 if platform firmware can enumerate an ISA feature that it is
-> not supported on CXL. So I think the proposal here is a recommendation
-> for platform firmware implementations that they are responsible for
-> this conflict resolution unless / until other mechanisms arrive.
+RFC v2 --> v3
+ -Dropped RFC tag as the ACPICA header changes are now ready to be
+  part of 5.13[0]. But this series still has a dependency on that patch.
+ -Added IORT E.b related changes(node flags, _DSM function 5 checks for
+  PCIe).
+ -Changed RMR to stream id mapping from M:N to M:1 as per the spec and
+  discussion here[1].
+ -Last two patches add support for SMMUv2(Thanks to Jon Nettleton!) 
 
-Agreed with one addition.  It should be possible to retrofit negotiation
-for existing features as well. Default policy should be that it's firmware's
-problem but if the OS uses _OSC to negotiate something else then it may
-be possible to be more flexible. As long as the default is safe, relaxing
-that can happen once mechanisms are defined.  The actual decision on
-whether to enable ACPI0016 can for example be pushed into AML code.
+Sanity tested on a HiSilicon D06. Further testing and feedback is greatly
+appreciated.
+
+The whole series can be found here,
+https://github.com/hisilicon/kernel-dev/tree/private-v5.12-rc8-rmr-v3
+
+Thanks,
+Shameer
+
+[0] https://lore.kernel.org/linux-acpi/20210406213028.718796-22-erik.kaneda@intel.com/
+[1] https://op-lists.linaro.org/pipermail/linaro-open-discussions/2021-April/000150.html
+
+RFC v1 --> v2:
+ - Added a generic interface for IOMMU drivers to retrieve all the 
+   RMR info associated with a given IOMMU.
+ - SMMUv3 driver gets the RMR list during probe() and installs
+   bypass STEs for all the SIDs in the RMR list. This is to keep
+   the ongoing traffic alive(if any) during SMMUv3 reset. This is
+   based on the suggestions received for v1 to take care of the
+   EFI framebuffer use case. Only sanity tested for now.
+ - During the probe/attach device, SMMUv3 driver reserves any
+   RMR region associated with the device such that there is a unity
+   mapping for them in SMMU.
+---    
+
+From RFC v1:
+-------------
+The series adds support to IORT RMR nodes specified in IORT
+Revision E -ARM DEN 0049E[0]. RMR nodes are used to describe memory
+ranges that are used by endpoints and require a unity mapping
+in SMMU.
+
+We have faced issues with 3408iMR RAID controller cards which
+fail to boot when SMMU is enabled. This is because these controllers
+make use of host memory for various caching related purposes and when
+SMMU is enabled the iMR firmware fails to access these memory regions
+as there is no mapping for them. IORT RMR provides a way for UEFI to
+describe and report these memory regions so that the kernel can make
+a unity mapping for these in SMMU.
+
+Tests:
+
+With a UEFI, that reports the RMR for the dev,
+....
+[16F0h 5872   1]                         Type : 06
+[16F1h 5873   2]                       Length : 007C
+[16F3h 5875   1]                     Revision : 00
+[1038h 0056   2]                     Reserved : 00000000
+[1038h 0056   2]                   Identifier : 00000000
+[16F8h 5880   4]                Mapping Count : 00000001
+[16FCh 5884   4]               Mapping Offset : 00000040
+
+[1700h 5888   4]    Number of RMR Descriptors : 00000002
+[1704h 5892   4]        RMR Descriptor Offset : 00000018
+
+[1708h 5896   8]          Base Address of RMR : 0000E6400000
+[1710h 5904   8]                Length of RMR : 000000100000
+[1718h 5912   4]                     Reserved : 00000000
+
+[171Ch 5916   8]          Base Address of RMR : 0000000027B00000
+[1724h 5924   8]                Length of RMR : 0000000000C00000
+[172Ch 5932   4]                     Reserved : 00000000
+
+[1730h 5936   4]                   Input base : 00000000
+[1734h 5940   4]                     ID Count : 00000001
+[1738h 5944   4]                  Output Base : 00000003
+[173Ch 5948   4]             Output Reference : 00000064
+[1740h 5952   4]        Flags (decoded below) : 00000001
+                               Single Mapping : 1
+...
+
+Without the series the RAID controller initialization fails as
+below,
+
+...
+[   12.631117] megaraid_sas 0000:03:00.0: FW supports sync cache        : Yes   
+[   12.637360] megaraid_sas 0000:03:00.0: megasas_disable_intr_fusion is called outbound_intr_mask:0x40000009                                                   
+[   18.776377] megaraid_sas 0000:03:00.0: Init cmd return status FAILED for SCSI host 0                                                                         
+[   23.019383] megaraid_sas 0000:03:00.0: Waiting for FW to come to ready state 
+[  106.684281] megaraid_sas 0000:03:00.0: FW in FAULT state, Fault code:0x10000 subcode:0x0 func:megasas_transition_to_ready                                    
+[  106.695186] megaraid_sas 0000:03:00.0: System Register set:                  
+[  106.889787] megaraid_sas 0000:03:00.0: Failed to transition controller to ready for scsi0.                                                                   
+[  106.910475] megaraid_sas 0000:03:00.0: Failed from megasas_init_fw 6407      
+estuary:/$
+
+With the series, now the kernel has direct mapping for the dev as
+below,
+
+estuary:/$ cat /sys/kernel/iommu_groups/0/reserved_regions                      
+0x0000000008000000 0x00000000080fffff msi                                       
+0x0000000027b00000 0x00000000286fffff direct                                    
+0x00000000e6400000 0x00000000e64fffff direct                                    
+estuary:/$
+
+....
+[   12.254318] megaraid_sas 0000:03:00.0: megasas_disable_intr_fusion is called outbound_intr_mask:0x40000009                                                   
+[   12.739089] megaraid_sas 0000:03:00.0: FW provided supportMaxExtLDs: 0      max_lds: 32                                                                      
+[   12.746628] megaraid_sas 0000:03:00.0: controller type       : iMR(0MB)      
+[   12.752694] megaraid_sas 0000:03:00.0: Online Controller Reset(OCR)  : Enabled                                                                               
+[   12.759798] megaraid_sas 0000:03:00.0: Secure JBOD support   : Yes           
+[   12.765778] megaraid_sas 0000:03:00.0: NVMe passthru support : Yes           
+[   12.771931] megaraid_sas 0000:03:00.0: FW provided TM TaskAbort/Reset timeou: 6 secs/60 secs                                                                 
+[   12.780503] megaraid_sas 0000:03:00.0: JBOD sequence map support     : Yes   
+[   12.787000] megaraid_sas 0000:03:00.0: PCI Lane Margining support    : No    
+[   12.819179] megaraid_sas 0000:03:00.0: NVME page size        : (4096)        
+[   12.825672] megaraid_sas 0000:03:00.0: megasas_enable_intr_fusion is called outbound_intr_mask:0x40000000                                                    
+[   12.835199] megaraid_sas 0000:03:00.0: INIT adapter done                     
+[   12.873932] megaraid_sas 0000:03:00.0: pci id                : (0x1000)/(0x0017)/(0x19e5)/(0xd213)                                                           
+[   12.881644] megaraid_sas 0000:03:00.0: unevenspan support    : no            
+[   12.887451] megaraid_sas 0000:03:00.0: firmware crash dump   : no            
+[   12.893344] megaraid_sas 0000:03:00.0: JBOD sequence map     : enabled       
+
+RAID controller init is now success and can detect the drives
+attached as well.
 
 
+Jon Nettleton (2):
+  iommu/arm-smmu: Get associated RMR info and install bypass SMR
+  iommu/arm-smmu: Reserve any RMR regions associated with a dev
+
+Shameer Kolothum (8):
+  ACPI/IORT: Add support for RMR node parsing
+  iommu/dma: Introduce generic helper to retrieve RMR info
+  ACPI/IORT: Add a helper to retrieve RMR memory regions
+  iommu/dma: Add a helper function to reserve RMRs for IOMMU drivers
+  iommu/arm-smmu-v3: Introduce strtab init helper
+  iommu/arm-smmu-v3: Add bypass flag to arm_smmu_write_strtab_ent()
+  iommu/arm-smmu-v3: Get associated RMR info and install bypass STE
+  iommu/arm-smmu-v3: Reserve any RMR regions associated with a dev
+
+ drivers/acpi/arm64/iort.c                   | 144 +++++++++++++++++++-
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c |  98 +++++++++++--
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h |   2 +
+ drivers/iommu/arm/arm-smmu/arm-smmu.c       |  75 ++++++++++
+ drivers/iommu/arm/arm-smmu/arm-smmu.h       |   2 +
+ drivers/iommu/dma-iommu.c                   |  71 ++++++++++
+ include/linux/acpi_iort.h                   |   7 +
+ include/linux/dma-iommu.h                   |  15 ++
+ include/linux/iommu.h                       |  19 +++
+ 9 files changed, 417 insertions(+), 16 deletions(-)
+
+-- 
+2.17.1
 
