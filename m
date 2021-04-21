@@ -2,32 +2,32 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAD0BC433ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Apr 2021 16:43:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 802EBC43461
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Apr 2021 16:43:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 882C261454
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Apr 2021 16:43:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41B8961455
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Apr 2021 16:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244283AbhDUQoD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S244294AbhDUQoD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 21 Apr 2021 12:44:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53618 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236214AbhDUQoB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Apr 2021 12:44:01 -0400
+        id S241939AbhDUQoC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Apr 2021 12:44:02 -0400
 Received: from disco-boy.misterjones.org (disco-boy.misterjones.org [51.254.78.96])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 476C461445;
+        by mail.kernel.org (Postfix) with ESMTPSA id B5F9861450;
         Wed, 21 Apr 2021 16:43:28 +0000 (UTC)
 Received: from 78.163-31-62.static.virginmediabusiness.co.uk ([62.31.163.78] helo=why.lan)
         by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <maz@kernel.org>)
-        id 1lZFwj-008jPD-UL; Wed, 21 Apr 2021 17:43:26 +0100
+        id 1lZFwk-008jPD-UV; Wed, 21 Apr 2021 17:43:27 +0100
 From:   Marc Zyngier <maz@kernel.org>
 To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
@@ -37,10 +37,12 @@ Cc:     dann frazier <dann.frazier@canonical.com>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-kernel@vger.kernel.org, kernel-team@android.com
-Subject: [PATCH 0/2] arm64: ACPI GTDT watchdog fixes
-Date:   Wed, 21 Apr 2021 17:43:15 +0100
-Message-Id: <20210421164317.1718831-1-maz@kernel.org>
+Subject: [PATCH 2/2] ACPI: irq: Prevent unregistering of GIC SGIs
+Date:   Wed, 21 Apr 2021 17:43:17 +0100
+Message-Id: <20210421164317.1718831-3-maz@kernel.org>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210421164317.1718831-1-maz@kernel.org>
+References: <20210421164317.1718831-1-maz@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 62.31.163.78
@@ -51,31 +53,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dann recently reported that his ThunderX machine failed to boot since
-64b499d8df40 ("irqchip/gic-v3: Configure SGIs as standard
-interrupts"), with a not so pretty crash while trying to send an IPI.
+When using ACPI on arm64, which implies the GIC IRQ model, no
+table should ever provide a GSI number in the range [0:15],
+as these are reserved for IPIs.
 
-It turned out to be caused by a mix of broken firmware and a buggy
-GTDT watchdog driver. Both have forever been buggy, but the above
-commit revealed that the error handling path of the driver was
-probably the worse part of it all.
+However, drivers tend to call acpi_unregister_gsi() with any
+random GSI number provided by half baked tables, which results
+in an exploding kernel when its IPIs have been unconfigured.
 
-Anyway, this short series has two goals:
-- handle broken firmware in a less broken way
-- make sure that the route cause of the problem can be identified
-  quickly
+In order to catch this, check for the silly case early, warn
+that something is going wrong and avoid the above disaster.
 
-Thanks,
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+---
+ drivers/acpi/irq.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-	M.
-
-Marc Zyngier (2):
-  ACPI: GTDT: Don't corrupt interrupt mappings on watchdow probe failure
-  ACPI: irq: Prevent unregistering of GIC SGIs
-
- drivers/acpi/arm64/gtdt.c | 10 ++++++----
- drivers/acpi/irq.c        |  6 +++++-
- 2 files changed, 11 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
+index e209081d644b..c68e694fca26 100644
+--- a/drivers/acpi/irq.c
++++ b/drivers/acpi/irq.c
+@@ -75,8 +75,12 @@ void acpi_unregister_gsi(u32 gsi)
+ {
+ 	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
+ 							DOMAIN_BUS_ANY);
+-	int irq = irq_find_mapping(d, gsi);
++	int irq;
+ 
++	if (WARN_ON(acpi_irq_model == ACPI_IRQ_MODEL_GIC && gsi < 16))
++		return;
++
++	irq = irq_find_mapping(d, gsi);
+ 	irq_dispose_mapping(irq);
+ }
+ EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
 -- 
 2.29.2
+
