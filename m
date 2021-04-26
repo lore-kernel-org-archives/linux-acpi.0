@@ -6,60 +6,57 @@ X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F6DBC433B4
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35446C433ED
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 578AF60FDC
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1389D61396
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235546AbhDZWwN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Apr 2021 18:52:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41988 "EHLO mail.kernel.org"
+        id S236000AbhDZWwO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Apr 2021 18:52:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234767AbhDZWwJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Apr 2021 18:52:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id C400060FE3;
-        Mon, 26 Apr 2021 22:51:27 +0000 (UTC)
+        id S235392AbhDZWwK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Apr 2021 18:52:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 034F8613AC;
+        Mon, 26 Apr 2021 22:51:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1619477487;
-        bh=Gr+9xNcXOfKgfJqgJX/i8LVqX5wv0wsXPLdQSO25qug=;
+        s=k20201202; t=1619477488;
+        bh=2E3Lg+QHWm4Jt9cAc7G2wghmqipvEKCuGb95xQoS3C8=;
         h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=nOWbobEwFX1rFXrY/8I1+gTKhfkOGfqolC+yLfNUmsGmHpaYn/5xrN2cGZ194XR6X
-         teOaGUu7G0qGP3M03sJRucYwoL/01jTiktMk68GmWKP1/FmTip7TF2ROL/UWO2I2VB
-         /q2I2rdUddwfBurqr4hEJD2t9cBvUwsnpqpC1mYDQOOFTuXAsxdeHM0Bzg/L2PfKAU
-         D+pnoPi+S/6l1bRblsiqgFhtbw9q91/DmXBTlucLtg/muDVDFsJ6xQpz2a0Ob+4MSQ
-         BREKwpFHuJ129Hk/zO7YDIEKdZ6xr4PbKQkK3ACJ2HarQljo7sV6ynRmvLxPC9sq5g
-         tF4EbIZ9PfNFg==
-Subject: Re: [GIT PULL] Power management updates for v5.13-rc1
+        b=oLQBDs4BMq9cuMTjGcAogmuWT8dbeWkoePCvdQ7mddo33xQvQm8LjrK1xDobT0NmV
+         Cw+7gYYw2kPFm3flh/Nw6UFKPfwQXstzdt2naBANwi8ewGvu678uWZYp/F1fF232E6
+         hvuDHMXTQNn5q1QY36i6rnWYYn3qPvFHont0Cv5SMrH0tvZuwmgXAOWyZK/4v+jIuk
+         9zFJq+0+gBoFTvggZLulVB1XLZGgOZW4Zo28TwzUT9noXhDGE3myEXZCO4UTLMYAqE
+         Rbk3cAT6gnNSSRC4OIUkNrwNNCS+6CEHtg6n/gRa3kaqbwENv/Kl74pBZ9zuEhLFEo
+         FFFLCFJaKC9Hw==
+Subject: Re: [GIT PULL] Device properties updates for v5.13-rc1
 From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iuTS8iDCUVQcqAB5N=8f6KkY00e-A+9Jtq7P3gzj=HmA@mail.gmail.com>
-References: <CAJZ5v0iuTS8iDCUVQcqAB5N=8f6KkY00e-A+9Jtq7P3gzj=HmA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0hrpjNW8ZHULfkTsLMVyti-0H7gFgSySPwXsQMpTEf8nA@mail.gmail.com>
+References: <CAJZ5v0hrpjNW8ZHULfkTsLMVyti-0H7gFgSySPwXsQMpTEf8nA@mail.gmail.com>
 X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iuTS8iDCUVQcqAB5N=8f6KkY00e-A+9Jtq7P3gzj=HmA@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.13-rc1
-X-PR-Tracked-Commit-Id: 59e2c959f20f9f255a42de52cde54a2962fb726f
+X-PR-Tracked-Message-Id: <CAJZ5v0hrpjNW8ZHULfkTsLMVyti-0H7gFgSySPwXsQMpTEf8nA@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git devprop-5.13-rc1
+X-PR-Tracked-Commit-Id: 46b37c6e4b072d1440e82558aadd5b678627fec6
 X-PR-Merge-Tree: torvalds/linux.git
 X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 5469f160e6bf38b84eb237055868286e629b8d44
-Message-Id: <161947748776.6408.15220602274569744550.pr-tracker-bot@kernel.org>
+X-PR-Merge-Commit-Id: f0728bfeb21a24bbb7d5ad1828b67a359550fa17
+Message-Id: <161947748797.6408.8669460157454869918.pr-tracker-bot@kernel.org>
 Date:   Mon, 26 Apr 2021 22:51:27 +0000
 To:     "Rafael J. Wysocki" <rafael@kernel.org>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Mon, 26 Apr 2021 20:27:20 +0200:
+The pull request you sent on Mon, 26 Apr 2021 20:28:23 +0200:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.13-rc1
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git devprop-5.13-rc1
 
 has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/5469f160e6bf38b84eb237055868286e629b8d44
+https://git.kernel.org/torvalds/c/f0728bfeb21a24bbb7d5ad1828b67a359550fa17
 
 Thank you!
 
