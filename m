@@ -2,81 +2,67 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4163EC433B4
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 18:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F6DBC433B4
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 034B161077
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 18:28:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 578AF60FDC
+	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234146AbhDZS3Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Apr 2021 14:29:16 -0400
-Received: from mail-oi1-f174.google.com ([209.85.167.174]:36375 "EHLO
-        mail-oi1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233842AbhDZS3Q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Apr 2021 14:29:16 -0400
-Received: by mail-oi1-f174.google.com with SMTP id i26so2006969oii.3;
-        Mon, 26 Apr 2021 11:28:34 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=lhhDnDrz7SxH0vtjl7AEWE9DYDGK7xa0xu0uNkl5/jE=;
-        b=aekE8oXbP3ACq0ifp/EB6ivwW7+tIfQUD0+J8BulFJ9Vpia1uUQxEMTvxa7KTl15AJ
-         13R5pg3VQWbM8tsyHbxtbVSia5A9O3xA/qtBMtS9Ih1MvGYeH1hH19W9IDGtkBrwMv2M
-         tYZb/axqd1EHskQKi2QNj94RwSxy9qoogAPqBh6mJBv2XVvJP94wtzFywl8dXaedKGc/
-         y6dW3yquhJ5o02ITv31rVxjxfpSlwLZxXqZXNNmFYXQPQ+TC9E3XSoGHQ9wJTNsSxmH7
-         Lg65kIS2QYYDhbN0fGPHwWq8vS5oblLjK1tCKoa4hTt7J0NJAqeIlgmuYBvY8df5pqmE
-         SCjQ==
-X-Gm-Message-State: AOAM531PevLUMofZR9i99M6WUPa/Eo6JZLBsEkY4Bn3kdJnTf8H5vl9T
-        HrC+y65B87HCcueYzz5wQV9BvBvhnrRLALHMg3khLj2Kyu0=
-X-Google-Smtp-Source: ABdhPJwX5NzD1AEtUsJa2nVt/hDV8fJssFQOIkpi5kxLvt+F9Gn8TwdrQhJmR06DYgrfHit3N6DYp0mKxc296Zr973g=
-X-Received: by 2002:a54:4501:: with SMTP id l1mr257436oil.157.1619461714383;
- Mon, 26 Apr 2021 11:28:34 -0700 (PDT)
-MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 26 Apr 2021 20:28:23 +0200
-Message-ID: <CAJZ5v0hrpjNW8ZHULfkTsLMVyti-0H7gFgSySPwXsQMpTEf8nA@mail.gmail.com>
-Subject: [GIT PULL] Device properties updates for v5.13-rc1
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        id S235546AbhDZWwN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Apr 2021 18:52:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41988 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234767AbhDZWwJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Apr 2021 18:52:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id C400060FE3;
+        Mon, 26 Apr 2021 22:51:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1619477487;
+        bh=Gr+9xNcXOfKgfJqgJX/i8LVqX5wv0wsXPLdQSO25qug=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=nOWbobEwFX1rFXrY/8I1+gTKhfkOGfqolC+yLfNUmsGmHpaYn/5xrN2cGZ194XR6X
+         teOaGUu7G0qGP3M03sJRucYwoL/01jTiktMk68GmWKP1/FmTip7TF2ROL/UWO2I2VB
+         /q2I2rdUddwfBurqr4hEJD2t9cBvUwsnpqpC1mYDQOOFTuXAsxdeHM0Bzg/L2PfKAU
+         D+pnoPi+S/6l1bRblsiqgFhtbw9q91/DmXBTlucLtg/muDVDFsJ6xQpz2a0Ob+4MSQ
+         BREKwpFHuJ129Hk/zO7YDIEKdZ6xr4PbKQkK3ACJ2HarQljo7sV6ynRmvLxPC9sq5g
+         tF4EbIZ9PfNFg==
+Subject: Re: [GIT PULL] Power management updates for v5.13-rc1
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0iuTS8iDCUVQcqAB5N=8f6KkY00e-A+9Jtq7P3gzj=HmA@mail.gmail.com>
+References: <CAJZ5v0iuTS8iDCUVQcqAB5N=8f6KkY00e-A+9Jtq7P3gzj=HmA@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0iuTS8iDCUVQcqAB5N=8f6KkY00e-A+9Jtq7P3gzj=HmA@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.13-rc1
+X-PR-Tracked-Commit-Id: 59e2c959f20f9f255a42de52cde54a2962fb726f
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 5469f160e6bf38b84eb237055868286e629b8d44
+Message-Id: <161947748776.6408.15220602274569744550.pr-tracker-bot@kernel.org>
+Date:   Mon, 26 Apr 2021 22:51:27 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Mon, 26 Apr 2021 20:27:20 +0200:
 
-Please pull from the tag
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.13-rc1
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-5.13-rc1
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/5469f160e6bf38b84eb237055868286e629b8d44
 
-with top-most commit 46b37c6e4b072d1440e82558aadd5b678627fec6
+Thank you!
 
- MAINTAINERS: Add entry for the software nodes
-
-on top of commit 1e28eed17697bcf343c6743f0028cc3b5dd88bf0
-
- Linux 5.12-rc3
-
-to receive device properties framework update for 5.13-rc1.
-
-This adds a MAINTAINERS entry for software nodes core code (Heikki
-Krogerus).
-
-Thanks!
-
-
----------------
-
-Heikki Krogerus (1):
-      MAINTAINERS: Add entry for the software nodes
-
----------------
-
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
