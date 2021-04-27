@@ -2,65 +2,99 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D530C43470
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB41AC433ED
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Apr 2021 01:41:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0457E610A5
-	for <linux-acpi@archiver.kernel.org>; Mon, 26 Apr 2021 22:51:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91A25613A9
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Apr 2021 01:41:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235823AbhDZWwN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Apr 2021 18:52:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41964 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233919AbhDZWwJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Apr 2021 18:52:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 8AED261185;
-        Mon, 26 Apr 2021 22:51:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1619477487;
-        bh=hZtA61Bv53WKexRZLYj3O1Uo2iI+j7O7Jsfn7MqQ8ew=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=IEDMd1sxDm5862IDXDyfxKqqKSvdBfHhnji0LufiQCxjk8r1OP0CRbf6MYDRV5jhJ
-         X3l3Iv8r+37FVZg6X1PJ9gMVN6c9ciYJn/WFNBxPD2kZEp7+2N19F0zhOab9OLJ/TJ
-         ja2irXA9fJHFS1e6KL1si9O1Nl7HcyP2r0yUqMax8ylTcIc8mKOBrBGfyJQSsfp3LS
-         rukOr1CP37+ts+ea2jxQvr8S4+etpuVGJvBHvNaAD8PQDdFKUw5zv6ymwYVo8w36Ci
-         lirOLUEpZJeZzLB85WLn9chQ0T2UqLma7LWjAvMgR/BBjy9K2/P0opWdjUrxmVwlRE
-         Jl5lExjsnuKQw==
-Subject: Re: [GIT PULL] ACPI updates for v5.13-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0jdRxPj-tJaxbOYHXk505NoG1EefSJUmtgso9KGAm3rzg@mail.gmail.com>
-References: <CAJZ5v0jdRxPj-tJaxbOYHXk505NoG1EefSJUmtgso9KGAm3rzg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0jdRxPj-tJaxbOYHXk505NoG1EefSJUmtgso9KGAm3rzg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.13-rc1
-X-PR-Tracked-Commit-Id: b6237f61fc9ca79b8771a4fa412d2c630c9f8d2b
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: d8f9176b4ece17e831306072678cd9ae49688cf5
-Message-Id: <161947748753.6408.4745043706520347761.pr-tracker-bot@kernel.org>
-Date:   Mon, 26 Apr 2021 22:51:27 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S232295AbhD0Bm3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 26 Apr 2021 21:42:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55040 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233361AbhD0Bm2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Apr 2021 21:42:28 -0400
+Received: from ustc.edu.cn (email6.ustc.edu.cn [IPv6:2001:da8:d800::8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 70B51C061574;
+        Mon, 26 Apr 2021 18:41:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mail.ustc.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:Date:
+        Message-Id:MIME-Version:Content-Transfer-Encoding; bh=RNKcazazG5
+        hbxjr+fd3/Dgnsb37D/vx3vsCQ/sLh6hE=; b=oVFUJryol8JZtLoBR/825afMG9
+        +N9RkNAK8c/6NEAzbPQYdwjmkWUhtRWSDlbQ/lV5zet/lKOYKIbBAwGv/eis4nph
+        Lghled2vAeMm3klwlo7DpcahsDHrwOZ2jtVT2gjHueitYBIGBPkZ3o3GNXSCNghw
+        cH4vy9fpocyFgunrw=
+Received: from ubuntu.localdomain (unknown [202.38.69.14])
+        by newmailweb.ustc.edu.cn (Coremail) with SMTP id LkAmygC3vq7Qa4dgTqZOAA--.291S4;
+        Tue, 27 Apr 2021 09:41:36 +0800 (CST)
+From:   Lv Yunlong <lyl2019@mail.ustc.edu.cn>
+To:     robert.moore@intel.com, erik.kaneda@intel.com,
+        rafael.j.wysocki@intel.com, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-kernel@vger.kernel.org, Lv Yunlong <lyl2019@mail.ustc.edu.cn>
+Subject: [PATCH] ACPICA:dbnames: Fix a error free in acpi_db_walk_for_fields
+Date:   Mon, 26 Apr 2021 18:41:34 -0700
+Message-Id: <20210427014134.3568-1-lyl2019@mail.ustc.edu.cn>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: LkAmygC3vq7Qa4dgTqZOAA--.291S4
+X-Coremail-Antispam: 1UD129KBjvdXoWrtFyUtF4rGrW7JrW8Xr1rtFb_yoWkKrX_ua
+        s5GF48W3WYkr1xAF17A3s3ZFy0vw43Zrn7Gr4kKr1I9rZ5Zr1rAwn7Zwn0q3s7GF90grsx
+        ua4Utrn5uw1akjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUbV8FF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
+        6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
+        A2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Cr0_
+        Gr1UM28EF7xvwVC2z280aVAFwI0_Cr1j6rxdM28EF7xvwVC2z280aVCY1x0267AKxVWxJr
+        0_GcWlnxkEFVAIw20F6cxK64vIFxWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xv
+        F2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r
+        4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I
+        648v4I1lc2xSY4AK67AK6w4l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr
+        1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE
+        14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7
+        IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWrZr1j6s0DMIIF0xvE
+        x4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvj
+        DU0xZFpf9x0JUmNtcUUUUU=
+X-CM-SenderInfo: ho1ojiyrz6zt1loo32lwfovvfxof0/
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Mon, 26 Apr 2021 20:24:55 +0200:
+In acpi_db_walk_for_fields, buffer.pointer is freed in the first
+time via ACPI_FREE() after acpi_os_printf("%s ", (char *)buffer.pointer).
+But later, buffer.pointer is assigned to ret_value, and the freed
+pointer is dereferenced by ret_value, which is use after free.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.13-rc1
+In addition, buffer.pointer is freed by ACPI_FREE() again after
+acpi_os_printf("}\n"), which is a double free.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/d8f9176b4ece17e831306072678cd9ae49688cf5
+My patch removes the first ACPI_FREE() to avoid the uaf and double
+free bugs.
 
-Thank you!
+Fixes: 5fd033288a866 ("ACPICA: debugger: add command to dump all fields of particular subtype")
+Signed-off-by: Lv Yunlong <lyl2019@mail.ustc.edu.cn>
+---
+ drivers/acpi/acpica/dbnames.c | 1 -
+ 1 file changed, 1 deletion(-)
 
+diff --git a/drivers/acpi/acpica/dbnames.c b/drivers/acpi/acpica/dbnames.c
+index 3615e1a6efd8..dabd76df15ec 100644
+--- a/drivers/acpi/acpica/dbnames.c
++++ b/drivers/acpi/acpica/dbnames.c
+@@ -547,7 +547,6 @@ acpi_db_walk_for_fields(acpi_handle obj_handle,
+ 	}
+ 
+ 	acpi_os_printf("%s ", (char *)buffer.pointer);
+-	ACPI_FREE(buffer.pointer);
+ 
+ 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
+ 	acpi_evaluate_object(obj_handle, NULL, NULL, &buffer);
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.25.1
+
+
