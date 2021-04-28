@@ -2,89 +2,100 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0676C433ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Apr 2021 11:48:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DEB8C433B4
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Apr 2021 12:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFBC0613FB
-	for <linux-acpi@archiver.kernel.org>; Wed, 28 Apr 2021 11:48:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 463D161413
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Apr 2021 12:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229591AbhD1Lt0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Apr 2021 07:49:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40644 "EHLO mail.kernel.org"
+        id S229790AbhD1MNm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Apr 2021 08:13:42 -0400
+Received: from mail1.perex.cz ([77.48.224.245]:56502 "EHLO mail1.perex.cz"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229520AbhD1Lt0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Apr 2021 07:49:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9835A61411;
-        Wed, 28 Apr 2021 11:48:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1619610521;
-        bh=eBw+v8qdF9EFaRJNBcW866wo/wCSyzy8xZ4b4KlX2xU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=eUvLjB0g4QzJVVNov0KY0cSv9XrVfQlizCKhvvpvPwU25Azy7Cwy8RxwUso9rEfFl
-         5QnuQ4clb/F/nU22yi1V37jgb207UbdQmP5bMZZeJx7rX8esapEU7tUQDdYl+ccEAm
-         2yb4FvVmiRHXLMg0ARsF5d2K3dWcTZtYX9MW/MB4KFUDfm2q+7iNdAPWLHWLenIQSv
-         ulwAZCThlwp4uoYR9GgkAugykSpvGKLTJqLSXggNKkCk1bOmMzz9+fTzyY5buzkFoH
-         U4PGPR14cf2KPdsgGtl+1406eKRdUu/anUy46hm4tLMb00GPeWzQkIqbeylmUYpbkR
-         4zBpxJ+84xzvw==
-Date:   Wed, 28 Apr 2021 14:48:35 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Anupama K Patil <anupamakpatil123@gmail.com>
-Cc:     Greg KH <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
+        id S229645AbhD1MNl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 28 Apr 2021 08:13:41 -0400
+X-Greylist: delayed 475 seconds by postgrey-1.27 at vger.kernel.org; Wed, 28 Apr 2021 08:13:40 EDT
+Received: from mail1.perex.cz (localhost [127.0.0.1])
+        by smtp1.perex.cz (Perex's E-mail Delivery System) with ESMTP id BEDDDA0040;
+        Wed, 28 Apr 2021 14:12:54 +0200 (CEST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 smtp1.perex.cz BEDDDA0040
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=perex.cz; s=default;
+        t=1619611974; bh=E7fI2iK4OLn302MecYw4bgPCutXkNrdZfiQ/p9Bs2EQ=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=MTel574VKtUTT7xuzz+YjBoFIh1Pfni2/5qKyHpKz2jLEpf263CrlNBtDJKvWeDMY
+         VzC0wlz9l7vqdLDZVKipnMmQOQqQAq3weFWFRfhprPGgy0215oj7TpiEcVqCaGKBsO
+         SS4f4FDGadFMigu+n4AJBIBFEVut8NIa5XeYpNxU=
+Received: from p1gen2.localdomain (unknown [192.168.100.98])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: perex)
+        by mail1.perex.cz (Perex's E-mail Delivery System) with ESMTPSA;
+        Wed, 28 Apr 2021 14:12:44 +0200 (CEST)
+Subject: Re: [PATCH] drivers: pnp: proc.c: Removed unnecessary varibles
+To:     Shuah Khan <skhan@linuxfoundation.org>,
+        Anupama K Patil <anupamakpatil123@gmail.com>,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        skhan@linuxfoundation.org, B K Karthik <bkkarthik@pesu.pes.edu>,
-        kernelnewbies@kernelnewbies.org
-Subject: Re: [PATCH] MAINTAINERS: mark isapnp as obsolete
-Message-ID: <YIlLk00Wzd6Lf660@unreal>
-References: <20210428110536.edy74gsobkgtd6al@ubuntu>
- <YIlCzOl/rkYeOWVW@kroah.com>
- <20210428114057.tlc53ie7crvkqqhj@ubuntu>
+        Adam <developer@arusty.dev>, bkkarthik@pesu.pes.edu,
+        gregkh@linuxfoundation.org, kernelnewbies@kernelnewbies.org,
+        linux-kernel-mentees@lists.linuxfoundation.org
+References: <20210422180322.7wlyg63kv3n2k6id@ubuntu>
+ <ea09f455-a00f-a13d-29d8-e3f9790dba56@linuxfoundation.org>
+From:   Jaroslav Kysela <perex@perex.cz>
+Message-ID: <7526f0a3-b8bb-f751-50f9-4e71316178e0@perex.cz>
+Date:   Wed, 28 Apr 2021 14:12:44 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210428114057.tlc53ie7crvkqqhj@ubuntu>
+In-Reply-To: <ea09f455-a00f-a13d-29d8-e3f9790dba56@linuxfoundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Apr 28, 2021 at 05:10:57PM +0530, Anupama K Patil wrote:
-> On 21/04/28 01:11PM, Greg KH wrote:
-> > On Wed, Apr 28, 2021 at 04:35:36PM +0530, Anupama K Patil wrote:
-> > > isapnp code is very old and according to this link
-> > > https://en.wikipedia.org/wiki/Legacy_Plug_and_Play#Specifications
-> > > from Wikipedia, even Windows Vista disabled ISA PnP by default.
-> > > 
-> > > This change is in follow up to
-> > > https://lore.kernel.org/lkml/20210422180322.7wlyg63kv3n2k6id@ubuntu/T/#u
-> > > and https://lore.kernel.org/lkml/20210424194301.jmsqpycvsm7izbk3@ubuntu/T/#u
-> > > 
-> > > Suggested-by: B K Karthik <bkkarthik@pesu.pes.edu>
-> > > Signed-off-by: Anupama K Patil <anupamakpatil123@gmail.com>
-> > 
-> > Has the maintainer said this is unsupported?
-> > 
-> > That's who you should take suggestions from :)
-> > 
-> > thanks,
-> > 
-> > greg k-h
+Dne 23. 04. 21 v 23:08 Shuah Khan napsal(a):
+> On 4/22/21 12:03 PM, Anupama K Patil wrote:
+>> de, e are two variables of the type 'struct proc_dir_entry'
+>> which can be removed to save memory. This also fixes a coding style
+>> issue reported by checkpatch where we are suggested to make assignment
+>> outside the if statement.
+>>
 > 
-> Leon said he thinks it is unsupported (I've also cc'd him). So, I've sent this patch
-> to get the feedback from the maintainer.
-
-Leon said something different.
-https://lore.kernel.org/lkml/20210422180322.7wlyg63kv3n2k6id@ubuntu/T/#m6c837180c8d6496d5bcbb8526e274c4239844be0
-------
-> If changes to ISA code aren't welcomed, should these be marked obsolete in the MAINTIANERS file?
-
-I think so, but think that "Odd Fixes" better describes that Rafael wrote.
-------
-
+> Sounds like a reasonable change.
 > 
-> Thanks,
-> Anupama
+>> Signed-off-by: Anupama K Patil <anupamakpatil123@gmail.com>
+>> ---
+>>   drivers/pnp/isapnp/proc.c | 13 ++++++-------
+>>   1 file changed, 6 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/pnp/isapnp/proc.c b/drivers/pnp/isapnp/proc.c
+>> index 785a796430fa..1ae458c02656 100644
+>> --- a/drivers/pnp/isapnp/proc.c
+>> +++ b/drivers/pnp/isapnp/proc.c
+>> @@ -57,21 +57,20 @@ static const struct proc_ops isapnp_proc_bus_proc_ops = {
+>>   static int isapnp_proc_attach_device(struct pnp_dev *dev)
+>>   {
+>>   	struct pnp_card *bus = dev->card;
+>> -	struct proc_dir_entry *de, *e;
+>>   	char name[16];
+>>   
+>> -	if (!(de = bus->procdir)) {
+>> +	if (!bus->procdir) {
+>>   		sprintf(name, "%02x", bus->number);
+> 
+> It would make sense to change this to scnprintf()
+
+The name is 16 bytes, so sprintf is safe here.
+
+					Jaroslav
+
+-- 
+Jaroslav Kysela <perex@perex.cz>
+Linux Sound Maintainer; ALSA Project; Red Hat, Inc.
