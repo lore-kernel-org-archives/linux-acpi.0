@@ -2,114 +2,103 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF8FFC433B4
-	for <linux-acpi@archiver.kernel.org>; Tue,  4 May 2021 14:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF31C433ED
+	for <linux-acpi@archiver.kernel.org>; Tue,  4 May 2021 15:06:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EDCF613C5
-	for <linux-acpi@archiver.kernel.org>; Tue,  4 May 2021 14:59:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2291610E7
+	for <linux-acpi@archiver.kernel.org>; Tue,  4 May 2021 15:06:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231326AbhEDPAx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 4 May 2021 11:00:53 -0400
-Received: from mail-oi1-f172.google.com ([209.85.167.172]:36849 "EHLO
-        mail-oi1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230246AbhEDPAw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 May 2021 11:00:52 -0400
-Received: by mail-oi1-f172.google.com with SMTP id i26so9034324oii.3;
-        Tue, 04 May 2021 07:59:57 -0700 (PDT)
+        id S230256AbhEDPHZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 4 May 2021 11:07:25 -0400
+Received: from mail-oi1-f181.google.com ([209.85.167.181]:33507 "EHLO
+        mail-oi1-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230086AbhEDPHZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 May 2021 11:07:25 -0400
+Received: by mail-oi1-f181.google.com with SMTP id t8so9089883oij.0;
+        Tue, 04 May 2021 08:06:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=4xIW9Dposi9feXZy+NswqWTr7NRg3bMeiOam5FB0lac=;
-        b=PVU3shzpRgbnGcRKm4gJHqR76nsCXbA+Gu4DUBIGEQUvr7RFR8Q22iY9okUoiEYAYI
-         IxDboVP1Uz7t7bwGW/Nmjhkl5G/a+x4m42e64fbpZQF+uFR1EiXEG/1T+iuIvhur6Khk
-         7ClKI4BDf54HBa48coQspLudJ/RRGdLYkgquVPdVXShRgXVfmiXNbZHVw/oI7waO8bol
-         JsQvKNIPzwzd9M+ynfR2qb6rS/d5GWtWVoMEEBYN5yivR3yiCG+wStEdy1v6jdCLDSv0
-         3Wl7wPurerkMdI3C2dNYCxdIe9mpaPnjNx79R+Z5xNPQEhCHiHne94ZmNH+dBrtckLmv
-         Dt3w==
-X-Gm-Message-State: AOAM530d6IfBo/QvpQ1Q2avatwnw0GCKMQ6VSepgnFIZ+wg/v0LGIwm+
-        5tTsrAE/3LQZDuIqkmEWXFh0jc4hFkP0/nKDS6E=
-X-Google-Smtp-Source: ABdhPJzlzoXQOO/OKh9uMlX2vlCUCMlznw6gXq0gZEM4wygvcplu2+GYc9ugX0LFxWrPKwR+ZP9CupBCtnLcu8cFpMo=
-X-Received: by 2002:aca:5fc3:: with SMTP id t186mr17401333oib.69.1620140397577;
- Tue, 04 May 2021 07:59:57 -0700 (PDT)
+        bh=ZoAjfrltSVyzvHATSeL3gfPA6CxQb+8qG4ggVE86NF4=;
+        b=pW1VPaG0RvrooohH5oP+KMyJzW4ZcmLxQvKJCYKQQHs6osToay/4x39O9qOswENULW
+         yiIjBYtq+M6L0m1NSYmAy0wV+sZsFEJzRijDg8TUtkLzcH9/1WuJ+ucTPjvpyykzdldY
+         oP6HAvk3rppuIUf3vcI0Ga3ZkSTtqJLzPn8twIpJnpMpEVYcV92Md91m4c56J/2NDCaF
+         WDj4t8o58fL/j+5XF1pXvqlaWAtHu+F50jlNYii/KZiqsoMsoxa+P+Ityv6omWiU3D7a
+         4NF+O3qjOp7gPs4zYvZB5l/mqtzO2dpNppKywZhGagrZt6+XfJmmSwlcGYrKEUIyGt5B
+         FECg==
+X-Gm-Message-State: AOAM531jhgC3/C7v5/8IOMHtOzTVfMRqDnWmJrWQEQR7F/dukIUKi14Y
+        X3fLw1z20Z0oS9ccGODgbcMw9A8gAlXFnEEV244=
+X-Google-Smtp-Source: ABdhPJwVsXKxb3GOizSOvfMCjDGsNHTB3bqdiC6ZUtdfFWJdsnaPFHeqKA75hPeaVxAyaYI8wOgsXoF7XIrl9NTEgxQ=
+X-Received: by 2002:aca:5fc3:: with SMTP id t186mr17430830oib.69.1620140787763;
+ Tue, 04 May 2021 08:06:27 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210502172326.2060025-1-keescook@chromium.org> <YI+CHjLBg/ob6ei4@kroah.com>
-In-Reply-To: <YI+CHjLBg/ob6ei4@kroah.com>
+References: <20210502172326.2060025-1-keescook@chromium.org>
+ <0fefece0-f8a1-6ee1-114f-0a2bb412b986@redhat.com> <YJAN/nwldJKwTV/V@kroah.com>
+In-Reply-To: <YJAN/nwldJKwTV/V@kroah.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 4 May 2021 16:59:40 +0200
-Message-ID: <CAJZ5v0hohYm319Geqeb4xgJd+mn+G-Y6oWj2j_JifyaccMsh7Q@mail.gmail.com>
+Date:   Tue, 4 May 2021 17:06:10 +0200
+Message-ID: <CAJZ5v0ioc1t62C68g7twcJRQixiB2uxCpcW3QFu6Rpwu15jUzw@mail.gmail.com>
 Subject: Re: [PATCH] Revert "ACPI: custom_method: fix memory leaks"
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Kees Cook <keescook@chromium.org>, Wenwen Wang <wenwen@cs.uga.edu>,
+Cc:     Mark Langsdorf <mlangsdo@redhat.com>,
+        Kees Cook <keescook@chromium.org>,
+        Wenwen Wang <wenwen@cs.uga.edu>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Mark Langsdorf <mlangsdo@redhat.com>
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, May 3, 2021 at 6:55 AM Greg Kroah-Hartman
+On Mon, May 3, 2021 at 4:51 PM Greg Kroah-Hartman
 <gregkh@linuxfoundation.org> wrote:
 >
-> On Sun, May 02, 2021 at 10:23:26AM -0700, Kees Cook wrote:
-> > This reverts commit 03d1571d9513369c17e6848476763ebbd10ec2cb.
+> On Mon, May 03, 2021 at 08:17:14AM -0500, Mark Langsdorf wrote:
+> > In 5/2/21 12:23 PM, Kees Cook wrote:
+> > > This reverts commit 03d1571d9513369c17e6848476763ebbd10ec2cb.
+> > >
+> > > While /sys/kernel/debug/acpi/custom_method is already a privileged-only
+> > > API providing proxied arbitrary write access to kernel memory[1][2],
+> > > with existing race conditions[3] in buffer allocation and use that could
+> > > lead to memory leaks and use-after-free conditions, the above commit
+> > > appears to accidentally make the use-after-free conditions even easier
+> > > to accomplish. ("buf" is a global variable and prior kfree()s would set
+> > > buf back to NULL.)
+> > >
+> > > This entire interface needs to be reworked (if not entirely removed).
+> > >
+> > > [1] https://lore.kernel.org/lkml/20110222193250.GA23913@outflux.net/
+> > > [2] https://lore.kernel.org/lkml/201906221659.B618D83@keescook/
+> > > [3] https://lore.kernel.org/lkml/20170109231323.GA89642@beast/
+> > >
+> > > Cc: Wenwen Wang <wenwen@cs.uga.edu>
+> > > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > > ---
 > >
-> > While /sys/kernel/debug/acpi/custom_method is already a privileged-only
-> > API providing proxied arbitrary write access to kernel memory[1][2],
-> > with existing race conditions[3] in buffer allocation and use that could
-> > lead to memory leaks and use-after-free conditions, the above commit
-> > appears to accidentally make the use-after-free conditions even easier
-> > to accomplish. ("buf" is a global variable and prior kfree()s would set
-> > buf back to NULL.)
+> > I have two patches submitted to linux-acpi to fix the most obvious bugs in
+> > the current driver.  I don't think that just reverting this patch in its
+> > entirety is a good solution: it still leaves the buf allocated in -EINVAL,
+> > as well as the weird case where a not fully consumed buffer can be
+> > reallocated without being freed on a subsequent call.
 > >
-> > This entire interface needs to be reworked (if not entirely removed).
+> > https://lore.kernel.org/linux-acpi/20210427185434.34885-1-mlangsdo@redhat.com/
 > >
-> > [1] https://lore.kernel.org/lkml/20110222193250.GA23913@outflux.net/
-> > [2] https://lore.kernel.org/lkml/201906221659.B618D83@keescook/
-> > [3] https://lore.kernel.org/lkml/20170109231323.GA89642@beast/
+> > https://lore.kernel.org/linux-acpi/20210423152818.97077-1-mlangsdo@redhat.com/
 > >
-> > Cc: Wenwen Wang <wenwen@cs.uga.edu>
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> > ---
-> >  drivers/acpi/custom_method.c | 5 +----
-> >  1 file changed, 1 insertion(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
-> > index 7b54dc95d36b..36d95a02cd30 100644
-> > --- a/drivers/acpi/custom_method.c
-> > +++ b/drivers/acpi/custom_method.c
-> > @@ -53,10 +53,8 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
-> >       if ((*ppos > max_size) ||
-> >           (*ppos + count > max_size) ||
-> >           (*ppos + count < count) ||
-> > -         (count > uncopied_bytes)) {
-> > -             kfree(buf);
-> > +         (count > uncopied_bytes))
-> >               return -EINVAL;
-> > -     }
-> >
-> >       if (copy_from_user(buf + (*ppos), user_buf, count)) {
-> >               kfree(buf);
-> > @@ -76,7 +74,6 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
-> >               add_taint(TAINT_OVERRIDDEN_ACPI_TABLE, LOCKDEP_NOW_UNRELIABLE);
-> >       }
-> >
-> > -     kfree(buf);
-> >       return count;
-> >  }
-> >
-> > --
+> > I support rewriting this driver in its entirety, but reverting one bad patch
+> > to leave it in a different buggy state is less than ideal.
 >
-> Thanks for the revert, I'll queue it up on my larger "umn.edu reverts"
-> branch that I'll be sending out for review in a day or so.
+> It's buggy now, and root-only, so it's a low bar at the moment :)
 
-This will conflict with the material that I'm going to push on
-Thursday that includes the two commits mentioned by Mark elsewhere in
-this thread.
+So dropping it completely may be a better choice.
+
+IMO let's let the Mark's commits go in now and we'll see later.
+
+Thanks!
