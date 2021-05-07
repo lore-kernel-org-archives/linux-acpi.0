@@ -2,103 +2,180 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67908C433ED
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 May 2021 14:49:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AADC4C433ED
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 May 2021 22:51:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1839B61075
-	for <linux-acpi@archiver.kernel.org>; Fri,  7 May 2021 14:49:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B4AA61003
+	for <linux-acpi@archiver.kernel.org>; Fri,  7 May 2021 22:51:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236870AbhEGOur (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 7 May 2021 10:50:47 -0400
-Received: from mail-ot1-f41.google.com ([209.85.210.41]:39689 "EHLO
-        mail-ot1-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234601AbhEGOur (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 May 2021 10:50:47 -0400
-Received: by mail-ot1-f41.google.com with SMTP id 65-20020a9d03470000b02902808b4aec6dso8121947otv.6
-        for <linux-acpi@vger.kernel.org>; Fri, 07 May 2021 07:49:47 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=l66WwrIfYXPPqt7FNouM4SijVky0kURl9BRKhLx5Olw=;
-        b=rHUoPnc7iZjZSWfOiFFiArn7GPsHAzxrE8ZBhasaYAtyWFV4vPwlS9/wfmxUAXsiwZ
-         7ZLxDGsc+6ErOyVHEhDTy5uk6hJLr68+rQfvBVYBZUHc7kSnu1nrgYKvQ+5A/UXNnbJI
-         yOBbdLCoFe/i/roH7fm8oY1E5LWkEonEAcdXz9ymn2nb0N28lK8k66wMtnZxXOzPEj8q
-         wOagHSBHc1Gn4lON8BaZAHG9DaJvvYyXCJwWxb1cbX29c73G7cfq/B1FNOOwIMgq9SPh
-         7zME4mmqZSyBscn8imhkeguuwM6yO9i1WbmoHlg/phhKrKa96hfm5sEflGvtF0PanLB2
-         V0Fw==
-X-Gm-Message-State: AOAM533Uf/1JSoPP7xqBK6z/1JHed4x98KcW7KXQVr9rqTHmQeQELv9n
-        RIfpq7GZWrKEKaS/nKSDufh3zcEj698UqofC7bnicjsW
-X-Google-Smtp-Source: ABdhPJwJ/Efd8Ja1dPWdSMymvbhACucR7P1kJhsAmSyKlyVRN8WDUqINXHChWukdv3xi3dM/kIb3SuazbyBGmIIg5xM=
-X-Received: by 2002:a9d:5a7:: with SMTP id 36mr8640979otd.321.1620398987013;
- Fri, 07 May 2021 07:49:47 -0700 (PDT)
+        id S229812AbhEGWwQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 7 May 2021 18:52:16 -0400
+Received: from mga12.intel.com ([192.55.52.136]:16509 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229470AbhEGWwP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 May 2021 18:52:15 -0400
+IronPort-SDR: /MFOtNCyBPYgjR2ceYfEGsVy7KEGMYcalLszX2/TutjV8Eh5PU+8YB7Lq2g7BTtdwIzmo9ZZ6h
+ WpTsJmVzFxoA==
+X-IronPort-AV: E=McAfee;i="6200,9189,9977"; a="178392082"
+X-IronPort-AV: E=Sophos;i="5.82,282,1613462400"; 
+   d="scan'208";a="178392082"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2021 15:51:15 -0700
+IronPort-SDR: n9ep2vMEGRmC5LbsCg5dQlQxozStu1spNE2X1sd6RdH4CfjVCYGH7I69mPn8JgsSD62xFs5ltI
+ oogMEn5EAJ9A==
+X-IronPort-AV: E=Sophos;i="5.82,282,1613462400"; 
+   d="scan'208";a="620367064"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2021 15:51:15 -0700
+Subject: [PATCH v3 0/8] CXL Port Enumeration and Plans for v5.14
+From:   Dan Williams <dan.j.williams@intel.com>
+To:     linux-cxl@vger.kernel.org
+Cc:     Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Ben Widawsky <ben.widawsky@intel.com>,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Date:   Fri, 07 May 2021 15:51:14 -0700
+Message-ID: <162042787450.1202325.5718541949681409566.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-References: <162037273007.1195827.10907249070709169329.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAJZ5v0gBCxFQ1pC1PTRximwzGXOSQDCzOfjX497aqBq5GQ48tA@mail.gmail.com> <CAPcyv4jUdebFQvrhi0yzNyZ1wwzeGDpf6T34m=bfL593s-PEcA@mail.gmail.com>
-In-Reply-To: <CAPcyv4jUdebFQvrhi0yzNyZ1wwzeGDpf6T34m=bfL593s-PEcA@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 7 May 2021 16:49:35 +0200
-Message-ID: <CAJZ5v0g_q7ceyLmmVzhAyruFd4CxSJj+JdigFURPoHNwG_DRyw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: NFIT: Fix support for variable 'SPA' structure size
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        Yi Zhang <yi.zhang@redhat.com>, nvdimm@lists.linux.dev,
-        linux-nvdimm <linux-nvdimm@lists.01.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, May 7, 2021 at 4:12 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> On Fri, May 7, 2021 at 2:47 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > Hi Dan,
-> >
-> > On Fri, May 7, 2021 at 9:33 AM Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > ACPI 6.4 introduced the "SpaLocationCookie" to the NFIT "System Physical
-> > > Address (SPA) Range Structure". The presence of that new field is
-> > > indicated by the ACPI_NFIT_LOCATION_COOKIE_VALID flag. Pre-ACPI-6.4
-> > > firmware implementations omit the flag and maintain the original size of
-> > > the structure.
-> > >
-> > > Update the implementation to check that flag to determine the size
-> > > rather than the ACPI 6.4 compliant definition of 'struct
-> > > acpi_nfit_system_address' from the Linux ACPICA definitions.
-> > >
-> > > Update the test infrastructure for the new expectations as well, i.e.
-> > > continue to emulate the ACPI 6.3 definition of that structure.
-> > >
-> > > Without this fix the kernel fails to validate 'SPA' structures and this
-> > > leads to a crash in nfit_get_smbios_id() since that routine assumes that
-> > > SPAs are valid if it finds valid SMBIOS tables.
-> > >
-> > >     BUG: unable to handle page fault for address: ffffffffffffffa8
-> > >     [..]
-> > >     Call Trace:
-> > >      skx_get_nvdimm_info+0x56/0x130 [skx_edac]
-> > >      skx_get_dimm_config+0x1f5/0x213 [skx_edac]
-> > >      skx_register_mci+0x132/0x1c0 [skx_edac]
-> > >
-> > > Cc: Bob Moore <robert.moore@intel.com>
-> > > Cc: Erik Kaneda <erik.kaneda@intel.com>
-> > > Fixes: cf16b05c607b ("ACPICA: ACPI 6.4: NFIT: add Location Cookie field")
-> >
-> > Do you want me to apply this (as the commit being fixed went in
-> > through the ACPI tree)?
->
-> Yes, I would need to wait for a signed tag so if you're sending urgent
-> fixes in the next few days please take this one, otherwise I'll circle
-> back next week after -rc1.
+Changes since v2 [1]:
+- Add some rationale for moving definitions out of mem.c into mem.h
+  (Jonathan)
 
-I'll be doing my next push after -rc1 either, so I guess it doesn't
-matter time-wise.
+- Fixup CXL_DEVICE_REGS kernel doc and declare the fixup for the
+  struct cxl_mem kernel-doc in the changelog (Jonathan)
+
+- Fixup cxl_setup_device_regs() kernel-doc (Jonathan)
+
+- Cleanup comment in cxl_root_alloc() (Jonathan)
+
+- [not changed] refactor device creation into alloc_and_add()
+  anti-pattern.
+
+- Add kernel doc to cxl_address_space_dev_add() to clarify why @host is
+  needed as an arg. (Jonathan)
+
+- Describe what the port devices are representing in "cxl/port:
+  Introduce cxl_port objects" (Jonathan)
+
+- Explain the rationale for /sys/bus/cxl (Bjorn)
+
+[1]: http://lore.kernel.org/r/161728744224.2474040.12854720917440712854.stgit@dwillia2-desk3.amr.corp.intel.com
+
+---
+
+Plans for v5.14:
+
+This series is a starting point for the persistent memory and dynamic
+HDM decoder manipulation support targeting the v5.14 kernel. Among the
+tasks to complete in that timeframe are:
+
+- Region creation including CXL label support
+- LIBNVDIMM integration for surfacing /dev/pmemX and /dev/daxX.Y devices
+  on CXL resources
+- HDM decoder enumeration and programming for setting up PMEM mappings
+  alongside any "System RAM" mappings established by platform firmware
+- CDAT-DOE support in support of dynamically created NUMA nodes
+- CXL PMEM Shutdown semantics (global persistence flush coordination)
+
+Contributions to cxl.git targeting the next merge window require a
+non-author Reviewed-by. A patch with a Reviewed-by, no outstanding
+objections, and a 3-5 day quiet period on the list is subject to be
+applied to a non-rebasing cxl.git branch and merged into cxl.git/next.
+Contributions targeting a current -rc (fixes) may go in on an expedited
+schedule with only an Acked-by.
+
+---
+
+CXL Port Topology:
+
+The enumeration starts with the ACPI0017 driver registering a 'struct
+cxl_root' object to establish the top of a cxl_port topology. It then
+scans the ACPI bus looking for ACPI0016 instances. The cxl_root object
+is a singleton* anchor to hang "address-space" objects and be a parent
+device for the downstream 'struct cxl_port' instances. An address-space
+has a 1:1 relationship with a platform defined memory resource range,
+like _CRS for PCIE Host Bridges. Use module parameters to model a
+root-level HDM decoder that all downstream ports further decode, to be
+replaced with a Code First ECN to do the same.
+
+Each address space is modeled as a sysfs object that also shows up in
+/proc/iomem as "CXL Address Space". That iomem resource is functionally
+equivalent to the root-level 'PCI Bus' resources for PCIE.mmio while
+'CXL Address Space' indicates space for CXL.mem to be mapped. "System
+RAM" and "Persistent Memory", when mapped by HDM decoders, will appear
+as child CXL.mem resources.
+
+Once a 'struct cxl_root' is established the host bridge is modeled as 1
+upstream 'struct cxl_port' and N downstream 'struct cxl_port' instances
+(one per Root Port), just like a PCIE switch. The host-bridge upstream
+port optionally has the HDM decoder registers from the CHBCR if the
+host-bridge has multiple PCIE/CXL root ports. Single-ported host bridges
+will not have HDM decoders in the CHBCR space (see CHBCR note in
+8.2.5.12 CXL HDM Decoder Capability Structure), but the 'struct
+cxl_port' object is still needed to represent other CXL capabilities and
+access port-specific component registers outside of HDM decoders.
+
+Each 'struct cxl_port' has a 'target_id' attribute that answers the
+question "what port am I in my upstream port's HDM decoder target
+list?". For the host-bridge struct cxl_port, the first tier of ports
+below cxl_root.port, the id is derived from the ordinal mapping of the
+ACPI0016 id (instance id, _UID, or other handle TBD), for all other
+ports the id is the PCIE Root Port ID from the Link Capabilities
+register [1]. The mapping of ordinal port identifiers relative to their
+parent may change once libcxl and cxl-cli prove out region creation, or
+a better option is found to establish a static device path / persistent
+naming scheme. System software must not assume that 'struct cxl_port'
+device names will be static from one boot to the next.
+
+See patch7 for a tree(1) topology picture of what QEMU is producing
+today with this enabling.
+
+* cxl_root is singleton only by convention. A given cxl_root could
+  represent 1 to N address spaces, this patch set chooses to implement 1
+  cxl_root for all address spaces.
+
+[1]: CXL 2.0 8.2.5.12.8 CXL HDM Decoder 0 Target List Low Register
+     (Offset 24h) ...The Target Port Identifier for a given Downstream Port
+     is reported via Port Number field in Link Capabilities Register. (See
+     PCI Express Base Specification).
+
+---
+
+Dan Williams (8):
+      cxl/mem: Move some definitions to mem.h
+      cxl/mem: Introduce 'struct cxl_regs' for "composable" CXL devices
+      cxl/core: Rename bus.c to core.c
+      cxl/core: Refactor CXL register lookup for bridge reuse
+      cxl/acpi: Introduce ACPI0017 driver and cxl_root
+      cxl/Kconfig: Default drivers to CONFIG_CXL_BUS
+      cxl/port: Introduce cxl_port objects
+      cxl/acpi: Add module parameters to stand in for ACPI tables
+
+
+ Documentation/driver-api/cxl/memory-devices.rst |    6 
+ drivers/cxl/Kconfig                             |   16 +
+ drivers/cxl/Makefile                            |    6 
+ drivers/cxl/acpi.c                              |  215 +++++++++
+ drivers/cxl/bus.c                               |   29 -
+ drivers/cxl/core.c                              |  561 +++++++++++++++++++++++
+ drivers/cxl/cxl.h                               |  148 ++++--
+ drivers/cxl/mem.c                               |   97 +---
+ drivers/cxl/mem.h                               |   82 +++
+ 9 files changed, 999 insertions(+), 161 deletions(-)
+ create mode 100644 drivers/cxl/acpi.c
+ delete mode 100644 drivers/cxl/bus.c
+ create mode 100644 drivers/cxl/core.c
+ create mode 100644 drivers/cxl/mem.h
+
+base-commit: a38fd8748464831584a19438cbb3082b5a2dab15
