@@ -4,182 +4,211 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_RED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECD5C433B4
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 14:11:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F44C433ED
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 14:25:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDF5761108
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 14:11:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7221C611BF
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 14:25:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234160AbhEJOMw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 10 May 2021 10:12:52 -0400
-Received: from mga02.intel.com ([134.134.136.20]:10136 "EHLO mga02.intel.com"
+        id S232592AbhEJO0o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 10 May 2021 10:26:44 -0400
+Received: from foss.arm.com ([217.140.110.172]:59512 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232704AbhEJOKv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 May 2021 10:10:51 -0400
-IronPort-SDR: kYNFAjg4gnCARMVKlJ76rgY+T62B1JBwGVvBvbfLqMhzCrTbNR+rCutVm6fKszn1xjS67Rx7mE
- mpRlvOz2dvoA==
-X-IronPort-AV: E=McAfee;i="6200,9189,9980"; a="186336215"
-X-IronPort-AV: E=Sophos;i="5.82,287,1613462400"; 
-   d="scan'208";a="186336215"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 May 2021 06:59:10 -0700
-IronPort-SDR: Qy/oHL1TVOSlrsImmiNyCrMpER4rTXwU0Pno6idTgppirj9JU+/P1Jsnee9iJFAVaqPjh45wbP
- Q6huqACZHsnQ==
-X-IronPort-AV: E=Sophos;i="5.82,287,1613462400"; 
-   d="scan'208";a="436153200"
-Received: from chuquanc-mobl1.ccr.corp.intel.com ([10.255.30.18])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 May 2021 06:59:05 -0700
-Message-ID: <bd4d1d94a4497a4c7407ede70eeae566ac343f23.camel@intel.com>
-Subject: Re: [PATCH] Revert "ACPI: power: Turn off unused power resources
- unconditionally"
-From:   Zhang Rui <rui.zhang@intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Shujun Wang <wsj20369@163.com>
-Cc:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
+        id S231563AbhEJOXg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 May 2021 10:23:36 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B00A61688;
+        Mon, 10 May 2021 07:22:31 -0700 (PDT)
+Received: from [10.57.59.124] (unknown [10.57.59.124])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id AF79E3F719;
+        Mon, 10 May 2021 07:22:29 -0700 (PDT)
+Subject: Re: [PATCH v3 08/10] iommu/arm-smmu-v3: Reserve any RMR regions
+ associated with a dev
+To:     Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
         "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        David Box <david.e.box@linux.intel.com>
-Date:   Mon, 10 May 2021 21:59:03 +0800
-In-Reply-To: <CAJZ5v0i8RnOg2HgEmLze7d3rYvofVDFDQORMOigNc0vEhLW16Q@mail.gmail.com>
-References: <20210430124224.6383-1-wsj20369@163.com>
-         <0e480ceabe4d42d79bf49a1989c0f95f@intel.com>
-         <CAJZ5v0i8RnOg2HgEmLze7d3rYvofVDFDQORMOigNc0vEhLW16Q@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5-0ubuntu0.18.04.1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc:     Linuxarm <linuxarm@huawei.com>,
+        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
+        "joro@8bytes.org" <joro@8bytes.org>,
+        wanghuiqiang <wanghuiqiang@huawei.com>,
+        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
+        "steven.price@arm.com" <steven.price@arm.com>,
+        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
+        "jon@solid-run.com" <jon@solid-run.com>,
+        "eric.auger@redhat.com" <eric.auger@redhat.com>
+References: <20210420082751.1829-1-shameerali.kolothum.thodi@huawei.com>
+ <20210420082751.1829-9-shameerali.kolothum.thodi@huawei.com>
+ <7ec85477-9c02-17de-9620-f0b153adcc82@arm.com>
+ <241042b6d1ea45f790e0766c6f5d3542@huawei.com>
+From:   Robin Murphy <robin.murphy@arm.com>
+Message-ID: <f7b586e4-f77c-e20b-dcf6-c383d7a7f2f4@arm.com>
+Date:   Mon, 10 May 2021 15:22:24 +0100
+User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
+MIME-Version: 1.0
+In-Reply-To: <241042b6d1ea45f790e0766c6f5d3542@huawei.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 2021-05-10 at 14:13 +0200, Rafael J. Wysocki wrote:
-> On Mon, May 10, 2021 at 8:37 AM Zhang, Rui <rui.zhang@intel.com>
-> wrote:
-> > 
-> > Hi, Shujun,
-> > 
-> > I'm experiencing similar problem, and it should be a BIOS problem,
+On 2021-05-10 10:19, Shameerali Kolothum Thodi wrote:
+> Hi Robin,
 > 
-> Right, and I confused things.  Sorry about that.
+>> -----Original Message-----
+>> From: Robin Murphy [mailto:robin.murphy@arm.com]
+>> Sent: 07 May 2021 11:02
+>> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>;
+>> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
+>> iommu@lists.linux-foundation.org
+>> Cc: Linuxarm <linuxarm@huawei.com>; lorenzo.pieralisi@arm.com;
+>> joro@8bytes.org; wanghuiqiang <wanghuiqiang@huawei.com>; Guohanjun
+>> (Hanjun Guo) <guohanjun@huawei.com>; steven.price@arm.com;
+>> Sami.Mujawar@arm.com; jon@solid-run.com; eric.auger@redhat.com
+>> Subject: Re: [PATCH v3 08/10] iommu/arm-smmu-v3: Reserve any RMR regions
+>> associated with a dev
+>>
+>> On 2021-04-20 09:27, Shameer Kolothum wrote:
+>>> Get RMR regions associated with a dev reserved so that there is
+>>> a unity mapping for them in SMMU.
+>>>
+>>> Signed-off-by: Shameer Kolothum
+>> <shameerali.kolothum.thodi@huawei.com>
+>>> ---
+>>>    drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 29
+>> +++++++++++++++++++++
+>>>    1 file changed, 29 insertions(+)
+>>>
+>>> diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+>> b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+>>> index 14e9c7034c04..8bacedf7bb34 100644
+>>> --- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+>>> +++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+>>> @@ -2531,6 +2531,34 @@ static int arm_smmu_of_xlate(struct device *dev,
+>> struct of_phandle_args *args)
+>>>    	return iommu_fwspec_add_ids(dev, args->args, 1);
+>>>    }
+>>>
+>>> +static bool arm_smmu_dev_has_rmr(struct arm_smmu_master *master,
+>>> +				 struct iommu_rmr *e)
+>>> +{
+>>> +	int i;
+>>> +
+>>> +	for (i = 0; i < master->num_sids; i++) {
+>>> +		if (e->sid == master->sids[i])
+>>> +			return true;
+>>> +	}
+>>> +
+>>> +	return false;
+>>> +}
+>>> +
+>>> +static void arm_smmu_rmr_get_resv_regions(struct device *dev,
+>>> +					  struct list_head *head)
+>>> +{
+>>> +	struct arm_smmu_master *master = dev_iommu_priv_get(dev);
+>>> +	struct arm_smmu_device *smmu = master->smmu;
+>>> +	struct iommu_rmr *rmr;
+>>> +
+>>> +	list_for_each_entry(rmr, &smmu->rmr_list, list) {
+>>> +		if (!arm_smmu_dev_has_rmr(master, rmr))
+>>> +			continue;
+>>> +
+>>> +		iommu_dma_get_rmr_resv_regions(dev, rmr, head);
+>>> +	}
+>>> +}
+>>> +
+>>
+>> TBH I wouldn't have thought we need a driver-specific hook for this, or
+>> is it too painful to correlate fwspec->iommu_fwnode back to the relevant
+>> IORT node generically?
 > 
-> If commit 7e4fdeafa61f2b653f ("ACPI: power: Turn off unused power
-> resources unconditionally") causes problems to happen, this means
-> that
-> the platform firmware implementation doesn't follow the ACPI
-> specification.
+>  From a quick look, I think I could get rid of the above with something like below,
 > 
-> > which can be fixed by a customized DSDT.
-> > Can you please attach the full acpidump output on this machine? I
-> > just want to make sure if it is the same problem.
+> ------8<----
+> +static bool iommu_dma_dev_has_rmr(struct iommu_fwspec *fwspec,
+> +                                 struct iommu_rmr *e)
+> +{
+> +       int i;
+> +
+> +       for (i = 0; i < fwspec->num_ids; i++) {
+> +                if (e->sid == fwspec->ids[i])
+> +                        return true;
+> +        }
+> +
+> +        return false;
+> +}
+> +
+> +
+> +void iommu_dma_get_rmr_resv_regions(struct device *dev, struct list_head *list)
+> +{
+> +       struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
+> +       struct list_head rmr_list;
+> +       struct iommu_rmr *rmr;
+> +
+> +       INIT_LIST_HEAD(&rmr_list);
+> +       if (iommu_dma_get_rmrs(fwspec->iommu_fwnode, &rmr_list))
+> +               return;
+>          ...
+> +       list_for_each_entry(rmr, &rmr_list, list) {
+> +
+> +       if (!iommu_dma_dev_has_rmr(fwspec, rmr)
+> +           continue;
+> +          ...
+> +               region = iommu_alloc_resv_region(rmr->base_address,
+> +                                                rmr->length, prot,
+> +                                                type);
+>           ...
+> +       }
+> +}
+>   /**
+>    * iommu_dma_get_resv_regions - Reserved region driver helper
+>    * @dev: Device from iommu_get_resv_regions()
+> @@ -188,10 +242,11 @@ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
+>          if (!is_of_node(dev_iommu_fwspec_get(dev)->iommu_fwnode))
+>                  iort_iommu_msi_get_resv_regions(dev, list);
+>   
+> +       iommu_dma_get_rmr_resv_regions(dev, list);
+>   }
 > 
-> Yes, please.
+> ----8<----
 > 
-> Rui, can you create a BZ for this please and can you both attach
-> dmidecode output from the affected systems?
-> 
-> I don't want to revert this commit completely, so the default
-> behavior
-> is spec-compliant, but there can be a DMI-based blacklist for systems
-> having problems with it.
-> 
-Done.
-https://bugzilla.kernel.org/show_bug.cgi?id=213019
+> But looking at the SMMUv2 code, the fwspec->ids is MASK:SID, so I am not
+> sure the RMR sid can be compared directly to fwspec->ids above. Right? Or
+> is there a better way here?
 
-Shujun,
-can you please attach the acpidump and dmidecode output in this bug
-report?
+Ah, but consider how the IDs got there in the first place ;)
 
-thanks,
-rui
+A mask will never be set on ACPI systems, since IORT (intentionally) 
+only caters for straightforward mappings rather than arbitrary 
+complexity, so the assumption of fwspec ID == SID is already baked in by 
+virtue of arm_smmu_iort_xlate(). The IORT code is free to assume its own 
+behaviour!
 
-> > > -----Original Message-----
-> > > From: Shujun Wang <wsj20369@163.com>
-> > > Sent: Friday, April 30, 2021 8:42 PM
-> > > To: rjw@rjwysocki.net; lenb@kernel.org; 
-> > > linux-acpi@vger.kernel.org; linux-
-> > > kernel@vger.kernel.org
-> > > Cc: Shujun Wang <wsj20369@163.com>
-> > > Subject: [PATCH] Revert "ACPI: power: Turn off unused power
-> > > resources
-> > > unconditionally"
-> > > 
-> > > This reverts commit 7e4fdeafa61f2b653fcf9678f09935e55756aed2.
-> > > It may cause some NVMe device probes to fail, and the system may
-> > > get stuck
-> > > when using an NVMe device as the root filesystem.
-> > > 
-> > > In the function nvme_pci_enable(struct nvme_dev *dev), as shown
-> > > below,
-> > > readl(NVME_REG_CSTS) always returns -1 with the commit, which
-> > > results in
-> > > the probe failed.
-> > > 
-> > >   if (readl(dev->bar + NVME_REG_CSTS) == -1) {
-> > >       result = -ENODEV;
-> > >       goto disable;
-> > >   }
-> > > 
-> > > dmesg:
-> > >   [    1.106280] nvme 0000:04:00.0: platform quirk: setting
-> > > simple suspend
-> > >   [    1.109111] nvme nvme0: pci function 0000:04:00.0
-> > >   [    1.113066] nvme 0000:04:00.0: enabling device (0000 ->
-> > > 0002)
-> > >   [    1.121040] nvme nvme0: Removing after probe failure status:
-> > > -19
-> > > 
-> > > lspci:
-> > >   Non-Volatile memory controller: KIOXIA Corporation Device 0001
-> > > 
-> > > device uevent:
-> > >   DRIVER=nvme
-> > >   PCI_CLASS=10802
-> > >   PCI_ID=1E0F:0001
-> > >   PCI_SUBSYS_ID=1E0F:0001
-> > >   PCI_SLOT_NAME=0000:04:00.0
-> > >   MODALIAS=pci:v00001E0Fd00000001sv00001E0Fsd00000001bc01sc08i02
-> > > 
-> > > This patch was tested in Lenovo Thinkpad X1.
-> > > 
-> > > Signed-off-by: Shujun Wang <wsj20369@163.com>
-> > > ---
-> > >  drivers/acpi/power.c | 11 ++++++++++-
-> > >  1 file changed, 10 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c index
-> > > 56102eaaa2da..8bf10abeb2e0 100644
-> > > --- a/drivers/acpi/power.c
-> > > +++ b/drivers/acpi/power.c
-> > > @@ -1004,9 +1004,18 @@ void
-> > > acpi_turn_off_unused_power_resources(void)
-> > >       mutex_lock(&power_resource_list_lock);
-> > > 
-> > >       list_for_each_entry_reverse(resource,
-> > > &acpi_power_resource_list,
-> > > list_node) {
-> > > +             int result, state;
-> > > +
-> > >               mutex_lock(&resource->resource_lock);
-> > > 
-> > > -             if (!resource->ref_count) {
-> > > +             result = acpi_power_get_state(resource-
-> > > >device.handle,
-> > > &state);
-> > > +             if (result) {
-> > > +                     mutex_unlock(&resource->resource_lock);
-> > > +                     continue;
-> > > +             }
-> > > +
-> > > +             if (state == ACPI_POWER_RESOURCE_STATE_ON
-> > > +                 && !resource->ref_count) {
-> > >                       dev_info(&resource->device.dev, "Turning
-> > > OFF\n");
-> > >                       __acpi_power_off(resource);
-> > >               }
-> > > --
-> > > 2.25.1
+Robin.
 
+> 
+> Thanks,
+> Shameer
+> 
+> 
+>>
+>>>    static void arm_smmu_get_resv_regions(struct device *dev,
+>>>    				      struct list_head *head)
+>>>    {
+>>> @@ -2545,6 +2573,7 @@ static void arm_smmu_get_resv_regions(struct
+>> device *dev,
+>>>    	list_add_tail(&region->list, head);
+>>>
+>>>    	iommu_dma_get_resv_regions(dev, head);
+>>> +	arm_smmu_rmr_get_resv_regions(dev, head);
+>>>    }
+>>>
+>>>    static bool arm_smmu_dev_has_feature(struct device *dev,
+>>>
