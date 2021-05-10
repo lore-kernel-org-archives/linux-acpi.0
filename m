@@ -2,252 +2,156 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_RED autolearn=unavailable
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6098C43462
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 13:02:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70F89C43470
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 13:02:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D94D61040
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 13:02:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 465BC61040
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 May 2021 13:02:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234608AbhEJNDQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 10 May 2021 09:03:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57644 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244224AbhEJL6l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 May 2021 07:58:41 -0400
-Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2EE8C07E5F9
-        for <linux-acpi@vger.kernel.org>; Mon, 10 May 2021 04:52:18 -0700 (PDT)
-Received: by mail-ej1-x632.google.com with SMTP id zg3so24066080ejb.8
-        for <linux-acpi@vger.kernel.org>; Mon, 10 May 2021 04:52:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=solid-run-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=khNILwywEolSvADH0D4Wss73whUEuYpevRUgBKvL8oQ=;
-        b=nPRs8xOUwQimZRrrEjnT/vzs5lVDyKaHwRgPv/ybrU+KqoXbo0U/JxaiqMskTU1ZWS
-         hdBm+XrSViDanQqCCtzwZIaNbxb22r6GwmWUSPNmg1yyK7UXKc03/3Th76E3EgBFzkjc
-         X39mdVt8C1Urb+Ebkmxi5hxAWN/jGkpWkyEKyp9fSYb2bg49dRqm/y9NB/FRriTfphNq
-         DWsqv0BmYtBHQa5AJcomsKEnjVRC5V6NHUtE8HBRhXCOMSZqB+Z/lFaeIgZNftseMdCO
-         pDaXKJfx6Ge8bxvbP7JRxp4fDmgVyquNGAtPkAJzWRDbejiOyRAQvxN64g11hOsN0wQ7
-         m1FA==
+        id S234621AbhEJNDR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 10 May 2021 09:03:17 -0400
+Received: from mail-oi1-f176.google.com ([209.85.167.176]:41478 "EHLO
+        mail-oi1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1344134AbhEJMPJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 May 2021 08:15:09 -0400
+Received: by mail-oi1-f176.google.com with SMTP id c3so15524498oic.8;
+        Mon, 10 May 2021 05:14:05 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=khNILwywEolSvADH0D4Wss73whUEuYpevRUgBKvL8oQ=;
-        b=bmRe3L9vrDvxkOYiEPfRx5bs/X4WtAGPe7d0Odz8NPQkVyO2gWsaQi2bUCyqMzhq7Z
-         BEfHfCtA45EJkJCFosZBLs0t6C00YfRSyjkb+U1o69CmzvVzOkfSgz1fYu7+RsA6gdkg
-         e0na6ci8kWZopA5epTVqI18oPpJZ8G0ANqvsXzBDx/sfpY+6/o10IY/gdJitBCog6Yr8
-         WVOLDcLWQ5haXqt0SE3u7UdbBwv1osA5sAuP0+Z/m2DtRZ/d3D61wDC8XoVYaoDc+HsN
-         KSnM6U26C0XLVVSzEfsppY/kkh2HmH4De1I84gK4bzvwORx4tXYcaKRa4fiGYT2K2FjC
-         MHAg==
-X-Gm-Message-State: AOAM530MouBvYt11Bc1MwlBiLo7IAF/I+W1FsuSC9dyn25cRWGWjpFO1
-        0A0JS4V8BKpDmwObTyrVhPV5BusGe316Tg5KP5bluw==
-X-Google-Smtp-Source: ABdhPJxxuOMsSpzQ62KWv6A4p2zbnlRdch+S4llFoAWFFetnZk1oCC2Dg8fOQxIUh/wkdkmaXjArCWbtvZNeneKtySE=
-X-Received: by 2002:a17:906:edaf:: with SMTP id sa15mr25468018ejb.68.1620647537265;
- Mon, 10 May 2021 04:52:17 -0700 (PDT)
+        bh=fboLOkjk/hCDtSPTcX8AIWJRE0a8Sh94lkTCPCuCvzg=;
+        b=O/X8TuXlQj7afHpX1g+oIXWNckciWLZOUzQeHB3rGSX5xc52rmJMOg4NZRQAkvDKAZ
+         3PaQxdobT/KN9BwNps3BbFDMxIDpTQYWL/sC9T30Q9ePPMuJ2QvtovKm5weHkk5thGRp
+         3315Vr/Ghvy1TYkgoqp+tQ93p7cTYs2MQYwiKWHxdvslM8LQVjF0qlFxLEI4blnlEogZ
+         0CYXI6g7AK0hJPqi4YPHMv9lg98TsEB+4AGUFWancEUOg3Jud+HVIIwIvd0+RRWLdu6j
+         vTCvcLF5iqvMoVDHcx1ctzdfaZDR/OzVtcYTBL7Z258txgRJjaAB6Pa1Nbb6vwxsk3fQ
+         YGoQ==
+X-Gm-Message-State: AOAM532TmBQftsEVH9lvHcq+vq2yRBLtuhfJHxmJZ06UTTu0g9348yWB
+        /OHIt2cDFlONqJO65zLcE3XCqqLTLAHrqwoqLEdyCsRq3m4=
+X-Google-Smtp-Source: ABdhPJz3udHKEZEtCKdmIXd3gLsK2mVjtPhiKbN4zQKQ9Rllse+OVvsnuVslH/wXNfxFDkhzgXSWz8M5SGM27RUp/V8=
+X-Received: by 2002:aca:5fc3:: with SMTP id t186mr17025935oib.69.1620648844947;
+ Mon, 10 May 2021 05:14:04 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210420082751.1829-1-shameerali.kolothum.thodi@huawei.com>
- <20210420082751.1829-10-shameerali.kolothum.thodi@huawei.com>
- <501cd986-7f9c-9aa7-b4e9-f2ef98fb7a95@arm.com> <df2b37e8fb6a4704a2eb8b5241a45231@huawei.com>
-In-Reply-To: <df2b37e8fb6a4704a2eb8b5241a45231@huawei.com>
-From:   Jon Nettleton <jon@solid-run.com>
-Date:   Mon, 10 May 2021 13:51:39 +0200
-Message-ID: <CABdtJHvMCR7mb9_kC_YqV0ZLDW0-xno4VNePOKFSgaXm7csa_g@mail.gmail.com>
-Subject: Re: [PATCH v3 09/10] iommu/arm-smmu: Get associated RMR info and
- install bypass SMR
-To:     Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc:     Steven Price <steven.price@arm.com>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
+References: <20210430124224.6383-1-wsj20369@163.com> <0e480ceabe4d42d79bf49a1989c0f95f@intel.com>
+In-Reply-To: <0e480ceabe4d42d79bf49a1989c0f95f@intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 10 May 2021 14:13:49 +0200
+Message-ID: <CAJZ5v0i8RnOg2HgEmLze7d3rYvofVDFDQORMOigNc0vEhLW16Q@mail.gmail.com>
+Subject: Re: [PATCH] Revert "ACPI: power: Turn off unused power resources unconditionally"
+To:     "Zhang, Rui" <rui.zhang@intel.com>, Shujun Wang <wsj20369@163.com>
+Cc:     "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+        "lenb@kernel.org" <lenb@kernel.org>,
         "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
-        Linuxarm <linuxarm@huawei.com>,
-        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
-        "joro@8bytes.org" <joro@8bytes.org>,
-        "robin.murphy@arm.com" <robin.murphy@arm.com>,
-        wanghuiqiang <wanghuiqiang@huawei.com>,
-        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
-        "eric.auger@redhat.com" <eric.auger@redhat.com>
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        David Box <david.e.box@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, May 10, 2021 at 10:40 AM Shameerali Kolothum Thodi
-<shameerali.kolothum.thodi@huawei.com> wrote:
+On Mon, May 10, 2021 at 8:37 AM Zhang, Rui <rui.zhang@intel.com> wrote:
 >
+> Hi, Shujun,
 >
->
+> I'm experiencing similar problem, and it should be a BIOS problem,
+
+Right, and I confused things.  Sorry about that.
+
+If commit 7e4fdeafa61f2b653f ("ACPI: power: Turn off unused power
+resources unconditionally") causes problems to happen, this means that
+the platform firmware implementation doesn't follow the ACPI
+specification.
+
+> which can be fixed by a customized DSDT.
+> Can you please attach the full acpidump output on this machine? I just want to make sure if it is the same problem.
+
+Yes, please.
+
+Rui, can you create a BZ for this please and can you both attach
+dmidecode output from the affected systems?
+
+I don't want to revert this commit completely, so the default behavior
+is spec-compliant, but there can be a DMI-based blacklist for systems
+having problems with it.
+
 > > -----Original Message-----
-> > From: Steven Price [mailto:steven.price@arm.com]
-> > Sent: 06 May 2021 16:17
-> > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>;
-> > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> > iommu@lists.linux-foundation.org
-> > Cc: Linuxarm <linuxarm@huawei.com>; lorenzo.pieralisi@arm.com;
-> > joro@8bytes.org; robin.murphy@arm.com; wanghuiqiang
-> > <wanghuiqiang@huawei.com>; Guohanjun (Hanjun Guo)
-> > <guohanjun@huawei.com>; Sami.Mujawar@arm.com; jon@solid-run.com;
-> > eric.auger@redhat.com
-> > Subject: Re: [PATCH v3 09/10] iommu/arm-smmu: Get associated RMR info
-> > and install bypass SMR
+> > From: Shujun Wang <wsj20369@163.com>
+> > Sent: Friday, April 30, 2021 8:42 PM
+> > To: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org; linux-
+> > kernel@vger.kernel.org
+> > Cc: Shujun Wang <wsj20369@163.com>
+> > Subject: [PATCH] Revert "ACPI: power: Turn off unused power resources
+> > unconditionally"
 > >
-> > On 20/04/2021 09:27, Shameer Kolothum wrote:
-> > > From: Jon Nettleton <jon@solid-run.com>
-> > >
-> > > Check if there is any RMR info associated with the devices behind
-> > > the SMMU and if any, install bypass SMRs for them. This is to
-> > > keep any ongoing traffic associated with these devices alive
-> > > when we enable/reset SMMU during probe().
-> > >
-> > > Signed-off-by: Jon Nettleton <jon@solid-run.com>
-> > > Signed-off-by: Shameer Kolothum
-> > <shameerali.kolothum.thodi@huawei.com>
-> > > ---
-> > >   drivers/iommu/arm/arm-smmu/arm-smmu.c | 42
-> > +++++++++++++++++++++++++++
-> > >   drivers/iommu/arm/arm-smmu/arm-smmu.h |  2 ++
-> > >   2 files changed, 44 insertions(+)
-> > >
-> > > diff --git a/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> > b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> > > index d8c6bfde6a61..4d2f91626d87 100644
-> > > --- a/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> > > +++ b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> > > @@ -2102,6 +2102,43 @@ err_reset_platform_ops: __maybe_unused;
-> > >     return err;
-> > >   }
-> > >
-> > > +static void arm_smmu_rmr_install_bypass_smr(struct arm_smmu_device
-> > *smmu)
-> > > +{
-> > > +   struct iommu_rmr *e;
-> > > +   int i, cnt = 0;
-> > > +   u32 smr;
-> > > +
-> > > +   for (i = 0; i < smmu->num_mapping_groups; i++) {
-> > > +           smr = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_SMR(i));
-> > > +           if (!FIELD_GET(ARM_SMMU_SMR_VALID, smr))
-> > > +                   continue;
-> > > +
-> > > +           list_for_each_entry(e, &smmu->rmr_list, list) {
-> > > +                   if (FIELD_GET(ARM_SMMU_SMR_ID, smr) != e->sid)
-> > > +                           continue;
-> > > +
-> > > +                   smmu->smrs[i].id = FIELD_GET(ARM_SMMU_SMR_ID, smr);
-> > > +                   smmu->smrs[i].mask = FIELD_GET(ARM_SMMU_SMR_MASK,
-> > smr);
-> > > +                   smmu->smrs[i].valid = true;
-> > > +
-> > > +                   smmu->s2crs[i].type = S2CR_TYPE_BYPASS;
-> > > +                   smmu->s2crs[i].privcfg = S2CR_PRIVCFG_DEFAULT;
-> > > +                   smmu->s2crs[i].cbndx = 0xff;
-> > > +
-> > > +                   cnt++;
-> > > +           }
-> > > +   }
+> > This reverts commit 7e4fdeafa61f2b653fcf9678f09935e55756aed2.
+> > It may cause some NVMe device probes to fail, and the system may get stuck
+> > when using an NVMe device as the root filesystem.
 > >
-> > If I understand this correctly - this is looking at the current
-> > (hardware) configuration of the SMMU and attempting to preserve any
-> > bypass SMRs. However from what I can tell it suffers from the following
-> > two problems:
+> > In the function nvme_pci_enable(struct nvme_dev *dev), as shown below,
+> > readl(NVME_REG_CSTS) always returns -1 with the commit, which results in
+> > the probe failed.
 > >
-> >   (a) Only the ID of the SMR is being checked, not the MASK. So if the
-> > firmware has setup an SMR matching a number of streams this will break.
+> >   if (readl(dev->bar + NVME_REG_CSTS) == -1) {
+> >       result = -ENODEV;
+> >       goto disable;
+> >   }
 > >
-> >   (b) The SMMU might not be enabled at all (CLIENTPD==1) or bypass
-> > enabled for unmatched streams (USFCFG==0).
+> > dmesg:
+> >   [    1.106280] nvme 0000:04:00.0: platform quirk: setting simple suspend
+> >   [    1.109111] nvme nvme0: pci function 0000:04:00.0
+> >   [    1.113066] nvme 0000:04:00.0: enabling device (0000 -> 0002)
+> >   [    1.121040] nvme nvme0: Removing after probe failure status: -19
 > >
-> > Certainly in my test setup case (b) applies and so this doesn't work.
-> > Perhaps something like the below would work better? (It works in the
-> > case of the SMMU not enabled - I've not tested case (a)).
->
-> Thanks Steve for taking a look and testing this on SMMUv2. My knowledge
-> on SMMUv2 is limited an don't have a setup to verify this. After reading
-> the code, agree that the current implementation addresses the hardware
-> configuration only and breaks all the scenarios explained above.
->
-> I will include the below snippet in next respin if that works.
->
-> Hi Jon,
->
-> Could you please take a look and see the below changes works for
-> you too?
-
-My original code was derived from a solution that was proposed for
-device-tree booted systems.  I will review and test the changes and
-then report back.
-
--Jon
-
-
->
-> Thanks,
-> Shameer
->
-> > ----8<----
-> > static void arm_smmu_rmr_install_bypass_smr(struct arm_smmu_device
-> > *smmu)
-> > {
-> >       struct iommu_rmr *e;
-> >       int i, cnt = 0;
-> >       u32 smr;
-> >       u32 reg;
+> > lspci:
+> >   Non-Volatile memory controller: KIOXIA Corporation Device 0001
 > >
-> >       reg = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_sCR0);
+> > device uevent:
+> >   DRIVER=nvme
+> >   PCI_CLASS=10802
+> >   PCI_ID=1E0F:0001
+> >   PCI_SUBSYS_ID=1E0F:0001
+> >   PCI_SLOT_NAME=0000:04:00.0
+> >   MODALIAS=pci:v00001E0Fd00000001sv00001E0Fsd00000001bc01sc08i02
 > >
-> >       if ((reg & ARM_SMMU_sCR0_USFCFG) && !(reg &
-> > ARM_SMMU_sCR0_CLIENTPD)) {
-> >               /*
-> >                * SMMU is already enabled and disallowing bypass, so preserve
-> >                * the existing SMRs
-> >                */
-> >               for (i = 0; i < smmu->num_mapping_groups; i++) {
-> >                       smr = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_SMR(i));
-> >                       if (!FIELD_GET(ARM_SMMU_SMR_VALID, smr))
-> >                               continue;
-> >                       smmu->smrs[i].id = FIELD_GET(ARM_SMMU_SMR_ID, smr);
-> >                       smmu->smrs[i].mask = FIELD_GET(ARM_SMMU_SMR_MASK,
-> > smr);
-> >                       smmu->smrs[i].valid = true;
+> > This patch was tested in Lenovo Thinkpad X1.
+> >
+> > Signed-off-by: Shujun Wang <wsj20369@163.com>
+> > ---
+> >  drivers/acpi/power.c | 11 ++++++++++-
+> >  1 file changed, 10 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c index
+> > 56102eaaa2da..8bf10abeb2e0 100644
+> > --- a/drivers/acpi/power.c
+> > +++ b/drivers/acpi/power.c
+> > @@ -1004,9 +1004,18 @@ void
+> > acpi_turn_off_unused_power_resources(void)
+> >       mutex_lock(&power_resource_list_lock);
+> >
+> >       list_for_each_entry_reverse(resource, &acpi_power_resource_list,
+> > list_node) {
+> > +             int result, state;
+> > +
+> >               mutex_lock(&resource->resource_lock);
+> >
+> > -             if (!resource->ref_count) {
+> > +             result = acpi_power_get_state(resource->device.handle,
+> > &state);
+> > +             if (result) {
+> > +                     mutex_unlock(&resource->resource_lock);
+> > +                     continue;
+> > +             }
+> > +
+> > +             if (state == ACPI_POWER_RESOURCE_STATE_ON
+> > +                 && !resource->ref_count) {
+> >                       dev_info(&resource->device.dev, "Turning OFF\n");
+> >                       __acpi_power_off(resource);
 > >               }
-> >       }
-> >
-> >       list_for_each_entry(e, &smmu->rmr_list, list) {
-> >               u32 sid = e->sid;
-> >
-> >               i = arm_smmu_find_sme(smmu, sid, ~0);
-> >               if (i < 0)
-> >                       continue;
-> >               if (smmu->s2crs[i].count == 0) {
-> >                       smmu->smrs[i].id = sid;
-> >                       smmu->smrs[i].mask = ~0;
-> >                       smmu->smrs[i].valid = true;
-> >               }
-> >               smmu->s2crs[i].count++;
-> >               smmu->s2crs[i].type = S2CR_TYPE_BYPASS;
-> >               smmu->s2crs[i].privcfg = S2CR_PRIVCFG_DEFAULT;
-> >               smmu->s2crs[i].cbndx = 0xff;
-> >
-> >               cnt++;
-> >       }
-> >
-> >       if ((reg & ARM_SMMU_sCR0_USFCFG) && !(reg &
-> > ARM_SMMU_sCR0_CLIENTPD)) {
-> >               /* Remove the valid bit for unused SMRs */
-> >               for (i = 0; i < smmu->num_mapping_groups; i++) {
-> >                       if (smmu->s2crs[i].count == 0)
-> >                               smmu->smrs[i].valid = false;
-> >               }
-> >       }
-> >
-> >       dev_notice(smmu->dev, "\tpreserved %d boot mapping%s\n", cnt,
-> >                  cnt == 1 ? "" : "s");
-> > }
+> > --
+> > 2.25.1
+>
