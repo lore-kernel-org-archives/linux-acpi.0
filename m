@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71D38C2BD0F
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E756C2D0D5
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40519613FB
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E348761430
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238483AbhELT6v (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 May 2021 15:58:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50376 "EHLO mail.kernel.org"
+        id S239146AbhELT6z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 May 2021 15:58:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352153AbhELSCh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 May 2021 14:02:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5ED746142C;
-        Wed, 12 May 2021 18:01:27 +0000 (UTC)
+        id S1352581AbhELSDh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 May 2021 14:03:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0608461438;
+        Wed, 12 May 2021 18:02:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620842488;
+        s=k20201202; t=1620842549;
         bh=SX3vtGdfkaIFSrcOF67/KYO8+uPemnaQDZtNcVxPI6k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Em/frt5ECPkoYS15KKYwFxMSKr+w6sTBZVEvR/p0BKjE6gv3QJb7z8prguqXKviSd
-         QTWEUj12zvJEdLF6lmFFW2pqEZ8iv/rfW+oiIx31xBCv1C+5neuKLgAN9FAcEPcC40
-         t+0mbkQ3HVXpido0hef8cFQ6thhp01Vq/BlvXpwtxnLbhOwEeN2LT6uLZTLULhl4dW
-         lwEKVvShlo1/gounMwWziLHK3HGtdjpSPI1mTvzKJ2nGs8BKR4N0cruRNEnxw8nTrt
-         kFCS1Nox0SVZ/xHHQZG2PY42PvPUpcbnaP6QXsrDowZ3MPWJySIdIM6JkwQP5Q6Qtg
-         ZNnRJDAJMEFAw==
+        b=S8O98UXQEV/iEKsJTPady9aaml4DdudFJUTtl9UbHTrUGYz/VBT2YFE1Im3Ol4Jdl
+         nqehy4Tp4kXJevpxEvINijji5iIbiWWfHx9qVElTGTp4U0yIFm5JnXs/O5pO++9eNm
+         I5+q72cEZjq7UrJ0+gAg/Eo0Lhr9aTCxbUkUPPIG9XpS9esfYLtmj9U0K0t75RS7PR
+         QxnFLizKihYtY/sBcFVpukoozyAc2DXTuy2pYh4qoguxMSBNH/hSEnkmLhgWLzAz8J
+         s1SkQIpvNU5HBCbRpjYpil7/UHOlgT1WkknTTZKPXZsKVRibvst9XlggbJqDkmkyOj
+         J0iNa2ARLbp/w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Vidya Sagar <vidyas@nvidia.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Sasha Levin <sashal@kernel.org>, linux-pci@vger.kernel.org,
         linux-acpi@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 16/37] PCI: tegra: Add Tegra194 MCFG quirks for ECAM errata
-Date:   Wed, 12 May 2021 14:00:43 -0400
-Message-Id: <20210512180104.664121-16-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.11 14/35] PCI: tegra: Add Tegra194 MCFG quirks for ECAM errata
+Date:   Wed, 12 May 2021 14:01:44 -0400
+Message-Id: <20210512180206.664536-14-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210512180104.664121-1-sashal@kernel.org>
-References: <20210512180104.664121-1-sashal@kernel.org>
+In-Reply-To: <20210512180206.664536-1-sashal@kernel.org>
+References: <20210512180206.664536-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
