@@ -2,46 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C277CC18E7B
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 446E3C43462
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 20:12:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 928F361432
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07E6460BBB
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 20:12:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239309AbhELT7A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 May 2021 15:59:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52446 "EHLO mail.kernel.org"
+        id S240946AbhELT7C (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 May 2021 15:59:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352886AbhELSEZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 May 2021 14:04:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6CF5161412;
-        Wed, 12 May 2021 18:03:15 +0000 (UTC)
+        id S241289AbhELSFM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 May 2021 14:05:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DFC0661462;
+        Wed, 12 May 2021 18:03:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620842596;
-        bh=lQVEHXpOkP+0xKhQL1ij6j/rrt8ZABA81dSlc2Bmugo=;
+        s=k20201202; t=1620842637;
+        bh=W42O8Wv/8lMaanREDKsHj35vnriAM2s9KOhNS7F29KY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SZKmukidSLUaAq2pgDFWyegg3FHCLtLKRxix+xMnsP26qLAa1KIyxx6D9zSZf/HXD
-         6pnCBu/dO9Xte0NokpVZYxnJjbHk0C9RgALhiKBH7b6k0xCr14qHgRlGNuUSldQfh4
-         rax7OZzlBj7NDtbphPFj3iHYqQNTDedoCWoERGm3NuLwHWcrxVhwTWLnEVg+z45dLP
-         GkN3tzK8wkEK2wKdtqEl1f8ygehDBFLFTqYYZqz9Jz4r0o2cRK4t/2mRaDwS/hPmoi
-         b4uZV2/cc/+jgir9+ewYb7gr6T6YJwcusdY+eEhpuy5Itmrs+rXhhi077gl8/QOrNA
-         OvLyrmKUu0xWg==
+        b=jD5FvZK/R66zwsMRTicGBjvWu+bfjry0e+UdTm4+uNd0SyE7SJigucdcRaFzcZVuy
+         YxsHcYDTS3c8PToQdW2X4xJqRWvreYQC52ZBnQC2Vw5YYeWNkRqTqs1dZ2PHoW2YkH
+         aaZp9M6xo1B9w3cWcoEeRGg4jeeDjQx25dC2FWD6zP4xvmJay0eH6n6spaNYb38Zvd
+         M7yRrFKJTeVatt4FJpogX4DgmGfYtgVDjgsHRzeenusyyitOZtilfOI3BuYSmv1A7F
+         ABZvxORq3Odb9TQmPIMoH2gkFS45TdH+1+HmpK43Ml/nU9r09aZGtpqFTdG1C6lNBp
+         OVtd8zTu04JpQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Feilong Lin <linfeilong@huawei.com>,
-        Zhiqiang Liu <liuzhiqiang26@huawei.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 06/34] ACPI / hotplug / PCI: Fix reference count leak in enable_slot()
-Date:   Wed, 12 May 2021 14:02:37 -0400
-Message-Id: <20210512180306.664925-6-sashal@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.10 29/34] gpiolib: acpi: Add quirk to ignore EC wakeups on Dell Venue 10 Pro 5055
+Date:   Wed, 12 May 2021 14:03:00 -0400
+Message-Id: <20210512180306.664925-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210512180306.664925-1-sashal@kernel.org>
 References: <20210512180306.664925-1-sashal@kernel.org>
@@ -53,41 +51,54 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Feilong Lin <linfeilong@huawei.com>
+From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit 3bbfd319034ddce59e023837a4aa11439460509b ]
+[ Upstream commit da91ece226729c76f60708efc275ebd4716ad089 ]
 
-In enable_slot(), if pci_get_slot() returns NULL, we clear the SLOT_ENABLED
-flag. When pci_get_slot() finds a device, it increments the device's
-reference count.  In this case, we did not call pci_dev_put() to decrement
-the reference count, so the memory of the device (struct pci_dev type) will
-eventually leak.
+Like some other Bay and Cherry Trail SoC based devices the Dell Venue
+10 Pro 5055 has an embedded-controller which uses ACPI GPIO events to
+report events instead of using the standard ACPI EC interface for this.
 
-Call pci_dev_put() to decrement its reference count when pci_get_slot()
-returns a PCI device.
+The EC interrupt is only used to report battery-level changes and
+it keeps doing this while the system is suspended, causing the system
+to not stay suspended.
 
-Link: https://lore.kernel.org/r/b411af88-5049-a1c6-83ac-d104a1f429be@huawei.com
-Signed-off-by: Feilong Lin <linfeilong@huawei.com>
-Signed-off-by: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Add an ignore-wake quirk for the GPIO pin used by the EC to fix the
+spurious wakeups from suspend.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/pci/hotplug/acpiphp_glue.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpio/gpiolib-acpi.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 3365c93abf0e..f031302ad401 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -533,6 +533,7 @@ static void enable_slot(struct acpiphp_slot *slot, bool bridge)
- 			slot->flags &= ~SLOT_ENABLED;
- 			continue;
- 		}
-+		pci_dev_put(dev);
- 	}
- }
- 
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 863f059bc498..6f11714ce023 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -1407,6 +1407,20 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+ 			.no_edge_events_on_boot = true,
+ 		},
+ 	},
++	{
++		/*
++		 * The Dell Venue 10 Pro 5055, with Bay Trail SoC + TI PMIC uses an
++		 * external embedded-controller connected via I2C + an ACPI GPIO
++		 * event handler on INT33FFC:02 pin 12, causing spurious wakeups.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Venue 10 Pro 5055"),
++		},
++		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
++			.ignore_wake = "INT33FC:02@12",
++		},
++	},
+ 	{
+ 		/*
+ 		 * HP X2 10 models with Cherry Trail SoC + TI PMIC use an
 -- 
 2.30.2
 
