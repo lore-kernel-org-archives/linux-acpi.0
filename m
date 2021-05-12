@@ -2,95 +2,73 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FROM_LOCAL_DIGITS,FROM_LOCAL_HEX,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ED4BC433ED
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 13:50:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C422BC43460
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 14:15:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1365D613DE
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 13:50:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CB70613F7
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 14:15:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231285AbhELNvm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 May 2021 09:51:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53332 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230037AbhELNvl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 May 2021 09:51:41 -0400
-Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 936F3C061574;
-        Wed, 12 May 2021 06:50:33 -0700 (PDT)
-Received: by mail-pj1-x1032.google.com with SMTP id t2-20020a17090ae502b029015b0fbfbc50so382293pjy.3;
-        Wed, 12 May 2021 06:50:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=lF3zIWRBmjQNGRhL7RSn8ALvgjyrCfxTezULAdSmxXA=;
-        b=VM4Lt6abnC4MQiMVD49r0HxiqlgvfS3NdUFSx8ATNqHMJ7LZwQJZoKCAM0LqNH4I1b
-         EzpK7QXvy4AuscqqkTEPErsbY87SmP+/aFCLCrSmvUSpjq524CZlRubHyFYiHbZHPOio
-         10/4DcN/GaqYYiwPuB0taeIO4a4wMMDU/zcWO2UJL9M+s+3tnHkPCgse8DMsk/0d47zf
-         E7mV/5GZSKd01uBC4/bapFUUa9Bpbo1XkXfQPXh9YellYqIy3mOujmecPzH3altXQUmm
-         /6jVGWDFIA3mGuylGIRiewy4nO3uwIOQYv+0xiNWPp+X2cNB+j+7EuT/VfSTHmbCLKcg
-         DzOA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=lF3zIWRBmjQNGRhL7RSn8ALvgjyrCfxTezULAdSmxXA=;
-        b=T19chHAwouv1tH+eDg983bN/g5dOtnzDORMk+riQMVfYrzaQY4gVggdoVYpmn5ecGp
-         yDsGf9jqNju20prqhZ8dHitCORVuk7zOFGXZOV4NjoSecYxqj3N36vexE6Drvc/1hKOi
-         CrFAvW8TbiWZBNKgNRlf+HFFNPdq3bkq3ECTqa6XWrKEu/yHT2ZhEK20gl/pqFmFoPvP
-         7OQjn7GBQjnuKLT+IT/W9i39VUOzIlNzKmq2+2xhs6ME/KJM19TgkYgKFFYwmOHKBxS1
-         frP+1PFeGF69OSo1UUsi2/7YUFFBdYKY0fh9pIPMaOcwnWejuQ/2w/UhbcoaESoSdkG/
-         hEdA==
-X-Gm-Message-State: AOAM533YeYei0xE0HaRRbPozSB6Zv6fCrzcfhXIzSAGKp8nIbMFV/faw
-        4cJ5PWV/tHzAMrxlfhdplXfARXIg4Xu42RwqQGQ=
-X-Google-Smtp-Source: ABdhPJxsPSgaMd34YrOESOQScMfQotIEL41AfWxpO8ogdH0kXPgV+lePDwvcRaNclKZ8znuHFCxXYg==
-X-Received: by 2002:a17:902:ecce:b029:ee:cf77:3b22 with SMTP id a14-20020a170902ecceb02900eecf773b22mr35109167plh.46.1620827432817;
-        Wed, 12 May 2021 06:50:32 -0700 (PDT)
-Received: from localhost.localdomain (host-219-71-67-82.dynamic.kbtelecom.net. [219.71.67.82])
-        by smtp.gmail.com with ESMTPSA id v15sm57750pgc.57.2021.05.12.06.50.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 May 2021 06:50:32 -0700 (PDT)
-From:   Wei Ming Chen <jj251510319013@gmail.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     erik.kaneda@intel.com, devel@acpica.org,
-        linux-acpi@vger.kernel.org,
-        Wei Ming Chen <jj251510319013@gmail.com>
-Subject: [PATCH] ACPICA: Use ACPI_FALLTHROUGH
-Date:   Wed, 12 May 2021 21:50:18 +0800
-Message-Id: <20210512135018.20253-1-jj251510319013@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        id S231511AbhELORC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 May 2021 10:17:02 -0400
+Received: from outgoing-auth-1.mit.edu ([18.9.28.11]:41050 "EHLO
+        outgoing.mit.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S231630AbhELOQh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 May 2021 10:16:37 -0400
+Received: from cwcc.thunk.org (pool-72-74-133-215.bstnma.fios.verizon.net [72.74.133.215])
+        (authenticated bits=0)
+        (User authenticated as tytso@ATHENA.MIT.EDU)
+        by outgoing.mit.edu (8.14.7/8.12.4) with ESMTP id 14CEEiap031112
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 12 May 2021 10:14:45 -0400
+Received: by cwcc.thunk.org (Postfix, from userid 15806)
+        id 448C815C39C2; Wed, 12 May 2021 10:14:44 -0400 (EDT)
+Date:   Wed, 12 May 2021 10:14:44 -0400
+From:   "Theodore Ts'o" <tytso@mit.edu>
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Mali DP Maintainers <malidp@foss.arm.com>,
+        alsa-devel@alsa-project.org, coresight@lists.linaro.org,
+        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
+        kvm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+        linux-hwmon@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-integrity@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-sgx@vger.kernel.org, linux-usb@vger.kernel.org,
+        mjpeg-users@lists.sourceforge.net, netdev@vger.kernel.org,
+        rcu@vger.kernel.org
+Subject: Re: [PATCH v2 00/40] Use ASCII subset instead of UTF-8 alternate
+ symbols
+Message-ID: <YJvi1L2ss5Tfi+My@mit.edu>
+References: <cover.1620823573.git.mchehab+huawei@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1620823573.git.mchehab+huawei@kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Replace /* FALLTHROUGH */ comment with ACPI_FALLTHROUGH
+On Wed, May 12, 2021 at 02:50:04PM +0200, Mauro Carvalho Chehab wrote:
+> v2:
+> - removed EM/EN DASH conversion from this patchset;
 
-Signed-off-by: Wei Ming Chen <jj251510319013@gmail.com>
----
- drivers/acpi/acpica/utprint.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Are you still thinking about doing the
 
-diff --git a/drivers/acpi/acpica/utprint.c b/drivers/acpi/acpica/utprint.c
-index e37d612e8db5..05426596d1f4 100644
---- a/drivers/acpi/acpica/utprint.c
-+++ b/drivers/acpi/acpica/utprint.c
-@@ -475,7 +475,7 @@ int vsnprintf(char *string, acpi_size size, const char *format, va_list args)
- 		case 'X':
- 
- 			type |= ACPI_FORMAT_UPPER;
--			/* FALLTHROUGH */
-+			ACPI_FALLTHROUGH;
- 
- 		case 'x':
- 
--- 
-2.25.1
+EN DASH --> "--"
+EM DASH --> "---"
 
+conversion?  That's not going to change what the documentation will
+look like in the HTML and PDF output forms, and I think it would make
+life easier for people are reading and editing the Documentation/*
+files in text form.
+
+				- Ted
