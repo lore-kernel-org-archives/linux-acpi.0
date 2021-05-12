@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04032C468C0
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C277CC18E7B
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA0E961418
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 928F361432
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 19:57:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234279AbhELT6t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 May 2021 15:58:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50138 "EHLO mail.kernel.org"
+        id S239309AbhELT7A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 May 2021 15:59:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352044AbhELSCX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 May 2021 14:02:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4093A61419;
-        Wed, 12 May 2021 18:01:14 +0000 (UTC)
+        id S1352886AbhELSEZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 May 2021 14:04:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6CF5161412;
+        Wed, 12 May 2021 18:03:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620842475;
+        s=k20201202; t=1620842596;
         bh=lQVEHXpOkP+0xKhQL1ij6j/rrt8ZABA81dSlc2Bmugo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PxKxyoI8UUO8cOW+FWv2+BS1LDHPnr/GbSlchgbwLkj9DB062jRNAAke7B7iOBr6u
-         j9zF/175D+oaVRt5VCFbmB7K6DXUIIQlx8kb0ERiVXXQbrmnQbBzLONKU/ssc3MHHo
-         C5WvM3eTtyiB1dZcJizr3GYxx9ywy/SSsB1uddRjUXwpq8NzpOHDUkjmA3NUVv2az0
-         LlkEd5cILNAIlRQqE7Q2KqxkjEY1eiBLQPFoPq9JshLG3Y90XQ7wroHFX4ygDMfGgW
-         66uYHbiztpY92l3va6KrLuOUS1N2821m8TeruljKnzPp+qdxB5otcUqOOmyuThT3bP
-         XUq8/jdFnPfXA==
+        b=SZKmukidSLUaAq2pgDFWyegg3FHCLtLKRxix+xMnsP26qLAa1KIyxx6D9zSZf/HXD
+         6pnCBu/dO9Xte0NokpVZYxnJjbHk0C9RgALhiKBH7b6k0xCr14qHgRlGNuUSldQfh4
+         rax7OZzlBj7NDtbphPFj3iHYqQNTDedoCWoERGm3NuLwHWcrxVhwTWLnEVg+z45dLP
+         GkN3tzK8wkEK2wKdtqEl1f8ygehDBFLFTqYYZqz9Jz4r0o2cRK4t/2mRaDwS/hPmoi
+         b4uZV2/cc/+jgir9+ewYb7gr6T6YJwcusdY+eEhpuy5Itmrs+rXhhi077gl8/QOrNA
+         OvLyrmKUu0xWg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Feilong Lin <linfeilong@huawei.com>,
@@ -39,12 +39,12 @@ Cc:     Feilong Lin <linfeilong@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 07/37] ACPI / hotplug / PCI: Fix reference count leak in enable_slot()
-Date:   Wed, 12 May 2021 14:00:34 -0400
-Message-Id: <20210512180104.664121-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 06/34] ACPI / hotplug / PCI: Fix reference count leak in enable_slot()
+Date:   Wed, 12 May 2021 14:02:37 -0400
+Message-Id: <20210512180306.664925-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210512180104.664121-1-sashal@kernel.org>
-References: <20210512180104.664121-1-sashal@kernel.org>
+In-Reply-To: <20210512180306.664925-1-sashal@kernel.org>
+References: <20210512180306.664925-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
