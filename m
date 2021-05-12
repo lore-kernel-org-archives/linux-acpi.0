@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E521C43603
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 20:12:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F85CC43617
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 20:12:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AD0A61428
+	by mail.kernel.org (Postfix) with ESMTP id E8F2161434
 	for <linux-acpi@archiver.kernel.org>; Wed, 12 May 2021 20:12:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241687AbhELT7I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 May 2021 15:59:08 -0400
+        id S1343795AbhELT7N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 May 2021 15:59:13 -0400
 Received: from mail.kernel.org ([198.145.29.99]:53126 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1353020AbhELSGl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 May 2021 14:06:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E62CA6143C;
-        Wed, 12 May 2021 18:04:18 +0000 (UTC)
+        id S241620AbhELSIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 May 2021 14:08:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 92D676162A;
+        Wed, 12 May 2021 18:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620842660;
-        bh=3WOgU9R3HTQh4L1lax9mFnSBwko27WKEGwCXCUecxJc=;
+        s=k20201202; t=1620842699;
+        bh=4mcbU77nyHedrXOEqFa7BLF94C6/zWkzvSLUnk0h/MM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aq9//EBI8+T53z9PR4cAJL/YSFPJQDzuM90CMFVVT3kt72zD9Rsepxqkhj030mhSu
-         A5RVOZSBiynA+5sqhCeRY9QdTG+vcKSq4AUkw3xmgb9OdJwINAsX/TEIW0eNTJKPxh
-         zoohfo+mmKxLyqMjdRSuxs0lUfhbYig7BYowKil2jyVBJKBXu7tZ4cg1+8vkHfI0ev
-         ItPIOdrJV4Ic5delxwi86sC9fzySUGSVDv8FQGuDaQj2y5IxI03l18ApzqEetI0DXs
-         CLKhDX+NvqctW2XYPBLD8sfH1jTfj/ALBCl0dZ16yvT8oEpBeuF56JATDQJEoT8vAq
-         HpHcgWvP7L2uQ==
+        b=VOQOZgyxaWRbX4nltGYOs7yJCms90H2YCKMfEiKSFvFtaq8MCvIwQEmt8OtbFx0Vk
+         b4R0KEExQmQp30es3c8qJDVGMrA0ZHTQcGCrv7EBTUiF3+5dQy0rEw2iVBUMlLPDru
+         YS92pdUO0YdCkCoWxYq6GVke4qhlq0MjfMhmNXgCs8LQ/bLo8onKc3vxuz8qMpReJU
+         rq0babfCkOVPm0f9JGtqbrRaHAuZ0ZiyqYbVS/7gVMb6hRRMZzXwJr3iKEaUIbGCfI
+         84nz/qn/bH1RFum1Yk7NGBGhULkKfRn1u0jPGs4aI0HcvhMbOIlu+2fDiiNeEFsaDo
+         9w+fhhBN5ntpQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Feilong Lin <linfeilong@huawei.com>,
@@ -39,12 +39,12 @@ Cc:     Feilong Lin <linfeilong@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 06/23] ACPI / hotplug / PCI: Fix reference count leak in enable_slot()
-Date:   Wed, 12 May 2021 14:03:50 -0400
-Message-Id: <20210512180408.665338-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 05/18] ACPI / hotplug / PCI: Fix reference count leak in enable_slot()
+Date:   Wed, 12 May 2021 14:04:36 -0400
+Message-Id: <20210512180450.665586-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210512180408.665338-1-sashal@kernel.org>
-References: <20210512180408.665338-1-sashal@kernel.org>
+In-Reply-To: <20210512180450.665586-1-sashal@kernel.org>
+References: <20210512180450.665586-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -77,7 +77,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 6e60b4b1bf53..98be06ac2af2 100644
+index be35bbfa6968..3d8844e7090a 100644
 --- a/drivers/pci/hotplug/acpiphp_glue.c
 +++ b/drivers/pci/hotplug/acpiphp_glue.c
 @@ -540,6 +540,7 @@ static void enable_slot(struct acpiphp_slot *slot, bool bridge)
