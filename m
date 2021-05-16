@@ -2,64 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F272FC433B4
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 May 2021 16:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DF08C43461
+	for <linux-acpi@archiver.kernel.org>; Sun, 16 May 2021 10:18:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3B6F613DA
-	for <linux-acpi@archiver.kernel.org>; Sat, 15 May 2021 16:29:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E88F611C2
+	for <linux-acpi@archiver.kernel.org>; Sun, 16 May 2021 10:18:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233369AbhEOQaN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 15 May 2021 12:30:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52618 "EHLO mail.kernel.org"
+        id S231583AbhEPKTz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 16 May 2021 06:19:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233405AbhEOQaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 15 May 2021 12:30:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 0A07A613C5;
-        Sat, 15 May 2021 16:28:58 +0000 (UTC)
+        id S231421AbhEPKTx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 16 May 2021 06:19:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7AD3061206;
+        Sun, 16 May 2021 10:18:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1621096138;
-        bh=k7gxnQ3jgb/s38QvG7Txft5y6PiqAO8JYg21ZFlKOAo=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=pdC4n8ijCmMgq6A9feSTvbmXnLVGEX2c6aKrkm3+oghqt/JMwC8NevHQu5NTP706b
-         DfMVR0iqJC5sqOYRAMQ6joZRz6YUDXwBIHQFLu+5nkwRZHtyJDZLfAgQ1LxBTL7K+N
-         gPl62LNUFrH/j34SOG8l89pLF5C3IvTg6l/SoClhntdiH1MlNv1f2PKiq9MKqRoQNr
-         rhqZbg9kHz8VMTdaodZ6YpeFfzxeWhkoF0uWjqFzS98/jI87ZiXYAyCtzXFLTff/up
-         GA8qukDjLmqpe4yoKR67w8hemILZfrx1CxU5XCTapkzTVuF2pctaIq9OrgYTyzEXcV
-         iBr7Vl4KOrpfQ==
-Subject: Re: [GIT PULL] libnvdimm fixes for 5.13-rc2
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAPcyv4gEKckAC2_mtjdK22OsEH4tHQSprYmuB7hkhafYquKNGQ@mail.gmail.com>
-References: <CAPcyv4gEKckAC2_mtjdK22OsEH4tHQSprYmuB7hkhafYquKNGQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <nvdimm.lists.linux.dev>
-X-PR-Tracked-Message-Id: <CAPcyv4gEKckAC2_mtjdK22OsEH4tHQSprYmuB7hkhafYquKNGQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-5.13-rc2
-X-PR-Tracked-Commit-Id: e9cfd259c6d386f6235395a13bd4f357a979b2d0
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: a5ce4296b0416b3001c69abef7b5fa751c0f7578
-Message-Id: <162109613800.13678.1977158030499199784.pr-tracker-bot@kernel.org>
-Date:   Sat, 15 May 2021 16:28:58 +0000
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-nvdimm <linux-nvdimm@lists.01.org>, nvdimm@lists.linux.dev,
-        Linux ACPI <linux-acpi@vger.kernel.org>
+        s=k20201202; t=1621160317;
+        bh=Ue7cBVzQyzORe3yy+g9Ws37Hju1tYCf5QU0Lr4jSe6U=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=NrjKzev0/LBmP95/FrJiPM06d4ACnZqFAIs4m1B0fR97UQXU7vvoqZrEVfhycOo7N
+         7MnhaT8hce+pN3J8+o8jdQE4NZzSXo2DkvoWIksnRILwmf/AlKQbW3MO/F011z7FMH
+         KlR2HRP39AGUBglJHzfv73WVRY/+WvoRKhOIE2o2/ur9ongAe6Y94tXKMNaGecQ7gL
+         znitvHgmLMaZNnQLpInQCHuxtTxuyb7n/zxkp1MiabYrekRDq5JYf693l0Sv6pJ5WK
+         mXqJvglSD7iQyH7xJKNBqNw2g7uw4QsPDxhG8CuYkjPB6/seMpSJzzY5pZdU2AA9D4
+         5sbqSO+sSFMjQ==
+Received: by mail.kernel.org with local (Exim 4.94.2)
+        (envelope-from <mchehab@kernel.org>)
+        id 1liDr1-003o92-NS; Sun, 16 May 2021 12:18:35 +0200
+From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        "Alexander A. Klimov" <grandmaster@al2klimov.de>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 14/16] docs: firmware-guide: acpi: dsd: graph.rst: replace some characters
+Date:   Sun, 16 May 2021 12:18:31 +0200
+Message-Id: <5c846d672267ceb314978bc775940e6b82ef05c0.1621159997.git.mchehab+huawei@kernel.org>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1621159997.git.mchehab+huawei@kernel.org>
+References: <cover.1621159997.git.mchehab+huawei@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 14 May 2021 16:43:31 -0700:
+The conversion tools used during DocBook/LaTeX/html/Markdown->ReST
+conversion and some cut-and-pasted text contain some characters that
+aren't easily reachable on standard keyboards and/or could cause
+troubles when parsed by the documentation build system.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-5.13-rc2
+Replace the occurences of the following characters:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/a5ce4296b0416b3001c69abef7b5fa751c0f7578
+	- U+00a0 (' '): NO-BREAK SPACE
+	  as it can cause lines being truncated on PDF output
 
-Thank you!
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+---
+ Documentation/firmware-guide/acpi/dsd/graph.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/Documentation/firmware-guide/acpi/dsd/graph.rst b/Documentation/firmware-guide/acpi/dsd/graph.rst
+index 7072db801aeb..954b99ec6b77 100644
+--- a/Documentation/firmware-guide/acpi/dsd/graph.rst
++++ b/Documentation/firmware-guide/acpi/dsd/graph.rst
+@@ -159,7 +159,7 @@ References
+ 
+ [2] Devicetree. https://www.devicetree.org, referenced 2016-10-03.
+ 
+-[3] Documentation/devicetree/bindings/graph.txt
++[3] Documentation/devicetree/bindings/graph.txt
+ 
+ [4] Device Properties UUID For _DSD.
+     https://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf,
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.31.1
+
