@@ -2,146 +2,184 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EABC433ED
-	for <linux-acpi@archiver.kernel.org>; Sun, 16 May 2021 10:18:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C53CC433ED
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 May 2021 05:54:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC03061182
-	for <linux-acpi@archiver.kernel.org>; Sun, 16 May 2021 10:18:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 298C961222
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 May 2021 05:54:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235090AbhEPKUH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 16 May 2021 06:20:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37682 "EHLO mail.kernel.org"
+        id S232431AbhEQFzX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 May 2021 01:55:23 -0400
+Received: from mga05.intel.com ([192.55.52.43]:19290 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231386AbhEPKTx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 16 May 2021 06:19:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 768AD611CA;
-        Sun, 16 May 2021 10:18:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1621160317;
-        bh=uz12JEUkFl1zk0MKhwqoy7Swq0yIqwlg559U5vqLb64=;
-        h=From:To:Cc:Subject:Date:From;
-        b=NZoYuL4T8pZP0XVsuqpo1xaXga3djUflecwXx5LGut8qbhlW3Y9NzBmiQJpti66iQ
-         XEctA9a/tkYn6eIfMFOD23iU2NVyAWENwzAu5GTKImts+lpuYv0eNqgw/CUZ2ZkWss
-         fllyfJ2EOkHcmxftZ1iXvAx83SROwJwSmenZXooYhJTuiuJxIyQ+zDnL2KcckWJO3l
-         HXjHP9OcKsGcnNSkEPNKSqumMlW9xOUSyWQbW7rfHCgaVLEVCKAvIaHdwvFlEJ1a7n
-         T0Jc41mYwmUESpLNWcMxWdQoD+Yw7News+EAAT/i+fb8vmW0PjoNLGp13h2ptdOtyU
-         rkJ7P+/53g9gg==
-Received: by mail.kernel.org with local (Exim 4.94.2)
-        (envelope-from <mchehab@kernel.org>)
-        id 1liDr1-003o89-5Z; Sun, 16 May 2021 12:18:35 +0200
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Theodore Ts'o" <tytso@mit.edu>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Corentin Labbe <clabbe@baylibre.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Jean Delvare <jdelvare@suse.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        Leo Yan <leo.yan@linaro.org>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mike Leach <mike.leach@linaro.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Suzuki K Poulose <suzuki.poulose@arm.com>,
-        Thorsten Leemhuis <linux@leemhuis.info>,
-        alsa-devel@alsa-project.org, coresight@lists.linaro.org,
-        intel-wired-lan@lists.osuosl.org, kvm@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ext4@vger.kernel.org, linux-hwmon@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-usb@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-        netdev@vger.kernel.org, rcu@vger.kernel.org
-Subject: [PATCH v3 00/16] Replace some bad characters on documents
-Date:   Sun, 16 May 2021 12:18:17 +0200
-Message-Id: <cover.1621159997.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.31.1
+        id S231203AbhEQFzW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 May 2021 01:55:22 -0400
+IronPort-SDR: FLn2j2dXePCKBYhNpGI/9nera9k5D9wQcYXugQll4R2hzE9seCvBCZv7lKY0jLIbWZg6+PBLDv
+ 2rArxRCUXcZQ==
+X-IronPort-AV: E=McAfee;i="6200,9189,9986"; a="285915708"
+X-IronPort-AV: E=Sophos;i="5.82,306,1613462400"; 
+   d="scan'208";a="285915708"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2021 22:54:06 -0700
+IronPort-SDR: 2gjxej4JgpEQPeDJ7nKXb7WlFpH8dKK7zJH3tjOQCEIlwC/BPBhGdIV+VgQIPf5GJauELyExLB
+ HWSfLTeqxZLg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.82,306,1613462400"; 
+   d="scan'208";a="472211432"
+Received: from spandruv-desk.jf.intel.com ([10.54.75.21])
+  by fmsmga002.fm.intel.com with ESMTP; 16 May 2021 22:54:06 -0700
+From:   Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To:     rjw@rjwysocki.net, lenb@kernel.org
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH] ACPI: DPTF: Add new PCH FIVR methods
+Date:   Sun, 16 May 2021 22:53:56 -0700
+Message-Id: <20210517055356.1918418-1-srinivas.pandruvada@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The conversion tools used during DocBook/LaTeX/html/Markdown->ReST 
-conversion and some cut-and-pasted text contain some characters that
-aren't easily reachable on standard keyboards and/or could cause 
-troubles when parsed by the documentation build system.
+Some additional information is required for updating PCH FIVR values
+upon WiFi channel changes.
 
-Replace the occurences of the following characters:
+New attributes added to the existing sysfs:
+fivr_switching_freq_mhz	: Get the FIVR switching control frequency.
+			  Uses ACPI method GFCS
+fivr_switching_fault_status: Read the FIVR switching frequency control
+			fault status. Uses ACPI method GFFS
 
-            - U+00a0 (' '): NO-BREAK SPACE
-            - U+00ad ('­'): SOFT HYPHEN
-            - U+2010 ('‐'): HYPHEN
-            - U+2217 ('∗'): ASTERISK OPERATOR
-            - U+feff ('﻿'): BOM
+ssc_clock_info : Presents SSC (spread spectrum clock) information for EMI
+(Electro magnetic interference) control. Use ACPI method GEMI. Refer
+to the description of GEMI method below.
 
-I'll submit in separate another series to address other character occurrences.
+GFFS
+This ACPI method is used to read the FIVR switching frequency control
+fault status.
+Bits	Description
+[0:0]	Fault status when set to 1
+[31:1]	Reserved
 
-v3:
-  - removed curly commas and changed the patch descriptions.
-v2:
-  - removed EM/EN dashes and changed the patch descriptions.
+GFCS
+This ACPI method is used to read the FIVR switching control
+frequency.
+Bits	Description
+[11:0]	Actual Frequency = value * XTAL_FREQ / 128
+[31:12]	Reserved
 
+GEMI
+This ACPI method is used to read the programmed register value for EMI
+(Electro magnetic interference) control.
 
-Mauro Carvalho Chehab (16):
-  docs: hwmon: ir36021.rst: replace some characters
-  docs: admin-guide: reporting-issues.rst: replace some characters
-  docs: trace: coresight: coresight-etm4x-reference.rst: replace some
-    characters
-  docs: driver-api: ioctl.rst: replace some characters
-  docs: driver-api: media: drivers: zoran.rst: replace some characters
-  docs: usb: replace some characters
-  docs: userspace-api: media: v4l: dev-decoder.rst: replace some
-    characters
-  docs: userspace-api: media: dvb: intro.rst: replace some characters
-  docs: vm: zswap.rst: replace some characters
-  docs: filesystems: ext4: blockgroup.rst: replace some characters
-  docs: networking: device_drivers: replace some characters
-  docs: PCI: acpi-info.rst: replace some characters
-  docs: sound: kernel-api: writing-an-alsa-driver.rst: replace some
-    characters
-  docs: firmware-guide: acpi: dsd: graph.rst: replace some characters
-  docs: virt: kvm: api.rst: replace some characters
-  docs: RCU: replace some characters
+Bits	Description
+[7:0]	Sets clock spectrum spread percentage:
+	0x00=0.2% , 0x3F=10%
+	1 LSB = 0.1% increase in spread (for
+	settings 0x01 thru 0x1C)
+	1 LSB = 0.2% increase in spread (for
+	settings 0x1E thru 0x3F)
+[8]	When set to 1, enables spread
+	spectrum clock
+[9]	0: Triangle mode. FFC frequency
+	walks around the Fcenter in a linear
+	fashion
+	1: Random walk mode. FFC frequency
+	changes randomly within the SSC
+	(Spread spectrum clock) range
+[10]	0: No white noise. 1: Add white noise
+	to spread waveform
+[11]	When 1, future writes are ignored.
 
- Documentation/PCI/acpi-info.rst               | 18 ++---
- .../Data-Structures/Data-Structures.rst       | 46 ++++++------
- .../Expedited-Grace-Periods.rst               | 36 +++++-----
- .../Tree-RCU-Memory-Ordering.rst              |  2 +-
- .../RCU/Design/Requirements/Requirements.rst  | 70 +++++++++----------
- .../admin-guide/reporting-issues.rst          |  2 +-
- Documentation/driver-api/ioctl.rst            |  8 +--
- .../driver-api/media/drivers/zoran.rst        |  2 +-
- Documentation/filesystems/ext4/blockgroup.rst |  2 +-
- .../firmware-guide/acpi/dsd/graph.rst         |  2 +-
- Documentation/hwmon/ir36021.rst               |  2 +-
- .../device_drivers/ethernet/intel/i40e.rst    |  6 +-
- .../device_drivers/ethernet/intel/iavf.rst    |  2 +-
- .../kernel-api/writing-an-alsa-driver.rst     |  2 +-
- .../coresight/coresight-etm4x-reference.rst   |  2 +-
- Documentation/usb/ehci.rst                    |  2 +-
- Documentation/usb/gadget_printer.rst          |  2 +-
- .../userspace-api/media/dvb/intro.rst         |  4 +-
- .../userspace-api/media/v4l/dev-decoder.rst   |  2 +-
- Documentation/virt/kvm/api.rst                | 28 ++++----
- Documentation/vm/zswap.rst                    |  4 +-
- 21 files changed, 122 insertions(+), 122 deletions(-)
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ Documentation/ABI/testing/sysfs-platform-dptf | 40 +++++++++++++++++++
+ drivers/acpi/dptf/dptf_pch_fivr.c             |  9 +++++
+ 2 files changed, 49 insertions(+)
 
+diff --git a/Documentation/ABI/testing/sysfs-platform-dptf b/Documentation/ABI/testing/sysfs-platform-dptf
+index 141834342a4d..f0c43711ad4f 100644
+--- a/Documentation/ABI/testing/sysfs-platform-dptf
++++ b/Documentation/ABI/testing/sysfs-platform-dptf
+@@ -111,3 +111,43 @@ Contact:	linux-acpi@vger.kernel.org
+ Description:
+ 		(RW) The PCH FIVR (Fully Integrated Voltage Regulator) switching frequency in MHz,
+ 		when FIVR clock is 38.4MHz.
++
++What:		/sys/bus/platform/devices/INTC1045:00/pch_fivr_switch_frequency/fivr_switching_freq_mhz
++Date:		June, 2021
++KernelVersion:	v5.14
++Contact:	linux-acpi@vger.kernel.org
++Description:
++		(RO) Get the FIVR switching control frequency in MHz.
++
++What:		/sys/bus/platform/devices/INTC1045:00/pch_fivr_switch_frequency/fivr_switching_fault_status
++Date:		June, 2021
++KernelVersion:	v5.14
++Contact:	linux-acpi@vger.kernel.org
++Description:
++		(RO) Read the FIVR switching frequency control fault status.
++
++What:		/sys/bus/platform/devices/INTC1045:00/pch_fivr_switch_frequency/ssc_clock_info
++Date:		June, 2021
++KernelVersion:	v5.14
++Contact:	linux-acpi@vger.kernel.org
++Description:
++		(RO) Presents SSC (spread spectrum clock) information for EMI
++		(Electro magnetic interference) control. This is a bit mask.
++		Bits	Description
++		[7:0]	Sets clock spectrum spread percentage:
++			0x00=0.2% , 0x3F=10%
++			1 LSB = 0.1% increase in spread (for
++			settings 0x01 thru 0x1C)
++			1 LSB = 0.2% increase in spread (for
++			settings 0x1E thru 0x3F)
++		[8]	When set to 1, enables spread
++			spectrum clock
++		[9]	0: Triangle mode. FFC frequency
++			walks around the Fcenter in a linear
++			fashion
++			1: Random walk mode. FFC frequency
++			changes randomly within the SSC
++			(Spread spectrum clock) range
++		[10]	0: No white noise. 1: Add white noise
++			to spread waveform
++		[11]	When 1, future writes are ignored.
+diff --git a/drivers/acpi/dptf/dptf_pch_fivr.c b/drivers/acpi/dptf/dptf_pch_fivr.c
+index 5fca18296bf6..22c4ae0401ef 100644
+--- a/drivers/acpi/dptf/dptf_pch_fivr.c
++++ b/drivers/acpi/dptf/dptf_pch_fivr.c
+@@ -55,15 +55,24 @@ static ssize_t name##_store(struct device *dev,\
+ 
+ PCH_FIVR_SHOW(freq_mhz_low_clock, GFC0)
+ PCH_FIVR_SHOW(freq_mhz_high_clock, GFC1)
++PCH_FIVR_SHOW(ssc_clock_info, GEMI)
++PCH_FIVR_SHOW(fivr_switching_freq_mhz, GFCS)
++PCH_FIVR_SHOW(fivr_switching_fault_status, GFFS)
+ PCH_FIVR_STORE(freq_mhz_low_clock, RFC0)
+ PCH_FIVR_STORE(freq_mhz_high_clock, RFC1)
+ 
+ static DEVICE_ATTR_RW(freq_mhz_low_clock);
+ static DEVICE_ATTR_RW(freq_mhz_high_clock);
++static DEVICE_ATTR_RO(ssc_clock_info);
++static DEVICE_ATTR_RO(fivr_switching_freq_mhz);
++static DEVICE_ATTR_RO(fivr_switching_fault_status);
+ 
+ static struct attribute *fivr_attrs[] = {
+ 	&dev_attr_freq_mhz_low_clock.attr,
+ 	&dev_attr_freq_mhz_high_clock.attr,
++	&dev_attr_ssc_clock_info.attr,
++	&dev_attr_fivr_switching_freq_mhz.attr,
++	&dev_attr_fivr_switching_fault_status.attr,
+ 	NULL
+ };
+ 
 -- 
-2.31.1
-
+2.27.0
 
