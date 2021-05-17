@@ -2,238 +2,166 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F8BCC43619
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 May 2021 15:59:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB186C43460
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 May 2021 17:21:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7846B6023E
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 May 2021 15:59:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 984486134F
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 May 2021 17:21:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245742AbhEQQAe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 May 2021 12:00:34 -0400
-Received: from mga07.intel.com ([134.134.136.100]:40796 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346138AbhEQP6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 May 2021 11:58:10 -0400
-IronPort-SDR: BMA++xii8SwWkuPQgi3E2LmxOrBecr3H3QEcY3tnSY2syTEhgWwDedY4c6yahQ4O1snsmPqNoY
- 2Hqg77LZJh5w==
-X-IronPort-AV: E=McAfee;i="6200,9189,9987"; a="264409952"
-X-IronPort-AV: E=Sophos;i="5.82,307,1613462400"; 
-   d="scan'208";a="264409952"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2021 08:51:30 -0700
-IronPort-SDR: dq2q+9+jFCNc1GGOtlyxbC0N52q2GurHuwma66S/ls+dO1hgr45Vtd0OpX9s29l7lPKBuXJZdO
- vIGrK/k76raA==
-X-IronPort-AV: E=Sophos;i="5.82,307,1613462400"; 
-   d="scan'208";a="410875570"
-Received: from btamaklo-mobl.amr.corp.intel.com ([10.209.149.190])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2021 08:51:27 -0700
-Message-ID: <fb8c82441abfbd0e1b8a1a1bff34be362f9b0ee9.camel@linux.intel.com>
-Subject: Re: [PATCH] ACPI: DPTF: Add new PCH FIVR methods
-From:   Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Date:   Mon, 17 May 2021 08:51:23 -0700
-In-Reply-To: <CAJZ5v0gqW6Gn4CN7-V_F_yE+k9qBgEgBhAHSHrWF5p1ZAHbS7A@mail.gmail.com>
-References: <20210517055356.1918418-1-srinivas.pandruvada@linux.intel.com>
-         <CAJZ5v0gqW6Gn4CN7-V_F_yE+k9qBgEgBhAHSHrWF5p1ZAHbS7A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.1-1 
+        id S242817AbhEQRWn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 May 2021 13:22:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51322 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235374AbhEQRWn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 May 2021 13:22:43 -0400
+Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D99FC061573
+        for <linux-acpi@vger.kernel.org>; Mon, 17 May 2021 10:21:26 -0700 (PDT)
+Received: by mail-ej1-x633.google.com with SMTP id lg14so10329080ejb.9
+        for <linux-acpi@vger.kernel.org>; Mon, 17 May 2021 10:21:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KSak/9y8LWCPIDO3G6CswSdOFb8LMwY6kG8ALECOcQ4=;
+        b=FAoQU13gvykSeVPaT8SD0dcXsm4yCutPyV3HXGbrkMqJURqJJ1TpCC2N9Sby2v9Quu
+         SxEDs9LDJrwAQ7+xPzYiZmHAFww2P6PNBPs5s2nkSPuZp+MTzuMyyZ5beiPs+5UfN2mT
+         xGKwFWY4bNQ2WSd4YF6rlGmI5eoa++Lymx2PKTFoCA2kXd33AOOPsMGvM+KJzM90Skwn
+         5DNpXxhL0Iras7qtd/gCMDz9CGnp2/wSFPpmt4GoEVGvWKxYmlsaSE1cjNQSje8OFsiE
+         ++BQ+plVjguBvcA0RzBTh+3tH0tiGrNYLkZ2uh0afF6wM6z2X+T9p0fmruHcfs/C/ekM
+         EYiQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KSak/9y8LWCPIDO3G6CswSdOFb8LMwY6kG8ALECOcQ4=;
+        b=VnN650nDvN8MpJUV/cUv7XpB2cy3jszzKU4xwkTl26uQn0F6aARYhT+s0oOfdJJt1A
+         JnLcNU3WRtOUxPtrITiCfzqwB+GHelF2WinEYB95swvMRvwM+yaHlK3LBCHi5qZ6+zD9
+         RpN+5OO51ZZb50csxNZhweM/jnKfhuwlKF9TjARC/Mr1rmO+tDPiVqpH9EVoy2gEeC7T
+         9ugXvDMbrIXt/IcWTAyUfCfdlu9jzYnW84+3IZhUu6ekONz2tEI2g7wkqAtTy7ItrhvR
+         W0V3JvO9cs0m1tF8dhJ1N2+3qtZ6uwO+Ppb3e3nbWCPy6xtBV8fOA1rDJHPRTsBtyHvR
+         b5Vg==
+X-Gm-Message-State: AOAM530F7BktbcT7ijGt4Wq1aTzFF18/B3BTV6tRp8EmdGt69lliwJgx
+        UBRoVsplOeaO4dDBlCmyWxWDkNz9u3UtzDiooo2TBA==
+X-Google-Smtp-Source: ABdhPJwDSuY1Ew65cNeQBqF/NU4BCq0/RPemhz48ePAYjbpwvuGcrf2z9Kf9uaXqxeWBtzA0bGQ4GodiWR5b72do9Cs=
+X-Received: by 2002:a17:907:3e28:: with SMTP id hp40mr1001966ejc.523.1621272085131;
+ Mon, 17 May 2021 10:21:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210419165451.2176200-1-Jonathan.Cameron@huawei.com>
+ <20210419165451.2176200-3-Jonathan.Cameron@huawei.com> <20210506215934.GJ1904484@iweiny-DESK2.sc.intel.com>
+ <20210511175006.00007861@Huawei.com> <CAPcyv4j=uww+85b4AbWmoPNPry_+JLEpEnuywpdC8PonXmRmEg@mail.gmail.com>
+ <20210514094755.00002081@Huawei.com> <CAPcyv4h_qSZq+sTAOTKDNsO3xPmq=65j8oO1iw0WdVFj8+XrOA@mail.gmail.com>
+ <20210517094045.00004d58@Huawei.com>
+In-Reply-To: <20210517094045.00004d58@Huawei.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Mon, 17 May 2021 10:21:14 -0700
+Message-ID: <CAPcyv4iQcV_U1qmQhXKM0RG9v-sAEPwtTxnv=P86yJrCH25k+w@mail.gmail.com>
+Subject: Re: [RFC PATCH v3 2/4] PCI/doe: Add Data Object Exchange support
+To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc:     Ira Weiny <ira.weiny@intel.com>, linux-cxl@vger.kernel.org,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Ben Widawsky <ben.widawsky@intel.com>,
+        Chris Browy <cbrowy@avery-design.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        "Schofield, Alison" <alison.schofield@intel.com>,
+        Vishal L Verma <vishal.l.verma@intel.com>,
+        Linuxarm <linuxarm@huawei.com>, Fangjian <f.fangjian@huawei.com>,
+        Greg KH <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 2021-05-17 at 17:20 +0200, Rafael J. Wysocki wrote:
-> On Mon, May 17, 2021 at 7:54 AM Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com> wrote:
-> > 
-> > Some additional information is required for updating PCH FIVR
-> > values
-> > upon WiFi channel changes.
-> > 
-> > New attributes added to the existing sysfs:
-> > fivr_switching_freq_mhz : Get the FIVR switching control frequency.
-> >                           Uses ACPI method GFCS
-> > fivr_switching_fault_status: Read the FIVR switching frequency
-> > control
-> >                         fault status. Uses ACPI method GFFS
-> > 
-> > ssc_clock_info : Presents SSC (spread spectrum clock) information
-> > for EMI
-> > (Electro magnetic interference) control. Use ACPI method GEMI.
-> > Refer
-> > to the description of GEMI method below.
-> > 
-> > GFFS
-> > This ACPI method is used to read the FIVR switching frequency
-> > control
-> > fault status.
-> > Bits    Description
-> > [0:0]   Fault status when set to 1
-> > [31:1]  Reserved
-> > 
-> > GFCS
-> > This ACPI method is used to read the FIVR switching control
-> > frequency.
-> > Bits    Description
-> > [11:0]  Actual Frequency = value * XTAL_FREQ / 128
-> 
-> I was about to apply this, but one question.
-> 
-> AFAICS the "show" function will simply evaluate GFCS and preset the
-> returned value to the reader of the attribute, but the documentation
-> says that this is the switching control frequency in MHz which
-> doesn't
-> seem to be consistent with the above information.
-> 
-> Is the reader of the attribute required to know the XTAL frequency
-> and
-> apply the above formula to the value read from it?  If so, the
-> documentation should be clear about this.
-> 
-Since XTAL_FREQ can be different on designs, user of the interface is
-supposed to know that.
-I will update the documentation and resend.
+On Mon, May 17, 2021 at 1:42 AM Jonathan Cameron
+<Jonathan.Cameron@huawei.com> wrote:
+>
+> On Fri, 14 May 2021 11:37:12 -0700
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> > On Fri, May 14, 2021 at 1:50 AM Jonathan Cameron
+> > <Jonathan.Cameron@huawei.com> wrote:
+> > [..]
+> > > > If it simplifies the kernel implementation to assume single
+> > > > kernel-initiator then I think that's more than enough reason to block
+> > > > out userspace, and/or provide userspace a method to get into the
+> > > > kernel's queue for service.
+> > >
+> > > This last suggestion makes sense to me. Let's provide a 'right' way
+> > > to access the DOE from user space. I like the idea if it being possible
+> > > to run CXL compliance tests from userspace whilst the driver is loaded.
+> >
+> > Ah, and I like your observation that once the kernel provides a
+> > "right" way to access DOE then userspace direct-access of DOE is
+> > indeed a "you get to keep the pieces" event like any other unwanted
+> > userspace config-write.
+> >
+> > > Bjorn, given this would be a generic PCI thing, any preference for what
+> > > this interface might look like?   /dev/pcidoe[xxxxxx].i with ioctls similar
+> > > to those for the BAR based CXL mailboxes?
+> >
+> > (warning, anti-ioctl bias incoming...)
+>
+> I feel very similar about ioctls - my immediate thought was to shove this in
+> debugfs, but that feels the wrong choice if we are trying to persuade people
+> to use it instead of writing code that directly accesses the config space.
+>
+> >
+> > Hmm, DOE has an enumeration capability, could the DOE driver use a
+> > scheme to have a sysfs bin_attr per discovered object type? This would
+> > make it simliar to the pci-vpd sysfs interface.
+>
+> We can discover the protocols, but anything beyond that is protocol
+> specific.  I don't think there is a enough info available by any standards
+> defined method. Also part of the reason to allow a safe userspace interface
+> would be to provide a generic interface for vendor protocols and things like
+> CXL compliance tests where we will almost certainly never provide a more
+> specific kernel interface.
+>
+> Whilst sysfs would work for CDAT, some protocols are challenge response rather
+> than simple read back and that really doesn't fit well for sysfs model.
+> If we get other protocols that are simple data read back, then I would
+> advocate giving them a simple sysfs interface much like proposed for CDAT
+> as it will always be simpler to use + self describing.
+>
+> On a lesser note it might be helpful to provide sysfs attrs for
+> what protocols are supported.  The alternative is to let userspace run
+> the discovery protocol. Perhaps we can do this as a later phase.
+>
+> >
+> > Then the kernel could cache objects like CDAT that don't change
+> > outside of some invalidation event.
+>
+> It's been a while since I last saw any conversation on sysfs bin_attrs
+> but mostly I thought the feeling was pretty strongly against them for anything
+> but a few niche usecases.
+>
+> Feels to me like it would break most of the usual rules in a way vpd does
+> not (IIRC VPD is supposed to be a simple in the sense that if you write a value
+> to a writable part, you will read back the same value).
+>
+> +CC Greg who is a fount of knowledge in this area (and regularly + correctly
+> screams at the ways I try to abuse sysfs :)  Note I don't think Dan was
+> suggesting implementing response / request directly, but I think that is
+> all we could do given DOE protocols can be vendor specific and the standard
+> discovery protocol doesn't let us know the fine grained support (what commands
+> within a given protocol).
 
-Thanks,
-Srinivas
+I'm not all that interested in supporting vendor defined DOE
+shenanigans. There's more than enough published DOE protocols that the
+kernel could limit its support to the known set. This is similar to
+how ACPI DSMs are not generically supported, but when they appear in a
+published specification the kernel may then grow the support. The
+supported protocols could be limited to: CDAT, PCIe IDE, CXL
+Compliance, etc...
 
-> > [31:12] Reserved
-> > 
-> > GEMI
-> > This ACPI method is used to read the programmed register value for
-> > EMI
-> > (Electro magnetic interference) control.
-> > 
-> > Bits    Description
-> > [7:0]   Sets clock spectrum spread percentage:
-> >         0x00=0.2% , 0x3F=10%
-> >         1 LSB = 0.1% increase in spread (for
-> >         settings 0x01 thru 0x1C)
-> >         1 LSB = 0.2% increase in spread (for
-> >         settings 0x1E thru 0x3F)
-> > [8]     When set to 1, enables spread
-> >         spectrum clock
-> > [9]     0: Triangle mode. FFC frequency
-> >         walks around the Fcenter in a linear
-> >         fashion
-> >         1: Random walk mode. FFC frequency
-> >         changes randomly within the SSC
-> >         (Spread spectrum clock) range
-> > [10]    0: No white noise. 1: Add white noise
-> >         to spread waveform
-> > [11]    When 1, future writes are ignored.
-> > 
-> > Signed-off-by: Srinivas Pandruvada <
-> > srinivas.pandruvada@linux.intel.com>
-> > ---
-> >  Documentation/ABI/testing/sysfs-platform-dptf | 40
-> > +++++++++++++++++++
-> >  drivers/acpi/dptf/dptf_pch_fivr.c             |  9 +++++
-> >  2 files changed, 49 insertions(+)
-> > 
-> > diff --git a/Documentation/ABI/testing/sysfs-platform-dptf
-> > b/Documentation/ABI/testing/sysfs-platform-dptf
-> > index 141834342a4d..f0c43711ad4f 100644
-> > --- a/Documentation/ABI/testing/sysfs-platform-dptf
-> > +++ b/Documentation/ABI/testing/sysfs-platform-dptf
-> > @@ -111,3 +111,43 @@ Contact:   linux-acpi@vger.kernel.org
-> >  Description:
-> >                 (RW) The PCH FIVR (Fully Integrated Voltage
-> > Regulator) switching frequency in MHz,
-> >                 when FIVR clock is 38.4MHz.
-> > +
-> > +What:         
-> > /sys/bus/platform/devices/INTC1045:00/pch_fivr_switch_frequency/fiv
-> > r_switching_freq_mhz
-> > +Date:          June, 2021
-> > +KernelVersion: v5.14
-> > +Contact:       linux-acpi@vger.kernel.org
-> > +Description:
-> > +               (RO) Get the FIVR switching control frequency in
-> > MHz.
-> > +
-> > +What:         
-> > /sys/bus/platform/devices/INTC1045:00/pch_fivr_switch_frequency/fiv
-> > r_switching_fault_status
-> > +Date:          June, 2021
-> > +KernelVersion: v5.14
-> > +Contact:       linux-acpi@vger.kernel.org
-> > +Description:
-> > +               (RO) Read the FIVR switching frequency control
-> > fault status.
-> > +
-> > +What:         
-> > /sys/bus/platform/devices/INTC1045:00/pch_fivr_switch_frequency/ssc
-> > _clock_info
-> > +Date:          June, 2021
-> > +KernelVersion: v5.14
-> > +Contact:       linux-acpi@vger.kernel.org
-> > +Description:
-> > +               (RO) Presents SSC (spread spectrum clock)
-> > information for EMI
-> > +               (Electro magnetic interference) control. This is a
-> > bit mask.
-> > +               Bits    Description
-> > +               [7:0]   Sets clock spectrum spread percentage:
-> > +                       0x00=0.2% , 0x3F=10%
-> > +                       1 LSB = 0.1% increase in spread (for
-> > +                       settings 0x01 thru 0x1C)
-> > +                       1 LSB = 0.2% increase in spread (for
-> > +                       settings 0x1E thru 0x3F)
-> > +               [8]     When set to 1, enables spread
-> > +                       spectrum clock
-> > +               [9]     0: Triangle mode. FFC frequency
-> > +                       walks around the Fcenter in a linear
-> > +                       fashion
-> > +                       1: Random walk mode. FFC frequency
-> > +                       changes randomly within the SSC
-> > +                       (Spread spectrum clock) range
-> > +               [10]    0: No white noise. 1: Add white noise
-> > +                       to spread waveform
-> > +               [11]    When 1, future writes are ignored.
-> > diff --git a/drivers/acpi/dptf/dptf_pch_fivr.c
-> > b/drivers/acpi/dptf/dptf_pch_fivr.c
-> > index 5fca18296bf6..22c4ae0401ef 100644
-> > --- a/drivers/acpi/dptf/dptf_pch_fivr.c
-> > +++ b/drivers/acpi/dptf/dptf_pch_fivr.c
-> > @@ -55,15 +55,24 @@ static ssize_t name##_store(struct device
-> > *dev,\
-> > 
-> >  PCH_FIVR_SHOW(freq_mhz_low_clock, GFC0)
-> >  PCH_FIVR_SHOW(freq_mhz_high_clock, GFC1)
-> > +PCH_FIVR_SHOW(ssc_clock_info, GEMI)
-> > +PCH_FIVR_SHOW(fivr_switching_freq_mhz, GFCS)
-> > +PCH_FIVR_SHOW(fivr_switching_fault_status, GFFS)
-> >  PCH_FIVR_STORE(freq_mhz_low_clock, RFC0)
-> >  PCH_FIVR_STORE(freq_mhz_high_clock, RFC1)
-> > 
-> >  static DEVICE_ATTR_RW(freq_mhz_low_clock);
-> >  static DEVICE_ATTR_RW(freq_mhz_high_clock);
-> > +static DEVICE_ATTR_RO(ssc_clock_info);
-> > +static DEVICE_ATTR_RO(fivr_switching_freq_mhz);
-> > +static DEVICE_ATTR_RO(fivr_switching_fault_status);
-> > 
-> >  static struct attribute *fivr_attrs[] = {
-> >         &dev_attr_freq_mhz_low_clock.attr,
-> >         &dev_attr_freq_mhz_high_clock.attr,
-> > +       &dev_attr_ssc_clock_info.attr,
-> > +       &dev_attr_fivr_switching_freq_mhz.attr,
-> > +       &dev_attr_fivr_switching_fault_status.attr,
-> >         NULL
-> >  };
-> > 
-> > --
-> > 2.27.0
-> > 
-
-
+Vendor specific DOE is in the same class as unfettered /dev/mem
+access, first you need to disable the kernel's integrity and
+confidentiality protections, and then you can do whatever you want. If
+a vendor wants a DOE protocol supported in the "trusted" set they can
+simply publish the specification and send the proper support patches.
