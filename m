@@ -2,314 +2,384 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFEECC43460
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 May 2021 13:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DDC5C433ED
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 May 2021 14:12:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CAC0D60FE7
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 May 2021 13:23:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CD84611AE
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 May 2021 14:12:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353575AbhESNYZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 19 May 2021 09:24:25 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:30903 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S238874AbhESNYY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 May 2021 09:24:24 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1621430584;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=0jmhXsyF0ugx4FPf4D5s9Z88adwRxEUPVpeuYn2DrBQ=;
-        b=dvFzE2z/fTIZ2uYoBRBO+XTA5Mgga9jJE+mFijhKgImH89F1ovEhPZAsKijPY0p5NiKT+o
-        wGFDuDOdfbT1EmlcsqI2AjBvZtwTxzR8Lrty09gacl8CG4h2j3o1nKTKOA0bITvUmXA3E1
-        imbfETQDi6FcKbN1sXn1PxupwOxXGmg=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-327-o01wvOwMOaGmYbumlRuE5g-1; Wed, 19 May 2021 09:23:03 -0400
-X-MC-Unique: o01wvOwMOaGmYbumlRuE5g-1
-Received: by mail-ej1-f72.google.com with SMTP id bi3-20020a170906a243b02903933c4d9132so3699232ejb.11
-        for <linux-acpi@vger.kernel.org>; Wed, 19 May 2021 06:23:02 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=0jmhXsyF0ugx4FPf4D5s9Z88adwRxEUPVpeuYn2DrBQ=;
-        b=Te+vTWPD528x7srOgl3zfZXUQThxSHLlkP29rmVy0osQ4rQOR+i4+OZmMck8Mypa9l
-         EhLggMQtim3c5WaGAPTG8skqm2bNNHHFTOWabyNhjWiknSPbbZEl8d49N7LfSMLXRE9A
-         T3ZWWF6Wayw3ZvcHNq43EQl3whzeN9GR+CK8NLsVG2NGXZu4a+GRthxR6CXr9NqXo0zX
-         NjZj2IGTz66E3DzDJwjuSE2PlhttclorEHSTQXWreZjlnXcSP9X5CICd9D5Nit9E47eY
-         a+H0L5wdZwYRtMyfnCWuQJ1SSdak0PZQlBWTyUlx40tuctfHjN6OVCppHkzl0FvELU5e
-         TOOg==
-X-Gm-Message-State: AOAM5321WsrhUSYkOG0apEFSgFjz1O9ZQAmGWZ+OQyRqNxCzg3xM0VLH
-        kj9EmzvfOXRsuiv87mJqB7bQB+X9XaF6tXZLktNMv7u1gNPTNmjGfPYlH5pqrpFqL9DebpBZzVf
-        14x8I4DWHGWsGlbe8SrgE0Q==
-X-Received: by 2002:a17:906:4806:: with SMTP id w6mr12444870ejq.180.1621430581745;
-        Wed, 19 May 2021 06:23:01 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJxZlVzHJUNzxdXJCT/6UXxHJU6RU540PDR6HySLZVDAvngKdIDXwQ6dt9ry1vlRWApT7uMLwg==
-X-Received: by 2002:a17:906:4806:: with SMTP id w6mr12444843ejq.180.1621430581535;
-        Wed, 19 May 2021 06:23:01 -0700 (PDT)
-Received: from x1.localdomain (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
-        by smtp.gmail.com with ESMTPSA id w14sm16076436edj.6.2021.05.19.06.23.01
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 May 2021 06:23:01 -0700 (PDT)
-Subject: Re: [PATCH 1/1] platform/x86: intel_int0002_vgpio: Only call
- enable_irq_wake() when using s2idle
-To:     Mark Gross <mgross@linux.intel.com>,
-        Andy Shevchenko <andy@infradead.org>
-Cc:     linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Maxim Mikityanskiy <maxtram95@gmail.com>
-References: <20210512125523.55215-1-hdegoede@redhat.com>
- <20210512125523.55215-2-hdegoede@redhat.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <78cee448-e85b-8f51-f5f8-61b9883d8c96@redhat.com>
-Date:   Wed, 19 May 2021 15:23:00 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.1
+        id S1347060AbhESOOD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 19 May 2021 10:14:03 -0400
+Received: from mga17.intel.com ([192.55.52.151]:2931 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S242155AbhESOOC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 May 2021 10:14:02 -0400
+IronPort-SDR: FHPOMwBcA1IaDOsDKO+Fe8di4XeaLE/pl9+WjEvAdhRcE2E+SwHwIbbcxSs7ByxFADllIcNptN
+ QSVxC37pf3cw==
+X-IronPort-AV: E=McAfee;i="6200,9189,9988"; a="181262846"
+X-IronPort-AV: E=Sophos;i="5.82,313,1613462400"; 
+   d="scan'208";a="181262846"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2021 07:12:41 -0700
+IronPort-SDR: Ar50fbapodIp7ooujhcBYNXIdEmayHiAeMdu89kOg861npqKS+aSato3O02cYKJubKz+EQGPia
+ 66yShqLMPavg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.82,313,1613462400"; 
+   d="scan'208";a="474589579"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga002.fm.intel.com with ESMTP; 19 May 2021 07:12:38 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1001)
+        id 7774155A; Wed, 19 May 2021 17:12:59 +0300 (EEST)
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     linux-usb@vger.kernel.org
+Cc:     Yehezkel Bernat <YehezkelShB@gmail.com>,
+        Michael Jamet <michael.jamet@intel.com>,
+        Andreas Noever <andreas.noever@gmail.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        linux-acpi@vger.kernel.org,
+        Casey G Bowman <casey.g.bowman@intel.com>,
+        Rajmohan Mani <rajmohan.mani@intel.com>,
+        Christian Kellner <ckellner@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 3/9] thunderbolt: Add support for ACPI _DSM to power on/off retimers
+Date:   Wed, 19 May 2021 17:12:53 +0300
+Message-Id: <20210519141259.84839-4-mika.westerberg@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210519141259.84839-1-mika.westerberg@linux.intel.com>
+References: <20210519141259.84839-1-mika.westerberg@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20210512125523.55215-2-hdegoede@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rajmohan Mani <rajmohan.mani@intel.com>
 
-On 5/12/21 2:55 PM, Hans de Goede wrote:
-> Commit 871f1f2bcb01 ("platform/x86: intel_int0002_vgpio: Only implement
-> irq_set_wake on Bay Trail") stopped passing irq_set_wake requests on to
-> the parents IRQ because this was breaking suspend (causing immediate
-> wakeups) on an Asus E202SA.
-> 
-> This workaround for the Asus E202SA is causing wakeup by USB keyboard to
-> not work on other devices with Airmont CPU cores such as the Medion Akoya
-> E1239T. In hindsight the problem with the Asus E202SA has nothing to do
-> with Silvermont vs Airmont CPU cores, so the differentiation between the
-> 2 types of CPU cores introduced by the previous fix is wrong.
-> 
-> The real issue at hand is s2idle vs S3 suspend where the suspend is
-> mostly handled by firmware. The parent IRQ for the INT0002 device is shared
-> with the ACPI SCI and the real problem is that the INT0002 code should not
-> be messing with the wakeup settings of that IRQ when suspend/resume is
-> being handled by the firmware.
-> 
-> Note that on systems which support both s2idle and S3 suspend, which
-> suspend method to use can be changed at runtime.
-> 
-> This patch fixes both the Asus E202SA spurious wakeups issue as well as
-> the wakeup by USB keyboard not working on the Medion Akoya E1239T issue.
-> 
-> These are both fixed by replacing the old workaround with delaying the
-> enable_irq_wake(parent_irq) call till system-suspend time and protecting
-> it with a !pm_suspend_via_firmware() check so that we still do not call
-> it on devices using firmware-based (S3) suspend such as the Asus E202SA.
-> 
-> Note rather then adding #ifdef CONFIG_PM_SLEEP, this commit simply adds
-> a "depends on PM_SLEEP" to the Kconfig since this drivers whole purpose
-> is to deal with wakeup events, so using it without CONFIG_PM_SLEEP makes
-> no sense.
-> 
-> Cc: Maxim Mikityanskiy <maxtram95@gmail.com>
-> Fixes: 871f1f2bcb01 ("platform/x86: intel_int0002_vgpio: Only implement irq_set_wake on Bay Trail")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Typically retimers can be accessed only when the USB4 link is up (e.g
+there is a cable connected). However, sometimes it is useful to be able
+to access retimers even if there is nothing connected to the USB4 port.
+For instance we may still want to be able to upgrade the retimer NVM
+firmware even if the user does not have any USB4 devices. This is
+something that USB4 spec leaves to implementers.
 
-I've added this to my review-hans branch now and I will also include this
-in the next pdx86-fixes pull-req for 5.13.
+In case of ACPI based systems, we can support this by providing a
+special _DSM method under each USB4 port. This _DSM can be used to turn
+on power to on-board retimers (and cycle it through different modes so
+that the sideband becomes usable).
 
-Regards,
+This patch adds support for this _DSM and makes the functionality
+available to the rest of the driver through tb_acpi_power_[on|off]_retimers().
 
-Hans
+Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+Co-developed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/thunderbolt/acpi.c   | 206 +++++++++++++++++++++++++++++++++++
+ drivers/thunderbolt/domain.c |   9 +-
+ drivers/thunderbolt/tb.h     |  13 +++
+ 3 files changed, 225 insertions(+), 3 deletions(-)
 
-
-
-> ---
->  drivers/platform/x86/Kconfig               |  2 +-
->  drivers/platform/x86/intel_int0002_vgpio.c | 80 +++++++++++++++-------
->  2 files changed, 57 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 4b67e74a747b..c2f608d5f1b7 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -713,7 +713,7 @@ config INTEL_HID_EVENT
->  
->  config INTEL_INT0002_VGPIO
->  	tristate "Intel ACPI INT0002 Virtual GPIO driver"
-> -	depends on GPIOLIB && ACPI
-> +	depends on GPIOLIB && ACPI && PM_SLEEP
->  	select GPIOLIB_IRQCHIP
->  	help
->  	  Some peripherals on Bay Trail and Cherry Trail platforms signal a
-> diff --git a/drivers/platform/x86/intel_int0002_vgpio.c b/drivers/platform/x86/intel_int0002_vgpio.c
-> index 289c6655d425..569342aa8926 100644
-> --- a/drivers/platform/x86/intel_int0002_vgpio.c
-> +++ b/drivers/platform/x86/intel_int0002_vgpio.c
-> @@ -51,6 +51,12 @@
->  #define GPE0A_STS_PORT			0x420
->  #define GPE0A_EN_PORT			0x428
->  
-> +struct int0002_data {
-> +	struct gpio_chip chip;
-> +	int parent_irq;
-> +	int wake_enable_count;
-> +};
-> +
->  /*
->   * As this is not a real GPIO at all, but just a hack to model an event in
->   * ACPI the get / set functions are dummy functions.
-> @@ -98,14 +104,16 @@ static void int0002_irq_mask(struct irq_data *data)
->  static int int0002_irq_set_wake(struct irq_data *data, unsigned int on)
->  {
->  	struct gpio_chip *chip = irq_data_get_irq_chip_data(data);
-> -	struct platform_device *pdev = to_platform_device(chip->parent);
-> -	int irq = platform_get_irq(pdev, 0);
-> +	struct int0002_data *int0002 = container_of(chip, struct int0002_data, chip);
->  
-> -	/* Propagate to parent irq */
-> +	/*
-> +	 * Applying of the wakeup flag to our parent IRQ is delayed till system
-> +	 * suspend, because we only want to do this when using s2idle.
-> +	 */
->  	if (on)
-> -		enable_irq_wake(irq);
-> +		int0002->wake_enable_count++;
->  	else
-> -		disable_irq_wake(irq);
-> +		int0002->wake_enable_count--;
->  
->  	return 0;
->  }
-> @@ -135,7 +143,7 @@ static bool int0002_check_wake(void *data)
->  	return (gpe_sts_reg & GPE0A_PME_B0_STS_BIT);
->  }
->  
-> -static struct irq_chip int0002_byt_irqchip = {
-> +static struct irq_chip int0002_irqchip = {
->  	.name			= DRV_NAME,
->  	.irq_ack		= int0002_irq_ack,
->  	.irq_mask		= int0002_irq_mask,
-> @@ -143,21 +151,9 @@ static struct irq_chip int0002_byt_irqchip = {
->  	.irq_set_wake		= int0002_irq_set_wake,
->  };
->  
-> -static struct irq_chip int0002_cht_irqchip = {
-> -	.name			= DRV_NAME,
-> -	.irq_ack		= int0002_irq_ack,
-> -	.irq_mask		= int0002_irq_mask,
-> -	.irq_unmask		= int0002_irq_unmask,
-> -	/*
-> -	 * No set_wake, on CHT the IRQ is typically shared with the ACPI SCI
-> -	 * and we don't want to mess with the ACPI SCI irq settings.
-> -	 */
-> -	.flags			= IRQCHIP_SKIP_SET_WAKE,
-> -};
-> -
->  static const struct x86_cpu_id int0002_cpu_ids[] = {
-> -	X86_MATCH_INTEL_FAM6_MODEL(ATOM_SILVERMONT,	&int0002_byt_irqchip),
-> -	X86_MATCH_INTEL_FAM6_MODEL(ATOM_AIRMONT,	&int0002_cht_irqchip),
-> +	X86_MATCH_INTEL_FAM6_MODEL(ATOM_SILVERMONT, NULL),
-> +	X86_MATCH_INTEL_FAM6_MODEL(ATOM_AIRMONT, NULL),
->  	{}
->  };
->  
-> @@ -172,8 +168,9 @@ static int int0002_probe(struct platform_device *pdev)
->  {
->  	struct device *dev = &pdev->dev;
->  	const struct x86_cpu_id *cpu_id;
-> -	struct gpio_chip *chip;
-> +	struct int0002_data *int0002;
->  	struct gpio_irq_chip *girq;
-> +	struct gpio_chip *chip;
->  	int irq, ret;
->  
->  	/* Menlow has a different INT0002 device? <sigh> */
-> @@ -185,10 +182,13 @@ static int int0002_probe(struct platform_device *pdev)
->  	if (irq < 0)
->  		return irq;
->  
-> -	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
-> -	if (!chip)
-> +	int0002 = devm_kzalloc(dev, sizeof(*int0002), GFP_KERNEL);
-> +	if (!int0002)
->  		return -ENOMEM;
->  
-> +	int0002->parent_irq = irq;
-> +
-> +	chip = &int0002->chip;
->  	chip->label = DRV_NAME;
->  	chip->parent = dev;
->  	chip->owner = THIS_MODULE;
-> @@ -214,7 +214,7 @@ static int int0002_probe(struct platform_device *pdev)
->  	}
->  
->  	girq = &chip->irq;
-> -	girq->chip = (struct irq_chip *)cpu_id->driver_data;
-> +	girq->chip = &int0002_irqchip;
->  	/* This let us handle the parent IRQ in the driver */
->  	girq->parent_handler = NULL;
->  	girq->num_parents = 0;
-> @@ -230,6 +230,7 @@ static int int0002_probe(struct platform_device *pdev)
->  
->  	acpi_register_wakeup_handler(irq, int0002_check_wake, NULL);
->  	device_init_wakeup(dev, true);
-> +	dev_set_drvdata(dev, int0002);
->  	return 0;
->  }
->  
-> @@ -240,6 +241,36 @@ static int int0002_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +static int int0002_suspend(struct device *dev)
-> +{
-> +	struct int0002_data *int0002 = dev_get_drvdata(dev);
-> +
-> +	/*
-> +	 * The INT0002 parent IRQ is often shared with the ACPI GPE IRQ, don't
-> +	 * muck with it when firmware based suspend is used, otherwise we may
-> +	 * cause spurious wakeups from firmware managed suspend.
-> +	 */
-> +	if (!pm_suspend_via_firmware() && int0002->wake_enable_count)
-> +		enable_irq_wake(int0002->parent_irq);
-> +
-> +	return 0;
-> +}
-> +
-> +static int int0002_resume(struct device *dev)
-> +{
-> +	struct int0002_data *int0002 = dev_get_drvdata(dev);
-> +
-> +	if (!pm_suspend_via_firmware() && int0002->wake_enable_count)
-> +		disable_irq_wake(int0002->parent_irq);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops int0002_pm_ops = {
-> +	.suspend = int0002_suspend,
-> +	.resume = int0002_resume,
-> +};
-> +
->  static const struct acpi_device_id int0002_acpi_ids[] = {
->  	{ "INT0002", 0 },
->  	{ },
-> @@ -250,6 +281,7 @@ static struct platform_driver int0002_driver = {
->  	.driver = {
->  		.name			= DRV_NAME,
->  		.acpi_match_table	= int0002_acpi_ids,
-> +		.pm			= &int0002_pm_ops,
->  	},
->  	.probe	= int0002_probe,
->  	.remove	= int0002_remove,
-> 
+diff --git a/drivers/thunderbolt/acpi.c b/drivers/thunderbolt/acpi.c
+index 35fa17f7e599..b67e72d5644b 100644
+--- a/drivers/thunderbolt/acpi.c
++++ b/drivers/thunderbolt/acpi.c
+@@ -180,3 +180,209 @@ bool tb_acpi_is_xdomain_allowed(void)
+ 		return osc_sb_native_usb4_control & OSC_USB_XDOMAIN;
+ 	return true;
+ }
++
++/* UUID for retimer _DSM: e0053122-795b-4122-8a5e-57be1d26acb3 */
++static const guid_t retimer_dsm_guid =
++	GUID_INIT(0xe0053122, 0x795b, 0x4122,
++		  0x8a, 0x5e, 0x57, 0xbe, 0x1d, 0x26, 0xac, 0xb3);
++
++#define RETIMER_DSM_QUERY_ONLINE_STATE	1
++#define RETIMER_DSM_SET_ONLINE_STATE	2
++
++static int tb_acpi_retimer_set_power(struct tb_port *port, bool power)
++{
++	struct usb4_port *usb4 = port->usb4;
++	union acpi_object argv4[2];
++	struct acpi_device *adev;
++	union acpi_object *obj;
++	int ret;
++
++	if (!usb4->can_offline)
++		return 0;
++
++	adev = ACPI_COMPANION(&usb4->dev);
++	if (WARN_ON(!adev))
++		return 0;
++
++	/* Check if we are already powered on (and in correct mode) */
++	obj = acpi_evaluate_dsm_typed(adev->handle, &retimer_dsm_guid, 1,
++				      RETIMER_DSM_QUERY_ONLINE_STATE, NULL,
++				      ACPI_TYPE_INTEGER);
++	if (!obj) {
++		tb_port_warn(port, "ACPI: query online _DSM failed\n");
++		return -EIO;
++	}
++
++	ret = obj->integer.value;
++	ACPI_FREE(obj);
++
++	if (power == ret)
++		return 0;
++
++	tb_port_dbg(port, "ACPI: calling _DSM to power %s retimers\n",
++		    power ? "on" : "off");
++
++	argv4[0].type = ACPI_TYPE_PACKAGE;
++	argv4[0].package.count = 1;
++	argv4[0].package.elements = &argv4[1];
++	argv4[1].integer.type = ACPI_TYPE_INTEGER;
++	argv4[1].integer.value = power;
++
++	obj = acpi_evaluate_dsm_typed(adev->handle, &retimer_dsm_guid, 1,
++				      RETIMER_DSM_SET_ONLINE_STATE, argv4,
++				      ACPI_TYPE_INTEGER);
++	if (!obj) {
++		tb_port_warn(port,
++			     "ACPI: set online state _DSM evaluation failed\n");
++		return -EIO;
++	}
++
++	ret = obj->integer.value;
++	ACPI_FREE(obj);
++
++	if (ret >= 0) {
++		if (power)
++			return ret == 1 ? 0 : -EBUSY;
++		return 0;
++	}
++
++	tb_port_warn(port, "ACPI: set online state _DSM failed with error %d\n", ret);
++	return -EIO;
++}
++
++/**
++ * tb_acpi_power_on_retimers() - Call platform to power on retimers
++ * @port: USB4 port
++ *
++ * Calls platform to turn on power to all retimers behind this USB4
++ * port. After this function returns successfully the caller can
++ * continue with the normal retimer flows (as specified in the USB4
++ * spec). Note if this returns %-EBUSY it means the type-C port is in
++ * non-USB4/TBT mode (there is non-USB4/TBT device connected).
++ *
++ * This should only be called if the USB4/TBT link is not up.
++ *
++ * Returns %0 on success.
++ */
++int tb_acpi_power_on_retimers(struct tb_port *port)
++{
++	return tb_acpi_retimer_set_power(port, true);
++}
++
++/**
++ * tb_acpi_power_off_retimers() - Call platform to power off retimers
++ * @port: USB4 port
++ *
++ * This is the opposite of tb_acpi_power_on_retimers(). After returning
++ * successfully the normal operations with the @port can continue.
++ *
++ * Returns %0 on success.
++ */
++int tb_acpi_power_off_retimers(struct tb_port *port)
++{
++	return tb_acpi_retimer_set_power(port, false);
++}
++
++static bool tb_acpi_bus_match(struct device *dev)
++{
++	return tb_is_switch(dev) || tb_is_usb4_port_device(dev);
++}
++
++static struct acpi_device *tb_acpi_find_port(struct acpi_device *adev,
++					     const struct tb_port *port)
++{
++	struct acpi_device *port_adev;
++
++	if (!adev)
++		return NULL;
++
++	/*
++	 * Device routers exists under the downstream facing USB4 port
++	 * of the parent router. Their _ADR is always 0.
++	 */
++	list_for_each_entry(port_adev, &adev->children, node) {
++		if (acpi_device_adr(port_adev) == port->port)
++			return port_adev;
++	}
++
++	return NULL;
++}
++
++static struct acpi_device *tb_acpi_switch_find_companion(struct tb_switch *sw)
++{
++	struct acpi_device *adev = NULL;
++	struct tb_switch *parent_sw;
++
++	parent_sw = tb_switch_parent(sw);
++	if (parent_sw) {
++		struct tb_port *port = tb_port_at(tb_route(sw), parent_sw);
++		struct acpi_device *port_adev;
++
++		port_adev = tb_acpi_find_port(ACPI_COMPANION(&parent_sw->dev), port);
++		if (port_adev)
++			adev = acpi_find_child_device(port_adev, 0, false);
++	} else {
++		struct tb_nhi *nhi = sw->tb->nhi;
++		struct acpi_device *parent_adev;
++
++		parent_adev = ACPI_COMPANION(&nhi->pdev->dev);
++		if (parent_adev)
++			adev = acpi_find_child_device(parent_adev, 0, false);
++	}
++
++	return adev;
++}
++
++static struct acpi_device *tb_acpi_find_companion(struct device *dev)
++{
++	/*
++	 * The Thunderbolt/USB4 hierarchy looks like following:
++	 *
++	 * Device (NHI)
++	 *   Device (HR)		// Host router _ADR == 0
++	 *      Device (DFP0)		// Downstream port _ADR == lane 0 adapter
++	 *        Device (DR)		// Device router _ADR == 0
++	 *          Device (UFP)	// Upstream port _ADR == lane 0 adapter
++	 *      Device (DFP1)		// Downstream port _ADR == lane 0 adapter number
++	 *
++	 * At the moment we bind the host router to the corresponding
++	 * Linux device.
++	 */
++	if (tb_is_switch(dev))
++		return tb_acpi_switch_find_companion(tb_to_switch(dev));
++	else if (tb_is_usb4_port_device(dev))
++		return tb_acpi_find_port(ACPI_COMPANION(dev->parent),
++					 tb_to_usb4_port_device(dev)->port);
++	return NULL;
++}
++
++static void tb_acpi_setup(struct device *dev)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct usb4_port *usb4 = tb_to_usb4_port_device(dev);
++
++	if (!adev || !usb4)
++		return;
++
++	if (acpi_check_dsm(adev->handle, &retimer_dsm_guid, 1,
++			   BIT(RETIMER_DSM_QUERY_ONLINE_STATE) |
++			   BIT(RETIMER_DSM_SET_ONLINE_STATE)))
++		usb4->can_offline = true;
++}
++
++static struct acpi_bus_type tb_acpi_bus = {
++	.name = "thunderbolt",
++	.match = tb_acpi_bus_match,
++	.find_companion = tb_acpi_find_companion,
++	.setup = tb_acpi_setup,
++};
++
++int tb_acpi_init(void)
++{
++	return register_acpi_bus_type(&tb_acpi_bus);
++}
++
++void tb_acpi_exit(void)
++{
++	unregister_acpi_bus_type(&tb_acpi_bus);
++}
+diff --git a/drivers/thunderbolt/domain.c b/drivers/thunderbolt/domain.c
+index 98f4056f89ff..a062befcb3b2 100644
+--- a/drivers/thunderbolt/domain.c
++++ b/drivers/thunderbolt/domain.c
+@@ -881,11 +881,12 @@ int tb_domain_init(void)
+ 	int ret;
+ 
+ 	tb_test_init();
+-
+ 	tb_debugfs_init();
++	tb_acpi_init();
++
+ 	ret = tb_xdomain_init();
+ 	if (ret)
+-		goto err_debugfs;
++		goto err_acpi;
+ 	ret = bus_register(&tb_bus_type);
+ 	if (ret)
+ 		goto err_xdomain;
+@@ -894,7 +895,8 @@ int tb_domain_init(void)
+ 
+ err_xdomain:
+ 	tb_xdomain_exit();
+-err_debugfs:
++err_acpi:
++	tb_acpi_exit();
+ 	tb_debugfs_exit();
+ 	tb_test_exit();
+ 
+@@ -907,6 +909,7 @@ void tb_domain_exit(void)
+ 	ida_destroy(&tb_domain_ida);
+ 	tb_nvm_exit();
+ 	tb_xdomain_exit();
++	tb_acpi_exit();
+ 	tb_debugfs_exit();
+ 	tb_test_exit();
+ }
+diff --git a/drivers/thunderbolt/tb.h b/drivers/thunderbolt/tb.h
+index 948e7601428f..c5704f495afa 100644
+--- a/drivers/thunderbolt/tb.h
++++ b/drivers/thunderbolt/tb.h
+@@ -247,10 +247,13 @@ struct tb_port {
+  * struct usb4_port - USB4 port device
+  * @dev: Device for the port
+  * @port: Pointer to the lane 0 adapter
++ * @can_offline: Does the port have necessary platform support to moved
++ *		 it into offline mode and back
+  */
+ struct usb4_port {
+ 	struct device dev;
+ 	struct tb_port *port;
++	bool can_offline;
+ };
+ 
+ /**
+@@ -1113,6 +1116,11 @@ bool tb_acpi_may_tunnel_usb3(void);
+ bool tb_acpi_may_tunnel_dp(void);
+ bool tb_acpi_may_tunnel_pcie(void);
+ bool tb_acpi_is_xdomain_allowed(void);
++
++int tb_acpi_init(void);
++void tb_acpi_exit(void);
++int tb_acpi_power_on_retimers(struct tb_port *port);
++int tb_acpi_power_off_retimers(struct tb_port *port);
+ #else
+ static inline void tb_acpi_add_links(struct tb_nhi *nhi) { }
+ 
+@@ -1121,6 +1129,11 @@ static inline bool tb_acpi_may_tunnel_usb3(void) { return true; }
+ static inline bool tb_acpi_may_tunnel_dp(void) { return true; }
+ static inline bool tb_acpi_may_tunnel_pcie(void) { return true; }
+ static inline bool tb_acpi_is_xdomain_allowed(void) { return true; }
++
++static inline int tb_acpi_init(void) { return 0; }
++static inline void tb_acpi_exit(void) { }
++static inline int tb_acpi_power_on_retimers(struct tb_port *port) { return 0; }
++static inline int tb_acpi_power_off_retimers(struct tb_port *port) { return 0; }
+ #endif
+ 
+ #ifdef CONFIG_DEBUG_FS
+-- 
+2.30.2
 
