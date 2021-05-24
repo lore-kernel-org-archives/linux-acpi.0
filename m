@@ -4,30 +4,30 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91202C47084
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 May 2021 15:28:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75D5FC04FF3
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 May 2021 15:29:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 723566128B
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 May 2021 15:28:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5248A61132
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 May 2021 15:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232999AbhEXP37 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 May 2021 11:29:59 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:52510 "EHLO
+        id S232960AbhEXPa4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 May 2021 11:30:56 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:61668 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233460AbhEXP3I (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 May 2021 11:29:08 -0400
+        with ESMTP id S233434AbhEXP3F (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 May 2021 11:29:05 -0400
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 2.0.5)
- id 463d994eb97b68af; Mon, 24 May 2021 17:27:38 +0200
+ id a097bffec5af0e03; Mon, 24 May 2021 17:27:35 +0200
 Received: from kreacher.localnet (89-64-80-49.dynamic.chello.pl [89.64.80.49])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id BD9D666971F;
-        Mon, 24 May 2021 17:27:37 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 97B8266971F;
+        Mon, 24 May 2021 17:27:34 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     Linux PM <linux-pm@vger.kernel.org>,
@@ -36,9 +36,9 @@ Cc:     Linux PM <linux-pm@vger.kernel.org>,
         David Box <david.e.box@linux.intel.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Dave Olsthoorn <dave@bewaar.me>, Shujun Wang <wsj20369@163.com>
-Subject: [PATCH v1 1/3] ACPI: power: Use u8 as the power resource state data type
-Date:   Mon, 24 May 2021 17:24:16 +0200
-Message-ID: <2786380.e9J7NaK4W3@kreacher>
+Subject: [PATCH v1 3/3] ACPI: power: Rework turning off unused power resources
+Date:   Mon, 24 May 2021 17:26:16 +0200
+Message-ID: <9903404.nUPlyArG6x@kreacher>
 In-Reply-To: <2074778.irdbgypaU6@kreacher>
 References: <2074778.irdbgypaU6@kreacher>
 MIME-Version: 1.0
@@ -56,122 +56,164 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Use u8 as the data type for representing the state of an ACPI
-power resource.
+Make turning off unused power resources (after the enumeration of
+devices and during system-wide resume from S3) more straightforward
+by using the observation that the power resource state stored in
+struct acpi_power_resource can be used to determine whether or not
+the give power resource has any users.
 
-It is s not necessary to use int for that and because subsequent
-changes are going to use ACPI_POWER_RESOURCE_STATE_UNKNOWN, it is
-better to adjust the data type so that the "unknown" state is
-represented by the "all ones" value.
+Namely, when the state of the power resource is unknown, its _STA
+method has never been evaluated (or the evaluation of it has failed)
+and its _ON and _OFF methods have never been executed (or they have
+failed to execute), so for all practical purposes it can be assumed
+to have no users (or to be unusable).  Therefore, instead of checking
+the number of power resource users, it is sufficient to check if its
+state is known.
 
-While at it, clean up acpi_power_get_state() somewhat.
+Moreover, if the last known state of a given power resource is "off",
+it is not necessary to turn it off, because it has been used to
+initialize the power state or the wakeup power resources list of at
+least one device and either its _STA method has returned 0 ("off"),
+or its _OFF method has been successfully executed already.
 
-No intentional functional impact.
+Accordingly, modify acpi_turn_off_unused_power_resources() to do the
+above checks (which are suitable for both uses of it) instead of
+using the number of power resource users or evaluating its _STA
+method, drop its argument (which is not useful any more) and update
+its callers.
+
+Also drop the users field from struct acpi_power_resource as it is
+not useful any more.
 
 Tested-by: Dave Olsthoorn <dave@bewaar.me>
 Tested-by: Shujun Wang <wsj20369@163.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/power.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ drivers/acpi/internal.h |    2 +-
+ drivers/acpi/power.c    |   45 +++++++++++----------------------------------
+ drivers/acpi/scan.c     |    2 +-
+ drivers/acpi/sleep.c    |    2 +-
+ 4 files changed, 14 insertions(+), 37 deletions(-)
 
 Index: linux-pm/drivers/acpi/power.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/power.c
 +++ linux-pm/drivers/acpi/power.c
-@@ -182,10 +182,11 @@ int acpi_extract_power_resources(union a
- 	return err;
+@@ -52,7 +52,6 @@ struct acpi_power_resource {
+ 	u32 system_level;
+ 	u32 order;
+ 	unsigned int ref_count;
+-	unsigned int users;
+ 	u8 state;
+ 	bool wakeup_enabled;
+ 	struct mutex resource_lock;
+@@ -174,8 +173,6 @@ int acpi_extract_power_resources(union a
+ 		err = acpi_power_resources_list_add(rhandle, list);
+ 		if (err)
+ 			break;
+-
+-		to_power_resource(rdev)->users++;
+ 	}
+ 	if (err)
+ 		acpi_power_resources_list_free(list);
+@@ -1018,39 +1015,10 @@ void acpi_resume_power_resources(void)
  }
+ #endif
  
--static int acpi_power_get_state(acpi_handle handle, int *state)
-+static int acpi_power_get_state(acpi_handle handle, u8 *state)
+-static void acpi_power_turn_off_if_unused(struct acpi_power_resource *resource,
+-				       bool init)
+-{
+-	if (resource->ref_count > 0)
+-		return;
+-
+-	if (init) {
+-		if (resource->users > 0)
+-			return;
+-	} else {
+-		int result;
+-		u8 state;
+-
+-		result = acpi_power_get_state(resource->device.handle, &state);
+-		if (result || state == ACPI_POWER_RESOURCE_STATE_OFF)
+-			return;
+-	}
+-
+-	dev_info(&resource->device.dev, "Turning OFF\n");
+-	__acpi_power_off(resource);
+-}
+-
+ /**
+  * acpi_turn_off_unused_power_resources - Turn off power resources not in use.
+- * @init: Control switch.
+- *
+- * If @ainit is set, unconditionally turn off all of the ACPI power resources
+- * without any users.
+- *
+- * Otherwise, turn off all ACPI power resources without active references (that
+- * is, the ones that should be "off" at the moment) that are "on".
+  */
+-void acpi_turn_off_unused_power_resources(bool init)
++void acpi_turn_off_unused_power_resources(void)
  {
- 	acpi_status status = AE_OK;
- 	unsigned long long sta = 0;
-+	u8 cur_state;
+ 	struct acpi_power_resource *resource;
  
- 	if (!handle || !state)
- 		return -EINVAL;
-@@ -194,25 +195,24 @@ static int acpi_power_get_state(acpi_han
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
--			      ACPI_POWER_RESOURCE_STATE_OFF;
-+	cur_state = sta & ACPI_POWER_RESOURCE_STATE_ON;
- 
- 	acpi_handle_debug(handle, "Power resource is %s\n",
--			  *state ? "on" : "off");
-+			  cur_state ? "on" : "off");
- 
-+	*state = cur_state;
- 	return 0;
- }
- 
--static int acpi_power_get_list_state(struct list_head *list, int *state)
-+static int acpi_power_get_list_state(struct list_head *list, u8 *state)
- {
- 	struct acpi_power_resource_entry *entry;
--	int cur_state;
-+	u8 cur_state = ACPI_POWER_RESOURCE_STATE_OFF;
- 
- 	if (!list || !state)
- 		return -EINVAL;
- 
- 	/* The state of the list is 'on' IFF all resources are 'on'. */
--	cur_state = 0;
- 	list_for_each_entry(entry, list, node) {
- 		struct acpi_power_resource *resource = entry->resource;
- 		acpi_handle handle = resource->device.handle;
-@@ -592,7 +592,7 @@ int acpi_power_wakeup_list_init(struct l
- 		struct acpi_power_resource *resource = entry->resource;
- 		acpi_handle handle = resource->device.handle;
- 		int result;
--		int state;
-+		u8 state;
- 
+@@ -1059,7 +1027,16 @@ void acpi_turn_off_unused_power_resource
+ 	list_for_each_entry_reverse(resource, &acpi_power_resource_list, list_node) {
  		mutex_lock(&resource->resource_lock);
  
-@@ -789,8 +789,8 @@ int acpi_disable_wakeup_device_power(str
+-		acpi_power_turn_off_if_unused(resource, init);
++		/*
++		 * Turn off power resources in an unknown state too, because the
++		 * platform firmware on some system expects the OS to turn off
++		 * power resources without any users unconditionally.
++		 */
++		if (!resource->ref_count &&
++		    resource->state != ACPI_POWER_RESOURCE_STATE_OFF) {
++			dev_info(&resource->device.dev, "Turning OFF\n");
++			__acpi_power_off(resource);
++		}
  
- int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
+ 		mutex_unlock(&resource->resource_lock);
+ 	}
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -142,7 +142,7 @@ int acpi_device_sleep_wake(struct acpi_d
+ int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
+ int acpi_power_on_resources(struct acpi_device *device, int state);
+ int acpi_power_transition(struct acpi_device *device, int state);
+-void acpi_turn_off_unused_power_resources(bool init);
++void acpi_turn_off_unused_power_resources(void);
+ 
+ /* --------------------------------------------------------------------------
+                               Device Power Management
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -2356,7 +2356,7 @@ int __init acpi_scan_init(void)
+ 		}
+ 	}
+ 
+-	acpi_turn_off_unused_power_resources(true);
++	acpi_turn_off_unused_power_resources();
+ 
+ 	acpi_scan_initialized = true;
+ 
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -504,7 +504,7 @@ static void acpi_pm_start(u32 acpi_state
+  */
+ static void acpi_pm_end(void)
  {
-+	u8 list_state = ACPI_POWER_RESOURCE_STATE_OFF;
- 	int result = 0;
--	int list_state = 0;
- 	int i = 0;
- 
- 	if (!device || !state)
-@@ -919,7 +919,8 @@ struct acpi_device *acpi_add_power_resou
- 	union acpi_object acpi_object;
- 	struct acpi_buffer buffer = { sizeof(acpi_object), &acpi_object };
- 	acpi_status status;
--	int state, result = -ENODEV;
-+	int result;
-+	u8 state;
- 
- 	acpi_bus_get_device(handle, &device);
- 	if (device)
-@@ -979,7 +980,8 @@ void acpi_resume_power_resources(void)
- 	mutex_lock(&power_resource_list_lock);
- 
- 	list_for_each_entry(resource, &acpi_power_resource_list, list_node) {
--		int result, state;
-+		int result;
-+		u8 state;
- 
- 		mutex_lock(&resource->resource_lock);
- 
-@@ -1012,7 +1014,8 @@ static void acpi_power_turn_off_if_unuse
- 		if (resource->users > 0)
- 			return;
- 	} else {
--		int result, state;
-+		int result;
-+		u8 state;
- 
- 		result = acpi_power_get_state(resource->device.handle, &state);
- 		if (result || state == ACPI_POWER_RESOURCE_STATE_OFF)
+-	acpi_turn_off_unused_power_resources(false);
++	acpi_turn_off_unused_power_resources();
+ 	acpi_scan_lock_release();
+ 	/*
+ 	 * This is necessary in case acpi_pm_finish() is not called during a
 
 
 
