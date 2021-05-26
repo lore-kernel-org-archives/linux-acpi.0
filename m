@@ -2,176 +2,135 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9A2BC04FF3
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 May 2021 22:50:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C8D7C4708B
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 May 2021 12:36:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 888D6613DF
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 May 2021 22:50:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BAFC61186
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 May 2021 12:36:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229542AbhEUWwK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 May 2021 18:52:10 -0400
-Received: from mx0a-002e3701.pphosted.com ([148.163.147.86]:43484 "EHLO
-        mx0a-002e3701.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229512AbhEUWwJ (ORCPT
+        id S233577AbhEZMiY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 26 May 2021 08:38:24 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:24236 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233598AbhEZMiR (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 May 2021 18:52:09 -0400
-Received: from pps.filterd (m0150242.ppops.net [127.0.0.1])
-        by mx0a-002e3701.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14LMmsEl007998
-        for <linux-acpi@vger.kernel.org>; Fri, 21 May 2021 22:50:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=resent-from :
- resent-date : resent-message-id : resent-to : from : to : cc : subject :
- date : message-id : content-transfer-encoding : content-type :
- mime-version; s=pps0720; bh=q8QhXGTfWElVKM98+dODFF6vgoKg7xIj/f6m9TTGGAg=;
- b=frPs4Y+dbYFLrUGaiJiOjFAuwMXp3ts8jRzIBxnaEeTw7udOJ0kbSOU1TYudsrG4farj
- vw03aHRko903vx/Ddvx4i4b1vLUMapRsfMFHbptOx61Sq5+mj0QxdSPztt8BAUfe8qTZ
- L2L15Tioy4rp9vtvx02ItW53nZCNU6OpupTW+ZLJOFlh0x67IofJ6JAd4mTTCxvWTl78
- UHYZrj7f4075KfSeX9DWX1caFUZqKifwyFZz2UonRP7GgUvvPKE1HgPIvXuDxzxX3BkU
- XikRBps5Exp82rJOG5D1qYb8NWNPjQomp6WMxR2dCLW86aBUKl+jO9GwTcxerc8sDeKn nw== 
-Received: from g4t3426.houston.hpe.com (g4t3426.houston.hpe.com [15.241.140.75])
-        by mx0a-002e3701.pphosted.com with ESMTP id 38pedvbf0j-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-acpi@vger.kernel.org>; Fri, 21 May 2021 22:50:45 +0000
-Received: from g9t2301.houston.hpecorp.net (g9t2301.houston.hpecorp.net [16.220.97.129])
-        by g4t3426.houston.hpe.com (Postfix) with ESMTP id 8039554
-        for <linux-acpi@vger.kernel.org>; Fri, 21 May 2021 22:50:44 +0000 (UTC)
-Received: from hpe.com (unknown [16.99.166.184])
-        by g9t2301.houston.hpecorp.net (Postfix) with ESMTP id 33B444C
-        for <linux-acpi@vger.kernel.org.>; Fri, 21 May 2021 22:50:44 +0000 (UTC)
-Received: from localhost [::1]
-        by new-ben with IMAP (fetchmail-6.4.19)
-        for <rja@localhost> (single-drop); Fri, 21 May 2021 17:20:03 -0500 (CDT)
-Received: from AT5PR8401MB1012.NAMPRD84.PROD.OUTLOOK.COM
- (2a01:111:e400:742b::7) by DF4PR8401MB0507.NAMPRD84.PROD.OUTLOOK.COM with
- HTTPS; Fri, 21 May 2021 22:19:46 +0000
-Received: from BN6PR17CA0022.namprd17.prod.outlook.com (2603:10b6:404:65::32)
- by AT5PR8401MB1012.NAMPRD84.PROD.OUTLOOK.COM (2a01:111:e400:742b::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4129.25; Fri, 21 May
- 2021 22:19:46 +0000
-Received: from BN8NAM11FT058.eop-nam11.prod.protection.outlook.com
- (2603:10b6:404:65:cafe::8f) by BN6PR17CA0022.outlook.office365.com
- (2603:10b6:404:65::32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4150.23 via Frontend
- Transport; Fri, 21 May 2021 22:19:45 +0000
-Received-SPF: SoftFail (protection.outlook.com: domain of transitioning
- hpe.com discourages use of 15.211.195.18 as permitted sender)
-Received: from G9W8455.americas.hpqcorp.net (15.211.195.18) by
- BN8NAM11FT058.mail.protection.outlook.com (10.13.177.58) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.4129.25 via Frontend Transport; Fri, 21 May 2021 22:19:45 +0000
-Received: from G2W6310.americas.hpqcorp.net (2002:10c5:4034::10c5:4034) by
- G9W8455.americas.hpqcorp.net (2002:10d8:a15e::10d8:a15e) with Microsoft SMTP
- Server (TLS) id 15.0.1497.2; Fri, 21 May 2021 22:19:34 +0000
-Received: from g9t2301.houston.hpecorp.net (16.220.97.129) by
- G2W6310.americas.hpqcorp.net (16.197.64.52) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Fri, 21 May 2021 22:19:34 +0000
-Received: from dog.eag.rdlabs.hpecorp.net (dog.eag.rdlabs.hpecorp.net [128.162.243.181])
-        by g9t2301.houston.hpecorp.net (Postfix) with ESMTP id 6B9894A;
-        Fri, 21 May 2021 22:19:34 +0000 (UTC)
-Received: by dog.eag.rdlabs.hpecorp.net (Postfix, from userid 48777)
-        id 17E9E302F481D; Fri, 21 May 2021 17:19:34 -0500 (CDT)
-From:   Kyle Meyer <kyle.meyer@hpe.com>
-To:     <rjw@rjwysocki.net>, <viresh.kumar@linaro.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     <linux-pm@vger.kernel.org>, <linux-acpi@vegr.kernel.org>,
-        Kyle Meyer <kyle.meyer@hpe.com>
-Subject: [PATCH] acpi-cpufreq: Skip initialization if a cpufreq driver exists
-Date:   Fri, 21 May 2021 17:19:06 -0500
-Message-ID: <20210521221906.199436-1-kyle.meyer@hpe.com>
-X-Mailer: git-send-email 2.26.2
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-OrganizationHeadersPreserved: G9W8455.americas.hpqcorp.net
-X-MS-Exchange-Organization-ExpirationStartTime: 21 May 2021 22:19:45.9821
- (UTC)
-X-MS-Exchange-Organization-ExpirationStartTimeReason: OriginalSubmit
-X-MS-Exchange-Organization-ExpirationInterval: 1:00:00:00.0000000
-X-MS-Exchange-Organization-ExpirationIntervalReason: OriginalSubmit
-X-MS-Exchange-Organization-Network-Message-Id: c2c59630-7983-4fca-f50a-08d91ca68a48
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Organization-MessageDirectionality: Originating
-X-MS-Exchange-Organization-AuthSource: G2W6310.americas.hpqcorp.net
-X-MS-Exchange-Organization-AuthAs: Internal
-X-MS-Exchange-Organization-AuthMechanism: 10
-X-CrossPremisesHeadersPromoted: BN8NAM11FT058.eop-nam11.prod.protection.outlook.com
-X-CrossPremisesHeadersFiltered: BN8NAM11FT058.eop-nam11.prod.protection.outlook.com
-X-MS-PublicTrafficType: Email
-X-OriginatorOrg: hpe.onmicrosoft.com
-X-MS-Office365-Filtering-Correlation-Id: c2c59630-7983-4fca-f50a-08d91ca68a48
-X-MS-TrafficTypeDiagnostic: AT5PR8401MB1012:
-X-MS-Oob-TLC-OOBClassifiers: OLM:60;
-X-MS-Exchange-Organization-SCL: -1
-X-Microsoft-Antispam: BCL:0;
-X-Forefront-Antispam-Report: CIP:15.211.195.18;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SKI;H:G9W8455.americas.hpqcorp.net;PTR:InfoDomainNonexistent;CAT:NONE;SFS:;DIR:INB;
-X-MS-Exchange-Transport-Forked: True
-X-MS-Exchange-ABP-GUID: 02950aeb-3c14-4da5-8c60-ccbcc3967284
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 May 2021 22:19:45.8672
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c2c59630-7983-4fca-f50a-08d91ca68a48
-X-MS-Exchange-CrossTenant-Id: 105b2061-b669-4b31-92ac-24d304d195dc
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=105b2061-b669-4b31-92ac-24d304d195dc;Ip=[15.211.195.18];Helo=[G9W8455.americas.hpqcorp.net]
-X-MS-Exchange-CrossTenant-AuthSource: G2W6310.americas.hpqcorp.net
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AT5PR8401MB1012
-X-MS-Exchange-Transport-EndToEndLatency: 00:00:00.9729975
-X-MS-Exchange-Processed-By-BccFoldering: 15.20.4129.035
-X-Microsoft-Antispam-Mailbox-Delivery: ucf:0;jmr:0;auth:0;dest:I;ENG:(750129)(520002050)(706158)(944506458)(944626604);
-X-Microsoft-Antispam-Message-Info: WVXVTKN6YEfiLn2mzPVLgV5/hCmzRj2uWYKaO2/FfcR9rXGz5GG6KQldr0rZmpsCVX/AKfzMzcoEAdOTR+c6Cv7UIDJpd8xDDOEZtr/BvYIY6CCsrqFEjROn5KeX7N9dl8/ixnDF45/JtVjiBpaJ6BftIC/OzKg9+ED6tTYnYBtqow4jcBP8e6FSL4n9a9M6768gMp/FRJN/mXV+h+o2Xoo3u3mkM61T5vaiHNyLufogzNJzTIk0zc5U430m69mxUMfh0inYX7v6MyFBvfjIAQ+S2/8vTzs4NCHF/99Z47mSWzOA0DMEMyL7qTl4PygsVGUJ7i3c6VKFumSpG2fp0/bV4g7t5aq7uPhSJY8q8DtpfylfedqUH9I3TliWf+5KYzykTb3xPRxYZBImjbrFVGTcsKtMB0mF5+mUpG4NJ4HcPAmptIyLDo/ab1tqW5QkweB0B0RjblBH5PAYnExpqSygNX0RuumAoLe2+2q+771iVEmitjFhw7ngIatDiTlcQTjLZxe2V7CEd9a/2zLZ0Fhn+qi1cvVSi8JFcGDebf8=
+        Wed, 26 May 2021 08:38:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1622032602;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=vo3CFjgMiVFpDxJLQuQQeOIXjZuz9Jnetz8hQXS67No=;
+        b=Yy2iOPvOQPOuCUbADZ8BLSpoEZ1Ylrystpzutw1Uo21w8pb2cksBGqBEKTViFzJY02VbV9
+        L0wpJD5S4mDh9UiDSfyY0EJR8m5jc5od2nvETuqdaUrkFYMZtxxN721SWcBZwqqElpZLiF
+        ELcONW10UgPJmYy1NhStOoxG2gVJYE4=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-319-G45qEhYiP8me3eF63zSgBA-1; Wed, 26 May 2021 08:36:40 -0400
+X-MC-Unique: G45qEhYiP8me3eF63zSgBA-1
+Received: by mail-ed1-f69.google.com with SMTP id c21-20020a0564021015b029038c3f08ce5aso487731edu.18
+        for <linux-acpi@vger.kernel.org>; Wed, 26 May 2021 05:36:40 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=vo3CFjgMiVFpDxJLQuQQeOIXjZuz9Jnetz8hQXS67No=;
+        b=IfiI2DHZC4NlmfLbdguiS58kL9wAn2fWVipgMO7J8Qo564E/tpHNW+Wv8fejvPZ6tl
+         Vhwgmgrf6d12fK3ENFYfFib5sH+LTMt8B93wF2Ax/6TxhQeIjkWIyBjQ9jKyTHLf3xTy
+         0/R8sqxLDGaTay3Aszt+/KnAsOubreG6Y4SQwCBv6ASDtZMo2LNgjEWGjBvZeRTly/PA
+         LbragJ5oq5xkAwz3wznz5q1LSA1tUS2yZNKKguE28B0ltoNUj/S18CJB47bTZkli7cvA
+         +UHnZPHFbPyWnVi5ICQpOu7dZwOuPGam5GOSYArMQ1ZFFHEll7HgAl0mynIwNQs2R8tF
+         0MJA==
+X-Gm-Message-State: AOAM530E6Chsfn2UBHOLBMemUoop4siHQzueB4v907yoyyK2crbBG0T9
+        /N7kXcTUnpvhw/sPa8i5+g/98zfufWSoRF9Rhg7pTPM/VLNCC16IEdxsO6H5LvA1HE5RHbomZeU
+        p3U125Ja+KLwasDv15zk6CA==
+X-Received: by 2002:a17:906:351a:: with SMTP id r26mr2036976eja.389.1622032599354;
+        Wed, 26 May 2021 05:36:39 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJzCzSG2YLjcyhKgm8r3o/LZqPgFxUK6ylJOFe2YCzql+M/THNIC19JLVSjVDkUJ82LC9sNhuQ==
+X-Received: by 2002:a17:906:351a:: with SMTP id r26mr2036951eja.389.1622032599157;
+        Wed, 26 May 2021 05:36:39 -0700 (PDT)
+Received: from x1.localdomain (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
+        by smtp.gmail.com with ESMTPSA id y15sm284014ejc.48.2021.05.26.05.36.38
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 26 May 2021 05:36:38 -0700 (PDT)
+Subject: Re: [PATCH v4 0/8] Introduce intel_skl_int3472 module
+To:     Daniel Scally <djrscally@gmail.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Wolfram Sang <wsa@kernel.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Maximilian Luz <luzmaximilian@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-i2c@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        devel@acpica.org
+Cc:     Len Brown <lenb@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Mark Gross <mgross@linux.intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+References: <20210520140928.3252671-1-djrscally@gmail.com>
+ <f2d8e74f-f33b-2489-1b90-b11bf7465d19@redhat.com>
+ <f4664310-0975-335d-8dc3-95726f53ab67@gmail.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+Message-ID: <d7b7b2ba-d941-7df3-38e6-32dbbba7a36f@redhat.com>
+Date:   Wed, 26 May 2021 14:36:37 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 MIME-Version: 1.0
-X-Proofpoint-GUID: 5VkBMTDp3qGjuLcooP2hXFZqMQOwEmgj
-X-Proofpoint-ORIG-GUID: 5VkBMTDp3qGjuLcooP2hXFZqMQOwEmgj
-X-HPE-SCL: -1
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
- definitions=2021-05-21_11:2021-05-20,2021-05-21 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999
- impostorscore=0 priorityscore=1501 mlxscore=0 lowpriorityscore=0
- malwarescore=0 spamscore=0 suspectscore=0 phishscore=0 bulkscore=0
- clxscore=1011 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2105210127
+In-Reply-To: <f4664310-0975-335d-8dc3-95726f53ab67@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Revert part of commit 75c0758137c7a
-("acpi-cpufreq: Fail initialization if driver cannot be registered").
+Hi,
 
-acpi-cpufreq is mutually exclusive with intel_pstate, however,
-acpi-cpufreq is loaded multiple times during startup while intel_pstate is
-enabled. On systems using systemd the kernel triggers one uevent for each
-device as a result of systemd-udev-trigger.service. The service exists to
-retrigger all devices as uevents sent by the kernel before systemd-udevd
-is running are missed. The delay caused by systemd-udevd repeatedly loading
-the driver, getting a fail return, and unloading the driver twice per
-logical CPU has a significant impact on the startup time, and can cause
-some devices to be unavailable after reaching the root login prompt.
+On 5/26/21 1:03 AM, Daniel Scally wrote:
 
-Load the driver once but skip initialization if a cpufreq driver exists by
-changing the return value of cpufreq_get_current_driver() from -EEXIST to
-0.
+<snip>
 
-Signed-off-by: Kyle Meyer <kyle.meyer@hpe.com>
----
- drivers/cpufreq/acpi-cpufreq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>> 3/8 and 5/8 seem to be nice cleanups, but not really necessary. IMHO it
+>> would be best to park these cleanups for later and for 3/8 add the following
+>> where necessary for now:
+>>
+>> /* FIXME drop this once the I2C_DEV_NAME_FORMAT macro has been added to include/linux/i2c.h */
+>> #ifndef I2C_DEV_NAME_FORMAT
+>> #define I2C_DEV_NAME_FORMAT		"i2c-%s"
+>> #endif
+>>
+>> This is not the prettiest but it reduces all the subsys cross-deps and things
+>> like this have been done before for similar reasons.
+>>
+>> Likewise it would be good if you can add if (foo) as condition before any
+>> clkdev_drop(foo) calls in this patch-set and then merge
+>> 5/8 "clkdev: Make clkdev_drop() null aware" independently of this and then
+>> once both are in Linux tree follow-up with a cleanup patch dropping the if (foo)
+>> guards.
+> 
+> 
+> This is fine by me if people are happy for it to go in like that; I'll
+> just fix it up later.
 
-diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-index 7e7450453714..e79a945369d1 100644
---- a/drivers/cpufreq/acpi-cpufreq.c
-+++ b/drivers/cpufreq/acpi-cpufreq.c
-@@ -1003,7 +1003,7 @@ static int __init acpi_cpufreq_init(void)
- 
- 	/* don't keep reloading if cpufreq_driver exists */
- 	if (cpufreq_get_current_driver())
--		return -EEXIST;
-+		return 0;
- 
- 	pr_debug("%s\n", __func__);
- 
--- 
-2.26.2
+I don't expect anyone to object against these 2 small fixes going in later,
+if you can drop these 2 for v5 that would greatly help with untangling all the
+subsys dependencies. Then I can just merge an ACPI + a gpiolib-acpi immutable
+branch and then merge the big drivers/platform/x86 patch.
+
+Regards,
+
+Hans
+
