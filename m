@@ -7,92 +7,62 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71AA4C47089
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 May 2021 12:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABAF6C47088
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 May 2021 14:12:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 535C16142D
-	for <linux-acpi@archiver.kernel.org>; Wed, 26 May 2021 12:43:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C2B4613D3
+	for <linux-acpi@archiver.kernel.org>; Wed, 26 May 2021 14:12:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234617AbhEZMpP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 26 May 2021 08:45:15 -0400
-Received: from mga09.intel.com ([134.134.136.24]:35379 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234729AbhEZMoy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 May 2021 08:44:54 -0400
-IronPort-SDR: 7SNAp/d/nkUtNy+9vbWRKLq96AOnme3lPrB6me9KeKgPl++fohvU0Dc53I+j+KPnkjV16wnYCa
- 3mvTLcSNuUiw==
-X-IronPort-AV: E=McAfee;i="6200,9189,9995"; a="202465789"
-X-IronPort-AV: E=Sophos;i="5.82,331,1613462400"; 
-   d="scan'208";a="202465789"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2021 05:43:11 -0700
-IronPort-SDR: US5eylIamLHu1xhHFH1BUCVEeg3n3s7XnfpZPb1txTaFuAuaAmWN3z6P/0T0fvBFBVk2KpKAut
- iQTgivWSMM/w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.82,331,1613462400"; 
-   d="scan'208";a="476924265"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga001.jf.intel.com with ESMTP; 26 May 2021 05:43:07 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 485CAD7; Wed, 26 May 2021 15:43:30 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Wolfram Sang <wsa@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-staging@lists.linux.dev
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH v1 2/6] staging: atomisp: Replace open-coded i2c_acpi_find_client_by_adev()
-Date:   Wed, 26 May 2021 15:43:18 +0300
-Message-Id: <20210526124322.48915-2-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210526124322.48915-1-andriy.shevchenko@linux.intel.com>
-References: <20210526124322.48915-1-andriy.shevchenko@linux.intel.com>
+        id S233607AbhEZOO0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 26 May 2021 10:14:26 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:59533 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233313AbhEZOO0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 May 2021 10:14:26 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <colin.king@canonical.com>)
+        id 1lluHE-0007MV-Vt; Wed, 26 May 2021 14:12:53 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][next] acpi: power: remove redundant initialization of variable result
+Date:   Wed, 26 May 2021 15:12:52 +0100
+Message-Id: <20210526141252.3750231-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-gmin_i2c_dev_exists() is using open-coded variant of
-i2c_acpi_find_client_by_adev(). Replace it with a corresponding call.
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The variable result is being initialized with a value that is never
+read, it is being updated later on. The assignment is redundant and
+can be removed.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- .../staging/media/atomisp/pci/atomisp_gmin_platform.c    | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/acpi/power.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/pci/atomisp_gmin_platform.c
-index 135994d44802..a1064d1a3d6b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp_gmin_platform.c
-@@ -378,19 +378,14 @@ static struct i2c_client *gmin_i2c_dev_exists(struct device *dev, char *name,
- 					      struct i2c_client **client)
- {
- 	struct acpi_device *adev;
--	struct device *d;
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 97c9a94a1a30..d86865c04f64 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -919,7 +919,7 @@ struct acpi_device *acpi_add_power_resource(acpi_handle handle)
+ 	union acpi_object acpi_object;
+ 	struct acpi_buffer buffer = { sizeof(acpi_object), &acpi_object };
+ 	acpi_status status;
+-	int state, result = -ENODEV;
++	int state, result;
  
- 	adev = acpi_dev_get_first_match_dev(name, NULL, -1);
- 	if (!adev)
- 		return NULL;
- 
--	d = bus_find_device_by_acpi_dev(&i2c_bus_type, adev);
--	acpi_dev_put(adev);
--	if (!d)
--		return NULL;
-+	*client = i2c_acpi_find_client_by_adev(adev);
- 
--	*client = i2c_verify_client(d);
--	put_device(d);
-+	acpi_dev_put(adev);
- 
- 	dev_dbg(dev, "found '%s' at address 0x%02x, adapter %d\n",
- 		(*client)->name, (*client)->addr, (*client)->adapter->nr);
+ 	acpi_bus_get_device(handle, &device);
+ 	if (device)
 -- 
-2.30.2
+2.31.1
 
