@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C6A5C47082
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 19:49:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AB8CC47083
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 19:49:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1023A6128A
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 19:49:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FCE56127C
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 19:49:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231670AbhEaTvT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S231680AbhEaTvT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 31 May 2021 15:51:19 -0400
-Received: from mga05.intel.com ([192.55.52.43]:6903 "EHLO mga05.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:39313 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231563AbhEaTvS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S230523AbhEaTvS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 31 May 2021 15:51:18 -0400
-IronPort-SDR: llgHi44og4euXMoGje9G5HJUcfP+D62CPMMSq4BlmGXi6VDK1vpG6F596kwawZQgw9ZUvlEpxj
- McsPxp5Nvjjg==
-X-IronPort-AV: E=McAfee;i="6200,9189,10001"; a="289027850"
+IronPort-SDR: 6PxCvECNlrqMyFleUjxf5aLcrPh5uFx8tC5UtnaS7E1OjpLAH1rLyfJ96/Z3ALyxT8372pirRb
+ LzKPfM4rlRXQ==
+X-IronPort-AV: E=McAfee;i="6200,9189,10001"; a="203215212"
 X-IronPort-AV: E=Sophos;i="5.83,238,1616482800"; 
-   d="scan'208";a="289027850"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 May 2021 12:49:35 -0700
-IronPort-SDR: V7ODrX3xLgQyAgWRdFqSl+psciNKF2/BbgM4EGLlNy0C6Qg7uBmF0wcNEQA7/7utGJmctNSwBw
- kRlVu71KxxqQ==
+   d="scan'208";a="203215212"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 May 2021 12:49:32 -0700
+IronPort-SDR: Ozhs2tWf5lCjkpYwORoWmInSsdlnyMuvVYrL2fhiyMefpnHFvvEMHFX1/6N85ZuzaLspRpGX0V
+ Uji5rPTa9DHw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,238,1616482800"; 
-   d="scan'208";a="399062437"
+   d="scan'208";a="399392000"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga003.jf.intel.com with ESMTP; 31 May 2021 12:49:31 -0700
+  by orsmga006.jf.intel.com with ESMTP; 31 May 2021 12:49:28 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 4E0655B6; Mon, 31 May 2021 22:49:51 +0300 (EEST)
+        id 1A08E1FC; Mon, 31 May 2021 22:49:51 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
         <u.kleine-koenig@pengutronix.de>,
@@ -46,9 +46,9 @@ To:     =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
 Cc:     Jonathan Corbet <corbet@lwn.net>, Lee Jones <lee.jones@linaro.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v2 7/7] pwm: core: Simplify some devm_*pwm*() functions
-Date:   Mon, 31 May 2021 22:49:47 +0300
-Message-Id: <20210531194947.10770-7-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/7] pwm: core: Convert to use fwnode for matching
+Date:   Mon, 31 May 2021 22:49:43 +0300
+Message-Id: <20210531194947.10770-3-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210531194947.10770-1-andriy.shevchenko@linux.intel.com>
 References: <20210531194947.10770-1-andriy.shevchenko@linux.intel.com>
@@ -58,119 +58,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Use devm_add_action_or_reset() instead of devres_alloc() and
-devres_add(), which works the same. This will simplify the
-code. There is no functional changes.
+When we traverse the list of the registered PWM controllers,
+use fwnode to match. This will help for further cleanup.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
-v2: new patch
- drivers/pwm/core.c | 60 +++++++++++++++++++---------------------------
- 1 file changed, 25 insertions(+), 35 deletions(-)
+v2: no change
+ drivers/pwm/core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-index 6d4410bd9793..9f643414676b 100644
+index 25f7b3370672..338d8ee369db 100644
 --- a/drivers/pwm/core.c
 +++ b/drivers/pwm/core.c
-@@ -1059,9 +1059,9 @@ void pwm_put(struct pwm_device *pwm)
+@@ -691,14 +691,14 @@ int pwm_adjust_config(struct pwm_device *pwm)
  }
- EXPORT_SYMBOL_GPL(pwm_put);
+ EXPORT_SYMBOL_GPL(pwm_adjust_config);
  
--static void devm_pwm_release(struct device *dev, void *res)
-+static void devm_pwm_release(void *pwm)
+-static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
++static struct pwm_chip *fwnode_to_pwmchip(struct fwnode_handle *fwnode)
  {
--	pwm_put(*(struct pwm_device **)res);
-+	pwm_put(pwm);
- }
+ 	struct pwm_chip *chip;
  
- /**
-@@ -1077,19 +1077,16 @@ static void devm_pwm_release(struct device *dev, void *res)
-  */
- struct pwm_device *devm_pwm_get(struct device *dev, const char *con_id)
- {
--	struct pwm_device **ptr, *pwm;
--
--	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
--	if (!ptr)
--		return ERR_PTR(-ENOMEM);
-+	struct pwm_device *pwm;
-+	int ret;
+ 	mutex_lock(&pwm_lock);
  
- 	pwm = pwm_get(dev, con_id);
--	if (!IS_ERR(pwm)) {
--		*ptr = pwm;
--		devres_add(dev, ptr);
--	} else {
--		devres_free(ptr);
--	}
-+	if (IS_ERR(pwm))
-+		return pwm;
-+
-+	ret = devm_add_action_or_reset(dev, devm_pwm_release, pwm);
-+	if (ret)
-+		return ERR_PTR(ret);
+ 	list_for_each_entry(chip, &pwm_chips, list)
+-		if (chip->dev && chip->dev->of_node == np) {
++		if (chip->dev && dev_fwnode(chip->dev) == fwnode) {
+ 			mutex_unlock(&pwm_lock);
+ 			return chip;
+ 		}
+@@ -777,7 +777,7 @@ struct pwm_device *of_pwm_get(struct device *dev, struct device_node *np,
+ 		return ERR_PTR(err);
+ 	}
  
- 	return pwm;
- }
-@@ -1110,19 +1107,16 @@ EXPORT_SYMBOL_GPL(devm_pwm_get);
- struct pwm_device *devm_of_pwm_get(struct device *dev, struct device_node *np,
- 				   const char *con_id)
- {
--	struct pwm_device **ptr, *pwm;
--
--	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
--	if (!ptr)
--		return ERR_PTR(-ENOMEM);
-+	struct pwm_device *pwm;
-+	int ret;
- 
- 	pwm = of_pwm_get(dev, np, con_id);
--	if (!IS_ERR(pwm)) {
--		*ptr = pwm;
--		devres_add(dev, ptr);
--	} else {
--		devres_free(ptr);
--	}
-+	if (IS_ERR(pwm))
-+		return pwm;
-+
-+	ret = devm_add_action_or_reset(dev, devm_pwm_release, pwm);
-+	if (ret)
-+		return ERR_PTR(ret);
- 
- 	return pwm;
- }
-@@ -1144,23 +1138,19 @@ struct pwm_device *devm_fwnode_pwm_get(struct device *dev,
- 				       struct fwnode_handle *fwnode,
- 				       const char *con_id)
- {
--	struct pwm_device **ptr, *pwm = ERR_PTR(-ENODEV);
--
--	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
--	if (!ptr)
--		return ERR_PTR(-ENOMEM);
-+	struct pwm_device *pwm = ERR_PTR(-ENODEV);
-+	int ret;
- 
- 	if (is_of_node(fwnode))
- 		pwm = of_pwm_get(dev, to_of_node(fwnode), con_id);
- 	else if (is_acpi_node(fwnode))
- 		pwm = acpi_pwm_get(fwnode);
-+	if (IS_ERR(pwm))
-+		return pwm;
- 
--	if (!IS_ERR(pwm)) {
--		*ptr = pwm;
--		devres_add(dev, ptr);
--	} else {
--		devres_free(ptr);
--	}
-+	ret = devm_add_action_or_reset(dev, devm_pwm_release, pwm);
-+	if (ret)
-+		return ERR_PTR(ret);
- 
- 	return pwm;
- }
+-	pc = of_node_to_pwmchip(args.np);
++	pc = fwnode_to_pwmchip(of_fwnode_handle(args.np));
+ 	if (IS_ERR(pc)) {
+ 		if (PTR_ERR(pc) != -EPROBE_DEFER)
+ 			pr_err("%s(): PWM chip not found\n", __func__);
 -- 
 2.30.2
 
