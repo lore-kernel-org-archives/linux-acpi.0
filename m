@@ -2,132 +2,99 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4433DC47082
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 12:07:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFD09C47083
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 15:51:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 141D360233
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 12:07:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB86D6135D
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 May 2021 15:51:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231330AbhEaMJM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 31 May 2021 08:09:12 -0400
-Received: from mail-oi1-f172.google.com ([209.85.167.172]:43941 "EHLO
-        mail-oi1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231327AbhEaMJK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 May 2021 08:09:10 -0400
-Received: by mail-oi1-f172.google.com with SMTP id j75so12053461oih.10
-        for <linux-acpi@vger.kernel.org>; Mon, 31 May 2021 05:07:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=2bQYrlh6qy/vhuextzfu9rTeGyVmWF9ygxMr+poWqJY=;
-        b=X5yV2Tf7/va5B31idh3glHUGEUKK/vOBODxTR2fbQu/ge9fANQZB/dybmJs6uVos1X
-         De8JN5xGRbNx22xLjRYSaupgCs8oBGpGhxsY4JNYRdegUSUsFiCc8HnjNmh4Bugc5Lx5
-         G+wtg81aNPFPok4O/7a30Ubdya5xtjn8271G0oO2NsXhY9xzaGI6RAfMielD9d+8sHoZ
-         fjfG2tk8bTEjItXgHoVS5sldcSaHqwiY32ypqn+eY/LXZMl+aDTfi6NtBVUsnCV6smAi
-         3I8XwG5ZyOauJbYId2zHWqXTIhGOn1+Cd1SoFLTJn4k+oVGI7Hj0GmYM9fAZnFLholy8
-         YMyw==
-X-Gm-Message-State: AOAM531pncV6stHzLy93tToRgLFhuQ8dU1yr9ird6/BJSin6QOHDbHnQ
-        hVjf2DWmWTCs8lb+BXW2joO78LiI2xIUSgNiPWQ=
-X-Google-Smtp-Source: ABdhPJwZQBEIbiGj/z7ADPy03dONNXC4VD6rjLo0UQ8OrY4V14E9tGqUzMJ0mvTitOovIGgBi1LfuOUvaxrZpAMho04=
-X-Received: by 2002:aca:1910:: with SMTP id l16mr13365879oii.69.1622462850782;
- Mon, 31 May 2021 05:07:30 -0700 (PDT)
+        id S232466AbhEaPxQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 31 May 2021 11:53:16 -0400
+Received: from mga18.intel.com ([134.134.136.126]:36246 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233180AbhEaPvJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 May 2021 11:51:09 -0400
+IronPort-SDR: MpvyMqsvtIpjIlDMJnvf2eBaGviM2hCGBMTGq481XKdr8qPWjjXOy8qBIBGgFxi8LCIByu9pHP
+ 9lNe4lZuyiHw==
+X-IronPort-AV: E=McAfee;i="6200,9189,10001"; a="190738553"
+X-IronPort-AV: E=Sophos;i="5.83,237,1616482800"; 
+   d="scan'208";a="190738553"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 May 2021 08:43:45 -0700
+IronPort-SDR: XvaeebbE9UkQYRBPBMrq2G4FzkuMC2lPXkyCIEOFZ7ip8kl+H0vQaruxmjZRRuAGy83OQjsYtL
+ XV5zeQxA9Hng==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,237,1616482800"; 
+   d="scan'208";a="446639866"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga008.fm.intel.com with ESMTP; 31 May 2021 08:43:42 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 31A1F269; Mon, 31 May 2021 18:44:06 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Flavio Suligoi <f.suligoi@asem.it>,
+        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-pwm@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH v1 3/5] pwm: core: Convert to use fwnode for matching
+Date:   Mon, 31 May 2021 18:43:49 +0300
+Message-Id: <20210531154351.53614-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210531154351.53614-1-andriy.shevchenko@linux.intel.com>
+References: <20210531154351.53614-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <20210527143955.38591-1-joey.gouly@arm.com>
-In-Reply-To: <20210527143955.38591-1-joey.gouly@arm.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 31 May 2021 14:07:14 +0200
-Message-ID: <CAJZ5v0hp6spnn9+YckWzvzHKRxQk-6Du30_DF6mwyUmVFS574Q@mail.gmail.com>
-Subject: Re: [PATCH v1] ACPI / PPTT: Populate cache-id from rev3 of PPTT in ACPIv6.4
-To:     Joey Gouly <joey.gouly@arm.com>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, nd <nd@arm.com>,
-        James Morse <james.morse@arm.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, May 27, 2021 at 4:40 PM Joey Gouly <joey.gouly@arm.com> wrote:
->
-> From: James Morse <james.morse@arm.com>
->
-> ACPIv6.4 adds a 'cache id' to the PPTT Cache Type Structure.
-> Copy this property accross into the cacheinfo leaf when it was
-> provided by firmware.
->
-> This value getes exposed to userspace as:
-> /sys/devices/system/cpu/cpu*/cache/index*/id.
-> See the "Cache IDs" section of Documentation/x86/resctrl.rst.
->
-> Co-authored-by: Joey Gouly <joey.gouly@arm.com>
-> Signed-off-by: James Morse <james.morse@arm.com>
-> Signed-off-by: Joey Gouly <joey.gouly@arm.com>
-> ---
->  drivers/acpi/pptt.c | 16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index 4ae93350b70d..c18a30154db5 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -344,6 +344,7 @@ static struct acpi_pptt_cache *acpi_find_cache_node(struct acpi_table_header *ta
->
->  /**
->   * update_cache_properties() - Update cacheinfo for the given processor
-> + * @table: The PPTT table - for testing the revision
+When we traverse the list of the registered PWM controllers,
+use fwnode to match. This will help for further cleanup.
 
-What about passing the revision itself instead of a pointer to the whole table?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/pwm/core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Or even a bool value indicating whether or not to skip the last check?
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index 25f7b3370672..338d8ee369db 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -691,14 +691,14 @@ int pwm_adjust_config(struct pwm_device *pwm)
+ }
+ EXPORT_SYMBOL_GPL(pwm_adjust_config);
+ 
+-static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
++static struct pwm_chip *fwnode_to_pwmchip(struct fwnode_handle *fwnode)
+ {
+ 	struct pwm_chip *chip;
+ 
+ 	mutex_lock(&pwm_lock);
+ 
+ 	list_for_each_entry(chip, &pwm_chips, list)
+-		if (chip->dev && chip->dev->of_node == np) {
++		if (chip->dev && dev_fwnode(chip->dev) == fwnode) {
+ 			mutex_unlock(&pwm_lock);
+ 			return chip;
+ 		}
+@@ -777,7 +777,7 @@ struct pwm_device *of_pwm_get(struct device *dev, struct device_node *np,
+ 		return ERR_PTR(err);
+ 	}
+ 
+-	pc = of_node_to_pwmchip(args.np);
++	pc = fwnode_to_pwmchip(of_fwnode_handle(args.np));
+ 	if (IS_ERR(pc)) {
+ 		if (PTR_ERR(pc) != -EPROBE_DEFER)
+ 			pr_err("%s(): PWM chip not found\n", __func__);
+-- 
+2.30.2
 
->   * @this_leaf: Kernel cache info structure being updated
->   * @found_cache: The PPTT node describing this cache instance
->   * @cpu_node: A unique reference to describe this cache instance
-> @@ -354,10 +355,13 @@ static struct acpi_pptt_cache *acpi_find_cache_node(struct acpi_table_header *ta
->   *
->   * Return: nothing. Side effect of updating the global cacheinfo
->   */
-> -static void update_cache_properties(struct cacheinfo *this_leaf,
-> +static void update_cache_properties(struct acpi_table_header *table,
-> +                                   struct cacheinfo *this_leaf,
->                                     struct acpi_pptt_cache *found_cache,
->                                     struct acpi_pptt_processor *cpu_node)
->  {
-> +       struct acpi_pptt_cache_v1* found_cache_v1;
-> +
->         this_leaf->fw_token = cpu_node;
->         if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
->                 this_leaf->size = found_cache->size;
-> @@ -405,6 +409,14 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
->         if (this_leaf->type == CACHE_TYPE_NOCACHE &&
->             found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID)
->                 this_leaf->type = CACHE_TYPE_UNIFIED;
-> +
-> +       if (table->revision >= 3 &&
-> +           (found_cache->flags & ACPI_PPTT_CACHE_ID_VALID)) {
-> +               found_cache_v1 = ACPI_ADD_PTR(struct acpi_pptt_cache_v1,
-> +                                             found_cache, sizeof(struct acpi_pptt_cache));
-> +               this_leaf->id = found_cache_v1->cache_id;
-> +               this_leaf->attributes |= CACHE_ID;
-> +       }
->  }
->
->  static void cache_setup_acpi_cpu(struct acpi_table_header *table,
-> @@ -425,7 +437,7 @@ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
->                                                    &cpu_node);
->                 pr_debug("found = %p %p\n", found_cache, cpu_node);
->                 if (found_cache)
-> -                       update_cache_properties(this_leaf,
-> +                       update_cache_properties(table, this_leaf,
->                                                 found_cache,
->                                                 cpu_node);
->
-> --
-> 2.17.1
->
