@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5D4C47093
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AFB0C4708F
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C355F6101C
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2EB2660C40
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231235AbhFBJIX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Jun 2021 05:08:23 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:2848 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231165AbhFBJIW (ORCPT
+        id S231165AbhFBJIY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Jun 2021 05:08:24 -0400
+Received: from szxga08-in.huawei.com ([45.249.212.255]:4281 "EHLO
+        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230462AbhFBJIW (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 05:08:22 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Fw31Z6QZszWqlw;
-        Wed,  2 Jun 2021 17:01:54 +0800 (CST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Fw31c3MWZz19V00;
+        Wed,  2 Jun 2021 17:01:56 +0800 (CST)
 Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:05:41 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 17:05:45 +0800
 Received: from linux-ibm.site (10.175.102.37) by
  dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:05:41 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 17:05:45 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 01/18] ACPI: cmos_rtc: Using pr_fmt() and remove PREFIX
-Date:   Wed, 2 Jun 2021 16:54:23 +0800
-Message-ID: <1622624080-56025-2-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 13/18] ACPI: sysfs: Cleanup message printing
+Date:   Wed, 2 Jun 2021 16:54:35 +0800
+Message-ID: <1622624080-56025-14-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
 References: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
@@ -50,45 +50,48 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Introduce pr_fmt() and remove printk PREFIX to unify the
-log message printing.
+We have pr_fmt() in sysfs.c but we still use pr_err(PREFIX ...) which
+is wrong, remove the duplicated PREFIX and also using pr_* to replace
+printk to simlify the code.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/acpi_cmos_rtc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/sysfs.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
-index 67f1d33..4cf4aef 100644
---- a/drivers/acpi/acpi_cmos_rtc.c
-+++ b/drivers/acpi/acpi_cmos_rtc.c
-@@ -6,6 +6,8 @@
-  * Authors: Lan Tianyu <tianyu.lan@intel.com>
-  */
- 
-+#define pr_fmt(fmt) "ACPI: " fmt
-+
- #include <linux/acpi.h>
- #include <linux/device.h>
- #include <linux/err.h>
-@@ -59,7 +61,7 @@ static int acpi_install_cmos_rtc_space_handler(struct acpi_device *adev,
- 			&acpi_cmos_rtc_space_handler,
- 			NULL, NULL);
- 	if (ACPI_FAILURE(status)) {
--		pr_err(PREFIX "Error installing CMOS-RTC region handler\n");
-+		pr_err("Error installing CMOS-RTC region handler\n");
- 		return -ENODEV;
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index d259271..88629d2 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -359,8 +359,7 @@ static int acpi_table_attr_init(struct kobject *tables_obj,
+ 	}
+ 	table_attr->instance++;
+ 	if (table_attr->instance > ACPI_MAX_TABLE_INSTANCES) {
+-		pr_warn("%4.4s: too many table instances\n",
+-			table_attr->name);
++		pr_warn("%4.4s: too many table instances\n", table_attr->name);
+ 		return -ERANGE;
  	}
  
-@@ -70,7 +72,7 @@ static void acpi_remove_cmos_rtc_space_handler(struct acpi_device *adev)
- {
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(adev->handle,
- 			ACPI_ADR_SPACE_CMOS, &acpi_cmos_rtc_space_handler)))
--		pr_err(PREFIX "Error removing CMOS-RTC region handler\n");
-+		pr_err("Error removing CMOS-RTC region handler\n");
+@@ -737,8 +736,7 @@ static ssize_t counter_set(struct kobject *kobj,
+ 		goto end;
+ 
+ 	if (!(status & ACPI_EVENT_FLAG_HAS_HANDLER)) {
+-		printk(KERN_WARNING PREFIX
+-		       "Can not change Invalid GPE/Fixed Event status\n");
++		pr_warn("Can not change Invalid GPE/Fixed Event status\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -983,7 +981,7 @@ void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
+ 	return;
+ 
+  err_out:
+-	pr_err(PREFIX "Unable to add hotplug profile '%s'\n", name);
++	pr_err("Unable to add hotplug profile '%s'\n", name);
  }
  
- static struct acpi_scan_handler cmos_rtc_handler = {
+ static ssize_t force_remove_show(struct kobject *kobj,
 -- 
 1.7.12.4
 
