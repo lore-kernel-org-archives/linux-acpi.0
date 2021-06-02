@@ -2,27 +2,28 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99AA2C47092
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5D4C47093
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DA5960C40
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C355F6101C
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231151AbhFBJIV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Jun 2021 05:08:21 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:3347 "EHLO
-        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231154AbhFBJIS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 05:08:18 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Fw31T4qpdz19Shh;
-        Wed,  2 Jun 2021 17:01:49 +0800 (CST)
+        id S231235AbhFBJIX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Jun 2021 05:08:23 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:2848 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231165AbhFBJIW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 05:08:22 -0400
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Fw31Z6QZszWqlw;
+        Wed,  2 Jun 2021 17:01:54 +0800 (CST)
 Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2176.2; Wed, 2 Jun 2021 17:05:41 +0800
 Received: from linux-ibm.site (10.175.102.37) by
@@ -33,10 +34,12 @@ From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 00/18] ACPI: Further cleanups for message printing
-Date:   Wed, 2 Jun 2021 16:54:22 +0800
-Message-ID: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 01/18] ACPI: cmos_rtc: Using pr_fmt() and remove PREFIX
+Date:   Wed, 2 Jun 2021 16:54:23 +0800
+Message-ID: <1622624080-56025-2-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
+In-Reply-To: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
+References: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.175.102.37]
@@ -47,69 +50,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-After the message printing cleanups to decouple with ACPICA, the message
-printing in ACPI subsystem still have the room for improvement. For now
-we use both PREFIX "ACPI: " and pr_*() macros for message print in ACPI
-subsystem, they are misused in follwing ways:
+Introduce pr_fmt() and remove printk PREFIX to unify the
+log message printing.
 
- - Duplicated prefix. For example in sysfs.c we have pr_fmt() but we
-   still use pr_err(PREFIX ...), which is worng;
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+---
+ drivers/acpi/acpi_cmos_rtc.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
- - Using pr_*() macros without pr_fmt(), but some pr_*() calls added
-   the PREFIX and some didn't in the same file;
-
- - Mixed use of printk(PREFIX) and pr_*() macros in one driver but
-   don't have the same prefix for message printing.
-
-All the above will confuse people, sometimes leads to write some wrong
-message printing code, so just use pr_fmt() and pr_*() macros to generate
-a unified format string, and remove the using of PREFIX "ACPI: " in ACPI
-drivers, finally remove PREFIX "ACPI: " definition in the internal.h,
-which prevent further misuse of the PREFIX.
-
-Also remove some in-house DBG code which is not useful, replace with
-pr_debug() instead.
-
-Hanjun Guo (18):
-  ACPI: cmos_rtc: Using pr_fmt() and remove PREFIX
-  ACPI: blacklist: Unify the message printing
-  ACPI: bus: Use pr_*() macros to replace printk()
-  ACPI: event: Use pr_*() macros to replace printk()
-  ACPI: glue: Clean up the printing messages
-  ACPI: nvs: Unify the message printing
-  ACPI: osl: Remove the duplicated PREFIX for message printing
-  ACPI: pci_root: Unify the message printing
-  ACPI: processor_thermal: Remove unused PREFIX for printing
-  ACPI: processor_perflib: Cleanup print messages
-  ACPI: processor_throttling: Cleanup the printing messages
-  ACPI: reboot: Unify the message printing
-  ACPI: sysfs: Cleanup message printing
-  ACPI: sbshc: Unify the message printing
-  ACPI: scan: Unify the log message printing
-  ACPI: sbs: Unify the message printing
-  ACPI: sleep: Unify the message printing
-  ACPI: Remove the macro PREFIX "ACPI: "
-
- drivers/acpi/acpi_cmos_rtc.c        |  6 ++--
- drivers/acpi/blacklist.c            |  9 +++---
- drivers/acpi/bus.c                  |  4 +--
- drivers/acpi/event.c                |  6 ++--
- drivers/acpi/glue.c                 | 29 ++++++------------
- drivers/acpi/internal.h             |  2 --
- drivers/acpi/nvs.c                  |  8 +++--
- drivers/acpi/osl.c                  |  4 +--
- drivers/acpi/pci_root.c             |  4 ++-
- drivers/acpi/processor_perflib.c    | 38 +++++++++++------------
- drivers/acpi/processor_thermal.c    |  2 --
- drivers/acpi/processor_throttling.c | 60 ++++++++++++++++---------------------
- drivers/acpi/reboot.c               |  4 ++-
- drivers/acpi/sbs.c                  | 12 ++++----
- drivers/acpi/sbshc.c                |  8 ++---
- drivers/acpi/scan.c                 | 11 +++----
- drivers/acpi/sleep.c                | 18 +++++------
- drivers/acpi/sysfs.c                |  8 ++---
- 18 files changed, 109 insertions(+), 124 deletions(-)
-
+diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
+index 67f1d33..4cf4aef 100644
+--- a/drivers/acpi/acpi_cmos_rtc.c
++++ b/drivers/acpi/acpi_cmos_rtc.c
+@@ -6,6 +6,8 @@
+  * Authors: Lan Tianyu <tianyu.lan@intel.com>
+  */
+ 
++#define pr_fmt(fmt) "ACPI: " fmt
++
+ #include <linux/acpi.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
+@@ -59,7 +61,7 @@ static int acpi_install_cmos_rtc_space_handler(struct acpi_device *adev,
+ 			&acpi_cmos_rtc_space_handler,
+ 			NULL, NULL);
+ 	if (ACPI_FAILURE(status)) {
+-		pr_err(PREFIX "Error installing CMOS-RTC region handler\n");
++		pr_err("Error installing CMOS-RTC region handler\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -70,7 +72,7 @@ static void acpi_remove_cmos_rtc_space_handler(struct acpi_device *adev)
+ {
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(adev->handle,
+ 			ACPI_ADR_SPACE_CMOS, &acpi_cmos_rtc_space_handler)))
+-		pr_err(PREFIX "Error removing CMOS-RTC region handler\n");
++		pr_err("Error removing CMOS-RTC region handler\n");
+ }
+ 
+ static struct acpi_scan_handler cmos_rtc_handler = {
 -- 
 1.7.12.4
 
