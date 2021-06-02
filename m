@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56BFFC47096
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB13CC4708F
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41CDE60720
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8280608FE
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231187AbhFBJIZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Jun 2021 05:08:25 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:4282 "EHLO
-        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231210AbhFBJIX (ORCPT
+        id S231210AbhFBJI0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Jun 2021 05:08:26 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:3510 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231243AbhFBJIX (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 05:08:23 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Fw31c2bNlz19Tcp;
-        Wed,  2 Jun 2021 17:01:56 +0800 (CST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Fw33v2tDfzYrmX;
+        Wed,  2 Jun 2021 17:03:55 +0800 (CST)
 Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:05:42 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 17:05:46 +0800
 Received: from linux-ibm.site (10.175.102.37) by
  dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:05:42 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 17:05:46 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 04/18] ACPI: event: Use pr_*() macros to replace printk()
-Date:   Wed, 2 Jun 2021 16:54:26 +0800
-Message-ID: <1622624080-56025-5-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 16/18] ACPI: sbs: Unify the message printing
+Date:   Wed, 2 Jun 2021 16:54:38 +0800
+Message-ID: <1622624080-56025-17-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
 References: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
@@ -50,38 +50,69 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Introduce pr_fmt() and replace direct printk() invocation with
-the matching pr_*() call to prepare for removing PREFIX.
+Using pr_fmt() and pr_*() macros to unify the message printing.
+
+While at it, fix the obvious coding style issue when scanning
+the code.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/event.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/sbs.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
-index bfb16cf..d199a19 100644
---- a/drivers/acpi/event.c
-+++ b/drivers/acpi/event.c
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 3b0b6dd..4938010 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
 @@ -7,6 +7,8 @@
-  *
+  *  Copyright (c) 2005 Rich Townsend <rhdt@bartol.udel.edu>
   */
  
 +#define pr_fmt(fmt) "ACPI: " fmt
 +
- #include <linux/spinlock.h>
- #include <linux/export.h>
- #include <linux/proc_fs.h>
-@@ -173,8 +175,8 @@ static int __init acpi_event_init(void)
- 	/* create genetlink for acpi event */
- 	error = acpi_event_genetlink_init();
- 	if (error)
--		printk(KERN_WARNING PREFIX
--		       "Failed to create genetlink family for ACPI event\n");
-+		pr_warn("Failed to create genetlink family for ACPI event\n");
-+
- 	return 0;
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+@@ -23,8 +25,6 @@
+ 
+ #include "sbshc.h"
+ 
+-#define PREFIX "ACPI: "
+-
+ #define ACPI_SBS_CLASS			"sbs"
+ #define ACPI_AC_CLASS			"ac_adapter"
+ #define ACPI_SBS_DEVICE_NAME		"Smart Battery System"
+@@ -544,7 +544,7 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
+ 		goto end;
+ 	battery->have_sysfs_alarm = 1;
+       end:
+-	printk(KERN_INFO PREFIX "%s [%s]: Battery Slot [%s] (battery %s)\n",
++	pr_info("%s [%s]: Battery Slot [%s] (battery %s)\n",
+ 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
+ 	       battery->name, battery->present ? "present" : "absent");
+ 	return result;
+@@ -577,10 +577,10 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
+ 		result = PTR_ERR(sbs->charger);
+ 		sbs->charger = NULL;
+ 	}
+-	printk(KERN_INFO PREFIX "%s [%s]: AC Adapter [%s] (%s)\n",
++	pr_info("%s [%s]: AC Adapter [%s] (%s)\n",
+ 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
+ 	       ACPI_AC_DIR_NAME, sbs->charger_present ? "on-line" : "off-line");
+-      end:
++end:
+ 	return result;
  }
  
+@@ -658,7 +658,7 @@ static int acpi_sbs_add(struct acpi_device *device)
+ 		acpi_battery_add(sbs, 0);
+ 
+ 	acpi_smbus_register_callback(sbs->hc, acpi_sbs_callback, sbs);
+-      end:
++end:
+ 	if (result)
+ 		acpi_sbs_remove(device);
+ 	return result;
 -- 
 1.7.12.4
 
