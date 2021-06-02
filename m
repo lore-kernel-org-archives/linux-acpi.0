@@ -2,76 +2,89 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AACCC47093
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22593C47083
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 11:06:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5238E6135D
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:47:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C3C1611CC
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 11:06:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229822AbhFBJt3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Jun 2021 05:49:29 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:6138 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232208AbhFBJtJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 05:49:09 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Fw3yv52JbzYnBh;
-        Wed,  2 Jun 2021 17:44:39 +0800 (CST)
-Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:47:24 +0800
-Received: from linux-ibm.site (10.175.102.37) by
- dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:47:23 +0800
-From:   Hanjun Guo <guohanjun@huawei.com>
-To:     <linux-acpi@vger.kernel.org>
-CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 1/2] ACPI: bus: Remove the not needed NULL set
-Date:   Wed, 2 Jun 2021 17:36:49 +0800
-Message-ID: <1622626610-58140-1-git-send-email-guohanjun@huawei.com>
-X-Mailer: git-send-email 1.7.12.4
+        id S231448AbhFBLI1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Jun 2021 07:08:27 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:3511 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230462AbhFBLIX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 07:08:23 -0400
+Received: from dggeme764-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Fw5kK0rHhzYrwQ;
+        Wed,  2 Jun 2021 19:03:53 +0800 (CST)
+Received: from [10.174.179.31] (10.174.179.31) by
+ dggeme764-chm.china.huawei.com (10.3.19.110) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2176.2; Wed, 2 Jun 2021 19:06:37 +0800
+Subject: Re: [PATCH] ACPI: tables: fixes the missed acpi_put_table() in
+ acpi_init_fpdt()
+To:     Hanjun Guo <guohanjun@huawei.com>, <rjw@rjwysocki.net>,
+        <lenb@kernel.org>, <rui.zhang@intel.com>
+References: <20210602011723.23666-1-jingxiangfeng@huawei.com>
+ <b70f1c51-08fa-4ddf-51c6-77064e02fe87@huawei.com>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+From:   Jing Xiangfeng <jingxiangfeng@huawei.com>
+Message-ID: <60B7663C.8070903@huawei.com>
+Date:   Wed, 2 Jun 2021 19:06:36 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101
+ Thunderbird/38.1.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.102.37]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- dggpemm500002.china.huawei.com (7.185.36.229)
+In-Reply-To: <b70f1c51-08fa-4ddf-51c6-77064e02fe87@huawei.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.179.31]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggeme764-chm.china.huawei.com (10.3.19.110)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Code running with if (!acpi_kobj) is true, acpi_kobj is NULL
-as it is, no need to set to NULL.
 
-Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
----
- drivers/acpi/bus.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 60787d9..f9b5262 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1325,10 +1325,8 @@ static int __init acpi_init(void)
- 	}
- 
- 	acpi_kobj = kobject_create_and_add("acpi", firmware_kobj);
--	if (!acpi_kobj) {
-+	if (!acpi_kobj)
- 		pr_debug("%s: kset create error\n", __func__);
--		acpi_kobj = NULL;
--	}
- 
- 	result = acpi_bus_init();
- 	if (result) {
--- 
-1.7.12.4
+On 2021/6/2 17:21, Hanjun Guo wrote:
+> The title of this patch is misleading, how about "ACPI: FPDT: Add the
+> missed acpi_put_table() in acpi_init_fpdt()" ?
+Thanks a lot for your comments! I'll send a v2 with this change.
+
+>
+> On 2021/6/2 9:17, Jing Xiangfeng wrote:
+>> acpi_init_fpdt() misses to call acpi_put_table() in an error path. Add
+>> the missed function call to fix it.
+>>
+>> Fixes: d1eb86e59be0 ("ACPI: tables: introduce support for FPDT table")
+>> Signed-off-by: Jing Xiangfeng <jingxiangfeng@huawei.com>
+>> ---
+>>   drivers/acpi/acpi_fpdt.c | 4 +++-
+>>   1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/acpi_fpdt.c b/drivers/acpi/acpi_fpdt.c
+>> index a89a806a7a2a..4ee2ad234e3d 100644
+>> --- a/drivers/acpi/acpi_fpdt.c
+>> +++ b/drivers/acpi/acpi_fpdt.c
+>> @@ -240,8 +240,10 @@ static int __init acpi_init_fpdt(void)
+>>           return 0;
+>>         fpdt_kobj = kobject_create_and_add("fpdt", acpi_kobj);
+>> -    if (!fpdt_kobj)
+>> +    if (!fpdt_kobj) {
+>> +        acpi_put_table(header);
+>>           return -ENOMEM;
+>> +    }
+>
+> The code looks good to me.
+>
+> Thanks
+> Hanjun
+> .
+>
 
