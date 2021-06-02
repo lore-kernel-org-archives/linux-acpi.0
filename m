@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AFB0C4708F
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E884BC47093
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2EB2660C40
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1A2660720
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Jun 2021 09:06:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231165AbhFBJIY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S231154AbhFBJIY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 2 Jun 2021 05:08:24 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:4281 "EHLO
+Received: from szxga08-in.huawei.com ([45.249.212.255]:4280 "EHLO
         szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230462AbhFBJIW (ORCPT
+        with ESMTP id S231187AbhFBJIW (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2021 05:08:22 -0400
 Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Fw31c3MWZz19V00;
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Fw31c2nFXz19Tk1;
         Wed,  2 Jun 2021 17:01:56 +0800 (CST)
 Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:05:45 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 17:05:43 +0800
 Received: from linux-ibm.site (10.175.102.37) by
  dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 17:05:45 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 17:05:43 +0800
 From:   Hanjun Guo <guohanjun@huawei.com>
 To:     <linux-acpi@vger.kernel.org>
 CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH 13/18] ACPI: sysfs: Cleanup message printing
-Date:   Wed, 2 Jun 2021 16:54:35 +0800
-Message-ID: <1622624080-56025-14-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH 07/18] ACPI: osl: Remove the duplicated PREFIX for message printing
+Date:   Wed, 2 Jun 2021 16:54:29 +0800
+Message-ID: <1622624080-56025-8-git-send-email-guohanjun@huawei.com>
 X-Mailer: git-send-email 1.7.12.4
 In-Reply-To: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
 References: <1622624080-56025-1-git-send-email-guohanjun@huawei.com>
@@ -50,48 +50,39 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We have pr_fmt() in sysfs.c but we still use pr_err(PREFIX ...) which
-is wrong, remove the duplicated PREFIX and also using pr_* to replace
-printk to simlify the code.
+We have pr_fmt() in osl.c, so pr_err(PREFIX ...) is duplicated
+and wrong, fix it by removing the PREFIX.
+
+Also remove the using of PREFIX in WARN() and just add the plain
+"ACPI: " in message to keep it unchanged.
 
 Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/sysfs.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/acpi/osl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index d259271..88629d2 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -359,8 +359,7 @@ static int acpi_table_attr_init(struct kobject *tables_obj,
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 327e1b4..1207490 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -212,7 +212,7 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 			return efi.acpi20;
+ 		if (efi.acpi != EFI_INVALID_TABLE_ADDR)
+ 			return efi.acpi;
+-		pr_err(PREFIX "System description tables not found\n");
++		pr_err("System description tables not found\n");
+ 	} else if (IS_ENABLED(CONFIG_ACPI_LEGACY_TABLES_LOOKUP)) {
+ 		acpi_find_root_pointer(&pa);
  	}
- 	table_attr->instance++;
- 	if (table_attr->instance > ACPI_MAX_TABLE_INSTANCES) {
--		pr_warn("%4.4s: too many table instances\n",
--			table_attr->name);
-+		pr_warn("%4.4s: too many table instances\n", table_attr->name);
- 		return -ERANGE;
+@@ -430,7 +430,7 @@ void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
+ 	map = acpi_map_lookup_virt(virt, size);
+ 	if (!map) {
+ 		mutex_unlock(&acpi_ioremap_lock);
+-		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
++		WARN(true, "ACPI: %s: bad address %p\n", __func__, virt);
+ 		return;
  	}
- 
-@@ -737,8 +736,7 @@ static ssize_t counter_set(struct kobject *kobj,
- 		goto end;
- 
- 	if (!(status & ACPI_EVENT_FLAG_HAS_HANDLER)) {
--		printk(KERN_WARNING PREFIX
--		       "Can not change Invalid GPE/Fixed Event status\n");
-+		pr_warn("Can not change Invalid GPE/Fixed Event status\n");
- 		return -EINVAL;
- 	}
- 
-@@ -983,7 +981,7 @@ void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
- 	return;
- 
-  err_out:
--	pr_err(PREFIX "Unable to add hotplug profile '%s'\n", name);
-+	pr_err("Unable to add hotplug profile '%s'\n", name);
- }
- 
- static ssize_t force_remove_show(struct kobject *kobj,
+ 	acpi_os_drop_map_ref(map);
 -- 
 1.7.12.4
 
