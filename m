@@ -2,207 +2,163 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82AFCC47097
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 22:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C47CAC47097
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 22:40:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67EE661404
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 22:29:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8217613FF
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 22:40:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230239AbhFCWav (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Jun 2021 18:30:51 -0400
-Received: from mail-il1-f182.google.com ([209.85.166.182]:42856 "EHLO
-        mail-il1-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230083AbhFCWav (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2021 18:30:51 -0400
-Received: by mail-il1-f182.google.com with SMTP id a8so5906802ilv.9
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Jun 2021 15:28:51 -0700 (PDT)
+        id S229746AbhFCWmY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Jun 2021 18:42:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38932 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229704AbhFCWmY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2021 18:42:24 -0400
+Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50CF0C06174A;
+        Thu,  3 Jun 2021 15:40:26 -0700 (PDT)
+Received: by mail-wm1-x32a.google.com with SMTP id b145-20020a1c80970000b029019c8c824054so6767140wmd.5;
+        Thu, 03 Jun 2021 15:40:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=EYQbcvibiQg/DnUam+wLaSOQ2UV3ZafOtj4rPommSME=;
-        b=eONCVyJG8reQysQ4HqQPn9JbnCwm9R7Mi3NhkPGLL6ItUR1Ov5MqfX4dG4+ncwb8Ge
-         rzh7THXy3i1zBca3kiJxC2exppTDkk5034+bLFlDBTTqi4Dr/kCD/WQ9/GnUKKipi9af
-         9nqMvBaMbcjx1O+Q2okxWyQdYxHvmNj5NSfGU=
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=9bSfSMQxktukE2bkFT53oq75scSeKdwwSpf8Uvj1M/U=;
+        b=MzlWxnd2BvsZFZ8024ZTALS1je1zPZkCqP70AnL0JswJnOjzEdugOeY1JH0peylslc
+         tv9T/QyHwC9P9iK4XUr82xk/b2oyJPCELFhgo0zLVhglRQZXx0wSicmbdXWOaQlgYw1s
+         w5BaReBCQRkit6RDLLnIu7ivwaFf07rAUmUIwYqWKBQtS8ZyoV+EWLctY/tZNo5MeJv3
+         SlZtjRMV4AVMqJr/sCkUMqwItrpIZR8Zh3mij9zIbcbuIYPAtKl5L62obxtrTLhS2CeB
+         knHgCyCOPe0nitYiuavZhJAVnhGDD7NHgn9eiZyJ+vqOWVR1P2rLEjsjp1wNiG1Gq8Yn
+         joeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=EYQbcvibiQg/DnUam+wLaSOQ2UV3ZafOtj4rPommSME=;
-        b=WSILIiTf8ctoPtPBszXPEoTWAFHXRtXwiVoX8tPbGGKoGhpDgHG/MRxv2YsRyr1/3A
-         N+3zTnIRsa3FOrRk5mht+LKgkNatSG/pCwJPDanX26YU+F53bgUcB2Gc7emxgwnCXIUI
-         2D4HvhhOQvHp6lZ/LrSZtcTNnJuuIRaU12K1faHNonMEdGMuH+qRkA2HZgFQeMYi3jFw
-         sxVvkCEO0BI9qqFCDWprgfk0uvZuQ39LzjByYxJohu3O6DxZsxNaI7UaZckmoHK3RL74
-         YCzMapKhtr5Av6NX0jW/65Qnhf3E957MZz05d2CCTAOm2bJbE+ifn5qNNqKFmUa7y2vL
-         +3OA==
-X-Gm-Message-State: AOAM533hrbt9/qcDpBizVIXX8MhM207ZYVdDqWiDH8DCYIpG/Q0oDTcL
-        DJcJBjWDa/58CimrIkfijKoxiA==
-X-Google-Smtp-Source: ABdhPJy2cCbn6S+OVOgxep7zZ4X+W9504GaOSMvrUiXR2300RkJaKnIP7U+IUGkRNuwwA7/yX/MVCA==
-X-Received: by 2002:a92:2a0a:: with SMTP id r10mr1317896ile.274.1622759271677;
-        Thu, 03 Jun 2021 15:27:51 -0700 (PDT)
-Received: from google.com (h184-60-195-141.arvdco.broadband.dynamic.tds.net. [184.60.195.141])
-        by smtp.gmail.com with ESMTPSA id z14sm2492618ilb.48.2021.06.03.15.27.50
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=9bSfSMQxktukE2bkFT53oq75scSeKdwwSpf8Uvj1M/U=;
+        b=VoV2KQQ+02+caT8ub9/+oM8mVVl+YhVyCYW9wphl4bpJ4KHl77+nG2hiWsO1luyrXO
+         cn53l32r8ae5ahdq4j4JaiWdtMlPNHYeMZYLAsmjnhr22iT0K1Y8Bhnmd569rmUCYngE
+         N21FzKvtL9QbQHPi/9o9J++dpyEZEdqS2JiGSqmOpGf2v26FdPDfHre0HYlPyxDqA7BU
+         l2dU0G67GjiEq9DnmwAe9wW9RVhM/9AfyDidjR9ho1tmSjQPhym3s6H2AUQ19FyhOZuR
+         x9g0rpVxG/FJN7QzwgxpJJUgtXwuFIAT4AG9CDGjUx6KUiL0B79X2Uew5tCq1T5JoM5F
+         3Pfw==
+X-Gm-Message-State: AOAM530UI3zyQQB2ZWDACzDtoPXETfTXspAjIn+5VeNZVNIgUkcpFdyP
+        4QLfaAtZ4+CZVCcQxw0rxHM=
+X-Google-Smtp-Source: ABdhPJwSTyy/UEJQ5uIrxum+kq4DojYedsdQto1Q/RdQRtly0MAoQIPvCRI7CPKWSvqg6p6/oJRYKw==
+X-Received: by 2002:a05:600c:2194:: with SMTP id e20mr557589wme.173.1622760024967;
+        Thu, 03 Jun 2021 15:40:24 -0700 (PDT)
+Received: from valhalla.home ([91.110.88.218])
+        by smtp.gmail.com with ESMTPSA id f14sm4612103wry.40.2021.06.03.15.40.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Jun 2021 15:27:51 -0700 (PDT)
-Date:   Thu, 3 Jun 2021 16:27:49 -0600
-From:   Raul E Rangel <rrangel@chromium.org>
-To:     Mario Limonciello <mario.limonciello@amd.com>
-Cc:     Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@fb.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        "open list:NVM EXPRESS DRIVER" <linux-nvme@lists.infradead.org>,
-        linux-acpi@vger.kernel.org, david.e.box@linux.intel.com,
-        Shyam-sundar.S-k@amd.com, Alexander.Deucher@amd.com,
-        prike.liang@amd.com
-Subject: Re: [PATCH v4] acpi: Move check for _DSD StorageD3Enable property to
- acpi
-Message-ID: <YLlXZcp6ne7hcXNM@google.com>
-References: <20210603190753.5084-1-mario.limonciello@amd.com>
+        Thu, 03 Jun 2021 15:40:24 -0700 (PDT)
+From:   Daniel Scally <djrscally@gmail.com>
+To:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Maximilian Luz <luzmaximilian@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, devel@acpica.org
+Cc:     Len Brown <lenb@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Wolfram Sang <wsa@kernel.org>,
+        Mark Gross <mgross@linux.intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Subject: [PATCH v5 4/6] gpiolib: acpi: Add acpi_gpio_get_io_resource()
+Date:   Thu,  3 Jun 2021 23:40:05 +0100
+Message-Id: <20210603224007.120560-5-djrscally@gmail.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210603224007.120560-1-djrscally@gmail.com>
+References: <20210603224007.120560-1-djrscally@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210603190753.5084-1-mario.limonciello@amd.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jun 03, 2021 at 02:07:53PM -0500, Mario Limonciello wrote:
-> Although first implemented for NVME, this check may be usable by
-> other drivers as well. Microsoft's specification explicitly mentions
-> that is may be usable by SATA and AHCI devices.  Google also indicates
-> that they have used this with SDHCI in a downstream kernel tree that
-> a user can plug a storage device into.
-> 
-> Link: Link: https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-intro
-> Suggested-by: Keith Busch <kbusch@kernel.org>
-> CC: rrangel@chromium.org
-> CC: david.e.box@linux.intel.com
-> CC: Shyam-sundar S-k <Shyam-sundar.S-k@amd.com>
-> CC: Alexander Deucher <Alexander.Deucher@amd.com>
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> CC: Prike Liang <prike.liang@amd.com>
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
->  drivers/acpi/device_pm.c | 25 +++++++++++++++++++++++++
->  drivers/nvme/host/pci.c  | 28 +---------------------------
->  include/linux/acpi.h     |  5 +++++
->  3 files changed, 31 insertions(+), 27 deletions(-)
-> 
-> Changes from v3->v4
->  * Rebase on nvme-5.14 (w/ patch 1/2 from v3 of series accepted)
->  * Adjust commit message per Christoph's suggestions
->  * Adjust documentation per Christoph's suggestions
-> 
-> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-> index d260bc1f3e6e..1edb68d00b8e 100644
-> --- a/drivers/acpi/device_pm.c
-> +++ b/drivers/acpi/device_pm.c
-> @@ -1340,4 +1340,29 @@ int acpi_dev_pm_attach(struct device *dev, bool power_on)
->  	return 1;
->  }
->  EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
-> +
-> +/**
-> + * acpi_storage_d3 - Check if a storage device should use D3.
-> + * @dev: Device to check
-> + *
-> + * Returns %true if @dev should be put into D3 when the ->suspend method is
-> + * called, else %false.  The name of this function is somewhat misleading
-> + * as it has nothing to do with storage except for the name of the ACPI
-> + * property.  On some platforms resume will not work if this hint is ignored.
-> + *
-> + */
-> +bool acpi_storage_d3(struct device *dev)
-> +{
-> +	struct acpi_device *adev = ACPI_COMPANION(dev);
-> +	u8 val;
-> +
-> +	if (!adev)
-> +		return false;
-> +	if (fwnode_property_read_u8(acpi_fwnode_handle(adev), "StorageD3Enable",
-> +			&val))
-> +		return false;
-> +	return val == 1;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_storage_d3);
-> +
->  #endif /* CONFIG_PM */
-> diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-> index 3aa7245a505f..8fbc4c87a0d8 100644
-> --- a/drivers/nvme/host/pci.c
-> +++ b/drivers/nvme/host/pci.c
-> @@ -2828,32 +2828,6 @@ static unsigned long check_vendor_combination_bug(struct pci_dev *pdev)
->  	return 0;
->  }
->  
-> -#ifdef CONFIG_ACPI
-> -static bool nvme_acpi_storage_d3(struct pci_dev *dev)
-> -{
-> -	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-> -	u8 val;
-> -
-> -	/*
-> -	 * Look for _DSD property specifying that the storage device on the port
-> -	 * must use D3 to support deep platform power savings during
-> -	 * suspend-to-idle.
-> -	 */
-> -
-> -	if (!adev)
-> -		return false;
-> -	if (fwnode_property_read_u8(acpi_fwnode_handle(adev), "StorageD3Enable",
-> -			&val))
-> -		return false;
-> -	return val == 1;
-> -}
-> -#else
-> -static inline bool nvme_acpi_storage_d3(struct pci_dev *dev)
-> -{
-> -	return false;
-> -}
-> -#endif /* CONFIG_ACPI */
-> -
->  static void nvme_async_probe(void *data, async_cookie_t cookie)
->  {
->  	struct nvme_dev *dev = data;
-> @@ -2903,7 +2877,7 @@ static int nvme_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  
->  	quirks |= check_vendor_combination_bug(pdev);
->  
-> -	if (!noacpi && nvme_acpi_storage_d3(pdev)) {
-> +	if (!noacpi && acpi_storage_d3(&pdev->dev)) {
->  		/*
->  		 * Some systems use a bios work around to ask for D3 on
->  		 * platforms that support kernel managed suspend.
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index c60745f657e9..dd0dafd21e33 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1004,6 +1004,7 @@ int acpi_dev_resume(struct device *dev);
->  int acpi_subsys_runtime_suspend(struct device *dev);
->  int acpi_subsys_runtime_resume(struct device *dev);
->  int acpi_dev_pm_attach(struct device *dev, bool power_on);
-> +bool acpi_storage_d3(struct device *dev);
->  #else
->  static inline int acpi_subsys_runtime_suspend(struct device *dev) { return 0; }
->  static inline int acpi_subsys_runtime_resume(struct device *dev) { return 0; }
-> @@ -1011,6 +1012,10 @@ static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
->  {
->  	return 0;
->  }
-> +static inline bool acpi_storage_d3(struct device *dev)
-> +{
-> +	return false;
-> +}
->  #endif
->  
->  #if defined(CONFIG_ACPI) && defined(CONFIG_PM_SLEEP)
+Add a function to verify that a given acpi_resource represents an IO
+type GPIO resource, and return it if so.
 
-Tested on an AMD Chromebook and it still works.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Daniel Scally <djrscally@gmail.com>
+---
+Changes since v4:
+	- None
 
-Reviewed-by: Raul E Rangel <rrangel@chromium.org>
+ drivers/gpio/gpiolib-acpi.c | 23 +++++++++++++++++++++++
+ include/linux/acpi.h        |  7 +++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 684ddb35d83b..9887bb684575 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -196,6 +196,29 @@ bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
+ }
+ EXPORT_SYMBOL_GPL(acpi_gpio_get_irq_resource);
+ 
++/**
++ * acpi_gpio_get_io_resource - Fetch details of an ACPI resource if it is a GPIO
++ *			       I/O resource or return False if not.
++ * @ares:	Pointer to the ACPI resource to fetch
++ * @agpio:	Pointer to a &struct acpi_resource_gpio to store the output pointer
++ */
++bool acpi_gpio_get_io_resource(struct acpi_resource *ares,
++			       struct acpi_resource_gpio **agpio)
++{
++	struct acpi_resource_gpio *gpio;
++
++	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
++		return false;
++
++	gpio = &ares->data.gpio;
++	if (gpio->connection_type != ACPI_RESOURCE_GPIO_TYPE_IO)
++		return false;
++
++	*agpio = gpio;
++	return true;
++}
++EXPORT_SYMBOL_GPL(acpi_gpio_get_io_resource);
++
+ static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
+ 				      struct acpi_gpio_event *event)
+ {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 170b9bebdb2b..e8ba7063c000 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1098,6 +1098,8 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
+ #if defined(CONFIG_ACPI) && defined(CONFIG_GPIOLIB)
+ bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
+ 				struct acpi_resource_gpio **agpio);
++bool acpi_gpio_get_io_resource(struct acpi_resource *ares,
++			       struct acpi_resource_gpio **agpio);
+ int acpi_dev_gpio_irq_get_by(struct acpi_device *adev, const char *name, int index);
+ #else
+ static inline bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
+@@ -1105,6 +1107,11 @@ static inline bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
+ {
+ 	return false;
+ }
++static inline bool acpi_gpio_get_io_resource(struct acpi_resource *ares,
++					     struct acpi_resource_gpio **agpio)
++{
++	return false;
++}
+ static inline int acpi_dev_gpio_irq_get_by(struct acpi_device *adev,
+ 					   const char *name, int index)
+ {
+-- 
+2.25.1
+
