@@ -2,237 +2,193 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BDD6C47082
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 08:53:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D77C9C47082
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 11:21:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3179060FF1
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 08:53:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C392E613E7
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Jun 2021 11:21:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229640AbhFCIz0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Jun 2021 04:55:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54668 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229623AbhFCIz0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2021 04:55:26 -0400
-Received: from mail-vs1-xe2f.google.com (mail-vs1-xe2f.google.com [IPv6:2607:f8b0:4864:20::e2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65479C06174A
-        for <linux-acpi@vger.kernel.org>; Thu,  3 Jun 2021 01:53:32 -0700 (PDT)
-Received: by mail-vs1-xe2f.google.com with SMTP id f15so2585075vsq.12
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Jun 2021 01:53:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=solid-run-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Myemz5k16Nb16eM+VNAAZnl9WcdJHNpws7yrBRTSzQ8=;
-        b=FIiLMwkjVLQwvIDeLZi02NT81EiYl8Vfp2TJ4+4aniF2IcsesHL+BydP/wXTPVWmgI
-         SBAcJ2BAoTaOeIrGslJ5XmYP49OoR3Tu4uRa3pvDMs5SBYgCy+yG4VRr4v6lMaBYnDLc
-         SKOeIG230/Eizv18tylHUlXlsoTt3u48K+zr+c9e31PVBp+K0OMj/IAUWRemEvdT+Or1
-         p1zgDyza8IIruANBM7NvSo8ggNoATA7iKA4qQO+XsS0UTBvAR6KHhUpDQo/0CcRjMH3n
-         mOIamavU9Bjb/bEFlzcfgqPwYMjHD5VeKXFFJyQKqgskoI/jocKzYi8bTUUQCfuW9xer
-         xung==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Myemz5k16Nb16eM+VNAAZnl9WcdJHNpws7yrBRTSzQ8=;
-        b=muwuzx0zhgKvMKUopVOOSEmNJ7sHIBWDAWhApy8b3s7En8F5KRdHdSQLp7w5hGoO38
-         +KpYVCs6D5Y9+3BfWD1Qk1Djs/0MBWQel69StidcNkKEruYcKqRLhprYXF5lTSJUI6gn
-         NUEzVxJ5OEydd1F0V6vn/udgKLv9VuRKn9jcD93QpnLUmtGZTz+AtU5Z+la81KAyacmv
-         u8bhqD1LS4B14QZ0amT3JrB1BmMQLd7Gb1dOT5nEbh2p7kXTZsuhFAYx53xUY0vzpBIy
-         7BGBaMg00qBxu7yFTETbVttv4Ni9XSn2Rtm3lQHqu50k7kGgLmP/wcuw8ftaKZD8CBNV
-         cgyA==
-X-Gm-Message-State: AOAM5336RhaKDcBNTIW3BaQcIwuAOyFhbk6gBRxhfJhni36bdXNUu614
-        r0pFe5INzifFxZwTWrvoN6CROyssAjPxyJMS/xlKXg==
-X-Google-Smtp-Source: ABdhPJxj+4IT8+6qr07qq87ubJ2nmPl8BZS/9F8+PlebID2YL/LATooVU+fmNI4LSTztODs2WUyyuopyqMoKE7EXvwM=
-X-Received: by 2002:a67:b406:: with SMTP id x6mr7014288vsl.10.1622710410065;
- Thu, 03 Jun 2021 01:53:30 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210524110222.2212-1-shameerali.kolothum.thodi@huawei.com> <20210524110222.2212-8-shameerali.kolothum.thodi@huawei.com>
-In-Reply-To: <20210524110222.2212-8-shameerali.kolothum.thodi@huawei.com>
-From:   Jon Nettleton <jon@solid-run.com>
-Date:   Thu, 3 Jun 2021 10:52:53 +0200
-Message-ID: <CABdtJHvo7HZ0R1EzLrN2gVKfgcBWz5YRU-KSg==xvHR-01KWkw@mail.gmail.com>
-Subject: Re: [PATCH v5 7/8] iommu/arm-smmu: Get associated RMR info and
- install bypass SMR
+        id S229746AbhFCLWq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Jun 2021 07:22:46 -0400
+Received: from foss.arm.com ([217.140.110.172]:38618 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229786AbhFCLWq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Jun 2021 07:22:46 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1FE681063;
+        Thu,  3 Jun 2021 04:21:01 -0700 (PDT)
+Received: from lpieralisi (e121166-lin.cambridge.arm.com [10.1.196.255])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 585D83F774;
+        Thu,  3 Jun 2021 04:20:59 -0700 (PDT)
+Date:   Thu, 3 Jun 2021 12:20:54 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc:     linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        iommu@lists.linux-foundation.org, Linuxarm <linuxarm@huawei.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, joro@8bytes.org,
-        Robin Murphy <robin.murphy@arm.com>,
-        wanghuiqiang <wanghuiqiang@huawei.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Steven Price <steven.price@arm.com>, Sami.Mujawar@arm.com,
-        eric.auger@redhat.com, yangyicong <yangyicong@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linuxarm@huawei.com,
+        joro@8bytes.org, robin.murphy@arm.com, wanghuiqiang@huawei.com,
+        guohanjun@huawei.com, steven.price@arm.com, Sami.Mujawar@arm.com,
+        jon@solid-run.com, eric.auger@redhat.com, yangyicong@huawei.com
+Subject: Re: [PATCH v4 3/8] ACPI/IORT: Add a helper to retrieve RMR memory
+ regions
+Message-ID: <20210603112054.GA14606@lpieralisi>
+References: <20210513134550.2117-1-shameerali.kolothum.thodi@huawei.com>
+ <20210513134550.2117-4-shameerali.kolothum.thodi@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210513134550.2117-4-shameerali.kolothum.thodi@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, May 24, 2021 at 1:04 PM Shameer Kolothum
-<shameerali.kolothum.thodi@huawei.com> wrote:
->
-> From: Jon Nettleton <jon@solid-run.com>
->
-> Check if there is any RMR info associated with the devices behind
-> the SMMU and if any, install bypass SMRs for them. This is to
-> keep any ongoing traffic associated with these devices alive
-> when we enable/reset SMMU during probe().
->
-> Signed-off-by: Jon Nettleton <jon@solid-run.com>
-> Signed-off-by: Steven Price <steven.price@arm.com>
+On Thu, May 13, 2021 at 02:45:45PM +0100, Shameer Kolothum wrote:
+> Add a helper function that retrieves RMR memory descriptors
+> associated with a given IOMMU. This will be used by IOMMU
+> drivers to setup necessary mappings.
+> 
+> Now that we have this, invoke it from the generic helper
+
+"Add a helper function (iort_iommu_get_rmrs()) that retrieves RMR memory
+descriptors associated with a given IOMMU. This will be used by IOMMU
+drivers to setup necessary mappings.
+
+Invoke it from the generic helper iommu_dma_get_rmrs()."
+
+> interface.
+> 
 > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 > ---
->  drivers/iommu/arm/arm-smmu/arm-smmu.c | 65 +++++++++++++++++++++++++++
->  1 file changed, 65 insertions(+)
->
-> diff --git a/drivers/iommu/arm/arm-smmu/arm-smmu.c b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> index 6f72c4d208ca..56db3d3238fc 100644
-> --- a/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> +++ b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-> @@ -2042,6 +2042,67 @@ err_reset_platform_ops: __maybe_unused;
->         return err;
+>  drivers/acpi/arm64/iort.c | 40 +++++++++++++++++++++++++++++++++++++++
+>  drivers/iommu/dma-iommu.c |  3 +++
+>  include/linux/acpi_iort.h |  7 +++++++
+>  3 files changed, 50 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index fea1ffaedf3b..6ca88c38987a 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -12,6 +12,7 @@
+>  
+>  #include <linux/acpi_iort.h>
+>  #include <linux/bitfield.h>
+> +#include <linux/dma-iommu.h>
+>  #include <linux/iommu.h>
+>  #include <linux/kernel.h>
+>  #include <linux/list.h>
+> @@ -837,6 +838,43 @@ static inline int iort_add_device_replay(struct device *dev)
+>  	return err;
 >  }
->
-> +static void arm_smmu_rmr_install_bypass_smr(struct arm_smmu_device *smmu)
+>  
+> +/**
+> + * iort_iommu_get_rmrs - Helper to retrieve RMR info associated with IOMMU
+
+iort_iommu_get_rmrs()
+
+please check other functions comments in the patchset.
+
+> + * @iommu: fwnode for the IOMMU
+
+Does not match the parameter.
+
+> + * @head: RMR list head to be populated
+> + *
+> + * Returns: 0 on success, <0 failure
+> + */
+> +int iort_iommu_get_rmrs(struct fwnode_handle *iommu_fwnode,
+> +			struct list_head *head)
 > +{
-> +       struct list_head rmr_list;
-> +       struct iommu_resv_region *e;
-> +       int i, cnt = 0;
-> +       u32 smr;
-> +       u32 reg;
+> +	struct iort_rmr_entry *e;
+> +	struct acpi_iort_node *iommu;
 > +
-> +       INIT_LIST_HEAD(&rmr_list);
-> +       if (iommu_dma_get_rmrs(dev_fwnode(smmu->dev), &rmr_list))
-> +               return;
+> +	iommu = iort_get_iort_node(iommu_fwnode);
+> +	if (!iommu)
+> +		return -EINVAL;
 > +
-> +       reg = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_sCR0);
+> +	list_for_each_entry(e, &iort_rmr_list, list) {
+> +		struct acpi_iort_rmr_desc *rmr_desc;
+> +		struct iommu_rmr *rmr;
 > +
-> +       if ((reg & ARM_SMMU_sCR0_USFCFG) && !(reg & ARM_SMMU_sCR0_CLIENTPD)) {
-> +               /*
-> +                * SMMU is already enabled and disallowing bypass, so preserve
-> +                * the existing SMRs
-> +                */
-> +               for (i = 0; i < smmu->num_mapping_groups; i++) {
-> +                       smr = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_SMR(i));
-> +                       if (!FIELD_GET(ARM_SMMU_SMR_VALID, smr))
-> +                               continue;
-> +                       smmu->smrs[i].id = FIELD_GET(ARM_SMMU_SMR_ID, smr);
-> +                       smmu->smrs[i].mask = FIELD_GET(ARM_SMMU_SMR_MASK, smr);
-> +                       smmu->smrs[i].valid = true;
-> +               }
-> +       }
+> +		if (e->smmu != iommu)
+> +			continue;
 > +
-> +       list_for_each_entry(e, &rmr_list, list) {
-> +               u32 sid = e->fw_data.rmr.sid;
+> +		rmr_desc = e->rmr_desc;
+> +		rmr = iommu_dma_alloc_rmr(rmr_desc->base_address,
+> +					  rmr_desc->length, e->sid,
+> +					  e->flags);
+> +		if (!rmr)
+> +			return -ENOMEM;
+
+I suppose it is OK to leave the already allocated regions allocated
+on -ENOMEM.
+
+Probably worth clarifying it in the function comment.
+
+Lorenzo
+
 > +
-> +               i = arm_smmu_find_sme(smmu, sid, ~0);
-> +               if (i < 0)
-> +                       continue;
-> +               if (smmu->s2crs[i].count == 0) {
-> +                       smmu->smrs[i].id = sid;
-> +                       smmu->smrs[i].mask = ~0;
-> +                       smmu->smrs[i].valid = true;
-> +               }
-> +               smmu->s2crs[i].count++;
-> +               smmu->s2crs[i].type = S2CR_TYPE_BYPASS;
-> +               smmu->s2crs[i].privcfg = S2CR_PRIVCFG_DEFAULT;
-> +               smmu->s2crs[i].cbndx = 0xff;
+> +		list_add_tail(&rmr->list, head);
+> +	}
 > +
-> +               cnt++;
-> +       }
-> +
-> +       if ((reg & ARM_SMMU_sCR0_USFCFG) && !(reg & ARM_SMMU_sCR0_CLIENTPD)) {
-> +               /* Remove the valid bit for unused SMRs */
-> +               for (i = 0; i < smmu->num_mapping_groups; i++) {
-> +                       if (smmu->s2crs[i].count == 0)
-> +                               smmu->smrs[i].valid = false;
-> +               }
-> +       }
-> +
-> +       dev_notice(smmu->dev, "\tpreserved %d boot mapping%s\n", cnt,
-> +                  cnt == 1 ? "" : "s");
-> +       iommu_dma_put_rmrs(dev_fwnode(smmu->dev), &rmr_list);
+> +	return 0;
 > +}
 > +
->  static int arm_smmu_device_probe(struct platform_device *pdev)
+>  /**
+>   * iort_iommu_msi_get_resv_regions - Reserved region driver helper
+>   * @dev: Device from iommu_get_resv_regions()
+> @@ -1108,6 +1146,8 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+>  const struct iommu_ops *iort_iommu_configure_id(struct device *dev,
+>  						const u32 *input_id)
+>  { return NULL; }
+> +int iort_iommu_get_rmrs(struct fwnode_handle *fwnode, struct list_head *head)
+> +{ return -ENODEV; }
+>  #endif
+>  
+>  static int nc_dma_get_range(struct device *dev, u64 *size)
+> diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+> index 674bd8815159..2d9caf548a32 100644
+> --- a/drivers/iommu/dma-iommu.c
+> +++ b/drivers/iommu/dma-iommu.c
+> @@ -203,6 +203,9 @@ EXPORT_SYMBOL(iommu_dma_get_resv_regions);
+>  int iommu_dma_get_rmrs(struct fwnode_handle *iommu_fwnode,
+>  		       struct list_head *list)
 >  {
->         struct resource *res;
-> @@ -2168,6 +2229,10 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
->         }
->
->         platform_set_drvdata(pdev, smmu);
+> +	if (!is_of_node(iommu_fwnode))
+> +		return iort_iommu_get_rmrs(iommu_fwnode, list);
 > +
-> +       /* Check for RMRs and install bypass SMRs if any */
-> +       arm_smmu_rmr_install_bypass_smr(smmu);
+>  	return -EINVAL;
+>  }
+>  EXPORT_SYMBOL(iommu_dma_get_rmrs);
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 1a12baa58e40..e8c45fa59531 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -39,6 +39,8 @@ const struct iommu_ops *iort_iommu_configure_id(struct device *dev,
+>  						const u32 *id_in);
+>  int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head);
+>  phys_addr_t acpi_iort_dma_get_max_cpu_address(void);
+> +int iort_iommu_get_rmrs(struct fwnode_handle *iommu_fwnode,
+> +			struct list_head *list);
+>  #else
+>  static inline void acpi_iort_init(void) { }
+>  static inline u32 iort_msi_map_id(struct device *dev, u32 id)
+> @@ -59,6 +61,11 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+>  
+>  static inline phys_addr_t acpi_iort_dma_get_max_cpu_address(void)
+>  { return PHYS_ADDR_MAX; }
 > +
->         arm_smmu_device_reset(smmu);
->         arm_smmu_test_smr_masks(smmu);
->
-> --
+> +static inline
+> +int iort_iommu_get_rmrs(struct fwnode_handle *iommu_fwnode,
+> +			struct list_head *list)
+> +{ return -ENODEV; }
+>  #endif
+>  
+>  #endif /* __ACPI_IORT_H__ */
+> -- 
 > 2.17.1
->
-
-Shameer and Robin
-
-I finally got around to updating edk2 and the HoneyComb IORT tables to
-reflect the new standards.
-Out of the box the new patchset was generating errors immediatly after
-the smmu bringup.
-
-arm-smmu arm-smmu.0.auto: Unhandled context fault: fsr=0x402, iova=0x2080000140,
-fsynr=0x1d0040, cbfrsynra=0x4000, cb=0
-
-These errors were generated even with disable_bypass=0
-
-I tracked down the issue to
-
-This code is skipped as Robin said would be correct
-
-> +       if ((reg & ARM_SMMU_sCR0_USFCFG) && !(reg & ARM_SMMU_sCR0_CLIENTPD)) {
-> +               /*
-> +                * SMMU is already enabled and disallowing bypass, so preserve
-> +                * the existing SMRs
-> +                */
-> +               for (i = 0; i < smmu->num_mapping_groups; i++) {
-> +                       smr = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_SMR(i));
-> +                       if (!FIELD_GET(ARM_SMMU_SMR_VALID, smr))
-> +                               continue;
-> +                       smmu->smrs[i].id = FIELD_GET(ARM_SMMU_SMR_ID, smr);
-> +                       smmu->smrs[i].mask = FIELD_GET(ARM_SMMU_SMR_MASK, smr);
-> +                       smmu->smrs[i].valid = true;
-> +               }[    2.707729] arm-smmu: setting up rmr list on 0x4000
-[    2.712598] arm-smmu: s2crs count is 0 smrs index 0x0
-[    2.717638] arm-smmu: s2crs count is 0 smrs id is 0x4000
-[    2.722939] arm-smmu: s2crs count is 0 smrs mask is 0x8000
-[    2.728417] arm-smmu arm-smmu.0.auto:        preserved 1 boot mapping
-
-> +       }
-
-Then this code block was hit which is correct
-
-> +               if (smmu->s2crs[i].count == 0) {
-> +                       smmu->smrs[i].id = sid;
-> +                       smmu->smrs[i].mask = ~0;
-> +                       smmu->smrs[i].valid = true;
-> +               }
-
-The mask was causing the issue.  If I think ammended that segment to read
-the mask as setup by the hardware everything was back to functioning both
-with and without disable_bypass set.
-
-Some debug from that section when it is working
-
-[    2.712598] arm-smmu: s2crs count is 0 smrs index 0x0
-[    2.717638] arm-smmu: s2crs count is 0 smrs id is 0x4000
-[    2.722939] arm-smmu: s2crs count is 0 smrs mask is 0x8000
-[    2.728417] arm-smmu arm-smmu.0.auto:        preserved 1 boot mapping
-
-Robin if anything jumps out at you let me know, otherwise I will debug further.
-
--Jon
+> 
