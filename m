@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ABC0C4743C
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A89C48BCD
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0830A61407
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9193761408
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231283AbhFDWCt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Jun 2021 18:02:49 -0400
-Received: from mga06.intel.com ([134.134.136.31]:62965 "EHLO mga06.intel.com"
+        id S231553AbhFDWCs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Jun 2021 18:02:48 -0400
+Received: from mga12.intel.com ([192.55.52.136]:18462 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231295AbhFDWCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Jun 2021 18:02:47 -0400
-IronPort-SDR: FWkmneAKmOFy7HnIm3KmFwbW9nIf/6zTlX838KVybZwDgmtLIzX/kgFFv+uZtN7HErxG8IBgwg
- 36ABWAuUgyZg==
-X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="265539946"
+        id S230227AbhFDWCq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Jun 2021 18:02:46 -0400
+IronPort-SDR: L3Vsm1csd8puZh/1SVesvympWctxl0Gc+SsXkaPtWtlOtrL7PDnXhcjBiVKcLurtRugREAMxLu
+ p3+QzRAQwzmw==
+X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="184060106"
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="265539946"
+   d="scan'208";a="184060106"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:56 -0700
-IronPort-SDR: 2q0IJEYXlM/KrbYT3aH+3y8HP+I/oGuj88OKAkX6OUCo+gMiDsozWF0Ja+bTmzJ68pqBPlA9px
- x8VHRDYSveFQ==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:56 -0700
+IronPort-SDR: kOih0kN7SZ1MsEBc4gYDG5iTUl/Wt7zzFxdug2r5RsrNk+ydFx79Ds9N6HBsX4B1CDZ9f9F1g+
+ XV5aVbDJnTew==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="634146713"
+   d="scan'208";a="634146728"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
-  by fmsmga006.fm.intel.com with ESMTP; 04 Jun 2021 15:00:55 -0700
+  by fmsmga006.fm.intel.com with ESMTP; 04 Jun 2021 15:00:56 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Bob Moore <robert.moore@intel.com>,
+Cc:     Alison Schofield <alison.schofield@intel.com>,
+        Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 06/14] ACPICA: iASL Table Compiler: Add full support for RGRT ACPI table
-Date:   Fri,  4 Jun 2021 14:26:00 -0700
-Message-Id: <20210604212608.2604267-7-erik.kaneda@intel.com>
+Subject: [PATCH 10/14] ACPICA: Add defines for the CXL Host Bridge Structure (CHBS)
+Date:   Fri,  4 Jun 2021 14:26:04 -0700
+Message-Id: <20210604212608.2604267-11-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210604212608.2604267-1-erik.kaneda@intel.com>
 References: <20210604212608.2604267-1-erik.kaneda@intel.com>
@@ -50,64 +51,42 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Alison Schofield <alison.schofield@intel.com>
 
-ACPICA commit 6949e1dd2d92788a994ce657857fe8809159e71e
+ACPICA commit 5ace82441a34f8d45725f12f6bd2677e79c186a6
 
-Includes compiler, disassembler, and template generator.
+CXL 2.0 defines length and version field values for the CHBS.
+Include them in the ACPI CEDT table definition.
 
-Link: https://github.com/acpica/acpica/commit/6949e1dd
+Link: https://github.com/acpica/acpica/commit/5ace8244
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ include/acpi/actbl1.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index d042341e8ba9..f1d5e8950527 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -40,6 +40,7 @@
- #define ACPI_SIG_PMTT           "PMTT"	/* Platform Memory Topology Table */
- #define ACPI_SIG_PPTT           "PPTT"	/* Processor Properties Topology Table */
- #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
-+#define ACPI_SIG_RGRT           "RGRT"	/* Regulatory Graphics Resource Table */
- #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
- #define ACPI_SIG_SDEI           "SDEI"	/* Software Delegated Exception Interface Table */
- #define ACPI_SIG_SDEV           "SDEV"	/* Secure Devices table */
-@@ -1790,6 +1791,32 @@ enum acpi_rasf_status {
- #define ACPI_RASF_ERROR                 (1<<2)
- #define ACPI_RASF_STATUS                (0x1F<<3)
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index ce59903c2695..8532f56a51d6 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -330,6 +330,16 @@ enum acpi_cedt_type {
+ 	ACPI_CEDT_TYPE_RESERVED = 1
+ };
  
-+/*******************************************************************************
-+ *
-+ * RGRT - Regulatory Graphics Resource Table
-+ *        Version 1
-+ *
-+ * Conforms to "ACPI RGRT" available at:
-+ * https://microsoft.github.io/mu/dyn/mu_plus/ms_core_pkg/acpi_RGRT/feature_acpi_rgrt/
-+ *
-+ ******************************************************************************/
++/* Values for version field above */
 +
-+struct acpi_table_rgrt {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+	u16 version;
-+	u8 image_type;
-+	u8 reserved;
-+	u8 image[0];
-+};
++#define ACPI_CEDT_CHBS_VERSION_CXL11    (0)
++#define ACPI_CEDT_CHBS_VERSION_CXL20    (1)
 +
-+/* image_type values */
++/* Values for length field above */
 +
-+enum acpi_rgrt_image_type {
-+	ACPI_RGRT_TYPE_RESERVED0 = 0,
-+	ACPI_RGRT_IMAGE_TYPE_PNG = 1,
-+	ACPI_RGRT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
-+};
++#define ACPI_CEDT_CHBS_LENGTH_CXL11     (0x2000)
++#define ACPI_CEDT_CHBS_LENGTH_CXL20     (0x10000)
 +
- /*******************************************************************************
-  *
-  * SBST - Smart Battery Specification Table
+ /*
+  * CEDT subtables
+  */
 -- 
 2.29.2
 
