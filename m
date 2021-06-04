@@ -2,180 +2,180 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BBBBC07E94
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 14:10:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4BFAC07E94
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 14:19:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B43F6140C
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 14:10:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4364613FF
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 14:19:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231174AbhFDOMH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Jun 2021 10:12:07 -0400
-Received: from mail-wm1-f44.google.com ([209.85.128.44]:42979 "EHLO
-        mail-wm1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231164AbhFDOMH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2021 10:12:07 -0400
-Received: by mail-wm1-f44.google.com with SMTP id o2-20020a05600c4fc2b029019a0a8f959dso5710536wmq.1;
-        Fri, 04 Jun 2021 07:10:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=MYbOHTjKAIubB26NWy6blCn6jMexjYelF/SCF4KLYBM=;
-        b=NnchJqNSeEqijUeniIVorUZChIr8whszcRfqCmiLBNGPVl0S1YfS3y1q6HCu43oLRe
-         /7fPueHOA6y833aDNjkfwwN+6CggiT5ViFI9AKufKs2gjLrj/wwBvNX3KOQfVoa67NkH
-         QJ5/Mr/lriaJlx4bOk2J0AElKoaVF7cZ5ZJZycCPR0DhA0VbEUICCeR3Zz83/OqGaHvs
-         lRE3H+98+vAO7gfNb30V6LAZ2p/IlLg4Z3xzUSsv4BT1fvlBqmSk34lwU6yX2XSeC9jF
-         WmrLGVkoqPfnjnYYA70Z3NZw/7EPclgZmY8AGho1QzophphwX18CywCl6TT3vaaZNLOf
-         FJkg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=MYbOHTjKAIubB26NWy6blCn6jMexjYelF/SCF4KLYBM=;
-        b=U79D27SNrnC6CYuoSD+SY9Fcl0gsAsnqTv7WTQPkKihyLRgdJM+j9xxi0kP3wjdQEa
-         mtFvDIsRv4pIcqFCIlqV3WiKfaTvI4JkgG6jWn21egsgtCdRznGj3wAIz1nwE8cGfioH
-         qz2cdAQYFU44+tJ4xNxa3vfVjn6yxyGvEk8Yt2kh8h0Ott4HnwJnYnUV56EnFWI15nrq
-         YkV5tTSnXIdelZnIcfky6sstfaXqPuO2dud4CFdiM+8ke2BDqawAE99/wLXTZTPySIOM
-         B5sMmDjgyUSeiA7wKgJ8m1b6AHRzlt+HFSyByBYl9NGmys9jR1D1Opyk7ZgeSGlYAw2c
-         3nUA==
-X-Gm-Message-State: AOAM530AzrJTEdIEmj0GX458zxVU89kG8frzBwiy4Cp8luRg1K+ut2aV
-        R/5cNKXZ7cMQp1tciVv+8mg=
-X-Google-Smtp-Source: ABdhPJwp4iUyQA0gJMy7m2YEEOSu8/w15silx0ciWQYwyyo+fqOsulsICwzmNa/aG6DRCiptYCvQzw==
-X-Received: by 2002:a1c:a484:: with SMTP id n126mr3950601wme.34.1622815759578;
-        Fri, 04 Jun 2021 07:09:19 -0700 (PDT)
-Received: from [192.168.1.211] ([2.29.20.84])
-        by smtp.gmail.com with ESMTPSA id i16sm5912553wmm.9.2021.06.04.07.09.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 04 Jun 2021 07:09:19 -0700 (PDT)
-Subject: Re: [PATCH v5 3/6] gpiolib: acpi: Export acpi_get_gpiod()
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, devel@acpica.org,
-        Len Brown <lenb@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Wolfram Sang <wsa@kernel.org>,
-        Mark Gross <mgross@linux.intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>,
-        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-References: <20210603224007.120560-1-djrscally@gmail.com>
- <20210603224007.120560-4-djrscally@gmail.com>
- <YLojymirRB5HpFQY@smile.fi.intel.com>
-From:   Daniel Scally <djrscally@gmail.com>
-Message-ID: <d8eb43b6-c842-6b1f-5840-f558d54f1498@gmail.com>
-Date:   Fri, 4 Jun 2021 15:09:17 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+        id S230234AbhFDOUw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Jun 2021 10:20:52 -0400
+Received: from foss.arm.com ([217.140.110.172]:40180 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230124AbhFDOUv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Jun 2021 10:20:51 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0D3372B;
+        Fri,  4 Jun 2021 07:19:05 -0700 (PDT)
+Received: from [192.168.0.14] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 20A173F774;
+        Fri,  4 Jun 2021 07:19:02 -0700 (PDT)
+Subject: Re: [PATCH v5] ACPI / APEI: fix the regression of synchronous
+ external aborts occur in user-mode
+To:     Xiaofei Tan <tanxiaofei@huawei.com>, rafael@kernel.org,
+        rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com,
+        bp@alien8.de, akpm@linux-foundation.org, jroedel@suse.de,
+        peterz@infradead.org
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linuxarm@huawei.com
+References: <1607602177-1507-1-git-send-email-tanxiaofei@huawei.com>
+From:   James Morse <james.morse@arm.com>
+Message-ID: <d57d786c-f9cb-46ba-78d0-3675666272f2@arm.com>
+Date:   Fri, 4 Jun 2021 15:19:01 +0100
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
 MIME-Version: 1.0
-In-Reply-To: <YLojymirRB5HpFQY@smile.fi.intel.com>
+In-Reply-To: <1607602177-1507-1-git-send-email-tanxiaofei@huawei.com>
 Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
-Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Andy
+Hi Xiaofei Tan,
 
-On 04/06/2021 13:59, Andy Shevchenko wrote:
-> On Thu, Jun 03, 2021 at 11:40:04PM +0100, Daniel Scally wrote:
->> We need to be able to translate GPIO resources in an ACPI device's _CRS
->> into GPIO descriptor array. Those are represented in _CRS as a pathname
->> to a GPIO device plus the pin's index number: the acpi_get_gpiod()
->> function is perfect for that purpose.
->>
->> As it's currently only used internally within the GPIO layer, provide and
->> export a wrapper function that additionally holds a reference to the GPIO
->> device.
-> The subject is wrong, it should be "Introduce acpi_get_and_request_gpiod()
-> helper" or so. I can fix when applying.
+Sorry for the delayed response,
+this still applies and builds to v5.13-rc4.
+
+On 10/12/2020 12:09, Xiaofei Tan wrote:
+> After the commit 8fcc4ae6faf8 ("arm64: acpi: Make apei_claim_sea()
+> synchronise with APEI's irq work") applied, do_sea() return directly
+> for user-mode if apei_claim_sea() handled any error record. Therefore,
+> each error record reported by the user-mode SEA must be effectively
+> processed in APEI GHES driver.
+
+If you describe it the other way round, it would be clearer what the problem here is.
+Something like:
+| Before commit 8fcc4ae6faf8 ("arm64: acpi: Make apei_claim_sea() synchronise
+| with APEI's irq work"), do_sea() would unconditionally signal the affected task
+| from the arch code. Since that change, the GHES driver sends the signals,.
+| This exposes a problem as errors the GHES driver doesn't understand are silently
+| ignored.
 
 
-Ah! That was sloppy, sorry.
+> Currently, GHES driver only processes Memory Error Section.(Ignore PCIe
+> Error Section, as it has nothing to do with SEA).
 
-> Btw, do I understand correctly that I may push GPIO ACPI patches independently
-> (of the ACPI changes)?
+(you're starting to confuse me! - I went and checked before I realised you were talking to
+me, not describing the code...)
+
+> It is not enough. > Because ARM Processor Error could also be used for SEA in some hardware
+> platforms, such as Kunpeng9xx series. We can't ask them to switch to
+> use Memory Error Section for two reasons:
+> 1)The server was delivered to customers, and it will introduce
+> compatibility issue.
+> 2)It make sense to use ARM Processor Error Section. Because either
+> cache or memory errors could generate SEA when consumed by a processor.
+
+I think you just need to say:
+| Existing firmware on Kunpeng9xx systems reports cache errors with the 'ARM Processor
+| Error' CPER records.
 
 
-They're independent yes.
+Could you add something about why the silent-ignore is a problem? Do the errors get taken
+again? Does user-space get stuck in this loop?
 
->
->> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->> Signed-off-by: Daniel Scally <djrscally@gmail.com>
->> ---
->> Changes since v4:
->> 	- None
->>
->>  drivers/gpio/gpiolib-acpi.c   | 28 ++++++++++++++++++++++++++++
->>  include/linux/gpio/consumer.h |  2 ++
->>  2 files changed, 30 insertions(+)
->>
->> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
->> index 5b4111e4be3f..684ddb35d83b 100644
->> --- a/drivers/gpio/gpiolib-acpi.c
->> +++ b/drivers/gpio/gpiolib-acpi.c
->> @@ -128,6 +128,34 @@ static struct gpio_desc *acpi_get_gpiod(char *path, int pin)
->>  	return gpiochip_get_desc(chip, pin);
->>  }
->>  
->> +/**
->> + * acpi_get_and_request_gpiod() - Translate ACPI GPIO pin to GPIO descriptor
->> + *                               and hold a refcount to the GPIO device.
->> + * @path:      ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
->> + * @pin:       ACPI GPIO pin number (0-based, controller-relative)
->> + * @label:     Label to pass to gpiod_request()
->> + *
->> + * This function is a simple pass-through to acpi_get_gpiod(), except that
->> + * as it is intended for use outside of the GPIO layer (in a similar fashion to
->> + * gpiod_get_index() for example) it also holds a reference to the GPIO device.
->> + */
->> +struct gpio_desc *acpi_get_and_request_gpiod(char *path, int pin, char *label)
->> +{
->> +	struct gpio_desc *gpio;
->> +	int ret;
->> +
->> +	gpio = acpi_get_gpiod(path, pin);
->> +	if (IS_ERR(gpio))
->> +		return gpio;
->> +
->> +	ret = gpiod_request(gpio, label);
->> +	if (ret)
->> +		return ERR_PTR(ret);
->> +
->> +	return gpio;
->> +}
->> +EXPORT_SYMBOL_GPL(acpi_get_and_request_gpiod);
->> +
->>  static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
->>  {
->>  	struct acpi_gpio_event *event = data;
->> diff --git a/include/linux/gpio/consumer.h b/include/linux/gpio/consumer.h
->> index c73b25bc9213..566feb56601f 100644
->> --- a/include/linux/gpio/consumer.h
->> +++ b/include/linux/gpio/consumer.h
->> @@ -692,6 +692,8 @@ int devm_acpi_dev_add_driver_gpios(struct device *dev,
->>  				   const struct acpi_gpio_mapping *gpios);
->>  void devm_acpi_dev_remove_driver_gpios(struct device *dev);
->>  
->> +struct gpio_desc *acpi_get_and_request_gpiod(char *path, int pin, char *label);
->> +
->>  #else  /* CONFIG_GPIOLIB && CONFIG_ACPI */
->>  
->>  struct acpi_device;
->> -- 
->> 2.25.1
->>
+
+> Do memory failure handling for ARM Processor Error Section just like
+> for Memory Error Section.
+
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index fce7ade..0893968 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+
+> +static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata, int sev)
+> +{
+> +	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
+> +	struct cper_arm_err_info *err_info;
+> +	bool queued = false;
+> +	int sec_sev, i;
+> +
+> +	log_arm_hw_error(err);
+> +
+> +	sec_sev = ghes_severity(gdata->error_severity);
+> +	if (sev != GHES_SEV_RECOVERABLE || sec_sev != GHES_SEV_RECOVERABLE)
+> +		return false;
+> +
+> +	err_info = (struct cper_arm_err_info *) (err + 1);
+> +	for (i = 0; i < err->err_info_num; i++, err_info++) {
+
+err_info has a version and a length, so its expected to be made bigger at some point.
+It would be better to use the length instead of 'err_info++', or at least to break out of
+the loop if a length > sizeof(*err_info) is seen.
+
+With that:
+Reviewed-by: James Morse <james.morse@arm.com>
+
+
+The following nits would make this easier to read:
+
+> +		bool is_cache = (err_info->type == CPER_ARM_CACHE_ERROR);
+> +		bool has_pa = (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR);
+
+> +		/*
+> +		 * The field (err_info->error_info & BIT(26)) is fixed to set to
+> +		 * 1 in some old firmware of HiSilicon Kunpeng920. We assume that
+> +		 * firmware won't mix corrected errors in an uncorrected section,
+> +		 * and don't filter out 'corrected' error here.
+> +		 */
+(Nothing reads err_info->error_info, I guess this is a warning to the next person to touch
+this)
+
+
+> +		if (!is_cache || !has_pa) {
+> +			pr_warn_ratelimited(FW_WARN GHES_PFX
+> +			"Unhandled processor error type %s\n",
+> +			err_info->type < ARRAY_SIZE(cper_proc_error_type_strs) ?
+> +			cper_proc_error_type_strs[err_info->type] : "unknown error");
+> +			continue;
+
+This is hard to read. The convention is to indent the extra lines to the relevant '('.
+e.g.:
+|			pr_warn_ratelimited(FW_WARN GHES_PFX
+|					    "Unhandled processor error type %s\n",
+
+You could make it shorter by working out the error_type string earlier
+e.g.:
+|		char *error_type = "unknown_error";
+|			
+|		if  (err_info->type < ARRAY_SIZE(cper_proc_error_type_strs)
+|			error_type = cper_proc_error_type_strs[err_info->type];
+
+
+> +		}
+
+> +		if (ghes_do_memory_failure(err_info->physical_fault_addr, 0))
+> +			queued = true;
+
+| if (it_returned_true())
+| 	queued = true;
+
+Looks funny, and if you moved this earlier, your pr_warn_ratelimted() would have an extra
+level of indentation to play with.
+i.e.:
+|		if (is_cache && has_pa) {
+|			queued = ghes_do_memory_failure(err_info->physical_fault_addr, 0);
+|			continue;
+|		}
+
+
+Thanks,
+
+James
