@@ -7,41 +7,40 @@ X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2645CC4743D
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ABC0C4743C
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A09561408
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0830A61407
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231295AbhFDWCt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S231283AbhFDWCt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 4 Jun 2021 18:02:49 -0400
-Received: from mga06.intel.com ([134.134.136.31]:62960 "EHLO mga06.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:62965 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231365AbhFDWCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S231295AbhFDWCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 4 Jun 2021 18:02:47 -0400
-IronPort-SDR: 7YYU4YEojnb3UZ/WEzyYy/LOPEIM+w2ipYTcT4OHSwMu4OVRNLCY+zO/d3CbOgFdDaNOURzsZX
- 3aVFvTzZQnCw==
-X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="265539947"
+IronPort-SDR: FWkmneAKmOFy7HnIm3KmFwbW9nIf/6zTlX838KVybZwDgmtLIzX/kgFFv+uZtN7HErxG8IBgwg
+ 36ABWAuUgyZg==
+X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="265539946"
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="265539947"
+   d="scan'208";a="265539946"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:56 -0700
-IronPort-SDR: V4tVm4USqr++/9lRx5nBvPiqGAxLOufcMStwKnAZpbBkWJwLETOhKAdz0ODvUroJWATbzhYziD
- juAYC4Jwskkg==
+IronPort-SDR: 2q0IJEYXlM/KrbYT3aH+3y8HP+I/oGuj88OKAkX6OUCo+gMiDsozWF0Ja+bTmzJ68pqBPlA9px
+ x8VHRDYSveFQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="634146716"
+   d="scan'208";a="634146713"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by fmsmga006.fm.intel.com with ESMTP; 04 Jun 2021 15:00:55 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Wei Ming Chen <jj251510319013@gmail.com>,
-        Bob Moore <robert.moore@intel.com>,
+Cc:     Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 07/14] ACPICA: Use ACPI_FALLTHROUGH
-Date:   Fri,  4 Jun 2021 14:26:01 -0700
-Message-Id: <20210604212608.2604267-8-erik.kaneda@intel.com>
+Subject: [PATCH 06/14] ACPICA: iASL Table Compiler: Add full support for RGRT ACPI table
+Date:   Fri,  4 Jun 2021 14:26:00 -0700
+Message-Id: <20210604212608.2604267-7-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210604212608.2604267-1-erik.kaneda@intel.com>
 References: <20210604212608.2604267-1-erik.kaneda@intel.com>
@@ -51,33 +50,64 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Wei Ming Chen <jj251510319013@gmail.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 2296edd39b4ce2d2dd691c1f309c4da00843ecc9
+ACPICA commit 6949e1dd2d92788a994ce657857fe8809159e71e
 
-Replace /* FALLTHROUGH */ comment with ACPI_FALLTHROUGH
+Includes compiler, disassembler, and template generator.
 
-Link: https://github.com/acpica/acpica/commit/2296edd3
-Signed-off-by: Wei Ming Chen <jj251510319013@gmail.com>
+Link: https://github.com/acpica/acpica/commit/6949e1dd
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- drivers/acpi/acpica/utprint.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/acpi/actbl2.h | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/drivers/acpi/acpica/utprint.c b/drivers/acpi/acpica/utprint.c
-index e37d612e8db5..05426596d1f4 100644
---- a/drivers/acpi/acpica/utprint.c
-+++ b/drivers/acpi/acpica/utprint.c
-@@ -475,7 +475,7 @@ int vsnprintf(char *string, acpi_size size, const char *format, va_list args)
- 		case 'X':
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index d042341e8ba9..f1d5e8950527 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -40,6 +40,7 @@
+ #define ACPI_SIG_PMTT           "PMTT"	/* Platform Memory Topology Table */
+ #define ACPI_SIG_PPTT           "PPTT"	/* Processor Properties Topology Table */
+ #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
++#define ACPI_SIG_RGRT           "RGRT"	/* Regulatory Graphics Resource Table */
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
+ #define ACPI_SIG_SDEI           "SDEI"	/* Software Delegated Exception Interface Table */
+ #define ACPI_SIG_SDEV           "SDEV"	/* Secure Devices table */
+@@ -1790,6 +1791,32 @@ enum acpi_rasf_status {
+ #define ACPI_RASF_ERROR                 (1<<2)
+ #define ACPI_RASF_STATUS                (0x1F<<3)
  
- 			type |= ACPI_FORMAT_UPPER;
--			/* FALLTHROUGH */
-+			ACPI_FALLTHROUGH;
- 
- 		case 'x':
- 
++/*******************************************************************************
++ *
++ * RGRT - Regulatory Graphics Resource Table
++ *        Version 1
++ *
++ * Conforms to "ACPI RGRT" available at:
++ * https://microsoft.github.io/mu/dyn/mu_plus/ms_core_pkg/acpi_RGRT/feature_acpi_rgrt/
++ *
++ ******************************************************************************/
++
++struct acpi_table_rgrt {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u16 version;
++	u8 image_type;
++	u8 reserved;
++	u8 image[0];
++};
++
++/* image_type values */
++
++enum acpi_rgrt_image_type {
++	ACPI_RGRT_TYPE_RESERVED0 = 0,
++	ACPI_RGRT_IMAGE_TYPE_PNG = 1,
++	ACPI_RGRT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
++};
++
+ /*******************************************************************************
+  *
+  * SBST - Smart Battery Specification Table
 -- 
 2.29.2
 
