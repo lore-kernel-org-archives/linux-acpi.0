@@ -2,100 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 325E3C4743C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 203D0C4743D
 	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1891261414
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F33B061407
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230175AbhFDWCr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Jun 2021 18:02:47 -0400
-Received: from mga12.intel.com ([192.55.52.136]:18462 "EHLO mga12.intel.com"
+        id S231213AbhFDWCq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Jun 2021 18:02:46 -0400
+Received: from mga06.intel.com ([134.134.136.31]:62958 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231169AbhFDWCp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Jun 2021 18:02:45 -0400
-IronPort-SDR: Hxs6BTmPozdaXjpAW2OJxHglZClmdpI6NC1AP3U1QSDjIYunc1Ac1tmuWEOo+BKLOoJmS71A/f
- rBR8kKag/dGw==
-X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="184060104"
+        id S230175AbhFDWCo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Jun 2021 18:02:44 -0400
+IronPort-SDR: 8rcv9kNAqEWdOHPqEOzF51BJ3XQ1iRGUNHVFLn1ehd+tjVTs3PR42lHLQ/dMVSWoH6viiq2Xu5
+ TtK3E+Rj3fmg==
+X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="265539939"
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="184060104"
+   d="scan'208";a="265539939"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:56 -0700
-IronPort-SDR: 4i31ChS5kKmB/0+emtTYq1K++z/RfCedE9RgyLYWdr6IlK5Lm2UMcZmD8BfVx7XEMTP2WFhtOm
- KmtJmH84fP5Q==
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:54 -0700
+IronPort-SDR: eWTn1Vi+IMkY3Axgc5bdTGvvQpShUF3cqq1mk+Y5AqrtHzgGx+OOTSaGtBDGVpcLCkcYEyFXZv
+ xUS0Re6nmSfw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="634146725"
+   d="scan'208";a="634146694"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
-  by fmsmga006.fm.intel.com with ESMTP; 04 Jun 2021 15:00:56 -0700
+  by fmsmga006.fm.intel.com with ESMTP; 04 Jun 2021 15:00:54 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Bob Moore <robert.moore@intel.com>,
-        Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 09/14] ACPICA: iASL: Add support for the BDAT ACPI table
-Date:   Fri,  4 Jun 2021 14:26:03 -0700
-Message-Id: <20210604212608.2604267-10-erik.kaneda@intel.com>
+Cc:     Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH 00/14] ACPICA version 20210604
+Date:   Fri,  4 Jun 2021 14:25:54 -0700
+Message-Id: <20210604212608.2604267-1-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210604212608.2604267-1-erik.kaneda@intel.com>
-References: <20210604212608.2604267-1-erik.kaneda@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+This series contains the linux-ized patch set of ACPICA version
+20210604. The patch mostly contains additional structures for ACPI
+tables. In addition, this patch set contains ACPICA support for
+a new OperationRegion subtype called PlatformRtMechanism (for PRM).
+As far as ACPICA is concerned, this subtype will hand off a buffer to a
+handler registered by the OS.
 
-Includes: Table compiler, disassembler, and template generator.
+Other than that, I will be leaving Intel and this will be my last
+ACPICA release. With that said, Rafael will take over this role for
+the timebeing. If you have any ACPICA related questions, I will be
+around for a few more days so please feel free to reach out.
 
-ACPICA commit 81eb9c383e6dee0f1b6620e91e5c3dbb48234831
+Thanks,
+Erik Kaneda
 
-Link: https://github.com/acpica/acpica/commit/81eb9c38
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
----
- include/acpi/actbl2.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Alison Schofield (2):
+  ACPICA: Add defines for the CXL Host Bridge Structure (CHBS)
+  ACPICA: Add the CFMWS structure definition to the CEDT table
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index f1d5e8950527..68a607961b2f 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -24,6 +24,7 @@
-  * file. Useful because they make it more difficult to inadvertently type in
-  * the wrong signature.
-  */
-+#define ACPI_SIG_BDAT           "BDAT"	/* BIOS Data ACPI Table */
- #define ACPI_SIG_IORT           "IORT"	/* IO Remapping Table */
- #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
- #define ACPI_SIG_LPIT           "LPIT"	/* Low Power Idle Table */
-@@ -65,6 +66,20 @@
-  * See http://stackoverflow.com/a/1053662/41661
-  */
- 
-+/*******************************************************************************
-+ *
-+ * BDAT - BIOS Data ACPI Table
-+ *
-+ * Conforms to "BIOS Data ACPI Table", Interface Specification v4.0 Draft 5
-+ * Nov 2020
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_table_bdat {
-+	struct acpi_table_header header;
-+	struct acpi_generic_address gas;
-+};
-+
- /*******************************************************************************
-  *
-  * IORT - IO Remapping Table
+Bob Moore (5):
+  ACPICA: iASL: Finish support for the IVRS ACPI table
+  ACPICA: iASL: Add support for the SVKL table
+  ACPICA: iASL Table Compiler: Add full support for RGRT ACPI table
+  ACPICA: iASL: Add support for the BDAT ACPI table
+  ACPICA: Update version to 20210604 Version 20210604.
+
+Erik Kaneda (3):
+  ACPICA: Fix memory leak caused by _CID repair function
+  ACPICA: iASL: add disassembler support for PRMT
+  ACPICA: Add support for PlatformRtMechanism OperationRegion handler
+
+Fabian Wüthrich (1):
+  ACPICA: Add _PLD panel positions
+
+Kuppuswamy Sathyanarayanan (2):
+  ACPICA: ACPI 6.4: MADT: add Multiprocessor Wakeup Mailbox Structure
+  ACPICA: Add SVKL table headers
+
+Wei Ming Chen (1):
+  ACPICA: Use ACPI_FALLTHROUGH
+
+ drivers/acpi/acpica/acutils.h   |   2 +
+ drivers/acpi/acpica/exfield.c   |   8 +-
+ drivers/acpi/acpica/exserial.c  |  12 +++
+ drivers/acpi/acpica/nsrepair2.c |   7 ++
+ drivers/acpi/acpica/utprint.c   |   2 +-
+ drivers/acpi/acpica/utuuid.c    |  41 ++++++++++
+ include/acpi/acbuffer.h         |  10 +++
+ include/acpi/acconfig.h         |   2 +
+ include/acpi/acpixf.h           |   2 +-
+ include/acpi/actbl1.h           |  41 +++++++++-
+ include/acpi/actbl2.h           | 132 ++++++++++++++++++++++++++++++++
+ 11 files changed, 254 insertions(+), 5 deletions(-)
+
 -- 
 2.29.2
 
