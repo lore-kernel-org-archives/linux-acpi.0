@@ -2,66 +2,113 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA92C4743C
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 16:49:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 857CCC4743C
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 16:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 10B81611CA
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 16:49:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6741B61287
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 16:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230139AbhFDQup (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Jun 2021 12:50:45 -0400
-Received: from mga07.intel.com ([134.134.136.100]:64998 "EHLO mga07.intel.com"
+        id S229878AbhFDQwZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Jun 2021 12:52:25 -0400
+Received: from mga12.intel.com ([192.55.52.136]:56388 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229690AbhFDQup (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Jun 2021 12:50:45 -0400
-IronPort-SDR: bVgKiHNIO7K9UpYg5QcnG5CHVjHfmn0H2sZ8dSZWuJTLXkQ1otwn7lE6KlanPWhLWNSHK/YYNU
- w+n496gDkGQQ==
-X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="268190871"
+        id S229864AbhFDQwY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Jun 2021 12:52:24 -0400
+IronPort-SDR: KfucV+FVcD5GuI6TPFi3Ako5Do0kuDUn7VyNwy0MHJG4ac4qbgrK1aAhwIL7Pxg3OA+KNfaDAe
+ 6bUTmI4H3Xog==
+X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="184008919"
 X-IronPort-AV: E=Sophos;i="5.83,248,1616482800"; 
-   d="scan'208";a="268190871"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 09:48:57 -0700
-IronPort-SDR: 9wOlInoqYA751mr8le012/TypXkupO6akfjIziX+RfVvml843oacg8MmH07/bH657qTNtYtTLz
- a//8QdSiohsw==
+   d="scan'208";a="184008919"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 09:50:34 -0700
+IronPort-SDR: N5LXwJMvgp3m7Ry5PmKkpXvI9J5zliqZXZx2OBsWkJSTGOcdtMYGP0V0BIQm3GWRsBVNU00KY/
+ zInwbfPFujjg==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,248,1616482800"; 
-   d="scan'208";a="551217750"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 09:48:55 -0700
-Received: from andy by smile with local (Exim 4.94)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1lpD09-00HGfZ-3C; Fri, 04 Jun 2021 19:48:53 +0300
-Date:   Fri, 4 Jun 2021 19:48:53 +0300
+   d="scan'208";a="412420880"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga007.fm.intel.com with ESMTP; 04 Jun 2021 09:50:31 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 8510B67; Fri,  4 Jun 2021 19:50:54 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, kernel test robot <lkp@intel.com>
-Subject: Re: [PATCH v2 1/2] ACPI: bus: Constify stubs for CONFIG_ACPI=n case
-Message-ID: <YLpZdRKsj4UZbfgN@smile.fi.intel.com>
-References: <20210604163433.12707-1-andriy.shevchenko@linux.intel.com>
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devel@acpica.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH v3 2/3] ACPI: bus: Constify acpi_dma_supported() helper function
+Date:   Fri,  4 Jun 2021 19:50:46 +0300
+Message-Id: <20210604165047.13243-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210604165047.13243-1-andriy.shevchenko@linux.intel.com>
+References: <20210604165047.13243-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210604163433.12707-1-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jun 04, 2021 at 07:34:32PM +0300, Andy Shevchenko wrote:
-> There is a few stubs that left untouched during constification of
-> the fwnode related APIs. Constify three more stubs here.
+Constify arguments to acpi_dma_supported(). The function doesn't need
+to change the content of the passed argument and when it's const it
+allows to supply the result of other functions that may return a pointer
+to a constant object.
 
-Kbuild bot found another non-const APIs in use which requires an additional
-change. I'll send v3 soon. Please, ignore this one.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v3: new patch
+ drivers/acpi/scan.c     | 2 +-
+ include/acpi/acpi_bus.h | 2 +-
+ include/linux/acpi.h    | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index a2df7bcf4d07..5040ce3c3ed1 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1405,7 +1405,7 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp)
+  *
+  * Return false if DMA is not supported. Otherwise, return true
+  */
+-bool acpi_dma_supported(struct acpi_device *adev)
++bool acpi_dma_supported(const struct acpi_device *adev)
+ {
+ 	if (!adev)
+ 		return false;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 3a82faac5767..2fbd2c2e0568 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -586,7 +586,7 @@ struct acpi_pci_root {
+ 
+ /* helper */
+ 
+-bool acpi_dma_supported(struct acpi_device *adev);
++bool acpi_dma_supported(const struct acpi_device *adev);
+ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
+ int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
+ 		       u64 *size);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 40657f220f8b..97f1c5588b5a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -911,7 +911,7 @@ acpi_create_platform_device(struct acpi_device *adev,
+ 	return NULL;
+ }
+ 
+-static inline bool acpi_dma_supported(struct acpi_device *adev)
++static inline bool acpi_dma_supported(const struct acpi_device *adev)
+ {
+ 	return false;
+ }
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.2
 
