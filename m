@@ -4,43 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15C5BC48BDF
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2645CC4743D
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 005356140F
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A09561408
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Jun 2021 22:01:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231470AbhFDWCt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S231295AbhFDWCt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 4 Jun 2021 18:02:49 -0400
 Received: from mga06.intel.com ([134.134.136.31]:62960 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231263AbhFDWCq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Jun 2021 18:02:46 -0400
-IronPort-SDR: Wn3RmQ1gXCwazYajhypgJO5in4yFJANQ3SXPvY3exfVlvNV+zLS374bT5Bd8NooKvtRK0/l6o5
- YCOx4YhY3x9g==
-X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="265539944"
+        id S231365AbhFDWCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Jun 2021 18:02:47 -0400
+IronPort-SDR: 7YYU4YEojnb3UZ/WEzyYy/LOPEIM+w2ipYTcT4OHSwMu4OVRNLCY+zO/d3CbOgFdDaNOURzsZX
+ 3aVFvTzZQnCw==
+X-IronPort-AV: E=McAfee;i="6200,9189,10005"; a="265539947"
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="265539944"
+   d="scan'208";a="265539947"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:55 -0700
-IronPort-SDR: Yn2kWrOV5eRMLid3o+am3Yh0VU4a8EmYQgOVx2kDAs3DjpHDU7+X4cZhkf3ZhlVBvcH+9PodtV
- fPTPzJ3yWeGg==
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2021 15:00:56 -0700
+IronPort-SDR: V4tVm4USqr++/9lRx5nBvPiqGAxLOufcMStwKnAZpbBkWJwLETOhKAdz0ODvUroJWATbzhYziD
+ juAYC4Jwskkg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,249,1616482800"; 
-   d="scan'208";a="634146707"
+   d="scan'208";a="634146716"
 Received: from sibelius.jf.intel.com ([10.54.75.166])
   by fmsmga006.fm.intel.com with ESMTP; 04 Jun 2021 15:00:55 -0700
 From:   Erik Kaneda <erik.kaneda@intel.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Bob Moore <robert.moore@intel.com>,
+Cc:     Wei Ming Chen <jj251510319013@gmail.com>,
+        Bob Moore <robert.moore@intel.com>,
         Erik Kaneda <erik.kaneda@intel.com>
-Subject: [PATCH 04/14] ACPICA: iASL: Finish support for the IVRS ACPI table
-Date:   Fri,  4 Jun 2021 14:25:58 -0700
-Message-Id: <20210604212608.2604267-5-erik.kaneda@intel.com>
+Subject: [PATCH 07/14] ACPICA: Use ACPI_FALLTHROUGH
+Date:   Fri,  4 Jun 2021 14:26:01 -0700
+Message-Id: <20210604212608.2604267-8-erik.kaneda@intel.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210604212608.2604267-1-erik.kaneda@intel.com>
 References: <20210604212608.2604267-1-erik.kaneda@intel.com>
@@ -50,39 +51,33 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Wei Ming Chen <jj251510319013@gmail.com>
 
-1) Add compiler support for IVRS.
-2) Update disassembler support for IVRS.
-3) Add a new utility, ut_is_id_integer to determine if a HID/CID is
-   an integer or a string.
+ACPICA commit 2296edd39b4ce2d2dd691c1f309c4da00843ecc9
 
-ACPICA commit 7eb0b770cb0efcf089cb217b5f8bafc0c6395a3d
+Replace /* FALLTHROUGH */ comment with ACPI_FALLTHROUGH
 
-Link: https://github.com/acpica/acpica/commit/7eb0b770
+Link: https://github.com/acpica/acpica/commit/2296edd3
+Signed-off-by: Wei Ming Chen <jj251510319013@gmail.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
 ---
- include/acpi/actbl2.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/acpi/acpica/utprint.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index d8fec67e4c8c..42c78fecca7c 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -447,6 +447,12 @@ struct acpi_ivrs_device_hid {
- 	u8 uid_length;
- };
+diff --git a/drivers/acpi/acpica/utprint.c b/drivers/acpi/acpica/utprint.c
+index e37d612e8db5..05426596d1f4 100644
+--- a/drivers/acpi/acpica/utprint.c
++++ b/drivers/acpi/acpica/utprint.c
+@@ -475,7 +475,7 @@ int vsnprintf(char *string, acpi_size size, const char *format, va_list args)
+ 		case 'X':
  
-+/* Values for uid_type above */
-+
-+#define ACPI_IVRS_UID_NOT_PRESENT   0
-+#define ACPI_IVRS_UID_IS_INTEGER    1
-+#define ACPI_IVRS_UID_IS_STRING     2
-+
- /* 0x20, 0x21, 0x22: I/O Virtualization Memory Definition Block (IVMD) */
+ 			type |= ACPI_FORMAT_UPPER;
+-			/* FALLTHROUGH */
++			ACPI_FALLTHROUGH;
  
- struct acpi_ivrs_memory {
+ 		case 'x':
+ 
 -- 
 2.29.2
 
