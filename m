@@ -2,97 +2,103 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A4ABC47082
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4201C47082
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:24:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB07461246
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:23:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85944611C0
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:24:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbhFGMZL convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Jun 2021 08:25:11 -0400
-Received: from mail-oi1-f179.google.com ([209.85.167.179]:34502 "EHLO
-        mail-oi1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230173AbhFGMZK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jun 2021 08:25:10 -0400
-Received: by mail-oi1-f179.google.com with SMTP id u11so17832902oiv.1
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Jun 2021 05:23:04 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=cCw6LqVcomzEqqujdFHiNyHGkT82MjMLx4Phtx56qGI=;
-        b=UBdT364KT0CB8BX5EtVijgCG7WwteeIStQIyPyiCf//HfMftiVT1a79Pe/kEiVUxKt
-         ZknTt6eXVLrIgnE0AbSYjMqBLmfq2lmV0nZg1sZmgLdQgO7kJBa0WTqYD3iv7PxiRejo
-         6YWL/QgQhUDtOg4VF4LlXtghy6EMHPjG/IZmJZu7S1pCYS5MberwXCx529LGFm1MX5CS
-         svrRJqb+vZ4tL2wm00eSnWNeYe9LZmDHbr1YWjvAU3a+PJamg52wimJim1U6agsR0L4d
-         NxAEjoCs3dt89IEm4Pm/5kYLxUQE+jAfxjqYl8mtdK5n8OX2yj/IhnAh9N/jj0+Ognv9
-         HIHw==
-X-Gm-Message-State: AOAM531bDwxy1KUSRZ40eGx7+xl9sxztRMrg2MjEAHc3f5jFeiToMhDr
-        BztkPN9VKdYADlK5D52H64SevO/q/2WXoHchcijdnhRn
-X-Google-Smtp-Source: ABdhPJxo8eq8JPJ0aeJUiac43GpdBhblif6QMQufDMgFBTybbdctDzge5xjkUpQbynvTxPgCrtm2Ul/umUGxDH6+Z9Q=
-X-Received: by 2002:aca:1910:: with SMTP id l16mr10545300oii.69.1623068584483;
- Mon, 07 Jun 2021 05:23:04 -0700 (PDT)
+        id S230227AbhFGM0h (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Jun 2021 08:26:37 -0400
+Received: from mga07.intel.com ([134.134.136.100]:57549 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230145AbhFGM0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Jun 2021 08:26:36 -0400
+IronPort-SDR: vhxk3OgWXVw/8lcQsLliDTJPLAYQpOD334+9+62SA0m7RhJA35TtkWHHxnE9GGHRf1ZKUxI/tb
+ qEerpf4tx1vQ==
+X-IronPort-AV: E=McAfee;i="6200,9189,10007"; a="268466119"
+X-IronPort-AV: E=Sophos;i="5.83,255,1616482800"; 
+   d="scan'208";a="268466119"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2021 05:24:45 -0700
+IronPort-SDR: CgjSJ6TRwOHRmiqqOmtJQVsgP9VlrV5h7jC/DT7HPVSjq5QCEVW2vkYsGMWjZ6H/bdXI9arK1O
+ BuLTRchJkKXw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,255,1616482800"; 
+   d="scan'208";a="476187978"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by FMSMGA003.fm.intel.com with ESMTP; 07 Jun 2021 05:24:42 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id C6CC1A3; Mon,  7 Jun 2021 15:25:05 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Thierry Reding <thierry.reding@gmail.com>,
+        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Flavio Suligoi <f.suligoi@asem.it>, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Cc:     Jonathan Corbet <corbet@lwn.net>, Lee Jones <lee.jones@linaro.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Subject: [PATCH v3 2/6] pwm: core: Convert to use fwnode for matching
+Date:   Mon,  7 Jun 2021 15:24:54 +0300
+Message-Id: <20210607122458.40073-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210607122458.40073-1-andriy.shevchenko@linux.intel.com>
+References: <20210607122458.40073-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <20210604212608.2604267-1-erik.kaneda@intel.com>
-In-Reply-To: <20210604212608.2604267-1-erik.kaneda@intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 7 Jun 2021 14:22:53 +0200
-Message-ID: <CAJZ5v0h8fG1LJo0a+EWC3T2nOaLC3zXR5uSU2gHrrOgK=j7PrQ@mail.gmail.com>
-Subject: Re: [PATCH 00/14] ACPICA version 20210604
-To:     Erik Kaneda <erik.kaneda@intel.com>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Jun 5, 2021 at 12:00 AM Erik Kaneda <erik.kaneda@intel.com> wrote:
->
-> This series contains the linux-ized patch set of ACPICA version
-> 20210604. The patch mostly contains additional structures for ACPI
-> tables. In addition, this patch set contains ACPICA support for
-> a new OperationRegion subtype called PlatformRtMechanism (for PRM).
-> As far as ACPICA is concerned, this subtype will hand off a buffer to a
-> handler registered by the OS.
->
-> Other than that, I will be leaving Intel and this will be my last
-> ACPICA release. With that said, Rafael will take over this role for
-> the timebeing. If you have any ACPICA related questions, I will be
-> around for a few more days so please feel free to reach out.
+When we traverse the list of the registered PWM controllers,
+use fwnode to match. This will help for further cleanup.
 
-Many thanks for the great work you've done on the ACPICA front Erik,
-and good luck with your future endeavours!
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v3: no change
+v2: no change
 
-> Alison Schofield (2):
->   ACPICA: Add defines for the CXL Host Bridge Structure (CHBS)
->   ACPICA: Add the CFMWS structure definition to the CEDT table
->
-> Bob Moore (5):
->   ACPICA: iASL: Finish support for the IVRS ACPI table
->   ACPICA: iASL: Add support for the SVKL table
->   ACPICA: iASL Table Compiler: Add full support for RGRT ACPI table
->   ACPICA: iASL: Add support for the BDAT ACPI table
->   ACPICA: Update version to 20210604 Version 20210604.
->
-> Erik Kaneda (3):
->   ACPICA: Fix memory leak caused by _CID repair function
->   ACPICA: iASL: add disassembler support for PRMT
->   ACPICA: Add support for PlatformRtMechanism OperationRegion handler
->
-> Fabian Wüthrich (1):
->   ACPICA: Add _PLD panel positions
->
-> Kuppuswamy Sathyanarayanan (2):
->   ACPICA: ACPI 6.4: MADT: add Multiprocessor Wakeup Mailbox Structure
->   ACPICA: Add SVKL table headers
->
-> Wei Ming Chen (1):
->   ACPICA: Use ACPI_FALLTHROUGH
+ drivers/pwm/core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-The entire series has been applied as 5.14 material, thanks!
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index a42999f877d2..f26da1a6a376 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -692,14 +692,14 @@ int pwm_adjust_config(struct pwm_device *pwm)
+ }
+ EXPORT_SYMBOL_GPL(pwm_adjust_config);
+ 
+-static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
++static struct pwm_chip *fwnode_to_pwmchip(struct fwnode_handle *fwnode)
+ {
+ 	struct pwm_chip *chip;
+ 
+ 	mutex_lock(&pwm_lock);
+ 
+ 	list_for_each_entry(chip, &pwm_chips, list)
+-		if (chip->dev && chip->dev->of_node == np) {
++		if (chip->dev && dev_fwnode(chip->dev) == fwnode) {
+ 			mutex_unlock(&pwm_lock);
+ 			return chip;
+ 		}
+@@ -778,7 +778,7 @@ struct pwm_device *of_pwm_get(struct device *dev, struct device_node *np,
+ 		return ERR_PTR(err);
+ 	}
+ 
+-	pc = of_node_to_pwmchip(args.np);
++	pc = fwnode_to_pwmchip(of_fwnode_handle(args.np));
+ 	if (IS_ERR(pc)) {
+ 		if (PTR_ERR(pc) != -EPROBE_DEFER)
+ 			pr_err("%s(): PWM chip not found\n", __func__);
+-- 
+2.30.2
+
