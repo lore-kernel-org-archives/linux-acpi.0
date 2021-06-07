@@ -2,167 +2,139 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02A0CC47095
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:24:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B217C47094
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:26:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFC01611C0
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:24:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D044611C0
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Jun 2021 12:26:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230355AbhFGM0q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Jun 2021 08:26:46 -0400
-Received: from mga03.intel.com ([134.134.136.65]:5348 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230299AbhFGM0o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Jun 2021 08:26:44 -0400
-IronPort-SDR: 8AHKoG/vhYz6SByWEGNbcJ8sFr4Os+coKjkSAwmF53YavrYxpOXklf4P29WP7xwvU2Mqmm1CQv
- A/pGHwNGKUog==
-X-IronPort-AV: E=McAfee;i="6200,9189,10007"; a="204632406"
-X-IronPort-AV: E=Sophos;i="5.83,255,1616482800"; 
-   d="scan'208";a="204632406"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2021 05:24:45 -0700
-IronPort-SDR: nk7mFwZw0urwRzAXPFLsAc5obYE7cvQHM/9Bl13BYBDMsO1FFSioME0B7u6bdA9hGln/5bK748
- db0sFLgWySQw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,255,1616482800"; 
-   d="scan'208";a="418493327"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga002.jf.intel.com with ESMTP; 07 Jun 2021 05:24:42 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id E0B991EA; Mon,  7 Jun 2021 15:25:05 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Thierry Reding <thierry.reding@gmail.com>,
-        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Flavio Suligoi <f.suligoi@asem.it>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Cc:     Jonathan Corbet <corbet@lwn.net>, Lee Jones <lee.jones@linaro.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Subject: [PATCH v3 5/6] pwm: core: Remove unused devm_pwm_put()
-Date:   Mon,  7 Jun 2021 15:24:57 +0300
-Message-Id: <20210607122458.40073-5-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210607122458.40073-1-andriy.shevchenko@linux.intel.com>
-References: <20210607122458.40073-1-andriy.shevchenko@linux.intel.com>
+        id S230403AbhFGM2C (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Jun 2021 08:28:02 -0400
+Received: from mail-oi1-f175.google.com ([209.85.167.175]:34813 "EHLO
+        mail-oi1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230127AbhFGM17 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jun 2021 08:27:59 -0400
+Received: by mail-oi1-f175.google.com with SMTP id u11so17840384oiv.1;
+        Mon, 07 Jun 2021 05:26:00 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wdDQeamXj3jujBs4RjQQaDnJ/RZcKu30A1Qy5s12Tes=;
+        b=YQJDbPGFlNtR+JRpTN5RUEcb8D0XCtZGJp+MPHDbWkSPyptLVLUQh2bYFk/mkdAL95
+         KKeFFaXcUp8pWQJlro+umXhq3baZiJGR46w7npkduEUT5xQKWRIslq5KcWVsZMg0pb3U
+         U+w+F6SmSNc25TZVyuSGWJZ22c0DEUNr6C8hnaszHzX9BzbEDl/eFc9NcCvd6ltXUoao
+         PFEBlXfOGzBomdSVBw58e8VNJL6Ue+pUNcCkX203TG5O3vAT06AWrF5pS+loV7dKYEKQ
+         R19ZAWHqDLQMuVtjmDYPdx/L9TaTvVIpyVriAa+Z0D91dyQL/a8Q9FPHcSeX7qyrcx6J
+         Y45g==
+X-Gm-Message-State: AOAM530Z2/EQZD4WlArweD9qGQ8lGC6GFJ+6iYbf1EEP/WN7oDfR2suz
+        4n/uTnVz5XoKLDGSdE3fc3j/tiEBtWpaCtuYWt0wz5dz
+X-Google-Smtp-Source: ABdhPJwoaBZv7KKaH8+C73eOiaH8ws7ekLvWI90Xhn47MqQb7zpZZ0upw9cGxPZIHqB0eNeXnpyhm/FVK0jWh5NMs+M=
+X-Received: by 2002:aca:b406:: with SMTP id d6mr11140293oif.71.1623068759929;
+ Mon, 07 Jun 2021 05:25:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <162295949351.1109360.10329014558746500142.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <162295949886.1109360.17423894188288323907.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <162295949886.1109360.17423894188288323907.stgit@dwillia2-desk3.amr.corp.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 7 Jun 2021 14:25:48 +0200
+Message-ID: <CAJZ5v0jhh8EXNY9C1_HpD7tdW9s5uNkKdyLOEDAgeK4yHpFXdA@mail.gmail.com>
+Subject: Re: [PATCH v5 1/6] cxl/acpi: Local definition of ACPICA infrastructure
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-cxl@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Alison Schofield <alison.schofield@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There are no users and seems no will come of the devm_pwm_put().
-Remove the function.
+On Sun, Jun 6, 2021 at 8:05 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> The recently released CXL specification change (ECN) for the CXL Fixed
+> Memory Window Structure (CFMWS) extension to the CXL Early Discovery
+> Table (CEDT) enables a large amount of functionality. It defines the
+> root of a CXL memory topology and is needed for all OS flows for CXL
+> provisioning CXL memory expanders. For ease of merging and tree
+> management add the new ACPI definition locally (drivers/cxl/acpi.h) in
+> such a way that they will not collide with the eventual arrival of the
+> definitions through the ACPICA project to their final location
+> (drivers/acpi/actbl1.h).
 
-While at it, slightly update documentation.
+I've just applied the ACPICA series including this change which can be
+made available as a forward-only branch in my tree, if that helps.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
-v3: added Rb tag (Uwe)
-v2: new patch
-
- .../driver-api/driver-model/devres.rst        |  3 ++-
- Documentation/driver-api/pwm.rst              |  3 ++-
- drivers/pwm/core.c                            | 25 -------------------
- include/linux/pwm.h                           |  5 ----
- 4 files changed, 4 insertions(+), 32 deletions(-)
-
-diff --git a/Documentation/driver-api/driver-model/devres.rst b/Documentation/driver-api/driver-model/devres.rst
-index e7e209232246..d2948139411e 100644
---- a/Documentation/driver-api/driver-model/devres.rst
-+++ b/Documentation/driver-api/driver-model/devres.rst
-@@ -409,7 +409,8 @@ POWER
- 
- PWM
-   devm_pwm_get()
--  devm_pwm_put()
-+  devm_of_pwm_get()
-+  devm_fwnode_pwm_get()
- 
- REGULATOR
-   devm_regulator_bulk_get()
-diff --git a/Documentation/driver-api/pwm.rst b/Documentation/driver-api/pwm.rst
-index 750734a7f874..ccb06e485756 100644
---- a/Documentation/driver-api/pwm.rst
-+++ b/Documentation/driver-api/pwm.rst
-@@ -40,7 +40,8 @@ after usage with pwm_free().
- 
- New users should use the pwm_get() function and pass to it the consumer
- device or a consumer name. pwm_put() is used to free the PWM device. Managed
--variants of these functions, devm_pwm_get() and devm_pwm_put(), also exist.
-+variants of the getter, devm_pwm_get(), devm_of_pwm_get(),
-+devm_fwnode_pwm_get(), also exist.
- 
- After being requested, a PWM has to be configured using::
- 
-diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-index 05a86060d430..4133abb74798 100644
---- a/drivers/pwm/core.c
-+++ b/drivers/pwm/core.c
-@@ -1165,31 +1165,6 @@ struct pwm_device *devm_fwnode_pwm_get(struct device *dev,
- }
- EXPORT_SYMBOL_GPL(devm_fwnode_pwm_get);
- 
--static int devm_pwm_match(struct device *dev, void *res, void *data)
--{
--	struct pwm_device **p = res;
--
--	if (WARN_ON(!p || !*p))
--		return 0;
--
--	return *p == data;
--}
--
--/**
-- * devm_pwm_put() - resource managed pwm_put()
-- * @dev: device for PWM consumer
-- * @pwm: PWM device
-- *
-- * Release a PWM previously allocated using devm_pwm_get(). Calling this
-- * function is usually not needed because devm-allocated resources are
-- * automatically released on driver detach.
-- */
--void devm_pwm_put(struct device *dev, struct pwm_device *pwm)
--{
--	WARN_ON(devres_release(dev, devm_pwm_release, devm_pwm_match, pwm));
--}
--EXPORT_SYMBOL_GPL(devm_pwm_put);
--
- #ifdef CONFIG_DEBUG_FS
- static void pwm_dbg_show(struct pwm_chip *chip, struct seq_file *s)
- {
-diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index 5a73251d28e3..91af518d5037 100644
---- a/include/linux/pwm.h
-+++ b/include/linux/pwm.h
-@@ -423,7 +423,6 @@ struct pwm_device *devm_of_pwm_get(struct device *dev, struct device_node *np,
- struct pwm_device *devm_fwnode_pwm_get(struct device *dev,
- 				       struct fwnode_handle *fwnode,
- 				       const char *con_id);
--void devm_pwm_put(struct device *dev, struct pwm_device *pwm);
- #else
- static inline struct pwm_device *pwm_request(int pwm_id, const char *label)
- {
-@@ -530,10 +529,6 @@ devm_fwnode_pwm_get(struct device *dev, struct fwnode_handle *fwnode,
- {
- 	return ERR_PTR(-ENODEV);
- }
--
--static inline void devm_pwm_put(struct device *dev, struct pwm_device *pwm)
--{
--}
- #endif
- 
- static inline void pwm_apply_args(struct pwm_device *pwm)
--- 
-2.30.2
-
+> The definitions in drivers/cxl/acpi.h can be dropped post -rc1.
+>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Co-developed-by: Alison Schofield <alison.schofield@intel.com>
+> Co-developed-by: Erik Kaneda <erik.kaneda@intel.com>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/cxl/acpi.h |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 48 insertions(+)
+>  create mode 100644 drivers/cxl/acpi.h
+>
+> diff --git a/drivers/cxl/acpi.h b/drivers/cxl/acpi.h
+> new file mode 100644
+> index 000000000000..1482c19e7227
+> --- /dev/null
+> +++ b/drivers/cxl/acpi.h
+> @@ -0,0 +1,48 @@
+> +/* SPDX-License-Identifier: GPL-2.0-only */
+> +/* Copyright(c) 2021 Intel Corporation. */
+> +#ifndef __CXL_ACPI_H__
+> +#define __CXL_ACPI_H__
+> +
+> +#ifndef ACPI_CEDT_CHBS_VERSION_CXL20
+> +/*
+> + * NOTE: These definitions are temporary and to be deleted in v5.14-rc1
+> + * when the identical definitions become available from
+> + * include/acpi/actbl1.h.
+> + */
+> +
+> +#define ACPI_CEDT_TYPE_CFMWS 1
+> +#define ACPI_CEDT_TYPE_RESERVED 2
+> +
+> +#define ACPI_CEDT_CHBS_VERSION_CXL11 (0)
+> +#define ACPI_CEDT_CHBS_VERSION_CXL20 (1)
+> +
+> +#define ACPI_CEDT_CHBS_LENGTH_CXL11 (0x2000)
+> +#define ACPI_CEDT_CHBS_LENGTH_CXL20 (0x10000)
+> +
+> +struct acpi_cedt_cfmws {
+> +       struct acpi_cedt_header header;
+> +       u32 reserved1;
+> +       u64 base_hpa;
+> +       u64 window_size;
+> +       u8 interleave_ways;
+> +       u8 interleave_arithmetic;
+> +       u16 reserved2;
+> +       u32 granularity;
+> +       u16 restrictions;
+> +       u16 qtg_id;
+> +       u32 interleave_targets[];
+> +};
+> +
+> +/* Values for Interleave Arithmetic field above */
+> +
+> +#define ACPI_CEDT_CFMWS_ARITHMETIC_MODULO (0)
+> +
+> +/* Values for Restrictions field above */
+> +
+> +#define ACPI_CEDT_CFMWS_RESTRICT_TYPE2 (1)
+> +#define ACPI_CEDT_CFMWS_RESTRICT_TYPE3 (1 << 1)
+> +#define ACPI_CEDT_CFMWS_RESTRICT_VOLATILE (1 << 2)
+> +#define ACPI_CEDT_CFMWS_RESTRICT_PMEM (1 << 3)
+> +#define ACPI_CEDT_CFMWS_RESTRICT_FIXED (1 << 4)
+> +#endif /* ACPI_CEDT_CHBS_VERSION_CXL20 */
+> +#endif /* __CXL_ACPI_H__ */
+>
