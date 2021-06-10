@@ -8,54 +8,51 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9205C47094
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:41:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE321C47094
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:41:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC67A613DD
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:41:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE07A60FDA
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:41:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231482AbhFJQnK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Jun 2021 12:43:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46858 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231465AbhFJQmz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:42:55 -0400
-Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2200EC0617AF;
-        Thu, 10 Jun 2021 09:40:44 -0700 (PDT)
-Received: by mail-ej1-x62a.google.com with SMTP id ci15so174042ejc.10;
-        Thu, 10 Jun 2021 09:40:44 -0700 (PDT)
+        id S231577AbhFJQn1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Jun 2021 12:43:27 -0400
+Received: from mail-ed1-f41.google.com ([209.85.208.41]:33382 "EHLO
+        mail-ed1-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231500AbhFJQnR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:43:17 -0400
+Received: by mail-ed1-f41.google.com with SMTP id f5so28804474eds.0;
+        Thu, 10 Jun 2021 09:41:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=OP4A8JlGO2Dl0G4k2AQZx6BKD9WAdkVxy5GnYXxTceM=;
-        b=Haz8Rvxk0LJKNvGhRutlpDPeXm316Wy2zEnVdHdcnw51FRnoU2177kL99J02Los+Mj
-         D28c1hMiJ+wR6LBiQ5VLY4MKmeuwFKD0BCQUj2CjVTxmAEyxj8JWfObyrC2GkNZbehW2
-         u+LmOef1Bjiy01qhpI/epZ3AnTRKBnflmlKBqUkCbk1wr7bXsGoW0zqz48ufww0HlOXZ
-         7cPj8S27hzgp7wy1AoSnE+b4PlF8OFj+eR8QnczREi5nRuuiBzI4YUAjucjNTn7N97ck
-         737yYA1JcjMJ2CwXGVrnaddKR234jKwm5nxiw45pUoagy/fObrpoAeDEWxb94eG8r6SC
-         oM/w==
+        bh=KaDg6gQwiNbYQ/n+/AJXeEJZNxoDx4UiMVm3rtxhM28=;
+        b=UHYZrSeAQMnPEqKw9Yu1yjR6f8crKDxB0QKCJUw/qyyC7dvFfrO/CGQIAqee8f1PlG
+         bhM5fU/2JgbtIgfP+wiN2adwzCDBXnooeSBx6uQCulbemwY58oyPAZuqosXWz90YE8nD
+         TpQMDXGv4OHl5KI34uKDpOvbUGPYhh3iTuv+zXV3zsvSG6ndCDzm0MRfbLxMzfgvlXHo
+         7FVFV2KfjxdikU5QLfpamLN/wz4LmbLj0aUucsw/zgwl4Nuh4yigaiJkHhqqAzLe9jet
+         2tlqDpEJiumXFst6m2Vy0pMpHvRDB6n+7JRG7Rb3M9ufVrR+Q6ugz5Ml+0eKrhZdDc7x
+         6Ejw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=OP4A8JlGO2Dl0G4k2AQZx6BKD9WAdkVxy5GnYXxTceM=;
-        b=Ag08yXuqvt9dmhXmcjj1ouFfGFjeH7Duv2i2X9tKW4hdJB2dbhs8MN5TIkUln7AjRL
-         B4/d7+4z1/eIL8r1o0RmUgV9SfLZvhDGxkvxrUf6uUWaPSfeQBdfVIbpCxPfcE3fw9Pk
-         apy2j6bxtJ7nB2CFXUm+G7le9WI4tq5caFGI/lxUaYsVLxezti7TSIa3g3iC4GLp9Ykq
-         3+w/xmbMx/W325bWF18Vlubnt4UpTtuyXAARBCf2DMFgDWhb8ndJ2XlGYSjNnoUMSvls
-         kRdvqk+YL+h1Kpv4hQ0JPRJXXFuHd4kBxxpMoyR4FZNSnkaJIOd+TlPknN9OOPxg2WsB
-         /+rw==
-X-Gm-Message-State: AOAM533ibhIIRTFkCKjqn4FYV5VcMj+QmSs0pAl8xMGXVmPN0dpTYIPM
-        tcYFVmmivXo7PRqX36BgaBw=
-X-Google-Smtp-Source: ABdhPJzZW5gzrfQuuDI152iey6UWe7uJ1Wa+K7+hykGv7xDljoQY+QU7h5SfzfJ6fJ1/O8f4Hiz+kQ==
-X-Received: by 2002:a17:906:7052:: with SMTP id r18mr445919ejj.449.1623343242563;
-        Thu, 10 Jun 2021 09:40:42 -0700 (PDT)
+        bh=KaDg6gQwiNbYQ/n+/AJXeEJZNxoDx4UiMVm3rtxhM28=;
+        b=HORXkDjRp6XHlMGe4xbGFV32RNDeCt8tS9zAkfT0P5pEIaiFZXiTbDUcL1/JTbliku
+         EtZOn/RJuBUGCMYXE36Irhq5OtObeo6KCfpPpDKxGK6xVtMKIWdoTIEz2H3+plWQOUyI
+         2FCKYEKockV3iFlQGo7Nfe/zmFA6aiNvsAOXKZc/39eSDLKvQ9u0/oFMcPziW8lmQS7C
+         O/lgG/6hNYU048VPywncc9SPL4LpNgxbyAhx7bZ9gShJjdEuOH9yDvPrjVJHYggUNrdH
+         93OqkG7QZ1VVAp+ylZsmExVGh0xesySQZb4f17g6lTLnku1dHWL2gOQNAfbp0Vf8+tG4
+         p6dw==
+X-Gm-Message-State: AOAM530cN8P7+r+gg/RpT2K3/vakk9mLGVwvsYqIoy+UfSDyasGHuSMM
+        Ls1qrZ9c59fqeK4WmKaQuc8=
+X-Google-Smtp-Source: ABdhPJwV5RxjQIJKGTTFuMRHC1yAz5oZtEGMCwmSVSL7QWpJwoalTw1VHdLa4/3G2Moi2Q06OIkSGg==
+X-Received: by 2002:a05:6402:204:: with SMTP id t4mr387873edv.34.1623343220068;
+        Thu, 10 Jun 2021 09:40:20 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.40
+        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Jun 2021 09:40:42 -0700 (PDT)
+        Thu, 10 Jun 2021 09:40:19 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -81,9 +78,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v8 13/15] net: phylink: introduce phylink_fwnode_phy_connect()
-Date:   Thu, 10 Jun 2021 19:39:15 +0300
-Message-Id: <20210610163917.4138412-14-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v8 02/15] net: phy: Introduce fwnode_mdio_find_device()
+Date:   Thu, 10 Jun 2021 19:39:04 +0300
+Message-Id: <20210610163917.4138412-3-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210610163917.4138412-1-ciorneiioana@gmail.com>
 References: <20210610163917.4138412-1-ciorneiioana@gmail.com>
@@ -95,115 +92,110 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Define phylink_fwnode_phy_connect() to connect phy specified by
-a fwnode to a phylink instance.
+Define fwnode_mdio_find_device() to get a pointer to the
+mdio_device from fwnode passed to the function.
+
+Refactor of_mdio_find_device() to use fwnode_mdio_find_device().
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
 ---
 
 Changes in v8: None
-Changes in v7: None
+Changes in v7:
+- correct fwnode_mdio_find_device() description
+
 Changes in v6:
-- remove OF check for fixed-link
+- fix warning for function parameter of fwnode_mdio_find_device()
 
 Changes in v5: None
-Changes in v4:
-- call phy_device_free() before returning
-
+Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/net/phy/phylink.c | 54 +++++++++++++++++++++++++++++++++++++++
- include/linux/phylink.h   |  3 +++
- 2 files changed, 57 insertions(+)
+ drivers/net/mdio/of_mdio.c   | 11 +----------
+ drivers/net/phy/phy_device.c | 23 +++++++++++++++++++++++
+ include/linux/phy.h          |  7 +++++++
+ 3 files changed, 31 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/phy/phylink.c b/drivers/net/phy/phylink.c
-index 96d8e88b4e46..9cc0f69faafe 100644
---- a/drivers/net/phy/phylink.c
-+++ b/drivers/net/phy/phylink.c
-@@ -5,6 +5,7 @@
-  *
-  * Copyright (C) 2015 Russell King
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index 8e97d5b825f5..6ef8b6e40189 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -347,16 +347,7 @@ EXPORT_SYMBOL(of_mdiobus_register);
   */
-+#include <linux/acpi.h>
- #include <linux/ethtool.h>
- #include <linux/export.h>
- #include <linux/gpio/consumer.h>
-@@ -1125,6 +1126,59 @@ int phylink_of_phy_connect(struct phylink *pl, struct device_node *dn,
+ struct mdio_device *of_mdio_find_device(struct device_node *np)
+ {
+-	struct device *d;
+-
+-	if (!np)
+-		return NULL;
+-
+-	d = bus_find_device_by_of_node(&mdio_bus_type, np);
+-	if (!d)
+-		return NULL;
+-
+-	return to_mdio_device(d);
++	return fwnode_mdio_find_device(of_fwnode_handle(np));
  }
- EXPORT_SYMBOL_GPL(phylink_of_phy_connect);
+ EXPORT_SYMBOL(of_mdio_find_device);
+ 
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index 1539ea021ac0..363cc70d00ca 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -2863,6 +2863,29 @@ static bool phy_drv_supports_irq(struct phy_driver *phydrv)
+ 	return phydrv->config_intr && phydrv->handle_interrupt;
+ }
  
 +/**
-+ * phylink_fwnode_phy_connect() - connect the PHY specified in the fwnode.
-+ * @pl: a pointer to a &struct phylink returned from phylink_create()
-+ * @fwnode: a pointer to a &struct fwnode_handle.
-+ * @flags: PHY-specific flags to communicate to the PHY device driver
++ * fwnode_mdio_find_device - Given a fwnode, find the mdio_device
++ * @fwnode: pointer to the mdio_device's fwnode
 + *
-+ * Connect the phy specified @fwnode to the phylink instance specified
-+ * by @pl.
-+ *
-+ * Returns 0 on success or a negative errno.
++ * If successful, returns a pointer to the mdio_device with the embedded
++ * struct device refcount incremented by one, or NULL on failure.
++ * The caller should call put_device() on the mdio_device after its use.
 + */
-+int phylink_fwnode_phy_connect(struct phylink *pl,
-+			       struct fwnode_handle *fwnode,
-+			       u32 flags)
++struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
 +{
-+	struct fwnode_handle *phy_fwnode;
-+	struct phy_device *phy_dev;
-+	int ret;
++	struct device *d;
 +
-+	/* Fixed links and 802.3z are handled without needing a PHY */
-+	if (pl->cfg_link_an_mode == MLO_AN_FIXED ||
-+	    (pl->cfg_link_an_mode == MLO_AN_INBAND &&
-+	     phy_interface_mode_is_8023z(pl->link_interface)))
-+		return 0;
++	if (!fwnode)
++		return NULL;
 +
-+	phy_fwnode = fwnode_get_phy_node(fwnode);
-+	if (IS_ERR(phy_fwnode)) {
-+		if (pl->cfg_link_an_mode == MLO_AN_PHY)
-+			return -ENODEV;
-+		return 0;
-+	}
++	d = bus_find_device_by_fwnode(&mdio_bus_type, fwnode);
++	if (!d)
++		return NULL;
 +
-+	phy_dev = fwnode_phy_find_device(phy_fwnode);
-+	/* We're done with the phy_node handle */
-+	fwnode_handle_put(phy_fwnode);
-+	if (!phy_dev)
-+		return -ENODEV;
-+
-+	ret = phy_attach_direct(pl->netdev, phy_dev, flags,
-+				pl->link_interface);
-+	if (ret) {
-+		phy_device_free(phy_dev);
-+		return ret;
-+	}
-+
-+	ret = phylink_bringup_phy(pl, phy_dev, pl->link_config.interface);
-+	if (ret)
-+		phy_detach(phy_dev);
-+
-+	return ret;
++	return to_mdio_device(d);
 +}
-+EXPORT_SYMBOL_GPL(phylink_fwnode_phy_connect);
++EXPORT_SYMBOL(fwnode_mdio_find_device);
 +
  /**
-  * phylink_disconnect_phy() - disconnect any PHY attached to the phylink
-  *   instance.
-diff --git a/include/linux/phylink.h b/include/linux/phylink.h
-index fd2acfd9b597..afb3ded0b691 100644
---- a/include/linux/phylink.h
-+++ b/include/linux/phylink.h
-@@ -441,6 +441,9 @@ void phylink_destroy(struct phylink *);
- 
- int phylink_connect_phy(struct phylink *, struct phy_device *);
- int phylink_of_phy_connect(struct phylink *, struct device_node *, u32 flags);
-+int phylink_fwnode_phy_connect(struct phylink *pl,
-+			       struct fwnode_handle *fwnode,
-+			       u32 flags);
- void phylink_disconnect_phy(struct phylink *);
- 
- void phylink_mac_change(struct phylink *, bool up);
+  * phy_probe - probe and init a PHY device
+  * @dev: device to probe and init
+diff --git a/include/linux/phy.h b/include/linux/phy.h
+index ed332ac92e25..7aa97f4e5387 100644
+--- a/include/linux/phy.h
++++ b/include/linux/phy.h
+@@ -1377,10 +1377,17 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 				     bool is_c45,
+ 				     struct phy_c45_device_ids *c45_ids);
+ #if IS_ENABLED(CONFIG_PHYLIB)
++struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode);
+ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
+ int phy_device_register(struct phy_device *phy);
+ void phy_device_free(struct phy_device *phydev);
+ #else
++static inline
++struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
++{
++	return 0;
++}
++
+ static inline
+ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
+ {
 -- 
 2.31.1
 
