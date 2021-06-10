@@ -8,51 +8,51 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75BDCC48BE0
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:41:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92C58C47094
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E1C7613DD
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:41:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7ABA7613E1
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231527AbhFJQni (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Jun 2021 12:43:38 -0400
-Received: from mail-ej1-f48.google.com ([209.85.218.48]:46895 "EHLO
-        mail-ej1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231569AbhFJQn1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:43:27 -0400
-Received: by mail-ej1-f48.google.com with SMTP id he7so152629ejc.13;
-        Thu, 10 Jun 2021 09:41:30 -0700 (PDT)
+        id S231667AbhFJQn4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Jun 2021 12:43:56 -0400
+Received: from mail-ed1-f47.google.com ([209.85.208.47]:38831 "EHLO
+        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231681AbhFJQnh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:43:37 -0400
+Received: by mail-ed1-f47.google.com with SMTP id d13so20287112edt.5;
+        Thu, 10 Jun 2021 09:41:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ZXMwlWoKAxdjuwt/HiX3am6VGgoRjdgFRZsahRLqNM4=;
-        b=rr23b17GamtNW4dIKFfdbl4vB0T6+nWAuLM1qZ7yQw2xnlRe+bajixCjTlcKC+hrXO
-         Cwsal0pKmmyPA6kJKecYnw5pIhWxIJaA4AVmPsjJedoNY3jSGz1YnsGHc9AuPuazXFyM
-         IwOH1+nVuAmXlDXfh5R0BYbzBOga0u7dN1RGBISYwAAK65FjtzYHZRxoV26dHJ+Hsg+u
-         DdPki22Jgq2bjkMLQnsjabA8/miMHqOK8DU865YyB4xSY/ollgX8SVpcvqahy211EiYm
-         RsWB0Ft40d/gujKFhntTSmtpqDLfqIIFSGNreZRGBPiGBlclqoExVSN7gLeMs9Qz96DG
-         qwAg==
+        bh=ag0yKOvBPz35E774qJinec6gzeqAN1dw4dMLgUS0S0M=;
+        b=k00Eyg+KNHcp27L9EngtjAxDEAM+/ChWX41ETeDr8WHFFmX4JsyY8t/hSC77O9lWQ+
+         9VM9AHyXSD237yUvDoPoXsnB0h5wYpd1u8EkE7lx182RzfbB1qudjDTPDegA3cuZFzNg
+         +KmC+hV7Qjop6MYodqml4ciy+FrAmkEvhZz9REpd3rShUXLAViF7FwP7WqfGoNer5MwC
+         Wo5mZxTZlevAF1Zt68eHFqow/q7cwpcUQC5AojPx7HG7ds3KeHgoGSOcD/jNPBYeKxw3
+         X50qhJr6hVw5O+S7TD0GruqRaB9+yqCNhv9Z9wn/+fQg4spYP/i4GSO/EBmZZgmeNS8B
+         W8Mg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ZXMwlWoKAxdjuwt/HiX3am6VGgoRjdgFRZsahRLqNM4=;
-        b=Lwap2AOEHrmEkTLmA4p6ig7bDwFwsP+xweHEJuZpIJB491atyKOkvIeouNj9RcVIV2
-         E6n/eKcrXvU3iPbnycdXtq58upi+9s+Yap0RT7nT1BT4xY9OoloyjGTK/DLsC9e9fGFJ
-         RZ6qUcFQdzox0uEOr3TGi58p5KpXFZC6pKYziGC6GdTiaSRKE6/9YxxNUWN/nlstrWqG
-         kiwNEVMwb4R0b833geTMtdJDbkTI/8M0uIgQoJBJtWJrahANVhXBcuFRGCWqVDpc10Vk
-         MO9AZj1YuQ2SJ27r1tLkXCsTxTV3I9I9mGG9SBaOZtB84//ef81i2i6JpUZ5Gqmt5ro5
-         X23w==
-X-Gm-Message-State: AOAM531+2TNiP73Tcn/hhWbD4pF4H0ZWVcUEsOPLZuZ3yc1rxWoUgQJy
-        auEH2rNV9V8YPaqgpVYE7GQ=
-X-Google-Smtp-Source: ABdhPJyCX/NBP+v0Apbk+4/3ZqHRp6qWrIaNmofj15uz4394jzlihzFqwQyK2h4+J5iQK3HLJ45kZQ==
-X-Received: by 2002:a17:906:490:: with SMTP id f16mr442229eja.541.1623343229891;
-        Thu, 10 Jun 2021 09:40:29 -0700 (PDT)
+        bh=ag0yKOvBPz35E774qJinec6gzeqAN1dw4dMLgUS0S0M=;
+        b=jW7vLKdNl2kpaqYxJ0rKYUmnCkIBHtkmbKVcSksPgrK8F6WgyDI5Ik42zrIchBfOaI
+         zks6o8SOE2z5QsMEWXYsUkvdlptKiR39h6mLyh44gEBYZ+lv5QgwS0KUt3a9PE1p+9xa
+         m1kiHO3rdKQCy3webTtftoXV0IBDgucXFE3t7LDapfewFBF0xtvql9fKnE8AqJPcdn0U
+         LqWtcj30Kq4QTqYqv6E0R/Hif8qkrbgVzxNYGYX2TUIYH8X5DUVShcbSE9uvSkIwWTCD
+         r7ImCE2mVJ4ng0yawv2AmvlZI3gove8PIOYELoCQhuZ1837hezpkKThA1kACVoV0SUiE
+         Togw==
+X-Gm-Message-State: AOAM5322PZJ0zz3qSzgf2gss+I2R9socC/J0kNC6hw5u7c02Y5FMqZpd
+        tzKLAZWpyt2kzg30WBBHwWY=
+X-Google-Smtp-Source: ABdhPJwR1do5Z1sT8Bu5N6QMCgvOOFKrRwMNFrJ0YWcL3LVcwX4TCoNIMAIhLP9VO1YUdzDASrx+Vg==
+X-Received: by 2002:a05:6402:1d0c:: with SMTP id dg12mr340543edb.155.1623343226010;
+        Thu, 10 Jun 2021 09:40:26 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.28
+        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Jun 2021 09:40:29 -0700 (PDT)
+        Thu, 10 Jun 2021 09:40:25 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -78,9 +78,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v8 07/15] net: mii_timestamper: check NULL in unregister_mii_timestamper()
-Date:   Thu, 10 Jun 2021 19:39:09 +0300
-Message-Id: <20210610163917.4138412-8-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v8 05/15] net: phy: Introduce fwnode_get_phy_id()
+Date:   Thu, 10 Jun 2021 19:39:07 +0300
+Message-Id: <20210610163917.4138412-6-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210610163917.4138412-1-ciorneiioana@gmail.com>
 References: <20210610163917.4138412-1-ciorneiioana@gmail.com>
@@ -92,83 +92,84 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Callers of unregister_mii_timestamper() currently check for NULL
-value of mii_ts before calling it.
-
-Place the NULL check inside unregister_mii_timestamper() and update
-the callers accordingly.
+Extract phy_id from compatible string. This will be used by
+fwnode_mdiobus_register_phy() to create phy device using the
+phy_id.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
 ---
 
 Changes in v8: None
-Changes in v7:
-- check NULL in unregister_mii_timestamper()
-
+Changes in v7: None
 Changes in v6: None
 Changes in v5: None
 Changes in v4: None
-Changes in v3: None
+Changes in v3:
+- Use traditional comparison pattern
+- Use GENMASK
+
 Changes in v2: None
 
- drivers/net/mdio/of_mdio.c        | 6 ++----
- drivers/net/phy/mii_timestamper.c | 3 +++
- drivers/net/phy/phy_device.c      | 3 +--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/net/phy/phy_device.c | 21 +++++++++++++++++++++
+ include/linux/phy.h          |  5 +++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
-index 29f121cba314..d73c0570f19c 100644
---- a/drivers/net/mdio/of_mdio.c
-+++ b/drivers/net/mdio/of_mdio.c
-@@ -115,15 +115,13 @@ static int of_mdiobus_register_phy(struct mii_bus *mdio,
- 	else
- 		phy = get_phy_device(mdio, addr, is_c45);
- 	if (IS_ERR(phy)) {
--		if (mii_ts)
--			unregister_mii_timestamper(mii_ts);
-+		unregister_mii_timestamper(mii_ts);
- 		return PTR_ERR(phy);
- 	}
- 
- 	rc = of_mdiobus_phy_device_register(mdio, phy, child, addr);
- 	if (rc) {
--		if (mii_ts)
--			unregister_mii_timestamper(mii_ts);
-+		unregister_mii_timestamper(mii_ts);
- 		phy_device_free(phy);
- 		return rc;
- 	}
-diff --git a/drivers/net/phy/mii_timestamper.c b/drivers/net/phy/mii_timestamper.c
-index b71b7456462d..51ae0593a04f 100644
---- a/drivers/net/phy/mii_timestamper.c
-+++ b/drivers/net/phy/mii_timestamper.c
-@@ -111,6 +111,9 @@ void unregister_mii_timestamper(struct mii_timestamper *mii_ts)
- 	struct mii_timestamping_desc *desc;
- 	struct list_head *this;
- 
-+	if (!mii_ts)
-+		return;
-+
- 	/* mii_timestamper statically registered by the PHY driver won't use the
- 	 * register_mii_timestamper() and thus don't have ->device set. Don't
- 	 * try to unregister these.
 diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index 0ce5c7274930..e4b935b0b71b 100644
+index f651c4feb49f..0ce5c7274930 100644
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
-@@ -945,8 +945,7 @@ EXPORT_SYMBOL(phy_device_register);
-  */
- void phy_device_remove(struct phy_device *phydev)
+@@ -834,6 +834,27 @@ static int get_phy_c22_id(struct mii_bus *bus, int addr, u32 *phy_id)
+ 	return 0;
+ }
+ 
++/* Extract the phy ID from the compatible string of the form
++ * ethernet-phy-idAAAA.BBBB.
++ */
++int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
++{
++	unsigned int upper, lower;
++	const char *cp;
++	int ret;
++
++	ret = fwnode_property_read_string(fwnode, "compatible", &cp);
++	if (ret)
++		return ret;
++
++	if (sscanf(cp, "ethernet-phy-id%4x.%4x", &upper, &lower) != 2)
++		return -EINVAL;
++
++	*phy_id = ((upper & GENMASK(15, 0)) << 16) | (lower & GENMASK(15, 0));
++	return 0;
++}
++EXPORT_SYMBOL(fwnode_get_phy_id);
++
+ /**
+  * get_phy_device - reads the specified PHY device and returns its @phy_device
+  *		    struct
+diff --git a/include/linux/phy.h b/include/linux/phy.h
+index f9b5fb099fa6..b60694734b07 100644
+--- a/include/linux/phy.h
++++ b/include/linux/phy.h
+@@ -1377,6 +1377,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 				     bool is_c45,
+ 				     struct phy_c45_device_ids *c45_ids);
+ #if IS_ENABLED(CONFIG_PHYLIB)
++int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id);
+ struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode);
+ struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode);
+ struct phy_device *device_phy_find_device(struct device *dev);
+@@ -1385,6 +1386,10 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
+ int phy_device_register(struct phy_device *phy);
+ void phy_device_free(struct phy_device *phydev);
+ #else
++static inline int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
++{
++	return 0;
++}
+ static inline
+ struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
  {
--	if (phydev->mii_ts)
--		unregister_mii_timestamper(phydev->mii_ts);
-+	unregister_mii_timestamper(phydev->mii_ts);
- 
- 	device_del(&phydev->mdio.dev);
- 
 -- 
 2.31.1
 
