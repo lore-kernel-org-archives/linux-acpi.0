@@ -6,53 +6,53 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED4CBC48BE0
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 975DDC48BD1
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D84AF613E1
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85562613E1
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231724AbhFJQoP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Jun 2021 12:44:15 -0400
-Received: from mail-ed1-f47.google.com ([209.85.208.47]:36848 "EHLO
-        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231728AbhFJQno (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:43:44 -0400
-Received: by mail-ed1-f47.google.com with SMTP id w21so33743944edv.3;
-        Thu, 10 Jun 2021 09:41:47 -0700 (PDT)
+        id S231626AbhFJQoY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Jun 2021 12:44:24 -0400
+Received: from mail-ej1-f46.google.com ([209.85.218.46]:45735 "EHLO
+        mail-ej1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231648AbhFJQnu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:43:50 -0400
+Received: by mail-ej1-f46.google.com with SMTP id k7so161147ejv.12;
+        Thu, 10 Jun 2021 09:41:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=yvHFyQ/agosabwkcKUcNoOmx65V0N/UbwYIAHR5bR5w=;
-        b=GPsbG6YiuA0hWWC6GQYoQLw98R+dnbg3lepYbmDUS/B+uLwtN/p+3iM2p/31MGfN87
-         SbCnDYQ6uT87nDYVV9poNQSYTeRXmCQDHAjPOU4A9La2dgdmR+ocC6Yqx18lqY4aEsU6
-         EEuWO3QqF21w2h+umfMXuLkvQDhxLDcM7iaOQz2ysjQtJziE4I7oEucWw3G04IZUF+zL
-         H8oVocPk+73eXnDH8D1MLhViZotjm/ArsEWUAgvePPXgBYVq/Vw3D9fTubMXOKBrEhK8
-         6R1f4rCi99wttsYibEfWCIX82e0AG63/as9+gITtxcrw+V/PKap2EwCe/REeJuqGJRYZ
-         GvZw==
+        bh=rRvwfKkukgnoScSahSMFZLRC5h4rW9MQ8oHY/dsa0CU=;
+        b=aHI+Pj3SA0nCldSK7rXsO6hP+jGwaE6IW07XrKEEHSkDNew4YG2JTnjt27+2ZAPRnf
+         RC8KXMTxfHm6qMHOVzaiVuTg1R+hy32Ms1HYer+OLcBUSksLHYvsXfNIMBW/bSojiIrS
+         j6i9lzw1mqdS9KfllULTePyca9ec50Vqvv8K3LSpeI/TyvB1qD4SL2RKnMP8fLFWlmP5
+         HmN9oeWoBBr7l7edk8czk7jnUH+4sd/3KHzB4P73IJcWVtjImsWqfXX4EI/AlvjXR7JS
+         Sy0wgnCFXcROo2l1ojBTXUJoL9V3GaN1kQa+2TQZP+h3gb7wEuULFBaana/6rE/tg9kK
+         9GNQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=yvHFyQ/agosabwkcKUcNoOmx65V0N/UbwYIAHR5bR5w=;
-        b=TXNJiToszVT+JXOH3YD95s8gMx6GbCXwyDMUdrxRUUDYXjgG1WsETUpCdcdXNn8LcH
-         U1qm6wdxJtA6xJQlLKG8/C+bnjfvPIbuKm8/1GGGYoJ/dXhOnDEeygqu/7/VahNeXBAs
-         ATBmAwOK7sdXXU/0YW4K/ZLKFgJuQdUr+46ovmuoOdkhpvyBpfheHUxESU0mTMEsmxgG
-         kgKoHnZ+wHhAKtmay1SWRd8CW8GiSasJLA23r2AbbOhL6BNOgHAWnKZJhbIYWqb6EoC4
-         1Q2G/mjQu97SFwnz1BLwzIHjIFOxkg+b62vLyZgawtUk69K2en7g2wNFaXK1QSQHnNSu
-         JgdQ==
-X-Gm-Message-State: AOAM5336ekZswKI1bdlL02UvEoPV0nOvfT+iOZy0vbXoAmt7luNAnTWq
-        crcL5BFtO1z+N+Sl8RD2798=
-X-Google-Smtp-Source: ABdhPJxKWEyLvrBNQBzGx/LDQrqfxoDGWqOMvSzIDoHJQ2idKxwuEt6UqvBSrJJweVxZG19zuf6VTQ==
-X-Received: by 2002:a05:6402:5256:: with SMTP id t22mr404335edd.54.1623343246463;
-        Thu, 10 Jun 2021 09:40:46 -0700 (PDT)
+        bh=rRvwfKkukgnoScSahSMFZLRC5h4rW9MQ8oHY/dsa0CU=;
+        b=JY31oBIx2ylsTvIUVIEKLdsKwuzAzfGDKArnugDAYfO9QpFLpCeGOToRiNB9+eMI/n
+         m3kr3dVuggNB3bXd2/S9Ax1l3CDfpA3cNV84R0uMlHpU2c6Uzb25hgzHWbhJjNcTCbq7
+         X0nF+e85nEFDkEh1K/UixGej1IebKkhAN3uoQ0kKwaHuE4Hnv19tf6qXAgoabamuVU6s
+         37vqntUuPUE8O/RFyi4xlfDPn9Vnc7+LnUzaRQNjGwM2Ev9NOI1pgPsUGYWClXUX0NvF
+         6MpGhHbGGsByII/FKgFNDdW9/UQ13+W95ygTTGEIsvU9tS0eKitChWd1StcT1qoBrmmr
+         z9GA==
+X-Gm-Message-State: AOAM532meHB67F27gr/PmOaA70kvI0kPMQ5bvmd/SPlJCoudHB2aLSJI
+        ZxaYaJ3wrpDPZJWKZxebu44=
+X-Google-Smtp-Source: ABdhPJz4YWRBuxeFIQcGWxDtMKhJvdtWzIe7Vy6kryVThIQL7lMptpfJil7bBVFS+oUTz/kkBJ+dkg==
+X-Received: by 2002:a17:906:f889:: with SMTP id lg9mr509833ejb.82.1623343238190;
+        Thu, 10 Jun 2021 09:40:38 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.44
+        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Jun 2021 09:40:46 -0700 (PDT)
+        Thu, 10 Jun 2021 09:40:37 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -78,9 +78,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v8 15/15] net: dpaa2-mac: Add ACPI support for DPAA2 MAC driver
-Date:   Thu, 10 Jun 2021 19:39:17 +0300
-Message-Id: <20210610163917.4138412-16-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v8 11/15] net: mdio: Add ACPI support code for mdio
+Date:   Thu, 10 Jun 2021 19:39:13 +0300
+Message-Id: <20210610163917.4138412-12-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210610163917.4138412-1-ciorneiioana@gmail.com>
 References: <20210610163917.4138412-1-ciorneiioana@gmail.com>
@@ -92,244 +92,175 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Modify dpaa2_mac_get_node() to get the dpmac fwnode from either
-DT or ACPI.
-
-Modify dpaa2_mac_get_if_mode() to get interface mode from dpmac_node
-which is a fwnode.
-
-Modify dpaa2_pcs_create() to create pcs from dpmac_node fwnode.
-
-Modify dpaa2_mac_connect() to support ACPI along with DT.
+Define acpi_mdiobus_register() to Register mii_bus and create PHYs for
+each ACPI child node.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
 ---
 
-Changes in v8:
-- adjust code over latest changes applied on the driver
-
+Changes in v8: None
 Changes in v7:
-- remove unnecassary checks
+- Include headers directly used in acpi_mdio.c
 
 Changes in v6:
-- use dev_fwnode()
-- remove useless else
-- replace of_device_is_available() to fwnode_device_is_available()
+- use GENMASK() and ACPI_COMPANION_SET()
+- some cleanup
+- remove unwanted header inclusion
 
 Changes in v5:
+- add missing MODULE_LICENSE()
 - replace fwnode_get_id() with OF and ACPI function calls
 
 Changes in v4: None
 Changes in v3: None
-Changes in v2:
-- Refactor OF functions to use fwnode functions
+Changes in v2: None
 
- .../net/ethernet/freescale/dpaa2/dpaa2-mac.c  | 88 +++++++++++--------
- .../net/ethernet/freescale/dpaa2/dpaa2-mac.h  |  2 +-
- 2 files changed, 53 insertions(+), 37 deletions(-)
+ MAINTAINERS                  |  1 +
+ drivers/net/mdio/Kconfig     |  7 +++++
+ drivers/net/mdio/Makefile    |  1 +
+ drivers/net/mdio/acpi_mdio.c | 56 ++++++++++++++++++++++++++++++++++++
+ include/linux/acpi_mdio.h    | 26 +++++++++++++++++
+ 5 files changed, 91 insertions(+)
+ create mode 100644 drivers/net/mdio/acpi_mdio.c
+ create mode 100644 include/linux/acpi_mdio.h
 
-diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c b/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c
-index 4dfadf2b70d6..ae6d382d8735 100644
---- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c
-+++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.c
-@@ -1,6 +1,9 @@
- // SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
- /* Copyright 2019 NXP */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e8f8b6c33a51..2172f594be8f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6811,6 +6811,7 @@ F:	Documentation/devicetree/bindings/net/mdio*
+ F:	Documentation/devicetree/bindings/net/qca,ar803x.yaml
+ F:	Documentation/networking/phy.rst
+ F:	drivers/net/mdio/
++F:	drivers/net/mdio/acpi_mdio.c
+ F:	drivers/net/mdio/fwnode_mdio.c
+ F:	drivers/net/mdio/of_mdio.c
+ F:	drivers/net/pcs/
+diff --git a/drivers/net/mdio/Kconfig b/drivers/net/mdio/Kconfig
+index 422e9e042a3c..99a6c13a11af 100644
+--- a/drivers/net/mdio/Kconfig
++++ b/drivers/net/mdio/Kconfig
+@@ -34,6 +34,13 @@ config OF_MDIO
+ 	help
+ 	  OpenFirmware MDIO bus (Ethernet PHY) accessors
  
-+#include <linux/acpi.h>
-+#include <linux/property.h>
++config ACPI_MDIO
++	def_tristate PHYLIB
++	depends on ACPI
++	depends on PHYLIB
++	help
++	  ACPI MDIO bus (Ethernet PHY) accessors
 +
- #include "dpaa2-eth.h"
- #include "dpaa2-mac.h"
+ if MDIO_BUS
  
-@@ -34,39 +37,51 @@ static int phy_mode(enum dpmac_eth_if eth_if, phy_interface_t *if_mode)
- 	return 0;
- }
+ config MDIO_DEVRES
+diff --git a/drivers/net/mdio/Makefile b/drivers/net/mdio/Makefile
+index 2e6813c709eb..15f8dc4042ce 100644
+--- a/drivers/net/mdio/Makefile
++++ b/drivers/net/mdio/Makefile
+@@ -1,6 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for Linux MDIO bus drivers
  
--/* Caller must call of_node_put on the returned value */
--static struct device_node *dpaa2_mac_get_node(u16 dpmac_id)
-+static struct fwnode_handle *dpaa2_mac_get_node(struct device *dev,
-+						u16 dpmac_id)
- {
--	struct device_node *dpmacs, *dpmac = NULL;
--	u32 id;
-+	struct fwnode_handle *fwnode, *parent, *child  = NULL;
-+	struct device_node *dpmacs = NULL;
- 	int err;
-+	u32 id;
++obj-$(CONFIG_ACPI_MDIO)		+= acpi_mdio.o
+ obj-$(CONFIG_FWNODE_MDIO)	+= fwnode_mdio.o
+ obj-$(CONFIG_OF_MDIO)		+= of_mdio.o
  
--	dpmacs = of_find_node_by_name(NULL, "dpmacs");
--	if (!dpmacs)
--		return NULL;
-+	fwnode = dev_fwnode(dev->parent);
-+	if (is_of_node(fwnode)) {
-+		dpmacs = of_find_node_by_name(NULL, "dpmacs");
-+		if (!dpmacs)
-+			return NULL;
-+		parent = of_fwnode_handle(dpmacs);
-+	} else if (is_acpi_node(fwnode)) {
-+		parent = fwnode;
+diff --git a/drivers/net/mdio/acpi_mdio.c b/drivers/net/mdio/acpi_mdio.c
+new file mode 100644
+index 000000000000..60a86e3fc246
+--- /dev/null
++++ b/drivers/net/mdio/acpi_mdio.c
+@@ -0,0 +1,56 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * ACPI helpers for the MDIO (Ethernet PHY) API
++ *
++ * This file provides helper functions for extracting PHY device information
++ * out of the ACPI ASL and using it to populate an mii_bus.
++ */
++
++#include <linux/acpi.h>
++#include <linux/acpi_mdio.h>
++#include <linux/bits.h>
++#include <linux/dev_printk.h>
++#include <linux/fwnode_mdio.h>
++#include <linux/module.h>
++#include <linux/types.h>
++
++MODULE_AUTHOR("Calvin Johnson <calvin.johnson@oss.nxp.com>");
++MODULE_LICENSE("GPL");
++
++/**
++ * acpi_mdiobus_register - Register mii_bus and create PHYs from the ACPI ASL.
++ * @mdio: pointer to mii_bus structure
++ * @fwnode: pointer to fwnode of MDIO bus.
++ *
++ * This function registers the mii_bus structure and registers a phy_device
++ * for each child node of @fwnode.
++ */
++int acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *child;
++	u32 addr;
++	int ret;
++
++	/* Mask out all PHYs from auto probing. */
++	mdio->phy_mask = GENMASK(31, 0);
++	ret = mdiobus_register(mdio);
++	if (ret)
++		return ret;
++
++	ACPI_COMPANION_SET(&mdio->dev, to_acpi_device_node(fwnode));
++
++	/* Loop over the child nodes and register a phy_device for each PHY */
++	fwnode_for_each_child_node(fwnode, child) {
++		ret = acpi_get_local_address(ACPI_HANDLE_FWNODE(child), &addr);
++		if (ret || addr >= PHY_MAX_ADDR)
++			continue;
++
++		ret = fwnode_mdiobus_register_phy(mdio, child, addr);
++		if (ret == -ENODEV)
++			dev_err(&mdio->dev,
++				"MDIO device at address %d is missing.\n",
++				addr);
 +	}
- 
--	while ((dpmac = of_get_next_child(dpmacs, dpmac)) != NULL) {
--		err = of_property_read_u32(dpmac, "reg", &id);
-+	fwnode_for_each_child_node(parent, child) {
-+		err = -EINVAL;
-+		if (is_acpi_device_node(child))
-+			err = acpi_get_local_address(ACPI_HANDLE_FWNODE(child), &id);
-+		else if (is_of_node(child))
-+			err = of_property_read_u32(to_of_node(child), "reg", &id);
- 		if (err)
- 			continue;
--		if (id == dpmac_id)
--			break;
--	}
- 
-+		if (id == dpmac_id) {
-+			of_node_put(dpmacs);
-+			return child;
-+		}
-+	}
- 	of_node_put(dpmacs);
--
--	return dpmac;
-+	return NULL;
- }
- 
--static int dpaa2_mac_get_if_mode(struct device_node *node,
-+static int dpaa2_mac_get_if_mode(struct fwnode_handle *dpmac_node,
- 				 struct dpmac_attr attr)
- {
- 	phy_interface_t if_mode;
- 	int err;
- 
--	err = of_get_phy_mode(node, &if_mode);
--	if (!err)
--		return if_mode;
-+	err = fwnode_get_phy_mode(dpmac_node);
-+	if (err > 0)
-+		return err;
- 
- 	err = phy_mode(attr.eth_if, &if_mode);
- 	if (!err)
-@@ -235,26 +250,27 @@ static const struct phylink_mac_ops dpaa2_mac_phylink_ops = {
- };
- 
- static int dpaa2_pcs_create(struct dpaa2_mac *mac,
--			    struct device_node *dpmac_node, int id)
-+			    struct fwnode_handle *dpmac_node,
-+			    int id)
- {
- 	struct mdio_device *mdiodev;
--	struct device_node *node;
-+	struct fwnode_handle *node;
- 
--	node = of_parse_phandle(dpmac_node, "pcs-handle", 0);
--	if (!node) {
-+	node = fwnode_find_reference(dpmac_node, "pcs-handle", 0);
-+	if (IS_ERR(node)) {
- 		/* do not error out on old DTS files */
- 		netdev_warn(mac->net_dev, "pcs-handle node not found\n");
- 		return 0;
- 	}
- 
--	if (!of_device_is_available(node)) {
-+	if (!fwnode_device_is_available(node)) {
- 		netdev_err(mac->net_dev, "pcs-handle node not available\n");
--		of_node_put(node);
-+		fwnode_handle_put(node);
- 		return -ENODEV;
- 	}
- 
--	mdiodev = of_mdio_find_device(node);
--	of_node_put(node);
-+	mdiodev = fwnode_mdio_find_device(node);
-+	fwnode_handle_put(node);
- 	if (!mdiodev)
- 		return -EPROBE_DEFER;
- 
-@@ -283,13 +299,13 @@ static void dpaa2_pcs_destroy(struct dpaa2_mac *mac)
- int dpaa2_mac_connect(struct dpaa2_mac *mac)
- {
- 	struct net_device *net_dev = mac->net_dev;
--	struct device_node *dpmac_node;
-+	struct fwnode_handle *dpmac_node;
- 	struct phylink *phylink;
- 	int err;
- 
- 	mac->if_link_type = mac->attr.link_type;
- 
--	dpmac_node = mac->of_node;
-+	dpmac_node = mac->fw_node;
- 	if (!dpmac_node) {
- 		netdev_err(net_dev, "No dpmac@%d node found.\n", mac->attr.id);
- 		return -ENODEV;
-@@ -304,7 +320,7 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
- 	 * error out if the interface mode requests them and there is no PHY
- 	 * to act upon them
- 	 */
--	if (of_phy_is_fixed_link(dpmac_node) &&
-+	if (of_phy_is_fixed_link(to_of_node(dpmac_node)) &&
- 	    (mac->if_mode == PHY_INTERFACE_MODE_RGMII_ID ||
- 	     mac->if_mode == PHY_INTERFACE_MODE_RGMII_RXID ||
- 	     mac->if_mode == PHY_INTERFACE_MODE_RGMII_TXID)) {
-@@ -324,7 +340,7 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
- 	mac->phylink_config.type = PHYLINK_NETDEV;
- 
- 	phylink = phylink_create(&mac->phylink_config,
--				 of_fwnode_handle(dpmac_node), mac->if_mode,
-+				 dpmac_node, mac->if_mode,
- 				 &dpaa2_mac_phylink_ops);
- 	if (IS_ERR(phylink)) {
- 		err = PTR_ERR(phylink);
-@@ -335,9 +351,9 @@ int dpaa2_mac_connect(struct dpaa2_mac *mac)
- 	if (mac->pcs)
- 		phylink_set_pcs(mac->phylink, &mac->pcs->pcs);
- 
--	err = phylink_of_phy_connect(mac->phylink, dpmac_node, 0);
-+	err = phylink_fwnode_phy_connect(mac->phylink, dpmac_node, 0);
- 	if (err) {
--		netdev_err(net_dev, "phylink_of_phy_connect() = %d\n", err);
-+		netdev_err(net_dev, "phylink_fwnode_phy_connect() = %d\n", err);
- 		goto err_phylink_destroy;
- 	}
- 
-@@ -384,8 +400,8 @@ int dpaa2_mac_open(struct dpaa2_mac *mac)
- 	/* Find the device node representing the MAC device and link the device
- 	 * behind the associated netdev to it.
- 	 */
--	mac->of_node = dpaa2_mac_get_node(mac->attr.id);
--	net_dev->dev.of_node = mac->of_node;
-+	mac->fw_node = dpaa2_mac_get_node(&mac->mc_dev->dev, mac->attr.id);
-+	net_dev->dev.of_node = to_of_node(mac->fw_node);
- 
- 	return 0;
- 
-@@ -399,8 +415,8 @@ void dpaa2_mac_close(struct dpaa2_mac *mac)
- 	struct fsl_mc_device *dpmac_dev = mac->mc_dev;
- 
- 	dpmac_close(mac->mc_io, 0, dpmac_dev->mc_handle);
--	if (mac->of_node)
--		of_node_put(mac->of_node);
-+	if (mac->fw_node)
-+		fwnode_handle_put(mac->fw_node);
- }
- 
- static char dpaa2_mac_ethtool_stats[][ETH_GSTRING_LEN] = {
-diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.h b/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.h
-index 8ebcb3420d02..7842cbb2207a 100644
---- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.h
-+++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-mac.h
-@@ -24,7 +24,7 @@ struct dpaa2_mac {
- 	phy_interface_t if_mode;
- 	enum dpmac_link_type if_link_type;
- 	struct lynx_pcs *pcs;
--	struct device_node *of_node;
-+	struct fwnode_handle *fw_node;
- };
- 
- bool dpaa2_mac_is_type_fixed(struct fsl_mc_device *dpmac_dev,
++	return 0;
++}
++EXPORT_SYMBOL(acpi_mdiobus_register);
+diff --git a/include/linux/acpi_mdio.h b/include/linux/acpi_mdio.h
+new file mode 100644
+index 000000000000..0a24ab7cb66f
+--- /dev/null
++++ b/include/linux/acpi_mdio.h
+@@ -0,0 +1,26 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * ACPI helper for the MDIO (Ethernet PHY) API
++ */
++
++#ifndef __LINUX_ACPI_MDIO_H
++#define __LINUX_ACPI_MDIO_H
++
++#include <linux/phy.h>
++
++#if IS_ENABLED(CONFIG_ACPI_MDIO)
++int acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode);
++#else /* CONFIG_ACPI_MDIO */
++static inline int
++acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode)
++{
++	/*
++	 * Fall back to mdiobus_register() function to register a bus.
++	 * This way, we don't have to keep compat bits around in drivers.
++	 */
++
++	return mdiobus_register(mdio);
++}
++#endif
++
++#endif /* __LINUX_ACPI_MDIO_H */
 -- 
 2.31.1
 
