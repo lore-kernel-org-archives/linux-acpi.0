@@ -2,378 +2,118 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95FC2C48BDF
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 11:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE63C47094
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 13:00:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 77863613F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 11:28:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF09E613F1
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 13:00:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230190AbhFJL35 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Jun 2021 07:29:57 -0400
-Received: from frasgout.his.huawei.com ([185.176.79.56]:3194 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229895AbhFJL35 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 07:29:57 -0400
-Received: from fraeml737-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4G11bd5DrKz6M4Yp;
-        Thu, 10 Jun 2021 19:15:09 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml737-chm.china.huawei.com (10.206.15.218) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 10 Jun 2021 13:27:58 +0200
-Received: from localhost (10.52.126.112) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2176.2; Thu, 10 Jun
- 2021 12:27:58 +0100
-Date:   Thu, 10 Jun 2021 12:27:55 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Alison Schofield <alison.schofield@intel.com>
-CC:     Dan Williams <dan.j.williams@intel.com>,
-        <linux-cxl@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v6 3/5] cxl/acpi: Add downstream port data to cxl_port
- instances
-Message-ID: <20210610122755.00005fab@Huawei.com>
-In-Reply-To: <20210610003458.GA6309@alison-desk.jf.intel.com>
-References: <162325448982.2293126.16916114289970424561.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <162325450624.2293126.3533006409920271718.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <20210610003458.GA6309@alison-desk.jf.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
+        id S230248AbhFJNCe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Jun 2021 09:02:34 -0400
+Received: from mail-ot1-f48.google.com ([209.85.210.48]:40844 "EHLO
+        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230035AbhFJNCd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 09:02:33 -0400
+Received: by mail-ot1-f48.google.com with SMTP id l15-20020a05683016cfb02903fca0eacd15so3508447otr.7;
+        Thu, 10 Jun 2021 06:00:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=j6llwn+tAyxhNtIDtiMmXbYyDut7cQGn+uwgoIvVkUY=;
+        b=t9UZmeZwFmga9aQSYY3SEF+8wc+cNwgvn7v/9d5TYGCP7GzD9KGZQPYG4nrm/yijun
+         nYwWTHowFZZ5Pzp4ScqvOeSHFa0VExD8pTgVIf0Ub90SNcT4yWMlA5UZ09oFINT8WLPK
+         lqriF2kIJsDFAHXvX3da2YMexR+ZOMTMGHQOk5uNdE4kdowTbDPku46oIdUM9OORsRNb
+         Qxdq4JsTIuRu9Tj8RPsfmhkVZijAHN/pcOMOVRvIiV4pvrEwjgrnv0+AHKHDDcGEFC+4
+         TdWbiJB5sCoXVIUzPunjVHbPpsWdY3pc8SgCqQu5KaIB6OLYxoP99BjWC+oEfwXNRWtj
+         5JFA==
+X-Gm-Message-State: AOAM531gdpxNTek28HR7q/Kq2u8AHC1yfMEQDJexA2N7NBu/FS/POjJo
+        3WfJ7ba77dc6XhgI7yRLLn2YqNqAi25oWR4/oPimzaF1
+X-Google-Smtp-Source: ABdhPJy8MgNECmmgQIG338LOVlCxAFayIc9KMY9uTEAP1rrPg5Lg3Lb6SZbegfCEZJDdjRLAqBEJRugmw76B1mRvsXs=
+X-Received: by 2002:a9d:3e53:: with SMTP id h19mr2359706otg.260.1623330021209;
+ Thu, 10 Jun 2021 06:00:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.52.126.112]
-X-ClientProxiedBy: lhreml728-chm.china.huawei.com (10.201.108.79) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <20210609215047.1955866-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20210609215047.1955866-6-sathyanarayanan.kuppuswamy@linux.intel.com>
+In-Reply-To: <20210609215047.1955866-6-sathyanarayanan.kuppuswamy@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 10 Jun 2021 15:00:10 +0200
+Message-ID: <CAJZ5v0gWPrL4VPds2jkMte_dymV8GyaarY3338OUkAGgTrTbEg@mail.gmail.com>
+Subject: Re: [PATCH v1 5/5] x86: Skip WBINVD instruction for VM guest
+To:     Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter H Anvin <hpa@zytor.com>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Tony Luck <tony.luck@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Kirill Shutemov <kirill.shutemov@linux.intel.com>,
+        Sean Christopherson <seanjc@google.com>,
+        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 9 Jun 2021 17:34:58 -0700
-Alison Schofield <alison.schofield@intel.com> wrote:
+On Wed, Jun 9, 2021 at 11:51 PM Kuppuswamy Sathyanarayanan
+<sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
+>
+> VM guests that supports ACPI, use standard ACPI mechanisms to signal
+> sleep state entry (including reboot) to the host. The ACPI
+> specification mandates WBINVD on any sleep state entry with the
+> expectation that the platform is only responsible for maintaining the
+> state of memory over sleep states, not preserving dirty data in any
+> CPU caches. ACPI cache flushing requirements pre-date the advent of
+> virtualization. Given guest sleep state entry does not affect any
+> host power rails it is not required to flush caches. The host is
+> responsible for maintaining cache state over its own bare metal sleep
+> state transitions that power-off the cache. A TDX guest, unlike a
+> typical guest, will machine check if the CPU cache is powered off.
+>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: linux-acpi@vger.kernel.org
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
 
-> On Wed, Jun 09, 2021 at 09:01:46AM -0700, Dan Williams wrote:
-> > In preparation for infrastructure that enumerates and configures the CXL
-> > decode mechanism of an upstream port to its downstream ports, add a
-> > representation of a CXL downstream port.
-> > 
-> > On ACPI systems the top-most logical downstream ports in the hierarchy
-> > are the host bridges (ACPI0016 devices) that decode the memory windows
-> > described by the CXL Early Discovery Table Fixed Memory Window
-> > Structures (CEDT.CFMWS).
-> > 
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>  
-> 
-> Looks good!
-> 
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Agreed.
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-> 
-> > ---
-> >  Documentation/ABI/testing/sysfs-bus-cxl |   13 ++++
-> >  drivers/cxl/acpi.c                      |   43 ++++++++++++
-> >  drivers/cxl/core.c                      |  107 ++++++++++++++++++++++++++++++-
-> >  drivers/cxl/cxl.h                       |   21 ++++++
-> >  4 files changed, 180 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-> > index bda2cc55cc38..f680da85fd44 100644
-> > --- a/Documentation/ABI/testing/sysfs-bus-cxl
-> > +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-> > @@ -44,3 +44,16 @@ Description:
-> >  		CXL component registers. The 'uport' symlink connects the CXL
-> >  		portX object to the device that published the CXL port
-> >  		capability.
-> > +
-> > +What:		/sys/bus/cxl/devices/portX/dportY
-> > +Date:		June, 2021
-> > +KernelVersion:	v5.14
-> > +Contact:	linux-cxl@vger.kernel.org
-> > +Description:
-> > +		CXL port objects are enumerated from either a platform firmware
-> > +		device (ACPI0017 and ACPI0016) or PCIe switch upstream port with
-> > +		CXL component registers. The 'dportY' symlink identifies one or
-> > +		more downstream ports that the upstream port may target in its
-> > +		decode of CXL memory resources.  The 'Y' integer reflects the
-> > +		hardware port unique-id used in the hardware decoder target
-> > +		list.
-> > diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> > index 556d25ab6966..5eb9543c587a 100644
-> > --- a/drivers/cxl/acpi.c
-> > +++ b/drivers/cxl/acpi.c
-> > @@ -7,17 +7,58 @@
-> >  #include <linux/acpi.h>
-> >  #include "cxl.h"
-> >  
-> > +static struct acpi_device *to_cxl_host_bridge(struct device *dev)
-> > +{
-> > +	struct acpi_device *adev = to_acpi_device(dev);
-> > +
-> > +	if (strcmp(acpi_device_hid(adev), "ACPI0016") == 0)
-> > +		return adev;
-> > +	return NULL;
-> > +}
-> > +
-> > +static int add_host_bridge_dport(struct device *match, void *arg)
-> > +{
-> > +	int rc;
-> > +	acpi_status status;
-> > +	unsigned long long uid;
-> > +	struct cxl_port *root_port = arg;
-> > +	struct device *host = root_port->dev.parent;
-> > +	struct acpi_device *bridge = to_cxl_host_bridge(match);
-> > +
-> > +	if (!bridge)
-> > +		return 0;
-> > +
-> > +	status = acpi_evaluate_integer(bridge->handle, METHOD_NAME__UID, NULL,
-> > +				       &uid);
-> > +	if (status != AE_OK) {
-> > +		dev_err(host, "unable to retrieve _UID of %s\n",
-> > +			dev_name(match));
-> > +		return -ENODEV;
-> > +	}
-> > +
-> > +	rc = cxl_add_dport(root_port, match, uid, CXL_RESOURCE_NONE);
-> > +	if (rc) {
-> > +		dev_err(host, "failed to add downstream port: %s\n",
-> > +			dev_name(match));
-> > +		return rc;
-> > +	}
-> > +	dev_dbg(host, "add dport%llu: %s\n", uid, dev_name(match));
-> > +	return 0;
-> > +}
-> > +
-> >  static int cxl_acpi_probe(struct platform_device *pdev)
-> >  {
-> >  	struct cxl_port *root_port;
-> >  	struct device *host = &pdev->dev;
-> > +	struct acpi_device *adev = ACPI_COMPANION(host);
-> >  
-> >  	root_port = devm_cxl_add_port(host, host, CXL_RESOURCE_NONE, NULL);
-> >  	if (IS_ERR(root_port))
-> >  		return PTR_ERR(root_port);
-> >  	dev_dbg(host, "add: %s\n", dev_name(&root_port->dev));
-> >  
-> > -	return 0;
-> > +	return bus_for_each_dev(adev->dev.bus, NULL, root_port,
-> > +				add_host_bridge_dport);
-> >  }
-> >  
-> >  static const struct acpi_device_id cxl_acpi_ids[] = {
-> > diff --git a/drivers/cxl/core.c b/drivers/cxl/core.c
-> > index dbbb34618d7d..8a3f3804f252 100644
-> > --- a/drivers/cxl/core.c
-> > +++ b/drivers/cxl/core.c
-> > @@ -33,10 +33,22 @@ static struct attribute_group cxl_base_attribute_group = {
-> >  	.attrs = cxl_base_attributes,
-> >  };
-> >  
-> > +static void cxl_dport_release(struct cxl_dport *dport)
-> > +{
-> > +	list_del(&dport->list);
-> > +	put_device(dport->dport);
-> > +	kfree(dport);
-> > +}
-> > +
-> >  static void cxl_port_release(struct device *dev)
-> >  {
-> >  	struct cxl_port *port = to_cxl_port(dev);
-> > +	struct cxl_dport *dport, *_d;
-> >  
-> > +	device_lock(dev);
-> > +	list_for_each_entry_safe(dport, _d, &port->dports, list)
-> > +		cxl_dport_release(dport);
-> > +	device_unlock(dev);
-> >  	ida_free(&cxl_port_ida, port->id);
-> >  	kfree(port);
-> >  }
-> > @@ -60,9 +72,22 @@ struct cxl_port *to_cxl_port(struct device *dev)
-> >  	return container_of(dev, struct cxl_port, dev);
-> >  }
-> >  
-> > -static void unregister_dev(void *dev)
-> > +static void unregister_port(void *_port)
-> >  {
-> > -	device_unregister(dev);
-> > +	struct cxl_port *port = _port;
-> > +	struct cxl_dport *dport;
-> > +
-> > +	device_lock(&port->dev);
-> > +	list_for_each_entry(dport, &port->dports, list) {
-> > +		char link_name[CXL_TARGET_STRLEN];
-> > +
-> > +		if (snprintf(link_name, CXL_TARGET_STRLEN, "dport%d",
-> > +			     dport->port_id) >= CXL_TARGET_STRLEN)
-> > +			continue;
-> > +		sysfs_remove_link(&port->dev.kobj, link_name);
-> > +	}
-> > +	device_unlock(&port->dev);
-> > +	device_unregister(&port->dev);
-> >  }
-> >  
-> >  static void cxl_unlink_uport(void *_port)
-> > @@ -113,6 +138,7 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
-> >  
-> >  	port->uport = uport;
-> >  	port->component_reg_phys = component_reg_phys;
-> > +	INIT_LIST_HEAD(&port->dports);
-> >  
-> >  	device_initialize(dev);
-> >  	device_set_pm_not_required(dev);
-> > @@ -157,7 +183,7 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
-> >  	if (rc)
-> >  		goto err;
-> >  
-> > -	rc = devm_add_action_or_reset(host, unregister_dev, dev);
-> > +	rc = devm_add_action_or_reset(host, unregister_port, port);
-> >  	if (rc)
-> >  		return ERR_PTR(rc);
-> >  
-> > @@ -173,6 +199,81 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
-> >  }
-> >  EXPORT_SYMBOL_GPL(devm_cxl_add_port);
-> >  
-> > +static struct cxl_dport *find_dport(struct cxl_port *port, int id)
-> > +{
-> > +	struct cxl_dport *dport;
-> > +
-> > +	device_lock_assert(&port->dev);
-> > +	list_for_each_entry (dport, &port->dports, list)
-> > +		if (dport->port_id == id)
-> > +			return dport;
-> > +	return NULL;
-> > +}
-> > +
-> > +static int add_dport(struct cxl_port *port, struct cxl_dport *new)
-> > +{
-> > +	struct cxl_dport *dup;
-> > +
-> > +	device_lock(&port->dev);
-> > +	dup = find_dport(port, new->port_id);
-> > +	if (dup)
-> > +		dev_err(&port->dev,
-> > +			"unable to add dport%d-%s non-unique port id (%s)\n",
-> > +			new->port_id, dev_name(new->dport),
-> > +			dev_name(dup->dport));
-> > +	else
-> > +		list_add_tail(&new->list, &port->dports);
-> > +	device_unlock(&port->dev);
-> > +
-> > +	return dup ? -EEXIST : 0;
-> > +}
-> > +
-> > +/**
-> > + * cxl_add_dport - append downstream port data to a cxl_port
-> > + * @port: the cxl_port that references this dport
-> > + * @dport_dev: firmware or PCI device representing the dport
-> > + * @port_id: identifier for this dport in a decoder's target list
-> > + * @component_reg_phys: optional location of CXL component registers
-> > + *
-> > + * Note that all allocations and links are undone by cxl_port deletion
-> > + * and release.
-> > + */
-> > +int cxl_add_dport(struct cxl_port *port, struct device *dport_dev, int port_id,
-> > +		  resource_size_t component_reg_phys)
-> > +{
-> > +	char link_name[CXL_TARGET_STRLEN];
-> > +	struct cxl_dport *dport;
-> > +	int rc;
-> > +
-> > +	if (snprintf(link_name, CXL_TARGET_STRLEN, "dport%d", port_id) >=
-> > +	    CXL_TARGET_STRLEN)
-> > +		return -EINVAL;
-> > +
-> > +	dport = kzalloc(sizeof(*dport), GFP_KERNEL);
-> > +	if (!dport)
-> > +		return -ENOMEM;
-> > +
-> > +	INIT_LIST_HEAD(&dport->list);
-> > +	dport->dport = get_device(dport_dev);
-> > +	dport->port_id = port_id;
-> > +	dport->component_reg_phys = component_reg_phys;
-> > +	dport->port = port;
-> > +
-> > +	rc = add_dport(port, dport);
-> > +	if (rc)
-> > +		goto err;
-> > +
-> > +	rc = sysfs_create_link(&port->dev.kobj, &dport_dev->kobj, link_name);
-> > +	if (rc)
-> > +		goto err;
-> > +
-> > +	return 0;
-> > +err:
-> > +	cxl_dport_release(dport);
-> > +	return rc;
-> > +}
-> > +EXPORT_SYMBOL_GPL(cxl_add_dport);
-> > +
-> >  /**
-> >   * cxl_probe_component_regs() - Detect CXL Component register blocks
-> >   * @dev: Host device of the @base mapping
-> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> > index 5651e5bb8274..dd159fd6d692 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -154,6 +154,7 @@ int cxl_map_device_regs(struct pci_dev *pdev,
-> >  			struct cxl_register_map *map);
-> >  
-> >  #define CXL_RESOURCE_NONE ((resource_size_t) -1)
-> > +#define CXL_TARGET_STRLEN 20
-> >  
-> >  /**
-> >   * struct cxl_port - logical collection of upstream port devices and
-> > @@ -162,19 +163,39 @@ int cxl_map_device_regs(struct pci_dev *pdev,
-> >   * @dev: this port's device
-> >   * @uport: PCI or platform device implementing the upstream port capability
-> >   * @id: id for port device-name
-> > + * @dports: cxl_dport instances referenced by decoders
-> >   * @component_reg_phys: component register capability base address (optional)
-> >   */
-> >  struct cxl_port {
-> >  	struct device dev;
-> >  	struct device *uport;
-> >  	int id;
-> > +	struct list_head dports;
-> >  	resource_size_t component_reg_phys;
-> >  };
-> >  
-> > +/**
-> > + * struct cxl_dport - CXL downstream port
-> > + * @dport: PCI bridge or firmware device representing the downstream link
-> > + * @port_id: unique hardware identifier for dport in decoder target list
-> > + * @component_reg_phys: downstream port component registers
-> > + * @port: reference to cxl_port that contains this downstream port
-> > + * @list: node for a cxl_port's list of cxl_dport instances
-> > + */
-> > +struct cxl_dport {
-> > +	struct device *dport;
-> > +	int port_id;
-> > +	resource_size_t component_reg_phys;
-> > +	struct cxl_port *port;
-> > +	struct list_head list;
-> > +};
-> > +
-> >  struct cxl_port *to_cxl_port(struct device *dev);
-> >  struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
-> >  				   resource_size_t component_reg_phys,
-> >  				   struct cxl_port *parent_port);
-> >  
-> > +int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
-> > +		  resource_size_t component_reg_phys);
-> >  extern struct bus_type cxl_bus_type;
-> >  #endif /* __CXL_H__ */
-> >   
-
+> ---
+>  arch/x86/include/asm/acenv.h | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
+> index 9aff97f0de7f..d4162e94bee8 100644
+> --- a/arch/x86/include/asm/acenv.h
+> +++ b/arch/x86/include/asm/acenv.h
+> @@ -10,10 +10,15 @@
+>  #define _ASM_X86_ACENV_H
+>
+>  #include <asm/special_insns.h>
+> +#include <asm/cpu.h>
+>
+>  /* Asm macros */
+>
+> -#define ACPI_FLUSH_CPU_CACHE() wbinvd()
+> +#define ACPI_FLUSH_CPU_CACHE()                         \
+> +do {                                                   \
+> +       if (!boot_cpu_has(X86_FEATURE_HYPERVISOR))      \
+> +               wbinvd();                               \
+> +} while (0)
+>
+>  int __acpi_acquire_global_lock(unsigned int *lock);
+>  int __acpi_release_global_lock(unsigned int *lock);
+> --
+> 2.25.1
+>
