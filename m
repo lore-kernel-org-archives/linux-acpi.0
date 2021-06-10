@@ -8,51 +8,51 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92C58C47094
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A14CC48BD1
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7ABA7613E1
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D8F1613DD
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Jun 2021 16:42:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231667AbhFJQn4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Jun 2021 12:43:56 -0400
-Received: from mail-ed1-f47.google.com ([209.85.208.47]:38831 "EHLO
-        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231681AbhFJQnh (ORCPT
+        id S231794AbhFJQn5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Jun 2021 12:43:57 -0400
+Received: from mail-ed1-f42.google.com ([209.85.208.42]:36809 "EHLO
+        mail-ed1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231620AbhFJQnh (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jun 2021 12:43:37 -0400
-Received: by mail-ed1-f47.google.com with SMTP id d13so20287112edt.5;
-        Thu, 10 Jun 2021 09:41:26 -0700 (PDT)
+Received: by mail-ed1-f42.google.com with SMTP id w21so33743221edv.3;
+        Thu, 10 Jun 2021 09:41:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ag0yKOvBPz35E774qJinec6gzeqAN1dw4dMLgUS0S0M=;
-        b=k00Eyg+KNHcp27L9EngtjAxDEAM+/ChWX41ETeDr8WHFFmX4JsyY8t/hSC77O9lWQ+
-         9VM9AHyXSD237yUvDoPoXsnB0h5wYpd1u8EkE7lx182RzfbB1qudjDTPDegA3cuZFzNg
-         +KmC+hV7Qjop6MYodqml4ciy+FrAmkEvhZz9REpd3rShUXLAViF7FwP7WqfGoNer5MwC
-         Wo5mZxTZlevAF1Zt68eHFqow/q7cwpcUQC5AojPx7HG7ds3KeHgoGSOcD/jNPBYeKxw3
-         X50qhJr6hVw5O+S7TD0GruqRaB9+yqCNhv9Z9wn/+fQg4spYP/i4GSO/EBmZZgmeNS8B
-         W8Mg==
+        bh=cGYQZXC/NhPdwOiaUJSomKVZ7Ulae3WO3fpWEzXcO0k=;
+        b=t+siAVMT3mT+Hwr7+PWLzFq6stbRRymsCcY5eDwBodVZr4+r2ylFc5CCcnRDzreu5W
+         mOry5eFoT/Prr/AifIUIeIRVOD6m9Z6Y8k94R15vW+qROBDcWWv9SRwAij5Mtwxua44H
+         0ZFT2+96It96Ro1pocjcfTJMOBscl1FSzki/9KlqGNxyrLhF+aK8pfpND1upUUaJgZ+r
+         LEOUCPD2LDf2FKZa1iyk2mSzCChZFWH7OappwPFw3MhRvQY/95l7gQDO3v6fY+C+BJwY
+         VwWw3kSy50leyhCLYXnLxIFTitsxQtxC3c/pj7ThcEXCmb72xQNqFI9/IwGC8HOUA+ol
+         +wVg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ag0yKOvBPz35E774qJinec6gzeqAN1dw4dMLgUS0S0M=;
-        b=jW7vLKdNl2kpaqYxJ0rKYUmnCkIBHtkmbKVcSksPgrK8F6WgyDI5Ik42zrIchBfOaI
-         zks6o8SOE2z5QsMEWXYsUkvdlptKiR39h6mLyh44gEBYZ+lv5QgwS0KUt3a9PE1p+9xa
-         m1kiHO3rdKQCy3webTtftoXV0IBDgucXFE3t7LDapfewFBF0xtvql9fKnE8AqJPcdn0U
-         LqWtcj30Kq4QTqYqv6E0R/Hif8qkrbgVzxNYGYX2TUIYH8X5DUVShcbSE9uvSkIwWTCD
-         r7ImCE2mVJ4ng0yawv2AmvlZI3gove8PIOYELoCQhuZ1837hezpkKThA1kACVoV0SUiE
-         Togw==
-X-Gm-Message-State: AOAM5322PZJ0zz3qSzgf2gss+I2R9socC/J0kNC6hw5u7c02Y5FMqZpd
-        tzKLAZWpyt2kzg30WBBHwWY=
-X-Google-Smtp-Source: ABdhPJwR1do5Z1sT8Bu5N6QMCgvOOFKrRwMNFrJ0YWcL3LVcwX4TCoNIMAIhLP9VO1YUdzDASrx+Vg==
-X-Received: by 2002:a05:6402:1d0c:: with SMTP id dg12mr340543edb.155.1623343226010;
-        Thu, 10 Jun 2021 09:40:26 -0700 (PDT)
+        bh=cGYQZXC/NhPdwOiaUJSomKVZ7Ulae3WO3fpWEzXcO0k=;
+        b=HVU/v8N1MMudGPvZqxOHF7oxDeG1EkuQhcJMi/hVIHENJ2Q2ffOmGn9aeasWSNzL9K
+         CIBYNCJKJs+OR4LhQbPKUXNa3MMG9U4S8cc9FuStI7z5/BKrfve1hEEnD1/tcwAqu0o/
+         4X9BFrMQwNWX18BFH1jvZIbu1TXPKeQwB7bFNdygOoukMnIgDkkc9QDRL2m0qsJBIwx8
+         yrBOoQhD39zIO9LGTfXT7gdOd5eBQwzzJxkfK4kiRciYIgi+RbbSAm6caMc6hfjnJSZS
+         t9VqURWMJwIzWPsY4zKIkZD4Ni0by+H2zbvH/RWiEaD67/kxiA4n8dPc8Y8RBIkqnK7X
+         B1vQ==
+X-Gm-Message-State: AOAM531HeBLO6ezGEgT0nEba/GEwp6ZPVJyiDJ/Q95UC7IvGNBleODnY
+        9IobK9WIQSxaQevRodZBStY=
+X-Google-Smtp-Source: ABdhPJxBPcPq2wh+9DGPniGVRDMxk7syTNqaJCS8A6g1PtD6sWxq+CLSZft5xX4PCum1ayk6wdY5cA==
+X-Received: by 2002:aa7:da8c:: with SMTP id q12mr358069eds.368.1623343234121;
+        Thu, 10 Jun 2021 09:40:34 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.24
+        by smtp.gmail.com with ESMTPSA id e22sm1657166edv.57.2021.06.10.09.40.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Jun 2021 09:40:25 -0700 (PDT)
+        Thu, 10 Jun 2021 09:40:33 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -78,9 +78,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Calvin Johnson <calvin.johnson@oss.nxp.com>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v8 05/15] net: phy: Introduce fwnode_get_phy_id()
-Date:   Thu, 10 Jun 2021 19:39:07 +0300
-Message-Id: <20210610163917.4138412-6-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v8 09/15] of: mdio: Refactor of_mdiobus_register_phy()
+Date:   Thu, 10 Jun 2021 19:39:11 +0300
+Message-Id: <20210610163917.4138412-10-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210610163917.4138412-1-ciorneiioana@gmail.com>
 References: <20210610163917.4138412-1-ciorneiioana@gmail.com>
@@ -92,84 +92,82 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Extract phy_id from compatible string. This will be used by
-fwnode_mdiobus_register_phy() to create phy device using the
-phy_id.
+Refactor of_mdiobus_register_phy() to use fwnode_mdiobus_register_phy().
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
 ---
 
 Changes in v8: None
-Changes in v7: None
+Changes in v7:
+- include fwnode_mdio.h
+
 Changes in v6: None
 Changes in v5: None
 Changes in v4: None
-Changes in v3:
-- Use traditional comparison pattern
-- Use GENMASK
-
+Changes in v3: None
 Changes in v2: None
 
- drivers/net/phy/phy_device.c | 21 +++++++++++++++++++++
- include/linux/phy.h          |  5 +++++
- 2 files changed, 26 insertions(+)
+ drivers/net/mdio/of_mdio.c | 39 ++------------------------------------
+ 1 file changed, 2 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index f651c4feb49f..0ce5c7274930 100644
---- a/drivers/net/phy/phy_device.c
-+++ b/drivers/net/phy/phy_device.c
-@@ -834,6 +834,27 @@ static int get_phy_c22_id(struct mii_bus *bus, int addr, u32 *phy_id)
- 	return 0;
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index 9b1cadfd465d..8744b1e1c2b1 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/err.h>
++#include <linux/fwnode_mdio.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/netdevice.h>
+@@ -44,43 +45,7 @@ EXPORT_SYMBOL(of_mdiobus_phy_device_register);
+ static int of_mdiobus_register_phy(struct mii_bus *mdio,
+ 				    struct device_node *child, u32 addr)
+ {
+-	struct mii_timestamper *mii_ts;
+-	struct phy_device *phy;
+-	bool is_c45;
+-	int rc;
+-	u32 phy_id;
+-
+-	mii_ts = of_find_mii_timestamper(child);
+-	if (IS_ERR(mii_ts))
+-		return PTR_ERR(mii_ts);
+-
+-	is_c45 = of_device_is_compatible(child,
+-					 "ethernet-phy-ieee802.3-c45");
+-
+-	if (!is_c45 && !of_get_phy_id(child, &phy_id))
+-		phy = phy_device_create(mdio, addr, phy_id, 0, NULL);
+-	else
+-		phy = get_phy_device(mdio, addr, is_c45);
+-	if (IS_ERR(phy)) {
+-		unregister_mii_timestamper(mii_ts);
+-		return PTR_ERR(phy);
+-	}
+-
+-	rc = of_mdiobus_phy_device_register(mdio, phy, child, addr);
+-	if (rc) {
+-		unregister_mii_timestamper(mii_ts);
+-		phy_device_free(phy);
+-		return rc;
+-	}
+-
+-	/* phy->mii_ts may already be defined by the PHY driver. A
+-	 * mii_timestamper probed via the device tree will still have
+-	 * precedence.
+-	 */
+-	if (mii_ts)
+-		phy->mii_ts = mii_ts;
+-
+-	return 0;
++	return fwnode_mdiobus_register_phy(mdio, of_fwnode_handle(child), addr);
  }
  
-+/* Extract the phy ID from the compatible string of the form
-+ * ethernet-phy-idAAAA.BBBB.
-+ */
-+int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
-+{
-+	unsigned int upper, lower;
-+	const char *cp;
-+	int ret;
-+
-+	ret = fwnode_property_read_string(fwnode, "compatible", &cp);
-+	if (ret)
-+		return ret;
-+
-+	if (sscanf(cp, "ethernet-phy-id%4x.%4x", &upper, &lower) != 2)
-+		return -EINVAL;
-+
-+	*phy_id = ((upper & GENMASK(15, 0)) << 16) | (lower & GENMASK(15, 0));
-+	return 0;
-+}
-+EXPORT_SYMBOL(fwnode_get_phy_id);
-+
- /**
-  * get_phy_device - reads the specified PHY device and returns its @phy_device
-  *		    struct
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index f9b5fb099fa6..b60694734b07 100644
---- a/include/linux/phy.h
-+++ b/include/linux/phy.h
-@@ -1377,6 +1377,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- 				     bool is_c45,
- 				     struct phy_c45_device_ids *c45_ids);
- #if IS_ENABLED(CONFIG_PHYLIB)
-+int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id);
- struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode);
- struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode);
- struct phy_device *device_phy_find_device(struct device *dev);
-@@ -1385,6 +1386,10 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
- int phy_device_register(struct phy_device *phy);
- void phy_device_free(struct phy_device *phydev);
- #else
-+static inline int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
-+{
-+	return 0;
-+}
- static inline
- struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
- {
+ static int of_mdiobus_register_device(struct mii_bus *mdio,
 -- 
 2.31.1
 
