@@ -2,73 +2,63 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 660D8C48BD1
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F31C48BE0
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 11:18:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5075961287
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:57:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED0EB608FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 11:18:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231749AbhFKK7p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Jun 2021 06:59:45 -0400
-Received: from mail-ed1-f53.google.com ([209.85.208.53]:40820 "EHLO
-        mail-ed1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231875AbhFKK6e (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:58:34 -0400
-Received: by mail-ed1-f53.google.com with SMTP id t3so36609899edc.7;
-        Fri, 11 Jun 2021 03:56:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=vueqJSt6pY+lxc+Z/mKjcO5ezlG6lkT9SZq+vFZbhNY=;
-        b=gdldU7R3P/NNCbrN2isq4xDsePr3vSzc1bLdQd0Pkp/+Z3tGqW28vE8Swqxhntzfex
-         PR2D0mu4fCJQOeVr2skStnTqsl1Tvpm2hp7ZTALXxcvVX57SakGnPShv+1CKkiVBAt3a
-         iraeQZqw0AK2uOlo9iwFZ2ioxIHFJW0wDMxIfMi+39nlWZ+ZUSbRJDBsEjw935tzhQi6
-         7ZNmr0KfT8etgIO4qd7m6gwTuWSNDH340Qdunh2OHzIVQVEF+Wa6jko3gZRrhbB5grlb
-         QekpyTkK5bRl9xEScckMd/Smf2oArhUu50sdVJdbuk4qY2t1wOi1h5XXcpViLvgufYhr
-         haEQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=vueqJSt6pY+lxc+Z/mKjcO5ezlG6lkT9SZq+vFZbhNY=;
-        b=G7edEduyp2QYslcjlr0qPYIZWUNuOAQbyqEBqFhFb364tdNZzz3sEyC5E6gXvNcLDp
-         6UmXZrM1pte7T5ruEmf8/od6wKD8JvrbMfElI3xyFK+zwoTBPK5CtSMnxFAfGP/xCwy5
-         h3rQtrfznwsx8Ob+mBhJ02A6uLrOPXz1hIK3B8ul0D8FNNhWV8YOERXXv3dUmrUseAU5
-         aC/js7StCX7Tb8UVxLMG3vHN1Welu+NbkPyQxLo5ov3d+w3kyC8SZwjKkl5j6CTzwXdQ
-         IxksfyjM7xfaudtcJsnqlDqPPgNr79dtfMmxSz5fNvV+JVyhGYnV3P+rxgOhXrLvKN16
-         /Ztg==
-X-Gm-Message-State: AOAM532wwsmuuKqYGmqLEqPZMIAxcTojm6AjvgPWsnbQE2xlWUTWtGim
-        xIr4c7lQvTYS0w2qiBup4Z4=
-X-Google-Smtp-Source: ABdhPJxPJuoDMAq2Wr5q2LkhRcTuAk0wiZ8V1LOGRaTDvTtL81Ro5WteEPx1PgU9H2/cfwF6RtJmKg==
-X-Received: by 2002:a05:6402:101a:: with SMTP id c26mr3110087edu.19.1623408925151;
-        Fri, 11 Jun 2021 03:55:25 -0700 (PDT)
-Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.55.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Jun 2021 03:55:24 -0700 (PDT)
-From:   Ioana Ciornei <ciorneiioana@gmail.com>
-To:     davem@davemloft.net, kuba@kernel.org, hkallweit1@gmail.com,
+        id S231649AbhFKLUD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Jun 2021 07:20:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40258 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231482AbhFKLUC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 07:20:02 -0400
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27489C061574;
+        Fri, 11 Jun 2021 04:18:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=J8owCuPd5/8ySW2SHSltyMbz8eudomH+a+c2304+N58=; b=c9Kuu1ayjF5HovhwoYXeYzQeY
+        NWZThOyYoZbCSL3cUyQpeoQcN2b3xN9smeGgaw9oJ5PVEbfaoiulwzv+xrBpOQUS6GNKPBcA7oFwf
+        MiFYMDc5uyfjz+gSUyqVE5KLoKP5kleD/eqcEh06mns0VO3INcb1XM3UjpM4zacVfhgWXFkvI/8CG
+        EiU7XITuKMAqKyCnYTL7GJmPMLFS/VLAYHJ5EbeGLKSZstNIhfNnnJZ9fPnG4mlhWa2zJgONkqvDL
+        xn3HfoARosG+fID2HgP+jQ4yBPK+gBhFrfaK7EZ3BLk4c7K+cYs08CMGgpgRV1YBFGGiqHpBoYA2F
+        6qGQmaJVg==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:44908)
+        by pandora.armlinux.org.uk with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1lrfAi-00012V-2O; Fri, 11 Jun 2021 12:17:56 +0100
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.92)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1lrfAc-0001EC-Hz; Fri, 11 Jun 2021 12:17:50 +0100
+Date:   Fri, 11 Jun 2021 12:17:50 +0100
+From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
+To:     Ioana Ciornei <ciorneiioana@gmail.com>
+Cc:     davem@davemloft.net, kuba@kernel.org, hkallweit1@gmail.com,
         netdev@vger.kernel.org, Grant Likely <grant.likely@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
         Jeremy Linton <jeremy.linton@arm.com>,
         Andrew Lunn <andrew@lunn.ch>,
         Andy Shevchenko <andy.shevchenko@gmail.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
-        Russell King - ARM Linux admin <linux@armlinux.org.uk>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Marcin Wojtas <mw@semihalf.com>,
         Pieter Jansen Van Vuuren <pieter.jansenvv@bamboosystems.io>,
         Jon <jon@solid-run.com>, Saravana Kannan <saravanak@google.com>,
         Randy Dunlap <rdunlap@infradead.org>,
-        calvin.johnson@oss.nxp.com
-Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
+        calvin.johnson@oss.nxp.com,
+        Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         Florin Laurentiu Chiculita <florinlaurentiu.chiculita@nxp.com>,
         Madalin Bucur <madalin.bucur@nxp.com>,
         linux-arm-kernel@lists.infradead.org,
@@ -78,89 +68,147 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         Len Brown <lenb@kernel.org>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v9 14/15] net: phylink: Refactor phylink_of_phy_connect()
-Date:   Fri, 11 Jun 2021 13:54:00 +0300
-Message-Id: <20210611105401.270673-15-ciorneiioana@gmail.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210611105401.270673-1-ciorneiioana@gmail.com>
+Subject: Re: [PATCH net-next v9 13/15] net: phylink: introduce
+ phylink_fwnode_phy_connect()
+Message-ID: <20210611111750.GH22278@shell.armlinux.org.uk>
 References: <20210611105401.270673-1-ciorneiioana@gmail.com>
+ <20210611105401.270673-14-ciorneiioana@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210611105401.270673-14-ciorneiioana@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Calvin Johnson <calvin.johnson@oss.nxp.com>
+On Fri, Jun 11, 2021 at 01:53:59PM +0300, Ioana Ciornei wrote:
+> From: Calvin Johnson <calvin.johnson@oss.nxp.com>
+> 
+> Define phylink_fwnode_phy_connect() to connect phy specified by
+> a fwnode to a phylink instance.
+> 
+> Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
+> Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
+> Acked-by: Grant Likely <grant.likely@arm.com>
 
-Refactor phylink_of_phy_connect() to use phylink_fwnode_phy_connect().
+Reviewed-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
 
-Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
-Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
-Acked-by: Grant Likely <grant.likely@arm.com>
----
+Thanks.
 
-Changes in v9: None
-Changes in v8: None
-Changes in v7: None
-Changes in v6: None
-Changes in v5: None
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
+> ---
+> 
+> Changes in v9: None
+> Changes in v8: None
+> Changes in v7: None
+> Changes in v6:
+> - remove OF check for fixed-link
+> 
+> Changes in v5: None
+> Changes in v4:
+> - call phy_device_free() before returning
+> 
+> Changes in v3: None
+> Changes in v2: None
+> 
+> 
+> 
+>  drivers/net/phy/phylink.c | 54 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/phylink.h   |  3 +++
+>  2 files changed, 57 insertions(+)
+> 
+> diff --git a/drivers/net/phy/phylink.c b/drivers/net/phy/phylink.c
+> index 96d8e88b4e46..9cc0f69faafe 100644
+> --- a/drivers/net/phy/phylink.c
+> +++ b/drivers/net/phy/phylink.c
+> @@ -5,6 +5,7 @@
+>   *
+>   * Copyright (C) 2015 Russell King
+>   */
+> +#include <linux/acpi.h>
+>  #include <linux/ethtool.h>
+>  #include <linux/export.h>
+>  #include <linux/gpio/consumer.h>
+> @@ -1125,6 +1126,59 @@ int phylink_of_phy_connect(struct phylink *pl, struct device_node *dn,
+>  }
+>  EXPORT_SYMBOL_GPL(phylink_of_phy_connect);
+>  
+> +/**
+> + * phylink_fwnode_phy_connect() - connect the PHY specified in the fwnode.
+> + * @pl: a pointer to a &struct phylink returned from phylink_create()
+> + * @fwnode: a pointer to a &struct fwnode_handle.
+> + * @flags: PHY-specific flags to communicate to the PHY device driver
+> + *
+> + * Connect the phy specified @fwnode to the phylink instance specified
+> + * by @pl.
+> + *
+> + * Returns 0 on success or a negative errno.
+> + */
+> +int phylink_fwnode_phy_connect(struct phylink *pl,
+> +			       struct fwnode_handle *fwnode,
+> +			       u32 flags)
+> +{
+> +	struct fwnode_handle *phy_fwnode;
+> +	struct phy_device *phy_dev;
+> +	int ret;
+> +
+> +	/* Fixed links and 802.3z are handled without needing a PHY */
+> +	if (pl->cfg_link_an_mode == MLO_AN_FIXED ||
+> +	    (pl->cfg_link_an_mode == MLO_AN_INBAND &&
+> +	     phy_interface_mode_is_8023z(pl->link_interface)))
+> +		return 0;
+> +
+> +	phy_fwnode = fwnode_get_phy_node(fwnode);
+> +	if (IS_ERR(phy_fwnode)) {
+> +		if (pl->cfg_link_an_mode == MLO_AN_PHY)
+> +			return -ENODEV;
+> +		return 0;
+> +	}
+> +
+> +	phy_dev = fwnode_phy_find_device(phy_fwnode);
+> +	/* We're done with the phy_node handle */
+> +	fwnode_handle_put(phy_fwnode);
+> +	if (!phy_dev)
+> +		return -ENODEV;
+> +
+> +	ret = phy_attach_direct(pl->netdev, phy_dev, flags,
+> +				pl->link_interface);
+> +	if (ret) {
+> +		phy_device_free(phy_dev);
+> +		return ret;
+> +	}
+> +
+> +	ret = phylink_bringup_phy(pl, phy_dev, pl->link_config.interface);
+> +	if (ret)
+> +		phy_detach(phy_dev);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(phylink_fwnode_phy_connect);
+> +
+>  /**
+>   * phylink_disconnect_phy() - disconnect any PHY attached to the phylink
+>   *   instance.
+> diff --git a/include/linux/phylink.h b/include/linux/phylink.h
+> index fd2acfd9b597..afb3ded0b691 100644
+> --- a/include/linux/phylink.h
+> +++ b/include/linux/phylink.h
+> @@ -441,6 +441,9 @@ void phylink_destroy(struct phylink *);
+>  
+>  int phylink_connect_phy(struct phylink *, struct phy_device *);
+>  int phylink_of_phy_connect(struct phylink *, struct device_node *, u32 flags);
+> +int phylink_fwnode_phy_connect(struct phylink *pl,
+> +			       struct fwnode_handle *fwnode,
+> +			       u32 flags);
+>  void phylink_disconnect_phy(struct phylink *);
+>  
+>  void phylink_mac_change(struct phylink *, bool up);
+> -- 
+> 2.31.1
+> 
+> 
 
- drivers/net/phy/phylink.c | 39 +--------------------------------------
- 1 file changed, 1 insertion(+), 38 deletions(-)
-
-diff --git a/drivers/net/phy/phylink.c b/drivers/net/phy/phylink.c
-index 9cc0f69faafe..bb9eeb74f70a 100644
---- a/drivers/net/phy/phylink.c
-+++ b/drivers/net/phy/phylink.c
-@@ -1085,44 +1085,7 @@ EXPORT_SYMBOL_GPL(phylink_connect_phy);
- int phylink_of_phy_connect(struct phylink *pl, struct device_node *dn,
- 			   u32 flags)
- {
--	struct device_node *phy_node;
--	struct phy_device *phy_dev;
--	int ret;
--
--	/* Fixed links and 802.3z are handled without needing a PHY */
--	if (pl->cfg_link_an_mode == MLO_AN_FIXED ||
--	    (pl->cfg_link_an_mode == MLO_AN_INBAND &&
--	     phy_interface_mode_is_8023z(pl->link_interface)))
--		return 0;
--
--	phy_node = of_parse_phandle(dn, "phy-handle", 0);
--	if (!phy_node)
--		phy_node = of_parse_phandle(dn, "phy", 0);
--	if (!phy_node)
--		phy_node = of_parse_phandle(dn, "phy-device", 0);
--
--	if (!phy_node) {
--		if (pl->cfg_link_an_mode == MLO_AN_PHY)
--			return -ENODEV;
--		return 0;
--	}
--
--	phy_dev = of_phy_find_device(phy_node);
--	/* We're done with the phy_node handle */
--	of_node_put(phy_node);
--	if (!phy_dev)
--		return -ENODEV;
--
--	ret = phy_attach_direct(pl->netdev, phy_dev, flags,
--				pl->link_interface);
--	if (ret)
--		return ret;
--
--	ret = phylink_bringup_phy(pl, phy_dev, pl->link_config.interface);
--	if (ret)
--		phy_detach(phy_dev);
--
--	return ret;
-+	return phylink_fwnode_phy_connect(pl, of_fwnode_handle(dn), flags);
- }
- EXPORT_SYMBOL_GPL(phylink_of_phy_connect);
- 
 -- 
-2.31.1
-
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
