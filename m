@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06099C48BD1
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:55:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98306C48BE6
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:55:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7A69613CD
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:55:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81226613EE
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:55:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230230AbhFKK5P (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Jun 2021 06:57:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35032 "EHLO
+        id S231542AbhFKK5Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Jun 2021 06:57:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231476AbhFKK5M (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:57:12 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5966BC0613A2;
-        Fri, 11 Jun 2021 03:55:13 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id l1so3913185ejb.6;
-        Fri, 11 Jun 2021 03:55:13 -0700 (PDT)
+        with ESMTP id S230349AbhFKK5O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:57:14 -0400
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F3FCC0617AF;
+        Fri, 11 Jun 2021 03:55:03 -0700 (PDT)
+Received: by mail-ej1-x62f.google.com with SMTP id h24so3942621ejy.2;
+        Fri, 11 Jun 2021 03:55:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=nD0FvHmxOFRRWKT1YrUDX8wRFZH1BwQpKvwiKOY2Wm4=;
-        b=benHG22ahSfVkYfxO/0xdrFr9jO2kZiyud+VZo9+gm5/n0T0iJ2QvFFWMS1UVRlEO6
-         J4JtrhdCn0VhxcThOECLR0XI71rW0vp5+N1xwMC/u0l/6LwgD//1bsvKN2RCPGWrzKHe
-         /KTTxwJD8AC3SzPV/WzSSZw2+3lpuwlB/EMfVQeU4UGD4AnpJsvsV9m+l9GgaFEGxRPz
-         VC8dwkD6jbhYDQKCUMqavXya+QgzRUFWt1OK8jyl6olZKADl9hKY0fH/Pkr1uH4ZpAyk
-         XhYotwBdGyIeY2NpIcSghwBqJxiuiF7Ajafn/WwTsp2ctDCCGl66dAtZ/hOQsq/vddqc
-         wSMQ==
+        bh=bSqtR/P0vVOyJ7D0Li8Lv7yXqTREWzkdBqljW0NiiXY=;
+        b=Q2e3aDafRoQ9XZ3elT85Z4BxChaJBYDl0IFPGVRbFpM9ArcAlU8amH+rIqP+XeOIgy
+         qfK58jWrFQu054Ywmser1hInK7u9bcHc96PbWLuhcSrTX3DL/sejIzmyWoof/7AuVzFh
+         fDMQaFa3ktbekKD6zeQjzKJ6HpY930kMMHl7JbTj8XMywAq9+vrVZ1ToOG3ZXn29U0zu
+         fakD9ckPqdWy3oT6NeIE8jX1sx035LCK1Rf/CgDcP9t1VcIrTwuJGDQEavgtsHwcXj8t
+         4W6zms/quJJ4zUPwt5IewQ251JInQnqeEkicj1vfDFJ8uT/46AkdiowXzG7uHDT7DVjq
+         gQQg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=nD0FvHmxOFRRWKT1YrUDX8wRFZH1BwQpKvwiKOY2Wm4=;
-        b=pOYaiV+jG1nE10UmoiqjsoezI6yzlHu5nsw2WB+DnDIEBLc19CzbrJONqVpH3I505I
-         gBONKZDecYCxyJpcL3l0z977DBkvTZkAKDpfU7nzegeTlHxj7e4aK2dHocFMqTxqu9nn
-         APHLqK58tSU3aJpZoqMDWKFHMHYjnzkAukpNOV6lYALEWAZgYdStNIQGbsIWViE5K9Kd
-         tlCT4iudR5STPVkAzxfNXms8i+/DxxbSjOsY9/i+1OtRYfWPtWtHM+e4WHW0ndz1/Pxe
-         sqiZDA0vIw8kphTtOeLArQ/Yn6eBITdahNwe4NuSw7Ih7fwRd4Lpznu6/t9+YVZBF953
-         9Jzw==
-X-Gm-Message-State: AOAM533ZBk8Mt9EOvpMSF7ovt0rhcNkdPvK0Ny37bkSg4UGXnhZc6PBx
-        lRf9MHamxqQGzc3a+tZwp3o=
-X-Google-Smtp-Source: ABdhPJw2/O82wbK7zKE8NB0q+0btIDMCmQPSgZ3WH5y7acwzCyJQOpi9+amaa4UTtBrYPVROxfDsLQ==
-X-Received: by 2002:a17:906:f192:: with SMTP id gs18mr3192101ejb.114.1623408911861;
-        Fri, 11 Jun 2021 03:55:11 -0700 (PDT)
+        bh=bSqtR/P0vVOyJ7D0Li8Lv7yXqTREWzkdBqljW0NiiXY=;
+        b=Znp0AUaXEYvwkQ5On10KoZeX7K4vaMsnLzRdkTNpthJKHUQnKzA4Wnh46dcz+3sGpx
+         zg5/MaA+yWeyCkDAeFwAIooSLlim/ifAWqkjuznG++Z/Sw6PPD8pri7puQYNjfz8Y3u0
+         w0dxKcVXUWCxBTRGcGjMhilFefhv9vJHPh6QzGHK4WOWUQ9A8r4CWwqp6nHy/tgPwRPg
+         Eq7Dt1z+iswUyVKo5J4XUjHXhZoWaDnoV4LPhLTBURTuhhPJon5tZ4DuKf4EHyjOFVDY
+         tBT2BAKEkcX589SpmWgcn01zOsnBV0o8PhvMH5sKjwe3njr8B8H+1mKYs7v/1YRQ91jJ
+         5JBg==
+X-Gm-Message-State: AOAM530fazu8ENgjfMvsti7vfHWSOq97/HFyhvWoAAmBQqFeg6oYmny8
+        n0eCGjZMXu+pkS0bbaNwJLw=
+X-Google-Smtp-Source: ABdhPJz9d9cKCWOe929TC+xXbcZo7taJ2L4OxHZf1z9GEwr2OeVJL7NG82Oy/gbznCswooCVClbrVA==
+X-Received: by 2002:a17:906:b2d1:: with SMTP id cf17mr3152732ejb.225.1623408901654;
+        Fri, 11 Jun 2021 03:55:01 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.55.08
+        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.54.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Jun 2021 03:55:11 -0700 (PDT)
+        Fri, 11 Jun 2021 03:55:01 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     davem@davemloft.net, kuba@kernel.org, hkallweit1@gmail.com,
         netdev@vger.kernel.org, Grant Likely <grant.likely@arm.com>,
@@ -81,9 +81,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         Len Brown <lenb@kernel.org>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v9 10/15] ACPI: utils: Introduce acpi_get_local_address()
-Date:   Fri, 11 Jun 2021 13:53:56 +0300
-Message-Id: <20210611105401.270673-11-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v9 07/15] net: mii_timestamper: check NULL in unregister_mii_timestamper()
+Date:   Fri, 11 Jun 2021 13:53:53 +0300
+Message-Id: <20210611105401.270673-8-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210611105401.270673-1-ciorneiioana@gmail.com>
 References: <20210611105401.270673-1-ciorneiioana@gmail.com>
@@ -95,84 +95,86 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Introduce a wrapper around the _ADR evaluation.
+Callers of unregister_mii_timestamper() currently check for NULL
+value of mii_ts before calling it.
+
+Place the NULL check inside unregister_mii_timestamper() and update
+the callers accordingly.
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
-Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 Acked-by: Grant Likely <grant.likely@arm.com>
 ---
 
 Changes in v9: None
 Changes in v8: None
-Changes in v7: None
+Changes in v7:
+- check NULL in unregister_mii_timestamper()
+
 Changes in v6: None
-Changes in v5:
-- Replace fwnode_get_id() with acpi_get_local_address()
+Changes in v5: None
+Changes in v4: None
+Changes in v3: None
+Changes in v2: None
 
-Changes in v4:
-- Improve code structure to handle all cases
 
-Changes in v3:
-- Modified to retrieve reg property value for ACPI as well
-- Resolved compilation issue with CONFIG_ACPI = n
-- Added more info into documentation
+ drivers/net/mdio/of_mdio.c        | 6 ++----
+ drivers/net/phy/mii_timestamper.c | 3 +++
+ drivers/net/phy/phy_device.c      | 3 +--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
- drivers/acpi/utils.c | 14 ++++++++++++++
- include/linux/acpi.h |  7 +++++++
- 2 files changed, 21 insertions(+)
-
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 3b54b8fd7396..e7ddd281afff 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -277,6 +277,20 @@ acpi_evaluate_integer(acpi_handle handle,
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index 29f121cba314..d73c0570f19c 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -115,15 +115,13 @@ static int of_mdiobus_register_phy(struct mii_bus *mdio,
+ 	else
+ 		phy = get_phy_device(mdio, addr, is_c45);
+ 	if (IS_ERR(phy)) {
+-		if (mii_ts)
+-			unregister_mii_timestamper(mii_ts);
++		unregister_mii_timestamper(mii_ts);
+ 		return PTR_ERR(phy);
+ 	}
  
- EXPORT_SYMBOL(acpi_evaluate_integer);
+ 	rc = of_mdiobus_phy_device_register(mdio, phy, child, addr);
+ 	if (rc) {
+-		if (mii_ts)
+-			unregister_mii_timestamper(mii_ts);
++		unregister_mii_timestamper(mii_ts);
+ 		phy_device_free(phy);
+ 		return rc;
+ 	}
+diff --git a/drivers/net/phy/mii_timestamper.c b/drivers/net/phy/mii_timestamper.c
+index b71b7456462d..51ae0593a04f 100644
+--- a/drivers/net/phy/mii_timestamper.c
++++ b/drivers/net/phy/mii_timestamper.c
+@@ -111,6 +111,9 @@ void unregister_mii_timestamper(struct mii_timestamper *mii_ts)
+ 	struct mii_timestamping_desc *desc;
+ 	struct list_head *this;
  
-+int acpi_get_local_address(acpi_handle handle, u32 *addr)
-+{
-+	unsigned long long adr;
-+	acpi_status status;
++	if (!mii_ts)
++		return;
 +
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &adr);
-+	if (ACPI_FAILURE(status))
-+		return -ENODATA;
-+
-+	*addr = (u32)adr;
-+	return 0;
-+}
-+EXPORT_SYMBOL(acpi_get_local_address);
-+
- acpi_status
- acpi_evaluate_reference(acpi_handle handle,
- 			acpi_string pathname,
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c60745f657e9..6ace3a0f1415 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -710,6 +710,8 @@ static inline u64 acpi_arch_get_root_pointer(void)
- }
- #endif
+ 	/* mii_timestamper statically registered by the PHY driver won't use the
+ 	 * register_mii_timestamper() and thus don't have ->device set. Don't
+ 	 * try to unregister these.
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index f7472a0cf771..85734309b580 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -957,8 +957,7 @@ EXPORT_SYMBOL(phy_device_register);
+  */
+ void phy_device_remove(struct phy_device *phydev)
+ {
+-	if (phydev->mii_ts)
+-		unregister_mii_timestamper(phydev->mii_ts);
++	unregister_mii_timestamper(phydev->mii_ts);
  
-+int acpi_get_local_address(acpi_handle handle, u32 *addr);
-+
- #else	/* !CONFIG_ACPI */
+ 	device_del(&phydev->mdio.dev);
  
- #define acpi_disabled 1
-@@ -965,6 +967,11 @@ static inline struct acpi_device *acpi_resource_consumer(struct resource *res)
- 	return NULL;
- }
- 
-+static inline int acpi_get_local_address(acpi_handle handle, u32 *addr)
-+{
-+	return -ENODEV;
-+}
-+
- #endif	/* !CONFIG_ACPI */
- 
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
 -- 
 2.31.1
 
