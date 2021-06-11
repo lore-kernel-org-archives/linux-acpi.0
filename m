@@ -8,54 +8,51 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91808C48BE6
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:55:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC1A1C48BD1
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:56:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 793F1613EA
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:55:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C30B5613EA
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:56:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231723AbhFKK5i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Jun 2021 06:57:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35044 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231651AbhFKK5a (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:57:30 -0400
-Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E32DC0613A4;
-        Fri, 11 Jun 2021 03:55:17 -0700 (PDT)
-Received: by mail-ej1-x632.google.com with SMTP id ho18so3901309ejc.8;
-        Fri, 11 Jun 2021 03:55:16 -0700 (PDT)
+        id S231783AbhFKK56 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Jun 2021 06:57:58 -0400
+Received: from mail-ed1-f47.google.com ([209.85.208.47]:41504 "EHLO
+        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231704AbhFKK5h (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:57:37 -0400
+Received: by mail-ed1-f47.google.com with SMTP id g18so34603309edq.8;
+        Fri, 11 Jun 2021 03:55:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=jIku+SUxsHEOSxoQcz7D5aJYws7YqOlKpfXAqwjLSzk=;
-        b=Y265f3PSDjRMjK1R4E/1OKrg3C0lTTShbOBsyJfHPA52dJs6QEXAU+V7eJZqufE25p
-         4J8kAFaYAgxxYsIo2n6GfkbUWdYBht7a6WHxQSxel2Kb1BiEK1R/Q8MHch92b9deVBuX
-         0lJY5lC1CoN+YOEe/A7vwM5mB+7NEqg+HX8qYs94L68Gl61bqS1qefrN9BJncbhHg/tA
-         YKCiiQh3FvGMCEWFNMn9CMSRGqGgWm7MM7VSzrRi6Nyz/nl1Gi1pBPE0IFy/nN5aNDgK
-         S1YZJnAySfr+Iml8qbqW/m/Sh/CfzpNZjX2IFD9ONJXzJgQP9YaCtPM93ur46foBZF7u
-         ikpw==
+        bh=gbwVNa3S8li5NCVOh4mFUhXpgiQevg73Tb0jCktd9T4=;
+        b=aUOrr0il8JxtyF4SJWqbAN+Yvnryyq3/lS1vMcJB8pA2R8zpVzedPXNMuQLn3JNqm2
+         dBXuypz/2GvMjzTpyZr/8/b8V+1X+DWF1LyzFlnVfe3BkeNOTRoMptKjmRhHe8oAehLp
+         R1J4pIpV4aRh7jRi7GKzcJQQQGLbzty0wjjDMsTfgAhHZ/iKf/C1l5IawOBaOtLvBiUL
+         q8PxoKpJ4D9SZZZ4SnhAQitzZMf1vw5NlNq1Ea/fQyviafjNOlqZiulV9aGcixB7FFDI
+         L0YPPt2e9R3IHB4I4cHCY3oiuOB+BzBiSwRfIKF07OWXUQ3YzoY/o3frhIC/ncDnZ3FJ
+         jisQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=jIku+SUxsHEOSxoQcz7D5aJYws7YqOlKpfXAqwjLSzk=;
-        b=klUZciSRMswK4zvPrXMUCpq8CFV0JvEVAnbKIViFxHIjpKiytem9XX8I1NEctTzoEN
-         HQnnCP7BtbTTbJAJEUXE1XTyTJMYpDFfMEW8gAhw17Sge86f2v/eU+3TUh6PWG+Qc6Oc
-         CVJpHpGtpzUOI2Os5/SR/nkjIMnTAaXM4VqpyoYzfpEZoJmXLTpNFY3J+kmELwgzdL8A
-         LEsCV5rverxee7cfIdFLHBfSgXkWQvve10W65O0/fPNdvsny5KJ0s/zL83nqT/hHMAPN
-         jswr8fFe+fR3qyrwp7ejzoDMlxcGQlDoK607KdzSGlWAXDaZt8TkJHJ7Ry+P6JP7AKJd
-         IM9A==
-X-Gm-Message-State: AOAM532Uo/DUQxxul/Gab58ZMV9MUisZke3p+TgdCNDv3L9DWZnPJ3tT
-        ojwgjHoMhzB3yerLliGiKSQ=
-X-Google-Smtp-Source: ABdhPJykvt6kbaDhPxoeEdGHmfH0CXOXH0YotRXOxh4e4HrJb+j91eQMZyFXTU7RzK1EON9GIpQuYg==
-X-Received: by 2002:a17:906:4e91:: with SMTP id v17mr3165296eju.119.1623408915592;
-        Fri, 11 Jun 2021 03:55:15 -0700 (PDT)
+        bh=gbwVNa3S8li5NCVOh4mFUhXpgiQevg73Tb0jCktd9T4=;
+        b=O3NeWyZ8F3PpZGn41RBYeTCE9WukVS6H2f+rHV/qGSNLHClUcx9/JSYtK/4wr+r1D0
+         NsS4yj9d5IVvh3y+pXZjB9kVXmp4qEVOZCaSEyhy/JoQCJKGUmrXPCChA1jJGzjVO8EJ
+         zsCXntH9UiOw5nW4XQgFy9dFWMytBmTkYcs3SGRjOceueF9pZuYUsowoJTe5W89B24O8
+         3ts00IuSiQ7cNzbpWf+bpvEdS7w9rOlKF+S5il696kb0eTpW8Ouht1ZR9dU/YvGx/o2h
+         NjAc9m6CYuCdlWiwG5sRq1EuNclJ5JDps+3BpOlg7qmqoa8vihjFSNanHHL9uGLqrVEY
+         eWoA==
+X-Gm-Message-State: AOAM532wKHegHfZtqAByzsQTphyEPgm2h7Vsd4kn+PkDXRJlwXnXSPX3
+        yAaIRAnQ9+MfJR7+0uxrqtk=
+X-Google-Smtp-Source: ABdhPJxIDJolZFi1bIHlyLHtY6oI64I2tnTaxEpyzIUhG0f81a9sJEc0/S9zrYtiGSfufK1XmJVOKw==
+X-Received: by 2002:a50:bf0f:: with SMTP id f15mr2954896edk.205.1623408878131;
+        Fri, 11 Jun 2021 03:54:38 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.55.12
+        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.54.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Jun 2021 03:55:15 -0700 (PDT)
+        Fri, 11 Jun 2021 03:54:37 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     davem@davemloft.net, kuba@kernel.org, hkallweit1@gmail.com,
         netdev@vger.kernel.org, Grant Likely <grant.likely@arm.com>,
@@ -81,9 +78,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         Len Brown <lenb@kernel.org>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v9 11/15] net: mdio: Add ACPI support code for mdio
-Date:   Fri, 11 Jun 2021 13:53:57 +0300
-Message-Id: <20210611105401.270673-12-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v9 01/15] Documentation: ACPI: DSD: Document MDIO PHY
+Date:   Fri, 11 Jun 2021 13:53:47 +0300
+Message-Id: <20210611105401.270673-2-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210611105401.270673-1-ciorneiioana@gmail.com>
 References: <20210611105401.270673-1-ciorneiioana@gmail.com>
@@ -95,8 +92,13 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Define acpi_mdiobus_register() to Register mii_bus and create PHYs for
-each ACPI child node.
+Introduce a mechanism based on generic ACPI _DSD device properties
+definition [1] to get PHYs registered on a MDIO bus and provide them to
+be connected to MAC.
+
+[1] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+
+Describe properties "phy-handle" and "phy-mode".
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
@@ -105,174 +107,167 @@ Acked-by: Grant Likely <grant.likely@arm.com>
 ---
 
 Changes in v9:
-- Add some more info about what is expected to be passed to
-  acpi_mdiobus_register() as fwnode
+- Reworded the commit message
 
 Changes in v8: None
-Changes in v7:
-- Include headers directly used in acpi_mdio.c
-
+Changes in v7: None
 Changes in v6:
-- use GENMASK() and ACPI_COMPANION_SET()
-- some cleanup
-- remove unwanted header inclusion
+- Minor cleanup
 
 Changes in v5:
-- add missing MODULE_LICENSE()
-- replace fwnode_get_id() with OF and ACPI function calls
+- More cleanup
 
-Changes in v4: None
+Changes in v4:
+- More cleanup
+
 Changes in v3: None
-Changes in v2: None
+Changes in v2:
+- Updated with more description in document
 
 
- MAINTAINERS                  |  1 +
- drivers/net/mdio/Kconfig     |  7 +++++
- drivers/net/mdio/Makefile    |  1 +
- drivers/net/mdio/acpi_mdio.c | 58 ++++++++++++++++++++++++++++++++++++
- include/linux/acpi_mdio.h    | 26 ++++++++++++++++
- 5 files changed, 93 insertions(+)
- create mode 100644 drivers/net/mdio/acpi_mdio.c
- create mode 100644 include/linux/acpi_mdio.h
+ Documentation/firmware-guide/acpi/dsd/phy.rst | 133 ++++++++++++++++++
+ 1 file changed, 133 insertions(+)
+ create mode 100644 Documentation/firmware-guide/acpi/dsd/phy.rst
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e8f8b6c33a51..2172f594be8f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6811,6 +6811,7 @@ F:	Documentation/devicetree/bindings/net/mdio*
- F:	Documentation/devicetree/bindings/net/qca,ar803x.yaml
- F:	Documentation/networking/phy.rst
- F:	drivers/net/mdio/
-+F:	drivers/net/mdio/acpi_mdio.c
- F:	drivers/net/mdio/fwnode_mdio.c
- F:	drivers/net/mdio/of_mdio.c
- F:	drivers/net/pcs/
-diff --git a/drivers/net/mdio/Kconfig b/drivers/net/mdio/Kconfig
-index 422e9e042a3c..99a6c13a11af 100644
---- a/drivers/net/mdio/Kconfig
-+++ b/drivers/net/mdio/Kconfig
-@@ -34,6 +34,13 @@ config OF_MDIO
- 	help
- 	  OpenFirmware MDIO bus (Ethernet PHY) accessors
- 
-+config ACPI_MDIO
-+	def_tristate PHYLIB
-+	depends on ACPI
-+	depends on PHYLIB
-+	help
-+	  ACPI MDIO bus (Ethernet PHY) accessors
-+
- if MDIO_BUS
- 
- config MDIO_DEVRES
-diff --git a/drivers/net/mdio/Makefile b/drivers/net/mdio/Makefile
-index 2e6813c709eb..15f8dc4042ce 100644
---- a/drivers/net/mdio/Makefile
-+++ b/drivers/net/mdio/Makefile
-@@ -1,6 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for Linux MDIO bus drivers
- 
-+obj-$(CONFIG_ACPI_MDIO)		+= acpi_mdio.o
- obj-$(CONFIG_FWNODE_MDIO)	+= fwnode_mdio.o
- obj-$(CONFIG_OF_MDIO)		+= of_mdio.o
- 
-diff --git a/drivers/net/mdio/acpi_mdio.c b/drivers/net/mdio/acpi_mdio.c
+diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
 new file mode 100644
-index 000000000000..d77c987fda9c
+index 000000000000..7d01ae8b3cc6
 --- /dev/null
-+++ b/drivers/net/mdio/acpi_mdio.c
-@@ -0,0 +1,58 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * ACPI helpers for the MDIO (Ethernet PHY) API
-+ *
-+ * This file provides helper functions for extracting PHY device information
-+ * out of the ACPI ASL and using it to populate an mii_bus.
-+ */
++++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
+@@ -0,0 +1,133 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+#include <linux/acpi.h>
-+#include <linux/acpi_mdio.h>
-+#include <linux/bits.h>
-+#include <linux/dev_printk.h>
-+#include <linux/fwnode_mdio.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
++=========================
++MDIO bus and PHYs in ACPI
++=========================
 +
-+MODULE_AUTHOR("Calvin Johnson <calvin.johnson@oss.nxp.com>");
-+MODULE_LICENSE("GPL");
++The PHYs on an MDIO bus [1] are probed and registered using
++fwnode_mdiobus_register_phy().
 +
-+/**
-+ * acpi_mdiobus_register - Register mii_bus and create PHYs from the ACPI ASL.
-+ * @mdio: pointer to mii_bus structure
-+ * @fwnode: pointer to fwnode of MDIO bus. This fwnode is expected to represent
-+ * an ACPI device object corresponding to the MDIO bus and its children are
-+ * expected to correspond to the PHY devices on that bus.
-+ *
-+ * This function registers the mii_bus structure and registers a phy_device
-+ * for each child node of @fwnode.
-+ */
-+int acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *child;
-+	u32 addr;
-+	int ret;
++Later, for connecting these PHYs to their respective MACs, the PHYs registered
++on the MDIO bus have to be referenced.
 +
-+	/* Mask out all PHYs from auto probing. */
-+	mdio->phy_mask = GENMASK(31, 0);
-+	ret = mdiobus_register(mdio);
-+	if (ret)
-+		return ret;
++This document introduces two _DSD properties that are to be used
++for connecting PHYs on the MDIO bus [3] to the MAC layer.
 +
-+	ACPI_COMPANION_SET(&mdio->dev, to_acpi_device_node(fwnode));
++These properties are defined in accordance with the "Device
++Properties UUID For _DSD" [2] document and the
++daffd814-6eba-4d8c-8a91-bc9bbf4aa301 UUID must be used in the Device
++Data Descriptors containing them.
 +
-+	/* Loop over the child nodes and register a phy_device for each PHY */
-+	fwnode_for_each_child_node(fwnode, child) {
-+		ret = acpi_get_local_address(ACPI_HANDLE_FWNODE(child), &addr);
-+		if (ret || addr >= PHY_MAX_ADDR)
-+			continue;
++phy-handle
++----------
++For each MAC node, a device property "phy-handle" is used to reference
++the PHY that is registered on an MDIO bus. This is mandatory for
++network interfaces that have PHYs connected to MAC via MDIO bus.
 +
-+		ret = fwnode_mdiobus_register_phy(mdio, child, addr);
-+		if (ret == -ENODEV)
-+			dev_err(&mdio->dev,
-+				"MDIO device at address %d is missing.\n",
-+				addr);
++During the MDIO bus driver initialization, PHYs on this bus are probed
++using the _ADR object as shown below and are registered on the MDIO bus.
++
++::
++      Scope(\_SB.MDI0)
++      {
++        Device(PHY1) {
++          Name (_ADR, 0x1)
++        } // end of PHY1
++
++        Device(PHY2) {
++          Name (_ADR, 0x2)
++        } // end of PHY2
++      }
++
++Later, during the MAC driver initialization, the registered PHY devices
++have to be retrieved from the MDIO bus. For this, the MAC driver needs
++references to the previously registered PHYs which are provided
++as device object references (e.g. \_SB.MDI0.PHY1).
++
++phy-mode
++--------
++The "phy-mode" _DSD property is used to describe the connection to
++the PHY. The valid values for "phy-mode" are defined in [4].
++
++The following ASL example illustrates the usage of these properties.
++
++DSDT entry for MDIO node
++------------------------
++
++The MDIO bus has an SoC component (MDIO controller) and a platform
++component (PHYs on the MDIO bus).
++
++a) Silicon Component
++This node describes the MDIO controller, MDI0
++---------------------------------------------
++::
++	Scope(_SB)
++	{
++	  Device(MDI0) {
++	    Name(_HID, "NXP0006")
++	    Name(_CCA, 1)
++	    Name(_UID, 0)
++	    Name(_CRS, ResourceTemplate() {
++	      Memory32Fixed(ReadWrite, MDI0_BASE, MDI_LEN)
++	      Interrupt(ResourceConsumer, Level, ActiveHigh, Shared)
++	       {
++		 MDI0_IT
++	       }
++	    }) // end of _CRS for MDI0
++	  } // end of MDI0
 +	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(acpi_mdiobus_register);
-diff --git a/include/linux/acpi_mdio.h b/include/linux/acpi_mdio.h
-new file mode 100644
-index 000000000000..0a24ab7cb66f
---- /dev/null
-+++ b/include/linux/acpi_mdio.h
-@@ -0,0 +1,26 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * ACPI helper for the MDIO (Ethernet PHY) API
-+ */
 +
-+#ifndef __LINUX_ACPI_MDIO_H
-+#define __LINUX_ACPI_MDIO_H
++b) Platform Component
++The PHY1 and PHY2 nodes represent the PHYs connected to MDIO bus MDI0
++---------------------------------------------------------------------
++::
++	Scope(\_SB.MDI0)
++	{
++	  Device(PHY1) {
++	    Name (_ADR, 0x1)
++	  } // end of PHY1
 +
-+#include <linux/phy.h>
++	  Device(PHY2) {
++	    Name (_ADR, 0x2)
++	  } // end of PHY2
++	}
 +
-+#if IS_ENABLED(CONFIG_ACPI_MDIO)
-+int acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode);
-+#else /* CONFIG_ACPI_MDIO */
-+static inline int
-+acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode)
-+{
-+	/*
-+	 * Fall back to mdiobus_register() function to register a bus.
-+	 * This way, we don't have to keep compat bits around in drivers.
-+	 */
++DSDT entries representing MAC nodes
++-----------------------------------
 +
-+	return mdiobus_register(mdio);
-+}
-+#endif
++Below are the MAC nodes where PHY nodes are referenced.
++phy-mode and phy-handle are used as explained earlier.
++------------------------------------------------------
++::
++	Scope(\_SB.MCE0.PR17)
++	{
++	  Name (_DSD, Package () {
++	     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		 Package () {
++		     Package (2) {"phy-mode", "rgmii-id"},
++		     Package (2) {"phy-handle", \_SB.MDI0.PHY1}
++	      }
++	   })
++	}
 +
-+#endif /* __LINUX_ACPI_MDIO_H */
++	Scope(\_SB.MCE0.PR18)
++	{
++	  Name (_DSD, Package () {
++	    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package (2) {"phy-mode", "rgmii-id"},
++		    Package (2) {"phy-handle", \_SB.MDI0.PHY2}}
++	    }
++	  })
++	}
++
++References
++==========
++
++[1] Documentation/networking/phy.rst
++
++[2] https://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
++
++[3] Documentation/firmware-guide/acpi/DSD-properties-rules.rst
++
++[4] Documentation/devicetree/bindings/net/ethernet-controller.yaml
 -- 
 2.31.1
 
