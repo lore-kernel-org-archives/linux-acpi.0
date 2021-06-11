@@ -8,51 +8,51 @@ X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A7DC48BE0
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:56:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C871C48BD1
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:56:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB247613CD
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:56:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 823ED61287
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Jun 2021 10:56:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231661AbhFKK6r (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Jun 2021 06:58:47 -0400
-Received: from mail-ej1-f42.google.com ([209.85.218.42]:35542 "EHLO
-        mail-ej1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231608AbhFKK5z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:57:55 -0400
-Received: by mail-ej1-f42.google.com with SMTP id h24so3941741ejy.2;
-        Fri, 11 Jun 2021 03:55:47 -0700 (PDT)
+        id S231721AbhFKK64 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Jun 2021 06:58:56 -0400
+Received: from mail-ed1-f45.google.com ([209.85.208.45]:40769 "EHLO
+        mail-ed1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231733AbhFKK6D (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2021 06:58:03 -0400
+Received: by mail-ed1-f45.google.com with SMTP id t3so36608967edc.7;
+        Fri, 11 Jun 2021 03:56:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Hh+84caZ/SbvSAPRvXHMuFBYO9AZu2WHPl7V2NGTs6s=;
-        b=pb73Gf73D7D6NvWB8p0mi1JhyJGABUdlzoBytX/ziA1Gq6zZk0Xv4wHWAo5gQKdHFL
-         C+CB+RzJee3wPs0DCw1EciqlXaPqhijBZdFt54jP/yT42ldAJur02VHqNa8DTvBxgm62
-         nvcf+6MZ5GdtoGAwNhx5wgjzrHVSk0QO36g2K8OQd46zYxJjBn81kcLY068/NNUZT18e
-         mnb4urEZ5iJ6C2eyONtFURvUtCmAx4e3iBMhwVVqS+oRM+yLCNuBwBoaoxSO2Tk5Gimz
-         3heY+TmnMPhiC0kMP/u8jzzsYwCkHXaeera+dOgZAARMVOR7wM3PY6d9X7O6oppzZZFF
-         fgWA==
+        bh=IoG+8XwXyLviWTaAc/0jgRBQJ98gekWXRq/8laJqJAQ=;
+        b=XbT/2X4iB14yus46SeqvHxqLTtVLCc+1s/igD+ctyyDMBKVZIAvHgOiO2Bz1WOufl6
+         LD6y99ZtVuPvbKoC/mTEJyS1RVo8GRApFXcPJ8VFnOVyZhnOCJUJjgJBAdIxMAKGoije
+         i8WhCsuL1xt2iWp0atME9P4h+JhmC61mzJ1RJs2Onrf985GVRF8chIt/47KUHkfRvTSR
+         +e33GzwHpFC6hgKFsZuLKlqBIpOHRPDChpi5/tqHWbHSrdY49DIbHik4GqnGtIbO4Iaj
+         lWWFmRWf1Fyb+Pfk83Hk2Xp8wk3TdDUqgA4Gwow4RO24W/+y2BEKJDnl1VEAprf65PsC
+         nmKg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Hh+84caZ/SbvSAPRvXHMuFBYO9AZu2WHPl7V2NGTs6s=;
-        b=HUIG1B0r6P84gwKxjphbyQrhmpVQ9NyQFJoubLEZ/JGEVX/zAXt3rsCY+mAlakrl8w
-         sXsNRZqjM1eUXy0qt7cA5U/PdonQ6AN0ivKQukU0ES+m/mQLdz4m1emqQSfe00UCohvm
-         Pv5gWW8e+GcE5lzoNAUIy1+gj1fUD+lkBD2l6xk/QATScgENNzR6ktrvxMeY0IP+cO4z
-         AGHinINhQ9KWjZaRYQMynmYMdH0Jgk3tTR4i/G47RxUXEcM5lTYo7nXQdPEF4XL7mQQ9
-         aha0WL6TF8w3MlhqXrLShnO8z67UCtSksArIY4LMdvEnQgoj0fFfTUx+O2vZ6ErdvcX7
-         SoNQ==
-X-Gm-Message-State: AOAM530p++C3qWp4di8I5TRwVHWhcMP801ptpGHWgudOYLIwGNNiBJLd
-        3VO4Ml5DnJMhAxtjPuUzuGE=
-X-Google-Smtp-Source: ABdhPJy7tGoqQG3bkQpAHajqNCmv3hTHD2EUDTzVxj/qz8FBR2hinU/Ctq3vjb+zzMRVAq0j+Bvv1w==
-X-Received: by 2002:a17:907:96a1:: with SMTP id hd33mr2090740ejc.68.1623408887167;
-        Fri, 11 Jun 2021 03:54:47 -0700 (PDT)
+        bh=IoG+8XwXyLviWTaAc/0jgRBQJ98gekWXRq/8laJqJAQ=;
+        b=R8slkKk/TxwWPeY3a5lVER0sqKyEcnT9S4l4b7gWZM0gcntcBrTSdFarL/D0Cu+ti0
+         B0J86Xdgf0+0kuRX1bhBYnl/O7uamFx+tJtmaCN4wryqku+wNYm2ti7Ksiiptw1HBo5P
+         24BSbXUGI3deUDAKciz3i64SWyFbn95GXywXw5hPcgmHI+Gaiq9XFPNOZGONXMP4pghg
+         I4rIEIpcVdcJDn52vIdM2zC89IOsWmapU9Be7asoRdd+cukp0+/gM1um6eK9xkvXS+/n
+         ZmAntvxIgCS0tFEEHI6yuK6dIEKB9QiZrtlUBlABHh7nMT0Qe46RMELqzRxkyDc1Hqit
+         a0nw==
+X-Gm-Message-State: AOAM531f6u+DL3r1nA+FUwyH6R47rBkMOGv9lWjV2E4zJcwEugZ2L4Rd
+        EDvsXRIVyLerQm3E96unSG8=
+X-Google-Smtp-Source: ABdhPJy4CUv8It7kiiJyqqCQZaVm2pouG4AB51q1fFJWloukZUi3Sz6muyxYAo7/sOf5cICiGIXtBA==
+X-Received: by 2002:aa7:c450:: with SMTP id n16mr3025997edr.386.1623408905055;
+        Fri, 11 Jun 2021 03:55:05 -0700 (PDT)
 Received: from yoga-910.localhost ([188.26.52.84])
-        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.54.42
+        by smtp.gmail.com with ESMTPSA id r19sm2492051eds.75.2021.06.11.03.55.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Jun 2021 03:54:46 -0700 (PDT)
+        Fri, 11 Jun 2021 03:55:04 -0700 (PDT)
 From:   Ioana Ciornei <ciorneiioana@gmail.com>
 To:     davem@davemloft.net, kuba@kernel.org, hkallweit1@gmail.com,
         netdev@vger.kernel.org, Grant Likely <grant.likely@arm.com>,
@@ -78,9 +78,9 @@ Cc:     Cristi Sovaiala <cristian.sovaiala@nxp.com>,
         Len Brown <lenb@kernel.org>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Ioana Ciornei <ioana.ciornei@nxp.com>
-Subject: [PATCH net-next v9 03/15] net: phy: Introduce phy related fwnode functions
-Date:   Fri, 11 Jun 2021 13:53:49 +0300
-Message-Id: <20210611105401.270673-4-ciorneiioana@gmail.com>
+Subject: [PATCH net-next v9 08/15] net: mdiobus: Introduce fwnode_mdiobus_register_phy()
+Date:   Fri, 11 Jun 2021 13:53:54 +0300
+Message-Id: <20210611105401.270673-9-ciorneiioana@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210611105401.270673-1-ciorneiioana@gmail.com>
 References: <20210611105401.270673-1-ciorneiioana@gmail.com>
@@ -92,153 +92,354 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Calvin Johnson <calvin.johnson@oss.nxp.com>
 
-Define fwnode_phy_find_device() to iterate an mdiobus and find the
-phy device of the provided phy fwnode. Additionally define
-device_phy_find_device() to find phy device of provided device.
+Introduce fwnode_mdiobus_register_phy() to register PHYs on the
+mdiobus. From the compatible string, identify whether the PHY is
+c45 and based on this create a PHY device instance which is
+registered on the mdiobus.
 
-Define fwnode_get_phy_node() to get phy_node using named reference.
+Along with fwnode_mdiobus_register_phy() also introduce
+fwnode_find_mii_timestamper() and fwnode_mdiobus_phy_device_register()
+since they are needed.
+While at it, also use the newly introduced fwnode operation in
+of_mdiobus_phy_device_register().
 
 Signed-off-by: Calvin Johnson <calvin.johnson@oss.nxp.com>
 Signed-off-by: Ioana Ciornei <ioana.ciornei@nxp.com>
 Acked-by: Grant Likely <grant.likely@arm.com>
 ---
 
-Changes in v9: None
-Changes in v8: None
-Changes in v7: None
-Changes in v6: None
+Changes in v9:
+- fixed the build issue by not removing of_find_mii_timestamper() in
+  this patch but rather in the next one
+
+Changes in v8:
+- fixed some checkpatch warnings/checks
+- included linux/fwnode_mdio.h in fwnode_mdio.c (fixed the build warnings)
+- added fwnode_find_mii_timestamper() and fwnode_mdiobus_phy_device_register()
+in order to get rid of the cycle dependency.
+- change to 'depends on (ACPI || OF) || COMPILE_TEST
+
+Changes in v7:
+- Call unregister_mii_timestamper() without NULL check
+- Create fwnode_mdio.c and move fwnode_mdiobus_register_phy()
+
+Changes in v6:
+- Initialize mii_ts to NULL
+
 Changes in v5: None
 Changes in v4: None
-Changes in v3:
-- Add more info on legacy DT properties "phy" and "phy-device"
-- Redefine fwnode_phy_find_device() to follow of_phy_find_device()
-
-Changes in v2:
-- use reverse christmas tree ordering for local variables
+Changes in v3: None
+Changes in v2: None
 
 
- drivers/net/phy/phy_device.c | 62 ++++++++++++++++++++++++++++++++++++
- include/linux/phy.h          | 20 ++++++++++++
- 2 files changed, 82 insertions(+)
+ MAINTAINERS                    |   1 +
+ drivers/net/mdio/Kconfig       |   7 ++
+ drivers/net/mdio/Makefile      |   3 +-
+ drivers/net/mdio/fwnode_mdio.c | 144 +++++++++++++++++++++++++++++++++
+ drivers/net/mdio/of_mdio.c     |  44 ++--------
+ include/linux/fwnode_mdio.h    |  35 ++++++++
+ 6 files changed, 194 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/net/mdio/fwnode_mdio.c
+ create mode 100644 include/linux/fwnode_mdio.h
 
-diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index dca454b5c209..786f464216dd 100644
---- a/drivers/net/phy/phy_device.c
-+++ b/drivers/net/phy/phy_device.c
-@@ -9,6 +9,7 @@
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e69c1991ec3b..e8f8b6c33a51 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6811,6 +6811,7 @@ F:	Documentation/devicetree/bindings/net/mdio*
+ F:	Documentation/devicetree/bindings/net/qca,ar803x.yaml
+ F:	Documentation/networking/phy.rst
+ F:	drivers/net/mdio/
++F:	drivers/net/mdio/fwnode_mdio.c
+ F:	drivers/net/mdio/of_mdio.c
+ F:	drivers/net/pcs/
+ F:	drivers/net/phy/
+diff --git a/drivers/net/mdio/Kconfig b/drivers/net/mdio/Kconfig
+index d06e06f5e31a..422e9e042a3c 100644
+--- a/drivers/net/mdio/Kconfig
++++ b/drivers/net/mdio/Kconfig
+@@ -19,6 +19,13 @@ config MDIO_BUS
+ 	  reflects whether the mdio_bus/mdio_device code is built as a
+ 	  loadable module or built-in.
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/delay.h>
- #include <linux/errno.h>
-@@ -2898,6 +2899,67 @@ struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
- }
- EXPORT_SYMBOL(fwnode_mdio_find_device);
- 
-+/**
-+ * fwnode_phy_find_device - For provided phy_fwnode, find phy_device.
-+ *
-+ * @phy_fwnode: Pointer to the phy's fwnode.
-+ *
-+ * If successful, returns a pointer to the phy_device with the embedded
-+ * struct device refcount incremented by one, or NULL on failure.
-+ */
-+struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode)
-+{
-+	struct mdio_device *mdiodev;
++config FWNODE_MDIO
++	def_tristate PHYLIB
++	depends on (ACPI || OF) || COMPILE_TEST
++	select FIXED_PHY
++	help
++	  FWNODE MDIO bus (Ethernet PHY) accessors
 +
-+	mdiodev = fwnode_mdio_find_device(phy_fwnode);
-+	if (!mdiodev)
+ config OF_MDIO
+ 	def_tristate PHYLIB
+ 	depends on OF
+diff --git a/drivers/net/mdio/Makefile b/drivers/net/mdio/Makefile
+index c3ec0ef989df..2e6813c709eb 100644
+--- a/drivers/net/mdio/Makefile
++++ b/drivers/net/mdio/Makefile
+@@ -1,7 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for Linux MDIO bus drivers
+ 
+-obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
++obj-$(CONFIG_FWNODE_MDIO)	+= fwnode_mdio.o
++obj-$(CONFIG_OF_MDIO)		+= of_mdio.o
+ 
+ obj-$(CONFIG_MDIO_ASPEED)		+= mdio-aspeed.o
+ obj-$(CONFIG_MDIO_BCM_IPROC)		+= mdio-bcm-iproc.o
+diff --git a/drivers/net/mdio/fwnode_mdio.c b/drivers/net/mdio/fwnode_mdio.c
+new file mode 100644
+index 000000000000..e96766da8de4
+--- /dev/null
++++ b/drivers/net/mdio/fwnode_mdio.c
+@@ -0,0 +1,144 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * fwnode helpers for the MDIO (Ethernet PHY) API
++ *
++ * This file provides helper functions for extracting PHY device information
++ * out of the fwnode and using it to populate an mii_bus.
++ */
++
++#include <linux/acpi.h>
++#include <linux/fwnode_mdio.h>
++#include <linux/of.h>
++#include <linux/phy.h>
++
++MODULE_AUTHOR("Calvin Johnson <calvin.johnson@oss.nxp.com>");
++MODULE_LICENSE("GPL");
++
++static struct mii_timestamper *
++fwnode_find_mii_timestamper(struct fwnode_handle *fwnode)
++{
++	struct of_phandle_args arg;
++	int err;
++
++	if (is_acpi_node(fwnode))
 +		return NULL;
 +
-+	if (mdiodev->flags & MDIO_DEVICE_FLAG_PHY)
-+		return to_phy_device(&mdiodev->dev);
++	err = of_parse_phandle_with_fixed_args(to_of_node(fwnode),
++					       "timestamper", 1, 0, &arg);
++	if (err == -ENOENT)
++		return NULL;
++	else if (err)
++		return ERR_PTR(err);
 +
-+	put_device(&mdiodev->dev);
++	if (arg.args_count != 1)
++		return ERR_PTR(-EINVAL);
 +
-+	return NULL;
++	return register_mii_timestamper(arg.np, arg.args[0]);
 +}
-+EXPORT_SYMBOL(fwnode_phy_find_device);
 +
-+/**
-+ * device_phy_find_device - For the given device, get the phy_device
-+ * @dev: Pointer to the given device
-+ *
-+ * Refer return conditions of fwnode_phy_find_device().
-+ */
-+struct phy_device *device_phy_find_device(struct device *dev)
++int fwnode_mdiobus_phy_device_register(struct mii_bus *mdio,
++				       struct phy_device *phy,
++				       struct fwnode_handle *child, u32 addr)
 +{
-+	return fwnode_phy_find_device(dev_fwnode(dev));
-+}
-+EXPORT_SYMBOL_GPL(device_phy_find_device);
++	int rc;
 +
-+/**
-+ * fwnode_get_phy_node - Get the phy_node using the named reference.
-+ * @fwnode: Pointer to fwnode from which phy_node has to be obtained.
-+ *
-+ * Refer return conditions of fwnode_find_reference().
-+ * For ACPI, only "phy-handle" is supported. Legacy DT properties "phy"
-+ * and "phy-device" are not supported in ACPI. DT supports all the three
-+ * named references to the phy node.
-+ */
-+struct fwnode_handle *fwnode_get_phy_node(struct fwnode_handle *fwnode)
++	rc = fwnode_irq_get(child, 0);
++	if (rc == -EPROBE_DEFER)
++		return rc;
++
++	if (rc > 0) {
++		phy->irq = rc;
++		mdio->irq[addr] = rc;
++	} else {
++		phy->irq = mdio->irq[addr];
++	}
++
++	if (fwnode_property_read_bool(child, "broken-turn-around"))
++		mdio->phy_ignore_ta_mask |= 1 << addr;
++
++	fwnode_property_read_u32(child, "reset-assert-us",
++				 &phy->mdio.reset_assert_delay);
++	fwnode_property_read_u32(child, "reset-deassert-us",
++				 &phy->mdio.reset_deassert_delay);
++
++	/* Associate the fwnode with the device structure so it
++	 * can be looked up later
++	 */
++	fwnode_handle_get(child);
++	phy->mdio.dev.fwnode = child;
++
++	/* All data is now stored in the phy struct;
++	 * register it
++	 */
++	rc = phy_device_register(phy);
++	if (rc) {
++		fwnode_handle_put(child);
++		return rc;
++	}
++
++	dev_dbg(&mdio->dev, "registered phy %p fwnode at address %i\n",
++		child, addr);
++	return 0;
++}
++EXPORT_SYMBOL(fwnode_mdiobus_phy_device_register);
++
++int fwnode_mdiobus_register_phy(struct mii_bus *bus,
++				struct fwnode_handle *child, u32 addr)
 +{
-+	struct fwnode_handle *phy_node;
++	struct mii_timestamper *mii_ts = NULL;
++	struct phy_device *phy;
++	bool is_c45 = false;
++	u32 phy_id;
++	int rc;
 +
-+	/* Only phy-handle is used for ACPI */
-+	phy_node = fwnode_find_reference(fwnode, "phy-handle", 0);
-+	if (is_acpi_node(fwnode) || !IS_ERR(phy_node))
-+		return phy_node;
-+	phy_node = fwnode_find_reference(fwnode, "phy", 0);
-+	if (IS_ERR(phy_node))
-+		phy_node = fwnode_find_reference(fwnode, "phy-device", 0);
-+	return phy_node;
++	mii_ts = fwnode_find_mii_timestamper(child);
++	if (IS_ERR(mii_ts))
++		return PTR_ERR(mii_ts);
++
++	rc = fwnode_property_match_string(child, "compatible",
++					  "ethernet-phy-ieee802.3-c45");
++	if (rc >= 0)
++		is_c45 = true;
++
++	if (is_c45 || fwnode_get_phy_id(child, &phy_id))
++		phy = get_phy_device(bus, addr, is_c45);
++	else
++		phy = phy_device_create(bus, addr, phy_id, 0, NULL);
++	if (IS_ERR(phy)) {
++		unregister_mii_timestamper(mii_ts);
++		return PTR_ERR(phy);
++	}
++
++	if (is_acpi_node(child)) {
++		phy->irq = bus->irq[addr];
++
++		/* Associate the fwnode with the device structure so it
++		 * can be looked up later.
++		 */
++		phy->mdio.dev.fwnode = child;
++
++		/* All data is now stored in the phy struct, so register it */
++		rc = phy_device_register(phy);
++		if (rc) {
++			phy_device_free(phy);
++			fwnode_handle_put(phy->mdio.dev.fwnode);
++			return rc;
++		}
++	} else if (is_of_node(child)) {
++		rc = fwnode_mdiobus_phy_device_register(bus, phy, child, addr);
++		if (rc) {
++			unregister_mii_timestamper(mii_ts);
++			phy_device_free(phy);
++			return rc;
++		}
++	}
++
++	/* phy->mii_ts may already be defined by the PHY driver. A
++	 * mii_timestamper probed via the device tree will still have
++	 * precedence.
++	 */
++	if (mii_ts)
++		phy->mii_ts = mii_ts;
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(fwnode_get_phy_node);
-+
- /**
-  * phy_probe - probe and init a PHY device
-  * @dev: device to probe and init
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index 7aa97f4e5387..f9b5fb099fa6 100644
---- a/include/linux/phy.h
-+++ b/include/linux/phy.h
-@@ -1378,6 +1378,9 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- 				     struct phy_c45_device_ids *c45_ids);
- #if IS_ENABLED(CONFIG_PHYLIB)
- struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode);
-+struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode);
-+struct phy_device *device_phy_find_device(struct device *dev);
-+struct fwnode_handle *fwnode_get_phy_node(struct fwnode_handle *fwnode);
- struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45);
- int phy_device_register(struct phy_device *phy);
- void phy_device_free(struct phy_device *phydev);
-@@ -1388,6 +1391,23 @@ struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode)
- 	return 0;
++EXPORT_SYMBOL(fwnode_mdiobus_register_phy);
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index d73c0570f19c..17327bbc1de4 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/err.h>
++#include <linux/fwnode_mdio.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/netdevice.h>
+@@ -51,46 +52,11 @@ static struct mii_timestamper *of_find_mii_timestamper(struct device_node *node)
  }
  
-+static inline
-+struct phy_device *fwnode_phy_find_device(struct fwnode_handle *phy_fwnode)
-+{
-+	return NULL;
-+}
-+
-+static inline struct phy_device *device_phy_find_device(struct device *dev)
-+{
-+	return NULL;
-+}
-+
-+static inline
-+struct fwnode_handle *fwnode_get_phy_node(struct fwnode_handle *fwnode)
-+{
-+	return NULL;
-+}
-+
- static inline
- struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
+ int of_mdiobus_phy_device_register(struct mii_bus *mdio, struct phy_device *phy,
+-			      struct device_node *child, u32 addr)
++				   struct device_node *child, u32 addr)
  {
+-	int rc;
+-
+-	rc = of_irq_get(child, 0);
+-	if (rc == -EPROBE_DEFER)
+-		return rc;
+-
+-	if (rc > 0) {
+-		phy->irq = rc;
+-		mdio->irq[addr] = rc;
+-	} else {
+-		phy->irq = mdio->irq[addr];
+-	}
+-
+-	if (of_property_read_bool(child, "broken-turn-around"))
+-		mdio->phy_ignore_ta_mask |= 1 << addr;
+-
+-	of_property_read_u32(child, "reset-assert-us",
+-			     &phy->mdio.reset_assert_delay);
+-	of_property_read_u32(child, "reset-deassert-us",
+-			     &phy->mdio.reset_deassert_delay);
+-
+-	/* Associate the OF node with the device structure so it
+-	 * can be looked up later */
+-	of_node_get(child);
+-	phy->mdio.dev.of_node = child;
+-	phy->mdio.dev.fwnode = of_fwnode_handle(child);
+-
+-	/* All data is now stored in the phy struct;
+-	 * register it */
+-	rc = phy_device_register(phy);
+-	if (rc) {
+-		of_node_put(child);
+-		return rc;
+-	}
+-
+-	dev_dbg(&mdio->dev, "registered phy %pOFn at address %i\n",
+-		child, addr);
+-	return 0;
++	return fwnode_mdiobus_phy_device_register(mdio, phy,
++						  of_fwnode_handle(child),
++						  addr);
+ }
+ EXPORT_SYMBOL(of_mdiobus_phy_device_register);
+ 
+diff --git a/include/linux/fwnode_mdio.h b/include/linux/fwnode_mdio.h
+new file mode 100644
+index 000000000000..faf603c48c86
+--- /dev/null
++++ b/include/linux/fwnode_mdio.h
+@@ -0,0 +1,35 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * FWNODE helper for the MDIO (Ethernet PHY) API
++ */
++
++#ifndef __LINUX_FWNODE_MDIO_H
++#define __LINUX_FWNODE_MDIO_H
++
++#include <linux/phy.h>
++
++#if IS_ENABLED(CONFIG_FWNODE_MDIO)
++int fwnode_mdiobus_phy_device_register(struct mii_bus *mdio,
++				       struct phy_device *phy,
++				       struct fwnode_handle *child, u32 addr);
++
++int fwnode_mdiobus_register_phy(struct mii_bus *bus,
++				struct fwnode_handle *child, u32 addr);
++
++#else /* CONFIG_FWNODE_MDIO */
++int fwnode_mdiobus_phy_device_register(struct mii_bus *mdio,
++				       struct phy_device *phy,
++				       struct fwnode_handle *child, u32 addr)
++{
++	return -EINVAL;
++}
++
++static inline int fwnode_mdiobus_register_phy(struct mii_bus *bus,
++					      struct fwnode_handle *child,
++					      u32 addr)
++{
++	return -EINVAL;
++}
++#endif
++
++#endif /* __LINUX_FWNODE_MDIO_H */
 -- 
 2.31.1
 
