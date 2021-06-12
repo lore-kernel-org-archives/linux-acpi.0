@@ -2,168 +2,108 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ADCBC48BCF
-	for <linux-acpi@archiver.kernel.org>; Sat, 12 Jun 2021 06:07:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8618CC48BCF
+	for <linux-acpi@archiver.kernel.org>; Sat, 12 Jun 2021 18:42:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4ABBA610F8
-	for <linux-acpi@archiver.kernel.org>; Sat, 12 Jun 2021 06:07:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57D646128A
+	for <linux-acpi@archiver.kernel.org>; Sat, 12 Jun 2021 18:42:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229584AbhFLGJm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 12 Jun 2021 02:09:42 -0400
-Received: from mga14.intel.com ([192.55.52.115]:48765 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229446AbhFLGJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 12 Jun 2021 02:09:42 -0400
-IronPort-SDR: setgfYPhZZMxMV9AAQ5YgFTrzbMXzPRlqRBDQNGwjF6Rl9gJKxlx/nF2AdjwtUDkHMVlBpb8uf
- hGgaVbgRtyrw==
-X-IronPort-AV: E=McAfee;i="6200,9189,10012"; a="205464033"
-X-IronPort-AV: E=Sophos;i="5.83,268,1616482800"; 
-   d="scan'208";a="205464033"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2021 23:07:42 -0700
-IronPort-SDR: pSN8dmRFGJiKQX5eqDiiXWw+tl8m+YMMU5uzqT3970zUdu/I5gWJ9D3yiTY2RXyWLNzvWcXGVU
- XKvK2MwUNO/g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,268,1616482800"; 
-   d="scan'208";a="449329385"
-Received: from lkp-server02.sh.intel.com (HELO 3cb98b298c7e) ([10.239.97.151])
-  by orsmga008.jf.intel.com with ESMTP; 11 Jun 2021 23:07:41 -0700
-Received: from kbuild by 3cb98b298c7e with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1lrwo1-0000qP-Bw; Sat, 12 Jun 2021 06:07:41 +0000
-Date:   Sat, 12 Jun 2021 14:07:16 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [pm:bleeding-edge] BUILD SUCCESS
- 2be4aa8aed4de696f2741f8aef751b0da3292184
-Message-ID: <60c44f14.t3H+iJZK/X31Hjjq%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S229777AbhFLSoj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 12 Jun 2021 14:44:39 -0400
+Received: from mail-io1-f52.google.com ([209.85.166.52]:39825 "EHLO
+        mail-io1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229753AbhFLSoj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jun 2021 14:44:39 -0400
+Received: by mail-io1-f52.google.com with SMTP id f10so20663821iok.6
+        for <linux-acpi@vger.kernel.org>; Sat, 12 Jun 2021 11:42:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VLTl6PsbsF32MY8EVheJqcD04Efq6LH9FRawyHh0hQE=;
+        b=j+Je+Z9HN/AcD8N6jOiv8hsCk9PzH4VvpC+8+zmIjx8VvwqLqx8LvmzeSMyBXAdfY4
+         xZ+v3U9k5M/jNhP+2LEjcFjC+NCOs/uh8vdxq1D33KXJYpVPJFPUiRdbv4WQ9yyGcSPG
+         l4M7grTV/E6If2S1XEHWnc6uveJraOCzO+0NQbz3PFuF2w6+sbeLghmVxigOe4/Yg7lR
+         dtvPauc9tAUWc8qwoOWH8HJoYv9j9ZGzS47Wzk1EqOc/kp45W7aEDU3VjXa/uNDMXPoF
+         pYO2SNbi8oo2E7Er8XH3mfochM9fvxmy7lYVB4SoQt6xPSmsueCnFaQnJ+QNSRZnAAR5
+         Aq0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VLTl6PsbsF32MY8EVheJqcD04Efq6LH9FRawyHh0hQE=;
+        b=rn5SxzSH8W64RgmBY9C+7+Hds0mmVBEOAJk6wvW+JpjGxjqxYVg0MGZXd5oj0GiLO2
+         z2w3tMfI5hwGNV994WnmFBsEaRN2AVvNEvWc3Hu+HqBJqgq0qoY9K7aRVPJI83j0cOz+
+         2XcSlqqwDqmTH9Q6BRaK3V7uiMoc6MbVr+xvUR8mqT/vGBbRxjkPi6/TVVKgC2W/DX0x
+         hwV2fjoXEB6Ug+o6ko9zsviN61nxN2lZYzPg6aYvyKgnZ7KGup9ckdltr4ElEXQFzVB8
+         tcO7EZDIc/lOTJ+7s7Yj/QLXlVvJVGHrtPp+UDKoZcmqsytAd2BUbqdJSI3caA4a4Lq6
+         XF8g==
+X-Gm-Message-State: AOAM531uCxd1Swxp4ZG7PBxUwXG/P26jB4cw+HbDRFuJlMgzsjuzHYEV
+        royuqoaxmGSJk3rp5u79I7g=
+X-Google-Smtp-Source: ABdhPJyOIK3wgsEu0zBB7CfHaLS28ik6FWgLFMCNoQsFLfb23sG051371BFYO94C1enkVLFeGCY/GA==
+X-Received: by 2002:a6b:e50c:: with SMTP id y12mr8326014ioc.20.1623523299223;
+        Sat, 12 Jun 2021 11:41:39 -0700 (PDT)
+Received: from fedora.. ([2601:283:4400:c0:96c1:9c48:12a7:2c7c])
+        by smtp.gmail.com with ESMTPSA id h7sm5254399ilr.44.2021.06.12.11.41.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 12 Jun 2021 11:41:38 -0700 (PDT)
+From:   Clayton Casciato <majortomtosourcecontrol@gmail.com>
+To:     rui.zhang@intel.com
+Cc:     lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net,
+        Clayton Casciato <majortomtosourcecontrol@gmail.com>
+Subject: [PATCH] acpi: acpi_video: Fixed comment style code issues
+Date:   Sat, 12 Jun 2021 12:40:09 -0600
+Message-Id: <20210612184008.666840-1-majortomtosourcecontrol@gmail.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 2be4aa8aed4de696f2741f8aef751b0da3292184  Merge branch 'pm-core' into bleeding-edge
+Fixed coding style issues.
 
-elapsed time: 727m
-
-configs tested: 97
-configs skipped: 2
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-sh                          rsk7264_defconfig
-mips                         bigsur_defconfig
-sh                              ul2_defconfig
-arm                          pxa910_defconfig
-sh                          lboxre2_defconfig
-powerpc                     sequoia_defconfig
-powerpc                      acadia_defconfig
-arm                      jornada720_defconfig
-mips                  maltasmvp_eva_defconfig
-mips                malta_qemu_32r6_defconfig
-mips                      loongson3_defconfig
-powerpc                     kmeter1_defconfig
-mips                           ci20_defconfig
-arc                          axs103_defconfig
-arm                  colibri_pxa300_defconfig
-m68k                       m5249evb_defconfig
-powerpc                          g5_defconfig
-mips                           rs90_defconfig
-arm                            mps2_defconfig
-x86_64                            allnoconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-s390                             allmodconfig
-parisc                           allyesconfig
-s390                                defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-i386                 randconfig-a002-20210611
-i386                 randconfig-a006-20210611
-i386                 randconfig-a004-20210611
-i386                 randconfig-a001-20210611
-i386                 randconfig-a005-20210611
-i386                 randconfig-a003-20210611
-x86_64               randconfig-a002-20210611
-x86_64               randconfig-a001-20210611
-x86_64               randconfig-a004-20210611
-x86_64               randconfig-a003-20210611
-x86_64               randconfig-a006-20210611
-x86_64               randconfig-a005-20210611
-i386                 randconfig-a015-20210611
-i386                 randconfig-a013-20210611
-i386                 randconfig-a016-20210611
-i386                 randconfig-a014-20210611
-i386                 randconfig-a012-20210611
-i386                 randconfig-a011-20210611
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-um                           x86_64_defconfig
-um                             i386_defconfig
-um                            kunit_defconfig
-x86_64                           allyesconfig
-x86_64                    rhel-8.3-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                      rhel-8.3-kbuiltin
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a015-20210611
-x86_64               randconfig-a011-20210611
-x86_64               randconfig-a012-20210611
-x86_64               randconfig-a014-20210611
-x86_64               randconfig-a016-20210611
-x86_64               randconfig-a013-20210611
-
+Signed-off-by: Clayton Casciato <majortomtosourcecontrol@gmail.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/acpi/acpi_video.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 0c884020f74b..61e52ab5aab6 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -134,8 +134,7 @@ struct acpi_video_device_attrib {
+ 	u32 display_type:4;	/* Describe the specific type in use */
+ 	u32 vendor_specific:4;	/* Chipset Vendor Specific */
+ 	u32 bios_can_detect:1;	/* BIOS can detect the device */
+-	u32 depend_on_vga:1;	/* Non-VGA output device whose power is related to
+-				   the VGA device. */
++	u32 depend_on_vga:1;	/* Non-VGA output device whose power is related to the VGA device */
+ 	u32 pipe_id:3;		/* For VGA multiple-head devices. */
+ 	u32 reserved:10;	/* Must be 0 */
+ 
+@@ -1581,13 +1580,11 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+ 	input = video->input;
+ 
+ 	switch (event) {
+-	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch,
+-					 * most likely via hotkey. */
++	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch, most likely via hotkey. */
+ 		keycode = KEY_SWITCHVIDEOMODE;
+ 		break;
+ 
+-	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video
+-					 * connector. */
++	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video connector. */
+ 		acpi_video_device_enumerate(video);
+ 		acpi_video_device_rebind(video);
+ 		keycode = KEY_SWITCHVIDEOMODE;
+-- 
+2.31.1
+
