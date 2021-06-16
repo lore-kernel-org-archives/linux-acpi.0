@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E6DDC49361
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6209C49EA5
 	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BC78613B9
+	by mail.kernel.org (Postfix) with ESMTP id B3620613BD
 	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230459AbhFPRFn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S230473AbhFPRFn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 16 Jun 2021 13:05:43 -0400
-Received: from mga18.intel.com ([134.134.136.126]:49305 "EHLO mga18.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:61468 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230162AbhFPRFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S230167AbhFPRFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 16 Jun 2021 13:05:41 -0400
-IronPort-SDR: dM5Dj9jRNOXnT2tpm1kyRtvZof9DATWjgNmfR6obbtfsEAK/At1D9EajBpxAlUBN8McnymuY18
- MMuRX1P4TGAA==
-X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="193528294"
+IronPort-SDR: WOjpzz011ZUgdnVaglVipYfrqcpYllI1OhzwsoOGBZq/DATe1ZNENHKhAq+JGW0vzBrSWTU82u
+ jFrSUK3zmdJQ==
+X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="267367479"
 X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
-   d="scan'208";a="193528294"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2021 10:03:33 -0700
-IronPort-SDR: WS06BE79EurnER0SWuARW3G4xGlfRsQQfLZc9jmOUtiTBS9xb4GthD0j5LpXIjlN6AUCHS5jqy
- e70bnoMnHBkg==
+   d="scan'208";a="267367479"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2021 10:03:32 -0700
+IronPort-SDR: XPa3QheejKa7cc5DroKsDdKOQzb6e5GcdrWa/7Nw1E7w3oneN5/z3JzuFUTT5/e4kl+sQz/oRI
+ qMxsoU1n7yLw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
-   d="scan'208";a="484954964"
+   d="scan'208";a="488260773"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga001.jf.intel.com with ESMTP; 16 Jun 2021 10:03:29 -0700
+  by fmsmga002.fm.intel.com with ESMTP; 16 Jun 2021 10:03:30 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 4C2E0516; Wed, 16 Jun 2021 20:03:54 +0300 (EEST)
+        id 622365B5; Wed, 16 Jun 2021 20:03:54 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -42,9 +42,9 @@ To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 Cc:     Jonathan Corbet <corbet@lwn.net>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 5/7] ACPI: sysfs: Use __ATTR_RO() and __ATTR_RW() macros
-Date:   Wed, 16 Jun 2021 20:03:36 +0300
-Message-Id: <20210616170338.23057-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 7/7] ACPI: sysfs: Sort headers alphabetically
+Date:   Wed, 16 Jun 2021 20:03:38 +0300
+Message-Id: <20210616170338.23057-7-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
 References: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
@@ -54,73 +54,30 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We have a few open-coded __ATTR_RO() and __ATTR_RW() macros.
-Replace the custom code with generic macros.
+For the sake of better maintenance, sort included headers alphabetically.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/sysfs.c | 23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ drivers/acpi/sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 7239d87e78e6..231aaa8b6c2c 100644
+index 5474563d72b8..00c0ebaab29f 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
-@@ -915,27 +915,22 @@ static void __exit interrupt_stats_exit(void)
- 	return;
- }
+@@ -5,11 +5,11 @@
  
--static ssize_t
--acpi_show_profile(struct kobject *kobj, struct kobj_attribute *attr,
--		  char *buf)
-+static ssize_t pm_profile_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
- 	return sprintf(buf, "%d\n", acpi_gbl_FADT.preferred_profile);
- }
+ #define pr_fmt(fmt) "ACPI: " fmt
  
--static const struct kobj_attribute pm_profile_attr =
--	__ATTR(pm_profile, S_IRUGO, acpi_show_profile, NULL);
-+static const struct kobj_attribute pm_profile_attr = __ATTR_RO(pm_profile);
++#include <linux/acpi.h>
+ #include <linux/bitmap.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/moduleparam.h>
+-#include <linux/acpi.h>
  
--static ssize_t hotplug_enabled_show(struct kobject *kobj,
--				    struct kobj_attribute *attr, char *buf)
-+static ssize_t enabled_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
- 	struct acpi_hotplug_profile *hotplug = to_acpi_hotplug_profile(kobj);
+ #include "internal.h"
  
- 	return sprintf(buf, "%d\n", hotplug->enabled);
- }
- 
--static ssize_t hotplug_enabled_store(struct kobject *kobj,
--				     struct kobj_attribute *attr,
--				     const char *buf, size_t size)
-+static ssize_t enabled_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			     const char *buf, size_t size)
- {
- 	struct acpi_hotplug_profile *hotplug = to_acpi_hotplug_profile(kobj);
- 	unsigned int val;
-@@ -947,9 +942,7 @@ static ssize_t hotplug_enabled_store(struct kobject *kobj,
- 	return size;
- }
- 
--static struct kobj_attribute hotplug_enabled_attr =
--	__ATTR(enabled, S_IRUGO | S_IWUSR, hotplug_enabled_show,
--		hotplug_enabled_store);
-+static struct kobj_attribute hotplug_enabled_attr = __ATTR_RW(enabled);
- 
- static struct attribute *hotplug_profile_attrs[] = {
- 	&hotplug_enabled_attr.attr,
-@@ -1007,9 +1000,7 @@ static ssize_t force_remove_store(struct kobject *kobj,
- 	return size;
- }
- 
--static const struct kobj_attribute force_remove_attr =
--	__ATTR(force_remove, S_IRUGO | S_IWUSR, force_remove_show,
--	       force_remove_store);
-+static const struct kobj_attribute force_remove_attr = __ATTR_RW(force_remove);
- 
- int __init acpi_sysfs_init(void)
- {
 -- 
 2.30.2
 
