@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6209C49EA5
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 842BCC48BE6
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3620613BD
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69D2D613CD
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230473AbhFPRFn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Jun 2021 13:05:43 -0400
+        id S231186AbhFPRFs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 16 Jun 2021 13:05:48 -0400
 Received: from mga06.intel.com ([134.134.136.31]:61468 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230167AbhFPRFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Jun 2021 13:05:41 -0400
-IronPort-SDR: WOjpzz011ZUgdnVaglVipYfrqcpYllI1OhzwsoOGBZq/DATe1ZNENHKhAq+JGW0vzBrSWTU82u
- jFrSUK3zmdJQ==
-X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="267367479"
+        id S230411AbhFPRFn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Jun 2021 13:05:43 -0400
+IronPort-SDR: As6Vmqul+8GujykBRTiBAJ9tHmBM4iyYEoO+LBhjb3Odlcl5lNHXVbbtfDp3xfYX75xFJ3dRwQ
+ ou0OhO8OXDSA==
+X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="267367482"
 X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
-   d="scan'208";a="267367479"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2021 10:03:32 -0700
-IronPort-SDR: XPa3QheejKa7cc5DroKsDdKOQzb6e5GcdrWa/7Nw1E7w3oneN5/z3JzuFUTT5/e4kl+sQz/oRI
- qMxsoU1n7yLw==
+   d="scan'208";a="267367482"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2021 10:03:33 -0700
+IronPort-SDR: gloJPuRUnpX+aqThQnHUp0DqZW472ucgdsixzhP556auHGXvfH4EmFPI5DXMVUZIApHkBMZhpk
+ ItJFiALyvLkQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
-   d="scan'208";a="488260773"
+   d="scan'208";a="452417183"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga002.fm.intel.com with ESMTP; 16 Jun 2021 10:03:30 -0700
+  by fmsmga008.fm.intel.com with ESMTP; 16 Jun 2021 10:03:31 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 622365B5; Wed, 16 Jun 2021 20:03:54 +0300 (EEST)
+        id 40C7F50E; Wed, 16 Jun 2021 20:03:54 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -42,9 +42,9 @@ To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 Cc:     Jonathan Corbet <corbet@lwn.net>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 7/7] ACPI: sysfs: Sort headers alphabetically
-Date:   Wed, 16 Jun 2021 20:03:38 +0300
-Message-Id: <20210616170338.23057-7-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/7] ACPI: sysfs: Refactor param_get_trace_state() to drop dead code
+Date:   Wed, 16 Jun 2021 20:03:35 +0300
+Message-Id: <20210616170338.23057-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
 References: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
@@ -54,30 +54,46 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For the sake of better maintenance, sort included headers alphabetically.
+The param_get_trace_state() has a few dead code issues:
+ - 'return 0;' is never reachable
+ - a few 'else' keywords are redundant
+
+Refactor param_get_trace_state() to drop dead code.
+
+Note, leave one 'else' in order to have the best readability.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/sysfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/sysfs.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 5474563d72b8..00c0ebaab29f 100644
+index efb8c2dfa9cb..7239d87e78e6 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
-@@ -5,11 +5,11 @@
+@@ -255,16 +255,12 @@ static int param_get_trace_state(char *buffer, const struct kernel_param *kp)
+ {
+ 	if (!(acpi_gbl_trace_flags & ACPI_TRACE_ENABLED))
+ 		return sprintf(buffer, "disable\n");
+-	else {
+-		if (acpi_gbl_trace_method_name) {
+-			if (acpi_gbl_trace_flags & ACPI_TRACE_ONESHOT)
+-				return sprintf(buffer, "method-once\n");
+-			else
+-				return sprintf(buffer, "method\n");
+-		} else
+-			return sprintf(buffer, "enable\n");
+-	}
+-	return 0;
++	if (!acpi_gbl_trace_method_name)
++		return sprintf(buffer, "enable\n");
++	if (acpi_gbl_trace_flags & ACPI_TRACE_ONESHOT)
++		return sprintf(buffer, "method-once\n");
++	else
++		return sprintf(buffer, "method\n");
+ }
  
- #define pr_fmt(fmt) "ACPI: " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/moduleparam.h>
--#include <linux/acpi.h>
- 
- #include "internal.h"
- 
+ module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
 -- 
 2.30.2
 
