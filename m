@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B93C48BE8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DA8EC49EA2
 	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F038B613CB
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68706613BD
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Jun 2021 17:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230186AbhFPRFl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S230393AbhFPRFl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 16 Jun 2021 13:05:41 -0400
-Received: from mga11.intel.com ([192.55.52.93]:26597 "EHLO mga11.intel.com"
+Received: from mga17.intel.com ([192.55.52.151]:36038 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229547AbhFPRFf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Jun 2021 13:05:35 -0400
-IronPort-SDR: c+zUCe8JgMw+OA2Yl0YBcGvyWMM21gIVfn6Y20E+gqck0vJYpa2RYaYM6+D0on+uVDx2lH0H5z
- 5xSy4Z5Kb+EQ==
-X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="203195505"
+        id S230083AbhFPRFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Jun 2021 13:05:41 -0400
+IronPort-SDR: Ue6br+JenzEDpsF/bDzszt7OYmC/bql69gBygdJrJpcv7fEL8pZWjREN6yUzPTbmKc2ZZnNBgN
+ 63NiF38n5B5Q==
+X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="186595887"
 X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
-   d="scan'208";a="203195505"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2021 10:03:29 -0700
-IronPort-SDR: ip+QDHi0IfmyDvJTVitmin1dOGNiEY2towS6YV8PGPNkigyVsOrwh7j3GwWzq9iyEbuSZvnxZv
- jvr4qbMI9djg==
+   d="scan'208";a="186595887"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2021 10:03:32 -0700
+IronPort-SDR: 3MBqYwvAMaTb3vMfR2V0+pqHDukKnKrJl+zaQYzza/0CZ00jJJ82fMHaVZ6bekW9mm9Ex3romh
+ MoBp43QogE9Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
-   d="scan'208";a="415812669"
+   d="scan'208";a="640070353"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 16 Jun 2021 10:03:27 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 16 Jun 2021 10:03:30 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 358012AA; Wed, 16 Jun 2021 20:03:52 +0300 (EEST)
+        id 5761C580; Wed, 16 Jun 2021 20:03:54 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -42,49 +42,73 @@ To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 Cc:     Jonathan Corbet <corbet@lwn.net>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 1/7] ACPI: sysfs: Make sparse happy about address space in use
-Date:   Wed, 16 Jun 2021 20:03:32 +0300
-Message-Id: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 6/7] ACPI: sysfs: Remove tailing return statement in void functions
+Date:   Wed, 16 Jun 2021 20:03:37 +0300
+Message-Id: <20210616170338.23057-6-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
+References: <20210616170338.23057-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Sparse is not happy about address space in use in acpi_data_show():
-
-drivers/acpi/sysfs.c:428:14: warning: incorrect type in assignment (different address spaces)
-drivers/acpi/sysfs.c:428:14:    expected void [noderef] __iomem *base
-drivers/acpi/sysfs.c:428:14:    got void *
-drivers/acpi/sysfs.c:431:59: warning: incorrect type in argument 4 (different address spaces)
-drivers/acpi/sysfs.c:431:59:    expected void const *from
-drivers/acpi/sysfs.c:431:59:    got void [noderef] __iomem *base
-drivers/acpi/sysfs.c:433:30: warning: incorrect type in argument 1 (different address spaces)
-drivers/acpi/sysfs.c:433:30:    expected void *logical_address
-drivers/acpi/sysfs.c:433:30:    got void [noderef] __iomem *base
-
-Indeed, acpi_os_map_memory() returns a void pointer with dropped specific
-address space. Hence, we don't need to carry out __iomem in acpi_data_show().
+The tail return statement is redundant in void functions. Remove it.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/sysfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/sysfs.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 88629d26bd48..767aa65e4bdd 100644
+index 231aaa8b6c2c..5474563d72b8 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
-@@ -419,7 +419,7 @@ static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
- 			      loff_t offset, size_t count)
- {
- 	struct acpi_data_attr *data_attr;
--	void __iomem *base;
-+	void *base;
- 	ssize_t rc;
+@@ -577,8 +577,6 @@ static void delete_gpe_attr_array(void)
+ 		kfree(counter_attrs);
+ 	}
+ 	kfree(all_attrs);
+-
+-	return;
+ }
  
- 	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
+ static void gpe_count(u32 gpe_number)
+@@ -593,8 +591,6 @@ static void gpe_count(u32 gpe_number)
+ 	else
+ 		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS +
+ 			     COUNT_ERROR].count++;
+-
+-	return;
+ }
+ 
+ static void fixed_event_count(u32 event_number)
+@@ -607,8 +603,6 @@ static void fixed_event_count(u32 event_number)
+ 	else
+ 		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS +
+ 			     COUNT_ERROR].count++;
+-
+-	return;
+ }
+ 
+ static void acpi_global_event_handler(u32 event_type, acpi_handle device,
+@@ -903,7 +897,6 @@ void acpi_irq_stats_init(void)
+ 
+ fail:
+ 	delete_gpe_attr_array();
+-	return;
+ }
+ 
+ static void __exit interrupt_stats_exit(void)
+@@ -911,8 +904,6 @@ static void __exit interrupt_stats_exit(void)
+ 	sysfs_remove_group(acpi_kobj, &interrupt_stats_attr_group);
+ 
+ 	delete_gpe_attr_array();
+-
+-	return;
+ }
+ 
+ static ssize_t pm_profile_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 -- 
 2.30.2
 
