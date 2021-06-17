@@ -2,187 +2,246 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88FA5C49EA2
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 20:21:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2667DC49361
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 23:16:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59FA6613E7
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 20:21:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 054B6610A3
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 23:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232210AbhFQUXG convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Jun 2021 16:23:06 -0400
-Received: from server.avery-design.com ([198.57.169.184]:46710 "EHLO
-        server.avery-design.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231570AbhFQUXG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jun 2021 16:23:06 -0400
-X-Greylist: delayed 1881 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Jun 2021 16:23:06 EDT
-Received: from 50-201-210-206-static.hfc.comcastbusiness.net ([50.201.210.206]:55417 helo=smtpclient.apple)
-        by server.avery-design.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <cbrowy@avery-design.com>)
-        id 1lty0E-0005GH-R0; Thu, 17 Jun 2021 19:48:38 +0000
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.100.0.2.22\))
-Subject: Re: [RFC PATCH 1/2] PCI/doe: Initial support PCI Data Object Exchange
-From:   Chris Browy <cbrowy@avery-design.com>
-In-Reply-To: <20210617181225.0000105b@Huawei.com>
-Date:   Thu, 17 Jun 2021 15:48:28 -0400
-Cc:     Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Ben Widawsky <ben.widawsky@intel.com>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        "Schofield, Alison" <alison.schofield@intel.com>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        "Weiny, Ira" <ira.weiny@intel.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Linuxarm <linuxarm@huawei.com>, Fangjian <f.fangjian@huawei.com>
-Reply-To: "20210617181225.0000105b@huawei.com" 
-          <20210617181225.0000105b@Huawei.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <1BC68362-057C-4AB4-BC7C-731CFC3DBED7@avery-design.com>
-References: <20210310180306.1588376-1-Jonathan.Cameron@huawei.com>
- <20210310180306.1588376-2-Jonathan.Cameron@huawei.com>
- <CAPcyv4gG-==Vj9w3d7=gRRSPaoD5eZHZZ2hAA0h3c07eMT_x1A@mail.gmail.com>
- <20210316162952.00001ab7@Huawei.com>
- <CAPcyv4h6hHCuO=0vHbPz2m4qw6-0=wW9swBrWimBsz6_GJu4Aw@mail.gmail.com>
- <6F0B8DDD-E661-40C8-839B-1B77998EFF23@avery-design.com>
- <CAPcyv4hJG08RaksW3jH_Q5ASqpzX5MtfNFcLqMxAH5jwTidk=w@mail.gmail.com>
- <20210318142529.00001507@Huawei.com> <20210617181225.0000105b@Huawei.com>
-To:     Jonathan Cameron <jonathan.cameron@huawei.com>
-X-Mailer: Apple Mail (2.3654.100.0.2.22)
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - server.avery-design.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - avery-design.com
-X-Get-Message-Sender-Via: server.avery-design.com: authenticated_id: cbrowy@avery-design.com
-X-Authenticated-Sender: server.avery-design.com: cbrowy@avery-design.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+        id S232877AbhFQXSs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Jun 2021 19:18:48 -0400
+Received: from mga11.intel.com ([192.55.52.93]:24399 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231523AbhFQXSr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Jun 2021 19:18:47 -0400
+IronPort-SDR: aBKI0uMnj1LxLGXGVIotNci4D6SSY39WEOYtM2hplM/heVAiDnsCk35jAX1MOQAYEIyO0Hc6v1
+ dwHkSCR0FVZQ==
+X-IronPort-AV: E=McAfee;i="6200,9189,10018"; a="203441868"
+X-IronPort-AV: E=Sophos;i="5.83,281,1616482800"; 
+   d="scan'208";a="203441868"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2021 16:16:39 -0700
+IronPort-SDR: Xn+BEA2PzMy5NcJ8Stv5UKk1zppmcxm4C0NIbEiaI9jX2CbXH5vVeTyWPtaeBAju3CYY8axUbe
+ tt55nrBG7eMA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,281,1616482800"; 
+   d="scan'208";a="488832475"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.53])
+  by fmsmga002.fm.intel.com with ESMTP; 17 Jun 2021 16:16:38 -0700
+From:   Alison Schofield <alison.schofield@intel.com>
+To:     Ben Widawsky <ben.widawsky@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Alison Schofield <alison.schofield@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+Cc:     linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH v5 1/2] cxl/acpi: Add the Host Bridge base address to CXL port objects
+Date:   Thu, 17 Jun 2021 16:12:15 -0700
+Message-Id: <a475ce137b899bc7ae5ba9550b5f198cb29ccbfd.1623968958.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <cover.1623968958.git.alison.schofield@intel.com>
+References: <cover.1623968958.git.alison.schofield@intel.com>
+In-Reply-To: <cover.1623968958.git.alison.schofield@intel.com>
+References: <cover.1623968958.git.alison.schofield@intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The base address for the Host Bridge port component registers is located
+in the CXL Host Bridge Structure (CHBS) of the ACPI CXL Early Discovery
+Table (CEDT). Retrieve the CHBS for each Host Bridge (ACPI0016 device)
+and include that base address in the port object.
 
+Co-developed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+---
+ drivers/cxl/acpi.c | 100 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 95 insertions(+), 5 deletions(-)
 
-> On Jun 17, 2021, at 1:12 PM, Jonathan Cameron <jonathan.cameron@huawei.com> wrote:
-> 
-> On Thu, 18 Mar 2021 14:25:29 +0000
-> Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
-> 
->> On Wed, 17 Mar 2021 18:30:26 -0700
->> Dan Williams <dan.j.williams@intel.com> wrote:
->> 
->>> Btw your mailer does something odd with the "In-Reply-To:" field, I
->>> need to fix it up manually to include your address.
->>> 
->>> On Tue, Mar 16, 2021 at 4:28 PM Chris Browy <cbrowy@avery-design.com> wrote:  
->>>> 
->>>> Please address and clarify 2 queries below...
->>>> 
->>>> 
->>>>> On Mar 16, 2021, at 2:14 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->>>>> 
->>>>> On Tue, Mar 16, 2021 at 9:31 AM Jonathan Cameron
->>>>> <Jonathan.Cameron@huawei.com> wrote:    
->>>>>> 
->>>>>> On Mon, 15 Mar 2021 12:45:49 -0700
->>>>>> Dan Williams <dan.j.williams@intel.com> wrote:
->>>>>> 
->>>>>>> Hey Jonathan, happy to see this, some comments below...    
->>>>>> 
->>>>>> Hi Dan,
->>>>>> 
->>>>>> Thanks for taking a look!
->>>>>> 
->>>>>>> 
->>>>>>> On Wed, Mar 10, 2021 at 10:08 AM Jonathan Cameron
->>>>>>> <Jonathan.Cameron@huawei.com> wrote:    
->>>>>>>> 
->>>>>>>> Introduced in an ECN to the PCI 5.0, DOE provides a config space
->>>>>>>> based mailbox with standard protocol discovery.  Each mailbox
->>>>>>>> is accessed through a DOE PCIE Extended Capability.
->>>>>>>> 
->>>>>>>> A device may have 1 or more DOE mailboxes, each of which is allowed
->>>>>>>> to support any number of protocols (some DOE protocols
->>>>>>>> specifications apply additional restrictions).  A given protocol
->>>>>>>> may be supported on more than one DOE mailbox on a given function.    
->>>>>>> 
->>>>>>> Are all those protocol instances shared?
->>>>>>> I'm trying to mental model
->>>>>>> whether, for example, an auxiliary driver instance could be loaded per
->>>>>>> DOE mailbox, or if there would need to be coordination of a given
->>>>>>> protocol no matter how many DOE mailboxes on that device implemented
->>>>>>> that protocol.    
->>>>>> 
->>>>>> Just to check I've understood corectly, you mean multiple instances of same
->>>>>> protocol across different DOE mailboxes on a given device?
->>>>>> 
->>>>> 
->>>>> Right.    
->>>> 
->>>> Could you confirm this case for clarity?  A CXL device may have multiple VF/PF.
->>>> For example, PF=0 could have one or more DOE instances for CDAT protocol.
->>>> The driver will scan PF=0 for all DOE instances and finding one or more of CDAT
->>>> protocol will combine/manage them.  I had not considered multiple CDAT tables
->>>> for single PF.  For CXL devices with multiple PF’s the same process would be
->>>> carried out on PF=1-N.    
->>> 
->>> This patch has nothing to do with CXL. This is a general discussion of
->>> how a PCIE device implements a DOE mailbox or set of mailboxes. The
->>> DOE definition is PF-only afaics from the DOE specification.
->>> 
->>> The CXL specification only says that a device can implement a CDAT per
->>> DOE capability instance, so the CXL spec does not limit the number of
->>> DOE instances to 1, but I can't think of a practical reason to support
->>> more than one.
->>> 
->>> [..]  
->>>>>>> https://cfp.osfc.io/media/osfc2020/submissions/ECQ88N/resources/An_open_source_SPDM_implementation_for_secure_devi_kmIgAQe.pdf    
->>>>>> 
->>>>>> Nice!  Looking at CMA / IDE emulation was on my todo list and that looks like
->>>>>> it might make that job a lot easier.    
->>>> 
->>>> Would it be useful to integrate the openspdm’s SpdmResponderEmu.c onto the QEMU’s CXL Type3 Device’s
->>>> DOE backend for CMA/IDE testing?  Doesn’t look hard to do.    
->>> 
->>> Yes, I do think it would be useful.  
->> 
->> Agreed.  Very useful indeed.
->> 
->> Jonathan
->> 
-> 
-> Hi Chris,
-> 
-> Just wondering if this qemu/openspdm integration was something your team have
-> had time to look at?  I'd like to ideally get a second DOE usecase
-> implemented on the Linux side to prove out the implementation.
-> 
-> If it's fallen off your near term todo list I might see if I can hack
-> something together in the meantime.
-
-We have been working on this.  The plan was 
-1) implement modified version of openspdm requester running as QEMU app to pass DOE via CXL 
-    driver IOCTL’s to do DOE (DONE)
-2) enhance cxl_type3.c to call openspdm responder to implement device side SPDM (NOT DONE)
-3) enhance the Avery CXL Type 3 device SystemVerilog model to call opensldm 
-   responder to implement device side SPDM (DONE)
-
-Currently we run 1) and 3) using our QEMU co-sim environment.
-
-Huai-Cheng can probably finish 2) next week so we can run entirely in QEMU stand-alone environment.
-
-
-> 
-> Thanks,
-> 
-> Jonathan
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index 8a723f7f3f73..3afdee8f334a 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -8,6 +8,60 @@
+ #include <linux/pci.h>
+ #include "cxl.h"
+ 
++static struct acpi_table_header *acpi_cedt;
++
++static struct acpi_cedt_chbs *cxl_acpi_match_chbs(struct device *dev, u32 uid)
++{
++	struct acpi_cedt_chbs *chbs, *chbs_match = NULL;
++	acpi_size len, cur = 0;
++	void *cedt_subtable;
++
++	len = acpi_cedt->length - sizeof(*acpi_cedt);
++	cedt_subtable = acpi_cedt + 1;
++
++	while (cur < len) {
++		struct acpi_cedt_header *c = cedt_subtable + cur;
++
++		if (c->type != ACPI_CEDT_TYPE_CHBS) {
++			cur += c->length;
++			continue;
++		}
++
++		chbs = cedt_subtable + cur;
++
++		if (chbs->header.length < sizeof(*chbs)) {
++			dev_warn_once(dev,
++				      "CHBS entry skipped: invalid length:%u\n",
++				      chbs->header.length);
++			cur += c->length;
++			continue;
++		}
++
++		if (chbs->uid != uid) {
++			cur += c->length;
++			continue;
++		}
++
++		if (chbs_match) {
++			dev_warn_once(dev,
++				      "CHBS entry skipped: duplicate UID:%u\n",
++				      uid);
++			cur += c->length;
++			continue;
++		}
++
++		chbs_match = chbs;
++		cur += c->length;
++	}
++
++	return chbs_match ? chbs_match : ERR_PTR(-ENODEV);
++}
++
++static resource_size_t get_chbcr(struct acpi_cedt_chbs *chbs)
++{
++	return IS_ERR(chbs) ? CXL_RESOURCE_NONE : chbs->base;
++}
++
+ struct cxl_walk_context {
+ 	struct device *dev;
+ 	struct pci_bus *root;
+@@ -50,6 +104,21 @@ static int match_add_root_ports(struct pci_dev *pdev, void *data)
+ 	return 0;
+ }
+ 
++static struct cxl_dport *find_dport_by_dev(struct cxl_port *port, struct device *dev)
++{
++	struct cxl_dport *dport;
++
++	device_lock(&port->dev);
++	list_for_each_entry(dport, &port->dports, list)
++		if (dport->dport == dev) {
++			device_unlock(&port->dev);
++			return dport;
++		}
++
++	device_unlock(&port->dev);
++	return NULL;
++}
++
+ static struct acpi_device *to_cxl_host_bridge(struct device *dev)
+ {
+ 	struct acpi_device *adev = to_acpi_device(dev);
+@@ -71,6 +140,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+ 	struct acpi_pci_root *pci_root;
+ 	struct cxl_walk_context ctx;
+ 	struct cxl_decoder *cxld;
++	struct cxl_dport *dport;
+ 	struct cxl_port *port;
+ 
+ 	if (!bridge)
+@@ -80,8 +150,14 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+ 	if (!pci_root)
+ 		return -ENXIO;
+ 
+-	/* TODO: fold in CEDT.CHBS retrieval */
+-	port = devm_cxl_add_port(host, match, CXL_RESOURCE_NONE, root_port);
++	dport = find_dport_by_dev(root_port, match);
++	if (!dport) {
++		dev_dbg(host, "host bridge expected and not found\n");
++		return -ENODEV;
++	}
++
++	port = devm_cxl_add_port(host, match, dport->component_reg_phys,
++				 root_port);
+ 	if (IS_ERR(port))
+ 		return PTR_ERR(port);
+ 	dev_dbg(host, "%s: add: %s\n", dev_name(match), dev_name(&port->dev));
+@@ -120,6 +196,7 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+ 	int rc;
+ 	acpi_status status;
+ 	unsigned long long uid;
++	struct acpi_cedt_chbs *chbs;
+ 	struct cxl_port *root_port = arg;
+ 	struct device *host = root_port->dev.parent;
+ 	struct acpi_device *bridge = to_cxl_host_bridge(match);
+@@ -135,7 +212,12 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+ 		return -ENODEV;
+ 	}
+ 
+-	rc = cxl_add_dport(root_port, match, uid, CXL_RESOURCE_NONE);
++	chbs = cxl_acpi_match_chbs(host, uid);
++	if (IS_ERR(chbs))
++		dev_dbg(host, "No CHBS found for Host Bridge: %s\n",
++			dev_name(match));
++
++	rc = cxl_add_dport(root_port, match, uid, get_chbcr(chbs));
+ 	if (rc) {
+ 		dev_err(host, "failed to add downstream port: %s\n",
+ 			dev_name(match));
+@@ -172,6 +254,7 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
+ static int cxl_acpi_probe(struct platform_device *pdev)
+ {
+ 	int rc;
++	acpi_status status;
+ 	struct cxl_port *root_port;
+ 	struct device *host = &pdev->dev;
+ 	struct acpi_device *adev = ACPI_COMPANION(host);
+@@ -181,10 +264,14 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+ 		return PTR_ERR(root_port);
+ 	dev_dbg(host, "add: %s\n", dev_name(&root_port->dev));
+ 
++	status = acpi_get_table(ACPI_SIG_CEDT, 0, &acpi_cedt);
++	if (ACPI_FAILURE(status))
++		return -ENXIO;
++
+ 	rc = bus_for_each_dev(adev->dev.bus, NULL, root_port,
+ 			      add_host_bridge_dport);
+ 	if (rc)
+-		return rc;
++		goto out;
+ 
+ 	/*
+ 	 * Root level scanned with host-bridge as dports, now scan host-bridges
+@@ -193,11 +280,14 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+ 	rc = bus_for_each_dev(adev->dev.bus, NULL, root_port,
+ 			      add_host_bridge_uport);
+ 	if (rc)
+-		return rc;
++		goto out;
+ 
+ 	if (IS_ENABLED(CONFIG_CXL_PMEM))
+ 		rc = device_for_each_child(&root_port->dev, root_port,
+ 					   add_root_nvdimm_bridge);
++
++out:
++	acpi_put_table(acpi_cedt);
+ 	if (rc < 0)
+ 		return rc;
+ 	return 0;
+-- 
+2.26.2
 
