@@ -2,148 +2,168 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC8BFC48BE8
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 03:25:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DF1EC48BE5
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 07:07:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9272A613E2
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 03:25:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62DA5613DB
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 07:07:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230332AbhFQD0a (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Jun 2021 23:26:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56256 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230242AbhFQD00 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jun 2021 23:26:26 -0400
-Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49D5FC061767
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Jun 2021 20:24:19 -0700 (PDT)
-Received: by mail-pf1-x42c.google.com with SMTP id p13so3905446pfw.0
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Jun 2021 20:24:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=vQ1H5KpmR6igc6vGa3WgsWAZHbvCNMb9RNa0+vWcC+c=;
-        b=pntVkEhpVrje7UZgQbd5ogPor9DVKmZh+o6VM42V9+9qGmWQTuQzsaHU4FnqosSDmb
-         u17goz6U6MbKUWtgPZ2z/kEYiWnj2LdJPSeaTUKddqGqX1hljiGnYSuqgO3xnbuA/rGW
-         mowV5PmjPrGCx4rh/iIiUR21ylReC92w4TwqUIOIepfFOgD8YR7MOcBEi5XbrSDbfD5Z
-         GtKkRctOBp9uRnUhtDWJFWtFXaCh70/wvTRZoiRC20upA5jumdFMJIXMa7R4WxRwBIbP
-         IKFLPW3Bze94fMiXlrw1bSLFK23kQ1KVGMhB7dQQddbF3zIDvW0un1963cTibr45SyPp
-         lqgQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=vQ1H5KpmR6igc6vGa3WgsWAZHbvCNMb9RNa0+vWcC+c=;
-        b=etNggnKWKl4UF8fmw+EGXFwDRciXxWl8Qc5TpI+0PNarbTqgM0IPx3UJ+pvCVfN7VU
-         qXcL/6/PGJqZkzF96DwseMqPKnvKQwEQ8bAy1F9Cg/sT1HgneG7F4opXCoBkLQuHq80K
-         UO18JclCkK7XX+UtiLmvDIamO1qlCH53t6KRNhmbU6X5fWUiE+X5r8A3zsYjzAcQ8Dq9
-         CjoToDgRgfHKNgOqNFvGwY216DGl1nfhsC2jlBdPAKC8/eR+kpFiLqEihM22j3SNYfxB
-         /iD6dGnR77BYy6mzU9FIh1BMC1b04fmd5HPaTOcIqew4r06ZFC9QuCyyzb0z4zc8MAXn
-         /WdA==
-X-Gm-Message-State: AOAM530WvLvsuBgge7nLEHV8dMN9ZeOdklNm7t4+zUfS4xl5VmXS4JFQ
-        bXmmIEOKvBskpZQhWSdMQpaw/A==
-X-Google-Smtp-Source: ABdhPJx+WjlyD29L4tT+M6GTV9f9nyqfrcFUEahFhzIAo+O28+IHwvB1LDeBisMZcWKceUhx2vCJYw==
-X-Received: by 2002:a05:6a00:1794:b029:2ee:c59c:56bf with SMTP id s20-20020a056a001794b02902eec59c56bfmr3071994pfg.2.1623900258819;
-        Wed, 16 Jun 2021 20:24:18 -0700 (PDT)
-Received: from localhost ([136.185.134.182])
-        by smtp.gmail.com with ESMTPSA id n14sm3306910pfa.138.2021.06.16.20.24.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Jun 2021 20:24:18 -0700 (PDT)
-Date:   Thu, 17 Jun 2021 08:54:16 +0530
-From:   Viresh Kumar <viresh.kumar@linaro.org>
-To:     Ionela Voinescu <ionela.voinescu@arm.com>
-Cc:     Rafael Wysocki <rjw@rjwysocki.net>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        linux-pm@vger.kernel.org, Qian Cai <quic_qiancai@quicinc.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH V2 3/3] cpufreq: CPPC: Add support for frequency
- invariance
-Message-ID: <20210617032416.r2gfp25xxvhc5t4x@vireshk-i7>
-References: <cover.1623825725.git.viresh.kumar@linaro.org>
- <e7e653ede3ef54acc906d2bde47a3b9a41533404.1623825725.git.viresh.kumar@linaro.org>
- <20210616124806.GA6495@arm.com>
+        id S229784AbhFQHJg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Jun 2021 03:09:36 -0400
+Received: from mga17.intel.com ([192.55.52.151]:25470 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229686AbhFQHIp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Jun 2021 03:08:45 -0400
+IronPort-SDR: fz3TKhbTr7DeP6UuUHXl9II5Er7aCBdcTxD7ncsqj+HNnyE0B8PCqT0wOKovOOeXpnfh00YTgF
+ 1iwabtZKd+Uw==
+X-IronPort-AV: E=McAfee;i="6200,9189,10017"; a="186693360"
+X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
+   d="scan'208";a="186693360"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2021 00:06:13 -0700
+IronPort-SDR: K02K3M3NHtO67858oLuffdVnoqks8s7eMb2fXBMiL1Pl+zK5rVGmrWKSKNZ45gdqGGTe+p7WxM
+ Gz3ULd6w2eag==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,278,1616482800"; 
+   d="scan'208";a="555119675"
+Received: from lkp-server01.sh.intel.com (HELO 4aae0cb4f5b5) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 17 Jun 2021 00:06:11 -0700
+Received: from kbuild by 4aae0cb4f5b5 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1ltm6M-0001rM-LD; Thu, 17 Jun 2021 07:06:10 +0000
+Date:   Thu, 17 Jun 2021 15:05:34 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [pm:bleeding-edge] BUILD SUCCESS
+ 6e92e3ab6c6d4ac9a87fbfae1681ed8515a55809
+Message-ID: <60caf43e.QAqRNTISuNVPS+7i%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210616124806.GA6495@arm.com>
-User-Agent: NeoMutt/20180716-391-311a52
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 16-06-21, 13:48, Ionela Voinescu wrote:
-> I was looking forward to the complete removal of stop_cpu() :).
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 6e92e3ab6c6d4ac9a87fbfae1681ed8515a55809  Merge branch 'acpi-pm' into bleeding-edge
 
-No one wants to remove more code than I do :)
+elapsed time: 750m
 
-> I'll only comment on this for now as I should know the rest.
-> 
-> Let's assume we don't have these, what happens now is the following:
-> 
-> 1. We hotplug out the last CPU in a policy, we call the
->    .stop_cpu()/exit() function which will free the cppc_cpudata structure.
-> 
->    The only vulnerability is if we have a last tick on that last CPU,
->    after the above callback was called.
-> 
-> 2. When the CPU at 1. gets hotplugged back in, the cppc_fi->cpu_data is
->    stale.
-> 
-> We do not have a problem when removing the CPPC cpufreq module as we're
-> doing cppc_freq_invariance_exit() before unregistering the driver and
-> freeing the data.
-> 
-> Are 1. and 2 the only problems we have, or have I missed any?
+configs tested: 98
+configs skipped: 2
 
-There is more to it. For simplicity, lets assume a quad-core setup,
-with all 4 CPUs sharing the cpufreq policy. And here is what happens
-without the new changes:
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-- On CPPC cpufreq driver insertion, we start 4 kthreads/irq-works (1
-  for each CPU as it fires from tick) from the ->init() callback.
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+arm                         shannon_defconfig
+sh                          sdk7786_defconfig
+arm                         orion5x_defconfig
+powerpc                 mpc8315_rdb_defconfig
+arm                             pxa_defconfig
+mips                     cu1830-neo_defconfig
+sparc64                          alldefconfig
+arm                         lpc32xx_defconfig
+arm                          simpad_defconfig
+arm                       netwinder_defconfig
+arm                        multi_v5_defconfig
+powerpc                     kmeter1_defconfig
+powerpc                     ppa8548_defconfig
+arm                       mainstone_defconfig
+sh                        apsh4ad0a_defconfig
+powerpc                      acadia_defconfig
+arm                        neponset_defconfig
+um                                  defconfig
+arc                        nsimosci_defconfig
+x86_64                            allnoconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a001-20210615
+x86_64               randconfig-a004-20210615
+x86_64               randconfig-a002-20210615
+x86_64               randconfig-a003-20210615
+x86_64               randconfig-a006-20210615
+x86_64               randconfig-a005-20210615
+i386                 randconfig-a002-20210615
+i386                 randconfig-a006-20210615
+i386                 randconfig-a004-20210615
+i386                 randconfig-a001-20210615
+i386                 randconfig-a005-20210615
+i386                 randconfig-a003-20210615
+i386                 randconfig-a015-20210615
+i386                 randconfig-a013-20210615
+i386                 randconfig-a016-20210615
+i386                 randconfig-a012-20210615
+i386                 randconfig-a014-20210615
+i386                 randconfig-a011-20210615
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                    rhel-8.3-kselftests
+um                           x86_64_defconfig
+um                             i386_defconfig
+um                            kunit_defconfig
+x86_64                           allyesconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
 
-- Now lets say we offline CPU3. The CPPC cpufreq driver isn't notified
-  by anyone and it hasn't registered itself to hotplug notifier as
-  well. So, the irq-work/kthread isn't stopped. This results in the
-  issue reported by Qian earlier.
+clang tested configs:
+x86_64               randconfig-b001-20210615
+x86_64               randconfig-a015-20210615
+x86_64               randconfig-a011-20210615
+x86_64               randconfig-a012-20210615
+x86_64               randconfig-a014-20210615
+x86_64               randconfig-a016-20210615
+x86_64               randconfig-a013-20210615
 
-  The very same thing happens with schedutil governor too, which uses
-  very similar mechanisms, and the cpufreq core takes care of it there
-  by stopping the governor before removing the CPU from policy->cpus
-  and starting it again. So there we stop irq-work/kthread for all 4
-  CPUs, then start them only for remaining 3.
-
-  I thought about that approach as well, but it was too heavy to stop
-  everyone and start again in this case. And so I invented start_cpu()
-  and stop_cpu() callbacks.
-
-- In this case, because the CPU is going away, we need to make sure we
-  don't queue any more irq-work or kthread to it and this is one of
-  the main reasons for adding synchronization in the topology core,
-  because we need a hard guarantee here that irq-work won't fire
-  again, as the CPU won't be there or will not be in a sane state.
-
-- The same sequence of events is true for the case where the last CPU
-  of a policy goes away (not in this example, but lets say quad-core
-  setup with separate policies for each CPU).
-
-- Not just the policy, but the CPU may be going away as well.
-
-I hope I was able to clarify a bit here.
-
--- 
-viresh
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
