@@ -2,76 +2,114 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A57C49EA2
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 18:26:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57C79C2B9F4
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 18:28:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1760F610A5
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 18:26:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39B3C613AA
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 18:28:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233133AbhFQS3B (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Jun 2021 14:29:01 -0400
-Received: from mga01.intel.com ([192.55.52.88]:59217 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230137AbhFQS2o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Jun 2021 14:28:44 -0400
-IronPort-SDR: qtM571ZOqwwCHH7nLx2U734tkQbSAFkF/NECb2v2QAWBUq4WrA4F/WSa2rPYDev96W3LCsBo5J
- K6ikk2AX4JQw==
-X-IronPort-AV: E=McAfee;i="6200,9189,10018"; a="227947786"
-X-IronPort-AV: E=Sophos;i="5.83,281,1616482800"; 
-   d="scan'208";a="227947786"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2021 11:25:58 -0700
-IronPort-SDR: XqMueJ2pzXcsO73STbWPvBO3YD0SjyKkh5cmX7L8RNUIFGio0TwDXtbDuPXjZxIihJwwiABjC5
- yZu1vzTaUrDw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,281,1616482800"; 
-   d="scan'208";a="421956685"
-Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.53])
-  by orsmga002.jf.intel.com with ESMTP; 17 Jun 2021 11:25:58 -0700
-From:   Alison Schofield <alison.schofield@intel.com>
-To:     Ben Widawsky <ben.widawsky@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Alison Schofield <alison.schofield@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-Cc:     linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v4 0/2] CXL ACPI tables for object creation
-Date:   Thu, 17 Jun 2021 11:21:36 -0700
-Message-Id: <cover.1623950781.git.alison.schofield@intel.com>
-X-Mailer: git-send-email 2.17.1
+        id S232306AbhFQSac (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Jun 2021 14:30:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33582 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231547AbhFQSab (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jun 2021 14:30:31 -0400
+Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 603BEC061574
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Jun 2021 11:28:22 -0700 (PDT)
+Received: by mail-ej1-x632.google.com with SMTP id g8so11659083ejx.1
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Jun 2021 11:28:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=mEjjmEcYCeuAngVHFOxlLmyM2M9CsU8xfLqH/UGJgF4=;
+        b=qf69oz+OoGa+WZLcVf1MVB4p/1vScH1e2Po2rvjMp918v5Ngew7u1OWXgoLPyjuMAO
+         JfNhIpiq/FgRbHmzVJd5vRtWWGrPowlvleBhaibaq+7nbbwlV9LV0lxtmkwmNAh1Q2U3
+         8v3plwF51Q9s5vqSEWOa+RYpTxW9wU8zTyLubiD1ujU7TEppLe1goRWjTRPe72SQ9JFl
+         i+H10CdzeUFQYJ6cj9iEMJpomuBbIPsX9Eb2RIKKowXyXYelofH4sKjSpbaTsX7MOOyY
+         8AgMmOVsKOrE7RcOZKwH1gy5yGi2vOtyA5Q1LtCHGW0ya+r1RjrG2kGEu2JBXuqIE+aI
+         XkPg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=mEjjmEcYCeuAngVHFOxlLmyM2M9CsU8xfLqH/UGJgF4=;
+        b=sb0A962DRq7r5J1qoKGb8rxREuSh7TpEj4rroPx8MdKE1o8IXDESeEjzS2B41bq0JM
+         HhfNv7P8xjaoYqzBylh2bKz2tYelxo5p5RKFLCHdr9PXEJbyYh+qE6SjBIKemyXwgq1y
+         17CyLwgWwyADdW/ljBTb5GlRIx3NEjoBsGTwZm22V+7thzpzGD0ctpCITFv4VCnrHcxB
+         /O4VXsTKejr12msYLQ+KWvwSbXZn0p3neSvW6cSu6E/psMh9tR53oLCYEXR4mPM+HS/Y
+         60H8HLyolbw+232tQmOQJaBFnLuUN4+J7j+chWa6m6mWtQnUniOVrpx5iPjDs0NaLRnv
+         SYkw==
+X-Gm-Message-State: AOAM532WtEJ0nhyAqPP0wygjaWJ5yyULMo5rU/Dmp+6zUqTi3dvvrmG6
+        bNcv5fICXf2CYs5kBxOhaMY=
+X-Google-Smtp-Source: ABdhPJxuVgoGitlrFKbuXnZYxt7TodzM2+MP0JuDu5xF/53QOJToZqAipATA1o4v/FjZ+/PWAKNLQw==
+X-Received: by 2002:aa7:c790:: with SMTP id n16mr8522055eds.98.1623954501035;
+        Thu, 17 Jun 2021 11:28:21 -0700 (PDT)
+Received: from ?IPv6:2a02:908:1984:a6c0::47cb? ([2a02:908:1984:a6c0::47cb])
+        by smtp.gmail.com with ESMTPSA id o21sm4090487ejh.57.2021.06.17.11.28.20
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 17 Jun 2021 11:28:20 -0700 (PDT)
+Subject: Re: [PATCH 1/5] ACPI: PM: s2idle: Use correct revision id
+To:     Mario Limonciello <mario.limonciello@amd.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc:     teohhanhui@gmail.com, Shyam-sundar.S-k@amd.com,
+        Pratik Vishwakarma <Pratik.Vishwakarma@amd.com>
+References: <20210617164212.584-1-mario.limonciello@amd.com>
+From:   Julian Sikorski <belegdol@gmail.com>
+Message-ID: <f50c6baf-a780-7a58-4083-88d53934290b@gmail.com>
+Date:   Thu, 17 Jun 2021 20:28:19 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
+MIME-Version: 1.0
+In-Reply-To: <20210617164212.584-1-mario.limonciello@amd.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Changes since v3 [1]:
-- Align func params to open parens (Checkpatch, Ben)
-- Added Ben & Jonathan Reviewed-by tags
+W dniu 17.06.2021 o 18:42, Mario Limonciello pisze:
+> From: Pratik Vishwakarma <Pratik.Vishwakarma@amd.com>
+> 
+> AMD spec mentions only revision 0. With this change,
+> device constraint list is populated properly.
+> 
+> Signed-off-by: Pratik Vishwakarma <Pratik.Vishwakarma@amd.com>
+> ---
+>   drivers/acpi/x86/s2idle.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> index 2d7ddb8a8cb6..da27c1c45c9f 100644
+> --- a/drivers/acpi/x86/s2idle.c
+> +++ b/drivers/acpi/x86/s2idle.c
+> @@ -96,7 +96,7 @@ static void lpi_device_get_constraints_amd(void)
+>   	int i, j, k;
+>   
+>   	out_obj = acpi_evaluate_dsm_typed(lps0_device_handle, &lps0_dsm_guid,
+> -					  1, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
+> +					  rev_id, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
+>   					  NULL, ACPI_TYPE_PACKAGE);
+>   
+>   	if (!out_obj)
+> 
+No regressions against [1] on my ASUS UM425IA. Suspend and resume still 
+work, provided other relevant patches are applied. I am testing on 
+Fedora 5.12 kernel [2].
 
-[1] https://lore.kernel.org/linux-cxl/cover.1623890468.git.alison.schofield@intel.com/
+Tested-by: Julian Sikorski <belegdol@gmail.com>
 
---
-Parse the ACPI CXL Early Discovery Table (CEDT) and use the CHBS & CFMWS
-when creating port and decoder objects.
-
-CHBS: CXL Host Bridge Structure - Patch 1
-CFMWS: CXL Fixed Memory Window Structure - Patch 2
-
-
-Alison Schofield (2):
-  cxl/acpi: Add the Host Bridge base address to CXL port objects
-  cxl/acpi: Use the ACPI CFMWS to create static decoder objects
-
- drivers/cxl/acpi.c | 219 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 214 insertions(+), 5 deletions(-)
-
-
-base-commit: 21083f51521fb0f60dbac591f175c3ed48435af4
--- 
-2.26.2
-
+[1] 
+https://patchwork.kernel.org/project/linux-acpi/patch/20210317143842.786380-2-alexander.deucher@amd.com/
+[2] 
+https://gitlab.com/belegdol/kernel-ark/-/commits/fedora-5.12-s0ix-8-upstream-newnvme
