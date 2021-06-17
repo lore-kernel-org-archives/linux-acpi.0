@@ -2,87 +2,111 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64FA8C49361
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 12:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D93DC48BE5
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 12:34:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D0D1613BA
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 12:23:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0099760E08
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Jun 2021 12:34:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232796AbhFQMZo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Jun 2021 08:25:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35990 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229714AbhFQMZn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jun 2021 08:25:43 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D608C061574;
-        Thu, 17 Jun 2021 05:23:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=igLdM5gAj1GNrpSUNqrKYdGwdRX8s5YgHkDIgpNMiug=; b=DGuEVNYKXCwUn4Knx7hLzxIXFC
-        kBjt3R7Sgja4CX/H/5JZRU8/qxosfVuqv31b6plh7KyPaoJZj5xXeA00whiSQhEX3J3/JvaAQbWQ0
-        wH+vgBdhonn6rlAhUEbgKnbdPh+g6HmI7w678R0l1QJ7h7g/s1skWFLNUlDHFPjJRMjlHbKLw7/+L
-        Xw2KrymU7hdx0F9jh3ZR70X10Wo32DSTtA3Hrpn5hBJftWZl+4SENYhSMnQnhE7qBfDu44F4F1axo
-        ws9R+mfwUOJEzZjh7WgSCu8w68yUG+Ax4rPAXCrDhY2NdMOFGyq0ZIjjGjEknCgVjMZjWL7PihmWz
-        Aqh1Y57g==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1ltr2T-00978E-Ii; Thu, 17 Jun 2021 12:22:38 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 8B84E300204;
-        Thu, 17 Jun 2021 14:22:28 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 62C292C885E37; Thu, 17 Jun 2021 14:22:28 +0200 (CEST)
-Date:   Thu, 17 Jun 2021 14:22:28 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Viresh Kumar <viresh.kumar@linaro.org>
-Cc:     Ionela Voinescu <ionela.voinescu@arm.com>,
-        Rafael Wysocki <rjw@rjwysocki.net>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        linux-pm@vger.kernel.org, Qian Cai <quic_qiancai@quicinc.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH V2 3/3] cpufreq: CPPC: Add support for frequency
- invariance
-Message-ID: <YMs+hOKafJMu7Sfu@hirez.programming.kicks-ass.net>
-References: <cover.1623825725.git.viresh.kumar@linaro.org>
- <e7e653ede3ef54acc906d2bde47a3b9a41533404.1623825725.git.viresh.kumar@linaro.org>
- <20210616124806.GA6495@arm.com>
- <20210617032416.r2gfp25xxvhc5t4x@vireshk-i7>
- <20210617103415.GA29877@arm.com>
- <20210617111936.cfjzoh6g5zvolaf5@vireshk-i7>
+        id S230352AbhFQMhD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Jun 2021 08:37:03 -0400
+Received: from mail-oi1-f178.google.com ([209.85.167.178]:36656 "EHLO
+        mail-oi1-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229887AbhFQMhD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jun 2021 08:37:03 -0400
+Received: by mail-oi1-f178.google.com with SMTP id r16so6362230oiw.3;
+        Thu, 17 Jun 2021 05:34:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=hdjslE2NTbvCF99t6OexeD1cWf6uCdtibYwpPkNsfxk=;
+        b=M390srI7G1/3Sd0lah956f8qqkVZeZGfC/2MXHAn+jfk4oKYbMX0Ndr/2Q7KeoQfSl
+         7rpONfJw+/jVStWI5BHF2TpV8pI1Y1RK45H0saU18wrmBJF5kpmYBhw9BRvSvmvnNsmb
+         XJx/TfRGSRhqRPSlLueSltLOgVmnhFzuzA31R/jT9/AFth1dCJd4RRVUMe9igZKEfYbN
+         EJ2Oh8BZL+5Y2YABRJGprMeDSlkkwGJuSN8ZqRDULG6Yz8mc1mdViVtM95QkYnbXdnvG
+         /95k3wSlnef9OWI1brFZQMPyF0vhHGtyvQ02U+LmD3gDp1Iniz2nnEch7lFLeqcWzgqV
+         Zl6g==
+X-Gm-Message-State: AOAM531AKFqUBAwlir9V7GVsyBBgjqqz3nw6dTKj1gpPu/f9h7AvgBLJ
+        KGTZaK2AW+ZPTszZio61pIwwKPT0bCpkVEAV+Fc=
+X-Google-Smtp-Source: ABdhPJzMOw6isRiTU8VwxT5tqNP7G526EQXU+dYcmyeNv+ddzkbqAbOlMCnOHUe3ATpVGuaQ9lnC9IszsYsKvqJcbH4=
+X-Received: by 2002:aca:49c7:: with SMTP id w190mr10701974oia.157.1623933294840;
+ Thu, 17 Jun 2021 05:34:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210617111936.cfjzoh6g5zvolaf5@vireshk-i7>
+References: <20210615071914.3067407-1-libaokun1@huawei.com>
+In-Reply-To: <20210615071914.3067407-1-libaokun1@huawei.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 17 Jun 2021 14:34:43 +0200
+Message-ID: <CAJZ5v0iMGTDAbY+JivBFRP6soTC5v_imqWZ9jSZoQVeYdgVoCw@mail.gmail.com>
+Subject: Re: [PATCH -next v2] ACPI: sysfs: fix doc warnings in device_sysfs.c
+To:     Baokun Li <libaokun1@huawei.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        Yue Haibing <yuehaibing@huawei.com>, yangjihong1@huawei.com,
+        yu kuai <yukuai3@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jun 17, 2021 at 04:49:36PM +0530, Viresh Kumar wrote:
-> Peter: Can you help here on this ? Lemme try to explain a bit here:
-> 
-> We are starting an irq-work (in cppc cpufreq driver) from
-> scheduler_tick()->arch_scale_freq_tick(). What will happen if the driver doesn't
-> take care of CPU hotplug explicitly and make sure this work isn't queued again
-> from the next tick.
-> 
-> Is it important for user to make sure it gets rid of the irq-work during hotplug
-> here ?
+On Tue, Jun 15, 2021 at 9:10 AM Baokun Li <libaokun1@huawei.com> wrote:
+>
+> Fixes the following W=1 kernel build warning(s):
+>
+>  drivers/acpi/device_sysfs.c:278: warning: Function parameter or
+>   member 'dev' not described in 'acpi_device_uevent_modalias'
+>  drivers/acpi/device_sysfs.c:278: warning: Function parameter or
+>   member 'env' not described in 'acpi_device_uevent_modalias'
+>  drivers/acpi/device_sysfs.c:323: warning: Function parameter or
+>   member 'dev' not described in 'acpi_device_modalias'
+>  drivers/acpi/device_sysfs.c:323: warning: Function parameter or
+>   member 'buf' not described in 'acpi_device_modalias'
+>  drivers/acpi/device_sysfs.c:323: warning: Function parameter or
+>   member 'size' not described in 'acpi_device_modalias'
+>
+> Signed-off-by: Baokun Li <libaokun1@huawei.com>
+> ---
+> V1->V2:
+>         Make comments more appropriate
+>
+>  drivers/acpi/device_sysfs.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+> index a393e0e09381..d96e38b2a0d1 100644
+> --- a/drivers/acpi/device_sysfs.c
+> +++ b/drivers/acpi/device_sysfs.c
+> @@ -268,6 +268,8 @@ int __acpi_device_uevent_modalias(struct acpi_device *adev,
+>
+>  /**
+>   * acpi_device_uevent_modalias - uevent modalias for ACPI-enumerated devices.
+> + * @dev: Struct device to get acpi device node.
+> + * @env: Environment variables of the kobject uevent.
+>   *
+>   * Create the uevent modalias field for ACPI-enumerated devices.
+>   *
+> @@ -313,6 +315,9 @@ static int __acpi_device_modalias(struct acpi_device *adev, char *buf, int size)
+>
+>  /**
+>   * acpi_device_modalias - modalias sysfs attribute for ACPI-enumerated devices.
+> + * @dev: Struct device to get acpi device node.
+> + * @buf: The buffer to save pnp_modalias and of_modalias.
+> + * @size: Size of buffer.
+>   *
+>   * Create the modalias sysfs attribute for ACPI-enumerated devices.
+>   *
+> --
 
-irq-work is flushed on hotplug, see smpcfd_dying_cpu().
+Applied as 5.14 material with fixed spelling ("acpi" -> "ACPI").
+
+Please always spell ACPI in capitals in comments, patch changelogs,
+subjects and similar.
+
+Thanks!
