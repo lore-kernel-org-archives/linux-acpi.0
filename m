@@ -2,123 +2,132 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0E6CC48BDF
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Jun 2021 13:41:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF386C48BDF
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Jun 2021 15:33:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AA84613ED
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Jun 2021 13:41:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D82B961205
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Jun 2021 15:33:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233867AbhFRNnd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Jun 2021 09:43:33 -0400
-Received: from mga11.intel.com ([192.55.52.93]:36253 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231883AbhFRNnd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 18 Jun 2021 09:43:33 -0400
-IronPort-SDR: 5CEEHIHvlmXZxBPYjy6EopYyxoqyfPGeU+CPgFILAztV8kBb1/xGUvG1OwX1pVU65JhTQfet1B
- 1U+RO4ESAp/Q==
-X-IronPort-AV: E=McAfee;i="6200,9189,10018"; a="203531064"
-X-IronPort-AV: E=Sophos;i="5.83,283,1616482800"; 
-   d="scan'208";a="203531064"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jun 2021 06:41:10 -0700
-IronPort-SDR: 6o8LAVP9zVKEbHOWkujOnuU+rIzKBCOzkDI/ULphR9LZQjDJVF33hD88HWuoy876uqWM+9FSFn
- y+VMsNrX9IMA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,283,1616482800"; 
-   d="scan'208";a="451398487"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga008.jf.intel.com with ESMTP; 18 Jun 2021 06:41:08 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 5EE5050E; Fri, 18 Jun 2021 16:41:33 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Subject: [PATCH v2 1/2] ACPI: sysfs: Use __ATTR_RO() and __ATTR_RW() macros
-Date:   Fri, 18 Jun 2021 16:41:27 +0300
-Message-Id: <20210618134128.59335-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
+        id S235345AbhFRPfK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Jun 2021 11:35:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59392 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235649AbhFRPev (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jun 2021 11:34:51 -0400
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B98B5C061148
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Jun 2021 08:30:19 -0700 (PDT)
+Received: by mail-ej1-x62f.google.com with SMTP id l1so16559369ejb.6
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Jun 2021 08:30:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=eVK2Vu+gdkSV5LfHLO/okFsTWTEsOSEgfh/fTAc+ysQ=;
+        b=Uv8r73Tua8U4KIGVT0tadYn9JokQ3OI3UF40iCRRH8Qvy+JxNw6WWAESXCcrpkMZD5
+         J9OqykH5gEpxXAEhSSHTNdSIYjDCvQfC/QG8Qn8WOqpOk/qeQwqcYl60Y0zNoDJ5dK9j
+         vFVf3RcWUverAnEDhV8qhCSXORG1mEGHmaozp15j3vnM+1mkdqmBUJYcyKYaXKZ8/wX6
+         DKVu6y5PKk/i85GATFRvHw3B3h6wkjYcKi++Q057tw7ivkm+LVe+yIYv2dbD8kDGryB8
+         pCYO+t5K98NRFj1alr60VtctA8wlN3ilmyWo1HfKQowP1OpJjD8zQHLInL7HqZXFq5Dz
+         zsYg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=eVK2Vu+gdkSV5LfHLO/okFsTWTEsOSEgfh/fTAc+ysQ=;
+        b=e4uiv0gHRWS4waUkzDshuuRg+4jHRjId59kK4Ep0aulv6br0F++MFk9kmT/RJCOhKg
+         pbNT36HvPS+VJ7fQgEUre1nmbMrPbuzvwHDz6RDAmBSCiKDIYMxszRa8WATm9scSVXC+
+         O7/kzxXteGGD4PKXHJtjtwgjeUIACjpRjbd2yCLvreEU80F0CI3Ndan/4kvs60CZk155
+         GUgACAAw4SHVN9CdXws0dT6IwrwRtYjGg/wIpAsUoQtCMhUnubeGNPJJIA1R3I5PgyRR
+         E6aJ0zsO6ni5h+mZL3uQP6uA2x2d7e612YLW2nDwlE8/kU69lIhtFiOCKS7YxqWaCNEc
+         MscA==
+X-Gm-Message-State: AOAM530O6t1+taBw01bNb+XouqUlzG/eTBn3ldtWnbl8OubuhbFbteoz
+        j8QkEQTrPy652JxogYuSZDNqv2PLjkVOUw==
+X-Google-Smtp-Source: ABdhPJwqDmkoCnPG0QnncSmTulnYyA+q0tsJhnaPN0fg6rei1NJ1LtMquAgOeQDHr4MnGh/8I10l5Q==
+X-Received: by 2002:a17:906:fcaa:: with SMTP id qw10mr11511312ejb.233.1624030218335;
+        Fri, 18 Jun 2021 08:30:18 -0700 (PDT)
+Received: from localhost.localdomain (adsl-84-226-111-173.adslplus.ch. [84.226.111.173])
+        by smtp.gmail.com with ESMTPSA id bn7sm1197613ejb.111.2021.06.18.08.30.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 18 Jun 2021 08:30:17 -0700 (PDT)
+From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
+To:     rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org, mst@redhat.com
+Cc:     will@kernel.org, catalin.marinas@arm.com, baolu.lu@linux.intel.com,
+        dwmw2@infradead.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org,
+        virtualization@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org, eric.auger@redhat.com,
+        sebastien.boeuf@intel.com, robin.murphy@arm.com,
+        kevin.tian@intel.com, lorenzo.pieralisi@arm.com,
+        guohanjun@huawei.com, sudeep.holla@arm.com,
+        jean-philippe@linaro.org
+Subject: [PATCH v5 0/5] Add support for ACPI VIOT
+Date:   Fri, 18 Jun 2021 17:20:55 +0200
+Message-Id: <20210618152059.1194210-1-jean-philippe@linaro.org>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We have a few open-coded __ATTR_RO() and __ATTR_RW() macros.
-Replace the custom code with generic macros.
+Add a driver for the ACPI VIOT table, which provides topology
+information for para-virtual IOMMUs. Enable virtio-iommu on
+non-devicetree platforms, including x86.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: rebased on top of bleeding-edge (Rafael)
- drivers/acpi/sysfs.c | 23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+Since v4 [1]:
+* Fixes (comments, wrong argument, unused variable)
+* Removed patch 5 that wrongly moved set_dma_ops(dev, NULL) into dma-iommu.
+  The simplification of limit parameters for x86 callers is now in patch 4.
+* Release ACPI table after parsing
+* Added review and tested tags, thanks for all the feedback!
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 940410976e0f..18e93c3c39cf 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -907,27 +907,22 @@ static void __exit interrupt_stats_exit(void)
- 	delete_gpe_attr_array();
- }
- 
--static ssize_t
--acpi_show_profile(struct kobject *kobj, struct kobj_attribute *attr,
--		  char *buf)
-+static ssize_t pm_profile_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
- 	return sprintf(buf, "%d\n", acpi_gbl_FADT.preferred_profile);
- }
- 
--static const struct kobj_attribute pm_profile_attr =
--	__ATTR(pm_profile, S_IRUGO, acpi_show_profile, NULL);
-+static const struct kobj_attribute pm_profile_attr = __ATTR_RO(pm_profile);
- 
--static ssize_t hotplug_enabled_show(struct kobject *kobj,
--				    struct kobj_attribute *attr, char *buf)
-+static ssize_t enabled_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
- 	struct acpi_hotplug_profile *hotplug = to_acpi_hotplug_profile(kobj);
- 
- 	return sprintf(buf, "%d\n", hotplug->enabled);
- }
- 
--static ssize_t hotplug_enabled_store(struct kobject *kobj,
--				     struct kobj_attribute *attr,
--				     const char *buf, size_t size)
-+static ssize_t enabled_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			     const char *buf, size_t size)
- {
- 	struct acpi_hotplug_profile *hotplug = to_acpi_hotplug_profile(kobj);
- 	unsigned int val;
-@@ -939,9 +934,7 @@ static ssize_t hotplug_enabled_store(struct kobject *kobj,
- 	return size;
- }
- 
--static struct kobj_attribute hotplug_enabled_attr =
--	__ATTR(enabled, S_IRUGO | S_IWUSR, hotplug_enabled_show,
--		hotplug_enabled_store);
-+static struct kobj_attribute hotplug_enabled_attr = __ATTR_RW(enabled);
- 
- static struct attribute *hotplug_profile_attrs[] = {
- 	&hotplug_enabled_attr.attr,
-@@ -999,9 +992,7 @@ static ssize_t force_remove_store(struct kobject *kobj,
- 	return size;
- }
- 
--static const struct kobj_attribute force_remove_attr =
--	__ATTR(force_remove, S_IRUGO | S_IWUSR, force_remove_show,
--	       force_remove_store);
-+static const struct kobj_attribute force_remove_attr = __ATTR_RW(force_remove);
- 
- int __init acpi_sysfs_init(void)
- {
+You can find a QEMU implementation at [2], with extra support for
+testing all VIOT nodes including MMIO-based endpoints and IOMMU.
+This series is at [3].
+
+[1] https://lore.kernel.org/linux-iommu/20210610075130.67517-1-jean-philippe@linaro.org/
+[2] https://jpbrucker.net/git/qemu/log/?h=virtio-iommu/acpi
+[3] https://jpbrucker.net/git/linux/log/?h=virtio-iommu/acpi
+
+Jean-Philippe Brucker (5):
+  ACPI: arm64: Move DMA setup operations out of IORT
+  ACPI: Move IOMMU setup code out of IORT
+  ACPI: Add driver for the VIOT table
+  iommu/dma: Pass address limit rather than size to
+    iommu_setup_dma_ops()
+  iommu/virtio: Enable x86 support
+
+ drivers/acpi/Kconfig         |   3 +
+ drivers/iommu/Kconfig        |   4 +-
+ drivers/acpi/Makefile        |   2 +
+ drivers/acpi/arm64/Makefile  |   1 +
+ include/acpi/acpi_bus.h      |   3 +
+ include/linux/acpi.h         |   3 +
+ include/linux/acpi_iort.h    |  14 +-
+ include/linux/acpi_viot.h    |  19 ++
+ include/linux/dma-iommu.h    |   4 +-
+ arch/arm64/mm/dma-mapping.c  |   2 +-
+ drivers/acpi/arm64/dma.c     |  50 +++++
+ drivers/acpi/arm64/iort.c    | 128 ++----------
+ drivers/acpi/bus.c           |   2 +
+ drivers/acpi/scan.c          |  78 +++++++-
+ drivers/acpi/viot.c          | 366 +++++++++++++++++++++++++++++++++++
+ drivers/iommu/amd/iommu.c    |   2 +-
+ drivers/iommu/dma-iommu.c    |  13 +-
+ drivers/iommu/intel/iommu.c  |   5 +-
+ drivers/iommu/virtio-iommu.c |  11 ++
+ MAINTAINERS                  |   8 +
+ 20 files changed, 581 insertions(+), 137 deletions(-)
+ create mode 100644 include/linux/acpi_viot.h
+ create mode 100644 drivers/acpi/arm64/dma.c
+ create mode 100644 drivers/acpi/viot.c
+
 -- 
-2.30.2
+2.32.0
 
