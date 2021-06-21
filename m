@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A42C48BDF
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Jun 2021 01:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADBF0C48BDF
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Jun 2021 01:27:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3474E611C0
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Jun 2021 01:18:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77EFE611BD
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Jun 2021 01:27:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229918AbhFUBU1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 20 Jun 2021 21:20:27 -0400
-Received: from mga01.intel.com ([192.55.52.88]:11595 "EHLO mga01.intel.com"
+        id S229899AbhFUB3x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 20 Jun 2021 21:29:53 -0400
+Received: from mga17.intel.com ([192.55.52.151]:2355 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229877AbhFUBU1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 20 Jun 2021 21:20:27 -0400
-IronPort-SDR: uUOInR0YEN0/dv/AjWjiCnPXNEcj5trKilTbvxJ3QeqGyUUNurE9zRLRq1o/0FPxCZxOX/F0jP
- mYunNKiRQp8g==
-X-IronPort-AV: E=McAfee;i="6200,9189,10021"; a="228301569"
+        id S229877AbhFUB3w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 20 Jun 2021 21:29:52 -0400
+IronPort-SDR: R6UBIlJmVq/ZthIZw+kpsq/RZY4tBIW1KyfCyQbzuP0M0V4TPjEAL3k7SOrEVlO28+vv1IUiL9
+ scgoZC4b8zCg==
+X-IronPort-AV: E=McAfee;i="6200,9189,10021"; a="187134744"
 X-IronPort-AV: E=Sophos;i="5.83,288,1616482800"; 
-   d="scan'208";a="228301569"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2021 18:18:14 -0700
-IronPort-SDR: N29QhUtgcyv3Hg4bGOuaBZM8RbPpxFS5kE08o2JSP0zXMilQp18VWMhgifbwV/zb0X3d3O2DW0
- 5pPuu9MWSHSg==
+   d="scan'208";a="187134744"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2021 18:27:39 -0700
+IronPort-SDR: Y9hW6rU8N+KWucZwHj0p9FphnnFNSHEijjjjhlv0al2CDAgXBHgiztw4wbyzfb5eGv9Yt1H97q
+ qviNQWCM3sRg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,288,1616482800"; 
-   d="scan'208";a="486312161"
+   d="scan'208";a="641181800"
 Received: from power-sh.sh.intel.com ([10.239.48.130])
-  by orsmga001.jf.intel.com with ESMTP; 20 Jun 2021 18:18:12 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 20 Jun 2021 18:27:33 -0700
 From:   Zhang Rui <rui.zhang@intel.com>
 To:     linux-acpi@vger.kernel.org
-Cc:     rjw@rjwysocki.net, gleo881003@gmail.com, rui.zhang@intel.com
+Cc:     rjw@rjwysocki.net, leo881003@gmail.com, rui.zhang@intel.com
 Subject: [PATCH] ACPI: EC: trust DSDT GPE for certain HP laptop
-Date:   Mon, 21 Jun 2021 09:28:06 +0800
-Message-Id: <20210621012806.30300-1-rui.zhang@intel.com>
+Date:   Mon, 21 Jun 2021 09:37:27 +0800
+Message-Id: <20210621013727.30621-1-rui.zhang@intel.com>
 X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -62,7 +62,7 @@ Signed-off-by: Zhang Rui <rui.zhang@intel.com>
  1 file changed, 20 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 9555c65f2f94..8d8abd0c6cfb 100644
+index 13565629ce0a..34a472600e63 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
 @@ -183,6 +183,7 @@ static struct workqueue_struct *ec_query_wq;
@@ -71,9 +71,9 @@ index 9555c65f2f94..8d8abd0c6cfb 100644
  static int EC_FLAGS_IGNORE_DSDT_GPE; /* Needs ECDT GPE as correction setting */
 +static int EC_FLAGS_TRUST_DSDT_GPE; /* Needs DSDT GPE as correction setting */
  static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
- static int EC_FLAGS_FORCE_EC_REG; /* Needs EC _REG evaluated explicitly */
  
-@@ -1601,7 +1602,8 @@ static int acpi_ec_add(struct acpi_device *device)
+ /* --------------------------------------------------------------------------
+@@ -1593,7 +1594,8 @@ static int acpi_ec_add(struct acpi_device *device)
  		}
  
  		if (boot_ec && ec->command_addr == boot_ec->command_addr &&
@@ -83,7 +83,7 @@ index 9555c65f2f94..8d8abd0c6cfb 100644
  			/*
  			 * Trust PNP0C09 namespace location rather than
  			 * ECDT ID. But trust ECDT GPE rather than _GPE
-@@ -1836,6 +1838,18 @@ static int ec_honor_ecdt_gpe(const struct dmi_system_id *id)
+@@ -1816,6 +1818,18 @@ static int ec_correct_ecdt(const struct dmi_system_id *id)
  	return 0;
  }
  
@@ -100,9 +100,9 @@ index 9555c65f2f94..8d8abd0c6cfb 100644
 +}
 +
  /*
-  * Some buggy BIOS does not have EC OperationRegion, this results in the
-  * EC._REG fails to be evaluated when installing the EC address space handler.
-@@ -1876,6 +1890,11 @@ static const struct dmi_system_id ec_dmi_table[] __initconst = {
+  * Some DSDTs contain wrong GPE setting.
+  * Asus FX502VD/VE, GL702VMK, X550VXK, X580VD
+@@ -1854,6 +1868,11 @@ static const struct dmi_system_id ec_dmi_table[] __initconst = {
  	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
  	DMI_MATCH(DMI_PRODUCT_NAME, "X580VD"),}, NULL},
  	{
@@ -113,7 +113,7 @@ index 9555c65f2f94..8d8abd0c6cfb 100644
 +	{
  	ec_clear_on_resume, "Samsung hardware", {
  	DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD.")}, NULL},
- 	{
+ 	{},
 -- 
 2.17.1
 
