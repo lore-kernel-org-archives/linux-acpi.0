@@ -2,113 +2,74 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32555C4743C
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Jun 2021 13:14:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D60AC4743C
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Jun 2021 16:29:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18FC161076
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Jun 2021 13:14:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44D496112D
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Jun 2021 16:29:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230479AbhFWNQY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Jun 2021 09:16:24 -0400
-Received: from mga02.intel.com ([134.134.136.20]:27317 "EHLO mga02.intel.com"
+        id S229523AbhFWQbT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 23 Jun 2021 12:31:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231129AbhFWNQT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 23 Jun 2021 09:16:19 -0400
-IronPort-SDR: 2jcJcCp9hNhpkEiFztnnVl0bkV0RwiSDUdpfdnxjX3BKvH8NYzyEFiMddq3q9UdbpCM1eDzTus
- MlynW5LVJ++g==
-X-IronPort-AV: E=McAfee;i="6200,9189,10023"; a="194398139"
-X-IronPort-AV: E=Sophos;i="5.83,293,1616482800"; 
-   d="scan'208";a="194398139"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2021 06:13:58 -0700
-IronPort-SDR: UyzkES5Cdzl1/1lnLeF5ZRRPo1GAM47RpKllxBgKOsqDm9pRq7ImQI2/MQ4FXxqxeGEXirDGdd
- 4/EIl4XDvLoA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,293,1616482800"; 
-   d="scan'208";a="556964242"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 23 Jun 2021 06:13:56 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] software node: Handle software node injection to an existing device properly
-Date:   Wed, 23 Jun 2021 16:14:21 +0300
-Message-Id: <20210623131421.15159-1-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
+        id S229902AbhFWQbP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 23 Jun 2021 12:31:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E93E61350;
+        Wed, 23 Jun 2021 16:28:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1624465738;
+        bh=r4YKzhDT6S2mPQ+5hEgonlfzwke4UWS0t2mdsGa79Z0=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=hvrz4kEnLMO5yMkyHPwHybg5xWpfz1pNbjnMT3nYTYJuCNlhrzhaUfK/sNNTvmV1O
+         ascsKkgcZhX461cs95MeHbs9XBCxtSoQ+Vx5kyDEBz9XSRDkkj7cMQpZv8n+Qid6FP
+         KZdz4tZ37QYvRchwIzVv+wRWWT8+0HLCUw7pBrpgjDepr37zeBqGj7l9YvodukiOuc
+         2npyZ+Mw3JwJOLwx27Xy4NaXdVuYQUPjqgTYadQVwVauQZokCKM+VYzH7k38hnJAfS
+         j6owaysPKExWNvvTDKE7QaJyOoWcaknHR0knJU+B/NWtJAghMzGCWLSMnpc0xwRGZZ
+         qOsut+EyUBRjg==
+Subject: Re: [PATCH 2/2] ACPI: bgrt: Use sysfs_emit
+To:     Kees Cook <keescook@chromium.org>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        clang-built-linux@googlegroups.com
+References: <20210623013802.1904951-1-nathan@kernel.org>
+ <20210623013802.1904951-2-nathan@kernel.org>
+ <202106222250.7BD80A12FF@keescook>
+From:   Nathan Chancellor <nathan@kernel.org>
+Message-ID: <a155e3ee-69aa-408d-208b-06144cf6cf8f@kernel.org>
+Date:   Wed, 23 Jun 2021 09:28:55 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <202106222250.7BD80A12FF@keescook>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The function software_node_notify() - the function that creates
-and removes the symlinks between the node and the device - was
-called unconditionally in device_add_software_node() and
-device_remove_software_node(), but it needs to be called in
-those functions only in the special case where the node is
-added to a device that has already been registered.
+On 6/22/2021 10:51 PM, Kees Cook wrote:
+> On Tue, Jun 22, 2021 at 06:38:02PM -0700, Nathan Chancellor wrote:
+>> sysfs_emit is preferred to snprintf for emitting values after
+>> commit 2efc459d06f1 ("sysfs: Add sysfs_emit and sysfs_emit_at to format
+>> sysfs output").
+>>
+>> Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+> 
+> Perhaps just squash this into patch 1? Looks good otherwise!
+> 
 
-This fixes NULL pointer dereference that happens if
-device_remove_software_node() is used with device that was
-never registered.
+I thought about it but sysfs_emit is a relatively new API and the 
+previous change may want to be backported but I do not have a strong 
+opinion so I can squash it if Rafael or Len feel strongly :)
 
-Fixes: b622b24519f5 ("software node: Allow node addition to already existing device")
-Reported-and-tested-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/base/swnode.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 3cc11b813f28c..d1f1a82401207 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -1045,7 +1045,15 @@ int device_add_software_node(struct device *dev, const struct software_node *nod
- 	}
- 
- 	set_secondary_fwnode(dev, &swnode->fwnode);
--	software_node_notify(dev, KOBJ_ADD);
-+
-+	/*
-+	 * If the device has been fully registered by the time this function is
-+	 * called, software_node_notify() must be called separately so that the
-+	 * symlinks get created and the reference count of the node is kept in
-+	 * balance.
-+	 */
-+	if (device_is_registered(dev))
-+		software_node_notify(dev, KOBJ_ADD);
- 
- 	return 0;
- }
-@@ -1065,7 +1073,8 @@ void device_remove_software_node(struct device *dev)
- 	if (!swnode)
- 		return;
- 
--	software_node_notify(dev, KOBJ_REMOVE);
-+	if (device_is_registered(dev))
-+		software_node_notify(dev, KOBJ_REMOVE);
- 	set_secondary_fwnode(dev, NULL);
- 	kobject_put(&swnode->kobj);
- }
-@@ -1119,8 +1128,7 @@ int software_node_notify(struct device *dev, unsigned long action)
- 
- 	switch (action) {
- 	case KOBJ_ADD:
--		ret = sysfs_create_link_nowarn(&dev->kobj, &swnode->kobj,
--					       "software_node");
-+		ret = sysfs_create_link(&dev->kobj, &swnode->kobj, "software_node");
- 		if (ret)
- 			break;
- 
--- 
-2.30.2
-
+Thanks for taking a look, cheers!
+Nathan
