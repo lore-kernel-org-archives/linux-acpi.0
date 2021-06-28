@@ -2,105 +2,157 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90881C49EA7
-	for <linux-acpi@archiver.kernel.org>; Sat, 26 Jun 2021 14:22:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 212A4C49EA3
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Jun 2021 10:49:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B6CB61C3E
-	for <linux-acpi@archiver.kernel.org>; Sat, 26 Jun 2021 14:22:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04270619AD
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Jun 2021 10:49:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230119AbhFZOY4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 26 Jun 2021 10:24:56 -0400
-Received: from mga03.intel.com ([134.134.136.65]:10776 "EHLO mga03.intel.com"
+        id S232586AbhF1Kv5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Jun 2021 06:51:57 -0400
+Received: from foss.arm.com ([217.140.110.172]:56396 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230064AbhFZOYw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 26 Jun 2021 10:24:52 -0400
-IronPort-SDR: xqP8DXa8XQHivQ1ff/kU2HkCuSP6JDK63grjuuVDXdAw7CUwqETazYa2qsDsEj4jgieDGBtEwP
- plRD1uHZ8cBg==
-X-IronPort-AV: E=McAfee;i="6200,9189,10027"; a="207828227"
-X-IronPort-AV: E=Sophos;i="5.83,301,1616482800"; 
-   d="scan'208";a="207828227"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jun 2021 07:22:28 -0700
-X-IronPort-AV: E=Sophos;i="5.83,301,1616482800"; 
-   d="scan'208";a="640382648"
-Received: from mlubyani-mobl2.amr.corp.intel.com (HELO skuppusw-desk1.amr.corp.intel.com) ([10.254.8.25])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jun 2021 07:22:28 -0700
-From:   Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>
-To:     Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        id S232486AbhF1Kv4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 28 Jun 2021 06:51:56 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1CC94D6E;
+        Mon, 28 Jun 2021 03:49:31 -0700 (PDT)
+Received: from localhost (unknown [10.1.195.40])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B06E63F694;
+        Mon, 28 Jun 2021 03:49:30 -0700 (PDT)
+Date:   Mon, 28 Jun 2021 11:49:29 +0100
+From:   Ionela Voinescu <ionela.voinescu@arm.com>
+To:     Viresh Kumar <viresh.kumar@linaro.org>
+Cc:     Rafael Wysocki <rjw@rjwysocki.net>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Ingo Molnar <mingo@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
-        Andy Lutomirski <luto@kernel.org>
-Cc:     Peter H Anvin <hpa@zytor.com>, Dave Hansen <dave.hansen@intel.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Kirill Shutemov <kirill.shutemov@linux.intel.com>,
-        Sean Christopherson <seanjc@google.com>,
-        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
-        x86@kernel.org, linux-kernel@vger.kernel.org,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        linux-acpi@vger.kernel.org,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v2 5/5] x86: Skip WBINVD instruction for VM guest
-Date:   Sat, 26 Jun 2021 07:22:13 -0700
-Message-Id: <178da14b6e77c7ab87ba5fd8ad121ab10dcae2e3.1624666915.git.sathyanarayanan.kuppuswamy@linux.intel.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1624666915.git.sathyanarayanan.kuppuswamy@linux.intel.com>
-References: <cover.1624666915.git.sathyanarayanan.kuppuswamy@linux.intel.com>
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        linux-pm@vger.kernel.org, Qian Cai <quic_qiancai@quicinc.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH V3 4/4] cpufreq: CPPC: Add support for frequency
+ invariance
+Message-ID: <20210628104929.GA29595@arm.com>
+References: <cover.1624266901.git.viresh.kumar@linaro.org>
+ <f963d09e57115969dae32827ade5558b0467d3a0.1624266901.git.viresh.kumar@linaro.org>
+ <20210624094812.GA6095@arm.com>
+ <20210624130418.poiy4ph66mbv3y67@vireshk-i7>
+ <20210625085454.GA15540@arm.com>
+ <20210625165418.shi3gkebumqllxma@vireshk-i7>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210625165418.shi3gkebumqllxma@vireshk-i7>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-VM guests that supports ACPI, use standard ACPI mechanisms to signal
-sleep state entry (including reboot) to the host. The ACPI
-specification mandates WBINVD on any sleep state entry with the
-expectation that the platform is only responsible for maintaining the
-state of memory over sleep states, not preserving dirty data in any
-CPU caches. ACPI cache flushing requirements pre-date the advent of
-virtualization. Given guest sleep state entry does not affect any
-host power rails it is not required to flush caches. The host is
-responsible for maintaining cache state over its own bare metal sleep
-state transitions that power-off the cache. A TDX guest, unlike a
-typical guest, will machine check if the CPU cache is powered off.
+On Friday 25 Jun 2021 at 22:24:18 (+0530), Viresh Kumar wrote:
+> On 25-06-21, 09:54, Ionela Voinescu wrote:
+> > Hey,
+> > 
+> > On Thursday 24 Jun 2021 at 18:34:18 (+0530), Viresh Kumar wrote:
+> > > On 24-06-21, 10:48, Ionela Voinescu wrote:
+> > > > On Monday 21 Jun 2021 at 14:49:37 (+0530), Viresh Kumar wrote:
+> > > > > The Frequency Invariance Engine (FIE) is providing a frequency scaling
+> > > > > correction factor that helps achieve more accurate load-tracking.
+> > > > [..]
+> > > > > +static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
+> > > > > +{
+> > > > > +	struct cppc_freq_invariance *cppc_fi;
+> > > > > +	int cpu;
+> > > > > +
+> > > > > +	if (cppc_cpufreq_driver.get == hisi_cppc_cpufreq_get_rate)
+> > > > > +		return;
+> > > > > +
+> > > > > +	/* policy->cpus will be empty here, use related_cpus instead */
+> > > > > +	topology_clear_scale_freq_source(SCALE_FREQ_SOURCE_CPPC, policy->related_cpus);
+> > > > > +
+> > > > > +	for_each_cpu(cpu, policy->related_cpus) {
+> > > > > +		cppc_fi = &per_cpu(cppc_freq_inv, cpu);
+> > > > 
+> > > > Do you think it might be worth having here something like:
+> > > > 
+> > > > 		if (!cppc_fi->cpu_data)
+> > > > 			continue;
+> > > > 
+> > > > This would be to protect against cases where the platform does not boot
+> > > > with all CPUs or the module is loaded after some have already been
+> > > > offlined. Unlikely, but..
+> > > 
+> > > Even in that case policy->cpus will contain all offline+online CPUs (at ->init()
+> > > time), isn't it ?
+> > > 
+> > 
+> > Right, my bad. I missed cpumask_and(policy->cpus, policy->cpus,
+> > cpu_online_mask) being done after init(). It logically seems a bit
+> > wrong, but drivers are in control of setting policy->cpus and acting on
+> > it, and in this case the driver does the right thing.
+> 
+> Do you want me to re-add your Reviewed-by here ?
+> 
 
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
----
- arch/x86/include/asm/acenv.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+To be honest I would like to have more time on this before you merge the
+set, to better understand Qian's results and some observations I have
+for Thunder X2 (I will share in a bit).
 
-diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
-index 9aff97f0de7f..d4162e94bee8 100644
---- a/arch/x86/include/asm/acenv.h
-+++ b/arch/x86/include/asm/acenv.h
-@@ -10,10 +10,15 @@
- #define _ASM_X86_ACENV_H
- 
- #include <asm/special_insns.h>
-+#include <asm/cpu.h>
- 
- /* Asm macros */
- 
--#define ACPI_FLUSH_CPU_CACHE()	wbinvd()
-+#define ACPI_FLUSH_CPU_CACHE()				\
-+do {							\
-+	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR))	\
-+		wbinvd();				\
-+} while (0)
- 
- int __acpi_acquire_global_lock(unsigned int *lock);
- int __acpi_release_global_lock(unsigned int *lock);
--- 
-2.25.1
+For the code, I think it's fine. I have a single observation regarding
+the following code:
 
+> +static void cppc_cpufreq_cpu_fie_init(struct cpufreq_policy *policy)
+> +{
+> +	struct cppc_freq_invariance *cppc_fi;
+> +	int cpu, ret;
+> +
+> +	if (cppc_cpufreq_driver.get == hisi_cppc_cpufreq_get_rate)
+> +		return;
+> +
+> +	for_each_cpu(cpu, policy->cpus) {
+> +		cppc_fi = &per_cpu(cppc_freq_inv, cpu);
+> +		cppc_fi->cpu = cpu;
+> +		cppc_fi->cpu_data = policy->driver_data;
+> +		kthread_init_work(&cppc_fi->work, cppc_scale_freq_workfn);
+> +		init_irq_work(&cppc_fi->irq_work, cppc_irq_work);
+> +
+> +		ret = cppc_get_perf_ctrs(cpu, &cppc_fi->prev_perf_fb_ctrs);
+> +		if (ret) {
+> +			pr_warn("%s: failed to read perf counters for cpu:%d: %d\n",
+> +				__func__, cpu, ret);
+> +			return;
+> +		}
+
+For this condition above, think about a scenario where reading counters
+for offline CPUs returns an error. I'm not sure if that can happen, to
+be honest. That would mean here that you will never initialise the freq
+source unless all CPUs in the policy are online at policy creation.
+
+My recommendation is to warn about the failed read of perf counters but
+only return from this function if the target CPU is online as well when
+reading counters fails.
+
+This is probably a nit, so I'll let you decide if you want to do something
+about this.
+
+Thanks,
+Ionela.
+
+> +	}
+> +
+> +	/* Register for freq-invariance */
+> +	topology_set_scale_freq_source(&cppc_sftd, policy->cpus);
+> +}
+
+
+
+> -- 
+> viresh
