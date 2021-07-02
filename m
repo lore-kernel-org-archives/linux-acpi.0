@@ -2,64 +2,63 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E2F2C11F68
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Jul 2021 16:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1103DC11F68
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Jul 2021 17:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30DC5613CB
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Jul 2021 16:59:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0E56613CB
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Jul 2021 17:00:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229532AbhGBRBq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Jul 2021 13:01:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46660 "EHLO
+        id S229954AbhGBRDR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Jul 2021 13:03:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229455AbhGBRBq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jul 2021 13:01:46 -0400
-Received: from mail-pg1-x52a.google.com (mail-pg1-x52a.google.com [IPv6:2607:f8b0:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BADBC061762
-        for <linux-acpi@vger.kernel.org>; Fri,  2 Jul 2021 09:59:13 -0700 (PDT)
-Received: by mail-pg1-x52a.google.com with SMTP id w15so10063400pgk.13
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Jul 2021 09:59:13 -0700 (PDT)
+        with ESMTP id S229455AbhGBRDR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jul 2021 13:03:17 -0400
+Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30A90C061762
+        for <linux-acpi@vger.kernel.org>; Fri,  2 Jul 2021 10:00:45 -0700 (PDT)
+Received: by mail-pj1-x1036.google.com with SMTP id p4-20020a17090a9304b029016f3020d867so6427138pjo.3
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Jul 2021 10:00:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=I8c4+MrSASf5wQ7vgApK1RIekBS9pL2dL7ZdlhAHvO4=;
-        b=Faqp07fQ1m6i4rEeah0mu33A0k4SLC2N/I03rhPuUiZLdyMr1XnJ8HUGmw8254tHHf
-         Uz9IMiHY/lHr9/J2l/KHB6vsXeFozRcphJ9WtIDCJVrlBjxYej1F96rv1VAsN1gq1ljU
-         xB7DY46eGl6QaNupnQnBPyQ6RYNGlpk0uXzDpFT4btGHO0/TIDSFeM7LVQqwU71we5uK
-         JqwI8+zS1Jwqki0t3k2BHQuHj1kKoSr0T5CEIls4fLY/cLYCelVnGOBP0QEjqB1cBmL7
-         3RS+ksJ4g68XgrwpHbSarbo219Rq/Xk9FX1Lo2V9C6UnC3708RV5W6+5r//kc7dFYiQp
-         N+Kw==
+        bh=jQvuII/Lvg26i/Ja3NIhtg54RlXLShl7GtVaD637Qdk=;
+        b=VnxpbNoBJYuzdpsZvkT5uLhWb0wZW3E3GD6ne8vKkS/p3mXDEnKDTOjGRGxa7rcX9X
+         vNr3TUWYUCVFPMjwbOcFz+PMklaLNImixbUu9y5zkdQm0FlkGsFwCIEcvYTZw11VD/me
+         FHCNLKPkChxKk7qbJDvL/pwAZLIZNuMkkYiyiE/qscxaLlHHlCuQZ3fWkQSvzkgDiko1
+         /ZGf6M3sSqlKbcI9ZU7tjdwVlRMT0NMmoDo7h7Jt/h3wfzyZmLRLi469rRtYc7MCASVH
+         6apRbq20+fBiRcLrPSiHp1w/pig9JeDYbe9/gKOR3E1EmpGF16RYBF1dktI8xkhp63Fx
+         DvXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=I8c4+MrSASf5wQ7vgApK1RIekBS9pL2dL7ZdlhAHvO4=;
-        b=o+JPbpZAzAOqctfNdpo0hjN8TmTmH7Ctqm7ZUSq7ACgHzajEHUSjo0Vky7MJP6AFb1
-         6pPM7XIv//JP7+kVfZILO4x27beEZJJvxFNg27D3rUwQqKY6g8wW3MEv3uHvMEuRh4tI
-         cjpNjnxQQ8iKKqqjAAPCfSiFdHz/w0zOxIa/Vm0QmiY4xkq2LVym08zo0ekyw182Yaa5
-         6YO7tLWgf3lHxZzg2hfWZROpNqm2Lugmiv0U1QJiSnyWFf93LT8JARS4sgbYp2b36Kor
-         OpoMGyj5h0omsfcDYpLoU/EgtnOzGK1lx1w4YwHQuIXtfkqlrMwzkwnsAM7ksaU5+OaU
-         mQTg==
-X-Gm-Message-State: AOAM532uzkHOgWyH63OWlUaJA0pdUMs1E5U1y7aQHC8+APjQGBqMPZCT
-        nyMY0wKK+AlV+Ne5BEq3VpJTM9tz5ZacBBzn+g4=
-X-Google-Smtp-Source: ABdhPJxkviztnSMJW5ZdUHusGYzRxJqYb47G52jdr3k/vNrqkaTtZSMxHE0bmDok/xH9Zha7ix3iYIW1NkrXoGSRm3E=
-X-Received: by 2002:a63:df10:: with SMTP id u16mr967724pgg.4.1625245152991;
- Fri, 02 Jul 2021 09:59:12 -0700 (PDT)
+        bh=jQvuII/Lvg26i/Ja3NIhtg54RlXLShl7GtVaD637Qdk=;
+        b=duJM9eRIE+LzSfp7MYSVoFdPp6aAzQLrvVjmicrFFB9nDR7AZMjE6wAbAGJdmW+8ar
+         AOGOCasmKyRVSsMvfugBr3hx3lQYaTLqnBgy3KGjMuU5c6ZGOvUS6B9EtSzJc6ty6y4Y
+         bkZQ1jPmEfNCg/elDj/H99LQJ5QekveRB/ZB6Jh3B7WoqRQV2YaxUTeKJPNu/vd3sjEM
+         5jZ89eRp326SJgEUdXlLLA7XIA63zFYG991D7XjcWFv8Nz7kxI0r7VkiB8MXBfdE5bXM
+         2jFHQJmxbOHMqhPRcs/y3G/wEYPlCzBVK77u6WNyPxchQHAW+7eks8unTJURup3ImgE7
+         yHIA==
+X-Gm-Message-State: AOAM532+YvaHizzMfDktDf2X3Pr20MKl43wWanzDvLPDfse1ZB2ZgLC7
+        czTL/ZbiHspf96Ts5LQj2c5wAIx4xCnzxxThCcSqwb0Vc7o=
+X-Google-Smtp-Source: ABdhPJwv6+CPgGPZthPxGRGnU2PnWBPr1wEbZ9v6TwA0/PQbef0IF1Tgowh8SYeq7AJ+c0sfdFbuikZQ83B6lV1SNXQ=
+X-Received: by 2002:a17:90a:af90:: with SMTP id w16mr674748pjq.129.1625245244698;
+ Fri, 02 Jul 2021 10:00:44 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210702165052.81750-1-hdegoede@redhat.com> <20210702165052.81750-2-hdegoede@redhat.com>
-In-Reply-To: <20210702165052.81750-2-hdegoede@redhat.com>
+References: <20210702165052.81750-1-hdegoede@redhat.com> <CAHp75VfWN1wt4bA4hVefOGiHA44-h3qEMt_A0=96k2Wq4=_WVg@mail.gmail.com>
+ <0e8c71a2-6b64-fec2-c307-a8a530bdead7@redhat.com>
+In-Reply-To: <0e8c71a2-6b64-fec2-c307-a8a530bdead7@redhat.com>
 From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Fri, 2 Jul 2021 19:58:35 +0300
-Message-ID: <CAHp75Vcwpy3boJexRi9h_H+QY0Lt0zbwXrwjFp75Q03F8UoHCg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] ACPI / PMIC: XPower: optimize MIPI PMIQ sequence
- I2C-bus accesses
+Date:   Fri, 2 Jul 2021 20:00:06 +0300
+Message-ID: <CAHp75Ve9+r4LCuU2zf1jm7tGhOYeL+dRY=q6biW76QjwkWjn1w@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ACPI / PMIC: XPower: optimize I2C-bus accesses
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>, Andy Shevchenko <andy@kernel.org>,
@@ -70,83 +69,20 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jul 2, 2021 at 7:51 PM Hans de Goede <hdegoede@redhat.com> wrote:
->
-> The I2C-bus to the XPower AXP288 is shared between the Linux kernel and
-> the SoCs PUNIT. The PUNIT has a semaphore which the kernel must "lock"
-> before it may use the bus and while the kernel holds the semaphore the CPU
-> and GPU power-states must not be changed otherwise the system will freeze.
->
-> This is a complex process, which is quite expensive. This is all done by
-> iosf_mbi_block_punit_i2c_access(). To ensure that no unguarded I2C-bus
-> accesses happen, iosf_mbi_block_punit_i2c_access() gets called by the
-> I2C-bus-driver for every I2C transfer. Because this is so expensive it
-> is allowed to call iosf_mbi_block_punit_i2c_access() in a nested
-> fashion, so that higher-level code which does multiple I2C-transfers can
-> call it once for a group of transfers, turning the calls done by the
-> I2C-bus-driver into no-ops.
->
-> The default exec_mipi_pmic_seq_element implementation from
-> drivers/acpi/pmic/intel_pmic.c does a regmap_update_bits() call and
-> the involved registers are typically marked as volatile in the regmap,
-> so this leads to 2 I2C-bus accesses.
->
-> Add a XPower AXP288 specific implementation of exec_mipi_pmic_seq_element
-> which calls iosf_mbi_block_punit_i2c_access() calls before the
-> regmap_update_bits() call to avoid having to do the whole expensive
-> acquire PUNIT semaphore dance twice.
+On Fri, Jul 2, 2021 at 7:58 PM Hans de Goede <hdegoede@redhat.com> wrote:
+> On 7/2/21 6:54 PM, Andy Shevchenko wrote:
+> > On Fri, Jul 2, 2021 at 7:50 PM Hans de Goede <hdegoede@redhat.com> wrote:
 
-Same as per patch 1.
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+...
 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/pmic/intel_pmic_xpower.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 >
-> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-> index 644a495a4f13..93c516ad361e 100644
-> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
-> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-> @@ -266,10 +266,34 @@ static int intel_xpower_pmic_get_raw_temp(struct regmap *regmap, int reg)
->         return ret;
->  }
+> Thank you for the review.
 >
-> +static int intel_xpower_exec_mipi_pmic_seq_element(struct regmap *regmap,
-> +                                                  u16 i2c_address, u32 reg_address,
-> +                                                  u32 value, u32 mask)
-> +{
-> +       int ret;
-> +
-> +       if (i2c_address != 0x34) {
-> +               pr_err("%s: Unexpected i2c-addr: 0x%02x (reg-addr 0x%x value 0x%x mask 0x%x)\n",
-> +                      __func__, i2c_address, reg_address, value, mask);
-> +               return -ENXIO;
-> +       }
-> +
-> +       ret = iosf_mbi_block_punit_i2c_access();
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret = regmap_update_bits(regmap, reg_address, mask, value);
-> +
-> +       iosf_mbi_unblock_punit_i2c_access();
-> +
-> +       return ret;
-> +}
-> +
->  static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
->         .get_power = intel_xpower_pmic_get_power,
->         .update_power = intel_xpower_pmic_update_power,
->         .get_raw_temp = intel_xpower_pmic_get_raw_temp,
-> +       .exec_mipi_pmic_seq_element = intel_xpower_exec_mipi_pmic_seq_element,
->         .power_table = power_table,
->         .power_table_count = ARRAY_SIZE(power_table),
->         .thermal_table = thermal_table,
-> --
-> 2.31.1
->
+> Is your Reviewed-by for just this patch, or for the series ?
 
+I have not seen a cover letter (is there one?), so by default (i.e. if
+not told otherwise) it applies only to this patch.
 
 -- 
 With Best Regards,
