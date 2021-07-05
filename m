@@ -4,42 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,USER_AGENT_GIT autolearn=unavailable
+	MAILING_LIST_MULTI,SPF_HELO_NONE,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87AE2C07E9B
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1211BC11F69
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7592060C41
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3E65610A6
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232897AbhGEPg5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Jul 2021 11:36:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56354 "EHLO mail.kernel.org"
+        id S233440AbhGEPhK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Jul 2021 11:37:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232816AbhGEPfw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jul 2021 11:35:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D99161AC0;
-        Mon,  5 Jul 2021 15:31:42 +0000 (UTC)
+        id S233435AbhGEPgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jul 2021 11:36:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF32261A1D;
+        Mon,  5 Jul 2021 15:31:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625499103;
-        bh=5KqFaq0lcX9UFg/77cuYyckorO3nTTfDYTCY9UOwWyg=;
+        s=k20201202; t=1625499112;
+        bh=Cu5gKInQhBuXt9wr8GYj+02+hl0rME7bI/i5jZLGIFg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SHCsTZtNjoUa7JSz+jo1odvYAmKr5fAnH45MuYMGgJndKWXoebTpPj4A4dR0YjeGc
-         YHFw34VcG1ZG7qETaSB6KE1Ov5akr21ccYizqTvsF0XQSmqEBVCVXT+nisMaJD8DoC
-         TM53yiAPdI9MqVDJsNLjxGv7V2pysvakn7Z1UwXvn4nTb0KTGhlIpiwYIRq57VE5nQ
-         0gZi52xlXRGNkpP4oTlIJ0HVyrt+qeSb+OZPfIHUC4LthIRcMwoZiEXMQl2llQxKs7
-         3y501wmZtP5JRbu97DET8Ku6TfZ3jztHd6aKrnG0jteUvAUBSINNHf6CQNPZU0brjP
-         YQELuaLdWNYRQ==
+        b=AL2HqlqHKyxXDzHaFs8Pzv9JaunE6lmHQdxqJhfGmC5WPRew6kCl/zM2YGRtTSsNC
+         cpaZ4MsfFT5oYyAO9UDQFVYp8mRvaoVUjPdChOaxzePDjLsCAw1XRlR05yr1o/RMiK
+         oqd3y6OG00ho9mdi4fY7Mc91Jx+TEKVr4FqAwuiTCmY9s/MQJF9uHJAwfGc4tUDDZk
+         pF4j95C8kPUIXCciHMWFD+zXl0yISRjAT2CoePsDDC4YV+aeHye5bqbAlQFoS30Dqx
+         Jwj2rafje0/NaoU+bRwdeJLFbtMJAWmG/5A1dV05k5COEp74cVRfWwNHylCw446l+I
+         XqG8Tf49ubiMQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Chris Chiu <chris.chiu@canonical.com>,
-        Jian-Hong Pan <jhp@endlessos.org>,
+Cc:     Richard Fitzgerald <rf@opensource.cirrus.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 05/15] ACPI: EC: Make more Asus laptops use ECDT _GPE
-Date:   Mon,  5 Jul 2021 11:31:26 -0400
-Message-Id: <20210705153136.1522245-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 13/15] ACPI: tables: Add custom DSDT file as makefile prerequisite
+Date:   Mon,  5 Jul 2021 11:31:34 -0400
+Message-Id: <20210705153136.1522245-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210705153136.1522245-1-sashal@kernel.org>
 References: <20210705153136.1522245-1-sashal@kernel.org>
@@ -51,52 +50,41 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Chris Chiu <chris.chiu@canonical.com>
+From: Richard Fitzgerald <rf@opensource.cirrus.com>
 
-[ Upstream commit 6306f0431914beaf220634ad36c08234006571d5 ]
+[ Upstream commit d1059c1b1146870c52f3dac12cb7b6cbf39ed27f ]
 
-More ASUS laptops have the _GPE define in the DSDT table with a
-different value than the _GPE number in the ECDT.
+A custom DSDT file is mostly used during development or debugging,
+and in that case it is quite likely to want to rebuild the kernel
+after changing ONLY the content of the DSDT.
 
-This is causing media keys not working on ASUS X505BA/BP, X542BA/BP
+This patch adds the custom DSDT as a prerequisite to tables.o
+to ensure a rebuild if the DSDT file is updated. Make will merge
+the prerequisites from multiple rules for the same target.
 
-Add model info to the quirks list.
-
-Signed-off-by: Chris Chiu <chris.chiu@canonical.com>
-Signed-off-by: Jian-Hong Pan <jhp@endlessos.org>
+Signed-off-by: Richard Fitzgerald <rf@opensource.cirrus.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/acpi/Makefile | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 37aacb39e692..f8fc30be6871 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1886,6 +1886,22 @@ static const struct dmi_system_id ec_dmi_table[] __initconst = {
- 	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
- 	DMI_MATCH(DMI_PRODUCT_NAME, "GL702VMK"),}, NULL},
- 	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X505BA", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X505BA"),}, NULL},
-+	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X505BP", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X505BP"),}, NULL},
-+	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X542BA", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X542BA"),}, NULL},
-+	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X542BP", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X542BP"),}, NULL},
-+	{
- 	ec_honor_ecdt_gpe, "ASUS X550VXK", {
- 	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
- 	DMI_MATCH(DMI_PRODUCT_NAME, "X550VXK"),}, NULL},
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index cd1abc9bc325..f9df9541f2ce 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -8,6 +8,11 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ #
+ # ACPI Boot-Time Table Parsing
+ #
++ifeq ($(CONFIG_ACPI_CUSTOM_DSDT),y)
++tables.o: $(src)/../../include/$(subst $\",,$(CONFIG_ACPI_CUSTOM_DSDT_FILE)) ;
++
++endif
++
+ obj-$(CONFIG_ACPI)		+= tables.o
+ obj-$(CONFIG_X86)		+= blacklist.o
+ 
 -- 
 2.30.2
 
