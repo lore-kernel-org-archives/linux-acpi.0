@@ -7,39 +7,38 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36123C11F78
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:30:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61575C11F66
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:31:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DD3361998
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:30:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51DA661A13
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:31:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232554AbhGEPdY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Jul 2021 11:33:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58642 "EHLO mail.kernel.org"
+        id S232682AbhGEPdv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Jul 2021 11:33:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232563AbhGEPcu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jul 2021 11:32:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 44078619A5;
-        Mon,  5 Jul 2021 15:30:12 +0000 (UTC)
+        id S232692AbhGEPdO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jul 2021 11:33:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1DE79619AA;
+        Mon,  5 Jul 2021 15:30:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625499013;
-        bh=dXXVnySI/CpXWxQ8VvGu2yX/iHzyHAWviakPv4O1TGs=;
+        s=k20201202; t=1625499025;
+        bh=gD4mp4a9Q6gxyCGTWtos+XvRDZiiDOibuXhFg6BVkpI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KFPU6785V6GLPxXnbSggVqjbG0SddjzHaL3tuLu+u8gVj5K/nPOXfKMVwgbQv9YQ5
-         Fk+/oWvw9hsWpCOe2Y/pxr5fYm1rTWD8fViSQGLCwm8KhM/QWODz6w4AtWNdp7JjD9
-         2yH/8EYL/F+J7kVfPR0/eaPWYRuZlKMghjb4+xzNwl82i2XwT9E6S2JKvUTVYp29xF
-         gRnJb3k6I6WWiSAzuATmrbSR1zDPp+IMAtwwviVDKqVjdFo9aFP2PzvTqeY1oSkP9L
-         onVn1dAlL9oepa1FxxAvcYJ7IhMlnplOQ/bMq7Z2Gk8NiO34fQJip9scB8dky7cF2B
-         xHBOfq47t3MAg==
+        b=M05v4UWSDBedppTHE4TP56UgUcPspIBtr2W0pv9eV9P07vZFi9r8sTsVLMQFktprK
+         Ug7VXibo5Kiq7a2P14wqxo28D7eJsToTzIVnl40BX2iOmnOP9gQM58BDowUaJ5+C5Q
+         iheczwCT2FIoq4t2ezkQk5wCn2X0xxvJ1XVAs99r6WK+wTx55RmWfSqFN4QwXy5Ixe
+         Tc7+AkRD3p7YxopKSLVJFnf0eLxLROfMHehcVuEId7rqJKlmzNgGxIeWcooKcqUukA
+         NN0JhKRAztOMNdizimdcACUnkT1cESvR/QohfmbB5qCkfHXl9n+ezTOGx3EZoDf31H
+         Ni59rU0ge2NZQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Chris Chiu <chris.chiu@canonical.com>,
-        Jian-Hong Pan <jhp@endlessos.org>,
+Cc:     Hanjun Guo <guohanjun@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 09/41] ACPI: EC: Make more Asus laptops use ECDT _GPE
-Date:   Mon,  5 Jul 2021 11:29:29 -0400
-Message-Id: <20210705153001.1521447-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 19/41] ACPI: bus: Call kobject_put() in acpi_init() error path
+Date:   Mon,  5 Jul 2021 11:29:39 -0400
+Message-Id: <20210705153001.1521447-19-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210705153001.1521447-1-sashal@kernel.org>
 References: <20210705153001.1521447-1-sashal@kernel.org>
@@ -51,52 +50,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Chris Chiu <chris.chiu@canonical.com>
+From: Hanjun Guo <guohanjun@huawei.com>
 
-[ Upstream commit 6306f0431914beaf220634ad36c08234006571d5 ]
+[ Upstream commit 4ac7a817f1992103d4e68e9837304f860b5e7300 ]
 
-More ASUS laptops have the _GPE define in the DSDT table with a
-different value than the _GPE number in the ECDT.
+Although the system will not be in a good condition or it will not
+boot if acpi_bus_init() fails, it is still necessary to put the
+kobject in the error path before returning to avoid leaking memory.
 
-This is causing media keys not working on ASUS X505BA/BP, X542BA/BP
-
-Add model info to the quirks list.
-
-Signed-off-by: Chris Chiu <chris.chiu@canonical.com>
-Signed-off-by: Jian-Hong Pan <jhp@endlessos.org>
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+[ rjw: Subject and changelog edits ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/acpi/bus.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e0cb1bcfffb2..32f3b6d268f5 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1859,6 +1859,22 @@ static const struct dmi_system_id ec_dmi_table[] __initconst = {
- 	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
- 	DMI_MATCH(DMI_PRODUCT_NAME, "GL702VMK"),}, NULL},
- 	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X505BA", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X505BA"),}, NULL},
-+	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X505BP", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X505BP"),}, NULL},
-+	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X542BA", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X542BA"),}, NULL},
-+	{
-+	ec_honor_ecdt_gpe, "ASUSTeK COMPUTER INC. X542BP", {
-+	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "X542BP"),}, NULL},
-+	{
- 	ec_honor_ecdt_gpe, "ASUS X550VXK", {
- 	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
- 	DMI_MATCH(DMI_PRODUCT_NAME, "X550VXK"),}, NULL},
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 1682f8b454a2..e317214aabec 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1245,6 +1245,7 @@ static int __init acpi_init(void)
+ 
+ 	result = acpi_bus_init();
+ 	if (result) {
++		kobject_put(acpi_kobj);
+ 		disable_acpi();
+ 		return result;
+ 	}
 -- 
 2.30.2
 
