@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1211BC11F69
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1D6C07E9B
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3E65610A6
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD1D761261
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233440AbhGEPhK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Jul 2021 11:37:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58562 "EHLO mail.kernel.org"
+        id S233456AbhGEPhM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Jul 2021 11:37:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233435AbhGEPgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S233428AbhGEPgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 5 Jul 2021 11:36:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF32261A1D;
-        Mon,  5 Jul 2021 15:31:51 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AB7A061990;
+        Mon,  5 Jul 2021 15:31:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625499112;
-        bh=Cu5gKInQhBuXt9wr8GYj+02+hl0rME7bI/i5jZLGIFg=;
+        s=k20201202; t=1625499110;
+        bh=v7iF50Bzn4if2LlZ1Ia8/TQL6XSxe8GjQb6u9hcTzT4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AL2HqlqHKyxXDzHaFs8Pzv9JaunE6lmHQdxqJhfGmC5WPRew6kCl/zM2YGRtTSsNC
-         cpaZ4MsfFT5oYyAO9UDQFVYp8mRvaoVUjPdChOaxzePDjLsCAw1XRlR05yr1o/RMiK
-         oqd3y6OG00ho9mdi4fY7Mc91Jx+TEKVr4FqAwuiTCmY9s/MQJF9uHJAwfGc4tUDDZk
-         pF4j95C8kPUIXCciHMWFD+zXl0yISRjAT2CoePsDDC4YV+aeHye5bqbAlQFoS30Dqx
-         Jwj2rafje0/NaoU+bRwdeJLFbtMJAWmG/5A1dV05k5COEp74cVRfWwNHylCw446l+I
-         XqG8Tf49ubiMQ==
+        b=jJYbh7Z67aLPaD/uX+fpoSh8MmuY/1D96wN4DMF7m5Dxn/k7QlThDtMf4LNGlZJro
+         fOawS9EeRF0oh1x6/3p0K9kRaCfhJq7IzMMeIe6IZZfcwv372XzsIEkCiqTSLQRClX
+         XRfV6mCNIJ7GBLwunzo+yYtglZeYN7Yo1YrLKKzPSZgaCT0eup1SEz7hHys17TWQ6L
+         hnGGEXNYqUi3/uU+gIn1K7qN6mlyP+MyW2MbenS8ULx2bnxYVgfQ/4GgiHvyYnMD3r
+         Y+85W5mu5NrQUWt0prpO/1WvnpGfzyH4xu9sgDyeSyeHTQYgNXgc/ZJ1KEkm7iJQei
+         U1xLT6iqcq89w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Richard Fitzgerald <rf@opensource.cirrus.com>,
+Cc:     Hanjun Guo <guohanjun@huawei.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 13/15] ACPI: tables: Add custom DSDT file as makefile prerequisite
-Date:   Mon,  5 Jul 2021 11:31:34 -0400
-Message-Id: <20210705153136.1522245-13-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 11/15] ACPI: bus: Call kobject_put() in acpi_init() error path
+Date:   Mon,  5 Jul 2021 11:31:32 -0400
+Message-Id: <20210705153136.1522245-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210705153136.1522245-1-sashal@kernel.org>
 References: <20210705153136.1522245-1-sashal@kernel.org>
@@ -50,41 +50,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Richard Fitzgerald <rf@opensource.cirrus.com>
+From: Hanjun Guo <guohanjun@huawei.com>
 
-[ Upstream commit d1059c1b1146870c52f3dac12cb7b6cbf39ed27f ]
+[ Upstream commit 4ac7a817f1992103d4e68e9837304f860b5e7300 ]
 
-A custom DSDT file is mostly used during development or debugging,
-and in that case it is quite likely to want to rebuild the kernel
-after changing ONLY the content of the DSDT.
+Although the system will not be in a good condition or it will not
+boot if acpi_bus_init() fails, it is still necessary to put the
+kobject in the error path before returning to avoid leaking memory.
 
-This patch adds the custom DSDT as a prerequisite to tables.o
-to ensure a rebuild if the DSDT file is updated. Make will merge
-the prerequisites from multiple rules for the same target.
-
-Signed-off-by: Richard Fitzgerald <rf@opensource.cirrus.com>
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+[ rjw: Subject and changelog edits ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/Makefile | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/acpi/bus.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index cd1abc9bc325..f9df9541f2ce 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -8,6 +8,11 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
- #
- # ACPI Boot-Time Table Parsing
- #
-+ifeq ($(CONFIG_ACPI_CUSTOM_DSDT),y)
-+tables.o: $(src)/../../include/$(subst $\",,$(CONFIG_ACPI_CUSTOM_DSDT_FILE)) ;
-+
-+endif
-+
- obj-$(CONFIG_ACPI)		+= tables.o
- obj-$(CONFIG_X86)		+= blacklist.o
- 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 1cb7c6a52f61..7ea02bb50c73 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1249,6 +1249,7 @@ static int __init acpi_init(void)
+ 	init_acpi_device_notify();
+ 	result = acpi_bus_init();
+ 	if (result) {
++		kobject_put(acpi_kobj);
+ 		disable_acpi();
+ 		return result;
+ 	}
 -- 
 2.30.2
 
