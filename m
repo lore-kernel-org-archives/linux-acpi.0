@@ -2,49 +2,46 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-25.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B848DC07E9E
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A80AC07E9E
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1F1361103
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7600161261
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:34:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233101AbhGEPhM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Jul 2021 11:37:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58510 "EHLO mail.kernel.org"
+        id S233752AbhGEPhU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Jul 2021 11:37:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232588AbhGEPgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jul 2021 11:36:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 51878619B7;
-        Mon,  5 Jul 2021 15:31:48 +0000 (UTC)
+        id S233210AbhGEPgM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jul 2021 11:36:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E2DF619A5;
+        Mon,  5 Jul 2021 15:31:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625499109;
-        bh=gHI2DoY4IyNFtGPUKqbxnQZ2z7cG3IQxGPlRt7+kbcI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TfhfIBrPbwz5z7Z0GKM4jPgxq0t3yr6v63ZRM1qXU63hgzWPv5RGk50rGsDS+dZIU
-         UhhocA4FeDla0xnfsDunb7I5acKyCghQbFEF9Slsus7nqgMaUBPditPY0FEbC109rR
-         E0ZbMA/X/AL0JmjQRfvR5WZvlJ6SIPTo9ao5cHKwe75AGbxzzohWH/BsDw3I3lvz/R
-         5uH76V4y3NslH1C6f4yqCrwwxEohhCOr+oYTCj0LYE4D6r8PV8dFLAYwmmdMap8O2g
-         HyVYdHqXwzKKjmLNlRVBovWbkRNpFz/bmy6oYEgJE/2K1ZUTBRCI2Fvk1H81oRVnIV
-         Vq9T0lEmYmYBQ==
+        s=k20201202; t=1625499117;
+        bh=xgmsrfGkC+gkkkdJMrsvG1N/yAnLc31sKa/2Km/fPgI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Toqx1chJtieGCZSV7IwWeaFKf62jz5DDUiqhvxIWtbgl6Vutj+BIgwN1/BcajJ3n5
+         6uSM3iCj/86hsH62PM1mUiRlvdhyicXbbE6zBW6nZ45TBAyOVYn/qsRNMGDS3WSIu/
+         ntQ1P/7adjjn6YuunQFmKxUiqSRqE3ZY8AHjQMlnuxJ44G71qvnA5egU1x0QFqTzZ1
+         0I8FxktW6L1o0oXfxXRhZXbYApexI4sII0mZV31Dqey/h064HOCq/tcK7PAWYYZv1E
+         a/i1uOJpF5sgYGQMwRzjFa0Gg0vVHUbD/1ou8Bfbj/C+mxS2FcWgzvlaiq0DhQQH9/
+         mcda/XNj+bniA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Erik Kaneda <erik.kaneda@intel.com>,
-        Shawn Guo <shawn.guo@linaro.org>,
-        Bob Moore <robert.moore@intel.com>,
+Cc:     Mario Limonciello <mario.limonciello@amd.com>,
+        Prike Liang <Prike.Liang@amd.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org
-Subject: [PATCH AUTOSEL 4.14 10/15] ACPICA: Fix memory leak caused by _CID repair function
-Date:   Mon,  5 Jul 2021 11:31:31 -0400
-Message-Id: <20210705153136.1522245-10-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 1/9] ACPI: processor idle: Fix up C-state latency if not ordered
+Date:   Mon,  5 Jul 2021 11:31:47 -0400
+Message-Id: <20210705153155.1522423-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210705153136.1522245-1-sashal@kernel.org>
-References: <20210705153136.1522245-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -53,53 +50,111 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Erik Kaneda <erik.kaneda@intel.com>
+From: Mario Limonciello <mario.limonciello@amd.com>
 
-[ Upstream commit c27bac0314131b11bccd735f7e8415ac6444b667 ]
+[ Upstream commit 65ea8f2c6e230bdf71fed0137cf9e9d1b307db32 ]
 
-ACPICA commit 180cb53963aa876c782a6f52cc155d951b26051a
+Generally, the C-state latency is provided by the _CST method or
+FADT, but some OEM platforms using AMD Picasso, Renoir, Van Gogh,
+and Cezanne set the C2 latency greater than C3's which causes the
+C2 state to be skipped.
 
-According to the ACPI spec, _CID returns a package containing
-hardware ID's. Each element of an ASL package contains a reference
-count from the parent package as well as the element itself.
+That will block the core entering PC6, which prevents S0ix working
+properly on Linux systems.
 
-Name (TEST, Package() {
-    "String object" // this package element has a reference count of 2
-})
+In other operating systems, the latency values are not validated and
+this does not cause problems by skipping states.
 
-A memory leak was caused in the _CID repair function because it did
-not decrement the reference count created by the package. Fix the
-memory leak by calling acpi_ut_remove_reference on _CID package elements
-that represent a hardware ID (_HID).
+To avoid this issue on Linux, detect when latencies are not an
+arithmetic progression and sort them.
 
-Link: https://github.com/acpica/acpica/commit/180cb539
-Tested-by: Shawn Guo <shawn.guo@linaro.org>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://gitlab.freedesktop.org/agd5f/linux/-/commit/026d186e4592c1ee9c1cb44295912d0294508725
+Link: https://gitlab.freedesktop.org/drm/amd/-/issues/1230#note_712174
+Suggested-by: Prike Liang <Prike.Liang@amd.com>
+Suggested-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+[ rjw: Subject and changelog edits ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/nsrepair2.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/processor_idle.c | 40 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
-index 06037e044694..78b802b5f7d3 100644
---- a/drivers/acpi/acpica/nsrepair2.c
-+++ b/drivers/acpi/acpica/nsrepair2.c
-@@ -409,6 +409,13 @@ acpi_ns_repair_CID(struct acpi_evaluate_info *info,
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 2237d3f24f0e..8242e16f57c6 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -29,6 +29,7 @@
+ #include <linux/acpi.h>
+ #include <linux/dmi.h>
+ #include <linux/sched.h>       /* need_resched() */
++#include <linux/sort.h>
+ #include <linux/tick.h>
+ #include <linux/cpuidle.h>
+ #include <linux/cpu.h>
+@@ -538,10 +539,37 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+ 	return;
+ }
  
- 			(*element_ptr)->common.reference_count =
- 			    original_ref_count;
++static int acpi_cst_latency_cmp(const void *a, const void *b)
++{
++	const struct acpi_processor_cx *x = a, *y = b;
 +
-+			/*
-+			 * The original_element holds a reference from the package object
-+			 * that represents _HID. Since a new element was created by _HID,
-+			 * remove the reference from the _CID package.
-+			 */
-+			acpi_ut_remove_reference(original_element);
- 		}
++	if (!(x->valid && y->valid))
++		return 0;
++	if (x->latency > y->latency)
++		return 1;
++	if (x->latency < y->latency)
++		return -1;
++	return 0;
++}
++static void acpi_cst_latency_swap(void *a, void *b, int n)
++{
++	struct acpi_processor_cx *x = a, *y = b;
++	u32 tmp;
++
++	if (!(x->valid && y->valid))
++		return;
++	tmp = x->latency;
++	x->latency = y->latency;
++	y->latency = tmp;
++}
++
+ static int acpi_processor_power_verify(struct acpi_processor *pr)
+ {
+ 	unsigned int i;
+ 	unsigned int working = 0;
++	unsigned int last_latency = 0;
++	unsigned int last_type = 0;
++	bool buggy_latency = false;
  
- 		element_ptr++;
+ 	pr->power.timer_broadcast_on_state = INT_MAX;
+ 
+@@ -565,12 +593,24 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+ 		}
+ 		if (!cx->valid)
+ 			continue;
++		if (cx->type >= last_type && cx->latency < last_latency)
++			buggy_latency = true;
++		last_latency = cx->latency;
++		last_type = cx->type;
+ 
+ 		lapic_timer_check_state(i, pr, cx);
+ 		tsc_check_state(cx->type);
+ 		working++;
+ 	}
+ 
++	if (buggy_latency) {
++		pr_notice("FW issue: working around C-state latencies out of order\n");
++		sort(&pr->power.states[1], max_cstate,
++		     sizeof(struct acpi_processor_cx),
++		     acpi_cst_latency_cmp,
++		     acpi_cst_latency_swap);
++	}
++
+ 	lapic_timer_propagate_broadcast(pr);
+ 
+ 	return (working);
 -- 
 2.30.2
 
