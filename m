@@ -2,46 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-25.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90638C07E9C
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9B95C07E99
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:29:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E84A61977
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:28:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA011619A3
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jul 2021 15:29:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232026AbhGEPbe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Jul 2021 11:31:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56096 "EHLO mail.kernel.org"
+        id S232158AbhGEPbi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Jul 2021 11:31:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56186 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232034AbhGEPbY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jul 2021 11:31:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C7FDB61988;
-        Mon,  5 Jul 2021 15:28:46 +0000 (UTC)
+        id S232018AbhGEPb1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jul 2021 11:31:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 428A06198F;
+        Mon,  5 Jul 2021 15:28:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625498927;
-        bh=gg5h5lXBXeF2yN98tkTNtp6fmsB1jEPgZngd+iNITuY=;
+        s=k20201202; t=1625498930;
+        bh=pBcY7iNI6qNFPE4o3V1JU3n9NUC3b+F/miMMnLZwr/c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GZWb66Q7fEM47imRnSna/JldjcX5EEOx/bW8kvTrK3V3NyFIdyjst4ODzXwQoGtr5
-         cJxyGIBeTNfwr/sO/FBjMM13CNX6slaCe0UuXp4DhlZcMhH9nfx/5liEPZGQcmNkPq
-         bjLgBxh6B2EZ3bcplO3FVLVBfpsRl9RXW1v4TAPzxgoRnaRnk3/ybnu/72fItsMjPz
-         HKxrKRrZr+hjxSJQ5YHuWQUJ5pzPusSUpypd6rWSmryu3KvlguoPcJLyrzNlAY+/QR
-         8Hl1i5SuDycMhGtlUEHsr6cpw28hT0AhvTjnMTVy1PtjWolg9+nr3y9Mcg4XQwB/Zk
-         vRvqne3xDEMnA==
+        b=FX8/t39yWa3qABpkZNI5bqs3kDuNX6n3jUf07nhxWOtWsdax5v6vrUUIOpm/cAn6P
+         XFiQn2giEU5eEVtCJRt75sG3Jy7SJLgLKS193PeuBq/zC6FsJZKXKmwMiGLXbjkIrQ
+         Ya9Isw3ohkvFmDoMkqzoTVmrB2CLYCI3fqwF+Q1oRdBkMhrf4f+uwbF1h2ErzJRDQb
+         AN1zcsg7OCdwVPGO0x8KjTvD5eE+Yzp++riOQxMPHoR7aiTvOcggLYOuAr2U9uomlE
+         dwboUQf7kTYTPTkkcsK8oYr1R/HB8Y6zFBo/4L1hUHuAC7NO8I4fXBgOrabezHhd7R
+         EBLAWIT9RPf1g==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Erik Kaneda <erik.kaneda@intel.com>,
-        Shawn Guo <shawn.guo@linaro.org>,
-        Bob Moore <robert.moore@intel.com>,
+Cc:     Hui Wang <hui.wang@canonical.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org
-Subject: [PATCH AUTOSEL 5.13 24/59] ACPICA: Fix memory leak caused by _CID repair function
-Date:   Mon,  5 Jul 2021 11:27:40 -0400
-Message-Id: <20210705152815.1520546-24-sashal@kernel.org>
+        Manuel Krause <manuelkrause@netscape.net>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.13 26/59] ACPI: resources: Add checks for ACPI IRQ override
+Date:   Mon,  5 Jul 2021 11:27:42 -0400
+Message-Id: <20210705152815.1520546-26-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210705152815.1520546-1-sashal@kernel.org>
 References: <20210705152815.1520546-1-sashal@kernel.org>
@@ -53,53 +51,80 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Erik Kaneda <erik.kaneda@intel.com>
+From: Hui Wang <hui.wang@canonical.com>
 
-[ Upstream commit c27bac0314131b11bccd735f7e8415ac6444b667 ]
+[ Upstream commit 0ec4e55e9f571f08970ed115ec0addc691eda613 ]
 
-ACPICA commit 180cb53963aa876c782a6f52cc155d951b26051a
+The laptop keyboard doesn't work on many MEDION notebooks, but the
+keyboard works well under Windows and Unix.
 
-According to the ACPI spec, _CID returns a package containing
-hardware ID's. Each element of an ASL package contains a reference
-count from the parent package as well as the element itself.
+Through debugging, we found this log in the dmesg:
 
-Name (TEST, Package() {
-    "String object" // this package element has a reference count of 2
-})
+ ACPI: IRQ 1 override to edge, high
+ pnp 00:03: Plug and Play ACPI device, IDs PNP0303 (active)
 
-A memory leak was caused in the _CID repair function because it did
-not decrement the reference count created by the package. Fix the
-memory leak by calling acpi_ut_remove_reference on _CID package elements
-that represent a hardware ID (_HID).
+ And we checked the IRQ definition in the DSDT, it is:
 
-Link: https://github.com/acpica/acpica/commit/180cb539
-Tested-by: Shawn Guo <shawn.guo@linaro.org>
-Signed-off-by: Erik Kaneda <erik.kaneda@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+    IRQ (Level, ActiveLow, Exclusive, )
+        {1}
+
+So the BIOS defines the keyboard IRQ to Level_Low, but the Linux
+kernel override it to Edge_High. If the Linux kernel is modified
+to skip the IRQ override, the keyboard will work normally.
+
+From the existing comment in acpi_dev_get_irqresource(), the override
+function only needs to be called when IRQ() or IRQNoFlags() is used
+to populate the resource descriptor, and according to Section 6.4.2.1
+of ACPI 6.4 [1], if IRQ() is empty or IRQNoFlags() is used, the IRQ
+is High true, edge sensitive and non-shareable. ACPICA also assumes
+that to be the case (see acpi_rs_set_irq[] in rsirq.c).
+
+In accordance with the above, check 3 additional conditions
+(EdgeSensitive, ActiveHigh and Exclusive) when deciding whether or
+not to treat an ACPI_RESOURCE_TYPE_IRQ resource as "legacy", in which
+case the IRQ override is applicable to it.
+
+Link: https://uefi.org/specs/ACPI/6.4/06_Device_Configuration/Device_Configuration.html#irq-descriptor # [1]
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=213031
+BugLink: http://bugs.launchpad.net/bugs/1909814
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reported-by: Manuel Krause <manuelkrause@netscape.net>
+Tested-by: Manuel Krause <manuelkrause@netscape.net>
+Signed-off-by: Hui Wang <hui.wang@canonical.com>
+[ rjw: Subject rewrite, changelog edits ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/nsrepair2.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/resource.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
-index 14b71b41e845..38e10ab976e6 100644
---- a/drivers/acpi/acpica/nsrepair2.c
-+++ b/drivers/acpi/acpica/nsrepair2.c
-@@ -379,6 +379,13 @@ acpi_ns_repair_CID(struct acpi_evaluate_info *info,
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index ee78a210c606..dc01fb550b28 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -423,6 +423,13 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+ 	}
+ }
  
- 			(*element_ptr)->common.reference_count =
- 			    original_ref_count;
++static bool irq_is_legacy(struct acpi_resource_irq *irq)
++{
++	return irq->triggering == ACPI_EDGE_SENSITIVE &&
++		irq->polarity == ACPI_ACTIVE_HIGH &&
++		irq->shareable == ACPI_EXCLUSIVE;
++}
 +
-+			/*
-+			 * The original_element holds a reference from the package object
-+			 * that represents _HID. Since a new element was created by _HID,
-+			 * remove the reference from the _CID package.
-+			 */
-+			acpi_ut_remove_reference(original_element);
+ /**
+  * acpi_dev_resource_interrupt - Extract ACPI interrupt resource information.
+  * @ares: Input ACPI resource object.
+@@ -461,7 +468,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
  		}
- 
- 		element_ptr++;
+ 		acpi_dev_get_irqresource(res, irq->interrupts[index],
+ 					 irq->triggering, irq->polarity,
+-					 irq->shareable, true);
++					 irq->shareable, irq_is_legacy(irq));
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+ 		ext_irq = &ares->data.extended_irq;
 -- 
 2.30.2
 
