@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 603E8C11F69
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE790C07E9C
 	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CF9F61878
+	by mail.kernel.org (Postfix) with ESMTP id B4512617ED
 	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230299AbhGHSLz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S230240AbhGHSLz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 8 Jul 2021 14:11:55 -0400
-Received: from foss.arm.com ([217.140.110.172]:36026 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.110.172]:36034 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230347AbhGHSLx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jul 2021 14:11:53 -0400
+        id S230327AbhGHSLv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jul 2021 14:11:51 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 97580D6E;
-        Thu,  8 Jul 2021 11:09:11 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 675F91424;
+        Thu,  8 Jul 2021 11:09:09 -0700 (PDT)
 Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id B1A083F66F;
-        Thu,  8 Jul 2021 11:09:10 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 7FE4D3F66F;
+        Thu,  8 Jul 2021 11:09:08 -0700 (PDT)
 From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     Sudeep Holla <sudeep.holla@arm.com>,
         Cristian Marussi <cristian.marussi@arm.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Jassi Brar <jassisinghbrar@gmail.com>
-Subject: [PATCH 11/13] mailbox: pcc: Drop handling invalid bit-width in {read,write}_register
-Date:   Thu,  8 Jul 2021 19:08:49 +0100
-Message-Id: <20210708180851.2311192-12-sudeep.holla@arm.com>
+Subject: [PATCH 09/13] mailbox: pcc: Add PCC register bundle and associated accessor functions
+Date:   Thu,  8 Jul 2021 19:08:47 +0100
+Message-Id: <20210708180851.2311192-10-sudeep.holla@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210708180851.2311192-1-sudeep.holla@arm.com>
 References: <20210708180851.2311192-1-sudeep.holla@arm.com>
@@ -43,86 +43,145 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-pcc_chan_reg_init now checks if the register bit width is within the
-list [8, 16, 32, 64] and flags error if that is not the case. Therefore
-there is no need to handling invalid bit-width in both read_register
-and write_register. We can drop that along with the return values for
-these 2 functions.
+Extended PCC subspaces introduces more registers into the PCCT. In order
+to consolidate access to these registers and to keep all the details
+contained in one place, let us introduce PCC register bundle that holds
+the ACPI Generic Address Structure as well as the virtual address for
+the same if it is mapped in the OS.
+
+It also contains the various masks used to access the register and
+the associated read, write and read-modify-write accessors.
+
+We can also clean up the initialisations by having a helper function
+for the same.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/mailbox/pcc.c | 24 ++++--------------------
- 1 file changed, 4 insertions(+), 20 deletions(-)
+ drivers/mailbox/pcc.c | 90 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 90 insertions(+)
 
 diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 237dba9cb445..99ad3429f174 100644
+index c4eecccac4b8..7d48e5c1ac52 100644
 --- a/drivers/mailbox/pcc.c
 +++ b/drivers/mailbox/pcc.c
-@@ -110,10 +110,8 @@ static struct mbox_controller pcc_mbox_ctrl = {};
-  * The below read_register and write_registers are used to read and
-  * write from perf critical registers such as PCC doorbell register
-  */
--static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
-+static void read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
- {
--	int ret_val = 0;
--
- 	switch (bit_width) {
- 	case 8:
- 		*val = readb(vaddr);
-@@ -127,19 +125,11 @@ static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
- 	case 64:
- 		*val = readq(vaddr);
- 		break;
--	default:
--		pr_debug("Error: Cannot read register of %u bit width",
--			bit_width);
--		ret_val = -EFAULT;
--		break;
- 	}
--	return ret_val;
+@@ -52,6 +52,7 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/list.h>
++#include <linux/log2.h>
+ #include <linux/platform_device.h>
+ #include <linux/mailbox_controller.h>
+ #include <linux/mailbox_client.h>
+@@ -64,6 +65,23 @@
+ 
+ static struct mbox_chan *pcc_mbox_channels;
+ 
++/**
++ * struct pcc_chan_reg - PCC register bundle
++ *
++ * @vaddr: cached virtual address for this register
++ * @gas: pointer to the generic address structure for this register
++ * @preserve_mask: bitmask to preserve when writing to this register
++ * @set_mask: bitmask to set when writing to this register
++ * @status_mask: bitmask to determine and/or update the status for this register
++ */
++struct pcc_chan_reg {
++	void __iomem *vaddr;
++	struct acpi_generic_address *gas;
++	u64 preserve_mask;
++	u64 set_mask;
++	u64 status_mask;
++};
++
+ /**
+  * struct pcc_chan_info - PCC channel specific information
+  *
+@@ -144,6 +162,53 @@ static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
+ 	return ret_val;
  }
  
--static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
-+static void write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
- {
--	int ret_val = 0;
--
- 	switch (bit_width) {
- 	case 8:
- 		writeb(val, vaddr);
-@@ -153,13 +143,7 @@ static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
- 	case 64:
- 		writeq(val, vaddr);
- 		break;
--	default:
--		pr_debug("Error: Cannot write register of %u bit width",
--			bit_width);
--		ret_val = -EFAULT;
--		break;
- 	}
--	return ret_val;
++static int pcc_chan_reg_read(struct pcc_chan_reg *reg, u64 *val)
++{
++	int ret = 0;
++
++	if (!reg->gas) {
++		*val = 0;
++		return 0;
++	}
++
++	if (reg->vaddr)
++		ret = read_register(reg->vaddr, val, reg->gas->bit_width);
++	else
++		ret = acpi_read(val, reg->gas);
++
++	return ret;
++}
++
++static int pcc_chan_reg_write(struct pcc_chan_reg *reg, u64 val)
++{
++	int ret = 0;
++
++	if (!reg->gas)
++		return 0;
++
++	if (reg->vaddr)
++		ret = write_register(reg->vaddr, val, reg->gas->bit_width);
++	else
++		ret = acpi_write(val, reg->gas);
++
++	return ret;
++}
++
++static int pcc_chan_reg_read_modify_write(struct pcc_chan_reg *reg)
++{
++	int ret = 0;
++	u64 val;
++
++	ret = pcc_chan_reg_read(reg, &val);
++	if (ret)
++		return ret;
++
++	val &= reg->preserve_mask;
++	val |= reg->set_mask;
++
++	return pcc_chan_reg_write(reg, val);
++}
++
+ /**
+  * pcc_map_interrupt - Map a PCC subspace GSI to a linux IRQ number
+  * @interrupt: GSI number.
+@@ -374,6 +439,31 @@ static int parse_pcc_subspace(union acpi_subtable_headers *header,
+ 	return -EINVAL;
  }
  
- static int pcc_chan_reg_read(struct pcc_chan_reg *reg, u64 *val)
-@@ -172,7 +156,7 @@ static int pcc_chan_reg_read(struct pcc_chan_reg *reg, u64 *val)
- 	}
- 
- 	if (reg->vaddr)
--		ret = read_register(reg->vaddr, val, reg->gas->bit_width);
-+		read_register(reg->vaddr, val, reg->gas->bit_width);
- 	else
- 		ret = acpi_read(val, reg->gas);
- 
-@@ -187,7 +171,7 @@ static int pcc_chan_reg_write(struct pcc_chan_reg *reg, u64 val)
- 		return 0;
- 
- 	if (reg->vaddr)
--		ret = write_register(reg->vaddr, val, reg->gas->bit_width);
-+		write_register(reg->vaddr, val, reg->gas->bit_width);
- 	else
- 		ret = acpi_write(val, reg->gas);
- 
++static int
++pcc_chan_reg_init(struct pcc_chan_reg *reg, struct acpi_generic_address *gas,
++		  u64 preserve_mask, u64 set_mask, u64 status_mask, char *name)
++{
++	if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++		if (!(gas->bit_width >= 8 && gas->bit_width <= 64 &&
++		      is_power_of_2(gas->bit_width))) {
++			pr_err("Error: Cannot access register of %u bit width",
++			       gas->bit_width);
++			return -EFAULT;
++		}
++
++		reg->vaddr = acpi_os_ioremap(gas->address, gas->bit_width / 8);
++		if (!reg->vaddr) {
++			pr_err("Failed to ioremap PCC %s register\n", name);
++			return -ENOMEM;
++		}
++	}
++	reg->gas = gas;
++	reg->preserve_mask = preserve_mask;
++	reg->set_mask = set_mask;
++	reg->status_mask = status_mask;
++	return 0;
++}
++
+ /**
+  * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
+  *
 -- 
 2.25.1
 
