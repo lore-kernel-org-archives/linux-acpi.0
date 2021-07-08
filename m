@@ -3,57 +3,60 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F98C07E96
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:51:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ABCFC07E96
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 21:03:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 708E5613B0
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:51:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B799616EA
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 21:03:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230120AbhGHSyb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Jul 2021 14:54:31 -0400
-Received: from smtprelay0083.hostedemail.com ([216.40.44.83]:58594 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S229497AbhGHSyb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jul 2021 14:54:31 -0400
-Received: from omf19.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay06.hostedemail.com (Postfix) with ESMTP id 6B23318086DED;
-        Thu,  8 Jul 2021 18:51:48 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf19.hostedemail.com (Postfix) with ESMTPA id 66C9420D764;
-        Thu,  8 Jul 2021 18:51:47 +0000 (UTC)
-Message-ID: <889de6fc8688edc0f846448b94af299709fa65b8.camel@perches.com>
-Subject: Re: [PATCH 01/13] mailbox: pcc: Fix doxygen comments
-From:   Joe Perches <joe@perches.com>
-To:     Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     Cristian Marussi <cristian.marussi@arm.com>,
+        id S230479AbhGHVGh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 8 Jul 2021 17:06:37 -0400
+Received: from foss.arm.com ([217.140.110.172]:38282 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230238AbhGHVGh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jul 2021 17:06:37 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B68C7D6E;
+        Thu,  8 Jul 2021 14:03:54 -0700 (PDT)
+Received: from bogus (unknown [10.57.79.183])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 23C8A3F73B;
+        Thu,  8 Jul 2021 14:03:52 -0700 (PDT)
+Date:   Thu, 8 Jul 2021 22:03:09 +0100
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     Joe Perches <joe@perches.com>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Cristian Marussi <cristian.marussi@arm.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Sudeep Holla <sudeep.holla@arm.com>,
         Jassi Brar <jassisinghbrar@gmail.com>
-Date:   Thu, 08 Jul 2021 11:51:45 -0700
-In-Reply-To: <20210708180851.2311192-2-sudeep.holla@arm.com>
+Subject: Re: [PATCH 01/13] mailbox: pcc: Fix doxygen comments
+Message-ID: <20210708210309.gibsd4lou63x2ar5@bogus>
 References: <20210708180851.2311192-1-sudeep.holla@arm.com>
-         <20210708180851.2311192-2-sudeep.holla@arm.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.40.0-1 
+ <20210708180851.2311192-2-sudeep.holla@arm.com>
+ <889de6fc8688edc0f846448b94af299709fa65b8.camel@perches.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-Stat-Signature: y1u5xd7fducksg3d7pbfxuxii1hk4ntd
-X-Rspamd-Server: rspamout05
-X-Rspamd-Queue-Id: 66C9420D764
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX1+nkHLgeMjL3rLMZg7NmNd8myhEe2RWpg8=
-X-HE-Tag: 1625770307-297460
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <889de6fc8688edc0f846448b94af299709fa65b8.camel@perches.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, 2021-07-08 at 19:08 +0100, Sudeep Holla wrote:
-> Clang complains about doxygen comments too with W=1 in the build.
+On Thu, Jul 08, 2021 at 11:51:45AM -0700, Joe Perches wrote:
+> On Thu, 2021-07-08 at 19:08 +0100, Sudeep Holla wrote:
+> > Clang complains about doxygen comments too with W=1 in the build.
+> 
+> just fyi: it's not a clang message, it's kernel-doc that complains.
+> 
+> ./scripts/kernel-doc -none drivers/mailbox/pcc.c
+>
 
-just fyi: it's not a clang message, it's kernel-doc that complains.
+Ah OK. Thanks for the info. I may have missed to observe this with gcc or
+the kernel-doc is not built by default with gcc unlike clang.
 
-./scripts/kernel-doc -none drivers/mailbox/pcc.c
-
-
+-- 
+Regards,
+Sudeep
