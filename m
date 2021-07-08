@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AF32C07E96
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27FE4C07E9C
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4683C61878
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14A12617ED
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229469AbhGHSLn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S230178AbhGHSLn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 8 Jul 2021 14:11:43 -0400
-Received: from foss.arm.com ([217.140.110.172]:35964 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.110.172]:35974 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230141AbhGHSLm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jul 2021 14:11:42 -0400
+        id S230166AbhGHSLn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jul 2021 14:11:43 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E7A3F1063;
-        Thu,  8 Jul 2021 11:08:59 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0BEE6D6E;
+        Thu,  8 Jul 2021 11:09:01 -0700 (PDT)
 Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 0D74D3F66F;
-        Thu,  8 Jul 2021 11:08:58 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 261283F66F;
+        Thu,  8 Jul 2021 11:09:00 -0700 (PDT)
 From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     Sudeep Holla <sudeep.holla@arm.com>,
         Cristian Marussi <cristian.marussi@arm.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Jassi Brar <jassisinghbrar@gmail.com>
-Subject: [PATCH 01/13] mailbox: pcc: Fix doxygen comments
-Date:   Thu,  8 Jul 2021 19:08:39 +0100
-Message-Id: <20210708180851.2311192-2-sudeep.holla@arm.com>
+Subject: [PATCH 02/13] ACPI: CPPC: Fix doxygen comments
+Date:   Thu,  8 Jul 2021 19:08:40 +0100
+Message-Id: <20210708180851.2311192-3-sudeep.holla@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210708180851.2311192-1-sudeep.holla@arm.com>
 References: <20210708180851.2311192-1-sudeep.holla@arm.com>
@@ -45,44 +45,47 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 Clang complains about doxygen comments too with W=1 in the build.
 
-  |  drivers/mailbox/pcc.c:179: warning: Function parameter or member 'irq'
-  |	not described in 'pcc_mbox_irq'
-  |  drivers/mailbox/pcc.c:179: warning: Function parameter or member 'p'
-  |	not described in 'pcc_mbox_irq'
-  |  drivers/mailbox/pcc.c:378: warning: expecting prototype for
-  |	parse_pcc_subspaces(). Prototype was for parse_pcc_subspace() instead
+  | drivers/acpi/cppc_acpi.c:560: warning: Function parameter or member
+  |	'pcc_ss_id' not described in 'pcc_data_alloc'
+  | drivers/acpi/cppc_acpi.c:1343: warning: Function parameter or member
+  |	'cpu_num' not described in 'cppc_get_transition_latency'
 
 Fix it.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/mailbox/pcc.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/acpi/cppc_acpi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 0296558f9e22..23391e224a68 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -174,6 +174,10 @@ static int pcc_map_interrupt(u32 interrupt, u32 flags)
- 
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index a4d4eebba1da..eb5685167d19 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -562,6 +562,8 @@ bool __weak cpc_ffh_supported(void)
  /**
-  * pcc_mbox_irq - PCC mailbox interrupt handler
-+ * @irq:	interrupt number
-+ * @p: data/cookie passed from the caller to identify the channel
-+ *
-+ * Returns: IRQ_HANDLED if interrupt is handled or IRQ_NONE if not
-  */
- static irqreturn_t pcc_mbox_irq(int irq, void *p)
- {
-@@ -364,7 +368,7 @@ static const struct mbox_chan_ops pcc_chan_ops = {
- };
- 
- /**
-- * parse_pcc_subspaces -- Count PCC subspaces defined
-+ * parse_pcc_subspace - Count PCC subspaces defined
-  * @header: Pointer to the ACPI subtable header under the PCCT.
-  * @end: End of subtable entry.
+  * pcc_data_alloc() - Allocate the pcc_data memory for pcc subspace
   *
++ * @pcc_ss_id: PCC Subspace channel identifier
++ *
+  * Check and allocate the cppc_pcc_data memory.
+  * In some processor configurations it is possible that same subspace
+  * is shared between multiple CPUs. This is seen especially in CPUs
+@@ -1347,10 +1349,15 @@ EXPORT_SYMBOL_GPL(cppc_set_perf);
+ /**
+  * cppc_get_transition_latency - returns frequency transition latency in ns
+  *
++ * @cpu_num: Logical index of the CPU for which latencty is requested
++ *
+  * ACPI CPPC does not explicitly specify how a platform can specify the
+  * transition latency for performance change requests. The closest we have
+  * is the timing information from the PCCT tables which provides the info
+  * on the number and frequency of PCC commands the platform can handle.
++ *
++ * Returns: frequency transition latency on success or CPUFREQ_ETERNAL on
++ * failure
+  */
+ unsigned int cppc_get_transition_latency(int cpu_num)
+ {
 -- 
 2.25.1
 
