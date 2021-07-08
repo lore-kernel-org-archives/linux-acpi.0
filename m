@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12076C07E9E
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECFAC07E9C
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8D8E617ED
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8CD56190A
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jul 2021 18:09:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230166AbhGHSLr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Jul 2021 14:11:47 -0400
-Received: from foss.arm.com ([217.140.110.172]:35992 "EHLO foss.arm.com"
+        id S229497AbhGHSLt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 8 Jul 2021 14:11:49 -0400
+Received: from foss.arm.com ([217.140.110.172]:36002 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230211AbhGHSLp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jul 2021 14:11:45 -0400
+        id S230233AbhGHSLr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jul 2021 14:11:47 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3D5EED6E;
-        Thu,  8 Jul 2021 11:09:03 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6DC0AD6E;
+        Thu,  8 Jul 2021 11:09:05 -0700 (PDT)
 Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 579543F66F;
-        Thu,  8 Jul 2021 11:09:02 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 87E3F3F66F;
+        Thu,  8 Jul 2021 11:09:04 -0700 (PDT)
 From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     Sudeep Holla <sudeep.holla@arm.com>,
         Cristian Marussi <cristian.marussi@arm.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Jassi Brar <jassisinghbrar@gmail.com>
-Subject: [PATCH 04/13] mailbox: pcc: Consolidate subspace interrupt information parsing
-Date:   Thu,  8 Jul 2021 19:08:42 +0100
-Message-Id: <20210708180851.2311192-5-sudeep.holla@arm.com>
+Subject: [PATCH 06/13] mailbox: pcc: Add pcc_mbox_chan structure to hold shared memory region info
+Date:   Thu,  8 Jul 2021 19:08:44 +0100
+Message-Id: <20210708180851.2311192-7-sudeep.holla@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210708180851.2311192-1-sudeep.holla@arm.com>
 References: <20210708180851.2311192-1-sudeep.holla@arm.com>
@@ -43,87 +43,112 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Extended PCC subspaces(Type 3 and 4) differs from generic(Type 0) and
-HW-Reduced Communication(Type 1 and 2) subspace structures. However some
-fields share same offsets and same type of structure can be use to extract
-the fields. In order to simplify that, let us move all the IRQ related
-information parsing into pcc_parse_subspace_irq and consolidate there.
-It will be easier to extend it if required within the same.
+Currently PCC mailbox controller sets con_priv in each channel to hold
+the pointer to pcct subspace entry it corresponds to. The mailbox uses
+will then fetch this pointer from the channel descriptor they get when
+they request for the channel. Using that pointer they then parse the
+pcct entry again to fetch all the information about shared memory region.
+
+In order to remove individual users of PCC mailbox parsing the PCCT
+subspace entries to fetch same information, let us consolidate the same
+in pcc mailbox controller by parsing all the shared memory region
+information into a structure that can also hold the mbox_chan pointer it
+represent.
+
+This can then be used as main PCC mailbox channel pointer that we can
+return as part of pcc_mbox_request_channel instead of standard mailbox
+channel pointer.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/mailbox/pcc.c | 38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/mailbox/pcc.c | 27 +++++++++++++++++++++++++++
+ include/acpi/pcc.h    |  9 +++++++++
+ 2 files changed, 36 insertions(+)
 
 diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index c5f481a615b0..55866676a508 100644
+index 5f19bee71c04..affde0995d52 100644
 --- a/drivers/mailbox/pcc.c
 +++ b/drivers/mailbox/pcc.c
-@@ -404,18 +404,26 @@ static int parse_pcc_subspace(union acpi_subtable_headers *header,
- 
+@@ -67,11 +67,13 @@ static struct mbox_chan *pcc_mbox_channels;
  /**
-  * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
-- *		There should be one entry per PCC client.
-- * @id: PCC subspace index.
-- * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
+  * struct pcc_chan_info - PCC channel specific information
+  *
++ * @chan: PCC channel information with Shared Memory Region info
+  * @db_vaddr: cached virtual address for doorbell register
+  * @db_ack_vaddr: cached virtual address for doorbell ack register
+  * @db_irq: doorbell interrupt
+  */
+ struct pcc_chan_info {
++	struct pcc_mbox_chan chan;
+ 	void __iomem *db_vaddr;
+ 	void __iomem *db_ack_vaddr;
+ 	int db_irq;
+@@ -469,6 +471,27 @@ static void pcc_parse_subspace_db_reg(struct pcc_chan_info *pchan,
+ 						  db_reg->bit_width / 8);
+ }
+ 
++/**
++ * pcc_parse_subspace_shmem - Parse the PCC Shared Memory Region information
 + *
 + * @pchan: Pointer to the PCC channel info structure.
 + * @pcct_entry: Pointer to the ACPI subtable header.
-  *
-  * Return: 0 for Success, else errno.
-  *
-- * This gets called for each entry in the PCC table.
-+ * There should be one entry per PCC channel. This gets called for each
-+ * entry in the PCC table. This uses PCCY Type1 structure for all applicable
-+ * types(Type 1 -4) to fetch irq
-  */
--static int pcc_parse_subspace_irq(int id, struct acpi_pcct_hw_reduced *pcct_ss)
-+static int pcc_parse_subspace_irq(struct pcc_chan_info *pchan,
-+				  struct acpi_subtable_header *pcct_entry)
- {
--	struct pcc_chan_info *pchan = chan_info + id;
-+	struct acpi_pcct_hw_reduced *pcct_ss;
- 
-+	if (pcct_entry->type < ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE ||
-+	    pcct_entry->type > ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE)
-+		return 0;
++ *
++ */
++static void pcc_parse_subspace_shmem(struct pcc_chan_info *pchan,
++				     struct acpi_subtable_header *pcct_entry)
++{
++	struct acpi_pcct_subspace *pcct_ss;
 +
-+	pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
- 	pchan->db_irq = pcc_map_interrupt(pcct_ss->platform_interrupt,
- 					  (u32)pcct_ss->flags);
- 	if (pchan->db_irq <= 0) {
-@@ -424,8 +432,7 @@ static int pcc_parse_subspace_irq(int id, struct acpi_pcct_hw_reduced *pcct_ss)
- 		return -EINVAL;
- 	}
- 
--	if (pcct_ss->header.type
--		== ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
-+	if (pcct_ss->header.type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
- 		struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
- 
- 		pchan->db_ack_vaddr =
-@@ -509,17 +516,10 @@ static int __init acpi_pcc_probe(void)
- 		struct acpi_pcct_subspace *pcct_ss;
++	pcct_ss = (struct acpi_pcct_subspace *)pcct_entry;
++
++	pchan->chan.shmem_base_addr = pcct_ss->base_address;
++	pchan->chan.shmem_size = pcct_ss->length;
++	pchan->chan.latency = pcct_ss->latency;
++	pchan->chan.max_access_rate = pcct_ss->max_access_rate;
++	pchan->chan.min_turnaround_time = pcct_ss->min_turnaround_time;
++}
++
+ /**
+  * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+  *
+@@ -536,6 +559,8 @@ static int __init acpi_pcc_probe(void)
+ 		struct pcc_chan_info *pchan = chan_info + i;
  		pcc_mbox_channels[i].con_priv = pcct_entry;
  
--		if (pcct_entry->type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE ||
--		    pcct_entry->type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
--			struct acpi_pcct_hw_reduced *pcct_hrss;
--
--			pcct_hrss = (struct acpi_pcct_hw_reduced *) pcct_entry;
--
--			if (pcc_mbox_ctrl.txdone_irq) {
--				rc = pcc_parse_subspace_irq(i, pcct_hrss);
--				if (rc < 0)
--					goto err;
--			}
-+		if (pcc_mbox_ctrl.txdone_irq) {
-+			rc = pcc_parse_subspace_irq(pchan, pcct_entry);
-+			if (rc < 0)
-+				goto err;
++		pchan->chan.mchan = &pcc_mbox_channels[i];
++
+ 		if (pcc_mbox_ctrl.txdone_irq) {
+ 			rc = pcc_parse_subspace_irq(pchan, pcct_entry);
+ 			if (rc < 0)
+@@ -543,6 +568,8 @@ static int __init acpi_pcc_probe(void)
  		}
- 		pcct_ss = (struct acpi_pcct_subspace *) pcct_entry;
+ 		pcc_parse_subspace_db_reg(pchan, pcct_entry);
  
++		pcc_parse_subspace_shmem(pchan, pcct_entry);
++
+ 		pcct_entry = (struct acpi_subtable_header *)
+ 			((unsigned long) pcct_entry + pcct_entry->length);
+ 	}
+diff --git a/include/acpi/pcc.h b/include/acpi/pcc.h
+index 4dec4ed138cd..5e510a6b8052 100644
+--- a/include/acpi/pcc.h
++++ b/include/acpi/pcc.h
+@@ -9,6 +9,15 @@
+ #include <linux/mailbox_controller.h>
+ #include <linux/mailbox_client.h>
+ 
++struct pcc_mbox_chan {
++	struct mbox_chan *mchan;
++	u64 shmem_base_addr;
++	u64 shmem_size;
++	u32 latency;
++	u32 max_access_rate;
++	u16 min_turnaround_time;
++};
++
+ #define MAX_PCC_SUBSPACES	256
+ #ifdef CONFIG_PCC
+ extern struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
 -- 
 2.25.1
 
