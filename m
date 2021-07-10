@@ -4,44 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02AD7C07E9E
-	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:54:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A23AC11F6A
+	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:55:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E416261360
-	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:54:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83D59611B0
+	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:55:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232792AbhGJX5U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 10 Jul 2021 19:57:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40812 "EHLO mail.kernel.org"
+        id S233506AbhGJX6m (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 10 Jul 2021 19:58:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40150 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234105AbhGJX4G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Jul 2021 19:56:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6BEDB61411;
-        Sat, 10 Jul 2021 23:52:07 +0000 (UTC)
+        id S234107AbhGJX5U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Jul 2021 19:57:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 700B261421;
+        Sat, 10 Jul 2021 23:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625961128;
-        bh=Ao1qYX8JU74wE9zwxrJnNbD+VZyalj9H4iia9SWC/3g=;
+        s=k20201202; t=1625961156;
+        bh=mSF4KWxKqflnSF5N8gIsUPwDq4JB+/Htfxs/bFcwq4Q=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WQiijKT2iHlTDW0dgnqZEzKQWstE7pUqGsnlnWzn7Lrj7tmJamJKRQQhOKUiCF4ry
-         zcHTxhkdSjR9fk/nbk+0KIDk1FBH4XD2dID57Re9lJ7sS6BCaMUQaspHflhbEkArT7
-         XgVCUUpuXjpedNSmN0lbkDHZsXjAIbrtkfdXto69iXClVPEMwJ/5GtIh1AgXUj+pk3
-         rzz1AO/g1ijBFg/DcW45Z+7jRbE+tNHf/7MvvJgju+q3UlCHuLuQV/6WnGwSqak7mS
-         EbuhdnaXg82ZwnyU8wCLqDvgD9H16KVmE4Gxqf3aHiimlXwP2oPSTe1HhHlc7qRhxv
-         fF0bFBXVTy4/w==
+        b=ejaUv9cFZi1sv5lGtoSsQQD7OGp5LuI6kNd4SC/BguOA3FFPREsgJwfihJu8VwGCn
+         zIxZmGFSZEAXysyQ712SXnPJHzfqltRjKrAG6JNhA7ccWx0/lqQzgqIvcyAW1XrGWM
+         2fCE/8OPyY0/ku1h8I7X9UjzivNsqhrngtDNjYORYMV0QCWA5/l5DxyaiIGbKGWlC0
+         b3TqGVTNzDrdIR4EaZ2BSoFlCuD4N6OX4GXmPO2aPZ0/1561YiMLfZbmSWgDKEmg33
+         YcP6lIIp0yHhe9epcZA/xyeZ8qoMl9e/9/IkNkzDwPVT6/4TeQ40HS5CFDkbA9EoOQ
+         4szNNqkkAj5aQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 19/22] ACPI: video: Add quirk for the Dell Vostro 3350
-Date:   Sat, 10 Jul 2021 19:51:40 -0400
-Message-Id: <20210710235143.3222129-19-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 18/21] ACPI: video: Add quirk for the Dell Vostro 3350
+Date:   Sat, 10 Jul 2021 19:52:09 -0400
+Message-Id: <20210710235212.3222375-18-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210710235143.3222129-1-sashal@kernel.org>
-References: <20210710235143.3222129-1-sashal@kernel.org>
+In-Reply-To: <20210710235212.3222375-1-sashal@kernel.org>
+References: <20210710235212.3222375-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -72,7 +72,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 1a23e7aa74df..ac54fc03cf81 100644
+index 7df7abde1fcb..5a69260edf80 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
 @@ -556,6 +556,15 @@ static const struct dmi_system_id video_dmi_table[] = {
