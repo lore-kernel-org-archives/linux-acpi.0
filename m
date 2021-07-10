@@ -2,46 +2,46 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B129C11F6D
-	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:55:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C414FC11F67
+	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:56:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53019611B0
-	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:55:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA56561057
+	for <linux-acpi@archiver.kernel.org>; Sat, 10 Jul 2021 23:56:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234282AbhGJX6m (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 10 Jul 2021 19:58:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40812 "EHLO mail.kernel.org"
+        id S233764AbhGJX7n (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 10 Jul 2021 19:59:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234090AbhGJX5U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Jul 2021 19:57:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E1D261416;
-        Sat, 10 Jul 2021 23:52:34 +0000 (UTC)
+        id S233567AbhGJX60 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Jul 2021 19:58:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 88EB5613DC;
+        Sat, 10 Jul 2021 23:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625961155;
+        s=k20201202; t=1625961179;
         bh=twK7smbQ2xhiwNylkjkTv7chyuqvOTm6osPmo7B/YOk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rC4SaNfTVO0HTYBWGawogWiFVxlhJk+OyUhfuu75IJPQCXwQn5f/By899DKxtPpDs
-         peJ2J8VwXzzJGSoDzLZPwaZYqcPRmHYEnqZUmCwYcEEvV8udrBNtKQ7wMedCcgJyL0
-         EoZVSRZu6AbWXS0Ziu2LznJZNSVfK8gKrWrqfaCVuwlqAa0qy7UwDM/MEoKfSGFNJe
-         9GXnVFsaFBN+Q7gO7J3Pqr/W+LjyKp94Jv5JWDkVrJ2DpOOOb25ay0+JswtflLrDl+
-         7UnielKKqG28RnFSS5olO7UZ4BZLk5QdCUwQBj3y8eTf1ywad0wFSHOUqfy0flaxyM
-         Dip6IAi85a3+w==
+        b=PJUenRWnwUrMt7hs8A9bz8igXzhlMwHacH+I0xhQ0te/58bY4Oz2vo8C9NSA+z1Tl
+         9OyAM16MRAz0EMHZRK+hVoAez1i05xrNccKz5Vl5wDUbXAytN1w8OUgeyXZfQP5kX8
+         od3PMabCP3NN8B+zNnK0rTWn6FULYvL2iERbi9TnOGC426PudX7zJKGJuixYWWuCSq
+         LHm7XDpFvhcjttLJP0idbbTFKKHJqRxy5WhB7TbC6DlrZ3FDUS7PprlqgIKIG74WPf
+         oXouFMfCy/phNJw3YiX0xL8Y5rgBE365cPqQF/nUOWnyAqajIkkBjJ03ArAHQqTnYV
+         tWj8mVjxZYe1A==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Liguang Zhang <zhangliguang@linux.alibaba.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 17/21] ACPI: AMBA: Fix resource name in /proc/iomem
-Date:   Sat, 10 Jul 2021 19:52:08 -0400
-Message-Id: <20210710235212.3222375-17-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 14/16] ACPI: AMBA: Fix resource name in /proc/iomem
+Date:   Sat, 10 Jul 2021 19:52:38 -0400
+Message-Id: <20210710235240.3222618-14-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210710235212.3222375-1-sashal@kernel.org>
-References: <20210710235212.3222375-1-sashal@kernel.org>
+In-Reply-To: <20210710235240.3222618-1-sashal@kernel.org>
+References: <20210710235240.3222618-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
