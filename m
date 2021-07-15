@@ -2,164 +2,215 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D2BC07E96
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 14:17:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F85DC47E4B
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 14:28:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9727D61380
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 14:17:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0475B61380
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 14:28:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237758AbhGOOUZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 15 Jul 2021 10:20:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50108 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237387AbhGOOUZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jul 2021 10:20:25 -0400
-Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBCABC061760
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Jul 2021 07:17:31 -0700 (PDT)
-Received: by mail-qv1-xf2b.google.com with SMTP id gh6so2884686qvb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Jul 2021 07:17:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=semihalf-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=CNbwYH1jj9aPFq6ITR5bv7LJgp03H7MSJ97sfJLz5XY=;
-        b=tFhKa2IuUYww1ovA8t2rMqAqDzZYwIpTItc+P1P+RdsuZVM10lHlQ/zdhfeuW1/bb/
-         530T9KuI9i/v5lXBMTUvzmlgg2XVVtVjtFX+qoxoLjRtxJOkzSQHjXl39mDVpid2Wi+U
-         dmamAz6Ef/R8im8UNZbsowPsABXZeqpm6lAZ2xCxQUtDyLEgch1OxtnH+W/j2PVxMLRO
-         yPF71fcdBDInztryeysZWH7lFc8jCZaLq5G5dqS6N4ULcI2mAOyj2MHZThwL2p+Wuouq
-         pYmAtumCUd0nfX0iYt6845ULT8Y7IoaEFb8U/XFl/JD5bK1pHkzUHI0tmOIbVsOu+kUB
-         ztSQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=CNbwYH1jj9aPFq6ITR5bv7LJgp03H7MSJ97sfJLz5XY=;
-        b=kvF4+IVgtQsGBTS3h0JB17UW5wtKSMf0Aj56lI1fTdv11Obcp+vYbPvD1WOJNL6kZZ
-         UJbv068+cte+njin409hvgHIoY3JVfRcyOmfh/cHR/rZe49kDdD2fGo14q/fqeXP1aq8
-         JyUqQUJSJGadvM+0rd875bqgdKQ20D2rAVKhi23jEsBtvuQ4W3hqQiG8GMng3KTHUziB
-         RRgPQwyZZShS3UkCxkXghotS1uh21xZ7wdtZBzFsIODr7Pa+0w6XGwwiUtVfV4xUNBTX
-         Qf7WsZs6dkgLVqAm+ECLe5l3zIGIxU9FFf27Nl/sehgkvOdxVg/mXIAzRdloWbT9kqcQ
-         j+vw==
-X-Gm-Message-State: AOAM532wsHL5i2XGjA7a6ZGP/9/KNJok8nlrp1YbzoNpIca9CdGq9MtA
-        zuMKkH/fxQuKg1NiAA64XLy9nMpt4bsilme/0V3DWg==
-X-Google-Smtp-Source: ABdhPJwBwTxf19Rj3bFnP7Y2WCjEr1Mx7LovQqCJqWhS61xXy1AERdeEC9IeReWD2Bb20SOSh+O2Aadr7C8kREb60ng=
-X-Received: by 2002:a05:6214:dce:: with SMTP id 14mr4619816qvt.40.1626358651017;
- Thu, 15 Jul 2021 07:17:31 -0700 (PDT)
+        id S231941AbhGOObp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 15 Jul 2021 10:31:45 -0400
+Received: from elvis.franken.de ([193.175.24.41]:59759 "EHLO elvis.franken.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229624AbhGOObo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Jul 2021 10:31:44 -0400
+Received: from uucp (helo=alpha)
+        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
+        id 1m42Ly-0004w9-02; Thu, 15 Jul 2021 16:28:42 +0200
+Received: by alpha.franken.de (Postfix, from userid 1000)
+        id AC72DC099E; Thu, 15 Jul 2021 15:02:21 +0200 (CEST)
+Date:   Thu, 15 Jul 2021 15:02:21 +0200
+From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To:     Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        kernel@pengutronix.de, Cornelia Huck <cohuck@redhat.com>,
+        linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Geoff Levand <geoff@infradead.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        William Breathitt Gray <vilhelm.gray@gmail.com>,
+        =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        Alison Schofield <alison.schofield@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Ben Widawsky <ben.widawsky@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Vinod Koul <vkoul@kernel.org>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Cristian Marussi <cristian.marussi@arm.com>,
+        Wu Hao <hao.wu@intel.com>, Tom Rix <trix@redhat.com>,
+        Moritz Fischer <mdf@kernel.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Wolfram Sang <wsa@kernel.org>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Samuel Iglesias Gonsalvez <siglesias@igalia.com>,
+        Jens Taprogge <jens.taprogge@taprogge.org>,
+        Johannes Thumshirn <morbidrsa@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxim Levitsky <maximlevitsky@gmail.com>,
+        Alex Dubov <oakad@yahoo.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Tomas Winkler <tomas.winkler@intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jon Mason <jdmason@kudzu.us>, Allen Hubbe <allenbh@gmail.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Maximilian Luz <luzmaximilian@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <mgross@linux.intel.com>,
+        Matt Porter <mporter@kernel.crashing.org>,
+        Alexandre Bounine <alex.bou9@gmail.com>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Thorsten Scherer <t.scherer@eckelmann.de>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        Andy Gross <agross@kernel.org>,
+        Mark Brown <broonie@kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>, Michael Buesch <m@bues.ch>,
+        Sven Van Asbroeck <TheSven73@gmail.com>,
+        Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
+        Andreas Noever <andreas.noever@gmail.com>,
+        Michael Jamet <michael.jamet@intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Yehezkel Bernat <YehezkelShB@gmail.com>,
+        Rob Herring <robh@kernel.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Kirti Wankhede <kwankhede@nvidia.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Martyn Welch <martyn@welchs.me.uk>,
+        Manohar Vanga <manohar.vanga@gmail.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Marc Zyngier <maz@kernel.org>,
+        Tyrel Datwyler <tyreld@linux.ibm.com>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Samuel Holland <samuel@sholland.org>,
+        Qinglang Miao <miaoqinglang@huawei.com>,
+        Alexey Kardashevskiy <aik@ozlabs.ru>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        Joey Pabalan <jpabalanb@gmail.com>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Frank Li <lznuaa@gmail.com>,
+        Mike Christie <michael.christie@oracle.com>,
+        Bodo Stroesser <bostroesser@gmail.com>,
+        Hannes Reinecke <hare@suse.de>,
+        David Woodhouse <dwmw@amazon.co.uk>,
+        SeongJae Park <sjpark@amazon.de>,
+        Julien Grall <jgrall@amazon.com>,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-sunxi@lists.linux.dev, linux-cxl@vger.kernel.org,
+        nvdimm@lists.linux.dev, dmaengine@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-i3c@lists.infradead.org,
+        industrypack-devel@lists.sourceforge.net,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        netdev@vger.kernel.org, linux-ntb@googlegroups.com,
+        linux-pci@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-arm-msm@vger.kernel.org,
+        linux-spi@vger.kernel.org, linux-staging@lists.linux.dev,
+        greybus-dev@lists.linaro.org, target-devel@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
+        virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
+        xen-devel@lists.xenproject.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Johannes Thumshirn <jth@kernel.org>
+Subject: Re: [PATCH v2 4/4] bus: Make remove callback return void
+Message-ID: <20210715130221.GA10298@alpha.franken.de>
+References: <20210706154803.1631813-1-u.kleine-koenig@pengutronix.de>
+ <20210706154803.1631813-5-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-References: <20210714214346.1397942-1-mw@semihalf.com> <20210714214346.1397942-2-mw@semihalf.com>
- <BYAPR11MB3256CACCFB4A08B5D450D3A087129@BYAPR11MB3256.namprd11.prod.outlook.com>
-In-Reply-To: <BYAPR11MB3256CACCFB4A08B5D450D3A087129@BYAPR11MB3256.namprd11.prod.outlook.com>
-From:   Marcin Wojtas <mw@semihalf.com>
-Date:   Thu, 15 Jul 2021 16:17:20 +0200
-Message-ID: <CAPv3WKeN55zEW65yfyPizB0WA4HLtcf=m-7yUgpk7O1hCKW4SA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] ACPICA: Add new DBG2 Serial Port Subtypes
-To:     "Moore, Robert" <robert.moore@intel.com>
-Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "jaz@semihalf.com" <jaz@semihalf.com>,
-        "gjb@semihalf.com" <gjb@semihalf.com>,
-        "upstream@semihalf.com" <upstream@semihalf.com>,
-        "Samer.El-Haj-Mahmoud@arm.com" <Samer.El-Haj-Mahmoud@arm.com>,
-        "jon@solid-run.com" <jon@solid-run.com>,
-        "tn@semihalf.com" <tn@semihalf.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210706154803.1631813-5-u.kleine-koenig@pengutronix.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-
-czw., 15 lip 2021 o 16:07 Moore, Robert <robert.moore@intel.com> napisa=C5=
-=82(a):
->
-> This was already reported (with a patch that we've already merged) by sem=
-ihalf-wojtas-marcin
->
-
-I'm not sure to be aware of the process. Reported where?
-Are you planning to import the upstream patch on your own and I should
-rebase the SPCR driver change on top once it lands?
-
-Best regards,
-Marcin
-
-> -----Original Message-----
-> From: Marcin Wojtas <mw@semihalf.com>
-> Sent: Wednesday, July 14, 2021 2:44 PM
-> To: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; devel@acpic=
-a.org
-> Cc: jaz@semihalf.com; gjb@semihalf.com; upstream@semihalf.com; Samer.El-H=
-aj-Mahmoud@arm.com; jon@solid-run.com; tn@semihalf.com; rjw@rjwysocki.net; =
-lenb@kernel.org; Moore, Robert <robert.moore@intel.com>; Marcin Wojtas <mw@=
-semihalf.com>
-> Subject: [PATCH 1/2] ACPICA: Add new DBG2 Serial Port Subtypes
->
-> ACPICA commit d95c7d206b5836c7770e8e9cd613859887fded8f
->
-> The Microsoft Debug Port Table 2 (DBG2) specification revision September =
-21, 2020 comprises additional Serial Port Subtypes [1].
-> Reflect that in the actbl1.h header file.
->
-> [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/bringup/acp=
-i-debug-port-table
->
-> Link: https://github.com/acpica/acpica/commit/d95c7d20
-> Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+On Tue, Jul 06, 2021 at 05:48:03PM +0200, Uwe Kleine-König wrote:
+> The driver core ignores the return value of this callback because there
+> is only little it can do when a device disappears.
+> 
+> This is the final bit of a long lasting cleanup quest where several
+> buses were converted to also return void from their remove callback.
+> Additionally some resource leaks were fixed that were caused by drivers
+> returning an error code in the expectation that the driver won't go
+> away.
+> 
+> With struct bus_type::remove returning void it's prevented that newly
+> implemented buses return an ignored error code and so don't anticipate
+> wrong expectations for driver authors.
+> 
+> Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk> (For ARM, Amba and related parts)
+> Acked-by: Mark Brown <broonie@kernel.org>
+> Acked-by: Chen-Yu Tsai <wens@csie.org> (for drivers/bus/sunxi-rsb.c)
+> Acked-by: Pali Rohár <pali@kernel.org>
+> Acked-by: Mauro Carvalho Chehab <mchehab@kernel.org> (for drivers/media)
+> Acked-by: Hans de Goede <hdegoede@redhat.com> (For drivers/platform)
+> Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
+> Acked-By: Vinod Koul <vkoul@kernel.org>
+> Acked-by: Juergen Gross <jgross@suse.com> (For Xen)
+> Acked-by: Lee Jones <lee.jones@linaro.org> (For drivers/mfd)
+> Acked-by: Johannes Thumshirn <jth@kernel.org> (For drivers/mcb)
+> Acked-by: Johan Hovold <johan@kernel.org>
+> Acked-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org> (For drivers/slimbus)
+> Acked-by: Kirti Wankhede <kwankhede@nvidia.com> (For drivers/vfio)
+> Acked-by: Maximilian Luz <luzmaximilian@gmail.com>
+> Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com> (For ulpi and typec)
+> Acked-by: Samuel Iglesias Gonsálvez <siglesias@igalia.com> (For ipack)
+> Reviewed-by: Tom Rix <trix@redhat.com> (For fpga)
+> Acked-by: Geoff Levand <geoff@infradead.org> (For ps3)
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 > ---
->  include/acpi/actbl1.h | 15 ++++++++++++++-
->  1 file changed, 14 insertions(+), 1 deletion(-)
->
-> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index ef2872de=
-a01c..7bbb3e2bd33f 100644
-> --- a/include/acpi/actbl1.h
-> +++ b/include/acpi/actbl1.h
-> @@ -482,7 +482,7 @@ struct acpi_csrt_descriptor {
->   * DBG2 - Debug Port Table 2
->   *        Version 0 (Both main table and subtables)
->   *
-> - * Conforms to "Microsoft Debug Port Table 2 (DBG2)", December 10, 2015
-> + * Conforms to "Microsoft Debug Port Table 2 (DBG2)", September 21,
-> + 2020
->   *
->   ***********************************************************************=
-*******/
->
-> @@ -532,11 +532,24 @@ struct acpi_dbg2_device {
->
->  #define ACPI_DBG2_16550_COMPATIBLE  0x0000
->  #define ACPI_DBG2_16550_SUBSET      0x0001
-> +#define ACPI_DBG2_MAX311XE_SPI      0x0002
->  #define ACPI_DBG2_ARM_PL011         0x0003
-> +#define ACPI_DBG2_MSM8X60           0x0004
-> +#define ACPI_DBG2_16550_NVIDIA      0x0005
-> +#define ACPI_DBG2_TI_OMAP           0x0006
-> +#define ACPI_DBG2_APM88XXXX         0x0008
-> +#define ACPI_DBG2_MSM8974           0x0009
-> +#define ACPI_DBG2_SAM5250           0x000A
-> +#define ACPI_DBG2_INTEL_USIF        0x000B
-> +#define ACPI_DBG2_IMX6              0x000C
->  #define ACPI_DBG2_ARM_SBSA_32BIT    0x000D
->  #define ACPI_DBG2_ARM_SBSA_GENERIC  0x000E
->  #define ACPI_DBG2_ARM_DCC           0x000F
->  #define ACPI_DBG2_BCM2835           0x0010
-> +#define ACPI_DBG2_SDM845_1_8432MHZ  0x0011
-> +#define ACPI_DBG2_16550_WITH_GAS    0x0012
-> +#define ACPI_DBG2_SDM845_7_372MHZ   0x0013
-> +#define ACPI_DBG2_INTEL_LPSS        0x0014
->
->  #define ACPI_DBG2_1394_STANDARD     0x0000
->
-> --
-> 2.29.0
->
+> [...] 
+>  arch/mips/sgi-ip22/ip22-gio.c             | 3 +--
+
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+
+-- 
+Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
+good idea.                                                [ RFC1925, 2.3 ]
