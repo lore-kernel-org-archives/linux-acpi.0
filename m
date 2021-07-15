@@ -2,197 +2,117 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55BFEC07E96
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 15:46:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86E04C636C9
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 18:12:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DF5E613D0
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 15:46:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6770E613D0
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jul 2021 18:12:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239340AbhGOPtn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 15 Jul 2021 11:49:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42426 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239329AbhGOPtn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jul 2021 11:49:43 -0400
-Received: from mail-qk1-x733.google.com (mail-qk1-x733.google.com [IPv6:2607:f8b0:4864:20::733])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CAB1C061760
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Jul 2021 08:46:50 -0700 (PDT)
-Received: by mail-qk1-x733.google.com with SMTP id q190so5616480qkd.2
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Jul 2021 08:46:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=semihalf-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=wgs63a+PlXUyAcP9loz5v+J4Lbh2jAL3wVDQpLoayFY=;
-        b=glOWmH1hxE89FSiR2M95VQYHxvaK101zwu24VIHevlBstICEF3Yk5YQLNJv2wL60Rc
-         +7/xZwUt3dhaOYmqJVAcgFoGpbQHFbOE9ruzo80TfoRUnsTKXQu5oSAGllvHpenfchgV
-         y8blQxAs6etptfcSiIscIs+0dAp43fymriHg1gYH+9KxffwFE2EIW6du9FXC4bICsurs
-         mdcHwfyQmkk9LEr6SO81bZ5q7g9EGH0A1AiSZPqk/Hzj8FEX/TQuBfn0pw/EDl0tdzpy
-         00TvI8eOTqg8lkVZNRhngnvptP7LUcPY+E9APeR9M5Zvwam4JfuwFvOr8+Dy8yMhtMZT
-         KfVA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=wgs63a+PlXUyAcP9loz5v+J4Lbh2jAL3wVDQpLoayFY=;
-        b=GNXN6Z3tc+vCS+dlcK6EIUKUCp6BvI0GnNKOKPlnXhIfeE3objrc5WSxaLpnNfLIvp
-         yYk7eKZXZs8enE8flKE80VFgvvi4C77kDMuXs8SCN667kYZO5RfQ12iIHRbpWFnaNond
-         zX/94Kq2nTAwuWtCKc0M+6MuXA+9FXAguhu0KSCsrn1NBVtLRz/77/WojkuIBcYxcQ7N
-         yiECCojR/haHFFQ7+gvWK9LCv/L7dEcak9gkP+078hHftQ8O6Q635Abk5DezhrnLcFUw
-         UtdTlgDPkYqpfZ6QxKPDUKBLYszMDzJfxOxL3xTDOKiVWE+AqMAXRNZqo4lo1Jxgl6ri
-         kh+w==
-X-Gm-Message-State: AOAM531Opx5xB/PycEHGh/0li8MdYxUX0q8q8dDK1zIXbkAsG6jstPhj
-        tLbSD79l1hamO+dvOgEQpdBvKGSngvsKG/doSbFrmm0sjxE=
-X-Google-Smtp-Source: ABdhPJxkedmxZtlhSFUhXqTM9YTLPxlkbpSvX8iwDTZRzDuUXOrbYlA3WVzNtxjE8aVXysiR8wJL+N6pXyYuirI1SRQ=
-X-Received: by 2002:a37:313:: with SMTP id 19mr4552177qkd.295.1626364009325;
- Thu, 15 Jul 2021 08:46:49 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210714214346.1397942-1-mw@semihalf.com> <20210714214346.1397942-2-mw@semihalf.com>
- <BYAPR11MB3256CACCFB4A08B5D450D3A087129@BYAPR11MB3256.namprd11.prod.outlook.com>
- <CAPv3WKeN55zEW65yfyPizB0WA4HLtcf=m-7yUgpk7O1hCKW4SA@mail.gmail.com> <BYAPR11MB32569C7DB2041874F540A7A987129@BYAPR11MB3256.namprd11.prod.outlook.com>
-In-Reply-To: <BYAPR11MB32569C7DB2041874F540A7A987129@BYAPR11MB3256.namprd11.prod.outlook.com>
-From:   Marcin Wojtas <mw@semihalf.com>
-Date:   Thu, 15 Jul 2021 17:46:38 +0200
-Message-ID: <CAPv3WKcBKNAD880Mpf8z4vpY=3wbyyd3PiQ=uzKupaw=P_JpQg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] ACPICA: Add new DBG2 Serial Port Subtypes
-To:     "Moore, Robert" <robert.moore@intel.com>
-Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "devel@acpica.org" <devel@acpica.org>,
-        "jaz@semihalf.com" <jaz@semihalf.com>,
-        "gjb@semihalf.com" <gjb@semihalf.com>,
-        "upstream@semihalf.com" <upstream@semihalf.com>,
-        "Samer.El-Haj-Mahmoud@arm.com" <Samer.El-Haj-Mahmoud@arm.com>,
-        "jon@solid-run.com" <jon@solid-run.com>,
-        "tn@semihalf.com" <tn@semihalf.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        id S237695AbhGOSPe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 15 Jul 2021 14:15:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38376 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S237690AbhGOSPe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Jul 2021 14:15:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C1AF761289;
+        Thu, 15 Jul 2021 18:12:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1626372760;
+        bh=563x5jc9W0wYdsYhRrwdZ2cKbN/d2MVtmAqW50LZyZ0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=FsZnz9nP1bhbXjnQ1v7vfL8Px6/NRc9/Tw/5rjvcQ0W74+LUQmJOvDrhD7sN0bzCQ
+         A/377ILCL8HxH19Q2Bq7wRbdh8O+CrDgK5A9RTOxBhwtSw48htNA/wZQtNIKA/f8jC
+         7An5l1t6/H9nn+OV8w1rtEldUw2KaUAy48s9tI5o=
+Date:   Thu, 15 Jul 2021 11:12:38 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     Heiko Carstens <hca@linux.ibm.com>, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, Vitaly Kuznetsov <vkuznets@redhat.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Jason Wang <jasowang@redhat.com>,
+        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+        Wei Yang <richard.weiyang@linux.alibaba.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        Michal Hocko <mhocko@kernel.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Pavel Tatashin <pasha.tatashin@soleen.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        virtualization@lists.linux-foundation.org,
+        linux-acpi@vger.kernel.org, Andy Lutomirski <luto@kernel.org>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Anton Blanchard <anton@ozlabs.org>,
+        Ard Biesheuvel <ardb@kernel.org>, Baoquan He <bhe@redhat.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Christophe Leroy <christophe.leroy@c-s.fr>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        Jia He <justin.he@arm.com>, Joe Perches <joe@perches.com>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>,
+        Laurent Dufour <ldufour@linux.ibm.com>,
+        Michel Lespinasse <michel@lespinasse.org>,
+        Nathan Lynch <nathanl@linux.ibm.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Paul Mackerras <paulus@samba.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Pierre Morel <pmorel@linux.ibm.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Rich Felker <dalias@libc.org>,
+        Scott Cheloha <cheloha@linux.ibm.com>,
+        Sergei Trofimovich <slyfox@gentoo.org>,
+        Thiago Jung Bauermann <bauerman@linux.ibm.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.osdn.me>
+Subject: Re: [PATCH v1 1/4] mm/memory_hotplug: use "unsigned long" for PFN
+ in zone_for_pfn_range()
+Message-Id: <20210715111238.a557aec31381646d5cd71ef2@linux-foundation.org>
+In-Reply-To: <99c59db8-4c3d-6bee-9acc-41a8f76899ef@redhat.com>
+References: <20210712124052.26491-1-david@redhat.com>
+        <20210712124052.26491-2-david@redhat.com>
+        <YO9FWrT9h21e/G8X@osiris>
+        <99c59db8-4c3d-6bee-9acc-41a8f76899ef@redhat.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-czw., 15 lip 2021 o 17:44 Moore, Robert <robert.moore@intel.com> napisa=C5=
-=82(a):
->
-> The patch was posted as a pull request on our github site.
->
+On Thu, 15 Jul 2021 11:42:21 +0200 David Hildenbrand <david@redhat.com> wrote:
 
-I'm aware of that, semihalf-wojtas-marcin is me :)
+> > I'd propose to add Cc: <stable@vger.kernel.org> since I actually had
+> > the fun to try to debug something like this a couple of years ago:
+> > 6cdb18ad98a4 ("mm/vmstat: fix overflow in mod_zone_page_state()")
+> > 
+> 
+> Good point, and thinking again what can go wrong, I tend to agree. We 
+> are trying to keep zones contiguous and it could happen that we end up 
+> with something like ZONE_DMA here (via default_kernel_zone_for_pfn()) 
+> and would consequently online something to ZONE_DMA that doesn't belong 
+> there, resulting in crashes.
+> 
+> @Andrew can you add  Cc: <stable@vger.kernel.org> and
+> 
+> "As we will search for a fitting zone using the wrong pfn, we might end 
+> up onlining memory to one of the special kernel zones, such as ZONE_DMA, 
+> which can end badly as the onlined memory does not satisfy properties of 
+> these zones."
 
-> The merged patch will be released as part of the normal ACPICA release pr=
-ocess, which will then make it into Linux. You should then rebase.
-
-Ok, thanks for explanation. When approximately can this happen?
-
-Best regards,
-Marcin
-
-> Bob
->
->
-> -----Original Message-----
-> From: Marcin Wojtas <mw@semihalf.com>
-> Sent: Thursday, July 15, 2021 7:17 AM
-> To: Moore, Robert <robert.moore@intel.com>
-> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; devel@acpic=
-a.org; jaz@semihalf.com; gjb@semihalf.com; upstream@semihalf.com; Samer.El-=
-Haj-Mahmoud@arm.com; jon@solid-run.com; tn@semihalf.com; rjw@rjwysocki.net;=
- lenb@kernel.org
-> Subject: Re: [PATCH 1/2] ACPICA: Add new DBG2 Serial Port Subtypes
->
-> Hi,
->
->
-> czw., 15 lip 2021 o 16:07 Moore, Robert <robert.moore@intel.com> napisa=
-=C5=82(a):
-> >
-> > This was already reported (with a patch that we've already merged) by
-> > semihalf-wojtas-marcin
-> >
->
-> I'm not sure to be aware of the process. Reported where?
-> Are you planning to import the upstream patch on your own and I should re=
-base the SPCR driver change on top once it lands?
->
-> Best regards,
-> Marcin
->
-> > -----Original Message-----
-> > From: Marcin Wojtas <mw@semihalf.com>
-> > Sent: Wednesday, July 14, 2021 2:44 PM
-> > To: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> > devel@acpica.org
-> > Cc: jaz@semihalf.com; gjb@semihalf.com; upstream@semihalf.com;
-> > Samer.El-Haj-Mahmoud@arm.com; jon@solid-run.com; tn@semihalf.com;
-> > rjw@rjwysocki.net; lenb@kernel.org; Moore, Robert
-> > <robert.moore@intel.com>; Marcin Wojtas <mw@semihalf.com>
-> > Subject: [PATCH 1/2] ACPICA: Add new DBG2 Serial Port Subtypes
-> >
-> > ACPICA commit d95c7d206b5836c7770e8e9cd613859887fded8f
-> >
-> > The Microsoft Debug Port Table 2 (DBG2) specification revision Septembe=
-r 21, 2020 comprises additional Serial Port Subtypes [1].
-> > Reflect that in the actbl1.h header file.
-> >
-> > [1]
-> > https://docs.microsoft.com/en-us/windows-hardware/drivers/bringup/acpi
-> > -debug-port-table
-> >
-> > Link: https://github.com/acpica/acpica/commit/d95c7d20
-> > Signed-off-by: Marcin Wojtas <mw@semihalf.com>
-> > ---
-> >  include/acpi/actbl1.h | 15 ++++++++++++++-
-> >  1 file changed, 14 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
-> > ef2872dea01c..7bbb3e2bd33f 100644
-> > --- a/include/acpi/actbl1.h
-> > +++ b/include/acpi/actbl1.h
-> > @@ -482,7 +482,7 @@ struct acpi_csrt_descriptor {
-> >   * DBG2 - Debug Port Table 2
-> >   *        Version 0 (Both main table and subtables)
-> >   *
-> > - * Conforms to "Microsoft Debug Port Table 2 (DBG2)", December 10,
-> > 2015
-> > + * Conforms to "Microsoft Debug Port Table 2 (DBG2)", September 21,
-> > + 2020
-> >   *
-> >
-> > **********************************************************************
-> > ********/
-> >
-> > @@ -532,11 +532,24 @@ struct acpi_dbg2_device {
-> >
-> >  #define ACPI_DBG2_16550_COMPATIBLE  0x0000
-> >  #define ACPI_DBG2_16550_SUBSET      0x0001
-> > +#define ACPI_DBG2_MAX311XE_SPI      0x0002
-> >  #define ACPI_DBG2_ARM_PL011         0x0003
-> > +#define ACPI_DBG2_MSM8X60           0x0004
-> > +#define ACPI_DBG2_16550_NVIDIA      0x0005
-> > +#define ACPI_DBG2_TI_OMAP           0x0006
-> > +#define ACPI_DBG2_APM88XXXX         0x0008
-> > +#define ACPI_DBG2_MSM8974           0x0009
-> > +#define ACPI_DBG2_SAM5250           0x000A
-> > +#define ACPI_DBG2_INTEL_USIF        0x000B
-> > +#define ACPI_DBG2_IMX6              0x000C
-> >  #define ACPI_DBG2_ARM_SBSA_32BIT    0x000D
-> >  #define ACPI_DBG2_ARM_SBSA_GENERIC  0x000E
-> >  #define ACPI_DBG2_ARM_DCC           0x000F
-> >  #define ACPI_DBG2_BCM2835           0x0010
-> > +#define ACPI_DBG2_SDM845_1_8432MHZ  0x0011
-> > +#define ACPI_DBG2_16550_WITH_GAS    0x0012
-> > +#define ACPI_DBG2_SDM845_7_372MHZ   0x0013
-> > +#define ACPI_DBG2_INTEL_LPSS        0x0014
-> >
-> >  #define ACPI_DBG2_1394_STANDARD     0x0000
-> >
-> > --
-> > 2.29.0
-> >
+Yep, all done.
