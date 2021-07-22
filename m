@@ -7,149 +7,124 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55FF3C4320A
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Jul 2021 19:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0F7EC432BE
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Jul 2021 19:50:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B0D960EB8
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Jul 2021 19:34:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B3BE860EB2
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Jul 2021 19:50:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229780AbhGVSxz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Jul 2021 14:53:55 -0400
-Received: from mga18.intel.com ([134.134.136.126]:46682 "EHLO mga18.intel.com"
+        id S229585AbhGVTJa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Jul 2021 15:09:30 -0400
+Received: from mga17.intel.com ([192.55.52.151]:6320 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229585AbhGVSxz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Jul 2021 14:53:55 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10053"; a="198995770"
+        id S229556AbhGVTJa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jul 2021 15:09:30 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10053"; a="192001291"
 X-IronPort-AV: E=Sophos;i="5.84,261,1620716400"; 
-   d="scan'208";a="198995770"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2021 12:34:29 -0700
+   d="scan'208";a="192001291"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2021 12:50:04 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.84,261,1620716400"; 
-   d="scan'208";a="577417126"
+   d="scan'208";a="433256852"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 22 Jul 2021 12:34:27 -0700
+  by fmsmga007.fm.intel.com with ESMTP; 22 Jul 2021 12:49:59 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 7006FE7; Thu, 22 Jul 2021 22:34:55 +0300 (EEST)
+        id 040CC12B; Thu, 22 Jul 2021 22:50:27 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
+        Heiko Stuebner <heiko@sntech.de>,
+        Elaine Zhang <zhangqing@rock-chips.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-imx@nxp.com,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org
 Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>,
         Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>
-Subject: [PATCH v1 1/1] clk: x86: Rename clk-lpt to more specific clk-lpss-atom
-Date:   Thu, 22 Jul 2021 22:34:50 +0300
-Message-Id: <20210722193450.35321-1-andriy.shevchenko@linux.intel.com>
+        Stephen Boyd <sboyd@kernel.org>, Abel Vesa <abel.vesa@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH v3 2/4] clk: fractional-divider: Hide clk_fractional_divider_ops from wide audience
+Date:   Thu, 22 Jul 2021 22:50:08 +0300
+Message-Id: <20210722195010.45940-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210722195010.45940-1-andriy.shevchenko@linux.intel.com>
+References: <20210722195010.45940-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The LPT stands for Lynxpoint PCH. However the driver is used on a few
-Intel Atom SoCs. Rename it to reflect this in a way how another clock
-driver, i.e. clk-pmc-atom, is called.
+The providers are all located in drivers/clk/ and hence no need
+to export the clock operations to wider audience. Hide them by
+moving to drivers/clk/clk-fractional-divider.h.
+
+While at it, unexport since no module uses it.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
+v3: new patch
+ drivers/clk/clk-fractional-divider.c | 1 -
+ drivers/clk/clk-fractional-divider.h | 2 ++
+ drivers/clk/imx/clk-composite-7ulp.c | 1 +
+ include/linux/clk-provider.h         | 1 -
+ 4 files changed, 3 insertions(+), 2 deletions(-)
 
-Good to go either via ACPI or CCF tree.
-
- drivers/acpi/acpi_lpss.c                       |  6 ++++--
- drivers/clk/x86/Makefile                       |  2 +-
- drivers/clk/x86/{clk-lpt.c => clk-lpss-atom.c} | 12 ++++++------
- include/linux/platform_data/x86/clk-lpss.h     |  2 +-
- 4 files changed, 12 insertions(+), 10 deletions(-)
- rename drivers/clk/x86/{clk-lpt.c => clk-lpss-atom.c} (76%)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 894b7e6ae144..7f163074e4e4 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -385,7 +385,9 @@ static struct platform_device *lpss_clk_dev;
- 
- static inline void lpt_register_clock_device(void)
- {
--	lpss_clk_dev = platform_device_register_simple("clk-lpt", -1, NULL, 0);
-+	lpss_clk_dev = platform_device_register_simple("clk-lpss-atom",
-+						       PLATFORM_DEVID_NONE,
-+						       NULL, 0);
- }
- 
- static int register_device_clock(struct acpi_device *adev,
-@@ -1337,7 +1339,7 @@ void __init acpi_lpss_init(void)
- 	const struct x86_cpu_id *id;
- 	int ret;
- 
--	ret = lpt_clk_init();
-+	ret = lpss_atom_clk_init();
- 	if (ret)
- 		return;
- 
-diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
-index 18564efdc651..1244c4e568ff 100644
---- a/drivers/clk/x86/Makefile
-+++ b/drivers/clk/x86/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
- obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
- obj-$(CONFIG_X86_AMD_PLATFORM_DEVICE)	+= clk-fch.o
--clk-x86-lpss-objs		:= clk-lpt.o
-+clk-x86-lpss-y			:= clk-lpss-atom.o
- obj-$(CONFIG_X86_INTEL_LPSS)	+= clk-x86-lpss.o
- obj-$(CONFIG_CLK_LGM_CGU)	+= clk-cgu.o clk-cgu-pll.o clk-lgm.o
-diff --git a/drivers/clk/x86/clk-lpt.c b/drivers/clk/x86/clk-lpss-atom.c
-similarity index 76%
-rename from drivers/clk/x86/clk-lpt.c
-rename to drivers/clk/x86/clk-lpss-atom.c
-index fbe9fd3ed948..aa9d0bb98f8b 100644
---- a/drivers/clk/x86/clk-lpt.c
-+++ b/drivers/clk/x86/clk-lpss-atom.c
-@@ -13,7 +13,7 @@
- #include <linux/platform_data/x86/clk-lpss.h>
- #include <linux/platform_device.h>
- 
--static int lpt_clk_probe(struct platform_device *pdev)
-+static int lpss_atom_clk_probe(struct platform_device *pdev)
- {
- 	struct lpss_clk_data *drvdata;
- 	struct clk *clk;
-@@ -34,14 +34,14 @@ static int lpt_clk_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static struct platform_driver lpt_clk_driver = {
-+static struct platform_driver lpss_atom_clk_driver = {
- 	.driver = {
--		.name = "clk-lpt",
-+		.name = "clk-lpss-atom",
- 	},
--	.probe = lpt_clk_probe,
-+	.probe = lpss_atom_clk_probe,
+diff --git a/drivers/clk/clk-fractional-divider.c b/drivers/clk/clk-fractional-divider.c
+index 535d299af646..53943f45b1ca 100644
+--- a/drivers/clk/clk-fractional-divider.c
++++ b/drivers/clk/clk-fractional-divider.c
+@@ -153,7 +153,6 @@ const struct clk_ops clk_fractional_divider_ops = {
+ 	.round_rate = clk_fd_round_rate,
+ 	.set_rate = clk_fd_set_rate,
  };
+-EXPORT_SYMBOL_GPL(clk_fractional_divider_ops);
  
--int __init lpt_clk_init(void)
-+int __init lpss_atom_clk_init(void)
- {
--	return platform_driver_register(&lpt_clk_driver);
-+	return platform_driver_register(&lpss_atom_clk_driver);
- }
-diff --git a/include/linux/platform_data/x86/clk-lpss.h b/include/linux/platform_data/x86/clk-lpss.h
-index 207e1a317800..41df326583f9 100644
---- a/include/linux/platform_data/x86/clk-lpss.h
-+++ b/include/linux/platform_data/x86/clk-lpss.h
-@@ -15,6 +15,6 @@ struct lpss_clk_data {
- 	struct clk *clk;
- };
+ struct clk_hw *clk_hw_register_fractional_divider(struct device *dev,
+ 		const char *name, const char *parent_name, unsigned long flags,
+diff --git a/drivers/clk/clk-fractional-divider.h b/drivers/clk/clk-fractional-divider.h
+index 4fa359a12ef4..aaaef90b2777 100644
+--- a/drivers/clk/clk-fractional-divider.h
++++ b/drivers/clk/clk-fractional-divider.h
+@@ -2,6 +2,8 @@
  
--extern int lpt_clk_init(void);
-+extern int lpss_atom_clk_init(void);
+ struct clk_hw;
  
- #endif /* __CLK_LPSS_H */
++extern const struct clk_ops clk_fractional_divider_ops;
++
+ void clk_fractional_divider_general_approximation(struct clk_hw *hw,
+ 						  unsigned long rate,
+ 						  unsigned long *parent_rate,
+diff --git a/drivers/clk/imx/clk-composite-7ulp.c b/drivers/clk/imx/clk-composite-7ulp.c
+index 7c4f31b31eb0..d85ba78abbb1 100644
+--- a/drivers/clk/imx/clk-composite-7ulp.c
++++ b/drivers/clk/imx/clk-composite-7ulp.c
+@@ -10,6 +10,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ 
++#include "../clk-fractional-divider.h"
+ #include "clk.h"
+ 
+ #define PCG_PCS_SHIFT	24
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index d83b829305c0..acb8e10d2898 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -1023,7 +1023,6 @@ struct clk_fractional_divider {
+ #define CLK_FRAC_DIVIDER_ZERO_BASED		BIT(0)
+ #define CLK_FRAC_DIVIDER_BIG_ENDIAN		BIT(1)
+ 
+-extern const struct clk_ops clk_fractional_divider_ops;
+ struct clk *clk_register_fractional_divider(struct device *dev,
+ 		const char *name, const char *parent_name, unsigned long flags,
+ 		void __iomem *reg, u8 mshift, u8 mwidth, u8 nshift, u8 nwidth,
 -- 
 2.30.2
 
