@@ -2,121 +2,80 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE43DC4320A
-	for <linux-acpi@archiver.kernel.org>; Sat, 24 Jul 2021 20:25:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61686C4320A
+	for <linux-acpi@archiver.kernel.org>; Sun, 25 Jul 2021 20:36:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC11D608FB
-	for <linux-acpi@archiver.kernel.org>; Sat, 24 Jul 2021 20:25:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39498606A5
+	for <linux-acpi@archiver.kernel.org>; Sun, 25 Jul 2021 20:36:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229535AbhGXTpN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 24 Jul 2021 15:45:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37244 "EHLO
+        id S229829AbhGYTzw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 25 Jul 2021 15:55:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229508AbhGXTpM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Jul 2021 15:45:12 -0400
-Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 483D5C061575;
-        Sat, 24 Jul 2021 13:25:44 -0700 (PDT)
-Received: by mail-pj1-x102d.google.com with SMTP id g23-20020a17090a5797b02901765d605e14so8601608pji.5;
-        Sat, 24 Jul 2021 13:25:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=oX5fp2Nd3pjI/G9YdONxiLdBOXyu28WtsV/xr2FFBcM=;
-        b=MleA1nfsh6fJ0gs2dghL4xrngg8YiagMbY7B66ZlCMD2z5AztzMGSQPwrXyhZd8MkQ
-         L8oT1tz+xo/ioxQk/QOP6XONFYOZr7bosbTJXlqX2uDnQh4yLsqWnifbQ+BHLoaV9tKp
-         EFLASh3QItzEHlx+pq40+jRlGFM9dSKxNmcCVadldLbikD69tYE6f0xgwUMBWG4bCrl/
-         TTwXZOAz2c7G2aLRhX6hDMeuj9A87fLkG26utfBsREOVhnXkdWtTqrA7ga24EuM3R0jJ
-         q+4HpZIyf8Ihat9zxU0sJrAAd+OJUGnthorkRyUF+Yk1B9IqQ7iZrHylwmU1XgxyeRUP
-         SntA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=oX5fp2Nd3pjI/G9YdONxiLdBOXyu28WtsV/xr2FFBcM=;
-        b=PcS06fYUA9R1NQfxFHJFidPPYhKqNi/vdaUIEArMDxUwRv4pIR2SigbAskAS92bRQ6
-         m8KJI2ABAim8unIsF05B6xX5NKZKn3Zlr2EX9ci8j2nZGtaBphE0fBeFWDdDU6rqgsRw
-         OaMwutVn/27pQEpbH+X0WMTqkQBlOZZjc4DSyjmmVwbAqePu9dzCo6FjnI5MYI++hjqP
-         EvrqfEqSKogm4e0/ZIQovCu9Yj/J9fjqC+TAKsKQVYdS5eiBB6vdcu2rSAfbcj/y5pvB
-         kMsLd4BM57Y5J18rOcAgtYRHzeswobJD1SSHkm8YH+ifcOo1tRjZ+POJ+Por0+0rll9v
-         i3lA==
-X-Gm-Message-State: AOAM533TnOcBer4TWC87C/usFagTX+mNX0Dw8uYl/+1S/D0knRN6jG6I
-        rH1K9/10laPoPXIRpwU8SjlHL7O2usSEy7+KyCY=
-X-Google-Smtp-Source: ABdhPJwUTRel3gjPkDQOX+a2yHZ/w3me8pjMINp3dKxourGyiImC63ckIod43RoF5q1yN0p8t9bUdUAmzFZPdlxmw7M=
-X-Received: by 2002:a17:90b:1194:: with SMTP id gk20mr19462244pjb.181.1627158343731;
- Sat, 24 Jul 2021 13:25:43 -0700 (PDT)
+        with ESMTP id S229661AbhGYTzw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jul 2021 15:55:52 -0400
+Received: from ms.lwn.net (ms.lwn.net [IPv6:2600:3c01:e000:3a1::42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24232C061757;
+        Sun, 25 Jul 2021 13:36:22 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:281:8300:104d::5f6])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ms.lwn.net (Postfix) with ESMTPSA id D918C2E6;
+        Sun, 25 Jul 2021 20:36:21 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net D918C2E6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
+        t=1627245382; bh=PWJqoRENwRfHbihAwLZLmHYgX4yVLVVGbNyyEZbIyM4=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=Uk3oi7fUfB1+rPVN4shaOs8zTN7+0hE7QY9VhD347yQq+A/BEFwLnSe/FDM2nEJpQ
+         IqVbCFmMEVjw8/Z+Z0yiJQjad1fvc135pW+Le7n63O8kDyzos4F7Z7zfNs/+nJUI3z
+         zwe+6mEIjkemi7G+qpiBhQsRZ6ptx8QDGFWsvla6UsdNrlcBvaSYId9ZLp7uqTwHXw
+         KgxZt+nRFB9Plzlkp/ZiBEkxAUFFO9RK1qNrUsB0l9nGcubF0zLuhxtSMr9AzjZZer
+         YbEqyUf/VF3NgUHKKepPH84ZO5SizCDwr7gsaEW8M3mCQyNcg2+MJwdRB2aCmkuw6a
+         saGsVjE6talyw==
+From:   Jonathan Corbet <corbet@lwn.net>
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        linux-kernel@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>,
+        alsa-devel@alsa-project.org, kvm@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 0/3] Get rid of some undesirable characters
+In-Reply-To: <cover.1626947264.git.mchehab+huawei@kernel.org>
+References: <cover.1626947264.git.mchehab+huawei@kernel.org>
+Date:   Sun, 25 Jul 2021 14:36:21 -0600
+Message-ID: <87fsw2uo56.fsf@meer.lwn.net>
 MIME-Version: 1.0
-References: <20210723202157.2425-1-michael.a.bottini@linux.intel.com>
- <20210723202157.2425-2-michael.a.bottini@linux.intel.com> <CAHp75Ve2Ls9KVM0KZ2GMgbrQvc6wXvAXP1CqSLzQ4JWMTAcZ0A@mail.gmail.com>
- <27751c8ff02d98cabd512472b29078b11f4bdf0e.camel@linux.intel.com>
-In-Reply-To: <27751c8ff02d98cabd512472b29078b11f4bdf0e.camel@linux.intel.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Sat, 24 Jul 2021 23:25:06 +0300
-Message-ID: <CAHp75VfbDXW5DTfmV1r+=Q+7m=qta1p3h0uRk8D1rctxG_kDvg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] platform/x86/intel/pmc: Add PSON residency counter
-To:     David Box <david.e.box@linux.intel.com>
-Cc:     Michael Bottini <michael.a.bottini@linux.intel.com>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "irenic.rajneesh@gmail.com" <irenic.rajneesh@gmail.com>,
-        "hdegoede@redhat.com" <hdegoede@redhat.com>,
-        "mgross@linux.intel.com" <mgross@linux.intel.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "platform-driver-x86@vger.kernel.org" 
-        <platform-driver-x86@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Jul 24, 2021 at 10:49 PM David E. Box
-<david.e.box@linux.intel.com> wrote:
-> On Sat, 2021-07-24 at 11:29 +0300, Andy Shevchenko wrote:
-> > On Friday, July 23, 2021, Michael Bottini
-> > <michael.a.bottini@linux.intel.com> wrote:
-> > > Tiger Lake devices have the capability to track the duration
-> > > of time that their Power Supply Units (PSUs) are turned off during
-> > > S0ix.
-> > > This patch adds a debugfs file `pson_residency_usec` to provide
-> > > access to this counter.
-> > >
-> > > In order to determine whether the device is capable of PSON,
-> > > use acpi_init_properties() to reevaluate _DSD.
-> > >
-> > >
-> >
-> > It=E2=80=99s direct abuse of ACPI specification as I read it:
-> >
-> > =E2=80=9C_DSD must return the same data each time it is evaluated. Firm=
-ware
-> > should not expect it to be evaluated every time (in case it is
-> > implemented as a method).=E2=80=9D
-> >
-> >
-> > NAK to the series.
+Mauro Carvalho Chehab <mchehab+huawei@kernel.org> writes:
+
+> Hi Jon,
 >
-> Okay, we'll check with the BIOS folks. They are setting this property
-> from _STA. They may not expect OSPM to reevaluate _DSD.
+> While rebasing my docs tree, I noticed that there are three remaining
+> patches from my past series that replace some UTF-8 chars by ASCII
+> ones that aren't applied yet. Not sure what happened here.
+>
+> Anyway, those are the missing ones.
+>
+> Mauro Carvalho Chehab (3):
+>   docs: sound: kernel-api: writing-an-alsa-driver.rst: replace some
+>     characters
+>   docs: firmware-guide: acpi: dsd: graph.rst: replace some characters
+>   docs: virt: kvm: api.rst: replace some characters
+>
+>  .../firmware-guide/acpi/dsd/graph.rst         |  2 +-
+>  .../kernel-api/writing-an-alsa-driver.rst     |  2 +-
+>  Documentation/virt/kvm/api.rst                | 28 +++++++++----------
+>  3 files changed, 16 insertions(+), 16 deletions(-)
 
-Does it matter?
+Applied, thanks.
 
-> But they may
-> have expected that OSPM doesn't attempt to read _DSD until after _STA
-> is executed.
-
-They may study a bit of ACPI specification perhaps?
-Or if there is indeed an issue with the specification language (so
-native-speaking people misinterpret above) then ECR to ASWG should be
-submitted?
-
---=20
-With Best Regards,
-Andy Shevchenko
+jon
