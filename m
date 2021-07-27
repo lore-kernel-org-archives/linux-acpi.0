@@ -5,32 +5,32 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEDAAC19F3C
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 13:30:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B52C4338F
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 13:30:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6D4D61A80
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 13:30:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42B3161A80
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 13:30:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236844AbhG0NaC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 27 Jul 2021 09:30:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57240 "EHLO mail.kernel.org"
+        id S237029AbhG0NaO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 27 Jul 2021 09:30:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236949AbhG0NU3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 27 Jul 2021 09:20:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C7D9661AED;
-        Tue, 27 Jul 2021 13:20:13 +0000 (UTC)
+        id S236738AbhG0NUQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Jul 2021 09:20:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F13661ABC;
+        Tue, 27 Jul 2021 13:19:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627392014;
-        bh=k5J0mZNQw20SNwxhrdAmA8y1cCG4pluSg0R+QmQnye4=;
+        s=k20201202; t=1627391977;
+        bh=CAXc8LZihg7Es+984OqvWcmER3uPykOlQi6083aw+5U=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DEHwJAOyk0uRis/Scjdj2wd/+V4A1zE4oSwPfBFSdzi/Zdni70M/vDETGSjpEbina
-         I7WZ65l0TJuRXT84vYVbYTd58JNzvsuFL2+XPePL94NwBUdhfJfVzDMSfaK9QW0WJm
-         E64B0bDuclNCQ7LhzTg+PLDrFOeVj98jbNS5zdF5gkYTV3jykW9rYvoQl6m1PGAg43
-         uQBj8x6/FOGRydes7XBh0vgh+vijZpTnaW7+YwHmtxia0hP8EciubpHs9/5dmO/XqT
-         fSJMaumURtr/3ddeW+aXNVlaE+CbaiMj9ltUlMgOYuM6C5uElXSXYvmtlG1Jc5/9tz
-         5pg0uk93KNpDA==
+        b=ktEqGYXftZmybaNR253XPfpQAELy5b42ROT0tMyw4u0tlWvfMMSIMyLCzhOvoBJYD
+         5dOLWaEP6XhNuF8d3dA/TJtQq1t33ll8yd/Z9/NxmVtzJDXR+0q0f+Z8PHjA9lv9ql
+         WG6wu4iel52UC6i23rkpEdpMPWI5mjGPYMDJL0x4k7T8lJRtkcOs/W++9v6TOhw8rN
+         Wye/ABj2M90Pr7R87b9flNMTXdrugk9rCZ3QhSwRSHIEzr/K4LR6nwgu4cXhEqFqdM
+         QHiuvBU31Z7iScJkew+8yItfkugahbVBQ6qSBGEgScgZGnCy7Lrzs5C9rAkz9M6qU8
+         qxteXEJqrD31w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -39,12 +39,12 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Andy Shevchenko <andy.shevchenko@gmail.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH AUTOSEL 5.4 9/9] ACPI: fix NULL pointer dereference
-Date:   Tue, 27 Jul 2021 09:20:01 -0400
-Message-Id: <20210727132002.835130-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.13 21/21] ACPI: fix NULL pointer dereference
+Date:   Tue, 27 Jul 2021 09:19:08 -0400
+Message-Id: <20210727131908.834086-21-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210727132002.835130-1-sashal@kernel.org>
-References: <20210727132002.835130-1-sashal@kernel.org>
+In-Reply-To: <20210727131908.834086-1-sashal@kernel.org>
+References: <20210727131908.834086-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -77,10 +77,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 4d67a67964fa..1e5ae3b01eb2 100644
+index 3a82faac5767..cd98af6ba155 100644
 --- a/include/acpi/acpi_bus.h
 +++ b/include/acpi/acpi_bus.h
-@@ -681,7 +681,8 @@ acpi_dev_get_first_match_dev(const char *hid, const char *uid, s64 hrv);
+@@ -716,7 +716,8 @@ static inline struct acpi_device *acpi_dev_get(struct acpi_device *adev)
  
  static inline void acpi_dev_put(struct acpi_device *adev)
  {
