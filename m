@@ -2,94 +2,135 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B52C4338F
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 13:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C356EC432BE
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 16:18:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42B3161A80
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 13:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A110E61B97
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jul 2021 16:18:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237029AbhG0NaO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 27 Jul 2021 09:30:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57234 "EHLO mail.kernel.org"
+        id S229494AbhG0QSi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 27 Jul 2021 12:18:38 -0400
+Received: from mga12.intel.com ([192.55.52.136]:29725 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236738AbhG0NUQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 27 Jul 2021 09:20:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F13661ABC;
-        Tue, 27 Jul 2021 13:19:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627391977;
-        bh=CAXc8LZihg7Es+984OqvWcmER3uPykOlQi6083aw+5U=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ktEqGYXftZmybaNR253XPfpQAELy5b42ROT0tMyw4u0tlWvfMMSIMyLCzhOvoBJYD
-         5dOLWaEP6XhNuF8d3dA/TJtQq1t33ll8yd/Z9/NxmVtzJDXR+0q0f+Z8PHjA9lv9ql
-         WG6wu4iel52UC6i23rkpEdpMPWI5mjGPYMDJL0x4k7T8lJRtkcOs/W++9v6TOhw8rN
-         Wye/ABj2M90Pr7R87b9flNMTXdrugk9rCZ3QhSwRSHIEzr/K4LR6nwgu4cXhEqFqdM
-         QHiuvBU31Z7iScJkew+8yItfkugahbVBQ6qSBGEgScgZGnCy7Lrzs5C9rAkz9M6qU8
-         qxteXEJqrD31w==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Jens Axboe <axboe@kernel.dk>,
-        Daniel Scally <djrscally@gmail.com>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org
-Subject: [PATCH AUTOSEL 5.13 21/21] ACPI: fix NULL pointer dereference
-Date:   Tue, 27 Jul 2021 09:19:08 -0400
-Message-Id: <20210727131908.834086-21-sashal@kernel.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210727131908.834086-1-sashal@kernel.org>
-References: <20210727131908.834086-1-sashal@kernel.org>
+        id S229441AbhG0QSh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Jul 2021 12:18:37 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10057"; a="192073824"
+X-IronPort-AV: E=Sophos;i="5.84,274,1620716400"; 
+   d="scan'208";a="192073824"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2021 09:18:25 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.84,274,1620716400"; 
+   d="scan'208";a="437372138"
+Received: from spandruv-desk.jf.intel.com ([10.54.75.21])
+  by fmsmga007.fm.intel.com with ESMTP; 27 Jul 2021 09:18:24 -0700
+From:   Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To:     rjw@rjwysocki.net, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        srinivas.pandruvada@linux.intel.com
+Subject: [PATCH] ACPI: DPTF: Fix reading of attributes
+Date:   Tue, 27 Jul 2021 09:18:24 -0700
+Message-Id: <20210727161824.425564-1-srinivas.pandruvada@linux.intel.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
+The current assumption that methods to read PCH FIVR attributes will
+return integer, is not correct. There is no good way to return integer
+as negative numbers are also valid.
 
-[ Upstream commit fc68f42aa737dc15e7665a4101d4168aadb8e4c4 ]
+These read methods return a package of integers. The first integer returns
+status, which is 0 on success and any other value for failure. When the
+returned status is zero, then the second integer returns the actual value.
 
-Commit 71f642833284 ("ACPI: utils: Fix reference counting in
-for_each_acpi_dev_match()") started doing "acpi_dev_put()" on a pointer
-that was possibly NULL.  That fails miserably, because that helper
-inline function is not set up to handle that case.
+This change fixes this issue by replacing acpi_evaluate_integer() with
+acpi_evaluate_object() and use acpi_extract_package() to extract results.
 
-Just make acpi_dev_put() silently accept a NULL pointer, rather than
-calling down to put_device() with an invalid offset off that NULL
-pointer.
-
-Link: https://lore.kernel.org/lkml/a607c149-6bf6-0fd0-0e31-100378504da2@kernel.dk/
-Reported-and-tested-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Daniel Scally <djrscally@gmail.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: 2ce6324eadb01 ("ACPI: DPTF: Add PCH FIVR participant driver")
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: stable@vger.kernel.org # 5.10+
 ---
- include/acpi/acpi_bus.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/dptf/dptf_pch_fivr.c | 51 ++++++++++++++++++++++++++-----
+ 1 file changed, 43 insertions(+), 8 deletions(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 3a82faac5767..cd98af6ba155 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -716,7 +716,8 @@ static inline struct acpi_device *acpi_dev_get(struct acpi_device *adev)
+diff --git a/drivers/acpi/dptf/dptf_pch_fivr.c b/drivers/acpi/dptf/dptf_pch_fivr.c
+index 5fca18296bf6..550b9081fcbc 100644
+--- a/drivers/acpi/dptf/dptf_pch_fivr.c
++++ b/drivers/acpi/dptf/dptf_pch_fivr.c
+@@ -9,6 +9,42 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
  
- static inline void acpi_dev_put(struct acpi_device *adev)
- {
--	put_device(&adev->dev);
-+	if (adev)
-+		put_device(&adev->dev);
++struct pch_fivr_resp {
++	u64 status;
++	u64 result;
++};
++
++static int pch_fivr_read(acpi_handle handle, char *method, struct pch_fivr_resp *fivr_resp)
++{
++	struct acpi_buffer resp = { sizeof(struct pch_fivr_resp), fivr_resp};
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_buffer format = { sizeof("NN"), "NN" };
++	union acpi_object *obj;
++	acpi_status status;
++	int ret = -EFAULT;
++
++	status = acpi_evaluate_object(handle, method, NULL, &buffer);
++	if (ACPI_FAILURE(status))
++		return ret;
++
++	obj = buffer.pointer;
++	if (!obj || obj->type != ACPI_TYPE_PACKAGE)
++		goto release_buffer;
++
++	status = acpi_extract_package(obj, &format, &resp);
++	if (ACPI_FAILURE(status))
++		goto release_buffer;
++
++	if (fivr_resp->status)
++		goto release_buffer;
++
++	ret = 0;
++
++release_buffer:
++	kfree(buffer.pointer);
++	return ret;
++}
++
+ /*
+  * Presentation of attributes which are defined for INT1045
+  * They are:
+@@ -23,15 +59,14 @@ static ssize_t name##_show(struct device *dev,\
+ 			   char *buf)\
+ {\
+ 	struct acpi_device *acpi_dev = dev_get_drvdata(dev);\
+-	unsigned long long val;\
+-	acpi_status status;\
++	struct pch_fivr_resp fivr_resp;\
++	int status;\
+ \
+-	status = acpi_evaluate_integer(acpi_dev->handle, #method,\
+-				       NULL, &val);\
+-	if (ACPI_SUCCESS(status))\
+-		return sprintf(buf, "%d\n", (int)val);\
+-	else\
+-		return -EINVAL;\
++	status = pch_fivr_read(acpi_dev->handle, #method, &fivr_resp);\
++	if (status)\
++		return status;\
++\
++	return sprintf(buf, "%llu\n", fivr_resp.result);\
  }
- #else	/* CONFIG_ACPI */
  
+ #define PCH_FIVR_STORE(name, method) \
 -- 
-2.30.2
+2.31.1
 
