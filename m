@@ -2,104 +2,89 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6C76C432BE
-	for <linux-acpi@archiver.kernel.org>; Fri, 30 Jul 2021 12:01:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B197C432BE
+	for <linux-acpi@archiver.kernel.org>; Fri, 30 Jul 2021 12:13:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91A8861055
-	for <linux-acpi@archiver.kernel.org>; Fri, 30 Jul 2021 12:01:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F83060BD3
+	for <linux-acpi@archiver.kernel.org>; Fri, 30 Jul 2021 12:13:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238617AbhG3MBH convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 30 Jul 2021 08:01:07 -0400
-Received: from mx1.emlix.com ([136.243.223.33]:42238 "EHLO mx1.emlix.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238275AbhG3MBH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 30 Jul 2021 08:01:07 -0400
-Received: from mailer.emlix.com (p5098be52.dip0.t-ipconnect.de [80.152.190.82])
-        (using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1.emlix.com (Postfix) with ESMTPS id C9B575F82D;
-        Fri, 30 Jul 2021 13:52:05 +0200 (CEST)
-From:   Rolf Eike Beer <eb@emlix.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     Zhang Rui <rui.zhang@intel.com>,
-        Markus Mayer <mmayer@broadcom.com>,
-        linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jiri Olsa <jolsa@kernel.org>,
-        Arnaldo Carvalho de Melo <acme@redhat.com>,
-        Jiri Kosina <jkosina@suse.cz>
-Subject: [PATCH 1/2] tools/thermal: tmon: simplify Makefile
-Date:   Fri, 30 Jul 2021 13:49:04 +0200
-Message-ID: <1951386.ZPQrlMDjM2@devpool47>
-Organization: emlix GmbH
-In-Reply-To: <2149399.oOxd0sxVbX@devpool47>
-References: <2149399.oOxd0sxVbX@devpool47>
+        id S238665AbhG3MN1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 30 Jul 2021 08:13:27 -0400
+Received: from mail-oi1-f179.google.com ([209.85.167.179]:36815 "EHLO
+        mail-oi1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230355AbhG3MN1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Jul 2021 08:13:27 -0400
+Received: by mail-oi1-f179.google.com with SMTP id y18so12921321oiv.3;
+        Fri, 30 Jul 2021 05:13:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=h/nWd7/gRGV1qmwqjSQqAFbq0T5N0Ue6f9xRmUkU8nE=;
+        b=fBbJsZ2AERbldlv6Oni+QBQNC30lXFlL8WtLXR77069BvNv6//2Wg1hNFNUbjDOndv
+         n15pOBidjrH96JR5JpIWrkqsLkATa8tuA4kaq258ZDn68bVjbmdE81BaDVMGX8aUhcTo
+         YfSbfru4rYiG92d/ty5nZEh5U4F1em3pBXyKb/1PK5qhYWRa9SXtVYEdCd7UEDIQHIEG
+         XPy8gBZTA5crfskNTPys8hpScLAht0ZAC8mspm4ygY0xAJBJk5Z4RoFcNgYm2/5AVsLt
+         pI6tMSZgFrKLaWU9naBBhqcfC/u4/CGgm++CQKCO2DR/6knMqGGYu4Vm4vv6vQu8dhwO
+         fEMA==
+X-Gm-Message-State: AOAM532wWdg6BUIAxYRIhjA2KhLtVKeSUhAwdTQLj9HZHDbFkdiQrQ8g
+        U8akIqgGI+YaWymXig+V6ANQ9ndOqMHzn9n6p68=
+X-Google-Smtp-Source: ABdhPJz45M3knNhHMrzCYlaLNNR4m0GdsnXb7oHj0LtftPm2N3HMDgTHqU060pmcerIRLKGkOElBDfIUzpjvPVPoojY=
+X-Received: by 2002:a05:6808:198c:: with SMTP id bj12mr1556667oib.71.1627647201379;
+ Fri, 30 Jul 2021 05:13:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+References: <4668274.31r3eYUQgx@kreacher> <1791325.tdWV9SEqCh@kreacher> <YQPUOgxldaqpxOxL@lahna>
+In-Reply-To: <YQPUOgxldaqpxOxL@lahna>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 30 Jul 2021 14:13:09 +0200
+Message-ID: <CAJZ5v0gZ=Zk+RO_+=8hUtkeTgB9dHGcNVHsiTJdw_EZEsiKWSQ@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] PCI: PM: Enable PME if it can be signaled from D3cold
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        Utkarsh H Patel <utkarsh.h.patel@intel.com>,
+        Koba Ko <koba.ko@canonical.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Signed-off-by: Rolf Eike Beer <eb@emlix.com>
----
- tools/thermal/tmon/Makefile | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+On Fri, Jul 30, 2021 at 12:28 PM Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+>
+> On Thu, Jul 29, 2021 at 04:49:10PM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > PME signaling is only enabled by __pci_enable_wake() if the target
+> > device can signal PME from the given target power state (to avoid
+> > pointless reconfiguration of the device), but if the hierarchy above
+> > the device goes into D3cold, the device itself will end up in D3cold
+> > too, so if it can signal PME from D3cold, it should be enabled to
+> > do so in __pci_enable_wake().
+> >
+> > [Note that if the device does not end up in D3cold and it cannot
+> >  signal PME from the original target power state, it will not signal
+> >  PME, so in that case the behavior does not change.]
+> >
+> > Link: https://lore.kernel.org/linux-pm/3149540.aeNJFYEL58@kreacher/
+> > Fixes: 5bcc2fb4e815 ("PCI PM: Simplify PCI wake-up code")
+> > Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>
+> Also this solves the reported issue so,
+>
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-diff --git a/tools/thermal/tmon/Makefile b/tools/thermal/tmon/Makefile
-index 9db867df76794..3e650878ea824 100644
---- a/tools/thermal/tmon/Makefile
-+++ b/tools/thermal/tmon/Makefile
-@@ -13,7 +13,6 @@ CC?= $(CROSS_COMPILE)gcc
- PKG_CONFIG?= pkg-config
- 
- override CFLAGS+=-D VERSION=\"$(VERSION)\"
--LDFLAGS+=
- TARGET=tmon
- 
- INSTALL_PROGRAM=install -m 755 -p
-@@ -33,7 +32,6 @@ override CFLAGS += $(shell $(PKG_CONFIG) --cflags $(STATIC) panelw ncursesw 2> /
- 		     $(PKG_CONFIG) --cflags $(STATIC) panel ncurses 2> /dev/null)
- 
- OBJS = tmon.o tui.o sysfs.o pid.o
--OBJS +=
- 
- tmon: $(OBJS) Makefile tmon.h
- 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS)  -o $(TARGET) $(TMON_LIBS)
-@@ -42,15 +40,13 @@ valgrind: tmon
- 	 sudo valgrind -v --track-origins=yes --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./$(TARGET)  1> /dev/null
- 
- install:
--	- mkdir -p $(INSTALL_ROOT)/$(BINDIR)
--	- $(INSTALL_PROGRAM) "$(TARGET)" "$(INSTALL_ROOT)/$(BINDIR)/$(TARGET)"
-+	- $(INSTALL_PROGRAM) -D "$(TARGET)" "$(INSTALL_ROOT)/$(BINDIR)/$(TARGET)"
- 
- uninstall:
- 	$(DEL_FILE) "$(INSTALL_ROOT)/$(BINDIR)/$(TARGET)"
- 
- clean:
--	find . -name "*.o" | xargs $(DEL_FILE)
--	rm -f $(TARGET)
-+	rm -f $(TARGET) $(OBJS)
- 
- dist:
- 	git tag v$(VERSION)
--- 
-2.32.0
+Thank you!
 
--- 
-Rolf Eike Beer, emlix GmbH, http://www.emlix.com
-Fon +49 551 30664-0, Fax +49 551 30664-11
-Gothaer Platz 3, 37083 Göttingen, Germany
-Sitz der Gesellschaft: Göttingen, Amtsgericht Göttingen HR B 3160
-Geschäftsführung: Heike Jordan, Dr. Uwe Kracke – Ust-IdNr.: DE 205 198 055
-
-emlix - smart embedded open source
-
-
-
+I'll queue up these two patches for 5.15 barring any objections from Bjorn.
