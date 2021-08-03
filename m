@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE71C4320E
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Aug 2021 18:12:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DCCDC43216
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Aug 2021 18:12:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 615B460EC0
-	for <linux-acpi@archiver.kernel.org>; Tue,  3 Aug 2021 18:12:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4367C61037
+	for <linux-acpi@archiver.kernel.org>; Tue,  3 Aug 2021 18:12:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238743AbhHCSMg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 3 Aug 2021 14:12:36 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:62952 "EHLO
+        id S238753AbhHCSMi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 3 Aug 2021 14:12:38 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:50892 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238757AbhHCSMf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Aug 2021 14:12:35 -0400
+        with ESMTP id S238767AbhHCSMh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Aug 2021 14:12:37 -0400
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
- id 603c1d4dadfc1043; Tue, 3 Aug 2021 20:12:21 +0200
+ id d51e9b9f1238c297; Tue, 3 Aug 2021 20:12:24 +0200
 Received: from kreacher.localnet (89-64-81-181.dynamic.chello.pl [89.64.81.181])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id B2F8E66A01E;
-        Tue,  3 Aug 2021 20:12:20 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 24ED966A01E;
+        Tue,  3 Aug 2021 20:12:24 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 5/7] ACPICA: iASL: Fix for WPBT table with no command-line  arguments
-Date:   Tue, 03 Aug 2021 20:10:46 +0200
-Message-ID: <3140899.44csPzL39Z@kreacher>
+Subject: [PATCH 3/7] ACPICA: Macros should not use a trailing semicolon
+Date:   Tue, 03 Aug 2021 20:09:18 +0200
+Message-ID: <2084744.irdbgypaU6@kreacher>
 In-Reply-To: <5748555.lOV4Wx5bFT@kreacher>
 References: <5748555.lOV4Wx5bFT@kreacher>
 MIME-Version: 1.0
@@ -51,33 +51,29 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Handle the case where the Command-line Arguments table field
-does not exist.
+ACPICA commit 8d49c0b2b78b8a8c5dae4d5ff28432729f4d59f2
 
-ACPICA commit d6487164497fda170a1b1453c5d58f2be7c873d6
-
-Link: https://github.com/acpica/acpica/commit/d6487164
+Link: https://github.com/acpica/acpica/commit/8d49c0b2
+Signed-off-by: Huilong Deng <denghuilong@cdjrlc.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/actbl3.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ include/acpi/acoutput.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 86903ac5bbc5..9125e2f16329 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -723,6 +723,10 @@ struct acpi_table_wpbt {
- 	u16 arguments_length;
- };
+diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
+index 1b4c45815695..5a3875744678 100644
+--- a/include/acpi/acoutput.h
++++ b/include/acpi/acoutput.h
+@@ -415,7 +415,7 @@
+ /* Conditional execution */
  
-+struct acpi_wpbt_unicode {
-+	u16 *unicode_string;
-+};
-+
- /*******************************************************************************
-  *
-  * WSMT - Windows SMM Security Mitigations Table
+ #define ACPI_DEBUG_EXEC(a)              a
+-#define ACPI_DEBUG_ONLY_MEMBERS(a)      a;
++#define ACPI_DEBUG_ONLY_MEMBERS(a)      a
+ #define _VERBOSE_STRUCTURES
+ 
+ /* Various object display routines for debug */
 -- 
 2.26.2
 
