@@ -2,145 +2,176 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F11C2C432BE
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Aug 2021 08:10:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E5E8C4338F
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Aug 2021 13:22:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D736560EE8
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 Aug 2021 08:10:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 698336113B
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 Aug 2021 13:22:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235821AbhHEIKO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 Aug 2021 04:10:14 -0400
-Received: from frasgout.his.huawei.com ([185.176.79.56]:3593 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239048AbhHEIKO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Aug 2021 04:10:14 -0400
-Received: from fraeml714-chm.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4GgLqp4z5jz6G9VM;
-        Thu,  5 Aug 2021 16:09:42 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml714-chm.china.huawei.com (10.206.15.33) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 5 Aug 2021 10:09:58 +0200
-Received: from A2006125610.china.huawei.com (10.47.91.4) by
- lhreml710-chm.china.huawei.com (10.201.108.61) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 5 Aug 2021 09:09:51 +0100
-From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-To:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>
-CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
-        <joro@8bytes.org>, <robin.murphy@arm.com>, <will@kernel.org>,
-        <wanghuiqiang@huawei.com>, <guohanjun@huawei.com>,
-        <steven.price@arm.com>, <Sami.Mujawar@arm.com>,
-        <jon@solid-run.com>, <eric.auger@redhat.com>,
-        <yangyicong@huawei.com>
-Subject: [PATCH v7 9/9] iommu/dma: Reserve any RMR regions associated with a dev
-Date:   Thu, 5 Aug 2021 09:07:24 +0100
-Message-ID: <20210805080724.480-10-shameerali.kolothum.thodi@huawei.com>
-X-Mailer: git-send-email 2.12.0.windows.1
-In-Reply-To: <20210805080724.480-1-shameerali.kolothum.thodi@huawei.com>
-References: <20210805080724.480-1-shameerali.kolothum.thodi@huawei.com>
+        id S240497AbhHENW6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 Aug 2021 09:22:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52516 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229771AbhHENW6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Aug 2021 09:22:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4B9A761158
+        for <linux-acpi@vger.kernel.org>; Thu,  5 Aug 2021 13:22:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1628169764;
+        bh=rABZo6aAjftHjiZ5IWVoUogsJY3wYwnWG2rnzy4liBo=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Wvd0gPN3bIkbH85Jb8aiK9vAeTaGXkKH0MPPvHrT67OI7Yv4pArZ3mpw+PSlewnAk
+         PnYEYc30nVMFJfbbkDTxRhqH4HilA2dnpEQinC6/a2ywTKEu5145yOWfueC31EFsne
+         QhqBB69I6VY8hq+RW66dpCUIpmO6LVAeWRUefgRrASbWZBtrtYcVZ1bPgZvE8U7j1Z
+         pIK8w0B94XWyw2tc9gxARVmYCPzhqQAjHnGb+TBmGyMiIH1MeZ3T3eUM+Lg7HwHP4C
+         w4DGrWG56tp3VXJvpseidZvpVsG86dLc/vIcckBLXQRwspK+ODQ7dt3zdW1045KQDp
+         4XqNS2b0S6CLA==
+Received: by mail-ot1-f43.google.com with SMTP id 61-20020a9d0d430000b02903eabfc221a9so5107954oti.0
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Aug 2021 06:22:44 -0700 (PDT)
+X-Gm-Message-State: AOAM532vMSah/DbAtyJS1dGVMPc+1diYJGcgHYTWVQD85VxUqIGNSMui
+        WJSTb7zfGAe5CyTRt1J0ffCV7KLS2dt1JmEX+Dc=
+X-Google-Smtp-Source: ABdhPJx0hDuVxvbP140/VxO38R4dIU/rEbrl3LBsoE8UOKfL6M4pTys5XpazDhygGrztUo1RJOEBxMauD3jhjiaPAZQ=
+X-Received: by 2002:a9d:5c2:: with SMTP id 60mr3654201otd.77.1628169763566;
+ Thu, 05 Aug 2021 06:22:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.47.91.4]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <20210805080724.480-1-shameerali.kolothum.thodi@huawei.com>
+In-Reply-To: <20210805080724.480-1-shameerali.kolothum.thodi@huawei.com>
+From:   Ard Biesheuvel <ardb@kernel.org>
+Date:   Thu, 5 Aug 2021 15:22:32 +0200
+X-Gmail-Original-Message-ID: <CAMj1kXHNjeDb2HuPeV_6Er4oALVKFz+g=gQ_0rf+JW22NxqqTA@mail.gmail.com>
+Message-ID: <CAMj1kXHNjeDb2HuPeV_6Er4oALVKFz+g=gQ_0rf+JW22NxqqTA@mail.gmail.com>
+Subject: Re: [PATCH v7 0/9] ACPI/IORT: Support for IORT RMR node
+To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc:     Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux IOMMU <iommu@lists.linux-foundation.org>,
+        Linuxarm <linuxarm@huawei.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Joerg Roedel <joro@8bytes.org>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Will Deacon <will@kernel.org>, wanghuiqiang@huawei.com,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Steven Price <steven.price@arm.com>,
+        Sami Mujawar <Sami.Mujawar@arm.com>,
+        Jon Nettleton <jon@solid-run.com>,
+        Eric Auger <eric.auger@redhat.com>, yangyicong@huawei.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Get ACPI IORT RMR regions associated with a dev reserved
-so that there is a unity mapping for them in SMMU.
+On Thu, 5 Aug 2021 at 10:10, Shameer Kolothum
+<shameerali.kolothum.thodi@huawei.com> wrote:
+>
+> Hi,
+>
+> The series adds support to IORT RMR nodes specified in IORT
+> Revision E.b -ARM DEN 0049E[0]. RMR nodes are used to describe
+> memory ranges that are used by endpoints and require a unity
+> mapping in SMMU.
+>
+> We have faced issues with 3408iMR RAID controller cards which
+> fail to boot when SMMU is enabled. This is because these
+> controllers make use of host memory for various caching related
+> purposes and when SMMU is enabled the iMR firmware fails to
+> access these memory regions as there is no mapping for them.
+> IORT RMR provides a way for UEFI to describe and report these
+> memory regions so that the kernel can make a unity mapping for
+> these in SMMU.
+>
 
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
----
- drivers/iommu/dma-iommu.c | 56 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 51 insertions(+), 5 deletions(-)
+Does this mean we are ignoring the RMR memory ranges, and exposing the
+entire physical address space to devices using the stream IDs in
+question?
 
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 1b6e27475279..c1ae0c3d4b33 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -207,22 +207,68 @@ void iommu_dma_put_rmrs(struct fwnode_handle *iommu_fwnode,
- }
- EXPORT_SYMBOL(iommu_dma_put_rmrs);
- 
-+static bool iommu_dma_dev_has_rmr(struct iommu_fwspec *fwspec,
-+				  struct iommu_resv_region *e)
-+{
-+	int i;
-+
-+	for (i = 0; i < fwspec->num_ids; i++) {
-+		if (e->fw_data.rmr.sid == fwspec->ids[i])
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+static void iommu_dma_get_rmr_resv_regions(struct device *dev,
-+					   struct list_head *list)
-+{
-+	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-+	struct list_head rmr_list;
-+	struct iommu_resv_region *rmr, *tmp;
-+
-+	INIT_LIST_HEAD(&rmr_list);
-+	if (iommu_dma_get_rmrs(fwspec->iommu_fwnode, &rmr_list))
-+		return;
-+
-+	if (dev_is_pci(dev)) {
-+		struct pci_dev *pdev = to_pci_dev(dev);
-+		struct pci_host_bridge *host = pci_find_host_bridge(pdev->bus);
-+
-+		if (!host->preserve_config)
-+			return;
-+	}
-+
-+	list_for_each_entry_safe(rmr, tmp, &rmr_list, list) {
-+		if (!iommu_dma_dev_has_rmr(fwspec, rmr))
-+			continue;
-+
-+		/* Remove from iommu RMR list and add to dev resv_regions */
-+		list_del_init(&rmr->list);
-+		list_add_tail(&rmr->list, list);
-+	}
-+
-+	iommu_dma_put_rmrs(fwspec->iommu_fwnode, &rmr_list);
-+}
-+
- /**
-  * iommu_dma_get_resv_regions - Reserved region driver helper
-  * @dev: Device from iommu_get_resv_regions()
-  * @list: Reserved region list from iommu_get_resv_regions()
-  *
-  * IOMMU drivers can use this to implement their .get_resv_regions callback
-- * for general non-IOMMU-specific reservations. Currently, this covers GICv3
-- * ITS region reservation on ACPI based ARM platforms that may require HW MSI
-- * reservation.
-+ * for general non-IOMMU-specific reservations. Currently this covers,
-+ *  -GICv3 ITS region reservation on ACPI based ARM platforms that may
-+ *   require HW MSI reservation.
-+ *  -Any ACPI IORT RMR memory range reservations (IORT spec rev E.b)
-  */
- void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
- {
- 
--	if (!is_of_node(dev_iommu_fwspec_get(dev)->iommu_fwnode))
-+	if (!is_of_node(dev_iommu_fwspec_get(dev)->iommu_fwnode)) {
- 		iort_iommu_msi_get_resv_regions(dev, list);
--
-+		iommu_dma_get_rmr_resv_regions(dev, list);
-+	}
- }
- EXPORT_SYMBOL(iommu_dma_get_resv_regions);
- 
--- 
-2.17.1
 
+> Change History:
+>
+> v6 --> v7
+>
+> The only change from v6 is the fix pointed out by Steve to
+> the SMMUv2 SMR bypass install in patch #8.
+>
+> Thanks to the Tested-by tags by Laurentiu with SMMUv2 and
+> Hanjun/Huiqiang with SMMUv3 for v6. I haven't added the tags
+> yet as the series still needs more review[1].
+>
+> Feedback and tests on this series is very much appreciated.
+>
+> v5 --> v6
+> - Addressed comments from Robin & Lorenzo.
+>   : Moved iort_parse_rmr() to acpi_iort_init() from
+>     iort_init_platform_devices().
+>   : Removed use of struct iort_rmr_entry during the initial
+>     parse. Using struct iommu_resv_region instead.
+>   : Report RMR address alignment and overlap errors, but continue.
+>   : Reworked arm_smmu_init_bypass_stes() (patch # 6).
+> - Updated SMMUv2 bypass SMR code. Thanks to Jon N (patch #8).
+> - Set IOMMU protection flags(IOMMU_CACHE, IOMMU_MMIO) based
+>   on Type of RMR region. Suggested by Jon N.
+>
+> Thanks,
+> Shameer
+> [0] https://developer.arm.com/documentation/den0049/latest/
+> [1] https://lore.kernel.org/linux-acpi/20210716083442.1708-1-shameerali.kolothum.thodi@huawei.com/T/#m043c95b869973a834b2fd57f3e1ed0325c84f3b7
+> ------
+> v4 --> v5
+>  -Added a fw_data union to struct iommu_resv_region and removed
+>   struct iommu_rmr (Based on comments from Joerg/Robin).
+>  -Added iommu_put_rmrs() to release mem.
+>  -Thanks to Steve for verifying on SMMUv2, but not added the Tested-by
+>   yet because of the above changes.
+>
+> v3 -->v4
+> -Included the SMMUv2 SMR bypass install changes suggested by
+>  Steve(patch #7)
+> -As per Robin's comments, RMR reserve implementation is now
+>  more generic  (patch #8) and dropped v3 patches 8 and 10.
+> -Rebase to 5.13-rc1
+>
+> RFC v2 --> v3
+>  -Dropped RFC tag as the ACPICA header changes are now ready to be
+>   part of 5.13[0]. But this series still has a dependency on that patch.
+>  -Added IORT E.b related changes(node flags, _DSM function 5 checks for
+>   PCIe).
+>  -Changed RMR to stream id mapping from M:N to M:1 as per the spec and
+>   discussion here[1].
+>  -Last two patches add support for SMMUv2(Thanks to Jon Nettleton!)
+> ------
+>
+> Jon Nettleton (1):
+>   iommu/arm-smmu: Get associated RMR info and install bypass SMR
+>
+> Shameer Kolothum (8):
+>   iommu: Introduce a union to struct iommu_resv_region
+>   ACPI/IORT: Add support for RMR node parsing
+>   iommu/dma: Introduce generic helper to retrieve RMR info
+>   ACPI/IORT: Add a helper to retrieve RMR memory regions
+>   iommu/arm-smmu-v3: Introduce strtab init helper
+>   iommu/arm-smmu-v3: Refactor arm_smmu_init_bypass_stes() to force
+>     bypass
+>   iommu/arm-smmu-v3: Get associated RMR info and install bypass STE
+>   iommu/dma: Reserve any RMR regions associated with a dev
+>
+>  drivers/acpi/arm64/iort.c                   | 172 +++++++++++++++++++-
+>  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c |  76 +++++++--
+>  drivers/iommu/arm/arm-smmu/arm-smmu.c       |  48 ++++++
+>  drivers/iommu/dma-iommu.c                   |  89 +++++++++-
+>  include/linux/acpi_iort.h                   |   7 +
+>  include/linux/dma-iommu.h                   |  13 ++
+>  include/linux/iommu.h                       |  11 ++
+>  7 files changed, 393 insertions(+), 23 deletions(-)
+>
+> --
+> 2.17.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
