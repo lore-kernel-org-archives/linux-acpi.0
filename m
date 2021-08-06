@@ -2,107 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0619C432BE
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Aug 2021 13:44:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE1CC4338F
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Aug 2021 14:44:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A557061179
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Aug 2021 13:44:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A464611F0
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 Aug 2021 14:44:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344411AbhHFNov (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Aug 2021 09:44:51 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:26359 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1344412AbhHFNot (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Aug 2021 09:44:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1628257473;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=LUNCaljoh6zNjohyhM8u6lXSLeXe2hyYUThfCWY505I=;
-        b=KqY9RmX4+ljommeFqdQwC5T+xZt+izV1rTISlDb5FDhyiLgVV9lb3QLWaVj4tx3zzHTAKD
-        2UPgdpGeaiTTqQWGTGkm3hQ1A89G8XxMMSFYVO8UC1GH1rwIIbrHG06eWQ7noq8gS/BJOk
-        zM0kxh7nn8ieceSFIltMDXBXVUTIQHo=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-284-FEqRg1lEPVGTBj7Owfhdfw-1; Fri, 06 Aug 2021 09:44:32 -0400
-X-MC-Unique: FEqRg1lEPVGTBj7Owfhdfw-1
-Received: by mail-ed1-f69.google.com with SMTP id d12-20020a50fe8c0000b02903a4b519b413so4948712edt.9
-        for <linux-acpi@vger.kernel.org>; Fri, 06 Aug 2021 06:44:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=LUNCaljoh6zNjohyhM8u6lXSLeXe2hyYUThfCWY505I=;
-        b=OQFugKi9cNgQ7roCQXx4rDOaw3NjPK8Id+VHKfTDzYS/yhRcqKSXpSYjzeRlnCIpV6
-         /3DUrCDckJpLna0ao5OnXQiz5eJs/acTPaBcsYykMTm5r4UlIcxJdrCZixSJ3cEaf66j
-         xH83Q8eTC00tYWmEOT9dIT+WkWvUlsnXRkyo6T+vq60wWo65+MgvJCEXTGktWxhF+VBu
-         oxQHTZTOk5EpatPmoUcaM8CjzZEmF2xOnP5G043qWSGt9intGs/pVLoZtPk2o3f/8Cnq
-         eTbUShai40817SxWP0xRcogMkVEE5AgW5+JouqzmF9H8NQZvvOCJG4bP3QxyehugjTRQ
-         jXZw==
-X-Gm-Message-State: AOAM531pq2SKXG9di/AWJm3O1hRARQ7hoPgcPR2XvnIpbgedPTAZ+4Bf
-        VzapXTKgbp8Gmk06Qr1B+5k42sQqNGlLJcTEzZX2BAjkp3Yai7JnEd1+SDkT31fPyXbtoOR0Epy
-        3dFIhojaaGN2TZ8BZpP92Cad5wOLKnH9wgOt+nTmLj7y8MqcSDuNdANcHlGBNV3Qev7j+qM/WjQ
-        ==
-X-Received: by 2002:a05:6402:d7:: with SMTP id i23mr13112215edu.291.1628257471238;
-        Fri, 06 Aug 2021 06:44:31 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyL7vlaTOy3c5YZFIfiw2sjAwyw1MSYfWQwVF2pH8QLK/4mhX/K1TBAPijCqcDV0hx7gFIzdw==
-X-Received: by 2002:a05:6402:d7:: with SMTP id i23mr13112187edu.291.1628257471004;
-        Fri, 06 Aug 2021 06:44:31 -0700 (PDT)
-Received: from x1.localdomain (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
-        by smtp.gmail.com with ESMTPSA id f9sm3693201edy.57.2021.08.06.06.44.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 06 Aug 2021 06:44:30 -0700 (PDT)
-Subject: Re: [PATCH 1/4] i2c: acpi: Add an i2c_acpi_client_count() helper
- function
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Mark Gross <mgross@linux.intel.com>,
-        Andy Shevchenko <andy@infradead.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        platform-driver-x86@vger.kernel.org, linux-i2c@vger.kernel.org,
+        id S242203AbhHFOoS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 Aug 2021 10:44:18 -0400
+Received: from mga12.intel.com ([192.55.52.136]:45748 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S241632AbhHFOoP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Aug 2021 10:44:15 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10068"; a="193974201"
+X-IronPort-AV: E=Sophos;i="5.84,300,1620716400"; 
+   d="scan'208";a="193974201"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2021 07:43:59 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.84,300,1620716400"; 
+   d="scan'208";a="459389331"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga007.jf.intel.com with ESMTP; 06 Aug 2021 07:43:55 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 3B11EDE; Fri,  6 Aug 2021 17:37:40 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
         linux-acpi@vger.kernel.org
-References: <20210803160044.158802-1-hdegoede@redhat.com>
- <20210803160044.158802-2-hdegoede@redhat.com> <YQlzzy933V9XMHqt@lahna>
-From:   Hans de Goede <hdegoede@redhat.com>
-Message-ID: <9fbf0d6a-2df3-4765-ccf5-788b86994d71@redhat.com>
-Date:   Fri, 6 Aug 2021 15:44:30 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        hdegoede@redhat.com, Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/1] x86/platform: Increase maximum GPIO number for X86_64
+Date:   Fri,  6 Aug 2021 17:37:11 +0300
+Message-Id: <20210806143711.37553-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-In-Reply-To: <YQlzzy933V9XMHqt@lahna>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+By default the 512 GPIOs is a maximum on any x86 platform.
+With, for example, Intel Tiger Lake-H the SoC based controller
+occupies up to 480 pins. This leaves only 32 available for
+GPIO expanders or other drivers, like PMIC. Hence, bump the
+maximum GPIO number to 1024 for X86_64 and leave 512 for X86_32.
 
-On 8/3/21 6:50 PM, Mika Westerberg wrote:
-> On Tue, Aug 03, 2021 at 06:00:41PM +0200, Hans de Goede wrote:
->> We have 3 files now which have the need to count the number of
->> I2cSerialBus resources in an ACPI-device's resource-list.
->>
->> Currently all implement their own helper function for this,
->> add a generic helper function to replace the 3 implementations.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ arch/x86/Kconfig | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Thank you, Wolfram are you also ok with me merging this
-patch through the pdx86 tree?
-
-Regards,
-
-Hans
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 45962aaf2b2c..495ed6229b52 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -340,6 +340,19 @@ config NEED_PER_CPU_PAGE_FIRST_CHUNK
+ config ARCH_HIBERNATION_POSSIBLE
+ 	def_bool y
+ 
++# The GPIO number here must be sorted by descending number. In case of
++# a multiplatform kernel, we just want the highest value required by the
++# selected platforms.
++config ARCH_NR_GPIO
++	int
++	default 1024 if X86_64
++	default 512 if X86_32
++	default 0
++	help
++	  Maximum number of GPIOs in the system.
++
++	  If unsure, leave the default value.
++
+ config ARCH_SUSPEND_POSSIBLE
+ 	def_bool y
+ 
+-- 
+2.30.2
 
