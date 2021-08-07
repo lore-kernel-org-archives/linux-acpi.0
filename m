@@ -2,234 +2,386 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD434C4338F
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Aug 2021 02:55:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58203C432BE
+	for <linux-acpi@archiver.kernel.org>; Sat,  7 Aug 2021 23:40:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBFB9611C5
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Aug 2021 02:55:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 337CD61057
+	for <linux-acpi@archiver.kernel.org>; Sat,  7 Aug 2021 23:40:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230170AbhHGCzu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Aug 2021 22:55:50 -0400
-Received: from foss.arm.com ([217.140.110.172]:44300 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230147AbhHGCzt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 6 Aug 2021 22:55:49 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A67006D;
-        Fri,  6 Aug 2021 19:55:32 -0700 (PDT)
-Received: from [192.168.122.166] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1FECD3F40C;
-        Fri,  6 Aug 2021 19:55:32 -0700 (PDT)
-Subject: Re: [PATCH 2/3] PCI: brcmstb: Add ACPI config space quirk
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     linux-pci@vger.kernel.org, lorenzo.pieralisi@arm.com,
-        nsaenz@kernel.org, bhelgaas@google.com, rjw@rjwysocki.net,
-        lenb@kernel.org, robh@kernel.org, kw@linux.com,
-        f.fainelli@gmail.com, bcm-kernel-feedback-list@broadcom.com,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20210806222151.GA1892781@bjorn-Precision-5520>
-From:   Jeremy Linton <jeremy.linton@arm.com>
-Message-ID: <51a11c89-d49b-7367-a75c-13016a2ea5d9@arm.com>
-Date:   Fri, 6 Aug 2021 21:55:27 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.1
+        id S230091AbhHGXk3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 7 Aug 2021 19:40:29 -0400
+Received: from mailgate.ics.forth.gr ([139.91.1.2]:61380 "EHLO
+        mailgate.ics.forth.gr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230094AbhHGXk2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Aug 2021 19:40:28 -0400
+X-Greylist: delayed 2067 seconds by postgrey-1.27 at vger.kernel.org; Sat, 07 Aug 2021 19:40:28 EDT
+Received: from av3.ics.forth.gr (av3in.ics.forth.gr [139.91.1.77])
+        by mailgate.ics.forth.gr (8.15.2/ICS-FORTH/V10-1.8-GATE) with ESMTP id 177N5gh7095297
+        for <linux-acpi@vger.kernel.org>; Sun, 8 Aug 2021 02:05:43 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; d=ics.forth.gr; s=av; c=relaxed/simple;
+        q=dns/txt; i=@ics.forth.gr; t=1628377537; x=1630969537;
+        h=From:Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=ehVNo9Zi6sdRJRX9bB3/TWxcekSmcVgfmBxE6YPsI3w=;
+        b=Vn8KLoierPuHI8MW2ysbxFsNs0R1/d7q+WCPqL0FP1hL8/Wqy1DjHIOGF1iDgnEp
+        ip068onKSeeJlurh58tuPFvFS6/SIMVfsQlkL4Bji7odXo3patdPYge8BN14Zna/
+        86JUWEuMBm7gNd1Cjex5BiqQdjZb+oBkuVtlt4W3SzAszGa3subTJozdpBOkcDZP
+        MIHpEk2dDINwVznQgyddcp8awdY24WmL07t3hiZI+CfyDczQWfX1COnljU/g/eH1
+        gxZcOO9ulb2C1V7eqTmtM4YSTSlF1g5f6LVE0Drv0KKMz+ptdpYNS/ke4hG9dvxx
+        2GtZ2CqaGS26bodX1D0t2w==;
+X-AuditID: 8b5b014d-b84f570000005d46-b6-610f11c161ba
+Received: from enigma.ics.forth.gr (webmail.ics.forth.gr [139.91.151.35])
+        by av3.ics.forth.gr (Symantec Messaging Gateway) with SMTP id A6.94.23878.1C11F016; Sun,  8 Aug 2021 02:05:37 +0300 (EEST)
+X-ICS-AUTH-INFO: Authenticated user:  at ics.forth.gr
 MIME-Version: 1.0
-In-Reply-To: <20210806222151.GA1892781@bjorn-Precision-5520>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date:   Sun, 08 Aug 2021 02:05:34 +0300
+From:   Nick Kossifidis <mick@ics.forth.gr>
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Andy Lutomirski <luto@kernel.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        "Kirill A. Shutemov" <kirill@shutemov.name>,
+        Len Brown <lenb@kernel.org>, Marc Zyngier <maz@kernel.org>,
+        Mike Rapoport <rppt@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Will Deacon <will@kernel.org>, devicetree@vger.kernel.org,
+        kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-mm@kvack.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        x86@kernel.org
+Subject: Re: [PATCH v2] memblock: make memblock_find_in_range method private
+Organization: FORTH
+In-Reply-To: <20210802063737.22733-1-rppt@kernel.org>
+References: <20210802063737.22733-1-rppt@kernel.org>
+Message-ID: <d0965f23c7ffb6b46a5b033fe242fc25@mailhost.ics.forth.gr>
+X-Sender: mick@mailhost.ics.forth.gr
+User-Agent: Roundcube Webmail/1.3.16
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Sf1CTdRzH++559jwPy8GzseQJU7qZ5+nZzAruc1ZaavJoCnbnZWdXuMsn
+        RiFyY3LU6TkaoPxspoQ848doBR4329puDbgGbOxCiFBHt7NyHYqFCxTbEHZhEBvXHf+97v15
+        3+fz+uNDYVKDMJnKydNw6jxlrpwQ4ZXv1K191i1JUD4XHFgPDRYzAY45noS6S04cwtZ5AqZa
+        qxDctZ5B0OwdFkL95AIB1/gZIehMFgImmtoRfPFtEpjPtWDw92A/CZ237hHQ1v0ZAtuYXwgj
+        XQ0ElNscCH43Lwjhu3AJAfoWHQaeWheCq12XhdDZMCAEX69RAMGRKgzK+ATor+4VwNCPPiGU
+        urwkeC1OAdy4oCXAbqvFoO9TNwYlN1MhYh0TvrqOnS2twdlSXxvOmpvMiB3xX8fYyWAQZ923
+        PQTbd3aaZDv5AMnaL21kbe3lBGsLfU6y94eHSfbKxTmc1X/Zi9imgTfZnkYzeYA5LHr5KJeb
+        U8ipN287IlLVG8j8XzKLrn1jwLTIsa0CURRDv8j45gsrkIiS0j8gZtZvxCpQ3GKeyhhc5SjK
+        YlrCDNTfwaOM0cDU/tyDljiF0TkMsT5Or2OK9WOxnKA3MM0+d6wvo9cys6ZubKlfvILhJ5+K
+        ciK9jwkOm8goJ9CJTChwXRjluMW7v45eie2RLrpdqKzGlhx2MaG6B4Ilt2eYB3OjZNT/iUW2
+        N8r1SMIvM+WXmfLLTI0Ia0e0svAFRc77BYoPjqs1KkW22oZi/4P2d6Df7PcUHiSgkAcxFCaX
+        iS0X45VS8VHlx59w6uNZ6hO5XIEHraJweZJYrNBnSelspYb7iOPyOfX/UwEVl6wV1PNPG8mX
+        DFpTsPGQzP39TsmmO6tP2ncv6M4VzVc57696bHTs8qm+vYcOjpdmqsxZ0LohObjj6hrvdq1f
+        I/mnLPHRG5E9zh0tt1wZoeffSlOlNuklJfFTp/l/WwfzxR++W5OW8soNa2Bkxhx5eHJ3w3RN
+        +t1NCfuO+eP3q/plzZX6mYk/u3em3JwOPVp/Xl8k+Utr+urE3qSuY18nD7auxL0R0dsZ40+u
+        TpcoTX7f0EQ483RwaOjIH6fSqJQ9Z19bk/X6rnLXe2EnFbKczwxtXoFryrYatyQGHk5VR/J0
+        /Nbtgx0yWx3nuC05iGUECouyO6zpjx/+abojfGCcaps707OyWI4XqJRbNmLqAuV/e64RJK4D
+        AAA=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 8/6/21 5:21 PM, Bjorn Helgaas wrote:
-> On Thu, Aug 05, 2021 at 04:11:59PM -0500, Jeremy Linton wrote:
->> The PFTF CM4 is an ACPI platform that is following the PCIe SMCCC
->> standard because its PCIe config space isn't ECAM compliant and is
->> split into two parts. One part for the root port registers and a
->> moveable window which points at a given device's 4K config space.
->> Thus it doesn't have a MCFG (and really any MCFG provided would be
->> nonsense anyway). As Linux doesn't support the PCIe SMCCC standard
->> we key off a Linux specific host bridge _DSD to add custom ECAM
->> ops and cfgres. The cfg op selects between those two regions, as
->> well as disallowing problematic accesses, particularly if the link
->> is down because there isn't an attached device.
+Στις 2021-08-02 09:37, Mike Rapoport έγραψε:
+> From: Mike Rapoport <rppt@linux.ibm.com>
 > 
-> I'm not sure SMCCC is *really* relevant here.  If it is, an expansion
-> of the acronym and a link to a spec would be helpful.
+> There are a lot of uses of memblock_find_in_range() along with
+> memblock_reserve() from the times memblock allocation APIs did not 
+> exist.
 > 
-> But AFAICT the only important thing here is that it doesn't have
-> standard ECAM, and we're going to work around that.
-
-I will reword it a bit.
-
+> memblock_find_in_range() is the very core of memblock allocations, so 
+> any
+> future changes to its internal behaviour would mandate updates of all 
+> the
+> users outside memblock.
 > 
-> I don't see anything about _DSD in this series.
-
-That is the "linux,pci-quirk" in the next patch.
-
+> Replace the calls to memblock_find_in_range() with an equivalent calls 
+> to
+> memblock_phys_alloc() and memblock_phys_alloc_range() and make
+> memblock_find_in_range() private method of memblock.
 > 
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   drivers/pci/controller/Makefile            |  1 +
->>   drivers/pci/controller/pcie-brcmstb-acpi.c | 77 ++++++++++++++++++++++
->>   include/linux/pci-ecam.h                   |  1 +
->>   3 files changed, 79 insertions(+)
->>   create mode 100644 drivers/pci/controller/pcie-brcmstb-acpi.c
->>
->> diff --git a/drivers/pci/controller/Makefile b/drivers/pci/controller/Makefile
->> index aaf30b3dcc14..65aa6fd3ed89 100644
->> --- a/drivers/pci/controller/Makefile
->> +++ b/drivers/pci/controller/Makefile
->> @@ -57,5 +57,6 @@ ifdef CONFIG_PCI_QUIRKS
->>   obj-$(CONFIG_ARM64) += pci-thunder-ecam.o
->>   obj-$(CONFIG_ARM64) += pci-thunder-pem.o
->>   obj-$(CONFIG_ARM64) += pci-xgene.o
->> +obj-$(CONFIG_ARM64) += pcie-brcmstb-acpi.o
->>   endif
->>   endif
->> diff --git a/drivers/pci/controller/pcie-brcmstb-acpi.c b/drivers/pci/controller/pcie-brcmstb-acpi.c
->> new file mode 100644
->> index 000000000000..76944876155f
->> --- /dev/null
->> +++ b/drivers/pci/controller/pcie-brcmstb-acpi.c
->> @@ -0,0 +1,77 @@
->> +// SPDX-License-Identifier: GPL-2.0+
->> +/*
->> + * ACPI quirks for Brcm2711 PCIe host controller
->> + * As used on the Raspberry Pi Compute Module 4
->> + *
->> + * Copyright (C) 2021 Arm Ltd.
->> + */
->> +
->> +#include <linux/io.h>
->> +#include <linux/pci.h>
->> +#include <linux/pci-acpi.h>
+> This simplifies the callers, ensures that (unlikely) errors in
+> memblock_reserve() are handled and improves maintainability of
+> memblock_find_in_range().
 > 
-> Do we use something from pci-acpi.h?
-
-Good catch.
-
+> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+> ---
+> v2: don't change error message in arm::reserve_crashkernel(), per 
+> Russell
+> v1: https://lore.kernel.org/lkml/20210730104039.7047-1-rppt@kernel.org
 > 
->> +#include <linux/pci-ecam.h>
->> +#include "../pci.h"
->> +#include "pcie-brcmstb.h"
->> +
->> +static int brcm_acpi_init(struct pci_config_window *cfg)
->> +{
->> +	/*
->> +	 * This platform doesn't technically have anything that could be called
->> +	 * ECAM. Its config region has root port specific registers between
->> +	 * standard PCIe defined config registers. Thus the region setup by the
->> +	 * generic ECAM code needs to be adjusted. The HW can access bus 0-ff
->> +	 * but the footprint isn't a nice power of 2 (40k). For purposes of
->> +	 * mapping the config region we are just going to squash the standard
->> +	 * and nonstandard registers together rather than mapping them
->> +	 * separately. This code simply honors the quirk provided base+size
->> +	 * instead.
->> +	 */
->> +	iounmap(cfg->win);
->> +	cfg->win = pci_remap_cfgspace(cfg->res.start, resource_size(&cfg->res));
->> +	if (!cfg->win)
->> +		goto err_exit;
->> +
->> +	/* MSI is nonstandard as well */
->> +	pci_no_msi();
->> +
->> +	return 0;
->> +err_exit:
->> +	dev_err(cfg->parent, "PCI: Failed to remap config\n");
->> +	return -ENOMEM;
->> +}
->> +
->> +static void __iomem *brcm_pcie_map_conf2(struct pci_bus *bus, unsigned int devfn,
->> +					int where)
+>  arch/arm/kernel/setup.c           | 18 +++++--------
+>  arch/arm64/kvm/hyp/reserved_mem.c |  9 +++----
+>  arch/arm64/mm/init.c              | 36 ++++++++-----------------
+>  arch/mips/kernel/setup.c          | 14 +++++-----
+>  arch/riscv/mm/init.c              | 44 ++++++++++---------------------
+>  arch/s390/kernel/setup.c          | 10 ++++---
+>  arch/x86/kernel/aperture_64.c     |  5 ++--
+>  arch/x86/mm/init.c                | 21 +++++++++------
+>  arch/x86/mm/numa.c                |  5 ++--
+>  arch/x86/mm/numa_emulation.c      |  5 ++--
+>  arch/x86/realmode/init.c          |  2 +-
+>  drivers/acpi/tables.c             |  5 ++--
+>  drivers/base/arch_numa.c          |  5 +---
+>  drivers/of/of_reserved_mem.c      | 12 ++++++---
+>  include/linux/memblock.h          |  2 --
+>  mm/memblock.c                     |  2 +-
+>  16 files changed, 78 insertions(+), 117 deletions(-)
 > 
-> Rewrap to fit in 80 columns.  81 is just ... weird :)
-Sure,
+> diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+> index f97eb2371672..67f5421b2af7 100644
+> --- a/arch/arm/kernel/setup.c
+> +++ b/arch/arm/kernel/setup.c
+> @@ -1012,31 +1012,25 @@ static void __init reserve_crashkernel(void)
+>  		unsigned long long lowmem_max = __pa(high_memory - 1) + 1;
+>  		if (crash_max > lowmem_max)
+>  			crash_max = lowmem_max;
+> -		crash_base = memblock_find_in_range(CRASH_ALIGN, crash_max,
+> -						    crash_size, CRASH_ALIGN);
+> +
+> +		crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
+> +						       CRASH_ALIGN, crash_max);
+>  		if (!crash_base) {
+>  			pr_err("crashkernel reservation failed - No suitable area 
+> found.\n");
+>  			return;
+>  		}
+>  	} else {
+> +		unsigned long long crash_max = crash_base + crash_size;
+>  		unsigned long long start;
 > 
->> +{
->> +	struct pci_config_window *cfg = bus->sysdata;
->> +	void __iomem *base = cfg->win;
->> +	int idx;
->> +	u32 up;
->> +
->> +	/* Accesses to the RC go right to the RC registers if slot==0 */
->> +	if (pci_is_root_bus(bus))
->> +		return PCI_SLOT(devfn) ? NULL : base + where;
->> +
->> +	/* Assure link up before sending request */
->> +	up = readl(base + PCIE_MISC_PCIE_STATUS);
->> +	if (!(up & PCIE_MISC_PCIE_STATUS_PCIE_DL_ACTIVE_MASK))
->> +		return NULL;
->> +
->> +	if (!(up & PCIE_MISC_PCIE_STATUS_PCIE_PHYLINKUP_MASK))
->> +		return NULL;
+> -		start = memblock_find_in_range(crash_base,
+> -					       crash_base + crash_size,
+> -					       crash_size, SECTION_SIZE);
+> +		start = memblock_phys_alloc_range(crash_size, SECTION_SIZE,
+> +						  crash_base, crash_max);
+>  		if (start != crash_base) {
+>  			pr_err("crashkernel reservation failed - memory is in use.\n");
+>  			return;
+>  		}
+>  	}
 > 
-> What happens if the link goes down here?  Hopefully that's a
-> recoverable error?
-
-This check is intended to verify that something is plugged into the 
-first bus/slot before attempting to probe it. If nothing is plugged in 
-bad things (TM) happen without this check.
-
-But, you sparked my curiosity. I've had some reasonable luck with error 
-recovery with a number of those cheap pcie->pcie switches that passively 
-route PCIe over USB3 cables when plugged into this thing. So, I tried 
-hotpluging the first one to see what happens.
-
-Game over!  :)
-
-Linux was nice enough to tell me it couldn't change the power state back 
-to active, but it looks like the link state actually recovered. OTOH, 
-the downstream switch appeared to need reconfiguration even though it 
-was on a separate power domain. Given, I booted the machine off a NVMe 
-drive plugged into that switch, I got another nice screen full of blk_mq 
-errors before it officially passed on.
-
-So, the link appears to recover, but that doesn't appear to be enough to 
-make the downstream devices recoverable.
-
-Thanks,
-
-
+> -	ret = memblock_reserve(crash_base, crash_size);
+> -	if (ret < 0) {
+> -		pr_warn("crashkernel reservation failed - memory is in use 
+> (0x%lx)\n",
+> -			(unsigned long)crash_base);
+> -		return;
+> -	}
+> -
+>  	pr_info("Reserving %ldMB of memory at %ldMB for crashkernel (System
+> RAM: %ldMB)\n",
+>  		(unsigned long)(crash_size >> 20),
+>  		(unsigned long)(crash_base >> 20),
+> diff --git a/arch/arm64/kvm/hyp/reserved_mem.c
+> b/arch/arm64/kvm/hyp/reserved_mem.c
+> index d654921dd09b..578670e3f608 100644
+> --- a/arch/arm64/kvm/hyp/reserved_mem.c
+> +++ b/arch/arm64/kvm/hyp/reserved_mem.c
+> @@ -92,12 +92,10 @@ void __init kvm_hyp_reserve(void)
+>  	 * this is unmapped from the host stage-2, and fallback to PAGE_SIZE.
+>  	 */
+>  	hyp_mem_size = hyp_mem_pages << PAGE_SHIFT;
+> -	hyp_mem_base = memblock_find_in_range(0, memblock_end_of_DRAM(),
+> -					      ALIGN(hyp_mem_size, PMD_SIZE),
+> -					      PMD_SIZE);
+> +	hyp_mem_base = memblock_phys_alloc(ALIGN(hyp_mem_size, PMD_SIZE),
+> +					   PMD_SIZE);
+>  	if (!hyp_mem_base)
+> -		hyp_mem_base = memblock_find_in_range(0, memblock_end_of_DRAM(),
+> -						      hyp_mem_size, PAGE_SIZE);
+> +		hyp_mem_base = memblock_phys_alloc(hyp_mem_size, PAGE_SIZE);
+>  	else
+>  		hyp_mem_size = ALIGN(hyp_mem_size, PMD_SIZE);
 > 
->> +	/* For devices, write to the config space index register */
->> +	idx = PCIE_ECAM_OFFSET(bus->number, devfn, 0);
->> +	writel(idx, base + PCIE_EXT_CFG_INDEX);
->> +	return base + PCIE_EXT_CFG_DATA + where;
->> +}
->> +
->> +const struct pci_ecam_ops bcm2711_pcie_ops = {
->> +	.init		= brcm_acpi_init,
->> +	.bus_shift	= 1,
->> +	.pci_ops	= {
->> +		.map_bus	= brcm_pcie_map_conf2,
->> +		.read		= pci_generic_config_read,
->> +		.write		= pci_generic_config_write,
->> +	}
->> +};
->> diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
->> index adea5a4771cf..a5de0285bb7f 100644
->> --- a/include/linux/pci-ecam.h
->> +++ b/include/linux/pci-ecam.h
->> @@ -87,6 +87,7 @@ extern const struct pci_ecam_ops xgene_v1_pcie_ecam_ops; /* APM X-Gene PCIe v1 *
->>   extern const struct pci_ecam_ops xgene_v2_pcie_ecam_ops; /* APM X-Gene PCIe v2.x */
->>   extern const struct pci_ecam_ops al_pcie_ops;	/* Amazon Annapurna Labs PCIe */
->>   extern const struct pci_ecam_ops tegra194_pcie_ops; /* Tegra194 PCIe */
->> +extern const struct pci_ecam_ops bcm2711_pcie_ops; /* Bcm2711 PCIe */
->>   #endif
->>   
->>   #if IS_ENABLED(CONFIG_PCI_HOST_COMMON)
->> -- 
->> 2.31.1
->>
+> @@ -105,7 +103,6 @@ void __init kvm_hyp_reserve(void)
+>  		kvm_err("Failed to reserve hyp memory\n");
+>  		return;
+>  	}
+> -	memblock_reserve(hyp_mem_base, hyp_mem_size);
+> 
+>  	kvm_info("Reserved %lld MiB at 0x%llx\n", hyp_mem_size >> 20,
+>  		 hyp_mem_base);
+> diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
+> index 8490ed2917ff..d566478a06dd 100644
+> --- a/arch/arm64/mm/init.c
+> +++ b/arch/arm64/mm/init.c
+> @@ -74,6 +74,7 @@ phys_addr_t arm64_dma_phys_limit __ro_after_init;
+>  static void __init reserve_crashkernel(void)
+>  {
+>  	unsigned long long crash_base, crash_size;
+> +	unsigned long crash_max = arm64_dma_phys_limit;
+>  	int ret;
+> 
+>  	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+> @@ -84,33 +85,18 @@ static void __init reserve_crashkernel(void)
+> 
+>  	crash_size = PAGE_ALIGN(crash_size);
+> 
+> -	if (crash_base == 0) {
+> -		/* Current arm64 boot protocol requires 2MB alignment */
+> -		crash_base = memblock_find_in_range(0, arm64_dma_phys_limit,
+> -				crash_size, SZ_2M);
+> -		if (crash_base == 0) {
+> -			pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
+> -				crash_size);
+> -			return;
+> -		}
+> -	} else {
+> -		/* User specifies base address explicitly. */
+> -		if (!memblock_is_region_memory(crash_base, crash_size)) {
+> -			pr_warn("cannot reserve crashkernel: region is not memory\n");
+> -			return;
+> -		}
+> +	/* User specifies base address explicitly. */
+> +	if (crash_base)
+> +		crash_max = crash_base + crash_size;
+> 
+> -		if (memblock_is_region_reserved(crash_base, crash_size)) {
+> -			pr_warn("cannot reserve crashkernel: region overlaps reserved 
+> memory\n");
+> -			return;
+> -		}
+> -
+> -		if (!IS_ALIGNED(crash_base, SZ_2M)) {
+> -			pr_warn("cannot reserve crashkernel: base address is not 2MB 
+> aligned\n");
+> -			return;
+> -		}
+> +	/* Current arm64 boot protocol requires 2MB alignment */
+> +	crash_base = memblock_phys_alloc_range(crash_size, SZ_2M,
+> +					       crash_base, crash_max);
+> +	if (!crash_base) {
+> +		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
+> +			crash_size);
+> +		return;
+>  	}
+> -	memblock_reserve(crash_base, crash_size);
+> 
+>  	pr_info("crashkernel reserved: 0x%016llx - 0x%016llx (%lld MB)\n",
+>  		crash_base, crash_base + crash_size, crash_size >> 20);
+> diff --git a/arch/mips/kernel/setup.c b/arch/mips/kernel/setup.c
+> index 23a140327a0b..f979adfd4fc2 100644
+> --- a/arch/mips/kernel/setup.c
+> +++ b/arch/mips/kernel/setup.c
+> @@ -452,8 +452,9 @@ static void __init mips_parse_crashkernel(void)
+>  		return;
+> 
+>  	if (crash_base <= 0) {
+> -		crash_base = memblock_find_in_range(CRASH_ALIGN, CRASH_ADDR_MAX,
+> -							crash_size, CRASH_ALIGN);
+> +		crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
+> +						       CRASH_ALIGN,
+> +						       CRASH_ADDR_MAX);
+>  		if (!crash_base) {
+>  			pr_warn("crashkernel reservation failed - No suitable area 
+> found.\n");
+>  			return;
+> @@ -461,8 +462,9 @@ static void __init mips_parse_crashkernel(void)
+>  	} else {
+>  		unsigned long long start;
+> 
+> -		start = memblock_find_in_range(crash_base, crash_base + crash_size,
+> -						crash_size, 1);
+> +		start = memblock_phys_alloc_range(crash_size, 1,
+> +						  crash_base,
+> +						  crash_base + crash_size);
+>  		if (start != crash_base) {
+>  			pr_warn("Invalid memory region reserved for crash kernel\n");
+>  			return;
+> @@ -656,10 +658,6 @@ static void __init arch_mem_init(char **cmdline_p)
+>  	mips_reserve_vmcore();
+> 
+>  	mips_parse_crashkernel();
+> -#ifdef CONFIG_KEXEC
+> -	if (crashk_res.start != crashk_res.end)
+> -		memblock_reserve(crashk_res.start, resource_size(&crashk_res));
+> -#endif
+>  	device_tree_init();
+> 
+>  	/*
+> diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
+> index a14bf3910eec..88649337c568 100644
+> --- a/arch/riscv/mm/init.c
+> +++ b/arch/riscv/mm/init.c
+> @@ -812,38 +812,22 @@ static void __init reserve_crashkernel(void)
+> 
+>  	crash_size = PAGE_ALIGN(crash_size);
+> 
+> -	if (crash_base == 0) {
+> -		/*
+> -		 * Current riscv boot protocol requires 2MB alignment for
+> -		 * RV64 and 4MB alignment for RV32 (hugepage size)
+> -		 */
+> -		crash_base = memblock_find_in_range(search_start, search_end,
+> -						    crash_size, PMD_SIZE);
+> -
+> -		if (crash_base == 0) {
+> -			pr_warn("crashkernel: couldn't allocate %lldKB\n",
+> -				crash_size >> 10);
+> -			return;
+> -		}
+> -	} else {
+> -		/* User specifies base address explicitly. */
+> -		if (!memblock_is_region_memory(crash_base, crash_size)) {
+> -			pr_warn("crashkernel: requested region is not memory\n");
+> -			return;
+> -		}
+> -
+> -		if (memblock_is_region_reserved(crash_base, crash_size)) {
+> -			pr_warn("crashkernel: requested region is reserved\n");
+> -			return;
+> -		}
+> -
+> +	if (crash_base) {
+> +		search_start = crash_base;
+> +		search_end = crash_base + crash_size;
+> +	}
+> 
+> -		if (!IS_ALIGNED(crash_base, PMD_SIZE)) {
+> -			pr_warn("crashkernel: requested region is misaligned\n");
+> -			return;
+> -		}
+> +	/*
+> +	 * Current riscv boot protocol requires 2MB alignment for
+> +	 * RV64 and 4MB alignment for RV32 (hugepage size)
+> +	 */
+> +	crash_base = memblock_phys_alloc_range(crash_size, PMD_SIZE,
+> +					       search_start, search_end);
+> +	if (crash_base == 0) {
+> +		pr_warn("crashkernel: couldn't allocate %lldKB\n",
+> +			crash_size >> 10);
+> +		return;
+>  	}
+> -	memblock_reserve(crash_base, crash_size);
+> 
+>  	pr_info("crashkernel: reserved 0x%016llx - 0x%016llx (%lld MB)\n",
+>  		crash_base, crash_base + crash_size, crash_size >> 20);
 
+For the riscv part:
+
+Acked-by: Nick Kossifidis <mick@ics.forth.gr>
