@@ -2,70 +2,146 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20689C4320A
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 14:55:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91574C4320A
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01A6360FE6
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 14:55:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 691A460FA0
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232605AbhHKOzk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 Aug 2021 10:55:40 -0400
-Received: from foss.arm.com ([217.140.110.172]:52452 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232597AbhHKOzj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 11 Aug 2021 10:55:39 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C12CD1063;
-        Wed, 11 Aug 2021 07:55:15 -0700 (PDT)
-Received: from lpieralisi (e121166-lin.cambridge.arm.com [10.1.196.255])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3901A3F718;
-        Wed, 11 Aug 2021 07:55:14 -0700 (PDT)
-Date:   Wed, 11 Aug 2021 15:55:08 +0100
-From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Ard Biesheuvel <ardb@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Veronika kabatova <vkabatov@redhat.com>,
-        Robin Murphy <robin.murphy@arm.com>,
+        id S233127AbhHKPhA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 Aug 2021 11:37:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45838 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233010AbhHKPg7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Aug 2021 11:36:59 -0400
+Received: from mail-il1-x131.google.com (mail-il1-x131.google.com [IPv6:2607:f8b0:4864:20::131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 112C7C061765;
+        Wed, 11 Aug 2021 08:36:36 -0700 (PDT)
+Received: by mail-il1-x131.google.com with SMTP id x7so3275048ilh.10;
+        Wed, 11 Aug 2021 08:36:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=C4Yippe1FfLHJnm/bBg0Tev596XLEVnx9ptKT8Tmv1w=;
+        b=tuo0NJhlbsE1cgJWOCTQMJGME0TyKH6WbYQBRHNGe6yb4vS8khVqpRBj9CelO4Drcu
+         ipgawXlzgK+T4+0OBbYZXrAC1LFA5a7zBBMAxXttMA0xiNXNci6NbPSr29QvVBGM+LzW
+         29epQDHdAjX31mv91AAwgsMS8FmaqZJ2+oJcz/nKZExo2GdJ6bM9tSj48TZSrpoMKC02
+         c+JeSib3R+Nz6EjTa6xDUcvTxRMEGNVg12BZ4RkXpr1AUdAsrvuWuBm2oTzNFEZOw4S7
+         PMChY9ksUDnIApH0yl+pHTagBMzZoevhZZ0489tbZYC1FLezbgfwtDnFmSd48OU9F4Sr
+         Cgpg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=C4Yippe1FfLHJnm/bBg0Tev596XLEVnx9ptKT8Tmv1w=;
+        b=LpSorsVwJjjVCPeQGFkGkfWbP7HWl53bo8sHm2c7D4QGOsuYZYyV88HR08mZuH45tb
+         0er6S5+RvjA6EBDmtYCULRCX0dvtRDnGGO1WUJIHtLumctYOOwYSeNtHGo1v1VQrg64g
+         B5KX1sxj8LIbxxFYsBU1OhjZT1ef7qpW+JjhENWVnYtWqW5WKMKkveHbEPrE+m47m1S3
+         V6fDbBLTxd2ZFUjOr0u6Qz/vCD/sEgXSkwVg1jvhU8+LodJeon9X2jb/MKQL3UbGyteU
+         vRASRzGwI6DP5+bPB9pkohaaInKBZfPyHQBpSy/0YzLfe9EVjjs0611usmD7kN1/TtSk
+         cBeA==
+X-Gm-Message-State: AOAM530djA9ULyBqQnzmp8PQhXfU3tV0rTxcBJLbT0RUtar2DDabmWdd
+        Unc9EAjeiolcGq3TOTiq5cU=
+X-Google-Smtp-Source: ABdhPJyNTPz4hVjuOvkYyoJGprZOIGKlvLeq9sYzEWOuFruqzCYMdKQk+WsJtr3StkToCnA5pmFe0A==
+X-Received: by 2002:a05:6e02:1aaf:: with SMTP id l15mr51523ilv.128.1628696195512;
+        Wed, 11 Aug 2021 08:36:35 -0700 (PDT)
+Received: from auth2-smtp.messagingengine.com (auth2-smtp.messagingengine.com. [66.111.4.228])
+        by smtp.gmail.com with ESMTPSA id r1sm12858165ilt.37.2021.08.11.08.36.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 Aug 2021 08:36:35 -0700 (PDT)
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+        by mailauth.nyi.internal (Postfix) with ESMTP id 1293C27C0054;
+        Wed, 11 Aug 2021 11:36:33 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute1.internal (MEProxy); Wed, 11 Aug 2021 11:36:34 -0400
+X-ME-Sender: <xms:f-4TYeyDY-tqzLn91IwpWBMsoKdcnhn-Po73HZSJ3YMhnblmhH6gIQ>
+    <xme:f-4TYaRPay_p1qCOKeStxdzVbhKSppcTl_RPqCUtDWdQJOq5zohNwNqwm6rsyrJRz
+    1s2B_ufH2JLpr152Q>
+X-ME-Received: <xmr:f-4TYQWZzjQEVuDeGplKGtke55nDNhu_9lu3CX5s3jm5oyWwKiAwekeYZKY>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrkedugdeltdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefhvffufffkofgggfestdekredtredttdenucfhrhhomhepuehoqhhunhcuhfgv
+    nhhguceosghoqhhunhdrfhgvnhhgsehgmhgrihhlrdgtohhmqeenucggtffrrghtthgvrh
+    hnpeeiueevjeelheduteefveeflefgjeetfeehvdekudekgfegudeghfduhfetveejuden
+    ucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenuc
+    frrghrrghmpehmrghilhhfrhhomhepsghoqhhunhdomhgvshhmthhprghuthhhphgvrhhs
+    ohhnrghlihhthidqieelvdeghedtieegqddujeejkeehheehvddqsghoqhhunhdrfhgvnh
+    hgpeepghhmrghilhdrtghomhesfhhigihmvgdrnhgrmhgv
+X-ME-Proxy: <xmx:f-4TYUgR8cSw0c2QXu0An5T3UvBrcX3cDGBtKcReql7HxgKePM4i-w>
+    <xmx:f-4TYQDQzgoxcAIn_ZyyTk4-napsH79pFmucDo26F5V8xSvPVEIYyw>
+    <xmx:f-4TYVIs1alv2ETfrTUIikowPrWaQA-FrrMbpOX1YhoQKGbwm5dRWQ>
+    <xmx:ge4TYXC3gDEQxmiAu1dk9kOmvcSH1TynfVeQg8CBKcwSw82hnL8DC6YWMrk>
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 11 Aug 2021 11:36:31 -0400 (EDT)
+From:   Boqun Feng <boqun.feng@gmail.com>
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 1/3] ACPI: osl: Add __force attribute in
- acpi_os_map_iomem() cast
-Message-ID: <20210811145508.GA3650@lpieralisi>
-References: <20210726100026.12538-1-lorenzo.pieralisi@arm.com>
- <20210802152359.12623-2-lorenzo.pieralisi@arm.com>
- <YRKtEDycefrZLB3X@infradead.org>
- <CAMj1kXEB1CFj1svCWu7yOoUi_OkEqYEUQnB_XWOd3gD+ejO_6w@mail.gmail.com>
- <YRPZ2Kqb/MFggHzQ@infradead.org>
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+        Rob Herring <robh@kernel.org>,
+        =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-hyperv@vger.kernel.org,
+        Sunil Muthuswamy <sunilmut@microsoft.com>,
+        Marc Zyngier <maz@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Subject: [RFC 0/5] PCI: Use the private field of pci_host_bridge for ACPI device
+Date:   Wed, 11 Aug 2021 23:36:14 +0800
+Message-Id: <20210811153619.88922-1-boqun.feng@gmail.com>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YRPZ2Kqb/MFggHzQ@infradead.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 11, 2021 at 03:08:24PM +0100, Christoph Hellwig wrote:
-> On Wed, Aug 11, 2021 at 12:40:28PM +0200, Ard Biesheuvel wrote:
-> > The whole problem we are solving here is that ACPI, being based on
-> > x86, conflates MMIO mappings with memory mappings, and has been using
-> > the same underlying infrastructure for either.
-> 
-> So let's fix that problem instead of papering over it.
+Hi Lorenzo,
 
-Patch (3) in this series is a fix - I would ask whether it makes
-sense to merge patches (2-3) now and think about reworking the current
-ACPI IO/MEM mapping API later, it can be an invasive change for a fix,
-assuming we agree on how to rework the ACPI IO/MEM mapping API.
+As our previous discussion, I make a patchset showing the required
+effort if we want to use ->private in pci_host_bridge to store ACPI
+device pointer on ARM64. This patchset is mostly for discussion purpose.
 
-Lorenzo
+This patchset is based onto the v5 of my Hyper-V PCI on ARM64 patchset:
+
+	https://lore.kernel.org/lkml/20210726180657.142727-1-boqun.feng@gmail.com/
+
+, and I've tested it with other code under development to fully enable
+Hyper-V virtual PCI on ARM64.
+
+Regards,
+Boqun
+
+
+Boqun Feng (5):
+  PCI: Introduce pci_create_root_bus_priv()
+  PCI/ACPI: Store ACPI device information in the host bridge structure
+  PCI: hv: Set NULL as the ACPI device for the PCI host bridge
+  arm64: PCI: Retrieve ACPI device information directly from host
+    bridges
+  PCI: hv: Remove the dependency of pci_config_window
+
+ arch/arm64/kernel/pci.c             | 14 +-------------
+ drivers/acpi/pci_root.c             |  5 +++--
+ drivers/pci/controller/pci-hyperv.c | 20 +++++++++++++++-----
+ drivers/pci/probe.c                 | 15 ++++++++++++---
+ include/linux/pci-acpi.h            |  5 +++++
+ include/linux/pci.h                 |  3 +++
+ 6 files changed, 39 insertions(+), 23 deletions(-)
+
+-- 
+2.32.0
+
