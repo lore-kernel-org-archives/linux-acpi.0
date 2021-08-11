@@ -5,67 +5,67 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B74C3C43216
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA70C432BE
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A88760FA0
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 252B660FD9
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233213AbhHKPhC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 Aug 2021 11:37:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45842 "EHLO
+        id S233300AbhHKPhG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 Aug 2021 11:37:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233189AbhHKPhB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Aug 2021 11:37:01 -0400
-Received: from mail-il1-x129.google.com (mail-il1-x129.google.com [IPv6:2607:f8b0:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B868C061765;
-        Wed, 11 Aug 2021 08:36:37 -0700 (PDT)
-Received: by mail-il1-x129.google.com with SMTP id a4so3248099ilj.12;
-        Wed, 11 Aug 2021 08:36:37 -0700 (PDT)
+        with ESMTP id S233248AbhHKPhE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Aug 2021 11:37:04 -0400
+Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 845F7C0613D5;
+        Wed, 11 Aug 2021 08:36:40 -0700 (PDT)
+Received: by mail-il1-x133.google.com with SMTP id c3so3315023ilh.3;
+        Wed, 11 Aug 2021 08:36:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=GWLHS7/8sRUtmPBUfizlYA1mSy1P6fTX/Paccfguq6M=;
-        b=qcNIH8Msq5OiNc+L3Z12ZCE8w4EtGd20JL38KwwamTSNTSTMC3eqGwkenBJAWDayAK
-         nqm0sz6epxb9sWaCbqn+N7LA0kHi15vojXcwMD3qAQNU0GBY7jUSv/6onB95VYDkLp/y
-         sghqlkytM26c+cPSX0otKUN4wcrCkIwtQ61pf7sOlDRKuyrUSAL0jwIEWi224YLcx8I9
-         TalWA6dpPTmMh3cVQ/mcz8PxKTKJsCdomhx5gm8u0uXReyo+4almtLtZ+NI6cDUAjyd1
-         V2CR5diJMvIGg8IA/Pw3UD7Fh9p1mjqyGBqbLGxeO7VbuffW/yUgeiAhSLxE4xxL1i6o
-         TNrA==
+        bh=m+WerKLNTuUcJjz5ppPIhMIuAZu9yrWomJykGHOMdQE=;
+        b=Xw6bPBKjGySndzPoxC/HBXcfij6Ej8gsr8XCwc/zUlawabtn9idGbjPtC5CiRKkBTI
+         IA8wyHhBi1Eb/DNR66nHkc+bGlSqJ1oMU4yomnzFoL0dLvsgp9EijGkpycy+ME8ywYAU
+         9miztcb3otIBCm1rnSjISWjbUkHjtO5Zh2zXHk64EhOOR4+ZoIniFCi6Vzp+VeQwPEFF
+         0swypePmtrL4wWMaRNBmi/e63ZXF5YQpxE0eYKmevPTTY0pWT9oCPylMLKRBiOT3TNq1
+         9Jbxxt1ehFQEq3YrJUL7/RrF9dIgres10UXUChxe2NvXIyryaSik9xOkU7x4vyd0R6Yz
+         cr1g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=GWLHS7/8sRUtmPBUfizlYA1mSy1P6fTX/Paccfguq6M=;
-        b=P4vFB0d8syu0VmD7w5vwrcakDN1pSriCyAfMKl4j2NIQKud6GKxcW7jCfwgDBuEnzc
-         05dw//gcfAeG3E3rZKPb5OeHIW9LwE9crYJpdVIKOLmAY/uYOxjXZ5tzy6pXR21RVh9l
-         yym7Ed4EGrzp1MH04m/2ehkXg3huzhivNotPzk2KNYNgbqmdSjhuOWTZonOJbjZRxNWf
-         J0FidO4jUbzCv0n+89MXRC1yJ/u43YZ5oIpviO3IfHQ5CqyMl3YNDGWyGJVSbMYRxsxf
-         GZR00lBbarzTzC24QHRR1utKdUchmTnhoT9RlCQmpCgiLqsv2b9l1X9ZnLzLjocCuoNN
-         jYog==
-X-Gm-Message-State: AOAM530VGO2f2DYeG9J5dxxm672KUqZPeGQhg1/9mIMC0Ac1htbCnsss
-        shUl00IRWR7GgPZMT8xTuyg=
-X-Google-Smtp-Source: ABdhPJw7CZTvEfUfPqm/j+ddaSI2a9I3c0fRLtrRijCPdrvAwL2rCz2j6pNCSqyitNsKHlsE4XcAPQ==
-X-Received: by 2002:a92:4453:: with SMTP id a19mr335155ilm.221.1628696196604;
-        Wed, 11 Aug 2021 08:36:36 -0700 (PDT)
+        bh=m+WerKLNTuUcJjz5ppPIhMIuAZu9yrWomJykGHOMdQE=;
+        b=PJ6KQ1a8g1oDOyv6OHsFsUocjdzpWKt+2QUVpYBsgGOaAva71E+z67DdBzuhAEFp01
+         C2GKXz3Kxdw8Khh905spuORcWhQtMTaLZGjbLZ9ovu/tszK44gSbJm7VbtAGRwoYWk86
+         tSbci4C9Fh8wTZAUZj+rGP5ZntM/hy4+BPpc4ajVnjlffC3J18+ixXdqClLYL3zBJalv
+         0AAYf+9pqTUaIEALh+8/h8r8sleI+/DYVnSZl4baROLP85WZJ9Gugd8tbRXICTYq+ukE
+         4hwpAc9KNZ7qHth2lMPC4d9qMUTCo94jDf2fzCTZjgRvlqpwn2OkhJLt7v5fnpSN2OAd
+         3SOA==
+X-Gm-Message-State: AOAM531hMIF0XEONkVXJORK03mf59s6CKCxnM3knUhe5wj/Uj9aVvY5R
+        59Tijx9xErqmiONQ3Kxy1jA=
+X-Google-Smtp-Source: ABdhPJwG2Q43Tufl+2zOtEvKna7XTvih3Y7p27iDvAbAfAT9elYx46qIz2mqI+h/bG7cZprSEiAaxg==
+X-Received: by 2002:a05:6e02:13f0:: with SMTP id w16mr276304ilj.268.1628696200058;
+        Wed, 11 Aug 2021 08:36:40 -0700 (PDT)
 Received: from auth2-smtp.messagingengine.com (auth2-smtp.messagingengine.com. [66.111.4.228])
-        by smtp.gmail.com with ESMTPSA id h8sm5899493ile.39.2021.08.11.08.36.35
+        by smtp.gmail.com with ESMTPSA id t15sm12914887iln.77.2021.08.11.08.36.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Aug 2021 08:36:36 -0700 (PDT)
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailauth.nyi.internal (Postfix) with ESMTP id 422DF27C005A;
-        Wed, 11 Aug 2021 11:36:35 -0400 (EDT)
+        Wed, 11 Aug 2021 08:36:39 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailauth.nyi.internal (Postfix) with ESMTP id BCAAA27C0054;
+        Wed, 11 Aug 2021 11:36:38 -0400 (EDT)
 Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Wed, 11 Aug 2021 11:36:35 -0400
-X-ME-Sender: <xms:g-4TYb-zSMgBO_vPoDQj-oujYHkPUD45Bg6pVrbOWeYDHrsn6ylIbA>
-    <xme:g-4TYXs-fDarG14ksKEIY34V4XOlic36-le5D9e52OErHYmv5ln7GHeA6fUSyiEiL
-    BwkhYhOwPzFod1ppw>
-X-ME-Received: <xmr:g-4TYZB0zQ23GAWRBOVS83Ib4Z0hXDW_HKM0VUlCtDFJp4iQ7XLf2aD5MDw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrkedugdeltdcutefuodetggdotefrodftvf
+  by compute5.internal (MEProxy); Wed, 11 Aug 2021 11:36:38 -0400
+X-ME-Sender: <xms:he4TYYu_fkfWkZ1sy9OtFgmUVMfiW-OJ3rytMff_hgLViVA7TCIKTA>
+    <xme:he4TYVeMKLd8PPat7GNzlZpuax9FMGeC7P1D9M4qfkvgdwPMakM9qFl6WaGhwnqg0
+    Wb1hYMxBVOX8X0TPg>
+X-ME-Received: <xmr:he4TYTxD7jOVcdCQ_gZ1YkGpXN0MK4S-b-qsR5AFUk0LY8g-35lS5bp4l7A>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrkedugdeklecutefuodetggdotefrodftvf
     curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
     uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
     fjughrpefhvffufffkofgjfhgggfestdekredtredttdenucfhrhhomhepuehoqhhunhcu
@@ -75,12 +75,12 @@ X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrkedugdeltdcutefuodetggdote
     hquhhnodhmvghsmhhtphgruhhthhhpvghrshhonhgrlhhithihqdeiledvgeehtdeigedq
     udejjeekheehhedvqdgsohhquhhnrdhfvghngheppehgmhgrihhlrdgtohhmsehfihigmh
     gvrdhnrghmvg
-X-ME-Proxy: <xmx:g-4TYXdt1xDJGbBiVS0DAtr-4mRzR_-V3kA2WlogJXRwQlinXgBCjA>
-    <xmx:g-4TYQNKChBRz7ZvzF42OyEWSERBD3ulDv1wNLZO962ntRtdvg_HJw>
-    <xmx:g-4TYZnRimiddGuHuuCNbRDIrYWGmlfv-FSRixO3u-VpqLJj0e6V0Q>
-    <xmx:g-4TYctJditQpUvP_epS_vJc0KiLNFqGVE54QYdwaI3lluExlGu15qXve0s>
+X-ME-Proxy: <xmx:he4TYbP0DXUPZ2rLB-eC_riltFQkOP6AaPMFqVsvSNH4FIYA7UxeOw>
+    <xmx:he4TYY_GEWxUvhvq8zDauKaLZNJRSSOZVAYpzlPlpk6Akx5ndco20g>
+    <xmx:he4TYTWhsIp172WT4bdecVCNZicWTcCMFhk2fE6z2YAMPC2Tg2PVSw>
+    <xmx:hu4TYbcrq1OJ_K9ttEqRoQgIOJRIjiWEK81s8nvd0tIsx9d0ne2TkkR3GkQ>
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 11 Aug 2021 11:36:34 -0400 (EDT)
+ 11 Aug 2021 11:36:37 -0400 (EDT)
 From:   Boqun Feng <boqun.feng@gmail.com>
 To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc:     Catalin Marinas <catalin.marinas@arm.com>,
@@ -100,9 +100,9 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         linux-hyperv@vger.kernel.org,
         Sunil Muthuswamy <sunilmut@microsoft.com>,
         Marc Zyngier <maz@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 1/5] PCI: Introduce pci_create_root_bus_priv()
-Date:   Wed, 11 Aug 2021 23:36:15 +0800
-Message-Id: <20210811153619.88922-2-boqun.feng@gmail.com>
+Subject: [RFC 3/5] PCI: hv: Set NULL as the ACPI device for the PCI host bridge
+Date:   Wed, 11 Aug 2021 23:36:17 +0800
+Message-Id: <20210811153619.88922-4-boqun.feng@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210811153619.88922-1-boqun.feng@gmail.com>
 References: <20210811153619.88922-1-boqun.feng@gmail.com>
@@ -112,77 +112,38 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In order to allow root bus creation to populate the ->private of the
-pci_host_bridge at the same, pci_create_root_bus_priv() is introduced.
-The new function will be used to support passing the corresponding ACPI
-device as the ->private field when creating the PCI root bus.
+A PCI host bridge of Hyper-V doesn't have the corresponding ACPI device,
+therefore a NULL pointer needs to be set as the ->private of
+pci_host_bridge since for platforms with ACPI ->private is used to store
+the ACPI device information for the host bridges.
 
-No functional change.
+And since kzalloc() is used to allocate pci_host_bridge, as a result,
+what is needed is just setting the correct size of ->private, kzalloc()
+will zero the field as if set a NULL pointer to it.
 
 Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
 ---
- drivers/pci/probe.c | 15 ++++++++++++---
- include/linux/pci.h |  3 +++
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/pci/controller/pci-hyperv.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ea7f2a57e2f5..8f5fea2a7bd9 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2991,13 +2991,14 @@ void __weak pcibios_remove_bus(struct pci_bus *bus)
- {
- }
+diff --git a/drivers/pci/controller/pci-hyperv.c b/drivers/pci/controller/pci-hyperv.c
+index 62dbe98d1fe1..fd3792b5edcc 100644
+--- a/drivers/pci/controller/pci-hyperv.c
++++ b/drivers/pci/controller/pci-hyperv.c
+@@ -3021,7 +3021,12 @@ static int hv_pci_probe(struct hv_device *hdev,
+ 	 */
+ 	BUILD_BUG_ON(sizeof(*hbus) > HV_HYP_PAGE_SIZE);
  
--struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
--		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+struct pci_bus *pci_create_root_bus_priv(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources,
-+		void *private, size_t priv_size)
- {
- 	int error;
- 	struct pci_host_bridge *bridge;
- 
--	bridge = pci_alloc_host_bridge(0);
-+	bridge = pci_alloc_host_bridge(priv_size);
+-	bridge = devm_pci_alloc_host_bridge(&hdev->device, 0);
++	/*
++	 * devm_pci_alloc_host_bridge() use kzalloc(), and we want to set
++	 * ->private as a NULL pointer, therefore no need to set ->private after
++	 * allocation.
++	 */
++	bridge = devm_pci_alloc_host_bridge(&hdev->device, sizeof(struct acpi_device *));
  	if (!bridge)
- 		return NULL;
+ 		return -ENOMEM;
  
-@@ -3008,6 +3009,9 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	bridge->busnr = bus;
- 	bridge->ops = ops;
- 
-+	if (priv_size)
-+		memcpy(bridge->private, private, priv_size);
-+
- 	error = pci_register_host_bridge(bridge);
- 	if (error < 0)
- 		goto err_out;
-@@ -3018,6 +3022,11 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	put_device(&bridge->dev);
- 	return NULL;
- }
-+struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	return pci_create_root_bus_priv(parent, bus, ops, sysdata, resources, NULL, 0);
-+}
- EXPORT_SYMBOL_GPL(pci_create_root_bus);
- 
- int pci_host_probe(struct pci_host_bridge *bridge)
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 01aa201e1df0..119356312979 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1041,6 +1041,9 @@ void pcibios_scan_specific_bus(int busn);
- struct pci_bus *pci_find_bus(int domain, int busnr);
- void pci_bus_add_devices(const struct pci_bus *bus);
- struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops, void *sysdata);
-+struct pci_bus *pci_create_root_bus_priv(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources,
-+		void *private, size_t priv_size);
- struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 				    struct pci_ops *ops, void *sysdata,
- 				    struct list_head *resources);
 -- 
 2.32.0
 
