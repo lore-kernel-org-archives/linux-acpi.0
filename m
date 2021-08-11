@@ -2,84 +2,85 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91574C4320A
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51855C432BE
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 691A460FA0
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FC5B60E09
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 Aug 2021 15:36:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233127AbhHKPhA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 Aug 2021 11:37:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45838 "EHLO
+        id S233189AbhHKPhE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 Aug 2021 11:37:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233010AbhHKPg7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Aug 2021 11:36:59 -0400
-Received: from mail-il1-x131.google.com (mail-il1-x131.google.com [IPv6:2607:f8b0:4864:20::131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 112C7C061765;
-        Wed, 11 Aug 2021 08:36:36 -0700 (PDT)
-Received: by mail-il1-x131.google.com with SMTP id x7so3275048ilh.10;
-        Wed, 11 Aug 2021 08:36:36 -0700 (PDT)
+        with ESMTP id S232624AbhHKPhC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Aug 2021 11:37:02 -0400
+Received: from mail-io1-xd2f.google.com (mail-io1-xd2f.google.com [IPv6:2607:f8b0:4864:20::d2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F0CCC061765;
+        Wed, 11 Aug 2021 08:36:38 -0700 (PDT)
+Received: by mail-io1-xd2f.google.com with SMTP id s184so4229577ios.2;
+        Wed, 11 Aug 2021 08:36:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=C4Yippe1FfLHJnm/bBg0Tev596XLEVnx9ptKT8Tmv1w=;
-        b=tuo0NJhlbsE1cgJWOCTQMJGME0TyKH6WbYQBRHNGe6yb4vS8khVqpRBj9CelO4Drcu
-         ipgawXlzgK+T4+0OBbYZXrAC1LFA5a7zBBMAxXttMA0xiNXNci6NbPSr29QvVBGM+LzW
-         29epQDHdAjX31mv91AAwgsMS8FmaqZJ2+oJcz/nKZExo2GdJ6bM9tSj48TZSrpoMKC02
-         c+JeSib3R+Nz6EjTa6xDUcvTxRMEGNVg12BZ4RkXpr1AUdAsrvuWuBm2oTzNFEZOw4S7
-         PMChY9ksUDnIApH0yl+pHTagBMzZoevhZZ0489tbZYC1FLezbgfwtDnFmSd48OU9F4Sr
-         Cgpg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=H0aePHbvBlMQFFOlxS/RlBo9IjhQNt3o+m5ARm3Lb0E=;
+        b=KSxqYJ+KWw7Gg3DhQLJkgDY1JuTJXIjrCvPJgn3MOCKyuVYdmdz68zetkXAXt3bu4x
+         ES6AUIJPnki5DiPDmJ8aDEAo+XTY5BJ7Kg1rKv0gTRR+0i2E6TJO6igmNq15J3L5y3kv
+         x+7brmJEjp2AiWLmaoPuAXa/PABSGWuETv74xIQmjrTlKl40vcEthWTA1Gr/CWv2lLQN
+         khucthDm/e6F/W6tTJb9zWZ+/5HTQrjlwe94h4NDZ+/5C7i4lyeaPA2J2CXH2JitEFDw
+         fNVbFqtmVgDS4r35EnL6xOX8mTE93LdZ61zLRoZiGGDhJUDGXWYWD3kKsMFiIdcR/DQd
+         gonA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=C4Yippe1FfLHJnm/bBg0Tev596XLEVnx9ptKT8Tmv1w=;
-        b=LpSorsVwJjjVCPeQGFkGkfWbP7HWl53bo8sHm2c7D4QGOsuYZYyV88HR08mZuH45tb
-         0er6S5+RvjA6EBDmtYCULRCX0dvtRDnGGO1WUJIHtLumctYOOwYSeNtHGo1v1VQrg64g
-         B5KX1sxj8LIbxxFYsBU1OhjZT1ef7qpW+JjhENWVnYtWqW5WKMKkveHbEPrE+m47m1S3
-         V6fDbBLTxd2ZFUjOr0u6Qz/vCD/sEgXSkwVg1jvhU8+LodJeon9X2jb/MKQL3UbGyteU
-         vRASRzGwI6DP5+bPB9pkohaaInKBZfPyHQBpSy/0YzLfe9EVjjs0611usmD7kN1/TtSk
-         cBeA==
-X-Gm-Message-State: AOAM530djA9ULyBqQnzmp8PQhXfU3tV0rTxcBJLbT0RUtar2DDabmWdd
-        Unc9EAjeiolcGq3TOTiq5cU=
-X-Google-Smtp-Source: ABdhPJyNTPz4hVjuOvkYyoJGprZOIGKlvLeq9sYzEWOuFruqzCYMdKQk+WsJtr3StkToCnA5pmFe0A==
-X-Received: by 2002:a05:6e02:1aaf:: with SMTP id l15mr51523ilv.128.1628696195512;
-        Wed, 11 Aug 2021 08:36:35 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=H0aePHbvBlMQFFOlxS/RlBo9IjhQNt3o+m5ARm3Lb0E=;
+        b=TSw1kqU0t7mDMW5wtuEOVV0/Uz6XjrB43Pi8XeqKjo3tW/N6fxHBiDT5c6bmVeFapn
+         brCvnCmlx4uP92zJwyEh+7MoU2SuKbaNtusm3j7xsxDQXmgxPz82FisqcmlvLaBFJVbH
+         vmdTKtC1iv1o08D4d2uf+5lwmtnUoBKuj4heRC5TFCTaKvzP7FP/CXDmQvyVbCKyUS+G
+         pxwNKfSio0Vf1SDk9VjrttzVTus3/Z70rfIUz9+kPkUGSG5col+Jz3a+jE3zDUhNvVVq
+         2ocdEkmu/A/zOnBY+Qg6slLMqA6tZsViyq9rJQ3hURnYUXc+LT0IkHevyiY1+H0/TC6m
+         /2pw==
+X-Gm-Message-State: AOAM532vWDdFMK3eyanaqVjNuAmK5Kr4JTkAdoyOvBGqeuoZCDK+l2Fm
+        p2YbOC4yZwlX2WWUDn4/f9E=
+X-Google-Smtp-Source: ABdhPJw4swY5OoR9NWjAtDhIiSaQ+1h4/lWhktDxZBX90x+/YF3KS5bdFjgKxgydOLGMjvvdPVEdyA==
+X-Received: by 2002:a6b:b502:: with SMTP id e2mr256604iof.152.1628696198048;
+        Wed, 11 Aug 2021 08:36:38 -0700 (PDT)
 Received: from auth2-smtp.messagingengine.com (auth2-smtp.messagingengine.com. [66.111.4.228])
-        by smtp.gmail.com with ESMTPSA id r1sm12858165ilt.37.2021.08.11.08.36.34
+        by smtp.gmail.com with ESMTPSA id x11sm14111871ilu.3.2021.08.11.08.36.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Aug 2021 08:36:35 -0700 (PDT)
+        Wed, 11 Aug 2021 08:36:37 -0700 (PDT)
 Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailauth.nyi.internal (Postfix) with ESMTP id 1293C27C0054;
-        Wed, 11 Aug 2021 11:36:33 -0400 (EDT)
+        by mailauth.nyi.internal (Postfix) with ESMTP id 7433527C0054;
+        Wed, 11 Aug 2021 11:36:36 -0400 (EDT)
 Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Wed, 11 Aug 2021 11:36:34 -0400
-X-ME-Sender: <xms:f-4TYeyDY-tqzLn91IwpWBMsoKdcnhn-Po73HZSJ3YMhnblmhH6gIQ>
-    <xme:f-4TYaRPay_p1qCOKeStxdzVbhKSppcTl_RPqCUtDWdQJOq5zohNwNqwm6rsyrJRz
-    1s2B_ufH2JLpr152Q>
-X-ME-Received: <xmr:f-4TYQWZzjQEVuDeGplKGtke55nDNhu_9lu3CX5s3jm5oyWwKiAwekeYZKY>
+  by compute1.internal (MEProxy); Wed, 11 Aug 2021 11:36:36 -0400
+X-ME-Sender: <xms:hO4TYbcSvMjpM1tgcNbpy7qUhra4u1o9fBhA8dv0IzJj5Kt06dPoMA>
+    <xme:hO4TYRN-jqsnnep_xFgLuq_BY3aM7M_yypzuarvrqlxZYwegG00WfEnNLHaNmLWp_
+    9qPSlVAQsleXvfH_w>
+X-ME-Received: <xmr:hO4TYUgY1btGJMOlUKpzZI2_ofu5U2fVjB5e1Cw1ouitT3Ld30xuMwt5rhc>
 X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrkedugdeltdcutefuodetggdotefrodftvf
     curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
     uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefhvffufffkofgggfestdekredtredttdenucfhrhhomhepuehoqhhunhcuhfgv
-    nhhguceosghoqhhunhdrfhgvnhhgsehgmhgrihhlrdgtohhmqeenucggtffrrghtthgvrh
-    hnpeeiueevjeelheduteefveeflefgjeetfeehvdekudekgfegudeghfduhfetveejuden
-    ucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenuc
-    frrghrrghmpehmrghilhhfrhhomhepsghoqhhunhdomhgvshhmthhprghuthhhphgvrhhs
-    ohhnrghlihhthidqieelvdeghedtieegqddujeejkeehheehvddqsghoqhhunhdrfhgvnh
-    hgpeepghhmrghilhdrtghomhesfhhigihmvgdrnhgrmhgv
-X-ME-Proxy: <xmx:f-4TYUgR8cSw0c2QXu0An5T3UvBrcX3cDGBtKcReql7HxgKePM4i-w>
-    <xmx:f-4TYQDQzgoxcAIn_ZyyTk4-napsH79pFmucDo26F5V8xSvPVEIYyw>
-    <xmx:f-4TYVIs1alv2ETfrTUIikowPrWaQA-FrrMbpOX1YhoQKGbwm5dRWQ>
-    <xmx:ge4TYXC3gDEQxmiAu1dk9kOmvcSH1TynfVeQg8CBKcwSw82hnL8DC6YWMrk>
+    fjughrpefhvffufffkofgjfhgggfestdekredtredttdenucfhrhhomhepuehoqhhunhcu
+    hfgvnhhguceosghoqhhunhdrfhgvnhhgsehgmhgrihhlrdgtohhmqeenucggtffrrghtth
+    gvrhhnpeehvdevteefgfeiudettdefvedvvdelkeejueffffelgeeuhffhjeetkeeiueeu
+    leenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegsoh
+    hquhhnodhmvghsmhhtphgruhhthhhpvghrshhonhgrlhhithihqdeiledvgeehtdeigedq
+    udejjeekheehhedvqdgsohhquhhnrdhfvghngheppehgmhgrihhlrdgtohhmsehfihigmh
+    gvrdhnrghmvg
+X-ME-Proxy: <xmx:hO4TYc9yz4TsXCXf5UdxdbonZj894YFEIk0XIFIU1a34ecBubWrE7w>
+    <xmx:hO4TYXugkYKQDjTUI-Tw44PIL-EN8C0cI9lUUIR2rbdaAiXNZqMwzg>
+    <xmx:hO4TYbFyeoo6NSM8caQmPZVUH974BMrgNr79JRQl0wPyfQGA-HaKbQ>
+    <xmx:hO4TYQMeNHif_jNNpfSo3NPiKPai0NvNkj7Zgb-YaPVV1_XtMbXaSl0bJp4>
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 11 Aug 2021 11:36:31 -0400 (EDT)
+ 11 Aug 2021 11:36:36 -0400 (EDT)
 From:   Boqun Feng <boqun.feng@gmail.com>
 To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc:     Catalin Marinas <catalin.marinas@arm.com>,
@@ -99,49 +100,63 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         linux-hyperv@vger.kernel.org,
         Sunil Muthuswamy <sunilmut@microsoft.com>,
         Marc Zyngier <maz@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 0/5] PCI: Use the private field of pci_host_bridge for ACPI device
-Date:   Wed, 11 Aug 2021 23:36:14 +0800
-Message-Id: <20210811153619.88922-1-boqun.feng@gmail.com>
+Subject: [RFC 2/5] PCI/ACPI: Store ACPI device information in the host bridge structure
+Date:   Wed, 11 Aug 2021 23:36:16 +0800
+Message-Id: <20210811153619.88922-3-boqun.feng@gmail.com>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210811153619.88922-1-boqun.feng@gmail.com>
+References: <20210811153619.88922-1-boqun.feng@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+In order to decouple the ACPI device information of a PCI host bridge
+from the sysdata, ->private of pci_host_bridge is used to store the ACPI
+device, and it's done by the new pci_create_root_bus_priv().
 
-As our previous discussion, I make a patchset showing the required
-effort if we want to use ->private in pci_host_bridge to store ACPI
-device pointer on ARM64. This patchset is mostly for discussion purpose.
+A reader function is also added, to retrieve the ACPI device information
+in pci_host_bridge.
 
-This patchset is based onto the v5 of my Hyper-V PCI on ARM64 patchset:
+Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
+---
+ drivers/acpi/pci_root.c  | 5 +++--
+ include/linux/pci-acpi.h | 5 +++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-	https://lore.kernel.org/lkml/20210726180657.142727-1-boqun.feng@gmail.com/
-
-, and I've tested it with other code under development to fully enable
-Hyper-V virtual PCI on ARM64.
-
-Regards,
-Boqun
-
-
-Boqun Feng (5):
-  PCI: Introduce pci_create_root_bus_priv()
-  PCI/ACPI: Store ACPI device information in the host bridge structure
-  PCI: hv: Set NULL as the ACPI device for the PCI host bridge
-  arm64: PCI: Retrieve ACPI device information directly from host
-    bridges
-  PCI: hv: Remove the dependency of pci_config_window
-
- arch/arm64/kernel/pci.c             | 14 +-------------
- drivers/acpi/pci_root.c             |  5 +++--
- drivers/pci/controller/pci-hyperv.c | 20 +++++++++++++++-----
- drivers/pci/probe.c                 | 15 ++++++++++++---
- include/linux/pci-acpi.h            |  5 +++++
- include/linux/pci.h                 |  3 +++
- 6 files changed, 39 insertions(+), 23 deletions(-)
-
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index d7deedf3548e..82824841cbda 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -894,8 +894,9 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+ 
+ 	pci_acpi_root_add_resources(info);
+ 	pci_add_resource(&info->resources, &root->secondary);
+-	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+-				  sysdata, &info->resources);
++	bus = pci_create_root_bus_priv(NULL, busnum, ops->pci_ops, sysdata,
++				       &info->resources, &root->device,
++				       sizeof(struct acpi_device *));
+ 	if (!bus)
+ 		goto out_release_info;
+ 
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 5ba475ca9078..21d4cc80aa55 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -80,6 +80,11 @@ extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+ 					    struct acpi_pci_root_ops *ops,
+ 					    struct acpi_pci_root_info *info,
+ 					    void *sd);
++static inline struct acpi_device *
++acpi_pci_root_device(struct pci_host_bridge *bridge)
++{
++	return *((struct acpi_device **)bridge->private);
++}
+ 
+ void acpi_pci_add_bus(struct pci_bus *bus);
+ void acpi_pci_remove_bus(struct pci_bus *bus);
 -- 
 2.32.0
 
