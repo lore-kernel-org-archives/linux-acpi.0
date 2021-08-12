@@ -2,167 +2,164 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D9D0C4320A
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Aug 2021 16:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09B7AC4320A
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Aug 2021 17:00:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F35D60EB5
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Aug 2021 16:26:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5B6560FBF
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Aug 2021 17:00:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232124AbhHLQ0f (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Aug 2021 12:26:35 -0400
-Received: from mga12.intel.com ([192.55.52.136]:59475 "EHLO mga12.intel.com"
+        id S233823AbhHLRBC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Aug 2021 13:01:02 -0400
+Received: from mga11.intel.com ([192.55.52.93]:13232 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229519AbhHLQ0e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 12 Aug 2021 12:26:34 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10074"; a="194977721"
+        id S233728AbhHLRBB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Aug 2021 13:01:01 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10074"; a="212287081"
 X-IronPort-AV: E=Sophos;i="5.84,316,1620716400"; 
-   d="scan'208";a="194977721"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2021 09:26:07 -0700
+   d="scan'208";a="212287081"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2021 10:00:35 -0700
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.84,316,1620716400"; 
-   d="scan'208";a="676827425"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2021 09:25:59 -0700
-Received: from andy by smile with local (Exim 4.94.2)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1mEDWi-008hxC-TZ; Thu, 12 Aug 2021 19:25:52 +0300
-Date:   Thu, 12 Aug 2021 19:25:52 +0300
+   d="scan'208";a="446614409"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga007.fm.intel.com with ESMTP; 12 Aug 2021 10:00:29 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 2786B1E0; Thu, 12 Aug 2021 20:00:29 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Asmaa Mnebhi <asmaa@nvidia.com>
-Cc:     Linux GPIO <linux-gpio@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        David Thompson <davthompson@nvidia.com>,
-        Liming Sun <limings@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: Possible ACPI abuse in Mellanox BlueField Gigabit Ethernet driver
-Message-ID: <YRVLkMoTvp4+X0Nx@smile.fi.intel.com>
-References: <YRUskkALrPLa2cSf@smile.fi.intel.com>
- <CH2PR12MB389540C4C751277287147E95D7F99@CH2PR12MB3895.namprd12.prod.outlook.com>
+To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Elaine Zhang <zhangqing@rock-chips.com>,
+        Stephen Boyd <sboyd@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-imx@nxp.com, linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Abel Vesa <abel.vesa@nxp.com>, Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        Lee Jones <lee.jones@linaro.org>, Liu Ying <victor.liu@nxp.com>
+Subject: [PATCH v4 3/4] clk: fractional-divider: Introduce POWER_OF_TWO_PS flag
+Date:   Thu, 12 Aug 2021 20:00:24 +0300
+Message-Id: <20210812170025.67074-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210812170025.67074-1-andriy.shevchenko@linux.intel.com>
+References: <20210812170025.67074-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CH2PR12MB389540C4C751277287147E95D7F99@CH2PR12MB3895.namprd12.prod.outlook.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Aug 12, 2021 at 03:54:26PM +0000, Asmaa Mnebhi wrote:
-> Hi Andy,
+The newly introduced POWER_OF_TWO_PS flag, when set, makes the flow
+to skip the assumption that the caller will use an additional 2^scale
+prescaler to get the desired clock rate.
 
-Thanks for prompt response!
-My first question, is it already firmware in the wild that does this?
-I.o.w. is there any time to amend it if needed?
+Reported-by: Liu Ying <victor.liu@nxp.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v4: rebased on top of latest CLK codebase
 
-> We have 1 image common to all our board types. The ACPI tables are selected
-> based on the board id. Some board types have PHY_INT pin connected to GPIO
-> pin 9 and other boards have it connected to GPIO pin 12. So we have 2
-> ssdt.asl files:
+ drivers/acpi/acpi_lpss.c             |  4 ++--
+ drivers/clk/clk-fractional-divider.c | 10 ++++++----
+ drivers/mfd/intel-lpss.c             |  3 ++-
+ include/linux/clk-provider.h         | 11 +++++++++--
+ 4 files changed, 19 insertions(+), 9 deletions(-)
 
-Okay (You may have one and actually choose it based on some [NVS] variable)
-
-> // first file: PHY_INT -> GPIO pin 12
-> Device(OOB) {
->         Name(_HID, "MLNXBF17")
->         Name(_UID, 0)
->         Name(_CCA, 1)
->         Name (_CRS, ResourceTemplate () {
->            // OOB Ethernet
->            Memory32Fixed (ReadWrite, 0x03000000, 0x00000600)
->            // mdio[9]
->            Memory32Fixed (ReadWrite, 0x028004C8, 0x00000008)
->            // gpio[0]
->            Memory32Fixed (ReadWrite, 0x0280c000, 0x00000100)
->            // OOB LLU
->            Memory32Fixed (ReadWrite, 0x039C0000, 0x0000A100)
->            // OOB PLU
->            Memory32Fixed (ReadWrite, 0x04000000, 0x00001100)
->            Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) { BF_RSH0_DEVICE_OOB_INT }
->            Interrupt (ResourceConsumer, Edge, ActiveHigh, Exclusive) { BF_RSH0_DEVICE_OOB_LLU_INT }
->            Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) { BF_RSH0_DEVICE_OOB_PLU_INT }
->            Interrupt (ResourceConsumer, Edge, ActiveHigh, Shared) { BF_RSH0_DEVICE_YU_INT }
->   
->            // GPIO PHY interrupt
->            GpioInt (Edge, ActiveHigh, Exclusive, PullUp, , " \\_SB.GPI0") {12}
-
-PullUp with Edge/Rise seems a bit awkward. Recently I have added a
-corresponding paragraph to the
-https://www.kernel.org/doc/html/latest/firmware-guide/acpi/gpio-properties.html.
-But it's just to double check that you got the idea how your hardware works
-(maybe it uses open-drain or so and it's indeed the correct setting).
-
-What I have seen here is a regular GpioInt() resource with a single pin.
-
-As far as I can see in the code it has the flaw that it actually will use the
-last GpioInt() resource available in _CRS.
-
-Besides that, why do you need to know the pin name and can't simply request an
-IRQ as every other driver does (the exception is only yours in the entire
-kernel)? The acpi_dev_gpio_irq_get() call can get Linux vIRQ for you same way
-you have got it for Interrupt() resources via platform_get_irq().
-
-To understand better this piece, can you point out to the GPIO driver code,
-which implements the driver for _SB.GPI0 in the kernel?
-
->         }) // Name(_CRS)
-> 
-> // Second file: PHY_INT -> GPIO pin 9
-> Device(OOB) {
->         Name(_HID, "MLNXBF17")
->         Name(_UID, 0)
->         Name(_CCA, 1)
->         Name (_CRS, ResourceTemplate () {
->            // OOB Ethernet
->            Memory32Fixed (ReadWrite, 0x03000000, 0x00000600)
->            // mdio[9]
->            Memory32Fixed (ReadWrite, 0x028004C8, 0x00000008)
->            // gpio[0]
->            Memory32Fixed (ReadWrite, 0x0280c000, 0x00000100)
->            // OOB LLU
->            Memory32Fixed (ReadWrite, 0x039C0000, 0x0000A100)
->            // OOB PLU
->            Memory32Fixed (ReadWrite, 0x04000000, 0x00001100)
->            Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) { BF_RSH0_DEVICE_OOB_INT }
->            Interrupt (ResourceConsumer, Edge, ActiveHigh, Exclusive) { BF_RSH0_DEVICE_OOB_LLU_INT }
->            Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) { BF_RSH0_DEVICE_OOB_PLU_INT }
->            Interrupt (ResourceConsumer, Edge, ActiveHigh, Shared) { BF_RSH0_DEVICE_YU_INT }
->   
->            // GPIO PHY interrupt
->            GpioInt (Edge, ActiveHigh, Exclusive, PullUp, , " \\_SB.GPI0") {9}
->         }) // Name(_CRS)
-> 
-> -----Original Message-----
-> From: Andy Shevchenko <andriy.shevchenko@linux.intel.com> 
-> Sent: Thursday, August 12, 2021 10:14 AM
-> To: Linux GPIO <linux-gpio@vger.kernel.org>; linux-acpi@vger.kernel.org; Rafael J. Wysocki <rjw@rjwysocki.net>; Linus Walleij <linus.walleij@linaro.org>; Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> Cc: David Thompson <davthompson@nvidia.com>; Asmaa Mnebhi <asmaa@nvidia.com>; Liming Sun <limings@nvidia.com>; David S. Miller <davem@davemloft.net>
-> Subject: Possible ACPI abuse in Mellanox BlueField Gigabit Ethernet driver
-> 
-> Hi!
-> 
-> From time to time I do grep kernel for ACPI_RESOURCE_TYPE_GPIO usage.
-> Recently the drivers/net/ethernet/mellanox/mlxbf_gige/mlxbf_gige_gpio.c
-> caught my eye.
-> 
-> Looking into the code I see that it looks like misunderstanding of how ACPI works with GPIOs. First of all, I would like to inform that this code has been properly reviewed neither by GPIO nor by ACPI maintainers. Second, before going it to the real conclusions (and potential revert of this), I would like to see the real ACPI tables for this and some explanations from the authors of the driver about GPIO usage here (from hw and sw perspectives).
-> 
-> It makes sense to discuss ASAP, otherwise I would really want to revert it.
-> 
-> --
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
-
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 7f163074e4e4..30b1f511c2af 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -436,8 +436,8 @@ static int register_device_clock(struct acpi_device *adev,
+ 		if (!clk_name)
+ 			return -ENOMEM;
+ 		clk = clk_register_fractional_divider(NULL, clk_name, parent,
+-						      0, prv_base,
+-						      1, 15, 16, 15, 0, NULL);
++						      CLK_FRAC_DIVIDER_POWER_OF_TWO_PS,
++						      prv_base, 1, 15, 16, 15, 0, NULL);
+ 		parent = clk_name;
+ 
+ 		clk_name = kasprintf(GFP_KERNEL, "%s-update", devname);
+diff --git a/drivers/clk/clk-fractional-divider.c b/drivers/clk/clk-fractional-divider.c
+index 535d299af646..6a3ed82fdae9 100644
+--- a/drivers/clk/clk-fractional-divider.c
++++ b/drivers/clk/clk-fractional-divider.c
+@@ -76,16 +76,18 @@ void clk_fractional_divider_general_approximation(struct clk_hw *hw,
+ 						  unsigned long *m, unsigned long *n)
+ {
+ 	struct clk_fractional_divider *fd = to_clk_fd(hw);
+-	unsigned long scale;
+ 
+ 	/*
+ 	 * Get rate closer to *parent_rate to guarantee there is no overflow
+ 	 * for m and n. In the result it will be the nearest rate left shifted
+ 	 * by (scale - fd->nwidth) bits.
+ 	 */
+-	scale = fls_long(*parent_rate / rate - 1);
+-	if (scale > fd->nwidth)
+-		rate <<= scale - fd->nwidth;
++	if (fd->flags & CLK_FRAC_DIVIDER_POWER_OF_TWO_PS) {
++		unsigned long scale = fls_long(*parent_rate / rate - 1);
++
++		if (scale > fd->nwidth)
++			rate <<= scale - fd->nwidth;
++	}
+ 
+ 	rational_best_approximation(rate, *parent_rate,
+ 			GENMASK(fd->mwidth - 1, 0), GENMASK(fd->nwidth - 1, 0),
+diff --git a/drivers/mfd/intel-lpss.c b/drivers/mfd/intel-lpss.c
+index a9bf10bee796..0e15afc39f54 100644
+--- a/drivers/mfd/intel-lpss.c
++++ b/drivers/mfd/intel-lpss.c
+@@ -301,7 +301,8 @@ static int intel_lpss_register_clock_divider(struct intel_lpss *lpss,
+ 
+ 	snprintf(name, sizeof(name), "%s-div", devname);
+ 	tmp = clk_register_fractional_divider(NULL, name, __clk_get_name(tmp),
+-					      0, lpss->priv, 1, 15, 16, 15, 0,
++					      CLK_FRAC_DIVIDER_POWER_OF_TWO_PS,
++					      lpss->priv, 1, 15, 16, 15, 0,
+ 					      NULL);
+ 	if (IS_ERR(tmp))
+ 		return PTR_ERR(tmp);
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index d8609aef2394..f59c875271a0 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -1001,6 +1001,12 @@ struct clk_hw *devm_clk_hw_register_fixed_factor(struct device *dev,
+  * CLK_FRAC_DIVIDER_BIG_ENDIAN - By default little endian register accesses are
+  *	used for the divider register.  Setting this flag makes the register
+  *	accesses big endian.
++ * CLK_FRAC_DIVIDER_POWER_OF_TWO_PS - By default the resulting fraction might
++ *	be saturated and the caller will get quite far from the good enough
++ *	approximation. Instead the caller may require, by setting this flag,
++ *	to shift left by a few bits in case, when the asked one is quite small
++ *	to satisfy the desired range of denominator. It assumes that on the
++ *	caller's side the power-of-two capable prescaler exists.
+  */
+ struct clk_fractional_divider {
+ 	struct clk_hw	hw;
+@@ -1020,8 +1026,9 @@ struct clk_fractional_divider {
+ 
+ #define to_clk_fd(_hw) container_of(_hw, struct clk_fractional_divider, hw)
+ 
+-#define CLK_FRAC_DIVIDER_ZERO_BASED	BIT(0)
+-#define CLK_FRAC_DIVIDER_BIG_ENDIAN	BIT(1)
++#define CLK_FRAC_DIVIDER_ZERO_BASED		BIT(0)
++#define CLK_FRAC_DIVIDER_BIG_ENDIAN		BIT(1)
++#define CLK_FRAC_DIVIDER_POWER_OF_TWO_PS	BIT(2)
+ 
+ struct clk *clk_register_fractional_divider(struct device *dev,
+ 		const char *name, const char *parent_name, unsigned long flags,
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.2
 
