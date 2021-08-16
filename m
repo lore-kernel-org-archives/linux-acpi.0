@@ -2,34 +2,35 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6789EC432BE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA001C4320A
 	for <linux-acpi@archiver.kernel.org>; Mon, 16 Aug 2021 12:00:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CB9661BE5
+	by mail.kernel.org (Postfix) with ESMTP id BD1EE63242
 	for <linux-acpi@archiver.kernel.org>; Mon, 16 Aug 2021 12:00:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234996AbhHPMBG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Aug 2021 08:01:06 -0400
-Received: from mga07.intel.com ([134.134.136.100]:49131 "EHLO mga07.intel.com"
+        id S229787AbhHPMBJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Aug 2021 08:01:09 -0400
+Received: from mga14.intel.com ([192.55.52.115]:38495 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234791AbhHPMAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S234555AbhHPMAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Mon, 16 Aug 2021 08:00:55 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10077"; a="279586998"
+X-IronPort-AV: E=McAfee;i="6200,9189,10077"; a="215572752"
 X-IronPort-AV: E=Sophos;i="5.84,324,1620716400"; 
-   d="scan'208";a="279586998"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2021 05:00:06 -0700
+   d="scan'208";a="215572752"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2021 05:00:06 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.84,324,1620716400"; 
-   d="scan'208";a="572448305"
+   d="scan'208";a="423522467"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga004.jf.intel.com with ESMTP; 16 Aug 2021 05:00:03 -0700
+  by orsmga003.jf.intel.com with ESMTP; 16 Aug 2021 05:00:03 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id DD688FF; Mon, 16 Aug 2021 15:00:02 +0300 (EEST)
+        id 1C7DF314; Mon, 16 Aug 2021 15:00:03 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         David Thompson <davthompson@nvidia.com>,
@@ -42,54 +43,44 @@ Cc:     Linus Walleij <linus.walleij@linaro.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
         Asmaa Mnebhi <asmaa@nvidia.com>,
         Liming Sun <limings@nvidia.com>
-Subject: [PATCH v1 0/6] gpio: mlxbf2: Introduce proper interrupt handling
-Date:   Mon, 16 Aug 2021 14:59:47 +0300
-Message-Id: <20210816115953.72533-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/6] gpio: mlxbf2: Use DEFINE_RES_MEM_NAMED() helper macro
+Date:   Mon, 16 Aug 2021 14:59:51 +0300
+Message-Id: <20210816115953.72533-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210816115953.72533-1-andriy.shevchenko@linux.intel.com>
+References: <20210816115953.72533-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is just a WIP / TODO series based on the discussion [1].
-I hope nVidia will finish it and fix the initial problem sooner than later.
+Use DEFINE_RES_MEM_NAMED() to save a couple of lines of code, which makes
+the code a bit shorter and easier to read.
 
-Bart, Linus, First 4 patches may be directly applied to the tree (they are
-at least compile-tested, but I believe they won't change any functionality.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpio-mlxbf2.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-Patch 5 is some stubs that should have been done in the driver.
-Patch 6 is follow up removal of custom GPIO IRQ handling from
-Mellanox GBE driver. Both of them are quite far from finishing,
-but it's a start for nVidia to develop and test proper solution.
-
-In any case, I will probably sent end this week the ACPI IRQ abuse
-part from the GBE driver (I won't touch OF path).
-
-ARs for nVidia:
-0) review this series;
-1) properly develop GPIO driver;
-2) replace custom code with correct one;
-3) send the work for review to GPIO and ACPI maintainers (basically list
-   of this series).
-
-On my side I will help you if you have any questions regarding to GPIO
-and ACPI.
-
-Andy Shevchenko (6):
-  gpio: mlxbf2: Convert to device PM ops
-  gpio: mlxbf2: Drop wrong use of ACPI_PTR()
-  gpio: mlxbf2: Use devm_platform_ioremap_resource()
-  gpio: mlxbf2: Use DEFINE_RES_MEM_NAMED() helper macro
-  TODO: gpio: mlxbf2: Introduce IRQ support
-  TODO: net: mellanox: mlxbf_gige: Replace non-standard interrupt
-    handling
-
- drivers/gpio/gpio-mlxbf2.c                    | 151 ++++++++++---
- .../mellanox/mlxbf_gige/mlxbf_gige_gpio.c     | 212 ------------------
- 2 files changed, 120 insertions(+), 243 deletions(-)
- delete mode 100644 drivers/net/ethernet/mellanox/mlxbf_gige/mlxbf_gige_gpio.c
-
+diff --git a/drivers/gpio/gpio-mlxbf2.c b/drivers/gpio/gpio-mlxbf2.c
+index c193d1a9a5dd..3ed95e958c17 100644
+--- a/drivers/gpio/gpio-mlxbf2.c
++++ b/drivers/gpio/gpio-mlxbf2.c
+@@ -69,11 +69,8 @@ struct mlxbf2_gpio_param {
+ 	struct mutex *lock;
+ };
+ 
+-static struct resource yu_arm_gpio_lock_res = {
+-	.start = YU_ARM_GPIO_LOCK_ADDR,
+-	.end   = YU_ARM_GPIO_LOCK_ADDR + YU_ARM_GPIO_LOCK_SIZE - 1,
+-	.name  = "YU_ARM_GPIO_LOCK",
+-};
++static struct resource yu_arm_gpio_lock_res =
++	DEFINE_RES_MEM_NAMED(YU_ARM_GPIO_LOCK_ADDR, YU_ARM_GPIO_LOCK_SIZE, "YU_ARM_GPIO_LOCK");
+ 
+ static DEFINE_MUTEX(yu_arm_gpio_lock_mutex);
+ 
 -- 
 2.30.2
 
