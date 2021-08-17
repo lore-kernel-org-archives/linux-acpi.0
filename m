@@ -2,91 +2,94 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80009C4338F
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Aug 2021 23:06:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EA15C4320A
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Aug 2021 01:40:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5910960F35
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Aug 2021 23:06:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21BCA60E09
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Aug 2021 01:40:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234550AbhHPXHA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Aug 2021 19:07:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43704 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234314AbhHPXGu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Aug 2021 19:06:50 -0400
-Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 898E0C0613CF
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Aug 2021 16:06:18 -0700 (PDT)
-Received: by mail-lf1-x135.google.com with SMTP id k5so9786662lfu.4
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Aug 2021 16:06:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=EbLlLwK/VNlS75a/X+hMyEwJqBlLcD/FK1WB01XtTs8=;
-        b=WienlzZurbN/2XsS69sMGjJeCuTkP8yZTjTDnLvBwquenqVStUoFPE+VJqNf35BhxX
-         mUX5EXM5ECSRzpuicp8Xyq+AB6iGK4BRN/VH2jERJLeq/p6F0bCfq/QG3kMrygk6+Mse
-         Mgx06QK1x+AG55F1TUzL3CV+qam1vSP7rYnKOdvLqSDyVqdVrJ5uiVXafkvjlx3ZxWat
-         MIwtvFSm1nLXRsEHEF/3GMeuIHDlu2/ohXjNXxQITdWTTJhnjwde2EmkYSQRM6WViKjj
-         aIMKzqu/2749BDrKfZrFOzUr/CuAZPBB7gSiFjCcQOfxADbG6vZFnP8Zz1hSYnwrSgVO
-         pP8w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=EbLlLwK/VNlS75a/X+hMyEwJqBlLcD/FK1WB01XtTs8=;
-        b=k8X+/DWlb3D8KO/RWsMwQT6sPjKUHLL5ubnofBdP/ciVtwELDQspRYmeKCTUynyB45
-         m60WPN5RqzAQtJxNggIA5PMwY8TmXNLiYcLtCud6oOUt+t2htFQ/0a999+18LKbhdmFM
-         t2/b3WBSOxOqP5JJuYKiX6dD1r0CfsduICl99MXsLUy0Uocc36JpIFTP5NF4NGTdv1ex
-         8IODQX3P7anBGdLq7zOlx3T/eQynD1GeKHJb29SwGqfn8D1U2XFMbOrjD4jnRNszrcLt
-         LvShIZye4hBvz3yKRl2vojICaq94xZBibP14r8Fd0VJei15drCJ6H08GaDk/rEyZuMwK
-         gD8g==
-X-Gm-Message-State: AOAM531oUumRShAMLUoimGsCZk7I481+Xpy/GPZ2riLsiRhjCgDy7HPS
-        J6KJQ2ckJlTI4geNLAESDngry+VhR3CR6zZW7bPKeg==
-X-Google-Smtp-Source: ABdhPJw7R9OwquiOsdkg97GqKDA+WvX5FSKJp3noOZ+hKqsy3JBsIb5In/u+bx3VfAzyQP2bkD+lGSMmZ18S6r58HV4=
-X-Received: by 2002:a05:6512:3250:: with SMTP id c16mr113752lfr.465.1629155176951;
- Mon, 16 Aug 2021 16:06:16 -0700 (PDT)
+        id S236079AbhHQBlF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Aug 2021 21:41:05 -0400
+Received: from condef-01.nifty.com ([202.248.20.66]:56806 "EHLO
+        condef-01.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235953AbhHQBlE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Aug 2021 21:41:04 -0400
+X-Greylist: delayed 326 seconds by postgrey-1.27 at vger.kernel.org; Mon, 16 Aug 2021 21:41:04 EDT
+Received: from conssluserg-04.nifty.com ([10.126.8.83])by condef-01.nifty.com with ESMTP id 17H1WjHw024366;
+        Tue, 17 Aug 2021 10:32:45 +0900
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46]) (authenticated)
+        by conssluserg-04.nifty.com with ESMTP id 17H1VaIY014246;
+        Tue, 17 Aug 2021 10:31:36 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-04.nifty.com 17H1VaIY014246
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1629163896;
+        bh=kY53EEVlSun2OrKhcICxxahQyp4LjpGB4vWVi50Hfv8=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=hEgIO1zWNUAm6z5VyOMrHJozJTbFvTC4GZGGT/xs0or8+aknjNi4Qg/k+PM9xRW8H
+         dhG4tEdo2VcWThFTG4dq6eAt3xiG8SjETLTVNgDb5wZypdfOciA9iXLFJ4NvZZHuEI
+         aV1GUUL0ftt1kkVpeUcnjS+2IO3Jxu0JMxEBbxAk0IORaWggnO4QI/ueMTXe7w0xYD
+         l7Lmu6RmCpPo5fvjzIiJC8WhBX72VUb6kZkEkps+VppZp+MzorFpzq91TeFdtGVj1B
+         Z04PwxgUfciFtWVdPwJygUUSlw659yMgtf6LGDWpmLOF3Y8yH4a/ZsbKPg9SxhG6Oy
+         jjz/K3fDcpqlQ==
+X-Nifty-SrcIP: [209.85.216.46]
+Received: by mail-pj1-f46.google.com with SMTP id gz13-20020a17090b0ecdb0290178c0e0ce8bso1483099pjb.1;
+        Mon, 16 Aug 2021 18:31:36 -0700 (PDT)
+X-Gm-Message-State: AOAM531Z2bX9S0TpZgOkhaDEHuWL5Nn02EE4ZDCtQ8zztisO2A6JPwP6
+        T3wgRjiaygQ4IRiYG966J6kkt30h/GGz3cmybuo=
+X-Google-Smtp-Source: ABdhPJzUC1mmq2wCI0eNYzNj3+5YcxsdYaAPsGrDHqhNpNjMg6v7t/v+55kBQh5YgHzqvhSB78bp5YUPd+OKtA1A/Jo=
+X-Received: by 2002:a65:6459:: with SMTP id s25mr950393pgv.7.1629163895760;
+ Mon, 16 Aug 2021 18:31:35 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210816115953.72533-1-andriy.shevchenko@linux.intel.com> <20210816115953.72533-7-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20210816115953.72533-7-andriy.shevchenko@linux.intel.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 17 Aug 2021 01:06:06 +0200
-Message-ID: <CACRpkdavU=_Fo3DQkD_MAT9Ur-RX46v0L-O=tqibpUtdUhe-NA@mail.gmail.com>
-Subject: Re: [PATCH v1 6/6] TODO: net: mellanox: mlxbf_gige: Replace
- non-standard interrupt handling
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     David Thompson <davthompson@nvidia.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
+References: <20210801201336.2224111-1-adobriyan@gmail.com> <20210801201336.2224111-2-adobriyan@gmail.com>
+ <CAMj1kXHA64+6j2HRwxmh0Q9L2X65bWrURBHSBEnGCgmoAemTSw@mail.gmail.com>
+In-Reply-To: <CAMj1kXHA64+6j2HRwxmh0Q9L2X65bWrURBHSBEnGCgmoAemTSw@mail.gmail.com>
+From:   Masahiro Yamada <masahiroy@kernel.org>
+Date:   Tue, 17 Aug 2021 10:30:58 +0900
+X-Gmail-Original-Message-ID: <CAK7LNARJUTZ-VDP0bTQqjCQwznWB8d+OpYUQJGOOoaQx1X0FcQ@mail.gmail.com>
+Message-ID: <CAK7LNARJUTZ-VDP0bTQqjCQwznWB8d+OpYUQJGOOoaQx1X0FcQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] isystem: ship and use stdarg.h
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     Alexey Dobriyan <adobriyan@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Asmaa Mnebhi <asmaa@nvidia.com>,
-        Liming Sun <limings@nvidia.com>
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-efi <linux-efi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Aug 16, 2021 at 2:00 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-
-> Since GPIO driver supports interrupt handling, replace custom routine with
-> simple IRQ request.
+On Tue, Aug 3, 2021 at 4:14 PM Ard Biesheuvel <ardb@kernel.org> wrote:
 >
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  .../mellanox/mlxbf_gige/mlxbf_gige_gpio.c     | 212 ------------------
+> On Sun, 1 Aug 2021 at 22:13, Alexey Dobriyan <adobriyan@gmail.com> wrote:
+> >
+> > Ship minimal stdarg.h (1 type, 4 macros) as <linux/stdarg.h>.
+> > stdarg.h is the only userspace header commonly used in the kernel.
+> >
+>
+> I /think/ I know why this is a good thing, but it is always better to
+> spell it out.
+>
+> So with a better explanation in the commit log:
+>
+> Acked-by: Ard Biesheuvel <ardb@kernel.org>
+>
 
-Don't you also need to remove this file from Makefile?
 
-Yours,
-Linus Walleij
+I added your Ack because the benefit of this refactoring
+is described in this:
+
+https://lore.kernel.org/lkml/YQhY40teUJcTc5H4@localhost.localdomain/
+
+
+
+-- 
+Best Regards
+Masahiro Yamada
