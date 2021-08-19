@@ -7,69 +7,54 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A978BC4320A
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Aug 2021 20:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 317EAC4320E
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Aug 2021 20:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B3F16108B
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Aug 2021 20:26:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1669C6054E
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Aug 2021 20:26:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234916AbhHSU1E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S234986AbhHSU1F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Aug 2021 16:27:05 -0400
+Received: from retiisi.eu ([95.216.213.190]:60258 "EHLO hillosipuli.retiisi.eu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234908AbhHSU1E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Thu, 19 Aug 2021 16:27:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42564 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234942AbhHSU1D (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Aug 2021 16:27:03 -0400
-Received: from hillosipuli.retiisi.eu (hillosipuli.retiisi.eu [IPv6:2a01:4f9:c010:4572::81:2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8222C061756
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Aug 2021 13:26:23 -0700 (PDT)
+X-Greylist: delayed 404 seconds by postgrey-1.27 at vger.kernel.org; Thu, 19 Aug 2021 16:27:03 EDT
 Received: from lanttu.localdomain (unknown [192.168.2.193])
-        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 3A684634C92;
+        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 636CB634C94;
         Thu, 19 Aug 2021 23:19:37 +0300 (EEST)
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org, linux-media@vger.kernel.org
 Cc:     andriy.shevchenko@linux.intel.com, rafael@kernel.org
-Subject: [RFC 1/3] imx258: Defer probing on ident register read fail (on ACPI)
-Date:   Thu, 19 Aug 2021 23:19:34 +0300
-Message-Id: <20210819201936.7390-2-sakari.ailus@linux.intel.com>
+Subject: [RFC 3/3] gpio-tps68470: Add modalias
+Date:   Thu, 19 Aug 2021 23:19:36 +0300
+Message-Id: <20210819201936.7390-4-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210819201936.7390-1-sakari.ailus@linux.intel.com>
 References: <20210819201936.7390-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Return -EPROBE_DEFER if probing the device fails because of the I²C
-transaction (-EIO only). This generally happens when the power on sequence
-of the device has not been fully performed yet due to later probing of
-other drivers.
+Add modalias for this driver, so that it is loaded automatically once the
+devices pop up.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/imx258.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/gpio/gpio-tps68470.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-index c249507aa2db..2751c12b6029 100644
---- a/drivers/media/i2c/imx258.c
-+++ b/drivers/media/i2c/imx258.c
-@@ -1109,6 +1109,14 @@ static int imx258_identify_module(struct imx258 *imx258)
+diff --git a/drivers/gpio/gpio-tps68470.c b/drivers/gpio/gpio-tps68470.c
+index 0ab88ef241de..8afcd31f4ea3 100644
+--- a/drivers/gpio/gpio-tps68470.c
++++ b/drivers/gpio/gpio-tps68470.c
+@@ -158,3 +158,4 @@ static struct platform_driver tps68470_gpio_driver = {
+ module_platform_driver(tps68470_gpio_driver);
  
- 	ret = imx258_read_reg(imx258, IMX258_REG_CHIP_ID,
- 			      IMX258_REG_VALUE_16BIT, &val);
-+	if (ret == -EIO && is_acpi_device_node(dev_fwnode(&client->dev))) {
-+		/*
-+		 * If we get -EIO here and it's an ACPI device, there's a fair
-+		 * likelihood it's because the drivers required to power this
-+		 * device on have not probed yet. Thus return -EPROBE_DEFER.
-+		 */
-+		return -EPROBE_DEFER;
-+	}
- 	if (ret) {
- 		dev_err(&client->dev, "failed to read chip id %x\n",
- 			IMX258_CHIP_ID);
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:tps68470-gpio");
 -- 
 2.30.2
 
