@@ -2,65 +2,79 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65FB4C4320A
-	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 20:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72FD1C4338F
+	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 21:06:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 501CD61042
-	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 20:48:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4896E6115A
+	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 21:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239724AbhHTUsu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 Aug 2021 16:48:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40032 "EHLO mail.kernel.org"
+        id S230200AbhHTVH2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 Aug 2021 17:07:28 -0400
+Received: from mga14.intel.com ([192.55.52.115]:29559 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240403AbhHTUst (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 20 Aug 2021 16:48:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 49A036115C;
-        Fri, 20 Aug 2021 20:48:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629492491;
-        bh=DWxz+E9y8QfqSwer/XDINgmlgbDQqH6OFTpIa3LlqdE=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=XHyKusFrCU2tweQhUw7HXSYHeEpCpuYN43xQloQKRHJ4Q3CJNBYvxu765OEsN33Tt
-         e9hWyC4BLkb5EeHh+hgGZQU9gaUDzlyDPNfOBi/aTrQ5ZGBJ/AvocLXhJQ8UKf9sdI
-         XEKP9HODrckdlTOK1D2gYevnpkAbqT7ifWpB0fpyqvSLYaAD6PqCCYTkxnganxZ3oS
-         rPEpwAEZGPH46IiOiI0PE29oBQFXZH2/A20ZzMaGeBHrnyjfUwZ8ZwH5XAkVX1Y9s0
-         occoICyBYWW8mn3Iem8uu1kxX5FNHh0r612bihPpCEKFBfUfKpjghDinpbfDhCHfEs
-         jAuQXVA/0ol2Q==
-Subject: Re: [GIT PULL] ACPI fixes for v5.14-rc7
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0g14eg5PT5+AnKh_Uf+a7Ap5t5+G_LcU8+A-tQS3UY15g@mail.gmail.com>
-References: <CAJZ5v0g14eg5PT5+AnKh_Uf+a7Ap5t5+G_LcU8+A-tQS3UY15g@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0g14eg5PT5+AnKh_Uf+a7Ap5t5+G_LcU8+A-tQS3UY15g@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.14-rc7
-X-PR-Tracked-Commit-Id: 0f09f4c48118ce3c562e1028df7fe0f8150493d6
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: fa54d366a6e4fe3e16322abdb8b5115f8be0da8b
-Message-Id: <162949249124.8168.17683135104906314521.pr-tracker-bot@kernel.org>
-Date:   Fri, 20 Aug 2021 20:48:11 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S230175AbhHTVH2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 20 Aug 2021 17:07:28 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10082"; a="216569438"
+X-IronPort-AV: E=Sophos;i="5.84,338,1620716400"; 
+   d="scan'208";a="216569438"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2021 14:06:49 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.84,338,1620716400"; 
+   d="scan'208";a="680433247"
+Received: from lkp-server01.sh.intel.com (HELO d053b881505b) ([10.239.97.150])
+  by fmsmga006.fm.intel.com with ESMTP; 20 Aug 2021 14:06:47 -0700
+Received: from kbuild by d053b881505b with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1mHBiw-000VCF-9U; Fri, 20 Aug 2021 21:06:46 +0000
+Date:   Sat, 21 Aug 2021 05:06:10 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Jonathan Derrick <jonathan.derrick@intel.com>
+Cc:     kbuild-all@lists.01.org, Wendy Wang <wendy.wang@intel.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        David Box <david.e.box@linux.intel.com>
+Subject: [RFC PATCH] PCI: VMD: ACPI: pci_acpi_companion_lookup_key can be
+ static
+Message-ID: <20210820210610.GA23698@ef1ee8e5bb1c>
+References: <11834551.O9o76ZdvQC@kreacher>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <11834551.O9o76ZdvQC@kreacher>
+X-Patchwork-Hint: ignore
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 20 Aug 2021 21:36:06 +0200:
+drivers/pci/pci-acpi.c:1164:1: warning: symbol 'pci_acpi_companion_lookup_key' was not declared. Should it be static?
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.14-rc7
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: kernel test robot <lkp@intel.com>
+---
+ pci-acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/fa54d366a6e4fe3e16322abdb8b5115f8be0da8b
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 535f43034a073..c8718aeafae5d 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -1161,7 +1161,7 @@ void acpi_pci_remove_bus(struct pci_bus *bus)
+ /* ACPI bus type */
+ 
+ 
+-DEFINE_STATIC_KEY_FALSE(pci_acpi_companion_lookup_key);
++static DEFINE_STATIC_KEY_FALSE(pci_acpi_companion_lookup_key);
+ static DEFINE_MUTEX(pci_acpi_companion_lookup_mtx);
+ static struct acpi_device *(*pci_acpi_find_companion_hook)(struct pci_dev *);
+ 
