@@ -2,80 +2,69 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF33FC4338F
-	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 12:24:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3A5EC4338F
+	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 12:28:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABB45610C8
-	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 12:24:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95D12610CC
+	for <linux-acpi@archiver.kernel.org>; Fri, 20 Aug 2021 12:28:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238064AbhHTMZW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 Aug 2021 08:25:22 -0400
-Received: from mga05.intel.com ([192.55.52.43]:60042 "EHLO mga05.intel.com"
+        id S240194AbhHTM3S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 Aug 2021 08:29:18 -0400
+Received: from mga12.intel.com ([192.55.52.136]:37456 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237882AbhHTMZV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 20 Aug 2021 08:25:21 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10081"; a="302353186"
+        id S240376AbhHTM3M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 20 Aug 2021 08:29:12 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10081"; a="196345975"
 X-IronPort-AV: E=Sophos;i="5.84,337,1620716400"; 
-   d="scan'208";a="302353186"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2021 05:24:42 -0700
+   d="scan'208";a="196345975"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2021 05:28:34 -0700
 X-IronPort-AV: E=Sophos;i="5.84,337,1620716400"; 
-   d="scan'208";a="512536758"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2021 05:24:41 -0700
-Received: from andy by smile with local (Exim 4.94.2)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1mH3Zb-00Boj7-LX; Fri, 20 Aug 2021 15:24:35 +0300
-Date:   Fri, 20 Aug 2021 15:24:35 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+   d="scan'208";a="490444844"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2021 05:28:32 -0700
+Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id CAE0F201C5;
+        Fri, 20 Aug 2021 15:28:30 +0300 (EEST)
+Date:   Fri, 20 Aug 2021 15:28:30 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
         rafael@kernel.org
-Subject: Re: [RFC 3/3] gpio-tps68470: Add modalias
-Message-ID: <YR+fAxqx5m0g+V8X@smile.fi.intel.com>
+Subject: Re: [RFC 1/3] imx258: Defer probing on ident register read fail (on
+ ACPI)
+Message-ID: <20210820122830.GA3@paasikivi.fi.intel.com>
 References: <20210819201936.7390-1-sakari.ailus@linux.intel.com>
- <20210819201936.7390-4-sakari.ailus@linux.intel.com>
+ <20210819201936.7390-2-sakari.ailus@linux.intel.com>
+ <YR+eJytxRcVpSxgA@smile.fi.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20210819201936.7390-4-sakari.ailus@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <YR+eJytxRcVpSxgA@smile.fi.intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Aug 19, 2021 at 11:19:36PM +0300, Sakari Ailus wrote:
-> Add modalias for this driver, so that it is loaded automatically once the
-> devices pop up.
-
-Not sure if it should be a separate patch, nevertheless
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/gpio/gpio-tps68470.c | 1 +
->  1 file changed, 1 insertion(+)
+On Fri, Aug 20, 2021 at 03:20:55PM +0300, Andy Shevchenko wrote:
+> On Thu, Aug 19, 2021 at 11:19:34PM +0300, Sakari Ailus wrote:
+> > Return -EPROBE_DEFER if probing the device fails because of the I²C
+> > transaction (-EIO only). This generally happens when the power on sequence
+> > of the device has not been fully performed yet due to later probing of
+> > other drivers.
 > 
-> diff --git a/drivers/gpio/gpio-tps68470.c b/drivers/gpio/gpio-tps68470.c
-> index 0ab88ef241de..8afcd31f4ea3 100644
-> --- a/drivers/gpio/gpio-tps68470.c
-> +++ b/drivers/gpio/gpio-tps68470.c
-> @@ -158,3 +158,4 @@ static struct platform_driver tps68470_gpio_driver = {
->  module_platform_driver(tps68470_gpio_driver);
->  
->  MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:tps68470-gpio");
-> -- 
-> 2.30.2
+> ...
 > 
+> > +	if (ret == -EIO && is_acpi_device_node(dev_fwnode(&client->dev))) {
+> 
+> has_acpi_companion() is better to have here, no?
+
+Agreed.
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Sakari Ailus
