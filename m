@@ -2,178 +2,94 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF1C8C4338F
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 12:21:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30C72C4338F
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 13:03:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE30361076
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 12:21:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16E9961184
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 13:03:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231764AbhHXMVs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 24 Aug 2021 08:21:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47298 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237200AbhHXMVr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Aug 2021 08:21:47 -0400
-Received: from theia.8bytes.org (8bytes.org [IPv6:2a01:238:4383:600:38bc:a715:4b6d:a889])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8974DC061764;
-        Tue, 24 Aug 2021 05:21:03 -0700 (PDT)
-Received: from cap.home.8bytes.org (p4ff2b1ea.dip0.t-ipconnect.de [79.242.177.234])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-        (No client certificate requested)
-        by theia.8bytes.org (Postfix) with ESMTPSA id 0FDF6373;
-        Tue, 24 Aug 2021 14:21:00 +0200 (CEST)
-From:   Joerg Roedel <joro@8bytes.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>
-Cc:     linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, joro@8bytes.org, jroedel@suse.de
-Subject: [PATCH v3 2/4] PCI/ACPI: Move supported and control calculations to separaten functions
-Date:   Tue, 24 Aug 2021 14:20:52 +0200
-Message-Id: <20210824122054.29481-3-joro@8bytes.org>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20210824122054.29481-1-joro@8bytes.org>
-References: <20210824122054.29481-1-joro@8bytes.org>
+        id S237418AbhHXNDz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Aug 2021 09:03:55 -0400
+Received: from mail.huberulrich.de ([81.169.200.209]:35626 "EHLO
+        mail.huberulrich.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237450AbhHXNDy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Aug 2021 09:03:54 -0400
+X-Greylist: delayed 302 seconds by postgrey-1.27 at vger.kernel.org; Tue, 24 Aug 2021 09:03:54 EDT
+DKIM-Signature: v=1; a=rsa-sha256; d=huberulrich.de; s=2017; c=relaxed/relaxed;
+ q=dns/txt; h=from:date:to:cc:message-id:subject;
+ bh=epadiIZkdAvf+vdKVEQ5nF4EW0KWJMs8g8ZqRjxmupY=;
+ b=um8HmFRrK9xR+0zhitmaEERrhyM18HrwU/vqOcpwd1umzOqgNM7bNGXdJ4fG2Vz6jA5jboGN96DpZNqg7/3TXwA9CHboFnzuGwRraZBirEr/DsXwdQihBDJyLwhvjgAnIiPX2/ynMVMyQvqSwO0nLUy+s4/yLvOemPPvw5A1QZ732h6cZdKoZpFdq2ltTEcdkQhW1oXpA5cAIvPN/nZyxRHFJYL9630FgquIMihiPF2wuTuSkQTwgoa5miHRo0sLXhb+xlwiwR7NLWX83BBcipKxbQfUB+HtI1kCLrSkaK2Wj+vrMfFQ5YI8xlMF5RW/BH1Uie6P9MCUKELl8gSGDw==;
+DomainKey-Signature: a=rsa-sha1;
+ b=SdXKTR2VC+vQS8mOxy8DKoWjQoPxbHP6gY7NoIt2+nWoGwfC8jwXgn0TEwWL5BvMid0Vx4vuKFeNtqoFxXiGa0xVMhrxUpCulNaUaToO+tL9oXlsydwsiIY/0kum+b+Mw4IpDXw94Fsc8uLrjsthgOli+RFg/S6juR+4fYuY3I7y0glG/Ov9pwoj92Q+wpstuz+j7gYk1XC61mbtYiFIYqP7u5NTm/97lZhzxyMSYtTke9IsvDiTib23Y1Y11FY74BrNE2yL3y07/fb/nz5s3DOSOyXVML4eGaKizSqRVjbRVSMHk32PZyeIQOwku7cAiRmrUQUyaB7bAR5AjQh1vQ==;
+ c=nofws; q=dns; d=huberulrich.de; s=2017;
+ h=from:to:cc:subject:date:message-id;
+Received: from lenovo-ulrich.fritz.box
+ (2001:16b8:2d34:3e00:b400:f8f7:ccd8:a3aa) by mail.huberulrich.de (Axigen)
+ with (ECDHE-RSA-AES128-GCM-SHA256 encrypted) ESMTPSA id 2E0D0E;
+ Tue, 24 Aug 2021 12:58:05 +0000
+From:   Ulrich Huber <ulrich@huberulrich.de>
+To:     rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+Cc:     Ulrich Huber <ulrich@huberulrich.de>
+Subject: [PATCH] ACPI: Add DMI quirk for Lenovo Yoga 9 (14INTL5)
+Date:   Tue, 24 Aug 2021 14:57:44 +0200
+Message-Id: <20210824125744.11125-1-ulrich@huberulrich.de>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Received-SPF: 
+X-AXIGEN-SPF-Result: Ok
+X-AXIGEN-DK-Result: Ok
+DomainKey-Status: good
+X-AXIGEN-DKIM-Result: Ok
+DKIM-Status: good
+X-AxigenSpam-Level: 5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Joerg Roedel <jroedel@suse.de>
+The Lenovo Yoga 9 (14INTL5)'s ACPI _LID is bugged:
 
-Move the calculations of supported and controled _OSC features out of
-negotiate_os_control into separate functions.
+After hibernation the lid is initially reported as closed.
+Once closing and then reopening the lid reports the lid as
+open again. This leads to the conclusion that the initial
+notification of the lid is missing but subsequent
+notifications are correct.
 
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
+In order fo the Linux LID code to handle this device properly
+the lid_init_state must be set to ACPI_BUTTON_LID_INIT_OPEN.
+
+Signed-off-by: Ulrich Huber <ulrich@huberulrich.de>
 ---
- drivers/acpi/pci_root.c | 93 ++++++++++++++++++++++++-----------------
- 1 file changed, 55 insertions(+), 38 deletions(-)
+ drivers/acpi/button.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 0c3030a58219..ed4e6b55e9bc 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -396,6 +396,59 @@ static acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 r
- 	return AE_OK;
- }
- 
-+static u32 calculate_support(void)
-+{
-+	u32 support;
-+
-+	/*
-+	 * All supported architectures that use ACPI have support for
-+	 * PCI domains, so we indicate this in _OSC support capabilities.
-+	 */
-+	support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-+	support |= OSC_PCI_HPX_TYPE_3_SUPPORT;
-+	if (pci_ext_cfg_avail())
-+		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
-+	if (pcie_aspm_support_enabled())
-+		support |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
-+	if (pci_msi_enabled())
-+		support |= OSC_PCI_MSI_SUPPORT;
-+	if (IS_ENABLED(CONFIG_PCIE_EDR))
-+		support |= OSC_PCI_EDR_SUPPORT;
-+
-+	return support;
-+}
-+
-+static u32 calculate_control(void)
-+{
-+	u32 control;
-+
-+	control = OSC_PCI_EXPRESS_CAPABILITY_CONTROL
-+		| OSC_PCI_EXPRESS_PME_CONTROL;
-+
-+	if (IS_ENABLED(CONFIG_PCIEASPM))
-+		control |= OSC_PCI_EXPRESS_LTR_CONTROL;
-+
-+	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
-+		control |= OSC_PCI_EXPRESS_NATIVE_HP_CONTROL;
-+
-+	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_SHPC))
-+		control |= OSC_PCI_SHPC_NATIVE_HP_CONTROL;
-+
-+	if (pci_aer_available())
-+		control |= OSC_PCI_EXPRESS_AER_CONTROL;
-+
-+	/*
-+	 * Per the Downstream Port Containment Related Enhancements ECN to
-+	 * the PCI Firmware Spec, r3.2, sec 4.5.1, table 4-5,
-+	 * OSC_PCI_EXPRESS_DPC_CONTROL indicates the OS supports both DPC
-+	 * and EDR.
-+	 */
-+	if (IS_ENABLED(CONFIG_PCIE_DPC) && IS_ENABLED(CONFIG_PCIE_EDR))
-+		control |= OSC_PCI_EXPRESS_DPC_CONTROL;
-+
-+	return control;
-+}
-+
- static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 				 bool is_pcie)
- {
-@@ -416,20 +469,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 		return;
- 	}
- 
--	/*
--	 * All supported architectures that use ACPI have support for
--	 * PCI domains, so we indicate this in _OSC support capabilities.
--	 */
--	support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
--	support |= OSC_PCI_HPX_TYPE_3_SUPPORT;
--	if (pci_ext_cfg_avail())
--		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
--	if (pcie_aspm_support_enabled())
--		support |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
--	if (pci_msi_enabled())
--		support |= OSC_PCI_MSI_SUPPORT;
--	if (IS_ENABLED(CONFIG_PCIE_EDR))
--		support |= OSC_PCI_EDR_SUPPORT;
-+	support = calculate_support();
- 
- 	decode_osc_support(root, "OS supports", support);
- 	status = acpi_pci_osc_support(root, support);
-@@ -456,31 +496,8 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 		return;
- 	}
- 
--	control = OSC_PCI_EXPRESS_CAPABILITY_CONTROL
--		| OSC_PCI_EXPRESS_PME_CONTROL;
--
--	if (IS_ENABLED(CONFIG_PCIEASPM))
--		control |= OSC_PCI_EXPRESS_LTR_CONTROL;
--
--	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
--		control |= OSC_PCI_EXPRESS_NATIVE_HP_CONTROL;
--
--	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_SHPC))
--		control |= OSC_PCI_SHPC_NATIVE_HP_CONTROL;
--
--	if (pci_aer_available())
--		control |= OSC_PCI_EXPRESS_AER_CONTROL;
--
--	/*
--	 * Per the Downstream Port Containment Related Enhancements ECN to
--	 * the PCI Firmware Spec, r3.2, sec 4.5.1, table 4-5,
--	 * OSC_PCI_EXPRESS_DPC_CONTROL indicates the OS supports both DPC
--	 * and EDR.
--	 */
--	if (IS_ENABLED(CONFIG_PCIE_DPC) && IS_ENABLED(CONFIG_PCIE_EDR))
--		control |= OSC_PCI_EXPRESS_DPC_CONTROL;
-+	requested = control = calculate_control();
- 
--	requested = control;
- 	status = acpi_pci_osc_control_set(handle, &control,
- 					  OSC_PCI_EXPRESS_CAPABILITY_CONTROL);
- 	if (ACPI_SUCCESS(status)) {
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index f25bd336113b..1f9b9a4c38c7 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -77,6 +77,17 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 		},
+ 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
+ 	},
++	{
++		/*
++		 * Lenovo Yoga 9 14ITL5, initial notification of the LID device
++		 * never happens.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "82BG"),
++		},
++		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++	},
+ 	{
+ 		/*
+ 		 * Medion Akoya E2215T, notification of the LID device only
 -- 
-2.32.0
+2.33.0
 
