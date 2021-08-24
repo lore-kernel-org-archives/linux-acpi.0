@@ -2,41 +2,40 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1ADFC4338F
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 12:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A42C8C43214
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 12:21:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95E5D61076
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 12:21:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D6D661037
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 12:21:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236983AbhHXMVr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S237036AbhHXMVs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Aug 2021 08:21:48 -0400
+Received: from 8bytes.org ([81.169.241.247]:40902 "EHLO theia.8bytes.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S236676AbhHXMVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 24 Aug 2021 08:21:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47296 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237036AbhHXMVr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Aug 2021 08:21:47 -0400
-Received: from theia.8bytes.org (8bytes.org [IPv6:2a01:238:4383:600:38bc:a715:4b6d:a889])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B35EC061757;
-        Tue, 24 Aug 2021 05:21:03 -0700 (PDT)
 Received: from cap.home.8bytes.org (p4ff2b1ea.dip0.t-ipconnect.de [79.242.177.234])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
         (No client certificate requested)
-        by theia.8bytes.org (Postfix) with ESMTPSA id 49C16ED;
-        Tue, 24 Aug 2021 14:20:59 +0200 (CEST)
+        by theia.8bytes.org (Postfix) with ESMTPSA id 73781898;
+        Tue, 24 Aug 2021 14:21:00 +0200 (CEST)
 From:   Joerg Roedel <joro@8bytes.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Len Brown <lenb@kernel.org>
 Cc:     linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org, joro@8bytes.org, jroedel@suse.de
-Subject: [PATCH v3 0/4] PCI/ACPI: Simplify PCIe _OSC feature negotiation
-Date:   Tue, 24 Aug 2021 14:20:50 +0200
-Message-Id: <20210824122054.29481-1-joro@8bytes.org>
+Subject: [PATCH v3 3/4] PCI/ACPI: Move _OSC query checks to separate function
+Date:   Tue, 24 Aug 2021 14:20:53 +0200
+Message-Id: <20210824122054.29481-4-joro@8bytes.org>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210824122054.29481-1-joro@8bytes.org>
+References: <20210824122054.29481-1-joro@8bytes.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -45,43 +44,61 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Joerg Roedel <jroedel@suse.de>
 
-Hi,
+Move the checks about whether the _OSC controls are requested from the
+firmware to a separate function.
 
-here is the third version of my patches to simplify the _OSC
-negotiation of PCIe features between Linux and the firmware.
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+---
+ drivers/acpi/pci_root.c | 28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-This version is a complete rewrite, so there is no changelog to the
-previous version. Patches 1-3 are cleanups and small restructurings of
-the code as a preparation for patch 4.
-
-The last patch gets rid of the dedicated _OSC query to check for _OSC
-support and merges that functionality into acpi_pci_osc_control_set().
-
-This allows to simplify and/or remove other functions and consilidate
-error handling in negotiate_os_control().
-
-I have tested the patches with and without 'pcie_ports=compat' and
-found no regressions on my test machine.
-
-Please review.
-
-Thanks,
-
-	Joerg
-
-
-
-Joerg Roedel (4):
-  PCI/ACPI: Remove OSC_PCI_SUPPORT_MASKS and OSC_PCI_CONTROL_MASKS
-  PCI/ACPI: Move supported and control calculations to separaten
-    functions
-  PCI/ACPI: Move _OSC query checks to separate function
-  PCI/ACPI: Check for _OSC support in acpi_pci_osc_control_set()
-
- drivers/acpi/pci_root.c | 161 +++++++++++++++++++++-------------------
- include/linux/acpi.h    |   2 -
- 2 files changed, 84 insertions(+), 79 deletions(-)
-
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index ed4e6b55e9bc..f12e512bcddc 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -449,6 +449,24 @@ static u32 calculate_control(void)
+ 	return control;
+ }
+ 
++static bool os_control_query_checks(struct acpi_pci_root *root, u32 support)
++{
++	struct acpi_device *device = root->device;
++
++	if (pcie_ports_disabled) {
++		dev_info(&device->dev, "PCIe port services disabled; not requesting _OSC control\n");
++		return false;
++	}
++
++	if ((support & ACPI_PCIE_REQ_SUPPORT) != ACPI_PCIE_REQ_SUPPORT) {
++		decode_osc_support(root, "not requesting OS control; OS requires",
++				   ACPI_PCIE_REQ_SUPPORT);
++		return false;
++	}
++
++	return true;
++}
++
+ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
+ 				 bool is_pcie)
+ {
+@@ -485,16 +503,8 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
+ 		return;
+ 	}
+ 
+-	if (pcie_ports_disabled) {
+-		dev_info(&device->dev, "PCIe port services disabled; not requesting _OSC control\n");
++	if (!os_control_query_checks(root, support))
+ 		return;
+-	}
+-
+-	if ((support & ACPI_PCIE_REQ_SUPPORT) != ACPI_PCIE_REQ_SUPPORT) {
+-		decode_osc_support(root, "not requesting OS control; OS requires",
+-				   ACPI_PCIE_REQ_SUPPORT);
+-		return;
+-	}
+ 
+ 	requested = control = calculate_control();
+ 
 -- 
 2.32.0
 
