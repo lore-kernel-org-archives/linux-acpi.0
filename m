@@ -2,113 +2,113 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE05FC4338F
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 15:51:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E957C4338F
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 21:39:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82A7F61163
-	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 15:51:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D646E61374
+	for <linux-acpi@archiver.kernel.org>; Tue, 24 Aug 2021 21:39:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238427AbhHXPwS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 24 Aug 2021 11:52:18 -0400
-Received: from mga17.intel.com ([192.55.52.151]:12636 "EHLO mga17.intel.com"
+        id S235104AbhHXVkH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 24 Aug 2021 17:40:07 -0400
+Received: from foss.arm.com ([217.140.110.172]:41126 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238287AbhHXPwR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 24 Aug 2021 11:52:17 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="197586992"
-X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="197586992"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 08:51:29 -0700
-X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="443843603"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 08:51:27 -0700
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 87B3B2021A;
-        Tue, 24 Aug 2021 18:51:25 +0300 (EEST)
-Date:   Tue, 24 Aug 2021 18:51:25 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
-        andriy.shevchenko@linux.intel.com, rafael@kernel.org
-Subject: Re: [RFC 1/3] imx258: Defer probing on ident register read fail (on
- ACPI)
-Message-ID: <20210824155125.GJ3@paasikivi.fi.intel.com>
-References: <20210819201936.7390-1-sakari.ailus@linux.intel.com>
- <20210819201936.7390-2-sakari.ailus@linux.intel.com>
- <YR7Mu76nlw4kKwE5@pendragon.ideasonboard.com>
+        id S234442AbhHXVkH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 24 Aug 2021 17:40:07 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 41BB0D6E;
+        Tue, 24 Aug 2021 14:39:22 -0700 (PDT)
+Received: from [192.168.122.166] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A06533F5A1;
+        Tue, 24 Aug 2021 14:39:21 -0700 (PDT)
+Subject: Re: [PATCH v2 3/4] PCI/ACPI: Add Broadcom bcm2711 MCFG quirk
+To:     Florian Fainelli <f.fainelli@gmail.com>, linux-pci@vger.kernel.org
+Cc:     lorenzo.pieralisi@arm.com, nsaenz@kernel.org, bhelgaas@google.com,
+        rjw@rjwysocki.net, lenb@kernel.org, robh@kernel.org, kw@linux.com,
+        sdonthineni@nvidia.com, stefan.wahren@i2se.com,
+        bcm-kernel-feedback-list@broadcom.com, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20210819215655.84866-1-jeremy.linton@arm.com>
+ <20210819215655.84866-4-jeremy.linton@arm.com>
+ <9796674a-5870-135c-2fdc-fb0d5347d7c7@gmail.com>
+From:   Jeremy Linton <jeremy.linton@arm.com>
+Message-ID: <ddffee4b-8136-9ca1-85f7-bfdbac07bfe7@arm.com>
+Date:   Tue, 24 Aug 2021 16:39:20 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <9796674a-5870-135c-2fdc-fb0d5347d7c7@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <YR7Mu76nlw4kKwE5@pendragon.ideasonboard.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Laurent,
+Hi,
 
-On Fri, Aug 20, 2021 at 12:27:23AM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
+On 8/22/21 3:53 AM, Florian Fainelli wrote:
 > 
-> Thank you for the patch.
 > 
-> On Thu, Aug 19, 2021 at 11:19:34PM +0300, Sakari Ailus wrote:
-> > Return -EPROBE_DEFER if probing the device fails because of the I�C
-> > transaction (-EIO only). This generally happens when the power on sequence
-> > of the device has not been fully performed yet due to later probing of
-> > other drivers.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/i2c/imx258.c | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-> > index c249507aa2db..2751c12b6029 100644
-> > --- a/drivers/media/i2c/imx258.c
-> > +++ b/drivers/media/i2c/imx258.c
-> > @@ -1109,6 +1109,14 @@ static int imx258_identify_module(struct imx258 *imx258)
-> >  
-> >  	ret = imx258_read_reg(imx258, IMX258_REG_CHIP_ID,
-> >  			      IMX258_REG_VALUE_16BIT, &val);
-> > +	if (ret == -EIO && is_acpi_device_node(dev_fwnode(&client->dev))) {
-> > +		/*
-> > +		 * If we get -EIO here and it's an ACPI device, there's a fair
-> > +		 * likelihood it's because the drivers required to power this
-> > +		 * device on have not probed yet. Thus return -EPROBE_DEFER.
-> > +		 */
-> > +		return -EPROBE_DEFER;
+> On 8/19/2021 11:56 PM, Jeremy Linton wrote:
+>> Now that there is a bcm2711 quirk, it needs to be enabled when the
+>> MCFG is missing. Use an ACPI namespace _DSD property
+>> "linux-ecam-quirk-id" as an alternative to the MCFG OEM.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   drivers/acpi/pci_mcfg.c | 13 +++++++++++++
+>>   1 file changed, 13 insertions(+)
+>>
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> index 53cab975f612..4b991ee5c66c 100644
+>> --- a/drivers/acpi/pci_mcfg.c
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -169,6 +169,9 @@ static struct mcfg_fixup mcfg_quirks[] = {
+>>       ALTRA_ECAM_QUIRK(1, 13),
+>>       ALTRA_ECAM_QUIRK(1, 14),
+>>       ALTRA_ECAM_QUIRK(1, 15),
+>> +
+>> +    { "bcm2711", "", 0, 0, MCFG_BUS_ANY, &bcm2711_pcie_ops,
+>> +      DEFINE_RES_MEM(0xFD500000, 0xA000) },
+>>   };
+>>   static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+>> @@ -198,8 +201,18 @@ static void pci_mcfg_apply_quirks(struct 
+>> acpi_pci_root *root,
+>>       u16 segment = root->segment;
+>>       struct resource *bus_range = &root->secondary;
+>>       struct mcfg_fixup *f;
+>> +    const char *soc;
+>>       int i;
+>> +    /*
+>> +     * This may be a machine with a PCI/SMC conduit, which means it 
+>> doesn't
+>> +     * have an MCFG. Use an ACPI namespace definition instead.
+>> +     */
+>> +    if (!fwnode_property_read_string(acpi_fwnode_handle(root->device),
+>> +                     "linux-ecam-quirk-id", &soc)) {
+>> +        memcpy(mcfg_oem_id, soc, ACPI_OEM_ID_SIZE);
 > 
-> That's really a hack :-( The driver shouldn't have to deal with this. If
-> power management is handled transparently for the driver, which is
-> what's meant to happen with ACPI, then it should be fully transparent.
-> An -EIO error may mean a real communication issue, turning it into
-> infinite probe deferring isn't right. The ACPI subsystem should figure
-> this out and not probe the driver until all the required resources that
-> are managed transparently for the driver are available.
+> Being super paranoid here, can we use one of the "safe" string copy 
+> routines here just in case?
+
+Hmm, I went around with this a bit when I first wrote it, because the 
+OEM fields in the ACPI tables are fixed len and don't have null 
+termination. Maybe the right thing to do here is verify the string size 
+is at least as long as the OEM_ID_SIZE and then continue to use the memcpy.
+
 > 
-> If this was a one-off hack I may be able to pretend I haven't noticed,
-> but this would need to be copied to every single sensor driver, even
-> every single I2C device driver. It should be fixed properly in the ACPI
-> subsystem instead.
+>> +    }
+>> +
+>>       for (i = 0, f = mcfg_quirks; i < ARRAY_SIZE(mcfg_quirks); i++, 
+>> f++) {
+>>           if (pci_mcfg_quirk_matches(f, segment, bus_range)) {
+>>               if (f->cfgres.start)
+>>
+> 
 
-In practice such communication issues are rare and trying an I�C access
-isn't expensive. The patch does solve two practical issues, namely
-correctly probing a driver and making it possible to build more things as
-modules.
-
-That said, I agree with with you that ideally a driver would know whether a
-device has been fully powered up or not. There could also be adverse side
-effects as there have been no such checks previously.
-
--- 
-Regards,
-
-Sakari Ailus
