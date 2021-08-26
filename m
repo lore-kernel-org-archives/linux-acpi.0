@@ -2,60 +2,64 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76353C4320A
-	for <linux-acpi@archiver.kernel.org>; Thu, 26 Aug 2021 07:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35800C4320E
+	for <linux-acpi@archiver.kernel.org>; Thu, 26 Aug 2021 07:45:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3269F610FD
-	for <linux-acpi@archiver.kernel.org>; Thu, 26 Aug 2021 07:45:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CDF9610FD
+	for <linux-acpi@archiver.kernel.org>; Thu, 26 Aug 2021 07:45:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240315AbhHZHqS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 26 Aug 2021 03:46:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50474 "EHLO
+        id S240501AbhHZHq0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 26 Aug 2021 03:46:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240306AbhHZHqR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Aug 2021 03:46:17 -0400
-Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C42CC061757
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Aug 2021 00:45:30 -0700 (PDT)
-Received: by mail-yb1-xb49.google.com with SMTP id r15-20020a056902154f00b00598b87f197cso2227477ybu.13
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Aug 2021 00:45:30 -0700 (PDT)
+        with ESMTP id S240361AbhHZHqW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Aug 2021 03:46:22 -0400
+Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAAA4C061757
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Aug 2021 00:45:35 -0700 (PDT)
+Received: by mail-yb1-xb4a.google.com with SMTP id b127-20020a25e485000000b005943f1efa05so2235700ybh.15
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Aug 2021 00:45:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
-        h=date:message-id:mime-version:subject:from:to:cc;
-        bh=wKFLqTVWaVrcQULKv1jqscU7IEOt0JC1OsA098B/mg8=;
-        b=MgrRFJDm1nANvlgHSds/Pe4ZKKgMbmjPSzIetJqnyx7l4IeGw8CA8DOJ1MkwJ8Q1fr
-         rE471tV2WG8jVbXtNw/o04Ax9QjwrccP2Fx1QJGGRniwORpBUYKnm0DYKNaM7Pv0rgEu
-         BIQ4qLSmEknUPOFvBYuEixlESUUhGJTgXWLMmBh++7p036Y8qDdClF1Y/q5y/94SHgfX
-         0xcEEN3qr0fgB2SI/iWRtkxX1ViId6077Ue1NyGKx+RkfhRI+J1Llh/dJBzoYLaKjUy5
-         BFsRmQW+ev1BGTyj8BOxilty2S1Vz1mB/WDJjsct4nEQrrTCTYJquK/sb7ve2o0WBa0s
-         sbqw==
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=YHIgrK6tAkKZGZR6Q2TwdOpVzreK8GCVzLPUG55+FFA=;
+        b=rhStSsGxbaIR0MHB9CmSlbRSYrPUet7tGgyJ+OcOlMCUMLgbNQjDUbORc7FcHe1ros
+         eyJjNPIteE6dcBbFrVV4sAG1CfkyctKtYXFUFJFjILiWA67roZgtqUY+kW//6sWFQBuL
+         XJneAy7Kdqhg2gB58jMjQkZIStv8T7VXpY87t6vptrNXwrmktfKWgyxFIcrm88KDaTC2
+         aAKaQZvxNsln4iUtVENNv4blcCIXXIYkyPCXiSrYsxpAC6a0evyoY0kjbsFKYs3rbNcx
+         1GFyICXzmkbexbA2W7BfkCml5A0a+cfdXbMtdQMvqkdvurKKGhfD2RUL/jmX5CZ73WBN
+         TKEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
-        bh=wKFLqTVWaVrcQULKv1jqscU7IEOt0JC1OsA098B/mg8=;
-        b=T0rOlnvw3gMFhtPzONwprQFikmogpHSRhi/+fDGpo1+QINhxz+GoU2xdCmd0+dZSM7
-         9Bb2FLa3pa95xUrzr3cGcSmfPck6xX5H8SrDXfOBJyA4XZuCreooD4wWkWBt8KpdHUSY
-         5YWDC/h9Jx0nWVLgH/97Phrrzso6L1j9jgyn8bSkpGk6jor4GzyobWvZWW6+AILVPSbl
-         svSlOG8rq+Ska7w16C2UEBAjA5EYUBD0dpZFHV/PBnfvUfCQqK8sOSrDwqwqzWYUgpgN
-         bMLWFFH3BO2byU/Lr5CRM/BETEIVjIunaWeZMemhHMiR+KSYM5RC9UCZOssxQZ28OS37
-         SDvw==
-X-Gm-Message-State: AOAM5326yai1lPDu6MLKdRnVYA4J5sj99x2U2eRRmWBDlnaeexHObRLI
-        ruGIj8bxeo8DXOs/VCsVV6g6Le2hVx8Isec=
-X-Google-Smtp-Source: ABdhPJxz+g0Ic2ZhjBouHVwCw2zCtQ4XGrAuR6D8xhyLLvtQM7hmYzuuUc4xpmTTTvSNqfkXQX93y+AA1vZL1lg=
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=YHIgrK6tAkKZGZR6Q2TwdOpVzreK8GCVzLPUG55+FFA=;
+        b=U8wlPInWCS0RnHtvagyghM/Uq4IVOIEUoDgtK7Euo1WpYl72sjOQedxsCkRH3tpRq+
+         hVSfcCo/5fGyETnnoJ/mhx3p0HvXtVkBgU8g9QuyUrPWpfm9XYtHu1CSR/OuTC8XYZu0
+         441BBg+AQg4+dVYwMxEHcvtrUQALEiy21MwW6uHnznAKU/wxYy4xLE0K8kgwtMkqj0Bb
+         RrGxjQpka4La15y1Q5YqYbYUkxdAjsPgKuHf2XKnNift5VTZaEppj4IkbTgZdN1m/KA7
+         qu2zATLOZpNh4NVnOThUftSU4NKUDH8cIGo4Zzq5smH8Rhuaaq5r+oU2cUiSJceVaa5N
+         ZuqQ==
+X-Gm-Message-State: AOAM532c6U9X/M+BbZctR4IcPi7lxe5rleAaR9fMF7sJ7PgU+9MCWJzC
+        4gVLoWtZA7HzakjxuDsHjU5rpsrj9tRStQM=
+X-Google-Smtp-Source: ABdhPJycNYDqto2n3MH4BgrRVXIGSmkVWlpLM27lpYHQFpoOpL13Ca6ZU3KzJ3Auys6ImZMCuoSNk0Dqns2CdFc=
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:5b7b:56e7:63bf:9b3c])
- (user=saravanak job=sendgmr) by 2002:a25:1056:: with SMTP id
- 83mr3551029ybq.52.1629963929742; Thu, 26 Aug 2021 00:45:29 -0700 (PDT)
-Date:   Thu, 26 Aug 2021 00:45:23 -0700
-Message-Id: <20210826074526.825517-1-saravanak@google.com>
+ (user=saravanak job=sendgmr) by 2002:a25:5ed7:: with SMTP id
+ s206mr3728540ybb.387.1629963935137; Thu, 26 Aug 2021 00:45:35 -0700 (PDT)
+Date:   Thu, 26 Aug 2021 00:45:25 -0700
+In-Reply-To: <20210826074526.825517-1-saravanak@google.com>
+Message-Id: <20210826074526.825517-3-saravanak@google.com>
 Mime-Version: 1.0
+References: <20210826074526.825517-1-saravanak@google.com>
 X-Mailer: git-send-email 2.33.0.rc2.250.ged5fa647cd-goog
-Subject: [PATCH v1 0/2] Fix rtl8366rb issues with fw_devlink=on
+Subject: [PATCH v1 2/2] net: dsa: rtl8366rb: Quick fix to work with fw_devlink=on
 From:   Saravana Kannan <saravanak@google.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -75,27 +79,33 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-I consider Patch 2/2 to be a temporary fix that restores functionality
-while a proper fix of the driver is figured out.
+This is just a quick fix to make this driver work with fw_devlink=on.
+The proper fix might need a significant amount of rework of the driver
+of the framework to use a component device model.
 
-Alvin,
+Signed-off-by: Saravana Kannan <saravanak@google.com>
+---
+ drivers/net/dsa/realtek-smi-core.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Can you test this out? Also, sorry to drop the accents in your name.
-git-send-email was being weird about it.
-
-Thanks,
-Saravana
-Cc: Alvin Sipraga <ALSI@bang-olufsen.dk>
-
-Saravana Kannan (2):
-  driver core: fw_devlink: Add support for FWNODE_FLAG_BROKEN_PARENT
-  net: dsa: rtl8366rb: Quick fix to work with fw_devlink=on
-
- drivers/base/core.c                | 22 ++++++++++++++++++++++
- drivers/net/dsa/realtek-smi-core.c |  7 +++++++
- include/linux/fwnode.h             |  3 +++
- 3 files changed, 32 insertions(+)
-
+diff --git a/drivers/net/dsa/realtek-smi-core.c b/drivers/net/dsa/realtek-smi-core.c
+index 8e49d4f85d48..f79c174f4954 100644
+--- a/drivers/net/dsa/realtek-smi-core.c
++++ b/drivers/net/dsa/realtek-smi-core.c
+@@ -394,6 +394,13 @@ static int realtek_smi_probe(struct platform_device *pdev)
+ 	var = of_device_get_match_data(dev);
+ 	np = dev->of_node;
+ 
++	/* This driver assumes the child PHYs would be probed successfully
++	 * before this functions returns. That's not a valid assumption, but
++	 * let fw_devlink know so that this driver continues to function with
++	 * fw_devlink=on.
++	 */
++	np->fwnode.flags |= FWNODE_FLAG_BROKEN_PARENT;
++
+ 	smi = devm_kzalloc(dev, sizeof(*smi) + var->chip_data_sz, GFP_KERNEL);
+ 	if (!smi)
+ 		return -ENOMEM;
 -- 
 2.33.0.rc2.250.ged5fa647cd-goog
 
