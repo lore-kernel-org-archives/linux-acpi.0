@@ -2,36 +2,66 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09CEAC432BE
-	for <linux-acpi@archiver.kernel.org>; Fri, 27 Aug 2021 01:23:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CDBFC432BE
+	for <linux-acpi@archiver.kernel.org>; Fri, 27 Aug 2021 04:02:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D193B60F45
-	for <linux-acpi@archiver.kernel.org>; Fri, 27 Aug 2021 01:23:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DAED60F45
+	for <linux-acpi@archiver.kernel.org>; Fri, 27 Aug 2021 04:02:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243879AbhH0BYA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 26 Aug 2021 21:24:00 -0400
-Received: from vps0.lunn.ch ([185.16.172.187]:44086 "EHLO vps0.lunn.ch"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243862AbhH0BX7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 26 Aug 2021 21:23:59 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-        bh=UmvqQeRBC3Htg34LwucXA+7+d+VtbtPSDFbdpOgvHz0=; b=XwuOLQcCT/+U9R021tGLTEiB+O
-        I0649jMhBb6YJ5tEC5OlvyUNjyQoTx1x2o8NiMeozcwB60PQo2HBpfdvelY9GTvM4H+W5cZ70b9pp
-        o8i7+p4KLpRZP2Xq6dmTPmargZcybzwbbE5qP3ID02K5aNynmUUSGq9OhP0Sm3N/DYko=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-        (envelope-from <andrew@lunn.ch>)
-        id 1mJQaD-0042Pg-4e; Fri, 27 Aug 2021 03:23:01 +0200
-Date:   Fri, 27 Aug 2021 03:23:01 +0200
-From:   Andrew Lunn <andrew@lunn.ch>
-To:     Saravana Kannan <saravanak@google.com>
+        id S232793AbhH0EDm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 27 Aug 2021 00:03:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47760 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233948AbhH0EDm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Aug 2021 00:03:42 -0400
+Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9788C0613D9
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Aug 2021 21:02:53 -0700 (PDT)
+Received: by mail-yb1-xb2c.google.com with SMTP id k65so10021587yba.13
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Aug 2021 21:02:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=5EX0Ib5T66NZEZQUvNen4rx8W6LbQAQc16oQp/aoMH8=;
+        b=q2wz4tOPNUK/CXTrqsq327gnvpzMOo2L//zvFOMKtCAvsMZWguv+T8jRd35dUN7jm0
+         3h7Vef3WRREfLGFp4HP9fb4AzB8oJNmS7Przcq/dfU5QgNU76mFG5ggqILgq63LH3fIw
+         FJJZgu1FH3UTKcBOi0588DRyPPZ3DFo0mhdcqwy0wOutq9ZPY9LUBr4X/TAlMKlJ/iu1
+         /EYSG7UnjZ+o2iHGPPeLeBrd0XmE5jHZICZcNESLQXv2idlHQxE2k4K4uZeRzUzfRprE
+         orRrgVI+cydeAu181BPJa6GCZCIJ6URe6iQpA7AtfhvF2LI3x9HLALTjlR3cDed15lNV
+         2HuQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5EX0Ib5T66NZEZQUvNen4rx8W6LbQAQc16oQp/aoMH8=;
+        b=bx0z/Nu5TZL1+XJvFsZ4p6H3J0n1vJYTCYQkldTbo6LFhL+kPFX4g4VOdW+vgk9EzG
+         vz0vvL5P6OKTBVx6xAqcfvchV5IK47PRV6pu0LZL8y0jVTF0SFhZTL0UFnn4sDJUyrq/
+         ctNbMDd8k17Jb4PV6Ce3TG5RWeJ00i9d1p6I7m2isWabfWX0vAIUSTasNTQo7zUr38RG
+         W6PZ1pUs+EXkNO1whAfTHkANghV0sgp5nQgzZ68FCsOtyXRinakFVmqHCCapWkfqjyYK
+         8HfjIQUIB5mI5DiWp7dLB/cfCAmV5JHpBSn3J4y3VO73D+ulqdI0VO+2ZfP2z35Qszop
+         5Opw==
+X-Gm-Message-State: AOAM532X0mHIBdGgHnJg+hEanMdO4Tcvmiad4y7/bRkCilEUgQr+vYNq
+        Cxp9yy7GqgFvcPtulG9gsbNiTyijwBCysBgknDGAjQ==
+X-Google-Smtp-Source: ABdhPJyM0ggNxJXeHokAmTYi2nyU/dC2IeiojBgwYL1tAXquHUrAImkrDV6i+MVdfHqIjbkB7k+XWvdvv8LmFN6fZEU=
+X-Received: by 2002:a25:d213:: with SMTP id j19mr2860896ybg.20.1630036972958;
+ Thu, 26 Aug 2021 21:02:52 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210826074526.825517-1-saravanak@google.com> <20210826074526.825517-2-saravanak@google.com>
+ <YSeTdb6DbHbBYabN@lunn.ch> <CAGETcx-pSi60NtMM=59cve8kN9ff9fgepQ5R=uJ3Gynzh=0_BA@mail.gmail.com>
+ <YSf/Mps9E77/6kZX@lunn.ch> <CAGETcx_h6moWbS7m4hPm6Ub3T0tWayUQkppjevkYyiA=8AmACw@mail.gmail.com>
+ <YSg+dRPSX9/ph6tb@lunn.ch>
+In-Reply-To: <YSg+dRPSX9/ph6tb@lunn.ch>
+From:   Saravana Kannan <saravanak@google.com>
+Date:   Thu, 26 Aug 2021 21:02:16 -0700
+Message-ID: <CAGETcx_r8LSxV5=GQ-1qPjh7qGbCqTsSoSkQfxAKL5q+znRoWg@mail.gmail.com>
+Subject: Re: [PATCH v1 1/2] driver core: fw_devlink: Add support for FWNODE_FLAG_BROKEN_PARENT
+To:     Andrew Lunn <andrew@lunn.ch>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Linus Walleij <linus.walleij@linaro.org>,
@@ -43,45 +73,87 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Alvin Sipraga <ALSI@bang-olufsen.dk>, kernel-team@android.com,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v1 1/2] driver core: fw_devlink: Add support for
- FWNODE_FLAG_BROKEN_PARENT
-Message-ID: <YSg+dRPSX9/ph6tb@lunn.ch>
-References: <20210826074526.825517-1-saravanak@google.com>
- <20210826074526.825517-2-saravanak@google.com>
- <YSeTdb6DbHbBYabN@lunn.ch>
- <CAGETcx-pSi60NtMM=59cve8kN9ff9fgepQ5R=uJ3Gynzh=0_BA@mail.gmail.com>
- <YSf/Mps9E77/6kZX@lunn.ch>
- <CAGETcx_h6moWbS7m4hPm6Ub3T0tWayUQkppjevkYyiA=8AmACw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGETcx_h6moWbS7m4hPm6Ub3T0tWayUQkppjevkYyiA=8AmACw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> Doesn't add much to the discussion. In the example I gave, the driver
-> already does synchronous probing. If the device can't probe
-> successfully because a supplier isn't ready, it doesn't matter if it's
-> a synchronous probe. The probe would still be deferred and we'll hit
-> the same issue. Even in the situation the commit [5] describes, if
-> parallelized probing is done and the PHY depended on something (say a
-> clock), you'd still end up not probing the PHY even if the driver is
-> present and the generic PHY would end up force probing it.
+On Thu, Aug 26, 2021 at 6:23 PM Andrew Lunn <andrew@lunn.ch> wrote:
+>
+> > Doesn't add much to the discussion. In the example I gave, the driver
+> > already does synchronous probing. If the device can't probe
+> > successfully because a supplier isn't ready, it doesn't matter if it's
+> > a synchronous probe. The probe would still be deferred and we'll hit
+> > the same issue. Even in the situation the commit [5] describes, if
+> > parallelized probing is done and the PHY depended on something (say a
+> > clock), you'd still end up not probing the PHY even if the driver is
+> > present and the generic PHY would end up force probing it.
+>
+>
+> genphy is meant to be used when there is no other driver available.
+> It is a best effort, better than nothing, might work. And quite a few
+> boards rely on it. However, it should not be used when there is a
+> specific driver.
 
+Agreed, that's what we are trying to ensure.
 
-genphy is meant to be used when there is no other driver available.
-It is a best effort, better than nothing, might work. And quite a few
-boards rely on it. However, it should not be used when there is a
-specific driver.
+> So if the PHY device has been probed, and -EPROBE_DEFER was returned,
+> we also need to return -EPROBE_DEFER here when deciding if genphy
+> should be used. It should then all unwind and try again later.
 
-So if the PHY device has been probed, and -EPROBE_DEFER was returned,
-we also need to return -EPROBE_DEFER here when deciding if genphy
-should be used. It should then all unwind and try again later.
+Yes, I think dsa_register_switch() returning -EPROBE_DEFER if the PHYs
+returned -EPROBE_DEFER might be okay (I think we should do it), but
+that doesn't solve the problem for this driver.
 
-I don't know the device core, but it looks like dev->can_match tells
-us what we need to know. If true, we know there is a driver for this
-device. But i'm hesitant to make use of this outside of driver/base.
+fw_devlink=on/device links short circuits the probe() call of a
+consumer (in this case the PHY) and returns -EPROBE_DEFER if the
+supplier's (in this case switch) probe hasn't finished without an
+error. fw_devlink/device links effectively does the probe in graph
+topological order and there's a ton of good reasons to do it that way
+-- what's why fw_devlink=on was implemented.
 
-	Andrew
+In this specific case though, since the PHY depends on the parent
+device, if we fail the parent's probe realtek_smi_probe() because the
+PHYs failed to probe, we'll get into a catch-22/chicken-n-egg
+situation and the switch/PHYs will never probe.
 
+I think a clean way to fix this at the driver level is to do what I
+said in [6]. Copy pasting it here and expanding it a bit:
+
+1. The IRQ registration and mdio bus registration should get moved to
+realtek_smi_probe() which probes "realtek,rtl8366rb". So
+realtek_smi_probe() succeeding doesn't depend on its child devices
+probing successfully (which makes sense for any parent device).
+2. realtek_smi_probe() should also create/register a
+component-master/aggregate device that's "made up of"
+realtek,rtl8366rb and all the PHYs. So the component-master will wait
+for all of them to finish probing before it's initialized.
+3. PHYs will probe successfully now because realtek,rtl8366rb probe()
+which is the supplier's probe has finished probing without problems.
+4. The component device's init (the .bind op) would call
+dsa_register_switch() which kinda makes sense because the rtl8366rb
+and all the PHYs combined together is what makes up the logical DSA
+switch. The dsa_register_switch() will succeed and will be using the
+right/specific PHY driver.
+
+The same applies for any switch that has the PHYs as it's child device
+AND (this is the key part) the PHYs depend on the switch as a supplier
+(remember, if we didn't have the interrupt dependency, this would not
+be an issue).
+
+> I don't know the device core, but it looks like dev->can_match tells
+> us what we need to know. If true, we know there is a driver for this
+> device. But i'm hesitant to make use of this outside of driver/base.
+
+can_match is never cleared once it's set and it's meant as an
+optimization/preserving some probe order stuff. I wouldn't depend on
+it for this case. We can just have a phy_has_driver()  function that
+searches all the currently registered PHY drivers to check if there's
+a matching driver. And dsa_register_switch() or phy_attach_direct()
+can return -EPROBE_DEFER if there is a driver but it isn't bound yet.
+Again, this is orthogonal to the realtek driver fix though because of
+the catch-22 situation above.
+
+-Saravana
+
+[6] - https://lore.kernel.org/netdev/CAGETcx8_vxxPxF8WrXqk=PZYfEggsozP+z9KyOu5C2bEW0VW8g@mail.gmail.com/
