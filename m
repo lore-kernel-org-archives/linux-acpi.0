@@ -2,165 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E756EC4320A
-	for <linux-acpi@archiver.kernel.org>; Sun, 29 Aug 2021 13:22:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F1DC432BE
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Aug 2021 08:36:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3CB960F38
-	for <linux-acpi@archiver.kernel.org>; Sun, 29 Aug 2021 13:22:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D1CD60FF2
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Aug 2021 08:36:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235455AbhH2NXi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 29 Aug 2021 09:23:38 -0400
-Received: from mga12.intel.com ([192.55.52.136]:8392 "EHLO mga12.intel.com"
+        id S234618AbhH3Ihl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Aug 2021 04:37:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235434AbhH2NXi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 29 Aug 2021 09:23:38 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10090"; a="197722819"
-X-IronPort-AV: E=Sophos;i="5.84,361,1620716400"; 
-   d="scan'208";a="197722819"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2021 06:22:46 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.84,361,1620716400"; 
-   d="scan'208";a="644731144"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 29 Aug 2021 06:22:44 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 2B198C5; Sun, 29 Aug 2021 16:22:45 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Cc:     Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v1 1/1] Documentation: ACPI: Align the SSDT overlays file with the code
-Date:   Sun, 29 Aug 2021 16:22:43 +0300
-Message-Id: <20210829132243.82281-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.33.0
+        id S233318AbhH3Ihl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 30 Aug 2021 04:37:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDB1460E90;
+        Mon, 30 Aug 2021 08:36:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1630312608;
+        bh=U1Bz+TRPE0qWHJ914Agg77D2LCyxrGJYD98I0IgzduI=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=ACAJ/8opjlZkYWqPkc/po7IKe6UsMR372P2D3M0nWcSwPziCe9rfvwHFNzmGkBF77
+         AdBnGtgHa3hwiaxGlK/KK6q3dz0IRISJ9AwpWxgij42rEdZ/zS5TEVsPRWC4eHZz6F
+         C5TMhkXbp9q6yLx/NEs0LfsNm/h0K6aGqPmFcM1BTdYDyP0+v1p5a/VCJJw1ngpb21
+         rp2//0piv30bOzwAhhoXQiOEUpSWjgx1m1jp/VrhZeorH9SOMM/rvVJtoFHSpdFPmx
+         vi0VzTg+CE57l/Ls6Gd8yAlNxNq/HlCPAX8mQLhVdFFIREOqUMDG7AWum71adhq0VU
+         D6NlaGykdHhaw==
+Message-ID: <44ad79081412af289c68e74cdecb6a2baa2e873c.camel@kernel.org>
+Subject: Re: [PATCH v3 2/4] PCI: brcmstb: Add ACPI config space quirk
+From:   nicolas saenz julienne <nsaenz@kernel.org>
+To:     Jeremy Linton <jeremy.linton@arm.com>, linux-pci@vger.kernel.org
+Cc:     lorenzo.pieralisi@arm.com, bhelgaas@google.com, rjw@rjwysocki.net,
+        lenb@kernel.org, robh@kernel.org, kw@linux.com,
+        f.fainelli@gmail.com, bcm-kernel-feedback-list@broadcom.com,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Date:   Mon, 30 Aug 2021 10:36:43 +0200
+In-Reply-To: <20210826071557.29239-3-jeremy.linton@arm.com>
+References: <20210826071557.29239-1-jeremy.linton@arm.com>
+         <20210826071557.29239-3-jeremy.linton@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.40.4 (3.40.4-1.fc34) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This updates the following:
+Hi Jeremy,
+sorry for the late reply, I've been on vacation.
 
-1) The ASL code to follow latest ACPI requirements, i.e.
-   - static buffer to be defined outside of the method
-   - The _ADR and _HID shouldn't be together for the same device
+On Thu, 2021-08-26 at 02:15 -0500, Jeremy Linton wrote:
 
-2) EFI section relies on the additional kernel configuration option,
-   i.e. CONFIG_EFI_CUSTOM_SSDT_OVERLAYS
+[...]
 
-3) Refer to ACPI machine language as AML (capitalized)
+> +static void __iomem *brcm_pcie_map_conf2(struct pci_bus *bus,
+> +					unsigned int devfn, int where)
+> +{
+> +	struct pci_config_window *cfg = bus->sysdata;
+> +	void __iomem *base = cfg->win;
+> +	int idx;
+> +	u32 up;
+> +
+> +	/* Accesses to the RC go right to the RC registers if slot==0 */
+> +	if (pci_is_root_bus(bus))
+> +		return PCI_SLOT(devfn) ? NULL : base + where;
+> +
+> +	/*
+> +	 * Assure the link is up before sending requests downstream. This is done
+> +	 * to avoid sending transactions to EPs that don't exist. Link flap
+> +	 * conditions/etc make this race more probable. The resulting unrecoverable
+> +	 * SERRORs will result in the machine crashing.
+> +	 */
+> +	up = readl(base + PCIE_MISC_PCIE_STATUS);
+> +	if (!(up & PCIE_MISC_PCIE_STATUS_PCIE_DL_ACTIVE_MASK))
+> +		return NULL;
+> +
+> +	if (!(up & PCIE_MISC_PCIE_STATUS_PCIE_PHYLINKUP_MASK))
+> +		return NULL;
 
-4) Miscellaneous amendments
+Couldn't this be integrated in the original brcm_pcie_map_conf()? IIUC there is
+nothing ACPI specific about it. It'd also make for less code duplication.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- .../admin-guide/acpi/ssdt-overlays.rst        | 49 ++++++++++---------
- 1 file changed, 25 insertions(+), 24 deletions(-)
-
-diff --git a/Documentation/admin-guide/acpi/ssdt-overlays.rst b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-index 5d7e25988085..b5fbf54dca19 100644
---- a/Documentation/admin-guide/acpi/ssdt-overlays.rst
-+++ b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-@@ -30,22 +30,21 @@ following ASL code can be used::
-         {
-             Device (STAC)
-             {
--                Name (_ADR, Zero)
-                 Name (_HID, "BMA222E")
-+                Name (RBUF, ResourceTemplate ()
-+                {
-+                    I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
-+                                AddressingMode7Bit, "\\_SB.I2C6", 0x00,
-+                                ResourceConsumer, ,)
-+                    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-+                            "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-+                    { // Pin list
-+                        0
-+                    }
-+                })
- 
-                 Method (_CRS, 0, Serialized)
-                 {
--                    Name (RBUF, ResourceTemplate ()
--                    {
--                        I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
--                                    AddressingMode7Bit, "\\_SB.I2C6", 0x00,
--                                    ResourceConsumer, ,)
--                        GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
--                                "\\_SB.GPO2", 0x00, ResourceConsumer, , )
--                        { // Pin list
--                            0
--                        }
--                    })
-                     Return (RBUF)
-                 }
-             }
-@@ -75,7 +74,7 @@ This option allows loading of user defined SSDTs from initrd and it is useful
- when the system does not support EFI or when there is not enough EFI storage.
- 
- It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
--aml code must be placed in the first, uncompressed, initrd under the
-+AML code must be placed in the first, uncompressed, initrd under the
- "kernel/firmware/acpi" path. Multiple files can be used and this will translate
- in loading multiple tables. Only SSDT and OEM tables are allowed. See
- initrd_table_override.txt for more details.
-@@ -103,12 +102,14 @@ This is the preferred method, when EFI is supported on the platform, because it
- allows a persistent, OS independent way of storing the user defined SSDTs. There
- is also work underway to implement EFI support for loading user defined SSDTs
- and using this method will make it easier to convert to the EFI loading
--mechanism when that will arrive.
-+mechanism when that will arrive. To enable it, the
-+CONFIG_EFI_CUSTOM_SSDT_OVERLAYS shoyld be chosen to y.
- 
--In order to load SSDTs from an EFI variable the efivar_ssdt kernel command line
--parameter can be used. The argument for the option is the variable name to
--use. If there are multiple variables with the same name but with different
--vendor GUIDs, all of them will be loaded.
-+In order to load SSDTs from an EFI variable the ``"efivar_ssdt=..."`` kernel
-+command line parameter can be used (the name has a limitation of 16 characters).
-+The argument for the option is the variable name to use. If there are multiple
-+variables with the same name but with different vendor GUIDs, all of them will
-+be loaded.
- 
- In order to store the AML code in an EFI variable the efivarfs filesystem can be
- used. It is enabled and mounted by default in /sys/firmware/efi/efivars in all
-@@ -127,7 +128,7 @@ variable with the content from a given file::
- 
-     #!/bin/sh -e
- 
--    while ! [ -z "$1" ]; do
-+    while [ -n "$1" ]; do
-             case "$1" in
-             "-f") filename="$2"; shift;;
-             "-g") guid="$2"; shift;;
-@@ -167,14 +168,14 @@ variable with the content from a given file::
- Loading ACPI SSDTs from configfs
- ================================
- 
--This option allows loading of user defined SSDTs from userspace via the configfs
-+This option allows loading of user defined SSDTs from user space via the configfs
- interface. The CONFIG_ACPI_CONFIGFS option must be select and configfs must be
- mounted. In the following examples, we assume that configfs has been mounted in
--/config.
-+/sys/kernel/config.
- 
--New tables can be loading by creating new directories in /config/acpi/table/ and
--writing the SSDT aml code in the aml attribute::
-+New tables can be loading by creating new directories in /sys/kernel/config/acpi/table
-+and writing the SSDT AML code in the aml attribute::
- 
--    cd /config/acpi/table
-+    cd /sys/kernel/config/acpi/table
-     mkdir my_ssdt
-     cat ~/ssdt.aml > my_ssdt/aml
--- 
-2.33.0
+Regards,
+Nicolas
 
