@@ -2,179 +2,117 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-18.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 191F8C88CB2
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Sep 2021 16:25:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27F0BC83026
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Sep 2021 16:27:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AB5561181
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Sep 2021 16:09:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CFE4610A0
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Sep 2021 16:27:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345953AbhIBQKX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 2 Sep 2021 12:10:23 -0400
-Received: from mail-ot1-f43.google.com ([209.85.210.43]:36532 "EHLO
-        mail-ot1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234426AbhIBQKW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2021 12:10:22 -0400
-Received: by mail-ot1-f43.google.com with SMTP id a20-20020a0568300b9400b0051b8ca82dfcso3159745otv.3;
-        Thu, 02 Sep 2021 09:09:24 -0700 (PDT)
+        id S1346237AbhIBQ2q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 2 Sep 2021 12:28:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47774 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1346171AbhIBQ2p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2021 12:28:45 -0400
+Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77BD2C061760
+        for <linux-acpi@vger.kernel.org>; Thu,  2 Sep 2021 09:27:47 -0700 (PDT)
+Received: by mail-yb1-xb33.google.com with SMTP id r4so4971878ybp.4
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Sep 2021 09:27:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=eJLIiedISCJRyHw16WvJSkD85mHHNgMIgGyWz+lopEc=;
+        b=fM+/JeCwdbssBXpOkjmEZ3eIo9++9cKPpbcRN1wKaKgQ4I9DDDeOALD7CaTBisOPz9
+         C1FFKVwWxUb5uKAKlOHcOXhksa4rhh6l8dQ/UWlwEAmfJ9c2ym4Zzfcbxzq4/fo3wVOL
+         W01nxuHRtWPZKJqHXIk6mfSpWKoXky/+m2foBQ7x8FSyVwc4LUUd9pIPc2m+DEdTVuad
+         DfOTGBR6yJH8YE5iEj4/khKub/UXSmvkh7BHCEdbKIVRNgDJmG8qOHcG6Nr9UWyS6soz
+         Q9yS8Hys4HcWWTNi3lfeJVSUy6Cb1Yivd0UayQSJLw42Ru3IVlwOAmkn7PehtICiEM91
+         /KEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=H9s/CeztrdJ5mW7eXs2FCAq69cl4eT4riWgVkym3DBI=;
-        b=CLMjo0A8UQjvOhhCbMdg4QjTOlwTDqGrsf2xypGTJK0VNn2s3N4dn9x6zzp9FxEP3V
-         1CQBsZeGe12gz0RRBwmof/tkzpNF7vTy2Ebj+FGfaaFnfPm1Ri7EA+U2zvmIHPF7R4Re
-         OrMkut2lUZ2HoDS46x976cD28MDICcluhZdQ0sOLxT+up9OtdjFF/tJ2dH/iWfxBZ1bZ
-         nyuSY4HMoxtpf0Las6lzKEijU0XDJkwq9iwvc7X2y+7Uzu/w/Mlve3PGtV0bXTXWL3LS
-         iORz5Kr9+fc4T2SOvNE1GbR9+uwal0+NQE/sGA3vuYbzcS7mw5kwPAETrHpYyOsZhr8G
-         TKFA==
-X-Gm-Message-State: AOAM531GWSLFx5kFZfeFSdeqJRO2HR6crpHxAKXBK9tqQEdXXG5RR+hq
-        fO7/DuDLVOX+q73bg8YP82cRVSMdtg6ivXpzqu4=
-X-Google-Smtp-Source: ABdhPJzKMX1gorKDZvQ6+EZ0VUUlgn8z9GTqZRYd0mvVKwMjustuLbXhmjMBcAd0OgAzQuoTkwzcuKC+jiZkpimjCfU=
-X-Received: by 2002:a9d:7115:: with SMTP id n21mr3323619otj.321.1630598963788;
- Thu, 02 Sep 2021 09:09:23 -0700 (PDT)
+        bh=eJLIiedISCJRyHw16WvJSkD85mHHNgMIgGyWz+lopEc=;
+        b=SVXlqRJNXAp+2YV3AfqYW+QQieq7g72d7A1gK7jpSEhS0Y9dBGZ40ZRiUZQMKUklHo
+         ijnZzV7tG/vPf5Y4FsXV40ClJMeFYz2F0CeNMObs2JJ3m7fNQrWjgRwMKf1Hy4zEy8b1
+         rQsg2VCtj/D8ef+YRUxga23yATZt3irO6CuXJvcO9MOxoKxVnc4RY85KZJx3s8WeOzVG
+         KIq/lhu2awMkcHtZRXrOw3HAGxcMglRV5ZR81rDtM7lTxGLKjAbYY80JC2Sw6qm7/Zuq
+         CCmE3ItMrOqADup8EIG77aH0NvWF1udWc1Ns1v9bx8pWqbZzA5fNOOS+50wrZDlCQ7e8
+         Cklg==
+X-Gm-Message-State: AOAM533Ek+w9Z1zV1FE40RSWphxbXZA1GkkL+GfcXpVgSsl/oTHTX0Ga
+        vmkqKwKBqESI3SkOfbtw3h5lE35dbAVXmLKfAf9GzQ==
+X-Google-Smtp-Source: ABdhPJxLXRFWyfyWl9ok1Aa6XveqWoo81KUXhljpBzB+4qFjXNrtY5Q8+BjSRLkRtw+s/CVzpVUYjS1INpOzcfunDRA=
+X-Received: by 2002:a25:d2c8:: with SMTP id j191mr5657920ybg.412.1630600065503;
+ Thu, 02 Sep 2021 09:27:45 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210829132243.82281-1-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20210829132243.82281-1-andriy.shevchenko@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 2 Sep 2021 18:09:12 +0200
-Message-ID: <CAJZ5v0iXyW3EnsjXsRCGzwkP45jjOHmErMyGhm6HvTOVCawTZA@mail.gmail.com>
-Subject: Re: [PATCH v1 1/1] Documentation: ACPI: Align the SSDT overlays file
- with the code
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+References: <20210902025528.1017391-1-saravanak@google.com>
+ <CAGETcx9N34RyrdKDR8dQ7ECyz7ZXBx-Ft16t033NjTiU8p=Y0g@mail.gmail.com> <CAJZ5v0gt_1vKQXxSY6HoHRPR9O_e1f7VwcBnSjeMgCdCibrwgQ@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gt_1vKQXxSY6HoHRPR9O_e1f7VwcBnSjeMgCdCibrwgQ@mail.gmail.com>
+From:   Saravana Kannan <saravanak@google.com>
+Date:   Thu, 2 Sep 2021 09:27:09 -0700
+Message-ID: <CAGETcx_dvpFKZnz2w43h=ybp-8YF=OdpW0f2mK+jvDPURDFQJQ@mail.gmail.com>
+Subject: Re: [PATCH v1 0/2] Ulf reported an issue[1] with fw_devlink. This
+ series tries to fix that issue.
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Len Brown <lenb@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        "Cc: Android Kernel" <kernel-team@android.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Aug 29, 2021 at 3:22 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Thu, Sep 2, 2021 at 8:56 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
-> This updates the following:
+> On Thu, Sep 2, 2021 at 4:57 AM Saravana Kannan <saravanak@google.com> wrote:
+> >
+> > Oops, forgot to use a proper subject. Sorry.
 >
-> 1) The ASL code to follow latest ACPI requirements, i.e.
->    - static buffer to be defined outside of the method
->    - The _ADR and _HID shouldn't be together for the same device
->
-> 2) EFI section relies on the additional kernel configuration option,
->    i.e. CONFIG_EFI_CUSTOM_SSDT_OVERLAYS
->
-> 3) Refer to ACPI machine language as AML (capitalized)
->
-> 4) Miscellaneous amendments
->
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Is this a replacement for the "Fix rtl8366rb issues with fw_devlink=on " series?
 
-Applied, thanks!
+No. This is unrelated to that. This is the issue I'm trying to fix:
+https://lore.kernel.org/lkml/CAPDyKFo9Bxremkb1dDrr4OcXSpE0keVze94Cm=zrkOVxHHxBmQ@mail.gmail.com/
 
-> ---
->  .../admin-guide/acpi/ssdt-overlays.rst        | 49 ++++++++++---------
->  1 file changed, 25 insertions(+), 24 deletions(-)
+This is kind of a replacement to, but the patch below might be needed
+in general (needs more thought):
+https://lore.kernel.org/lkml/CAGETcx9U2M5i1CAx605fG3Qwm1xwjH2uy4kY4vrAF7YSRSSg+w@mail.gmail.com/
+
+-Saravana
 >
-> diff --git a/Documentation/admin-guide/acpi/ssdt-overlays.rst b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-> index 5d7e25988085..b5fbf54dca19 100644
-> --- a/Documentation/admin-guide/acpi/ssdt-overlays.rst
-> +++ b/Documentation/admin-guide/acpi/ssdt-overlays.rst
-> @@ -30,22 +30,21 @@ following ASL code can be used::
->          {
->              Device (STAC)
->              {
-> -                Name (_ADR, Zero)
->                  Name (_HID, "BMA222E")
-> +                Name (RBUF, ResourceTemplate ()
-> +                {
-> +                    I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
-> +                                AddressingMode7Bit, "\\_SB.I2C6", 0x00,
-> +                                ResourceConsumer, ,)
-> +                    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-> +                            "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-> +                    { // Pin list
-> +                        0
-> +                    }
-> +                })
 >
->                  Method (_CRS, 0, Serialized)
->                  {
-> -                    Name (RBUF, ResourceTemplate ()
-> -                    {
-> -                        I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
-> -                                    AddressingMode7Bit, "\\_SB.I2C6", 0x00,
-> -                                    ResourceConsumer, ,)
-> -                        GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-> -                                "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-> -                        { // Pin list
-> -                            0
-> -                        }
-> -                    })
->                      Return (RBUF)
->                  }
->              }
-> @@ -75,7 +74,7 @@ This option allows loading of user defined SSDTs from initrd and it is useful
->  when the system does not support EFI or when there is not enough EFI storage.
->
->  It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
-> -aml code must be placed in the first, uncompressed, initrd under the
-> +AML code must be placed in the first, uncompressed, initrd under the
->  "kernel/firmware/acpi" path. Multiple files can be used and this will translate
->  in loading multiple tables. Only SSDT and OEM tables are allowed. See
->  initrd_table_override.txt for more details.
-> @@ -103,12 +102,14 @@ This is the preferred method, when EFI is supported on the platform, because it
->  allows a persistent, OS independent way of storing the user defined SSDTs. There
->  is also work underway to implement EFI support for loading user defined SSDTs
->  and using this method will make it easier to convert to the EFI loading
-> -mechanism when that will arrive.
-> +mechanism when that will arrive. To enable it, the
-> +CONFIG_EFI_CUSTOM_SSDT_OVERLAYS shoyld be chosen to y.
->
-> -In order to load SSDTs from an EFI variable the efivar_ssdt kernel command line
-> -parameter can be used. The argument for the option is the variable name to
-> -use. If there are multiple variables with the same name but with different
-> -vendor GUIDs, all of them will be loaded.
-> +In order to load SSDTs from an EFI variable the ``"efivar_ssdt=..."`` kernel
-> +command line parameter can be used (the name has a limitation of 16 characters).
-> +The argument for the option is the variable name to use. If there are multiple
-> +variables with the same name but with different vendor GUIDs, all of them will
-> +be loaded.
->
->  In order to store the AML code in an EFI variable the efivarfs filesystem can be
->  used. It is enabled and mounted by default in /sys/firmware/efi/efivars in all
-> @@ -127,7 +128,7 @@ variable with the content from a given file::
->
->      #!/bin/sh -e
->
-> -    while ! [ -z "$1" ]; do
-> +    while [ -n "$1" ]; do
->              case "$1" in
->              "-f") filename="$2"; shift;;
->              "-g") guid="$2"; shift;;
-> @@ -167,14 +168,14 @@ variable with the content from a given file::
->  Loading ACPI SSDTs from configfs
->  ================================
->
-> -This option allows loading of user defined SSDTs from userspace via the configfs
-> +This option allows loading of user defined SSDTs from user space via the configfs
->  interface. The CONFIG_ACPI_CONFIGFS option must be select and configfs must be
->  mounted. In the following examples, we assume that configfs has been mounted in
-> -/config.
-> +/sys/kernel/config.
->
-> -New tables can be loading by creating new directories in /config/acpi/table/ and
-> -writing the SSDT aml code in the aml attribute::
-> +New tables can be loading by creating new directories in /sys/kernel/config/acpi/table
-> +and writing the SSDT AML code in the aml attribute::
->
-> -    cd /config/acpi/table
-> +    cd /sys/kernel/config/acpi/table
->      mkdir my_ssdt
->      cat ~/ssdt.aml > my_ssdt/aml
-> --
-> 2.33.0
->
+> > On Wed, Sep 1, 2021 at 7:55 PM Saravana Kannan <saravanak@google.com> wrote:
+> > >
+> > > Ulf, mind testing this?
+> > >
+> > > Thanks,
+> > > Saravana
+> > > [1] - https://lore.kernel.org/lkml/CAPDyKFo9Bxremkb1dDrr4OcXSpE0keVze94Cm=zrkOVxHHxBmQ@mail.gmail.com/
+> > >
+> > > Cc: Ulf Hansson <ulf.hansson@linaro.org>
+> > >
+> > > Saravana Kannan (2):
+> > >   driver core: Add support for FWNODE_FLAG_NEVER_PROBES
+> > >   of: platform: Mark bus devices nodes with FWNODE_FLAG_NEVER_PROBES
+> > >
+> > >  drivers/base/core.c    |  8 ++++++++
+> > >  drivers/of/platform.c  | 16 ++++++++++++++++
+> > >  include/linux/fwnode.h |  8 +++++---
+> > >  3 files changed, 29 insertions(+), 3 deletions(-)
+> > >
+> > > --
+> > > 2.33.0.259.gc128427fd7-goog
+> > >
