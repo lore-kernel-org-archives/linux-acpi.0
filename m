@@ -2,133 +2,197 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF67C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Sep 2021 21:29:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7ED4C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Sep 2021 22:28:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D9BA61104
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Sep 2021 21:29:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEBB861104
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Sep 2021 22:28:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347166AbhIGVbE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Sep 2021 17:31:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55626 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348651AbhIGVaF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Sep 2021 17:30:05 -0400
-Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCFA1C061757
-        for <linux-acpi@vger.kernel.org>; Tue,  7 Sep 2021 14:28:54 -0700 (PDT)
-Received: by mail-io1-xd2d.google.com with SMTP id a13so388512iol.5
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Sep 2021 14:28:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=uQ1QKlOMUxMJjspXpCNHZjX329YTQj9Uc23PyYscxxE=;
-        b=FbO+pDJXDBkBjC1rlKAdQfQgfh08Xa3kp6kg4kr7w0Y5RfqJlJsZJaWhpbBQz8nQqc
-         keSp3KjF48yyjtGYzivaNDwdC5pmNPDMlXgcahzEhY/BtqEdJRNRPSFOYLUsZ498FeFY
-         NucFj/hNQX432SYJKtlG1bl88o+Q4HvaC23zc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=uQ1QKlOMUxMJjspXpCNHZjX329YTQj9Uc23PyYscxxE=;
-        b=RA+GqxN4fgKIVHa8Wsz6HlgIrJCIOcIydQ49vdL2W/MQqv22ovPfZ7aN2or7K9cC/G
-         P1Dj7ExZSaKMv9zSX1ZX0U2GyBZAD70jWelXNPOe5zgpI2pBdlGjboax78mwN59FsesN
-         MQgG44MuEIWTt63id3HjEpCSEE0aLMzVFTBcAyjknpe+c2GEL3sqICpSN/d7W5PDdH8k
-         ZKfFfju6vjezXFjnHo0S5JVRkOj2+Yx31mwnRuojD1roeUuLQhngRwzqdJorze/sx3Sj
-         qqIpb+8JyU/T8J+yTMPoS9ZIgavS8GhjzUTLIsS6/DRs7/J8KUWodEd/SZoGhZz4HUm4
-         xCcA==
-X-Gm-Message-State: AOAM530UHnW/c9gKDK2bJAmmg9X8lbbNlAxKJjsrBzSX1OJdyUaGe2zY
-        Z6WtCs2O8PTrLx3nSnmE0GQJwA==
-X-Google-Smtp-Source: ABdhPJzq6xHc9ICyXPhNWoqmW3TFqPqfpQwhKPYhzkwAjJos1JLP7WLlq4mXoHgNUL0MH3n/iMByWw==
-X-Received: by 2002:a05:6638:4104:: with SMTP id ay4mr397781jab.10.1631050134251;
-        Tue, 07 Sep 2021 14:28:54 -0700 (PDT)
-Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net. [24.9.64.241])
-        by smtp.gmail.com with ESMTPSA id m13sm140087ilh.43.2021.09.07.14.28.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 07 Sep 2021 14:28:53 -0700 (PDT)
-Subject: Re: [PATCH 5/5][RFC] selftests/pfru: add test for Platform Firmware
- Runtime Update and Telemetry
-To:     Chen Yu <yu.c.chen@intel.com>, linux-acpi@vger.kernel.org
-Cc:     linux-kernel@vger.kernel.org,
+        id S242228AbhIGW3y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Sep 2021 18:29:54 -0400
+Received: from mga03.intel.com ([134.134.136.65]:63305 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235945AbhIGW3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 Sep 2021 18:29:53 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10100"; a="220382652"
+X-IronPort-AV: E=Sophos;i="5.85,276,1624345200"; 
+   d="scan'208";a="220382652"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2021 15:28:46 -0700
+X-IronPort-AV: E=Sophos;i="5.85,276,1624345200"; 
+   d="scan'208";a="478882356"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2021 15:28:44 -0700
+Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
+        by paasikivi.fi.intel.com (Postfix) with SMTP id 05C322036B;
+        Wed,  8 Sep 2021 01:28:42 +0300 (EEST)
+Date:   Wed, 8 Sep 2021 01:28:41 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Jean Delvare <jdelvare@suse.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <len.brown@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@intel.com>,
-        Aubrey Li <aubrey.li@intel.com>,
-        Ashok Raj <ashok.raj@intel.com>, Shuah Khan <shuah@kernel.org>,
-        linux-kselftest@vger.kernel.org,
-        Dou Shengnan <shengnanx.dou@intel.com>,
-        Shuah Khan <skhan@linuxfoundation.org>
-References: <cover.1631025237.git.yu.c.chen@intel.com>
- <1cef405de3484eef108251562fbf461bad4294c7.1631025237.git.yu.c.chen@intel.com>
-From:   Shuah Khan <skhan@linuxfoundation.org>
-Message-ID: <82889db2-1927-582d-c27f-b1f0927ca903@linuxfoundation.org>
-Date:   Tue, 7 Sep 2021 15:28:52 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Ville =?iso-8859-1?Q?Syrj=E4l=E4?= 
+        <ville.syrjala@linux.intel.com>
+Subject: Re: TPS68470 PMIC config option
+Message-ID: <20210907222841.GE3@paasikivi.fi.intel.com>
+References: <20210901160234.0e3e24b2@endymion>
+ <YS+6xzk9yc8uPetU@smile.fi.intel.com>
+ <20210901193251.GZ3@paasikivi.fi.intel.com>
+ <20210902115731.2fd22c80@endymion>
+ <20210902121529.GC3@paasikivi.fi.intel.com>
+ <b1fb59bb-aec4-660d-4291-f74f26f5b67b@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1cef405de3484eef108251562fbf461bad4294c7.1631025237.git.yu.c.chen@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b1fb59bb-aec4-660d-4291-f74f26f5b67b@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 9/7/21 9:40 AM, Chen Yu wrote:
-> Introduce a simple test for Platform Firmware Runtime Update and Telemetry
-> drivers. It is based on ioctl to either update firmware driver or code injection,
-> and read corresponding PFRU Telemetry log into user space.
+Hi Hans, others,
+
+On Fri, Sep 03, 2021 at 11:41:25AM +0200, Hans de Goede wrote:
+...
+> >>> Perhaps it could make sense to either rename this as
+> >>> CONFIG_PMIC_INTEL_OPREGION, or move the TPS68470 driver in and change the
+> >>> Kconfig+Makefile to have the common code compiled if at least one of the
+> >>> drivers is enabled.
+> >>
+> >> OK, thanks for the explanation I get it now. Yes, the fact that the
+> >> menu looks vendor-neutral while it is about Intel drivers only is
+> >> confusing. Renaming it would help. I'm not sure about your alternative
+> >> proposal as I can't actually see any common code or dependency between
+> >> intel_pmic and tps68470_pmic.
+> > 
+> > There isn't. I was thinking whether all PMIC opregion drivers would be
+> > behind a menu entry. If you have any sort of a generic kernel then you'd
+> > probably want all of these in anyway. I don't really have an opinion
+> > at this point though.
 > 
+> See above, note with the caveats from above noted I'm fine with the
+> rename. OTOH I'm fine with keeping things as is too.
+> 
+> A better name might by PMIC_BYT_CHT_OPREGION or PMIC_INTEL_BYT_CHT_OPREGION
+> though, since the TPS68470 OpRegion is also found only on devices where
+> the main SoC is from Intel.
 
-A few things to consider and add handling for them in the
-test.
+The same API could be used elsewhere, too. Nothing prevents that. Whether
+or not that happens is another question.
 
-What happens when non-root user runs this test?
-What happens when the pfru device doesn't exist?
+> 
+> >> What about the following?
+> >>
+> >> From: Jean Delvare <jdelvare@suse.de>
+> >> Subject: ACPI / PMIC: Rename CONFIG_PMIC_OPREGION
+> >>
+> >> Rename the intel_pmic driver's Kconfig option to make it clear it's
+> >> about the Intel chipset family.
+> >>
+> >> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> >> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >> Cc: Len Brown <lenb@kernel.org>
+> >> Cc: Andy Shevchenko <andy@kernel.org>
+> >> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> ---
+> >>  drivers/acpi/pmic/Kconfig                    |   10 +++++-----
+> >>  drivers/acpi/pmic/Makefile                   |    2 +-
+> >>  drivers/gpu/drm/i915/display/intel_dsi_vbt.c |    4 ++--
+> >>  drivers/staging/media/atomisp/Kconfig        |    2 +-
+> >>  4 files changed, 9 insertions(+), 9 deletions(-)
+> >>
+> >> --- linux-5.14.orig/drivers/acpi/pmic/Kconfig	2021-08-30 00:04:50.000000000 +0200
+> >> +++ linux-5.14/drivers/acpi/pmic/Kconfig	2021-09-02 11:51:14.146662112 +0200
+> >> @@ -1,14 +1,14 @@
+> >>  # SPDX-License-Identifier: GPL-2.0
+> >>  
+> >> -menuconfig PMIC_OPREGION
+> >> -	bool "PMIC (Power Management Integrated Circuit) operation region support"
+> >> +menuconfig INTEL_PMIC_OPREGION
+> >> +	bool "Intel PMIC (Power Management Integrated Circuit) operation region support"
+> >>  	help
+> >>  	  Select this option to enable support for ACPI operation
+> >> -	  region of the PMIC chip. The operation region can be used
+> >> +	  region of the Intel PMIC chip. The operation region can be used
+> >>  	  to control power rails and sensor reading/writing on the
+> >>  	  PMIC chip.
+> >>  
+> >> -if PMIC_OPREGION
+> >> +if INTEL_PMIC_OPREGION
+> >>  
+> >>  config BYTCRC_PMIC_OPREGION
+> >>  	bool "ACPI operation region support for Bay Trail Crystal Cove PMIC"
+> >> @@ -48,7 +48,7 @@ config CHT_DC_TI_PMIC_OPREGION
+> >>  	help
+> >>  	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
+> >>  
+> >> -endif	# PMIC_OPREGION
+> >> +endif	# INTEL_PMIC_OPREGION
+> >>  
+> >>  config TPS68470_PMIC_OPREGION
+> >>  	bool "ACPI operation region support for TPS68470 PMIC"
+> >> --- linux-5.14.orig/drivers/acpi/pmic/Makefile	2021-08-30 00:04:50.000000000 +0200
+> >> +++ linux-5.14/drivers/acpi/pmic/Makefile	2021-09-02 11:21:34.527694178 +0200
+> >> @@ -1,6 +1,6 @@
+> >>  # SPDX-License-Identifier: GPL-2.0
+> >>  
+> >> -obj-$(CONFIG_PMIC_OPREGION)		+= intel_pmic.o
+> >> +obj-$(CONFIG_INTEL_PMIC_OPREGION)	+= intel_pmic.o
+> >>  obj-$(CONFIG_BYTCRC_PMIC_OPREGION)	+= intel_pmic_bytcrc.o
+> >>  obj-$(CONFIG_CHTCRC_PMIC_OPREGION)	+= intel_pmic_chtcrc.o
+> >>  obj-$(CONFIG_XPOWER_PMIC_OPREGION)	+= intel_pmic_xpower.o
+> >> --- linux-5.14.orig/drivers/staging/media/atomisp/Kconfig	2021-08-30 00:04:50.000000000 +0200
+> >> +++ linux-5.14/drivers/staging/media/atomisp/Kconfig	2021-09-02 11:51:39.792007892 +0200
+> >> @@ -12,7 +12,7 @@ menuconfig INTEL_ATOMISP
+> >>  config VIDEO_ATOMISP
+> >>  	tristate "Intel Atom Image Signal Processor Driver"
+> >>  	depends on VIDEO_V4L2 && INTEL_ATOMISP
+> >> -	depends on PMIC_OPREGION
+> >> +	depends on INTEL_PMIC_OPREGION
+> >>  	select IOSF_MBI
+> >>  	select VIDEOBUF_VMALLOC
+> >>  	select VIDEO_V4L2_SUBDEV_API
+> >> --- linux-5.14.orig/drivers/gpu/drm/i915/display/intel_dsi_vbt.c	2021-08-30 00:04:50.000000000 +0200
+> >> +++ linux-5.14/drivers/gpu/drm/i915/display/intel_dsi_vbt.c	2021-09-02 11:52:38.230795493 +0200
+> >> @@ -511,7 +511,7 @@ static const u8 *mipi_exec_spi(struct in
+> >>  static const u8 *mipi_exec_pmic(struct intel_dsi *intel_dsi, const u8 *data)
+> >>  {
+> >>  	struct drm_i915_private *i915 = to_i915(intel_dsi->base.base.dev);
+> >> -#ifdef CONFIG_PMIC_OPREGION
+> >> +#ifdef CONFIG_INTEL_PMIC_OPREGION
+> >>  	u32 value, mask, reg_address;
+> >>  	u16 i2c_address;
+> >>  	int ret;
+> >> @@ -529,7 +529,7 @@ static const u8 *mipi_exec_pmic(struct i
+> >>  		drm_err(&i915->drm, "%s failed, error: %d\n", __func__, ret);
+> >>  #else
+> >>  	drm_err(&i915->drm,
+> >> -		"Your hardware requires CONFIG_PMIC_OPREGION and it is not set\n");
+> >> +		"Your hardware requires CONFIG_INTEL_PMIC_OPREGION and it is not set\n");
+> > 
+> > I wonder if this is just an Intel PMIC or whether it could be any PMIC.
+> 
+> This is used on devices which use the PMICs which use the ACPI OpRegion
+> handler defined in the shared intel_pmic.c code, so changing the check
+> as part of renaming the Kconfig option is fine.
 
+Sounds reasonable. And if there's a need to change the check it's easy to
+do anyway.
 
-[snip]
+So for the patch:
 
-> +}
-> +
-> +int main(int argc, char *argv[])
-> +{
-> +	int fd_update, fd_log, fd_capsule;
-> +	struct telem_data_info data_info;
-> +	struct telem_info info;
-> +	struct update_cap_info cap;
-> +	void *addr_map_capsule;
-> +	struct stat st;
-> +	char *log_buf;
-> +	int ret = 0;
-> +
-> +	parse_options(argc, argv);
-> +
-> +	fd_log = open("/dev/pfru/telemetry", O_RDWR);
-> +	if (fd_log < 0) {
-> +		perror("Cannot open telemetry device...");
-> +		return 1;
-> +	}
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Is this considered an error or unsupported?
+-- 
+Kind regards,
 
-> +	fd_update = open("/dev/pfru/update", O_RDWR);
-> +	if (fd_update < 0) {
-> +		perror("Cannot open code injection device...");
-> +		return 1;
-> +	}
-> +
-
-Same here. If test is run on platform with pfru test should skip
-instead of reporting failure/error.
-
-thanks,
--- Shuah
+Sakari Ailus
