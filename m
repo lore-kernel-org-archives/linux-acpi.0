@@ -2,170 +2,87 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-24.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 163F4C43217
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 12:31:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A53BC43219
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 12:40:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00645606A5
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 12:31:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BE54611C8
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 12:40:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345740AbhIIMc6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Sep 2021 08:32:58 -0400
-Received: from mga03.intel.com ([134.134.136.65]:12213 "EHLO mga03.intel.com"
+        id S1346000AbhIIMlK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Sep 2021 08:41:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1353561AbhIIM1G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Sep 2021 08:27:06 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="220821248"
-X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
-   d="scan'208";a="220821248"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 05:13:47 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
-   d="scan'208";a="606805082"
-Received: from kuha.fi.intel.com ([10.237.72.162])
-  by fmsmga001.fm.intel.com with SMTP; 09 Sep 2021 05:13:44 -0700
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Thu, 09 Sep 2021 15:13:43 +0300
-Date:   Thu, 9 Sep 2021 15:13:43 +0300
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Laurentiu Tudor <laurentiu.tudor@nxp.com>
-Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Jon Nettleton <jon@solid-run.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] software node: balance refcount for managed sw nodes
-Message-ID: <YTn6dx2rRsLZ6GDJ@kuha.fi.intel.com>
-References: <20210716101602.1891-1-laurentiu.tudor@nxp.com>
- <YPF40t5bhgTFM2wK@smile.fi.intel.com>
- <CABdtJHuKyybhJazpAc8KT54ELtZ319rdb6CbSH6zB5x3NhgtAw@mail.gmail.com>
- <bb009f85-687e-d560-9cc5-1ac4f586a6bd@nxp.com>
- <YPVufjevu5WaaIxQ@smile.fi.intel.com>
- <2a0f7fa6-b164-eeb4-118a-acd57d79a484@nxp.com>
- <CAHp75VcYt+VQq4jp9JdkA4EpGqtks2sP-NRkfSbGj+-Vn5ke=g@mail.gmail.com>
- <c2186f2c-8be0-6f44-e442-8cb8cbd5f2c2@nxp.com>
- <2485ac73-6df6-3939-5ee5-ef650d951054@nxp.com>
+        id S1353801AbhIIMe5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Sep 2021 08:34:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 48AE761B66;
+        Thu,  9 Sep 2021 11:53:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1631188426;
+        bh=gYGP+lBgp+/fJQ0hr24sNsSQuoVa74V7p4oNeSu/hr8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=m5uK/P+ZAzXG5Ndp3vXdxj1WAmuS6BAd4PdRgWsDUknDAFE0Z0Pc7G8gyN7Yl6BOQ
+         HTDnhy2FCLHmTQvojgJYrEehtkgUdOgLMKQKg6HB3tc2UAfTOWehC3b1eBfG6kXsbi
+         pFeD+pWRJkx71UyNIFB5LXaRyZysaoVl+a5Omryk2z47bRj94t1Pflv4CEm2RbpD0J
+         ca9Q7w/HmdY97lY/6nYxIL2S9knYViXHzZpainyMzPw09pOE3ZI34qWlYDsOiNlD/w
+         YrJ9SDnCFS+LDpuBVj/2ddXhWksaxnX809SMdavv0G92ppLzcPmPGyyJIhH5hmtjI9
+         uam0HJoVCvBtg==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Bob Moore <robert.moore@intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org
+Subject: [PATCH AUTOSEL 5.10 114/176] ACPICA: iASL: Fix for WPBT table with no command-line arguments
+Date:   Thu,  9 Sep 2021 07:50:16 -0400
+Message-Id: <20210909115118.146181-114-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210909115118.146181-1-sashal@kernel.org>
+References: <20210909115118.146181-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2485ac73-6df6-3939-5ee5-ef650d951054@nxp.com>
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 07, 2021 at 06:59:18PM +0300, Laurentiu Tudor wrote:
-> 
-> 
-> On 7/26/2021 10:59 AM, Laurentiu Tudor wrote:
-> > 
-> > 
-> > On 7/20/2021 1:27 PM, Andy Shevchenko wrote:
-> >> On Tue, Jul 20, 2021 at 12:22 PM Laurentiu Tudor
-> >> <laurentiu.tudor@nxp.com> wrote:
-> >>> On 7/19/2021 3:22 PM, Andy Shevchenko wrote:
-> >>>> On Mon, Jul 19, 2021 at 03:00:17PM +0300, Laurentiu Tudor wrote:
-> >>>>> On 7/16/2021 8:21 PM, Jon Nettleton wrote:
-> >>>>>> On Fri, Jul 16, 2021 at 2:17 PM Andy Shevchenko
-> >>>>>> <andriy.shevchenko@linux.intel.com> wrote:
-> >>>>>>>
-> >>>>>>> On Fri, Jul 16, 2021 at 01:16:02PM +0300, laurentiu.tudor@nxp.com wrote:
-> >>>>>>>> From: Laurentiu Tudor <laurentiu.tudor@nxp.com>
-> >>>>>>>>
-> >>>>>>>> software_node_notify(), on KOBJ_REMOVE drops the refcount twice on managed
-> >>>>>>>> software nodes, thus leading to underflow errors. Balance the refcount by
-> >>>>>>>> bumping it in the device_create_managed_software_node() function.
-> >>>>>>>>
-> >>>>>>>> The error [1] was encountered after adding a .shutdown() op to our
-> >>>>>>>> fsl-mc-bus driver.
-> >>>>>>>
-> >>>>>>> Looking into the history of adding ->shutdown() to dwc3 driver (it got reverted
-> >>>>>>> later on), I can tell that probably something is wrong in the ->shutdown()
-> >>>>>>> method itself.
-> >>>>>>
-> >>>>>> Isn't the other alternative to just remove the second kobject_put from
-> >>>>>> KOBJ_REMOVE ?
-> >>>>>
-> >>>>> Or maybe on top of Heikki's suggestion, replace the calls to
-> >>>>> sysfs_create_link() from KOBJ_ADD with sysfs_create_link_nowarn()?
-> >>>>
-> >>>> _noearn will hide the problem. It was there, it was removed from there.
-> >>>> Perhaps we have to understand the root cause better (some specific flow?).
-> >>>>
-> >>>> Any insight from you on the flow when the issue appears? I.o.w. what happened
-> >>>> on the big picture that we got into the warning you see?
-> >>>
-> >>> I encountered the initial issue when trying to shut down a system booted
-> >>> with ACPI but only after adding a .shutdown() callback to our bus driver
-> >>> so that the devices are properly taken down. The problem was that
-> >>> software_node_notify(), on KOBJ_REMOVE was dropping the reference count
-> >>> twice leading to an underflow error. My initial proposal was to just
-> >>> bump the refcount in device_create_managed_software_node(). The device
-> >>> properties that triggered the problem are created here [1].
-> >>>
-> >>> Heikko suggested that instead of manually incrementing the refcount to
-> >>> use software_node_notify(KOBJ_ADD). This triggered the second issue, a
-> >>> duplicated sysfs entry warning originating in the usb subsystem:
-> >>> device_create_managed_software_node() ends up being called twice, once
-> >>> here [2] and secondly, the place I previous mentioned [1].
-> >>
-> >> This [3] is what I have reported against DWC3 when ->shutdown() has
-> >> been added there. And here [4] is another thread about the issue with
-> >> that callback. The ->release() callback is called at put_device() [5]
-> >> and ->shutdown() is called before that [6]. That said, can you inspect
-> >> your ->shutdown() implementation once more time and perhaps see if
-> >> there is anything that can be amended?
-> >>
-> > 
-> > Will do, thanks for the pointers. It could be that we mess something out
-> > in how we use the driver model.
-> > 
-> 
-> Quick (and late, sorry) update from my side. I've spent time on
-> debugging our bus, did found some issues but, at least for now, none are
-> related to sw node.
-> In the mean time, I noticed in the swnode code that
-> device_add_software_node() calls software_node_notify(KOBJ_ADD) while
-> device_create_managed_software_node() doesn't. Updating [1] the later
-> with the call to software_node_notify(KOBJ_ADD) does seem to fix the
-> issue I'm seeing.
-> 
-> Could this be a problem? Any comments appreciated.
-> 
-> One more thing perhaps worth mentioning is that, at least for now, there
-> are few uses for this device_create_managed_software_node() api,
-> mentioning here a couple of them:
->  - arm64 iort code - this seems to be triggering the issue i'm getting
->  - dwc3 usb - Andy reported similar issues here, maybe the issue is common?
-> 
-> [1]
-> @@ -1113,6 +1125,15 @@ int device_create_managed_software_node(struct
-> device *dev,
->         to_swnode(fwnode)->managed = true;
->         set_secondary_fwnode(dev, fwnode);
-> 
-> +       /*
-> +        * If the device has been fully registered by the time this
-> function is
-> +        * called, software_node_notify() must be called separately so
-> that the
-> +        * symlinks get created and the reference count of the node is
-> kept in
-> +        * balance.
-> +        */
-> +       if (device_is_registered(dev))
-> +               software_node_notify(dev, KOBJ_ADD);
-> +
->         return 0;
->  }
+From: Bob Moore <robert.moore@intel.com>
 
-That should be fixed indeed. Please send that after -rc1 is out.
+[ Upstream commit 87b8ec5846cb81747088d1729acaf55a1155a267 ]
 
-thanks,
+Handle the case where the Command-line Arguments table field
+does not exist.
 
+ACPICA commit d6487164497fda170a1b1453c5d58f2be7c873d6
+
+Link: https://github.com/acpica/acpica/commit/d6487164
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/acpi/actbl3.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index bdcac69fa6bd..5d0583ef5208 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -678,6 +678,10 @@ struct acpi_table_wpbt {
+ 	u16 arguments_length;
+ };
+ 
++struct acpi_wpbt_unicode {
++	u16 *unicode_string;
++};
++
+ /*******************************************************************************
+  *
+  * WSMT - Windows SMM Security Mitigations Table
 -- 
-heikki
+2.30.2
+
