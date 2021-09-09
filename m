@@ -5,44 +5,44 @@ X-Spam-Level:
 X-Spam-Status: No, score=-24.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F86FC433F5
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 13:35:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EF75C433F5
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 13:39:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B06360F6C
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 13:35:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70DCA61206
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Sep 2021 13:39:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357926AbhIINgy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Sep 2021 09:36:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33696 "EHLO mail.kernel.org"
+        id S1353129AbhIINk7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Sep 2021 09:40:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1354413AbhIIM47 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Sep 2021 08:56:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 220696325D;
-        Thu,  9 Sep 2021 11:58:26 +0000 (UTC)
+        id S1349786AbhIIMrk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Sep 2021 08:47:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CCBB66023D;
+        Thu,  9 Sep 2021 11:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631188706;
-        bh=yXefDAaERqdGHDScDcdX/tA9O3S1ih+57YCLMGrkGMM=;
+        s=k20201202; t=1631188595;
+        bh=edGT4Irk0qRRxz1aFw3ZU8mSGoAf1jvEj3/8scOdMvY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eAYmGRnDdupj661GyXtYsMXFbujox1wi83uCPcIsxxi4HCExft1cc3AXOW2bP0VBk
-         xl59kynq2nUMy/dx7rJkEAEZwHfAPDRzWyeJpT+eB9X1U28Misp9lTY/xcNrhFm0i0
-         HBrPUTGdLsfK0kJVArXqki3VEinK57FNouixPsxwujo31WesuNm+BrEZkeAx3sveaR
-         Srr60w8kJKcrGXJAiMFPD4taLtXBAx721zCNfZq9tFSIm2Toq4CJiboiqc0WyI6FZX
-         TfefNpT/0vhy1rZCcFsddOVmV2kfM3QJ6bTAcCdaDDWnVbGnDolDA0G5DZnFST/ZZ3
-         CczgmQIRa6qUg==
+        b=JWOM08obbpocLfZR96bNS4GftxHW1jt8EMmIerJCyLPGbJWKqr6K20TD5ZJ6Sztrk
+         AW/4XlNDL78IMSuxW35E4DeW8/U40EuM1G1EYN4pyV81ufhEIGr6rxh7YJS1wsIiZw
+         7CeONqFh9nGJ/qH8TwVMx+BcNExx/JncohxdtPcQ1kWglhRflEVQ3mG7JBXHEEaail
+         V5IvdzaIBYl5yoL7a06DWwbBCQLpeju1oPOAeMp34JH2ZiZ8OnWkyX8biAEHkC+oJV
+         SnuJey0eoFtEUrcMqBWKJHhAPLVMXgo1o62umtbtTivo+1eMX8k09Y5UUxLpYQSYnD
+         NJC4UXLgPq3bw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Bob Moore <robert.moore@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH AUTOSEL 4.19 48/74] ACPICA: iASL: Fix for WPBT table with no command-line arguments
-Date:   Thu,  9 Sep 2021 07:57:00 -0400
-Message-Id: <20210909115726.149004-48-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 069/109] ACPICA: iASL: Fix for WPBT table with no command-line arguments
+Date:   Thu,  9 Sep 2021 07:54:26 -0400
+Message-Id: <20210909115507.147917-69-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210909115726.149004-1-sashal@kernel.org>
-References: <20210909115726.149004-1-sashal@kernel.org>
+In-Reply-To: <20210909115507.147917-1-sashal@kernel.org>
+References: <20210909115507.147917-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -69,10 +69,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+)
 
 diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 501f341d1d92..d1fe16d67747 100644
+index 7a58c10ce421..59965982879b 100644
 --- a/include/acpi/actbl3.h
 +++ b/include/acpi/actbl3.h
-@@ -631,6 +631,10 @@ struct acpi_table_wpbt {
+@@ -671,6 +671,10 @@ struct acpi_table_wpbt {
  	u16 arguments_length;
  };
  
