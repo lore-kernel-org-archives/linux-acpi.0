@@ -2,134 +2,108 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30F97C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Sep 2021 08:11:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8011C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Sep 2021 09:55:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C28460E05
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Sep 2021 08:11:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E1DC60F44
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Sep 2021 09:55:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbhINIMv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Sep 2021 04:12:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60950 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229590AbhINIMu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 14 Sep 2021 04:12:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED4FF60EB6;
-        Tue, 14 Sep 2021 08:11:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1631607093;
-        bh=XgV0VOwvYlmpCGt57z0PpVVIaNEuFhMTiNswnTjNPNc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=g+2g4OFaI37lXcjPLJCQ+0laA6wruiudyCf/zFuxrhhSCpwWDxenL6rtAWeDR6OwP
-         qoM4EnRUWdvuX/xPQVORsc348Aooa0WKhnfCu0wUh0VydPo8LkaRn4DlvFPrhAovn1
-         uuybODtnhmLh9kjflC5slScmpz3iKy7a7WtBKNTo=
-Date:   Tue, 14 Sep 2021 10:11:31 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Chen Yu <yu.c.chen@intel.com>
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <len.brown@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@intel.com>,
-        Aubrey Li <aubrey.li@intel.com>,
-        Ashok Raj <ashok.raj@intel.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        Alexander Graf <graf@amazon.com>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        Hannes Reinecke <hare@suse.de>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Andra Paraschiv <andraprs@amazon.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Ben Widawsky <ben.widawsky@intel.com>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 3/5] drivers/acpi: Introduce Platform Firmware Runtime
- Update device driver
-Message-ID: <YUBZM1vnZ3LjfUKc@kroah.com>
-References: <cover.1631600169.git.yu.c.chen@intel.com>
- <7a739633b30f6fb5c258f21c443ed0c17b12896f.1631600169.git.yu.c.chen@intel.com>
+        id S229624AbhINJ4U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Sep 2021 05:56:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230045AbhINJ4T (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Sep 2021 05:56:19 -0400
+Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A945FC061762
+        for <linux-acpi@vger.kernel.org>; Tue, 14 Sep 2021 02:55:02 -0700 (PDT)
+Received: by mail-wm1-x32f.google.com with SMTP id 140so5326953wma.0
+        for <linux-acpi@vger.kernel.org>; Tue, 14 Sep 2021 02:55:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=pdKUVRZtJ1TDIZqyXHbN+tA2qUuBC0xRclnrY6chKzg=;
+        b=RCYq/kdd2XGXv8uX9tzBoBXj6ve07OPtW4zwQWOsekaJ7cpv/0S4DUEXJt0wteDNzz
+         2aS3mspyXU3b90WZmBRcdgyvYYZC1FT7hkRf3GmzTPl3FTQf9Ns2RFLcmJf37zpSUEZF
+         uswqGMY6HcXlM0+Op9UVIHCnNcFOZ5gdmX0ldX1/m0akQp7wP0GQppY+mmLhueIBx9iM
+         H3w/1HzINrm36bads7EbMjrO5rFc1RDsZgYph+syFbOEeS+GSt7kTK72ZjgGVBldtL8W
+         gAv2pqPwQMyCf/08KqnqpG72py9nzqVSW/JRlOh1VbRHOacmcriyd5TzMKKZXr/v5nxN
+         A2WA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=pdKUVRZtJ1TDIZqyXHbN+tA2qUuBC0xRclnrY6chKzg=;
+        b=IimF7U4fXv/ydIeo+hGfBbwL2h3YkVZghGBSrI0v+QZaPfPPqp9b07x/dySPQEiR1X
+         8Cw5VzkcSjGLPDez6RDVh86+F6rM8+pBBeb9O8flEY0Qlo+1G8cGx0fVqJDxcwHlT6Xc
+         nyzIiRttGK2pFTKhtkDAtCPDihQF+XxAwm60SDkp0AR0ahQhlpXHKtht/O/Z5Tdtu9fu
+         w8CfM2Ut1s7kHbgiFoMtOCj0yAm/jk2SfEYMsXRu8EFtL8fESukaD7jyiGJuO3qjGz7p
+         bMBjoaoRVVExFQjN0jJtNP3YHUFYwI1WqNI3VaHr7LKXh/gEbt2vJ+LGz/XvlzZn1ShW
+         22ow==
+X-Gm-Message-State: AOAM530mt7hGvUqEpSl+e7WM0nB1yLA7OYduOp5Xv1kNZTeYr8UO1vf+
+        kg2J486me/5ifiT8jFe2lgiW1A==
+X-Google-Smtp-Source: ABdhPJxI/cDlAXGQ138HYUrNRJlpQQywhVUAwLpYUug38W2/Rb4S01zxLFrScrzqxXlJdhhheA559Q==
+X-Received: by 2002:a05:600c:19d0:: with SMTP id u16mr1167364wmq.21.1631613300706;
+        Tue, 14 Sep 2021 02:55:00 -0700 (PDT)
+Received: from localhost.localdomain (cpc92880-cmbg19-2-0-cust679.5-4.cable.virginm.net. [82.27.106.168])
+        by smtp.gmail.com with ESMTPSA id t23sm10408900wrb.71.2021.09.14.02.54.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 14 Sep 2021 02:55:00 -0700 (PDT)
+From:   Jean-Philippe Brucker <jean-philippe@linaro.org>
+To:     rafael@kernel.org, lenb@kernel.org, bhelgaas@google.com
+Cc:     linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        sdonthineni@nvidia.com, robh@kernel.org,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>
+Subject: [PATCH v2] PCI/ACPI: Don't reset a fwnode set by OF
+Date:   Tue, 14 Sep 2021 10:51:21 +0100
+Message-Id: <20210914095120.2132059-1-jean-philippe@linaro.org>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7a739633b30f6fb5c258f21c443ed0c17b12896f.1631600169.git.yu.c.chen@intel.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 14, 2021 at 03:58:41PM +0800, Chen Yu wrote:
-> +enum start_action {
-> +	START_STAGE,
-> +	START_ACTIVATE,
-> +	START_STAGE_ACTIVATE,
-> +};
-> +
-> +enum dsm_status {
-> +	DSM_SUCCEED,
-> +	DSM_FUNC_NOT_SUPPORT,
-> +	DSM_INVAL_INPUT,
-> +	DSM_HARDWARE_ERR,
-> +	DSM_RETRY_SUGGESTED,
-> +	DSM_UNKNOWN,
-> +	DSM_FUNC_SPEC_ERR,
-> +};
-> +
-> +struct update_cap_info {
-> +	enum dsm_status status;
-> +	int update_cap;
-> +
-> +	uuid_t code_type;
-> +	int fw_version;
-> +	int code_rt_version;
-> +
-> +	uuid_t drv_type;
-> +	int drv_rt_version;
-> +	int drv_svn;
-> +
-> +	uuid_t platform_id;
-> +	uuid_t oem_id;
-> +
-> +	char oem_info[];
+Commit 375553a93201 ("PCI: Setup ACPI fwnode early and at the same time
+with OF") added a call to pci_set_acpi_fwnode() in pci_setup_device(),
+which unconditionally clears any fwnode previously set by
+pci_set_of_node().
 
-Please use valid types for structures that cross the user/kernel
-boundry.
+pci_set_acpi_fwnode() looks for ACPI_COMPANION(), which only returns the
+existing fwnode if it was set by ACPI_COMPANION_SET(). If it was set by
+OF instead, ACPI_COMPANION() returns NULL and pci_set_acpi_fwnode()
+accidentally clears the fwnode. To fix this, look for any fwnode instead
+of just ACPI companions.
 
-> +};
-> +
-> +struct com_buf_info {
-> +	enum dsm_status status;
-> +	enum dsm_status ext_status;
-> +	unsigned long addr_lo;
-> +	unsigned long addr_hi;
-> +	int buf_size;
-> +};
+Fixes: 375553a93201 ("PCI: Setup ACPI fwnode early and at the same time with OF")
+Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+---
+v2: Use dev_fwnode()
+v1: https://lore.kernel.org/linux-pci/20210913172358.1775381-1-jean-philippe@linaro.org/
+This fixes boot of virtio-iommu under OF on v5.15-rc1
+---
+ drivers/pci/pci-acpi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Same here.
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index a1b1e2a01632..0f40943a9a18 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -937,7 +937,7 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev);
+ 
+ void pci_set_acpi_fwnode(struct pci_dev *dev)
+ {
+-	if (!ACPI_COMPANION(&dev->dev) && !pci_dev_is_added(dev))
++	if (!dev_fwnode(&dev->dev) && !pci_dev_is_added(dev))
+ 		ACPI_COMPANION_SET(&dev->dev,
+ 				   acpi_pci_find_companion(&dev->dev));
+ }
+-- 
+2.33.0
 
-> +
-> +struct updated_result {
-> +	enum dsm_status status;
-> +	enum dsm_status ext_status;
-> +	unsigned long low_auth_time;
-> +	unsigned long high_auth_time;
-> +	unsigned long low_exec_time;
-> +	unsigned long high_exec_time;
-
-And same here.
-
-And these are very odd structure names that you are adding to the
-"global" namespace.  Please make them have a prefix for your driver so
-that people know what they belong to.  "updated_result" is way too
-generic.
-
-thanks,
-
-greg k-h
