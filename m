@@ -2,78 +2,85 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAF94C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Sep 2021 18:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 202ACC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Sep 2021 19:20:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDD1E60F4B
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Sep 2021 18:55:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EDBA161183
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Sep 2021 19:20:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387182AbhITS4c (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Sep 2021 14:56:32 -0400
-Received: from smtp-relay-canonical-1.canonical.com ([185.125.188.121]:39484
-        "EHLO smtp-relay-canonical-1.canonical.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1385710AbhITSv4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Sep 2021 14:51:56 -0400
-Received: from localhost (1.general.cking.uk.vpn [10.172.193.212])
+        id S233300AbhITTVe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 20 Sep 2021 15:21:34 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:46776 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230482AbhITTTe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Sep 2021 15:19:34 -0400
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
+ id 148719d5bcbe4d5d; Mon, 20 Sep 2021 21:18:05 +0200
+Received: from kreacher.localnet (unknown [213.134.187.25])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by smtp-relay-canonical-1.canonical.com (Postfix) with ESMTPSA id 5636A3F070;
-        Mon, 20 Sep 2021 18:50:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-        s=20210705; t=1632163828;
-        bh=hWL01eU+1x8jZvPaNXNGLcO6ryJi/d3u2BcpeV4Iedw=;
-        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type;
-        b=u+lNmK6LN5+EzY3T/OYTyWigcduw1rxE+le88nYqE2NOJDtCkkBKd0n8b4O6BIelu
-         zMRTKczs8PF/V2tYGN4skVrFyHI15EQwc4SJNla10KMpVWAeB0mgdLb9zEnyR5hfuh
-         xPmmTKAtFiyOMvSdhkDBq/09LOvG5D3Crnu7LfY4+/56OY1AL45Xe1CHZU81WMaBls
-         Qz33AYj4VloPYZozeGgCwDLKtIn4HP1n6eqKa+YjjejfowKdRcBfdgfmbxAjPPdOGN
-         54rqgOlLZoOYIK6nx2SsucsnmhHCwx/2trReIAkPZRzUL1tkg1/dhCwhYu/utOL7fT
-         WkdnInaucwkkg==
-From:   Colin King <colin.king@canonical.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] Documentation: ACPI: Fix spelling mistake "Millenium" -> "Millennium"
-Date:   Mon, 20 Sep 2021 19:50:28 +0100
-Message-Id: <20210920185028.18738-1-colin.king@canonical.com>
-X-Mailer: git-send-email 2.32.0
+        by v370.home.net.pl (Postfix) with ESMTPSA id 8454666A65F;
+        Mon, 20 Sep 2021 21:18:03 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PCI <linux-pci@vger.kernel.org>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 7/7] PCI: PM: Simplify acpi_pci_power_manageable()
+Date:   Mon, 20 Sep 2021 21:17:39 +0200
+Message-ID: <2024035.bB369e8A3T@kreacher>
+In-Reply-To: <1800633.tdWV9SEqCh@kreacher>
+References: <1800633.tdWV9SEqCh@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.187.25
+X-CLIENT-HOSTNAME: 213.134.187.25
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrudeivddgudefgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdejlefghfeiudektdelkeekvddugfeghffggeejgfeukeejleevgffgvdeluddtnecukfhppedvudefrddufeegrddukeejrddvheenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukeejrddvhedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedprhgtphhtthhopehlihhnuhigqdhptghisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohephhgvlhhgrggrsheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghnughrihihrdhshhgvvhgt
+ hhgvnhhkoheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-There is a spelling mistake in the documentation with the Windows
-Millennium edition. Fix it.
+Make acpi_pci_power_manageable() more straightforward.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- Documentation/firmware-guide/acpi/osi.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/firmware-guide/acpi/osi.rst b/Documentation/firmware-guide/acpi/osi.rst
-index 29e9ef79ebc0..05869c0045d7 100644
---- a/Documentation/firmware-guide/acpi/osi.rst
-+++ b/Documentation/firmware-guide/acpi/osi.rst
-@@ -74,7 +74,7 @@ The ACPI BIOS flow would include an evaluation of _OS, and the AML
- interpreter in the kernel would return to it a string identifying the OS:
+New patch in v2.
+
+---
+ drivers/pci/pci-acpi.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+Index: linux-pm/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-acpi.c
++++ linux-pm/drivers/pci/pci-acpi.c
+@@ -969,9 +969,7 @@ bool acpi_pci_power_manageable(struct pc
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
  
- Windows 98, SE: "Microsoft Windows"
--Windows ME: "Microsoft WindowsME:Millenium Edition"
-+Windows ME: "Microsoft WindowsME:Millennium Edition"
- Windows NT: "Microsoft Windows NT"
+-	if (!adev)
+-		return false;
+-	return acpi_device_power_manageable(adev);
++	return adev && acpi_device_power_manageable(adev);
+ }
  
- The idea was on a platform tasked with running multiple OS's,
--- 
-2.32.0
+ bool acpi_pci_bridge_d3(struct pci_dev *dev)
+
+
 
