@@ -2,268 +2,96 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57F2BC4332F
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Sep 2021 21:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A559C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Sep 2021 06:21:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4135E61184
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Sep 2021 21:24:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CCA960ED5
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Sep 2021 06:21:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238350AbhITV0O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Sep 2021 17:26:14 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:36812 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S238048AbhITVYH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Sep 2021 17:24:07 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from asmaa@mellanox.com)
-        with SMTP; 21 Sep 2021 00:22:35 +0300
-Received: from farm-0002.mtbu.labs.mlnx (farm-0002.mtbu.labs.mlnx [10.15.2.32])
-        by mtbu-labmailer.labs.mlnx (8.14.4/8.14.4) with ESMTP id 18KLMZaL030014;
-        Mon, 20 Sep 2021 17:22:35 -0400
-Received: (from asmaa@localhost)
-        by farm-0002.mtbu.labs.mlnx (8.14.7/8.13.8/Submit) id 18KLMZ5B019406;
-        Mon, 20 Sep 2021 17:22:35 -0400
-From:   Asmaa Mnebhi <asmaa@nvidia.com>
-To:     andy.shevchenko@gmail.com, linux-gpio@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        id S229712AbhIUGW6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 21 Sep 2021 02:22:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37628 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229614AbhIUGW5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2021 02:22:57 -0400
+Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24795C061574;
+        Mon, 20 Sep 2021 23:21:30 -0700 (PDT)
+Received: by mail-pl1-x633.google.com with SMTP id 5so12668198plo.5;
+        Mon, 20 Sep 2021 23:21:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=elgO1aD4E2/zWX2bOZo8g6dTIxy20GTBH0i1b/pULsg=;
+        b=gV5dtlIRiqYK5U5MAl/6XclD8u77wQSn+on3gytiYYDajyvIz9y9WPMUXb5fCVgk3N
+         cfDzmMbV1lj4cG5/qHhbbBSShnDuR0bs2fIhgcKviEzMK7ozj5+wZXghTlOo80VJazHA
+         IwBCkrAfJAPey92AoL/WQ5YU3g9aoLaSgy4bf8EcshpLyRILgxao0ijpNYpMFMmy3O2K
+         50+rwoafhLrYNZdyuNoOY9fHsJK8oF0ZpctrRS+TVPmKPqZZRtbJMCMRndaJ8b9DRzA+
+         CU4pnTenlwplM60BMgu1AVSk7lNn6zshrVV1gUkeAAf02p7XlWrpsOltF4APFW2XzR2m
+         VaYw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=elgO1aD4E2/zWX2bOZo8g6dTIxy20GTBH0i1b/pULsg=;
+        b=T/u98xkW6Du4OId2xFzzraguZVHfPjzR+54YCqDT0xgUs0Cr6BUlG6ZORbzvT1Sufu
+         vDl2uoqq82fE3QpFTa2VLoG10mVIrqrvK+R+nok0JJsKRAvtonS3aMGf6eRB5SjwpBTk
+         m/VTXKFwprdA/t5H3vNBZxYKcxYxZTSGrvwjYJ0AzU5NFFT2ZwQiXmNtRoBSZCEiLrCY
+         HH9lMDEOnRYQzdQJeV6LfZ4u+6LnM7Ayfcw85GcVe7e2osy8WihYYa4w8WR7cvpO1hrA
+         +X1HBCXPZhmZZ2VlpIdKe4rXHsgTa3scRLc2qsDH34tAajE/74kk0N/WeZAkkHDJc2bC
+         MvWw==
+X-Gm-Message-State: AOAM533c+MvVLpL6QVSwFm2Xl0nPbJRKljjCpBl2BGtGFCR7Lv7xiK3C
+        ReJE2NEB1wPR8yKLHcsN6jg=
+X-Google-Smtp-Source: ABdhPJxUu9xO4dVqm+ztCNRiEVpbrenXOt7VvOynoFU1fX9k5c3QudwfB3bvrXh2wLaDoTzj/ipUhg==
+X-Received: by 2002:a17:902:e282:b0:13a:45b7:d2cd with SMTP id o2-20020a170902e28200b0013a45b7d2cdmr26161619plc.86.1632205289017;
+        Mon, 20 Sep 2021 23:21:29 -0700 (PDT)
+Received: from masabert ([202.12.244.3])
+        by smtp.gmail.com with ESMTPSA id bv16sm1291125pjb.12.2021.09.20.23.21.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Sep 2021 23:21:28 -0700 (PDT)
+Received: by masabert (Postfix, from userid 1000)
+        id 977422360A48; Tue, 21 Sep 2021 15:21:26 +0900 (JST)
+From:   Masanari Iida <standby24x7@gmail.com>
+To:     linux-kernel@vger.kernel.org, rafael@kernel.org, lenb@kernel.org,
         linux-acpi@vger.kernel.org
-Cc:     Asmaa Mnebhi <asmaa@nvidia.com>, andrew@lunn.ch, kuba@kernel.org,
-        linus.walleij@linaro.org, bgolaszewski@baylibre.com,
-        davem@davemloft.net, rjw@rjwysocki.net, davthompson@nvidia.com
-Subject: [PATCH v2 1/2] gpio: mlxbf2: Introduce IRQ support
-Date:   Mon, 20 Sep 2021 17:22:26 -0400
-Message-Id: <20210920212227.19358-2-asmaa@nvidia.com>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210920212227.19358-1-asmaa@nvidia.com>
-References: <20210920212227.19358-1-asmaa@nvidia.com>
+Cc:     Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] ACPI: Kconfig: Fix a typo in Kconfig
+Date:   Tue, 21 Sep 2021 15:21:24 +0900
+Message-Id: <20210921062124.250165-1-standby24x7@gmail.com>
+X-Mailer: git-send-email 2.25.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Introduce standard IRQ handling in the gpio-mlxbf2.c
-driver.
+This patch fixes a spelling typo in acpi/Kconfig
 
-Signed-off-by: Asmaa Mnebhi <asmaa@nvidia.com>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
 ---
- drivers/gpio/gpio-mlxbf2.c | 147 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 145 insertions(+), 2 deletions(-)
+ drivers/acpi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpio/gpio-mlxbf2.c b/drivers/gpio/gpio-mlxbf2.c
-index 177d03ef4529..3d89912a05b8 100644
---- a/drivers/gpio/gpio-mlxbf2.c
-+++ b/drivers/gpio/gpio-mlxbf2.c
-@@ -1,9 +1,14 @@
- // SPDX-License-Identifier: GPL-2.0
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 1da360c51d66..cdbdf68bd98f 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -71,7 +71,7 @@ config ACPI_DEBUGGER
+ if ACPI_DEBUGGER
  
-+/*
-+ * Copyright (C) 2020-2021 NVIDIA CORPORATION & AFFILIATES
-+ */
-+
- #include <linux/bitfield.h>
- #include <linux/bitops.h>
- #include <linux/device.h>
- #include <linux/gpio/driver.h>
-+#include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/ioport.h>
- #include <linux/kernel.h>
-@@ -43,9 +48,14 @@
- #define YU_GPIO_MODE0			0x0c
- #define YU_GPIO_DATASET			0x14
- #define YU_GPIO_DATACLEAR		0x18
-+#define YU_GPIO_CAUSE_RISE_EN		0x44
-+#define YU_GPIO_CAUSE_FALL_EN		0x48
- #define YU_GPIO_MODE1_CLEAR		0x50
- #define YU_GPIO_MODE0_SET		0x54
- #define YU_GPIO_MODE0_CLEAR		0x58
-+#define YU_GPIO_CAUSE_OR_CAUSE_EVTEN0	0x80
-+#define YU_GPIO_CAUSE_OR_EVTEN0		0x94
-+#define YU_GPIO_CAUSE_OR_CLRCAUSE	0x98
- 
- struct mlxbf2_gpio_context_save_regs {
- 	u32 gpio_mode0;
-@@ -55,6 +65,7 @@ struct mlxbf2_gpio_context_save_regs {
- /* BlueField-2 gpio block context structure. */
- struct mlxbf2_gpio_context {
- 	struct gpio_chip gc;
-+	struct irq_chip irq_chip;
- 
- 	/* YU GPIO blocks address */
- 	void __iomem *gpio_io;
-@@ -218,15 +229,114 @@ static int mlxbf2_gpio_direction_output(struct gpio_chip *chip,
- 	return ret;
- }
- 
-+static void mlxbf2_gpio_irq_enable(struct irq_data *irqd)
-+{
-+	struct gpio_chip *gc = irq_data_get_irq_chip_data(irqd);
-+	struct mlxbf2_gpio_context *gs = gpiochip_get_data(gc);
-+	int offset = irqd_to_hwirq(irqd);
-+	unsigned long flags;
-+	u32 val;
-+
-+	spin_lock_irqsave(&gs->gc.bgpio_lock, flags);
-+	val = readl(gs->gpio_io + YU_GPIO_CAUSE_OR_CLRCAUSE);
-+	val |= BIT(offset);
-+	writel(val, gs->gpio_io + YU_GPIO_CAUSE_OR_CLRCAUSE);
-+
-+	val = readl(gs->gpio_io + YU_GPIO_CAUSE_OR_EVTEN0);
-+	val |= BIT(offset);
-+	writel(val, gs->gpio_io + YU_GPIO_CAUSE_OR_EVTEN0);
-+	spin_unlock_irqrestore(&gs->gc.bgpio_lock, flags);
-+}
-+
-+static void mlxbf2_gpio_irq_disable(struct irq_data *irqd)
-+{
-+	struct gpio_chip *gc = irq_data_get_irq_chip_data(irqd);
-+	struct mlxbf2_gpio_context *gs = gpiochip_get_data(gc);
-+	int offset = irqd_to_hwirq(irqd);
-+	unsigned long flags;
-+	u32 val;
-+
-+	spin_lock_irqsave(&gs->gc.bgpio_lock, flags);
-+	val = readl(gs->gpio_io + YU_GPIO_CAUSE_OR_EVTEN0);
-+	val &= ~BIT(offset);
-+	writel(val, gs->gpio_io + YU_GPIO_CAUSE_OR_EVTEN0);
-+	spin_unlock_irqrestore(&gs->gc.bgpio_lock, flags);
-+}
-+
-+static irqreturn_t mlxbf2_gpio_irq_handler(int irq, void *ptr)
-+{
-+	struct mlxbf2_gpio_context *gs = ptr;
-+	struct gpio_chip *gc = &gs->gc;
-+	unsigned long pending;
-+	u32 level;
-+
-+	pending = readl(gs->gpio_io + YU_GPIO_CAUSE_OR_CAUSE_EVTEN0);
-+	writel(pending, gs->gpio_io + YU_GPIO_CAUSE_OR_CLRCAUSE);
-+
-+	for_each_set_bit(level, &pending, gc->ngpio) {
-+		int gpio_irq = irq_find_mapping(gc->irq.domain, level);
-+		generic_handle_irq(gpio_irq);
-+	}
-+
-+	return IRQ_RETVAL(pending);
-+}
-+
-+static int
-+mlxbf2_gpio_irq_set_type(struct irq_data *irqd, unsigned int type)
-+{
-+	struct gpio_chip *gc = irq_data_get_irq_chip_data(irqd);
-+	struct mlxbf2_gpio_context *gs = gpiochip_get_data(gc);
-+	int offset = irqd_to_hwirq(irqd);
-+	unsigned long flags;
-+	bool fall = false;
-+	bool rise = false;
-+	u32 val;
-+
-+	switch (type & IRQ_TYPE_SENSE_MASK) {
-+	case IRQ_TYPE_EDGE_BOTH:
-+		fall = true;
-+		rise = true;
-+		break;
-+	case IRQ_TYPE_EDGE_RISING:
-+		rise = true;
-+		break;
-+	case IRQ_TYPE_EDGE_FALLING:
-+		fall = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_irqsave(&gs->gc.bgpio_lock, flags);
-+	if (fall) {
-+		val = readl(gs->gpio_io + YU_GPIO_CAUSE_FALL_EN);
-+		val |= BIT(offset);
-+		writel(val, gs->gpio_io + YU_GPIO_CAUSE_FALL_EN);
-+	}
-+
-+	if (rise) {
-+		val = readl(gs->gpio_io + YU_GPIO_CAUSE_RISE_EN);
-+		val |= BIT(offset);
-+		writel(val, gs->gpio_io + YU_GPIO_CAUSE_RISE_EN);
-+	}
-+	spin_unlock_irqrestore(&gs->gc.bgpio_lock, flags);
-+
-+	return 0;
-+}
-+
- /* BlueField-2 GPIO driver initialization routine. */
- static int
- mlxbf2_gpio_probe(struct platform_device *pdev)
- {
- 	struct mlxbf2_gpio_context *gs;
- 	struct device *dev = &pdev->dev;
-+	struct gpio_irq_chip *girq;
- 	struct gpio_chip *gc;
- 	unsigned int npins;
--	int ret;
-+	const char *name;
-+	int ret, irq;
-+
-+	name = dev_name(dev);
- 
- 	gs = devm_kzalloc(dev, sizeof(*gs), GFP_KERNEL);
- 	if (!gs)
-@@ -256,11 +366,44 @@ mlxbf2_gpio_probe(struct platform_device *pdev)
- 			NULL,
- 			0);
- 
-+	if (ret) {
-+		dev_err(dev, "bgpio_init failed\n");
-+		return ret;
-+	}
-+
- 	gc->direction_input = mlxbf2_gpio_direction_input;
- 	gc->direction_output = mlxbf2_gpio_direction_output;
- 	gc->ngpio = npins;
- 	gc->owner = THIS_MODULE;
- 
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq >= 0) {
-+		gs->irq_chip.name = name;
-+		gs->irq_chip.irq_set_type = mlxbf2_gpio_irq_set_type;
-+		gs->irq_chip.irq_enable = mlxbf2_gpio_irq_enable;
-+		gs->irq_chip.irq_disable = mlxbf2_gpio_irq_disable;
-+
-+		girq = &gs->gc.irq;
-+		girq->chip = &gs->irq_chip;
-+		girq->handler = handle_simple_irq;
-+		girq->default_type = IRQ_TYPE_NONE;
-+		/* This will let us handle the parent IRQ in the driver */
-+		girq->num_parents = 0;
-+		girq->parents = NULL;
-+		girq->parent_handler = NULL;
-+
-+		/*
-+		 * Directly request the irq here instead of passing
-+		 * a flow-handler because the irq is shared.
-+		 */
-+		ret = devm_request_irq(dev, irq, mlxbf2_gpio_irq_handler,
-+				       IRQF_SHARED, name, gs);
-+		if (ret) {
-+			dev_err(dev, "failed to request IRQ");
-+			return ret;
-+		}
-+	}
-+
- 	platform_set_drvdata(pdev, gs);
- 
- 	ret = devm_gpiochip_add_data(dev, &gs->gc, gs);
-@@ -315,5 +458,5 @@ static struct platform_driver mlxbf2_gpio_driver = {
- module_platform_driver(mlxbf2_gpio_driver);
- 
- MODULE_DESCRIPTION("Mellanox BlueField-2 GPIO Driver");
--MODULE_AUTHOR("Mellanox Technologies");
-+MODULE_AUTHOR("Asmaa Mnebhi <asmaa@nvidia.com>");
- MODULE_LICENSE("GPL v2");
+ config ACPI_DEBUGGER_USER
+-	tristate "Userspace debugger accessiblity"
++	tristate "Userspace debugger accessibility"
+ 	depends on DEBUG_FS
+ 	help
+ 	  Export /sys/kernel/debug/acpi/acpidbg for userspace utilities
 -- 
-2.30.1
+2.25.0
 
