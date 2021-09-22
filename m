@@ -2,94 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64035C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Sep 2021 14:57:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA24FC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Sep 2021 15:29:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 407AB61107
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Sep 2021 14:57:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 939F1611CA
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Sep 2021 15:29:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236336AbhIVO7Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Sep 2021 10:59:16 -0400
-Received: from vps0.lunn.ch ([185.16.172.187]:54636 "EHLO vps0.lunn.ch"
+        id S236370AbhIVPbC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Sep 2021 11:31:02 -0400
+Received: from foss.arm.com ([217.140.110.172]:50626 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235014AbhIVO7P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Sep 2021 10:59:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-        bh=cb2MqIRsBK1xs3g/KAOlStoR5T3t07WzhJ2422FcwFE=; b=M0ynUSbAv5YRUL4YdJaik4+wXc
-        WW+4pO0cAf4+lh5MXc17C+FpLOn7WYZtyG0XUk9PWwc606914+PdIh9Qnh6obHjSx3YSx8ZzxyaFG
-        2BXW6vtzT2GUQuPiFiQ5C1IWxv5FPn7Uyow/DQpQSj4h+PjPFw6+1d6DlMWFyQtwt9qw=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-        (envelope-from <andrew@lunn.ch>)
-        id 1mT3gs-007nQl-KY; Wed, 22 Sep 2021 16:57:42 +0200
-Date:   Wed, 22 Sep 2021 16:57:42 +0200
-From:   Andrew Lunn <andrew@lunn.ch>
-To:     Asmaa Mnebhi <asmaa@nvidia.com>
-Cc:     "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "linus.walleij@linaro.org" <linus.walleij@linaro.org>,
-        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-        David Thompson <davthompson@nvidia.com>
-Subject: Re: [PATCH v2 1/2] gpio: mlxbf2: Introduce IRQ support
-Message-ID: <YUtEZvkI7ZPzfffo@lunn.ch>
-References: <20210920212227.19358-1-asmaa@nvidia.com>
- <20210920212227.19358-2-asmaa@nvidia.com>
- <YUpdjh8dtjz29TWU@lunn.ch>
- <CH2PR12MB38951F1A008AE68A6FE7ED96D7A29@CH2PR12MB3895.namprd12.prod.outlook.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CH2PR12MB38951F1A008AE68A6FE7ED96D7A29@CH2PR12MB3895.namprd12.prod.outlook.com>
+        id S232318AbhIVPbB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Sep 2021 11:31:01 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8EF98113E;
+        Wed, 22 Sep 2021 08:29:31 -0700 (PDT)
+Received: from entos-ampere-02.shanghai.arm.com (entos-ampere-02.shanghai.arm.com [10.169.214.103])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id B135F3F718;
+        Wed, 22 Sep 2021 08:29:28 -0700 (PDT)
+From:   Jia He <justin.he@arm.com>
+To:     Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, nvdimm@lists.linux.dev,
+        linux-acpi@vger.kernel.org, Jia He <justin.he@arm.com>
+Subject: [PATCH] ACPI: NFIT: Use fallback node id when numa info in NFIT table is incorrect
+Date:   Wed, 22 Sep 2021 23:29:19 +0800
+Message-Id: <20210922152919.6940-1-justin.he@arm.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Sep 22, 2021 at 02:16:40PM +0000, Asmaa Mnebhi wrote:
-> 
-> > +static int
-> > +mlxbf2_gpio_irq_set_type(struct irq_data *irqd, unsigned int type) {
-> > +
-> > +	switch (type & IRQ_TYPE_SENSE_MASK) {
-> > +	case IRQ_TYPE_EDGE_BOTH:
-> > +		fall = true;
-> > +		rise = true;
-> > +		break;
-> > +	case IRQ_TYPE_EDGE_RISING:
-> > +		rise = true;
-> > +		break;
-> > +	case IRQ_TYPE_EDGE_FALLING:
-> > +		fall = true;
-> > +		break;
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> 
-> > What PHY are you using? I think every one i've looked at are 
-> > level triggered, not edge. Using an edge interrupt might work 99% 
-> > of the time, but when the timing is just wrong, you can loose an interrupt.
-> > Which might mean phylib thinks the link is down, when it fact it is up. 
-> > You will need to unplug and replug to recover from that.
-> 
-> It is the micrel PHY KSZ9031 so it is an active low level interrupt.
-> Here, IRQ_TYPE_EDGE* macros are mainly used to decide whether to write the
-> YU_GPIO_CAUSE_FALL_EN register vs the YU_GPIO_CAUSE_RISE_EN register.
-> These 2 registers are used in both LEVEL/EDGE interrupts.
+When ACPI NFIT table is failing to populate correct numa information
+on arm64, dax_kmem will get NUMA_NO_NODE from the NFIT driver.
 
-I assume you also have an YU_GPIO_CAUSE_LOW_EN and
-YU_GPIO_CAUSE_HIGH_EN registers? These registers need to be set for
-IRQ_TYPE_LEVEL_LOW and IRQ_TYPE_LEVEL_HIGH.
+Without this patch, pmem can't be probed as RAM devices on arm64 guest:
+  $ndctl create-namespace -fe namespace0.0 --mode=devdax --map=dev -s 1g -a 128M
+  kmem dax0.0: rejecting DAX region [mem 0x240400000-0x2bfffffff] with invalid node: -1
+  kmem: probe of dax0.0 failed with error -22
 
-	Andrew
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jia He <justin.he@arm.com>
+---
+ drivers/acpi/nfit/core.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index a3ef6cce644c..7dd80acf92c7 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3007,6 +3007,18 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 		ndr_desc->target_node = NUMA_NO_NODE;
+ 	}
+ 
++	/* Fallback to address based numa information if node lookup failed */
++	if (ndr_desc->numa_node == NUMA_NO_NODE) {
++		ndr_desc->numa_node = memory_add_physaddr_to_nid(spa->address);
++		dev_info(acpi_desc->dev, "changing numa node from %d to %d for nfit region [%pa-%pa]",
++			NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
++	}
++	if (ndr_desc->target_node == NUMA_NO_NODE) {
++		ndr_desc->target_node = phys_to_target_node(spa->address);
++		dev_info(acpi_desc->dev, "changing target node from %d to %d for nfit region [%pa-%pa]",
++			NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
++	}
++
+ 	/*
+ 	 * Persistence domain bits are hierarchical, if
+ 	 * ACPI_NFIT_CAPABILITY_CACHE_FLUSH is set then
+-- 
+2.17.1
+
