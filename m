@@ -2,78 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6DBCC433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Sep 2021 18:02:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78BD0C433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Sep 2021 18:26:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C76CA61251
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Sep 2021 18:02:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56C1560EE9
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Sep 2021 18:26:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345326AbhIXSD4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Sep 2021 14:03:56 -0400
-Received: from mail-ot1-f48.google.com ([209.85.210.48]:33484 "EHLO
-        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343995AbhIXSDw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Sep 2021 14:03:52 -0400
-Received: by mail-ot1-f48.google.com with SMTP id s36-20020a05683043a400b0054d4c88353dso3346571otv.0;
-        Fri, 24 Sep 2021 11:02:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=MnM6Toow5UpW5vNHpXd/pLFN/yLu+amYO+vAZymKytE=;
-        b=vD5OofPpMwUwLtR7TKhrkz+omoTwjGE3mH5sQaojcxnEovkePZmyuXvCZ7nMR3EzO0
-         C+gsj3+0VTZcnJmzXbCILNdPUdBU2uv2+VGMvyismK6iWeHbIc58yd2Jv0b7ny/TEYJQ
-         I/DP645Vqp/Bq6zwo27LengrAO8UkWQj8UFHcyDfCfs28Vrwajl6tu9HkD2u5X2sMH5e
-         JZr1L8ZTQ+yFlP8y8h/YoqlWzM14M5r9imge0AME/4b1wPIy9OS3/i1NsZzgjpWg2LQR
-         vKsCyoM0DezH4Lft4mrq9Q8hJEJzerpJxJTgR3G67FY1gZen/E27rCJeXko1r6tUdrXW
-         D0Vw==
-X-Gm-Message-State: AOAM5301yqgzDi3I0TvBgUr5VraqOm4hiN9YIB7CCJeMiN70G/kQtjWs
-        PH/mi22GVOsUnLWYJ4xOdoFNwF5B1XvbDnO7mfZr2tqzTO4=
-X-Google-Smtp-Source: ABdhPJyO0bYurMXVk8uIclqu4soXH/r6Q4TOArigoCnPcwmd2NAcJuWvEr27SUmxSiKbbgfHI7Tm/1c/vI0hsIRlYlk=
-X-Received: by 2002:a05:6830:2784:: with SMTP id x4mr5332878otu.86.1632506539301;
- Fri, 24 Sep 2021 11:02:19 -0700 (PDT)
-MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 24 Sep 2021 20:02:08 +0200
-Message-ID: <CAJZ5v0jVNqcqHET2W1uPiBtGDJ=C6JMxJVCnRB4UyiT1ci=9-w@mail.gmail.com>
-Subject: [GIT PULL] Device properties framework fix for v5.15-rc3
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Content-Type: text/plain; charset="UTF-8"
+        id S1345865AbhIXS2Y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Sep 2021 14:28:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41816 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1346239AbhIXS2Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Sep 2021 14:28:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 9ACA260F24;
+        Fri, 24 Sep 2021 18:26:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1632508010;
+        bh=MZ6zhIeooVyustjHOkCFkHVycqzmXa6fHjTlHbYIPSM=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=iexpTVMz5RDBB8VpHy4uW2L6+gAh2oe0RsBazHRG2tpBVR6GlA544di3+VC4iheY2
+         LT2N5roGk9mHDz0oDVAZXjU7L+PvyypETi7zzArpESLrLuDYsfx3D1J7NT7GuU1mrt
+         jvfvWgS+wPWV90zvbFf2znzJeqHLoI68V2yf97kw0UybIactkKdvUP0CyEJ/8hpGRK
+         CEMDoW8xYoR4EJQbiQBRoEZyAr2CvhgxEFADRkuhXm5BUrfYzEzHFSF542Om79jSrc
+         X0SVgzdTPE2YO5OHopFY8VkzCcuTmYInvIMWf4+ycx6Xc4ahPU2THJ77e1ugNCvBaj
+         mwXvEDhoVNiyQ==
+Subject: Re: [GIT PULL] ACPI fix for v5.15-rc3
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0j+VDWvzoH1iuTqYm6epwhBf6R6JdxkoCZvzs6835AcWQ@mail.gmail.com>
+References: <CAJZ5v0j+VDWvzoH1iuTqYm6epwhBf6R6JdxkoCZvzs6835AcWQ@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0j+VDWvzoH1iuTqYm6epwhBf6R6JdxkoCZvzs6835AcWQ@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.15-rc3
+X-PR-Tracked-Commit-Id: 12064c1768439fa0882547010afae6b52aafa7af
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: ea1f9163ac83fa537f58e00a81028844702279e4
+Message-Id: <163250801060.5900.13406898185899783358.pr-tracker-bot@kernel.org>
+Date:   Fri, 24 Sep 2021 18:26:50 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Fri, 24 Sep 2021 20:00:25 +0200:
 
-Please pull from the tag
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.15-rc3
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-5.15-rc3
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/ea1f9163ac83fa537f58e00a81028844702279e4
 
-with top-most commit 5aeb05b27f81269a2bf2e15eab9fc0f9a400d3a8
+Thank you!
 
- software node: balance refcount for managed software nodes
-
-on top of commit 6880fa6c56601bb8ed59df6c30fd390cc5f6dd8f
-
- Linux 5.15-rc1
-
-to receive a device properties framework fix for 5.15-rc3.
-
-This fixes a software node refcount imbalance on device
-removal (Laurentiu Tudor).
-
-Thanks!
-
-
----------------
-
-Laurentiu Tudor (1):
-      software node: balance refcount for managed software nodes
-
----------------
-
- drivers/base/swnode.c | 3 +++
- 1 file changed, 3 insertions(+)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
