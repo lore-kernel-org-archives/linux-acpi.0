@@ -2,76 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFD30C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 29 Sep 2021 18:16:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5A3BC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 Sep 2021 18:47:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98B1C6141B
-	for <linux-acpi@archiver.kernel.org>; Wed, 29 Sep 2021 18:16:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E59B61504
+	for <linux-acpi@archiver.kernel.org>; Wed, 29 Sep 2021 18:47:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345860AbhI2SR4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 29 Sep 2021 14:17:56 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:41846 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345830AbhI2SRx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Sep 2021 14:17:53 -0400
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
- id 5d0b7b55353e48ca; Wed, 29 Sep 2021 20:16:10 +0200
-Received: from kreacher.localnet (unknown [213.134.161.209])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id E399466A71A;
-        Wed, 29 Sep 2021 20:16:09 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>,
-        Ferry Toth <fntoth@gmail.com>
-Cc:     Linux PCI <linux-pci@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 0/3] PCI: PM: Simplify and unify some helper functions
-Date:   Wed, 29 Sep 2021 20:05:37 +0200
-Message-ID: <7312660.EvYhyI6sBW@kreacher>
-In-Reply-To: <1800633.tdWV9SEqCh@kreacher>
-References: <1800633.tdWV9SEqCh@kreacher>
+        id S1346123AbhI2StM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 29 Sep 2021 14:49:12 -0400
+Received: from mail-ot1-f44.google.com ([209.85.210.44]:39922 "EHLO
+        mail-ot1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235814AbhI2StH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Sep 2021 14:49:07 -0400
+Received: by mail-ot1-f44.google.com with SMTP id j11-20020a9d190b000000b00546fac94456so4103610ota.6;
+        Wed, 29 Sep 2021 11:47:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0gh0/D+JLfsfJlqH0a917kdEGhqFFQged7ZchtYxclU=;
+        b=xCtQUXGy4FV2eInUnDP7rXdgijsd9XUPGj4SjMQM0Abmz9o/POO0ishbCsGPehLCu5
+         Lin22uDj/LGRt3dog3Jzqywmb5vVjf1ehqU9EErSpm6kv3DFPP80g7RAU6pbnY6KtTiD
+         n+0LFQ1bsC15EjFyWFDQNqUi7816zzvLdsPrQlObm1zinSaVSL6X7PWJCpVsgUMyVO/M
+         MnK21Nr5MA7JQEMu9FVt7EJbe6cSDgdg4VrqLLQ1W+zI77iuaIZnzSdbZKjdATFlwFgA
+         sG01JuUmQR9lYhTI7zKAHFlh2lXJK4F/JsQ+ZNSAh4BuUThpmmKZHFgJ0TIr9bC+TOCp
+         DhxQ==
+X-Gm-Message-State: AOAM531bOqT0N5hWdNFH4rylYPZK+ZTsaOkyCsOGCPuHwAXohOwj7qj2
+        bCuEBa4qR2PkvGJBsWrIkYWdTvEESc8wUpoAqHSkC1Au
+X-Google-Smtp-Source: ABdhPJxH+pTTbk0IZjcDwThSOx5Jir6Y4UsNlmDuGsgVm/HkIDtlTJgQC59U2XUxYN6Z5+bFQKX+f2eMjXJsAaV2l/U=
+X-Received: by 2002:a05:6830:165a:: with SMTP id h26mr1348976otr.301.1632941245560;
+ Wed, 29 Sep 2021 11:47:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20210927121338.938994-1-arnd@kernel.org>
+In-Reply-To: <20210927121338.938994-1-arnd@kernel.org>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 29 Sep 2021 20:47:14 +0200
+Message-ID: <CAJZ5v0jJRYQPSfVV_hCD6uxch+vU6kvWV9-KAfqHckHgkFOeaA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: avoid NULL pointer arithmetic
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        llvm@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.161.209
-X-CLIENT-HOSTNAME: 213.134.161.209
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrudekvddguddvudcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepteeggfelteegudehueegieekveduleeuledvueefjeefffegfeejudfgteefhefhnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkphepvddufedrudefgedrudeiuddrvddtleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduiedurddvtdelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepfhhnthhothhhsehgmhgrihhlrdgtohhmpdhrtghpthhtoheplhhinhhugidqphgtihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
- rhgtphhtthhopehhvghlghgrrghssehkvghrnhgvlhdrohhrghdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohepmhhikhgrrdifvghsthgvrhgsvghrgheslhhinhhugidrihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+On Mon, Sep 27, 2021 at 2:13 PM Arnd Bergmann <arnd@kernel.org> wrote:
+>
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> There are some very old macros for doing an open-coded offsetof() and
+> cast between pointer and integer in ACPI headers. clang-14 now complains
+> about these:
+>
+> drivers/acpi/acpica/tbfadt.c:86:3: error: performing pointer subtraction with a null pointer has undefined behavior [-Werror,-Wnull-pointer-subtraction]
+>          ACPI_FADT_OFFSET(pm_timer_block),
+>          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> include/acpi/actbl.h:376:47: note: expanded from macro 'ACPI_FADT_OFFSET'
+>  #define ACPI_FADT_OFFSET(f)             (u16) ACPI_OFFSET (struct acpi_table_fadt, f)
+>                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> include/acpi/actypes.h:511:41: note: expanded from macro 'ACPI_OFFSET'
+>  #define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF (&(((d *) 0)->f), (void *) 0)
+>                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> include/acpi/actypes.h:505:79: note: expanded from macro 'ACPI_PTR_DIFF'
+>  #define ACPI_PTR_DIFF(a, b)             ((acpi_size) (ACPI_CAST_PTR (u8, (a)) - ACPI_CAST_PTR (u8, (b))))
+>                                                                               ^ ~~~~~~~~~~~~~~~~~~~~~~~
+> Convert them to the modern equivalents.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  include/acpi/actypes.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index 92c71dfce0d5..285bc7b73de3 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -507,8 +507,8 @@ typedef u64 acpi_integer;
+>  /* Pointer/Integer type conversions */
+>
+>  #define ACPI_TO_POINTER(i)              ACPI_CAST_PTR (void, (acpi_size) (i))
+> -#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p, (void *) 0)
+> -#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF (&(((d *) 0)->f), (void *) 0)
+> +#define ACPI_TO_INTEGER(p)              ((uintptr_t)(p))
+> +#define ACPI_OFFSET(d, f)               offsetof(d, f)
+>  #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
+>  #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
+>
+> --
 
-This series is on top of the linux-next branch from linux-pm.git:
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-
-which should be included in linux-next.
-
-Two of the 3 patches in this series, [1-2/3], were included in the "PCI: ACPI:
-Get rid of struct pci_platform_pm_ops and clean up code" series:
-
- https://lore.kernel.org/linux-acpi/1800633.tdWV9SEqCh@kreacher/
-
-and the remaining one, [3/3] is a new version of a problematic patch from that
-series.  The rest of that series is present in the git branch above.
-
-All of the 3 patches in this set need to be tested in order to verify that
-there are no more issues that need to be addressed in them.
-
-Ferry, please test!
-
-Thanks!
-
-
-
-
+Queued up as 5.16 material, converted into an upstream ACPICA pull
+request and submitted, thanks!
