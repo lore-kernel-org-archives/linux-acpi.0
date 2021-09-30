@@ -2,153 +2,190 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0373CC433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 30 Sep 2021 17:31:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F51C433F5
+	for <linux-acpi@archiver.kernel.org>; Thu, 30 Sep 2021 17:38:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D942B617E5
-	for <linux-acpi@archiver.kernel.org>; Thu, 30 Sep 2021 17:31:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DC5A61439
+	for <linux-acpi@archiver.kernel.org>; Thu, 30 Sep 2021 17:38:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352724AbhI3RdZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 30 Sep 2021 13:33:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51196 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352720AbhI3RdZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Sep 2021 13:33:25 -0400
-Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41CEFC06176C
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Sep 2021 10:31:42 -0700 (PDT)
-Received: by mail-yb1-xb2f.google.com with SMTP id v195so14527821ybb.0
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Sep 2021 10:31:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=dbyWtskCAZy+xt/GX/rEgH8dPX77Pl0JHzECutvB7o8=;
-        b=AOfO0Xhr5RbIHSrEG7VDe+G/eQDtr/9yws9yHRrlM4INTiD6bVk7zpxrJIj/11NLkI
-         TIQ6kRv/FruFzkkLOHs/dUDB0vBP6Bz4CdY4KqkoPXWOu4ZpAnGAiNT1Q2DCWTYfCTdw
-         +4idllKUY8B1pBmX1Bbps144pNNEeW76nSwzMwjmCoOCg5LvCJPEseLCwrCg44RzvFJN
-         Z2Rk95vOiKlQv80e0EfbhzQpsAk9HoH8s3Ccy87CD95vUacfVMvqwtVyr31MIN65zPd2
-         nHthyi2Xb0uLapKRmAdVvZbTMJ4GForrM0vxVj5y/e3kS+4k/mi6yeoq3W4tF4LQKMza
-         Ne7Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=dbyWtskCAZy+xt/GX/rEgH8dPX77Pl0JHzECutvB7o8=;
-        b=xFRo0JrzhNXKA4TcLFn6K1rxF8/zUhBvX+fRend1ugLeNqtPDA9VD0rpOLOl/XhWu3
-         ckbvwbroTir3K8Ltafr1r2+5Mr5U1dFL9rvxC3st8udOPPalUPU5qWLpYOL3E2JQSRat
-         zBy6sOB87LKFnzNLPEan8lHNlaUGDPUOel1Eju3flHmidGOAXILV3Eb22IO+Mqsz6NEF
-         UyM3H6vrhuavU14kfXnPY48q3RUvlH04INHCRh05wSL9PkGWta74vqEft3NJIfapUgJz
-         vXDpcpdGZBbleWHck5Oi4wmgIeP9Wfk3xF6cR+pdE2DjrWbFB+mN1sGju6mT/SNtuayW
-         IXZg==
-X-Gm-Message-State: AOAM533hwgVoQ1056EVU3onSotVxGBj+HqB6+jfJXsbWY77yfOt5vQrR
-        aRXKYR5AC6SR/1nWA4Y8KyDVqaWoBM2UbIJpB4Qnqg==
-X-Google-Smtp-Source: ABdhPJyV3/tD2PJOZ+6zaxIskMQ+tAjgdePucKrZFQgdWa6LnhBqYPlRwMYUesbtPLbMK6lEurqAoxRJi8dLI25P64Y=
-X-Received: by 2002:a25:2b07:: with SMTP id r7mr496920ybr.296.1633023101172;
- Thu, 30 Sep 2021 10:31:41 -0700 (PDT)
+        id S1352738AbhI3Rk1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 30 Sep 2021 13:40:27 -0400
+Received: from mga09.intel.com ([134.134.136.24]:25997 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1352731AbhI3Rk1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Sep 2021 13:40:27 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10123"; a="225288487"
+X-IronPort-AV: E=Sophos;i="5.85,336,1624345200"; 
+   d="scan'208";a="225288487"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2021 10:38:44 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.85,336,1624345200"; 
+   d="scan'208";a="521292762"
+Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
+  by orsmga001.jf.intel.com with ESMTP; 30 Sep 2021 10:38:44 -0700
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12; Thu, 30 Sep 2021 10:38:43 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12 via Frontend Transport; Thu, 30 Sep 2021 10:38:43 -0700
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.168)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2242.12; Thu, 30 Sep 2021 10:38:43 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Ivet4E9u41RUrBGSQ+wyEfFIjmzlrwXDfBtSFlLjAZpADtLDLA2qlKwmmN3ySCUd7/2fHTf3/BqRH/f6qlX2eRZwAYCOFHpKZWahLoRskDibr4Je2kkdREPcb4kXTHV1S3vSFOz69o2cd5tjAHPNd+CZe1tOSvBINoPJjRBXhxgvfgBYrBGo8a5VePQvbLFmzYtU/EOOh0q+ur1zeiZTiyD1yxtfz9rkt/d9ugCP9Gm0/80RnNHo71+jcN2ROHHTGbuZWi5yxaUSvGUlFJjqAnSBLMrS/abJLkfyZ6R1j0Qny6GoLqOa6mj0nT7Ukj/fe3im5Q9Sk/kqVE77CQx2vw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
+ bh=oNXe0GQlDAVVBkv6SGmw53UziwQUbP1rxTjYLe1/IXg=;
+ b=fqK95ZB2mJRwxVDVq75N14vxRwdzMJgOONPX7pqnct5Mt4qO4dpDT+qDDWUzy6yMEx+xY7iZdlYtUaG8XEdzfxhmomX7gupsgBWEa3EA4V8UZGGhG+v9BV21idRX9LQ7jmk7XGnXl5cgL9qW+VzvFXLW3Wr1V2LGrnlUhhI4/DXq821p/+3p9IR3IFmxIa4nKgV1nIZP58G8sp0E0GKWednX89eSNv4PpTPR3UsJY9me7+xqUxbZ0NvCZgmQTFcXuQsz75egg2LxAC5LW9cCjA6XI0icyUHkoZGfBSor9LLckW2ZURlug+TdrfACpf2E80U9+twEmpDGJkUYdZRKGQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=oNXe0GQlDAVVBkv6SGmw53UziwQUbP1rxTjYLe1/IXg=;
+ b=OCquIOwpLD0DfX922Xd4jdIbv4XnAKUAQ6gHUrJFqeKe4DLSLx/+3Oflw2kOKkmIZ8C+TOYorwGipRP8XwlOld4oLybeSiLJN8wLKL6rjhElgHFt8T2XUFuGTS0IlAeUINFLNictpfw/eJZNTHE+q5Mvd9PnOgESmJ+JXWki2Kc=
+Authentication-Results: lists.osuosl.org; dkim=none (message not signed)
+ header.d=none;lists.osuosl.org; dmarc=none action=none header.from=intel.com;
+Received: from DM4PR11MB5326.namprd11.prod.outlook.com (2603:10b6:5:391::8) by
+ DM6PR11MB3610.namprd11.prod.outlook.com (2603:10b6:5:139::26) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.4544.20; Thu, 30 Sep 2021 17:38:42 +0000
+Received: from DM4PR11MB5326.namprd11.prod.outlook.com
+ ([fe80::c61:d5d8:c71e:66da]) by DM4PR11MB5326.namprd11.prod.outlook.com
+ ([fe80::c61:d5d8:c71e:66da%9]) with mapi id 15.20.4566.017; Thu, 30 Sep 2021
+ 17:38:42 +0000
+Subject: Re: Oops in during sriov_enable with ixgbe driver
+To:     Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>
+CC:     <linux-acpi@vger.kernel.org>, <netdev@vger.kernel.org>,
+        "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>
+References: <8e4bbd5c59de31db71f718556654c0aa077df03d.camel@linux.ibm.com>
+ <5ea40608-388e-1137-9b86-85aad1cad6f6@intel.com>
+From:   "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Organization: Intel Technology Poland Sp. z o. o., KRS 101882, ul. Slowackiego
+ 173, 80-298 Gdansk
+Message-ID: <b9e461a5-75de-6f45-1709-d9573492f7ac@intel.com>
+Date:   Thu, 30 Sep 2021 19:38:37 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Firefox/78.0 Thunderbird/78.14.0
+In-Reply-To: <5ea40608-388e-1137-9b86-85aad1cad6f6@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: FR0P281CA0017.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:15::22) To DM4PR11MB5326.namprd11.prod.outlook.com
+ (2603:10b6:5:391::8)
 MIME-Version: 1.0
-References: <YSpr/BOZj2PKoC8B@lunn.ch> <CAGETcx_mjY10WzaOvb=vuojbodK7pvY1srvKmimu4h6xWkeQuQ@mail.gmail.com>
- <YS4rw7NQcpRmkO/K@lunn.ch> <CAGETcx_QPh=ppHzBdM2_TYZz3o+O7Ab9-JSY52Yz1--iLnykxA@mail.gmail.com>
- <YS6nxLp5TYCK+mJP@lunn.ch> <CAGETcx90dOkw+Yp5ZRNqQq2Ny_ToOKvGJNpvyRohaRQi=SQxhw@mail.gmail.com>
- <YS608fdIhH4+qJsn@lunn.ch> <20210831231804.zozyenear45ljemd@skbuf>
- <CAGETcx8MXzFhhxom3u2MXw8XA-uUtm9XGEbYNobfr+Ptq5+fVQ@mail.gmail.com>
- <20210930134343.ztq3hgianm34dvqb@skbuf> <YVXDAQc6RMvDjjFu@lunn.ch>
-In-Reply-To: <YVXDAQc6RMvDjjFu@lunn.ch>
-From:   Saravana Kannan <saravanak@google.com>
-Date:   Thu, 30 Sep 2021 10:31:05 -0700
-Message-ID: <CAGETcx8emDg1rojU=_rrQJ3ezpx=wTukFdbBV-uXiu1EQ87=wQ@mail.gmail.com>
-Subject: Re: [PATCH v1 1/2] driver core: fw_devlink: Add support for FWNODE_FLAG_BROKEN_PARENT
-To:     Andrew Lunn <andrew@lunn.ch>
-Cc:     Vladimir Oltean <olteanv@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, Len Brown <lenb@kernel.org>,
-        Alvin Sipraga <ALSI@bang-olufsen.dk>, kernel-team@android.com,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from [192.168.100.217] (213.134.175.135) by FR0P281CA0017.DEUP281.PROD.OUTLOOK.COM (2603:10a6:d10:15::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4587.8 via Frontend Transport; Thu, 30 Sep 2021 17:38:40 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: aa850e20-bd09-4cad-839d-08d984392519
+X-MS-TrafficTypeDiagnostic: DM6PR11MB3610:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <DM6PR11MB361028080D37B7843F84E902CBAA9@DM6PR11MB3610.namprd11.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:9508;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: dA6mIH/2OQLDJr83BEC08teEylLZ7zygtyJe2D4gfL8KvsrJ8RJ4n/d6YfdUoNOij5lO4zIA/ZXTnaT4ynMsngkRRBJVoSrUbPUm+jDZT7kWrxz6WA0q6Yvgy4UPOBM7ZsB4De2L4Woe7dyUg8R7Kkg0YueMy0ykYPruoAsio52YMhR2zgWtLWRNBgkMM8Z24Afoj6oqASHtpr3hWCiM5CsGmOWJtHEee+mncXT/A2C3BYyu/0rpEJFaEzL/NyIwrroePvZV5c1RSJ2apSEjYsPmzUZDnS/a6tmdZPcnsncQ3AFseNu5YH6ale/MwAP40m/w4jUYV9S87saL9BT0Q2KNWH7F4VyRE00ad0/Qe3zZg9ob8nDeCtNKk37TcR6K6gwjaS+W9AHCI2xb5BYM+qfCb3mU79PZml+sYu/7C8F8X8MLH/c8nQoCZg5EJgMaASY94FIvrIvJrrZON7ptzj89ED+sBX0am7TpmOLsUvavWiF1GjucAxZKETMiZ+qrfsV4RDQivoLkj/LCWkEwJxXmOgJD4YY18A+OKnBteSGXWoTgyBO3uYWvKYOvpYjdkh+OiyLapig9za/z8+xoofWxbp02Zs3seXhtGkiUl6r5nQMI97qK0YMgF1d3BU+YfcuDRSpjB7BSYDweKHEHQaJmPpbi9SMNHdwcOeljvNmiNrcZ2Pkp+Mejn6w0jexHMq1I0Skry0PWKvB5UzI16gq3gxJtnELFL68AqdIKhHA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR11MB5326.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(8676002)(6636002)(508600001)(83380400001)(16576012)(4326008)(186003)(31696002)(110136005)(53546011)(66946007)(66476007)(38100700002)(31686004)(36756003)(6486002)(36916002)(2906002)(6666004)(86362001)(26005)(66556008)(5660300002)(2616005)(956004)(316002)(8936002)(43740500002)(45980500001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?eTBVdFVXQWJrcVArejFZQWlndnpHb2ZTQzFiVys2NUptelZjYzJFcXppNmFV?=
+ =?utf-8?B?Yk5OMklCTkVuU3ZCWE5kUnFKOG0ya3VCbWZGL1A2QkIwT0F2c3F5SE56U2Nr?=
+ =?utf-8?B?SEZadXgxU0NseGZrelBBYWk3bXBhMDZLUHZmV3kyVTczeEFNVUV0VjBBRjAw?=
+ =?utf-8?B?Tjk2cEFzRXJhaWFxaDJ4bVdHUkZYUlVaWHI5SUpmV01yQUF6aW9VaWhQaFFY?=
+ =?utf-8?B?dERsSldqL2FHeG9ncGRUTlpWaDRRWmYwU3dOb2VXTFZZdU96Z0hTUWxaWVZR?=
+ =?utf-8?B?blRjZ1FNTVgzK2xWWlVMN3lpWjF5ejNWeUdsR0ZZd3FhRXJsZ2x0UUJBR0Jn?=
+ =?utf-8?B?OXdMTmpHWFZiaUpCMGJkMmQydzhzRUQ3M0JBVFV5TjN2dllzZzhmVGQweXhi?=
+ =?utf-8?B?NG83TEtSY3NPbEZzOHVwQWw0cXR1WjJva2gvLzdLRFlmeDlCU1FRRnRyK05F?=
+ =?utf-8?B?M29BdlJVYTZIQ0o1V1dBaWs5MTZpZ1g4SEpzQVg2cGgweDNYUW01Uit0alVW?=
+ =?utf-8?B?cVBSUW9xSHlzZTAzNml4d0ZaT3A4YzlMSUk3bFoyTkU3dm9TL1prZEp2YVRE?=
+ =?utf-8?B?Q0diUFZIcm15bWpIcGF6Uy9qMTZ6VkpINFhtd3FyWmVGRWw4clR2TTIyVFVh?=
+ =?utf-8?B?TUxKaUFRbnNGRmh5NVpnRTdjTTRvUHRrSGZldE02cUNqc1dEdjdQQmRCOEZS?=
+ =?utf-8?B?WHZiay85a01LOFZNM0g2T0tEaitVNTd1NEZmT01GTXVXb3RuQVNaOEd2SDVN?=
+ =?utf-8?B?bTllV25IVlJ3WDkydW1Fd0NQdVFmdW1LTTluRXBJRUJXaW9vcWFyL3pLcTBE?=
+ =?utf-8?B?bVQ1S1lLQ2dIRTl4Q1l0bitCT0FseG41NEtCTkVVTkc1c3dIUGlPSDB3bHN4?=
+ =?utf-8?B?M2RISFJWaGs4OVZzcVN6MWd0L3JEbHR6T1o3WjVoUm80VS94OFhIWEtBcnN0?=
+ =?utf-8?B?dm44WndMZHlCekswRW9DaEcrUEtNd0lMV3c0cUVkNU13NzkxSFh6Qjh1ZG9y?=
+ =?utf-8?B?MGNCRFBuWFBqU1cwUG5MQzBhMHl4c05Ldlg4VDZrR28yZExDMEd1V0YybUp0?=
+ =?utf-8?B?d3pDZDJtVmV1NFdZbmVSUFZldnVzSWNmQm94MGdhckVJYVJqR1NlWkJocHZ1?=
+ =?utf-8?B?UmFZc2VscGFnamlRc0ZFZEYrSTFMemRwNHVMcjhJblY3aDd2OGJ6T1hhVEdX?=
+ =?utf-8?B?Vm9ZV1dSTm02eVZhc1hYZ2FaSnFIeUJuNEdBTGFvR1BXWTdJYlZXbWJSYXpv?=
+ =?utf-8?B?VXVEWG5tbnZUS3RmNGc1N1lSU3g4SlQ1UERrL0RzRlROdmpIdCs0bTFFUktv?=
+ =?utf-8?B?LzA0WW1kQi83MW4yZUJIUmNjZFNFL1VLN1RjY3VwanJqNnRwc0RRRzU2RVBt?=
+ =?utf-8?B?QmxJM1FJME5kaG9OUjVndlh2Qk9QZUlVUktxdDdJWjlIcmJSWC9LTlVSMVhY?=
+ =?utf-8?B?YnBkYkdUYStQZE8wSlJWV3EyWi9zdjhDeW05YzBHbEFBNXFIeE1xMVk3TGQr?=
+ =?utf-8?B?YjQzKzJYaHZ0UWlIUVlTYy9Uai95Zk8xZmZNaFQ4a3ZpVUNUOVp0R3lrSXZl?=
+ =?utf-8?B?WTlLRGdDSmtmVENlenlWZVpwdkJLZGtqVDdjZkdpUzE3bGt2d2FIZjRYMlNZ?=
+ =?utf-8?B?VU0zV0E1bk12ZElrUGRuMVBqdVdTT0Y3TFZIS0htYWlTZ1FzdEFnb0Zqb3Nq?=
+ =?utf-8?B?VGg5NE5nNFcwb2xhYTl5RmFiN0ZzMVRPb1RZWkFqWVJTZlNTRytCQ0VpLzYr?=
+ =?utf-8?Q?NBsGX0ylFWOiKfxIQ0qG0MkZ0cKr0NR6DYB/zUy?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: aa850e20-bd09-4cad-839d-08d984392519
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR11MB5326.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2021 17:38:42.1481
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: i0xQquAGfWpZAW9G5HVNe/BSLwpHaAEtt7k246DRh+/QWnTEQuIRIbAXgf61dCafyR+wFMBU/eQTK3hiMNC8jp+mVhLC4wml2c06+lD9jys=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB3610
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Sep 30, 2021 at 7:00 AM Andrew Lunn <andrew@lunn.ch> wrote:
+On 9/30/2021 7:31 PM, Jesse Brandeburg wrote:
+> On 9/28/2021 4:56 AM, Niklas Schnelle wrote:
+>> Hi Jesse, Hi Tony,
+>>
+>> Since v5.15-rc1 I've been having problems with enabling SR-IOV VFs on
+>> my private workstation with an Intel 82599 NIC with the ixgbe driver. I
+>> haven't had time to bisect or look closer but since it still happens on
+>> v5.15-rc3 I wanted to at least check if you're aware of the problem as
+>> I couldn't find anything on the web.
+> We haven't heard anything of this problem.
 >
-> > Andrew is testing with arch/arm/boot/dts/vf610-zii-dev-rev-b.dts.
-> >
-> > Graphically it looks like this:
 >
-> Nice ASCII art :-)
+>> I get below Oops when trying "echo 2 > /sys/bus/pci/.../sriov_numvfs"
+>> and suspect that the earlier ACPI messages could have something to do
+>> with that, absolutely not an ACPI expert though. If there is a need I
+>> could do a bisect.
+> Hi Niklas, thanks for the report, I added the Intel Driver's list for
+> more exposure.
+>
+> I asked the developers working on that driver to take a look and they
+> tried to reproduce, and were unable to do so. This might be related to
+> your platform, which strongly suggests that the ACPI stuff may be related.
+>
+> We have tried to reproduce but everything works fine no call trace in
+> scenario with creating VF.
+>
+> This is good in that it doesn't seem to be a general failure, you may
+> want to file a kernel bugzilla (bugzilla.kernel.org) to track the issue,
+> and I hope that @Rafael might have some insight.
+>
+> This issue may be related to changes in acpi_pci_find_companion,
+> but as I say, we are not able to reproduce this.
+>
+> commit 59dc33252ee777e02332774fbdf3381b1d5d5f5d
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Tue Aug 24 16:43:55 2021 +0200
+>      PCI: VMD: ACPI: Make ACPI companion lookup work for VMD bus
 
-Thanks for the awesome diagram Vladimir!
+This change doesn't affect any devices beyond the ones on the VMD bus.
 
->
-> This shows the flow of Ethernet frames thought the switch
-> cluster. What is missing, and causing fw_devlink problems is the MDIO
-> bus master for the PHYs, and the interrupt control where PHY
-> interrupts are stored, and the linking from the PHY to the interrupt
-> controller. Physically all these parts are inside the Ethernet switch
-> package. But Linux models them as separate blocks. This is because in
-> the general case, they are all discrete blocks. You have a MAC chip,
-> and a PHY chip, and the PHY interrupt output it connected to a SoC
-> GPIO.
->
-> >
-> >  +-----------------------------+
-> >  |          VF610 SoC          |
-> >  |          +--------+         |
-> >  |          |  fec1  |         |
-> >  +----------+--------+---------+
-> >                 | DSA master
-> >                 |
-> >                 | ethernet = <&fec1>;
-> >  +--------+----------+---------------------------+
-> >  |        |  port@6  |                           |
-> >  |        +----------+                           |
-> >  |        | CPU port |     dsa,member = <0 0>;   |
-> >  |        +----------+      -> tree 0, switch 0  |
-> >  |        |   cpu    |                           |
-> >  |        +----------+                           |
-> >  |                                               |
-> >  |            switch0                            |
-> >  |                                               |
-> >  +-----------+-----------+-----------+-----------+
->
-> Inside the block above, is the interrupt controller and the MDIO bus
-> master.
->
->
-> >  |   port@0  |   port@1  |   port@2  |   port@5  |
-> >  +-----------+-----------+-----------+-----------+
-> >  |switch0phy0|switch0phy1|switch0phy2|   no PHY  |
-> >  +-----------+-----------+-----------+-----------+
->
-> The control path for these PHYs is over the MDIO bus. They are probed
-> via the control path bus. These PHYs also have an interrupt output,
-> which is wired to the interrupt controller above.
->
->
-> >  | user port | user port | user port | DSA port  |
-> >  +-----------+-----------+-----------+-----------+
-> >  |    lan0   |    lan1   |    lan2   |    dsa    |
-> >  +-----------+-----------+-----------+-----------+
->
 
-Thanks for the dts paths and the additional details Andrew.
+> At this point maybe a bisect would be helpful, since this seems to be a
+> corner case that we used to handle but no longer do.
+>
+> Thanks!
+> Jesse
 
-I think this gives me enough info for now to make sure whatever I'm
-coding isn't completely stupid. I'm trying to make the generic PHY
-driver less greedy (taking it a bit further than what Vladimir was
-attempting) and also delay the use of generic PHY driver as late as
-possible (so that we give as much time as possible for the specific
-driver to be registered/loaded before we give up and use generic PHY
-driver). This would also need some changes to the DSA code and hence
-these questions.
 
-Btw, do we have non-DSA networking devices where fw_devlink=on
-delaying PHY probes is causing an issue?
-
--Saravana
