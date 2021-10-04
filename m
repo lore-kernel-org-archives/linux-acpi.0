@@ -2,55 +2,55 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93A84C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Oct 2021 09:58:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCB1C433F5
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Oct 2021 12:20:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 743C061381
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Oct 2021 09:58:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E3266136F
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Oct 2021 12:20:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232517AbhJDKAJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Oct 2021 06:00:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42804 "EHLO
+        id S232707AbhJDMVv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Oct 2021 08:21:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232117AbhJDKAI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Oct 2021 06:00:08 -0400
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25C07C061745;
-        Mon,  4 Oct 2021 02:58:20 -0700 (PDT)
-Received: by mail-pj1-x1029.google.com with SMTP id k23-20020a17090a591700b001976d2db364so11692606pji.2;
-        Mon, 04 Oct 2021 02:58:20 -0700 (PDT)
+        with ESMTP id S230238AbhJDMVv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Oct 2021 08:21:51 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56848C061745;
+        Mon,  4 Oct 2021 05:20:02 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id 187so9915684pfc.10;
+        Mon, 04 Oct 2021 05:20:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to;
-        bh=4DeUrX5rRE6dDGdUbRWgnLXYO45meShZq87GneWCc74=;
-        b=C/j611PPzTxfRlAXwO5fcpJS9JQDW5sOyWSkaZ9JxHBftoaSE/++U7GlXZcudaWX+s
-         nNitcrpvbIupawUH9nr1dojQvnR9RiEG3RJXBNDFhUXoZQT8Vd2C1kokQuPaY+9WvqeS
-         mY1nSo+S4ZYNd0A6zsvwKTJItgpTD0lPBc1bPsrsMbQKEexgudL/fgVNpckywDol2fhn
-         gyrn9vgn/OG8qsAZmsTojzeAmzMy5TqIwrz5QVXY3qDGl6AzTy/yygRbyUvyu87Wz/1S
-         tT+OyyAZQ/Ln3R1csy0YsVxmbtmeXEiOoWPzz8dj6QnHMqjdc9I6R74hWX9u/rNSDteB
-         CUtQ==
+        bh=ZEO7nDdq5Uxy2uV/IXvZEkXOvYwiVs0jEw95KwUv6SY=;
+        b=GyJ5juukWlYzDrN89CmRoU7xHEH3UIcQAwkVJLocP3WA2VX93z0gG2Tu+umrOxUFD2
+         WoBfjlD6CveVh61dH29DS1mlhluSi7SWGQVJ58Tc2rd9S4rKN1ZOl8toaNAinZDZzJFE
+         HnAOblQ9nJUksBqiGhDNZ5iO3Dz8f8jZNzycGtokdzvLkZFwUv08YWKf4cD8HMD0ui3I
+         JOe/YtB5+9QX2yThdYD3je7H3AOebkQv04m3gurusLB/PyJAlPJklniqIukWisbPx6gn
+         zoyB7YIQ7rNuYnCrYU+22Zp5QhPJ2z6CsG/Ol60znz+mAwrJFseE2z+Vz6zNNTYYzjOD
+         PUTg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to;
-        bh=4DeUrX5rRE6dDGdUbRWgnLXYO45meShZq87GneWCc74=;
-        b=dkWstKq+6JGqz18JnC/O+2FIJYh2ZhrbeaR0HzNb/5iOkVk/o3JmUZY+QmcPP71qWb
-         e52NK1kBFFUhfSfc27acNcl8urH2ShiBluKbSOrft1pcnu8WrOV6XuOF6vr5nz9+ayWv
-         CzwDCpyP59NOIHyXC8J5F05UpxVm8PoXV5AzNDQp3ccmlUlDZxalUZoS5cE8ByZeQnzt
-         J2S2l3scJ0qWif8mwlAq9TXG+R9d7hOxPSoTiAqQg0JTThTwfDKBr0uBI7BGne5aNb3e
-         xQnxVX+lJ6fL9nHx6eIkWsgT1KGCA9MDU+4DKsICryjDF9q2nsDFl/x/mwl1B6rP29iP
-         ZH+Q==
-X-Gm-Message-State: AOAM530RTb/LyussIfHAkmjfOessavIMrl6A4NJ1sEGKG8RUD180TmGI
-        vxR7HaZHUJWl7xSPTt+jbFFIIGCsgVs=
-X-Google-Smtp-Source: ABdhPJwcsh1Op5gcIyfqDWRUkQQUH1+6VOOf7ETW382aOAv4x4EU6VwAqluV7yZZYV9oL0RovP8ISw==
-X-Received: by 2002:a17:90b:e08:: with SMTP id ge8mr6315823pjb.22.1633341499476;
-        Mon, 04 Oct 2021 02:58:19 -0700 (PDT)
+        bh=ZEO7nDdq5Uxy2uV/IXvZEkXOvYwiVs0jEw95KwUv6SY=;
+        b=nWc0adsWBQBVSWMIfIptMTuojSHIsd7a+57QSADbP/0r3j8wPEB/+94T/qvnjP3sPY
+         gFJ0Zfx1IFhqeLxgT8Fuju898BhmjurznRRTeBLL/fUqAlXtpPJn8VykvvJu2X+puzpv
+         jR+7jRh2+Lq+Nya0JoSuRC9w3xahO7ETwrEUZM+71k9mhrwAh+NHzuJIA0rMrHBp7tpT
+         Y8JeRmjAWdij/9PuPHHKs8WLZ+J5E76VGyXa4CYZltTE8IgH1m5p387r5rxu9rQedjJc
+         9+Vb7ufOYJGDyp+YwGpZRRDCZFD5A9noS2IcuhiMiWLvKI7nx9B8BeDZ2PAyeTQTYWnk
+         9Egw==
+X-Gm-Message-State: AOAM532/w6BA3LLJxGDthhWw3aUzGNPIzM7ViWQThpsKYWamy2nXgyec
+        avgFQvgcAW77DX0IvVHc/NKZDwN0uNY=
+X-Google-Smtp-Source: ABdhPJyk8lEyJIdsLTBBoiJ2fVVr8AVaW3mVvFKxPVvopLX2RrchJbV9L2/D6blvRXXdHt89UTK4HA==
+X-Received: by 2002:aa7:8189:0:b0:44c:293a:31e4 with SMTP id g9-20020aa78189000000b0044c293a31e4mr12424881pfi.51.1633350001663;
+        Mon, 04 Oct 2021 05:20:01 -0700 (PDT)
 Received: from sol (106-69-170-56.dyn.iinet.net.au. [106.69.170.56])
-        by smtp.gmail.com with ESMTPSA id n66sm14079667pfd.21.2021.10.04.02.58.16
+        by smtp.gmail.com with ESMTPSA id 16sm6909136pfu.169.2021.10.04.05.19.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 Oct 2021 02:58:19 -0700 (PDT)
-Date:   Mon, 4 Oct 2021 17:58:13 +0800
+        Mon, 04 Oct 2021 05:19:52 -0700 (PDT)
+Date:   Mon, 4 Oct 2021 20:19:42 +0800
 From:   Kent Gibson <warthog618@gmail.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -59,7 +59,7 @@ Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         Bartosz Golaszewski <brgl@bgdev.pl>
 Subject: Re: linux 5.15-rc4: refcount underflow when unloading gpio-mockup
-Message-ID: <20211004095813.GA2874227@sol>
+Message-ID: <20211004121942.GA3343713@sol>
 References: <20211004093416.GA2513199@sol>
  <YVrM8VdLKZUt0i8R@kroah.com>
 MIME-Version: 1.0
@@ -123,8 +123,14 @@ On Mon, Oct 04, 2021 at 11:44:17AM +0200, Greg Kroah-Hartman wrote:
 > Any chance you can run 'git bisect' for this?
 > 
 
-Will do - just wanted to get the problem out there as a heads-up and in
-case anyone had some immediate insight.
+That results in:
+
+bd1e336aa8535a99f339e2d66a611984262221ce is the first bad commit
+commit bd1e336aa8535a99f339e2d66a611984262221ce
+Author: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Date:   Tue Aug 17 13:24:49 2021 +0300
+
+    driver core: platform: Remove platform_device_add_properties()
 
 Cheers,
 Kent.
