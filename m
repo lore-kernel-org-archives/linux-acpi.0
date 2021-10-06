@@ -2,91 +2,99 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6264DC43217
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 17:31:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C92C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 18:58:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 488C6610FB
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 17:31:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99BB561130
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 18:58:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238578AbhJFRdS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Oct 2021 13:33:18 -0400
-Received: from mga14.intel.com ([192.55.52.115]:37987 "EHLO mga14.intel.com"
+        id S231804AbhJFTAh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Oct 2021 15:00:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231678AbhJFRdR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 6 Oct 2021 13:33:17 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="226368285"
-X-IronPort-AV: E=Sophos;i="5.85,352,1624345200"; 
-   d="scan'208";a="226368285"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2021 10:31:24 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.85,352,1624345200"; 
-   d="scan'208";a="484200637"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 06 Oct 2021 10:31:20 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 5DEDD159; Wed,  6 Oct 2021 20:31:27 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Saravana Kannan <saravanak@google.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>, linux-kernel@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-i2c@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Wolfram Sang <wsa@kernel.org>
-Subject: [PATCH v2 1/3] driver core: Provide device_match_acpi_handle() helper
-Date:   Wed,  6 Oct 2021 20:31:23 +0300
-Message-Id: <20211006173125.84423-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.33.0
+        id S229992AbhJFTAg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 6 Oct 2021 15:00:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F24260FF2;
+        Wed,  6 Oct 2021 18:58:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1633546724;
+        bh=BrN9DZemZ8hoX2bxvUst8/KdBJIpbuojdOqUUhWaURM=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=sXZ7tDgTZ/NuDdHCT2qLEkuHF4wsk2U9FC5GsaLmvzZQg2BHcoz6mOaV6WBxgK6G/
+         cZ0v/bbw5FTNx4WJnpS0NNCj1OPoZm50TfAuItN9bLd+gpj4Ng32bw2R6LDla0ZPL2
+         zhNK/9J8VXVpPMN0X0f6RLqhg74EDJCTe3Rtupj9cUjqeZbypMo0BkR4KQlyUS4ylL
+         f+h9nJbdQvfJMIRLSyw+4s8GL1B31ySUcCox2V5hEeH8Yq/V1jnIoX5bxQMfr3Lvey
+         dkYZSR/JhtvRwDFKYcmDL6mdw8j4oE8vROo7YL+HXeg5lnwf7QTSGl/6bhH/8j2+Bk
+         PcFAg/wcxFR1w==
+Date:   Wed, 6 Oct 2021 13:58:42 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Linux PCI <linux-pci@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Shanker Donthineni <sdonthineni@nvidia.com>,
+        Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH] PCI: ACPI: Check parent pointer in
+ acpi_pci_find_companion()
+Message-ID: <20211006185842.GA1172531@bhelgaas>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5523582.DvuYhMxLoT@kreacher>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We have couple of users of this helper, make it available for them.
+On Fri, Oct 01, 2021 at 03:58:10PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> If acpi_pci_find_companion() is called for a device whose parent
+> pointer is NULL, it will crash when attempting to get the ACPI
+> companion of the parent due to a NULL pointer dereference in
+> the ACPI_COMPANION() macro.
+> 
+> This was not a problem before commit 375553a93201 ("PCI: Setup ACPI
+> fwnode early and at the same time with OF") that made pci_setup_device()
+> call pci_set_acpi_fwnode() and so it allowed devices with NULL parent
+> pointers to be passed to acpi_pci_find_companion() which is the case
+> in pci_iov_add_virtfn(), for instance.
+> 
+> Fix this issue by making acpi_pci_find_companion() check the device's
+> parent pointer upfront and bail out if it is NULL.
+> 
+> While pci_iov_add_virtfn() can be changed to set the device's parent
+> pointer before calling pci_setup_device() for it, checking pointers
+> against NULL before dereferencing them is prudent anyway and looking
+> for ACPI companions of virtual functions isn't really useful.
+> 
+> Fixes: 375553a93201 ("PCI: Setup ACPI fwnode early and at the same time with OF")
+> Link: https://lore.kernel.org/linux-acpi/8e4bbd5c59de31db71f718556654c0aa077df03d.camel@linux.ibm.com/
+> Reported-by: Niklas Schnelle <schnelle@linux.ibm.com>
+> Tested-by: Niklas Schnelle <schnelle@linux.ibm.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: fixed compilation error (Greg)
- drivers/base/core.c        | 6 ++++++
- include/linux/device/bus.h | 1 +
- 2 files changed, 7 insertions(+)
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index c4a2c97a21a2..3a5623ea1369 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -4840,6 +4840,12 @@ int device_match_acpi_dev(struct device *dev, const void *adev)
- }
- EXPORT_SYMBOL(device_match_acpi_dev);
- 
-+int device_match_acpi_handle(struct device *dev, const void *handle)
-+{
-+	return ACPI_HANDLE(dev) == handle;
-+}
-+EXPORT_SYMBOL(device_match_acpi_handle);
-+
- int device_match_any(struct device *dev, const void *unused)
- {
- 	return 1;
-diff --git a/include/linux/device/bus.h b/include/linux/device/bus.h
-index 062777a45a74..a039ab809753 100644
---- a/include/linux/device/bus.h
-+++ b/include/linux/device/bus.h
-@@ -143,6 +143,7 @@ int device_match_of_node(struct device *dev, const void *np);
- int device_match_fwnode(struct device *dev, const void *fwnode);
- int device_match_devt(struct device *dev, const void *pdevt);
- int device_match_acpi_dev(struct device *dev, const void *adev);
-+int device_match_acpi_handle(struct device *dev, const void *handle);
- int device_match_any(struct device *dev, const void *unused);
- 
- /* iterator helpers for buses */
--- 
-2.33.0
-
+> ---
+>  drivers/pci/pci-acpi.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -1243,6 +1243,9 @@ static struct acpi_device *acpi_pci_find
+>  	bool check_children;
+>  	u64 addr;
+>  
+> +	if (!dev->parent)
+> +		return NULL;
+> +
+>  	down_read(&pci_acpi_companion_lookup_sem);
+>  
+>  	adev = pci_acpi_find_companion_hook ?
+> 
+> 
+> 
