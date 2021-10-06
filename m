@@ -2,156 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEDFFC433EF
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 10:50:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4209AC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 11:22:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9200861074
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 10:50:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2400C611C3
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 11:22:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229824AbhJFKwk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Oct 2021 06:52:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42788 "EHLO
+        id S238326AbhJFLYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Oct 2021 07:24:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238157AbhJFKwk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Oct 2021 06:52:40 -0400
-Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E05F3C061755;
-        Wed,  6 Oct 2021 03:50:47 -0700 (PDT)
-Received: by mail-ed1-x52c.google.com with SMTP id v18so8128785edc.11;
-        Wed, 06 Oct 2021 03:50:47 -0700 (PDT)
+        with ESMTP id S238305AbhJFLYW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Oct 2021 07:24:22 -0400
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13933C06174E;
+        Wed,  6 Oct 2021 04:22:30 -0700 (PDT)
+Received: by mail-wr1-x42e.google.com with SMTP id m22so7848951wrb.0;
+        Wed, 06 Oct 2021 04:22:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/RnP//V6796HoXyW5g91DrP6v6JppXFbXNsT/OGvyG8=;
-        b=qImZXBHHeRk0lUf6RDWqAGl5sjDtD9AeVQdko0eV+76rBlnqrSrvFl4eTYXPcOYLXb
-         4HeNnlBR17kx8AMvZqVkR8LHooVlXcAQnT5ZEnUIyWaYpXOr4FxYwjRo8rgc+8DPwoCu
-         CIqeNQEu6KJjCkuM20ygR8puiEeAVh0XiDzvGlK/ejb/7Uqz7RcTCcqofdrUFRR3/Mmc
-         gvnMNkNTQf+iHGrNEF049FSpa9YXPUAs9F/hro+AzyS5AxtLPL6W2xg/qagAVqj9hfvo
-         /5bKSDDqxluO5XrOOa+UyRSAAG6U6PTdSGd0NS/4rWq19n7Yr8UNwJt82JeRCGUvOf78
-         rVNQ==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=jOKM+pEePhem4widkHVhzfPY+xV2PoH5qxuaHku2BGg=;
+        b=jovSS3roUqUucRZmK4Hysv7OycrN+80n0uARBvijogTnlkb1Ogk9DSW8vtukwQHUQb
+         Xu+bnYFNwfFBVT9nBFln+651Vkpy3+zcSxIhvuVyWpV2MweHnjhqrmeYuc86waRdCCUR
+         IfmxVmHIElJAPTXuPHgkMJOg8k98uZykFLrKbQEwke48Xg4rEquuw7oX63f6CLW+AnFR
+         6OwxMPNKhsOrWz3ybgogqAcvS1SFhx6usomHWIWc87ujBcoEpReRn0Rlvo2GATmPNzm6
+         QgIsgYxwcgUpZbMG9nR1huR2BxKjTX8gcOfz+xmlKqByl1qomFKcWBzih0lQnaD551kU
+         hp8g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/RnP//V6796HoXyW5g91DrP6v6JppXFbXNsT/OGvyG8=;
-        b=sLIxSkKuy7VholT9XSOqgxKr59Cvooe+MCUPtDc5RSuOHeRofXmEOoCHhk89Lnbdf2
-         l2fDiRYSAMvANE3Ldsl1AIgKWBohj8CYAF/Z3bZ8bPzRVeJIBVGyFor1ct2/H5q+lb00
-         7uhCeznQQlKoZlBlE1iLvC5OzvZNWfK4BtOm+pjZ81t5kpxee6oCrc5E2C9CRXIb7deD
-         XBN7bgX1/7E2gRp6hKFtFzIiWHLRxKUCKXewxLLa8iMaWfrqYSHdLPqVPzK4khW66jww
-         7jMI9xzGbNugF2SZ/4Vb5v9r4Frxt7b+wqfCxKL1v40U9piZJaRHqbdiNUT2icbZqB1v
-         ObSw==
-X-Gm-Message-State: AOAM533Z3zdQQ9eamLlDt0fkkoT3Mc79Z/Lt+7V1gKaBB+QCVTdiAjTB
-        MdRGH66yuGfDYrQkXjsCWE28bxneF+V/rL+CbNY=
-X-Google-Smtp-Source: ABdhPJw75xV19FmERlZGZH9B0wc18Fupm3yUyEd9K8GKVfiJR8Cw7kDe/8ziN/hJHKheeXgJWUlFrfxi1VS71DUg3H4=
-X-Received: by 2002:aa7:dd16:: with SMTP id i22mr33372235edv.167.1633517446492;
- Wed, 06 Oct 2021 03:50:46 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=jOKM+pEePhem4widkHVhzfPY+xV2PoH5qxuaHku2BGg=;
+        b=nF2V751+Ok1ZTCrde1cnl0NAozRLA7bU5G51LWF/ZeAZRTHRQIhllITgOPcEpuUCX3
+         MghzybJI0chKJrDPMFZ241r1qc9CwqFlkWLjIy7R6GBi4dgjwRgTwsQwEBOuVJILkssY
+         z6bkr7ZlpnFwuzm5Gpa6jHYcGmrbg+GIMfvA+wbySfvvRjhWkPjuqgD5WNAQDNTZ2UQl
+         Lw4qY+OjMX7vmK3xVga5guBsFQF/lNnt/2cYpL3o4IgdcMqu8aTtFSMMGj2TxRF4AR4Z
+         +0ta3Czmi8NA67pCUSNynX+6jK4kekd4T5PZBnMu/WHdwBx/26IbjiGuc6DU27nx8HwX
+         /eJw==
+X-Gm-Message-State: AOAM5318DXPAVwmMNx6Wbh48inxEvOQf//GlJKyuS9MOONj77GE3sPfL
+        QOXvUZyuBQ7KEcbFSa2MrF8=
+X-Google-Smtp-Source: ABdhPJzqV6pbGRmNxh/6nIl4JB5xH/x4SzqV8vrsv1ncVkzVo4Qnxlyygi4G2S1Zth4R6K2a/KnUSA==
+X-Received: by 2002:a1c:a508:: with SMTP id o8mr9180075wme.29.1633519348664;
+        Wed, 06 Oct 2021 04:22:28 -0700 (PDT)
+Received: from localhost.localdomain ([197.49.35.129])
+        by smtp.gmail.com with ESMTPSA id o15sm4807105wmc.21.2021.10.06.04.22.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Oct 2021 04:22:28 -0700 (PDT)
+From:   Sohaib Mohamed <sohaib.amhmd@gmail.com>
+Cc:     Robert Moore <robert.moore@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] ACPICA: drop unneeded initialization value
+Date:   Wed,  6 Oct 2021 13:20:04 +0200
+Message-Id: <20211006112004.52643-1-sohaib.amhmd@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20210924085104.44806-1-21cnbao@gmail.com> <20210924085104.44806-2-21cnbao@gmail.com>
- <87o883l9c8.mognet@arm.com> <CAGsJ_4zCYjha8E6km9fDO8gFR-_vO1Nr0=a7V-b9yLRZGGAC9g@mail.gmail.com>
-In-Reply-To: <CAGsJ_4zCYjha8E6km9fDO8gFR-_vO1Nr0=a7V-b9yLRZGGAC9g@mail.gmail.com>
-From:   Barry Song <21cnbao@gmail.com>
-Date:   Wed, 6 Oct 2021 23:50:35 +1300
-Message-ID: <CAGsJ_4ycKDfFY+LoaUBJ5huH8+kUsGGsC1po4DDQQPU5-ikf8A@mail.gmail.com>
-Subject: Re: [PATCH RESEND 1/3] topology: Represent clusters of CPUs within a die
-To:     Valentin Schneider <valentin.schneider@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>
-Cc:     Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Aubrey Li <aubrey.li@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Ben Segall <bsegall@google.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guodong Xu <guodong.xu@linaro.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Jonathan Cameron <jonathan.cameron@huawei.com>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        "Cc: Len Brown" <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        LAK <linux-arm-kernel@lists.infradead.org>,
-        Linuxarm <linuxarm@huawei.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mel Gorman <mgorman@suse.de>, msys.mizuma@gmail.com,
-        "Zengtao (B)" <prime.zeng@hisilicon.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Barry Song <song.bao.hua@hisilicon.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Tim Chen <tim.c.chen@linux.intel.com>,
-        Will Deacon <will@kernel.org>, x86 <x86@kernel.org>,
-        yangyicong <yangyicong@huawei.com>,
-        Tian Tao <tiantao6@hisilicon.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Oct 6, 2021 at 9:43 AM Barry Song <21cnbao@gmail.com> wrote:
->
-> On Wed, Oct 6, 2021 at 5:34 AM Valentin Schneider
-> <valentin.schneider@arm.com> wrote:
-> >
-> > On 24/09/21 20:51, Barry Song wrote:
-> > >  void update_siblings_masks(unsigned int cpuid)
-> > >  {
-> > >       struct cpu_topology *cpu_topo, *cpuid_topo = &cpu_topology[cpuid];
-> > > @@ -617,6 +622,11 @@ void update_siblings_masks(unsigned int cpuid)
-> > >               if (cpuid_topo->package_id != cpu_topo->package_id)
-> > >                       continue;
-> > >
-> > > +             if (cpuid_topo->cluster_id == cpu_topo->cluster_id) {
-> > > +                     cpumask_set_cpu(cpu, &cpuid_topo->cluster_sibling);
-> > > +                     cpumask_set_cpu(cpuid, &cpu_topo->cluster_sibling);
-> > > +             }
-> > > +
-> >
-> > Hm so without cluster information (e.g. DT system), we have
-> > ->cluster_id=-1, we'll essentially copy the package mask into the cluster
-> > mask.
-> >
-> > The exposed cluster mask is still <= package mask which is sensible. Are we
-> > fine with that, or do we need/want the mask to be empty in the -1 case? I'm
-> > guessing userspace tools should check for either id!=-1 or if the exclusive
-> > disjucntion of cluster vs package masks is non-empty.
->
-> Hi Valentin,
-> Yep, this is a very good question. I'd like change the code to:
-> diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-> index 7cb31d959f33..fc0836f460fb 100644
-> --- a/drivers/base/arch_topology.c
-> +++ b/drivers/base/arch_topology.c
-> @@ -622,7 +622,8 @@ void update_siblings_masks(unsigned int cpuid)
->                 if (cpuid_topo->package_id != cpu_topo->package_id)
->                         continue;
->
-> -               if (cpuid_topo->cluster_id == cpu_topo->cluster_id) {
-> +               if (cpuid_topo->cluster_id == cpu_topo->cluster_id &&
-> +                   cpuid_topo->cluster_id != -1) {
->                         cpumask_set_cpu(cpu, &cpuid_topo->cluster_sibling);
->                         cpumask_set_cpu(cpuid, &cpu_topo->cluster_sibling);
->                 }
->
+Do not initialise statics to NULL
 
-Hi Peter,
-Would you like to change this line in your tree? Or do you want me to send
-a new patchset with this small change?
+Signed-off-by: Sohaib Mohamed <sohaib.amhmd@gmail.com>
+---
+ drivers/acpi/acpica/dbcmds.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> This should be consistent with Tim's patch3/3 for x86 in case
-> id is BAD_APICID:
-> static bool match_l2c(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o)
-> {
->         ...
->         /* Do not match if we do not have a valid APICID for cpu: */
->         if (per_cpu(cpu_l2c_id, cpu1) == BAD_APICID)
->                 return false;
->         ...
-> }
+diff --git a/drivers/acpi/acpica/dbcmds.c b/drivers/acpi/acpica/dbcmds.c
+index 9eb68e0751c7..d0e3b874ca0e 100644
+--- a/drivers/acpi/acpica/dbcmds.c
++++ b/drivers/acpi/acpica/dbcmds.c
+@@ -35,7 +35,7 @@ acpi_db_device_resources(acpi_handle obj_handle,
+ 
+ static void acpi_db_do_one_sleep_state(u8 sleep_state);
+ 
+-static char *acpi_db_trace_method_name = NULL;
++static char *acpi_db_trace_method_name;
+ 
+ /*******************************************************************************
+  *
+-- 
+2.25.1
 
-Thanks
-Barry
