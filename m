@@ -2,94 +2,110 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9CEDC433EF
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 11:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6946BC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 12:23:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F99861154
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 11:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B9FB610A2
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Oct 2021 12:23:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238106AbhJFLjo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Oct 2021 07:39:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54138 "EHLO
+        id S231335AbhJFMYy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Oct 2021 08:24:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238091AbhJFLjn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Oct 2021 07:39:43 -0400
-Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86443C061749;
-        Wed,  6 Oct 2021 04:37:51 -0700 (PDT)
-Received: by mail-wr1-x431.google.com with SMTP id e12so7898593wra.4;
-        Wed, 06 Oct 2021 04:37:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=DhCrSBwQcUGPmOoHV4cQHMNe4P44vuUP3RyY/XmjhVs=;
-        b=GsxCTD2zleFZfp6Je+QcFI56LHwOmRKojfSkhORIckOop2tuo6J++lylQByHfdUT7j
-         KRzeZD6M73B8Bl0DIX0Gb1T71wsKHFUez9CZCrUl7erwucoqPC7tB/b7QgY6mNz4NlTK
-         4jvBbgO1gK2gVw4b+inrVHBEBWtlo9MnIs7EmmMAIACrh7tpdB9bgIGlt77alXa8RYzd
-         WsmFPbJ07zZtKjaItSmSDyQWWgetkUbErTLege2Ct8XZzhm5EyUw2PVrCBknvEjoudCh
-         bjqjI4Cpvj6nwxpJyXdv57uSzSdSMAWyXp2e68tUnxHYaqPO8gFQdYZzYasAXcXZk846
-         aQsA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=DhCrSBwQcUGPmOoHV4cQHMNe4P44vuUP3RyY/XmjhVs=;
-        b=lmAPe7zlaAdUjKWR+tzFsKl5Sl9ejsNggvRtnAuXBHTzgwvXWCi7nmcMDVHy1NULyC
-         WWC1uw1V/OjXKBDoFQ0McckCPkNZtSIw/O6qQAtWL15D8vTNGaf/34P14VImdHE0o72f
-         KrOlaSYkykAxsmdgJswFSXqv13fwDYv4+QlYY/IFvkta5a+/IquKqcKKBVEVXGaEEqYM
-         ZLK4c43+sPovITF120e4NDJa/AeJYE4JFWigvnO4Ds5AcbRN9WG1AhCuJ7pz/tWi4Eyb
-         M3fQ/TaUUVzwVr/D2aIZlWuR9ERD8VO5qCMefn9jJ2K831laTcMTU21v9MVBJRjbnHOC
-         rciQ==
-X-Gm-Message-State: AOAM532rU4xEGQ4jGok3oa9wiuaTmt4RtCip9NNwaQAS3cSObYiG9kqA
-        v+FXiTowm0ms5PU4hmyUsEI=
-X-Google-Smtp-Source: ABdhPJyvE+PxDHuqpJW1+88/DOYgkCOORLNiPimKKHqW4mMqn4ql+qeDVDEPm3fx3Y4qpIVg7BUAFw==
-X-Received: by 2002:adf:bb81:: with SMTP id q1mr17252993wrg.119.1633520270108;
-        Wed, 06 Oct 2021 04:37:50 -0700 (PDT)
-Received: from localhost.localdomain ([197.49.35.129])
-        by smtp.gmail.com with ESMTPSA id b15sm24479679wru.9.2021.10.06.04.37.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Oct 2021 04:37:47 -0700 (PDT)
-From:   Sohaib Mohamed <sohaib.amhmd@gmail.com>
-Cc:     Robert Moore <robert.moore@intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPICA: drop unneeded initialization value
-Date:   Wed,  6 Oct 2021 13:37:45 +0200
-Message-Id: <20211006113745.60186-1-sohaib.amhmd@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S238149AbhJFMYy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Oct 2021 08:24:54 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F9C5C061749;
+        Wed,  6 Oct 2021 05:23:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=jGRGjTwTIkRqG9rPpRJmFYnotEHM8b7eyzqywKaCxzU=; b=e4FNKRxyiGEAXwkdgHz8fve8RK
+        pTXJgmqkKrRVo77srt1xypzk6uJzHyGsIa7O50LwzUHJX5AxIvDU5j59EcU84NTur6tFr/1YOo7+l
+        1Zi9ezn1g7so5+alZ8Lceq+yUBE3csRU0KgRwz5VBvo4NzopRiICWJLIOgRNp8OAwiqMnHHA2Oo1u
+        yiieYHiQY9eQR81IyVVLyq5jIMk1CU3aj/TARdgToQOcf/uUi6nTWM+a9UFdB9d+dENK9VkKctC1f
+        9sRmYEFuP9tld8135eG7crvMrhnu0JCodWDIKpLOxjm/EPoPNYjpp9OEeVYkKVKBAW4Kr5kVyYNIr
+        DrlzLxwg==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1mY5sw-000rWW-2l; Wed, 06 Oct 2021 12:19:06 +0000
+Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 1F97298623A; Wed,  6 Oct 2021 14:18:58 +0200 (CEST)
+Date:   Wed, 6 Oct 2021 14:18:58 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Barry Song <21cnbao@gmail.com>
+Cc:     Valentin Schneider <valentin.schneider@arm.com>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Aubrey Li <aubrey.li@linux.intel.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Ben Segall <bsegall@google.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guodong Xu <guodong.xu@linaro.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Jonathan Cameron <jonathan.cameron@huawei.com>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        "Cc: Len Brown" <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        LAK <linux-arm-kernel@lists.infradead.org>,
+        Linuxarm <linuxarm@huawei.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mel Gorman <mgorman@suse.de>, msys.mizuma@gmail.com,
+        "Zengtao (B)" <prime.zeng@hisilicon.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Barry Song <song.bao.hua@hisilicon.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Tim Chen <tim.c.chen@linux.intel.com>,
+        Will Deacon <will@kernel.org>, x86 <x86@kernel.org>,
+        yangyicong <yangyicong@huawei.com>,
+        Tian Tao <tiantao6@hisilicon.com>
+Subject: Re: [PATCH RESEND 1/3] topology: Represent clusters of CPUs within a
+ die
+Message-ID: <20211006121858.GI174703@worktop.programming.kicks-ass.net>
+References: <20210924085104.44806-1-21cnbao@gmail.com>
+ <20210924085104.44806-2-21cnbao@gmail.com>
+ <87o883l9c8.mognet@arm.com>
+ <CAGsJ_4zCYjha8E6km9fDO8gFR-_vO1Nr0=a7V-b9yLRZGGAC9g@mail.gmail.com>
+ <CAGsJ_4ycKDfFY+LoaUBJ5huH8+kUsGGsC1po4DDQQPU5-ikf8A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGsJ_4ycKDfFY+LoaUBJ5huH8+kUsGGsC1po4DDQQPU5-ikf8A@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Do not initialise statics to 0
+On Wed, Oct 06, 2021 at 11:50:35PM +1300, Barry Song wrote:
 
-Signed-off-by: Sohaib Mohamed <sohaib.amhmd@gmail.com>
----
- drivers/acpi/acpica/dbhistry.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> > diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
+> > index 7cb31d959f33..fc0836f460fb 100644
+> > --- a/drivers/base/arch_topology.c
+> > +++ b/drivers/base/arch_topology.c
+> > @@ -622,7 +622,8 @@ void update_siblings_masks(unsigned int cpuid)
+> >                 if (cpuid_topo->package_id != cpu_topo->package_id)
+> >                         continue;
+> >
+> > -               if (cpuid_topo->cluster_id == cpu_topo->cluster_id) {
+> > +               if (cpuid_topo->cluster_id == cpu_topo->cluster_id &&
+> > +                   cpuid_topo->cluster_id != -1) {
+> >                         cpumask_set_cpu(cpu, &cpuid_topo->cluster_sibling);
+> >                         cpumask_set_cpu(cpuid, &cpu_topo->cluster_sibling);
+> >                 }
+> >
+> 
+> Hi Peter,
+> Would you like to change this line in your tree?
 
-diff --git a/drivers/acpi/acpica/dbhistry.c b/drivers/acpi/acpica/dbhistry.c
-index fd813c5d3952..60b77b11c0f2 100644
---- a/drivers/acpi/acpica/dbhistry.c
-+++ b/drivers/acpi/acpica/dbhistry.c
-@@ -24,9 +24,9 @@ typedef struct history_info {
- } HISTORY_INFO;
- 
- static HISTORY_INFO acpi_gbl_history_buffer[HISTORY_SIZE];
--static u16 acpi_gbl_lo_history = 0;
--static u16 acpi_gbl_num_history = 0;
--static u16 acpi_gbl_next_history_index = 0;
-+static u16 acpi_gbl_lo_history;
-+static u16 acpi_gbl_num_history;
-+static u16 acpi_gbl_next_history_index;
- 
- /*******************************************************************************
-  *
--- 
-2.25.1
+Can you please double check:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/peterz/queue.git/log/?h=sched/next
+
 
