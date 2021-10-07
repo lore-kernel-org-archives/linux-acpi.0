@@ -2,128 +2,84 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9CDCC433F5
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Oct 2021 10:38:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03004C433FE
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Oct 2021 11:26:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCDEC61090
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Oct 2021 10:38:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE87460FD7
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Oct 2021 11:26:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240969AbhJGKkZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Oct 2021 06:40:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58576 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240955AbhJGKkV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Oct 2021 06:40:21 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06C3AC061762;
-        Thu,  7 Oct 2021 03:38:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=Z0HFg8la3obAWV2GGdEJBj4YtmyT7c3u08WRq35X0fo=; b=iRFJNOzhmcmh/dAkVO9P881YVq
-        86hGzZgtuBXX8iNGtm5OzclBT6NslnMwl9H3R5sb5/Lwe0supJf8CaF0mM4FDLrf/Eg6yrxbgMHZ3
-        Py44t3TottmnEdhwKDGGH1VzQn6tLcpASoiodCpI860AsXYGFay7QeKxB6OY4KsALjQP1PQtxaJYu
-        mmvrdvMoltaAxf0eo3YBMycRPBw7X3HhivxTMwtOYPtk48PjrD6hloR4Zg4iP3uu5hT+p+8JchnPb
-        NDhOItF9JFmq9KpBgibmgNtWkzCV2eLmJaRQb8h7hBuEGH/zPR3yjcrC92pwx/adGzsH3tixw0GLr
-        MUYR9FGg==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mYQkI-001l03-C6; Thu, 07 Oct 2021 10:35:43 +0000
-Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 508D29811BB; Thu,  7 Oct 2021 12:35:26 +0200 (CEST)
-Date:   Thu, 7 Oct 2021 12:35:26 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Barry Song <21cnbao@gmail.com>
-Cc:     Valentin Schneider <valentin.schneider@arm.com>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Aubrey Li <aubrey.li@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Ben Segall <bsegall@google.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guodong Xu <guodong.xu@linaro.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Jonathan Cameron <jonathan.cameron@huawei.com>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        "Cc: Len Brown" <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        LAK <linux-arm-kernel@lists.infradead.org>,
-        Linuxarm <linuxarm@huawei.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mel Gorman <mgorman@suse.de>, msys.mizuma@gmail.com,
-        "Zengtao (B)" <prime.zeng@hisilicon.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Barry Song <song.bao.hua@hisilicon.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Tim Chen <tim.c.chen@linux.intel.com>,
-        Will Deacon <will@kernel.org>, x86 <x86@kernel.org>,
-        yangyicong <yangyicong@huawei.com>,
-        Tian Tao <tiantao6@hisilicon.com>
-Subject: Re: [PATCH RESEND 1/3] topology: Represent clusters of CPUs within a
- die
-Message-ID: <20211007103526.GS174703@worktop.programming.kicks-ass.net>
-References: <20210924085104.44806-1-21cnbao@gmail.com>
- <20210924085104.44806-2-21cnbao@gmail.com>
- <87o883l9c8.mognet@arm.com>
- <CAGsJ_4zCYjha8E6km9fDO8gFR-_vO1Nr0=a7V-b9yLRZGGAC9g@mail.gmail.com>
- <CAGsJ_4ycKDfFY+LoaUBJ5huH8+kUsGGsC1po4DDQQPU5-ikf8A@mail.gmail.com>
- <20211006121858.GI174703@worktop.programming.kicks-ass.net>
- <CAGsJ_4zdr-Y5=TckNELoxgHDzNKhJuRsF5YAfEep24Ga7Y5ENg@mail.gmail.com>
- <20211006135550.GJ174703@worktop.programming.kicks-ass.net>
- <CAGsJ_4xvNCQ=sPzdhmsXbbjsOn4R1+bxYwLvrRNi1wiium5O7g@mail.gmail.com>
+        id S240919AbhJGL2b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Oct 2021 07:28:31 -0400
+Received: from foss.arm.com ([217.140.110.172]:47106 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230087AbhJGL2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Oct 2021 07:28:31 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 703246D;
+        Thu,  7 Oct 2021 04:26:37 -0700 (PDT)
+Received: from e120877-lin.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 895713F66F;
+        Thu,  7 Oct 2021 04:26:36 -0700 (PDT)
+Date:   Thu, 7 Oct 2021 12:26:15 +0100
+From:   Vincent Donnefort <vincent.donnefort@arm.com>
+To:     kernel test robot <lkp@intel.com>
+Cc:     kbuild-all@lists.01.org, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-pm@vger.kernel.org,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [rafael-pm:bleeding-edge 47/54]
+ drivers/cpufreq/mediatek-cpufreq-hw.c:112:17: error: too few arguments to
+ function 'cpufreq_table_find_index_dl'
+Message-ID: <20211007112614.GA101488@e120877-lin.cambridge.arm.com>
+References: <202110071853.ds7uW9eM-lkp@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAGsJ_4xvNCQ=sPzdhmsXbbjsOn4R1+bxYwLvrRNi1wiium5O7g@mail.gmail.com>
+In-Reply-To: <202110071853.ds7uW9eM-lkp@intel.com>
+User-Agent: Mutt/1.5.24 (2015-08-30)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Oct 07, 2021 at 11:30:36PM +1300, Barry Song wrote:
-> On Thu, Oct 7, 2021 at 2:55 AM Peter Zijlstra <peterz@infradead.org> wrote:
-> >
-> > On Thu, Oct 07, 2021 at 01:50:43AM +1300, Barry Song wrote:
-> > > On Thu, Oct 7, 2021 at 1:20 AM Peter Zijlstra <peterz@infradead.org> wrote:
-> > > >
-> > > > On Wed, Oct 06, 2021 at 11:50:35PM +1300, Barry Song wrote:
-> > > >
-> > > > > > diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-> > > > > > index 7cb31d959f33..fc0836f460fb 100644
-> > > > > > --- a/drivers/base/arch_topology.c
-> > > > > > +++ b/drivers/base/arch_topology.c
-> > > > > > @@ -622,7 +622,8 @@ void update_siblings_masks(unsigned int cpuid)
-> > > > > >                 if (cpuid_topo->package_id != cpu_topo->package_id)
-> > > > > >                         continue;
-> > > > > >
-> > > > > > -               if (cpuid_topo->cluster_id == cpu_topo->cluster_id) {
-> > > > > > +               if (cpuid_topo->cluster_id == cpu_topo->cluster_id &&
-> > > > > > +                   cpuid_topo->cluster_id != -1) {
-> > > > > >                         cpumask_set_cpu(cpu, &cpuid_topo->cluster_sibling);
-> > > > > >                         cpumask_set_cpu(cpuid, &cpu_topo->cluster_sibling);
-> > > > > >                 }
-> > > > > >
-> > > > >
-> > > > > Hi Peter,
-> > > > > Would you like to change this line in your tree?
-> > > >
-> > > > Can you please double check:
-> > > >
-> > > >   https://git.kernel.org/pub/scm/linux/kernel/git/peterz/queue.git/log/?h=sched/next
-> > >
-> > > yes. It is correct for patch 1/3, thanks!
-> 
-> oops, there is a typo there:
-> + if (cpuid_topo->cluster_id == cpu_topo->cluster_id &&
-> + cpuid_topo->clister_id != -1) {
-> 
-> clister should be cluster.
 
-Yeah, my bad, typing so hard... :-) Already fixed.
+On Thu, Oct 07, 2021 at 06:35:55PM +0800, kernel test robot wrote:
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+> head:   6cb3f7cfca6963de4f486c4bd99fdefa56f75870
+> commit: 1f39fa0dccff71d4788089b5e617229b19166867 [47/54] cpufreq: Introducing CPUFREQ_RELATION_E
+> config: arm-buildonly-randconfig-r001-20211007 (attached as .config)
+> compiler: arm-linux-gnueabi-gcc (GCC) 11.2.0
+> reproduce (this is a W=1 build):
+>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?id=1f39fa0dccff71d4788089b5e617229b19166867
+>         git remote add rafael-pm https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+>         git fetch --no-tags rafael-pm bleeding-edge
+>         git checkout 1f39fa0dccff71d4788089b5e617229b19166867
+>         # save the attached .config to linux build tree
+>         mkdir build_dir
+>         COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=arm SHELL=/bin/bash drivers/cpufreq/
+> 
+> If you fix the issue, kindly add following tag as appropriate
+> Reported-by: kernel test robot <lkp@intel.com>
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    drivers/cpufreq/mediatek-cpufreq-hw.c: In function 'mtk_cpufreq_hw_fast_switch':
+> >> drivers/cpufreq/mediatek-cpufreq-hw.c:112:17: error: too few arguments to function 'cpufreq_table_find_index_dl'
+>      112 |         index = cpufreq_table_find_index_dl(policy, target_freq);
+>          |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+>    In file included from drivers/cpufreq/mediatek-cpufreq-hw.c:7:
+>    include/linux/cpufreq.h:814:19: note: declared here
+>      814 | static inline int cpufreq_table_find_index_dl(struct cpufreq_policy *policy,
+>          |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+>
+
+Rafael,
+
+The issue is this patch
+
+  cpufreq: Introducing CPUFREQ_RELATION_E
+
+How would you like to proceed? Do you want a v8 patch-set with the fix or just
+that patch updated?
+
+[...]
