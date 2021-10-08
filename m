@@ -2,40 +2,40 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D98F1C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6262BC43219
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8F1261038
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50F9061038
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233684AbhJHQ1b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Oct 2021 12:27:31 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:34980 "EHLO
+        id S239040AbhJHQ1c (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Oct 2021 12:27:32 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:52049 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S236109AbhJHQ1W (ORCPT
+        by vger.kernel.org with ESMTP id S231192AbhJHQ1W (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2021 12:27:22 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1633710326;
+        s=mimecast20190719; t=1633710327;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=8EjygOpFJynKm91W3p2Pl14fbKVwnx9xc1tF3Y/Nqb4=;
-        b=Mlz1cxeBjZkJ2h5k/f9yl6+G5/yBu45yahqRSt0i2bUtDKYX5k4scBHWOhwnOWW3KoSuVX
-        LPAHaW6fK9LDDR+L5T87JsaArGVqGeJ8Pj+wCqcgHV+UOkfx2jJW/rjtN42JFT7VjkzAVq
-        PosU30mbAVxF6+7mLldaHVujyWUeiqI=
+        bh=nMSTXS+dgaPwEBulHcmiuL7V3MDQ1yy2scvVy4WGp00=;
+        b=Fel68ePu3LEBZVrmjHYGLBv/ao7uJIiRJcq4AXgtuuQ5Ju/M+lV7w+TiJpPolkq9BJjYTt
+        v5TQRmKCkQFz3utcPvXjejZCR4LBz77D1i1iswqissUBuUO5vd/GR2OXsd80WkB41s8T8y
+        IrCrxPBv0Iw9uGrn9kVSG+rYC68OWmE=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-374-4_mLf8_LOIuEkyHvW7xDHg-1; Fri, 08 Oct 2021 12:25:24 -0400
-X-MC-Unique: 4_mLf8_LOIuEkyHvW7xDHg-1
+ us-mta-433-ki2_eZYvNA6pbKrpQzY_TQ-1; Fri, 08 Oct 2021 12:25:23 -0400
+X-MC-Unique: ki2_eZYvNA6pbKrpQzY_TQ-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AF7D68464D4;
-        Fri,  8 Oct 2021 16:23:27 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 77B03801AC3;
+        Fri,  8 Oct 2021 16:23:13 +0000 (UTC)
 Received: from x1.localdomain (unknown [10.39.192.26])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 6018C60BF1;
-        Fri,  8 Oct 2021 16:23:23 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 72D9160BF1;
+        Fri,  8 Oct 2021 16:23:09 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mark Gross <markgross@kernel.org>,
@@ -53,9 +53,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Kate Hsuan <hpa@redhat.com>, linux-media@vger.kernel.org,
         linux-clk@vger.kernel.org
-Subject: [PATCH 12/12] platform/x86: int3472: Call acpi_dev_clear_dependencies() on successful probe
-Date:   Fri,  8 Oct 2021 18:21:21 +0200
-Message-Id: <20211008162121.6628-13-hdegoede@redhat.com>
+Subject: [PATCH 09/12] platform/x86: int3472: Add get_sensor_adev_and_name() helper
+Date:   Fri,  8 Oct 2021 18:21:18 +0200
+Message-Id: <20211008162121.6628-10-hdegoede@redhat.com>
 In-Reply-To: <20211008162121.6628-1-hdegoede@redhat.com>
 References: <20211008162121.6628-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -65,70 +65,110 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The clk and regulator frameworks expect clk/regulator consumer-devices
-to have info about the consumed clks/regulators described in the device's
-fw_node.
+The discrete.c code is not the only code which needs to lookup the
+acpi_device and device-name for the sensor for which the INT3472
+ACPI-device is a GPIO/clk/regulator provider.
 
-To work around this info missing from the ACPI tables on devices where
-the int3472 driver is used, the int3472 MFD-cell drivers attach info about
-consumers to the clks/regulators when registering these.
-
-This causes problems with the probe ordering wrt drivers for consumers
-of these clks/regulators. Since the lookups are only registered when the
-provider-driver binds, trying to get these clks/regulators before then
-results in a -ENOENT error for clks and a dummy regulator for regulators.
-
-All the sensor ACPI fw-nodes have a _DEP dependency on the INT3472 ACPI
-fw-node, so to work around these probe ordering issues the sensor drivers
-call the has_unmet_acpi_deps() helper and return -EPROBE_DEFER if this
-returns true.
-
-Add MODULE_SOFTDEP dependencies for the gpio/clk/regulator drivers for
-the instantiated MFD-cells so that these are loaded before us and so
-that they bind immediately when the platform-devs are instantiated;
-and call acpi_dev_clear_dependencies() on successful probe.
-
-This way we ensure that the gpio/clk/regulators are registered before
-we call acpi_dev_clear_dependencies() and the sensor drivers can then
-use has_unmet_acpi_deps() helper to wait for this.
+The tps68470.c code also needs this functionality, so factor this
+out into a new get_sensor_adev_and_name() helper.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/intel/int3472/discrete.c | 1 +
- drivers/platform/x86/intel/int3472/tps68470.c | 4 ++++
- 2 files changed, 5 insertions(+)
+ drivers/platform/x86/intel/int3472/common.c   | 28 +++++++++++++++++++
+ drivers/platform/x86/intel/int3472/common.h   |  3 ++
+ drivers/platform/x86/intel/int3472/discrete.c | 22 +++------------
+ 3 files changed, 35 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
-index fefe12850777..e23a45b985dc 100644
---- a/drivers/platform/x86/intel/int3472/discrete.c
-+++ b/drivers/platform/x86/intel/int3472/discrete.c
-@@ -380,6 +380,7 @@ static int skl_int3472_discrete_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	acpi_dev_clear_dependencies(adev);
- 	return 0;
- }
- 
-diff --git a/drivers/platform/x86/intel/int3472/tps68470.c b/drivers/platform/x86/intel/int3472/tps68470.c
-index 36b657888fe2..781ce6ead720 100644
---- a/drivers/platform/x86/intel/int3472/tps68470.c
-+++ b/drivers/platform/x86/intel/int3472/tps68470.c
-@@ -166,6 +166,9 @@ static int skl_int3472_tps68470_probe(struct i2c_client *client)
- 		return device_type;
- 	}
- 
-+	if (ret == 0)
-+		acpi_dev_clear_dependencies(adev);
-+
+diff --git a/drivers/platform/x86/intel/int3472/common.c b/drivers/platform/x86/intel/int3472/common.c
+index 350655a9515b..77cf058e4168 100644
+--- a/drivers/platform/x86/intel/int3472/common.c
++++ b/drivers/platform/x86/intel/int3472/common.c
+@@ -52,3 +52,31 @@ int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb)
+ 	kfree(obj);
  	return ret;
  }
++
++/* sensor_adev_ret may be NULL, name_ret must not be NULL */
++int skl_int3472_get_sensor_adev_and_name(struct device *dev,
++					 struct acpi_device **sensor_adev_ret,
++					 const char **name_ret)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct acpi_device *sensor;
++	int ret = 0;
++
++	sensor = acpi_dev_get_first_consumer_dev(adev);
++	if (!sensor) {
++		dev_err(dev, "INT3472 seems to have no dependents.\n");
++		return -ENODEV;
++	}
++
++	*name_ret = devm_kasprintf(dev, GFP_KERNEL, I2C_DEV_NAME_FORMAT,
++				   acpi_dev_name(sensor));
++	if (!*name_ret)
++		ret = -ENOMEM;
++
++	if (ret == 0 && sensor_adev_ret)
++		*sensor_adev_ret = sensor;
++	else
++		acpi_dev_put(sensor);
++
++	return ret;
++}
+diff --git a/drivers/platform/x86/intel/int3472/common.h b/drivers/platform/x86/intel/int3472/common.h
+index d14944ee8586..53270d19c73a 100644
+--- a/drivers/platform/x86/intel/int3472/common.h
++++ b/drivers/platform/x86/intel/int3472/common.h
+@@ -108,6 +108,9 @@ struct int3472_discrete_device {
+ union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev,
+ 					       char *id);
+ int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb);
++int skl_int3472_get_sensor_adev_and_name(struct device *dev,
++					 struct acpi_device **sensor_adev_ret,
++					 const char **name_ret);
  
-@@ -199,3 +202,4 @@ module_i2c_driver(int3472_tps68470);
- MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI TPS68470 Device Driver");
- MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
- MODULE_LICENSE("GPL v2");
-+MODULE_SOFTDEP("pre: gpio-tps68470 clk-tps68470 tps68470-regulator");
+ int skl_int3472_register_clock(struct int3472_discrete_device *int3472);
+ void skl_int3472_unregister_clock(struct int3472_discrete_device *int3472);
+diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
+index d62d81cde6ef..fefe12850777 100644
+--- a/drivers/platform/x86/intel/int3472/discrete.c
++++ b/drivers/platform/x86/intel/int3472/discrete.c
+@@ -363,19 +363,10 @@ static int skl_int3472_discrete_probe(struct platform_device *pdev)
+ 	int3472->dev = &pdev->dev;
+ 	platform_set_drvdata(pdev, int3472);
+ 
+-	int3472->sensor = acpi_dev_get_first_consumer_dev(adev);
+-	if (!int3472->sensor) {
+-		dev_err(&pdev->dev, "INT3472 seems to have no dependents.\n");
+-		return -ENODEV;
+-	}
+-
+-	int3472->sensor_name = devm_kasprintf(int3472->dev, GFP_KERNEL,
+-					      I2C_DEV_NAME_FORMAT,
+-					      acpi_dev_name(int3472->sensor));
+-	if (!int3472->sensor_name) {
+-		ret = -ENOMEM;
+-		goto err_put_sensor;
+-	}
++	ret = skl_int3472_get_sensor_adev_and_name(&pdev->dev, &int3472->sensor,
++						   &int3472->sensor_name);
++	if (ret)
++		return ret;
+ 
+ 	/*
+ 	 * Initialising this list means we can call gpiod_remove_lookup_table()
+@@ -390,11 +381,6 @@ static int skl_int3472_discrete_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	return 0;
+-
+-err_put_sensor:
+-	acpi_dev_put(int3472->sensor);
+-
+-	return ret;
+ }
+ 
+ static int skl_int3472_discrete_remove(struct platform_device *pdev)
 -- 
 2.31.1
 
