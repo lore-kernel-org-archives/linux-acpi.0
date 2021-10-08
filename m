@@ -2,40 +2,40 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E404DC433FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB8DDC43217
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C976461029
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFB7C61029
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:25:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230497AbhJHQ1O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Oct 2021 12:27:14 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:32706 "EHLO
+        id S230282AbhJHQ1U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Oct 2021 12:27:20 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:35696 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230282AbhJHQ1K (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2021 12:27:10 -0400
+        by vger.kernel.org with ESMTP id S232000AbhJHQ1T (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2021 12:27:19 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1633710313;
+        s=mimecast20190719; t=1633710323;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=+gTkDyyN5iHsDmp3h6rm/ifPFPdKLxTQ1AjeEl1QIN4=;
-        b=LeodExMj9p7WZ5DYudBBoYkZUsxukXD/AzhoyL6ODrkMVJf9gJq4lZy78cHP8E+IHguNfR
-        23l3UffwKqY+SOxsXRZZyuzRGkhOZ3yVHAW8S4tAKlFAW9ce1Ikdx+P6KPeuxepUX7VxyT
-        Cydl9nJS6k9ua3cxokPBq9ekev8U72M=
+        bh=kTXjHgmyVrRP6RGm7d6x08WrwMxjQSyxTAhOUndRr0Q=;
+        b=UI5rH183tgHGNERtmYFVY5pzwCnL2RoF6gb5Ux/DzvhatqNiXPm3CY/7o9iow9wnadzcEU
+        p0zljL/CXk/kkLiwuriudh5id4lXZwFzxXfT+QzWhJYSUWmjUuP2GvoQ1RnN2zj4H7I833
+        D3nhXrKr9HJojMOEXLEr8YHu+5ktUBU=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-306-UXqeT9f-Prys0jQJWuoOFg-1; Fri, 08 Oct 2021 12:25:10 -0400
-X-MC-Unique: UXqeT9f-Prys0jQJWuoOFg-1
+ us-mta-40-MjRui--hN4qZNxc_42Fa1w-1; Fri, 08 Oct 2021 12:25:22 -0400
+X-MC-Unique: MjRui--hN4qZNxc_42Fa1w-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BA71A132B5B;
-        Fri,  8 Oct 2021 16:22:42 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2DF72801A93;
+        Fri,  8 Oct 2021 16:23:09 +0000 (UTC)
 Received: from x1.localdomain (unknown [10.39.192.26])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id EC49C60C0F;
-        Fri,  8 Oct 2021 16:22:30 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2ACCF60BF1;
+        Fri,  8 Oct 2021 16:23:05 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mark Gross <markgross@kernel.org>,
@@ -53,9 +53,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Kate Hsuan <hpa@redhat.com>, linux-media@vger.kernel.org,
         linux-clk@vger.kernel.org
-Subject: [PATCH 03/12] media: i2c: ov5693: Add an has_unmet_acpi_deps() check
-Date:   Fri,  8 Oct 2021 18:21:12 +0200
-Message-Id: <20211008162121.6628-4-hdegoede@redhat.com>
+Subject: [PATCH 08/12] platform/x86: int3472: Split into 2 drivers
+Date:   Fri,  8 Oct 2021 18:21:17 +0200
+Message-Id: <20211008162121.6628-9-hdegoede@redhat.com>
 In-Reply-To: <20211008162121.6628-1-hdegoede@redhat.com>
 References: <20211008162121.6628-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -65,51 +65,374 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The clk and regulator frameworks expect clk/regulator consumer-devices
-to have info about the consumed clks/regulators described in the device's
-fw_node.
+The intel_skl_int3472.ko module contains 2 separate drivers,
+the int3472_discrete platform driver and the int3472_tps68470
+i2c-driver.
 
-To work around cases where this info is not present in the firmware tables,
-which is often the case on x86/ACPI devices, both frameworks allow the
-provider-driver to attach info about consumers to the clks/regulators
-when registering these.
+These 2 drivers contain very little shared code, only
+skl_int3472_get_acpi_buffer() and skl_int3472_fill_cldb() are
+shared.
 
-This causes problems with the probe ordering of the ov5693 driver vs the
-drivers for these clks/regulators. Since the lookups are only registered
-when the provider-driver binds, trying to get these clks/regulators before
-then results in a -ENOENT error for clks and a dummy regulator for regs.
+Split the module into 2 drivers, linking the little shared code
+directly into both.
 
-On ACPI/x86 where this is a problem, the ov5693 ACPI fw-nodes have a _DEP
-dependency on the INT3472 ACPI fw-node which describes the hardware which
-provides the clks/regulators.
+This will allow us to add soft-module dependencies for the
+tps68470 clk, gpio and regulator drivers to the new
+intel_skl_int3472_tps68470.ko to help with probe ordering issues
+without causing these modules to get loaded on boards which only
+use the int3472_discrete platform driver.
 
-The drivers/platform/x86/intel/int3472/ code dealing with these ACPI
-fw-nodes will call acpi_dev_clear_dependencies() to indicate that this
-_DEP has been "met" when all the clks/regulators have been setup.
-
-Call the has_unmet_acpi_deps() helper to check for unmet _DEPs
-and return -EPROBE_DEFER if this returns true, so that we wait for
-the clk/regulator setup to be done before continuing with probing.
+While at it also rename the .c and .h files to remove the
+cumbersome intel_skl_int3472_ prefix.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/i2c/ov5693.c | 3 +++
- 1 file changed, 3 insertions(+)
+Note git rename detection is failing for the new common.c but this is
+just the old intel_skl_int3472_common.c with the driver registering
+bits removed.
+---
+ drivers/platform/x86/intel/int3472/Makefile   |   9 +-
+ ...lk_and_regulator.c => clk_and_regulator.c} |   2 +-
+ drivers/platform/x86/intel/int3472/common.c   |  54 +++++++++
+ .../{intel_skl_int3472_common.h => common.h}  |   3 -
+ ...ntel_skl_int3472_discrete.c => discrete.c} |  28 ++++-
+ .../intel/int3472/intel_skl_int3472_common.c  | 106 ------------------
+ ...ntel_skl_int3472_tps68470.c => tps68470.c} |  23 +++-
+ 7 files changed, 105 insertions(+), 120 deletions(-)
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_clk_and_regulator.c => clk_and_regulator.c} (99%)
+ create mode 100644 drivers/platform/x86/intel/int3472/common.c
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_common.h => common.h} (94%)
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_discrete.c => discrete.c} (93%)
+ delete mode 100644 drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_tps68470.c => tps68470.c} (86%)
 
-diff --git a/drivers/media/i2c/ov5693.c b/drivers/media/i2c/ov5693.c
-index 1320063c6747..886649670efb 100644
---- a/drivers/media/i2c/ov5693.c
-+++ b/drivers/media/i2c/ov5693.c
-@@ -1415,6 +1415,9 @@ static int ov5693_probe(struct i2c_client *client)
- 	if (!endpoint)
- 		return -EPROBE_DEFER;
+diff --git a/drivers/platform/x86/intel/int3472/Makefile b/drivers/platform/x86/intel/int3472/Makefile
+index 2362e04db18d..771e720528a0 100644
+--- a/drivers/platform/x86/intel/int3472/Makefile
++++ b/drivers/platform/x86/intel/int3472/Makefile
+@@ -1,5 +1,4 @@
+-obj-$(CONFIG_INTEL_SKL_INT3472)		+= intel_skl_int3472.o
+-intel_skl_int3472-y			:= intel_skl_int3472_common.o \
+-					   intel_skl_int3472_discrete.o \
+-					   intel_skl_int3472_tps68470.o \
+-					   intel_skl_int3472_clk_and_regulator.o
++obj-$(CONFIG_INTEL_SKL_INT3472)		+= intel_skl_int3472_discrete.o \
++					   intel_skl_int3472_tps68470.o
++intel_skl_int3472_discrete-y		:= discrete.o clk_and_regulator.o common.o
++intel_skl_int3472_tps68470-y		:= tps68470.o common.o
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_clk_and_regulator.c b/drivers/platform/x86/intel/int3472/clk_and_regulator.c
+similarity index 99%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_clk_and_regulator.c
+rename to drivers/platform/x86/intel/int3472/clk_and_regulator.c
+index 1700e7557a82..1cf958983e86 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_clk_and_regulator.c
++++ b/drivers/platform/x86/intel/int3472/clk_and_regulator.c
+@@ -9,7 +9,7 @@
+ #include <linux/regulator/driver.h>
+ #include <linux/slab.h>
  
-+	if (has_unmet_acpi_deps(&client->dev))
-+		return -EPROBE_DEFER;
+-#include "intel_skl_int3472_common.h"
++#include "common.h"
+ 
+ /*
+  * The regulators have to have .ops to be valid, but the only ops we actually
+diff --git a/drivers/platform/x86/intel/int3472/common.c b/drivers/platform/x86/intel/int3472/common.c
+new file mode 100644
+index 000000000000..350655a9515b
+--- /dev/null
++++ b/drivers/platform/x86/intel/int3472/common.c
+@@ -0,0 +1,54 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Author: Dan Scally <djrscally@gmail.com> */
 +
- 	ov5693 = devm_kzalloc(&client->dev, sizeof(*ov5693), GFP_KERNEL);
- 	if (!ov5693)
- 		return -ENOMEM;
++#include <linux/acpi.h>
++#include <linux/slab.h>
++
++#include "common.h"
++
++union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev, char *id)
++{
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	acpi_handle handle = adev->handle;
++	union acpi_object *obj;
++	acpi_status status;
++
++	status = acpi_evaluate_object(handle, id, NULL, &buffer);
++	if (ACPI_FAILURE(status))
++		return ERR_PTR(-ENODEV);
++
++	obj = buffer.pointer;
++	if (!obj)
++		return ERR_PTR(-ENODEV);
++
++	if (obj->type != ACPI_TYPE_BUFFER) {
++		acpi_handle_err(handle, "%s object is not an ACPI buffer\n", id);
++		kfree(obj);
++		return ERR_PTR(-EINVAL);
++	}
++
++	return obj;
++}
++
++int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb)
++{
++	union acpi_object *obj;
++	int ret;
++
++	obj = skl_int3472_get_acpi_buffer(adev, "CLDB");
++	if (IS_ERR(obj))
++		return PTR_ERR(obj);
++
++	if (obj->buffer.length > sizeof(*cldb)) {
++		acpi_handle_err(adev->handle, "The CLDB buffer is too large\n");
++		ret = -EINVAL;
++		goto out_free_obj;
++	}
++
++	memcpy(cldb, obj->buffer.pointer, obj->buffer.length);
++	ret = 0;
++
++out_free_obj:
++	kfree(obj);
++	return ret;
++}
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.h b/drivers/platform/x86/intel/int3472/common.h
+similarity index 94%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_common.h
+rename to drivers/platform/x86/intel/int3472/common.h
+index 714fde73b524..d14944ee8586 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.h
++++ b/drivers/platform/x86/intel/int3472/common.h
+@@ -105,9 +105,6 @@ struct int3472_discrete_device {
+ 	struct gpiod_lookup_table gpios;
+ };
+ 
+-int skl_int3472_discrete_probe(struct platform_device *pdev);
+-int skl_int3472_discrete_remove(struct platform_device *pdev);
+-int skl_int3472_tps68470_probe(struct i2c_client *client);
+ union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev,
+ 					       char *id);
+ int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb);
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
+similarity index 93%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_discrete.c
+rename to drivers/platform/x86/intel/int3472/discrete.c
+index 9fe0a2527e1c..d62d81cde6ef 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_discrete.c
++++ b/drivers/platform/x86/intel/int3472/discrete.c
+@@ -14,7 +14,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/uuid.h>
+ 
+-#include "intel_skl_int3472_common.h"
++#include "common.h"
+ 
+ /*
+  * 79234640-9e10-4fea-a5c1-b5aa8b19756f
+@@ -332,7 +332,9 @@ static int skl_int3472_parse_crs(struct int3472_discrete_device *int3472)
+ 	return 0;
+ }
+ 
+-int skl_int3472_discrete_probe(struct platform_device *pdev)
++static int skl_int3472_discrete_remove(struct platform_device *pdev);
++
++static int skl_int3472_discrete_probe(struct platform_device *pdev)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+ 	struct int3472_discrete_device *int3472;
+@@ -395,7 +397,7 @@ int skl_int3472_discrete_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-int skl_int3472_discrete_remove(struct platform_device *pdev)
++static int skl_int3472_discrete_remove(struct platform_device *pdev)
+ {
+ 	struct int3472_discrete_device *int3472 = platform_get_drvdata(pdev);
+ 
+@@ -411,3 +413,23 @@ int skl_int3472_discrete_remove(struct platform_device *pdev)
+ 
+ 	return 0;
+ }
++
++static const struct acpi_device_id int3472_device_id[] = {
++	{ "INT3472", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, int3472_device_id);
++
++static struct platform_driver int3472_discrete = {
++	.driver = {
++		.name = "int3472-discrete",
++		.acpi_match_table = int3472_device_id,
++	},
++	.probe = skl_int3472_discrete_probe,
++	.remove = skl_int3472_discrete_remove,
++};
++module_platform_driver(int3472_discrete);
++
++MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI Discrete Device Driver");
++MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c b/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c
+deleted file mode 100644
+index 497e74fba75f..000000000000
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c
++++ /dev/null
+@@ -1,106 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/* Author: Dan Scally <djrscally@gmail.com> */
+-
+-#include <linux/acpi.h>
+-#include <linux/i2c.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-
+-#include "intel_skl_int3472_common.h"
+-
+-union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev, char *id)
+-{
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	acpi_handle handle = adev->handle;
+-	union acpi_object *obj;
+-	acpi_status status;
+-
+-	status = acpi_evaluate_object(handle, id, NULL, &buffer);
+-	if (ACPI_FAILURE(status))
+-		return ERR_PTR(-ENODEV);
+-
+-	obj = buffer.pointer;
+-	if (!obj)
+-		return ERR_PTR(-ENODEV);
+-
+-	if (obj->type != ACPI_TYPE_BUFFER) {
+-		acpi_handle_err(handle, "%s object is not an ACPI buffer\n", id);
+-		kfree(obj);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	return obj;
+-}
+-
+-int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb)
+-{
+-	union acpi_object *obj;
+-	int ret;
+-
+-	obj = skl_int3472_get_acpi_buffer(adev, "CLDB");
+-	if (IS_ERR(obj))
+-		return PTR_ERR(obj);
+-
+-	if (obj->buffer.length > sizeof(*cldb)) {
+-		acpi_handle_err(adev->handle, "The CLDB buffer is too large\n");
+-		ret = -EINVAL;
+-		goto out_free_obj;
+-	}
+-
+-	memcpy(cldb, obj->buffer.pointer, obj->buffer.length);
+-	ret = 0;
+-
+-out_free_obj:
+-	kfree(obj);
+-	return ret;
+-}
+-
+-static const struct acpi_device_id int3472_device_id[] = {
+-	{ "INT3472", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(acpi, int3472_device_id);
+-
+-static struct platform_driver int3472_discrete = {
+-	.driver = {
+-		.name = "int3472-discrete",
+-		.acpi_match_table = int3472_device_id,
+-	},
+-	.probe = skl_int3472_discrete_probe,
+-	.remove = skl_int3472_discrete_remove,
+-};
+-
+-static struct i2c_driver int3472_tps68470 = {
+-	.driver = {
+-		.name = "int3472-tps68470",
+-		.acpi_match_table = int3472_device_id,
+-	},
+-	.probe_new = skl_int3472_tps68470_probe,
+-};
+-
+-static int skl_int3472_init(void)
+-{
+-	int ret;
+-
+-	ret = platform_driver_register(&int3472_discrete);
+-	if (ret)
+-		return ret;
+-
+-	ret = i2c_register_driver(THIS_MODULE, &int3472_tps68470);
+-	if (ret)
+-		platform_driver_unregister(&int3472_discrete);
+-
+-	return ret;
+-}
+-module_init(skl_int3472_init);
+-
+-static void skl_int3472_exit(void)
+-{
+-	platform_driver_unregister(&int3472_discrete);
+-	i2c_del_driver(&int3472_tps68470);
+-}
+-module_exit(skl_int3472_exit);
+-
+-MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI Device Driver");
+-MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
+-MODULE_LICENSE("GPL v2");
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_tps68470.c b/drivers/platform/x86/intel/int3472/tps68470.c
+similarity index 86%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_tps68470.c
+rename to drivers/platform/x86/intel/int3472/tps68470.c
+index 42e688f4cad4..e95b0f50b384 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_tps68470.c
++++ b/drivers/platform/x86/intel/int3472/tps68470.c
+@@ -7,7 +7,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ 
+-#include "intel_skl_int3472_common.h"
++#include "common.h"
+ 
+ #define DESIGNED_FOR_CHROMEOS		1
+ #define DESIGNED_FOR_WINDOWS		2
+@@ -102,7 +102,7 @@ static int skl_int3472_tps68470_calc_type(struct acpi_device *adev)
+ 	return DESIGNED_FOR_WINDOWS;
+ }
+ 
+-int skl_int3472_tps68470_probe(struct i2c_client *client)
++static int skl_int3472_tps68470_probe(struct i2c_client *client)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
+ 	struct regmap *regmap;
+@@ -142,3 +142,22 @@ int skl_int3472_tps68470_probe(struct i2c_client *client)
+ 
+ 	return ret;
+ }
++
++static const struct acpi_device_id int3472_device_id[] = {
++	{ "INT3472", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, int3472_device_id);
++
++static struct i2c_driver int3472_tps68470 = {
++	.driver = {
++		.name = "int3472-tps68470",
++		.acpi_match_table = int3472_device_id,
++	},
++	.probe_new = skl_int3472_tps68470_probe,
++};
++module_i2c_driver(int3472_tps68470);
++
++MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI TPS68470 Device Driver");
++MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
++MODULE_LICENSE("GPL v2");
 -- 
 2.31.1
 
