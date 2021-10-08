@@ -2,323 +2,354 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F56C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:26:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97C8AC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 17:07:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3629261040
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 16:26:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 766D860FD8
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Oct 2021 17:07:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230116AbhJHQ2N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Oct 2021 12:28:13 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34986 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S239913AbhJHQ1r (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2021 12:27:47 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1633710350;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=4hME9X/3eMZhCAQ7BpDzT3/VoKBAlb5y0lcKAKkPuW4=;
-        b=LalGaIcKAo2MF6XoSuFVmWjtL0LHwbrRh5IxH8F73i+f/CGpiS0+bRKmhPgbFCtnF6+cjx
-        yv8dooN/j98og5lIuDWlh/vuv+MKxBqTTCiCgI/5RJ6i7ACnhO56IlIZz91W92OZBtdUM/
-        iYrdU93jRk2qW6MjvkdDQPnHUtxb+T4=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-155-4KxdZOwDNI6LUn3Y-_nntQ-1; Fri, 08 Oct 2021 12:25:43 -0400
-X-MC-Unique: 4KxdZOwDNI6LUn3Y-_nntQ-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S232629AbhJHRJO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Oct 2021 13:09:14 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:50074 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229896AbhJHRJO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2021 13:09:14 -0400
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
+ id 0022d0cc6dd07f2b; Fri, 8 Oct 2021 19:07:17 +0200
+Received: from kreacher.localnet (unknown [213.134.175.153])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7FE5710D01E4;
-        Fri,  8 Oct 2021 16:22:55 +0000 (UTC)
-Received: from x1.localdomain (unknown [10.39.192.26])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 66CFE60C0F;
-        Fri,  8 Oct 2021 16:22:50 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Mark Gross <markgross@kernel.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kate Hsuan <hpa@redhat.com>, linux-media@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 05/12] regulator: Introduce tps68470-regulator driver
-Date:   Fri,  8 Oct 2021 18:21:14 +0200
-Message-Id: <20211008162121.6628-6-hdegoede@redhat.com>
-In-Reply-To: <20211008162121.6628-1-hdegoede@redhat.com>
-References: <20211008162121.6628-1-hdegoede@redhat.com>
+        by v370.home.net.pl (Postfix) with ESMTPSA id 464E366A808;
+        Fri,  8 Oct 2021 19:07:15 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     "Limonciello, Mario" <mario.limonciello@amd.com>
+Cc:     Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>,
+        "open list:ACPI" <linux-acpi@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
+Subject: Re: [PATCH] PCI: Put power resources not tied to a physical node in D3cold
+Date:   Fri, 08 Oct 2021 19:07:14 +0200
+Message-ID: <5504370.DvuYhMxLoT@kreacher>
+In-Reply-To: <8c8df41d-265a-637d-bc26-cdaf0e4e93a8@amd.com>
+References: <20211007205126.11769-1-mario.limonciello@amd.com> <2211361.ElGaqSPkdT@kreacher> <8c8df41d-265a-637d-bc26-cdaf0e4e93a8@amd.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.175.153
+X-CLIENT-HOSTNAME: 213.134.175.153
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrvddttddguddtiecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhephfduteeiueegtefgieetteffveehhefgieelkedujeekhfettdfgvdelveevkeegnecuffhomhgrihhnpehouhhtlhhoohhkrdgtohhmpdhkvghrnhgvlhdrohhrghenucfkphepvddufedrudefgedrudejhedrudehfeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduheefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtohepmhgrrhhiohdrlhhimhhonhgtihgvlhhlohesrghmugdrtghomhdprhgtphhtthhopehlvghnsgeskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepsghhvghlghgrrghssehgohhoghhlvgdrtghomhdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgt
+ phhtthhopegvrhhikhdrkhgrnhgvuggrsehinhhtvghlrdgtohhmpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphgtihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopeguvghvvghlsegrtghpihgtrgdrohhrgh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=9 Fuz1=9 Fuz2=9
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The TPS68470 PMIC provides Clocks, GPIOs and Regulators. At present in
-the kernel the Regulators and Clocks are controlled by an OpRegion
-driver designed to work with power control methods defined in ACPI, but
-some platforms lack those methods, meaning drivers need to be able to
-consume the resources of these chips through the usual frameworks.
+On Friday, October 8, 2021 5:47:53 PM CEST Limonciello, Mario wrote:
+> On 10/8/2021 09:05, Rafael J. Wysocki wrote:
+> > On Thursday, October 7, 2021 10:51:26 PM CEST Mario Limonciello wrote:
+> >> I found a case that a system that two physical SATA controllers share
+> >> the same ACPI Power Resource.  When a drive is connected to one of
+> >> the controllers then it will bind with PCI devices with the ahci driver
+> >> and form a relationship with the firmware node and physical node.  During
+> >> s2idle I see that the constraints are met for this device as it is
+> >> transitioned into the appropriate state. However the second ACPI node
+> >> doesn't have any relationship with a physical node and stays in "D0":
+> >>
+> >> ```
+> >> ACPI: \_SB_.PCI0.GP18.SATA: ACPI: PM: Power state change: D0 -> D3cold
+> >> ACPI: PM: Power resource [P0SA] still in use
+> >> acpi device:2a: Power state changed to D3cold
+> >> ```
+> >>
+> >> Due to the refcounting used on the shared power resource putting the
+> >> device with a physical node into D3 doesn't result in the _OFF method
+> >> being called.
+> >>
+> >> To help with this type of problem, make a new helper function that can
+> >> be used to check all the children of an ACPI device and put any firmware
+> >> nodes that don't have physical devices into D3cold to allow shared
+> >> resources to transition. Call this helper function after PCI devices have
+> >> been scanned and ACPI companions have had a chance to associate.
+> >>
+> >> After making this change, here is what the flow looks like:
+> >> ```
+> >> <snip:bootup>
+> >> ACPI: \_SB_.PCI0.GP18.SAT1: ACPI: PM: Power state change: D0 -> D3cold
+> >> ACPI: PM: Power resource [P0SA] still in use
+> >> acpi device:2c: Power state changed to D3cold
+> >> <snip:suspend>
+> >> ACPI: \_SB_.PCI0.GP18.SATA: ACPI: PM: Power state change: D0 -> D3cold
+> >> ACPI: PM: Power resource [P0SA] turned off
+> >> acpi device:2a: Power state changed to D3cold
+> >> ```
+> >>
+> >> Link: https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Flore.kernel.org%2Flinux-acpi%2F0571292a-286b-18f2-70ad-12b125a61469%40amd.com%2FT%2F%23m042055c5ca1e49c2829655511f04b0311c142559&amp;data=04%7C01%7Cmario.limonciello%40amd.com%7Ce54614dae1624dfb240408d98a64b8da%7C3dd8961fe4884e608e11a82d994e183d%7C0%7C0%7C637692988971446528%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000&amp;sdata=9fYSZ4d2cA2TnM453MQxqmOlGN%2FU6WNi7By7pVP2EV4%3D&amp;reserved=0
+> >> BugLink: https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Fbugzilla.kernel.org%2Fshow_bug.cgi%3Fid%3D214091&amp;data=04%7C01%7Cmario.limonciello%40amd.com%7Ce54614dae1624dfb240408d98a64b8da%7C3dd8961fe4884e608e11a82d994e183d%7C0%7C0%7C637692988971446528%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000&amp;sdata=vsjQOgqzadLYXTfRW2sui5Dp7%2B0EYf14rUCiIDNofoI%3D&amp;reserved=0
+> >> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> >> ---
+> >>   drivers/acpi/device_pm.c | 34 ++++++++++++++++++++++++++++++++++
+> >>   drivers/pci/probe.c      |  5 +++++
+> >>   include/acpi/acpi_bus.h  |  1 +
+> >>   3 files changed, 40 insertions(+)
+> >>
+> >> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+> >> index 0028b6b51c87..0fb0bbeeae9e 100644
+> >> --- a/drivers/acpi/device_pm.c
+> >> +++ b/drivers/acpi/device_pm.c
+> >> @@ -149,6 +149,40 @@ static int acpi_dev_pm_explicit_set(struct acpi_device *adev, int state)
+> >>   	return 0;
+> >>   }
+> >>   
+> >> +/**
+> >> + * acpi_device_turn_off_absent_children - Turn off power resources for
+> >> + *					  children not physically present.
+> >> + * @parent: ACPI bridge device
+> >> + */
+> >> +int acpi_device_turn_off_absent_children(struct acpi_device *parent)
+> >> +{
+> >> +	struct acpi_device *adev;
+> >> +	int ret = 0;
+> >> +
+> >> +	if (!parent)
+> >> +		return -EINVAL;
+> >> +
+> >> +	list_for_each_entry(adev, &parent->children, node) {
+> > 
+> > It is better to use device_for_each_child() for this, walking the children list
+> > without locking is questionable.
+> > 
+> >> +		int state;
+> >> +
+> >> +		if (!adev->flags.power_manageable ||
+> > 
+> > This need not be checked, acpi_device_set_power() checks it.
+> > 
+> >> +		    !adev->power.flags.power_resources)
+> > 
+> > And I'm not sure about this too.  Even if there are no power resources, it
+> > would be still prudent to release PM resources referred to by unused device
+> > objects by calling _PS3 on them.
+> > 
+> >> +			continue;
+> >> +		if (acpi_get_first_physical_node(adev))
+> >> +			continue;
+> > 
+> > In addition to this, I would check if the device object has _ADR, because
+> > there are legitimate cases when device objects with a _HID have no physical
+> > nodes.
+> > 
+> >> +		ret = acpi_device_get_power(adev, &state);
+> >> +		if (ret)
+> >> +			return ret;
+> >> +		if (state == ACPI_STATE_D3_COLD)
+> >> +			continue;
+> > 
+> > The above is not necessary.
+> > 
+> >> +		ret = acpi_device_set_power(adev, ACPI_STATE_D3_COLD);
+> >> +		if (ret)
+> >> +			return ret;
+> >> +	}
+> >> +	return ret;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(acpi_device_turn_off_absent_children);
+> > 
+> > And I would put this function into glue.c.
+> > 
+> >> +
+> >>   /**
+> >>    * acpi_device_set_power - Set power state of an ACPI device.
+> >>    * @device: Device to set the power state of.
+> >> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> >> index 79177ac37880..1a45182394d1 100644
+> >> --- a/drivers/pci/probe.c
+> >> +++ b/drivers/pci/probe.c
+> >> @@ -2939,6 +2939,11 @@ static unsigned int pci_scan_child_bus_extend(struct pci_bus *bus,
+> >>   		}
+> >>   	}
+> >>   
+> >> +	/* check for and turn off dangling power resources */
+> >> +	for_each_pci_bridge(dev, bus) {
+> >> +		acpi_device_turn_off_absent_children(ACPI_COMPANION(&dev->dev));
+> > 
+> > IMO it would be better to call this from inside of the ACPI subsystem and
+> > after scanning the entire bus.
+> > 
+> >> +	}
+> >> +
+> >>   	/*
+> >>   	 * We've scanned the bus and so we know all about what's on
+> >>   	 * the other side of any bridges that may be on this bus plus
+> >> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> >> index 13d93371790e..0eba08b60e13 100644
+> >> --- a/include/acpi/acpi_bus.h
+> >> +++ b/include/acpi/acpi_bus.h
+> >> @@ -510,6 +510,7 @@ int acpi_bus_get_status(struct acpi_device *device);
+> >>   
+> >>   int acpi_bus_set_power(acpi_handle handle, int state);
+> >>   const char *acpi_power_state_string(int state);
+> >> +int acpi_device_turn_off_absent_children(struct acpi_device *parent);
+> >>   int acpi_device_set_power(struct acpi_device *device, int state);
+> >>   int acpi_bus_init_power(struct acpi_device *device);
+> >>   int acpi_device_fix_up_power(struct acpi_device *device);
+> >>
+> > 
+> > Overall, something like the appended patch might work. >
+> > Note that on my test-bed machine it makes no difference, though.
+> 
+> Yes this helps the resources on the identified problematic machine.
+> 
+> > 
+> > ---
+> >   drivers/acpi/glue.c     |   28 ++++++++++++++++++++++++++++
+> >   drivers/acpi/internal.h |    2 ++
+> >   drivers/acpi/pci_root.c |    1 +
+> >   3 files changed, 31 insertions(+)
+> > 
+> > Index: linux-pm/drivers/acpi/glue.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/glue.c
+> > +++ linux-pm/drivers/acpi/glue.c
+> > @@ -350,3 +350,31 @@ void acpi_device_notify_remove(struct de
+> >   
+> >   	acpi_unbind_one(dev);
+> >   }
+> > +
+> > +static int acpi_dev_turn_off_if_unused(struct device *dev, void *not_used)
+> > +{
+> > +	struct acpi_device *adev = to_acpi_device(dev);
+> > +
+> > +	acpi_dev_turn_off_unused_descendants(adev);
+> > +
+> > +	if (adev->pnp.type.bus_address && !acpi_get_first_physical_node(adev))
+> > +		acpi_device_set_power(adev, ACPI_STATE_D3_COLD);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> > + * acpi_dev_turn_off_unused_descendants - Put unused descendants into D3cold.
+> > + * @adev: ACPI device object at the top of a branch of device hierarchy.
+> > + *
+> > + * Walk the branch of the hierarchy of ACPI device objects starting at @adev
+> > + * and put all of the objects in it that have _ADR and have no corresponding
+> > + * physical nodes into D3cold.
+> > + *
+> > + * This allows power resources that are only referred to by unused ACPI device
+> > + * objects to be turned off.
+> > + */
+> > +void acpi_dev_turn_off_unused_descendants(struct acpi_device *adev)
+> > +{
+> > +	device_for_each_child(&adev->dev, NULL, acpi_dev_turn_off_if_unused);
+> > +}
+> > Index: linux-pm/drivers/acpi/internal.h
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/internal.h
+> > +++ linux-pm/drivers/acpi/internal.h
+> > @@ -88,6 +88,8 @@ bool acpi_scan_is_offline(struct acpi_de
+> >   acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context);
+> >   void acpi_scan_table_notify(void);
+> >   
+> > +void acpi_dev_turn_off_unused_descendants(struct acpi_device *adev);
+> > +
+> >   /* --------------------------------------------------------------------------
+> >                        Device Node Initialization / Removal
+> >      -------------------------------------------------------------------------- */
+> > Index: linux-pm/drivers/acpi/pci_root.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/pci_root.c
+> > +++ linux-pm/drivers/acpi/pci_root.c
+> > @@ -630,6 +630,7 @@ static int acpi_pci_root_add(struct acpi
+> >   
+> >   	pci_lock_rescan_remove();
+> >   	pci_bus_add_devices(root->bus);
+> > +	acpi_dev_turn_off_unused_descendants(root->device);
+> >   	pci_unlock_rescan_remove();
+> >   	return 1;
+> >   
+> > 
+> > 
+> > 
+> 
+> When you submit this if no other changes, please include:
+> 
+> Tested-by: Mario Limonciello <mario.limonciello@amd.com>
 
-This commit adds a driver for the regulators provided by the tps68470,
-and is designed to bind to the platform_device registered by the
-intel_skl_int3472 module.
+Thanks, but we may do better in a couple of ways.
 
-This is based on this out of tree driver written by Intel:
-https://github.com/intel/linux-intel-lts/blob/4.14/base/drivers/regulator/tps68470-regulator.c
-with various cleanups added.
+First off, there's no particular reason to restrict the walk to the device
+objects below the host bridge one.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Second, if the physical node appears while we're removing power from the
+device, whoever adds it may be confused, so it's better to avoid that.
+
+Please check if the appended one still works for you.
+
 ---
- drivers/regulator/Kconfig              |   9 ++
- drivers/regulator/Makefile             |   1 +
- drivers/regulator/tps68470-regulator.c | 194 +++++++++++++++++++++++++
- 3 files changed, 204 insertions(+)
- create mode 100644 drivers/regulator/tps68470-regulator.c
+ drivers/acpi/glue.c     |   16 ++++++++++++++++
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/scan.c     |    6 ++++++
+ 3 files changed, 23 insertions(+)
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 4fd13b06231f..d107af5bff6c 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -1339,6 +1339,15 @@ config REGULATOR_TPS65912
- 	help
- 	    This driver supports TPS65912 voltage regulator chip.
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -2559,6 +2559,12 @@ int __init acpi_scan_init(void)
+ 		}
+ 	}
  
-+config REGULATOR_TPS68470
-+	tristate "TI TPS68370 PMIC Regulators Driver"
-+	depends on INTEL_SKL_INT3472
-+	help
-+	  This driver adds support for the TPS68470 PMIC to register
-+	  regulators against the usual framework.
++	/*
++	 * Make sure that power management resources are not blocked by ACPI
++	 * device objects with no users.
++	 */
++	bus_for_each_dev(&acpi_bus_type, NULL, NULL, acpi_dev_turn_off_if_unused);
 +
-+	  The module will be called "tps68470-regulator"
+ 	acpi_turn_off_unused_power_resources();
+ 
+ 	acpi_scan_initialized = true;
+Index: linux-pm/drivers/acpi/glue.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/glue.c
++++ linux-pm/drivers/acpi/glue.c
+@@ -350,3 +350,19 @@ void acpi_device_notify_remove(struct de
+ 
+ 	acpi_unbind_one(dev);
+ }
 +
- config REGULATOR_TPS80031
- 	tristate "TI TPS80031/TPS80032 power regulator driver"
- 	depends on MFD_TPS80031
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 9e382b50a5ef..03c318110986 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -158,6 +158,7 @@ obj-$(CONFIG_REGULATOR_TPS6524X) += tps6524x-regulator.o
- obj-$(CONFIG_REGULATOR_TPS6586X) += tps6586x-regulator.o
- obj-$(CONFIG_REGULATOR_TPS65910) += tps65910-regulator.o
- obj-$(CONFIG_REGULATOR_TPS65912) += tps65912-regulator.o
-+obj-$(CONFIG_REGULATOR_TPS68470) += tps68470-regulator.o
- obj-$(CONFIG_REGULATOR_TPS80031) += tps80031-regulator.o
- obj-$(CONFIG_REGULATOR_TPS65132) += tps65132-regulator.o
- obj-$(CONFIG_REGULATOR_TWL4030) += twl-regulator.o twl6030-regulator.o
-diff --git a/drivers/regulator/tps68470-regulator.c b/drivers/regulator/tps68470-regulator.c
-new file mode 100644
-index 000000000000..82c4b1211c6f
---- /dev/null
-+++ b/drivers/regulator/tps68470-regulator.c
-@@ -0,0 +1,194 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Regulator driver for TPS68470 PMIC
-+ *
-+ * Copyright (C) 2018 Intel Corporation
-+ *
-+ * Authors:
-+ *	Zaikuo Wang <zaikuo.wang@intel.com>
-+ *	Tianshu Qiu <tian.shu.qiu@intel.com>
-+ *	Jian Xu Zheng <jian.xu.zheng@intel.com>
-+ *	Yuning Pu <yuning.pu@intel.com>
-+ *	Rajmohan Mani <rajmohan.mani@intel.com>
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/tps68470.h>
-+#include <linux/module.h>
-+#include <linux/platform_data/tps68470.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/driver.h>
-+#include <linux/regulator/machine.h>
-+
-+#define TPS68470_REGULATOR(_name, _id, _ops, _n, _vr,			\
-+			   _vm, _er, _em, _t, _lr, _nlr)		\
-+	[TPS68470_ ## _name] = {					\
-+		.name			= # _name,			\
-+		.id			= _id,				\
-+		.ops			= &_ops,			\
-+		.n_voltages		= _n,				\
-+		.type			= REGULATOR_VOLTAGE,		\
-+		.owner			= THIS_MODULE,			\
-+		.vsel_reg		= _vr,				\
-+		.vsel_mask		= _vm,				\
-+		.enable_reg		= _er,				\
-+		.enable_mask		= _em,				\
-+		.volt_table		= _t,				\
-+		.linear_ranges		= _lr,				\
-+		.n_linear_ranges	= _nlr,				\
-+	}
-+
-+static const struct linear_range tps68470_ldo_ranges[] = {
-+	REGULATOR_LINEAR_RANGE(875000, 0, 125, 17800),
-+};
-+
-+static const struct linear_range tps68470_core_ranges[] = {
-+	REGULATOR_LINEAR_RANGE(900000, 0, 42, 25000),
-+};
-+
-+/* Operations permitted on DCDCx, LDO2, LDO3 and LDO4 */
-+static struct regulator_ops tps68470_regulator_ops = {
-+	.is_enabled		= regulator_is_enabled_regmap,
-+	.enable			= regulator_enable_regmap,
-+	.disable		= regulator_disable_regmap,
-+	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
-+	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
-+	.list_voltage		= regulator_list_voltage_linear_range,
-+	.map_voltage		= regulator_map_voltage_linear_range,
-+};
-+
-+static const struct regulator_desc regulators[] = {
-+	TPS68470_REGULATOR(CORE, TPS68470_CORE,
-+			   tps68470_regulator_ops, 43, TPS68470_REG_VDVAL,
-+			   TPS68470_VDVAL_DVOLT_MASK, TPS68470_REG_VDCTL,
-+			   TPS68470_VDCTL_EN_MASK,
-+			   NULL, tps68470_core_ranges,
-+			   ARRAY_SIZE(tps68470_core_ranges)),
-+	TPS68470_REGULATOR(ANA, TPS68470_ANA,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VAVAL,
-+			   TPS68470_VAVAL_AVOLT_MASK, TPS68470_REG_VACTL,
-+			   TPS68470_VACTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(VCM, TPS68470_VCM,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VCMVAL,
-+			   TPS68470_VCMVAL_VCVOLT_MASK, TPS68470_REG_VCMCTL,
-+			   TPS68470_VCMCTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(VIO, TPS68470_VIO,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VIOVAL,
-+			   TPS68470_VIOVAL_IOVOLT_MASK, TPS68470_REG_S_I2C_CTL,
-+			   TPS68470_S_I2C_CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+
-+/*
-+ * (1) This register must have same setting as VIOVAL if S_IO LDO is used to
-+ *     power daisy chained IOs in the receive side.
-+ * (2) If there is no I2C daisy chain it can be set freely.
-+ *
-+ */
-+	TPS68470_REGULATOR(VSIO, TPS68470_VSIO,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VSIOVAL,
-+			   TPS68470_VSIOVAL_IOVOLT_MASK, TPS68470_REG_S_I2C_CTL,
-+			   TPS68470_S_I2C_CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(AUX1, TPS68470_AUX1,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VAUX1VAL,
-+			   TPS68470_VAUX1VAL_AUX1VOLT_MASK,
-+			   TPS68470_REG_VAUX1CTL,
-+			   TPS68470_VAUX1CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(AUX2, TPS68470_AUX2,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VAUX2VAL,
-+			   TPS68470_VAUX2VAL_AUX2VOLT_MASK,
-+			   TPS68470_REG_VAUX2CTL,
-+			   TPS68470_VAUX2CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+};
-+
-+#define TPS68470_REG_INIT_DATA(_name, _min_uV, _max_uV)			\
-+	[TPS68470_ ## _name] = {					\
-+		.constraints = {					\
-+			.name = # _name,				\
-+			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |	\
-+					  REGULATOR_CHANGE_STATUS,	\
-+			.min_uV = _min_uV,				\
-+			.max_uV = _max_uV,				\
-+		},							\
-+	}
-+
-+struct regulator_init_data tps68470_init[] = {
-+	TPS68470_REG_INIT_DATA(CORE, 900000, 1950000),
-+	TPS68470_REG_INIT_DATA(ANA, 875000, 3100000),
-+	TPS68470_REG_INIT_DATA(VCM, 875000, 3100000),
-+	TPS68470_REG_INIT_DATA(VIO, 875000, 3100000),
-+	TPS68470_REG_INIT_DATA(VSIO, 875000, 3100000),
-+	TPS68470_REG_INIT_DATA(AUX1, 875000, 3100000),
-+	TPS68470_REG_INIT_DATA(AUX2, 875000, 3100000),
-+};
-+
-+static int tps68470_regulator_probe(struct platform_device *pdev)
++int acpi_dev_turn_off_if_unused(struct device *dev, void *not_used)
 +{
-+	struct tps68470_regulator_platform_data *pdata = pdev->dev.platform_data;
-+	struct regulator_config config = { };
-+	struct regmap *tps68470_regmap;
-+	struct regulator_dev *rdev;
-+	int i;
++	struct acpi_device *adev = to_acpi_device(dev);
 +
-+	tps68470_regmap = dev_get_drvdata(pdev->dev.parent);
++	if (adev->pnp.type.bus_address) {
++		mutex_lock(&adev->physical_node_lock);
 +
-+	for (i = 0; i < TPS68470_NUM_REGULATORS; i++) {
-+		config.dev = pdev->dev.parent;
-+		config.regmap = tps68470_regmap;
-+		if (pdata && pdata->reg_init_data[i])
-+			config.init_data = pdata->reg_init_data[i];
-+		else
-+			config.init_data = &tps68470_init[i];
++		if (list_empty(&adev->physical_node_list))
++			acpi_device_set_power(adev, ACPI_STATE_D3_COLD);
 +
-+		rdev = devm_regulator_register(&pdev->dev, &regulators[i], &config);
-+		if (IS_ERR(rdev)) {
-+			dev_err(&pdev->dev, "failed to register %s regulator\n",
-+				regulators[i].name);
-+			return PTR_ERR(rdev);
-+		}
++		mutex_unlock(&adev->physical_node_lock);
 +	}
 +
 +	return 0;
 +}
-+
-+static struct platform_driver tps68470_regulator_driver = {
-+	.driver = {
-+		.name = "tps68470-regulator",
-+	},
-+	.probe = tps68470_regulator_probe,
-+};
-+
-+/*
-+ * The ACPI tps68470 probe-ordering depends on the clk/gpio/regulator drivers
-+ * being registered before the MFD cells are created (the MFD driver calls
-+ * acpi_dev_clear_dependencies() after the cell creation).
-+ * subsys_initcall() ensures this when the drivers are builtin.
-+ */
-+static int __init tps68470_regulator_init(void)
-+{
-+	return platform_driver_register(&tps68470_regulator_driver);
-+}
-+subsys_initcall(tps68470_regulator_init);
-+
-+static void __exit tps68470_regulator_exit(void)
-+{
-+	platform_driver_unregister(&tps68470_regulator_driver);
-+}
-+module_exit(tps68470_regulator_exit);
-+
-+MODULE_ALIAS("platform:tps68470-regulator");
-+MODULE_DESCRIPTION("TPS68470 voltage regulator driver");
-+MODULE_LICENSE("GPL v2");
--- 
-2.31.1
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -117,6 +117,7 @@ bool acpi_device_is_battery(struct acpi_
+ bool acpi_device_is_first_physical_node(struct acpi_device *adev,
+ 					const struct device *dev);
+ int acpi_bus_register_early_device(int type);
++int acpi_dev_turn_off_if_unused(struct device *dev, void *not_used);
+ 
+ /* --------------------------------------------------------------------------
+                      Device Matching and Notification
+
+
 
