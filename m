@@ -2,53 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CDDC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:51:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78F28C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:57:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3BB860D42
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:51:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E8E960EFE
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:57:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233724AbhJLRxu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Oct 2021 13:53:50 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:62100 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233125AbhJLRx2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Oct 2021 13:53:28 -0400
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
- id c3d9df83cd2de8c7; Tue, 12 Oct 2021 19:51:25 +0200
-Received: from kreacher.localnet (unknown [213.134.187.88])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id DE88066A819;
-        Tue, 12 Oct 2021 19:51:24 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH v1 0/7] ACPI: Use ACPI_COMPANION() directly to simplify code
-Date:   Tue, 12 Oct 2021 19:35:56 +0200
-Message-ID: <4369779.LvFx2qVVIh@kreacher>
+        id S231243AbhJLR73 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Oct 2021 13:59:29 -0400
+Received: from mga01.intel.com ([192.55.52.88]:36073 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229810AbhJLR73 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Oct 2021 13:59:29 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10135"; a="250631548"
+X-IronPort-AV: E=Sophos;i="5.85,368,1624345200"; 
+   d="scan'208";a="250631548"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 10:57:26 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.85,368,1624345200"; 
+   d="scan'208";a="460469760"
+Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
+  by orsmga002.jf.intel.com with ESMTP; 12 Oct 2021 10:57:25 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12; Tue, 12 Oct 2021 10:57:25 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12; Tue, 12 Oct 2021 10:57:24 -0700
+Received: from fmsmsx610.amr.corp.intel.com ([10.18.126.90]) by
+ fmsmsx610.amr.corp.intel.com ([10.18.126.90]) with mapi id 15.01.2242.012;
+ Tue, 12 Oct 2021 10:57:24 -0700
+From:   "Luck, Tony" <tony.luck@intel.com>
+To:     Jarkko Sakkinen <jarkko@kernel.org>,
+        "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
+        "naoya.horiguchi@nec.com" <naoya.horiguchi@nec.com>
+CC:     Andrew Morton <akpm@linux-foundation.org>,
+        Sean Christopherson <seanjc@google.com>,
+        "Hansen, Dave" <dave.hansen@intel.com>,
+        "Zhang, Cathy" <cathy.zhang@intel.com>,
+        "linux-sgx@vger.kernel.org" <linux-sgx@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>
+Subject: RE: [PATCH v9 0/7] Basic recovery for machine checks inside SGX
+Thread-Topic: [PATCH v9 0/7] Basic recovery for machine checks inside SGX
+Thread-Index: AQHXvtIgJmQWZT3tEE2Mnbpy811gw6vQCbsA//+csTA=
+Date:   Tue, 12 Oct 2021 17:57:24 +0000
+Message-ID: <56e62500e9e24f19bd51aaf038bfad6b@intel.com>
+References: <20211001164724.220532-1-tony.luck@intel.com>
+         <20211011185924.374213-1-tony.luck@intel.com>
+ <73c711bc548b661977ff26e3d9cc87c9466a8f66.camel@kernel.org>
+In-Reply-To: <73c711bc548b661977ff26e3d9cc87c9466a8f66.camel@kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.6.200.16
+x-originating-ip: [10.1.200.100]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.187.88
-X-CLIENT-HOSTNAME: 213.134.187.88
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrudeljedgleelucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpefhgedtffejheekgeeljeevvedtuefgffeiieejuddutdekgfejvdehueejjeetvdenucfkphepvddufedrudefgedrudekjedrkeeknecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekjedrkeekpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-DCC--Metrics: v370.home.net.pl 1024; Body=2 Fuz1=2 Fuz2=2
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
-
-The patches in this series are all independent, but they make
-analogous changes, which are to replace the combination of
-ACPI_HANDLE() and acpi_bus_get_device() with ACPI_COMPANION()
-that gets the same result in a much simpler way.
-
-Thanks!
-
-
-
+PiBJIHRoaW5rIHlvdSBpbnN0cnVjdGVkIG1lIG9uIHRoaXMgYmVmb3JlIGJ1dCBJJ3ZlIGZvcmdv
+dCBpdDoNCj4gaG93IGRvIEkgc2ltdWxhdGUgdGhpcyBhbmQgdGVzdCBob3cgaXQgd29ya3M/DQoN
+CkphcmtrbywNCg0KWW91IGNhbiB0ZXN0IHRoZSBub24tZXhlY3V0aW9uIHBhdGhzIChlLmcuIHdo
+ZXJlIHRoZSBtZW1vcnkgZXJyb3IgaXMNCnJlcG9ydGVkIGJ5IGEgcGF0cm9sIHNjcnViYmVyIGlu
+IHRoZSBtZW1vcnkgY29udHJvbGxlcikgYnk6DQoNCiMgZWNobyAweHtzb21lX1NHWF9FUENfQURE
+UkVTU30gPiAvc3lzL2RldmljZXMvc3lzdGVtL21lbW9yeS9oYXJkX29mZmxpbmVfcGFnZQ0KDQpU
+aGUgZXhlY3V0aW9uIHBhdGhzIGFyZSBtb3JlIGRpZmZpY3VsdC4gWW91IG5lZWQgYSBzeXN0ZW0g
+dGhhdCBjYW4gaW5qZWN0DQplcnJvcnMgaW50byBFUEMgbWVtb3J5LiBUaGVyZSBhcmUgc29tZSBo
+aW50cyBpbiB0aGUgRG9jdW1lbmF0aW9uIGNoYW5nZXMNCmluIHBhcnQgMDAwNi4NCg0KUmVpbmV0
+dGUgcG9zdGVkIHNvbWUgY2hhbmdlcyB0byBzZ3ggdGVzdHMgdGhhdCBzaGUgdXNlZCB0byB2YWxp
+ZGF0ZS4NCg0KLVRvbnkNCg0K
