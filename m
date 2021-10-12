@@ -2,121 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B189C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:30:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34B48C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:42:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4614F60F23
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:30:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DB0D610C9
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Oct 2021 17:42:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231517AbhJLRcq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Oct 2021 13:32:46 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:61872 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229810AbhJLRcp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Oct 2021 13:32:45 -0400
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
- id 6a0cc62dcedd71c2; Tue, 12 Oct 2021 19:30:42 +0200
-Received: from kreacher.localnet (unknown [213.134.187.88])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+        id S232520AbhJLRoj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Oct 2021 13:44:39 -0400
+Received: from mx3.molgen.mpg.de ([141.14.17.11]:46965 "EHLO mx1.molgen.mpg.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S232602AbhJLRoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Oct 2021 13:44:37 -0400
+Received: from [192.168.0.2] (ip5f5aef4c.dynamic.kabel-deutschland.de [95.90.239.76])
+        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 51A6866A824;
-        Tue, 12 Oct 2021 19:30:41 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     linux-hwmon@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Jean Delvare <jdelvare@suse.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] hwmon: acpi_power_meter: Use acpi_bus_get_acpi_device()
-Date:   Tue, 12 Oct 2021 19:30:40 +0200
-Message-ID: <11864888.O9o76ZdvQC@kreacher>
+        (Authenticated sender: pmenzel)
+        by mx.molgen.mpg.de (Postfix) with ESMTPSA id C1DE061E5FE33;
+        Tue, 12 Oct 2021 19:42:30 +0200 (CEST)
+Subject: Re: [EXT] Re: [Intel-wired-lan] Intel I350 regression 5.10 -> 5.14
+ ("The NVM Checksum Is Not Valid") [8086:1521]
+To:     "Andreas K. Huettel" <andreas.huettel@ur.de>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc:     netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
+        Jakub Kicinski <kubakici@wp.pl>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+References: <1823864.tdWV9SEqCh@kailua> <2944777.ktpJ11cQ8Q@pinacolada>
+ <c75203e9-0ef4-20bd-87a5-ad0846863886@intel.com> <2801801.e9J7NaK4W3@kailua>
+From:   Paul Menzel <pmenzel@molgen.mpg.de>
+Message-ID: <6faf4b92-78d5-47a4-63df-cc2bab7769d0@molgen.mpg.de>
+Date:   Tue, 12 Oct 2021 19:42:30 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.187.88
-X-CLIENT-HOSTNAME: 213.134.187.88
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrvddtkedguddutdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhephfegtdffjeehkeegleejveevtdeugfffieeijeduuddtkefgjedvheeujeejtedvnecukfhppedvudefrddufeegrddukeejrdekkeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukeejrdekkedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhhfihmohhnsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepjhguvghlvhgrrhgvsehsuhhsvgdrtghomhdprhgtphhtthhopehlihhnuhigsehrohgvtghkqdhu
- shdrnhgvthdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
+In-Reply-To: <2801801.e9J7NaK4W3@kailua>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael@kernel.org>
+[Cc: +ACPI maintainers]
 
-In read_domain_devices(), acpi_bus_get_device() is called to obtain
-the ACPI device object attached to the given ACPI handle and
-subsequently that object is passed to get_device() for reference
-counting, but there is a window between the acpi_bus_get_device()
-and get_device() calls in which the ACPI device object in question
-may go away.
-
-To address this issue, make read_domain_devices() use
-acpi_bus_get_acpi_device() to reference count and return the given
-ACPI device object in one go and export that function to modules.
-
-While at it, also make read_domain_devices() and
-remove_domain_devices() use acpi_dev_put() instead of calling
-put_device() directly on the ACPI device objects returned by
-acpi_bus_get_acpi_device().
-
-Signed-off-by: Rafael J. Wysocki <rafael@kernel.org>
----
- drivers/acpi/scan.c              |    1 +
- drivers/hwmon/acpi_power_meter.c |   13 +++++--------
- 2 files changed, 6 insertions(+), 8 deletions(-)
-
-Index: linux-pm/drivers/hwmon/acpi_power_meter.c
-===================================================================
---- linux-pm.orig/drivers/hwmon/acpi_power_meter.c
-+++ linux-pm/drivers/hwmon/acpi_power_meter.c
-@@ -535,7 +535,7 @@ static void remove_domain_devices(struct
- 
- 		sysfs_remove_link(resource->holders_dir,
- 				  kobject_name(&obj->dev.kobj));
--		put_device(&obj->dev);
-+		acpi_dev_put(obj);
- 	}
- 
- 	kfree(resource->domain_devices);
-@@ -597,18 +597,15 @@ static int read_domain_devices(struct ac
- 			continue;
- 
- 		/* Create a symlink to domain objects */
--		resource->domain_devices[i] = NULL;
--		if (acpi_bus_get_device(element->reference.handle,
--					&resource->domain_devices[i]))
-+		obj = acpi_bus_get_acpi_device(element->reference.handle);
-+		resource->domain_devices[i] = obj;
-+		if (!obj)
- 			continue;
- 
--		obj = resource->domain_devices[i];
--		get_device(&obj->dev);
--
- 		res = sysfs_create_link(resource->holders_dir, &obj->dev.kobj,
- 				      kobject_name(&obj->dev.kobj));
- 		if (res) {
--			put_device(&obj->dev);
-+			acpi_dev_put(obj);
- 			resource->domain_devices[i] = NULL;
- 		}
- 	}
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -608,6 +608,7 @@ struct acpi_device *acpi_bus_get_acpi_de
- {
- 	return handle_to_device(handle, get_acpi_device);
- }
-+EXPORT_SYMBOL_GPL(acpi_bus_get_acpi_device);
- 
- static struct acpi_device_bus_id *acpi_device_bus_id_match(const char *dev_id)
- {
-
-
-
+Am 12.10.21 um 18:34 schrieb Andreas K. Huettel:
+>>> The messages easily identifiable are:
+>>>
+>>> huettel@pinacolada ~/tmp $ cat kernel-messages-5.10.59.txt |grep igb
+>>> Oct  5 15:11:18 dilfridge kernel: [    2.090675] igb: Intel(R) Gigabit Ethernet Network Driver
+>>> Oct  5 15:11:18 dilfridge kernel: [    2.090676] igb: Copyright (c) 2007-2014 Intel Corporation.
+>>> Oct  5 15:11:18 dilfridge kernel: [    2.090728] igb 0000:01:00.0: enabling device (0000 -> 0002)
+>>
+>> This line is missing below, it indicates that the kernel couldn't or
+>> didn't power up the PCIe for some reason. We're looking for something
+>> like ACPI or PCI patches (possibly PCI-Power management) to be the
+>> culprit here.
+> 
+> So I did a git bisect from linux-v5.10 (good) to linux-v5.14.11 (bad).
+> 
+> The result was:
+> 
+> dilfridge /usr/src/linux-git # git bisect bad
+> 6381195ad7d06ef979528c7452f3ff93659f86b1 is the first bad commit
+> commit 6381195ad7d06ef979528c7452f3ff93659f86b1
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Mon May 24 17:26:16 2021 +0200
+> 
+>      ACPI: power: Rework turning off unused power resources
+> [...]
+> 
+> I tried naive reverting of this commit on top of 5.14.11. That applies nearly cleanly,
+> and after a reboot the additional ethernet interfaces show up with their MAC in the
+> boot messages.
+> 
+> (Not knowing how safe that experiment was, I did not go further than single mode and
+> immediately rebooted into 5.10 afterwards.)
