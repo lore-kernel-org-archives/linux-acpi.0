@@ -2,100 +2,98 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DA45C4321E
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 16:16:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB142C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 17:21:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65D2C611BF
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 16:16:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB7C460F21
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 17:21:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237240AbhJMQSr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 Oct 2021 12:18:47 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:47994 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236499AbhJMQSn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Oct 2021 12:18:43 -0400
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
- id f7a05deb65d81dcd; Wed, 13 Oct 2021 18:16:39 +0200
-Received: from kreacher.localnet (unknown [213.134.161.244])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 77EAD66A871;
-        Wed, 13 Oct 2021 18:16:38 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org
-Subject: [PATCH v2 2/7] nouveau: ACPI: Use the ACPI_COMPANION() macro directly
-Date:   Wed, 13 Oct 2021 18:08:06 +0200
-Message-ID: <2240749.ElGaqSPkdT@kreacher>
-In-Reply-To: <21245442.EfDdHjke4D@kreacher>
-References: <4369779.LvFx2qVVIh@kreacher> <21245442.EfDdHjke4D@kreacher>
+        id S231215AbhJMRYA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 Oct 2021 13:24:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34322 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230488AbhJMRYA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Oct 2021 13:24:00 -0400
+Received: from mail-yb1-xb30.google.com (mail-yb1-xb30.google.com [IPv6:2607:f8b0:4864:20::b30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC52CC061570
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Oct 2021 10:21:56 -0700 (PDT)
+Received: by mail-yb1-xb30.google.com with SMTP id v195so8332407ybb.0
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Oct 2021 10:21:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=yf2lvnswxZG12HrbiFNmFCi5hHNaSndx6XO9Nz3lj8c=;
+        b=V7nr+D7wCnJEBfynTZO0PhEqS6UapnKxJOJkguZY+vMmdaQ17lCEEmzCLFyxylxuyz
+         a20RweKYaPoaYuA1MMvZCOznohi1jI7zxG05ktw5kneqReGiFYT+e+yPHqWgjiT1o/qO
+         FRnLV+4XByB9YvRGvdjH2kuvJmcQpkcjXJR23BApUtB1KwqTIq4ANjMn3j4viFgdhNk7
+         Qsg6YxK3Bh2bx1T+lY8uhMoHhBr3K6XnHxjuTj6dimgkh+mDa3PPrunhZtNpP4iiM6e2
+         F668m0e0rC9v/2s4rulsoEJOa2XeS39UdYrilj15pL3DFtRi+2wuCZ0/85QNsmcfQKpe
+         apcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=yf2lvnswxZG12HrbiFNmFCi5hHNaSndx6XO9Nz3lj8c=;
+        b=kLMaurabXfn8T2Fbe6cOOvzSsWp9tjZuWlhWzcJHI5dPOzrZFFZFL3k6v+mtwYYWgZ
+         s5hG6xVRPh2j77mLBALDiEl8eEUGOFe6wk7el1cx/ggib95H+FI4qyigVOC46aCXHemA
+         HgDvGQTV8Q5Q/TqpE8N+um0H+zY9moRVGgzoI0e9QHegACfCd2/KB3AP01etiL960Hhw
+         JaHIO116b7nBlkRkmlbjXzHryaRc+VJnYg30+/G4jDc5Og20Mo1KZS3Pjcf53pxJPZ3I
+         mk4OVjQ7YreVAr07D98un5LjjKeYGOWTe0i1fjdp3PW5geqfEf2vRoQEfpEkFeFjVyXb
+         XNtA==
+X-Gm-Message-State: AOAM5313YECOG3yIeOvtXy2jys3er35ppiQ+XAxcTKVAEt1IoayXNwnq
+        O3LwX/lsu5OjVUtCDejJfl4rNxDNR+ck/Rbw09QoQA==
+X-Google-Smtp-Source: ABdhPJwnnMUc+Wua5vM0/raYMLpof8dp6c0NLJvcYQJ3SrpJn+DquLRh0Sa9lrkrSBiQf7zwIZQ3o77FRAQ2JAVDhOg=
+X-Received: by 2002:a5b:783:: with SMTP id b3mr704817ybq.328.1634145715727;
+ Wed, 13 Oct 2021 10:21:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20211013143707.80222-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20211013143707.80222-1-andriy.shevchenko@linux.intel.com>
+From:   Saravana Kannan <saravanak@google.com>
+Date:   Wed, 13 Oct 2021 10:21:19 -0700
+Message-ID: <CAGETcx_mNWumqmYzytvKG+FvPLA=DWokbbtFv=EGet41G6cQeQ@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] device property: Add missed header in fwnode.h
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.161.244
-X-CLIENT-HOSTNAME: 213.134.161.244
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrudeljedgkeehucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepvddufedrudefgedrudeiuddrvdeggeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduiedurddvgeegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepsghskhgvghhgshesrhgvughhrghtrdgtohhmpdhrtghpthhtohepughrihdquggvvhgvlheslhhishhtshdrfhhrvggvuggvshhkthhophdrohhrghdprhgtphhtthhopehnohhuvhgv
- rghusehlihhsthhsrdhfrhgvvgguvghskhhtohhprdhorhhg
-X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wed, Oct 13, 2021 at 7:37 AM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> When adding some stuff to the header file we must not rely on
+> implicit dependencies that are happen by luck or bugs in other
+> headers. Hence fwnode.h needs to use bits.h directly.
+>
+> Fixes: c2c724c868c4 ("driver core: Add fw_devlink_parse_fwtree()")
+> Cc: Saravana Kannan <saravanak@google.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-The ACPI_HANDLE() macro is a wrapper arond the ACPI_COMPANION()
-macro and the ACPI handle produced by the former comes from the
-ACPI device object produced by the latter, so it is way more
-straightforward to evaluate the latter directly instead of passing
-the handle produced by the former to acpi_bus_get_device().
+Acked-by: Saravana Kannan <saravanak@google.com>
 
-Modify nouveau_acpi_edid() accordingly (no intentional functional
-impact).
+-Saravana
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Ben Skeggs <bskeggs@redhat.com>
----
-
-v1 -> v2:
-   * Resend with a different From and S-o-b address and with R-by from Ben.
-     No other changes.
-
----
- drivers/gpu/drm/nouveau/nouveau_acpi.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
-
-Index: linux-pm/drivers/gpu/drm/nouveau/nouveau_acpi.c
-===================================================================
---- linux-pm.orig/drivers/gpu/drm/nouveau/nouveau_acpi.c
-+++ linux-pm/drivers/gpu/drm/nouveau/nouveau_acpi.c
-@@ -364,7 +364,6 @@ void *
- nouveau_acpi_edid(struct drm_device *dev, struct drm_connector *connector)
- {
- 	struct acpi_device *acpidev;
--	acpi_handle handle;
- 	int type, ret;
- 	void *edid;
- 
-@@ -377,12 +376,8 @@ nouveau_acpi_edid(struct drm_device *dev
- 		return NULL;
- 	}
- 
--	handle = ACPI_HANDLE(dev->dev);
--	if (!handle)
--		return NULL;
--
--	ret = acpi_bus_get_device(handle, &acpidev);
--	if (ret)
-+	acpidev = ACPI_COMPANION(dev->dev);
-+	if (!acpidev)
- 		return NULL;
- 
- 	ret = acpi_video_get_edid(acpidev, type, -1, &edid);
-
-
-
+> ---
+>  include/linux/fwnode.h | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index 9f4ad719bfe3..3a532ba66f6c 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -11,6 +11,7 @@
+>
+>  #include <linux/types.h>
+>  #include <linux/list.h>
+> +#include <linux/bits.h>
+>  #include <linux/err.h>
+>
+>  struct fwnode_operations;
+> --
+> 2.33.0
+>
