@@ -2,129 +2,326 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87D24C43217
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 16:04:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 501CDC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 16:15:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6549E611AE
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 16:04:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31CA1611B0
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Oct 2021 16:15:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236136AbhJMQGR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 Oct 2021 12:06:17 -0400
-Received: from cloudserver094114.home.pl ([79.96.170.134]:55576 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229552AbhJMQGR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Oct 2021 12:06:17 -0400
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
- id 5610ad909f428166; Wed, 13 Oct 2021 18:04:11 +0200
-Received: from kreacher.localnet (unknown [213.134.161.244])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id E1E2166A871;
-        Wed, 13 Oct 2021 18:04:10 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     linux-hwmon@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Jean Delvare <jdelvare@suse.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2] hwmon: acpi_power_meter: Use acpi_bus_get_acpi_device()
-Date:   Wed, 13 Oct 2021 18:04:09 +0200
-Message-ID: <11871063.O9o76ZdvQC@kreacher>
-In-Reply-To: <11864888.O9o76ZdvQC@kreacher>
-References: <11864888.O9o76ZdvQC@kreacher>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.161.244
-X-CLIENT-HOSTNAME: 213.134.161.244
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrvddutddgleegucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepvddufedrudefgedrudeiuddrvdeggeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduiedurddvgeegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqhhifmhhonhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehjuggvlhhvrghrvgesshhushgvrdgtohhmpdhrtghpthhtoheplhhinhhugiesrhhovggt
- khdquhhsrdhnvghtpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidrihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
+        id S229785AbhJMQRY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 Oct 2021 12:17:24 -0400
+Received: from smtp-out2.suse.de ([195.135.220.29]:36508 "EHLO
+        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229529AbhJMQRX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Oct 2021 12:17:23 -0400
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id 7071D2014A;
+        Wed, 13 Oct 2021 16:15:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1634141717; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=rJWMwps84J6beE+MBxyqt7lDeN8ENM40jh/cD8Lj87g=;
+        b=UXvj6YnW/loICppyOFq6Md1lHhQd7X8ZTWXedyQzB2NUeVBSZ6RN9qI5L+pPuMZzs6LSLo
+        7eXK4ugFxsUMpWqtlRmIU22Fjv5SjlVUzb5dgiXqKs/DWyXLaZlnjWq1hGhroo6RnYJ5qT
+        ZTt7Y8th+dYBV+AHWUFCSL4v6jx6dMM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1634141717;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=rJWMwps84J6beE+MBxyqt7lDeN8ENM40jh/cD8Lj87g=;
+        b=s/Ny/1xhJDDb+sAEZoeETi4KdXm+puS5eiU0w4nasVpMoy23lMQ6Xo1993q0Q1kB6liglm
+        CF3aZGO2v9MoEdAg==
+Received: from alsa1.suse.de (alsa1.suse.de [10.160.4.42])
+        by relay2.suse.de (Postfix) with ESMTP id 59AA6A3B83;
+        Wed, 13 Oct 2021 16:15:17 +0000 (UTC)
+Date:   Wed, 13 Oct 2021 18:15:17 +0200
+Message-ID: <s5h5yu0yk8a.wl-tiwai@suse.de>
+From:   Takashi Iwai <tiwai@suse.de>
+To:     Lucas Tanure <tanureal@opensource.cirrus.com>
+Cc:     Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>,
+        "Jaroslav Kysela" <perex@perex.cz>, Len Brown <lenb@kernel.org>,
+        David Rhodes <david.rhodes@cirrus.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
+        <patches@opensource.cirrus.com>, <linux-kernel@vger.kernel.org>
+Subject: Re: [RFC] sound: cs35l41: Add support for Legion 7 16ACHg6 laptop
+In-Reply-To: <s5h4k9m0z9s.wl-tiwai@suse.de>
+References: <20211008111902.103473-1-tanureal@opensource.cirrus.com>
+        <s5h4k9m0z9s.wl-tiwai@suse.de>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI/1.14.6 (Maruoka)
+ FLIM/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL/10.8 Emacs/25.3
+ (x86_64-suse-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+MIME-Version: 1.0 (generated by SEMI 1.14.6 - "Maruoka")
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, 12 Oct 2021 22:22:07 +0200,
+Takashi Iwai wrote:
+> 
+> On Fri, 08 Oct 2021 13:19:02 +0200,
+> Lucas Tanure wrote:
+> > 
+> > Hi,
+> > 
+> > I would like to get some guidance about this solution to
+> > support the 16ACHg6 laptop.
+> > 
+> > Hardware:
+> >  - The 16ACHg6 laptop has two CS35L41 amplifiers, connected
+> > to Realtek ALC287 by an I2S bus and by and direct I2C to the CPU.
+> >  - The ALC287 codec is connected to the CPU by an HDA bus.
+> >  - The CS35L41 has a DSP which will require firmware to be loaded.
+> > 
+> > Architecture:
+> >  - To load the firmware for CS35L41, this solution will require
+> > the wm_adsp library, which requires regmap, header definitions and
+> > register tables.
+> >  - To minimize the duplication of the code, the HDA functions will
+> > be placed inside the ASoC CS35L41 driver.
+> >  - Finally, HDA patch_realtek will access exposed functions from
+> > ASoC CS35L41 driver to initialize the amplifiers, start and stop
+> > streams and load firmware.
+> 
+> Through a very quick glance, a potential problem is that this design
+> would make the HD-audio codec driver dependent on those other ASoC
+> ones.  As the Realtek HD-audio codec driver is used by quite many
+> other people, we'd like to reduce such dependency mess.
+> 
+> Maybe a dynamic binding with component framework can be used?
+> 
+> Alternatively, we may build up a stuff on top of ASoC like what SOF
+> driver did.  It'll be another lot of work, though.
 
-In read_domain_devices(), acpi_bus_get_device() is called to obtain
-the ACPI device object attached to the given ACPI handle and
-subsequently that object is passed to get_device() for reference
-counting, but there is a window between the acpi_bus_get_device()
-and get_device() calls in which the ACPI device object in question
-may go away.
+Or, yet another (and easier) alternative would be to create a new
+codec driver that is specific to vendor+subsystem pair.  We'll need to
+extend the hda_device_id and its matching mechanism, and the realtek
+codec driver needs to exclude the matching with the given SSID
+explicitly.
 
-To address this issue, make read_domain_devices() use
-acpi_bus_get_acpi_device() to reference count and return the given
-ACPI device object in one go and export that function to modules.
+A patch below is an example.
 
-While at it, also make read_domain_devices() and
-remove_domain_devices() use acpi_dev_put() instead of calling
-put_device() directly on the ACPI device objects returned by
-acpi_bus_get_acpi_device().
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Takashi
+
 ---
-
--> v2: Resend with a different From and S-o-b address and with R-by
-       from Andy.  No other changes.
-
----
- drivers/acpi/scan.c              |    1 +
- drivers/hwmon/acpi_power_meter.c |   13 +++++--------
- 2 files changed, 6 insertions(+), 8 deletions(-)
-
-Index: linux-pm/drivers/hwmon/acpi_power_meter.c
-===================================================================
---- linux-pm.orig/drivers/hwmon/acpi_power_meter.c
-+++ linux-pm/drivers/hwmon/acpi_power_meter.c
-@@ -535,7 +535,7 @@ static void remove_domain_devices(struct
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index ae2e75d15b21..5558f2ba2fcf 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -248,6 +248,7 @@ struct serio_device_id {
  
- 		sysfs_remove_link(resource->holders_dir,
- 				  kobject_name(&obj->dev.kobj));
--		put_device(&obj->dev);
-+		acpi_dev_put(obj);
- 	}
+ struct hda_device_id {
+ 	__u32 vendor_id;
++	__u32 subsystem_id;
+ 	__u32 rev_id;
+ 	__u8 api_version;
+ 	const char *name;
+diff --git a/include/sound/hda_codec.h b/include/sound/hda_codec.h
+index 0e45963bb767..3e316a798361 100644
+--- a/include/sound/hda_codec.h
++++ b/include/sound/hda_codec.h
+@@ -79,10 +79,12 @@ typedef int (*hda_codec_patch_t)(struct hda_codec *);
+ #define HDA_CODEC_ID_GENERIC_HDMI	0x00000101
+ #define HDA_CODEC_ID_GENERIC		0x00000201
  
- 	kfree(resource->domain_devices);
-@@ -597,18 +597,15 @@ static int read_domain_devices(struct ac
- 			continue;
+-#define HDA_CODEC_REV_ENTRY(_vid, _rev, _name, _patch) \
+-	{ .vendor_id = (_vid), .rev_id = (_rev), .name = (_name), \
+-	  .api_version = HDA_DEV_LEGACY, \
++#define HDA_CODEC_FULL_ENTRY(_vid, _subsystem, _rev, _name, _patch) \
++	{ .vendor_id = (_vid), .subsystem_id = (_subsystem), .rev_id = (_rev), \
++	  .name = (_name), .api_version = HDA_DEV_LEGACY, \
+ 	  .driver_data = (unsigned long)(_patch) }
++#define HDA_CODEC_REV_ENTRY(_vid, _rev, _name, _patch) \
++	HDA_CODEC_FULL_ENTRY(_vid, 0, _rev, _name, _patch)
+ #define HDA_CODEC_ENTRY(_vid, _name, _patch) \
+ 	HDA_CODEC_REV_ENTRY(_vid, 0, _name, _patch)
  
- 		/* Create a symlink to domain objects */
--		resource->domain_devices[i] = NULL;
--		if (acpi_bus_get_device(element->reference.handle,
--					&resource->domain_devices[i]))
-+		obj = acpi_bus_get_acpi_device(element->reference.handle);
-+		resource->domain_devices[i] = obj;
-+		if (!obj)
- 			continue;
+diff --git a/scripts/mod/devicetable-offsets.c b/scripts/mod/devicetable-offsets.c
+index cc3625617a0e..641b4f9bb2be 100644
+--- a/scripts/mod/devicetable-offsets.c
++++ b/scripts/mod/devicetable-offsets.c
+@@ -211,6 +211,7 @@ int main(void)
  
--		obj = resource->domain_devices[i];
--		get_device(&obj->dev);
--
- 		res = sysfs_create_link(resource->holders_dir, &obj->dev.kobj,
- 				      kobject_name(&obj->dev.kobj));
- 		if (res) {
--			put_device(&obj->dev);
-+			acpi_dev_put(obj);
- 			resource->domain_devices[i] = NULL;
- 		}
- 	}
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -608,6 +608,7 @@ struct acpi_device *acpi_bus_get_acpi_de
- {
- 	return handle_to_device(handle, get_acpi_device);
+ 	DEVID(hda_device_id);
+ 	DEVID_FIELD(hda_device_id, vendor_id);
++	DEVID_FIELD(hda_device_id, subsystem_id);
+ 	DEVID_FIELD(hda_device_id, rev_id);
+ 	DEVID_FIELD(hda_device_id, api_version);
+ 
+diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+index 49aba862073e..d8faf0065c95 100644
+--- a/scripts/mod/file2alias.c
++++ b/scripts/mod/file2alias.c
+@@ -1255,15 +1255,17 @@ static int do_ulpi_entry(const char *filename, void *symval,
+ 	return 1;
  }
-+EXPORT_SYMBOL_GPL(acpi_bus_get_acpi_device);
  
- static struct acpi_device_bus_id *acpi_device_bus_id_match(const char *dev_id)
+-/* Looks like: hdaudio:vNrNaN */
++/* Looks like: hdaudio:vNsNrNaN */
+ static int do_hda_entry(const char *filename, void *symval, char *alias)
  {
-
-
+ 	DEF_FIELD(symval, hda_device_id, vendor_id);
++	DEF_FIELD(symval, hda_device_id, subsystem_id);
+ 	DEF_FIELD(symval, hda_device_id, rev_id);
+ 	DEF_FIELD(symval, hda_device_id, api_version);
+ 
+ 	strcpy(alias, "hdaudio:");
+ 	ADD(alias, "v", vendor_id != 0, vendor_id);
++	ADD(alias, "s", subsystem_id != 0, subsystem_id);
+ 	ADD(alias, "r", rev_id != 0, rev_id);
+ 	ADD(alias, "a", api_version != 0, api_version);
+ 
+diff --git a/sound/hda/hdac_device.c b/sound/hda/hdac_device.c
+index 3e9e9ac804f6..662abd40ca6a 100644
+--- a/sound/hda/hdac_device.c
++++ b/sound/hda/hdac_device.c
+@@ -206,8 +206,9 @@ EXPORT_SYMBOL_GPL(snd_hdac_device_set_chip_name);
+  */
+ int snd_hdac_codec_modalias(struct hdac_device *codec, char *buf, size_t size)
+ {
+-	return scnprintf(buf, size, "hdaudio:v%08Xr%08Xa%02X\n",
+-			codec->vendor_id, codec->revision_id, codec->type);
++	return scnprintf(buf, size, "hdaudio:v%08Xs%08Xr%08Xa%02X\n",
++			 codec->vendor_id, codec->subsystem_id,
++			 codec->revision_id, codec->type);
+ }
+ EXPORT_SYMBOL_GPL(snd_hdac_codec_modalias);
+ 
+diff --git a/sound/pci/hda/Makefile b/sound/pci/hda/Makefile
+index b8fa682ce66a..9f559773bf99 100644
+--- a/sound/pci/hda/Makefile
++++ b/sound/pci/hda/Makefile
+@@ -15,6 +15,7 @@ CFLAGS_hda_intel.o := -I$(src)
+ 
+ snd-hda-codec-generic-objs :=	hda_generic.o
+ snd-hda-codec-realtek-objs :=	patch_realtek.o
++snd-hda-codec-test-objs :=	patch_test.o
+ snd-hda-codec-cmedia-objs :=	patch_cmedia.o
+ snd-hda-codec-analog-objs :=	patch_analog.o
+ snd-hda-codec-idt-objs :=	patch_sigmatel.o
+@@ -32,7 +33,7 @@ obj-$(CONFIG_SND_HDA) := snd-hda-codec.o
+ 
+ # codec drivers
+ obj-$(CONFIG_SND_HDA_GENERIC) += snd-hda-codec-generic.o
+-obj-$(CONFIG_SND_HDA_CODEC_REALTEK) += snd-hda-codec-realtek.o
++obj-$(CONFIG_SND_HDA_CODEC_REALTEK) += snd-hda-codec-realtek.o snd-hda-codec-test.o
+ obj-$(CONFIG_SND_HDA_CODEC_CMEDIA) += snd-hda-codec-cmedia.o
+ obj-$(CONFIG_SND_HDA_CODEC_ANALOG) += snd-hda-codec-analog.o
+ obj-$(CONFIG_SND_HDA_CODEC_SIGMATEL) += snd-hda-codec-idt.o
+diff --git a/sound/pci/hda/hda_bind.c b/sound/pci/hda/hda_bind.c
+index 1c8bffc3eec6..367f220ec91e 100644
+--- a/sound/pci/hda/hda_bind.c
++++ b/sound/pci/hda/hda_bind.c
+@@ -200,7 +200,7 @@ static inline bool codec_probed(struct hda_codec *codec)
+ static void request_codec_module(struct hda_codec *codec)
+ {
+ #ifdef MODULE
+-	char modalias[32];
++	char modalias[64];
+ 	const char *mod = NULL;
+ 
+ 	switch (codec->probe_id) {
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index 22d27b12c4e7..993b49554457 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -16,6 +16,7 @@
+ #include <linux/pci.h>
+ #include <linux/dmi.h>
+ #include <linux/module.h>
++#include <linux/export.h>
+ #include <linux/input.h>
+ #include <linux/leds.h>
+ #include <sound/core.h>
+@@ -9510,7 +9511,7 @@ static void alc269_fill_coef(struct hda_codec *codec)
+ 
+ /*
+  */
+-static int patch_alc269(struct hda_codec *codec)
++int snd_hda_codec_realtek_alc269_probe(struct hda_codec *codec)
+ {
+ 	struct alc_spec *spec;
+ 	int err;
+@@ -9667,6 +9668,9 @@ static int patch_alc269(struct hda_codec *codec)
+ 
+ 	alc_pre_init(codec);
+ 
++	if (codec->fixup_id != HDA_FIXUP_ID_NOT_SET)
++		goto skip_pick_fixup;
++
+ 	snd_hda_pick_fixup(codec, alc269_fixup_models,
+ 		       alc269_fixup_tbl, alc269_fixups);
+ 	/* FIXME: both TX300 and ROG Strix G17 have the same SSID, and
+@@ -9683,6 +9687,8 @@ static int patch_alc269(struct hda_codec *codec)
+ 	snd_hda_pick_pin_fixup(codec, alc269_fallback_pin_fixup_tbl, alc269_fixups, false);
+ 	snd_hda_pick_fixup(codec, NULL,	alc269_fixup_vendor_tbl,
+ 			   alc269_fixups);
++
++ skip_pick_fixup:
+ 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PRE_PROBE);
+ 
+ 	alc_auto_parse_customize_define(codec);
+@@ -9709,6 +9715,18 @@ static int patch_alc269(struct hda_codec *codec)
+ 	alc_free(codec);
+ 	return err;
+ }
++EXPORT_SYMBOL(snd_hda_codec_realtek_alc269_probe);
++
++static int patch_alc269(struct hda_codec *codec)
++{
++	if (codec->core.vendor_id == 0x10ec0298 &&
++	    codec->core.subsystem_id == 0x102806e5) {
++		pr_info("XXX realtek codec driver: skipping\n");
++		return -ENODEV;
++	}
++
++	return snd_hda_codec_realtek_alc269_probe(codec);
++}
+ 
+ /*
+  * ALC861
+diff --git a/sound/pci/hda/patch_test.c b/sound/pci/hda/patch_test.c
+new file mode 100644
+index 000000000000..9070cc075af0
+--- /dev/null
++++ b/sound/pci/hda/patch_test.c
+@@ -0,0 +1,31 @@
++#include <linux/init.h>
++#include <linux/module.h>
++#include <sound/core.h>
++#include <sound/hda_codec.h>
++
++int snd_hda_codec_realtek_alc269_probe(struct hda_codec *codec);
++
++// static const struct hda_fixup test_fixup = { ... };
++
++static int test_probe(struct hda_codec *codec)
++{
++	pr_info("XXX forked driver\n");
++	// codec->fixup_id = 0;
++	// codec->fixup_list = &test_fixup;
++	return snd_hda_codec_realtek_alc269_probe(codec);
++}
++
++static const struct hda_device_id snd_hda_id_test[] = {
++	HDA_CODEC_FULL_ENTRY(0x10ec0298, 0x102806e5, 0, test_probe),
++	{} /* terminator */
++};
++MODULE_DEVICE_TABLE(hdaudio, snd_hda_id_test);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Test HD-audio codec");
++
++static struct hda_codec_driver test_driver = {
++	.id = snd_hda_id_test,
++};
++
++module_hda_codec_driver(test_driver);
+-- 
+2.31.1
 
