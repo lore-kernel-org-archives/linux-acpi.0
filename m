@@ -2,64 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED2F3C433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 14 Oct 2021 13:41:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19211C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 14 Oct 2021 13:48:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C16FC60F36
-	for <linux-acpi@archiver.kernel.org>; Thu, 14 Oct 2021 13:41:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F03BA610CC
+	for <linux-acpi@archiver.kernel.org>; Thu, 14 Oct 2021 13:48:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230205AbhJNNn0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 14 Oct 2021 09:43:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57274 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229637AbhJNNn0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Oct 2021 09:43:26 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD48C061570;
-        Thu, 14 Oct 2021 06:41:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=yh0dLNTCAidxPky1fKSiNS/T1k0UpRDN2U2Pf55bD6Q=; b=RYuW1teOpHoxKXuAE0m9w30T5o
-        piZKigjQ0cg4nSULeNxiuEVSgvHKRyIj/BI7eg/iiljIgrU1oQ/KeZAnRvRq8rFI1Wxg2SkO1pqtZ
-        klOcoquqJszlE2YOh9GXH9V6b+HSCpr3WeaSONyri9Nj8KEtDaOJAyX7xZ068gMFQ4AwTVpdbxcaR
-        zBOk5ISSuBfqfv7nv/GX65Zd3nqgKOkhoEA83T2o+EQeRS+kVuQAXfSByZH97ZkcSB7jbAdaktL28
-        Vro+JsZT85iieaduwkauV9g1Fa7/HpCnN2+jJNKn6w28uV0rP5XE/etmAmJO59Ah/+9XrahTKqPT2
-        rA4kvFvA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mb0yf-003Hyo-PY; Thu, 14 Oct 2021 13:40:57 +0000
-Date:   Thu, 14 Oct 2021 06:40:57 -0700
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        id S231584AbhJNNuF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 14 Oct 2021 09:50:05 -0400
+Received: from mga04.intel.com ([192.55.52.120]:33255 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231388AbhJNNuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Oct 2021 09:50:05 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10136"; a="226447913"
+X-IronPort-AV: E=Sophos;i="5.85,372,1624345200"; 
+   d="scan'208";a="226447913"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2021 06:48:00 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.85,372,1624345200"; 
+   d="scan'208";a="659972121"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga005.jf.intel.com with ESMTP; 14 Oct 2021 06:47:56 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 6791B2E4; Thu, 14 Oct 2021 16:48:04 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Saravana Kannan <saravanak@google.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-i2c@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H . Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org,
-        Benoit =?iso-8859-1?Q?Gr=E9goire?= <benoitg@coeus.ca>,
-        Hui Wang <hui.wang@canonical.com>
-Subject: Re: [PATCH v3] x86/PCI: Ignore E820 reservations for bridge windows
- on newer systems
-Message-ID: <YWgzaa9Z4elzoRwL@infradead.org>
-References: <20211014110357.17957-1-hdegoede@redhat.com>
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Wolfram Sang <wsa@kernel.org>
+Subject: [PATCH v4 2/3] i2c: acpi: Replace custom function with device_match_acpi_handle()
+Date:   Thu, 14 Oct 2021 16:47:55 +0300
+Message-Id: <20211014134756.39092-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211014134756.39092-1-andriy.shevchenko@linux.intel.com>
+References: <20211014134756.39092-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211014110357.17957-1-hdegoede@redhat.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Oct 14, 2021 at 01:03:57PM +0200, Hans de Goede wrote:
-> +	 * Some BIOS-es contain a bug where they add addresses which map to system
-> +	 * RAM in the PCI bridge memory window returned by the ACPI _CRS method,
+Since driver core provides a generic device_match_acpi_handle()
+we may replace the custom one with it. This unifies code to find
+an adapter with the similar one which finds a client.
 
-Please avoid the overly long lines in your comments.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Wolfram Sang <wsa@kernel.org>
+---
+v4: added tag (Wolfram)
+ drivers/i2c/i2c-core-acpi.c | 22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 7ea2ac712a57..0aea776cd4c9 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -398,24 +398,20 @@ u32 i2c_acpi_find_bus_speed(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(i2c_acpi_find_bus_speed);
+ 
+-static int i2c_acpi_find_match_adapter(struct device *dev, const void *data)
+-{
+-	struct i2c_adapter *adapter = i2c_verify_adapter(dev);
+-
+-	if (!adapter)
+-		return 0;
+-
+-	return ACPI_HANDLE(dev) == (acpi_handle)data;
+-}
+-
+ struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
+ {
++	struct i2c_adapter *adapter;
+ 	struct device *dev;
+ 
+-	dev = bus_find_device(&i2c_bus_type, NULL, handle,
+-			      i2c_acpi_find_match_adapter);
++	dev = bus_find_device(&i2c_bus_type, NULL, handle, device_match_acpi_handle);
++	if (!dev)
++		return NULL;
++
++	adapter = i2c_verify_adapter(dev);
++	if (!adapter)
++		put_device(dev);
+ 
+-	return dev ? i2c_verify_adapter(dev) : NULL;
++	return adapter;
+ }
+ EXPORT_SYMBOL_GPL(i2c_acpi_find_adapter_by_handle);
+ 
+-- 
+2.33.0
+
