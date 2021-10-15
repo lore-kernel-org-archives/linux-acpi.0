@@ -2,194 +2,79 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B59CC433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Oct 2021 16:59:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49ED9C433F5
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Oct 2021 17:04:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 123A3611C1
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Oct 2021 16:59:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BCD261151
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Oct 2021 17:04:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241883AbhJORBy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Oct 2021 13:01:54 -0400
-Received: from frasgout.his.huawei.com ([185.176.79.56]:3991 "EHLO
-        frasgout.his.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241882AbhJORBy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Oct 2021 13:01:54 -0400
-Received: from fraeml705-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4HWC8T35TLz67f5n;
-        Sat, 16 Oct 2021 00:56:09 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml705-chm.china.huawei.com (10.206.15.54) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.8; Fri, 15 Oct 2021 18:59:45 +0200
-Received: from localhost (10.202.226.41) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.8; Fri, 15 Oct
- 2021 17:59:44 +0100
-Date:   Fri, 15 Oct 2021 17:59:43 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     <alison.schofield@intel.com>
-CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        "Ben Widawsky" <ben.widawsky@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        <linux-cxl@vger.kernel.org>, <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH] ACPI: NUMA: Add a node and memblk for each CFMWS not in
- SRAT
-Message-ID: <20211015175943.000070b8@Huawei.com>
-In-Reply-To: <20211009015339.400383-1-alison.schofield@intel.com>
-References: <20211009015339.400383-1-alison.schofield@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
+        id S241947AbhJORGz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Oct 2021 13:06:55 -0400
+Received: from cloudserver094114.home.pl ([79.96.170.134]:47804 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237791AbhJORGy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Oct 2021 13:06:54 -0400
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.0)
+ id 6e753915d7a8dc33; Fri, 15 Oct 2021 19:04:46 +0200
+Received: from kreacher.localnet (unknown [213.134.175.255])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 5A26C66A8C0;
+        Fri, 15 Oct 2021 19:04:45 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linux PCI <linux-pci@vger.kernel.org>
+Subject: [PATCH v1 3/3] ACPI: PM: Turn off wakeup power resources on _DSW/_PSW errors
+Date:   Fri, 15 Oct 2021 19:04:26 +0200
+Message-ID: <2795050.e9J7NaK4W3@kreacher>
+In-Reply-To: <4347933.LvFx2qVVIh@kreacher>
+References: <4347933.LvFx2qVVIh@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.226.41]
-X-ClientProxiedBy: lhreml727-chm.china.huawei.com (10.201.108.78) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.175.255
+X-CLIENT-HOSTNAME: 213.134.175.255
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvtddrvddugedguddtjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdejlefghfeiudektdelkeekvddugfeghffggeejgfeukeejleevgffgvdeluddtnecukfhppedvudefrddufeegrddujeehrddvheehnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudejhedrvdehhedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthht
+ oheplhhinhhugidqphgtihesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 8 Oct 2021 18:53:39 -0700
-<alison.schofield@intel.com> wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> From: Alison Schofield <alison.schofield@intel.com>
-> 
-> During NUMA init, CXL memory defined in the SRAT Memory Affinity
-> subtable may be assigned to a NUMA node. Since there is no
-> requirement that the SRAT be comprehensive for CXL memory another
-> mechanism is needed to assign NUMA nodes to CXL memory not identified
-> in the SRAT.
-> 
-> Use the CXL Fixed Memory Window Structure's (CFMWS) of the ACPI CXL
-> Early Discovery Table (CEDT) to find all CXL memory ranges. Create a
-> NUMA node for each range that is not already assigned to a NUMA node.
-> Add a memblk attaching its host physical address range to the node.
-> 
-> Note that these ranges may not actually map any memory at boot time.
-> They may describe persistent capacity or may be present to enable
-> hot-plug.
-> 
-> Consumers can use phys_to_target_node() to discover the NUMA node.
-> 
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-Hi Alison,
+If acpi_device_sleep_wake() called by acpi_enable_wakeup_device_power()
+returns an error which means that the evaluation of either _DWS or
+_PSW has failed, turn off all of the device's wakeup power resources
+to be consistent with the clearing of dev->wakeup.prepare_count.
 
-I'm not sure that a CFMWS entry should map to a single NUMA node...
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/power.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Each entry corresponds to a contiguous HPA range into which CXL devices
-below a set of ports (if interleaved) or one port should be mapped.
+Index: linux-pm/drivers/acpi/power.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -731,8 +731,10 @@ int acpi_enable_wakeup_device_power(stru
+ 	 * put into arbitrary power state afterward.
+ 	 */
+ 	err = acpi_device_sleep_wake(dev, 1, sleep_state, 3);
+-	if (err)
++	if (err) {
++		acpi_power_off_list(&dev->wakeup.resources);
+ 		dev->wakeup.prepare_count = 0;
++	}
+ 
+  out:
+ 	mutex_unlock(&acpi_device_lock);
 
-That could be multiple devices, each with it's own performance characteristics,
-or potentially a mix of persistent and volatile memory on a system with limited
-qtg groups.
 
-Maybe it's the best we can do though given information available
-before any devices are present.
-
-Jonathan
-
-> ---
->  drivers/acpi/numa/srat.c | 58 ++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/acpi.c       |  8 +++---
->  2 files changed, 63 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-> index b8795fc49097..568e033e6c3f 100644
-> --- a/drivers/acpi/numa/srat.c
-> +++ b/drivers/acpi/numa/srat.c
-> @@ -300,6 +300,61 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
->  }
->  #endif /* defined(CONFIG_X86) || defined (CONFIG_ARM64) */
->  
-> +/* Add a NUMA node and memblk for each node-less CFMWS */
-> +static int __init acpi_parse_cfmws(struct acpi_table_header *acpi_cedt)
-> +{
-> +	struct acpi_cedt_cfmws *cfmws;
-> +	acpi_size len, cur = 0;
-> +	void *cedt_subtable;
-> +	int i, pxm, node;
-> +	u64 start, end;
-> +
-> +	/* Use fake PXM values starting after the max PXM found in the SRAT */
-> +	for (i = 0; i < MAX_PXM_DOMAINS - 1; i++)
-> +		if (node_to_pxm_map[i] > pxm)
-> +			pxm = node_to_pxm_map[i];
-> +	pxm++;
-> +
-> +	len = acpi_cedt->length - sizeof(*acpi_cedt);
-> +	cedt_subtable = acpi_cedt + 1;
-> +
-> +	while (cur < len) {
-> +		struct acpi_cedt_header *c = cedt_subtable + cur;
-> +
-> +		if (c->type != ACPI_CEDT_TYPE_CFMWS)
-> +			goto next;
-> +
-> +		cfmws = cedt_subtable + cur;
-> +		if (cfmws->header.length < sizeof(*cfmws)) {
-> +			pr_warn_once("CFMWS entry skipped:invalid length:%u\n",
-> +				     cfmws->header.length);
-> +			goto next;
-> +		}
-> +
-> +		start = cfmws->base_hpa;
-> +		end = cfmws->base_hpa + cfmws->window_size;
-> +
-> +		/* Skip if the HPA is already assigned to a NUMA node */
-> +		node = phys_to_target_node(start);
-> +		if (node != NUMA_NO_NODE)
-> +			goto next;
-> +
-> +		node = acpi_map_pxm_to_node(pxm);
-> +		if (node == NUMA_NO_NODE) {
-> +			pr_err("ACPI NUMA: Too many proximity domains.\n");
-> +			return -EINVAL;
-> +		}
-> +		if (numa_add_memblk(node, start, end) < 0) {
-> +			pr_warn("ACPI NUMA: Failed to add memblk for CFMWS node %d [mem %#llx-%#llx]\n",
-> +				node, start, end);
-> +		}
-> +		pxm++;
-> +next:
-> +		cur += c->length;
-> +	}
-> +	return 0;
-> +}
-> +
->  static int __init acpi_parse_slit(struct acpi_table_header *table)
->  {
->  	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
-> @@ -478,6 +533,9 @@ int __init acpi_numa_init(void)
->  	/* SLIT: System Locality Information Table */
->  	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
->  
-> +	/* CEDT: CXL Early Discovery Table */
-> +	acpi_table_parse(ACPI_SIG_CEDT, acpi_parse_cfmws);
-> +
->  	if (cnt < 0)
->  		return cnt;
->  	else if (!parsed_numa_memblks)
-> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> index dadc7f64b9ff..3798841c3418 100644
-> --- a/drivers/cxl/acpi.c
-> +++ b/drivers/cxl/acpi.c
-> @@ -144,9 +144,11 @@ static void cxl_add_cfmws_decoders(struct device *dev,
->  				cfmws->window_size - 1);
->  			goto next;
->  		}
-> -		dev_dbg(dev, "add: %s range %#llx-%#llx\n",
-> -			dev_name(&cxld->dev), cfmws->base_hpa,
-> -			cfmws->base_hpa + cfmws->window_size - 1);
-> +		dev_dbg(dev, "add:%s node:%d range:%#llx-%#llx restrict:%#x\n",
-> +			dev_name(&cxld->dev),
-> +			phys_to_target_node(cxld->range.start),
-> +			cxld->range.start, cxld->range.end,
-> +			cfmws->restrictions);
->  next:
->  		cur += c->length;
->  	}
 
