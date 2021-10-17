@@ -2,61 +2,88 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 599DFC433F5
-	for <linux-acpi@archiver.kernel.org>; Sat, 16 Oct 2021 16:23:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0055DC433F5
+	for <linux-acpi@archiver.kernel.org>; Sun, 17 Oct 2021 04:06:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3EB1261027
-	for <linux-acpi@archiver.kernel.org>; Sat, 16 Oct 2021 16:23:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C121761058
+	for <linux-acpi@archiver.kernel.org>; Sun, 17 Oct 2021 04:06:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240705AbhJPQZa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 16 Oct 2021 12:25:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59432 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240691AbhJPQZ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 16 Oct 2021 12:25:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 436F36109E;
-        Sat, 16 Oct 2021 16:23:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1634401401;
-        bh=kAXHDn40F45bVmPuALqF4C5OchrVOee+Yyq4VWxsvko=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=cquUhFFs+F+/PSY8GO67EefKPM4Ez+yEQQ8QosKE6QDcPqAYNOk7hYxCd0qEpHS8g
-         0NIOYUso2Ezi8eZzCqM10QE+rJNf6/H/1x2XF8qtxs8jUBIPSEbSKdNXPR2XrRWvqY
-         mHOi1wOiFCqa0nG7e8SjDDDi94v3vqnHN4eSZD4vQdljHjF7QdRK3Dz//JiND8OKZk
-         mdDtptR+/COalrulHfUt6/CyfHgmsFURdcJGkxVERrxe9sHD+KKpudTLdMTNjuZwcc
-         +n/DlROAmvQid2NDh7x46Ii7TAMFuQB0GAxZuqBr2IB229a57c1ihKBFJZMRgjDNhQ
-         7xIM2RIgj2DvA==
-Subject: Re: [GIT PULL] ACPI fix for v5.15-rc5
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0jyqT335x5iB1HWnESR5OZbitHQqc369rffhkO4h3wMCQ@mail.gmail.com>
-References: <CAJZ5v0jyqT335x5iB1HWnESR5OZbitHQqc369rffhkO4h3wMCQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0jyqT335x5iB1HWnESR5OZbitHQqc369rffhkO4h3wMCQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.15-rc6
-X-PR-Tracked-Commit-Id: 1ea1dbf1f54c3345072c963b3acf8830e2468c1b
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 711c3686676eed0f88d494a187261e6a96c932b1
-Message-Id: <163440140124.26929.9690863969001761560.pr-tracker-bot@kernel.org>
-Date:   Sat, 16 Oct 2021 16:23:21 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S230470AbhJQEJG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 17 Oct 2021 00:09:06 -0400
+Received: from out30-43.freemail.mail.aliyun.com ([115.124.30.43]:37642 "EHLO
+        out30-43.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229536AbhJQEJG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 17 Oct 2021 00:09:06 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R761e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0UsNvnO5_1634443613;
+Received: from B-J4ZXMD6R-0327.local(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0UsNvnO5_1634443613)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Sun, 17 Oct 2021 12:06:55 +0800
+Subject: Re: [PATCH] ACPI, APEI, EINJ: Relax platform response timeout to 1
+ second.
+To:     "Luck, Tony" <tony.luck@intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "bp@alien8.de" <bp@alien8.de>,
+        "james.morse@arm.com" <james.morse@arm.com>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc:     "zhangliguang@linux.alibaba.com" <zhangliguang@linux.alibaba.com>,
+        "zhuo.song@linux.alibaba.com" <zhuo.song@linux.alibaba.com>
+References: <20211015033817.16719-1-xueshuai@linux.alibaba.com>
+ <4d492cef3640414d85ecfdb602ad6fa0@intel.com>
+From:   Shuai Xue <xueshuai@linux.alibaba.com>
+Message-ID: <869f0c92-0800-b24e-9de8-d8c9cb6972a7@linux.alibaba.com>
+Date:   Sun, 17 Oct 2021 12:06:52 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.14.0
+MIME-Version: 1.0
+In-Reply-To: <4d492cef3640414d85ecfdb602ad6fa0@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 15 Oct 2021 20:19:10 +0200:
+Hi, Tony,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.15-rc6
+Thank you for your reply.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/711c3686676eed0f88d494a187261e6a96c932b1
+> Spinning for 1ms was maybe ok. Spinning for up to 1s seems like a bad idea.
+>
+> This code is executed inside a mutex ... so maybe it is safe to sleep instead of spin?
 
-Thank you!
+May the email Subject misled you. This code do NOT spin for 1 sec. The period of the
+spinning depends on the SPIN_UNIT.
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+> -#define SPIN_UNIT		100			/* 100ns */
+> -/* Firmware should respond within 1 milliseconds */
+> -#define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
+> +#define SPIN_UNIT		100			/* 100us */
+> +/* Firmware should respond within 1 seconds */
+> +#define FIRMWARE_TIMEOUT	(1 * USEC_PER_SEC)
+
+The period was 100 ns and changed to 100 us now. In my opinion, spinning for 100 ns or 100 us is OK :)
+
+The timeout_default is set with FIRMWARE_TIMEOUT (1 sec) by default. If the platform do not
+respond within timeout_default after multiple spins, the OSPM will print a warning message to
+dmesg.
+
+Regards,
+Shuai
+
+
+On 2021/10/15 PM11:37, Luck, Tony wrote:
+>> We observe that the waiting time for DDR error injection is about 10 ms
+>> and that for PCIe error injection is about 500 ms in Arm platfrom.
+>>
+>> In this patch, we relax the response timeout to 1 second and allow user to
+>> pass the time out value as a argument.
+> 
+> Spinning for 1ms was maybe ok. Spinning for up to 1s seems like a bad idea.
+> 
+> This code is executed inside a mutex ... so maybe it is safe to sleep instead of spin?
+> 
+> -Tony
+> 
