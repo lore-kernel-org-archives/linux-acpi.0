@@ -2,88 +2,103 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0055DC433F5
-	for <linux-acpi@archiver.kernel.org>; Sun, 17 Oct 2021 04:06:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AA79C433EF
+	for <linux-acpi@archiver.kernel.org>; Sun, 17 Oct 2021 14:22:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C121761058
-	for <linux-acpi@archiver.kernel.org>; Sun, 17 Oct 2021 04:06:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D69360E74
+	for <linux-acpi@archiver.kernel.org>; Sun, 17 Oct 2021 14:22:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230470AbhJQEJG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 17 Oct 2021 00:09:06 -0400
-Received: from out30-43.freemail.mail.aliyun.com ([115.124.30.43]:37642 "EHLO
-        out30-43.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229536AbhJQEJG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 17 Oct 2021 00:09:06 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R761e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0UsNvnO5_1634443613;
-Received: from B-J4ZXMD6R-0327.local(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0UsNvnO5_1634443613)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Sun, 17 Oct 2021 12:06:55 +0800
-Subject: Re: [PATCH] ACPI, APEI, EINJ: Relax platform response timeout to 1
- second.
-To:     "Luck, Tony" <tony.luck@intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "bp@alien8.de" <bp@alien8.de>,
-        "james.morse@arm.com" <james.morse@arm.com>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc:     "zhangliguang@linux.alibaba.com" <zhangliguang@linux.alibaba.com>,
-        "zhuo.song@linux.alibaba.com" <zhuo.song@linux.alibaba.com>
-References: <20211015033817.16719-1-xueshuai@linux.alibaba.com>
- <4d492cef3640414d85ecfdb602ad6fa0@intel.com>
-From:   Shuai Xue <xueshuai@linux.alibaba.com>
-Message-ID: <869f0c92-0800-b24e-9de8-d8c9cb6972a7@linux.alibaba.com>
-Date:   Sun, 17 Oct 2021 12:06:52 +0800
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
- Gecko/20100101 Thunderbird/78.14.0
+        id S237987AbhJQOYV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 17 Oct 2021 10:24:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48166 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231156AbhJQOYU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 17 Oct 2021 10:24:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B94960E74;
+        Sun, 17 Oct 2021 14:22:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1634480531;
+        bh=GUiahCSDrD8J6IIWMDZtmEEy4K50EAWbaUrB/r7dK8I=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=taswiWj6N5VxmlW6rfycTtYTkfkQBVWWxiYDxUmjbCft7EyznB95j4JmWvOTk2psX
+         CP0pHPHINt+AKCjc51uudA1cn+1gWoRu+NVU8NLjzW0jK4JLdiUEB9wyfVHrfKiClX
+         wZ+WMAmiZqPIR1SwH90CNi3YoyAWmCdoKKm6GhsubgOQ00D0PSrxx9op1vXEo/OqX9
+         NqR9yiicr2je7ot/ZOEc1tneDcR7jnnkH6jDaooa2l8nENj66/W0HG7U0F1EV5L/mz
+         LVrP/c45HcmXzocNEbxMYnPC85DaRBYk9X9f/5Oz1+56j3owQ7T80uWhMlgo05a2+z
+         3kslXyxP7G9qQ==
+Date:   Sun, 17 Oct 2021 16:22:07 +0200
+From:   Wolfram Sang <wsa@kernel.org>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Elie Morisse <syniurge@gmail.com>,
+        Nehal Shah <nehal-bakulchandra.shah@amd.com>,
+        Shyam Sundar S K <shyam-sundar.s-k@amd.com>,
+        linux-i2c@vger.kernel.org
+Subject: Re: [PATCH v2 3/7] i2c: i2c-amd-mp2-plat: ACPI: Use ACPI_COMPANION()
+ directly
+Message-ID: <YWwxj4CQIbDRkITs@ninjato>
+Mail-Followup-To: Wolfram Sang <wsa@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Elie Morisse <syniurge@gmail.com>,
+        Nehal Shah <nehal-bakulchandra.shah@amd.com>,
+        Shyam Sundar S K <shyam-sundar.s-k@amd.com>,
+        linux-i2c@vger.kernel.org
+References: <4369779.LvFx2qVVIh@kreacher>
+ <3647069.kQq0lBPeGt@kreacher>
+ <1823250.tdWV9SEqCh@kreacher>
 MIME-Version: 1.0
-In-Reply-To: <4d492cef3640414d85ecfdb602ad6fa0@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ICLe6aBUuDu4DwGj"
+Content-Disposition: inline
+In-Reply-To: <1823250.tdWV9SEqCh@kreacher>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi, Tony,
 
-Thank you for your reply.
+--ICLe6aBUuDu4DwGj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Spinning for 1ms was maybe ok. Spinning for up to 1s seems like a bad idea.
->
-> This code is executed inside a mutex ... so maybe it is safe to sleep instead of spin?
+On Wed, Oct 13, 2021 at 06:09:39PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>=20
+> The ACPI_HANDLE() macro is a wrapper arond the ACPI_COMPANION()
+> macro and the ACPI handle produced by the former comes from the
+> ACPI device object produced by the latter, so it is way more
+> straightforward to evaluate the latter directly instead of passing
+> the handle produced by the former to acpi_bus_get_device().
+>=20
+> Modify i2c_amd_probe() accordingly (no intentional functional impact).
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
 
-May the email Subject misled you. This code do NOT spin for 1 sec. The period of the
-spinning depends on the SPIN_UNIT.
-
-> -#define SPIN_UNIT		100			/* 100ns */
-> -/* Firmware should respond within 1 milliseconds */
-> -#define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
-> +#define SPIN_UNIT		100			/* 100us */
-> +/* Firmware should respond within 1 seconds */
-> +#define FIRMWARE_TIMEOUT	(1 * USEC_PER_SEC)
-
-The period was 100 ns and changed to 100 us now. In my opinion, spinning for 100 ns or 100 us is OK :)
-
-The timeout_default is set with FIRMWARE_TIMEOUT (1 sec) by default. If the platform do not
-respond within timeout_default after multiple spins, the OSPM will print a warning message to
-dmesg.
-
-Regards,
-Shuai
+Applied to for-next, thanks!
 
 
-On 2021/10/15 PM11:37, Luck, Tony wrote:
->> We observe that the waiting time for DDR error injection is about 10 ms
->> and that for PCIe error injection is about 500 ms in Arm platfrom.
->>
->> In this patch, we relax the response timeout to 1 second and allow user to
->> pass the time out value as a argument.
-> 
-> Spinning for 1ms was maybe ok. Spinning for up to 1s seems like a bad idea.
-> 
-> This code is executed inside a mutex ... so maybe it is safe to sleep instead of spin?
-> 
-> -Tony
-> 
+--ICLe6aBUuDu4DwGj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmFsMY8ACgkQFA3kzBSg
+KbYAvQ/+KkX/TyMoXgHkVUp2Z6sm51r1NeYGhhnhOIt2dIYEjAKfjyCswsgF7H4u
+6ncL2XO/ms7cMMEE6ACHih6FNWsssoPtSkxhFfk7bNWEoazd6T+0pCV4NgY5dPqC
+iPS8D2znQmn61fCVCOyucM0SG0iD1boMKu9cnjHUD4BOuqxb6NB9jLYGrDvPubmY
+2ToD+raPu0sqybEtbwtsTD3oZl5wyHINGXfXHiasynh08XI4eMZz8xZ5HzPX8GIG
+nAdqXboEqpo5yE9nCUXrAZOukfoAJhspJE1gLkhEcfldGPzTy5iOFIR9g+YAamub
+VZtZrn+zRwOaNe5x/lG7mZm8/zPInAETNTvHj953QbPhWPvdL6L/ksZFVhHEkWTp
+ntrDB//McYIcQGnpJ7x364IL5q7u95eAfK5Pla+ZU0rad1QBR4avg0ML6oaeRGD1
+wi0SGfC4uncyvhLtUvXi8qfJQP9ZjJ4MfFv8+KACfKx/ThsKrVzMeIFe8tRDh9aV
+mE8oVYaFnGsSq7CxOoO7AlhPTQT8DN5kcv+GX7EFHztmIiPZAZ5IWGjT6NBO0oe/
+v+jDRoe3cTNcKrbzrSP7TB32CAS3yAXcwp3o68nfUl/keV5yE7V/E3oTVDf1GJHc
++BWRvxTM2sZAlTdbrFWQFM5j3b0MuQM6Y/xcen6Av8h5rRdG5as=
+=PhsZ
+-----END PGP SIGNATURE-----
+
+--ICLe6aBUuDu4DwGj--
