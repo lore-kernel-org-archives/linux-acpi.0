@@ -2,28 +2,28 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECCB7C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Oct 2021 07:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82329C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Oct 2021 08:23:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D58BA6115B
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Oct 2021 07:54:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61CEA61130
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Oct 2021 08:23:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229555AbhJTH4W (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Oct 2021 03:56:22 -0400
-Received: from mga14.intel.com ([192.55.52.115]:36141 "EHLO mga14.intel.com"
+        id S229632AbhJTIZQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Oct 2021 04:25:16 -0400
+Received: from mga12.intel.com ([192.55.52.136]:17263 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229503AbhJTH4W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 20 Oct 2021 03:56:22 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10142"; a="228990377"
+        id S229603AbhJTIZQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 20 Oct 2021 04:25:16 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10142"; a="208826719"
 X-IronPort-AV: E=Sophos;i="5.87,166,1631602800"; 
-   d="scan'208";a="228990377"
+   d="scan'208";a="208826719"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2021 00:54:03 -0700
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2021 01:23:01 -0700
 X-IronPort-AV: E=Sophos;i="5.87,166,1631602800"; 
-   d="scan'208";a="444262151"
+   d="scan'208";a="444269106"
 Received: from chenyu-desktop.sh.intel.com (HELO chenyu-desktop) ([10.239.158.176])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2021 00:53:59 -0700
-Date:   Wed, 20 Oct 2021 16:00:40 +0800
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2021 01:22:59 -0700
+Date:   Wed, 20 Oct 2021 16:29:39 +0800
 From:   Chen Yu <yu.c.chen@intel.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc:     linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
@@ -32,125 +32,133 @@ Cc:     linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
         Ashok Raj <ashok.raj@intel.com>,
         Andy Shevchenko <andriy.shevchenko@intel.com>,
         Mike Rapoport <rppt@kernel.org>,
-        Aubrey Li <aubrey.li@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v4 2/4] drivers/acpi: Introduce Platform Firmware Runtime
- Update device driver
-Message-ID: <20211020080040.GA43094@chenyu-desktop>
+        Aubrey Li <aubrey.li@intel.com>
+Subject: Re: [PATCH v4 3/4] drivers/acpi: Introduce Platform Firmware Runtime
+ Update Telemetry
+Message-ID: <20211020082939.GA44221@chenyu-desktop>
 References: <cover.1634310710.git.yu.c.chen@intel.com>
- <eadc25933400c71a52e7d176880df09a147a39b9.1634310710.git.yu.c.chen@intel.com>
- <YWrswQ+ETMthZZVk@kroah.com>
+ <838245e376c7e6fd0fe1ef55d004ed53763846a2.1634310710.git.yu.c.chen@intel.com>
+ <YWrrYWeW7uaiJ51u@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <YWrswQ+ETMthZZVk@kroah.com>
+In-Reply-To: <YWrrYWeW7uaiJ51u@kroah.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Oct 16, 2021 at 05:16:17PM +0200, Greg Kroah-Hartman wrote:
-> On Sat, Oct 16, 2021 at 06:40:51PM +0800, Chen Yu wrote:
-> > Introduce the pfru_update driver which can be used for Platform Firmware
-> > Runtime code injection and driver update[1]. The user is expected to
-> > provide the update firmware in the form of capsule file, and pass it to
-> > the driver via ioctl. Then the driver would hand this capsule file to the
-> > Platform Firmware Runtime Update via the ACPI device _DSM method. At last
-> > the low level Management Mode would do the firmware update.
+On Sat, Oct 16, 2021 at 05:10:25PM +0200, Greg Kroah-Hartman wrote:
+> On Sat, Oct 16, 2021 at 06:44:31PM +0800, Chen Yu wrote:
+> > Platform Firmware Runtime Update(PFRU) Telemetry Service is part of RoT
+> > (Root of Trust), which allows PFRU handler and other PFRU drivers to
+> > produce telemetry data to upper layer OS consumer at runtime.
 > > 
-> > [1] https://uefi.org/sites/default/files/resources/Intel_MM_OS_Interface_Spec_Rev100.pdf
+> > The linux provides interfaces for the user to query the parameters of
+> > telemetry data, and the user could read out the telemetry data
+> > accordingly.
+> 
+> What type of interface is this?  How does userspace interact with it?
+> 
 > > 
-[snip...]
+> > Also add the ABI documentation.
 > 
-> Do we normally describe ioctl interfaces in Documentation/ABI/?  Why not
-> just add this to the kernel doc with the structures you are creating?
-> Wouldn't that be easier?
-> 
-Ok, will move these comments into kernel doc in pfru.h.
-> Or are other acpi ioctl interfaces documented here already?
-> 
-No other acpi ioctl interfaces, but there are some non-acpi
-ioctl interfaces, such as rtc-cdev.
-> > diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
-> > index 2e8134059c87..6e5a82fff408 100644
-> > --- a/Documentation/userspace-api/ioctl/ioctl-number.rst
-> > +++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
-> > @@ -365,6 +365,7 @@ Code  Seq#    Include File                                           Comments
-> >                                                                       <mailto:aherrman@de.ibm.com>
-> >  0xE5  00-3F  linux/fuse.h
-> >  0xEC  00-01  drivers/platform/chrome/cros_ec_dev.h                   ChromeOS EC driver
-> > +0xEE  00-1F  uapi/linux/pfru.h                                       Platform Firmware Runtime Update and Telemetry
-> 
-> You are not using all of those values, right?
-> 
-Not using all of them, will shrink the range to 8 in next
-version.
-> >  0xF3  00-3F  drivers/usb/misc/sisusbvga/sisusb.h                     sisfb (in development)
-> >
-[snip...]                                                                       <mailto:thomas@winischhofer.net>
-> > +
-> > +struct pfru_device {
-> > +	guid_t uuid, code_uuid, drv_uuid;
-> > +	int rev_id;
-> > +	struct device *dev;
-> > +};
-> > +
-> > +static struct pfru_device *pfru_dev;
-> 
-> Why is this a single variable?  Shouldn't this be per-device as the bus
-> provides it to you?
+> Add it where?
 >
-[snip...] 
-> > +
-> > +static int acpi_pfru_probe(struct platform_device *pdev)
-> > +{
-> > +	acpi_handle handle;
-> > +	int ret;
-> > +
-> > +	/* Only one instance is allowed. */
-> > +	if (pfru_dev)
-> > +		return 0;
+They are all ioctl interfaces, and was introduced in previous patch in
+Documentation/ABI/testing/pfru. The way userspace interace with it is
+introduced in next patch in the man page. I'll revise the commit log to
+better describe how user could use it.
+> > 
+> > Typical log looks like:
+> > [SmmRuntimeUpdateHandler.ProcessSmmRuntimeUpdate]
+> > ProcessSmmRuntimeUpdate = START, Action = 2
+> > [SmmRuntimeUpdateHandler.ProcessSmmRuntimeUpdate]
+> > FwVersion = 0, CodeInjectionVersion = 1
+> > [ShadowSmmRuntimeUpdateImage]
+> > Image = 0x74D9B000, ImageSize = 0x1172
+> > [ProcessSmmRuntimeUpdate]
+> > ShadowSmmRuntimeUpdateImage.Status = Success
+> > [ValidateSmmRuntimeUpdateImage]
+> > CapsuleHeader.CapsuleGuid = 6DCBD5ED-E82D-4C44-BDA1-7194199AD92A
+> > [ValidateSmmRuntimeUpdateImage]
+> > FmpCapHeader.Version = 1
+> > [ValidateSmmRuntimeUpdateImage]
+> > FmpCapImageHeader.UpdateImageTypeId = B2F84B79-7B6E-4E45-885F-3FB9BB185402
+> > [ValidateSmmRuntimeUpdateImage]
+> > SmmRuntimeUpdateVerifyImageWithDenylist.Status = Success
+> > [ValidateSmmRuntimeUpdateImage]
+> > SmmRuntimeUpdateVerifyImageWithAllowlist.Status = Success
+> > [SmmCodeInjectionVerifyPayloadHeader]
+> > PayloadHeader.Signature = 0x31494353
+> > [SmmCodeInjectionVerifyPayloadHeader]
+> > PayloadHeader.PlatformId = 63462139-A8B1-AA4E-9024-F2BB53EA4723
+> > [SmmCodeInjectionVerifyPayloadHeader]
+> > PayloadHeader.SupportedSmmFirmwareVersion = 0,
+> > PayloadHeader.SmmCodeInjectionRuntimeVersion = 1
+> > [ProcessSmmRuntimeUpdate]
+> > ValidateSmmRuntimeUpdateImage.Status = Success
+> > CPU CSR[0B102D28] Before = 7FBF830E
+> > CPU CSR[0B102D28] After = 7FBF8310
+> > [ProcessSmmRuntimeUpdate] ProcessSmmCodeInjection.Status = Success
+> > [SmmRuntimeUpdateHandler.ProcessSmmRuntimeUpdate]
+> > ProcessSmmRuntimeUpdate = End, Status = Success
 > 
-> Why is only one instance allowed?  Why add extra work to do this when it
-> really is not needed at all?  It is simpler and less code to make it so
-> that there is no restriction like this at all.
-> 
-> Also, the return value is incorrect, so your implementaion of trying to
-> keep only one instance does not work properly :(
-> 
-Ok, I'll change it to per-device in next version. And the motivation of
-using a single variable was that:
-There would be only one instance of PFRU ACPI object and one PFRU Telemetry
-ACPI object provided by BIOS, otherwise it is regarded as a BIOS bug for now.
-But since per-device variable is more acceptable and scalable, will change
-it to per-device in next version.
-[snip...]
+> This log does not make any sense to me, where is it from?  Why the odd
+> line-wrapping?
+>
+It is from the telemetry log generated by the BIOS. Since this content is
+platform specific, I'll remove the log in next version.
 > > +};
 > > +
-[snip...]
-> > +static int __init pfru_init(void)
-> > +{
-> > +	int ret;
 > > +
-> > +	ret = misc_register(&pfru_misc_dev);
+[snip...]
+> > +ssize_t pfru_log_read(struct file *filp, char __user *ubuf,
+> > +		      size_t size, loff_t *off)
+> > +{
+> > +	struct pfru_log_data_info info;
+> > +	phys_addr_t base_addr;
+> > +	int buf_size, ret;
+> > +	char *buf_ptr;
+> > +
+> > +	if (!pfru_log_dev)
+> > +		return -ENODEV;
+> > +
+> > +	if (*off < 0)
+> > +		return -EINVAL;
+> > +
+> > +	ret = get_pfru_log_data_info(&info, pfru_log_dev->info.log_type);
 > > +	if (ret)
 > > +		return ret;
 > > +
+> > +	base_addr = (phys_addr_t)(info.chunk2_addr_lo | (info.chunk2_addr_hi << 32));
+> > +	/* pfru update has not been launched yet.*/
+> > +	if (!base_addr)
+> > +		return -EBUSY;
+> > +
+> > +	buf_size = info.max_data_size;
+> > +	if (*off >= buf_size)
+> > +		return 0;
+> > +
+> > +	buf_ptr = memremap(base_addr, buf_size, MEMREMAP_WB);
+> > +	if (IS_ERR(buf_ptr))
+> > +		return PTR_ERR(buf_ptr);
+> > +
+> > +	size = min_t(size_t, size, buf_size - *off);
+> > +	if (copy_to_user(ubuf, buf_ptr + *off, size))
+> > +		ret = -EFAULT;
+> > +	else
+> > +		ret = 0;
 > 
-> Why register this here, BEFORE you have a real device?  That looks like
-> a big race condition here :(
+> As all you are doing is mapping some memory and reading from it, why do
+> you need a read() file operation at all?  Why not just use mmap?
 > 
-> Register it per device you have in the system please.
->
-Ok.
-Previously the pfru_misc_dev is shared between the PFRU device and
-PFRU Telemetry device, so that the PFRU device is accessed via
-pfru_misc_dev.write() and PFRU device is accessed via pfru_misc_dev.read().
-The benefit of doing this is that, the user only deals with one misc_dev node
-rather than two. Changing this to per-device scope would generate two misc_dev
-nodes, and the user needs to deal with them respectively, but with better
-scalability and less race condition. I'll revise it in next version.
+In the beginning mmap() interface was provided to the user. Then it was
+realized that there is no guarantee in the spec that, the physical address
+provided by the BIOS would remain unchanged. So instead of asking the user
+to mmap the file each time before reading the log, the read() is leveraged
+here to always memremap() the latest address.
 
-Thanks,
+thanks,
 Chenyu
 > thanks,
 > 
