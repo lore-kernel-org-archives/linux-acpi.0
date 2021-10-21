@@ -2,350 +2,308 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80E4CC433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Oct 2021 11:30:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ADF2C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 Oct 2021 15:46:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67BB160EFE
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Oct 2021 11:30:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F45561212
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 Oct 2021 15:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230401AbhJULco (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Oct 2021 07:32:44 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:27979 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230360AbhJULcm (ORCPT
+        id S231208AbhJUPtB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Oct 2021 11:49:01 -0400
+Received: from out30-133.freemail.mail.aliyun.com ([115.124.30.133]:60969 "EHLO
+        out30-133.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230187AbhJUPtA (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 21 Oct 2021 07:32:42 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1634815826;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=mfc1QygQ/fCgvVOrbFl32ccsfwnckQuRrXWElGIUywE=;
-        b=GfbiMr4vwyGVAKi7+y2hYgJN0KFMAhJcGfBkiAqeO/1LLRSzIl4cWrM3adq5ML/GKtw/Ng
-        OWe5jaKzZu9Yw2tESG/Uww5Q/w4vda8FMlzF5gQtEp9+sDTp/BFCzP3PlDVp4bqOZMn7pf
-        WLfqjcBcDANcnHRJ/QzQ/K1OJmoUu08=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-56-HXnnz5GKPui_VLKnKhnJqQ-1; Thu, 21 Oct 2021 07:30:25 -0400
-X-MC-Unique: HXnnz5GKPui_VLKnKhnJqQ-1
-Received: by mail-ed1-f72.google.com with SMTP id s12-20020a50dacc000000b003dbf7a78e88so28821edj.2
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Oct 2021 04:30:25 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=mfc1QygQ/fCgvVOrbFl32ccsfwnckQuRrXWElGIUywE=;
-        b=ZP1k8GlzjZQ8IELkqC4n/mKICvdK8L2LWQ/5Z2yf9iHS1xEnllj1ExCQ/0c66hiU3d
-         0UCVc9FwMnSBkVM+K6vQezlAFdIUzLj/RhmaW6Xwwq+sVdwUmzP3E7i6oLVsbNEPSZu3
-         vu2RajcZ0xBsRYJ9UnGbYhA//58eKZQctl1dgiGadr8EEJ0Uav7Rdxd3cnHclVQVw77G
-         vLS4hHfqSXb52N6NPj4dkd/O7VbFasgION1zOCJ5su8zUBjixtkJ220FZS7K0n75rQvX
-         +0gLW8WNgg+9ncW/vcfh3SepFMiblGsEfo5HQI+IM6CdIJqqVYXJls+JtSPYHaOya5Dg
-         mkvQ==
-X-Gm-Message-State: AOAM533706m4g6M97irRDKl54ITHrlrUIU+Y/C4HgoEqDInCr1lJC2as
-        vnIT603VUVsvhqAPdkp8CeItV4zUYahCug2yADZCOAzFc+GA5lj/p6jy+HaIBoLZxNWHKjuWyyS
-        6TLuHArFAlGkK5BrURU8uuA==
-X-Received: by 2002:a17:906:7fc9:: with SMTP id r9mr6339529ejs.542.1634815824178;
-        Thu, 21 Oct 2021 04:30:24 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJzcOZbiMc90MtLQXfXC32XTSoeiFSc8N7qUI4Vci4dj2avy+BNMirgXMcO7p7irVTbQKn7xMA==
-X-Received: by 2002:a17:906:7fc9:: with SMTP id r9mr6339482ejs.542.1634815823801;
-        Thu, 21 Oct 2021 04:30:23 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:c1e:bf00:1054:9d19:e0f0:8214? (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
-        by smtp.gmail.com with ESMTPSA id t6sm2750974edj.27.2021.10.21.04.30.23
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 21 Oct 2021 04:30:23 -0700 (PDT)
-Message-ID: <c348daef-ba20-6a43-5424-d6e38b42557b@redhat.com>
-Date:   Thu, 21 Oct 2021 13:30:22 +0200
+        Thu, 21 Oct 2021 11:49:00 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=xuesong.chen@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0UtAFj5t_1634831200;
+Received: from 172.20.10.10(mailfrom:xuesong.chen@linux.alibaba.com fp:SMTPD_---0UtAFj5t_1634831200)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 21 Oct 2021 23:46:42 +0800
+Message-ID: <7716ac99-34a1-2364-03ee-6ecd92b39f5b@linux.alibaba.com>
+Date:   Thu, 21 Oct 2021 23:46:40 +0800
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.0
-Subject: Re: [PATCH v5 1/2] x86/PCI: Ignore E820 reservations for bridge
- windows on newer systems
-Content-Language: en-US
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
-References: <20211019215240.GA2411590@bhelgaas>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <20211019215240.GA2411590@bhelgaas>
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.2.0
+Subject: Re: [PATCH v3 2/2] ACPI: APEI: Filter the PCI MCFG address with an
+ arch-agnostic method
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     catalin.marinas@arm.com, lorenzo.pieralisi@arm.com,
+        james.morse@arm.com, will@kernel.org, rafael@kernel.org,
+        tony.luck@intel.com, bp@alien8.de, mingo@kernel.org,
+        bhelgaas@google.com, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>,
+        Gong <gong.chen@linux.intel.com>, xuesong.chen@linux.alibaba.com
+References: <20211020185041.GA2617548@bhelgaas>
+From:   Xuesong Chen <xuesong.chen@linux.alibaba.com>
+In-Reply-To: <20211020185041.GA2617548@bhelgaas>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-<note this is a resend to see if some bounces which I was getting
- from vger are resolved, please ignore>
 
-Hi,
 
-On 10/19/21 23:52, Bjorn Helgaas wrote:
-> On Thu, Oct 14, 2021 at 08:39:42PM +0200, Hans de Goede wrote:
->> Some BIOS-es contain a bug where they add addresses which map to system
->> RAM in the PCI host bridge window returned by the ACPI _CRS method, see
->> commit 4dc2287c1805 ("x86: avoid E820 regions when allocating address
->> space").
->>
->> To work around this bug Linux excludes E820 reserved addresses when
->> allocating addresses from the PCI host bridge window since 2010.
->>
->> Recently (2020) some systems have shown-up with E820 reservations which
->> cover the entire _CRS returned PCI bridge memory window, causing all
->> attempts to assign memory to PCI BARs which have not been setup by the
->> BIOS to fail. For example here are the relevant dmesg bits from a
->> Lenovo IdeaPad 3 15IIL 81WE:
->>
->>  [mem 0x000000004bc50000-0x00000000cfffffff] reserved
->>  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
->>
->> The ACPI specifications appear to allow this new behavior:
->>
->> The relationship between E820 and ACPI _CRS is not really very clear.
->> ACPI v6.3, sec 15, table 15-374, says AddressRangeReserved means:
->>
->>   This range of addresses is in use or reserved by the system and is
->>   not to be included in the allocatable memory pool of the operating
->>   system's memory manager.
->>
->> and it may be used when:
->>
->>   The address range is in use by a memory-mapped system device.
->>
->> Furthermore, sec 15.2 says:
->>
->>   Address ranges defined for baseboard memory-mapped I/O devices, such
->>   as APICs, are returned as reserved.
->>
->> A PCI host bridge qualifies as a baseboard memory-mapped I/O device,
->> and its apertures are in use and certainly should not be included in
->> the general allocatable pool, so the fact that some BIOS-es reports
->> the PCI aperture as "reserved" in E820 doesn't seem like a BIOS bug.
->>
->> So it seems that the excluding of E820 reserved addresses is a mistake.
->>
->> Ideally Linux would fully stop excluding E820 reserved addresses,
->> but then the old systems this was added for will regress.
->> Instead keep the old behavior for old systems, while ignoring
->> the E820 reservations for any systems from now on.
->>
->> Old systems are defined here as BIOS year < 2018, this was chosen to
->> make sure that pci_use_e820 will not be set on the currently affected
->> systems, while at the same time also taking into account that the
->> systems for which the E820 checking was originally added may have
->> received BIOS updates for quite a while (esp. CVE related ones),
->> giving them a more recent BIOS year then 2010.
->>
->> Also add pci=no_e820 and pci=use_e820 options to allow overriding
->> the BIOS year heuristic.
->>
->> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=206459
->> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1868899
->> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1871793
->> BugLink: https://bugs.launchpad.net/bugs/1878279
->> BugLink: https://bugs.launchpad.net/bugs/1931715
->> BugLink: https://bugs.launchpad.net/bugs/1932069
->> BugLink: https://bugs.launchpad.net/bugs/1921649
->> Cc: Benoit Grégoire <benoitg@coeus.ca>
->> Cc: Hui Wang <hui.wang@canonical.com>
->> Cc: stable@vger.kernel.org
->> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+On 21/10/2021 02:50, Bjorn Helgaas wrote:
+> [+cc Gong, author of d91525eb8ee6]
 > 
-> I haven't seen anybody else eager to merge this, so I guess I'll stick
-> my neck out here.
+> On Wed, Oct 20, 2021 at 11:16:38AM +0800, Xuesong Chen wrote:
+>> On 20/10/2021 03:23, Bjorn Helgaas wrote:
+>>> On Tue, Oct 19, 2021 at 12:50:33PM +0800, Xuesong Chen wrote:
 > 
-> I applied this to my for-linus branch for v5.15.
-
-Thank you, and sorry about the build-errors which the lkp
-kernel-test-robot found.
-
-I've just send out a patch which fixes these build-errors
-(verified with both .config-s from the lkp reports).
-Feel free to squash this into the original patch (or keep
-them separate, whatever works for you).
-
-Regards,
-
-Hans
-
-
->> ---
->> Changes in v5:
->> - Drop mention of Windows behavior from the commit msg, replace with a
->>   reference to the specs
->> - Improve documentation in Documentation/admin-guide/kernel-parameters.txt
->> - Reword the big comment added, use "PCI host bridge window" in it and drop
->>   all refences to Windows
+>>> I wish we could also include the matching MCFG info For x86, we
+>>> put something like this in the dmesg log, but I guess pci_mcfg.c
+>>> doesn't do this:
+>>>
+>>>   PCI: MMCONFIG for domain 0000 [bus 00-7f] at [mem 0xf0000000-0xf7ffffff] (base 0xf0000000)
 >>
->> Changes in v4:
->> - Rewrap the big comment block to fit in 80 columns
->> - Add Rafael's Acked-by
->> - Add Cc: stable@vger.kernel.org
+>> I can add the similar dmesg log in pci_mcfg.c to make it's
+>> consistent between different arches
+> 
+> I think that might be nice.  It should probably be a separate patch
+> since it's not really related to the others.
+
+Yes, will do.
+
+> 
+>>>> This patch will try to handle this case in a more common way instead of the
+>>>> original 'arch' specific solution, which will be beneficial to all the
+>>>> APEI-dependent platforms after that.
+>>>
+>>> This actually doesn't say anything about what the patch does or how it
+>>> works.  It says "handles this case in a more common way" but with no
+>>> details.
 >>
->> Changes in v3:
->> - Commit msg tweaks (drop dmesg timestamps, typo fix)
->> - Use "defined(CONFIG_...)" instead of "defined CONFIG_..."
->> - Add Mika's Reviewed-by
+>> Good suggestion, I'll give more details about that...
+>>> The EINJ table contains "injection instructions" that can read or
+>>> write "register regions" described by generic address structures (see
+>>> ACPI v6.3, sec 18.6.2 and 18.6.3), and __einj_error_trigger() requests
+>>> those register regions with request_mem_region() or request_region()
+>>> before executing the injections instructions.
+>>>
+>>> IIUC, this patch basically says "if this region is part of the MCFG
+>>> area, we don't need to reserve it." That leads to the questions of why
+>>> we need to reserve *any* of the areas
 >>
->> Changes in v2:
->> - Replace the per model DMI quirk approach with disabling E820 reservations
->>   checking for all systems with a BIOS year >= 2018
->> - Add documentation for the new kernel-parameters to
->>   Documentation/admin-guide/kernel-parameters.txt
->> ---
->> Other patches trying to address the same issue:
->> https://lore.kernel.org/r/20210624095324.34906-1-hui.wang@canonical.com
->> https://lore.kernel.org/r/20200617164734.84845-1-mika.westerberg@linux.intel.com
->> V1 patch:
->> https://lore.kernel.org/r/20211005150956.303707-1-hdegoede@redhat.com
->> ---
->>  .../admin-guide/kernel-parameters.txt         |  9 ++++++
->>  arch/x86/include/asm/pci_x86.h                | 10 +++++++
->>  arch/x86/kernel/resource.c                    |  4 +++
->>  arch/x86/pci/acpi.c                           | 28 +++++++++++++++++++
->>  arch/x86/pci/common.c                         |  6 ++++
->>  5 files changed, 57 insertions(+)
+>> AFAIK, the MCFG area is reserved since the ECAM module will provide
+>> a generic Kernel Programming Interfaces(KPI), e.g,
+>> pci_generic_config_read(...), so all the drivers are allowed to
+>> access the pci config space only by those KPIs in a consistent and
+>> safe way, direct raw access will break the rule.  Correct me if I am
+>> missing sth.
 >>
->> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
->> index 43dc35fe5bc0..07f1615206d4 100644
->> --- a/Documentation/admin-guide/kernel-parameters.txt
->> +++ b/Documentation/admin-guide/kernel-parameters.txt
->> @@ -3949,6 +3949,15 @@
->>  				please report a bug.
->>  		nocrs		[X86] Ignore PCI host bridge windows from ACPI.
->>  				If you need to use this, please report a bug.
->> +		use_e820	[X86] Use E820 reservations to exclude parts of
->> +				PCI host bridge windows. This is a workaround
->> +				for BIOS defects in host bridge _CRS methods.
->> +				If you need to use this, please report a bug to
->> +				<linux-pci@vger.kernel.org>.
->> +		no_e820		[X86] Ignore E820 reservations for PCI host
->> +				bridge windows. This is the default on modern
->> +				hardware. If you need to use this, please report
->> +				a bug to <linux-pci@vger.kernel.org>.
->>  		routeirq	Do IRQ routing for all PCI devices.
->>  				This is normally done in pci_enable_device(),
->>  				so this option is a temporary workaround
->> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
->> index 490411dba438..0bb4e7dd0ffc 100644
->> --- a/arch/x86/include/asm/pci_x86.h
->> +++ b/arch/x86/include/asm/pci_x86.h
->> @@ -39,6 +39,8 @@ do {						\
->>  #define PCI_ROOT_NO_CRS		0x100000
->>  #define PCI_NOASSIGN_BARS	0x200000
->>  #define PCI_BIG_ROOT_WINDOW	0x400000
->> +#define PCI_USE_E820		0x800000
->> +#define PCI_NO_E820		0x1000000
->>  
->>  extern unsigned int pci_probe;
->>  extern unsigned long pirq_table_addr;
->> @@ -64,6 +66,8 @@ void pcibios_scan_specific_bus(int busn);
->>  
->>  /* pci-irq.c */
->>  
->> +struct pci_dev;
->> +
->>  struct irq_info {
->>  	u8 bus, devfn;			/* Bus, device and function */
->>  	struct {
->> @@ -232,3 +236,9 @@ static inline void mmio_config_writel(void __iomem *pos, u32 val)
->>  # define x86_default_pci_init_irq	NULL
->>  # define x86_default_pci_fixup_irqs	NULL
->>  #endif
->> +
->> +#if defined(CONFIG_PCI) && defined(CONFIG_ACPI)
->> +extern bool pci_use_e820;
->> +#else
->> +#define pci_use_e820 false
->> +#endif
->> diff --git a/arch/x86/kernel/resource.c b/arch/x86/kernel/resource.c
->> index 9b9fb7882c20..e8dc9bc327bd 100644
->> --- a/arch/x86/kernel/resource.c
->> +++ b/arch/x86/kernel/resource.c
->> @@ -1,6 +1,7 @@
->>  // SPDX-License-Identifier: GPL-2.0
->>  #include <linux/ioport.h>
->>  #include <asm/e820/api.h>
->> +#include <asm/pci_x86.h>
->>  
->>  static void resource_clip(struct resource *res, resource_size_t start,
->>  			  resource_size_t end)
->> @@ -28,6 +29,9 @@ static void remove_e820_regions(struct resource *avail)
->>  	int i;
->>  	struct e820_entry *entry;
->>  
->> +	if (!pci_use_e820)
->> +		return;
->> +
->>  	for (i = 0; i < e820_table->nr_entries; i++) {
->>  		entry = &e820_table->entries[i];
->>  
->> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
->> index 948656069cdd..72d473054262 100644
->> --- a/arch/x86/pci/acpi.c
->> +++ b/arch/x86/pci/acpi.c
->> @@ -21,6 +21,8 @@ struct pci_root_info {
->>  
->>  static bool pci_use_crs = true;
->>  static bool pci_ignore_seg = false;
->> +/* Consumed in arch/x86/kernel/resource.c */
->> +bool pci_use_e820 = false;
->>  
->>  static int __init set_use_crs(const struct dmi_system_id *id)
->>  {
->> @@ -160,6 +162,32 @@ void __init pci_acpi_crs_quirks(void)
->>  	       "if necessary, use \"pci=%s\" and report a bug\n",
->>  	       pci_use_crs ? "Using" : "Ignoring",
->>  	       pci_use_crs ? "nocrs" : "use_crs");
->> +
->> +	/*
->> +	 * Some BIOS-es contain a bug where they add addresses which map to
->> +	 * system RAM in the PCI host bridge window returned by the ACPI _CRS
->> +	 * method, see commit 4dc2287c1805 ("x86: avoid E820 regions when
->> +	 * allocating address space"). To avoid this Linux by default excludes
->> +	 * E820 reservations when allocating addresses since 2010.
->> +	 * In 2020 some systems have shown-up with E820 reservations which cover
->> +	 * the entire _CRS returned PCI host bridge window, causing all attempts
->> +	 * to assign memory to PCI BARs to fail if Linux uses E820 reservations.
->> +	 *
->> +	 * Ideally Linux would fully stop using E820 reservations, but then
->> +	 * the old systems this was added for will regress.
->> +	 * Instead keep the old behavior for old systems, while ignoring the
->> +	 * E820 reservations for any systems from now on.
->> +	 */
->> +	if (year >= 0 && year < 2018)
->> +		pci_use_e820 = true;
->> +
->> +	if (pci_probe & PCI_NO_E820)
->> +		pci_use_e820 = false;
->> +	else if (pci_probe & PCI_USE_E820)
->> +		pci_use_e820 = true;
->> +
->> +	printk(KERN_INFO "PCI: %s E820 reservations for host bridge windows\n",
->> +	       pci_use_e820 ? "Using" : "Ignoring");
->>  }
->>  
->>  #ifdef	CONFIG_PCI_MMCONFIG
->> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
->> index 3507f456fcd0..091ec7e94fcb 100644
->> --- a/arch/x86/pci/common.c
->> +++ b/arch/x86/pci/common.c
->> @@ -595,6 +595,12 @@ char *__init pcibios_setup(char *str)
->>  	} else if (!strcmp(str, "nocrs")) {
->>  		pci_probe |= PCI_ROOT_NO_CRS;
->>  		return NULL;
->> +	} else if (!strcmp(str, "use_e820")) {
->> +		pci_probe |= PCI_USE_E820;
->> +		return NULL;
->> +	} else if (!strcmp(str, "no_e820")) {
->> +		pci_probe |= PCI_NO_E820;
->> +		return NULL;
->>  #ifdef CONFIG_PHYS_ADDR_T_64BIT
->>  	} else if (!strcmp(str, "big_root_window")) {
->>  		pci_probe |= PCI_BIG_ROOT_WINDOW;
->> -- 
->> 2.31.1
+>>> and why it's safe to simply skip reserving regions that are part
+>>> of the MCFG area.
 >>
+>> Actual there is a commit d91525eb8ee6("ACPI, EINJ: Enhance error
+>> injection tolerance level") before to address this issue, the entire
+>> commit log as below:
+>>
+>>     Some BIOSes utilize PCI MMCFG space read/write opertion to trigger
+>>     specific errors. EINJ will report errors as below when hitting such
+>>     cases:
+>>     
+>>     APEI: Can not request [mem 0x83f990a0-0x83f990a3] for APEI EINJ Trigger registers
+>>     
+>>     It is because on x86 platform ACPI based PCI MMCFG logic has
+>>     reserved all MMCFG spaces so that EINJ can't reserve it again.
+>>     We already trust the ACPI/APEI code when using the EINJ interface
+>>     so it is not a big leap to also trust it to access the right
+>>     MMCFG addresses. Skip address checking to allow the access.
+> 
+> I'm not really convinced by that justification because I don't think
+> the issue here is *trust*.  If all we care about is trust, and we
+> trust the ACPI/APEI code, why do we need to reserve anything at all
+> when executing EINJ actions?
+> 
+> I think the resource reservation issue is about coordinating multiple
+> users of the address space.  A driver reserves the MMIO address space
+> of a device it controls so no other driver can reserve it at the same
+> time and cause conflicts.
+> 
+> I'm not really convinced by this mutual exclusion argument either,
+> because I haven't yet seen a situation where we say "EINJ needs a
+> resource that's already in use by somebody else, so we can't use
+> EINJ."  When conflicts arise, the response is always "we'll just
+> stop reserving this conflicting resource but use it anyway."
+> 
+> I think the only real value in apei_resources_request() is a little
+> bit of documentation in /proc/iomem.  For ERST and EINJ, even that
+> only lasts for the tiny period when we're actually executing an
+> action.
+> 
+> So convince me there's a reason why we shouldn't just remove
+> apei_resources_request() completely :)
 > 
 
+I have to confess that currently I have no strong evidence/reason to convince
+you that it's absolute safe to remove apei_resources_request(),  probably in
+some conditions it *does* require to follow the mutual exclusion usage model.
+The ECAM/MCFG maybe a special case not like other normal device driver, since
+all its MCFG space has been reserved during the initialization. Anyway, it's
+another topic and good point well worth discussing in the future.
+
+From the patch set itself, I don't think it's a nice idea to make a dramatic
+change regarding the apei_resources_request() part, I suggest to keep the original
+rationale untouched and based on that to fix the real issue at hand in a more
+generic way.
+
+Any thought? If no objection, I plan to finalize the next version patch according
+to the previous feedbacks and send it out for reviewing soon...
+
+Thanks,
+Xuesong
+
+>> Except that the above explanation, IMO the EINJ is only a RAS debug
+>> framework, in this code path, sometimes we need to acesss the
+>> address within the MCFG space directly to trigger kind of HW error,
+>> which behavior does not like the normal device driver's, in this
+>> case some possible unsafe operations (bypass the ecam ops) can be
+>> mitigated because the touched device will generate some HW errors
+>> and the RAS handling part will preempt its corresponding drivers to
+>> fix/log the HW error, that's my understanding about that.
+> 
+>>>> Signed-off-by: Xuesong Chen <xuesong.chen@linux.alibaba.com>
+>>>> Reported-by: kernel test robot <lkp@intel.com>
+>>>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>> Cc: Catalin Marinas <catalin.marinas@arm.com>
+>>>> Cc: James Morse <james.morse@arm.com>
+>>>> Cc: Will Deacon <will@kernel.org>
+>>>> Cc: Rafael. J. Wysocki <rafael@kernel.org>
+>>>> Cc: Tony Luck <tony.luck@intel.com>
+>>>> Cc: Tomasz Nowicki <tn@semihalf.com>
+>>>> ---
+>>>>  arch/x86/pci/mmconfig-shared.c | 28 --------------------------
+>>>>  drivers/acpi/apei/apei-base.c  | 45 ++++++++++++++++++++++++++++--------------
+>>>>  2 files changed, 30 insertions(+), 43 deletions(-)
+>>>>
+>>>> diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+>>>> index 0b961fe6..12f7d96 100644
+>>>> --- a/arch/x86/pci/mmconfig-shared.c
+>>>> +++ b/arch/x86/pci/mmconfig-shared.c
+>>>> @@ -605,32 +605,6 @@ static int __init pci_parse_mcfg(struct acpi_table_header *header)
+>>>>  	return 0;
+>>>>  }
+>>>>  
+>>>> -#ifdef CONFIG_ACPI_APEI
+>>>> -extern int (*arch_apei_filter_addr)(int (*func)(__u64 start, __u64 size,
+>>>> -				     void *data), void *data);
+>>>> -
+>>>> -static int pci_mmcfg_for_each_region(int (*func)(__u64 start, __u64 size,
+>>>> -				     void *data), void *data)
+>>>> -{
+>>>> -	struct pci_mmcfg_region *cfg;
+>>>> -	int rc;
+>>>> -
+>>>> -	if (list_empty(&pci_mmcfg_list))
+>>>> -		return 0;
+>>>> -
+>>>> -	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
+>>>> -		rc = func(cfg->res.start, resource_size(&cfg->res), data);
+>>>> -		if (rc)
+>>>> -			return rc;
+>>>> -	}
+>>>> -
+>>>> -	return 0;
+>>>> -}
+>>>> -#define set_apei_filter() (arch_apei_filter_addr = pci_mmcfg_for_each_region)
+>>>> -#else
+>>>> -#define set_apei_filter()
+>>>> -#endif
+>>>> -
+>>>>  static void __init __pci_mmcfg_init(int early)
+>>>>  {
+>>>>  	pci_mmcfg_reject_broken(early);
+>>>> @@ -665,8 +639,6 @@ void __init pci_mmcfg_early_init(void)
+>>>>  		else
+>>>>  			acpi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+>>>>  		__pci_mmcfg_init(1);
+>>>> -
+>>>> -		set_apei_filter();
+>>>>  	}
+>>>>  }
+>>>>  
+>>>> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+>>>> index c7fdb12..daae75a 100644
+>>>> --- a/drivers/acpi/apei/apei-base.c
+>>>> +++ b/drivers/acpi/apei/apei-base.c
+>>>> @@ -21,6 +21,7 @@
+>>>>  #include <linux/kernel.h>
+>>>>  #include <linux/module.h>
+>>>>  #include <linux/init.h>
+>>>> +#include <linux/pci.h>
+>>>>  #include <linux/acpi.h>
+>>>>  #include <linux/slab.h>
+>>>>  #include <linux/io.h>
+>>>> @@ -448,13 +449,34 @@ static int apei_get_nvs_resources(struct apei_resources *resources)
+>>>>  	return acpi_nvs_for_each_region(apei_get_res_callback, resources);
+>>>>  }
+>>>>  
+>>>> -int (*arch_apei_filter_addr)(int (*func)(__u64 start, __u64 size,
+>>>> -				     void *data), void *data);
+>>>> -static int apei_get_arch_resources(struct apei_resources *resources)
+>>>> +#ifdef CONFIG_PCI
+>>>> +extern struct list_head pci_mmcfg_list;
+>>>> +static int apei_filter_mcfg_addr(struct apei_resources *res,
+>>>> +			struct apei_resources *mcfg_res)
+>>>> +{
+>>>> +	int rc = 0;
+>>>> +	struct pci_mmcfg_region *cfg;
+>>>> +
+>>>> +	if (list_empty(&pci_mmcfg_list))
+>>>> +		return 0;
+>>>> +
+>>>> +	apei_resources_init(mcfg_res);
+>>>> +	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
+>>>> +		rc = apei_res_add(&mcfg_res->iomem, cfg->res.start, resource_size(&cfg->res));
+>>>> +		if (rc)
+>>>> +			return rc;
+>>>> +	}
+>>>>  
+>>>> +	/* filter the mcfg resource from current APEI's */
+>>>> +	return apei_resources_sub(res, mcfg_res);
+>>>> +}
+>>>> +#else
+>>>> +static inline int apei_filter_mcfg_addr(struct apei_resources *res,
+>>>> +			struct apei_resources *mcfg_res)
+>>>>  {
+>>>> -	return arch_apei_filter_addr(apei_get_res_callback, resources);
+>>>> +	return 0;
+>>>>  }
+>>>> +#endif
+>>>>  
+>>>>  /*
+>>>>   * IO memory/port resource management mechanism is used to check
+>>>> @@ -486,15 +508,9 @@ int apei_resources_request(struct apei_resources *resources,
+>>>>  	if (rc)
+>>>>  		goto nvs_res_fini;
+>>>>  
+>>>> -	if (arch_apei_filter_addr) {
+>>>> -		apei_resources_init(&arch_res);
+>>>> -		rc = apei_get_arch_resources(&arch_res);
+>>>> -		if (rc)
+>>>> -			goto arch_res_fini;
+>>>> -		rc = apei_resources_sub(resources, &arch_res);
+>>>> -		if (rc)
+>>>> -			goto arch_res_fini;
+>>>> -	}
+>>>> +	rc = apei_filter_mcfg_addr(resources, &arch_res);
+>>>> +	if (rc)
+>>>> +		goto arch_res_fini;
+>>>>  
+>>>>  	rc = -EINVAL;
+>>>>  	list_for_each_entry(res, &resources->iomem, list) {
+>>>> @@ -544,8 +560,7 @@ int apei_resources_request(struct apei_resources *resources,
+>>>>  		release_mem_region(res->start, res->end - res->start);
+>>>>  	}
+>>>>  arch_res_fini:
+>>>> -	if (arch_apei_filter_addr)
+>>>> -		apei_resources_fini(&arch_res);
+>>>> +	apei_resources_fini(&arch_res);
+>>>>  nvs_res_fini:
+>>>>  	apei_resources_fini(&nvs_resources);
+>>>>  	return rc;
+>>>> -- 
+>>>> 1.8.3.1
+>>>>
