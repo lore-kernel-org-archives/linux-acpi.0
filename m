@@ -2,96 +2,244 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77DA4C433EF
-	for <linux-acpi@archiver.kernel.org>; Sat, 23 Oct 2021 13:19:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADD8CC433EF
+	for <linux-acpi@archiver.kernel.org>; Sun, 24 Oct 2021 09:10:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D3E060FE3
-	for <linux-acpi@archiver.kernel.org>; Sat, 23 Oct 2021 13:19:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E24960E05
+	for <linux-acpi@archiver.kernel.org>; Sun, 24 Oct 2021 09:10:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230463AbhJWNVm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 23 Oct 2021 09:21:42 -0400
-Received: from mga14.intel.com ([192.55.52.115]:16628 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229699AbhJWNVm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 23 Oct 2021 09:21:42 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10145"; a="229721453"
-X-IronPort-AV: E=Sophos;i="5.87,175,1631602800"; 
-   d="scan'208";a="229721453"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Oct 2021 06:19:21 -0700
-X-IronPort-AV: E=Sophos;i="5.87,175,1631602800"; 
-   d="scan'208";a="496049093"
-Received: from yli135-mobl.ccr.corp.intel.com (HELO chenyu5-mobl1) ([10.249.169.195])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Oct 2021 06:19:18 -0700
-Date:   Sat, 23 Oct 2021 21:19:14 +0800
-From:   Chen Yu <yu.c.chen@intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc:     linux-acpi@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>, Len Brown <lenb@kernel.org>,
-        Ashok Raj <ashok.raj@intel.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        Aubrey Li <aubrey.li@intel.com>, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 4/4] tools: Introduce power/acpi/pfru/pfru
-Message-ID: <20211023131914.GB28269@chenyu5-mobl1>
-References: <cover.1634899519.git.yu.c.chen@intel.com>
- <0159379f2f15c79959fd597874f162ebc3cf711b.1634899519.git.yu.c.chen@intel.com>
- <YXMbJMifGM2izSZO@smile.fi.intel.com>
+        id S229886AbhJXJNG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 24 Oct 2021 05:13:06 -0400
+Received: from out30-44.freemail.mail.aliyun.com ([115.124.30.44]:35080 "EHLO
+        out30-44.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229463AbhJXJNG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 24 Oct 2021 05:13:06 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R401e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0UtQxvjU_1635066642;
+Received: from B-J4ZXMD6R-0327.local(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0UtQxvjU_1635066642)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Sun, 24 Oct 2021 17:10:43 +0800
+From:   Shuai Xue <xueshuai@linux.alibaba.com>
+Subject: Re: [PATCH v2] ACPI, APEI, EINJ: Relax platform response timeout to 1
+ second.
+To:     "Luck, Tony" <tony.luck@intel.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        bp@alien8.de, james.morse@arm.com, lenb@kernel.org,
+        rjw@rjwysocki.net, zhangliguang@linux.alibaba.com,
+        zhuo.song@linux.alibaba.com
+References: <20211015033817.16719-1-xueshuai@linux.alibaba.com>
+ <20211022134424.67279-1-xueshuai@linux.alibaba.com>
+ <YXNPSQT9LnxiyVFC@agluck-desk2.amr.corp.intel.com>
+Message-ID: <777aca99-b076-5bd7-03e3-f12ef9e7edd0@linux.alibaba.com>
+Date:   Sun, 24 Oct 2021 17:10:41 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.14.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YXMbJMifGM2izSZO@smile.fi.intel.com>
+In-Reply-To: <YXNPSQT9LnxiyVFC@agluck-desk2.amr.corp.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Oct 22, 2021 at 11:12:20PM +0300, Andy Shevchenko wrote:
-> On Sat, Oct 23, 2021 at 01:10:32AM +0800, Chen Yu wrote:
-> > Introduce a user space tool to make use of the interface exposed by
-> > Platform Firmware Runtime Update and Telemetry drivers. The users
-> > can use this tool to do firmware code injection, driver update and
-> > to retrieve the telemetry data.
-> 
-> ...
-> 
-> >  #include <linux/ioctl.h>
-> > +#ifdef __KERNEL__
-> >  #include <linux/uuid.h>
-> > +#else
-> > +#include <uuid/uuid.h>
-> > +#include <linux/types.h>
-> > +#endif
-> 
-> This is exactly my point why you mustn't use uuid.h in uAPI headers.
->
-Ok, will remove uuid.h. 
-> > +	while (1) {
-> 
-> Why not  while ((c = getopt_long(...)) != -1) ?
-> 
-Ok, changed it to this form.
-> > +		int option_index = 0;
-> > +
-> > +		c = getopt_long(argc, argv, option_string,
-> > +				long_options, &option_index);
-> > +		if (c == -1)
-> > +			break;
-> 
-> > +		}
-> > +	}
-> > +}
-> 
-> ...
-> 
-> > +	char *uuid = malloc(37);
-> 
-> libuuid doesn't have helpers for this?
-> 
-There's no helper for uuid allocation AFAIK.
-> Split assignment so if will be closer to its user.
-> 
-Ok, will do.
+Hi, Tony,
 
-thanks,
-Chenyu
+Thank you for your comments.
+
+> I know I pointed you to msleep() ... sorry, I was wrong. For a
+> 1 ms sleep the recommendation is to use usleep_range()
+>
+> See this write-up in Documentation/timers/timers-howto.rst:
+>
+>                - Why not msleep for (1ms - 20ms)?
+>                        Explained originally here:
+>                                https://lore.kernel.org/r/15327.1186166232@lwn.net
+>
+>                        msleep(1~20) may not do what the caller intends, and
+>                        will often sleep longer (~20 ms actual sleep for any
+>                        value given in the 1~20ms range). In many cases this
+>                        is not the desired behavior.
+>
+> To answer the question posed in that document on "What is a good range?"
+>
+> I don't think injection cares too much about precision here. Maybe go
+> with
+>
+>	usleep_range(1000, 5000);
+> [with #defines for SLEEP_UNIT_MIN, SLEEP_UNIT_MAX instead of those
+> numbers]
+Got it. Thank you. I will change it latter.
+
+
+>> +/* Firmware should respond within 1 seconds */
+>> +#define FIRMWARE_TIMEOUT	(1 * MSEC_PER_SEC)
+>>  #define ACPI5_VENDOR_BIT	BIT(31)
+>>  #define MEM_ERROR_MASK		(ACPI_EINJ_MEMORY_CORRECTABLE | \
+>>  				ACPI_EINJ_MEMORY_UNCORRECTABLE | \
+>> @@ -40,6 +40,8 @@
+>>   * ACPI version 5 provides a SET_ERROR_TYPE_WITH_ADDRESS action.
+>>   */
+>>  static int acpi5;
+>> +static int timeout_default = FIRMWARE_TIMEOUT;
+>> +module_param(timeout_default, int, 0644);
+>
+> You've set the default to 1 second. Who would use this parameter?
+> Do you anticipate systems that take even longer to inject?
+> A user might set a shorter limit ... but I don't see why they
+> would want to.
+No, I don't. EINJ provides a hardware error injection mechanism to develop
+and debug firmware code and hardware RAS feature. While we test on Arm
+platform, it cannot meet the original timeout limit. Therefore, we send
+this patch to relax the upper bound of timeout. In order to facilitate
+other platforms to encounter the same problems, we expose timeout as a
+configurable parameter in user space.
+
+
+>>  struct set_error_type_with_address {
+>>  	u32	type;
+>> @@ -171,12 +173,12 @@ static int einj_get_available_error_type(u32 *type)
+>>
+>>  static int einj_timedout(u64 *t)
+>>  {
+>> -	if ((s64)*t < SPIN_UNIT) {
+>> +	if ((s64)*t < SLEEP_UNIT) {
+>>  		pr_warn(FW_WARN "Firmware does not respond in time\n");
+>>  		return 1;
+>>  	}
+>> -	*t -= SPIN_UNIT;
+>> -	ndelay(SPIN_UNIT);
+>> +	*t -= SLEEP_UNIT;
+>> +	msleep(SLEEP_UNIT);
+>>  	touch_nmi_watchdog();
+>
+> Since we are sleeping instead of spinning, maybe we don't need to
+> touch the nmi watchdog?
+Agree. I will delete it in next version.
+
+Regards,
+Shuai
+
+On 2021/10/23 AM7:54, Luck, Tony wrote:
+> On Fri, Oct 22, 2021 at 09:44:24PM +0800, Shuai Xue wrote:
+>> When injecting an error into the platform, the OSPM executes an
+>> EXECUTE_OPERATION action to instruct the platform to begin the injection
+>> operation. And then, the OSPM busy waits for a while by continually
+>> executing CHECK_BUSY_STATUS action until the platform indicates that the
+>> operation is complete. More specifically, the platform is limited to
+>> respond within 1 millisecond right now. This is too strict for some
+>> platforms.
+>>
+>> For example, in Arm platform, when injecting a Processor Correctable error,
+>> the OSPM will warn:
+>>     Firmware does not respond in time.
+>>
+>> And a message is printed on the console:
+>>     echo: write error: Input/output error
+>>
+>> We observe that the waiting time for DDR error injection is about 10 ms
+>> and that for PCIe error injection is about 500 ms in Arm platform.
+>>
+>> In this patch, we relax the response timeout to 1 second and allow user to
+>> pass the time out value as a argument.
+>>
+>> Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+>> ---
+>> Changelog v1 -> v2:
+>> - Implemented the timeout in msleep instead of udelay.
+>> - Link to the v1 patch: https://lkml.org/lkml/2021/10/14/1402
+>> ---
+>>  drivers/acpi/apei/einj.c | 16 +++++++++-------
+>>  1 file changed, 9 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+>> index 133156759551..e411eb30e0ee 100644
+>> --- a/drivers/acpi/apei/einj.c
+>> +++ b/drivers/acpi/apei/einj.c
+>> @@ -28,9 +28,9 @@
+>>  #undef pr_fmt
+>>  #define pr_fmt(fmt) "EINJ: " fmt
+>>  
+>> -#define SPIN_UNIT		100			/* 100ns */
+>> -/* Firmware should respond within 1 milliseconds */
+>> -#define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
+>> +#define SLEEP_UNIT		1			/* 1ms */
+> 
+> I know I pointed you to msleep() ... sorry, I was wrong. For a
+> 1 ms sleep the recommendation is to use usleep_range()
+> 
+> See this write-up in Documentation/timers/timers-howto.rst:
+> 
+>                 - Why not msleep for (1ms - 20ms)?
+>                         Explained originally here:
+>                                 https://lore.kernel.org/r/15327.1186166232@lwn.net
+> 
+>                         msleep(1~20) may not do what the caller intends, and
+>                         will often sleep longer (~20 ms actual sleep for any
+>                         value given in the 1~20ms range). In many cases this
+>                         is not the desired behavior.
+> 
+> To answer the question posed in that document on "What is a good range?"
+> 
+> I don't think injection cares too much about precision here. Maybe go
+> with
+> 
+> 	usleep_range(1000, 5000);
+> [with #defines for SLEEP_UNIT_MIN, SLEEP_UNIT_MAX instead of those
+> numbers]
+> 
+>> +/* Firmware should respond within 1 seconds */
+>> +#define FIRMWARE_TIMEOUT	(1 * MSEC_PER_SEC)
+>>  #define ACPI5_VENDOR_BIT	BIT(31)
+>>  #define MEM_ERROR_MASK		(ACPI_EINJ_MEMORY_CORRECTABLE | \
+>>  				ACPI_EINJ_MEMORY_UNCORRECTABLE | \
+>> @@ -40,6 +40,8 @@
+>>   * ACPI version 5 provides a SET_ERROR_TYPE_WITH_ADDRESS action.
+>>   */
+>>  static int acpi5;
+>> +static int timeout_default = FIRMWARE_TIMEOUT;
+>> +module_param(timeout_default, int, 0644);
+> 
+> You've set the default to 1 second. Who would use this parameter?
+> Do you anticipate systems that take even longer to inject?
+> A user might set a shorter limit ... but I don't see why they
+> would want to.
+> 
+>>  
+>>  struct set_error_type_with_address {
+>>  	u32	type;
+>> @@ -171,12 +173,12 @@ static int einj_get_available_error_type(u32 *type)
+>>  
+>>  static int einj_timedout(u64 *t)
+>>  {
+>> -	if ((s64)*t < SPIN_UNIT) {
+>> +	if ((s64)*t < SLEEP_UNIT) {
+>>  		pr_warn(FW_WARN "Firmware does not respond in time\n");
+>>  		return 1;
+>>  	}
+>> -	*t -= SPIN_UNIT;
+>> -	ndelay(SPIN_UNIT);
+>> +	*t -= SLEEP_UNIT;
+>> +	msleep(SLEEP_UNIT);
+>>  	touch_nmi_watchdog();
+> 
+> Since we are sleeping instead of spinning, maybe we don't need to
+> touch the nmi watchdog?
+> 
+>>  	return 0;
+>>  }
+>> @@ -403,7 +405,7 @@ static int __einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+>>  			       u64 param3, u64 param4)
+>>  {
+>>  	struct apei_exec_context ctx;
+>> -	u64 val, trigger_paddr, timeout = FIRMWARE_TIMEOUT;
+>> +	u64 val, trigger_paddr, timeout = timeout_default;
+>>  	int rc;
+>>  
+>>  	einj_exec_ctx_init(&ctx);
+>> -- 
+>> 2.20.1.12.g72788fdb
+>>
+> 
+> -Tony
+> 
