@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 616E7C43219
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 Oct 2021 09:42:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61585C433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 Oct 2021 09:42:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DBF760FDC
-	for <linux-acpi@archiver.kernel.org>; Mon, 25 Oct 2021 09:42:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 444C861057
+	for <linux-acpi@archiver.kernel.org>; Mon, 25 Oct 2021 09:42:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232822AbhJYJo2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 25 Oct 2021 05:44:28 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:29972 "EHLO
+        id S232900AbhJYJos (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 25 Oct 2021 05:44:48 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:59451 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232796AbhJYJoT (ORCPT
+        by vger.kernel.org with ESMTP id S232803AbhJYJog (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 25 Oct 2021 05:44:19 -0400
+        Mon, 25 Oct 2021 05:44:36 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1635154917;
+        s=mimecast20190719; t=1635154934;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=LoMpP2BZMr/pgSIwHefWqcTLFNkHE8lr+SyGrZJYkLQ=;
-        b=KnbXUUjXNzQtP+e4y6NtHXZhNlDZ2p4nUjbXrCtRw4faKwjhOdJaYoKxoNrlhmIEn8oC6W
-        7lqH6X/t20KGnm9s+nQcXbDoxlo/Bq5CiVgsHNdOTXdp60Zw7ktZ3yhh4Y64uHEwivdYFR
-        7GY20mDhrQio3l31BNKf+5IsJ/jTSDk=
+        bh=cmrbm9M1WjXf6I+CjmeKNwPlsa3dKar/le1eAaylraQ=;
+        b=fs5/sfxkOCCU+89o4A5nX61HdFyUP1mnnr3I6ZYToMPJr/kMYpJNTCCZzqS5l60jQxNs3F
+        ZT1WgRhHbXc2XweDtEbL1+DNGGepG22jbjVXsyoIRCxAXqEqqiO2enkbNaOpywOmY6CjO1
+        +fi4IeyBbltyGIYWIH2XFnvsJLbXzNA=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-475--LNMMIr8MqWqfiNrNUZsNg-1; Mon, 25 Oct 2021 05:41:53 -0400
-X-MC-Unique: -LNMMIr8MqWqfiNrNUZsNg-1
+ us-mta-232-ZzDVsuzNOZmIEKUEQ5Gnmw-1; Mon, 25 Oct 2021 05:42:09 -0400
+X-MC-Unique: ZzDVsuzNOZmIEKUEQ5Gnmw-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B625F8066FB;
-        Mon, 25 Oct 2021 09:41:50 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E3F612E75;
+        Mon, 25 Oct 2021 09:42:06 +0000 (UTC)
 Received: from x1.localdomain (unknown [10.39.195.129])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DED2E60BF4;
-        Mon, 25 Oct 2021 09:41:45 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 0932A60BF4;
+        Mon, 25 Oct 2021 09:42:01 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mark Gross <markgross@kernel.org>,
@@ -56,9 +56,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Kate Hsuan <hpa@redhat.com>, linux-media@vger.kernel.org,
         linux-clk@vger.kernel.org
-Subject: [PATCH v4 04/11] regulator: Introduce tps68470-regulator driver
-Date:   Mon, 25 Oct 2021 11:41:12 +0200
-Message-Id: <20211025094119.82967-5-hdegoede@redhat.com>
+Subject: [PATCH v4 07/11] platform/x86: int3472: Split into 2 drivers
+Date:   Mon, 25 Oct 2021 11:41:15 +0200
+Message-Id: <20211025094119.82967-8-hdegoede@redhat.com>
 In-Reply-To: <20211025094119.82967-1-hdegoede@redhat.com>
 References: <20211025094119.82967-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -68,291 +68,373 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The TPS68470 PMIC provides Clocks, GPIOs and Regulators. At present in
-the kernel the Regulators and Clocks are controlled by an OpRegion
-driver designed to work with power control methods defined in ACPI, but
-some platforms lack those methods, meaning drivers need to be able to
-consume the resources of these chips through the usual frameworks.
+The intel_skl_int3472.ko module contains 2 separate drivers,
+the int3472_discrete platform driver and the int3472_tps68470
+I2C-driver.
 
-This commit adds a driver for the regulators provided by the tps68470,
-and is designed to bind to the platform_device registered by the
-intel_skl_int3472 module.
+These 2 drivers contain very little shared code, only
+skl_int3472_get_acpi_buffer() and skl_int3472_fill_cldb() are
+shared.
 
-This is based on this out of tree driver written by Intel:
-https://github.com/intel/linux-intel-lts/blob/4.14/base/drivers/regulator/tps68470-regulator.c
-with various cleanups added.
+Split the module into 2 drivers, linking the little shared code
+directly into both.
+
+This will allow us to add soft-module dependencies for the
+tps68470 clk, gpio and regulator drivers to the new
+intel_skl_int3472_tps68470.ko to help with probe ordering issues
+without causing these modules to get loaded on boards which only
+use the int3472_discrete platform driver.
+
+While at it also rename the .c and .h files to remove the
+cumbersome intel_skl_int3472_ prefix.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Changes in v4:
-- Make the top comment block use c++ style comments
-- Drop the bogus builtin regulator_init_data
-- Add || COMPILE_TEST to Kconfig snippet
-- Make the driver enable the PMIC clk when enabling the Core buck
-  regulator, this switching regulator needs the PLL to be on
-
-Changes in v2:
-- Update the comment on why a subsys_initcall is used to register the drv
-- Make struct regulator_ops const
+Note git rename detection is failing for the new common.c but this is
+just the old intel_skl_int3472_common.c with the driver registering
+bits removed.
 ---
- drivers/regulator/Kconfig              |   9 ++
- drivers/regulator/Makefile             |   1 +
- drivers/regulator/tps68470-regulator.c | 215 +++++++++++++++++++++++++
- 3 files changed, 225 insertions(+)
- create mode 100644 drivers/regulator/tps68470-regulator.c
+ drivers/platform/x86/intel/int3472/Makefile   |   9 +-
+ ...lk_and_regulator.c => clk_and_regulator.c} |   2 +-
+ drivers/platform/x86/intel/int3472/common.c   |  54 +++++++++
+ .../{intel_skl_int3472_common.h => common.h}  |   3 -
+ ...ntel_skl_int3472_discrete.c => discrete.c} |  28 ++++-
+ .../intel/int3472/intel_skl_int3472_common.c  | 106 ------------------
+ ...ntel_skl_int3472_tps68470.c => tps68470.c} |  23 +++-
+ 7 files changed, 105 insertions(+), 120 deletions(-)
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_clk_and_regulator.c => clk_and_regulator.c} (99%)
+ create mode 100644 drivers/platform/x86/intel/int3472/common.c
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_common.h => common.h} (94%)
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_discrete.c => discrete.c} (93%)
+ delete mode 100644 drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c
+ rename drivers/platform/x86/intel/int3472/{intel_skl_int3472_tps68470.c => tps68470.c} (86%)
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 4fd13b06231f..1f6a6adc4ab0 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -1339,6 +1339,15 @@ config REGULATOR_TPS65912
- 	help
- 	    This driver supports TPS65912 voltage regulator chip.
+diff --git a/drivers/platform/x86/intel/int3472/Makefile b/drivers/platform/x86/intel/int3472/Makefile
+index 2362e04db18d..771e720528a0 100644
+--- a/drivers/platform/x86/intel/int3472/Makefile
++++ b/drivers/platform/x86/intel/int3472/Makefile
+@@ -1,5 +1,4 @@
+-obj-$(CONFIG_INTEL_SKL_INT3472)		+= intel_skl_int3472.o
+-intel_skl_int3472-y			:= intel_skl_int3472_common.o \
+-					   intel_skl_int3472_discrete.o \
+-					   intel_skl_int3472_tps68470.o \
+-					   intel_skl_int3472_clk_and_regulator.o
++obj-$(CONFIG_INTEL_SKL_INT3472)		+= intel_skl_int3472_discrete.o \
++					   intel_skl_int3472_tps68470.o
++intel_skl_int3472_discrete-y		:= discrete.o clk_and_regulator.o common.o
++intel_skl_int3472_tps68470-y		:= tps68470.o common.o
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_clk_and_regulator.c b/drivers/platform/x86/intel/int3472/clk_and_regulator.c
+similarity index 99%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_clk_and_regulator.c
+rename to drivers/platform/x86/intel/int3472/clk_and_regulator.c
+index 1700e7557a82..1cf958983e86 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_clk_and_regulator.c
++++ b/drivers/platform/x86/intel/int3472/clk_and_regulator.c
+@@ -9,7 +9,7 @@
+ #include <linux/regulator/driver.h>
+ #include <linux/slab.h>
  
-+config REGULATOR_TPS68470
-+	tristate "TI TPS68370 PMIC Regulators Driver"
-+	depends on INTEL_SKL_INT3472 || COMPILE_TEST
-+	help
-+	  This driver adds support for the TPS68470 PMIC to register
-+	  regulators against the usual framework.
-+
-+	  The module will be called "tps68470-regulator".
-+
- config REGULATOR_TPS80031
- 	tristate "TI TPS80031/TPS80032 power regulator driver"
- 	depends on MFD_TPS80031
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 9e382b50a5ef..03c318110986 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -158,6 +158,7 @@ obj-$(CONFIG_REGULATOR_TPS6524X) += tps6524x-regulator.o
- obj-$(CONFIG_REGULATOR_TPS6586X) += tps6586x-regulator.o
- obj-$(CONFIG_REGULATOR_TPS65910) += tps65910-regulator.o
- obj-$(CONFIG_REGULATOR_TPS65912) += tps65912-regulator.o
-+obj-$(CONFIG_REGULATOR_TPS68470) += tps68470-regulator.o
- obj-$(CONFIG_REGULATOR_TPS80031) += tps80031-regulator.o
- obj-$(CONFIG_REGULATOR_TPS65132) += tps65132-regulator.o
- obj-$(CONFIG_REGULATOR_TWL4030) += twl-regulator.o twl6030-regulator.o
-diff --git a/drivers/regulator/tps68470-regulator.c b/drivers/regulator/tps68470-regulator.c
+-#include "intel_skl_int3472_common.h"
++#include "common.h"
+ 
+ /*
+  * The regulators have to have .ops to be valid, but the only ops we actually
+diff --git a/drivers/platform/x86/intel/int3472/common.c b/drivers/platform/x86/intel/int3472/common.c
 new file mode 100644
-index 000000000000..7bce45df1596
+index 000000000000..350655a9515b
 --- /dev/null
-+++ b/drivers/regulator/tps68470-regulator.c
-@@ -0,0 +1,215 @@
++++ b/drivers/platform/x86/intel/int3472/common.c
+@@ -0,0 +1,54 @@
 +// SPDX-License-Identifier: GPL-2.0
-+//
-+// Regulator driver for TPS68470 PMIC
-+//
-+// Copyright (c) 2021 Red Hat Inc.
-+// Copyright (C) 2018 Intel Corporation
-+//
-+// Authors:
-+//	Hans de Goede <hdegoede@redhat.com>
-+//	Zaikuo Wang <zaikuo.wang@intel.com>
-+//	Tianshu Qiu <tian.shu.qiu@intel.com>
-+//	Jian Xu Zheng <jian.xu.zheng@intel.com>
-+//	Yuning Pu <yuning.pu@intel.com>
-+//	Rajmohan Mani <rajmohan.mani@intel.com>
++/* Author: Dan Scally <djrscally@gmail.com> */
 +
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/tps68470.h>
-+#include <linux/module.h>
-+#include <linux/platform_data/tps68470.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/driver.h>
-+#include <linux/regulator/machine.h>
++#include <linux/acpi.h>
++#include <linux/slab.h>
 +
-+struct tps68470_regulator_data {
-+	struct clk *clk;
-+};
++#include "common.h"
 +
-+#define TPS68470_REGULATOR(_name, _id, _ops, _n, _vr,			\
-+			   _vm, _er, _em, _t, _lr, _nlr)		\
-+	[TPS68470_ ## _name] = {					\
-+		.name			= # _name,			\
-+		.id			= _id,				\
-+		.ops			= &_ops,			\
-+		.n_voltages		= _n,				\
-+		.type			= REGULATOR_VOLTAGE,		\
-+		.owner			= THIS_MODULE,			\
-+		.vsel_reg		= _vr,				\
-+		.vsel_mask		= _vm,				\
-+		.enable_reg		= _er,				\
-+		.enable_mask		= _em,				\
-+		.volt_table		= _t,				\
-+		.linear_ranges		= _lr,				\
-+		.n_linear_ranges	= _nlr,				\
++union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev, char *id)
++{
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	acpi_handle handle = adev->handle;
++	union acpi_object *obj;
++	acpi_status status;
++
++	status = acpi_evaluate_object(handle, id, NULL, &buffer);
++	if (ACPI_FAILURE(status))
++		return ERR_PTR(-ENODEV);
++
++	obj = buffer.pointer;
++	if (!obj)
++		return ERR_PTR(-ENODEV);
++
++	if (obj->type != ACPI_TYPE_BUFFER) {
++		acpi_handle_err(handle, "%s object is not an ACPI buffer\n", id);
++		kfree(obj);
++		return ERR_PTR(-EINVAL);
 +	}
 +
-+static const struct linear_range tps68470_ldo_ranges[] = {
-+	REGULATOR_LINEAR_RANGE(875000, 0, 125, 17800),
-+};
++	return obj;
++}
 +
-+static const struct linear_range tps68470_core_ranges[] = {
-+	REGULATOR_LINEAR_RANGE(900000, 0, 42, 25000),
-+};
-+
-+int tps68470_regulator_enable(struct regulator_dev *rdev)
++int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb)
 +{
-+	struct tps68470_regulator_data *data = rdev->reg_data;
++	union acpi_object *obj;
 +	int ret;
 +
-+	/* The Core buck regulator needs the PMIC's PLL to be enabled */
-+	if (rdev->desc->id == TPS68470_CORE) {
-+		ret = clk_prepare_enable(data->clk);
-+		if (ret) {
-+			dev_err(&rdev->dev, "Error enabling TPS68470 clock\n");
-+			return ret;
-+		}
++	obj = skl_int3472_get_acpi_buffer(adev, "CLDB");
++	if (IS_ERR(obj))
++		return PTR_ERR(obj);
++
++	if (obj->buffer.length > sizeof(*cldb)) {
++		acpi_handle_err(adev->handle, "The CLDB buffer is too large\n");
++		ret = -EINVAL;
++		goto out_free_obj;
 +	}
 +
-+	return regulator_enable_regmap(rdev);
++	memcpy(cldb, obj->buffer.pointer, obj->buffer.length);
++	ret = 0;
++
++out_free_obj:
++	kfree(obj);
++	return ret;
 +}
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.h b/drivers/platform/x86/intel/int3472/common.h
+similarity index 94%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_common.h
+rename to drivers/platform/x86/intel/int3472/common.h
+index 714fde73b524..d14944ee8586 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.h
++++ b/drivers/platform/x86/intel/int3472/common.h
+@@ -105,9 +105,6 @@ struct int3472_discrete_device {
+ 	struct gpiod_lookup_table gpios;
+ };
+ 
+-int skl_int3472_discrete_probe(struct platform_device *pdev);
+-int skl_int3472_discrete_remove(struct platform_device *pdev);
+-int skl_int3472_tps68470_probe(struct i2c_client *client);
+ union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev,
+ 					       char *id);
+ int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb);
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
+similarity index 93%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_discrete.c
+rename to drivers/platform/x86/intel/int3472/discrete.c
+index e59d79c7e82f..d2e8a87a077e 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_discrete.c
++++ b/drivers/platform/x86/intel/int3472/discrete.c
+@@ -14,7 +14,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/uuid.h>
+ 
+-#include "intel_skl_int3472_common.h"
++#include "common.h"
+ 
+ /*
+  * 79234640-9e10-4fea-a5c1-b5aa8b19756f
+@@ -332,7 +332,9 @@ static int skl_int3472_parse_crs(struct int3472_discrete_device *int3472)
+ 	return 0;
+ }
+ 
+-int skl_int3472_discrete_probe(struct platform_device *pdev)
++static int skl_int3472_discrete_remove(struct platform_device *pdev);
 +
-+int tps68470_regulator_disable(struct regulator_dev *rdev)
-+{
-+	struct tps68470_regulator_data *data = rdev->reg_data;
++static int skl_int3472_discrete_probe(struct platform_device *pdev)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+ 	struct int3472_discrete_device *int3472;
+@@ -395,7 +397,7 @@ int skl_int3472_discrete_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-int skl_int3472_discrete_remove(struct platform_device *pdev)
++static int skl_int3472_discrete_remove(struct platform_device *pdev)
+ {
+ 	struct int3472_discrete_device *int3472 = platform_get_drvdata(pdev);
+ 
+@@ -411,3 +413,23 @@ int skl_int3472_discrete_remove(struct platform_device *pdev)
+ 
+ 	return 0;
+ }
 +
-+	if (rdev->desc->id == TPS68470_CORE)
-+		clk_disable_unprepare(data->clk);
-+
-+	return regulator_disable_regmap(rdev);
-+}
-+
-+/* Operations permitted on DCDCx, LDO2, LDO3 and LDO4 */
-+static const struct regulator_ops tps68470_regulator_ops = {
-+	.is_enabled		= regulator_is_enabled_regmap,
-+	.enable			= tps68470_regulator_enable,
-+	.disable		= tps68470_regulator_disable,
-+	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
-+	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
-+	.list_voltage		= regulator_list_voltage_linear_range,
-+	.map_voltage		= regulator_map_voltage_linear_range,
++static const struct acpi_device_id int3472_device_id[] = {
++	{ "INT3472", 0 },
++	{ }
 +};
++MODULE_DEVICE_TABLE(acpi, int3472_device_id);
 +
-+static const struct regulator_desc regulators[] = {
-+	TPS68470_REGULATOR(CORE, TPS68470_CORE,
-+			   tps68470_regulator_ops, 43, TPS68470_REG_VDVAL,
-+			   TPS68470_VDVAL_DVOLT_MASK, TPS68470_REG_VDCTL,
-+			   TPS68470_VDCTL_EN_MASK,
-+			   NULL, tps68470_core_ranges,
-+			   ARRAY_SIZE(tps68470_core_ranges)),
-+	TPS68470_REGULATOR(ANA, TPS68470_ANA,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VAVAL,
-+			   TPS68470_VAVAL_AVOLT_MASK, TPS68470_REG_VACTL,
-+			   TPS68470_VACTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(VCM, TPS68470_VCM,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VCMVAL,
-+			   TPS68470_VCMVAL_VCVOLT_MASK, TPS68470_REG_VCMCTL,
-+			   TPS68470_VCMCTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(VIO, TPS68470_VIO,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VIOVAL,
-+			   TPS68470_VIOVAL_IOVOLT_MASK, TPS68470_REG_S_I2C_CTL,
-+			   TPS68470_S_I2C_CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+
-+/*
-+ * (1) This register must have same setting as VIOVAL if S_IO LDO is used to
-+ *     power daisy chained IOs in the receive side.
-+ * (2) If there is no I2C daisy chain it can be set freely.
-+ *
-+ */
-+	TPS68470_REGULATOR(VSIO, TPS68470_VSIO,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VSIOVAL,
-+			   TPS68470_VSIOVAL_IOVOLT_MASK, TPS68470_REG_S_I2C_CTL,
-+			   TPS68470_S_I2C_CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(AUX1, TPS68470_AUX1,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VAUX1VAL,
-+			   TPS68470_VAUX1VAL_AUX1VOLT_MASK,
-+			   TPS68470_REG_VAUX1CTL,
-+			   TPS68470_VAUX1CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+	TPS68470_REGULATOR(AUX2, TPS68470_AUX2,
-+			   tps68470_regulator_ops, 126, TPS68470_REG_VAUX2VAL,
-+			   TPS68470_VAUX2VAL_AUX2VOLT_MASK,
-+			   TPS68470_REG_VAUX2CTL,
-+			   TPS68470_VAUX2CTL_EN_MASK,
-+			   NULL, tps68470_ldo_ranges,
-+			   ARRAY_SIZE(tps68470_ldo_ranges)),
-+};
-+
-+static int tps68470_regulator_probe(struct platform_device *pdev)
-+{
-+	struct tps68470_regulator_platform_data *pdata = pdev->dev.platform_data;
-+	struct tps68470_regulator_data *data;
-+	struct regulator_config config = { };
-+	struct regulator_dev *rdev;
-+	int i;
-+
-+	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	data->clk = devm_clk_get(&pdev->dev, "tps68470-clk");
-+	if (IS_ERR(data->clk)) {
-+		dev_err(&pdev->dev, "Error getting tps68470-clk\n");
-+		return PTR_ERR(data->clk);
-+	}
-+
-+	config.dev = pdev->dev.parent;
-+	config.regmap = dev_get_drvdata(pdev->dev.parent);
-+	config.driver_data = data;
-+
-+	for (i = 0; i < TPS68470_NUM_REGULATORS; i++) {
-+		if (pdata)
-+			config.init_data = pdata->reg_init_data[i];
-+		else
-+			config.init_data = NULL;
-+
-+		rdev = devm_regulator_register(&pdev->dev, &regulators[i], &config);
-+		if (IS_ERR(rdev)) {
-+			dev_err(&pdev->dev, "failed to register %s regulator\n",
-+				regulators[i].name);
-+			return PTR_ERR(rdev);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static struct platform_driver tps68470_regulator_driver = {
++static struct platform_driver int3472_discrete = {
 +	.driver = {
-+		.name = "tps68470-regulator",
++		.name = "int3472-discrete",
++		.acpi_match_table = int3472_device_id,
 +	},
-+	.probe = tps68470_regulator_probe,
++	.probe = skl_int3472_discrete_probe,
++	.remove = skl_int3472_discrete_remove,
 +};
++module_platform_driver(int3472_discrete);
 +
-+/*
-+ * The ACPI tps68470 probe-ordering depends on the clk/gpio/regulator drivers
-+ * registering before the drivers for the camera-sensors which use them bind.
-+ * subsys_initcall() ensures this when the drivers are builtin.
-+ */
-+static int __init tps68470_regulator_init(void)
-+{
-+	return platform_driver_register(&tps68470_regulator_driver);
-+}
-+subsys_initcall(tps68470_regulator_init);
++MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI Discrete Device Driver");
++MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c b/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c
+deleted file mode 100644
+index 497e74fba75f..000000000000
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_common.c
++++ /dev/null
+@@ -1,106 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/* Author: Dan Scally <djrscally@gmail.com> */
+-
+-#include <linux/acpi.h>
+-#include <linux/i2c.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-
+-#include "intel_skl_int3472_common.h"
+-
+-union acpi_object *skl_int3472_get_acpi_buffer(struct acpi_device *adev, char *id)
+-{
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	acpi_handle handle = adev->handle;
+-	union acpi_object *obj;
+-	acpi_status status;
+-
+-	status = acpi_evaluate_object(handle, id, NULL, &buffer);
+-	if (ACPI_FAILURE(status))
+-		return ERR_PTR(-ENODEV);
+-
+-	obj = buffer.pointer;
+-	if (!obj)
+-		return ERR_PTR(-ENODEV);
+-
+-	if (obj->type != ACPI_TYPE_BUFFER) {
+-		acpi_handle_err(handle, "%s object is not an ACPI buffer\n", id);
+-		kfree(obj);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	return obj;
+-}
+-
+-int skl_int3472_fill_cldb(struct acpi_device *adev, struct int3472_cldb *cldb)
+-{
+-	union acpi_object *obj;
+-	int ret;
+-
+-	obj = skl_int3472_get_acpi_buffer(adev, "CLDB");
+-	if (IS_ERR(obj))
+-		return PTR_ERR(obj);
+-
+-	if (obj->buffer.length > sizeof(*cldb)) {
+-		acpi_handle_err(adev->handle, "The CLDB buffer is too large\n");
+-		ret = -EINVAL;
+-		goto out_free_obj;
+-	}
+-
+-	memcpy(cldb, obj->buffer.pointer, obj->buffer.length);
+-	ret = 0;
+-
+-out_free_obj:
+-	kfree(obj);
+-	return ret;
+-}
+-
+-static const struct acpi_device_id int3472_device_id[] = {
+-	{ "INT3472", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(acpi, int3472_device_id);
+-
+-static struct platform_driver int3472_discrete = {
+-	.driver = {
+-		.name = "int3472-discrete",
+-		.acpi_match_table = int3472_device_id,
+-	},
+-	.probe = skl_int3472_discrete_probe,
+-	.remove = skl_int3472_discrete_remove,
+-};
+-
+-static struct i2c_driver int3472_tps68470 = {
+-	.driver = {
+-		.name = "int3472-tps68470",
+-		.acpi_match_table = int3472_device_id,
+-	},
+-	.probe_new = skl_int3472_tps68470_probe,
+-};
+-
+-static int skl_int3472_init(void)
+-{
+-	int ret;
+-
+-	ret = platform_driver_register(&int3472_discrete);
+-	if (ret)
+-		return ret;
+-
+-	ret = i2c_register_driver(THIS_MODULE, &int3472_tps68470);
+-	if (ret)
+-		platform_driver_unregister(&int3472_discrete);
+-
+-	return ret;
+-}
+-module_init(skl_int3472_init);
+-
+-static void skl_int3472_exit(void)
+-{
+-	platform_driver_unregister(&int3472_discrete);
+-	i2c_del_driver(&int3472_tps68470);
+-}
+-module_exit(skl_int3472_exit);
+-
+-MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI Device Driver");
+-MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
+-MODULE_LICENSE("GPL v2");
+diff --git a/drivers/platform/x86/intel/int3472/intel_skl_int3472_tps68470.c b/drivers/platform/x86/intel/int3472/tps68470.c
+similarity index 86%
+rename from drivers/platform/x86/intel/int3472/intel_skl_int3472_tps68470.c
+rename to drivers/platform/x86/intel/int3472/tps68470.c
+index 42e688f4cad4..e95b0f50b384 100644
+--- a/drivers/platform/x86/intel/int3472/intel_skl_int3472_tps68470.c
++++ b/drivers/platform/x86/intel/int3472/tps68470.c
+@@ -7,7 +7,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ 
+-#include "intel_skl_int3472_common.h"
++#include "common.h"
+ 
+ #define DESIGNED_FOR_CHROMEOS		1
+ #define DESIGNED_FOR_WINDOWS		2
+@@ -102,7 +102,7 @@ static int skl_int3472_tps68470_calc_type(struct acpi_device *adev)
+ 	return DESIGNED_FOR_WINDOWS;
+ }
+ 
+-int skl_int3472_tps68470_probe(struct i2c_client *client)
++static int skl_int3472_tps68470_probe(struct i2c_client *client)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
+ 	struct regmap *regmap;
+@@ -142,3 +142,22 @@ int skl_int3472_tps68470_probe(struct i2c_client *client)
+ 
+ 	return ret;
+ }
 +
-+static void __exit tps68470_regulator_exit(void)
-+{
-+	platform_driver_unregister(&tps68470_regulator_driver);
-+}
-+module_exit(tps68470_regulator_exit);
++static const struct acpi_device_id int3472_device_id[] = {
++	{ "INT3472", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, int3472_device_id);
 +
-+MODULE_ALIAS("platform:tps68470-regulator");
-+MODULE_DESCRIPTION("TPS68470 voltage regulator driver");
++static struct i2c_driver int3472_tps68470 = {
++	.driver = {
++		.name = "int3472-tps68470",
++		.acpi_match_table = int3472_device_id,
++	},
++	.probe_new = skl_int3472_tps68470_probe,
++};
++module_i2c_driver(int3472_tps68470);
++
++MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI TPS68470 Device Driver");
++MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
 +MODULE_LICENSE("GPL v2");
 -- 
 2.31.1
