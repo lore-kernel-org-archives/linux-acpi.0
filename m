@@ -2,43 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B095AC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B6F9C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90A49610C7
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E70F61078
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234518AbhJZTLR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Oct 2021 15:11:17 -0400
-Received: from mail-dm6nam08on2061.outbound.protection.outlook.com ([40.107.102.61]:59621
-        "EHLO NAM04-DM6-obe.outbound.protection.outlook.com"
+        id S236188AbhJZTLS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Oct 2021 15:11:18 -0400
+Received: from mail-co1nam11on2055.outbound.protection.outlook.com ([40.107.220.55]:46305
+        "EHLO NAM11-CO1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S231531AbhJZTLR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Oct 2021 15:11:17 -0400
+        id S235497AbhJZTLS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 26 Oct 2021 15:11:18 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fV3MEKwmeC3dOaNlph3tQLLYMlCqarC/gtlv7bIioS2pi3NmGBcfV5sTfe1ZTTysbQbTAwgZLT8eUjCR+66G0OYPnXw24tbnf7jpUm4VTXjvGvo2V3C/TC5L8BvLIthzZyBRemAS9hZQNO/atkGfX5K5YZWbNeHvYhFJe7ghSI+BbnReQY5dwhq4pvMm1N0eI5CJuL7As0Bgk4v1TUeifYKc3f85+GJLMQYKC4SB2yHZrDTxqv2uYiyHJylaMIRPL3gQBJvZa5nF5Yh2QUIH5/xr2Tqjvof0kBe8ROPTiHMP127W2e0XvKmzSWr+uM00tdM6s03M439o4PgQoKXb4Q==
+ b=DiJO4Lp+G3N97W8hOsea4Ynr9RpRq1V9yFmUFxZlqHblGyNTIqQoR9Z9ni8RiDW0WAzxUQ5Yg5Rv0lXyeD3sXArS/YLatDZlFaNok64L2nuS2kytgTZh+XomTZ7gNpCng2RLWh69O/LP2ldaK4UFipwsNIzybA/LoQjW4gSRV1SdB7Ke7kEV0hFpSNPXnkhpol2KsWU761do+KXIoqTAmekPukwNxJZ7m3BCZBfLQCDFZPvJ+KxHOO8u7By4S8fiifPDNHK1v0tbAHZDFdeEVX8nA9prhK15+O4wFeS5/ZIRT6MeXFK7iS/SbQM4492LsBMxVwL3vJff82HTIcXAhA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oFXyanS5qIJCxEDQK8/CI/S+tQfLvHHL8zyRDL4b3TE=;
- b=jJGuH9NkXCkEXEXoYEycW8vV9AXaPXSLc0yu1jd/FJ4Uc+o9mfv67iMi7qule+coTttix+2ONvZtC7uMiEf1pQXZVC/LV5OdX3zYu9xjqAg69oFbxvXXkMYXUJOsjzDFJu96EfLfElCzWGdb7C6NJtoqQziTZ59t2ugsSzyvnrn1qao38ckDzZ36/7dJRBHS4iRh7MRp28ulXta86cSellCY6xymob28EKr6fKiLrADSvqdJh66ch6AeN0uniueMFxJopoa4LjWgiLFydP+YnXFtnFV+H6N9HP7t5YXJ8rn1hGTktdFqbC1XjW7Y8aEJDpGmVOFUrRQvhmbSOiWhLQ==
+ bh=kNrlQ7sOuILAxGZt4dRDqNuouTBpqvELvDF8Pz4zum8=;
+ b=M+O6UUOhsUqG7Ov3s87szUU9ZT7DEGYl0dCFOUkotdKLb95i4+dyqiW5iL2S6mTuAUWNcQxMIwTwvwpouKRiBcXGsQseGiPuhOI7dSOAMmLuu3VtigkBXVMpeP+mB74ngVeGa9+aQybKQwJzcgUg5ImoOd2gwi9VwwoOqyRyBMyi7EuDU0Z7PnuPkF4AGSpMstOhRsxAkz/45GgIjIXi1cbNHHilX7/BZx5HitUYnqZRHP8v7xfpPybPwyAUKmFE4lhKbjA+B7ThJvXzwQeDutooOCfya2Z1Kx9Y8oNQzvd3cumrm2AknSViClKAHMschodzqmUFG3Xr9heTbo1ZyA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oFXyanS5qIJCxEDQK8/CI/S+tQfLvHHL8zyRDL4b3TE=;
- b=K4EFvoN848ylL4eKYVh/Mxjd4zdp1vRE6SDmYvMK/hpU2y7clfAAKApnAwYwr4+znoMx4EQGaqV3Lz4sI2L6v/d0XdoneTAxCL84U0QogLyXbiHELSYgK85+ZsU+0hleUfKaYwbdtFrBBFwtRc4rt5yjHtMeQFlw0U13cXGKoww=
-Received: from BN9PR03CA0340.namprd03.prod.outlook.com (2603:10b6:408:f6::15)
- by DM5PR12MB1546.namprd12.prod.outlook.com (2603:10b6:4:8::23) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.4628.20; Tue, 26 Oct 2021 19:08:51 +0000
+ bh=kNrlQ7sOuILAxGZt4dRDqNuouTBpqvELvDF8Pz4zum8=;
+ b=H4C84lJGD7DenIAo5+ZbflM9n2TyRduhf3KZAvjRgy4OpNkoYbqBKNhQ3ae41MoP4CnQTHpf9QetN8+9EQrojkWjCDbyWI+TJTYqU3fKJkUXR3+9DvySn1j7vqrim9R+N4PoN/kEiGvpUVhKzaMsp55pN6squKZFkDMlwwGpLe8=
+Received: from BN9PR03CA0344.namprd03.prod.outlook.com (2603:10b6:408:f6::19)
+ by BYAPR12MB3077.namprd12.prod.outlook.com (2603:10b6:a03:db::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4628.15; Tue, 26 Oct
+ 2021 19:08:49 +0000
 Received: from BN8NAM11FT061.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:f6:cafe::8e) by BN9PR03CA0340.outlook.office365.com
- (2603:10b6:408:f6::15) with Microsoft SMTP Server (version=TLS1_2,
+ (2603:10b6:408:f6:cafe::b) by BN9PR03CA0344.outlook.office365.com
+ (2603:10b6:408:f6::19) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4628.22 via Frontend
- Transport; Tue, 26 Oct 2021 19:08:50 +0000
+ Transport; Tue, 26 Oct 2021 19:08:49 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; redhat.com; dkim=none (message not signed)
  header.d=none;redhat.com; dmarc=pass action=none header.from=amd.com;
@@ -48,11 +49,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
  BN8NAM11FT061.mail.protection.outlook.com (10.13.177.144) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.4628.16 via Frontend Transport; Tue, 26 Oct 2021 19:08:50 +0000
+ 15.20.4628.16 via Frontend Transport; Tue, 26 Oct 2021 19:08:49 +0000
 Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.15; Tue, 26 Oct
- 2021 14:08:49 -0500
+ 2021 14:08:48 -0500
 From:   Mario Limonciello <mario.limonciello@amd.com>
 To:     Hans de Goede <hdegoede@redhat.com>,
         Mark Gross <mgross@linux.intel.com>,
@@ -61,12 +62,10 @@ CC:     "open list:X86 PLATFORM DRIVERS"
         <platform-driver-x86@vger.kernel.org>, <markpearson@lenovo.com>,
         <linux-acpi@vger.kernel.org>,
         Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v4 2/3] platform/x86: asus-wmi: rename platform_profile_* function symbols
-Date:   Tue, 26 Oct 2021 14:08:34 -0500
-Message-ID: <20211026190835.10697-3-mario.limonciello@amd.com>
+Subject: [PATCH v4 0/3] Let other drivers react to platform profile changes
+Date:   Tue, 26 Oct 2021 14:08:32 -0500
+Message-ID: <20211026190835.10697-1-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20211026190835.10697-1-mario.limonciello@amd.com>
-References: <20211026190835.10697-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -75,74 +74,60 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 8aa6c99c-fef8-4c04-ea53-08d998b40b61
-X-MS-TrafficTypeDiagnostic: DM5PR12MB1546:
-X-Microsoft-Antispam-PRVS: <DM5PR12MB154632EDF88447837EEA00D1E2849@DM5PR12MB1546.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4941;
+X-MS-Office365-Filtering-Correlation-Id: 41d5c5d0-c4c5-4192-3785-08d998b40ab4
+X-MS-TrafficTypeDiagnostic: BYAPR12MB3077:
+X-Microsoft-Antispam-PRVS: <BYAPR12MB30777EB39D4A2634F55DABC9E2849@BYAPR12MB3077.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 87gT2C9QjLEfCmDgW8ALAA4ivF4sj9+P38xMEKD7SqwTv9h55DAvSpLbnjaXujt14SRtWGf93v5mr+10qadNPH90wx/LiPwaZ90VD8aFfaliQ/qUHmC9VXqtg6RBAy+IE6iWn29pHhSPtYQe2bVqNbojnk4mCOACdaBa4VdvZ1PHntEwYeyxHnm2rRCbTlKl1DWgtRHF0x/414/jfi1pQuGsdHM7sDss5so71d/9sTCBvm0Oe97LUoGGXi0qY46Lt9AkQxI3ZUehXTtLuQQJD4azzs0i+jhrUyoa4+snAK5UU0q6Gy72bgzELqkiATqxulMFMjN4MqeG0T94kVIma9GF74L112FMQyX8kp/BOaD0D9/y76pxz5KFS/SOepZsZXQeMY6pvCr+KWAANSZnX64HQeEK/Iclo7otB2rw+6MZe9iZ338nYV44Un8OdVfCfwIYGEO8lBXZGdQoPD1lRJrlE1f+v5h4hNXK7s6t2MStyS5p/l0DH+yTSucuN6OO2rWdM5p7xtYcu484YEefWdBaPbQElv0ck0L/Hg4/XJKEMN0BMFzKKjLxOdwDUHh1f5eSYzTL/Xl6mVt/cv9HHcq09nAuUJy71LRLVkQ8EbhAsZalnKI8Lu/KRns0zjzSyvbvgSOyKNe4ZF9icSEcCHLkAapeG/kD0b4MBqZDGYTRJHfTCOMKNQ3/uAq9/uLn6+aWd3HGfV2ZqvQq+vphwreSqGwb4bQeiGcFrwbtX7o=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(46966006)(36840700001)(316002)(336012)(26005)(16526019)(36860700001)(508600001)(47076005)(4326008)(82310400003)(1076003)(110136005)(81166007)(186003)(44832011)(7696005)(36756003)(8676002)(8936002)(5660300002)(83380400001)(356005)(70206006)(2906002)(2616005)(54906003)(86362001)(426003)(70586007)(6666004)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: BnlIOIm8bO/kSH93+A/FoWKGM8XMX2lNCbEDKVBP56hSkx5CcFgdmOALj7niXthlHPzKvFXaZl3rae1cKidjLqq3CMkFc5/C4wuZDVPrC80XGw9EyNrxZ1+Cav77dUfdxf4E+hnU1LHzLrk8gcqTDQhzpJ0SNCbCnjqCMRyqDRq6RChRUCP9AYN5ywSaKVq/eBZyYarvi4bqdfEmdUmzmwyb8cTTYLGsotZFRuorrq0Stbdq6z8tEy3sX/hDr23QajJN8SYh7kaExAfDd5Q4C4swe8bAMTwJM7l20WisNHjaunrHVcsVsh5XrLombjPQ50e+EveWD+wBBdrW2dqQJX6iAS0Enph7k17l8CUrMiktF4n89hF044GKKooe5lfC70WQywAANJUbN/m+NVIC/tCBZWqTZCP5lDTasbE9LyQKEiYgnhhJo3WdwsT7vi7yk5fOmAqSx8wHCIPhAmmiO35/3Z+X3MPpJYF+H64FRvaDr6f4iIHFtRQfFwfYOVD85In0yWJV20kjuBlET8gH2O4QvS3jBXOiOqgrAYyyy+dzitm8l+lrfcD4BG9sznMG/Ycpn6xLHy+YQ+fm/XAg+zU+S1ioQxoqWtXUXjtNamxtmwaqJK2J9sz18HickvX3iiuyJD8BFc5NKE8yvEGPPDGH6MNi1QAr51plR7s8ZpFIqBzTVm/y1j8wioXK5IwhCZR1xfBx7nRES+ZF4BkKogpanBYIQdCKplUSoWGA2vM=
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(46966006)(36840700001)(81166007)(186003)(36860700001)(356005)(2906002)(1076003)(26005)(2616005)(4326008)(82310400003)(7696005)(70206006)(83380400001)(86362001)(54906003)(110136005)(316002)(8936002)(336012)(508600001)(426003)(5660300002)(8676002)(6666004)(36756003)(47076005)(16526019)(44832011)(70586007)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2021 19:08:50.1707
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2021 19:08:49.0324
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8aa6c99c-fef8-4c04-ea53-08d998b40b61
+X-MS-Exchange-CrossTenant-Network-Message-Id: 41d5c5d0-c4c5-4192-3785-08d998b40ab4
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT061.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB1546
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB3077
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-An upcoming change to platform profiles will export `platform_profile_get`
-as a symbol that can be used by other drivers. Avoid the collision.
+Currently only one driver can register as a handler for a platform profile.
 
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
- drivers/platform/x86/asus-wmi.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+This limitation means that if multiple drivers want to react to platform
+profile changes that they will need to directly interact with individual
+drivers.
 
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index e14fb5fa7324..8f067ac4e952 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -2169,8 +2169,8 @@ static ssize_t throttle_thermal_policy_store(struct device *dev,
- static DEVICE_ATTR_RW(throttle_thermal_policy);
- 
- /* Platform profile ***********************************************************/
--static int platform_profile_get(struct platform_profile_handler *pprof,
--				enum platform_profile_option *profile)
-+static int asus_wmi_platform_profile_get(struct platform_profile_handler *pprof,
-+					enum platform_profile_option *profile)
- {
- 	struct asus_wmi *asus;
- 	int tp;
-@@ -2196,8 +2196,8 @@ static int platform_profile_get(struct platform_profile_handler *pprof,
- 	return 0;
- }
- 
--static int platform_profile_set(struct platform_profile_handler *pprof,
--				enum platform_profile_option profile)
-+static int asus_wmi_platform_profile_set(struct platform_profile_handler *pprof,
-+					enum platform_profile_option profile)
- {
- 	struct asus_wmi *asus;
- 	int tp;
-@@ -2236,8 +2236,8 @@ static int platform_profile_setup(struct asus_wmi *asus)
- 
- 	dev_info(dev, "Using throttle_thermal_policy for platform_profile support\n");
- 
--	asus->platform_profile_handler.profile_get = platform_profile_get;
--	asus->platform_profile_handler.profile_set = platform_profile_set;
-+	asus->platform_profile_handler.profile_get = asus_wmi_platform_profile_get;
-+	asus->platform_profile_handler.profile_set = asus_wmi_platform_profile_set;
- 
- 	set_bit(PLATFORM_PROFILE_QUIET, asus->platform_profile_handler.choices);
- 	set_bit(PLATFORM_PROFILE_BALANCED,
+Instead introduce a notification flow that drivers can register for event
+changes.  The idea is that any driver that wants to can:
+1. read the current profile
+2. set up initial values
+3. register for changes
+4. react to changes
+
+Changes from v3->v4:
+ * Simplify platform_profile_notify
+   - No need to check cur_profile as platform_profile_get does it
+   - No need to track ret as it's unused
+Changes from v2->v3:
+ * Add patches to avoid collisions in hp-wmi and asus-wmi symbols
+
+Mario Limonciello (3):
+  platform/x86: hp-wmi: rename platform_profile_* function symbols
+  platform/x86: asus-wmi: rename platform_profile_* function symbols
+  ACPI: platform_profile: Add support for notification chains
+
+ drivers/acpi/platform_profile.c  | 46 +++++++++++++++++++++++++++-----
+ drivers/platform/x86/asus-wmi.c  | 12 ++++-----
+ drivers/platform/x86/hp-wmi.c    | 12 ++++-----
+ include/linux/platform_profile.h | 10 +++++++
+ 4 files changed, 61 insertions(+), 19 deletions(-)
+
 -- 
 2.25.1
 
