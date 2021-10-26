@@ -2,126 +2,155 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8384FC433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 20:47:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED4F2C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 22:01:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 653C7603E5
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 20:47:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0F29610EA
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 22:01:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237038AbhJZUts (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Oct 2021 16:49:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37982 "EHLO mail.kernel.org"
+        id S239732AbhJZWEB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Oct 2021 18:04:01 -0400
+Received: from mga18.intel.com ([134.134.136.126]:57938 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233944AbhJZUts (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Oct 2021 16:49:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA23860296;
-        Tue, 26 Oct 2021 20:47:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1635281244;
-        bh=hZut5nm2pKDxCAJpJ+gN/iH1oUKj9aOLGboxGFVJ5YI=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=olXKZbS4UT5e405M23mZjkauGYD3HC0pijTZ9JfGB85dm7/+Z6cjvMsAexbv6QabS
-         R4DiczunAOaGB5dG9uqMRBkOl2CsKwA0WEDMSjr88MIYYxS4NQ8LlLjjfc5Y224Vol
-         mU06RB6CXLdgk8QoKjczkeFwWQ2yH8CV/7rJxqVHW3TC1QUMXf40CnVabGu+cIgOqC
-         xrRc/XC85baK33Dtmt6OP2dS0xP+YLBwUsnYgN8q+jg/Ixw7JOBQ0sckmuxqxJRl9U
-         VeTwHiJq+FB3YWx6UCGZePvE20G6irMcDY1/ooBaVJl43GhbA4hdxYBhTVcYkrMuha
-         ES5QdyUDrAtOw==
-Date:   Tue, 26 Oct 2021 15:47:22 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Xuesong Chen <xuesong.chen@linux.alibaba.com>
-Cc:     catalin.marinas@arm.com, lorenzo.pieralisi@arm.com,
-        james.morse@arm.com, will@kernel.org, rafael@kernel.org,
-        tony.luck@intel.com, bp@alien8.de, mingo@kernel.org,
-        bhelgaas@google.com, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH v3 2/2] ACPI: APEI: Filter the PCI MCFG address with an
- arch-agnostic method
-Message-ID: <20211026204722.GA158130@bhelgaas>
+        id S239727AbhJZWEB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 26 Oct 2021 18:04:01 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10149"; a="216934489"
+X-IronPort-AV: E=Sophos;i="5.87,184,1631602800"; 
+   d="scan'208";a="216934489"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2021 15:01:00 -0700
+X-IronPort-AV: E=Sophos;i="5.87,184,1631602800"; 
+   d="scan'208";a="497555765"
+Received: from agluck-desk2.sc.intel.com ([10.3.52.146])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2021 15:01:00 -0700
+From:   Tony Luck <tony.luck@intel.com>
+To:     Borislav Petkov <bp@alien8.de>, x86@kernel.org
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        naoya.horiguchi@nec.com, Andrew Morton <akpm@linux-foundation.org>,
+        Sean Christopherson <seanjc@google.com>,
+        Jarkko Sakkinen <jarkko@kernel.org>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Cathy Zhang <cathy.zhang@intel.com>, linux-sgx@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>,
+        Reinette Chatre <reinette.chatre@intel.com>
+Subject: [PATCH v11 3/7] x86/sgx: Initial poison handling for dirty and free pages
+Date:   Tue, 26 Oct 2021 15:00:46 -0700
+Message-Id: <20211026220050.697075-4-tony.luck@intel.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20211026220050.697075-1-tony.luck@intel.com>
+References: <20211018202542.584115-1-tony.luck@intel.com>
+ <20211026220050.697075-1-tony.luck@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1e186336-aa68-d845-307e-aa6e1133322f@linux.alibaba.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Oct 26, 2021 at 05:16:47PM +0800, Xuesong Chen wrote:
-> On 26/10/2021 07:37, Bjorn Helgaas wrote:
+A memory controller patrol scrubber can report poison in a page
+that isn't currently being used.
 
-> > My point was that when ECAM is implemented correctly, a CPU does a
-> > single MMIO load to do a PCI config read and a single MMIO store to do
-> > a PCI config write.  In that case there no need for any locking, so
-> > there's no need for APEI to reserve those resources.
-> 
-> Ah, got it. That means the PCI ECAM has a implicit mutual exclusion with EINJ
-> if the hardware implemention is correct, so we can remove the MCFG from
-> the APEI's safely.
+Add "poison" field in the sgx_epc_page that can be set for an
+sgx_epc_page. Check for it:
+1) When sanitizing dirty pages
+2) When freeing epc pages
 
-Well, not quite.  ECAM doesn't *need* mutual exclusion.  Single loads
-and stores are atomic by definition.
+Poison is a new field separated from flags to avoid having to make all
+updates to flags atomic, or integrate poison state changes into some
+other locking scheme to protect flags (Currently just sgx_reclaimer_lock
+which protects the SGX_EPC_PAGE_RECLAIMER_TRACKED bit in page->flags).
 
-> > I think apei_resources_request() should continue to reserve MCFG areas
-> > on tegra194 and xgene, but it does not need to reserve them on other
-> > ARM64 platforms.
-> 
-> As a summary: we need to reserve the MCFG areas on those platforms with a
-> quirk ECAM implementation since there's no lockless method to access the
-> configuration space, on other platforms we don't need to reserve the MCFG
-> resources (so can remove it safely).
-> 
-> So we need to add another patch to handle the case of tegra194 and xgene...
-> I will try to figure it out. 
+In both cases place the poisoned page on a per-node list of poisoned
+epc pages to make sure it will not be reallocated.
 
-I looked through these again and found another problem case (thunder).
-Here are my notes from my research.
+Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
+Tested-by: Reinette Chatre <reinette.chatre@intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ arch/x86/kernel/cpu/sgx/main.c | 26 +++++++++++++++++++++++++-
+ arch/x86/kernel/cpu/sgx/sgx.h  |  4 +++-
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
-Normal ECAM users require no device-specific support.  The platform
-supplies an MCFG table, the generic code works, no mutual exclusion is
-required, and APEI doesn't need to reserve the MCFG areas.
+diff --git a/arch/x86/kernel/cpu/sgx/main.c b/arch/x86/kernel/cpu/sgx/main.c
+index 5c02cffdabc8..e5fcb8354bcc 100644
+--- a/arch/x86/kernel/cpu/sgx/main.c
++++ b/arch/x86/kernel/cpu/sgx/main.c
+@@ -62,6 +62,24 @@ static void __sgx_sanitize_pages(struct list_head *dirty_page_list)
+ 
+ 		page = list_first_entry(dirty_page_list, struct sgx_epc_page, list);
+ 
++		/*
++		 * Checking page->poison without holding the node->lock
++		 * is racy, but losing the race (i.e. poison is set just
++		 * after the check) just means __eremove() will be uselessly
++		 * called for a page that sgx_free_epc_page() will put onto
++		 * the node->sgx_poison_page_list later.
++		 */
++		if (page->poison) {
++			struct sgx_epc_section *section = &sgx_epc_sections[page->section];
++			struct sgx_numa_node *node = section->node;
++
++			spin_lock(&node->lock);
++			list_move(&page->list, &node->sgx_poison_page_list);
++			spin_unlock(&node->lock);
++
++			continue;
++		}
++
+ 		ret = __eremove(sgx_get_epc_virt_addr(page));
+ 		if (!ret) {
+ 			/*
+@@ -626,7 +644,11 @@ void sgx_free_epc_page(struct sgx_epc_page *page)
+ 
+ 	spin_lock(&node->lock);
+ 
+-	list_add_tail(&page->list, &node->free_page_list);
++	page->owner = NULL;
++	if (page->poison)
++		list_add(&page->list, &node->sgx_poison_page_list);
++	else
++		list_add_tail(&page->list, &node->free_page_list);
+ 	sgx_nr_free_pages++;
+ 	page->flags = SGX_EPC_PAGE_IS_FREE;
+ 
+@@ -658,6 +680,7 @@ static bool __init sgx_setup_epc_section(u64 phys_addr, u64 size,
+ 		section->pages[i].section = index;
+ 		section->pages[i].flags = 0;
+ 		section->pages[i].owner = NULL;
++		section->pages[i].poison = 0;
+ 		list_add_tail(&section->pages[i].list, &sgx_dirty_page_list);
+ 	}
+ 
+@@ -724,6 +747,7 @@ static bool __init sgx_page_cache_init(void)
+ 		if (!node_isset(nid, sgx_numa_mask)) {
+ 			spin_lock_init(&sgx_numa_nodes[nid].lock);
+ 			INIT_LIST_HEAD(&sgx_numa_nodes[nid].free_page_list);
++			INIT_LIST_HEAD(&sgx_numa_nodes[nid].sgx_poison_page_list);
+ 			node_set(nid, sgx_numa_mask);
+ 		}
+ 
+diff --git a/arch/x86/kernel/cpu/sgx/sgx.h b/arch/x86/kernel/cpu/sgx/sgx.h
+index 5906471156c5..9ec3136c7800 100644
+--- a/arch/x86/kernel/cpu/sgx/sgx.h
++++ b/arch/x86/kernel/cpu/sgx/sgx.h
+@@ -31,7 +31,8 @@
+ 
+ struct sgx_epc_page {
+ 	unsigned int section;
+-	unsigned int flags;
++	u16 flags;
++	u16 poison;
+ 	struct sgx_encl_page *owner;
+ 	struct list_head list;
+ };
+@@ -42,6 +43,7 @@ struct sgx_epc_page {
+  */
+ struct sgx_numa_node {
+ 	struct list_head free_page_list;
++	struct list_head sgx_poison_page_list;
+ 	spinlock_t lock;
+ };
+ 
+-- 
+2.31.1
 
-The problem cases are platforms that supply an MCFG table but require
-some device-specific workarounds.  We can identify these because they
-have quirks in pci-mcfg.c.  Here are the existing quirks and the
-pci_ecam_ops structs they supply:
-
-  AL_ECAM             al_pcie_ops                 # OK
-  QCOM_ECAM32         pci_32b_ops                 # OK
-  HISI_QUAD_DOM       hisi_pcie_ops               # OK
-  THUNDER_PEM_QUIRK   thunder_pem_ecam_ops        # problem
-  THUNDER_PEM_QUIRK   thunder_pem_ecam_ops        # problem
-  THUNDER_ECAM_QUIRK  pci_thunder_ecam_ops        # OK
-  tegra               tegra194_pcie_ops           # problem
-  XGENE_V1_ECAM_MCFG  xgene_v1_pcie_ecam_ops      # problem
-  XGENE_V2_ECAM_MCFG  xgene_v2_pcie_ecam_ops      # problem
-  ALTRA_ECAM_QUIRK    pci_32b_read_ops            # OK
-
-The ones marked "OK" have .map_bus(), .read(), and .write() methods
-that need no mutual exclusion because they boil down to just a single
-MMIO load or store.  These are fine and there shouldn't be a problem
-if an EINJ action accesses the ECAM space.
-
-The others do require mutual exclusion:
-
-  - thunder_pem_ecam_ops: thunder_pem_config_read() calls
-    thunder_pem_bridge_read(), which does a writeq() to PEM_CFG_RD
-    followed by a readq().  The writeq() and readq() must be atomic to
-    avoid corruption.
-
-  - tegra194_pcie_ops: tegra194_map_bus() programs the ATU.  This and
-    the subsequent ECAM read/write must be atomic.
-
-  - xgene_v1_pcie_ecam_ops and xgene_v2_pcie_ecam_ops:
-    xgene_pcie_map_bus() sets the RTID.  This and the subsequent ECAM
-    read/write must be atomic.
-
-I had to look at all these ops individually to find them, so I don't
-see an easy way to identify these problem cases at run-time.
-
-I personally would not have an issue with having APEI try to reserve
-the MCFG regions for any platform that has an MCFG quirk.  That would
-prevent the al, qcom, hisi, thunder-ecam, and altra drivers from using
-EINJ even though it would probably be safe for them.  But we already
-know those platforms are not really ACPI-compliant, so ...
-
-Bjorn
