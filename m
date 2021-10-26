@@ -2,107 +2,90 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8D34C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 07:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 263E6C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 08:01:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8E3960F0F
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 07:28:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF3CE610CB
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 08:01:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229940AbhJZHa7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Oct 2021 03:30:59 -0400
-Received: from out30-133.freemail.mail.aliyun.com ([115.124.30.133]:49375 "EHLO
-        out30-133.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229540AbhJZHa6 (ORCPT
+        id S233896AbhJZID3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Oct 2021 04:03:29 -0400
+Received: from esa12.hc1455-7.c3s2.iphmx.com ([139.138.37.100]:22909 "EHLO
+        esa12.hc1455-7.c3s2.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232068AbhJZIDQ (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Oct 2021 03:30:58 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0Utl7RCh_1635233311;
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0Utl7RCh_1635233311)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 26 Oct 2021 15:28:32 +0800
-From:   Shuai Xue <xueshuai@linux.alibaba.com>
-To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        bp@alien8.de, tony.luck@intel.com, james.morse@arm.com,
-        lenb@kernel.org, rjw@rjwysocki.net
-Cc:     xueshuai@linux.alibaba.com, zhangliguang@linux.alibaba.com,
-        zhuo.song@linux.alibaba.com
-Subject: [PATCH v3] ACPI, APEI, EINJ: Relax platform response timeout to 1 second.
-Date:   Tue, 26 Oct 2021 15:28:29 +0800
-Message-Id: <20211026072829.94262-1-xueshuai@linux.alibaba.com>
-X-Mailer: git-send-email 2.24.3 (Apple Git-128)
-In-Reply-To: <20211015033817.16719-1-xueshuai@linux.alibaba.com>
-References: <20211015033817.16719-1-xueshuai@linux.alibaba.com>
+        Tue, 26 Oct 2021 04:03:16 -0400
+X-Greylist: delayed 445 seconds by postgrey-1.27 at vger.kernel.org; Tue, 26 Oct 2021 04:03:11 EDT
+IronPort-SDR: nV8hI6SuojD0UHrDzJJyyOX+sZt1C7HNyO1cX+yiFWoqurhDMtLm+bZBgGqdXJuHW/CH1v+EwR
+ H7LviDCpbJNxUIh4WVKEHN5BOv5eKE1C+/1ggTHLwJxE/ftT7L/UKrdNdXJX1h5xyCc437h5vs
+ D2Lye/CDmCZlXVFcWUEVBAfdJhzCZNl6TEZKx8xCssM0BcEIBhXSdRh4JgweNyOR/y+eYx7D1e
+ TuIu3tpRxOz9RblrBg9qNKZey9FCUzBTTWJJmAeSKelNGSblR0k2IcZXT61b7q0gxLw+GhO9XX
+ l5zslQQMBOioqIY3CyO3l8Ch
+X-IronPort-AV: E=McAfee;i="6200,9189,10148"; a="29985614"
+X-IronPort-AV: E=Sophos;i="5.87,182,1631545200"; 
+   d="scan'208";a="29985614"
+Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
+  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP; 26 Oct 2021 16:53:15 +0900
+Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
+        by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 62692F30E3;
+        Tue, 26 Oct 2021 16:53:14 +0900 (JST)
+Received: from oym-om2.fujitsu.com (oym-om2.o.css.fujitsu.com [10.85.58.162])
+        by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 3DD6ABDB66;
+        Tue, 26 Oct 2021 16:53:12 +0900 (JST)
+Received: from localhost.localdomain (n3235113.np.ts.nmh.cs.fujitsu.co.jp [10.123.235.113])
+        by oym-om2.fujitsu.com (Postfix) with ESMTP id 1832840108E53;
+        Tue, 26 Oct 2021 16:53:12 +0900 (JST)
+From:   Shuuichirou Ishii <ishii.shuuichir@fujitsu.com>
+To:     rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, robert.moore@intel.com,
+        erik.kaneda@intel.com, rafael.j.wysocki@intel.com, devel@acpica.org
+Cc:     ishii.shuuichir@fujitsu.com
+Subject: [PATCH] ACPI: Add AEST in ACPI Table Definitions
+Date:   Tue, 26 Oct 2021 16:52:57 +0900
+Message-Id: <20211026075257.3785036-1-ishii.shuuichir@fujitsu.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When injecting an error into the platform, the OSPM executes an
-EXECUTE_OPERATION action to instruct the platform to begin the injection
-operation. And then, the OSPM busy waits for a while by continually
-executing CHECK_BUSY_STATUS action until the platform indicates that the
-operation is complete. More specifically, the platform is limited to
-respond within 1 millisecond right now. This is too strict for some
-platforms.
+When We added AEST using the Upgrading ACPI tables via initrd function,
+the kernel could not recognize the AEST, so We added AEST the ACPI table
+definition.
 
-For example, in Arm platform, when injecting a Processor Correctable error,
-the OSPM will warn:
-    Firmware does not respond in time.
-
-And a message is printed on the console:
-    echo: write error: Input/output error
-
-We observe that the waiting time for DDR error injection is about 10 ms and
-that for PCIe error injection is about 500 ms in Arm platform.
-
-In this patch, we relax the response timeout to 1 second.
-
-Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Signed-off-by: Shuuichirou Ishii <ishii.shuuichir@fujitsu.com>
 ---
-Changelog v2 -> v3:
-- Implemented the timeout in usleep_range instead of msleep.
-- Dropped command line interface of timeout.
-- Link to the v1 patch: https://lkml.org/lkml/2021/10/14/1402
----
- drivers/acpi/apei/einj.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/acpi/tables.c | 2 +-
+ include/acpi/actbl2.h | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 133156759551..6e1ff4b62a8f 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -28,9 +28,10 @@
- #undef pr_fmt
- #define pr_fmt(fmt) "EINJ: " fmt
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index f9383736fa0f..ab0fb4c33e07 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -499,7 +499,7 @@ static const char table_sigs[][ACPI_NAMESEG_SIZE] __initconst = {
+ 	ACPI_SIG_WDDT, ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT,
+ 	ACPI_SIG_PSDT, ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT,
+ 	ACPI_SIG_IORT, ACPI_SIG_NFIT, ACPI_SIG_HMAT, ACPI_SIG_PPTT,
+-	ACPI_SIG_NHLT };
++	ACPI_SIG_NHLT, ACPI_SIG_AEST };
  
--#define SPIN_UNIT		100			/* 100ns */
--/* Firmware should respond within 1 milliseconds */
--#define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
-+#define SLEEP_UNIT_MIN		1000			/* 1ms */
-+#define SLEEP_UNIT_MAX		5000			/* 5ms */
-+/* Firmware should respond within 1 seconds */
-+#define FIRMWARE_TIMEOUT	(1 * USEC_PER_SEC)
- #define ACPI5_VENDOR_BIT	BIT(31)
- #define MEM_ERROR_MASK		(ACPI_EINJ_MEMORY_CORRECTABLE | \
- 				ACPI_EINJ_MEMORY_UNCORRECTABLE | \
-@@ -171,13 +172,13 @@ static int einj_get_available_error_type(u32 *type)
+ #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
  
- static int einj_timedout(u64 *t)
- {
--	if ((s64)*t < SPIN_UNIT) {
-+	if ((s64)*t < SLEEP_UNIT_MIN) {
- 		pr_warn(FW_WARN "Firmware does not respond in time\n");
- 		return 1;
- 	}
--	*t -= SPIN_UNIT;
--	ndelay(SPIN_UNIT);
--	touch_nmi_watchdog();
-+	*t -= SLEEP_UNIT_MIN;
-+	usleep_range(SLEEP_UNIT_MIN, SLEEP_UNIT_MAX);
-+
- 	return 0;
- }
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index a47b32a5cbde..b586e40d4b86 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -48,6 +48,7 @@
+ #define ACPI_SIG_SDEV           "SDEV"	/* Secure Devices table */
+ #define ACPI_SIG_NHLT           "NHLT"	/* Non-HDAudio Link Table */
+ #define ACPI_SIG_SVKL           "SVKL"	/* Storage Volume Key Location Table */
++#define ACPI_SIG_AEST           "AEST" /* Arm Error Source Table */
  
+ /*
+  * All tables must be byte-packed to match the ACPI specification, since
 -- 
-2.20.1.12.g72788fdb
+2.27.0
 
