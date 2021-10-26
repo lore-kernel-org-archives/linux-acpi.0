@@ -2,110 +2,88 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA71FC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 22:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BCA4C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 22:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B4A44610A0
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 22:01:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D895608FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 22:11:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239838AbhJZWES (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Oct 2021 18:04:18 -0400
-Received: from mga18.intel.com ([134.134.136.126]:57940 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239752AbhJZWEF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Oct 2021 18:04:05 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10149"; a="216934497"
-X-IronPort-AV: E=Sophos;i="5.87,184,1631602800"; 
-   d="scan'208";a="216934497"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2021 15:01:01 -0700
-X-IronPort-AV: E=Sophos;i="5.87,184,1631602800"; 
-   d="scan'208";a="497555780"
-Received: from agluck-desk2.sc.intel.com ([10.3.52.146])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2021 15:01:01 -0700
-From:   Tony Luck <tony.luck@intel.com>
-To:     Borislav Petkov <bp@alien8.de>, x86@kernel.org
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        naoya.horiguchi@nec.com, Andrew Morton <akpm@linux-foundation.org>,
-        Sean Christopherson <seanjc@google.com>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        Dave Hansen <dave.hansen@intel.com>,
-        Cathy Zhang <cathy.zhang@intel.com>, linux-sgx@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>,
-        Reinette Chatre <reinette.chatre@intel.com>
-Subject: [PATCH v11 6/7] x86/sgx: Add hook to error injection address validation
-Date:   Tue, 26 Oct 2021 15:00:49 -0700
-Message-Id: <20211026220050.697075-7-tony.luck@intel.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20211026220050.697075-1-tony.luck@intel.com>
-References: <20211018202542.584115-1-tony.luck@intel.com>
- <20211026220050.697075-1-tony.luck@intel.com>
+        id S236274AbhJZWNk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Oct 2021 18:13:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48730 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240228AbhJZWNc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2021 18:13:32 -0400
+Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F4E3C061236
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Oct 2021 15:10:49 -0700 (PDT)
+Received: by mail-lj1-x22c.google.com with SMTP id h11so1339333ljk.1
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Oct 2021 15:10:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FeJxrETo5kkHC6yy5/z3/zb2XGiSNYC+KlW60qSUBa4=;
+        b=IGRo583RkjYHRXrdCbB2VtjMRMnIkzIotxUIb344Yg0+X2k+LZZ44x9PLWUupfLfXM
+         aa3MfmufNZMIOtCn8Sdx5GErCS334lOiLPg1xe2O/saDViWnOiPfN9te4fJnYGSdlobZ
+         bc8VUKmmke2U/XMI2xp3OP4iKKpxdAsC50gE5o2J7Q405Y0U6u11DbxbRDn33b4wZw1V
+         pVpwzAtXUR8FSIeKPCX1b5dCdSQUt8eV6aAze1TLGfHbpRYWMImBTG0zXCQcY2d2Mj4h
+         N8M1/sJrEiQ9QqRdk574feqFG1xLRk+DgKLBN9B/BmTVnNMA78leWGosbuID7PkPx07T
+         JZFA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FeJxrETo5kkHC6yy5/z3/zb2XGiSNYC+KlW60qSUBa4=;
+        b=XylJu8BUfzLwBZ+O6YvfKcObrqTFI+YCVvY0F/KdErxndGU0LngnQ2eYPk2e7M2aHH
+         D4eK9A2QMO6pyAqVBjc9myS2u3P/LWjxd9s02+dAUEBwRH+CqJbf6im+d0t0I0oxAFBa
+         HtT/S8I6M3hrgO7NlYItL1eOi9WCzwG8VIr7oEJozEZ6tkzxHwW9VTOf3ExkABlZXdq+
+         FUkp02ovFiqRNfrTQ4Hs6v5N/cTwbl3mWm+u80XyCXzHQOXX/q1NnC3hPUPtvuMmAA6l
+         mDDvg1w3pxdQ7/5rkaSE2gagIgN4xAI1qcwGyZsIDfBjI4S16TxcgULhZPK/Z80nlUH2
+         b2qg==
+X-Gm-Message-State: AOAM5311tp//xLHCH4v2jeP2dqeN1e1qSI0G8G87s+dPcANC5jWUhgaF
+        oblPtVZmmqkbvb7yGvCQdmELSLYtESSK3KXWUnNKBw==
+X-Google-Smtp-Source: ABdhPJzMiEfUftf3AQCYeJTd8EgA3PuLtgAofwFO1J7XgnTbj+hNXjSb/i3L0yrGwvrWcwZe6l9j1qocEPmvn5WPDNY=
+X-Received: by 2002:a05:651c:111:: with SMTP id a17mr28176160ljb.145.1635286247771;
+ Tue, 26 Oct 2021 15:10:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20211026171313.50-1-mario.limonciello@amd.com>
+In-Reply-To: <20211026171313.50-1-mario.limonciello@amd.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Wed, 27 Oct 2021 00:10:36 +0200
+Message-ID: <CACRpkdYAv5w5AfKPQgCqXgKSYnS7wvCkE3qTj_Q9hyvOS=xsvQ@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] ACPI: Add stubs for wakeup handler functions
+To:     Mario Limonciello <mario.limonciello@amd.com>
+Cc:     Basavaraj Natikar <Basavaraj.Natikar@amd.com>,
+        Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
+        "open list:PIN CONTROL SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Nehal Shah <Nehal-bakulchandra.Shah@amd.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-SGX reserved memory does not appear in the standard address maps.
+On Tue, Oct 26, 2021 at 7:13 PM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
 
-Add hook to call into the SGX code to check if an address is located
-in SGX memory.
+> The commit ddfd9dcf270c ("ACPI: PM: Add acpi_[un]register_wakeup_handler()")
+> added new functions for drivers to use during the s2idle wakeup path, but
+> didn't add stubs for when CONFIG_ACPI wasn't set.
+>
+> Add those stubs in for other drivers to be able to use.
+>
+> Fixes: ddfd9dcf270c ("ACPI: PM: Add acpi_[un]register_wakeup_handler()")
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 
-There are other challenges in injecting errors into SGX. Update the
-documentation with a sequence of operations to inject.
+I need an ACK from an ACPI maintainer to take this with the
+other fix into the pinctrl tree.
 
-Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
-Tested-by: Reinette Chatre <reinette.chatre@intel.com>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
----
- .../firmware-guide/acpi/apei/einj.rst         | 19 +++++++++++++++++++
- drivers/acpi/apei/einj.c                      |  3 ++-
- 2 files changed, 21 insertions(+), 1 deletion(-)
+Alternatively both can be merged into the ACPI tree.
 
-diff --git a/Documentation/firmware-guide/acpi/apei/einj.rst b/Documentation/firmware-guide/acpi/apei/einj.rst
-index c042176e1707..55e2331a6438 100644
---- a/Documentation/firmware-guide/acpi/apei/einj.rst
-+++ b/Documentation/firmware-guide/acpi/apei/einj.rst
-@@ -181,5 +181,24 @@ You should see something like this in dmesg::
-   [22715.834759] EDAC sbridge MC3: PROCESSOR 0:306e7 TIME 1422553404 SOCKET 0 APIC 0
-   [22716.616173] EDAC MC3: 1 CE memory read error on CPU_SrcID#0_Channel#0_DIMM#0 (channel:0 slot:0 page:0x12345 offset:0x0 grain:32 syndrome:0x0 -  area:DRAM err_code:0001:0090 socket:0 channel_mask:1 rank:0)
- 
-+Special notes for injection into SGX enclaves:
-+
-+There may be a separate BIOS setup option to enable SGX injection.
-+
-+The injection process consists of setting some special memory controller
-+trigger that will inject the error on the next write to the target
-+address. But the h/w prevents any software outside of an SGX enclave
-+from accessing enclave pages (even BIOS SMM mode).
-+
-+The following sequence can be used:
-+  1) Determine physical address of enclave page
-+  2) Use "notrigger=1" mode to inject (this will setup
-+     the injection address, but will not actually inject)
-+  3) Enter the enclave
-+  4) Store data to the virtual address matching physical address from step 1
-+  5) Execute CLFLUSH for that virtual address
-+  6) Spin delay for 250ms
-+  7) Read from the virtual address. This will trigger the error
-+
- For more information about EINJ, please refer to ACPI specification
- version 4.0, section 17.5 and ACPI 5.0, section 18.6.
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 2882450c443e..67c335baad52 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -544,7 +544,8 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE)
- 				!= REGION_INTERSECTS) &&
- 	     (region_intersects(base_addr, size, IORESOURCE_MEM, IORES_DESC_PERSISTENT_MEMORY)
--				!= REGION_INTERSECTS)))
-+				!= REGION_INTERSECTS) &&
-+	     !arch_is_platform_page(base_addr)))
- 		return -EINVAL;
- 
- inject:
--- 
-2.31.1
+Should these two patches be tagged for stable?
 
+Yours,
+Linus Walleij
