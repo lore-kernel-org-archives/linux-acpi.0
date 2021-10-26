@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B6F9C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BE7FC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E70F61078
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2CF48610A1
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Oct 2021 19:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236188AbhJZTLS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Oct 2021 15:11:18 -0400
-Received: from mail-co1nam11on2055.outbound.protection.outlook.com ([40.107.220.55]:46305
-        "EHLO NAM11-CO1-obe.outbound.protection.outlook.com"
+        id S235497AbhJZTLV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Oct 2021 15:11:21 -0400
+Received: from mail-bn8nam11on2051.outbound.protection.outlook.com ([40.107.236.51]:5149
+        "EHLO NAM11-BN8-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S235497AbhJZTLS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S231531AbhJZTLS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 26 Oct 2021 15:11:18 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=DiJO4Lp+G3N97W8hOsea4Ynr9RpRq1V9yFmUFxZlqHblGyNTIqQoR9Z9ni8RiDW0WAzxUQ5Yg5Rv0lXyeD3sXArS/YLatDZlFaNok64L2nuS2kytgTZh+XomTZ7gNpCng2RLWh69O/LP2ldaK4UFipwsNIzybA/LoQjW4gSRV1SdB7Ke7kEV0hFpSNPXnkhpol2KsWU761do+KXIoqTAmekPukwNxJZ7m3BCZBfLQCDFZPvJ+KxHOO8u7By4S8fiifPDNHK1v0tbAHZDFdeEVX8nA9prhK15+O4wFeS5/ZIRT6MeXFK7iS/SbQM4492LsBMxVwL3vJff82HTIcXAhA==
+ b=PVjBmoeMTI/ijLYAFcr2cuBtZ3R6aTkIVfPqcmTaisOjAE1vjumnRloPi/WqGF6RWGBuaFnM5cSooCm9gcqfgBgVbvdRmc+xhZo3H5LN3Kdgplp1BKSQTuVQLD0ttOTDAMMvzyqIjM9dB85kI6UFj0h+BU5CR+UR1eoI2ywCPZNE0RR8MaQ8XSs4LuRC2cmD5rwQB0qkN89ffQyVbn68g50C6GPsXGp/4jDaCMHPe4Mn4wuflJhh1RfXbjY4cjBY0kMxErxdq3S4bNqwQPVZ/qs4x2iSldOxdPCwo02XMplVK8xVLO3PiqGuCcVRsecLupMZv/1Qg4kGgraptnvxHQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kNrlQ7sOuILAxGZt4dRDqNuouTBpqvELvDF8Pz4zum8=;
- b=M+O6UUOhsUqG7Ov3s87szUU9ZT7DEGYl0dCFOUkotdKLb95i4+dyqiW5iL2S6mTuAUWNcQxMIwTwvwpouKRiBcXGsQseGiPuhOI7dSOAMmLuu3VtigkBXVMpeP+mB74ngVeGa9+aQybKQwJzcgUg5ImoOd2gwi9VwwoOqyRyBMyi7EuDU0Z7PnuPkF4AGSpMstOhRsxAkz/45GgIjIXi1cbNHHilX7/BZx5HitUYnqZRHP8v7xfpPybPwyAUKmFE4lhKbjA+B7ThJvXzwQeDutooOCfya2Z1Kx9Y8oNQzvd3cumrm2AknSViClKAHMschodzqmUFG3Xr9heTbo1ZyA==
+ bh=KpRQJO0gIIW4zNlAjZ8wFo2iNNGpSGmOE0iSaQWDFRU=;
+ b=gHWfCCUhfcwLGaHdVjkvmrSt4nfX1Nrt77zLVQLCFozCmsV0c5SZ26oaWggve8Lc98NORw9Z4ubq46e3Ppns+5tQ0qDx1NWPDXJ/BHx5lEXqlr7UtIcg6huzEYorNu7ZYcyy7rUtv67pg/1vIOe/AkKssUZVCyDvGxqPxus9aG6HYezwbw19piJNERPusjZZZBWUtDZKFSQKhgrcg8lFbHrbMuUqD8kwLdZitjb018kHy6sqWJ/2gA4kb2JXVQuLIRacyBCXIhjZY068ZB4ubz8VD9dun3fQBs1OwgtMQJySshRG9hAWXU14ZNfAvbJ96/ZMS9fuEb00qFuvDykvAQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kNrlQ7sOuILAxGZt4dRDqNuouTBpqvELvDF8Pz4zum8=;
- b=H4C84lJGD7DenIAo5+ZbflM9n2TyRduhf3KZAvjRgy4OpNkoYbqBKNhQ3ae41MoP4CnQTHpf9QetN8+9EQrojkWjCDbyWI+TJTYqU3fKJkUXR3+9DvySn1j7vqrim9R+N4PoN/kEiGvpUVhKzaMsp55pN6squKZFkDMlwwGpLe8=
-Received: from BN9PR03CA0344.namprd03.prod.outlook.com (2603:10b6:408:f6::19)
- by BYAPR12MB3077.namprd12.prod.outlook.com (2603:10b6:a03:db::10) with
+ bh=KpRQJO0gIIW4zNlAjZ8wFo2iNNGpSGmOE0iSaQWDFRU=;
+ b=KeMWnRIOrif1kmPc76Q3ShCMgiLkUVpVRolzL3TTz/bpMG8ceyWxel6KPJaEf4P/JkQezzYdrbVfDYxbR9++BpVJRm4MnFhkzBm/ndT5HR2ll908YXirjTS0SGVJMCeSK/uaSDsZxTnUtLDpvqIvnanW1xwSXb0rQkK92QYc4Uk=
+Received: from BN9PR03CA0339.namprd03.prod.outlook.com (2603:10b6:408:f6::14)
+ by SN1PR12MB2589.namprd12.prod.outlook.com (2603:10b6:802:2c::32) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4628.15; Tue, 26 Oct
- 2021 19:08:49 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4628.18; Tue, 26 Oct
+ 2021 19:08:52 +0000
 Received: from BN8NAM11FT061.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:f6:cafe::b) by BN9PR03CA0344.outlook.office365.com
- (2603:10b6:408:f6::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4628.22 via Frontend
- Transport; Tue, 26 Oct 2021 19:08:49 +0000
+ (2603:10b6:408:f6:cafe::ea) by BN9PR03CA0339.outlook.office365.com
+ (2603:10b6:408:f6::14) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4628.18 via Frontend
+ Transport; Tue, 26 Oct 2021 19:08:52 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; redhat.com; dkim=none (message not signed)
  header.d=none;redhat.com; dmarc=pass action=none header.from=amd.com;
@@ -49,11 +49,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
  BN8NAM11FT061.mail.protection.outlook.com (10.13.177.144) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.4628.16 via Frontend Transport; Tue, 26 Oct 2021 19:08:49 +0000
+ 15.20.4628.16 via Frontend Transport; Tue, 26 Oct 2021 19:08:51 +0000
 Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.15; Tue, 26 Oct
- 2021 14:08:48 -0500
+ 2021 14:08:50 -0500
 From:   Mario Limonciello <mario.limonciello@amd.com>
 To:     Hans de Goede <hdegoede@redhat.com>,
         Mark Gross <mgross@linux.intel.com>,
@@ -62,10 +62,12 @@ CC:     "open list:X86 PLATFORM DRIVERS"
         <platform-driver-x86@vger.kernel.org>, <markpearson@lenovo.com>,
         <linux-acpi@vger.kernel.org>,
         Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v4 0/3] Let other drivers react to platform profile changes
-Date:   Tue, 26 Oct 2021 14:08:32 -0500
-Message-ID: <20211026190835.10697-1-mario.limonciello@amd.com>
+Subject: [PATCH v4 3/3] ACPI: platform_profile: Add support for notification chains
+Date:   Tue, 26 Oct 2021 14:08:35 -0500
+Message-ID: <20211026190835.10697-4-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20211026190835.10697-1-mario.limonciello@amd.com>
+References: <20211026190835.10697-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -74,60 +76,158 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 41d5c5d0-c4c5-4192-3785-08d998b40ab4
-X-MS-TrafficTypeDiagnostic: BYAPR12MB3077:
-X-Microsoft-Antispam-PRVS: <BYAPR12MB30777EB39D4A2634F55DABC9E2849@BYAPR12MB3077.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-MS-Office365-Filtering-Correlation-Id: e387b7d4-d5b6-4a15-d112-08d998b40c4f
+X-MS-TrafficTypeDiagnostic: SN1PR12MB2589:
+X-Microsoft-Antispam-PRVS: <SN1PR12MB2589B11E5CC66CCD3AAB4DDAE2849@SN1PR12MB2589.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:3383;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: BnlIOIm8bO/kSH93+A/FoWKGM8XMX2lNCbEDKVBP56hSkx5CcFgdmOALj7niXthlHPzKvFXaZl3rae1cKidjLqq3CMkFc5/C4wuZDVPrC80XGw9EyNrxZ1+Cav77dUfdxf4E+hnU1LHzLrk8gcqTDQhzpJ0SNCbCnjqCMRyqDRq6RChRUCP9AYN5ywSaKVq/eBZyYarvi4bqdfEmdUmzmwyb8cTTYLGsotZFRuorrq0Stbdq6z8tEy3sX/hDr23QajJN8SYh7kaExAfDd5Q4C4swe8bAMTwJM7l20WisNHjaunrHVcsVsh5XrLombjPQ50e+EveWD+wBBdrW2dqQJX6iAS0Enph7k17l8CUrMiktF4n89hF044GKKooe5lfC70WQywAANJUbN/m+NVIC/tCBZWqTZCP5lDTasbE9LyQKEiYgnhhJo3WdwsT7vi7yk5fOmAqSx8wHCIPhAmmiO35/3Z+X3MPpJYF+H64FRvaDr6f4iIHFtRQfFwfYOVD85In0yWJV20kjuBlET8gH2O4QvS3jBXOiOqgrAYyyy+dzitm8l+lrfcD4BG9sznMG/Ycpn6xLHy+YQ+fm/XAg+zU+S1ioQxoqWtXUXjtNamxtmwaqJK2J9sz18HickvX3iiuyJD8BFc5NKE8yvEGPPDGH6MNi1QAr51plR7s8ZpFIqBzTVm/y1j8wioXK5IwhCZR1xfBx7nRES+ZF4BkKogpanBYIQdCKplUSoWGA2vM=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(46966006)(36840700001)(81166007)(186003)(36860700001)(356005)(2906002)(1076003)(26005)(2616005)(4326008)(82310400003)(7696005)(70206006)(83380400001)(86362001)(54906003)(110136005)(316002)(8936002)(336012)(508600001)(426003)(5660300002)(8676002)(6666004)(36756003)(47076005)(16526019)(44832011)(70586007)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: a1d0NlD5QsWu5WzOJCLRYaPFvvOOVWUkcI5JBT4kxwpFa/kLold0VYEet90n4q/8sWxQ3gQRsbaeb5c+y3Mde5VJ6cZx5hcqzQn/zCIi21Y++LwmfUCxl1RWOeb2jgFArcVtjGurAj+xCHtxD1LPdkQDnN2ehsEMvjTgXtwtIRUJO/5HxMJZ9z4oeK/RMws0nK+FIvfB9VZHIsDXzNKfT2BApGWsYPFiNQG1Muotm2kRizTtcOwN1N/0FFD08CHaLkReU21fjjo9yPam4azYlFIAn46wteox0/UI9tlOrjlEH0VgpJm0Mpmjmm0gSmi+8fxtsMfqJzgCC1CDHCwc+EpHPkbHMIx/jGGBd+IvFd3OtnffEo8UdqUGEzGD9RkaqzHo4CZqdKqa+cM8tuVgq83HfoOnNicUWdRx82Y/UJw1lijriUMs1QCHYgzOzwvJhmvF30NIyGUwvz9IYlpom4/GpzstDWo9duz33x4RygKS7ldKQ6WTRaFmrVYnPHKov4qZOGTAGAx0qiuQ3/y5olgaqgsP5VwdUhPEnleAsDogskIJ4r4Khd0vBZGD92px4zZoafV0of6+yppFZKw6prUnyeAlHTWKiulFFoN3oTEMAfyI6HfFec1jYQMiqSSkmt212IO1UWnH/+IX5qi5hUjrNhCKq98eFChMJmL9bUaP3vFk5oZ4zU0az8EVrY2gg7Sd0VXD7yVPHpF9Tx+B2pUO0YUhm1K5Nsdp4WGXhRA=
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(46966006)(36840700001)(508600001)(356005)(81166007)(4326008)(1076003)(86362001)(47076005)(83380400001)(82310400003)(7696005)(44832011)(8936002)(36860700001)(8676002)(70586007)(70206006)(316002)(2906002)(54906003)(336012)(110136005)(26005)(5660300002)(6666004)(186003)(16526019)(15650500001)(36756003)(426003)(2616005)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2021 19:08:49.0324
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2021 19:08:51.7168
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 41d5c5d0-c4c5-4192-3785-08d998b40ab4
+X-MS-Exchange-CrossTenant-Network-Message-Id: e387b7d4-d5b6-4a15-d112-08d998b40c4f
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT061.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB3077
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN1PR12MB2589
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently only one driver can register as a handler for a platform profile.
+Allow other drivers to initialize relative to current active
+profile and react to platform profile changes.
 
-This limitation means that if multiple drivers want to react to platform
-profile changes that they will need to directly interact with individual
-drivers.
+Drivers wishing to utilize this should register for notification
+at module load and unregister when unloading.
 
-Instead introduce a notification flow that drivers can register for event
-changes.  The idea is that any driver that wants to can:
-1. read the current profile
-2. set up initial values
-3. register for changes
-4. react to changes
+Notifications will come in the from a notifier call.
 
-Changes from v3->v4:
- * Simplify platform_profile_notify
-   - No need to check cur_profile as platform_profile_get does it
-   - No need to track ret as it's unused
-Changes from v2->v3:
- * Add patches to avoid collisions in hp-wmi and asus-wmi symbols
-
-Mario Limonciello (3):
-  platform/x86: hp-wmi: rename platform_profile_* function symbols
-  platform/x86: asus-wmi: rename platform_profile_* function symbols
-  ACPI: platform_profile: Add support for notification chains
-
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
  drivers/acpi/platform_profile.c  | 46 +++++++++++++++++++++++++++-----
- drivers/platform/x86/asus-wmi.c  | 12 ++++-----
- drivers/platform/x86/hp-wmi.c    | 12 ++++-----
  include/linux/platform_profile.h | 10 +++++++
- 4 files changed, 61 insertions(+), 19 deletions(-)
+ 2 files changed, 49 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+index d418462ab791..a2ea36d2b329 100644
+--- a/drivers/acpi/platform_profile.c
++++ b/drivers/acpi/platform_profile.c
+@@ -21,6 +21,24 @@ static const char * const profile_names[] = {
+ 	[PLATFORM_PROFILE_PERFORMANCE] = "performance",
+ };
+ static_assert(ARRAY_SIZE(profile_names) == PLATFORM_PROFILE_LAST);
++static BLOCKING_NOTIFIER_HEAD(platform_profile_chain_head);
++
++int platform_profile_register_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&platform_profile_chain_head, nb);
++}
++EXPORT_SYMBOL_GPL(platform_profile_register_notifier);
++
++int platform_profile_unregister_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&platform_profile_chain_head, nb);
++}
++EXPORT_SYMBOL_GPL(platform_profile_unregister_notifier);
++
++static void platform_profile_call_notifier(unsigned long action, void *data)
++{
++	blocking_notifier_call_chain(&platform_profile_chain_head, action, data);
++}
+ 
+ static ssize_t platform_profile_choices_show(struct device *dev,
+ 					struct device_attribute *attr,
+@@ -49,11 +67,8 @@ static ssize_t platform_profile_choices_show(struct device *dev,
+ 	return len;
+ }
+ 
+-static ssize_t platform_profile_show(struct device *dev,
+-					struct device_attribute *attr,
+-					char *buf)
++int platform_profile_get(enum platform_profile_option *profile)
+ {
+-	enum platform_profile_option profile = PLATFORM_PROFILE_BALANCED;
+ 	int err;
+ 
+ 	err = mutex_lock_interruptible(&profile_lock);
+@@ -65,15 +80,28 @@ static ssize_t platform_profile_show(struct device *dev,
+ 		return -ENODEV;
+ 	}
+ 
+-	err = cur_profile->profile_get(cur_profile, &profile);
++	err = cur_profile->profile_get(cur_profile, profile);
+ 	mutex_unlock(&profile_lock);
+ 	if (err)
+ 		return err;
+ 
+ 	/* Check that profile is valid index */
+-	if (WARN_ON((profile < 0) || (profile >= ARRAY_SIZE(profile_names))))
++	if (WARN_ON((*profile < 0) || (*profile >= ARRAY_SIZE(profile_names))))
+ 		return -EIO;
+ 
++	return 0;
++}
++EXPORT_SYMBOL_GPL(platform_profile_get);
++
++static ssize_t platform_profile_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	enum platform_profile_option profile = PLATFORM_PROFILE_BALANCED;
++	int ret = platform_profile_get(&profile);
++
++	if (ret)
++		return ret;
+ 	return sysfs_emit(buf, "%s\n", profile_names[profile]);
+ }
+ 
+@@ -130,9 +158,13 @@ static const struct attribute_group platform_profile_group = {
+ 
+ void platform_profile_notify(void)
+ {
+-	if (!cur_profile)
++	enum platform_profile_option profile;
++
++	if (platform_profile_get(&profile))
+ 		return;
+ 	sysfs_notify(acpi_kobj, NULL, "platform_profile");
++	platform_profile_call_notifier(PLATFORM_PROFILE_CHANGED, &profile);
++
+ }
+ EXPORT_SYMBOL_GPL(platform_profile_notify);
+ 
+diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
+index e5cbb6841f3a..05ba3403509a 100644
+--- a/include/linux/platform_profile.h
++++ b/include/linux/platform_profile.h
+@@ -11,6 +11,8 @@
+ 
+ #include <linux/bitops.h>
+ 
++struct notifier_block;
++
+ /*
+  * If more options are added please update profile_names array in
+  * platform_profile.c and sysfs-platform_profile documentation.
+@@ -37,5 +39,13 @@ struct platform_profile_handler {
+ int platform_profile_register(struct platform_profile_handler *pprof);
+ int platform_profile_remove(void);
+ void platform_profile_notify(void);
++int platform_profile_get(enum platform_profile_option *profile);
++
++int platform_profile_register_notifier(struct notifier_block *nb);
++int platform_profile_unregister_notifier(struct notifier_block *nb);
++
++enum platform_profile_notifier_actions {
++	PLATFORM_PROFILE_CHANGED,
++};
+ 
+ #endif  /*_PLATFORM_PROFILE_H_*/
 -- 
 2.25.1
 
