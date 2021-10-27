@@ -2,80 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E0DC433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Oct 2021 18:35:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8100CC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Oct 2021 18:37:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7424860240
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Oct 2021 18:35:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56008604AC
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Oct 2021 18:37:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243576AbhJ0ShZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 27 Oct 2021 14:37:25 -0400
-Received: from mga17.intel.com ([192.55.52.151]:26323 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243586AbhJ0ShT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 27 Oct 2021 14:37:19 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10150"; a="210997697"
-X-IronPort-AV: E=Sophos;i="5.87,187,1631602800"; 
-   d="scan'208";a="210997697"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 10:36:04 -0700
-X-IronPort-AV: E=Sophos;i="5.87,187,1631602800"; 
-   d="scan'208";a="665080147"
-Received: from smile.fi.intel.com ([10.237.72.184])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 10:36:02 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1mfmpy-001Wys-H8;
-        Wed, 27 Oct 2021 20:35:42 +0300
-Date:   Wed, 27 Oct 2021 20:35:42 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI: glue: Use acpi_device_adr() in
- acpi_find_child_device()
-Message-ID: <YXmN7tnG6fddKhTJ@smile.fi.intel.com>
-References: <11862679.O9o76ZdvQC@kreacher>
- <YXmJjlY6+oFy4siX@smile.fi.intel.com>
- <CAJZ5v0j43dhVcbsKyJ8BZjeBbXHNFG-Vtv-UtsJwFBYP4usNFQ@mail.gmail.com>
+        id S240100AbhJ0Sj5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 Oct 2021 14:39:57 -0400
+Received: from mail-oi1-f181.google.com ([209.85.167.181]:38757 "EHLO
+        mail-oi1-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235990AbhJ0Sj4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Oct 2021 14:39:56 -0400
+Received: by mail-oi1-f181.google.com with SMTP id t4so4707545oie.5;
+        Wed, 27 Oct 2021 11:37:31 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=hVPuTQqP6aEFqO2fyoc1su/oe5Az3LSwCS4uRf5/p08=;
+        b=sVhUQg/eXrcpXfdBOGFDK2xbtpeqz9aty74kKqmAkYFRx8B5LPd+MkGOhXG7Gd+tNw
+         IEuOKB2KaAWbYJpwEV29VYnoqSFIXTPJziq47l9GE+UnrZneAsMnGiHHCMmw8xc8jpYD
+         xialbxW16djho7NNe6umvtwMkQScIdUsSZALdJ0xIZMgbyf2fflbfqsHFGAOXy7PTgUH
+         UBJtMd6Tmol65RQGzhowMQCyfIRboeUiwgNtl5lalPgD4AYum0mTAHS38JfLwSVOoHwA
+         nCJekGOeXydHQhbBxGAQqFi7TUGURkjk7StCt7jBMdqlmsNptx691zDsz31f6m1cX7Do
+         jNXw==
+X-Gm-Message-State: AOAM530a03+t8RUZ7KPBJ2QF9m3kiPJ7hSxx+1UHZY5Cqio+Y4TxmIBN
+        tFMvK2RgMYSRD086KGWa7YmYAsy3DVgLxsmlmNw=
+X-Google-Smtp-Source: ABdhPJzutzJ7/Yj893mdq8no4/lj/5r4vF4oW8JGvIk2VWf04ta96JHBQadGGsCMKVkQFFaoWhZrYdUCMLWXmITeCQE=
+X-Received: by 2002:aca:5c5:: with SMTP id 188mr4840138oif.154.1635359850793;
+ Wed, 27 Oct 2021 11:37:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0j43dhVcbsKyJ8BZjeBbXHNFG-Vtv-UtsJwFBYP4usNFQ@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20211027065438.1742175-1-hch@lst.de>
+In-Reply-To: <20211027065438.1742175-1-hch@lst.de>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 27 Oct 2021 20:37:20 +0200
+Message-ID: <CAJZ5v0jYmrV7bMV0b9wB8L-bX6PU+yCDrK8s+jCJh1x3xCi_Rg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: APEI: mark apei_hest_parse
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
+        Tony Luck <tony.luck@intel.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Robert Moore <robert.moore@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Oct 27, 2021 at 07:23:43PM +0200, Rafael J. Wysocki wrote:
-> On Wed, Oct 27, 2021 at 7:17 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Wed, Oct 27, 2021 at 06:59:06PM +0200, Rafael J. Wysocki wrote:
+On Wed, Oct 27, 2021 at 8:54 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> apei_hest_parse is only used in hest.c, so mark it static.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/acpi/apei/hest.c | 5 +++--
+>  include/acpi/apei.h      | 3 ---
+>  2 files changed, 3 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index 277f00b288d14..0edc1ed476737 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -86,7 +86,9 @@ static int hest_esrc_len(struct acpi_hest_header *hest_hdr)
+>         return len;
+>  };
+>
+> -int apei_hest_parse(apei_hest_func_t func, void *data)
+> +typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
+> +
+> +static int apei_hest_parse(apei_hest_func_t func, void *data)
+>  {
+>         struct acpi_hest_header *hest_hdr;
+>         int i, rc, len;
+> @@ -121,7 +123,6 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
+>
+>         return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(apei_hest_parse);
+>
+>  /*
+>   * Check if firmware advertises firmware first mode. We need FF bit to be set
+> diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+> index 680f80960c3dc..ece0a8af2bae7 100644
+> --- a/include/acpi/apei.h
+> +++ b/include/acpi/apei.h
+> @@ -37,9 +37,6 @@ void __init acpi_hest_init(void);
+>  static inline void acpi_hest_init(void) { return; }
+>  #endif
+>
+> -typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
+> -int apei_hest_parse(apei_hest_func_t func, void *data);
+> -
+>  int erst_write(const struct cper_record_header *record);
+>  ssize_t erst_get_record_count(void);
+>  int erst_get_record_id_begin(int *pos);
+> --
 
-...
-
-> See acpi_set_pnp_ids().
-> 
-> adev->pnp.bus_addres is the address value and
-> adev->pnp.type.bus_address is a flag that is set to 1 when _ADR is
-> valid.
-> 
-> > IIUC _ADR == 0 is a valid value and children may have it like this.
-> 
-> That's true.
-> 
-> > I believe this change will break the working things (first comes to my mind
-> > is drivers/mfd/intel_quark_i2c_gpio.c).
-> 
-> I don't think so.
-
-With your explanation I see where my logic is wrong. Thanks!
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Applied as 5.16 material, thanks!
