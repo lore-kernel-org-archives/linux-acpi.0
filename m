@@ -2,181 +2,219 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0617AC433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 29 Oct 2021 22:42:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17443C433EF
+	for <linux-acpi@archiver.kernel.org>; Sat, 30 Oct 2021 15:31:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD37E61056
-	for <linux-acpi@archiver.kernel.org>; Fri, 29 Oct 2021 22:42:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAA3B60FC0
+	for <linux-acpi@archiver.kernel.org>; Sat, 30 Oct 2021 15:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230410AbhJ2Wol (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 29 Oct 2021 18:44:41 -0400
-Received: from mga14.intel.com ([192.55.52.115]:16865 "EHLO mga14.intel.com"
+        id S231199AbhJ3PeM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 30 Oct 2021 11:34:12 -0400
+Received: from mga05.intel.com ([192.55.52.43]:35983 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229546AbhJ2Wok (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 29 Oct 2021 18:44:40 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10152"; a="231030420"
-X-IronPort-AV: E=Sophos;i="5.87,193,1631602800"; 
-   d="scan'208";a="231030420"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2021 15:41:41 -0700
-X-IronPort-AV: E=Sophos;i="5.87,193,1631602800"; 
-   d="scan'208";a="448273530"
-Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2021 15:41:41 -0700
-Date:   Fri, 29 Oct 2021 15:49:14 -0700
-From:   Alison Schofield <alison.schofield@intel.com>
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Ben Widawsky <ben.widawsky@intel.com>,
-        linux-cxl@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v3] ACPI: NUMA: Add a node and memblk for each CFMWS not
- in SRAT
-Message-ID: <20211029224914.GA500689@alison-desk>
-References: <20211019050908.449231-1-alison.schofield@intel.com>
- <CAPcyv4hdC4Uj8YdePMZGFkxgP10VSkX1tiY+ApPctyjfURPSOg@mail.gmail.com>
+        id S230285AbhJ3PeL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 30 Oct 2021 11:34:11 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10153"; a="317023221"
+X-IronPort-AV: E=Sophos;i="5.87,195,1631602800"; 
+   d="scan'208";a="317023221"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2021 08:31:41 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,195,1631602800"; 
+   d="scan'208";a="466826468"
+Received: from lkp-server02.sh.intel.com (HELO c20d8bc80006) ([10.239.97.151])
+  by orsmga002.jf.intel.com with ESMTP; 30 Oct 2021 08:31:39 -0700
+Received: from kbuild by c20d8bc80006 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1mgqKY-0001WX-Rk; Sat, 30 Oct 2021 15:31:38 +0000
+Date:   Sat, 30 Oct 2021 23:31:18 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 5f6ba0ff183c91ef793c5db5da532357e7b0ba5e
+Message-ID: <617d6546.PHVeTb5tmx4hXGQe%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hdC4Uj8YdePMZGFkxgP10VSkX1tiY+ApPctyjfURPSOg@mail.gmail.com>
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Oct 25, 2021 at 07:47:32PM -0700, Dan Williams wrote:
-> On Mon, Oct 18, 2021 at 10:01 PM <alison.schofield@intel.com> wrote:
-> >
-> > From: Alison Schofield <alison.schofield@intel.com>
-> >
-> > During NUMA init, CXL memory defined in the SRAT Memory Affinity
-> > subtable may be assigned to a NUMA node. Since there is no
-> > requirement that the SRAT be comprehensive for CXL memory another
-> > mechanism is needed to assign NUMA nodes to CXL memory not identified
-> > in the SRAT.
-> >
-> > Use the CXL Fixed Memory Window Structure (CFMWS) of the ACPI CXL
-> > Early Discovery Table (CEDT) to find all CXL memory ranges.
-> > Create a NUMA node for each CFMWS that is not already assigned to
-> > a NUMA node. Add a memblk attaching its host physical address
-> > range to the node.
-> >
-> > Note that these ranges may not actually map any memory at boot time.
-> > They may describe persistent capacity or may be present to enable
-> > hot-plug.
-> >
-> > Consumers can use phys_to_target_node() to discover the NUMA node.
-> >
-> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> > ---
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 5f6ba0ff183c91ef793c5db5da532357e7b0ba5e  Merge branch 'acpi-glue' into linux-next
 
-The next version of this patch is now included in this patchset that
-adds helpers for parsing the CEDT subtables:
-https://lore.kernel.org/linux-cxl/163553711933.2509508.2203471175679990.stgit@dwillia2-desk3.amr.corp.intel.com/T/#mf40d84e1ad4c01f69f794d591b07774255993185
+elapsed time: 1242m
 
-It addresses Dan's comments below.
+configs tested: 154
+configs skipped: 3
 
->> snip
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-> > +{
-> > +       struct acpi_cedt_cfmws *cfmws;
-> > +       acpi_size len, cur = 0;
-> > +       int i, node, pxm = 0;
-> 
-> Shouldn't this be -1, on the idea that the first numa node to assign
-> if none are set is zero?
-> 
-> I don't think the way you have it is a problem in practice because
-> SRAT should always be there in a NUMA system. However, the first CFMWS
-> pxm should start after the last SRAT entry, or 0 if no SRAT entries.
-> 
-> > +       void *cedt_subtable;
-> > +       u64 start, end;
-> > +
-> > +       /* Find the max PXM defined in the SRAT */
-> > +       for (i = 0; i < MAX_NUMNODES - 1; i++) {
-> 
-> How about:
-> 
->     for (i = 0, pxm = -1; i < MAX_NUMNODES -1; i++)
-> 
-> ...just to keep the initialization close to the use, but that's just a
-> personal style preference.
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+i386                 randconfig-c001-20211028
+sparc                            allyesconfig
+arc                              allyesconfig
+nios2                            allyesconfig
+alpha                            allyesconfig
+s390                       zfcpdump_defconfig
+powerpc                 mpc8272_ads_defconfig
+arc                              alldefconfig
+sh                            shmin_defconfig
+powerpc                 canyonlands_defconfig
+mips                        vocore2_defconfig
+arm                            lart_defconfig
+arc                 nsimosci_hs_smp_defconfig
+mips                      loongson3_defconfig
+arm                            mps2_defconfig
+mips                   sb1250_swarm_defconfig
+arm                       omap2plus_defconfig
+powerpc                     redwood_defconfig
+um                           x86_64_defconfig
+m68k                          atari_defconfig
+mips                        jmr3927_defconfig
+mips                      fuloong2e_defconfig
+arm                           h3600_defconfig
+arm                         s5pv210_defconfig
+s390                             alldefconfig
+powerpc                 mpc836x_rdk_defconfig
+m68k                            mac_defconfig
+um                               alldefconfig
+arm                             pxa_defconfig
+sh                          polaris_defconfig
+mips                          rm200_defconfig
+mips                malta_qemu_32r6_defconfig
+m68k                        mvme147_defconfig
+arm                         shannon_defconfig
+nios2                         10m50_defconfig
+arm64                            alldefconfig
+powerpc                        warp_defconfig
+mips                          ath25_defconfig
+sh                             shx3_defconfig
+sh                          r7780mp_defconfig
+arm                       aspeed_g5_defconfig
+arc                    vdk_hs38_smp_defconfig
+m68k                          sun3x_defconfig
+powerpc                   microwatt_defconfig
+arm                  randconfig-c002-20211028
+arm                  randconfig-c002-20211029
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                                defconfig
+m68k                             allmodconfig
+m68k                             allyesconfig
+nios2                               defconfig
+nds32                             allnoconfig
+nds32                               defconfig
+csky                                defconfig
+alpha                               defconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+xtensa                           allyesconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+parisc                              defconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                               defconfig
+i386                                defconfig
+i386                              debian-10.3
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a004-20211028
+i386                 randconfig-a003-20211028
+i386                 randconfig-a002-20211028
+i386                 randconfig-a006-20211028
+i386                 randconfig-a001-20211028
+i386                 randconfig-a005-20211028
+x86_64               randconfig-a015-20211029
+x86_64               randconfig-a013-20211029
+x86_64               randconfig-a011-20211029
+x86_64               randconfig-a014-20211029
+x86_64               randconfig-a012-20211029
+x86_64               randconfig-a016-20211029
+i386                 randconfig-a012-20211029
+i386                 randconfig-a013-20211029
+i386                 randconfig-a011-20211029
+i386                 randconfig-a015-20211029
+i386                 randconfig-a016-20211029
+i386                 randconfig-a014-20211029
+x86_64               randconfig-a002-20211028
+x86_64               randconfig-a004-20211028
+x86_64               randconfig-a005-20211028
+x86_64               randconfig-a001-20211028
+x86_64               randconfig-a006-20211028
+x86_64               randconfig-a003-20211028
+arc                  randconfig-r043-20211028
+riscv                    nommu_k210_defconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allyesconfig
+riscv                            allmodconfig
+x86_64                    rhel-8.3-kselftests
+um                             i386_defconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                          rhel-8.3-func
+x86_64                                  kexec
+x86_64                           allyesconfig
 
-Done.
+clang tested configs:
+arm                  randconfig-c002-20211029
+powerpc              randconfig-c003-20211029
+riscv                randconfig-c006-20211029
+x86_64               randconfig-c007-20211029
+mips                 randconfig-c004-20211029
+s390                 randconfig-c005-20211029
+i386                 randconfig-c001-20211029
+arm                  randconfig-c002-20211028
+powerpc              randconfig-c003-20211028
+riscv                randconfig-c006-20211028
+x86_64               randconfig-c007-20211028
+mips                 randconfig-c004-20211028
+s390                 randconfig-c005-20211028
+i386                 randconfig-c001-20211028
+x86_64               randconfig-a005-20211030
+x86_64               randconfig-a004-20211030
+x86_64               randconfig-a002-20211030
+x86_64               randconfig-a003-20211030
+x86_64               randconfig-a001-20211030
+x86_64               randconfig-a006-20211030
+x86_64               randconfig-a015-20211028
+x86_64               randconfig-a013-20211028
+x86_64               randconfig-a011-20211028
+x86_64               randconfig-a014-20211028
+x86_64               randconfig-a012-20211028
+x86_64               randconfig-a016-20211028
+i386                 randconfig-a012-20211028
+i386                 randconfig-a013-20211028
+i386                 randconfig-a011-20211028
+i386                 randconfig-a015-20211028
+i386                 randconfig-a016-20211028
+i386                 randconfig-a014-20211028
+hexagon              randconfig-r045-20211028
+riscv                randconfig-r042-20211028
+s390                 randconfig-r044-20211028
+hexagon              randconfig-r041-20211028
+hexagon              randconfig-r045-20211029
+hexagon              randconfig-r041-20211029
 
-> 
-> > +               if (node_to_pxm_map[i] > pxm)
-> > +                       pxm = node_to_pxm_map[i];
-> > +       }
-> > +       /* Start assigning fake PXM values after the SRAT max PXM */
-> > +       pxm++;
-> > +
-> > +       len = acpi_cedt->length - sizeof(*acpi_cedt);
-> > +       cedt_subtable = acpi_cedt + 1;
-> > +
-> > +       while (cur < len) {
-> 
-> Similarly to above I wonder if this would be cleaner as a for loop
-> then you could use typical "continue" statements rather than goto. I
-> took a stab at creating a for_each_cedt() helper which ended up a
-> decent cleanup for drivers/cxl/
-> 
->  drivers/cxl/acpi.c |   48 +++++++++++++++---------------------------------
->  1 file changed, 15 insertions(+), 33 deletions(-)
-> 
-> ...however, I just realized this NUMA code is running at init time, so
-> it can just use the acpi_table_parse_entries_array() helper to walk
-> the CFMWS like the othe subtable walkers in acpi_numa_init(). You
-> would need to update the subtable helpers (acpi_get_subtable_type() et
-> al) to recognize the CEDT case.
-> 
-> [ Side note for the implications of acpi_table_parse_entries_array()
-> for drivers/cxl/acpi.c ]
-> 
-> Rafael, both the NFIT driver and now the CXL ACPI driver have open
-> coded subtable parsing. Any philosophical reason to keep the subtable
-> parsing code as __init? It can still be __init and thrown away if
-> those drivers are not build-time enabled.
-> 
-
-The updated patch (in the greater patchset) now uses the new helpers.
-
-
-> snip
-> > +               node = acpi_map_pxm_to_node(pxm);
-> > +               if (node == NUMA_NO_NODE) {
-> > +                       pr_err("ACPI NUMA: Too many proximity domains.\n");
-> 
-> I would add "while processing CFMWS" to make it clear that the BIOS
-> technically did not declare too many PXMs; it was the Linux heuristic
-> for opportunistically emulating more PXMs.
-> 
-
-Done.
-
-> > snip
-> >         }
-> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> > index 974d497a897d..f837fd715440 100644
-> > --- a/include/linux/acpi.h
-> > +++ b/include/linux/acpi.h
-> > @@ -426,6 +426,7 @@ extern bool acpi_osi_is_win8(void);
-> >  #ifdef CONFIG_ACPI_NUMA
-> >  int acpi_map_pxm_to_node(int pxm);
-> >  int acpi_get_node(acpi_handle handle);
-> > +int __init numa_add_memblk(int nodeid, u64 start, u64 end);
-> 
-> This doesn't belong here.
-> 
-> There is already a declaration for this in
-> arch/x86/include/asm/numa.h. I think what you are missing is that your
-> new code needs to be within the same ifdef guards as the other helpers
-> in srat.c that call numa_add_memblk(). See the line that has:
-> 
-> #if defined(CONFIG_X86) || defined(CONFIG_ARM64) || defined(CONFIG_LOONGARCH)
-> 
-> ...above acpi_numa_slit_init()
-
-Done.
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
