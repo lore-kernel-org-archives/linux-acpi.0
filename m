@@ -2,84 +2,89 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BAA3C433FE
-	for <linux-acpi@archiver.kernel.org>; Sun, 31 Oct 2021 09:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC959C433FE
+	for <linux-acpi@archiver.kernel.org>; Sun, 31 Oct 2021 12:55:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4275960FC4
-	for <linux-acpi@archiver.kernel.org>; Sun, 31 Oct 2021 09:02:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFDAF60F9E
+	for <linux-acpi@archiver.kernel.org>; Sun, 31 Oct 2021 12:55:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230209AbhJaJEq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 31 Oct 2021 05:04:46 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:41795 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229660AbhJaJEq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 31 Oct 2021 05:04:46 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1635670935;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=SLG2kfm1CRcYvEXNmRRUsEpFH1oBMt1mUPp6s++xQCU=;
-        b=IroVSEZS5f8YI0ZEmSap+4Fs7lkbApgfILyj7NxH1rHcxofsVPMO1QeJhhuGgJpyD4UVPw
-        ZjqZGIkYCCBr+iwWCXlr19253ajVQlG0dcJzTc0Q6q8YCGxdqO9DfD0ITjq4gCRdNYpq+G
-        peM3vl1+5v+naCxDnpDFZ2e6ymUklak=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-233-lrEBfxnsNc23-zZnM6-T9A-1; Sun, 31 Oct 2021 05:02:11 -0400
-X-MC-Unique: lrEBfxnsNc23-zZnM6-T9A-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2D40D362F8;
-        Sun, 31 Oct 2021 09:02:10 +0000 (UTC)
-Received: from x1.localdomain (unknown [10.39.192.35])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id E42485C1C5;
-        Sun, 31 Oct 2021 09:02:08 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Sebastian Reichel <sre@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org,
-        "Andrew F . Davis" <afd@ti.com>
-Subject: [PATCH] power: supply: bq27xxx: Fix kernel crash on IRQ handler register error
-Date:   Sun, 31 Oct 2021 10:02:08 +0100
-Message-Id: <20211031090208.6564-1-hdegoede@redhat.com>
+        id S229877AbhJaM6V (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 31 Oct 2021 08:58:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58268 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229798AbhJaM6U (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Oct 2021 08:58:20 -0400
+Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BE8BC061570;
+        Sun, 31 Oct 2021 05:55:48 -0700 (PDT)
+Received: by mail-lj1-x22c.google.com with SMTP id x19so793600ljm.11;
+        Sun, 31 Oct 2021 05:55:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WYBcFBMeZpWF63PW4ltMOb2+AbXtsqy14RTIVi2Tq8M=;
+        b=KAGfl8THlFd/61YZXNxdewLTT2I8zkNPQgpdR/CG3lbEcF2c5Cv/VSb64epMDfnL7A
+         yRreNuiVp+wof9q1zqsWzDZb11Yx4hiD2ZYKw80SjPES/faVpqTRs0SsXwSSFEowkDq6
+         9+GIFiLnkMgO8mmpnHfLXFjk1z7MskEJ89wxF+MRji8CFAyiqaVJiDkcuhG/03H8ECTc
+         ZEXQsp9OSmeqqsw8UWYeeik5X5i7MgkJVGfdeZzF6LarKiZdavOQe0mYjjPvbAC2PsBv
+         5AeyEnRFe5EXqVTeMkD8sHqxM8QsEteSB2mxhibS383JNFrNxSCuj4OmjpTDUyJRrT6S
+         Wb9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WYBcFBMeZpWF63PW4ltMOb2+AbXtsqy14RTIVi2Tq8M=;
+        b=fwpfohrBh7vN74a5pd5TpoCorl9JOuVAnS3k/lcuQGXJZc5GUOywVxXfreknWFZSf1
+         JXH4eu4odEtcRwbAhJudm6395/XwUv9BV+V+uAVgfPPvGHpW3D9Xnx/PWUX/qTtrpEtj
+         ZZKgBI9UoeVonLnwt75gZzw6UTOBGxGMmVcIqvJZeH9FU9fNmbHvgcJhCuRMeddWoXEw
+         AqzBX6KIUbtKK+FTL50W/PLxkNeXP+M7xda1bzl3fGSvdpJfUxcV98tHzwl3HDuh882X
+         2wDqWArHykEl/h37XuLUeu6e+E8O4baQCmZI88RAYTkqZK0g+iLmCjh/zEFQVyIrcjnV
+         Rnhg==
+X-Gm-Message-State: AOAM531kNpKxqWz9Cfe+fcW59Yzn1YTvqHTpG3ebk8FOsg0tW2ejQP49
+        8gnlEHXcLyiQBI/SZTNxOWcxu64EAbZ0GgoWJ11uo8VDhjo=
+X-Google-Smtp-Source: ABdhPJzXuLY+sYls8rFoLyqx1J9Fu6DuIoqpHz5dpcM3hrPvmY9cjjauTtB5mjwmnIb+sziF9NMhxcHliNvB26wfoJ8=
+X-Received: by 2002:a05:651c:1503:: with SMTP id e3mr24562498ljf.182.1635684946643;
+ Sun, 31 Oct 2021 05:55:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+References: <20211031090028.6445-1-hdegoede@redhat.com>
+In-Reply-To: <20211031090028.6445-1-hdegoede@redhat.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Sun, 31 Oct 2021 14:55:10 +0200
+Message-ID: <CAHp75VcAom2wThv9+d9rWCP_AFeP0rs=GjFVU78sL4hwppiCAA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / PMIC: Fix intel_pmic_regs_handler() read accesses
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Andy Shevchenko <andy@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        Felipe Balbi <balbi@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When registering the IRQ handler fails, do not just return the error code,
-this will free the devm_kalloc-ed data struct while leaving the queued
-work queued and the registered power_supply registered with both of them
-now pointing to free-ed memory, resulting in various kernel crashes
-soon afterwards.
+On Sun, Oct 31, 2021 at 11:00 AM Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> The handling of PMIC register reads through writing 0 to address 4
+> of the opregion is wrong. Instead of returning the read value
+> through the value64, which is a no-op for function == ACPI_WRITE calls,
+> store the value and then on a subsequent function == ACPI_READ with
+> address == 3 (the address for the value field of the OpRegion)
+> return the stored value.
+>
+> This has been tested on a Xiaomi Mi Pad 2 and makes the ACPI battery dev
+> there mostly functional (unfortunately there are still other issues).
+>
+> Here are the SET() / GET() functions of the PMIC ACPI device,
+> which use this opregion, which clearly show the new behavior to
+> be correct:
 
-Instead properly tear-down things on IRQ handler register errors.
+OpRegion vs opregion (I would prefer the former), i.o.w. a bit of
+consistency would be nice to have.
 
-Fixes: 703df6c09795 ("power: bq27xxx_battery: Reorganize I2C into a module")
-Cc: Andrew F. Davis <afd@ti.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/power/supply/bq27xxx_battery_i2c.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/power/supply/bq27xxx_battery_i2c.c b/drivers/power/supply/bq27xxx_battery_i2c.c
-index 46f078350fd3..cf38cbfe13e9 100644
---- a/drivers/power/supply/bq27xxx_battery_i2c.c
-+++ b/drivers/power/supply/bq27xxx_battery_i2c.c
-@@ -187,7 +187,8 @@ static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
- 			dev_err(&client->dev,
- 				"Unable to register IRQ %d error %d\n",
- 				client->irq, ret);
--			return ret;
-+			bq27xxx_battery_teardown(di);
-+			goto err_failed;
- 		}
- 	}
- 
 -- 
-2.31.1
-
+With Best Regards,
+Andy Shevchenko
