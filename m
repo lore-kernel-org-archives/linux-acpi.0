@@ -2,115 +2,126 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9225EC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:38:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6914CC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:41:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BC7A60EE9
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:38:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52D786023F
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:41:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234880AbhKBQkg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Nov 2021 12:40:36 -0400
-Received: from mga06.intel.com ([134.134.136.31]:15979 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232033AbhKBQjt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Nov 2021 12:39:49 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10156"; a="292145052"
-X-IronPort-AV: E=Sophos;i="5.87,203,1631602800"; 
-   d="scan'208";a="292145052"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2021 09:17:54 -0700
-X-IronPort-AV: E=Sophos;i="5.87,203,1631602800"; 
-   d="scan'208";a="728408938"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2021 09:17:49 -0700
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with SMTP id 0112D20180;
-        Tue,  2 Nov 2021 18:17:46 +0200 (EET)
-Date:   Tue, 2 Nov 2021 18:17:46 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+        id S234635AbhKBQn5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Nov 2021 12:43:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43720 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234718AbhKBQn4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Nov 2021 12:43:56 -0400
+Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96FE5C061714;
+        Tue,  2 Nov 2021 09:41:21 -0700 (PDT)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: sre)
+        with ESMTPSA id 7A07F1F44D9D
+Received: by earth.universe (Postfix, from userid 1000)
+        id C75243C0F95; Tue,  2 Nov 2021 17:41:17 +0100 (CET)
+Date:   Tue, 2 Nov 2021 17:41:17 +0100
+From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Hans de Goede <hdegoede@redhat.com>
 Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Mark Gross <markgross@kernel.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>, Len Brown <lenb@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Platform Driver <platform-driver-x86@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-i2c <linux-i2c@vger.kernel.org>,
-        Kate Hsuan <hpa@redhat.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-clk <linux-clk@vger.kernel.org>
-Subject: Re: [PATCH v5 10/11] platform/x86: int3472: Pass
- tps68470_regulator_platform_data to the tps68470-regulator MFD-cell
-Message-ID: <YYFkqlGkd7Jftcdk@paasikivi.fi.intel.com>
-References: <20211102094907.31271-1-hdegoede@redhat.com>
- <20211102094907.31271-11-hdegoede@redhat.com>
- <CAHp75Vd-xY43H8jPOUqJp55Rq3Wuhsdzctfhqq300S0vAKTzpw@mail.gmail.com>
- <1f4377bb-2902-05e9-95c7-ad924477b543@redhat.com>
+        Linux PM <linux-pm@vger.kernel.org>,
+        "Andrew F . Davis" <afd@ti.com>
+Subject: Re: [PATCH v2] power: supply: bq27xxx: Fix kernel crash on IRQ
+ handler register error
+Message-ID: <20211102164117.pnbpvephlh4wgrwb@earth.universe>
+References: <20211031152522.3911-1-hdegoede@redhat.com>
+ <CAHp75Vc6GO4e0_Qp6HfFtd_kbSakaMXsQN4oEPArdmMrxTFb7A@mail.gmail.com>
+ <20211102132352.yqazgy2njnbthujb@earth.universe>
+ <e74947c4-74c8-a17e-f4cb-752a79851954@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="trige6lnttlhwn57"
 Content-Disposition: inline
-In-Reply-To: <1f4377bb-2902-05e9-95c7-ad924477b543@redhat.com>
+In-Reply-To: <e74947c4-74c8-a17e-f4cb-752a79851954@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 02, 2021 at 03:59:41PM +0100, Hans de Goede wrote:
-> Hi,
-> 
-> On 11/2/21 15:34, Andy Shevchenko wrote:
-> > On Tue, Nov 2, 2021 at 11:50 AM Hans de Goede <hdegoede@redhat.com> wrote:
-> >>
-> >> Pass tps68470_regulator_platform_data to the tps68470-regulator
-> >> MFD-cell, specifying the voltages of the various regulators and
-> >> tying the regulators to the sensor supplies so that sensors which use
-> >> the TPS68470 can find their regulators.
-> >>
-> >> Since the voltages and supply connections are board-specific, this
-> >> introduces a DMI matches int3472_tps68470_board_data struct which
-> >> contains the necessary per-board info.
-> >>
-> >> This per-board info also includes GPIO lookup information for the
-> >> sensor IO lines which may be connected to the tps68470 GPIOs.
-> > 
-> > ...
-> > 
-> >> +               board_data = int3472_tps68470_get_board_data(dev_name(&client->dev));
-> >> +               if (!board_data) {
-> >> +                       dev_err(&client->dev, "No board-data found for this laptop/tablet model\n");
-> >> +                       return -ENODEV;
-> > 
-> > It's fine to use dev_err_probe() for known error codes.
-> > 
-> >> +               }
-> > 
-> > ...
-> > 
-> >> +               cells[1].platform_data = (void *)board_data->tps68470_regulator_pdata;
-> > 
-> > Do we need casting?
-> 
-> Yes, the cast casts away a "const", the const is correct
-> since the data only ever gets read by the regulator driver,
-> but platform_data pointers are normally not const, so it
-> is either the cast, or loose the const on the definition
-> of the struct to which board_data->tps68470_regulator_pdata
-> points...
-> 
-> So not good choice here really, only chosing between bad
-> options and I picked the lets do the cast "least worse"
-> option (at least to me). I'm open to changing this.
 
-Maybe a comment explaining this briefly?
+--trige6lnttlhwn57
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Sakari Ailus
+Hi Hans,
+
+On Tue, Nov 02, 2021 at 03:12:51PM +0100, Hans de Goede wrote:
+> Hi Sebastian,
+>=20
+> On 11/2/21 14:23, Sebastian Reichel wrote:
+> > Hi,
+> >=20
+> > On Sun, Oct 31, 2021 at 09:34:46PM +0200, Andy Shevchenko wrote:
+> >> On Sun, Oct 31, 2021 at 5:25 PM Hans de Goede <hdegoede@redhat.com> wr=
+ote:
+> >>>
+> >>> When registering the IRQ handler fails, do not just return the error =
+code,
+> >>> this will free the devm_kzalloc()-ed data struct while leaving the qu=
+eued
+> >>> work queued and the registered power_supply registered with both of t=
+hem
+> >>> now pointing to free-ed memory, resulting in various kernel crashes
+> >>> soon afterwards.
+> >>>
+> >>> Instead properly tear-down things on IRQ handler register errors.
+> >>
+> >> FWIW,
+> >> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> >=20
+> > Thanks, queued.
+>=20
+> Thank you, note these 2 patches (for the bq25980 driver) are also
+> pure bug-fixes, I posted them as part of a larger series, but
+> in hindsight I should have probably posted them separately:
+>=20
+> https://lore.kernel.org/platform-driver-x86/20211030182813.116672-4-hdego=
+ede@redhat.com/
+> https://lore.kernel.org/platform-driver-x86/20211030182813.116672-5-hdego=
+ede@redhat.com/
+>=20
+> It would be good if you can pick these 2 up too
+> (I'll respin the rest of the series to address various
+> review comments without them then).
+> Let me know if you want me to resend these 2 as a stand alone
+> series.
+
+Thanks for the pointer, I queued both of them. I had to slightly
+rebase, since your base did not include 172d0ccea55c. I have not
+yet reviewed the remaining patchset, but considering there are more
+patches to bq25890 a rebase would be ncie.
+
+Greetings,
+
+-- Sebastian
+
+--trige6lnttlhwn57
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAmGBaiYACgkQ2O7X88g7
++prPEw/7BK4/d6vHO+t3ZgIuXcTgzREZot5nMRhqnKe5slPDJ32aTn8tdWwIOn0p
+WA6tL0645Ktvkfx/DmDlEnwU9hJq0Bg4EUH8Fo8wrd9DyNtkt/vvtx5NVcEa+W3K
+Lvtawc0+skeicsoOtJP/6qKgbWtZa+RsrCeYzjx9kJm9iqgzFCQH4gzgF+1THcNh
+93EG+EmmZbVHprwvYWXFKroBk5quvT3/1yaiuvgUqSUWgpGSPUpszYDb/K79u0US
+1oKyHXzPS6z9ColrkSwvfxXn8jvfTCPROlJnyhljjkpsxWY2ro6zU58e4zf7mqY+
+OTUr2wbMb7CGhILuj43A+IaPqm4dzBZ5B2zH18spqI3Ogm44x+5PJlDAOGAjRoR6
+P+jsS7aI7+QY3zLVNF1hs/quowAsOwPhaojOumcbp3XtPQhv4HP2vW5B5ndjQNEW
+Ps2c6pKho+MwPSNJAbXGc4BQxAXmLmshfLzTbjoEmiuMbsrPNekauhN5lnrZMqoz
+4xDqy1LEM7evf2p4GXgbfKBtTDZWi7dGJ9gmn8uDCjZXZtO8Rr7NEFOnbCI1hhbz
+HAcjSIgVacBP4wfp3ULGTN3cUbPJNZOcOOxFau5gOmXBMlMz8nt8QdpFxoRmyXOT
+G8ROJ4Pki8DXcrPde3eHzt0bVljTWzDhJwuF6dFpe5/nXIVzpLU=
+=w4zN
+-----END PGP SIGNATURE-----
+
+--trige6lnttlhwn57--
