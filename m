@@ -2,33 +2,33 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B46AC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F263DC433F5
 	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 18:26:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BF7860F58
+	by mail.kernel.org (Postfix) with ESMTP id D095C61050
 	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 18:26:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235071AbhKBS2t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Nov 2021 14:28:49 -0400
-Received: from foss.arm.com ([217.140.110.172]:41700 "EHLO foss.arm.com"
+        id S235040AbhKBS2x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Nov 2021 14:28:53 -0400
+Received: from foss.arm.com ([217.140.110.172]:41720 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230230AbhKBS2r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Nov 2021 14:28:47 -0400
+        id S230361AbhKBS2t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 Nov 2021 14:28:49 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D22F611B3;
-        Tue,  2 Nov 2021 11:26:11 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0EBE811B3;
+        Tue,  2 Nov 2021 11:26:14 -0700 (PDT)
 Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id ECCAB3F7B4;
-        Tue,  2 Nov 2021 11:26:10 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 29BA73F7B4;
+        Tue,  2 Nov 2021 11:26:13 -0700 (PDT)
 From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     Robert Moore <robert.moore@intel.com>
 Cc:     Sudeep Holla <sudeep.holla@arm.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH 1/3] ACPICA: Fix wrong interpretation of PCC address
-Date:   Tue,  2 Nov 2021 18:25:40 +0000
-Message-Id: <20211102182542.3460787-2-sudeep.holla@arm.com>
+Subject: [PATCH 3/3] ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype
+Date:   Tue,  2 Nov 2021 18:25:42 +0000
+Message-Id: <20211102182542.3460787-4-sudeep.holla@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20211102182542.3460787-1-sudeep.holla@arm.com>
 References: <20211102182542.3460787-1-sudeep.holla@arm.com>
@@ -38,74 +38,247 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-With the PCC Opregion in the firmware and we are hitting below kernel crash:
+PCC OpRegion provides a mechanism to communicate with the platform
+directly from the AML. PCCT provides the list of PCC channel available
+in the platform, a subset or all of them can be used in PCC Opregion.
 
--->8
-Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
- Workqueue: pm pm_runtime_work
- pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
- pc : __memcpy+0x54/0x260
- lr : acpi_ex_write_data_to_field+0xb8/0x194
- Call trace:
-  __memcpy+0x54/0x260
-  acpi_ex_store_object_to_node+0xa4/0x1d4
-  acpi_ex_store+0x44/0x164
-  acpi_ex_opcode_1A_1T_1R+0x25c/0x508
-  acpi_ds_exec_end_op+0x1b4/0x44c
-  acpi_ps_parse_loop+0x3a8/0x614
-  acpi_ps_parse_aml+0x90/0x2f4
-  acpi_ps_execute_method+0x11c/0x19c
-  acpi_ns_evaluate+0x1ec/0x2b0
-  acpi_evaluate_object+0x170/0x2b0
-  acpi_device_set_power+0x118/0x310
-  acpi_dev_suspend+0xd4/0x180
-  acpi_subsys_runtime_suspend+0x28/0x38
-  __rpm_callback+0x74/0x328
-  rpm_suspend+0x2d8/0x624
-  pm_runtime_work+0xa4/0xb8
-  process_one_work+0x194/0x25c
-  worker_thread+0x260/0x49c
-  kthread+0x14c/0x30c
-  ret_from_fork+0x10/0x20
- Code: f9000006 f81f80a7 d65f03c0 361000c2 (b9400026)
- ---[ end trace 24d8a032fa77b68a ]---
+This patch registers the PCC OpRegion handler before ACPI tables are loaded.
+This relies on the special context data passed to identify and setup the
+PCC channel before the OpRegion handler is executed for the first time.
 
-The reason for the crash is that the PCC channel index passed via region.address
-in acpi_ex_store_object_to_node is interpreted as the channel subtype
-incorrectly.
+Typical PCC Opregion declaration looks like this:
 
-Assuming the PCC OpRegion support is not used by any other type, let us
-remove the subtype check as the AML has no access to the subtype information.
-Once we remove it, the kernel crash disappears and correctly complains about
-missing PCC Opregion handler.
+OperationRegion (PFRM, PCC, 2, 0x74)
+Field (PFRM, ByteAcc, NoLock, Preserve)
+{
+    SIGN,   32,
+    FLGS,   32,
+    LEN,    32,
+    CMD,    32,
+    DATA,   800
+}
 
-ACPI Error: No handler for Region [PFRM] ((____ptrval____)) [PCC] (20210730/evregion-130)
-ACPI Error: Region PCC (ID=10) has no handler (20210730/exfldio-261)
-ACPI Error: Aborting method \_SB.ETH0._PS3 due to previous error (AE_NOT_EXIST) (20210730/psparse-531)
+It contains 4 named double words followed by 100 bytes of buffer names DATA.
+
+ASL can fill out the buffer something like:
+
+    /* Create global or local buffer */
+    Name (BUFF, Buffer (0x0C){})
+    /* Create double word fields over the buffer */
+    CreateDWordField (BUFF, 0x0, WD0)
+    CreateDWordField (BUFF, 0x04, WD1)
+    CreateDWordField (BUFF, 0x08, WD2)
+
+    /* Fill the named fields */
+    WD0 = 0x50434300
+    SIGN = BUFF
+    WD0 = 1
+    FLGS = BUFF
+    WD0 = 0x10
+    LEN = BUFF
+
+    /* Fill the payload in the DATA buffer */
+    WD0 = 0
+    WD1 = 0x08
+    WD2 = 0
+    DATA = BUFF
+
+    /* Write to CMD field to trigger handler */
+    WD0 = 0x4404
+    CMD = BUFF
+
+This buffer is recieved by acpi_pcc_opregion_space_handler. This
+handler will fetch the commplete buffer via internal_pcc_buffer.
+
+The setup handler will receive the special PCC context data which will
+contain the PCC channel index which used to setup the channel. The buffer
+pointer and length is saved in region context which is then used in the
+handler.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/acpi/acpica/exfield.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/acpi/Kconfig        |   5 ++
+ drivers/acpi/Makefile       |   1 +
+ drivers/acpi/bus.c          |   1 +
+ drivers/acpi/pcc_opregion.c | 111 ++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h        |   6 ++
+ 5 files changed, 124 insertions(+)
+ create mode 100644 drivers/acpi/pcc_opregion.c
 
-diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-index 06f3c9df1e22..8618500f23b3 100644
---- a/drivers/acpi/acpica/exfield.c
-+++ b/drivers/acpi/acpica/exfield.c
-@@ -330,12 +330,7 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
- 		       obj_desc->field.base_byte_offset,
- 		       source_desc->buffer.pointer, data_length);
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 1da360c51d66..c2998e489cec 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -524,6 +524,11 @@ config ACPI_PPTT
+ 	bool
+ endif
  
--		if ((obj_desc->field.region_obj->region.address ==
--		     PCC_MASTER_SUBSPACE
--		     && MASTER_SUBSPACE_COMMAND(obj_desc->field.
--						base_byte_offset))
--		    || GENERIC_SUBSPACE_COMMAND(obj_desc->field.
--						base_byte_offset)) {
-+		if (MASTER_SUBSPACE_COMMAND(obj_desc->field.base_byte_offset)) {
++config ACPI_PCC_OPREGION
++	bool "PCC Opregion"
++	depends on PCC
++	default y
++
+ source "drivers/acpi/pmic/Kconfig"
  
- 			/* Perform the write */
+ config ACPI_VIOT
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 3018714e87d9..d010ed3f4937 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -67,6 +67,7 @@ acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
+ acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+ acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+ acpi-$(CONFIG_ACPI_PRMT)	+= prmt.o
++acpi-$(CONFIG_ACPI_PCC_OPREGION) += pcc_opregion.o
  
+ # Address translation
+ acpi-$(CONFIG_ACPI_ADXL)	+= acpi_adxl.o
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index fa923a929224..5e1eea7fb6f4 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1320,6 +1320,7 @@ static int __init acpi_init(void)
+ 		pr_debug("%s: kset create error\n", __func__);
+ 
+ 	init_prmt();
++	init_pcc_opregion();
+ 	result = acpi_bus_init();
+ 	if (result) {
+ 		kobject_put(acpi_kobj);
+diff --git a/drivers/acpi/pcc_opregion.c b/drivers/acpi/pcc_opregion.c
+new file mode 100644
+index 000000000000..c965ce555bd0
+--- /dev/null
++++ b/drivers/acpi/pcc_opregion.c
+@@ -0,0 +1,111 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Author: Sudeep Holla <sudeep.holla@arm.com>
++ * Copyright 2021 Arm Limited
++ *
++ * pcc_opregion.c
++ *
++ */
++#include <linux/kernel.h>
++#include <linux/acpi.h>
++#include <linux/completion.h>
++#include <linux/idr.h>
++#include <linux/io.h>
++
++#include <acpi/pcc.h>
++
++struct pcc_data {
++	struct pcc_mbox_chan *pcc_chan;
++	void __iomem *pcc_comm_addr;
++	struct completion done;
++        struct mbox_client cl;
++	struct acpi_pcc_info ctx;
++};
++
++struct acpi_pcc_info pcc_ctx;
++
++static void pcc_rx_callback(struct mbox_client *cl, void *m)
++{
++        struct pcc_data *data = container_of(cl, struct pcc_data, cl);
++
++	complete(&data->done);
++}
++
++static acpi_status
++acpi_pcc_opregion_setup(acpi_handle region_handle, u32 function,
++			void *handler_context,  void **region_context)
++{
++	struct pcc_data *data;
++	struct acpi_pcc_info *ctx = handler_context;
++	struct pcc_mbox_chan *pcc_chan;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return_ACPI_STATUS(AE_NO_MEMORY);
++
++	data->cl.rx_callback = pcc_rx_callback;
++	data->cl.knows_txdone = true;
++	data->ctx.length = ctx->length;
++	data->ctx.subspace_id = ctx->subspace_id;
++	data->ctx.internal_buffer = ctx->internal_buffer;
++
++	init_completion(&data->done);
++	data->pcc_chan = pcc_mbox_request_channel(&data->cl, ctx->subspace_id);
++	if (IS_ERR(data->pcc_chan)) {
++		pr_err("Failed to find PCC channel for subspace %d\n",
++		       ctx->subspace_id);
++		return_ACPI_STATUS(AE_NOT_FOUND);
++	}
++
++	pcc_chan = data->pcc_chan;
++	data->pcc_comm_addr = acpi_os_ioremap(pcc_chan->shmem_base_addr,
++					      pcc_chan->shmem_size);
++	if (!data->pcc_comm_addr) {
++		pr_err("Failed to ioremap PCC comm region mem for %d\n",
++		       ctx->subspace_id);
++		return_ACPI_STATUS(AE_NO_MEMORY);
++	}
++
++	*region_context = data;
++	return_ACPI_STATUS(AE_OK);
++}
++
++static acpi_status
++acpi_pcc_opregion_space_handler(u32 function, acpi_physical_address addr,
++				u32 bits, acpi_integer *value,
++				void *handler_context, void *region_context)
++{
++	int ret;
++	struct pcc_data* data = region_context;
++
++	reinit_completion(&data->done);
++
++	/* Write to Shared Memory */
++	memcpy_toio(data->pcc_comm_addr, (void *)value, data->ctx.length);
++
++	ret = mbox_send_message(data->pcc_chan->mchan, NULL);
++	if (ret < 0)
++		return_ACPI_STATUS(AE_ERROR);
++
++	if (data->pcc_chan->mchan->mbox->txdone_irq)
++		wait_for_completion(&data->done);
++
++	mbox_client_txdone(data->pcc_chan->mchan, ret);
++
++	memcpy_fromio(value, data->pcc_comm_addr, data->ctx.length);
++
++	return_ACPI_STATUS(AE_OK);
++}
++
++void __init init_pcc_opregion(void)
++{
++	acpi_status status;
++
++	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
++						    ACPI_ADR_SPACE_PLATFORM_COMM,
++						    &acpi_pcc_opregion_space_handler,
++						    &acpi_pcc_opregion_setup,
++						    &pcc_ctx);
++	if (ACPI_FAILURE(status))
++		pr_alert("OperationRegion handler could not be installed\n");
++}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index fbc2146050a4..7dd565294408 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1384,6 +1384,12 @@ static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_PCC_OPREGION
++void init_pcc_opregion(void);
++#else
++static inline void init_pcc_opregion(void) { }
++#endif
++
+ #ifdef CONFIG_ACPI
+ extern void acpi_device_notify(struct device *dev);
+ extern void acpi_device_notify_remove(struct device *dev);
 -- 
 2.25.1
 
