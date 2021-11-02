@@ -2,126 +2,141 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6914CC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:41:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B808BC433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:47:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52D786023F
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:41:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B4AA60EB8
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 16:47:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234635AbhKBQn5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Nov 2021 12:43:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43720 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234718AbhKBQn4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Nov 2021 12:43:56 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96FE5C061714;
-        Tue,  2 Nov 2021 09:41:21 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: sre)
-        with ESMTPSA id 7A07F1F44D9D
-Received: by earth.universe (Postfix, from userid 1000)
-        id C75243C0F95; Tue,  2 Nov 2021 17:41:17 +0100 (CET)
-Date:   Tue, 2 Nov 2021 17:41:17 +0100
-From:   Sebastian Reichel <sebastian.reichel@collabora.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        id S229794AbhKBQtp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Nov 2021 12:49:45 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:25224 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230373AbhKBQto (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Nov 2021 12:49:44 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1635871628;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=OXCcgVDujHkdu74YmEm/6uZxSbK6QTtbfJnMu16uuZU=;
+        b=hgaFsWGpl073kSM7zs0J6RIyNgrUoIZOtWxnxxV+pwq2kUlSeXihoak9vycHUtuIZayYpl
+        3z0RRwqlJMe8+lzBK+qFyLGcWUPAPLmWM8mmX4cjhdbGV1iL7Ew5gWNos08lw5wjqMtGuS
+        hiq8B/1WE1hv4VIZK1lkvGELnlOwkXw=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-53-v_wkOtthMrO320_g1RaGbw-1; Tue, 02 Nov 2021 12:11:30 -0400
+X-MC-Unique: v_wkOtthMrO320_g1RaGbw-1
+Received: by mail-ed1-f69.google.com with SMTP id q6-20020a056402518600b003e28d92bb85so5915804edd.7
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Nov 2021 09:11:30 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=OXCcgVDujHkdu74YmEm/6uZxSbK6QTtbfJnMu16uuZU=;
+        b=bhHPudEhUtKkMFqht/LvcoE63KU2g6sXK1CT3bTiklS/DnX6ZA/T//rWtpvbF15LZO
+         VKR3QfeXsjfpIrd1Jz669BdOHo/iqdGSAkyMbiMOLDwN2+7x1B5RvXNFONqX0076Uu6R
+         +WNyLa84ahp5zqOhdZ66tgekwDd60dR5jSSG3f4eOZniSkxlCwMHZW8CX7vpoAkMwh7z
+         F2YtL2jHwpOep85+a+tEHR3Spfa+/oCV9ibp/FM7I4fv6KlKsXxkgzKZM/h2smcG69dY
+         MhcV95M4vLt72ajxC75AovgXDOal9SW5Xp3d8PEbQlC6/CqITP0kh2Lo5HMYmmgBi/n1
+         fi7Q==
+X-Gm-Message-State: AOAM530VyMIrAZZNdDrs2oUI3/jR76RqTWR2w5RUhN7UaJWOl6XHqC4L
+        O1FehDYZKImgLAWx3dv4SJySCnYgLqS2b+wmDktvWN+krzqVJi73w5Kz0FUTsVfVlVaNL3LdSRP
+        dLoN9PMTuDaXwe3pHXGeOng==
+X-Received: by 2002:a17:906:ce2b:: with SMTP id sd11mr41196383ejb.357.1635869489705;
+        Tue, 02 Nov 2021 09:11:29 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwc7xvozzFCrT+ldZQZpz2qqh+5IJOeJ4jcizwG2L2dQLGetL43/Fnv4jvYRJN+ddJ55lpktA==
+X-Received: by 2002:a17:906:ce2b:: with SMTP id sd11mr41196329ejb.357.1635869489417;
+        Tue, 02 Nov 2021 09:11:29 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c1e:bf00:1054:9d19:e0f0:8214? (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
+        by smtp.gmail.com with ESMTPSA id j3sm8322037ejo.2.2021.11.02.09.11.28
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 02 Nov 2021 09:11:28 -0700 (PDT)
+Message-ID: <69cc36ec-0674-2acb-6d23-4d7bc8c63fd9@redhat.com>
+Date:   Tue, 2 Nov 2021 17:11:27 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.2.0
+Subject: Re: [PATCH v5 10/11] platform/x86: int3472: Pass
+ tps68470_regulator_platform_data to the tps68470-regulator MFD-cell
+Content-Language: en-US
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Mark Gross <markgross@kernel.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>, Len Brown <lenb@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Platform Driver <platform-driver-x86@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        "Andrew F . Davis" <afd@ti.com>
-Subject: Re: [PATCH v2] power: supply: bq27xxx: Fix kernel crash on IRQ
- handler register error
-Message-ID: <20211102164117.pnbpvephlh4wgrwb@earth.universe>
-References: <20211031152522.3911-1-hdegoede@redhat.com>
- <CAHp75Vc6GO4e0_Qp6HfFtd_kbSakaMXsQN4oEPArdmMrxTFb7A@mail.gmail.com>
- <20211102132352.yqazgy2njnbthujb@earth.universe>
- <e74947c4-74c8-a17e-f4cb-752a79851954@redhat.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="trige6lnttlhwn57"
-Content-Disposition: inline
-In-Reply-To: <e74947c4-74c8-a17e-f4cb-752a79851954@redhat.com>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-i2c <linux-i2c@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kate Hsuan <hpa@redhat.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-clk <linux-clk@vger.kernel.org>
+References: <20211102094907.31271-1-hdegoede@redhat.com>
+ <20211102094907.31271-11-hdegoede@redhat.com>
+ <CAHp75Vd-xY43H8jPOUqJp55Rq3Wuhsdzctfhqq300S0vAKTzpw@mail.gmail.com>
+ <1f4377bb-2902-05e9-95c7-ad924477b543@redhat.com>
+ <CAHp75VfJZYiVvE0uQ6ahOJo9wxh0EwjgkeN81vas89pNMDv3GQ@mail.gmail.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <CAHp75VfJZYiVvE0uQ6ahOJo9wxh0EwjgkeN81vas89pNMDv3GQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Hi,
 
---trige6lnttlhwn57
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 11/2/21 16:52, Andy Shevchenko wrote:
+> On Tue, Nov 2, 2021 at 4:59 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>> On 11/2/21 15:34, Andy Shevchenko wrote:
+>>> On Tue, Nov 2, 2021 at 11:50 AM Hans de Goede <hdegoede@redhat.com> wrote:
+> 
+> ...
+> 
+>>>> +               board_data = int3472_tps68470_get_board_data(dev_name(&client->dev));
+>>>> +               if (!board_data) {
+>>>> +                       dev_err(&client->dev, "No board-data found for this laptop/tablet model\n");
+>>>> +                       return -ENODEV;
+>>>
+>>> It's fine to use dev_err_probe() for known error codes.
+>>>
+>>>> +               }
+>>>
+>>> ...
+>>>
+>>>> +               cells[1].platform_data = (void *)board_data->tps68470_regulator_pdata;
+>>>
+>>> Do we need casting?
+>>
+>> Yes, the cast casts away a "const", the const is correct
+>> since the data only ever gets read by the regulator driver,
+>> but platform_data pointers are normally not const, so it
+>> is either the cast, or loose the const on the definition
+>> of the struct to which board_data->tps68470_regulator_pdata
+>> points...
+>>
+>> So not good choice here really, only chosing between bad
+>> options and I picked the lets do the cast "least worse"
+>> option (at least to me). I'm open to changing this.
+> 
+> Hmm... Okay, I was under the impression that MFD is using const for
+> that field...
 
-Hi Hans,
+Nope, I just double-checked and it is a plain "void *" 
 
-On Tue, Nov 02, 2021 at 03:12:51PM +0100, Hans de Goede wrote:
-> Hi Sebastian,
->=20
-> On 11/2/21 14:23, Sebastian Reichel wrote:
-> > Hi,
-> >=20
-> > On Sun, Oct 31, 2021 at 09:34:46PM +0200, Andy Shevchenko wrote:
-> >> On Sun, Oct 31, 2021 at 5:25 PM Hans de Goede <hdegoede@redhat.com> wr=
-ote:
-> >>>
-> >>> When registering the IRQ handler fails, do not just return the error =
-code,
-> >>> this will free the devm_kzalloc()-ed data struct while leaving the qu=
-eued
-> >>> work queued and the registered power_supply registered with both of t=
-hem
-> >>> now pointing to free-ed memory, resulting in various kernel crashes
-> >>> soon afterwards.
-> >>>
-> >>> Instead properly tear-down things on IRQ handler register errors.
-> >>
-> >> FWIW,
-> >> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> >=20
-> > Thanks, queued.
->=20
-> Thank you, note these 2 patches (for the bq25980 driver) are also
-> pure bug-fixes, I posted them as part of a larger series, but
-> in hindsight I should have probably posted them separately:
->=20
-> https://lore.kernel.org/platform-driver-x86/20211030182813.116672-4-hdego=
-ede@redhat.com/
-> https://lore.kernel.org/platform-driver-x86/20211030182813.116672-5-hdego=
-ede@redhat.com/
->=20
-> It would be good if you can pick these 2 up too
-> (I'll respin the rest of the series to address various
-> review comments without them then).
-> Let me know if you want me to resend these 2 as a stand alone
-> series.
+Regards,
 
-Thanks for the pointer, I queued both of them. I had to slightly
-rebase, since your base did not include 172d0ccea55c. I have not
-yet reviewed the remaining patchset, but considering there are more
-patches to bq25890 a rebase would be ncie.
+Hans
 
-Greetings,
-
--- Sebastian
-
---trige6lnttlhwn57
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAmGBaiYACgkQ2O7X88g7
-+prPEw/7BK4/d6vHO+t3ZgIuXcTgzREZot5nMRhqnKe5slPDJ32aTn8tdWwIOn0p
-WA6tL0645Ktvkfx/DmDlEnwU9hJq0Bg4EUH8Fo8wrd9DyNtkt/vvtx5NVcEa+W3K
-Lvtawc0+skeicsoOtJP/6qKgbWtZa+RsrCeYzjx9kJm9iqgzFCQH4gzgF+1THcNh
-93EG+EmmZbVHprwvYWXFKroBk5quvT3/1yaiuvgUqSUWgpGSPUpszYDb/K79u0US
-1oKyHXzPS6z9ColrkSwvfxXn8jvfTCPROlJnyhljjkpsxWY2ro6zU58e4zf7mqY+
-OTUr2wbMb7CGhILuj43A+IaPqm4dzBZ5B2zH18spqI3Ogm44x+5PJlDAOGAjRoR6
-P+jsS7aI7+QY3zLVNF1hs/quowAsOwPhaojOumcbp3XtPQhv4HP2vW5B5ndjQNEW
-Ps2c6pKho+MwPSNJAbXGc4BQxAXmLmshfLzTbjoEmiuMbsrPNekauhN5lnrZMqoz
-4xDqy1LEM7evf2p4GXgbfKBtTDZWi7dGJ9gmn8uDCjZXZtO8Rr7NEFOnbCI1hhbz
-HAcjSIgVacBP4wfp3ULGTN3cUbPJNZOcOOxFau5gOmXBMlMz8nt8QdpFxoRmyXOT
-G8ROJ4Pki8DXcrPde3eHzt0bVljTWzDhJwuF6dFpe5/nXIVzpLU=
-=w4zN
------END PGP SIGNATURE-----
-
---trige6lnttlhwn57--
