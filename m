@@ -2,79 +2,102 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A82C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 17:02:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE22EC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 17:03:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 649CD60E73
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 17:02:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2E6461053
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 17:03:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232968AbhKCRFC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Nov 2021 13:05:02 -0400
-Received: from mga02.intel.com ([134.134.136.20]:41107 "EHLO mga02.intel.com"
+        id S232929AbhKCRF4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Nov 2021 13:05:56 -0400
+Received: from mga04.intel.com ([192.55.52.120]:24543 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232946AbhKCRFB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 3 Nov 2021 13:05:01 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10157"; a="218740619"
+        id S232946AbhKCRF4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 Nov 2021 13:05:56 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10157"; a="230268875"
 X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
-   d="scan'208";a="218740619"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 10:01:08 -0700
+   d="scan'208";a="230268875"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 10:02:36 -0700
 X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
-   d="scan'208";a="560943923"
+   d="scan'208";a="468174212"
 Received: from smile.fi.intel.com ([10.237.72.184])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 10:01:06 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 10:02:34 -0700
 Received: from andy by smile.fi.intel.com with local (Exim 4.95)
         (envelope-from <andriy.shevchenko@intel.com>)
-        id 1miJay-003Jxx-Pp;
-        Wed, 03 Nov 2021 18:58:40 +0200
-Date:   Wed, 3 Nov 2021 18:58:40 +0200
+        id 1miJeV-003K0s-9E;
+        Wed, 03 Nov 2021 19:02:19 +0200
+Date:   Wed, 3 Nov 2021 19:02:19 +0200
 From:   Andy Shevchenko <andriy.shevchenko@intel.com>
 To:     Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc:     linux-acpi@vger.kernel.org,
         John Ogness <john.ogness@linutronix.de>, rafael@kernel.org,
         mika.westerberg@linux.intel.com
-Subject: Re: [PATCH 1/3] ACPI: Make acpi_fwnode_handle safer
-Message-ID: <YYK/wFZLKVjpnV96@smile.fi.intel.com>
+Subject: Re: [PATCH 3/3] ACPI: Make acpi_node_get_parent() local
+Message-ID: <YYLAm1X+lFykwTSg@smile.fi.intel.com>
 References: <20211103133406.659542-1-sakari.ailus@linux.intel.com>
- <20211103133406.659542-2-sakari.ailus@linux.intel.com>
+ <20211103133406.659542-4-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211103133406.659542-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20211103133406.659542-4-sakari.ailus@linux.intel.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 03, 2021 at 03:34:04PM +0200, Sakari Ailus wrote:
-> Check that the fwnode argument passed to acpi_fwnode_handle is non-NULL,
+On Wed, Nov 03, 2021 at 03:34:06PM +0200, Sakari Ailus wrote:
+> acpi_node_get_parent() isn't used outside drivers/acpi/property.c. Make it
+> local.
 
-acpi_fwnode_handle()
-
-> and return NULL if it is, otherwise the fwnode. Thus the caller doesn't
-> have to ensure the argument is a valid non-NULL fwnode.
-
+Always in favour for such patches!
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 
-> Cc: stable@vger.kernel.org # v5.15 and up
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  include/acpi/acpi_bus.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/property.c | 3 ++-
+>  include/linux/acpi.h    | 7 -------
+>  2 files changed, 2 insertions(+), 8 deletions(-)
 > 
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 53b6e9f9de7b4..c34d94521d40c 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -445,7 +445,7 @@ static inline bool acpi_data_node_match(const struct fwnode_handle *fwnode,
->  
->  static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 7403ee2816eb8..49301d1bba4ff 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -1084,7 +1084,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+>   * Returns parent node of an ACPI device or data firmware node or %NULL if
+>   * not available.
+>   */
+> -struct fwnode_handle *acpi_node_get_parent(const struct fwnode_handle *fwnode)
+> +static struct fwnode_handle *
+> +acpi_node_get_parent(const struct fwnode_handle *fwnode)
 >  {
-> -	return &adev->fwnode;
-> +	return adev ? &adev->fwnode : NULL;
+>  	if (is_acpi_data_node(fwnode)) {
+>  		/* All data nodes have parent pointer so just return that */
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 375715b0535fb..c65a754b1db53 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1168,7 +1168,6 @@ int acpi_node_prop_get(const struct fwnode_handle *fwnode, const char *propname,
+>  
+>  struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+>  					    struct fwnode_handle *child);
+> -struct fwnode_handle *acpi_node_get_parent(const struct fwnode_handle *fwnode);
+>  
+>  struct acpi_probe_entry;
+>  typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
+> @@ -1273,12 +1272,6 @@ acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+>  	return NULL;
 >  }
 >  
->  static inline void *acpi_driver_data(struct acpi_device *d)
+> -static inline struct fwnode_handle *
+> -acpi_node_get_parent(const struct fwnode_handle *fwnode)
+> -{
+> -	return NULL;
+> -}
+> -
+>  static inline struct fwnode_handle *
+>  acpi_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
+>  			     struct fwnode_handle *prev)
 > -- 
 > 2.30.2
 > 
