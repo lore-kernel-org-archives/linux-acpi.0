@@ -2,104 +2,141 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A0EC433F5
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 14:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA94CC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 15:44:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0DC961073
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 14:44:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89FA96109F
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 15:44:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231618AbhKCOqm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 Nov 2021 10:46:42 -0400
-Received: from Galois.linutronix.de ([193.142.43.55]:56058 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230252AbhKCOql (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Nov 2021 10:46:41 -0400
-From:   John Ogness <john.ogness@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1635950644;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=WQWjT01lt3R0Xv+/aSfAVuO7pydPYL3MBaHFBNwN0sg=;
-        b=n7XggwWpmgpMDmt3jqlQKuOkrYL3RO2fi8Jciq5xcN7OD6NwhgKLI2G59/xGCZlzNMwYx6
-        y94qFkuv4DAHMCB9+lAe2zKTYTMNL+ysmU5iQ7Gzs9BAU3YclecRUwUYcxOyPfhzNjUCQ4
-        ZLspzAWUrnfD12YJ1DrwO9Mzg/QckBDha+eTZKkUJX1wUJ/2xX+NH3EZzDTl5Cwtk/2HLy
-        7dUuvZH7uIcnyTficghTb4TJAzCf/2Np+8K18+fI5HYoqXx12VOfo+bMrkM8PyGFx7BiQ2
-        UCDdwLLx+3iNB3Lcmf4j8dukFZBT9my5BnaFLB7M+2bjewXNvlkc8qMF+ijhwg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1635950644;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=WQWjT01lt3R0Xv+/aSfAVuO7pydPYL3MBaHFBNwN0sg=;
-        b=Pk0YubPBCoL0xPBiZd3qd9zVREGyEGHtCVTzcYCRrvnLHnypqTqcwQmYY+QvJzwkLswKPd
-        9v8ecb//g+N2YpCw==
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-acpi@vger.kernel.org
-Cc:     rafael@kernel.org, mika.westerberg@linux.intel.com,
-        Petr Mladek <pmladek@suse.com>
-Subject: Re: [PATCH 0/3] Get device's parent from parent field, fix sleeping
- IRQs disabled
-In-Reply-To: <20211103133406.659542-1-sakari.ailus@linux.intel.com>
-References: <20211103133406.659542-1-sakari.ailus@linux.intel.com>
-Date:   Wed, 03 Nov 2021 15:50:04 +0106
-Message-ID: <878ry55mff.fsf@jogness.linutronix.de>
+        id S231298AbhKCPqh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Nov 2021 11:46:37 -0400
+Received: from mga06.intel.com ([134.134.136.31]:20743 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229587AbhKCPqg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 Nov 2021 11:46:36 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10157"; a="292363207"
+X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
+   d="scan'208";a="292363207"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 08:44:00 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
+   d="scan'208";a="449861147"
+Received: from chenyu-desktop.sh.intel.com ([10.239.158.186])
+  by orsmga006.jf.intel.com with ESMTP; 03 Nov 2021 08:43:56 -0700
+From:   Chen Yu <yu.c.chen@intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>, Len Brown <lenb@kernel.org>,
+        Ashok Raj <ashok.raj@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@intel.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        Aubrey Li <aubrey.li@intel.com>, Chen Yu <yu.c.chen@intel.com>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v8 1/4] efi: Introduce EFI_FIRMWARE_MANAGEMENT_CAPSULE_HEADER and corresponding structures
+Date:   Wed,  3 Nov 2021 23:43:14 +0800
+Message-Id: <68d1c452bbf7f742793cb39ebb66f6b4ba6a3fb3.1635953446.git.yu.c.chen@intel.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <cover.1635953446.git.yu.c.chen@intel.com>
+References: <cover.1635953446.git.yu.c.chen@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-added CC: printk maintainer (Petr Mladek)
+Platform Firmware Runtime Update image starts with UEFI headers, and the
+headers are defined in UEFI specification, but some of them have not been
+defined in the kernel yet.
 
-On 2021-11-03, Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
-> This set changes getting fwnode's parent on ACPI fwnode so it no longer
-> needs a semaphore, using struct acpi_device->parent field instead of
-> calling acpi_get_parent(). The semaphore is being acquired when the
-> device's full path is printed which now takes place local IRQs disabled:
->
-> --------8<------------------------
-> BUG: sleeping function called from invalid context at kernel/locking/semaphore.c:163
->
-> ...
->
-> Call Trace:
->  <TASK>
->  dump_stack_lvl+0x57/0x7d
->  __might_resched.cold+0xf4/0x12f
->  down_timeout+0x21/0x70
->  acpi_os_wait_semaphore+0x63/0x180
->  acpi_ut_acquire_mutex+0x123/0x1ba
->  acpi_get_parent+0x30/0x71
->  acpi_node_get_parent+0x64/0x90
->  ? lock_acquire+0x1a0/0x300
->  fwnode_count_parents+0x6d/0xb0
->  fwnode_full_name_string+0x18/0x90
->  fwnode_string+0xd7/0x140
->  vsnprintf+0x1ec/0x4f0
->  va_format.constprop.0+0x6a/0x130
->  vsnprintf+0x1ec/0x4f0
->  vprintk_store+0x271/0x5a0
->  ? rcu_read_lock_sched_held+0x12/0x70
->  ? lock_release+0x228/0x310
->  ? acpi_initialize_hp_context+0x50/0x50
->  vprintk_emit+0xd5/0x340
->  _printk+0x58/0x6f
-...
-> --------8<------------------------
->
-> I guess one could argue it wasn't great to begin with that getting
-> fwnode's parent required a semaphore to begin with, nevertheless John's
-> patch made it a concrete problem. Added Cc: stable, too.
+For example, the header layout of a capsule file looks like this:
 
-Well, before my work it was vprintk_emit() that was disabling local
-interrupts. So this has always been broken.
+EFI_CAPSULE_HEADER
+EFI_FIRMWARE_MANAGEMENT_CAPSULE_HEADER
+EFI_FIRMWARE_MANAGEMENT_CAPSULE_IMAGE_HEADER
+EFI_FIRMWARE_IMAGE_AUTHENTICATION
 
-Really it should be:
+These structures would be used by the Platform Firmware Runtime Update
+driver to parse the format of capsule file to verify if the corresponding
+version number is valid. The EFI_CAPSULE_HEADER has been defined in the
+kernel, however the rest are not, thus introduce corresponding UEFI
+structures accordingly. Besides, EFI_FIRMWARE_MANAGEMENT_CAPSULE_HEADER
+and EFI_FIRMWARE_MANAGEMENT_CAPSULE_IMAGE_HEADER are required to be packed
+in the uefi specification. Ard has pointed out that, the __packed
+attribute does indicate to the compiler that the entire thing can appear
+misaligned in memory. So if one follows the other in the capsule header,
+the __packed attribute may be appropriate to ensure that the second one
+is not accessed using misaligned loads and stores.
 
-Fixes: 3bd32d6a2ee6 ("lib/vsprintf: Add %pfw conversion specifier for
-printing fwnode names")
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+---
+v8: Use efi_guid_t instead of guid_t. (Andy Shevchenko)
+v7: Use __packed instead of pragma pack(1). (Greg Kroah-Hartman, Ard Biesheuve)
+v6: No change since v5.
+v5: No change since v4.
+v4: Revise the commit log to make it more clear. (Rafael J. Wysocki)
+---
+ include/linux/efi.h | 46 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-Regardless, the fix should go into 5.10 and 5.14 stables.
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index 6b5d36babfcc..1ec73c5ab6c9 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -148,6 +148,52 @@ typedef struct {
+ 	u32 imagesize;
+ } efi_capsule_header_t;
+ 
++/* EFI_FIRMWARE_MANAGEMENT_CAPSULE_HEADER */
++struct efi_manage_capsule_header {
++	u32 ver;
++	u16 emb_drv_cnt;
++	u16 payload_cnt;
++	/*
++	 * Variable array indicated by number of
++	 * (emb_drv_cnt + payload_cnt)
++	 */
++	u64 offset_list[];
++} __packed;
++
++/* EFI_FIRMWARE_MANAGEMENT_CAPSULE_IMAGE_HEADER */
++struct efi_manage_capsule_image_header {
++	u32 ver;
++	efi_guid_t image_type_id;
++	u8 image_index;
++	u8 reserved_bytes[3];
++	u32 image_size;
++	u32 vendor_code_size;
++	/* ver = 2. */
++	u64 hw_ins;
++	/* ver = v3. */
++	u64 capsule_support;
++} __packed;
++
++/* WIN_CERTIFICATE */
++struct win_cert {
++	u32 len;
++	u16 rev;
++	u16 cert_type;
++};
++
++/* WIN_CERTIFICATE_UEFI_GUID */
++struct win_cert_uefi_guid {
++	struct win_cert	hdr;
++	efi_guid_t cert_type;
++	u8 cert_data[];
++};
++
++/* EFI_FIRMWARE_IMAGE_AUTHENTICATIO */
++struct efi_image_auth {
++	u64 mon_count;
++	struct win_cert_uefi_guid auth_info;
++};
++
+ /*
+  * EFI capsule flags
+  */
+-- 
+2.25.1
 
-John Ogness
