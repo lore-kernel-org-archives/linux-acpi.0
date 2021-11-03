@@ -2,62 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1204FC4167D
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 23:27:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99DDEC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 05:52:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E02CA610C8
-	for <linux-acpi@archiver.kernel.org>; Tue,  2 Nov 2021 23:27:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7EB1461139
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 Nov 2021 05:52:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230471AbhKBXaD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 2 Nov 2021 19:30:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51650 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229747AbhKBXaB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Nov 2021 19:30:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 1B17F60EB9;
-        Tue,  2 Nov 2021 23:27:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1635895646;
-        bh=+zP3aXeZUnrEHWlfJCQ0jXmyDaxPAiLydng20BVxsDU=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=bphAaV0L87flv9TU2MN/oKhkXhAGgMobboPOO2madO1hnMebEtJwWkyFY9iBhbLzU
-         ot8hem09SoGiJ3NiZx1wtLv1PX25oE2aIW63WdpjK7c6Tv23JCWBLFKPiImtNSCAdf
-         fo1zFM4gcQjqtasMIIsoxP7XiASb65UCTNOoDj4GTg5sNWRiWWRYvgPbaCE1GJUg5X
-         nUqQcnD5ALDAxyQc7N9cjLo/ASg8XOS9cX4YH0dxy6HVQD9y2PK3UZkOB67tRTN46e
-         siABbk8dL2HUikKwvmBVr/t1f7UzKmBJRsG2cK6koEwq4cd1jPKNdiOlgiuKsF/2e4
-         36VpzRbNtpuFw==
-Subject: Re: [GIT PULL] ACPI updates for v5.16-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0jT44cw=Ls=imqBs1ErO60tbeDnOhD-wGPjPe9L=aa1=Q@mail.gmail.com>
-References: <CAJZ5v0jT44cw=Ls=imqBs1ErO60tbeDnOhD-wGPjPe9L=aa1=Q@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0jT44cw=Ls=imqBs1ErO60tbeDnOhD-wGPjPe9L=aa1=Q@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.16-rc1
-X-PR-Tracked-Commit-Id: 90e17edac46882ee5fa4dfb6a72956b89dd188f3
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: c0d6586afa3546a3d148cf4b9d9a407b4f79d0bb
-Message-Id: <163589564596.24792.10451054427710528764.pr-tracker-bot@kernel.org>
-Date:   Tue, 02 Nov 2021 23:27:25 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        id S231127AbhKCFyy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 Nov 2021 01:54:54 -0400
+Received: from smtpbguseast3.qq.com ([54.243.244.52]:35819 "EHLO
+        smtpbguseast3.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229650AbhKCFyx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Nov 2021 01:54:53 -0400
+X-QQ-mid: bizesmtp48t1635918689t2dqxqlh
+Received: from localhost.localdomain (unknown [124.126.19.250])
+        by esmtp6.qq.com (ESMTP) with 
+        id ; Wed, 03 Nov 2021 13:51:28 +0800 (CST)
+X-QQ-SSF: 0140000000200070D000B00A0000000
+X-QQ-FEAT: vmnbzJorTWSWh1PNXVj1Ard3xhsTeGeJQOWT2Rcb+YszzQQc3QuapNH4I8N2P
+        WA9wBHc7GguslEERSSw79mcOFNHhCAdt+MucGGIsG6XnhX9j7PDT1I+D8DhhfNvVCaD1E4d
+        bXZkCiZ++J7jmD4t1n3TAQWkg4zGw/3Pztrb2LXJBYWdvWgNp9aOVvUxUf5jM2T7QuGTK67
+        P28ELrJIRYjnkmQs2XGAvaxYDu5BlT7awsijs7geckfCe7Chr6dYqurflijgtZ+T6aNyN2J
+        2V4nyc5I/waIM91RsUsXtOUlJRVHlL4SJ6/soWhe/JZ/RilGai5bj8+QSJvw3rz5AtOjU5b
+        g54Z6Le62E6jMP08cQ=
+X-QQ-GoodBg: 2
+From:   wangzhitong <wangzhitong@uniontech.com>
+To:     rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     wangzhitong <wangzhitong@uniontech.com>
+Subject: [PATCH] ACPI: EC: fix error "do not initialise statics to false"
+Date:   Wed,  3 Nov 2021 13:51:19 +0800
+Message-Id: <20211103055119.19312-1-wangzhitong@uniontech.com>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:uniontech.com:qybgforeign:qybgforeign1
+X-QQ-Bgrelay: 1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Tue, 2 Nov 2021 20:51:24 +0100:
+this patch fixes below Errors reported by checkpatch
+ERROR: do not initialise statics to false
++static bool ec_freeze_events __read_mostly = false;
+ERROR: do not initialise statics to false
++static bool boot_ec_is_ecdt = false;
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.16-rc1
+Signed-off-by: wangzhitong <wangzhitong@uniontech.com>
+---
+ drivers/acpi/ec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/c0d6586afa3546a3d148cf4b9d9a407b4f79d0bb
-
-Thank you!
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 04ce2b96c3da..1255649a4da9 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -133,7 +133,7 @@ static unsigned int ec_storm_threshold  __read_mostly = 8;
+ module_param(ec_storm_threshold, uint, 0644);
+ MODULE_PARM_DESC(ec_storm_threshold, "Maxim false GPE numbers not considered as GPE storm");
+ 
+-static bool ec_freeze_events __read_mostly = false;
++static bool ec_freeze_events __read_mostly;
+ module_param(ec_freeze_events, bool, 0644);
+ MODULE_PARM_DESC(ec_freeze_events, "Disabling event handling during suspend/resume");
+ 
+@@ -177,7 +177,7 @@ struct acpi_ec *first_ec;
+ EXPORT_SYMBOL(first_ec);
+ 
+ static struct acpi_ec *boot_ec;
+-static bool boot_ec_is_ecdt = false;
++static bool boot_ec_is_ecdt;
+ static struct workqueue_struct *ec_wq;
+ static struct workqueue_struct *ec_query_wq;
+ 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.20.1
+
+
+
