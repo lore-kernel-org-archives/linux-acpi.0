@@ -2,157 +2,129 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 988FEC433EF
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Nov 2021 11:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E018EC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Nov 2021 14:39:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EB4761215
-	for <linux-acpi@archiver.kernel.org>; Fri,  5 Nov 2021 11:55:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0FA76120A
+	for <linux-acpi@archiver.kernel.org>; Fri,  5 Nov 2021 14:39:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232719AbhKEL61 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 5 Nov 2021 07:58:27 -0400
-Received: from mga14.intel.com ([192.55.52.115]:18600 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231852AbhKEL60 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Nov 2021 07:58:26 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10158"; a="232134822"
-X-IronPort-AV: E=Sophos;i="5.87,211,1631602800"; 
-   d="scan'208";a="232134822"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2021 04:55:47 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.87,211,1631602800"; 
-   d="scan'208";a="490300478"
-Received: from lkp-server02.sh.intel.com (HELO c20d8bc80006) ([10.239.97.151])
-  by orsmga007.jf.intel.com with ESMTP; 05 Nov 2021 04:55:45 -0700
-Received: from kbuild by c20d8bc80006 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1mixou-0007d0-Da; Fri, 05 Nov 2021 11:55:44 +0000
-Date:   Fri, 05 Nov 2021 19:55:09 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- c00ddaa2e79ed178db8f6c06a77ddc41adc06d9e
-Message-ID: <61851b9d.8faa51Pnt3pJfROV%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S233112AbhKEOmE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 5 Nov 2021 10:42:04 -0400
+Received: from mail-ot1-f48.google.com ([209.85.210.48]:39561 "EHLO
+        mail-ot1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232865AbhKEOmE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Nov 2021 10:42:04 -0400
+Received: by mail-ot1-f48.google.com with SMTP id c26-20020a9d615a000000b0055bf6efab46so5106349otk.6;
+        Fri, 05 Nov 2021 07:39:24 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=VTa1m+M0trWvovWd1u5XqKaD5cR/58XJc93gIZv2JIU=;
+        b=t9m8ZkGOOjtugnTKXE3EgLwT9We6Xtu0HDHJ7RRsefBPGWlDPbdBEmxvOq8F7YCk2g
+         seaRmRJew2ddbO81d7ZvTiDP7VsFGws2rMldtrn/YulP0FszYdRRF4inzqpDyWpyQ+oF
+         Zmc1km1so3lLY6srmP13rHJbtHHrSCZTrIZxSNwoFl7LmLXIm1G+kciO987z3H86YwZG
+         1Q4waSAEzMArZdYtYLWQVnHmF6E75ws7Qv8zQWsW3iMklSpvvuBHif3Ek44SIix6JcJj
+         APZ4a++TTUy/kMHCQyqvYPUQYjk/3XgY2E6xslIVgsoSFvyeLvPnwVgHQzk2bV4Q51Cy
+         pr7w==
+X-Gm-Message-State: AOAM531BymkR77nQsKZeNGys5vHJ192O92pXXRTIjcbxYZWP1RYEWvle
+        dLF0FONN88ExAqxxnjZtOuwEdG5IDoBWOLEwQZu016/T
+X-Google-Smtp-Source: ABdhPJy+X17NfVBfLLcL6WVEJYs2fK1iJTS+86IZ46E7ixSdCOhWifsBUKtdUr3xdhTL4Olm7jipl9zFqmbyXWSaXEY=
+X-Received: by 2002:a9d:a64:: with SMTP id 91mr38181170otg.198.1636123163940;
+ Fri, 05 Nov 2021 07:39:23 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+References: <2606454.mvXUDI8C0e@kreacher> <11862743.O9o76ZdvQC@kreacher>
+In-Reply-To: <11862743.O9o76ZdvQC@kreacher>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 5 Nov 2021 15:39:13 +0100
+Message-ID: <CAJZ5v0i4QAmHszoKybD_TSHdkA6T+LE52DP7Bs_YUGo9NFmNDw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: PM: Fix device wakeup power reference counting error
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: c00ddaa2e79ed178db8f6c06a77ddc41adc06d9e  Merge branch 'thermal-int340x' into bleeding-edge
+On Thu, Nov 4, 2021 at 10:54 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> On Thursday, November 4, 2021 6:21:51 PM CET Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Fix a device wakeup power reference counting error introduced by
+> > commit a2d7b2e004af ("ACPI: PM: Fix sharing of wakeup power
+> > resources").
+> >
+> > Fixes: a2d7b2e004af ("ACPI: PM: Fix sharing of wakeup power resources")
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/power.c |    4 +---
+> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/power.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/power.c
+> > +++ linux-pm/drivers/acpi/power.c
+> > @@ -757,10 +757,8 @@ int acpi_disable_wakeup_device_power(str
+> >
+> >       mutex_lock(&acpi_device_lock);
+> >
+> > -     if (dev->wakeup.prepare_count > 1) {
+> > +     if (dev->wakeup.prepare_count >= 1)
+> >               dev->wakeup.prepare_count--;
+> > -             goto out;
+> > -     }
+> >
+> >       /* Do nothing if wakeup power has not been enabled for this device. */
+> >       if (!dev->wakeup.prepare_count)
+>
+> This is still not good.  It should be something like the patch below, but I
+> need to test that one.
 
-elapsed time: 924m
+Tested now, so applying as 5.16-rc material.
 
-configs tested: 95
-configs skipped: 3
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-i386                 randconfig-c001-20211105
-m68k                          hp300_defconfig
-arm                            qcom_defconfig
-ia64                          tiger_defconfig
-s390                             allmodconfig
-arm                       versatile_defconfig
-mips                       lemote2f_defconfig
-powerpc                      walnut_defconfig
-riscv                            allyesconfig
-sh                           se7712_defconfig
-powerpc                     asp8347_defconfig
-arm                            mmp2_defconfig
-sh                   sh7770_generic_defconfig
-arm                        oxnas_v6_defconfig
-sh                        sh7757lcr_defconfig
-arm                    vt8500_v6_v7_defconfig
-sh                          r7785rp_defconfig
-arm                        cerfcube_defconfig
-mips                      maltasmvp_defconfig
-arm                  randconfig-c002-20211105
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-parisc                           allyesconfig
-s390                                defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-i386                              debian-10.3
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a012-20211105
-x86_64               randconfig-a016-20211105
-x86_64               randconfig-a015-20211105
-x86_64               randconfig-a013-20211105
-x86_64               randconfig-a011-20211105
-x86_64               randconfig-a014-20211105
-i386                 randconfig-a016-20211105
-i386                 randconfig-a014-20211105
-i386                 randconfig-a015-20211105
-i386                 randconfig-a013-20211105
-i386                 randconfig-a011-20211105
-i386                 randconfig-a012-20211105
-arc                  randconfig-r043-20211105
-riscv                randconfig-r042-20211105
-s390                 randconfig-r044-20211105
-riscv                    nommu_k210_defconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-um                           x86_64_defconfig
-um                             i386_defconfig
-x86_64                           allyesconfig
-x86_64                    rhel-8.3-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a004-20211105
-i386                 randconfig-a005-20211105
-i386                 randconfig-a001-20211105
-i386                 randconfig-a003-20211105
-i386                 randconfig-a004-20211105
-i386                 randconfig-a006-20211105
-i386                 randconfig-a002-20211105
-hexagon              randconfig-r041-20211105
-hexagon              randconfig-r045-20211105
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: [PATCH v2] ACPI: PM: Fix device wakeup power reference counting error
+>
+> Fix a device wakeup power reference counting error introduced by
+> commit a2d7b2e004af ("ACPI: PM: Fix sharing of wakeup power
+> resources").
+>
+> Fixes: a2d7b2e004af ("ACPI: PM: Fix sharing of wakeup power resources")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>
+> -> v2: Actually disable wakeup power when the reference count becomes zero.
+>
+> ---
+>  drivers/acpi/power.c |    8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/power.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/power.c
+> +++ linux-pm/drivers/acpi/power.c
+> @@ -757,13 +757,11 @@ int acpi_disable_wakeup_device_power(str
+>
+>         mutex_lock(&acpi_device_lock);
+>
+> -       if (dev->wakeup.prepare_count > 1) {
+> -               dev->wakeup.prepare_count--;
+> +       /* Do nothing if wakeup power has not been enabled for this device. */
+> +       if (dev->wakeup.prepare_count <= 0)
+>                 goto out;
+> -       }
+>
+> -       /* Do nothing if wakeup power has not been enabled for this device. */
+> -       if (!dev->wakeup.prepare_count)
+> +       if (--dev->wakeup.prepare_count > 0)
+>                 goto out;
+>
+>         err = acpi_device_sleep_wake(dev, 0, 0, 0);
+>
+>
+>
+>
