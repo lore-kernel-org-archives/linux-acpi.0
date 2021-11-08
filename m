@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D63F9C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1722C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:04:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C021E61353
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:00:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B561E61A7B
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:04:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241518AbhKIBDB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Nov 2021 20:03:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59284 "EHLO mail.kernel.org"
+        id S238905AbhKIBGu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Nov 2021 20:06:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241528AbhKIBC5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Nov 2021 20:02:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1735E6128B;
-        Tue,  9 Nov 2021 01:00:11 +0000 (UTC)
+        id S239118AbhKIBEw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Nov 2021 20:04:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 275C5619F6;
+        Tue,  9 Nov 2021 01:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1636419611;
+        s=k20201202; t=1636419716;
         bh=1LAbinY4XrJhR0cGZxRyou3TsQQ45yvGzggk2EyJ6nI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AKiUbxsovrabb/i4ILyXn2jmKkWeI2Z58q1U7swhxex/Az9AcXQRilbKW0clVROfB
-         uqlZy/+y7duN5LTXjoLE1bxNNVR43hV1k/wKFXWh+9VCN5+xMj7p2+x1j/HX0TxNeT
-         dk1wyQ+f9KsZUWwBkXbAIGEJhVz5U6ENKyoRqRW3Mp9qZYRDT5sqiXqseLKVu1nD71
-         dIj5bugmnko9xopcI/G+61x8ZdUfLDOFe4T9AMIDkS0jjqKwdkoZBvb6ymdWoFWAL3
-         +HrKA1OcahrIbe78Q/vF1fYcvpDIXeY4qu/c2aCAyGwkvBg8suGpoD8BaFkd+YqEyT
-         Z5rs6KXy0N24A==
+        b=aJp+qh5Bnbgm0tKA/BSu4YkfCT11pRoxwx+0PZpYDBzvjPcovQfO6vDSOLjpsegp6
+         FmCUCAjVDJSh8qkYrvZrGBd5orObvzXHuQ11DY93TUPNHeVS+7exr1ewi4yk8cnOoC
+         GcwYK4I4JLUEMR2IXVZU9ir8FCNw15uCPjluMN5vqF3nBrHBcCbFs0aXr5pW/U1UkI
+         zmna6IkBbAbJB/1qLeHf6ecq6bkY6M/X3GVY4k+hgovV2dXFuuIbCv57o9GiElLF00
+         vts8HDuAGnxI0q3UuV0C1aR9EwtN9seurnMN/L1gxJ5QGiCdp3GqHyrMONhLWDepqa
+         CWxMuKEOWl5oQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hui Wang <hui.wang@canonical.com>,
@@ -33,12 +33,12 @@ Cc:     Hui Wang <hui.wang@canonical.com>,
         Manuel Krause <manuelkrause@netscape.net>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 016/146] ACPI: resources: Add DMI-based legacy IRQ override quirk
-Date:   Mon,  8 Nov 2021 12:42:43 -0500
-Message-Id: <20211108174453.1187052-16-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.14 014/138] ACPI: resources: Add DMI-based legacy IRQ override quirk
+Date:   Mon,  8 Nov 2021 12:44:40 -0500
+Message-Id: <20211108174644.1187889-14-sashal@kernel.org>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211108174453.1187052-1-sashal@kernel.org>
-References: <20211108174453.1187052-1-sashal@kernel.org>
+In-Reply-To: <20211108174644.1187889-1-sashal@kernel.org>
+References: <20211108174644.1187889-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
