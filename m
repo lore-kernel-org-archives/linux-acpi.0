@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E6AC43219
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:24:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B0B3C41535
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:25:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53E13610A8
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:24:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 096EF610E8
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:25:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243073AbhKIB1A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Nov 2021 20:27:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50106 "EHLO mail.kernel.org"
+        id S242703AbhKIB1y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Nov 2021 20:27:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243193AbhKIBXO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Nov 2021 20:23:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F027961B29;
-        Tue,  9 Nov 2021 01:08:42 +0000 (UTC)
+        id S239358AbhKIBZU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Nov 2021 20:25:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F05C061A82;
+        Tue,  9 Nov 2021 01:09:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1636420123;
-        bh=Ti0Ej9r8HZ8VAMUFsVuclQHzQJQ2MpLqfWNEcax3uI4=;
+        s=k20201202; t=1636420192;
+        bh=GH9Qs1FFLoYLFKb91c61seX5XaFN8KUN0rQbQAGHqyc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=u3FprxQabef4DLHJLisVeQ3Wo7NQBed3yWuW0TjVwoyvBNREUQKcyumkyqYrdp4L2
-         Op20w9rWtLy1At5l7ybLkbwQ4saioOr8xYHUxPt3wH9sB9Bvw21zBKzjH//2PgBs5p
-         yY96riU1IZvSQYgfXRdeB8ImsOhwdlMqhOYG0V8l2FG7z3Gcjx3OM7V2WHz4JNxYBb
-         hfhPMSAqfXhwoaLE3U8BEsbTYj88jnYpMPtq3GSiQPEwWTRYS7sfTnjD9yHYMyLpUI
-         tip6qjRR90yLP32pJS6qF/nmv8VAcmpCeKrVQ+UOujKtKsGsQ+9aIaksJwyvN6d7bg
-         GA9aF2qwBJIUQ==
+        b=TO2y68b1tsoVofNUDAp6F9+oPaPRfIiEN62te4k8esa7S0z9EVumqLfOz9Ex5ypLw
+         zxAp07x/edlGUt2QD8DeUqDYznDP0v0dcZcIX+CgrSB83hCSg4tVFTbKx2z/beksvl
+         H2+xboCjNOhnLwbqqfxEQluqtnwfQ2VRdlwl0dbhhnIVv8MPx1uz9rFg8tOIAnm0WB
+         4d5cjDNEx/2OijCMXwNRzJtullgDVEfyo1Gw08CZIthPGUd1z7s0zD6KXg7GTU5MAA
+         2QFjwUEGug+q6SZfZMI2VmfGWCJRrhrPWxOxn50dB5Hjyg8lU25s4tY3BD2/Vs7Kq+
+         oZxBSNXV832gQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>,
@@ -34,12 +34,12 @@ Cc:     =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 20/33] ACPI: battery: Accept charges over the design capacity as full
-Date:   Mon,  8 Nov 2021 20:07:54 -0500
-Message-Id: <20211109010807.1191567-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 19/30] ACPI: battery: Accept charges over the design capacity as full
+Date:   Mon,  8 Nov 2021 20:09:07 -0500
+Message-Id: <20211109010918.1192063-19-sashal@kernel.org>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211109010807.1191567-1-sashal@kernel.org>
-References: <20211109010807.1191567-1-sashal@kernel.org>
+In-Reply-To: <20211109010918.1192063-1-sashal@kernel.org>
+References: <20211109010918.1192063-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 X-stable: review
@@ -70,7 +70,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 93ecae55fe6a0..69c6f02f16b5b 100644
+index b719ab3090bb2..e4f1cb67ba127 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
 @@ -187,7 +187,7 @@ static int acpi_battery_is_charged(struct acpi_battery *battery)
