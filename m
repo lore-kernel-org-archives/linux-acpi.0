@@ -2,172 +2,190 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2402FC4167E
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:25:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DB9C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 04:43:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12C0D6134F
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 01:25:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B8CE61177
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 04:43:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242219AbhKIB1x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Nov 2021 20:27:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50242 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244276AbhKIBZH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Nov 2021 20:25:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4489361B3B;
-        Tue,  9 Nov 2021 01:09:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1636420186;
-        bh=Sg1oBbUdGOfpg4J4FNbDisiw5XG0vAu91dFhkbQ0XhI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gk7JGg6hgsypTBtdhr+N1Ft11wFAMcmkqANmpJpDI5o5XDpacBoxCnTcipbUPOcya
-         QETa6s9ST/iH8jgYJghJN12HwpB4M4gvX5h+GO1h/1L5kwssrTzoX4X6XCYTjtW+WV
-         o7J5fdOYkXxUtAIGf+D3CMYEkxxUTr2UadVjK/uo4bcT1tNpiPE/vX774EBQjbZPRk
-         UZzGwA1QQ83xH88x6UHNf2m1b88AIlrqlw3Y8+7U//px8wbYxEx/z1CSMgy+hXycth
-         El6wax/Lvl8j0b+IDV4PLpke0KbvjKbk2Reawgy1fWvj1u3Lhfd8SUGJsIQbAeTKgE
-         YUqtIlh/2KocA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Reik Keutterling <spielkind@gmail.com>,
-        Sasha Levin <sashal@kernel.org>, robert.moore@intel.com,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 4.4 15/30] ACPICA: Avoid evaluating methods too early during system resume
-Date:   Mon,  8 Nov 2021 20:09:03 -0500
-Message-Id: <20211109010918.1192063-15-sashal@kernel.org>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211109010918.1192063-1-sashal@kernel.org>
-References: <20211109010918.1192063-1-sashal@kernel.org>
+        id S242796AbhKIEqk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Nov 2021 23:46:40 -0500
+Received: from alexa-out-sd-02.qualcomm.com ([199.106.114.39]:62176 "EHLO
+        alexa-out-sd-02.qualcomm.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S242766AbhKIEqk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Nov 2021 23:46:40 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
+  t=1636433035; x=1667969035;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=RPvJcJDPMdp7Swo0W51sy6DYmybCviFK4B196uJ5MtU=;
+  b=B4RJTFsVYUWnpLsLCLV9YTjlCqdSfTmFSJm7ZcxYJXKZ68rP+RA4lHZh
+   CIf2R60odjISVa7YAyXXTQFRCvMOOPxaTsGNlJASAODykVdjUwhr9oXWc
+   BFF3wctjiZpp5h1BqDX6c+dzwq6Q2bDNAjtejuCycOXIv/UpTONMH4CU9
+   8=;
+Received: from unknown (HELO ironmsg01-sd.qualcomm.com) ([10.53.140.141])
+  by alexa-out-sd-02.qualcomm.com with ESMTP; 08 Nov 2021 20:43:55 -0800
+X-QCInternal: smtphost
+Received: from nasanex01c.na.qualcomm.com ([10.47.97.222])
+  by ironmsg01-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2021 20:43:54 -0800
+Received: from nalasex01a.na.qualcomm.com (10.47.209.196) by
+ nasanex01c.na.qualcomm.com (10.47.97.222) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.922.7;
+ Mon, 8 Nov 2021 20:43:54 -0800
+Received: from qian-HP-Z2-SFF-G5-Workstation (10.80.80.8) by
+ nalasex01a.na.qualcomm.com (10.47.209.196) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.922.7;
+ Mon, 8 Nov 2021 20:43:52 -0800
+Date:   Mon, 8 Nov 2021 23:43:50 -0500
+From:   Qian Cai <quic_qiancai@quicinc.com>
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>
+CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Felipe Balbi <balbi@kernel.org>, <linux-usb@vger.kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [RFC PATCH] software node: Skip duplicated software_node sysfs
+Message-ID: <YYn8hpxxmAtw9z5S@qian-HP-Z2-SFF-G5-Workstation>
+References: <20211101200346.16466-1-quic_qiancai@quicinc.com>
+ <CAHp75VcrWPdR8EVGpcsniQedT0J4X700N7thFs6+srTP1MTgwQ@mail.gmail.com>
+ <52df4a97-1132-d594-0180-132d0ca714d5@quicinc.com>
+ <CAHp75VebOnrce-XZjOnZiivQPz-Cdgq6mor5oiLxK8Y49GiNNg@mail.gmail.com>
+ <1269258d-db4c-3922-776b-f11e6a1e338e@quicinc.com>
+ <YYlnIpGEmLH5GXft@smile.fi.intel.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <YYlnIpGEmLH5GXft@smile.fi.intel.com>
+X-Originating-IP: [10.80.80.8]
+X-ClientProxiedBy: nasanex01b.na.qualcomm.com (10.46.141.250) To
+ nalasex01a.na.qualcomm.com (10.47.209.196)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Mon, Nov 08, 2021 at 08:06:26PM +0200, Andy Shevchenko wrote:
+> Btw, what you can do in this case is to switch to use fwnode_create_software
+> node and switch them in drd.c. It will be much much easier to achieve then
+> full kernel refactoring.
 
-[ Upstream commit d3c4b6f64ad356c0d9ddbcf73fa471e6a841cc5c ]
+(Adding arm64 and dwc3 people since that iort_iommu_configure_id()
+path below to create a duplicated sysfs is arm64-specific. The
+original thread is here):
 
-ACPICA commit 0762982923f95eb652cf7ded27356b247c9774de
+https://lore.kernel.org/lkml/20211101200346.16466-1-quic_qiancai@quicinc.com/
 
-During wakeup from system-wide sleep states, acpi_get_sleep_type_data()
-is called and it tries to get memory from the slab allocator in order
-to evaluate a control method, but if KFENCE is enabled in the kernel,
-the memory allocation attempt causes an IRQ work to be queued and a
-self-IPI to be sent to the CPU running the code which requires the
-memory controller to be ready, so if that happens too early in the
-wakeup path, it doesn't work.
+Andy, did you mean host.c? I saw that the first time
+"/devices/platform/808622B7:01/xhci-hcd.3.auto/software_node" was
+created by dwc3_host_init(). Call trace:
 
-Prevent that from taking place by calling acpi_get_sleep_type_data()
-for S0 upfront, when preparing to enter a given sleep state, and
-saving the data obtained by it for later use during system wakeup.
+  sysfs_do_create_link_sd.isra.0
+  sysfs_create_link
+  software_node_notify
+  device_add
+  platform_device_add
+  dwc3_host_init
+  dwc3_probe
+  platform_probe
+  really_probe.part.0
+  really_probe
+  __driver_probe_device
+  driver_probe_device
+  __driver_attach
+  bus_for_each_dev
+  driver_attach
+  bus_add_driver
+  driver_register
+  __platform_driver_register
+  dwc3_driver_init
+  dwc3_driver_init at drivers/usb/dwc3/core.c:2072
+  do_one_initcall
+  kernel_init_freeable
+  kernel_init
+  ret_from_fork
 
-BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=214271
-Reported-by: Reik Keutterling <spielkind@gmail.com>
-Tested-by: Reik Keutterling <spielkind@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/acpica/acglobal.h  |  2 ++
- drivers/acpi/acpica/hwesleep.c  |  8 ++------
- drivers/acpi/acpica/hwsleep.c   | 11 ++++-------
- drivers/acpi/acpica/hwxfsleep.c |  7 +++++++
- 4 files changed, 15 insertions(+), 13 deletions(-)
+Then, which functions do you suggest to replace with
+fwnode_create_software_node()? In dwc3_host_init(),
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index faa97604d878e..f178d11597c09 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -256,6 +256,8 @@ extern struct acpi_bit_register_info
- 
- ACPI_GLOBAL(u8, acpi_gbl_sleep_type_a);
- ACPI_GLOBAL(u8, acpi_gbl_sleep_type_b);
-+ACPI_GLOBAL(u8, acpi_gbl_sleep_type_a_s0);
-+ACPI_GLOBAL(u8, acpi_gbl_sleep_type_b_s0);
- 
- /*****************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/hwesleep.c b/drivers/acpi/acpica/hwesleep.c
-index e5599f6108083..e4998cc0ce283 100644
---- a/drivers/acpi/acpica/hwesleep.c
-+++ b/drivers/acpi/acpica/hwesleep.c
-@@ -184,17 +184,13 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
- 
- acpi_status acpi_hw_extended_wake_prep(u8 sleep_state)
- {
--	acpi_status status;
- 	u8 sleep_type_value;
- 
- 	ACPI_FUNCTION_TRACE(hw_extended_wake_prep);
- 
--	status = acpi_get_sleep_type_data(ACPI_STATE_S0,
--					  &acpi_gbl_sleep_type_a,
--					  &acpi_gbl_sleep_type_b);
--	if (ACPI_SUCCESS(status)) {
-+	if (acpi_gbl_sleep_type_a_s0 != ACPI_SLEEP_TYPE_INVALID) {
- 		sleep_type_value =
--		    ((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
-+		    ((acpi_gbl_sleep_type_a_s0 << ACPI_X_SLEEP_TYPE_POSITION) &
- 		     ACPI_X_SLEEP_TYPE_MASK);
- 
- 		(void)acpi_write((u64)(sleep_type_value | ACPI_X_SLEEP_ENABLE),
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index 7d21cae6d6028..7e44ba8c6a1ab 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -217,7 +217,7 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state)
- 
- acpi_status acpi_hw_legacy_wake_prep(u8 sleep_state)
- {
--	acpi_status status;
-+	acpi_status status = AE_OK;
- 	struct acpi_bit_register_info *sleep_type_reg_info;
- 	struct acpi_bit_register_info *sleep_enable_reg_info;
- 	u32 pm1a_control;
-@@ -230,10 +230,7 @@ acpi_status acpi_hw_legacy_wake_prep(u8 sleep_state)
- 	 * This is unclear from the ACPI Spec, but it is required
- 	 * by some machines.
- 	 */
--	status = acpi_get_sleep_type_data(ACPI_STATE_S0,
--					  &acpi_gbl_sleep_type_a,
--					  &acpi_gbl_sleep_type_b);
--	if (ACPI_SUCCESS(status)) {
-+	if (acpi_gbl_sleep_type_a_s0 != ACPI_SLEEP_TYPE_INVALID) {
- 		sleep_type_reg_info =
- 		    acpi_hw_get_bit_register_info(ACPI_BITREG_SLEEP_TYPE);
- 		sleep_enable_reg_info =
-@@ -254,9 +251,9 @@ acpi_status acpi_hw_legacy_wake_prep(u8 sleep_state)
- 
- 			/* Insert the SLP_TYP bits */
- 
--			pm1a_control |= (acpi_gbl_sleep_type_a <<
-+			pm1a_control |= (acpi_gbl_sleep_type_a_s0 <<
- 					 sleep_type_reg_info->bit_position);
--			pm1b_control |= (acpi_gbl_sleep_type_b <<
-+			pm1b_control |= (acpi_gbl_sleep_type_b_s0 <<
- 					 sleep_type_reg_info->bit_position);
- 
- 			/* Write the control registers and ignore any errors */
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index d62a61612b3f1..b04e2b0f62246 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -372,6 +372,13 @@ acpi_status acpi_enter_sleep_state_prep(u8 sleep_state)
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	status = acpi_get_sleep_type_data(ACPI_STATE_S0,
-+					  &acpi_gbl_sleep_type_a_s0,
-+					  &acpi_gbl_sleep_type_b_s0);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_gbl_sleep_type_a_s0 = ACPI_SLEEP_TYPE_INVALID;
-+	}
-+
- 	/* Execute the _PTS method (Prepare To Sleep) */
- 
- 	arg_list.count = 1;
--- 
-2.33.0
+int dwc3_host_init(struct dwc3 *dwc)
+{
+	...
+	xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
+	...
+	ret = platform_device_add(xhci);
 
+I am wondering if that we could solve the problem by avoiding
+"xhci-hcd" string here which would unfortunately clash with
+xhci_plat_init() as mentioned before:
+
+  sysfs_create_link
+  software_node_notify
+  device_create_managed_software_node
+  iort_named_component_init
+  iort_iommu_configure_id
+  acpi_dma_configure_id
+  platform_dma_configure
+  really_probe.part.0
+  really_probe
+  __driver_probe_device
+  driver_probe_device
+  __driver_attach
+  bus_for_each_dev
+  driver_attach
+  bus_add_driver
+  driver_register
+  __platform_driver_register
+  xhci_plat_init
+  do_one_initcall
+  kernel_init_freeable
+  kernel_init
+  ret_from_fork
+
+since the driver would also use "xhci-hcd".
+
+static struct platform_driver usb_xhci_driver = {
+	...
+	.driver	= {
+		.name = "xhci-hcd",
+
+static int __init xhci_plat_init(void)
+{
+       ...
+       return platform_driver_register(&usb_xhci_driver);
+
+
+BTW, "/sys/devices/platform/808622B7:01/software_node" was also
+created from the path:
+
+  sysfs_create_link
+  software_node_notify
+  device_create_managed_software_node
+  iort_named_component_init
+  iort_iommu_configure_id
+  acpi_dma_configure_id
+  platform_dma_configure
+  really_probe.part.0
+  really_probe
+  __driver_probe_device
+  driver_probe_device
+  __driver_attach
+  bus_for_each_dev
+  driver_attach
+  bus_add_driver
+  driver_register
+  __platform_driver_register
+  dwc3_driver_init
+  do_one_initcall
+  kernel_init_freeable
+  kernel_init
+  ret_from_fork
+
+# ls -l /sys//devices/platform/808622B7:01/xhci-hcd.3.auto/software_node
+lrwxrwxrwx 1 root root 0 Nov  9 03:18 /sys//devices/platform/808622B7:01/xhci-hcd.3.auto/software_node -> ../../../../kernel/software_nodes/node4
+
+# ls -l /sys//devices/platform/808622B7:01/software_node
+lrwxrwxrwx 1 root root 0 Nov  9 03:18 /sys//devices/platform/808622B7:01/software_node -> ../../../kernel/software_nodes/node4
