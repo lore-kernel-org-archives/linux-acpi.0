@@ -2,89 +2,91 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A813C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Nov 2021 18:06:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ECE5C4332F
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 00:38:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08B0961159
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Nov 2021 18:06:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24B7261156
+	for <linux-acpi@archiver.kernel.org>; Tue,  9 Nov 2021 00:38:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234840AbhKHSJa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 Nov 2021 13:09:30 -0500
-Received: from mga09.intel.com ([134.134.136.24]:23229 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234728AbhKHSJ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 Nov 2021 13:09:29 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10162"; a="232136200"
-X-IronPort-AV: E=Sophos;i="5.87,218,1631602800"; 
-   d="scan'208";a="232136200"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2021 10:06:41 -0800
-X-IronPort-AV: E=Sophos;i="5.87,218,1631602800"; 
-   d="scan'208";a="451630202"
-Received: from smile.fi.intel.com ([10.237.72.184])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2021 10:06:39 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andy.shevchenko@gmail.com>)
-        id 1mk92I-004oXR-SY;
-        Mon, 08 Nov 2021 20:06:26 +0200
-Date:   Mon, 8 Nov 2021 20:06:26 +0200
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-To:     Qian Cai <quic_qiancai@quicinc.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [RFC PATCH] software node: Skip duplicated software_node sysfs
-Message-ID: <YYlnIpGEmLH5GXft@smile.fi.intel.com>
-References: <20211101200346.16466-1-quic_qiancai@quicinc.com>
- <CAHp75VcrWPdR8EVGpcsniQedT0J4X700N7thFs6+srTP1MTgwQ@mail.gmail.com>
- <52df4a97-1132-d594-0180-132d0ca714d5@quicinc.com>
- <CAHp75VebOnrce-XZjOnZiivQPz-Cdgq6mor5oiLxK8Y49GiNNg@mail.gmail.com>
- <1269258d-db4c-3922-776b-f11e6a1e338e@quicinc.com>
+        id S234299AbhKIAld (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 Nov 2021 19:41:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37746 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234267AbhKIAlc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Nov 2021 19:41:32 -0500
+Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92C0CC061764
+        for <linux-acpi@vger.kernel.org>; Mon,  8 Nov 2021 16:38:47 -0800 (PST)
+Received: by mail-oi1-x22a.google.com with SMTP id bl27so27758526oib.0
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Nov 2021 16:38:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=1y9OQwZEuQdL+QC1JTIKa3QLF+Ig+ClIy0nWbOXZqYM=;
+        b=XTHunefrjTXylGv4F6mDAXO2YW7HyQOluaRirUlo2l8KXmNskKRS4j9ayZH+2KTwlt
+         EESafH29ymec9ip1AcKFR2lCxTcXhYfiHjDp0eH87vv7sgszLcJpOYUAQSv1x++ECr1L
+         V9N6LvSM7yEUWE54WNvIuj3GbLr3zjYyTkflGRhukJNgFmbgcqLjeumQcPJsMMJIVytl
+         rdzVF8I8RS+w/JREqSyzmr3tcy4bepBhvGdlNWdjofmW4DUTE5qBLIaDnt8RamW9wxEz
+         GtwHzWCVljCmsP+w6UKOCwXQEgyEWVuDjSQKOKP8GRcfMqSqGOxtrFWluVWr7+c5UV3/
+         so0w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=1y9OQwZEuQdL+QC1JTIKa3QLF+Ig+ClIy0nWbOXZqYM=;
+        b=IDPkYy+35Hy0bdw4pdz5SGnY8oDBO4RFyoyQWvU6kgThhnsLJbpj95tMn91a5bA8nl
+         GkyfkgiMRxeRH/CyLmOuqb+lMn6QncFhAw7AWUQN182AoauL4qaioDsiPu8/QlucpUMW
+         Kpb250/7WdGfYi2+UVs2FQP/reCJ1VI6kh8q40MfsbPjVt4elS8aA3TssjQhyZXs2O3X
+         FgDhEo3l1dKffAC5xmmqCuEptx72aRKKadxvweX0IYp5adrBXj3HUVaA3mJbIBxlHY8q
+         wW48DbBTaYmWeRckpvLm43e+iUPUScwQD6ioV2lgDD+GgjptH0e2na4CKMF7WIYoKs6F
+         Ht+A==
+X-Gm-Message-State: AOAM532V8XPkDdd+HPjexMUxU+HySrVtUBdpjL0d5fHhvbZ06YfFpXXy
+        dcPkaJlgo1HFJLIhMhCcl+oxbUgszwGrOWQ9AmbdwQ==
+X-Google-Smtp-Source: ABdhPJyxkFWSH0Ef2pq2VSnwXNsPY1nrhejdmwAdAY/PuUyfvGA6Pxve+eL9Suls1J14bg8FYco8Wyr9LJB49vuVwqc=
+X-Received: by 2002:a54:4791:: with SMTP id o17mr2313570oic.114.1636418326891;
+ Mon, 08 Nov 2021 16:38:46 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1269258d-db4c-3922-776b-f11e6a1e338e@quicinc.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20211101014853.6177-1-mario.limonciello@amd.com> <20211101014853.6177-2-mario.limonciello@amd.com>
+In-Reply-To: <20211101014853.6177-2-mario.limonciello@amd.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Tue, 9 Nov 2021 01:38:35 +0100
+Message-ID: <CACRpkdahdqrkwEZYVuJLogqW+MobNSbSGsy4HjfBdoUfg0_bUQ@mail.gmail.com>
+Subject: Re: [PATCH v7 2/2] pinctrl: amd: Fix wakeups when IRQ is shared with SCI
+To:     Mario Limonciello <mario.limonciello@amd.com>
+Cc:     Basavaraj Natikar <Basavaraj.Natikar@amd.com>,
+        Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
+        "open list:PIN CONTROL SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        linux-acpi@vger.kernel.org,
+        Nehal Shah <Nehal-bakulchandra.Shah@amd.com>,
+        Joerie de Gram <j.de.gram@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 08, 2021 at 11:07:53AM -0500, Qian Cai wrote:
-> On 11/5/21 3:39 PM, Andy Shevchenko wrote:
-> >> Andy, thanks for the pointers so far. I was able to trace
-> >> set_primary_fwnode() and set_secondary_fwnode().
-> > 
-> > Can you share the trace you have got?
+On Mon, Nov 1, 2021 at 2:49 AM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
 
-...
+> On some Lenovo AMD Gen2 platforms the IRQ for the SCI and pinctrl drivers
+> are shared.  Due to how the s2idle loop handling works, this case needs
+> an extra explicit check whether the interrupt was caused by SCI or by
+> the GPIO controller.
+>
+> To fix this rework the existing IRQ handler function to function as a
+> checker and an IRQ handler depending on the calling arguments.
+>
+> BugLink: https://gitlab.freedesktop.org/drm/amd/-/issues/1738
+> Reported-by: Joerie de Gram <j.de.gram@gmail.com>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> Acked-by: Basavaraj Natikar <Basavaraj.Natikar@amd.com>
 
-> Then, here are the relevant outputs indicating that
-> "808622B7:01" and  "xhci-hcd.3.auto" have the same
-> primary but different secondaries.
+This v7 patch applied for fixes.
 
-So, it confirms my theory if I'm not mistaken.
+Sorry for the delay, I was busy with the merge window.
+Once the merge window concludes I will rebase this on
+-rc1 and send upstream.
 
-Btw, what you can do in this case is to switch to use fwnode_create_software
-node and switch them in drd.c. It will be much much easier to achieve then
-full kernel refactoring.
-
-> [   11.233280] KK set_secondary_fwnode dev name = 808622B7:01, fwnode = ffff000838618840
-> [   11.241846] KK parent = platform
-> [   11.245790] KK primary = ffff0008064b9010
-> [   11.259838] KK set_primary_fwnode dev name = (null), fwnode = ffff0008064b9010
-> [   11.267795] KK parent = 808622B7:01
-> [   11.272000] KK fwnode->dev = 808622B7:01
-> [   11.276636] KK secondary = ffff000838618840
-> [   11.680489] KK set_secondary_fwnode dev name = xhci-hcd.3.auto, fwnode = ffff000838325040
-> [   11.689406] KK parent = 808622B7:01
-> [   11.693916] KK primary = ffff0008064b9010
-> [   11.698763] sysfs: cannot create duplicate filename '/devices/platform/808622B7:01/xhci-hcd.3.auto/software_node'
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Yours,
+Linus Walleij
