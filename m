@@ -2,113 +2,68 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DB5C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Nov 2021 02:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41138C433F5
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Nov 2021 11:42:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BCAC60C4B
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 Nov 2021 02:55:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2049E60ED4
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 Nov 2021 11:42:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234496AbhKLC6A (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 11 Nov 2021 21:58:00 -0500
-Received: from mga05.intel.com ([192.55.52.43]:47451 "EHLO mga05.intel.com"
+        id S234702AbhKLLp0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 Nov 2021 06:45:26 -0500
+Received: from mga12.intel.com ([192.55.52.136]:22242 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229908AbhKLC6A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 Nov 2021 21:58:00 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10165"; a="319266567"
-X-IronPort-AV: E=Sophos;i="5.87,227,1631602800"; 
-   d="scan'208";a="319266567"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2021 18:55:10 -0800
+        id S234144AbhKLLp0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Nov 2021 06:45:26 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10165"; a="213156428"
+X-IronPort-AV: E=Sophos;i="5.87,229,1631602800"; 
+   d="scan'208";a="213156428"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 03:42:35 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.87,227,1631602800"; 
-   d="scan'208";a="452931641"
-Received: from lkp-server02.sh.intel.com (HELO c20d8bc80006) ([10.239.97.151])
-  by orsmga003.jf.intel.com with ESMTP; 11 Nov 2021 18:55:08 -0800
-Received: from kbuild by c20d8bc80006 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1mlMiZ-000HWC-Fm; Fri, 12 Nov 2021 02:55:07 +0000
-Date:   Fri, 12 Nov 2021 10:54:05 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 26af6e4926b029c54765aa53f89555b7c174e6fe
-Message-ID: <618dd74d.ewdiNy0ixThEtb68%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+X-IronPort-AV: E=Sophos;i="5.87,229,1631602800"; 
+   d="scan'208";a="670627857"
+Received: from srpawnik-desktop.iind.intel.com ([10.223.141.119])
+  by orsmga005.jf.intel.com with ESMTP; 12 Nov 2021 03:42:33 -0800
+From:   Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
+To:     rafael@kernel.org, lenb@kernel.org,
+        srinivas.pandruvada@linux.intel.com, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     sumeet.r.pawnikar@intel.com
+Subject: [PATCH] ACPI: DPTF: Update device ID information under comment
+Date:   Fri, 12 Nov 2021 17:30:29 +0530
+Message-Id: <20211112120029.10851-1-sumeet.r.pawnikar@intel.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 26af6e4926b029c54765aa53f89555b7c174e6fe  Merge branch 'pm-em' into bleeding-edge
+Update device ID information appropriately under comment section.
+It seems previously this comment was added considering this driver
+used for Tiger Lake based systems. But, now this is being used by
+Alder Lake based systems as well as per this commit 38748bcb940e
+("ACPI: DPTF: Support Alder Lake"). So, updating the comment for
+more generic type from INT1045 to INT10xx and also correcting it
+from INT to INTC string for this device ID information under
+comment section.
 
-elapsed time: 1755m
-
-configs tested: 53
-configs skipped: 3
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm64                            allyesconfig
-arm                                 defconfig
-arm64                               defconfig
-arm                              allmodconfig
-arm                              allyesconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                                defconfig
-m68k                             allmodconfig
-m68k                             allyesconfig
-nds32                               defconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-nios2                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-h8300                            allyesconfig
-xtensa                           allyesconfig
-parisc                              defconfig
-parisc                           allyesconfig
-s390                             allmodconfig
-s390                                defconfig
-s390                             allyesconfig
-nds32                             allnoconfig
-nios2                               defconfig
-arc                              allyesconfig
-i386                                defconfig
-i386                              debian-10.3
-sparc                            allyesconfig
-sparc                               defconfig
-i386                             allyesconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-riscv                             allnoconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                           allyesconfig
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                                  kexec
-x86_64                          rhel-8.3-func
-x86_64                    rhel-8.3-kselftests
-
+Signed-off-by: Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/acpi/dptf/dptf_pch_fivr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/dptf/dptf_pch_fivr.c b/drivers/acpi/dptf/dptf_pch_fivr.c
+index f4e9c2ef2f88..e7ab0fc90db9 100644
+--- a/drivers/acpi/dptf/dptf_pch_fivr.c
++++ b/drivers/acpi/dptf/dptf_pch_fivr.c
+@@ -46,7 +46,7 @@ static int pch_fivr_read(acpi_handle handle, char *method, struct pch_fivr_resp
+ }
+ 
+ /*
+- * Presentation of attributes which are defined for INT1045
++ * Presentation of attributes which are defined for INTC10xx
+  * They are:
+  * freq_mhz_low_clock : Set PCH FIVR switching freq for
+  *			FIVR clock 19.2MHz and 24MHz
+-- 
+2.17.1
+
