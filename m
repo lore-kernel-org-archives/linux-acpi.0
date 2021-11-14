@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C261EC43219
-	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:06:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60067C43217
+	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:06:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAAA66109E
-	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:06:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CFE061075
+	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:06:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236472AbhKNRIx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 14 Nov 2021 12:08:53 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:38070 "EHLO
+        id S236239AbhKNRIz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 14 Nov 2021 12:08:55 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:21324 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S236339AbhKNRHc (ORCPT
+        by vger.kernel.org with ESMTP id S236353AbhKNRHh (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 14 Nov 2021 12:07:32 -0500
+        Sun, 14 Nov 2021 12:07:37 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1636909478;
+        s=mimecast20190719; t=1636909483;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=akLRSyR4rRlzFV7t4NJgs51HAGeXI584Jkm7WZHluk0=;
-        b=AHzNz+QGI7lUZ7WTIRhswyw4p3JKApGcsU81t0Joc2kE7YS0W2gq8ykbK8hPDsabRwl3wt
-        HvRPBlZIydC+BRiHmAS8R3S1+W4nx6fGTMrd7RGnZkN8DxFbdB5wpVJQf06xBph1Hd0+8D
-        WIyCwuqjxiWjxvCO7oHnGMT4wbGx/Jo=
+        bh=2e9rLIVxP/XfpfOWUukUdN+7FQrdvef2m+/BSxyecVw=;
+        b=KnLVgGjaE4q+eYYJxpGuhkpXGL7jdkJt24S81/iY5k3QTlXMopkCOL9mSsqtqYTswD3/EC
+        96TNjBzqNpAXw+kOQi8urMCfNOPU3kS+bvKzycxmhfMYTqN1JRs+nhd5DlDEgEHMNUs5C1
+        Q1AKqEjNBgUY03AwwEf2zmtc7H2/e+4=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-495-HryNMEGlNrSAqSAJFh4LEQ-1; Sun, 14 Nov 2021 12:04:32 -0500
-X-MC-Unique: HryNMEGlNrSAqSAJFh4LEQ-1
+ us-mta-410-Jl1B_W7FOq2gVyF9yp1Z8g-1; Sun, 14 Nov 2021 12:04:39 -0500
+X-MC-Unique: Jl1B_W7FOq2gVyF9yp1Z8g-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id ED5271080865;
-        Sun, 14 Nov 2021 17:04:29 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9B5AC1006AA0;
+        Sun, 14 Nov 2021 17:04:37 +0000 (UTC)
 Received: from x1.localdomain (unknown [10.39.192.93])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 89F0419EF9;
-        Sun, 14 Nov 2021 17:04:26 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 0F8361346F;
+        Sun, 14 Nov 2021 17:04:33 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -53,9 +53,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         platform-driver-x86@vger.kernel.org, linux-i2c@vger.kernel.org,
         linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-efi@vger.kernel.org
-Subject: [PATCH v2 13/20] power: supply: bq25890: Support higher charging voltages through Pump Express+ protocol
-Date:   Sun, 14 Nov 2021 18:03:28 +0100
-Message-Id: <20211114170335.66994-14-hdegoede@redhat.com>
+Subject: [PATCH v2 15/20] i2c: cht-wc: Make charger i2c-client instantiation board/device-model specific
+Date:   Sun, 14 Nov 2021 18:03:30 +0100
+Message-Id: <20211114170335.66994-16-hdegoede@redhat.com>
 In-Reply-To: <20211114170335.66994-1-hdegoede@redhat.com>
 References: <20211114170335.66994-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -65,183 +65,190 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Yauhen Kharuzhy <jekhor@gmail.com>
+The i2c-controller on the Cherry Trail - Whiskey Cove PMIC is special
+in that it is always connected to the I2C charger IC of the board on
+which the PMIC is used; and the charger IC is not described in ACPI,
+so the i2c-cht-wc code needs to instantiate an i2c-client for it itself.
 
-Add a "linux,pump-express-vbus-max" property which indicates if the Pump
-Express+ protocol should be used to increase the charging protocol.
+So far this was hardcoded to instantiate an i2c-client for the
+bq24292i, with all properties, etc. set to match how this charger
+is used on the GPD win and GPD pcoket devices.
 
-If this new property is set and a DCP charger is detected then request
-a higher charging voltage through the Pump Express+ protocol.
+There is a rudimentary check to make sure the ACPI tables are at least
+somewhat as expected, but this is far from accurate, leading to
+a wrong i2c-client being instantiated for the charger on some boards.
 
-So far this new property is only used on X86/ACPI (non devicetree) devs,
-IOW it is not used in actual devicetree files. The devicetree-bindings
-maintainers have requested properties like these to not be added to the
-devicetree-bindings, so the new property is deliberately not added
-to the existing devicetree-bindings.
+Switch to the new DMI based intel_cht_wc_get_model() helper which is
+exported by the MFD driver for the CHT Whiskey Cove PMIC to help PMIC
+cell drivers like the i2c-cht-wc code reliably detect which board
+they are running on.
 
-Changes by Hans de Goede:
-- Port to my bq25890 patch-series + various cleanups
-- Make behavior configurable through a new "linux,pump-express-vbus-max"
-  device-property
-- Sleep 1 second before re-checking the Vbus voltage after requesting
-  it to be raised, to ensure that the ADC has time to sampled the new Vbus
-- Add VBUSV bq25890_tables[] entry and use it in bq25890_get_vbus_voltage()
-- Tweak commit message
+And add board_info for the charger ICs as found on the other 2 known
+boards with a Whisky Cove PMIC.
 
-Signed-off-by: Yauhen Kharuzhy <jekhor@gmail.com>
+This has been tested on all 3 known boards.
+
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/power/supply/bq25890_charger.c | 74 ++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+ drivers/i2c/busses/i2c-cht-wc.c | 120 +++++++++++++++++++++++++++-----
+ 1 file changed, 102 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/power/supply/bq25890_charger.c b/drivers/power/supply/bq25890_charger.c
-index 57e4034bc9cd..1c59d4f71389 100644
---- a/drivers/power/supply/bq25890_charger.c
-+++ b/drivers/power/supply/bq25890_charger.c
-@@ -27,6 +27,10 @@
- #define BQ25895_ID			7
- #define BQ25896_ID			0
+diff --git a/drivers/i2c/busses/i2c-cht-wc.c b/drivers/i2c/busses/i2c-cht-wc.c
+index 1cf68f85b2e1..e700373bf388 100644
+--- a/drivers/i2c/busses/i2c-cht-wc.c
++++ b/drivers/i2c/busses/i2c-cht-wc.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/power/bq24190_charger.h>
++#include <linux/power/bq25890_charger.h>
+ #include <linux/slab.h>
  
-+#define PUMP_EXPRESS_START_DELAY	(5 * HZ)
-+#define PUMP_EXPRESS_MAX_TRIES		6
-+#define PUMP_EXPRESS_VBUS_MARGIN	1000000
-+
- enum bq25890_chip_version {
- 	BQ25890,
- 	BQ25892,
-@@ -107,6 +111,7 @@ struct bq25890_device {
- 	struct usb_phy *usb_phy;
- 	struct notifier_block usb_nb;
- 	struct work_struct usb_work;
-+	struct delayed_work pump_express_work;
- 	unsigned long usb_event;
+ #define CHT_WC_I2C_CTRL			0x5e24
+@@ -270,6 +271,7 @@ static const struct irq_chip cht_wc_i2c_irq_chip = {
+ 	.name			= "cht_wc_ext_chrg_irq_chip",
+ };
  
- 	struct regmap *rmap;
-@@ -114,6 +119,7 @@ struct bq25890_device {
++/********** GPD Win / Pocket charger IC settings **********/
+ static const char * const bq24190_suppliers[] = {
+ 	"tcpm-source-psy-i2c-fusb302" };
  
- 	bool skip_reset;
- 	bool read_back_init_data;
-+	u32 pump_express_vbus_max;
- 	enum bq25890_chip_version chip_version;
- 	struct bq25890_init_data init_data;
- 	struct bq25890_state state;
-@@ -265,6 +271,7 @@ enum bq25890_table_ids {
- 	TBL_VREG,
- 	TBL_BOOSTV,
- 	TBL_SYSVMIN,
-+	TBL_VBUSV,
- 	TBL_VBATCOMP,
- 	TBL_RBATCOMP,
+@@ -304,17 +306,93 @@ static struct bq24190_platform_data bq24190_pdata = {
+ 	.regulator_init_data = &bq24190_vbus_init_data,
+ };
  
-@@ -308,6 +315,7 @@ static const union {
- 	[TBL_VREG] =	{ .rt = {3840000, 4608000, 16000} },	 /* uV */
- 	[TBL_BOOSTV] =	{ .rt = {4550000, 5510000, 64000} },	 /* uV */
- 	[TBL_SYSVMIN] = { .rt = {3000000, 3700000, 100000} },	 /* uV */
-+	[TBL_VBUSV] =	{ .rt = {2600000,15300000, 100000} },	 /* uV */
- 	[TBL_VBATCOMP] ={ .rt = {0,        224000, 32000} },	 /* uV */
- 	[TBL_RBATCOMP] ={ .rt = {0,        140000, 20000} },	 /* uOhm */
++static struct i2c_board_info gpd_win_board_info = {
++	.type = "bq24190",
++	.addr = 0x6b,
++	.dev_name = "bq24190",
++	.swnode = &bq24190_node,
++	.platform_data = &bq24190_pdata,
++};
++
++/********** Xiaomi Mi Pad 2 charger IC settings  **********/
++static struct regulator_consumer_supply bq2589x_vbus_consumer = {
++	.supply = "vbus",
++	.dev_name = "cht_wcove_pwrsrc",
++};
++
++static const struct regulator_init_data bq2589x_vbus_init_data = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.consumer_supplies = &bq2589x_vbus_consumer,
++	.num_consumer_supplies = 1,
++};
++
++static struct bq25890_platform_data bq2589x_pdata = {
++	.regulator_init_data = &bq2589x_vbus_init_data,
++};
++
++static const struct property_entry xiaomi_mipad2_props[] = {
++	PROPERTY_ENTRY_BOOL("linux,skip-reset"),
++	PROPERTY_ENTRY_BOOL("linux,read-back-settings"),
++	{ }
++};
++
++static const struct software_node xiaomi_mipad2_node = {
++	.properties = xiaomi_mipad2_props,
++};
++
++static struct i2c_board_info xiaomi_mipad2_board_info = {
++	.type = "bq25890",
++	.addr = 0x6a,
++	.dev_name = "bq25890",
++	.swnode = &xiaomi_mipad2_node,
++	.platform_data = &bq2589x_pdata,
++};
++
++/********** Lenovo Yogabook YB1-X90F/-X91F/-X91L charger settings **********/
++static const char * const lenovo_yb1_bq25892_suppliers[] = {
++	"cht_wcove_pwrsrc" };
++
++static const struct property_entry lenovo_yb1_bq25892_props[] = {
++	PROPERTY_ENTRY_STRING_ARRAY("supplied-from",
++				    lenovo_yb1_bq25892_suppliers),
++	PROPERTY_ENTRY_U32("linux,pump-express-vbus-max", 12000000),
++	PROPERTY_ENTRY_BOOL("linux,skip-reset"),
++	/*
++	 * The firmware sets everything to the defaults, which leads to a
++	 * somewhat low charge-current of 2048mA and worse to a batter-voltage
++	 * of 4.2V instead of 4.35V (when booted without a charger connected).
++	 * Use our own values instead of "linux,read-back-settings" to fix this.
++	 */
++	PROPERTY_ENTRY_U32("ti,charge-current", 4224000),
++	PROPERTY_ENTRY_U32("ti,battery-regulation-voltage", 4352000),
++	PROPERTY_ENTRY_U32("ti,termination-current", 256000),
++	PROPERTY_ENTRY_U32("ti,precharge-current", 128000),
++	PROPERTY_ENTRY_U32("ti,minimum-sys-voltage", 3500000),
++	PROPERTY_ENTRY_U32("ti,boost-voltage", 4998000),
++	PROPERTY_ENTRY_U32("ti,boost-max-current", 1400000),
++	PROPERTY_ENTRY_BOOL("ti,use-ilim-pin"),
++	{ }
++};
++
++static const struct software_node lenovo_yb1_bq25892_node = {
++	.properties = lenovo_yb1_bq25892_props,
++};
++
++static struct i2c_board_info lenovo_yogabook1_board_info = {
++	.type = "bq25892",
++	.addr = 0x6b,
++	.dev_name = "bq25892",
++	.swnode = &lenovo_yb1_bq25892_node,
++	.platform_data = &bq2589x_pdata,
++};
++
+ static int cht_wc_i2c_adap_i2c_probe(struct platform_device *pdev)
+ {
+ 	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
++	struct i2c_board_info *board_info = NULL;
+ 	struct cht_wc_i2c_adap *adap;
+-	struct i2c_board_info board_info = {
+-		.type = "bq24190",
+-		.addr = 0x6b,
+-		.dev_name = "bq24190",
+-		.swnode = &bq24190_node,
+-		.platform_data = &bq24190_pdata,
+-	};
+ 	int ret, reg, irq;
  
-@@ -410,6 +418,17 @@ static bool bq25890_is_adc_property(enum power_supply_property psp)
+ 	irq = platform_get_irq(pdev, 0);
+@@ -379,17 +457,23 @@ static int cht_wc_i2c_adap_i2c_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto remove_irq_domain;
  
- static irqreturn_t __bq25890_handle_irq(struct bq25890_device *bq);
- 
-+static int bq25890_get_vbus_voltage(struct bq25890_device *bq)
-+{
-+	int ret;
-+
-+	ret = bq25890_field_read(bq, F_VBUSV);
-+	if (ret < 0)
-+		return ret;
-+
-+	return bq25890_find_val(ret, TBL_VBUSV);
-+}
-+
- static int bq25890_power_supply_get_property(struct power_supply *psy,
- 					     enum power_supply_property psp,
- 					     union power_supply_propval *val)
-@@ -583,6 +602,11 @@ static void bq25890_charger_external_power_changed(struct power_supply *psy)
- 	switch (val.intval) {
- 	case POWER_SUPPLY_USB_TYPE_DCP:
- 		input_current_limit = bq25890_find_idx(2000000, TBL_IINLIM);
-+		if (bq->pump_express_vbus_max) {
-+			queue_delayed_work(system_power_efficient_wq,
-+					   &bq->pump_express_work,
-+					   PUMP_EXPRESS_START_DELAY);
-+		}
- 		break;
- 	case POWER_SUPPLY_USB_TYPE_CDP:
- 	case POWER_SUPPLY_USB_TYPE_ACA:
-@@ -847,6 +871,50 @@ static int bq25890_set_otg_cfg(struct bq25890_device *bq, u8 val)
- 	return ret;
- }
- 
-+static void bq25890_pump_express_work(struct work_struct *data)
-+{
-+	struct bq25890_device *bq =
-+		container_of(data, struct bq25890_device, pump_express_work.work);
-+	int voltage, i, ret;
-+
-+	dev_dbg(bq->dev, "Start to request input voltage increasing\n");
-+
-+	/* Enable current pulse voltage control protocol */
-+	ret = bq25890_field_write(bq, F_PUMPX_EN, 1);
-+	if (ret < 0)
-+		goto error;
-+
-+	for (i = 0; i < PUMP_EXPRESS_MAX_TRIES; i++) {
-+		voltage = bq25890_get_vbus_voltage(bq);
-+		if (voltage < 0)
-+			goto error;
-+		dev_dbg(bq->dev, "input voltage = %d mV\n", voltage);
-+
-+		if ((voltage + PUMP_EXPRESS_VBUS_MARGIN) >
-+					bq->pump_express_vbus_max)
-+			break;
-+
-+		ret = bq25890_field_write(bq, F_PUMPX_UP, 1);
-+		if (ret < 0)
-+			goto error;
-+
-+		while (bq25890_field_read(bq, F_PUMPX_UP) == 1)
-+			msleep(100);
-+
-+		/* Make sure ADC has sampled Vbus before checking again */
-+		msleep(1000);
+-	/*
+-	 * Normally the Whiskey Cove PMIC is paired with a TI bq24292i charger,
+-	 * connected to this i2c bus, and a max17047 fuel-gauge and a fusb302
+-	 * USB Type-C controller connected to another i2c bus. In this setup
+-	 * the max17047 and fusb302 devices are enumerated through an INT33FE
+-	 * ACPI device. If this device is present register an i2c-client for
+-	 * the TI bq24292i charger.
+-	 */
+-	if (acpi_dev_present("INT33FE", NULL, -1)) {
+-		board_info.irq = adap->client_irq;
+-		adap->client = i2c_new_client_device(&adap->adapter, &board_info);
++	switch (intel_cht_wc_get_model()) {
++	case INTEL_CHT_WC_GPD_WIN_POCKET:
++		board_info = &gpd_win_board_info;
++		break;
++	case INTEL_CHT_WC_XIAOMI_MIPAD2:
++		board_info = &xiaomi_mipad2_board_info;
++		break;
++	case INTEL_CHT_WC_LENOVO_YOGABOOK1:
++		board_info = &lenovo_yogabook1_board_info;
++		break;
++	default:
++		dev_warn(&pdev->dev, "Unknown model, not instantiating charger device\n");
 +	}
 +
-+	bq25890_field_write(bq, F_PUMPX_EN, 0);
-+
-+	dev_info(bq->dev, "Hi-voltage charging requested, input voltage is %d mV\n",
-+		 voltage);
-+
-+	return;
-+error:
-+	dev_err(bq->dev, "Failed to request hi-voltage charging\n");
-+}
-+
- static void bq25890_usb_work(struct work_struct *data)
- {
- 	int ret;
-@@ -1037,6 +1105,11 @@ static int bq25890_fw_probe(struct bq25890_device *bq)
- 	int ret;
- 	struct bq25890_init_data *init = &bq->init_data;
- 
-+	ret = device_property_read_u32(bq->dev, "linux,pump-express-vbus-max",
-+				       &bq->pump_express_vbus_max);
-+	if (ret < 0)
-+		bq->pump_express_vbus_max = 0;
-+
- 	bq->skip_reset = device_property_read_bool(bq->dev, "linux,skip-reset");
- 	bq->read_back_init_data = device_property_read_bool(bq->dev,
- 						"linux,read-back-settings");
-@@ -1069,6 +1142,7 @@ static int bq25890_probe(struct i2c_client *client,
- 	bq->dev = dev;
- 
- 	mutex_init(&bq->lock);
-+	INIT_DELAYED_WORK(&bq->pump_express_work, bq25890_pump_express_work);
- 
- 	bq->rmap = devm_regmap_init_i2c(client, &bq25890_regmap_config);
- 	if (IS_ERR(bq->rmap))
++	if (board_info) {
++		board_info->irq = adap->client_irq;
++		adap->client = i2c_new_client_device(&adap->adapter, board_info);
+ 		if (IS_ERR(adap->client)) {
+ 			ret = PTR_ERR(adap->client);
+ 			goto del_adapter;
 -- 
 2.31.1
 
