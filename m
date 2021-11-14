@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C06E7C433F5
-	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:04:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88605C433EF
+	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:05:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8EB96112E
-	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:04:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7281760EFD
+	for <linux-acpi@archiver.kernel.org>; Sun, 14 Nov 2021 17:05:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236263AbhKNRHo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 14 Nov 2021 12:07:44 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:41741 "EHLO
+        id S236468AbhKNRIZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 14 Nov 2021 12:08:25 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:30882 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S236188AbhKNRGz (ORCPT
+        by vger.kernel.org with ESMTP id S236284AbhKNRHQ (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 14 Nov 2021 12:06:55 -0500
+        Sun, 14 Nov 2021 12:07:16 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1636909441;
+        s=mimecast20190719; t=1636909462;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=FfVMrmBQBfsg/z794ziYgV346QpjZYdALcF2KlNGNYI=;
-        b=a3TvO5Ed2oRO4Yjwi8K+VHDzIdUGTN+D+QFsuSMSlTufKd8z+JAz8er4qU1qaawF/eKmHt
-        qVLfLw2/X66D+qA20DT4BhMyLIQk2lfTHFJuwJjck6E0/7fDo9dmnnZMpt8FtCu7bQUAUQ
-        VRlfSUxn98TJ8JJx0SwjY6taoSbG+H4=
+        bh=nS6oXu9q+npj9BQ/P9zA52LX0msdRKmILAqmJy+h9e8=;
+        b=Z1GAjof26LP+T4Gogp6T9vGa6NkHX6pv8Dywizn+2YUIv5frkFGB2oujh3qwEK3luotknH
+        C3fii1sdtAjHIgBPoqpKXuK9Ybv3eLhz+bf6sUdt/bvUy+EqSgE78I7Lu05fTFCVrGIdN+
+        CWZ7/3NeabSNJYQ8QaYIPYTEVm+6vL0=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-312-MpC3RtzdPF6YFM1zYo7_4w-1; Sun, 14 Nov 2021 12:03:57 -0500
-X-MC-Unique: MpC3RtzdPF6YFM1zYo7_4w-1
+ us-mta-567-A3Prny0RMyCo6pBpU9DoeA-1; Sun, 14 Nov 2021 12:04:17 -0500
+X-MC-Unique: A3Prny0RMyCo6pBpU9DoeA-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7C38C15722;
-        Sun, 14 Nov 2021 17:03:55 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 87D4A1080865;
+        Sun, 14 Nov 2021 17:04:14 +0000 (UTC)
 Received: from x1.localdomain (unknown [10.39.192.93])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 15B441346F;
-        Sun, 14 Nov 2021 17:03:51 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 0449219EF9;
+        Sun, 14 Nov 2021 17:04:10 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -53,120 +53,59 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         platform-driver-x86@vger.kernel.org, linux-i2c@vger.kernel.org,
         linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-efi@vger.kernel.org
-Subject: [PATCH v2 04/20] power: supply: bq25890: Reduce reported CONSTANT_CHARGE_CURRENT_MAX for low temperatures
-Date:   Sun, 14 Nov 2021 18:03:19 +0100
-Message-Id: <20211114170335.66994-5-hdegoede@redhat.com>
+Subject: [PATCH v2 09/20] power: supply: bq25890: Drop dev->platform_data == NULL check
+Date:   Sun, 14 Nov 2021 18:03:24 +0100
+Message-Id: <20211114170335.66994-10-hdegoede@redhat.com>
 In-Reply-To: <20211114170335.66994-1-hdegoede@redhat.com>
 References: <20211114170335.66994-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Yauhen Kharuzhy <jekhor@gmail.com>
+Drop the "if (!dev->platform_data)" check, this seems to be an attempt
+for allowing loading the driver on devices without devicetree stemming
+from the initial commit of the driver (with the presumed intention being
+the "return -ENODEV" else branch getting replaced with something else).
 
-Take into account possible current reduction due to low-temperature when
-reading POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX. As described in
-the datasheet in cool (0-20° Celcius) conditions the current limit is
-decreased to 20% or 50% of ICHG field value depended on JEITA_ISET field.
+With the new "linux,skip-init" and "linux,read-back-settings" properties
+the driver can actually supports devices without devicetree and this
+check no longer makes sense.
 
-Also add NTC_FAULT field value to the debug message in
-bq25890_get_chip_state().
+While at it also switch to dev_err_probe(), which is already used in
+various other places in the driver.
 
-Changed by Hans de Goede:
-- Fix reading F_CHG_FAULT instead of F_NTC_FIELD for state->ntc_fault
-- Only read JEITA_ISET field if necessary
-- Tweak commit message a bit
-
-Signed-off-by: Yauhen Kharuzhy <jekhor@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/power/supply/bq25890_charger.c | 33 +++++++++++++++++++++++---
- 1 file changed, 30 insertions(+), 3 deletions(-)
+ drivers/power/supply/bq25890_charger.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/power/supply/bq25890_charger.c b/drivers/power/supply/bq25890_charger.c
-index b208cc2193b8..617a653221ab 100644
+index a69a2173e31a..2bdfb58cda75 100644
 --- a/drivers/power/supply/bq25890_charger.c
 +++ b/drivers/power/supply/bq25890_charger.c
-@@ -94,6 +94,7 @@ struct bq25890_state {
- 	u8 vsys_status;
- 	u8 boost_fault;
- 	u8 bat_fault;
-+	u8 ntc_fault;
- };
- 
- struct bq25890_device {
-@@ -383,6 +384,14 @@ enum bq25890_chrg_fault {
- 	CHRG_FAULT_TIMER_EXPIRED,
- };
- 
-+enum bq25890_ntc_fault {
-+	NTC_FAULT_NORMAL = 0,
-+	NTC_FAULT_WARM = 2,
-+	NTC_FAULT_COOL = 3,
-+	NTC_FAULT_COLD = 5,
-+	NTC_FAULT_HOT = 6,
-+};
-+
- static bool bq25890_is_adc_property(enum power_supply_property psp)
- {
- 	switch (psp) {
-@@ -474,6 +483,18 @@ static int bq25890_power_supply_get_property(struct power_supply *psy,
- 
- 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
- 		val->intval = bq25890_find_val(bq->init_data.ichg, TBL_ICHG);
-+
-+		/* When temperature is too low, charge current is decreased */
-+		if (bq->state.ntc_fault == NTC_FAULT_COOL) {
-+			ret = bq25890_field_read(bq, F_JEITA_ISET);
-+			if (ret < 0)
-+				return ret;
-+
-+			if (ret)
-+				val->intval /= 5;
-+			else
-+				val->intval /= 2;
-+		}
- 		break;
- 
- 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
-@@ -486,6 +507,10 @@ static int bq25890_power_supply_get_property(struct power_supply *psy,
- 		if (ret < 0)
- 			return ret;
- 
-+		ret = bq25890_field_read(bq, F_JEITA_VSET);
-+		if (ret < 0)
-+			return ret;
-+
- 		/* converted_val = 2.304V + ADC_val * 20mV (table 10.3.15) */
- 		val->intval = 2304000 + ret * 20000;
- 		break;
-@@ -549,7 +574,8 @@ static int bq25890_get_chip_state(struct bq25890_device *bq,
- 		{F_VSYS_STAT,	&state->vsys_status},
- 		{F_BOOST_FAULT, &state->boost_fault},
- 		{F_BAT_FAULT,	&state->bat_fault},
--		{F_CHG_FAULT,	&state->chrg_fault}
-+		{F_CHG_FAULT,	&state->chrg_fault},
-+		{F_NTC_FAULT,	&state->ntc_fault}
- 	};
- 
- 	for (i = 0; i < ARRAY_SIZE(state_fields); i++) {
-@@ -560,9 +586,10 @@ static int bq25890_get_chip_state(struct bq25890_device *bq,
- 		*state_fields[i].data = ret;
+@@ -1017,16 +1017,9 @@ static int bq25890_probe(struct i2c_client *client,
+ 		return ret;
  	}
  
--	dev_dbg(bq->dev, "S:CHG/PG/VSYS=%d/%d/%d, F:CHG/BOOST/BAT=%d/%d/%d\n",
-+	dev_dbg(bq->dev, "S:CHG/PG/VSYS=%d/%d/%d, F:CHG/BOOST/BAT/NTC=%d/%d/%d/%d\n",
- 		state->chrg_status, state->online, state->vsys_status,
--		state->chrg_fault, state->boost_fault, state->bat_fault);
-+		state->chrg_fault, state->boost_fault, state->bat_fault,
-+		state->ntc_fault);
+-	if (!dev->platform_data) {
+-		ret = bq25890_fw_probe(bq);
+-		if (ret < 0) {
+-			dev_err(dev, "Cannot read device properties: %d\n",
+-				ret);
+-			return ret;
+-		}
+-	} else {
+-		return -ENODEV;
+-	}
++	ret = bq25890_fw_probe(bq);
++	if (ret < 0)
++		return dev_err_probe(dev, ret, "reading device properties\n");
  
- 	return 0;
- }
+ 	ret = bq25890_hw_init(bq);
+ 	if (ret < 0) {
 -- 
 2.31.1
 
