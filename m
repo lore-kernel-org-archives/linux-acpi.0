@@ -2,106 +2,120 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD58C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 15:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E4A5C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:10:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D075B63215
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 15:18:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BE33608FB
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:10:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232408AbhKQPVJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Nov 2021 10:21:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40222 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231338AbhKQPVJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2021 10:21:09 -0500
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F479C061764;
-        Wed, 17 Nov 2021 07:18:10 -0800 (PST)
-Received: by mail-ed1-x52f.google.com with SMTP id e3so12752037edu.4;
-        Wed, 17 Nov 2021 07:18:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=5b1ArDlfRpWUYORBp6mYD8zbRzEon0uoWQaodJhZwNk=;
-        b=MfaVlhQjC9PO09u2u7ItaF6y7A83+pOX/2MQzK6+blwt6zezPz20GTTgWJZa9R1LPJ
-         uhABCkeFaTySkNKDEeKD0A5KbbvwY80xHw0BMj0Y6xi0+T7k3hfjrz6q1yyGX7h0asv8
-         vSf87Jk3tMhMoq32iBlMy7Za1I2j/AbGxv6fMa2gXiD5EQQo3mPIzMN4dthqWM89/eIx
-         8gcNIefuw7VP8Fw9/xj/WSWgiMCLxROKLICIBU7Abvfkbg4yDNA7SqNW162ECLC7EM8x
-         4xXxxI/uibn4iMwIW5WL5eawsgclDnQ1IUY9TPDAa1VchGiln/xDy2xDNNLFhH7rNxhZ
-         XBsQ==
+        id S229868AbhKQQNb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Nov 2021 11:13:31 -0500
+Received: from mail-oi1-f175.google.com ([209.85.167.175]:34310 "EHLO
+        mail-oi1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229841AbhKQQNa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2021 11:13:30 -0500
+Received: by mail-oi1-f175.google.com with SMTP id t19so7490277oij.1;
+        Wed, 17 Nov 2021 08:10:31 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=5b1ArDlfRpWUYORBp6mYD8zbRzEon0uoWQaodJhZwNk=;
-        b=o51wEKKbhx3i42UyijvpJ7xbEnH1okZwDOuB6lTFXxxRHYO/+4rvvIO/l0JC3GCyI9
-         IOq3nQyr/WwfUmfF3ujSpDpvrzeaihn+iRtsec1oDg4Z6X74/TRfau33iBsW/S8yNc2v
-         ZZwazXFagIeA6jdjMvmfJxEvQCtlnU+DtwAhsKHH+vMrX2TTc+Ey98UgAxRLtQn++aZM
-         Yaw7FpndpOwZARYtlZxGzw0jWdUVZ70niVoWTovEQnVhU7jXIL+Vf531cCjWOGuDKmMp
-         WujTuxrUnJiTSAGDzazWwJc/pQksUe7TnWh4q8u9jc+mZdf6N5cma/YdR/7h0hyxqvQA
-         /iXw==
-X-Gm-Message-State: AOAM533+qBKKdTsnUi5MXdlRHwHlYgQUv5hOgzfJQrUnYBZPxLhG1+kN
-        kGq7aXxS7cvamK6uEg6CZ8txd21lfJGx/aBiRPU=
-X-Google-Smtp-Source: ABdhPJxJH/O8kiyGhcKjVIHY/SHj73yt3zclF7y+pZOCKVew4WTgYCKXC67lXUlbd1Utw5bJqcwm7qk3CRjWNxZV/7M=
-X-Received: by 2002:a17:906:489b:: with SMTP id v27mr22321628ejq.567.1637162289058;
- Wed, 17 Nov 2021 07:18:09 -0800 (PST)
+        bh=fOEXESk6lj7pFbgH3Rb2tc9y9z0BXP+Lu7a0SxVQzLA=;
+        b=xNMMV1DZUBjmZguNO16T0lm7vnk7WAdoZ1qPmMJTEzSZ1ZhNhG8U76qPTnZZacPNOS
+         TyV66SFCtuhRaAp47hBbUjCRybVxWVLBzv52d4dBnJ/rb0rh9p2sPTPLImUl0YMmXjfd
+         XeF8D6kvsgPZN5iodd4eWWECwy8IwB4+MiAcDbmzn7vWUh9bRcx4c1JPUBKPww+k9fGx
+         krkczQsVGViW5F1pQJlHtwrWMOFInEB+eh/KA7ss4IYxeFXEU+83pcF4B5fxb2jqti55
+         nGJBRjILMhBBK/JZCwcn/wFzPny8ETtYzgZFelwlbIzEMYl4Yh/40PXvIn9ZXzsD1rZ4
+         p2kA==
+X-Gm-Message-State: AOAM533PlS3JdPfME/uDknqEl3zcpq0aVzwN5quZBmKso6KHG4mNgSWE
+        FFm7ZBKhtxMOxd7h+jZTm8ZPOfjPLe1GNVKOPAmtvNisKiM=
+X-Google-Smtp-Source: ABdhPJy8mJxyxGg3fPTO39SNRDjOj9djNOD2S81KTSqeyK+b+LfBicxet7XK4sZ3VSSPkVTZ2l0418ww9kq+v7tpKnQ=
+X-Received: by 2002:a05:6808:14c2:: with SMTP id f2mr771360oiw.154.1637165431095;
+ Wed, 17 Nov 2021 08:10:31 -0800 (PST)
 MIME-Version: 1.0
-References: <20211116150842.1051-1-anand.ashok.dumbre@xilinx.com>
- <20211116150842.1051-6-anand.ashok.dumbre@xilinx.com> <YZPtW5igA8RBYLWv@smile.fi.intel.com>
- <BY5PR02MB69168A6537474DF8948C3D0BA99A9@BY5PR02MB6916.namprd02.prod.outlook.com>
-In-Reply-To: <BY5PR02MB69168A6537474DF8948C3D0BA99A9@BY5PR02MB6916.namprd02.prod.outlook.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 17 Nov 2021 17:17:28 +0200
-Message-ID: <CAHp75VdaO4+DxMn2eJx7t0_UFgrHGV2vgzXvRB=qwZi-ZpMaOA@mail.gmail.com>
-Subject: Re: [PATCH v9 5/5] MAINTAINERS: Add maintainer for xilinx-ams
-To:     Anand Ashok Dumbre <ANANDASH@xilinx.com>,
-        Joe Perches <joe@perches.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "jic23@kernel.org" <jic23@kernel.org>,
-        "lars@metafoo.de" <lars@metafoo.de>,
-        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-        git <git@xilinx.com>, Michal Simek <michals@xilinx.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "rafael@kernel.org" <rafael@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>
+References: <2623493.mvXUDI8C0e@kreacher>
+In-Reply-To: <2623493.mvXUDI8C0e@kreacher>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 17 Nov 2021 17:10:20 +0100
+Message-ID: <CAJZ5v0hxzcxuQ596LncMKF-kTaOpfPXUFkKUt1GT3Cm4nR9yqw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: PM: Avoid removing power from unused hardware too early
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        "Kyle D. Pelton" <kyle.d.pelton@intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 17, 2021 at 5:00 PM Anand Ashok Dumbre <ANANDASH@xilinx.com> wrote:
-> > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Sent: Tuesday 16 November 2021 5:42 PM
-> > On Tue, Nov 16, 2021 at 03:08:42PM +0000, Anand Ashok Dumbre wrote:
-> > > Add maintaner entry for xilinx-ams driver.
-> >
-> > Have you run checkpatch?
+On Wed, Nov 10, 2021 at 8:53 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 >
-> Yes I did.
-> I don't see any error on this.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Commit c10383e8ddf4 ("ACPI: scan: Release PM resources blocked by
+> unused objects") causes power to be removed from some hardware
+> resources that appear to be unused too early, which leads to boot
+> issues on some systems.
+>
+> To address this, move putting the unused ACPI device objects into
+> D3cold to a late initcall.
+>
+> Fixes: c10383e8ddf4 ("ACPI: scan: Release PM resources blocked by unused objects")
+> Reported-by: Kyle D. Pelton <kyle.d.pelton@intel.com>
+> Tested-by: Kyle D. Pelton <kyle.d.pelton@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Hmm... Perhaps it needs an unobvious parameter?
-Joe, X is definitely after M, any idea why checkpatch hasn't caught this up?
+Unfortunately, this fix is not effective in some cases, so I'm going
+to revert commit c10383e8ddf4 for 5.16 and revisit this later.
 
-> > >  S: Maintained
-> > >  F: drivers/net/ethernet/xilinx/xilinx_axienet*
-> >
-> > X...
-> >
-> >
-> > > +XILINX AMS DRIVER
-> >
-> > M...
-> >
-> > > +M: Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-> > > +L: linux-iio@vger.kernel.org
-> > > +S: Maintained
-> > > +F: Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
-> > > +F: drivers/iio/adc/xilinx-ams.c
+Thanks!
 
--- 
-With Best Regards,
-Andy Shevchenko
+> ---
+>  drivers/acpi/scan.c |   22 ++++++++++++++++------
+>  1 file changed, 16 insertions(+), 6 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -2559,12 +2559,6 @@ int __init acpi_scan_init(void)
+>                 }
+>         }
+>
+> -       /*
+> -        * Make sure that power management resources are not blocked by ACPI
+> -        * device objects with no users.
+> -        */
+> -       bus_for_each_dev(&acpi_bus_type, NULL, NULL, acpi_dev_turn_off_if_unused);
+> -
+>         acpi_turn_off_unused_power_resources();
+>
+>         acpi_scan_initialized = true;
+> @@ -2574,6 +2568,22 @@ int __init acpi_scan_init(void)
+>         return result;
+>  }
+>
+> +static int acpi_turn_off_unused_devices(void)
+> +{
+> +       mutex_lock(&acpi_scan_lock);
+> +
+> +       /*
+> +        * Make sure that power management resources are not blocked by ACPI
+> +        * device objects with no users.
+> +        */
+> +       bus_for_each_dev(&acpi_bus_type, NULL, NULL, acpi_dev_turn_off_if_unused);
+> +
+> +       mutex_unlock(&acpi_scan_lock);
+> +
+> +       return 0;
+> +}
+> +late_initcall(acpi_turn_off_unused_devices);
+> +
+>  static struct acpi_probe_entry *ape;
+>  static int acpi_probe_count;
+>  static DEFINE_MUTEX(acpi_probe_mutex);
+>
+>
+>
