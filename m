@@ -2,107 +2,80 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D207EC433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79F18C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:18:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4BAE61BFA
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:13:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5718B61BE1
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:18:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235253AbhKQQQj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Nov 2021 11:16:39 -0500
-Received: from smtprelay0023.hostedemail.com ([216.40.44.23]:40062 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S232707AbhKQQQj (ORCPT
+        id S232409AbhKQQVf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Nov 2021 11:21:35 -0500
+Received: from alexa-out-sd-02.qualcomm.com ([199.106.114.39]:64179 "EHLO
+        alexa-out-sd-02.qualcomm.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231442AbhKQQVe (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Nov 2021 11:16:39 -0500
-X-Greylist: delayed 489 seconds by postgrey-1.27 at vger.kernel.org; Wed, 17 Nov 2021 11:16:39 EST
-Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
-        by smtpgrave07.hostedemail.com (Postfix) with ESMTP id 5D121183F96DE
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Nov 2021 16:05:31 +0000 (UTC)
-Received: from omf16.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay06.hostedemail.com (Postfix) with ESMTP id 942031822325F;
-        Wed, 17 Nov 2021 16:05:29 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf16.hostedemail.com (Postfix) with ESMTPA id E71D452A;
-        Wed, 17 Nov 2021 16:05:23 +0000 (UTC)
-Message-ID: <cf7ad8715a02f3a0e4fe0cd8a270585dcf84bb3a.camel@perches.com>
-Subject: Re: [PATCH v9 5/5] MAINTAINERS: Add maintainer for xilinx-ams
-From:   Joe Perches <joe@perches.com>
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Anand Ashok Dumbre <ANANDASH@xilinx.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "jic23@kernel.org" <jic23@kernel.org>,
-        "lars@metafoo.de" <lars@metafoo.de>,
-        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-        git <git@xilinx.com>, Michal Simek <michals@xilinx.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "rafael@kernel.org" <rafael@kernel.org>,
+        Wed, 17 Nov 2021 11:21:34 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
+  t=1637165916; x=1668701916;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=AQ5sge1TrMoWNuFXk3p6igjJRdS6hNebzYU0VeQUJeI=;
+  b=AI+IdSB9RdL5V7eTy/JEFNKzugq1ahLH0LhqCxca+S3jfJAfs1XYJHJz
+   Y9kxYCHxBQqI6zLbxNtZpmo6Q6QtDC1f+Uy+g7YhOr/4tZ3Sbk3bfBXzG
+   IExnoR6svOK4XvtRzfu1Ma5cL2yx5sG8TaNKT8HPJGqywu7c8pOuQgDEt
+   0=;
+Received: from unknown (HELO ironmsg04-sd.qualcomm.com) ([10.53.140.144])
+  by alexa-out-sd-02.qualcomm.com with ESMTP; 17 Nov 2021 08:18:35 -0800
+X-QCInternal: smtphost
+Received: from nasanex01c.na.qualcomm.com ([10.47.97.222])
+  by ironmsg04-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2021 08:18:35 -0800
+Received: from nalasex01a.na.qualcomm.com (10.47.209.196) by
+ nasanex01c.na.qualcomm.com (10.47.97.222) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.922.19; Wed, 17 Nov 2021 08:18:35 -0800
+Received: from quicinc.com (10.80.80.8) by nalasex01a.na.qualcomm.com
+ (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.922.19; Wed, 17 Nov
+ 2021 08:18:34 -0800
+Date:   Wed, 17 Nov 2021 11:18:29 -0500
+From:   Qian Cai <quic_qiancai@quicinc.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+CC:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
         "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>
-Date:   Wed, 17 Nov 2021 08:05:24 -0800
-In-Reply-To: <CAHp75VdaO4+DxMn2eJx7t0_UFgrHGV2vgzXvRB=qwZi-ZpMaOA@mail.gmail.com>
-References: <20211116150842.1051-1-anand.ashok.dumbre@xilinx.com>
-         <20211116150842.1051-6-anand.ashok.dumbre@xilinx.com>
-         <YZPtW5igA8RBYLWv@smile.fi.intel.com>
-         <BY5PR02MB69168A6537474DF8948C3D0BA99A9@BY5PR02MB6916.namprd02.prod.outlook.com>
-         <CAHp75VdaO4+DxMn2eJx7t0_UFgrHGV2vgzXvRB=qwZi-ZpMaOA@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.40.4-1 
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [RFC PATCH] software node: Skip duplicated software_node sysfs
+Message-ID: <YZUrVdcI9nzTUJfn@quicinc.com>
+References: <20211101200346.16466-1-quic_qiancai@quicinc.com>
+ <CAHp75VcrWPdR8EVGpcsniQedT0J4X700N7thFs6+srTP1MTgwQ@mail.gmail.com>
+ <52df4a97-1132-d594-0180-132d0ca714d5@quicinc.com>
+ <CAHp75VebOnrce-XZjOnZiivQPz-Cdgq6mor5oiLxK8Y49GiNNg@mail.gmail.com>
+ <YZMrjqhYYNGMP84x@qian-HP-Z2-SFF-G5-Workstation>
+ <CAJZ5v0hjq+X=Gej072jwY2Uf4BgvqPHvHTON2p0Mszd5ntjjJA@mail.gmail.com>
+ <YZUT5EPqPiPy2iiy@fixkernel.fios-router.home>
+ <CAJZ5v0if7__bYSnNWYNd7c9MfG32Sm2_cRcw6Qr+C2t2ywE-tg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: E71D452A
-X-Stat-Signature: ami9yzewngpqq7kik7kaad5pw1e1qt3u
-X-Rspamd-Server: rspamout01
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX182X4RekMTMr80iwuE0NqYUf3L6LFeosFM=
-X-HE-Tag: 1637165123-216991
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0if7__bYSnNWYNd7c9MfG32Sm2_cRcw6Qr+C2t2ywE-tg@mail.gmail.com>
+X-Originating-IP: [10.80.80.8]
+X-ClientProxiedBy: nasanex01a.na.qualcomm.com (10.52.223.231) To
+ nalasex01a.na.qualcomm.com (10.47.209.196)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 2021-11-17 at 17:17 +0200, Andy Shevchenko wrote:
-> On Wed, Nov 17, 2021 at 5:00 PM Anand Ashok Dumbre <ANANDASH@xilinx.com> wrote:
-> > > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > Sent: Tuesday 16 November 2021 5:42 PM
-> > > On Tue, Nov 16, 2021 at 03:08:42PM +0000, Anand Ashok Dumbre wrote:
-> > > > Add maintaner entry for xilinx-ams driver.
-> > > 
-> > > Have you run checkpatch?
-> > 
-> > Yes I did.
-> > I don't see any error on this.
+On Wed, Nov 17, 2021 at 03:45:34PM +0100, Rafael J. Wysocki wrote:
+> > since we will no longer has a dev->fwnode pointer anymore. Do you
+> > suggest to keep that pointer but convert the "secondary" to a linked
+> > list instead?
 > 
-> Hmm... Perhaps it needs an unobvious parameter?
-> Joe, X is definitely after M, any idea why checkpatch hasn't caught this up?
+> Yes, please.
 
-[]
-
-This is the suggested patch below right?
-https://lore.kernel.org/lkml/20211116150842.1051-6-anand.ashok.dumbre@xilinx.com/
-
-It looks OK to me.
-What do you think checkpatch is supposed to find?
----
-diff --git a/MAINTAINERS b/MAINTAINERS
-index dcc1819ec84b..30de0ea64ac4 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -20640,6 +20640,13 @@ M:	Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
- S:	Maintained
- F:	drivers/net/ethernet/xilinx/xilinx_axienet*
- 
-+XILINX AMS DRIVER
-+M:	Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-+L:	linux-iio@vger.kernel.org
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
-+F:	drivers/iio/adc/xilinx-ams.c
-+
- XILINX CAN DRIVER
- M:	Appana Durga Kedareswara rao <appana.durga.rao@xilinx.com>
- R:	Naga Sureshkumar Relli <naga.sureshkumar.relli@xilinx.com>
--- 
-2.17.1
-
-
-
+Sounds good. I think that would simplify the changes of the existing
+interfaces even though only to mantain one fwnode_head would be a bit
+cleaner. Though, that cleanup could always be on top later if needed.
