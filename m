@@ -2,120 +2,168 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E4A5C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:10:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27310C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:10:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BE33608FB
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:10:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CBFF608FB
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:10:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229868AbhKQQNb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Nov 2021 11:13:31 -0500
-Received: from mail-oi1-f175.google.com ([209.85.167.175]:34310 "EHLO
-        mail-oi1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229841AbhKQQNa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2021 11:13:30 -0500
-Received: by mail-oi1-f175.google.com with SMTP id t19so7490277oij.1;
-        Wed, 17 Nov 2021 08:10:31 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fOEXESk6lj7pFbgH3Rb2tc9y9z0BXP+Lu7a0SxVQzLA=;
-        b=xNMMV1DZUBjmZguNO16T0lm7vnk7WAdoZ1qPmMJTEzSZ1ZhNhG8U76qPTnZZacPNOS
-         TyV66SFCtuhRaAp47hBbUjCRybVxWVLBzv52d4dBnJ/rb0rh9p2sPTPLImUl0YMmXjfd
-         XeF8D6kvsgPZN5iodd4eWWECwy8IwB4+MiAcDbmzn7vWUh9bRcx4c1JPUBKPww+k9fGx
-         krkczQsVGViW5F1pQJlHtwrWMOFInEB+eh/KA7ss4IYxeFXEU+83pcF4B5fxb2jqti55
-         nGJBRjILMhBBK/JZCwcn/wFzPny8ETtYzgZFelwlbIzEMYl4Yh/40PXvIn9ZXzsD1rZ4
-         p2kA==
-X-Gm-Message-State: AOAM533PlS3JdPfME/uDknqEl3zcpq0aVzwN5quZBmKso6KHG4mNgSWE
-        FFm7ZBKhtxMOxd7h+jZTm8ZPOfjPLe1GNVKOPAmtvNisKiM=
-X-Google-Smtp-Source: ABdhPJy8mJxyxGg3fPTO39SNRDjOj9djNOD2S81KTSqeyK+b+LfBicxet7XK4sZ3VSSPkVTZ2l0418ww9kq+v7tpKnQ=
-X-Received: by 2002:a05:6808:14c2:: with SMTP id f2mr771360oiw.154.1637165431095;
- Wed, 17 Nov 2021 08:10:31 -0800 (PST)
+        id S232323AbhKQQNn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Nov 2021 11:13:43 -0500
+Received: from mail-mw2nam10on2044.outbound.protection.outlook.com ([40.107.94.44]:16032
+        "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S229841AbhKQQNk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 Nov 2021 11:13:40 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=CErHf3PfwO4mj8Uw7rkbKf+OlZ21E+Lb0Vh2YDcup2kNWjS17IqdFnQwLAeLS8n1p1L8xAG/MJQxx3Z8TiiJP2EMItAEs36/bNPqc1TjsjFaw8s4PTiWgIxdlJFvbdZFnmBV9Yqj0h9QShZnmnG5uPwy56JFkgsvnc5OeMS/uRavfU8XQQlKbhf4Jal1QyjILT9DoC70Zx0VjRyUDl0u+aOK8W4jKwIYEWruXCoeJi1azhfMtMXiQgL5KPCxkXOmB9kXOxKCCk7w4xr9k9RhTgQ1SbQvgLvox2RJdQEF7lkki5/7Z4ToEfQPP6y5Z7egOmvzmrVGVOe7ZN0HsZFFkA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=laOcEqm5HDLlDgZL11S5LDkwMtUE8EXWoW7tnsHYRG8=;
+ b=YALtl/HdSMMwC6UJGRWKSJ/Cj21ZWL5h6XfVOW9xsxm/Qsvf73tWlK+yEKtH4ZgNLjS1XiNGgb08IVLtqECQUVTBPCkTwZvts/eee64peghoNj5pFCjjyblaxKpu1ESGj+m/8U5Kao3QwGNEwxULV1z0iBUA68lZVIEK19NL8MssZGiykjlUORHFdU6LL9k3kDA/1hGlLeVTEOmohgpfumK4cSedKSLDeZMccTdc00UrGx6w7PPhd0SzMEU+PCg8g4iE7jAM2lA+1LcBIGEl185Q/3VL01zvTsOE9kuV5Kdwg1AXJZb3Orr9jNNqgRZ7RCw2VGNDkKOkacpQU9UaFA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 149.199.80.198) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=xilinx.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=xilinx.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=xilinx.onmicrosoft.com; s=selector2-xilinx-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=laOcEqm5HDLlDgZL11S5LDkwMtUE8EXWoW7tnsHYRG8=;
+ b=JqaeQwlBKOE+pDyY761G966ECp4NyNRgwNZw3ToFHjxvK0a4nsLQY7tsbvZrB6E0wIq2F3JoddFGpWhf4L4nEcLXpgAg7LfGPTHlmb4QhWxfKPnRZLOD2FQ73iqy+vZVO0JyWnRh/mUTI3aW1PFBNQYMa8IkcokRGhZ+hWngYAk=
+Received: from BN9PR03CA0337.namprd03.prod.outlook.com (2603:10b6:408:f6::12)
+ by SA2PR02MB7628.namprd02.prod.outlook.com (2603:10b6:806:136::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4690.17; Wed, 17 Nov
+ 2021 16:10:40 +0000
+Received: from BN1NAM02FT045.eop-nam02.prod.protection.outlook.com
+ (2603:10b6:408:f6:cafe::d9) by BN9PR03CA0337.outlook.office365.com
+ (2603:10b6:408:f6::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4690.27 via Frontend
+ Transport; Wed, 17 Nov 2021 16:10:40 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 149.199.80.198)
+ smtp.mailfrom=xilinx.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=xilinx.com;
+Received-SPF: Pass (protection.outlook.com: domain of xilinx.com designates
+ 149.199.80.198 as permitted sender) receiver=protection.outlook.com;
+ client-ip=149.199.80.198; helo=xir-pvapexch01.xlnx.xilinx.com;
+Received: from xir-pvapexch01.xlnx.xilinx.com (149.199.80.198) by
+ BN1NAM02FT045.mail.protection.outlook.com (10.13.2.156) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.4690.19 via Frontend Transport; Wed, 17 Nov 2021 16:10:40 +0000
+Received: from xir-pvapexch02.xlnx.xilinx.com (172.21.17.17) by
+ xir-pvapexch01.xlnx.xilinx.com (172.21.17.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.14; Wed, 17 Nov 2021 16:10:36 +0000
+Received: from smtp.xilinx.com (172.21.105.197) by
+ xir-pvapexch02.xlnx.xilinx.com (172.21.17.17) with Microsoft SMTP Server id
+ 15.1.2176.14 via Frontend Transport; Wed, 17 Nov 2021 16:10:36 +0000
+Envelope-to: anand.ashok.dumbre@xilinx.com,
+ git@xilinx.com,
+ michal.simek@xilinx.com,
+ manish.narani@xilinx.com,
+ linux-kernel@vger.kernel.org,
+ jic23@kernel.org,
+ lars@metafoo.de,
+ linux-iio@vger.kernel.org,
+ gregkh@linuxfoundation.org,
+ rafael@kernel.org,
+ linux-acpi@vger.kernel.org,
+ andriy.shevchenko@linux.intel.com,
+ heikki.krogerus@linux.intel.com
+Received: from [10.71.188.1] (port=38490 helo=xiranandash40.xilinx.com)
+        by smtp.xilinx.com with esmtp (Exim 4.90)
+        (envelope-from <anand.ashok.dumbre@xilinx.com>)
+        id 1mnNW2-0000gH-2H; Wed, 17 Nov 2021 16:10:30 +0000
+From:   Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
+To:     <linux-kernel@vger.kernel.org>, <jic23@kernel.org>,
+        <lars@metafoo.de>, <linux-iio@vger.kernel.org>, <git@xilinx.com>,
+        <michal.simek@xilinx.com>, <gregkh@linuxfoundation.org>,
+        <rafael@kernel.org>, <linux-acpi@vger.kernel.org>,
+        <andriy.shevchenko@linux.intel.com>,
+        <heikki.krogerus@linux.intel.com>
+CC:     Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>,
+        Manish Narani <manish.narani@xilinx.com>
+Subject: [PATCH v10 2/5] arm64: zynqmp: DT: Add Xilinx AMS node
+Date:   Wed, 17 Nov 2021 16:10:25 +0000
+Message-ID: <20211117161028.11775-3-anand.ashok.dumbre@xilinx.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20211117161028.11775-1-anand.ashok.dumbre@xilinx.com>
+References: <20211117161028.11775-1-anand.ashok.dumbre@xilinx.com>
 MIME-Version: 1.0
-References: <2623493.mvXUDI8C0e@kreacher>
-In-Reply-To: <2623493.mvXUDI8C0e@kreacher>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 17 Nov 2021 17:10:20 +0100
-Message-ID: <CAJZ5v0hxzcxuQ596LncMKF-kTaOpfPXUFkKUt1GT3Cm4nR9yqw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: PM: Avoid removing power from unused hardware too early
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Mario Limonciello <mario.limonciello@amd.com>,
-        "Kyle D. Pelton" <kyle.d.pelton@intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 0493bcbb-9a8f-4a41-b667-08d9a9e4ccea
+X-MS-TrafficTypeDiagnostic: SA2PR02MB7628:
+X-Microsoft-Antispam-PRVS: <SA2PR02MB762821733E04DFCDE5F15204A99A9@SA2PR02MB7628.namprd02.prod.outlook.com>
+X-Auto-Response-Suppress: DR, RN, NRN, OOF, AutoReply
+X-MS-Oob-TLC-OOBClassifiers: OLM:758;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 1XjT4FApXuPnwZzSpTk/hsr0VcMo+s331xk/UvS6mEgxMSomWAg0NS8hmE/69OliX5ekhTN7B2sL/DkqUEMhlZf1xUcqZzahuHbOgD0e5aIrWy+q0ahGizjmsOcIfmVTGRUXEZ9w+G7KuYT1WmcHxCd+U4s/05knkTBC3afoiRMPpprkSW4t5xr1had7m9/HLMGXaLuq2ybYYnS/LxVDqsa8eKftUzunyV4L74PSU5HNkpsLRVRjd13yxycqpLftc8ky6tL0qrhwCRalcCnHfKIASo0bDMeQdKEw7OTfwDHcZ2aZPTu0bK0o6A5qlLyF+7IlizzxLb1mEemFg5V9I+gdy2KR1rrK6Mo4bNzbO46Qd27ygT8avcWbSkq3VncZqHyiM2GLr0bmWf74B1AlaBMeJ3S6xpNPYZ1QkhQ/lcDI/AY7Ms28l80wS88JVN0YhwOnNFFsmkLnpBxrh85Vh0G48Luoh/kyiQ6p+Qg0rChZqoun002TF6TdtD9gxD3k9zECfFyM8k9N09WGaEDricel09a1VAp6gobdWW18sLU3x1w2nm3dhUlLJuhSXGRQF88+sOJpD7S11ZV0OpbXgKn+PFEzq3CxZJcyhRZIURIjqsObRVoUcymGbHmKdCI5ceGjHHj+HjCiwFWoYvwFNOFIYGRy0kTptSCFRdafTIXAHWnaW34ihGJHKoiLwJlXSPr2G+3ZNb+GpiFCmUynGnnsXchWzQXGHn6bqHOnhTaOBxIx3reGDM5oyd3f9CCecfKrO6EYozKzl41Ltv6HXMDzbfoneh3jNDBUNjqVwYs=
+X-Forefront-Antispam-Report: CIP:149.199.80.198;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:xir-pvapexch01.xlnx.xilinx.com;PTR:unknown-80-198.xilinx.com;CAT:NONE;SFS:(46966006)(36840700001)(7636003)(2906002)(107886003)(7696005)(36860700001)(103116003)(8676002)(83380400001)(356005)(4326008)(47076005)(921005)(26005)(9786002)(82310400003)(2616005)(6666004)(8936002)(508600001)(54906003)(36756003)(70206006)(36906005)(70586007)(186003)(426003)(316002)(1076003)(5660300002)(336012)(110136005)(102446001)(2101003)(83996005);DIR:OUT;SFP:1101;
+X-OriginatorOrg: xilinx.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Nov 2021 16:10:40.3528
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0493bcbb-9a8f-4a41-b667-08d9a9e4ccea
+X-MS-Exchange-CrossTenant-Id: 657af505-d5df-48d0-8300-c31994686c5c
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=657af505-d5df-48d0-8300-c31994686c5c;Ip=[149.199.80.198];Helo=[xir-pvapexch01.xlnx.xilinx.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN1NAM02FT045.eop-nam02.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA2PR02MB7628
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 10, 2021 at 8:53 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Commit c10383e8ddf4 ("ACPI: scan: Release PM resources blocked by
-> unused objects") causes power to be removed from some hardware
-> resources that appear to be unused too early, which leads to boot
-> issues on some systems.
->
-> To address this, move putting the unused ACPI device objects into
-> D3cold to a late initcall.
->
-> Fixes: c10383e8ddf4 ("ACPI: scan: Release PM resources blocked by unused objects")
-> Reported-by: Kyle D. Pelton <kyle.d.pelton@intel.com>
-> Tested-by: Kyle D. Pelton <kyle.d.pelton@intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+The Xilinx AMS includes an ADC as well as on-chip sensors that can be
+used to sample external and monitor on-die operating conditions, such as
+temperature and supply voltage levels.
 
-Unfortunately, this fix is not effective in some cases, so I'm going
-to revert commit c10383e8ddf4 for 5.16 and revisit this later.
+Co-developed-by: Manish Narani <manish.narani@xilinx.com>
+Signed-off-by: Manish Narani <manish.narani@xilinx.com>
+Signed-off-by: Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
+---
+ arch/arm64/boot/dts/xilinx/zynqmp.dtsi | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-Thanks!
+diff --git a/arch/arm64/boot/dts/xilinx/zynqmp.dtsi b/arch/arm64/boot/dts/xilinx/zynqmp.dtsi
+index 74e66443e4ce..ab96708fe65e 100644
+--- a/arch/arm64/boot/dts/xilinx/zynqmp.dtsi
++++ b/arch/arm64/boot/dts/xilinx/zynqmp.dtsi
+@@ -878,6 +878,30 @@
+ 			timeout-sec = <10>;
+ 		};
+ 
++		xilinx_ams: ams@ffa50000 {
++			compatible = "xlnx,zynqmp-ams";
++			status = "disabled";
++			interrupt-parent = <&gic>;
++			interrupts = <0 56 4>;
++			reg = <0x0 0xffa50000 0x0 0x800>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			#io-channel-cells = <1>;
++			ranges = <0 0 0xffa50800 0x800>;
++
++			ams_ps: ams-ps@0 {
++				compatible = "xlnx,zynqmp-ams-ps";
++				status = "disabled";
++				reg = <0 0x400>;
++			};
++
++			ams_pl: ams-pl@400 {
++				compatible = "xlnx,zynqmp-ams-pl";
++				status = "disabled";
++				reg = <0x400 0x400>;
++			};
++		};
++
+ 		zynqmp_dpdma: dma-controller@fd4c0000 {
+ 			compatible = "xlnx,zynqmp-dpdma";
+ 			status = "disabled";
+-- 
+2.17.1
 
-> ---
->  drivers/acpi/scan.c |   22 ++++++++++++++++------
->  1 file changed, 16 insertions(+), 6 deletions(-)
->
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -2559,12 +2559,6 @@ int __init acpi_scan_init(void)
->                 }
->         }
->
-> -       /*
-> -        * Make sure that power management resources are not blocked by ACPI
-> -        * device objects with no users.
-> -        */
-> -       bus_for_each_dev(&acpi_bus_type, NULL, NULL, acpi_dev_turn_off_if_unused);
-> -
->         acpi_turn_off_unused_power_resources();
->
->         acpi_scan_initialized = true;
-> @@ -2574,6 +2568,22 @@ int __init acpi_scan_init(void)
->         return result;
->  }
->
-> +static int acpi_turn_off_unused_devices(void)
-> +{
-> +       mutex_lock(&acpi_scan_lock);
-> +
-> +       /*
-> +        * Make sure that power management resources are not blocked by ACPI
-> +        * device objects with no users.
-> +        */
-> +       bus_for_each_dev(&acpi_bus_type, NULL, NULL, acpi_dev_turn_off_if_unused);
-> +
-> +       mutex_unlock(&acpi_scan_lock);
-> +
-> +       return 0;
-> +}
-> +late_initcall(acpi_turn_off_unused_devices);
-> +
->  static struct acpi_probe_entry *ape;
->  static int acpi_probe_count;
->  static DEFINE_MUTEX(acpi_probe_mutex);
->
->
->
