@@ -2,189 +2,259 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE60C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 21:58:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C42CC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 22:01:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6FB26128A
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 21:58:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13B6861AA7
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 22:01:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240959AbhKQWBc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Nov 2021 17:01:32 -0500
-Received: from mail-bn8nam11on2086.outbound.protection.outlook.com ([40.107.236.86]:23521
-        "EHLO NAM11-BN8-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S240952AbhKQWAt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Nov 2021 17:00:49 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=mZFqT7DVvT6piFFUNtBr1ifqjeZkkPuzXUG9PfJ7JZascDvVzL81gz3+gL/3y+mmERN3V0TIfJL8oqQ0JbbNWikdQXLUZ3uhdZTVymb4X6QlnrN5tQ4sEKgdPnEDtqLG3mqT0+KIzV055txc2IgwUnm9jlxge4wCBjjYmTjN4DQ44n+l8iCbUOP1AD8V7b5kNJONVH8hqa38WHLPbYH6D5Tijc7YnGmGL94/e/c6hfOiAgenmPNk839wgqrdZsVLY4ZamcyabPPWYlJEdGAFGW16drt3cwTMKzsXXEfxxyGjvY2crZcsF1Jq4a6LgtxNXvXfiY4czKhCuKP5YXTspw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pg0LOrLBvl1X2Sps7ypCfTQRc6XdgyUtQnPPxrVvH4Q=;
- b=ja/YH5UGvE0FUQ4XcF+ZmSD7TGTE9VTLzr3uAKFAwP1q/3Uoy0MxcMalpoLrt2/NkEyqbur4nV/H4EW8er8AlXeCd1FHR5Mnk8WhVZFNyy7ObU0Y5hTJuwa7bj4GzvjaM9rkVo8pA+ELamZXNcS6RvbM1j1F/A830DL0ytvvkL5kegxIevtwgD0t7s5DMowUjkNM4Qtv2i95Y57Kyg120Y4GD/wofY8gxQMc7pE54lmUZ/j76ABI44KpmsUJ4MtdkZISQNGmjWwBfar77Y+vwIsInFI/Zzcl3ty6Tj64cql2fAVK+aPEgPtSPEYBu/DqIGoRi8EWoHUTr8cw1Cs68w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=xilinx.com; dmarc=pass action=none header.from=xilinx.com;
- dkim=pass header.d=xilinx.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=xilinx.onmicrosoft.com; s=selector2-xilinx-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pg0LOrLBvl1X2Sps7ypCfTQRc6XdgyUtQnPPxrVvH4Q=;
- b=djuls1aK6PUrpZofIYY4TuoWgs5DxeF3oSjeTd8eeV5MMvBSUbWWLT7BSr03ytcwG3pSFslL2o2cZkyX+Qw9Bc8FMK7GT2SuzCpQ1WAASvUF5z1fsCmAF/Hjjq6lS4mtCfIYc2fafoPCOlW3fNsW2qNXXBoo9sV7LpXaNeGnAXU=
-Received: from BY5PR02MB6916.namprd02.prod.outlook.com (2603:10b6:a03:234::18)
- by BYAPR02MB4216.namprd02.prod.outlook.com (2603:10b6:a02:fc::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4690.26; Wed, 17 Nov
- 2021 21:57:43 +0000
-Received: from BY5PR02MB6916.namprd02.prod.outlook.com
- ([fe80::c8a:dfb7:e411:9ad]) by BY5PR02MB6916.namprd02.prod.outlook.com
- ([fe80::c8a:dfb7:e411:9ad%8]) with mapi id 15.20.4713.021; Wed, 17 Nov 2021
- 21:57:43 +0000
-From:   Anand Ashok Dumbre <ANANDASH@xilinx.com>
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Joe Perches <joe@perches.com>
-CC:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "jic23@kernel.org" <jic23@kernel.org>,
-        "lars@metafoo.de" <lars@metafoo.de>,
-        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-        git <git@xilinx.com>, Michal Simek <michals@xilinx.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "rafael@kernel.org" <rafael@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>
-Subject: RE: [PATCH v9 5/5] MAINTAINERS: Add maintainer for xilinx-ams
-Thread-Topic: [PATCH v9 5/5] MAINTAINERS: Add maintainer for xilinx-ams
-Thread-Index: AQHX2vvgYEKxlWeTO0uTBMdVPBYaeqwGbHyAgAFdvfCAAAxGAIAADWQAgAARr4CAAFBMkA==
-Date:   Wed, 17 Nov 2021 21:57:43 +0000
-Message-ID: <BY5PR02MB69169E3F24E8EBE3DD754AB1A99A9@BY5PR02MB6916.namprd02.prod.outlook.com>
-References: <20211116150842.1051-1-anand.ashok.dumbre@xilinx.com>
- <20211116150842.1051-6-anand.ashok.dumbre@xilinx.com>
- <YZPtW5igA8RBYLWv@smile.fi.intel.com>
- <BY5PR02MB69168A6537474DF8948C3D0BA99A9@BY5PR02MB6916.namprd02.prod.outlook.com>
- <CAHp75VdaO4+DxMn2eJx7t0_UFgrHGV2vgzXvRB=qwZi-ZpMaOA@mail.gmail.com>
- <cf7ad8715a02f3a0e4fe0cd8a270585dcf84bb3a.camel@perches.com>
- <CAHp75VfJBwCcFwbv6fgvwf=Q1UdFXwgNex-4GqKLcf=ZhuqGjw@mail.gmail.com>
-In-Reply-To: <CAHp75VfJBwCcFwbv6fgvwf=Q1UdFXwgNex-4GqKLcf=ZhuqGjw@mail.gmail.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-Auto-Response-Suppress: DR, RN, NRN, OOF, AutoReply
-X-MS-TNEF-Correlator: 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=xilinx.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 28f0b967-35f9-434b-5717-08d9aa154871
-x-ms-traffictypediagnostic: BYAPR02MB4216:
-x-ld-processed: 657af505-d5df-48d0-8300-c31994686c5c,ExtAddr
-x-microsoft-antispam-prvs: <BYAPR02MB4216CAFE462D60B7E3650827A99A9@BYAPR02MB4216.namprd02.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:9508;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: HGrhnwXFxe/h/FbMF5kZX7j3KTSCl25Fmdcf8gmv604qQBNhwMGWU+YfKOARpXHH3QfHgxVmSwHSbC01pRmYG0V/Tbul/SbbdBPJL+Rw1i4UIbbGi9mBP3jVr63qhDJ4ME4AoKDzFo6PL23qASecl+41IGdZhHkpz4sfsjHNKgM8ELqFJ+DMrlTtF5F5B0x0oR1ScTLgvSa7NH0lWauErGmnl9CamDrfmlNM88CF8rSLWu7hqkANhtlevQPUiSzdoak1GefKCg+OcKcP7QT49f3s7oZZWJSaLA81ATEvgUVj9/taw/rUm9zxORRpvPH2EJ84efAwfy7mvhcPBzBc8gJIAvBCD9gCDza6law1+h87nWNU6EztvUpa5SdCqtnQf3sElY/Y1La3kx+Ox2uJG69LTMOasov5X3kCjIRol4iPOqB93aZeU9Hi6nVa3VziDghbR/j3BMALyvP6ZHtFeDGOLzAoDuVI+D1/THo8ZkiiD9yIrWwTMwpclE8Xcs7pJR9+YzQgOUlXXZ8Lx+0jEtfRLcLeqmh4XbVFtjFZHz/ARTJyY/eQwGxYhymrOjmcGw1QLELu/WotyhGnuyOV7p1+MFG7PUEVRjocNQ20b2jkfcTCfh6Qdk+ljCuAvBXoTey5nQf/MGqJbE6DRRPz23/5MJbVJSM78k0i23P8YKseUeLdnN/ed3IK2ycR+i8ZiLHk0yTdH6sLfQXKwB/nnzAwMVYEL2QiTRNNNIKMF8JF3WVSsFli/0zBL4ykNdnlTf+Q9UneSK8hE4XSMlEFt3j93COzdSqC6KGxxs8/QEs=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR02MB6916.namprd02.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(66946007)(8676002)(71200400001)(5660300002)(52536014)(66476007)(55016002)(66556008)(86362001)(966005)(8936002)(508600001)(38100700002)(64756008)(66446008)(76116006)(122000001)(316002)(110136005)(186003)(4001150100001)(54906003)(33656002)(7416002)(38070700005)(4326008)(9686003)(2906002)(53546011)(7696005)(6506007)(26005)(83380400001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?aVhZWU5yQzhzdEhyZ3RiNnZTdFdnUWNaa3hoVTFaTk5iemtXL3ZVRlRXSnNo?=
- =?utf-8?B?Y0xFZmV5YnJ3QnY4cS8rVFM1YkZzMS9jQ0NrNGNXczg3bU1yUnRNV1luNk40?=
- =?utf-8?B?Sm9XY0lvNHBiQzY2RjB6Q3VRN0t1YVpDWlc5THJzaE8vK3p3cFdlLy81L0RP?=
- =?utf-8?B?SmhZTGRPMzdXSGxVOG5vMW1hTFlTOU9nQ0RMNmpKQ2VUQXZVZDlGUzBmcHEz?=
- =?utf-8?B?K2JnOU9McUxBSUllWHdCSUk1aFJJQUs1ZlJDRTh5dUtsa0JCK08wMzBEd0c4?=
- =?utf-8?B?T0NPZWpYRFJtUDZnbm5tZGhxZEtEZUM0bkQ2R3BjUkhFZ1VEVWlGTFlEblpj?=
- =?utf-8?B?eFVFOUQwWW5OeTZ2UENmWW9UVXVWWi91dkpvQkttSHJxRUV4enZYVmw5cW5N?=
- =?utf-8?B?SmlMazhZdnFsTy9WTVVPc2t1YU9HMmlyL3FCZU9qK3VQU3A3a3RDSENlZm9z?=
- =?utf-8?B?V2s1RzdYYjFaRFdlL3ZkWjVvU1hjVUN2cTNQckM5UlVHNzJnRTAwamlKUEF4?=
- =?utf-8?B?TExmN0NsbWZucG5YL3RtTlgraS9vQU90cjVmVzhnTkJrYllXaFYrUzVXSkZL?=
- =?utf-8?B?dU5Rc2I5ZjF0UFpsRHRibkFHRk1nZ21oMzd1L09EZ2NiRnlsL0VjUlJxMGR3?=
- =?utf-8?B?b2k2cWVQZWV1TzhHVXBkbDljWVZLTlNLUkxLTVRMeEM1ZlAzT2s0RS9STnor?=
- =?utf-8?B?VllCWDNHSWc1bVFPb3RNR3A1OGxBVDdUMEoydXpQbklmN25qUGVBS1NuU2RJ?=
- =?utf-8?B?OUVvQ0hTaDA3Tm4zZmFtMkdQRXNacjhTSWVPdGMySmR1S1BPd0NENTdDc1Ra?=
- =?utf-8?B?OUUzemRMUzVjTmtPMEpvVmp1V3V4VVoyMEMvUm1hNDhZdFlzSW9rNDZlWEVq?=
- =?utf-8?B?YWpoVkFRaFhhR1krTy8xT2U3Z2J3SWJLVFNzR21UL2FlSU5TcUJzNVdYQ3hx?=
- =?utf-8?B?ZTh4RlNUOFM3ajZmcVhnUENXMWNteElYVC9GTm9LMkdSUzBDdGdyempURHJu?=
- =?utf-8?B?SW80TEpMOXhsZWNBWWlCR3VuNUZXWDM0UitaT21sajdRRmJzZnhiMkFCME5n?=
- =?utf-8?B?aVJiU2NvRG1qTjUySmZDY0xYK2ZIL3gwMWxEaXBaaXhYVTdiNmVRM1pLOTRy?=
- =?utf-8?B?SVRHS1FWNWxNTWIrcGludDhiZjdqYmNSVnF5UDdnNm1rbHJUZ2JBR1c2UEZi?=
- =?utf-8?B?UDZoRGgvRFRBVEJ4TVBkMXRSa3g2eGtMeUFMdVRRcGF3ZklUdXdLSkpQOWJJ?=
- =?utf-8?B?SFNtdWxwV2xVL0xEVDN3SFF1MzJveUZTcTdXOGNvajhqL2VkUnlYUzcwNTRN?=
- =?utf-8?B?YmpybWJCNGg1VHRBdE9XZDlRVjQzczJ1KzJFMm1SMEpUR0xRZmpmb2daV2hk?=
- =?utf-8?B?bTVPQU5lelcrSkpTcVk3czFrZzFTS0hFV2IwQUVZSXlDVjJNSEdHQWt6WmNM?=
- =?utf-8?B?bVQvK1BWZm13NXBlZnJFRzhnWTJFc1VNZEtsZFpma0I4bmtvOUtmZTZyczRC?=
- =?utf-8?B?d0MzeWxGQmV1aFpVcFljZ0VQNHBPR0dqdERCdFBmeHVYdmpqOEZ5dmIwL3dq?=
- =?utf-8?B?em41Y3huejlQT0d6OUplZUF6RTNsT3VUeWNoR0NLWHRtZ2FqT2R1Y2lhTC8v?=
- =?utf-8?B?VWkyWWNyOUJGbjRiclUzMlg4d2RMSlU5TVArQ3p3M21NQ2dKSGV1ZFdHa1hi?=
- =?utf-8?B?U1VlYXVRS3NzUEg4bHpJeWVEN0x5ZlVkOFhsb1VsN01zNVd0bHIxZHJPQW1t?=
- =?utf-8?B?eTlvZ080bmpVdkJNVENkSU9HYXRwcU9LNnZGL1VCc0RiMllDOGZHSUplR2pU?=
- =?utf-8?B?ZTgxRk9yTFJQZElOSmhpR0hyVHREcmVrd0VjTFNSVWp3cTMrTXRwNU5DUmpL?=
- =?utf-8?B?NStGdjNZa3JCRTB2RlNBc0s3eW1aVUVXUUhuTEx2M241ZlArK3A4ZEFURXFE?=
- =?utf-8?B?ZzJHMHBkQnBMNWhQUEdMbGJiNkt6ci9zYzI4VVBjYmxVaTRTeU52dEo4dU1H?=
- =?utf-8?B?Z1htVHZ6aGtCSERwaVNWcTN2OFJKYTk2Y1FoQ1ZJZ0FubjZMYWVUL3YyTlVi?=
- =?utf-8?B?Q25pc1orbkZQaThLcWNzZnhTeHQ5N1BCRHVENCszTkxqemhIVUUrbkw0UTFX?=
- =?utf-8?B?TW9XekNzZ0pUbmRNaTRjd1huZWR4elcxS2RiTTV1WnRpR3dPVk0vc2pmYm1s?=
- =?utf-8?Q?WFObQYpjS5FN4n798m2nCWY=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        id S240873AbhKQWEe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Nov 2021 17:04:34 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:52557 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232746AbhKQWEb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 Nov 2021 17:04:31 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1637186491;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=m92SQVtAROkV6IUuMiUUxvdoqMyREAfFRjvLLM5TS74=;
+        b=P1v+92zrDoQyP3XMMyMMOUmudUFg8t0U2fkW0vDJqviHYtldJFdzP9Gn9gY80yUEE4ddoL
+        nAAMc+VsMd/YSgFkpmPFtcZZjvVHd13UPfRuT9zn0DpZq6YIU2IEJJtYN4Frwe7U36i1/n
+        5aJFa4QbpboMZ3Uacykak8x6AlKzLfQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-108-eQbhoXwxN-qbfV3A0UDwIw-1; Wed, 17 Nov 2021 17:01:30 -0500
+X-MC-Unique: eQbhoXwxN-qbfV3A0UDwIw-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F038119057A1;
+        Wed, 17 Nov 2021 22:01:28 +0000 (UTC)
+Received: from x1.localdomain.com (unknown [10.39.192.15])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5C9985D9DE;
+        Wed, 17 Nov 2021 22:01:27 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-mmc@vger.kernel.org
+Subject: [PATCH 5.16 regression fix 1/5] ACPI: Change acpi_device_always_present() into acpi_device_override_status()
+Date:   Wed, 17 Nov 2021 23:01:14 +0100
+Message-Id: <20211117220118.408953-2-hdegoede@redhat.com>
+In-Reply-To: <20211117220118.408953-1-hdegoede@redhat.com>
+References: <20211117220118.408953-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-X-OriginatorOrg: xilinx.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BY5PR02MB6916.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 28f0b967-35f9-434b-5717-08d9aa154871
-X-MS-Exchange-CrossTenant-originalarrivaltime: 17 Nov 2021 21:57:43.5082
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 657af505-d5df-48d0-8300-c31994686c5c
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 9hjfInz9ihbZ0GhsBg2/Ws/g7T7xXKllbUeBwc/jQuIN6QxfQg3IgYmwmiGSb7HzawD+H9XTeWPoirSNrAOmhg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR02MB4216
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-SGkgQW5keSwNCg0KVGhhbmtzIGZvciB0aGUgcmV2aWV3Lg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQo+IEZyb206IEFuZHkgU2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWls
-LmNvbT4NCj4gU2VudDogV2VkbmVzZGF5IDE3IE5vdmVtYmVyIDIwMjEgNTowOSBQTQ0KPiBUbzog
-Sm9lIFBlcmNoZXMgPGpvZUBwZXJjaGVzLmNvbT4NCj4gQ2M6IEFuYW5kIEFzaG9rIER1bWJyZSA8
-QU5BTkRBU0hAeGlsaW54LmNvbT47IEFuZHkgU2hldmNoZW5rbw0KPiA8YW5kcml5LnNoZXZjaGVu
-a29AbGludXguaW50ZWwuY29tPjsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsNCj4gamlj
-MjNAa2VybmVsLm9yZzsgbGFyc0BtZXRhZm9vLmRlOyBsaW51eC1paW9Admdlci5rZXJuZWwub3Jn
-OyBnaXQNCj4gPGdpdEB4aWxpbnguY29tPjsgTWljaGFsIFNpbWVrIDxtaWNoYWxzQHhpbGlueC5j
-b20+Ow0KPiBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsgcmFmYWVsQGtlcm5lbC5vcmc7IGxp
-bnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiBoZWlra2kua3JvZ2VydXNAbGludXguaW50ZWwu
-Y29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjkgNS81XSBNQUlOVEFJTkVSUzogQWRkIG1haW50
-YWluZXIgZm9yIHhpbGlueC1hbXMNCj4gDQo+IE9uIFdlZCwgTm92IDE3LCAyMDIxIGF0IDY6MDUg
-UE0gSm9lIFBlcmNoZXMgPGpvZUBwZXJjaGVzLmNvbT4gd3JvdGU6DQo+ID4gT24gV2VkLCAyMDIx
-LTExLTE3IGF0IDE3OjE3ICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6DQo+ID4gPiBPbiBX
-ZWQsIE5vdiAxNywgMjAyMSBhdCA1OjAwIFBNIEFuYW5kIEFzaG9rIER1bWJyZQ0KPiA8QU5BTkRB
-U0hAeGlsaW54LmNvbT4gd3JvdGU6DQo+ID4gPiA+ID4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIDxh
-bmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+DQo+ID4gPiA+ID4gU2VudDogVHVlc2Rh
-eSAxNiBOb3ZlbWJlciAyMDIxIDU6NDIgUE0gT24gVHVlLCBOb3YgMTYsIDIwMjEgYXQNCj4gPiA+
-ID4gPiAwMzowODo0MlBNICswMDAwLCBBbmFuZCBBc2hvayBEdW1icmUgd3JvdGU6DQo+IA0KPiAu
-Li4NCj4gDQo+ID4gPiA+ID4gSGF2ZSB5b3UgcnVuIGNoZWNrcGF0Y2g/DQo+ID4gPiA+DQo+ID4g
-PiA+IFllcyBJIGRpZC4NCj4gPiA+ID4gSSBkb24ndCBzZWUgYW55IGVycm9yIG9uIHRoaXMuDQo+
-ID4gPg0KPiA+ID4gSG1tLi4uIFBlcmhhcHMgaXQgbmVlZHMgYW4gdW5vYnZpb3VzIHBhcmFtZXRl
-cj8NCj4gPiA+IEpvZSwgWCBpcyBkZWZpbml0ZWx5IGFmdGVyIE0sIGFueSBpZGVhIHdoeSBjaGVj
-a3BhdGNoIGhhc24ndCBjYXVnaHQgdGhpcw0KPiB1cD8NCj4gPg0KPiA+IFRoaXMgaXMgdGhlIHN1
-Z2dlc3RlZCBwYXRjaCBiZWxvdyByaWdodD8NCj4gDQo+IENvcnJlY3QuDQo+IA0KPiA+IGh0dHBz
-Oi8vbG9yZS5rZXJuZWwub3JnL2xrbWwvMjAyMTExMTYxNTA4NDIuMTA1MS02LQ0KPiBhbmFuZC5h
-c2hvay5kdW1icmVADQo+ID4geGlsaW54LmNvbS8NCj4gPg0KPiA+IEl0IGxvb2tzIE9LIHRvIG1l
-Lg0KPiANCj4gSG93IGNvbWU/IFNlZSBiZWxvdy4NCj4gDQo+ID4gV2hhdCBkbyB5b3UgdGhpbmsg
-Y2hlY2twYXRjaCBpcyBzdXBwb3NlZCB0byBmaW5kPw0KPiANCj4gWElMSU5YIEFYSSBFVEhFUk5F
-VCBEUklWRVINCj4gTTogICAgICBSYWRoZXkgU2h5YW0gUGFuZGV5IDxyYWRoZXkuc2h5YW0ucGFu
-ZGV5QHhpbGlueC5jb20+DQo+IFM6ICAgICAgTWFpbnRhaW5lZA0KPiBGOiAgICAgIGRyaXZlcnMv
-bmV0L2V0aGVybmV0L3hpbGlueC94aWxpbnhfYXhpZW5ldCoNCj4gDQo+IC0tPiBwYXRjaCBhZGRz
-IFhJTElOWCBBTVMgRFJJVkVSIGhlcmUgISEhDQo+IA0KPiBYSUxJTlggQ0FOIERSSVZFUg0KPiAN
-Cj4gVG8gbWUgQU1TIHNob3VsZCBwcmVjZWRlIEFYSSBhbmQgbm90IHRoZSBvdGhlciB3YXkgYXJv
-dW5kLiBBZ3JlZT8NCg0KR290IGl0ISBOZWVkcyB0byBiZSBhbHBoYWJldGljYWwuDQoNCj4gDQo+
-ID4gLS0tIGEvTUFJTlRBSU5FUlMNCj4gPiArKysgYi9NQUlOVEFJTkVSUw0KPiA+IEBAIC0yMDY0
-MCw2ICsyMDY0MCwxMyBAQCBNOiAgICAgUmFkaGV5IFNoeWFtIFBhbmRleQ0KPiA8cmFkaGV5LnNo
-eWFtLnBhbmRleUB4aWxpbnguY29tPg0KPiA+ICBTOiAgICAgTWFpbnRhaW5lZA0KPiA+ICBGOiAg
-ICAgZHJpdmVycy9uZXQvZXRoZXJuZXQveGlsaW54L3hpbGlueF9heGllbmV0Kg0KPiA+DQo+ID4g
-K1hJTElOWCBBTVMgRFJJVkVSDQo+ID4gK006ICAgICBBbmFuZCBBc2hvayBEdW1icmUgPGFuYW5k
-LmFzaG9rLmR1bWJyZUB4aWxpbnguY29tPg0KPiA+ICtMOiAgICAgbGludXgtaWlvQHZnZXIua2Vy
-bmVsLm9yZw0KPiA+ICtTOiAgICAgTWFpbnRhaW5lZA0KPiA+ICtGOiAgICAgRG9jdW1lbnRhdGlv
-bi9kZXZpY2V0cmVlL2JpbmRpbmdzL2lpby9hZGMveGxueCx6eW5xbXAtYW1zLnlhbWwNCj4gPiAr
-RjogICAgIGRyaXZlcnMvaWlvL2FkYy94aWxpbngtYW1zLmMNCj4gPiArDQo+ID4gIFhJTElOWCBD
-QU4gRFJJVkVSDQo+ID4gIE06ICAgICBBcHBhbmEgRHVyZ2EgS2VkYXJlc3dhcmEgcmFvIDxhcHBh
-bmEuZHVyZ2EucmFvQHhpbGlueC5jb20+DQo+ID4gIFI6ICAgICBOYWdhIFN1cmVzaGt1bWFyIFJl
-bGxpIDxuYWdhLnN1cmVzaGt1bWFyLnJlbGxpQHhpbGlueC5jb20+DQo+ID4gLS0NCj4gPiAyLjE3
-LjENCj4gPg0KPiA+DQo+ID4NCj4gDQo+IA0KPiAtLQ0KPiBXaXRoIEJlc3QgUmVnYXJkcywNCj4g
-QW5keSBTaGV2Y2hlbmtvDQoNClRoYW5rcywNCkFuYW5kDQo=
+ATM acpi_bus_get_status() calls acpi_device_always_present() to allow
+platform quirks to override the _STA return to report that a device
+is present (status = ACPI_STA_DEFAULT) independent of the _STA return.
+
+In some cases it might also be useful to have the opposite functionality
+and have a platform quirk which marks a device as not present (status = 0)
+to work around ACPI table bugs.
+
+Change acpi_device_always_present() into a more generic
+acpi_device_override_status() function to allow this.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/bus.c       |  4 +--
+ drivers/acpi/x86/utils.c | 66 +++++++++++++++++++++++-----------------
+ include/acpi/acpi_bus.h  |  5 +--
+ 3 files changed, 43 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index fa923a929224..dd535b4b9a16 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -98,8 +98,8 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 	acpi_status status;
+ 	unsigned long long sta;
+ 
+-	if (acpi_device_always_present(device)) {
+-		acpi_set_device_status(device, ACPI_STA_DEFAULT);
++	if (acpi_device_override_status(device, &sta)) {
++		acpi_set_device_status(device, sta);
+ 		return 0;
+ 	}
+ 
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index bfcb76888ca7..165110210750 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -22,40 +22,49 @@
+  * Some BIOS-es (temporarily) hide specific APCI devices to work around Windows
+  * driver bugs. We use DMI matching to match known cases of this.
+  *
+- * We work around this by always reporting ACPI_STA_DEFAULT for these
+- * devices. Note this MUST only be done for devices where this is safe.
++ * Likewise sometimes some not-actually present devices are sometimes
++ * reported as present, which may cause issues.
+  *
+- * This forcing of devices to be present is limited to specific CPU (SoC)
+- * models both to avoid potentially causing trouble on other models and
+- * because some HIDs are re-used on different SoCs for completely
+- * different devices.
++ * We work around this by using the below quirk list to override the status
++ * reported by the _STA method with a fixed value (ACPI_STA_DEFAULT or 0).
++ * Note this MUST only be done for devices where this is safe.
++ *
++ * This status overriding is limited to specific CPU (SoC) models both to
++ * avoid potentially causing trouble on other models and because some HIDs
++ * are re-used on different SoCs for completely different devices.
+  */
+-struct always_present_id {
++struct override_status_id {
+ 	struct acpi_device_id hid[2];
+ 	struct x86_cpu_id cpu_ids[2];
+ 	struct dmi_system_id dmi_ids[2]; /* Optional */
+ 	const char *uid;
++	unsigned long long status;
+ };
+ 
+-#define X86_MATCH(model)	X86_MATCH_INTEL_FAM6_MODEL(model, NULL)
+-
+-#define ENTRY(hid, uid, cpu_models, dmi...) {				\
++#define ENTRY(status, hid, uid, cpu_model, dmi...) {			\
+ 	{ { hid, }, {} },						\
+-	{ cpu_models, {} },						\
++	{ X86_MATCH_INTEL_FAM6_MODEL(cpu_model, NULL), {} },		\
+ 	{ { .matches = dmi }, {} },					\
+ 	uid,								\
++	status,								\
+ }
+ 
+-static const struct always_present_id always_present_ids[] = {
++#define PRESENT_ENTRY_HID(hid, uid, cpu_model, dmi...) \
++	ENTRY(ACPI_STA_DEFAULT, hid, uid, cpu_model, dmi)
++
++#define NOT_PRESENT_ENTRY_HID(hid, uid, cpu_model, dmi...) \
++	ENTRY(0, hid, uid, cpu_model, dmi)
++
++static const struct override_status_id override_status_ids[] = {
+ 	/*
+ 	 * Bay / Cherry Trail PWM directly poked by GPU driver in win10,
+ 	 * but Linux uses a separate PWM driver, harmless if not used.
+ 	 */
+-	ENTRY("80860F09", "1", X86_MATCH(ATOM_SILVERMONT), {}),
+-	ENTRY("80862288", "1", X86_MATCH(ATOM_AIRMONT), {}),
++	PRESENT_ENTRY_HID("80860F09", "1", ATOM_SILVERMONT, {}),
++	PRESENT_ENTRY_HID("80862288", "1", ATOM_AIRMONT, {}),
+ 
+ 	/* The Xiaomi Mi Pad 2 uses PWM2 for touchkeys backlight control */
+-	ENTRY("80862289", "2", X86_MATCH(ATOM_AIRMONT), {
++	PRESENT_ENTRY_HID("80862289", "2", ATOM_AIRMONT, {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Xiaomi Inc"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Mipad2"),
+ 	      }),
+@@ -63,18 +72,18 @@ static const struct always_present_id always_present_ids[] = {
+ 	 * The INT0002 device is necessary to clear wakeup interrupt sources
+ 	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
+ 	 */
+-	ENTRY("INT0002", "1", X86_MATCH(ATOM_AIRMONT), {}),
++	PRESENT_ENTRY_HID("INT0002", "1", ATOM_AIRMONT, {}),
+ 	/*
+ 	 * On the Dell Venue 11 Pro 7130 and 7139, the DSDT hides
+ 	 * the touchscreen ACPI device until a certain time
+ 	 * after _SB.PCI0.GFX0.LCD.LCD1._ON gets called has passed
+ 	 * *and* _STA has been called at least 3 times since.
+ 	 */
+-	ENTRY("SYNA7500", "1", X86_MATCH(HASWELL_L), {
++	PRESENT_ENTRY_HID("SYNA7500", "1", HASWELL_L, {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
+ 	      }),
+-	ENTRY("SYNA7500", "1", X86_MATCH(HASWELL_L), {
++	PRESENT_ENTRY_HID("SYNA7500", "1", HASWELL_L, {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7139"),
+ 	      }),
+@@ -90,19 +99,19 @@ static const struct always_present_id always_present_ids[] = {
+ 	 * was copy-pasted from the GPD win, so it has a disabled KIOX000A
+ 	 * node which we should not enable, thus we also check the BIOS date.
+ 	 */
+-	ENTRY("KIOX000A", "1", X86_MATCH(ATOM_AIRMONT), {
++	PRESENT_ENTRY_HID("KIOX000A", "1", ATOM_AIRMONT, {
+ 		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
+ 		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
+ 		DMI_MATCH(DMI_BIOS_DATE, "02/21/2017")
+ 	      }),
+-	ENTRY("KIOX000A", "1", X86_MATCH(ATOM_AIRMONT), {
++	PRESENT_ENTRY_HID("KIOX000A", "1", ATOM_AIRMONT, {
+ 		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
+ 		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
+ 		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
+ 	      }),
+-	ENTRY("KIOX000A", "1", X86_MATCH(ATOM_AIRMONT), {
++	PRESENT_ENTRY_HID("KIOX000A", "1", ATOM_AIRMONT, {
+ 		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
+ 		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
+@@ -110,26 +119,27 @@ static const struct always_present_id always_present_ids[] = {
+ 	      }),
+ };
+ 
+-bool acpi_device_always_present(struct acpi_device *adev)
++bool acpi_device_override_status(struct acpi_device *adev, unsigned long long *status)
+ {
+ 	bool ret = false;
+ 	unsigned int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(always_present_ids); i++) {
+-		if (acpi_match_device_ids(adev, always_present_ids[i].hid))
++	for (i = 0; i < ARRAY_SIZE(override_status_ids); i++) {
++		if (acpi_match_device_ids(adev, override_status_ids[i].hid))
+ 			continue;
+ 
+ 		if (!adev->pnp.unique_id ||
+-		    strcmp(adev->pnp.unique_id, always_present_ids[i].uid))
++		    strcmp(adev->pnp.unique_id, override_status_ids[i].uid))
+ 			continue;
+ 
+-		if (!x86_match_cpu(always_present_ids[i].cpu_ids))
++		if (!x86_match_cpu(override_status_ids[i].cpu_ids))
+ 			continue;
+ 
+-		if (always_present_ids[i].dmi_ids[0].matches[0].slot &&
+-		    !dmi_check_system(always_present_ids[i].dmi_ids))
++		if (override_status_ids[i].dmi_ids[0].matches[0].slot &&
++		    !dmi_check_system(override_status_ids[i].dmi_ids))
+ 			continue;
+ 
++		*status = override_status_ids[i].status;
+ 		ret = true;
+ 		break;
+ 	}
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 2f93ecf05dac..5895f6c7f6db 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -615,9 +615,10 @@ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int state);
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ 
+ #ifdef CONFIG_X86
+-bool acpi_device_always_present(struct acpi_device *adev);
++bool acpi_device_override_status(struct acpi_device *adev, unsigned long long *status);
+ #else
+-static inline bool acpi_device_always_present(struct acpi_device *adev)
++static inline bool acpi_device_override_status(struct acpi_device *adev,
++					       unsigned long long *status)
+ {
+ 	return false;
+ }
+-- 
+2.31.1
+
