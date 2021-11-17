@@ -2,80 +2,140 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79F18C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED05C433FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 17:09:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5718B61BE1
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 16:18:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DA3B62F90
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 Nov 2021 17:09:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232409AbhKQQVf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 Nov 2021 11:21:35 -0500
-Received: from alexa-out-sd-02.qualcomm.com ([199.106.114.39]:64179 "EHLO
-        alexa-out-sd-02.qualcomm.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231442AbhKQQVe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Nov 2021 11:21:34 -0500
+        id S237129AbhKQRM0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 Nov 2021 12:12:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37644 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233179AbhKQRMX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2021 12:12:23 -0500
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEEF0C061570;
+        Wed, 17 Nov 2021 09:09:24 -0800 (PST)
+Received: by mail-ed1-x52a.google.com with SMTP id e3so14265987edu.4;
+        Wed, 17 Nov 2021 09:09:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
-  t=1637165916; x=1668701916;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=AQ5sge1TrMoWNuFXk3p6igjJRdS6hNebzYU0VeQUJeI=;
-  b=AI+IdSB9RdL5V7eTy/JEFNKzugq1ahLH0LhqCxca+S3jfJAfs1XYJHJz
-   Y9kxYCHxBQqI6zLbxNtZpmo6Q6QtDC1f+Uy+g7YhOr/4tZ3Sbk3bfBXzG
-   IExnoR6svOK4XvtRzfu1Ma5cL2yx5sG8TaNKT8HPJGqywu7c8pOuQgDEt
-   0=;
-Received: from unknown (HELO ironmsg04-sd.qualcomm.com) ([10.53.140.144])
-  by alexa-out-sd-02.qualcomm.com with ESMTP; 17 Nov 2021 08:18:35 -0800
-X-QCInternal: smtphost
-Received: from nasanex01c.na.qualcomm.com ([10.47.97.222])
-  by ironmsg04-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2021 08:18:35 -0800
-Received: from nalasex01a.na.qualcomm.com (10.47.209.196) by
- nasanex01c.na.qualcomm.com (10.47.97.222) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.922.19; Wed, 17 Nov 2021 08:18:35 -0800
-Received: from quicinc.com (10.80.80.8) by nalasex01a.na.qualcomm.com
- (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.922.19; Wed, 17 Nov
- 2021 08:18:34 -0800
-Date:   Wed, 17 Nov 2021 11:18:29 -0500
-From:   Qian Cai <quic_qiancai@quicinc.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-CC:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [RFC PATCH] software node: Skip duplicated software_node sysfs
-Message-ID: <YZUrVdcI9nzTUJfn@quicinc.com>
-References: <20211101200346.16466-1-quic_qiancai@quicinc.com>
- <CAHp75VcrWPdR8EVGpcsniQedT0J4X700N7thFs6+srTP1MTgwQ@mail.gmail.com>
- <52df4a97-1132-d594-0180-132d0ca714d5@quicinc.com>
- <CAHp75VebOnrce-XZjOnZiivQPz-Cdgq6mor5oiLxK8Y49GiNNg@mail.gmail.com>
- <YZMrjqhYYNGMP84x@qian-HP-Z2-SFF-G5-Workstation>
- <CAJZ5v0hjq+X=Gej072jwY2Uf4BgvqPHvHTON2p0Mszd5ntjjJA@mail.gmail.com>
- <YZUT5EPqPiPy2iiy@fixkernel.fios-router.home>
- <CAJZ5v0if7__bYSnNWYNd7c9MfG32Sm2_cRcw6Qr+C2t2ywE-tg@mail.gmail.com>
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=EG8fXz3z1cRFlDyXfb7JPvHRIm8+eVLHDTWBrdIanJI=;
+        b=PNIjhyzBmmFBgtFF+rNb0BH8KKvDZrRuyTeF2SJMEQQ2E/E2SZbAPk2m++HS8TGsEq
+         dYf0GSg2Uh0E5N/M5STTnaUmM3g/oZEAmZAaAaDcn1vrh9IYZvVS4mJjjZ9GAPTL6UVy
+         avdFq2tK+8zUUsPavPdyZBCi+fgsr3loWyqsBVnUN1EX0t8knSn6GsCKceFb0mcrYyGE
+         HP+bMv7XOb4pZ0NmV4PzOCxg/mG9HZ2nLrAIzpc0+6GlJXEJvc/bCJVObM8j52zKaPmx
+         UhOpGoNFKv9sZlCas+BYcyO0qOdiKVcO3GiDgNS0YnK1OD8qZhhZVtGfu2OIm82P042I
+         JrUg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=EG8fXz3z1cRFlDyXfb7JPvHRIm8+eVLHDTWBrdIanJI=;
+        b=64rBG2B+9WkC0f80N5/18oReT+LcHdQb9ifKsCA+JGyXgo7vTcV6ouri+9VcN5ZkSu
+         Dmz2+sKpI5DJ1sRpvO060clkGgCMyW9mizs6Ly69P7ZPv5OgpAT5J+/xKrk4JFfvuEJM
+         NfkoOmEk17ncVKn7bYuBBWHyUv99Lwbsbf6M7Q5qNHbTih9Xu6EySRNveR4B/BLKGfV7
+         y/SMRvt1mO66i0T1H0n4db4Uocgoaw2sL9LbLOTo7KmQLBrBSlx6l6ptUEAumU7NXVsh
+         do5aSK182yuz8CGBnAXyPJfvJTuQ3VLrtFZX/RW12gn7wRAB7otA+D5Dtx53ClKv4+d+
+         pZhQ==
+X-Gm-Message-State: AOAM532Jtql6FxqdJXtvZgXD2/W8SIL8MsGhe6mleTQZPwt3G3ye25c/
+        xPyRHlGJR5luYSozFDQWVcM1wJozygPysyFd3h/z8lXMzZtusoXT
+X-Google-Smtp-Source: ABdhPJwf0QrTgd26vQ6tCZzttQ0i7zjSqR3C36mIzEOjyH28+KMXzGZSdeYBjZ4EyeLlUdSFjRosKKtZgsXJ+TZ94/U=
+X-Received: by 2002:a17:906:6a0a:: with SMTP id qw10mr24775789ejc.141.1637168963401;
+ Wed, 17 Nov 2021 09:09:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0if7__bYSnNWYNd7c9MfG32Sm2_cRcw6Qr+C2t2ywE-tg@mail.gmail.com>
-X-Originating-IP: [10.80.80.8]
-X-ClientProxiedBy: nasanex01a.na.qualcomm.com (10.52.223.231) To
- nalasex01a.na.qualcomm.com (10.47.209.196)
+References: <20211116150842.1051-1-anand.ashok.dumbre@xilinx.com>
+ <20211116150842.1051-6-anand.ashok.dumbre@xilinx.com> <YZPtW5igA8RBYLWv@smile.fi.intel.com>
+ <BY5PR02MB69168A6537474DF8948C3D0BA99A9@BY5PR02MB6916.namprd02.prod.outlook.com>
+ <CAHp75VdaO4+DxMn2eJx7t0_UFgrHGV2vgzXvRB=qwZi-ZpMaOA@mail.gmail.com> <cf7ad8715a02f3a0e4fe0cd8a270585dcf84bb3a.camel@perches.com>
+In-Reply-To: <cf7ad8715a02f3a0e4fe0cd8a270585dcf84bb3a.camel@perches.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Wed, 17 Nov 2021 19:08:41 +0200
+Message-ID: <CAHp75VfJBwCcFwbv6fgvwf=Q1UdFXwgNex-4GqKLcf=ZhuqGjw@mail.gmail.com>
+Subject: Re: [PATCH v9 5/5] MAINTAINERS: Add maintainer for xilinx-ams
+To:     Joe Perches <joe@perches.com>
+Cc:     Anand Ashok Dumbre <ANANDASH@xilinx.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "jic23@kernel.org" <jic23@kernel.org>,
+        "lars@metafoo.de" <lars@metafoo.de>,
+        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
+        git <git@xilinx.com>, Michal Simek <michals@xilinx.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "rafael@kernel.org" <rafael@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 17, 2021 at 03:45:34PM +0100, Rafael J. Wysocki wrote:
-> > since we will no longer has a dev->fwnode pointer anymore. Do you
-> > suggest to keep that pointer but convert the "secondary" to a linked
-> > list instead?
-> 
-> Yes, please.
+On Wed, Nov 17, 2021 at 6:05 PM Joe Perches <joe@perches.com> wrote:
+> On Wed, 2021-11-17 at 17:17 +0200, Andy Shevchenko wrote:
+> > On Wed, Nov 17, 2021 at 5:00 PM Anand Ashok Dumbre <ANANDASH@xilinx.com> wrote:
+> > > > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > Sent: Tuesday 16 November 2021 5:42 PM
+> > > > On Tue, Nov 16, 2021 at 03:08:42PM +0000, Anand Ashok Dumbre wrote:
 
-Sounds good. I think that would simplify the changes of the existing
-interfaces even though only to mantain one fwnode_head would be a bit
-cleaner. Though, that cleanup could always be on top later if needed.
+...
+
+> > > > Have you run checkpatch?
+> > >
+> > > Yes I did.
+> > > I don't see any error on this.
+> >
+> > Hmm... Perhaps it needs an unobvious parameter?
+> > Joe, X is definitely after M, any idea why checkpatch hasn't caught this up?
+>
+> This is the suggested patch below right?
+
+Correct.
+
+> https://lore.kernel.org/lkml/20211116150842.1051-6-anand.ashok.dumbre@xilinx.com/
+>
+> It looks OK to me.
+
+How come? See below.
+
+> What do you think checkpatch is supposed to find?
+
+XILINX AXI ETHERNET DRIVER
+M:      Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+S:      Maintained
+F:      drivers/net/ethernet/xilinx/xilinx_axienet*
+
+--> patch adds XILINX AMS DRIVER here !!!
+
+XILINX CAN DRIVER
+
+To me AMS should precede AXI and not the other way around. Agree?
+
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -20640,6 +20640,13 @@ M:     Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+>  S:     Maintained
+>  F:     drivers/net/ethernet/xilinx/xilinx_axienet*
+>
+> +XILINX AMS DRIVER
+> +M:     Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
+> +L:     linux-iio@vger.kernel.org
+> +S:     Maintained
+> +F:     Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
+> +F:     drivers/iio/adc/xilinx-ams.c
+> +
+>  XILINX CAN DRIVER
+>  M:     Appana Durga Kedareswara rao <appana.durga.rao@xilinx.com>
+>  R:     Naga Sureshkumar Relli <naga.sureshkumar.relli@xilinx.com>
+> --
+> 2.17.1
+>
+>
+>
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
