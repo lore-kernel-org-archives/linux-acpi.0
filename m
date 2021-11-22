@@ -2,95 +2,98 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 872D9C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 22 Nov 2021 15:48:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00A8EC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 22 Nov 2021 17:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234636AbhKVPwC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Nov 2021 10:52:02 -0500
-Received: from mga02.intel.com ([134.134.136.20]:55738 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239850AbhKVPwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Nov 2021 10:52:02 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10175"; a="222030849"
-X-IronPort-AV: E=Sophos;i="5.87,255,1631602800"; 
-   d="scan'208";a="222030849"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2021 07:48:55 -0800
-X-IronPort-AV: E=Sophos;i="5.87,255,1631602800"; 
-   d="scan'208";a="674105379"
-Received: from lvzhongw-mobl2.ccr.corp.intel.com (HELO chenyu5-mobl1) ([10.255.29.135])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2021 07:48:51 -0800
-Date:   Mon, 22 Nov 2021 23:48:42 +0800
-From:   Chen Yu <yu.c.chen@intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc:     linux-acpi@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>, Len Brown <lenb@kernel.org>,
-        Ashok Raj <ashok.raj@intel.com>,
-        Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
-        Robert Moore <robert.moore@intel.com>
-Subject: Re: [PATCH v11 4/4] tools: Introduce power/acpi/tools/pfru
-Message-ID: <20211122154842.GA10345@chenyu5-mobl1>
-References: <cover.1637505679.git.yu.c.chen@intel.com>
- <a1f688cd4ade1257e96d13c91eba72a1aeef5d59.1637505679.git.yu.c.chen@intel.com>
- <YZt+VPI2n/MED9O6@smile.fi.intel.com>
+        id S237429AbhKVRIu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 22 Nov 2021 12:08:50 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:44926 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231714AbhKVRIu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Nov 2021 12:08:50 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1637600743;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=c2ukrTxTbV3vcB1W1+ia1P+/e64NdyX9idMx1Os0IgA=;
+        b=ISGEr4dctOP3yYPm10q4wIvAilMFD11FM1OG/tUr75n/HlF3biSfWac3lcjNSsSZf9/o8s
+        mOFM66LqMAvLVGu/VizYKa3MTREhq+1I+9p2ZAvAqvLAP7bVlhLAWsr4PKleAIPaS9GJr/
+        /3qcP0e37ZsBFrlsd6axQJAYfjhKshk=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-187-otUqlhM0POK-pNjeTS7m_g-1; Mon, 22 Nov 2021 12:05:41 -0500
+X-MC-Unique: otUqlhM0POK-pNjeTS7m_g-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7E14387D548;
+        Mon, 22 Nov 2021 17:05:40 +0000 (UTC)
+Received: from x1.localdomain (unknown [10.39.192.226])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E7F835D6D5;
+        Mon, 22 Nov 2021 17:05:38 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-mmc@vger.kernel.org,
+        Yauhen Kharuzhy <jekhor@gmail.com>
+Subject: [PATCH v2 1/7] ACPI / x86: Drop PWM2 device on Lenovo Yoga Book from always present table
+Date:   Mon, 22 Nov 2021 18:05:30 +0100
+Message-Id: <20211122170536.7725-2-hdegoede@redhat.com>
+In-Reply-To: <20211122170536.7725-1-hdegoede@redhat.com>
+References: <20211122170536.7725-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YZt+VPI2n/MED9O6@smile.fi.intel.com>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Andy,
-On Mon, Nov 22, 2021 at 01:26:12PM +0200, Andy Shevchenko wrote:
-> On Sun, Nov 21, 2021 at 11:17:29PM +0800, Chen Yu wrote:
-> > Introduce a user space tool to make use of the interface exposed by
-> > Platform Firmware Runtime Update and Telemetry drivers. The users
-> > can use this tool to do firmware code injection, driver update and
-> > to retrieve the telemetry data.
-> 
-> Have you tried to build tools with `make O=/my/tmp/folder/for/kernel/build ...`
-> which previously has been used for kernel builds?
->
-I was not aware of that and just had a try. It seems that there is an issue in
-tools/power/acpi that, only with the following patch appiled, the make O=xxx
-would work:
+It turns out that there is a WMI object which controls the PWM2 device
+used for the keyboard backlight and that WMI object also provides some
+other useful functionality.
 
-diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
-index 331f6d30f472..cd7106876a5f 100644
---- a/tools/power/acpi/Makefile.config
-+++ b/tools/power/acpi/Makefile.config
-@@ -69,6 +69,7 @@ KERNEL_INCLUDE := $(OUTPUT)include
- ACPICA_INCLUDE := $(srctree)/../../../drivers/acpi/acpica
- CFLAGS += -D_LINUX -I$(KERNEL_INCLUDE) -I$(ACPICA_INCLUDE)
- CFLAGS += $(WARNINGS)
-+MKDIR = mkdir
+The upcoming lenovo-yogabook-wmi driver will offer both backlight
+control and the other functionality, so there no longer is a need
+to have the lpss-pwm driver binding to PWM2 for backlight control;
+and this is now actually undesirable because this will cause both
+the WMI code and the lpss-pwm driver to poke at the same PWM
+controller.
+
+Drop the always-present quirk for the PWM2 ACPI-device, so that the
+ lpss-pwm controller will no longer bind to it.
+
+Cc: Yauhen Kharuzhy <jekhor@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+Changes in v2:
+- Change the wording so that this is not seen as something to
+  backport to the stable-series (note backporting won't cause
+  issues but it is not really necessary)
+---
+ drivers/acpi/x86/utils.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index f22f23933063..3bcac98f6eca 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -54,10 +54,6 @@ static const struct always_present_id always_present_ids[] = {
+ 	ENTRY("80860F09", "1", X86_MATCH(ATOM_SILVERMONT), {}),
+ 	ENTRY("80862288", "1", X86_MATCH(ATOM_AIRMONT), {}),
  
- ifeq ($(strip $(V)),false)
- 	QUIET=@
-diff --git a/tools/power/acpi/Makefile.rules b/tools/power/acpi/Makefile.rules
-index 2a6c170b57cd..1d7616f5d0ae 100644
---- a/tools/power/acpi/Makefile.rules
-+++ b/tools/power/acpi/Makefile.rules
-@@ -21,6 +21,7 @@ $(KERNEL_INCLUDE):
- 
- $(objdir)%.o: %.c $(KERNEL_INCLUDE)
- 	$(ECHO) "  CC      " $(subst $(OUTPUT),,$@)
-+	$(QUIET) $(MKDIR) -p $(objdir) 2>/dev/null
- 	$(QUIET) $(CC) -c $(CFLAGS) -o $@ $<
- 
- all: $(OUTPUT)$(TOOL)
+-	/* Lenovo Yoga Book uses PWM2 for keyboard backlight control */
+-	ENTRY("80862289", "2", X86_MATCH(ATOM_AIRMONT), {
+-			DMI_MATCH(DMI_PRODUCT_NAME, "Lenovo YB1-X9"),
+-		}),
+ 	/*
+ 	 * The INT0002 device is necessary to clear wakeup interrupt sources
+ 	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
 -- 
-2.25.1
+2.33.1
 
-Should above patch be a separate one or folded in [4/4]?
-
-thanks,
-Chenyu
-> -- 
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
