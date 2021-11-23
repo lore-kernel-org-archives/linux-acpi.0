@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD0C5C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A742C433F5
 	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 16:32:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235424AbhKWQgC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:36:02 -0500
-Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:56658 "EHLO
+        id S235108AbhKWQgB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:36:01 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:37908 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S234281AbhKWQgA (ORCPT
+        by vger.kernel.org with ESMTP id S234907AbhKWQgA (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 23 Nov 2021 11:36:00 -0500
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1AN6Jv75020525;
-        Tue, 23 Nov 2021 10:31:59 -0600
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1AN6Jv73020525;
+        Tue, 23 Nov 2021 10:31:57 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=EHfuPo5/LBb3ZUd8ZhOZE1mXuciPBoF9gIOwA/Yvyyg=;
- b=JcWSzlv8RHV+NlSMhMaqw8FKqfncV6Ewg0B6IorkMDyK/jv5ymdi2g8jIaTMJksazk2N
- bOlq12XkP+AR6eNRrmWnQ4gW2hBoIf60NK2KYS+hiZFfGLPHJmrhKMFnwEmEa1Grx6F0
- 8LArbJoHI0rZaWpV1MuPJCvXTM1BiZdlgNmThYc6sfU3xONE4abQfP3mNO6ZAtzVmbtJ
- pwqf0DhtrGwyHjuGEOvfPhC6xa3+bD+3IxGU26i3ltyQA2Q7u1s1qRfJ1WG5JSjipJYQ
- /KKBsaWmGK7KlA83+jVhAN/ePxlT6PrkvPxOzP8AYP17p5yNLgFx7RTZgrNrcmLmfxx1 9A== 
+ bh=YfmJ3QFELq+ojijO+3GcBv66WJJ4ZeAGwfcy4dwVxqQ=;
+ b=OjtN8j2bmrwOPsLAe5ct8muw4UVcKLvNgb/gDs5VKPTVkP+BgIb4CyM+TJDDOjt1y8tP
+ zuZZZhzXR7kH4pr2U4Ol2hg+9qsmfrkFTo3H67o4zipCYdVogtk5ENlEVlEE57CXRhzN
+ fC3F76nUU9h25jNMHX+EXWCmhE9Qz5Q67or8drIgZU535sdBxfgmxQuZrmh0xPJolT7I
+ mPtunpOrLqteyuNd1aWujFjWFLQq/1cil+UA/KRqe4xNrK8AQwCXQokKxPnYFEttw/71
+ UMZ9pMH4zPIOUDRaSZvzyG/vNTovl7G4crHu7kS6CAEQn76ezsTRbUSzwJE9QKw1WJnc AQ== 
 Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cg5ms21nk-5
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cg5ms21nk-3
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Tue, 23 Nov 2021 10:31:59 -0600
+        Tue, 23 Nov 2021 10:31:57 -0600
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
  (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Tue, 23 Nov
- 2021 16:31:57 +0000
+ 2021 16:31:55 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
- Transport; Tue, 23 Nov 2021 16:31:57 +0000
+ Transport; Tue, 23 Nov 2021 16:31:55 +0000
 Received: from aryzen.ad.cirrus.com (unknown [198.61.65.11])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 2B3F82A3;
-        Tue, 23 Nov 2021 16:31:57 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 60FDB2A3;
+        Tue, 23 Nov 2021 16:31:54 +0000 (UTC)
 From:   Lucas Tanure <tanureal@opensource.cirrus.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
@@ -66,279 +66,339 @@ CC:     Jeremy Szu <jeremy.szu@canonical.com>,
         <platform-driver-x86@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
         "Lucas Tanure" <tanureal@opensource.cirrus.com>
-Subject: [PATCH 09/11] ASoC: cs35l41: Create shared function for boost configuration
-Date:   Tue, 23 Nov 2021 16:31:47 +0000
-Message-ID: <20211123163149.1530535-10-tanureal@opensource.cirrus.com>
+Subject: [PATCH 05/11] ASoC: cs35l41: Move cs35l41_otp_unpack to shared code
+Date:   Tue, 23 Nov 2021 16:31:43 +0000
+Message-ID: <20211123163149.1530535-6-tanureal@opensource.cirrus.com>
 X-Mailer: git-send-email 2.34.0
 In-Reply-To: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
 References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: tLMBPh9Pd-dU3BhK7bpeDMVLb8kIPSd7
-X-Proofpoint-ORIG-GUID: tLMBPh9Pd-dU3BhK7bpeDMVLb8kIPSd7
+X-Proofpoint-GUID: TP07YcWZmvvoAVfCVZAmRsi8Q2s7FAFU
+X-Proofpoint-ORIG-GUID: TP07YcWZmvvoAVfCVZAmRsi8Q2s7FAFU
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ASoC and HDA will use the same registers to configure
-internal boost for the device
+ASoC and HDA will do the same cs35l41_otp_unpack, so move it
+to shared code
 
 Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 ---
- include/sound/cs35l41.h        |   2 +
- sound/soc/codecs/cs35l41-lib.c |  97 ++++++++++++++++++++++++++++++
- sound/soc/codecs/cs35l41.c     | 105 +--------------------------------
- 3 files changed, 101 insertions(+), 103 deletions(-)
+ include/sound/cs35l41.h        |   1 +
+ sound/soc/codecs/cs35l41-lib.c | 116 ++++++++++++++++++++++++++++++
+ sound/soc/codecs/cs35l41.c     | 125 +--------------------------------
+ sound/soc/codecs/cs35l41.h     |   3 -
+ 4 files changed, 118 insertions(+), 127 deletions(-)
 
 diff --git a/include/sound/cs35l41.h b/include/sound/cs35l41.h
-index 219f23f643a6..c80ede66f297 100644
+index 5039e876bad1..9241173740cc 100644
 --- a/include/sound/cs35l41.h
 +++ b/include/sound/cs35l41.h
-@@ -769,5 +769,7 @@ int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsign
- int cs35l41_set_channels(struct device *dev, struct regmap *reg,
- 			 unsigned int tx_num, unsigned int *tx_slot,
- 			 unsigned int rx_num, unsigned int *rx_slot);
-+int cs35l41_boost_config(struct device *dev, struct regmap *regmap, int boost_ind, int boost_cap,
-+			 int boost_ipk);
+@@ -764,5 +764,6 @@ extern struct regmap_config cs35l41_regmap_i2c;
+ extern struct regmap_config cs35l41_regmap_spi;
+ 
+ int cs35l41_init_supplies(struct device *dev, struct regulator_bulk_data *supplies);
++int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap);
  
  #endif /* __CS35L41_H */
 diff --git a/sound/soc/codecs/cs35l41-lib.c b/sound/soc/codecs/cs35l41-lib.c
-index 5bb733bb02a0..b582e8214c86 100644
+index 4aba0f90b876..a13c5313f4e5 100644
 --- a/sound/soc/codecs/cs35l41-lib.c
 +++ b/sound/soc/codecs/cs35l41-lib.c
-@@ -983,3 +983,100 @@ int cs35l41_set_channels(struct device *dev, struct regmap *reg,
+@@ -7,6 +7,8 @@
+ // Author: David Rhodes <david.rhodes@cirrus.com>
+ // Author: Lucas Tanure <lucas.tanure@cirrus.com>
+ 
++#include <linux/slab.h>
++#include <linux/dev_printk.h>
+ #include <linux/regulator/consumer.h>
+ #include <sound/cs35l41.h>
+ 
+@@ -749,3 +751,117 @@ int cs35l41_init_supplies(struct device *dev, struct regulator_bulk_data *suppli
  	return 0;
  }
  
-+static const unsigned char cs35l41_bst_k1_table[4][5] = {
-+	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
-+	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
-+	{ 0x40, 0x32, 0x32, 0x4F, 0x57 },
-+	{ 0x40, 0x32, 0x32, 0x4F, 0x57 }
-+};
-+
-+static const unsigned char cs35l41_bst_k2_table[4][5] = {
-+	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
-+	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
-+	{ 0x48, 0x49, 0x66, 0xA3, 0xEA },
-+	{ 0x48, 0x49, 0x66, 0xA3, 0xEA }
-+};
-+
-+static const unsigned char cs35l41_bst_slope_table[4] = {
-+	0x75, 0x6B, 0x3B, 0x28
-+};
-+
-+
-+int cs35l41_boost_config(struct device *dev, struct regmap *regmap, int boost_ind, int boost_cap,
-+			 int boost_ipk)
++static const struct cs35l41_otp_map_element_t *cs35l41_find_otp_map(u32 otp_id)
 +{
-+	unsigned char bst_lbst_val, bst_cbst_range, bst_ipk_scaled;
-+	int ret;
++	int i;
 +
-+	switch (boost_ind) {
-+	case 1000:	/* 1.0 uH */
-+		bst_lbst_val = 0;
-+		break;
-+	case 1200:	/* 1.2 uH */
-+		bst_lbst_val = 1;
-+		break;
-+	case 1500:	/* 1.5 uH */
-+		bst_lbst_val = 2;
-+		break;
-+	case 2200:	/* 2.2 uH */
-+		bst_lbst_val = 3;
-+		break;
-+	default:
-+		dev_err(dev, "Invalid boost inductor value: %d nH\n", boost_ind);
-+		return -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(cs35l41_otp_map_map); i++) {
++		if (cs35l41_otp_map_map[i].id == otp_id)
++			return &cs35l41_otp_map_map[i];
 +	}
 +
-+	switch (boost_cap) {
-+	case 0 ... 19:
-+		bst_cbst_range = 0;
-+		break;
-+	case 20 ... 50:
-+		bst_cbst_range = 1;
-+		break;
-+	case 51 ... 100:
-+		bst_cbst_range = 2;
-+		break;
-+	case 101 ... 200:
-+		bst_cbst_range = 3;
-+		break;
-+	default:	/* 201 uF and greater */
-+		bst_cbst_range = 4;
-+	}
++	return NULL;
++}
 +
-+	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_COEFF,
-+				 CS35L41_BST_K1_MASK | CS35L41_BST_K2_MASK,
-+				 cs35l41_bst_k1_table[bst_lbst_val][bst_cbst_range]
-+					<< CS35L41_BST_K1_SHIFT |
-+				 cs35l41_bst_k2_table[bst_lbst_val][bst_cbst_range]
-+					<< CS35L41_BST_K2_SHIFT);
++int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap)
++{
++	const struct cs35l41_otp_map_element_t *otp_map_match;
++	const struct cs35l41_otp_packed_element_t *otp_map;
++	int bit_offset, word_offset, ret, i;
++	unsigned int bit_sum = 8;
++	u32 otp_val, otp_id_reg;
++	u32 *otp_mem;
++
++	otp_mem = kmalloc_array(CS35L41_OTP_SIZE_WORDS, sizeof(*otp_mem), GFP_KERNEL);
++	if (!otp_mem)
++		return -ENOMEM;
++
++	ret = regmap_read(regmap, CS35L41_OTPID, &otp_id_reg);
 +	if (ret) {
-+		dev_err(dev, "Failed to write boost coefficients: %d\n", ret);
-+		return ret;
++		dev_err(dev, "Read OTP ID failed: %d\n", ret);
++		goto err_otp_unpack;
 +	}
 +
-+	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_SLOPE_LBST,
-+				 CS35L41_BST_SLOPE_MASK | CS35L41_BST_LBST_VAL_MASK,
-+				 cs35l41_bst_slope_table[bst_lbst_val]
-+					<< CS35L41_BST_SLOPE_SHIFT |
-+				 bst_lbst_val << CS35L41_BST_LBST_VAL_SHIFT);
++	otp_map_match = cs35l41_find_otp_map(otp_id_reg);
++
++	if (!otp_map_match) {
++		dev_err(dev, "OTP Map matching ID %d not found\n", otp_id_reg);
++		ret = -EINVAL;
++		goto err_otp_unpack;
++	}
++
++	ret = regmap_bulk_read(regmap, CS35L41_OTP_MEM0, otp_mem, CS35L41_OTP_SIZE_WORDS);
 +	if (ret) {
-+		dev_err(dev, "Failed to write boost slope/inductor value: %d\n", ret);
-+		return ret;
++		dev_err(dev, "Read OTP Mem failed: %d\n", ret);
++		goto err_otp_unpack;
 +	}
 +
-+	if (boost_ipk < 1600 || boost_ipk > 4500) {
-+		dev_err(dev, "Invalid boost inductor peak current: %d mA\n", boost_ipk);
-+		return -EINVAL;
-+	}
-+	bst_ipk_scaled = ((boost_ipk - 1600) / 50) + 0x10;
++	otp_map = otp_map_match->map;
 +
-+	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_PEAK_CUR, CS35L41_BST_IPK_MASK,
-+				 bst_ipk_scaled << CS35L41_BST_IPK_SHIFT);
++	bit_offset = otp_map_match->bit_offset;
++	word_offset = otp_map_match->word_offset;
++
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x00000055);
 +	if (ret) {
-+		dev_err(dev, "Failed to write boost inductor peak current: %d\n", ret);
-+		return ret;
++		dev_err(dev, "Write Unlock key failed 1/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x000000AA);
++	if (ret) {
++		dev_err(dev, "Write Unlock key failed 2/2: %d\n", ret);
++		goto err_otp_unpack;
 +	}
 +
-+	return 0;
++	for (i = 0; i < otp_map_match->num_elements; i++) {
++		dev_dbg(dev, "bitoffset= %d, word_offset=%d, bit_sum mod 32=%d\n",
++			bit_offset, word_offset, bit_sum % 32);
++		if (bit_offset + otp_map[i].size - 1 >= 32) {
++			otp_val = (otp_mem[word_offset] &
++					GENMASK(31, bit_offset)) >> bit_offset;
++			otp_val |= (otp_mem[++word_offset] &
++					GENMASK(bit_offset + otp_map[i].size - 33, 0)) <<
++					(32 - bit_offset);
++			bit_offset += otp_map[i].size - 32;
++		} else {
++			otp_val = (otp_mem[word_offset] &
++				   GENMASK(bit_offset + otp_map[i].size - 1, bit_offset)
++				  ) >> bit_offset;
++			bit_offset += otp_map[i].size;
++		}
++		bit_sum += otp_map[i].size;
++
++		if (bit_offset == 32) {
++			bit_offset = 0;
++			word_offset++;
++		}
++
++		if (otp_map[i].reg != 0) {
++			ret = regmap_update_bits(regmap, otp_map[i].reg,
++						 GENMASK(otp_map[i].shift + otp_map[i].size - 1,
++							 otp_map[i].shift),
++						 otp_val << otp_map[i].shift);
++			if (ret < 0) {
++				dev_err(dev, "Write OTP val failed: %d\n", ret);
++				goto err_otp_unpack;
++			}
++		}
++	}
++
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x000000CC);
++	if (ret) {
++		dev_err(dev, "Write Lock key failed 1/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x00000033);
++	if (ret) {
++		dev_err(dev, "Write Lock key failed 2/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = 0;
++
++err_otp_unpack:
++	kfree(otp_mem);
++
++	return ret;
 +}
 +
 diff --git a/sound/soc/codecs/cs35l41.c b/sound/soc/codecs/cs35l41.c
-index e61736daef62..99a70e9bb8e8 100644
+index c8709de41aaf..0a88c2f164d1 100644
 --- a/sound/soc/codecs/cs35l41.c
 +++ b/sound/soc/codecs/cs35l41.c
-@@ -145,24 +145,6 @@ static const struct cs35l41_fs_mon_config cs35l41_fs_mon[] = {
- 	{ 6144000,	16,	24 },
+@@ -14,7 +14,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/of_device.h>
+ #include <linux/property.h>
+-#include <linux/slab.h>
+ #include <sound/initval.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -415,128 +414,6 @@ static const struct snd_kcontrol_new cs35l41_aud_controls[] = {
+ 	WM_ADSP_FW_CONTROL("DSP1", 0),
  };
  
--static const unsigned char cs35l41_bst_k1_table[4][5] = {
--	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
--	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
--	{ 0x40, 0x32, 0x32, 0x4F, 0x57 },
--	{ 0x40, 0x32, 0x32, 0x4F, 0x57 }
--};
--
--static const unsigned char cs35l41_bst_k2_table[4][5] = {
--	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
--	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
--	{ 0x48, 0x49, 0x66, 0xA3, 0xEA },
--	{ 0x48, 0x49, 0x66, 0xA3, 0xEA }
--};
--
--static const unsigned char cs35l41_bst_slope_table[4] = {
--	0x75, 0x6B, 0x3B, 0x28
--};
--
- static int cs35l41_get_fs_mon_config_index(int freq)
- {
- 	int i;
-@@ -987,88 +969,6 @@ static int cs35l41_dai_set_sysclk(struct snd_soc_dai *dai,
- 	return 0;
- }
- 
--static int cs35l41_boost_config(struct cs35l41_private *cs35l41,
--				int boost_ind, int boost_cap, int boost_ipk)
+-static const struct cs35l41_otp_map_element_t *cs35l41_find_otp_map(u32 otp_id)
 -{
--	unsigned char bst_lbst_val, bst_cbst_range, bst_ipk_scaled;
--	struct regmap *regmap = cs35l41->regmap;
--	struct device *dev = cs35l41->dev;
--	int ret;
+-	int i;
 -
--	switch (boost_ind) {
--	case 1000:	/* 1.0 uH */
--		bst_lbst_val = 0;
--		break;
--	case 1200:	/* 1.2 uH */
--		bst_lbst_val = 1;
--		break;
--	case 1500:	/* 1.5 uH */
--		bst_lbst_val = 2;
--		break;
--	case 2200:	/* 2.2 uH */
--		bst_lbst_val = 3;
--		break;
--	default:
--		dev_err(dev, "Invalid boost inductor value: %d nH\n", boost_ind);
--		return -EINVAL;
+-	for (i = 0; i < ARRAY_SIZE(cs35l41_otp_map_map); i++) {
+-		if (cs35l41_otp_map_map[i].id == otp_id)
+-			return &cs35l41_otp_map_map[i];
 -	}
 -
--	switch (boost_cap) {
--	case 0 ... 19:
--		bst_cbst_range = 0;
--		break;
--	case 20 ... 50:
--		bst_cbst_range = 1;
--		break;
--	case 51 ... 100:
--		bst_cbst_range = 2;
--		break;
--	case 101 ... 200:
--		bst_cbst_range = 3;
--		break;
--	default:	/* 201 uF and greater */
--		bst_cbst_range = 4;
--	}
--
--	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_COEFF,
--				 CS35L41_BST_K1_MASK | CS35L41_BST_K2_MASK,
--				 cs35l41_bst_k1_table[bst_lbst_val][bst_cbst_range]
--					<< CS35L41_BST_K1_SHIFT |
--				 cs35l41_bst_k2_table[bst_lbst_val][bst_cbst_range]
--					<< CS35L41_BST_K2_SHIFT);
--	if (ret) {
--		dev_err(dev, "Failed to write boost coefficients: %d\n", ret);
--		return ret;
--	}
--
--	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_SLOPE_LBST,
--				 CS35L41_BST_SLOPE_MASK | CS35L41_BST_LBST_VAL_MASK,
--				 cs35l41_bst_slope_table[bst_lbst_val]
--					<< CS35L41_BST_SLOPE_SHIFT |
--				 bst_lbst_val << CS35L41_BST_LBST_VAL_SHIFT);
--	if (ret) {
--		dev_err(dev, "Failed to write boost slope/inductor value: %d\n", ret);
--		return ret;
--	}
--
--	if (boost_ipk < 1600 || boost_ipk > 4500) {
--		dev_err(dev, "Invalid boost inductor peak current: %d mA\n",
--			boost_ipk);
--		return -EINVAL;
--	}
--	bst_ipk_scaled = ((boost_ipk - 1600) / 50) + 0x10;
--
--	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_PEAK_CUR,
--				 CS35L41_BST_IPK_MASK,
--				 bst_ipk_scaled << CS35L41_BST_IPK_SHIFT);
--	if (ret) {
--		dev_err(dev, "Failed to write boost inductor peak current: %d\n", ret);
--		return ret;
--	}
--
--	return 0;
+-	return NULL;
 -}
 -
- static int cs35l41_set_pdata(struct cs35l41_private *cs35l41)
+-static int cs35l41_otp_unpack(void *data)
+-{
+-	const struct cs35l41_otp_map_element_t *otp_map_match;
+-	const struct cs35l41_otp_packed_element_t *otp_map;
+-	struct cs35l41_private *cs35l41 = data;
+-	int bit_offset, word_offset, ret, i;
+-	unsigned int bit_sum = 8;
+-	u32 otp_val, otp_id_reg;
+-	u32 *otp_mem;
+-
+-	otp_mem = kmalloc_array(CS35L41_OTP_SIZE_WORDS, sizeof(*otp_mem), GFP_KERNEL);
+-	if (!otp_mem)
+-		return -ENOMEM;
+-
+-	ret = regmap_read(cs35l41->regmap, CS35L41_OTPID, &otp_id_reg);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Read OTP ID failed: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	otp_map_match = cs35l41_find_otp_map(otp_id_reg);
+-
+-	if (!otp_map_match) {
+-		dev_err(cs35l41->dev, "OTP Map matching ID %d not found\n",
+-			otp_id_reg);
+-		ret = -EINVAL;
+-		goto err_otp_unpack;
+-	}
+-
+-	ret = regmap_bulk_read(cs35l41->regmap, CS35L41_OTP_MEM0, otp_mem,
+-			       CS35L41_OTP_SIZE_WORDS);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Read OTP Mem failed: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	otp_map = otp_map_match->map;
+-
+-	bit_offset = otp_map_match->bit_offset;
+-	word_offset = otp_map_match->word_offset;
+-
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x00000055);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Unlock key failed 1/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x000000AA);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Unlock key failed 2/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	for (i = 0; i < otp_map_match->num_elements; i++) {
+-		dev_dbg(cs35l41->dev,
+-			"bitoffset= %d, word_offset=%d, bit_sum mod 32=%d\n",
+-			bit_offset, word_offset, bit_sum % 32);
+-		if (bit_offset + otp_map[i].size - 1 >= 32) {
+-			otp_val = (otp_mem[word_offset] &
+-					GENMASK(31, bit_offset)) >>
+-					bit_offset;
+-			otp_val |= (otp_mem[++word_offset] &
+-					GENMASK(bit_offset +
+-						otp_map[i].size - 33, 0)) <<
+-					(32 - bit_offset);
+-			bit_offset += otp_map[i].size - 32;
+-		} else {
+-			otp_val = (otp_mem[word_offset] &
+-				GENMASK(bit_offset + otp_map[i].size - 1,
+-					bit_offset)) >>	bit_offset;
+-			bit_offset += otp_map[i].size;
+-		}
+-		bit_sum += otp_map[i].size;
+-
+-		if (bit_offset == 32) {
+-			bit_offset = 0;
+-			word_offset++;
+-		}
+-
+-		if (otp_map[i].reg != 0) {
+-			ret = regmap_update_bits(cs35l41->regmap,
+-						 otp_map[i].reg,
+-						 GENMASK(otp_map[i].shift +
+-							 otp_map[i].size - 1,
+-						 otp_map[i].shift),
+-						 otp_val << otp_map[i].shift);
+-			if (ret < 0) {
+-				dev_err(cs35l41->dev, "Write OTP val failed: %d\n",
+-					ret);
+-				goto err_otp_unpack;
+-			}
+-		}
+-	}
+-
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x000000CC);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Lock key failed 1/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x00000033);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Lock key failed 2/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = 0;
+-
+-err_otp_unpack:
+-	kfree(otp_mem);
+-	return ret;
+-}
+-
+ static irqreturn_t cs35l41_irq(int irq, void *data)
  {
- 	int ret;
-@@ -1077,9 +977,8 @@ static int cs35l41_set_pdata(struct cs35l41_private *cs35l41)
- 	/* Required */
- 	if (cs35l41->pdata.bst_ipk &&
- 	    cs35l41->pdata.bst_ind && cs35l41->pdata.bst_cap) {
--		ret = cs35l41_boost_config(cs35l41, cs35l41->pdata.bst_ind,
--					   cs35l41->pdata.bst_cap,
--					   cs35l41->pdata.bst_ipk);
-+		ret = cs35l41_boost_config(cs35l41->dev, cs35l41->regmap, cs35l41->pdata.bst_ind,
-+					   cs35l41->pdata.bst_cap, cs35l41->pdata.bst_ipk);
- 		if (ret) {
- 			dev_err(cs35l41->dev, "Error in Boost DT config: %d\n", ret);
- 			return ret;
+ 	struct cs35l41_private *cs35l41 = data;
+@@ -1650,7 +1527,7 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
+ 		goto err;
+ 	}
+ 
+-	ret = cs35l41_otp_unpack(cs35l41);
++	ret = cs35l41_otp_unpack(cs35l41->dev, cs35l41->regmap);
+ 	if (ret < 0) {
+ 		dev_err(cs35l41->dev, "OTP Unpack failed: %d\n", ret);
+ 		goto err;
+diff --git a/sound/soc/codecs/cs35l41.h b/sound/soc/codecs/cs35l41.h
+index 453ece8889e0..26a08d58a8c3 100644
+--- a/sound/soc/codecs/cs35l41.h
++++ b/sound/soc/codecs/cs35l41.h
+@@ -21,9 +21,6 @@
+ #define CS35L41_RX_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE)
+ #define CS35L41_TX_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE)
+ 
+-extern const struct cs35l41_otp_map_element_t
+-				cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS];
+-
+ enum cs35l41_cspl_mbox_status {
+ 	CSPL_MBOX_STS_RUNNING = 0,
+ 	CSPL_MBOX_STS_PAUSED = 1,
 -- 
 2.34.0
 
