@@ -2,101 +2,111 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F485C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 17:06:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 911DFC433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 17:07:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234047AbhKWRJX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 12:09:23 -0500
-Received: from mga04.intel.com ([192.55.52.120]:51483 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233715AbhKWRJW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Nov 2021 12:09:22 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="233785223"
-X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="233785223"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 09:03:41 -0800
-X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="497344837"
-Received: from wangxu2-mobl.ccr.corp.intel.com (HELO chenyu5-mobl1) ([10.249.173.67])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 09:03:38 -0800
-Date:   Wed, 24 Nov 2021 01:03:32 +0800
-From:   Chen Yu <yu.c.chen@intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>, devel@acpica.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] tools/power/acpi: Fix the compile error when output
- directory is specified
-Message-ID: <20211123170332.GA27921@chenyu5-mobl1>
-References: <20211123132330.1008671-1-yu.c.chen@intel.com>
- <YZzyQ2FD2meImsHD@smile.fi.intel.com>
+        id S238234AbhKWRKv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 12:10:51 -0500
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:49773 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234829AbhKWRKu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Nov 2021 12:10:50 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1AN7k0DE013868;
+        Tue, 23 Nov 2021 11:06:33 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=message-id : date :
+ mime-version : from : to : subject : references : in-reply-to :
+ content-type : content-transfer-encoding; s=PODMain02222019;
+ bh=amQU7FZ/5g8QJDCHA86K0HOZeFaQBYccT1e3/wxVmZo=;
+ b=d9ATGvqg538Vpg4nOsV8jFtKyuj/+QUi/oPnQKYM4FEtAnqyikfeJyXi7Fdx0JuuCjXn
+ uSBbDQlfWDBhm77fbn6zkIkzB0sKN1WDaoBh3L0WQLeBVVkCS8j3GDoJ17gt3jMlY/7f
+ 7+RsPnwN+7OjmE87M1ZRA+0qiqA/pGj3UcWclyR//evlP554a1bPhS893LQnWRpdqidT
+ V1YgKIwoG3pXFfE50PqzP0c84joCr6CEFCaoepst4dmyCVyepgXL5QX3axNHu9nqjFN2
+ ZLiDCIeLXLCTj8TOFpd/yYsO38lxo8yvG/U9fzmcPzpESEmpZKmW93L/FSPyJMi4o2x2 6w== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3cg3v7a3ee-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Tue, 23 Nov 2021 11:06:32 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Tue, 23 Nov
+ 2021 17:06:30 +0000
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
+ Transport; Tue, 23 Nov 2021 17:06:30 +0000
+Received: from [198.61.65.11] (unknown [198.61.65.11])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 5DFFB2A3;
+        Tue, 23 Nov 2021 17:06:30 +0000 (UTC)
+Message-ID: <ebb877d5-e348-e5fe-a5cb-9ef579a312f5@opensource.cirrus.com>
+Date:   Tue, 23 Nov 2021 17:06:30 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <YZzyQ2FD2meImsHD@smile.fi.intel.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.2
+From:   <tanureal@opensource.cirrus.com>
+To:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        "Rafael J.Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>,
+        Kailang Yang <kailang@realtek.com>,
+        Shuming Fan <shumingf@realtek.com>,
+        David Rhodes <david.rhodes@cirrus.com>,
+        Vitaly Rodionov <vitalyr@opensource.cirrus.com>,
+        Jeremy Szu <jeremy.szu@canonical.com>,
+        Hui Wang <hui.wang@canonical.com>,
+        Werner Sembach <wse@tuxedocomputers.com>,
+        Chris Chiu <chris.chiu@canonical.com>,
+        Cameron Berkenpas <cam@neo-zeon.de>,
+        Sami Loone <sami@loone.fi>, Elia Devito <eliadevito@gmail.com>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        Jack Yu <jack.yu@realtek.com>, "Arnd Bergmann" <arnd@arndb.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        "Alexandre Belloni" <alexandre.belloni@bootlin.com>,
+        <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
+        <patches@opensource.cirrus.com>,
+        <platform-driver-x86@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 10/11] hda: cs35l41: Add support for CS35L41 in HDA
+ systems
+References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
+ <20211123163149.1530535-11-tanureal@opensource.cirrus.com>
+ <d8fe13f2-ac84-51b6-8eb5-095176a65c39@linux.intel.com>
+In-Reply-To: <d8fe13f2-ac84-51b6-8eb5-095176a65c39@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-GUID: jNP0KH8DmaKZaqeUPB5H2Q11BR3PWT0N
+X-Proofpoint-ORIG-GUID: jNP0KH8DmaKZaqeUPB5H2Q11BR3PWT0N
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 23, 2021 at 03:53:07PM +0200, Andy Shevchenko wrote:
-> On Tue, Nov 23, 2021 at 09:23:30PM +0800, Chen Yu wrote:
-> > Compiling the tool when output directory parameter is specified would
-> > trigger the following error:
-> > 
-> > make O=/data/test/tmp/ -C tools/power/acpi/
-> > 
-> > make: Entering directory '/data/src/kernel/linux/tools/power/acpi'
-> >   DESCEND tools/acpidbg
-> > make[1]: Entering directory '/data/src/kernel/linux/tools/power/acpi/tools/acpidbg'
-> >   MKDIR    include
-> >   CP       include
-> >   CC       tools/acpidbg/acpidbg.o
-> > Assembler messages:
-> > Fatal error: can't create /data/test/tmp/tools/power/acpi/tools/acpidbg/acpidbg.o: No such file or directory
-> > make[1]: *** [../../Makefile.rules:24: /data/test/tmp/tools/power/acpi/tools/acpidbg/acpidbg.o] Error 1
-> > make[1]: Leaving directory '/data/src/kernel/linux/tools/power/acpi/tools/acpidbg'
-> > make: *** [Makefile:18: acpidbg] Error 2
-> > make: Leaving directory '/data/src/kernel/linux/tools/power/acpi'
-> > 
-> > This is because the output directory has not been created yet. Fix this issue by
-> > creating the output directory before compiling.
+On 11/23/21 4:59 PM, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com> wrote:
 > 
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Thanks!
->
-Thanks for review. 
-> >  
-> >  $(objdir)%.o: %.c $(KERNEL_INCLUDE)
-> >  	$(ECHO) "  CC      " $(subst $(OUTPUT),,$@)
-> > +	$(QUIET) $(MKDIR) -p $(objdir) 2>/dev/null
+> > +#ifdef CONFIG_ACPI
+> > +static const struct acpi_device_id cs35l41_acpi_hda_match[] = {
+> > +	{"CLSA0100", 0 },
 > 
-> Not sure we need the `2>/dev/null` part.
+> I could be wrong but this doesn't look like a legit ACPI _HID?
 > 
-If the 'O=' is a read-only directory, mkdir would print errors
-and adding 2> would avoid printing it. So the user could focus
-on the real compile error.
+> Cirrus Logic can use 'CIR', "CLI", or 'CSC' PNP ID, or an PCI ID.
+> 
+> in the past you used
+> 
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id cs35l41_acpi_match[] = {
+> +	{ "CSC3541", 0 }, /* Cirrus Logic PnP ID + part ID */
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cs35l41_acpi_match);
+> +#endif
+> 
+> 
+> 
 
-without '2>'  :
-make O=/data/test/tmp -C tools/power/acpi/
-make: Entering directory '/data/src/kernel/linux/tools/power/acpi'
-  DESCEND tools/acpidbg
-mkdir: cannot create directory ‘/data/test/tmp/tools’: Permission denied
-
-
-thanks,
-Chenyu
-> >  	$(QUIET) $(CC) -c $(CFLAGS) -o $@ $<
-> >  
-> >  all: $(OUTPUT)$(TOOL)
-> > -- 
-> > 2.25.1
-> > 
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
+This ACPI _HID is already released, there is nothing I can do about it.
+Future devices will use 'CSC' PnP ID.
