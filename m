@@ -2,140 +2,182 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52CD0C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 18:18:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F226C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 18:36:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234284AbhKWSVd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 13:21:33 -0500
-Received: from mail-oo1-f45.google.com ([209.85.161.45]:42829 "EHLO
-        mail-oo1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232326AbhKWSVd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Nov 2021 13:21:33 -0500
-Received: by mail-oo1-f45.google.com with SMTP id x1-20020a4aea01000000b002c296d82604so34268ood.9
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Nov 2021 10:18:25 -0800 (PST)
+        id S239850AbhKWSjJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 13:39:09 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:37329 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232492AbhKWSjJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Nov 2021 13:39:09 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1637692560;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Z5k6zTG4KRWbGgN3rihRDKhTPbVU4ZF9XdZlS05EGq0=;
+        b=U64J9KT/VDuxU6o97ld8jW27+a7VJ3AqA0v6dcnIkQQw+/L2b5MCDyVnmrtWQC9j5lmezA
+        LLjQClhCQF4LaCvNdHs6GtN7wrFkROTxpxYGJDNfj2H65oBij4qZ/MCbcFFbqh8LNrwDL+
+        s+/gRJP7u+GBFwyBx8PZy9uQ1eoSf6c=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-491-DKjiveyxNYGriEzKo-HqOA-1; Tue, 23 Nov 2021 13:35:58 -0500
+X-MC-Unique: DKjiveyxNYGriEzKo-HqOA-1
+Received: by mail-ed1-f69.google.com with SMTP id v22-20020a50a456000000b003e7cbfe3dfeso18578638edb.11
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Nov 2021 10:35:58 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=8ODX7zplt597gumrah4EJq+C2+shJVAShDjoHD1puw8=;
-        b=CRRpotUjLZdxBQqM2ugeK3jCYWQ2RAihQFQe8QUJ0dr86q0Fg5JREB490pyyfAKrxD
-         LObPKL20Ur4Ow+VpAGqf7kRupzjEyAzmp5pkCI2u/HHIaER5peZfPOhh/lD2UZMFtABC
-         7dFwkp8j9jnUGYb0Bp40dt9PnEF2B1NcRKzAR2zoeivNk29+qXYPzyr4buC2zZG8OrsC
-         ckCX8FG4/Axvl7BV7bogTMie9zKxOCxVIiPOAL5INHl2kkueLWqQkLJc5KW/yx4BETQU
-         ClnIyGP674FjeJvbR2qc6wkk2BW7clsmPLAN6HY/S1U7T6w0bubXODDwdwtRPrLMqFko
-         ATAw==
-X-Gm-Message-State: AOAM530d7wsdh3yc2LzBK7iZS9sG6JVAJIJZ6+pM4oJuwJCOp2UcsnFe
-        MIdYjU/zXbelPyXGivzT6qurG+Iz/V6c1gLIBt8=
-X-Google-Smtp-Source: ABdhPJw/7s8wSOQyRPodKz9db+FKUZy7z8ILqDZGhvnG/WFWrkh/8q5dRronlVafNnZpHYPfPJ/kPsXBHqK3KVgi0AQ=
-X-Received: by 2002:a4a:ead8:: with SMTP id s24mr4416793ooh.89.1637691504715;
- Tue, 23 Nov 2021 10:18:24 -0800 (PST)
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=Z5k6zTG4KRWbGgN3rihRDKhTPbVU4ZF9XdZlS05EGq0=;
+        b=0JCSK7/kG5fwoRGNqEVfyxG/SrbcVnkiDnY03WYG65g/3jSGg4Hmi+2XsQz6DvA0e5
+         Ae5qkgW/q7sfPvd2XYABcYVurlODwPEjBcoOvzSgPI0wdepteCzXQOLEJnQ/ODrRu3Uj
+         3p4g+crhKmNPy0sNFqsb6/X2aMyWW1+wIq+ugKOBWeU7DvD0H7Cdp9PwKgaJpssebRPT
+         wTgXhSIxeMXWvQtaPI0fCTJH7RY49tbZOnoc1mf8FTSk8xNo9K3/4d/nzPLnFz86Hh+J
+         zzKoak1zEPvmEj7linGGTgetmn9Du0osyRsuokwxytPzM9rcSD8q30pUNBiPVeKGB4LS
+         by/w==
+X-Gm-Message-State: AOAM5300Tf1aujPuW6MJKE4WTihIZyailOfdOoIj8Ktp5+1ObCMqCO7K
+        s6rrd7cdzK8ApjT2WnK8eUzMWfMKIF2uyDSVAkTXOLExY/RgDqD0sSuH9WTDihSaAMJ0kdkkONo
+        Lt1kCiaNDGL2/lnBqqLtIjQ==
+X-Received: by 2002:a50:c446:: with SMTP id w6mr12781940edf.137.1637692557238;
+        Tue, 23 Nov 2021 10:35:57 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJxUEZ9mmoxlVEliHny2DZXCv4YHhMo0Z9nYbdF9XbP1qCPsXkZcVzsMr3MWrgS3oizeCWcDog==
+X-Received: by 2002:a50:c446:: with SMTP id w6mr12781899edf.137.1637692557030;
+        Tue, 23 Nov 2021 10:35:57 -0800 (PST)
+Received: from ?IPV6:2001:1c00:c1e:bf00:1054:9d19:e0f0:8214? (2001-1c00-0c1e-bf00-1054-9d19-e0f0-8214.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1054:9d19:e0f0:8214])
+        by smtp.gmail.com with ESMTPSA id yd13sm5601817ejb.39.2021.11.23.10.35.56
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 23 Nov 2021 10:35:56 -0800 (PST)
+Message-ID: <1605be8d-0913-4b52-32e2-8076fff01d30@redhat.com>
+Date:   Tue, 23 Nov 2021 19:35:55 +0100
 MIME-Version: 1.0
-References: <20211117180735.3109054-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20211117180735.3109054-1-sakari.ailus@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 23 Nov 2021 19:18:13 +0100
-Message-ID: <CAJZ5v0jAmAAQZ63z4k5=Q4cADwp9Y1c_4EpkU0G6jT6ZAJptYg@mail.gmail.com>
-Subject: Re: [PATCH v3 0/2] Get device's parent from parent field, fix
- sleeping IRQs disabled
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        John Ogness <john.ogness@linutronix.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Petr Mladek <pmladek@suse.com>,
-        Andy Shevchenko <andriy.shevchenko@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.0
+Subject: Re: [PATCH 11/11] ACPI / scan: Create platform device for CLSA0100
+ ACPI nodes
+Content-Language: en-US
+To:     Lucas tanure <tanureal@opensource.cirrus.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Gross <markgross@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>,
+        Kailang Yang <kailang@realtek.com>,
+        Shuming Fan <shumingf@realtek.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        David Rhodes <david.rhodes@cirrus.com>,
+        Vitaly Rodionov <vitalyr@opensource.cirrus.com>
+Cc:     Jeremy Szu <jeremy.szu@canonical.com>,
+        Hui Wang <hui.wang@canonical.com>,
+        Werner Sembach <wse@tuxedocomputers.com>,
+        Chris Chiu <chris.chiu@canonical.com>,
+        Cameron Berkenpas <cam@neo-zeon.de>,
+        Sami Loone <sami@loone.fi>, Elia Devito <eliadevito@gmail.com>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        Jack Yu <jack.yu@realtek.com>, Arnd Bergmann <arnd@arndb.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org,
+        patches@opensource.cirrus.com, platform-driver-x86@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
+ <20211123163149.1530535-12-tanureal@opensource.cirrus.com>
+ <87af37a2-dc02-2ae0-a621-b82c8601c16c@redhat.com>
+ <756f813c-cc3e-7ddf-e5db-cf6c874f907e@opensource.cirrus.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <756f813c-cc3e-7ddf-e5db-cf6c874f907e@opensource.cirrus.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Nov 17, 2021 at 7:07 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi all,
->
-> This set changes getting fwnode's parent on ACPI fwnode so it no longer
-> needs a semaphore, using struct acpi_device.dev.parent field instead of
-> calling acpi_get_parent(). The semaphore is being acquired when the
-> device's full path is printed which now takes place local IRQs disabled:
->
-> --------8<------------------------
-> BUG: sleeping function called from invalid context at kernel/locking/semaphore.c:163
->
-> ...
->
-> Call Trace:
->  <TASK>
->  dump_stack_lvl+0x57/0x7d
->  __might_resched.cold+0xf4/0x12f
->  down_timeout+0x21/0x70
->  acpi_os_wait_semaphore+0x63/0x180
->  acpi_ut_acquire_mutex+0x123/0x1ba
->  acpi_get_parent+0x30/0x71
->  acpi_node_get_parent+0x64/0x90
->  ? lock_acquire+0x1a0/0x300
->  fwnode_count_parents+0x6d/0xb0
->  fwnode_full_name_string+0x18/0x90
->  fwnode_string+0xd7/0x140
->  vsnprintf+0x1ec/0x4f0
->  va_format.constprop.0+0x6a/0x130
->  vsnprintf+0x1ec/0x4f0
->  vprintk_store+0x271/0x5a0
->  ? rcu_read_lock_sched_held+0x12/0x70
->  ? lock_release+0x228/0x310
->  ? acpi_initialize_hp_context+0x50/0x50
->  vprintk_emit+0xd5/0x340
->  _printk+0x58/0x6f
->  __dynamic_pr_debug+0xe2/0x100
->  __v4l2_fwnode_endpoint_parse+0x10c/0x450 [v4l2_fwnode]
->  v4l2_fwnode_endpoint_parse+0x11/0x40 [v4l2_fwnode]
->  cio2_pci_probe.cold+0x7fb/0x969 [ipu3_cio2]
->  ? _raw_spin_unlock_irqrestore+0x42/0x70
->  pci_device_probe+0xb6/0x140
->  really_probe+0x1f5/0x3f0
->  __driver_probe_device+0xfe/0x180
->  driver_probe_device+0x1e/0x90
->  __driver_attach+0xc4/0x1d0
->  ? __device_attach_driver+0xe0/0xe0
->  ? __device_attach_driver+0xe0/0xe0
->  bus_for_each_dev+0x7b/0xc0
->  bus_add_driver+0x14c/0x1f0
->  driver_register+0x8b/0xe0
->  ? 0xffffffffa0428000
->  do_one_initcall+0x5b/0x300
->  ? rcu_read_lock_sched_held+0x12/0x70
->  ? trace_kmalloc+0x29/0xd0
->  ? kmem_cache_alloc_trace+0x11d/0x630
->  do_init_module+0x5c/0x260
->  __do_sys_finit_module+0xae/0x110
->  do_syscall_64+0x3b/0x90
->  entry_SYSCALL_64_after_hwframe+0x44/0xae
-> --------8<------------------------
->
-> since v2:
->
-> - Move unwrapping the line assigning dev in acpi_node_get_parent() to the
->   first patch.
->
-> - Drop removal of a redundant else clause in the first patch.
->
-> since v1:
->
-> - Drop the patch making acpi_fwnode_handle() NULL-safe.
->
-> - Use original %pfw patch on Fixes: line, cc stable beginning from v5.5.
->
-> - Get the parent from struct acpi_device.dev.parent, not struct
->   acpi_device.parent.
->
-> Sakari Ailus (2):
->   ACPI: Get acpi_device's parent from the parent field
->   ACPI: Make acpi_node_get_parent() local
->
->  drivers/acpi/property.c | 14 +++++---------
->  include/linux/acpi.h    |  7 -------
->  2 files changed, 5 insertions(+), 16 deletions(-)
->
-> --
+Hi,
 
-Both [1-2/2] applied as 5.16-rc material, thanks!
+On 11/23/21 18:11, Lucas tanure wrote:
+> On 11/23/21 17:05, Hans de Goede wrote:
+>> Hi Lucas,
+>>
+>> On 11/23/21 17:31, Lucas Tanure wrote:
+>>> The ACPI device with CLSA0100 is a sound card with multiple
+>>> instances of CS35L41.
+>>>
+>>> We add an ID to the I2C multi instantiate list to enumerate
+>>> all I2C slaves correctly.
+>>>
+>>> Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
+>>> ---
+>>>   drivers/acpi/scan.c                          | 1 +
+>>>   drivers/platform/x86/i2c-multi-instantiate.c | 7 +++++++
+>>>   2 files changed, 8 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>>> index 2c80765670bc..16827a33e93b 100644
+>>> --- a/drivers/acpi/scan.c
+>>> +++ b/drivers/acpi/scan.c
+>>> @@ -1708,6 +1708,7 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+>>>           {"BSG2150", },
+>>>           {"INT33FE", },
+>>>           {"INT3515", },
+>>> +        {"CLSA0100", },
+>>>           {}
+>>>       };
+>>>   diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/i2c-multi-instantiate.c
+>>> index 4956a1df5b90..ed25a0adc656 100644
+>>> --- a/drivers/platform/x86/i2c-multi-instantiate.c
+>>> +++ b/drivers/platform/x86/i2c-multi-instantiate.c
+>>> @@ -147,6 +147,12 @@ static const struct i2c_inst_data int3515_data[]  = {
+>>>       {}
+>>>   };
+>>>   +static const struct i2c_inst_data clsa0100_data[]  = {
+>>> +    { "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
+>>> +    { "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
+>>
+>> This suggests that both amplifiers are using the same GPIO pin as shared
+>> IRQ, is that correct ? Can you share an acpidump of the laptop's DSDT tables ?
+>>
+>> Regards,
+>>
+>> Hans
+>>
+> 
+> DSDT attached.
+> Yes, both amps share the same IRQ gpio.
+
+Thanks, this patch looks good to me:
+
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+
+Regards,
+
+Hans
+
+
+
+
+> 
+>>
+>>
+>>
+>>> +    {}
+>>> +};
+>>> +
+>>>   /*
+>>>    * Note new device-ids must also be added to i2c_multi_instantiate_ids in
+>>>    * drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
+>>> @@ -155,6 +161,7 @@ static const struct acpi_device_id i2c_multi_inst_acpi_ids[] = {
+>>>       { "BSG1160", (unsigned long)bsg1160_data },
+>>>       { "BSG2150", (unsigned long)bsg2150_data },
+>>>       { "INT3515", (unsigned long)int3515_data },
+>>> +    { "CLSA0100", (unsigned long)clsa0100_data },
+>>>       { }
+>>>   };
+>>>   MODULE_DEVICE_TABLE(acpi, i2c_multi_inst_acpi_ids);
+>>>
+>>
+
