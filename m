@@ -2,28 +2,28 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A9C1C433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 17:15:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5C95C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 17:20:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238004AbhKWRTF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 12:19:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42132 "EHLO mail.kernel.org"
+        id S233831AbhKWRYA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 12:24:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230176AbhKWRTF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Nov 2021 12:19:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5EF0660F6F;
-        Tue, 23 Nov 2021 17:15:51 +0000 (UTC)
+        id S233829AbhKWRX6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Nov 2021 12:23:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6ABAD60F51;
+        Tue, 23 Nov 2021 17:20:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1637687756;
-        bh=E+dBwomnzyWKIhT2whg5UaMBKOluRqPTO6X6XW8z7mo=;
+        s=k20201202; t=1637688050;
+        bh=/G+mVBj47X83QR9mIcyKQRD0Fz7890CtgMMwf9Gixyo=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=EQ0v6PbhOwWl3NzftqVi/qVreHqLCe2Upzbc8LBBCLaqvAkfHvWaeaVYcG86soJDv
-         waw5UnGNjUSVqWsFKSQ4RgKVHNW1GPPpGbP2HHTpP5iDxt1QrGWgz066mZIoyV7Ygd
-         yuTl1w/2oU0xFoqDSQD4gnbf59mZyzSz0JT68ieCwb6T8hR0OM/u+Of9Upt8WfgMcW
-         LpC7MduSgPBiujgcd51rS4INUZgwPj0w4VG1exRe1u7juh9v3ciVenmZH7qPV9VooU
-         fLWRB1p/gJqMuZ6E4G0stRXL7+uevtMly5WlKSz+dAQRMmPPwMK5DFXJdHAX4aE8tB
-         DKOhO8PbkFq6A==
-Date:   Tue, 23 Nov 2021 17:15:48 +0000
+        b=H7RZpT6GkJZcb8+lI1ZHaaEHtAOSQHGfnF9mmMU3ZQFpCKLONZiSlwwcywW+gbDec
+         L+qTXG8aNyDlQHDLpsQsH/7lfJ4G62WaFOb4nEVFG4t2+Gxp3ZIn9SRB4lWcQbTtUS
+         tswFuXi23ri2opUa9mCaLdlh+Du4UP2dtoMQYjivyE3/762DP0IwCMYmKEJP5I++oi
+         BRbkbFEpH5PQrEAm7MBiHLBvoI4eNjLbaibwoPICkXEDwewi/PJ3L4l7c0WrJ08+hC
+         ej9I1hPMxjjWWIkFC44PvG4hJ/utbjh7hHTTolJPFmugcMUoerCT3ekYu1C21VlLir
+         W5RDlA7y0WqDA==
+Date:   Tue, 23 Nov 2021 17:20:41 +0000
 From:   Mark Brown <broonie@kernel.org>
 To:     Lucas Tanure <tanureal@opensource.cirrus.com>
 Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -51,55 +51,62 @@ Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
         alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org,
         patches@opensource.cirrus.com, platform-driver-x86@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 10/11] hda: cs35l41: Add support for CS35L41 in HDA
- systems
-Message-ID: <YZ0hxCcP5h1eU63A@sirena.org.uk>
+Subject: Re: [PATCH 03/11] ASoC: cs35l41: Move regmap config struct to shared
+ code
+Message-ID: <YZ0i6TbgIW9qNUQt@sirena.org.uk>
 References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
- <20211123163149.1530535-11-tanureal@opensource.cirrus.com>
+ <20211123163149.1530535-4-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="KmAEv/XYU5I1OTsL"
+        protocol="application/pgp-signature"; boundary="/JJvFVvi2fOow9X8"
 Content-Disposition: inline
-In-Reply-To: <20211123163149.1530535-11-tanureal@opensource.cirrus.com>
+In-Reply-To: <20211123163149.1530535-4-tanureal@opensource.cirrus.com>
 X-Cookie: A closed mouth gathers no foot.
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 
---KmAEv/XYU5I1OTsL
+--/JJvFVvi2fOow9X8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 23, 2021 at 04:31:48PM +0000, Lucas Tanure wrote:
+On Tue, Nov 23, 2021 at 04:31:41PM +0000, Lucas Tanure wrote:
+> Move regmap configs to external include so CS35L41 HDA
+> driver can re-use it.
+>=20
+> Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
+> ---
+>  include/sound/cs35l41.h        |  6 +++++-
+>  sound/soc/codecs/cs35l41-i2c.c | 15 ---------------
+>  sound/soc/codecs/cs35l41-lib.c | 34 ++++++++++++++++++++++++++++++++--
+>  sound/soc/codecs/cs35l41-spi.c | 16 ----------------
+>  sound/soc/codecs/cs35l41.h     |  6 ------
 
->  S:	Maintained
->  F:	Documentation/devicetree/bindings/sound/cirrus,cs*
-> +F:	sound/pci/hda/cs35l41*
->  F:	sound/soc/codecs/cs*
+It looks like they actually end up in a .c file rather than an include
+which is what I'd expect (and I don't see anything fishy like including
+=2Ec files).
 
-Perhaps just match anything starting with cs rather than just this part
-number rather than needing to churn in future?
+> -const struct reg_default cs35l41_reg[CS35L41_MAX_CACHE_REG] =3D {
+> +const struct reg_default cs35l41_reg[] =3D {
 
-BTW I notice that the CC list for this series is *huge* and it's hard to
-see why some of the people on CC are included - please think carefully
-about who you're sending things to and why.  People get a lot of mail
-but there's no need to add to the flood, it makes it more likely that
-things that are important will end up getting missed.
+This isn't quite a straight move - it's worth calling that out in the
+changelog.
 
---KmAEv/XYU5I1OTsL
+--/JJvFVvi2fOow9X8
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmGdIcMACgkQJNaLcl1U
-h9D3OAf/Z1nxuLACsgmmsSOKL+iZyyHgNx1SqNSpwS2Absxs1WIEk8peLn5AM24+
-9Tj7Yv5qhscn5ogvyquAVxMTbhs/VI4eqsy9z37/cfiHZozMQPz2lxobwxIztyqy
-yLf2YLnHIlenI9gqvj3Ixi7wCm9U7agT/UOhwNWd9IRQDBUSTgjl53owul0Rt0Fv
-uS8EI9cvmZEIyH8vcpA5gWnICVEbq/cBzPkoOvvWwkI4qd2JeAK8s1jO/0Q3vzs9
-X8qgHigt1fLG4768Q4InEvkB8WWBBQ214xT+r4lenjcSqY9KfQwYBxYImuWXZSUZ
-p4EnMrqi1jXMhnPbP46pP/ruPueQ5Q==
-=6Fhl
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmGdIugACgkQJNaLcl1U
+h9D0jAf/T6kAe6qc0e/9no1UElASij34INfN+tMs32FkKXP8wT0TKaG+Hi+pXHZX
+SieRilPX1ESToPEt4HgGH/S3lSZHVr2FRQjkKnfgOAPY+7YG0FwpfVewXuHKRH59
+aRlok441ye3fj9pPYJSlIz0JHw2bo42jf2g7864fpQ+KLe1Tu+ghfAHzNHiKqJOw
+5CBXqurSLagUH7Xql/6vbOdXuSLf/+lb19eJqy7mPjWoeElxQU1Z6bLoODrjuLSG
+DP8wNwcmYLfpIOpD+laTl6Go3U7EEVDzsIQzJnVl6eOZrKkWaiKigujrbF7J0F/w
+hkWA6xUDUArYhsr4nb0qsxrplmjSjw==
+=Ok88
 -----END PGP SIGNATURE-----
 
---KmAEv/XYU5I1OTsL--
+--/JJvFVvi2fOow9X8--
