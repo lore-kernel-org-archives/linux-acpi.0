@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35B9DC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 16:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 047B4C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 16:33:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237468AbhKWQgU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:36:20 -0500
-Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:7646 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S235982AbhKWQgI (ORCPT
+        id S237796AbhKWQge (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:36:34 -0500
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:54230 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S237840AbhKWQgY (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Nov 2021 11:36:08 -0500
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1ANCeXB8012277;
-        Tue, 23 Nov 2021 10:31:55 -0600
+        Tue, 23 Nov 2021 11:36:24 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1AN7k0BC013868;
+        Tue, 23 Nov 2021 10:32:00 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=Z4waY4CUfZqZb4PuHTMV15Sbyi91pjjmEvXyAxHUB7A=;
- b=QrHPpT7Ym5aDKWrW/3I7oodI+By3k5CQTAhWVXJDwq1AvKddySP+ULwbGEzf/PA99ZX6
- DthhlpNJjgZ+l5f8RI7zqttSmVQPAgWjSWqRc8bqexXHYk+9/22F2zKhl8VTUT5G/gR7
- wlYCSyhYVMMz3pu53i5UBb5/MK1As7hp9RI4SbiCcLsbM0yYyC4G/RV0W6STWVtp4tEJ
- uu1Byyz9YGLHsC65IsGoEhFdBdTo0zbqzNJHqPjkUSWu/TmrR8U1RX965QDi9h06SEkJ
- pnWeXN61CWf6WAUEqG24q2VNL9fAZNFsjZWxM81+iQ+//SNW8UUiaI/Nb41h5GO2YonH qg== 
+ bh=ATn3v5FpDaLdr5ZeC+/nTRw9PYiV4Lv2gQEjGJ7czWI=;
+ b=mBzqTLJDKTVBPjfb9a4WI/MiWBGfbrQz+OjQcQFgeGUQBveDMXpmBfxRZpcFOdTbTThD
+ Vpo7tLnw4IJQnsmmycRgDAZNQCYJqsIbE+2iZroN/Pg50oRwtp85OOhfqRBy4wDS3qhL
+ tORbtmBsTguEGDHv/WxfvRwtOdn9HeJ9AmRyM5vnVRU9UCpEFewbIRaejuEI850xZmPw
+ iPOlyQc3c5hRI1ayRboOCKXFU40AkVR9XAkJqfore6FEBLr2MdCnyJm8H5PcTSt4QXs3
+ qesJlNygBxBovmx0duzdWUDfBkUogxamm0wdAmm7pFsZ3rGDxKubdJL5WQVpVzOCEkf0 mA== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cg5ms21ng-3
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3cg3v7a220-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Tue, 23 Nov 2021 10:31:55 -0600
+        Tue, 23 Nov 2021 10:31:59 -0600
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Tue, 23 Nov
- 2021 16:31:54 +0000
+ 2021 16:31:57 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
- Transport; Tue, 23 Nov 2021 16:31:54 +0000
+ Transport; Tue, 23 Nov 2021 16:31:57 +0000
 Received: from aryzen.ad.cirrus.com (unknown [198.61.65.11])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id ACB6B2A1;
-        Tue, 23 Nov 2021 16:31:53 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 722922A1;
+        Tue, 23 Nov 2021 16:31:56 +0000 (UTC)
 From:   Lucas Tanure <tanureal@opensource.cirrus.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
@@ -66,160 +66,129 @@ CC:     Jeremy Szu <jeremy.szu@canonical.com>,
         <platform-driver-x86@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
         "Lucas Tanure" <tanureal@opensource.cirrus.com>
-Subject: [PATCH 04/11] ASoC: cs35l41: Create function for init array of Supplies
-Date:   Tue, 23 Nov 2021 16:31:42 +0000
-Message-ID: <20211123163149.1530535-5-tanureal@opensource.cirrus.com>
+Subject: [PATCH 08/11] ASoC: cs35l41: Create shared function for setting channels
+Date:   Tue, 23 Nov 2021 16:31:46 +0000
+Message-ID: <20211123163149.1530535-9-tanureal@opensource.cirrus.com>
 X-Mailer: git-send-email 2.34.0
 In-Reply-To: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
 References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: N3BFwnZQAho2AC0-k3McSh0EgDUUl1dq
-X-Proofpoint-ORIG-GUID: N3BFwnZQAho2AC0-k3McSh0EgDUUl1dq
+X-Proofpoint-GUID: YvymC5K6L6g4PSNiPa0k72Ok9bN1h3kx
+X-Proofpoint-ORIG-GUID: YvymC5K6L6g4PSNiPa0k72Ok9bN1h3kx
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Both ASoC and HDA system have to initialize the arrays of supplies
-in the same way, so create a function for that in shared code
+ASoC and HDA will use the same register to set channels
+for the device
 
 Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 ---
- include/sound/cs35l41.h        |  5 ++++-
- sound/soc/codecs/cs35l41-lib.c | 29 +++++++++++++++++++++++++++++
- sound/soc/codecs/cs35l41.c     | 23 +++--------------------
- 3 files changed, 36 insertions(+), 21 deletions(-)
+ include/sound/cs35l41.h        |  3 +++
+ sound/soc/codecs/cs35l41-lib.c | 32 ++++++++++++++++++++++++++++++++
+ sound/soc/codecs/cs35l41.c     | 30 +++---------------------------
+ 3 files changed, 38 insertions(+), 27 deletions(-)
 
 diff --git a/include/sound/cs35l41.h b/include/sound/cs35l41.h
-index ced80ede1def..5039e876bad1 100644
+index e33bc0ed502d..219f23f643a6 100644
 --- a/include/sound/cs35l41.h
 +++ b/include/sound/cs35l41.h
-@@ -536,7 +536,6 @@
- #define CS35L41_NUM_OTP_MAPS		5
+@@ -766,5 +766,8 @@ extern struct regmap_config cs35l41_regmap_spi;
+ int cs35l41_init_supplies(struct device *dev, struct regulator_bulk_data *supplies);
+ int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap);
+ int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsigned int reg_revid);
++int cs35l41_set_channels(struct device *dev, struct regmap *reg,
++			 unsigned int tx_num, unsigned int *tx_slot,
++			 unsigned int rx_num, unsigned int *rx_slot);
  
- #define CS35L41_VALID_PDATA		0x80000000
--#define CS35L41_NUM_SUPPLIES            2
- 
- #define CS35L41_SCLK_MSTR_MASK		0x10
- #define CS35L41_SCLK_MSTR_SHIFT		4
-@@ -724,6 +723,8 @@
- #define CS35L41_SPI_MAX_FREQ		4000000
- #define CS35L41_REGSTRIDE		4
- 
-+#define CS35L41_NUM_SUPPLIES		2
-+
- enum cs35l41_clk_ids {
- 	CS35L41_CLKID_SCLK = 0,
- 	CS35L41_CLKID_LRCLK = 1,
-@@ -762,4 +763,6 @@ struct cs35l41_otp_map_element_t {
- extern struct regmap_config cs35l41_regmap_i2c;
- extern struct regmap_config cs35l41_regmap_spi;
- 
-+int cs35l41_init_supplies(struct device *dev, struct regulator_bulk_data *supplies);
-+
  #endif /* __CS35L41_H */
 diff --git a/sound/soc/codecs/cs35l41-lib.c b/sound/soc/codecs/cs35l41-lib.c
-index 04f59cda5126..4aba0f90b876 100644
+index b7a6dbf7fb8b..5bb733bb02a0 100644
 --- a/sound/soc/codecs/cs35l41-lib.c
 +++ b/sound/soc/codecs/cs35l41-lib.c
-@@ -7,6 +7,7 @@
- // Author: David Rhodes <david.rhodes@cirrus.com>
- // Author: Lucas Tanure <lucas.tanure@cirrus.com>
+@@ -951,3 +951,35 @@ int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsign
  
-+#include <linux/regulator/consumer.h>
- #include <sound/cs35l41.h>
- 
- const struct reg_default cs35l41_reg[] = {
-@@ -690,6 +691,11 @@ const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS]
- 	},
- };
- 
-+static const char * const cs35l41_supplies[CS35L41_NUM_SUPPLIES] = {
-+	"VA",
-+	"VP",
-+};
+ 	return ret;
+ }
 +
- struct regmap_config cs35l41_regmap_i2c = {
- 	.reg_bits = 32,
- 	.val_bits = 32,
-@@ -720,3 +726,26 @@ struct regmap_config cs35l41_regmap_spi = {
- 	.precious_reg = cs35l41_precious_reg,
- 	.cache_type = REGCACHE_RBTREE,
- };
-+
-+int cs35l41_init_supplies(struct device *dev, struct regulator_bulk_data *supplies)
++int cs35l41_set_channels(struct device *dev, struct regmap *reg,
++			 unsigned int tx_num, unsigned int *tx_slot,
++			 unsigned int rx_num, unsigned int *rx_slot)
 +{
-+	int i, ret;
++	unsigned int val, mask;
++	int i;
 +
-+	for (i = 0; i < CS35L41_NUM_SUPPLIES; i++)
-+		supplies[i].supply = cs35l41_supplies[i];
++	if (tx_num > 4 || rx_num > 2)
++		return -EINVAL;
 +
-+	ret = devm_regulator_bulk_get(dev, CS35L41_NUM_SUPPLIES, supplies);
-+	if (ret != 0) {
-+		dev_err(dev, "Failed to request core supplies: %d\n", ret);
-+		return ret;
++	val = 0;
++	mask = 0;
++	for (i = 0; i < rx_num; i++) {
++		dev_dbg(dev, "rx slot %d position = %d\n", i, rx_slot[i]);
++		val |= rx_slot[i] << (i * 8);
++		mask |= 0x3F << (i * 8);
 +	}
++	regmap_update_bits(reg, CS35L41_SP_FRAME_RX_SLOT, mask, val);
 +
-+	ret = regulator_bulk_enable(CS35L41_NUM_SUPPLIES, supplies);
-+	if (ret != 0) {
-+		dev_err(dev, "Failed to enable core supplies: %d\n", ret);
-+		return ret;
++	val = 0;
++	mask = 0;
++	for (i = 0; i < tx_num; i++) {
++		dev_dbg(dev, "tx slot %d position = %d\n", i, tx_slot[i]);
++		val |= tx_slot[i] << (i * 8);
++		mask |= 0x3F << (i * 8);
 +	}
++	regmap_update_bits(reg, CS35L41_SP_FRAME_TX_SLOT, mask, val);
 +
 +	return 0;
 +}
 +
 diff --git a/sound/soc/codecs/cs35l41.c b/sound/soc/codecs/cs35l41.c
-index e8e997efaa8b..c8709de41aaf 100644
+index b1202ac9f264..e61736daef62 100644
 --- a/sound/soc/codecs/cs35l41.c
 +++ b/sound/soc/codecs/cs35l41.c
-@@ -24,11 +24,6 @@
+@@ -746,36 +746,12 @@ static const struct cs_dsp_region cs35l41_dsp1_regions[] = {
+ 	{. type = WMFW_ADSP2_YM,	.base = CS35L41_DSP1_YMEM_UNPACK24_0},
+ };
  
- #include "cs35l41.h"
- 
--static const char * const cs35l41_supplies[CS35L41_NUM_SUPPLIES] = {
--	"VA",
--	"VP",
--};
--
- struct cs35l41_pll_sysclk_config {
- 	int freq;
- 	int clk_cfg;
-@@ -1526,7 +1521,7 @@ static int cs35l41_dsp_init(struct cs35l41_private *cs35l41)
- int cs35l41_probe(struct cs35l41_private *cs35l41,
- 		  struct cs35l41_platform_data *pdata)
+-static int cs35l41_set_channel_map(struct snd_soc_dai *dai, unsigned int tx_num,
+-				   unsigned int *tx_slot, unsigned int rx_num,
+-				   unsigned int *rx_slot)
++static int cs35l41_set_channel_map(struct snd_soc_dai *dai, unsigned int tx_n,
++				   unsigned int *tx_slot, unsigned int rx_n, unsigned int *rx_slot)
  {
--	u32 regid, reg_revid, i, mtl_revid, int_status, chipid_match;
-+	u32 regid, reg_revid, mtl_revid, int_status, chipid_match;
- 	int irq_pol = 0;
- 	int ret;
- 
-@@ -1538,21 +1533,9 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
- 			return ret;
- 	}
- 
--	for (i = 0; i < CS35L41_NUM_SUPPLIES; i++)
--		cs35l41->supplies[i].supply = cs35l41_supplies[i];
+ 	struct cs35l41_private *cs35l41 = snd_soc_component_get_drvdata(dai->component);
+-	unsigned int val, mask;
+-	int i;
 -
--	ret = devm_regulator_bulk_get(cs35l41->dev, CS35L41_NUM_SUPPLIES,
--				      cs35l41->supplies);
--	if (ret != 0) {
--		dev_err(cs35l41->dev, "Failed to request core supplies: %d\n", ret);
-+	ret = cs35l41_init_supplies(cs35l41->dev, cs35l41->supplies);
-+	if (ret)
- 		return ret;
--	}
--
--	ret = regulator_bulk_enable(CS35L41_NUM_SUPPLIES, cs35l41->supplies);
--	if (ret != 0) {
--		dev_err(cs35l41->dev, "Failed to enable core supplies: %d\n", ret);
--		return ret;
--	}
+-	if (tx_num > 4 || rx_num > 2)
+-		return -EINVAL;
  
- 	/* returning NULL can be an option if in stereo mode */
- 	cs35l41->reset_gpio = devm_gpiod_get_optional(cs35l41->dev, "reset",
+-	val = 0;
+-	mask = 0;
+-	for (i = 0; i < rx_num; i++) {
+-		dev_dbg(cs35l41->dev, "rx slot %d position = %d\n", i, rx_slot[i]);
+-		val |= rx_slot[i] << (i * 8);
+-		mask |= 0x3F << (i * 8);
+-	}
+-	regmap_update_bits(cs35l41->regmap, CS35L41_SP_FRAME_RX_SLOT, mask, val);
+-
+-	val = 0;
+-	mask = 0;
+-	for (i = 0; i < tx_num; i++) {
+-		dev_dbg(cs35l41->dev, "tx slot %d position = %d\n", i, tx_slot[i]);
+-		val |= tx_slot[i] << (i * 8);
+-		mask |= 0x3F << (i * 8);
+-	}
+-	regmap_update_bits(cs35l41->regmap, CS35L41_SP_FRAME_TX_SLOT, mask, val);
+-
+-	return 0;
++	return cs35l41_set_channels(cs35l41->dev, cs35l41->regmap, tx_n, tx_slot, rx_n, rx_slot);
+ }
+ 
+ static int cs35l41_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 -- 
 2.34.0
 
