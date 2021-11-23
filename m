@@ -2,74 +2,121 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43331C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 01:16:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A3AC433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 08:24:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231292AbhKWBTN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 22 Nov 2021 20:19:13 -0500
-Received: from mga05.intel.com ([192.55.52.43]:63681 "EHLO mga05.intel.com"
+        id S232003AbhKWI1x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 03:27:53 -0500
+Received: from sauhun.de ([88.99.104.3]:47114 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230366AbhKWBTN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Nov 2021 20:19:13 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10176"; a="321155316"
-X-IronPort-AV: E=Sophos;i="5.87,256,1631602800"; 
-   d="scan'208";a="321155316"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2021 17:16:04 -0800
-X-IronPort-AV: E=Sophos;i="5.87,256,1631602800"; 
-   d="scan'208";a="509203594"
-Received: from chenyu-desktop.sh.intel.com (HELO chenyu-desktop) ([10.239.158.186])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2021 17:16:01 -0800
-Date:   Tue, 23 Nov 2021 09:15:06 +0800
-From:   Chen Yu <yu.c.chen@intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc:     linux-acpi@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
+        id S230306AbhKWI1x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Nov 2021 03:27:53 -0500
+Received: from localhost (p5486ca86.dip0.t-ipconnect.de [84.134.202.134])
+        by pokefinder.org (Postfix) with ESMTPSA id 06C2B2C009E;
+        Tue, 23 Nov 2021 09:24:42 +0100 (CET)
+Date:   Tue, 23 Nov 2021 09:24:38 +0100
+From:   Wolfram Sang <wsa@the-dreams.de>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Mark Gross <markgross@kernel.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        MyungJoo Ham <myungjoo.ham@samsung.com>,
+        Chanwoo Choi <cw00.choi@samsung.com>,
         Ard Biesheuvel <ardb@kernel.org>, Len Brown <lenb@kernel.org>,
-        Ashok Raj <ashok.raj@intel.com>,
-        Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
-        Robert Moore <robert.moore@intel.com>
-Subject: Re: [PATCH v11 4/4] tools: Introduce power/acpi/tools/pfru
-Message-ID: <20211123011506.GA994503@chenyu-desktop>
-References: <cover.1637505679.git.yu.c.chen@intel.com>
- <a1f688cd4ade1257e96d13c91eba72a1aeef5d59.1637505679.git.yu.c.chen@intel.com>
- <YZt+VPI2n/MED9O6@smile.fi.intel.com>
- <20211122154842.GA10345@chenyu5-mobl1>
- <YZvQ7iZMJ9nZgh2+@smile.fi.intel.com>
+        linux-acpi@vger.kernel.org, Yauhen Kharuzhy <jekhor@gmail.com>,
+        Tsuchiya Yuto <kitakar@gmail.com>,
+        platform-driver-x86@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-efi@vger.kernel.org
+Subject: Re: [PATCH v2 15/20] i2c: cht-wc: Make charger i2c-client
+ instantiation board/device-model specific
+Message-ID: <YZylRkOQsj9LpG5U@kunai>
+Mail-Followup-To: Wolfram Sang <wsa@the-dreams.de>,
+        Hans de Goede <hdegoede@redhat.com>,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Mark Gross <markgross@kernel.org>,
+        Andy Shevchenko <andy@infradead.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        MyungJoo Ham <myungjoo.ham@samsung.com>,
+        Chanwoo Choi <cw00.choi@samsung.com>,
+        Ard Biesheuvel <ardb@kernel.org>, Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org, Yauhen Kharuzhy <jekhor@gmail.com>,
+        Tsuchiya Yuto <kitakar@gmail.com>,
+        platform-driver-x86@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-efi@vger.kernel.org
+References: <20211114170335.66994-1-hdegoede@redhat.com>
+ <20211114170335.66994-16-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="WTi5NgaCbc4tZLlR"
 Content-Disposition: inline
-In-Reply-To: <YZvQ7iZMJ9nZgh2+@smile.fi.intel.com>
+In-Reply-To: <20211114170335.66994-16-hdegoede@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 22, 2021 at 07:18:38PM +0200, Andy Shevchenko wrote:
-> On Mon, Nov 22, 2021 at 11:48:42PM +0800, Chen Yu wrote:
-> > On Mon, Nov 22, 2021 at 01:26:12PM +0200, Andy Shevchenko wrote:
-> > > On Sun, Nov 21, 2021 at 11:17:29PM +0800, Chen Yu wrote:
-> > > > Introduce a user space tool to make use of the interface exposed by
-> > > > Platform Firmware Runtime Update and Telemetry drivers. The users
-> > > > can use this tool to do firmware code injection, driver update and
-> > > > to retrieve the telemetry data.
-> > > 
-> > > Have you tried to build tools with `make O=/my/tmp/folder/for/kernel/build ...`
-> > > which previously has been used for kernel builds?
-> > >
-> > I was not aware of that and just had a try. It seems that there is an issue in
-> > tools/power/acpi that, only with the following patch appiled, the make O=xxx
-> > would work:
-> 
-> Cool!
-> Care to send a separate fix for this, please?
->
-Ok, will do.
 
-thanks,
-Chenyu 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
+--WTi5NgaCbc4tZLlR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Nov 14, 2021 at 06:03:30PM +0100, Hans de Goede wrote:
+> The i2c-controller on the Cherry Trail - Whiskey Cove PMIC is special
+> in that it is always connected to the I2C charger IC of the board on
+> which the PMIC is used; and the charger IC is not described in ACPI,
+> so the i2c-cht-wc code needs to instantiate an i2c-client for it itself.
+>=20
+> So far this was hardcoded to instantiate an i2c-client for the
+> bq24292i, with all properties, etc. set to match how this charger
+> is used on the GPD win and GPD pcoket devices.
+>=20
+> There is a rudimentary check to make sure the ACPI tables are at least
+> somewhat as expected, but this is far from accurate, leading to
+> a wrong i2c-client being instantiated for the charger on some boards.
+>=20
+> Switch to the new DMI based intel_cht_wc_get_model() helper which is
+> exported by the MFD driver for the CHT Whiskey Cove PMIC to help PMIC
+> cell drivers like the i2c-cht-wc code reliably detect which board
+> they are running on.
+>=20
+> And add board_info for the charger ICs as found on the other 2 known
+> boards with a Whisky Cove PMIC.
+>=20
+> This has been tested on all 3 known boards.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+Here is my Ack to take this via some other tree:
+
+Acked-by: Wolfram Sang <wsa@kernel.org>
+
+No need to send further versions of this series to the i2c-list, I'd
+think.
+
+
+--WTi5NgaCbc4tZLlR
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmGcpUEACgkQFA3kzBSg
+KbZSBA/9GZx4RHh20+JYopnxXgk1t0Q/HPhRtQbbQI3VO4mo4gy8ayNRmaDWhi2+
+SYeVFpAEaYJSlGATSM5JO6IaqcKM1TO1Jtuh0FH7vNPQMbqJmEA8nhKuM3Mf2pcP
+qt9PhNkeZdg2qsDUVyHFo6fKsXahznvsZXtj/U5TPfTKtnXxJMDQY7mI6i4YCDZT
+m4s8bjXxSaTd1uR/7URY+gtF9bKcyA9VZ6BKyV9sdutNSWkBkuP/RO0AEaPJMNzx
+fjtaP7mabpQIFKvqx2dPIagON+sy7zd/H2ImKCDQjs/DwVgro9PdQ+6II8ObL1gE
+74/dBRVIf0azQzYyxs1rtGftXf4vrsENGAKdzbOFzxwd4swg3BsLBrIcHZtc7bDb
+n9C//6dIcS28/SJRCyOVNRLg5U529XqCVJ6njL8j5QGmfiCUUcyO097JrZAUpyGI
+bsq01dw6I7ab9dgpLeLWVMKMRkrLgOeHgfzyONG17RKOofEC+8ZqNs8DW3WAwoad
+XUWVEYT666VcxO2kFK/wpuS35Oef44Jm7sXlhkP4vjFKAAkYe8bO86Jkz1s+oqwL
+h4g8dafZswiMZnrCq9wzc4lAVpgD3uRoKaFiTx9Qf2GNQ1mWWC9L1WnM90pODbWv
+7M+q3EuWlrR3qjqb0Zlbf6jyxOobdVhq6mzkWTl7TjE385NA1kI=
+=WAP4
+-----END PGP SIGNATURE-----
+
+--WTi5NgaCbc4tZLlR--
