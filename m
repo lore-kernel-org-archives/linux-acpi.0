@@ -2,100 +2,63 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A24C433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 17:59:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE5BC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 18:03:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239519AbhKWSCH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 13:02:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54632 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239508AbhKWSCH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Nov 2021 13:02:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D4F56052B;
-        Tue, 23 Nov 2021 17:58:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1637690338;
-        bh=d9t+ZRTCK8H/Ezxf7VMaGXM5QRACAAA0uxZgA56l8E0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=bNZBmbF3y+P40zNaijOwN98W6E/nbrgj1dOdXuOQVuEyQhVOIuuyQGCIXq/2EEdPU
-         +sG2hEI2/1fVfgZsaiBK7pTeWewPN25szGvZseMRNX/+GhlwId4gM1D2ra9aGYn3f5
-         e5VfVEwxK7/DYB652JlE2kt2T5z04kCkFA8sop11UvC/yqhuBBLdCz1jfZPCHyDsWo
-         KwK4g8OH/KhH2YECZEw6nB/R0rOk6ysyk5DmTGCZZOAA4YgmYd3rsIhYjJhzrNfuZ1
-         F9aARDFvFDl2szGxOF0VXGHh01Q9ddsJ2SpbGFEppX+nEBOL/aNsU9c/5+/KaRuav5
-         JaUtudF73aLHA==
-Date:   Tue, 23 Nov 2021 17:58:50 +0000
-From:   Mark Brown <broonie@kernel.org>
-To:     Lucas Tanure <tanureal@opensource.cirrus.com>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Kailang Yang <kailang@realtek.com>,
-        Shuming Fan <shumingf@realtek.com>,
-        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        David Rhodes <david.rhodes@cirrus.com>,
-        Vitaly Rodionov <vitalyr@opensource.cirrus.com>,
-        Jeremy Szu <jeremy.szu@canonical.com>,
-        Hui Wang <hui.wang@canonical.com>,
-        Werner Sembach <wse@tuxedocomputers.com>,
-        Chris Chiu <chris.chiu@canonical.com>,
-        Cameron Berkenpas <cam@neo-zeon.de>,
-        Sami Loone <sami@loone.fi>, Elia Devito <eliadevito@gmail.com>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        Jack Yu <jack.yu@realtek.com>, Arnd Bergmann <arnd@arndb.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org,
-        patches@opensource.cirrus.com, platform-driver-x86@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 04/11] ASoC: cs35l41: Create function for init array of
- Supplies
-Message-ID: <YZ0r2s1z15yXLVhb@sirena.org.uk>
-References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
- <20211123163149.1530535-5-tanureal@opensource.cirrus.com>
+        id S237522AbhKWSGl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 13:06:41 -0500
+Received: from mail-oi1-f180.google.com ([209.85.167.180]:44931 "EHLO
+        mail-oi1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229674AbhKWSGl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Nov 2021 13:06:41 -0500
+Received: by mail-oi1-f180.google.com with SMTP id be32so46097132oib.11;
+        Tue, 23 Nov 2021 10:03:33 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=6eTpqnVuWiy6J9/pK85SFmtlKrVau8JlSwHmWLQrrZc=;
+        b=oTEIqUvSlG+yyHgkcnfzvSUpTDeGHF1xiMlGUyKcUfDpMtbrCTcyi5qHlCO4618ity
+         F2ITTcostvmd1CbAIRuw06w4dgZN++pIkvhIeHv4IWgkwBOxFbVknTBCfGvhpGY/IKww
+         4r68gnRvP14c4EgNWCnZkB1YTTb4Cd40tp9Vzh5rrQiCOF+pRK76I9V+a9KoutNopr8C
+         Fk8GNuNcbt/zLj+ZX/MOZJsyzePpshOHDEQ0YJpQpNkEzz/dCVqrHFt0pldpDlugi8ot
+         bm7E4Og8gMkKXtjvwcQ4yBI7Mtv2197v9pg+Ssa6cqB9ZPzmlj7xjBPkHWRF1pZaDbzN
+         OWDQ==
+X-Gm-Message-State: AOAM531z/06QXTbDWjuMhlsqxfZYWlJl5mCkmTv0B8KgjfZ2tUUOf7/f
+        yiroesAnHtFZxuqakIlEuLq9DUx/rAwvOfIalWk=
+X-Google-Smtp-Source: ABdhPJw3CPdiusK2j7KExKEEOfGfmKQp+tyKGKo2YlgWNtr7tduXngTF0kV4LWdRMiGXU6lIL7vAAyhpi+UipVAcmyY=
+X-Received: by 2002:a05:6808:e90:: with SMTP id k16mr4287594oil.166.1637690612921;
+ Tue, 23 Nov 2021 10:03:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="WkK+Jw7iuU6ibZtu"
-Content-Disposition: inline
-In-Reply-To: <20211123163149.1530535-5-tanureal@opensource.cirrus.com>
-X-Cookie: A closed mouth gathers no foot.
+References: <20211110111640.62807-1-andriy.shevchenko@linux.intel.com> <YZ0XXoH05cUQ+UMj@smile.fi.intel.com>
+In-Reply-To: <YZ0XXoH05cUQ+UMj@smile.fi.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 23 Nov 2021 19:03:21 +0100
+Message-ID: <CAJZ5v0iz-rRV8dktYCe5L-u_zG3vp5S2ZuF=gjrsfgLgcQSnow@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] ACPI: Replace kernel.h with the necessary inclusions
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Wei Liu <wei.liu@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Tue, Nov 23, 2021 at 5:31 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Wed, Nov 10, 2021 at 01:16:40PM +0200, Andy Shevchenko wrote:
+> > When kernel.h is used in the headers it adds a lot into dependency hell,
+> > especially when there are circular dependencies are involved.
+> >
+> > Replace kernel.h inclusion with the list of what is really being used.
+>
+> Anybody any comments on this? I really want to shrink kernel.h usage in
+> headers rather sooner than later...
 
---WkK+Jw7iuU6ibZtu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Nov 23, 2021 at 04:31:42PM +0000, Lucas Tanure wrote:
-
-> +	ret = regulator_bulk_enable(CS35L41_NUM_SUPPLIES, supplies);
-> +	if (ret != 0) {
-> +		dev_err(dev, "Failed to enable core supplies: %d\n", ret);
-> +		return ret;
-> +	}
-
-Where's the matching disable, I didn't see anything in the HDA code?  It
-is there in cs35l41_remove() in the CODEC driver but there's nothing
-sharing that bit of code here that I noticed.
-
---WkK+Jw7iuU6ibZtu
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmGdK9kACgkQJNaLcl1U
-h9DmbQf/WBTOwnGah2RPWstqHbB4KVwvwuQL1bd7ZNWcCo0Tm7mJQ9fZijq/ymRX
-dygCYgN8kwNIQVjQ3Z8xagPhs7FHNJ+Iye3MYstcm87rXUabmvqgvLOVJ0H49Ttd
-QukPv/bLwugCmcvctZOtEcGv9CnkZ/P74/m+a54Bi4Rz0mnu+bs4AjyCMT4Ql//S
-K1B9/giEf7ZKuCcwUOZysoIs7xMK2LV15oQBlgC79XLZ6Q2hgxFoE4pEJZC7fAvo
-OQ3akqHcXS5W7KdM9B2TC3bJjEceOguigbs/2ETyg01M2a7Hfgaf5vmUdyM6cM/y
-NWZuJ6hwB/rXi6x7Sc6U3vcnduhh7Q==
-=bhpN
------END PGP SIGNATURE-----
-
---WkK+Jw7iuU6ibZtu--
+Patch applied as 5.17 material, thanks!
