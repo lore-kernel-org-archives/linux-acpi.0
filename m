@@ -2,71 +2,125 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 749CBC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 18:49:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA5DC433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Nov 2021 18:49:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239923AbhKWSw0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Nov 2021 13:52:26 -0500
-Received: from mga14.intel.com ([192.55.52.115]:10812 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239912AbhKWSw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Nov 2021 13:52:26 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="235337859"
-X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="235337859"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 10:48:58 -0800
-X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="674591930"
-Received: from smile.fi.intel.com ([10.237.72.184])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 10:48:56 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1mpaqb-009s3E-9P;
-        Tue, 23 Nov 2021 20:48:53 +0200
-Date:   Tue, 23 Nov 2021 20:48:52 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Wei Liu <wei.liu@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>
-Subject: Re: [PATCH v1 1/1] ACPI: Replace kernel.h with the necessary
- inclusions
-Message-ID: <YZ03lD2nlLwJ2KLL@smile.fi.intel.com>
-References: <20211110111640.62807-1-andriy.shevchenko@linux.intel.com>
- <YZ0XXoH05cUQ+UMj@smile.fi.intel.com>
- <CAJZ5v0iz-rRV8dktYCe5L-u_zG3vp5S2ZuF=gjrsfgLgcQSnow@mail.gmail.com>
+        id S239941AbhKWSw2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Nov 2021 13:52:28 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:55778 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236955AbhKWSw0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Nov 2021 13:52:26 -0500
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 3.0.1)
+ id 972e9cfc9271efb9; Tue, 23 Nov 2021 19:49:16 +0100
+Received: from kreacher.localnet (unknown [213.134.175.133])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id E380C66AC5B;
+        Tue, 23 Nov 2021 19:49:15 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>
+Subject: [PATCH 08/10] ACPI: EC: Avoid queuing unnecessary work in acpi_ec_submit_event()
+Date:   Tue, 23 Nov 2021 19:43:05 +0100
+Message-ID: <1894423.PYKUYFuaPT@kreacher>
+In-Reply-To: <11887969.O9o76ZdvQC@kreacher>
+References: <11887969.O9o76ZdvQC@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iz-rRV8dktYCe5L-u_zG3vp5S2ZuF=gjrsfgLgcQSnow@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.175.133
+X-CLIENT-HOSTNAME: 213.134.175.133
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvuddrgeeigdduudejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepvddufedrudefgedrudejhedrudeffeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrddufeefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 23, 2021 at 07:03:21PM +0100, Rafael J. Wysocki wrote:
-> On Tue, Nov 23, 2021 at 5:31 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > On Wed, Nov 10, 2021 at 01:16:40PM +0200, Andy Shevchenko wrote:
-> > > When kernel.h is used in the headers it adds a lot into dependency hell,
-> > > especially when there are circular dependencies are involved.
-> > >
-> > > Replace kernel.h inclusion with the list of what is really being used.
-> >
-> > Anybody any comments on this? I really want to shrink kernel.h usage in
-> > headers rather sooner than later...
-> 
-> Patch applied as 5.17 material, thanks!
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thank you for the prompt acceptance!
+Notice that it is not necessary to queue up the event work again
+if the while () loop in acpi_ec_event_handler() is still running
+which is the case if nr_pending_queries is greater than 0 at the
+beginning of acpi_ec_submit_event() and modify the code to avoid
+doing that.
 
--- 
-With Best Regards,
-Andy Shevchenko
+While at it, rename nr_pending_queries in struct acpi_ec to
+events_to_process which actually matches the role of that field
+and change its data type to unsigned int which is sufficient.
+
+No expected functional impact.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/ec.c       |   17 +++++++++++++----
+ drivers/acpi/internal.h |    2 +-
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -183,7 +183,7 @@ struct acpi_ec {
+ 	spinlock_t lock;
+ 	struct work_struct work;
+ 	unsigned long timestamp;
+-	unsigned long nr_pending_queries;
++	unsigned int events_to_process;
+ 	unsigned int events_in_progress;
+ 	unsigned int queries_in_progress;
+ 	bool busy_polling;
+Index: linux-pm/drivers/acpi/ec.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/ec.c
++++ linux-pm/drivers/acpi/ec.c
+@@ -453,7 +453,16 @@ static bool acpi_ec_submit_event(struct
+ 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+ 		ec_dbg_evt("Command(%s) submitted/blocked",
+ 			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+-		ec->nr_pending_queries++;
++		/*
++		 * If events_to_process is greqter than 0 at this point, the
++		 * while () loop in acpi_ec_event_handler() is still running
++		 * and incrementing events_to_process will cause it to invoke
++		 * acpi_ec_submit_query() once more, so it is not necessary to
++		 * queue up the event work to start the same loop again.
++		 */
++		if (ec->events_to_process++ > 0)
++			return true;
++
+ 		ec->events_in_progress++;
+ 		return queue_work(ec_wq, &ec->work);
+ 	}
+@@ -665,7 +674,7 @@ static bool advance_transaction(struct a
+ 	 */
+ 	if (!t || !(t->flags & ACPI_EC_COMMAND_POLL)) {
+ 		if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT &&
+-		    (!ec->nr_pending_queries ||
++		    (!ec->events_to_process ||
+ 		     test_bit(EC_FLAGS_QUERY_GUARDING, &ec->flags))) {
+ 			clear_bit(EC_FLAGS_QUERY_GUARDING, &ec->flags);
+ 			acpi_ec_close_event(ec);
+@@ -1223,13 +1232,13 @@ static void acpi_ec_event_handler(struct
+ 
+ 	spin_lock_irq(&ec->lock);
+ 
+-	while (ec->nr_pending_queries) {
++	while (ec->events_to_process) {
+ 		spin_unlock_irq(&ec->lock);
+ 
+ 		acpi_ec_submit_query(ec);
+ 
+ 		spin_lock_irq(&ec->lock);
+-		ec->nr_pending_queries--;
++		ec->events_to_process--;
+ 	}
+ 
+ 	/*
+
 
 
