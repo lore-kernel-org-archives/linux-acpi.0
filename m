@@ -2,365 +2,172 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 419D3C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Nov 2021 18:51:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09245C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Nov 2021 22:54:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234283AbhKXSyr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Nov 2021 13:54:47 -0500
-Received: from foss.arm.com ([217.140.110.172]:42120 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229704AbhKXSyq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Nov 2021 13:54:46 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E6FB31FB;
-        Wed, 24 Nov 2021 10:51:35 -0800 (PST)
-Received: from lakrids (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6BF913F66F;
-        Wed, 24 Nov 2021 10:51:31 -0800 (PST)
-Date:   Wed, 24 Nov 2021 18:51:23 +0000
-From:   Mark Rutland <mark.rutland@arm.com>
-To:     Tyler Baicar <baicar@os.amperecomputing.com>
-Cc:     patches@amperecomputing.com, abdulhamid@os.amperecomputing.com,
-        darren@os.amperecomputing.com, catalin.marinas@arm.com,
-        will@kernel.org, maz@kernel.org, james.morse@arm.com,
-        alexandru.elisei@arm.com, suzuki.poulose@arm.com,
-        lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        sudeep.holla@arm.com, rafael@kernel.org, lenb@kernel.org,
-        tony.luck@intel.com, bp@alien8.de, anshuman.khandual@arm.com,
-        vincenzo.frascino@arm.com, tabba@google.com, marcan@marcan.st,
-        keescook@chromium.org, jthierry@redhat.com, masahiroy@kernel.org,
-        samitolvanen@google.com, john.garry@huawei.com,
-        daniel.lezcano@linaro.org, gor@linux.ibm.com,
-        zhangshaokun@hisilicon.com, tmricht@linux.ibm.com,
-        dchinner@redhat.com, tglx@linutronix.de,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org,
-        linux-edac@vger.kernel.org, ishii.shuuichir@fujitsu.com,
-        Vineeth.Pillai@microsoft.com
-Subject: Re: [PATCH 1/2] ACPI/AEST: Initial AEST driver
-Message-ID: <YZ6Jq39Z9dIUqcfO@lakrids>
-References: <20211124170708.3874-1-baicar@os.amperecomputing.com>
- <20211124170708.3874-2-baicar@os.amperecomputing.com>
+        id S244991AbhKXW5n (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Nov 2021 17:57:43 -0500
+Received: from mail-dm6nam11on2047.outbound.protection.outlook.com ([40.107.223.47]:12116
+        "EHLO NAM11-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S244373AbhKXW5m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Nov 2021 17:57:42 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Vcp7q2fAAiplfOzZRWqCWNAZ143Z1xgcqElxSJGFVWN8UVEbpue1+XpbDBkTF1pKTtnXi10g+jdiq9pnRp4QtNZq9E1iuNm92Gy5WSvOzocKycdXIGMEBbMYkuoSNHZDIpKYgpWa9tcae1+0vZkiTDTpia42u3vvF5lrP+L10+38SpmE4bSnGmJ0oUUe+jOkG10dB+bQRSGOQ+3qHCf4L45aCcJpNfjlVaZZDiPg4HQ6SasH/uonv4UovFyvqzd0fjfvmCIn3ouK7/JFMZrqNIN8w53NGtYOv+aXjZrprgugaIZ/axUC3fPRcprsgnWeaXCqu5JL02iJFtgair1SlQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JmVlCzmvuBcqkDONTtQyAXgD120L3C519ZQiyfjLWIw=;
+ b=mgH8dTw0rTgFztpIQMrptQE3vVWdjHkLVH8Hh8ciRPzxa4M87AKdPZ0GPIcuxNTrEqs3Vul7nAZms20nNrvvKj10FGFYI/3jdd7W5EwyMeNI5H4WdztpkK2fSOmwXhMG4LqZbZN0mO0b63O4lAUWV3vHkPTETiVdCWOca8IoljCtGNsnBE1P4ZLajC2C9wYYVF9oab8jhLVhiiYaAvSuw9WpfJ6VhR0/02FzK0Th4Lrw4ilMBQbCX7kMpIOagfJJKjrzNvV6lTW4bAukuSMFA5ZICa6zgTucXOmEMBfJWFVNds17rG0DJowixI2nb4XHhI4YzxmPWIeZ6BjyUEFibA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 149.199.80.198) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=xilinx.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=xilinx.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=xilinx.onmicrosoft.com; s=selector2-xilinx-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JmVlCzmvuBcqkDONTtQyAXgD120L3C519ZQiyfjLWIw=;
+ b=iI0c3t8E6roSLDKz1SeOJMzMyiuqUPEjjuCWE6GKotsGC+kTIVzmuOOxkpCsrDH0duNgcEPNGSs9vbw8i6+1Iy3yTgf8RH1BcdiMds3d2B2sxbSOfecNbP34BIrZdI+6A2qyT3jlBVEXn1q0pEtyRW1q4aLUQ6/xU2dzc7QfQus=
+Received: from BN8PR04CA0027.namprd04.prod.outlook.com (2603:10b6:408:70::40)
+ by CO6PR02MB8801.namprd02.prod.outlook.com (2603:10b6:303:140::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4713.19; Wed, 24 Nov
+ 2021 22:54:30 +0000
+Received: from BN1NAM02FT029.eop-nam02.prod.protection.outlook.com
+ (2603:10b6:408:70:cafe::3d) by BN8PR04CA0027.outlook.office365.com
+ (2603:10b6:408:70::40) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4734.20 via Frontend
+ Transport; Wed, 24 Nov 2021 22:54:30 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 149.199.80.198)
+ smtp.mailfrom=xilinx.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=xilinx.com;
+Received-SPF: Pass (protection.outlook.com: domain of xilinx.com designates
+ 149.199.80.198 as permitted sender) receiver=protection.outlook.com;
+ client-ip=149.199.80.198; helo=xir-pvapexch01.xlnx.xilinx.com;
+Received: from xir-pvapexch01.xlnx.xilinx.com (149.199.80.198) by
+ BN1NAM02FT029.mail.protection.outlook.com (10.13.2.143) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.4734.20 via Frontend Transport; Wed, 24 Nov 2021 22:54:30 +0000
+Received: from xir-pvapexch02.xlnx.xilinx.com (172.21.17.17) by
+ xir-pvapexch01.xlnx.xilinx.com (172.21.17.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.14; Wed, 24 Nov 2021 22:54:28 +0000
+Received: from smtp.xilinx.com (172.21.105.198) by
+ xir-pvapexch02.xlnx.xilinx.com (172.21.17.17) with Microsoft SMTP Server id
+ 15.1.2176.14 via Frontend Transport; Wed, 24 Nov 2021 22:54:28 +0000
+Envelope-to: anand.ashok.dumbre@xilinx.com,
+ git@xilinx.com,
+ michal.simek@xilinx.com,
+ linux-kernel@vger.kernel.org,
+ jic23@kernel.org,
+ lars@metafoo.de,
+ linux-iio@vger.kernel.org,
+ gregkh@linuxfoundation.org,
+ rafael@kernel.org,
+ linux-acpi@vger.kernel.org,
+ andriy.shevchenko@linux.intel.com,
+ heikki.krogerus@linux.intel.com
+Received: from [10.71.188.1] (port=41256 helo=xiranandash40.xilinx.com)
+        by smtp.xilinx.com with esmtp (Exim 4.90)
+        (envelope-from <anand.ashok.dumbre@xilinx.com>)
+        id 1mq19f-0003SI-3g; Wed, 24 Nov 2021 22:54:19 +0000
+From:   Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
+To:     <linux-kernel@vger.kernel.org>, <jic23@kernel.org>,
+        <lars@metafoo.de>, <linux-iio@vger.kernel.org>, <git@xilinx.com>,
+        <michal.simek@xilinx.com>, <gregkh@linuxfoundation.org>,
+        <rafael@kernel.org>, <linux-acpi@vger.kernel.org>,
+        <andriy.shevchenko@linux.intel.com>,
+        <heikki.krogerus@linux.intel.com>
+CC:     Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
+Subject: [PATCH v11 1/5] device property: Add fwnode_iomap()
+Date:   Wed, 24 Nov 2021 22:54:03 +0000
+Message-ID: <20211124225407.17793-2-anand.ashok.dumbre@xilinx.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20211124225407.17793-1-anand.ashok.dumbre@xilinx.com>
+References: <20211124225407.17793-1-anand.ashok.dumbre@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211124170708.3874-2-baicar@os.amperecomputing.com>
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 991491d0-e706-41ea-d569-08d9af9d5fef
+X-MS-TrafficTypeDiagnostic: CO6PR02MB8801:
+X-Microsoft-Antispam-PRVS: <CO6PR02MB8801988D9FC70A3B2FBE70CFA9619@CO6PR02MB8801.namprd02.prod.outlook.com>
+X-Auto-Response-Suppress: DR, RN, NRN, OOF, AutoReply
+X-MS-Oob-TLC-OOBClassifiers: OLM:862;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: w1V5S+mpSnIAQpgq94/zwN+rpGWWQ81edunF04Af1fP4okE/YB9bmAY3C66KIsIQE5I/PbkMJAR+3Zw8WqNbGmPZeD/QwKiYNH0D8YnRPTRUJQlv0US3Hu6GAmU5vulUid27xUKKuDNk/Gyic11rfz/UMA0p23pewyae3FsDuSopCf0YT2/pFCjlrtZFy5YSrCeDgC2344tJjOFZCtd/FeH3wRP8NffcdKCNmOaZQAnpErzIum28eWFeNJpDl2IAXKKHMXK/tkF9c+AUBl/twwFnGTNR4Wgq0+gRXbFJVcjvqRYOREAzxsVlRYYltp+Jc1Nko4CYL/Lgaj4LC25zicBr8NMbwvre6/4PbGHEskmDpG3AX6FAniFZ4DtOXKfeW5CjPZFZnhr7uDzv/h4eb0ctK6zXoaInxcUROKYS1kb8dvtuptKGMJmzHQJjfEqcXVglHZ+N6LLUe3aT2RsqjHhGtX0phpG3M1qFhb/s4YsSZyB2yV/Fs9BWcS5ZnLWUW4REoRaPxnZv32VR8oW6RGXT66mfpFZF8wJjNeQBCh7HAws+qsy4PF9ellurhaDWlCO2JHoB0CvsevsnJIyExYj1apO7Jp4ppYUzXoUjGpEn74j9JNOWdO3jMXcc8egQ7Zibwj1fVuDo/IYno2etqVLCg3SRubQ1pv1O4BxcBt22MutCqAtu5quPbpc7ioGGuph0Svh2pRFssjbsG1B1zaLzuCeb377uRTwwBTv6wlGJI1xGC1kpvY4fZZ9VhjApRRFQE3tp9jtXDjRV1dzt1kbL4V0RpVB3gRquy6vk2JU=
+X-Forefront-Antispam-Report: CIP:149.199.80.198;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:xir-pvapexch01.xlnx.xilinx.com;PTR:unknown-80-198.xilinx.com;CAT:NONE;SFS:(36840700001)(46966006)(47076005)(1076003)(110136005)(2906002)(6666004)(8936002)(356005)(4326008)(82310400004)(5660300002)(36756003)(103116003)(336012)(7696005)(7636003)(508600001)(316002)(8676002)(70206006)(186003)(107886003)(26005)(36860700001)(921005)(70586007)(9786002)(426003)(2616005)(102446001)(2101003)(83996005);DIR:OUT;SFP:1101;
+X-OriginatorOrg: xilinx.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Nov 2021 22:54:30.2226
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 991491d0-e706-41ea-d569-08d9af9d5fef
+X-MS-Exchange-CrossTenant-Id: 657af505-d5df-48d0-8300-c31994686c5c
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=657af505-d5df-48d0-8300-c31994686c5c;Ip=[149.199.80.198];Helo=[xir-pvapexch01.xlnx.xilinx.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN1NAM02FT029.eop-nam02.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO6PR02MB8801
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+This patch introduces a new helper routine - fwnode_iomap(), which
+allows to map the memory mapped IO for a given device node.
 
-I haven't looked at this in great detail, but I spotted a few issues
-from an initial scan.
+This implementation does not cover the ACPI case and may be expanded
+in the future. The main purpose here is to be able to develop resource
+provider agnostic drivers.
 
-On Wed, Nov 24, 2021 at 12:07:07PM -0500, Tyler Baicar wrote:
-> Add support for parsing the ARM Error Source Table and basic handling of
-> errors reported through both memory mapped and system register interfaces.
-> 
-> Assume system register interfaces are only registered with private
-> peripheral interrupts (PPIs); otherwise there is no guarantee the
-> core handling the error is the core which took the error and has the
-> syndrome info in its system registers.
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/base/property.c  | 16 ++++++++++++++++
+ include/linux/property.h |  2 ++
+ 2 files changed, 18 insertions(+)
 
-Can we actually assume that? What does the specification mandate?
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index f1f35b48ab8b..f2e38be3a999 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -958,6 +958,22 @@ int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int index)
+ }
+ EXPORT_SYMBOL(fwnode_irq_get);
+ 
++/**
++ * fwnode_iomap - Maps the memory mapped IO for a given fwnode
++ * @fwnode:	Pointer to the firmware node
++ * @index:	Index of the IO range
++ *
++ * Returns a pointer to the mapped memory.
++ */
++void __iomem *fwnode_iomap(struct fwnode_handle *fwnode, int index)
++{
++	if (is_of_node(fwnode))
++		return of_iomap(to_of_node(fwnode), index);
++
++	return NULL;
++}
++EXPORT_SYMBOL(fwnode_iomap);
++
+ /**
+  * fwnode_graph_get_next_endpoint - Get next endpoint firmware node
+  * @fwnode: Pointer to the parent firmware node
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 88fa726a76df..6670d5a1ec2a 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -122,6 +122,8 @@ void fwnode_handle_put(struct fwnode_handle *fwnode);
+ 
+ int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int index);
+ 
++void __iomem *fwnode_iomap(struct fwnode_handle *fwnode, int index);
++
+ unsigned int device_get_child_node_count(struct device *dev);
+ 
+ static inline bool device_property_read_bool(struct device *dev,
+-- 
+2.17.1
 
-> Add logging for all detected errors and trigger a kernel panic if there is
-> any uncorrected error present.
-
-Has this been tested on any hardware or software platform?
-
-[...]
-
-> +#define ERRDEVARCH_REV_SHIFT	0x16
-
-IIUC This should be 16, not 0x16 (i.e. 22).
-
-> +#define ERRDEVARCH_REV_MASK	0xf
-> +
-> +#define RAS_REV_v1_1		0x1
-> +
-> +struct ras_ext_regs {
-> +	u64 err_fr;
-> +	u64 err_ctlr;
-> +	u64 err_status;
-> +	u64 err_addr;
-> +	u64 err_misc0;
-> +	u64 err_misc1;
-> +	u64 err_misc2;
-> +	u64 err_misc3;
-> +};
-
-These last four might be better an an array.
-
-[...]
-
-> +static bool ras_extn_v1p1(void)
-> +{
-> +	unsigned long fld, reg = read_sanitised_ftr_reg(SYS_ID_AA64PFR0_EL1);
-> +
-> +	fld = cpuid_feature_extract_unsigned_field(reg, ID_AA64PFR0_RAS_SHIFT);
-> +
-> +	return fld >= ID_AA64PFR0_RAS_V1P1;
-> +}
-
-I suspect it'd be better to pass this value around directly as
-`version`, rather than dropping this into a `misc23_present` temporary
-variable, as that would be a little clearer, and future-proof if/when
-more registers get added.
-
-[...]
-
-> +void arch_arm_ras_report_error(u64 implemented, bool clear_misc)
-> +{
-> +	struct ras_ext_regs regs = {0};
-> +	unsigned int i, cpu_num;
-> +	bool misc23_present;
-> +	bool fatal = false;
-> +	u64 num_records;
-> +
-> +	if (!this_cpu_has_cap(ARM64_HAS_RAS_EXTN))
-> +		return;
-> +
-> +	cpu_num = get_cpu();
-
-Why get_cpu() here? Do you just need smp_processor_id()?
-
-The commit message explained that this would be PE-local (e.g. in a PPI
-handler), and we've already checked this_cpu_has_cap() which assumes
-we're not preemptible.
-
-So I don't see why we should use get_cpu() here -- any time it would
-have a difference implies something has already gone wrong.
-
-> +	num_records = read_sysreg_s(SYS_ERRIDR_EL1) & ERRIDR_NUM_MASK;
-> +
-> +	for (i = 0; i < num_records; i++) {
-> +		if (!(implemented & BIT(i)))
-> +			continue;
-> +
-> +		write_sysreg_s(i, SYS_ERRSELR_EL1);
-> +		isb();
-> +		regs.err_status = read_sysreg_s(SYS_ERXSTATUS_EL1);
-> +
-> +		if (!(regs.err_status & ERR_STATUS_V))
-> +			continue;
-> +
-> +		pr_err("error from processor 0x%x\n", cpu_num);
-
-Why in hex? We normally print 'cpu%d' or 'CPU%d', since this is a
-logical ID anyway.
-
-> +
-> +		if (regs.err_status & ERR_STATUS_AV)
-> +			regs.err_addr = read_sysreg_s(SYS_ERXADDR_EL1);
-> +
-> +		misc23_present = ras_extn_v1p1();
-
-As above, I reckon it's better to have this as 'version' or
-'ras_version', and have the checks below be:
-
-	if (version >= ID_AA64PFR0_RAS_V1P1) {
-		// poke SYS_ERXMISC2_EL1
-		// poke SYS_ERXMISC3_EL1
-	}
-
-> +
-> +		if (regs.err_status & ERR_STATUS_MV) {
-> +			regs.err_misc0 = read_sysreg_s(SYS_ERXMISC0_EL1);
-> +			regs.err_misc1 = read_sysreg_s(SYS_ERXMISC1_EL1);
-> +
-> +			if (misc23_present) {
-> +				regs.err_misc2 = read_sysreg_s(SYS_ERXMISC2_EL1);
-> +				regs.err_misc3 = read_sysreg_s(SYS_ERXMISC3_EL1);
-> +			}
-> +		}
-> +
-> +		arch_arm_ras_print_error(&regs, i, misc23_present);
-> +
-> +		/*
-> +		 * In the future, we will treat UER conditions as potentially
-> +		 * recoverable.
-> +		 */
-> +		if (regs.err_status & ERR_STATUS_UE)
-> +			fatal = true;
-> +
-> +		regs.err_status = arch_arm_ras_get_status_clear_value(regs.err_status);
-> +		write_sysreg_s(regs.err_status, SYS_ERXSTATUS_EL1);
-> +
-> +		if (clear_misc) {
-> +			write_sysreg_s(0x0, SYS_ERXMISC0_EL1);
-> +			write_sysreg_s(0x0, SYS_ERXMISC1_EL1);
-> +
-> +			if (misc23_present) {
-> +				write_sysreg_s(0x0, SYS_ERXMISC2_EL1);
-> +				write_sysreg_s(0x0, SYS_ERXMISC3_EL1);
-> +			}
-> +		}
-
-Any reason not to clear when we read, above? e.g.
-
-#define READ_CLEAR_MISC(nr, clear)					\
-({									\
-	unsigned long __val = read_sysreg_s(SYS_ERXMISC##nr##_EL1);	\
-	if (clear);							\
-		write_sysreg_s(0, SYS_ERXMISC##nr##_EL1);		\
-	__val;								\
-})
-
-if (regs.err_status & ERR_STATUS_MV) {
-	regs.err_misc0 = READ_CLEAR_MISC(0, clear_misc);
-	regs.err_misc1 = READ_CLEAR_MISC(1, clear_misc);
-
-	if (version >= ID_AA64PFR0_RAS_V1P1) {
-		regs.err_misc2 = READ_CLEAR_MISC(2, clear_misc);
-		regs.err_misc3 = READ_CLEAR_MISC(3, clear_misc);
-	}
-
-}
-
-... why does the clearing need to be conditional?
-
-> +
-> +		isb();
-> +	}
-> +
-> +	if (fatal)
-> +		panic("ARM RAS: uncorrectable error encountered");
-> +
-> +	put_cpu();
-> +}
-> diff --git a/arch/arm64/kvm/sys_regs.c b/arch/arm64/kvm/sys_regs.c
-> index e3ec1a44f94d..dc15e9896db4 100644
-> --- a/arch/arm64/kvm/sys_regs.c
-> +++ b/arch/arm64/kvm/sys_regs.c
-> @@ -1573,6 +1573,8 @@ static const struct sys_reg_desc sys_reg_descs[] = {
->  	{ SYS_DESC(SYS_ERXADDR_EL1), trap_raz_wi },
->  	{ SYS_DESC(SYS_ERXMISC0_EL1), trap_raz_wi },
->  	{ SYS_DESC(SYS_ERXMISC1_EL1), trap_raz_wi },
-> +	{ SYS_DESC(SYS_ERXMISC2_EL1), trap_raz_wi },
-> +	{ SYS_DESC(SYS_ERXMISC3_EL1), trap_raz_wi },
-
-This should be a preparatory patch; this is preumably a latent bug in
-KVM.
-
-[...]
-
-> +static struct aest_node_data __percpu **ppi_data;
-> +static int ppi_irqs[AEST_MAX_PPI];
-> +static u8 num_ppi;
-> +static u8 ppi_idx;
-
-As above, do we have any guarantee these are actually PPIs?
-
-> +static bool aest_mmio_ras_misc23_present(u64 base_addr)
-> +{
-> +	u32 val;
-> +
-> +	val = readl((void *) (base_addr + ERRDEVARCH_OFFSET));
-> +	val <<= ERRDEVARCH_REV_SHIFT;
-> +	val &= ERRDEVARCH_REV_MASK;
-> +
-> +	return val >= RAS_REV_v1_1;
-> +}
-
-Is the shift the wrong way around?
-
-Above we have:
-
-	#define ERRDEVARCH_REV_SHIFT 0x16
-	#define ERRDEVARCH_REV_MASK  0xf
-
-	#define RAS_REV_v1_1         0x1
-
-.. so this is:
-
-	val <<= 0x16;
-	val &= 0xf;		// val[0x15:0] == 0, so this is 0
-
-	return val >= 0x1;	// false
-
-It'd be nicer to use FIELD_GET() here.
-
-As above, I also think it would be better to retrun the value of the
-field, and check that explciitly, for future proofing.
-
-[...]
-
-> +static void aest_proc(struct aest_node_data *data)
-> +{
-> +	struct ras_ext_regs *regs_p, regs = {0};
-> +	bool misc23_present;
-> +	bool fatal = false;
-> +	u64 errgsr = 0;
-> +	int i;
-> +
-> +	/*
-> +	 * Currently SR based handling is done through the architected
-> +	 * discovery exposed through SRs. That may change in the future
-> +	 * if there is supplemental information in the AEST that is
-> +	 * needed.
-> +	 */
-> +	if (data->interface.type == ACPI_AEST_NODE_SYSTEM_REGISTER) {
-> +		arch_arm_ras_report_error(data->interface.implemented,
-> +					  data->interface.flags & AEST_INTERFACE_CLEAR_MISC);
-> +		return;
-> +	}
-> +
-> +	regs_p = data->interface.regs;
-> +	errgsr = readq((void *) (((u64) regs_p) + ERRGSR_OFFSET));
-> +
-> +	for (i = data->interface.start; i < data->interface.end; i++) {
-> +		if (!(data->interface.implemented & BIT(i)))
-> +			continue;
-> +
-> +		if (!(data->interface.status_reporting & BIT(i)) && !(errgsr & BIT(i)))
-> +			continue;
-> +
-> +		regs.err_status = readq(&regs_p[i].err_status);
-> +		if (!(regs.err_status & ERR_STATUS_V))
-> +			continue;
-> +
-> +		if (regs.err_status & ERR_STATUS_AV)
-> +			regs.err_addr = readq(&regs_p[i].err_addr);
-> +
-> +		regs.err_fr = readq(&regs_p[i].err_fr);
-> +		regs.err_ctlr = readq(&regs_p[i].err_ctlr);
-> +
-> +		if (regs.err_status & ERR_STATUS_MV) {
-> +			misc23_present = aest_mmio_ras_misc23_present((u64) regs_p);
-> +			regs.err_misc0 = readq(&regs_p[i].err_misc0);
-> +			regs.err_misc1 = readq(&regs_p[i].err_misc1);
-> +
-> +			if (misc23_present) {
-> +				regs.err_misc2 = readq(&regs_p[i].err_misc2);
-> +				regs.err_misc3 = readq(&regs_p[i].err_misc3);
-> +			}
-> +		}
-> +
-> +		aest_print(data, regs, i, misc23_present);
-> +
-> +		if (regs.err_status & ERR_STATUS_UE)
-> +			fatal = true;
-> +
-> +		regs.err_status = arch_arm_ras_get_status_clear_value(regs.err_status);
-> +		writeq(regs.err_status, &regs_p[i].err_status);
-> +
-> +		if (data->interface.flags & AEST_INTERFACE_CLEAR_MISC) {
-> +			writeq(0x0, &regs_p[i].err_misc0);
-> +			writeq(0x0, &regs_p[i].err_misc1);
-> +
-> +			if (misc23_present) {
-> +				writeq(0x0, &regs_p[i].err_misc2);
-> +				writeq(0x0, &regs_p[i].err_misc3);
-> +			}
-> +		}
-> +	}
-> +
-> +	if (fatal)
-> +		panic("AEST: uncorrectable error encountered");
-
-Why don't we call panic() as soon as we realise an error is fatal?
-
-Thanks,
-Mark.
