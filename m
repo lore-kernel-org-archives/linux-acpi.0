@@ -2,115 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A36AC433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Nov 2021 07:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10FCAC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Nov 2021 14:07:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234974AbhKXHt6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Nov 2021 02:49:58 -0500
-Received: from smtp-relay-internal-0.canonical.com ([185.125.188.122]:47566
-        "EHLO smtp-relay-internal-0.canonical.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234379AbhKXHt5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Nov 2021 02:49:57 -0500
-Received: from mail-oi1-f198.google.com (mail-oi1-f198.google.com [209.85.167.198])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id BD3753F1E5
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Nov 2021 07:46:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-        s=20210705; t=1637740007;
-        bh=41d8EvmewBk6qtYJvBs7XURC6hhNsnDFxi4IPnDanww=;
-        h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-         To:Cc:Content-Type;
-        b=UqR9c7oGNZXA0S+16xsqHErQy1ZBEAEVHTHa5iipMGhGydepEKgrltkMfiFJ+iULu
-         3WwFkXuFlltxV7mF5mB/ghnwQ1ibIpIkZYiaqDIFNI3eDZjCzoyPsA8yqIVRYr6/gQ
-         S9aKqCCf01HpcM1CeN/C/wP877wKklD5DgoBoTVXnsnYXH/Cb04gxJ3hchCy8VGyeC
-         /BUG2geueraudw39g+cJjXiu8P1xas3QHJWP6pfzq+HnG++E4e9WMZ7njRmXMFtsM2
-         wCR2UrJ1PRQaxUDSXG4GwMGDjAo0u6ntCqbX7jLKZ/2NXDByKT1ClkDP3K9uQ46/yY
-         B7O3ON6JjpEMQ==
-Received: by mail-oi1-f198.google.com with SMTP id 6-20020aca0b06000000b002bcd1c33ae3so1050560oil.20
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Nov 2021 23:46:47 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=41d8EvmewBk6qtYJvBs7XURC6hhNsnDFxi4IPnDanww=;
-        b=Sa5afZefkMd3eLyYwUXuERmr/SD6EYWZxanYWvwt9Eg4KRVT9+wveqPrsaHE4qT8XV
-         6F1ygtZP1WzcjIdoiBUOC53H+Rr7UgB9HpqBMJsWPf6BuNThkiuFjfhQCfFKxBN2uzTH
-         sNnhs1fTnSzgkdDRIdylq88HXCWTjNkiUD6XApvQ+AXh/nrbmbr61P43JdfgMA7rY4su
-         3S8wdLrqJ/cjdhNGgVSF32gYaX/SGmfAKscGLD0h/DJLR1M4Hez/Eys8eRk74D+wY9Hx
-         EL+QgnKyTP9IUar2aRf6RUDGGvfA7fl/7ILl97fjiISmtJVW7tS6Kj6I/xwa/IJPNTxM
-         bwlg==
-X-Gm-Message-State: AOAM532uGk8N0rbehV869oaJIzdBpYJ2qGm9pfe479eMgv0tVqucFnBq
-        8zzWqh46RqP+iDrb0nV0JCbgix3HD5c91egcCco8vHnYm4QqOineAGP8aAbxtjGNgCnnYyQT580
-        Qx98tk+DVjYJ7pWeijx2B1DNAuKeJWkbR9nPpFdZHRzwwr+rvr96JPMI=
-X-Received: by 2002:aca:1a05:: with SMTP id a5mr4000797oia.146.1637740006602;
-        Tue, 23 Nov 2021 23:46:46 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJyM4ycPL4qVHt0LnBtJ22sU+UsiSnwmlB+8bqOrZLqMNyA/ppy7P3eLlCPtz2s+/0I7M+uGLxfmwYchcLstLQ8=
-X-Received: by 2002:aca:1a05:: with SMTP id a5mr4000767oia.146.1637740006367;
- Tue, 23 Nov 2021 23:46:46 -0800 (PST)
+        id S1347508AbhKXOKW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Nov 2021 09:10:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55244 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1354592AbhKXOI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Nov 2021 09:08:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E2880611BF;
+        Wed, 24 Nov 2021 13:31:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1637760715;
+        bh=QFU9huopJ1xeYjSSB6nMmQbA/vbauGkKaHZqMRU4bS8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=LIJ/fP9hdSBqgYZhCG+OgB2C952jBEWuMu1dHcaN4OZEqbJqcqf4apX8F4LAU68UA
+         jquyUrJ27zsTNsAQioCetNH3bWP/6qMB4Xllw6GExBZYJoihHO/+CPF4ADTqdFjXRv
+         aXLRW7dXExZ06tGush5Jh41lWAD4Te04qgOF5ejWCVttgN9MK0a1zSO/XORibilYoj
+         +zWvrn5b/uutGFA28JnoBTpeUu4UFbTJ6j/2EF6lH1BJk8LXAyF6uLMsC5x4aXQihk
+         BaF457+Fp4nw8qTa76MziQVv3DrFuq5dqCqk801oC1rTX/li2hN+yYMB5NMBBQnVKE
+         qmHCcr0xaJVfQ==
+Date:   Wed, 24 Nov 2021 13:31:46 +0000
+From:   Mark Brown <broonie@kernel.org>
+To:     Lucas Tanure <tanureal@opensource.cirrus.com>
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Kailang Yang <kailang@realtek.com>,
+        Shuming Fan <shumingf@realtek.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        David Rhodes <david.rhodes@cirrus.com>,
+        Vitaly Rodionov <vitalyr@opensource.cirrus.com>,
+        Jeremy Szu <jeremy.szu@canonical.com>,
+        Hui Wang <hui.wang@canonical.com>,
+        Werner Sembach <wse@tuxedocomputers.com>,
+        Chris Chiu <chris.chiu@canonical.com>,
+        Cameron Berkenpas <cam@neo-zeon.de>,
+        Sami Loone <sami@loone.fi>, Elia Devito <eliadevito@gmail.com>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        Jack Yu <jack.yu@realtek.com>, Arnd Bergmann <arnd@arndb.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org,
+        patches@opensource.cirrus.com, platform-driver-x86@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 04/11] ASoC: cs35l41: Create function for init array of
+ Supplies
+Message-ID: <YZ4+wu5aaku4u6qA@sirena.org.uk>
+References: <20211123163149.1530535-1-tanureal@opensource.cirrus.com>
+ <20211123163149.1530535-5-tanureal@opensource.cirrus.com>
+ <YZ0r2s1z15yXLVhb@sirena.org.uk>
 MIME-Version: 1.0
-References: <2611837.mvXUDI8C0e@kreacher> <5521509.DvuYhMxLoT@kreacher>
-In-Reply-To: <5521509.DvuYhMxLoT@kreacher>
-From:   Kai-Heng Feng <kai.heng.feng@canonical.com>
-Date:   Wed, 24 Nov 2021 15:46:34 +0800
-Message-ID: <CAAd53p6dLkyafdzei-LTmfHtQw-hf6r5Sxx_Gw6FqmnfhQ0aLg@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: CPPC: Add NULL pointer check to cppc_get_perf()
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Lkt1foV1iL9BAfKp"
+Content-Disposition: inline
+In-Reply-To: <YZ0r2s1z15yXLVhb@sirena.org.uk>
+X-Cookie: (null cookie
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Nov 18, 2021 at 9:37 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: [PATCH] ACPI: CPPC: Add NULL pointer check to cppc_get_perf()
->
-> Check cpc_desc against NULL in cppc_get_perf(), so it doesn't crash
-> down the road if cpc_desc is NULL.
->
-> Fixes: 0654cf05d17b ("ACPI: CPPC: Introduce cppc_get_nominal_perf()")
-> Reported-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Cc: 5.15+ <stable@vger.kernel.org> # 5.15+
 
-Sorry for the late test, I bricked my previous ADL rig.
-Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+--Lkt1foV1iL9BAfKp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> ---
->
-> -> v2: Check cpc_desc against NULL before using it to initialize reg.
->
-> ---
->  drivers/acpi/cppc_acpi.c |    9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
->
-> Index: linux-pm/drivers/acpi/cppc_acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/cppc_acpi.c
-> +++ linux-pm/drivers/acpi/cppc_acpi.c
-> @@ -998,7 +998,14 @@ static int cpc_write(int cpu, struct cpc
->  static int cppc_get_perf(int cpunum, enum cppc_regs reg_idx, u64 *perf)
->  {
->         struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
-> -       struct cpc_register_resource *reg = &cpc_desc->cpc_regs[reg_idx];
-> +       struct cpc_register_resource *reg;
-> +
-> +       if (!cpc_desc) {
-> +               pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
-> +               return -ENODEV;
-> +       }
-> +
-> +       reg = &cpc_desc->cpc_regs[reg_idx];
->
->         if (CPC_IN_PCC(reg)) {
->                 int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
->
->
->
+On Tue, Nov 23, 2021 at 05:58:59PM +0000, Mark Brown wrote:
+> On Tue, Nov 23, 2021 at 04:31:42PM +0000, Lucas Tanure wrote:
+
+> > +	ret = regulator_bulk_enable(CS35L41_NUM_SUPPLIES, supplies);
+> > +	if (ret != 0) {
+> > +		dev_err(dev, "Failed to enable core supplies: %d\n", ret);
+> > +		return ret;
+> > +	}
+
+> Where's the matching disable, I didn't see anything in the HDA code?  It
+> is there in cs35l41_remove() in the CODEC driver but there's nothing
+> sharing that bit of code here that I noticed.
+
+Relatedly, given that the HDA stuff will most likely only be used on
+ACPI systems are you sure it needs to handle regulators at all?
+
+--Lkt1foV1iL9BAfKp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmGePsEACgkQJNaLcl1U
+h9AqFAf+LegJkpoeZg0eJ9EnAmsGSQK73vyaOr+rEHjY4AAFPg11h5r7lfZGByW6
+VAGiGnwJFEIG5OMtGM327Q4xnT7E3PdKxx+p6isIHRvKQy1S/Sgr4zap8WiDnna5
+K8i/jr4dpYmItrfOuWKxoTTlv5W7uGpY+4VPi40oP9Z5LJlxWtwTpWptw/mJPw0t
+UTSn59eX+7dc9B+PJOg68yekHDmVlpNdzVpgGTtoSVGELQ7XoZlPQap0Szj1RsQF
+5U2ztjSjNvsyb8LdyMpw1uy7XVuIniKJtYtC+BgV8of5kxbdqcTTizANTV9VuBAW
+Znu1rJBHlrfNR+kaGEAnMEohvVUpyg==
+=tasH
+-----END PGP SIGNATURE-----
+
+--Lkt1foV1iL9BAfKp--
