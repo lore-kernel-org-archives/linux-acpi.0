@@ -2,80 +2,136 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC0EDC433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 26 Nov 2021 18:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27601C433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 26 Nov 2021 18:23:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241853AbhKZS0e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 26 Nov 2021 13:26:34 -0500
-Received: from mga14.intel.com ([192.55.52.115]:9803 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236624AbhKZSYe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 Nov 2021 13:24:34 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10180"; a="235940782"
-X-IronPort-AV: E=Sophos;i="5.87,266,1631602800"; 
-   d="scan'208";a="235940782"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Nov 2021 10:13:03 -0800
-X-IronPort-AV: E=Sophos;i="5.87,266,1631602800"; 
-   d="scan'208";a="458268263"
-Received: from smile.fi.intel.com ([10.237.72.184])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Nov 2021 10:13:01 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@intel.com>)
-        id 1mqfiV-00As4E-AB;
-        Fri, 26 Nov 2021 20:12:59 +0200
-Date:   Fri, 26 Nov 2021 20:12:59 +0200
-From:   Andy Shevchenko <andriy.shevchenko@intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andy@kernel.org>,
+        id S241875AbhKZS0k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 26 Nov 2021 13:26:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57488 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237460AbhKZSYj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Nov 2021 13:24:39 -0500
+Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34E40C0698DF;
+        Fri, 26 Nov 2021 10:02:04 -0800 (PST)
+Received: by mail-lf1-x12d.google.com with SMTP id u3so26098559lfl.2;
+        Fri, 26 Nov 2021 10:02:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=idp+KUM0Lads56hMjVdKoUEucrYOLC8M0llXkHYfiR0=;
+        b=q2+3D7luLbLFGQf0rLpPcuWTJ51luwk4E0BLwdexAsMfEPwQ+vkLaGFyWTazwTiBO3
+         /31kHhpvsxvbKpD6AoRLviAKAyfSlaZuuBZ4G5+V4OQzeOPzvvdnKmespVy/IqSeX7hO
+         YTpSNWUfBdkYMm9sefGyGdAIypO41Y86jqoXG+FM5ZKY1SqW/Wp0Kge+e08k/V8NPYuz
+         YtC36m0FSAgcE4CC4jRft7WGjfF+hcgDrvOqUW7oFxpYyW5LwR3hKV2jrTJdfRtBiX7E
+         qc34DpRilSgV0iEhvXRNTWvVGUy3qFfYDOeUaBdaf+MPIjTcw1RGSJKn81/KWfdsBdx+
+         55DA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=idp+KUM0Lads56hMjVdKoUEucrYOLC8M0llXkHYfiR0=;
+        b=1t9MXPElOW/w77MGsVde8ODicymSmIy/zIJYl33Nff9GlJWRxHghKjL6iXHdyI5h+N
+         wMQm2cu6EgnO9uzR1jWG9pLJpVWTEYx+PEpj1x80qCi43K9IyRx8CxfMehGUxdHv5wV7
+         BbxleBOR3xSyBEC9QEGm5ZQ4WiTWlKh1klFYRadWwEvkaEhi/LX7g8exBd2AqZ8mlAx3
+         kG4oUAYfXakVj1qaPxB6UQL9P4wMK1L5I5FLH3JLthz4lXZzd2SemmxmGUkXw/lbgfR+
+         qE3aZsg5+uLm5lhNNZLDx9359GOK3mefO6hWRqyJOtGH1s1scW6gb/Edaw/H6HMJ538y
+         DrdA==
+X-Gm-Message-State: AOAM530PmvcJr+5XUVTlYFLcz9pYpJ0gb7sqtPtn2tcImSbFdWRU9zNk
+        Teu7eg1eP75TlkiU2iijt0I=
+X-Google-Smtp-Source: ABdhPJyszCqoy2c22hJd1AwW3euuk/YQIYMf48+wUhpEids7tlSfZnt+31CbA93lLkfEy/WCRFUCww==
+X-Received: by 2002:ac2:4423:: with SMTP id w3mr31717979lfl.385.1637949722516;
+        Fri, 26 Nov 2021 10:02:02 -0800 (PST)
+Received: from localhost.localdomain (94-29-48-99.dynamic.spd-mgts.ru. [94.29.48.99])
+        by smtp.gmail.com with ESMTPSA id i32sm553831lfv.295.2021.11.26.10.02.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 26 Nov 2021 10:02:02 -0800 (PST)
+From:   Dmitry Osipenko <digetx@gmail.com>
+To:     Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Joshua Thompson <funaho@jurai.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Sebastian Reichel <sre@kernel.org>,
         Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Yauhen Kharuzhy <jekhor@gmail.com>
-Subject: Re: [PATCH v2 3/3] pinctrl: cherryview: Ignore INT33FF UID 5 ACPI
- device
-Message-ID: <YaEjqxg8rX0njW6z@smile.fi.intel.com>
-References: <20211118105650.207638-1-hdegoede@redhat.com>
- <20211118105650.207638-3-hdegoede@redhat.com>
- <YZY4wj5AHhzFSwdD@smile.fi.intel.com>
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greentime Hu <green.hu@gmail.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Pavel Machek <pavel@ucw.cz>,
+        Lee Jones <lee.jones@linaro.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>, alankao@andestech.com,
+        "K . C . Kuen-Chern Lin" <kclin@andestech.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-tegra@vger.kernel.org
+Subject: [PATCH v4 06/25] reboot: Warn if unregister_restart_handler() fails
+Date:   Fri, 26 Nov 2021 21:00:42 +0300
+Message-Id: <20211126180101.27818-7-digetx@gmail.com>
+X-Mailer: git-send-email 2.33.1
+In-Reply-To: <20211126180101.27818-1-digetx@gmail.com>
+References: <20211126180101.27818-1-digetx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YZY4wj5AHhzFSwdD@smile.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Nov 18, 2021 at 01:28:02PM +0200, Andy Shevchenko wrote:
-> On Thu, Nov 18, 2021 at 11:56:50AM +0100, Hans de Goede wrote:
-> > Many Cherry Trail DSDTs have an extra INT33FF device with UID 5,
-> > the intel_pinctrl_get_soc_data() call will fail for this extra
-> > unknown UID, leading to the following error in dmesg:
-> > 
-> >  cherryview-pinctrl: probe of INT33FF:04 failed with error -61
-> > 
-> > Add a check for this extra UID and return -ENODEV for it to
-> > silence this false-positive error message.
-> 
-> Hmm... Interesting. Why do they have it?
-> Give me some time to check this...
+Emit warning if unregister_restart_handler() fails since it never should
+fail. This will ease further API development by catching mistakes early.
 
-_DDN in ACPI describes this as Virtual GPIO. The only documentation at hand
-right now tells me that this is a "solution" to represent the "virtual GPIO"
-as fifth community (no connection to any pads, minimum configuration, etc).
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ kernel/reboot.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The goal as far as I can see is "to convert a PME event generated by PCI device
-to a GPIO interrupt".
-
-Seems like we better have a driver for it, but the only purpose of it is to
-generate interrupts based on PME.
-
-I'll try to dig more may be next week, but for now I would like to postpone the
-patch. Do you agree?
-
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index e6659ae329f1..f0e7b9c13f6b 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -210,7 +210,7 @@ EXPORT_SYMBOL(register_restart_handler);
+  */
+ int unregister_restart_handler(struct notifier_block *nb)
+ {
+-	return atomic_notifier_chain_unregister(&restart_handler_list, nb);
++	return WARN_ON(atomic_notifier_chain_unregister(&restart_handler_list, nb));
+ }
+ EXPORT_SYMBOL(unregister_restart_handler);
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.33.1
 
