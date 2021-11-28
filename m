@@ -2,39 +2,39 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D2E6C4332F
-	for <linux-acpi@archiver.kernel.org>; Sun, 28 Nov 2021 18:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24ECFC4321E
+	for <linux-acpi@archiver.kernel.org>; Sun, 28 Nov 2021 18:20:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353328AbhK1SXn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 28 Nov 2021 13:23:43 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:22061 "EHLO
+        id S1359281AbhK1SXx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 28 Nov 2021 13:23:53 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:20724 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1358755AbhK1SVl (ORCPT
+        by vger.kernel.org with ESMTP id S231276AbhK1SVu (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 28 Nov 2021 13:21:41 -0500
+        Sun, 28 Nov 2021 13:21:50 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1638123505;
+        s=mimecast20190719; t=1638123513;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Y3WcgKJc+zc8rlpyfwZumMsVu/Grjc1H2KQ2Qlorauc=;
-        b=PS9/UtAOQmnk5770QnA5idRZaxsH9f1kXWN69iMs7OXsZNHY3UAvs6u2eOVa6YOJ2CSX5w
-        PxqVvnLZmmaQIQRfuT3hfWe2qe8mQwrWK7qBqN8SeTmD1auAsCOHJl9KY0OpWgKDTyCeEs
-        STxyr1RyKilh/Sdz4yxg/dvfWrUg5UE=
+        bh=xeo0Kvcs2oZjjTwYy4XcIetJkM8oFK47+msaBYObHcA=;
+        b=M3N0ysqkRjZ/5zAbZ5kD3rXd8tgIQP/3hUeADuqJT2v1cfcU/+CSLDRwywv9ee5s/kNxUF
+        DEUpZ2xAHSti7O05dHiG26iYFsEEytadgTrQORXlUa1H1SgH2lPQpO0pduhqv8EJ32fzIB
+        j45bGvC8hCVj+dQ0CwNEz/DfZ7l1jlM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-203-J6YI4_dzNheo05ueSQpTrQ-1; Sun, 28 Nov 2021 13:18:20 -0500
-X-MC-Unique: J6YI4_dzNheo05ueSQpTrQ-1
+ us-mta-539-ik-GYt5AOQe1CTY0BoJn0g-1; Sun, 28 Nov 2021 13:18:30 -0500
+X-MC-Unique: ik-GYt5AOQe1CTY0BoJn0g-1
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C60973E743;
-        Sun, 28 Nov 2021 18:18:17 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3AC983E741;
+        Sun, 28 Nov 2021 18:18:27 +0000 (UTC)
 Received: from x1.localdomain (unknown [10.39.192.65])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 88E1610016F7;
-        Sun, 28 Nov 2021 18:18:14 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id C0DB010016F4;
+        Sun, 28 Nov 2021 18:18:21 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -50,170 +50,114 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Tsuchiya Yuto <kitakar@gmail.com>,
         platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org
-Subject: [PATCH v3 01/20] power: supply: core: Refactor power_supply_set_input_current_limit_from_supplier()
-Date:   Sun, 28 Nov 2021 19:17:50 +0100
-Message-Id: <20211128181809.326736-2-hdegoede@redhat.com>
+Subject: [PATCH v3 03/20] power: supply: bq25890: Reduce reported CONSTANT_CHARGE_CURRENT_MAX for low temperatures
+Date:   Sun, 28 Nov 2021 19:17:52 +0100
+Message-Id: <20211128181809.326736-4-hdegoede@redhat.com>
 In-Reply-To: <20211128181809.326736-1-hdegoede@redhat.com>
 References: <20211128181809.326736-1-hdegoede@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some (USB) charger ICs have variants with USB D+ and D- pins to do their
-own builtin charger-type detection, like e.g. the bq24190 and bq25890 and
-also variants which lack this functionality, e.g. the bq24192 and bq25892.
+From: Yauhen Kharuzhy <jekhor@gmail.com>
 
-In case the charger-type; and thus the input-current-limit detection is
-done outside the charger IC then we need some way to communicate this to
-the charger IC. In the past extcon was used for this, but if the external
-detection does e.g. full USB PD negotiation then the extcon cable-types do
-not convey enough information.
+Take into account possible current reduction due to low-temperature when
+reading POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX. As described in
+the datasheet in cool (0-20° Celcius) conditions the current limit is
+decreased to 20% or 50% of ICHG field value depended on JEITA_ISET field.
 
-For these setups it was decided to model the external charging "brick"
-and the parameters negotiated with it as a power_supply class-device
-itself; and power_supply_set_input_current_limit_from_supplier() was
-introduced to allow drivers to get the input-current-limit this way.
+Also add NTC_FAULT field value to the debug message in
+bq25890_get_chip_state().
 
-But in some cases psy drivers may want to know other properties, e.g. the
-bq25892 can do "quick-charge" negotiation by pulsing its current draw,
-but this should only be done if the usb_type psy-property of its supplier
-is set to DCP (and device-properties indicate the board allows higher
-voltages).
+Changed by Hans de Goede:
+- Fix reading F_CHG_FAULT instead of F_NTC_FIELD for state->ntc_fault
+- Only read JEITA_ISET field if necessary
+- Tweak commit message a bit
 
-Instead of adding extra helper functions for each property which
-a psy-driver wants to query from its supplier, refactor
-power_supply_set_input_current_limit_from_supplier() into a
-more generic power_supply_get_property_from_supplier() function.
-
+Signed-off-by: Yauhen Kharuzhy <jekhor@gmail.com>
+Co-developed-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/power/supply/bq24190_charger.c   | 10 ++++-
- drivers/power/supply/power_supply_core.c | 57 +++++++++++++-----------
- include/linux/power_supply.h             |  5 ++-
- 3 files changed, 42 insertions(+), 30 deletions(-)
+Changes in v3:
+- Drop chunk adding a F_JEITA_VSET read to bq25890_power_supply_get_property()
+  which accidentally got added to this patch
+---
+ drivers/power/supply/bq25890_charger.c | 29 +++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
-index 35ff0c8fe96f..0c3d5caaef0c 100644
---- a/drivers/power/supply/bq24190_charger.c
-+++ b/drivers/power/supply/bq24190_charger.c
-@@ -1206,8 +1206,16 @@ static void bq24190_input_current_limit_work(struct work_struct *work)
- 	struct bq24190_dev_info *bdi =
- 		container_of(work, struct bq24190_dev_info,
- 			     input_current_limit_work.work);
-+	union power_supply_propval val;
-+	int ret;
+diff --git a/drivers/power/supply/bq25890_charger.c b/drivers/power/supply/bq25890_charger.c
+index b208cc2193b8..0ab797c681fd 100644
+--- a/drivers/power/supply/bq25890_charger.c
++++ b/drivers/power/supply/bq25890_charger.c
+@@ -94,6 +94,7 @@ struct bq25890_state {
+ 	u8 vsys_status;
+ 	u8 boost_fault;
+ 	u8 bat_fault;
++	u8 ntc_fault;
+ };
  
--	power_supply_set_input_current_limit_from_supplier(bdi->charger);
-+	ret = power_supply_get_property_from_supplier(bdi->charger,
-+						      POWER_SUPPLY_PROP_CURRENT_MAX,
-+						      &val);
-+	if (ret == 0)
-+		bq24190_charger_set_property(bdi->charger,
-+					     POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
-+					     &val);
- }
+ struct bq25890_device {
+@@ -383,6 +384,14 @@ enum bq25890_chrg_fault {
+ 	CHRG_FAULT_TIMER_EXPIRED,
+ };
  
- /* Sync the input-current-limit with our parent supply (if we have one) */
-diff --git a/drivers/power/supply/power_supply_core.c b/drivers/power/supply/power_supply_core.c
-index fc12a4f407f4..fb956a9a1827 100644
---- a/drivers/power/supply/power_supply_core.c
-+++ b/drivers/power/supply/power_supply_core.c
-@@ -375,46 +375,49 @@ int power_supply_is_system_supplied(void)
- }
- EXPORT_SYMBOL_GPL(power_supply_is_system_supplied);
- 
--static int __power_supply_get_supplier_max_current(struct device *dev,
--						   void *data)
-+struct psy_get_supplier_prop_data {
-+	struct power_supply *psy;
-+	enum power_supply_property psp;
-+	union power_supply_propval *val;
++enum bq25890_ntc_fault {
++	NTC_FAULT_NORMAL = 0,
++	NTC_FAULT_WARM = 2,
++	NTC_FAULT_COOL = 3,
++	NTC_FAULT_COLD = 5,
++	NTC_FAULT_HOT = 6,
 +};
 +
-+static int __power_supply_get_supplier_property(struct device *dev, void *_data)
+ static bool bq25890_is_adc_property(enum power_supply_property psp)
  {
--	union power_supply_propval ret = {0,};
- 	struct power_supply *epsy = dev_get_drvdata(dev);
--	struct power_supply *psy = data;
-+	struct psy_get_supplier_prop_data *data = _data;
+ 	switch (psp) {
+@@ -474,6 +483,18 @@ static int bq25890_power_supply_get_property(struct power_supply *psy,
  
--	if (__power_supply_is_supplied_by(epsy, psy))
--		if (!epsy->desc->get_property(epsy,
--					      POWER_SUPPLY_PROP_CURRENT_MAX,
--					      &ret))
--			return ret.intval;
-+	if (__power_supply_is_supplied_by(epsy, data->psy))
-+		if (!epsy->desc->get_property(epsy, data->psp, data->val))
-+			return 1; /* Success */
+ 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
+ 		val->intval = bq25890_find_val(bq->init_data.ichg, TBL_ICHG);
++
++		/* When temperature is too low, charge current is decreased */
++		if (bq->state.ntc_fault == NTC_FAULT_COOL) {
++			ret = bq25890_field_read(bq, F_JEITA_ISET);
++			if (ret < 0)
++				return ret;
++
++			if (ret)
++				val->intval /= 5;
++			else
++				val->intval /= 2;
++		}
+ 		break;
  
--	return 0;
-+	return 0; /* Continue iterating */
+ 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
+@@ -549,7 +570,8 @@ static int bq25890_get_chip_state(struct bq25890_device *bq,
+ 		{F_VSYS_STAT,	&state->vsys_status},
+ 		{F_BOOST_FAULT, &state->boost_fault},
+ 		{F_BAT_FAULT,	&state->bat_fault},
+-		{F_CHG_FAULT,	&state->chrg_fault}
++		{F_CHG_FAULT,	&state->chrg_fault},
++		{F_NTC_FAULT,	&state->ntc_fault}
+ 	};
+ 
+ 	for (i = 0; i < ARRAY_SIZE(state_fields); i++) {
+@@ -560,9 +582,10 @@ static int bq25890_get_chip_state(struct bq25890_device *bq,
+ 		*state_fields[i].data = ret;
+ 	}
+ 
+-	dev_dbg(bq->dev, "S:CHG/PG/VSYS=%d/%d/%d, F:CHG/BOOST/BAT=%d/%d/%d\n",
++	dev_dbg(bq->dev, "S:CHG/PG/VSYS=%d/%d/%d, F:CHG/BOOST/BAT/NTC=%d/%d/%d/%d\n",
+ 		state->chrg_status, state->online, state->vsys_status,
+-		state->chrg_fault, state->boost_fault, state->bat_fault);
++		state->chrg_fault, state->boost_fault, state->bat_fault,
++		state->ntc_fault);
+ 
+ 	return 0;
  }
- 
--int power_supply_set_input_current_limit_from_supplier(struct power_supply *psy)
-+int power_supply_get_property_from_supplier(struct power_supply *psy,
-+					    enum power_supply_property psp,
-+					    union power_supply_propval *val)
- {
--	union power_supply_propval val = {0,};
--	int curr;
--
--	if (!psy->desc->set_property)
--		return -EINVAL;
-+	struct psy_get_supplier_prop_data data = {
-+		.psy = psy,
-+		.psp = psp,
-+		.val = val,
-+	};
-+	int ret;
- 
- 	/*
- 	 * This function is not intended for use with a supply with multiple
--	 * suppliers, we simply pick the first supply to report a non 0
--	 * max-current.
-+	 * suppliers, we simply pick the first supply to report the psp.
- 	 */
--	curr = class_for_each_device(power_supply_class, NULL, psy,
--				      __power_supply_get_supplier_max_current);
--	if (curr <= 0)
--		return (curr == 0) ? -ENODEV : curr;
--
--	val.intval = curr;
-+	ret = class_for_each_device(power_supply_class, NULL, &data,
-+				    __power_supply_get_supplier_property);
-+	if (ret < 0)
-+		return ret;
-+	if (ret == 0)
-+		return -ENODEV;
- 
--	return psy->desc->set_property(psy,
--				POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT, &val);
-+	return 0;
- }
--EXPORT_SYMBOL_GPL(power_supply_set_input_current_limit_from_supplier);
-+EXPORT_SYMBOL_GPL(power_supply_get_property_from_supplier);
- 
- int power_supply_set_battery_charged(struct power_supply *psy)
- {
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 9ca1f120a211..0735b8963e0a 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -420,8 +420,9 @@ power_supply_temp2resist_simple(struct power_supply_resistance_temp_table *table
- 				int table_len, int temp);
- extern void power_supply_changed(struct power_supply *psy);
- extern int power_supply_am_i_supplied(struct power_supply *psy);
--extern int power_supply_set_input_current_limit_from_supplier(
--					 struct power_supply *psy);
-+int power_supply_get_property_from_supplier(struct power_supply *psy,
-+					    enum power_supply_property psp,
-+					    union power_supply_propval *val);
- extern int power_supply_set_battery_charged(struct power_supply *psy);
- 
- #ifdef CONFIG_POWER_SUPPLY
 -- 
 2.33.1
 
