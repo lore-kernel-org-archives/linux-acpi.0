@@ -2,37 +2,37 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E2D7C4332F
-	for <linux-acpi@archiver.kernel.org>; Wed,  1 Dec 2021 12:58:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5BFAC4321E
+	for <linux-acpi@archiver.kernel.org>; Wed,  1 Dec 2021 12:58:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349435AbhLANCB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 1 Dec 2021 08:02:01 -0500
-Received: from mga03.intel.com ([134.134.136.65]:14076 "EHLO mga03.intel.com"
+        id S1349449AbhLANCD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 1 Dec 2021 08:02:03 -0500
+Received: from mga01.intel.com ([192.55.52.88]:57001 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349438AbhLANCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Dec 2021 08:02:00 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10184"; a="236395264"
+        id S1349447AbhLANCC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 1 Dec 2021 08:02:02 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10184"; a="260426455"
 X-IronPort-AV: E=Sophos;i="5.87,278,1631602800"; 
-   d="scan'208";a="236395264"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2021 04:58:38 -0800
+   d="scan'208";a="260426455"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2021 04:58:41 -0800
 X-IronPort-AV: E=Sophos;i="5.87,278,1631602800"; 
-   d="scan'208";a="540816522"
+   d="scan'208";a="460017249"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2021 04:58:36 -0800
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2021 04:58:39 -0800
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id A2A652093F;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id DE029209F3;
         Wed,  1 Dec 2021 14:58:34 +0200 (EET)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1msPCw-003vlA-Td; Wed, 01 Dec 2021 14:59:34 +0200
+        id 1msPCx-003vlH-4c; Wed, 01 Dec 2021 14:59:35 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com,
         rafael@kernel.org
-Subject: [PATCH v2 3/7] Documentation: ACPI: Fix data node reference documentation
-Date:   Wed,  1 Dec 2021 14:59:31 +0200
-Message-Id: <20211201125934.936953-4-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 5/7] device property: Implement fwnode_graph_get_endpoint_count()
+Date:   Wed,  1 Dec 2021 14:59:33 +0200
+Message-Id: <20211201125934.936953-6-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211201125934.936953-1-sakari.ailus@linux.intel.com>
 References: <20211201125934.936953-1-sakari.ailus@linux.intel.com>
@@ -42,61 +42,107 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The data node reference documentation was missing a package that must
-contain the property values, instead property name and multiple values
-being present in a single package. This is not aligned with the _DSD spec.
-Fix it by adding the package for the values.
+Add fwnode_graph_get_endpoint_count() function to provide generic
+implementation of of_graph_get_endpoint_count(). The former by default
+only counts endpoints to available devices which is consistent with the
+rest of the fwnode graph API. By providing FWNODE_GRAPH_DEVICE_DISABLED
+flag, also unconnected endpoints and endpoints to disabled devices are
+counted.
 
-Also add the missing "reg" properties to two numbered nodes.
-
-Fixes: b10134a3643d ("ACPI: property: Document hierarchical data extension references")
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- .../firmware-guide/acpi/dsd/data-node-references.rst   | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/base/property.c  | 49 ++++++++++++++++++++++++++++++++--------
+ include/linux/property.h |  2 ++
+ 2 files changed, 41 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/firmware-guide/acpi/dsd/data-node-references.rst b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-index b7ad47df49de0..8b65b32e6e40e 100644
---- a/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-+++ b/Documentation/firmware-guide/acpi/dsd/data-node-references.rst
-@@ -5,7 +5,7 @@
- Referencing hierarchical data nodes
- ===================================
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index ecc4e2eb10678..90075c051dccf 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1097,6 +1097,18 @@ fwnode_graph_get_remote_node(const struct fwnode_handle *fwnode, u32 port_id,
+ }
+ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_node);
  
--:Copyright: |copy| 2018 Intel Corporation
-+:Copyright: |copy| 2018, 2021 Intel Corporation
- :Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++static bool fwnode_graph_remote_available(struct fwnode_handle *ep)
++{
++	struct fwnode_handle *dev_node;
++	bool available;
++
++	dev_node = fwnode_graph_get_remote_port_parent(ep);
++	available = fwnode_device_is_available(dev_node);
++	fwnode_handle_put(dev_node);
++
++	return available;
++}
++
+ /**
+  * fwnode_graph_get_endpoint_by_id - get endpoint by port and endpoint numbers
+  * @fwnode: parent fwnode_handle containing the graph
+@@ -1130,16 +1142,8 @@ fwnode_graph_get_endpoint_by_id(const struct fwnode_handle *fwnode,
+ 		struct fwnode_endpoint fwnode_ep = { 0 };
+ 		int ret;
  
- ACPI in general allows referring to device objects in the tree only.
-@@ -52,12 +52,14 @@ the ANOD object which is also the final target node of the reference.
- 	    Name (NOD0, Package() {
- 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
- 		Package () {
-+		    Package () { "reg", 0 },
- 		    Package () { "random-property", 3 },
- 		}
- 	    })
- 	    Name (NOD1, Package() {
- 		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
- 		Package () {
-+		    Package () { "reg", 1 },
- 		    Package () { "anothernode", "ANOD" },
- 		}
- 	    })
-@@ -74,7 +76,11 @@ the ANOD object which is also the final target node of the reference.
- 	    Name (_DSD, Package () {
- 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
- 		Package () {
--		    Package () { "reference", ^DEV0, "node@1", "anothernode" },
-+		    Package () {
-+			"reference", Package () {
-+			    ^DEV0, "node@1", "anothernode"
-+			}
-+		    },
- 		}
- 	    })
- 	}
+-		if (enabled_only) {
+-			struct fwnode_handle *dev_node;
+-			bool available;
+-
+-			dev_node = fwnode_graph_get_remote_port_parent(ep);
+-			available = fwnode_device_is_available(dev_node);
+-			fwnode_handle_put(dev_node);
+-			if (!available)
+-				continue;
+-		}
++		if (enabled_only && !fwnode_graph_remote_available(ep))
++			continue;
+ 
+ 		ret = fwnode_graph_parse_endpoint(ep, &fwnode_ep);
+ 		if (ret < 0)
+@@ -1172,6 +1176,31 @@ fwnode_graph_get_endpoint_by_id(const struct fwnode_handle *fwnode,
+ }
+ EXPORT_SYMBOL_GPL(fwnode_graph_get_endpoint_by_id);
+ 
++/**
++ * fwnode_graph_get_endpoint_count - Count endpoints on a device node
++ * @fwnode: The node related to a device
++ * @flags: fwnode lookup flags
++ * Count endpoints in a device node.
++ *
++ * If FWNODE_GRAPH_DEVICE_DISABLED flag is specified, also unconnected endpoints
++ * and endpoints connected to disabled devices are counted.
++ */
++unsigned int fwnode_graph_get_endpoint_count(struct fwnode_handle *fwnode,
++					     unsigned long flags)
++{
++	struct fwnode_handle *ep;
++	unsigned int count = 0;
++
++	fwnode_graph_for_each_endpoint(fwnode, ep) {
++		if (flags & FWNODE_GRAPH_DEVICE_DISABLED ||
++		    fwnode_graph_remote_available(ep))
++			count++;
++	}
++
++	return count;
++}
++EXPORT_SYMBOL_GPL(fwnode_graph_get_endpoint_count);
++
+ /**
+  * fwnode_graph_parse_endpoint - parse common endpoint node properties
+  * @fwnode: pointer to endpoint fwnode_handle
+diff --git a/include/linux/property.h b/include/linux/property.h
+index af5a7e512c86f..e32b95f42c9db 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -427,6 +427,8 @@ static inline bool fwnode_graph_is_endpoint(struct fwnode_handle *fwnode)
+ struct fwnode_handle *
+ fwnode_graph_get_endpoint_by_id(const struct fwnode_handle *fwnode,
+ 				u32 port, u32 endpoint, unsigned long flags);
++unsigned int fwnode_graph_get_endpoint_count(struct fwnode_handle *fwnode,
++					     unsigned long flags);
+ 
+ #define fwnode_graph_for_each_endpoint(fwnode, child)			\
+ 	for (child = NULL;						\
 -- 
 2.30.2
 
