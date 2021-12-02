@@ -2,236 +2,143 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30059C433EF
-	for <linux-acpi@archiver.kernel.org>; Thu,  2 Dec 2021 12:50:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0B46C433F5
+	for <linux-acpi@archiver.kernel.org>; Thu,  2 Dec 2021 16:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358096AbhLBMyG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 2 Dec 2021 07:54:06 -0500
-Received: from out30-133.freemail.mail.aliyun.com ([115.124.30.133]:57723 "EHLO
-        out30-133.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1346795AbhLBMyE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Dec 2021 07:54:04 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R831e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0UzAa6VZ_1638449438;
-Received: from 30.240.117.107(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0UzAa6VZ_1638449438)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Thu, 02 Dec 2021 20:50:40 +0800
-Message-ID: <12b01448-0ebe-44fc-529a-6a1243acc2e3@linux.alibaba.com>
-Date:   Thu, 2 Dec 2021 20:50:37 +0800
+        id S1359421AbhLBQ2d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 2 Dec 2021 11:28:33 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:11990 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1347508AbhLBQ2c (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Dec 2021 11:28:32 -0500
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1B21RQLj001056;
+        Thu, 2 Dec 2021 10:24:59 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=PODMain02222019;
+ bh=HgsqgsBHa3o1t6IcTiy7koTbQrYwrYq5EqnRuh/dMAw=;
+ b=PSXQubl0KohNC4QZDgHQ4HU16En3EOa+0D1lmS72Cxo3ossICCXzPyd9Tn9HWuV3CN8Z
+ nSMyKqD/IciKX1wFTPB/QxMr37apQ94SlPvKEHKEoesznGzGS1e3MRqLIU61ml2wroNg
+ nJ0pD0YIB9OIsHJFp6mgdBZ6UyGeQpZXljany3eim/jiZFHBZYBp7L48ZOJBS/8ukyiM
+ OAw4yLrq+MKqcSFtVHLdK1d7DtKnuybOjvo4CoU8El4yO6f49vapO31RjivNBVcV7dmT
+ USzIO6wstMIrc0jqxGeIBocW7m9rCJuvbOFso/cMcC31QY8Lw5fmVF33c2ToWYDNNUTn lw== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cp6c89wp5-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Thu, 02 Dec 2021 10:24:59 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Thu, 2 Dec
+ 2021 16:24:57 +0000
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
+ Transport; Thu, 2 Dec 2021 16:24:57 +0000
+Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.136])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 3992D475;
+        Thu,  2 Dec 2021 16:24:57 +0000 (UTC)
+From:   Stefan Binding <sbinding@opensource.cirrus.com>
+To:     Mark Brown <broonie@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>
+CC:     <linux-kernel@vger.kernel.org>, <linux-spi@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <patches@opensource.cirrus.com>,
+        Stefan Binding <sbinding@opensource.cirrus.com>
+Subject: [PATCH 2/3] spi: Make spi_alloc_device and spi_add_device public again
+Date:   Thu, 2 Dec 2021 16:24:20 +0000
+Message-ID: <20211202162421.7628-2-sbinding@opensource.cirrus.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20211202162421.7628-1-sbinding@opensource.cirrus.com>
+References: <20211202162421.7628-1-sbinding@opensource.cirrus.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.3.2
-Subject: Re: [RFC PATCH v4] ACPI: Move sdei_init and ghes_init ahead to handle
- platform errors earlier
-Content-Language: en-US
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     bp@alien8.de, tony.luck@intel.com, james.morse@arm.com,
-        lenb@kernel.org, rjw@rjwysocki.net, bhelgaas@google.com,
-        zhangliguang@linux.alibaba.com, zhuo.song@linux.alibaba.com,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org
-References: <20211126070422.73234-1-xueshuai@linux.alibaba.com>
-From:   Shuai Xue <xueshuai@linux.alibaba.com>
-In-Reply-To: <20211126070422.73234-1-xueshuai@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-ORIG-GUID: U2pXAwrv201fVDq3keUN-Ur5yeWtXZjZ
+X-Proofpoint-GUID: U2pXAwrv201fVDq3keUN-Ur5yeWtXZjZ
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi, Bjron,
+This functions were previously made private since they
+were not used. However, these functions will be needed
+again.
 
-By any chance, could you help review this patch? Any comment are welcomed.
+Partial revert of commit da21fde0fdb3
+("spi: Make several public functions private to spi.c")
 
-Regards,
-Shuai
+Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
+---
+ drivers/spi/spi.c       |  6 ++++--
+ include/linux/spi/spi.h | 12 ++++++++++++
+ 2 files changed, 16 insertions(+), 2 deletions(-)
 
-On 2021/11/26 PM3:04, Shuai Xue wrote:
-> On an ACPI system, ACPI is initialised very early from a subsys_initcall(),
-> while SDEI is not ready until a subsys_initcall_sync().
-> 
-> The SDEI driver provides functions (e.g. apei_sdei_register_ghes,
-> apei_sdei_unregister_ghes) to register or unregister event callback for
-> dispatcher in firmware. When the GHES driver probing, it registers the
-> corresponding callback according to the notification type specified by
-> GHES. If the GHES notification type is SDEI, the GHES driver will call
-> apei_sdei_register_ghes to register event call.
-> 
-> When the firmware emits an event, it migrates the handling of the event
-> into the kernel at the registered entry-point __sdei_asm_handler. And
-> finally, the kernel will call the registered event callback and return
-> status_code to indicate the status of event handling. SDEI_EV_FAILED
-> indicates that the kernel failed to handle the event.
-> 
-> Consequently, when an error occurs during kernel booting, the kernel is
-> unable to handle and report errors until the GHES driver is initialized by
-> device_initcall(), in which the event callback is registered. All errors
-> that occurred before GHES initialization are missed and there is no chance
-> to report and find them again.
-> 
-> From commit e147133a42cb ("ACPI / APEI: Make hest.c manage the estatus
-> memory pool") was merged, ghes_init() relies on acpi_hest_init() to manage
-> the estatus memory pool. On the other hand, ghes_init() relies on
-> sdei_init() to detect the SDEI version and the framework for registering
-> and unregistering events. By the way, I don't figure out why acpi_hest_init
-> is called in acpi_pci_root_init, it don't rely on any other thing. May it
-> could be moved further, following acpi_iort_init in acpi_init.
-> 
-> sdei_init() relies on ACPI table which is initialized subsys_initcall():
-> acpi_init(), acpi_bus_init(), acpi_load_tables(), acpi_tb_laod_namespace().
-> May it should be also moved further, after acpi_load_tables.
-> 
-> In this patch, move sdei_init and ghes_init as far ahead as possible, right
-> after acpi_hest_init().
-> 
-> Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
-> ---
->  drivers/acpi/apei/ghes.c    | 18 ++++++++----------
->  drivers/acpi/pci_root.c     |  5 ++++-
->  drivers/firmware/arm_sdei.c | 13 ++-----------
->  include/acpi/apei.h         |  2 ++
->  include/linux/arm_sdei.h    |  2 ++
->  5 files changed, 18 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 0c8330ed1ffd..b11e46fb4b3d 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -1457,27 +1457,26 @@ static struct platform_driver ghes_platform_driver = {
->  	.remove		= ghes_remove,
->  };
->  
-> -static int __init ghes_init(void)
-> +void __init ghes_init(void)
->  {
->  	int rc;
->  
->  	if (acpi_disabled)
-> -		return -ENODEV;
-> +		return;
->  
->  	switch (hest_disable) {
->  	case HEST_NOT_FOUND:
-> -		return -ENODEV;
-> +		pr_info(GHES_PFX "HEST is not found!\n");
-> +		return;
->  	case HEST_DISABLED:
->  		pr_info(GHES_PFX "HEST is not enabled!\n");
-> -		return -EINVAL;
-> +		return;
->  	default:
->  		break;
->  	}
->  
-> -	if (ghes_disable) {
-> +	if (ghes_disable)
->  		pr_info(GHES_PFX "GHES is not enabled!\n");
-> -		return -EINVAL;
-> -	}
->  
->  	ghes_nmi_init_cxt();
->  
-> @@ -1495,8 +1494,7 @@ static int __init ghes_init(void)
->  	else
->  		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
->  
-> -	return 0;
-> +	return;
->  err:
-> -	return rc;
-> +	ghes_disable = 1;
->  }
-> -device_initcall(ghes_init);
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index ab2f7dfb0c44..1260bb556184 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -23,7 +23,7 @@
->  #include <linux/dmi.h>
->  #include <linux/platform_data/x86/apple.h>
->  #include <acpi/apei.h>	/* for acpi_hest_init() */
-> -
-> +#include <linux/arm_sdei.h> /* for sdei_init() */
->  #include "internal.h"
->  
->  #define ACPI_PCI_ROOT_CLASS		"pci_bridge"
-> @@ -946,6 +946,9 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->  void __init acpi_pci_root_init(void)
->  {
->  	acpi_hest_init();
-> +	sdei_init();
-> +	ghes_init();
-> +
->  	if (acpi_pci_disabled)
->  		return;
->  
-> diff --git a/drivers/firmware/arm_sdei.c b/drivers/firmware/arm_sdei.c
-> index a7e762c352f9..1e1a51510e83 100644
-> --- a/drivers/firmware/arm_sdei.c
-> +++ b/drivers/firmware/arm_sdei.c
-> @@ -1059,14 +1059,14 @@ static bool __init sdei_present_acpi(void)
->  	return true;
->  }
->  
-> -static int __init sdei_init(void)
-> +void __init sdei_init(void)
->  {
->  	struct platform_device *pdev;
->  	int ret;
->  
->  	ret = platform_driver_register(&sdei_driver);
->  	if (ret || !sdei_present_acpi())
-> -		return ret;
-> +		return;
->  
->  	pdev = platform_device_register_simple(sdei_driver.driver.name,
->  					       0, NULL, 0);
-> @@ -1076,17 +1076,8 @@ static int __init sdei_init(void)
->  		pr_info("Failed to register ACPI:SDEI platform device %d\n",
->  			ret);
->  	}
-> -
-> -	return ret;
->  }
->  
-> -/*
-> - * On an ACPI system SDEI needs to be ready before HEST:GHES tries to register
-> - * its events. ACPI is initialised from a subsys_initcall(), GHES is initialised
-> - * by device_initcall(). We want to be called in the middle.
-> - */
-> -subsys_initcall_sync(sdei_init);
-> -
->  int sdei_event_handler(struct pt_regs *regs,
->  		       struct sdei_registered_event *arg)
->  {
-> diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-> index ece0a8af2bae..7dbd6363fda7 100644
-> --- a/include/acpi/apei.h
-> +++ b/include/acpi/apei.h
-> @@ -27,8 +27,10 @@ extern int hest_disable;
->  extern int erst_disable;
->  #ifdef CONFIG_ACPI_APEI_GHES
->  extern bool ghes_disable;
-> +void __init ghes_init(void);
->  #else
->  #define ghes_disable 1
-> +static inline void ghes_init(void) { return; }
->  #endif
->  
->  #ifdef CONFIG_ACPI_APEI
-> diff --git a/include/linux/arm_sdei.h b/include/linux/arm_sdei.h
-> index 0a241c5c911d..9c987188b692 100644
-> --- a/include/linux/arm_sdei.h
-> +++ b/include/linux/arm_sdei.h
-> @@ -46,9 +46,11 @@ int sdei_unregister_ghes(struct ghes *ghes);
->  /* For use by arch code when CPU hotplug notifiers are not appropriate. */
->  int sdei_mask_local_cpu(void);
->  int sdei_unmask_local_cpu(void);
-> +void __init sdei_init(void);
->  #else
->  static inline int sdei_mask_local_cpu(void) { return 0; }
->  static inline int sdei_unmask_local_cpu(void) { return 0; }
-> +static inline void sdei_init(void) { return ; }
->  #endif /* CONFIG_ARM_SDE_INTERFACE */
->  
->  
-> 
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 7c81173edb0c..ebce296662c4 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -531,7 +531,7 @@ static DEFINE_MUTEX(board_lock);
+  *
+  * Return: a pointer to the new device, or NULL.
+  */
+-static struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
++struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
+ {
+ 	struct spi_device	*spi;
+ 
+@@ -556,6 +556,7 @@ static struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
+ 	device_initialize(&spi->dev);
+ 	return spi;
+ }
++EXPORT_SYMBOL_GPL(spi_alloc_device);
+ 
+ static void spi_dev_set_name(struct spi_device *spi)
+ {
+@@ -651,7 +652,7 @@ static int __spi_add_device(struct spi_device *spi)
+  *
+  * Return: 0 on success; negative errno on failure
+  */
+-static int spi_add_device(struct spi_device *spi)
++int spi_add_device(struct spi_device *spi)
+ {
+ 	struct spi_controller *ctlr = spi->controller;
+ 	struct device *dev = ctlr->dev.parent;
+@@ -672,6 +673,7 @@ static int spi_add_device(struct spi_device *spi)
+ 	mutex_unlock(&ctlr->add_lock);
+ 	return status;
+ }
++EXPORT_SYMBOL_GPL(spi_add_device);
+ 
+ static int spi_add_device_locked(struct spi_device *spi)
+ {
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 5f2781cb750f..eb348cee1c57 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -1454,7 +1454,19 @@ spi_register_board_info(struct spi_board_info const *info, unsigned n)
+  * use spi_new_device() to describe each device.  You can also call
+  * spi_unregister_device() to start making that device vanish, but
+  * normally that would be handled by spi_unregister_controller().
++ *
++ * You can also use spi_alloc_device() and spi_add_device() to use a two
++ * stage registration sequence for each spi_device.  This gives the caller
++ * some more control over the spi_device structure before it is registered,
++ * but requires that caller to initialize fields that would otherwise
++ * be defined using the board info.
+  */
++extern struct spi_device *
++spi_alloc_device(struct spi_controller *ctlr);
++
++extern int
++spi_add_device(struct spi_device *spi);
++
+ extern struct spi_device *
+ spi_new_device(struct spi_controller *, struct spi_board_info *);
+ 
+-- 
+2.25.1
+
