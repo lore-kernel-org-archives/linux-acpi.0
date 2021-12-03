@@ -2,358 +2,225 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8B52C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  3 Dec 2021 21:24:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69A6FC433F5
+	for <linux-acpi@archiver.kernel.org>; Fri,  3 Dec 2021 23:49:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383234AbhLCV2H (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 3 Dec 2021 16:28:07 -0500
-Received: from mail-dm6nam10on2049.outbound.protection.outlook.com ([40.107.93.49]:53601
-        "EHLO NAM10-DM6-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1353858AbhLCV2H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 3 Dec 2021 16:28:07 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=OOUGdHjyIcvqHY9TrH5zribQqhj16//HeEFDBas38UZiEZp/aTSQEc5IeG26J6yZVH3s7vMgamvGXeX8F3xI3QTZgagADTkXIyaJdyaXRw1g8y0sxARSPMHUziKFIxRThAS4Bd8/TLlqikrxFYdykTRjFi3ZXT1KBYYyI9y0/7VTNc770u1SBqMoAM5yitUPW8/ssl+ZDPFPBqWgnKmR66tuBfw3wiKMizC39QrV+x8LOkg4E0UZ2u47/0T1XITxa4x/viQW8GTQpeUzMwYemtIq/ILzcx/MoKHmUkT9jT5MZ4F0a1WV8labU+xCKhOv44pBTD+5SEKUzOd3/G444A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IQ/MGkAWI2JN+XbJ/rh4fCzf0wpVeH0QKtVIy03fiS8=;
- b=Oxn0tUbMOZ/bQeQLSA3OW3PY7urvHgjKX6qOb8QwV2ikU4PZ4LgsiI55REBrwloh57axp5qmkllnIxOmt5pJbYJ8UKrEnThKVtuSndeCYZQthELpKUzxn7IIom5UaV5hQbmSIXz1h/0ZgYr/ztvTXLLb/eAJIVKjFJXaaz9HVS/ofU16xUJriAXOxlFQjyGOE2Xezeoo/ud2fSZM8EyFBoRSG0ROiYw3pt9cYRnEZcvlW4KY3jNFxgX51XIzfVOBjBNhu7QAJFvdGULLFVNZmwbAZ0e2nUNwwkb6U4VxgbhVzUhSo2JG7NVGPl0YwHpQOMByhMLb018FYMEJ1T9mSw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 149.199.80.198) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=xilinx.com;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=xilinx.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=xilinx.onmicrosoft.com; s=selector2-xilinx-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IQ/MGkAWI2JN+XbJ/rh4fCzf0wpVeH0QKtVIy03fiS8=;
- b=aPdHnswDcg1RCu6z2f4R0LiR24iO/GS+bRe7m89AWKkRubpqE6trKiGKNZHbfiCWcZQBsIUwv/GcP0fb/Y59RQKfvOJya/C9b53JsH0o/iHHhK6A3h6Eh8fGQ4mckWQx2kznJ6maDACWwZCCZEqX+R38vH+HDZfgjmCjeQjvI/k=
-Received: from SN7PR04CA0055.namprd04.prod.outlook.com (2603:10b6:806:120::30)
- by SN6PR02MB5645.namprd02.prod.outlook.com (2603:10b6:805:e4::28) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4734.23; Fri, 3 Dec
- 2021 21:24:18 +0000
-Received: from SN1NAM02FT0034.eop-nam02.prod.protection.outlook.com
- (2603:10b6:806:120:cafe::40) by SN7PR04CA0055.outlook.office365.com
- (2603:10b6:806:120::30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4755.17 via Frontend
- Transport; Fri, 3 Dec 2021 21:24:18 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 149.199.80.198)
- smtp.mailfrom=xilinx.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=xilinx.com;
-Received-SPF: Pass (protection.outlook.com: domain of xilinx.com designates
- 149.199.80.198 as permitted sender) receiver=protection.outlook.com;
- client-ip=149.199.80.198; helo=xir-pvapexch01.xlnx.xilinx.com;
-Received: from xir-pvapexch01.xlnx.xilinx.com (149.199.80.198) by
- SN1NAM02FT0034.mail.protection.outlook.com (10.97.5.90) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.4755.13 via Frontend Transport; Fri, 3 Dec 2021 21:24:18 +0000
-Received: from xir-pvapexch01.xlnx.xilinx.com (172.21.17.15) by
- xir-pvapexch01.xlnx.xilinx.com (172.21.17.15) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.14; Fri, 3 Dec 2021 21:24:10 +0000
-Received: from smtp.xilinx.com (172.21.105.197) by
- xir-pvapexch01.xlnx.xilinx.com (172.21.17.15) with Microsoft SMTP Server id
- 15.1.2176.14 via Frontend Transport; Fri, 3 Dec 2021 21:24:09 +0000
-Envelope-to: anand.ashok.dumbre@xilinx.com,
- git@xilinx.com,
- michals@xilinx.com,
- linux-kernel@vger.kernel.org,
- jic23@kernel.org,
- lars@metafoo.de,
- linux-iio@vger.kernel.org,
- gregkh@linuxfoundation.org,
- rafael@kernel.org,
- linux-acpi@vger.kernel.org,
- heikki.krogerus@linux.intel.com
-Received: from [10.71.188.1] (port=14741 helo=xiranandash40.xilinx.com)
-        by smtp.xilinx.com with esmtp (Exim 4.90)
-        (envelope-from <anand.ashok.dumbre@xilinx.com>)
-        id 1mtG2C-0005F8-BO; Fri, 03 Dec 2021 21:24:00 +0000
-From:   Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-To:     <linux-kernel@vger.kernel.org>, <jic23@kernel.org>,
-        <lars@metafoo.de>, <linux-iio@vger.kernel.org>, <git@xilinx.com>,
-        <michals@xilinx.com>, <gregkh@linuxfoundation.org>,
-        <rafael@kernel.org>, <linux-acpi@vger.kernel.org>,
-        <heikki.krogerus@linux.intel.com>
-CC:     Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-Subject: [PATCH v12 4/5] dt-bindings: iio: adc: Add Xilinx AMS binding documentation
-Date:   Fri, 3 Dec 2021 21:23:57 +0000
-Message-ID: <20211203212358.31444-5-anand.ashok.dumbre@xilinx.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20211203212358.31444-1-anand.ashok.dumbre@xilinx.com>
-References: <20211203212358.31444-1-anand.ashok.dumbre@xilinx.com>
+        id S1354313AbhLCXwi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 3 Dec 2021 18:52:38 -0500
+Received: from mga02.intel.com ([134.134.136.20]:34164 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1354258AbhLCXwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Dec 2021 18:52:37 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10187"; a="224326913"
+X-IronPort-AV: E=Sophos;i="5.87,284,1631602800"; 
+   d="scan'208";a="224326913"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Dec 2021 15:49:13 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,284,1631602800"; 
+   d="scan'208";a="501371384"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga007.jf.intel.com with ESMTP; 03 Dec 2021 15:49:09 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1000)
+        id 21A1C109; Sat,  4 Dec 2021 01:49:15 +0200 (EET)
+Date:   Sat, 4 Dec 2021 02:49:15 +0300
+From:   "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        "H . Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2] x86: Skip WBINVD instruction for VM guest
+Message-ID: <20211203234915.jw6kdd2qnfrionch@black.fi.intel.com>
+References: <YZPbQVwWOJCrAH78@zn.tnic>
+ <20211119040330.4013045-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <87pmqpjcef.ffs@tglx>
+ <20211202222109.pcsgm2jska3obvmx@black.fi.intel.com>
+ <87lf126010.ffs@tglx>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: bfda8367-d3e4-458a-0874-08d9b6a3440c
-X-MS-TrafficTypeDiagnostic: SN6PR02MB5645:
-X-Microsoft-Antispam-PRVS: <SN6PR02MB564566F069448A12BECC13ABA96A9@SN6PR02MB5645.namprd02.prod.outlook.com>
-X-Auto-Response-Suppress: DR, RN, NRN, OOF, AutoReply
-X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: C0bwbv5jBwKvJi2hyuhC5v8amX5mJ7rMH2yUjIPembPSGiXxSj7Ia/BK9Z2g+B/5pFtWX1mWlWf+6BZuHbdTFvFiZshKe/dN9vLGXahp0flFMvHmZ2BGZHwP3FyUfQn6XO3TjzPeKgYjt36nLJtG/mxchm572G4Z7bqkch8xR8BgV+hBd8MjeGdPUaYMdBft+IXkAeb0bLZEA+a4OuRZ9/qVP9muTPkwicGkVPRxHGUMQnRffW9KGHhL8ErFkYU7sG+awvqR/Jiklk66juayglEzPU2vzteyN7C0+f95k+tA1tW4QJkhBOkkeCnyUjb+jcTzbl/JOXAKxuWttpn9IhRfOressBU3XOcxLJiGzOixvSD7M4RiEhwDlzFB5Lad8VhC/B2B7C9Kz1cMIQx4sB67HTr9rurYsDnHDdPAeOjOzC4y8L3591yFB7tEw+GiMmohAoUsl+YZQshFQMZOdcKUL3ommTNT4/jL3BNpObx/1bgWMOali0k0nFlo/iM27yt08MhB7zmh+NHfvjLG81nxK1lby6Nd1wBBFR6uHhV+5dcVDFaO+6AwP2rbjowZTNw4vVZVoXO+FLYQhxHF1MqjlbxTFlh6OSY3R+POy9L/F5+9F/yZriuzJq26Rkynw/P9kddWI+PkiySv9ZYU+rvpmVaCpqJwUtr+8QGqFea4hDst+1fzkOHSd4u+AE6/8CNHJ4KCrHf9GL5YOA39mQMWUYumKHXDMBm0fOdfnfc5jUKqKS4/blMU4hhAWMHBCl8r4zzhGzYKAfhZlE0BhxkjuiePl7732h+owQcKj0r7+MW/92GV0rw6VvDjd6ybwd/5PJFMlAtCBrbNYU0AHhtoaNoKp1DWvDJwEr1PAaO0F0m8YnHH/QDyYwX9lKgxeczRdrIlwOx8K12kinS96dpcWK5/LypdKTIo6XXI+4s=
-X-Forefront-Antispam-Report: CIP:149.199.80.198;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:xir-pvapexch01.xlnx.xilinx.com;PTR:unknown-80-198.xilinx.com;CAT:NONE;SFS:(46966006)(36840700001)(70206006)(6666004)(83380400001)(1076003)(70586007)(5660300002)(356005)(36860700001)(36756003)(47076005)(2616005)(186003)(8676002)(107886003)(8936002)(426003)(26005)(7636003)(316002)(966005)(336012)(2906002)(110136005)(7696005)(508600001)(82310400004)(921005)(4326008)(103116003)(9786002)(102446001)(2101003)(83996005);DIR:OUT;SFP:1101;
-X-OriginatorOrg: xilinx.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Dec 2021 21:24:18.4387
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: bfda8367-d3e4-458a-0874-08d9b6a3440c
-X-MS-Exchange-CrossTenant-Id: 657af505-d5df-48d0-8300-c31994686c5c
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=657af505-d5df-48d0-8300-c31994686c5c;Ip=[149.199.80.198];Helo=[xir-pvapexch01.xlnx.xilinx.com]
-X-MS-Exchange-CrossTenant-AuthSource: SN1NAM02FT0034.eop-nam02.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR02MB5645
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87lf126010.ffs@tglx>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Xilinx AMS have several ADC channels that can be used for measurement of
-different voltages and temperatures. Document the same in the bindings.
+On Fri, Dec 03, 2021 at 12:48:43AM +0100, Thomas Gleixner wrote:
+> Kirill,
+> 
+> On Fri, Dec 03 2021 at 01:21, Kirill A. Shutemov wrote:
+> > On Thu, Nov 25, 2021 at 01:40:24AM +0100, Thomas Gleixner wrote:
+> >> Kuppuswamy,
+> >> Either that or you provide patches with arguments which are based on
+> >> proper analysis and not on 'appears to' observations.
+> >
+> > I think the right solution to the WBINVD would be to add a #VE handler
+> > that does nothing. We don't have a reasonable way to handle it from within
+> > the guest. We can call the VMM in hope that it would handle it, but VMM is
+> > untrusted and it can ignore the request.
+> >
+> > Dave suggested that we need to do code audit to make sure that there's no
+> > user inside TDX guest environment that relies on WBINVD to work correctly.
+> >
+> > Below is full call tree of WBINVD. It is substantially larger than I
+> > anticipated from initial grep.
+> >
+> > Conclusions:
+> >
+> >   - Most of callers are in ACPI code on changing S-states. Ignoring cache
+> >     flush for S-state change on virtual machine should be safe.
+> >
+> >   - The only WBINVD I was able to trigger is on poweroff from ACPI code.
+> >     Reboot also should trigger it, but for some reason I don't see it.
+> >
+> >   - Few caller in CPU offline code. TDX does not allowed to offline CPU as
+> >     we cannot bring it back -- we don't have SIPI. And even if offline
+> >     works for vCPU it should be safe to ignore WBINVD there.
+> >
+> >   - NVDIMMs are not supported inside TDX. If it will change we would need
+> >     to deal with cache flushing for this case. Hopefully, we would be able
+> >     to avoid WBINVD.
+> >
+> >   - Cache QoS and MTRR use WBINVD. They are disabled in TDX, but it is
+> >     controlled by VMM if the feature is advertised. We would need to
+> >     filter CPUID/MSRs to make sure VMM would not mess with them.
+> >
+> > Is it good enough justification for do-nothing #VE WBINVD handler?
+> 
+> first of all thank you very much for this very profound analysis.
+> 
+> This is really what I was asking for and you probably went even a step
+> deeper than that. Very appreciated.
+> 
+> What we should do instead of doing a wholesale let's ignore WBINVD is to
+> have a separate function/macro:
+> 
+>  ACPI_FLUSH_CPU_CACHE_PHYS()
+> 
+> and invoke that from the functions which are considered to be safe.
+> 
+> That would default to ACPI_FLUSH_CPU_CACHE() for other architecures
+> obviously.
+> 
+> Then you can rightfully do:
+> 
+> #define ACPI_FLUSH_CPU_CACHE_PHYS()     \
+>         if (!cpu_feature_enabled(XXX))	\
+>         	wbinvd();               \              
+>                 
+> where $XXX might be FEATURE_TDX_GUEST for paranoia sake and then
+> extended to X86_FEATURE_HYPERVISOR if everyone agrees.
+> 
+> Then you have the #VE handler which just acts on any other wbinvd
+> invocation via warn, panic, whatever, no?
 
-Signed-off-by: Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
----
- .../bindings/iio/adc/xlnx,zynqmp-ams.yaml     | 227 ++++++++++++++++++
- 1 file changed, 227 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
+I found another angle at the problem. According to the ACPI spec v6.4
+section 16.2 cache flushing is required on the way to S1, S2 and S3.
+And according to 8.2 it also is required on the way to C3.
 
-diff --git a/Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml b/Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
-new file mode 100644
-index 000000000000..87992db389b2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
-@@ -0,0 +1,227 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/iio/adc/xlnx,zynqmp-ams.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+TDX doesn't support these S- and C-states. TDX is only supports S0 and S5.
+
+Adjusting code to match the spec would make TDX work automagically.
+
+Any opinions on the patch below?
+
+I didn't touch ACPI_FLUSH_CPU_CACHE() users in cpufreq/longhaul.c because
+it might be outside of ACPI spec, I donno.
+
+diff --git a/drivers/acpi/acpica/hwesleep.c b/drivers/acpi/acpica/hwesleep.c
+index 808fdf54aeeb..b004a72a426e 100644
+--- a/drivers/acpi/acpica/hwesleep.c
++++ b/drivers/acpi/acpica/hwesleep.c
+@@ -104,7 +104,8 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
+ 
+ 	/* Flush caches, as per ACPI specification */
+ 
+-	ACPI_FLUSH_CPU_CACHE();
++	if (sleep_state >= ACPI_STATE_S1 && sleep_state <= ACPI_STATE_S3)
++		ACPI_FLUSH_CPU_CACHE();
+ 
+ 	status = acpi_os_enter_sleep(sleep_state, sleep_control, 0);
+ 	if (status == AE_CTRL_TERMINATE) {
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index 34a3825f25d3..bfcd66efeb48 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -110,7 +110,8 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state)
+ 
+ 	/* Flush caches, as per ACPI specification */
+ 
+-	ACPI_FLUSH_CPU_CACHE();
++	if (sleep_state >= ACPI_STATE_S1 && sleep_state <= ACPI_STATE_S3)
++		ACPI_FLUSH_CPU_CACHE();
+ 
+ 	status = acpi_os_enter_sleep(sleep_state, pm1a_control, pm1b_control);
+ 	if (status == AE_CTRL_TERMINATE) {
+diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
+index e4cde23a2906..ba77598ee43e 100644
+--- a/drivers/acpi/acpica/hwxfsleep.c
++++ b/drivers/acpi/acpica/hwxfsleep.c
+@@ -162,8 +162,6 @@ acpi_status acpi_enter_sleep_state_s4bios(void)
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
+-	ACPI_FLUSH_CPU_CACHE();
+-
+ 	status = acpi_hw_write_port(acpi_gbl_FADT.smi_command,
+ 				    (u32)acpi_gbl_FADT.s4_bios_request, 8);
+ 	if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 76ef1bcc8848..01495aca850e 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -567,7 +567,8 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+ {
+ 	struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
+ 
+-	ACPI_FLUSH_CPU_CACHE();
++	if (cx->type == ACPI_STATE_C3)
++		ACPI_FLUSH_CPU_CACHE();
+ 
+ 	while (1) {
+ 
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index eaa47753b758..a81d08b762c2 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -73,7 +73,9 @@ static int acpi_sleep_prepare(u32 acpi_state)
+ 		acpi_set_waking_vector(acpi_wakeup_address);
+ 
+ 	}
+-	ACPI_FLUSH_CPU_CACHE();
 +
-+title: Xilinx Zynq Ultrascale AMS controller
-+
-+maintainers:
-+  - Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-+
-+description: |
-+  The AMS (Analog Monitoring System) includes an ADC as well as on-chip sensors
-+  that can be used to sample external voltages and monitor on-die operating
-+  conditions, such as temperature and supply voltage levels.
-+  The AMS has two SYSMON blocks which are PL (Programmable Logic) SYSMON and
-+  PS (Processing System) SYSMON.
-+  All designs should have AMS registers, but PS and PL are optional. The
-+  AMS controller can work with only PS, only PL and both PS and PL
-+  configurations. Please specify registers according to your design. Devicetree
-+  should always have AMS module property. Providing PS & PL module is optional.
-+
-+  AMS Channel Details
-+  ```````````````````
-+  Sysmon Block  |Channel|                       Details                                 |Measurement
-+                |Number |                                                               |Type
-+  ---------------------------------------------------------------------------------------------------------
-+  AMS CTRL      |0      |System PLLs voltage measurement, VCC_PSPLL.                    |Voltage
-+                |1      |Battery voltage measurement, VCC_PSBATT.                       |Voltage
-+                |2      |PL Internal voltage measurement, VCCINT.                       |Voltage
-+                |3      |Block RAM voltage measurement, VCCBRAM.                        |Voltage
-+                |4      |PL Aux voltage measurement, VCCAUX.                            |Voltage
-+                |5      |Voltage measurement for six DDR I/O PLLs, VCC_PSDDR_PLL.       |Voltage
-+                |6      |VCC_PSINTFP_DDR voltage measurement.                           |Voltage
-+  ---------------------------------------------------------------------------------------------------------
-+  PS Sysmon     |7      |LPD temperature measurement.                                   |Temperature
-+                |8      |FPD temperature measurement (REMOTE).                          |Temperature
-+                |9      |VCC PS LPD voltage measurement (supply1).                      |Voltage
-+                |10     |VCC PS FPD voltage measurement (supply2).                      |Voltage
-+                |11     |PS Aux voltage reference (supply3).                            |Voltage
-+                |12     |DDR I/O VCC voltage measurement.                               |Voltage
-+                |13     |PS IO Bank 503 voltage measurement (supply5).                  |Voltage
-+                |14     |PS IO Bank 500 voltage measurement (supply6).                  |Voltage
-+                |15     |VCCO_PSIO1 voltage measurement.                                |Voltage
-+                |16     |VCCO_PSIO2 voltage measurement.                                |Voltage
-+                |17     |VCC_PS_GTR voltage measurement (VPS_MGTRAVCC).                 |Voltage
-+                |18     |VTT_PS_GTR voltage measurement (VPS_MGTRAVTT).                 |Voltage
-+                |19     |VCC_PSADC voltage measurement.                                 |Voltage
-+  ---------------------------------------------------------------------------------------------------------
-+  PL Sysmon     |20     |PL temperature measurement.                                    |Temperature
-+                |21     |PL Internal voltage measurement, VCCINT.                       |Voltage
-+                |22     |PL Auxiliary voltage measurement, VCCAUX.                      |Voltage
-+                |23     |ADC Reference P+ voltage measurement.                          |Voltage
-+                |24     |ADC Reference N- voltage measurement.                          |Voltage
-+                |25     |PL Block RAM voltage measurement, VCCBRAM.                     |Voltage
-+                |26     |LPD Internal voltage measurement, VCC_PSINTLP (supply4).       |Voltage
-+                |27     |FPD Internal voltage measurement, VCC_PSINTFP (supply5).       |Voltage
-+                |28     |PS Auxiliary voltage measurement (supply6).                    |Voltage
-+                |29     |PL VCCADC voltage measurement (vccams).                        |Voltage
-+                |30     |Differential analog input signal voltage measurment.           |Voltage
-+                |31     |VUser0 voltage measurement (supply7).                          |Voltage
-+                |32     |VUser1 voltage measurement (supply8).                          |Voltage
-+                |33     |VUser2 voltage measurement (supply9).                          |Voltage
-+                |34     |VUser3 voltage measurement (supply10).                         |Voltage
-+                |35     |Auxiliary ch 0 voltage measurement (VAux0).                    |Voltage
-+                |36     |Auxiliary ch 1 voltage measurement (VAux1).                    |Voltage
-+                |37     |Auxiliary ch 2 voltage measurement (VAux2).                    |Voltage
-+                |38     |Auxiliary ch 3 voltage measurement (VAux3).                    |Voltage
-+                |39     |Auxiliary ch 4 voltage measurement (VAux4).                    |Voltage
-+                |40     |Auxiliary ch 5 voltage measurement (VAux5).                    |Voltage
-+                |41     |Auxiliary ch 6 voltage measurement (VAux6).                    |Voltage
-+                |42     |Auxiliary ch 7 voltage measurement (VAux7).                    |Voltage
-+                |43     |Auxiliary ch 8 voltage measurement (VAux8).                    |Voltage
-+                |44     |Auxiliary ch 9 voltage measurement (VAux9).                    |Voltage
-+                |45     |Auxiliary ch 10 voltage measurement (VAux10).                  |Voltage
-+                |46     |Auxiliary ch 11 voltage measurement (VAux11).                  |Voltage
-+                |47     |Auxiliary ch 12 voltage measurement (VAux12).                  |Voltage
-+                |48     |Auxiliary ch 13 voltage measurement (VAux13).                  |Voltage
-+                |49     |Auxiliary ch 14 voltage measurement (VAux14).                  |Voltage
-+                |50     |Auxiliary ch 15 voltage measurement (VAux15).                  |Voltage
-+  --------------------------------------------------------------------------------------------------------
-+
-+properties:
-+  compatible:
-+    enum:
-+      - xlnx,zynqmp-ams
-+
-+  interrupts:
-+    maxItems: 1
-+
-+  reg:
-+    description: AMS Controller register space
-+    maxItems: 1
-+
-+  ranges:
-+    description:
-+      Maps the child address space for PS and/or PL.
-+    maxItems: 1
-+
-+  '#address-cells':
-+    const: 1
-+
-+  '#size-cells':
-+    const: 1
-+
-+  '#io-channel-cells':
-+    const: 1
-+
-+  ams-ps@0:
-+    type: object
-+    description: |
-+      PS (Processing System) SYSMON is memory mapped to PS. This block has
-+      built-in alarm generation logic that is used to interrupt the processor
-+      based on condition set.
-+
-+    properties:
-+      compatible:
-+        enum:
-+          - xlnx,zynqmp-ams-ps
-+
-+      reg:
-+        description: Register Space for PS-SYSMON
-+        maxItems: 1
-+
-+    required:
-+      - compatible
-+      - reg
-+
-+    additionalProperties: false
-+
-+  ams-pl@400:
-+    type: object
-+    description:
-+      PL-SYSMON is capable of monitoring off chip voltage and temperature.
-+      PL-SYSMON block has DRP, JTAG and I2C interface to enable monitoring
-+      from external master. Out of this interface currently only DRP is
-+      supported. This block has alarm generation logic that is used to
-+      interrupt the processor based on condition set.
-+
-+    properties:
-+      compatible:
-+        items:
-+          - enum:
-+              - xlnx,zynqmp-ams-pl
-+
-+      reg:
-+        description: Register Space for PL-SYSMON.
-+        maxItems: 1
-+
-+      '#address-cells':
-+        const: 1
-+
-+      '#size-cells':
-+        const: 0
-+
-+    patternProperties:
-+      "^channel@([2-4][0-9]|50)$":
-+        type: object
-+        description:
-+          Describes the external channels connected.
-+
-+        properties:
-+          reg:
-+            description:
-+              Pair of pins the channel is connected to. This value is
-+              same as Channel Number for a particular channel.
-+            minimum: 20
-+            maximum: 50
-+
-+          xlnx,bipolar:
-+            $ref: /schemas/types.yaml#/definitions/flag
-+            type: boolean
-+            description:
-+              If the set channel is used in bipolar mode.
-+
-+        required:
-+          - reg
-+
-+        additionalProperties: false
-+
-+required:
-+  - compatible
-+  - reg
-+  - ranges
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    bus {
-+        #address-cells = <2>;
-+        #size-cells = <2>;
-+
-+        xilinx_ams: ams@ffa50000 {
-+            compatible = "xlnx,zynqmp-ams";
-+            interrupt-parent = <&gic>;
-+            interrupts = <0 56 4>;
-+            reg = <0x0 0xffa50000 0x0 0x800>;
-+            #address-cells = <1>;
-+            #size-cells = <1>;
-+            #io-channel-cells = <1>;
-+            ranges = <0 0 0xffa50800 0x800>;
-+
-+            ams_ps: ams-ps@0 {
-+                compatible = "xlnx,zynqmp-ams-ps";
-+                reg = <0 0x400>;
-+            };
-+
-+            ams_pl: ams-pl@400 {
-+                compatible = "xlnx,zynqmp-ams-pl";
-+                reg = <0x400 0x400>;
-+                #address-cells = <1>;
-+                #size-cells = <0>;
-+                channel@30 {
-+                    reg = <30>;
-+                    xlnx,bipolar;
-+                };
-+                channel@31 {
-+                    reg = <31>;
-+                };
-+                channel@38 {
-+                    reg = <38>;
-+                    xlnx,bipolar;
-+                };
-+            };
-+        };
-+    };
++	if (acpi_state >= ACPI_STATE_S1 && acpi_state <= ACPI_STATE_S3)
++		ACPI_FLUSH_CPU_CACHE();
+ #endif
+ 	pr_info("Preparing to enter system sleep state S%d\n", acpi_state);
+ 	acpi_enable_wakeup_devices(acpi_state);
+@@ -566,7 +568,8 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 	u32 acpi_state = acpi_target_sleep_state;
+ 	int error;
+ 
+-	ACPI_FLUSH_CPU_CACHE();
++	if (acpi_state >= ACPI_STATE_S1 && acpi_state <= ACPI_STATE_S3)
++		ACPI_FLUSH_CPU_CACHE();
+ 
+ 	trace_suspend_resume(TPS("acpi_suspend"), acpi_state, true);
+ 	switch (acpi_state) {
+@@ -903,8 +906,6 @@ static int acpi_hibernation_enter(void)
+ {
+ 	acpi_status status = AE_OK;
+ 
+-	ACPI_FLUSH_CPU_CACHE();
+-
+ 	/* This shouldn't return.  If it returns, we have a problem */
+ 	status = acpi_enter_sleep_state(ACPI_STATE_S4);
+ 	/* Reprogram control registers */
 -- 
-2.17.1
-
+ Kirill A. Shutemov
