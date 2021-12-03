@@ -2,38 +2,38 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21894C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  3 Dec 2021 10:30:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 388D6C43219
+	for <linux-acpi@archiver.kernel.org>; Fri,  3 Dec 2021 10:30:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243780AbhLCKeK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 3 Dec 2021 05:34:10 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:45071 "EHLO
+        id S1380013AbhLCKeR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 3 Dec 2021 05:34:17 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:59954 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1379892AbhLCKeJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Dec 2021 05:34:09 -0500
+        by vger.kernel.org with ESMTP id S1379977AbhLCKeP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Dec 2021 05:34:15 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1638527445;
+        s=mimecast20190719; t=1638527451;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=IMavGNvu5wFmxKWM0KE0C+p4tifWbktsl3rkj44Z1jw=;
-        b=BGoMmhHlhhON29Hk9/RGVuMOrLfbJQ0bynTBWI1mEAp9pRWenikSw2Y99Ig2f7aVUOOysn
-        t/4SsMCSGyFIMcX+tuuFLGBlcvoDvi7KNaYRFy+ZXBZdFJatZ8hJNyNIPj2fDK3OMnnCl+
-        aDmT3W7BfFyEw5AuwAPHCg6cRK32j/U=
+        bh=/OsSKKndlXK4Az6+JftUKVH50nqA5aUdPxEKwKLmgy8=;
+        b=Pll3A/edom1spjFFDJuSOanyaCI4FUUSbF17SC+lgXg2gOuQSsOlkQVRFR4TkCaMX60A8m
+        gkMWh/Yr8UC79zygbzHeFiJc/WxDEcNQLm1AcNVWc9tu8xRLjhE7eezg0bV3gvKq5sswpv
+        C/hvlCvgXu6F16kH0A9vrDBHGZJH5U4=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-414-WWSMjbvKNYuHWfrsR0HXog-1; Fri, 03 Dec 2021 05:30:41 -0500
-X-MC-Unique: WWSMjbvKNYuHWfrsR0HXog-1
+ us-mta-525-5N_W6bLaPEmf3Ol_D4NK1Q-1; Fri, 03 Dec 2021 05:30:50 -0500
+X-MC-Unique: 5N_W6bLaPEmf3Ol_D4NK1Q-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4310183DD20;
-        Fri,  3 Dec 2021 10:30:39 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B9B82190A7A1;
+        Fri,  3 Dec 2021 10:30:47 +0000 (UTC)
 Received: from x1.localdomain.com (unknown [10.39.194.90])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 5240B60843;
-        Fri,  3 Dec 2021 10:30:35 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E537060843;
+        Fri,  3 Dec 2021 10:30:43 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
         Mark Gross <markgross@kernel.org>,
@@ -54,9 +54,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Kate Hsuan <hpa@redhat.com>, linux-media@vger.kernel.org,
         linux-clk@vger.kernel.org,
         Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v7 09/14] platform/x86: int3472: Pass tps68470_clk_platform_data to the tps68470-regulator MFD-cell
-Date:   Fri,  3 Dec 2021 11:28:52 +0100
-Message-Id: <20211203102857.44539-10-hdegoede@redhat.com>
+Subject: [PATCH v7 11/14] platform/x86: int3472: Deal with probe ordering issues
+Date:   Fri,  3 Dec 2021 11:28:54 +0100
+Message-Id: <20211203102857.44539-12-hdegoede@redhat.com>
 In-Reply-To: <20211203102857.44539-1-hdegoede@redhat.com>
 References: <20211203102857.44539-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -66,104 +66,87 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Pass tps68470_clk_platform_data to the tps68470-clk MFD-cell,
-so that sensors which use the TPS68470 can find their clock.
+The clk and regulator frameworks expect clk/regulator consumer-devices
+to have info about the consumed clks/regulators described in the device's
+fw_node.
+
+To work around this info missing from the ACPI tables on devices where
+the int3472 driver is used, the int3472 MFD-cell drivers attach info about
+consumers to the clks/regulators when registering these.
+
+This causes problems with the probe ordering wrt drivers for consumers
+of these clks/regulators. Since the lookups are only registered when the
+provider-driver binds, trying to get these clks/regulators before then
+results in a -ENOENT error for clks and a dummy regulator for regulators.
+
+All the sensor ACPI fw-nodes have a _DEP dependency on the INT3472 ACPI
+fw-node, so to work around these probe ordering issues the ACPI core /
+i2c-code does not instantiate the I2C-clients for any ACPI devices
+which have a _DEP dependency on an INT3472 ACPI device until all
+_DEP-s are met.
+
+This relies on acpi_dev_clear_dependencies() getting called by the driver
+for the _DEP-s when they are ready, add a acpi_dev_clear_dependencies()
+call to the discrete.c probe code.
+
+In the tps68470 case calling acpi_dev_clear_dependencies() is already done
+by the acpi_gpiochip_add() call done by the driver for the GPIO MFD cell
+(The GPIO cell is deliberately the last cell created to make sure the
+clk + regulator cells are already instantiated when this happens).
+
+However for proper probe ordering, the clk/regulator cells must not just
+be instantiated the must be fully ready (the clks + regulators must be
+registered with their subsystems).
+
+Add MODULE_SOFTDEP dependencies for the clk and regulator drivers for
+the instantiated MFD-cells so that these are loaded before us and so
+that they bind immediately when the platform-devs are instantiated.
 
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Changes in v5:
-- Add TPS68470_WIN_MFD_CELL_COUNT define
-
-Changes in v4:
-- Update the comment about the cell ordering
-
 Changes in v2:
-- Put the GPIO cell last because acpi_gpiochip_add() calls
-  acpi_dev_clear_dependencies() and the clk + regulators must
-  be ready when this happens.
+- Only call acpi_dev_clear_dependencies() in the discrete.c case, for the
+  tps68470 case this is already done by the acpi_gpiochip_add() for the
+  GPIO MFD cell.
 ---
- drivers/platform/x86/intel/int3472/tps68470.c | 35 +++++++++++++++----
- 1 file changed, 28 insertions(+), 7 deletions(-)
+ drivers/platform/x86/intel/int3472/discrete.c | 1 +
+ drivers/platform/x86/intel/int3472/tps68470.c | 6 ++++++
+ 2 files changed, 7 insertions(+)
 
+diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
+index ff2bdbb8722c..5b514fa01a97 100644
+--- a/drivers/platform/x86/intel/int3472/discrete.c
++++ b/drivers/platform/x86/intel/int3472/discrete.c
+@@ -380,6 +380,7 @@ static int skl_int3472_discrete_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	acpi_dev_clear_dependencies(adev);
+ 	return 0;
+ }
+ 
 diff --git a/drivers/platform/x86/intel/int3472/tps68470.c b/drivers/platform/x86/intel/int3472/tps68470.c
-index fd3bef449137..d0a3659a34ea 100644
+index 64b961fe628c..22f61b47f9e5 100644
 --- a/drivers/platform/x86/intel/int3472/tps68470.c
 +++ b/drivers/platform/x86/intel/int3472/tps68470.c
-@@ -5,6 +5,7 @@
- #include <linux/mfd/core.h>
- #include <linux/mfd/tps68470.h>
- #include <linux/platform_device.h>
-+#include <linux/platform_data/tps68470.h>
- #include <linux/regmap.h>
+@@ -170,6 +170,11 @@ static int skl_int3472_tps68470_probe(struct i2c_client *client)
+ 		return device_type;
+ 	}
  
- #include "common.h"
-@@ -12,17 +13,13 @@
- #define DESIGNED_FOR_CHROMEOS		1
- #define DESIGNED_FOR_WINDOWS		2
++	/*
++	 * No acpi_dev_clear_dependencies() here, since the acpi_gpiochip_add()
++	 * for the GPIO cell already does this.
++	 */
++
+ 	return ret;
+ }
  
-+#define TPS68470_WIN_MFD_CELL_COUNT	3
-+
- static const struct mfd_cell tps68470_cros[] = {
- 	{ .name = "tps68470-gpio" },
- 	{ .name = "tps68470_pmic_opregion" },
- };
- 
--static const struct mfd_cell tps68470_win[] = {
--	{ .name = "tps68470-gpio" },
--	{ .name = "tps68470-clk" },
--	{ .name = "tps68470-regulator" },
--};
--
- static const struct regmap_config tps68470_regmap_config = {
- 	.reg_bits = 8,
- 	.val_bits = 8,
-@@ -98,10 +95,17 @@ static int skl_int3472_tps68470_calc_type(struct acpi_device *adev)
- static int skl_int3472_tps68470_probe(struct i2c_client *client)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
-+	struct tps68470_clk_platform_data clk_pdata = {};
-+	struct mfd_cell *cells;
- 	struct regmap *regmap;
- 	int device_type;
- 	int ret;
- 
-+	ret = skl_int3472_get_sensor_adev_and_name(&client->dev, NULL,
-+						   &clk_pdata.consumer_dev_name);
-+	if (ret)
-+		return ret;
-+
- 	regmap = devm_regmap_init_i2c(client, &tps68470_regmap_config);
- 	if (IS_ERR(regmap)) {
- 		dev_err(&client->dev, "Failed to create regmap: %ld\n", PTR_ERR(regmap));
-@@ -119,9 +123,26 @@ static int skl_int3472_tps68470_probe(struct i2c_client *client)
- 	device_type = skl_int3472_tps68470_calc_type(adev);
- 	switch (device_type) {
- 	case DESIGNED_FOR_WINDOWS:
-+		cells = kcalloc(TPS68470_WIN_MFD_CELL_COUNT, sizeof(*cells), GFP_KERNEL);
-+		if (!cells)
-+			return -ENOMEM;
-+
-+		/*
-+		 * The order of the cells matters here! The clk must be first
-+		 * because the regulator depends on it. The gpios must be last,
-+		 * acpi_gpiochip_add() calls acpi_dev_clear_dependencies() and
-+		 * the clk + regulators must be ready when this happens.
-+		 */
-+		cells[0].name = "tps68470-clk";
-+		cells[0].platform_data = &clk_pdata;
-+		cells[0].pdata_size = sizeof(clk_pdata);
-+		cells[1].name = "tps68470-regulator";
-+		cells[2].name = "tps68470-gpio";
-+
- 		ret = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
--					   tps68470_win, ARRAY_SIZE(tps68470_win),
-+					   cells, TPS68470_WIN_MFD_CELL_COUNT,
- 					   NULL, 0, NULL);
-+		kfree(cells);
- 		break;
- 	case DESIGNED_FOR_CHROMEOS:
- 		ret = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
+@@ -203,3 +208,4 @@ module_i2c_driver(int3472_tps68470);
+ MODULE_DESCRIPTION("Intel SkyLake INT3472 ACPI TPS68470 Device Driver");
+ MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
+ MODULE_LICENSE("GPL v2");
++MODULE_SOFTDEP("pre: clk-tps68470 tps68470-regulator");
 -- 
 2.33.1
 
