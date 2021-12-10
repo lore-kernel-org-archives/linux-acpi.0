@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CDFC433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Dec 2021 15:42:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D4E1C433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Dec 2021 15:42:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243011AbhLJPpp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 10 Dec 2021 10:45:45 -0500
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:20346 "EHLO
+        id S243051AbhLJPpr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 10 Dec 2021 10:45:47 -0500
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:59426 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S242996AbhLJPpo (ORCPT
+        by vger.kernel.org with ESMTP id S243000AbhLJPpo (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 10 Dec 2021 10:45:44 -0500
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BACurAO000494;
-        Fri, 10 Dec 2021 09:41:59 -0600
+        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BACurAQ000494;
+        Fri, 10 Dec 2021 09:42:00 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=PODMain02222019;
- bh=megKTtdERtUJQU7KuUP30kshCuoJQgJUVUMQRry7JoU=;
- b=LXVZWtCvdmAuqmh2Ote9MrHf/T4NZp8c3ySe44tjnLIxw0OkWbHYCqvPswUUFxMAvG2h
- eHm6aRAE1G/qVb4t5JNRXz2YjecZgistwAyNNwL2zsxIZ1FwPFmoD+QbO2XMtyfkLJgT
- DfI5DgZXZDLErdmA+zJbY/P2ev3abvLDaC6S7ijyZ3zjDQXDrt7DTCO8gpOzN8Ru0Ohq
- ArZpMVCBZzVBf3s1DLiwLjjifAfuu+xlJ+gAkAcp0OIGJJe+SdnMYnj41PDWQ0ZtpebY
- eQ73xoM8rJev8BypF9DWhMiMebeQYXogfY1cBflmde9Gr5yhKjbDkgCk4xhpldiUB3Oe pA== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3cuds09y4p-1
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=PODMain02222019;
+ bh=XrnF6YfdnNKFeMn/V4qMHV3tDq9BK40/tRRsos4brQI=;
+ b=RULwfwiu6IlRH07b22tAu8+T2iA3WWrxaA++ZQBUW1pYF1NmfQdrA4vOxftB0hihQnEN
+ GpaYaIlDQYjVywMtiVORKtiUlAPbgP3REzhSU+3KRanupfVnMRm1Qv0UY0IK7UusOemN
+ gSTZWe25qNLTwC6/nXRmk8fRO7WwPaFT8CHNnA6fhfetdRB+A00YkV1ZU+99oe7uYHX1
+ 5PPV2/DQnGSuglUGDiSnQAaQ4v8eO+FR3ulyuPvw6/pPkgTreleBfNSue9hHHMs+B3D/
+ fE03NZYAzzWoZ2HAjhYGVKRK8VckVgkgUDP1ipGKJq1BUYeNL/nKLgsqsCDSSCrQXv4U BQ== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3cuds09y4q-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Fri, 10 Dec 2021 09:41:59 -0600
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 10 Dec 2021 09:42:00 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Fri, 10 Dec
- 2021 15:41:57 +0000
+ 2021 15:41:58 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
- Transport; Fri, 10 Dec 2021 15:41:57 +0000
+ Transport; Fri, 10 Dec 2021 15:41:58 +0000
 Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.135])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id ED93B2AA;
-        Fri, 10 Dec 2021 15:41:50 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 1F82D478;
+        Fri, 10 Dec 2021 15:41:58 +0000 (UTC)
 From:   Stefan Binding <sbinding@opensource.cirrus.com>
 To:     Mark Brown <broonie@kernel.org>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -48,82 +48,139 @@ CC:     <linux-kernel@vger.kernel.org>, <linux-spi@vger.kernel.org>,
         <linux-acpi@vger.kernel.org>,
         <platform-driver-x86@vger.kernel.org>,
         <patches@opensource.cirrus.com>,
-        Stefan Binding <sbinding@opensource.cirrus.com>
-Subject: [PATCH v2 0/6] Support Spi in i2c-multi-instantiate driver
-Date:   Fri, 10 Dec 2021 15:40:44 +0000
-Message-ID: <20211210154050.3713-1-sbinding@opensource.cirrus.com>
+        Lucas Tanure <tanureal@opensource.cirrus.com>
+Subject: [PATCH v2 3/6] platform/x86: i2c-multi-instantiate: Move it to drivers/acpi folder
+Date:   Fri, 10 Dec 2021 15:40:47 +0000
+Message-ID: <20211210154050.3713-4-sbinding@opensource.cirrus.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20211210154050.3713-1-sbinding@opensource.cirrus.com>
+References: <20211210154050.3713-1-sbinding@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: _mPNY6G98xq7wlA5zS2fSdP4vUb_8Q4z
-X-Proofpoint-ORIG-GUID: _mPNY6G98xq7wlA5zS2fSdP4vUb_8Q4z
+X-Proofpoint-GUID: iTztqA9Q0kOtUf6BmxOuBtV6T8CAT7dM
+X-Proofpoint-ORIG-GUID: iTztqA9Q0kOtUf6BmxOuBtV6T8CAT7dM
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add support for SPI bus in the ic2-multi-instantiate driver as
-upcoming laptops will need to multi instantiate SPI devices from
-a single device node, which has multiple SpiSerialBus entries at
-the ACPI table.
+From: Lucas Tanure <tanureal@opensource.cirrus.com>
 
-With the new SPI support, i2c-multi-instantiate becomes
-bus-multi-instantiate and is moved to the ACPI folder.
+Moving I2C multi instantiate driver to drivers/acpi folder for
+upcoming conversion into a generic bus multi instantiate
+driver for SPI and I2C
 
-The intention is to support the SPI bus by re-using the current
-I2C multi instantiate, instead of creating a new SPI multi
-instantiate, to make it possible for peripherals that can be
-controlled by I2C or SPI to have the same HID at the ACPI table.
+Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
+---
+ MAINTAINERS                                           |  2 +-
+ drivers/acpi/Kconfig                                  | 11 +++++++++++
+ drivers/acpi/Makefile                                 |  1 +
+ .../{platform/x86 => acpi}/i2c-multi-instantiate.c    |  0
+ drivers/acpi/scan.c                                   |  2 +-
+ drivers/platform/x86/Kconfig                          | 11 -----------
+ drivers/platform/x86/Makefile                         |  1 -
+ 7 files changed, 14 insertions(+), 14 deletions(-)
+ rename drivers/{platform/x86 => acpi}/i2c-multi-instantiate.c (100%)
 
-The new driver (Bus multi instantiate, bmi) checks for the
-hard-coded bus type and returns -ENODEV in case of zero devices
-found for that bus. In the case of automatic bus detection, 
-the driver will give preference to I2C.
-
-The expectation is for a device node in the ACPI table to have
-multiple I2cSerialBus only or multiple SpiSerialBus only, not
-a mix of both; and for the case where there are both entries in
-one device node, only the I2C ones would be probed.
-
-This new bus multi instantiate will be used in CS35L41 HDA new
-driver, being upstreamed:
-https://lkml.org/lkml/2021/11/23/723
-
-Changes since V1:
- - Added Cover Letter
- - Split SPI patch into move, rename, reorganize and add
-   SPI support
- - Hard coded BUS type for better decison making at bmi_probe
- - Driver moved to acpi folder
- - Change to use acpi_spi_find_controller_by_adev
- - New shared function bmi_get_irq for I2C and SPI
-
-
-Lucas Tanure (3):
-  platform/x86: i2c-multi-instantiate: Move it to drivers/acpi folder
-  ACPI: i2c-multi-instantiate: Rename it for a generic bus driver name
-  ACPI: bus-multi-instantiate: Reorganize I2C functions
-
-Stefan Binding (3):
-  spi: Export acpi_spi_find_controller_by_adev to be used externally
-  spi: Make spi_alloc_device and spi_add_device public again
-  ACPI: bus-multi-instantiate: Add SPI support
-
- MAINTAINERS                                  |   4 +-
- drivers/acpi/Kconfig                         |  11 +
- drivers/acpi/Makefile                        |   1 +
- drivers/acpi/bus-multi-instantiate.c         | 500 +++++++++++++++++++
- drivers/acpi/scan.c                          |  19 +-
- drivers/platform/x86/Kconfig                 |  11 -
- drivers/platform/x86/Makefile                |   1 -
- drivers/platform/x86/i2c-multi-instantiate.c | 174 -------
- drivers/spi/spi.c                            |   9 +-
- include/linux/spi/spi.h                      |  22 +
- 10 files changed, 552 insertions(+), 200 deletions(-)
- create mode 100644 drivers/acpi/bus-multi-instantiate.c
- delete mode 100644 drivers/platform/x86/i2c-multi-instantiate.c
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cd55b83878e0..25e056854772 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -391,7 +391,7 @@ ACPI I2C MULTI INSTANTIATE DRIVER
+ M:	Hans de Goede <hdegoede@redhat.com>
+ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+-F:	drivers/platform/x86/i2c-multi-instantiate.c
++F:	drivers/acpi/i2c-multi-instantiate.c
+ 
+ ACPI PCC(Platform Communication Channel) MAILBOX DRIVER
+ M:	Sudeep Holla <sudeep.holla@arm.com>
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index c97ee0cfe26e..6200d13fa97b 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -295,6 +295,17 @@ config ACPI_PROCESSOR
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called processor.
+ 
++config ACPI_I2C_MULTI_INST
++	tristate "I2C multi instantiate pseudo device driver"
++	depends on I2C
++	help
++	  Some ACPI-based systems list multiple i2c-devices in a single ACPI
++	  firmware-node. This driver will instantiate separate i2c-clients
++	  for each device in the firmware-node.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called i2c-multi-instantiate.
++
+ config ACPI_IPMI
+ 	tristate "IPMI"
+ 	depends on IPMI_HANDLER
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 3018714e87d9..98d700d55960 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -102,6 +102,7 @@ obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+ obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
+ obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
+ obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
++obj-$(CONFIG_ACPI_I2C_MULTI_INST)	+= i2c-multi-instantiate.o
+ 
+ # processor has its own "processor." module_param namespace
+ processor-y			:= processor_driver.o
+diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/acpi/i2c-multi-instantiate.c
+similarity index 100%
+rename from drivers/platform/x86/i2c-multi-instantiate.c
+rename to drivers/acpi/i2c-multi-instantiate.c
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5991dddbc9ce..e5c81b3df09c 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1700,7 +1700,7 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+ 	 * must be instantiated for each, each with its own i2c_device_id.
+ 	 * Normally we only instantiate an i2c-client for the first resource,
+ 	 * using the ACPI HID as id. These special cases are handled by the
+-	 * drivers/platform/x86/i2c-multi-instantiate.c driver, which knows
++	 * drivers/acpi/i2c-multi-instantiate.c driver, which knows
+ 	 * which i2c_device_id to use for each resource.
+ 	 */
+ 	static const struct acpi_device_id i2c_multi_instantiate_ids[] = {
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 97e87628eb35..1596c8e5bc9b 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -958,17 +958,6 @@ config TOPSTAR_LAPTOP
+ 
+ 	  If you have a Topstar laptop, say Y or M here.
+ 
+-config I2C_MULTI_INSTANTIATE
+-	tristate "I2C multi instantiate pseudo device driver"
+-	depends on I2C && ACPI
+-	help
+-	  Some ACPI-based systems list multiple i2c-devices in a single ACPI
+-	  firmware-node. This driver will instantiate separate i2c-clients
+-	  for each device in the firmware-node.
+-
+-	  To compile this driver as a module, choose M here: the module
+-	  will be called i2c-multi-instantiate.
+-
+ config MLX_PLATFORM
+ 	tristate "Mellanox Technologies platform support"
+ 	depends on I2C && REGMAP
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 219478061683..dc075a036874 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -108,7 +108,6 @@ obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
+ 
+ # Platform drivers
+ obj-$(CONFIG_FW_ATTR_CLASS)		+= firmware_attributes_class.o
+-obj-$(CONFIG_I2C_MULTI_INSTANTIATE)	+= i2c-multi-instantiate.o
+ obj-$(CONFIG_MLX_PLATFORM)		+= mlx-platform.o
+ obj-$(CONFIG_TOUCHSCREEN_DMI)		+= touchscreen_dmi.o
+ obj-$(CONFIG_WIRELESS_HOTKEY)		+= wireless-hotkey.o
 -- 
 2.25.1
 
