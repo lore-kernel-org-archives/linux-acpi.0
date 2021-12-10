@@ -2,165 +2,128 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE3BC433EF
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Dec 2021 09:26:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CDFC433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Dec 2021 15:42:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236300AbhLJJaM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 10 Dec 2021 04:30:12 -0500
-Received: from mga17.intel.com ([192.55.52.151]:37032 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236305AbhLJJaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 Dec 2021 04:30:11 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10193"; a="219002710"
-X-IronPort-AV: E=Sophos;i="5.88,195,1635231600"; 
-   d="scan'208";a="219002710"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 01:26:36 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,195,1635231600"; 
-   d="scan'208";a="659501299"
-Received: from kuha.fi.intel.com ([10.237.72.166])
-  by fmsmga001.fm.intel.com with SMTP; 10 Dec 2021 01:26:33 -0800
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Fri, 10 Dec 2021 11:26:32 +0200
-Date:   Fri, 10 Dec 2021 11:26:32 +0200
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Prashant Malani <pmalani@chromium.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/5] acpi: Store _PLD information and convert users
-Message-ID: <YbMdSACYtmH0/UhE@kuha.fi.intel.com>
-References: <20211207143757.21895-1-heikki.krogerus@linux.intel.com>
- <CACeCKaf3_sqGbqh22Qe+7xEcajCTZt=WziqtPuzgGxW=-TPXbg@mail.gmail.com>
- <YbHVDikM6eodP/MR@kuha.fi.intel.com>
- <CACeCKaeYRWxS1kPX6TvQHvn_5H_u-+MKWmdh5XQeCdZ-Wj93Hw@mail.gmail.com>
+        id S243011AbhLJPpp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 10 Dec 2021 10:45:45 -0500
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:20346 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S242996AbhLJPpo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 Dec 2021 10:45:44 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BACurAO000494;
+        Fri, 10 Dec 2021 09:41:59 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-transfer-encoding :
+ content-type; s=PODMain02222019;
+ bh=megKTtdERtUJQU7KuUP30kshCuoJQgJUVUMQRry7JoU=;
+ b=LXVZWtCvdmAuqmh2Ote9MrHf/T4NZp8c3ySe44tjnLIxw0OkWbHYCqvPswUUFxMAvG2h
+ eHm6aRAE1G/qVb4t5JNRXz2YjecZgistwAyNNwL2zsxIZ1FwPFmoD+QbO2XMtyfkLJgT
+ DfI5DgZXZDLErdmA+zJbY/P2ev3abvLDaC6S7ijyZ3zjDQXDrt7DTCO8gpOzN8Ru0Ohq
+ ArZpMVCBZzVBf3s1DLiwLjjifAfuu+xlJ+gAkAcp0OIGJJe+SdnMYnj41PDWQ0ZtpebY
+ eQ73xoM8rJev8BypF9DWhMiMebeQYXogfY1cBflmde9Gr5yhKjbDkgCk4xhpldiUB3Oe pA== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3cuds09y4p-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Fri, 10 Dec 2021 09:41:59 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Fri, 10 Dec
+ 2021 15:41:57 +0000
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
+ Transport; Fri, 10 Dec 2021 15:41:57 +0000
+Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.135])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id ED93B2AA;
+        Fri, 10 Dec 2021 15:41:50 +0000 (UTC)
+From:   Stefan Binding <sbinding@opensource.cirrus.com>
+To:     Mark Brown <broonie@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>
+CC:     <linux-kernel@vger.kernel.org>, <linux-spi@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <patches@opensource.cirrus.com>,
+        Stefan Binding <sbinding@opensource.cirrus.com>
+Subject: [PATCH v2 0/6] Support Spi in i2c-multi-instantiate driver
+Date:   Fri, 10 Dec 2021 15:40:44 +0000
+Message-ID: <20211210154050.3713-1-sbinding@opensource.cirrus.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACeCKaeYRWxS1kPX6TvQHvn_5H_u-+MKWmdh5XQeCdZ-Wj93Hw@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-GUID: _mPNY6G98xq7wlA5zS2fSdP4vUb_8Q4z
+X-Proofpoint-ORIG-GUID: _mPNY6G98xq7wlA5zS2fSdP4vUb_8Q4z
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Dec 09, 2021 at 11:45:27AM -0800, Prashant Malani wrote:
-> Hey Heikki,
-> 
-> On Thu, Dec 9, 2021 at 2:06 AM Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
-> >
-> > Hi,
-> >
-> > Thanks for testing these..
-> >
-> > On Wed, Dec 08, 2021 at 07:45:26PM -0800, Prashant Malani wrote:
-> > > Hi Heikki,
-> > >
-> > > On Tue, Dec 7, 2021 at 6:37 AM Heikki Krogerus
-> > > <heikki.krogerus@linux.intel.com> wrote:
-> > > >
-> > > > Hi,
-> > > >
-> > > > This removes the need for the drivers to always separately evaluate
-> > > > the _PLD. With the USB Type-C connector and USB port mapping this
-> > > > allows us to start using the component framework and remove the custom
-> > > > APIs.
-> > > >
-> > > > So far the only users of the _PLD information have been the USB
-> > > > drivers, but it seems it will be used also at least in some camera
-> > > > drivers later. These nevertheless touch mostly USB drivers.
-> > > >
-> > > > Rafael, is it still OK if Greg takes these?
-> > > >
-> > > > Prashant, can you test these?
-> > >
-> > > I've applied the patches to a system with the requisite _PLD entries
-> > > in firmware, and I'm not sure I can see the connectors getting created
-> > > correctly.
-> > >
-> > > My setup is:
-> > >
-> > > Chromebook ------> Dell WD19TB dock (in USB+DisplayPort Alternate
-> > > Mode) ----> USB Thumb drive.
-> > >
-> > > Here is the lsusb -t output before connecting the dock (omitting
-> > > unrelated busses):
-> > > localhost ~ # lsusb -t
-> > > /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/3p, 10000M/x2
-> > >
-> > > Here is the lsusb -t output (omitting unrelated busses):
-> > > localhost ~ # lsusb -t
-> > > /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/3p, 10000M/x2
-> > >     |__ Port 2: Dev 15, If 0, Class=Hub, Driver=hub/4p, 10000M
-> > >         |__ Port 3: Dev 16, If 0, Class=Hub, Driver=hub/4p, 5000M
-> > >             |__ Port 3: Dev 18, If 0, Class=Mass Storage,
-> > > Driver=usb-storage, 5000M
-> > >         |__ Port 4: Dev 17, If 0, Class=Vendor Specific Class,
-> > > Driver=r8152, 5000M
-> > >
-> > > I see the connector symlink for the root hub:
-> > >
-> > > localhost ~ # cd /sys/bus/usb/devices
-> > > localhost /sys/bus/usb/devices # ls 2-2/port/connector
-> > > data_role  device  firmware_node  port1-cable  port1-partner  power
-> > > power_operation_mode  power_role  preferred_role  subsystem
-> > > supported_accessory_modes  uevent  usb2-port2  usb3-port2
-> > > usb_power_delivery_revision  usb_typec_revision  vconn_source
-> > >
-> > > But for none of the children devices:
-> > >
-> > > localhost /sys/bus/usb/devices # ls 2-2.3/port/connector
-> > > ls: cannot access '2-2.3/port/connector': No such file or directory
-> > > localhost /sys/bus/usb/devices # ls 2-2.3.3/port/connector
-> > > ls: cannot access '2-2.3.3/port/connector': No such file or directory
-> > > localhost /sys/bus/usb/devices # ls 2-2.3\:1.0/port/connector
-> > > ls: cannot access '2-2.3:1.0/port/connector': No such file or directory
-> > > localhost /sys/bus/usb/devices # ls 2-2.3.3\:1.0/port/connector
-> > > ls: cannot access '2-2.3.3:1.0/port/connector': No such file or directory
-> > >
-> > > Is this as you intended with the series? My interpretation was that
-> > > each connected usb device would get a "connector" symlink, but I may
-> > > have misinterpreted this.
-> >
-> > It is as intended. The usb ports on the board will have the connector
-> > symlink, not the devices attached to them - the firmware is only aware
-> > of the connectors on the board of course. It looks like this series is
-> > working as it should.
-> 
-> Thanks for clarifying my understanding here.
-> 
-> >
-> > If you want to extend this solution so that also every device in the
-> > usb topology will have the link to the connector on board, then that
-> > should be now possible, but that is out side of the scope of this
-> > series. You need to propose that separately.
-> >
-> > But I must ask, why can't you just walk down the topology until you
-> > reach the on-board ports that will have the connector links?
-> >
-> 
-> Right, we can certainly do that; having it in each device is just
-> convenient. But as you said, that's the subject of another series.
-> 
-> You mentioned there would be a v2, so I'll add my Tested-By then.
+Add support for SPI bus in the ic2-multi-instantiate driver as
+upcoming laptops will need to multi instantiate SPI devices from
+a single device node, which has multiple SpiSerialBus entries at
+the ACPI table.
 
-Great!
+With the new SPI support, i2c-multi-instantiate becomes
+bus-multi-instantiate and is moved to the ACPI folder.
 
-I don't know does this help you, or if this is exactly what you had in
-mind, but I am planning to link the USB device attached to the
-connector to the USB Type-C partner device that we have (the USB
-device attached to the connector is the Type-C partner).
+The intention is to support the SPI bus by re-using the current
+I2C multi instantiate, instead of creating a new SPI multi
+instantiate, to make it possible for peripherals that can be
+controlled by I2C or SPI to have the same HID at the ACPI table.
 
-So in your example, the Dell dock USB hub will have the symlink to
-the Type-C partner device, but the USB mass storage device attached to
-the dock will not (because it's not our USB Type-C partner - the dock
-is our USB Type-C partner).
+The new driver (Bus multi instantiate, bmi) checks for the
+hard-coded bus type and returns -ENODEV in case of zero devices
+found for that bus. In the case of automatic bus detection, 
+the driver will give preference to I2C.
 
-But I want to do that separately, as the next step in any case.
+The expectation is for a device node in the ACPI table to have
+multiple I2cSerialBus only or multiple SpiSerialBus only, not
+a mix of both; and for the case where there are both entries in
+one device node, only the I2C ones would be probed.
 
-thanks,
+This new bus multi instantiate will be used in CS35L41 HDA new
+driver, being upstreamed:
+https://lkml.org/lkml/2021/11/23/723
+
+Changes since V1:
+ - Added Cover Letter
+ - Split SPI patch into move, rename, reorganize and add
+   SPI support
+ - Hard coded BUS type for better decison making at bmi_probe
+ - Driver moved to acpi folder
+ - Change to use acpi_spi_find_controller_by_adev
+ - New shared function bmi_get_irq for I2C and SPI
+
+
+Lucas Tanure (3):
+  platform/x86: i2c-multi-instantiate: Move it to drivers/acpi folder
+  ACPI: i2c-multi-instantiate: Rename it for a generic bus driver name
+  ACPI: bus-multi-instantiate: Reorganize I2C functions
+
+Stefan Binding (3):
+  spi: Export acpi_spi_find_controller_by_adev to be used externally
+  spi: Make spi_alloc_device and spi_add_device public again
+  ACPI: bus-multi-instantiate: Add SPI support
+
+ MAINTAINERS                                  |   4 +-
+ drivers/acpi/Kconfig                         |  11 +
+ drivers/acpi/Makefile                        |   1 +
+ drivers/acpi/bus-multi-instantiate.c         | 500 +++++++++++++++++++
+ drivers/acpi/scan.c                          |  19 +-
+ drivers/platform/x86/Kconfig                 |  11 -
+ drivers/platform/x86/Makefile                |   1 -
+ drivers/platform/x86/i2c-multi-instantiate.c | 174 -------
+ drivers/spi/spi.c                            |   9 +-
+ include/linux/spi/spi.h                      |  22 +
+ 10 files changed, 552 insertions(+), 200 deletions(-)
+ create mode 100644 drivers/acpi/bus-multi-instantiate.c
+ delete mode 100644 drivers/platform/x86/i2c-multi-instantiate.c
 
 -- 
-heikki
+2.25.1
+
