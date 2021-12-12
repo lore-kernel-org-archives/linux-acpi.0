@@ -2,245 +2,140 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99D1CC433EF
-	for <linux-acpi@archiver.kernel.org>; Sat, 11 Dec 2021 07:55:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 293CBC433FE
+	for <linux-acpi@archiver.kernel.org>; Sun, 12 Dec 2021 18:06:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229727AbhLKHzj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 11 Dec 2021 02:55:39 -0500
-Received: from mga05.intel.com ([192.55.52.43]:44145 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229503AbhLKHzh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 11 Dec 2021 02:55:37 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1639209337; x=1670745337;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=k7mHAt/wDQCOV5jAvPtg3s8ULcf7c4EYgnHsKQMp6HY=;
-  b=F1GGl+X/frbw0R2+V3KR4k9atuQMSvSsq/Ca6rdztVHXJqSD0GIWSLJE
-   833vSMNGlEM80R0io8lV5fVoSOWz7JzKR1cCdM014/BH4hXnyzCGkUgPW
-   bfq4OAgZje0C/wutxmn9r2wbaXd+k/wK1blw0jp6Sm3WBabnG0f02eSme
-   bZBdC2VKM0/D9UcFgUuyB55o/qBVaegRYwaEPEMsuZ05QcDsNO++0ET12
-   58jelhMxdrxDF+FIzOBUiWhv0ZuQFOev/lWCtjZu86c6tO3VXKeYuGKzD
-   Mz3OkU2yTy8OlpW3MXSRkLvI0aQebwSCqXoLZdKzNljEbgaXr4bID7XVK
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10194"; a="324783585"
-X-IronPort-AV: E=Sophos;i="5.88,197,1635231600"; 
-   d="scan'208";a="324783585"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 23:55:36 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,197,1635231600"; 
-   d="scan'208";a="462818009"
-Received: from lkp-server02.sh.intel.com (HELO 9e1e9f9b3bcb) ([10.239.97.151])
-  by orsmga003.jf.intel.com with ESMTP; 10 Dec 2021 23:55:34 -0800
-Received: from kbuild by 9e1e9f9b3bcb with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1mvxED-0004Ja-SI; Sat, 11 Dec 2021 07:55:33 +0000
-Date:   Sat, 11 Dec 2021 15:55:01 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- f1f42573b6f39aa35a5d07079189c5c242180687
-Message-ID: <61b45955.K5i5g4HKe9BjKT+Y%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S231891AbhLLSGx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 12 Dec 2021 13:06:53 -0500
+Received: from mail-dm6nam11on2088.outbound.protection.outlook.com ([40.107.223.88]:26369
+        "EHLO NAM11-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S231889AbhLLSGw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 12 Dec 2021 13:06:52 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=nVb/e/FUFrKLOwLZqQaJCdJZ9C8+BVKNw2D3503IWDj6wO+J3J3+1iO3+wQyEj36S7sMubI6DyndM4mZv6C0INxAkDmET0VPSNuvOzrWTVThQqppdGs5uAuhDindd5ThALCpJImZQottik0IZ8c7Bqca0KgWbhafzCE0osjmStBEAuvG8dizd2ZiRvPLdd9uRBRfPXqDDG09yXF43KZFVrMsDowcuKLfiGoXlp3yBWcreRvzGumJSRwbiq4jvskwKhUEE8YN06NvVQyZTaQZxBtbt44ikAA3nVdueXW9KUJLI5cQAohD4GPmgiY/EwpmNgLC1zbiSgLsj1d5flt+4w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Z24shn7wM+/vTlbL67SJ6MCU5pFSo38Z8UHCa4xiK7w=;
+ b=fpOjqbMzKQ4nNtbw5rYZzN5A3AYfHhWMH/Ot1DkyOiqaePDZRE/6BUG35YsDtt3vzf4xKSr3abEsKbtSOCaybl9/DAD/d/RvBz8fQaWwgx32VptQ/ORX9/hXh9mbciKTVUfyoUxy63w2F1DUjNsvK8fj60w0FiRDB5AFXIxvAkKCjD6ewYaxf7uiJ0gw+7v6mAnqbardzHz94q5QkyQ5wsxFurosRR1KwwCZF0ZHRhkVIGhreaia9atvAfnjxZ895QGzQu8AmgnskHWGgjKmm3HiKt+pE4WScsYsA9O5SfKiQIy7r2/H59J4IKSJ6BLT49UweFExwdge16cN3ifs+A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Z24shn7wM+/vTlbL67SJ6MCU5pFSo38Z8UHCa4xiK7w=;
+ b=hKxXWJwZh5p2bSEpVsMZqCrH2FIhggEsXCj/bHMjqx2Hd4RL0unHIhyVOoMohxQlYCSpg4tu5AtZMYVNTINQqaoouo9xJ+R6yBjJ/702NGAGRiC0pL9Ds40RMaZ8LbmS+VuEtqoc8XHeV9cwOpc1BpQXOiIzhLuhpGkAtatF4oA=
+Received: from BN6PR11CA0022.namprd11.prod.outlook.com (2603:10b6:405:2::32)
+ by BN6PR12MB1506.namprd12.prod.outlook.com (2603:10b6:405:10::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4778.12; Sun, 12 Dec
+ 2021 18:06:47 +0000
+Received: from BN8NAM11FT038.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:405:2:cafe::6f) by BN6PR11CA0022.outlook.office365.com
+ (2603:10b6:405:2::32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4778.11 via Frontend
+ Transport; Sun, 12 Dec 2021 18:06:47 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB03.amd.com;
+Received: from SATLEXMB03.amd.com (165.204.84.17) by
+ BN8NAM11FT038.mail.protection.outlook.com (10.13.176.246) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.4778.13 via Frontend Transport; Sun, 12 Dec 2021 18:06:47 +0000
+Received: from SATLEXMB04.amd.com (10.181.40.145) by SATLEXMB03.amd.com
+ (10.181.40.144) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Sun, 12 Dec
+ 2021 12:06:46 -0600
+Received: from chrome.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
+ Transport; Sun, 12 Dec 2021 12:06:43 -0600
+From:   Ajit Kumar Pandey <AjitKumar.Pandey@amd.com>
+To:     <sboyd@kernel.org>, <linux-clk@vger.kernel.org>
+CC:     <Vijendar.Mukunda@amd.com>, <Alexander.Deucher@amd.com>,
+        <Basavaraj.Hiregoudar@amd.com>, <Sunil-kumar.Dommati@amd.com>,
+        <Mario.Limonciello@amd.com>,
+        Ajit Kumar Pandey <AjitKumar.Pandey@amd.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        "open list:ACPI" <linux-acpi@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: [PATCH v5 2/5] drivers: acpi: acpi_apd: Remove unused device property "is-rv"
+Date:   Sun, 12 Dec 2021 23:35:24 +0530
+Message-ID: <20211212180527.1641362-3-AjitKumar.Pandey@amd.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20211212180527.1641362-1-AjitKumar.Pandey@amd.com>
+References: <20211212180527.1641362-1-AjitKumar.Pandey@amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: e32cf2ec-1bb9-4213-07ca-08d9bd9a29cb
+X-MS-TrafficTypeDiagnostic: BN6PR12MB1506:EE_
+X-Microsoft-Antispam-PRVS: <BN6PR12MB150628760B7C703A994BA80682739@BN6PR12MB1506.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4303;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 2wQqmzRWjr+1ALqqylviemvYEe890BM3ldvXZAiKKbu/tbdthyXoQHUmp1zCbkOwp/Y8xTrPaeJ1qeEtRLQFmdtUY8F+i/tbAMTIl1ezwEPDFNu40P7JSNZVzhNtp42uSGMQ/mInPOsXbF8LogscM/zAUO7ymcIVLeOQnCHTwv2neNIatmRgpql6oX5YfL+F98z2GrjZKSS7uyEU1CQk5XhMyDTVlh+5An11h8lHFPibUJPoUYyDETHV6ZMAvJCU4lkZMk3J7pMcX5lIjY6h84U9Mkr0d/tTfM3Uj+Zv6f6+Zz8WjRd7EKkcEJufhdMcqHeKfIoF+Agsz/N+VwpC44tCktHYgaKc0wAeSPdccos7qKQ3TN7wP3wuzfHewp2GbTNJQkHi/1msUHOVJuPlqTHpS5irEqGQS/9jjCZmPNBJEUY5Rfkks3lFUBLhzWUOc7zrS2G46jRrsnUUJwOpQpKbA1JWA/+gueQ6LXNLzp3ct+4kGSd4rD/hEVucsZ3I5B4CQBWcjsZRgmT3QyvCPkP9BhpbTRywGLzX6o3LmCA2jvEtI3Rzo4VyiyGKnQ57Pst3vFGJMQeVzQolKHVlIV+KucIZys4nxNZrBUy2fqqHHyLfE/YdxOiEuijTL9AErIQ33Zjo37k2aHYyaxv/8MnIses8uiWW9fo5uFEraU6biKnuWjmXlYNj0yRSv82ypcLivEk09prO99HjuxDebneSk6xBlKbvQMs/wLK95ri7Zqj+2U6SwG7wUXGouybNbO9s8Wzjfzb+KslSEplDHcuFl9SJQe0F/lH5S3WwL9M=
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB03.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(36840700001)(46966006)(40470700001)(6666004)(2616005)(356005)(70586007)(8936002)(36860700001)(4326008)(81166007)(70206006)(426003)(1076003)(2906002)(36756003)(83380400001)(40460700001)(8676002)(316002)(336012)(7696005)(26005)(186003)(5660300002)(110136005)(54906003)(86362001)(508600001)(47076005)(82310400004)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Dec 2021 18:06:47.2952
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: e32cf2ec-1bb9-4213-07ca-08d9bd9a29cb
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB03.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT038.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR12MB1506
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: f1f42573b6f39aa35a5d07079189c5c242180687  Merge branch 'pm-sleep' into linux-next
+Initially "is-rv" device property is added for 48MHz fixed clock
+support on Raven or RV architecture. It's unused now as we moved
+to pci device_id based selection to extend such support on other
+architectures. This change removed unused code from acpi driver.
 
-elapsed time: 721m
-
-configs tested: 170
-configs skipped: 3
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-i386                 randconfig-c001-20211210
-mips                 randconfig-c004-20211210
-sh                          r7780mp_defconfig
-powerpc                          g5_defconfig
-arm                  colibri_pxa270_defconfig
-m68k                                defconfig
-openrisc                         alldefconfig
-powerpc                       ebony_defconfig
-arm                           h5000_defconfig
-mips                         tb0287_defconfig
-mips                  decstation_64_defconfig
-sh                      rts7751r2d1_defconfig
-arm                       aspeed_g5_defconfig
-sparc64                             defconfig
-arm                          ixp4xx_defconfig
-sh                           se7780_defconfig
-powerpc                   currituck_defconfig
-powerpc                     tqm8540_defconfig
-powerpc                     ppa8548_defconfig
-sh                          rsk7264_defconfig
-powerpc                     tqm5200_defconfig
-mips                     cu1830-neo_defconfig
-powerpc                 xes_mpc85xx_defconfig
-ia64                        generic_defconfig
-arm                           sama7_defconfig
-powerpc                       holly_defconfig
-powerpc                   motionpro_defconfig
-powerpc                    mvme5100_defconfig
-sh                   sh7770_generic_defconfig
-powerpc                        icon_defconfig
-mips                       rbtx49xx_defconfig
-arm                      footbridge_defconfig
-mips                        workpad_defconfig
-sh                          sdk7786_defconfig
-powerpc                      bamboo_defconfig
-h8300                       h8s-sim_defconfig
-i386                             alldefconfig
-arc                    vdk_hs38_smp_defconfig
-mips                    maltaup_xpa_defconfig
-mips                         cobalt_defconfig
-mips                        bcm63xx_defconfig
-xtensa                generic_kc705_defconfig
-m68k                            q40_defconfig
-arc                           tb10x_defconfig
-arc                     nsimosci_hs_defconfig
-nios2                         3c120_defconfig
-arm                       multi_v4t_defconfig
-sh                           se7619_defconfig
-arm                      integrator_defconfig
-mips                     loongson2k_defconfig
-um                             i386_defconfig
-powerpc                     sequoia_defconfig
-arm                         lpc32xx_defconfig
-microblaze                      mmu_defconfig
-sh                        edosk7705_defconfig
-m68k                         amcore_defconfig
-parisc                generic-32bit_defconfig
-powerpc                     kmeter1_defconfig
-arm                        trizeps4_defconfig
-sh                             sh03_defconfig
-ia64                                defconfig
-arm64                            alldefconfig
-arm                       imx_v4_v5_defconfig
-powerpc                  mpc866_ads_defconfig
-m68k                          amiga_defconfig
-m68k                          sun3x_defconfig
-parisc                           allyesconfig
-powerpc                 mpc8540_ads_defconfig
-m68k                       bvme6000_defconfig
-powerpc                      ppc40x_defconfig
-arm                  colibri_pxa300_defconfig
-arm                         socfpga_defconfig
-sparc                       sparc64_defconfig
-x86_64                           allyesconfig
-mips                  cavium_octeon_defconfig
-powerpc                      chrp32_defconfig
-m68k                        m5407c3_defconfig
-arc                            hsdk_defconfig
-openrisc                  or1klitex_defconfig
-powerpc                     pq2fads_defconfig
-alpha                            alldefconfig
-arm                       netwinder_defconfig
-powerpc                     tqm8541_defconfig
-arm                          pxa3xx_defconfig
-riscv                            alldefconfig
-m68k                       m5275evb_defconfig
-xtensa                          iss_defconfig
-arm                  randconfig-c002-20211210
-ia64                             allmodconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                             allyesconfig
-nds32                             allnoconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                                defconfig
-s390                             allmodconfig
-s390                             allyesconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-i386                   debian-10.3-kselftests
-i386                              debian-10.3
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a006-20211210
-x86_64               randconfig-a005-20211210
-x86_64               randconfig-a001-20211210
-x86_64               randconfig-a002-20211210
-x86_64               randconfig-a003-20211210
-x86_64               randconfig-a004-20211210
-i386                 randconfig-a001-20211210
-i386                 randconfig-a002-20211210
-i386                 randconfig-a005-20211210
-i386                 randconfig-a003-20211210
-i386                 randconfig-a006-20211210
-i386                 randconfig-a004-20211210
-arc                  randconfig-r043-20211210
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-x86_64                    rhel-8.3-kselftests
-um                           x86_64_defconfig
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-
-clang tested configs:
-arm                  randconfig-c002-20211210
-x86_64               randconfig-c007-20211210
-riscv                randconfig-c006-20211210
-mips                 randconfig-c004-20211210
-i386                 randconfig-c001-20211210
-s390                 randconfig-c005-20211210
-powerpc              randconfig-c003-20211210
-x86_64               randconfig-a011-20211210
-x86_64               randconfig-a012-20211210
-x86_64               randconfig-a014-20211210
-x86_64               randconfig-a013-20211210
-x86_64               randconfig-a016-20211210
-x86_64               randconfig-a015-20211210
-i386                 randconfig-a013-20211210
-i386                 randconfig-a011-20211210
-i386                 randconfig-a016-20211210
-i386                 randconfig-a014-20211210
-i386                 randconfig-a015-20211210
-i386                 randconfig-a012-20211210
-hexagon              randconfig-r045-20211210
-riscv                randconfig-r042-20211210
-s390                 randconfig-r044-20211210
-hexagon              randconfig-r041-20211210
-
+Signed-off-by: Ajit Kumar Pandey <AjitKumar.Pandey@amd.com>
+Reviewed-by: Mario Limonciello <Mario.Limonciello@amd.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/acpi/acpi_apd.c               | 3 ---
+ include/linux/platform_data/clk-fch.h | 1 -
+ 2 files changed, 4 deletions(-)
+
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 6e02448d15d9..6913e9712852 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -87,9 +87,6 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+ 	if (ret < 0)
+ 		return -ENOENT;
+ 
+-	if (!acpi_dev_get_property(adev, "is-rv", ACPI_TYPE_INTEGER, &obj))
+-		clk_data->is_rv = obj->integer.value;
+-
+ 	list_for_each_entry(rentry, &resource_list, node) {
+ 		clk_data->base = devm_ioremap(&adev->dev, rentry->res->start,
+ 					      resource_size(rentry->res));
+diff --git a/include/linux/platform_data/clk-fch.h b/include/linux/platform_data/clk-fch.h
+index b9f682459f08..850ca776156d 100644
+--- a/include/linux/platform_data/clk-fch.h
++++ b/include/linux/platform_data/clk-fch.h
+@@ -12,7 +12,6 @@
+ 
+ struct fch_clk_data {
+ 	void __iomem *base;
+-	u32 is_rv;
+ };
+ 
+ #endif /* __CLK_FCH_H */
+-- 
+2.25.1
+
