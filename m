@@ -2,55 +2,62 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBF44C433EF
-	for <linux-acpi@archiver.kernel.org>; Sun, 12 Dec 2021 21:24:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 554CBC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Dec 2021 09:23:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229502AbhLLVY4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 12 Dec 2021 16:24:56 -0500
-Received: from mail-ed1-f47.google.com ([209.85.208.47]:46058 "EHLO
-        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230437AbhLLVWx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Dec 2021 16:22:53 -0500
-Received: by mail-ed1-f47.google.com with SMTP id y12so45411683eda.12;
-        Sun, 12 Dec 2021 13:22:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=qRRUcggihxuvvuxXR8avhK/eModbACqCMIG7s3bijm0=;
-        b=cwgMkLRmIC5Jc7bTumRtZfdR/utOuYZMGz1d8ygkTHHtVzgzo42XHF3MxCIlHJHEyT
-         C7LdLWylZ0pNaMDQhDT13J5l+njgSg9TNbzeMmfiPFReiWjuLN3BPKhAAriju1eHl9cw
-         v0xZYrbokM5iV9yDxCHW4tROVpkV6lIWT7CatJGFsO5P7KMEX+3KZoYfdE3quHDnbdkY
-         jpj2wUw+3g4R/1VtteNb23NQNkNZ2V1/PAhs7heDgq209kuV3pPkDwgZ1aWLoWFqzEEX
-         OFHc08yxalGQachdnm1D3b45tSRQQlH3u/KkV4GShGX8mzd5qIB7iZpCyJ01mJBdqNcV
-         pVRA==
+        id S233666AbhLMJXk convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Dec 2021 04:23:40 -0500
+Received: from mail-vk1-f179.google.com ([209.85.221.179]:38527 "EHLO
+        mail-vk1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233673AbhLMJXh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Dec 2021 04:23:37 -0500
+Received: by mail-vk1-f179.google.com with SMTP id s17so9966812vka.5;
+        Mon, 13 Dec 2021 01:23:36 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=qRRUcggihxuvvuxXR8avhK/eModbACqCMIG7s3bijm0=;
-        b=MnM5fd9o5CYQ7BgAkgoEob/ZkqXMTehB/iN9E4jzKVKC4pmvXQ3I7KqQwe+5RAVT5B
-         boGbYDZ54VArfZ3fK3p30isfmEZ84BSSCfgU/n1aL47XIKRAJWzavdpoD52Q/JQF5Kle
-         TzewIzakG6lt65F3lpBIc2YtCsnZRDkxNE2c/K+AWHaYNA1PcnUbfsrfavoir3O3wUo7
-         ZHtXCyKGH8vKomoabAxMAWgw+/ipbT5GTAK4XkNLmaFj8VbPvdm64NT7GnIYuOBbJhFU
-         TXqVvPeqZxynFaXeFDr96ArMWkPnTdY+IKsiO+GuZL30tn4rhsZ3qY+R9+QOKkOeIZi9
-         cE7A==
-X-Gm-Message-State: AOAM531vhPoRow8DDQImpWnR1q53cp8Ji7RrSp0xplrENTuQjJXTZjgu
-        pNxDJTzG/DFonuUfR21dJAlIMMRXgCs=
-X-Google-Smtp-Source: ABdhPJwkugCxrPdxtc+DUdPqlE8VTgsZlj2PXoqJkSrC88l4/tv/AsdhkMaJuxd6V34n0G6eKbJ/hw==
-X-Received: by 2002:a05:651c:1790:: with SMTP id bn16mr25960176ljb.475.1639343032645;
-        Sun, 12 Dec 2021 13:03:52 -0800 (PST)
-Received: from localhost.localdomain (94-29-46-111.dynamic.spd-mgts.ru. [94.29.46.111])
-        by smtp.gmail.com with ESMTPSA id y4sm1197172ljp.16.2021.12.12.13.03.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Dec 2021 13:03:52 -0800 (PST)
-From:   Dmitry Osipenko <digetx@gmail.com>
-To:     Thierry Reding <thierry.reding@gmail.com>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=7JQ6xhDuC8UGs/jm3YR6x8QoCCs8KyehtdxluDCRZKo=;
+        b=s1vr4fKxoqXExk3EECIfYm4XnjnYCI9FntQ4nfRSKG1qDpqNF9Ln+oyQ+8AlkOmNZY
+         4VKiBsJuu+BAAMm6QtPPMfTP8l403QFB9Uc1hR/hLkkeUmz4NOq9DyGh796m9mNutLIJ
+         9dmGJIbRxcCMcWHcqcjslDyjrICWEIGHiLxUaU8S5YF6QkMz/C+jXeqnTPmQjjJqG5dJ
+         DmyRVHmFe1uRt/Nbgr8f/fqhsR3JckM0CbT/qJL8nxByU6P2aCObAAE9k9LrHm8V4BZI
+         O4fstT3MvC/FSeM0K6PLkHUslGnIIUAADonm70KDKHyXKuxJLmFh91rJ3HnUgrPDo6BS
+         4mKQ==
+X-Gm-Message-State: AOAM5329nOcx31Hc48LnBiGEsDoJpYJbc+mLykjJXH6bvW5Y9lmtzdhi
+        W+mLuBR5yt3KD2Q9Z9wXEnGVb9ZOGT4H6g==
+X-Google-Smtp-Source: ABdhPJy36iwzFCGQ3/LfaGF4Odlhfj2OLNrCWA4IlVb15gm8DIeNRZjtFj9sldbBl2GYTgKVUkSP6A==
+X-Received: by 2002:a05:6122:20a7:: with SMTP id i39mr29371339vkd.15.1639387415861;
+        Mon, 13 Dec 2021 01:23:35 -0800 (PST)
+Received: from mail-ua1-f49.google.com (mail-ua1-f49.google.com. [209.85.222.49])
+        by smtp.gmail.com with ESMTPSA id t20sm3875484vsj.27.2021.12.13.01.23.34
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 13 Dec 2021 01:23:35 -0800 (PST)
+Received: by mail-ua1-f49.google.com with SMTP id ay21so27952890uab.12;
+        Mon, 13 Dec 2021 01:23:34 -0800 (PST)
+X-Received: by 2002:a67:c106:: with SMTP id d6mr26074577vsj.77.1639387403608;
+ Mon, 13 Dec 2021 01:23:23 -0800 (PST)
+MIME-Version: 1.0
+References: <20211126180101.27818-1-digetx@gmail.com> <20211126180101.27818-6-digetx@gmail.com>
+ <YaLNOJTM+lVq+YNS@qmqm.qmqm.pl> <033ddf2a-6223-1a82-ec64-30f17c891f67@gmail.com>
+ <YaQeQgbW+CjEdsqG@qmqm.qmqm.pl> <091321ea-4919-0579-88a8-23d05871575d@gmail.com>
+ <CAJZ5v0jMvdhfBqjY+V9h_Z6EH1ohuJH+KjuGiOw_Jor1Tnp7vg@mail.gmail.com>
+ <45025b2d-4be1-f694-be61-31903795cf5d@gmail.com> <CAJZ5v0ieTwnBVjW8R_VTdPFH3yr5AwLc+ZEG5N3KrpTH+j8qZw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0ieTwnBVjW8R_VTdPFH3yr5AwLc+ZEG5N3KrpTH+j8qZw@mail.gmail.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 13 Dec 2021 10:23:12 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdXW1bCLkJhC1Jnf2rkS1rBnXsMX=4LMVdXDvMV5HOzrLw@mail.gmail.com>
+Message-ID: <CAMuHMdXW1bCLkJhC1Jnf2rkS1rBnXsMX=4LMVdXDvMV5HOzrLw@mail.gmail.com>
+Subject: Re: [PATCH v4 05/25] reboot: Warn if restart handler has duplicated priority
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Dmitry Osipenko <digetx@gmail.com>,
+        =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
+        Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
         Russell King <linux@armlinux.org.uk>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
         Greg Ungerer <gerg@linux-m68k.org>,
         Joshua Thompson <funaho@jurai.org>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
@@ -59,7 +66,7 @@ To:     Thierry Reding <thierry.reding@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Greentime Hu <green.hu@gmail.com>,
         Vincent Chen <deanbo422@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
         Helge Deller <deller@gmx.de>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
@@ -71,12 +78,12 @@ To:     Thierry Reding <thierry.reding@gmail.com>,
         Rich Felker <dalias@libc.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
         "H. Peter Anvin" <hpa@zytor.com>,
         Boris Ostrovsky <boris.ostrovsky@oracle.com>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
         Santosh Shilimkar <ssantosh@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
@@ -89,59 +96,131 @@ To:     Thierry Reding <thierry.reding@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Ulf Hansson <ulf.hansson@linaro.org>, alankao@andestech.com,
         "K . C . Kuen-Chern Lin" <kclin@andestech.com>,
-        =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Cc:     linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-tegra@vger.kernel.org
-Subject: [PATCH v5 09/21] parisc: Use do_kernel_power_off()
-Date:   Mon, 13 Dec 2021 00:02:57 +0300
-Message-Id: <20211212210309.9851-10-digetx@gmail.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20211212210309.9851-1-digetx@gmail.com>
-References: <20211212210309.9851-1-digetx@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-riscv@lists.infradead.org,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        xen-devel@lists.xenproject.org,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        linux-tegra <linux-tegra@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Kernel now supports chained power-off handlers. Use do_kernel_power_off()
-that invokes chained power-off handlers. It also invokes legacy
-pm_power_off() for now, which will be removed once all drivers will
-be converted to the new power-off API.
+On Fri, Dec 10, 2021 at 8:14 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Fri, Dec 10, 2021 at 8:04 PM Dmitry Osipenko <digetx@gmail.com> wrote:
+> > 10.12.2021 21:27, Rafael J. Wysocki пишет:
+> > > On Mon, Nov 29, 2021 at 12:34 PM Dmitry Osipenko <digetx@gmail.com> wrote:
+> > >> 29.11.2021 03:26, Michał Mirosław пишет:
+> > >>> On Mon, Nov 29, 2021 at 12:06:19AM +0300, Dmitry Osipenko wrote:
+> > >>>> 28.11.2021 03:28, Michał Mirosław пишет:
+> > >>>>> On Fri, Nov 26, 2021 at 09:00:41PM +0300, Dmitry Osipenko wrote:
+> > >>>>>> Add sanity check which ensures that there are no two restart handlers
+> > >>>>>> registered with the same priority. Normally it's a direct sign of a
+> > >>>>>> problem if two handlers use the same priority.
+> > >>>>>
+> > >>>>> The patch doesn't ensure the property that there are no duplicated-priority
+> > >>>>> entries on the chain.
+> > >>>>
+> > >>>> It's not the exact point of this patch.
+> > >>>>
+> > >>>>> I'd rather see a atomic_notifier_chain_register_unique() that returns
+> > >>>>> -EBUSY or something istead of adding an entry with duplicate priority.
+> > >>>>> That way it would need only one list traversal unless you want to
+> > >>>>> register the duplicate anyway (then you would call the older
+> > >>>>> atomic_notifier_chain_register() after reporting the error).
+> > >>>>
+> > >>>> The point of this patch is to warn developers about the problem that
+> > >>>> needs to be fixed. We already have such troubling drivers in mainline.
+> > >>>>
+> > >>>> It's not critical to register different handlers with a duplicated
+> > >>>> priorities, but such cases really need to be corrected. We shouldn't
+> > >>>> break users' machines during transition to the new API, meanwhile
+> > >>>> developers should take action of fixing theirs drivers.
+> > >>>>
+> > >>>>> (Or you could return > 0 when a duplicate is registered in
+> > >>>>> atomic_notifier_chain_register() if the callers are prepared
+> > >>>>> for that. I don't really like this way, though.)
+> > >>>>
+> > >>>> I had a similar thought at some point before and decided that I'm not in
+> > >>>> favor of this approach. It's nicer to have a dedicated function that
+> > >>>> verifies the uniqueness, IMO.
+> > >>>
+> > >>> I don't like the part that it traverses the list second time to check
+> > >>> the uniqueness. But actually you could avoid that if
+> > >>> notifier_chain_register() would always add equal-priority entries in
+> > >>> reverse order:
+> > >>>
+> > >>>  static int notifier_chain_register(struct notifier_block **nl,
+> > >>>               struct notifier_block *n)
+> > >>>  {
+> > >>>       while ((*nl) != NULL) {
+> > >>>               if (unlikely((*nl) == n)) {
+> > >>>                       WARN(1, "double register detected");
+> > >>>                       return 0;
+> > >>>               }
+> > >>> -             if (n->priority > (*nl)->priority)
+> > >>> +             if (n->priority >= (*nl)->priority)
+> > >>>                       break;
+> > >>>               nl = &((*nl)->next);
+> > >>>       }
+> > >>>       n->next = *nl;
+> > >>>       rcu_assign_pointer(*nl, n);
+> > >>>       return 0;
+> > >>>  }
+> > >>>
+> > >>> Then the check for uniqueness after adding would be:
+> > >>>
+> > >>>  WARN(nb->next && nb->priority == nb->next->priority);
+> > >>
+> > >> We can't just change the registration order because invocation order of
+> > >> the call chain depends on the registration order
+> > >
+> > > It doesn't if unique priorities are required and isn't that what you want?
+> > >
+> > >> and some of current
+> > >> users may rely on that order. I'm pretty sure that changing the order
+> > >> will have unfortunate consequences.
+> > >
+> > > Well, the WARN() doesn't help much then.
+> > >
+> > > Either you can make all of the users register with unique priorities,
+> > > and then you can make the registration reject non-unique ones, or you
+> > > cannot assume them to be unique.
+> >
+> > There is no strong requirement for priorities to be unique, the reboot.c
+> > code will work properly.
+>
+> In which case adding the WARN() is not appropriate IMV.
+>
+> Also I've looked at the existing code and at least in some cases the
+> order in which the notifiers run doesn't matter.  I'm not sure what
+> the purpose of this patch is TBH.
+>
+> > The potential problem is on the user's side and the warning is intended
+> > to aid the user.
+>
+> Unless somebody has the panic_on_warn mentioned previously set and
+> really the user need not understand what the WARN() is about.  IOW,
+> WARN() helps developers, not users.
 
-Acked-by: Helge Deller <deller@gmx.de> # parisc
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
----
- arch/parisc/kernel/process.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Do panic_on_warn and reboot_on_panic play well with having a WARN()
+in the reboot notifier handling?
 
-diff --git a/arch/parisc/kernel/process.c b/arch/parisc/kernel/process.c
-index ea3d83b6fb62..928201b1f58f 100644
---- a/arch/parisc/kernel/process.c
-+++ b/arch/parisc/kernel/process.c
-@@ -26,6 +26,7 @@
- #include <linux/module.h>
- #include <linux/personality.h>
- #include <linux/ptrace.h>
-+#include <linux/reboot.h>
- #include <linux/sched.h>
- #include <linux/sched/debug.h>
- #include <linux/sched/task.h>
-@@ -114,8 +115,7 @@ void machine_power_off(void)
- 	pdc_chassis_send_status(PDC_CHASSIS_DIRECT_SHUTDOWN);
- 
- 	/* ipmi_poweroff may have been installed. */
--	if (pm_power_off)
--		pm_power_off();
-+	do_kernel_power_off();
- 		
- 	/* It seems we have no way to power the system off via
- 	 * software. The user has to press the button himself. */
--- 
-2.33.1
+Gr{oetje,eeting}s,
 
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
