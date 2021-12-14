@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B65A1C4332F
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Dec 2021 14:00:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED53FC43217
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Dec 2021 14:00:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234665AbhLNOAc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Dec 2021 09:00:32 -0500
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:29758 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234660AbhLNOAa (ORCPT
+        id S234697AbhLNOAd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Dec 2021 09:00:33 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:13580 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S234668AbhLNOAa (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
         Tue, 14 Dec 2021 09:00:30 -0500
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BEAdVUR003487;
-        Tue, 14 Dec 2021 08:00:09 -0600
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BE4Ko3j006814;
+        Tue, 14 Dec 2021 08:00:02 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=PODMain02222019;
- bh=BC24Xj+sGTtmtv+TxQ7A7FhmVeZQJ/KMVYNnYqbgQf4=;
- b=ayx4qY5muHiaAKaSrUopsRp/zVDQz9eTgjlT5XNIxDnGvAvSlcO5WQagAafydmpTABBt
- FGsVt7TY9cEzCGftBSXuiR9vyh+CPS0uCzrCmx6XqaaFlU8BWlIJRrZH8ul8kgFO/Nl2
- LCaH9k85DeqNMRjwVtj1Qa7nkXHqdfUkjgtlPvTaFLACStF4/6vkGDTW5bNJ7t2CJtN4
- 5lAmR+MgLDkA2RmpO0ssUF9IlMmIThi1BjYJOiGMzzNxiccqWv6WptkXdybkhu0TJT16
- NKxnacVqw1cf/pNsWLOtis9oyyo77jUXoRbxz3mOzqvPbcCylqsObUiP9YJw9OGp50Zg uQ== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3cxe2f0uq1-4
+ subject : date : message-id : mime-version : content-transfer-encoding :
+ content-type; s=PODMain02222019;
+ bh=HxfX/SoFE0LgM6209wZqoglTHFuqx9omB1l1OGzjfZw=;
+ b=foz8zeSvrXrqg1fLlMilCuC8xmOKSeFqtHftwn5e/bEckIFKuG2gsj/mxo+63CweucR6
+ 47unlpW7ZSDn4PZpF+iWE6pw6Nf9hBbIm9xlj/7oJ0q0kHbGzGsemyPIgWlLqzar0UwY
+ JR9KabpVHEm1lpQSYYUQCryoZIA8c7qpiIeJ6wOdbFSDEs2xarljSh6kbFifkOMplSSH
+ D8bmQeWzHAz/4JI7Rf2oSp4xdC5yoJ2QdAwycZJ8CcihTh6OqyEbi9Tw8CQ6tvcq4R2w
+ 2ozkgjOlbmfZi8Z2hxglNs2/Ezv86ne3VSxyFzPGl4mKhF2O65J9np4AyHa6ZXoOz7Oz zA== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cxh14grht-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Tue, 14 Dec 2021 08:00:08 -0600
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 14 Dec 2021 08:00:02 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Tue, 14 Dec
- 2021 14:00:03 +0000
+ 2021 14:00:00 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
- Transport; Tue, 14 Dec 2021 14:00:03 +0000
+ Transport; Tue, 14 Dec 2021 14:00:00 +0000
 Received: from aryzen.ad.cirrus.com (unknown [198.61.64.39])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 32C307C;
-        Tue, 14 Dec 2021 14:00:03 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 34C4D7C;
+        Tue, 14 Dec 2021 14:00:00 +0000 (UTC)
 From:   Lucas Tanure <tanureal@opensource.cirrus.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
@@ -51,283 +51,98 @@ CC:     <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
         <platform-driver-x86@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
         Lucas Tanure <tanureal@opensource.cirrus.com>
-Subject: [PATCH v4 06/10] ASoC: cs35l41: Create shared function for boost configuration
-Date:   Tue, 14 Dec 2021 13:59:55 +0000
-Message-ID: <20211214135959.1317949-7-tanureal@opensource.cirrus.com>
+Subject: [PATCH v4 00/10] Add support for CS35L41 in HDA systems
+Date:   Tue, 14 Dec 2021 13:59:49 +0000
+Message-ID: <20211214135959.1317949-1-tanureal@opensource.cirrus.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20211214135959.1317949-1-tanureal@opensource.cirrus.com>
-References: <20211214135959.1317949-1-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: 6C9z6EcO0wr1ABOgLCO-LM6H9fGUi-py
-X-Proofpoint-GUID: 6C9z6EcO0wr1ABOgLCO-LM6H9fGUi-py
+X-Proofpoint-GUID: kzg2siUfDy0WOJbouaCNJPoYdExKSr7D
+X-Proofpoint-ORIG-GUID: kzg2siUfDy0WOJbouaCNJPoYdExKSr7D
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ASoC and HDA will use the same registers to configure
-internal boost for the device
+Add support for laptops that have CS35L41 connected to an HDA
+codec by I2S and direct I2C connection to the CPU.
 
-Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
----
- include/sound/cs35l41.h        |   2 +
- sound/soc/codecs/cs35l41-lib.c |  98 ++++++++++++++++++++++++++++++
- sound/soc/codecs/cs35l41.c     | 105 +--------------------------------
- 3 files changed, 102 insertions(+), 103 deletions(-)
+Laptops that use CS35L41 and are SPI will be added in the future,
+after the support for it is resolved at i2c-multi-instantiate driver.
+i2c-multi-instantiate thread: https://lkml.org/lkml/2021/12/10/557
 
-diff --git a/include/sound/cs35l41.h b/include/sound/cs35l41.h
-index 39d150f61382..29a527457b48 100644
---- a/include/sound/cs35l41.h
-+++ b/include/sound/cs35l41.h
-@@ -767,5 +767,7 @@ int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsign
- int cs35l41_set_channels(struct device *dev, struct regmap *reg,
- 			 unsigned int tx_num, unsigned int *tx_slot,
- 			 unsigned int rx_num, unsigned int *rx_slot);
-+int cs35l41_boost_config(struct device *dev, struct regmap *regmap, int boost_ind, int boost_cap,
-+			 int boost_ipk);
- 
- #endif /* __CS35L41_H */
-diff --git a/sound/soc/codecs/cs35l41-lib.c b/sound/soc/codecs/cs35l41-lib.c
-index 99f2b246f5b7..6b7ff63d650b 100644
---- a/sound/soc/codecs/cs35l41-lib.c
-+++ b/sound/soc/codecs/cs35l41-lib.c
-@@ -964,6 +964,104 @@ int cs35l41_set_channels(struct device *dev, struct regmap *reg,
- }
- EXPORT_SYMBOL_GPL(cs35l41_set_channels);
- 
-+static const unsigned char cs35l41_bst_k1_table[4][5] = {
-+	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
-+	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
-+	{ 0x40, 0x32, 0x32, 0x4F, 0x57 },
-+	{ 0x40, 0x32, 0x32, 0x4F, 0x57 }
-+};
-+
-+static const unsigned char cs35l41_bst_k2_table[4][5] = {
-+	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
-+	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
-+	{ 0x48, 0x49, 0x66, 0xA3, 0xEA },
-+	{ 0x48, 0x49, 0x66, 0xA3, 0xEA }
-+};
-+
-+static const unsigned char cs35l41_bst_slope_table[4] = {
-+	0x75, 0x6B, 0x3B, 0x28
-+};
-+
-+
-+int cs35l41_boost_config(struct device *dev, struct regmap *regmap, int boost_ind, int boost_cap,
-+			 int boost_ipk)
-+{
-+	unsigned char bst_lbst_val, bst_cbst_range, bst_ipk_scaled;
-+	int ret;
-+
-+	switch (boost_ind) {
-+	case 1000:	/* 1.0 uH */
-+		bst_lbst_val = 0;
-+		break;
-+	case 1200:	/* 1.2 uH */
-+		bst_lbst_val = 1;
-+		break;
-+	case 1500:	/* 1.5 uH */
-+		bst_lbst_val = 2;
-+		break;
-+	case 2200:	/* 2.2 uH */
-+		bst_lbst_val = 3;
-+		break;
-+	default:
-+		dev_err(dev, "Invalid boost inductor value: %d nH\n", boost_ind);
-+		return -EINVAL;
-+	}
-+
-+	switch (boost_cap) {
-+	case 0 ... 19:
-+		bst_cbst_range = 0;
-+		break;
-+	case 20 ... 50:
-+		bst_cbst_range = 1;
-+		break;
-+	case 51 ... 100:
-+		bst_cbst_range = 2;
-+		break;
-+	case 101 ... 200:
-+		bst_cbst_range = 3;
-+		break;
-+	default:	/* 201 uF and greater */
-+		bst_cbst_range = 4;
-+	}
-+
-+	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_COEFF,
-+				 CS35L41_BST_K1_MASK | CS35L41_BST_K2_MASK,
-+				 cs35l41_bst_k1_table[bst_lbst_val][bst_cbst_range]
-+					<< CS35L41_BST_K1_SHIFT |
-+				 cs35l41_bst_k2_table[bst_lbst_val][bst_cbst_range]
-+					<< CS35L41_BST_K2_SHIFT);
-+	if (ret) {
-+		dev_err(dev, "Failed to write boost coefficients: %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_SLOPE_LBST,
-+				 CS35L41_BST_SLOPE_MASK | CS35L41_BST_LBST_VAL_MASK,
-+				 cs35l41_bst_slope_table[bst_lbst_val]
-+					<< CS35L41_BST_SLOPE_SHIFT |
-+				 bst_lbst_val << CS35L41_BST_LBST_VAL_SHIFT);
-+	if (ret) {
-+		dev_err(dev, "Failed to write boost slope/inductor value: %d\n", ret);
-+		return ret;
-+	}
-+
-+	if (boost_ipk < 1600 || boost_ipk > 4500) {
-+		dev_err(dev, "Invalid boost inductor peak current: %d mA\n", boost_ipk);
-+		return -EINVAL;
-+	}
-+	bst_ipk_scaled = ((boost_ipk - 1600) / 50) + 0x10;
-+
-+	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_PEAK_CUR, CS35L41_BST_IPK_MASK,
-+				 bst_ipk_scaled << CS35L41_BST_IPK_SHIFT);
-+	if (ret) {
-+		dev_err(dev, "Failed to write boost inductor peak current: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(cs35l41_boost_config);
-+
- MODULE_DESCRIPTION("CS35L41 library");
- MODULE_AUTHOR("David Rhodes, Cirrus Logic Inc, <david.rhodes@cirrus.com>");
- MODULE_AUTHOR("Lucas Tanure, Cirrus Logic Inc, <tanureal@opensource.cirrus.com>");
-diff --git a/sound/soc/codecs/cs35l41.c b/sound/soc/codecs/cs35l41.c
-index 88d6e77fdb50..d9e6e84e64d0 100644
---- a/sound/soc/codecs/cs35l41.c
-+++ b/sound/soc/codecs/cs35l41.c
-@@ -150,24 +150,6 @@ static const struct cs35l41_fs_mon_config cs35l41_fs_mon[] = {
- 	{ 6144000,	16,	24 },
- };
- 
--static const unsigned char cs35l41_bst_k1_table[4][5] = {
--	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
--	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
--	{ 0x40, 0x32, 0x32, 0x4F, 0x57 },
--	{ 0x40, 0x32, 0x32, 0x4F, 0x57 }
--};
--
--static const unsigned char cs35l41_bst_k2_table[4][5] = {
--	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
--	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
--	{ 0x48, 0x49, 0x66, 0xA3, 0xEA },
--	{ 0x48, 0x49, 0x66, 0xA3, 0xEA }
--};
--
--static const unsigned char cs35l41_bst_slope_table[4] = {
--	0x75, 0x6B, 0x3B, 0x28
--};
--
- static int cs35l41_get_fs_mon_config_index(int freq)
- {
- 	int i;
-@@ -992,88 +974,6 @@ static int cs35l41_dai_set_sysclk(struct snd_soc_dai *dai,
- 	return 0;
- }
- 
--static int cs35l41_boost_config(struct cs35l41_private *cs35l41,
--				int boost_ind, int boost_cap, int boost_ipk)
--{
--	unsigned char bst_lbst_val, bst_cbst_range, bst_ipk_scaled;
--	struct regmap *regmap = cs35l41->regmap;
--	struct device *dev = cs35l41->dev;
--	int ret;
--
--	switch (boost_ind) {
--	case 1000:	/* 1.0 uH */
--		bst_lbst_val = 0;
--		break;
--	case 1200:	/* 1.2 uH */
--		bst_lbst_val = 1;
--		break;
--	case 1500:	/* 1.5 uH */
--		bst_lbst_val = 2;
--		break;
--	case 2200:	/* 2.2 uH */
--		bst_lbst_val = 3;
--		break;
--	default:
--		dev_err(dev, "Invalid boost inductor value: %d nH\n", boost_ind);
--		return -EINVAL;
--	}
--
--	switch (boost_cap) {
--	case 0 ... 19:
--		bst_cbst_range = 0;
--		break;
--	case 20 ... 50:
--		bst_cbst_range = 1;
--		break;
--	case 51 ... 100:
--		bst_cbst_range = 2;
--		break;
--	case 101 ... 200:
--		bst_cbst_range = 3;
--		break;
--	default:	/* 201 uF and greater */
--		bst_cbst_range = 4;
--	}
--
--	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_COEFF,
--				 CS35L41_BST_K1_MASK | CS35L41_BST_K2_MASK,
--				 cs35l41_bst_k1_table[bst_lbst_val][bst_cbst_range]
--					<< CS35L41_BST_K1_SHIFT |
--				 cs35l41_bst_k2_table[bst_lbst_val][bst_cbst_range]
--					<< CS35L41_BST_K2_SHIFT);
--	if (ret) {
--		dev_err(dev, "Failed to write boost coefficients: %d\n", ret);
--		return ret;
--	}
--
--	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_SLOPE_LBST,
--				 CS35L41_BST_SLOPE_MASK | CS35L41_BST_LBST_VAL_MASK,
--				 cs35l41_bst_slope_table[bst_lbst_val]
--					<< CS35L41_BST_SLOPE_SHIFT |
--				 bst_lbst_val << CS35L41_BST_LBST_VAL_SHIFT);
--	if (ret) {
--		dev_err(dev, "Failed to write boost slope/inductor value: %d\n", ret);
--		return ret;
--	}
--
--	if (boost_ipk < 1600 || boost_ipk > 4500) {
--		dev_err(dev, "Invalid boost inductor peak current: %d mA\n",
--			boost_ipk);
--		return -EINVAL;
--	}
--	bst_ipk_scaled = ((boost_ipk - 1600) / 50) + 0x10;
--
--	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_PEAK_CUR,
--				 CS35L41_BST_IPK_MASK,
--				 bst_ipk_scaled << CS35L41_BST_IPK_SHIFT);
--	if (ret) {
--		dev_err(dev, "Failed to write boost inductor peak current: %d\n", ret);
--		return ret;
--	}
--
--	return 0;
--}
--
- static int cs35l41_set_pdata(struct cs35l41_private *cs35l41)
- {
- 	int ret;
-@@ -1082,9 +982,8 @@ static int cs35l41_set_pdata(struct cs35l41_private *cs35l41)
- 	/* Required */
- 	if (cs35l41->pdata.bst_ipk &&
- 	    cs35l41->pdata.bst_ind && cs35l41->pdata.bst_cap) {
--		ret = cs35l41_boost_config(cs35l41, cs35l41->pdata.bst_ind,
--					   cs35l41->pdata.bst_cap,
--					   cs35l41->pdata.bst_ipk);
-+		ret = cs35l41_boost_config(cs35l41->dev, cs35l41->regmap, cs35l41->pdata.bst_ind,
-+					   cs35l41->pdata.bst_cap, cs35l41->pdata.bst_ipk);
- 		if (ret) {
- 			dev_err(cs35l41->dev, "Error in Boost DT config: %d\n", ret);
- 			return ret;
+Hardware:
+ - Some laptops have two CS35L41 amplifiers, connected to Realtek ALC287
+   by an I2S bus and by and direct I2C to the CPU.
+ - The ALC287 codec is connected to the CPU by an HDA bus.
+ - The CS35L41 has a DSP which will require firmware to be loaded.
+
+Architecture:
+ - Creation of a library of shared functions for CS35L41 ASoC and HDA
+ - HDA codec driver (RealTek) and CS35L41 HDA driver are combined
+ by using component binding, where it uses device names to find the
+ components and bind to the master
+ - The HDA CS35L41 driver applies pre-defined registers sequences
+ for each action in playback for HDA Sound card
+
+Changes from V3:
+ - SPI bus driver starter added
+ - Use separate modules approach instead of liking library
+ - Add CSC3551 ACPI _HID for more I2C laptops
+ - Removed regulators from HDA driver
+ - Add note about Non-conforming _HID
+V3: https://lkml.org/lkml/2021/11/23/723
+
+Changes from V2:
+ - Not an RFC
+ - Create a new HDA driver for CS35L41 instead of using the ASoC one
+ - Use component binding and device names to find the CS35L41 driver
+ - Create a shared library for ASoC and HDA CS35L41 drivers
+v2: https://lkml.org/lkml/2021/10/8/344
+
+Lucas Tanure (9):
+  ASoC: cs35l41: Convert tables to shared source code
+  ASoC: cs35l41: Move cs35l41_otp_unpack to shared code
+  ASoC: cs35l41: Move power initializations to reg_sequence
+  ASoC: cs35l41: Create shared function for errata patches
+  ASoC: cs35l41: Create shared function for setting channels
+  ASoC: cs35l41: Create shared function for boost configuration
+  hda: cs35l41: Add support for CS35L41 in HDA systems
+  ACPI / scan: Create platform device for CLSA0100 and CSC3551 ACPI
+    nodes
+  ALSA: hda/realtek: Add support for Legion 7 16ACHg6 laptop
+
+Stefan Binding (1):
+  ALSA: hda/realtek: Add CS35L41 support for Thinkpad laptops
+
+ MAINTAINERS                                   |   2 +
+ drivers/acpi/scan.c                           |   3 +
+ drivers/platform/x86/i2c-multi-instantiate.c  |  11 +
+ include/sound/cs35l41.h                       | 739 ++++++++++++++++++
+ sound/pci/hda/Kconfig                         |  27 +
+ sound/pci/hda/Makefile                        |  10 +
+ sound/pci/hda/cs35l41_hda.c                   | 525 +++++++++++++
+ sound/pci/hda/cs35l41_hda.h                   |  68 ++
+ sound/pci/hda/cs35l41_hda_i2c.c               |  66 ++
+ sound/pci/hda/cs35l41_hda_spi.c               |  63 ++
+ sound/pci/hda/hda_component.h                 |  20 +
+ sound/pci/hda/patch_realtek.c                 | 147 ++++
+ sound/soc/codecs/Kconfig                      |   7 +
+ sound/soc/codecs/Makefile                     |   4 +-
+ sound/soc/codecs/cs35l41-i2c.c                |   1 -
+ .../{cs35l41-tables.c => cs35l41-lib.c}       | 353 ++++++++-
+ sound/soc/codecs/cs35l41-spi.c                |   1 -
+ sound/soc/codecs/cs35l41.c                    | 360 +--------
+ sound/soc/codecs/cs35l41.h                    | 734 -----------------
+ 19 files changed, 2049 insertions(+), 1092 deletions(-)
+ create mode 100644 sound/pci/hda/cs35l41_hda.c
+ create mode 100644 sound/pci/hda/cs35l41_hda.h
+ create mode 100644 sound/pci/hda/cs35l41_hda_i2c.c
+ create mode 100644 sound/pci/hda/cs35l41_hda_spi.c
+ create mode 100644 sound/pci/hda/hda_component.h
+ rename sound/soc/codecs/{cs35l41-tables.c => cs35l41-lib.c} (71%)
+
 -- 
 2.34.1
 
