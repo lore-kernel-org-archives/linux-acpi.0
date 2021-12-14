@@ -2,181 +2,409 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B5FC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Dec 2021 04:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13CB0C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Dec 2021 14:00:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229554AbhLNElB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Dec 2021 23:41:01 -0500
-Received: from mail-mw2nam12on2092.outbound.protection.outlook.com ([40.107.244.92]:30816
-        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S229477AbhLNElA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Dec 2021 23:41:00 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=GxzsQhV8qi8aK3m9JHs62muzEbNm/Dv9fL9Q8w2yuL3qF32Q0kqfq7q8cJ+BZyHL42dAKHSU0z/YKSOZ0E8yKuXd8czCx4deWaeFJEUa7VrMZUSF3d3lL9kyrssnSgw4Vx0bEJ8ln5hj0ouvcJ+KRuD+PdyW4tbq5bZ2wR0gbMohudGuoznJQCFVrO3NgEgR1ltNBtElhVCH2UlWzvjcpflujyat6O2Z7AZwETOCJ5lGBb4UDvhpNOCrDGzZ1tQ7zj7NEDE6cd2U38ZXvgnQPHgPDo1Z+E3FiCN7yspanwC6NCA/PGILVMFAUOFnifwSYuaXPdRDhATV9eeMbx+gzg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=tcs+w7TDYoeziTSR9MVk297dLxHWSNCreHdbz/t3U5U=;
- b=mkXePeMROMg5KYTBX2/mYoFgX6JpQnS74eTNDc0DwsEFbClSFm5Bq2Dbn37qjpCKf/2GxKCDJhszhFpzQZv5LAgQhNHaoxlMnJ7Q7YvMzVx53ovTKpPfdbErLNWJODeypOvy8MgNlGw4oN/nF+oxseheLISfnJMg2/7Nk16l9eR4D3EAIxU+8osO+tunZMOJvhtn0W+gJPQt2oEu1/bKmcxLKNJnDoo9kVbYRP6RDwyWkaqrldQGgRHj5Hz2bNZkZnjN2pcbvDs3uifNAt/2DjyqqRYyVlzWhk+OW3XKReL8yDuntE9N9LYbzZlg2F5BlnrAkCQutHFJFbCA6cDYHQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
- header.from=os.amperecomputing.com; dkim=pass
- header.d=os.amperecomputing.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=os.amperecomputing.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tcs+w7TDYoeziTSR9MVk297dLxHWSNCreHdbz/t3U5U=;
- b=ExpgEieQeL8siuunBzv0p7t1itWVmOPFY+xr0FTLi3ZBCFgs9YM3KmH3Jj+ZNFQDn4zte3jgNIRXJe3tM7eqhTMF/On2dcIx25jNHNnT/7PT734vQAaLgjbTV83zhIvRY7hUud9ecULfxIBHQ+cSMZf6Oofv1Ze4vOod957vwvg=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=os.amperecomputing.com;
-Received: from DM5PR0102MB3590.prod.exchangelabs.com (2603:10b6:4:a4::25) by
- DM6PR01MB4153.prod.exchangelabs.com (2603:10b6:5:22::19) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.4778.17; Tue, 14 Dec 2021 04:40:57 +0000
-Received: from DM5PR0102MB3590.prod.exchangelabs.com
- ([fe80::38e1:cab:501d:6b96]) by DM5PR0102MB3590.prod.exchangelabs.com
- ([fe80::38e1:cab:501d:6b96%4]) with mapi id 15.20.4778.017; Tue, 14 Dec 2021
- 04:40:57 +0000
-From:   Ilkka Koskinen <ilkka@os.amperecomputing.com>
-To:     lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        sudeep.holla@arm.com, linux@armlinux.org.uk
-Cc:     rafael@kernel.org, lenb@kernel.org, robert.moore@intel.com,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, devel@acpica.org,
-        patches@amperecomputing.com, scott@os.amperecomputing.com,
-        darren@os.amperecomputing.com
-Subject: [PATCH v2 1/2] ACPI: AGDI: Add AGDI tables to drivers/acpi
-Date:   Mon, 13 Dec 2021 20:40:35 -0800
-Message-Id: <20211214044036.48245-2-ilkka@os.amperecomputing.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20211214044036.48245-1-ilkka@os.amperecomputing.com>
-References: <20211214044036.48245-1-ilkka@os.amperecomputing.com>
-Content-Type: text/plain
-X-ClientProxiedBy: CH0PR03CA0063.namprd03.prod.outlook.com
- (2603:10b6:610:cc::8) To DM5PR0102MB3590.prod.exchangelabs.com
- (2603:10b6:4:a4::25)
+        id S232433AbhLNOA0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Dec 2021 09:00:26 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:3170 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S232388AbhLNOAZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Dec 2021 09:00:25 -0500
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BE4Ko3k006814;
+        Tue, 14 Dec 2021 08:00:03 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=PODMain02222019;
+ bh=JwdEvJNSccwPwzdfwacOslSxZt9T4OuG+VPsh+orUNE=;
+ b=HUF9rTT/zOdbVhTt+p4cQEYuOTyTwUwaInU5k7VMaxPABFIcbyLSckvaLRJi+JTh1IzC
+ 6KbCJPPNxQLAepsRwCz0bdMyMW4hihKTPgNfcuPz4q8VsrIP/2daR/QRVW6v3/BSUgzc
+ 89tPUcbaoQGv7Q2jCOOBhX8n8s+j3jhVUh1DO9+jaCdLb3c5xy5HZyjJ701+zQeys7JN
+ HQ0yoUb8Jyi+bEi7ZPzbAmaD7WqnhZVu3KpPFBDa0/r5Le/0D95URVBZvmsAc4Dathyh
+ By5r+PQJE0aQYupP14rbFzshA9hXbu82G9NTIoqdfDkra6Idwr8QXHkrQXPSBlqSXDXJ /Q== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cxh14grht-2
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Tue, 14 Dec 2021 08:00:03 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Tue, 14 Dec
+ 2021 14:00:01 +0000
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
+ Transport; Tue, 14 Dec 2021 14:00:01 +0000
+Received: from aryzen.ad.cirrus.com (unknown [198.61.64.39])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 41F09B12;
+        Tue, 14 Dec 2021 14:00:01 +0000 (UTC)
+From:   Lucas Tanure <tanureal@opensource.cirrus.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>
+CC:     <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
+        <patches@opensource.cirrus.com>,
+        <platform-driver-x86@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Lucas Tanure <tanureal@opensource.cirrus.com>
+Subject: [PATCH v4 02/10] ASoC: cs35l41: Move cs35l41_otp_unpack to shared code
+Date:   Tue, 14 Dec 2021 13:59:51 +0000
+Message-ID: <20211214135959.1317949-3-tanureal@opensource.cirrus.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20211214135959.1317949-1-tanureal@opensource.cirrus.com>
+References: <20211214135959.1317949-1-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 477d4d2f-ccda-4706-a078-08d9bebbeba9
-X-MS-TrafficTypeDiagnostic: DM6PR01MB4153:EE_
-X-Microsoft-Antispam-PRVS: <DM6PR01MB41539D3F3C912E91C215240E9D759@DM6PR01MB4153.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2733;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: C1gW1K8oiFCFPXSsrqJ5TzpdybT/Mt+G/OC05MsP6OGWum2khNf+8dtEo6y+6UWyFNa/xoAU+gHZNzcVL1MboAaDfoQL/Hkxa5aP20a5VoVEu5EzVOZs0y3GyTTxhKT3X1v4gYcuRWEw2PtWlOvuaCQMJI1BF2zS+gV0g3wtLSCBKWbgoHByfBiLYcOTUF2gcnTHOBw3stftkXr6Y+6cOel7E4arYud4VPMVAipxNKPd3XZUR0NEjWWo+sjAvMFP/euuUynw0YGvrBtfsVoxgt/JpgTMFdtAwuLrZBNkSUEXmR5oeDluar+t1lz4J9hiD/IhE4Vr+EBPPiGVAeBvZ7RPkbr4+v14cWprk1ga78bMqWBobCRu/grYkYmRBeHDcCyj0qj5uDBSUU4WJOK5HfapwFF3WHucYPwGENCTiIxpmR15Vf6lxkTmvmuxHubMlvIlZAD/LdahKyT6gtJNuIzkqEozvqvrpr4cs+oDUqyDRx7M2wn3oZHx0asFriviPH0Jg+W7VK5GP8jpU/OwUPuqOXDUy4Qn4xbA55pmTIN0BnuJTf2mxFifR2dCBcYlkAjRzt8PyUIs8u3fmR6zW1dMBlnAV3Sd/A8u0rCfXV4o52gTZiXHxd1NnHQPlDEyaXabmyyR3VxaYlrR+7MV8DFqVIzPlz65bQsADng+RyyNHQ0v/RekXZ8y5DJYaTwHGh9mWot6496odIqNEHwJgR+WWY8+IeTfNzehRPf5WrzW41krtaxa+qWaNEg7GTtpF9XetOlGmPwRsJenwzGvBeVf7s8cp+26J8zeL9nTKgo=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM5PR0102MB3590.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(8936002)(966005)(316002)(6512007)(66476007)(66556008)(66946007)(52116002)(7416002)(5660300002)(1076003)(508600001)(6506007)(107886003)(2616005)(8676002)(4326008)(6666004)(186003)(86362001)(83380400001)(26005)(6486002)(38100700002)(38350700002)(2906002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?n8YSk0FUu4ZjOkbu4fUFoBs+n21uwOCTwzoS6j/cXlwfmb33prM5xIA2Sptr?=
- =?us-ascii?Q?iUxUC1opzhshj4QjquVOCm1gScY2a8FqdyhePwIapDmiI+rvosSOBueo35Ai?=
- =?us-ascii?Q?JXl6A6FCoqNvGde8vRGwILs9ImRKmAJl156aMvEz8PJCI03w/0LhGxhwBzgh?=
- =?us-ascii?Q?BuuZx/bjx7n3itC6CE5krDZ2+I12UzXo9NgN8+Hnw4r9oT5uSjM8WJS4bLe2?=
- =?us-ascii?Q?Ht5oaFX6tlQcFwyBaOJfgiWPxHAGcUG9BrRmOaHc6aLKmIulsGnxbLkZFrNa?=
- =?us-ascii?Q?jwI5nGOQo/UMz9WAKLSOxgIA5IZ+edLuBuDQZJbaL5IW64yQuybtsd7izuJe?=
- =?us-ascii?Q?kapao91p0GBsXfJoagaDlnEPlS1vmm7UmH7kBZiYnpza7kbUarhZl9IW+XZn?=
- =?us-ascii?Q?JjM+q0goTIDlUXE/48oJdOk+25JKlF2KF+QbKbVI+dZKUuXDxIVa8j1CFsyt?=
- =?us-ascii?Q?BT93IyN4qibs9FvIA+Mllc/Smr+BJYfZlqFas7BJlWfYVbnEot7S31kleRNj?=
- =?us-ascii?Q?jaAd8w6cAVjQQluTqv/dGhhGZ+3xjUhJ6tEW18OsY+eYWlXXCgO9IGcKcUJZ?=
- =?us-ascii?Q?JVEm6H1vYF+0kp7dmk9k1v4XXsZDhziU1Y9ALtV+bhJOflARQHVojT/xZ+Ee?=
- =?us-ascii?Q?qPM7eCVjWYuLooD/MAthplUKQ0wFHusblYgY5UiRWA0UP88zBQW9usgqCtkz?=
- =?us-ascii?Q?3ac3MMN4vfFn61ne4ycMAmU/zXOu55Ks8vgBU6TWwvxAfJXwxpWEaSIe9uh8?=
- =?us-ascii?Q?IMx9Gh5eXRPyPSszd5mxh/sp5/fLDRXyERcJovnbqG/2d31En6ans6kCyVNx?=
- =?us-ascii?Q?9fLCNDuADdjjd/MawLBGPOU5SRYD0XKf/uNh7olbLbF/K9PEthk2n90qn6mr?=
- =?us-ascii?Q?hWlhasEboql0YlelKotDmGGmO+fPcO1E3h4tx/zz7gmyWVLVz6rpHXC8bBsG?=
- =?us-ascii?Q?Ir05kpLNZIyAr20XDgfKeodtMj12joIDcMCqa26LYlm5UNr6uvNuCyCyP+q5?=
- =?us-ascii?Q?LnNxIjDwUr8LH256pSXPDZ5JhRF5syc21R+jYn0rIieqdwP9c9Xy8o0hD2hD?=
- =?us-ascii?Q?yACddraKTEqYG/ErqC7RvDpqG0unKVdpo1+QcemcaHK7RJ1OBuh0cUWzgA3N?=
- =?us-ascii?Q?l0SEGqKoF3mMQ0CsEcjpIak3+2pV//wY7NoIO2iMS2uFbjp1Gwr485wlr4Jc?=
- =?us-ascii?Q?TiwMgbn9HrL/vj1idOYJBnKcIWJ4ajYqiXTSETuBjKJ6awNms8eqOVnBvHkX?=
- =?us-ascii?Q?TfFWtQatDFi76uFDXFW5bkUbD+CX/1Nhlz4TH6Rw97kbJ82IaNYdyyV+2EBg?=
- =?us-ascii?Q?JqdMX0WMip+yZaFKtFDrVFEJpLt4GVdB0fnjyy8ZBr4+hVnBC/jRvs0Bbbst?=
- =?us-ascii?Q?KVThMBTeotf/UXcCUMWi/VnpMhS4GjLvIcUtUoCCYtrrKJwTnU9nb/uZBXA0?=
- =?us-ascii?Q?ieTA+srOEUbXDOwDrV2Jwqn1MSpuU2ipk+rg0Sbi20QAJ7qKJ3vJE+HXHszV?=
- =?us-ascii?Q?N2x91wpvn39L7opeM3+7fJqOKU2Gnh61R4JZKQXqrG/g9EoaBt20d0YHSpgg?=
- =?us-ascii?Q?w/CPwSeg1xnf03AlaUzD8rqHtv32FLQEeNBPKBkHYl2xyI12B+13yVafzH/7?=
- =?us-ascii?Q?Vnr178Uelof/vA1RoaSsY6iUqHnILzMGZPFbumy/D/wxkPp58O8Kdq7RAD3u?=
- =?us-ascii?Q?nHzzriyMhXnsIIdAZjyqQ4G2ufGziqLuKBK8VoRJu472ppE7Co3eKx1siKWj?=
- =?us-ascii?Q?T5N/6XhfVw=3D=3D?=
-X-OriginatorOrg: os.amperecomputing.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 477d4d2f-ccda-4706-a078-08d9bebbeba9
-X-MS-Exchange-CrossTenant-AuthSource: DM5PR0102MB3590.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Dec 2021 04:40:57.4372
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KTofUIvkHs1YIIjbskCvn4Jmq+N/FzAYEOGgdH1M/IKoC0NukoJ9aVP/RCGbXjxgdwzAnKNc3U3AuOI3+uWlNt5pwiAxqTwhHXo+v9A7pkS+tVOfQxzM7ZlLxExq+11y
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR01MB4153
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-GUID: O1AZfcBVVIYM8LNb-F3KBNnZAsq8A3Cz
+X-Proofpoint-ORIG-GUID: O1AZfcBVVIYM8LNb-F3KBNnZAsq8A3Cz
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI for Arm Components 1.1 Platform Design Document v1.1 [0] specifices
-Arm Generic Diagnostic Device Interface (AGDI). It allows an admin to
-issue diagnostic dump and reset via an SDEI event or an interrupt. This
-patch adds support to ACPI/AGDI tables.
+ASoC and HDA will do the same cs35l41_otp_unpack, so move it
+to shared code
 
-[0] https://developer.arm.com/documentation/den0093/latest/
-
-Signed-off-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
+Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 ---
- drivers/acpi/tables.c |  2 +-
- include/acpi/actbl2.h | 20 ++++++++++++++++++++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+ include/sound/cs35l41.h        |   4 +-
+ sound/soc/codecs/cs35l41-lib.c | 121 ++++++++++++++++++++++++++++++-
+ sound/soc/codecs/cs35l41.c     | 125 +--------------------------------
+ 3 files changed, 122 insertions(+), 128 deletions(-)
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 71419eb16e09..5e3169bcb9fb 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -500,7 +500,7 @@ static const char table_sigs[][ACPI_NAMESEG_SIZE] __initconst = {
- 	ACPI_SIG_WDDT, ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT,
- 	ACPI_SIG_PSDT, ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT,
- 	ACPI_SIG_IORT, ACPI_SIG_NFIT, ACPI_SIG_HMAT, ACPI_SIG_PPTT,
--	ACPI_SIG_NHLT };
-+	ACPI_SIG_NHLT, ACPI_SIG_AGDI };
+diff --git a/include/sound/cs35l41.h b/include/sound/cs35l41.h
+index aac3ffb9bc89..6cf3ef02b26a 100644
+--- a/include/sound/cs35l41.h
++++ b/include/sound/cs35l41.h
+@@ -534,7 +534,6 @@
+ #define CS35L41_MAX_CACHE_REG		36
+ #define CS35L41_OTP_SIZE_WORDS		32
+ #define CS35L41_NUM_OTP_ELEM		100
+-#define CS35L41_NUM_OTP_MAPS		5
  
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
+ #define CS35L41_VALID_PDATA		0x80000000
+ #define CS35L41_NUM_SUPPLIES            2
+@@ -760,8 +759,9 @@ struct cs35l41_otp_map_element_t {
+ 	u32 word_offset;
+ };
  
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 71ca090fd61b..66ca85b9f5fe 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -24,6 +24,7 @@
-  * file. Useful because they make it more difficult to inadvertently type in
-  * the wrong signature.
-  */
-+#define ACPI_SIG_AGDI           "AGDI"	/* ARM Generic Diagnostic Dump and Reset Device Interface */
- #define ACPI_SIG_BDAT           "BDAT"	/* BIOS Data ACPI Table */
- #define ACPI_SIG_IORT           "IORT"	/* IO Remapping Table */
- #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
-@@ -237,6 +238,25 @@ typedef struct acpi_aest_node_interrupt {
- #define ACPI_AEST_NODE_ERROR_RECOVERY       1
- #define ACPI_AEST_XRUPT_RESERVED            2	/* 2 and above are reserved */
+-extern const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS];
+ extern struct regmap_config cs35l41_regmap_i2c;
+ extern struct regmap_config cs35l41_regmap_spi;
  
-+/*******************************************************************************
-+ * AGDI - Generic Diagnostic Dump and Reset Device Interface
-+ *
-+ * Document number: ARM DEN0093
-+ *
-+ *******************************************************************************/
++int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap);
 +
-+struct acpi_table_agdi {
-+	struct acpi_table_header header;
-+	u8 flags;
-+	u8 reserved[3];
-+	u32 sdei_event;
-+	u32 gsiv;
-+};
+ #endif /* __CS35L41_H */
+diff --git a/sound/soc/codecs/cs35l41-lib.c b/sound/soc/codecs/cs35l41-lib.c
+index f19531ebf729..dc5f502447a2 100644
+--- a/sound/soc/codecs/cs35l41-lib.c
++++ b/sound/soc/codecs/cs35l41-lib.c
+@@ -7,8 +7,11 @@
+ // Author: David Rhodes <david.rhodes@cirrus.com>
+ // Author: Lucas Tanure <lucas.tanure@cirrus.com>
+ 
++#include <linux/dev_printk.h>
+ #include <linux/module.h>
+ #include <linux/regmap.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
+ 
+ #include <sound/cs35l41.h>
+ 
+@@ -655,7 +658,7 @@ static const struct cs35l41_otp_packed_element_t otp_map_2[CS35L41_NUM_OTP_ELEM]
+ 	{ 0x00017044,	0,	24 }, /*LOT_NUMBER*/
+ };
+ 
+-const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS] = {
++static const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[] = {
+ 	{
+ 		.id = 0x01,
+ 		.map = otp_map_1,
+@@ -692,7 +695,6 @@ const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS]
+ 		.word_offset = 2,
+ 	},
+ };
+-EXPORT_SYMBOL_GPL(cs35l41_otp_map_map);
+ 
+ struct regmap_config cs35l41_regmap_i2c = {
+ 	.reg_bits = 32,
+@@ -727,6 +729,121 @@ struct regmap_config cs35l41_regmap_spi = {
+ };
+ EXPORT_SYMBOL_GPL(cs35l41_regmap_spi);
+ 
++static const struct cs35l41_otp_map_element_t *cs35l41_find_otp_map(u32 otp_id)
++{
++	int i;
 +
-+/* Masks for Flags field above for AGDI table */
++	for (i = 0; i < ARRAY_SIZE(cs35l41_otp_map_map); i++) {
++		if (cs35l41_otp_map_map[i].id == otp_id)
++			return &cs35l41_otp_map_map[i];
++	}
 +
-+#define ACPI_AGDI_SIGNALING_MODE (1)
++	return NULL;
++}
 +
- /*******************************************************************************
-  *
-  * BDAT - BIOS Data ACPI Table
++int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap)
++{
++	const struct cs35l41_otp_map_element_t *otp_map_match;
++	const struct cs35l41_otp_packed_element_t *otp_map;
++	int bit_offset, word_offset, ret, i;
++	unsigned int bit_sum = 8;
++	u32 otp_val, otp_id_reg;
++	u32 *otp_mem;
++
++	otp_mem = kmalloc_array(CS35L41_OTP_SIZE_WORDS, sizeof(*otp_mem), GFP_KERNEL);
++	if (!otp_mem)
++		return -ENOMEM;
++
++	ret = regmap_read(regmap, CS35L41_OTPID, &otp_id_reg);
++	if (ret) {
++		dev_err(dev, "Read OTP ID failed: %d\n", ret);
++		goto err_otp_unpack;
++	}
++
++	otp_map_match = cs35l41_find_otp_map(otp_id_reg);
++
++	if (!otp_map_match) {
++		dev_err(dev, "OTP Map matching ID %d not found\n", otp_id_reg);
++		ret = -EINVAL;
++		goto err_otp_unpack;
++	}
++
++	ret = regmap_bulk_read(regmap, CS35L41_OTP_MEM0, otp_mem, CS35L41_OTP_SIZE_WORDS);
++	if (ret) {
++		dev_err(dev, "Read OTP Mem failed: %d\n", ret);
++		goto err_otp_unpack;
++	}
++
++	otp_map = otp_map_match->map;
++
++	bit_offset = otp_map_match->bit_offset;
++	word_offset = otp_map_match->word_offset;
++
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x00000055);
++	if (ret) {
++		dev_err(dev, "Write Unlock key failed 1/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x000000AA);
++	if (ret) {
++		dev_err(dev, "Write Unlock key failed 2/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++
++	for (i = 0; i < otp_map_match->num_elements; i++) {
++		dev_dbg(dev, "bitoffset= %d, word_offset=%d, bit_sum mod 32=%d\n",
++			bit_offset, word_offset, bit_sum % 32);
++		if (bit_offset + otp_map[i].size - 1 >= 32) {
++			otp_val = (otp_mem[word_offset] &
++					GENMASK(31, bit_offset)) >> bit_offset;
++			otp_val |= (otp_mem[++word_offset] &
++					GENMASK(bit_offset + otp_map[i].size - 33, 0)) <<
++					(32 - bit_offset);
++			bit_offset += otp_map[i].size - 32;
++		} else {
++			otp_val = (otp_mem[word_offset] &
++				   GENMASK(bit_offset + otp_map[i].size - 1, bit_offset)
++				  ) >> bit_offset;
++			bit_offset += otp_map[i].size;
++		}
++		bit_sum += otp_map[i].size;
++
++		if (bit_offset == 32) {
++			bit_offset = 0;
++			word_offset++;
++		}
++
++		if (otp_map[i].reg != 0) {
++			ret = regmap_update_bits(regmap, otp_map[i].reg,
++						 GENMASK(otp_map[i].shift + otp_map[i].size - 1,
++							 otp_map[i].shift),
++						 otp_val << otp_map[i].shift);
++			if (ret < 0) {
++				dev_err(dev, "Write OTP val failed: %d\n", ret);
++				goto err_otp_unpack;
++			}
++		}
++	}
++
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x000000CC);
++	if (ret) {
++		dev_err(dev, "Write Lock key failed 1/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x00000033);
++	if (ret) {
++		dev_err(dev, "Write Lock key failed 2/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = 0;
++
++err_otp_unpack:
++	kfree(otp_mem);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(cs35l41_otp_unpack);
++
+ MODULE_DESCRIPTION("CS35L41 library");
+ MODULE_AUTHOR("David Rhodes, Cirrus Logic Inc, <david.rhodes@cirrus.com>");
+ MODULE_AUTHOR("Lucas Tanure, Cirrus Logic Inc, <tanureal@opensource.cirrus.com>");
+diff --git a/sound/soc/codecs/cs35l41.c b/sound/soc/codecs/cs35l41.c
+index 60332eae1162..aa57c59b334d 100644
+--- a/sound/soc/codecs/cs35l41.c
++++ b/sound/soc/codecs/cs35l41.c
+@@ -14,7 +14,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/of_device.h>
+ #include <linux/property.h>
+-#include <linux/slab.h>
+ #include <sound/initval.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -420,128 +419,6 @@ static const struct snd_kcontrol_new cs35l41_aud_controls[] = {
+ 	WM_ADSP_FW_CONTROL("DSP1", 0),
+ };
+ 
+-static const struct cs35l41_otp_map_element_t *cs35l41_find_otp_map(u32 otp_id)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(cs35l41_otp_map_map); i++) {
+-		if (cs35l41_otp_map_map[i].id == otp_id)
+-			return &cs35l41_otp_map_map[i];
+-	}
+-
+-	return NULL;
+-}
+-
+-static int cs35l41_otp_unpack(void *data)
+-{
+-	const struct cs35l41_otp_map_element_t *otp_map_match;
+-	const struct cs35l41_otp_packed_element_t *otp_map;
+-	struct cs35l41_private *cs35l41 = data;
+-	int bit_offset, word_offset, ret, i;
+-	unsigned int bit_sum = 8;
+-	u32 otp_val, otp_id_reg;
+-	u32 *otp_mem;
+-
+-	otp_mem = kmalloc_array(CS35L41_OTP_SIZE_WORDS, sizeof(*otp_mem), GFP_KERNEL);
+-	if (!otp_mem)
+-		return -ENOMEM;
+-
+-	ret = regmap_read(cs35l41->regmap, CS35L41_OTPID, &otp_id_reg);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Read OTP ID failed: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	otp_map_match = cs35l41_find_otp_map(otp_id_reg);
+-
+-	if (!otp_map_match) {
+-		dev_err(cs35l41->dev, "OTP Map matching ID %d not found\n",
+-			otp_id_reg);
+-		ret = -EINVAL;
+-		goto err_otp_unpack;
+-	}
+-
+-	ret = regmap_bulk_read(cs35l41->regmap, CS35L41_OTP_MEM0, otp_mem,
+-			       CS35L41_OTP_SIZE_WORDS);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Read OTP Mem failed: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	otp_map = otp_map_match->map;
+-
+-	bit_offset = otp_map_match->bit_offset;
+-	word_offset = otp_map_match->word_offset;
+-
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x00000055);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Unlock key failed 1/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x000000AA);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Unlock key failed 2/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	for (i = 0; i < otp_map_match->num_elements; i++) {
+-		dev_dbg(cs35l41->dev,
+-			"bitoffset= %d, word_offset=%d, bit_sum mod 32=%d\n",
+-			bit_offset, word_offset, bit_sum % 32);
+-		if (bit_offset + otp_map[i].size - 1 >= 32) {
+-			otp_val = (otp_mem[word_offset] &
+-					GENMASK(31, bit_offset)) >>
+-					bit_offset;
+-			otp_val |= (otp_mem[++word_offset] &
+-					GENMASK(bit_offset +
+-						otp_map[i].size - 33, 0)) <<
+-					(32 - bit_offset);
+-			bit_offset += otp_map[i].size - 32;
+-		} else {
+-			otp_val = (otp_mem[word_offset] &
+-				GENMASK(bit_offset + otp_map[i].size - 1,
+-					bit_offset)) >>	bit_offset;
+-			bit_offset += otp_map[i].size;
+-		}
+-		bit_sum += otp_map[i].size;
+-
+-		if (bit_offset == 32) {
+-			bit_offset = 0;
+-			word_offset++;
+-		}
+-
+-		if (otp_map[i].reg != 0) {
+-			ret = regmap_update_bits(cs35l41->regmap,
+-						 otp_map[i].reg,
+-						 GENMASK(otp_map[i].shift +
+-							 otp_map[i].size - 1,
+-						 otp_map[i].shift),
+-						 otp_val << otp_map[i].shift);
+-			if (ret < 0) {
+-				dev_err(cs35l41->dev, "Write OTP val failed: %d\n",
+-					ret);
+-				goto err_otp_unpack;
+-			}
+-		}
+-	}
+-
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x000000CC);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Lock key failed 1/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x00000033);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Lock key failed 2/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = 0;
+-
+-err_otp_unpack:
+-	kfree(otp_mem);
+-	return ret;
+-}
+-
+ static irqreturn_t cs35l41_irq(int irq, void *data)
+ {
+ 	struct cs35l41_private *cs35l41 = data;
+@@ -1667,7 +1544,7 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
+ 		goto err;
+ 	}
+ 
+-	ret = cs35l41_otp_unpack(cs35l41);
++	ret = cs35l41_otp_unpack(cs35l41->dev, cs35l41->regmap);
+ 	if (ret < 0) {
+ 		dev_err(cs35l41->dev, "OTP Unpack failed: %d\n", ret);
+ 		goto err;
 -- 
-2.17.1
+2.34.1
 
