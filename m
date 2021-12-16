@@ -2,37 +2,37 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E960C433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Dec 2021 23:31:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 586B8C4321E
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Dec 2021 23:31:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbhLPXbc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Dec 2021 18:31:32 -0500
-Received: from mail-oi1-f180.google.com ([209.85.167.180]:35398 "EHLO
-        mail-oi1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229648AbhLPXba (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Dec 2021 18:31:30 -0500
-Received: by mail-oi1-f180.google.com with SMTP id m6so1171584oim.2;
-        Thu, 16 Dec 2021 15:31:30 -0800 (PST)
+        id S229604AbhLPXbe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Dec 2021 18:31:34 -0500
+Received: from mail-oi1-f179.google.com ([209.85.167.179]:46835 "EHLO
+        mail-oi1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229512AbhLPXbd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Dec 2021 18:31:33 -0500
+Received: by mail-oi1-f179.google.com with SMTP id s139so1086937oie.13;
+        Thu, 16 Dec 2021 15:31:32 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XJxuQtRLTVfIiHxosQQwj5MJ9jgW00UdvVH4T37a4e0=;
-        b=XBuaIGSmeZnCZwdW/QkU7UDvP7DuL7eUGodLzs7bCXGQOUuHRTMsE/9o44IZ20G+Sw
-         lNKu0KdKuuBCdGPrgT6dOQ3A0xyf4KsXNKScDfVrCaRtquNEmE8kn6w3blxbj00eF922
-         d6syGkP8OgQqxS5QFw0lUswOyWWDNf37VUT0c4YUyr/swTKDVu50Q+HE1v962Z/EqBCw
-         25GgI92WBOgKGocMUpc/FqZ7tEyi9EXBD7q5rpVaUPUUsPk+w9omSWEMEx1D9OWuAkM5
-         /Mmx062hWGqLKbasCxuAUDDD/UOPKPtPAljOZLx8Ua+teKhp06ZImk5+IGbTwCaysaff
-         EWgg==
-X-Gm-Message-State: AOAM5318Rgkfayjgo1VrkRn73VB+PqAda10IP4daYGrleLXxkZ94bmkS
-        w5guH6RASBDHi9MXjUMEb/LG5V9hzQ==
-X-Google-Smtp-Source: ABdhPJy3osxEec/uFfDfvEc9vw+RCg25N1CQDsD8MFEWyLn67kai6YEnfUJhllbsJNoUI1R1/4kVtg==
-X-Received: by 2002:a05:6808:4d2:: with SMTP id a18mr136647oie.99.1639697489825;
-        Thu, 16 Dec 2021 15:31:29 -0800 (PST)
+        bh=fStO5BsDAphXFibF4lRjLZT7FGTV609d5dBo3Se1e80=;
+        b=DH3e2j+RjRxqEdP9cMpZ6tr1ScZdqaRUfZt5RC+mrgInMDf5QTkW5tKkl6/pQSMnSQ
+         b7ParZHLLrMKoL8GMVCbm0IPXXVJp53aCSU1FvCyvpP/RawcoSB8Q9RoHtWIKvnDvifk
+         KWbfti1VP00YEfJYHYvGeXyRatrS+FKE3T6dmQ/E47rOsKLfYxVkPX1C/xX/Zg07b9/W
+         qxFXvEuc2EXTy6Qy1n+TmG0X9hRi0+S/RLmyrU1vORkIPvGS17VzWFb//vAJrGu00cN4
+         n1SJuFr5geXp6sN6wiMuJGwCtctI6llmr8pTeWXm+ZioF2S6tGA/4c7Wu0hVl6nci4kw
+         y65g==
+X-Gm-Message-State: AOAM533qJqbiCLNwqhfy7PM5G84abAbL1UQsTHPBcOsUHrWpc4K/Zk5s
+        So6Cu7kIgiK/zKyRJwzmcg==
+X-Google-Smtp-Source: ABdhPJx/pvFlJR8Gy0p3sOQ+0qXrZMYTlyfTf5U3XrIIVBVC1Am5JLBvV/CdZf5UED59JsXXYVeuaw==
+X-Received: by 2002:aca:120f:: with SMTP id 15mr154257ois.132.1639697492411;
+        Thu, 16 Dec 2021 15:31:32 -0800 (PST)
 Received: from xps15.herring.priv (66-90-148-213.dyn.grandenetworks.net. [66.90.148.213])
-        by smtp.googlemail.com with ESMTPSA id n11sm1256646oor.9.2021.12.16.15.31.28
+        by smtp.googlemail.com with ESMTPSA id n11sm1256646oor.9.2021.12.16.15.31.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Dec 2021 15:31:29 -0800 (PST)
+        Thu, 16 Dec 2021 15:31:31 -0800 (PST)
 From:   Rob Herring <robh@kernel.org>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         James Morse <james.morse@arm.com>,
@@ -42,9 +42,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>, devicetree@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 2/6] cacheinfo: Set cache 'id' based on DT data
-Date:   Thu, 16 Dec 2021 17:31:21 -0600
-Message-Id: <20211216233125.1130793-3-robh@kernel.org>
+Subject: [PATCH 4/6] ACPI / PPTT: Populate the cacheinfo.cpu_affinity_map
+Date:   Thu, 16 Dec 2021 17:31:23 -0600
+Message-Id: <20211216233125.1130793-5-robh@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20211216233125.1130793-1-robh@kernel.org>
 References: <20211216233125.1130793-1-robh@kernel.org>
@@ -54,72 +54,68 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Use the minimum CPU h/w id of the CPUs associated with the cache for the
-cache 'id'. This will provide a stable id value for a given system. As
-we need to check all possible CPUs, we can't use the shared_cpu_map
-which is just online CPUs. There's not a cache to CPUs mapping in DT, so
-we have to walk all CPU nodes and then walk cache levels.
+The cacheinfo.cpu_affinity_map was added to list the possible CPUs a
+cache is associated with. Populate the cpu_affinity_map when parsing the
+ACPI PPTT for cacheinfo. With this, the cache CPU affinities are
+represented in the same way for DT and ACPI.
 
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
-v2:
- - Loop with for_each_possible_cpu instead of for_each_of_cpu_node as
-   we will need the logical cpu numbers.
----
- drivers/base/cacheinfo.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/acpi/pptt.c | 29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index 66d10bdb863b..21accddf8f5f 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -136,6 +136,36 @@ static bool cache_node_is_unified(struct cacheinfo *this_leaf,
- 	return of_property_read_bool(np, "cache-unified");
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index 701f61c01359..686018f4e7ed 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -418,6 +418,30 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+ 	}
  }
  
-+static void cache_of_set_id(struct cacheinfo *this_leaf, struct device_node *np)
++static void acpi_set_cache_cpumask(struct acpi_table_header *table,
++				   struct cacheinfo *this_leaf,
++				   struct acpi_pptt_processor *match_cpu_node)
 +{
 +	int cpu;
-+	unsigned long min_id = ~0UL;
 +
++	/*
++	 * If we found the cache first, we'd still need to walk from each cpu.
++	 */
 +	for_each_possible_cpu(cpu) {
-+		u64 id;
-+		struct device_node *cache_node, *cpu_node;
++		u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
++		struct acpi_pptt_processor *cpu_node;
++		struct acpi_pptt_cache *cache;
 +
-+		cache_node = cpu_node = of_get_cpu_node(cpu, NULL);
-+		id = of_get_cpu_hwid(cpu_node, 0);
-+		while ((cache_node = of_find_next_cache_node(cache_node))) {
-+			if (cache_node == np) {
-+				if (id < min_id) {
-+					min_id = id;
-+					of_node_put(cache_node);
-+					break;
-+				}
-+			}
-+			of_node_put(cache_node);
-+		}
-+		of_node_put(cpu_node);
-+	}
++		cache = acpi_find_cache_node(table, acpi_cpu_id,
++					     this_leaf->type,
++					     this_leaf->level, &cpu_node);
++		if (!cache || cpu_node != match_cpu_node)
++			continue;
 +
-+	if (min_id != ~0UL) {
-+		this_leaf->id = min_id;
-+		this_leaf->attributes |= CACHE_ID;
++		cpumask_set_cpu(cpu, &this_leaf->cpu_affinity_map);
 +	}
 +}
 +
- static void cache_of_set_props(struct cacheinfo *this_leaf,
- 			       struct device_node *np)
+ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+ 				 unsigned int cpu)
  {
-@@ -151,6 +181,7 @@ static void cache_of_set_props(struct cacheinfo *this_leaf,
- 	cache_get_line_size(this_leaf, np);
- 	cache_nr_sets(this_leaf, np);
- 	cache_associativity(this_leaf);
-+	cache_of_set_id(this_leaf, np);
+@@ -435,10 +459,11 @@ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+ 						   this_leaf->level,
+ 						   &cpu_node);
+ 		pr_debug("found = %p %p\n", found_cache, cpu_node);
+-		if (found_cache)
++		if (found_cache) {
+ 			update_cache_properties(this_leaf, found_cache,
+ 			                        cpu_node, table->revision);
+-
++			acpi_set_cache_cpumask(table, this_leaf, cpu_node);
++		}
+ 		index++;
+ 	}
  }
- 
- static int cache_setup_of_node(unsigned int cpu)
 -- 
 2.32.0
 
