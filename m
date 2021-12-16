@@ -2,231 +2,409 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CECC0C433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Dec 2021 11:31:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF07C433FE
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Dec 2021 11:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231376AbhLPLb6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Dec 2021 06:31:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57688 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229996AbhLPLb5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Dec 2021 06:31:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86A6CC061574;
-        Thu, 16 Dec 2021 03:31:57 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2833D61D70;
-        Thu, 16 Dec 2021 11:31:57 +0000 (UTC)
-Received: from jic23-huawei (cpc108967-cmbg20-2-0-cust86.5-4.cable.virginm.net [81.101.6.87])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by smtp.kernel.org (Postfix) with ESMTPSA id EEF84C36AE2;
-        Thu, 16 Dec 2021 11:31:52 +0000 (UTC)
-Date:   Thu, 16 Dec 2021 11:37:17 +0000
-From:   Jonathan Cameron <jic23@kernel.org>
-To:     Anand Ashok Dumbre <ANANDASH@xilinx.com>
-Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "lars@metafoo.de" <lars@metafoo.de>,
-        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-        git <git@xilinx.com>, Michal Simek <michals@xilinx.com>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "rafael@kernel.org" <rafael@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        'Anand Dumbre' <ananddumbre8@gmail.com>
-Subject: Re: [PATCH v12 0/5] Add Xilinx AMS Driver
-Message-ID: <20211216113717.1c0e43dc@jic23-huawei>
-In-Reply-To: <BY5PR02MB691657682B94F4D3DBDA007EA9769@BY5PR02MB6916.namprd02.prod.outlook.com>
-References: <20211203212358.31444-1-anand.ashok.dumbre@xilinx.com>
-        <BY5PR02MB691657682B94F4D3DBDA007EA9769@BY5PR02MB6916.namprd02.prod.outlook.com>
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.30; x86_64-pc-linux-gnu)
+        id S233399AbhLPLoF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Dec 2021 06:44:05 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:61370 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S232287AbhLPLoF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Dec 2021 06:44:05 -0500
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BG6fNWC032113;
+        Thu, 16 Dec 2021 05:43:39 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=PODMain02222019;
+ bh=JwdEvJNSccwPwzdfwacOslSxZt9T4OuG+VPsh+orUNE=;
+ b=lgsfT5oPwy7HdcRrr4/xLKKOkLcP5fWZ8EzoVf7wS2o7UiqeHEXRX7grXAQuer/AddTx
+ Ky8U6wVWbUWhXEg3v+kcj+hbsziMXaOFg4/R8VyQSrFe03nxyCkTCnrXnuvlqgx4QxmY
+ SjanAO9Mha/uHPYfvoBCCpWIyw0qwI0B+tpiTOZKVQEyjd+G9GYJMYVQq6W6TC27zIcJ
+ GGYGVxCgeB1/L3LNZ0KtFz3PaT/Oqh2xXth3I8ny1Jfn/lbqruNRgPskhGsW88qbBemL
+ BLGsrSaw9wZRG9eO+/fzyx+CsCA6jp4N9qSKJdVOkHG9QSNftNvYYGx1RMlCAq6Necig Pw== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cymsc110r-2
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Thu, 16 Dec 2021 05:43:39 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Thu, 16 Dec
+ 2021 11:43:36 +0000
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
+ Transport; Thu, 16 Dec 2021 11:43:36 +0000
+Received: from aryzen.ad.cirrus.com (unknown [198.61.64.39])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id B9A4B45D;
+        Thu, 16 Dec 2021 11:43:35 +0000 (UTC)
+From:   Lucas Tanure <tanureal@opensource.cirrus.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>
+CC:     <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
+        <patches@opensource.cirrus.com>,
+        <platform-driver-x86@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Lucas Tanure <tanureal@opensource.cirrus.com>
+Subject: [PATCH v5 02/10] ASoC: cs35l41: Move cs35l41_otp_unpack to shared code
+Date:   Thu, 16 Dec 2021 11:43:24 +0000
+Message-ID: <20211216114332.153409-3-tanureal@opensource.cirrus.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20211216114332.153409-1-tanureal@opensource.cirrus.com>
+References: <20211216114332.153409-1-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-GUID: rkyFrGMuy9ue6LNrt1dNfap0yDTQnU5w
+X-Proofpoint-ORIG-GUID: rkyFrGMuy9ue6LNrt1dNfap0yDTQnU5w
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 15 Dec 2021 12:11:21 +0000
-Anand Ashok Dumbre <ANANDASH@xilinx.com> wrote:
+ASoC and HDA will do the same cs35l41_otp_unpack, so move it
+to shared code
 
-> Ping!
+Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
+---
+ include/sound/cs35l41.h        |   4 +-
+ sound/soc/codecs/cs35l41-lib.c | 121 ++++++++++++++++++++++++++++++-
+ sound/soc/codecs/cs35l41.c     | 125 +--------------------------------
+ 3 files changed, 122 insertions(+), 128 deletions(-)
 
-Other than ideally getting a few more eyes on the stuff in drivers/base
-I'm fine with this series.
-
-Thanks,
-
-Jonathan
-
-> 
-> > -----Original Message-----
-> > From: Anand Ashok Dumbre <anand.ashok.dumbre@xilinx.com>
-> > Sent: Friday 3 December 2021 9:24 PM
-> > To: linux-kernel@vger.kernel.org; jic23@kernel.org; lars@metafoo.de; linux-
-> > iio@vger.kernel.org; git <git@xilinx.com>; Michal Simek
-> > <michals@xilinx.com>; gregkh@linuxfoundation.org; rafael@kernel.org;
-> > linux-acpi@vger.kernel.org; heikki.krogerus@linux.intel.com
-> > Cc: Anand Ashok Dumbre <ANANDASH@xilinx.com>
-> > Subject: [PATCH v12 0/5] Add Xilinx AMS Driver
-> > 
-> > Add Xilinx AMS driver which is used for Xilinx's ZynqMP AMS controller.
-> > This AMS driver is used to report various interface voltages and
-> > temperatures across the system.
-> > This driver will be used by iio-hwmon to repport voltages and temperatures
-> > across the system by using various channel interfaces.
-> > This driver handles AMS module including PS-Sysmon & PL-Sysmon. The
-> > binding documentation is added for understanding of AMS, PS, PL Sysmon
-> > Channels.
-> > 
-> > Changes in v2:
-> > 	- Added documentation for sysfs (Patch-2)
-> > 	- Addressed code style review comments
-> > 	- Patch-2 (Now it is Patch-3)
-> > 		- Arranged the includes in alphabetical order
-> > 		- Removed the wrapper 'ams_pl_write_reg()' and used writel
-> > 		  instead
-> > 		- Removed the unnecessary delay of 1ms and used polling of
-> > EOC
-> > 		  instead
-> > 		- Removed spin_lock and used mutex only.
-> > 		- Used request_irq() instead of devm_request_irq() and
-> > handled
-> > 		  respective error conditions
-> > 		- Moved contents of xilinx-ams.h to inline with xilinx-ams.c
-> > 	- Patch-1
-> > 		- Addressed Documentation style comments
-> > 
-> > Changes in v3:
-> > 	- Updated bindings document with the suggested modification in v2
-> > review
-> > 	- Removed documentation for sysfs
-> > 	- Removed extended names for channels in the Xilinx AMS driver
-> > 	- Modified dts to use ranges for child nodes
-> > 	- Reduced address and size cells to 32-bit instead of 64-bit
-> > 
-> > Changes in v4:
-> > 	- Updated bindings document with the suggested modification in v3
-> > review
-> > 	- Changed the Device Tree property 'ranges' for child nodes
-> > 	- Used Channel Numbers as 'reg' value in DT to avoid confusion
-> > 	- Removed unused NULL arguments as suggested in v3 patch review
-> > 	- Addressed comments on Device Tree property naming
-> > 
-> > Changes in v5:
-> > 	- Updated bindings document to the YAML format
-> > 	- Updated bindings document with the suggested modification in v4
-> > review
-> > 	- Renamed iio_pl_info struct to iio_ams_info in Xilinx AMS driver
-> > 	- Updated the Xilinx AMS driver to not use iio_priv_to_dev function
-> > 	- Updated Xilinx AMS node to reflect the changes in bindings
-> > document
-> > 	- Update MAINTAINERS file
-> > 
-> > Changes in v6:
-> > 	- Removed all tabs from bindings document.
-> > 	- Removed the xlnx,ext-channels node from the device tree since
-> > 	  it is not neeeded.
-> > 	- Fixed unit addresses for ps-ams and pl-ams.
-> > 	- Removed the names property from bindings.
-> > 	- Fixed warnings from checkpatch.pl in the driver.
-> > 	- devm_add_action_or_reset() used for exit/error path.
-> > 	- devm_request_irq() for managed irq request instead of
-> > 	  request_irq()
-> > 
-> > Changes in v7:
-> > 	- Added use of FIELD_PREP and FIELD_GET.
-> > 	- Added the spinlocks back the v1 which were removed in v2 for
-> > 	  no justifiable reason and replaced with the same mutex. This
-> > 	  caused deadlocks.
-> > 	- Removed the buffered mode information from channel config.
-> > 	- Usage of wrapper functions for devm_add_action_or_reset
-> > 	  callbacks to avoid typecasting functions.
-> > 	- Usage of devm_platform_iremap_resource().
-> > 	- Handled platform_get_irq() return values.
-> > 	- Removed the remove() callback.
-> > 	- Fixed the dt-bindings.
-> > 
-> > Changes in v8:
-> > 	- Replaced *_of_() APIs with fwnode.
-> > 	- Added missing headers.
-> > 	- Fixed documentation.
-> > 	- Added devm_add_action_or_reset() for iounmap.
-> > 	- Restructured read_raw function.
-> > 	- Added helper functions.
-> > 	- Usage of GENMASK for all masks.
-> > 	- Added defaults for most switch cases. Some can't be added
-> > 	  since the default will never occur.
-> > 
-> > Changes in v9:
-> > 	- Added a fwnode_iomap().
-> > 	- Fixed Kconfig indentation.
-> > 	- Added the overflow checks before memory allocation.
-> > 	- Usage of fwnode_iomap() instead of iomap().
-> > 	- Rename ams_parse_dt() to ams_parse_firmware().
-> > 
-> > Changes in v10:
-> > 	- Fixed licence in zynqmp.dtsi.
-> > 	- Changed the macros to use BIT().
-> > 	- Realign some code to fit within 100 chars.
-> > 	- Modified readl_poll_timeout usage.
-> > 	- Usage of array_size() instead of check_mul_overflow().
-> > 	- Usage of dev_err_probe() instead of dev_err().
-> > 	- Usage of kcalloc instead of kzalloc()
-> > 
-> > Changes in v11:
-> > 	- Added missing bitfield.h.
-> > 	- Fixed AMS_ALARM_THR_MIN macro.
-> > 	- Added terminators to enums where necessary.
-> > 	- Added explicit values as suggested to enums.
-> > 	- Removed redundant macros.
-> > 	- Added delay value for readl_poll_timeout.
-> > 	- Corrected shadowed error return.
-> > 	- Corrected formatting errors.
-> > 	- Added default cases where missing.
-> > 	- Made ams_parse_firmware() a single parameter functions.
-> > 	- Usage of devm_kcalloc() and devm_krealloc().
-> > 	- Directly returning from dev_err_probe().
-> > 	- Renamed masked_alarm to current_masked_alarm.
-> > 
-> > Changes in v12:
-> > 	- GENMASK_ULL usage for 64bit values.
-> > 	- Added ams_iounmap_ps and amsiomap_pl instead of generic
-> > 	  function.
-> > 	- Hex values to use all capital letters.
-> > 	- Fixed a case of wrong kernel doc.
-> > 	- Modified macro voltage names to reflect the scale.
-> > 	- Maximize single line usage wherever possible.
-> > 	- Handling of fwnode_iomap when CONFIG_OF_ADDRESS is not
-> > 	  enabled.
-> > 	- ams_read_raw() - Reduce the size of switch statements by
-> > 	  using helper functions for IIO_CHAN_INFO_SCALE.
-> > 	- ams_read_raw() - Mutex unlocking in a single place using goto.
-> > 
-> > Anand Ashok Dumbre (5):
-> >   device property: Add fwnode_iomap()
-> >   arm64: zynqmp: DT: Add Xilinx AMS node
-> >   iio: adc: Add Xilinx AMS driver
-> >   dt-bindings: iio: adc: Add Xilinx AMS binding documentation
-> >   MAINTAINERS: Add maintainer for xilinx-ams
-> > 
-> >  .../bindings/iio/adc/xlnx,zynqmp-ams.yaml     |  227 +++
-> >  MAINTAINERS                                   |    7 +
-> >  arch/arm64/boot/dts/xilinx/zynqmp.dtsi        |   24 +
-> >  drivers/base/property.c                       |   16 +
-> >  drivers/iio/adc/Kconfig                       |   15 +
-> >  drivers/iio/adc/Makefile                      |    1 +
-> >  drivers/iio/adc/xilinx-ams.c                  | 1450 +++++++++++++++++
-> >  include/linux/property.h                      |    2 +
-> >  8 files changed, 1742 insertions(+)
-> >  create mode 100644
-> > Documentation/devicetree/bindings/iio/adc/xlnx,zynqmp-ams.yaml
-> >  create mode 100644 drivers/iio/adc/xilinx-ams.c
-> > 
-> > --
-> > 2.17.1  
-> 
+diff --git a/include/sound/cs35l41.h b/include/sound/cs35l41.h
+index aac3ffb9bc89..6cf3ef02b26a 100644
+--- a/include/sound/cs35l41.h
++++ b/include/sound/cs35l41.h
+@@ -534,7 +534,6 @@
+ #define CS35L41_MAX_CACHE_REG		36
+ #define CS35L41_OTP_SIZE_WORDS		32
+ #define CS35L41_NUM_OTP_ELEM		100
+-#define CS35L41_NUM_OTP_MAPS		5
+ 
+ #define CS35L41_VALID_PDATA		0x80000000
+ #define CS35L41_NUM_SUPPLIES            2
+@@ -760,8 +759,9 @@ struct cs35l41_otp_map_element_t {
+ 	u32 word_offset;
+ };
+ 
+-extern const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS];
+ extern struct regmap_config cs35l41_regmap_i2c;
+ extern struct regmap_config cs35l41_regmap_spi;
+ 
++int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap);
++
+ #endif /* __CS35L41_H */
+diff --git a/sound/soc/codecs/cs35l41-lib.c b/sound/soc/codecs/cs35l41-lib.c
+index f19531ebf729..dc5f502447a2 100644
+--- a/sound/soc/codecs/cs35l41-lib.c
++++ b/sound/soc/codecs/cs35l41-lib.c
+@@ -7,8 +7,11 @@
+ // Author: David Rhodes <david.rhodes@cirrus.com>
+ // Author: Lucas Tanure <lucas.tanure@cirrus.com>
+ 
++#include <linux/dev_printk.h>
+ #include <linux/module.h>
+ #include <linux/regmap.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
+ 
+ #include <sound/cs35l41.h>
+ 
+@@ -655,7 +658,7 @@ static const struct cs35l41_otp_packed_element_t otp_map_2[CS35L41_NUM_OTP_ELEM]
+ 	{ 0x00017044,	0,	24 }, /*LOT_NUMBER*/
+ };
+ 
+-const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS] = {
++static const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[] = {
+ 	{
+ 		.id = 0x01,
+ 		.map = otp_map_1,
+@@ -692,7 +695,6 @@ const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[CS35L41_NUM_OTP_MAPS]
+ 		.word_offset = 2,
+ 	},
+ };
+-EXPORT_SYMBOL_GPL(cs35l41_otp_map_map);
+ 
+ struct regmap_config cs35l41_regmap_i2c = {
+ 	.reg_bits = 32,
+@@ -727,6 +729,121 @@ struct regmap_config cs35l41_regmap_spi = {
+ };
+ EXPORT_SYMBOL_GPL(cs35l41_regmap_spi);
+ 
++static const struct cs35l41_otp_map_element_t *cs35l41_find_otp_map(u32 otp_id)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(cs35l41_otp_map_map); i++) {
++		if (cs35l41_otp_map_map[i].id == otp_id)
++			return &cs35l41_otp_map_map[i];
++	}
++
++	return NULL;
++}
++
++int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap)
++{
++	const struct cs35l41_otp_map_element_t *otp_map_match;
++	const struct cs35l41_otp_packed_element_t *otp_map;
++	int bit_offset, word_offset, ret, i;
++	unsigned int bit_sum = 8;
++	u32 otp_val, otp_id_reg;
++	u32 *otp_mem;
++
++	otp_mem = kmalloc_array(CS35L41_OTP_SIZE_WORDS, sizeof(*otp_mem), GFP_KERNEL);
++	if (!otp_mem)
++		return -ENOMEM;
++
++	ret = regmap_read(regmap, CS35L41_OTPID, &otp_id_reg);
++	if (ret) {
++		dev_err(dev, "Read OTP ID failed: %d\n", ret);
++		goto err_otp_unpack;
++	}
++
++	otp_map_match = cs35l41_find_otp_map(otp_id_reg);
++
++	if (!otp_map_match) {
++		dev_err(dev, "OTP Map matching ID %d not found\n", otp_id_reg);
++		ret = -EINVAL;
++		goto err_otp_unpack;
++	}
++
++	ret = regmap_bulk_read(regmap, CS35L41_OTP_MEM0, otp_mem, CS35L41_OTP_SIZE_WORDS);
++	if (ret) {
++		dev_err(dev, "Read OTP Mem failed: %d\n", ret);
++		goto err_otp_unpack;
++	}
++
++	otp_map = otp_map_match->map;
++
++	bit_offset = otp_map_match->bit_offset;
++	word_offset = otp_map_match->word_offset;
++
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x00000055);
++	if (ret) {
++		dev_err(dev, "Write Unlock key failed 1/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x000000AA);
++	if (ret) {
++		dev_err(dev, "Write Unlock key failed 2/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++
++	for (i = 0; i < otp_map_match->num_elements; i++) {
++		dev_dbg(dev, "bitoffset= %d, word_offset=%d, bit_sum mod 32=%d\n",
++			bit_offset, word_offset, bit_sum % 32);
++		if (bit_offset + otp_map[i].size - 1 >= 32) {
++			otp_val = (otp_mem[word_offset] &
++					GENMASK(31, bit_offset)) >> bit_offset;
++			otp_val |= (otp_mem[++word_offset] &
++					GENMASK(bit_offset + otp_map[i].size - 33, 0)) <<
++					(32 - bit_offset);
++			bit_offset += otp_map[i].size - 32;
++		} else {
++			otp_val = (otp_mem[word_offset] &
++				   GENMASK(bit_offset + otp_map[i].size - 1, bit_offset)
++				  ) >> bit_offset;
++			bit_offset += otp_map[i].size;
++		}
++		bit_sum += otp_map[i].size;
++
++		if (bit_offset == 32) {
++			bit_offset = 0;
++			word_offset++;
++		}
++
++		if (otp_map[i].reg != 0) {
++			ret = regmap_update_bits(regmap, otp_map[i].reg,
++						 GENMASK(otp_map[i].shift + otp_map[i].size - 1,
++							 otp_map[i].shift),
++						 otp_val << otp_map[i].shift);
++			if (ret < 0) {
++				dev_err(dev, "Write OTP val failed: %d\n", ret);
++				goto err_otp_unpack;
++			}
++		}
++	}
++
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x000000CC);
++	if (ret) {
++		dev_err(dev, "Write Lock key failed 1/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = regmap_write(regmap, CS35L41_TEST_KEY_CTL, 0x00000033);
++	if (ret) {
++		dev_err(dev, "Write Lock key failed 2/2: %d\n", ret);
++		goto err_otp_unpack;
++	}
++	ret = 0;
++
++err_otp_unpack:
++	kfree(otp_mem);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(cs35l41_otp_unpack);
++
+ MODULE_DESCRIPTION("CS35L41 library");
+ MODULE_AUTHOR("David Rhodes, Cirrus Logic Inc, <david.rhodes@cirrus.com>");
+ MODULE_AUTHOR("Lucas Tanure, Cirrus Logic Inc, <tanureal@opensource.cirrus.com>");
+diff --git a/sound/soc/codecs/cs35l41.c b/sound/soc/codecs/cs35l41.c
+index 60332eae1162..aa57c59b334d 100644
+--- a/sound/soc/codecs/cs35l41.c
++++ b/sound/soc/codecs/cs35l41.c
+@@ -14,7 +14,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/of_device.h>
+ #include <linux/property.h>
+-#include <linux/slab.h>
+ #include <sound/initval.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -420,128 +419,6 @@ static const struct snd_kcontrol_new cs35l41_aud_controls[] = {
+ 	WM_ADSP_FW_CONTROL("DSP1", 0),
+ };
+ 
+-static const struct cs35l41_otp_map_element_t *cs35l41_find_otp_map(u32 otp_id)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(cs35l41_otp_map_map); i++) {
+-		if (cs35l41_otp_map_map[i].id == otp_id)
+-			return &cs35l41_otp_map_map[i];
+-	}
+-
+-	return NULL;
+-}
+-
+-static int cs35l41_otp_unpack(void *data)
+-{
+-	const struct cs35l41_otp_map_element_t *otp_map_match;
+-	const struct cs35l41_otp_packed_element_t *otp_map;
+-	struct cs35l41_private *cs35l41 = data;
+-	int bit_offset, word_offset, ret, i;
+-	unsigned int bit_sum = 8;
+-	u32 otp_val, otp_id_reg;
+-	u32 *otp_mem;
+-
+-	otp_mem = kmalloc_array(CS35L41_OTP_SIZE_WORDS, sizeof(*otp_mem), GFP_KERNEL);
+-	if (!otp_mem)
+-		return -ENOMEM;
+-
+-	ret = regmap_read(cs35l41->regmap, CS35L41_OTPID, &otp_id_reg);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Read OTP ID failed: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	otp_map_match = cs35l41_find_otp_map(otp_id_reg);
+-
+-	if (!otp_map_match) {
+-		dev_err(cs35l41->dev, "OTP Map matching ID %d not found\n",
+-			otp_id_reg);
+-		ret = -EINVAL;
+-		goto err_otp_unpack;
+-	}
+-
+-	ret = regmap_bulk_read(cs35l41->regmap, CS35L41_OTP_MEM0, otp_mem,
+-			       CS35L41_OTP_SIZE_WORDS);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Read OTP Mem failed: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	otp_map = otp_map_match->map;
+-
+-	bit_offset = otp_map_match->bit_offset;
+-	word_offset = otp_map_match->word_offset;
+-
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x00000055);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Unlock key failed 1/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x000000AA);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Unlock key failed 2/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-
+-	for (i = 0; i < otp_map_match->num_elements; i++) {
+-		dev_dbg(cs35l41->dev,
+-			"bitoffset= %d, word_offset=%d, bit_sum mod 32=%d\n",
+-			bit_offset, word_offset, bit_sum % 32);
+-		if (bit_offset + otp_map[i].size - 1 >= 32) {
+-			otp_val = (otp_mem[word_offset] &
+-					GENMASK(31, bit_offset)) >>
+-					bit_offset;
+-			otp_val |= (otp_mem[++word_offset] &
+-					GENMASK(bit_offset +
+-						otp_map[i].size - 33, 0)) <<
+-					(32 - bit_offset);
+-			bit_offset += otp_map[i].size - 32;
+-		} else {
+-			otp_val = (otp_mem[word_offset] &
+-				GENMASK(bit_offset + otp_map[i].size - 1,
+-					bit_offset)) >>	bit_offset;
+-			bit_offset += otp_map[i].size;
+-		}
+-		bit_sum += otp_map[i].size;
+-
+-		if (bit_offset == 32) {
+-			bit_offset = 0;
+-			word_offset++;
+-		}
+-
+-		if (otp_map[i].reg != 0) {
+-			ret = regmap_update_bits(cs35l41->regmap,
+-						 otp_map[i].reg,
+-						 GENMASK(otp_map[i].shift +
+-							 otp_map[i].size - 1,
+-						 otp_map[i].shift),
+-						 otp_val << otp_map[i].shift);
+-			if (ret < 0) {
+-				dev_err(cs35l41->dev, "Write OTP val failed: %d\n",
+-					ret);
+-				goto err_otp_unpack;
+-			}
+-		}
+-	}
+-
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x000000CC);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Lock key failed 1/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = regmap_write(cs35l41->regmap, CS35L41_TEST_KEY_CTL, 0x00000033);
+-	if (ret < 0) {
+-		dev_err(cs35l41->dev, "Write Lock key failed 2/2: %d\n", ret);
+-		goto err_otp_unpack;
+-	}
+-	ret = 0;
+-
+-err_otp_unpack:
+-	kfree(otp_mem);
+-	return ret;
+-}
+-
+ static irqreturn_t cs35l41_irq(int irq, void *data)
+ {
+ 	struct cs35l41_private *cs35l41 = data;
+@@ -1667,7 +1544,7 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
+ 		goto err;
+ 	}
+ 
+-	ret = cs35l41_otp_unpack(cs35l41);
++	ret = cs35l41_otp_unpack(cs35l41->dev, cs35l41->regmap);
+ 	if (ret < 0) {
+ 		dev_err(cs35l41->dev, "OTP Unpack failed: %d\n", ret);
+ 		goto err;
+-- 
+2.34.1
 
