@@ -2,736 +2,229 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A5CBC433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Dec 2021 16:08:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0F07C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Dec 2021 22:05:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238852AbhLPQI6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Dec 2021 11:08:58 -0500
-Received: from mga05.intel.com ([192.55.52.43]:51266 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235569AbhLPQI6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Dec 2021 11:08:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1639670938; x=1671206938;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=FCROYnN62jOyPs4rZH98CpAUhYkUP3MTXj8W7HH+QcQ=;
-  b=l3Umww06Uw4rXSkaq15DQqBhLS4KkHMUnAB7gFTnYFGbizWlgFOtgadf
-   iVI//l2dLKOOi76iFL9GMADJi8ypw2Cf+tyjRl87vxw3/uBPeZmJAweNS
-   kkqu0EApEaemgzYmLlZToFx2XyqzIMOQLecvCFCSD3FbEbA2kXuVhHiYz
-   6K4WlwaHO5U1wOtwNLsk1dm0NpsEj3hSyYi9VIU0GPUO4kni29WT9JTFL
-   yO8YMlszMP6vOy+2IHKqg0VN9WaWWaft+Fw1nQgL3f/2ziEdYCMkoInpo
-   C4uGxBYSlV6YGSacME04McfSxunO3iyegD91eKLxImReE0PBlIMuz8Sfg
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10199"; a="325812009"
-X-IronPort-AV: E=Sophos;i="5.88,211,1635231600"; 
-   d="scan'208";a="325812009"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Dec 2021 08:03:45 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,211,1635231600"; 
-   d="scan'208";a="662493153"
-Received: from chenyu-desktop.sh.intel.com ([10.239.158.186])
-  by fmsmga001.fm.intel.com with ESMTP; 16 Dec 2021 08:03:42 -0800
-From:   Chen Yu <yu.c.chen@intel.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>, Len Brown <lenb@kernel.org>,
-        Ashok Raj <ashok.raj@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@intel.com>,
-        Mike Rapoport <rppt@kernel.org>, Chen Yu <yu.c.chen@intel.com>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v12 3/4] drivers/acpi: Introduce Platform Firmware Runtime Telemetry
-Date:   Fri, 17 Dec 2021 00:03:16 +0800
-Message-Id: <dfdcec2a7a0150620796f786d350767c068d9050.1639669829.git.yu.c.chen@intel.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1639669829.git.yu.c.chen@intel.com>
-References: <cover.1639669829.git.yu.c.chen@intel.com>
+        id S237406AbhLPWF1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Dec 2021 17:05:27 -0500
+Received: from mail-bn8nam12on2109.outbound.protection.outlook.com ([40.107.237.109]:8320
+        "EHLO NAM12-BN8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S236958AbhLPWF0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Dec 2021 17:05:26 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=IGH9dtRjbOxsC2JFrjE9o1oP2S0aSmwuCtcGM1BQXk8wCcZaRbZtay0LuwX0BP1znPyM/hfPhbtE0Z6oztbNWlP3YoF70GZXw80svDo3+T7D/ZUWaD6pkiJOoAN4zVg6qjnBx8SUjlLaUIQjTPtQYUtRgau4/FYU1InIltzKMcKIG/etpwypDqbWT0VRV1/SvYFOJhSeMIFLhCcqGzK/G6gIyW5EufHlgWBm1oPk+Af3EMadPrm7BkyVldZcYlkdyZyWxPaKWAPw6BH1y6i5doXf310Ro6zcok+L/kI2cKPG0cOVSdFTyucl0yPq1BBFwOGwspWklhO1xerPGjgyHA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=IWS6uHSJXacYRHNgeCP5729XcNNQ730ntu/Zo5Lw9t4=;
+ b=OMBnGDtsitDCR8/y/MYmbCRR5B0dozKoKD1ip/hIe0sc1jck2m23EpkjVyvj+444pSQ76EaoPxWEd2uQcaWZFIvyggVnALMH1YE1Gk+b3b6GLOirnIAC74g82ZjN9CzuDSjjvIeNngdo1Z/RL1ht2dm6B5L6e0XpzBPIB+/4c6daQfBlxQtgTE1T3VqRHsqHPnVePuleWcJSjnXISP1QGDWWAE02T6KEYYJLuqfCEbOLzWZtBqX0fDWO106piOCrYV3N7142ic6bImO6Yyoeji39AKHyuPW43BdikcELBLsFxwP0qzSBefojRUaqzA8ABziWzCBBITwaQPFmL/7nCQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
+ header.from=amperemail.onmicrosoft.com; dkim=pass
+ header.d=amperemail.onmicrosoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=amperemail.onmicrosoft.com; s=selector1-amperemail-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=IWS6uHSJXacYRHNgeCP5729XcNNQ730ntu/Zo5Lw9t4=;
+ b=uPpJWmjTCbPI1henuPUSvp4s4HFYTmPH4arN/ogzS6/7r/+bz2LEg59tgFTFFbHAZ3QgOqmCm7sJV44KRRwPV2Qkv/qjcrhxJ5TppXg5Oh/d6sg6jNOGH3KpZ2L8orXWLjxTZ93GPfMhcDrK91I8TlkHixNSjrn42SFVSTujEGM=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amperemail.onmicrosoft.com;
+Received: from CH0PR01MB7033.prod.exchangelabs.com (2603:10b6:610:107::16) by
+ CH2PR01MB6039.prod.exchangelabs.com (2603:10b6:610:43::13) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.4778.15; Thu, 16 Dec 2021 22:05:21 +0000
+Received: from CH0PR01MB7033.prod.exchangelabs.com
+ ([fe80::c8fb:e830:d7e5:bdf7]) by CH0PR01MB7033.prod.exchangelabs.com
+ ([fe80::c8fb:e830:d7e5:bdf7%9]) with mapi id 15.20.4778.018; Thu, 16 Dec 2021
+ 22:05:21 +0000
+Message-ID: <addaf134-d5c0-65de-62ca-76950d6460ab@amperemail.onmicrosoft.com>
+Date:   Thu, 16 Dec 2021 17:05:15 -0500
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.0
+Subject: Re: [PATCH 1/2] ACPI/AEST: Initial AEST driver
+Content-Language: en-US
+To:     Darren Hart <darren@os.amperecomputing.com>,
+        Marc Zyngier <maz@kernel.org>, lorenzo.pieralisi@arm.com,
+        guohanjun@huawei.com, sudeep.holla@arm.com
+Cc:     Tyler Baicar <baicar@os.amperecomputing.com>,
+        patches@amperecomputing.com, abdulhamid@os.amperecomputing.com,
+        catalin.marinas@arm.com, will@kernel.org, james.morse@arm.com,
+        alexandru.elisei@arm.com, suzuki.poulose@arm.com,
+        rafael@kernel.org, lenb@kernel.org, tony.luck@intel.com,
+        bp@alien8.de, mark.rutland@arm.com, anshuman.khandual@arm.com,
+        vincenzo.frascino@arm.com, tabba@google.com, marcan@marcan.st,
+        keescook@chromium.org, masahiroy@kernel.org,
+        samitolvanen@google.com, john.garry@huawei.com,
+        daniel.lezcano@linaro.org, gor@linux.ibm.com,
+        zhangshaokun@hisilicon.com, tmricht@linux.ibm.com,
+        dchinner@redhat.com, tglx@linutronix.de,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org,
+        linux-edac@vger.kernel.org, ishii.shuuichir@fujitsu.com,
+        Vineeth.Pillai@microsoft.com
+References: <20211124170708.3874-1-baicar@os.amperecomputing.com>
+ <20211124170708.3874-2-baicar@os.amperecomputing.com>
+ <87czmpcto5.wl-maz@kernel.org> <YaU6eyGM+bX/bEhG@fedora>
+ <87h7bum0xh.wl-maz@kernel.org> <YaZUL+cftvNYgx1j@fedora>
+From:   Tyler Baicar <baicar@amperemail.onmicrosoft.com>
+In-Reply-To: <YaZUL+cftvNYgx1j@fedora>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: CH0PR04CA0010.namprd04.prod.outlook.com
+ (2603:10b6:610:76::15) To CH0PR01MB7033.prod.exchangelabs.com
+ (2603:10b6:610:107::16)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: ac015fab-da78-4097-a25f-08d9c0e02750
+X-MS-TrafficTypeDiagnostic: CH2PR01MB6039:EE_
+X-Microsoft-Antispam-PRVS: <CH2PR01MB603987CFC4F118063D4FEE55E3779@CH2PR01MB6039.prod.exchangelabs.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 1OCWa3xx8gONdgywxLHhei2ncrDm+Mw9KxHsYCq5KaibRSAZzRs5XUy1N4NW9RbCGan8wQ0vsk7qfqo01GVGRGz4P1Be6sscRvSpbqaBs0XWq8e3vkybiZyZ3fMtMxAPA9OOD1VKpCKLDbQJes+wdE4MenPu/tstjHcaptruige4vv5mUZ9DZOgZvV+ZL80OJFy8UqhefwcBeV4Ih4TurrPm9V1y3jY6BTtGIH6DyyVDZ2zVkP97tKHsdiSqUkaWg5dsrzUQwK4Okc7T/WGEwFK6lxIxEB5wDklJ+kClresi3Ylz/SrLTy5hhYpVnzVDV5y4fDsueN3Cu88Vpj2r8s0llmWKZdZp72ZlDbjJGVK/a3P47cNZ4mdezo0spmuZJvXbB/46YByR5wsrerI1ajoigpQZml0id7Wuuscq2jFl0bEuhBcTQnuPIWSIow8wC/F/ooWDmvaKD8bcgmJl9940ZUP6OKBbTwRwXcOr9b+9K9XGkI6KkD23M4gkOCdgojLtF41GzpqC+zSqmZ6bZkWe8COtygIoAWnry93AM0F4A32MiUuAVJbv+sXzG54T91ycto88+26tpUQ40CfuExJ+vPdWH/Hz7ZRWrILQDFoSnOBY1BQ+tPW4akJc/oGY5Jag0wIqiY1Iul0vs5LlpjcsryptkvUUdFb0f5QWwqh4G1yqYBaKcAgKE5+fDjcSOevyNy4PbmCK6Hm60WtghU/eE/ydIt28KLzsS52Y1Ir9kmFDAU9eU0z3wt5ZToTQ
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH0PR01MB7033.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(83380400001)(66476007)(4326008)(6666004)(38350700002)(186003)(6512007)(2616005)(52116002)(8676002)(6506007)(26005)(8936002)(31686004)(53546011)(508600001)(38100700002)(83170400001)(7406005)(31696002)(2906002)(66556008)(7416002)(6486002)(5660300002)(316002)(42882007)(66946007)(110136005)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?LzlxamdqWlhPSnJwUGswRFZHL0l6TU5CYTFSRW11Z1ZYNlVwTjlQSGt3N0Nh?=
+ =?utf-8?B?ZE1LZlNlaG8rV3ZuUVRJZUNrZnBVUTVCZlFvRzQzNVB1NG54VTdmZHZvemwy?=
+ =?utf-8?B?RThuaVdjR2xIdndBZEN1N0lIU2NYV3Mvb2VVVEZ1bWtVZU13MkttNlhOSTlJ?=
+ =?utf-8?B?Qlh0cnBEYlFIeVdwMlhuVWJ2RjFFcGlReFJucGNTYjRlQ3AzaTBwaDB2cTIx?=
+ =?utf-8?B?ZG1pNjdDSnFLdHY2UnE0czBDQ2hnV0JFaFcvWE9Zdi9CK0duOVk5Z1FRMTJ5?=
+ =?utf-8?B?T3RPcnBaQlJpb2pTUVlVdWNNTVpnNUc4eko5SDB0LzBVcEtJeEg5WEhYUVZ3?=
+ =?utf-8?B?V0Z0c3BOU2drbnlreG01V05RSVZtb0NlZXVtS3hHVEtBN00zZ2JYa2xsVU5Z?=
+ =?utf-8?B?aThZMVJRTEVsa0t5T0pHdFhpQTBvYldyRFhzWmh6c3p3U3VhdVA0N2tmcExo?=
+ =?utf-8?B?K0p4aGtEdHl5WTllazdER2lRbEZQUnVPcnU2M0I5akhwcHNhSjVtOUNFbVor?=
+ =?utf-8?B?N3ZBVzZGMXlhcHdycVI2NHBWZUlXcGRRUDRTM2VRcDVpUHVXZW0rN3A3VWxn?=
+ =?utf-8?B?N2VybUNwM0JmN2JaQWNDV0JqQ0xPb05Hb1Y3aGVJUGNUL0FBTWZlay9TaVJp?=
+ =?utf-8?B?dnI5VVZUTjJaSWRkUlVNUWFpNUhrVjFoQmh4bkhMRGxoQ0ZsUHBuU1NDZzhX?=
+ =?utf-8?B?Ykdxd0RXSW9JTC9vd3ZxT2VmNmlTTmRCZzJPRVNEeHgrM215bkFIK3EzUGdw?=
+ =?utf-8?B?aCtCOXdQOVZPV2V2bVFmTExpSzlmd0hRMVFKQUhOdEloaHIwYWdqVUtSejZ5?=
+ =?utf-8?B?blp0bkVkSnROc2EvdDB2MCs3bjNZUEEyREpWR0hPb2VGdW9jZHhYcUlvWHNQ?=
+ =?utf-8?B?WUwwUnNYVWprSldCdU9pV3YrYzdLTlp5TzV2QUUxL0x1SkFxL3U3dUNmeU9x?=
+ =?utf-8?B?MUhLRmVuZFpqZU1DY2g1bVhmVXlaZUI5ZDdUT1JqRmt4bnV1eUFmR01VRGtl?=
+ =?utf-8?B?eklzTGdWTUg3V0VUNW9XU3U1WFBXM203WHNkUWpsU0pLOUozcjVyS084RldZ?=
+ =?utf-8?B?cXlTdU44NkZrR1JZK1FrK0c1c21yZWxzQmE3RU42L3VXQ05tV0hKSWlWVVBP?=
+ =?utf-8?B?eDQ5M2doMmF4ejcxNTgrQ3M0bTlETHhMV2xEQkpEU0VWOERZYWEzeHIrYlVJ?=
+ =?utf-8?B?aVJWdlJUeHNxWHhoOWpVYy95eE1LcXRlYWlhUTZ3TWk2M0UyTElnN1FUd0dy?=
+ =?utf-8?B?Z1JuRmsvbnZMTGZvTDJnWlJMM0VOa3R4eGRVUFhETDM0dGVlMi8vUDdjWGIw?=
+ =?utf-8?B?cEhyRmI5ZzNHcFVtWVNsSStyUEVOT3dKT0s4UWE0eFhoSXg4K3NaSjc2OUFQ?=
+ =?utf-8?B?TE9GZ29DaG9lYjFIdWFQalBDeno0TmdXb2lKaHd6Tmc1d1dkTzM4SU56ZExQ?=
+ =?utf-8?B?cHNIWVNXa01qeXh1MUpXcVVlNUVOS0VPRHFadWlxZ0pMT0swYnBsL00xN3Vi?=
+ =?utf-8?B?aHV4UmRhd3BRbXk3U085U1hrVXFnZ2Ivb0VlYy84ZXg2ZWdRd2d2M2VLQ1dm?=
+ =?utf-8?B?NnhxK2VTWFlsemlBTUtxS28xMTE5cEovRlU2Z2I2UXJ1ZVlNUjRXajRIYjh2?=
+ =?utf-8?B?ZmNFSFFzQXlLSWJxQ1FlZ3N2YzBXMzgzTGNDVlJFQWtvYldDa29zelo0NGJ5?=
+ =?utf-8?B?STYzMWl2MTh3aVRRTVJmTTdIRnRWeU9wUjB1UzVuYjQ5WW1MU2ZIbGgzV0pH?=
+ =?utf-8?B?TmFEWUozblRsZ01UdXg2eVRxcGY2Qkk1QkR1SUkwSTFpTFRmcDlJbGRqaXdF?=
+ =?utf-8?B?d0V2YjJ5ZjUydW5BMGlBY1hVME5FdUIyai90cHdWUzF6c2MzRGl5SHZqTy8y?=
+ =?utf-8?B?NGRSSDM2MlVMR2ZkOVJYcGRCQmR2cFhnenJyTHRYZ1pXMDVnYWJET1V0V1hE?=
+ =?utf-8?B?THgwSWFHSWpxcFlRdVlEKzA1bDlRcDZJU1lQdUdGWGxKNnovYVZkNHdQRFZi?=
+ =?utf-8?B?empmSXZxL2dmbjZ1bUx3L045dWNsRExSZ0p4dzk3WlZjTFNUTUpFaFd3Zlkx?=
+ =?utf-8?B?NVlBQU0vNE5GdTlZdmtPMXM1UFk3Ly94Q0JYUHdBNE05ZXUwaE1VM01OMEhS?=
+ =?utf-8?B?QUlzWFN0Q29UWWRTc1NndFlXRDVVeHhmUkl4aVg3NG1RcW5FdXkydE5EcEtE?=
+ =?utf-8?B?U2lOUWZ6cDlHdGVHam9LVXY0b2E5dVhrUVkxcUhaWm95djVYY3hMT2FDSDZy?=
+ =?utf-8?B?d2lGOEFzcnNxMXYxZjVzQ0VCSlowZnpCT0VqdHFGODlPcjEvczJ2ZjlGK09O?=
+ =?utf-8?B?dkxTaldYTzFsYXFDY0NycWlSRVJBczdBblg3RlpSaVB3Zkhtb0xsUT09?=
+X-OriginatorOrg: amperemail.onmicrosoft.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ac015fab-da78-4097-a25f-08d9c0e02750
+X-MS-Exchange-CrossTenant-AuthSource: CH0PR01MB7033.prod.exchangelabs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Dec 2021 22:05:21.7563
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 1i7FfdJfryjmneEQpSuZMaEBYxYixbtcKimg9v6lPSCnD+A+9yu4uso9wFzo6216VhT4lMz4Sxt2EXGAI7keA/IcINQsb+azh7+9H1btFWc08vd41FVkUGW7elP0ELsg
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR01MB6039
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This driver allows user space to fetch telemetry data from the
-firmware with the help of the Platform Firmware Runtime Telemetry
-interface.
+-Moved ACPI for ARM64 maintainers to "to:"
 
-Both PFRU and PFRT are based on ACPI _DSM interfaces located under
-special device objects in the ACPI Namespace, but these interfaces are
-different from each other, so it is better to provide a separate
-driver from each of them. However, they share some common definitions
-and naming conventions.
+Hi Marc, Darren,
 
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
----
-v12:Change the subject to "Introduce Platform Firmware Runtime
-    Telemetry", because there is no "update" part in it.
-    (Rafael J. Wysocki)
-    Revise the commit log.(Rafael J. Wysocki)
-    Move pfr_update.c and pfr_telemetry.c) directly in drivers/acpi/
-    (Rafael J. Wysocki)
-    Update Kconfig with the information regarding PFRT
-    (Rafael J. Wysocki)
-    Describe the driver briefly at the beginning of the source code
-    (Rafael J. Wysocki)
-    Replace all PFRU prefix with PFRT.(Rafael J. Wysocki)
-    Rename pfru_log_device to pfrt_log_device(Rafael J. Wysocki)
-    Rename pfru_log_ida to pfrt_log_ida(Rafael J. Wysocki)
-    Replace pfru with pfrt prefix for all function names.
-    (Rafael J. Wysocki)
-    Use blank lines to separate the cases visually from each
-    other.(Rafael J. Wysocki)
-    Replace pfru_telemetry%d with pfrt%d, and
-    acpi_pfru_telemetry%d to acpi_pfr_telemetry.
-    (Rafael J. Wysocki)
-v11:No change since v10.
-v10:Remove the explicit assignment of the last item of enum.
-    (Andy Shevchenko)
-v9: Use GUID_INIT() instead of guid_parse() during boot up.
-    (Andy Shevchenko)
-    Drop uuid from struct pfru_log_device.(Andy Shevchenko)
-    Use kfree() instead of ACPI_FREE() in non-ACPICA usage.
-    (Andy Shevchenko)
-    Use devm_add_action_or_reset() to add ida release into dev resource
-    management. (Andy Shevchenko)
-    Use devm_kasprintf() instead of kasprintf() to format the
-    pfru_log_dev name.(Andy Shevchenko)
-    Remove redundant 0 in acpi_pfru_log_ids. (Andy Shevchenko)
-v8: Add blank line between generic include header and uapi header.
-    (Andy Shevchenko)
-    Arrange the order between devm_kzalloc() and normal allocation in
-    acpi_pfru_log_probe() that, the former should always be ahead of the
-    latter. (Andy Shevchenko)
-    Amend commit message to elaborate the reason why PFRU and PRFU_Telemetry
-    drivers look the same. (Andy Shevchenko)
-v7: Use ida_alloc() to allocate a ID, and release the ID when
-    device is removed. (Greg Kroah-Hartman)
-    Check the _DSM method at early stage, before allocate or parse
-    anything in acpi_pfru_log_probe(). (Greg Kroah-Hartman)
-    Set the parent of the misc device. (Greg Kroah-Hartman)
-    Use module_platform_driver() instead of platform_driver_register()
-    in module_init(). Separate pfru driver and pfru_telemetry driver
-    to two files. (Greg Kroah-Hartman) 
-v6: Remove linux/uuid.h and use raw buffers to contain uuid.
-    (Andy Shevchenko)
-    Include types.h in pfru.h. (Andy Shevchenko)
-    Use __u8[16] instead of uuid_t. (Andy Shevchenko)
-    Replace enum in pfru.h with __u32 as enum size is not the
-    same on all possible architectures.
-    (Andy Shevchenko)
-    Directly return results from the switch cases in pfru_log_ioctl().
-    (Andy Shevchenko)
-v5: Remove the log output sample in commit log. (Greg Kroah-Hartman)
-    Add link for corresponding userspace tool in the commit log.
-    (Greg Kroah-Hartman)
-    Replace the telemetry .read() with .mmap() so that the userspace
-    could mmap once, and read multiple times. (Greg Kroah-Hartman)
-    Fix the compile warning by declaring the pfru_log_ioctl() as
-    static. (kernel test robot LKP)
-v4: Change the write() to be the code injection/update, the read() to
-    be telemetry retrieval and all of the rest to be ioctl()s under
-    one special device file.(Rafael J. Wysocki)
-    Remove redundant parens. (Rafael J. Wysocki)
-    Putting empty code lines after an if () statement that is not
-    followed by a block. (Rafael J. Wysocki)
-    Remove "goto" tags to make the code more readable. (Rafael J. Wysocki)
-v3: Use __u32 instead of int and __64 instead of unsigned long
-    in include/uapi/linux/pfru.h (Greg Kroah-Hartman)
-    Rename the structure in uapi to start with a prefix pfru so as
-    to avoid confusing in the global namespace. (Greg Kroah-Hartman)
-v2: Do similar clean up as pfru_update driver:
-    Add sanity check for duplicated instance of ACPI device.
-    Update the driver to work with allocated telem_device objects.
-    (Mike Rapoport)
-    For each switch case pair, get rid of the magic case numbers
-    and add a default clause with the error handling.
-    (Mike Rapoport)
----
- drivers/acpi/Kconfig         |   8 +-
- drivers/acpi/Makefile        |   2 +-
- drivers/acpi/pfr_telemetry.c | 433 +++++++++++++++++++++++++++++++++++
- include/uapi/linux/pfrut.h   |  88 +++++++
- 4 files changed, 528 insertions(+), 3 deletions(-)
- create mode 100644 drivers/acpi/pfr_telemetry.c
+On 11/30/2021 11:41 AM, Darren Hart wrote:
+> On Tue, Nov 30, 2021 at 09:45:46AM +0000, Marc Zyngier wrote:
+>> Hi Darren,
+>>
+>> On Mon, 29 Nov 2021 20:39:23 +0000,
+>> Darren Hart <darren@os.amperecomputing.com> wrote:
+>>> On Wed, Nov 24, 2021 at 06:09:14PM +0000, Marc Zyngier wrote:
+>>>> On Wed, 24 Nov 2021 17:07:07 +0000,
+>>>>> diff --git a/MAINTAINERS b/MAINTAINERS
+>>>>> index 5250298d2817..aa0483726606 100644
+>>>>> --- a/MAINTAINERS
+>>>>> +++ b/MAINTAINERS
+>>>>> @@ -382,6 +382,7 @@ ACPI FOR ARM64 (ACPI/arm64)
+>>>>>   M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>>>   M:	Hanjun Guo <guohanjun@huawei.com>
+>>>>>   M:	Sudeep Holla <sudeep.holla@arm.com>
+>>>>> +R:	Tyler Baicar <baicar@os.amperecomputing.com>
+>>>>>   L:	linux-acpi@vger.kernel.org
+>>>>>   L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+>>>>>   S:	Maintained
+>>>> Isn't this a bit premature? This isn't even mentioned in the commit
+>>>> message, only in passing in the cover letter.
+>>>>
+>>> Hi Marc,
+>>>
+>>> This was something I encouraged Tyler to add during internal review,
+>>> both in response to the checkpatch.pl warning about adding new drivers
+>>> as well as our interest in reviewing any future changes to the aest
+>>> driver. Since refactoring is common, this level made sense to me - but
+>>> would it be preferable to add a new entry for just the new driver Tyler
+>>> added?
+>> Adding someone as the co-maintainer/co-reviewer of a whole subsystem
+>> (ACPI/arm64 in this case) comes, IMO, with a number of pre-requisites:
+>> has the proposed co-{maintainer,reviewer} contributed and/or reviewed
+>> a significant number of patches to that subsystem and/or actively
+>> participated in the public discussions on the design and the
+>> maintenance of the subsystem, so that their reviewing is authoritative
+>> enough? I won't be judge of this, but it is definitely something to
+>> consider.
+> Hi Marc,
+>
+> Agreed. I applied similar criteria when considering sub maintainers for
+> the platform/x86 subsystem while I maintained it.
+>
+>> I don't think preemptively adding someone to the MAINTAINERS entry to
+>> indicate an interest in a whole subsystem is the right way to do it.
+>> One could argue that this is what a mailing list is for! ;-) On the
+>> other hand, an active participation to the review process is the
+>> perfect way to engage with fellow developers and to grow a profile. It
+>> is at this stage that adding oneself as an upstream reviewer makes a
+>> lot of sense.
+> Also generally agree. In this specific case, our interest was in the
+> driver itself, and we had to decide between the whole subsystem or
+> adding another F: entry in MAINTAINERS for the specific driver. Since
+> drivers/acpi/arm64 only has 3 .c files in it, adding another entry
+> seemed premature and overly granular. Certainly a subjective thing and
+> we have no objection to adding the extra line if that's preferred. This
+> should have been noted in the commit message.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index d0b3ca9d4a97..91f1da16934d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -532,8 +532,12 @@ config ACPI_PFRUT
- 	  The existing firmware code can be modified (driver update) or
- 	  extended by adding new code to the firmware (code injection).
- 
--	  To compile this driver as module, choose M here:
--	  the module will be called pfr_update.
-+	  Besides, the telemetry driver allows user space to fetch telemetry
-+	  data from the firmware with the help of the Platform Firmware Runtime
-+	  Telemetry interface.
-+
-+	  To compile the drivers as modules, choose M here:
-+	  the modules will be called pfr_update and pfr_telemetry.
- 
- if ARM64
- source "drivers/acpi/arm64/Kconfig"
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 2ad2e821cc08..d3dc79298ce3 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -102,7 +102,7 @@ obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
- obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
- obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
- obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
--obj-$(CONFIG_ACPI_PFRUT)	+= pfr_update.o
-+obj-$(CONFIG_ACPI_PFRUT)	+= pfr_update.o pfr_telemetry.o
- 
- # processor has its own "processor." module_param namespace
- processor-y			:= processor_driver.o
-diff --git a/drivers/acpi/pfr_telemetry.c b/drivers/acpi/pfr_telemetry.c
-new file mode 100644
-index 000000000000..27a16c190434
---- /dev/null
-+++ b/drivers/acpi/pfr_telemetry.c
-@@ -0,0 +1,433 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * ACPI Platform Firmware Runtime Telemetry driver
-+ *
-+ * Copyright (C) 2021 Intel Corporation
-+ * Author: Chen Yu <yu.c.chen@intel.com>
-+ *
-+ * This driver allows user space to fetch telemetry data from the
-+ * firmware with the help of the Platform Firmware Runtime Telemetry
-+ * interface.
-+ */
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/errno.h>
-+#include <linux/file.h>
-+#include <linux/fs.h>
-+#include <linux/miscdevice.h>
-+#include <linux/module.h>
-+#include <linux/mm.h>
-+#include <linux/platform_device.h>
-+#include <linux/string.h>
-+#include <linux/uaccess.h>
-+#include <linux/uio.h>
-+#include <linux/uuid.h>
-+
-+#include <uapi/linux/pfrut.h>
-+
-+#define PFRT_LOG_EXEC_IDX	0
-+#define PFRT_LOG_HISTORY_IDX	1
-+
-+#define PFRT_LOG_ERR		0
-+#define PFRT_LOG_WARN	1
-+#define PFRT_LOG_INFO	2
-+#define PFRT_LOG_VERB	4
-+
-+#define PFRT_FUNC_SET_LEV		1
-+#define PFRT_FUNC_GET_LEV		2
-+#define PFRT_FUNC_GET_DATA		3
-+
-+#define PFRT_REVID_1		1
-+#define PFRT_REVID_2		2
-+#define PFRT_DEFAULT_REV_ID	PFRT_REVID_1
-+
-+enum log_index {
-+	LOG_STATUS_IDX = 0,
-+	LOG_EXT_STATUS_IDX = 1,
-+	LOG_MAX_SZ_IDX = 2,
-+	LOG_CHUNK1_LO_IDX = 3,
-+	LOG_CHUNK1_HI_IDX = 4,
-+	LOG_CHUNK1_SZ_IDX = 5,
-+	LOG_CHUNK2_LO_IDX = 6,
-+	LOG_CHUNK2_HI_IDX = 7,
-+	LOG_CHUNK2_SZ_IDX = 8,
-+	LOG_ROLLOVER_CNT_IDX = 9,
-+	LOG_RESET_CNT_IDX = 10,
-+	LOG_NR_IDX
-+};
-+
-+struct pfrt_log_device {
-+	int index;
-+	struct pfrt_log_info info;
-+	struct device *parent_dev;
-+	struct miscdevice miscdev;
-+};
-+
-+/* pfrt_guid is the parameter for _DSM method */
-+static const guid_t pfrt_log_guid =
-+	GUID_INIT(0x75191659, 0x8178, 0x4D9D, 0xB8, 0x8F, 0xAC, 0x5E,
-+		  0x5E, 0x93, 0xE8, 0xBF);
-+
-+static DEFINE_IDA(pfrt_log_ida);
-+
-+static inline struct pfrt_log_device *to_pfrt_log_dev(struct file *file)
-+{
-+	return container_of(file->private_data, struct pfrt_log_device, miscdev);
-+}
-+
-+static int get_pfrt_log_data_info(struct pfrt_log_data_info *data_info,
-+				  struct pfrt_log_device *pfrt_log_dev)
-+{
-+	acpi_handle handle = ACPI_HANDLE(pfrt_log_dev->parent_dev);
-+	union acpi_object *out_obj, in_obj, in_buf;
-+	int ret = -EINVAL;
-+
-+	memset(&in_obj, 0, sizeof(in_obj));
-+	memset(&in_buf, 0, sizeof(in_buf));
-+	in_obj.type = ACPI_TYPE_PACKAGE;
-+	in_obj.package.count = 1;
-+	in_obj.package.elements = &in_buf;
-+	in_buf.type = ACPI_TYPE_INTEGER;
-+	in_buf.integer.value = pfrt_log_dev->info.log_type;
-+
-+	out_obj = acpi_evaluate_dsm_typed(handle, &pfrt_log_guid,
-+					  pfrt_log_dev->info.log_revid, PFRT_FUNC_GET_DATA,
-+					  &in_obj, ACPI_TYPE_PACKAGE);
-+	if (!out_obj)
-+		return ret;
-+
-+	if (out_obj->package.count < LOG_NR_IDX ||
-+	    out_obj->package.elements[LOG_STATUS_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_EXT_STATUS_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_MAX_SZ_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_CHUNK1_LO_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_CHUNK1_HI_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_CHUNK1_SZ_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_CHUNK2_LO_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_CHUNK2_HI_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_CHUNK2_SZ_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_ROLLOVER_CNT_IDX].type != ACPI_TYPE_INTEGER ||
-+	    out_obj->package.elements[LOG_RESET_CNT_IDX].type != ACPI_TYPE_INTEGER)
-+		goto free_acpi_buffer;
-+
-+	data_info->status = out_obj->package.elements[LOG_STATUS_IDX].integer.value;
-+	data_info->ext_status =
-+		out_obj->package.elements[LOG_EXT_STATUS_IDX].integer.value;
-+	data_info->max_data_size =
-+		out_obj->package.elements[LOG_MAX_SZ_IDX].integer.value;
-+	data_info->chunk1_addr_lo =
-+		out_obj->package.elements[LOG_CHUNK1_LO_IDX].integer.value;
-+	data_info->chunk1_addr_hi =
-+		out_obj->package.elements[LOG_CHUNK1_HI_IDX].integer.value;
-+	data_info->chunk1_size =
-+		out_obj->package.elements[LOG_CHUNK1_SZ_IDX].integer.value;
-+	data_info->chunk2_addr_lo =
-+		out_obj->package.elements[LOG_CHUNK2_LO_IDX].integer.value;
-+	data_info->chunk2_addr_hi =
-+		out_obj->package.elements[LOG_CHUNK2_HI_IDX].integer.value;
-+	data_info->chunk2_size =
-+		out_obj->package.elements[LOG_CHUNK2_SZ_IDX].integer.value;
-+	data_info->rollover_cnt =
-+		out_obj->package.elements[LOG_ROLLOVER_CNT_IDX].integer.value;
-+	data_info->reset_cnt =
-+		out_obj->package.elements[LOG_RESET_CNT_IDX].integer.value;
-+
-+	ret = 0;
-+
-+free_acpi_buffer:
-+	kfree(out_obj);
-+
-+	return ret;
-+}
-+
-+static int set_pfrt_log_level(int level, struct pfrt_log_device *pfrt_log_dev)
-+{
-+	acpi_handle handle = ACPI_HANDLE(pfrt_log_dev->parent_dev);
-+	union acpi_object *out_obj, *obj, in_obj, in_buf;
-+	enum pfru_dsm_status status;
-+	int ret = -EINVAL;
-+
-+	memset(&in_obj, 0, sizeof(in_obj));
-+	memset(&in_buf, 0, sizeof(in_buf));
-+	in_obj.type = ACPI_TYPE_PACKAGE;
-+	in_obj.package.count = 1;
-+	in_obj.package.elements = &in_buf;
-+	in_buf.type = ACPI_TYPE_INTEGER;
-+	in_buf.integer.value = level;
-+
-+	out_obj = acpi_evaluate_dsm_typed(handle, &pfrt_log_guid,
-+					  pfrt_log_dev->info.log_revid, PFRT_FUNC_SET_LEV,
-+					  &in_obj, ACPI_TYPE_PACKAGE);
-+	if (!out_obj)
-+		return -EINVAL;
-+
-+	obj = &out_obj->package.elements[0];
-+	status = obj->integer.value;
-+	if (status)
-+		goto free_acpi_buffer;
-+
-+	obj = &out_obj->package.elements[1];
-+	status = obj->integer.value;
-+	if (status)
-+		goto free_acpi_buffer;
-+
-+	ret = 0;
-+
-+free_acpi_buffer:
-+	kfree(out_obj);
-+
-+	return ret;
-+}
-+
-+static int get_pfrt_log_level(struct pfrt_log_device *pfrt_log_dev)
-+{
-+	acpi_handle handle = ACPI_HANDLE(pfrt_log_dev->parent_dev);
-+	union acpi_object *out_obj, *obj;
-+	enum pfru_dsm_status status;
-+	int ret = -EINVAL;
-+
-+	out_obj = acpi_evaluate_dsm_typed(handle, &pfrt_log_guid,
-+					  pfrt_log_dev->info.log_revid, PFRT_FUNC_GET_LEV,
-+					  NULL, ACPI_TYPE_PACKAGE);
-+	if (!out_obj)
-+		return -EINVAL;
-+
-+	obj = &out_obj->package.elements[0];
-+	if (obj->type != ACPI_TYPE_INTEGER)
-+		goto free_acpi_buffer;
-+
-+	status = obj->integer.value;
-+	if (status)
-+		goto free_acpi_buffer;
-+
-+	obj = &out_obj->package.elements[1];
-+	if (obj->type != ACPI_TYPE_INTEGER)
-+		goto free_acpi_buffer;
-+
-+	status = obj->integer.value;
-+	if (status)
-+		goto free_acpi_buffer;
-+
-+	obj = &out_obj->package.elements[2];
-+	if (obj->type != ACPI_TYPE_INTEGER)
-+		goto free_acpi_buffer;
-+
-+	ret = obj->integer.value;
-+
-+free_acpi_buffer:
-+	kfree(out_obj);
-+
-+	return ret;
-+}
-+
-+static int valid_log_level(u32 level)
-+{
-+	return level == PFRT_LOG_ERR || level == PFRT_LOG_WARN ||
-+	       level == PFRT_LOG_INFO || level == PFRT_LOG_VERB;
-+}
-+
-+static int valid_log_type(u32 type)
-+{
-+	return type == PFRT_LOG_EXEC_IDX || type == PFRT_LOG_HISTORY_IDX;
-+}
-+
-+static inline int valid_log_revid(u32 id)
-+{
-+	return id == PFRT_REVID_1 || id == PFRT_REVID_2;
-+}
-+
-+static long pfrt_log_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+{
-+	struct pfrt_log_device *pfrt_log_dev = to_pfrt_log_dev(file);
-+	struct pfrt_log_data_info data_info;
-+	struct pfrt_log_info info;
-+	void __user *p;
-+	int ret = 0;
-+
-+	p = (void __user *)arg;
-+
-+	switch (cmd) {
-+	case PFRT_LOG_IOC_SET_INFO:
-+		if (copy_from_user(&info, p, sizeof(info)))
-+			return -EFAULT;
-+
-+		if (valid_log_revid(info.log_revid))
-+			pfrt_log_dev->info.log_revid = info.log_revid;
-+
-+		if (valid_log_level(info.log_level)) {
-+			ret = set_pfrt_log_level(info.log_level, pfrt_log_dev);
-+			if (ret < 0)
-+				return ret;
-+
-+			pfrt_log_dev->info.log_level = info.log_level;
-+		}
-+
-+		if (valid_log_type(info.log_type))
-+			pfrt_log_dev->info.log_type = info.log_type;
-+
-+		return 0;
-+
-+	case PFRT_LOG_IOC_GET_INFO:
-+		info.log_level = get_pfrt_log_level(pfrt_log_dev);
-+		if (ret < 0)
-+			return ret;
-+
-+		info.log_type = pfrt_log_dev->info.log_type;
-+		info.log_revid = pfrt_log_dev->info.log_revid;
-+		if (copy_to_user(p, &info, sizeof(info)))
-+			return -EFAULT;
-+
-+		return 0;
-+
-+	case PFRT_LOG_IOC_GET_DATA_INFO:
-+		ret = get_pfrt_log_data_info(&data_info, pfrt_log_dev);
-+		if (ret)
-+			return ret;
-+
-+		if (copy_to_user(p, &data_info, sizeof(struct pfrt_log_data_info)))
-+			return -EFAULT;
-+
-+		return 0;
-+
-+	default:
-+		return -ENOTTY;
-+	}
-+}
-+
-+static int
-+pfrt_log_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct pfrt_log_device *pfrt_log_dev;
-+	struct pfrt_log_data_info info;
-+	unsigned long psize, vsize;
-+	phys_addr_t base_addr;
-+	int ret;
-+
-+	if (vma->vm_flags & VM_WRITE)
-+		return -EROFS;
-+
-+	/* changing from read to write with mprotect is not allowed */
-+	vma->vm_flags &= ~VM_MAYWRITE;
-+
-+	pfrt_log_dev = to_pfrt_log_dev(file);
-+
-+	ret = get_pfrt_log_data_info(&info, pfrt_log_dev);
-+	if (ret)
-+		return ret;
-+
-+	base_addr = (phys_addr_t)((info.chunk2_addr_hi << 32) | info.chunk2_addr_lo);
-+	/* pfrt update has not been launched yet */
-+	if (!base_addr)
-+		return -ENODEV;
-+
-+	psize = info.max_data_size;
-+	/* base address and total buffer size must be page aligned */
-+	if (!PAGE_ALIGNED(base_addr) || !PAGE_ALIGNED(psize))
-+		return -ENODEV;
-+
-+	vsize = vma->vm_end - vma->vm_start;
-+	if (vsize > psize)
-+		return -EINVAL;
-+
-+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+	if (io_remap_pfn_range(vma, vma->vm_start, PFN_DOWN(base_addr),
-+			       vsize, vma->vm_page_prot))
-+		return -EAGAIN;
-+
-+	return 0;
-+}
-+
-+static const struct file_operations acpi_pfrt_log_fops = {
-+	.owner		= THIS_MODULE,
-+	.mmap		= pfrt_log_mmap,
-+	.unlocked_ioctl = pfrt_log_ioctl,
-+	.llseek		= noop_llseek,
-+};
-+
-+static int acpi_pfrt_log_remove(struct platform_device *pdev)
-+{
-+	struct pfrt_log_device *pfrt_log_dev = platform_get_drvdata(pdev);
-+
-+	misc_deregister(&pfrt_log_dev->miscdev);
-+
-+	return 0;
-+}
-+
-+static void pfrt_log_put_idx(void *data)
-+{
-+	struct pfrt_log_device *pfrt_log_dev = data;
-+
-+	ida_free(&pfrt_log_ida, pfrt_log_dev->index);
-+}
-+
-+static int acpi_pfrt_log_probe(struct platform_device *pdev)
-+{
-+	acpi_handle handle = ACPI_HANDLE(&pdev->dev);
-+	struct pfrt_log_device *pfrt_log_dev;
-+	int ret;
-+
-+	if (!acpi_has_method(handle, "_DSM")) {
-+		dev_dbg(&pdev->dev, "Missing _DSM\n");
-+		return -ENODEV;
-+	}
-+
-+	pfrt_log_dev = devm_kzalloc(&pdev->dev, sizeof(*pfrt_log_dev), GFP_KERNEL);
-+	if (!pfrt_log_dev)
-+		return -ENOMEM;
-+
-+	ret = ida_alloc(&pfrt_log_ida, GFP_KERNEL);
-+	if (ret < 0)
-+		return ret;
-+
-+	pfrt_log_dev->index = ret;
-+	ret = devm_add_action_or_reset(&pdev->dev, pfrt_log_put_idx, pfrt_log_dev);
-+	if (ret)
-+		return ret;
-+
-+	pfrt_log_dev->info.log_revid = PFRT_DEFAULT_REV_ID;
-+	pfrt_log_dev->parent_dev = &pdev->dev;
-+
-+	pfrt_log_dev->miscdev.minor = MISC_DYNAMIC_MINOR;
-+	pfrt_log_dev->miscdev.name = devm_kasprintf(&pdev->dev, GFP_KERNEL,
-+						    "pfrt%d",
-+						    pfrt_log_dev->index);
-+	if (!pfrt_log_dev->miscdev.name)
-+		return -ENOMEM;
-+
-+	pfrt_log_dev->miscdev.nodename = devm_kasprintf(&pdev->dev, GFP_KERNEL,
-+							"acpi_pfr_telemetry%d",
-+							pfrt_log_dev->index);
-+	if (!pfrt_log_dev->miscdev.nodename)
-+		return -ENOMEM;
-+
-+	pfrt_log_dev->miscdev.fops = &acpi_pfrt_log_fops;
-+	pfrt_log_dev->miscdev.parent = &pdev->dev;
-+
-+	ret = misc_register(&pfrt_log_dev->miscdev);
-+	if (ret)
-+		return ret;
-+
-+	platform_set_drvdata(pdev, pfrt_log_dev);
-+
-+	return 0;
-+}
-+
-+static const struct acpi_device_id acpi_pfrt_log_ids[] = {
-+	{"INTC1081"},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(acpi, acpi_pfrt_log_ids);
-+
-+static struct platform_driver acpi_pfrt_log_driver = {
-+	.driver = {
-+		.name = "pfrt_telemetry",
-+		.acpi_match_table = acpi_pfrt_log_ids,
-+	},
-+	.probe = acpi_pfrt_log_probe,
-+	.remove = acpi_pfrt_log_remove,
-+};
-+module_platform_driver(acpi_pfrt_log_driver);
-+
-+MODULE_DESCRIPTION("Platform Firmware Runtime Update Telemetry driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/uapi/linux/pfrut.h b/include/uapi/linux/pfrut.h
-index fa97e80a93b7..42fa15f8310d 100644
---- a/include/uapi/linux/pfrut.h
-+++ b/include/uapi/linux/pfrut.h
-@@ -171,4 +171,92 @@ struct pfru_updated_result {
- 	__u64 high_exec_time;
- };
- 
-+/**
-+ * struct pfrt_log_data_info - Log Data from telemetry service.
-+ * @status: Indicator of whether this update succeed.
-+ * @ext_status: Implementation specific update result.
-+ * @chunk1_addr_lo: Low 32bit physical address of the telemetry data chunk1
-+ *                  starting address.
-+ * @chunk1_addr_hi: High 32bit physical address of the telemetry data chunk1
-+ *                  starting address.
-+ * @chunk2_addr_lo: Low 32bit physical address of the telemetry data chunk2
-+ *                  starting address.
-+ * @chunk2_addr_hi: High 32bit physical address of the telemetry data chunk2
-+ *                  starting address.
-+ * @max_data_size: Maximum supported size of data of all data chunks combined.
-+ * @chunk1_size: Data size in bytes of the telemetry data chunk1 buffer.
-+ * @chunk2_size: Data size in bytes of the telemetry data chunk2 buffer.
-+ * @rollover_cnt: Number of times telemetry data buffer is overwritten
-+ *                since telemetry buffer reset.
-+ * @reset_cnt: Number of times telemetry services resets that results in
-+ *             rollover count and data chunk buffers are reset.
-+ */
-+struct pfrt_log_data_info {
-+	__u32 status;
-+	__u32 ext_status;
-+	__u64 chunk1_addr_lo;
-+	__u64 chunk1_addr_hi;
-+	__u64 chunk2_addr_lo;
-+	__u64 chunk2_addr_hi;
-+	__u32 max_data_size;
-+	__u32 chunk1_size;
-+	__u32 chunk2_size;
-+	__u32 rollover_cnt;
-+	__u32 reset_cnt;
-+};
-+
-+/**
-+ * struct pfrt_log_info - Telemetry log information.
-+ * @log_level: The telemetry log level.
-+ * @log_type: The telemetry log type(history and execution).
-+ * @log_revid: The telemetry log revision id.
-+ */
-+struct pfrt_log_info {
-+	__u32 log_level;
-+	__u32 log_type;
-+	__u32 log_revid;
-+};
-+
-+/**
-+ * PFRT_LOG_IOC_SET_INFO - _IOW(PFRUT_IOCTL_MAGIC, 0x06,
-+ *				struct pfrt_log_info)
-+ *
-+ * Return:
-+ * * 0			- success
-+ * * -EFAULT		- fail to get the setting parameter
-+ * * -EINVAL		- fail to set the log level
-+ *
-+ * Set the PFRT log level and log type. The input information is
-+ * a struct pfrt_log_info.
-+ */
-+#define PFRT_LOG_IOC_SET_INFO _IOW(PFRUT_IOCTL_MAGIC, 0x06, struct pfrt_log_info)
-+
-+/**
-+ * PFRT_LOG_IOC_GET_INFO - _IOR(PFRUT_IOCTL_MAGIC, 0x07,
-+ *				struct pfrt_log_info)
-+ *
-+ * Return:
-+ * * 0			- success
-+ * * -EINVAL		- fail to get the log level
-+ * * -EFAULT		- fail to copy the result back to userspace
-+ *
-+ * Retrieve log level and log type of the telemetry. The information is
-+ * a struct pfrt_log_info.
-+ */
-+#define PFRT_LOG_IOC_GET_INFO _IOR(PFRUT_IOCTL_MAGIC, 0x07, struct pfrt_log_info)
-+
-+/**
-+ * PFRT_LOG_IOC_GET_DATA_INFO - _IOR(PFRUT_IOCTL_MAGIC, 0x08,
-+ *				     struct pfrt_log_data_info)
-+ *
-+ * Return:
-+ * * 0			- success
-+ * * -EINVAL		- fail to get the log buffer information
-+ * * -EFAULT		- fail to copy the log buffer information to userspace
-+ *
-+ * Retrieve data information about the telemetry. The information
-+ * is a struct pfrt_log_data_info.
-+ */
-+#define PFRT_LOG_IOC_GET_DATA_INFO _IOR(PFRUT_IOCTL_MAGIC, 0x08, struct pfrt_log_data_info)
-+
- #endif /* __PFRUT_H__ */
--- 
-2.25.1
+Thank you for the feedback here, I will make sure to add this to the 
+commit message and cover letter in the next version.
+
+Hi Lorenzo, Hanjun, Sudeep,
+
+As for adding myself as a reviewer under ACPI for ARM64 or adding 
+another F: entry, do you have a preference or guidance on what I should 
+do here?
+
+Thanks,
+
+Tyler
+
+>> Alternatively, adding a MAINTAINERS entry for a specific driver is
+>> definitely helpful and will certainly result in the listed maintainer
+>> to be Cc'd on changes affecting it. But I would really like this
+>> maintainer to actively engage with upstream, rather than simply be on
+>> the receiving end of a stream of changes.
+> Agree for subsystems. For individual drivers, I think having the author
+> as a reviewer is appropriate and should result in more patch reviews,
+> which moves us in the direction of more community participation which we
+> all want to see.
+>
+> Thanks,
 
