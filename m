@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 194B7C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 17 Dec 2021 11:57:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A82C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Dec 2021 11:57:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233573AbhLQL5r (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 17 Dec 2021 06:57:47 -0500
-Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:50260 "EHLO
+        id S235796AbhLQL5t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 17 Dec 2021 06:57:49 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:42408 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S235781AbhLQL5r (ORCPT
+        by vger.kernel.org with ESMTP id S235775AbhLQL5s (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Dec 2021 06:57:47 -0500
+        Fri, 17 Dec 2021 06:57:48 -0500
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BH6BOD2024878;
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1BH6BOD3024878;
         Fri, 17 Dec 2021 05:57:25 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=P95jRnxTNpTTnBxEgj64aqh6RHhx6DAfvOrgb1F9Zu0=;
- b=VZ4fxl9wjpKk/9O1MaBX6rSRrfYngYeOoajUFASGPg2r7mOcBh7CjRam7eKe7+ErTuDN
- dAMvP79zn/I8S1RIhXCgUPJHwq8/Pxaz85MAiqeOSYThyxVCzFhpruZwVIBLFRU+Mt5/
- 1cQO/eKYFCAHxo42jLzM8UqnHWORaJpBv5/Z67mF8BICL41yMAtNz6PgoApJxal8ttRN
- cQmz6qQc+0CrmwdeoO7wlVuot+Fyh35hMdrJcaIrxIhJxu8MDYwtLAXq9ftmkcKNYx8j
- 34WqQt1s1IWw0d4zzNgY40Khz4ACaydF6wOTi3MyBYGLYt4mYrm+ZeZgvYjXlWSpCoUT iA== 
+ bh=phtIJUYnNg6/fKgTeaUUVdx/g4sHBq3AbZNhZEFGScU=;
+ b=VRlcxvsthVJzhMpmlHk+RPgnyiyiOw2RoRkZeQSv2KEFqIu/RbyolGlC9dsO1t0vpQQ9
+ P+BwLKrtrkDGAB4jpKvBFcbZN04uyu4WLvKe2drfRFdmjzbuK6h3S+jMZPqk+lF1vO0A
+ 7hc9QR+IiRlmfI11JcxRnkhapTzScQUpSstymyICXJgyYr3U0UPhFe4gM6qQyo+qhpiI
+ IRjKobG9sPrSdKSAspQUv46NPn4P27LL52kya3V/PNtre9v8rmKY+v0IunIY2bvh+y3P
+ 6pSaXgw1+ZztRmTOgBWGayondmMli8sy+nHvtMwneOxAH1BVhmRL4BjkDES3+Era4kuH pg== 
 Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cymsc2f3k-3
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3cymsc2f3k-4
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Fri, 17 Dec 2021 05:57:24 -0600
+        Fri, 17 Dec 2021 05:57:25 -0600
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
  (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.17; Fri, 17 Dec
- 2021 11:57:22 +0000
+ 2021 11:57:23 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.17 via Frontend
- Transport; Fri, 17 Dec 2021 11:57:22 +0000
+ Transport; Fri, 17 Dec 2021 11:57:23 +0000
 Received: from aryzen.ad.cirrus.com (unknown [198.61.64.39])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id A41BBB10;
-        Fri, 17 Dec 2021 11:57:21 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 9A034478;
+        Fri, 17 Dec 2021 11:57:22 +0000 (UTC)
 From:   Lucas Tanure <tanureal@opensource.cirrus.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
@@ -51,273 +51,283 @@ CC:     <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
         <platform-driver-x86@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
         Lucas Tanure <tanureal@opensource.cirrus.com>
-Subject: [PATCH v6 04/10] ASoC: cs35l41: Create shared function for errata patches
-Date:   Fri, 17 Dec 2021 11:57:02 +0000
-Message-ID: <20211217115708.882525-5-tanureal@opensource.cirrus.com>
+Subject: [PATCH v6 06/10] ASoC: cs35l41: Create shared function for boost configuration
+Date:   Fri, 17 Dec 2021 11:57:04 +0000
+Message-ID: <20211217115708.882525-7-tanureal@opensource.cirrus.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20211217115708.882525-1-tanureal@opensource.cirrus.com>
 References: <20211217115708.882525-1-tanureal@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: kYt2ntMNjS_rrdqvk-XWoG61B8zmn7gB
-X-Proofpoint-ORIG-GUID: kYt2ntMNjS_rrdqvk-XWoG61B8zmn7gB
+X-Proofpoint-GUID: AsNhPF5ssck4bLzSyEp8RcQkO5PL7Aej
+X-Proofpoint-ORIG-GUID: AsNhPF5ssck4bLzSyEp8RcQkO5PL7Aej
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ASoC and HDA systems require the same errata patches, so
-move it to the shared code using a function the correctly
-applies the patches by revision
-
-Also, move CS35L41_DSP1_CCM_CORE_CTRL write to errata
-patch function as is required to be written at boot,
-but not in regmap_register_patch sequence as will affect
-waking up from hibernation
+ASoC and HDA will use the same registers to configure
+internal boost for the device
 
 Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 ---
- include/sound/cs35l41.h        |  1 +
- sound/soc/codecs/cs35l41-lib.c | 89 ++++++++++++++++++++++++++++++++
- sound/soc/codecs/cs35l41.c     | 92 ++--------------------------------
- 3 files changed, 93 insertions(+), 89 deletions(-)
+ include/sound/cs35l41.h        |   2 +
+ sound/soc/codecs/cs35l41-lib.c |  98 ++++++++++++++++++++++++++++++
+ sound/soc/codecs/cs35l41.c     | 105 +--------------------------------
+ 3 files changed, 102 insertions(+), 103 deletions(-)
 
 diff --git a/include/sound/cs35l41.h b/include/sound/cs35l41.h
-index 6cf3ef02b26a..ad2e32a12b8c 100644
+index 39d150f61382..29a527457b48 100644
 --- a/include/sound/cs35l41.h
 +++ b/include/sound/cs35l41.h
-@@ -763,5 +763,6 @@ extern struct regmap_config cs35l41_regmap_i2c;
- extern struct regmap_config cs35l41_regmap_spi;
- 
- int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap);
-+int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsigned int reg_revid);
+@@ -767,5 +767,7 @@ int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsign
+ int cs35l41_set_channels(struct device *dev, struct regmap *reg,
+ 			 unsigned int tx_num, unsigned int *tx_slot,
+ 			 unsigned int rx_num, unsigned int *rx_slot);
++int cs35l41_boost_config(struct device *dev, struct regmap *regmap, int boost_ind, int boost_cap,
++			 int boost_ipk);
  
  #endif /* __CS35L41_H */
 diff --git a/sound/soc/codecs/cs35l41-lib.c b/sound/soc/codecs/cs35l41-lib.c
-index b3567e10adc4..5e382eaea340 100644
+index afcec715374d..d026c5e3a378 100644
 --- a/sound/soc/codecs/cs35l41-lib.c
 +++ b/sound/soc/codecs/cs35l41-lib.c
-@@ -659,6 +659,57 @@ static const struct cs35l41_otp_packed_element_t otp_map_2[CS35L41_NUM_OTP_ELEM]
- 	{ 0x00017044,	0,	24 }, /*LOT_NUMBER*/
- };
- 
-+static const struct reg_sequence cs35l41_reva0_errata_patch[] = {
-+	{ 0x00000040,			 0x00005555 },
-+	{ 0x00000040,			 0x0000AAAA },
-+	{ 0x00003854,			 0x05180240 },
-+	{ CS35L41_VIMON_SPKMON_RESYNC,	 0x00000000 },
-+	{ 0x00004310,			 0x00000000 },
-+	{ CS35L41_VPVBST_FS_SEL,	 0x00000000 },
-+	{ CS35L41_OTP_TRIM_30,		 0x9091A1C8 },
-+	{ 0x00003014,			 0x0200EE0E },
-+	{ CS35L41_BSTCVRT_DCM_CTRL,	 0x00000051 },
-+	{ 0x00000054,			 0x00000004 },
-+	{ CS35L41_IRQ1_DB3,		 0x00000000 },
-+	{ CS35L41_IRQ2_DB3,		 0x00000000 },
-+	{ CS35L41_DSP1_YM_ACCEL_PL0_PRI, 0x00000000 },
-+	{ CS35L41_DSP1_XM_ACCEL_PL0_PRI, 0x00000000 },
-+	{ 0x00000040,			 0x0000CCCC },
-+	{ 0x00000040,			 0x00003333 },
-+	{ CS35L41_PWR_CTRL2,		 0x00000000 },
-+	{ CS35L41_AMP_GAIN_CTRL,	 0x00000000 },
-+};
-+
-+static const struct reg_sequence cs35l41_revb0_errata_patch[] = {
-+	{ 0x00000040,			 0x00005555 },
-+	{ 0x00000040,			 0x0000AAAA },
-+	{ CS35L41_VIMON_SPKMON_RESYNC,	 0x00000000 },
-+	{ 0x00004310,			 0x00000000 },
-+	{ CS35L41_VPVBST_FS_SEL,	 0x00000000 },
-+	{ CS35L41_BSTCVRT_DCM_CTRL,	 0x00000051 },
-+	{ CS35L41_DSP1_YM_ACCEL_PL0_PRI, 0x00000000 },
-+	{ CS35L41_DSP1_XM_ACCEL_PL0_PRI, 0x00000000 },
-+	{ 0x00000040,			 0x0000CCCC },
-+	{ 0x00000040,			 0x00003333 },
-+	{ CS35L41_PWR_CTRL2,		 0x00000000 },
-+	{ CS35L41_AMP_GAIN_CTRL,	 0x00000000 },
-+};
-+
-+static const struct reg_sequence cs35l41_revb2_errata_patch[] = {
-+	{ 0x00000040,			 0x00005555 },
-+	{ 0x00000040,			 0x0000AAAA },
-+	{ CS35L41_VIMON_SPKMON_RESYNC,	 0x00000000 },
-+	{ 0x00004310,			 0x00000000 },
-+	{ CS35L41_VPVBST_FS_SEL,	 0x00000000 },
-+	{ CS35L41_BSTCVRT_DCM_CTRL,	 0x00000051 },
-+	{ CS35L41_DSP1_YM_ACCEL_PL0_PRI, 0x00000000 },
-+	{ CS35L41_DSP1_XM_ACCEL_PL0_PRI, 0x00000000 },
-+	{ 0x00000040,			 0x0000CCCC },
-+	{ 0x00000040,			 0x00003333 },
-+	{ CS35L41_PWR_CTRL2,		 0x00000000 },
-+	{ CS35L41_AMP_GAIN_CTRL,	 0x00000000 },
-+};
-+
- static const struct cs35l41_otp_map_element_t cs35l41_otp_map_map[] = {
- 	{
- 		.id = 0x01,
-@@ -845,6 +896,44 @@ int cs35l41_otp_unpack(struct device *dev, struct regmap *regmap)
+@@ -966,6 +966,104 @@ int cs35l41_set_channels(struct device *dev, struct regmap *reg,
  }
- EXPORT_SYMBOL_GPL(cs35l41_otp_unpack);
+ EXPORT_SYMBOL_GPL(cs35l41_set_channels);
  
-+int cs35l41_register_errata_patch(struct device *dev, struct regmap *reg, unsigned int reg_revid)
++static const unsigned char cs35l41_bst_k1_table[4][5] = {
++	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
++	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
++	{ 0x40, 0x32, 0x32, 0x4F, 0x57 },
++	{ 0x40, 0x32, 0x32, 0x4F, 0x57 }
++};
++
++static const unsigned char cs35l41_bst_k2_table[4][5] = {
++	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
++	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
++	{ 0x48, 0x49, 0x66, 0xA3, 0xEA },
++	{ 0x48, 0x49, 0x66, 0xA3, 0xEA }
++};
++
++static const unsigned char cs35l41_bst_slope_table[4] = {
++	0x75, 0x6B, 0x3B, 0x28
++};
++
++
++int cs35l41_boost_config(struct device *dev, struct regmap *regmap, int boost_ind, int boost_cap,
++			 int boost_ipk)
 +{
-+	char *rev;
++	unsigned char bst_lbst_val, bst_cbst_range, bst_ipk_scaled;
 +	int ret;
 +
-+	switch (reg_revid) {
-+	case CS35L41_REVID_A0:
-+		ret = regmap_register_patch(reg, cs35l41_reva0_errata_patch,
-+					    ARRAY_SIZE(cs35l41_reva0_errata_patch));
-+		rev = "A0";
++	switch (boost_ind) {
++	case 1000:	/* 1.0 uH */
++		bst_lbst_val = 0;
 +		break;
-+	case CS35L41_REVID_B0:
-+		ret = regmap_register_patch(reg, cs35l41_revb0_errata_patch,
-+					    ARRAY_SIZE(cs35l41_revb0_errata_patch));
-+		rev = "B0";
++	case 1200:	/* 1.2 uH */
++		bst_lbst_val = 1;
 +		break;
-+	case CS35L41_REVID_B2:
-+		ret = regmap_register_patch(reg, cs35l41_revb2_errata_patch,
-+					    ARRAY_SIZE(cs35l41_revb2_errata_patch));
-+		rev = "B2";
++	case 1500:	/* 1.5 uH */
++		bst_lbst_val = 2;
++		break;
++	case 2200:	/* 2.2 uH */
++		bst_lbst_val = 3;
 +		break;
 +	default:
-+		ret = -EINVAL;
-+		rev = "XX";
-+		break;
++		dev_err(dev, "Invalid boost inductor value: %d nH\n", boost_ind);
++		return -EINVAL;
 +	}
 +
-+	if (ret)
-+		dev_err(dev, "Failed to apply %s errata patch: %d\n", rev, ret);
++	switch (boost_cap) {
++	case 0 ... 19:
++		bst_cbst_range = 0;
++		break;
++	case 20 ... 50:
++		bst_cbst_range = 1;
++		break;
++	case 51 ... 100:
++		bst_cbst_range = 2;
++		break;
++	case 101 ... 200:
++		bst_cbst_range = 3;
++		break;
++	default:	/* 201 uF and greater */
++		bst_cbst_range = 4;
++	}
 +
-+	ret = regmap_write(reg, CS35L41_DSP1_CCM_CORE_CTRL, 0);
-+	if (ret < 0)
-+		dev_err(dev, "Write CCM_CORE_CTRL failed: %d\n", ret);
++	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_COEFF,
++				 CS35L41_BST_K1_MASK | CS35L41_BST_K2_MASK,
++				 cs35l41_bst_k1_table[bst_lbst_val][bst_cbst_range]
++					<< CS35L41_BST_K1_SHIFT |
++				 cs35l41_bst_k2_table[bst_lbst_val][bst_cbst_range]
++					<< CS35L41_BST_K2_SHIFT);
++	if (ret) {
++		dev_err(dev, "Failed to write boost coefficients: %d\n", ret);
++		return ret;
++	}
 +
-+	return ret;
++	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_SLOPE_LBST,
++				 CS35L41_BST_SLOPE_MASK | CS35L41_BST_LBST_VAL_MASK,
++				 cs35l41_bst_slope_table[bst_lbst_val]
++					<< CS35L41_BST_SLOPE_SHIFT |
++				 bst_lbst_val << CS35L41_BST_LBST_VAL_SHIFT);
++	if (ret) {
++		dev_err(dev, "Failed to write boost slope/inductor value: %d\n", ret);
++		return ret;
++	}
++
++	if (boost_ipk < 1600 || boost_ipk > 4500) {
++		dev_err(dev, "Invalid boost inductor peak current: %d mA\n", boost_ipk);
++		return -EINVAL;
++	}
++	bst_ipk_scaled = ((boost_ipk - 1600) / 50) + 0x10;
++
++	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_PEAK_CUR, CS35L41_BST_IPK_MASK,
++				 bst_ipk_scaled << CS35L41_BST_IPK_SHIFT);
++	if (ret) {
++		dev_err(dev, "Failed to write boost inductor peak current: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(cs35l41_register_errata_patch);
++EXPORT_SYMBOL_GPL(cs35l41_boost_config);
 +
  MODULE_DESCRIPTION("CS35L41 library");
  MODULE_AUTHOR("David Rhodes, Cirrus Logic Inc, <david.rhodes@cirrus.com>");
  MODULE_AUTHOR("Lucas Tanure, Cirrus Logic Inc, <tanureal@opensource.cirrus.com>");
 diff --git a/sound/soc/codecs/cs35l41.c b/sound/soc/codecs/cs35l41.c
-index 7494710ae6e6..afc10f7ca65e 100644
+index 88d6e77fdb50..d9e6e84e64d0 100644
 --- a/sound/soc/codecs/cs35l41.c
 +++ b/sound/soc/codecs/cs35l41.c
-@@ -1271,57 +1271,6 @@ static int cs35l41_handle_pdata(struct device *dev,
+@@ -150,24 +150,6 @@ static const struct cs35l41_fs_mon_config cs35l41_fs_mon[] = {
+ 	{ 6144000,	16,	24 },
+ };
+ 
+-static const unsigned char cs35l41_bst_k1_table[4][5] = {
+-	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
+-	{ 0x24, 0x32, 0x32, 0x4F, 0x57 },
+-	{ 0x40, 0x32, 0x32, 0x4F, 0x57 },
+-	{ 0x40, 0x32, 0x32, 0x4F, 0x57 }
+-};
+-
+-static const unsigned char cs35l41_bst_k2_table[4][5] = {
+-	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
+-	{ 0x24, 0x49, 0x66, 0xA3, 0xEA },
+-	{ 0x48, 0x49, 0x66, 0xA3, 0xEA },
+-	{ 0x48, 0x49, 0x66, 0xA3, 0xEA }
+-};
+-
+-static const unsigned char cs35l41_bst_slope_table[4] = {
+-	0x75, 0x6B, 0x3B, 0x28
+-};
+-
+ static int cs35l41_get_fs_mon_config_index(int freq)
+ {
+ 	int i;
+@@ -992,88 +974,6 @@ static int cs35l41_dai_set_sysclk(struct snd_soc_dai *dai,
  	return 0;
  }
  
--static const struct reg_sequence cs35l41_reva0_errata_patch[] = {
--	{ 0x00000040,			 0x00005555 },
--	{ 0x00000040,			 0x0000AAAA },
--	{ 0x00003854,			 0x05180240 },
--	{ CS35L41_VIMON_SPKMON_RESYNC,	 0x00000000 },
--	{ 0x00004310,			 0x00000000 },
--	{ CS35L41_VPVBST_FS_SEL,	 0x00000000 },
--	{ CS35L41_OTP_TRIM_30,		 0x9091A1C8 },
--	{ 0x00003014,			 0x0200EE0E },
--	{ CS35L41_BSTCVRT_DCM_CTRL,	 0x00000051 },
--	{ 0x00000054,			 0x00000004 },
--	{ CS35L41_IRQ1_DB3,		 0x00000000 },
--	{ CS35L41_IRQ2_DB3,		 0x00000000 },
--	{ CS35L41_DSP1_YM_ACCEL_PL0_PRI, 0x00000000 },
--	{ CS35L41_DSP1_XM_ACCEL_PL0_PRI, 0x00000000 },
--	{ 0x00000040,			 0x0000CCCC },
--	{ 0x00000040,			 0x00003333 },
--	{ CS35L41_PWR_CTRL2,		 0x00000000 },
--	{ CS35L41_AMP_GAIN_CTRL,	 0x00000000 },
--};
+-static int cs35l41_boost_config(struct cs35l41_private *cs35l41,
+-				int boost_ind, int boost_cap, int boost_ipk)
+-{
+-	unsigned char bst_lbst_val, bst_cbst_range, bst_ipk_scaled;
+-	struct regmap *regmap = cs35l41->regmap;
+-	struct device *dev = cs35l41->dev;
+-	int ret;
 -
--static const struct reg_sequence cs35l41_revb0_errata_patch[] = {
--	{ 0x00000040,			 0x00005555 },
--	{ 0x00000040,			 0x0000AAAA },
--	{ CS35L41_VIMON_SPKMON_RESYNC,	 0x00000000 },
--	{ 0x00004310,			 0x00000000 },
--	{ CS35L41_VPVBST_FS_SEL,	 0x00000000 },
--	{ CS35L41_BSTCVRT_DCM_CTRL,	 0x00000051 },
--	{ CS35L41_DSP1_YM_ACCEL_PL0_PRI, 0x00000000 },
--	{ CS35L41_DSP1_XM_ACCEL_PL0_PRI, 0x00000000 },
--	{ 0x00000040,			 0x0000CCCC },
--	{ 0x00000040,			 0x00003333 },
--	{ CS35L41_PWR_CTRL2,		 0x00000000 },
--	{ CS35L41_AMP_GAIN_CTRL,	 0x00000000 },
--};
--
--static const struct reg_sequence cs35l41_revb2_errata_patch[] = {
--	{ 0x00000040,			 0x00005555 },
--	{ 0x00000040,			 0x0000AAAA },
--	{ CS35L41_VIMON_SPKMON_RESYNC,	 0x00000000 },
--	{ 0x00004310,			 0x00000000 },
--	{ CS35L41_VPVBST_FS_SEL,	 0x00000000 },
--	{ CS35L41_BSTCVRT_DCM_CTRL,	 0x00000051 },
--	{ CS35L41_DSP1_YM_ACCEL_PL0_PRI, 0x00000000 },
--	{ CS35L41_DSP1_XM_ACCEL_PL0_PRI, 0x00000000 },
--	{ 0x00000040,			 0x0000CCCC },
--	{ 0x00000040,			 0x00003333 },
--	{ CS35L41_PWR_CTRL2,		 0x00000000 },
--	{ CS35L41_AMP_GAIN_CTRL,	 0x00000000 },
--};
--
- static const struct reg_sequence cs35l41_fs_errata_patch[] = {
- 	{ CS35L41_DSP1_RX1_RATE,	0x00000001 },
- 	{ CS35L41_DSP1_RX2_RATE,	0x00000001 },
-@@ -1501,38 +1450,9 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
- 		goto err;
- 	}
- 
--	switch (reg_revid) {
--	case CS35L41_REVID_A0:
--		ret = regmap_register_patch(cs35l41->regmap,
--					    cs35l41_reva0_errata_patch,
--					    ARRAY_SIZE(cs35l41_reva0_errata_patch));
--		if (ret < 0) {
--			dev_err(cs35l41->dev,
--				"Failed to apply A0 errata patch: %d\n", ret);
--			goto err;
--		}
+-	switch (boost_ind) {
+-	case 1000:	/* 1.0 uH */
+-		bst_lbst_val = 0;
 -		break;
--	case CS35L41_REVID_B0:
--		ret = regmap_register_patch(cs35l41->regmap,
--					    cs35l41_revb0_errata_patch,
--					    ARRAY_SIZE(cs35l41_revb0_errata_patch));
--		if (ret < 0) {
--			dev_err(cs35l41->dev,
--				"Failed to apply B0 errata patch: %d\n", ret);
--			goto err;
--		}
+-	case 1200:	/* 1.2 uH */
+-		bst_lbst_val = 1;
 -		break;
--	case CS35L41_REVID_B2:
--		ret = regmap_register_patch(cs35l41->regmap,
--					    cs35l41_revb2_errata_patch,
--					    ARRAY_SIZE(cs35l41_revb2_errata_patch));
--		if (ret < 0) {
--			dev_err(cs35l41->dev,
--				"Failed to apply B2 errata patch: %d\n", ret);
--			goto err;
--		}
+-	case 1500:	/* 1.5 uH */
+-		bst_lbst_val = 2;
 -		break;
--	}
-+	ret = cs35l41_register_errata_patch(cs35l41->dev, cs35l41->regmap, reg_revid);
-+	if (ret)
-+		goto err;
- 
- 	irq_pol = cs35l41_irq_gpio_config(cs35l41);
- 
-@@ -1556,12 +1476,6 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
- 		goto err;
- 	}
- 
--	ret = regmap_write(cs35l41->regmap, CS35L41_DSP1_CCM_CORE_CTRL, 0);
--	if (ret < 0) {
--		dev_err(cs35l41->dev, "Write CCM_CORE_CTRL failed: %d\n", ret);
--		goto err;
+-	case 2200:	/* 2.2 uH */
+-		bst_lbst_val = 3;
+-		break;
+-	default:
+-		dev_err(dev, "Invalid boost inductor value: %d nH\n", boost_ind);
+-		return -EINVAL;
 -	}
 -
- 	ret = cs35l41_set_pdata(cs35l41);
- 	if (ret < 0) {
- 		dev_err(cs35l41->dev, "Set pdata failed: %d\n", ret);
+-	switch (boost_cap) {
+-	case 0 ... 19:
+-		bst_cbst_range = 0;
+-		break;
+-	case 20 ... 50:
+-		bst_cbst_range = 1;
+-		break;
+-	case 51 ... 100:
+-		bst_cbst_range = 2;
+-		break;
+-	case 101 ... 200:
+-		bst_cbst_range = 3;
+-		break;
+-	default:	/* 201 uF and greater */
+-		bst_cbst_range = 4;
+-	}
+-
+-	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_COEFF,
+-				 CS35L41_BST_K1_MASK | CS35L41_BST_K2_MASK,
+-				 cs35l41_bst_k1_table[bst_lbst_val][bst_cbst_range]
+-					<< CS35L41_BST_K1_SHIFT |
+-				 cs35l41_bst_k2_table[bst_lbst_val][bst_cbst_range]
+-					<< CS35L41_BST_K2_SHIFT);
+-	if (ret) {
+-		dev_err(dev, "Failed to write boost coefficients: %d\n", ret);
+-		return ret;
+-	}
+-
+-	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_SLOPE_LBST,
+-				 CS35L41_BST_SLOPE_MASK | CS35L41_BST_LBST_VAL_MASK,
+-				 cs35l41_bst_slope_table[bst_lbst_val]
+-					<< CS35L41_BST_SLOPE_SHIFT |
+-				 bst_lbst_val << CS35L41_BST_LBST_VAL_SHIFT);
+-	if (ret) {
+-		dev_err(dev, "Failed to write boost slope/inductor value: %d\n", ret);
+-		return ret;
+-	}
+-
+-	if (boost_ipk < 1600 || boost_ipk > 4500) {
+-		dev_err(dev, "Invalid boost inductor peak current: %d mA\n",
+-			boost_ipk);
+-		return -EINVAL;
+-	}
+-	bst_ipk_scaled = ((boost_ipk - 1600) / 50) + 0x10;
+-
+-	ret = regmap_update_bits(regmap, CS35L41_BSTCVRT_PEAK_CUR,
+-				 CS35L41_BST_IPK_MASK,
+-				 bst_ipk_scaled << CS35L41_BST_IPK_SHIFT);
+-	if (ret) {
+-		dev_err(dev, "Failed to write boost inductor peak current: %d\n", ret);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+ static int cs35l41_set_pdata(struct cs35l41_private *cs35l41)
+ {
+ 	int ret;
+@@ -1082,9 +982,8 @@ static int cs35l41_set_pdata(struct cs35l41_private *cs35l41)
+ 	/* Required */
+ 	if (cs35l41->pdata.bst_ipk &&
+ 	    cs35l41->pdata.bst_ind && cs35l41->pdata.bst_cap) {
+-		ret = cs35l41_boost_config(cs35l41, cs35l41->pdata.bst_ind,
+-					   cs35l41->pdata.bst_cap,
+-					   cs35l41->pdata.bst_ipk);
++		ret = cs35l41_boost_config(cs35l41->dev, cs35l41->regmap, cs35l41->pdata.bst_ind,
++					   cs35l41->pdata.bst_cap, cs35l41->pdata.bst_ipk);
+ 		if (ret) {
+ 			dev_err(cs35l41->dev, "Error in Boost DT config: %d\n", ret);
+ 			return ret;
 -- 
 2.34.1
 
