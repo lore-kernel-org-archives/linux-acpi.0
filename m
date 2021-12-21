@@ -2,134 +2,93 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9750C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Dec 2021 23:37:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5EE4C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Dec 2021 07:14:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230300AbhLTXhL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Dec 2021 18:37:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41966 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229690AbhLTXhK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Dec 2021 18:37:10 -0500
-Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78FB9C061574;
-        Mon, 20 Dec 2021 15:37:10 -0800 (PST)
-Received: by mail-wm1-x330.google.com with SMTP id b186-20020a1c1bc3000000b00345734afe78so987125wmb.0;
-        Mon, 20 Dec 2021 15:37:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=hraqWg5PWkO6+tfHwaIKUlh6JY2C21320PM73mzNHOw=;
-        b=k6LLolZNh4iIZvLxOIVtmw8feJjFRGfDrb9lzRw91dR0j2XCGLcs1+L0pCRbMJgPKl
-         tF1sxgKZ7GI/cMfh1SPnwkyIY/23Zxo3kRTI0BHNzKGkb/+QxaiMJiJ7tiq5P2AgZM5H
-         FB6ffWA4uz3Cm+iWQ1/VXFsOdmJgQY66vrym5FXRZU9oGoAJ86tT5WSpCCC4iJWmWgQL
-         Kh9HF9x21bVuVvJzACBlI9FcOz+X2v6pyt2xbeEBeBPuDpKiXlHpudKIxpo+bNe5Swae
-         wvaoMsJef3YYB9r3HGbTad1IQslejm9A7TwccvjjiHHephpG3ND+z14Oc3Uj0/6BSGnW
-         Xeeg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=hraqWg5PWkO6+tfHwaIKUlh6JY2C21320PM73mzNHOw=;
-        b=dBeAtxrxOFjRunp+OIBtHm0fZzJI5+D965MbSAu33RWe+/M4RmXMjofjvcD3wsOY7Q
-         BrnS34nV5Mx+/K1NHvYQNIo2npOVAibAoRo44xUtQOSWhua8pRCDwcWBHBAtS4e1MkZi
-         Px2bqDpKysf9yiQeoNrDwAlGU10yVq942GtA98lTEmjr2iPv4TNpvqedMyiT8OZDoZX8
-         RQ5MYsnhmtzcCvw1D5vPERHxckwOfuCWXZ4rgB/OPB94E2DV4et585/pN6Z32WQCzOmY
-         hX7zhv9djbaI9APlggl1SxRgzMiPKs9AsgtgZ0pevsoTgcOcyYhtyUW0/mGoL2TPhlDO
-         u+xg==
-X-Gm-Message-State: AOAM530d+pNM6+n9A2E+YnxHPHNvhn04WVInW99o0goFmhRDDh3N2aeh
-        HUKn2evkVnj9HiuFKJ3hLrq173KezvI=
-X-Google-Smtp-Source: ABdhPJxB9JMVl+Pf+9miHkpICnK+MG3yoLRcCBMr54xK5niUXcY2Joit4s6upOB5Dtf8p+MjtOmyEg==
-X-Received: by 2002:a7b:cb90:: with SMTP id m16mr222122wmi.183.1640043429154;
-        Mon, 20 Dec 2021 15:37:09 -0800 (PST)
-Received: from [192.168.0.16] (cpc141996-chfd3-2-0-cust928.12-3.cable.virginm.net. [86.13.91.161])
-        by smtp.gmail.com with ESMTPSA id p21sm706314wmq.20.2021.12.20.15.37.08
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 20 Dec 2021 15:37:08 -0800 (PST)
-Subject: Re: [PATCH] software node: fix wrong node passed to find nargs_prop
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        =?UTF-8?B?Q2zDqW1lbnQgTMOpZ2Vy?= <clement.leger@bootlin.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        id S234835AbhLUHOK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 21 Dec 2021 02:14:10 -0500
+Received: from mga07.intel.com ([134.134.136.100]:48744 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234839AbhLUHOJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 Dec 2021 02:14:09 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1640070849; x=1671606849;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=VYviMeFO7+oLhFygQ1gEtw8dSLzuqgoRJEipX58modk=;
+  b=LqoR0Rpb2r6kRuSdwVp6+kJyC6eDwz4s/VUpdsUIPK3mrTjjTRnrJnn6
+   CVzd88cXpMPGKne+Wwt9ItFkJMlsaRv1oJuLBAmJEK19dMXwy+dAeEXQk
+   Lco2a6QjCdzzjZnLzqSlR4PkkTGHCDwx++SI30spoPdS0DVenLS0q6PnV
+   YM1y1Y0cO/Xijqe0IOLFXmqw496jsPuz5RqyYS/exGk6TRydZAzzmjtdD
+   VNIo4JqDThFWGLfrHRF2pUSh+ugOPYQ39WSOvsaZxjS9NtOyK8a7KAdBy
+   IAZWLBGMAUen60jSuk5+JD7GXSawYiJCoU2s7hqMZcNlebaxzEeMYZxVY
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10204"; a="303712213"
+X-IronPort-AV: E=Sophos;i="5.88,222,1635231600"; 
+   d="scan'208";a="303712213"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Dec 2021 23:14:08 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,222,1635231600"; 
+   d="scan'208";a="757678063"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga005.fm.intel.com with ESMTP; 20 Dec 2021 23:14:06 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 01FAD190; Tue, 21 Dec 2021 09:14:14 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <20211220210533.3578678-1-clement.leger@bootlin.com>
- <CAHp75Vf+F2L4EFmokRYD+-M9hSuz+SbiiWnqHvFZttRyfKS-mg@mail.gmail.com>
-From:   Daniel Scally <djrscally@gmail.com>
-Message-ID: <d9f5b201-2a00-799d-3a0f-7c9709d77102@gmail.com>
-Date:   Mon, 20 Dec 2021 23:37:07 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/1] software node: Update MAINTAINERS data base
+Date:   Tue, 21 Dec 2021 09:14:09 +0200
+Message-Id: <20211221071409.14361-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-In-Reply-To: <CAHp75Vf+F2L4EFmokRYD+-M9hSuz+SbiiWnqHvFZttRyfKS-mg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Thanks Andy
+There are two updates to the MAINTAINERS regarding to software node API:
+- add Dan Scally to be designated reviewer
+- add rather tightly related device property files to the list
+- adjust section name accordingly
 
-On 20/12/2021 22:13, Andy Shevchenko wrote:
-> + Sakari, Dan
-> 
-> On Monday, December 20, 2021, Clément Léger <clement.leger@bootlin.com
-> <mailto:clement.leger@bootlin.com>> wrote:
-> 
->     nargs_prop refers to a property located in the reference that is found
->     within the nargs property.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
 
-I think this is right (it's not used in the ACPI version, and the OF
-version is quite convoluted so a bit hard to follow)...but also I note
-that none of the users of fwnode_property_get_reference_args() pass
-anything to nargs_prop anyway...do we even need this?
+Based on the latest Dan's involvement and amount of patches seen recently
+I went ahead and added his name to the list. Dan, please tell me if it's
+not appropriate.
 
-Use the correct reference node in call to
->     property_entry_read_int_array() to retrieve the correct nargs value.
-> 
->     Fixes: b06184acf751 ("software node: Add
->     software_node_get_reference_args()")
+ MAINTAINERS | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-I think this might have been introduced later...maybe 996b0830f95d1,
-maybe e933bedd45099
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8912b2c1260c..ccb4aa744540 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17666,12 +17666,16 @@ F:	drivers/firmware/arm_sdei.c
+ F:	include/linux/arm_sdei.h
+ F:	include/uapi/linux/arm_sdei.h
+ 
+-SOFTWARE NODES
++SOFTWARE NODES AND DEVICE PROPERTIES
+ R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+ R:	Heikki Krogerus <heikki.krogerus@linux.intel.com>
++R:	Daniel Scally <djrscally@gmail.com>
+ L:	linux-acpi@vger.kernel.org
+ S:	Maintained
++F:	drivers/base/property.c
+ F:	drivers/base/swnode.c
++F:	include/linux/fwnode.h
++F:	include/linux/property.h
+ 
+ SOFTWARE RAID (Multiple Disks) SUPPORT
+ M:	Song Liu <song@kernel.org>
+-- 
+2.34.1
 
->     Signed-off-by: Clément Léger <clement.leger@bootlin.com
->     <mailto:clement.leger@bootlin.com>>
->     ---
->      drivers/base/swnode.c | 2 +-
->      1 file changed, 1 insertion(+), 1 deletion(-)
-> 
->     diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
->     index 4debcea4fb12..0a482212c7e8 100644
->     --- a/drivers/base/swnode.c
->     +++ b/drivers/base/swnode.c
->     @@ -529,7 +529,7 @@ software_node_get_reference_args(const struct
->     fwnode_handle *fwnode,
->                     return -ENOENT;
-> 
->             if (nargs_prop) {
->     -               error =
->     property_entry_read_int_array(swnode->node->properties,
->     +               error =
->     property_entry_read_int_array(ref->node->properties,
->                                                           nargs_prop,
->     sizeof(u32),
->                                                          
->     &nargs_prop_val, 1);
->                     if (error)
->     -- 
->     2.34.1
-> 
-> 
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
