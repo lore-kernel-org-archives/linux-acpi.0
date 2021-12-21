@@ -2,72 +2,131 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE6FDC433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 21 Dec 2021 13:32:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00814C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 21 Dec 2021 13:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235218AbhLUNcy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 21 Dec 2021 08:32:54 -0500
-Received: from mga06.intel.com ([134.134.136.31]:25104 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235204AbhLUNcx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Dec 2021 08:32:53 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1640093573; x=1671629573;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=SEuJ2PuemPrnmcu2w9PXAA6A8k1T5UjeeafKu5mrQfc=;
-  b=fMj9KD9DORQsgmnFlguu4lbU7jZlrjFneV3ZqR8Wy8yLsH7YPtbIoIyv
-   FuEngKybpAR5UZWZxx2cL5xzpqhZDckT0imkoksLbUlOyZex/eREhf4in
-   /pLo1ZFpG0qVDCqwryiw7RltWTCul5lNJoqz00tVtKvL/JhPr48RwlAT/
-   uf3Apy6/bFHENqKZ5SBGX8Qb0DLl/BVlWswt1Mthkx+qPe7HQUR6yqJOQ
-   HuQxlTde+SnMIvcbY7LSZcU+mt+j16a6cBarzmCWft9wIjvAFLcV788d0
-   /0Nk+uhTQ5qxrLXLW7IfRtqQQDaqzAEPM231pcN2qJ2MpJAkF8AAyOT5j
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10204"; a="301161499"
-X-IronPort-AV: E=Sophos;i="5.88,223,1635231600"; 
-   d="scan'208";a="301161499"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Dec 2021 05:32:53 -0800
-X-IronPort-AV: E=Sophos;i="5.88,223,1635231600"; 
-   d="scan'208";a="755810858"
-Received: from smile.fi.intel.com ([10.237.72.61])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Dec 2021 05:32:51 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1mzfEj-000Reh-Ed;
-        Tue, 21 Dec 2021 15:31:25 +0200
-Date:   Tue, 21 Dec 2021 15:31:25 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Sakari Ailus <sakari.ailus@iki.fi>
+        id S235309AbhLUNfW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 21 Dec 2021 08:35:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33282 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235298AbhLUNfW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Dec 2021 08:35:22 -0500
+Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [IPv6:2a0b:5c81:1c1::37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE35BC061574;
+        Tue, 21 Dec 2021 05:35:21 -0800 (PST)
+Received: from hillosipuli.retiisi.eu (dkvn5pty0gzs3nltj987t-3.rev.dnainternet.fi [IPv6:2001:14ba:4457:9640:1e2d:1f75:a607:ef37])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: sailus)
+        by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 956B71B00228;
+        Tue, 21 Dec 2021 15:35:17 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
+        t=1640093717;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=a4U6yBFb6S+4Mj+TP2XrOxpUbUb18nMOKdkGXhstUyc=;
+        b=pQHByr+QOHYHsL7GmKznfluOaNIhFkq9lUeSJK4VakHKn8uCU5k7fS9n0Qmphy2bcRk3BJ
+        oAMkyIY4ebiSu4rSogHhiaaHADD8N2ApwdcjO6WB/oeXs4LjqSLz+3LFKg7HyAlqoC8WKa
+        b9QZ6WTXivzu1vsk3hPzAVef/Z/pTHVAg62VwrhAph9kkKO27rjL8iXit7DxgeQ63TS3R8
+        pv0G/3JYKtvnm+7E15pbAHBqbBEc5hk1kWHQiNnFKo/OHcA+twaD4AYUdcS1FDdvoQJZfV
+        1n3aAyR68Zp9dZzC2dF5P4BM275g/goZF+w8ZRt5ncRqGJ5rnhQHwd3+PmuozQ==
+Received: from valkosipuli.retiisi.eu (valkosipuli.localdomain [192.168.4.2])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by hillosipuli.retiisi.eu (Postfix) with ESMTPS id 27C45634C90;
+        Tue, 21 Dec 2021 15:35:17 +0200 (EET)
+Date:   Tue, 21 Dec 2021 15:35:17 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v1 1/1] software node: Update MAINTAINERS data base
-Message-ID: <YcHXLZwTfNEwC/9S@smile.fi.intel.com>
-References: <20211221071409.14361-1-andriy.shevchenko@linux.intel.com>
- <YcHAkuyML0VLjxP/@valkosipuli.retiisi.eu>
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>
+Subject: Re: [PATCH v2 1/1] software node: Update MAINTAINERS data base
+Message-ID: <YcHYFTAoS5ghYWkD@valkosipuli.retiisi.eu>
+References: <20211221133215.8447-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <YcHAkuyML0VLjxP/@valkosipuli.retiisi.eu>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20211221133215.8447-1-andriy.shevchenko@linux.intel.com>
+ARC-Seal: i=1; s=lahtoruutu; d=iki.fi; t=1640093717; a=rsa-sha256;
+        cv=none;
+        b=i79pLTTMFBOaqyfbgMxidGqx8Qselwf9E8ANKNt+KYr2wy7TR7g5ZzbMk9wSbWzh/gWcxn
+        uROPNr3VPuEfVhdeS478u39kfBaGCjuqPOtno7psAZbTPn0vNrQtTiiJLq5p9rLysikKFJ
+        rN+NjPGs2vMgqrgbgyThn2BCnXLUGUiLXYei8ydf355ImEngAiCjTHuu+TvPPuWyv0J6DI
+        J4d1FPRuOziQrrpIUOqrmCTmnanlFWuwft3Sy7g6Bb9jsQtDpyiFISG+StIhucS/67M0Sd
+        bzP4vhqYIJiwktq/Ycpj1ckU3YowspFjv5ZiG2iEpVG4U0uymEvC0PrvQsEr9A==
+ARC-Authentication-Results: i=1;
+        ORIGINATING;
+        auth=pass smtp.auth=sailus smtp.mailfrom=sakari.ailus@iki.fi
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+        s=lahtoruutu; t=1640093717;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=a4U6yBFb6S+4Mj+TP2XrOxpUbUb18nMOKdkGXhstUyc=;
+        b=Qtiy14fnKsjZ8ZwW1gGFWOqy4PCGEKPLcZBKmEWdZwalYwMjwVUABgThOYGIvkPSAaPRrp
+        W7yk9RfCHAd5rj2EAyNtGHBD2b1oP87LPdJ1PcUfFHxrFu5jS/oZDCjUjtaunOqxM7kWDX
+        Md0DfoiWp3dVoTvwKydehmv+C1OZWTDe9soLNgswk/ep73uZmtqWTYnlu6zVerKhlOnPyv
+        h9XNSe+9dlMEZT9mx2CNnWRMABZrG7nSoh74REoOO2p1doBo5+aM/iL7kW9jpfFHmCAU7a
+        MLQ3sFNIZu0+2YhI1eDOHYIkw6ikRPbDiOghKAQVyDNzTbctzl1nULWsipgyOg==
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Dec 21, 2021 at 01:54:58PM +0200, Sakari Ailus wrote:
-> On Tue, Dec 21, 2021 at 09:14:09AM +0200, Andy Shevchenko wrote:
-
-> > +R:	Daniel Scally <djrscally@gmail.com>
+On Tue, Dec 21, 2021 at 03:32:15PM +0200, Andy Shevchenko wrote:
+> There are two updates to the MAINTAINERS regarding to software node API:
+> - add Daniel Scally to be designated reviewer
+> - add Sakari Ailus to be designated reviewer
+> - add rather tightly related device property files to the list
+> - due to above adjust section name accordingly
 > 
-> I wouldn't mind being added as reviewer, too. :-)
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Acked-by: Daniel Scally <djrscally@gmail.com>
 
-NP, I have just sent a v2 with your name included.
+Thanks, Andy!
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> ---
+> 
+> v2: added tags (Daniel, Heikki), added Sakari to the reviewers (Sakari)
+> 
+> Rafael, I guess it's the best if you can pick this up.
+> 
+>  MAINTAINERS | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 8912b2c1260c..e36497cb7f40 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -17666,12 +17666,17 @@ F:	drivers/firmware/arm_sdei.c
+>  F:	include/linux/arm_sdei.h
+>  F:	include/uapi/linux/arm_sdei.h
+>  
+> -SOFTWARE NODES
+> +SOFTWARE NODES AND DEVICE PROPERTIES
+>  R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> +R:	Daniel Scally <djrscally@gmail.com>
+>  R:	Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> +R:	Sakari Ailus <sakari.ailus@linux.intel.com>
+>  L:	linux-acpi@vger.kernel.org
+>  S:	Maintained
+> +F:	drivers/base/property.c
+>  F:	drivers/base/swnode.c
+> +F:	include/linux/fwnode.h
+> +F:	include/linux/property.h
+>  
+>  SOFTWARE RAID (Multiple Disks) SUPPORT
+>  M:	Song Liu <song@kernel.org>
+> -- 
+> 2.34.1
+> 
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Sakari Ailus
