@@ -2,208 +2,232 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B115C433FE
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Dec 2021 16:36:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 835E4C433F5
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Dec 2021 00:17:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349253AbhLWQg2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Dec 2021 11:36:28 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:22450 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S244252AbhLWQg2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 23 Dec 2021 11:36:28 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1640277387;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=VnMgFshQCk4H2aviO2aDotAcxDTpL1gsve23sQb3mus=;
-        b=COyr+qfeRNDZPF1C1Fq81yz7+GvGr0nkRG0c+owPy0kCP+a3E5mKjEoh35jXpiw/p2HXcR
-        XGYSVS60iPq9IloymslV7BZTagWvho+dd6b42OwqG9pQbYNJqzvB+Ne20KSj/MX1I8IklQ
-        Flf6MZCysyJ1BHPFXpyqZ6O0vIBnkKs=
-Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
- [209.85.208.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-423-zh4apx28OFixylnyJWf1yg-1; Thu, 23 Dec 2021 11:36:26 -0500
-X-MC-Unique: zh4apx28OFixylnyJWf1yg-1
-Received: by mail-ed1-f70.google.com with SMTP id y10-20020a056402358a00b003f88b132849so5144791edc.0
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Dec 2021 08:36:26 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=VnMgFshQCk4H2aviO2aDotAcxDTpL1gsve23sQb3mus=;
-        b=wHTi2t9koKBug/Yepntf77OEAjNtX+vPlvrHOfK5YWGlbRAKPVksCd7uCrNRBjlBKt
-         flr+eipVZYNA0g+FDmSADg3ZpQPvW49WdRg6+0y3omLgbPkzRfxQh3mZWvDzn4p0ww5l
-         xPf2SpEU7vBF9TJZgGa/PyCTB/tG9PwQCwNjHd+dBHNraduki9EmTh72K1XYeXXEL3j6
-         W/6WRNJcyZtmvkez62YaWGi0e3oiU8d3lgzMVUjHp4KNWLXr/hsIWgqiiAaLC/qWeh7G
-         oW1ffGZ0oOgqZjYYVntKwbGBLzObJ4TuQGhVhLnsPEj64GqdUSzBVn74UTjeWxAWh7J8
-         wSBQ==
-X-Gm-Message-State: AOAM5321rCGKlA5lqP4mQHSjBngv/Yi/9knNZTAsrRteF8OH10t//4oF
-        oKTZ5l5nhKVbF0wshvztwsoqlHiJYzh2oKy2ZhRJgqCn+/rILyIv0WDFx01tqLN7Gj2X8NNDF/o
-        SeLQZymwoRTmHGd18Duu4bg==
-X-Received: by 2002:a05:6402:4386:: with SMTP id o6mr2718882edc.47.1640277385412;
-        Thu, 23 Dec 2021 08:36:25 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJybYzBVsP6qb8DsgTwNs41sNtraY7y2+U2l4h5Ei5i/50HTzdvEGT1u4q5PFrTjOTqU1QpfDQ==
-X-Received: by 2002:a05:6402:4386:: with SMTP id o6mr2718865edc.47.1640277385250;
-        Thu, 23 Dec 2021 08:36:25 -0800 (PST)
-Received: from ?IPV6:2001:1c00:c1e:bf00:1db8:22d3:1bc9:8ca1? (2001-1c00-0c1e-bf00-1db8-22d3-1bc9-8ca1.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1db8:22d3:1bc9:8ca1])
-        by smtp.gmail.com with ESMTPSA id p7sm2134763edu.84.2021.12.23.08.36.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Dec 2021 08:36:24 -0800 (PST)
-Message-ID: <31a528b8-8318-dc09-3a06-80f76771744a@redhat.com>
-Date:   Thu, 23 Dec 2021 17:36:24 +0100
+        id S237283AbhLXARW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Dec 2021 19:17:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35164 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229995AbhLXARW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Dec 2021 19:17:22 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34474C061401;
+        Thu, 23 Dec 2021 16:17:22 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by sin.source.kernel.org (Postfix) with ESMTPS id DCA99CE2208;
+        Fri, 24 Dec 2021 00:17:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA228C36AE9;
+        Fri, 24 Dec 2021 00:17:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1640305038;
+        bh=Lsn+SJr4zh4UngfpfSCZSK7Cx8HFzr3Btzb07JER74A=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=e8qfm14ZXBBPAovJ7Lz14Jh2N+BIwWPCrhp/J9Oq4q1kzmOhI5czSBRUuDSY9eB05
+         XmyMFIn+ynDw3MZVqQJvZw1/EK2Ogf6yiSdGzXMdEQQ71ms3TRmssK17Fz/xVrkr6z
+         Tw2kg1cFq6raVDqB0eT1W9+ksOqB1nQG+AB4qjVpn8JWwAzkIr4/lsfJngbvJ7VTXt
+         StH7OChZ66aECg/QqxF+TcgthAYl9ITz8khtIeW91b+UxelJ8wIRvCgKvMVBANMwPU
+         fWSNQ9av2ealcc6u+40b6oB6agt9wIrXo+adjmU4Kv6GGcVI+zahYSIpJvdFThBV4t
+         D5qTkU5rIxtjg==
+Date:   Thu, 23 Dec 2021 18:17:16 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Shuai Xue <xueshuai@linux.alibaba.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     bp@alien8.de, tony.luck@intel.com, james.morse@arm.com,
+        lenb@kernel.org, bhelgaas@google.com,
+        zhangliguang@linux.alibaba.com, zhuo.song@linux.alibaba.com,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org
+Subject: Re: [RESEND PATCH v4] ACPI: Move sdei_init and ghes_init ahead to
+ handle platform errors earlier
+Message-ID: <20211224001716.GA1324143@bhelgaas>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.3.0
-Subject: Re: [PATCH] ACPI: battery: Add the ThinkPad "Not Charging" quirk
-Content-Language: en-US
-To:     =?UTF-8?Q?Thomas_Wei=c3=9fschuh?= <linux@weissschuh.net>,
-        linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, markpearson@lenovo.com,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Ognjen Galic <smclt30p@gmail.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Bastien Nocera <hadess@hadess.net>,
-        David Zeuthen <davidz@redhat.com>,
-        Richard Hughes <richard@hughsie.com>
-References: <20211222212014.66971-1-linux@weissschuh.net>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <20211222212014.66971-1-linux@weissschuh.net>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <8d415145-01bc-ce57-fd00-91ca63090caa@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Thomas,
+[+to Rafael, question about HEST/GHES/SDEI init]
 
-On 12/22/21 22:20, Thomas Weißschuh wrote:
-> The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-> of "Unknown" when the battery is between the charge start and
-> charge stop thresholds. On Windows, it reports "Not Charging"
-> so the quirk has been added to also report correctly.
-> 
-> Now the "status" attribute returns "Not Charging" when the
-> battery on ThinkPads is not physicaly charging.
-> 
-> Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+On Thu, Dec 23, 2021 at 04:11:11PM +0800, Shuai Xue wrote:
+> 在 2021/12/22 AM7:17, Bjorn Helgaas 写道:
+> > On Thu, Dec 16, 2021 at 09:34:56PM +0800, Shuai Xue wrote:
+> >> On an ACPI system, ACPI is initialised very early from a subsys_initcall(),
+> >> while SDEI is not ready until a subsys_initcall_sync().
+> >>
+> >> The SDEI driver provides functions (e.g. apei_sdei_register_ghes,
+> >> apei_sdei_unregister_ghes) to register or unregister event callback for
+> >> dispatcher in firmware. When the GHES driver probing, it registers the
+> >> corresponding callback according to the notification type specified by
+> >> GHES. If the GHES notification type is SDEI, the GHES driver will call
+> >> apei_sdei_register_ghes to register event call.
+> >>
+> >> When the firmware emits an event, it migrates the handling of the event
+> >> into the kernel at the registered entry-point __sdei_asm_handler. And
+> >> finally, the kernel will call the registered event callback and return
+> >> status_code to indicate the status of event handling. SDEI_EV_FAILED
+> >> indicates that the kernel failed to handle the event.
+> >>
+> >> Consequently, when an error occurs during kernel booting, the kernel is
+> >> unable to handle and report errors until the GHES driver is initialized by
+> >> device_initcall(), in which the event callback is registered. All errors
+> >> that occurred before GHES initialization are missed and there is no chance
+> >> to report and find them again.
+> >>
+> >> From commit e147133a42cb ("ACPI / APEI: Make hest.c manage the estatus
+> >> memory pool") was merged, ghes_init() relies on acpi_hest_init() to manage
+> >> the estatus memory pool. On the other hand, ghes_init() relies on
+> >> sdei_init() to detect the SDEI version and the framework for registering
+> >> and unregistering events.
+> > 
+> >> By the way, I don't figure out why acpi_hest_init is called in
+> >> acpi_pci_root_init, it don't rely on any other thing. May it could
+> >> be moved further, following acpi_iort_init in acpi_init.
 
-Thanks, patch looks good to me.
+> >> sdei_init() relies on ACPI table which is initialized
+> >> subsys_initcall(): acpi_init(), acpi_bus_init(), acpi_load_tables(),
+> >> acpi_tb_laod_namespace().  May it should be also moved further,
+> >> after acpi_load_tables.
 
-As for the userspace issues in dealing with the
-POWER_SUPPLY_STATUS_NOT_CHARGING status, those indeed
-have long been fixed and this status is already returned
-acpi//battery.c from the acpi_battery_handle_discharging()
-function for a while no; and we have had no complaints
-about that:
+> >> In this patch, move sdei_init and ghes_init as far ahead as
+> >> possible, right after acpi_hest_init().
+> > 
+> > I'm having a hard time figuring out the reason for this patch.
+> > 
+> > Apparently the relevant parts are sdei_init() and ghes_init().
+> > Today they are executed in that order:
+> > 
+> >   subsys_initcall_sync(sdei_init);
+> >   device_initcall(ghes_init);
+> > 
+> > After this patch, they would be executed in the same order, but called
+> > explicitly instead of as initcalls:
+> > 
+> >   acpi_pci_root_init()
+> >   {
+> >     acpi_hest_init();
+> >     sdei_init();
+> >     ghes_init();
+> >     ...
+> > 
+> > Explicit calls are certainly better than initcalls, but that doesn't
+> > seem to be the reason for this patch.
+> > 
+> > Does this patch fix a bug?  If so, what is the bug?
+> 
+> Yes. When the kernel booting, the console logs many times from firmware
+> before GHES drivers init:
+> 
+> 	Trip in MM PCIe RAS handle(Intr:910)
+>   	Clean PE[1.1.1] ERR_STS:0x4000100 -> 0 INT_STS:F0000000
+> 	Find RP(98:1.0)
+> 	--Walk dev(98:1.0) CE:0 UCE:4000
+> 	...
+> 	ERROR:   sdei_dispatch_event(32a) ret:-1
+> 	--handler(910) end
+> 
+> This is because the callback function has not been registered yet.
+> Previously reported errors will be overwritten by new ones. Therefore,
+> all errors that occurred before GHES initialization are missed
+> and there is no chance to report and find them again.
+> 
+> > You say that currently "errors that occur before GHES initialization
+> > are missed".  Isn't that still true after this patch?  Does this patch
+> > merely reduce the time before GHES initialization?  If so, I'm
+> > dubious, because we have to tolerate an arbitrary amount of time
+> > there.
+> 
+> After this patch, there are still errors missing. As you mentioned,
+> we have to tolerate it until the software reporting capability is built.
+> 
+> Yes, this patch merely reduce the time before GHES initialization.
 
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+It's not a bug that errors that happen before the callback are lost.
+At least, it's not a *Linux* bug.  It might be a poor design of the
+firmware error reporting interface.
 
-Regards,
+If the only point of this patch is to reduce the time before GHES
+initialization, the commit log should clearly say that.
 
-Hans
+> The boot dmesg before this patch:
+> 
+> 	[    3.688586] HEST: Table parsing has been initialized.
+> 	...
+> 	[   33.204340] calling  sdei_init+0x0/0x120 @ 1
+> 	[   33.208645] sdei: SDEIv1.0 (0x0) detected in firmware.
+> 	...
+> 	[   36.005390] calling  ghes_init+0x0/0x11c @ 1
+> 	[   36.190021] GHES: APEI firmware first mode is enabled by APEI bit and WHEA _OSC.
+> 
+> 
+> After this patch, the boot dmesg like bellow:
+> 
+> 	[    3.688664] HEST: Table parsing has been initialized.
+> 	[    3.688691] sdei: SDEIv1.0 (0x0) detected in firmware.
+> 	[    3.694557] GHES: APEI firmware first mode is enabled by APEI bit and WHEA _OSC.
 
+[Tangent: I think this GHES message is confusing.  What "APEI bit"
+does this refer to?  The only bits I remember are the Flags bits in
+HEST Error Source Descriptor Entries, e.g., ACPI v6.3, sec 18.3.2.
 
+"WHEA _OSC" means nothing to me, and I didn't find anything useful
+with grep, other than that "WHEA" might be an obsolete name for what
+we now call "APEI".
 
+I don't think there's anything in _OSC that mentions "firmware first."
 
-> ---
-> 
-> This is the same as: https://patchwork.kernel.org/patch/10205359/
-> 
-> Previously this patch has been applied[0] but then reverted from -next
-> because it caused a regression in UPower.
-> This regression however has been fixed in UPower in late 2018[1],
-> with the fixed version 0.99.10 released in early 2019 [2].
-> So maybe it is now time to reintroduce this change.
-> 
-> Ognen:
-> 
-> As the patch was originally developed by you, could send a
-> Signed-off-by-tag, so I can attribute you as co-developer?
-> 
-> Or maybe the original patch could just be re-applied?
-> 
-> The original patch had the following tags, which I'm not sure to handle
-> for this case:
-> 
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Also Cc-ing the UPower maintainers for their opinion:
-> 
-> Cc: Bastien Nocera <hadess@hadess.net>
-> Cc: David Zeuthen <davidz@redhat.com>
-> Cc: Richard Hughes <richard@hughsie.com>
-> 
-> [0] Applied as 91eea70e5e5ce12eb1c7cd922e561fab43e201bd
-> [1] https://gitlab.freedesktop.org/upower/upower/-/merge_requests/19/commits
-> [2] https://gitlab.freedesktop.org/upower/upower/-/commit/215049e7b80c5f24cb35cd229a445c6cf19bd381
-> ---
->  drivers/acpi/battery.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> 
-> base-commit: fa55b7dcdc43c1aa1ba12bca9d2dd4318c2a0dbf
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 8afa85d6eb6a..ead0114f27c9 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -53,6 +53,7 @@ static int battery_bix_broken_package;
->  static int battery_notification_delay_ms;
->  static int battery_ac_is_broken;
->  static int battery_check_pmic = 1;
-> +static int battery_quirk_notcharging;
->  static unsigned int cache_time = 1000;
->  module_param(cache_time, uint, 0644);
->  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-> @@ -217,6 +218,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
->  			val->intval = POWER_SUPPLY_STATUS_CHARGING;
->  		else if (acpi_battery_is_charged(battery))
->  			val->intval = POWER_SUPPLY_STATUS_FULL;
-> +		else if (battery_quirk_notcharging)
-> +			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
->  		else
->  			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
->  		break;
-> @@ -1111,6 +1114,12 @@ battery_do_not_check_pmic_quirk(const struct dmi_system_id *d)
->  	return 0;
->  }
->  
-> +static int __init battery_quirk_not_charging(const struct dmi_system_id *d)
-> +{
-> +	battery_quirk_notcharging = 1;
-> +	return 0;
-> +}
-> +
->  static const struct dmi_system_id bat_dmi_table[] __initconst = {
->  	{
->  		/* NEC LZ750/LS */
-> @@ -1155,6 +1164,19 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
->  			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
->  		},
->  	},
-> +	{
-> +		/*
-> +		 * On Lenovo ThinkPads the BIOS specification defines
-> +		 * a state when the bits for charging and discharging
-> +		 * are both set to 0. That state is "Not Charging".
-> +		 */
-> +		.callback = battery_quirk_not_charging,
-> +		.ident = "Lenovo ThinkPad",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
-> +		},
-> +	},
->  	{},
->  };
->  
-> 
+I don't remember anything in the spec about a way to *enable* Firmware
+First Error Handling needing (I'm looking at ACPI v6.3, sec 18.4).
 
+I think the "firmware first" information is useless to the OS -- as
+far as I can tell, the spec says nothing about anything the OS should
+do based on the FIRMWARE_FIRST bits.]
+
+> As we can see, the initialization of GHES is advanced by 33 seconds.
+> So, in my opinion, this patch is necessary, right?
+> (It should be noted that the effect of optimization varies with the platform.)
+
+> >> -device_initcall(ghes_init);
+> > 
+> >>  void __init acpi_pci_root_init(void)
+> >>  {
+> >>  	acpi_hest_init();
+> >> +	sdei_init();
+> >> +	ghes_init();
+> > 
+> > What's the connection between PCI, SDEI, and GHES?  As far as I can
+> > tell, SDEI and GHES are not PCI-specific, so it doesn't seem like they
+> > should be initialized here in acpi_pci_root_init().
+> 
+> The only reason is that acpi_hest_init() is initialized here.
+> 
+> From commit e147133a42cb ("ACPI / APEI: Make hest.c manage the estatus
+> memory pool") was merged, ghes_init() relies on acpi_hest_init() to manage
+> the estatus memory pool. On the other hand, ghes_init() relies on
+> sdei_init() to detect the SDEI version and the framework for registering
+> and unregistering events. The dependencies are as follows
+> 
+> 	ghes_init() => acpi_hest_init()
+> 	ghes_init() => sdei_init()
+> 
+> I don't figure out why acpi_hest_init() is called in
+> acpi_pci_root_init(), it don't rely on any other thing.
+> I am wondering that should we moved all of them further? e.g.
+> following acpi_iort_init() in acpi_init().
+
+I don't know why acpi_hest_init() is called from acpi_pci_root_init().
+It looks like HEST can support error sources other than PCI (IA-32
+Machine Checks, NMIs, GHES, etc.)  It was added by 415e12b23792
+("PCI/ACPI: Request _OSC control once for each root bridge (v3)");
+maybe Rafael remembers why.
+
+Seem like acpi_hest_init(), sdei_init(), and ghes_init() should all go
+somewhere else, but I don't know where.  Maybe somewhere in
+acpi_init()?
+
+Bjorn
