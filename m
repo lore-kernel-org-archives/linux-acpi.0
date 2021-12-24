@@ -2,73 +2,116 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E915C433EF
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Dec 2021 09:15:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E59C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Dec 2021 13:47:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352166AbhLXJPG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Dec 2021 04:15:06 -0500
-Received: from mailgw.kylinos.cn ([123.150.8.42]:22905 "EHLO nksmu.kylinos.cn"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1352165AbhLXJPG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 24 Dec 2021 04:15:06 -0500
-X-UUID: 046f702daed34fef9d1d893f7cbc4d58-20211224
-X-CPASD-INFO: 34b417fd38014c059e2a55d60f022626@fIScVF5plJRfWHJ9g6Z7b1mWYpFlYYS
-        FcqBQYmBmXlaVhH5xTWJsXVKBfG5QZWNdYVN_eGpQYl9gZFB5i3-XblBgXoZgUZB3gnacVGFllg==
-X-CPASD-FEATURE: 0.0
-X-CLOUD-ID: 34b417fd38014c059e2a55d60f022626
-X-CPASD-SUMMARY: SIP:-1,APTIP:-2.0,KEY:0.0,FROMBLOCK:1,EXT:0.0,OB:0.0,URL:-5,T
-        VAL:173.0,ESV:0.0,ECOM:-5.0,ML:0.0,FD:0.0,CUTS:83.0,IP:-2.0,MAL:0.0,ATTNUM:0.
-        0,PHF:-5.0,PHC:-5.0,SPF:4.0,EDMS:-3,IPLABEL:4488.0,FROMTO:0,AD:0,FFOB:0.0,CFO
-        B:0.0,SPC:0.0,SIG:-5,AUF:101,DUF:27928,ACD:143,DCD:245,SL:0,AG:0,CFC:0.893,CF
-        SR:0.042,UAT:0,RAF:0,VERSION:2.3.4
-X-CPASD-ID: 046f702daed34fef9d1d893f7cbc4d58-20211224
-X-CPASD-BLOCK: 1000
-X-CPASD-STAGE: 1, 1
-X-UUID: 046f702daed34fef9d1d893f7cbc4d58-20211224
-X-User: yinxiujiang@kylinos.cn
-Received: from localhost.localdomain [(118.26.139.139)] by nksmu.kylinos.cn
-        (envelope-from <yinxiujiang@kylinos.cn>)
-        (Generic MTA)
-        with ESMTP id 1032329646; Fri, 24 Dec 2021 17:27:40 +0800
-From:   Yin Xiujiang <yinxiujiang@kylinos.cn>
-To:     rafael.j.wysocki@intel.com, lenb@kernel.org
-Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPICA: Remove initialization of static variables to 0
-Date:   Fri, 24 Dec 2021 17:14:58 +0800
-Message-Id: <20211224091458.693093-1-yinxiujiang@kylinos.cn>
-X-Mailer: git-send-email 2.30.0
+        id S1352742AbhLXNra (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Dec 2021 08:47:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42602 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235783AbhLXNr3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Dec 2021 08:47:29 -0500
+Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 149A4C061401;
+        Fri, 24 Dec 2021 05:47:29 -0800 (PST)
+Received: by mail-lf1-x12f.google.com with SMTP id x7so19192341lfu.8;
+        Fri, 24 Dec 2021 05:47:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=afCIlcjFXpeKvqs8SychKCeXq2Sds3zEsMBHblNJTN8=;
+        b=JzsdVHfZYqcVTB1yGagX/EHlWkPXar/sg3v61Ep6VkhoE50ULNjB8cD+XAqmov15so
+         nn4zRg7SxZCw0YD6DqjPZ0wTDDvoua/hvoK8SBmGVyDLAakxPfm1Sb1trqcDtRHzJhTJ
+         ArTeSUH2NPBJbtXED7Ie41nQkpuUoWCgq1wER1+MpLfnEhA5XjXzqAlRnfBeRP8G10EQ
+         DOByg2GRTxJcx6fuLMaIYnwEnE2+j4iZZA2mVEMzJpMPyAJTT6N0TK5Fg5SAiUdSOhyj
+         gFm3Vrjlo3Nn5jXVtjH1X7MV2fiXyKztM5A9HnVer0uraQj81VFT+d9dQJRzXyr1Il1T
+         t49A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=afCIlcjFXpeKvqs8SychKCeXq2Sds3zEsMBHblNJTN8=;
+        b=JOua+5Gs3dgGq0U0ezr5y3heGLWRfK7X1I02TpsX0EzBgvDdNrrGxVRX6wsIiQeS19
+         yNVrGecrSWxsL3J2XASyRmFyW2jIcB38aVFvn8WI8kTfLfV9Nz8YFc2IUQe7p/slrH0l
+         5vTUKu7RAg1LH6asxI+1hC0xt9yZiOXLa0xHwhYhodPLrxUPTtN1JKXgiGLZ3aZS1HSa
+         R7DD6fK//NOy6CXGtjNnx7kQFEvhwFL334ZoRRFaBp72YSqYuMpeufEqWWcZlpMK7rOy
+         CF6rx3nues59cZFaVg/1F3Tcf+eOLJFfeTqnIWVLUC0UcpCK9N/qeKw+a53dZNRcpK+z
+         Xwsg==
+X-Gm-Message-State: AOAM5329us4BtZXt26vRllHmxwFrmbBuFI7HXfJF15yfCmcz0GMltDHW
+        /jExWbc1NTvDE+31y0WTsns=
+X-Google-Smtp-Source: ABdhPJz9GCrC1UyzH/vLs9fb2lYqZclxDnnUK+QdggBJ5s7bsuQPmVbu4X6vIlq24u2LvduMWRgDUA==
+X-Received: by 2002:a05:6512:472:: with SMTP id x18mr5187110lfd.566.1640353647407;
+        Fri, 24 Dec 2021 05:47:27 -0800 (PST)
+Received: from mobilestation ([95.79.218.126])
+        by smtp.gmail.com with ESMTPSA id d3sm811274lfg.116.2021.12.24.05.47.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 24 Dec 2021 05:47:26 -0800 (PST)
+Date:   Fri, 24 Dec 2021 16:47:24 +0300
+From:   Serge Semin <fancer.lancer@gmail.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Serge Semin <Sergey.Semin@baikalelectronics.ru>,
+        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        Hoan Tran <hoan@os.amperecomputing.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v1 2/2] gpio: dwapb: Switch to use fwnode instead of
+ of_node
+Message-ID: <20211224134724.klsfulobcwxojfi3@mobilestation>
+References: <20211223103809.12343-1-andriy.shevchenko@linux.intel.com>
+ <20211223103809.12343-2-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211223103809.12343-2-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Remove the initialization of three static variables to 0 which is
-pointless
+On Thu, Dec 23, 2021 at 12:38:09PM +0200, Andy Shevchenko wrote:
+> GPIO library now accepts fwnode as a firmware node, so
+> switch the driver to use it and hence rectify the ACPI
+> case which uses software nodes.
+> 
+> Note, in this case it's rather logical fix that doesn't
+> affect functionality, thus no backporting required.
 
-Signed-off-by: Yin Xiujiang <yinxiujiang@kylinos.cn>
----
- drivers/acpi/acpica/dbhistry.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thanks for the patch.
+Acked-by: Serge Semin <fancer.lancer@gmail.com>
 
-diff --git a/drivers/acpi/acpica/dbhistry.c b/drivers/acpi/acpica/dbhistry.c
-index fd813c5d3952..60b77b11c0f2 100644
---- a/drivers/acpi/acpica/dbhistry.c
-+++ b/drivers/acpi/acpica/dbhistry.c
-@@ -24,9 +24,9 @@ typedef struct history_info {
- } HISTORY_INFO;
- 
- static HISTORY_INFO acpi_gbl_history_buffer[HISTORY_SIZE];
--static u16 acpi_gbl_lo_history = 0;
--static u16 acpi_gbl_num_history = 0;
--static u16 acpi_gbl_next_history_index = 0;
-+static u16 acpi_gbl_lo_history;
-+static u16 acpi_gbl_num_history;
-+static u16 acpi_gbl_next_history_index;
- 
- /*******************************************************************************
-  *
--- 
-2.30.0
+-Sergey
 
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/gpio/gpio-dwapb.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+> index ec0767d7800d..b0f3aca61974 100644
+> --- a/drivers/gpio/gpio-dwapb.c
+> +++ b/drivers/gpio/gpio-dwapb.c
+> @@ -15,7 +15,6 @@
+>  #include <linux/irq.h>
+>  #include <linux/mod_devicetable.h>
+>  #include <linux/module.h>
+> -#include <linux/of.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/property.h>
+>  #include <linux/reset.h>
+> @@ -515,9 +514,7 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
+>  		return err;
+>  	}
+>  
+> -#ifdef CONFIG_OF_GPIO
+> -	port->gc.of_node = to_of_node(pp->fwnode);
+> -#endif
+> +	port->gc.fwnode = pp->fwnode;
+>  	port->gc.ngpio = pp->ngpio;
+>  	port->gc.base = pp->gpio_base;
+>  
+> -- 
+> 2.34.1
+> 
