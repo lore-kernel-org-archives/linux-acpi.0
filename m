@@ -2,54 +2,54 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6C93C433F5
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jan 2022 06:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D632C4332F
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jan 2022 06:24:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231954AbiABGXi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jan 2022 01:23:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46350 "EHLO
+        id S231968AbiABGYj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jan 2022 01:24:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbiABGXh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jan 2022 01:23:37 -0500
-Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E5C5C06173E
-        for <linux-acpi@vger.kernel.org>; Sat,  1 Jan 2022 22:23:37 -0800 (PST)
-Received: by mail-lj1-x22c.google.com with SMTP id h21so39165967ljh.3
-        for <linux-acpi@vger.kernel.org>; Sat, 01 Jan 2022 22:23:36 -0800 (PST)
+        with ESMTP id S231978AbiABGYf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jan 2022 01:24:35 -0500
+Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF041C061401
+        for <linux-acpi@vger.kernel.org>; Sat,  1 Jan 2022 22:24:34 -0800 (PST)
+Received: by mail-lf1-x12f.google.com with SMTP id h2so58001913lfv.9
+        for <linux-acpi@vger.kernel.org>; Sat, 01 Jan 2022 22:24:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=VgQd8mVA5Ou/dtF60Rr1+uXMaZpGfgKYwjDfuQ8htQ8=;
-        b=jNm5mAS5EjqfDtNL1Kn9XGIg2+C/re/dVJe3eqlS2GgVT9Dsfokxnq73f+ZCCXYoB2
-         ADTmWRj7SXDEWfM1CGvMFtKf31AgCvoor+GQ5trEA2y8r2D8bU4KVV75ZVRm8p/x0Je5
-         gCBpQkSXQdQqEZqJ26Hyu3cUoBoFXVuJfys/lZf6tSy7UBfVhRkAe5W3o6sKHXLSs9WB
-         ihhebtQQwzbOsOlh2nn0ATWggbUiiwUJmvwKvuApgM/xj8lK70GBmg0DDNNw4z99xkIK
-         vR/K2fsxGQrRtcmQqXG6/o7qm5zrqAPWC1+7DEFzAGCOov08BXlPovIB8gL5LYSFLHVT
-         UwPw==
+        bh=MRIzYog0oG8YRBJV8uYe7Ak+u+xDADrXSEkgE2V9/cA=;
+        b=Vv9nOjvk1PmOvu+nhkp0vkMMvNEObC3EdUeBHAokuzh0QsGErUT7xGI37XarqLfv8F
+         VLPMk920zs4ek63TJn2NMktfyLT0Wi4YDFZ7Zd2VpzeZlRMit1KDDmoajQFDtnVnn9mT
+         1ZFn0RNhUlHuDafCoIOygKq4ar+sxgXGAWUmU4jPGXUfjMJqgX78cqZo1hJzeMGQnkXT
+         sCtCAas0c9d3L3MAeCGceGmZdwinw3rrjSnRCSbUaXncvpXIg7PFi5ZYToxhYh8l+22I
+         mwkcjsJMhWYCx8czT7W9mgfRTNxE5JQbwuPnpXkWoiHvpLHZ8LMmFymMszo4D4EkwBEp
+         PLIA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=VgQd8mVA5Ou/dtF60Rr1+uXMaZpGfgKYwjDfuQ8htQ8=;
-        b=erte5MpGx5qeEERa0DDk9QPx760fbUqkvNXOxJdopyb/80ndJKA4FiMsiuRsZUrdSE
-         SHO0d0JRRuxFw6RxlwcBkicdj1EMpP2L7sL34xMEeqfKsWsTe7xtioztGhgj547GPHNs
-         3GM1bCAwjBsUatuX6CNdOZgd5+obY6vowRgadMgxVNXY4cVcaGZ6Pt+Eup0Yt7uyhDGu
-         HCV9AC7jp4SO/BwmBwQcyOdmwXjua4BWJFiTwjyOFhGqb0bouD9zr2WDJN8oGr+BofGr
-         no6ppUPp/mkzrL6h15EHA5CHxb+N+cnX+tq70c4LygoOwJYFA3ZlPXWFPD+GXSKtXKzt
-         gS9Q==
-X-Gm-Message-State: AOAM530oqwNCsGfzwLCAbaxh+ByknzzA0PkZiK6qGFmeTWvAKOv6jp59
-        5x4hjOjtccFOlnjDMgU7UjgAhMg6UAs4yYYx5lxUug==
-X-Google-Smtp-Source: ABdhPJx1bpQrYxUZGqaWXyD0VzScJihPrK6/lT6pAwBXrQOaBPvT+Wr+wnvxmv2Se+jeu73uNv6b9Zecgs+PTeWpQeg=
-X-Received: by 2002:a2e:a4ac:: with SMTP id g12mr14355456ljm.183.1641104614823;
- Sat, 01 Jan 2022 22:23:34 -0800 (PST)
+        bh=MRIzYog0oG8YRBJV8uYe7Ak+u+xDADrXSEkgE2V9/cA=;
+        b=gm5oL/j0kWbwJ/lRg9biGOC+59XA1DSqbiXf8KpS+58COtly/FjHSjKZDD7Llqn0tR
+         1GtYt7Jl5NO8FQxOldsA9XO1Usfefaxp2fWCHHCi/8lf26J5MrSN12K//abUlNBXoPrj
+         I9v+5alnBj1PJJMm4fCDRyLC+f4Vru2nTZp97GyBwH/v5xrCDxN9l/1+CaYLp2SnBe9E
+         e+4xBSEoFirHBydkMaNwJvedxd/2WkbWx6YLolgtkOfnG7+W2fhyxLRaE4x2mDaoeY2g
+         SJiEI0KoXNGVEdtyVJZiZOnaZ39N0dg2UuRHHZ1QzNw3fuQzi0pCFZ2wDrTIe4fZDbsr
+         iYkQ==
+X-Gm-Message-State: AOAM530/wieONzjh3kjs6DHl2kU0yFmkYrCkd3RuyIK9goOII6lBeqcs
+        J3Fc4Jt5HOAZC7gUt1YMbfNQdRdSH05yqF1s4VIAMA==
+X-Google-Smtp-Source: ABdhPJzgcYPpsyuWAu1d8IqDIVcu9MuInByUpnzzNH4wf+Sm5vBNJ55cR8YJ26jVqSxrIb8utAPv1mkfQu8oqSQTWlY=
+X-Received: by 2002:a05:6512:2304:: with SMTP id o4mr35088210lfu.563.1641104673024;
+ Sat, 01 Jan 2022 22:24:33 -0800 (PST)
 MIME-Version: 1.0
-References: <20211226153624.162281-1-marcan@marcan.st> <20211226153624.162281-24-marcan@marcan.st>
-In-Reply-To: <20211226153624.162281-24-marcan@marcan.st>
+References: <20211226153624.162281-1-marcan@marcan.st> <20211226153624.162281-5-marcan@marcan.st>
+In-Reply-To: <20211226153624.162281-5-marcan@marcan.st>
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Sun, 2 Jan 2022 07:23:22 +0100
-Message-ID: <CACRpkdaEVsSxsp-7RCF0Gy8XcWCbGJnP7b0Q9TmMLFz33gs3jA@mail.gmail.com>
-Subject: Re: [PATCH 23/34] brcmfmac: cfg80211: Add support for scan params v2
+Date:   Sun, 2 Jan 2022 07:21:32 +0100
+Message-ID: <CACRpkdYHkX2Thi26sa-6rtzL9i-LU1X6GQNpGF7yqZmHNv6fzQ@mail.gmail.com>
+Subject: Re: [PATCH 04/34] brcmfmac: firmware: Handle per-board clm_blob files
 To:     Hector Martin <marcan@marcan.st>
 Cc:     Kalle Valo <kvalo@codeaurora.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -81,10 +81,13 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Dec 26, 2021 at 4:39 PM Hector Martin <marcan@marcan.st> wrote:
+On Sun, Dec 26, 2021 at 4:37 PM Hector Martin <marcan@marcan.st> wrote:
 
-> This new API version is required for at least the BCM4387 firmware. Add
-> support for it, with a fallback to the v1 API.
+> Teach brcm_alt_fw_paths to correctly split off variable length
+> extensions, and enable alt firmware lookups for the CLM blob firmware
+> requests.
+>
+> Apple platforms have per-board CLM blob files.
 >
 > Signed-off-by: Hector Martin <marcan@marcan.st>
 
