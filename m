@@ -2,54 +2,54 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D632C4332F
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jan 2022 06:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C4C6C433FE
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jan 2022 06:26:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231968AbiABGYj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jan 2022 01:24:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46588 "EHLO
+        id S232011AbiABG0T (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jan 2022 01:26:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231978AbiABGYf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jan 2022 01:24:35 -0500
-Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF041C061401
-        for <linux-acpi@vger.kernel.org>; Sat,  1 Jan 2022 22:24:34 -0800 (PST)
-Received: by mail-lf1-x12f.google.com with SMTP id h2so58001913lfv.9
-        for <linux-acpi@vger.kernel.org>; Sat, 01 Jan 2022 22:24:34 -0800 (PST)
+        with ESMTP id S231991AbiABG0S (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jan 2022 01:26:18 -0500
+Received: from mail-lj1-x233.google.com (mail-lj1-x233.google.com [IPv6:2a00:1450:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF613C06173E
+        for <linux-acpi@vger.kernel.org>; Sat,  1 Jan 2022 22:26:17 -0800 (PST)
+Received: by mail-lj1-x233.google.com with SMTP id q8so35367940ljp.9
+        for <linux-acpi@vger.kernel.org>; Sat, 01 Jan 2022 22:26:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=MRIzYog0oG8YRBJV8uYe7Ak+u+xDADrXSEkgE2V9/cA=;
-        b=Vv9nOjvk1PmOvu+nhkp0vkMMvNEObC3EdUeBHAokuzh0QsGErUT7xGI37XarqLfv8F
-         VLPMk920zs4ek63TJn2NMktfyLT0Wi4YDFZ7Zd2VpzeZlRMit1KDDmoajQFDtnVnn9mT
-         1ZFn0RNhUlHuDafCoIOygKq4ar+sxgXGAWUmU4jPGXUfjMJqgX78cqZo1hJzeMGQnkXT
-         sCtCAas0c9d3L3MAeCGceGmZdwinw3rrjSnRCSbUaXncvpXIg7PFi5ZYToxhYh8l+22I
-         mwkcjsJMhWYCx8czT7W9mgfRTNxE5JQbwuPnpXkWoiHvpLHZ8LMmFymMszo4D4EkwBEp
-         PLIA==
+        bh=7Ny9IOrp5AKhlKTAYswE45XRnsrR6ugsPgi1A08bE1w=;
+        b=TKg2YDlA4UU2vpZUOddZ+gAYQofb8wN0yjqnKj8J888QfbSRQVOoL7VmuWZgDhSvfK
+         cadBoTx+ddiKnJl+yr0VTL3S+0hDUi5IqxqKuS0qvOW1O21OmiilONgxAUlBxU7rfRpH
+         FLKQgrAYMm/7CJftZ3vmOpeGT0vSpT6y3Qfs//tdUGswleZFB2+CPxZQkyU9K3WKP1aB
+         ZW8Yian1Tm6Ij3UoYAHNOpoMQecvP9t/HOo/nT3sLavAKL4b04gj5kXQIWh+xUec9lje
+         KmDLdjigN4cnRCg7LNxjt6QGcYfIxc7drNymNAaxY5rg3Y5jeG4QzYeYxYv+VUI9c1GE
+         0AAg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=MRIzYog0oG8YRBJV8uYe7Ak+u+xDADrXSEkgE2V9/cA=;
-        b=gm5oL/j0kWbwJ/lRg9biGOC+59XA1DSqbiXf8KpS+58COtly/FjHSjKZDD7Llqn0tR
-         1GtYt7Jl5NO8FQxOldsA9XO1Usfefaxp2fWCHHCi/8lf26J5MrSN12K//abUlNBXoPrj
-         I9v+5alnBj1PJJMm4fCDRyLC+f4Vru2nTZp97GyBwH/v5xrCDxN9l/1+CaYLp2SnBe9E
-         e+4xBSEoFirHBydkMaNwJvedxd/2WkbWx6YLolgtkOfnG7+W2fhyxLRaE4x2mDaoeY2g
-         SJiEI0KoXNGVEdtyVJZiZOnaZ39N0dg2UuRHHZ1QzNw3fuQzi0pCFZ2wDrTIe4fZDbsr
-         iYkQ==
-X-Gm-Message-State: AOAM530/wieONzjh3kjs6DHl2kU0yFmkYrCkd3RuyIK9goOII6lBeqcs
-        J3Fc4Jt5HOAZC7gUt1YMbfNQdRdSH05yqF1s4VIAMA==
-X-Google-Smtp-Source: ABdhPJzgcYPpsyuWAu1d8IqDIVcu9MuInByUpnzzNH4wf+Sm5vBNJ55cR8YJ26jVqSxrIb8utAPv1mkfQu8oqSQTWlY=
-X-Received: by 2002:a05:6512:2304:: with SMTP id o4mr35088210lfu.563.1641104673024;
- Sat, 01 Jan 2022 22:24:33 -0800 (PST)
+        bh=7Ny9IOrp5AKhlKTAYswE45XRnsrR6ugsPgi1A08bE1w=;
+        b=bKk+hdbWLVtuepypd9CWZNpepBXXt6x0yI5nc0/GHtvKi9yVm+uvKMK4dSqS7ZYisG
+         NOIwqhY5iHBJe0MDKcXkVOs6YV2MPPu08FVW3yoYik2xTIfkh7vyPE3COQyeZL5xR3Kj
+         UZUBrcvvw9IDLzstwHYEe3W0I+wY77I+4w8ZKxFlsUtb/7u0aSALR5FONXVFG3OdDO97
+         UgmBEp2Z5AWBTZekR+Q+F4mwTQ0FztEk/XAbfei3lDsVANK/wbcnexvzpwJCkG455+nQ
+         mR8SD4XqUMgkh19V2Rv+peWtnu81JmK6VYPsKa5AM1s8PIY1QyR3WzPDqv6Zag+o0Imb
+         C+ww==
+X-Gm-Message-State: AOAM530eSHKW0ivmGuhhOa+wqD+HvNrl+mcGFAQSScWXX2tfMqrnEdDF
+        fcELup+Ura/xW/FYSJMPiX5LC/++1mPxJ1YH/6WuHw==
+X-Google-Smtp-Source: ABdhPJyRzuMEVAx8+y8buo4E3ptNZEMM3+VBbQLibGlevyTYSkZ6ULIp8S7z3qvrnwEJadDN6IFlYjiNNsX6dqdcAtI=
+X-Received: by 2002:a2e:7c01:: with SMTP id x1mr33744057ljc.145.1641104776175;
+ Sat, 01 Jan 2022 22:26:16 -0800 (PST)
 MIME-Version: 1.0
-References: <20211226153624.162281-1-marcan@marcan.st> <20211226153624.162281-5-marcan@marcan.st>
-In-Reply-To: <20211226153624.162281-5-marcan@marcan.st>
+References: <20211226153624.162281-1-marcan@marcan.st>
+In-Reply-To: <20211226153624.162281-1-marcan@marcan.st>
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Sun, 2 Jan 2022 07:21:32 +0100
-Message-ID: <CACRpkdYHkX2Thi26sa-6rtzL9i-LU1X6GQNpGF7yqZmHNv6fzQ@mail.gmail.com>
-Subject: Re: [PATCH 04/34] brcmfmac: firmware: Handle per-board clm_blob files
+Date:   Sun, 2 Jan 2022 07:25:27 +0100
+Message-ID: <CACRpkdY1qL6s45qMq65mCrdDDjNfoksadO3Va=zSUhT41pBktw@mail.gmail.com>
+Subject: Re: [RFC PATCH 00/34] brcmfmac: Support Apple T2 and M1 platforms
 To:     Hector Martin <marcan@marcan.st>
 Cc:     Kalle Valo <kvalo@codeaurora.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -81,17 +81,19 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Dec 26, 2021 at 4:37 PM Hector Martin <marcan@marcan.st> wrote:
+On Sun, Dec 26, 2021 at 4:36 PM Hector Martin <marcan@marcan.st> wrote:
 
-> Teach brcm_alt_fw_paths to correctly split off variable length
-> extensions, and enable alt firmware lookups for the CLM blob firmware
-> requests.
->
-> Apple platforms have per-board CLM blob files.
->
-> Signed-off-by: Hector Martin <marcan@marcan.st>
+> Merry Christmas! This year Santa brings us a 34-patch series to add
+> proper support for the Broadcom FullMAC chips used on Apple T2 and M1
+> platforms:
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+I tried to review as best I could, when I think I know what I'm doing I state
+Reviewed-by and when I think it just LooksGoodToMe(TM) I replied
+Acked-by. If I missed some patch you can assume Acked-by from me
+on these as well.
+
+Thanks for doing this, some really old bugs and code improvements long
+overdue is in the series, much appreciated.
 
 Yours,
 Linus Walleij
