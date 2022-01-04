@@ -2,109 +2,103 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22296C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  4 Jan 2022 11:30:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D7F1C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  4 Jan 2022 13:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232281AbiADLah (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 4 Jan 2022 06:30:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40914 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229964AbiADLah (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jan 2022 06:30:37 -0500
-Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E829C061761;
-        Tue,  4 Jan 2022 03:30:36 -0800 (PST)
-Received: by mail-ed1-x52c.google.com with SMTP id q14so139440733edi.3;
-        Tue, 04 Jan 2022 03:30:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=0yty/Vql/ha5wH7OZotX+MYGyccXlZrjOYzGRLc8osI=;
-        b=Ob1v2V/1KmrPCwBo+PVBUCo0h9Yl9nquFidnZ8qBujjcJn1jOUUljpHnQMqCS7tPci
-         HLE7SFA0YHB334q34rR9tA8qGWWO4Ln2svhzpOTrj20UxtANmtpCZwCbZQ5UhvXQQC9E
-         Ve98gHi3SaDehDkyPzU5f88IztLdsJgRrbHNvKbXU1V1pzJV4OHgbOFmUG9H04JqpxlW
-         1aVJ1SxwLbAkxqS4REP4JvObUEJw1uppLw1yJnz4LMLzKPGx0OC+OugT4oNW4R/uvgw1
-         N2RfLJ7hUflX7cmDAffiCRRY+vkvO9OF0tD1Iv83TBSk/9a0j4XubYzDuvlW+qfak3pp
-         0AhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0yty/Vql/ha5wH7OZotX+MYGyccXlZrjOYzGRLc8osI=;
-        b=z900lw44t4Kt7PtqiyLHo5IHVL9je4y60XXOK9BjlcUfK5rZ4/12Na+6aJWt6n/Qih
-         tkpoGmQjrxpgbIL4MdBMRQZB5zsYJUlAZTzv98+3XYCOw6ua8jTiuc0HAxdHqAtwL9nP
-         eQMR41IaoIeFJ6M2U/0kxcc+NXiDUMusyKJ51JDgnHMqUUvraAX5wF44vpKQSSGHr9hD
-         clvtDUYBAUVHHXo7TMopuWKS2DYjl621/I9bNeugFjkNYRydNxb1ojTmlcS3mhkJ42Ux
-         6s9fn+UbaT2dzmzh0kg75m/ZBEPcn8M+9fYaKxtvWTYRaV2/G50b3Zw/vXqEvRK/v4uD
-         ekZg==
-X-Gm-Message-State: AOAM5313Zrx+jeXDuaT5H63MaKQBJ0f8LJgUsqD3VixaFWzOWWk6P3U8
-        g0fBHFlmGEQf13t2ABaDCrSNBWSpYsGwyYx5vTY=
-X-Google-Smtp-Source: ABdhPJzstuNjGXH7i4SJZO7W6jJ03BLb3g5gKSn1e6dIAouguCI/zvBRkWCkEcva7qTCxiSiFsVGFOqOCRh/YPwjBtU=
-X-Received: by 2002:a17:906:3ed0:: with SMTP id d16mr38212898ejj.636.1641295835170;
- Tue, 04 Jan 2022 03:30:35 -0800 (PST)
-MIME-Version: 1.0
-References: <20220104072658.69756-1-marcan@marcan.st> <20220104072658.69756-7-marcan@marcan.st>
-In-Reply-To: <20220104072658.69756-7-marcan@marcan.st>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Tue, 4 Jan 2022 13:28:44 +0200
-Message-ID: <CAHp75VcXgVTZhPiPmbpAJr21xUopRXU6yi=wvyzs6ByR8C+rzw@mail.gmail.com>
-Subject: Re: [PATCH v2 06/35] brcmfmac: firmware: Support passing in multiple board_types
-To:     Hector Martin <marcan@marcan.st>
-Cc:     Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Arend van Spriel <aspriel@gmail.com>,
-        Franky Lin <franky.lin@broadcom.com>,
-        Hante Meuleman <hante.meuleman@broadcom.com>,
-        Chi-hsien Lin <chi-hsien.lin@infineon.com>,
-        Wright Feng <wright.feng@infineon.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Sven Peter <sven@svenpeter.dev>,
-        Alyssa Rosenzweig <alyssa@rosenzweig.io>,
-        Mark Kettenis <kettenis@openbsd.org>,
-        =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
-        Pieter-Paul Giesberts <pieter-paul.giesberts@broadcom.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
+        id S230512AbiADNHx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 4 Jan 2022 08:07:53 -0500
+Received: from smtp-out2.suse.de ([195.135.220.29]:36138 "EHLO
+        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233279AbiADNHx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jan 2022 08:07:53 -0500
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id C9A2E1F386;
+        Tue,  4 Jan 2022 13:07:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1641301671; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=tfjSgIg7XepgSJUbid2VyHDg323VjNL4qJ6wgeEpvuQ=;
+        b=t7B0BcFicuUynr5x7AL1eNGg49zlmxTbJGJWyp+rHuWH4GiimczcFtLkcPCqyO2UNi45fj
+        fREFdToDToGMwEG44vhKqQ7+dN/Oy0i3GLz+3u2g+gWs4MAjKuo9IeXQvzNBn4YAHOOcvl
+        A1Wj9z/0N2U5/HTx4xzbBZD4KZL01Ws=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1641301671;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=tfjSgIg7XepgSJUbid2VyHDg323VjNL4qJ6wgeEpvuQ=;
+        b=zmqNWuIrK+SlApL8VKqldEqu7JoA4V2VkwBHfKAJv5Thu/nsFs6+lWBfnIjhzof9dHSD7b
+        nqRpRFosyVxpHrBQ==
+Received: from alsa1.suse.de (alsa1.suse.de [10.160.4.42])
+        by relay2.suse.de (Postfix) with ESMTP id A89A0A3B83;
+        Tue,  4 Jan 2022 13:07:51 +0000 (UTC)
+Date:   Tue, 04 Jan 2022 14:07:51 +0100
+Message-ID: <s5h35m3lkd4.wl-tiwai@suse.de>
+From:   Takashi Iwai <tiwai@suse.de>
+To:     Mark Brown <broonie@kernel.org>
+Cc:     Len Brown <lenb@kernel.org>, Mark Gross <markgross@kernel.org>,
+        Takashi Iwai <tiwai@suse.com>,
+        Lucas Tanure <tanureal@opensource.cirrus.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
         Hans de Goede <hdegoede@redhat.com>,
-        "John W. Linville" <linville@tuxdriver.com>,
-        "brian m. carlson" <sandals@crustytoothpaste.net>,
-        "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:BROADCOM BRCM80211 IEEE802.11n WIRELESS DRIVER" 
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        SHA-cyfmac-dev-list@infineon.com
-Content-Type: text/plain; charset="UTF-8"
+        patches@opensource.cirrus.com, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+Subject: Re: (subset) [PATCH v6 00/10] Add support for CS35L41 in HDA systems
+In-Reply-To: <164096159451.2355590.17653987935012339046.b4-ty@kernel.org>
+References: <20211217115708.882525-1-tanureal@opensource.cirrus.com>
+        <164096159451.2355590.17653987935012339046.b4-ty@kernel.org>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI/1.14.6 (Maruoka)
+ FLIM/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL/10.8 Emacs/25.3
+ (x86_64-suse-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+MIME-Version: 1.0 (generated by SEMI 1.14.6 - "Maruoka")
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jan 4, 2022 at 9:28 AM Hector Martin <marcan@marcan.st> wrote:
->
-> In order to make use of the multiple alt_path functionality, change
-> board_type to an array. Bus drivers can pass in a NULL-terminated list
-> of board type strings to try for the firmware fetch.
+On Fri, 31 Dec 2021 15:39:54 +0100,
+Mark Brown wrote:
+> 
+> On Fri, 17 Dec 2021 11:56:58 +0000, Lucas Tanure wrote:
+> > Add support for laptops that have CS35L41 connected to an HDA
+> > codec by I2S and direct I2C connection to the CPU.
+> > 
+> > Laptops that use CS35L41 and are SPI will be added in the future,
+> > after the support for it is resolved at i2c-multi-instantiate driver.
+> > i2c-multi-instantiate thread: https://lkml.org/lkml/2021/12/10/557
+> > 
+> > [...]
+> 
+> Applied to
+> 
+>    https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-next
+> 
+> Thanks!
+> 
+> [01/10] ASoC: cs35l41: Convert tables to shared source code
+>         commit: a87d42227cf5614fe0040ddd1fe642c54298b42c
+> [02/10] ASoC: cs35l41: Move cs35l41_otp_unpack to shared code
+>         commit: fe120d4cb6f6cd03007239e7c578b8703fe6d336
+> [03/10] ASoC: cs35l41: Move power initializations to reg_sequence
+>         commit: 062ce0593315e22aac527389dd6dd4328c49f0fb
+> [04/10] ASoC: cs35l41: Create shared function for errata patches
+>         commit: 8b2278604b6de27329ec7ed82ca696c4751111b6
+> [05/10] ASoC: cs35l41: Create shared function for setting channels
+>         commit: 3bc3e3da657f17c14df8ae8fab58183407bd7521
+> [06/10] ASoC: cs35l41: Create shared function for boost configuration
+>         commit: e8e4fcc047c6e0c5411faeb8cc29aed2e5036a00
 
-> +               /* strip extension at the end */
-> +               strscpy(alt_path, path, BRCMF_FW_NAME_LEN);
-> +               alt_path[suffix - path] = 0;
->
-> -       alt_paths[0] = kstrdup(alt_path, GFP_KERNEL);
-> +               strlcat(alt_path, ".", BRCMF_FW_NAME_LEN);
-> +               strlcat(alt_path, board_types[i], BRCMF_FW_NAME_LEN);
-> +               strlcat(alt_path, suffix, BRCMF_FW_NAME_LEN);
-> +
-> +               alt_paths[i] = kstrdup(alt_path, GFP_KERNEL);
-> +               brcmf_dbg(TRACE, "FW alt path: %s\n", alt_paths[i]);
+Mark, could you send a PR including those for 5.17?
+The rest HD-audio part of the patch set depends on this new ASoC codec
+stuff (at least Kconfig), so I can't apply the patches before merging
+those.  The ACPI patch might be still not applicable through my tree,
+but it can be taken independently.
 
-Consider replacing these string manipulations with kasprintf().
 
--- 
-With Best Regards,
-Andy Shevchenko
+thanks,
+
+Takashi
