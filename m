@@ -2,33 +2,33 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62319C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 12 Jan 2022 18:28:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C3E1C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 12 Jan 2022 18:28:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343913AbiALS2F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 12 Jan 2022 13:28:05 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:43766 "EHLO
+        id S1343917AbiALS2G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 12 Jan 2022 13:28:06 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:44696 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241342AbiALS2D (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2022 13:28:03 -0500
+        with ESMTP id S243657AbiALS2E (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2022 13:28:04 -0500
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 4.0.0)
- id 4e0ec7d74a8bc4ac; Wed, 12 Jan 2022 19:28:01 +0100
+ id 2fc06adbf11031c1; Wed, 12 Jan 2022 19:28:03 +0100
 Received: from kreacher.localnet (unknown [213.134.181.123])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 71A5566B132;
-        Wed, 12 Jan 2022 19:28:00 +0100 (CET)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 2CE3F66B132;
+        Wed, 12 Jan 2022 19:28:02 +0100 (CET)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Dan Carpenter <dan.carpenter@oracle.com>,
         Steven Noonan <steven@valvesoftware.com>,
         Huang Rui <ray.huang@amd.com>
-Subject: [PATCH v1 2/2] ACPI: CPPC: Drop redundant local variable from cpc_read()
-Date:   Wed, 12 Jan 2022 19:27:22 +0100
-Message-ID: <4374346.LvFx2qVVIh@kreacher>
+Subject: [PATCH v1 1/2] ACPI: CPPC: Fix up I/O port access in cpc_read()
+Date:   Wed, 12 Jan 2022 19:26:32 +0100
+Message-ID: <5789025.lOV4Wx5bFT@kreacher>
 In-Reply-To: <11905930.O9o76ZdvQC@kreacher>
 References: <11905930.O9o76ZdvQC@kreacher>
 MIME-Version: 1.0
@@ -37,8 +37,8 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.181.123
 X-CLIENT-HOSTNAME: 213.134.181.123
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrtddugdekkecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdejlefghfeiudektdelkeekvddugfeghffggeejgfeukeejleevgffgvdeluddtnecukfhppedvudefrddufeegrddukedurdduvdefnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekuddruddvfedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohephedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghnrdgtrghrphgvnhhtvghrsehorhgrtghlvgdrtghomhdprhgtphhtthhopehsthgvvhgvnhesvhgrlhhvvghsohhfthifrghrvgdrtghomhdprhgt
- phhtthhopehrrgihrdhhuhgrnhhgsegrmhgurdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrtddugdekkecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepteeggfelteegudehueegieekveduleeuledvueefjeefffegfeejudfgteefhefhnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkphepvddufedrudefgedrudekuddruddvfeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukedurdduvdefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepuggrnhdrtggrrhhpvghnthgvrhesohhrrggtlhgvrdgtohhmpdhrtghpthhtohepshhtvghvvghnsehv
+ rghlvhgvshhofhhtfigrrhgvrdgtohhmpdhrtghpthhtoheprhgrhidrhhhurghnghesrghmugdrtghomh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -46,49 +46,42 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The ret_val local variable in cpc_read() is not necessary, so
-eliminate it.
+The code as currently implemented does not work on big endian systems,
+so fix it up.
 
-No functional impact.
-
+Fixes: a2c8f92bea5f ("ACPI: CPPC: Implement support for SystemIO registers")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Suggested-by: Dan Carpenter <dan.carpenter@oracle.com>
+Link: https://lore.kernel.org/linux-acpi/20220111092928.GA24968@kili/
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/cppc_acpi.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/acpi/cppc_acpi.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 Index: linux-pm/drivers/acpi/cppc_acpi.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/cppc_acpi.c
 +++ linux-pm/drivers/acpi/cppc_acpi.c
-@@ -915,14 +915,13 @@ int __weak cpc_write_ffh(int cpunum, str
+@@ -929,16 +929,18 @@ static int cpc_read(int cpu, struct cpc_
  
- static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
- {
--	int ret_val = 0;
- 	void __iomem *vaddr = NULL;
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
+ 	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+ 		u32 width = 8 << (reg->access_width - 1);
++		u32 val_u32;
+ 		acpi_status status;
  
- 	if (reg_res->type == ACPI_TYPE_INTEGER) {
- 		*val = reg_res->cpc_entry.int_value;
--		return ret_val;
-+		return 0;
- 	}
+ 		status = acpi_os_read_port((acpi_io_address)reg->address,
+-					   (u32 *)val, width);
++					   &val_u32, width);
+ 		if (ACPI_FAILURE(status)) {
+ 			pr_debug("Error: Failed to read SystemIO port %llx\n",
+ 				 reg->address);
+ 			return -EFAULT;
+ 		}
  
- 	*val = 0;
-@@ -968,10 +967,10 @@ static int cpc_read(int cpu, struct cpc_
- 	default:
- 		pr_debug("Error: Cannot read %u bit width from PCC for ss: %d\n",
- 			 reg->bit_width, pcc_ss_id);
--		ret_val = -EFAULT;
-+		return -EFAULT;
- 	}
- 
--	return ret_val;
-+	return 0;
- }
- 
- static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
++		*val = val_u32;
+ 		return 0;
+ 	} else if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM && pcc_ss_id >= 0)
+ 		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
 
 
 
