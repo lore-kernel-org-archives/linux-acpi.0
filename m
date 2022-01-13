@@ -2,414 +2,218 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E69D8C4332F
-	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jan 2022 17:07:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C0DBC433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 13 Jan 2022 17:42:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233932AbiAMRH5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 13 Jan 2022 12:07:57 -0500
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:34524 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230090AbiAMRHu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Jan 2022 12:07:50 -0500
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20DGAV42020998;
-        Thu, 13 Jan 2022 11:07:35 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=PODMain02222019;
- bh=K6AuF+RjMil6+/0ThjKZ4Rh00Akizg/P1nMqOVzITu4=;
- b=D4ohoHiwIToUc5ZvvW3mqpiViCHgbO8fatHmWuvYJrVRvcmPgrY2rSmRh4dYsnR6ipx+
- nHNGCKX5Bx0NO/V0ibJTBbZVuZ6BCpIBCg5vgk03R6T6Ju3IofORWpuaYxAzNkIEVuyP
- Z+gdUhvYvsjQMtOTO+OCPyeahkloeHLfJqhMPd/5AX+UxRoQOTJv9PE7bA0bcbg6x+ko
- cqXD0Xlt012XexJtkbFf2SZxE6tJXzGDfuQ5bLl/5xvS0y5gPFV0iu9rckXSdTO5T0ON
- 0Rg4+FsK1WRR/4Ihavr1J41Vu0tNSF4ajmxDH1/YHNmXAXUw4pEAg1V5lGMqZmI5P/Ct Tg== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3djqcb026y-3
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 13 Jan 2022 11:07:34 -0600
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Thu, 13 Jan
- 2022 17:07:32 +0000
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.18 via Frontend
- Transport; Thu, 13 Jan 2022 17:07:32 +0000
-Received: from aryzen.ad.cirrus.com (unknown [198.61.65.50])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id B36FA11D8;
-        Thu, 13 Jan 2022 17:07:31 +0000 (UTC)
-From:   Lucas Tanure <tanureal@opensource.cirrus.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
-CC:     <alsa-devel@alsa-project.org>, <linux-acpi@vger.kernel.org>,
-        <patches@opensource.cirrus.com>,
-        <platform-driver-x86@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Lucas Tanure <tanureal@opensource.cirrus.com>
-Subject: [PATCH 4/5] ALSA: hda: cs35l41: Tidyup code and add default cases
-Date:   Thu, 13 Jan 2022 17:07:27 +0000
-Message-ID: <20220113170728.1953559-4-tanureal@opensource.cirrus.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220113170728.1953559-1-tanureal@opensource.cirrus.com>
-References: <20220113170728.1953559-1-tanureal@opensource.cirrus.com>
+        id S237208AbiAMRm1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 13 Jan 2022 12:42:27 -0500
+Received: from mga04.intel.com ([192.55.52.120]:54400 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229702AbiAMRm0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 13 Jan 2022 12:42:26 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1642095746; x=1673631746;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=7vvfp8QEIFWemWmYZbPUkb7BTfnB33/a8QpFyM2EwNM=;
+  b=XopSoiwv5FPkVweHh+vckZtb+SV5fdkSl616gpBW7k1yHWL1D1pGHDx/
+   ojUhbHmDfBJilflWSzveUz1JTrk8UX147aB/kPJZQ/NidIPrv71UPYnhA
+   2vgXklnXBPfEgfeSLFsn7oKBCBbrehl/mZdE1xFHYSQJbxJsetbg6gi3P
+   S6+dAEKxM7/OXvAM9SMXLDDNI9Y5PcCpzhNolQXgLeCb4/1Gz+yo37ZRb
+   lq0hHy9FxV+k0A7ettxZVDk5ARddBS7eo4Ng9gD9tUHk3RWxIey5fL33u
+   qni2BVUR+Xmssbi9lmOqDGCWiJedP60KQL7H7q6dUIFp73/vOKxRibzsB
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10226"; a="242887674"
+X-IronPort-AV: E=Sophos;i="5.88,286,1635231600"; 
+   d="scan'208";a="242887674"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2022 09:42:01 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,286,1635231600"; 
+   d="scan'208";a="593415788"
+Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
+  by fmsmga004.fm.intel.com with ESMTP; 13 Jan 2022 09:41:59 -0800
+Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1n846o-0007VF-FP; Thu, 13 Jan 2022 17:41:58 +0000
+Date:   Fri, 14 Jan 2022 01:41:13 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS WITH WARNING
+ 625b47dd50305ce992adb54412e7294c9a9a6468
+Message-ID: <61e06439.qy0uOpPWwP7XQiav%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-GUID: 5tLMwNYK6dS_nHsRK5vpZY1a5J8A-Byv
-X-Proofpoint-ORIG-GUID: 5tLMwNYK6dS_nHsRK5vpZY1a5J8A-Byv
-X-Proofpoint-Spam-Reason: safe
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Clean up the code, plus adding default cases for switch
-and dev_err_probe use.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 625b47dd50305ce992adb54412e7294c9a9a6468  Merge branch 'pm-core' into bleeding-edge
 
-Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
+Warning reports:
+
+https://lore.kernel.org/llvm/202112280907.gTYYYuB4-lkp@intel.com
+
+Warning in current branch:
+
+drivers/acpi/acpica/exregion.c:519:17: warning: performing pointer subtraction with a null pointer has undefined behavior [-Wnull-pointer-subtraction]
+
+Warning ids grouped by kconfigs:
+
+clang_recent_errors
+|-- i386-randconfig-a002
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- i386-randconfig-a004
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- i386-randconfig-a006
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- i386-randconfig-a011
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- i386-randconfig-a013
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- i386-randconfig-a015
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- i386-randconfig-c001
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- x86_64-randconfig-a001
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- x86_64-randconfig-a003
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- x86_64-randconfig-a005
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- x86_64-randconfig-a012
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- x86_64-randconfig-a014
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+|-- x86_64-randconfig-a016
+|   `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+`-- x86_64-randconfig-c007
+    `-- drivers-acpi-acpica-exregion.c:warning:performing-pointer-subtraction-with-a-null-pointer-has-undefined-behavior
+
+elapsed time: 1350m
+
+configs tested: 107
+configs skipped: 3
+
+gcc tested configs:
+arm                                 defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+arm64                               defconfig
+arm64                            allyesconfig
+i386                          randconfig-c001
+mips                 randconfig-c004-20220112
+mips                  maltasmvp_eva_defconfig
+powerpc                      mgcoge_defconfig
+openrisc                            defconfig
+powerpc                         wii_defconfig
+arm                       omap2plus_defconfig
+h8300                     edosk2674_defconfig
+sh                        sh7763rdp_defconfig
+m68k                       m5275evb_defconfig
+sparc                       sparc64_defconfig
+powerpc                   currituck_defconfig
+arm                  randconfig-c002-20220113
+ia64                                defconfig
+ia64                             allmodconfig
+ia64                             allyesconfig
+m68k                                defconfig
+m68k                             allyesconfig
+m68k                             allmodconfig
+nds32                             allnoconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                               defconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+nios2                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+h8300                            allyesconfig
+xtensa                           allyesconfig
+parisc                              defconfig
+s390                             allmodconfig
+s390                                defconfig
+parisc                           allyesconfig
+s390                             allyesconfig
+i386                             allyesconfig
+sparc                               defconfig
+i386                                defconfig
+i386                   debian-10.3-kselftests
+i386                              debian-10.3
+sparc                            allyesconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                           allnoconfig
+powerpc                          allmodconfig
+powerpc                          allyesconfig
+i386                          randconfig-a003
+i386                          randconfig-a001
+i386                          randconfig-a005
+x86_64                        randconfig-a011
+x86_64                        randconfig-a013
+x86_64                        randconfig-a015
+x86_64                        randconfig-a004
+x86_64                        randconfig-a002
+x86_64                        randconfig-a006
+i386                          randconfig-a012
+i386                          randconfig-a014
+i386                          randconfig-a016
+arc                  randconfig-r043-20220112
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                    rhel-8.3-kselftests
+um                             i386_defconfig
+um                           x86_64_defconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+x86_64                           allyesconfig
+x86_64                          rhel-8.3-func
+
+clang tested configs:
+arm                  randconfig-c002-20220113
+x86_64                        randconfig-c007
+powerpc              randconfig-c003-20220113
+i386                          randconfig-c001
+s390                 randconfig-c005-20220113
+mips                 randconfig-c004-20220113
+riscv                randconfig-c006-20220113
+mips                  cavium_octeon_defconfig
+powerpc                     skiroot_defconfig
+powerpc                     tqm5200_defconfig
+powerpc                    socrates_defconfig
+arm                           spitz_defconfig
+powerpc                          g5_defconfig
+i386                          randconfig-a002
+i386                          randconfig-a004
+i386                          randconfig-a006
+x86_64                        randconfig-a012
+x86_64                        randconfig-a014
+x86_64                        randconfig-a016
+x86_64                        randconfig-a003
+x86_64                        randconfig-a001
+x86_64                        randconfig-a005
+i386                          randconfig-a011
+i386                          randconfig-a013
+i386                          randconfig-a015
+hexagon              randconfig-r045-20220112
+s390                 randconfig-r044-20220112
+hexagon              randconfig-r041-20220112
+riscv                randconfig-r042-20220112
+
 ---
- sound/pci/hda/cs35l41_hda.c     | 109 ++++++++++++++++----------------
- sound/pci/hda/cs35l41_hda.h     |   2 +-
- sound/pci/hda/cs35l41_hda_i2c.c |   1 -
- sound/pci/hda/cs35l41_hda_spi.c |   1 -
- 4 files changed, 57 insertions(+), 56 deletions(-)
-
-diff --git a/sound/pci/hda/cs35l41_hda.c b/sound/pci/hda/cs35l41_hda.c
-index c4f25e48dcc0..cb8331587c17 100644
---- a/sound/pci/hda/cs35l41_hda.c
-+++ b/sound/pci/hda/cs35l41_hda.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- //
--// cs35l41.c -- CS35l41 ALSA HDA audio driver
-+// CS35l41 ALSA HDA audio driver
- //
- // Copyright 2021 Cirrus Logic, Inc.
- //
-@@ -17,19 +17,19 @@
- #include "cs35l41_hda.h"
- 
- static const struct reg_sequence cs35l41_hda_config[] = {
--	{ CS35L41_PLL_CLK_CTRL,		0x00000430 }, //3200000Hz, BCLK Input, PLL_REFCLK_EN = 1
--	{ CS35L41_GLOBAL_CLK_CTRL,	0x00000003 }, //GLOBAL_FS = 48 kHz
--	{ CS35L41_SP_ENABLES,		0x00010000 }, //ASP_RX1_EN = 1
--	{ CS35L41_SP_RATE_CTRL,		0x00000021 }, //ASP_BCLK_FREQ = 3.072 MHz
--	{ CS35L41_SP_FORMAT,		0x20200200 }, //24 bits, I2S, BCLK Slave, FSYNC Slave
--	{ CS35L41_DAC_PCM1_SRC,		0x00000008 }, //DACPCM1_SRC = ASPRX1
--	{ CS35L41_AMP_DIG_VOL_CTRL,	0x00000000 }, //AMP_VOL_PCM  0.0 dB
--	{ CS35L41_AMP_GAIN_CTRL,	0x00000084 }, //AMP_GAIN_PCM 4.5 dB
--	{ CS35L41_PWR_CTRL2,		0x00000001 }, //AMP_EN = 1
-+	{ CS35L41_PLL_CLK_CTRL,		0x00000430 }, // 3200000Hz, BCLK Input, PLL_REFCLK_EN = 1
-+	{ CS35L41_GLOBAL_CLK_CTRL,	0x00000003 }, // GLOBAL_FS = 48 kHz
-+	{ CS35L41_SP_ENABLES,		0x00010000 }, // ASP_RX1_EN = 1
-+	{ CS35L41_SP_RATE_CTRL,		0x00000021 }, // ASP_BCLK_FREQ = 3.072 MHz
-+	{ CS35L41_SP_FORMAT,		0x20200200 }, // 24 bits, I2S, BCLK Slave, FSYNC Slave
-+	{ CS35L41_DAC_PCM1_SRC,		0x00000008 }, // DACPCM1_SRC = ASPRX1
-+	{ CS35L41_AMP_DIG_VOL_CTRL,	0x00000000 }, // AMP_VOL_PCM  0.0 dB
-+	{ CS35L41_AMP_GAIN_CTRL,	0x00000084 }, // AMP_GAIN_PCM 4.5 dB
-+	{ CS35L41_PWR_CTRL2,		0x00000001 }, // AMP_EN = 1
- };
- 
- static const struct reg_sequence cs35l41_hda_start_bst[] = {
--	{ CS35L41_PWR_CTRL2,		0x00000021 }, //BST_EN = 10, AMP_EN = 1
-+	{ CS35L41_PWR_CTRL2,		0x00000021 }, // BST_EN = 10, AMP_EN = 1
- 	{ CS35L41_PWR_CTRL1,		0x00000001, 3000}, // set GLOBAL_EN = 1
- };
- 
-@@ -60,7 +60,7 @@ static const struct reg_sequence cs35l41_stop_ext_vspk[] = {
- 	{ 0x00000040,			0x00000055 },
- 	{ 0x00000040,			0x000000AA },
- 	{ 0x00007438,			0x00585941 },
--	{ 0x00002014,			0x00000000, 3000}, //set GLOBAL_EN = 0
-+	{ 0x00002014,			0x00000000, 3000}, // set GLOBAL_EN = 0
- 	{ 0x0000742C,			0x00000009 },
- 	{ 0x00007438,			0x00580941 },
- 	{ 0x00011008,			0x00000001 },
-@@ -78,7 +78,7 @@ static const struct reg_sequence cs35l41_safe_to_active[] = {
- 	{ 0x0000742C,			0x0000000F },
- 	{ 0x0000742C,			0x00000079 },
- 	{ 0x00007438,			0x00585941 },
--	{ CS35L41_PWR_CTRL1,		0x00000001, 2000 }, //GLOBAL_EN = 1
-+	{ CS35L41_PWR_CTRL1,		0x00000001, 2000 }, // GLOBAL_EN = 1
- 	{ 0x0000742C,			0x000000F9 },
- 	{ 0x00007438,			0x00580941 },
- 	{ 0x00000040,			0x000000CC },
-@@ -89,8 +89,8 @@ static const struct reg_sequence cs35l41_active_to_safe[] = {
- 	{ 0x00000040,			0x00000055 },
- 	{ 0x00000040,			0x000000AA },
- 	{ 0x00007438,			0x00585941 },
--	{ CS35L41_AMP_DIG_VOL_CTRL,	0x0000A678 }, //AMP_VOL_PCM Mute
--	{ CS35L41_PWR_CTRL2,		0x00000000 }, //AMP_EN = 0
-+	{ CS35L41_AMP_DIG_VOL_CTRL,	0x0000A678 }, // AMP_VOL_PCM Mute
-+	{ CS35L41_PWR_CTRL2,		0x00000000 }, // AMP_EN = 0
- 	{ CS35L41_PWR_CTRL1,		0x00000000 },
- 	{ 0x0000742C,			0x00000009, 2000 },
- 	{ 0x00007438,			0x00580941 },
-@@ -161,11 +161,13 @@ static void cs35l41_hda_playback_hook(struct device *dev, int action)
- 		if (reg_seq->close)
- 			ret = regmap_multi_reg_write(reg, reg_seq->close, reg_seq->num_close);
- 		break;
-+	default:
-+		ret = -EINVAL;
-+		break;
- 	}
- 
- 	if (ret)
- 		dev_warn(cs35l41->dev, "Failed to apply multi reg write: %d\n", ret);
--
- }
- 
- static int cs35l41_hda_channel_map(struct device *dev, unsigned int tx_num, unsigned int *tx_slot,
-@@ -182,20 +184,19 @@ static int cs35l41_hda_bind(struct device *dev, struct device *master, void *mas
- 	struct cs35l41_hda *cs35l41 = dev_get_drvdata(dev);
- 	struct hda_component *comps = master_data;
- 
--	if (comps && cs35l41->index >= 0 && cs35l41->index < HDA_MAX_COMPONENTS)
--		comps = &comps[cs35l41->index];
--	else
-+	if (!comps || cs35l41->index < 0 || cs35l41->index >= HDA_MAX_COMPONENTS)
- 		return -EINVAL;
- 
--	if (!comps->dev) {
--		comps->dev = dev;
--		strscpy(comps->name, dev_name(dev), sizeof(comps->name));
--		comps->playback_hook = cs35l41_hda_playback_hook;
--		comps->set_channel_map = cs35l41_hda_channel_map;
--		return 0;
--	}
-+	comps = &comps[cs35l41->index];
-+	if (comps->dev)
-+		return -EBUSY;
-+
-+	comps->dev = dev;
-+	strscpy(comps->name, dev_name(dev), sizeof(comps->name));
-+	comps->playback_hook = cs35l41_hda_playback_hook;
-+	comps->set_channel_map = cs35l41_hda_channel_map;
- 
--	return -EBUSY;
-+	return 0;
- }
- 
- static void cs35l41_hda_unbind(struct device *dev, struct device *master, void *master_data)
-@@ -235,6 +236,8 @@ static int cs35l41_hda_apply_properties(struct cs35l41_hda *cs35l41,
- 		regmap_update_bits(cs35l41->regmap, CS35L41_GPIO_PAD_CONTROL,
- 				   CS35L41_GPIO1_CTRL_MASK, 2 << CS35L41_GPIO1_CTRL_SHIFT);
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	switch (hw_cfg->gpio2_func) {
-@@ -242,6 +245,8 @@ static int cs35l41_hda_apply_properties(struct cs35l41_hda *cs35l41,
- 		regmap_update_bits(cs35l41->regmap, CS35L41_GPIO_PAD_CONTROL,
- 				   CS35L41_GPIO2_CTRL_MASK, 2 << CS35L41_GPIO2_CTRL_SHIFT);
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	if (internal_boost) {
-@@ -256,11 +261,7 @@ static int cs35l41_hda_apply_properties(struct cs35l41_hda *cs35l41,
- 		cs35l41->reg_seq = &cs35l41_hda_reg_seq_ext_bst;
- 	}
- 
--	ret = cs35l41_hda_channel_map(cs35l41->dev, 0, NULL, 1, (unsigned int *)&hw_cfg->spk_pos);
--	if (ret)
--		return ret;
--
--	return 0;
-+	return cs35l41_hda_channel_map(cs35l41->dev, 0, NULL, 1, (unsigned int *)&hw_cfg->spk_pos);
- }
- 
- static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *cs35l41,
-@@ -269,7 +270,7 @@ static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *c
- 	struct cs35l41_hda_hw_config *hw_cfg;
- 	u32 values[HDA_MAX_COMPONENTS];
- 	struct acpi_device *adev;
--	struct device *acpi_dev;
-+	struct device *physdev;
- 	char *property;
- 	size_t nval;
- 	int i, ret;
-@@ -280,11 +281,11 @@ static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *c
- 		return ERR_PTR(-ENODEV);
- 	}
- 
--	acpi_dev = get_device(acpi_get_first_physical_node(adev));
-+	physdev = get_device(acpi_get_first_physical_node(adev));
- 	acpi_dev_put(adev);
- 
- 	property = "cirrus,dev-index";
--	ret = device_property_count_u32(acpi_dev, property);
-+	ret = device_property_count_u32(physdev, property);
- 	if (ret <= 0)
- 		goto no_acpi_dsd;
- 
-@@ -294,7 +295,7 @@ static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *c
- 	}
- 	nval = ret;
- 
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret)
- 		goto err;
- 
-@@ -311,7 +312,9 @@ static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *c
- 		goto err;
- 	}
- 
--	/* No devm_ version as CLSA0100, in no_acpi_dsd case, can't use devm version */
-+	/* To use the same release code for all laptop variants we can't use devm_ version of
-+	 * gpiod_get here, as CLSA010* don't have a fully functional bios with an _DSD node
-+	 */
- 	cs35l41->reset_gpio = fwnode_gpiod_get_index(&adev->fwnode, "reset", cs35l41->index,
- 						     GPIOD_OUT_LOW, "cs35l41-reset");
- 
-@@ -322,46 +325,46 @@ static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *c
- 	}
- 
- 	property = "cirrus,speaker-position";
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret)
- 		goto err_free;
- 	hw_cfg->spk_pos = values[cs35l41->index];
- 
- 	property = "cirrus,gpio1-func";
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret)
- 		goto err_free;
- 	hw_cfg->gpio1_func = values[cs35l41->index];
- 
- 	property = "cirrus,gpio2-func";
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret)
- 		goto err_free;
- 	hw_cfg->gpio2_func = values[cs35l41->index];
- 
- 	property = "cirrus,boost-peak-milliamp";
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret == 0)
- 		hw_cfg->bst_ipk = values[cs35l41->index];
- 
- 	property = "cirrus,boost-ind-nanohenry";
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret == 0)
- 		hw_cfg->bst_ind = values[cs35l41->index];
- 
- 	property = "cirrus,boost-cap-microfarad";
--	ret = device_property_read_u32_array(acpi_dev, property, values, nval);
-+	ret = device_property_read_u32_array(physdev, property, values, nval);
- 	if (ret == 0)
- 		hw_cfg->bst_cap = values[cs35l41->index];
- 
--	put_device(acpi_dev);
-+	put_device(physdev);
- 
- 	return hw_cfg;
- 
- err_free:
- 	kfree(hw_cfg);
- err:
--	put_device(acpi_dev);
-+	put_device(physdev);
- 	dev_err(cs35l41->dev, "Failed property %s: %d\n", property, ret);
- 
- 	return ERR_PTR(ret);
-@@ -370,18 +373,18 @@ static struct cs35l41_hda_hw_config *cs35l41_hda_read_acpi(struct cs35l41_hda *c
- 	/*
- 	 * Device CLSA0100 doesn't have _DSD so a gpiod_get by the label reset won't work.
- 	 * And devices created by i2c-multi-instantiate don't have their device struct pointing to
--	 * the correct fwnode, so acpi_dev must be used here
-+	 * the correct fwnode, so acpi_dev must be used here.
- 	 * And devm functions expect that the device requesting the resource has the correct
--	 * fwnode
-+	 * fwnode.
- 	 */
- 	if (strncmp(hid, "CLSA0100", 8) != 0)
- 		return ERR_PTR(-EINVAL);
- 
- 	/* check I2C address to assign the index */
- 	cs35l41->index = id == 0x40 ? 0 : 1;
--	cs35l41->reset_gpio = gpiod_get_index(acpi_dev, NULL, 0, GPIOD_OUT_HIGH);
-+	cs35l41->reset_gpio = gpiod_get_index(physdev, NULL, 0, GPIOD_OUT_HIGH);
- 	cs35l41->vspk_always_on = true;
--	put_device(acpi_dev);
-+	put_device(physdev);
- 
- 	return NULL;
- }
-@@ -416,8 +419,7 @@ int cs35l41_hda_probe(struct device *dev, const char *device_name, int id, int i
- 		if (ret == -EBUSY) {
- 			dev_info(cs35l41->dev, "Reset line busy, assuming shared reset\n");
- 		} else {
--			if (ret != -EPROBE_DEFER)
--				dev_err(cs35l41->dev, "Failed to get reset GPIO: %d\n", ret);
-+			dev_err_probe(cs35l41->dev, ret, "Failed to get reset GPIO: %d\n", ret);
- 			goto err;
- 		}
- 	}
-@@ -437,7 +439,8 @@ int cs35l41_hda_probe(struct device *dev, const char *device_name, int id, int i
- 
- 	ret = regmap_read(cs35l41->regmap, CS35L41_IRQ1_STATUS3, &int_sts);
- 	if (ret || (int_sts & CS35L41_OTP_BOOT_ERR)) {
--		dev_err(cs35l41->dev, "OTP Boot error\n");
-+		dev_err(cs35l41->dev, "OTP Boot status %x error: %d\n",
-+			int_sts & CS35L41_OTP_BOOT_ERR, ret);
- 		ret = -EIO;
- 		goto err;
- 	}
-@@ -489,7 +492,7 @@ int cs35l41_hda_probe(struct device *dev, const char *device_name, int id, int i
- 
- 	if (cs35l41->reg_seq->probe) {
- 		ret = regmap_multi_reg_write(cs35l41->regmap, cs35l41->reg_seq->probe,
--					    cs35l41->reg_seq->num_probe);
-+					     cs35l41->reg_seq->num_probe);
- 		if (ret) {
- 			dev_err(cs35l41->dev, "Fail to apply probe reg patch: %d\n", ret);
- 			goto err;
-diff --git a/sound/pci/hda/cs35l41_hda.h b/sound/pci/hda/cs35l41_hda.h
-index 76c69a8a22f6..640afc98b686 100644
---- a/sound/pci/hda/cs35l41_hda.h
-+++ b/sound/pci/hda/cs35l41_hda.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0
-  *
-- * cs35l41_hda.h -- CS35L41 ALSA HDA audio driver
-+ * CS35L41 ALSA HDA audio driver
-  *
-  * Copyright 2021 Cirrus Logic, Inc.
-  *
-diff --git a/sound/pci/hda/cs35l41_hda_i2c.c b/sound/pci/hda/cs35l41_hda_i2c.c
-index eeb387853ee3..c2397dc53e78 100644
---- a/sound/pci/hda/cs35l41_hda_i2c.c
-+++ b/sound/pci/hda/cs35l41_hda_i2c.c
-@@ -58,7 +58,6 @@ static struct i2c_driver cs35l41_i2c_driver = {
- 	.probe		= cs35l41_hda_i2c_probe,
- 	.remove		= cs35l41_hda_i2c_remove,
- };
--
- module_i2c_driver(cs35l41_i2c_driver);
- 
- MODULE_DESCRIPTION("HDA CS35L41 driver");
-diff --git a/sound/pci/hda/cs35l41_hda_spi.c b/sound/pci/hda/cs35l41_hda_spi.c
-index 15345a72b9d1..36815ab4e461 100644
---- a/sound/pci/hda/cs35l41_hda_spi.c
-+++ b/sound/pci/hda/cs35l41_hda_spi.c
-@@ -55,7 +55,6 @@ static struct spi_driver cs35l41_spi_driver = {
- 	.probe		= cs35l41_hda_spi_probe,
- 	.remove		= cs35l41_hda_spi_remove,
- };
--
- module_spi_driver(cs35l41_spi_driver);
- 
- MODULE_DESCRIPTION("HDA CS35L41 driver");
--- 
-2.34.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
