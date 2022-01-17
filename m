@@ -2,25 +2,25 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20FE2C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jan 2022 14:31:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B768BC433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 17 Jan 2022 14:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240244AbiAQObs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jan 2022 09:31:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38502 "EHLO
+        id S240146AbiAQOcF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jan 2022 09:32:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239730AbiAQOb2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 09:31:28 -0500
+        with ESMTP id S240012AbiAQObq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 09:31:46 -0500
 Received: from mail.marcansoft.com (marcansoft.com [IPv6:2a01:298:fe:f::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32421C06175B;
-        Mon, 17 Jan 2022 06:31:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15885C061763;
+        Mon, 17 Jan 2022 06:31:36 -0800 (PST)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: hector@marcansoft.com)
-        by mail.marcansoft.com (Postfix) with ESMTPSA id 235D541E96;
-        Mon, 17 Jan 2022 14:31:02 +0000 (UTC)
+        by mail.marcansoft.com (Postfix) with ESMTPSA id 2FA3D421F5;
+        Mon, 17 Jan 2022 14:31:26 +0000 (UTC)
 From:   Hector Martin <marcan@marcan.st>
 To:     Kalle Valo <kvalo@codeaurora.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -47,11 +47,10 @@ Cc:     Hector Martin <marcan@marcan.st>, Sven Peter <sven@svenpeter.dev>,
         linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com,
-        SHA-cyfmac-dev-list@infineon.com,
-        Arend van Spriel <arend.vanspriel@broadcom.com>
-Subject: [PATCH v3 6/9] brcmfmac: pcie: Fix crashes due to early IRQs
-Date:   Mon, 17 Jan 2022 23:29:16 +0900
-Message-Id: <20220117142919.207370-7-marcan@marcan.st>
+        SHA-cyfmac-dev-list@infineon.com
+Subject: [PATCH v3 9/9] brcmfmac: pcie: Read the console on init and shutdown
+Date:   Mon, 17 Jan 2022 23:29:19 +0900
+Message-Id: <20220117142919.207370-10-marcan@marcan.st>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20220117142919.207370-1-marcan@marcan.st>
 References: <20220117142919.207370-1-marcan@marcan.st>
@@ -61,60 +60,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The driver was enabling IRQs before the message processing was
-initialized. This could cause IRQs to come in too early and crash the
-driver. Instead, move the IRQ enable and hostready to a bus preinit
-function, at which point everything is properly initialized.
+This allows us to get console messages if the firmware crashed during
+early init, or if an operation failed and we're about to shut down.
 
-Fixes: 9e37f045d5e7 ("brcmfmac: Adding PCIe bus layer support.")
 Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-Reviewed-by: Arend van Spriel <arend.vanspriel@broadcom.com>
 Signed-off-by: Hector Martin <marcan@marcan.st>
 ---
- .../wireless/broadcom/brcm80211/brcmfmac/pcie.c  | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
-index c25f48db1f60..3ff4997e1c97 100644
+index 3ff4997e1c97..4fe341376a16 100644
 --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
 +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
-@@ -1315,6 +1315,18 @@ static void brcmf_pcie_down(struct device *dev)
- {
+@@ -744,6 +744,8 @@ static void brcmf_pcie_bus_console_read(struct brcmf_pciedev_info *devinfo,
+ 		return;
+ 
+ 	console = &devinfo->shared.console;
++	if (!console->base_addr)
++		return;
+ 	addr = console->base_addr + BRCMF_CONSOLE_WRITEIDX_OFFSET;
+ 	newidx = brcmf_pcie_read_tcm32(devinfo, addr);
+ 	while (newidx != console->read_idx) {
+@@ -1520,6 +1522,7 @@ brcmf_pcie_init_share_ram_info(struct brcmf_pciedev_info *devinfo,
+ 		  shared->max_rxbufpost, shared->rx_dataoffset);
+ 
+ 	brcmf_pcie_bus_console_init(devinfo);
++	brcmf_pcie_bus_console_read(devinfo, false);
+ 
+ 	return 0;
  }
+@@ -1959,6 +1962,7 @@ brcmf_pcie_remove(struct pci_dev *pdev)
+ 		return;
  
-+static int brcmf_pcie_preinit(struct device *dev)
-+{
-+	struct brcmf_bus *bus_if = dev_get_drvdata(dev);
-+	struct brcmf_pciedev *buspub = bus_if->bus_priv.pcie;
-+
-+	brcmf_dbg(PCIE, "Enter\n");
-+
-+	brcmf_pcie_intr_enable(buspub->devinfo);
-+	brcmf_pcie_hostready(buspub->devinfo);
-+
-+	return 0;
-+}
+ 	devinfo = bus->bus_priv.pcie->devinfo;
++	brcmf_pcie_bus_console_read(devinfo, false);
  
- static int brcmf_pcie_tx(struct device *dev, struct sk_buff *skb)
- {
-@@ -1423,6 +1435,7 @@ static int brcmf_pcie_reset(struct device *dev)
- }
- 
- static const struct brcmf_bus_ops brcmf_pcie_bus_ops = {
-+	.preinit = brcmf_pcie_preinit,
- 	.txdata = brcmf_pcie_tx,
- 	.stop = brcmf_pcie_down,
- 	.txctl = brcmf_pcie_tx_ctlpkt,
-@@ -1795,9 +1808,6 @@ static void brcmf_pcie_setup(struct device *dev, int ret,
- 
- 	init_waitqueue_head(&devinfo->mbdata_resp_wait);
- 
--	brcmf_pcie_intr_enable(devinfo);
--	brcmf_pcie_hostready(devinfo);
--
- 	ret = brcmf_attach(&devinfo->pdev->dev);
- 	if (ret)
- 		goto fail;
+ 	devinfo->state = BRCMFMAC_PCIE_STATE_DOWN;
+ 	if (devinfo->ci)
 -- 
 2.33.0
 
