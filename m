@@ -2,50 +2,46 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63A93C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 03:04:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF33EC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 03:04:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346619AbiARDEc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jan 2022 22:04:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34446 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349171AbiARCrh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:47:37 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4149BC0619C4;
-        Mon, 17 Jan 2022 18:39:11 -0800 (PST)
+        id S1346662AbiARDEe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jan 2022 22:04:34 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:42052 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1345833AbiARCsk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:48:40 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2387161127;
-        Tue, 18 Jan 2022 02:39:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1536C36AF7;
-        Tue, 18 Jan 2022 02:39:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5846D61294;
+        Tue, 18 Jan 2022 02:48:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E85C36AF6;
+        Tue, 18 Jan 2022 02:48:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642473550;
-        bh=dXBOlCuoOPukKy5ijeo0ko66jl0mtrClLVGnUYITNaU=;
+        s=k20201202; t=1642474118;
+        bh=FNVb3dcHIBLomxyIdcLDZf6bDvbLp1BTjjK8xjoWU5A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QKJKVu+IHNDjjBbDIbzf3vlbFVk6YmYiAqupARq3VPb6913zzUEpk4alUFrpyKRZR
-         QYwaKK8c2a+qY0+Qo3GWlOG9buXrunklfcD39QchWVh+3hQy/4ZVq4eJ4uuqd96D6Z
-         P1CSPPyl5Ln4D30v8nAYcNBVvVyyHItnbepH83TomxvI9favHWWkQFNuxobk0EiHD9
-         /Kkg7PbOgqGjMPkEybaGmPsDjZy+hkIJ+YMYhe7ruMgUxnA/qSB5h3UqDpXWy3kiF8
-         qh1bRb1bmyOLeaNKHhU84YJPP5TpurtdosttNZMyJ/BeuvBQ6cF0DCpz5aj3+t7kQ0
-         td4QO6A6S2vwg==
+        b=m23FwRri3RvkE986WqbOH4boIY34Pyuwn1TDkQAbf+CMHB8Jfgpig+oomcKmXO6Sa
+         e7MTtdi/9Qtas3aYix1/edgf/XoesFjBdqKDYJ6RQi1w9eh/nlb+Rf/eowxQg80/0Y
+         UxAYdthg1u8rAntZSbRkefXl0/uVr37/JmE/2g2NFN9c0DfNeAwmi2B0+AbNjMvfeT
+         GsLgwIzlB/cqP0/ahVccd2LEotupAsWmBXaJ1v+QatX80sBvchqBBiYnYPWcSfjsIC
+         dZ5iZ8c0Y7DoXycUz8KrjyaYKQwrE9ZsREFFPVD617F1sD4nxmu34kUimZx9WcGj1W
+         t53QJHTggdsWg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     =?UTF-8?q?Thomas=20Wei=C3=9Fschuh?= <linux@weissschuh.net>,
-        Hans de Goede <hdegoede@redhat.com>,
+Cc:     Mark Langsdorf <mlangsdo@redhat.com>,
+        Bob Moore <robert.moore@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 162/188] ACPI: battery: Add the ThinkPad "Not Charging" quirk
-Date:   Mon, 17 Jan 2022 21:31:26 -0500
-Message-Id: <20220118023152.1948105-162-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org
+Subject: [PATCH AUTOSEL 4.19 42/59] ACPICA: actypes.h: Expand the ACPI_ACCESS_ definitions
+Date:   Mon, 17 Jan 2022 21:46:43 -0500
+Message-Id: <20220118024701.1952911-42-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220118023152.1948105-1-sashal@kernel.org>
-References: <20220118023152.1948105-1-sashal@kernel.org>
+In-Reply-To: <20220118024701.1952911-1-sashal@kernel.org>
+References: <20220118024701.1952911-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -53,80 +49,54 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Thomas Weißschuh <linux@weissschuh.net>
+From: Mark Langsdorf <mlangsdo@redhat.com>
 
-[ Upstream commit e96c1197aca628f7d2480a1cc3214912b40b3414 ]
+[ Upstream commit f81bdeaf816142e0729eea0cc84c395ec9673151 ]
 
-The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-of "Unknown" when the battery is between the charge start and
-charge stop thresholds. On Windows, it reports "Not Charging"
-so the quirk has been added to also report correctly.
+ACPICA commit bc02c76d518135531483dfc276ed28b7ee632ce1
 
-Now the "status" attribute returns "Not Charging" when the
-battery on ThinkPads is not physicaly charging.
+The current ACPI_ACCESS_*_WIDTH defines do not provide a way to
+test that size is small enough to not cause an overflow when
+applied to a 32-bit integer.
 
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Rather than adding more magic numbers, add ACPI_ACCESS_*_SHIFT,
+ACPI_ACCESS_*_MAX, and ACPI_ACCESS_*_DEFAULT #defines and
+redefine ACPI_ACCESS_*_WIDTH in terms of the new #defines.
+
+This was inititally reported on Linux where a size of 102 in
+ACPI_ACCESS_BIT_WIDTH caused an overflow error in the SPCR
+initialization code.
+
+Link: https://github.com/acpica/acpica/commit/bc02c76d
+Signed-off-by: Mark Langsdorf <mlangsdo@redhat.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/battery.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ include/acpi/actypes.h | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 8afa85d6eb6a7..ead0114f27c9f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -53,6 +53,7 @@ static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
- static int battery_ac_is_broken;
- static int battery_check_pmic = 1;
-+static int battery_quirk_notcharging;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -217,6 +218,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
- 			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		else if (battery_quirk_notcharging)
-+			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else
- 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
- 		break;
-@@ -1111,6 +1114,12 @@ battery_do_not_check_pmic_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 2939a6cd7fecb..9fc1dfc7f4c32 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -532,8 +532,14 @@ typedef u64 acpi_integer;
+  * Can be used with access_width of struct acpi_generic_address and access_size of
+  * struct acpi_resource_generic_register.
+  */
+-#define ACPI_ACCESS_BIT_WIDTH(size)     (1 << ((size) + 2))
+-#define ACPI_ACCESS_BYTE_WIDTH(size)    (1 << ((size) - 1))
++#define ACPI_ACCESS_BIT_SHIFT		2
++#define ACPI_ACCESS_BYTE_SHIFT		-1
++#define ACPI_ACCESS_BIT_MAX		(31 - ACPI_ACCESS_BIT_SHIFT)
++#define ACPI_ACCESS_BYTE_MAX		(31 - ACPI_ACCESS_BYTE_SHIFT)
++#define ACPI_ACCESS_BIT_DEFAULT		(8 - ACPI_ACCESS_BIT_SHIFT)
++#define ACPI_ACCESS_BYTE_DEFAULT	(8 - ACPI_ACCESS_BYTE_SHIFT)
++#define ACPI_ACCESS_BIT_WIDTH(size)	(1 << ((size) + ACPI_ACCESS_BIT_SHIFT))
++#define ACPI_ACCESS_BYTE_WIDTH(size)	(1 << ((size) + ACPI_ACCESS_BYTE_SHIFT))
  
-+static int __init battery_quirk_not_charging(const struct dmi_system_id *d)
-+{
-+	battery_quirk_notcharging = 1;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		/* NEC LZ750/LS */
-@@ -1155,6 +1164,19 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
- 		},
- 	},
-+	{
-+		/*
-+		 * On Lenovo ThinkPads the BIOS specification defines
-+		 * a state when the bits for charging and discharging
-+		 * are both set to 0. That state is "Not Charging".
-+		 */
-+		.callback = battery_quirk_not_charging,
-+		.ident = "Lenovo ThinkPad",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
-+		},
-+	},
- 	{},
- };
- 
+ /*******************************************************************************
+  *
 -- 
 2.34.1
 
