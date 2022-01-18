@@ -2,47 +2,48 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 652AAC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 03:06:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3E71C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 03:06:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353777AbiARDEg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jan 2022 22:04:36 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:57578 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345277AbiARCsv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:48:51 -0500
+        id S1346615AbiARDEh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jan 2022 22:04:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34916 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1349275AbiARCtU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:49:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DD2BC06177D;
+        Mon, 17 Jan 2022 18:41:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 82FCBB8124F;
-        Tue, 18 Jan 2022 02:48:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C31AC36AEF;
-        Tue, 18 Jan 2022 02:48:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A39DE60C96;
+        Tue, 18 Jan 2022 02:41:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B799C36AE3;
+        Tue, 18 Jan 2022 02:41:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642474128;
-        bh=fvew88oc9rXfBgGTAJEf7GitKFB3blNqbg6pMgytd3s=;
+        s=k20201202; t=1642473711;
+        bh=pDLLvoeU36LjGUQLKpr+514zihBBhyi8aheoZQjcDAU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oUacF1rlNOrcGLq+nEqZqaivhNuMbKk+Sv52OvJSpgLye0njLadu+U/roPPt3RhwZ
-         nXrc1mDDGUB2ZzWtq7vr4hWCAsF6uLgfUjhTB7TkCLVmi/HdXR3cm6aCWQuvkY4fp1
-         o3fk2ShXa/DXLDlpGlyTblJtI+QfAFB9J2qqIH1lKc0DMpp3IpNM7GVZZk5AqAY1nQ
-         IJrHObzv85iAnlXP9o5XAK9Q9T1+SWPqX/XgeP30/9lEluHUBpIakJXuuuCqShiXQw
-         sxX3kphN/xZtm9kQYMU/9x/klY7P9vNA+az/qMGqfCxpDKh86SBUvCgIPBaLclcCGu
-         GNF7LjjNOKCbQ==
+        b=H6T4j6vgCUVlmQAO5SvlWEw+j3u75tHVb2NRTk4eJeJFS9ExlJsTCMjTY1zdirP0v
+         6s3dmStqHFlkx3jz749PmISrIp3T8Zy/h9Z5+zecrdHvsI4gY+lYyQ+6XDksK0ZCAZ
+         AbTtaFX/m1SUirdqHCREyeSJ25g686k9vbsyfl0Tf3SYBhx8XGoXIHATqipSHymSm2
+         ZDJJvvnUjICxhQUX6wea8E1OQT0ePTgdw/tkJFadxyiIFv+BLfn2izf0pZH4MaUPhJ
+         txodsBnq8UVf7iX5g2GrcPcA4eeTy2Z0enzRfDzfoQJCbZLSi6hdkmY9TtuQ/h/f9K
+         XQy1C8jaYCGbw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     =?UTF-8?q?Thomas=20Wei=C3=9Fschuh?= <linux@weissschuh.net>,
-        Hans de Goede <hdegoede@redhat.com>,
+Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 47/59] ACPI: battery: Add the ThinkPad "Not Charging" quirk
-Date:   Mon, 17 Jan 2022 21:46:48 -0500
-Message-Id: <20220118024701.1952911-47-sashal@kernel.org>
+        mario.limonciello@amd.com, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.10 036/116] ACPI / x86: Drop PWM2 device on Lenovo Yoga Book from always present table
+Date:   Mon, 17 Jan 2022 21:38:47 -0500
+Message-Id: <20220118024007.1950576-36-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220118024701.1952911-1-sashal@kernel.org>
-References: <20220118024701.1952911-1-sashal@kernel.org>
+In-Reply-To: <20220118024007.1950576-1-sashal@kernel.org>
+References: <20220118024007.1950576-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -50,80 +51,46 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Thomas Weißschuh <linux@weissschuh.net>
+From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit e96c1197aca628f7d2480a1cc3214912b40b3414 ]
+[ Upstream commit d431dfb764b145369be820fcdfd50f2159b9bbc2 ]
 
-The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-of "Unknown" when the battery is between the charge start and
-charge stop thresholds. On Windows, it reports "Not Charging"
-so the quirk has been added to also report correctly.
+It turns out that there is a WMI object which controls the PWM2 device
+used for the keyboard backlight and that WMI object also provides some
+other useful functionality.
 
-Now the "status" attribute returns "Not Charging" when the
-battery on ThinkPads is not physicaly charging.
+The upcoming lenovo-yogabook-wmi driver will offer both backlight
+control and the other functionality, so there no longer is a need
+to have the lpss-pwm driver binding to PWM2 for backlight control;
+and this is now actually undesirable because this will cause both
+the WMI code and the lpss-pwm driver to poke at the same PWM
+controller.
 
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Drop the always-present quirk for the PWM2 ACPI-device, so that the
+ lpss-pwm controller will no longer bind to it.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/battery.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/acpi/x86/utils.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 0bbf8b453ebf2..d4e42a578e186 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -78,6 +78,7 @@ static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
- static int battery_ac_is_broken;
- static int battery_check_pmic = 1;
-+static int battery_quirk_notcharging;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -246,6 +247,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
- 			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		else if (battery_quirk_notcharging)
-+			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else
- 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
- 		break;
-@@ -1350,6 +1353,12 @@ battery_do_not_check_pmic_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index bdc1ba00aee9f..baaa44edc9441 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -54,10 +54,6 @@ static const struct always_present_id always_present_ids[] = {
+ 	ENTRY("80860F09", "1", X86_MATCH(ATOM_SILVERMONT), {}),
+ 	ENTRY("80862288", "1", X86_MATCH(ATOM_AIRMONT), {}),
  
-+static int __init battery_quirk_not_charging(const struct dmi_system_id *d)
-+{
-+	battery_quirk_notcharging = 1;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		/* NEC LZ750/LS */
-@@ -1394,6 +1403,19 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "Lenovo MIIX 320-10ICR"),
- 		},
- 	},
-+	{
-+		/*
-+		 * On Lenovo ThinkPads the BIOS specification defines
-+		 * a state when the bits for charging and discharging
-+		 * are both set to 0. That state is "Not Charging".
-+		 */
-+		.callback = battery_quirk_not_charging,
-+		.ident = "Lenovo ThinkPad",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
-+		},
-+	},
- 	{},
- };
- 
+-	/* Lenovo Yoga Book uses PWM2 for keyboard backlight control */
+-	ENTRY("80862289", "2", X86_MATCH(ATOM_AIRMONT), {
+-			DMI_MATCH(DMI_PRODUCT_NAME, "Lenovo YB1-X9"),
+-		}),
+ 	/*
+ 	 * The INT0002 device is necessary to clear wakeup interrupt sources
+ 	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
 -- 
 2.34.1
 
