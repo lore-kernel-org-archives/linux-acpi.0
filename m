@@ -2,128 +2,145 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E08EC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 10:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53478C4332F
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 14:54:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237818AbiARKo0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 18 Jan 2022 05:44:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32904 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230274AbiARKoY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jan 2022 05:44:24 -0500
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D089C061574;
-        Tue, 18 Jan 2022 02:44:23 -0800 (PST)
-Received: by mail-ed1-x52f.google.com with SMTP id z22so77500782edd.12;
-        Tue, 18 Jan 2022 02:44:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=CtzkMdSfCrnyPh2rB+DJtTILLwpvztUqax7V+OFUjMA=;
-        b=K01WJVgQUzeZ6CKQbjF+nfrEi+ppClBCVh8nFFlmgCEDOj9R5QixMRO4/W1GhXT1Y+
-         T025UDlZ+nepMZvwthUhn2ZOKcaER3u3V/Qt5Mt/kuzdWNTPq/67+oWp6lpj57JGe2fc
-         qYZC9ay1ucoiPEfM8OpG5V2ecPys5Dj8meQuQFFw/65m5zPAWMEpHBrO5TqHKv3cgcox
-         4Orr0DPD3n6CpBuJTafuhrECW893B/vYh7CS4GPafgB+Qz/gsInYxVw3ymlVPKt9E5t+
-         ukpl48IJ0snAQdsJZ+Lfvu8W6sT8rO40tJQeAr2rrZGG/8xPnyrEP8m7jKweaI+n3Q5G
-         hFlA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=CtzkMdSfCrnyPh2rB+DJtTILLwpvztUqax7V+OFUjMA=;
-        b=FXP67FqX5/m6G4gJ5bwvVsF11TUU6EBru1yNQ7aDWRj/mEpFnEJ8BAtrLu5HTZnJOP
-         ZMfT9dolyGWyyozEcme32aa1E5m4wU1uCR3f/jVHpSgMoklyh6UTeHZmAhJbAMNco2OR
-         2tfUYy+SVKoWk/kRmVjXMSYlNGRc6gti5TDfkEPBaAbwZJa8VgVN3zXMr57OcTdwJ1M7
-         wDWFpjOkzLQ5NvIfp+2NdxOF+wKei2tGIkVKSlCf6AI6E8W/DGGB9UpOG4QsrmOu00j1
-         gaZQi1wgCYpdP7WucVGiG1LgDjIWyjtk4hz3AcLJG5L7ZRuRRrggrQ1//QCYn+ab432y
-         4NxQ==
-X-Gm-Message-State: AOAM531ATB8wZJ0h/rEsf1nMnFBI15siJ9da7UpSbSs+4mjRZXXgRX+N
-        EWQ+70crr0NrvyAmVvAteS4AAvNkcH5XXgQQppA=
-X-Google-Smtp-Source: ABdhPJxgeM7o9nefOzSERVjljBgpf3R+t3ROjDf67G1rnP6X6BwJ1AEpf47/feUY2V3H93HBfSBtqRxRgX9m5Dq+68w=
-X-Received: by 2002:a05:6402:35d3:: with SMTP id z19mr10055100edc.29.1642502662119;
- Tue, 18 Jan 2022 02:44:22 -0800 (PST)
-MIME-Version: 1.0
-References: <20220117142919.207370-1-marcan@marcan.st>
-In-Reply-To: <20220117142919.207370-1-marcan@marcan.st>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Tue, 18 Jan 2022 12:43:45 +0200
-Message-ID: <CAHp75VfRiFokdTQ9cnEEH596mM7cb4FXQk4eXVt37cG4FcFMyA@mail.gmail.com>
-Subject: Re: [PATCH v3 0/9] misc brcmfmac fixes (M1/T2 series spin-off)
-To:     Hector Martin <marcan@marcan.st>
-Cc:     Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
+        id S1344476AbiAROyT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 18 Jan 2022 09:54:19 -0500
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:43998 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1344201AbiAROxw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Jan 2022 09:53:52 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20IA16xu003923;
+        Tue, 18 Jan 2022 08:53:33 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=PODMain02222019;
+ bh=LqwQlGSPZbY4FUWN/PCbYAVSFcGSRCshh6dVtPJgmMk=;
+ b=iQaAmvzKfAgl75NgBpFsVWVWgaE2U8YrKGScu3h6dP8o0BPwFxOG1SemejwN+08Qxv6F
+ KpzUDAenQPLDRVRaM90+iAcpn/MubiFvkJYwE76l5NMcMJlC6g4gl9g5Iq4D0S50/vz8
+ Mcz9FUOaOkNvVqiNAUkSxh/hNxNHGb7XiIlouuMrfcyVoCLahKczxOQIIF4Cv8xv9KJ0
+ wuHBkxOzGGPQgTNGtBuZ2fGyaPoVqi3BuwGsZx4dHsVDvQwOmEq7FoIOZTmF47yfJ5gc
+ B1Gvn11d08xdooOHpjdwPby3eMTNGTiP7loR/y01N/FNjjaZFRWKZU7n09gRj2wiJ4pP bg== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3dn8k2s8sx-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Tue, 18 Jan 2022 08:53:33 -0600
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Tue, 18 Jan
+ 2022 14:53:31 +0000
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.18 via Frontend
+ Transport; Tue, 18 Jan 2022 14:53:31 +0000
+Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.138])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 967297C;
+        Tue, 18 Jan 2022 14:53:27 +0000 (UTC)
+From:   Stefan Binding <sbinding@opensource.cirrus.com>
+To:     Mark Brown <broonie@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
-        Arend van Spriel <aspriel@gmail.com>,
-        Franky Lin <franky.lin@broadcom.com>,
-        Hante Meuleman <hante.meuleman@broadcom.com>,
-        Chi-hsien Lin <chi-hsien.lin@infineon.com>,
-        Wright Feng <wright.feng@infineon.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Sven Peter <sven@svenpeter.dev>,
-        Alyssa Rosenzweig <alyssa@rosenzweig.io>,
-        Mark Kettenis <kettenis@openbsd.org>,
-        =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
-        Pieter-Paul Giesberts <pieter-paul.giesberts@broadcom.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
         Hans de Goede <hdegoede@redhat.com>,
-        "John W. Linville" <linville@tuxdriver.com>,
-        "brian m. carlson" <sandals@crustytoothpaste.net>,
-        "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:BROADCOM BRCM80211 IEEE802.11n WIRELESS DRIVER" 
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        SHA-cyfmac-dev-list@infineon.com
-Content-Type: text/plain; charset="UTF-8"
+        Mark Gross <markgross@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+CC:     <alsa-devel@alsa-project.org>, <linux-kernel@vger.kernel.org>,
+        <linux-spi@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <patches@opensource.cirrus.com>,
+        Stefan Binding <sbinding@opensource.cirrus.com>
+Subject: [PATCH v3 01/10] spi: Make spi_alloc_device and spi_add_device public again
+Date:   Tue, 18 Jan 2022 14:52:42 +0000
+Message-ID: <20220118145251.1548-2-sbinding@opensource.cirrus.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220118145251.1548-1-sbinding@opensource.cirrus.com>
+References: <20220118145251.1548-1-sbinding@opensource.cirrus.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-GUID: UPN5TjpL9fMhPkZPYfJJDsAVS_c8EwjC
+X-Proofpoint-ORIG-GUID: UPN5TjpL9fMhPkZPYfJJDsAVS_c8EwjC
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 17, 2022 at 4:30 PM Hector Martin <marcan@marcan.st> wrote:
->
-> Hi everyone,
->
-> This series contains just the fixes / misc improvements from the
-> previously submitted series:
->
-> brcmfmac: Support Apple T2 and M1 platforms
->
-> Patches 8-9 aren't strictly bugfixes but rather just general
-> improvements; they can be safely skipped, although patch 8 will be a
-> dependency of the subsequent series to avoid a compile warning.
+This functions were previously made private since they
+were not used. However, these functions will be needed
+again.
 
-Have I given you a tag? If so, I do not see it applied in the patches...
+Partial revert of commit da21fde0fdb3
+("spi: Make several public functions private to spi.c")
 
-> Hector Martin (9):
->   brcmfmac: pcie: Release firmwares in the brcmf_pcie_setup error path
->   brcmfmac: firmware: Allocate space for default boardrev in nvram
->   brcmfmac: firmware: Do not crash on a NULL board_type
->   brcmfmac: pcie: Declare missing firmware files in pcie.c
->   brcmfmac: pcie: Replace brcmf_pcie_copy_mem_todev with memcpy_toio
->   brcmfmac: pcie: Fix crashes due to early IRQs
->   brcmfmac: of: Use devm_kstrdup for board_type & check for errors
->   brcmfmac: fwil: Constify iovar name arguments
->   brcmfmac: pcie: Read the console on init and shutdown
->
->  .../broadcom/brcm80211/brcmfmac/firmware.c    |  5 ++
->  .../broadcom/brcm80211/brcmfmac/fwil.c        | 34 ++++----
->  .../broadcom/brcm80211/brcmfmac/fwil.h        | 28 +++----
->  .../wireless/broadcom/brcm80211/brcmfmac/of.c |  8 +-
->  .../broadcom/brcm80211/brcmfmac/pcie.c        | 77 ++++++++-----------
->  .../broadcom/brcm80211/brcmfmac/sdio.c        |  1 -
->  6 files changed, 72 insertions(+), 81 deletions(-)
->
-> --
-> 2.33.0
->
+Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
+---
+ drivers/spi/spi.c       |  6 ++++--
+ include/linux/spi/spi.h | 12 ++++++++++++
+ 2 files changed, 16 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 4599b121d744..1eb84101c4ad 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -532,7 +532,7 @@ static DEFINE_MUTEX(board_lock);
+  *
+  * Return: a pointer to the new device, or NULL.
+  */
+-static struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
++struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
+ {
+ 	struct spi_device	*spi;
+ 
+@@ -557,6 +557,7 @@ static struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
+ 	device_initialize(&spi->dev);
+ 	return spi;
+ }
++EXPORT_SYMBOL_GPL(spi_alloc_device);
+ 
+ static void spi_dev_set_name(struct spi_device *spi)
+ {
+@@ -652,7 +653,7 @@ static int __spi_add_device(struct spi_device *spi)
+  *
+  * Return: 0 on success; negative errno on failure
+  */
+-static int spi_add_device(struct spi_device *spi)
++int spi_add_device(struct spi_device *spi)
+ {
+ 	struct spi_controller *ctlr = spi->controller;
+ 	struct device *dev = ctlr->dev.parent;
+@@ -673,6 +674,7 @@ static int spi_add_device(struct spi_device *spi)
+ 	mutex_unlock(&ctlr->add_lock);
+ 	return status;
+ }
++EXPORT_SYMBOL_GPL(spi_add_device);
+ 
+ static int spi_add_device_locked(struct spi_device *spi)
+ {
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 7ab3fed7b804..0346a3ff27fd 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -1452,7 +1452,19 @@ spi_register_board_info(struct spi_board_info const *info, unsigned n)
+  * use spi_new_device() to describe each device.  You can also call
+  * spi_unregister_device() to start making that device vanish, but
+  * normally that would be handled by spi_unregister_controller().
++ *
++ * You can also use spi_alloc_device() and spi_add_device() to use a two
++ * stage registration sequence for each spi_device. This gives the caller
++ * some more control over the spi_device structure before it is registered,
++ * but requires that caller to initialize fields that would otherwise
++ * be defined using the board info.
+  */
++extern struct spi_device *
++spi_alloc_device(struct spi_controller *ctlr);
++
++extern int
++spi_add_device(struct spi_device *spi);
++
+ extern struct spi_device *
+ spi_new_device(struct spi_controller *, struct spi_board_info *);
+ 
+-- 
+2.25.1
 
---
-With Best Regards,
-Andy Shevchenko
