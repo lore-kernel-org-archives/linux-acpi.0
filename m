@@ -2,42 +2,45 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 676D9C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 02:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B44C8C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 02:34:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344000AbiARCeD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jan 2022 21:34:03 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:40746 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344241AbiARC3Y (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:29:24 -0500
+        id S245633AbiARCeF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jan 2022 21:34:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58794 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1345494AbiARCbg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:31:36 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F10C0C0617A7;
+        Mon, 17 Jan 2022 18:29:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4E8ACB81238;
-        Tue, 18 Jan 2022 02:29:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25D5EC36AE3;
-        Tue, 18 Jan 2022 02:29:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D4019611D8;
+        Tue, 18 Jan 2022 02:29:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65403C36AEF;
+        Tue, 18 Jan 2022 02:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642472962;
-        bh=hY4UWMyFSq0Q4bgph2NQBK7SyoqPgPe9sNmHDQXYo1o=;
+        s=k20201202; t=1642472966;
+        bh=F1XJP86QbRwonoLiEZokl4JXQQnS7jSJrjYRteoU7C4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KGy8GpeHvxWv3uoV99vqp+GdiXcBW1b++/lv2N0HW+0nhNWYRSbFZRSS4WP85Qe27
-         bfPCpW2bYhBRqs/J/OGPqoei6xDo96hJyFUFpHbmVoqxEJ4j2rIwj0iDKXnqkA6pQI
-         KSRU5jnDwAfuSyTNEfdyrAaoQYVQwdcDibzxjjPlDsx70ZRjNEOJl3T1YpfnpeCWdN
-         oZIaDyoj752+t042MgPfdMSAW+wwtDynciDsYkkFMsOY3Rbg2CqBzGMA3qTSU4MtXx
-         K8I3vPP8AvtAnal4asrA83FI1VSvtHVll2y3elKEPN8ajdOX0GncL2QkZ98MAfdNdI
-         Ct1mChzBO90VA==
+        b=LrRKyYWPAYK9vu6W7EbSGfBd1vSSpNcZck2I5P5LmG4fTPXeJHavUirHRdkkgRpZP
+         7Up4/TCogLmyY6QvnHoTdRE0zAET9ceSCoGfbd1WAOyg2UBv0FqQWerSA+C6IKG5uG
+         0YKcO3wLduVRMauPXr2yHoC5h8CMx6krvRb2abLwNd+xjy6txiUpnfdv4h9uAhj6ft
+         k1ouAtRpmV6asLALUuyP2kfte1aJhQjBlV4zk+HzjUIlxzn/dU+r9Nfdqx7Zng2G9r
+         tBH8aWSyI/cGFMncIyHp22NNCFLhg2dsFK8/6jai+UjHJb1Uv3mCocgX5YNxZuQU7v
+         K3Vqly/E8WqLg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mark Langsdorf <mlangsdo@redhat.com>,
+Cc:     Sudeep Holla <sudeep.holla@arm.com>,
         Bob Moore <robert.moore@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 5.16 179/217] ACPICA: actypes.h: Expand the ACPI_ACCESS_ definitions
-Date:   Mon, 17 Jan 2022 21:19:02 -0500
-Message-Id: <20220118021940.1942199-179-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org
+Subject: [PATCH AUTOSEL 5.16 182/217] ACPICA: Fix wrong interpretation of PCC address
+Date:   Mon, 17 Jan 2022 21:19:05 -0500
+Message-Id: <20220118021940.1942199-182-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220118021940.1942199-1-sashal@kernel.org>
 References: <20220118021940.1942199-1-sashal@kernel.org>
@@ -49,54 +52,84 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Mark Langsdorf <mlangsdo@redhat.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
 
-[ Upstream commit f81bdeaf816142e0729eea0cc84c395ec9673151 ]
+[ Upstream commit 9a3b8655db1ada31c82189ae13f40eb25da48c35 ]
 
-ACPICA commit bc02c76d518135531483dfc276ed28b7ee632ce1
+ACPICA commit 41be6afacfdaec2dba3a5ed368736babc2a7aa5c
 
-The current ACPI_ACCESS_*_WIDTH defines do not provide a way to
-test that size is small enough to not cause an overflow when
-applied to a 32-bit integer.
+With the PCC Opregion in the firmware and we are hitting below kernel crash:
 
-Rather than adding more magic numbers, add ACPI_ACCESS_*_SHIFT,
-ACPI_ACCESS_*_MAX, and ACPI_ACCESS_*_DEFAULT #defines and
-redefine ACPI_ACCESS_*_WIDTH in terms of the new #defines.
+-->8
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+ Workqueue: pm pm_runtime_work
+ pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+ pc : __memcpy+0x54/0x260
+ lr : acpi_ex_write_data_to_field+0xb8/0x194
+ Call trace:
+  __memcpy+0x54/0x260
+  acpi_ex_store_object_to_node+0xa4/0x1d4
+  acpi_ex_store+0x44/0x164
+  acpi_ex_opcode_1A_1T_1R+0x25c/0x508
+  acpi_ds_exec_end_op+0x1b4/0x44c
+  acpi_ps_parse_loop+0x3a8/0x614
+  acpi_ps_parse_aml+0x90/0x2f4
+  acpi_ps_execute_method+0x11c/0x19c
+  acpi_ns_evaluate+0x1ec/0x2b0
+  acpi_evaluate_object+0x170/0x2b0
+  acpi_device_set_power+0x118/0x310
+  acpi_dev_suspend+0xd4/0x180
+  acpi_subsys_runtime_suspend+0x28/0x38
+  __rpm_callback+0x74/0x328
+  rpm_suspend+0x2d8/0x624
+  pm_runtime_work+0xa4/0xb8
+  process_one_work+0x194/0x25c
+  worker_thread+0x260/0x49c
+  kthread+0x14c/0x30c
+  ret_from_fork+0x10/0x20
+ Code: f9000006 f81f80a7 d65f03c0 361000c2 (b9400026)
+ ---[ end trace 24d8a032fa77b68a ]---
 
-This was inititally reported on Linux where a size of 102 in
-ACPI_ACCESS_BIT_WIDTH caused an overflow error in the SPCR
-initialization code.
+The reason for the crash is that the PCC channel index passed via region.address
+in acpi_ex_store_object_to_node is interpreted as the channel subtype
+incorrectly.
 
-Link: https://github.com/acpica/acpica/commit/bc02c76d
-Signed-off-by: Mark Langsdorf <mlangsdo@redhat.com>
+Assuming the PCC op_region support is not used by any other type, let us
+remove the subtype check as the AML has no access to the subtype information.
+Once we remove it, the kernel crash disappears and correctly complains about
+missing PCC Opregion handler.
+
+ACPI Error: No handler for Region [PFRM] ((____ptrval____)) [PCC] (20210730/evregion-130)
+ACPI Error: Region PCC (ID=10) has no handler (20210730/exfldio-261)
+ACPI Error: Aborting method \_SB.ETH0._PS3 due to previous error (AE_NOT_EXIST) (20210730/psparse-531)
+
+Link: https://github.com/acpica/acpica/commit/41be6afa
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/acpi/actypes.h | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/exfield.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index ff8b3c913f217..248242dca28d3 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -536,8 +536,14 @@ typedef u64 acpi_integer;
-  * Can be used with access_width of struct acpi_generic_address and access_size of
-  * struct acpi_resource_generic_register.
-  */
--#define ACPI_ACCESS_BIT_WIDTH(size)     (1 << ((size) + 2))
--#define ACPI_ACCESS_BYTE_WIDTH(size)    (1 << ((size) - 1))
-+#define ACPI_ACCESS_BIT_SHIFT		2
-+#define ACPI_ACCESS_BYTE_SHIFT		-1
-+#define ACPI_ACCESS_BIT_MAX		(31 - ACPI_ACCESS_BIT_SHIFT)
-+#define ACPI_ACCESS_BYTE_MAX		(31 - ACPI_ACCESS_BYTE_SHIFT)
-+#define ACPI_ACCESS_BIT_DEFAULT		(8 - ACPI_ACCESS_BIT_SHIFT)
-+#define ACPI_ACCESS_BYTE_DEFAULT	(8 - ACPI_ACCESS_BYTE_SHIFT)
-+#define ACPI_ACCESS_BIT_WIDTH(size)	(1 << ((size) + ACPI_ACCESS_BIT_SHIFT))
-+#define ACPI_ACCESS_BYTE_WIDTH(size)	(1 << ((size) + ACPI_ACCESS_BYTE_SHIFT))
+diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+index 06f3c9df1e22d..8618500f23b39 100644
+--- a/drivers/acpi/acpica/exfield.c
++++ b/drivers/acpi/acpica/exfield.c
+@@ -330,12 +330,7 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
+ 		       obj_desc->field.base_byte_offset,
+ 		       source_desc->buffer.pointer, data_length);
  
- /*******************************************************************************
-  *
+-		if ((obj_desc->field.region_obj->region.address ==
+-		     PCC_MASTER_SUBSPACE
+-		     && MASTER_SUBSPACE_COMMAND(obj_desc->field.
+-						base_byte_offset))
+-		    || GENERIC_SUBSPACE_COMMAND(obj_desc->field.
+-						base_byte_offset)) {
++		if (MASTER_SUBSPACE_COMMAND(obj_desc->field.base_byte_offset)) {
+ 
+ 			/* Perform the write */
+ 
 -- 
 2.34.1
 
