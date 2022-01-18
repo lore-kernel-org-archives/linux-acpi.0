@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 867C7C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 02:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B9CC43219
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Jan 2022 02:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245637AbiARC0t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 17 Jan 2022 21:26:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57414 "EHLO
+        id S244721AbiARC1I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 17 Jan 2022 21:27:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245655AbiARCYu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:24:50 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9279C06177B;
-        Mon, 17 Jan 2022 18:24:00 -0800 (PST)
+        with ESMTP id S245162AbiARCY5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2022 21:24:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B162C0613A6;
+        Mon, 17 Jan 2022 18:24:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 661D460AB6;
-        Tue, 18 Jan 2022 02:24:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E853DC36AE3;
-        Tue, 18 Jan 2022 02:23:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F3B71B8122C;
+        Tue, 18 Jan 2022 02:24:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9CC4C36AE3;
+        Tue, 18 Jan 2022 02:24:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642472639;
-        bh=PJa9pJriew9OaMlnsA9qTXusUtpxB4DAsf4xRVD7nJw=;
+        s=k20201202; t=1642472649;
+        bh=a3dFkuC1B1onUYYjOCkI8tMCtX9oDS/YpYKObjKeaao=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ugbzTIbfNQFTzXoQUCeKbVNfPDQyUMEbkqvP5oNyP+RBQQIb71nYtRINaMNmWFZ38
-         2YToeYBx/MhUS0HNQj/NVnfpcx+UYh47bU4KDqIfgs11gU3FU1qZDHLi5ehkZE8If2
-         PAgO6ZsRSSSVBWRPP/WExfo3Y1mxVL7YIJwOn8RUm3DqliMlxOFEthMvwBXEhiYVL3
-         3Byl/iTcWSKR0menVj0M6d9kJE/yFqCy4fHkTv/6uTexvs2nMFZegl6y82Y0gB8915
-         pWRgfFoC7dlehLHwGZEsAoNnF6jF/M12xzRXB+lqBzPkj66X/Ok1HyOgoMuN4n5Byx
-         aHFCWGGESj8sg==
+        b=OL50hDnG8zzk+vWIq0wUxkzufTqoWXkFI9G5oyz1EYpQ3Bh5Sxoa127DEvkamtZjp
+         zPpXdMZXdzeBZRu/J/pMhKEQFEukJqF7mdJ32oEw74ZAUrNjTBSK/q5ZjpOIJVoH7M
+         iAfOju4tsaQmtcD/qipI7qacIo3yBAK7XkZceeRBh9M8Jg0UlsMeeojvorv2tfdAEy
+         zipGFLl7nps9HXTsS70bqcV+4QcVT31RdvneLQ5lFbPiZ+gE5YlJ1+iCbYWLe94B2r
+         DIDwntqn8iGcM1rhPQKMCWsAgX1JUbrJMKSHH8HfTX+hIeXNlDZj0053FkKpGwjTGS
+         vwS2ebbCCrmMw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         mario.limonciello@amd.com, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.16 084/217] ACPI / x86: Drop PWM2 device on Lenovo Yoga Book from always present table
-Date:   Mon, 17 Jan 2022 21:17:27 -0500
-Message-Id: <20220118021940.1942199-84-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.16 087/217] ACPI / x86: Add not-present quirk for the PCI0.SDHB.BRC1 device on the GPD win
+Date:   Mon, 17 Jan 2022 21:17:30 -0500
+Message-Id: <20220118021940.1942199-87-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220118021940.1942199-1-sashal@kernel.org>
 References: <20220118021940.1942199-1-sashal@kernel.org>
@@ -53,44 +53,70 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit d431dfb764b145369be820fcdfd50f2159b9bbc2 ]
+[ Upstream commit 57d2dbf710d832841872fb15ebb79429cab90fae ]
 
-It turns out that there is a WMI object which controls the PWM2 device
-used for the keyboard backlight and that WMI object also provides some
-other useful functionality.
+The GPD win and its sibling the GPD pocket (99% the same electronics in a
+different case) use a PCI wifi card. But the ACPI tables on both variants
+contain a bug where the SDIO MMC controller for SDIO wifi cards is enabled
+despite this. This SDIO MMC controller has a PCI0.SDHB.BRC1 child-device
+which _PS3 method sets a GPIO causing the PCI wifi card to turn off.
 
-The upcoming lenovo-yogabook-wmi driver will offer both backlight
-control and the other functionality, so there no longer is a need
-to have the lpss-pwm driver binding to PWM2 for backlight control;
-and this is now actually undesirable because this will cause both
-the WMI code and the lpss-pwm driver to poke at the same PWM
-controller.
+At the moment there is a pretty ugly kludge in the sdhci-acpi.c code,
+just to work around the bug in the DSDT of this single design. This can
+be solved cleaner/simply with a quirk overriding the _STA return of the
+broken PCI0.SDHB.BRC1 PCI0.SDHB.BRC1 child with a status value of 0,
+so that its power_manageable flag gets cleared, avoiding this problem.
 
-Drop the always-present quirk for the PWM2 ACPI-device, so that the
- lpss-pwm controller will no longer bind to it.
+Note that even though it is not used, the _STA method for the MMC
+controller is deliberately not overridden. If the status of the MMC
+controller were forced to 0 it would never get suspended, which would
+cause these mini-laptops to not reach S0i3 level when suspended.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/x86/utils.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/acpi/x86/utils.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index f22f23933063b..3bcac98f6eca6 100644
+index 190bfc2ab3f26..b3fb428461c6f 100644
 --- a/drivers/acpi/x86/utils.c
 +++ b/drivers/acpi/x86/utils.c
-@@ -54,10 +54,6 @@ static const struct always_present_id always_present_ids[] = {
- 	ENTRY("80860F09", "1", X86_MATCH(ATOM_SILVERMONT), {}),
- 	ENTRY("80862288", "1", X86_MATCH(ATOM_AIRMONT), {}),
- 
--	/* Lenovo Yoga Book uses PWM2 for keyboard backlight control */
--	ENTRY("80862289", "2", X86_MATCH(ATOM_AIRMONT), {
--			DMI_MATCH(DMI_PRODUCT_NAME, "Lenovo YB1-X9"),
--		}),
+@@ -94,9 +94,10 @@ static const struct override_status_id override_status_ids[] = {
  	/*
- 	 * The INT0002 device is necessary to clear wakeup interrupt sources
- 	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
+ 	 * The GPD win BIOS dated 20170221 has disabled the accelerometer, the
+ 	 * drivers sometimes cause crashes under Windows and this is how the
+-	 * manufacturer has solved this :| Note that the the DMI data is less
+-	 * generic then it seems, a board_vendor of "AMI Corporation" is quite
+-	 * rare and a board_name of "Default String" also is rare.
++	 * manufacturer has solved this :|  The DMI match may not seem unique,
++	 * but it is. In the 67000+ DMI decode dumps from linux-hardware.org
++	 * only 116 have board_vendor set to "AMI Corporation" and of those 116
++	 * only the GPD win and pocket entries' board_name is "Default string".
+ 	 *
+ 	 * Unfortunately the GPD pocket also uses these strings and its BIOS
+ 	 * was copy-pasted from the GPD win, so it has a disabled KIOX000A
+@@ -120,6 +121,19 @@ static const struct override_status_id override_status_ids[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
+ 		DMI_MATCH(DMI_BIOS_DATE, "05/25/2017")
+ 	      }),
++
++	/*
++	 * The GPD win/pocket have a PCI wifi card, but its DSDT has the SDIO
++	 * mmc controller enabled and that has a child-device which _PS3
++	 * method sets a GPIO causing the PCI wifi card to turn off.
++	 * See above remark about uniqueness of the DMI match.
++	 */
++	NOT_PRESENT_ENTRY_PATH("\\_SB_.PCI0.SDHB.BRC1", ATOM_AIRMONT, {
++		DMI_EXACT_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++		DMI_EXACT_MATCH(DMI_BOARD_NAME, "Default string"),
++		DMI_EXACT_MATCH(DMI_BOARD_SERIAL, "Default string"),
++		DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Default string"),
++	      }),
+ };
+ 
+ bool acpi_device_override_status(struct acpi_device *adev, unsigned long long *status)
 -- 
 2.34.1
 
