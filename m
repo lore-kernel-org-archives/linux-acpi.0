@@ -2,56 +2,56 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C3AC433FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jan 2022 12:36:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42947C433FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jan 2022 12:36:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354539AbiASMgW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 19 Jan 2022 07:36:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47080 "EHLO
+        id S1354582AbiASMgk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 19 Jan 2022 07:36:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354492AbiASMgH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jan 2022 07:36:07 -0500
-Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 580F0C06175E
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:35:19 -0800 (PST)
-Received: by mail-pj1-x102f.google.com with SMTP id g9-20020a17090a67c900b001b4f1d71e4fso2508242pjm.4
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:35:19 -0800 (PST)
+        with ESMTP id S1354590AbiASMgW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jan 2022 07:36:22 -0500
+Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9596C061757
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:36:19 -0800 (PST)
+Received: by mail-pj1-x102c.google.com with SMTP id m8-20020a17090a4d8800b001b4f361964fso2511641pjh.3
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:36:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
         h=message-id:date:mime-version:user-agent:from:subject:to:cc
          :references:in-reply-to;
-        bh=Cy3rii7MkZcDle1PsnxEUPFBajxGTSot9++RLvAnVtA=;
-        b=WvssT2Bd2hABWN7adjNs9SlgqFExfj3yyqy5rGxsIqWhTLNnYW5Uxcfps3oJiTL8KC
-         sussGyq2qiqyyRx2zm84MlkBRmSoBgaMG3x1xp3wB73Lmv5UcqkCweOvbEzlL6t6u9vW
-         5CABW0H8avy9XgxIYAiyDm7SvGvo9QeN8XUTk=
+        bh=1DOarlZGjXpZGVd5bl6+am6xcv1smwJPyBWI2l53RpQ=;
+        b=UruyHbIaL2WFFNwjxbZx4R22t+g3VsDrr16XsyOezXXt2iTc9l4spHU25fwA9XmpBh
+         9Gj4H+IKYgl70CbHkCjJZLKN7cPGUcNvLxiMtEWKzqgMD5ItbyCvsg2qVS7p5StbxefP
+         fZ7CVRRq3/qzNIkhtCpNrggQVRA8hFtYESftg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:message-id:date:mime-version:user-agent:from
          :subject:to:cc:references:in-reply-to;
-        bh=Cy3rii7MkZcDle1PsnxEUPFBajxGTSot9++RLvAnVtA=;
-        b=ldFwUgfTsSzbRz/VBy6ievV1mjcX+f2c6IfFHBgEConzAVUDPDKwYrQ84sagjJQbwd
-         n4Lx7foK0WDfP/SSS2cH+Aj0SGfKJey5JDbwVHe+jtuelmnciru6V/z7RTm6DYryvfnG
-         NCk8RNZKb5PgIvJSH5Tb/itDhmxTAPFze8XCMD3c5LDK2IjPclEa2zfhiO+MEFJxQ3cm
-         jgoqJR+uo+FcwBTomTe+sJdvTAqtp1tGmzsLIqdagWBx46J1uOil5FqVth6U8nNYU4uK
-         wvmvI2ZlMWuPlLC3gTnVxTfFAYx1VqUvYbRx2aKrwYx/s9DRoWnTtrlbUueLFt8WZT1a
-         Aw2w==
-X-Gm-Message-State: AOAM532Y2B+XS7LBs4wwYwDmF+6miPsOiLht11xSy0jaH2DkpCnC4K8L
-        8uE9bGH6G33RzwIoaf0mOxwrmA==
-X-Google-Smtp-Source: ABdhPJwrusuD/qL9K231awYVAMwS+S9SGGq3c1HId/giFJdkDIykagK7NZskbGIq1LfaYpKDJtWAUQ==
-X-Received: by 2002:a17:90b:1c11:: with SMTP id oc17mr4090997pjb.128.1642595718809;
-        Wed, 19 Jan 2022 04:35:18 -0800 (PST)
+        bh=1DOarlZGjXpZGVd5bl6+am6xcv1smwJPyBWI2l53RpQ=;
+        b=undPl7l3i2Ml73jnwM2/Gq1YMrKt30fcTzqxMFwsQ3mHtoJqllp8pguO1nGIh9t6tj
+         vKRNnaqrLMAJ2wCtHKmVlUL8/2r8n7yyB6a64wiI9HtWheXSVAO1m9GqUKjz6JWlRGZ1
+         D06DYkyYtFkFsBMyyLLFxxflMpnYQ/5qYKyoDJ84KCV93ygF7UGBzPJx3WNWM8tJZ5xE
+         QD0oM5reH4D8X5gP6ftzbUUz3sVOlN9ujMeZwhuA8YmIOw//yYlg1hSz6d7wGSevOMq4
+         xrAh30ZkaOev8hHHLkBbqQ2gYqwXG9gtxiEr3B/rAYA7Ksyjh+3iR5mEsBQwXk5uLmcr
+         cLig==
+X-Gm-Message-State: AOAM5334luE40AmuGOfS4m2AtaYezZR+qF68BqLcg6vfpq9FYp4hNEkx
+        o9E8q/g+niY+HG3kcqiZe9/P9w==
+X-Google-Smtp-Source: ABdhPJwzPVuViphNvWC+fElAHXXlQrlMo/Kx8MhqCJVWgXlfQGaX8xnT26ESmukbKPvR+qCUzmo3cA==
+X-Received: by 2002:a17:902:6844:b0:14a:1da5:88dc with SMTP id f4-20020a170902684400b0014a1da588dcmr32425809pln.30.1642595779260;
+        Wed, 19 Jan 2022 04:36:19 -0800 (PST)
 Received: from [192.168.178.136] (f140230.upc-f.chello.nl. [80.56.140.230])
-        by smtp.gmail.com with ESMTPSA id q1sm7720566pgi.25.2022.01.19.04.35.10
+        by smtp.gmail.com with ESMTPSA id h8sm17612145pgs.3.2022.01.19.04.36.11
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 Jan 2022 04:35:17 -0800 (PST)
-Message-ID: <4ecd0d0f-6b9b-16aa-e270-d6095865fbc2@broadcom.com>
-Date:   Wed, 19 Jan 2022 13:35:09 +0100
+        Wed, 19 Jan 2022 04:36:18 -0800 (PST)
+Message-ID: <dc9c8c28-feb0-0353-d5ab-8715683e3ecc@broadcom.com>
+Date:   Wed, 19 Jan 2022 13:36:10 +0100
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.5.0
 From:   Arend van Spriel <arend.vanspriel@broadcom.com>
-Subject: Re: [PATCH v3 7/9] brcmfmac: of: Use devm_kstrdup for board_type &
- check for errors
+Subject: Re: [PATCH v2 21/35] brcmfmac: chip: Only disable D11 cores; handle
+ an arbitrary number
 To:     Hector Martin <marcan@marcan.st>,
         Kalle Valo <kvalo@codeaurora.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -79,55 +79,41 @@ Cc:     Sven Peter <sven@svenpeter.dev>,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com,
         SHA-cyfmac-dev-list@infineon.com
-References: <20220117142919.207370-1-marcan@marcan.st>
- <20220117142919.207370-8-marcan@marcan.st>
-In-Reply-To: <20220117142919.207370-8-marcan@marcan.st>
+References: <20220104072658.69756-1-marcan@marcan.st>
+ <20220104072658.69756-22-marcan@marcan.st>
+In-Reply-To: <20220104072658.69756-22-marcan@marcan.st>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="00000000000058e84705d5ee9ecc"
+        boundary="000000000000f3a43b05d5eea167"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
---00000000000058e84705d5ee9ecc
+--000000000000f3a43b05d5eea167
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 1/17/2022 3:29 PM, Hector Martin wrote:
-> This was missing a NULL check, and we can collapse the strlen/alloc/copy
-> into a devm_kstrdup().
+On 1/4/2022 8:26 AM, Hector Martin wrote:
+> At least on BCM4387, the D11 cores are held in reset on cold startup and
+> firmware expects to release reset itself. Just assert reset here and let
+> firmware deassert it. Premature deassertion results in the firmware
+> failing to initialize properly some of the time, with strange AXI bus
+> errors.
+> 
+> Also, BCM4387 has 3 cores, up from 2. The logic for handling that is in
+> brcmf_chip_ai_resetcore(), but since we aren't using that any more, just
+> handle it here.
+
+Makes sense.
 
 Reviewed-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 > Signed-off-by: Hector Martin <marcan@marcan.st>
 > ---
->   drivers/net/wireless/broadcom/brcm80211/brcmfmac/of.c | 8 ++++++--
->   1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/of.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/of.c
-> index 513c7e6421b2..5dc1e942e9e7 100644
-> --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/of.c
-> +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/of.c
-> @@ -79,8 +79,12 @@ void brcmf_of_probe(struct device *dev, enum brcmf_bus_type bus_type,
->   
->   		/* get rid of '/' in the compatible string to be able to find the FW */
->   		len = strlen(tmp) + 1;
-> -		board_type = devm_kzalloc(dev, len, GFP_KERNEL);
-> -		strscpy(board_type, tmp, len);
-> +		board_type = devm_kstrdup(dev, tmp, GFP_KERNEL);
-> +		if (!board_type) {
-> +			brcmf_err("out of memory allocating board_type\n");
+>   .../net/wireless/broadcom/brcm80211/brcmfmac/chip.c | 13 ++++++++-----
+>   1 file changed, 8 insertions(+), 5 deletions(-)
 
-Drop the message. mm will blurb out with a stack trace providing all the 
-info you need.
-
-> +			of_node_put(root);
-> +			return;
-> +		}
->   		for (i = 0; i < board_type[i]; i++) {
->   			if (board_type[i] == '/')
->   				board_type[i] = '-';
-
---00000000000058e84705d5ee9ecc
+--000000000000f3a43b05d5eea167
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -198,14 +184,14 @@ aAwIDFKdqL0O19Kui0WI1qNsu1tE2wAZk0XE9FG0OKyY2a2oFwJ85c5IO0q53U7+YePIwv4/J5aP
 OGM6lFPJCVnfKc3H76g/FyPyaE4AL/hfdNP8ObvCB6N/BVCccjNdglRsL2ewttAG3GM06LkvrLhv
 UCvjMYICbTCCAmkCAQEwazBbMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1z
 YTExMC8GA1UEAxMoR2xvYmFsU2lnbiBHQ0MgUjMgUGVyc29uYWxTaWduIDIgQ0EgMjAyMAIMMSnY
-h9J/RI6gsHbuMA0GCWCGSAFlAwQCAQUAoIHUMC8GCSqGSIb3DQEJBDEiBCC3vRRoLPQSaMAd9aoT
-3gnTenZZwOdUZlr6OysPFdj0NjAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
-BTEPFw0yMjAxMTkxMjM1MTlaMGkGCSqGSIb3DQEJDzFcMFowCwYJYIZIAWUDBAEqMAsGCWCGSAFl
+h9J/RI6gsHbuMA0GCWCGSAFlAwQCAQUAoIHUMC8GCSqGSIb3DQEJBDEiBCBuQfpRpnfIql6hPza8
+fLk9brPzAxms7xrVzjzIBpjaAjAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
+BTEPFw0yMjAxMTkxMjM2MTlaMGkGCSqGSIb3DQEJDzFcMFowCwYJYIZIAWUDBAEqMAsGCWCGSAFl
 AwQBFjALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwCwYJKoZIhvcNAQEKMAsGCSqGSIb3DQEBBzAL
-BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAKdlKOBcvCVuM6NQ7nw3R4lhD15adPOTHADnm
-pRicEhyCWirg9q8xClsDLRE/mQcD6WencLaghsKM+q1l2xdKMt9vH5SrLSzGHVmZ2TxILCWnOm37
-h5APCQFqJA/jsmMjhUN3gnPNg/w2nrtdEclshn6wD7vYfO61c1TZTKiSnDPF5w9Z90sxqtspwr+W
-/qbWLppgSZShyQLlv+0Ok3FvQEyGns9fLGlPVFUHCPFZ5Ieu/6hKEoaoGTgozlSaf6SdF46tBsPn
-M9Y8cz7VJZQBCjm3xNp4F4MEi+xZyxkZA2TwsI+NNyEav0KlkDru/Oqsa31Iv36fqOMkaPtw8F90
-Mw==
---00000000000058e84705d5ee9ecc--
+BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAc3GurxsTG4WUIL6BegZVRpgdIxMr8bSb/INy
+Q/V/e6xI+NrSq7PfcymnCzm6Bi23VyaWEbryOw5mRiFS176fqui1wyXRj/FSE8b1e4X5nT/Z1wGu
+rBZ5GYO9NGs7C308CYSf+4ROdgGsQpGvjQ4XtTArT+5Maa2xFQXtu1808qZj7EtW9y5jTwmniz9m
+5WtviPPMOqtRVfwDY9TYERf6FmKzuyfsUo610AdO/iCgpcjrQu8Dt+ZqqwFaHZw1UoVupEgyRfL+
+KpeB31J3JpVwRfftxCSA0GMIe5qgMLp5Scma0UxxY79K+bjbsIZ6aH/GO6xcmc+6i4teFYk/viWM
+kA==
+--000000000000f3a43b05d5eea167--
