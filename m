@@ -2,55 +2,56 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D391C433FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jan 2022 12:36:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44350C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Jan 2022 12:37:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354435AbiASMgy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 19 Jan 2022 07:36:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47296 "EHLO
+        id S1354818AbiASMhS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 19 Jan 2022 07:37:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354595AbiASMgL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jan 2022 07:36:11 -0500
-Received: from mail-pg1-x531.google.com (mail-pg1-x531.google.com [IPv6:2607:f8b0:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DCE1C061769
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:35:27 -0800 (PST)
-Received: by mail-pg1-x531.google.com with SMTP id t32so2376799pgm.7
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:35:27 -0800 (PST)
+        with ESMTP id S1354631AbiASMgx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jan 2022 07:36:53 -0500
+Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2DE2C06175E
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:36:52 -0800 (PST)
+Received: by mail-pj1-x1035.google.com with SMTP id g9-20020a17090a67c900b001b4f1d71e4fso2511537pjm.4
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2022 04:36:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
         h=message-id:date:mime-version:user-agent:from:subject:to:cc
          :references:in-reply-to;
-        bh=pFiuvP39CRxvgk6wZOPtj24BoqbvWiCkODY2u++0C7U=;
-        b=Ohq5A+1Y53BgMdoyTp69SbviFe7l5WshAj1kH4NpzYZ/BZJWm5p94hxzn5EkBYiOOg
-         dvZMfxJv5anmtFw+V+hrZspxLZjHUqMgr661JaR+FL+MqrUNQPL6NNvrj6ChraYiJWe2
-         B4M0BQXrKzYUuYfcJOyT9S35sJobRxgXIIz/A=
+        bh=gQpO3qxbntxnv67IaelbVlwXwDcVa7c4FuTlXzudiIw=;
+        b=DYapkAVSUs1JPmROBIPFvBW/yD9nJfJAwVygsdEPDuKy7jmj5qLs8E0EegfInEZ/Am
+         MfAnzqLTgLjt4Tw2r/W7luO4dEFKgFYrMmvklAk4eZMhzSB+Tlpz9pjh+V8NOvZylEEj
+         llenlgPLtEGv88jNTAY+Vr4jqdkePj8l4gfaY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:message-id:date:mime-version:user-agent:from
          :subject:to:cc:references:in-reply-to;
-        bh=pFiuvP39CRxvgk6wZOPtj24BoqbvWiCkODY2u++0C7U=;
-        b=wDMkICswa4tOwrfW2ICZZGGrKzwnD1jq9+xjuXUzCupDz0TWUrklNyAqhgfu3+G8m3
-         1Vr0Bp5y2AEEiwh8N+LMBVwQOM1x2NqJcSNf7VClx2dDxj+KXygkeoEUoeY92o7nhBFy
-         G8etXpGrDMnadn4kfL6a6zKGBwSIldrAJmsTGfi3dyBoDNvhF2C1UC3cWb4mZCPWjZZ1
-         V0TZ9E4i9749Q4yLMeDQ4Cx/qolERoWdB82l/HJhH3pbiUY3WnTMOQznVWNb57G//4ne
-         kG9JpaXwALT7xeAreQGanSUSFF4kGrLQtWhWOvsk9fR/tncFJurn3sA8q6VCDBQcJGCn
-         rkuw==
-X-Gm-Message-State: AOAM5333T/SkSUWD2zE/STKEyg6ruoAu7KBc/ku8Sz1wC0SMZdT3sy4I
-        zizTsDzpWNRBt4ssy9Z+mXXXrg==
-X-Google-Smtp-Source: ABdhPJwRhjc2a4xjJc2yhjc8Bltw57NtRDzfym03GkTwM9b2cn9RX6YWmOWjIuuilLo5YEdfM3FbwA==
-X-Received: by 2002:aa7:8c41:0:b0:4bc:2888:6951 with SMTP id e1-20020aa78c41000000b004bc28886951mr30650341pfd.16.1642595726931;
-        Wed, 19 Jan 2022 04:35:26 -0800 (PST)
+        bh=gQpO3qxbntxnv67IaelbVlwXwDcVa7c4FuTlXzudiIw=;
+        b=esP63PfvelOxkJG5tKPv+iX3SS1B1e8SVpJ9o7U5r59n5K2JKqqEO85TuSjOp3vp0y
+         Kr2cbaBQRfVGHzU55wBC1VVxBVq1ymte8CaKHJuYlBjO8D7oOGCTF6q49GSD6Cv/1CLH
+         4PW5MODnEUpbvjaWHT/ExU1RssQHnMuEYQjMnxosRp/KvjkMdNyUhNwQJ+BMVxRyuH1k
+         oZIuGmvrS59gFN/EAdX0BRXw+hYBAPsXm+h0ZFjoPXHscFQJUbXJdLN+zE7DZv9EfcO5
+         Hr6UGthXf7yKjhHM/imigeOcrfM5ZPmnWvNB1iFImkJyv/cPmXFpwnX6TK//ugdvslSX
+         IAWg==
+X-Gm-Message-State: AOAM531VcMu0Z47R/szb54ZhecBjkAtyKFW4BP2/Xti44H2htaXR+Wve
+        9xQZrs+MVCTnDCfBQWdBBOugtA==
+X-Google-Smtp-Source: ABdhPJwlOCggScmG2My37irsesppJgch7yHsmTNhwjVujZbFbhM7eCQk7OaUSHuFhPCciCdjRohTaA==
+X-Received: by 2002:a17:902:d50a:b0:14a:f80d:288c with SMTP id b10-20020a170902d50a00b0014af80d288cmr1259094plg.0.1642595812350;
+        Wed, 19 Jan 2022 04:36:52 -0800 (PST)
 Received: from [192.168.178.136] (f140230.upc-f.chello.nl. [80.56.140.230])
-        by smtp.gmail.com with ESMTPSA id d7sm14397964pfh.126.2022.01.19.04.35.19
+        by smtp.gmail.com with ESMTPSA id rj1sm6405149pjb.41.2022.01.19.04.36.44
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 Jan 2022 04:35:25 -0800 (PST)
-Message-ID: <95bf2a46-8840-e09a-8723-7e590a6ae415@broadcom.com>
-Date:   Wed, 19 Jan 2022 13:35:17 +0100
+        Wed, 19 Jan 2022 04:36:51 -0800 (PST)
+Message-ID: <ed387a90-586d-5071-baa6-bc66d4e7f22f@broadcom.com>
+Date:   Wed, 19 Jan 2022 13:36:43 +0100
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.5.0
 From:   Arend van Spriel <arend.vanspriel@broadcom.com>
-Subject: Re: [PATCH v3 8/9] brcmfmac: fwil: Constify iovar name arguments
+Subject: Re: [PATCH v2 22/35] brcmfmac: chip: Handle 1024-unit sizes for TCM
+ blocks
 To:     Hector Martin <marcan@marcan.st>,
         Kalle Valo <kvalo@codeaurora.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -78,34 +79,85 @@ Cc:     Sven Peter <sven@svenpeter.dev>,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com,
         SHA-cyfmac-dev-list@infineon.com
-References: <20220117142919.207370-1-marcan@marcan.st>
- <20220117142919.207370-9-marcan@marcan.st>
-In-Reply-To: <20220117142919.207370-9-marcan@marcan.st>
+References: <20220104072658.69756-1-marcan@marcan.st>
+ <20220104072658.69756-23-marcan@marcan.st>
+In-Reply-To: <20220104072658.69756-23-marcan@marcan.st>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000d4aec805d5ee9e4e"
+        boundary="000000000000ed788505d5eea302"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
---000000000000d4aec805d5ee9e4e
+--000000000000ed788505d5eea302
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
+On 1/4/2022 8:26 AM, Hector Martin wrote:
+> BCM4387 has trailing odd-sized blocks as part of TCM which have
+> their size described as a multiple of 1024 instead of 8192. Handle this
+> so we can compute the TCM size properly.
 
-
-On 1/17/2022 3:29 PM, Hector Martin wrote:
-> Make all the iovar name arguments const char * instead of just char *.
-> 
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 Reviewed-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 > Signed-off-by: Hector Martin <marcan@marcan.st>
 > ---
->   .../broadcom/brcm80211/brcmfmac/fwil.c        | 34 +++++++++----------
->   .../broadcom/brcm80211/brcmfmac/fwil.h        | 28 +++++++--------
->   2 files changed, 31 insertions(+), 31 deletions(-)
+>   .../wireless/broadcom/brcm80211/brcmfmac/chip.c | 17 ++++++++++++-----
+>   1 file changed, 12 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/chip.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/chip.c
+> index 713546cebd5a..cfa93e3ef1a1 100644
+> --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/chip.c
+> +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/chip.c
+> @@ -212,8 +212,8 @@ struct sbsocramregs {
+>   #define	ARMCR4_TCBANB_MASK	0xf
+>   #define	ARMCR4_TCBANB_SHIFT	0
+>   
+> -#define	ARMCR4_BSZ_MASK		0x3f
+> -#define	ARMCR4_BSZ_MULT		8192
+> +#define	ARMCR4_BSZ_MASK		0x7f
+> +#define	ARMCR4_BLK_1K_MASK	0x200
+>   
+>   struct brcmf_core_priv {
+>   	struct brcmf_core pub;
+> @@ -675,7 +675,8 @@ static u32 brcmf_chip_sysmem_ramsize(struct brcmf_core_priv *sysmem)
+>   }
+>   
+>   /** Return the TCM-RAM size of the ARMCR4 core. */
+> -static u32 brcmf_chip_tcm_ramsize(struct brcmf_core_priv *cr4)
+> +static u32 brcmf_chip_tcm_ramsize(struct brcmf_chip_priv *ci,
+> +				  struct brcmf_core_priv *cr4)
 
---000000000000d4aec805d5ee9e4e
+Not sure why you add ci parameter here. It is not used below or am I 
+overlooking something.
+
+>   {
+>   	u32 corecap;
+>   	u32 memsize = 0;
+> @@ -683,6 +684,7 @@ static u32 brcmf_chip_tcm_ramsize(struct brcmf_core_priv *cr4)
+>   	u32 nbb;
+>   	u32 totb;
+>   	u32 bxinfo;
+> +	u32 blksize;
+>   	u32 idx;
+>   
+>   	corecap = brcmf_chip_core_read32(cr4, ARMCR4_CAP);
+> @@ -694,7 +696,12 @@ static u32 brcmf_chip_tcm_ramsize(struct brcmf_core_priv *cr4)
+>   	for (idx = 0; idx < totb; idx++) {
+>   		brcmf_chip_core_write32(cr4, ARMCR4_BANKIDX, idx);
+>   		bxinfo = brcmf_chip_core_read32(cr4, ARMCR4_BANKINFO);
+> -		memsize += ((bxinfo & ARMCR4_BSZ_MASK) + 1) * ARMCR4_BSZ_MULT;
+> +		if (bxinfo & ARMCR4_BLK_1K_MASK)
+> +			blksize = 1024;
+> +		else
+> +			blksize = 8192;
+> +
+> +		memsize += ((bxinfo & ARMCR4_BSZ_MASK) + 1) * blksize;
+>   	}
+>   
+>   	return memsize;
+
+--000000000000ed788505d5eea302
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -176,14 +228,14 @@ aAwIDFKdqL0O19Kui0WI1qNsu1tE2wAZk0XE9FG0OKyY2a2oFwJ85c5IO0q53U7+YePIwv4/J5aP
 OGM6lFPJCVnfKc3H76g/FyPyaE4AL/hfdNP8ObvCB6N/BVCccjNdglRsL2ewttAG3GM06LkvrLhv
 UCvjMYICbTCCAmkCAQEwazBbMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1z
 YTExMC8GA1UEAxMoR2xvYmFsU2lnbiBHQ0MgUjMgUGVyc29uYWxTaWduIDIgQ0EgMjAyMAIMMSnY
-h9J/RI6gsHbuMA0GCWCGSAFlAwQCAQUAoIHUMC8GCSqGSIb3DQEJBDEiBCAIL/pU/vjEYYbioABH
-45oxE4eHpgBa08V+2WhMG1XTgDAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
-BTEPFw0yMjAxMTkxMjM1MjdaMGkGCSqGSIb3DQEJDzFcMFowCwYJYIZIAWUDBAEqMAsGCWCGSAFl
+h9J/RI6gsHbuMA0GCWCGSAFlAwQCAQUAoIHUMC8GCSqGSIb3DQEJBDEiBCBg1LzkYdjFgnElBM8Q
+O0vF8CvF1PECceAwJstHgdUuJTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
+BTEPFw0yMjAxMTkxMjM2NTJaMGkGCSqGSIb3DQEJDzFcMFowCwYJYIZIAWUDBAEqMAsGCWCGSAFl
 AwQBFjALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwCwYJKoZIhvcNAQEKMAsGCSqGSIb3DQEBBzAL
-BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAQdOWim6jCIQXJsNlnxebRYVAZmW5I8dKEMiF
-p+8YbcjN09jR0BrCQgys0bXwR0ZkoUEzU9oZ2lnh2R6G1scO59eHi3Mpo0JIC2fERZrWQK7vk/bE
-GOd6b4cTNlGKDv0BJdqr7dPsXJNo0VLOTjOdnHglHDGAbWsJkTOe2z81ryxCTuPcORVdkDKOk9K5
-MEGCZVfyWS+rnFlOjQBO0l96lJBY8fp0ridXs6LTKEMd+fi7cCFFedPquriKcuaeiGcnf0GTDmpq
-nhxvvsqXq/qiGdgI8Q3yYOmMwtjqFsGfFErWztoLxB8mf4xXa0MrlZqpKQ/T/KVLH49TMU8wstvr
-iw==
---000000000000d4aec805d5ee9e4e--
+BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAE0oJ8IKnSQNJd5tmLPrMBzBk2KSRQtRM90+P
+q/rlosJSDqxjxbvGKzQs0/KKKeQLPc0EthM7hLMceWk/GfukG0oCJl13C/pstr1IfqAP3X/OisEL
+8Bdsk1iGYDstJQHsNct6iaY2Upm6Sdd9RkEeBgzLmuMk8ZatlfKhckvj54Iv2pqd5natGQ3CmiKm
+ofVATluaBf7pXfCGB7fY0KoZEmVWOgTO1zDTWMo3NYlsD8cXNKLQW8MHPVp7iIAqQwWu31pU1cWT
+QZEJadFCUacdO0W9jB4/A90gcwXSP2nHCOXNoPAjr+cSw+wv+SgxFTSDVUOYX8jBFU288Q3MQDGL
+5w==
+--000000000000ed788505d5eea302--
