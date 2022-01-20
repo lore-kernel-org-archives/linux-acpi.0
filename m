@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 083A1C2BA4C
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 13:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C52D0C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 13:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232087AbiATNoA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jan 2022 08:44:00 -0500
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:48434 "EHLO
-        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S238138AbiATNn5 (ORCPT
+        id S241480AbiATNoG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jan 2022 08:44:06 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:44494 "EHLO
+        mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S231321AbiATNoE (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jan 2022 08:43:57 -0500
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20K4mpgo024668;
+        Thu, 20 Jan 2022 08:44:04 -0500
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20K6iPZE000624;
         Thu, 20 Jan 2022 07:43:44 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=r1QsPUe+mR02d07aDE3r/XJQmdN13xFv+KvrQ+fIJg8=;
- b=jYuA4PnFrke2slTZ73rHYoJAIRvukwsOVQWHROvZIhlPHk0DTqR/J5SJGpkroZgdqTp9
- gzSl+LN5jeIyGoka8eUAY7ZOetVLkRySp2sCt1+eMCEpqGGPXO9pbADJklZsD7u3p3kt
- RQLawVQHOlWOuhZXlbA4sbNq7XdJH+iXYD0WkGhi97bOUZ8souDlT1gMQtMcKflOmBaC
- y8MejBhEIACTGSZsEQZ6yIjw8bivB3iAgdBtVQMok6gSmCCVImg9YovYRmT+Ft2mtO6i
- WFLJ/58TKekt1rja49s9vFCBEL4PvVVbeftvNB0ELAanHTxhV/RAaFYqrCXkVgULs8qN vw== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3dpk9mh838-5
+ bh=pcJyyOGpZnRiEY9dUyz6ABiZtDZzkse/rMAEdl2+rng=;
+ b=Bp2WdrY4Ds6qeNdd8al8VbHmN9ym14iSyPm+26FzxoU93gtXFHF8Ov+vEUD+HD5gkXX7
+ cirhjLUr5oUJM+GfmJj6LetFM8ueTS3pnm1D+kPJOTD6SYk2cizq3usqwE3pLvNGYNNN
+ dLLyNVqWU1Ny/F7P+1NBPR2DKPdMhY76/fsbUFsISkaeWCNCRmceeJ4Jcll+9E28jqTZ
+ lpSlu4t8fCrezG++VlyfmzwJzQ3/qVWt0MTwsznsKMe6jDuqBWVBg9oHXjesW7bvspZ6
+ 9o8bfM+OtG5U4X0uBG46Lpp82+eB9T6tYLZwT6I4beNyjadhBXZlSj3pWk8z9jEjw0yG 4g== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3dpms0h5y2-3
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
         Thu, 20 Jan 2022 07:43:44 -0600
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Thu, 20 Jan
- 2022 13:43:43 +0000
+ 2022 13:43:41 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.18 via Frontend
- Transport; Thu, 20 Jan 2022 13:43:43 +0000
+ Transport; Thu, 20 Jan 2022 13:43:41 +0000
 Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.138])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 0C51346D;
-        Thu, 20 Jan 2022 13:43:43 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 3A530B13;
+        Thu, 20 Jan 2022 13:43:41 +0000 (UTC)
 From:   Stefan Binding <sbinding@opensource.cirrus.com>
 To:     Mark Brown <broonie@kernel.org>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -49,88 +49,108 @@ CC:     <alsa-devel@alsa-project.org>, <linux-kernel@vger.kernel.org>,
         <linux-spi@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <platform-driver-x86@vger.kernel.org>,
         <patches@opensource.cirrus.com>,
-        Lucas Tanure <tanureal@opensource.cirrus.com>,
         Stefan Binding <sbinding@opensource.cirrus.com>
-Subject: [PATCH v4 9/9] ACPI / scan: Create platform device for CS35L41
-Date:   Thu, 20 Jan 2022 13:43:26 +0000
-Message-ID: <20220120134326.5295-10-sbinding@opensource.cirrus.com>
+Subject: [PATCH v4 4/9] spi: Add API to count spi acpi resources
+Date:   Thu, 20 Jan 2022 13:43:21 +0000
+Message-ID: <20220120134326.5295-5-sbinding@opensource.cirrus.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220120134326.5295-1-sbinding@opensource.cirrus.com>
 References: <20220120134326.5295-1-sbinding@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: qQcJQLtTU6padvhcrx3b833Y5MFG8T5h
-X-Proofpoint-GUID: qQcJQLtTU6padvhcrx3b833Y5MFG8T5h
+X-Proofpoint-ORIG-GUID: t_619-WIORaFDQVjXif4y_SGULipdfrR
+X-Proofpoint-GUID: t_619-WIORaFDQVjXif4y_SGULipdfrR
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Lucas Tanure <tanureal@opensource.cirrus.com>
+Some ACPI nodes may have more than one Spi Resource.
+To be able to handle these case, its necessary to have
+a way of counting these resources.
 
-The ACPI device with CSC3551 or CLSA0100 are sound cards
-with multiple instances of CS35L41 connectec by I2C or SPI
-to the main CPU.
-
-We add an ID to the ignore_serial_bus_ids list to enumerate
-all I2C or SPI devices correctly.
-
-Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
 ---
- drivers/acpi/scan.c                          |  3 +++
- drivers/platform/x86/bus-multi-instantiate.c | 14 ++++++++++++++
- 2 files changed, 17 insertions(+)
+ drivers/spi/spi.c       | 40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/spi/spi.h |  6 ++++++
+ 2 files changed, 46 insertions(+)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 4fd1346d6e1f..2f2210c969c8 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1744,8 +1744,11 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
- 	 */
- 		{"BSG1160", },
- 		{"BSG2150", },
-+		{"CSC3551", },
- 		{"INT33FE", },
- 		{"INT3515", },
-+	/* Non-conforming _HID for Cirrus Logic already released */
-+		{"CLSA0100", },
- 	/*
- 	 * HIDs of device with an UartSerialBusV2 resource for which userspace
- 	 * expects a regular tty cdev to be created (instead of the in kernel
-diff --git a/drivers/platform/x86/bus-multi-instantiate.c b/drivers/platform/x86/bus-multi-instantiate.c
-index 05bc941a38fd..7a394b671f5a 100644
---- a/drivers/platform/x86/bus-multi-instantiate.c
-+++ b/drivers/platform/x86/bus-multi-instantiate.c
-@@ -328,6 +328,17 @@ static const struct bmi_node int3515_data = {
- 	.bus_type = BMI_I2C,
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 898cc9931490..8c0c2e26609a 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -2325,6 +2325,46 @@ struct acpi_spi_lookup {
+ 	int			irq_index;
  };
  
-+static const struct bmi_node cs35l41_hda = {
-+	.instances = {
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{}
-+	},
-+	.bus_type = BMI_AUTO_DETECT,
-+};
++static int acpi_spi_count(struct acpi_resource *ares, void *data)
++{
++	struct acpi_resource_spi_serialbus *sb;
++	int *count = data;
 +
++	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
++		return 1;
++
++	sb = &ares->data.spi_serial_bus;
++	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_SPI)
++		return 1;
++
++	*count = *count + 1;
++
++	return 1;
++}
++
++/**
++ * acpi_spi_count_resources - Count the number of SpiSerialBus resources
++ * @adev:	ACPI device
++ *
++ * Returns the number of SpiSerialBus resources in the ACPI-device's
++ * resource-list; or a negative error code.
++ */
++int acpi_spi_count_resources(struct acpi_device *adev)
++{
++	LIST_HEAD(r);
++	int count = 0;
++	int ret;
++
++	ret = acpi_dev_get_resources(adev, &r, acpi_spi_count, &count);
++	if (ret < 0)
++		return ret;
++
++	acpi_dev_free_resource_list(&r);
++
++	return count;
++}
++EXPORT_SYMBOL_GPL(acpi_spi_count_resources);
++
+ static void acpi_spi_parse_apple_properties(struct acpi_device *dev,
+ 					    struct acpi_spi_lookup *lookup)
+ {
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 1a34fd0f6ca2..25a82729f8da 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -764,6 +764,7 @@ extern void spi_unregister_controller(struct spi_controller *ctlr);
+ extern struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+ 						struct acpi_device *adev,
+ 						int index, int irq_index);
++int acpi_spi_count_resources(struct acpi_device *adev);
+ #else
+ static inline struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+ 						       struct acpi_device *adev,
+@@ -771,6 +772,11 @@ static inline struct spi_device *acpi_spi_device_alloc(struct spi_controller *ct
+ {
+ 	return ERR_PTR(-EOPNOTSUPP);
+ }
++
++int acpi_spi_count_resources(struct acpi_device *adev)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ 
  /*
-  * Note new device-ids must also be added to bus_multi_instantiate_ids in
-  * drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
-@@ -336,6 +347,9 @@ static const struct acpi_device_id bmi_acpi_ids[] = {
- 	{ "BSG1160", (unsigned long)&bsg1160_data },
- 	{ "BSG2150", (unsigned long)&bsg2150_data },
- 	{ "INT3515", (unsigned long)&int3515_data },
-+	{ "CSC3551", (unsigned long)&cs35l41_hda },
-+	/* Non-conforming _HID for Cirrus Logic already released */
-+	{ "CLSA0100", (unsigned long)&cs35l41_hda },
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, bmi_acpi_ids);
 -- 
 2.25.1
 
