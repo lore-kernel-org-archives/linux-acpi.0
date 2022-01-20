@@ -2,107 +2,385 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD5E6C433FE
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 15:05:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A4E2C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 15:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376401AbiATPE7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jan 2022 10:04:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40352 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376355AbiATPE6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jan 2022 10:04:58 -0500
-Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F969C061574;
-        Thu, 20 Jan 2022 07:04:58 -0800 (PST)
-Received: by mail-ed1-x529.google.com with SMTP id n10so14300925edv.2;
-        Thu, 20 Jan 2022 07:04:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=0B0txwt9I3zBHBA04rxL+1M1cNNBUpFyJyCl5rt6UEQ=;
-        b=OaZBl8tGrO1X9a7FHGZB4cmJ4VgTU/3ItHTB79dImrklyW3lvKSD8e+ysCI/q8fTkY
-         ZN/OJ9sLOdYorv2sKzI/D6kLhs/iS3ZZvdwmkCt/Bte9hVj/JLeaTa5pd0Z7LXPVtBHZ
-         PTV2OqYeVGK6CUmulaU1mkya5Nx+qD6sVJbaoGkbUkw0YbABzXFkz538JiSIxTwMcc/t
-         SlSOJuRSr2h6li7ph1WuwSEInBUxqmajFWtG+B8Hxn+Js0If8VxlZt+J8ffhVMW3C4ur
-         iC+g6I9030SeiVxyy1EdJwlaJkyDAyvpLBlS6TAx37CzQJZmOuWcTjl9rCC+MSANkzSX
-         kFhQ==
+        id S1376430AbiATPF3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jan 2022 10:05:29 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:58647 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1344431AbiATPF3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jan 2022 10:05:29 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1642691128;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=MznXZkr8tTainEeJK/O5yHKZF4B5LxQN1m2M1Hu0BmA=;
+        b=SXWroMI6TSTxaSuXTsIM0j/L1Ig6r6lHFQ9vMJO4hDczThF3y37O9sI5sW0UxazXbj7dN6
+        ERGWb0flm1OxNiusKPXLknnvEpJ91/bFGBrOxZHz8I1zDHUJwOAa+K/z+vS5fwBefFfr0U
+        qygFok4Mh3XQ2NVBU/OANR+vr/CL+0Y=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-302-WWSfYj3uOLqlhsI8Ppz7vA-1; Thu, 20 Jan 2022 10:05:27 -0500
+X-MC-Unique: WWSfYj3uOLqlhsI8Ppz7vA-1
+Received: by mail-ed1-f70.google.com with SMTP id ee53-20020a056402293500b004022f34edcbso6158647edb.11
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jan 2022 07:05:27 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0B0txwt9I3zBHBA04rxL+1M1cNNBUpFyJyCl5rt6UEQ=;
-        b=mqS2rHgT34MivHGFR8AkkM0JsYSoo0avOhBikljCixK2zF0s4in4W8GSY8JMbOXXsH
-         HRbpZ68ZiOiqJQtwiQKPYDhc+CL8L98uj75JNoNCg1gaI1nUB3cKShhuiLo45G5hnhyY
-         49RAqnczOZeBIPPIvh5HOgNb9ImCc8OeSn4TZaUymELjv+s05ZGmWQ5jErowAAD58DPT
-         grASC9DB7T23KXibwinnrgUhEuBe13nO+GwXiqJqZrB4mhNqdg51O2KAnYRKokaoXon2
-         R9ak3gRCIPsRR5L9ySVqOSIU/aTuIn5zTtpfjshMHdtenOs8/ew2SFdNnZqBmtnT88r9
-         yTLg==
-X-Gm-Message-State: AOAM530RyrP1WEMspF0OZ+eUlyoN+WGmrGR87EDLxJnVgYqBMf2B7FIL
-        ZGmsjsSDxQOORhifKKKAR78glRqPX2YjFtUwpHU=
-X-Google-Smtp-Source: ABdhPJzZRS5c6GbMZJ3YVrg75Ha9c8GpIBK6w4XxIX4joFpc3VUWOdfDcTqr1Crv3QTvW9rKuYxr1irkQ89yZOqzfos=
-X-Received: by 2002:a17:907:968c:: with SMTP id hd12mr28869417ejc.639.1642691096836;
- Thu, 20 Jan 2022 07:04:56 -0800 (PST)
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=MznXZkr8tTainEeJK/O5yHKZF4B5LxQN1m2M1Hu0BmA=;
+        b=xPiFvp5mC8o8NzI9Un2FL97Z1PWGGxEwBkKHEaRBVT1XsR73y8iEEtJCbUhY5Thx+d
+         RDI9LvYlcgVBJ2jUSqhZbccj9qRLI4Qjljh6jQ8mCRfUjg3LOQLK2wHDwHhjd0mupu9n
+         I/e88oXL5MMtAA7ELVaFGyXSTH6JVufxK61z3uRczsXV62MPaJn9JqX3h32rIQq0v19/
+         RSRc3DZMkznLukkfFfdYeGUhx3hKtd9I0ivmd8VtqPq8En9C8LB+qoTe2wbrcVHqHEMv
+         j6jZQW2glAjqRAE1MfHnvyaFbE/Jx2yuLFqWAWY/eXcuvhr7uipOroX2mkfMpR/z0k1Q
+         qEcQ==
+X-Gm-Message-State: AOAM533Uv87Xr/iz7w4wl9fR+JCqmn1H6LtLKogl0SwV5n6oMEkexiuS
+        NG4yJdq1wqKH5fmfj84kVio9foMB9SYIJ6vARRoJCU3VGRTQbS62/geDEKfQTeVaVYlrrvvVS53
+        0qM7odMvwky9LBbqi4YZvNw==
+X-Received: by 2002:a05:6402:51cf:: with SMTP id r15mr12733227edd.213.1642691125892;
+        Thu, 20 Jan 2022 07:05:25 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJz8pajs2mclo/rm8r6p03vqAxOEyh0ynJepbI8o1LXwvuQCgBXURSpknXKm63OybRCAXjuL3w==
+X-Received: by 2002:a05:6402:51cf:: with SMTP id r15mr12733209edd.213.1642691125605;
+        Thu, 20 Jan 2022 07:05:25 -0800 (PST)
+Received: from ?IPV6:2001:1c00:c1e:bf00:1db8:22d3:1bc9:8ca1? (2001-1c00-0c1e-bf00-1db8-22d3-1bc9-8ca1.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1db8:22d3:1bc9:8ca1])
+        by smtp.gmail.com with ESMTPSA id pg25sm1135150ejb.174.2022.01.20.07.05.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 20 Jan 2022 07:05:25 -0800 (PST)
+Message-ID: <f65fd55b-2e51-6682-bdad-97f9a05c8c17@redhat.com>
+Date:   Thu, 20 Jan 2022 16:05:24 +0100
 MIME-Version: 1.0
-References: <1642686255-25951-1-git-send-email-akhilrajeev@nvidia.com> <1642686255-25951-3-git-send-email-akhilrajeev@nvidia.com>
-In-Reply-To: <1642686255-25951-3-git-send-email-akhilrajeev@nvidia.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 20 Jan 2022 17:03:14 +0200
-Message-ID: <CAHp75VehSCxszDV3UQCEnPk7OCXRabRMJEStjpCamBG6X1iaCw@mail.gmail.com>
-Subject: Re: [PATCH v3 2/3] docs: firmware-guide: ACPI: Add named interrupt doc
-To:     Akhil R <akhilrajeev@nvidia.com>
-Cc:     =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jon Hunter <jonathanh@nvidia.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-i2c <linux-i2c@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Wolfram Sang <wsa@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.0
+Subject: Re: [PATCH v4 5/9] platform/x86: i2c-multi-instantiate: Rename it for
+ a generic bus driver name
+Content-Language: en-US
+To:     Stefan Binding <sbinding@opensource.cirrus.com>,
+        Mark Brown <broonie@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Gross <markgross@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Cc:     alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
+        linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, patches@opensource.cirrus.com,
+        Lucas Tanure <tanureal@opensource.cirrus.com>
+References: <20220120134326.5295-1-sbinding@opensource.cirrus.com>
+ <20220120134326.5295-6-sbinding@opensource.cirrus.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <20220120134326.5295-6-sbinding@opensource.cirrus.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 20, 2022 at 3:45 PM Akhil R <akhilrajeev@nvidia.com> wrote:
->
-> Added details and example for named interrupts in the ACPI table.
+Hi,
 
-Added details and example for --> Add a detailed example of the
+On 1/20/22 14:43, Stefan Binding wrote:
+> From: Lucas Tanure <tanureal@opensource.cirrus.com>
+> 
+> Rename I2C multi instantiate driver to bus-multi-instantiate for
+> upcoming addition of SPI support
+> 
+> Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
+> Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
 
-...
+Thanks, patch looks good to me:
 
-> +            Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) {
-> +                0x20,
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 
-I would think of splitting this to two separate entries in between of
-which the GpioInt() resource is provided. It will explicitly show that
-you describe the case only for Interrupt(). Something like
+Regards,
 
-  Interrupt (...) { 0x20 }
-  GpioInt(...) { ... }
-  Interrupt (...) { 0x24 }
+Hans
 
-But it's up to you.
 
-> +                0x24
-> +            }
+> ---
+>  MAINTAINERS                                   |  4 +-
+>  drivers/acpi/scan.c                           |  2 +-
+>  drivers/platform/x86/Kconfig                  |  4 +-
+>  drivers/platform/x86/Makefile                 |  2 +-
+>  ...-instantiate.c => bus-multi-instantiate.c} | 89 +++++++++----------
+>  5 files changed, 50 insertions(+), 51 deletions(-)
+>  rename drivers/platform/x86/{i2c-multi-instantiate.c => bus-multi-instantiate.c} (53%)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 4e828542b089..4a7e3cff9245 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -388,11 +388,11 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+>  S:	Maintained
+>  F:	drivers/acpi/arm64
+>  
+> -ACPI I2C MULTI INSTANTIATE DRIVER
+> +ACPI BUS MULTI INSTANTIATE DRIVER
+>  M:	Hans de Goede <hdegoede@redhat.com>
+>  L:	platform-driver-x86@vger.kernel.org
+>  S:	Maintained
+> -F:	drivers/platform/x86/i2c-multi-instantiate.c
+> +F:	drivers/platform/x86/bus-multi-instantiate.c
+>  
+>  ACPI PCC(Platform Communication Channel) MAILBOX DRIVER
+>  M:	Sudeep Holla <sudeep.holla@arm.com>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 1331756d4cfc..e4fda14572e7 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1738,7 +1738,7 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+>  	 * must be instantiated for each, each with its own i2c_device_id.
+>  	 * Normally we only instantiate an i2c-client for the first resource,
+>  	 * using the ACPI HID as id. These special cases are handled by the
+> -	 * drivers/platform/x86/i2c-multi-instantiate.c driver, which knows
+> +	 * drivers/platform/x86/bus-multi-instantiate.c driver, which knows
+>  	 * which i2c_device_id to use for each resource.
+>  	 */
+>  		{"BSG1160", },
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 24deeeb29af2..616da06aa6b9 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -990,7 +990,7 @@ config TOPSTAR_LAPTOP
+>  
+>  	  If you have a Topstar laptop, say Y or M here.
+>  
+> -config I2C_MULTI_INSTANTIATE
+> +config BUS_MULTI_INSTANTIATE
+>  	tristate "I2C multi instantiate pseudo device driver"
+>  	depends on I2C && ACPI
+>  	help
+> @@ -999,7 +999,7 @@ config I2C_MULTI_INSTANTIATE
+>  	  for each device in the firmware-node.
+>  
+>  	  To compile this driver as a module, choose M here: the module
+> -	  will be called i2c-multi-instantiate.
+> +	  will be called bus-multi-instantiate.
+>  
+>  config MLX_PLATFORM
+>  	tristate "Mellanox Technologies platform support"
+> diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+> index c12a9b044fd8..b5852e3fbab1 100644
+> --- a/drivers/platform/x86/Makefile
+> +++ b/drivers/platform/x86/Makefile
+> @@ -110,7 +110,7 @@ obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
+>  
+>  # Platform drivers
+>  obj-$(CONFIG_FW_ATTR_CLASS)		+= firmware_attributes_class.o
+> -obj-$(CONFIG_I2C_MULTI_INSTANTIATE)	+= i2c-multi-instantiate.o
+> +obj-$(CONFIG_BUS_MULTI_INSTANTIATE)	+= bus-multi-instantiate.o
+>  obj-$(CONFIG_MLX_PLATFORM)		+= mlx-platform.o
+>  obj-$(CONFIG_TOUCHSCREEN_DMI)		+= touchscreen_dmi.o
+>  obj-$(CONFIG_WIRELESS_HOTKEY)		+= wireless-hotkey.o
+> diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/bus-multi-instantiate.c
+> similarity index 53%
+> rename from drivers/platform/x86/i2c-multi-instantiate.c
+> rename to drivers/platform/x86/bus-multi-instantiate.c
+> index 4956a1df5b90..982dfecfd27c 100644
+> --- a/drivers/platform/x86/i2c-multi-instantiate.c
+> +++ b/drivers/platform/x86/bus-multi-instantiate.c
+> @@ -1,6 +1,6 @@
+>  // SPDX-License-Identifier: GPL-2.0+
+>  /*
+> - * I2C multi-instantiate driver, pseudo driver to instantiate multiple
+> + * Bus multi-instantiate driver, pseudo driver to instantiate multiple
+>   * i2c-clients from a single fwnode.
+>   *
+>   * Copyright 2018 Hans de Goede <hdegoede@redhat.com>
+> @@ -21,29 +21,29 @@
+>  #define IRQ_RESOURCE_GPIO	1
+>  #define IRQ_RESOURCE_APIC	2
+>  
+> -struct i2c_inst_data {
+> +struct bmi_instance {
+>  	const char *type;
+>  	unsigned int flags;
+>  	int irq_idx;
+>  };
+>  
+> -struct i2c_multi_inst_data {
+> -	int num_clients;
+> -	struct i2c_client *clients[];
+> +struct bmi {
+> +	int i2c_num;
+> +	struct i2c_client *i2c_devs[];
+>  };
+>  
+> -static int i2c_multi_inst_probe(struct platform_device *pdev)
+> +static int bmi_probe(struct platform_device *pdev)
+>  {
+> -	struct i2c_multi_inst_data *multi;
+> -	const struct i2c_inst_data *inst_data;
+>  	struct i2c_board_info board_info = {};
+> +	const struct bmi_instance *inst;
+>  	struct device *dev = &pdev->dev;
+>  	struct acpi_device *adev;
+> +	struct bmi *bmi;
+>  	char name[32];
+>  	int i, ret;
+>  
+> -	inst_data = device_get_match_data(dev);
+> -	if (!inst_data) {
+> +	inst = device_get_match_data(dev);
+> +	if (!inst) {
+>  		dev_err(dev, "Error ACPI match data is missing\n");
+>  		return -ENODEV;
+>  	}
+> @@ -55,33 +55,32 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	multi = devm_kmalloc(dev, struct_size(multi, clients, ret), GFP_KERNEL);
+> -	if (!multi)
+> +	bmi = devm_kmalloc(dev, struct_size(bmi, i2c_devs, ret), GFP_KERNEL);
+> +	if (!bmi)
+>  		return -ENOMEM;
+>  
+> -	multi->num_clients = ret;
+> +	bmi->i2c_num = ret;
+>  
+> -	for (i = 0; i < multi->num_clients && inst_data[i].type; i++) {
+> +	for (i = 0; i < bmi->i2c_num && inst[i].type; i++) {
+>  		memset(&board_info, 0, sizeof(board_info));
+> -		strlcpy(board_info.type, inst_data[i].type, I2C_NAME_SIZE);
+> -		snprintf(name, sizeof(name), "%s-%s.%d", dev_name(dev),
+> -			 inst_data[i].type, i);
+> +		strlcpy(board_info.type, inst[i].type, I2C_NAME_SIZE);
+> +		snprintf(name, sizeof(name), "%s-%s.%d", dev_name(dev), inst[i].type, i);
+>  		board_info.dev_name = name;
+> -		switch (inst_data[i].flags & IRQ_RESOURCE_TYPE) {
+> +		switch (inst[i].flags & IRQ_RESOURCE_TYPE) {
+>  		case IRQ_RESOURCE_GPIO:
+> -			ret = acpi_dev_gpio_irq_get(adev, inst_data[i].irq_idx);
+> +			ret = acpi_dev_gpio_irq_get(adev, inst[i].irq_idx);
+>  			if (ret < 0) {
+>  				dev_err(dev, "Error requesting irq at index %d: %d\n",
+> -					inst_data[i].irq_idx, ret);
+> +						inst[i].irq_idx, ret);
+>  				goto error;
+>  			}
+>  			board_info.irq = ret;
+>  			break;
+>  		case IRQ_RESOURCE_APIC:
+> -			ret = platform_get_irq(pdev, inst_data[i].irq_idx);
+> +			ret = platform_get_irq(pdev, inst[i].irq_idx);
+>  			if (ret < 0) {
+>  				dev_dbg(dev, "Error requesting irq at index %d: %d\n",
+> -					inst_data[i].irq_idx, ret);
+> +					inst[i].irq_idx, ret);
+>  				goto error;
+>  			}
+>  			board_info.irq = ret;
+> @@ -90,48 +89,48 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
+>  			board_info.irq = 0;
+>  			break;
+>  		}
+> -		multi->clients[i] = i2c_acpi_new_device(dev, i, &board_info);
+> -		if (IS_ERR(multi->clients[i])) {
+> -			ret = dev_err_probe(dev, PTR_ERR(multi->clients[i]),
+> +		bmi->i2c_devs[i] = i2c_acpi_new_device(dev, i, &board_info);
+> +		if (IS_ERR(bmi->i2c_devs[i])) {
+> +			ret = dev_err_probe(dev, PTR_ERR(bmi->i2c_devs[i]),
+>  					    "Error creating i2c-client, idx %d\n", i);
+>  			goto error;
+>  		}
+>  	}
+> -	if (i < multi->num_clients) {
+> +	if (i < bmi->i2c_num) {
+>  		dev_err(dev, "Error finding driver, idx %d\n", i);
+>  		ret = -ENODEV;
+>  		goto error;
+>  	}
+>  
+> -	platform_set_drvdata(pdev, multi);
+> +	platform_set_drvdata(pdev, bmi);
+>  	return 0;
+>  
+>  error:
+>  	while (--i >= 0)
+> -		i2c_unregister_device(multi->clients[i]);
+> +		i2c_unregister_device(bmi->i2c_devs[i]);
+>  
+>  	return ret;
+>  }
+>  
+> -static int i2c_multi_inst_remove(struct platform_device *pdev)
+> +static int bmi_remove(struct platform_device *pdev)
+>  {
+> -	struct i2c_multi_inst_data *multi = platform_get_drvdata(pdev);
+> +	struct bmi *bmi = platform_get_drvdata(pdev);
+>  	int i;
+>  
+> -	for (i = 0; i < multi->num_clients; i++)
+> -		i2c_unregister_device(multi->clients[i]);
+> +	for (i = 0; i < bmi->i2c_num; i++)
+> +		i2c_unregister_device(bmi->i2c_devs[i]);
+>  
+>  	return 0;
+>  }
+>  
+> -static const struct i2c_inst_data bsg1160_data[]  = {
+> +static const struct bmi_instance bsg1160_data[]  = {
+>  	{ "bmc150_accel", IRQ_RESOURCE_GPIO, 0 },
+>  	{ "bmc150_magn" },
+>  	{ "bmg160" },
+>  	{}
+>  };
+>  
+> -static const struct i2c_inst_data bsg2150_data[]  = {
+> +static const struct bmi_instance bsg2150_data[]  = {
+>  	{ "bmc150_accel", IRQ_RESOURCE_GPIO, 0 },
+>  	{ "bmc150_magn" },
+>  	/* The resources describe a 3th client, but it is not really there. */
+> @@ -139,7 +138,7 @@ static const struct i2c_inst_data bsg2150_data[]  = {
+>  	{}
+>  };
+>  
+> -static const struct i2c_inst_data int3515_data[]  = {
+> +static const struct bmi_instance int3515_data[]  = {
+>  	{ "tps6598x", IRQ_RESOURCE_APIC, 0 },
+>  	{ "tps6598x", IRQ_RESOURCE_APIC, 1 },
+>  	{ "tps6598x", IRQ_RESOURCE_APIC, 2 },
+> @@ -148,27 +147,27 @@ static const struct i2c_inst_data int3515_data[]  = {
+>  };
+>  
+>  /*
+> - * Note new device-ids must also be added to i2c_multi_instantiate_ids in
+> + * Note new device-ids must also be added to bus_multi_instantiate_ids in
+>   * drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
+>   */
+> -static const struct acpi_device_id i2c_multi_inst_acpi_ids[] = {
+> +static const struct acpi_device_id bmi_acpi_ids[] = {
+>  	{ "BSG1160", (unsigned long)bsg1160_data },
+>  	{ "BSG2150", (unsigned long)bsg2150_data },
+>  	{ "INT3515", (unsigned long)int3515_data },
+>  	{ }
+>  };
+> -MODULE_DEVICE_TABLE(acpi, i2c_multi_inst_acpi_ids);
+> +MODULE_DEVICE_TABLE(acpi, bmi_acpi_ids);
+>  
+> -static struct platform_driver i2c_multi_inst_driver = {
+> +static struct platform_driver bmi_driver = {
+>  	.driver	= {
+> -		.name = "I2C multi instantiate pseudo device driver",
+> -		.acpi_match_table = i2c_multi_inst_acpi_ids,
+> +		.name = "Bus multi instantiate pseudo device driver",
+> +		.acpi_match_table = bmi_acpi_ids,
+>  	},
+> -	.probe = i2c_multi_inst_probe,
+> -	.remove = i2c_multi_inst_remove,
+> +	.probe = bmi_probe,
+> +	.remove = bmi_remove,
+>  };
+> -module_platform_driver(i2c_multi_inst_driver);
+> +module_platform_driver(bmi_driver);
+>  
+> -MODULE_DESCRIPTION("I2C multi instantiate pseudo device driver");
+> +MODULE_DESCRIPTION("Bus multi instantiate pseudo device driver");
+>  MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
+>  MODULE_LICENSE("GPL");
+> 
 
-...
-
-> +The driver can call the function - device_irq_get_byname() with the device
-> +and interrupt name as arguments to get the corresponding IRQ number.
-
-Needs switch to fwnode as per comment against the previous patch.
-
--- 
-With Best Regards,
-Andy Shevchenko
