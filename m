@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 805CCC43217
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 13:44:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F8B7C4167B
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 13:44:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240567AbiATNn6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jan 2022 08:43:58 -0500
-Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:8650 "EHLO
+        id S240673AbiATNn7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jan 2022 08:43:59 -0500
+Received: from mx0b-001ae601.pphosted.com ([67.231.152.168]:63354 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229580AbiATNn5 (ORCPT
+        by vger.kernel.org with ESMTP id S231760AbiATNn5 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
         Thu, 20 Jan 2022 08:43:57 -0500
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20K4mpgm024668;
+        by mx0b-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20K4mpgl024668;
         Thu, 20 Jan 2022 07:43:43 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=NnT76tFDTsJKnRu3BbxkL9dyW+2s7WfbF9csCDbyTxM=;
- b=XbEGm7utjcNfY/S4Jt6fqA1FUYnyS1jsUf7n4GH7vf8qE5fNGZW5DXdNGk4TP00ywRdp
- Ac16Xqu1f5NTVdXMexbWw75ceeMPy2hTVa1uBX5K87frXgMT0Wa0CvkXZstlLgMOuLtM
- JbaGm0bF6W1F6WIcTSE3XHaDXULMND5myBTF55pujiS3bUOQRltSdYLUWE0NcmjRHBCg
- wDJ4VHVw4W3Hwc0+VxPjFpKJeMts1X4YlEETvOU+NJnrKGvt+P2mAJ4Wt9O3PRG1Yv88
- LiI38ge6SuuBHpwxBEw8fbYx1a8GsuReG/rC4OBsqIQUWG0Epgs+PXnZXCLer229xgBb hg== 
+ bh=6LzZgHJyHS6+52PTFfBV1T2etdYokJnDPJ2IAAN6hcY=;
+ b=i+efIY+M+N19N0yhxsm2NZsCSKXVqCY5Ck/en3NcidBtt+/vHPwxJ3UGKOa7zs5tnZO3
+ 6UAxaLW7jlfoYKq8kn8rw/ygLDakerovmRku74eA89oyvLOb7scz+FaThZpZ5pKaN+Z1
+ BXFNP2j/WeaiACIbleN4zwjFw/ONr9PS4AN/b+BKMDpAvAEaBeokrT503XjjHsYeMIXs
+ a+WEp/iw7fQ/lY7qhqOrhunY4mN12QXZdHZB/C8WaO9oG2RI6RY7uNLfaGQLxVTEBs+Z
+ v/Dx39iICtuoDQ0N1XSHlVgro/gdjOQHYXIi+FCWdkyWnLY/dpQ1YR4DKZZupsepVxww +A== 
 Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3dpk9mh838-4
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3dpk9mh838-3
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 20 Jan 2022 07:43:43 -0600
+        Thu, 20 Jan 2022 07:43:42 -0600
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
  (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Thu, 20 Jan
- 2022 13:43:43 +0000
+ 2022 13:43:41 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.18 via Frontend
- Transport; Thu, 20 Jan 2022 13:43:43 +0000
+ Transport; Thu, 20 Jan 2022 13:43:41 +0000
 Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.138])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id A277A11D7;
-        Thu, 20 Jan 2022 13:43:42 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 8E54546D;
+        Thu, 20 Jan 2022 13:43:41 +0000 (UTC)
 From:   Stefan Binding <sbinding@opensource.cirrus.com>
 To:     Mark Brown <broonie@kernel.org>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -51,17 +51,17 @@ CC:     <alsa-devel@alsa-project.org>, <linux-kernel@vger.kernel.org>,
         <patches@opensource.cirrus.com>,
         Lucas Tanure <tanureal@opensource.cirrus.com>,
         Stefan Binding <sbinding@opensource.cirrus.com>
-Subject: [PATCH v4 8/9] ALSA: hda/realtek: Add support for HP Laptops
-Date:   Thu, 20 Jan 2022 13:43:25 +0000
-Message-ID: <20220120134326.5295-9-sbinding@opensource.cirrus.com>
+Subject: [PATCH v4 5/9] platform/x86: i2c-multi-instantiate: Rename it for a generic bus driver name
+Date:   Thu, 20 Jan 2022 13:43:22 +0000
+Message-ID: <20220120134326.5295-6-sbinding@opensource.cirrus.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220120134326.5295-1-sbinding@opensource.cirrus.com>
 References: <20220120134326.5295-1-sbinding@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: XgiWZaEwhgvfb-fl5Tm8OKhDQ3daBZig
-X-Proofpoint-GUID: XgiWZaEwhgvfb-fl5Tm8OKhDQ3daBZig
+X-Proofpoint-ORIG-GUID: 4rEwSZifRdH-PDT3zAlvruFOYnp0YJ-n
+X-Proofpoint-GUID: 4rEwSZifRdH-PDT3zAlvruFOYnp0YJ-n
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -69,91 +69,293 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Lucas Tanure <tanureal@opensource.cirrus.com>
 
-Add support for two and four CS35L41 using the component
-binding method
+Rename I2C multi instantiate driver to bus-multi-instantiate for
+upcoming addition of SPI support
 
 Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
 ---
- sound/pci/hda/patch_realtek.c | 43 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 42 insertions(+), 1 deletion(-)
+ MAINTAINERS                                   |  4 +-
+ drivers/acpi/scan.c                           |  2 +-
+ drivers/platform/x86/Kconfig                  |  4 +-
+ drivers/platform/x86/Makefile                 |  2 +-
+ ...-instantiate.c => bus-multi-instantiate.c} | 89 +++++++++----------
+ 5 files changed, 50 insertions(+), 51 deletions(-)
+ rename drivers/platform/x86/{i2c-multi-instantiate.c => bus-multi-instantiate.c} (53%)
 
-diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 668274e52674..956515aa4ec3 100644
---- a/sound/pci/hda/patch_realtek.c
-+++ b/sound/pci/hda/patch_realtek.c
-@@ -6611,6 +6611,16 @@ static void cs35l41_fixup_i2c_two(struct hda_codec *cdc, const struct hda_fixup
- 	cs35l41_generic_fixup(cdc, action, "i2c", "CSC3551", 2);
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4e828542b089..4a7e3cff9245 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -388,11 +388,11 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	drivers/acpi/arm64
  
-+static void cs35l41_fixup_spi_two(struct hda_codec *codec, const struct hda_fixup *fix, int action)
-+{
-+	cs35l41_generic_fixup(codec, action, "spi0", "CSC3551", 2);
-+}
-+
-+static void cs35l41_fixup_spi_four(struct hda_codec *codec, const struct hda_fixup *fix, int action)
-+{
-+	cs35l41_generic_fixup(codec, action, "spi0", "CSC3551", 4);
-+}
-+
- static void alc287_legion_16achg6_playback_hook(struct hda_pcm_stream *hinfo, struct hda_codec *cdc,
- 						struct snd_pcm_substream *sub, int action)
- {
-@@ -6948,6 +6958,9 @@ enum {
- 	ALC285_FIXUP_LEGION_Y9000X_AUTOMUTE,
- 	ALC287_FIXUP_LEGION_16ACHG6,
- 	ALC287_FIXUP_CS35L41_I2C_2,
-+	ALC245_FIXUP_CS35L41_SPI_2,
-+	ALC245_FIXUP_CS35L41_SPI_4,
-+	ALC245_FIXUP_CS35L41_SPI_4_HP_GPIO_LED,
- 	ALC285_FIXUP_HP_SPEAKERS_MICMUTE_LED,
+-ACPI I2C MULTI INSTANTIATE DRIVER
++ACPI BUS MULTI INSTANTIATE DRIVER
+ M:	Hans de Goede <hdegoede@redhat.com>
+ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+-F:	drivers/platform/x86/i2c-multi-instantiate.c
++F:	drivers/platform/x86/bus-multi-instantiate.c
+ 
+ ACPI PCC(Platform Communication Channel) MAILBOX DRIVER
+ M:	Sudeep Holla <sudeep.holla@arm.com>
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 1331756d4cfc..e4fda14572e7 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1738,7 +1738,7 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+ 	 * must be instantiated for each, each with its own i2c_device_id.
+ 	 * Normally we only instantiate an i2c-client for the first resource,
+ 	 * using the ACPI HID as id. These special cases are handled by the
+-	 * drivers/platform/x86/i2c-multi-instantiate.c driver, which knows
++	 * drivers/platform/x86/bus-multi-instantiate.c driver, which knows
+ 	 * which i2c_device_id to use for each resource.
+ 	 */
+ 		{"BSG1160", },
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 24deeeb29af2..616da06aa6b9 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -990,7 +990,7 @@ config TOPSTAR_LAPTOP
+ 
+ 	  If you have a Topstar laptop, say Y or M here.
+ 
+-config I2C_MULTI_INSTANTIATE
++config BUS_MULTI_INSTANTIATE
+ 	tristate "I2C multi instantiate pseudo device driver"
+ 	depends on I2C && ACPI
+ 	help
+@@ -999,7 +999,7 @@ config I2C_MULTI_INSTANTIATE
+ 	  for each device in the firmware-node.
+ 
+ 	  To compile this driver as a module, choose M here: the module
+-	  will be called i2c-multi-instantiate.
++	  will be called bus-multi-instantiate.
+ 
+ config MLX_PLATFORM
+ 	tristate "Mellanox Technologies platform support"
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index c12a9b044fd8..b5852e3fbab1 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -110,7 +110,7 @@ obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
+ 
+ # Platform drivers
+ obj-$(CONFIG_FW_ATTR_CLASS)		+= firmware_attributes_class.o
+-obj-$(CONFIG_I2C_MULTI_INSTANTIATE)	+= i2c-multi-instantiate.o
++obj-$(CONFIG_BUS_MULTI_INSTANTIATE)	+= bus-multi-instantiate.o
+ obj-$(CONFIG_MLX_PLATFORM)		+= mlx-platform.o
+ obj-$(CONFIG_TOUCHSCREEN_DMI)		+= touchscreen_dmi.o
+ obj-$(CONFIG_WIRELESS_HOTKEY)		+= wireless-hotkey.o
+diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/bus-multi-instantiate.c
+similarity index 53%
+rename from drivers/platform/x86/i2c-multi-instantiate.c
+rename to drivers/platform/x86/bus-multi-instantiate.c
+index 4956a1df5b90..982dfecfd27c 100644
+--- a/drivers/platform/x86/i2c-multi-instantiate.c
++++ b/drivers/platform/x86/bus-multi-instantiate.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0+
+ /*
+- * I2C multi-instantiate driver, pseudo driver to instantiate multiple
++ * Bus multi-instantiate driver, pseudo driver to instantiate multiple
+  * i2c-clients from a single fwnode.
+  *
+  * Copyright 2018 Hans de Goede <hdegoede@redhat.com>
+@@ -21,29 +21,29 @@
+ #define IRQ_RESOURCE_GPIO	1
+ #define IRQ_RESOURCE_APIC	2
+ 
+-struct i2c_inst_data {
++struct bmi_instance {
+ 	const char *type;
+ 	unsigned int flags;
+ 	int irq_idx;
  };
  
-@@ -8699,6 +8712,20 @@ static const struct hda_fixup alc269_fixups[] = {
- 		.type = HDA_FIXUP_FUNC,
- 		.v.func = cs35l41_fixup_i2c_two,
+-struct i2c_multi_inst_data {
+-	int num_clients;
+-	struct i2c_client *clients[];
++struct bmi {
++	int i2c_num;
++	struct i2c_client *i2c_devs[];
+ };
+ 
+-static int i2c_multi_inst_probe(struct platform_device *pdev)
++static int bmi_probe(struct platform_device *pdev)
+ {
+-	struct i2c_multi_inst_data *multi;
+-	const struct i2c_inst_data *inst_data;
+ 	struct i2c_board_info board_info = {};
++	const struct bmi_instance *inst;
+ 	struct device *dev = &pdev->dev;
+ 	struct acpi_device *adev;
++	struct bmi *bmi;
+ 	char name[32];
+ 	int i, ret;
+ 
+-	inst_data = device_get_match_data(dev);
+-	if (!inst_data) {
++	inst = device_get_match_data(dev);
++	if (!inst) {
+ 		dev_err(dev, "Error ACPI match data is missing\n");
+ 		return -ENODEV;
+ 	}
+@@ -55,33 +55,32 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	multi = devm_kmalloc(dev, struct_size(multi, clients, ret), GFP_KERNEL);
+-	if (!multi)
++	bmi = devm_kmalloc(dev, struct_size(bmi, i2c_devs, ret), GFP_KERNEL);
++	if (!bmi)
+ 		return -ENOMEM;
+ 
+-	multi->num_clients = ret;
++	bmi->i2c_num = ret;
+ 
+-	for (i = 0; i < multi->num_clients && inst_data[i].type; i++) {
++	for (i = 0; i < bmi->i2c_num && inst[i].type; i++) {
+ 		memset(&board_info, 0, sizeof(board_info));
+-		strlcpy(board_info.type, inst_data[i].type, I2C_NAME_SIZE);
+-		snprintf(name, sizeof(name), "%s-%s.%d", dev_name(dev),
+-			 inst_data[i].type, i);
++		strlcpy(board_info.type, inst[i].type, I2C_NAME_SIZE);
++		snprintf(name, sizeof(name), "%s-%s.%d", dev_name(dev), inst[i].type, i);
+ 		board_info.dev_name = name;
+-		switch (inst_data[i].flags & IRQ_RESOURCE_TYPE) {
++		switch (inst[i].flags & IRQ_RESOURCE_TYPE) {
+ 		case IRQ_RESOURCE_GPIO:
+-			ret = acpi_dev_gpio_irq_get(adev, inst_data[i].irq_idx);
++			ret = acpi_dev_gpio_irq_get(adev, inst[i].irq_idx);
+ 			if (ret < 0) {
+ 				dev_err(dev, "Error requesting irq at index %d: %d\n",
+-					inst_data[i].irq_idx, ret);
++						inst[i].irq_idx, ret);
+ 				goto error;
+ 			}
+ 			board_info.irq = ret;
+ 			break;
+ 		case IRQ_RESOURCE_APIC:
+-			ret = platform_get_irq(pdev, inst_data[i].irq_idx);
++			ret = platform_get_irq(pdev, inst[i].irq_idx);
+ 			if (ret < 0) {
+ 				dev_dbg(dev, "Error requesting irq at index %d: %d\n",
+-					inst_data[i].irq_idx, ret);
++					inst[i].irq_idx, ret);
+ 				goto error;
+ 			}
+ 			board_info.irq = ret;
+@@ -90,48 +89,48 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
+ 			board_info.irq = 0;
+ 			break;
+ 		}
+-		multi->clients[i] = i2c_acpi_new_device(dev, i, &board_info);
+-		if (IS_ERR(multi->clients[i])) {
+-			ret = dev_err_probe(dev, PTR_ERR(multi->clients[i]),
++		bmi->i2c_devs[i] = i2c_acpi_new_device(dev, i, &board_info);
++		if (IS_ERR(bmi->i2c_devs[i])) {
++			ret = dev_err_probe(dev, PTR_ERR(bmi->i2c_devs[i]),
+ 					    "Error creating i2c-client, idx %d\n", i);
+ 			goto error;
+ 		}
+ 	}
+-	if (i < multi->num_clients) {
++	if (i < bmi->i2c_num) {
+ 		dev_err(dev, "Error finding driver, idx %d\n", i);
+ 		ret = -ENODEV;
+ 		goto error;
+ 	}
+ 
+-	platform_set_drvdata(pdev, multi);
++	platform_set_drvdata(pdev, bmi);
+ 	return 0;
+ 
+ error:
+ 	while (--i >= 0)
+-		i2c_unregister_device(multi->clients[i]);
++		i2c_unregister_device(bmi->i2c_devs[i]);
+ 
+ 	return ret;
+ }
+ 
+-static int i2c_multi_inst_remove(struct platform_device *pdev)
++static int bmi_remove(struct platform_device *pdev)
+ {
+-	struct i2c_multi_inst_data *multi = platform_get_drvdata(pdev);
++	struct bmi *bmi = platform_get_drvdata(pdev);
+ 	int i;
+ 
+-	for (i = 0; i < multi->num_clients; i++)
+-		i2c_unregister_device(multi->clients[i]);
++	for (i = 0; i < bmi->i2c_num; i++)
++		i2c_unregister_device(bmi->i2c_devs[i]);
+ 
+ 	return 0;
+ }
+ 
+-static const struct i2c_inst_data bsg1160_data[]  = {
++static const struct bmi_instance bsg1160_data[]  = {
+ 	{ "bmc150_accel", IRQ_RESOURCE_GPIO, 0 },
+ 	{ "bmc150_magn" },
+ 	{ "bmg160" },
+ 	{}
+ };
+ 
+-static const struct i2c_inst_data bsg2150_data[]  = {
++static const struct bmi_instance bsg2150_data[]  = {
+ 	{ "bmc150_accel", IRQ_RESOURCE_GPIO, 0 },
+ 	{ "bmc150_magn" },
+ 	/* The resources describe a 3th client, but it is not really there. */
+@@ -139,7 +138,7 @@ static const struct i2c_inst_data bsg2150_data[]  = {
+ 	{}
+ };
+ 
+-static const struct i2c_inst_data int3515_data[]  = {
++static const struct bmi_instance int3515_data[]  = {
+ 	{ "tps6598x", IRQ_RESOURCE_APIC, 0 },
+ 	{ "tps6598x", IRQ_RESOURCE_APIC, 1 },
+ 	{ "tps6598x", IRQ_RESOURCE_APIC, 2 },
+@@ -148,27 +147,27 @@ static const struct i2c_inst_data int3515_data[]  = {
+ };
+ 
+ /*
+- * Note new device-ids must also be added to i2c_multi_instantiate_ids in
++ * Note new device-ids must also be added to bus_multi_instantiate_ids in
+  * drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
+  */
+-static const struct acpi_device_id i2c_multi_inst_acpi_ids[] = {
++static const struct acpi_device_id bmi_acpi_ids[] = {
+ 	{ "BSG1160", (unsigned long)bsg1160_data },
+ 	{ "BSG2150", (unsigned long)bsg2150_data },
+ 	{ "INT3515", (unsigned long)int3515_data },
+ 	{ }
+ };
+-MODULE_DEVICE_TABLE(acpi, i2c_multi_inst_acpi_ids);
++MODULE_DEVICE_TABLE(acpi, bmi_acpi_ids);
+ 
+-static struct platform_driver i2c_multi_inst_driver = {
++static struct platform_driver bmi_driver = {
+ 	.driver	= {
+-		.name = "I2C multi instantiate pseudo device driver",
+-		.acpi_match_table = i2c_multi_inst_acpi_ids,
++		.name = "Bus multi instantiate pseudo device driver",
++		.acpi_match_table = bmi_acpi_ids,
  	},
-+	[ALC245_FIXUP_CS35L41_SPI_2] = {
-+		.type = HDA_FIXUP_FUNC,
-+		.v.func = cs35l41_fixup_spi_two,
-+	},
-+	[ALC245_FIXUP_CS35L41_SPI_4] = {
-+		.type = HDA_FIXUP_FUNC,
-+		.v.func = cs35l41_fixup_spi_four,
-+	},
-+	[ALC245_FIXUP_CS35L41_SPI_4_HP_GPIO_LED] = {
-+		.type = HDA_FIXUP_FUNC,
-+		.v.func = alc245_fixup_hp_gpio_led,
-+		.chained = true,
-+		.chain_id = ALC245_FIXUP_CS35L41_SPI_4,
-+	},
- 	[ALC285_FIXUP_HP_SPEAKERS_MICMUTE_LED] = {
- 		.type = HDA_FIXUP_VERBS,
- 		.v.verbs = (const struct hda_verb[]) {
-@@ -8926,8 +8953,22 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
- 	SND_PCI_QUIRK(0x103c, 0x8896, "HP EliteBook 855 G8 Notebook PC", ALC285_FIXUP_HP_MUTE_LED),
- 	SND_PCI_QUIRK(0x103c, 0x8898, "HP EliteBook 845 G8 Notebook PC", ALC285_FIXUP_HP_LIMIT_INT_MIC_BOOST),
- 	SND_PCI_QUIRK(0x103c, 0x88d0, "HP Pavilion 15-eh1xxx (mainboard 88D0)", ALC287_FIXUP_HP_GPIO_LED),
--	SND_PCI_QUIRK(0x103c, 0x89c3, "HP", ALC285_FIXUP_HP_GPIO_LED),
- 	SND_PCI_QUIRK(0x103c, 0x89ca, "HP", ALC236_FIXUP_HP_MUTE_LED_MICMUTE_VREF),
-+	SND_PCI_QUIRK(0x103c, 0x896E, "HP EliteBook x360 830 G9", ALC245_FIXUP_CS35L41_SPI_2),
-+	SND_PCI_QUIRK(0x103c, 0x8971, "HP EliteBook 830 G9", ALC245_FIXUP_CS35L41_SPI_2),
-+	SND_PCI_QUIRK(0x103c, 0x8972, "HP EliteBook 840 G9", ALC245_FIXUP_CS35L41_SPI_2),
-+	SND_PCI_QUIRK(0x103c, 0x8973, "HP EliteBook 860 G9", ALC245_FIXUP_CS35L41_SPI_2),
-+	SND_PCI_QUIRK(0x103c, 0x8974, "HP EliteBook 840 Aero G9", ALC245_FIXUP_CS35L41_SPI_2),
-+	SND_PCI_QUIRK(0x103c, 0x8975, "HP EliteBook x360 840 Aero G9", ALC245_FIXUP_CS35L41_SPI_2),
-+	SND_PCI_QUIRK(0x103c, 0x8981, "HP Elite Dragonfly G3", ALC245_FIXUP_CS35L41_SPI_4),
-+	SND_PCI_QUIRK(0x103c, 0x898E, "HP EliteBook 835 G9", ALC287_FIXUP_CS35L41_I2C_2),
-+	SND_PCI_QUIRK(0x103c, 0x898F, "HP EliteBook 835 G9", ALC287_FIXUP_CS35L41_I2C_2),
-+	SND_PCI_QUIRK(0x103c, 0x8991, "HP EliteBook 845 G9", ALC287_FIXUP_CS35L41_I2C_2),
-+	SND_PCI_QUIRK(0x103c, 0x8992, "HP EliteBook 845 G9", ALC287_FIXUP_CS35L41_I2C_2),
-+	SND_PCI_QUIRK(0x103c, 0x8994, "HP EliteBook 855 G9", ALC287_FIXUP_CS35L41_I2C_2),
-+	SND_PCI_QUIRK(0x103c, 0x8995, "HP EliteBook 855 G9", ALC287_FIXUP_CS35L41_I2C_2),
-+	SND_PCI_QUIRK(0x103c, 0x89C3, "Zbook Studio G9", ALC245_FIXUP_CS35L41_SPI_4_HP_GPIO_LED),
-+	SND_PCI_QUIRK(0x103c, 0x89C6, "Zbook Fury 17 G9", ALC245_FIXUP_CS35L41_SPI_2),
- 	SND_PCI_QUIRK(0x1043, 0x103e, "ASUS X540SA", ALC256_FIXUP_ASUS_MIC),
- 	SND_PCI_QUIRK(0x1043, 0x103f, "ASUS TX300", ALC282_FIXUP_ASUS_TX300),
- 	SND_PCI_QUIRK(0x1043, 0x106d, "Asus K53BE", ALC269_FIXUP_LIMIT_INT_MIC_BOOST),
+-	.probe = i2c_multi_inst_probe,
+-	.remove = i2c_multi_inst_remove,
++	.probe = bmi_probe,
++	.remove = bmi_remove,
+ };
+-module_platform_driver(i2c_multi_inst_driver);
++module_platform_driver(bmi_driver);
+ 
+-MODULE_DESCRIPTION("I2C multi instantiate pseudo device driver");
++MODULE_DESCRIPTION("Bus multi instantiate pseudo device driver");
+ MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
+ MODULE_LICENSE("GPL");
 -- 
 2.25.1
 
