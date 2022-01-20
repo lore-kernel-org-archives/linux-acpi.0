@@ -2,165 +2,312 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 183BCC433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 14:59:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CFB9C433FE
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Jan 2022 15:04:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358414AbiATO7e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Jan 2022 09:59:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39004 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346102AbiATO7d (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jan 2022 09:59:33 -0500
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B6D7C061574;
-        Thu, 20 Jan 2022 06:59:33 -0800 (PST)
-Received: by mail-ed1-x52a.google.com with SMTP id u18so15694959edt.6;
-        Thu, 20 Jan 2022 06:59:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Q7/Art4fi7Ys+mKvfMJYfxSvlOJsbRKucqQhRA69bnI=;
-        b=aCGGxiYLTv4SVejDvxcNOhoE/tXZlskJXY4VdLXFx7mLuYAEGN0y7HJkr0NsYalnEj
-         qyZxOKRhUUWEWuQ5yuX7PeLNomLeYNJ80ht2YlxtYMHiQPMx57Cr+/GnEVnrm5Hwrz7A
-         Ded9EA6M5zwg/Niqvo4kPTj4BETD1QBYifj1csdmxV0LL0GTRok8pLpKEvZAxEoMpRVf
-         v+21aTOeFoZVzH3cJGmg4/zxgAUrBXr96IklYlqz/fMYRt0gq4SqDWSI34Cd1t9YBWxE
-         8g4DOcJGTw+2XEzikWXINsbY77/wFQvzbX88dn+RRbeL9bbJ3YH5Z2HnAQASFJZrnz8t
-         g/TA==
+        id S1376295AbiATPEE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Jan 2022 10:04:04 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:28759 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1346205AbiATPEC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jan 2022 10:04:02 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1642691042;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=XV9vXTR8rHUpOxnAQ5Xc1luOAt9DLySsRNgp0on3KmI=;
+        b=AzPUDh2ldw7gGIGORhUyLqSl64s3jUiankpvrcdK/qFSCRKp/pSCUggOobDhsCv8U/qK2X
+        JsyWwmPV9XDrucf0625clHz6cCcmRGr+XdLNKrq58av5L1ezlL4Nfdb4ABlPAXoxXhv0WQ
+        QVAhSLfgic3HCdGpvQhhYPCEVLE37yQ=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-252-SQjzV6H4NhezchPPfb-vvQ-1; Thu, 20 Jan 2022 10:04:01 -0500
+X-MC-Unique: SQjzV6H4NhezchPPfb-vvQ-1
+Received: by mail-ed1-f69.google.com with SMTP id h11-20020a05640250cb00b003fa024f87c2so6163059edb.4
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jan 2022 07:03:59 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Q7/Art4fi7Ys+mKvfMJYfxSvlOJsbRKucqQhRA69bnI=;
-        b=q3bjOPX1TY689RRLrJ7rPRz/605+J+PKtX/PN4mtaNyZMH3m843zPBK1uBjBgPk0HT
-         3FMM/B/lOVo98Pr0YKiN7hzUaBS8lrcOpN1jwYiHSsbM5CS/Y5o0kVxFcEcO9FN86GfP
-         y0XFjapdJerNwaDtniEhKOo3adJF8oorBGe9y/SpYhswk5llfs/3Lgz7EtauOyiVWSl9
-         LgmpIkSvV7wXnoz6jdWbOE0l+uXNg9KItguWl8DIfX2kYkIhwAOBdgisnOa27JqvMvgA
-         3+AYr/i+JGcctXMJa0SrNTnlSqaod4PqbblVWD4seHOJfxn6QY5mwIJhlJTY275bEnbv
-         OfAw==
-X-Gm-Message-State: AOAM5323sNHBc6LnDJqgEexONtKZ65SJB/2lEiA/TRnhMmhuMI6VwGBb
-        AJnEmalfRZjk/uirBGkIssEPZ1MjaplSWlK0iyk=
-X-Google-Smtp-Source: ABdhPJwJVZLjArtFZ3WPYTSEiSnskUTscXctdXqraZCdNwhkNDk6+IBeo6b/0RhdSTM9KnC3e6bg4B5GGbj3/jTa6EI=
-X-Received: by 2002:a17:907:94d3:: with SMTP id dn19mr2304620ejc.77.1642690771754;
- Thu, 20 Jan 2022 06:59:31 -0800 (PST)
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=XV9vXTR8rHUpOxnAQ5Xc1luOAt9DLySsRNgp0on3KmI=;
+        b=tDvrG88EMfh/Wg93PeJYxoivYOsK4Xk2+346zj+ahs/xjjD2DgwAnc0xUTG6TUp78O
+         /pzFCuCNzox7uHq5iLQCjh45H4wMkJY8Fdb467pt5sWU9kKi9jMDgYc+p6nnanUQAqZy
+         1WNPrMCeEuDo7MMN0Yt9X0JCkW7tQUZi5I7POrvASlo8t1eek4IOYsz32JqvRmlOrihT
+         F9NcmgL5XR9AVhFdXrlUwxhW8F+UfJc7rX7wjFccD3rKMUwMtwj+pvWjXJJdsd+U4AQe
+         aYiQVhz1K2buMxCgpirhQeDxdQC5PQkupDm5Z6YBfL8NPsqdRiA1eAyF+aFP5/SK2//T
+         3wbA==
+X-Gm-Message-State: AOAM5313qGxmRM7luHGYq5eWVwuony7EEUoa2Wsay32TkZh/kQhkCMkP
+        nrz69ksqCjcJYShDC44eZHy0VQWtBi+pfDseq1h7S6oKJUp4L9rhqoXyye37eijS0PTb0R7aH/H
+        zZ2pLgZ9gEtXl+ECZ/I739Q==
+X-Received: by 2002:a05:6402:50c9:: with SMTP id h9mr18098075edb.210.1642691038728;
+        Thu, 20 Jan 2022 07:03:58 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJwi/6rqFNxM9rnEHki02qPDGfKXeWhIbd/04xooCgBAG2VkDALdGcq1NOBPUedDbJufuz128Q==
+X-Received: by 2002:a05:6402:50c9:: with SMTP id h9mr18098033edb.210.1642691038391;
+        Thu, 20 Jan 2022 07:03:58 -0800 (PST)
+Received: from ?IPV6:2001:1c00:c1e:bf00:1db8:22d3:1bc9:8ca1? (2001-1c00-0c1e-bf00-1db8-22d3-1bc9-8ca1.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:1db8:22d3:1bc9:8ca1])
+        by smtp.gmail.com with ESMTPSA id i6sm1127721eja.132.2022.01.20.07.03.57
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 20 Jan 2022 07:03:57 -0800 (PST)
+Message-ID: <8beb2de0-8b5a-ea58-595d-2fcb38d5ee8b@redhat.com>
+Date:   Thu, 20 Jan 2022 16:03:57 +0100
 MIME-Version: 1.0
-References: <1642686255-25951-1-git-send-email-akhilrajeev@nvidia.com> <1642686255-25951-2-git-send-email-akhilrajeev@nvidia.com>
-In-Reply-To: <1642686255-25951-2-git-send-email-akhilrajeev@nvidia.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 20 Jan 2022 16:57:49 +0200
-Message-ID: <CAHp75VeOvXf6twskZp-Y-s8AQEpftA0SOUJfXqO5sJ1FKNKgCA@mail.gmail.com>
-Subject: Re: [PATCH v3 1/3] device property: Add device_irq_get_byname
-To:     Akhil R <akhilrajeev@nvidia.com>
-Cc:     =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jon Hunter <jonathanh@nvidia.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-i2c <linux-i2c@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Wolfram Sang <wsa@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.0
+Subject: Re: [PATCH v4 3/9] spi: Support selection of the index of the ACPI
+ Spi Resource before alloc
+Content-Language: en-US
+To:     Stefan Binding <sbinding@opensource.cirrus.com>,
+        Mark Brown <broonie@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Gross <markgross@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Cc:     alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
+        linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, patches@opensource.cirrus.com
+References: <20220120134326.5295-1-sbinding@opensource.cirrus.com>
+ <20220120134326.5295-4-sbinding@opensource.cirrus.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <20220120134326.5295-4-sbinding@opensource.cirrus.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 20, 2022 at 3:45 PM Akhil R <akhilrajeev@nvidia.com> wrote:
+Hi Stefan,
 
-Thanks, my comments below.
-
-> Add device_irq_get_byname() to get an interrupt by name from both the
-> ACPI table and the Device Tree.
-
-This needs to be clarified (it's not and, but or), what about:
-
-  Add device_irq_get_byname() to get an interrupt by name from either
-  ACPI table or Device Tree whichever has it.
-
-> This will allow to use 'interrupt-names' in _DSD which can be mapped to
-
-In the ACPI case this
-allow us to
-
-> Interrupt() resource by index. The implementation is similar to
-> 'interrupt-names' in the Device Tree.
-
-...
-
->  /**
-> + * fwnode_irq_get_byname - Get IRQ from a fwnode using its name
-> + * @fwnode:    Pointer to the firmware node
-> + * @name:      IRQ name
-> + *
-> + * Description:
-> + * Find a match to the string 'name' in the 'interrupt-names' string array
-
-'name' --> @name
-
-> + * in _DSD for ACPI, or of_node for device tree. Then get the Linux IRQ
-
-Device Tree
-
-> + * number of the IRQ resource corresponding to the index of the matched
-> + * string.
-> + *
-> + * Return:
-
-> + * Linux IRQ number on success
-> + * Negative errno otherwise.
-
- * Linux IRQ number on success, or negative errno otherwise.
-
-> + */
-> +int fwnode_irq_get_byname(const struct fwnode_handle *fwnode, const char *name)
-> +{
-> +       int index;
+On 1/20/22 14:43, Stefan Binding wrote:
+> If a node contains more than one Spi Resources, it may be necessary to
+> use an index to select which one you want to allocate a spi device for.
+> 
+> Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
+> ---
+>  drivers/spi/spi.c       | 56 +++++++++++++++++++++++++++++++++++------
+>  include/linux/spi/spi.h |  6 +++--
+>  2 files changed, 52 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index 13f4701f0694..898cc9931490 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -2320,6 +2320,9 @@ struct acpi_spi_lookup {
+>  	int			irq;
+>  	u8			bits_per_word;
+>  	u8			chip_select;
+> +	int			n;
+> +	int			index;
+> +	int			irq_index;
+>  };
+>  
+>  static void acpi_spi_parse_apple_properties(struct acpi_device *dev,
+> @@ -2351,6 +2354,8 @@ static void acpi_spi_parse_apple_properties(struct acpi_device *dev,
+>  		lookup->mode |= SPI_CPHA;
+>  }
+>  
+> +static struct spi_controller *acpi_spi_find_controller_by_adev(struct acpi_device *adev);
 > +
-> +       if (!name)
-> +               return -EINVAL;
+>  static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+>  {
+>  	struct acpi_spi_lookup *lookup = data;
+> @@ -2364,14 +2369,35 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+>  		sb = &ares->data.spi_serial_bus;
+>  		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
+>  
+> +			if (lookup->index != -1 && lookup->n++ != lookup->index)
+> +				return 1;
 > +
-> +       index = fwnode_property_match_string(fwnode, "interrupt-names",  name);
-> +       if (index < 0)
-> +               return index;
+> +			if (lookup->index == -1 && !ctlr)
+> +				return -ENODEV;
 > +
-> +       return fwnode_irq_get(fwnode, index);
-> +}
+>  			status = acpi_get_handle(NULL,
+>  						 sb->resource_source.string_ptr,
+>  						 &parent_handle);
+>  
+> -			if (ACPI_FAILURE(status) ||
+> -			    ACPI_HANDLE(ctlr->dev.parent) != parent_handle)
+> +			if (ACPI_FAILURE(status))
+>  				return -ENODEV;
+>  
+> +			if (ctlr) {
+> +				if (ACPI_HANDLE(ctlr->dev.parent) != parent_handle)
+> +					return -ENODEV;
+> +			} else {
+> +				struct acpi_device *adev;
+> +
+> +				if (acpi_bus_get_device(parent_handle, &adev))
+> +					return -ENODEV;
+> +
+> +				ctlr = acpi_spi_find_controller_by_adev(adev);
+> +				if (!ctlr)
+> +					return -ENODEV;
+> +
+> +				lookup->ctlr = ctlr;
+> +			}
+> +
+>  			/*
+>  			 * ACPI DeviceSelection numbering is handled by the
+>  			 * host controller driver in Windows and can vary
 
-...
+All of the above looks good to me.
 
-> +/**
-> + * device_irq_get_byname - Get IRQ of a device using interrupt name
-> + * @dev: Device to get the interrupt
-> + * @name: IRQ name
+> @@ -2402,7 +2428,7 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+>  	} else if (lookup->irq < 0) {
+>  		struct resource r;
+>  
+> -		if (acpi_dev_resource_interrupt(ares, 0, &r))
+> +		if (acpi_dev_resource_interrupt(ares, lookup->irq_index, &r))
+>  			lookup->irq = r.start;
+>  	}
+>  
+
+I think that this does not do what you want it to do. Quoting drivers/acpi/resource.c:
+
+bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+                                 struct resource *res)
+{
+        struct acpi_resource_irq *irq;
+        struct acpi_resource_extended_irq *ext_irq;
+
+        switch (ares->type) {
+        case ACPI_RESOURCE_TYPE_IRQ:
+                /*
+                 * Per spec, only one interrupt per descriptor is allowed in
+                 * _CRS, but some firmware violates this, so parse them all.
+                 */
+                irq = &ares->data.irq;
+                if (index >= irq->interrupt_count) {
+                        irqresource_disabled(res, 0);
+                        return false;
+                }
+
+So now you are actually adding an index into a single:
+
+                    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, ,, )
+                    {
+                        0x00000008,
+                    }
+
+ACPI Resource, which typically (as shown here) only has 1 interrupt, I guess
+what you want is the nth resource of type ACPI_RESOURCE_TYPE_IRQ or
+ACPI_RESOURCE_TYPE_EXTENDED_IRQ.
+
+So to make this work you should combine this with a separate irq_n
+for irq_index, increment that on acpi_dev_resource_interrupt() success
+and then only set lookup->irq = r.start; when irq_n == irq_index.
+
+But since the bus-multi-inst code already has its own irq getting code
+this is not really necessary, I would just drop the new irq_index field;
+and then also drop the "if (spi_dev->irq < 0)" condition for calling
+bmi_get_irq() in "[PATCH v4 7/9] platform/x86: bus-multi-instantiate:
+Add SPI support"
+
+Note that for the CS35L41 that if is always true already since
+that is using a GpioInt resource and acpi_dev_resource_interrupt()
+does not support those.
+
+TL;DR: please drop the new irq_index fiels and just leave the
+related bits as is.
+
+
+> @@ -2414,14 +2440,22 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+>   * acpi_spi_device_alloc - Allocate a spi device, and fill it in with ACPI information
+>   * @ctlr: controller to which the spi device belongs
+>   * @adev: ACPI Device for the spi device
+> + * @index: Index of the spi resource inside the ACPI Node
+> + * @irq_index: Index of the GPIO resource for the IRQ inside the ACPI Node
+>   *
+>   * This should be used to allocate a new spi device from and ACPI Node.
+>   * The caller is responsible for calling spi_add_device to register the spi device.
+>   *
+> + * If ctlr is set to NULL, the Controller for the spi device will be looked up
+> + * using the resource.
+> + * If index is set to -1, index is not used.
+> + * Note: If index is -1, ctlr must be set.
 > + *
-> + * Description:
-> + * Find a match to the string 'name' in the 'interrupt-names' string array
-> + * in _DSD for ACPI, or of_node for device tree. Then get the Linux IRQ
-> + * number of the IRQ resource corresponding to the index of the matched
-> + * string.
-> + *
-> + * Return:
-> + * Linux IRQ number on success
-> + * Negative errno otherwise.
-> + */
+>   * Return: a pointer to the new device, or ERR_PTR on error.
+>   */
+>  struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+> -					 struct acpi_device *adev)
+> +					 struct acpi_device *adev,
+> +					 int index, int irq_index)
+>  {
+>  	acpi_handle parent_handle = NULL;
+>  	struct list_head resource_list;
+> @@ -2429,8 +2463,14 @@ struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+>  	struct spi_device *spi;
+>  	int ret;
+>  
+> +	if (!ctlr && index == -1)
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	lookup.ctlr		= ctlr;
+>  	lookup.irq		= -1;
+> +	lookup.index		= index;
+> +	lookup.n		= 0;
+> +	lookup.irq_index	= irq_index;
+>  
+>  	INIT_LIST_HEAD(&resource_list);
+>  	ret = acpi_dev_get_resources(adev, &resource_list,
+> @@ -2443,7 +2483,7 @@ struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+>  
+>  	if (!lookup.max_speed_hz &&
+>  	    ACPI_SUCCESS(acpi_get_parent(adev->handle, &parent_handle)) &&
+> -	    ACPI_HANDLE(ctlr->dev.parent) == parent_handle) {
+> +	    ACPI_HANDLE(lookup.ctlr->dev.parent) == parent_handle) {
+>  		/* Apple does not use _CRS but nested devices for SPI slaves */
+>  		acpi_spi_parse_apple_properties(adev, &lookup);
+>  	}
+> @@ -2451,9 +2491,9 @@ struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+>  	if (!lookup.max_speed_hz)
+>  		return ERR_PTR(-ENODEV);
+>  
+> -	spi = spi_alloc_device(ctlr);
+> +	spi = spi_alloc_device(lookup.ctlr);
+>  	if (!spi) {
+> -		dev_err(&ctlr->dev, "failed to allocate SPI device for %s\n",
+> +		dev_err(&lookup.ctlr->dev, "failed to allocate SPI device for %s\n",
+>  			dev_name(&adev->dev));
+>  		return ERR_PTR(-ENOMEM);
+>  	}
+> @@ -2478,7 +2518,7 @@ static acpi_status acpi_register_spi_device(struct spi_controller *ctlr,
+>  	    acpi_device_enumerated(adev))
+>  		return AE_OK;
+>  
+> -	spi = acpi_spi_device_alloc(ctlr, adev);
+> +	spi = acpi_spi_device_alloc(ctlr, adev, -1, 0);
+>  	if (IS_ERR(spi)) {
+>  		if (PTR_ERR(spi) == -ENOMEM)
+>  			return AE_NO_MEMORY;
+> diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+> index 200725692b93..1a34fd0f6ca2 100644
+> --- a/include/linux/spi/spi.h
+> +++ b/include/linux/spi/spi.h
+> @@ -762,10 +762,12 @@ extern void spi_unregister_controller(struct spi_controller *ctlr);
+>  
+>  #if IS_ENABLED(CONFIG_ACPI)
+>  extern struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+> -						struct acpi_device *adev);
+> +						struct acpi_device *adev,
+> +						int index, int irq_index);
+>  #else
+>  static inline struct spi_device *acpi_spi_device_alloc(struct spi_controller *ctlr,
+> -						       struct acpi_device *adev);
+> +						       struct acpi_device *adev,
+> +						       int index, int irq_index);
+>  {
+>  	return ERR_PTR(-EOPNOTSUPP);
+>  }
+> 
 
-As per above.
 
-...
+Like with my review of patch 2/9, I don't think we need stubs here.
 
-> +int device_irq_get_byname(struct device *dev, const char *name);
+Regards,
 
-Since we don't have device_irq_get() perhaps we don't need this one
-right now (just open code it in the caller). This will satisfy
-Rafael's request.
+Hans
 
--- 
-With Best Regards,
-Andy Shevchenko
