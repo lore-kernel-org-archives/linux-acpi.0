@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF29C31D68
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jan 2022 17:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53592C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jan 2022 17:25:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1380289AbiAURZO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Jan 2022 12:25:14 -0500
-Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:28912 "EHLO
+        id S1380075AbiAURZn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Jan 2022 12:25:43 -0500
+Received: from mx0a-001ae601.pphosted.com ([67.231.149.25]:35110 "EHLO
         mx0b-001ae601.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1380075AbiAURZJ (ORCPT
+        by vger.kernel.org with ESMTP id S1381189AbiAURZh (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jan 2022 12:25:09 -0500
+        Fri, 21 Jan 2022 12:25:37 -0500
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20LH9VJK024708;
-        Fri, 21 Jan 2022 11:24:56 -0600
+        by mx0a-001ae601.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 20LH9VJG024708;
+        Fri, 21 Jan 2022 11:24:52 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=Jl86P14vvj6qjul91VFAINCu3Ysi21l3LKgfrp/ikQI=;
- b=QuzAMLvNa7bkGcJbImV+3NMNth0OqYRrC0gyNDX2/h8Z3ClwpBTOmg5p5+W8FUPXAZSl
- ECOjStvmpAUcjgD3hFsy3kew40KJ1ggFJE4qBuLJdrbMqt8bEFdzX7rIprVeEOqtf3Yq
- Vo/lOQIdy/e+Q3p9Bwg6MYnLIE//+7jvI4VX9ZVT6OVO1CZyGBPIx0s60cNTXVovR8og
- nYdv9oflITjGznjjqjjwv8we8Km+w291t86NDwgiwCZjt4b5Xq1f85dbxzNzomW847dQ
- +K9qPkOV7Jg6whmJFQaPSR8zIQ1+PpU/I/qOU7/hm77QeRkViyLVl6XYdS4IivLx5mDc 9A== 
+ bh=LqwQlGSPZbY4FUWN/PCbYAVSFcGSRCshh6dVtPJgmMk=;
+ b=K1BwODWblvOiwR591g8qVpcrV2/Z8m0/HwlFkpgJwxd+Dz5f69aFrl4IQnl4rNzrQ87U
+ 6P2AoMD3hJRVDmESJhZyhV9dxqmCCNAMcXHcdr4/2Fda02dqS4UD3Js/yLTBrP6T+bKA
+ v05xQv/mABBwYlKXBYgqumx6fcQFNx1hIW7ef++pBVu6XmS01CFTEmR7L4xy2pHRbZL5
+ ZAZAJyGJGg0VV5OOCjDfhN41tRgcGszYqdyYNW5jyQfngnq3dKi5dzO1UUk9djYmyyXC
+ IL8yWFGABUT0C/LklIl7Mj+lg1uJiZnzxhpyFWQGzwp61UCTEpVOfbmtBajE9S+/l7uk Kw== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3dqhyq14dj-5
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3dqhyq14dj-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Fri, 21 Jan 2022 11:24:55 -0600
+        Fri, 21 Jan 2022 11:24:51 -0600
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Fri, 21 Jan
- 2022 17:24:54 +0000
+ 2022 17:24:49 +0000
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.18 via Frontend
- Transport; Fri, 21 Jan 2022 17:24:54 +0000
+ Transport; Fri, 21 Jan 2022 17:24:49 +0000
 Received: from LONN2DGDQ73.ad.cirrus.com (unknown [198.90.238.138])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 7C08545D;
-        Fri, 21 Jan 2022 17:24:53 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id A968145D;
+        Fri, 21 Jan 2022 17:24:46 +0000 (UTC)
 From:   Stefan Binding <sbinding@opensource.cirrus.com>
 To:     Mark Brown <broonie@kernel.org>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
@@ -49,91 +49,98 @@ CC:     <alsa-devel@alsa-project.org>, <linux-kernel@vger.kernel.org>,
         <linux-spi@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <platform-driver-x86@vger.kernel.org>,
         <patches@opensource.cirrus.com>,
-        Lucas Tanure <tanureal@opensource.cirrus.com>,
         Stefan Binding <sbinding@opensource.cirrus.com>
-Subject: [PATCH v6 9/9] ACPI / scan: Create platform device for CS35L41
-Date:   Fri, 21 Jan 2022 17:24:31 +0000
-Message-ID: <20220121172431.6876-10-sbinding@opensource.cirrus.com>
+Subject: [PATCH v6 1/9] spi: Make spi_alloc_device and spi_add_device public again
+Date:   Fri, 21 Jan 2022 17:24:23 +0000
+Message-ID: <20220121172431.6876-2-sbinding@opensource.cirrus.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220121172431.6876-1-sbinding@opensource.cirrus.com>
 References: <20220121172431.6876-1-sbinding@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: _JcjjY0SkUVBs6xxvYbfoKItNaj2XU94
-X-Proofpoint-ORIG-GUID: _JcjjY0SkUVBs6xxvYbfoKItNaj2XU94
+X-Proofpoint-GUID: q1CdZV91haAymerfcNt8Cp-_FalUMHXZ
+X-Proofpoint-ORIG-GUID: q1CdZV91haAymerfcNt8Cp-_FalUMHXZ
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Lucas Tanure <tanureal@opensource.cirrus.com>
+This functions were previously made private since they
+were not used. However, these functions will be needed
+again.
 
-The ACPI device with CSC3551 or CLSA0100 are sound cards
-with multiple instances of CS35L41 connected by I2C or SPI
-to the main CPU.
+Partial revert of commit da21fde0fdb3
+("spi: Make several public functions private to spi.c")
 
-We add an ID to the ignore_serial_bus_ids list to enumerate
-all I2C or SPI devices correctly.
-
-The same IDs are also added into serial-multi-instantiate
-so that the driver can correctly enumerate the ACPI.
-
-Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
 Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
 ---
- drivers/acpi/scan.c                             |  3 +++
- drivers/platform/x86/serial-multi-instantiate.c | 14 ++++++++++++++
- 2 files changed, 17 insertions(+)
+ drivers/spi/spi.c       |  6 ++++--
+ include/linux/spi/spi.h | 12 ++++++++++++
+ 2 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 48db5e80c2dc..ebd10af3ff7f 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1744,8 +1744,11 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
- 	 */
- 		{"BSG1160", },
- 		{"BSG2150", },
-+		{"CSC3551", },
- 		{"INT33FE", },
- 		{"INT3515", },
-+	/* Non-conforming _HID for Cirrus Logic already released */
-+		{"CLSA0100", },
- 	/*
- 	 * HIDs of device with an UartSerialBusV2 resource for which userspace
- 	 * expects a regular tty cdev to be created (instead of the in kernel
-diff --git a/drivers/platform/x86/serial-multi-instantiate.c b/drivers/platform/x86/serial-multi-instantiate.c
-index 3f05385ca2cf..d09f11eac4f8 100644
---- a/drivers/platform/x86/serial-multi-instantiate.c
-+++ b/drivers/platform/x86/serial-multi-instantiate.c
-@@ -308,6 +308,17 @@ static const struct smi_node int3515_data = {
- 	.bus_type = SMI_I2C,
- };
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 4599b121d744..1eb84101c4ad 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -532,7 +532,7 @@ static DEFINE_MUTEX(board_lock);
+  *
+  * Return: a pointer to the new device, or NULL.
+  */
+-static struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
++struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
+ {
+ 	struct spi_device	*spi;
  
-+static const struct smi_node cs35l41_hda = {
-+	.instances = {
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{ "cs35l41-hda", IRQ_RESOURCE_GPIO, 0 },
-+		{}
-+	},
-+	.bus_type = SMI_AUTO_DETECT,
-+};
+@@ -557,6 +557,7 @@ static struct spi_device *spi_alloc_device(struct spi_controller *ctlr)
+ 	device_initialize(&spi->dev);
+ 	return spi;
+ }
++EXPORT_SYMBOL_GPL(spi_alloc_device);
+ 
+ static void spi_dev_set_name(struct spi_device *spi)
+ {
+@@ -652,7 +653,7 @@ static int __spi_add_device(struct spi_device *spi)
+  *
+  * Return: 0 on success; negative errno on failure
+  */
+-static int spi_add_device(struct spi_device *spi)
++int spi_add_device(struct spi_device *spi)
+ {
+ 	struct spi_controller *ctlr = spi->controller;
+ 	struct device *dev = ctlr->dev.parent;
+@@ -673,6 +674,7 @@ static int spi_add_device(struct spi_device *spi)
+ 	mutex_unlock(&ctlr->add_lock);
+ 	return status;
+ }
++EXPORT_SYMBOL_GPL(spi_add_device);
+ 
+ static int spi_add_device_locked(struct spi_device *spi)
+ {
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 7ab3fed7b804..0346a3ff27fd 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -1452,7 +1452,19 @@ spi_register_board_info(struct spi_board_info const *info, unsigned n)
+  * use spi_new_device() to describe each device.  You can also call
+  * spi_unregister_device() to start making that device vanish, but
+  * normally that would be handled by spi_unregister_controller().
++ *
++ * You can also use spi_alloc_device() and spi_add_device() to use a two
++ * stage registration sequence for each spi_device. This gives the caller
++ * some more control over the spi_device structure before it is registered,
++ * but requires that caller to initialize fields that would otherwise
++ * be defined using the board info.
+  */
++extern struct spi_device *
++spi_alloc_device(struct spi_controller *ctlr);
 +
- /*
-  * Note new device-ids must also be added to serial_multi_instantiate_ids in
-  * drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
-@@ -316,6 +327,9 @@ static const struct acpi_device_id smi_acpi_ids[] = {
- 	{ "BSG1160", (unsigned long)&bsg1160_data },
- 	{ "BSG2150", (unsigned long)&bsg2150_data },
- 	{ "INT3515", (unsigned long)&int3515_data },
-+	{ "CSC3551", (unsigned long)&cs35l41_hda },
-+	/* Non-conforming _HID for Cirrus Logic already released */
-+	{ "CLSA0100", (unsigned long)&cs35l41_hda },
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, smi_acpi_ids);
++extern int
++spi_add_device(struct spi_device *spi);
++
+ extern struct spi_device *
+ spi_new_device(struct spi_controller *, struct spi_board_info *);
+ 
 -- 
 2.25.1
 
