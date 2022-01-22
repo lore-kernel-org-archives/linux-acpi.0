@@ -2,90 +2,66 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 565CEC433EF
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Jan 2022 05:26:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 484AFC433F5
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Jan 2022 09:40:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230287AbiAVF0l (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 22 Jan 2022 00:26:41 -0500
-Received: from out4436.biz.mail.alibaba.com ([47.88.44.36]:50342 "EHLO
-        out4436.biz.mail.alibaba.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232255AbiAVF0i (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 22 Jan 2022 00:26:38 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=15;SR=0;TI=SMTPD_---0V2UlMIm_1642829192;
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0V2UlMIm_1642829192)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Sat, 22 Jan 2022 13:26:33 +0800
-From:   Shuai Xue <xueshuai@linux.alibaba.com>
-To:     helgaas@kernel.org, rafael@kernel.org
-Cc:     bp@alien8.de, tony.luck@intel.com, james.morse@arm.com,
-        lenb@kernel.org, rjw@rjwysocki.net, bhelgaas@google.com,
-        xueshuai@linux.alibaba.com, zhangliguang@linux.alibaba.com,
-        zhuo.song@linux.alibaba.com, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-pci@vger.kernel.org
-Subject: [PATCH v7 2/2] ACPI: APEI: rename ghes_init with an "acpi_" prefix
-Date:   Sat, 22 Jan 2022 13:26:18 +0800
-Message-Id: <20220122052618.1074-2-xueshuai@linux.alibaba.com>
-X-Mailer: git-send-email 2.30.1 (Apple Git-130)
-In-Reply-To: <20211126070422.73234-1-xueshuai@linux.alibaba.com>
-References: <20211126070422.73234-1-xueshuai@linux.alibaba.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S232203AbiAVJkI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 22 Jan 2022 04:40:08 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:52084 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230011AbiAVJkI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Jan 2022 04:40:08 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EE834B81799;
+        Sat, 22 Jan 2022 09:40:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 879CDC340E7;
+        Sat, 22 Jan 2022 09:40:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1642844405;
+        bh=k8ODayuUr1Cw0A91A+Bb0/Dgy1PdbXlVBloFqK9cL8A=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=YqnxYxYzMXMW/q+f6Dq/a8B1Jzp5emvByDDvI9nlpiw0yDhKapUYbT5PinsgjnmfR
+         FWygNBGIhEfIwwwxRrZk/G8x6CtbCGVjByynN/FA56t5P6qnFBNrJJtMkgxjkhO/AK
+         RHngpBaxqY+gWQ9+QhQEoAw3c65mGTWpp70ZKsftDT4BU8DTGah9x6EAT2pklDGv9g
+         KXsLzjwFtibnm7O2BLB4TdHQhYP3fC0kmn6Ey10YoO/XkMqRr3gPY3M7Onpa3g/bvQ
+         lNVQ2yvXDaY1gG8SQvLLDmh4kBtyoASRUJgCgNoE3ZDnjjsXR7J/YK+lkLHsaPtJ0i
+         DjCmrSysMYhtQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 731F8F60796;
+        Sat, 22 Jan 2022 09:40:05 +0000 (UTC)
+Subject: Re: [GIT PULL] Extra ACPI updates for v5.17-rc1
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0gJkT+WwEe0=73HKek+B1Ko0XFtkFYbwxb3NBzjR-1=ng@mail.gmail.com>
+References: <CAJZ5v0gJkT+WwEe0=73HKek+B1Ko0XFtkFYbwxb3NBzjR-1=ng@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0gJkT+WwEe0=73HKek+B1Ko0XFtkFYbwxb3NBzjR-1=ng@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.17-rc1-3
+X-PR-Tracked-Commit-Id: f6f02040e0ca7cb2e82d8aeb8f7daf5d89acc04c
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 71f1b916d5ea4a6d781b29e2470f5870a561e82e
+Message-Id: <164284440546.7666.16131154238711645866.pr-tracker-bot@kernel.org>
+Date:   Sat, 22 Jan 2022 09:40:05 +0000
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
----
- drivers/acpi/apei/ghes.c | 2 +-
- drivers/acpi/bus.c       | 2 +-
- include/acpi/apei.h      | 4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+The pull request you sent on Fri, 21 Jan 2022 20:25:34 +0100:
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index aadc0a972f18..d91ad378c00d 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -1457,7 +1457,7 @@ static struct platform_driver ghes_platform_driver = {
- 	.remove		= ghes_remove,
- };
- 
--void __init ghes_init(void)
-+void __init acpi_ghes_init(void)
- {
- 	int rc;
- 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 3f403db20f69..cd374210fb9f 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1332,7 +1332,7 @@ static int __init acpi_init(void)
- 	pci_mmcfg_late_init();
- 	acpi_iort_init();
- 	acpi_hest_init();
--	ghes_init();
-+	acpi_ghes_init();
- 	acpi_scan_init();
- 	acpi_ec_init();
- 	acpi_debugfs_init();
-diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index 4e60dd73c3bb..afaca3a075e8 100644
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -27,10 +27,10 @@ extern int hest_disable;
- extern int erst_disable;
- #ifdef CONFIG_ACPI_APEI_GHES
- extern bool ghes_disable;
--void __init ghes_init(void);
-+void __init acpi_ghes_init(void);
- #else
- #define ghes_disable 1
--static inline void ghes_init(void) { }
-+static inline void acpi_ghes_init(void) { }
- #endif
- 
- #ifdef CONFIG_ACPI_APEI
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-5.17-rc1-3
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/71f1b916d5ea4a6d781b29e2470f5870a561e82e
+
+Thank you!
+
 -- 
-2.20.1.12.g72788fdb
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
