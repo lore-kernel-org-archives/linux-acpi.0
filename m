@@ -2,43 +2,38 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0061FC4332F
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Jan 2022 18:52:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A4EC4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Jan 2022 21:17:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343543AbiAXSwc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Jan 2022 13:52:32 -0500
-Received: from mail-qk1-f174.google.com ([209.85.222.174]:46697 "EHLO
-        mail-qk1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343542AbiAXSux (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jan 2022 13:50:53 -0500
-Received: by mail-qk1-f174.google.com with SMTP id 13so7050414qkd.13;
-        Mon, 24 Jan 2022 10:50:53 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZXczVih0FPrq5RMJMFbQoznMPhMuyGl4ivag5w/6yQo=;
-        b=qjEje+L9jxsTceVKPDo2TxHNl6tCrbp9WYTwAtiyqeMoL+1G2zzTzc7yF0JGn/PpSo
-         1lLFR/XXbWyerydGnFCpJ+JWgnjsWHJQrDm6kfTmFI/qVeSJo+5iTsEuySfej7mp4nuI
-         +U9caO2T0cD7H6uCwmIImAtFf14KjL6tbV9+rJW3GEgCLQK7ZTh3Awh2DFC91w8NR0Xz
-         SQJX4tbdpBkumHH9tUuMoIK3gkpAj+xnR/pTyh18aDCBgaoICHinOBfZdFroeCLcCkt9
-         grHO1PlrN03o4kLNd3VVjywA38oKaUlCKeOtFlBJ2xF9LH41sZ7MhZT2VoxZ4pcI55UJ
-         klBA==
-X-Gm-Message-State: AOAM530021Ph7bI9Mj6obfunjWxP5mpnjQOc5ZLESr2SUfxGM9o7Wzdb
-        pYJHKRyE4JDtJ/yVG/SbvfRLHjeCZ5GcRlAF+uI=
-X-Google-Smtp-Source: ABdhPJyvSheg1mf3030MstMWntKE0XdVdAcgmjD2HcaBTrQQzYxi/X9z158mcrejkOhrhki798xK1d2hjlGKYPLD3f4=
-X-Received: by 2002:ae9:f445:: with SMTP id z5mr2102446qkl.8.1643050252793;
- Mon, 24 Jan 2022 10:50:52 -0800 (PST)
-MIME-Version: 1.0
-References: <1642851166-27096-1-git-send-email-akhilrajeev@nvidia.com> <CAHp75Ve-zYz27baJ9SV3wcyKS5iMnxFO61gGE2LXQPU_hTt+qw@mail.gmail.com>
-In-Reply-To: <CAHp75Ve-zYz27baJ9SV3wcyKS5iMnxFO61gGE2LXQPU_hTt+qw@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 24 Jan 2022 19:50:37 +0100
-Message-ID: <CAJZ5v0guL4nk21gvvs2K9Ak6sjhDSzMvDQZJvmnq6Frsj3+7yA@mail.gmail.com>
-Subject: Re: [PATCH v4 0/3] Enable named interrupt smbus-alert for ACPI
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     Akhil R <akhilrajeev@nvidia.com>,
-        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
+        id S1351324AbiAXVRb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Jan 2022 16:17:31 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57150 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1353803AbiAXVEY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jan 2022 16:04:24 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EC79AB812A7;
+        Mon, 24 Jan 2022 21:04:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E437C340E7;
+        Mon, 24 Jan 2022 21:04:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1643058259;
+        bh=xrI2Yd8Z85VtM/EHXSuSj1x1uMSh4WRSVCjNSh83i40=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=rt8P/37acGeRdawKBy6Kot2gVMpJ+i0SnNoPhIwd4LveC2Y1I5GK7pJURL+ksEa9a
+         1OtFYXPb+2oX2ZGxcObiOhFerPRCUaPd24D77pBN/xCm1StLFBKRKScWtv/T1Rcf27
+         acbyaIRW1hdWYlgbQfyeygahiL1S1F+ZnBBDUdYsTnfmvdPUeLKaAG+WbSchocKDg3
+         1zVtG6McE9y19BFccX/KcgMyeb0ex+0SRWPJnywmmHQCOZ2XLVSws8LEN1KNu7gcOJ
+         Yw41rGlg7gehEssffEoCyHNfum2IyBaGvur2eHV9hTCnYgTXJPJi8Z+Kdu+06zxh4u
+         NjStG0Lr9WgNg==
+Date:   Mon, 24 Jan 2022 22:04:13 +0100
+From:   Wolfram Sang <wsa@kernel.org>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Akhil R <akhilrajeev@nvidia.com>,
+        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
         <u.kleine-koenig@pengutronix.de>,
         Christian Koenig <christian.koenig@amd.com>,
         Dmitry Osipenko <digetx@gmail.com>,
@@ -50,66 +45,71 @@ Cc:     Akhil R <akhilrajeev@nvidia.com>,
         linux-i2c <linux-i2c@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-tegra <linux-tegra@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
         Sumit Semwal <sumit.semwal@linaro.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Wolfram Sang <wsa@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v4 0/3] Enable named interrupt smbus-alert for ACPI
+Message-ID: <Ye8UTQlHphVtAYUW@shikoro>
+Mail-Followup-To: Wolfram Sang <wsa@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Akhil R <akhilrajeev@nvidia.com>,
+        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Dmitry Osipenko <digetx@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jon Hunter <jonathanh@nvidia.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>, Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-i2c <linux-i2c@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-tegra <linux-tegra@vger.kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Thierry Reding <thierry.reding@gmail.com>
+References: <1642851166-27096-1-git-send-email-akhilrajeev@nvidia.com>
+ <CAHp75Ve-zYz27baJ9SV3wcyKS5iMnxFO61gGE2LXQPU_hTt+qw@mail.gmail.com>
+ <CAJZ5v0guL4nk21gvvs2K9Ak6sjhDSzMvDQZJvmnq6Frsj3+7yA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="PQ+Di6JU9ZkrkCPn"
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0guL4nk21gvvs2K9Ak6sjhDSzMvDQZJvmnq6Frsj3+7yA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Jan 22, 2022 at 1:06 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Sat, Jan 22, 2022 at 1:33 PM Akhil R <akhilrajeev@nvidia.com> wrote:
-> >
-> > I2C - SMBus core drivers use named interrupts to support smbus_alert.
-> > As named interrupts are not available for ACPI based systems, it was
-> > required to change the i2c bus controller driver if to use smbus alert.
-> > These patches provide option for named interrupts in ACPI and  make the
-> > implementation similar to DT. This will enable use of interrupt named
-> > 'smbus-alert' in ACPI as well which will be taken during i2c adapter
-> > register.
->
-> I'm fine with the series,
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Maintainers can ask something else, though.
 
-It looks good to me.
+--PQ+Di6JU9ZkrkCPn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If no one else has concerns regarding it, I'll queue it up for 5.18.
 
-> > v3->v4:
-> >   * Removed device_irq_get_byname()
-> >   * Updates in comments and document.
-> > v2->v3:
-> >   * Grammar/spelling corrections.
-> >   * Added description in function comments.
-> >   * Removed 'unlikely' from NULL check on 'name'
-> > v1->v2:
-> >   * Added firmware guide documentation for ACPI named interrupts
-> >   * Updates in function description comments
-> >
-> > Akhil R (3):
-> >   device property: Add fwnode_irq_get_byname
-> >   docs: firmware-guide: ACPI: Add named interrupt doc
-> >   i2c: smbus: Use device_*() functions instead of of_*()
-> >
-> >  Documentation/firmware-guide/acpi/enumeration.rst | 39 +++++++++++++++++++++++
-> >  drivers/base/property.c                           | 29 +++++++++++++++++
-> >  drivers/i2c/i2c-core-base.c                       |  2 +-
-> >  drivers/i2c/i2c-core-smbus.c                      | 10 +++---
-> >  drivers/i2c/i2c-smbus.c                           |  3 +-
-> >  include/linux/i2c-smbus.h                         |  6 ++--
-> >  include/linux/property.h                          |  1 +
-> >  7 files changed, 80 insertions(+), 10 deletions(-)
-> >
-> > --
-> > 2.7.4
-> >
->
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+> It looks good to me.
+>=20
+> If no one else has concerns regarding it, I'll queue it up for 5.18.
+
+I'd prefer this to go via I2C because it touches the I2C core. And SMBus
+alert is I2C material anyway :)
+
+
+--PQ+Di6JU9ZkrkCPn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmHvFEkACgkQFA3kzBSg
+KbYS+A/8ChbXO2Eu9RSZj1oeAp2Y5/csPWUB7EIozmvoC8o3JmK5mQPk/nu+QpPo
+txvkFIK6NJM41Fhxp+yqq1cxLotOWSoA2rdHYv08mfj5uL0lxfYa6Zn6v+DJ0A6l
+RRpSjbHq9pT/I4JLqJP+EqVq2FvJ0owmaOi28gBDiqdH/fqg5oa5cxoA9vD9Z9oK
+r3RHDPOgM+aFxY4qRYEFtEi3T4NkK9yet+zpp5G9DtPz0qhxtVi8H7boOdGtPUyB
+3gjp3KgR3sA2IQaFYbbCstYUXDsgu6/heina/rqv48M7TCC0M4lBMAzQemDSMs4t
+ZveLjhwYNXbBwWVRMfuENLWFUJvYeXEFyD5A+RYMRDrQZo9ObGXRpk6YCfYNZ6UV
+h90V+U0C67snDIcoQ31lbLyXZeAStvcIcEWPnk2RJ5dFvyDAkfz734HVD7xT2e6P
++0M4+/M9JDXEMAzV8DNi6YSc3IHhf88MmczYNS5APIWKhXzxQ6p1jGp94xIRXIK0
+0fw18VxniVD27aWnxb4EmxwCf73NbzrwzbYY6whKQgXIgMHjlOqw/XRVbV3WyNKh
+c3py3f6aad/mipXjUdKYpDDK+V275qa9n1w2OSks+XirXnJqedYRumiUncD4af+q
+MrKRbl09XzdEkjRg6bCwQkZI9EW/bwLPskxdvHo1vC5/cWaMvkE=
+=VNXV
+-----END PGP SIGNATURE-----
+
+--PQ+Di6JU9ZkrkCPn--
