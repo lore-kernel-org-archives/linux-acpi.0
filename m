@@ -2,109 +2,79 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A9D7C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 25 Jan 2022 06:34:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B6DC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 25 Jan 2022 11:01:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345894AbiAYGeI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 25 Jan 2022 01:34:08 -0500
-Received: from box.aukejan.com ([173.82.79.94]:35359 "EHLO box.aukejan.com"
+        id S1380088AbiAYLBH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 25 Jan 2022 06:01:07 -0500
+Received: from mga17.intel.com ([192.55.52.151]:30554 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348616AbiAYGag (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jan 2022 01:30:36 -0500
-Received: from authenticated-user (box.aukejan.com [173.82.79.94])
-        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-        (No client certificate requested)
-        by box.aukejan.com (Postfix) with ESMTPSA id DE7F75D334;
-        Mon, 24 Jan 2022 22:30:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=boldcoder.com;
-        s=mail; t=1643092222;
-        bh=kvafKXzjkn/Bnf3nCC3bA3bKGXSxh/H7lXD2LBSFypA=;
-        h=Subject:References:To:From:Cc:Date:In-Reply-To:From;
-        b=Sa28aqWv3BU/laUhoiXsb/ddDe2usBbgoeeQi3MYnJV9lQ6zdaYNHCOqoRx5lIxPY
-         kcdxMEjwLZhvIeZ/fjez3x625eP9REC2qOK49BLw6MATUaQCQZ43AmFYxeDY/ovXne
-         RCueyPCXhESbH5Zc1+wWL7czGipE9fdSOgUIUqlHKdFYZmYnXn4SR/yW6zDDMw0Wmo
-         BSXIaFwyHUo0/jf450Ej5/Ha22QpNaK8XU1CwTDvZ/NPMkrVQ3hEWvLMWXU2d6JbpM
-         DD3MPSGNOH0cpV5Vs1vg+72sPats+u1m1WGJbxgbJ7UhJCcRim93cFvlmovVSSDRMF
-         +BPbpozAY5hwg==
-Subject: Patch: Make ACPI subsystem provide CEDT table
-References: <1b871357-2231-336d-099c-cdccae03f837@boldcoder.com>
-To:     linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org
-From:   Robert Kiraly <me@boldcoder.com>
-Cc:     Len Brown <lenb@kernel.org>,
+        id S1379968AbiAYK7D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Jan 2022 05:59:03 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1643108343; x=1674644343;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=SYDGkXed9Zpe3q3nrJrWXDYeh3RYZIJ5yQozPlmXdts=;
+  b=CkFQR20liFfzU4JzRkZyKtkEhEUsxhe2zgIayeii8uQaa7/5IuIYYHw/
+   JTTud31uXukQQrLThCWfPAeI/nJAJXcuLNR0MfhKmbeBk9emoaVc4byGw
+   uBuog6/VgMax43fJjzWlFtaBwcdjSiuGEKHgLDQlkkG4fhalIpfGZq8Hh
+   rZUktTwC79zI+ej7GegxYFsP7Frp+S+RNwspMJfc/oXeB/8XnilXEW73n
+   Ta9AWkOlmJgNJwRi/0O7NvnUVZQEtpDHC84O79BOkbe3F9gWpbLTulyjo
+   exttbBIIJ+/HOzWqV2B50UfhGKeo7F8/2xY7SEFp2RhNr/rJVt5MbT6dc
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10237"; a="226947058"
+X-IronPort-AV: E=Sophos;i="5.88,314,1635231600"; 
+   d="scan'208";a="226947058"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2022 02:59:00 -0800
+X-IronPort-AV: E=Sophos;i="5.88,314,1635231600"; 
+   d="scan'208";a="562997636"
+Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.162])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2022 02:58:55 -0800
+Received: by lahna (sSMTP sendmail emulation); Tue, 25 Jan 2022 12:58:52 +0200
+Date:   Tue, 25 Jan 2022 12:58:52 +0200
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     Rajat Jain <rajatja@google.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Dan Williams <dan.j.williams@intel.com>
-X-Forwarded-Message-Id: <1b871357-2231-336d-099c-cdccae03f837@boldcoder.com>
-Message-ID: <82f254a1-c765-0a87-f017-8c07c8ef07cd@boldcoder.com>
-Date:   Mon, 24 Jan 2022 22:30:22 -0800
+        Len Brown <lenb@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org, rajatxjain@gmail.com,
+        dtor@google.com, jsbarnes@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Pavel Machek <pavel@denx.de>,
+        Oliver O'Halloran <oohall@gmail.com>,
+        Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH] PCI: ACPI: Allow internal devices to be marked as
+ untrusted
+Message-ID: <Ye/X7E2dKb+zem34@lahna>
+References: <20220120000409.2706549-1-rajatja@google.com>
+ <20220121214117.GA1154852@bhelgaas>
+ <Ye5GvQbFKo+CFtRb@lahna>
 MIME-Version: 1.0
-In-Reply-To: <1b871357-2231-336d-099c-cdccae03f837@boldcoder.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Ye5GvQbFKo+CFtRb@lahna>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This is a simple ACPI patch. I'm submitting a revised version to=20
-linux-acpi per Rafael Wysocki and linux-cxl per Dan Williams.
+On Mon, Jan 24, 2022 at 08:27:17AM +0200, Mika Westerberg wrote:
+> > > This patch introduces a new "UntrustedDevice" property that can be used
+> > > by the firmware to mark any device as untrusted.
+> 
+> I think this new property should be documented somewhere too (also
+> explain when to use it instead of ExternalFacingPort). If not in the
+> next ACPI spec or some supplemental doc then perhaps in the DT bindings
+> under Documentation/devicetree/bindings.
 
-The patch has been moved to the message body and a Signed-off-by tag has =
+Actually Microsoft has similar already:
 
-been added. Thunderbird has added CRs so "patch -p1 -l" is needed. To=20
-address other points:
+https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-internal-pcie-ports-accessible-to-users-and-requiring-dma-protection
 
-Q. Dan Williams said: Yes, although I don't see much incremental benefit =
-
-to developers publishing a root only raw table... So, not opposed to the =
-
-patch, but I want to direct you to the sysfs representation of the CEDT=20
-and CFMWS in /sys/bus/cxl/devices... Platform firmware CXL details are=20
-modeled as "CXL root" objects in the /sys/bus/cxl device model.
-
-A. The patch is being submitted in connection with work on a CXL bridge. =
-
-The developers would like to express appreciation for the "sysfs" point. =
-
-They find it useful to be able to do initialization through the table=20
-but will look at the "sysfs" approach.
-
-Q. Rafael J. Wysocki said: I'm not sure why the #ifdef is needed.
-
-A. I reviewed cxl-next and decided to add the #ifdef to ensure that the=20
-code would compile regardless of the direction that the codebase takes.
-
-=3D=3D=3D=3D start of patch =3D=3D=3D=3D
-Subject: Make ACPI subsystem provide CEDT table
-Signed-off-by: Robert Kiraly <me@boldcoder.com>
-
-This is a simple patch to the ACPI subsystem. The patch adds ACPI
-_SIG_CEDT to table_sigs[] in  "drivers/acpi/tables.c".
-
-Presently,  CXL code isn't able to make use of the  CEDT table at
-the initrd stage. Subsequent to the change, the CEDT table can be
-used.
-
-If  a developer  plans to use the CEDT table to  program  the CXL
-ports,  this change is needed.  Otherwise,  it isn't  expected to
-make a difference.
-
-I certify  compliance with  Developer=E2=80=99s Certificate of Origin 1.1=
-
-as listed in:
-https://www.kernel.org/doc/html/v4.10/process/submitting-patches.
-html
-
---- linux-5.16.old/drivers/acpi/tables.c
-+++ linux-5.16/drivers/acpi/tables.c
-@@ -500,6 +500,9 @@
-  	ACPI_SIG_WDDT, ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT,
-  	ACPI_SIG_PSDT, ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT,
-  	ACPI_SIG_IORT, ACPI_SIG_NFIT, ACPI_SIG_HMAT, ACPI_SIG_PPTT,
-+#ifdef ACPI_SIG_CEDT
-+       ACPI_SIG_CEDT,
-+#endif
-  	ACPI_SIG_NHLT };
-
-  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
-=3D=3D=3D=3D end of patch =3D=3D=3D=3D
-
-
+I think we should use that too here.
