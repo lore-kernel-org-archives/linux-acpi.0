@@ -2,122 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D781C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 Jan 2022 20:18:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0966C433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 Jan 2022 22:16:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378579AbiAaUSe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 31 Jan 2022 15:18:34 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:44771 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S245379AbiAaUSe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jan 2022 15:18:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1643660313;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=UR1qnuWWHKtGOuSRNx9fqkhQWixSIDEP01FlH+p7F5s=;
-        b=ZxRZiJGs1EhxT/wsbDq+PauZQqHDzaugJF586GMdDOotlgYXAo2Tz4rPV8yj5ekrdO2eZ9
-        pSBSf5SKJqj6Wg2tb+ny3cTSIFQbm95PLMjYMQtJdsm0783dcJQpzFFtaLgOKvg5TFELg9
-        xUCNRq63i6CUDo6crIt+CkLUd95dzbo=
-Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
- [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-528-l6rRoxwiNs6t8UdDakVblg-1; Mon, 31 Jan 2022 15:18:32 -0500
-X-MC-Unique: l6rRoxwiNs6t8UdDakVblg-1
-Received: by mail-qt1-f199.google.com with SMTP id 22-20020ac85656000000b002d2426b6fc1so11227194qtt.15
-        for <linux-acpi@vger.kernel.org>; Mon, 31 Jan 2022 12:18:31 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=UR1qnuWWHKtGOuSRNx9fqkhQWixSIDEP01FlH+p7F5s=;
-        b=OqIruQT8wSgnNRxNJ/61qoCj6l/HQuC+cfXBC765xeubXbTNQGjWpwGCgq00j0+5N+
-         Qqy1xAl8oCwFPkdQd7/BxNOAvDbZ5xg5uxwtulM3kCpsLsuePUevnjYks79DpWaZeITo
-         4VjWtAhLtPMgQ9maDb1ncgppoiWvEyD2aRKAMlKmUNAnVbfB6ALUay9apb3Lb72N1phM
-         S/X6UncbyrL1jCPlcfxAVALTLFhDxuEgEnLOfwVcP11pEo/iCJmSMYrLDpAksxAZV8Zh
-         CAKQxS+FV3E0TtTR84bhE144rmm8a7H/VMepTOJt6W+TOvsNTGl9UmNGvkrKvqXGA68m
-         FRXw==
-X-Gm-Message-State: AOAM530YslNJ8ddbfz60JA3nIVlZ8oZHrZpRfh3thLpHhmW9mh55Zecc
-        i3lz/b3fHry7YnDZTbVsw1BizwqOhLEYnzYKOO+3huiGjU4ShkkFhYmFQKJs31rcIM6L8/7w++4
-        GUlNq8d6BHNWEqE3oWSNUAQ==
-X-Received: by 2002:a05:622a:15d2:: with SMTP id d18mr2796950qty.627.1643660311523;
-        Mon, 31 Jan 2022 12:18:31 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJwGwO0NBU7bn3wTwpfumrhnTMD09THL9KCsJv4cw+l+J902R+8ySnhdFLDbQAGPKTfR2o2zoQ==
-X-Received: by 2002:a05:622a:15d2:: with SMTP id d18mr2796941qty.627.1643660311314;
-        Mon, 31 Jan 2022 12:18:31 -0800 (PST)
-Received: from localhost.localdomain (024-205-208-113.res.spectrum.com. [24.205.208.113])
-        by smtp.gmail.com with ESMTPSA id y15sm9466742qko.95.2022.01.31.12.18.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 31 Jan 2022 12:18:30 -0800 (PST)
-Subject: Re: [PATCH] ACPICA: cleanup double word in comment
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Robert Moore <robert.moore@intel.com>,
-        Rafael Wysocki <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>,
+        id S231853AbiAaWQu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 31 Jan 2022 17:16:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60550 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231611AbiAaWQt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jan 2022 17:16:49 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B952EC061714;
+        Mon, 31 Jan 2022 14:16:49 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 13140B82CB6;
+        Mon, 31 Jan 2022 22:16:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5486BC340E8;
+        Mon, 31 Jan 2022 22:16:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1643667406;
+        bh=l2z+lAUe/+F6BZPZI6f7qXZoGRCMMHhZIn0CHGQl3Nk=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=qj1RwbOA2eih9YWp46SPpm1Br65lLRzdJp20ake/jCWpIvH/YaXcdseDLHaGL1EV7
+         Q4RqxWvUglPguB2c0iD+Pu6siiVTc6sFUpdvdkSuAIcyQFEItUxRWex80yd0pp4/0u
+         JkqrOxLUXVzGIPVaatF8vd59IV/4g+qYx1fyVvp6qBJB4aGwGpAvN+vbninrddAZBu
+         wNSd72vZ2da8h+xKIDtXPNpWDN/oFVARuG3kX6UTx6Mg1y49nmuxb5ngKkjSqzMYIW
+         FeKKqQK5jJw8veLLqLavjL4o/s99OmyKfUMxOG0F7zuQXT/OXLiX2xSfAXIYJEpRRj
+         jLebys6Qd+8JQ==
+Date:   Mon, 31 Jan 2022 16:16:44 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Paul Menzel <pmenzel@molgen.mpg.de>
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <20220131133337.1556355-1-trix@redhat.com>
- <CAJZ5v0g5Xxd9kBPUdsC6D4fVHfZafKiGgkTONo2mpqvfgoFDgw@mail.gmail.com>
-From:   Tom Rix <trix@redhat.com>
-Message-ID: <69d0ac2f-f953-0890-b2d7-1c43c61be43f@redhat.com>
-Date:   Mon, 31 Jan 2022 12:18:28 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.1
+        LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org,
+        regressions@lists.linux.dev
+Subject: Re: 100 ms boot time increase regression in
+ acpi_init()/acpi_scan_bus()
+Message-ID: <20220131221644.GA516851@bhelgaas>
 MIME-Version: 1.0
-In-Reply-To: <CAJZ5v0g5Xxd9kBPUdsC6D4fVHfZafKiGgkTONo2mpqvfgoFDgw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b177cb21-aa01-2408-9b26-164c028b6593@molgen.mpg.de>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Mon, Jan 10, 2022 at 12:29:44PM +0100, Paul Menzel wrote:
+> PS: Do you know of GNU/Linux live systems that are available for all Linux
+> kernel releases and have an initrd, that just stores/uploads the output of
+> `dmesg`?
 
-On 1/31/22 10:51 AM, Rafael J. Wysocki wrote:
-> On Mon, Jan 31, 2022 at 2:33 PM <trix@redhat.com> wrote:
->> From: Tom Rix <trix@redhat.com>
->>
->> Remove the second 'know'.
->>
->> Signed-off-by: Tom Rix <trix@redhat.com>
-> This is ACPICA material, so it needs to be submitted to the upstream
-> project via https://github.com/acpica/acpica/
->
-> Also, it would be good to combine all of the analogous changes in one patch.
+That would be pretty slick.
 
-I am not sure if this is the last one for acpica, the finder script is 
-very slow.
-
-I will wait a bit and combine these in a day or two.
-
-And take care of the other repo.
-
-Tom
-
->
->> ---
->>   drivers/acpi/acpica/exfldio.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
->> index bdc7a30d1217c..b92605df3872c 100644
->> --- a/drivers/acpi/acpica/exfldio.c
->> +++ b/drivers/acpi/acpica/exfldio.c
->> @@ -104,7 +104,7 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
->>   #ifdef ACPI_UNDER_DEVELOPMENT
->>          /*
->>           * If the Field access is any_acc, we can now compute the optimal
->> -        * access (because we know know the length of the parent region)
->> +        * access (because we know the length of the parent region)
->>           */
->>          if (!(obj_desc->common.flags & AOPOBJ_DATA_VALID)) {
->>                  if (ACPI_FAILURE(status)) {
->> --
->> 2.26.3
->>
-
+There is a collection of dmesg logs at https://github.com/linuxhw/Dmesg,
+mentioned earlier:
+https://lore.kernel.org/r/82035130-d810-9f0b-259e-61280de1d81f@redhat.com 
