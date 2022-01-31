@@ -2,140 +2,91 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9D2DC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 31 Jan 2022 09:29:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D667C433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 31 Jan 2022 13:33:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236717AbiAaJ3M (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 31 Jan 2022 04:29:12 -0500
-Received: from smtp-relay-internal-0.canonical.com ([185.125.188.122]:39558
-        "EHLO smtp-relay-internal-0.canonical.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233106AbiAaJ3L (ORCPT
+        id S239322AbiAaNdr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 31 Jan 2022 08:33:47 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:58824 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S237819AbiAaNdo (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jan 2022 04:29:11 -0500
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com [209.85.128.70])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 3BB393FFFC
-        for <linux-acpi@vger.kernel.org>; Mon, 31 Jan 2022 09:29:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-        s=20210705; t=1643621349;
-        bh=dkzBuNd+uNU6CfCWtlWJDYP24x7ho0sbzpUOr5OCq8A=;
-        h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-         In-Reply-To:Content-Type;
-        b=npnL6kukN3MGgHvQMuvDwX7ll4GcEVBGbnNeLSG8MOxDYBx8AGAWrKuIcGS0Gxhkq
-         W+QcqyIM/SOtFaV/yWWSZVN/Hjbzn1XTENWVzSbsBq1po2R1CjTqSfygYOL6rYDvkZ
-         aLsbIHRxDBKJUhuJFfxOUZezDEwM8MoKt4La4Wwra4iQtu8bnZLvSSNqyZlTmetiic
-         Fhwm8/V4G/tIUC3G+n6vmgXHQ/MaW+aCawtOPSuhoZyOZ10yyRJ8jd/gVrUHAN0rJR
-         gi8zESP4PiQF0DA1XJDqfOAMAQjVg0OCqpQ6GnM5cqf4zcc6KW1oYq0HV0pU4/1vcm
-         lunq5rksaaTMA==
-Received: by mail-wm1-f70.google.com with SMTP id s1-20020a1ca901000000b0034ece94dd8cso10085994wme.5
-        for <linux-acpi@vger.kernel.org>; Mon, 31 Jan 2022 01:29:09 -0800 (PST)
+        Mon, 31 Jan 2022 08:33:44 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1643636024;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=VfFqvSMV9Otew6WwuduSbrALdReBxJUaJj+oMXEGVOY=;
+        b=jENr9/180kLfwkhAPpOiL/D0c4pP4Q9sVwAXpM2veNjCxeUwnlPaDL2r2WElVkJlTKDRnG
+        tIGVDDBupnkUkH4BAmWtm/yVlgHEizW26sQ3vizHHy4m4I2/ieEEAeZCHI0IsqE8oguSUN
+        WgspDEF4YbEPrqIGSQ8PVx8oV2KeRFY=
+Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
+ [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-49-H3JJtvK1Po2Le7PdrOivFg-1; Mon, 31 Jan 2022 08:33:43 -0500
+X-MC-Unique: H3JJtvK1Po2Le7PdrOivFg-1
+Received: by mail-qt1-f199.google.com with SMTP id c20-20020ac84e14000000b002d198444921so10218290qtw.23
+        for <linux-acpi@vger.kernel.org>; Mon, 31 Jan 2022 05:33:43 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=dkzBuNd+uNU6CfCWtlWJDYP24x7ho0sbzpUOr5OCq8A=;
-        b=K60i7UfGkGuo1ffKKqg8gF16HayzvY0lz5NVZ1AZkDRpP3iLh6yxirYjdOq3gnJ3h+
-         BL8UpFfcfAscH4mQbXY4CUCfyVt2a6cbqbzKP3laUzHjqOeA2IoUDIx0XE/OPMzCUMhd
-         LIMQuYp0djobl8uXa/sxavnKG4YJWXsmZMRVVWpbzkuUog7Lwr+Yi6nRrXxhFucQndcQ
-         T/mqWVIZQiNl2uwuYNvirJHJhMaXPjXL4YZi8HP0FkwSXFbg9sPmOcSh9kwwWz2xTjLi
-         K/dlCo7KTuOsooniLXB5RqLb4So8m1etr6m0dvpczre0ZWww+1AM0Ujs/LfBZ6Xu4PWR
-         jWfw==
-X-Gm-Message-State: AOAM531nInOel0YQwSdr5Z2EufSyxm2BGms3A/6pBYBf+NgZeDQxcKtc
-        1i4a1JrnbNrCPdsomSuQh9xPSVIy5kSwLqq2cYk+0FtXtrRy1HPxZjEooMhTIrbOrNpXelaKowR
-        za3OkgrXoKle8FCAJt5OKc1fFWF44x2dOhaNhZ7I=
-X-Received: by 2002:a17:907:d88:: with SMTP id go8mr16082674ejc.343.1643621337687;
-        Mon, 31 Jan 2022 01:28:57 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxwUgdzk1HBzC4qCevIT6t5qYbRcRcbKgCipd7W6AaFHRRw14fKuy7dvOGc19/jX8mpPV7Ajw==
-X-Received: by 2002:a17:907:d88:: with SMTP id go8mr16082640ejc.343.1643621337451;
-        Mon, 31 Jan 2022 01:28:57 -0800 (PST)
-Received: from [192.168.0.71] (xdsl-188-155-168-84.adslplus.ch. [188.155.168.84])
-        by smtp.gmail.com with ESMTPSA id z2sm2645158ejn.117.2022.01.31.01.28.55
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 31 Jan 2022 01:28:56 -0800 (PST)
-Message-ID: <1e22e171-9d13-5763-a9e2-a24e7d98e130@canonical.com>
-Date:   Mon, 31 Jan 2022 10:28:54 +0100
+        bh=VfFqvSMV9Otew6WwuduSbrALdReBxJUaJj+oMXEGVOY=;
+        b=0/v6EsawY4XfRTjcB6nDUXsnb5iONJDhmJ+2dCcn+iOv748QKklT0I+7RMQYmmlGj0
+         krjtXPb1zqkgSxC1qz5fYerRbw9v+5rH5uRxAFfRv0WULmIKrXClzQvbYkKBQ6Mf5udW
+         OmT2wzIq1GAGI7/ov5K1En//15b2nrAgLdq90aBQDpnswhhBISPLkuEsKcoWy4IY9db6
+         RKMkPvWvZoezGyxEd7J1VrsXE+gWe29A6OSIO4dPppOu1EBZ8l44jsbVRy8QOnpK/osq
+         8MG1xLJhEsDVYYjjZDyt718VrE9YVTwlA8tZVinboUkzDzgpNWCaMRBxIDyt9iiYHI+c
+         DvbQ==
+X-Gm-Message-State: AOAM533iBlYwvNvADt5kdNCrciNPD9LsYZhk1mSXPLRj8cIZCA4vjZ4n
+        uej3K85r/Ghm32DKQqDSraJrcmsK0kYFbePCdHTe/y0OFEnDDilYtaASpQaS+xG+gnmCl2q6lOP
+        ezSYbWFUKQYBUHGoqIWmzmA==
+X-Received: by 2002:a05:620a:1792:: with SMTP id ay18mr13373131qkb.12.1643636022750;
+        Mon, 31 Jan 2022 05:33:42 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJx0RwA9z2nQfn12ZGFBT5t9iGfjKQ2Az19u0I4r0E5BKCJkPncDYJOi+4lmU54lStlau3WU/A==
+X-Received: by 2002:a05:620a:1792:: with SMTP id ay18mr13373119qkb.12.1643636022563;
+        Mon, 31 Jan 2022 05:33:42 -0800 (PST)
+Received: from localhost.localdomain.com (024-205-208-113.res.spectrum.com. [24.205.208.113])
+        by smtp.gmail.com with ESMTPSA id u16sm2047274qtx.46.2022.01.31.05.33.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 31 Jan 2022 05:33:42 -0800 (PST)
+From:   trix@redhat.com
+To:     robert.moore@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-kernel@vger.kernel.org, Tom Rix <trix@redhat.com>
+Subject: [PATCH] ACPICA: cleanup double word in comment
+Date:   Mon, 31 Jan 2022 05:33:37 -0800
+Message-Id: <20220131133337.1556355-1-trix@redhat.com>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Subject: Re: [PATCH v6 18/21] memory: emif: Use kernel_can_power_off()
-Content-Language: en-US
-To:     Dmitry Osipenko <digetx@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Joshua Thompson <funaho@jurai.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Sebastian Reichel <sre@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Greentime Hu <green.hu@gmail.com>,
-        Vincent Chen <deanbo422@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Pavel Machek <pavel@ucw.cz>,
-        Lee Jones <lee.jones@linaro.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>, alankao@andestech.com,
-        "K . C . Kuen-Chern Lin" <kclin@andestech.com>,
-        =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
-Cc:     linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-tegra@vger.kernel.org
-References: <20220130233718.21544-1-digetx@gmail.com>
- <20220130233718.21544-19-digetx@gmail.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
-In-Reply-To: <20220130233718.21544-19-digetx@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 31/01/2022 00:37, Dmitry Osipenko wrote:
-> Replace legacy pm_power_off with kernel_can_power_off() helper that
-> is aware about chained power-off handlers.
-> 
-> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
-> ---
->  drivers/memory/emif.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
+From: Tom Rix <trix@redhat.com>
 
+Remove the second 'know'.
 
-Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
+Signed-off-by: Tom Rix <trix@redhat.com>
+---
+ drivers/acpi/acpica/exfldio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index bdc7a30d1217c..b92605df3872c 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -104,7 +104,7 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ #ifdef ACPI_UNDER_DEVELOPMENT
+ 	/*
+ 	 * If the Field access is any_acc, we can now compute the optimal
+-	 * access (because we know know the length of the parent region)
++	 * access (because we know the length of the parent region)
+ 	 */
+ 	if (!(obj_desc->common.flags & AOPOBJ_DATA_VALID)) {
+ 		if (ACPI_FAILURE(status)) {
+-- 
+2.26.3
 
-Best regards,
-Krzysztof
