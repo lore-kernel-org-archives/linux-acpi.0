@@ -2,49 +2,95 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2C9DC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Feb 2022 19:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1640AC433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  1 Feb 2022 19:27:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242369AbiBATTI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 1 Feb 2022 14:19:08 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:56696 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238080AbiBATTH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Feb 2022 14:19:07 -0500
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 4.0.0)
- id c017d2d0afa349fb; Tue, 1 Feb 2022 20:19:06 +0100
-Received: from kreacher.localnet (unknown [213.134.162.64])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 96C1A66B3BC;
-        Tue,  1 Feb 2022 20:19:05 +0100 (CET)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>
-Subject: [PATCH 0/2] ACPI: PM: s2idle: Print debug messages in two new places
-Date:   Tue, 01 Feb 2022 20:16:15 +0100
-Message-ID: <11917820.O9o76ZdvQC@kreacher>
+        id S242404AbiBAT1e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 1 Feb 2022 14:27:34 -0500
+Received: from vps0.lunn.ch ([185.16.172.187]:37850 "EHLO vps0.lunn.ch"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S242278AbiBAT1d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 1 Feb 2022 14:27:33 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+        bh=wz74ecBRRy5osiptH6mAHo5InVXq8xkawwUnzut97j4=; b=h892aCtiyDGLi3SODvyrRwY9yS
+        E+hNgBBdBFQs19EYya29T5I+/kReGFQhXiXfXi8MM94CBLfzjq+qteCzC5X0WUKApFy5a4d6pwxXh
+        EufxTcUUHNRFE/jT64WlV5CXWM4RRiEd/TMTpsQEs3I+z0JbfxAoeXyAjC8zZWchYvY8=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+        (envelope-from <andrew@lunn.ch>)
+        id 1nEyoE-003qai-HN; Tue, 01 Feb 2022 20:27:22 +0100
+Date:   Tue, 1 Feb 2022 20:27:22 +0100
+From:   Andrew Lunn <andrew@lunn.ch>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Sunil Goutham <sgoutham@marvell.com>,
+        Iyappan Subramanian <iyappan@os.amperecomputing.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Keyur Chudgar <keyur@os.amperecomputing.com>,
+        Quan Nguyen <quan@os.amperecomputing.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>, netdev@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH] drivers: net: Replace acpi_bus_get_device()
+Message-ID: <YfmJmgE/KuS8G92w@lunn.ch>
+References: <3151721.aeNJFYEL58@kreacher>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.162.64
-X-CLIENT-HOSTNAME: 213.134.162.64
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrgeefgdduvddvucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpefhgedtffejheekgeeljeevvedtuefgffeiieejuddutdekgfejvdehueejjeetvdenucfkphepvddufedrudefgedrudeivddrieegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudeivddrieegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3151721.aeNJFYEL58@kreacher>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+On Tue, Feb 01, 2022 at 08:07:08PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Replace acpi_bus_get_device() that is going to be dropped with
+> acpi_fetch_acpi_dev().
+> 
+> No intentional functional impact.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/net/ethernet/cavium/thunder/thunder_bgx.c |    4 ++--
+>  drivers/net/fjes/fjes_main.c                      |   10 +++-------
+>  drivers/net/mdio/mdio-xgene.c                     |    8 +++-----
+>  3 files changed, 8 insertions(+), 14 deletions(-)
+> 
+> Index: linux-pm/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+> ===================================================================
+> --- linux-pm.orig/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+> +++ linux-pm/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+> @@ -1407,9 +1407,9 @@ static acpi_status bgx_acpi_register_phy
+>  {
+>  	struct bgx *bgx = context;
+>  	struct device *dev = &bgx->pdev->dev;
+> -	struct acpi_device *adev;
+> +	struct acpi_device *adev = acpi_fetch_acpi_dev(handle);
 
-This series causes PM debug messages to be printed in two new places to help
-diagnose issues related to wakeup from suspend-to-idle.
+Hi Rafael
 
-Thanks!
+Since this is part of the networking subsystem, reverse christmas tree
+applies. Yes, this driver gets is wrong here, but we should not make
+it even worse. Please put this variable first.
 
+> Index: linux-pm/drivers/net/mdio/mdio-xgene.c
+> ===================================================================
+> --- linux-pm.orig/drivers/net/mdio/mdio-xgene.c
+> +++ linux-pm/drivers/net/mdio/mdio-xgene.c
+> @@ -280,15 +280,13 @@ static acpi_status acpi_register_phy(acp
+>  				     void *context, void **ret)
+>  {
+>  	struct mii_bus *mdio = context;
+> -	struct acpi_device *adev;
+> +	struct acpi_device *adev = acpi_fetch_acpi_dev(handle);
 
+Here as well please.
 
+With those changes, you can add my Reviewed-by:
+
+Thanks
+     Andrew
