@@ -2,188 +2,101 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 690CFC433F5
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Feb 2022 10:33:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD48BC4332F
+	for <linux-acpi@archiver.kernel.org>; Tue,  1 Feb 2022 12:28:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236070AbiBAKdf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 1 Feb 2022 05:33:35 -0500
-Received: from mga07.intel.com ([134.134.136.100]:42593 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234907AbiBAKde (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Feb 2022 05:33:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643711614; x=1675247614;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=fHoMc+WKZWIeFg8GRpyQgVpbg1oLndtyrN1jErikPHo=;
-  b=bJ26kaZKLbSidO2xBVEHEWupmVCvHbqgr/AQT6J4PzGp9B7NMxw1Pm3K
-   77y47mCgjtN4c6I80h+c2EaQyD66sF46Q8W9sK4aLt/yshDy5M0kU0cWR
-   O8TLhB9nWICDLVzBL2WJ+DpewInuM3reu8xXFMzCnQqZyurJwbJ1Y5tIx
-   caW8spTw7/8ZILvpPXV/E1wdiQr4c+zCr7kVmeTk6VH/LKaCsc3W6M8st
-   +uEnnH+bXGWDfxv1O40MGOTgJleVRXQNfXgggLredKW1b51YLhtjehKqS
-   x/SOxRmcZ/pc2vax2xc+VnIcBC5aaFGzW4Oc3vCUrRlcAcX5YfHSu5TzL
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="310971926"
-X-IronPort-AV: E=Sophos;i="5.88,333,1635231600"; 
-   d="scan'208";a="310971926"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 02:33:34 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,333,1635231600"; 
-   d="scan'208";a="482245480"
-Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
-  by orsmga006.jf.intel.com with ESMTP; 01 Feb 2022 02:33:31 -0800
-Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1nEqTa-000T7X-9U; Tue, 01 Feb 2022 10:33:30 +0000
-Date:   Tue, 01 Feb 2022 18:33:25 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 0c1f0e2fe5907398408d24636c5e778275870df1
-Message-ID: <61f90c75.W+IltSI+gZKu+OWX%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S238063AbiBAM2B (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 1 Feb 2022 07:28:01 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:58702 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237630AbiBAM2A (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Feb 2022 07:28:00 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0192F61524;
+        Tue,  1 Feb 2022 12:27:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD77EC340EB;
+        Tue,  1 Feb 2022 12:27:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1643718462;
+        bh=JbkAYC/M1v6wy+velggKtiIsj1hfd2OT5WgmxqSpRmo=;
+        h=Subject:From:In-Reply-To:References:To:Cc:Date:From;
+        b=MvrZsek1b6VXbur1sjrSrW9r5HERM81Yh71gmHzYA9DzrL4MGX45gsGNTkUS2FCCv
+         Uk2LK0Ly8BTw9MdkDWc4CANUy0x8xK8FNWg81k3HA9UKjOvX1WLvFe8aEXIyUoE7HO
+         zZQCBOKH1AV1a6C7Jw/xokCSENcxjaOIJ3glevudARnyyvtU2lD/EFlCVy0kDGicoH
+         ke6CONaBXhJ+yYQ9hBO01aWYGgUG5sdtY2z7T+Sr8xJQGgdLRpGd1j7CSRuikONVLZ
+         7CE1k1DuL0yLZeoo6CtFFia21ojZFhRFUaXQP0SxiPfyP2RaUR1q6Pu4ECPsrxZinZ
+         iana8DFBgKVqQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v4 1/9] brcmfmac: pcie: Release firmwares in the
+ brcmf_pcie_setup error path
+From:   Kalle Valo <kvalo@kernel.org>
+In-Reply-To: <20220131160713.245637-2-marcan@marcan.st>
+References: <20220131160713.245637-2-marcan@marcan.st>
+To:     Hector Martin <marcan@marcan.st>
+Cc:     Kalle Valo <kvalo@codeaurora.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Arend van Spriel <aspriel@gmail.com>,
+        Franky Lin <franky.lin@broadcom.com>,
+        Hante Meuleman <hante.meuleman@broadcom.com>,
+        Wright Feng <wright.feng@infineon.com>,
+        Dmitry Osipenko <digetx@gmail.com>,
+        Hector Martin <marcan@marcan.st>,
+        Sven Peter <sven@svenpeter.dev>,
+        Alyssa Rosenzweig <alyssa@rosenzweig.io>,
+        Mark Kettenis <kettenis@openbsd.org>,
+        =?utf-8?b?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
+        Pieter-Paul Giesberts <pieter-paul.giesberts@broadcom.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        "John W. Linville" <linville@tuxdriver.com>,
+        "brian m. carlson" <sandals@crustytoothpaste.net>,
+        Andy Shevchenko <andy.shevchenko@gmail.com>,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com,
+        SHA-cyfmac-dev-list@infineon.com,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        stable@vger.kernel.org
+User-Agent: pwcli/0.1.0-git (https://github.com/kvalo/pwcli/) Python/3.7.3
+Message-ID: <164371845418.16633.10070643455446160726.kvalo@kernel.org>
+Date:   Tue,  1 Feb 2022 12:27:35 +0000 (UTC)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 0c1f0e2fe5907398408d24636c5e778275870df1  Merge branch 'acpi-scan' into bleeding-edge
+Hector Martin <marcan@marcan.st> wrote:
 
-elapsed time: 732m
+> This avoids leaking memory if brcmf_chip_get_raminfo fails. Note that
+> the CLM blob is released in the device remove path.
+> 
+> Fixes: 82f93cf46d60 ("brcmfmac: get chip's default RAM info during PCIe setup")
+> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> Reviewed-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Hector Martin <marcan@marcan.st>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-configs tested: 115
-configs skipped: 3
+8 patches applied to wireless-next.git, thanks.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+5e90f0f3ead0 brcmfmac: pcie: Release firmwares in the brcmf_pcie_setup error path
+d19d8e3ba256 brcmfmac: firmware: Allocate space for default boardrev in nvram
+6d766d8cb505 brcmfmac: pcie: Declare missing firmware files in pcie.c
+9466987f2467 brcmfmac: pcie: Replace brcmf_pcie_copy_mem_todev with memcpy_toio
+b50255c83b91 brcmfmac: pcie: Fix crashes due to early IRQs
+9cf6d7f2c554 brcmfmac: of: Use devm_kstrdup for board_type & check for errors
+e7191182adc5 brcmfmac: fwil: Constify iovar name arguments
+b4bb8469e90e brcmfmac: pcie: Read the console on init and shutdown
 
-gcc tested configs:
-arm                                 defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm64                            allyesconfig
-arm64                               defconfig
-i386                 randconfig-c001-20220131
-m68k                       m5475evb_defconfig
-powerpc                mpc7448_hpc2_defconfig
-sh                          rsk7203_defconfig
-powerpc                    klondike_defconfig
-powerpc                      ppc40x_defconfig
-sh                          rsk7269_defconfig
-arm                           stm32_defconfig
-sh                  sh7785lcr_32bit_defconfig
-powerpc                 mpc837x_rdb_defconfig
-arc                                 defconfig
-m68k                          sun3x_defconfig
-mips                      maltasmvp_defconfig
-sh                               alldefconfig
-arm                  randconfig-c002-20220130
-arm                  randconfig-c002-20220131
-ia64                                defconfig
-ia64                             allyesconfig
-ia64                             allmodconfig
-m68k                                defconfig
-m68k                             allmodconfig
-m68k                             allyesconfig
-nds32                             allnoconfig
-nios2                               defconfig
-arc                              allyesconfig
-csky                                defconfig
-alpha                               defconfig
-nds32                               defconfig
-alpha                            allyesconfig
-nios2                            allyesconfig
-sh                               allmodconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-parisc                              defconfig
-s390                             allmodconfig
-parisc                           allyesconfig
-s390                                defconfig
-s390                             allyesconfig
-i386                             allyesconfig
-sparc                               defconfig
-i386                                defconfig
-i386                   debian-10.3-kselftests
-i386                              debian-10.3
-sparc                            allyesconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                           allnoconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-i386                 randconfig-a002-20220131
-i386                 randconfig-a001-20220131
-i386                 randconfig-a005-20220131
-i386                 randconfig-a003-20220131
-i386                 randconfig-a004-20220131
-i386                 randconfig-a006-20220131
-x86_64               randconfig-a004-20220131
-x86_64               randconfig-a003-20220131
-x86_64               randconfig-a001-20220131
-x86_64               randconfig-a006-20220131
-x86_64               randconfig-a005-20220131
-x86_64               randconfig-a002-20220131
-riscv                randconfig-r042-20220130
-arc                  randconfig-r043-20220130
-arc                  randconfig-r043-20220131
-s390                 randconfig-r044-20220130
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                           allyesconfig
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-x86_64                    rhel-8.3-kselftests
+-- 
+https://patchwork.kernel.org/project/linux-wireless/patch/20220131160713.245637-2-marcan@marcan.st/
 
-clang tested configs:
-x86_64                        randconfig-c007
-powerpc              randconfig-c003-20220201
-mips                 randconfig-c004-20220201
-i386                          randconfig-c001
-arm                  randconfig-c002-20220201
-s390                 randconfig-c005-20220201
-riscv                randconfig-c006-20220201
-arm                         shannon_defconfig
-riscv                    nommu_virt_defconfig
-powerpc                    mvme5100_defconfig
-powerpc                     kilauea_defconfig
-arm                       imx_v4_v5_defconfig
-powerpc                 xes_mpc85xx_defconfig
-x86_64               randconfig-a013-20220131
-x86_64               randconfig-a014-20220131
-x86_64               randconfig-a016-20220131
-x86_64               randconfig-a011-20220131
-x86_64               randconfig-a012-20220131
-x86_64               randconfig-a015-20220131
-i386                 randconfig-a013-20220131
-i386                 randconfig-a014-20220131
-i386                 randconfig-a012-20220131
-i386                 randconfig-a015-20220131
-i386                 randconfig-a016-20220131
-i386                 randconfig-a011-20220131
-riscv                randconfig-r042-20220131
-s390                 randconfig-r044-20220131
-hexagon              randconfig-r045-20220130
-hexagon              randconfig-r045-20220131
-hexagon              randconfig-r041-20220130
-hexagon              randconfig-r041-20220131
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
