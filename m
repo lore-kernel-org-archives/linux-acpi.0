@@ -2,125 +2,38 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0431C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Feb 2022 10:13:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CBE3C433FE
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Feb 2022 10:21:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245740AbiBBKNP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Feb 2022 05:13:15 -0500
-Received: from foss.arm.com ([217.140.110.172]:48784 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232501AbiBBKNO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Feb 2022 05:13:14 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C65551FB;
-        Wed,  2 Feb 2022 02:13:13 -0800 (PST)
-Received: from lpieralisi (e121166-lin.cambridge.arm.com [10.1.196.255])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id DFD913F40C;
-        Wed,  2 Feb 2022 02:13:12 -0800 (PST)
-Date:   Wed, 2 Feb 2022 10:13:07 +0000
-From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-To:     Robin Murphy <robin.murphy@arm.com>
-Cc:     guohanjun@huawei.com, sudeep.holla@arm.com,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Michael Petlan <mpetlan@redhat.com>
-Subject: Re: [PATCH] ACPI/IORT: Check node revision for PMCG resources
-Message-ID: <20220202101307.GA16459@lpieralisi>
-References: <a262d1122f493c83eb48fd643e1c51019ab93c67.1643641404.git.robin.murphy@arm.com>
+        id S1343510AbiBBKVI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Feb 2022 05:21:08 -0500
+Received: from [115.29.39.194] ([115.29.39.194]:41892 "EHLO localhost"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1343507AbiBBKVI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 2 Feb 2022 05:21:08 -0500
+Message-ID: <4b326e96327ade5bbb47966232a3b88@3695419768>
+X-Binding: 3695419768
+X-elqPod: 0xXV2KWPCIJ7P2WJ6OGHSVMLJ4HSDQYZIG4QDMPKFRH26Q8FJTCVLFPYE66IYWUI16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a262d1122f493c83eb48fd643e1c51019ab93c67.1643641404.git.robin.murphy@arm.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+From:   "Veronika" <planolindrical@thepza.com>
+To:     linux-acpi@vger.kernel.org
+Reply-To: "planolindrical" <planolindrical@thepza.com>
+Date:   Wed, 2 Feb 2022 18:21:08 -0300
+Subject: I looking for someone
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 31, 2022 at 03:03:24PM +0000, Robin Murphy wrote:
-> The original version of the IORT PMCG definition had an oversight
-> wherein there was no way to describe the second register page for an
-> implementation using the recommended RELOC_CTRS feature. Although the
-> spec was fixed, and the final patches merged to ACPICA and Linux written
-> against the new version, it seems that some old firmware based on the
-> original revision has survived and turned up in the wild.
-> 
-> Add a check for the original PMCG definition, and avoid filling in the
-> second memory resource with nonsense if so. Otherwise it is likely that
-> something horrible will happen when the PMCG driver attempts to probe.
-> 
-> Reported-by: Michael Petlan <mpetlan@redhat.com>
-> Fixes: 24e516049360 ("ACPI/IORT: Add support for PMCG")
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
-> ---
->  drivers/acpi/arm64/iort.c | 17 ++++++++++-------
->  1 file changed, 10 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 3b23fb775ac4..aaa1f0411a5a 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1344,16 +1344,17 @@ static int __init arm_smmu_v3_pmcg_count_resources(struct acpi_iort_node *node)
->  	pmcg = (struct acpi_iort_pmcg *)node->node_data;
->  
->  	/*
-> -	 * There are always 2 memory resources.
-> -	 * If the overflow_gsiv is present then add that for a total of 3.
-> +	 * There should normally be 2 memory resources, but apparently the
-> +	 * oversight from IORT rev. C managed to escape into the wild.
->  	 */
-> -	return pmcg->overflow_gsiv ? 3 : 2;
-> +	return 1 + (node->revision > 0) + (pmcg->overflow_gsiv != 0);
+SGVsbG8sIEkgd291bGQgYmUgcmVhbGx5IGhhcHB5IHRvIG1lZXQgYSBraW5kIGFuZCBhbWJpdGlv
+dXMgbWFuLiANCkkgYW0gYSBzbWFsbCBhbmQgY3V0ZSBsYWR5IHdpdGggYmxvbmQgaGFpciBhbmQg
+Z3JlZW4gZXllcy4gDQpJIGFtIHZlcnkga2luZCBhbmQgSSBrbm93IGhvdyB0byBtYWtlIGEgbWFu
+IGJlIGV4dHJlbWVseSBoYXBweS4gSSB3YW50IHRvIGJlIHdpdGggYSBtYW4gd2hvIHdhbnRzIHRv
+IGJ1aWxkIGEgbGFzdGluZyByZWxhdGlvbnNoaXAgYW5kIHdobyBjYW4gY2FyZSBvZiBoaXMgYmVs
+b3ZlZCB3b21hbi4gDQpUaGlzIGlzIGdvb2QgaWYgcGxlYXNhbnQgYW5kIHVuZXhwZWN0ZWQgY2hh
+bmdlcyBvY2N1ciBpbiBteSBsaWZlLiANClByb2ZpbGVzOjQ5MzgyMTA5MC4gaHR0cDovL3RoZWhl
+YWx0aHlhZHZvY2F0ZS5jb20vdmljdG9yaWFuaXplai5waHA/dXRtX3NvdXJjZT01MzEzNjNmMCZ1
+dG1fY29udGVudD1lYTQ1NzU3IFdoZXJlIGFyZSB5b3UsIG15IGRlYXIgbWFuISANCkJ5ZSwgVmVy
+b25pa2EuIA0K
 
-It is compact but (nit) I'd rather use a construct like:
-
-if (node->revision > 0)
-	res_cnt++;
-
-with a comment explaining it so that we can remember why the node
-revision implies an additional resource.
-
-Actually - I noticed that the logic in .dev_count_resources() and
-dev_init_resources() is somewhat duplicated - maybe we can add a
-resource_count param to dev_init_resources() but I am not sure
-it will improve things much.
-
->  }
->  
->  static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
->  						   struct acpi_iort_node *node)
->  {
->  	struct acpi_iort_pmcg *pmcg;
-> +	int n = 1;
->  
->  	/* Retrieve PMCG specific data */
->  	pmcg = (struct acpi_iort_pmcg *)node->node_data;
-> @@ -1361,13 +1362,15 @@ static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
->  	res[0].start = pmcg->page0_base_address;
->  	res[0].end = pmcg->page0_base_address + SZ_4K - 1;
->  	res[0].flags = IORESOURCE_MEM;
-> -	res[1].start = pmcg->page1_base_address;
-> -	res[1].end = pmcg->page1_base_address + SZ_4K - 1;
-> -	res[1].flags = IORESOURCE_MEM;
-> +	if (node->revision > 0) {
-> +		res[n].start = pmcg->page1_base_address;
-> +		res[n].end = pmcg->page1_base_address + SZ_4K - 1;
-> +		res[n++].flags = IORESOURCE_MEM;
-> +	}
-
-See above. If we knew the number of resource we could avoid repeating
-node->revision > 0 check but I don't think it would improve things
-anyway (ie we know how many resources we are allocating but we still
-need to check why a resource has to be added - eg node->revision > 0).
-
-Thanks,
-Lorenzo
-
->  	if (pmcg->overflow_gsiv)
->  		acpi_iort_register_irq(pmcg->overflow_gsiv, "overflow",
-> -				       ACPI_EDGE_SENSITIVE, &res[2]);
-> +				       ACPI_EDGE_SENSITIVE, &res[n]);
->  }
->  
->  static struct acpi_platform_list pmcg_plat_info[] __initdata = {
-> -- 
-> 2.28.0.dirty
-> 
