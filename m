@@ -2,56 +2,110 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9609C4332F
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Feb 2022 17:35:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E646DC433F5
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Feb 2022 17:43:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376890AbiBDRfr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Feb 2022 12:35:47 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:50518 "EHLO
+        id S235897AbiBDRn0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Feb 2022 12:43:26 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:42722 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230051AbiBDRfo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2022 12:35:44 -0500
+        with ESMTP id S231896AbiBDRn0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2022 12:43:26 -0500
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 4.0.0)
- id 773272b927eaaaee; Fri, 4 Feb 2022 18:35:43 +0100
+ id 2871c7bdf1ff5afe; Fri, 4 Feb 2022 18:43:24 +0100
 Received: from kreacher.localnet (unknown [213.134.181.137])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id C986266B456;
-        Fri,  4 Feb 2022 18:35:42 +0100 (CET)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 4897866B456;
+        Fri,  4 Feb 2022 18:43:24 +0100 (CET)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>,
-        David Box <david.e.box@linux.intel.com>
-Subject: [PATCH v1 0/2] ACPI: PM: s2idle: Two fixes for wakeup-related issues
-Date:   Fri, 04 Feb 2022 18:29:04 +0100
-Message-ID: <11925099.O9o76ZdvQC@kreacher>
+Cc:     LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH v1 3/3] ACPI: EC: Rearrange code in acpi_ec_submit_event()
+Date:   Fri, 04 Feb 2022 18:43:14 +0100
+Message-ID: <7351357.EvYhyI6sBW@kreacher>
+In-Reply-To: <12956939.uLZWGnKmhe@kreacher>
+References: <12956939.uLZWGnKmhe@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.181.137
 X-CLIENT-HOSTNAME: 213.134.181.137
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrgeelgddutddvucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpefhgedtffejheekgeeljeevvedtuefgffeiieejuddutdekgfejvdehueejjeetvdenucfkphepvddufedrudefgedrudekuddrudefjeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukedurddufeejpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomhdprhgtphhtthhopegu
- rghvihgurdgvrdgsohigsehlihhnuhigrdhinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrgeelgddutdefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepvddufedrudefgedrudekuddrudefjeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukedurddufeejpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopedvpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-DCC--Metrics: v370.home.net.pl 1024; Body=2 Fuz1=2 Fuz2=2
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Two problems with the handling of wakeup from suspend-to-idle on systems
-using ACPI and the EC driver (x86 PCs mostly) have been recently discovered,
-mainly by code inspection.
+Rearange acpi_ec_event_handler() so as to avoid releasing ec->lock
+and acquiring it again right away in the case when ec_event_clearing
+is not ACPI_EC_EVT_TIMING_EVENT.
 
-This series of two patches is intended to fix those problems.  Please refer
-to the patch changelogs for details.
+This also reduces the number of checks done by acpi_ec_event_handler()
+in that case.
 
-Thanks!
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/ec.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+Index: linux-pm/drivers/acpi/ec.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/ec.c
++++ linux-pm/drivers/acpi/ec.c
+@@ -1238,6 +1238,7 @@ static void acpi_ec_event_handler(struct
+ 		acpi_ec_submit_query(ec);
+ 
+ 		spin_lock_irq(&ec->lock);
++
+ 		ec->events_to_process--;
+ 	}
+ 
+@@ -1246,27 +1247,30 @@ static void acpi_ec_event_handler(struct
+ 	 * event handling work again regardless of whether or not the query
+ 	 * queued up above is processed successfully.
+ 	 */
+-	if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT)
++	if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT) {
++		bool guard_timeout;
++
+ 		acpi_ec_complete_event(ec);
+-	else
+-		acpi_ec_close_event(ec);
+ 
+-	spin_unlock_irq(&ec->lock);
++		ec_dbg_evt("Event stopped");
+ 
+-	ec_dbg_evt("Event stopped");
++		spin_unlock_irq(&ec->lock);
++
++		guard_timeout = !!ec_guard(ec);
+ 
+-	if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT && ec_guard(ec)) {
+ 		spin_lock_irq(&ec->lock);
+ 
+ 		/* Take care of SCI_EVT unless someone else is doing that. */
+-		if (!ec->curr)
++		if (guard_timeout && !ec->curr)
+ 			advance_transaction(ec, false);
++	} else {
++		acpi_ec_close_event(ec);
+ 
+-		spin_unlock_irq(&ec->lock);
++		ec_dbg_evt("Event stopped");
+ 	}
+ 
+-	spin_lock_irq(&ec->lock);
+ 	ec->events_in_progress--;
++
+ 	spin_unlock_irq(&ec->lock);
+ }
+ 
 
 
 
