@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E646DC433F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Feb 2022 17:43:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5506EC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Feb 2022 17:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235897AbiBDRn0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Feb 2022 12:43:26 -0500
-Received: from cloudserver094114.home.pl ([79.96.170.134]:42722 "EHLO
+        id S1377042AbiBDRna (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Feb 2022 12:43:30 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:56566 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231896AbiBDRn0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2022 12:43:26 -0500
+        with ESMTP id S1377030AbiBDRn1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2022 12:43:27 -0500
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 4.0.0)
- id 2871c7bdf1ff5afe; Fri, 4 Feb 2022 18:43:24 +0100
+ id 23f490b0ef483493; Fri, 4 Feb 2022 18:43:26 +0100
 Received: from kreacher.localnet (unknown [213.134.181.137])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 4897866B456;
-        Fri,  4 Feb 2022 18:43:24 +0100 (CET)
+        by v370.home.net.pl (Postfix) with ESMTPSA id AE09E66B456;
+        Fri,  4 Feb 2022 18:43:25 +0100 (CET)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH v1 3/3] ACPI: EC: Rearrange code in acpi_ec_submit_event()
-Date:   Fri, 04 Feb 2022 18:43:14 +0100
-Message-ID: <7351357.EvYhyI6sBW@kreacher>
+Subject: [PATCH v1 2/3] ACPI: EC: Reduce indentation level in acpi_ec_submit_event()
+Date:   Fri, 04 Feb 2022 18:40:55 +0100
+Message-ID: <2180947.iZASKD2KPV@kreacher>
 In-Reply-To: <12956939.uLZWGnKmhe@kreacher>
 References: <12956939.uLZWGnKmhe@kreacher>
 MIME-Version: 1.0
@@ -42,70 +42,63 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Rearange acpi_ec_event_handler() so as to avoid releasing ec->lock
-and acquiring it again right away in the case when ec_event_clearing
-is not ACPI_EC_EVT_TIMING_EVENT.
+The indentation level in acpi_ec_submit_event() can be reduced, so
+do that and while at it fix a typo in the comment affected by that
+change.
 
-This also reduces the number of checks done by acpi_ec_event_handler()
-in that case.
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/ec.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ drivers/acpi/ec.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
 Index: linux-pm/drivers/acpi/ec.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/ec.c
 +++ linux-pm/drivers/acpi/ec.c
-@@ -1238,6 +1238,7 @@ static void acpi_ec_event_handler(struct
- 		acpi_ec_submit_query(ec);
+@@ -451,24 +451,25 @@ static void acpi_ec_submit_event(struct
+ 	if (!acpi_ec_event_enabled(ec))
+ 		return;
  
- 		spin_lock_irq(&ec->lock);
+-	if (ec->event_state == EC_EVENT_READY) {
+-		ec_dbg_evt("Command(%s) submitted/blocked",
+-			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
++	if (ec->event_state != EC_EVENT_READY)
++		return;
 +
- 		ec->events_to_process--;
- 	}
++	ec_dbg_evt("Command(%s) submitted/blocked",
++		   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
  
-@@ -1246,27 +1247,30 @@ static void acpi_ec_event_handler(struct
- 	 * event handling work again regardless of whether or not the query
- 	 * queued up above is processed successfully.
- 	 */
--	if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT)
-+	if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT) {
-+		bool guard_timeout;
-+
- 		acpi_ec_complete_event(ec);
--	else
--		acpi_ec_close_event(ec);
+-		ec->event_state = EC_EVENT_IN_PROGRESS;
+-		/*
+-		 * If events_to_process is greqter than 0 at this point, the
+-		 * while () loop in acpi_ec_event_handler() is still running
+-		 * and incrementing events_to_process will cause it to invoke
+-		 * acpi_ec_submit_query() once more, so it is not necessary to
+-		 * queue up the event work to start the same loop again.
+-		 */
+-		if (ec->events_to_process++ > 0)
+-			return;
++	ec->event_state = EC_EVENT_IN_PROGRESS;
++	/*
++	 * If events_to_process is greater than 0 at this point, the while ()
++	 * loop in acpi_ec_event_handler() is still running and incrementing
++	 * events_to_process will cause it to invoke acpi_ec_submit_query() once
++	 * more, so it is not necessary to queue up the event work to start the
++	 * same loop again.
++	 */
++	if (ec->events_to_process++ > 0)
++		return;
  
--	spin_unlock_irq(&ec->lock);
-+		ec_dbg_evt("Event stopped");
- 
--	ec_dbg_evt("Event stopped");
-+		spin_unlock_irq(&ec->lock);
-+
-+		guard_timeout = !!ec_guard(ec);
- 
--	if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT && ec_guard(ec)) {
- 		spin_lock_irq(&ec->lock);
- 
- 		/* Take care of SCI_EVT unless someone else is doing that. */
--		if (!ec->curr)
-+		if (guard_timeout && !ec->curr)
- 			advance_transaction(ec, false);
-+	} else {
-+		acpi_ec_close_event(ec);
- 
--		spin_unlock_irq(&ec->lock);
-+		ec_dbg_evt("Event stopped");
- 	}
- 
--	spin_lock_irq(&ec->lock);
- 	ec->events_in_progress--;
-+
- 	spin_unlock_irq(&ec->lock);
+-		ec->events_in_progress++;
+-		queue_work(ec_wq, &ec->work);
+-	}
++	ec->events_in_progress++;
++	queue_work(ec_wq, &ec->work);
  }
  
+ static void acpi_ec_complete_event(struct acpi_ec *ec)
 
 
 
