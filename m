@@ -2,74 +2,227 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA16C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Feb 2022 16:46:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B11C433F5
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Feb 2022 17:35:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244986AbiBDQqU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Feb 2022 11:46:20 -0500
-Received: from mail-yb1-f175.google.com ([209.85.219.175]:33480 "EHLO
-        mail-yb1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233928AbiBDQqT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2022 11:46:19 -0500
-Received: by mail-yb1-f175.google.com with SMTP id j2so20656353ybu.0;
-        Fri, 04 Feb 2022 08:46:19 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=BvSuNBp8dR/Kb3EjKCpYDsXctSQVZqQDAcffA+q3los=;
-        b=7D3z2vm0h1j4atOFoOENz9bLXdyzCLlLpc4+nItU5ZeuGiKPdm7eQvK4nveCccMAiU
-         LyvnrQZ5poZ9PTbMl/482N9gywqddiQeyDkLM4CAu5vrYrclL9PMftwG2srms5iEL1lv
-         Ka8f7prpywo6ueQAFPOrGTJgYJzUHmqxfPqfRBGdyaDrCnQH7I02PcZnf2TtjKXaJvGT
-         9ZtO2rKAUHwSYVVPOoHjoYLl4JSZXMuxaFDqry6cKWaAoySzfMhXHL091a5jTLfpmSol
-         +aPQexsMK2R+qzJkYRpYUVKRR9x5GLu/z95tGBzet77Ksn0wCPIiHuOAMG4o+Yskzmlj
-         vwqg==
-X-Gm-Message-State: AOAM533IDqNVjmbshorGyKWsazXW+Gu93WWsXRWbxvx2Cgjiqcc+PrPg
-        Fr+gUA8acizuJ+wJjj/CVj/sh6oQinI4NWa7G9bu1wxv7jU=
-X-Google-Smtp-Source: ABdhPJyAFVEJdp1U9YTbB71BrJTCw0XHR3u847HkemF7OS0ij0YeJcjoDQH8HyWf0BmGEBijaLROnZtx3zl9ycbUSU4=
-X-Received: by 2002:a05:690c:118:: with SMTP id bd24mr3969605ywb.515.1643993178854;
- Fri, 04 Feb 2022 08:46:18 -0800 (PST)
+        id S234091AbiBDRfm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Feb 2022 12:35:42 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:53408 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230051AbiBDRfl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2022 12:35:41 -0500
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 4.0.0)
+ id a786794575b560a3; Fri, 4 Feb 2022 18:35:40 +0100
+Received: from kreacher.localnet (unknown [213.134.181.137])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id EA91766B456;
+        Fri,  4 Feb 2022 18:35:38 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        David Box <david.e.box@linux.intel.com>
+Subject: [PATCH v1 2/2] PM: s2idle: ACPI: Fix wakeup interrupts handling
+Date:   Fri, 04 Feb 2022 18:35:22 +0100
+Message-ID: <4695836.GXAFRqVoOG@kreacher>
+In-Reply-To: <11925099.O9o76ZdvQC@kreacher>
+References: <11925099.O9o76ZdvQC@kreacher>
 MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 4 Feb 2022 17:46:08 +0100
-Message-ID: <CAJZ5v0h9f770hRMXazt4jk=9E01hMjQ41pZ5+Ym-4p0dCrhwmw@mail.gmail.com>
-Subject: [GIT PULL] ACPI fix for v5.17-rc3
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.181.137
+X-CLIENT-HOSTNAME: 213.134.181.137
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrgeelgddutddvucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepvddufedrudefgedrudekuddrudefjeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukedurddufeejpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomhdprhgtphhtthho
+ pegurghvihgurdgvrdgsohigsehlihhnuhigrdhinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=10 Fuz1=10 Fuz2=10
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please pull from the tag
+After commit e3728b50cd9b ("ACPI: PM: s2idle: Avoid possible race
+related to the EC GPE") wakeup interrupts occurring immediately after
+the one discarded by acpi_s2idle_wake() may be missed.  Moreover, if
+the SCI triggers again immediately after the rearming in
+acpi_s2idle_wake(), that wakeup may be missed too.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.17-rc3
+The problem is that pm_system_irq_wakeup() only calls pm_system_wakeup()
+when pm_wakeup_irq is 0, but that's not the case any more after the
+interrupt causing acpi_s2idle_wake() to run until pm_wakeup_irq is
+cleared by the pm_wakeup_clear() call in s2idle_loop().  However,
+there may be wakeup interrupts occurring in that time frame and if
+that happens, they will be missed.
 
-with top-most commit 04662bac0067e2fd7f243d6abaa4d779bce14114
+To address that issue first move the clearing of pm_wakeup_irq to
+the point at which it is known that the interrupt causing
+acpi_s2idle_wake() to tun will be discarded, before rearming the SCI
+for wakeup.  Moreover, because that only reduces the size of the
+time window in which the issue may manifest itself, allow
+pm_system_irq_wakeup() to register two second wakeup interrupts in
+a row and, when discarding the first one, replace it with the second
+one.  [Of course, this assumes that only one wakeup interrupt can be
+discarded in one go, but currently that is the case and I am not
+aware of any plans to change that.]
 
- ACPI: require CRC32 to build
+Fixes: e3728b50cd9b ("ACPI: PM: s2idle: Avoid possible race related to the EC GPE")
+Cc: 5.4+ <stable@vger.kernel.org> # 5.4+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/sleep.c        |    1 +
+ drivers/base/power/wakeup.c |   41 ++++++++++++++++++++++++++++++++++-------
+ include/linux/suspend.h     |    4 ++--
+ kernel/power/main.c         |    5 ++++-
+ kernel/power/process.c      |    2 +-
+ kernel/power/suspend.c      |    2 --
+ 6 files changed, 42 insertions(+), 13 deletions(-)
 
-on top of commit 26291c54e111ff6ba87a164d85d4a4e134b7315c
+Index: linux-pm/include/linux/suspend.h
+===================================================================
+--- linux-pm.orig/include/linux/suspend.h
++++ linux-pm/include/linux/suspend.h
+@@ -497,14 +497,14 @@ extern void ksys_sync_helper(void);
+ 
+ /* drivers/base/power/wakeup.c */
+ extern bool events_check_enabled;
+-extern unsigned int pm_wakeup_irq;
+ extern suspend_state_t pm_suspend_target_state;
+ 
+ extern bool pm_wakeup_pending(void);
+ extern void pm_system_wakeup(void);
+ extern void pm_system_cancel_wakeup(void);
+-extern void pm_wakeup_clear(bool reset);
++extern void pm_wakeup_clear(unsigned int irq_number);
+ extern void pm_system_irq_wakeup(unsigned int irq_number);
++extern unsigned int pm_wakeup_irq(void);
+ extern bool pm_get_wakeup_count(unsigned int *count, bool block);
+ extern bool pm_save_wakeup_count(unsigned int count);
+ extern void pm_wakep_autosleep_enabled(bool set);
+Index: linux-pm/kernel/power/process.c
+===================================================================
+--- linux-pm.orig/kernel/power/process.c
++++ linux-pm/kernel/power/process.c
+@@ -134,7 +134,7 @@ int freeze_processes(void)
+ 	if (!pm_freezing)
+ 		atomic_inc(&system_freezing_cnt);
+ 
+-	pm_wakeup_clear(true);
++	pm_wakeup_clear(0);
+ 	pr_info("Freezing user space processes ... ");
+ 	pm_freezing = true;
+ 	error = try_to_freeze_tasks(true);
+Index: linux-pm/kernel/power/suspend.c
+===================================================================
+--- linux-pm.orig/kernel/power/suspend.c
++++ linux-pm/kernel/power/suspend.c
+@@ -136,8 +136,6 @@ static void s2idle_loop(void)
+ 			break;
+ 		}
+ 
+-		pm_wakeup_clear(false);
+-
+ 		s2idle_enter();
+ 	}
+ 
+Index: linux-pm/drivers/base/power/wakeup.c
+===================================================================
+--- linux-pm.orig/drivers/base/power/wakeup.c
++++ linux-pm/drivers/base/power/wakeup.c
+@@ -34,7 +34,8 @@ suspend_state_t pm_suspend_target_state;
+ bool events_check_enabled __read_mostly;
+ 
+ /* First wakeup IRQ seen by the kernel in the last cycle. */
+-unsigned int pm_wakeup_irq __read_mostly;
++static unsigned int wakeup_irq[2] __read_mostly;
++static DEFINE_RAW_SPINLOCK(wakeup_irq_lock);
+ 
+ /* If greater than 0 and the system is suspending, terminate the suspend. */
+ static atomic_t pm_abort_suspend __read_mostly;
+@@ -942,19 +943,45 @@ void pm_system_cancel_wakeup(void)
+ 	atomic_dec_if_positive(&pm_abort_suspend);
+ }
+ 
+-void pm_wakeup_clear(bool reset)
++void pm_wakeup_clear(unsigned int irq_number)
+ {
+-	pm_wakeup_irq = 0;
+-	if (reset)
++	raw_spin_lock_irq(&wakeup_irq_lock);
++
++	if (irq_number && wakeup_irq[0] == irq_number)
++		wakeup_irq[0] = wakeup_irq[1];
++	else
++		wakeup_irq[0] = 0;
++
++	wakeup_irq[1] = 0;
++
++	raw_spin_unlock_irq(&wakeup_irq_lock);
++
++	if (!irq_number)
+ 		atomic_set(&pm_abort_suspend, 0);
+ }
+ 
+ void pm_system_irq_wakeup(unsigned int irq_number)
+ {
+-	if (pm_wakeup_irq == 0) {
+-		pm_wakeup_irq = irq_number;
++	unsigned long flags;
++
++	raw_spin_lock_irqsave(&wakeup_irq_lock, flags);
++
++	if (wakeup_irq[0] == 0)
++		wakeup_irq[0] = irq_number;
++	else if (wakeup_irq[1] == 0)
++		wakeup_irq[1] = irq_number;
++	else
++		irq_number = 0;
++
++	raw_spin_unlock_irqrestore(&wakeup_irq_lock, flags);
++
++	if (irq_number)
+ 		pm_system_wakeup();
+-	}
++}
++
++unsigned int pm_wakeup_irq(void)
++{
++	return wakeup_irq[0];
+ }
+ 
+ /**
+Index: linux-pm/kernel/power/main.c
+===================================================================
+--- linux-pm.orig/kernel/power/main.c
++++ linux-pm/kernel/power/main.c
+@@ -504,7 +504,10 @@ static ssize_t pm_wakeup_irq_show(struct
+ 					struct kobj_attribute *attr,
+ 					char *buf)
+ {
+-	return pm_wakeup_irq ? sprintf(buf, "%u\n", pm_wakeup_irq) : -ENODATA;
++	if (!pm_wakeup_irq())
++		return -ENODATA;
++
++	return sprintf(buf, "%u\n", pm_wakeup_irq());
+ }
+ 
+ power_attr_ro(pm_wakeup_irq);
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -760,6 +760,7 @@ bool acpi_s2idle_wake(void)
+ 
+ 		pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
+ 
++		pm_wakeup_clear(acpi_sci_irq);
+ 		rearm_wake_irq(acpi_sci_irq);
+ 	}
+ 
 
- Linux 5.17-rc2
-
-to receive an ACPI fix for 5.17-rc3.
-
-This fixes compilation in the case when ACPI is selected and CRC32,
-depended on by ACPI after recent changes, is not (Randy Dunlap).
-
-Thanks!
 
 
----------------
-
-Randy Dunlap (1):
-      ACPI: require CRC32 to build
-
----------------
-
- drivers/acpi/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
