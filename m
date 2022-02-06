@@ -2,72 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F4176C433EF
-	for <linux-acpi@archiver.kernel.org>; Sat,  5 Feb 2022 21:08:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4C3C433FE
+	for <linux-acpi@archiver.kernel.org>; Sun,  6 Feb 2022 09:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381366AbiBEVIG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 5 Feb 2022 16:08:06 -0500
-Received: from [194.99.46.237] ([194.99.46.237]:56720 "EHLO
-        slot0.bluewaterleisure.com" rhost-flags-FAIL-FAIL-OK-OK)
-        by vger.kernel.org with ESMTP id S236132AbiBEVIG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Feb 2022 16:08:06 -0500
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=dkim; d=bluewaterleisure.com;
- h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding; i=ker.mon@bluewaterleisure.com;
- bh=zoFVqcGnDg35vIhIXZ1u5fWIE+E=;
- b=qNRPV/cn/H9fQWNAPT4mcAV0YOQ9DJLhoQL2oWM/aU8ZkT0pTlFkEkfENwQ/mTo+2bWTPiP6rnCu
-   eT2IvdJMPXKz7tCfmclNikwz2KLXDVixVfsvAiP+3vMcMKGLAx9KmSzFCfJmhfjd3/n38aS/rwON
-   uMCy/CV+DDLzzzYusytYDS+MEoTgIYXe+EOuZYODRUyW/0gkPHdwZTjTdj6o2zfh8mcDdop9DgGu
-   ihIZs+t497WhD3hl9ziEeeFCD5eltHwBDVk37ZYs8SYMvnKKBzyh7bwFYz6LpT4PcOSvPgDDJoU8
-   apils0LO6M6xEiWHjYQPFLzw3GZEsQRch37GOA==
-DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=dkim; d=bluewaterleisure.com;
- b=UKoGXjOyXraaP9vPHpfmA8/H2y644/Yd+f1xSCjGK+6YjKv7jgkuwLwA4x9C+iSj2oejlMgHoGKV
-   ezcfNxuqgbASHfNvK+Xv+yi6AJFgYBdZ5si89nsMOTiDfVQLpJ/oGimetEdlY3Fderb3ofRYl6n9
-   wi7dBCd2rG0oX3BNUhaJehpwVGXL1muX+Jx5f3BkE+/Io5LMHs1SX+9ys0gx4G2p/lz3grW6zJX3
-   8xmxIyNGyImg1VstivFdvgdx6CVQFsKmgoIwuN4EAjB0Dc64M4ke121l51+uTXrAHNZvxjwQzcn3
-   eg567/LyXFnCnR7MNv4fVWCNONlzecWdgby2ow==;
-Reply-To: tomander231@gmail.com
-From:   "Barrister Mustafa" <ker.mon@bluewaterleisure.com>
+        id S232422AbiBFJ0P (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 6 Feb 2022 04:26:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59282 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229929AbiBFJ0P (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2022 04:26:15 -0500
+X-Greylist: delayed 471 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 06 Feb 2022 01:26:14 PST
+Received: from hillosipuli.retiisi.eu (hillosipuli.retiisi.eu [IPv6:2a01:4f9:c010:4572::81:2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39147C06173B;
+        Sun,  6 Feb 2022 01:26:14 -0800 (PST)
+Received: from lanttu.localdomain (unknown [IPv6:fd35:1bc8:1a6:d3d5::e1:3])
+        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 3CDB0634C94;
+        Sun,  6 Feb 2022 11:18:26 +0200 (EET)
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
-Subject: Aufmerksamkeit:
-Date:   5 Feb 2022 22:04:17 +0100
-Message-ID: <20220205220417.C777E1D8B84F75D1@bluewaterleisure.com>
+Cc:     andriy.shevchenko@linux.intel.com, devicetree@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Subject: [PATCH 3/4] device property: Add iomap to fwnode operations
+Date:   Sun,  6 Feb 2022 11:16:42 +0200
+Message-Id: <20220206091643.276833-4-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
+References: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Lieb linux-acpi,
+Add iomap() fwnode operation to implement fwnode_iomap() through fwnode
+operations, moving the code in fwnode_iomap() to OF framework.
 
-Ich bin Barrister Mustafa Ayvaz, hoffe, diese E-Mail findet Sie=20
-gut. Ich bin Anwalt des verstorbenen Herrn Robert, der aufgrund=20
-des Coronavirus sein Leben verlor, kontaktierte er w=C3=A4hrend seiner=20
-Gesch=C3=A4ftsreise in China. Ich kontaktiere Sie, um mit mir=20
-zusammenzuarbeiten, um die =C3=9Cberweisung eines Fonds von vier=20
-Millionen vierhundertzwanzigtausend Dollar zu sichern, verlie=C3=9F=20
-er.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/base/property.c | 5 +----
+ drivers/of/property.c   | 7 +++++++
+ include/linux/fwnode.h  | 1 +
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-Ich habe nach dem n=C3=A4chsten Angeh=C3=B6rigen meines verstorbenen Kunden=
-=20
-gesucht, ohne Erfolg, da ich seinen aktuellen Wohnsitz und seine=20
-Kontaktdaten nicht habe. Als ich suchte, stie=C3=9F ich auf Ihr Profil=20
-mit dem gleichen Nachnamen und am selben Ort mit den N=C3=A4chsten=20
-Angeh=C3=B6rigen. Ich beschloss, dich zu kontaktieren und dich als=20
-Bonafide Next Of Kin zu benutzen.
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 09686e2e903e..83dd22e7cb81 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -887,10 +887,7 @@ EXPORT_SYMBOL_GPL(device_get_phy_mode);
+  */
+ void __iomem *fwnode_iomap(struct fwnode_handle *fwnode, int index)
+ {
+-	if (IS_ENABLED(CONFIG_OF_ADDRESS) && is_of_node(fwnode))
+-		return of_iomap(to_of_node(fwnode), index);
+-
+-	return NULL;
++	return fwnode_call_ptr_op(fwnode, iomap, index);
+ }
+ EXPORT_SYMBOL(fwnode_iomap);
+ 
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 676899566f7c..8beb89709740 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1465,6 +1465,12 @@ static int of_link_property(struct device_node *con_np, const char *prop_name)
+ 	return 0;
+ }
+ 
++static void __iomem *of_fwnode_iomap(struct fwnode_handle *fwnode, int index)
++{
++	return IS_ENABLED(CONFIG_OF_ADDRESS) ?
++		of_iomap(to_of_node(fwnode), index) : NULL;
++}
++
+ static int of_fwnode_add_links(struct fwnode_handle *fwnode)
+ {
+ 	struct property *p;
+@@ -1502,6 +1508,7 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
+ 	.graph_get_port_parent = of_fwnode_graph_get_port_parent,
+ 	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
++	.iomap = of_fwnode_iomap,
+ 	.add_links = of_fwnode_add_links,
+ };
+ EXPORT_SYMBOL_GPL(of_fwnode_ops);
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 6f307f21fc65..ebbc3bf03f95 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -148,6 +148,7 @@ struct fwnode_operations {
+ 	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
+ 	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
+ 				    struct fwnode_endpoint *endpoint);
++	void __iomem *(*iomap)(struct fwnode_handle *fwnode, int index);
+ 	int (*add_links)(struct fwnode_handle *fwnode);
+ };
+ 
+-- 
+2.30.2
 
-Ich bitte Sie um Ihre Zustimmung, Sie als Next Of Kin meines=20
-verstorbenen Kunden zu pr=C3=A4sentieren, da Sie beide den gleichen=20
-Nachnamen tragen. Die Gelder werden dann an Sie als Beg=C3=BCnstigten=20
-in Ihrem Land =C3=BCberwiesen und im Verh=C3=A4ltnis 60:40 geteilt, das=20
-sind 60% f=C3=BCr mich und 40% f=C3=BCr Sie. F=C3=BCr weitere Details=20
-kontaktieren Sie mich bitte sofort f=C3=BCr weitere Informationen =C3=BCber=
-=20
-diese meine E-Mail. 
-
-Danach sende ich Ihnen die Details, wie die Transaktion beginnen=20
-wird
-
-Gr=C3=BC=C3=9Fe
-Mustafa Ayvaz
