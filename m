@@ -2,183 +2,108 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E58F0C4167D
-	for <linux-acpi@archiver.kernel.org>; Sun,  6 Feb 2022 09:26:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B81FC433F5
+	for <linux-acpi@archiver.kernel.org>; Sun,  6 Feb 2022 15:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232350AbiBFJ0R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 6 Feb 2022 04:26:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59290 "EHLO
+        id S243382AbiBFPFW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 6 Feb 2022 10:05:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232361AbiBFJ0P (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2022 04:26:15 -0500
-Received: from hillosipuli.retiisi.eu (hillosipuli.retiisi.eu [IPv6:2a01:4f9:c010:4572::81:2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46A4BC061355;
-        Sun,  6 Feb 2022 01:26:14 -0800 (PST)
-Received: from lanttu.localdomain (unknown [IPv6:fd35:1bc8:1a6:d3d5::e1:3])
-        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 24207634C91;
-        Sun,  6 Feb 2022 11:18:21 +0200 (EET)
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     andriy.shevchenko@linux.intel.com, devicetree@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Subject: [PATCH 1/4] device property: Convert device_{dma_supported,get_dma_attr} to fwnode
-Date:   Sun,  6 Feb 2022 11:16:40 +0200
-Message-Id: <20220206091643.276833-2-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
-References: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
+        with ESMTP id S239534AbiBFPFS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2022 10:05:18 -0500
+X-Greylist: delayed 365 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 06 Feb 2022 07:05:18 PST
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1265DC06173B
+        for <linux-acpi@vger.kernel.org>; Sun,  6 Feb 2022 07:05:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1644159917;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=uX4lWbiYHZ8NWu80q7dFh0qDvrig4tAryOtejA4ht4k=;
+        b=M4y1g8WqU515MP25G37am8NBtNFdrsJdE36KSyPnM5tc2pLfFacCZfeemHhuFO9XzJV2nq
+        tbjMofEteeNAGRbBfJJnlKPF9CDy8Vv3hEj5yXBfwn8/EkZ22TpKte/O2WAaHQ1ago9T6H
+        WG+RvmIhQG5+70AhV18L5Nk+yormIjU=
+Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com
+ [209.85.160.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-150-BrgNyTDTMVORPNF03rv2Pw-1; Sun, 06 Feb 2022 09:58:09 -0500
+X-MC-Unique: BrgNyTDTMVORPNF03rv2Pw-1
+Received: by mail-qt1-f198.google.com with SMTP id y22-20020ac87c96000000b002d1bfdbd86dso9064216qtv.20
+        for <linux-acpi@vger.kernel.org>; Sun, 06 Feb 2022 06:58:08 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=uX4lWbiYHZ8NWu80q7dFh0qDvrig4tAryOtejA4ht4k=;
+        b=nLWMdiC4X6GcXay7CKRURxQOnzSa4mv/xtD9yJc/Tshf8EIIJaCHNQwnUYSLfLQOMM
+         Xe5aSlYblSkyDwPXafYlvesE1TJeZ3C6g/fYxBTOGmS44UgTURJqP4JMSoII0Qm2gMre
+         lJZLKVT6mCLfm5nXOr8GWHKeUemC/ifSrh72k5lhZpx2snuFTMXTJR+4jTXFzdh4rDwr
+         +++m1yHmCAe/5AlvQqvjCshimhpcE0GoK1/S2SKLFLO968bOFncepgYwFx/yPoN9026u
+         LcRLEMedkdGUrdn3p5v3cMmknvw/UE5qRoXBZ1R/xQVQWhWfeK4lN/MB1CJj6u2OOnHE
+         jvAQ==
+X-Gm-Message-State: AOAM531EeNJJL8jezreMyImDAN/jXNqLL1QlNGkEey7ymemgoElwljcO
+        Y5B9nxnGXWHLn9P72/vjx16OosDiGA8cojKvJFqkyPrDLX5Nm0SZ2n2RuYVYtj9PA/3rEcegZjq
+        KGi/OFo2jIa6iybEhIkQR1Q==
+X-Received: by 2002:a05:620a:210d:: with SMTP id l13mr4202091qkl.276.1644159488355;
+        Sun, 06 Feb 2022 06:58:08 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJyzMMFTsVYuA3WsMa5aAtZSa2Zi+YOirEF8uFgzKhOcPAqZ1RB6Xj6uxrY4Qwi7RDDYG5p59A==
+X-Received: by 2002:a05:620a:210d:: with SMTP id l13mr4202080qkl.276.1644159488194;
+        Sun, 06 Feb 2022 06:58:08 -0800 (PST)
+Received: from localhost.localdomain.com (024-205-208-113.res.spectrum.com. [24.205.208.113])
+        by smtp.gmail.com with ESMTPSA id l202sm4030030qke.66.2022.02.06.06.58.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 06 Feb 2022 06:58:07 -0800 (PST)
+From:   trix@redhat.com
+To:     rafael@kernel.org, lenb@kernel.org, bhelgaas@google.com
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-pci@vger.kernel.org, Tom Rix <trix@redhat.com>
+Subject: [PATCH] ACPI: cleanup double word in comment
+Date:   Sun,  6 Feb 2022 06:58:03 -0800
+Message-Id: <20220206145803.2011247-1-trix@redhat.com>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Make the device_dma_supported and device_get_dma_attr functions to use the
-fwnode ops, and move the implementation to ACPI and OF frameworks.
+From: Tom Rix <trix@redhat.com>
 
-Depends-on: ("device property: Don't split fwnode_get_irq*() APIs in the code")
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Remove the second 'on' and 'those'.
+
+Signed-off-by: Tom Rix <trix@redhat.com>
 ---
- drivers/acpi/property.c | 14 ++++++++++++++
- drivers/base/property.c | 25 ++++---------------------
- drivers/of/property.c   | 17 +++++++++++++++++
- include/linux/fwnode.h  |  3 +++
- 4 files changed, 38 insertions(+), 21 deletions(-)
+ drivers/acpi/Kconfig    | 2 +-
+ drivers/acpi/pci_link.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index d0986bda2964..1541b318ba46 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1253,6 +1253,17 @@ static bool acpi_fwnode_device_is_available(const struct fwnode_handle *fwnode)
- 	return acpi_device_is_present(to_acpi_device_node(fwnode));
- }
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ba45541b1f1f8..9b93d8f328d4a 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -301,7 +301,7 @@ config ACPI_IPMI
+ 	help
+ 	  This driver enables the ACPI to access the BMC controller. And it
+ 	  uses the IPMI request/response message to communicate with BMC
+-	  controller, which can be found on on the server.
++	  controller, which can be found on the server.
  
-+static bool acpi_fwnode_device_dma_supported(const struct fwnode_handle *fwnode)
-+{
-+	return acpi_dma_supported(to_acpi_device_node(fwnode));
-+}
-+
-+static enum dev_dma_attr
-+acpi_fwnode_device_get_dma_attr(const struct fwnode_handle *fwnode)
-+{
-+	return acpi_get_dma_attr(to_acpi_device_node(fwnode));
-+}
-+
- static bool acpi_fwnode_property_present(const struct fwnode_handle *fwnode,
- 					 const char *propname)
- {
-@@ -1384,6 +1395,9 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- 	const struct fwnode_operations ops = {				\
- 		.device_is_available = acpi_fwnode_device_is_available, \
- 		.device_get_match_data = acpi_fwnode_device_get_match_data, \
-+		.device_dma_supported =				\
-+			acpi_fwnode_device_dma_supported,		\
-+		.device_get_dma_attr = acpi_fwnode_device_get_dma_attr,	\
- 		.property_present = acpi_fwnode_property_present,	\
- 		.property_read_int_array =				\
- 			acpi_fwnode_property_read_int_array,		\
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index c0e94cce9c29..09686e2e903e 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -823,33 +823,16 @@ EXPORT_SYMBOL_GPL(device_get_child_node_count);
- 
- bool device_dma_supported(struct device *dev)
- {
--	const struct fwnode_handle *fwnode = dev_fwnode(dev);
--
--	/* For DT, this is always supported.
--	 * For ACPI, this depends on CCA, which
--	 * is determined by the acpi_dma_supported().
--	 */
--	if (is_of_node(fwnode))
--		return true;
--
--	return acpi_dma_supported(to_acpi_device_node(fwnode));
-+	return fwnode_call_bool_op(dev_fwnode(dev), device_dma_supported);
- }
- EXPORT_SYMBOL_GPL(device_dma_supported);
- 
- enum dev_dma_attr device_get_dma_attr(struct device *dev)
- {
--	const struct fwnode_handle *fwnode = dev_fwnode(dev);
--	enum dev_dma_attr attr = DEV_DMA_NOT_SUPPORTED;
--
--	if (is_of_node(fwnode)) {
--		if (of_dma_is_coherent(to_of_node(fwnode)))
--			attr = DEV_DMA_COHERENT;
--		else
--			attr = DEV_DMA_NON_COHERENT;
--	} else
--		attr = acpi_get_dma_attr(to_acpi_device_node(fwnode));
-+	if (!fwnode_has_op(dev_fwnode(dev), device_get_dma_attr))
-+		return DEV_DMA_NOT_SUPPORTED;
- 
--	return attr;
-+	return fwnode_call_int_op(dev_fwnode(dev), device_get_dma_attr);
- }
- EXPORT_SYMBOL_GPL(device_get_dma_attr);
- 
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index 8e90071de6ed..676899566f7c 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -22,6 +22,7 @@
- #define pr_fmt(fmt)	"OF: " fmt
- 
- #include <linux/of.h>
-+#include <linux/of_address.h>
- #include <linux/of_device.h>
- #include <linux/of_graph.h>
- #include <linux/of_irq.h>
-@@ -872,6 +873,20 @@ static bool of_fwnode_device_is_available(const struct fwnode_handle *fwnode)
- 	return of_device_is_available(to_of_node(fwnode));
- }
- 
-+static bool of_fwnode_device_dma_supported(const struct fwnode_handle *fwnode)
-+{
-+	return true;
-+}
-+
-+static enum dev_dma_attr
-+of_fwnode_device_get_dma_attr(const struct fwnode_handle *fwnode)
-+{
-+	if (of_dma_is_coherent(to_of_node(fwnode)))
-+		return DEV_DMA_COHERENT;
-+	else
-+		return DEV_DMA_NON_COHERENT;
-+}
-+
- static bool of_fwnode_property_present(const struct fwnode_handle *fwnode,
- 				       const char *propname)
- {
-@@ -1472,6 +1487,8 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.put = of_fwnode_put,
- 	.device_is_available = of_fwnode_device_is_available,
- 	.device_get_match_data = of_fwnode_device_get_match_data,
-+	.device_dma_supported = of_fwnode_device_dma_supported,
-+	.device_get_dma_attr = of_fwnode_device_get_dma_attr,
- 	.property_present = of_fwnode_property_present,
- 	.property_read_int_array = of_fwnode_property_read_int_array,
- 	.property_read_string_array = of_fwnode_property_read_string_array,
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 3a532ba66f6c..6f307f21fc65 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -113,6 +113,9 @@ struct fwnode_operations {
- 	bool (*device_is_available)(const struct fwnode_handle *fwnode);
- 	const void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
- 					     const struct device *dev);
-+	bool (*device_dma_supported)(const struct fwnode_handle *fwnode);
-+	enum dev_dma_attr
-+	(*device_get_dma_attr)(const struct fwnode_handle *fwnode);
- 	bool (*property_present)(const struct fwnode_handle *fwnode,
- 				 const char *propname);
- 	int (*property_read_int_array)(const struct fwnode_handle *fwnode,
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called as acpi_ipmi.
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index d54fb8e54671d..58647051c948a 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -185,7 +185,7 @@ static acpi_status acpi_pci_link_check_current(struct acpi_resource *resource,
+ 			if (!p || !p->interrupt_count) {
+ 				/*
+ 				 * IRQ descriptors may have no IRQ# bits set,
+-				 * particularly those those w/ _STA disabled
++				 * particularly those w/ _STA disabled
+ 				 */
+ 				pr_debug("Blank _CRS IRQ resource\n");
+ 				return AE_OK;
 -- 
-2.30.2
+2.26.3
 
