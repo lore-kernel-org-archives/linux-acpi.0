@@ -2,45 +2,46 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7CBCC433EF
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Feb 2022 13:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C114C433EF
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Feb 2022 13:26:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344014AbiBGNYE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Feb 2022 08:24:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43816 "EHLO
+        id S229877AbiBGNZt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Feb 2022 08:25:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244800AbiBGMiw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Feb 2022 07:38:52 -0500
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4A1E01D521;
-        Mon,  7 Feb 2022 04:29:02 -0800 (PST)
+        with ESMTP id S1383148AbiBGMdI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Feb 2022 07:33:08 -0500
+X-Greylist: delayed 63 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 07 Feb 2022 04:22:30 PST
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93BB9C03E968
+        for <linux-acpi@vger.kernel.org>; Mon,  7 Feb 2022 04:22:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1644236945; x=1675772945;
+  t=1644236550; x=1675772550;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=OIJmupebT95r0SLBp7LFbS4wwcb9tS97pZJIgwxCG2s=;
-  b=Sj6IvvYztqmTTcZXxBq7NdmWTOKOT3IEveB125JRY1HIOZ0ZPNwAT3uN
-   sqtoEFtYkdhbDWZG5weXeonCPjFGKUvrnpDJhJ5Hc/ZlexKKzeBuvkAPF
-   E7s5CYoTYZd3s61IBMdQrxMZnDcwntxQlqQjo+Wt256qL0pulWc8vFOX1
-   QRykeeOw51QOT/WJaTqeoYYfYHPfDe1yAI6MObcmG+pjzWGOjfn6SO8A8
-   YQT+Wc9wvW/9wdMMNN7a7LikSVDYclCIz7xlRwVVYI1As6kd9ONfAGMaC
-   cueh8sUzBy/fKqq+rNM03waXxeWSUoiCQcGhy8Ca8WFqV5HcwCtfwkSMg
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10250"; a="335108095"
+  bh=XIr1jQmej3mUpHViSNV/dPoYzfzHAkjh3hWMNXgfwP0=;
+  b=ZZhZrAXWbCpATXkLBevkk05gqLlq9A1Dcd/dgvl/V6yJ8Hh+i9lEM4ZE
+   twmkV2Nn3Ks3yV3mhWf3lsokfE+qzONUkpGDnhzWREqiV+iykALybbUJq
+   /iVSBeTTsYAQE8aFUJrGhN/IFBrfs7BNqeSGm4rtgpsxn4VTJJD9f5CCy
+   qKFR1DjTlYiAQRR+6ggQdpRWAPqBlY0d3CRsxV59AVmYT6F+TYM2no3e6
+   3RZUDDfMLJVSnhBtUCH+ZVlntzBpcnn7y+4tGqxvYu6H07YMgffklAeM1
+   dbGJ5qdSiT5sowJd+yT31OU+Us+7uRnoXoa+oVsx7Db8bFyXJ69lGS7Sf
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10250"; a="247537511"
 X-IronPort-AV: E=Sophos;i="5.88,349,1635231600"; 
-   d="scan'208";a="335108095"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 04:28:44 -0800
+   d="scan'208";a="247537511"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 04:21:27 -0800
 X-IronPort-AV: E=Sophos;i="5.88,349,1635231600"; 
-   d="scan'208";a="484405267"
+   d="scan'208";a="621531878"
 Received: from smile.fi.intel.com ([10.237.72.61])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 04:28:42 -0800
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 04:21:25 -0800
 Received: from andy by smile.fi.intel.com with local (Exim 4.95)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1nH37P-001tmr-LQ;
-        Mon, 07 Feb 2022 14:27:43 +0200
-Date:   Mon, 7 Feb 2022 14:27:43 +0200
+        id 1nH30M-001tau-Q7;
+        Mon, 07 Feb 2022 14:20:26 +0200
+Date:   Mon, 7 Feb 2022 14:20:26 +0200
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc:     linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
@@ -49,54 +50,28 @@ Cc:     linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Rob Herring <robh+dt@kernel.org>,
         Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH 0/4] Shovel firmware specific code to appropriate
- locations
-Message-ID: <YgEQP3QGtqre+nCL@smile.fi.intel.com>
+Subject: Re: [PATCH 1/4] device property: Convert
+ device_{dma_supported,get_dma_attr} to fwnode
+Message-ID: <YgEOitBPZ6kTtJeX@smile.fi.intel.com>
 References: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
+ <20220206091643.276833-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20220206091643.276833-2-sakari.ailus@linux.intel.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Feb 06, 2022 at 11:16:39AM +0200, Sakari Ailus wrote:
-> Hi folks,
+On Sun, Feb 06, 2022 at 11:16:40AM +0200, Sakari Ailus wrote:
+> Make the device_dma_supported and device_get_dma_attr functions to use the
+> fwnode ops, and move the implementation to ACPI and OF frameworks.
 > 
-> This set moves the implementation of recently added device property API
-> functions to OF and ACPI frameworks, where the rest of such functionality
-> resides.
-> 
-> Compile tested.
+> Depends-on: ("device property: Don't split fwnode_get_irq*() APIs in the code")
 
-All look good to me,
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-> Note that after some initial confusion, this set actually does depend on
-> Andy's patch "device property: Don't split fwnode_get_irq*() APIs in the
-> code" to appear in the linux-acpi tree.
-
-Perhaps than you can add to your series the conversion of
-fwnode_irq_get_byname()?
-
-> Sakari Ailus (4):
->   device property: Convert device_{dma_supported,get_dma_attr} to fwnode
->   ACPI: property: Move acpi_fwnode_device_get_match_data() up
->   device property: Add iomap to fwnode operations
->   device property: Add irq_get to fwnode operation
-> 
->  drivers/acpi/property.c | 36 +++++++++++++++++++++++++++++++----
->  drivers/base/property.c | 42 ++++++-----------------------------------
->  drivers/of/property.c   | 31 ++++++++++++++++++++++++++++++
->  include/linux/fwnode.h  |  5 +++++
->  4 files changed, 74 insertions(+), 40 deletions(-)
-> 
-> -- 
-> 2.30.2
-> 
-> 
+As of today: ffa743d3f33b, but might be changed in case of rebase happens in
+the future.
 
 -- 
 With Best Regards,
