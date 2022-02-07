@@ -2,108 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B81FC433F5
-	for <linux-acpi@archiver.kernel.org>; Sun,  6 Feb 2022 15:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7CBCC433EF
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Feb 2022 13:25:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243382AbiBFPFW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 6 Feb 2022 10:05:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45616 "EHLO
+        id S1344014AbiBGNYE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Feb 2022 08:24:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239534AbiBFPFS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2022 10:05:18 -0500
-X-Greylist: delayed 365 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 06 Feb 2022 07:05:18 PST
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1265DC06173B
-        for <linux-acpi@vger.kernel.org>; Sun,  6 Feb 2022 07:05:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1644159917;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=uX4lWbiYHZ8NWu80q7dFh0qDvrig4tAryOtejA4ht4k=;
-        b=M4y1g8WqU515MP25G37am8NBtNFdrsJdE36KSyPnM5tc2pLfFacCZfeemHhuFO9XzJV2nq
-        tbjMofEteeNAGRbBfJJnlKPF9CDy8Vv3hEj5yXBfwn8/EkZ22TpKte/O2WAaHQ1ago9T6H
-        WG+RvmIhQG5+70AhV18L5Nk+yormIjU=
-Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com
- [209.85.160.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-150-BrgNyTDTMVORPNF03rv2Pw-1; Sun, 06 Feb 2022 09:58:09 -0500
-X-MC-Unique: BrgNyTDTMVORPNF03rv2Pw-1
-Received: by mail-qt1-f198.google.com with SMTP id y22-20020ac87c96000000b002d1bfdbd86dso9064216qtv.20
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Feb 2022 06:58:08 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=uX4lWbiYHZ8NWu80q7dFh0qDvrig4tAryOtejA4ht4k=;
-        b=nLWMdiC4X6GcXay7CKRURxQOnzSa4mv/xtD9yJc/Tshf8EIIJaCHNQwnUYSLfLQOMM
-         Xe5aSlYblSkyDwPXafYlvesE1TJeZ3C6g/fYxBTOGmS44UgTURJqP4JMSoII0Qm2gMre
-         lJZLKVT6mCLfm5nXOr8GWHKeUemC/ifSrh72k5lhZpx2snuFTMXTJR+4jTXFzdh4rDwr
-         +++m1yHmCAe/5AlvQqvjCshimhpcE0GoK1/S2SKLFLO968bOFncepgYwFx/yPoN9026u
-         LcRLEMedkdGUrdn3p5v3cMmknvw/UE5qRoXBZ1R/xQVQWhWfeK4lN/MB1CJj6u2OOnHE
-         jvAQ==
-X-Gm-Message-State: AOAM531EeNJJL8jezreMyImDAN/jXNqLL1QlNGkEey7ymemgoElwljcO
-        Y5B9nxnGXWHLn9P72/vjx16OosDiGA8cojKvJFqkyPrDLX5Nm0SZ2n2RuYVYtj9PA/3rEcegZjq
-        KGi/OFo2jIa6iybEhIkQR1Q==
-X-Received: by 2002:a05:620a:210d:: with SMTP id l13mr4202091qkl.276.1644159488355;
-        Sun, 06 Feb 2022 06:58:08 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJyzMMFTsVYuA3WsMa5aAtZSa2Zi+YOirEF8uFgzKhOcPAqZ1RB6Xj6uxrY4Qwi7RDDYG5p59A==
-X-Received: by 2002:a05:620a:210d:: with SMTP id l13mr4202080qkl.276.1644159488194;
-        Sun, 06 Feb 2022 06:58:08 -0800 (PST)
-Received: from localhost.localdomain.com (024-205-208-113.res.spectrum.com. [24.205.208.113])
-        by smtp.gmail.com with ESMTPSA id l202sm4030030qke.66.2022.02.06.06.58.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Feb 2022 06:58:07 -0800 (PST)
-From:   trix@redhat.com
-To:     rafael@kernel.org, lenb@kernel.org, bhelgaas@google.com
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-pci@vger.kernel.org, Tom Rix <trix@redhat.com>
-Subject: [PATCH] ACPI: cleanup double word in comment
-Date:   Sun,  6 Feb 2022 06:58:03 -0800
-Message-Id: <20220206145803.2011247-1-trix@redhat.com>
-X-Mailer: git-send-email 2.26.3
+        with ESMTP id S244800AbiBGMiw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Feb 2022 07:38:52 -0500
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4A1E01D521;
+        Mon,  7 Feb 2022 04:29:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1644236945; x=1675772945;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=OIJmupebT95r0SLBp7LFbS4wwcb9tS97pZJIgwxCG2s=;
+  b=Sj6IvvYztqmTTcZXxBq7NdmWTOKOT3IEveB125JRY1HIOZ0ZPNwAT3uN
+   sqtoEFtYkdhbDWZG5weXeonCPjFGKUvrnpDJhJ5Hc/ZlexKKzeBuvkAPF
+   E7s5CYoTYZd3s61IBMdQrxMZnDcwntxQlqQjo+Wt256qL0pulWc8vFOX1
+   QRykeeOw51QOT/WJaTqeoYYfYHPfDe1yAI6MObcmG+pjzWGOjfn6SO8A8
+   YQT+Wc9wvW/9wdMMNN7a7LikSVDYclCIz7xlRwVVYI1As6kd9ONfAGMaC
+   cueh8sUzBy/fKqq+rNM03waXxeWSUoiCQcGhy8Ca8WFqV5HcwCtfwkSMg
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10250"; a="335108095"
+X-IronPort-AV: E=Sophos;i="5.88,349,1635231600"; 
+   d="scan'208";a="335108095"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 04:28:44 -0800
+X-IronPort-AV: E=Sophos;i="5.88,349,1635231600"; 
+   d="scan'208";a="484405267"
+Received: from smile.fi.intel.com ([10.237.72.61])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 04:28:42 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.95)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1nH37P-001tmr-LQ;
+        Mon, 07 Feb 2022 14:27:43 +0200
+Date:   Mon, 7 Feb 2022 14:27:43 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH 0/4] Shovel firmware specific code to appropriate
+ locations
+Message-ID: <YgEQP3QGtqre+nCL@smile.fi.intel.com>
+References: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220206091643.276833-1-sakari.ailus@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Tom Rix <trix@redhat.com>
+On Sun, Feb 06, 2022 at 11:16:39AM +0200, Sakari Ailus wrote:
+> Hi folks,
+> 
+> This set moves the implementation of recently added device property API
+> functions to OF and ACPI frameworks, where the rest of such functionality
+> resides.
+> 
+> Compile tested.
 
-Remove the second 'on' and 'those'.
+All look good to me,
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Signed-off-by: Tom Rix <trix@redhat.com>
----
- drivers/acpi/Kconfig    | 2 +-
- drivers/acpi/pci_link.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+> Note that after some initial confusion, this set actually does depend on
+> Andy's patch "device property: Don't split fwnode_get_irq*() APIs in the
+> code" to appear in the linux-acpi tree.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index ba45541b1f1f8..9b93d8f328d4a 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -301,7 +301,7 @@ config ACPI_IPMI
- 	help
- 	  This driver enables the ACPI to access the BMC controller. And it
- 	  uses the IPMI request/response message to communicate with BMC
--	  controller, which can be found on on the server.
-+	  controller, which can be found on the server.
- 
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called as acpi_ipmi.
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index d54fb8e54671d..58647051c948a 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -185,7 +185,7 @@ static acpi_status acpi_pci_link_check_current(struct acpi_resource *resource,
- 			if (!p || !p->interrupt_count) {
- 				/*
- 				 * IRQ descriptors may have no IRQ# bits set,
--				 * particularly those those w/ _STA disabled
-+				 * particularly those w/ _STA disabled
- 				 */
- 				pr_debug("Blank _CRS IRQ resource\n");
- 				return AE_OK;
+Perhaps than you can add to your series the conversion of
+fwnode_irq_get_byname()?
+
+> Sakari Ailus (4):
+>   device property: Convert device_{dma_supported,get_dma_attr} to fwnode
+>   ACPI: property: Move acpi_fwnode_device_get_match_data() up
+>   device property: Add iomap to fwnode operations
+>   device property: Add irq_get to fwnode operation
+> 
+>  drivers/acpi/property.c | 36 +++++++++++++++++++++++++++++++----
+>  drivers/base/property.c | 42 ++++++-----------------------------------
+>  drivers/of/property.c   | 31 ++++++++++++++++++++++++++++++
+>  include/linux/fwnode.h  |  5 +++++
+>  4 files changed, 74 insertions(+), 40 deletions(-)
+> 
+> -- 
+> 2.30.2
+> 
+> 
+
 -- 
-2.26.3
+With Best Regards,
+Andy Shevchenko
+
 
