@@ -2,169 +2,186 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D797BC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Feb 2022 03:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8DC0C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Feb 2022 11:32:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346362AbiBHDSB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Feb 2022 22:18:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49766 "EHLO
+        id S1376362AbiBHLcT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Feb 2022 06:32:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbiBHDRw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Feb 2022 22:17:52 -0500
-Received: from mail-oo1-xc34.google.com (mail-oo1-xc34.google.com [IPv6:2607:f8b0:4864:20::c34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5914FC0401E8
-        for <linux-acpi@vger.kernel.org>; Mon,  7 Feb 2022 19:17:31 -0800 (PST)
-Received: by mail-oo1-xc34.google.com with SMTP id v17-20020a4ac911000000b002eac41bb3f4so16036373ooq.10
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Feb 2022 19:17:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=OTRVq8PpVu//vt/IgzSV5+XNtw1vJPrl7jfHJ1N1q2k=;
-        b=CQzvhJ6+adAFGsOiX5Pabvae50+/HQzV8PZdM3khyC1ZKPPCo8onTNmo9XXHCIM/HF
-         1iU8vR/mBQ/wKLKl8Ghdnj/GBXAkdfAKRx/txUqyCaEsqN9nLSSsVN/EzX2CAgFBy8HB
-         KHr73C8YAj+cH7aJFLMbV/0N0840/wexW+/KsPUQTwCLvpBZpRyHCr7qKqAV8asMKMjU
-         xjmtBp3tyVO1EMZy3ALxJQGNuncGQItLEJu0P87Xre5qbbnlR6n1ud0hI9vcBSvdc05J
-         p352wrsJB6RpQUMWL9at9BGeew5zrPj+9TesT7eAAfyvsSSCBJN8uNspU7sXHs0G1/5l
-         QrlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=OTRVq8PpVu//vt/IgzSV5+XNtw1vJPrl7jfHJ1N1q2k=;
-        b=cqRVwgTHEWkAZVHfPEqEmhomOo55O9wJu5+kFVAE/o2cRU5m1v+qeCfOl0FC/I7wug
-         fZU750SMN8iVIZU9TuT7/HaRtA1GObqsjl3W3yJkiIJd8bLqDd8RlRiD3B5nuXTCSGOp
-         yOhvPFvMIKUVogni04gH2aUGBpfHtzV7DBqOlml1jkKBbOyAZTd7CuT0KwA99/0mJq3/
-         vSqvpnLb9JCwSSIZIWOLI9yJ11AXyOUa10cMuMNkKBm110R0QBL4N1WTAIN/njEC79Eg
-         j+AaxJPuRYftw8CtLhAt7rNKHVx8dLThCx9QO04UtDYHjaDyoMdG0zxbRnYSMRDPb7FA
-         Pvpg==
-X-Gm-Message-State: AOAM5311lepiFmn0Q1WEeYpkjSd/V9yE4OKsQvdEGw5D8MDfAVIwZ+Xa
-        ACWwbtT7l54KrWBcHNhTEEFxLQ==
-X-Google-Smtp-Source: ABdhPJwf9Oa/yS/n5v8HciTRVxjeWulvkF+DJYvLjcsaThC/MGhg+d4EzOLcmscaNUI4nXkN4u+fkQ==
-X-Received: by 2002:a05:6870:9511:: with SMTP id u17mr684972oal.300.1644290250381;
-        Mon, 07 Feb 2022 19:17:30 -0800 (PST)
-Received: from ripper.. ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
-        by smtp.gmail.com with ESMTPSA id k3sm4763873otl.41.2022.02.07.19.17.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Feb 2022 19:17:29 -0800 (PST)
-From:   Bjorn Andersson <bjorn.andersson@linaro.org>
-To:     Rob Herring <robh+dt@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Cc:     linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Subject: [PATCH v2 5/6] dt-bindings: usb: Add binding for fcs,fsa4480
-Date:   Mon,  7 Feb 2022 19:19:43 -0800
-Message-Id: <20220208031944.3444-6-bjorn.andersson@linaro.org>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20220208031944.3444-1-bjorn.andersson@linaro.org>
-References: <20220208031944.3444-1-bjorn.andersson@linaro.org>
+        with ESMTP id S1356424AbiBHKpY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Feb 2022 05:45:24 -0500
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2AD4C03FEC3;
+        Tue,  8 Feb 2022 02:45:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1644317123; x=1675853123;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=+KO4sF4k8MB+WmyP2JsU+xI5l1gssY/zGbTiH6WguDQ=;
+  b=HhbXo3ClNx7+exLzhrkT1LG2P+DUdqgkM0e/0VQD8edBqUdRjlsJq7EM
+   kMtBwIRRUo0HmF7VZ1F61utLi3DcdCBFB6JugvNh979L4jvZSUdJQRMHx
+   E+e+L7qqoBU77UCJaYbGlNU3ySEAs3J9jplzJB9Lt6ElPtdih8uLik9kd
+   iLVncKJhin1xNsrMgpsya7w02Z/gSjZTvfMm5DQKv/EbWUg9ib1BVtQIU
+   9AoV5X8IYvkq0y1ucj4bbODWEUjoeu13BEvUan1UnV+RyHmYGpGC+c1JL
+   /p9/MTUIqVn0r8V4KOjbsOLNKVVwY3u+4gTGcTfl55mB6mWFWZf8Hv9ls
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10251"; a="228890764"
+X-IronPort-AV: E=Sophos;i="5.88,352,1635231600"; 
+   d="scan'208";a="228890764"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2022 02:45:22 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,352,1635231600"; 
+   d="scan'208";a="481901913"
+Received: from lkp-server01.sh.intel.com (HELO d95dc2dabeb1) ([10.239.97.150])
+  by orsmga003.jf.intel.com with ESMTP; 08 Feb 2022 02:45:20 -0800
+Received: from kbuild by d95dc2dabeb1 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1nHNzr-00003Y-Sq; Tue, 08 Feb 2022 10:45:19 +0000
+Date:   Tue, 08 Feb 2022 18:44:30 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 963096e03c9e753d00dd0a04bcf4699b5a05b816
+Message-ID: <6202498e.hDHNVPWL/oPrDzPj%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The Fairchild/ON Semiconductor FSA4480 Analog Audio switch is used in
-USB Type-C configurations for muxing analog audio onto the USB
-connector, and as such used to control the SBU signals for altmodes such
-as DisplayPort.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 963096e03c9e753d00dd0a04bcf4699b5a05b816  Merge branch 'acpi-pm' into bleeding-edge
 
-Add a binding for this hardware block.
+elapsed time: 723m
 
-Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+configs tested: 111
+configs skipped: 3
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm                              allmodconfig
+arm                              allyesconfig
+arm64                               defconfig
+arm64                            allyesconfig
+i386                 randconfig-c001-20220207
+sh                               alldefconfig
+sh                           se7751_defconfig
+mips                            ar7_defconfig
+powerpc                mpc7448_hpc2_defconfig
+powerpc                        cell_defconfig
+sh                         ecovec24_defconfig
+arm                        clps711x_defconfig
+sh                        edosk7760_defconfig
+arm                        keystone_defconfig
+sparc                       sparc32_defconfig
+m68k                       m5475evb_defconfig
+m68k                        m5407c3_defconfig
+sh                           se7343_defconfig
+h8300                       h8s-sim_defconfig
+powerpc                      ep88xc_defconfig
+arm                  randconfig-c002-20220207
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                                defconfig
+m68k                             allyesconfig
+m68k                             allmodconfig
+nds32                             allnoconfig
+nios2                               defconfig
+arc                              allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+parisc                              defconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+s390                                defconfig
+s390                             allyesconfig
+i386                             allyesconfig
+sparc                               defconfig
+i386                                defconfig
+i386                   debian-10.3-kselftests
+i386                              debian-10.3
+sparc                            allyesconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                           allnoconfig
+powerpc                          allmodconfig
+powerpc                          allyesconfig
+x86_64               randconfig-a013-20220207
+x86_64               randconfig-a016-20220207
+x86_64               randconfig-a015-20220207
+x86_64               randconfig-a012-20220207
+x86_64               randconfig-a014-20220207
+x86_64               randconfig-a011-20220207
+i386                 randconfig-a012-20220207
+i386                 randconfig-a013-20220207
+i386                 randconfig-a015-20220207
+i386                 randconfig-a014-20220207
+i386                 randconfig-a011-20220207
+i386                 randconfig-a016-20220207
+arc                  randconfig-r043-20220207
+s390                 randconfig-r044-20220207
+riscv                randconfig-r042-20220207
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+x86_64                           allyesconfig
+x86_64                          rhel-8.3-func
+x86_64                    rhel-8.3-kselftests
+
+clang tested configs:
+x86_64                        randconfig-c007
+powerpc              randconfig-c003-20220208
+i386                          randconfig-c001
+mips                 randconfig-c004-20220208
+arm                  randconfig-c002-20220208
+s390                 randconfig-c005-20220208
+riscv                randconfig-c006-20220208
+mips                           mtx1_defconfig
+arm                            dove_defconfig
+arm                       versatile_defconfig
+powerpc                     pseries_defconfig
+x86_64               randconfig-a004-20220207
+x86_64               randconfig-a003-20220207
+x86_64               randconfig-a002-20220207
+x86_64               randconfig-a001-20220207
+x86_64               randconfig-a005-20220207
+x86_64               randconfig-a006-20220207
+i386                 randconfig-a003-20220207
+i386                 randconfig-a001-20220207
+i386                 randconfig-a002-20220207
+i386                 randconfig-a005-20220207
+i386                 randconfig-a004-20220207
+i386                 randconfig-a006-20220207
+hexagon              randconfig-r045-20220207
+hexagon              randconfig-r041-20220207
+
 ---
-
-Changes since v1:
-- None
-
- .../devicetree/bindings/usb/fcs,fsa4480.yaml  | 72 +++++++++++++++++++
- 1 file changed, 72 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
-
-diff --git a/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml b/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
-new file mode 100644
-index 000000000000..9473f26b0621
---- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
-@@ -0,0 +1,72 @@
-+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
-+%YAML 1.2
-+---
-+$id: "http://devicetree.org/schemas/usb/fcs,fsa4480.yaml#"
-+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
-+
-+title: ON Semiconductor Analog Audio Switch
-+
-+maintainers:
-+  - Bjorn Andersson <bjorn.andersson@linaro.org>
-+
-+properties:
-+  compatible:
-+    enum:
-+      - fcs,fsa4480
-+
-+  reg:
-+    maxItems: 1
-+
-+  interrupts:
-+    maxItems: 1
-+
-+  vcc-supply:
-+    description: power supply (2.7V-5.5V)
-+
-+  mode-switch:
-+    description: Flag the port as possible handle of altmode switching
-+    type: boolean
-+
-+  orientation-switch:
-+    description: Flag the port as possible handler of orientation switching
-+    type: boolean
-+
-+  port:
-+    $ref: /schemas/graph.yaml#/properties/port
-+    description:
-+      A port node to link the FSA4480 to a TypeC controller for the purpose of
-+      handling altmode muxing and orientation switching.
-+
-+required:
-+  - compatible
-+  - reg
-+  - port
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/interrupt-controller/irq.h>
-+    i2c13 {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        fsa4480@42 {
-+          compatible = "fcs,fsa4480";
-+          reg = <0x42>;
-+
-+          interrupts-extended = <&tlmm 2 IRQ_TYPE_LEVEL_LOW>;
-+
-+          vcc-supply = <&vreg_bob>;
-+
-+          mode-switch;
-+          orientation-switch;
-+
-+          port {
-+            fsa4480_ept: endpoint {
-+              remote-endpoint = <&typec_controller>;
-+            };
-+          };
-+        };
-+    };
-+...
--- 
-2.33.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
