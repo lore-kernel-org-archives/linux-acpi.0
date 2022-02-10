@@ -2,101 +2,208 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6221C433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Feb 2022 20:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD0E9C433F5
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Feb 2022 23:47:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344148AbiBJUMR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Feb 2022 15:12:17 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:33378 "EHLO
+        id S1345865AbiBJXrL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Feb 2022 18:47:11 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238091AbiBJUMQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Feb 2022 15:12:16 -0500
-X-Greylist: delayed 400 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 10 Feb 2022 12:12:17 PST
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66F602735
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Feb 2022 12:12:17 -0800 (PST)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 4.0.0)
- id b2f2cd1e5498de8e; Thu, 10 Feb 2022 21:05:35 +0100
-Received: from kreacher.localnet (unknown [213.134.175.120])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id BBC2266B514;
-        Thu, 10 Feb 2022 21:05:34 +0100 (CET)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Dan Williams <dan.j.williams@intel.co>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] ACPI: scan: Use ida_alloc() instead of ida_simple_get()
-Date:   Thu, 10 Feb 2022 21:05:33 +0100
-Message-ID: <2645186.mvXUDI8C0e@kreacher>
+        with ESMTP id S245029AbiBJXrK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Feb 2022 18:47:10 -0500
+Received: from mail-pf1-x435.google.com (mail-pf1-x435.google.com [IPv6:2607:f8b0:4864:20::435])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 635395F77
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Feb 2022 15:47:10 -0800 (PST)
+Received: by mail-pf1-x435.google.com with SMTP id a39so12280530pfx.7
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Feb 2022 15:47:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=mHRsq6Kn87GMOD21+jYbugw/48vB/ViEdc86yH1U1RM=;
+        b=cE/HfRBcMAiI7aHiAvjjmt/SqsHa2f/rPVtV36FfX+RNibf+yKHCwYxGDTUtUIoQTN
+         n+ZC03sN7lJOgFIjtcfdqZc2niTOFjCQnJAiJcOp6p/xKpuK41BgjFbGKDbl7AUWmPk0
+         ur5mEAX2mLkDvRd+aBSDYM0PrWWRnuHFIpzh0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=mHRsq6Kn87GMOD21+jYbugw/48vB/ViEdc86yH1U1RM=;
+        b=PZtkLBVgDO+3ESkVffZN4ThmxBuWlYC4mUGPgEOdB5nAqxIds2YGe4EGK7lIk7u7Wt
+         drYi03cOqgtqZY0aLsXoIwOvq3DrzB1OzJiMFM50TYs/u/5yhR0DOUqiuNME0hO4eNXY
+         DwyDQB/h7TBW7J/ZDv2xCoDxb/rHeR2U+VOFH1q+RDKMAC9X17bb4Nxs5RTBOSpNgB6O
+         7DrCzO1CjMl5XxxJphID5Bl5WEBokgrFk6wX9c6Ol9rFKPcG8qEiX2RUxvtVp6InEaz7
+         jdDSfJ9kve+Vjg0LZqYytCHf1IoVINbuyJtiX/hBltN8QCh6sJznY3ugHklb+ysYk4ZM
+         MuCg==
+X-Gm-Message-State: AOAM530qkqvodAcshwtBcQahJAX8tr/VjupsVfasddURMybjE/IXK0UL
+        WOJh1EssPUlAV/Fq/PYRXwo2Lw==
+X-Google-Smtp-Source: ABdhPJyGc6kYqWRf+VlsVeyHDKoWC+0J4l3+nlcgViM0mwZ71ZFfynFkb2DC+466DdIh8ebqBFav6w==
+X-Received: by 2002:a63:7019:: with SMTP id l25mr1843865pgc.251.1644536829788;
+        Thu, 10 Feb 2022 15:47:09 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id 69sm17784092pgc.61.2022.02.10.15.47.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Feb 2022 15:47:09 -0800 (PST)
+Date:   Thu, 10 Feb 2022 15:47:08 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     Victor Erminpour <victor.erminpour@oracle.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        trivial@kernel.org
+Subject: Re: [PATCH v2] ACPI/IORT: Fix GCC 12 warning
+Message-ID: <202202101415.43750CEE@keescook>
+References: <1644518851-16847-1-git-send-email-victor.erminpour@oracle.com>
+ <CAMj1kXEbGWs74M2CZSm6TWpD11mReFsk8z-UUqJt6b6vDCvAEQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.175.120
-X-CLIENT-HOSTNAME: 213.134.175.120
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddriedugddufeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpefhgedtffejheekgeeljeevvedtuefgffeiieejuddutdekgfejvdehueejjeetvdenucfkphepvddufedrudefgedrudejhedruddvtdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduvddtpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepuggrnhdrjhdrfihilhhlihgrmhhssehinhhtvghlrdgtohdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhinhhtvghl
- rdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMj1kXEbGWs74M2CZSm6TWpD11mReFsk8z-UUqJt6b6vDCvAEQ@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, Feb 10, 2022 at 08:41:51PM +0100, Ard Biesheuvel wrote:
+> On Thu, 10 Feb 2022 at 19:48, Victor Erminpour
+> <victor.erminpour@oracle.com> wrote:
+> >
+> > When building with automatic stack variable initialization, GCC 12
+> > complains about variables defined outside of switch case statements.
+> > Move the variable into the case that uses it, which silences the warning:
+> >
+> > ./drivers/acpi/arm64/iort.c:1670:59: error: statement will never be executed [-Werror=switch-unreachable]
+> >   1670 |                         struct acpi_iort_named_component *ncomp;
+> >        |                                                           ^~~~~
+> >
+> > Signed-off-by: Victor Erminpour <victor.erminpour@oracle.com>
+> 
+> Please cc people that commented on your v1 when you send a v2.
+> 
+> Still NAK, for the same reasons.
 
-As recommended in include/linux/idr.h, use ida_alloc() instead of
-ida_simple_get() for creating unique device object names and for
-symmetry replace ida_simple_remove() with ida_free() (and fix up
-the related overly long code line while at it).
+Let me see if I can talk you out of this. ;)
 
-Also drop the ACPI_MAX_DEVICE_INSTANCES limit that is not necessary
-any more and may not be sufficient for future platforms.
+So, on the face of it, I agree with you: this is a compiler bug. However,
+it's still worth fixing. Just because it's valid C isn't a good enough
+reason to leave it as-is: we continue to minimize the subset of the
+C language the kernel uses if it helps us get the most out of existing
+compiler features. We've eliminated all kinds of other "valid C" from the
+kernel because it improves robustness, security, etc. This is certainly
+nothing like removing VLAs or implicit fallthrough, but given that this
+is, I think, the only remaining case of it (I removed all the others a
+while ago when I had the same issues with the GCC plugins), I'd like to
+get it fixed.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/internal.h |    2 --
- drivers/acpi/scan.c     |    5 +++--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+And I should point out that Clang suffers[1] from the same problem (the
+variables will be missed for auto-initialization), but actually has a
+worse behavior: it does not even warn about it.
 
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -96,8 +96,6 @@ void acpi_scan_table_notify(void);
+And note that the problem isn't limited to -ftrivial-auto-var-init. This
+code pattern seems to also hide the variables from similar instrumentation
+like KASan, etc. (Which is similarly silent like above.)
+
+In both compilers, it seems fixing this is not "easy", and given its
+corner-case nature and ease of being worked around in the kernel source,
+it isn't being highly prioritized. But since I both don't want these
+blinds spots with Clang (and GCC) var-init, and I don't want these
+warnings to suddenly appear once GCC 12 _does_ get released, so I'd like
+to get this case fixed as well.
+
+All that said, I think this patch could be improved.
+
+I'd recommend, instead, just simply:
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index f2f8f05662de..9e765d30da82 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1671,13 +1671,14 @@ phys_addr_t __init acpi_iort_dma_get_max_cpu_address(void)
+ 	end = ACPI_ADD_PTR(struct acpi_iort_node, iort, iort->header.length);
  
- extern struct list_head acpi_bus_id_list;
+ 	for (i = 0; i < iort->node_count; i++) {
++		struct acpi_iort_named_component *ncomp;
++		struct acpi_iort_root_complex *rc;
++		phys_addr_t local_limit;
++
+ 		if (node >= end)
+ 			break;
  
--#define ACPI_MAX_DEVICE_INSTANCES	4096
--
- struct acpi_device_bus_id {
- 	const char *bus_id;
- 	struct ida instance_ida;
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -477,7 +477,8 @@ static void acpi_device_del(struct acpi_
- 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node)
- 		if (!strcmp(acpi_device_bus_id->bus_id,
- 			    acpi_device_hid(device))) {
--			ida_simple_remove(&acpi_device_bus_id->instance_ida, device->pnp.instance_no);
-+			ida_free(&acpi_device_bus_id->instance_ida,
-+				 device->pnp.instance_no);
- 			if (ida_is_empty(&acpi_device_bus_id->instance_ida)) {
- 				list_del(&acpi_device_bus_id->node);
- 				kfree_const(acpi_device_bus_id->bus_id);
-@@ -642,7 +643,7 @@ static int acpi_device_set_name(struct a
- 	struct ida *instance_ida = &acpi_device_bus_id->instance_ida;
- 	int result;
+ 		switch (node->type) {
+-			struct acpi_iort_named_component *ncomp;
+-			struct acpi_iort_root_complex *rc;
+-			phys_addr_t local_limit;
  
--	result = ida_simple_get(instance_ida, 0, ACPI_MAX_DEVICE_INSTANCES, GFP_KERNEL);
-+	result = ida_alloc(instance_ida, GFP_KERNEL);
- 	if (result < 0)
- 		return result;
- 
+ 		case ACPI_IORT_NODE_NAMED_COMPONENT:
+ 			ncomp = (struct acpi_iort_named_component *)node->node_data;
 
+This results in no change in binary instruction output (when there is no
+auto-init).
 
+-Kees
 
+[1] https://github.com/llvm/llvm-project/issues/44261
+
+> 
+> 
+> > ---
+> >  drivers/acpi/arm64/iort.c | 12 ++++++------
+> >  1 file changed, 6 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index 3b23fb775ac4..65395f0decf9 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -1645,7 +1645,7 @@ void __init acpi_iort_init(void)
+> >   */
+> >  phys_addr_t __init acpi_iort_dma_get_max_cpu_address(void)
+> >  {
+> > -       phys_addr_t limit = PHYS_ADDR_MAX;
+> > +       phys_addr_t local_limit, limit = PHYS_ADDR_MAX;
+> >         struct acpi_iort_node *node, *end;
+> >         struct acpi_table_iort *iort;
+> >         acpi_status status;
+> > @@ -1667,17 +1667,16 @@ phys_addr_t __init acpi_iort_dma_get_max_cpu_address(void)
+> >                         break;
+> >
+> >                 switch (node->type) {
+> > +               case ACPI_IORT_NODE_NAMED_COMPONENT: {
+> >                         struct acpi_iort_named_component *ncomp;
+> > -                       struct acpi_iort_root_complex *rc;
+> > -                       phys_addr_t local_limit;
+> > -
+> > -               case ACPI_IORT_NODE_NAMED_COMPONENT:
+> >                         ncomp = (struct acpi_iort_named_component *)node->node_data;
+> >                         local_limit = DMA_BIT_MASK(ncomp->memory_address_limit);
+> >                         limit = min_not_zero(limit, local_limit);
+> >                         break;
+> >
+> > -               case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
+> > +               }
+> > +               case ACPI_IORT_NODE_PCI_ROOT_COMPLEX: {
+> > +                       struct acpi_iort_root_complex *rc;
+> >                         if (node->revision < 1)
+> >                                 break;
+> >
+> > @@ -1686,6 +1685,7 @@ phys_addr_t __init acpi_iort_dma_get_max_cpu_address(void)
+> >                         limit = min_not_zero(limit, local_limit);
+> >                         break;
+> >                 }
+> > +               }
+> >                 node = ACPI_ADD_PTR(struct acpi_iort_node, node, node->length);
+> >         }
+> >         acpi_put_table(&iort->header);
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+-- 
+Kees Cook
