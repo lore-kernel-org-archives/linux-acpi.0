@@ -2,109 +2,152 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0CEC433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Feb 2022 00:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECAEEC433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Feb 2022 00:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345029AbiBKAbT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Feb 2022 19:31:19 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58146 "EHLO
+        id S245125AbiBKAhV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Feb 2022 19:37:21 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:33302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245157AbiBKAbT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Feb 2022 19:31:19 -0500
-Received: from mail-io1-xd2e.google.com (mail-io1-xd2e.google.com [IPv6:2607:f8b0:4864:20::d2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FE3A559A;
-        Thu, 10 Feb 2022 16:31:19 -0800 (PST)
-Received: by mail-io1-xd2e.google.com with SMTP id n17so9561351iod.4;
-        Thu, 10 Feb 2022 16:31:19 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:subject:date:message-id:in-reply-to:references:mime-version
-         :content-transfer-encoding;
-        bh=WY+F15RwKoXSBs81n7QT8FqeoZ2/vRqemIDQ19p9hAY=;
-        b=UhDGPTTGkCv7nd2i/RxSPH4PnVPZlxYLGSFCnJ4+jnU1zbj0n8l7wVAyCdZZNe4xg1
-         RVezAL9rFr1cDpujwWZ19coQQzwOQ8jqEuPUM3RTAzcJoTLbeUwPZxQnnTk2s9EjgDdM
-         bqVuyPRCfRizMtazcb6ZHcm0of8H+1Zpq3KZTY7y9b1Vd/FvIUupHM5PwEvYk6iZsPa0
-         a48amFL3lBebCekA448n7zpKvMPr2J4GBSKGH1TkLOozoIK4f04NbEsPJFzZsffvrz5n
-         jMJwjmBLyd8kN79M7JlB19hF4boCL26IuZBs/TGBiu1lOedGjl0eKRMxhP7Dz44nOEaU
-         hgVA==
+        with ESMTP id S1346404AbiBKAhV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Feb 2022 19:37:21 -0500
+Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3990D5F7E
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Feb 2022 16:37:20 -0800 (PST)
+Received: by mail-io1-f70.google.com with SMTP id y4-20020a056602200400b006101b618529so5192241iod.19
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Feb 2022 16:37:20 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=WY+F15RwKoXSBs81n7QT8FqeoZ2/vRqemIDQ19p9hAY=;
-        b=7VjKq2vZENiURrW8qW0FOxjZavzg9aYsvFJg2Utla7K0OYpKwOb2HYpbM1XUbmGsSA
-         vZcDtBgeuL/d5SF/2PxrJ68rcXwUafmwPh9F+NJNtmH3hT79mw3PVqJtt8kEsACY1hvO
-         V3+tn4wswC+dRxXtxQdwIR8Wt2kZCEwHMTO9+qsigXnW724aZdcdSiuz5ShqEXkJBs0I
-         y1YU40zrG+wOK0wh1Jsn93LOb90hN8d5DWBLTqny+qAbRilUJsj0S4Qs4iEflHE+DWsi
-         lECQ+isgmgESsjeCi5oQCOILGtPkaLyHXyyNWhh3W5iKxvI8k3v5iSbWkM1trZYFe7uo
-         07RA==
-X-Gm-Message-State: AOAM533aB6ECqKOCq1/+rXkkjGRQqrG/raeFRKiKg8sqnxMDoKnXjfYS
-        t5Gr5DWTVicDwAaFjufSXbM=
-X-Google-Smtp-Source: ABdhPJyJf8DICiugARTyGxQTO41WkKOMQOz8THqG4YLlZKUdSd+jbMzkeB9uqKFDGytPzQQRKnntPQ==
-X-Received: by 2002:a05:6602:26ce:: with SMTP id g14mr5175279ioo.137.1644539478920;
-        Thu, 10 Feb 2022 16:31:18 -0800 (PST)
-Received: from localhost ([12.28.44.171])
-        by smtp.gmail.com with ESMTPSA id w19sm13031570iov.16.2022.02.10.16.31.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Feb 2022 16:31:18 -0800 (PST)
-From:   Yury Norov <yury.norov@gmail.com>
-To:     Yury Norov <yury.norov@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Laight <David.Laight@aculab.com>,
-        Joe Perches <joe@perches.com>, Dennis Zhou <dennis@kernel.org>,
-        Emil Renner Berthing <kernel@esmil.dk>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
-        Alexey Klimov <aklimov@redhat.com>,
-        linux-kernel@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Vitaly Kuznetsov <vkuznets@redhat.com>,
-        Alison Schofield <alison.schofield@intel.com>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH 45/49] ACPI: replace nodes__weight with nodes_weight_ge for numa
-Date:   Thu, 10 Feb 2022 14:49:29 -0800
-Message-Id: <20220210224933.379149-46-yury.norov@gmail.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20220210224933.379149-1-yury.norov@gmail.com>
-References: <20220210224933.379149-1-yury.norov@gmail.com>
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=qKOR0YTQopKhjgaydg7pJg6t8RNb5M2L3oCxp86sxFs=;
+        b=i7lwhYXAEUGa+luJ7rhJT/eTokrtCRMYJhHUg/MKDBsgp98VDx5cRP83FbptFWxQw4
+         jgnP7sX6xybyEeC6E96sYXRHTQhs0QAB/CVc7X1gSTPOrx6SO7rOtY2XDcgvA0SdqjNJ
+         jDQ6XbsW5jzwyLZ8riUNiJh775iFGiiE4PlXe/sshqdZnABosGK7jc1RAT7UoqNEzNGk
+         9x9tnf++95sEr2Eh5ON+96o4bQQ64g+Ed9LDtUQ5WLJWChZ6eoW0QTe0nBYGjZr8A/qc
+         uckCv+1WYDPC+wqyrqt4Oedc0hZizJOn3Y5hZd5/JnykI1AyCQ4BC0Ckqz2lawpQuxbz
+         EwEQ==
+X-Gm-Message-State: AOAM531EsKAcNx041pxaFYR37n9qdo4eypqYi4ePb3Detmfu9TmemUpi
+        ZhljUpTDUG5NV6l3KxSHE/Zz8LBHdndzGoQZA+52RURK8dv1
+X-Google-Smtp-Source: ABdhPJxwlS+TIQvVCR4ovg6MqayjzHSbXF78sTlhdePS73FpubtTibEgU62JeXbKJyyBP4WsavUFURRggUkVBGZvA1ibmkjYrRzT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a92:bf01:: with SMTP id z1mr5044624ilh.18.1644539839598;
+ Thu, 10 Feb 2022 16:37:19 -0800 (PST)
+Date:   Thu, 10 Feb 2022 16:37:19 -0800
+In-Reply-To: <0000000000006e988105d72fbe3f@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000f5549005d7b3440a@google.com>
+Subject: Re: [syzbot] general protection fault in i2c_setup_smbus_alert
+From:   syzbot <syzbot+0591ccf54ee05344e4eb@syzkaller.appspotmail.com>
+To:     andriy.shevchenko@linux.intel.com, djrscally@gmail.com,
+        gregkh@linuxfoundation.org, heikki.krogerus@linux.intel.com,
+        johan@kernel.org, linux-acpi@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+        rafael@kernel.org, sakari.ailus@linux.intel.com,
+        syzkaller-bugs@googlegroups.com, wsa@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_map_pxm_to_node() calls nodes_weight() to compare the weight
-of nodemask with a given number. We can do it more efficiently with
-nodes_weight_eq() because conditional nodes_weight may stop
-traversing the nodemask earlier, as soon as condition is (or is not)
-met.
+syzbot has found a reproducer for the following issue on:
 
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
----
- drivers/acpi/numa/srat.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+HEAD commit:    ef6b35306dd8 Add linux-next specific files for 20220204
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=15e40d84700000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=e0431e0b00810b4f
+dashboard link: https://syzkaller.appspot.com/bug?extid=0591ccf54ee05344e4eb
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1105f472700000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16492aa4700000
 
-diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-index 3b818ab186be..fe7a7996f553 100644
---- a/drivers/acpi/numa/srat.c
-+++ b/drivers/acpi/numa/srat.c
-@@ -67,7 +67,7 @@ int acpi_map_pxm_to_node(int pxm)
- 	node = pxm_to_node_map[pxm];
- 
- 	if (node == NUMA_NO_NODE) {
--		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
-+		if (nodes_weight_ge(nodes_found_map, MAX_NUMNODES))
- 			return NUMA_NO_NODE;
- 		node = first_unset_node(nodes_found_map);
- 		__acpi_map_pxm_to_node(pxm, node);
--- 
-2.32.0
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+0591ccf54ee05344e4eb@syzkaller.appspotmail.com
+
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: Product: syz
+usb 1-1: Manufacturer: syz
+usb 1-1: SerialNumber: syz
+usb 1-1: config 0 descriptor??
+general protection fault, probably for non-canonical address 0xdffffc000000008a: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000450-0x0000000000000457]
+CPU: 1 PID: 35 Comm: kworker/1:1 Not tainted 5.17.0-rc2-next-20220204-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:dev_fwnode drivers/base/property.c:22 [inline]
+RIP: 0010:device_property_match_string+0x2c/0xa0 drivers/base/property.c:224
+Code: 49 89 d5 41 54 49 89 f4 55 53 48 89 fb e8 bc 01 fa fc 48 8d bb 50 04 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 75 5a 48 8b ab 50 04 00 00 48 85 ed 74 22 e8 8d 01 fa
+RSP: 0018:ffffc900010befd8 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 000000000000008a RSI: ffffffff847ea734 RDI: 0000000000000450
+RBP: ffff8880127ec038 R08: 0000000000000000 R09: ffff8880127ec1a3
+R10: ffffffff85ea3a99 R11: 0000000000000000 R12: ffffffff8a658720
+R13: ffffffff8a6586e0 R14: ffff8880127ec660 R15: ffff8880127ec664
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffd0b1f0910 CR3: 000000007f0f9000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ i2c_setup_smbus_alert+0x9c/0x1a0 drivers/i2c/i2c-core-smbus.c:710
+ i2c_register_adapter+0x32f/0x1150 drivers/i2c/i2c-core-base.c:1482
+ i2c_add_adapter+0x11a/0x1c0 drivers/i2c/i2c-core-base.c:1587
+ osif_probe+0x2ae/0x500 drivers/i2c/busses/i2c-robotfuzz-osif.c:164
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x245/0xcc0 drivers/base/dd.c:596
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:752
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:782
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:899
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:970
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc17/0x1ee0 drivers/base/core.c:3405
+ usb_set_configuration+0x101e/0x1900 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x245/0xcc0 drivers/base/dd.c:596
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:752
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:782
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:899
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:970
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc17/0x1ee0 drivers/base/core.c:3405
+ usb_new_device.cold+0x63f/0x108e drivers/usb/core/hub.c:2566
+ hub_port_connect drivers/usb/core/hub.c:5362 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5506 [inline]
+ port_event drivers/usb/core/hub.c:5664 [inline]
+ hub_event+0x25c6/0x4680 drivers/usb/core/hub.c:5746
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+Modules linked in:
+----------------
+Code disassembly (best guess):
+   0:	49 89 d5             	mov    %rdx,%r13
+   3:	41 54                	push   %r12
+   5:	49 89 f4             	mov    %rsi,%r12
+   8:	55                   	push   %rbp
+   9:	53                   	push   %rbx
+   a:	48 89 fb             	mov    %rdi,%rbx
+   d:	e8 bc 01 fa fc       	callq  0xfcfa01ce
+  12:	48 8d bb 50 04 00 00 	lea    0x450(%rbx),%rdi
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	75 5a                	jne    0x8a
+  30:	48 8b ab 50 04 00 00 	mov    0x450(%rbx),%rbp
+  37:	48 85 ed             	test   %rbp,%rbp
+  3a:	74 22                	je     0x5e
+  3c:	e8                   	.byte 0xe8
+  3d:	8d 01                	lea    (%rcx),%eax
+  3f:	fa                   	cli
 
