@@ -2,104 +2,110 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 510F6C433EF
-	for <linux-acpi@archiver.kernel.org>; Sun, 13 Feb 2022 03:33:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 203EBC433F5
+	for <linux-acpi@archiver.kernel.org>; Sun, 13 Feb 2022 15:49:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233183AbiBMDd4 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 12 Feb 2022 22:33:56 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41518 "EHLO
+        id S234264AbiBMPtp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 13 Feb 2022 10:49:45 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:48008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232490AbiBMDd4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Feb 2022 22:33:56 -0500
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.86.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 469465F273
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Feb 2022 19:33:50 -0800 (PST)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-59-m5e4icDAO8m0cbi-5HV2aQ-1; Sun, 13 Feb 2022 03:33:46 +0000
-X-MC-Unique: m5e4icDAO8m0cbi-5HV2aQ-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.28; Sun, 13 Feb 2022 03:33:44 +0000
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.028; Sun, 13 Feb 2022 03:33:44 +0000
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Kees Cook' <keescook@chromium.org>,
-        Robin Murphy <robin.murphy@arm.com>
-CC:     Ard Biesheuvel <ardb@kernel.org>,
-        Victor Erminpour <victor.erminpour@oracle.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        "ACPI Devel Maling List" <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "trivial@kernel.org" <trivial@kernel.org>
-Subject: RE: [PATCH v2] ACPI/IORT: Fix GCC 12 warning
-Thread-Topic: [PATCH v2] ACPI/IORT: Fix GCC 12 warning
-Thread-Index: AQHYH6jGUiwsSGsVWkybqVzsUhE0OqyQ00mw
-Date:   Sun, 13 Feb 2022 03:33:44 +0000
-Message-ID: <f11f91706c704a72b593a183f33ff456@AcuMS.aculab.com>
-References: <1644518851-16847-1-git-send-email-victor.erminpour@oracle.com>
- <CAMj1kXEbGWs74M2CZSm6TWpD11mReFsk8z-UUqJt6b6vDCvAEQ@mail.gmail.com>
- <202202101415.43750CEE@keescook>
- <3740c93e-9fde-f89f-9752-26ffff3ea274@arm.com>
- <202202111623.A7881CC@keescook>
-In-Reply-To: <202202111623.A7881CC@keescook>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        with ESMTP id S236892AbiBMPtp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Feb 2022 10:49:45 -0500
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 240AB5F8D5;
+        Sun, 13 Feb 2022 07:49:37 -0800 (PST)
+Received: by mail-wr1-x42e.google.com with SMTP id v12so23189763wrv.2;
+        Sun, 13 Feb 2022 07:49:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=WNt7w3V3r3XNyd6E3pkmZ4MDV9Ukbbrto5tyyCRol2g=;
+        b=crwz8kC/spj9IHbvPYlFelG45aPhfgV+0sxfTw18LVzsY/xwnBTeLNHl+OSRoOPsp3
+         l7P0IQxLGCVxCTQ4WpK6vurs5AJ7g1BqHuHbeGNMqRv70+1h5iRMdP5dYeyd6tVr5Jjg
+         qwjcXmZ1lQQMakid7qD23W4lJpPE1eG1+k9mHebtRDYYXSMtUq1XzIXGBuaJxd3Kp8gw
+         WQVTe1DWPciGLQj8ZH80x7rshP9/n7nIwhy+XfP6dLhVDKsc2lkH3X7jna04UnVY3D68
+         wMXJy13El47aAvj/4NZswj9k2fjD3l3Unc6FVV6H/kD6/PYnq017hlK4NV2GECMeACEI
+         hsNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=WNt7w3V3r3XNyd6E3pkmZ4MDV9Ukbbrto5tyyCRol2g=;
+        b=F9fds62LvcJ91D3ehTUhdQvImRPewa98OuO5KjjpisT2+c3pa2Jqn5ZR+gQGUsXwUW
+         2SWhguNcjTonvcs1e+o2LLWmuDXQOjxxPsygkdaMb64t0UYKqVEEPKJ2v+LIb9vGyTus
+         oHQAyui41bi1yjOHgHOnbZYt4GlhpuoGd0OX/GxLADKlIOfO2I0ZMGbQnxg3K7Cc0HeF
+         z8qktHsew26AyMCSzG+ujD21ssRBsVSKb1kQEr/sTKvlkLjynCMpEHlDsSArrjFd9CQ8
+         b0X/TTM50+TQSnfk/j+QWEuyVxlNTff5AF7FEAJ6wkN2SUzYo9/Ot7pDO1eiuXVgseNM
+         7xaA==
+X-Gm-Message-State: AOAM530I5g4ebKIhyyzc7/MXyPv25jIgifIXhJH/tS3GyvTSofEK81Mb
+        WI6tzdf6GvBm6220YILkNuI=
+X-Google-Smtp-Source: ABdhPJwzmtERX589Uo5Yoxk8x/XkmWvT2p2an/Pog3khehp2WayMkkGs1C3n62B4VHw3CYvgYctjRQ==
+X-Received: by 2002:a5d:5709:: with SMTP id a9mr8051833wrv.74.1644767375572;
+        Sun, 13 Feb 2022 07:49:35 -0800 (PST)
+Received: from xws.localdomain ([194.126.177.12])
+        by smtp.gmail.com with ESMTPSA id j5sm25346805wrq.31.2022.02.13.07.49.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 13 Feb 2022 07:49:35 -0800 (PST)
+From:   Maximilian Luz <luzmaximilian@gmail.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Maximilian Luz <luzmaximilian@gmail.com>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: [PATCH] ACPI: battery: Add device HID and quirk for Microsoft Surface Go 3
+Date:   Sun, 13 Feb 2022 16:49:20 +0100
+Message-Id: <20220213154920.142816-1-luzmaximilian@gmail.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Kees Cook
-> Sent: 12 February 2022 00:38
-....
-> 
-> Sure. I think I am trying to take a pragmatic approach here, which is
-> that gaining auto-var-init is a big deal (killing entire classes of
-> vulnerabilities), but it comes with an annoying compiler bug (that we do
-> get a warning about) for an uncommon code pattern that is easy to fix.
+For some reason, the Microsoft Surface Go 3 uses the standard ACPI
+interface for battery information, but does not use the standard PNP0C0A
+HID. Instead it uses MSHW0146 as identifier. Add that ID to the driver
+as this seems to work well.
 
-My worry about the compiler setting variables to zero is that people
-will get lazy and assume it happens.
-Then some code will get compiled without that enabled (possibly because
-it slows things down too much) and then really horrid bugs start to appear.
+Additionally, the power state is not updated immediately after the AC
+has been (un-)plugged, so add the respective quirk for that.
 
-If the intent is to detect code that is failing to initialise locals
-then setting to a non-zero value (that is likely to cause grief)
-is much better than setting to zero.
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Maximilian Luz <luzmaximilian@gmail.com>
+---
+ drivers/acpi/battery.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-I'm particularly worried if the compiler starts to zero on-stack arrays.
-There is plenty of userspace code that will use char buff[MAX_PATH]
-to build a filename or char errmsg[1024] for an error message.
-At the moment the size only needs to be 'big enough' but if the compiler
-zeros it then there are performance issues and oversize buffers make
-a difference.
-At which point you start making the arrays 'just big enough' and then
-fall foul of truncations and overruns because the calculation was wrong.
-
-Definitely double edged.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index ea31ae01458b..dc208f5f5a1f 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -59,6 +59,10 @@ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+ 
+ static const struct acpi_device_id battery_device_ids[] = {
+ 	{"PNP0C0A", 0},
++
++	/* Microsoft Surface Go 3 */
++	{"MSHW0146", 0},
++
+ 	{"", 0},
+ };
+ 
+@@ -1148,6 +1152,14 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
+ 			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
+ 		},
+ 	},
++	{
++		/* Microsoft Surface Go 3 */
++		.callback = battery_notification_delay_quirk,
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Surface Go 3"),
++		},
++	},
+ 	{},
+ };
+ 
+-- 
+2.35.1
 
