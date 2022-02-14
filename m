@@ -2,114 +2,108 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5014AC433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Feb 2022 20:44:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADF76C433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Feb 2022 20:45:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229447AbiBNUon (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Feb 2022 15:44:43 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:59480 "EHLO
+        id S229643AbiBNUp3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Feb 2022 15:45:29 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229448AbiBNUom (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Feb 2022 15:44:42 -0500
-Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A34B123E5DF
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Feb 2022 12:41:20 -0800 (PST)
-Received: by mail-wr1-x42a.google.com with SMTP id s10so15252207wrb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Feb 2022 12:41:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=AjcuYbRwWWmuJzFbZA9czi246l9iMfB3hN39OZCcURQ=;
-        b=MHuq6dC0WgFLoTBZwDrEvzDTLrMlt8pOAw0JJp+I9HVXJVVwP3aors1ejF47S75KPZ
-         VrIaoEC+CJ6m0CU9UJmzq32DqQpd4Ow9tDDnSVzunlA+v8hWBqprofAriEWRiEERU4z0
-         CrtxmvBttjGJUoICZJZn6M4IzIKKil/pFXDBxiGoT8/0NHTT10407mrSg33Wkocd16Xx
-         nZCfqlHRa3cdR4evQ7dKLxI0ptrfpxqz+aVT2Gg/yk0GdsBfYvvL6TIM/0/RSkUH0/m3
-         SqiGAEdkU81mm7r+Ou6EtZ3LjOSocWYnEuJ9QhVHTKX96VbD/QqWJhtt1yD3gj3OCUJx
-         fP5w==
+        with ESMTP id S229598AbiBNUpH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Feb 2022 15:45:07 -0500
+Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com [209.85.210.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFEA615C9F9;
+        Mon, 14 Feb 2022 12:42:15 -0800 (PST)
+Received: by mail-ot1-f41.google.com with SMTP id j38-20020a9d1926000000b0059fa6de6c71so12387709ota.10;
+        Mon, 14 Feb 2022 12:42:15 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=AjcuYbRwWWmuJzFbZA9czi246l9iMfB3hN39OZCcURQ=;
-        b=KUyYZGmgrKbxr9K2/ls9sdw4o4YZPpp7I5B8z/NUTZ5A/xR66LonllS+VWyeq2CMJv
-         2CrmbUE4CxuF30mBaObr1ecM5Fc/+QPXiuYAfY7mNJzMGyVgHTz8t37cDTF86X6lmXCQ
-         NWgFUDvsCXlRL2H1XIWfGlyoUqvawLP+X9iWhCwvscOXC/los/U7J1E+6lJT2lfC8b8h
-         /QKQO2dNPV9/sWO3/Joca9t8X1dTt+/4B6qwsTfut7wsESJ9Sjf9cMyuk90TcYdy3fsL
-         O/07LTJPIJwagtnxTWT0h2QS0PcdzBoKLCZa7DgqX11GVGYQwnRu9j2aeFWAB3ogKSo3
-         Qi/w==
-X-Gm-Message-State: AOAM532cEGClq2wdic3BRH7z4c7hmMt6C1uecfuYMJja8VyKFeMpPRHU
-        BtmDANRKXaU2lbLXDQCl6b7hgl/p7UAOWbXjBg8VRMCCgaY=
-X-Google-Smtp-Source: ABdhPJzwSaqsvXVP+Hi+ApjfDFCcQUAVGWkV2y70lOE8d8i8sGXfVuasQz6awpiLZ25mrRfcn7sZyBxrhSpEu9IcJx4=
-X-Received: by 2002:a17:906:9b87:: with SMTP id dd7mr441287ejc.758.1644870628490;
- Mon, 14 Feb 2022 12:30:28 -0800 (PST)
+        bh=fgZfyYfU/uI+Wmb25cwyau5T9MIs8WHUtmpE4RDI30w=;
+        b=sTSeryVvbqBjBttDZO2RuUF2F0lLOOWGLUPNBCDQXSmWQD5uf3+DRtD2qdBw0HCrBC
+         3kqPM5BzAJrGfNABtL62RRaFRm4HyyMkvpCVsTFzVGBrqFx5FKAcbat57+1F7xNDI983
+         TamxxEg+Cqo7EWbedifaS53PFTSmP34kOx5KhpWLqLlDGu0tjMuin1IiMbqUTnwYTcab
+         PwvUvUX4c4RK9jyjspej4mmT8lRuE9rQMjhw0GWM1B19sTNOnbfMGowdC5CdtVYoL71H
+         ztEr0U+NHrb4W+PqVYbYsdutTXCMKXIyALMppZTjGBLNpa2c53ONrZpW/hOBzFN/wZ5K
+         Uvhw==
+X-Gm-Message-State: AOAM530kV4DidXlGGTz0qB9uPiqQpGQ34V0ZbFNfiSpoAkzoTeWTh/DC
+        jlx7Qadg030n3mziQAu3Ch6ndBf+dl2Y4L+AOsuRkal6
+X-Google-Smtp-Source: ABdhPJz7A12UB0+8xTsSbw/O1RFK+7qXyXLo2zRb8niwiOIiKd06/kV5fhJSZwpoyfRqp+SHvgEbL/0HlYxaZDDGDYE=
+X-Received: by 2002:a25:180a:: with SMTP id 10mr694003yby.552.1644867916973;
+ Mon, 14 Feb 2022 11:45:16 -0800 (PST)
 MIME-Version: 1.0
-References: <20220211023008.3197397-1-wonchung@google.com> <CAJZ5v0gD4zs3uBAYv6M4_1gNpkZ-g9XKOywJnf5007e6GwoGVA@mail.gmail.com>
-In-Reply-To: <CAJZ5v0gD4zs3uBAYv6M4_1gNpkZ-g9XKOywJnf5007e6GwoGVA@mail.gmail.com>
-From:   Won Chung <wonchung@google.com>
-Date:   Mon, 14 Feb 2022 12:30:17 -0800
-Message-ID: <CAOvb9yjpruiHxkZyZ8BOT0Hi_iV7xMOnBCr59BZX3eah_Zcy_w@mail.gmail.com>
-Subject: Re: [PATCH v6] ACPI: device_sysfs: Add sysfs support for _PLD
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Len Brown <lenb@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Benson Leung <bleung@chromium.org>,
-        Prashant Malani <pmalani@chromium.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <20220210224933.379149-1-yury.norov@gmail.com> <20220210224933.379149-46-yury.norov@gmail.com>
+ <CAJZ5v0hWse+A6ipWiAgfgzSQA52=e45WZgrRX9hUTsekkQjBig@mail.gmail.com> <YgqurDJYAqHjpKmf@yury-laptop>
+In-Reply-To: <YgqurDJYAqHjpKmf@yury-laptop>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 14 Feb 2022 20:45:06 +0100
+Message-ID: <CAJZ5v0jMwi7Jbx=tEC6GHW7iSe9_9EM6B31e949y0wFEp3V6qA@mail.gmail.com>
+Subject: Re: [PATCH 45/49] ACPI: replace nodes__weight with nodes_weight_ge
+ for numa
+To:     Yury Norov <yury.norov@gmail.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Laight <David.Laight@aculab.com>,
+        Joe Perches <joe@perches.com>, Dennis Zhou <dennis@kernel.org>,
+        Emil Renner Berthing <kernel@esmil.dk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
+        Alexey Klimov <aklimov@redhat.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Vitaly Kuznetsov <vkuznets@redhat.com>,
+        Alison Schofield <alison.schofield@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Feb 14, 2022 at 11:12 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+On Mon, Feb 14, 2022 at 8:36 PM Yury Norov <yury.norov@gmail.com> wrote:
 >
-> On Fri, Feb 11, 2022 at 3:30 AM Won Chung <wonchung@google.com> wrote:
+> On Mon, Feb 14, 2022 at 08:18:27PM +0100, Rafael J. Wysocki wrote:
+> > On Fri, Feb 11, 2022 at 1:31 AM Yury Norov <yury.norov@gmail.com> wrote:
+> > >
+> > > acpi_map_pxm_to_node() calls nodes_weight() to compare the weight
+> > > of nodemask with a given number. We can do it more efficiently with
+> > > nodes_weight_eq() because conditional nodes_weight may stop
+> > > traversing the nodemask earlier, as soon as condition is (or is not)
+> > > met.
+> > >
+> > > Signed-off-by: Yury Norov <yury.norov@gmail.com>
+> > > ---
+> > >  drivers/acpi/numa/srat.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
+> > > index 3b818ab186be..fe7a7996f553 100644
+> > > --- a/drivers/acpi/numa/srat.c
+> > > +++ b/drivers/acpi/numa/srat.c
+> > > @@ -67,7 +67,7 @@ int acpi_map_pxm_to_node(int pxm)
+> > >         node = pxm_to_node_map[pxm];
+> > >
+> > >         if (node == NUMA_NO_NODE) {
+> > > -               if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
+> > > +               if (nodes_weight_ge(nodes_found_map, MAX_NUMNODES))
+> > >                         return NUMA_NO_NODE;
+> > >                 node = first_unset_node(nodes_found_map);
+> > >                 __acpi_map_pxm_to_node(pxm, node);
+> > > --
 > >
-> > When ACPI table includes _PLD fields for a device, create a new
-> > directory (pld) in sysfs to share _PLD fields.
+> > Applied as 5.18 material, thanks!
 >
-> This version of the patch loos better to me, but I'm not sure if it
-> goes into the right direction overall.
->
-> > Currently without PLD information, when there are multiple of same
-> > devices, it is hard to distinguish which device corresponds to which
-> > physical device in which location. For example, when there are two Type
-> > C connectors, it is hard to find out which connector corresponds to the
-> > Type C port on the left panel versus the Type C port on the right panel.
->
-> So I think that this is your primary use case and I'm wondering if
-> this is the best way to address it.
->
-> Namely, by exposing _PLD information under the ACPI device object,
-> you'll make user space wanting to use that information depend on this
-> interface, but the problem is not ACPI-specific (inevitably, it will
-> appear on systems using DT, sooner or later) and making the user space
-> interface related to it depend on ACPI doesn't look like a perfect
-> choice.
->
-> IOW, why don't you create a proper ABI for this in the Type C
-> subsystem and expose the information needed by user space in a generic
-> way that can be based on the _PLD information on systems with ACPI?
+> It depends on patches 44 and 26. Are you applying them too?
 
-Hi Rafael,
+No, I'm not (I've only received this one directly).
 
-Thank you for the review.
+I'll drop this patch now and please feel free to add my ACK to it.
 
-I was thinking that _PLD info is specific to ACPI since it is part of
-the ACPI table. Could you explain a little bit more on why you think
-exposing _PLD fields is not an ACPI-specific problem?
-
-I gave an example of how _PLD fields can be used for specifying Type C
-connectors, but it is not Type C specific. For Chrome OS, we plan to
-initially add PLD to not only Type C connectors but also USB port
-devices (including Type C and Type A). Also, PLD can be used in the
-future for describing other types of ports too like HDMI. (Benson and
-Prashant, please correct or add if I am wrong or missing some
-information) Maybe my commit message was not detailed enough..
-
-I am also curious what Heikki thinks about this. Heikki, can you take
-a look and share your thoughts?
-
-Thank you,
-Won
+Thanks!
