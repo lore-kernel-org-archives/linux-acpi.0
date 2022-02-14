@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85D26C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Feb 2022 10:51:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E05FC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Feb 2022 10:51:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348942AbiBNKv0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Feb 2022 05:51:26 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41102 "EHLO
+        id S1348955AbiBNKvr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Feb 2022 05:51:47 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350208AbiBNKvM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Feb 2022 05:51:12 -0500
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2056.outbound.protection.outlook.com [40.107.93.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4297BC0856;
-        Mon, 14 Feb 2022 02:15:29 -0800 (PST)
+        with ESMTP id S1350083AbiBNKvK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Feb 2022 05:51:10 -0500
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2068.outbound.protection.outlook.com [40.107.237.68])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7124A6D39D;
+        Mon, 14 Feb 2022 02:15:22 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Zh+hPIfzNbiQ6Vb8LYU3i1MHmV4pFsbDd8mJlWwm/O7aagnGR1oizujm3NmvnaZTOLrKoJJ6b89p4F+OhCwNa0OKi2IvVQRwbZctjsUUPfMh3SEXROUlZ6O1+LcwYoJHTa3HbOM7XdxFgn3uOg6aBqn+51iQV46uritf0dckNEzZZD4kpdWBCLb407HER7vjvnmperjo8p8f3DsT82LrkTytrdxbH0uEIyRj2JYUqMUm34KYtkfav4UaxRSM/iwym9Csmkmw9HtztyzI214pJBtJbwjgg7m3VKvdoaoXbeLUqRlR6KJfuoDpqGfOnbYLov5rO4D+0WRoXP95vo9ALg==
+ b=Ay70GTvrHIT5vYSOhfujfd+oMaCe09tlsCP8hQ7GifGDgsMFBFXlkaMwvAE0Mngt4TO1z+wEhfkWVIYZDiPJfnVHNowSArFqiy3RVZP4eESaMd2SmK5W6Oon9Umw1IKeFECXFescOHNdXzd43kNKd2Fiq9Xi1qlAHzmfLiv9AROTYEqxxk0HgMI6a7tgNX+Mb/G32Dq/RuUaSA4r2wktNvZRMXV3rb1LPylOUhKOSUv/6v1yWU0Kv2+C4dCR8AG2EhPdg3hEDNrmqVGFgktbWSfIdH9SVCoowbeP7ivihkRHjVGzKnrOH3NV0GXML/TfVUDL7Q0JbQjdr85l3uv1PQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sPUrtHrY6l9SV5qiNIJagpflLiCnn8P9tSXYd3+Fi44=;
- b=Z9AhIV3tGit7APptwF5opO0lE0wSWsSJ0nE6SWm3Wrm9V8OLuDduRlGge9KgJ5jzPzAmVLPsvJ6qCnned0Hh7ES93C8jQF/UaN3xSVbAmRhI1U4vX8e4rrYlHfFdQqSja0PLQcPLycQD/V65QcB66CUVEcXFbsjGfWIhq+rb3kpcVpHN0btk11EMOvkLY5DwPTapajNz8da4dYKs+8FB7E2LHQ2GZ305CSwBT6RN2yclXCKik7PPp7wniwa5/8Cp1dmp/df/pK8KiC6t0He95wQ+1V9B31nTCHW93h00dJYL3TfPT8eF3lsgetgwskSHSH8u8L5Emb+1+CZW4Fi2Mw==
+ bh=JfkqBk6TaZEpyz4CxeBo7+E5Pr+Td4vJVvuYHb5o1So=;
+ b=ClmeX1lFKULTSQwxbdmQHEGtNp8zV/slhMQov5u4MWOMWLUOqNxi8FknL+2h6M6ORbHFAD2P/bckyO+rWkZs/m8qXsgVQpSVJJ1r2IuRDv4puUhkHYgQdSmNqdJ06GYcLnyHulRRAd9qjHgvRKeZlloHINA9S5x2M1uDrk3Achfgajpa3qHyKTM6JPgQ/pFVdzb1T5v4YAm8ji8GevKj7e/xktFec3VgmkAhvgb0s+XRJJh4oqP41u/BLWkOeKsnQp7idaouxyOqbn7ziyBi5H7CH8+YNnmm875xX8Uw2iQlg4TIeKjB4DnTJhgcEKXhoS+s2xpthGlJeWTkR9yvPw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=alien8.de smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sPUrtHrY6l9SV5qiNIJagpflLiCnn8P9tSXYd3+Fi44=;
- b=rfC1/iZj4he2UFBvh8h7EX10XVDoi7sXz/Mr3xv99O6rK1s2CJdR+L+QUYb1VDjvqehPK5y7ON8Q8O6PV0jEvrsUnWR0LGETL8p3imnb9rBzGKsqu/FFRpSOvf4bcOEozNMVS31XbKVFDYo376Ta+uC9+6BaAX++Tz2+vZJixy0=
-Received: from DM6PR03CA0079.namprd03.prod.outlook.com (2603:10b6:5:333::12)
- by DM6PR12MB4299.namprd12.prod.outlook.com (2603:10b6:5:223::9) with
+ bh=JfkqBk6TaZEpyz4CxeBo7+E5Pr+Td4vJVvuYHb5o1So=;
+ b=idAGQbcTt4+QETukzel5ySvoqNKrY02TFqr+OCQAbJVtOFYfaE64NLRStkj8w43Ypjp8+x+sYINh7NKshzr8aTO461/bUDpFKZHJdJzkUUioZJ4LAXb8RpNr2TAT0L8F//ts2Q3Je1dD4QJ8u/cdY6KrWpo47Xe7P1eGdylNCLU=
+Received: from DM5PR19CA0058.namprd19.prod.outlook.com (2603:10b6:3:116::20)
+ by MN2PR12MB2974.namprd12.prod.outlook.com (2603:10b6:208:c1::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4975.11; Mon, 14 Feb
- 2022 10:15:27 +0000
-Received: from DM6NAM11FT050.eop-nam11.prod.protection.outlook.com
- (2603:10b6:5:333:cafe::11) by DM6PR03CA0079.outlook.office365.com
- (2603:10b6:5:333::12) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4975.11 via Frontend
- Transport; Mon, 14 Feb 2022 10:15:27 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4975.12; Mon, 14 Feb
+ 2022 10:15:19 +0000
+Received: from DM6NAM11FT017.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:3:116:cafe::d) by DM5PR19CA0058.outlook.office365.com
+ (2603:10b6:3:116::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4975.18 via Frontend
+ Transport; Mon, 14 Feb 2022 10:15:19 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -46,13 +46,13 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com;
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- DM6NAM11FT050.mail.protection.outlook.com (10.13.173.111) with Microsoft SMTP
+ DM6NAM11FT017.mail.protection.outlook.com (10.13.172.145) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.4975.11 via Frontend Transport; Mon, 14 Feb 2022 10:15:26 +0000
+ 15.20.4975.11 via Frontend Transport; Mon, 14 Feb 2022 10:15:18 +0000
 Received: from hr-amd.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Mon, 14 Feb
- 2022 04:15:22 -0600
+ 2022 04:15:14 -0600
 From:   Huang Rui <ray.huang@amd.com>
 To:     Borislav Petkov <bp@alien8.de>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
@@ -67,9 +67,9 @@ CC:     <linux-kernel@vger.kernel.org>,
         Jinzhou Su <Jinzhou.Su@amd.com>,
         Perry Yuan <Perry.Yuan@amd.com>,
         Jassmine Meng <li.meng@amd.com>, Huang Rui <ray.huang@amd.com>
-Subject: [PATCH 4/4] x86/acpi: Move init_freq_invariance_cppc into x86 CPPC
-Date:   Mon, 14 Feb 2022 18:14:50 +0800
-Message-ID: <20220214101450.356047-5-ray.huang@amd.com>
+Subject: [PATCH 2/4] x86, sched: Move AMD maximum frequency ratio setting function into x86 CPPC
+Date:   Mon, 14 Feb 2022 18:14:48 +0800
+Message-ID: <20220214101450.356047-3-ray.huang@amd.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220214101450.356047-1-ray.huang@amd.com>
 References: <20220214101450.356047-1-ray.huang@amd.com>
@@ -81,122 +81,174 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: d4bc049d-d84e-4457-9cc6-08d9efa2eb66
-X-MS-TrafficTypeDiagnostic: DM6PR12MB4299:EE_
-X-Microsoft-Antispam-PRVS: <DM6PR12MB429972201C4DDC2E36578C92EC339@DM6PR12MB4299.namprd12.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: 7c4133ca-e670-4b48-78a6-08d9efa2e702
+X-MS-TrafficTypeDiagnostic: MN2PR12MB2974:EE_
+X-Microsoft-Antispam-PRVS: <MN2PR12MB29744A222655A4F379F1776AEC339@MN2PR12MB2974.namprd12.prod.outlook.com>
 X-MS-Oob-TLC-OOBClassifiers: OLM:7219;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: ixNVc46Ycy0RI17lxDk01HNLxFQteUWguPCmVeahe0vq6DIvm1OGIIf73eFwCZu8fEwGFT6OdSsU9dgmvwSMH6HyG1jQfvsdnHbepG/x2azaSVEpSgIp15syHHC0I2QgQ5lIJjSEmvnsH8X2wkQ5AaRWheiVQhv1IhRmZP9jBopAJIZB+JIwWEpqZhGkXdCebRYQhMfnnvqB9j4Xx0nolS5V1uzMwd552JtNNK5xXzpIwUfGvbbUQy70s+kKjh09+gNeWr/2yKfSu9Q+C7BvMzjpRNf1NFQ9pE757MgMoePtkKrb24chtlj4dZSBcp74pKx4i6cJeSs8HgoLXo2PI7NZwywcZIALbxImyD8EwNKuZzchWhGjnFrZPFMlbad2/F6fsDJg1+45KwEERp5jqPMb8ZO4QRghyh3v3EA9JxdPShHl3ApgIJuU3a8I8t47h6HskqbBDwpp828EePWTcRXA1tmGCzmcg7fiNgYkV5GO8Z3+15fjwcQ6PLrONh69QsviAt0b0DF8ddohAzrf6synv5ch9tDWyz/junU46499quEIflLouQMeYNy2T4NlMHqUHnaJJWNFr5JvnKixfqd2oqixkQTuAHDKUgl2zweXjacMpe6qdhWFI+PavTKXp5dwsFkeBxWW9UQJH6MN2AmlPX0h4Gnq1HNhL8NnqXrblCFaZ6fWNBeeBhz32Fj1/dACMbZI6PdvZHvw2v9Z+Q==
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(46966006)(36840700001)(40470700004)(36756003)(2906002)(2616005)(83380400001)(82310400004)(356005)(81166007)(8936002)(5660300002)(86362001)(40460700003)(508600001)(70586007)(47076005)(6666004)(36860700001)(4326008)(26005)(186003)(7696005)(16526019)(316002)(54906003)(110136005)(8676002)(70206006)(1076003)(336012)(426003)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: LQ0opLGkJMYd3UibTSHFag4QSqObOriRfeERmq92exhqS9J2U3UsNCXTuDiIZB5Db5SFjfHOWk/lhrEa1GKD9/qKoHxT/zYP7QSuUtA3ppNe+N4/EuzwU08sSsk7NdvU2K5HL5GXHZd/bjMQ0E800M8OscFk8Upo0YP9wv7FcVWIxONQ56W/AqioEekhBM/p8qGw0k86HmwMGMUqUqouHviEY7hoHu7VQIffm3geQOtG4sKa9QdoJAJRuwkyZePxRT4hvxC0uOsHcljwyEYq+xwhEgbbcycOWm44mHLd/HIWPlaJ14N3psyOXmB28xi3owKKHj0lZ5bXpnFRjc0EWTOgH4bK14rdFJ6CCyS6zp0lpxgIuh55doKXmQkUTZLtF4yrVT4tW6uklrEZRjqJ5cTmML2+Utsf3T3FGm3f3WowDY/3IVSZ/IUMCa7XFHoK30wyK2exVizr4dCoSAL+F3czE/vfwhbAZPEO+NXNmrddWghuhL4jdnlWMwze59fN4GE2G9ekFQC1lbM06tlhV4Is2ykkAww7lxfMIsctVSlh+svm8iMioyOjrajBP+h7yvdfzUgTtwtGVcuV2gOOxArTdrYkzufodndrWpcYf3eSYcAVtgbqfa15r9O9ld66n8zdTFBSs31Q6Wr1fLjR1liivqnsLQqCzLDfbJ5thzjW+e7ZsAURcHID9NjI9LNeuow493wTOAveOhnJQLfT+w==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(36840700001)(40470700004)(46966006)(82310400004)(356005)(316002)(110136005)(81166007)(2906002)(54906003)(8936002)(4326008)(8676002)(6666004)(70586007)(70206006)(5660300002)(86362001)(26005)(186003)(1076003)(36756003)(2616005)(16526019)(336012)(426003)(47076005)(7696005)(83380400001)(36860700001)(508600001)(40460700003)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Feb 2022 10:15:26.1809
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Feb 2022 10:15:18.8293
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: d4bc049d-d84e-4457-9cc6-08d9efa2eb66
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7c4133ca-e670-4b48-78a6-08d9efa2e702
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT050.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT017.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4299
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB2974
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The init_freq_invariance_cppc code actually doesn't need the SMP
-functionality. So setting the CONFIG_SMP as the check condition for
-init_freq_invariance_cppc may cause the confusion to misunderstand the
-CPPC. And the x86 CPPC file is better space to store the CPPC related
-functions, while the init_freq_invariance_cppc is out of smpboot, that
-means, the CONFIG_SMP won't be mandatory condition any more. And It's more
-clear than before.
+The AMD maximum frequency ratio setting function depends on CPPC, so the
+x86 CPPC implementation file is better space for this function.
 
 Signed-off-by: Huang Rui <ray.huang@amd.com>
 ---
- arch/x86/include/asm/topology.h |  4 +---
- arch/x86/kernel/acpi/cppc.c     | 14 ++++++++++++++
- arch/x86/kernel/smpboot.c       | 20 --------------------
- 3 files changed, 15 insertions(+), 23 deletions(-)
+ arch/x86/include/asm/topology.h |  9 +++++++
+ arch/x86/kernel/acpi/cppc.c     | 40 ++++++++++++++++++++++++++++++
+ arch/x86/kernel/smpboot.c       | 44 +--------------------------------
+ 3 files changed, 50 insertions(+), 43 deletions(-)
 
 diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index c35005a03768..9c73d62f7276 100644
+index 2f0b6be8eaab..168ade7d4007 100644
 --- a/arch/x86/include/asm/topology.h
 +++ b/arch/x86/include/asm/topology.h
-@@ -225,12 +225,10 @@ static inline void init_freq_invariance(bool secondary, bool cppc_ready)
- }
+@@ -226,4 +226,13 @@ void init_freq_invariance_cppc(void);
+ #define init_freq_invariance_cppc init_freq_invariance_cppc
  #endif
  
--#if defined(CONFIG_ACPI_CPPC_LIB) && defined(CONFIG_SMP)
 +#ifdef CONFIG_ACPI_CPPC_LIB
- void init_freq_invariance_cppc(void);
- #define init_freq_invariance_cppc init_freq_invariance_cppc
--#endif
- 
--#ifdef CONFIG_ACPI_CPPC_LIB
- bool amd_set_max_freq_ratio(u64 *ratio);
- #else
- static inline bool amd_set_max_freq_ratio(u64 *ratio)
++bool amd_set_max_freq_ratio(u64 *ratio);
++#else
++static inline bool amd_set_max_freq_ratio(u64 *ratio)
++{
++	return false;
++}
++#endif
++
+ #endif /* _ASM_X86_TOPOLOGY_H */
 diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
-index f0be5058e3e3..df1644d9b3b6 100644
+index 08d823d72586..f0be5058e3e3 100644
 --- a/arch/x86/kernel/acpi/cppc.c
 +++ b/arch/x86/kernel/acpi/cppc.c
-@@ -87,3 +87,17 @@ bool amd_set_max_freq_ratio(u64 *ratio)
+@@ -6,6 +6,8 @@
  
- 	return true;
+ #include <acpi/cppc_acpi.h>
+ #include <asm/msr.h>
++#include <asm/processor.h>
++#include <asm/topology.h>
+ 
+ /* Refer to drivers/acpi/cppc_acpi.c for the description of functions */
+ 
+@@ -47,3 +49,41 @@ int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
+ 	}
+ 	return err;
  }
 +
-+static DEFINE_MUTEX(freq_invariance_lock);
-+
-+void init_freq_invariance_cppc(void)
++bool amd_set_max_freq_ratio(u64 *ratio)
 +{
-+	static bool secondary;
++	struct cppc_perf_caps perf_caps;
++	u64 highest_perf, nominal_perf;
++	u64 perf_ratio;
++	int rc;
 +
-+	mutex_lock(&freq_invariance_lock);
++	if (!ratio)
++		return false;
 +
-+	init_freq_invariance(secondary, true);
-+	secondary = true;
++	rc = cppc_get_perf_caps(0, &perf_caps);
++	if (rc) {
++		pr_debug("Could not retrieve perf counters (%d)\n", rc);
++		return false;
++	}
 +
-+	mutex_unlock(&freq_invariance_lock);
++	highest_perf = amd_get_highest_perf();
++	nominal_perf = perf_caps.nominal_perf;
++
++	if (!highest_perf || !nominal_perf) {
++		pr_debug("Could not retrieve highest or nominal performance\n");
++		return false;
++	}
++
++	perf_ratio = div_u64(highest_perf * SCHED_CAPACITY_SCALE, nominal_perf);
++	/* midpoint between max_boost and max_P */
++	perf_ratio = (perf_ratio + SCHED_CAPACITY_SCALE) >> 1;
++	if (!perf_ratio) {
++		pr_debug("Non-zero highest/nominal perf values led to a 0 ratio\n");
++		return false;
++	}
++
++	*ratio = perf_ratio;
++	arch_set_max_freq_ratio(false);
++
++	return true;
 +}
 diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index 8f2ff9be0fcc..2ef14772dc04 100644
+index 617012f4619f..0718cc7649a4 100644
 --- a/arch/x86/kernel/smpboot.c
 +++ b/arch/x86/kernel/smpboot.c
-@@ -83,10 +83,6 @@
- #include <asm/hw_irq.h>
- #include <asm/stackprotector.h>
- 
--#ifdef CONFIG_ACPI_CPPC_LIB
--#include <acpi/cppc_acpi.h>
--#endif
--
- /* representing HT siblings of each logical CPU */
- DEFINE_PER_CPU_READ_MOSTLY(cpumask_var_t, cpu_sibling_map);
- EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
-@@ -2156,22 +2152,6 @@ void init_freq_invariance(bool secondary, bool cppc_ready)
- 	}
+@@ -2097,48 +2097,6 @@ static bool intel_set_max_freq_ratio(void)
+ 	return true;
  }
  
 -#ifdef CONFIG_ACPI_CPPC_LIB
--static DEFINE_MUTEX(freq_invariance_lock);
--
--void init_freq_invariance_cppc(void)
+-static bool amd_set_max_freq_ratio(void)
 -{
--	static bool secondary;
+-	struct cppc_perf_caps perf_caps;
+-	u64 highest_perf, nominal_perf;
+-	u64 perf_ratio;
+-	int rc;
 -
--	mutex_lock(&freq_invariance_lock);
+-	rc = cppc_get_perf_caps(0, &perf_caps);
+-	if (rc) {
+-		pr_debug("Could not retrieve perf counters (%d)\n", rc);
+-		return false;
+-	}
 -
--	init_freq_invariance(secondary, true);
--	secondary = true;
+-	highest_perf = amd_get_highest_perf();
+-	nominal_perf = perf_caps.nominal_perf;
 -
--	mutex_unlock(&freq_invariance_lock);
+-	if (!highest_perf || !nominal_perf) {
+-		pr_debug("Could not retrieve highest or nominal performance\n");
+-		return false;
+-	}
+-
+-	perf_ratio = div_u64(highest_perf * SCHED_CAPACITY_SCALE, nominal_perf);
+-	/* midpoint between max_boost and max_P */
+-	perf_ratio = (perf_ratio + SCHED_CAPACITY_SCALE) >> 1;
+-	if (!perf_ratio) {
+-		pr_debug("Non-zero highest/nominal perf values led to a 0 ratio\n");
+-		return false;
+-	}
+-
+-	arch_turbo_freq_ratio = perf_ratio;
+-	arch_set_max_freq_ratio(false);
+-
+-	return true;
+-}
+-#else
+-static bool amd_set_max_freq_ratio(void)
+-{
+-	return false;
 -}
 -#endif
 -
- static void disable_freq_invariance_workfn(struct work_struct *work)
+ static void init_counter_refs(void)
  {
- 	static_branch_disable(&arch_scale_freq_key);
+ 	u64 aperf, mperf;
+@@ -2187,7 +2145,7 @@ static void init_freq_invariance(bool secondary, bool cppc_ready)
+ 		if (!cppc_ready) {
+ 			return;
+ 		}
+-		ret = amd_set_max_freq_ratio();
++		ret = amd_set_max_freq_ratio(&arch_turbo_freq_ratio);
+ 	}
+ 
+ 	if (ret) {
 -- 
 2.25.1
 
