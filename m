@@ -2,60 +2,60 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C5D0C4332F
-	for <linux-acpi@archiver.kernel.org>; Wed, 16 Feb 2022 22:53:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C85C4321E
+	for <linux-acpi@archiver.kernel.org>; Wed, 16 Feb 2022 22:53:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237905AbiBPWxl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 16 Feb 2022 17:53:41 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52286 "EHLO
+        id S237887AbiBPWxu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 16 Feb 2022 17:53:50 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237838AbiBPWxj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Feb 2022 17:53:39 -0500
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4BD2271E3;
-        Wed, 16 Feb 2022 14:53:25 -0800 (PST)
-Received: by mail-wm1-x32b.google.com with SMTP id l12-20020a7bc34c000000b003467c58cbdfso4802341wmj.2;
-        Wed, 16 Feb 2022 14:53:25 -0800 (PST)
+        with ESMTP id S237898AbiBPWxk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Feb 2022 17:53:40 -0500
+Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D33DD2271E3;
+        Wed, 16 Feb 2022 14:53:27 -0800 (PST)
+Received: by mail-wm1-x329.google.com with SMTP id d14-20020a05600c34ce00b0037bf4d14dc7so2675567wmq.3;
+        Wed, 16 Feb 2022 14:53:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=U8LwkZa9RC/yBPhmXnAl2Q6p50g9U5AICTQRMA//U54=;
-        b=o/LMG9kdIvpGncLOvlUGcSrF6wkSx3mN2HeKY0GOxa7aSWUsyHsZPDVPffjT23+G5B
-         Ll18JA7wd95BmV1FlTLcVF/kZXJ6gxwXbQUiWlLcZvbwLdTFAPbpSj+winHfGF15jC3w
-         /zc3f+ER4LaJ7YntU8G8XAzAZmyo+x1fPDuH7GRJ45h5fd5zI6kpFEMi5HYMPqA1kj20
-         FOESqvLx89qzlUhf75erUMwWnlEpTQE0rVPNAEDZg/Jim5RcFJ88HPjfiUyRYtLiEKD8
-         PQuHEKU/BHbUX3PgnRW18hRTUVXF3r6NeISBBSLnDTD7Pg9CSGoPThKdsdveheAmV6cf
-         /p1A==
+        bh=a+uUHPaRW0+U9cBcYhuZP/dhS3pWpicIDdXLzyTxVks=;
+        b=FV1Sl4rFc9LscmTaSkNE8UIwcEvRxnOJPtLVskZcTY1dZJCK12OASLPRNn5JGiNU+V
+         4AXGah+Vhq/jOM/JtkM2WlgJLaPdq1XYaWUNYI97R96etxLEsvAZS1Bk0IdSOFK6lLwb
+         FKp/HyVzyz+SW6pBZaGdjG62mdMIFpVZkkNZQrckkxnvzfrkZxhS2Tj8vKqVjSaXQ5JA
+         QDV8a95XxaCLL83Z7cvpSHruqxj0gdVslejyfOrFtcC8D//yNUhiGXkZsMoCOVBTDb6F
+         Ojj+gOJ0paz4XUmMDy00rxemK1qkK6ZxvGvswjfEeW05B55F28SunkLHw+tku9A+2H1Y
+         Nl+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=U8LwkZa9RC/yBPhmXnAl2Q6p50g9U5AICTQRMA//U54=;
-        b=7h2VlbGmf+WESwGR1dNMRpWZLlkGG/dIBf356qf27lBXbXzMRXOoCflwAzZ1VEheei
-         KS/QcnKuG7tpeWNA5y8+Dtz250epGHUJAG3xFvOsTyrqUN+Bzy8Z4a8miPiDuulnO/Nj
-         G9jVOuICLX91mwkeIe5F4AM5CdfHOlTNsC7Pbe4WB9N2iLPBfRGw6AFmL7F/uSW4RTa5
-         SbrosJ70XNZBYF/wbisTvkskTwMhO2nDj7rKBQKMqawax0IRgoWuFvw/Txhtm81I/0vi
-         11R/RYzrpvZH+v584sWhR6dMb0dyQ8VhmsmYQtvHTv5YTfLQPkt1LBRxdc6eYeEGPARf
-         Z/dg==
-X-Gm-Message-State: AOAM533u+iyVXUptsPa6V1OZFzyPMwrw0XxRsyvyXESH8MR7yQ+kY1hL
-        /0LxYl286AYcoYDPuWzz1Hf9/YhEhYoC2Q==
-X-Google-Smtp-Source: ABdhPJxBhyVN4jUcqHq3VuXLR3wU5ZvfW0i5DiMPtQFONZIKWpNxl/duNVnXoUjXmuQ3tef4zae6Cg==
-X-Received: by 2002:a05:600c:2e0c:b0:37c:3615:c52 with SMTP id o12-20020a05600c2e0c00b0037c36150c52mr123856wmf.43.1645052004133;
-        Wed, 16 Feb 2022 14:53:24 -0800 (PST)
+        bh=a+uUHPaRW0+U9cBcYhuZP/dhS3pWpicIDdXLzyTxVks=;
+        b=oa1cRInIkFs24DnA5GqCogysU+4Q2KR/5ZK/uw87jvTJeTRwqF/QmDS20qNVz3GH3O
+         Cam0GuK7sMh9gJMUOhgZu/u8Lbs+FprI1evHglFwMkEhyVj1qjdPSpuPhG/YIhOJCVPl
+         2odJfalNcETNzmnfdpBIqcz1YMqy2b1N1GhbZDfD0/9LSbcDn8XZ1klXvgZMcmF6L9ot
+         f0Ozt49KLXaSzqaRlSc6GGosVCJ5Bl3gg2PONIkdJuJ1O0l2sqEtcykLEu2je9LUJznS
+         9oOauTfK9zUdnJPsrM6tWkdAvA3n2CbpXNNjkw2DhybTj/GVPOjxZ8RQzYRnGUZiYm15
+         AqQA==
+X-Gm-Message-State: AOAM532tvwttgnyuiCaWMLa4RX2dEIWgaf7BByo2QWy5BGZcuMr0Psj4
+        x/hGSlV1/v9/zAaB5AXv5IHcy9/GhcAuJQ==
+X-Google-Smtp-Source: ABdhPJzqPgn9j0leHfOsffu6ctdruNLH02FeQi1pUnvtOESsUKcCOpBL1Wucp+vo9sN2vFALUxJEXw==
+X-Received: by 2002:a05:600c:4782:b0:37b:f836:78c7 with SMTP id k2-20020a05600c478200b0037bf83678c7mr3460007wmo.129.1645052006495;
+        Wed, 16 Feb 2022 14:53:26 -0800 (PST)
 Received: from localhost.localdomain (cpc141996-chfd3-2-0-cust928.12-3.cable.virginm.net. [86.13.91.161])
-        by smtp.gmail.com with ESMTPSA id o125sm182539wme.37.2022.02.16.14.53.23
+        by smtp.gmail.com with ESMTPSA id o125sm182539wme.37.2022.02.16.14.53.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Feb 2022 14:53:23 -0800 (PST)
+        Wed, 16 Feb 2022 14:53:26 -0800 (PST)
 From:   Daniel Scally <djrscally@gmail.com>
 To:     linux-acpi@vger.kernel.org, linux-clk@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
 Cc:     rafael@kernel.org, lenb@kernel.org, mturquette@baylibre.com,
         sboyd@kernel.org, hdegoede@redhat.com, markgross@kernel.org,
         robert.moore@intel.com
-Subject: [PATCH 4/6] platform/x86: int3472: Add terminator to gpiod_lookup_table
-Date:   Wed, 16 Feb 2022 22:53:02 +0000
-Message-Id: <20220216225304.53911-5-djrscally@gmail.com>
+Subject: [PATCH 6/6] platform/x86: int3472: Add board data for Surface Go2 IR camera
+Date:   Wed, 16 Feb 2022 22:53:04 +0000
+Message-Id: <20220216225304.53911-7-djrscally@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220216225304.53911-1-djrscally@gmail.com>
 References: <20220216225304.53911-1-djrscally@gmail.com>
@@ -65,28 +65,70 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Without the terminator, if a con_id is passed to gpio_find() that
-does not exist in the lookup table the function will not stop looping
-correctly, and eventually cause an oops.
+Add the board data describing the regulators for the Microsoft
+Surface Go line's IR camera.
 
-Fixes: 1596ef1251b5 ("platform/x86: int3472: Pass tps68470_regulator_platform_data to the tps68470-regulator MFD-cell")
 Signed-off-by: Daniel Scally <djrscally@gmail.com>
 ---
- drivers/platform/x86/intel/int3472/tps68470_board_data.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ .../x86/intel/int3472/tps68470_board_data.c   | 33 +++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
 diff --git a/drivers/platform/x86/intel/int3472/tps68470_board_data.c b/drivers/platform/x86/intel/int3472/tps68470_board_data.c
-index f93d437fd192..525f09a3b5ff 100644
+index 442a8a2de224..49a3591c6d85 100644
 --- a/drivers/platform/x86/intel/int3472/tps68470_board_data.c
 +++ b/drivers/platform/x86/intel/int3472/tps68470_board_data.c
-@@ -100,7 +100,8 @@ static struct gpiod_lookup_table surface_go_tps68470_gpios = {
- 	.dev_id = "i2c-INT347A:00",
- 	.table = {
- 		GPIO_LOOKUP("tps68470-gpio", 9, "reset", GPIO_ACTIVE_LOW),
--		GPIO_LOOKUP("tps68470-gpio", 7, "powerdown", GPIO_ACTIVE_LOW)
-+		GPIO_LOOKUP("tps68470-gpio", 7, "powerdown", GPIO_ACTIVE_LOW),
-+		{ }
- 	}
+@@ -30,6 +30,15 @@ static struct regulator_consumer_supply int347a_vcm_consumer_supplies[] = {
+ static struct regulator_consumer_supply int347a_vsio_consumer_supplies[] = {
+ 	REGULATOR_SUPPLY("dovdd", "i2c-INT347A:00"),
+ 	REGULATOR_SUPPLY("vsio", "i2c-INT347A:00-VCM"),
++	REGULATOR_SUPPLY("vddd", "i2c-INT347E:00"),
++};
++
++static struct regulator_consumer_supply int347a_aux1_consumer_supplies[] = {
++	REGULATOR_SUPPLY("vdda", "i2c-INT347E:00"),
++};
++
++static struct regulator_consumer_supply int347a_aux2_consumer_supplies[] = {
++	REGULATOR_SUPPLY("vdddo", "i2c-INT347E:00"),
+ };
+ 
+ static const struct regulator_init_data surface_go_tps68470_core_reg_init_data = {
+@@ -86,6 +95,28 @@ static const struct regulator_init_data surface_go_tps68470_vsio_reg_init_data =
+ 	.consumer_supplies = int347a_vsio_consumer_supplies,
+ };
+ 
++static const struct regulator_init_data surface_go_tps68470_aux1_reg_init_data = {
++	.constraints = {
++		.min_uV = 2815200,
++		.max_uV = 2815200,
++		.apply_uV = 1,
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies = ARRAY_SIZE(int347a_aux1_consumer_supplies),
++	.consumer_supplies = int347a_aux1_consumer_supplies,
++};
++
++static const struct regulator_init_data surface_go_tps68470_aux2_reg_init_data = {
++	.constraints = {
++		.min_uV = 1800600,
++		.max_uV = 1800600,
++		.apply_uV = 1,
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies = ARRAY_SIZE(int347a_aux2_consumer_supplies),
++	.consumer_supplies = int347a_aux2_consumer_supplies,
++};
++
+ static const struct tps68470_regulator_platform_data surface_go_tps68470_pdata = {
+ 	.reg_init_data = {
+ 		[TPS68470_CORE] = &surface_go_tps68470_core_reg_init_data,
+@@ -93,6 +124,8 @@ static const struct tps68470_regulator_platform_data surface_go_tps68470_pdata =
+ 		[TPS68470_VCM]  = &surface_go_tps68470_vcm_reg_init_data,
+ 		[TPS68470_VIO] = &surface_go_tps68470_vio_reg_init_data,
+ 		[TPS68470_VSIO] = &surface_go_tps68470_vsio_reg_init_data,
++		[TPS68470_AUX1] = &surface_go_tps68470_aux1_reg_init_data,
++		[TPS68470_AUX2] = &surface_go_tps68470_aux2_reg_init_data,
+ 	},
  };
  
 -- 
