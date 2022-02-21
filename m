@@ -2,29 +2,29 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05A61C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D6E8C4332F
 	for <linux-acpi@archiver.kernel.org>; Mon, 21 Feb 2022 15:46:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379481AbiBUPqZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Feb 2022 10:46:25 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:38030 "EHLO
+        id S1347144AbiBUPq0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Feb 2022 10:46:26 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:38178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379562AbiBUPpe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2022 10:45:34 -0500
+        with ESMTP id S1379499AbiBUPpw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2022 10:45:52 -0500
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F20B22B00
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Feb 2022 07:45:11 -0800 (PST)
-Received: from fraeml711-chm.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4K2RMb1rg1z6GCsV;
-        Mon, 21 Feb 2022 23:40:27 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1090122B18
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Feb 2022 07:45:28 -0800 (PST)
+Received: from fraeml707-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4K2RMw1prqz6GD4Y;
+        Mon, 21 Feb 2022 23:40:44 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml711-chm.china.huawei.com (10.206.15.60) with Microsoft SMTP Server
+ fraeml707-chm.china.huawei.com (10.206.15.35) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Mon, 21 Feb 2022 16:45:09 +0100
+ 15.1.2308.21; Mon, 21 Feb 2022 16:45:26 +0100
 Received: from A2006125610.china.huawei.com (10.47.91.169) by
  lhreml710-chm.china.huawei.com (10.201.108.61) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Mon, 21 Feb 2022 15:45:01 +0000
+ 15.1.2308.21; Mon, 21 Feb 2022 15:45:18 +0000
 From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 To:     <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>
@@ -34,9 +34,9 @@ CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
         <steven.price@arm.com>, <Sami.Mujawar@arm.com>,
         <jon@solid-run.com>, <eric.auger@redhat.com>,
         <yangyicong@huawei.com>
-Subject: [PATCH v8 04/11] iommu/dma: Introduce generic helper to retrieve RMR info
-Date:   Mon, 21 Feb 2022 15:43:37 +0000
-Message-ID: <20220221154344.2126-5-shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v8 06/11] iommu/arm-smmu-v3: Introduce strtab init helper
+Date:   Mon, 21 Feb 2022 15:43:39 +0000
+Message-ID: <20220221154344.2126-7-shameerali.kolothum.thodi@huawei.com>
 X-Mailer: git-send-email 2.12.0.windows.1
 In-Reply-To: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
 References: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
@@ -50,89 +50,62 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Reserved Memory Regions(RMR) associated with an IOMMU can be
-described through ACPI IORT tables in systems with devices
-that require a unity mapping or bypass for those
-regions.
-
-Introduce a generic interface so that IOMMU drivers can retrieve
-and set up necessary mappings.
+Introduce a helper to check the sid range and to init the l2 strtab
+entries(bypass). This will be useful when we have to initialize the
+l2 strtab with bypass for RMR SIDs.
 
 Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 ---
- drivers/iommu/dma-iommu.c | 21 +++++++++++++++++++++
- include/linux/dma-iommu.h | 14 ++++++++++++++
- 2 files changed, 35 insertions(+)
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 28 +++++++++++----------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index d85d54f2b549..65ab01d5128b 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -370,6 +370,27 @@ void iommu_put_dma_cookie(struct iommu_domain *domain)
- 	domain->iova_cookie = NULL;
+diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+index 6dc6d8b6b368..ffabb6926da2 100644
+--- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
++++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+@@ -2536,6 +2536,19 @@ static bool arm_smmu_sid_in_range(struct arm_smmu_device *smmu, u32 sid)
+ 	return sid < limit;
  }
  
-+/**
-+ *
-+ * iommu_dma_get_rmrs - Retrieve Reserved Memory Regions(RMRs) associated
-+ *                      with a given IOMMU and device(optional)
-+ * @iommu_fwnode: fwnode associated with IOMMU
-+ * @dev: Optional associated device
-+ * @list: Reserved region list to be populated
-+ *
-+ */
-+void iommu_dma_get_rmrs(struct fwnode_handle *iommu_fwnode, struct device *dev,
-+			struct list_head *list)
++static int arm_smmu_init_sid_strtab(struct arm_smmu_device *smmu, u32 sid)
 +{
++	/* Check the SIDs are in range of the SMMU and our stream table */
++	if (!arm_smmu_sid_in_range(smmu, sid))
++		return -ERANGE;
++
++	/* Ensure l2 strtab is initialised */
++	if (smmu->features & ARM_SMMU_FEAT_2_LVL_STRTAB)
++		return arm_smmu_init_l2_strtab(smmu, sid);
++
++	return 0;
 +}
-+EXPORT_SYMBOL(iommu_dma_get_rmrs);
 +
-+void iommu_dma_put_rmrs(struct fwnode_handle *iommu_fwnode,
-+			struct list_head *list)
-+{
-+}
-+EXPORT_SYMBOL(iommu_dma_put_rmrs);
-+
- /**
-  * iommu_dma_get_resv_regions - Reserved region driver helper
-  * @dev: Device from iommu_get_resv_regions()
-diff --git a/include/linux/dma-iommu.h b/include/linux/dma-iommu.h
-index 24607dc3c2ac..897b457cad2c 100644
---- a/include/linux/dma-iommu.h
-+++ b/include/linux/dma-iommu.h
-@@ -43,12 +43,17 @@ void iommu_dma_free_cpu_cached_iovas(unsigned int cpu,
- 
- extern bool iommu_dma_forcedac;
- 
-+void iommu_dma_get_rmrs(struct fwnode_handle *iommu, struct device *dev,
-+			struct list_head *list);
-+
-+void iommu_dma_put_rmrs(struct fwnode_handle *iommu, struct list_head *list);
- #else /* CONFIG_IOMMU_DMA */
- 
- struct iommu_domain;
- struct msi_desc;
- struct msi_msg;
- struct device;
-+struct fwnode_handle;
- 
- static inline void iommu_setup_dma_ops(struct device *dev, u64 dma_base,
- 				       u64 dma_limit)
-@@ -89,5 +94,14 @@ static inline void iommu_dma_get_resv_regions(struct device *dev, struct list_he
+ static int arm_smmu_insert_master(struct arm_smmu_device *smmu,
+ 				  struct arm_smmu_master *master)
  {
- }
+@@ -2559,20 +2572,9 @@ static int arm_smmu_insert_master(struct arm_smmu_device *smmu,
+ 		new_stream->id = sid;
+ 		new_stream->master = master;
  
-+static inline void iommu_dma_get_rmrs(struct fwnode_handle *iommu, struct device *dev,
-+				      struct list_head *list)
-+{
-+}
-+
-+static inline void iommu_dma_put_rmrs(struct fwnode_handle *iommu, struct list_head *list)
-+{
-+}
-+
- #endif	/* CONFIG_IOMMU_DMA */
- #endif	/* __DMA_IOMMU_H */
+-		/*
+-		 * Check the SIDs are in range of the SMMU and our stream table
+-		 */
+-		if (!arm_smmu_sid_in_range(smmu, sid)) {
+-			ret = -ERANGE;
++		ret = arm_smmu_init_sid_strtab(smmu, sid);
++		if (ret)
+ 			break;
+-		}
+-
+-		/* Ensure l2 strtab is initialised */
+-		if (smmu->features & ARM_SMMU_FEAT_2_LVL_STRTAB) {
+-			ret = arm_smmu_init_l2_strtab(smmu, sid);
+-			if (ret)
+-				break;
+-		}
+ 
+ 		/* Insert into SID tree */
+ 		new_node = &(smmu->streams.rb_node);
 -- 
 2.25.1
 
