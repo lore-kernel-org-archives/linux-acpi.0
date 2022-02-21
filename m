@@ -2,153 +2,88 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03726C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Feb 2022 16:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8382C4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Feb 2022 16:38:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379890AbiBUQJc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Feb 2022 11:09:32 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58734 "EHLO
+        id S1380806AbiBUQjL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Feb 2022 11:39:11 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:49582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232866AbiBUQJc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2022 11:09:32 -0500
-Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com [209.85.219.169])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C973117ABB;
-        Mon, 21 Feb 2022 08:09:08 -0800 (PST)
-Received: by mail-yb1-f169.google.com with SMTP id w63so14105881ybe.10;
-        Mon, 21 Feb 2022 08:09:08 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=UPYIn5XH+Em7FNXY5/X3cEIDgDhAxKowlxKqkc3z4TQ=;
-        b=nHtcdIWaI9nm+NaG1XfQh1eN8+usbpPzEOjeNe9TA9XuQitiQ/qvKHodxGb6/Rxie7
-         7C7oQniWOgGcJdItTxCyjAooToPRK0G4We/gcWuk+EtI0+5FkBVEnAq9WLy2KrTaGR6k
-         QUgBiPvgLMOC0vOd7FhtprVFXcuxTKigPCwU2eJiQ+Ha2wKTy4qWnAeagkaq37v/7ILB
-         9UD1e/Drxb5aPgwOrtb6siAC5s8FV4yPmD3QKw1vyMk8afsEUKnJd3Yi4a4Xnd/tsA8H
-         ErxIGtefwdiwlDPN/uqOk+rM1AeUYBmFzWXFotquqkIT/VJGJLBr6hiWAX6D/USWKGDG
-         g74A==
-X-Gm-Message-State: AOAM530FMDTV+RP5y9fSuFTOazgQQ/1Ym0neGTbkF+18KWu3YJqlZLWw
-        mL0M1eIuYN7kcGspVih8UDkB/IcUPDCc4SK7CQk=
-X-Google-Smtp-Source: ABdhPJxCMRPqJ4fex71EVtbTpYHpZhtL3689hPo+XpK5QiFhRPKh4Gio7k8CZx14XtU5ACTiHyDwZRueeQzB/GM1b4I=
-X-Received: by 2002:a25:7d81:0:b0:624:43b7:ed70 with SMTP id
- y123-20020a257d81000000b0062443b7ed70mr14262808ybc.365.1645459748028; Mon, 21
- Feb 2022 08:09:08 -0800 (PST)
+        with ESMTP id S1380782AbiBUQjJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2022 11:39:09 -0500
+Received: from mslow1.mail.gandi.net (mslow1.mail.gandi.net [217.70.178.240])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BE3022BEA;
+        Mon, 21 Feb 2022 08:38:37 -0800 (PST)
+Received: from relay9-d.mail.gandi.net (unknown [217.70.183.199])
+        by mslow1.mail.gandi.net (Postfix) with ESMTP id A7F0ED24FD;
+        Mon, 21 Feb 2022 16:29:16 +0000 (UTC)
+Received: (Authenticated sender: clement.leger@bootlin.com)
+        by mail.gandi.net (Postfix) with ESMTPSA id 5F39CFF804;
+        Mon, 21 Feb 2022 16:29:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+        t=1645460953;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=MRgKG648hOdSkPSK+Ra17yf3vVrdkJOIS/gSbgZNuPk=;
+        b=S49qdn1hnZBcRsguEbukf7/eO6ALAhSvMvmyv2kEwe6zRJO88M9Dj5DXQ93SCdfGt4W+Qs
+        OeYHM0jZJvDRWKkP/Ix1yc/hQ80Sd24VszyimxQYcN81tYCXYHtvp1KyV+75stqGE3QvDi
+        Hfa8r+SqoDWwHFHVvI9Lb77xBgDZSdudMdYVjfNqwN9fitFBRdICbyHH7+z+rYyNsxeB/3
+        r3/flFsSqEmQ1UTknn6jjSdYp+6ha1Ws3CraHqaxmYZXvRLjV9IQ3chkd/6c0PTQheAHYE
+        XbVHbStw3GrlWR+wI8i3D42lXdzT2sIOFg7akx8vaOxGgDKXbqJUQ/ACG9rABw==
+From:   =?UTF-8?q?Cl=C3=A9ment=20L=C3=A9ger?= <clement.leger@bootlin.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Wolfram Sang <wsa@kernel.org>, Peter Rosin <peda@axentia.se>,
+        Russell King <linux@armlinux.org.uk>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-i2c@vger.kernel.org, netdev@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        =?UTF-8?q?Cl=C3=A9ment=20L=C3=A9ger?= <clement.leger@bootlin.com>
+Subject: [RFC 03/10] base: swnode: use fwnode_get_match_data()
+Date:   Mon, 21 Feb 2022 17:26:45 +0100
+Message-Id: <20220221162652.103834-4-clement.leger@bootlin.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220221162652.103834-1-clement.leger@bootlin.com>
+References: <20220221162652.103834-1-clement.leger@bootlin.com>
 MIME-Version: 1.0
-References: <20220220060053.13647-1-tangmeng@uniontech.com>
-In-Reply-To: <20220220060053.13647-1-tangmeng@uniontech.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 21 Feb 2022 17:08:52 +0100
-Message-ID: <CAJZ5v0gowqO1fTdDYqhRJ38bSMpKb8bUFE-=P7GSmVaFdeVyDg@mail.gmail.com>
-Subject: Re: [PATCH 05/11] kernel/acpi: move acpi_video_flags sysctl to its
- own file
-To:     tangmeng <tangmeng@uniontech.com>
-Cc:     "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org, nizhen@uniontech.com,
-        zhanglianjie@uniontech.com, nixiaoming@huawei.com,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Feb 20, 2022 at 7:01 AM tangmeng <tangmeng@uniontech.com> wrote:
->
-> kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-> dishes, this makes it very difficult to maintain.
->
-> To help with this maintenance let's start by moving sysctls to places
-> where they actually belong.  The proc sysctl maintainers do not want to
-> know what sysctl knobs you wish to add for your own piece of code, we
-> just care about the core logic.
->
-> All filesystem syctls now get reviewed by fs folks. This commit
-> follows the commit of fs, move the acpi_video_flags sysctl to its
-> own file, arch/x86/kernel/acpi/sleep.c.
->
-> Signed-off-by: tangmeng <tangmeng@uniontech.com>
+In order to allow matching devices with software node with
+device_get_match_data(), use fwnode_get_match_data() for
+.device_get_match_data operation.
 
-Do you want me to take this or does it depend on the rest of the series?
+Signed-off-by: Clément Léger <clement.leger@bootlin.com>
+---
+ drivers/base/swnode.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> ---
->  arch/x86/kernel/acpi/sleep.c | 21 ++++++++++++++++++++-
->  include/linux/acpi.h         |  1 -
->  kernel/sysctl.c              |  9 ---------
->  3 files changed, 20 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> index 1e97f944b47d..256f3c065605 100644
-> --- a/arch/x86/kernel/acpi/sleep.c
-> +++ b/arch/x86/kernel/acpi/sleep.c
-> @@ -20,7 +20,26 @@
->  #include "../../realmode/rm/wakeup.h"
->  #include "sleep.h"
->
-> -unsigned long acpi_realmode_flags;
-> +static unsigned long acpi_realmode_flags;
-> +#ifdef CONFIG_SYSCTL
-> +static struct ctl_table kern_acpi_table[] = {
-> +       {
-> +               .procname       = "acpi_video_flags",
-> +               .data           = &acpi_realmode_flags,
-> +               .maxlen         = sizeof(unsigned long),
-> +               .mode           = 0644,
-> +               .proc_handler   = proc_doulongvec_minmax,
-> +       },
-> +       { }
-> +};
-> +
-> +static __init int kernel_acpi_sysctls_init(void)
-> +{
-> +       register_sysctl_init("kernel", kern_acpi_table);
-> +       return 0;
-> +}
-> +late_initcall(kernel_acpi_sysctls_init);
-> +#endif /* CONFIG_SYSCTL */
->
->  #if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
->  static char temp_stack[4096];
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 6274758648e3..4f1d9cf579f5 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -349,7 +349,6 @@ static inline bool acpi_sci_irq_valid(void)
->  }
->
->  extern int sbf_port;
-> -extern unsigned long acpi_realmode_flags;
->
->  int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity);
->  int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
-> diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-> index e6d99bbf9a9d..62499e3207aa 100644
-> --- a/kernel/sysctl.c
-> +++ b/kernel/sysctl.c
-> @@ -1973,15 +1973,6 @@ static struct ctl_table kern_table[] = {
->                 .proc_handler   = proc_dointvec,
->         },
->  #endif
-> -#if    defined(CONFIG_ACPI_SLEEP) && defined(CONFIG_X86)
-> -       {
-> -               .procname       = "acpi_video_flags",
-> -               .data           = &acpi_realmode_flags,
-> -               .maxlen         = sizeof (unsigned long),
-> -               .mode           = 0644,
-> -               .proc_handler   = proc_doulongvec_minmax,
-> -       },
-> -#endif
->  #ifdef CONFIG_SYSCTL_ARCH_UNALIGN_NO_WARN
->         {
->                 .procname       = "ignore-unaligned-usertrap",
-> --
-> 2.20.1
->
->
->
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 0a482212c7e8..783ad18f49af 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -662,6 +662,7 @@ software_node_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ static const struct fwnode_operations software_node_ops = {
+ 	.get = software_node_get,
+ 	.put = software_node_put,
++	.device_get_match_data = fwnode_get_match_data,
+ 	.property_present = software_node_property_present,
+ 	.property_read_int_array = software_node_read_int_array,
+ 	.property_read_string_array = software_node_read_string_array,
+-- 
+2.34.1
+
