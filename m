@@ -2,29 +2,29 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57873C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Feb 2022 15:45:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E3CC4167B
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Feb 2022 15:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240473AbiBUPpj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Feb 2022 10:45:39 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:38666 "EHLO
+        id S239790AbiBUPqV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Feb 2022 10:46:21 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:39998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351545AbiBUPpO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2022 10:45:14 -0500
+        with ESMTP id S1379574AbiBUPqA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2022 10:46:00 -0500
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C11F22BD9
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Feb 2022 07:44:21 -0800 (PST)
-Received: from fraeml713-chm.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4K2RRD6bNVz6895n;
-        Mon, 21 Feb 2022 23:43:36 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7BC32253C
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Feb 2022 07:45:36 -0800 (PST)
+Received: from fraeml708-chm.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4K2RSk0m97z687mw;
+        Mon, 21 Feb 2022 23:44:54 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml713-chm.china.huawei.com (10.206.15.32) with Microsoft SMTP Server
+ fraeml708-chm.china.huawei.com (10.206.15.36) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Mon, 21 Feb 2022 16:44:17 +0100
+ 15.1.2308.21; Mon, 21 Feb 2022 16:45:34 +0100
 Received: from A2006125610.china.huawei.com (10.47.91.169) by
  lhreml710-chm.china.huawei.com (10.201.108.61) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Mon, 21 Feb 2022 15:44:09 +0000
+ 15.1.2308.21; Mon, 21 Feb 2022 15:45:27 +0000
 From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 To:     <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>
@@ -34,13 +34,14 @@ CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
         <steven.price@arm.com>, <Sami.Mujawar@arm.com>,
         <jon@solid-run.com>, <eric.auger@redhat.com>,
         <yangyicong@huawei.com>
-Subject: [PATCH v8 00/11] ACPI/IORT: Support for IORT RMR node
-Date:   Mon, 21 Feb 2022 15:43:33 +0000
-Message-ID: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v8 07/11] iommu/arm-smmu-v3: Refactor arm_smmu_init_bypass_stes() to force bypass
+Date:   Mon, 21 Feb 2022 15:43:40 +0000
+Message-ID: <20220221154344.2126-8-shameerali.kolothum.thodi@huawei.com>
 X-Mailer: git-send-email 2.12.0.windows.1
+In-Reply-To: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
+References: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-Originating-IP: [10.47.91.169]
 X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
  lhreml710-chm.china.huawei.com (10.201.108.61)
@@ -49,107 +50,67 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+By default, disable_bypass flag is set and any dev without
+an iommu domain installs STE with CFG_ABORT during
+arm_smmu_init_bypass_stes(). Introduce a "force" flag and
+move the STE update logic to arm_smmu_init_bypass_stes()
+so that we can force it to install CFG_BYPASS STE for specific
+SIDs.
 
-Since we now have an updated verion[0] of IORT spec(E.d) which
-addresses the memory attributes issues discussed here [1],
-this series now make use of it.
+This will be useful in follow-up patch to install bypass
+for IORT RMR SIDs.
 
-The pull request for ACPICA E.d related changes are already
-raised and can be found here,
-https://github.com/acpica/acpica/pull/752
+Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+---
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-v7 --> v8
-  - Patch #1 has temp definitions for RMR related changes till
-    the ACPICA header changes are part of kernel.
-  - No early parsing of RMR node info and is only parsed at the
-    time of use.
-  - Changes to the RMR get/put API format compared to the
-    previous version.
-  - Support for RMR descriptor shared by multiple stream IDs.
-
-Please take a look and let me know your thoughts.
-
-Thanks,
-Shameer
-[0] https://developer.arm.com/documentation/den0049/ed/
-[1] https://lore.kernel.org/linux-acpi/20210805160319.GB23085@lpieralisi/
-
-From old:
-We have faced issues with 3408iMR RAID controller cards which
-fail to boot when SMMU is enabled. This is because these
-controllers make use of host memory for various caching related
-purposes and when SMMU is enabled the iMR firmware fails to
-access these memory regions as there is no mapping for them.
-IORT RMR provides a way for UEFI to describe and report these
-memory regions so that the kernel can make a unity mapping for
-these in SMMU.
-
-Change History:
-
-v6 --> v7
- -fix pointed out by Steve to the SMMUv2 SMR bypass install in patch #8.
-
-v5 --> v6
-- Addressed comments from Robin & Lorenzo.
-  : Moved iort_parse_rmr() to acpi_iort_init() from
-    iort_init_platform_devices().
-  : Removed use of struct iort_rmr_entry during the initial
-    parse. Using struct iommu_resv_region instead.
-  : Report RMR address alignment and overlap errors, but continue.
-  : Reworked arm_smmu_init_bypass_stes() (patch # 6).
-- Updated SMMUv2 bypass SMR code. Thanks to Jon N (patch #8).
-- Set IOMMU protection flags(IOMMU_CACHE, IOMMU_MMIO) based
-  on Type of RMR region. Suggested by Jon N.
-
-v4 --> v5
- -Added a fw_data union to struct iommu_resv_region and removed
-  struct iommu_rmr (Based on comments from Joerg/Robin).
- -Added iommu_put_rmrs() to release mem.
- -Thanks to Steve for verifying on SMMUv2, but not added the Tested-by
-  yet because of the above changes.
-
-v3 -->v4
--Included the SMMUv2 SMR bypass install changes suggested by
- Steve(patch #7)
--As per Robin's comments, RMR reserve implementation is now
- more generic  (patch #8) and dropped v3 patches 8 and 10.
--Rebase to 5.13-rc1
-
-RFC v2 --> v3
- -Dropped RFC tag as the ACPICA header changes are now ready to be
-  part of 5.13[0]. But this series still has a dependency on that patch.
- -Added IORT E.b related changes(node flags, _DSM function 5 checks for
-  PCIe).
- -Changed RMR to stream id mapping from M:N to M:1 as per the spec and
-  discussion here[1].
- -Last two patches add support for SMMUv2(Thanks to Jon Nettleton!)
-
-Jon Nettleton (1):
-  iommu/arm-smmu: Get associated RMR info and install bypass SMR
-
-Shameer Kolothum (10):
-  ACPI/IORT: Add temporary RMR node flag definitions
-  iommu: Introduce a union to struct iommu_resv_region
-  ACPI/IORT: Add helper functions to parse RMR nodes
-  iommu/dma: Introduce generic helper to retrieve RMR info
-  ACPI/IORT: Add a helper to retrieve RMR memory regions
-  iommu/arm-smmu-v3: Introduce strtab init helper
-  iommu/arm-smmu-v3: Refactor arm_smmu_init_bypass_stes() to force
-    bypass
-  iommu/arm-smmu-v3: Get associated RMR info and install bypass STE
-  iommu/arm-smmu-v3: Reserve any RMR regions associated with a dev
-  iommu/arm-smmu: Reserve any RMR regions associated with a dev
-
- drivers/acpi/arm64/iort.c                   | 305 ++++++++++++++++++++
- drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c |  91 ++++--
- drivers/iommu/arm/arm-smmu/arm-smmu.c       |  65 ++++-
- drivers/iommu/dma-iommu.c                   |  25 ++
- include/linux/acpi_iort.h                   |  14 +
- include/linux/dma-iommu.h                   |  14 +
- include/linux/iommu.h                       |   9 +
- 7 files changed, 504 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+index ffabb6926da2..04033d4dd1ac 100644
+--- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
++++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+@@ -1380,12 +1380,21 @@ static void arm_smmu_write_strtab_ent(struct arm_smmu_master *master, u32 sid,
+ 		arm_smmu_cmdq_issue_cmd(smmu, &prefetch_cmd);
+ }
+ 
+-static void arm_smmu_init_bypass_stes(__le64 *strtab, unsigned int nent)
++static void arm_smmu_init_bypass_stes(__le64 *strtab, unsigned int nent, bool force)
+ {
+ 	unsigned int i;
++	u64 val = STRTAB_STE_0_V;
++
++	if (disable_bypass && !force)
++		val |= FIELD_PREP(STRTAB_STE_0_CFG, STRTAB_STE_0_CFG_ABORT);
++	else
++		val |= FIELD_PREP(STRTAB_STE_0_CFG, STRTAB_STE_0_CFG_BYPASS);
+ 
+ 	for (i = 0; i < nent; ++i) {
+-		arm_smmu_write_strtab_ent(NULL, -1, strtab);
++		strtab[0] = cpu_to_le64(val);
++		strtab[1] = cpu_to_le64(FIELD_PREP(STRTAB_STE_1_SHCFG,
++						   STRTAB_STE_1_SHCFG_INCOMING));
++		strtab[2] = 0;
+ 		strtab += STRTAB_STE_DWORDS;
+ 	}
+ }
+@@ -1413,7 +1422,7 @@ static int arm_smmu_init_l2_strtab(struct arm_smmu_device *smmu, u32 sid)
+ 		return -ENOMEM;
+ 	}
+ 
+-	arm_smmu_init_bypass_stes(desc->l2ptr, 1 << STRTAB_SPLIT);
++	arm_smmu_init_bypass_stes(desc->l2ptr, 1 << STRTAB_SPLIT, false);
+ 	arm_smmu_write_strtab_l1_desc(strtab, desc);
+ 	return 0;
+ }
+@@ -3060,7 +3069,7 @@ static int arm_smmu_init_strtab_linear(struct arm_smmu_device *smmu)
+ 	reg |= FIELD_PREP(STRTAB_BASE_CFG_LOG2SIZE, smmu->sid_bits);
+ 	cfg->strtab_base_cfg = reg;
+ 
+-	arm_smmu_init_bypass_stes(strtab, cfg->num_l1_ents);
++	arm_smmu_init_bypass_stes(strtab, cfg->num_l1_ents, false);
+ 	return 0;
+ }
+ 
 -- 
 2.25.1
 
