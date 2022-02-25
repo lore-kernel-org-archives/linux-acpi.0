@@ -2,53 +2,56 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE37BC433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Feb 2022 17:30:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76FF6C433F5
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Feb 2022 17:34:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243723AbiBYRbA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Feb 2022 12:31:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49280 "EHLO
+        id S243743AbiBYRed (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Feb 2022 12:34:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235656AbiBYRa7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Feb 2022 12:30:59 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F72F652E4;
-        Fri, 25 Feb 2022 09:30:27 -0800 (PST)
+        with ESMTP id S238311AbiBYRec (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Feb 2022 12:34:32 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44CB41637FD;
+        Fri, 25 Feb 2022 09:34:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C59A61DB3;
-        Fri, 25 Feb 2022 17:30:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0B3C340F2;
-        Fri, 25 Feb 2022 17:30:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645810226;
-        bh=gcH32dGW4EZg7RhvfI9PxuB4WZ5SQvodrDrzUdNnKWg=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=p7TWQ+pL8SilFZ/W8gL6GZJkmwvlI7P3wrp1A68wtRh0+yEYlL2LbBn6ojgUIenrz
-         DWUJSiENv03fyffxS6/GLCmCBH1tVtxo3rrRMActUr+heDbYUwGIPRukx+lfR6r2BJ
-         C6maz7CX0e/YMbJWKYA465x6I5ylBSh0YLjQaLnqYXpn2opiTmauvg4BVjp3lgtwSp
-         wo09iI3ZknB/EhpPzj9X1b03A9l8EyyWLohPMgsfWTJW7s2UXIb7TKMKX4a49vL83R
-         NdfhcHwy9XsnJCEHxAU+RJW2ZMIpoXZQqKkMsh9lI86UIB9U8PjLAdbj9oJX8H3uYH
-         QVZLe1cPKUyxQ==
-Received: by mail-yb1-f174.google.com with SMTP id d21so7210596yba.11;
-        Fri, 25 Feb 2022 09:30:26 -0800 (PST)
-X-Gm-Message-State: AOAM530ZplcOyNb/FBSIZS8/P3ZpWeT2qt4sNzckB/j1n1Et2YhTiHJ/
-        OVjgrqFxndnm4jfBmmU/kc4k/zFgFYs3l3+220c=
-X-Google-Smtp-Source: ABdhPJz38V+iNaKLP6PxVSjf2Dw++J9wO+pfVO8AqgNDrTjTJT6JAfe/zvEIoqQhdtoe5zUJGa5VxUpfMz/deLHuYMw=
-X-Received: by 2002:a25:4214:0:b0:624:6215:4823 with SMTP id
- p20-20020a254214000000b0062462154823mr8228722yba.432.1645810225527; Fri, 25
- Feb 2022 09:30:25 -0800 (PST)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D7679B832D0;
+        Fri, 25 Feb 2022 17:33:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57A3DC340F1;
+        Fri, 25 Feb 2022 17:33:57 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="PxBxo4FT"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1645810434;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=5/UfaZITJxu0H1BQwiMhOXGkrGHeskVTi/A9G28Of3c=;
+        b=PxBxo4FTEb2YcdGU6iJx5RXgFvNLDy/JCeoJNRQ/Aa7R3Lfg7yRyOXXIRKGiBV0f+yGzM/
+        C2CFBt8UQhl7eqDikkacwsWRJW12yY/SN9+cCYTHlG2ijA+CDQV61vuXvur47uVMzNhdSX
+        tIGxR60SfazHMPq2RAQAiajq9yjO4zM=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 8eda722c (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
+        Fri, 25 Feb 2022 17:33:54 +0000 (UTC)
+Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-2d310db3812so41434197b3.3;
+        Fri, 25 Feb 2022 09:33:54 -0800 (PST)
+X-Gm-Message-State: AOAM532yi2NHWIXamUiQgJoXKKd9Ud1//T9z+VxXovDhHqeXR2h0UlaC
+        XTB5qvl3WaPzIDTxitupqAzw7hKKIqu/2EB2hyw=
+X-Google-Smtp-Source: ABdhPJxswLWCUsTRFGAuxcief/Pj1DvT7KnwtUGFELbRndJZsvrVIdz4BWtlerGT5nE8NSVfb8AtBsNIQf3/c3WJZis=
+X-Received: by 2002:a81:c74c:0:b0:2d6:b681:af58 with SMTP id
+ i12-20020a81c74c000000b002d6b681af58mr8883802ywl.100.1645810433242; Fri, 25
+ Feb 2022 09:33:53 -0800 (PST)
 MIME-Version: 1.0
 References: <20220225155552.30636-1-graf@amazon.com> <CAMj1kXGtANm3SMoREymDSyx+wpn3L=Ex5q5mpgQigOwmEp33Lg@mail.gmail.com>
- <YhkQKfE8ErtFBmSB@zx2c4.com>
-In-Reply-To: <YhkQKfE8ErtFBmSB@zx2c4.com>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Fri, 25 Feb 2022 18:30:14 +0100
-X-Gmail-Original-Message-ID: <CAMj1kXEtUUod8Hp6VhS6k7iDKYkFj_t_J=qS2XF1p2X_SFdTvg@mail.gmail.com>
-Message-ID: <CAMj1kXEtUUod8Hp6VhS6k7iDKYkFj_t_J=qS2XF1p2X_SFdTvg@mail.gmail.com>
+ <YhkQKfE8ErtFBmSB@zx2c4.com> <CAMj1kXEtUUod8Hp6VhS6k7iDKYkFj_t_J=qS2XF1p2X_SFdTvg@mail.gmail.com>
+In-Reply-To: <CAMj1kXEtUUod8Hp6VhS6k7iDKYkFj_t_J=qS2XF1p2X_SFdTvg@mail.gmail.com>
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date:   Fri, 25 Feb 2022 18:33:42 +0100
+X-Gmail-Original-Message-ID: <CAHmME9oJpL_y4bDaLwrZZZ54p5_C0YF9=vW7Zz1iUhpBHx2TvA@mail.gmail.com>
+Message-ID: <CAHmME9oJpL_y4bDaLwrZZZ54p5_C0YF9=vW7Zz1iUhpBHx2TvA@mail.gmail.com>
 Subject: Re: [PATCH] ACPI: bus: Match first 9 bytes of device IDs
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     Ard Biesheuvel <ardb@kernel.org>
 Cc:     Alexander Graf <graf@amazon.com>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -61,62 +64,29 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 25 Feb 2022 at 18:21, Jason A. Donenfeld <Jason@zx2c4.com> wrote:
+On Fri, Feb 25, 2022 at 6:30 PM Ard Biesheuvel <ardb@kernel.org> wrote:
+> Yeah, good point. I think this is fine, although there are a few other
+> uses of ACPI_ID_LEN in the tree. So perhaps this should be something
+> like
 >
-> On Fri, Feb 25, 2022 at 6:13 PM Ard Biesheuvel <ardb@kernel.org> wrote:
-> >
-> > The device subsystem side of things already deals with this properly:
-> > the modalias of the QEMU vmgenid device comes up as
-> > 'acpi:QEMUVGID:VM_GEN_COUNTER', which means it already captures the
-> > entire string, and exposes it in the correct way (modulo the all caps)
+> #define ACPI_ID_LEN    9
+> #define ACPI_CID_LEN    16
 >
-> Ahh, so the userspace side of this won't work right. Shucks. That's what
-> I was concerned about.
+> /* explanation goes here */
 >
-> > I don't like this hack. If we are going to accept the fact that CIDs
-> > could be arbitrary length strings, we should handle them properly.
-> >
-> > So what we need is a way for a module to describe its compatibility
-> > with such a _CID, which shouldn't be that complicated.
+> struct acpi_device_id {
+>     __u8 id[ACPI_CID_LEN];
 >
-> Can't we do something more boring and just...
->
-> diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-> index 4bb71979a8fd..5da5d990ff58 100644
-> --- a/include/linux/mod_devicetable.h
-> +++ b/include/linux/mod_devicetable.h
-> @@ -210,9 +210,9 @@ struct css_device_id {
->         __u8 type; /* subchannel type */
->         kernel_ulong_t driver_data;
->  };
->
-> -#define ACPI_ID_LEN    9
-> +#define ACPI_ID_LEN    16
->
->  struct acpi_device_id {
->         __u8 id[ACPI_ID_LEN];
->         kernel_ulong_t driver_data;
->
->
-> As you can see from the context, those additional 7 bytes were being
-> wasted on padding anyway inside the acpi_device_id struct, so it's
-> basically free, it would seem. This seems like the least convoluted way
-> of solving this issue? If we ever encounter _more_ ACPI devices with
-> weird names, we could revisit a fancy dynamic solution, but for now, why
-> don't we keep it simple?
->
+> instead? At a quick glance, none of those ACPI_ID_LEN users seem
+> related to the CID or the match metadata.
 
-Yeah, good point. I think this is fine, although there are a few other
-uses of ACPI_ID_LEN in the tree. So perhaps this should be something
-like
+Either way is fine by me. Looking at all the current users of
+ACPI_ID_LEN, none of them really mind if it's >9. I can't see where
+it'd change any behavior or performance or really anything at all,
+anywhere. So I'm inclined to go with my original simpler solution. But
+again, either way is fine.
 
-#define ACPI_ID_LEN    9
-#define ACPI_CID_LEN    16
+Alex, do you want to pick one of these and submit a v2 based on it? Or
+do you see a shortcoming in that approach?
 
-/* explanation goes here */
-
-struct acpi_device_id {
-    __u8 id[ACPI_CID_LEN];
-
-instead? At a quick glance, none of those ACPI_ID_LEN users seem
-related to the CID or the match metadata.
+Jason
