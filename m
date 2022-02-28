@@ -2,173 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00E32C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Feb 2022 18:33:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72463C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Feb 2022 18:33:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235061AbiB1Sdt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Feb 2022 13:33:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40804 "EHLO
+        id S240567AbiB1SeU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Feb 2022 13:34:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241051AbiB1SdB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2022 13:33:01 -0500
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2063.outbound.protection.outlook.com [40.107.92.63])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0602263E2
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Feb 2022 10:17:12 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hgSxRXC74tBlKaaxbv5e5aDKUY3GOsr5bQ679aYOkZJzEz2wpFiEViXLPajIUQw33Y6c8XJrME048DQr0fuSTigQes7RYG/gSGv/udLIZXISH1LHHEEuqGLVGUKyP0xxHvYa7fs9lCg80q43rmwddPcC3r8kiL80zs9Pc6DiLWoYV627Hv0K6PWhCUVJ5kQTWMDuT9jaHfpMauk/VBX6Oxh4/zuLROyhsztOwwQ5Xt0QpVk2TXP3yExI/zIuebtC0/BCIWCb4TBPkBXiPRk6IiiMAhAYH5NvtOtEnxjduu9VdamTwRDJkWH27dTH5FUo9bNFLkDeSIv1MiaYSgALjw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=DhSR6MCafjDaE9YhERaYdlPSYamQLRLVchwIxEk2CuE=;
- b=V2Mx+ACbskteZdeMpUUMmZ3rb5UmgZieuJTUcfaefwsXTCX070cNiNBnohMg1Q9RXgjKaaC2/+bdPdJXC6qRE4YQS4AFHWEVvpJ0JselUzjUxEQEP4FH+HbneDUeXqRbRDBXuVEWy4eZdTDdfNPxZjK9HeYbSpoIohpeFEQmRSsN/ZsKItGjPO1yy1ypCkL9gs9fkkDOlIpB2GOFitIPY3862oIyL+ma0LKLWs5D/gskcOsn50KxyoZ3wxuWpEP5RPxl6Zf1G1IBXixzlD5m2vuFnnwLW2JT3iOS7kiAjoNvl6GirUrBmHwU1M+4b0NfVe0OQzFhLqbcoO1yXC8q3g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=rjwysocki.net smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=DhSR6MCafjDaE9YhERaYdlPSYamQLRLVchwIxEk2CuE=;
- b=vG7V12vDq3Hw0OzdA7wOP8jIG23H33KAAtt4+OUfJuuvHZgSB48ACfKdYEjKxcVMeAAUFhC/09Kda0S0BLnQA4gSoDukcLRdEMmw2lpX7PJ9zl8vf0iiJWQMmseb5YwzuzwFJKGFKQBKLwFwqkMffoRNU1cwlReWr9YiZVeDINg=
-Received: from BN9PR03CA0536.namprd03.prod.outlook.com (2603:10b6:408:131::31)
- by SN1PR12MB2559.namprd12.prod.outlook.com (2603:10b6:802:29::30) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.23; Mon, 28 Feb
- 2022 18:17:09 +0000
-Received: from BN8NAM11FT016.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:131:cafe::1) by BN9PR03CA0536.outlook.office365.com
- (2603:10b6:408:131::31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.23 via Frontend
- Transport; Mon, 28 Feb 2022 18:17:08 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com;
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- BN8NAM11FT016.mail.protection.outlook.com (10.13.176.97) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5017.22 via Frontend Transport; Mon, 28 Feb 2022 18:17:08 +0000
-Received: from localhost.localdomain (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Mon, 28 Feb
- 2022 12:17:07 -0600
-From:   Mario Limonciello <mario.limonciello@amd.com>
-To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        <linux-acpi@vger.kernel.org>
-CC:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        <Xiaomeng.Hou@amd.com>, <Aaron.Liu@amd.com>, <Ray.Huang@amd.com>,
-        <hdegoede@redhat.com>,
-        "Mario Limonciello" <mario.limonciello@amd.com>
-Subject: [PATCH v3 2/3] ACPI: bus: Allow negotiating OSC capabilities
-Date:   Mon, 28 Feb 2022 12:14:45 -0600
-Message-ID: <20220228181446.1975420-2-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220228181446.1975420-1-mario.limonciello@amd.com>
-References: <20220228181446.1975420-1-mario.limonciello@amd.com>
+        with ESMTP id S240546AbiB1Sdl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2022 13:33:41 -0500
+Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com [209.85.219.178])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA2FB7C7AE;
+        Mon, 28 Feb 2022 10:19:13 -0800 (PST)
+Received: by mail-yb1-f178.google.com with SMTP id b35so22228626ybi.13;
+        Mon, 28 Feb 2022 10:19:13 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=w+StE5EDrX4KonZXXrEcAwaI/5yqzkjCqX+Vj4i9MMQ=;
+        b=WEIuor3xIzRiN8woA7Rcg50X0GuVsL5DpyLnJdCvy8E3ZpdmjLqEk2sIeB0rThYByW
+         8UzokdCy1u7RksAqWY8b0/SpNCXRjoQdeR7fDjG32F4jdm4ndBJol/8muEMBsrxmsmdo
+         T+pXbA+CGOOY9WwsG3e9YJAXotRRTHyq/uaW6fbMUyevFvyuA+9qmNd/UM19fwWtemFG
+         /ModbKAHBvNdebwPK0qq16UhZi5IvcjRqi9ZZkcUJDyyvzAnByXpQjajattQxgPHXOIc
+         eE+qNkj9dIdDwxZEtcSXk6WdYBpGtYxw5C9jwOxTP8PNHzKQU4lg4ChqOmC0HJauEf0O
+         vGkg==
+X-Gm-Message-State: AOAM532h7WxVBFUm0YlTb0+wzmRMNnedJdJQA4X7pYzQ0Z1mwDPWRR1N
+        HRsHevlgdbLhjJRpsYNRLW4+rokj7Asv3gsclbI=
+X-Google-Smtp-Source: ABdhPJzWsCzDi+CFokdvxLYx8iy1cRJSPWBfOjOBbMf8ycRw2gUE3AI/ZxXAtE+1gGwxMpftuEdKMtEjV390ThV5muM=
+X-Received: by 2002:a25:fe10:0:b0:625:262f:e792 with SMTP id
+ k16-20020a25fe10000000b00625262fe792mr18395899ybe.365.1646072352451; Mon, 28
+ Feb 2022 10:19:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 9d957138-1fdb-46e4-d8be-08d9fae6886b
-X-MS-TrafficTypeDiagnostic: SN1PR12MB2559:EE_
-X-Microsoft-Antispam-PRVS: <SN1PR12MB25590C96023187611239EADBE2019@SN1PR12MB2559.namprd12.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: j0Y1RMmfWf8p5JkQGCJMT5GHwnhMkGRWm8v5WIu1GrUMMO3QwEUsNR2Vuy8Cb8o2SPtd/NJmWUmTbT5c9U9hF8QeVuY6+i9SOkyT2KbErKxi7eYGopZlNNLHqTWlxIcaeb2SrMJ5Ix24R79HsodUK2wAJZ1SaeGj901MImgVDsVJSUFrmdHyak/OsKy+kOxpPERe0OwkBAGpBbAfBK/wRu24TBxecOjPryP0zU+LRLo5ZYEWNMV9AmUS5O9qo9oGJNoaeGtYKkbXqgXVae1yXmn+svMvYaGQ4zD9EaNzy50SQEMlMWk2UpV2lLahaPRhVugFGK2pHehPlwt1tdYYwco76XIsukFPYNcoUQkEJgAZz26A/g7oUZy21YM6W+ZFzDFuXjnk/K2jv1g4grnKZqzrDCX24EiRVuDJNZT9+BxT6LF3yNwnLWE+BYRIuk6/G0rtfxhLQsNuP9Qgfisga5E5RR3Dgi7htPMUgfgDpIsVl77jp4Cz1DcipcUjVAGJhXr06DTvLpbqEkBXvzOba0H1fpV9IcZRpXlxM8tg84429/UHbRzBl/dcMAyo02zMBKLxElaxzXRG7DzLlQ712M0r5xIyQtHZMSBIo9BYyDNp/uAk0AMceWDXFGnPIeDI6wv69Gi3f8c6eUgNDogHgNcb3NQaGHkGOfMTqOrJjDY0zQBfbC6gVL3axLLTSG9pNT2bCwO5908SbNdrQdzoog==
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(46966006)(40470700004)(36840700001)(2906002)(8676002)(110136005)(4326008)(70586007)(70206006)(508600001)(8936002)(5660300002)(6666004)(2616005)(1076003)(36756003)(54906003)(316002)(44832011)(81166007)(16526019)(336012)(186003)(47076005)(426003)(36860700001)(83380400001)(26005)(82310400004)(86362001)(40460700003)(356005)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Feb 2022 18:17:08.7202
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9d957138-1fdb-46e4-d8be-08d9fae6886b
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT016.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN1PR12MB2559
+References: <20220226220639.1173594-1-Jason@zx2c4.com> <20220226220639.1173594-3-Jason@zx2c4.com>
+ <0c73d29e-e558-efb9-d0d7-c612b2bb7e90@amazon.com> <YhtyBHUyFysmZ9bC@zx2c4.com>
+ <CAHmME9pocD1CoZbnF7p4k0ws7-R0Vc9H4i5TRJ_MCX-d3AZhFw@mail.gmail.com>
+In-Reply-To: <CAHmME9pocD1CoZbnF7p4k0ws7-R0Vc9H4i5TRJ_MCX-d3AZhFw@mail.gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 28 Feb 2022 19:19:01 +0100
+Message-ID: <CAJZ5v0h_Z9XS9ZgSF4CWrZ4RU7=Oa02MY3_g0Y_rcgRNzsizfQ@mail.gmail.com>
+Subject: Re: [PATCH v5 2/3] ACPI: allow longer device IDs
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc:     Alexander Graf <graf@amazon.com>, Len Brown <lenb@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently when capabilities have been masked by firmware during a
-negotiation with OSC_QUERY_ENABLE set they're silently ignored
-by the caller.  If the caller calls `acpi_run_osc` again without
-query set and the same capabilities, then they instead get a failure
-possibly leading to downstream problems.
++Mika, Andy and Hans in case they have something to add
 
-So instead when query is set return AE_SUPPORT which callers can then
-use for determining that capabilities were masked.
+On Mon, Feb 28, 2022 at 12:27 AM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
+>
+> Hey again,
+>
+> On Sun, Feb 27, 2022 at 1:43 PM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
+> >
+> > Hi Alex,
+> >
+> > On Sun, Feb 27, 2022 at 12:42:03PM +0100, Alexander Graf wrote:
+> > > > To allow device drivers to match identifiers that exceed the 9 byte
+> > > > limit, this simply ups the length to 16, just like it was before the
+> > > > aforementioned commit. Empirical testing indicates that this
+> > >
+> > >
+> > > This is only true for 64bit systems where padding automatically bloated
+> > > to 9 byte array to 16. I still believe the patch is fine as it is, but
+> > > there will be minor .rodata overhead on 32bit targets which you may want
+> > > to quantify in the patch description.
+> >
+> > Good point. So I just tried this out with a 32-bit i686 kernel and the
+> > results are the same again for the size of vmlinux. I then ran `objdump
+> > --headers` and looked at the size of the .rodata section, where it's
+> > also the same. I'm not quite sure what to make of this, as it's not what
+> > I was expecting, but I think I tested it right. So maybe we're lucky
+> > here?
+>
+> I tried a little harder to get _some_ difference on 32-bit, and
+> managed to get one by doing i386_defconfig and then switching off
+> modules to make all M into Y, and then compared sizes:
+>
+> vmlinux: 25590780 -> 25598972, so a 0.032% increase.
+> bzImage: 8698944 -> 8699424, so a 0.0055% increase.
+>
+> So it does increase, ever so slightly, but a) on 32-bit, and b) a
+> super, super tiny amount.
+>
+> In other words, I still think this patch is very much a-okay. But very
+> eager to hear from Rafael on the approach.
 
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
-Changes from v2->v3:
- * Add kernel doc for the acpi_run_osc function
- * Correct a logic error
- drivers/acpi/bus.c | 26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+Increasing the ACPI_ID_LEN value is fine with me, but the patch
+changelog is not entirely accurate.
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 07f604832fd6..81647591ec27 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -184,6 +184,18 @@ static void acpi_print_osc_error(acpi_handle handle,
- 	pr_debug("\n");
- }
- 
-+/**
-+ * acpi_run_osc - Evaluate the _OSC method for a given ACPI handle
-+ * @handle: ACPI handle containing _OSC to evaluate
-+ * @context: A structure specifying UUID, revision, and buffer for data
-+ *
-+ * Used for negotiating with firmware the capabilities that will be used
-+ * by the OSPM.  Although the return type is acpi_status, the ACPI_SUCCESS
-+ * macro can not be used to determine whether to free the buffer of
-+ * returned data.
-+ *
-+ * The buffer must be freed when this function returns AE_OK or AE_SUCCESS.
-+ */
- acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
- {
- 	acpi_status status;
-@@ -243,16 +255,19 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
- 			acpi_print_osc_error(handle, context,
- 				"_OSC invalid revision");
- 		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
-+			acpi_print_osc_error(handle, context, "_OSC capabilities masked");
- 			if (((u32 *)context->cap.pointer)[OSC_QUERY_DWORD]
--			    & OSC_QUERY_ENABLE)
--				goto out_success;
--			status = AE_SUPPORT;
--			goto out_kfree;
-+			    & OSC_QUERY_ENABLE) {
-+				status = AE_SUPPORT;
-+				goto out_masked;
-+			}
- 		}
- 		status = AE_ERROR;
- 		goto out_kfree;
- 	}
--out_success:
-+
-+	status =  AE_OK;
-+out_masked:
- 	context->ret.length = out_obj->buffer.length;
- 	context->ret.pointer = kmemdup(out_obj->buffer.pointer,
- 				       context->ret.length, GFP_KERNEL);
-@@ -260,7 +275,6 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
- 		status =  AE_NO_MEMORY;
- 		goto out_kfree;
- 	}
--	status =  AE_OK;
- 
- out_kfree:
- 	kfree(output.pointer);
--- 
-2.34.1
+The ACPI subsystem uses struct acpi_device_id mostly (if not only) for
+device ID matching and it is generally used for creating lists of ACPI
+device IDs in drivers (and allow/deny lists etc).  The device IDs
+extracted from the ACPI tables can be longer than ACPI_ID_LEN.
 
+This means that drivers cannot match device IDs longer than 8
+characters (excluding the terminating 0), because the IDs in the lists
+used by them for ID matching cannot be longer than this and not
+because the ACPI subsystem is limited by that value.
