@@ -2,136 +2,84 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65157C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Feb 2022 22:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB23C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Feb 2022 22:39:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231527AbiB1WkI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Feb 2022 17:40:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45040 "EHLO
+        id S231529AbiB1WkJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Feb 2022 17:40:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231480AbiB1WkG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2022 17:40:06 -0500
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A0F312558E;
-        Mon, 28 Feb 2022 14:39:27 -0800 (PST)
+        with ESMTP id S231519AbiB1WkH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2022 17:40:07 -0500
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3554A12559C;
+        Mon, 28 Feb 2022 14:39:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646087967; x=1677623967;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=Z3cuSidlSplrkPzS0iAKkjA4oiCL66X8tnB9pZSBsV4=;
-  b=fLUPhKYbsdkGxitMzipIio+TUVfL+xwBF+qY09i5DDEtTkClzSS8nDB+
-   ScHl2VR0VMqm1maWk/ZlA1CSmSwEJq+ebkIXqRf5e+qvOzpxDFuOBQ0PW
-   Zznv1Uh2W7M0yQzRboqfw67fFVLdZjRRYbfFduPFK16xwoOtIba4Vpk1Z
-   /nwE4z2MgtpAx5MEL3s8FDIrty3z57Ao6yBwiEgqNQg3+IJzTn2+fRlOD
-   BEyrAE1p2W3SzbvdYzH2phncsk+j8L2XK69HyB46vjV6KfXfKVYS36ddw
-   c1y+q62Ae4Da+xSOrMU1eRsoy7sUnpZyLx5QcmL4PphQwzToA5oW6Tc/g
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="251835914"
+  t=1646087968; x=1677623968;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=sxPkQmC4SHUxeAYkXMXlFFqEMODjBZBuzvHgbKNXCYo=;
+  b=JnmrdEgr9w2odENEiVRd52MxtKlBDt+GSbsqMgxRImwIv0do74jxk8+6
+   RIRdvKJ9XyGhQAwuGK2vWxXDMRjOzDegmir0tdPduAW7HLSgUNNqWNjog
+   mj18uAqwiVPQoYzE0+rsqUQTrYE/gVLbOxvToTqsnGJTPqqk7S62RJpRc
+   qeMLY/Jpc6ludGOw7dk37hOa01Dj82nsIsyKrAHw5xF+aVYErbMpoEx6Q
+   HkuXn4QIYaVYUOZPKypl5WVvaGXeGoctair8NZyPY1QhqIUSAKHaTboFB
+   NRTIOlLxrcT2kFpCHrWsGl3rMjAFBF/0i9ZXlL/DyWXqW9d/ULiO85H/g
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="313724233"
 X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="251835914"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 14:39:26 -0800
+   d="scan'208";a="313724233"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 14:39:26 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="629799062"
+   d="scan'208";a="685501809"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by FMSMGA003.fm.intel.com with ESMTP; 28 Feb 2022 14:39:24 -0800
+  by fmsmga001.fm.intel.com with ESMTP; 28 Feb 2022 14:39:24 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 08036142; Tue,  1 Mar 2022 00:39:41 +0200 (EET)
+        id 2C2A0183; Tue,  1 Mar 2022 00:39:42 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 1/7] ACPI: enumeration: Discourage to use custom _DSM methods
-Date:   Tue,  1 Mar 2022 00:39:30 +0200
-Message-Id: <20220228223936.54310-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/7] ACPI: enumeration: Amend PWM enumeration ASL example
+Date:   Tue,  1 Mar 2022 00:39:33 +0200
+Message-Id: <20220228223936.54310-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220228223936.54310-1-andriy.shevchenko@linux.intel.com>
+References: <20220228223936.54310-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Since we have _DSD established and specified (ACPI v5.1+) there is no
-need to use custom _DSM methods. Rewrite documentation to use _DSD.
+Drop blank line and add a closing curly brace to make ASL example closer
+to the reality.
 
-Fixes: f60e7074902a ("misc: at25: Make use of device property API")
+Fixes: ef3d13b86763 ("docs: firmware-guide: ACPI: Add a PWM example")
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- .../firmware-guide/acpi/enumeration.rst       | 48 ++++++++-----------
- 1 file changed, 21 insertions(+), 27 deletions(-)
+ Documentation/firmware-guide/acpi/enumeration.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Documentation/firmware-guide/acpi/enumeration.rst b/Documentation/firmware-guide/acpi/enumeration.rst
-index d0022567c022..3b221cc9ff5f 100644
+index c7dbf79d45b0..96179d2a8871 100644
 --- a/Documentation/firmware-guide/acpi/enumeration.rst
 +++ b/Documentation/firmware-guide/acpi/enumeration.rst
-@@ -227,43 +227,37 @@ to at25 SPI eeprom driver (this is meant for the above ACPI snippet)::
- 	};
- 
- Note that this driver actually needs more information like page size of the
--eeprom etc. but at the time writing this there is no standard way of
--passing those. One idea is to return this in _DSM method like::
-+eeprom, etc. This information can be passed via _DSD method like::
- 
- 	Device (EEP0)
- 	{
- 		...
--		Method (_DSM, 4, NotSerialized)
-+		Name (_DSD, Package ()
- 		{
--			Store (Package (6)
-+			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+			Package ()
- 			{
--				"byte-len", 1024,
--				"addr-mode", 2,
--				"page-size, 32
--			}, Local0)
+@@ -316,9 +316,9 @@ introduced, i.e.::
+                     }
+                 }
+             }
 -
--			// Check UUIDs etc.
--
--			Return (Local0)
--		}
--
--Then the at25 SPI driver can get this configuration by calling _DSM on its
--ACPI handle like::
--
--	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_object_list input;
--	acpi_status status;
-+				Package () { "size", 1024 },
-+				Package () { "pagesize", 32 },
-+				Package () { "address-width", 16 },
-+			}
-+		})
-+	}
+         })
+         ...
++    }
  
--	/* Fill in the input buffer */
-+Then the at25 SPI driver can get this configuration by calling device property
-+APIs during ->probe() phase like::
- 
--	status = acpi_evaluate_object(ACPI_HANDLE(&spi->dev), "_DSM",
--				      &input, &output);
--	if (ACPI_FAILURE(status))
--		/* Handle the error */
-+	err = device_property_read_u32(dev, "size", &size);
-+	if (err)
-+		...error handling...
- 
--	/* Extract the data here */
-+	err = device_property_read_u32(dev, "pagesize", &page_size);
-+	if (err)
-+		...error handling...
- 
--	kfree(output.pointer);
-+	err = device_property_read_u32(dev, "address-width", &addr_width);
-+	if (err)
-+		...error handling...
- 
- I2C serial bus support
- ======================
+ In the above example the PWM-based LED driver references to the PWM channel 0
+ of \_SB.PCI0.PWM device with initial period setting equal to 600 ms (note that
 -- 
 2.34.1
 
