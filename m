@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 129E6C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Feb 2022 22:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C68BEC433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Feb 2022 22:39:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231516AbiB1WkH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S231506AbiB1WkH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 28 Feb 2022 17:40:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44994 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230488AbiB1WkG (ORCPT
+        with ESMTP id S231175AbiB1WkG (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2022 17:40:06 -0500
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6203512552D;
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2EB9124C2C;
         Mon, 28 Feb 2022 14:39:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1646087966; x=1677623966;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=7KW5r5qAfPKAahouBoRxbP98/SFsYhZNNzFD4JTPQyQ=;
-  b=Pg3Hszf/wEHWGlSgE8HsE4Bpb7g1FYERLyQ1CydHkh3PWQ4t2PYrSSsm
-   X++3nP+/+PM0JqLnirbM0/m7wdHVaOUltOhDLTqf7eANKc49yVzTovJIA
-   X3G3+SkWS+5eRJOpRo1WQ9wDF7Y+LN1qm9IzYgg+uqPajhm6AlonaJtIb
-   xCQwwK4rlg+Coa87Z548qP6bJdy3E5mgpW5GN0tygLfUCDC/7tz8X/JxY
-   09a3ItuDGVmto3rY9QqrsPmJv27hQQhU6ccTz15Yvkim334l5tqnjB6gj
-   lNn5OYi1SmkPhjPNajwfBXDi3OlR/8ZWP+dC0omBmfUwwLPNbGBoSBQsm
+  bh=YLC9rgC4ZBM6Z/PdSXcXp2iSqN22GTMuevEcbQk15QU=;
+  b=IMpHbmNqg3DYPVGHBkylvekpJHq0N4ouwZ2jBcMs4elsBLlDvvOPCvGL
+   S4ccNZZdOrbqKus/KWMsLg/5Zhna48CHm+ul0L8nJDYzz6DUNsMyF3eyt
+   QTb3iWLQpDNwt1IOf37A2deaN64sDQ1fvJd6EVzptfmh5/CLC7dF/ui1X
+   yyRJnV1QhzcxcZ2LazR0IiPFg9Ce61D3VSa7+0WaDm4qG7ctrqde26Jr2
+   JQxRdakGcztl9HQ1cXj/5zu0EMDV8Em9HdI8FqmuLcO5YZxqFJ19emi0e
+   pP+7BftAOgpIl/OSEtNt498Y472yCXcEb6Q2cXUgtzkXG/pQtX9u81kME
    w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="251835911"
+X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="236511704"
 X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="251835911"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 14:39:26 -0800
+   d="scan'208";a="236511704"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 14:39:26 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="593387226"
+   d="scan'208";a="550445547"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 28 Feb 2022 14:39:24 -0800
+  by orsmga008.jf.intel.com with ESMTP; 28 Feb 2022 14:39:24 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 13E5442; Tue,  1 Mar 2022 00:39:42 +0200 (EET)
+        id 346711C9; Tue,  1 Mar 2022 00:39:42 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 2/7] ACPI: enumeration: Update UART serial bus resource documentation
-Date:   Tue,  1 Mar 2022 00:39:31 +0200
-Message-Id: <20220228223936.54310-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 5/7] ACPI: enumeration: Drop ugly ifdeffery from the examples
+Date:   Tue,  1 Mar 2022 00:39:34 +0200
+Message-Id: <20220228223936.54310-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220228223936.54310-1-andriy.shevchenko@linux.intel.com>
 References: <20220228223936.54310-1-andriy.shevchenko@linux.intel.com>
@@ -56,42 +56,81 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In some cases UART serial bus resource may be represented by struct
-serdev_device.
+The ifdeffery around ACPI ID tables are ugly and in some cases
+even less valuable than plain definitions. Drop them for good
+to avoid spreading rather bad pattern.
 
-Fixes: 53c7626356c7 ("serdev: Add ACPI support")
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- Documentation/firmware-guide/acpi/enumeration.rst | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ Documentation/firmware-guide/acpi/enumeration.rst | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
 diff --git a/Documentation/firmware-guide/acpi/enumeration.rst b/Documentation/firmware-guide/acpi/enumeration.rst
-index 3b221cc9ff5f..f4bb5ddca528 100644
+index 96179d2a8871..93fdc04de9c3 100644
 --- a/Documentation/firmware-guide/acpi/enumeration.rst
 +++ b/Documentation/firmware-guide/acpi/enumeration.rst
-@@ -19,16 +19,17 @@ possible we decided to do following:
-     platform devices.
+@@ -47,18 +47,16 @@ some minor changes.
+ Adding ACPI support for an existing driver should be pretty
+ straightforward. Here is the simplest example::
  
-   - Devices behind real busses where there is a connector resource
--    are represented as struct spi_device or struct i2c_device
--    (standard UARTs are not busses so there is no struct uart_device).
-+    are represented as struct spi_device or struct i2c_device. Note
-+    that standard UARTs are not busses so there is no struct uart_device,
-+    although some of them may be represented by sturct serdev_device.
+-	#ifdef CONFIG_ACPI
+ 	static const struct acpi_device_id mydrv_acpi_match[] = {
+ 		/* ACPI IDs here */
+ 		{ }
+ 	};
+ 	MODULE_DEVICE_TABLE(acpi, mydrv_acpi_match);
+-	#endif
  
- As both ACPI and Device Tree represent a tree of devices (and their
- resources) this implementation follows the Device Tree way as much as
- possible.
+ 	static struct platform_driver my_driver = {
+ 		...
+ 		.driver = {
+-			.acpi_match_table = ACPI_PTR(mydrv_acpi_match),
++			.acpi_match_table = mydrv_acpi_match,
+ 		},
+ 	};
  
--The ACPI implementation enumerates devices behind busses (platform, SPI and
--I2C), creates the physical devices and binds them to their ACPI handle in
--the ACPI namespace.
-+The ACPI implementation enumerates devices behind busses (platform, SPI,
-+I2C, and in some cases UART), creates the physical devices and binds them
-+to their ACPI handle in the ACPI namespace.
+@@ -212,18 +210,16 @@ The SPI device drivers only need to add ACPI IDs in a similar way than with
+ the platform device drivers. Below is an example where we add ACPI support
+ to at25 SPI eeprom driver (this is meant for the above ACPI snippet)::
  
- This means that when ACPI_HANDLE(dev) returns non-NULL the device was
- enumerated from ACPI namespace. This handle can be used to extract other
+-	#ifdef CONFIG_ACPI
+ 	static const struct acpi_device_id at25_acpi_match[] = {
+ 		{ "AT25", 0 },
+ 		{ },
+ 	};
+ 	MODULE_DEVICE_TABLE(acpi, at25_acpi_match);
+-	#endif
+ 
+ 	static struct spi_driver at25_driver = {
+ 		.driver = {
+ 			...
+-			.acpi_match_table = ACPI_PTR(at25_acpi_match),
++			.acpi_match_table = at25_acpi_match,
+ 		},
+ 	};
+ 
+@@ -271,20 +267,18 @@ registered.
+ Below is an example of how to add ACPI support to the existing mpu3050
+ input driver::
+ 
+-	#ifdef CONFIG_ACPI
+ 	static const struct acpi_device_id mpu3050_acpi_match[] = {
+ 		{ "MPU3050", 0 },
+ 		{ },
+ 	};
+ 	MODULE_DEVICE_TABLE(acpi, mpu3050_acpi_match);
+-	#endif
+ 
+ 	static struct i2c_driver mpu3050_i2c_driver = {
+ 		.driver	= {
+ 			.name	= "mpu3050",
+ 			.pm	= &mpu3050_pm,
+ 			.of_match_table = mpu3050_of_match,
+-			.acpi_match_table = ACPI_PTR(mpu3050_acpi_match),
++			.acpi_match_table = mpu3050_acpi_match,
+ 		},
+ 		.probe		= mpu3050_probe,
+ 		.remove		= mpu3050_remove,
 -- 
 2.34.1
 
