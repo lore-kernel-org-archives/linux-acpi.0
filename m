@@ -2,282 +2,172 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25ADEC433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Mar 2022 12:31:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B93B3C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue,  1 Mar 2022 12:52:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234732AbiCAMc2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 1 Mar 2022 07:32:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47822 "EHLO
+        id S234821AbiCAMw5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 1 Mar 2022 07:52:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233394AbiCAMc1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2022 07:32:27 -0500
-Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AB739681F;
-        Tue,  1 Mar 2022 04:31:46 -0800 (PST)
-Received: by mail-yb1-f171.google.com with SMTP id w16so960975ybi.12;
-        Tue, 01 Mar 2022 04:31:46 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qaTIMLNruS+dxEOAlL7KpOrpDbigzmi7+nOXqPGN0d0=;
-        b=UPHqb0ULs8BIO+yirWkjDRNjNBw6lVXlw7cUEdXIfSUMXz7cSBM9n8BzSf3WZK1RbC
-         DOGJEazQ5E/COcdPVDlPk0XOIgQ4TJSereVH2FLEskLa8c/kyayrVnzsqfge6U2STRKY
-         h5qvI0RlKzMm7m2inNAdA1lbs9HBlLWtaZ+HQRNrAFjUmr+qtVLGerQN/GacbuQedxO5
-         N7YnvZVW9i/RR/qVU1ZyNHCR4iFTsIOcAFt8BtNHaALoRCe3+APedW+GcvFrUgSTBDZU
-         DhJvOMepppRLjQbey0rZxpZ5j4SfiRvW0mrkmzZtN7n94ljvgaQpxbNMvI6MDlqr3sVT
-         mK9w==
-X-Gm-Message-State: AOAM531y/6AJoo9EVHd72uDRdmycPTQDiatR+fEJLOsTftgNB+4xbIuB
-        KaJ0bnEuRy2lk6F5+xDIHuYRhVpKsgeUtlSH6u8zRFrJ
-X-Google-Smtp-Source: ABdhPJypqno3PJ6US5bKKCGYfosOnQ1nI12x3AAT2mS3PXz99WpzKQsvGxwjyUCb1OOYQ/A2xL7JBZZ4SfAPU7o9oro=
-X-Received: by 2002:a25:fe10:0:b0:625:262f:e792 with SMTP id
- k16-20020a25fe10000000b00625262fe792mr21733061ybe.365.1646137905624; Tue, 01
- Mar 2022 04:31:45 -0800 (PST)
+        with ESMTP id S234615AbiCAMw4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2022 07:52:56 -0500
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam08on2087.outbound.protection.outlook.com [40.107.101.87])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE2F699EE2
+        for <linux-acpi@vger.kernel.org>; Tue,  1 Mar 2022 04:52:14 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ajUzbf/dciPmgBJPSKdcw7GNCJMgb5qCycwwLV3RddJ6xZVN0gHNXd0GPl2qyCgKdeYEng8HAxeXDXrgQyiSf51A8qgUU3te5xbu+Xtp7dLYMBQ7Lu7pfCTkwt1W7Vz5+Ntrl8ZgieXBqJJoxGEZ17zTrSIpoWENxjlykBaAY6OJf3sitxm4nx24234OO+NBqQEdoXZ6ea1hwJEdXSqVna/L8k9uZoRHTew/V4TxvFwgp3MowLkU3y13w2O7XqtAKLY8vVP0pyQLiD4xW3G2zAJEdddFjfJlD9Uj1xq1+dLj76G2CuEOsD7XzjiJ39Qi9j6kneJ4/zTZi7/M7gDcFw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=r/XhbGxt4J+ZR9xQAFTF7NzE11yrUNjrYTFN6okxtd0=;
+ b=He0/tf+Qy8uNLbTAb7QpfBJsEY9uA9zVjVa+jo7wmJMqB1TuRSqM6kzU0dwmr3/cYl2sjT/KTEyhYPOiPt/PX8IoMZ+pZyixqEGi4STsTkzzECYWIp92jKiH6oZvPNMaYRxAa+Y7GByh7UMGbfEea4QYsqyOzmHWCrQ/msweSYMhgLzioz0e3sY7xYNGgOYdpc68ZC+Z96QvdH/84PH9VqCuwrge2IxOCUJZr+nltnJzD6TBR8bDtT5sbgbn8WComDurjIHdGjb996XY+9nW8dma0YbmqIyZeReNoftMOIaF+aIJWswtlEcgIUoS5Fkvc7Z9Wm/HIJMs5Lpv8hHpsA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=rjwysocki.net smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=r/XhbGxt4J+ZR9xQAFTF7NzE11yrUNjrYTFN6okxtd0=;
+ b=aebaMBMK51oS2pjCykFyFSbBu8uw+zYPiS461aqfFNsosya3Jo3EKoAnpKLIDK5ba/4s/iru0Myh+glIAVi0ZMgrMlj1VbIZ1AmSTSrdlFZRM91RsZ2IFlhXb1N+ywEhCE1vXU2aZtjBavduCYhDemCB1BZHZ1/yzKzE0UcM1Ow=
+Received: from MWHPR18CA0061.namprd18.prod.outlook.com (2603:10b6:300:39::23)
+ by DS7PR12MB5717.namprd12.prod.outlook.com (2603:10b6:8:70::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.26; Tue, 1 Mar
+ 2022 12:52:13 +0000
+Received: from CO1NAM11FT016.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:300:39:cafe::d5) by MWHPR18CA0061.outlook.office365.com
+ (2603:10b6:300:39::23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.26 via Frontend
+ Transport; Tue, 1 Mar 2022 12:52:12 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com;
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CO1NAM11FT016.mail.protection.outlook.com (10.13.175.141) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5017.22 via Frontend Transport; Tue, 1 Mar 2022 12:52:12 +0000
+Received: from localhost.localdomain (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Tue, 1 Mar
+ 2022 06:52:08 -0600
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        <linux-acpi@vger.kernel.org>
+CC:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        <Xiaomeng.Hou@amd.com>, <Aaron.Liu@amd.com>, <Ray.Huang@amd.com>,
+        <hdegoede@redhat.com>,
+        "Mario Limonciello" <mario.limonciello@amd.com>
+Subject: [PATCH v4 2/3] ACPI: bus: Allow negotiating OSC capabilities
+Date:   Tue, 1 Mar 2022 06:49:07 -0600
+Message-ID: <20220301124908.1931221-2-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220301124908.1931221-1-mario.limonciello@amd.com>
+References: <20220301124908.1931221-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
-References: <20220228105259.230903-1-hdegoede@redhat.com> <20220228105259.230903-2-hdegoede@redhat.com>
-In-Reply-To: <20220228105259.230903-2-hdegoede@redhat.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 1 Mar 2022 13:31:34 +0100
-Message-ID: <CAJZ5v0idYTBJV_NikVpF6hF6GOdWDjP3OUny4PqK7YD9t4MOqQ@mail.gmail.com>
-Subject: Re: [PATCH v2] x86/PCI: Disable exclusion of E820 reserved addressed
- in some cases
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>,
-        =?UTF-8?Q?Benoit_Gr=C3=A9goire?= <benoitg@coeus.ca>,
-        Hui Wang <hui.wang@canonical.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 75bafc98-4305-456a-74c3-08d9fb824e2c
+X-MS-TrafficTypeDiagnostic: DS7PR12MB5717:EE_
+X-Microsoft-Antispam-PRVS: <DS7PR12MB5717D0DBAD416A26172515B8E2029@DS7PR12MB5717.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 3vjorvpvRYvU3/FZYDacbqP1ooWBwtK9XqrqdvOy5zaDXOACCiXDmOPoRuNeDGM7OA28k8ywaCHBarZWo5Lh46iEBu8lywp982gPuzWI/0/oBmIw/sRcgPC9bZg2XKpRT5P8uqZZbat8NNUyu2zKlwLcZ6RFeGc4kI5kFcGtWwBDIHpaZX9xExW+NXMrbvsV/Vm076Bnj6w3+tTZgA8eNB8GPlJCoQ4Bvuj9wp+248A00cSUzEFveQfi5Zb4XXdtqcDSIvTlWmzZlKkYcE/4Mjvj9G4QcBQgm/Y1Q67pazaBS7npBjtvxr6/hnLGXMIvApUSTxiWcOHIkTnEWIgzD81eg1plFTI8wg4q/Tsyr0oCaeqluOH6nm/w5EU1SbRa1oi9uRkOUs56vklUaiWG2CWKNAsONwXb2AElVGbDROI/5fayEzfHF82/HMKiU3MvaznF9yDL67FAHUOnnousSv8Z2jUOW/PxhsxLzr+RqbMM3zHkESyC3ihhuvaFZSrhQrZymgF1uJIBpABmkWbHtIra047yNf1iYhIqb0e0LWnXvgmPUg/ztIhPLnj/6e2/Lg7mMdSTr0dZs+sYPd/5R0Lk+u10ZsbKoF+QyWEOQSdmV+ln3OIzdT1uVSyJ1BcYjaLJkhABD8uf1Gf5lX8VYsIfzp9ERObBFcDFJV35igxZ5LWvwv/vUcNMReg2yucX/rGoSJ88PPPVECyEFkheCA==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(40470700004)(36840700001)(46966006)(40460700003)(2906002)(356005)(81166007)(36756003)(36860700001)(83380400001)(47076005)(8936002)(44832011)(5660300002)(2616005)(1076003)(4326008)(186003)(426003)(316002)(8676002)(336012)(16526019)(70206006)(26005)(70586007)(86362001)(82310400004)(508600001)(54906003)(110136005)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Mar 2022 12:52:12.3617
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 75bafc98-4305-456a-74c3-08d9fb824e2c
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT016.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB5717
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Feb 28, 2022 at 11:55 AM Hans de Goede <hdegoede@redhat.com> wrote:
->
-> Some fw has a bug where the PCI bridge window returned by the ACPI
-> resources partly overlaps with some other address range, causing issues.
-> To workaround this Linux excludes E820 reserved addresses when allocating
-> addresses from the PCI bridge window. 2 known examples of such fw bugs are:
->
-> 1. The returned window contains addresses which map to system RAM,
-> see commit 4dc2287c1805 ("x86: avoid E820 regions when allocating
-> address space").
->
-> 2. The Lenovo X1 carbon gen 2 BIOS has an overlap between an EFI/E820
-> reserved range and the ACPI provided PCI bridge window:
->  efi: mem46: [MMIO] range=[0x00000000dfa00000-0x00000000dfa0ffff] (0MB)
->  BIOS-e820: [mem 0x00000000dceff000-0x00000000dfa0ffff] reserved
->  pci_bus 0000:00: root bus resource [mem 0xdfa00000-0xfebfffff window]
-> If Linux assigns the overlapping 0xdfa00000-0xdfa0ffff range to a PCI BAR
-> then the system fails to resume after a suspend.
->
-> Recently (2019) some systems have shown-up with EFI memmap MMIO entries
-> covering the entire ACPI provided PCI bridge window. These memmap entries
-> get converted into e820_table entries, causing all attempts to assign
-> memory to PCI BARs which have not been setup by the BIOS to fail.
-> For example see these dmesg snippets from a Lenovo IdeaPad 3 15IIL 81WE:
->  efi: mem63: [MMIO] range=[0x0000000065400000-0x00000000cfffffff] (1708MB)
->  BIOS-e820: [mem 0x000000004bc50000-0x00000000cfffffff] reserved
->  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
->  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
->  pci 0000:00:15.0: BAR 0: failed to assign [mem size 0x00001000 64bit]
->
-> To fix this, check if the ACPI provided PCI bridge window is fully
-> contained within in EFI memmap MMIO region and in that case disable
-> the "exclude E820 reserved addresses" workaround, fixing the problem
-> of not being able to find free space for unassigned BARs.
->
-> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=206459
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1868899
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1871793
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=2029207
-> BugLink: https://bugs.launchpad.net/bugs/1878279
-> BugLink: https://bugs.launchpad.net/bugs/1931715
-> BugLink: https://bugs.launchpad.net/bugs/1932069
-> BugLink: https://bugs.launchpad.net/bugs/1921649
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-> - Add a couple of missing includes to arch/x86/include/asm/pci_x86.h
->   to fix i386 build errors Reported-by: kernel test robot <lkp@intel.com>
-> - Do not call resource_is_efi_mmio_region() on resource-list entries which
->   have just been destroyed because they match resource_is_pcicfg_ioport()
->   Reported-by: kernel test robot <oliver.sang@intel.com>
-> - Add (res->flags & IORESOURCE_MEM) check to resource_is_efi_mmio_region()
+Currently when capabilities have been masked by firmware during a
+negotiation with OSC_QUERY_ENABLE set they're silently ignored
+by the caller.  If the caller calls `acpi_run_osc` again without
+query set and the same capabilities, then they instead get a failure
+possibly leading to downstream problems.
 
-Applied (subject fixed up), thanks!
+So instead when query is set return AE_SUPPORT which callers can then
+use for determining that capabilities were masked.
 
-> ---
->  arch/x86/include/asm/pci_x86.h | 10 +++++
->  arch/x86/kernel/resource.c     |  4 ++
->  arch/x86/pci/acpi.c            | 68 +++++++++++++++++++++++++++++++++-
->  3 files changed, 81 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
-> index 490411dba438..4ce61ab01a4f 100644
-> --- a/arch/x86/include/asm/pci_x86.h
-> +++ b/arch/x86/include/asm/pci_x86.h
-> @@ -5,7 +5,9 @@
->   *     (c) 1999 Martin Mares <mj@ucw.cz>
->   */
->
-> +#include <linux/init.h>
->  #include <linux/ioport.h>
-> +#include <linux/spinlock.h>
->
->  #undef DEBUG
->
-> @@ -64,6 +66,8 @@ void pcibios_scan_specific_bus(int busn);
->
->  /* pci-irq.c */
->
-> +struct pci_dev;
-> +
->  struct irq_info {
->         u8 bus, devfn;                  /* Bus, device and function */
->         struct {
-> @@ -232,3 +236,9 @@ static inline void mmio_config_writel(void __iomem *pos, u32 val)
->  # define x86_default_pci_init_irq      NULL
->  # define x86_default_pci_fixup_irqs    NULL
->  #endif
-> +
-> +#if defined CONFIG_PCI && defined CONFIG_ACPI
-> +extern bool pci_use_e820;
-> +#else
-> +#define pci_use_e820 true
-> +#endif
-> diff --git a/arch/x86/kernel/resource.c b/arch/x86/kernel/resource.c
-> index 9b9fb7882c20..e8dc9bc327bd 100644
-> --- a/arch/x86/kernel/resource.c
-> +++ b/arch/x86/kernel/resource.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0
->  #include <linux/ioport.h>
->  #include <asm/e820/api.h>
-> +#include <asm/pci_x86.h>
->
->  static void resource_clip(struct resource *res, resource_size_t start,
->                           resource_size_t end)
-> @@ -28,6 +29,9 @@ static void remove_e820_regions(struct resource *avail)
->         int i;
->         struct e820_entry *entry;
->
-> +       if (!pci_use_e820)
-> +               return;
-> +
->         for (i = 0; i < e820_table->nr_entries; i++) {
->                 entry = &e820_table->entries[i];
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 052f1d78a562..fce05e03ba9e 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -1,4 +1,5 @@
->  // SPDX-License-Identifier: GPL-2.0
-> +#include <linux/efi.h>
->  #include <linux/pci.h>
->  #include <linux/acpi.h>
->  #include <linux/init.h>
-> @@ -21,6 +22,7 @@ struct pci_root_info {
->
->  static bool pci_use_crs = true;
->  static bool pci_ignore_seg;
-> +bool pci_use_e820 = true;
->
->  static int __init set_use_crs(const struct dmi_system_id *id)
->  {
-> @@ -291,6 +293,63 @@ static bool resource_is_pcicfg_ioport(struct resource *res)
->                 res->start == 0xCF8 && res->end == 0xCFF;
->  }
->
-> +/*
-> + * Some fw has a bug where the PCI bridge window returned by the ACPI resources
-> + * partly overlaps with some other address range, causing issues. To workaround
-> + * this Linux excludes E820 reserved addresses when allocating addresses from
-> + * the PCI bridge window. 2 known examples of such firmware bugs are:
-> + *
-> + * 1. The returned window contains addresses which map to system RAM, see
-> + * commit 4dc2287c1805 ("x86: avoid E820 regions when allocating address space").
-> + *
-> + * 2. The Lenovo X1 carbon gen 2 BIOS has an overlap between an EFI/E820
-> + * reserved range and the ACPI provided PCI bridge window:
-> + *  efi: mem46: [MMIO] range=[0x00000000dfa00000-0x00000000dfa0ffff] (0MB)
-> + *  BIOS-e820: [mem 0x00000000dceff000-0x00000000dfa0ffff] reserved
-> + *  pci_bus 0000:00: root bus resource [mem 0xdfa00000-0xfebfffff window]
-> + * If Linux assigns the overlapping 0xdfa00000-0xdfa0ffff range to a PCI BAR
-> + * then the system fails to resume after a suspend.
-> + *
-> + * Recently (2019) some systems have shown-up with EFI memmap MMIO entries
-> + * covering the entire ACPI provided PCI bridge window. These memmap entries
-> + * get converted into e820_table entries, causing all attempts to assign
-> + * memory to PCI BARs which have not been setup by the BIOS to fail.
-> + * For example see these dmesg snippets from a Lenovo IdeaPad 3 15IIL 81WE:
-> + *  efi: mem63: [MMIO] range=[0x0000000065400000-0x00000000cfffffff] (1708MB)
-> + *  BIOS-e820: [mem 0x000000004bc50000-0x00000000cfffffff] reserved
-> + *  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
-> + *  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-> + *  pci 0000:00:15.0: BAR 0: failed to assign [mem size 0x00001000 64bit]
-> + *
-> + * To code below checks if the ACPI provided PCI bridge window is fully
-> + * contained within in EFI memmap MMIO region and in that case disables
-> + * the "exclude E820 reserved addresses" workaround to avoid this issue.
-> + */
-> +static bool resource_is_efi_mmio_region(const struct resource *res)
-> +{
-> +       unsigned long long start, end;
-> +       efi_memory_desc_t *md;
-> +
-> +       if (!(res->flags & IORESOURCE_MEM))
-> +               return false;
-> +
-> +       if (!efi_enabled(EFI_MEMMAP))
-> +               return false;
-> +
-> +       for_each_efi_memory_desc(md) {
-> +               if (md->type != EFI_MEMORY_MAPPED_IO)
-> +                       continue;
-> +
-> +               start = md->phys_addr;
-> +               end = start + (md->num_pages << EFI_PAGE_SHIFT) - 1;
-> +
-> +               if (res->start >= start && res->end <= end)
-> +                       return true;
-> +       }
-> +
-> +       return false;
-> +}
-> +
->  static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
->  {
->         struct acpi_device *device = ci->bridge;
-> @@ -300,9 +359,16 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
->
->         status = acpi_pci_probe_root_resources(ci);
->         if (pci_use_crs) {
-> -               resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
-> +               resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
->                         if (resource_is_pcicfg_ioport(entry->res))
->                                 resource_list_destroy_entry(entry);
-> +                       else if (resource_is_efi_mmio_region(entry->res)) {
-> +                               dev_info(&device->dev,
-> +                                       "host bridge window %pR is marked by EFI as MMIO\n",
-> +                                       entry->res);
-> +                               pci_use_e820 = false;
-> +                       }
-> +               }
->                 return status;
->         }
->
-> --
-> 2.35.1
->
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+v3->v4:
+* Correct kernel doc for AE_OK/AE_SUPPORT not AE_OK/AE_SUCCESS
+ drivers/acpi/bus.c | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 07f604832fd6..302619ad9d31 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -184,6 +184,18 @@ static void acpi_print_osc_error(acpi_handle handle,
+ 	pr_debug("\n");
+ }
+ 
++/**
++ * acpi_run_osc - Evaluate the _OSC method for a given ACPI handle
++ * @handle: ACPI handle containing _OSC to evaluate
++ * @context: A structure specifying UUID, revision, and buffer for data
++ *
++ * Used for negotiating with firmware the capabilities that will be used
++ * by the OSPM.  Although the return type is acpi_status, the ACPI_SUCCESS
++ * macro can not be used to determine whether to free the buffer of
++ * returned data.
++ *
++ * The buffer must be freed when this function returns AE_OK or AE_SUPPORT.
++ */
+ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ {
+ 	acpi_status status;
+@@ -243,16 +255,19 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ 			acpi_print_osc_error(handle, context,
+ 				"_OSC invalid revision");
+ 		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
++			acpi_print_osc_error(handle, context, "_OSC capabilities masked");
+ 			if (((u32 *)context->cap.pointer)[OSC_QUERY_DWORD]
+-			    & OSC_QUERY_ENABLE)
+-				goto out_success;
+-			status = AE_SUPPORT;
+-			goto out_kfree;
++			    & OSC_QUERY_ENABLE) {
++				status = AE_SUPPORT;
++				goto out_masked;
++			}
+ 		}
+ 		status = AE_ERROR;
+ 		goto out_kfree;
+ 	}
+-out_success:
++
++	status =  AE_OK;
++out_masked:
+ 	context->ret.length = out_obj->buffer.length;
+ 	context->ret.pointer = kmemdup(out_obj->buffer.pointer,
+ 				       context->ret.length, GFP_KERNEL);
+@@ -260,7 +275,6 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ 		status =  AE_NO_MEMORY;
+ 		goto out_kfree;
+ 	}
+-	status =  AE_OK;
+ 
+ out_kfree:
+ 	kfree(output.pointer);
+-- 
+2.34.1
+
