@@ -2,174 +2,116 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FA0BC433F5
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Mar 2022 22:32:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DED92C433F5
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Mar 2022 23:23:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236989AbiCCWdE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Mar 2022 17:33:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53936 "EHLO
+        id S231922AbiCCXYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Mar 2022 18:24:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236952AbiCCWdA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2022 17:33:00 -0500
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95E46169203
-        for <linux-acpi@vger.kernel.org>; Thu,  3 Mar 2022 14:32:08 -0800 (PST)
-Received: by mail-oi1-x234.google.com with SMTP id x193so6222024oix.0
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2022 14:32:08 -0800 (PST)
+        with ESMTP id S229809AbiCCXYX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2022 18:24:23 -0500
+Received: from mail-ej1-x631.google.com (mail-ej1-x631.google.com [IPv6:2a00:1450:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D476710D0;
+        Thu,  3 Mar 2022 15:23:36 -0800 (PST)
+Received: by mail-ej1-x631.google.com with SMTP id bg10so13941749ejb.4;
+        Thu, 03 Mar 2022 15:23:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ASiZOAYz5KFcP3A9IjHRNygM9ZeiNc0Yjtm5LFE6Rdc=;
-        b=ae3+M6IkfZ5jIJWwSuAWT+APA3geWlw1DsEAgf4oY1C9rMvnx9bK68l4Zv+1+d21JF
-         H43hFi1TMM69h7jkLG8okLLEx7uXxHJdI2TgdG4ioF5OcavJWIcKrbCBM8a2ze9hj0Wb
-         vw+2AHq3ru1fv0yg+3ybHn+fzAFilDUx7F5N4gv2GPwIB1z7eg4A73mPWetezFqe+Dca
-         AcqNmM9be1MyP0wLK+bq+gbR2AoTuzbzFBBNHr7g1Qpd/6fV56gpEFyzncZk7OgnmRUK
-         zsETF1Ke4Mafo0nHUmGb3d8oqz/uB1CpsS2xxajo8Vlm10aoQU+rXrGGRJJ4EUeXFOHL
-         iQMg==
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=9c2fVUpY7DyP3VgtwSVx0smNHNJcvslxILkoyROtr1w=;
+        b=ItflX7sdEXiW8zlZ4EFJkhQ4cvSrk29ApLzREKca8BMZ5SHJFf/LQLHc+vpa5ldKhD
+         gayzeFaCbaTmiA/r2El83NvflWOrzgHj9tQvgu32iQ263O9uefwrfR/T2TLtIrMnia2l
+         wpAwzTjXQTco2LnnHPLEbVGehHO6S69AjUmWcLpKmYAvSoc2J+p6TntH5uOqZDFLkH+n
+         qB9PqcYQlTnYLOWgh4UDBUCwtUoE+O565clRJFbAlDKu9FuvhPchofEH59jwPb1ThBh9
+         cJ5tyrMwE2nroYd4n098SepAGlo/xlYllHZ17bwqVd2C6LXLS8NeevZ3EPyx9FkA49w2
+         S7vg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ASiZOAYz5KFcP3A9IjHRNygM9ZeiNc0Yjtm5LFE6Rdc=;
-        b=ZC5PinBuyAcIdE0Usp/rNzuiJ6iiq1Gz8AvggXC50tVjeZZBpXrWQULv6ToSU4xqhT
-         WzFguZLVBTuYws8NiiDyQFTL+YTvFGZEV1PXnwB+RY2RpT4BKG96dQdJgNJFKoFbWNuW
-         CcNcCrNe7DwVROTFOUx6FlmYjsCefQS84uBGcQ/9DTFXfIdNZxxBbdOu123Cpp+cZYdG
-         luNYgX5MGqLE3z4DQyJSWgrbOPlB0KQkm/gsMnHyseJBEay/5WwdjdxEbOt1G1GxMYgh
-         zPBL1/FFmBdlqyUJhM06a/Y5unlS4O+IwVsyFBSzHp3+g6nuDniaDHCUU6mldhIvpHpY
-         1k1Q==
-X-Gm-Message-State: AOAM532bnv16ThsJs5Mx63TWKtjxybZmNse1tY+sCd2Zg+1rZQOLIyjC
-        tHOO5O9wF6Ii4eeU2pOn+KV+kw==
-X-Google-Smtp-Source: ABdhPJwZTpBb0lAcz7RJZp79KrGZH2AYZv5mXWcLJKlyRZFmJ6c0paiUJ4LUztTfkTxB/BrAkOdzBA==
-X-Received: by 2002:a05:6808:1402:b0:2d3:4a20:3dfa with SMTP id w2-20020a056808140200b002d34a203dfamr6624463oiv.143.1646346727905;
-        Thu, 03 Mar 2022 14:32:07 -0800 (PST)
-Received: from ripper.. ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
-        by smtp.gmail.com with ESMTPSA id fq14-20020a0568710b0e00b000d4492531a2sm1764777oab.17.2022.03.03.14.32.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Mar 2022 14:32:07 -0800 (PST)
-From:   Bjorn Andersson <bjorn.andersson@linaro.org>
-To:     Rob Herring <robh+dt@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=9c2fVUpY7DyP3VgtwSVx0smNHNJcvslxILkoyROtr1w=;
+        b=U7495zDFARigDXvWnQRRcrjWXtWw6zu+okh9eqYlKKDFuSOd/cX5w0InhAJIfldRbN
+         pPNQBNThjGSKulnB9EkoxPICBEKVS+ib7dTWZC7w5jRyQHef4POi0O8xMwwkwx+OiaCO
+         9bu868DgC7wLNB0BQ552tPIZwhgW1fjUO1ZU7pw9UkkDrXqLzS+8p00SFieoBno2bbsH
+         Y3WCe/9skyco1MlKC2dEVeQVrr+o/u73RceeuGhGZCcUD6CBb1Q3oYq7V2inwXQiwoat
+         VwZ1H2xOGXI+ikbNQtfUJPNhtmcBvcVSOphCusbgj/OtwxBJCVbKFC1qY8UlCCBOVuft
+         4mhQ==
+X-Gm-Message-State: AOAM533CKGqHCQg1j5jTvRxHonDRj8RW5mLF4eXRTJBmIOCdCLEFkNB4
+        Img6jh1U8HetsSQr/gYFn8D4S6VIO5bNAJpnOv5+M6ajbio=
+X-Google-Smtp-Source: ABdhPJxeMzRCXl3xo2gq478pKijm5mLzaTTem/4gSoCd9EheSFl4eBnXdb0Xyeuvp/fb3WCw46LNosphVQOF7BQsleU=
+X-Received: by 2002:a17:907:6e01:b0:6d0:562c:e389 with SMTP id
+ sd1-20020a1709076e0100b006d0562ce389mr29813134ejc.497.1646349814940; Thu, 03
+ Mar 2022 15:23:34 -0800 (PST)
+MIME-Version: 1.0
+References: <20220303150610.47596-1-andriy.shevchenko@linux.intel.com> <YiDpKqwiwD8jZdFT@paasikivi.fi.intel.com>
+In-Reply-To: <YiDpKqwiwD8jZdFT@paasikivi.fi.intel.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Fri, 4 Mar 2022 01:22:58 +0200
+Message-ID: <CAHp75Ve6k7zqy6Z+2cscV1xq_wh6gyRGBUuSy8ES0KU1g2cnow@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] device property: Allow error pointer for fwnode_handle_{get,put}()
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Cc:     linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v3 5/6] dt-bindings: usb: Add binding for fcs,fsa4480
-Date:   Thu,  3 Mar 2022 14:33:50 -0800
-Message-Id: <20220303223351.141238-5-bjorn.andersson@linaro.org>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20220303223351.141238-1-bjorn.andersson@linaro.org>
-References: <20220303223351.141238-1-bjorn.andersson@linaro.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        =?UTF-8?B?TnVubyBTw6E=?= <nuno.sa@analog.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The Fairchild/ON Semiconductor FSA4480 Analog Audio switch is used in
-USB Type-C configurations for muxing analog audio onto the USB
-connector, and as such used to control the SBU signals for altmodes such
-as DisplayPort.
+On Thu, Mar 3, 2022 at 11:34 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> On Thu, Mar 03, 2022 at 05:06:10PM +0200, Andy Shevchenko wrote:
+> > Some of the fwnode APIs might return an error pointer instead of NULL
+> > or valid fwnode handle. The result of such API call may be considered
+> > optional and hence the test for it is usually done in a form of
+> >
+> >       fwnode = fwnode_find_reference(...);
+> >       if (IS_ERR_OR_NULL(fwnode))
+> >               ...error handling...
+> >
+> > Nevertheless the resulting fwnode may have bumped reference count and
+> > hence caller of the above API is obliged to call fwnode_handle_put().
+> > Since fwnode may be not valid either as NULL or error pointer the check
+> > has to be performed there. This approach uglifies the code and adds
+> > a point of making a mistake, i.e. forgetting about error point case.
+> >
+> > To prevent this allow error pointer for fwnode_handle_get() and
+> > fwnode_handle_put().
 
-Add a binding for this hardware block.
+Thanks for the review, my comments below.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
----
+...
 
-Changes since v2:
-- Picked up Rob's reviewed-by
+> I guess fwnode_find_reference() is the only fwnode API function returning
+> errors as pointers? If you changed it returning NULL on error, you'd lose
+> the error codes.
+>
+> But I think this is a problem beyond fwnode_handle_{get,put}: fwnode
+> obtained this way could be passed to any fwnode function and they should
+> just work correctly with that.
+>
+> How about moving the check to fwnode_has_op()? That function is responsible
+> for checking the fwnode is valid and has the op in question.
 
-Changes since v1:
-- None
+Yes, I was thinking about it (and I even have a local followup), so
+this version of the fix is (semi-)RFC. Moreover, we (wrongly!) do
+check in many already, but only _after_ trying to dereference error
+pointers.
 
- .../devicetree/bindings/usb/fcs,fsa4480.yaml  | 72 +++++++++++++++++++
- 1 file changed, 72 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
+Letme prepare v2 tomorrow.
 
-diff --git a/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml b/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
-new file mode 100644
-index 000000000000..9473f26b0621
---- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
-@@ -0,0 +1,72 @@
-+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
-+%YAML 1.2
-+---
-+$id: "http://devicetree.org/schemas/usb/fcs,fsa4480.yaml#"
-+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
-+
-+title: ON Semiconductor Analog Audio Switch
-+
-+maintainers:
-+  - Bjorn Andersson <bjorn.andersson@linaro.org>
-+
-+properties:
-+  compatible:
-+    enum:
-+      - fcs,fsa4480
-+
-+  reg:
-+    maxItems: 1
-+
-+  interrupts:
-+    maxItems: 1
-+
-+  vcc-supply:
-+    description: power supply (2.7V-5.5V)
-+
-+  mode-switch:
-+    description: Flag the port as possible handle of altmode switching
-+    type: boolean
-+
-+  orientation-switch:
-+    description: Flag the port as possible handler of orientation switching
-+    type: boolean
-+
-+  port:
-+    $ref: /schemas/graph.yaml#/properties/port
-+    description:
-+      A port node to link the FSA4480 to a TypeC controller for the purpose of
-+      handling altmode muxing and orientation switching.
-+
-+required:
-+  - compatible
-+  - reg
-+  - port
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/interrupt-controller/irq.h>
-+    i2c13 {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        fsa4480@42 {
-+          compatible = "fcs,fsa4480";
-+          reg = <0x42>;
-+
-+          interrupts-extended = <&tlmm 2 IRQ_TYPE_LEVEL_LOW>;
-+
-+          vcc-supply = <&vreg_bob>;
-+
-+          mode-switch;
-+          orientation-switch;
-+
-+          port {
-+            fsa4480_ept: endpoint {
-+              remote-endpoint = <&typec_controller>;
-+            };
-+          };
-+        };
-+    };
-+...
+> It also seems the explicit fwnode_has_op() call is redundant in
+> fwnode_handle_put() as fwnode_call_void_op() already calls fwnode_has_op().
+
+Then call_ptr_op should have the same check as well.
+
 -- 
-2.33.1
-
+With Best Regards,
+Andy Shevchenko
