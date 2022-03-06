@@ -2,119 +2,86 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 915B7C433F5
-	for <linux-acpi@archiver.kernel.org>; Sun,  6 Mar 2022 02:46:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11AE4C433F5
+	for <linux-acpi@archiver.kernel.org>; Sun,  6 Mar 2022 11:17:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232515AbiCFCrV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 5 Mar 2022 21:47:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36594 "EHLO
+        id S229516AbiCFLSN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 6 Mar 2022 06:18:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230439AbiCFCrU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Mar 2022 21:47:20 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F2685A168;
-        Sat,  5 Mar 2022 18:46:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-        Content-ID:Content-Description:In-Reply-To:References;
-        bh=u/33azRL5XameLxIEXRB7SnNNWFdwGDEuCezQAz1NOk=; b=LVYda2IyoTiJ39UfbnVKOeY6S+
-        7EKIU71T3ZBamFhT3Oh+wSeBO7XBgEwyMBmX41oQamqPUBhKc+HHKByuDMrdt9FFzb+V7xUmPljgs
-        t+WAKn02tlhlUx9K6QZniv9JLJHjsPQTIM120xEQqfppiXMk9HII3vQyrq/H4t5gXqjPq8tHgSlAV
-        2utO4D2DEdr/F+Ei5TX+NB8QaKfo4ShUumavFJspn/1z7k7btrnlU2Vkl737Kq9UFSKORyX8PL1Se
-        A51TdF0on/UzIPZehc51N0sDEfJghqehzMFmv5CZYARdhMf8qCfbtXYljeL/zkNc1PhTu+zCT2sb5
-        JZCfh2mQ==;
-Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nQguc-00E4e7-TT; Sun, 06 Mar 2022 02:46:23 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Igor Zhbanov <i.zhbanov@omprussia.ru>,
-        Huang Ying <ying.huang@intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        James Morse <james.morse@arm.com>,
-        Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>
-Subject: [PATCH] ACPI: APEI: fix return value of __setup handlers
-Date:   Sat,  5 Mar 2022 18:46:20 -0800
-Message-Id: <20220306024620.5847-1-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.34.1
+        with ESMTP id S229458AbiCFLSM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Mar 2022 06:18:12 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BD3B6BDDE
+        for <linux-acpi@vger.kernel.org>; Sun,  6 Mar 2022 03:17:20 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 174E760AD8
+        for <linux-acpi@vger.kernel.org>; Sun,  6 Mar 2022 11:17:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE03FC340EC;
+        Sun,  6 Mar 2022 11:17:16 +0000 (UTC)
+From:   Huacai Chen <chenhuacai@loongson.cn>
+To:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Erik Kaneda <erik.kaneda@intel.com>
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        Xuefeng Li <lixuefeng@loongson.cn>,
+        Huacai Chen <chenhuacai@gmail.com>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Huacai Chen <chenhuacai@loongson.cn>,
+        Jianmin Lv <lvjianmin@loongson.cn>
+Subject: [PATCH V2 0/2] ACPI: Add LoongArch-related definitions
+Date:   Sun,  6 Mar 2022 19:18:36 +0800
+Message-Id: <20220306111838.810959-1-chenhuacai@loongson.cn>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-__setup() handlers should return 1 to indicate that the boot option
-has been handled. Returning 0 causes a boot option to be listed in
-the Unknown kernel command line parameters and also added to init's
-arg list (if no '=' sign) or environment list (if of the form 'a=b').
+LoongArch is a new RISC ISA, which is a bit like MIPS or RISC-V.
+LoongArch includes a reduced 32-bit version (LA32R), a standard 32-bit
+version (LA32S) and a 64-bit version (LA64). LoongArch use ACPI as its
+boot protocol LoongArch-specific interrupt controllers (similar to APIC)
+are already added in the next revision of ACPI Specification (current
+revision is 6.4).
 
-Unknown kernel command line parameters "erst_disable
-  bert_disable hest_disable BOOT_IMAGE=/boot/bzImage-517rc6", will be
-  passed to user space.
+This patchset are preparing to add LoongArch support in mainline kernel,
+we can see a snapshot here:
+https://github.com/loongson/linux/tree/loongarch-next
 
- Run /sbin/init as init process
-   with arguments:
-     /sbin/init
-     erst_disable
-     bert_disable
-     hest_disable
-   with environment:
-     HOME=/
-     TERM=linux
-     BOOT_IMAGE=/boot/bzImage-517rc6
+Cross-compile tool chain to build kernel:
+https://github.com/loongson/build-tools/releases
 
-Fixes: a3e2acc5e37b ("ACPI / APEI: Add Boot Error Record Table (BERT) support")
-Fixes: a08f82d08053 ("ACPI, APEI, Error Record Serialization Table (ERST) support")
-Fixes: 9dc966641677 ("ACPI, APEI, HEST table parsing")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Igor Zhbanov <i.zhbanov@omprussia.ru>
-Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: James Morse <james.morse@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
+Loongson and LoongArch documentations:
+https://github.com/loongson/LoongArch-Documentation
+
+ECR for LoongArch-specific interrupt controllers:
+https://mantis.uefi.org/mantis/view.php?id=2203
+https://mantis.uefi.org/mantis/view.php?id=2313
+
+ACPI changes of LoongArch have been approved in the last year, but the
+new version of ACPI SPEC hasn't been made public yet.
+
+V2: Remove merged patches and update commit messages.
+
+Huacai Chen and Jianmin Lv(2):
+ ACPICA: MADT: Add LoongArch APICs support.
+ ACPICA: Events: Support fixed pcie wake event.
+
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn> 
 ---
- drivers/acpi/apei/bert.c |    2 +-
- drivers/acpi/apei/erst.c |    2 +-
- drivers/acpi/apei/hest.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/evevent.c  |  17 ++++--
+ drivers/acpi/acpica/hwsleep.c  |  12 ++++
+ drivers/acpi/acpica/utglobal.c |   4 ++
+ drivers/acpi/tables.c          |  10 ++++
+ include/acpi/actbl2.h          | 125 ++++++++++++++++++++++++++++++++++++++++-
+ include/acpi/actypes.h         |   3 +-
+ 6 files changed, 163 insertions(+), 8 deletions(-)
+--
+2.27.0
 
---- lnx-517-rc6.orig/drivers/acpi/apei/bert.c
-+++ lnx-517-rc6/drivers/acpi/apei/bert.c
-@@ -77,7 +77,7 @@ static int __init setup_bert_disable(cha
- {
- 	bert_disable = 1;
- 
--	return 0;
-+	return 1;
- }
- __setup("bert_disable", setup_bert_disable);
- 
---- lnx-517-rc6.orig/drivers/acpi/apei/erst.c
-+++ lnx-517-rc6/drivers/acpi/apei/erst.c
-@@ -891,7 +891,7 @@ EXPORT_SYMBOL_GPL(erst_clear);
- static int __init setup_erst_disable(char *str)
- {
- 	erst_disable = 1;
--	return 0;
-+	return 1;
- }
- 
- __setup("erst_disable", setup_erst_disable);
---- lnx-517-rc6.orig/drivers/acpi/apei/hest.c
-+++ lnx-517-rc6/drivers/acpi/apei/hest.c
-@@ -224,7 +224,7 @@ err:
- static int __init setup_hest_disable(char *str)
- {
- 	hest_disable = HEST_DISABLED;
--	return 0;
-+	return 1;
- }
- 
- __setup("hest_disable", setup_hest_disable);
