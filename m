@@ -2,98 +2,153 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED909C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Mar 2022 14:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 700C4C433F5
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Mar 2022 14:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243237AbiCGOew (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Mar 2022 09:34:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32834 "EHLO
+        id S243360AbiCGOri (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Mar 2022 09:47:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243232AbiCGOev (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Mar 2022 09:34:51 -0500
-Received: from mail-ed1-x535.google.com (mail-ed1-x535.google.com [IPv6:2a00:1450:4864:20::535])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBE084ECC3
-        for <linux-acpi@vger.kernel.org>; Mon,  7 Mar 2022 06:33:55 -0800 (PST)
-Received: by mail-ed1-x535.google.com with SMTP id y11so19680893eda.12
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Mar 2022 06:33:55 -0800 (PST)
+        with ESMTP id S239555AbiCGOri (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Mar 2022 09:47:38 -0500
+Received: from mail-oo1-xc29.google.com (mail-oo1-xc29.google.com [IPv6:2607:f8b0:4864:20::c29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F1547D03F
+        for <linux-acpi@vger.kernel.org>; Mon,  7 Mar 2022 06:46:43 -0800 (PST)
+Received: by mail-oo1-xc29.google.com with SMTP id k13-20020a4a948d000000b003172f2f6bdfso17996304ooi.1
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Mar 2022 06:46:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=j+XALL1alS+FEu3fkIAo9R70z8bB6COUmfVlfGVppAY=;
-        b=ReM5bztlsxSXLgfYaVI3yXxo8CxNvQpLXNma54gX7iLagqzDtMUrBbexeh2ck+kEfQ
-         rflq3MIZV3EIwnGZlUJsrqsXdGaME2SP+ZwtfNCFZvwisH7pEoeQHKYTMhrS2DSs297D
-         y1T9OwoBPZt0miCMIDlYFKBEo04ZfXNnUkcivZ2gfwFbZVVm5aZ3e7eHSDHuMenQsAsQ
-         dMmExYLTc244fVdQvR2sdw4FpflWvCjl8fnS7i51k+diEfeWFItD4VvPrz/kopHr5xGw
-         rBs/Hjtq7+3ZeF66H7O+78hiNeGeaPzQ2H33YA0bMLh3Fd4RQZE1mlGGTnVfkHV2qPzF
-         89Zw==
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=KDUUimts6AqirSdFxQZxJc3Z8d63h2WyuY2dc6ec1xM=;
+        b=v0oPXHKPdG97ZiajP9+g855l62P2OtPqchjCprouvcANCLm0sAYzyhvtfEfDaaeEtp
+         I2gUVvRRRwamr5QX5UJyVLMUgDAhMUV/qDPOlCzdrYNNGhwUWxMYQ0knBtln9ryIMznJ
+         jNv8zmgV+lQHtlyUKb0y0JBPZXFmklYBfvsg2FKsq82eiRS28yQ/FPkyz5b3Vqy3WEdQ
+         y/zc9at6u/VIFLL7SKT/q06kDEukdWXcudtgPXiSnb2oF9ZVWClc192CSJ2M1Ztsz1By
+         5CpKGCxpckbpGiN6cSbWNnOzfKRiHMLR2BaPrR+fpsR9zOZD80vuUUCjymTbAi/yRdaZ
+         v0PQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=j+XALL1alS+FEu3fkIAo9R70z8bB6COUmfVlfGVppAY=;
-        b=tudNJyic3wt/d50TcZG8a4dXgDzCTSxUHZ/ktam4GPLQAr9kMYocoZx8AQ1f/rYFXC
-         DPiq8TGum/i53+tgTNlHCMJ7ip8mg0IdS3FxnaG6eYWfzE7EWXXCC7qgzQXKH6sLSjFa
-         cbZBK8EbKYkmvltdTXvY1xnnmCgiXMbq1hE1ELt+JKa6R6XldgD2cOm+VDBnjvUXap2r
-         mMdXRJGxvRAB7BfUPmnfCd7PVqiryUfGXLhYINLRL+jx++JvvFB0RXAXluHcrqGNKiLC
-         M6JII8YvjCRxCculdtaLX3jBE/ujInkicNFngAEfAcgiDWRIgPl+4F8IwhDCy6fnR7pk
-         SL7w==
-X-Gm-Message-State: AOAM530X3z13n4ccc/hMdmEugSB5vjc7mLN6DNg0NuTi2OnPCKNlbuSA
-        IGnuysS/xFHFCbKdO5XCKwr0dJJ2Giwyr+FjRbA/Dp1q6ks=
-X-Google-Smtp-Source: ABdhPJwmgyegI3NvOMY0wCmCLVBPSIB2uo/s/Rqay9LDREpbmXsCKeVho/SZQEYawDmhY5iV7FKM1UjF4GDiFlF55rA=
-X-Received: by 2002:a05:6402:5cb:b0:415:e04a:5230 with SMTP id
- n11-20020a05640205cb00b00415e04a5230mr11426603edx.352.1646663634426; Mon, 07
- Mar 2022 06:33:54 -0800 (PST)
-MIME-Version: 1.0
-References: <20220307115623.37492-1-andriy.shevchenko@linux.intel.com>
- <CAMRc=Md3_W49Wq5-zaxdNzELW87OogEN5wW6XQnF9aMpZrRvBA@mail.gmail.com> <YiYNPhUoXH8XakKO@smile.fi.intel.com>
-In-Reply-To: <YiYNPhUoXH8XakKO@smile.fi.intel.com>
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Mon, 7 Mar 2022 15:33:43 +0100
-Message-ID: <CAMRc=Mcp5YeVYJn1FCK+0=72HhJ2haTU02wd9MK7O7fxgXyj4Q@mail.gmail.com>
-Subject: Re: [PATCH v1 1/1] gpiolib: acpi: Convert ACPI value of debounce to microseconds
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=KDUUimts6AqirSdFxQZxJc3Z8d63h2WyuY2dc6ec1xM=;
+        b=SLzZrSo8jMvX47nqKseH0WRqHoWX6l8MGL3j7JQ6hhT3HiH8Udgct+NIwOwfj7qdrI
+         +5eLOOH/vuggoR8SSRZnw2OL2iFKA755LKKTT2Beagp6+YCzMAuDnFcdxhLoDy54o++/
+         UVlbFfdiGLXRGcwqS8V5HxHJUUSdEh4skKvbZ5hHDll1h3NiRJmCm4lQd3wqBJYM93/x
+         AmNLIJKueo2xOvADhAk/QLIq0p6NIdeie8yTDRzj/n1Zill5+7b/KyPChffbtJhZi957
+         yG7xYzM+pwu0TLZKRtnD6JJ6XuU4nT4ss/T91IHZb+speM8EVbVC7kehZoIpaOxuSLxe
+         P2ig==
+X-Gm-Message-State: AOAM530ZJb3DgtZe25ul1erjMBIAdzoeP092zLt5Y4HDhB2JQKdUbG7p
+        KKLUBpKg1sUp2EbAIylTxOSd0Q==
+X-Google-Smtp-Source: ABdhPJyhwg8VQ2NoQPu24oSN1H1Xsf1l7yrTZwrLXKHeFCrr/teOAsQ82MtY6y4LP4tvH/pSaxsJfA==
+X-Received: by 2002:a05:6870:d250:b0:da:b3f:2b29 with SMTP id h16-20020a056870d25000b000da0b3f2b29mr5976338oac.200.1646664402377;
+        Mon, 07 Mar 2022 06:46:42 -0800 (PST)
+Received: from ripper ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
+        by smtp.gmail.com with ESMTPSA id s62-20020aca4541000000b002d7823c8328sm6465095oia.4.2022.03.07.06.46.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Mar 2022 06:46:41 -0800 (PST)
+Date:   Mon, 7 Mar 2022 06:48:25 -0800
+From:   Bjorn Andersson <bjorn.andersson@linaro.org>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
+Cc:     Rob Herring <robh+dt@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
         Hans de Goede <hdegoede@redhat.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Subject: Re: [PATCH v4 7/7] usb: typec: mux: Add On Semi fsa4480 driver
+Message-ID: <YiYbOQpX4+fP8S1W@ripper>
+References: <20220307034040.1111107-1-bjorn.andersson@linaro.org>
+ <20220307034040.1111107-7-bjorn.andersson@linaro.org>
+ <YiXbg4QwgIgLh3LW@smile.fi.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YiXbg4QwgIgLh3LW@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Mar 7, 2022 at 2:49 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Mon, Mar 07, 2022 at 01:48:10PM +0100, Bartosz Golaszewski wrote:
-> > On Mon, Mar 7, 2022 at 12:56 PM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > >
-> > > It appears that GPIO ACPI library uses ACPI debounce values directly.
-> > > However, the GPIO library APIs expect the debounce timeout to be in
-> > > microseconds.
-> > >
-> > > Convert ACPI value of debounce to microseconds.
-> > >
-> > > While at it, document this detail where it is appropriate.
->
-> > Do you have some more stuff coming up for fixes
->
-> I don't think so.
->
-> > or do you want me to queue it directly?
->
-> Yes, please take it directly, thanks!
->
-> --
+On Mon 07 Mar 02:16 PST 2022, Andy Shevchenko wrote:
+
+> On Sun, Mar 06, 2022 at 07:40:40PM -0800, Bjorn Andersson wrote:
+> > The ON Semiconductor FSA4480 is a USB Type-C port multimedia switch with
+> > support for analog audio headsets. It allows sharing a common USB Type-C
+> > port to pass USB2.0 signal, analog audio, sideband use wires and analog
+> > microphone signal.
+> > 
+> > Due to lacking upstream audio support for testing, the audio muxing is
+> > left untouched, but implementation of muxing the SBU lines is provided
+> > as a pair of Type-C mux and switch devices. This provides the necessary
+> > support for enabling the DisplayPort altmode on devices with this
+> > circuit.
+> 
+> ...
+> 
+> > +static const struct regmap_config fsa4480_regmap_config = {
+> > +	.reg_bits = 8,
+> > +	.val_bits = 8,
+> > +	.max_register = FSA4480_MAX_REGISTER,
+> > +};
+> 
+> You are using mutex for accessing hardware. Do you still need a regmap lock?
+> If so, add a comment to explain why.
+> 
+
+I've not considered that before, but you're right, there doesn't seem to
+be any reason to keep the locking in the regmap.
+
+> ...
+> 
+> > +		/* 15us to allow the SBU switch to turn off */
+> > +		usleep_range(15, 1000);
+> 
+> This is quite unusual range.
+> 
+> If you are fine with the long delay, why to stress the system on it?
+> Otherwise the use of 1000 is unclear.
+> 
+> That said, I would expect one of the below:
+> 
+> 		usleep_range(15, 30);
+> 		usleep_range(500, 1000);
+> 
+
+Glad you asked about that, as you say the typical form is to keep the
+range within 2x of the lower value, or perhaps lower + 5.
+
+But if the purpose is to specify a minimum time and then give a max to
+give the system some flexibility in it's decision of when to wake up.
+And in situations such as this, we're talking about someone connecting a
+cable, so we're in "no rush" and I picked the completely arbitrary 1ms
+as the max.
+
+Do you see any drawback of this much higher number? (Other than it
+looking "wrong")
+
+> ...
+> 
+> > +	sw_desc.fwnode = dev->fwnode;
+> 
+> Please, don't dereference for fwnode explicitly. Use dev_fwnode().
+> 
+
+Okay, will update accordingly.
+
+Thanks,
+Bjorn
+
+> ...
+> 
+> > +	mux_desc.fwnode = dev->fwnode;
+> 
+> Ditto.
+> 
+> -- 
 > With Best Regards,
 > Andy Shevchenko
->
->
-
-Applied, thanks!
-
-Bart
+> 
+> 
