@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B82F5C43219
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Mar 2022 03:39:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FE6C433EF
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Mar 2022 03:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234931AbiCGDj5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S235130AbiCGDj5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Sun, 6 Mar 2022 22:39:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60210 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235097AbiCGDjx (ORCPT
+        with ESMTP id S235106AbiCGDjx (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Mar 2022 22:39:53 -0500
-Received: from mail-ot1-x32b.google.com (mail-ot1-x32b.google.com [IPv6:2607:f8b0:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 865C750063
-        for <linux-acpi@vger.kernel.org>; Sun,  6 Mar 2022 19:38:58 -0800 (PST)
-Received: by mail-ot1-x32b.google.com with SMTP id w17-20020a056830111100b005b22c584b93so1965279otq.11
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Mar 2022 19:38:58 -0800 (PST)
+Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6467052E58
+        for <linux-acpi@vger.kernel.org>; Sun,  6 Mar 2022 19:39:00 -0800 (PST)
+Received: by mail-ot1-x329.google.com with SMTP id t8-20020a0568301e2800b005b235a56f2dso982500otr.9
+        for <linux-acpi@vger.kernel.org>; Sun, 06 Mar 2022 19:39:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=IfB2S6XxO3oINLSkwXHzJlzWc8RiEjEhsMeXd4hcF6A=;
-        b=q9NJbfyaNZ+n0z0TuxIX2DFnL6ssvTr9720aleQGkjRaKmVZIifRbL+I1BP7vnuXXe
-         nJmSbpJKaybbrQpoyAJMYPzn3ch2wLAQuKWsAC6JqoRvV1HVDgpulR9bEFQc7YgdQxVr
-         YmJwePx8kAR0f6KanwVkiCMqVUiiCu5DNfR18aUQnb+WpSWjnKlwAqyEpVwZ86mWEzfm
-         RPs1eZXIMzEupBSFnlECOTQ6ytZcU3xf8DdJ2kdAV4sFLYf4Ys1+Zct+hzVCEb7B6nE5
-         RxycW4vrO0GAueTeTl3Ayb4bZK8WuegpZSMDo5pB9jZdPi8OlLqWEvG8c5sP8T+SmzAY
-         QzTg==
+        bh=we3sNOOWMP//sAiq5vC6Ir4YyalDonStuZLXuyqjnSU=;
+        b=LIBkUsc+OwxWZRwEnz24ZoTVyUKp3VL1Zd5qhmOQB3W5IL6onrg0ehThFolA4xfwoy
+         /lR1hqSuanNcS5oIBpssotYpTvQceBHlnVdxek2gMA9NCgzNDzy30/4Y0vQGgkX5edCD
+         rif+AzUawUjL2QK3arFwSaeZfePL5rYksUNfidxJT5oOCUK62k0Q6RrwLVISNT0TYkqT
+         aaxGl8OGuv4Gle5aa5qZsYMFHBZNsx4FwSu9bHXRttQe5DA4+DnDHoXt67RAHQFE4KjR
+         m35Av770vhP3zLIc83gdBarmJx6i0kBJ9Z3xeRHj3+Svh/91PZvDv7tNharFkMfHyr+5
+         HAKA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=IfB2S6XxO3oINLSkwXHzJlzWc8RiEjEhsMeXd4hcF6A=;
-        b=j+Cuhv+NGM9MOMzc142fpQ09od9102xIpobm9hrGkSEncmzaOroUOEDXne9o4uK5iS
-         39xhahr/lN3Wnshp58fYbuaVg1HRg4+TZWC8irlPThm7pkXkJKsw5n+DU5UpTgNnrjaR
-         iRaUCNM7LaeL3+ekAHnorUZMjoDNQP6il3UV1w4L/CbRYiD1yOYHsMK7ryZ1v77AIiQz
-         71t1yBtuW9BbojIt0wQQKkDAHlU8ug8/gmFvMwMEJUhFZ3NTIyDs4bx8/lYR2GGfK8xV
-         +RQo01PGC6VcrCgyKwPk4mbvSp4yYTvSmvyjF6ZS82ZCuYnb1O9w88ayxcmAeezaWWhe
-         LKyA==
-X-Gm-Message-State: AOAM530/x2vfP/tSSg8vc1ERv47a2BAqX0rJVRJqWSuFcbzNxS84WHb3
-        4uFCfnq2EYYv+r+vZicNmoVnig==
-X-Google-Smtp-Source: ABdhPJx0C3QTWTO1qhOgp0Bg2EvTmPfKigT/v2zBJvXoaQNhDURC9LT7Z7agcbOpvmlcJSqmdi8qtQ==
-X-Received: by 2002:a9d:5783:0:b0:5b2:379f:1b6f with SMTP id q3-20020a9d5783000000b005b2379f1b6fmr617267oth.209.1646624337698;
-        Sun, 06 Mar 2022 19:38:57 -0800 (PST)
+        bh=we3sNOOWMP//sAiq5vC6Ir4YyalDonStuZLXuyqjnSU=;
+        b=Zgced2I1aoI04LD3h+hzSgaULFEUi3jilQBkaABCKtSUU3Lh7Gmut1nNoyHnnUd+hX
+         /lA+D9r+xFste6MSGZkpb9AwyfBahivfIuXqpguBPhgjQYTBF2LB9EKvmdP3yImeMo0U
+         RltPxVqa1ofeqN/NpqUGfCIa1WkNVAv1lXleEEWnulci1yV2ECvx8g5Glv8vU0+lvDBx
+         Bs3Ic5BwIt9sckjRNQGyRLz8Zxrxoe+bmscjLl7vkPVSph0bCnvxJbaH5rBzW4li6ABA
+         MC+YoR6a2bSaOtCgXup/2lNhXUokNQ4UoWQVbyfSCYEq/640WbZiJBNBtWreYIdUeJax
+         N7Zg==
+X-Gm-Message-State: AOAM531sGVcC92SUkkUR4Ydj3mYj/ZA0fnuaUaj3taDDlm5PahS0ID8F
+        XeQYW43f44uI19pLNpSBYBY36w==
+X-Google-Smtp-Source: ABdhPJzYDj/C1Ij1Hbt1m3j3pFMxo5WDxfNI2LEJGTPzWkrV5LTKiwRiP2b7aDeS8f+vd4GoXZ3+Jg==
+X-Received: by 2002:a9d:8f6:0:b0:5b2:2a34:adff with SMTP id 109-20020a9d08f6000000b005b22a34adffmr3326100otf.237.1646624339718;
+        Sun, 06 Mar 2022 19:38:59 -0800 (PST)
 Received: from ripper.. ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
-        by smtp.gmail.com with ESMTPSA id o2-20020a05687072c200b000d9ae3e1fabsm5005172oak.12.2022.03.06.19.38.56
+        by smtp.gmail.com with ESMTPSA id o2-20020a05687072c200b000d9ae3e1fabsm5005172oak.12.2022.03.06.19.38.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Mar 2022 19:38:57 -0800 (PST)
+        Sun, 06 Mar 2022 19:38:59 -0800 (PST)
 From:   Bjorn Andersson <bjorn.andersson@linaro.org>
 To:     Rob Herring <robh+dt@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -57,10 +57,11 @@ To:     Rob Herring <robh+dt@kernel.org>,
         Hans de Goede <hdegoede@redhat.com>
 Cc:     linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Subject: [PATCH v4 4/7] usb: typec: mux: Introduce indirection
-Date:   Sun,  6 Mar 2022 19:40:37 -0800
-Message-Id: <20220307034040.1111107-4-bjorn.andersson@linaro.org>
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCH v4 6/7] dt-bindings: usb: Add binding for fcs,fsa4480
+Date:   Sun,  6 Mar 2022 19:40:39 -0800
+Message-Id: <20220307034040.1111107-6-bjorn.andersson@linaro.org>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20220307034040.1111107-1-bjorn.andersson@linaro.org>
 References: <20220307034040.1111107-1-bjorn.andersson@linaro.org>
@@ -70,582 +71,108 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Rather than directly exposing the implementation's representation of the
-typec muxes to the controller/clients, introduce an indirection object.
+The Fairchild/ON Semiconductor FSA4480 Analog Audio switch is used in
+USB Type-C configurations for muxing analog audio onto the USB
+connector, and as such used to control the SBU signals for altmodes such
+as DisplayPort.
 
-This enables the introduction of turning this relationship into a
-one-to-many in the following patch.
+Add a binding for this hardware block.
 
-Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
 
 Changes since v3:
-- Rebase ontop of new patch 3/7.
-- Added "usb: " prefix to subject
+- None
 
 Changes since v2:
-- Picked up Heikki's ack.
+- Picked up Rob's reviewed-by
 
 Changes since v1:
 - None
 
- drivers/usb/typec/bus.c               |   2 +-
- drivers/usb/typec/mux.c               | 193 ++++++++++++++++----------
- drivers/usb/typec/mux.h               |  12 +-
- drivers/usb/typec/mux/intel_pmc_mux.c |   8 +-
- drivers/usb/typec/mux/pi3usb30532.c   |   8 +-
- include/linux/usb/typec_mux.h         |  22 +--
- 6 files changed, 148 insertions(+), 97 deletions(-)
+ .../devicetree/bindings/usb/fcs,fsa4480.yaml  | 72 +++++++++++++++++++
+ 1 file changed, 72 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
 
-diff --git a/drivers/usb/typec/bus.c b/drivers/usb/typec/bus.c
-index 78e0e78954f2..26ea2fdec17d 100644
---- a/drivers/usb/typec/bus.c
-+++ b/drivers/usb/typec/bus.c
-@@ -24,7 +24,7 @@ typec_altmode_set_mux(struct altmode *alt, unsigned long conf, void *data)
- 	state.mode = conf;
- 	state.data = data;
- 
--	return alt->mux->set(alt->mux, &state);
-+	return typec_mux_set(alt->mux, &state);
- }
- 
- static int typec_altmode_set_state(struct typec_altmode *adev,
-diff --git a/drivers/usb/typec/mux.c b/drivers/usb/typec/mux.c
-index d2aaf294b649..bb6c095b4af9 100644
---- a/drivers/usb/typec/mux.c
-+++ b/drivers/usb/typec/mux.c
-@@ -17,9 +17,13 @@
- #include "class.h"
- #include "mux.h"
- 
-+struct typec_switch {
-+	struct typec_switch_dev *sw_dev;
-+};
+diff --git a/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml b/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
+new file mode 100644
+index 000000000000..9473f26b0621
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/fcs,fsa4480.yaml
+@@ -0,0 +1,72 @@
++# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
++%YAML 1.2
++---
++$id: "http://devicetree.org/schemas/usb/fcs,fsa4480.yaml#"
++$schema: "http://devicetree.org/meta-schemas/core.yaml#"
 +
- static int switch_fwnode_match(struct device *dev, const void *fwnode)
- {
--	if (!is_typec_switch(dev))
-+	if (!is_typec_switch_dev(dev))
- 		return 0;
- 
- 	return dev_fwnode(dev) == fwnode;
-@@ -49,7 +53,7 @@ static void *typec_switch_match(struct fwnode_handle *fwnode, const char *id,
- 	dev = class_find_device(&typec_mux_class, NULL, fwnode,
- 				switch_fwnode_match);
- 
--	return dev ? to_typec_switch(dev) : ERR_PTR(-EPROBE_DEFER);
-+	return dev ? to_typec_switch_dev(dev) : ERR_PTR(-EPROBE_DEFER);
- }
- 
- /**
-@@ -63,12 +67,23 @@ static void *typec_switch_match(struct fwnode_handle *fwnode, const char *id,
-  */
- struct typec_switch *fwnode_typec_switch_get(struct fwnode_handle *fwnode)
- {
-+	struct typec_switch_dev *sw_dev;
- 	struct typec_switch *sw;
- 
--	sw = fwnode_connection_find_match(fwnode, "orientation-switch", NULL,
--					  typec_switch_match);
--	if (!IS_ERR_OR_NULL(sw))
--		WARN_ON(!try_module_get(sw->dev.parent->driver->owner));
-+	sw = kzalloc(sizeof(*sw), GFP_KERNEL);
-+	if (!sw)
-+		return ERR_PTR(-ENOMEM);
++title: ON Semiconductor Analog Audio Switch
 +
-+	sw_dev = fwnode_connection_find_match(fwnode, "orientation-switch", NULL,
-+					      typec_switch_match);
-+	if (IS_ERR_OR_NULL(sw_dev)) {
-+		kfree(sw);
-+		return ERR_CAST(sw_dev);
-+	}
++maintainers:
++  - Bjorn Andersson <bjorn.andersson@linaro.org>
 +
-+	WARN_ON(!try_module_get(sw_dev->dev.parent->driver->owner));
++properties:
++  compatible:
++    enum:
++      - fcs,fsa4480
 +
-+	sw->sw_dev = sw_dev;
- 
- 	return sw;
- }
-@@ -82,16 +97,22 @@ EXPORT_SYMBOL_GPL(fwnode_typec_switch_get);
-  */
- void typec_switch_put(struct typec_switch *sw)
- {
--	if (!IS_ERR_OR_NULL(sw)) {
--		module_put(sw->dev.parent->driver->owner);
--		put_device(&sw->dev);
--	}
-+	struct typec_switch_dev *sw_dev;
++  reg:
++    maxItems: 1
 +
-+	if (IS_ERR_OR_NULL(sw))
-+		return;
++  interrupts:
++    maxItems: 1
 +
-+	sw_dev = sw->sw_dev;
++  vcc-supply:
++    description: power supply (2.7V-5.5V)
 +
-+	module_put(sw_dev->dev.parent->driver->owner);
-+	put_device(&sw_dev->dev);
-+	kfree(sw);
- }
- EXPORT_SYMBOL_GPL(typec_switch_put);
- 
- static void typec_switch_release(struct device *dev)
- {
--	kfree(to_typec_switch(dev));
-+	kfree(to_typec_switch_dev(dev));
- }
- 
- const struct device_type typec_switch_dev_type = {
-@@ -109,85 +130,93 @@ const struct device_type typec_switch_dev_type = {
-  * connector to the USB controllers. USB Type-C plugs can be inserted
-  * right-side-up or upside-down.
-  */
--struct typec_switch *
-+struct typec_switch_dev *
- typec_switch_register(struct device *parent,
- 		      const struct typec_switch_desc *desc)
- {
--	struct typec_switch *sw;
-+	struct typec_switch_dev *sw_dev;
- 	int ret;
- 
- 	if (!desc || !desc->set)
- 		return ERR_PTR(-EINVAL);
- 
--	sw = kzalloc(sizeof(*sw), GFP_KERNEL);
--	if (!sw)
-+	sw_dev = kzalloc(sizeof(*sw_dev), GFP_KERNEL);
-+	if (!sw_dev)
- 		return ERR_PTR(-ENOMEM);
- 
--	sw->set = desc->set;
-+	sw_dev->set = desc->set;
- 
--	device_initialize(&sw->dev);
--	sw->dev.parent = parent;
--	sw->dev.fwnode = desc->fwnode;
--	sw->dev.class = &typec_mux_class;
--	sw->dev.type = &typec_switch_dev_type;
--	sw->dev.driver_data = desc->drvdata;
--	ret = dev_set_name(&sw->dev, "%s-switch", desc->name ? desc->name : dev_name(parent));
-+	device_initialize(&sw_dev->dev);
-+	sw_dev->dev.parent = parent;
-+	sw_dev->dev.fwnode = desc->fwnode;
-+	sw_dev->dev.class = &typec_mux_class;
-+	sw_dev->dev.type = &typec_switch_dev_type;
-+	sw_dev->dev.driver_data = desc->drvdata;
-+	ret = dev_set_name(&sw_dev->dev, "%s-switch", desc->name ? desc->name : dev_name(parent));
- 	if (ret) {
--		put_device(&sw->dev);
-+		put_device(&sw_dev->dev);
- 		return ERR_PTR(ret);
- 	}
- 
--	ret = device_add(&sw->dev);
-+	ret = device_add(&sw_dev->dev);
- 	if (ret) {
- 		dev_err(parent, "failed to register switch (%d)\n", ret);
--		put_device(&sw->dev);
-+		put_device(&sw_dev->dev);
- 		return ERR_PTR(ret);
- 	}
- 
--	return sw;
-+	return sw_dev;
- }
- EXPORT_SYMBOL_GPL(typec_switch_register);
- 
- int typec_switch_set(struct typec_switch *sw,
- 		     enum typec_orientation orientation)
- {
-+	struct typec_switch_dev *sw_dev;
++  mode-switch:
++    description: Flag the port as possible handle of altmode switching
++    type: boolean
 +
- 	if (IS_ERR_OR_NULL(sw))
- 		return 0;
- 
--	return sw->set(sw, orientation);
-+	sw_dev = sw->sw_dev;
++  orientation-switch:
++    description: Flag the port as possible handler of orientation switching
++    type: boolean
 +
-+	return sw_dev->set(sw_dev, orientation);
- }
- EXPORT_SYMBOL_GPL(typec_switch_set);
- 
- /**
-  * typec_switch_unregister - Unregister USB Type-C orientation switch
-- * @sw: USB Type-C orientation switch
-+ * @sw_dev: USB Type-C orientation switch
-  *
-  * Unregister switch that was registered with typec_switch_register().
-  */
--void typec_switch_unregister(struct typec_switch *sw)
-+void typec_switch_unregister(struct typec_switch_dev *sw_dev)
- {
--	if (!IS_ERR_OR_NULL(sw))
--		device_unregister(&sw->dev);
-+	if (!IS_ERR_OR_NULL(sw_dev))
-+		device_unregister(&sw_dev->dev);
- }
- EXPORT_SYMBOL_GPL(typec_switch_unregister);
- 
--void typec_switch_set_drvdata(struct typec_switch *sw, void *data)
-+void typec_switch_set_drvdata(struct typec_switch_dev *sw_dev, void *data)
- {
--	dev_set_drvdata(&sw->dev, data);
-+	dev_set_drvdata(&sw_dev->dev, data);
- }
- EXPORT_SYMBOL_GPL(typec_switch_set_drvdata);
- 
--void *typec_switch_get_drvdata(struct typec_switch *sw)
-+void *typec_switch_get_drvdata(struct typec_switch_dev *sw_dev)
- {
--	return dev_get_drvdata(&sw->dev);
-+	return dev_get_drvdata(&sw_dev->dev);
- }
- EXPORT_SYMBOL_GPL(typec_switch_get_drvdata);
- 
- /* ------------------------------------------------------------------------- */
- 
-+struct typec_mux {
-+	struct typec_mux_dev *mux_dev;
-+};
++  port:
++    $ref: /schemas/graph.yaml#/properties/port
++    description:
++      A port node to link the FSA4480 to a TypeC controller for the purpose of
++      handling altmode muxing and orientation switching.
 +
- static int mux_fwnode_match(struct device *dev, const void *fwnode)
- {
--	if (!is_typec_mux(dev))
-+	if (!is_typec_mux_dev(dev))
- 		return 0;
- 
- 	return dev_fwnode(dev) == fwnode;
-@@ -249,7 +278,7 @@ static void *typec_mux_match(struct fwnode_handle *fwnode, const char *id,
- 	dev = class_find_device(&typec_mux_class, NULL, fwnode,
- 				mux_fwnode_match);
- 
--	return dev ? to_typec_mux(dev) : ERR_PTR(-EPROBE_DEFER);
-+	return dev ? to_typec_mux_dev(dev) : ERR_PTR(-EPROBE_DEFER);
- }
- 
- /**
-@@ -265,12 +294,23 @@ static void *typec_mux_match(struct fwnode_handle *fwnode, const char *id,
- struct typec_mux *fwnode_typec_mux_get(struct fwnode_handle *fwnode,
- 				       const struct typec_altmode_desc *desc)
- {
-+	struct typec_mux_dev *mux_dev;
- 	struct typec_mux *mux;
- 
--	mux = fwnode_connection_find_match(fwnode, "mode-switch", (void *)desc,
--					   typec_mux_match);
--	if (!IS_ERR_OR_NULL(mux))
--		WARN_ON(!try_module_get(mux->dev.parent->driver->owner));
-+	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
-+	if (!mux)
-+		return ERR_PTR(-ENOMEM);
++required:
++  - compatible
++  - reg
++  - port
 +
-+	mux_dev = fwnode_connection_find_match(fwnode, "mode-switch", (void *)desc,
-+					       typec_mux_match);
-+	if (IS_ERR_OR_NULL(mux_dev)) {
-+		kfree(mux);
-+		return ERR_CAST(mux_dev);
-+	}
++additionalProperties: false
 +
-+	WARN_ON(!try_module_get(mux_dev->dev.parent->driver->owner));
++examples:
++  - |
++    #include <dt-bindings/interrupt-controller/irq.h>
++    i2c13 {
++        #address-cells = <1>;
++        #size-cells = <0>;
 +
-+	mux->mux_dev = mux_dev;
- 
- 	return mux;
- }
-@@ -284,25 +324,34 @@ EXPORT_SYMBOL_GPL(fwnode_typec_mux_get);
-  */
- void typec_mux_put(struct typec_mux *mux)
- {
--	if (!IS_ERR_OR_NULL(mux)) {
--		module_put(mux->dev.parent->driver->owner);
--		put_device(&mux->dev);
--	}
-+	struct typec_mux_dev *mux_dev;
++        fsa4480@42 {
++          compatible = "fcs,fsa4480";
++          reg = <0x42>;
 +
-+	if (IS_ERR_OR_NULL(mux))
-+		return;
++          interrupts-extended = <&tlmm 2 IRQ_TYPE_LEVEL_LOW>;
 +
-+	mux_dev = mux->mux_dev;
-+	module_put(mux_dev->dev.parent->driver->owner);
-+	put_device(&mux_dev->dev);
-+	kfree(mux);
- }
- EXPORT_SYMBOL_GPL(typec_mux_put);
- 
- int typec_mux_set(struct typec_mux *mux, struct typec_mux_state *state)
- {
-+	struct typec_mux_dev *mux_dev;
++          vcc-supply = <&vreg_bob>;
 +
- 	if (IS_ERR_OR_NULL(mux))
- 		return 0;
- 
--	return mux->set(mux, state);
-+	mux_dev = mux->mux_dev;
++          mode-switch;
++          orientation-switch;
 +
-+	return mux_dev->set(mux_dev, state);
- }
- EXPORT_SYMBOL_GPL(typec_mux_set);
- 
- static void typec_mux_release(struct device *dev)
- {
--	kfree(to_typec_mux(dev));
-+	kfree(to_typec_mux_dev(dev));
- }
- 
- const struct device_type typec_mux_dev_type = {
-@@ -320,66 +369,66 @@ const struct device_type typec_mux_dev_type = {
-  * the pins on the connector need to be reconfigured. This function registers
-  * multiplexer switches routing the pins on the connector.
-  */
--struct typec_mux *
-+struct typec_mux_dev *
- typec_mux_register(struct device *parent, const struct typec_mux_desc *desc)
- {
--	struct typec_mux *mux;
-+	struct typec_mux_dev *mux_dev;
- 	int ret;
- 
- 	if (!desc || !desc->set)
- 		return ERR_PTR(-EINVAL);
- 
--	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
--	if (!mux)
-+	mux_dev = kzalloc(sizeof(*mux_dev), GFP_KERNEL);
-+	if (!mux_dev)
- 		return ERR_PTR(-ENOMEM);
- 
--	mux->set = desc->set;
-+	mux_dev->set = desc->set;
- 
--	device_initialize(&mux->dev);
--	mux->dev.parent = parent;
--	mux->dev.fwnode = desc->fwnode;
--	mux->dev.class = &typec_mux_class;
--	mux->dev.type = &typec_mux_dev_type;
--	mux->dev.driver_data = desc->drvdata;
--	ret = dev_set_name(&mux->dev, "%s-mux", desc->name ? desc->name : dev_name(parent));
-+	device_initialize(&mux_dev->dev);
-+	mux_dev->dev.parent = parent;
-+	mux_dev->dev.fwnode = desc->fwnode;
-+	mux_dev->dev.class = &typec_mux_class;
-+	mux_dev->dev.type = &typec_mux_dev_type;
-+	mux_dev->dev.driver_data = desc->drvdata;
-+	ret = dev_set_name(&mux_dev->dev, "%s-mux", desc->name ? desc->name : dev_name(parent));
- 	if (ret) {
--		put_device(&mux->dev);
-+		put_device(&mux_dev->dev);
- 		return ERR_PTR(ret);
- 	}
- 
--	ret = device_add(&mux->dev);
-+	ret = device_add(&mux_dev->dev);
- 	if (ret) {
- 		dev_err(parent, "failed to register mux (%d)\n", ret);
--		put_device(&mux->dev);
-+		put_device(&mux_dev->dev);
- 		return ERR_PTR(ret);
- 	}
- 
--	return mux;
-+	return mux_dev;
- }
- EXPORT_SYMBOL_GPL(typec_mux_register);
- 
- /**
-  * typec_mux_unregister - Unregister Multiplexer Switch
-- * @mux: USB Type-C Connector Multiplexer/DeMultiplexer
-+ * @mux_dev: USB Type-C Connector Multiplexer/DeMultiplexer
-  *
-  * Unregister mux that was registered with typec_mux_register().
-  */
--void typec_mux_unregister(struct typec_mux *mux)
-+void typec_mux_unregister(struct typec_mux_dev *mux_dev)
- {
--	if (!IS_ERR_OR_NULL(mux))
--		device_unregister(&mux->dev);
-+	if (!IS_ERR_OR_NULL(mux_dev))
-+		device_unregister(&mux_dev->dev);
- }
- EXPORT_SYMBOL_GPL(typec_mux_unregister);
- 
--void typec_mux_set_drvdata(struct typec_mux *mux, void *data)
-+void typec_mux_set_drvdata(struct typec_mux_dev *mux_dev, void *data)
- {
--	dev_set_drvdata(&mux->dev, data);
-+	dev_set_drvdata(&mux_dev->dev, data);
- }
- EXPORT_SYMBOL_GPL(typec_mux_set_drvdata);
- 
--void *typec_mux_get_drvdata(struct typec_mux *mux)
-+void *typec_mux_get_drvdata(struct typec_mux_dev *mux_dev)
- {
--	return dev_get_drvdata(&mux->dev);
-+	return dev_get_drvdata(&mux_dev->dev);
- }
- EXPORT_SYMBOL_GPL(typec_mux_get_drvdata);
- 
-diff --git a/drivers/usb/typec/mux.h b/drivers/usb/typec/mux.h
-index b1d6e837cb74..58f0f28b6dc8 100644
---- a/drivers/usb/typec/mux.h
-+++ b/drivers/usb/typec/mux.h
-@@ -5,23 +5,23 @@
- 
- #include <linux/usb/typec_mux.h>
- 
--struct typec_switch {
-+struct typec_switch_dev {
- 	struct device dev;
- 	typec_switch_set_fn_t set;
- };
- 
--struct typec_mux {
-+struct typec_mux_dev {
- 	struct device dev;
- 	typec_mux_set_fn_t set;
- };
- 
--#define to_typec_switch(_dev_) container_of(_dev_, struct typec_switch, dev)
--#define to_typec_mux(_dev_) container_of(_dev_, struct typec_mux, dev)
-+#define to_typec_switch_dev(_dev_) container_of(_dev_, struct typec_switch_dev, dev)
-+#define to_typec_mux_dev(_dev_) container_of(_dev_, struct typec_mux_dev, dev)
- 
- extern const struct device_type typec_switch_dev_type;
- extern const struct device_type typec_mux_dev_type;
- 
--#define is_typec_switch(dev) ((dev)->type == &typec_switch_dev_type)
--#define is_typec_mux(dev) ((dev)->type == &typec_mux_dev_type)
-+#define is_typec_switch_dev(dev) ((dev)->type == &typec_switch_dev_type)
-+#define is_typec_mux_dev(dev) ((dev)->type == &typec_mux_dev_type)
- 
- #endif /* __USB_TYPEC_MUX__ */
-diff --git a/drivers/usb/typec/mux/intel_pmc_mux.c b/drivers/usb/typec/mux/intel_pmc_mux.c
-index 2cdd22130834..51d8f3b88128 100644
---- a/drivers/usb/typec/mux/intel_pmc_mux.c
-+++ b/drivers/usb/typec/mux/intel_pmc_mux.c
-@@ -121,8 +121,8 @@ struct pmc_usb_port {
- 	int num;
- 	u32 iom_status;
- 	struct pmc_usb *pmc;
--	struct typec_mux *typec_mux;
--	struct typec_switch *typec_sw;
-+	struct typec_mux_dev *typec_mux;
-+	struct typec_switch_dev *typec_sw;
- 	struct usb_role_switch *usb_sw;
- 
- 	enum typec_orientation orientation;
-@@ -416,7 +416,7 @@ static int pmc_usb_connect(struct pmc_usb_port *port, enum usb_role role)
- }
- 
- static int
--pmc_usb_mux_set(struct typec_mux *mux, struct typec_mux_state *state)
-+pmc_usb_mux_set(struct typec_mux_dev *mux, struct typec_mux_state *state)
- {
- 	struct pmc_usb_port *port = typec_mux_get_drvdata(mux);
- 
-@@ -452,7 +452,7 @@ pmc_usb_mux_set(struct typec_mux *mux, struct typec_mux_state *state)
- 	return -EOPNOTSUPP;
- }
- 
--static int pmc_usb_set_orientation(struct typec_switch *sw,
-+static int pmc_usb_set_orientation(struct typec_switch_dev *sw,
- 				   enum typec_orientation orientation)
- {
- 	struct pmc_usb_port *port = typec_switch_get_drvdata(sw);
-diff --git a/drivers/usb/typec/mux/pi3usb30532.c b/drivers/usb/typec/mux/pi3usb30532.c
-index 7afe275b17d0..6ce9f282594e 100644
---- a/drivers/usb/typec/mux/pi3usb30532.c
-+++ b/drivers/usb/typec/mux/pi3usb30532.c
-@@ -23,8 +23,8 @@
- struct pi3usb30532 {
- 	struct i2c_client *client;
- 	struct mutex lock; /* protects the cached conf register */
--	struct typec_switch *sw;
--	struct typec_mux *mux;
-+	struct typec_switch_dev *sw;
-+	struct typec_mux_dev *mux;
- 	u8 conf;
- };
- 
-@@ -45,7 +45,7 @@ static int pi3usb30532_set_conf(struct pi3usb30532 *pi, u8 new_conf)
- 	return 0;
- }
- 
--static int pi3usb30532_sw_set(struct typec_switch *sw,
-+static int pi3usb30532_sw_set(struct typec_switch_dev *sw,
- 			      enum typec_orientation orientation)
- {
- 	struct pi3usb30532 *pi = typec_switch_get_drvdata(sw);
-@@ -74,7 +74,7 @@ static int pi3usb30532_sw_set(struct typec_switch *sw,
- }
- 
- static int
--pi3usb30532_mux_set(struct typec_mux *mux, struct typec_mux_state *state)
-+pi3usb30532_mux_set(struct typec_mux_dev *mux, struct typec_mux_state *state)
- {
- 	struct pi3usb30532 *pi = typec_mux_get_drvdata(mux);
- 	u8 new_conf;
-diff --git a/include/linux/usb/typec_mux.h b/include/linux/usb/typec_mux.h
-index a9d9957933dc..ee57781dcf28 100644
---- a/include/linux/usb/typec_mux.h
-+++ b/include/linux/usb/typec_mux.h
-@@ -8,11 +8,13 @@
- 
- struct device;
- struct typec_mux;
-+struct typec_mux_dev;
- struct typec_switch;
-+struct typec_switch_dev;
- struct typec_altmode;
- struct fwnode_handle;
- 
--typedef int (*typec_switch_set_fn_t)(struct typec_switch *sw,
-+typedef int (*typec_switch_set_fn_t)(struct typec_switch_dev *sw,
- 				     enum typec_orientation orientation);
- 
- struct typec_switch_desc {
-@@ -32,13 +34,13 @@ static inline struct typec_switch *typec_switch_get(struct device *dev)
- 	return fwnode_typec_switch_get(dev_fwnode(dev));
- }
- 
--struct typec_switch *
-+struct typec_switch_dev *
- typec_switch_register(struct device *parent,
- 		      const struct typec_switch_desc *desc);
--void typec_switch_unregister(struct typec_switch *sw);
-+void typec_switch_unregister(struct typec_switch_dev *sw);
- 
--void typec_switch_set_drvdata(struct typec_switch *sw, void *data);
--void *typec_switch_get_drvdata(struct typec_switch *sw);
-+void typec_switch_set_drvdata(struct typec_switch_dev *sw, void *data);
-+void *typec_switch_get_drvdata(struct typec_switch_dev *sw);
- 
- struct typec_mux_state {
- 	struct typec_altmode *alt;
-@@ -46,7 +48,7 @@ struct typec_mux_state {
- 	void *data;
- };
- 
--typedef int (*typec_mux_set_fn_t)(struct typec_mux *mux,
-+typedef int (*typec_mux_set_fn_t)(struct typec_mux_dev *mux,
- 				  struct typec_mux_state *state);
- 
- struct typec_mux_desc {
-@@ -67,11 +69,11 @@ typec_mux_get(struct device *dev, const struct typec_altmode_desc *desc)
- 	return fwnode_typec_mux_get(dev_fwnode(dev), desc);
- }
- 
--struct typec_mux *
-+struct typec_mux_dev *
- typec_mux_register(struct device *parent, const struct typec_mux_desc *desc);
--void typec_mux_unregister(struct typec_mux *mux);
-+void typec_mux_unregister(struct typec_mux_dev *mux);
- 
--void typec_mux_set_drvdata(struct typec_mux *mux, void *data);
--void *typec_mux_get_drvdata(struct typec_mux *mux);
-+void typec_mux_set_drvdata(struct typec_mux_dev *mux, void *data);
-+void *typec_mux_get_drvdata(struct typec_mux_dev *mux);
- 
- #endif /* __USB_TYPEC_MUX */
++          port {
++            fsa4480_ept: endpoint {
++              remote-endpoint = <&typec_controller>;
++            };
++          };
++        };
++    };
++...
 -- 
 2.33.1
 
