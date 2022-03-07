@@ -2,74 +2,163 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B217C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Mar 2022 13:58:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21275C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Mar 2022 14:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238624AbiCGN7q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Mar 2022 08:59:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48902 "EHLO
+        id S235538AbiCGOc7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Mar 2022 09:32:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237489AbiCGN7p (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Mar 2022 08:59:45 -0500
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 353323A5DC;
-        Mon,  7 Mar 2022 05:58:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646661531; x=1678197531;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=iOYwNBZ7SWLE0LYmBh3sE36eosAdsT/ywY3fPycTBgA=;
-  b=OlFCRn7OFIh+9oLm8zHek4tZub7yRdQ7ErXoqAcuShs6CEmXqBNwqi3d
-   rWGmgaq0rqJDlm515W6danJqsM3qg61OGjqbv1ZFhUE2HCxaPHqWybFRL
-   vCnbslzV03kYTpJvbEpNZGuDgpmiaIB456ldCxyznyexFSdFPIzjgxu9A
-   j3S7R0ubIMNNCHGFQFVKhUCDjtxStFJzvs+SJp0yzZekyTnHDEq/7sJlo
-   NqIzp6V4cW8kEFQTWkPLY0B/ym+F1PNIr6PHmcmDdzkZQfk5rW2xQOPe9
-   F6sHnPgKgVnk7ARWqCUlKIx5yHSPwE7wUYnkiCaZN8gtFSSEziK+wfDJE
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10278"; a="234348269"
-X-IronPort-AV: E=Sophos;i="5.90,162,1643702400"; 
-   d="scan'208";a="234348269"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Mar 2022 05:58:50 -0800
-X-IronPort-AV: E=Sophos;i="5.90,162,1643702400"; 
-   d="scan'208";a="495066821"
-Received: from lahna.fi.intel.com (HELO lahna) ([10.237.72.162])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Mar 2022 05:58:47 -0800
-Received: by lahna (sSMTP sendmail emulation); Mon, 07 Mar 2022 15:56:33 +0200
-Date:   Mon, 7 Mar 2022 15:56:33 +0200
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+        with ESMTP id S235627AbiCGOc6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Mar 2022 09:32:58 -0500
+Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com [IPv6:2607:f8b0:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1E4C7938C
+        for <linux-acpi@vger.kernel.org>; Mon,  7 Mar 2022 06:32:03 -0800 (PST)
+Received: by mail-oi1-x230.google.com with SMTP id j83so4646818oih.6
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Mar 2022 06:32:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=jAOEfcrHxWTEhg7BxTnoFSoh64ur+frJb+7Etlx9rtQ=;
+        b=GJ/zew/2c/T7gmBh99VfzZLRMIr1lWxgtwiRGpln7n6kXctT05678TBF1YPo8K/nyU
+         xOL/GNqnsexBZCu2VL/N3mTeUDMxf6kTPDvrzocCn/XswBlLdtp+GJzmpSxz7sqo4KXt
+         4wr7xC63ca5frxTj5uJRTgnPWTe6M+mGV6zRZ5vAST0uEDv9m+LWK0h2mFrEPzjBt1Yt
+         /X9IYwbSusvVKxyEyVqgZsa1ageF3DyBQDHldMq/hndd38A4zi/b6Iqeqx6a4+T4eW9U
+         S8DmT71hgMF8+wgDwfhNOqN3TjxkzV0ImuTqjRWVDS5YjPGK9jGaPbiZxzs0TVQ8sY7R
+         7MFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=jAOEfcrHxWTEhg7BxTnoFSoh64ur+frJb+7Etlx9rtQ=;
+        b=qyyDcH+viBq71j7KmQQ0f0h+8yCNlH7E7pAQPK4lccV+xoFbfrYfAjHPKDaIrMFxzB
+         8ts+Hw3ha4d4Je4F9daRZ8feHlbDC2OHOTsPbjC0Jpb5EYfKBmuJtf4ndz4zUP/gZuL7
+         q85bMLcyVYvIE38LZaUtiMQTR5b2CZnEHUhp1zekYQq0WwTU1Ss50IJ90Q7PhhT0Er2O
+         gy+cYbXp+qbAxIudoWM12r4DT7uC0iwFfsc68uck1/fWkTZ6N+fGWUqrZJIxaJAz9Dz/
+         Gnt3EPKVVqV6fY5PndaJK2ZbY5m6MHSHNaKl3w0cHq5OVvQn9k64vINm5cyO4E6pIXQ1
+         Zsyg==
+X-Gm-Message-State: AOAM532pf6iEgcx+IiQ6X3tpUIL7FUisVKVTnaCEf+g39mkg1gnTWT/b
+        UFboBgZ3sjFfLToX0SZXsJSmEw==
+X-Google-Smtp-Source: ABdhPJzqOXx5kooaXG2dVnX2vpjZX9hB4LZw1mzfujLDchjIhcK0otseZB2nycRu3BZ28DFHpurG6A==
+X-Received: by 2002:a05:6808:23ca:b0:2d9:bb42:81e with SMTP id bq10-20020a05680823ca00b002d9bb42081emr5269110oib.141.1646663523111;
+        Mon, 07 Mar 2022 06:32:03 -0800 (PST)
+Received: from ripper ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
+        by smtp.gmail.com with ESMTPSA id o10-20020a0568080f8a00b002d726c76b77sm6442939oiw.15.2022.03.07.06.32.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Mar 2022 06:32:02 -0800 (PST)
+Date:   Mon, 7 Mar 2022 06:33:47 -0800
+From:   Bjorn Andersson <bjorn.andersson@linaro.org>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Bartosz Golaszewski <brgl@bgdev.pl>, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
+Cc:     Rob Herring <robh+dt@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
         Hans de Goede <hdegoede@redhat.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH v1 1/1] gpiolib: acpi: Convert ACPI value of debounce to
- microseconds
-Message-ID: <YiYPETHe39pU7Hoi@lahna>
-References: <20220307115623.37492-1-andriy.shevchenko@linux.intel.com>
+        linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Subject: Re: [PATCH v4 3/7] usb: typec: mux: Check dev_set_name() return value
+Message-ID: <YiYXywEEz7WZQhfd@ripper>
+References: <20220307034040.1111107-1-bjorn.andersson@linaro.org>
+ <20220307034040.1111107-3-bjorn.andersson@linaro.org>
+ <YiXZkqPQxqQ9I0VH@smile.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220307115623.37492-1-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <YiXZkqPQxqQ9I0VH@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Mar 07, 2022 at 01:56:23PM +0200, Andy Shevchenko wrote:
-> It appears that GPIO ACPI library uses ACPI debounce values directly.
-> However, the GPIO library APIs expect the debounce timeout to be in
-> microseconds.
-> 
-> Convert ACPI value of debounce to microseconds.
-> 
-> While at it, document this detail where it is appropriate.
-> 
-> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=215664
-> Reported-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Fixes: 8dcb7a15a585 ("gpiolib: acpi: Take into account debounce settings")
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Mon 07 Mar 02:08 PST 2022, Andy Shevchenko wrote:
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> On Sun, Mar 06, 2022 at 07:40:36PM -0800, Bjorn Andersson wrote:
+> > It's possible that dev_set_name() returns -ENOMEM, catch and handle this.
+> 
+> Thanks!
+> Shouldn't we have a Fixes tag and be sent separately for this cycle?
+> 
+
+It seems appropriate to add:
+
+Fixes: 3370db35193b ("usb: typec: Registering real device entries for the muxes")
+
+
+If the maintainer would prefer to get this into v5.18, it could either
+be picked ahead of the rest of the series, or I can resubmit it on its
+own. I don't think it's a critical fix though.
+
+> > Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+> > ---
+> > 
+> > Changes since v3:
+> > - New patch
+> > 
+> >  drivers/usb/typec/mux.c | 14 ++++++++++----
+> >  1 file changed, 10 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/usb/typec/mux.c b/drivers/usb/typec/mux.c
+> > index c8340de0ed49..d2aaf294b649 100644
+> > --- a/drivers/usb/typec/mux.c
+> > +++ b/drivers/usb/typec/mux.c
+> > @@ -131,8 +131,11 @@ typec_switch_register(struct device *parent,
+> >  	sw->dev.class = &typec_mux_class;
+> >  	sw->dev.type = &typec_switch_dev_type;
+> >  	sw->dev.driver_data = desc->drvdata;
+> > -	dev_set_name(&sw->dev, "%s-switch",
+> > -		     desc->name ? desc->name : dev_name(parent));
+> > +	ret = dev_set_name(&sw->dev, "%s-switch", desc->name ? desc->name : dev_name(parent));
+> 
+> We may use shorten form of the ternary
+> 
+> 	ret = dev_set_name(&sw->dev, "%s-switch", desc->name ?: dev_name(parent));
+> 
+> at the same time, but it's up to you.
+> 
+
+I looked at it, but felt it was an unrelated change and decided to leave
+it as is.
+
+> Either way code looks good to me,
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+
+Thanks,
+Bjorn
+
+> > +	if (ret) {
+> > +		put_device(&sw->dev);
+> > +		return ERR_PTR(ret);
+> > +	}
+> >  
+> >  	ret = device_add(&sw->dev);
+> >  	if (ret) {
+> > @@ -338,8 +341,11 @@ typec_mux_register(struct device *parent, const struct typec_mux_desc *desc)
+> >  	mux->dev.class = &typec_mux_class;
+> >  	mux->dev.type = &typec_mux_dev_type;
+> >  	mux->dev.driver_data = desc->drvdata;
+> > -	dev_set_name(&mux->dev, "%s-mux",
+> > -		     desc->name ? desc->name : dev_name(parent));
+> > +	ret = dev_set_name(&mux->dev, "%s-mux", desc->name ? desc->name : dev_name(parent));
+> 
+> Ditto.
+> 
+> > +	if (ret) {
+> > +		put_device(&mux->dev);
+> > +		return ERR_PTR(ret);
+> > +	}
+> >  
+> >  	ret = device_add(&mux->dev);
+> >  	if (ret) {
+> > -- 
+> > 2.33.1
+> > 
+> 
+> -- 
+> With Best Regards,
+> Andy Shevchenko
+> 
+> 
