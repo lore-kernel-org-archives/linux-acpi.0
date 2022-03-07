@@ -2,238 +2,318 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDF30C433FE
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Mar 2022 10:32:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ED72C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Mar 2022 10:40:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345872AbiCHKdf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Mar 2022 05:33:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43380 "EHLO
+        id S1345911AbiCHKlR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Mar 2022 05:41:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345883AbiCHKde (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2022 05:33:34 -0500
-Received: from mx0a-00128a01.pphosted.com (mx0a-00128a01.pphosted.com [148.163.135.77])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 119E61022;
-        Tue,  8 Mar 2022 02:32:33 -0800 (PST)
-Received: from pps.filterd (m0167088.ppops.net [127.0.0.1])
-        by mx0a-00128a01.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 22893jA0030453;
-        Tue, 8 Mar 2022 05:32:28 -0500
-Received: from nam12-bn8-obe.outbound.protection.outlook.com (mail-bn8nam12lp2170.outbound.protection.outlook.com [104.47.55.170])
-        by mx0a-00128a01.pphosted.com (PPS) with ESMTPS id 3em2k9xe7v-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 08 Mar 2022 05:32:28 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=muWs0I9C6jPbN/uPp/nrj1+NMnJMobhm5RpHafKmoGgJJ7g5kghuEEUWncVytztGiDoaCOAdeaOe9/MtP6DIeNwDj9tfGtSGZi3p/ehqRxmDF9PcvX0mHwh6HqwmmMjpvR3lKhiU74qqxXoDbAmcIhWGPco5x4yy+WkIIcYL+hkPnupwlH9OanSKATfp0XZgYUytILCk9hsm9gwFiqa/LTl+FxIqPrZl+8qs5+TasilLUebZSrpX1r+lmASvIZxpxuj0U+6v2JPCIe/cdKCUnz3PVQMwfmPlQKcDbKWoxM2sFIZESWNKagBba9cxlzHtvySEkf13qKjm3mW3FwGQ1Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=840zVMwkyGcflEgcPOSfVn5Ap+6q0q21ysllUTqiZ6I=;
- b=SvKzx3A1DkcqzU8MrSB7HE1NZsk7ezDiU18et+/3G6pmfguq3ycQcLL12sl4ZRK3YQQ9/+C0PMg5JlbjSb54OKyOFd88w4GH/l/5rvxQXKG3Y+VH2sVxrcCNmT2PZV+EPVvdjushCcqd2i2pd2tYrP8WtoFmmVMCe/aRXMiG90ykF+XxEHFsXAqf66mRQRTq2t/B5cryVWFUnUNEGNEZqCpErK4pT3RlJ3KuKc/pT1Nep8Wqu4a8caCNutzWtia00D0YiXJnCJa1ySbuS0zRWZ7Jus6yohO+cPa66DIXA3890BnyFyDfPi24o6WFNfYjFgi8WO4moPovKk5/GqbBEQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=analog.com; dmarc=pass action=none header.from=analog.com;
- dkim=pass header.d=analog.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=analog.onmicrosoft.com; s=selector2-analog-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=840zVMwkyGcflEgcPOSfVn5Ap+6q0q21ysllUTqiZ6I=;
- b=YaSEvzhkF830F2lA/ugAbNeDl/bymbKGWt6CE/xMduwiP/Wu5HQMBEL4mkH6OTqPDbjavkYyFv1fgzqukcVM0z0ZadhlEJgqTLi+6deV3Ysc8THEQh8dlmQoUK3X0TDoDTyHHfu3Dh4hla4P3so9NDm3owboR3EvTIvkj98srPc=
-Received: from PH0PR03MB6786.namprd03.prod.outlook.com (2603:10b6:510:122::7)
- by BN9PR03MB6201.namprd03.prod.outlook.com (2603:10b6:408:11e::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.15; Tue, 8 Mar
- 2022 10:32:26 +0000
-Received: from PH0PR03MB6786.namprd03.prod.outlook.com
- ([fe80::dce:606f:6d26:c794]) by PH0PR03MB6786.namprd03.prod.outlook.com
- ([fe80::dce:606f:6d26:c794%5]) with mapi id 15.20.5038.027; Tue, 8 Mar 2022
- 10:32:26 +0000
-From:   "Sa, Nuno" <Nuno.Sa@analog.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-CC:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        with ESMTP id S1345886AbiCHKlQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2022 05:41:16 -0500
+Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 756B142A25
+        for <linux-acpi@vger.kernel.org>; Tue,  8 Mar 2022 02:40:18 -0800 (PST)
+Received: from epcas1p3.samsung.com (unknown [182.195.41.47])
+        by mailout2.samsung.com (KnoxPortal) with ESMTP id 20220308104015epoutp023a61d771c321b8e88dc0768b0522169a~aYa6B6hav0933509335epoutp02C
+        for <linux-acpi@vger.kernel.org>; Tue,  8 Mar 2022 10:40:15 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20220308104015epoutp023a61d771c321b8e88dc0768b0522169a~aYa6B6hav0933509335epoutp02C
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+        s=mail20170921; t=1646736015;
+        bh=znDm2AI5FslVsoBW4T9mXUXJAfpjj8kbAAxkSJOckrM=;
+        h=From:To:Cc:Subject:Date:References:From;
+        b=ehzfCTkmnmguZugqcadMmHOVhGp+j7wZtIYLNEXgt5v4Eek/DuLm+8lnpDg0MYit+
+         A8AzsKuyd35dexGTZ4OLm/QRFH6QAISqPGL05xqw2JNHtCYQEX4rpmbl7YSgLrcFQA
+         2Za4sgEuXyLfmrPCD01EWIKM6gQN73WkxC+ubBfw=
+Received: from epsnrtp1.localdomain (unknown [182.195.42.162]) by
+        epcas1p2.samsung.com (KnoxPortal) with ESMTP id
+        20220308104015epcas1p2bba22fb992b0ebd19b82f20a5a3a291b~aYa5lN5r_3112331123epcas1p25;
+        Tue,  8 Mar 2022 10:40:15 +0000 (GMT)
+Received: from epsmges1p3.samsung.com (unknown [182.195.36.225]) by
+        epsnrtp1.localdomain (Postfix) with ESMTP id 4KCX0G0Ck3z4x9Pp; Tue,  8 Mar
+        2022 10:40:14 +0000 (GMT)
+Received: from epcas1p1.samsung.com ( [182.195.41.45]) by
+        epsmges1p3.samsung.com (Symantec Messaging Gateway) with SMTP id
+        B6.E1.09592.D8237226; Tue,  8 Mar 2022 19:40:13 +0900 (KST)
+Received: from epsmtrp1.samsung.com (unknown [182.195.40.13]) by
+        epcas1p4.samsung.com (KnoxPortal) with ESMTPA id
+        20220308104013epcas1p4c096ed0065700f2f1f8b5ea1ae4ed994~aYa326zlB1216412164epcas1p4j;
+        Tue,  8 Mar 2022 10:40:13 +0000 (GMT)
+Received: from epsmgms1p2.samsung.com (unknown [182.195.42.42]) by
+        epsmtrp1.samsung.com (KnoxPortal) with ESMTP id
+        20220308104013epsmtrp12f9c60733c89b3ad4512ab7fb9616a3a~aYa32DBji1804118041epsmtrp1_;
+        Tue,  8 Mar 2022 10:40:13 +0000 (GMT)
+X-AuditID: b6c32a37-2a5ff70000002578-49-6227328d1fa3
+Received: from epsmtip1.samsung.com ( [182.195.34.30]) by
+        epsmgms1p2.samsung.com (Symantec Messaging Gateway) with SMTP id
+        52.0C.03370.D8237226; Tue,  8 Mar 2022 19:40:13 +0900 (KST)
+Received: from localhost.localdomain (unknown [10.88.97.211]) by
+        epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
+        20220308104013epsmtip1443265e8c6ee15eadead1c71415acd85~aYa3pjkCn2587225872epsmtip1h;
+        Tue,  8 Mar 2022 10:40:13 +0000 (GMT)
+From:   Youngjin Jang <yj84.jang@samsung.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>
-Subject: RE: [PATCH v3 1/1] device property: Allow error pointer to be passed
- to fwnode APIs
-Thread-Topic: [PATCH v3 1/1] device property: Allow error pointer to be passed
- to fwnode APIs
-Thread-Index: AQHYMmIeiO1ypglm0UKwY/7o4sN2wqy1NheggAAOc4CAAAYRoA==
-Date:   Tue, 8 Mar 2022 10:32:26 +0000
-Message-ID: <PH0PR03MB67866622F82D3F363BF12B5199099@PH0PR03MB6786.namprd03.prod.outlook.com>
-References: <20220307202949.75300-1-andriy.shevchenko@linux.intel.com>
- <PH0PR03MB67867223806C29FF1DF90E6499099@PH0PR03MB6786.namprd03.prod.outlook.com>
- <YicrcRUXVKzETq+l@smile.fi.intel.com>
-In-Reply-To: <YicrcRUXVKzETq+l@smile.fi.intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-dg-ref: =?iso-8859-1?Q?PG1ldGE+PGF0IG5tPSJib2R5LnR4dCIgcD0iYzpcdXNlcnNcbnNhXGFwcG?=
- =?iso-8859-1?Q?RhdGFccm9hbWluZ1wwOWQ4NDliNi0zMmQzLTRhNDAtODVlZS02Yjg0YmEy?=
- =?iso-8859-1?Q?OWUzNWJcbXNnc1xtc2ctMGFhYTI1ZWEtOWVjYi0xMWVjLThiYzgtZmM3Nz?=
- =?iso-8859-1?Q?c0MjFmY2FiXGFtZS10ZXN0XDBhYWEyNWVjLTllY2ItMTFlYy04YmM4LWZj?=
- =?iso-8859-1?Q?Nzc3NDIxZmNhYmJvZHkudHh0IiBzej0iMjM4MSIgdD0iMTMyOTEyMDkxND?=
- =?iso-8859-1?Q?Q2MjkzNDI5IiBoPSJwUUUvRW5EUWRuQjl2V21qa0VneVVObktyWjg9IiBp?=
- =?iso-8859-1?Q?ZD0iIiBibD0iMCIgYm89IjEiIGNpPSJjQUFBQUVSSFUxUlNSVUZOQ2dVQU?=
- =?iso-8859-1?Q?FFb0NBQUMxc3dMTjF6TFlBWnd2aUhyWk1scjluQytJZXRreVd2MERBQUFB?=
- =?iso-8859-1?Q?QUFBQUFBQUFBQUFBQUFBQUFBQUFBSEFBQUFEYUFRQUFBQUFBQUFBQUFBQU?=
- =?iso-8859-1?Q?FBQUFBQUFBQUFBRUFBUUFCQUFBQVZJRXZvUUFBQUFBQUFBQUFBQUFBQUo0?=
- =?iso-8859-1?Q?QUFBQmhBR1FBYVFCZkFITUFaUUJqQUhVQWNnQmxBRjhBY0FCeUFHOEFhZ0?=
- =?iso-8859-1?Q?JsQUdNQWRBQnpBRjhBWmdCaEFHd0Fjd0JsQUY4QVpnQnZBSE1BYVFCMEFH?=
- =?iso-8859-1?Q?a0FkZ0JsQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU?=
- =?iso-8859-1?Q?FBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB?=
- =?iso-8859-1?Q?QUFBQUFBQUFBQUFBQUFBQUFFQUFBQUFBQUFBQWdBQUFBQUFuZ0FBQUdFQV?=
- =?iso-8859-1?Q?pBQnBBRjhBY3dCbEFHTUFkUUJ5QUdVQVh3QndBSElBYndCcUFHVUFZd0Iw?=
- =?iso-8859-1?Q?QUhNQVh3QjBBR2tBWlFCeUFERUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU?=
- =?iso-8859-1?Q?FBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB?=
- =?iso-8859-1?Q?QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU?=
- =?iso-8859-1?Q?FBQUFBQUFBQUFBUUFBQUFBQUFBQUNBQUFBQUFDZUFBQUFZUUJrQUdrQVh3?=
- =?iso-8859-1?Q?QnpBR1VBWXdCMUFISUFaUUJmQUhBQWNnQnZBR29BWlFCakFIUUFjd0JmQU?=
- =?iso-8859-1?Q?hRQWFRQmxBSElBTWdBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB?=
- =?iso-8859-1?Q?QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU?=
- =?iso-8859-1?Q?FBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB?=
- =?iso-8859-1?Q?QUFBQkFBQUFBQUFBQUFJQUFBQUFBQT09Ii8+PC9tZXRhPg=3D=3D?=
-x-dg-rorf: true
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: cfa35ea7-f143-4696-24e2-08da00eef09f
-x-ms-traffictypediagnostic: BN9PR03MB6201:EE_
-x-microsoft-antispam-prvs: <BN9PR03MB620100499FBB6BCB019B636F99099@BN9PR03MB6201.namprd03.prod.outlook.com>
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: vVyrALvrFq1eNwKhAuijkZaTEO/DOq63T1MOjOnOOTUEjLcd2iV/GVaKc6OBi6cMEvUbqnQOD+7K1hl4Td6VlZ0z/beFIja94HrLmKv5wg9+HBRptVWExOH1sBrs87//36gTVF4rO6wlnQsysa0zJe+NIluap6Tf6ziewMHgpi/GWCzsi4H2upN3NnouVGV+206pGxoz628Bo/PQkEkwXn/So6TySy0zgBZ6Aq/T3Rgemo1lowSR32iqiu4lu+7OfwjaUpYDIGAnypLCzrqImNeeV1lK1boUBO2k22t8pgCQ/Z36Ff73zLG92cM6707NnwqoIJglvtUXJbdPCA1RDHGJST2j5F5gS6ujVrpkhjB3Yy7wGtuOJImIdiXYHxdX5bHNkpwpA440iAI0Jy63/EcdRGMTin3aQHk9F01Sh2nMRHBOQ18DPtiEJ6yYlfVqQnQnj33lnpdwzrPCHaSx0J+DJAzlvYgCtN7e9haFU45V/EoMiv9T8HM7W3Vu6QjIAhTFNCphGkjrNf2vi+NVtBbnvpSSim06Wy6rqiQgo1rnDPGLyxShCa8nFzyx1/jSPS0tSECaQiaymFX8gKfLRSPAqtgavXOhcL8+Pn9I7ShsdmlqQFxHSnDqgkgwS5dwJGn35ZsSbIANhpaFzBSIJD+D23uGy0DTir8awbQWzKTTkoEX2R2IkR8E6RP84XeBuQXhp/YY5OFUbQ/Lsgh+2w==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR03MB6786.namprd03.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(8936002)(52536014)(55016003)(38070700005)(6506007)(33656002)(316002)(9686003)(53546011)(54906003)(7696005)(6916009)(76116006)(71200400001)(508600001)(186003)(5660300002)(83380400001)(86362001)(66476007)(66446008)(64756008)(26005)(8676002)(66556008)(4326008)(66946007)(7416002)(38100700002)(2906002)(122000001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?enaRqmBcKdk7p6JMmi8k43M6C/7/GBaJ1pdM1rkrRxti4ZaO5ytJxIEbSC?=
- =?iso-8859-1?Q?04ZxYnAFpJ65hNiBFNG7Ufh7AZJoU8is1jJPSNrPYb/sd3Hne/t3z93rc1?=
- =?iso-8859-1?Q?yzWiQi5YViDN2t92YjJbLm2U5o19SYny5nkJljeR7SxHluyxhrSKqXVr4f?=
- =?iso-8859-1?Q?pFdLp13tKZzPaEeprt4iGUG8z6PPY37DZFPFGQPqLa8uVW98r1ar6H1uTC?=
- =?iso-8859-1?Q?P4+RVnKVawdQMBQ7nQMcWdlxohRc+p/fuTt6PwjeLleqTEjXC1/Nm9OOJl?=
- =?iso-8859-1?Q?Txq7DGj7cT6vX2dsTUEUsVrZEVsTLR3fcSzOo31UhZ7p3o/w1CKoB3Na+q?=
- =?iso-8859-1?Q?wLwbIQv9ruRVQr16+QZPcMmLn/0yvVlvpDyeVky0Sx2uiPxEtROov9rLNr?=
- =?iso-8859-1?Q?C0hq8m783Ta6EXuKHSNMk3+qZ8okYgdMsrfC3X8rP8LsAKvTC4ea+28EW4?=
- =?iso-8859-1?Q?LqFPOJF3v1243MO9OC7hTY0v34pLDwoL4eA51aBROn7cRSf7axJzQnSD3p?=
- =?iso-8859-1?Q?Klm7tUfq1Kb+1/ezJ8HJCYhSu9EESdcd+aLHPs0Rxxy4BQrbjizioW/Kd7?=
- =?iso-8859-1?Q?6gA50v992fJgERSpzYXDIR9Xguy9JPwZKphgbuM10wFGhEZM5wi3gYu5Qh?=
- =?iso-8859-1?Q?SUfXXUzvl7BOX9zAF4oHyctd9JMb5v0fXAFUAXlB5IFsA3M15UFFAD0Y7k?=
- =?iso-8859-1?Q?jcNID/OQZFKZ36A85q6HSpdfDC2/BHYdXsbdGkuKAyQHCfkRxo0lXBImHS?=
- =?iso-8859-1?Q?cdQAtqb5fZzG4D3r1IjGR1D3szMdfYaZV2xHHgCK/WnrCpNANizjocOKne?=
- =?iso-8859-1?Q?RlEjzqNiOSfnC0UOskhhuT5PZS4iqzNWyeq7vmIKVzAIwuYHDW+hIHC8qZ?=
- =?iso-8859-1?Q?sOXzk4X1Z/3bMzkqTx/VV330HycNm4RRUWYLFrhfjgT/Qir/0TcxEeV8KU?=
- =?iso-8859-1?Q?Itz8vqURtykO5D7uBqANJil3ASqeLlQNnVeOht1GuEL7aQO/z0Nx4VMGaB?=
- =?iso-8859-1?Q?BcUUtxG7usQF2trsDr2tMXJJXPMtNr/0oN2QCRvIDnh0u51hxmawBxeW/K?=
- =?iso-8859-1?Q?sshJJYxAsdZh6hI3Wf7Tlsy3mh2B4NaCVXBLfXg59BLA2MKXK1t6HosWaj?=
- =?iso-8859-1?Q?lYV1ducX7DcVnwE0sbptmIFZ+Uwo11LSyud7kLUxT32urIeUXHM7Zlw6qW?=
- =?iso-8859-1?Q?Emx70xrkng4W0UkwNlo3Ow76U1m+FeBQy0n7rhHGenyLz/BAhtW+GS05hI?=
- =?iso-8859-1?Q?pc+obtCPLH8BGnKhP8T8gjOawN4VqllF4wcOHuPxd4bdk0br99mRS79RJj?=
- =?iso-8859-1?Q?QX1tBsU41O9jJiBErsh9Xm3N+dDnLu6o8DCNNrp3s/F8xB0C7KJdDhWh3W?=
- =?iso-8859-1?Q?yzjB02CNs5Vfl/+2SQAv4X3MhQVSvVSDUGWakUCvUvQe8+NipcKGNHLI2R?=
- =?iso-8859-1?Q?O2CM8gL0PVoUIARSzXg7qB1Fe82F7HdA6uNY/l9ze3mZMtzB93/dJK8Xvm?=
- =?iso-8859-1?Q?u8g2cCIq8IOUJspJE47QsINEk/5G43Ca2q0JznmRKNAUIcHQRiE5PNc/VE?=
- =?iso-8859-1?Q?eX677XAGi3ljbGZS03JRMyywbDOWanfFP6PclTyqIMiYllCRXxxFQG1BRP?=
- =?iso-8859-1?Q?IxpkhMz0zXgdwzXGtHYzwgCteVGZcBC6otlUZzjUgfE0iyq51Hu7CH7g?=
- =?iso-8859-1?Q?=3D=3D?=
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+        Bjorn Helgaas <bhelgaas@google.com>, linux-pm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org,
+        todd.e.brandt@linux.intel.com
+Cc:     Youngjin Jang <yj84.jang@samsung.com>, js07.lee@samsung.com
+Subject: [PATCH v3] PM: Add device name to suspend_report_result()
+Date:   Tue,  8 Mar 2022 04:07:39 +0900
+Message-Id: <20220307190739.659955-1-yj84.jang@samsung.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-X-OriginatorOrg: analog.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR03MB6786.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: cfa35ea7-f143-4696-24e2-08da00eef09f
-X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Mar 2022 10:32:26.4117
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: eaa689b4-8f87-40e0-9c6f-7228de4d754a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: VgILBdfCtVbACkLET0ovaW2L6Uga3tQ1sDADZ+9f0emXwxA/Z+opba7H8KBY4NjD9jKj1tm9XY2hI4/S8WmSJA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN9PR03MB6201
-X-Proofpoint-GUID: oQwvpFRvOdLk0rWYlbYHtcf69laSrJjy
-X-Proofpoint-ORIG-GUID: oQwvpFRvOdLk0rWYlbYHtcf69laSrJjy
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.64.514
- definitions=2022-03-08_03,2022-03-04_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxscore=0
- suspectscore=0 malwarescore=0 clxscore=1015 adultscore=0
- priorityscore=1501 impostorscore=0 phishscore=0 bulkscore=0
- mlxlogscore=999 lowpriorityscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2202240000 definitions=main-2203080055
+Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrBJsWRmVeSWpSXmKPExsWy7bCmrm6vkXqSweVVFhZLmjIsmhevZ7N4
+        dPM3q8WsKXuZLJbv62e0uLxrDpvF2XnH2Sw+9x5htFi0rJXZ4u6po2wWc79MZbZ4u+UBq0XX
+        ocWsDrweCzaVeize85LJY9OqTjaPeScDPfbPXcPu0bdlFaPHitXf2T0+b5IL4IjKtslITUxJ
+        LVJIzUvOT8nMS7dV8g6Od443NTMw1DW0tDBXUshLzE21VXLxCdB1y8wBOlhJoSwxpxQoFJBY
+        XKykb2dTlF9akqqQkV9cYquUWpCSU2BWoFecmFtcmpeul5daYmVoYGBkClSYkJ2x8O421oKX
+        FhVnL35lb2Ccrd/FyMEhIWAiseRRcRcjF4eQwA5Gif99H1ggnE+MEj1rz7BBOJ8ZJfo+TWTq
+        YuQE69j5dRpUYhejxNOnfxnhWlr+rWQBqWIT0JZYtWUeO4gtIvCJSeLKKjkQm1nAXuL33Qlg
+        cWEBJ4ntayYxg9zBIqAqselRKEiYV8BaYlHbCnaIZfISMy99Z4eIC0qcnPmEBWKMvETz1tnM
+        IHslBCZySDy91ckK0eAicXHiUTYIW1ji1fEtUIOkJF72t0HZ6RITH7+Fsgsk/j5ewgxhG0u8
+        e7sW7B5mAU2J9bv0IcKKEjt/z2WE2Msn8e5rDysk6HglOtqEIEqUJR6fXw21VVJi/e/90LDy
+        kDi38SZYq5BArMTfzw8ZJzDKz0LyzSwk38xCWLyAkXkVo1hqQXFuemqxYYExPE6T83M3MYKT
+        rJb5DsZpbz/oHWJk4mA8xCjBwawkwnv/vEqSEG9KYmVValF+fFFpTmrxIUZTYPBOZJYSTc4H
+        pvm8knhDE0sDEzMjEwtjS2MzJXHeVdNOJwoJpCeWpGanphakFsH0MXFwSjUwPa62ufnY42Cs
+        N5vOcYsz3TU7zHXjX5ZYbDvza4VQCN8E48h5nm85/Tcnugcub30e/SKywaRI5NdznY1cMdlP
+        LjkL3GcP/met/XuvTs3d59Nt78obzNVaMyv7uuuiQJeNyXNFpxyUc343Tzy9f1dT1r7SjckN
+        8U6LFHdvnGjOetT3l1flfZuWCZKabL0Tppxe+PXz0QX3RKsubq3Qmr39xJ0NL3s9L87Tmqfj
+        /3d1ama5tW88t7j37Lx9cpYym0yU/wj3z5i3nDljh4gNy4ftbKnbz13U4XPaZPbfSUNVIjFw
+        +jSXXo01B2u1th26Kl5z/o12avFslXyzxd/4Ly713PHyv1yHTWXbosZNKx+tU2Ipzkg01GIu
+        Kk4EAKTAPx07BAAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFrrGLMWRmVeSWpSXmKPExsWy7bCSnG6vkXqSwa/D0hZLmjIsmhevZ7N4
+        dPM3q8WsKXuZLJbv62e0uLxrDpvF2XnH2Sw+9x5htFi0rJXZ4u6po2wWc79MZbZ4u+UBq0XX
+        ocWsDrweCzaVeize85LJY9OqTjaPeScDPfbPXcPu0bdlFaPHitXf2T0+b5IL4IjisklJzcks
+        Sy3St0vgylh4dxtrwUuLirMXv7I3MM7W72Lk5JAQMJHY+XUaG4gtJLCDUeJldzZEXFLi66fP
+        QHEOIFtY4vDh4i5GLqCSD4wSF952MYHUsAloS6zaMo8dJCEi8IdJ4uPuh0wgDcwCjhJdH6tA
+        aoQFnCS2r5nEDBJmEVCV2PQoFCTMK2AtsahtBTvEKnmJmZe+s0PEBSVOznzCAmIzA8Wbt85m
+        nsDINwtJahaS1AJGplWMkqkFxbnpucWGBUZ5qeV6xYm5xaV56XrJ+bmbGMFBr6W1g3HPqg96
+        hxiZOBgPMUpwMCuJ8N4/r5IkxJuSWFmVWpQfX1Sak1p8iFGag0VJnPdC18l4IYH0xJLU7NTU
+        gtQimCwTB6dUA5Nmr9oDfdusyyIf/9xrPHguf+tjHRUPv4JvTf//7rV4sMmrbtLSZPYW30Wn
+        O8/J3m9kuPa/2Sb3/WtDoQrJ9n/M2Ucby4VPem7T83Zdn8p0WK2DZ8mrlRULw3hVOTNNH/1O
+        FVx9yqd98ZSHWtc8PfTk9lx+eVz9/CGVNUdSGSWMrFQ/rPi8gmn+ygtRfsbTmNtl/91KfM17
+        41jTx4t3ZHlM3ff+5L+wedn7vmUTnVTE220TbC/FJwZ/MFyZ9YP3j8bJ+y0fZrReC5vcdUt4
+        t5NY6hx31+N3Qw2zrNbVuW9iO9zlfdgjrP52UcL+ZfP3nng2T2rSZI2HWvEnf3b6PlNMOJd5
+        fJpH2FzfLY6cLB5KLMUZiYZazEXFiQA9zg3x6QIAAA==
+X-CMS-MailID: 20220308104013epcas1p4c096ed0065700f2f1f8b5ea1ae4ed994
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-Sendblock-Type: SVC_REQ_APPROVE
+CMS-TYPE: 101P
+DLP-Filter: Pass
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20220308104013epcas1p4c096ed0065700f2f1f8b5ea1ae4ed994
+References: <CGME20220308104013epcas1p4c096ed0065700f2f1f8b5ea1ae4ed994@epcas1p4.samsung.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Sent: Tuesday, March 8, 2022 11:10 AM
-> To: Sa, Nuno <Nuno.Sa@analog.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>; linux-
-> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; Daniel Scally
-> <djrscally@gmail.com>; Heikki Krogerus
-> <heikki.krogerus@linux.intel.com>; Sakari Ailus
-> <sakari.ailus@linux.intel.com>; Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org>; Rafael J. Wysocki
-> <rafael@kernel.org>; Len Brown <lenb@kernel.org>
-> Subject: Re: [PATCH v3 1/1] device property: Allow error pointer to be
-> passed to fwnode APIs
->=20
-> [External]
->=20
-> On Tue, Mar 08, 2022 at 09:25:07AM +0000, Sa, Nuno wrote:
-> > > -----Original Message-----
-> > > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > Sent: Monday, March 7, 2022 9:30 PM
->=20
-> ...
->=20
-> > > v3: dropped test of secondary fwnode (Nuno), added tag (Nuno),
-> > > amended commit message
-> > > v2: adjusted the entire fwnode API (Sakari)
-> > >
-> > > Nuno, can you re-test this with the ltc2983 series to be sure it is s=
-till
-> > > okay?
-> >
-> > Still works!
->=20
-> Thanks for confirming!
->=20
-> ...
->=20
-> > > @@ -988,14 +998,14 @@
-> fwnode_graph_get_next_endpoint(const
-> > > struct fwnode_handle *fwnode,
-> > >  		parent =3D fwnode_graph_get_port_parent(prev);
-> > >  	else
-> > >  		parent =3D fwnode;
-> > > +	if (IS_ERR_OR_NULL(parent))
-> > > +		return NULL;
->=20
-> (1)
->=20
-> > >  	ep =3D fwnode_call_ptr_op(parent, graph_get_next_endpoint,
-> > > prev);
-> > > +	if (ep)
-> > > +		return ep;
-> >
-> > I might be missing something but before the check being done was
-> > 'if (IS_ERR_OR_NULL(ep)'. Is there anyway for ep to be an error
-> > pointer? Looking at OF, It seems that only NULL or a valid pointer
-> > is being returned. Did not looked at others implementations of
-> > though...
->=20
-> Yes, the IS_ERR() part is redundant there. I was quite confused with
-> that code while working on this change. So, now it looks much clearer
-> what's going on and what kind of values are being expected. This also
-> justifies the choice of returned value in (1).
->=20
+currently, suspend_report_result() prints only function information.
+If any driver uses common pm function, nobody knows who called
+failed function exactly.
 
-Makes sense to me.
+So, device is needed to recognize specific wrong driver.
 
-Acked-by: Nuno S=E1 <nuno.sa@analog.com>
+e.g.)
+PM: dpm_run_callback(): pnp_bus_suspend+0x0/0x10 returns 0
+PM: dpm_run_callback(): pci_pm_suspend+0x0/0x150 returns 0
+after patch,
+serial 00:05: PM: dpm_run_callback(): pnp_bus_suspend+0x0/0x10 returns 0
+pci 0000:00:01.3: PM: dpm_run_callback(): pci_pm_suspend+0x0/0x150 returns 0
 
-> --
-> With Best Regards,
-> Andy Shevchenko
->=20
+Signed-off-by: Youngjin Jang <yj84.jang@samsung.com>
+---
+Changes since v2:
+ - Update commit message, example logs
+Changes since v1:
+ - Use dev_err() to print out device name
+ - Use real name on email sender
+ 
+ drivers/base/power/main.c  | 10 +++++-----
+ drivers/pci/pci-driver.c   | 14 +++++++-------
+ drivers/pnp/driver.c       |  2 +-
+ drivers/usb/core/hcd-pci.c |  4 ++--
+ include/linux/pm.h         |  8 ++++----
+ 5 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index 04ea92cbd9cf..41e17b8c2c20 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -485,7 +485,7 @@ static int dpm_run_callback(pm_callback_t cb, struct device *dev,
+ 	trace_device_pm_callback_start(dev, info, state.event);
+ 	error = cb(dev);
+ 	trace_device_pm_callback_end(dev, error);
+-	suspend_report_result(cb, error);
++	suspend_report_result(dev, cb, error);
+ 
+ 	initcall_debug_report(dev, calltime, cb, error);
+ 
+@@ -1568,7 +1568,7 @@ static int legacy_suspend(struct device *dev, pm_message_t state,
+ 	trace_device_pm_callback_start(dev, info, state.event);
+ 	error = cb(dev, state);
+ 	trace_device_pm_callback_end(dev, error);
+-	suspend_report_result(cb, error);
++	suspend_report_result(dev, cb, error);
+ 
+ 	initcall_debug_report(dev, calltime, cb, error);
+ 
+@@ -1855,7 +1855,7 @@ static int device_prepare(struct device *dev, pm_message_t state)
+ 	device_unlock(dev);
+ 
+ 	if (ret < 0) {
+-		suspend_report_result(callback, ret);
++		suspend_report_result(dev, callback, ret);
+ 		pm_runtime_put(dev);
+ 		return ret;
+ 	}
+@@ -1960,10 +1960,10 @@ int dpm_suspend_start(pm_message_t state)
+ }
+ EXPORT_SYMBOL_GPL(dpm_suspend_start);
+ 
+-void __suspend_report_result(const char *function, void *fn, int ret)
++void __suspend_report_result(const char *function, struct device *dev, void *fn, int ret)
+ {
+ 	if (ret)
+-		pr_err("%s(): %pS returns %d\n", function, fn, ret);
++		dev_err(dev, "%s(): %pS returns %d\n", function, fn, ret);
+ }
+ EXPORT_SYMBOL_GPL(__suspend_report_result);
+ 
+diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+index f61c40a47891..4ceeb75fc899 100644
+--- a/drivers/pci/pci-driver.c
++++ b/drivers/pci/pci-driver.c
+@@ -607,7 +607,7 @@ static int pci_legacy_suspend(struct device *dev, pm_message_t state)
+ 		int error;
+ 
+ 		error = drv->suspend(pci_dev, state);
+-		suspend_report_result(drv->suspend, error);
++		suspend_report_result(dev, drv->suspend, error);
+ 		if (error)
+ 			return error;
+ 
+@@ -786,7 +786,7 @@ static int pci_pm_suspend(struct device *dev)
+ 		int error;
+ 
+ 		error = pm->suspend(dev);
+-		suspend_report_result(pm->suspend, error);
++		suspend_report_result(dev, pm->suspend, error);
+ 		if (error)
+ 			return error;
+ 
+@@ -832,7 +832,7 @@ static int pci_pm_suspend_noirq(struct device *dev)
+ 		int error;
+ 
+ 		error = pm->suspend_noirq(dev);
+-		suspend_report_result(pm->suspend_noirq, error);
++		suspend_report_result(dev, pm->suspend_noirq, error);
+ 		if (error)
+ 			return error;
+ 
+@@ -1021,7 +1021,7 @@ static int pci_pm_freeze(struct device *dev)
+ 		int error;
+ 
+ 		error = pm->freeze(dev);
+-		suspend_report_result(pm->freeze, error);
++		suspend_report_result(dev, pm->freeze, error);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -1041,7 +1041,7 @@ static int pci_pm_freeze_noirq(struct device *dev)
+ 		int error;
+ 
+ 		error = pm->freeze_noirq(dev);
+-		suspend_report_result(pm->freeze_noirq, error);
++		suspend_report_result(dev, pm->freeze_noirq, error);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -1127,7 +1127,7 @@ static int pci_pm_poweroff(struct device *dev)
+ 		int error;
+ 
+ 		error = pm->poweroff(dev);
+-		suspend_report_result(pm->poweroff, error);
++		suspend_report_result(dev, pm->poweroff, error);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -1165,7 +1165,7 @@ static int pci_pm_poweroff_noirq(struct device *dev)
+ 		int error;
+ 
+ 		error = pm->poweroff_noirq(dev);
+-		suspend_report_result(pm->poweroff_noirq, error);
++		suspend_report_result(dev, pm->poweroff_noirq, error);
+ 		if (error)
+ 			return error;
+ 	}
+diff --git a/drivers/pnp/driver.c b/drivers/pnp/driver.c
+index cc6757dfa3f1..c02e7bf643a6 100644
+--- a/drivers/pnp/driver.c
++++ b/drivers/pnp/driver.c
+@@ -171,7 +171,7 @@ static int __pnp_bus_suspend(struct device *dev, pm_message_t state)
+ 
+ 	if (pnp_drv->driver.pm && pnp_drv->driver.pm->suspend) {
+ 		error = pnp_drv->driver.pm->suspend(dev);
+-		suspend_report_result(pnp_drv->driver.pm->suspend, error);
++		suspend_report_result(dev, pnp_drv->driver.pm->suspend, error);
+ 		if (error)
+ 			return error;
+ 	}
+diff --git a/drivers/usb/core/hcd-pci.c b/drivers/usb/core/hcd-pci.c
+index 784466117c92..8176bc81a635 100644
+--- a/drivers/usb/core/hcd-pci.c
++++ b/drivers/usb/core/hcd-pci.c
+@@ -446,7 +446,7 @@ static int suspend_common(struct device *dev, bool do_wakeup)
+ 				HCD_WAKEUP_PENDING(hcd->shared_hcd))
+ 			return -EBUSY;
+ 		retval = hcd->driver->pci_suspend(hcd, do_wakeup);
+-		suspend_report_result(hcd->driver->pci_suspend, retval);
++		suspend_report_result(dev, hcd->driver->pci_suspend, retval);
+ 
+ 		/* Check again in case wakeup raced with pci_suspend */
+ 		if ((retval == 0 && do_wakeup && HCD_WAKEUP_PENDING(hcd)) ||
+@@ -556,7 +556,7 @@ static int hcd_pci_suspend_noirq(struct device *dev)
+ 		dev_dbg(dev, "--> PCI %s\n",
+ 				pci_power_name(pci_dev->current_state));
+ 	} else {
+-		suspend_report_result(pci_prepare_to_sleep, retval);
++		suspend_report_result(dev, pci_prepare_to_sleep, retval);
+ 		return retval;
+ 	}
+ 
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index f7d2be686359..e65b3ab28377 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -770,11 +770,11 @@ extern int dpm_suspend_late(pm_message_t state);
+ extern int dpm_suspend(pm_message_t state);
+ extern int dpm_prepare(pm_message_t state);
+ 
+-extern void __suspend_report_result(const char *function, void *fn, int ret);
++extern void __suspend_report_result(const char *function, struct device *dev, void *fn, int ret);
+ 
+-#define suspend_report_result(fn, ret)					\
++#define suspend_report_result(dev, fn, ret)				\
+ 	do {								\
+-		__suspend_report_result(__func__, fn, ret);		\
++		__suspend_report_result(__func__, dev, fn, ret);	\
+ 	} while (0)
+ 
+ extern int device_pm_wait_for_dev(struct device *sub, struct device *dev);
+@@ -814,7 +814,7 @@ static inline int dpm_suspend_start(pm_message_t state)
+ 	return 0;
+ }
+ 
+-#define suspend_report_result(fn, ret)		do {} while (0)
++#define suspend_report_result(dev, fn, ret)	do {} while (0)
+ 
+ static inline int device_pm_wait_for_dev(struct device *a, struct device *b)
+ {
+-- 
+2.25.1
 
