@@ -2,158 +2,115 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93C82C433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Mar 2022 13:31:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43621C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Mar 2022 14:12:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234567AbiCQNcV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Mar 2022 09:32:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48276 "EHLO
+        id S233798AbiCQOOD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Mar 2022 10:14:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234589AbiCQNcU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2022 09:32:20 -0400
-Received: from mail-yb1-f182.google.com (mail-yb1-f182.google.com [209.85.219.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29E861D78A7;
-        Thu, 17 Mar 2022 06:31:03 -0700 (PDT)
-Received: by mail-yb1-f182.google.com with SMTP id j2so10325511ybu.0;
-        Thu, 17 Mar 2022 06:31:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KrVPm0cGVD9kw1HlnBFNiKgwq9G5aMTytWTYTGiKmXw=;
-        b=uv8yOYu2ytWMndmlbnn3FhKljp4ukI4pS47K1qEa2F2qqeLaxREqBLuEMlTH3w3CUs
-         m+oRDsZjRNcdrStOR1KNBS1djzqNwaEPuWkL7isptU/fvtDvOPveYRNPOFXxZAOHQRjP
-         Swh0n1n6/9sktTyOXf61e2X5c92kmAnUiHABw95FF5SK4k21fE3lTIDrAbsgHehNmUlL
-         /q+haTg8fcScduLtdt1uk6LGQg0GI0BhhEdzpRUGxtDD/f/g1QScCom7oUQcm12kcRCY
-         9u2qgWZeXsn9tfl7w/ZSWHqn2bnlf5y3zSn8G5CB4hTIxPD8EDTHJOHQt6soGbMFRsyy
-         4Eag==
-X-Gm-Message-State: AOAM530gK0S0S7Zv1uqQdZ1grqI2RQNln6k1FokSTHI3j2IVm6V+Q5C1
-        dc7fhBDiOYkqdrH0sNgeNSwvHL2nvSr282ij/s8D9lsE
-X-Google-Smtp-Source: ABdhPJz7J/aJd3dvSnoV0MmKuPJxIcSLx0gIqciaNk0QNBKxZmepSvnxdfbNNZ5QTdyZMVpWHnvAA5H1hteIFbxLku0=
-X-Received: by 2002:a25:fe10:0:b0:625:262f:e792 with SMTP id
- k16-20020a25fe10000000b00625262fe792mr4785672ybe.365.1647523862378; Thu, 17
- Mar 2022 06:31:02 -0700 (PDT)
+        with ESMTP id S233620AbiCQOOD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2022 10:14:03 -0400
+X-Greylist: delayed 543 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 17 Mar 2022 07:12:46 PDT
+Received: from srv1.home.kabele.me (unknown [IPv6:2a02:768:2704:8c1a:3eec:efff:fe00:2ce4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D1C421FE563
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2022 07:12:46 -0700 (PDT)
+Received: from srv1.home.kabele.me (localhost [IPv6:::1])
+        by srv1.home.kabele.me (Postfix) with ESMTP id 490C9168FA3;
+        Thu, 17 Mar 2022 15:03:59 +0100 (CET)
+Received: from localhost ([2a01:c22:8dfa:1400:beea:2810:7764:7afc])
+        by srv1.home.kabele.me with ESMTPSA
+        id gtgvD88/M2Iz8zMAnmUwTQ
+        (envelope-from <vit@kabele.me>); Thu, 17 Mar 2022 15:03:59 +0100
+Date:   Thu, 17 Mar 2022 15:03:54 +0100
+From:   Vit Kabele <vit@kabele.me>
+To:     platform-driver-x86@kernel.org
+Cc:     vit@kabele.me, r.marek@assembler.cz, devel@acpica.org,
+        mingo@redhat.com, robert.moore@intel.com, linux-kernel@kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3] platform/x86: Check validity of EBDA pointer in mpparse.c
+Message-ID: <YjM/yphbAQHxJIxg@czspare1-lap.sysgo.cz>
+Mail-Followup-To: platform-driver-x86@kernel.org, r.marek@assembler.cz,
+        devel@acpica.org, mingo@redhat.com, robert.moore@intel.com,
+        linux-kernel@kernel.org, linux-acpi@vger.kernel.org
+References: <cover.1647525033.git.vit@kabele.me>
 MIME-Version: 1.0
-References: <20220315190228.1503866-1-wse@tuxedocomputers.com> <20220315190228.1503866-2-wse@tuxedocomputers.com>
-In-Reply-To: <20220315190228.1503866-2-wse@tuxedocomputers.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 17 Mar 2022 14:30:51 +0100
-Message-ID: <CAJZ5v0iV5FvDxmYgoyQo_r39LYT2XL8wTujo_u=hu2n2BWdCRQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI/backlight: Force backlight native for Clevo NL5xRU
- and NL5xNU
-To:     Werner Sembach <wse@tuxedocomputers.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1647525033.git.vit@kabele.me>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 15, 2022 at 8:02 PM Werner Sembach <wse@tuxedocomputers.com> wrote:
->
-> Clevo NL5xRU and NL5xNU/TUXEDO Aura 15 Gen1 and Gen2 have both a working
-> native and video interface. However the default detection mechanism first
-> registers the video interface before unregistering it again and switching
-> to the native interface during boot. This results in a dangling SBIOS
-> request for backlight change for some reason, causing the backlight to
-> switch to ~2% once per boot on the first power cord connect or disconnect
-> event. Setting the native interface explicitly circumvents this buggy
-> behaviour by avoiding the unregistering process.
->
-> Signed-off-by: Werner Sembach <wse@tuxedocomputers.com>
-> Cc: stable@vger.kernel.org
-> ---
->  drivers/acpi/video_detect.c | 75 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 75 insertions(+)
->
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 4f64713e9917..becc198e4c22 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -415,6 +415,81 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
->                 DMI_MATCH(DMI_PRODUCT_NAME, "GA503"),
->                 },
->         },
-> +       /*
-> +        * Clevo NL5xRU and NL5xNU/TUXEDO Aura 15 Gen1 and Gen2 have both a
-> +        * working native and video interface. However the default detection
-> +        * mechanism first registers the video interface before unregistering
-> +        * it again and switching to the native interface during boot. This
-> +        * results in a dangling SBIOS request for backlight change for some
-> +        * reason, causing the backlight to switch to ~2% once per boot on the
-> +        * first power cord connect or disconnect event. Setting the native
-> +        * interface explicitly circumvents this buggy behaviour, by avoiding
-> +        * the unregistering process.
-> +        */
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xRU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "NL5xRU"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xRU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "SchenkerTechnologiesGmbH"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "NL5xRU"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xRU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "Notebook"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "NL5xRU"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xRU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "AURA1501"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xRU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "EDUBOOK1502"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xNU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "NL5xNU"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xNU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "SchenkerTechnologiesGmbH"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "NL5xNU"),
-> +               },
-> +       },
-> +       {
-> +       .callback = video_detect_force_native,
-> +       .ident = "Clevo NL5xNU",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "Notebook"),
-> +               DMI_MATCH(DMI_BOARD_NAME, "NL5xNU"),
-> +               },
-> +       },
->
->         /*
->          * Desktops which falsely report a backlight and which our heuristics
-> --
+The pointer to EBDA area is retrieved from a word at 0x40e in BDA.
+In case that the memory there is not initialized and contains garbage,
+it might happen that the kernel touches memory above 640K.
 
-Applied as 5.18 material, thanks!
+This may cause unwanted reads from VGA memory which may not be decoded,
+or even present when running under virtualization.
+
+This patch adds sanity check for the EBDA pointer retrieved from the memory
+so that scanning EBDA does not leave the low memory.
+
+Signed-off-by: Vit Kabele <vit@kabele.me>
+Reviewed-by: Rudolf Marek <r.marek@assembler.cz>
+---
+ arch/x86/include/asm/bios_ebda.h |  3 +++
+ arch/x86/kernel/ebda.c           |  3 ---
+ arch/x86/kernel/mpparse.c        | 12 +++++++++++-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/arch/x86/include/asm/bios_ebda.h b/arch/x86/include/asm/bios_ebda.h
+index 4d5a17e2febe..c3133c01d5b7 100644
+--- a/arch/x86/include/asm/bios_ebda.h
++++ b/arch/x86/include/asm/bios_ebda.h
+@@ -4,6 +4,9 @@
+ 
+ #include <asm/io.h>
+ 
++#define BIOS_START_MIN		0x20000U	/* 128K, less than this is insane */
++#define BIOS_START_MAX		0x9f000U	/* 640K, absolute maximum */
++
+ /*
+  * Returns physical address of EBDA.  Returns 0 if there is no EBDA.
+  */
+diff --git a/arch/x86/kernel/ebda.c b/arch/x86/kernel/ebda.c
+index 38e7d597b660..86c0801fc3ce 100644
+--- a/arch/x86/kernel/ebda.c
++++ b/arch/x86/kernel/ebda.c
+@@ -50,9 +50,6 @@
+ 
+ #define BIOS_RAM_SIZE_KB_PTR	0x413
+ 
+-#define BIOS_START_MIN		0x20000U	/* 128K, less than this is insane */
+-#define BIOS_START_MAX		0x9f000U	/* 640K, absolute maximum */
+-
+ void __init reserve_bios_regions(void)
+ {
+ 	unsigned int bios_start, ebda_start;
+diff --git a/arch/x86/kernel/mpparse.c b/arch/x86/kernel/mpparse.c
+index fed721f90116..6bba0744d32d 100644
+--- a/arch/x86/kernel/mpparse.c
++++ b/arch/x86/kernel/mpparse.c
+@@ -633,7 +633,17 @@ void __init default_find_smp_config(void)
+ 	 */
+ 
+ 	address = get_bios_ebda();
+-	if (address)
++
++	/* Check that the EBDA address is sane and the get_bios_ebda() did not
++	 * return just garbage from memory.
++	 * The upper bound is considered valid if it points below 1K before
++	 * end of the lower memory (i.e. 639K). The EBDA can be smaller
++	 * than 1K in which case the pointer will point above 639K but that
++	 * case is handled in step 2) above, and we don't need to adjust scan
++	 * size to not bump into the memory above 640K.
++	 */
++	if (address >= BIOS_START_MIN &&
++	    address < 639 * 0x400)
+ 		smp_scan_config(address, 0x400);
+ }
+ 
+-- 
+2.30.2
+
