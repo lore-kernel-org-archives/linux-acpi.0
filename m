@@ -2,34 +2,33 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43621C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 028CAC4332F
 	for <linux-acpi@archiver.kernel.org>; Thu, 17 Mar 2022 14:12:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233798AbiCQOOD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Mar 2022 10:14:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41054 "EHLO
+        id S230392AbiCQOOE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Mar 2022 10:14:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233620AbiCQOOD (ORCPT
+        with ESMTP id S233668AbiCQOOD (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2022 10:14:03 -0400
-X-Greylist: delayed 543 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 17 Mar 2022 07:12:46 PDT
 Received: from srv1.home.kabele.me (unknown [IPv6:2a02:768:2704:8c1a:3eec:efff:fe00:2ce4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D1C421FE563
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ED74C1FE573
         for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2022 07:12:46 -0700 (PDT)
 Received: from srv1.home.kabele.me (localhost [IPv6:::1])
-        by srv1.home.kabele.me (Postfix) with ESMTP id 490C9168FA3;
-        Thu, 17 Mar 2022 15:03:59 +0100 (CET)
+        by srv1.home.kabele.me (Postfix) with ESMTP id E2AA4168FAD;
+        Thu, 17 Mar 2022 15:04:42 +0100 (CET)
 Received: from localhost ([2a01:c22:8dfa:1400:beea:2810:7764:7afc])
         by srv1.home.kabele.me with ESMTPSA
-        id gtgvD88/M2Iz8zMAnmUwTQ
-        (envelope-from <vit@kabele.me>); Thu, 17 Mar 2022 15:03:59 +0100
-Date:   Thu, 17 Mar 2022 15:03:54 +0100
+        id TxkYNPo/M2JI8zMAnmUwTQ
+        (envelope-from <vit@kabele.me>); Thu, 17 Mar 2022 15:04:42 +0100
+Date:   Thu, 17 Mar 2022 15:04:37 +0100
 From:   Vit Kabele <vit@kabele.me>
 To:     platform-driver-x86@kernel.org
 Cc:     vit@kabele.me, r.marek@assembler.cz, devel@acpica.org,
         mingo@redhat.com, robert.moore@intel.com, linux-kernel@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 1/3] platform/x86: Check validity of EBDA pointer in mpparse.c
-Message-ID: <YjM/yphbAQHxJIxg@czspare1-lap.sysgo.cz>
+Subject: [PATCH 3/3] acpica: Do not touch VGA memory when EBDA < 1KiB
+Message-ID: <YjM/9UrYVIKs/LOl@czspare1-lap.sysgo.cz>
 Mail-Followup-To: platform-driver-x86@kernel.org, r.marek@assembler.cz,
         devel@acpica.org, mingo@redhat.com, robert.moore@intel.com,
         linux-kernel@kernel.org, linux-acpi@vger.kernel.org
@@ -42,74 +41,69 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pointer to EBDA area is retrieved from a word at 0x40e in BDA.
-In case that the memory there is not initialized and contains garbage,
-it might happen that the kernel touches memory above 640K.
+The ACPICA code assumes that EBDA region must be at least 1KiB in size.
+Because this is not guaranteed, it might happen that while scanning the
+memory for RSDP pointer, the kernel touches memory above 640KiB.
 
-This may cause unwanted reads from VGA memory which may not be decoded,
-or even present when running under virtualization.
-
-This patch adds sanity check for the EBDA pointer retrieved from the memory
-so that scanning EBDA does not leave the low memory.
+This is unwanted as the VGA memory range may not be decoded or
+even present when running under virtualization.
 
 Signed-off-by: Vit Kabele <vit@kabele.me>
 Reviewed-by: Rudolf Marek <r.marek@assembler.cz>
 ---
- arch/x86/include/asm/bios_ebda.h |  3 +++
- arch/x86/kernel/ebda.c           |  3 ---
- arch/x86/kernel/mpparse.c        | 12 +++++++++++-
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/tbxfroot.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/arch/x86/include/asm/bios_ebda.h b/arch/x86/include/asm/bios_ebda.h
-index 4d5a17e2febe..c3133c01d5b7 100644
---- a/arch/x86/include/asm/bios_ebda.h
-+++ b/arch/x86/include/asm/bios_ebda.h
-@@ -4,6 +4,9 @@
+diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
+index 67b7df1c0520..b1f4a91044d9 100644
+--- a/drivers/acpi/acpica/tbxfroot.c
++++ b/drivers/acpi/acpica/tbxfroot.c
+@@ -114,6 +114,7 @@ acpi_find_root_pointer(acpi_physical_address *table_address)
+ 	u8 *table_ptr;
+ 	u8 *mem_rover;
+ 	u32 physical_address;
++	u32 ebda_window_size;
  
- #include <asm/io.h>
+ 	ACPI_FUNCTION_TRACE(acpi_find_root_pointer);
  
-+#define BIOS_START_MIN		0x20000U	/* 128K, less than this is insane */
-+#define BIOS_START_MAX		0x9f000U	/* 640K, absolute maximum */
-+
- /*
-  * Returns physical address of EBDA.  Returns 0 if there is no EBDA.
-  */
-diff --git a/arch/x86/kernel/ebda.c b/arch/x86/kernel/ebda.c
-index 38e7d597b660..86c0801fc3ce 100644
---- a/arch/x86/kernel/ebda.c
-+++ b/arch/x86/kernel/ebda.c
-@@ -50,9 +50,6 @@
- 
- #define BIOS_RAM_SIZE_KB_PTR	0x413
- 
--#define BIOS_START_MIN		0x20000U	/* 128K, less than this is insane */
--#define BIOS_START_MAX		0x9f000U	/* 640K, absolute maximum */
--
- void __init reserve_bios_regions(void)
- {
- 	unsigned int bios_start, ebda_start;
-diff --git a/arch/x86/kernel/mpparse.c b/arch/x86/kernel/mpparse.c
-index fed721f90116..6bba0744d32d 100644
---- a/arch/x86/kernel/mpparse.c
-+++ b/arch/x86/kernel/mpparse.c
-@@ -633,7 +633,17 @@ void __init default_find_smp_config(void)
+@@ -143,25 +144,32 @@ acpi_find_root_pointer(acpi_physical_address *table_address)
  	 */
- 
- 	address = get_bios_ebda();
--	if (address)
+ 	if (physical_address > 0x400 &&
+ 	    physical_address < 0xA0000) {
++		/* Calculate the scan window size
++		 * The EBDA is not guaranteed to be larger than a KiB
++		 * and in case that it is smaller the scanning function would
++		 * leave the low memory and continue to the VGA range.
++		 */
++		ebda_window_size = ACPI_MIN(ACPI_EBDA_WINDOW_SIZE,
++					    0xA0000 - physical_address);
 +
-+	/* Check that the EBDA address is sane and the get_bios_ebda() did not
-+	 * return just garbage from memory.
-+	 * The upper bound is considered valid if it points below 1K before
-+	 * end of the lower memory (i.e. 639K). The EBDA can be smaller
-+	 * than 1K in which case the pointer will point above 639K but that
-+	 * case is handled in step 2) above, and we don't need to adjust scan
-+	 * size to not bump into the memory above 640K.
-+	 */
-+	if (address >= BIOS_START_MIN &&
-+	    address < 639 * 0x400)
- 		smp_scan_config(address, 0x400);
- }
+ 		/*
+-		 * 1b) Search EBDA paragraphs (EBDA is required to be a
+-		 *     minimum of 1K length)
++		 * 1b) Search EBDA paragraphs
+ 		 */
+ 		table_ptr = acpi_os_map_memory((acpi_physical_address)
+ 					       physical_address,
+-					       ACPI_EBDA_WINDOW_SIZE);
++					       ebda_window_size);
+ 		if (!table_ptr) {
+ 			ACPI_ERROR((AE_INFO,
+ 				    "Could not map memory at 0x%8.8X for length %u",
+-				    physical_address, ACPI_EBDA_WINDOW_SIZE));
++				    physical_address, ebda_window_size));
+ 
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+ 
+ 		mem_rover =
+ 		    acpi_tb_scan_memory_for_rsdp(table_ptr,
+-						 ACPI_EBDA_WINDOW_SIZE);
+-		acpi_os_unmap_memory(table_ptr, ACPI_EBDA_WINDOW_SIZE);
++						 ebda_window_size);
++		acpi_os_unmap_memory(table_ptr, ebda_window_size);
+ 
+ 		if (mem_rover) {
  
 -- 
 2.30.2
