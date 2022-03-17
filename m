@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7BB6C433FE
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Mar 2022 14:15:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63684C43219
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Mar 2022 14:15:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234877AbiCQOQe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Mar 2022 10:16:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50124 "EHLO
+        id S234863AbiCQOQf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Mar 2022 10:16:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234863AbiCQOQd (ORCPT
+        with ESMTP id S234870AbiCQOQd (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2022 10:16:33 -0400
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2078.outbound.protection.outlook.com [40.107.94.78])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A947211F79B;
-        Thu, 17 Mar 2022 07:15:11 -0700 (PDT)
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2087.outbound.protection.outlook.com [40.107.243.87])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52AE41FF20F;
+        Thu, 17 Mar 2022 07:15:15 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=bR/nt+sHNKxpQ/+UGaqaVA/fMo/iUxMfnVpv3oh2Y/TvhdnxyDjU26h3V/KnPf69tJGGvIcKbyVGJeDsZdHUJSxqlcAEAQSZRt9CryoMNnr82gr3NoD3KGfgtDnW0i9CDYC+2RkGOgyMYOpQ7+8gPVWAgM4Ew7PDxmvSETS8NDXXsUzNyWslKi4ORWR7W74undXgcaDKHYC/9a5zTxvjCl231DRgDGL3IT8Xbzb/PyoCbwXaYequiryu6PH715Uy1Ommz403pXxAEeTKWzrd1UllPw6c4Xfo9BmmFI2hxI3FeNoB+u+RXsJZCPrfc/ungNM2yWYJJzYcOQ4GfAUeoQ==
+ b=bksMLw3LCyRGvXEQqIZ+jcTAsS7SeyjsTflh7BxP7j1YIZZgakbHO1Jgn/QLaVgaDdEDLF7vCgk9lg6rMzbw9OzSYUgAcXWvy70rP4JqwDH0oPNg0mu3KT5+2XfsEihuwNUJO0HADq4+IQxhfPAhdpokynVfGMhiSLqoQHU5TvvzuzZL3ECDJZFFPJ9HYcmhYOanOIZkB36QLCiIEieaCNnYVrZXvyJmHyde+55v8tYd59OkJRCtrKOssgmU8eXmnYaVze6ib1Od//NcEeYqLqXH//aPeRt6hYh9//qkV7yw8EHhpv4t0GabIbb5EuWqX4PRW3glwZfbCeB6q863QA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=1BK7WX43OaaA2tfp/nsRWxHSbPBE7xnjn86qaly80RM=;
- b=fI56kor1UtCO7DLzyguHnT5T7x7SzwH/YLlcGzJMqfUEwFdCbqSppNi56NZ2JgMLrExa84vdF0Y6vT8JgEbtrZUR0knFxleQYA2u6gahems0UcMvirKNtTFcECPKaMOoNy0fjlFeYSRi6l4Et+j0Fpz4vVK7XVQr7Mm6fmSH0mrkVpclPN+PIxvZ/Hz/TFexRpHHSqnM9YV/WkDmNP5QIUEVrt4m5u1K5/4yDpLHnLkbSFUUf64CK+8e2vMRXSUK23ZlovNZtB03qAF8j4/S/1MyIZQyNmrQgHbHfOcedPYcdiDQKoFrMQ0KtK4wM90WJfgRfahA82kgYFiVJbu/+A==
+ bh=7M1gV9LyFfFREVAC03lv8Ez2TmM1MkdTR2uk/mA5ePY=;
+ b=L1deEq7pnFaFoURakZU/G4h06dDu0X26TfpetxOJuDWYRm6i0G/5zDN/Bctp8JBh4UmQkqzTXiWs4aXpSiv1f1TSdLEEr2Jjn3zTYU3ElvKatnnrc7P0smgbg7DQwwpUATDzrBhXor9B7HlUH+5JbofkYVmTtLAQ8abQ34ns+uT6sNsG3nGqBdTv7aynkeAEVfkSPh1+/4Q3ZZhq5RO7LEhZIeTFuHfkGl4LytgmvOexnBbz977T//lBXWqf1rvneXGeuetW90qQiBfWIhlEfaYMFdKQ+CvBQ4XeS+XibMh4BIWWUzj6N+9QUI/0KnH4Zff30HLJPE9coi9Ms4VMqw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=1BK7WX43OaaA2tfp/nsRWxHSbPBE7xnjn86qaly80RM=;
- b=GAUJvNldmn+HsEW+AQyUhN+to7ERBfw+H68xaTOPk7zj6x/s9GKZ34ts9SB5zBvk88P2t3BDLviRd4njYqF1/uo0LuyMrFX4myT4QVCqDQvWSo5OjZZkCcE9EpH/ByqFhHidrCITCcS2q/xOLuG01tp7t8BHTOaWNEGEKBRPjZA=
-Received: from BN8PR04CA0051.namprd04.prod.outlook.com (2603:10b6:408:d4::25)
- by BL0PR12MB4931.namprd12.prod.outlook.com (2603:10b6:208:17e::15) with
+ bh=7M1gV9LyFfFREVAC03lv8Ez2TmM1MkdTR2uk/mA5ePY=;
+ b=2Sq1UoVP4E0QE7FxkH7yBE4k6T0dDdvnuD+u7kOALDMIhzVVkFHl8sfRTggAC+Au/03S0yMhpyFQNEU9sjJ/vMFOXkXKviTOGgSjTAU3olbbHCg5ToVeqvyZxE/t/AI4ZfuP0cbDBV+w/Wjim1Hghpw8tuNoVIR2MURHPGc/kLg=
+Received: from BN8PR04CA0046.namprd04.prod.outlook.com (2603:10b6:408:d4::20)
+ by BY5PR12MB4856.namprd12.prod.outlook.com (2603:10b6:a03:1d5::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5081.14; Thu, 17 Mar
- 2022 14:15:09 +0000
+ 2022 14:15:05 +0000
 Received: from BN8NAM11FT025.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:d4:cafe::88) by BN8PR04CA0051.outlook.office365.com
- (2603:10b6:408:d4::25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5081.14 via Frontend
- Transport; Thu, 17 Mar 2022 14:15:09 +0000
+ (2603:10b6:408:d4:cafe::1a) by BN8PR04CA0046.outlook.office365.com
+ (2603:10b6:408:d4::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5061.22 via Frontend
+ Transport; Thu, 17 Mar 2022 14:15:05 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,11 +48,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
  BN8NAM11FT025.mail.protection.outlook.com (10.13.177.136) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5081.14 via Frontend Transport; Thu, 17 Mar 2022 14:15:09 +0000
+ 15.20.5081.14 via Frontend Transport; Thu, 17 Mar 2022 14:15:05 +0000
 Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 17 Mar
- 2022 09:15:06 -0500
+ 2022 09:15:03 -0500
 From:   Mario Limonciello <mario.limonciello@amd.com>
 To:     Hans de Goede <hdegoede@redhat.com>,
         Mark Gross <mgross@linux.intel.com>,
@@ -63,12 +63,10 @@ CC:     "open list:X86 PLATFORM DRIVERS"
         Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
         Goswami Sanket <Sanket.Goswami@amd.com>,
         Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v5 4/4] platform/x86: amd-pmc: Drop CPU QoS workaround
-Date:   Thu, 17 Mar 2022 09:14:45 -0500
-Message-ID: <20220317141445.6498-4-mario.limonciello@amd.com>
+Subject: [PATCH v5 1/4] ACPI / x86: Add support for LPS0 callback handler
+Date:   Thu, 17 Mar 2022 09:14:42 -0500
+Message-ID: <20220317141445.6498-1-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220317141445.6498-1-mario.limonciello@amd.com>
-References: <20220317141445.6498-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -77,146 +75,154 @@ X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 683a665f-b7a7-4d86-32a5-08da08208b36
-X-MS-TrafficTypeDiagnostic: BL0PR12MB4931:EE_
-X-Microsoft-Antispam-PRVS: <BL0PR12MB49316BE1B389C7CCE88B2680E2129@BL0PR12MB4931.namprd12.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: c380edf7-26e8-4b38-1cb5-08da082088cf
+X-MS-TrafficTypeDiagnostic: BY5PR12MB4856:EE_
+X-Microsoft-Antispam-PRVS: <BY5PR12MB4856A907ED97DFED0F78C358E2129@BY5PR12MB4856.namprd12.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: hdaOR42wWlEQw3Z8NJmFoHAwSdNhqbST7fxC+7Rw1gr1r/WLglpbBDABuuMYStEFPcZyGFNdMdkvP5ZveV6VsZ6E9+pETEWkkJCI5YwSZCyObbhfJTDz06xEH8cBNt6atD0RHfMDniNO63DBZccgQhDVmnAgrNWMQ8sLeE5ARGuQqXSYtXAToUtMi0RaZ8irqu5OyY+5WzDxLt3UtbOVRzK7J/A99tUQ282uZFI4nmpSSbSwrlDsK1EsvkR7wNHepK4HQQzxtTVFWnPpX5Wzdd/UpGiA625OdyWOo+rPnlzRQb3jythvW8rwgDOSnrBLCf2kgW43hUMUp2dFzJDU3v+I8J3aVnv7ojHQqY8EGPjpbG/7SYAG7MVIpZnVQhuDru8ELRRKnvxh4RDAsDKYrmjia1flpLx2sOI/w2JfB9LMwFyGGLqLGICTD4jpYUSd7igNvOlWR5v5mMlIhift1nB/+/JVQdXACo1xB/APvbzACHeu9FpPfOsDvgUg0/eOCi07LeiV7RwtKdUgZuwpPV2/uEV+wxD3WSLeIjIQ9Rp9x0+9AtzWpKiJBjoikHH7ZvZckbJMJfWIKkO7uaTuO/QgYKATRudylgbbQ+joIwr0QZ1HbmeTF4JtgEu6f+2G1P66EdSORjC6A7snk5Co60HVADHfSf7qFt3rE335+ckmVPImOxOaQfWfF9+gkdidgd8477ecBo+bQgpoHI4NJw==
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(40470700004)(46966006)(36840700001)(1076003)(336012)(426003)(54906003)(16526019)(186003)(26005)(316002)(7696005)(36756003)(6666004)(508600001)(2906002)(44832011)(4326008)(82310400004)(36860700001)(86362001)(2616005)(110136005)(8676002)(70586007)(70206006)(83380400001)(40460700003)(356005)(81166007)(5660300002)(47076005)(8936002)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: M94LIrEtwXTuQ0pahOEVN897a9dZ+rvo4V9ea/mR/2i7wUpi8Rf2J1NWbBgO24MG9EFJaaubn8hZcG7Chh8+94oASnMqG/d1hgWOn13lwgToKYJ8Yr5ec/dv3i3nbpFLsqtdvntsLqQQpyLni0SyYZjvhONEiPiMdMW2t5eio/IBKfPv0rdAMWPswRuU5Qipxe25rgTmQsM0cq2KVMsABMr9a7InyY+fPpE+LXEzD3V/Bimu0vyBejimllr+wpLbqM0cv7xIH8v4v9jeAnbYCxUMWEDeySKomwYp4hZaDZlp+7pXSabDFbi6NmPr0MsZbyfSBVVMqNQmMymMBEZG2I9tErhxW+w5QBRAW/sN4+7iUYHwfwG+wdC/IWtPgKR8tMn7V1WOcadjEplMGhpMGcH4197facv9/eAeFgnZ61OE/I1JRCxbYOpazRS65p8MKxeaQc0zWTodkI8VHMNGRMpNuZ65Ee/lm/yTwf5yuFKtqL+uK1+U4Nc1MO1I2+KZN6PZTs3+Uy1xR7z5uI8LSriFRluc3XNL40Opq+xq781VAx0GT7JpC/DpHlUo1N7x+Tl8jOjoJrq8oWwMVtEa4bGg0DsBIlohz9LQOo4QDW0YT0lKmLZmDK9clWhO3RWR8XfKKSHcpS5N2X03lE/r6a9rAkYDpkGdp8EgwSFv+H213APgvoU2xOTRPkCZErlrc4JvDE3TmNNmz5ow5ZqB1A==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(40470700004)(46966006)(36840700001)(1076003)(336012)(426003)(54906003)(16526019)(186003)(26005)(316002)(7696005)(36756003)(6666004)(508600001)(45080400002)(2906002)(44832011)(4326008)(82310400004)(36860700001)(86362001)(2616005)(110136005)(8676002)(70586007)(70206006)(83380400001)(40460700003)(356005)(81166007)(5660300002)(47076005)(8936002)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Mar 2022 14:15:09.3125
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Mar 2022 14:15:05.2971
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 683a665f-b7a7-4d86-32a5-08da08208b36
+X-MS-Exchange-CrossTenant-Network-Message-Id: c380edf7-26e8-4b38-1cb5-08da082088cf
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT025.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR12MB4931
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB4856
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-A workaround was previously introduced as part of commit 646f429ec2de
-("platform/x86: amd-pmc: Set QOS during suspend on CZN w/ timer wakeup")
-to prevent CPUs from going into the deepest state during the execution
-of the `noirq` stage of `amd_pmc`.  As `amd_pmc` has been pushed to the
-last step for suspend on AMD platforms, this workaround is no longer
-necessary.
+Currenty the latest thing run during a suspend to idle attempt is
+the LPS0 `prepare_late` callback and the earliest thing is the
+`resume_early` callback.
+
+There is a desire for the `amd-pmc` driver to suspend later in the
+suspend process (ideally the very last thing), so create a callback
+that it or any other driver can hook into to do this.
 
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
 changes from v4->v5:
- * rebase on earlier patches
+* fix a check for handler->prepare
+  Reported by Dan Carpenter <dan.carpenter@oracle.com>
 changes from v3->v4:
- * rebase on earlier patches
+* drop use of mutex, use lock_system_sleep instead
+* don't pass argument of context, driver will maintain this internally
+* don't allow failing prepare stage
+* don't allow unregistering if sleep_no_lps0 is set
 changes from v2->v3:
- * No changes
+* Check that callbacks exist before calling
 changes from v1->v2:
- * No changes
+* Change register/unregister arguments to be struct
 
- drivers/platform/x86/amd-pmc.c | 32 +++-----------------------------
- 1 file changed, 3 insertions(+), 29 deletions(-)
+ drivers/acpi/x86/s2idle.c | 40 +++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h      | 10 +++++++++-
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/amd-pmc.c b/drivers/platform/x86/amd-pmc.c
-index f36cf125b284..7317993cd91b 100644
---- a/drivers/platform/x86/amd-pmc.c
-+++ b/drivers/platform/x86/amd-pmc.c
-@@ -21,7 +21,6 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/platform_device.h>
--#include <linux/pm_qos.h>
- #include <linux/rtc.h>
- #include <linux/suspend.h>
- #include <linux/seq_file.h>
-@@ -96,9 +95,6 @@
- #define PMC_MSG_DELAY_MIN_US		50
- #define RESPONSE_REGISTER_LOOP_MAX	20000
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index abc06e7f89d8..031b20a547f9 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -86,6 +86,8 @@ struct lpi_device_constraint_amd {
+ 	int min_dstate;
+ };
  
--/* QoS request for letting CPUs in idle states, but not the deepest */
--#define AMD_PMC_MAX_IDLE_STATE_LATENCY	3
--
- #define SOC_SUBSYSTEM_IP_MAX	12
- #define DELAY_MIN_US		2000
- #define DELAY_MAX_US		3000
-@@ -153,7 +149,6 @@ struct amd_pmc_dev {
- 	struct device *dev;
- 	struct pci_dev *rdev;
- 	struct mutex lock; /* generic mutex lock */
--	struct pm_qos_request amd_pmc_pm_qos_req;
- #if IS_ENABLED(CONFIG_DEBUG_FS)
- 	struct dentry *dbgfs_dir;
- #endif /* CONFIG_DEBUG_FS */
-@@ -628,14 +623,6 @@ static int amd_pmc_verify_czn_rtc(struct amd_pmc_dev *pdev, u32 *arg)
- 	rc = rtc_alarm_irq_enable(rtc_device, 0);
- 	dev_dbg(pdev->dev, "wakeup timer programmed for %lld seconds\n", duration);
++static LIST_HEAD(lps0_s2idle_devops_head);
++
+ static struct lpi_constraints *lpi_constraints_table;
+ static int lpi_constraints_table_size;
+ static int rev_id;
+@@ -444,6 +446,8 @@ static struct acpi_scan_handler lps0_handler = {
  
--	/*
--	 * Prevent CPUs from getting into deep idle states while sending OS_HINT
--	 * which is otherwise generally safe to send when at least one of the CPUs
--	 * is not in deep idle states.
--	 */
--	cpu_latency_qos_update_request(&pdev->amd_pmc_pm_qos_req, AMD_PMC_MAX_IDLE_STATE_LATENCY);
--	wake_up_all_idle_cpus();
--
- 	return rc;
- }
+ int acpi_s2idle_prepare_late(void)
+ {
++	struct acpi_s2idle_dev_ops *handler;
++
+ 	if (!lps0_device_handle || sleep_no_lps0)
+ 		return 0;
  
-@@ -655,7 +642,7 @@ static void amd_pmc_s2idle_prepare(void)
- 		rc = amd_pmc_verify_czn_rtc(pdev, &arg);
- 		if (rc) {
- 			dev_err(pdev->dev, "failed to set RTC: %d\n", rc);
--			goto fail;
-+			return;
- 		}
+@@ -474,14 +478,26 @@ int acpi_s2idle_prepare_late(void)
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_ENTRY,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
  	}
- 
-@@ -665,20 +652,13 @@ static void amd_pmc_s2idle_prepare(void)
- 	rc = amd_pmc_send_cmd(pdev, arg, NULL, msg, 0);
- 	if (rc) {
- 		dev_err(pdev->dev, "suspend failed: %d\n", rc);
--		goto fail;
-+		return;
- 	}
- 
- 	if (enable_stb)
- 		rc = amd_pmc_write_stb(pdev, AMD_PMC_STB_PREDEF);
--	if (rc) {
-+	if (rc)
- 		dev_err(pdev->dev, "error writing to STB: %d\n", rc);
--		goto fail;
--	}
--	return;
--fail:
--	if (pdev->cpu_id == AMD_CPU_ID_CZN)
--		cpu_latency_qos_update_request(&pdev->amd_pmc_pm_qos_req,
--						PM_QOS_DEFAULT_VALUE);
- }
- 
- static void amd_pmc_s2idle_restore(void)
-@@ -704,11 +684,6 @@ static void amd_pmc_s2idle_restore(void)
- 	if (rc)
- 		dev_err(pdev->dev, "error writing to STB: %d\n", rc);
- 
--	/* Restore the QoS request back to defaults if it was set */
--	if (pdev->cpu_id == AMD_CPU_ID_CZN)
--		cpu_latency_qos_update_request(&pdev->amd_pmc_pm_qos_req,
--						PM_QOS_DEFAULT_VALUE);
--
- 	/* Notify on failed entry */
- 	amd_pmc_validate_deepest(pdev);
- }
-@@ -887,7 +862,6 @@ static int amd_pmc_probe(struct platform_device *pdev)
- 		dev_warn(dev->dev, "failed to register LPS0 sleep handler, expect increased power consumption\n");
- 
- 	amd_pmc_dbgfs_register(dev);
--	cpu_latency_qos_add_request(&dev->amd_pmc_pm_qos_req, PM_QOS_DEFAULT_VALUE);
++
++	list_for_each_entry(handler, &lps0_s2idle_devops_head, list_node) {
++		if (handler->prepare)
++			handler->prepare();
++	}
++
  	return 0;
+ }
  
- err_pci_dev_put:
+ void acpi_s2idle_restore_early(void)
+ {
++	struct acpi_s2idle_dev_ops *handler;
++
+ 	if (!lps0_device_handle || sleep_no_lps0)
+ 		return;
+ 
++	list_for_each_entry(handler, &lps0_s2idle_devops_head, list_node)
++		if (handler->restore)
++			handler->restore();
++
+ 	/* Modern standby exit */
+ 	if (lps0_dsm_func_mask_microsoft > 0)
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_EXIT,
+@@ -524,4 +540,28 @@ void acpi_s2idle_setup(void)
+ 	s2idle_set_ops(&acpi_s2idle_ops_lps0);
+ }
+ 
++int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg)
++{
++	if (!lps0_device_handle || sleep_no_lps0)
++		return -ENODEV;
++
++	lock_system_sleep();
++	list_add(&arg->list_node, &lps0_s2idle_devops_head);
++	unlock_system_sleep();
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_register_lps0_dev);
++
++void acpi_unregister_lps0_dev(struct acpi_s2idle_dev_ops *arg)
++{
++	if (!lps0_device_handle || sleep_no_lps0)
++		return;
++
++	lock_system_sleep();
++	list_del(&arg->list_node);
++	unlock_system_sleep();
++}
++EXPORT_SYMBOL_GPL(acpi_unregister_lps0_dev);
++
+ #endif /* CONFIG_SUSPEND */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 6274758648e3..47c16cdc8e0e 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1023,7 +1023,15 @@ void acpi_os_set_prepare_extended_sleep(int (*func)(u8 sleep_state,
+ 
+ acpi_status acpi_os_prepare_extended_sleep(u8 sleep_state,
+ 					   u32 val_a, u32 val_b);
+-
++#ifdef CONFIG_X86
++struct acpi_s2idle_dev_ops {
++	struct list_head list_node;
++	void (*prepare)(void);
++	void (*restore)(void);
++};
++int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg);
++void acpi_unregister_lps0_dev(struct acpi_s2idle_dev_ops *arg);
++#endif /* CONFIG_X86 */
+ #ifndef CONFIG_IA64
+ void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
+ #else
 -- 
 2.34.1
 
