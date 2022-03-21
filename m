@@ -2,65 +2,66 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E13C1C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Mar 2022 22:55:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A97EBC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Mar 2022 22:58:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230361AbiCUW47 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Mar 2022 18:56:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56858 "EHLO
+        id S231701AbiCUXAT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Mar 2022 19:00:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230421AbiCUW4A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Mar 2022 18:56:00 -0400
+        with ESMTP id S232280AbiCUW6L (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Mar 2022 18:58:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 280053AF74F;
-        Mon, 21 Mar 2022 15:37:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 385E946E777;
+        Mon, 21 Mar 2022 15:37:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 59B356157B;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 293A36156E;
         Mon, 21 Mar 2022 21:53:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id C1162C36AF2;
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 8B04CC36AE5;
         Mon, 21 Mar 2022 21:53:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
         s=k20201202; t=1647899628;
-        bh=0D+2K3pDvtk5RwFQbQp2AVB6NUDbZ2a+esbXSCCsnoU=;
+        bh=GJkjL4UZBkaIhfOg8EoXxAXciPyo1zbm8cTIH/VGHMA=;
         h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=iKBQCLmQEu25yUNwOwFe7vWfyo6tyDD/Sdd6voAdLAL9+0ZBrSB50JixOe+YPgts+
-         jdRxs82s8K44SpHAlW+SORl2nC5h44DJfj1647sRqC+Ji29RHyDEJmkvuS3O2W92Ry
-         hVmUNjtXCjipJl1+5/qT4TgfwCk+SVqTHGHrnddpxSThRDey+6CklV0B3XydJlcRVG
-         00d2dKP8Fnb2brgicATyS08r/ut9OAe+rkOJFmQ/qB1OHibQrUmDk0nEepTq5kycZc
-         g9mYsSIJ2h+IFzwtkIHTfxy0LAlB3rTZfSIMO1Ttlnd+jxk8qDdxHW/8rwGiOV2T5m
-         0kI6YZ4cI0dTw==
+        b=oijYUMoHqXTTZgw0UJU079FLbSQ1cBfqLwhba8WknsAHviK4mB/9I/i3sx3Zg/Vy8
+         3Y0b/LOWkuFnMObTzgwYGo30HFOXGKC3uCuChgGKLHIWCpx/4ydK5t9PXQTkPXwqtR
+         wmZ8MgkmrBn/H6cYTYGUBykEQNiuIhPO3Oc2UmO9U/JSYZXhrtClUAvD++qHKV44Un
+         RFI2tt3vRKo9pE+XewrgU4u0AatFqxMYMElUO67b2KzzJ0XggZ2F6G7l1iAkSI0jzj
+         Bv8o2Z3rdGLIAx2BKjpKaSsmiFsjhNcIYi5YXfsxY48O94rTqdfPDZkFCoMgSLHXYY
+         InDsqnZKmSY+A==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A9D9BE6D44B;
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 73739EAC096;
         Mon, 21 Mar 2022 21:53:48 +0000 (UTC)
-Subject: Re: [GIT PULL] PNP update for v5.18-rc1
+Subject: Re: [GIT PULL] Power management updates for v5.18-rc1
 From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0gAGJuDF0uZTB+_JGT_5svr1xZDJLYoxLFRGCcbEF0v+Q@mail.gmail.com>
-References: <CAJZ5v0gAGJuDF0uZTB+_JGT_5svr1xZDJLYoxLFRGCcbEF0v+Q@mail.gmail.com>
+In-Reply-To: <CAJZ5v0i+dDvX2J7CHfawmFXynifkNZ-0ZHYnraYv-HYJN5bdbA@mail.gmail.com>
+References: <CAJZ5v0i+dDvX2J7CHfawmFXynifkNZ-0ZHYnraYv-HYJN5bdbA@mail.gmail.com>
 X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0gAGJuDF0uZTB+_JGT_5svr1xZDJLYoxLFRGCcbEF0v+Q@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pnp-5.18-rc1
-X-PR-Tracked-Commit-Id: ed945296bb90ce79a7ff331885dd37eafa38b551
+X-PR-Tracked-Message-Id: <CAJZ5v0i+dDvX2J7CHfawmFXynifkNZ-0ZHYnraYv-HYJN5bdbA@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.18-rc1
+X-PR-Tracked-Commit-Id: ec3d8b8365e9865b43099e943ec5f0bc12f28f96
 X-PR-Merge-Tree: torvalds/linux.git
 X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: f400bea2d44beec76f7e7f45e5372ef790336a4d
-Message-Id: <164789962869.9856.16193995775823019630.pr-tracker-bot@kernel.org>
+X-PR-Merge-Commit-Id: 02b82b02c34321dde10d003aafcd831a769b2a8a
+Message-Id: <164789962846.9856.5443443057848471317.pr-tracker-bot@kernel.org>
 Date:   Mon, 21 Mar 2022 21:53:48 +0000
 To:     "Rafael J. Wysocki" <rafael@kernel.org>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Mon, 21 Mar 2022 17:45:28 +0100:
+The pull request you sent on Mon, 21 Mar 2022 17:36:05 +0100:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pnp-5.18-rc1
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-5.18-rc1
 
 has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/f400bea2d44beec76f7e7f45e5372ef790336a4d
+https://git.kernel.org/torvalds/c/02b82b02c34321dde10d003aafcd831a769b2a8a
 
 Thank you!
 
