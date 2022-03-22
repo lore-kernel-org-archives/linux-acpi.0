@@ -2,84 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 363B6C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Mar 2022 11:12:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CC85C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Mar 2022 16:04:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232603AbiCVLNj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Mar 2022 07:13:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37440 "EHLO
+        id S237534AbiCVQFa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Mar 2022 12:05:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230135AbiCVLNi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2022 07:13:38 -0400
-Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com [209.85.219.178])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74B198021D;
-        Tue, 22 Mar 2022 04:12:07 -0700 (PDT)
-Received: by mail-yb1-f178.google.com with SMTP id y142so32914005ybe.11;
-        Tue, 22 Mar 2022 04:12:07 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=eAEB4EkYiyDLjCGXztqi5rjXvrVzYwYiLfT7TEzd0Gg=;
-        b=VMu0JthSWwJQzlqBhxdgxeHSTYPHATGBuT280Fwbbki1RMDIuLY78HvQjj4arVnZxW
-         qGVKvGVXa8XjjhxQ2GI5vx+6cUauMoOAYWMxqo+ntBCx/GbGBcdLnpM98izP5fcdbyEA
-         f90Eo8iVCbIWNet6FOwE/A81cfOr+bCXhGse7YtVPb+qZ8u0PgNGayZVgGPv6IvWnASF
-         +4gAx5gq0lxCUzreHCx9jPl0wSb6E34RMe40vtuYM5oTBecyF7CyxJkta16Cb1VygFDa
-         D4kwwYYWCB93FlziMMseZhD6dWGQwfM9ZiDxFtri5av8SakrEEp99RG1Apr5A/s5u14i
-         cSFQ==
-X-Gm-Message-State: AOAM5339LZI2ElCH6pzns412m8gWvP6QE8IZ0xtvgRg5QfOcSpF6wrO/
-        HeggixuUxFPvb/1HugZ5CS/VGANecql7sX0vvnk=
-X-Google-Smtp-Source: ABdhPJy7J3kPzMh3zGdCCagbfKmYuXjzWcE8v2f7kXswi1R/nTTBK/UC4hqgkaKir+RL0Wu6Iy0fT3HByLTjqEq1cT8=
-X-Received: by 2002:a25:fe10:0:b0:625:262f:e792 with SMTP id
- k16-20020a25fe10000000b00625262fe792mr25846281ybe.365.1647947526731; Tue, 22
- Mar 2022 04:12:06 -0700 (PDT)
+        with ESMTP id S236653AbiCVQF3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2022 12:05:29 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 662456F4BD;
+        Tue, 22 Mar 2022 09:04:00 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
+ id 8cec46cd286a4186; Tue, 22 Mar 2022 17:03:59 +0100
+Received: from kreacher.localnet (unknown [213.134.175.187])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 479F566B920;
+        Tue, 22 Mar 2022 17:03:58 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Ionela Voinescu <ionela.voinescu@arm.com>
+Subject: [PATCH v1 1/2] ACPI: CPPC: Avoid out of bounds access when parsing _CPC data
+Date:   Tue, 22 Mar 2022 17:02:05 +0100
+Message-ID: <4725716.31r3eYUQgx@kreacher>
+In-Reply-To: <5552457.DvuYhMxLoT@kreacher>
+References: <5552457.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
-References: <20220320062907.3272903-1-rajatja@google.com> <YjmQq1DvWnJwUh6R@infradead.org>
-In-Reply-To: <YjmQq1DvWnJwUh6R@infradead.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 22 Mar 2022 12:11:54 +0100
-Message-ID: <CAJZ5v0h9TnUELahzkO59Vqoio1QRHfixk58Yxgffa72rmEBgOA@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] PCI: Rename "pci_dev->untrusted" to "pci_dev->poses_dma_risk"
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Rajat Jain <rajatja@google.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Rajat Jain <rajatxjain@gmail.com>,
-        Dmitry Torokhov <dtor@google.com>,
-        Jesse Barnes <jsbarnes@google.com>,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Pavel Machek <pavel@denx.de>,
-        "Oliver O'Halloran" <oohall@gmail.com>,
-        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.175.187
+X-CLIENT-HOSTNAME: 213.134.175.187
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudeghedgkedvucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeetgefgleetgeduheeugeeikeevudelueelvdeufeejfeffgeefjedugfetfeehhfenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecukfhppedvudefrddufeegrddujeehrddukeejnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudejhedrudekjedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepiedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehsrhhinhhivhgr
+ shdrphgrnhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohepmhgrrhhiohdrlhhimhhonhgtihgvlhhlohesrghmugdrtghomhdprhgtphhtthhopehiohhnvghlrgdrvhhoihhnvghstghusegrrhhmrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 22, 2022 at 10:02 AM Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Sat, Mar 19, 2022 at 11:29:05PM -0700, Rajat Jain wrote:
-> > Rename the field to make it more clear, that the device can execute DMA
-> > attacks on the system, and thus the system may need protection from
-> > such attacks from this device.
-> >
-> > No functional change intended.
-> >
-> > Signed-off-by: Rajat Jain <rajatja@google.com>
-> > ---
-> > v4: Initial version, created based on comments on other patch
->
-> What a horrible name.  Why not untrusted_dma which captures the
-> intent much better?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-FWIW, I like this one much better too.
+If the NumEntries field in the _CPC return package is less than 2, do
+not attempt to access the "Revision" element of that package, because
+it may not be present then.
+
+Fixes: 337aadff8e45 ("ACPI: Introduce CPU performance controls using CPPC")
+BugLink: https://lore.kernel.org/lkml/20220322143534.GC32582@xsang-OptiPlex-9020/
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/cppc_acpi.c |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+Index: linux-pm/drivers/acpi/cppc_acpi.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/cppc_acpi.c
++++ linux-pm/drivers/acpi/cppc_acpi.c
+@@ -679,6 +679,11 @@ int acpi_cppc_processor_probe(struct acp
+ 	cpc_obj = &out_obj->package.elements[0];
+ 	if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
+ 		num_ent = cpc_obj->integer.value;
++		if (num_ent <= 1) {
++			pr_debug("Unexpected _CPC NumEntries value (%d) for CPU:%d\n",
++				 num_ent, pr->id);
++			goto out_free;
++		}
+ 	} else {
+ 		pr_debug("Unexpected entry type(%d) for NumEntries\n",
+ 				cpc_obj->type);
+
+
+
