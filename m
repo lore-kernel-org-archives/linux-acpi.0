@@ -2,103 +2,117 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65843C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Mar 2022 13:57:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD7B6C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Mar 2022 15:55:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244541AbiCWN7M (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Mar 2022 09:59:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43856 "EHLO
+        id S245271AbiCWP5R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 23 Mar 2022 11:57:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244546AbiCWN7L (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2022 09:59:11 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 288527E59A;
-        Wed, 23 Mar 2022 06:57:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1648043857; x=1679579857;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=7dpl7zrQjuC3jYV/6lKewPXHNVm4wSMQm8NRFYTb318=;
-  b=KiO9N07KImQHEGWKbg70aNuA/DR+2CQpc3sKetdBWHYlrw8irmcigX8S
-   y7BoWFjAUhHaBWrq6nd4i7JatKXWsvD1oY6NRbFSMCvkDFjZfNjkNN5ci
-   MW85oMDZuSJCs4Ic9vVttG9xc0vEHrTgphdG4n05ozs2u/zxbCgVPDSyJ
-   yfF9DLdoieHjU0H4NdcBuOdB2N6Y6gq6dVx0dSq5HAfoWm60YwcVPUcmp
-   V9NbfIlDE5x3EorMVe+QLHhf6dqpRSd16KzQYkURMoSWb/knJP/60nbbP
-   OxY+7xchAQDjxjfsESaYWlL/McwpCB1qTFkCrVEI9tQmNPE41TFHaveUt
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10294"; a="258067239"
-X-IronPort-AV: E=Sophos;i="5.90,204,1643702400"; 
-   d="scan'208";a="258067239"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2022 06:57:36 -0700
-X-IronPort-AV: E=Sophos;i="5.90,204,1643702400"; 
-   d="scan'208";a="785795051"
-Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2022 06:57:32 -0700
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 3FA602012F;
-        Wed, 23 Mar 2022 15:57:30 +0200 (EET)
-Date:   Wed, 23 Mar 2022 15:57:30 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     =?iso-8859-1?Q?Cl=E9ment_L=E9ger?= <clement.leger@bootlin.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Wolfram Sang <wsa@kernel.org>, Peter Rosin <peda@axentia.se>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Allan Nielsen <allan.nielsen@microchip.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-i2c@vger.kernel.org
-Subject: Re: [PATCH v2 1/7] device property: add
- fwnode_property_read_string_index()
-Message-ID: <YjsnSiUchGzLoA2H@paasikivi.fi.intel.com>
-References: <20220323091810.329217-1-clement.leger@bootlin.com>
- <20220323091810.329217-2-clement.leger@bootlin.com>
- <YjsFr4m/7pspMxD0@paasikivi.fi.intel.com>
- <20220323123902.37e45f78@fixe.home>
+        with ESMTP id S233551AbiCWP5Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2022 11:57:16 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF857A99B
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Mar 2022 08:55:46 -0700 (PDT)
+Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.54])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4KNtDw4bpYzCr6Q;
+        Wed, 23 Mar 2022 23:53:36 +0800 (CST)
+Received: from dggpemm100002.china.huawei.com (7.185.36.179) by
+ dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Wed, 23 Mar 2022 23:55:43 +0800
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ dggpemm100002.china.huawei.com (7.185.36.179) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Wed, 23 Mar 2022 23:55:42 +0800
+Received: from lhreml710-chm.china.huawei.com ([169.254.81.184]) by
+ lhreml710-chm.china.huawei.com ([169.254.81.184]) with mapi id
+ 15.01.2308.021; Wed, 23 Mar 2022 15:55:40 +0000
+From:   Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+To:     Robin Murphy <robin.murphy@arm.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+CC:     Linuxarm <linuxarm@huawei.com>,
+        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
+        "joro@8bytes.org" <joro@8bytes.org>,
+        "will@kernel.org" <will@kernel.org>,
+        wanghuiqiang <wanghuiqiang@huawei.com>,
+        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
+        "steven.price@arm.com" <steven.price@arm.com>,
+        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
+        "jon@solid-run.com" <jon@solid-run.com>,
+        "eric.auger@redhat.com" <eric.auger@redhat.com>,
+        yangyicong <yangyicong@huawei.com>
+Subject: RE: [PATCH v8 02/11] iommu: Introduce a union to struct
+ iommu_resv_region
+Thread-Topic: [PATCH v8 02/11] iommu: Introduce a union to struct
+ iommu_resv_region
+Thread-Index: AQHYJzn4JzDYsNDAv0udQS6OoRGEcqzL5oEAgAFnZ1A=
+Date:   Wed, 23 Mar 2022 15:55:40 +0000
+Message-ID: <07bb59d690e84edfa62d7c844612b526@huawei.com>
+References: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
+ <20220221154344.2126-3-shameerali.kolothum.thodi@huawei.com>
+ <5cf2c21b-6974-b2f9-140d-382985cf3095@arm.com>
+In-Reply-To: <5cf2c21b-6974-b2f9-140d-382985cf3095@arm.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.202.227.178]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220323123902.37e45f78@fixe.home>
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Clément,
-
-On Wed, Mar 23, 2022 at 12:39:02PM +0100, Clément Léger wrote:
-> Le Wed, 23 Mar 2022 13:34:07 +0200,
-> Sakari Ailus <sakari.ailus@linux.intel.com> a écrit :
-> 
-> > >   * @get_parent: Return the parent of an fwnode.
-> > > @@ -123,6 +126,9 @@ struct fwnode_operations {
-> > >  	(*property_read_string_array)(const struct fwnode_handle *fwnode_handle,
-> > >  				      const char *propname, const char **val,
-> > >  				      size_t nval);
-> > > +	int (*property_read_string_index)(const struct fwnode_handle *fwnode,
-> > > +					  const char *propname, int index,
-> > > +					  const char **string);  
-> > 
-> > Could this instead be done by adding an index argument to the
-> > property_read_string_array?
-> 
-> Hi Sakari,
-> 
-> I guess I could do that. Do you expect the string pointer to be
-> returned in "val" ? Guess a -1 index would mean that we don't care
-> about the index but want the array to be returned. And if index is
-> specified, nval will be ignored.
-
-I'd keep the behaviour the same independently of the value of index.
-
--- 
-Sakari Ailus
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
+YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDIyIE1hcmNoIDIwMjIgMTg6MjcN
+Cj4gVG86IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGkgPHNoYW1lZXJhbGkua29sb3RodW0udGhv
+ZGlAaHVhd2VpLmNvbT47DQo+IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsg
+bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGlvbW11QGxpc3RzLmxpbnV4LWZvdW5kYXRp
+b24ub3JnDQo+IENjOiBMaW51eGFybSA8bGludXhhcm1AaHVhd2VpLmNvbT47IGxvcmVuem8ucGll
+cmFsaXNpQGFybS5jb207DQo+IGpvcm9AOGJ5dGVzLm9yZzsgd2lsbEBrZXJuZWwub3JnOyB3YW5n
+aHVpcWlhbmcNCj4gPHdhbmdodWlxaWFuZ0BodWF3ZWkuY29tPjsgR3VvaGFuanVuIChIYW5qdW4g
+R3VvKQ0KPiA8Z3VvaGFuanVuQGh1YXdlaS5jb20+OyBzdGV2ZW4ucHJpY2VAYXJtLmNvbTsgU2Ft
+aS5NdWphd2FyQGFybS5jb207DQo+IGpvbkBzb2xpZC1ydW4uY29tOyBlcmljLmF1Z2VyQHJlZGhh
+dC5jb207IHlhbmd5aWNvbmcNCj4gPHlhbmd5aWNvbmdAaHVhd2VpLmNvbT4NCj4gU3ViamVjdDog
+UmU6IFtQQVRDSCB2OCAwMi8xMV0gaW9tbXU6IEludHJvZHVjZSBhIHVuaW9uIHRvIHN0cnVjdA0K
+PiBpb21tdV9yZXN2X3JlZ2lvbg0KPiANCj4gT24gMjAyMi0wMi0yMSAxNTo0MywgU2hhbWVlciBL
+b2xvdGh1bSB3cm90ZToNCj4gPiBBIHVuaW9uIGlzIGludHJvZHVjZWQgdG8gc3RydWN0IGlvbW11
+X3Jlc3ZfcmVnaW9uIHRvIGhvbGQNCj4gPiBhbnkgZmlybXdhcmUgc3BlY2lmaWMgZGF0YS4gVGhp
+cyBpcyBpbiBwcmVwYXJhdGlvbiB0byBhZGQNCj4gPiBzdXBwb3J0IGZvciBJT1JUIFJNUiByZXNl
+cnZlIHJlZ2lvbnMgYW5kIHRoZSB1bmlvbiBub3cgaG9sZHMNCj4gPiB0aGUgUk1SIHNwZWNpZmlj
+IGluZm9ybWF0aW9uLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogU2hhbWVlciBLb2xvdGh1bQ0K
+PiA8c2hhbWVlcmFsaS5rb2xvdGh1bS50aG9kaUBodWF3ZWkuY29tPg0KPiA+IC0tLQ0KPiA+ICAg
+aW5jbHVkZS9saW51eC9pb21tdS5oIHwgOSArKysrKysrKysNCj4gPiAgIDEgZmlsZSBjaGFuZ2Vk
+LCA5IGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2lv
+bW11LmggYi9pbmNsdWRlL2xpbnV4L2lvbW11LmgNCj4gPiBpbmRleCBkZTBjNTdhNTY3YzguLmIw
+Njk1MmE3NWY5NSAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2lvbW11LmgNCj4gPiAr
+KysgYi9pbmNsdWRlL2xpbnV4L2lvbW11LmgNCj4gPiBAQCAtMTI2LDYgKzEyNiwxMSBAQCBlbnVt
+IGlvbW11X3Jlc3ZfdHlwZSB7DQo+ID4gICAJSU9NTVVfUkVTVl9TV19NU0ksDQo+ID4gICB9Ow0K
+PiA+DQo+ID4gK3N0cnVjdCBpb21tdV9pb3J0X3Jtcl9kYXRhIHsNCj4gPiArCXUzMiAqc2lkczsJ
+LyogU3RyZWFtIElkcyBhc3NvY2lhdGVkIHdpdGggSU9SVCBSTVIgZW50cnkgKi8NCj4gDQo+IFBs
+ZWFzZSBtYWtlIHRoaXMgY29uc3QuDQo+IA0KPiBGdXJ0aGVyIG5pdDogY2FwaXRhbGlzYXRpb24g
+b2YgIklEcyIgaW4gdGhlIGNvbW1lbnQsIG90aGVyd2lzZSBJIG1pZ2h0DQo+IHdvcnJ5IGFib3V0
+IHRoZSBwb3NzaWJpbGl0eSBvZiBTdHJlYW0gRWdvcyB0b28gOlANCg0KVHJ1ZSA6KS4gV2lsbCBk
+byB0aGF0Lg0KDQpUaGFua3MsDQpTaGFtZWVyIA0KDQo+IA0KPiA+ICsJdTMyIG51bV9zaWRzOw0K
+PiA+ICt9Ow0KPiA+ICsNCj4gPiAgIC8qKg0KPiA+ICAgICogc3RydWN0IGlvbW11X3Jlc3ZfcmVn
+aW9uIC0gZGVzY3JpcHRvciBmb3IgYSByZXNlcnZlZCBtZW1vcnkgcmVnaW9uDQo+ID4gICAgKiBA
+bGlzdDogTGlua2VkIGxpc3QgcG9pbnRlcnMNCj4gPiBAQCAtMTMzLDYgKzEzOCw3IEBAIGVudW0g
+aW9tbXVfcmVzdl90eXBlIHsNCj4gPiAgICAqIEBsZW5ndGg6IExlbmd0aCBvZiB0aGUgcmVnaW9u
+IGluIGJ5dGVzDQo+ID4gICAgKiBAcHJvdDogSU9NTVUgUHJvdGVjdGlvbiBmbGFncyAoUkVBRC9X
+UklURS8uLi4pDQo+ID4gICAgKiBAdHlwZTogVHlwZSBvZiB0aGUgcmVzZXJ2ZWQgcmVnaW9uDQo+
+ID4gKyAqIEBmd19kYXRhOiBGVyBzcGVjaWZpYyByZXNlcnZlZCByZWdpb24gZGF0YQ0KPiANCj4g
+Tml0OiB3ZSd2ZSBnb3QgcGxlbnR5IG9mIHJvb20gdG8gc3BlbGwgb3V0ICJGaXJtd2FyZS1zcGVj
+aWZpYyIsIGFuZCBpdA0KPiBuZXZlciBodXJ0cyB0byBtYWtlIGRvY3VtZW50YXRpb24gYXMgZWFz
+eSB0byByZWFkIGFzIHBvc3NpYmxlLg0KPiANCj4gVGhhbmtzLA0KPiBSb2Jpbi4NCj4gDQo+ID4g
+ICAgKi8NCj4gPiAgIHN0cnVjdCBpb21tdV9yZXN2X3JlZ2lvbiB7DQo+ID4gICAJc3RydWN0IGxp
+c3RfaGVhZAlsaXN0Ow0KPiA+IEBAIC0xNDAsNiArMTQ2LDkgQEAgc3RydWN0IGlvbW11X3Jlc3Zf
+cmVnaW9uIHsNCj4gPiAgIAlzaXplX3QJCQlsZW5ndGg7DQo+ID4gICAJaW50CQkJcHJvdDsNCj4g
+PiAgIAllbnVtIGlvbW11X3Jlc3ZfdHlwZQl0eXBlOw0KPiA+ICsJdW5pb24gew0KPiA+ICsJCXN0
+cnVjdCBpb21tdV9pb3J0X3Jtcl9kYXRhIHJtcjsNCj4gPiArCX0gZndfZGF0YTsNCj4gPiAgIH07
+DQo+ID4NCj4gPiAgIC8qKg0K
