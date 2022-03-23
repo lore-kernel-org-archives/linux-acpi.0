@@ -2,117 +2,185 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD7B6C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 23 Mar 2022 15:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70BD2C43217
+	for <linux-acpi@archiver.kernel.org>; Wed, 23 Mar 2022 15:55:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245271AbiCWP5R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 23 Mar 2022 11:57:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41922 "EHLO
+        id S245284AbiCWP5X (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 23 Mar 2022 11:57:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233551AbiCWP5Q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2022 11:57:16 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF857A99B
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Mar 2022 08:55:46 -0700 (PDT)
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4KNtDw4bpYzCr6Q;
-        Wed, 23 Mar 2022 23:53:36 +0800 (CST)
-Received: from dggpemm100002.china.huawei.com (7.185.36.179) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Wed, 23 Mar 2022 23:55:43 +0800
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- dggpemm100002.china.huawei.com (7.185.36.179) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Wed, 23 Mar 2022 23:55:42 +0800
-Received: from lhreml710-chm.china.huawei.com ([169.254.81.184]) by
- lhreml710-chm.china.huawei.com ([169.254.81.184]) with mapi id
- 15.01.2308.021; Wed, 23 Mar 2022 15:55:40 +0000
-From:   Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-To:     Robin Murphy <robin.murphy@arm.com>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-CC:     Linuxarm <linuxarm@huawei.com>,
-        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
-        "joro@8bytes.org" <joro@8bytes.org>,
-        "will@kernel.org" <will@kernel.org>,
-        wanghuiqiang <wanghuiqiang@huawei.com>,
-        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        "steven.price@arm.com" <steven.price@arm.com>,
-        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
-        "jon@solid-run.com" <jon@solid-run.com>,
-        "eric.auger@redhat.com" <eric.auger@redhat.com>,
-        yangyicong <yangyicong@huawei.com>
-Subject: RE: [PATCH v8 02/11] iommu: Introduce a union to struct
- iommu_resv_region
-Thread-Topic: [PATCH v8 02/11] iommu: Introduce a union to struct
- iommu_resv_region
-Thread-Index: AQHYJzn4JzDYsNDAv0udQS6OoRGEcqzL5oEAgAFnZ1A=
-Date:   Wed, 23 Mar 2022 15:55:40 +0000
-Message-ID: <07bb59d690e84edfa62d7c844612b526@huawei.com>
-References: <20220221154344.2126-1-shameerali.kolothum.thodi@huawei.com>
- <20220221154344.2126-3-shameerali.kolothum.thodi@huawei.com>
- <5cf2c21b-6974-b2f9-140d-382985cf3095@arm.com>
-In-Reply-To: <5cf2c21b-6974-b2f9-140d-382985cf3095@arm.com>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.202.227.178]
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        with ESMTP id S245275AbiCWP5W (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2022 11:57:22 -0400
+Received: from hillosipuli.retiisi.eu (hillosipuli.retiisi.eu [IPv6:2a01:4f9:c010:4572::81:2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 064F87A9A2;
+        Wed, 23 Mar 2022 08:55:51 -0700 (PDT)
+Received: from lanttu.localdomain (unknown [IPv6:fd35:1bc8:1a6:d3d5::c1:2])
+        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 4362B634C91;
+        Wed, 23 Mar 2022 17:49:47 +0200 (EET)
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     andriy.shevchenko@linux.intel.com, devicetree@vger.kernel.org,
+        "Rafael J.Wysocki" <rafael@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCH v2 1/4] device property: Convert device_{dma_supported,get_dma_attr} to fwnode
+Date:   Wed, 23 Mar 2022 17:47:34 +0200
+Message-Id: <20220323154737.169483-2-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220323154737.169483-1-sakari.ailus@linux.intel.com>
+References: <20220323154737.169483-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDIyIE1hcmNoIDIwMjIgMTg6MjcN
-Cj4gVG86IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGkgPHNoYW1lZXJhbGkua29sb3RodW0udGhv
-ZGlAaHVhd2VpLmNvbT47DQo+IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsg
-bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGlvbW11QGxpc3RzLmxpbnV4LWZvdW5kYXRp
-b24ub3JnDQo+IENjOiBMaW51eGFybSA8bGludXhhcm1AaHVhd2VpLmNvbT47IGxvcmVuem8ucGll
-cmFsaXNpQGFybS5jb207DQo+IGpvcm9AOGJ5dGVzLm9yZzsgd2lsbEBrZXJuZWwub3JnOyB3YW5n
-aHVpcWlhbmcNCj4gPHdhbmdodWlxaWFuZ0BodWF3ZWkuY29tPjsgR3VvaGFuanVuIChIYW5qdW4g
-R3VvKQ0KPiA8Z3VvaGFuanVuQGh1YXdlaS5jb20+OyBzdGV2ZW4ucHJpY2VAYXJtLmNvbTsgU2Ft
-aS5NdWphd2FyQGFybS5jb207DQo+IGpvbkBzb2xpZC1ydW4uY29tOyBlcmljLmF1Z2VyQHJlZGhh
-dC5jb207IHlhbmd5aWNvbmcNCj4gPHlhbmd5aWNvbmdAaHVhd2VpLmNvbT4NCj4gU3ViamVjdDog
-UmU6IFtQQVRDSCB2OCAwMi8xMV0gaW9tbXU6IEludHJvZHVjZSBhIHVuaW9uIHRvIHN0cnVjdA0K
-PiBpb21tdV9yZXN2X3JlZ2lvbg0KPiANCj4gT24gMjAyMi0wMi0yMSAxNTo0MywgU2hhbWVlciBL
-b2xvdGh1bSB3cm90ZToNCj4gPiBBIHVuaW9uIGlzIGludHJvZHVjZWQgdG8gc3RydWN0IGlvbW11
-X3Jlc3ZfcmVnaW9uIHRvIGhvbGQNCj4gPiBhbnkgZmlybXdhcmUgc3BlY2lmaWMgZGF0YS4gVGhp
-cyBpcyBpbiBwcmVwYXJhdGlvbiB0byBhZGQNCj4gPiBzdXBwb3J0IGZvciBJT1JUIFJNUiByZXNl
-cnZlIHJlZ2lvbnMgYW5kIHRoZSB1bmlvbiBub3cgaG9sZHMNCj4gPiB0aGUgUk1SIHNwZWNpZmlj
-IGluZm9ybWF0aW9uLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogU2hhbWVlciBLb2xvdGh1bQ0K
-PiA8c2hhbWVlcmFsaS5rb2xvdGh1bS50aG9kaUBodWF3ZWkuY29tPg0KPiA+IC0tLQ0KPiA+ICAg
-aW5jbHVkZS9saW51eC9pb21tdS5oIHwgOSArKysrKysrKysNCj4gPiAgIDEgZmlsZSBjaGFuZ2Vk
-LCA5IGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2lv
-bW11LmggYi9pbmNsdWRlL2xpbnV4L2lvbW11LmgNCj4gPiBpbmRleCBkZTBjNTdhNTY3YzguLmIw
-Njk1MmE3NWY5NSAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2lvbW11LmgNCj4gPiAr
-KysgYi9pbmNsdWRlL2xpbnV4L2lvbW11LmgNCj4gPiBAQCAtMTI2LDYgKzEyNiwxMSBAQCBlbnVt
-IGlvbW11X3Jlc3ZfdHlwZSB7DQo+ID4gICAJSU9NTVVfUkVTVl9TV19NU0ksDQo+ID4gICB9Ow0K
-PiA+DQo+ID4gK3N0cnVjdCBpb21tdV9pb3J0X3Jtcl9kYXRhIHsNCj4gPiArCXUzMiAqc2lkczsJ
-LyogU3RyZWFtIElkcyBhc3NvY2lhdGVkIHdpdGggSU9SVCBSTVIgZW50cnkgKi8NCj4gDQo+IFBs
-ZWFzZSBtYWtlIHRoaXMgY29uc3QuDQo+IA0KPiBGdXJ0aGVyIG5pdDogY2FwaXRhbGlzYXRpb24g
-b2YgIklEcyIgaW4gdGhlIGNvbW1lbnQsIG90aGVyd2lzZSBJIG1pZ2h0DQo+IHdvcnJ5IGFib3V0
-IHRoZSBwb3NzaWJpbGl0eSBvZiBTdHJlYW0gRWdvcyB0b28gOlANCg0KVHJ1ZSA6KS4gV2lsbCBk
-byB0aGF0Lg0KDQpUaGFua3MsDQpTaGFtZWVyIA0KDQo+IA0KPiA+ICsJdTMyIG51bV9zaWRzOw0K
-PiA+ICt9Ow0KPiA+ICsNCj4gPiAgIC8qKg0KPiA+ICAgICogc3RydWN0IGlvbW11X3Jlc3ZfcmVn
-aW9uIC0gZGVzY3JpcHRvciBmb3IgYSByZXNlcnZlZCBtZW1vcnkgcmVnaW9uDQo+ID4gICAgKiBA
-bGlzdDogTGlua2VkIGxpc3QgcG9pbnRlcnMNCj4gPiBAQCAtMTMzLDYgKzEzOCw3IEBAIGVudW0g
-aW9tbXVfcmVzdl90eXBlIHsNCj4gPiAgICAqIEBsZW5ndGg6IExlbmd0aCBvZiB0aGUgcmVnaW9u
-IGluIGJ5dGVzDQo+ID4gICAgKiBAcHJvdDogSU9NTVUgUHJvdGVjdGlvbiBmbGFncyAoUkVBRC9X
-UklURS8uLi4pDQo+ID4gICAgKiBAdHlwZTogVHlwZSBvZiB0aGUgcmVzZXJ2ZWQgcmVnaW9uDQo+
-ID4gKyAqIEBmd19kYXRhOiBGVyBzcGVjaWZpYyByZXNlcnZlZCByZWdpb24gZGF0YQ0KPiANCj4g
-Tml0OiB3ZSd2ZSBnb3QgcGxlbnR5IG9mIHJvb20gdG8gc3BlbGwgb3V0ICJGaXJtd2FyZS1zcGVj
-aWZpYyIsIGFuZCBpdA0KPiBuZXZlciBodXJ0cyB0byBtYWtlIGRvY3VtZW50YXRpb24gYXMgZWFz
-eSB0byByZWFkIGFzIHBvc3NpYmxlLg0KPiANCj4gVGhhbmtzLA0KPiBSb2Jpbi4NCj4gDQo+ID4g
-ICAgKi8NCj4gPiAgIHN0cnVjdCBpb21tdV9yZXN2X3JlZ2lvbiB7DQo+ID4gICAJc3RydWN0IGxp
-c3RfaGVhZAlsaXN0Ow0KPiA+IEBAIC0xNDAsNiArMTQ2LDkgQEAgc3RydWN0IGlvbW11X3Jlc3Zf
-cmVnaW9uIHsNCj4gPiAgIAlzaXplX3QJCQlsZW5ndGg7DQo+ID4gICAJaW50CQkJcHJvdDsNCj4g
-PiAgIAllbnVtIGlvbW11X3Jlc3ZfdHlwZQl0eXBlOw0KPiA+ICsJdW5pb24gew0KPiA+ICsJCXN0
-cnVjdCBpb21tdV9pb3J0X3Jtcl9kYXRhIHJtcjsNCj4gPiArCX0gZndfZGF0YTsNCj4gPiAgIH07
-DQo+ID4NCj4gPiAgIC8qKg0K
+Make the device_dma_supported and device_get_dma_attr functions to use the
+fwnode ops, and move the implementation to ACPI and OF frameworks.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/property.c | 14 ++++++++++++++
+ drivers/base/property.c | 25 ++++---------------------
+ drivers/of/property.c   | 17 +++++++++++++++++
+ include/linux/fwnode.h  |  3 +++
+ 4 files changed, 38 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index d0986bda2964..1541b318ba46 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1253,6 +1253,17 @@ static bool acpi_fwnode_device_is_available(const struct fwnode_handle *fwnode)
+ 	return acpi_device_is_present(to_acpi_device_node(fwnode));
+ }
+ 
++static bool acpi_fwnode_device_dma_supported(const struct fwnode_handle *fwnode)
++{
++	return acpi_dma_supported(to_acpi_device_node(fwnode));
++}
++
++static enum dev_dma_attr
++acpi_fwnode_device_get_dma_attr(const struct fwnode_handle *fwnode)
++{
++	return acpi_get_dma_attr(to_acpi_device_node(fwnode));
++}
++
+ static bool acpi_fwnode_property_present(const struct fwnode_handle *fwnode,
+ 					 const char *propname)
+ {
+@@ -1384,6 +1395,9 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 	const struct fwnode_operations ops = {				\
+ 		.device_is_available = acpi_fwnode_device_is_available, \
+ 		.device_get_match_data = acpi_fwnode_device_get_match_data, \
++		.device_dma_supported =				\
++			acpi_fwnode_device_dma_supported,		\
++		.device_get_dma_attr = acpi_fwnode_device_get_dma_attr,	\
+ 		.property_present = acpi_fwnode_property_present,	\
+ 		.property_read_int_array =				\
+ 			acpi_fwnode_property_read_int_array,		\
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index c0e94cce9c29..09686e2e903e 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -823,33 +823,16 @@ EXPORT_SYMBOL_GPL(device_get_child_node_count);
+ 
+ bool device_dma_supported(struct device *dev)
+ {
+-	const struct fwnode_handle *fwnode = dev_fwnode(dev);
+-
+-	/* For DT, this is always supported.
+-	 * For ACPI, this depends on CCA, which
+-	 * is determined by the acpi_dma_supported().
+-	 */
+-	if (is_of_node(fwnode))
+-		return true;
+-
+-	return acpi_dma_supported(to_acpi_device_node(fwnode));
++	return fwnode_call_bool_op(dev_fwnode(dev), device_dma_supported);
+ }
+ EXPORT_SYMBOL_GPL(device_dma_supported);
+ 
+ enum dev_dma_attr device_get_dma_attr(struct device *dev)
+ {
+-	const struct fwnode_handle *fwnode = dev_fwnode(dev);
+-	enum dev_dma_attr attr = DEV_DMA_NOT_SUPPORTED;
+-
+-	if (is_of_node(fwnode)) {
+-		if (of_dma_is_coherent(to_of_node(fwnode)))
+-			attr = DEV_DMA_COHERENT;
+-		else
+-			attr = DEV_DMA_NON_COHERENT;
+-	} else
+-		attr = acpi_get_dma_attr(to_acpi_device_node(fwnode));
++	if (!fwnode_has_op(dev_fwnode(dev), device_get_dma_attr))
++		return DEV_DMA_NOT_SUPPORTED;
+ 
+-	return attr;
++	return fwnode_call_int_op(dev_fwnode(dev), device_get_dma_attr);
+ }
+ EXPORT_SYMBOL_GPL(device_get_dma_attr);
+ 
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 8e90071de6ed..676899566f7c 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -22,6 +22,7 @@
+ #define pr_fmt(fmt)	"OF: " fmt
+ 
+ #include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <linux/of_graph.h>
+ #include <linux/of_irq.h>
+@@ -872,6 +873,20 @@ static bool of_fwnode_device_is_available(const struct fwnode_handle *fwnode)
+ 	return of_device_is_available(to_of_node(fwnode));
+ }
+ 
++static bool of_fwnode_device_dma_supported(const struct fwnode_handle *fwnode)
++{
++	return true;
++}
++
++static enum dev_dma_attr
++of_fwnode_device_get_dma_attr(const struct fwnode_handle *fwnode)
++{
++	if (of_dma_is_coherent(to_of_node(fwnode)))
++		return DEV_DMA_COHERENT;
++	else
++		return DEV_DMA_NON_COHERENT;
++}
++
+ static bool of_fwnode_property_present(const struct fwnode_handle *fwnode,
+ 				       const char *propname)
+ {
+@@ -1472,6 +1487,8 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.put = of_fwnode_put,
+ 	.device_is_available = of_fwnode_device_is_available,
+ 	.device_get_match_data = of_fwnode_device_get_match_data,
++	.device_dma_supported = of_fwnode_device_dma_supported,
++	.device_get_dma_attr = of_fwnode_device_get_dma_attr,
+ 	.property_present = of_fwnode_property_present,
+ 	.property_read_int_array = of_fwnode_property_read_int_array,
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 3a532ba66f6c..6f307f21fc65 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -113,6 +113,9 @@ struct fwnode_operations {
+ 	bool (*device_is_available)(const struct fwnode_handle *fwnode);
+ 	const void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
+ 					     const struct device *dev);
++	bool (*device_dma_supported)(const struct fwnode_handle *fwnode);
++	enum dev_dma_attr
++	(*device_get_dma_attr)(const struct fwnode_handle *fwnode);
+ 	bool (*property_present)(const struct fwnode_handle *fwnode,
+ 				 const char *propname);
+ 	int (*property_read_int_array)(const struct fwnode_handle *fwnode,
+-- 
+2.30.2
+
