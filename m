@@ -2,36 +2,49 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2B2FC433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Mar 2022 15:13:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEE96C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Mar 2022 15:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356030AbiCYPPY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Mar 2022 11:15:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44590 "EHLO
+        id S1356405AbiCYP67 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Mar 2022 11:58:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377068AbiCYPNx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2022 11:13:53 -0400
-Received: from relay7-d.mail.gandi.net (relay7-d.mail.gandi.net [IPv6:2001:4b98:dc4:8::227])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE880DE096;
-        Fri, 25 Mar 2022 08:10:51 -0700 (PDT)
-Received: (Authenticated sender: clement.leger@bootlin.com)
-        by mail.gandi.net (Postfix) with ESMTPSA id 24EDD20013;
-        Fri, 25 Mar 2022 15:10:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-        t=1648221049;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=mRSu3/wCSc0mFe5FcrRdKJwcESMddFQbMLzRELsBR8s=;
-        b=hMz7NELw0O7Eshl2v7fb3IkN3WvOyeshGV6GPeE/yPHTYYvRjZ578GsMwRojhMfu0kfX+D
-        sP30KveX3L7O/GzQOdGFTq+svSkt1sCW8XVzQ5WnsL7V0PfOXEhiLflowM5hZM2j47POuH
-        6beC1zmgcaBQnrqSgBgPO+v8wpfJvQB7m5vd/J31AJ+GAt9a+Qyeo/9xgpNrkp/CnZfIoO
-        rud839RjG+a4BQNKOsumBr1Agv3Nvl5H6XsFzt9cssfO7dtFYb4LRfLP2j0CvuCL3PLQdO
-        HssRZAKVO70ab9HM8VBv2KJzxdO5WQgyXlBf+biUKnkSG01Tax1baBX1QCkr9w==
-Date:   Fri, 25 Mar 2022 16:09:27 +0100
-From:   =?UTF-8?B?Q2zDqW1lbnQgTMOpZ2Vy?= <clement.leger@bootlin.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+        with ESMTP id S242758AbiCYP67 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2022 11:58:59 -0400
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A00E9A990;
+        Fri, 25 Mar 2022 08:57:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1648223845; x=1679759845;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=a3/78ixH1ACUXhASSJ7kUC9sw50/0quKPSlttsfajKw=;
+  b=GSpXf8OWM+elJTi9PD+7i2HVoI577MtmgxwV5F7jDv46UeWRs+2v6fFF
+   b8ssPOGvYKO3ycgbr1n+JtOUwX5+RwKq7abAUz3PUe6/9OJgkIOoXe0hu
+   zgIoP/5oZxzY+DGHmcmyVo7M9NDsQVLx87fQ9zHZnN0TZRAev2SE1Hb/c
+   s0IgAs69EgEyjKChlhM/gjGSNczEZnN0+/4lLXa4n62Lsm7uzltjYDg1h
+   5hIXdgq2ciw6DV/Xl7XKTTW8PtuCQc79NqYwlSmrqRu745j0ZFSl0AB0T
+   H+mGcfCibNWYpYqyoIVy+iyrspjS6hz3NXVX4JmKWizDApJQrGwR3WYAe
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10297"; a="238600739"
+X-IronPort-AV: E=Sophos;i="5.90,209,1643702400"; 
+   d="scan'208";a="238600739"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2022 08:57:24 -0700
+X-IronPort-AV: E=Sophos;i="5.90,209,1643702400"; 
+   d="scan'208";a="638255996"
+Received: from smile.fi.intel.com ([10.237.72.59])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2022 08:57:20 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.95)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1nXmIu-006Tfh-6a;
+        Fri, 25 Mar 2022 17:56:44 +0200
+Date:   Fri, 25 Mar 2022 17:56:43 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     =?iso-8859-1?Q?Cl=E9ment_L=E9ger?= <clement.leger@bootlin.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Jarkko Nikula <jarkko.nikula@linux.intel.com>
 Cc:     Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
@@ -47,68 +60,50 @@ Cc:     Daniel Scally <djrscally@gmail.com>,
         Allan Nielsen <allan.nielsen@microchip.com>,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-i2c@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 6/9] i2c: fwnode: add
- fwnode_find_i2c_adapter_by_node()
-Message-ID: <20220325160927.30e5aef8@fixe.home>
-In-Reply-To: <Yj3TSBEY/P7d8XJj@smile.fi.intel.com>
+Subject: Re: [PATCH v3 6/9] i2c: fwnode: add fwnode_find_i2c_adapter_by_node()
+Message-ID: <Yj3mO/Co/RdlZnV+@smile.fi.intel.com>
 References: <20220325113148.588163-1-clement.leger@bootlin.com>
-        <20220325113148.588163-7-clement.leger@bootlin.com>
-        <Yj3TSBEY/P7d8XJj@smile.fi.intel.com>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.31; x86_64-pc-linux-gnu)
+ <20220325113148.588163-7-clement.leger@bootlin.com>
+ <Yj3TSBEY/P7d8XJj@smile.fi.intel.com>
+ <20220325160927.30e5aef8@fixe.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20220325160927.30e5aef8@fixe.home>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Le Fri, 25 Mar 2022 16:35:52 +0200,
-Andy Shevchenko <andriy.shevchenko@linux.intel.com> a =C3=A9crit :
+On Fri, Mar 25, 2022 at 04:09:27PM +0100, Clément Léger wrote:
+> Le Fri, 25 Mar 2022 16:35:52 +0200,
+> Andy Shevchenko <andriy.shevchenko@linux.intel.com> a écrit :
+> > On Fri, Mar 25, 2022 at 12:31:45PM +0100, Clément Léger wrote:
 
-> On Fri, Mar 25, 2022 at 12:31:45PM +0100, Cl=C3=A9ment L=C3=A9ger wrote:
-> > Add fwnode_find_i2c_adapter_by_node() which allows to retrieve a i2c
-> > adapter using a fwnode. Since dev_fwnode() uses the fwnode provided by
-> > the of_node member of the device, this will also work for devices were
-> > the of_node has been set and not the fwnode field.
-> > For acpi nodes, the check for parent node is skipped since
-> > i2c_acpi_find_adapter_by_handle() does not check it and we don't want
-> > to change this behavior. =20
->=20
-> ...
->=20
-> > +#include <linux/device.h>
-> > +#include <linux/i2c.h> =20
->=20
-> Missed headers so far:
-> acpi.h
+...
 
-Indeed, will check that.
+> > > +	 * For ACPI device node, the behavior is to not match the parent (see
+> > > +	 *  did not checked the )
+> > 
+> > Would it be harmful to drop this check?
+> 
+> Can't tell, I would not want to introduce some behavior wrt to parent
+> node for ACPI since it was not done this way. Might works in 99% of the
+> case though.
+> 
+> If ok with that, I can drop it.
 
->=20
-> ...
->=20
-> > +static int fwnode_dev_or_parent_node_match(struct device *dev, const v=
-oid *data)
-> > +{
-> > +	if (device_match_fwnode(dev, data))
-> > +		return 1;
-> > +
-> > +	/*
-> > +	 * For ACPI device node, the behavior is to not match the parent (see
-> > +	 *  did not checked the )
-> > +	 */ =20
->=20
-> Would it be harmful to drop this check?
+Let's ask Mika and Jarkko if they know more on this. I think Mika was the
+one who introduced that (sorry, if I'm mistaken, haven't looked at the history
+carefully).
 
-Can't tell, I would not want to introduce some behavior wrt to parent
-node for ACPI since it was not done this way. Might works in 99% of the
-case though.
+P.S. Interesting enough that Mika is listed as I2C ACPI maintainer and his
+email is not in the Cc. Please, check how you form Cc list for this series
+and include all parties next time.
 
-If ok with that, I can drop it.
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
---=20
-Cl=C3=A9ment L=C3=A9ger,
-Embedded Linux and Kernel engineer at Bootlin
-https://bootlin.com
