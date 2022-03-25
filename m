@@ -2,89 +2,259 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED889C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Mar 2022 17:13:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAED0C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Mar 2022 19:15:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230087AbiCYRPb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Mar 2022 13:15:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50080 "EHLO
+        id S229379AbiCYTRU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Mar 2022 15:17:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239154AbiCYRPb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2022 13:15:31 -0400
-Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA4E4E7295
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Mar 2022 10:13:56 -0700 (PDT)
-Received: by mail-yb1-f171.google.com with SMTP id j2so15225107ybu.0
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Mar 2022 10:13:56 -0700 (PDT)
+        with ESMTP id S229488AbiCYTRT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2022 15:17:19 -0400
+Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A1642993FB
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Mar 2022 11:58:03 -0700 (PDT)
+Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-2e644c76556so66989057b3.15
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Mar 2022 11:58:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=Ls9it47eZWinX53APMUqdqAduomURMCMA1XbEoHFGsQ=;
+        b=jf7zMllek1mo+Nas3aa4rEhx43ZQ1waGsvpYfvNgwEiwCCAWoS9SZnLaJXQkmWB2M+
+         6ADBWCg++Y/FrbEy+5C39/gGLqcx4snlS9RYWJ/YGs3g5cvd3LI37DJwtxQaZrgvfsIK
+         DvPSTDXUlEcNrYFmc342Iei4ddki3i5mmID22YQNV1R2nOMGPMCxIwsMy8+VCjmW1WoK
+         11vn7pIxU1GZdIUQWGjR0RiLjnaMUHdJLeEZDc7rkurcAaVlTDWLpuwtdaO89njTL0TV
+         nAzkGxoPuCWzeOpRkJsR2dSBMbJCs3QsocLwAqkbEAcMh1p1+uXBZocYUtA08DLgKHTg
+         Y5xw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=YTI0sut7n/2DTyYW4vwVsNTfXly/P/m6WqJKzy12y1M=;
-        b=YhprLn2RNBr5fKHZb2g3YdxnERpcmXclmiRx9P0HiQuQdYIN+JRssEhO07N1YodIU2
-         6yGM73KGKz0pL+PUWMxH9LuvszC4U6J8+zMRIXUj3nppcyQ8EQh69K4WfMYM4O2/i3/5
-         sqoMjduXwZz6ilIBOTpeKdeUrdkcY4ogWAELUobd66NZ/jPL8B4htzd9Ojuns0IMzwvI
-         EGVCokWuW0a2rIsEwmmpqRAjXUsRPpuYxa24jcX8vCNzjl7CuwNl8poyifuTlZsYoQqn
-         99GSZg17A9OIMfivNahhhz5De4JMXsw8gdA10H0rrmuDorPfTPKDgb+/RhJqxv/Hc8wA
-         LUoA==
-X-Gm-Message-State: AOAM530ddsUnYnfFTGOl2+K8YP0B7iS3pr9nBGPHgTB8cE0f9PuCNZIC
-        KgZy+XyIPZAEPFOgNXq/yasdnq05Ve1KPq60VEw=
-X-Google-Smtp-Source: ABdhPJzp4MdvUpmuA9HAieDpqasrvRGJUnlb00CHqnvTBHAziLqLYDCfWU+U7mYWXXdbJsj8lhlKm7loR1SSjSLX5Jk=
-X-Received: by 2002:a25:508:0:b0:633:bcf2:d29a with SMTP id
- 8-20020a250508000000b00633bcf2d29amr10426553ybf.81.1648228435924; Fri, 25 Mar
- 2022 10:13:55 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220317064220.287048-1-vasant.hegde@amd.com>
-In-Reply-To: <20220317064220.287048-1-vasant.hegde@amd.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 25 Mar 2022 18:13:45 +0100
-Message-ID: <CAJZ5v0gqNRMU98=D9DXO3R2XsrKeMjTJc+RSgxYMZWs1S8snWg@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: Fix LAPIC_ADDR_OVR address print
-To:     Vasant Hegde <vasant.hegde@amd.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=Ls9it47eZWinX53APMUqdqAduomURMCMA1XbEoHFGsQ=;
+        b=hL+2CwazRhAqEeQ8r6hcsf/yOQuR6i61O91VWwrN7X5+5hhCzxezEkowXSzn+4+G0F
+         tsc+6Vps2mcUKgx3DsVX81y68dUCfeCY3MgrYZlyYzuH8CcfFACBi3K1LQF3XtG+8aMf
+         qJrMOBrHMQUpq+xC8W13oAiItVcVCTjmGtj7b8l1i5VODd6O2GdIU4D4GtHOBPmsLxGg
+         ZccfziivUcYKOkdbpxy+6LZFVrMgnsFoe0cZGjpEinmNUAfqhyjdHiBDKsXPMtEEGCGy
+         37nfZFlslGRw4gektxXnYUzm1IFRvtiWf9Mg2XibmGnU3Aong1DYKO2t3YssHk2gzlxT
+         0vJQ==
+X-Gm-Message-State: AOAM533QcXKl6O7nKtiK6dYpdW5mUf6NIxcrGJv2vcPHgVTLVXuZxQjE
+        x3o6zrgdE7gujdm9D/O/sWr9Sdo/Wu8Q
+X-Google-Smtp-Source: ABdhPJz4caM2/r37eNH0kp8MNsyvhq+I0iaYEcSsuTjltPrYwKcYHAUtmqHXJObuMsBQf4dmQ6rBvqb9FmsD
+X-Received: from rajat2.mtv.corp.google.com ([2620:15c:202:201:4cfc:6eaf:38d8:46d6])
+ (user=rajatja job=sendgmr) by 2002:a81:36cf:0:b0:2e5:2597:a026 with SMTP id
+ d198-20020a8136cf000000b002e52597a026mr12243252ywa.301.1648233976396; Fri, 25
+ Mar 2022 11:46:16 -0700 (PDT)
+Date:   Fri, 25 Mar 2022 11:46:09 -0700
+In-Reply-To: <20220325184609.4059963-1-rajatja@google.com>
+Message-Id: <20220325184609.4059963-2-rajatja@google.com>
+Mime-Version: 1.0
+References: <20220325184609.4059963-1-rajatja@google.com>
+X-Mailer: git-send-email 2.35.1.1021.g381101b075-goog
+Subject: [PATCH v5 2/2] PCI: Rename pci_dev->untrusted to pci_dev->untrusted_dma
+From:   Rajat Jain <rajatja@google.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Dmitry Torokhov <dtor@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Pavel Machek <pavel@denx.de>,
+        "Oliver O'Halloran" <oohall@gmail.com>,
+        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        iommu@lists.linux-foundation.org
+Cc:     Rajat Jain <rajatja@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Mar 17, 2022 at 7:42 AM Vasant Hegde <vasant.hegde@amd.com> wrote:
->
-> Without fix:
->   [    0.005429] ACPI: LAPIC_ADDR_OVR (address[(____ptrval____)])
->
-> With fix:
->   [    0.005429] ACPI: LAPIC_ADDR_OVR (address[0x800fee00000])
->
-> Co-developed-by: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-> Signed-off-by: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-> Signed-off-by: Vasant Hegde <vasant.hegde@amd.com>
-> ---
-> Changes in v2:
->   - Added Missing Co-developed-by tag - Thanks Rafael.
->
-> -Vasant
->
->  drivers/acpi/tables.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 0741a4933f62..550e9512534c 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -151,8 +151,8 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->                 {
->                         struct acpi_madt_local_apic_override *p =
->                             (struct acpi_madt_local_apic_override *)header;
-> -                       pr_info("LAPIC_ADDR_OVR (address[%p])\n",
-> -                               (void *)(unsigned long)p->address);
-> +                       pr_info("LAPIC_ADDR_OVR (address[0x%llx])\n",
-> +                               p->address);
->                 }
->                 break;
->
-> --
+Rename the field to make it more clear, that the device can execute DMA
+attacks on the system, and thus the system may need protection from
+such attacks from this device.
 
-Applied (with an adjusted subject) as 5.18-rc material, thanks!
+No functional change intended.
+
+Signed-off-by: Rajat Jain <rajatja@google.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+v5: Use "untrusted_dma" as property name, based on feedback.
+    Reorder the patches in the series.
+v4: Initial version, created based on comments on other patch
+
+ drivers/iommu/dma-iommu.c   | 6 +++---
+ drivers/iommu/intel/iommu.c | 2 +-
+ drivers/iommu/iommu.c       | 2 +-
+ drivers/pci/ats.c           | 2 +-
+ drivers/pci/pci-acpi.c      | 2 +-
+ drivers/pci/pci.c           | 2 +-
+ drivers/pci/probe.c         | 8 ++++----
+ drivers/pci/quirks.c        | 2 +-
+ include/linux/pci.h         | 5 +++--
+ 9 files changed, 16 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index d85d54f2b549..7cbe300fe907 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -497,14 +497,14 @@ static int iova_reserve_iommu_regions(struct device *dev,
+ 	return ret;
+ }
+ 
+-static bool dev_is_untrusted(struct device *dev)
++static bool dev_has_untrusted_dma(struct device *dev)
+ {
+-	return dev_is_pci(dev) && to_pci_dev(dev)->untrusted;
++	return dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma;
+ }
+ 
+ static bool dev_use_swiotlb(struct device *dev)
+ {
+-	return IS_ENABLED(CONFIG_SWIOTLB) && dev_is_untrusted(dev);
++	return IS_ENABLED(CONFIG_SWIOTLB) && dev_has_untrusted_dma(dev);
+ }
+ 
+ /**
+diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
+index 92fea3fbbb11..9246b7c9ab46 100644
+--- a/drivers/iommu/intel/iommu.c
++++ b/drivers/iommu/intel/iommu.c
+@@ -5570,7 +5570,7 @@ intel_iommu_enable_nesting(struct iommu_domain *domain)
+  */
+ static bool risky_device(struct pci_dev *pdev)
+ {
+-	if (pdev->untrusted) {
++	if (pdev->untrusted_dma) {
+ 		pci_info(pdev,
+ 			 "Skipping IOMMU quirk for dev [%04X:%04X] on untrusted PCI link\n",
+ 			 pdev->vendor, pdev->device);
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index 8b86406b7162..79fb66af2e68 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -1522,7 +1522,7 @@ static int iommu_get_def_domain_type(struct device *dev)
+ {
+ 	const struct iommu_ops *ops = dev->bus->iommu_ops;
+ 
+-	if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted)
++	if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma)
+ 		return IOMMU_DOMAIN_DMA;
+ 
+ 	if (ops->def_domain_type)
+diff --git a/drivers/pci/ats.c b/drivers/pci/ats.c
+index c967ad6e2626..477c16ba9341 100644
+--- a/drivers/pci/ats.c
++++ b/drivers/pci/ats.c
+@@ -42,7 +42,7 @@ bool pci_ats_supported(struct pci_dev *dev)
+ 	if (!dev->ats_cap)
+ 		return false;
+ 
+-	return (dev->untrusted == 0);
++	return (dev->untrusted_dma == 0);
+ }
+ EXPORT_SYMBOL_GPL(pci_ats_supported);
+ 
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 378e05096c52..1d5a284c3661 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -1362,7 +1362,7 @@ static void pci_acpi_check_for_dma_protection(struct pci_dev *dev)
+ 		return;
+ 
+ 	if (val)
+-		dev->untrusted = 1;
++		dev->untrusted_dma = 1;
+ }
+ 
+ void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 9ecce435fb3f..1fb0eb8646c8 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -958,7 +958,7 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+ 	ctrl |= (cap & PCI_ACS_UF);
+ 
+ 	/* Enable Translation Blocking for external devices and noats */
+-	if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
++	if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
+ 		ctrl |= (cap & PCI_ACS_TB);
+ 
+ 	pci_write_config_word(dev, pos + PCI_ACS_CTRL, ctrl);
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 17a969942d37..d2a9b26fcede 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1587,7 +1587,7 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
+ 		dev->is_thunderbolt = 1;
+ }
+ 
+-static void set_pcie_untrusted(struct pci_dev *dev)
++static void pci_set_untrusted_dma(struct pci_dev *dev)
+ {
+ 	struct pci_dev *parent;
+ 
+@@ -1596,8 +1596,8 @@ static void set_pcie_untrusted(struct pci_dev *dev)
+ 	 * untrusted as well.
+ 	 */
+ 	parent = pci_upstream_bridge(dev);
+-	if (parent && (parent->untrusted || parent->external_facing))
+-		dev->untrusted = true;
++	if (parent && (parent->untrusted_dma || parent->external_facing))
++		dev->untrusted_dma = true;
+ }
+ 
+ static void pci_set_removable(struct pci_dev *dev)
+@@ -1862,7 +1862,7 @@ int pci_setup_device(struct pci_dev *dev)
+ 	/* Need to have dev->cfg_size ready */
+ 	set_pcie_thunderbolt(dev);
+ 
+-	set_pcie_untrusted(dev);
++	pci_set_untrusted_dma(dev);
+ 
+ 	/* "Unknown power state" */
+ 	dev->current_state = PCI_UNKNOWN;
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 5f46fed01e6c..7ca3c2cdfb20 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -5134,7 +5134,7 @@ static int pci_quirk_enable_intel_spt_pch_acs(struct pci_dev *dev)
+ 	ctrl |= (cap & PCI_ACS_CR);
+ 	ctrl |= (cap & PCI_ACS_UF);
+ 
+-	if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
++	if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
+ 		ctrl |= (cap & PCI_ACS_TB);
+ 
+ 	pci_write_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, ctrl);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 678fecdf6b81..b7c5fede0b93 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -444,13 +444,14 @@ struct pci_dev {
+ 	unsigned int	shpc_managed:1;		/* SHPC owned by shpchp */
+ 	unsigned int	is_thunderbolt:1;	/* Thunderbolt controller */
+ 	/*
+-	 * Devices marked being untrusted are the ones that can potentially
++	 * Devices marked with untrusted_dma are the ones that can potentially
+ 	 * execute DMA attacks and similar. They are typically connected
+ 	 * through external ports such as Thunderbolt but not limited to
+ 	 * that. When an IOMMU is enabled they should be getting full
+ 	 * mappings to make sure they cannot access arbitrary memory.
+ 	 */
+-	unsigned int	untrusted:1;
++	unsigned int	untrusted_dma:1;
++
+ 	/*
+ 	 * Info from the platform, e.g., ACPI or device tree, may mark a
+ 	 * device as "external-facing".  An external-facing device is
+-- 
+2.35.1.1021.g381101b075-goog
+
