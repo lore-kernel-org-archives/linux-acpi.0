@@ -2,284 +2,164 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD3CC43217
-	for <linux-acpi@archiver.kernel.org>; Sat, 26 Mar 2022 00:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2971C43217
+	for <linux-acpi@archiver.kernel.org>; Sat, 26 Mar 2022 17:00:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229446AbiCZA0U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Mar 2022 20:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43944 "EHLO
+        id S233802AbiCZRCQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 26 Mar 2022 13:02:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbiCZA0R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2022 20:26:17 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5E8D35248;
-        Fri, 25 Mar 2022 17:24:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1648254282; x=1679790282;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=2Vaao8UPajyvbZwIqwuigMcc3TK8sVUH5316v42oZho=;
-  b=jFUgszWOc4qwtKHLHSdd0DVWZEJRv8Eof80y0b5bfthOZ02lyGwiaPXR
-   3aQjfMm6nx2lJn5OTspUsbJ8qZ0Da7DQoLB4Ea4nRhMcM3CaYeu/2ZBjf
-   JOZ8qORfy/RbLP0De65eoOFDkQ6Ah58ZjegDM2nYXqnwV4lMLhKelG16o
-   HsZdxmFQ7DzaorWCsW69jg8d1liYbOUQMyo+sPCexmVYL8ylddMwd6k65
-   k1dsR578wQbcr0KI1tr4vFdASe2Zxkh5hjX+aCPFCFL/G2eu32YmMODBh
-   g9G0H3yldMuQGf2TYDwqdEzYy/KG8/QIAV23x/cK28aDC2Ma96murXBLs
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10297"; a="283621482"
-X-IronPort-AV: E=Sophos;i="5.90,211,1643702400"; 
-   d="scan'208";a="283621482"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2022 17:24:42 -0700
-X-IronPort-AV: E=Sophos;i="5.90,211,1643702400"; 
-   d="scan'208";a="617281317"
-Received: from jamanorb-mobl.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.212.81.45])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2022 17:24:41 -0700
-From:   Vishal Verma <vishal.l.verma@intel.com>
-To:     <linux-cxl@vger.kernel.org>
-Cc:     <linux-acpi@vger.kernel.org>,
-        Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 1/2] PCI/ACPI: Use CXL _OSC instead of PCIe _OSC
-Date:   Fri, 25 Mar 2022 18:24:29 -0600
-Message-Id: <20220326002430.797244-2-vishal.l.verma@intel.com>
+        with ESMTP id S233801AbiCZRCP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Mar 2022 13:02:15 -0400
+X-Greylist: delayed 63 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 26 Mar 2022 10:00:37 PDT
+Received: from stuerz.xyz (stuerz.xyz [IPv6:2001:19f0:5:15da:5400:3ff:fecc:7379])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56432B0A55;
+        Sat, 26 Mar 2022 10:00:37 -0700 (PDT)
+Received: by stuerz.xyz (Postfix, from userid 114)
+        id 9D1C6FBBCB; Sat, 26 Mar 2022 17:00:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
+        t=1648314036; bh=yA14H5kSGXs8c9NCVOmgKRy/cJtHbkLoXQ2K5ISZu/k=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=eY1iX0wlkZRA78TwrFBdZG5S+wos6UWvMNaeR3ebSkGbpl4BzyM69Wnujm+MCNQSH
+         XbYHpCtunp+VYPd+8B4Z5YGwrYKyldxYneKwJEtMuoQi4VfjayP4248ZkrvYzPbvb7
+         tGC3cCNQMmjqLyVHL80IqUG9N6enWqcQ/eJAksuxRO0+t/nSWobYmI6E3gPDs1NmYL
+         ++FZTGyvor1q8BXZzeNj7KNTMHP2+jtmpdc0KeaKsrUDcsC7Efw6IdkQp5pRDFDxi5
+         ZHAUmnDb1nehnND3R9P08aARBVYF4iAixYWRlLVzHEAsYgL1pTWrWTNVmmmb1i34gg
+         o2AMI/9CsY+SQ==
+Received: from benni-fedora.. (unknown [IPv6:2a02:8109:a100:1a48:ff0:ef2f:d4da:17d8])
+        by stuerz.xyz (Postfix) with ESMTPSA id E7EF6FB7D3;
+        Sat, 26 Mar 2022 17:00:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
+        t=1648314033; bh=yA14H5kSGXs8c9NCVOmgKRy/cJtHbkLoXQ2K5ISZu/k=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=M6I6oe9jogZM/zVnBnLg0eaNUUV4jcB+jkMO9qefS3HmAz419f42DcLOvKYiY1LvT
+         ker3YtWSKtrbYWXcC4P4Q34z4I0kvS8nnURN2zDZp/1ciFgjp8H5+LMGc47dFCGwK3
+         ZPM4LcjH7WSaWHLXUgQ1uu7Se/TXMvIZ6a51YDM4XN9HQOfPjY/V51c3xkYKlQc9Ff
+         sw/spsdrAwyTcjFyMYk3HffZ0vEu3G6iY0fWhPwKxCUfoge6rziWcIxAyYMFWRia7f
+         wJwSd/xnAYJBhYpaStdDoJq2gMpeyL3UlSNNsSRrS5W5qX2Ex1kaIwSG6rdxXYA+KQ
+         WQdOdxe313yGg==
+From:   =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
+To:     andrew@lunn.ch
+Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
+        linux@armlinux.org.uk, linux@simtec.co.uk, krzk@kernel.org,
+        alim.akhtar@samsung.com, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com,
+        robert.moore@intel.com, rafael.j.wysocki@intel.com,
+        lenb@kernel.org, 3chas3@gmail.com, laforge@gnumonks.org,
+        arnd@arndb.de, gregkh@linuxfoundation.org, mchehab@kernel.org,
+        tony.luck@intel.com, james.morse@arm.com, rric@kernel.org,
+        linus.walleij@linaro.org, brgl@bgdev.pl,
+        mike.marciniszyn@cornelisnetworks.com,
+        dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
+        pali@kernel.org, dmitry.torokhov@gmail.com, isdn@linux-pingi.de,
+        benh@kernel.crashing.org, fbarrat@linux.ibm.com, ajd@linux.ibm.com,
+        davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+        nico@fluxnic.net, loic.poulain@linaro.org, kvalo@kernel.org,
+        pkshih@realtek.com, bhelgaas@google.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
+        linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-input@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org,
+        wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
+        linux-pci@vger.kernel.org,
+        =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
+Subject: [PATCH 11/22] rdmavt: Replace comments with C99 initializers
+Date:   Sat, 26 Mar 2022 17:58:58 +0100
+Message-Id: <20220326165909.506926-11-benni@stuerz.xyz>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220326002430.797244-1-vishal.l.verma@intel.com>
-References: <20220326002430.797244-1-vishal.l.verma@intel.com>
+In-Reply-To: <20220326165909.506926-1-benni@stuerz.xyz>
+References: <20220326165909.506926-1-benni@stuerz.xyz>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7721; i=vishal.l.verma@intel.com; h=from:subject; bh=xk0CrkMTu7VZvxVhNgyAOLWPZHELHfYAHR2GAqK2joM=; b=owGbwMvMwCXGf25diOft7jLG02pJDEl2sXaFj6TST0mJleaz7/lyPuuIi1W253lBle1dAR0+RZ73 J2zrKGVhEONikBVTZPm75yPjMbnt+TyBCY4wc1iZQIYwcHEKwETcdBn+O79T8Sw7+qT/k8TEbcZf73 VVaj8u5zleyVF9aWp5yPMdcxkZjnuXi/pJCH7d4v4wuW7/4VafmqrZt9q3bpL5+GXpNGM9LgA=
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Dan Williams <dan.j.williams@intel.com>
+This replaces comments with C99's designated
+initializers because the kernel supports them now.
 
-OB In preparation for negotiating OS control of CXL _OSC features, do the
-minimal enabling to use CXL _OSC to handle the base PCIe feature
-negotiation. Recall that CXL _OSC is a super-set of PCIe _OSC and the
-CXL 2.0 specification mandates: "If a CXL Host Bridge device exposes CXL
-_OSC, CXL aware OSPM shall evaluate CXL _OSC and not evaluate PCIe
-_OSC."
-
-Rather than pass a boolean flag alongside @root to all the helper
-functions that need to consider PCIe specifics, add is_pcie() and
-is_cxl() helper functions to check the flavor of @root. This also
-allows for dynamic fallback to PCIe _OSC in cases where an attempt to
-use CXL _OXC fails. This can happen on CXL 1.1 platforms that publish
-ACPI0016 devices to indicate CXL host bridges, but do not publish the
-optional CXL _OSC method. CXL _OSC is mandatory for CXL 2.0 hosts.
-
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
 ---
- include/linux/acpi.h    |  4 +++
- include/acpi/acpi_bus.h |  6 ++++
- drivers/acpi/pci_root.c | 74 ++++++++++++++++++++++++++++++++---------
- 3 files changed, 69 insertions(+), 15 deletions(-)
+ drivers/infiniband/sw/rdmavt/rc.c | 62 +++++++++++++++----------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 6274758648e3..f41e8b00a839 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -550,6 +550,10 @@ struct acpi_osc_context {
+diff --git a/drivers/infiniband/sw/rdmavt/rc.c b/drivers/infiniband/sw/rdmavt/rc.c
+index 4e5d4a27633c..121b8a23ac07 100644
+--- a/drivers/infiniband/sw/rdmavt/rc.c
++++ b/drivers/infiniband/sw/rdmavt/rc.c
+@@ -10,37 +10,37 @@
+  * Convert the AETH credit code into the number of credits.
+  */
+ static const u16 credit_table[31] = {
+-	0,                      /* 0 */
+-	1,                      /* 1 */
+-	2,                      /* 2 */
+-	3,                      /* 3 */
+-	4,                      /* 4 */
+-	6,                      /* 5 */
+-	8,                      /* 6 */
+-	12,                     /* 7 */
+-	16,                     /* 8 */
+-	24,                     /* 9 */
+-	32,                     /* A */
+-	48,                     /* B */
+-	64,                     /* C */
+-	96,                     /* D */
+-	128,                    /* E */
+-	192,                    /* F */
+-	256,                    /* 10 */
+-	384,                    /* 11 */
+-	512,                    /* 12 */
+-	768,                    /* 13 */
+-	1024,                   /* 14 */
+-	1536,                   /* 15 */
+-	2048,                   /* 16 */
+-	3072,                   /* 17 */
+-	4096,                   /* 18 */
+-	6144,                   /* 19 */
+-	8192,                   /* 1A */
+-	12288,                  /* 1B */
+-	16384,                  /* 1C */
+-	24576,                  /* 1D */
+-	32768                   /* 1E */
++	[0x00] = 0,
++	[0x01] = 1,
++	[0x02] = 2,
++	[0x03] = 3,
++	[0x04] = 4,
++	[0x05] = 6,
++	[0x06] = 8,
++	[0x07] = 12,
++	[0x08] = 16,
++	[0x09] = 24,
++	[0x0A] = 32,
++	[0x0B] = 48,
++	[0x0C] = 64,
++	[0x0D] = 96,
++	[0x0E] = 128,
++	[0x0F] = 192,
++	[0x10] = 256,
++	[0x11] = 384,
++	[0x12] = 512,
++	[0x13] = 768,
++	[0x14] = 1024,
++	[0x15] = 1536,
++	[0x16] = 2048,
++	[0x17] = 3072,
++	[0x18] = 4096,
++	[0x19] = 6144,
++	[0x1A] = 8192,
++	[0x1B] = 12288,
++	[0x1C] = 16384,
++	[0x1D] = 24576,
++	[0x1E] = 32768
+ };
  
- acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- 
-+/* Number of _OSC capability DWORDS depends on bridge type */
-+#define OSC_PCI_CAPABILITY_DWORDS		3
-+#define OSC_CXL_CAPABILITY_DWORDS		5
-+
- /* Indexes into _OSC Capabilities Buffer (DWORDs 2 & 3 are device-specific) */
- #define OSC_QUERY_DWORD				0	/* DWORD 1 */
- #define OSC_SUPPORT_DWORD			1	/* DWORD 2 */
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ca88c4706f2b..9413d2389711 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -581,10 +581,16 @@ int unregister_acpi_bus_type(struct acpi_bus_type *);
- int acpi_bind_one(struct device *dev, struct acpi_device *adev);
- int acpi_unbind_one(struct device *dev);
- 
-+enum acpi_bridge_type {
-+	ACPI_BRIDGE_TYPE_PCIE = 1,
-+	ACPI_BRIDGE_TYPE_CXL,
-+};
-+
- struct acpi_pci_root {
- 	struct acpi_device * device;
- 	struct pci_bus *bus;
- 	u16 segment;
-+	int bridge_type;
- 	struct resource secondary;	/* downstream bus range */
- 
- 	u32 osc_support_set;	/* _OSC state of support bits */
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index b76db99cced3..170fe8c6fa5e 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -170,20 +170,49 @@ static void decode_osc_control(struct acpi_pci_root *root, char *msg, u32 word)
- 			ARRAY_SIZE(pci_osc_control_bit));
- }
- 
--static u8 pci_osc_uuid_str[] = "33DB4D5B-1FF7-401C-9657-7441C03DD766";
-+static bool is_pcie(struct acpi_pci_root *root)
-+{
-+	if (root->bridge_type == ACPI_BRIDGE_TYPE_PCIE)
-+		return true;
-+	return false;
-+}
- 
--static acpi_status acpi_pci_run_osc(acpi_handle handle,
-+static bool is_cxl(struct acpi_pci_root *root)
-+{
-+	if (root->bridge_type == ACPI_BRIDGE_TYPE_CXL)
-+		return true;
-+	return false;
-+}
-+
-+static u8 pci_osc_uuid_str[] = "33DB4D5B-1FF7-401C-9657-7441C03DD766";
-+static u8 cxl_osc_uuid_str[] = "68F2D50B-C469-4d8A-BD3D-941A103FD3FC";
-+
-+static char *to_uuid(struct acpi_pci_root *root)
-+{
-+	if (is_cxl(root))
-+		return cxl_osc_uuid_str;
-+	return pci_osc_uuid_str;
-+}
-+
-+static int cap_length(struct acpi_pci_root *root)
-+{
-+	if (is_cxl(root))
-+		return sizeof(u32) * OSC_CXL_CAPABILITY_DWORDS;
-+	return sizeof(u32) * OSC_PCI_CAPABILITY_DWORDS;
-+}
-+
-+static acpi_status acpi_pci_run_osc(struct acpi_pci_root *root,
- 				    const u32 *capbuf, u32 *retval)
- {
- 	struct acpi_osc_context context = {
--		.uuid_str = pci_osc_uuid_str,
-+		.uuid_str = to_uuid(root),
- 		.rev = 1,
--		.cap.length = 12,
-+		.cap.length = cap_length(root),
- 		.cap.pointer = (void *)capbuf,
- 	};
- 	acpi_status status;
- 
--	status = acpi_run_osc(handle, &context);
-+	status = acpi_run_osc(root->device->handle, &context);
- 	if (ACPI_SUCCESS(status)) {
- 		*retval = *((u32 *)(context.ret.pointer + 8));
- 		kfree(context.ret.pointer);
-@@ -196,7 +225,7 @@ static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root,
- 					u32 *control)
- {
- 	acpi_status status;
--	u32 result, capbuf[3];
-+	u32 result, capbuf[OSC_CXL_CAPABILITY_DWORDS];
- 
- 	support |= root->osc_support_set;
- 
-@@ -204,10 +233,18 @@ static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root,
- 	capbuf[OSC_SUPPORT_DWORD] = support;
- 	capbuf[OSC_CONTROL_DWORD] = *control | root->osc_control_set;
- 
--	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
-+retry:
-+	status = acpi_pci_run_osc(root, capbuf, &result);
- 	if (ACPI_SUCCESS(status)) {
- 		root->osc_support_set = support;
- 		*control = result;
-+	} else if (is_cxl(root)) {
-+		/*
-+		 * CXL _OSC is optional on CXL 1.1 hosts. Fall back to PCIe _OSC
-+		 * upon any failure using CXL _OSC.
-+		 */
-+		root->bridge_type = ACPI_BRIDGE_TYPE_PCIE;
-+		goto retry;
- 	}
- 	return status;
- }
-@@ -338,7 +375,7 @@ static acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 s
- 	u32 req = OSC_PCI_EXPRESS_CAPABILITY_CONTROL;
- 	struct acpi_pci_root *root;
- 	acpi_status status;
--	u32 ctrl, capbuf[3];
-+	u32 ctrl, capbuf[OSC_CXL_CAPABILITY_DWORDS];
- 
- 	if (!mask)
- 		return AE_BAD_PARAMETER;
-@@ -375,7 +412,7 @@ static acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 s
- 	capbuf[OSC_QUERY_DWORD] = 0;
- 	capbuf[OSC_SUPPORT_DWORD] = root->osc_support_set;
- 	capbuf[OSC_CONTROL_DWORD] = ctrl;
--	status = acpi_pci_run_osc(handle, capbuf, mask);
-+	status = acpi_pci_run_osc(root, capbuf, mask);
- 	if (ACPI_FAILURE(status))
- 		return status;
- 
-@@ -454,8 +491,7 @@ static bool os_control_query_checks(struct acpi_pci_root *root, u32 support)
- 	return true;
- }
- 
--static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
--				 bool is_pcie)
-+static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- {
- 	u32 support, control = 0, requested = 0;
- 	acpi_status status;
-@@ -506,7 +542,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 		*no_aspm = 1;
- 
- 		/* _OSC is optional for PCI host bridges */
--		if ((status == AE_NOT_FOUND) && !is_pcie)
-+		if (status == AE_NOT_FOUND && !is_pcie(root))
- 			return;
- 
- 		if (control) {
-@@ -529,7 +565,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	acpi_handle handle = device->handle;
- 	int no_aspm = 0;
- 	bool hotadd = system_state == SYSTEM_RUNNING;
--	bool is_pcie;
-+	const char *acpi_hid;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
- 	if (!root)
-@@ -587,8 +623,16 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 
- 	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
- 
--	is_pcie = strcmp(acpi_device_hid(device), "PNP0A08") == 0;
--	negotiate_os_control(root, &no_aspm, is_pcie);
-+	acpi_hid = acpi_device_hid(root->device);
-+	if (strcmp(acpi_hid, "PNP0A08") == 0)
-+		root->bridge_type = ACPI_BRIDGE_TYPE_PCIE;
-+	else if (strcmp(acpi_hid, "ACPI0016") == 0)
-+		root->bridge_type = ACPI_BRIDGE_TYPE_CXL;
-+	else
-+		dev_warn(&device->dev, "unknown bridge type with hid: %s\n",
-+			 acpi_hid);
-+
-+	negotiate_os_control(root, &no_aspm);
- 
- 	/*
- 	 * TBD: Need PCI interface for enumeration/configuration of roots.
+ /**
 -- 
 2.35.1
 
