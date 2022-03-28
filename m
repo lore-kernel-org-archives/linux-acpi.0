@@ -2,45 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D048AC3527C
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:22:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20048C4167B
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:22:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235362AbiC1LY1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:24:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54712 "EHLO
+        id S240890AbiC1LY0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:24:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240955AbiC1LXA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:23:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C6FC55BEA;
-        Mon, 28 Mar 2022 04:19:53 -0700 (PDT)
+        with ESMTP id S237948AbiC1LW3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:22:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86FFC56C3F;
+        Mon, 28 Mar 2022 04:19:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 04DECB81055;
-        Mon, 28 Mar 2022 11:19:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D37BEC340EC;
-        Mon, 28 Mar 2022 11:19:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 141B26114A;
+        Mon, 28 Mar 2022 11:19:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95963C340EC;
+        Mon, 28 Mar 2022 11:19:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466390;
-        bh=dXFoBao1mnO+CxBybDVWep7qs/QLa3ksJJVYsnYonhc=;
+        s=k20201202; t=1648466374;
+        bh=eIRS4p7zo1cUJrb/T2hKO+d1LleZqfjg6q8qyY7uGqg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ERCjnZRna2znaXntCbtvYQmwUUThsr5N8xJeP8at2m4Qoc9bXB5Bxp5bTUmWX3SB6
-         UunUy9L7vDzH4mV8zpDwueB4KwadIB5Q35G7S5bZdg7jx+9JCYNAp8z/v1H7W00vzw
-         +JGkMl9yxD0MXURd+nkV+ZMdqWYqzrLNXucdFGe6hGm6Sw6XXeTHSO7ZAzkTSufpHj
-         izIy6l6F6zkBnMgCKCUFg2lCu5WZaxA7BJ3Q1ClOzBcskm6KH0uWL5W2bb1Gb2VZwq
-         jtPkSf65xgaFGxr/dqT4PRyjYqf0HRivGAtmXRU/BQStqLNtn3kXoGtvLKAyyJeVz0
-         WfyOZIlDKvJYg==
+        b=YeVVLejTAL7ekmog0939Ue+ajs8JDEdHdj8QV3S+fZMdyysCrsr9qW+OmUZmnw0VL
+         u9pPObz6I2K7iyosUEtpEHC8N3fN/CPA9XWYTkVz2SnRv/DYwhIHII/cM4+tjg8R56
+         AtaJzvT4gAybC11QEO/YjsRpSt+HwocEV2tnRaIiq1pZpudn3Q6So1e2/UpDD8yzN6
+         9JeYq+ZIlf6Ri7dSvl3jKGqVv6ysY7NRAKEK7NZQv8Bhz8bVY/dx7oryBOlcceCysx
+         6vRjExCBKuD7cVElnsLW7/swEZwAS1kTHL9il1AKMTE5VuDxY4BbEQJkCoeporDL0O
+         njec2i04qZjGw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Darren Hart <darren@os.amperecomputing.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        rdunlap@infradead.org, ying.huang@intel.com,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.17 36/43] ACPI/APEI: Limit printable size of BERT table data
-Date:   Mon, 28 Mar 2022 07:18:20 -0400
-Message-Id: <20220328111828.1554086-36-sashal@kernel.org>
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Sasha Levin <sashal@kernel.org>, robert.moore@intel.com,
+        linux-acpi@vger.kernel.org, devel@acpica.org
+Subject: [PATCH AUTOSEL 5.17 31/43] ACPICA: Avoid walking the ACPI Namespace if it is not there
+Date:   Mon, 28 Mar 2022 07:18:15 -0400
+Message-Id: <20220328111828.1554086-31-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220328111828.1554086-1-sashal@kernel.org>
 References: <20220328111828.1554086-1-sashal@kernel.org>
@@ -52,70 +51,42 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Darren Hart <darren@os.amperecomputing.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-[ Upstream commit 3f8dec116210ca649163574ed5f8df1e3b837d07 ]
+[ Upstream commit 0c9992315e738e7d6e927ef36839a466b080dba6 ]
 
-Platforms with large BERT table data can trigger soft lockup errors
-while attempting to print the entire BERT table data to the console at
-boot:
+ACPICA commit b1c3656ef4950098e530be68d4b589584f06cddc
 
-  watchdog: BUG: soft lockup - CPU#160 stuck for 23s! [swapper/0:1]
+Prevent acpi_ns_walk_namespace() from crashing when called with
+start_node equal to ACPI_ROOT_OBJECT if the Namespace has not been
+instantiated yet and acpi_gbl_root_node is NULL.
 
-Observed on Ampere Altra systems with a single BERT record of ~250KB.
+For instance, this can happen if the kernel is run with "acpi=off"
+in the command line.
 
-The original bert driver appears to have assumed relatively small table
-data. Since it is impractical to reassemble large table data from
-interwoven console messages, and the table data is available in
-
-  /sys/firmware/acpi/tables/data/BERT
-
-limit the size for tables printed to the console to 1024 (for no reason
-other than it seemed like a good place to kick off the discussion, would
-appreciate feedback from existing users in terms of what size would
-maintain their current usage model).
-
-Alternatively, we could make printing a CONFIG option, use the
-bert_disable boot arg (or something similar), or use a debug log level.
-However, all those solutions require extra steps or change the existing
-behavior for small table data. Limiting the size preserves existing
-behavior on existing platforms with small table data, and eliminates the
-soft lockups for platforms with large table data, while still making it
-available.
-
-Signed-off-by: Darren Hart <darren@os.amperecomputing.com>
+Link: https://github.com/acpica/acpica/commit/b1c3656ef4950098e530be68d4b589584f06cddc
+Link: https://lore.kernel.org/linux-acpi/CAJZ5v0hJWW_vZ3wwajE7xT38aWjY7cZyvqMJpXHzUL98-SiCVQ@mail.gmail.com/
+Reported-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/apei/bert.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/nswalk.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index 19e50fcbf4d6..ad8ab3f12cf3 100644
---- a/drivers/acpi/apei/bert.c
-+++ b/drivers/acpi/apei/bert.c
-@@ -29,6 +29,7 @@
+diff --git a/drivers/acpi/acpica/nswalk.c b/drivers/acpi/acpica/nswalk.c
+index 915c2433463d..e7c30ce06e18 100644
+--- a/drivers/acpi/acpica/nswalk.c
++++ b/drivers/acpi/acpica/nswalk.c
+@@ -169,6 +169,9 @@ acpi_ns_walk_namespace(acpi_object_type type,
  
- #undef pr_fmt
- #define pr_fmt(fmt) "BERT: " fmt
-+#define ACPI_BERT_PRINT_MAX_LEN 1024
+ 	if (start_node == ACPI_ROOT_OBJECT) {
+ 		start_node = acpi_gbl_root_node;
++		if (!start_node) {
++			return_ACPI_STATUS(AE_NO_NAMESPACE);
++		}
+ 	}
  
- static int bert_disable;
- 
-@@ -58,8 +59,11 @@ static void __init bert_print_all(struct acpi_bert_region *region,
- 		}
- 
- 		pr_info_once("Error records from previous boot:\n");
--
--		cper_estatus_print(KERN_INFO HW_ERR, estatus);
-+		if (region_len < ACPI_BERT_PRINT_MAX_LEN)
-+			cper_estatus_print(KERN_INFO HW_ERR, estatus);
-+		else
-+			pr_info_once("Max print length exceeded, table data is available at:\n"
-+				     "/sys/firmware/acpi/tables/data/BERT");
- 
- 		/*
- 		 * Because the boot error source is "one-time polled" type,
+ 	/* Null child means "get first node" */
 -- 
 2.34.1
 
