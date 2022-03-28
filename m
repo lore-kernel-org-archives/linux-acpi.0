@@ -2,47 +2,47 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8601FC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:22:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57FE8C4321E
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:22:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240741AbiC1LY2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:24:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57142 "EHLO
+        id S240777AbiC1LY3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:24:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241747AbiC1LYK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:24:10 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 361F43335A;
-        Mon, 28 Mar 2022 04:22:23 -0700 (PDT)
+        with ESMTP id S241565AbiC1LX7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:23:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7118056C30;
+        Mon, 28 Mar 2022 04:21:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D9D86B81055;
-        Mon, 28 Mar 2022 11:22:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0481C340ED;
-        Mon, 28 Mar 2022 11:22:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5C61F61196;
+        Mon, 28 Mar 2022 11:21:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0452CC340EC;
+        Mon, 28 Mar 2022 11:21:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466540;
+        s=k20201202; t=1648466465;
         bh=eIRS4p7zo1cUJrb/T2hKO+d1LleZqfjg6q8qyY7uGqg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Xs3grpBzhvWOH60ihMaX0nTjWJRv64ER4xNKd2asQKg/nJxAtrT/k+R4BmtD67fpl
-         iMJ8jY8jMnpUMSPOBTk+FskHj69NIsKIzL51iTv2kNm+69HR0VLxxkFXlp6AP2EtEB
-         Ob7DwC+cVIga1mTJLSUbU1FwXeBagvMVVRjhAJi4K23UtdVkcO0CDnb3EBT5Pn14bJ
-         ER2AuXkmXox37o32tSFitWbAZ6h6ku8t/UqQehuCZJ3LQHfwAIIsWTqHIjQfD1PWSK
-         VdjWo7TimM7en0Ndw3ZtsU3HoV8qt+mPn2C2gFVYTFdyZe/mB6WRCCYGti4Smit6kf
-         VuoQNFQOE8dcw==
+        b=Dwhivg6CjxnW2BNIZfSkrAchfHDitujus7T19myu29ogS2Tw53hp0Yrb4fuZdHZHC
+         2k7R60ljEG6s545dQvWlToaeLgIEP7aBsRJaLf0TduACdoWBVJQBLRqsMDLMiejoEw
+         lgJXtdyM7JeQu+vdFrTUChadNS0LzKlmoeOgPS9BOU8LGKnRy8IXyMDF0pWmBuW/o/
+         SVanVbng2ccZwBc6kTIsymtQpuuUjv3RZRq9EFD/T+Y8ZABr4ZHH+WCbcOoXlPAToJ
+         u4RRegxTw8a72tP8BSEK0KSKZUNc7YsC2qNMtOYfOkKiPOy57uf6bmajD0gSmY/bWE
+         FTnfcXm6yMTBw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Hans de Goede <hdegoede@redhat.com>,
         Sasha Levin <sashal@kernel.org>, robert.moore@intel.com,
         linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 5.15 21/29] ACPICA: Avoid walking the ACPI Namespace if it is not there
-Date:   Mon, 28 Mar 2022 07:21:23 -0400
-Message-Id: <20220328112132.1555683-21-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.16 25/35] ACPICA: Avoid walking the ACPI Namespace if it is not there
+Date:   Mon, 28 Mar 2022 07:20:01 -0400
+Message-Id: <20220328112011.1555169-25-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220328112132.1555683-1-sashal@kernel.org>
-References: <20220328112132.1555683-1-sashal@kernel.org>
+In-Reply-To: <20220328112011.1555169-1-sashal@kernel.org>
+References: <20220328112011.1555169-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
