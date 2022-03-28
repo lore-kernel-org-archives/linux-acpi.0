@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62EBEC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:24:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD7EDC433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241187AbiC1LZw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:25:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40168 "EHLO
+        id S233453AbiC1L0O (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:26:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241680AbiC1LYG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:24:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3549757491;
-        Mon, 28 Mar 2022 04:21:32 -0700 (PDT)
+        with ESMTP id S240982AbiC1LYl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:24:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 839CB55BDD;
+        Mon, 28 Mar 2022 04:22:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6793D611B5;
-        Mon, 28 Mar 2022 11:21:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB6F8C34111;
-        Mon, 28 Mar 2022 11:21:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EEC30B81058;
+        Mon, 28 Mar 2022 11:22:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CA45C340F3;
+        Mon, 28 Mar 2022 11:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466489;
+        s=k20201202; t=1648466573;
         bh=RDdhik/g8aZ3wGxV6J8LDZnusm4htCVrLUo3WnbvOjw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MrIsqh8Wisf8WhnPa46Qg/cMMBMJ2RLtdtINYBTW/TfsoxVWOFB9dD9AdSkdxNGqh
-         /o8LJIps26xKyakn2l6AvEdAT8vjPiWjXnUuWWkE9Q46pYD5ZG9yo9kpvBgGzrSFNH
-         TwWgYx3qiqOLTyMlVlsG0rNLBakn7yrA+XBsbOQzUkZIh6GoMAaDMu9Lr+Ulxzoh9T
-         cZW6E9CXoCV2q/TnrlEiPOrNExK7ePpSk0+e2QC1RRCn/RZGzF1X40586SjT1BwxqU
-         NAesLbr1r8dXtFQ2szGNdxpmbloo8uLRt0lKTFGSI00v0gxwE1qsVIeq8A9HDi7aG/
-         UBlwk4sWEwwoQ==
+        b=gfFYd6PN5/aTQ2MC4t87LHDzO6M4Ickpc8/qd8Rom8mm/rddTiThrBr4yazstBrOy
+         MLnGKANYh+WRzB21dIMne3NdcDBu/zqdULp0bS1CJw6LdQHJ0wL7CUMyTvy/CiPwQL
+         XpeFYJ6tW+iQTGj4OpKgJFR85vtU1ZibrX26TssysC3kKl8DtXr+31rtbbarYO2AMN
+         sruj6lXIXBg7JMm0ZM8s1huYi4+B2plSV1/abnmDncKASngnMTHw3OE1FiE+aYBld2
+         cdnw1H6ee8FIQur8XbroMkT+X/AWwzz+wULUhViAkkWwfox4rJiEz9wT/KgtECu+mx
+         0/kuPqtHdINeA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
@@ -40,12 +40,12 @@ Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.16 34/35] Revert "ACPI: Pass the same capabilities to the _OSC regardless of the query flag"
-Date:   Mon, 28 Mar 2022 07:20:10 -0400
-Message-Id: <20220328112011.1555169-34-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 29/29] Revert "ACPI: Pass the same capabilities to the _OSC regardless of the query flag"
+Date:   Mon, 28 Mar 2022 07:21:31 -0400
+Message-Id: <20220328112132.1555683-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220328112011.1555169-1-sashal@kernel.org>
-References: <20220328112011.1555169-1-sashal@kernel.org>
+In-Reply-To: <20220328112132.1555683-1-sashal@kernel.org>
+References: <20220328112132.1555683-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
