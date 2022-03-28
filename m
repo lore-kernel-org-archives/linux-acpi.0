@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14708C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 13:17:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98404C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 13:37:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243072AbiC1NTV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 09:19:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58334 "EHLO
+        id S243261AbiC1Njb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 09:39:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233955AbiC1NTU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 09:19:20 -0400
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFE345DA6A
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Mar 2022 06:17:38 -0700 (PDT)
-Received: by mail-wr1-x42c.google.com with SMTP id j18so20341198wrd.6
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Mar 2022 06:17:38 -0700 (PDT)
+        with ESMTP id S243270AbiC1Nja (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 09:39:30 -0400
+Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61DBC4CD71
+        for <linux-acpi@vger.kernel.org>; Mon, 28 Mar 2022 06:37:48 -0700 (PDT)
+Received: by mail-wm1-x332.google.com with SMTP id r64so8409371wmr.4
+        for <linux-acpi@vger.kernel.org>; Mon, 28 Mar 2022 06:37:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=tpXnN0VHB6iUEh42xZkIfKz+h2Jc2+CMtnusz63fzes=;
-        b=YPALESBKVO/yFKv+lXwz8leucUW/QtFuB0hl8JHZCqjO5xu4w5wIoQ5+pwQ+QRVXb9
-         3B2L4bQYw0N2jb7N56M5R7JWYxgho8xdRwRmv4vnJodlkTGVC2bN4KorM9+VarCUvhfz
-         rq7UuF1pwztE+IwdlG9cbNz+sqpgQ/NI9IDLUETHwbQomOpQYmH+MNVfGvC/MeWvzE8P
-         lVgleUzejo6opEuHS9sTuvN1v42e4fq5Sl4PYl0tj9Ag7RHSYKvKr2OYJJ4Wgi/PE7G+
-         XZp5RIOP+vUQXZXu/Ec0fSds9Y00Tni8973wJOMtSetYycYYe8h/qByU8h8Ok03tSfRP
-         ibtg==
+        bh=X9xolOBuBIa4R0vTxvv45W6wXO+HEw6pqnTDDTRpzds=;
+        b=oLet0tANev/NadSGG5WygX6a9PHbV48R0OGVzTFAK66vgaFAFv+6FEqLK0G3/3ySP4
+         b/d5orpZAPqedkx1AD7rtFEyiwXnPvIQaUt3cb5bANbLFAp1PP9b3VM5x83B+LE5bpZX
+         Mqfb0YdcPylnkm3GgwX0FkcVIyeIpzrHW1Ztm1YCPJWhtEm6b0R7UxTKqyLkp9X86tDh
+         RTML6mUvAc9b6cJ7rPhuh5vgMUf407AdVPTSrPRQBy/Qnb76rcY+JlipO/P3K/LBqKBX
+         q692XNYucimXULVF/VqoaavfK2r3MAlFNO2DaqNE8kM6/YoLSPlUhjDCWMHA+GVsdYK9
+         BlPA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:content-transfer-encoding
          :in-reply-to;
-        bh=tpXnN0VHB6iUEh42xZkIfKz+h2Jc2+CMtnusz63fzes=;
-        b=c24fq2u7nw0ojx3QIXpaPtVXBg0NUmjkdSfcQfNNaLcsg4+46bQ6ylGNCI5VhfBiL9
-         +ZMP+K4x49b5THakSuS+fPYI2KoBOkVOGmiNCVAYraeNQwxYiwQpJSn1FuHZplJ6fJF7
-         x1VEXRESO7UkcVf0+n3ZOiYWNmQLgDFUUIqxNWsCcMcaaVOzouF3rm7ZRUCAYBSA1BK5
-         3vZftjn7mBkBewnujEa82Ui0fEyUG8Cf9Uwa1KeT6lrnlkwSYjWW4IgZmQ78jXAZuCwo
-         GKgRbN6zZBuhNzftnk9s9uYBwGtHZIUiGDcHEg0GxtiDyyZPLlxsXmvLAl9XJPGIZmbn
-         XLww==
-X-Gm-Message-State: AOAM530Dm9tl/jYLOIUGtqi1otXX3t3N9ASAEzoreqDtgq29KdTIPwVi
-        mG9HGbPXBvvfwjUwqEBs7x0VkQ==
-X-Google-Smtp-Source: ABdhPJxNq7t8QyUoAz9PQk4czd3rKFhq8Qof4HJlKz+Grc5sLrrh91AI45J9TNBzEfnY5jgV4oClHQ==
-X-Received: by 2002:a05:6000:1ac8:b0:204:2917:acd4 with SMTP id i8-20020a0560001ac800b002042917acd4mr23551818wry.31.1648473457317;
-        Mon, 28 Mar 2022 06:17:37 -0700 (PDT)
+        bh=X9xolOBuBIa4R0vTxvv45W6wXO+HEw6pqnTDDTRpzds=;
+        b=0XSON66EtHnGFrcxbp1p/IURmwrjqfIAZPncYu6WEBkHF+QpezJYOasYgv3eZqbguh
+         DBTgpgx+W5PKwhFOgdBBnV+L1pYJj2jSuuGxH83eP1O1gc3bWTeXdTr/aViyO9DXCbUE
+         7UZvvRq5ly532u0HhHL/miPTP3clgkaLz6GKsat5Lohd7DXY+K1QsBJdNLn8uHaDEsYJ
+         sUNWRidoOMs/Zf7ZZxKiUStns4BdurTjGBUL+5tLXekeiY4xgshM36ng06lVsYv216bE
+         URBByAubP2PskrxLNbMj0NOAfo2icvM8Q1conAHfKJSqThdA/3jmP029fuzraZvvTK24
+         M9yg==
+X-Gm-Message-State: AOAM533SWwCLbwiqERDBicNVXS/L6c+AnGMaqdYDON1MIHMzsgl+sL5x
+        bFeXiGbImZE/kx904X0CSf3EpA==
+X-Google-Smtp-Source: ABdhPJzgqImTJvpGFyUqZPtbBODfMsZThR+EI0nK3Vy5a8rcSuNNZ7ZoSJ0lC0b5BDudwRR5EvwIkg==
+X-Received: by 2002:a05:600c:a08:b0:38c:93c8:36e9 with SMTP id z8-20020a05600c0a0800b0038c93c836e9mr36701865wmp.97.1648474666793;
+        Mon, 28 Mar 2022 06:37:46 -0700 (PDT)
 Received: from maple.lan (cpc141216-aztw34-2-0-cust174.18-1.cable.virginm.net. [80.7.220.175])
-        by smtp.gmail.com with ESMTPSA id j7-20020a05600c410700b0038c72ef3f15sm15290807wmi.38.2022.03.28.06.17.34
+        by smtp.gmail.com with ESMTPSA id p14-20020a5d59ae000000b00203dcc87d39sm19694611wrr.54.2022.03.28.06.37.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 28 Mar 2022 06:17:36 -0700 (PDT)
-Date:   Mon, 28 Mar 2022 14:17:33 +0100
+        Mon, 28 Mar 2022 06:37:46 -0700 (PDT)
+Date:   Mon, 28 Mar 2022 14:37:43 +0100
 From:   Daniel Thompson <daniel.thompson@linaro.org>
 To:     Benjamin =?utf-8?B?U3TDvHJ6?= <benni@stuerz.xyz>
 Cc:     andrew@lunn.ch, sebastian.hesselbarth@gmail.com,
@@ -76,56 +76,89 @@ Cc:     andrew@lunn.ch, sebastian.hesselbarth@gmail.com,
         linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org,
         wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
         linux-pci@vger.kernel.org
-Subject: Re: [PATCH 01/22] orion5x: Replace comments with C99 initializers
-Message-ID: <20220328131733.akhkwnldtldp7nyn@maple.lan>
+Subject: Re: [PATCH 02/22] s3c: Replace comments with C99 initializers
+Message-ID: <20220328133743.xhdzmprlc7a6jxxy@maple.lan>
 References: <20220326165909.506926-1-benni@stuerz.xyz>
+ <20220326165909.506926-2-benni@stuerz.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220326165909.506926-1-benni@stuerz.xyz>
+In-Reply-To: <20220326165909.506926-2-benni@stuerz.xyz>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Mar 26, 2022 at 05:58:48PM +0100, Benjamin Stürz wrote:
+On Sat, Mar 26, 2022 at 05:58:49PM +0100, Benjamin Stürz wrote:
 > This replaces comments with C99's designated
 > initializers because the kernel supports them now.
 
-This commit description seems wrong to me. This patch doesn't include
-use C99 designated initializers (or AFAICT any other language feature
-that has recently been enabled in the kernel).
+I'm a bit puzzled by "because the kernel supports them now". Designated
+initializers are not purely a C99 feature... it is also a GNU C extension
+to C89. This language feature has been used by the kernel for a very long time
+(well over a decade).
 
-The changes here are just plain constant-expressions in enumeration
-lists and were included in C89/C90.
+On other words it would be much more effective to advocate for the
+change by saying "because the code is clearer and easier to read" rather
+than "because we can".
+
+
+> Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
+> ---
+>  arch/arm/mach-s3c/bast-irq.c | 32 ++++++++++++++++----------------
+>  1 file changed, 16 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/arm/mach-s3c/bast-irq.c b/arch/arm/mach-s3c/bast-irq.c
+> index d299f124e6dc..bd5471f9973b 100644
+> --- a/arch/arm/mach-s3c/bast-irq.c
+> +++ b/arch/arm/mach-s3c/bast-irq.c
+> @@ -29,22 +29,22 @@
+>   * the irq is not implemented
+>  */
+>  static const unsigned char bast_pc104_irqmasks[] = {
+> -	0,   /* 0 */
+> -	0,   /* 1 */
+> -	0,   /* 2 */
+> -	1,   /* 3 */
+> -	0,   /* 4 */
+> -	2,   /* 5 */
+> -	0,   /* 6 */
+> -	4,   /* 7 */
+> -	0,   /* 8 */
+> -	0,   /* 9 */
+> -	8,   /* 10 */
+> -	0,   /* 11 */
+> -	0,   /* 12 */
+> -	0,   /* 13 */
+> -	0,   /* 14 */
+> -	0,   /* 15 */
+> +	[0]  = 0,
+> +	[1]  = 0,
+> +	[2]  = 0,
+> +	[3]  = 1,
+> +	[4]  = 0,
+> +	[5]  = 2,
+> +	[6]  = 0,
+> +	[7]  = 4,
+> +	[8]  = 0,
+> +	[9]  = 0,
+> +	[10] = 8,
+> +	[11] = 0,
+> +	[12] = 0,
+> +	[13] = 0,
+> +	[14] = 0,
+> +	[15] = 0,
+
+Shouldn't this just be as follows (in order to match bast_pc104_irqs)?
+
++static const unsigned char bast_pc104_irqmasks[16] = {
++	[3]  = 1,
++	[5]  = 2,
++	[7]  = 4,
++	[10] = 8,
+ };
+ 
+ static const unsigned char bast_pc104_irqs[] = { 3, 5, 7, 10 };
 
 
 Daniel.
-
-
-> 
-> Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
-> ---
->  arch/arm/mach-orion5x/dns323-setup.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-orion5x/dns323-setup.c b/arch/arm/mach-orion5x/dns323-setup.c
-> index 87cb47220e82..d762248c6512 100644
-> --- a/arch/arm/mach-orion5x/dns323-setup.c
-> +++ b/arch/arm/mach-orion5x/dns323-setup.c
-> @@ -61,9 +61,9 @@
->  
->  /* Exposed to userspace, do not change */
->  enum {
-> -	DNS323_REV_A1,	/* 0 */
-> -	DNS323_REV_B1,	/* 1 */
-> -	DNS323_REV_C1,	/* 2 */
-> +	DNS323_REV_A1 = 0,
-> +	DNS323_REV_B1 = 1,
-> +	DNS323_REV_C1 = 2,
->  };
->  
->  
-> -- 
-> 2.35.1
-> 
