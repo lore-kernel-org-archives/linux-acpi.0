@@ -2,47 +2,47 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 845A1C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:26:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BC51C433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:29:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230321AbiC1L2X (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:28:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46672 "EHLO
+        id S241438AbiC1Laq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:30:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241174AbiC1LZY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:25:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA705101C;
-        Mon, 28 Mar 2022 04:23:29 -0700 (PDT)
+        with ESMTP id S241363AbiC1LaP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:30:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B01A055BD2;
+        Mon, 28 Mar 2022 04:24:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0CE4DB81059;
-        Mon, 28 Mar 2022 11:23:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F305AC340EC;
-        Mon, 28 Mar 2022 11:23:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3BA0F611D2;
+        Mon, 28 Mar 2022 11:24:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B88EDC340ED;
+        Mon, 28 Mar 2022 11:24:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466605;
-        bh=qULwCOpiwsPA535/FrkoXVUp+zrm5U6r6NmexPlPBko=;
+        s=k20201202; t=1648466644;
+        bh=KPH+dkBF6V0PGSTMDBtTYYmsRmDNCZN/FXZ5kVfFObY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ImVL1KbskhEmeAzNcvVbHczPXr9MIT087tab7tgyiFYQH/N/ogcNcncLjFuYQ/Aco
-         Mn7x5CGtX5WfvwYu7TBzrsRsBrQhMbMBKXUuAhYbxLymbNEIykqMQrQ61i3QAHWypN
-         zexiW92gIwZPbnkMAFPtnPAMeSIL1LRR9Qm2wmq8MSELMRbz2c3ar56D5spSryXoNl
-         VTeJsumcqLuu77tfk67zJKNSCP7HzamJ1vLLNiw8J7/nlpsKQ9zWpGW/GwP0LYXqsg
-         H1RxpYNT7kiUnkyfzQ3blilKQpas/0pgQfqPB6cWWDGFWpZbzC0bBLqBLtxqASwA7O
-         dDaUiXMW69Ujw==
+        b=gv6S6ORDQrMfcTyT0woUZ7h1c4mKbQ9j3ygFZK+Kw6heEvjp694KCARTr8ReKaFhY
+         UZPFnUpBim+KIpvwDTXWWfXCcMpSQnOwj9p76NA08MC2QNXNsuyl6mqM8SAmhR3Azj
+         k0XKNuBigvlQzBGHB9eB7WZjriD2lZLNNxnuaRJikPhauvHEuKTsCvewbK/LW5bQgk
+         szWNJ5A9A18fGUh234QkDpY0OZROPZLORby2IFA0Wfnc/rmQHzi5rZrxzg7I7RFuLR
+         7Rb5+xsdQj25+cxDD2Yy1O773H04kydfcxhT6dirl4VIVY2r1xfh0rHbgZcLbJmiJ3
+         GgfAIGu1Alqdg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Hans de Goede <hdegoede@redhat.com>,
         Sasha Levin <sashal@kernel.org>, robert.moore@intel.com,
         linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 5.10 14/21] ACPICA: Avoid walking the ACPI Namespace if it is not there
-Date:   Mon, 28 Mar 2022 07:22:47 -0400
-Message-Id: <20220328112254.1556286-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 11/16] ACPICA: Avoid walking the ACPI Namespace if it is not there
+Date:   Mon, 28 Mar 2022 07:23:40 -0400
+Message-Id: <20220328112345.1556601-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220328112254.1556286-1-sashal@kernel.org>
-References: <20220328112254.1556286-1-sashal@kernel.org>
+In-Reply-To: <20220328112345.1556601-1-sashal@kernel.org>
+References: <20220328112345.1556601-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -74,7 +74,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/acpi/acpica/nswalk.c b/drivers/acpi/acpica/nswalk.c
-index b7f3e8603ad8..901fa5ca284d 100644
+index ceea6af79d12..bf4eb642f423 100644
 --- a/drivers/acpi/acpica/nswalk.c
 +++ b/drivers/acpi/acpica/nswalk.c
 @@ -169,6 +169,9 @@ acpi_ns_walk_namespace(acpi_object_type type,
