@@ -2,91 +2,97 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35146C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 09:34:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11CB1C4167B
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:22:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236654AbiC1Jfi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 05:35:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60896 "EHLO
+        id S240869AbiC1LYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:24:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232922AbiC1Jfi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 05:35:38 -0400
+        with ESMTP id S240863AbiC1LWt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:22:49 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E07C0DFAE;
-        Mon, 28 Mar 2022 02:33:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86D3A57175;
+        Mon, 28 Mar 2022 04:19:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 763D060F04;
-        Mon, 28 Mar 2022 09:33:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE0B4C004DD;
-        Mon, 28 Mar 2022 09:33:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 620E96114A;
+        Mon, 28 Mar 2022 11:19:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56BDC340ED;
+        Mon, 28 Mar 2022 11:19:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648460036;
-        bh=vyhorH3ReopEjyyeOaqNXz1F+fuDMA3PtzKea0coFV8=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=N7gslZiAbUk2K0itCjecfsI/RWbD921JgzGNP2Kjob9tlNWKxpcv0XxXJfPNZin/w
-         A0IR7YQPjfgzcF8nfIw2Qp9ZjcFTNb7LTztL9AYoQlq+D0DFSUCrNS2qiH6JPnE1fC
-         d1KCYuVMQdA55JmSSOhMn38gdsnsuJiIvXS7xjuBjd+D58bh2S8/2S5hzqSNDwuMtF
-         wL6A4k/3MHLny+7jUG8f45x9h9oK0icdinMC+NM7pK2YaZF62B/PFs4TG4m+pXcVBe
-         gM+xB7pqzFL7oswhmEfyYWWLVgaR1DNvn0CsMhOvyHk4QEK83ayzd9+XQz5ZI40AA0
-         C+vN55O6TsHMw==
-From:   Kalle Valo <kvalo@kernel.org>
-To:     Benjamin =?utf-8?Q?St=C3=BCrz?= <benni@stuerz.xyz>
-Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
-        linux@armlinux.org.uk, linux@simtec.co.uk, krzk@kernel.org,
-        alim.akhtar@samsung.com, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com,
-        robert.moore@intel.com, rafael.j.wysocki@intel.com,
-        lenb@kernel.org, 3chas3@gmail.com, laforge@gnumonks.org,
-        arnd@arndb.de, gregkh@linuxfoundation.org, mchehab@kernel.org,
-        tony.luck@intel.com, james.morse@arm.com, rric@kernel.org,
-        linus.walleij@linaro.org, brgl@bgdev.pl,
-        mike.marciniszyn@cornelisnetworks.com,
-        dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
-        pali@kernel.org, dmitry.torokhov@gmail.com, isdn@linux-pingi.de,
-        benh@kernel.crashing.org, fbarrat@linux.ibm.com, ajd@linux.ibm.com,
-        davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
-        nico@fluxnic.net, loic.poulain@linaro.org, pkshih@realtek.com,
-        bhelgaas@google.com, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devel@acpica.org, linux-atm-general@lists.sourceforge.net,
-        netdev@vger.kernel.org, linux-edac@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-input@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-media@vger.kernel.org, wcn36xx@lists.infradead.org,
-        linux-wireless@vger.kernel.org, linux-pci@vger.kernel.org
-Subject: Re: [PATCH 00/22] Replace comments with C99 initializers
-References: <20220326165909.506926-1-benni@stuerz.xyz>
-        <8f9271b6-0381-70a9-f0c2-595b2235866a@stuerz.xyz>
-Date:   Mon, 28 Mar 2022 12:33:42 +0300
-In-Reply-To: <8f9271b6-0381-70a9-f0c2-595b2235866a@stuerz.xyz> ("Benjamin
-        \=\?utf-8\?Q\?St\=C3\=BCrz\=22's\?\= message of "Sun, 27 Mar 2022 14:46:00 +0200")
-Message-ID: <87fsn2zaix.fsf@kernel.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        s=k20201202; t=1648466381;
+        bh=MJvPpz9dYJStREh6QLBJhvjzV7MS/kHzAg9ejIrAUvU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=iJpjTQZKaCKbPJbfmYZp8BAmshIaiW3T4QzYzcnN2T4T+nHrf5usiBootznglBzTC
+         dhrNn1pEQJbfbdlP3ivYazfBWn2AHtABOd6d7Y/VxzPbZi1WMYeMgVFehDZoBFWtZV
+         AuRSoWWysjeIlenBoR+zyppwayspmTZjwKgKlM6OMUWsKkEvIjcOWfzvrwCmKNjNma
+         fsjch+/wodzm2LB/uRUwYWxwdOIet25e77LukZ2VuM8olCdJcHP8GJZ6C1bnxrP+gU
+         KEv7UfS+C0A0L5jZmspxkgC1ZaMowbhQ6qhGRV9jW/jpLtlA0I+3fGRT0n/SZXdUgm
+         Iwn3u9sjOqgwA==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
+        mario.limonciello@amd.com, linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.17 33/43] ACPI / x86: Add skip i2c clients quirk for Lenovo Yoga Tablet 1050F/L
+Date:   Mon, 28 Mar 2022 07:18:17 -0400
+Message-Id: <20220328111828.1554086-33-sashal@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220328111828.1554086-1-sashal@kernel.org>
+References: <20220328111828.1554086-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Benjamin St=C3=BCrz <benni@stuerz.xyz> writes:
+From: Hans de Goede <hdegoede@redhat.com>
 
-> This patch series replaces comments with C99's designated initializers
-> in a few places. It also adds some enum initializers. This is my first
-> time contributing to the Linux kernel, therefore I'm probably doing a
-> lot of things the wrong way. I'm sorry for that.
+[ Upstream commit 4fecb1e93e4914fc0bc1fb467ca79741f9f94abb ]
 
-Just a small tip: If you are new, start with something small and learn
-from that. Don't do a controversial big patchset spanning multiple
-subsystems, that's the hard way to learn things. First submit one patch
-at a time to one subsystem and gain understanding of the process that
-way.
+The Yoga Tablet 1050F/L is a x86 ACPI tablet which ships with Android x86
+as factory OS. Its DSDT contains a bunch of I2C devices which are not
+actually there, causing various resource conflicts (the Android x86
+kernel fork ignores I2C devices described in the DSDT).
 
---=20
-https://patchwork.kernel.org/project/linux-wireless/list/
+Add a ACPI_QUIRK_SKIP_I2C_CLIENTS for the Nextbook Ares 8 to the
+acpi_quirk_skip_dmi_ids table to woraround this.
 
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatc=
-hes
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/x86/utils.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index 9b991294f1e5..664070fc8349 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -284,6 +284,18 @@ static const struct dmi_system_id acpi_quirk_skip_dmi_ids[] = {
+ 		.driver_data = (void *)(ACPI_QUIRK_SKIP_I2C_CLIENTS |
+ 					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
+ 	},
++	{
++		/* Lenovo Yoga Tablet 1050F/L */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Intel Corp."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "VALLEYVIEW C0 PLATFORM"),
++			DMI_MATCH(DMI_BOARD_NAME, "BYT-T FFD8"),
++			/* Partial match on beginning of BIOS version */
++			DMI_MATCH(DMI_BIOS_VERSION, "BLADE_21"),
++		},
++		.driver_data = (void *)(ACPI_QUIRK_SKIP_I2C_CLIENTS |
++					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
++	},
+ 	{
+ 		/* Nextbook Ares 8 */
+ 		.matches = {
+-- 
+2.34.1
+
