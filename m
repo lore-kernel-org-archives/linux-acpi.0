@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84183C43217
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 734AFC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236219AbiC1Lkf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:40:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39404 "EHLO
+        id S239586AbiC1Lkg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:40:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241526AbiC1Lbz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:31:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0032B57B35;
-        Mon, 28 Mar 2022 04:24:36 -0700 (PDT)
+        with ESMTP id S242024AbiC1LeB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:34:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CBDDB31;
+        Mon, 28 Mar 2022 04:25:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C25026114A;
-        Mon, 28 Mar 2022 11:24:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C1C3C340ED;
-        Mon, 28 Mar 2022 11:24:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 70751B81057;
+        Mon, 28 Mar 2022 11:25:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37EBDC340EC;
+        Mon, 28 Mar 2022 11:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466676;
-        bh=NLoVDs7rjLn2vTwN1PgZVDG0/Iak4g0H4eBUbih//qY=;
+        s=k20201202; t=1648466707;
+        bh=wlc9krJPz/uNcek6BqwFpw9AGZ/+lyiYea2593VrpEA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Z93i3QaNvKu4YFiffQipp3buTlTqPkf/Zi1z8zGV94hyw6wCfPHmHKfk4UQXLYKLR
-         IjWdL+nBYTvrDL8LN/nki5RNsG8ZJrxfcT1cnXrV3XlF/w2HxdbEEU16HRA/IJ68QQ
-         dxbPOh3mAz8wK8wXm0mAA/B+4ORzpaPaZreC4gpe5KykvethfZUCOjRuH2so3xEkM+
-         kupZn3pnmXeqSuWPUeMLtGUq18BFy4DpEIcsWv+q2iI26BeH39+EUFZvABTQTpO7E6
-         OzVrFdgenzb6Md0cesgj+2lNA7K10iWjCHFk0Y3KJzgzRnOfAOsXgbw15Jb//PkdP5
-         385ph214PPK1Q==
+        b=gsRUzTSyug0swrOktS/GbDlwJG2MQbPQIYpppV2rxnw5PMKDQnsAVLHnyTGwdI5Jn
+         bjmVUFxnz4/R4eMPuZ+pigkmAWpFtzXcE0QKneZz7ifyDSZlmpUYD0XWgdMgkT3/Rq
+         J8U/NC2liTqjaqOhH9fPHuu0OtB/rVkSjQZkHWJWR8hcurbZASEOtB52M0/ygnukPz
+         fZb5xCEeD165hgNgLTeqXFQidRRK4Ry4GBM+2EdCWQJ6UM0xJNXcUTdImBYXCn7gGb
+         4gOGHxY1uafj7IVWqzkIvmKMhVRhLZF02CLWgoFL2/K73uMMFHZeGOVNO8Iyjw3s8N
+         tKSNlCZiMk33Q==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Darren Hart <darren@os.amperecomputing.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        rdunlap@infradead.org, ying.huang@intel.com,
+        ying.huang@intel.com, rdunlap@infradead.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 10/12] ACPI/APEI: Limit printable size of BERT table data
-Date:   Mon, 28 Mar 2022 07:24:15 -0400
-Message-Id: <20220328112417.1556946-10-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 6/8] ACPI/APEI: Limit printable size of BERT table data
+Date:   Mon, 28 Mar 2022 07:24:54 -0400
+Message-Id: <20220328112456.1557226-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220328112417.1556946-1-sashal@kernel.org>
-References: <20220328112417.1556946-1-sashal@kernel.org>
+In-Reply-To: <20220328112456.1557226-1-sashal@kernel.org>
+References: <20220328112456.1557226-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -91,7 +91,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index 12771fcf0417..19b96fde77c4 100644
+index a05b5c0cf181..e22f3d89b84b 100644
 --- a/drivers/acpi/apei/bert.c
 +++ b/drivers/acpi/apei/bert.c
 @@ -31,6 +31,7 @@
