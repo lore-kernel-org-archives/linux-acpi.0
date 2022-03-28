@@ -2,91 +2,87 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4378EC433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:39:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3537CC433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:54:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241639AbiC1Lkk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:40:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39254 "EHLO
+        id S241976AbiC1L4H (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:56:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241525AbiC1Lbz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:31:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AD8357B23;
-        Mon, 28 Mar 2022 04:24:36 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 122A8611B3;
-        Mon, 28 Mar 2022 11:24:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1717C340F3;
-        Mon, 28 Mar 2022 11:24:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466668;
-        bh=otD2EPsxmFvb7o2gDhqnDLd7KqQ+1R+3wgd4sgxvbaI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MRrK0iFhzGb2vroddy3vDI8NzyahG0CFwYjXALj4mdOXaNVcRascwc5WSoQ6crLfs
-         bJ4j3jgPfkBphrtotEleoKl40Tbi87pYQ7+4Jp+JGPI+XgdfHpRe4M46819prTLgP2
-         XxTBap6uqNDjnmf4O2UiXvn+hHFOsGelHInySo6aumJoJEA5YG9alZUpT6L2gDap61
-         LiY3a14HeT773LXZFBwwMmd3n7GMIjOIm1ZMKQdLQIuzot3COVUltHwhtK/E0HOz86
-         o+HY4nfbxz4sngl9zeeJu07dx1YvjypuuNa2O6Zm0wIjOU/wIKlNTW44qsF28wuipR
-         LPG6wzh9MpvLA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Sasha Levin <sashal@kernel.org>, robert.moore@intel.com,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 4.19 07/12] ACPICA: Avoid walking the ACPI Namespace if it is not there
-Date:   Mon, 28 Mar 2022 07:24:12 -0400
-Message-Id: <20220328112417.1556946-7-sashal@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220328112417.1556946-1-sashal@kernel.org>
-References: <20220328112417.1556946-1-sashal@kernel.org>
+        with ESMTP id S242046AbiC1Lz7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:55:59 -0400
+Received: from stuerz.xyz (stuerz.xyz [IPv6:2001:19f0:5:15da:5400:3ff:fecc:7379])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34BBA3587B;
+        Mon, 28 Mar 2022 04:51:50 -0700 (PDT)
+Received: by stuerz.xyz (Postfix, from userid 114)
+        id DB5E3FA6D6; Mon, 28 Mar 2022 11:51:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
+        t=1648468308; bh=3Wi+uKVZkL99swRaVau3EJ8BXQXDlu9JC1kflQpPOrg=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=oUQch5AaF2NS4T0Fc7buc7qaKcaMKVG810YRJRo241bkl85duCMxS23fDm3GVMDw1
+         xL8wfFwfguE7DE2l/k4vVmJ5m+zw1ufGo67LfJIKzisY6pcfbZGcdaFk0B9ghPqfKS
+         I2W7g/SOQV7recVh3ztaUhpWJY1H9k0XjfmxF8AmYZ/fAW3ggk2byys8WeLu0ak9ah
+         IgL+/CAYYREpGVUMMRCs+UZIGRhzVjykJ9daQ0sVnnmKwNo2ovBFc7vsiaUCV/jRSa
+         ex0Ku60KERB06l+p4AJhX5EDQm9DgjMeTcaApMq8icB704ISrupDr4D5KxV4dtLzM0
+         6HAU3bjLTErUA==
+Received: from [IPV6:2a02:8109:a100:1a48::e7c] (unknown [IPv6:2a02:8109:a100:1a48::e7c])
+        by stuerz.xyz (Postfix) with ESMTPSA id 96ED2FA6AC;
+        Mon, 28 Mar 2022 11:51:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
+        t=1648468306; bh=3Wi+uKVZkL99swRaVau3EJ8BXQXDlu9JC1kflQpPOrg=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=zBafXC0qmHbBy2R0CwrqEVHxB0KbRcM6x7IR+QfcMB3oUVBkemOuTu17YEp7Cwbgd
+         Lw+gvLver4LCPJCOHCL2eAzpr1O+pT/EX986F+oA22O2GOoGJb/57oYXvhAOACQpb/
+         rN+svuiDvsbTolC94H1JtxdXdx0U3+g4ZYZxI9bHa94d/+r+oRSAJqz7+XAzj1cCh3
+         ict551S0UMWEtEMaDv06/XFQYnv7JqCdIWuWPwV30h6+Z5RIA9IJAECe2MRFrynB4K
+         mSzFCFSElIq/pRqE39gIg1HoMMEgNA6qMLNrZGciYbRFSH0ycDjGpa+qscnhjrtqTE
+         wSGn8LEPrkJpQ==
+Message-ID: <cc104272-d79a-41e1-f4de-cb78fb073991@stuerz.xyz>
+Date:   Mon, 28 Mar 2022 13:51:42 +0200
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH 00/22] Replace comments with C99 initializers
+Content-Language: en-US
+To:     Kalle Valo <kvalo@kernel.org>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
+        linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-input@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org,
+        wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
+        linux-pci@vger.kernel.org
+References: <20220326165909.506926-1-benni@stuerz.xyz>
+ <8f9271b6-0381-70a9-f0c2-595b2235866a@stuerz.xyz> <87fsn2zaix.fsf@kernel.org>
+From:   =?UTF-8?Q?Benjamin_St=c3=bcrz?= <benni@stuerz.xyz>
+In-Reply-To: <87fsn2zaix.fsf@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On 28.03.22 11:33, Kalle Valo wrote:
+> Benjamin Stürz <benni@stuerz.xyz> writes:
+> 
+>> This patch series replaces comments with C99's designated initializers
+>> in a few places. It also adds some enum initializers. This is my first
+>> time contributing to the Linux kernel, therefore I'm probably doing a
+>> lot of things the wrong way. I'm sorry for that.
+> 
+> Just a small tip: If you are new, start with something small and learn
+> from that. Don't do a controversial big patchset spanning multiple
+> subsystems, that's the hard way to learn things. First submit one patch
+> at a time to one subsystem and gain understanding of the process that
+> way.
+> 
 
-[ Upstream commit 0c9992315e738e7d6e927ef36839a466b080dba6 ]
+I actually thought this would be such simple thing. Do you know of any
+good thing where to start? I already looked into drivers/staging/*/TODO
+and didn't found something for me personally.
 
-ACPICA commit b1c3656ef4950098e530be68d4b589584f06cddc
-
-Prevent acpi_ns_walk_namespace() from crashing when called with
-start_node equal to ACPI_ROOT_OBJECT if the Namespace has not been
-instantiated yet and acpi_gbl_root_node is NULL.
-
-For instance, this can happen if the kernel is run with "acpi=off"
-in the command line.
-
-Link: https://github.com/acpica/acpica/commit/b1c3656ef4950098e530be68d4b589584f06cddc
-Link: https://lore.kernel.org/linux-acpi/CAJZ5v0hJWW_vZ3wwajE7xT38aWjY7cZyvqMJpXHzUL98-SiCVQ@mail.gmail.com/
-Reported-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/acpica/nswalk.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/acpi/acpica/nswalk.c b/drivers/acpi/acpica/nswalk.c
-index e9a061da9bb2..c325789a62bf 100644
---- a/drivers/acpi/acpica/nswalk.c
-+++ b/drivers/acpi/acpica/nswalk.c
-@@ -169,6 +169,9 @@ acpi_ns_walk_namespace(acpi_object_type type,
- 
- 	if (start_node == ACPI_ROOT_OBJECT) {
- 		start_node = acpi_gbl_root_node;
-+		if (!start_node) {
-+			return_ACPI_STATUS(AE_NO_NAMESPACE);
-+		}
- 	}
- 
- 	/* Null child means "get first node" */
--- 
-2.34.1
-
+Should I drop this patchset and start with something different? If yes,
+what would the proper way to drop it? Just announcing, that this is
+going nowhere in a separate patch?
