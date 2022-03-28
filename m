@@ -2,47 +2,50 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FE90C41535
-	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:22:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62EBEC433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 28 Mar 2022 11:24:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240801AbiC1LYa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 28 Mar 2022 07:24:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57734 "EHLO
+        id S241187AbiC1LZw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 28 Mar 2022 07:25:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240852AbiC1LWs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:22:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 323875715F;
-        Mon, 28 Mar 2022 04:19:40 -0700 (PDT)
+        with ESMTP id S241680AbiC1LYG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Mar 2022 07:24:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3549757491;
+        Mon, 28 Mar 2022 04:21:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BC1E8B80ED8;
-        Mon, 28 Mar 2022 11:19:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FD15C36AE3;
-        Mon, 28 Mar 2022 11:19:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6793D611B5;
+        Mon, 28 Mar 2022 11:21:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB6F8C34111;
+        Mon, 28 Mar 2022 11:21:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648466378;
-        bh=B/ptuIBjSOUNX8jU6o6Szs1rixvugMsl9zrW73w96CA=;
+        s=k20201202; t=1648466489;
+        bh=RDdhik/g8aZ3wGxV6J8LDZnusm4htCVrLUo3WnbvOjw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MC0iK3pZN00mEmYGWfujoR/3Fr8eZznyOLu8LVh3Ztt1xZajH8zX/MiiMaF9EbE9o
-         g12TQ9DZvAXcEVUwpyWmWUS8G0FDoFXFMBOYm52rzmJze5JOnOfxaStnZrhVLPoZ5N
-         HjP62mgh4VwMu32gh2zzolkDG6dzthi43hQJ8g7rcgKQ6V/ePyBLcSu7flFeAKUGAu
-         AZ/AGMqRiruddIpJZWlobdGD0ceLMQFmAQgYykDS9pVr5ifgdXXVHt75zuO4Wjbm2l
-         dTpSR3txUXpw528vRcdbyXk89s6BT7Bjv26bw/Fn43KcwAIw/5Mz2si2M0mgDjY9uZ
-         QH1m/PSUTzsFg==
+        b=MrIsqh8Wisf8WhnPa46Qg/cMMBMJ2RLtdtINYBTW/TfsoxVWOFB9dD9AdSkdxNGqh
+         /o8LJIps26xKyakn2l6AvEdAT8vjPiWjXnUuWWkE9Q46pYD5ZG9yo9kpvBgGzrSFNH
+         TwWgYx3qiqOLTyMlVlsG0rNLBakn7yrA+XBsbOQzUkZIh6GoMAaDMu9Lr+Ulxzoh9T
+         cZW6E9CXoCV2q/TnrlEiPOrNExK7ePpSk0+e2QC1RRCn/RZGzF1X40586SjT1BwxqU
+         NAesLbr1r8dXtFQ2szGNdxpmbloo8uLRt0lKTFGSI00v0gxwE1qsVIeq8A9HDi7aG/
+         UBlwk4sWEwwoQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Mario Limonciello <Mario.Limonciello@amd.com>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Huang Rui <ray.huang@amd.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        mario.limonciello@amd.com, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.17 32/43] ACPI / x86: Add skip i2c clients quirk for Nextbook Ares 8
-Date:   Mon, 28 Mar 2022 07:18:16 -0400
-Message-Id: <20220328111828.1554086-32-sashal@kernel.org>
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.16 34/35] Revert "ACPI: Pass the same capabilities to the _OSC regardless of the query flag"
+Date:   Mon, 28 Mar 2022 07:20:10 -0400
+Message-Id: <20220328112011.1555169-34-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220328111828.1554086-1-sashal@kernel.org>
-References: <20220328111828.1554086-1-sashal@kernel.org>
+In-Reply-To: <20220328112011.1555169-1-sashal@kernel.org>
+References: <20220328112011.1555169-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -51,45 +54,75 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-[ Upstream commit f38312c9b569322edf4baae467568206fe46d57b ]
+[ Upstream commit 2ca8e6285250c07a2e5a22ecbfd59b5a4ef73484 ]
 
-The Nextbook Ares 8 is a x86 ACPI tablet which ships with Android x86
-as factory OS. Its DSDT contains a bunch of I2C devices which are not
-actually there, causing various resource conflicts (the Android x86
-kernel fork ignores I2C devices described in the DSDT).
+Revert commit 159d8c274fd9 ("ACPI: Pass the same capabilities to the
+_OSC regardless of the query flag") which caused legitimate usage
+scenarios (when the platform firmware does not want the OS to control
+certain platform features controlled by the system bus scope _OSC) to
+break and was misguided by some misleading language in the _OSC
+definition in the ACPI specification (in particular, Section 6.2.11.1.3
+"Sequence of _OSC Calls" that contradicts other perts of the _OSC
+definition).
 
-Add a ACPI_QUIRK_SKIP_I2C_CLIENTS for the Nextbook Ares 8 to the
-acpi_quirk_skip_dmi_ids table to woraround this.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Link: https://lore.kernel.org/linux-acpi/CAJZ5v0iStA0JmO0H3z+VgQsVuQONVjKPpw0F5HKfiq=Gb6B5yw@mail.gmail.com
+Reported-by: Mario Limonciello <Mario.Limonciello@amd.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Mario Limonciello <mario.limonciello@amd.com>
+Acked-by: Huang Rui <ray.huang@amd.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/x86/utils.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/bus.c | 27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index ffdeed5334d6..9b991294f1e5 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -284,6 +284,15 @@ static const struct dmi_system_id acpi_quirk_skip_dmi_ids[] = {
- 		.driver_data = (void *)(ACPI_QUIRK_SKIP_I2C_CLIENTS |
- 					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
- 	},
-+	{
-+		/* Nextbook Ares 8 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Insyde"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "M890BAP"),
-+		},
-+		.driver_data = (void *)(ACPI_QUIRK_SKIP_I2C_CLIENTS |
-+					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
-+	},
- 	{
- 		/* Whitelabel (sold as various brands) TM800A550L */
- 		.matches = {
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index dd535b4b9a16..3500744e6862 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -332,21 +332,32 @@ static void acpi_bus_osc_negotiate_platform_control(void)
+ 	if (ACPI_FAILURE(acpi_run_osc(handle, &context)))
+ 		return;
+ 
+-	kfree(context.ret.pointer);
++	capbuf_ret = context.ret.pointer;
++	if (context.ret.length <= OSC_SUPPORT_DWORD) {
++		kfree(context.ret.pointer);
++		return;
++	}
+ 
+-	/* Now run _OSC again with query flag clear */
++	/*
++	 * Now run _OSC again with query flag clear and with the caps
++	 * supported by both the OS and the platform.
++	 */
+ 	capbuf[OSC_QUERY_DWORD] = 0;
++	capbuf[OSC_SUPPORT_DWORD] = capbuf_ret[OSC_SUPPORT_DWORD];
++	kfree(context.ret.pointer);
+ 
+ 	if (ACPI_FAILURE(acpi_run_osc(handle, &context)))
+ 		return;
+ 
+ 	capbuf_ret = context.ret.pointer;
+-	osc_sb_apei_support_acked =
+-		capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
+-	osc_pc_lpi_support_confirmed =
+-		capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
+-	osc_sb_native_usb4_support_confirmed =
+-		capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_NATIVE_USB4_SUPPORT;
++	if (context.ret.length > OSC_SUPPORT_DWORD) {
++		osc_sb_apei_support_acked =
++			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
++		osc_pc_lpi_support_confirmed =
++			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
++		osc_sb_native_usb4_support_confirmed =
++			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_NATIVE_USB4_SUPPORT;
++	}
+ 
+ 	kfree(context.ret.pointer);
+ }
 -- 
 2.34.1
 
