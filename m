@@ -2,113 +2,137 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B994BC433FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 30 Mar 2022 11:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC859C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 30 Mar 2022 18:15:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241540AbiC3LDj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 30 Mar 2022 07:03:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57824 "EHLO
+        id S1349865AbiC3SQu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 30 Mar 2022 14:16:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245717AbiC3LDh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2022 07:03:37 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A81D4BF501;
-        Wed, 30 Mar 2022 04:01:41 -0700 (PDT)
+        with ESMTP id S1349824AbiC3SQh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2022 14:16:37 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F0E3275C9;
+        Wed, 30 Mar 2022 11:14:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1648638102; x=1680174102;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=QMp8wovDI+Z82ZMrv+Dz8OObU/SJH/JXlq0BCZ6Bhhw=;
-  b=YQERTWjvQ6njBDlGnhbVhC3iuG5t2JTwZa+5A3TupEgorO2wb5iMAg/+
-   UcpbQv4qSGn665bUD1K/oNmI8azxuD37rGjkXGPQpiHzpAEFg9LnvIPms
-   69J9V2Yt2D0r6w9dSMbcnb9VEHAQvIAGNvYzYwAw6ysBnOPDo8l5pMf9s
-   XF1WTxNNvCTX6BRNz4env67gBsYwnfyBoCq36WnBZVRqwmihsmVLRvjO3
-   jKZA3ISGNAsheedhsvgOHbIdVFeJcdWReiLja4KHPRfYdgFSyq0vWCDDE
-   IMWkdtN+nULqCF+XVRFANHZheIeYFTLSkeXSCnSOaiVtG6ZewluO0Ce4m
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10301"; a="284421314"
-X-IronPort-AV: E=Sophos;i="5.90,222,1643702400"; 
-   d="scan'208";a="284421314"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2022 04:01:40 -0700
-X-IronPort-AV: E=Sophos;i="5.90,222,1643702400"; 
-   d="scan'208";a="695065540"
-Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2022 04:01:38 -0700
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with SMTP id BC307203C9;
-        Wed, 30 Mar 2022 14:01:36 +0300 (EEST)
-Date:   Wed, 30 Mar 2022 14:01:36 +0300
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        "Rafael J.Wysocki" <rafael@kernel.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH v2 0/4] Shovel firmware specific code to appropriate
- locations
-Message-ID: <YkQ4kEqf7/uhpbyw@paasikivi.fi.intel.com>
-References: <20220323154737.169483-1-sakari.ailus@linux.intel.com>
- <YjtI22BnRjfNOVhG@smile.fi.intel.com>
+  t=1648664092; x=1680200092;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=v2aVAJGUf+hBjQ8T05t5SoZ5dzwy5YTP0J26NB+Tvs0=;
+  b=FufQVpW45Sfu7L6xX3iyrS6mOV0xhAJ+KiiRACkZCA0D6P342GOSgmu6
+   AEV09+Qd1gYPA0LlfLdvs70tgffs1D5dcth06JIXmtGJhsVASXT4IBs0v
+   osfwlCNwUxqvsHiQdscEG6SxpimLFagul8oLYol5CnfmAlQzHYe1539D7
+   jv11OqcNNa2wZmWRWXP4oj6lZnVlRyDuy2g8y+vscCH+Qp0Gqa4HWRJen
+   fYy3u8VjyFOCGfCSnUNBaCNp3L+rNFCtXVheifotAxTTmvWuUkIRnbrqH
+   vwvIraTft1kfsQgyAOEtLx1znWqXJbAPJqflIMOhRWvmdauDSR8T4HgZq
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10302"; a="241764490"
+X-IronPort-AV: E=Sophos;i="5.90,223,1643702400"; 
+   d="scan'208";a="241764490"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2022 11:14:50 -0700
+X-IronPort-AV: E=Sophos;i="5.90,223,1643702400"; 
+   d="scan'208";a="653992041"
+Received: from sbathula-mobl.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.209.170.43])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2022 11:14:50 -0700
+From:   Vishal Verma <vishal.l.verma@intel.com>
+To:     <linux-cxl@vger.kernel.org>
+Cc:     <linux-acpi@vger.kernel.org>,
+        Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH v3 1/3] acpi: add a helper for retrieving _OSC Control DWORDs
+Date:   Wed, 30 Mar 2022 12:14:32 -0600
+Message-Id: <20220330181434.1515791-2-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220330181434.1515791-1-vishal.l.verma@intel.com>
+References: <20220330181434.1515791-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YjtI22BnRjfNOVhG@smile.fi.intel.com>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2739; h=from:subject; bh=v2aVAJGUf+hBjQ8T05t5SoZ5dzwy5YTP0J26NB+Tvs0=; b=owGbwMvMwCXGf25diOft7jLG02pJDEku87h+hG3ey9s0JbbJp0ri3svVAgtkEvj2de4+26SV2XSg UDWro5SFQYyLQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABPxlmH4H8rT8Xl+oc2ttCev3xZYLk vi4tKdZPlbwLbl8y5B2ZYtexgZWn9UdiSxJ8/ceUHX42XNc4YW5lrWbfMeK70zPfNq7+xuXgA=
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Mar 23, 2022 at 06:20:43PM +0200, Andy Shevchenko wrote:
-> On Wed, Mar 23, 2022 at 05:47:33PM +0200, Sakari Ailus wrote:
-> > Hi folks,
-> > 
-> > This set moves the implementation of recently added device property API
-> > functions to OF and ACPI frameworks, where the rest of such functionality
-> > resides.
-> > 
-> > Compile tested.
-> 
-> Thanks!
-> 
-> It would be nice to use --base when creating a cover letter.
-> Because it has been sent during merge window, I'm not sure
-> what base you have chosen for it (v5.17 or latest Linus'
-> master or ...).
+During _OSC negotiation, when the 'Control' DWORD is needed from the
+result buffer after running _OSC, a couple of places performed manual
+pointer arithmetic to offset into the right spot in the raw buffer.
+Add a acpi_osc_ctx_get_pci_control() helper to use the #define'd
+DWORD offsets to fetch the DWORDs needed from @acpi_osc_context, and
+replace the above instances of the open-coded arithmetic.
 
-As noted below, Rafael's devprop branch. But I'll use --base on the next
-time. It seems v3 will be needed in any case.
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Suggested-by: Davidlohr Bueso <dave@stgolabs.net>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ include/linux/acpi.h    | 12 ++++++++++++
+ drivers/acpi/bus.c      |  2 +-
+ drivers/acpi/pci_root.c |  2 +-
+ 3 files changed, 14 insertions(+), 2 deletions(-)
 
-
-> 
-> > The dependencies can be found in Rafael's devprop branch now.
-> > 
-> > changes since v1:
-> > 
-> > - Drop wrongly placed Depends-on: tag from the first patch.
-> > 
-> > - Drop IS_ENABLED(CONFIG_OF_ADDRESS) && is_of_node(fwnode) check (3rd
-> >   patch).
-> > 
-> > Sakari Ailus (4):
-> >   device property: Convert device_{dma_supported,get_dma_attr} to fwnode
-> >   ACPI: property: Move acpi_fwnode_device_get_match_data() up
-> >   device property: Add iomap to fwnode operations
-> >   device property: Add irq_get to fwnode operation
-> > 
-> >  drivers/acpi/property.c | 36 +++++++++++++++++++++++++++++++----
-> >  drivers/base/property.c | 42 ++++++-----------------------------------
-> >  drivers/of/property.c   | 30 +++++++++++++++++++++++++++++
-> >  include/linux/fwnode.h  |  5 +++++
-> >  4 files changed, 73 insertions(+), 40 deletions(-)
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
-
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 6274758648e3..5c5bac255d35 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -607,6 +607,13 @@ extern u32 osc_sb_native_usb4_control;
+ #define OSC_PCI_EXPRESS_LTR_CONTROL		0x00000020
+ #define OSC_PCI_EXPRESS_DPC_CONTROL		0x00000080
+ 
++static inline u32 acpi_osc_ctx_get_pci_control(struct acpi_osc_context *context)
++{
++	u32 *ret = context->ret.pointer;
++
++	return ret[OSC_CONTROL_DWORD];
++}
++
+ #define ACPI_GSB_ACCESS_ATTRIB_QUICK		0x00000002
+ #define ACPI_GSB_ACCESS_ATTRIB_SEND_RCV         0x00000004
+ #define ACPI_GSB_ACCESS_ATTRIB_BYTE		0x00000006
+@@ -1003,6 +1010,11 @@ static inline int acpi_register_wakeup_handler(int wake_irq,
+ static inline void acpi_unregister_wakeup_handler(
+ 	bool (*wakeup)(void *context), void *context) { }
+ 
++static inline u32 acpi_osc_ctx_get_pci_control(struct acpi_osc_context *context)
++{
++	return 0;
++}
++
+ #endif	/* !CONFIG_ACPI */
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 07f604832fd6..4992e05cf429 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -405,7 +405,7 @@ static void acpi_bus_osc_negotiate_usb_control(void)
+ 	}
+ 
+ 	osc_sb_native_usb4_control =
+-		control & ((u32 *)context.ret.pointer)[OSC_CONTROL_DWORD];
++		control &  acpi_osc_ctx_get_pci_control(&context);
+ 
+ 	acpi_bus_decode_usb_osc("USB4 _OSC: OS supports", control);
+ 	acpi_bus_decode_usb_osc("USB4 _OSC: OS controls",
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index b76db99cced3..40a74ff3fa02 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -185,7 +185,7 @@ static acpi_status acpi_pci_run_osc(acpi_handle handle,
+ 
+ 	status = acpi_run_osc(handle, &context);
+ 	if (ACPI_SUCCESS(status)) {
+-		*retval = *((u32 *)(context.ret.pointer + 8));
++		*retval = acpi_osc_ctx_get_pci_control(&context);
+ 		kfree(context.ret.pointer);
+ 	}
+ 	return status;
 -- 
-Sakari Ailus
+2.35.1
+
