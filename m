@@ -2,112 +2,106 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4321FC433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 31 Mar 2022 12:57:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7941DC433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 31 Mar 2022 17:17:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236460AbiCaM7I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 31 Mar 2022 08:59:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49168 "EHLO
+        id S229559AbiCaRS7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 31 Mar 2022 13:18:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236444AbiCaM67 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2022 08:58:59 -0400
-Received: from hillosipuli.retiisi.eu (retiisi.eu [95.216.213.190])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFBB6214043;
-        Thu, 31 Mar 2022 05:57:11 -0700 (PDT)
-Received: from lanttu.localdomain (unknown [IPv6:fd35:1bc8:1a6:d3d5::c1:2])
-        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 39B93634C95;
-        Thu, 31 Mar 2022 15:57:05 +0300 (EEST)
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     andriy.shevchenko@linux.intel.com, devicetree@vger.kernel.org,
-        "Rafael J.Wysocki" <rafael@kernel.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Subject: [PATCH v3 3/4] device property: Add iomap to fwnode operations
-Date:   Thu, 31 Mar 2022 15:54:49 +0300
-Message-Id: <20220331125450.218045-4-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220331125450.218045-1-sakari.ailus@linux.intel.com>
-References: <20220331125450.218045-1-sakari.ailus@linux.intel.com>
+        with ESMTP id S229574AbiCaRSz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2022 13:18:55 -0400
+Received: from mail-yw1-f170.google.com (mail-yw1-f170.google.com [209.85.128.170])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B608E0E2;
+        Thu, 31 Mar 2022 10:17:08 -0700 (PDT)
+Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-2e5e176e1b6so5319817b3.13;
+        Thu, 31 Mar 2022 10:17:08 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=Bi64VQ+Khg5UK1gSOPf2RqNXb/UgNoMXBN9uv9DgbzQ=;
+        b=wL2XuTZ/ZYrXoHN/ea3tZmKvPyqfNbuwdoWposBHiHm2hq6oWGyebTgV2rzvs2wFco
+         LCbJEMK8DTBYwOFOc73C/8pqJd6MreldVCMzzYrzWjDE1TP80lCSURrwWv4nlaSAzTMo
+         jhx9Tm8flQRq2M1gHm4Scgowjcy19ej+W8YUrxAiwZD55XC8nIHz8Ai/e3P++YEU/uqV
+         fEEmEJ5/O83aCe5gAXmF90rugNN8d+K4yhcV6cJb4XBHQ8TLZvXijkUhQ+dJI3i+GMIl
+         QbBVqdQowVPv/mnWpbzAEc6IxmxOy2tYI0xPvdWILxGS4arJlO/tPtKWnndMq5zZO0gM
+         km7w==
+X-Gm-Message-State: AOAM530BoGO1Nvh4fVCqyqoup2qAncUIkRg/aPCMF/fgtQC9ZCkbAFoG
+        SDoEhJ/pVU84M/eBk8nBDNPx8gjCVNqlSDIy0ciFDNXHsc0=
+X-Google-Smtp-Source: ABdhPJxq3HfUPuua8v/lJf49OO3v7vDilX+C+f+juAjPZ/drrEh/EOFycgrf3bXJvgpitqxN8aCEG3LQeanA44bgQCY=
+X-Received: by 2002:a81:6887:0:b0:2e6:126d:3102 with SMTP id
+ d129-20020a816887000000b002e6126d3102mr5995555ywc.7.1648747027545; Thu, 31
+ Mar 2022 10:17:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 31 Mar 2022 19:16:56 +0200
+Message-ID: <CAJZ5v0hGTCBsbrFt7xcS_J+X1hG1qOAL=UecfGyHuhAcHjZ0eQ@mail.gmail.com>
+Subject: [GIT PULL] More ACPI updates for v5.18-rc1
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add iomap() fwnode operation to implement fwnode_iomap() through fwnode
-operations, moving the code in fwnode_iomap() to OF framework.
+Hi Linus,
 
-Note that the IS_ENABLED(CONFIG_OF_ADDRESS) && is_of_node(fwnode) check is
-needed for Sparc that has its own implementation of of_iomap anyway. Let
-the pre-compiler to handle that check.
+Please pull from the tag
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/base/property.c |  5 +----
- drivers/of/property.c   | 10 ++++++++++
- include/linux/fwnode.h  |  1 +
- 3 files changed, 12 insertions(+), 4 deletions(-)
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-5.18-rc1-2
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 09686e2e903e..83dd22e7cb81 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -887,10 +887,7 @@ EXPORT_SYMBOL_GPL(device_get_phy_mode);
-  */
- void __iomem *fwnode_iomap(struct fwnode_handle *fwnode, int index)
- {
--	if (IS_ENABLED(CONFIG_OF_ADDRESS) && is_of_node(fwnode))
--		return of_iomap(to_of_node(fwnode), index);
--
--	return NULL;
-+	return fwnode_call_ptr_op(fwnode, iomap, index);
- }
- EXPORT_SYMBOL(fwnode_iomap);
- 
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index 676899566f7c..ac2aa5221069 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -1465,6 +1465,15 @@ static int of_link_property(struct device_node *con_np, const char *prop_name)
- 	return 0;
- }
- 
-+static void __iomem *of_fwnode_iomap(struct fwnode_handle *fwnode, int index)
-+{
-+#ifdef CONFIG_OF_ADDRESS
-+	return of_iomap(to_of_node(fwnode), index);
-+#else
-+	return NULL;
-+#endif
-+}
-+
- static int of_fwnode_add_links(struct fwnode_handle *fwnode)
- {
- 	struct property *p;
-@@ -1502,6 +1511,7 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
- 	.graph_get_port_parent = of_fwnode_graph_get_port_parent,
- 	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
-+	.iomap = of_fwnode_iomap,
- 	.add_links = of_fwnode_add_links,
- };
- EXPORT_SYMBOL_GPL(of_fwnode_ops);
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 6f307f21fc65..ebbc3bf03f95 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -148,6 +148,7 @@ struct fwnode_operations {
- 	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
- 	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
- 				    struct fwnode_endpoint *endpoint);
-+	void __iomem *(*iomap)(struct fwnode_handle *fwnode, int index);
- 	int (*add_links)(struct fwnode_handle *fwnode);
- };
- 
--- 
-2.30.2
+with top-most commit 4a13e559af0b177eb934c39338f100a9f692a37b
 
+ Merge branches 'acpi-ipmi', 'acpi-tables' and 'acpi-apei'
+
+on top of commit 242ba6656d604aa8dc87451fc08143cb28d5a587
+
+ Merge tag 'acpi-5.18-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive more ACPI updates for 5.18-rc1.
+
+These are fixes and cleanup on top of the previously merged ACPI
+material for 5.18-rc1.
+
+Specifics:
+
+ - Avoid out-of-bounds access when parsing _CPC data (Rafael Wysocki).
+
+ - Change default error code and clean up debug messages in ACPI CPPC
+   probe (Rafael Wysocki).
+
+ - Replace usage of found with a dedicated list iterator variable in
+   the ACPI IPMI driver (Jakob Koschel).
+
+ - Clean up variable name confusion in APEI (Jakob Koschel).
+
+ - Make LAPIC_ADDR_OVR address readable in a message parsed during
+   MADT parsing (Vasant Hegde).
+
+Thanks!
+
+
+---------------
+
+Jakob Koschel (2):
+      ACPI, APEI: Use the correct variable for sizeof()
+      ACPI: IPMI: replace usage of found with dedicated list iterator variable
+
+Rafael J. Wysocki (2):
+      ACPI: CPPC: Avoid out of bounds access when parsing _CPC data
+      ACPI: CPPC: Change default error code and clean up debug messages in probe
+
+Vasant Hegde (1):
+      ACPI: tables: Make LAPIC_ADDR_OVR address readable in message
+
+---------------
+
+ drivers/acpi/acpi_ipmi.c      | 39 ++++++++++++++++++---------------------
+ drivers/acpi/apei/apei-base.c |  2 +-
+ drivers/acpi/cppc_acpi.c      | 32 ++++++++++++++++++++------------
+ drivers/acpi/tables.c         |  4 ++--
+ 4 files changed, 41 insertions(+), 36 deletions(-)
