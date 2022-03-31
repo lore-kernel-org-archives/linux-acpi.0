@@ -2,99 +2,83 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACBE0C4332F
-	for <linux-acpi@archiver.kernel.org>; Thu, 31 Mar 2022 09:41:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35FB2C4332F
+	for <linux-acpi@archiver.kernel.org>; Thu, 31 Mar 2022 12:57:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233442AbiCaJnX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 31 Mar 2022 05:43:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39750 "EHLO
+        id S236435AbiCaM67 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 31 Mar 2022 08:58:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233957AbiCaJnW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2022 05:43:22 -0400
-Received: from relay7-d.mail.gandi.net (relay7-d.mail.gandi.net [217.70.183.200])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D6191D207A;
-        Thu, 31 Mar 2022 02:41:33 -0700 (PDT)
-Received: (Authenticated sender: clement.leger@bootlin.com)
-        by mail.gandi.net (Postfix) with ESMTPSA id 4B0E02000D;
-        Thu, 31 Mar 2022 09:41:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-        t=1648719692;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=VbsxCOa9JzqELpaQ9PziPailes9HwLBLI2gZIQcLonI=;
-        b=JRMitclP+ldhl0KYInG2ZqCFOIsMhLfD1uad+8wNS9RwXCiRH8wLk/xKp6TXafoFiCJxkk
-        H+A0pU5Gf65OGTQS3GDo8a8lDlhTm1EXpj/8CU6AfBstfbD69/HKIZ3Pbd4CKBA8BresO3
-        l9hYLR/ZDPGNRVLE0qn7NTthWAxu34+YOTudhVtC7U/AW6M1KfVgGNZaPWTzTihwhZtTeV
-        jkKCw4yo9G4kgpFH8OFBBJA9WespPxe15OMAbjubVUafBti2s7ND10NbfvXZbogyzlyxa4
-        C6RPmbiEBw0opSDNx504roXkNUCXLBdRsGFAEd7IPlUL5tNG5/rmVO54KMXaWw==
-Date:   Thu, 31 Mar 2022 11:40:06 +0200
-From:   =?UTF-8?B?Q2zDqW1lbnQgTMOpZ2Vy?= <clement.leger@bootlin.com>
-To:     Peter Rosin <peda@axentia.se>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        with ESMTP id S234630AbiCaM67 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2022 08:58:59 -0400
+Received: from hillosipuli.retiisi.eu (hillosipuli.retiisi.eu [IPv6:2a01:4f9:c010:4572::81:2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 571D62128FD;
+        Thu, 31 Mar 2022 05:57:08 -0700 (PDT)
+Received: from lanttu.localdomain (unknown [IPv6:fd35:1bc8:1a6:d3d5::c1:2])
+        by hillosipuli.retiisi.eu (Postfix) with ESMTP id 2CC7A634C94;
+        Thu, 31 Mar 2022 15:57:05 +0300 (EEST)
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     andriy.shevchenko@linux.intel.com, devicetree@vger.kernel.org,
+        "Rafael J.Wysocki" <rafael@kernel.org>,
         Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Wolfram Sang <wsa@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Allan Nielsen <allan.nielsen@microchip.com>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-i2c@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 8/9] i2c: mux: pinctrl: remove CONFIG_OF dependency
- and use fwnode API
-Message-ID: <20220331114006.0c7bc47a@fixe.home>
-In-Reply-To: <6f519f94-9185-a29b-2eff-fd6c9a36cfaf@axentia.se>
-References: <20220325113148.588163-1-clement.leger@bootlin.com>
-        <20220325113148.588163-9-clement.leger@bootlin.com>
-        <6f519f94-9185-a29b-2eff-fd6c9a36cfaf@axentia.se>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.31; x86_64-pc-linux-gnu)
+        Frank Rowand <frowand.list@gmail.com>
+Subject: [PATCH v3 2/4] ACPI: property: Move acpi_fwnode_device_get_match_data() up
+Date:   Thu, 31 Mar 2022 15:54:48 +0300
+Message-Id: <20220331125450.218045-3-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220331125450.218045-1-sakari.ailus@linux.intel.com>
+References: <20220331125450.218045-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Le Fri, 25 Mar 2022 17:48:19 +0100,
-Peter Rosin <peda@axentia.se> a =C3=A9crit :
+Move acpi_fwnode_device_get_match_data() up below
+acpi_fwnode_device_is_available() so the order matches that in struct
+fwnode_operations.
 
-> > =20
-> > -	parent_np =3D of_parse_phandle(np, "i2c-parent", 0);
-> > -	if (!parent_np) {
-> > +	parent_fwnode =3D fwnode_find_reference(fwnode, "i2c-parent", 0);
-> > +	if (!parent_fwnode) {
-> >  		dev_err(dev, "Cannot parse i2c-parent\n");
-> >  		return ERR_PTR(-ENODEV);
-> >  	}
-> > -	parent =3D of_find_i2c_adapter_by_node(parent_np);
-> > -	of_node_put(parent_np);
-> > -	if (!parent)
-> > +	parent =3D fwnode_find_i2c_adapter_by_node(parent_fwnode);
-> > +	if (!parent) {
-> > +		dev_err(dev, "Cannot find i2c-parent\n"); =20
->=20
-> Why do we need to log this as an error?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/property.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Hi Peter, sorry for the late answer, your mail ended up in my SPAM
-folder.
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 1541b318ba46..75dc22c117a5 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1253,6 +1253,13 @@ static bool acpi_fwnode_device_is_available(const struct fwnode_handle *fwnode)
+ 	return acpi_device_is_present(to_acpi_device_node(fwnode));
+ }
+ 
++static const void *
++acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
++				  const struct device *dev)
++{
++	return acpi_device_get_match_data(dev);
++}
++
+ static bool acpi_fwnode_device_dma_supported(const struct fwnode_handle *fwnode)
+ {
+ 	return acpi_dma_supported(to_acpi_device_node(fwnode));
+@@ -1384,13 +1391,6 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 	return 0;
+ }
+ 
+-static const void *
+-acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+-				  const struct device *dev)
+-{
+-	return acpi_device_get_match_data(dev);
+-}
+-
+ #define DECLARE_ACPI_FWNODE_OPS(ops) \
+ 	const struct fwnode_operations ops = {				\
+ 		.device_is_available = acpi_fwnode_device_is_available, \
+-- 
+2.30.2
 
-Regarding the error logging, you are right, this is not needed. I'll
-remove it.
-
-Thanks,
-
-Cl=C3=A9ment=20
-
---=20
-Cl=C3=A9ment L=C3=A9ger,
-Embedded Linux and Kernel engineer at Bootlin
-https://bootlin.com
