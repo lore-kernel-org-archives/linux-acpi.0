@@ -2,144 +2,109 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1495CC433FE
-	for <linux-acpi@archiver.kernel.org>; Sun,  3 Apr 2022 00:58:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCD76C433FE
+	for <linux-acpi@archiver.kernel.org>; Sun,  3 Apr 2022 05:13:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230388AbiDCBAd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 2 Apr 2022 21:00:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51066 "EHLO
+        id S231969AbiDCFP3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 3 Apr 2022 01:15:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230021AbiDCBAc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Apr 2022 21:00:32 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 365DF13CC4;
-        Sat,  2 Apr 2022 17:58:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1648947519; x=1680483519;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=nVAOtsgMnAV1IoOL1iOgLnzwJVC7f0kFIyd7uqIf+BM=;
-  b=a6Ip6XgyvdpY4d4ZndcKPkgqMQnC1i5HlkTiPtBYEED5Vo/BpIVino33
-   93FlTuM/H4tGGlAEg5yGluYCqgLzf9IMCfzjBdWC4hWx4MEXpl4KFng7p
-   ZritWjYJQvElXAFlrnAPd0CSzQ/pvY66n+g6WcKapkStzonpmOEzkJf8t
-   9SnoaRjPeNoMvk2OQRu1iYbBvt3wthgZ1CCtXpqKFI3+WuCWPQdl3zk9v
-   Ixt0foXwUg0cs2HlMuZeUfyPtE5HcifJBj64Q0pmDEyvrSX5FHvWzv9Rj
-   Miz0svgQbIowvVDdf0tyW/INMXA1DCiowZS5AoymRsCfXf11qukbhHpi6
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10305"; a="260525497"
-X-IronPort-AV: E=Sophos;i="5.90,231,1643702400"; 
-   d="scan'208";a="260525497"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Apr 2022 17:58:38 -0700
-X-IronPort-AV: E=Sophos;i="5.90,231,1643702400"; 
-   d="scan'208";a="548245047"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Apr 2022 17:58:37 -0700
-Subject: [PATCH] cxl/mem: Disable suspend
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     linux-cxl@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Date:   Sat, 02 Apr 2022 17:58:37 -0700
-Message-ID: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+        with ESMTP id S229566AbiDCFP3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Apr 2022 01:15:29 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7633419289;
+        Sat,  2 Apr 2022 22:13:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+        :Reply-To:Content-ID:Content-Description;
+        bh=PEgc8Ga0cnyRYRy3sepXDsniqZif9JIr9jjDkoUEBdQ=; b=arcia5dACXcwl6PBm4kdLKQ00e
+        o+b4po6tKbqKMZVRftRs0MOz/ARBR1SL4zRpNCD088wyaw+l/rX4n8jLRgiv+JD5oX5Jp2DVRCVtM
+        TEpqzQHaa93aHawO0Ees1yGVSLxDdD/+P/isouLSUUjwEjSPtVzDSBZNImmvM9XKRBRLWhziBXNr5
+        mP98OBnzolebyVuK2ufK30MfdrfD8oSeVDJRvV2q09RFzGveyNPj/XeszSH8AyXfNUgDm9VmOqO1L
+        /WcMrQk0UamQ52KlJnfk8mJt52OK8dtFYjxSXMVgqC1T0gyqF4+h20AbE6NaGk4uQaUx+54DaPUed
+        vK3iw9mA==;
+Received: from [2601:1c0:6280:3f0::aa0b]
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nasYK-004fIF-Ft; Sun, 03 Apr 2022 05:13:28 +0000
+Message-ID: <53133d81-e52c-8887-c879-615b585e3351@infradead.org>
+Date:   Sat, 2 Apr 2022 22:13:20 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH 1/3 v2] Docs: admin/kernel-parameters: edit a few boot
+ options
+Content-Language: en-US
+To:     Steven Rostedt <rostedt@goodmis.org>
+Cc:     linux-kernel@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        linux-s390@vger.kernel.org, Ingo Molnar <mingo@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>,
+        linux-ia64@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>,
+        linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+References: <20220401030927.12023-1-rdunlap@infradead.org>
+ <20220401030927.12023-2-rdunlap@infradead.org>
+ <20220401120305.00076d14@gandalf.local.home>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20220401120305.00076d14@gandalf.local.home>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The CXL specification claims S3 support at a hardware level, but at a
-system software level there are some missing pieces. Section 9.4 rightly
-claims that "CXL mem adapters may need aux power to retain memory
-context across S3", but there is no enumeration mechanism for the OS to
-determine if a given adapter has that support. Moreover the save state
-and resume image for the system may inadvertantly end up in a CXL device
-that needs to be restored before the save state is recoverable. I.e. a
-circular dependency that is not resolvable without a third party
-save-area.
 
-Arrange for the cxl_mem driver to fail S3 attempts. This still nominaly
-allows for suspend, but requires unbinding all CXL memory devices before
-the suspend to ensure the typical DRAM flow is taken. The cxl_mem unbind
-flow is intended to also tear down all CXL memory regions associated
-with a given cxl_memdev.
 
-It is reasonable to assume that any device participating in a System RAM
-range published in the EFI memory map is covered by aux power and
-save-area outside the device itself. So this restriction can be
-minimized in the future once pre-existing region enumeration support
-arrives, and perhaps a spec update to clarify if the EFI memory is
-sufficent for determining the range of devices managed by
-platform-firmware for S3 support.
+On 4/1/22 09:03, Steven Rostedt wrote:
+> On Thu, 31 Mar 2022 20:09:25 -0700
+> Randy Dunlap <rdunlap@infradead.org> wrote:
+> 
+>> @@ -5908,6 +5910,8 @@
+>>  	trace_buf_size=nn[KMG]
+>>  			[FTRACE] will set tracing buffer size on each cpu.
+>>  
+>> +	trace_clock=	[FTRACE] See Documentation/trace/ftrace.rst
+> 
+> 	trace_clock=	[FTRACE] Set the clock used for tracing events
+> 			at boot up.
+> 			local - Use the per CPU time stamp counter
+> 				(converted into nanoseconds). Fast, but
+> 				depending on the architecture, may not be
+> 				in sync between CPUs.
+> 			global - Event time stamps are synchronize across
+> 				CPUs. May be slower than the local clock,
+> 				but better for some race conditions.
+> 			counter - Simple counting of events (1, 2, ..)
+> 				note, some counts may be skipped due to the
+> 				infrastructure grabbing the clock more than
+> 				once per event.
+> 			uptime - Use jiffies as the time stamp.
+> 			perf - Use the same clock that perf uses.
+> 			mono - Use ktime_get_mono_fast_ns() for time stamps.
+> 			mono_raw - Use ktime_get_raw_fast_ns() for time
+> 				stamps.
+> 			boot - Use ktime_get_boot_fast_ns() for time stamps.
+> 			Architectures may add more clocks. See
+> 			Documentation/trace/ftrace.rst for more details.
+> 
 
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/cxl/core/memdev.c |    1 -
- drivers/cxl/mem.c         |   26 ++++++++++++++++++++++++++
- 2 files changed, 26 insertions(+), 1 deletion(-)
+Will do. Thanks.
 
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index 1f76b28f9826..efe4d2e9bfef 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -251,7 +251,6 @@ static struct cxl_memdev *cxl_memdev_alloc(struct cxl_dev_state *cxlds,
- 	dev->bus = &cxl_bus_type;
- 	dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
- 	dev->type = &cxl_memdev_type;
--	device_set_pm_not_required(dev);
- 	INIT_WORK(&cxlmd->detach_work, detach_memdev);
- 
- 	cdev = &cxlmd->cdev;
-diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-index 49a4b1c47299..0660bb1488cb 100644
---- a/drivers/cxl/mem.c
-+++ b/drivers/cxl/mem.c
-@@ -3,6 +3,7 @@
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-+#include <linux/pm.h>
- 
- #include "cxlmem.h"
- #include "cxlpci.h"
-@@ -210,10 +211,35 @@ static int cxl_mem_probe(struct device *dev)
- 	return rc;
- }
- 
-+static int cxl_mem_suspend(struct device *dev)
-+{
-+	/*
-+	 * The kernel may be operating out of CXL memory on this device,
-+	 * there is no spec defined way to determine whether this device
-+	 * preserves contents over suspend, and there is no simple way
-+	 * to arrange for the suspend image to avoid CXL memory which
-+	 * would setup a circular dependency between PCI resume and save
-+	 * state restoration.
-+	 */
-+	dev_err(dev, "CXL memory suspend not supported\n");
-+	return -EBUSY;
-+}
-+
-+static int cxl_mem_resume(struct device *dev)
-+{
-+	/* nothing to do since suspend is prevented */
-+	return 0;
-+}
-+
-+static DEFINE_SIMPLE_DEV_PM_OPS(cxl_pm_ops, cxl_mem_suspend, cxl_mem_resume);
-+
- static struct cxl_driver cxl_mem_driver = {
- 	.name = "cxl_mem",
- 	.probe = cxl_mem_probe,
- 	.id = CXL_DEVICE_MEMORY_EXPANDER,
-+	.drv = {
-+		.pm = &cxl_pm_ops,
-+	},
- };
- 
- module_cxl_driver(cxl_mem_driver);
+> 
+> 
+>> +
+>>  	trace_event=[event-list]
+>>  			[FTRACE] Set and start specified trace events in order
+>>  			to facilitate early boot debugging. The event-list is a
 
+-- 
+~Randy
