@@ -2,106 +2,128 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81604C4167E
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B2AC35276
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379521AbiDDV3u (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:29:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42330 "EHLO
+        id S1379455AbiDDV3w (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:29:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379962AbiDDS1F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 14:27:05 -0400
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB53113F48;
-        Mon,  4 Apr 2022 11:25:08 -0700 (PDT)
-Received: by mail-yb1-f180.google.com with SMTP id y38so19170728ybi.8;
-        Mon, 04 Apr 2022 11:25:08 -0700 (PDT)
+        with ESMTP id S1380145AbiDDTBd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 15:01:33 -0400
+Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 010C624598;
+        Mon,  4 Apr 2022 11:59:36 -0700 (PDT)
+Received: by mail-pj1-x1036.google.com with SMTP id n6-20020a17090a670600b001caa71a9c4aso227007pjj.1;
+        Mon, 04 Apr 2022 11:59:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=oMVaKBgzoQqc7gxkYgb60MlXgXZZVMwR1kc99VQvjLA=;
+        b=KLeLuThRs2MiFPARUNGy9/wBt8j9oC4NUv6OA1qkh3wwKwWqn1v2WyHaHbvNXtD81r
+         hYeMB992L8FGwLeeJF1kmQQpQATlZpit/BeXgxxOM7Py4pf+9zG3UGbFG6RLkP/VbOGq
+         Rf/m+hXlWg8JGM5Jh78VeO/JhNKm/mL2HaGt9eflIiQjLHgvYzqpI+3EwrASr1zzNsWR
+         XjQ8MdY6p9tlCbundm5SciMoRUGjammmsPomk1CAqLqrX08sAU0fWqHUEVt4NoYtgG4m
+         hcmR4RFRoEtQCNFGUZQUh6lGGfHEqcAy8WF70FfMglzOyQNApCqTtGhwpyCVCcagPntV
+         0s0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=bCV4HtxKKrFtYUzA08GGtmyQuDrR4SCJ17M7Fnxmr34=;
-        b=r3yPEzKhRac9iqyCIM8yg2iRAQmLrVVpU76b6aeqk2sl9JP/JaTv5gMhqiqBATKUlL
-         1lx6TJhRXKRFKuNcseFsIMdWIRFLbqII+4nMqSA4xoCp6cFdUvv/65BSe6OjD0QluhkU
-         lvpU1R+1PVlbM1LgOArpnn1Le4PvBNMZ0wOUly/1XVRdw+z5qVXoO6t+8SD4mZhmkXZK
-         lZiduZENQyxvhyio30T71th5sDUhzn62NOZ3lAiGeE+cnIKZ2yOQy2yWymZnxRXQ4W3P
-         P2Q8cfLHqYaM/WAByB9VAYrjJf+xw5vqzPbexcCoZ0xlnGIEeEzPddcklxd2MO66DfXW
-         JWDg==
-X-Gm-Message-State: AOAM532ywzZkKlVZ+XOcu6IcZJTAN8Xm+eBQFLBrFPURvxW450m/f8ft
-        oyxIuZWYdfh5BpoEotgDhFnLpxjLjy/qjbGClyw=
-X-Google-Smtp-Source: ABdhPJyZrHKGdImhZK9li020wFi6mVFXiU0hAl7RxyBC2L67Wz55stGtbnyQdQUfeGvM+JTuLG3HrRleXe/zWArnIiw=
-X-Received: by 2002:a05:6902:1544:b0:63d:d3a7:8cc4 with SMTP id
- r4-20020a056902154400b0063dd3a78cc4mr1059291ybu.622.1649096708257; Mon, 04
- Apr 2022 11:25:08 -0700 (PDT)
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=oMVaKBgzoQqc7gxkYgb60MlXgXZZVMwR1kc99VQvjLA=;
+        b=cFX0QwakqoWrTScEuIVaReSAvInGxNB2lW0JRRp4GhXRmNJFtp7bVh5DBzYUzXiZ3O
+         rz/54rbMvRgkajXUo+RkbStUqjWyGBoJnro6mV+QQvsuuRhkqI0UDEsP3mUqCytD9kHk
+         FmWxa/NBaIPtFYFyvDWjde6elXFIu3y9NeGqaJ8OI76EHVu5PnOGojJ7I93rFyv/mzyy
+         ECYKcPUovUxF/gYuGUAUTK0KExYDxfyVZzkAqvKiKfMb7ewRXQu/NurYdWpDZ630x0Xw
+         y7s9lOf3W+vV4ZbFPz2G7v0efcjM/J1+bxYBgsONjOrGoQ0Dx76EsUZ/QSHfq4WFw9Ic
+         pHCA==
+X-Gm-Message-State: AOAM530vVsUpVJVDDzCEoc1ez/6IZcZH7Qst+TpN9ukv+B37t9p5rajU
+        h8bpUUxNgbzlDUxjaJC+eks=
+X-Google-Smtp-Source: ABdhPJyoHAxIXDgPuzQYSYXmM0MUfvH0ZIPUhBbJtiYgDk4sxbS9KpnJ46j0O8SLg92GcaWMP+hUWw==
+X-Received: by 2002:a17:902:7245:b0:156:20aa:1534 with SMTP id c5-20020a170902724500b0015620aa1534mr1450307pll.94.1649098776500;
+        Mon, 04 Apr 2022 11:59:36 -0700 (PDT)
+Received: from [192.168.66.3] (p912131-ipoe.ipoe.ocn.ne.jp. [153.243.13.130])
+        by smtp.gmail.com with ESMTPSA id f16-20020a056a001ad000b004fb358ffe86sm13116733pfv.137.2022.04.04.11.59.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 04 Apr 2022 11:59:35 -0700 (PDT)
+Message-ID: <91357075-d8d0-fc0b-5264-4f5cfe368250@gmail.com>
+Date:   Tue, 5 Apr 2022 03:59:30 +0900
 MIME-Version: 1.0
-References: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAJZ5v0hGVN_=3iU8OLpHY3Ak35T5+JcBM-qs8SbojKrpd0VXsA@mail.gmail.com> <CAPcyv4hCseKbr_XXyeOACYmm0defeSet0LX3YWLKGRnCMS=MFQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4hCseKbr_XXyeOACYmm0defeSet0LX3YWLKGRnCMS=MFQ@mail.gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 4 Apr 2022 20:24:57 +0200
-Message-ID: <CAJZ5v0gT=aAR=aW0-kkDWv2TotmL_EW4JVPqoh9oKwxtOyZr-A@mail.gmail.com>
-Subject: Re: [PATCH] cxl/mem: Disable suspend
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, linux-cxl@vger.kernel.org,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH] Revert "ACPI: processor: idle: Only flush cache on
+ entering C3"
+Content-Language: en-US
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Tony Luck <tony.luck@intel.com>,
+        the arch/x86 maintainers <x86@kernel.org>
+References: <20220403062322.3168-1-akihiko.odaki@gmail.com>
+ <CAJZ5v0gaRr-r8VFCEGSP1nTX0CwrOi35DXZB5Z8A9tiLufNxPg@mail.gmail.com>
+ <4d6307d0-cd67-dfb2-6d6d-2f37bf4a271b@gmail.com>
+ <CAJZ5v0gu4VsC7P6276p=S3ZyOg-BWP_dG6rzou2GDYA4TTMsSw@mail.gmail.com>
+From:   Akihiko Odaki <akihiko.odaki@gmail.com>
+In-Reply-To: <CAJZ5v0gu4VsC7P6276p=S3ZyOg-BWP_dG6rzou2GDYA4TTMsSw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Apr 4, 2022 at 8:16 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> On Mon, Apr 4, 2022 at 9:00 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Sun, Apr 3, 2022 at 2:58 AM Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > The CXL specification claims S3 support at a hardware level, but at a
-> > > system software level there are some missing pieces. Section 9.4 rightly
-> > > claims that "CXL mem adapters may need aux power to retain memory
-> > > context across S3", but there is no enumeration mechanism for the OS to
-> > > determine if a given adapter has that support. Moreover the save state
-> > > and resume image for the system may inadvertantly end up in a CXL device
-> > > that needs to be restored before the save state is recoverable. I.e. a
-> > > circular dependency that is not resolvable without a third party
-> > > save-area.
-> > >
-> > > Arrange for the cxl_mem driver to fail S3 attempts. This still nominaly
-> > > allows for suspend, but requires unbinding all CXL memory devices before
-> > > the suspend to ensure the typical DRAM flow is taken. The cxl_mem unbind
-> > > flow is intended to also tear down all CXL memory regions associated
-> > > with a given cxl_memdev.
-> > >
-> > > It is reasonable to assume that any device participating in a System RAM
-> > > range published in the EFI memory map is covered by aux power and
-> > > save-area outside the device itself. So this restriction can be
-> > > minimized in the future once pre-existing region enumeration support
-> > > arrives, and perhaps a spec update to clarify if the EFI memory is
-> > > sufficent for determining the range of devices managed by
-> > > platform-firmware for S3 support.
-> > >
-> > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> >
-> > A few thoughts:
-> >
-> > 1. I don't think it is necessary to fail suspend-to-idle too (which
-> > the driver will do after the patch AFAICS).
->
-> Ah true, I missed that this would also disable suspend to idle.
->
-> > 2. Should hibernation fail too?  From the description above it looks
-> > like that should be the case.
->
-> Yes, any CXL address range that was provisioned by the OS would need
-> some off-device save area for the device-state which seems difficult
-> to support in the general case.
+On 2022/04/05 3:56, Rafael J. Wysocki wrote:
+> On Mon, Apr 4, 2022 at 8:25 PM Akihiko Odaki <akihiko.odaki@gmail.com> wrote:
+>>
+>> On 2022/04/05 3:13, Rafael J. Wysocki wrote:
+>>> On Sun, Apr 3, 2022 at 8:25 AM Akihiko Odaki <akihiko.odaki@gmail.com> wrote:
+>>>>
+>>>> This reverts commit 87ebbb8c612b1214f227ebb8f25442c6d163e802.
+>>>>
+>>>> ACPI processor power states can be transitioned in two distinct
+>>>> situations: 1. when CPU goes idle and 2. before CPU goes offline
+>>>> ("playing dead") to suspend or hibernate. Case 1 is handled by
+>>>> acpi_idle_enter or acpi_idle_enter_s2idle. Case 2 is handled by
+>>>> acpi_idle_play_dead.
+>>>>
+>>>> It is necessary to flush CPU caches in case 2 even if it is not
+>>>> required to transit ACPI processor power states as CPU will go
+>>>> offline soon. However, the reverted commit incorrectly removed CPU
+>>>> cache flushing in such a condition.
+>>>
+>>> I think what you mean is that the CPU cache must always be flushed in
+>>> acpi_idle_play_dead(), regardless of the target C-state that is going
+>>> to be requested, because this is likely to be part of a CPU offline
+>>> procedure or preparation for entering a system-wide sleep state and
+>>> the stale cache contents may lead to problems going forward, for
+>>> example when the CPU is taken back online.
+>>>
+>>> If so, I will put the above information into the patch changelog.
+>>
+>> I guess it is causing problems because the dirty caches will not get
+>> written back and the RAM becomes stale if they are not flushed. From my
+>> understanding, the CPU should have an empty cache and read back contents
+>> from RAM when it is taken back online.
+> 
+> OK, please see if the changelog I've added to the patch is looking good:
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=bleeding-edge&id=dfbba2518aac4204203b0697a894d3b2f80134d3
 
-So it should cause errors to be returned from the hibernation path
-too, ideally before the freezing of tasks.
+It looks good for me.
 
-> > 3. If "deep"suspend is going to fail every time, it may be better to
-> > prevent "deep" from being written to /sys/power/mem_sleep instead of
-> > failing suspend in progress, especially after freezing user space.
->
-> Yeah, that sounds much better, let me explore that option.
+Thanks,
+Akihiko Odaki
