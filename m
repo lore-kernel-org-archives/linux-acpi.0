@@ -2,138 +2,133 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B55F4C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 12:44:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A2DC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 15:03:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347696AbiDDMqp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 08:46:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58052 "EHLO
+        id S1378361AbiDDPFV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 11:05:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347689AbiDDMqo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 08:46:44 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5E103C739
-        for <linux-acpi@vger.kernel.org>; Mon,  4 Apr 2022 05:44:48 -0700 (PDT)
-Received: from fraeml712-chm.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KX9QC3msTz67wsC;
-        Mon,  4 Apr 2022 20:41:55 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml712-chm.china.huawei.com (10.206.15.61) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 4 Apr 2022 14:44:46 +0200
-Received: from A2006125610.china.huawei.com (10.47.93.34) by
- lhreml710-chm.china.huawei.com (10.201.108.61) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 4 Apr 2022 13:44:38 +0100
-From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-To:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>
-CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
-        <joro@8bytes.org>, <robin.murphy@arm.com>, <will@kernel.org>,
-        <wanghuiqiang@huawei.com>, <guohanjun@huawei.com>,
-        <steven.price@arm.com>, <Sami.Mujawar@arm.com>,
-        <jon@solid-run.com>, <eric.auger@redhat.com>,
-        <laurentiu.tudor@nxp.com>, <yangyicong@huawei.com>
-Subject: [PATCH v9 11/11] iommu/arm-smmu: Get associated RMR info and install bypass SMR
-Date:   Mon, 4 Apr 2022 13:42:09 +0100
-Message-ID: <20220404124209.1086-12-shameerali.kolothum.thodi@huawei.com>
-X-Mailer: git-send-email 2.12.0.windows.1
-In-Reply-To: <20220404124209.1086-1-shameerali.kolothum.thodi@huawei.com>
-References: <20220404124209.1086-1-shameerali.kolothum.thodi@huawei.com>
+        with ESMTP id S1350580AbiDDPFU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 11:05:20 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF97A2F033;
+        Mon,  4 Apr 2022 08:03:23 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
+ id f4e84690400e722c; Mon, 4 Apr 2022 17:03:21 +0200
+Received: from kreacher.localnet (unknown [213.134.181.62])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 1E70D66BCD2;
+        Mon,  4 Apr 2022 17:03:21 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>
+Subject: [PATCH v1 3/3] ACPI: PM: Unify debug messages in acpi_device_set_power()
+Date:   Mon, 04 Apr 2022 17:03:11 +0200
+Message-ID: <1833451.tdWV9SEqCh@kreacher>
+In-Reply-To: <5575732.DvuYhMxLoT@kreacher>
+References: <5575732.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.47.93.34]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.181.62
+X-CLIENT-HOSTNAME: 213.134.181.62
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudejvddgjeekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvjeelgffhiedukedtleekkedvudfggefhgfegjefgueekjeelvefggfdvledutdenucfkphepvddufedrudefgedrudekuddriedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekuddriedvpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jon Nettleton <jon@solid-run.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Check if there is any RMR info associated with the devices behind
-the SMMU and if any, install bypass SMRs for them. This is to
-keep any ongoing traffic associated with these devices alive
-when we enable/reset SMMU during probe().
+Convert all of the debug messages printed by acpi_device_set_power()
+to acpi_handle_debug() and adjust them slightly for consistency with
+acpi_device_get_power() and other acpi_device_set_power() debug
+messages.
 
-Signed-off-by: Jon Nettleton <jon@solid-run.com>
-Signed-off-by: Steven Price <steven.price@arm.com>
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/iommu/arm/arm-smmu/arm-smmu.c | 52 +++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ drivers/acpi/device_pm.c |   36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/iommu/arm/arm-smmu/arm-smmu.c b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-index 9a5b785d28fd..d1d0473b8b88 100644
---- a/drivers/iommu/arm/arm-smmu/arm-smmu.c
-+++ b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-@@ -2068,6 +2068,54 @@ err_reset_platform_ops: __maybe_unused;
- 	return err;
- }
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -174,8 +174,8 @@ int acpi_device_set_power(struct acpi_de
  
-+static void arm_smmu_rmr_install_bypass_smr(struct arm_smmu_device *smmu)
-+{
-+	struct list_head rmr_list;
-+	struct iommu_resv_region *e;
-+	int idx, cnt = 0;
-+	u32 reg;
-+
-+	INIT_LIST_HEAD(&rmr_list);
-+	iort_get_rmr_sids(dev_fwnode(smmu->dev), &rmr_list);
-+
-+	/*
-+	 * Rather than trying to look at existing mappings that
-+	 * are setup by the firmware and then invalidate the ones
-+	 * that do no have matching RMR entries, just disable the
-+	 * SMMU until it gets enabled again in the reset routine.
-+	 */
-+	reg = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_sCR0);
-+	reg |= ARM_SMMU_sCR0_CLIENTPD;
-+	arm_smmu_gr0_write(smmu, ARM_SMMU_GR0_sCR0, reg);
-+
-+	list_for_each_entry(e, &rmr_list, list) {
-+		const u32 *sids = e->fw_data.rmr.sids;
-+		u32 num_sids = e->fw_data.rmr.num_sids;
-+		int i;
-+
-+		for (i = 0; i < num_sids; i++) {
-+			idx = arm_smmu_find_sme(smmu, sids[i], ~0);
-+			if (idx < 0)
-+				continue;
-+
-+			if (smmu->s2crs[idx].count == 0) {
-+				smmu->smrs[idx].id = sids[i];
-+				smmu->smrs[idx].mask = 0;
-+				smmu->smrs[idx].valid = true;
-+			}
-+			smmu->s2crs[idx].count++;
-+			smmu->s2crs[idx].type = S2CR_TYPE_BYPASS;
-+			smmu->s2crs[idx].privcfg = S2CR_PRIVCFG_DEFAULT;
-+
-+			cnt++;
-+		}
-+	}
-+
-+	dev_notice(smmu->dev, "\tpreserved %d boot mapping%s\n", cnt,
-+		   cnt == 1 ? "" : "s");
-+	iort_put_rmr_sids(dev_fwnode(smmu->dev), &rmr_list);
-+}
-+
- static int arm_smmu_device_probe(struct platform_device *pdev)
- {
- 	struct resource *res;
-@@ -2189,6 +2237,10 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
+ 	/* There is a special case for D0 addressed below. */
+ 	if (state > ACPI_STATE_D0 && state == device->power.state) {
+-		dev_dbg(&device->dev, "Device already in %s\n",
+-			acpi_power_state_string(state));
++		acpi_handle_debug(device->handle, "Already in %s\n",
++				  acpi_power_state_string(state));
+ 		return 0;
  	}
  
- 	platform_set_drvdata(pdev, smmu);
-+
-+	/* Check for RMRs and install bypass SMRs if any */
-+	arm_smmu_rmr_install_bypass_smr(smmu);
-+
- 	arm_smmu_device_reset(smmu);
- 	arm_smmu_test_smr_masks(smmu);
+@@ -189,17 +189,17 @@ int acpi_device_set_power(struct acpi_de
+ 		if (!device->power.states[ACPI_STATE_D3_COLD].flags.valid)
+ 			target_state = state;
+ 	} else if (!device->power.states[state].flags.valid) {
+-		dev_warn(&device->dev, "Power state %s not supported\n",
+-			 acpi_power_state_string(state));
++		acpi_handle_debug(device->handle, "Power state %s not supported\n",
++				  acpi_power_state_string(state));
+ 		return -ENODEV;
+ 	}
  
--- 
-2.25.1
+-	if (!device->power.flags.ignore_parent &&
+-	    device->parent && (state < device->parent->power.state)) {
+-		dev_warn(&device->dev,
+-			 "Cannot transition to power state %s for parent in %s\n",
+-			 acpi_power_state_string(state),
+-			 acpi_power_state_string(device->parent->power.state));
++	if (!device->power.flags.ignore_parent && device->parent &&
++	    state < device->parent->power.state) {
++		acpi_handle_debug(device->handle,
++				  "Cannot transition to %s for parent in %s\n",
++				  acpi_power_state_string(state),
++				  acpi_power_state_string(device->parent->power.state));
+ 		return -ENODEV;
+ 	}
+ 
+@@ -216,9 +216,10 @@ int acpi_device_set_power(struct acpi_de
+ 		 * (deeper) states to higher-power (shallower) states.
+ 		 */
+ 		if (state < device->power.state) {
+-			dev_warn(&device->dev, "Cannot transition from %s to %s\n",
+-				 acpi_power_state_string(device->power.state),
+-				 acpi_power_state_string(state));
++			acpi_handle_debug(device->handle,
++					  "Cannot transition from %s to %s\n",
++					  acpi_power_state_string(device->power.state),
++					  acpi_power_state_string(state));
+ 			return -ENODEV;
+ 		}
+ 
+@@ -271,12 +272,13 @@ int acpi_device_set_power(struct acpi_de
+ 
+  end:
+ 	if (result) {
+-		dev_warn(&device->dev, "Failed to change power state to %s\n",
+-			 acpi_power_state_string(target_state));
++		acpi_handle_debug(device->handle,
++				  "Failed to change power state to %s\n",
++				  acpi_power_state_string(target_state));
+ 	} else {
+ 		device->power.state = target_state;
+-		dev_dbg(&device->dev, "Power state changed to %s\n",
+-			acpi_power_state_string(target_state));
++		acpi_handle_debug(device->handle, "Power state changed to %s\n",
++				  acpi_power_state_string(target_state));
+ 	}
+ 
+ 	return result;
+
+
 
