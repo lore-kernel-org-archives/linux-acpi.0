@@ -2,128 +2,172 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B2AC35276
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37588C433F5
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379455AbiDDV3w (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:29:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47504 "EHLO
+        id S1379697AbiDDV34 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:29:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380145AbiDDTBd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 15:01:33 -0400
-Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 010C624598;
-        Mon,  4 Apr 2022 11:59:36 -0700 (PDT)
-Received: by mail-pj1-x1036.google.com with SMTP id n6-20020a17090a670600b001caa71a9c4aso227007pjj.1;
-        Mon, 04 Apr 2022 11:59:36 -0700 (PDT)
+        with ESMTP id S1379854AbiDDSSL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 14:18:11 -0400
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D5803EA98
+        for <linux-acpi@vger.kernel.org>; Mon,  4 Apr 2022 11:16:14 -0700 (PDT)
+Received: by mail-pj1-x102e.google.com with SMTP id i10-20020a17090a2aca00b001ca56c9ab16so209148pjg.1
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Apr 2022 11:16:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=oMVaKBgzoQqc7gxkYgb60MlXgXZZVMwR1kc99VQvjLA=;
-        b=KLeLuThRs2MiFPARUNGy9/wBt8j9oC4NUv6OA1qkh3wwKwWqn1v2WyHaHbvNXtD81r
-         hYeMB992L8FGwLeeJF1kmQQpQATlZpit/BeXgxxOM7Py4pf+9zG3UGbFG6RLkP/VbOGq
-         Rf/m+hXlWg8JGM5Jh78VeO/JhNKm/mL2HaGt9eflIiQjLHgvYzqpI+3EwrASr1zzNsWR
-         XjQ8MdY6p9tlCbundm5SciMoRUGjammmsPomk1CAqLqrX08sAU0fWqHUEVt4NoYtgG4m
-         hcmR4RFRoEtQCNFGUZQUh6lGGfHEqcAy8WF70FfMglzOyQNApCqTtGhwpyCVCcagPntV
-         0s0A==
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=aZId2gcp4e7uRWUeoN/wi2O4R6KKYYzYuF+W5VbNu0E=;
+        b=C0HtoFQ2InO3oQg2qVHi89N0wihVTgwcGFZw31nn4aiTSa1wsZqB+3ZOlCd4IBddeV
+         9T6+DXvuWagp5u34Y8vLPxvoGK1fHuXNzA1qCvPF2z6XHvJST/ZX6VYYvZ8YiCqUIssq
+         pDr0PQG8fV3Q/dyJyGHR7McGfEvCxlPkGsJWswUJMXQz6jyaT7d6AmtrUSkSNz7TSXLX
+         vm0cTgrhRE3syzzlcNte3oArMkqH51Xx3RMvgRhemW1/CCaMS+p+xeYHaxX0G0wjxG1p
+         TT1ZkOl8cgl5ewzWAj3Q9EeCu0C7MsOTHEHI/QckpyM9o75Qf384mceoSe7VO5QfChMn
+         MlRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=oMVaKBgzoQqc7gxkYgb60MlXgXZZVMwR1kc99VQvjLA=;
-        b=cFX0QwakqoWrTScEuIVaReSAvInGxNB2lW0JRRp4GhXRmNJFtp7bVh5DBzYUzXiZ3O
-         rz/54rbMvRgkajXUo+RkbStUqjWyGBoJnro6mV+QQvsuuRhkqI0UDEsP3mUqCytD9kHk
-         FmWxa/NBaIPtFYFyvDWjde6elXFIu3y9NeGqaJ8OI76EHVu5PnOGojJ7I93rFyv/mzyy
-         ECYKcPUovUxF/gYuGUAUTK0KExYDxfyVZzkAqvKiKfMb7ewRXQu/NurYdWpDZ630x0Xw
-         y7s9lOf3W+vV4ZbFPz2G7v0efcjM/J1+bxYBgsONjOrGoQ0Dx76EsUZ/QSHfq4WFw9Ic
-         pHCA==
-X-Gm-Message-State: AOAM530vVsUpVJVDDzCEoc1ez/6IZcZH7Qst+TpN9ukv+B37t9p5rajU
-        h8bpUUxNgbzlDUxjaJC+eks=
-X-Google-Smtp-Source: ABdhPJyoHAxIXDgPuzQYSYXmM0MUfvH0ZIPUhBbJtiYgDk4sxbS9KpnJ46j0O8SLg92GcaWMP+hUWw==
-X-Received: by 2002:a17:902:7245:b0:156:20aa:1534 with SMTP id c5-20020a170902724500b0015620aa1534mr1450307pll.94.1649098776500;
-        Mon, 04 Apr 2022 11:59:36 -0700 (PDT)
-Received: from [192.168.66.3] (p912131-ipoe.ipoe.ocn.ne.jp. [153.243.13.130])
-        by smtp.gmail.com with ESMTPSA id f16-20020a056a001ad000b004fb358ffe86sm13116733pfv.137.2022.04.04.11.59.32
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 04 Apr 2022 11:59:35 -0700 (PDT)
-Message-ID: <91357075-d8d0-fc0b-5264-4f5cfe368250@gmail.com>
-Date:   Tue, 5 Apr 2022 03:59:30 +0900
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=aZId2gcp4e7uRWUeoN/wi2O4R6KKYYzYuF+W5VbNu0E=;
+        b=b6x2Edm7o43r+fMZ3NmhSl1XQRItLqkBoLR4QH1mJq2Q7xp8tqx0W2V9qGlEVSzQvX
+         5mM442ZQCqRSM8z5ULRffaXy3f12u3JH/8ihBtw2q1a9I7mLDhsXqVywUfqQ4zV8Z9h3
+         aLZuTRgUCl/3rOtBmn7Bjzj3iK8z+tGK1E/NKGCAlZi7rOJ1luR6tW4EzXRgaYTCdMyR
+         YBnQkHg2v/aRLBlbpQ/olPnXKmbhN0/4Rarlgz9PW6M/T0xsKD89Eme3LfPHqm648Tdm
+         aSlEAN+3v8OoP8BAnNVr7HDnSrCJcBw4+crVzh63j/apQGvTyW5Kg51b2PbZ04JZo51b
+         ncgg==
+X-Gm-Message-State: AOAM5311hU42uPP0TIhsuje6MnOz0zS53TLXqnnLqtEN+a3zJ9oYeWBS
+        hr8RnnFsvqrrpqtp36V5RY7V7gu6YUvMdS31IcoGWQ==
+X-Google-Smtp-Source: ABdhPJx6j1Pg3MxMS2E19o2abZ+CeX8qs8j8egUimFsz+9vTChQguK4uSt6rbvCWV9Vp2G3/F+C7L6kc/kQLJtRJDjY=
+X-Received: by 2002:a17:90a:ca:b0:1ca:5253:b625 with SMTP id
+ v10-20020a17090a00ca00b001ca5253b625mr474110pjd.220.1649096173906; Mon, 04
+ Apr 2022 11:16:13 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH] Revert "ACPI: processor: idle: Only flush cache on
- entering C3"
-Content-Language: en-US
+References: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAJZ5v0hGVN_=3iU8OLpHY3Ak35T5+JcBM-qs8SbojKrpd0VXsA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0hGVN_=3iU8OLpHY3Ak35T5+JcBM-qs8SbojKrpd0VXsA@mail.gmail.com>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Mon, 4 Apr 2022 11:16:03 -0700
+Message-ID: <CAPcyv4hCseKbr_XXyeOACYmm0defeSet0LX3YWLKGRnCMS=MFQ@mail.gmail.com>
+Subject: Re: [PATCH] cxl/mem: Disable suspend
 To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tony Luck <tony.luck@intel.com>,
-        the arch/x86 maintainers <x86@kernel.org>
-References: <20220403062322.3168-1-akihiko.odaki@gmail.com>
- <CAJZ5v0gaRr-r8VFCEGSP1nTX0CwrOi35DXZB5Z8A9tiLufNxPg@mail.gmail.com>
- <4d6307d0-cd67-dfb2-6d6d-2f37bf4a271b@gmail.com>
- <CAJZ5v0gu4VsC7P6276p=S3ZyOg-BWP_dG6rzou2GDYA4TTMsSw@mail.gmail.com>
-From:   Akihiko Odaki <akihiko.odaki@gmail.com>
-In-Reply-To: <CAJZ5v0gu4VsC7P6276p=S3ZyOg-BWP_dG6rzou2GDYA4TTMsSw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc:     linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2022/04/05 3:56, Rafael J. Wysocki wrote:
-> On Mon, Apr 4, 2022 at 8:25 PM Akihiko Odaki <akihiko.odaki@gmail.com> wrote:
->>
->> On 2022/04/05 3:13, Rafael J. Wysocki wrote:
->>> On Sun, Apr 3, 2022 at 8:25 AM Akihiko Odaki <akihiko.odaki@gmail.com> wrote:
->>>>
->>>> This reverts commit 87ebbb8c612b1214f227ebb8f25442c6d163e802.
->>>>
->>>> ACPI processor power states can be transitioned in two distinct
->>>> situations: 1. when CPU goes idle and 2. before CPU goes offline
->>>> ("playing dead") to suspend or hibernate. Case 1 is handled by
->>>> acpi_idle_enter or acpi_idle_enter_s2idle. Case 2 is handled by
->>>> acpi_idle_play_dead.
->>>>
->>>> It is necessary to flush CPU caches in case 2 even if it is not
->>>> required to transit ACPI processor power states as CPU will go
->>>> offline soon. However, the reverted commit incorrectly removed CPU
->>>> cache flushing in such a condition.
->>>
->>> I think what you mean is that the CPU cache must always be flushed in
->>> acpi_idle_play_dead(), regardless of the target C-state that is going
->>> to be requested, because this is likely to be part of a CPU offline
->>> procedure or preparation for entering a system-wide sleep state and
->>> the stale cache contents may lead to problems going forward, for
->>> example when the CPU is taken back online.
->>>
->>> If so, I will put the above information into the patch changelog.
->>
->> I guess it is causing problems because the dirty caches will not get
->> written back and the RAM becomes stale if they are not flushed. From my
->> understanding, the CPU should have an empty cache and read back contents
->> from RAM when it is taken back online.
-> 
-> OK, please see if the changelog I've added to the patch is looking good:
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=bleeding-edge&id=dfbba2518aac4204203b0697a894d3b2f80134d3
+On Mon, Apr 4, 2022 at 9:00 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Sun, Apr 3, 2022 at 2:58 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > The CXL specification claims S3 support at a hardware level, but at a
+> > system software level there are some missing pieces. Section 9.4 rightly
+> > claims that "CXL mem adapters may need aux power to retain memory
+> > context across S3", but there is no enumeration mechanism for the OS to
+> > determine if a given adapter has that support. Moreover the save state
+> > and resume image for the system may inadvertantly end up in a CXL device
+> > that needs to be restored before the save state is recoverable. I.e. a
+> > circular dependency that is not resolvable without a third party
+> > save-area.
+> >
+> > Arrange for the cxl_mem driver to fail S3 attempts. This still nominaly
+> > allows for suspend, but requires unbinding all CXL memory devices before
+> > the suspend to ensure the typical DRAM flow is taken. The cxl_mem unbind
+> > flow is intended to also tear down all CXL memory regions associated
+> > with a given cxl_memdev.
+> >
+> > It is reasonable to assume that any device participating in a System RAM
+> > range published in the EFI memory map is covered by aux power and
+> > save-area outside the device itself. So this restriction can be
+> > minimized in the future once pre-existing region enumeration support
+> > arrives, and perhaps a spec update to clarify if the EFI memory is
+> > sufficent for determining the range of devices managed by
+> > platform-firmware for S3 support.
+> >
+> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> A few thoughts:
+>
+> 1. I don't think it is necessary to fail suspend-to-idle too (which
+> the driver will do after the patch AFAICS).
 
-It looks good for me.
+Ah true, I missed that this would also disable suspend to idle.
 
-Thanks,
-Akihiko Odaki
+> 2. Should hibernation fail too?  From the description above it looks
+> like that should be the case.
+
+Yes, any CXL address range that was provisioned by the OS would need
+some off-device save area for the device-state which seems difficult
+to support in the general case.
+
+> 3. If "deep"suspend is going to fail every time, it may be better to
+> prevent "deep" from being written to /sys/power/mem_sleep instead of
+> failing suspend in progress, especially after freezing user space.
+
+Yeah, that sounds much better, let me explore that option.
+
+>
+> > ---
+> >  drivers/cxl/core/memdev.c |    1 -
+> >  drivers/cxl/mem.c         |   26 ++++++++++++++++++++++++++
+> >  2 files changed, 26 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+> > index 1f76b28f9826..efe4d2e9bfef 100644
+> > --- a/drivers/cxl/core/memdev.c
+> > +++ b/drivers/cxl/core/memdev.c
+> > @@ -251,7 +251,6 @@ static struct cxl_memdev *cxl_memdev_alloc(struct cxl_dev_state *cxlds,
+> >         dev->bus = &cxl_bus_type;
+> >         dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
+> >         dev->type = &cxl_memdev_type;
+> > -       device_set_pm_not_required(dev);
+> >         INIT_WORK(&cxlmd->detach_work, detach_memdev);
+> >
+> >         cdev = &cxlmd->cdev;
+> > diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+> > index 49a4b1c47299..0660bb1488cb 100644
+> > --- a/drivers/cxl/mem.c
+> > +++ b/drivers/cxl/mem.c
+> > @@ -3,6 +3,7 @@
+> >  #include <linux/device.h>
+> >  #include <linux/module.h>
+> >  #include <linux/pci.h>
+> > +#include <linux/pm.h>
+> >
+> >  #include "cxlmem.h"
+> >  #include "cxlpci.h"
+> > @@ -210,10 +211,35 @@ static int cxl_mem_probe(struct device *dev)
+> >         return rc;
+> >  }
+> >
+> > +static int cxl_mem_suspend(struct device *dev)
+> > +{
+> > +       /*
+> > +        * The kernel may be operating out of CXL memory on this device,
+> > +        * there is no spec defined way to determine whether this device
+> > +        * preserves contents over suspend, and there is no simple way
+> > +        * to arrange for the suspend image to avoid CXL memory which
+> > +        * would setup a circular dependency between PCI resume and save
+> > +        * state restoration.
+> > +        */
+> > +       dev_err(dev, "CXL memory suspend not supported\n");
+> > +       return -EBUSY;
+> > +}
+> > +
+> > +static int cxl_mem_resume(struct device *dev)
+> > +{
+> > +       /* nothing to do since suspend is prevented */
+> > +       return 0;
+> > +}
+>
+> This is not needed AFAICS.
+
+Ok, I should have checked, but I'll circle back with sleep state
+disabling rather than failing suspend.
+
+Thanks, Rafael.
