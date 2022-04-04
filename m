@@ -2,178 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CE9C43217
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F973C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382458AbiDDVaC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:30:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39074 "EHLO
+        id S1358333AbiDDVaE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:30:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380578AbiDDUcN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 16:32:13 -0400
-Received: from beige.elm.relay.mailchannels.net (beige.elm.relay.mailchannels.net [23.83.212.16])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B483387AD;
-        Mon,  4 Apr 2022 13:30:16 -0700 (PDT)
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id C96B78E084F;
-        Mon,  4 Apr 2022 20:30:12 +0000 (UTC)
-Received: from pdx1-sub0-mail-a315.dreamhost.com (unknown [127.0.0.6])
-        (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id 0578D8E0723;
-        Mon,  4 Apr 2022 20:30:12 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1649104212; a=rsa-sha256;
-        cv=none;
-        b=ytDKJAWGnXLvlvlxFi9Kh3C1avNb2ST77BxkbQl+b+35IS5B4e/l+lSi4jvG/zU6ESH+mx
-        JFeRkD/A1kDrzwD3SZb0N5ZpGijQ5DYgwDvmLQXfJD4CUpISqY5mugo9sTZwzVIx82K0Cm
-        td3V5EmBygtIz6jv8BXb4kU+TQhJgAs4gpNv3NEAf6hahVLRYkNaYIEpZ0J/cG48wM6DsC
-        D+dPU7T6/BqugyRJeBOzGKatAFBVIzHxk2OV5HqYVcS/GPG5B3hrYP36SZq+637MTpG+cH
-        n9BTOouTLUeVzSBGKeoZQC5r3PowNhpOgmhZ3uBZ7eTSffVbHv0tXbTu0w2yxw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-        s=arc-2022; t=1649104212;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references:dkim-signature;
-        bh=9LI+subktCWSE4eEv6xpkrrptry9AUobNq6AoXjS2qw=;
-        b=ZRiyjdxgp2HT4uRJilHeTxGKmATvKHzFgKykC1yXS609+/FlIlaCeLoIh/SyceN74mxjLn
-        Hit53m2sU34RPOLjqfdc/dB638E6peUOLazLsqDBI1rhFDS2oaiA4IyBR9AdxyTL/VVs2J
-        U4KtiCeRQ2bf5+ID8WLoRmartDVxldcOZJqyOECQXkCfLx2pq/AuxUax50QiC0W+RnlqQK
-        ydj58+cMk2BDtXoDks097vkzOC2s6tgPEOCHQ9Z4/w9J2d8klOAiFdKajCzI1o249gcByZ
-        A/31U93OrcvejJOtFXEtjQYDu1DEtUvkeOqxW8AnAvMLICqEnM39f2EGXR7VHQ==
-ARC-Authentication-Results: i=1;
-        rspamd-f76767c84-4xpxg;
-        auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from pdx1-sub0-mail-a315.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-        by 100.106.158.145 (trex/6.7.1);
-        Mon, 04 Apr 2022 20:30:12 +0000
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Company-Illustrious: 3400d08057b3e5fc_1649104212449_1787379020
-X-MC-Loop-Signature: 1649104212449:3528900814
-X-MC-Ingress-Time: 1649104212449
-Received: from offworld (unknown [104.36.25.8])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        (Authenticated sender: dave@stgolabs.net)
-        by pdx1-sub0-mail-a315.dreamhost.com (Postfix) with ESMTPSA id 4KXMpT5Zq4z1q;
-        Mon,  4 Apr 2022 13:30:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-        s=dreamhost; t=1649104211;
-        bh=9LI+subktCWSE4eEv6xpkrrptry9AUobNq6AoXjS2qw=;
-        h=Date:From:To:Cc:Subject:Content-Type;
-        b=DyR68C9mlfEtLToG2NNpsA+qPBA2ZNn6vsel9d7k5U41zrw8ay6tWpB8KAJQsdJK1
-         GLYJmfsjR/v/TbJLbfivZ/RrIVb9nFKmhZtY9Vu0glUgeVv6NUWb/pL0xWlI7t4a4k
-         7Ic6y+bpwsELJwZy17CyIN3vILrl7SZQ57P+FQICW87KPhnQ9M8yEeUGq7uWPEiYXE
-         l3H99+hDRzanNYew+/O9T6s3gfIhTZEYu6DvwteLeHLRkuRNRLZE7GD8KwWm8kMg99
-         u2zTPu+6g47sDDv0W0gKBOyAlSjza+05JwzddOSeavF73g1Sr9Qw6CrQI/NeNnVHWI
-         4HqbyX1sM2QwA==
-Date:   Mon, 4 Apr 2022 13:30:05 -0700
-From:   Davidlohr Bueso <dave@stgolabs.net>
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>, a.manzanares@samsung.com
-Subject: Re: [PATCH v4 3/3] PCI/ACPI: negotiate CXL _OSC
-Message-ID: <20220404203005.wnee6i3aovvchpcr@offworld>
-References: <20220331202022.1823174-1-vishal.l.verma@intel.com>
- <20220331202022.1823174-4-vishal.l.verma@intel.com>
- <20220401204014.khgozoeu6biirknu@offworld>
- <CAPcyv4iGtgO6tqLV_UjOsORmC0q-Kw0y5yvstXd=OO8vQ=9XoQ@mail.gmail.com>
+        with ESMTP id S1379469AbiDDRLc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 13:11:32 -0400
+Received: from mail-lf1-x143.google.com (mail-lf1-x143.google.com [IPv6:2a00:1450:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53D8E13D16;
+        Mon,  4 Apr 2022 10:09:35 -0700 (PDT)
+Received: by mail-lf1-x143.google.com with SMTP id p10so18475000lfa.12;
+        Mon, 04 Apr 2022 10:09:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :in-reply-to;
+        bh=gwfWMGKfVs8N4QDtqO/np4tSwyUv3PJ9EpKeZ9+Gmts=;
+        b=iYGYvS4JUYRKeQVLHnI6WjDuv2/uD5+Hux77BOMXCf+m6zchU8QfKW+oePlxqttUZ6
+         IsZ6aozT0IWKNLzLj9dzNjnGXMOn6NvCZ+uh7bfenLfhi4gt0+4niGSY6BjbDAR0nfF2
+         Y02Hh2qPh62Ac7xFbNOBaU3AMGJNzZZlIOJ0qIrVngJ5Vhldxgz36rnEbQsoGtzP+nYE
+         mteSKaDdgLYnMZBt/d85T2UaaM1UU2bSW1len+ZGmYoapr4Qsofq9/u5xpZ8rWzB8yKi
+         bTvy4m13FDOTzVLG6D4ZzQ32fA3FeCZxXdii3P/Gp9p15lXpmLa+g9Q5CggHfp8sk7FI
+         036w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:in-reply-to;
+        bh=gwfWMGKfVs8N4QDtqO/np4tSwyUv3PJ9EpKeZ9+Gmts=;
+        b=pfm9p5ZaAwelSPQzFssxKnZLVbiSu8SzCO7NkLEegboeIauOQqkiXRAFdFTI7VvqT6
+         8Uoutw2ArKSm/u7t5WsMT8wKaAbIHJ7e/zf5QmWPFgymRx2t6dNfVDkZaFDOlAHVgF5N
+         ewBV4H/YV3csDrMyZOQY9QvX3iJsKBVQDs4LqiTKOY7RzrZSmA11xvvxGBq/fX918SxC
+         OLBl5cPE+lWdfWCDnHIM5d4avgAkMWBN8S2xlMxRiAUFwf0wKE09kbpxQwagX57Skkw4
+         8B0695XxUcPuk8HZACZK7CLpJmADBTA3CwPWqwiakGduzI95NFqSwT29r0J1BedfKms5
+         lFqg==
+X-Gm-Message-State: AOAM531JwdiyrSLCiXfrE1XODoCP7fjD6mOV9tLpgkmRIsTX+x5XKA5u
+        nBW6kG8ui7XsB5wgShWK0Ig=
+X-Google-Smtp-Source: ABdhPJymPq1jnMf+wQecstTGdV1RK252ztorAixRVQDiZYwqgawOyGxf5Bq24+2Usv9dC1mnBao0rA==
+X-Received: by 2002:a05:6512:3b90:b0:450:829f:6047 with SMTP id g16-20020a0565123b9000b00450829f6047mr321971lfv.418.1649092173442;
+        Mon, 04 Apr 2022 10:09:33 -0700 (PDT)
+Received: from mainframe.localdomain ([118.137.7.161])
+        by smtp.gmail.com with ESMTPSA id d9-20020a193849000000b0044a54c2ed94sm1189857lfj.300.2022.04.04.10.09.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 04 Apr 2022 10:09:32 -0700 (PDT)
+Date:   Tue, 5 Apr 2022 00:09:20 +0700
+From:   Ketsui <esgwpl@gmail.com>
+To:     akihiko.odaki@gmail.com
+Cc:     ak@linux.intel.com, bp@alien8.de, dan.j.williams@intel.com,
+        dave.hansen@linux.intel.com, hpa@zytor.com,
+        kirill.shutemov@linux.intel.com, knsathya@kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mingo@redhat.com, rafael.j.wysocki@intel.com, rjw@rjwysocki.net,
+        sathyanarayanan.kuppuswamy@linux.intel.com, tglx@linutronix.de,
+        tony.luck@intel.com, x86@kernel.org
+Subject: Re: [PATCH] Revert "ACPI: processor: idle: Only flush cache on
+ entering C3"
+Message-ID: <Yksl5f4J5S8RWINS@mainframe.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4iGtgO6tqLV_UjOsORmC0q-Kw0y5yvstXd=OO8vQ=9XoQ@mail.gmail.com>
-User-Agent: NeoMutt/20201120
+In-Reply-To: <20220403062322.3168-1-akihiko.odaki@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 01 Apr 2022, Dan Williams wrote:
+I can confirm that this reversion fixes a very similar issue I have with kernel
+5.17 (only difference is resume always fails on my desktop), here's the bisect
+log:
 
->On Fri, Apr 1, 2022 at 1:40 PM Davidlohr Bueso <dave@stgolabs.net> wrote:
->>
->> On Thu, 31 Mar 2022, Vishal Verma wrote:
->>
->> >The CXL specification does not define any additional constraints on
->> >the hotplug flow beyond PCIe native hotplug, so a kernel that supports
->> >native PCIe hotplug, supports CXL hotplug.
->>
->> Hmm but from a Linux-pov does it make sense to allow hotplug
->> support if the MM cannot handle it?
->
->I would say yes, i.e. do not consider CONFIG_MEMORY_HOTPLUG for
->OSC_CXL_NATIVE_HP_SUPPORT, but see below and poke holes in my
->argument...
->
->>
->> @@ -531,7 +518,8 @@ static u32 calculate_cxl_support(void)
->>         support = OSC_CXL_2_0_PORT_DEV_REG_ACCESS_SUPPORT;
->>         if (pci_aer_available())
->>                 support |= OSC_CXL_PROTOCOL_ERR_REPORTING_SUPPORT;
->> -       if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
->> +       if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE) &&
->> +           IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
->>                 support |= OSC_CXL_NATIVE_HP_SUPPORT;
->>
->>         return support;
->>
->> After all, per the CXL 2.0 Type 3 device Hot-Add flow:
->>
->> ""
->> 7. CXL aware software notifies OS memory manager about the new memory and its
->> attributes such as latency and bandwidth. Memory manager processes a request
->> and adds the new memory to its allocation pool.
->> ""
->
->If I look at ACPI hotplug it is true that CONFIG_ACPI_HOTPLUG_MEMORY
->depends on CONFIG_MEMORY_HOTPLUG. However, it is also true that there
->is no existing _OSC for memory hotplug support. The reason is that
->ACPI memory hotplug requires the OS to acknowledge / coordinate with
->memory plug events via a scan handler. On the CXL side the equivalent
->would be if Linux supported the Mechanical Retention Lock [1], or
->otherwise had some coordination for the driver of a PCI device
->undergoing hotplug to be consulted on whether the hotplug should
->proceed or not.
->
->The concern is that if Linux says no to supporting CXL hotplug then
->the BIOS may say no to giving the OS hotplug control of any other PCIe
->device. So the question here is not whether hotplug is enabled, it's
->whether it is handled natively by the at all OS, and if
->CONFIG_HOTPLUG_PCI_PCIE is enabled then the answer is "yes".
->
->Otherwise, the plan for CXL coordinated remove, since the kernel does
->not support blocking hotplug, is to require the memory device to be
->disabled before hotplug is attempted. When CONFIG_MEMORY_HOTPLUG is
->disabled that step will fail and the remove attempt cancelled. by the
->user. If that is not honored and the card is removed anyway then it
->does not matter if CONFIG_MEMORY_HOTPLUG is enabled or not, it will
->cause a crash and other badness.
->
->Long story short, just say yes, to CXL hotplug and require removal to
->be coordinated by userspace unless and until the kernel grows better
->mechanisms for doing "managed" removal of devices in consultation with
->the driver.
-
-+Cc Adam.
-
-Thank you for the overview of the landscape; I was assuming this last
-part already existed. I would only suggest documenting the above in
-calculate_cxl_support(), such that future readers don't also wonder
-about this and why CXL doesn't follow what CONFIG_ACPI_HOTPLUG_MEMORY
-does.
-
-Thanks,
-Davidlohr
-
->
->[1]: https://lore.kernel.org/all/20201122014203.4706-1-ashok.raj@intel.com/
+# bad: [f443e374ae131c168a065ea1748feac6b2e76613] Linux 5.17
+# good: [df0cc57e057f18e44dac8e6c18aba47ab53202f9] Linux 5.16
+git bisect start 'v5.17' 'v5.16'
+# bad: [22ef12195e13c5ec58320dbf99ef85059a2c0820] Merge tag 'staging-5.17-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging
+git bisect bad 22ef12195e13c5ec58320dbf99ef85059a2c0820
+# good: [9bcbf894b6872216ef61faf17248ec234e3db6bc] Merge tag 'media/v5.17-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
+git bisect good 9bcbf894b6872216ef61faf17248ec234e3db6bc
+# good: [208dd45d8d050360b46ded439a057bcc7cbf3b09] tcp: tcp_send_challenge_ack delete useless param `skb`
+git bisect good 208dd45d8d050360b46ded439a057bcc7cbf3b09
+# bad: [c288ea679840de4dee2ce6da5d0f139e3774ad86] Merge tag 'gpio-updates-for-v5.17' of git://git.kernel.org/pub/scm/linux/kernel/git/brgl/linux
+git bisect bad c288ea679840de4dee2ce6da5d0f139e3774ad86
+# bad: [5c947d0dbae8038ec1c8b538891f6475350542ee] Merge branch 'linus' of git://git.kernel.org/pub/scm/linux/kernel/git/herbert/crypto-2.6
+git bisect bad 5c947d0dbae8038ec1c8b538891f6475350542ee
+# bad: [a229327733b86aa585effdb0d27a87b12aa51597] Merge tag 'printk-for-5.17' of git://git.kernel.org/pub/scm/linux/kernel/git/printk/linux
+git bisect bad a229327733b86aa585effdb0d27a87b12aa51597
+# bad: [bca21755b9fc00dbe371994b53389eb5d70b8e72] Merge tag 'acpi-5.17-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+git bisect bad bca21755b9fc00dbe371994b53389eb5d70b8e72
+# bad: [af8fefd7444480bb8fd8d74f977dbac4693ac3ed] Merge branches 'acpi-x86', 'acpi-pmic' and 'acpi-dptf'
+git bisect bad af8fefd7444480bb8fd8d74f977dbac4693ac3ed
+# good: [b659ea768ae372e2f82c6346120f2e7272a42ac9] Merge branches 'acpi-scan', 'acpi-pm', 'acpi-power' and 'acpi-pci'
+git bisect good b659ea768ae372e2f82c6346120f2e7272a42ac9
+# bad: [5847d2d2efaab724b7ab374b6fca105e24509c92] Merge branches 'acpi-ec' and 'acpi-processor'
+git bisect bad 5847d2d2efaab724b7ab374b6fca105e24509c92
+# good: [c793570d8725e44b64dbe466eb8ecda34c5eb8ac] ACPI: EC: Avoid queuing unnecessary work in acpi_ec_submit_event()
+git bisect good c793570d8725e44b64dbe466eb8ecda34c5eb8ac
+# bad: [8120832d8f82aa7316c578fbccf11e385a5b3601] ACPI: processor: thermal: avoid cpufreq_get_policy()
+git bisect bad 8120832d8f82aa7316c578fbccf11e385a5b3601
+# good: [0e6078c3c6737df7d0bd0c890fbadf24a27fffbb] ACPI: processor idle: Use swap() instead of open coding it
+git bisect good 0e6078c3c6737df7d0bd0c890fbadf24a27fffbb
+# bad: [87ebbb8c612b1214f227ebb8f25442c6d163e802] ACPI: processor: idle: Only flush cache on entering C3
+git bisect bad 87ebbb8c612b1214f227ebb8f25442c6d163e802
+# first bad commit: [87ebbb8c612b1214f227ebb8f25442c6d163e802] ACPI: processor: idle: Only flush cache on entering C3
