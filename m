@@ -2,152 +2,178 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A435BC433EF
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CE9C43217
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357196AbiDDVaB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:30:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43298 "EHLO
+        id S1382458AbiDDVaC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:30:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379963AbiDDS1k (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 14:27:40 -0400
-Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E890413F48;
-        Mon,  4 Apr 2022 11:25:43 -0700 (PDT)
-Received: by mail-pl1-x631.google.com with SMTP id i11so8816648plg.12;
-        Mon, 04 Apr 2022 11:25:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=nW+R2aELHMuslWsI+4yUFjr+ad8rO4vRUmzN+6iX3w0=;
-        b=AGsQ4XN/coB22xLf2XWLJpswQIPEHRILCm8rV/x6fdotpjLDbSMr5O6RsPD0mJwPSk
-         BmUe8xb/Sotcl0zH3GihiocxLus2PZRfGgIf2wZjoiYtQH4pFRrCfmAMGeyzLAqwUjGJ
-         zUalFPHQ/eoadYCmrmUXIKRxpm1JYh8e1hyPd4uB5d23VQVp3Z3/95RmQ+Nk+jwrzqoO
-         BRt9pBBWrgr9kMdf+5M96ORy0GXKltQbyqkBFNY+hBrfjybpEOBGaaNs/2QWDsx1Lohp
-         OE54gIPTzWtBpnL/+e7aMXKdDogYJ4OdsKu62+8lshXLOXBDjsunRQnUKGtPKXgQsh7Q
-         RP8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=nW+R2aELHMuslWsI+4yUFjr+ad8rO4vRUmzN+6iX3w0=;
-        b=3uR0qIwPYoQmSP5yh7EEq1HaIij7nuXZqBndTx2U/g98ZiVlrET1hkn7+UBfNkaYMQ
-         4JfkJJAb/2UGrwpSsYJqCeLGEz6oDT0MCUuHfWSdTC6ajHTFlXxlRcJBQSe1Rwmmo8FX
-         PEViqmOAS4pfCte0L8oQnnJvz2UmU2qzPqlZzhTR9Z9JlX6Ay+xwIJwS4xJ/UIOV4UCD
-         u+rL4ErVfZcQHlUkL4I0ajwQ517LRLQmdlGvW+t7E34TNnSaKS+Gd+FywI4LzboQv6f1
-         uk/bAe6hIrTSlWaZBTJ0j5NGFkY2luobEh8NXg7kgCRYpYzUiyuMRGN8KP218E3d9ZTw
-         XCzw==
-X-Gm-Message-State: AOAM532XaZa+O6vshSmBN1tqVeBMCoVv7DHc8P2mPbs1gdXrgm9bGVa5
-        RjS7FdaHJKLmBcS9MYA/RvU=
-X-Google-Smtp-Source: ABdhPJxf3ByNCA70KyPk6gBFS1sJ43qJGOvIwwj+jQn+oMAAxXF8VTs004VDAXGv/34dW0LUB4Wa4Q==
-X-Received: by 2002:a17:902:a510:b0:156:6cf9:9a7c with SMTP id s16-20020a170902a51000b001566cf99a7cmr952088plq.151.1649096743340;
-        Mon, 04 Apr 2022 11:25:43 -0700 (PDT)
-Received: from [192.168.66.3] (p912131-ipoe.ipoe.ocn.ne.jp. [153.243.13.130])
-        by smtp.gmail.com with ESMTPSA id k23-20020a17090a591700b001ca00b46cf9sm158807pji.18.2022.04.04.11.25.39
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 04 Apr 2022 11:25:42 -0700 (PDT)
-Message-ID: <4d6307d0-cd67-dfb2-6d6d-2f37bf4a271b@gmail.com>
-Date:   Tue, 5 Apr 2022 03:25:37 +0900
+        with ESMTP id S1380578AbiDDUcN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 16:32:13 -0400
+Received: from beige.elm.relay.mailchannels.net (beige.elm.relay.mailchannels.net [23.83.212.16])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B483387AD;
+        Mon,  4 Apr 2022 13:30:16 -0700 (PDT)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id C96B78E084F;
+        Mon,  4 Apr 2022 20:30:12 +0000 (UTC)
+Received: from pdx1-sub0-mail-a315.dreamhost.com (unknown [127.0.0.6])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id 0578D8E0723;
+        Mon,  4 Apr 2022 20:30:12 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1649104212; a=rsa-sha256;
+        cv=none;
+        b=ytDKJAWGnXLvlvlxFi9Kh3C1avNb2ST77BxkbQl+b+35IS5B4e/l+lSi4jvG/zU6ESH+mx
+        JFeRkD/A1kDrzwD3SZb0N5ZpGijQ5DYgwDvmLQXfJD4CUpISqY5mugo9sTZwzVIx82K0Cm
+        td3V5EmBygtIz6jv8BXb4kU+TQhJgAs4gpNv3NEAf6hahVLRYkNaYIEpZ0J/cG48wM6DsC
+        D+dPU7T6/BqugyRJeBOzGKatAFBVIzHxk2OV5HqYVcS/GPG5B3hrYP36SZq+637MTpG+cH
+        n9BTOouTLUeVzSBGKeoZQC5r3PowNhpOgmhZ3uBZ7eTSffVbHv0tXbTu0w2yxw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+        s=arc-2022; t=1649104212;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references:dkim-signature;
+        bh=9LI+subktCWSE4eEv6xpkrrptry9AUobNq6AoXjS2qw=;
+        b=ZRiyjdxgp2HT4uRJilHeTxGKmATvKHzFgKykC1yXS609+/FlIlaCeLoIh/SyceN74mxjLn
+        Hit53m2sU34RPOLjqfdc/dB638E6peUOLazLsqDBI1rhFDS2oaiA4IyBR9AdxyTL/VVs2J
+        U4KtiCeRQ2bf5+ID8WLoRmartDVxldcOZJqyOECQXkCfLx2pq/AuxUax50QiC0W+RnlqQK
+        ydj58+cMk2BDtXoDks097vkzOC2s6tgPEOCHQ9Z4/w9J2d8klOAiFdKajCzI1o249gcByZ
+        A/31U93OrcvejJOtFXEtjQYDu1DEtUvkeOqxW8AnAvMLICqEnM39f2EGXR7VHQ==
+ARC-Authentication-Results: i=1;
+        rspamd-f76767c84-4xpxg;
+        auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from pdx1-sub0-mail-a315.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+        by 100.106.158.145 (trex/6.7.1);
+        Mon, 04 Apr 2022 20:30:12 +0000
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Company-Illustrious: 3400d08057b3e5fc_1649104212449_1787379020
+X-MC-Loop-Signature: 1649104212449:3528900814
+X-MC-Ingress-Time: 1649104212449
+Received: from offworld (unknown [104.36.25.8])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: dave@stgolabs.net)
+        by pdx1-sub0-mail-a315.dreamhost.com (Postfix) with ESMTPSA id 4KXMpT5Zq4z1q;
+        Mon,  4 Apr 2022 13:30:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+        s=dreamhost; t=1649104211;
+        bh=9LI+subktCWSE4eEv6xpkrrptry9AUobNq6AoXjS2qw=;
+        h=Date:From:To:Cc:Subject:Content-Type;
+        b=DyR68C9mlfEtLToG2NNpsA+qPBA2ZNn6vsel9d7k5U41zrw8ay6tWpB8KAJQsdJK1
+         GLYJmfsjR/v/TbJLbfivZ/RrIVb9nFKmhZtY9Vu0glUgeVv6NUWb/pL0xWlI7t4a4k
+         7Ic6y+bpwsELJwZy17CyIN3vILrl7SZQ57P+FQICW87KPhnQ9M8yEeUGq7uWPEiYXE
+         l3H99+hDRzanNYew+/O9T6s3gfIhTZEYu6DvwteLeHLRkuRNRLZE7GD8KwWm8kMg99
+         u2zTPu+6g47sDDv0W0gKBOyAlSjza+05JwzddOSeavF73g1Sr9Qw6CrQI/NeNnVHWI
+         4HqbyX1sM2QwA==
+Date:   Mon, 4 Apr 2022 13:30:05 -0700
+From:   Davidlohr Bueso <dave@stgolabs.net>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, a.manzanares@samsung.com
+Subject: Re: [PATCH v4 3/3] PCI/ACPI: negotiate CXL _OSC
+Message-ID: <20220404203005.wnee6i3aovvchpcr@offworld>
+References: <20220331202022.1823174-1-vishal.l.verma@intel.com>
+ <20220331202022.1823174-4-vishal.l.verma@intel.com>
+ <20220401204014.khgozoeu6biirknu@offworld>
+ <CAPcyv4iGtgO6tqLV_UjOsORmC0q-Kw0y5yvstXd=OO8vQ=9XoQ@mail.gmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH] Revert "ACPI: processor: idle: Only flush cache on
- entering C3"
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tony Luck <tony.luck@intel.com>,
-        the arch/x86 maintainers <x86@kernel.org>
-References: <20220403062322.3168-1-akihiko.odaki@gmail.com>
- <CAJZ5v0gaRr-r8VFCEGSP1nTX0CwrOi35DXZB5Z8A9tiLufNxPg@mail.gmail.com>
-From:   Akihiko Odaki <akihiko.odaki@gmail.com>
-In-Reply-To: <CAJZ5v0gaRr-r8VFCEGSP1nTX0CwrOi35DXZB5Z8A9tiLufNxPg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iGtgO6tqLV_UjOsORmC0q-Kw0y5yvstXd=OO8vQ=9XoQ@mail.gmail.com>
+User-Agent: NeoMutt/20201120
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2022/04/05 3:13, Rafael J. Wysocki wrote:
-> On Sun, Apr 3, 2022 at 8:25 AM Akihiko Odaki <akihiko.odaki@gmail.com> wrote:
->>
->> This reverts commit 87ebbb8c612b1214f227ebb8f25442c6d163e802.
->>
->> ACPI processor power states can be transitioned in two distinct
->> situations: 1. when CPU goes idle and 2. before CPU goes offline
->> ("playing dead") to suspend or hibernate. Case 1 is handled by
->> acpi_idle_enter or acpi_idle_enter_s2idle. Case 2 is handled by
->> acpi_idle_play_dead.
->>
->> It is necessary to flush CPU caches in case 2 even if it is not
->> required to transit ACPI processor power states as CPU will go
->> offline soon. However, the reverted commit incorrectly removed CPU
->> cache flushing in such a condition.
-> 
-> I think what you mean is that the CPU cache must always be flushed in
-> acpi_idle_play_dead(), regardless of the target C-state that is going
-> to be requested, because this is likely to be part of a CPU offline
-> procedure or preparation for entering a system-wide sleep state and
-> the stale cache contents may lead to problems going forward, for
-> example when the CPU is taken back online.
-> 
-> If so, I will put the above information into the patch changelog.
+On Fri, 01 Apr 2022, Dan Williams wrote:
 
-I guess it is causing problems because the dirty caches will not get 
-written back and the RAM becomes stale if they are not flushed. From my 
-understanding, the CPU should have an empty cache and read back contents 
-from RAM when it is taken back online.
-
-> 
->> In fact, it made resuming from
->> suspend-to-RAM occasionally fail on Lenovo ThinkPad C13 Yoga.
-> 
-> So this probably means that resume from suspend-to-RAM occasionally
-> fails on Lenovo ThinkPad C13 Yoga and reverting the commit in question
-> fixes this problem.  Is that correct?
-
-Yes, that is what I meant.
-
-Regards,
-Akihiko Odaki
-
-> 
->> Signed-off-by: Akihiko Odaki <akihiko.odaki@gmail.com>
->> ---
->>   drivers/acpi/processor_idle.c | 3 +--
->>   1 file changed, 1 insertion(+), 2 deletions(-)
+>On Fri, Apr 1, 2022 at 1:40 PM Davidlohr Bueso <dave@stgolabs.net> wrote:
 >>
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
->> index f8e9fa82cb9b..05b3985a1984 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
->> @@ -570,8 +570,7 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
->>   {
->>          struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
+>> On Thu, 31 Mar 2022, Vishal Verma wrote:
 >>
->> -       if (cx->type == ACPI_STATE_C3)
->> -               ACPI_FLUSH_CPU_CACHE();
->> +       ACPI_FLUSH_CPU_CACHE();
+>> >The CXL specification does not define any additional constraints on
+>> >the hotplug flow beyond PCIe native hotplug, so a kernel that supports
+>> >native PCIe hotplug, supports CXL hotplug.
 >>
->>          while (1) {
+>> Hmm but from a Linux-pov does it make sense to allow hotplug
+>> support if the MM cannot handle it?
+>
+>I would say yes, i.e. do not consider CONFIG_MEMORY_HOTPLUG for
+>OSC_CXL_NATIVE_HP_SUPPORT, but see below and poke holes in my
+>argument...
+>
 >>
->> --
->> 2.35.1
+>> @@ -531,7 +518,8 @@ static u32 calculate_cxl_support(void)
+>>         support = OSC_CXL_2_0_PORT_DEV_REG_ACCESS_SUPPORT;
+>>         if (pci_aer_available())
+>>                 support |= OSC_CXL_PROTOCOL_ERR_REPORTING_SUPPORT;
+>> -       if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
+>> +       if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE) &&
+>> +           IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
+>>                 support |= OSC_CXL_NATIVE_HP_SUPPORT;
 >>
+>>         return support;
+>>
+>> After all, per the CXL 2.0 Type 3 device Hot-Add flow:
+>>
+>> ""
+>> 7. CXL aware software notifies OS memory manager about the new memory and its
+>> attributes such as latency and bandwidth. Memory manager processes a request
+>> and adds the new memory to its allocation pool.
+>> ""
+>
+>If I look at ACPI hotplug it is true that CONFIG_ACPI_HOTPLUG_MEMORY
+>depends on CONFIG_MEMORY_HOTPLUG. However, it is also true that there
+>is no existing _OSC for memory hotplug support. The reason is that
+>ACPI memory hotplug requires the OS to acknowledge / coordinate with
+>memory plug events via a scan handler. On the CXL side the equivalent
+>would be if Linux supported the Mechanical Retention Lock [1], or
+>otherwise had some coordination for the driver of a PCI device
+>undergoing hotplug to be consulted on whether the hotplug should
+>proceed or not.
+>
+>The concern is that if Linux says no to supporting CXL hotplug then
+>the BIOS may say no to giving the OS hotplug control of any other PCIe
+>device. So the question here is not whether hotplug is enabled, it's
+>whether it is handled natively by the at all OS, and if
+>CONFIG_HOTPLUG_PCI_PCIE is enabled then the answer is "yes".
+>
+>Otherwise, the plan for CXL coordinated remove, since the kernel does
+>not support blocking hotplug, is to require the memory device to be
+>disabled before hotplug is attempted. When CONFIG_MEMORY_HOTPLUG is
+>disabled that step will fail and the remove attempt cancelled. by the
+>user. If that is not honored and the card is removed anyway then it
+>does not matter if CONFIG_MEMORY_HOTPLUG is enabled or not, it will
+>cause a crash and other badness.
+>
+>Long story short, just say yes, to CXL hotplug and require removal to
+>be coordinated by userspace unless and until the kernel grows better
+>mechanisms for doing "managed" removal of devices in consultation with
+>the driver.
 
++Cc Adam.
+
+Thank you for the overview of the landscape; I was assuming this last
+part already existed. I would only suggest documenting the above in
+calculate_cxl_support(), such that future readers don't also wonder
+about this and why CXL doesn't follow what CONFIG_ACPI_HOTPLUG_MEMORY
+does.
+
+Thanks,
+Davidlohr
+
+>
+>[1]: https://lore.kernel.org/all/20201122014203.4706-1-ashok.raj@intel.com/
