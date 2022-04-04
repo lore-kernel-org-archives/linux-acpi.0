@@ -2,84 +2,158 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81AC9C43219
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 15:25:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EEBBC433FE
+	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 15:59:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378563AbiDDP1U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 11:27:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44460 "EHLO
+        id S1378804AbiDDQBs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 12:01:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378547AbiDDP1R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 11:27:17 -0400
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 002FF1E3F2;
-        Mon,  4 Apr 2022 08:25:20 -0700 (PDT)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id 3153a6bc5aa3f00f; Mon, 4 Apr 2022 17:25:19 +0200
-Received: from kreacher.localnet (unknown [213.134.181.62])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 3FFD466BCD2;
-        Mon,  4 Apr 2022 17:25:18 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v1 0/3] ACPI: PCI: PM: Power up PCI devices with ACPI companions upfront
-Date:   Mon, 04 Apr 2022 17:20:30 +0200
-Message-ID: <21439956.EfDdHjke4D@kreacher>
+        with ESMTP id S242759AbiDDQBs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 12:01:48 -0400
+Received: from mail-yw1-f177.google.com (mail-yw1-f177.google.com [209.85.128.177])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E649D245A5;
+        Mon,  4 Apr 2022 08:59:51 -0700 (PDT)
+Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-2e5e31c34bfso104471147b3.10;
+        Mon, 04 Apr 2022 08:59:51 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=w7ocDMuZoyG16WXF5ipj2JQf4AK4I9deIE3Jm5Bs/xc=;
+        b=P/Df+aT0y9hrhXdfv/bPeNgjQqqF6kfMvONu6fRJcBsUA1hRxsve/fckaqkFgBO+vY
+         aucQLxNq0AI3yryHtViHsHggd+95t46c4n1r1MtOmI9sD6NS/kdAHRKmaQ46PKLQ9KoL
+         dtKxJY8xlKyHnEikzXgYwigBw5yCbPGoKoWjZCL/yNGVf4+Qkge3Z4pFvEAj7aTICltn
+         eVs81PTD3UQwJdW57puke/E9qOqHrTQHYxZ0HTxCLbkRy2zKSAYi+brgC0EQiV+h1t11
+         G/H9E83nzLCpxiBkAGNZ4dGkvN6lemN/E/hX8/ilrqMNApAuk3wMi6+5oEXF7HSX+N0J
+         QhwA==
+X-Gm-Message-State: AOAM5327IJT3oa7H8AtR1/w2mr7bXHw4qwdg55vOZswvldOgKD87ldE+
+        Q68khFnlXamNCzIcZOoAtjuXwBUec8nJdwqxCwabO+7E
+X-Google-Smtp-Source: ABdhPJyM8jOQfNwC1LsuoX5wt2+Tez+WgTblGOwGdMIPsSlhv9ZXF+HmUFRB3Pb+p33UR5vpweNUm7aYvABMhBWTvO0=
+X-Received: by 2002:a81:36cf:0:b0:2e5:2597:a026 with SMTP id
+ d198-20020a8136cf000000b002e52597a026mr567162ywa.301.1649087991154; Mon, 04
+ Apr 2022 08:59:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 4 Apr 2022 17:59:40 +0200
+Message-ID: <CAJZ5v0hGVN_=3iU8OLpHY3Ak35T5+JcBM-qs8SbojKrpd0VXsA@mail.gmail.com>
+Subject: Re: [PATCH] cxl/mem: Disable suspend
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-cxl@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.181.62
-X-CLIENT-HOSTNAME: 213.134.181.62
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudejvddgkeefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvffufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpefhgedtffejheekgeeljeevvedtuefgffeiieejuddutdekgfejvdehueejjeetvdenucfkphepvddufedrudefgedrudekuddriedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekuddriedvpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeeipdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphgtihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphht
- thhopehhvghlghgrrghssehkvghrnhgvlhdrohhrghdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+On Sun, Apr 3, 2022 at 2:58 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> The CXL specification claims S3 support at a hardware level, but at a
+> system software level there are some missing pieces. Section 9.4 rightly
+> claims that "CXL mem adapters may need aux power to retain memory
+> context across S3", but there is no enumeration mechanism for the OS to
+> determine if a given adapter has that support. Moreover the save state
+> and resume image for the system may inadvertantly end up in a CXL device
+> that needs to be restored before the save state is recoverable. I.e. a
+> circular dependency that is not resolvable without a third party
+> save-area.
+>
+> Arrange for the cxl_mem driver to fail S3 attempts. This still nominaly
+> allows for suspend, but requires unbinding all CXL memory devices before
+> the suspend to ensure the typical DRAM flow is taken. The cxl_mem unbind
+> flow is intended to also tear down all CXL memory regions associated
+> with a given cxl_memdev.
+>
+> It is reasonable to assume that any device participating in a System RAM
+> range published in the EFI memory map is covered by aux power and
+> save-area outside the device itself. So this restriction can be
+> minimized in the future once pre-existing region enumeration support
+> arrives, and perhaps a spec update to clarify if the EFI memory is
+> sufficent for determining the range of devices managed by
+> platform-firmware for S3 support.
+>
+> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-There are cases in which the power state of a PCI device depends on an ACPI
-power resource (or more of them) in such a way that when the given power
-resource is in the "off" state, the PCI device depending on it is in D3cold.
+A few thoughts:
 
-On some systems, the initial state of these power resources is "off", so the
-kernel should not access the config space of PCI devices depending on them,
-until the power resources in question are turned "on", but currently that is
-not respected during PCI device enumeration.  Namely, the PCI device
-enumeration code walks the entire bus and enumerates all of the devices it
-can find, including the ones whose initial power state in principle depends on
-the ACPI power resources in the "off" state.
+1. I don't think it is necessary to fail suspend-to-idle too (which
+the driver will do after the patch AFAICS).
+2. Should hibernation fail too?  From the description above it looks
+like that should be the case.
+3. If "deep"suspend is going to fail every time, it may be better to
+prevent "deep" from being written to /sys/power/mem_sleep instead of
+failing suspend in progress, especially after freezing user space.
 
-Apparently, most of the time, the config space of such devices is accessible
-regardless of the state of the ACPI power resource associated with the PCI
-device, so the device enumeration is successful, but there are two potential
-issues related to this behavior.  First off, even if the given PCI device
-is accessible when the ACPI power resource depended on by it is "off",
-changing its configuration may confuse the platform firmware and lead to
-problems when the ACPI power resource in question is turned "on".  Second,
-the PCI device may not be actually accessible at all when the ACPI power
-resource depended on by it is "off", in which case it won't be found during
-the PCI enumeration of devices.
+> ---
+>  drivers/cxl/core/memdev.c |    1 -
+>  drivers/cxl/mem.c         |   26 ++++++++++++++++++++++++++
+>  2 files changed, 26 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+> index 1f76b28f9826..efe4d2e9bfef 100644
+> --- a/drivers/cxl/core/memdev.c
+> +++ b/drivers/cxl/core/memdev.c
+> @@ -251,7 +251,6 @@ static struct cxl_memdev *cxl_memdev_alloc(struct cxl_dev_state *cxlds,
+>         dev->bus = &cxl_bus_type;
+>         dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
+>         dev->type = &cxl_memdev_type;
+> -       device_set_pm_not_required(dev);
+>         INIT_WORK(&cxlmd->detach_work, detach_memdev);
+>
+>         cdev = &cxlmd->cdev;
+> diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+> index 49a4b1c47299..0660bb1488cb 100644
+> --- a/drivers/cxl/mem.c
+> +++ b/drivers/cxl/mem.c
+> @@ -3,6 +3,7 @@
+>  #include <linux/device.h>
+>  #include <linux/module.h>
+>  #include <linux/pci.h>
+> +#include <linux/pm.h>
+>
+>  #include "cxlmem.h"
+>  #include "cxlpci.h"
+> @@ -210,10 +211,35 @@ static int cxl_mem_probe(struct device *dev)
+>         return rc;
+>  }
+>
+> +static int cxl_mem_suspend(struct device *dev)
+> +{
+> +       /*
+> +        * The kernel may be operating out of CXL memory on this device,
+> +        * there is no spec defined way to determine whether this device
+> +        * preserves contents over suspend, and there is no simple way
+> +        * to arrange for the suspend image to avoid CXL memory which
+> +        * would setup a circular dependency between PCI resume and save
+> +        * state restoration.
+> +        */
+> +       dev_err(dev, "CXL memory suspend not supported\n");
+> +       return -EBUSY;
+> +}
+> +
+> +static int cxl_mem_resume(struct device *dev)
+> +{
+> +       /* nothing to do since suspend is prevented */
+> +       return 0;
+> +}
 
-This patch series addresses that problem by turning "on" all ACPI power
-resources depended on by PCI devices before attempting to access the config
-space of those devices for the first time.
+This is not needed AFAICS.
 
-The first two patches introduce the requisite machinery and the actual change
-of behavior is done in the last patch.
-
-Thanks!
-
-
-
-
+> +
+> +static DEFINE_SIMPLE_DEV_PM_OPS(cxl_pm_ops, cxl_mem_suspend, cxl_mem_resume);
+> +
+>  static struct cxl_driver cxl_mem_driver = {
+>         .name = "cxl_mem",
+>         .probe = cxl_mem_probe,
+>         .id = CXL_DEVICE_MEMORY_EXPANDER,
+> +       .drv = {
+> +               .pm = &cxl_pm_ops,
+> +       },
+>  };
+>
+>  module_cxl_driver(cxl_mem_driver);
+>
