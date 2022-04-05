@@ -2,118 +2,173 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33C1CC433EF
-	for <linux-acpi@archiver.kernel.org>; Mon,  4 Apr 2022 21:28:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82287C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 03:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382493AbiDDVaH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:30:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50820 "EHLO
+        id S230284AbiDEDfi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 4 Apr 2022 23:35:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379837AbiDDSQA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 14:16:00 -0400
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FF8A3EA8F;
-        Mon,  4 Apr 2022 11:14:03 -0700 (PDT)
-Received: by mail-yb1-f180.google.com with SMTP id j2so19249419ybu.0;
-        Mon, 04 Apr 2022 11:14:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=VwHSUD6VUk1+NHBKnrS20gEcYVbH13xq7tQUR/JhwtI=;
-        b=uxXwz462nDHL9H4S23fQk4nA3pYOvJipgRNUZsONr35hK4E95Q2rW+3X5POPFTvpS8
-         k+p6Kgi2UCdEDTNfH/ULwhTZnDlLPXLy0/DvBgl2XzqeSBJxzT1OmF2s/23QyQ3MC9WJ
-         E9iEb1pFeH3vW/DpD5RYzcxZpuybdCl+6/TWs3A5YoJRijl7To+t9DvscqnG+7mP2Fmh
-         kVC7myK1V6YJmnb/LpNRTZDT2m66UxnuZIm3Ua9FypIPCXoFhRtWj7L5YsZVRv3jgwpb
-         9gIPc1vSq53oyx8uUvObKBvUTSsWHYvVWZ2kcOxHKzwZp6PdKP1DRukX1bdJEK2lIb/a
-         GTOg==
-X-Gm-Message-State: AOAM530lU7IorsfAxetoDgAlO0ZQ/yIkG9NJS0eKzKYINDhWAmOHPSk2
-        c8Ufu8yPjaZoxmc2AoU+ywWtKncbfLzvvVegnZmmiC/5IuM=
-X-Google-Smtp-Source: ABdhPJx0SLx3DhI+llrFMerwvLB50TYDoOAuIhNbaiF8shFY+nPZtKAy1GbxINWtrFXBVlb54ABU4pOsrncrwgXXNHU=
-X-Received: by 2002:a05:6902:352:b0:63e:94c:883c with SMTP id
- e18-20020a056902035200b0063e094c883cmr929660ybs.365.1649096042539; Mon, 04
- Apr 2022 11:14:02 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220403062322.3168-1-akihiko.odaki@gmail.com>
-In-Reply-To: <20220403062322.3168-1-akihiko.odaki@gmail.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 4 Apr 2022 20:13:51 +0200
-Message-ID: <CAJZ5v0gaRr-r8VFCEGSP1nTX0CwrOi35DXZB5Z8A9tiLufNxPg@mail.gmail.com>
-Subject: Re: [PATCH] Revert "ACPI: processor: idle: Only flush cache on
- entering C3"
-To:     Akihiko Odaki <akihiko.odaki@gmail.com>
-Cc:     "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tony Luck <tony.luck@intel.com>,
-        "the arch/x86 maintainers" <x86@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S229510AbiDEDff (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2022 23:35:35 -0400
+X-Greylist: delayed 447 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 04 Apr 2022 20:33:35 PDT
+Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.228])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 69BC0281;
+        Mon,  4 Apr 2022 20:33:32 -0700 (PDT)
+HMM_SOURCE_IP: 172.18.0.188:46720.1605257624
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-202.80.192.39 (unknown [172.18.0.188])
+        by chinatelecom.cn (HERMES) with SMTP id 5FA6A2800D7;
+        Tue,  5 Apr 2022 11:25:51 +0800 (CST)
+X-189-SAVE-TO-SEND: +liuxp11@chinatelecom.cn
+Received: from  ([172.18.0.188])
+        by app0023 with ESMTP id 1f7cdf5bef094fc198f9b56acf9e3014 for keescook@chromium.org;
+        Tue, 05 Apr 2022 11:26:00 CST
+X-Transaction-ID: 1f7cdf5bef094fc198f9b56acf9e3014
+X-Real-From: liuxp11@chinatelecom.cn
+X-Receive-IP: 172.18.0.188
+X-MEDUSA-Status: 0
+Sender: liuxp11@chinatelecom.cn
+From:   Liu Xinpeng <liuxp11@chinatelecom.cn>
+To:     keescook@chromium.org, anton@enomsg.org, ccross@android.com,
+        tony.luck@intel.com, enb@kernel.org, ames.morse@arm.com,
+        bp@alien8.de, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Cc:     Liu Xinpeng <liuxp11@chinatelecom.cn>
+Subject: [PATCH] ACPI: APEI: fix missing erst record id
+Date:   Tue,  5 Apr 2022 11:25:33 +0800
+Message-Id: <1649129133-24777-1-git-send-email-liuxp11@chinatelecom.cn>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Apr 3, 2022 at 8:25 AM Akihiko Odaki <akihiko.odaki@gmail.com> wrote:
->
-> This reverts commit 87ebbb8c612b1214f227ebb8f25442c6d163e802.
->
-> ACPI processor power states can be transitioned in two distinct
-> situations: 1. when CPU goes idle and 2. before CPU goes offline
-> ("playing dead") to suspend or hibernate. Case 1 is handled by
-> acpi_idle_enter or acpi_idle_enter_s2idle. Case 2 is handled by
-> acpi_idle_play_dead.
->
-> It is necessary to flush CPU caches in case 2 even if it is not
-> required to transit ACPI processor power states as CPU will go
-> offline soon. However, the reverted commit incorrectly removed CPU
-> cache flushing in such a condition.
+record_id is in the erst_record_id_cache but not in storage,so erst_read will
+return -ENOENT, and then goto retry_next, erst_get_record_id_next skip a
+record_id. This can result in printing the records just in the cache.
 
-I think what you mean is that the CPU cache must always be flushed in
-acpi_idle_play_dead(), regardless of the target C-state that is going
-to be requested, because this is likely to be part of a CPU offline
-procedure or preparation for entering a system-wide sleep state and
-the stale cache contents may lead to problems going forward, for
-example when the CPU is taken back online.
+A reproducer of the problem(retry many times):
 
-If so, I will put the above information into the patch changelog.
+[root@localhost erst-inject]# ./erst-inject -c 0xaaaaa00011
+[root@localhost erst-inject]# ./erst-inject -p
+rc: 273
+rcd sig: CPER
+rcd id: 0xaaaaa00012
+rc: 273
+rcd sig: CPER
+rcd id: 0xaaaaa00013
+rc: 273
+rcd sig: CPER
+rcd id: 0xaaaaa00014
+[root@localhost erst-inject]# ./erst-inject -i 0xaaaaa000006
+[root@localhost erst-inject]# ./erst-inject -i 0xaaaaa000007
+[root@localhost erst-inject]# ./erst-inject -i 0xaaaaa000008
+[root@localhost erst-inject]# ./erst-inject -p
+rc: 273
+rcd sig: CPER
+rcd id: 0xaaaaa00012
+rc: 273
+rcd sig: CPER
+rcd id: 0xaaaaa00013
+rc: 273
+rcd sig: CPER
+rcd id: 0xaaaaa00014
+[root@localhost erst-inject]# ./erst-inject -n
+total error record count: 6
 
-> In fact, it made resuming from
-> suspend-to-RAM occasionally fail on Lenovo ThinkPad C13 Yoga.
+Signed-off-by: Liu Xinpeng <liuxp11@chinatelecom.cn>
+---
+ drivers/acpi/apei/erst-dbg.c |  4 +++-
+ drivers/acpi/apei/erst.c     | 34 +++++++++++++++++++++++++++++++---
+ include/acpi/apei.h          |  1 +
+ 3 files changed, 35 insertions(+), 4 deletions(-)
 
-So this probably means that resume from suspend-to-RAM occasionally
-fails on Lenovo ThinkPad C13 Yoga and reverting the commit in question
-fixes this problem.  Is that correct?
+diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
+index c740f0faad39..1b94d5e2eaf3 100644
+--- a/drivers/acpi/apei/erst-dbg.c
++++ b/drivers/acpi/apei/erst-dbg.c
+@@ -113,8 +113,10 @@ static ssize_t erst_dbg_read(struct file *filp, char __user *ubuf,
+ retry:
+ 	rc = len = erst_read(id, erst_dbg_buf, erst_dbg_buf_len);
+ 	/* The record may be cleared by others, try read next record */
+-	if (rc == -ENOENT)
++	if (rc == -ENOENT){
++		erst_clear_cache(id);
+ 		goto retry_next;
++	}
+ 	if (rc < 0)
+ 		goto out;
+ 	if (len > ERST_DBG_RECORD_LEN_MAX) {
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 698d67cee052..dcf08e24bab3 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -856,6 +856,31 @@ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
+ }
+ EXPORT_SYMBOL_GPL(erst_read);
+ 
++int erst_clear_cache(u64 record_id)
++{
++	int rc, i;
++	u64 *entries;
++
++	if (erst_disable)
++		return -ENODEV;
++
++	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
++	if (rc)
++		return rc;
++
++	entries = erst_record_id_cache.entries;
++	for (i = 0; i < erst_record_id_cache.len; i++) {
++		if (entries[i] == record_id)
++			entries[i] = APEI_ERST_INVALID_RECORD_ID;
++	}
++	__erst_record_id_cache_compact();
++
++	mutex_unlock(&erst_record_id_cache.lock);
++
++	return rc;
++}
++EXPORT_SYMBOL_GPL(erst_clear_cache);
++
+ int erst_clear(u64 record_id)
+ {
+ 	int rc, i;
+@@ -998,14 +1023,17 @@ static ssize_t erst_reader(struct pstore_record *record)
+ 
+ 	len = erst_read(record_id, &rcd->hdr, rcd_len);
+ 	/* The record may be cleared by others, try read next record */
+-	if (len == -ENOENT)
++	if (len == -ENOENT){
++		erst_clear_cache(record_id);
+ 		goto skip;
+-	else if (len < 0 || len < sizeof(*rcd)) {
++	} else if (len < 0 || len < sizeof(*rcd)) {
+ 		rc = -EIO;
+ 		goto out;
+ 	}
+-	if (!guid_equal(&rcd->hdr.creator_id, &CPER_CREATOR_PSTORE))
++	if (!guid_equal(&rcd->hdr.creator_id, &CPER_CREATOR_PSTORE)){
++		erst_clear_cache(record_id);
+ 		goto skip;
++	}
+ 
+ 	record->buf = kmalloc(len, GFP_KERNEL);
+ 	if (record->buf == NULL) {
+diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+index afaca3a075e8..f8c11ff4115a 100644
+--- a/include/acpi/apei.h
++++ b/include/acpi/apei.h
+@@ -47,6 +47,7 @@ void erst_get_record_id_end(void);
+ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
+ 		  size_t buflen);
+ int erst_clear(u64 record_id);
++int erst_clear_cache(u64 record_id);
+ 
+ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);
+ void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
+-- 
+2.23.0
 
-> Signed-off-by: Akihiko Odaki <akihiko.odaki@gmail.com>
-> ---
->  drivers/acpi/processor_idle.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index f8e9fa82cb9b..05b3985a1984 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -570,8 +570,7 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
->  {
->         struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
->
-> -       if (cx->type == ACPI_STATE_C3)
-> -               ACPI_FLUSH_CPU_CACHE();
-> +       ACPI_FLUSH_CPU_CACHE();
->
->         while (1) {
->
-> --
-> 2.35.1
->
