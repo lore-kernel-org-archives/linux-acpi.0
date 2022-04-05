@@ -2,237 +2,110 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D664FC433F5
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 20:48:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8089C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 20:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239979AbiDEUpe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Apr 2022 16:45:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46592 "EHLO
+        id S240206AbiDEUpn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Apr 2022 16:45:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1446274AbiDEPoY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 11:44:24 -0400
-Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34A92E6C78;
-        Tue,  5 Apr 2022 07:13:10 -0700 (PDT)
-Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-2eb43ad7909so85992257b3.2;
-        Tue, 05 Apr 2022 07:13:10 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0m0X8qD7jgaOpFhSCX1pI9/lBF4aFgFkK0POJ3FtM5M=;
-        b=oop02PYzQjf4I81Lgk4YHXpzi42n6WQveIpvF1+LxhlRXlBzom659lzoHZVZW8RA4f
-         i9VrfhAx+htfKK6+HHav6cGsfp4pSaozu8Y6va4FPwBKBNMvEfW+HIzvD+s/5zv6kcAW
-         VScgyYuKNHatNNWNwYAwo6vDB7QMJuXlQTtcVWaNAvf6kQ8oldpg8FL6M4jmKQigbaMn
-         ef4nPOFy981kzrUeawhcNAkHuyoSdOROd6truwdQ7qTV638O5j5Cy3JEpNKaudeHfSxw
-         yZyz733yGUe1tlEMIjAQ2fw6FmB5P7yGvYAP4M9tiFmwZcQlN/RSGjWE5DSu/pPna7AN
-         D3tA==
-X-Gm-Message-State: AOAM533eKEhvmfbZ+W3FKVOMlBuGOh9pe6H4UDEObRCxRmXaINPnLL0u
-        s0AWfQ4CEYNywmH6p/kDPe/lNr1oHF8ud6O3NpwSivjT
-X-Google-Smtp-Source: ABdhPJxwMh75H+q2lMm7lfhlZkhQSxK3Xl3vxLiAsuHwCOepfUfgE7YhAm+UQ8tjNWYOfmUWiErC4e6KhAn6L+k5ZXk=
-X-Received: by 2002:a81:1257:0:b0:2eb:97cf:a4a2 with SMTP id
- 84-20020a811257000000b002eb97cfa4a2mr2865951yws.149.1649167989258; Tue, 05
- Apr 2022 07:13:09 -0700 (PDT)
+        with ESMTP id S1457915AbiDEQ7M (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 12:59:12 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C618B4A915;
+        Tue,  5 Apr 2022 09:57:13 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
+ id 742f0ee565e3f865; Tue, 5 Apr 2022 18:57:12 +0200
+Received: from kreacher.localnet (unknown [213.134.181.136])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 8220B66BCB7;
+        Tue,  5 Apr 2022 18:57:11 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org
+Subject: [PATCH v1] ACPI: bus: Eliminate acpi_bus_get_device()
+Date:   Tue, 05 Apr 2022 18:57:10 +0200
+Message-ID: <5817980.lOV4Wx5bFT@kreacher>
 MIME-Version: 1.0
-References: <20220403054822.16868-1-rdunlap@infradead.org> <20220403054822.16868-2-rdunlap@infradead.org>
-In-Reply-To: <20220403054822.16868-2-rdunlap@infradead.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 5 Apr 2022 16:12:58 +0200
-Message-ID: <CAJZ5v0gZvd_Uw02_K7fWGYFtTncSTxdeoR6z=PQ5e0DM255k8A@mail.gmail.com>
-Subject: Re: [PATCH 1/3 v3] Docs: admin/kernel-parameters: edit a few boot options
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        linux-s390@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>,
-        linux-ia64@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.181.136
+X-CLIENT-HOSTNAME: 213.134.181.136
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudejgedguddtfecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhephfegtdffjeehkeegleejveevtdeugfffieeijeduuddtkefgjedvheeujeejtedvnecukfhppedvudefrddufeegrddukedurddufeeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekuddrudefiedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegsrhhoohhnihgvsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhsphhisehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Apr 3, 2022 at 7:48 AM Randy Dunlap <rdunlap@infradead.org> wrote:
->
-> Clean up some of admin-guide/kernel-parameters.txt:
->
-> a. "smt" should be "smt=" (S390)
-> b. (dropped)
-> c. Sparc supports the vdso= boot option
-> d. make the tp_printk options (2) formatting similar to other options
->    by adding spacing
-> e. add "trace_clock=" with a reference to Documentation/trace/ftrace.rst
-> f. use [IA-64] as documented instead of [ia64]
-> g. fix formatting and text for test_suspend=
-> h. fix formatting for swapaccount=
-> i. fix formatting and grammar for video.brightness_switch_enabled=
->
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Heiko Carstens <hca@linux.ibm.com>
-> Cc: Vasily Gorbik <gor@linux.ibm.com>
-> Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-> Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-> Cc: Sven Schnelle <svens@linux.ibm.com>
-> Cc: linux-s390@vger.kernel.org
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: linux-ia64@vger.kernel.org
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-acpi@vger.kernel.org
-> Cc: Johannes Weiner <hannes@cmpxchg.org>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: linux-doc@vger.kernel.org
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Replace the last instance of acpi_bus_get_device(), added recently
+by commit 87e59b36e5e2 ("spi: Support selection of the index of the
+ACPI Spi Resource before alloc"), with acpi_fetch_acpi_dev() and
+finally drop acpi_bus_get_device() that has no more users.
 
-for the test_suspend and ACPI video pieces.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c     |   13 -------------
+ drivers/spi/spi.c       |    3 ++-
+ include/acpi/acpi_bus.h |    1 -
+ 3 files changed, 2 insertions(+), 15 deletions(-)
 
-> ---
-> v3: add trace_clock= specifics (Steven)
-> v2: drop "smt-enabled" for arch/powerpc/ (Michael)
->
->  Documentation/admin-guide/kernel-parameters.txt |   47 ++++++++++----
->  1 file changed, 36 insertions(+), 11 deletions(-)
->
-> --- linux-next-20220331.orig/Documentation/admin-guide/kernel-parameters.txt
-> +++ linux-next-20220331/Documentation/admin-guide/kernel-parameters.txt
-> @@ -2814,7 +2814,7 @@
->                         different yeeloong laptops.
->                         Example: machtype=lemote-yeeloong-2f-7inch
->
-> -       max_addr=nn[KMG]        [KNL,BOOT,ia64] All physical memory greater
-> +       max_addr=nn[KMG]        [KNL,BOOT,IA-64] All physical memory greater
->                         than or equal to this physical address is ignored.
->
->         maxcpus=        [SMP] Maximum number of processors that an SMP kernel
-> @@ -3057,7 +3057,7 @@
->
->         mga=            [HW,DRM]
->
-> -       min_addr=nn[KMG]        [KNL,BOOT,ia64] All physical memory below this
-> +       min_addr=nn[KMG]        [KNL,BOOT,IA-64] All physical memory below this
->                         physical address is ignored.
->
->         mini2440=       [ARM,HW,KNL]
-> @@ -5388,7 +5388,7 @@
->                                 1: Fast pin select (default)
->                                 2: ATC IRMode
->
-> -       smt             [KNL,S390] Set the maximum number of threads (logical
-> +       smt=            [KNL,S390] Set the maximum number of threads (logical
->                         CPUs) to use per physical CPU on systems capable of
->                         symmetric multithreading (SMT). Will be capped to the
->                         actual hardware limit.
-> @@ -5774,8 +5774,9 @@
->                         This parameter controls use of the Protected
->                         Execution Facility on pSeries.
->
-> -       swapaccount=[0|1]
-> -                       [KNL] Enable accounting of swap in memory resource
-> +       swapaccount=    [KNL]
-> +                       Format: [0|1]
-> +                       Enable accounting of swap in memory resource
->                         controller if no parameter or 1 is given or disable
->                         it if 0 is given (See Documentation/admin-guide/cgroup-v1/memory.rst)
->
-> @@ -5821,7 +5822,8 @@
->
->         tdfx=           [HW,DRM]
->
-> -       test_suspend=   [SUSPEND][,N]
-> +       test_suspend=   [SUSPEND]
-> +                       Format: { "mem" | "standby" | "freeze" }[,N]
->                         Specify "mem" (for Suspend-to-RAM) or "standby" (for
->                         standby suspend) or "freeze" (for suspend type freeze)
->                         as the system sleep state during system startup with
-> @@ -5908,6 +5910,28 @@
->         trace_buf_size=nn[KMG]
->                         [FTRACE] will set tracing buffer size on each cpu.
->
-> +       trace_clock=    [FTRACE] Set the clock used for tracing events
-> +                       at boot up.
-> +                       local - Use the per CPU time stamp counter
-> +                               (converted into nanoseconds). Fast, but
-> +                               depending on the architecture, may not be
-> +                               in sync between CPUs.
-> +                       global - Event time stamps are synchronize across
-> +                               CPUs. May be slower than the local clock,
-> +                               but better for some race conditions.
-> +                       counter - Simple counting of events (1, 2, ..)
-> +                               note, some counts may be skipped due to the
-> +                               infrastructure grabbing the clock more than
-> +                               once per event.
-> +                       uptime - Use jiffies as the time stamp.
-> +                       perf - Use the same clock that perf uses.
-> +                       mono - Use ktime_get_mono_fast_ns() for time stamps.
-> +                       mono_raw - Use ktime_get_raw_fast_ns() for time
-> +                               stamps.
-> +                       boot - Use ktime_get_boot_fast_ns() for time stamps.
-> +                       Architectures may add more clocks. See
-> +                       Documentation/trace/ftrace.rst for more details.
-> +
->         trace_event=[event-list]
->                         [FTRACE] Set and start specified trace events in order
->                         to facilitate early boot debugging. The event-list is a
-> @@ -5930,7 +5954,7 @@
->                         See also Documentation/trace/ftrace.rst "trace options"
->                         section.
->
-> -       tp_printk[FTRACE]
-> +       tp_printk       [FTRACE]
->                         Have the tracepoints sent to printk as well as the
->                         tracing ring buffer. This is useful for early boot up
->                         where the system hangs or reboots and does not give the
-> @@ -5952,7 +5976,7 @@
->                         frequency tracepoints such as irq or sched, can cause
->                         the system to live lock.
->
-> -       tp_printk_stop_on_boot[FTRACE]
-> +       tp_printk_stop_on_boot [FTRACE]
->                         When tp_printk (above) is set, it can cause a lot of noise
->                         on the console. It may be useful to only include the
->                         printing of events during boot up, as user space may
-> @@ -6301,7 +6325,7 @@
->                                         HIGHMEM regardless of setting
->                                         of CONFIG_HIGHPTE.
->
-> -       vdso=           [X86,SH]
-> +       vdso=           [X86,SH,SPARC]
->                         On X86_32, this is an alias for vdso32=.  Otherwise:
->
->                         vdso=1: enable VDSO (the default)
-> @@ -6327,11 +6351,12 @@
->         video=          [FB] Frame buffer configuration
->                         See Documentation/fb/modedb.rst.
->
-> -       video.brightness_switch_enabled= [0,1]
-> +       video.brightness_switch_enabled= [ACPI]
-> +                       Format: [0|1]
->                         If set to 1, on receiving an ACPI notify event
->                         generated by hotkey, video driver will adjust brightness
->                         level and then send out the event to user space through
-> -                       the allocated input device; If set to 0, video driver
-> +                       the allocated input device. If set to 0, video driver
->                         will only send out the event without touching backlight
->                         brightness level.
->                         default: 1
+Index: linux-pm/drivers/spi/spi.c
+===================================================================
+--- linux-pm.orig/drivers/spi/spi.c
++++ linux-pm/drivers/spi/spi.c
+@@ -2406,7 +2406,8 @@ static int acpi_spi_add_resource(struct
+ 			} else {
+ 				struct acpi_device *adev;
+ 
+-				if (acpi_bus_get_device(parent_handle, &adev))
++				adev = acpi_fetch_acpi_dev(parent_handle);
++				if (!adev)
+ 					return -ENODEV;
+ 
+ 				ctlr = acpi_spi_find_controller_by_adev(adev);
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -511,7 +511,6 @@ extern int unregister_acpi_notifier(stru
+  * External Functions
+  */
+ 
+-int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device);
+ struct acpi_device *acpi_fetch_acpi_dev(acpi_handle handle);
+ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+ 				       unsigned long long *sta);
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -588,19 +588,6 @@ static struct acpi_device *handle_to_dev
+ 	return adev;
+ }
+ 
+-int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
+-{
+-	if (!device)
+-		return -EINVAL;
+-
+-	*device = handle_to_device(handle, NULL);
+-	if (!*device)
+-		return -ENODEV;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(acpi_bus_get_device);
+-
+ /**
+  * acpi_fetch_acpi_dev - Retrieve ACPI device object.
+  * @handle: ACPI handle associated with the requested ACPI device object.
+
+
+
