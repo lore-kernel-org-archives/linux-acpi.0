@@ -2,143 +2,99 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0AFEC433F5
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 20:42:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C52AC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 20:42:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234554AbiDEUoI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Apr 2022 16:44:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57580 "EHLO
+        id S230404AbiDEUnu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Apr 2022 16:43:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350084AbiDEPLq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 11:11:46 -0400
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E17B107A93;
-        Tue,  5 Apr 2022 06:25:30 -0700 (PDT)
-Received: by mail-yb1-f180.google.com with SMTP id w134so15468852ybe.10;
-        Tue, 05 Apr 2022 06:25:30 -0700 (PDT)
+        with ESMTP id S1385599AbiDEPPN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 11:15:13 -0400
+Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AAD93EF34;
+        Tue,  5 Apr 2022 06:31:52 -0700 (PDT)
+Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-2eb3db5b172so89808657b3.6;
+        Tue, 05 Apr 2022 06:31:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=E5Al4J7VCG/P8LTv1wy0Uzk4KB0CIZvLVMNw+72bmlY=;
-        b=pi+F9TIqKCEsUNjCb9dXoXQQNWKsRRxNdv5tIwo+338XztSKFJIYmHZkceBh6r31HM
-         zOTEafVXA117xUkDIWXQSCqSwY7HnBzPCE7H7i85C/kKEg+7wdLDKD+j9xsWQF98VQrl
-         5Kjz/7MYovpuUNj8n9fKK9hYnLmdWvAoDaDhCquMQvMxs13dSczKF+xMgB739HndQrSS
-         Rp/JRdwBjIGx6li46fitUbQLTiDJJbqjnIXi4rtPfui9XBxI2FZBy2MpNhHlQkWzydG4
-         qBUwmqE/gZejHwC62QLm5ZSfAa8sCHXWIfpuGriNwHcsb6EFjqr9zJy5unCcyAqHpyjW
-         vTog==
-X-Gm-Message-State: AOAM5334oGiOzG8pbMFgDpKN4hv9B9HGkKRbYFupf1gXc4FXR09Cc7DL
-        VxPINjrv6k3JFzyzhFHueIjR5jZUD+v7hpIxDsk=
-X-Google-Smtp-Source: ABdhPJzvtUL+VkrikhhCBPKyLKqDEV2E5D8I7wR0e3nEvz40gGldfHk2pv2u3E/1r3WC/KqC7zaSc0uRoPXPW/UhUpc=
-X-Received: by 2002:a05:6902:1544:b0:63d:d3a7:8cc4 with SMTP id
- r4-20020a056902154400b0063dd3a78cc4mr2582151ybu.622.1649165129602; Tue, 05
- Apr 2022 06:25:29 -0700 (PDT)
+        bh=f8uchKorU3SK+3Nl3Y4nxuHq3uTyBcBu9WjlgN34Je8=;
+        b=Vc4fCdlLeKnULx7WeU05PFX041SVGBWUjEsA6GNKZcLoVqWbhN1K7iaoYsGqFKbl49
+         UmI01NKNlhDWxAgayyP5g3UJFRTZCSrUlkOG3nMPXoNHW0wu59FDBZEDr0rmebp+IOb3
+         wCQ06ai98n46YWMs41qk6JBS8CoIzAOg2XHC/FC8JPhu1QsqYGnBOre8lYzZbdtUJAgi
+         6gyohvyqjO8CAaQPi6qFrHKZBbx2TbSxE0ApqjF+3ODZ7cCIpJccTtooH95Cc/Uklbh0
+         Kq95wVKRvDTAx6EvFvGHH/yYE+H8FWhc90OchrBtiOtKl1Jbx2QDKIi+JrgVNducTGnS
+         hfJg==
+X-Gm-Message-State: AOAM530kqsBwUcl5iEArHNFC/NRXP7UHNl+ZpVzz9AsyPVkJmAqJ41+t
+        tJrwT2tVsdtxFoD2kFCxUAYirWBbULAFvezj0uc=
+X-Google-Smtp-Source: ABdhPJwKbTBR54H9kDI5qJHJEMWNzG2lGwa/5kmlpVhNg7z61lDEeQed+3lON8Ka1lR4OTZjQqfCFdVwe8mIHVUXNm8=
+X-Received: by 2002:a81:1257:0:b0:2eb:97cf:a4a2 with SMTP id
+ 84-20020a811257000000b002eb97cfa4a2mr2676401yws.149.1649165511695; Tue, 05
+ Apr 2022 06:31:51 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220325184609.4059963-1-rajatja@google.com>
-In-Reply-To: <20220325184609.4059963-1-rajatja@google.com>
+References: <20220331125450.218045-1-sakari.ailus@linux.intel.com> <YkcFSgL+j1IvSsby@kuha.fi.intel.com>
+In-Reply-To: <YkcFSgL+j1IvSsby@kuha.fi.intel.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 5 Apr 2022 15:25:17 +0200
-Message-ID: <CAJZ5v0jQW3NcbtBWxUW8RQ-eCB3M6wdqztDmPr4q5+=FYmfJHw@mail.gmail.com>
-Subject: Re: [PATCH v5 1/2] PCI: ACPI: Support Microsoft's "DmaProperty"
-To:     Rajat Jain <rajatja@google.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Rajat Jain <rajatxjain@gmail.com>,
-        Dmitry Torokhov <dtor@google.com>,
-        Jesse Barnes <jsbarnes@google.com>,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Pavel Machek <pavel@denx.de>,
-        "Oliver O'Halloran" <oohall@gmail.com>,
-        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>
+Date:   Tue, 5 Apr 2022 15:31:41 +0200
+Message-ID: <CAJZ5v0iA9q+gAoOKSHYSUt-wEL8ogM-hN0_F6dcCKc1ZhwOngg@mail.gmail.com>
+Subject: Re: [PATCH v3 0/4] Shovel firmware specific code to appropriate locations
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>,
+        "Rafael J.Wysocki" <rafael@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Mar 25, 2022 at 7:46 PM Rajat Jain <rajatja@google.com> wrote:
+On Fri, Apr 1, 2022 at 3:59 PM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
 >
-> The "DmaProperty" is supported and documented by Microsoft here:
-> https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports
-> They use this property for DMA protection:
-> https://docs.microsoft.com/en-us/windows/security/information-protection/kernel-dma-protection-for-thunderbolt
+> On Thu, Mar 31, 2022 at 03:54:46PM +0300, Sakari Ailus wrote:
+> > Hi folks,
+> >
+> > This set moves the implementation of recently added device property API
+> > functions to OF and ACPI frameworks, where the rest of such functionality
+> > resides.
+> >
+> > Compile tested.
+> >
+> > The dependencies can be found in Rafael's devprop branch now.
+> >
+> > since v2:
+> >
+> > - Add pre-processor check for CONFIG_OF_ADDRESS in of_fwnode_iomap() (3rd
+> >   patch).
+> >
+> > changes since v1:
+> >
+> > - Drop wrongly placed Depends-on: tag from the first patch.
+> >
+> > - Drop IS_ENABLED(CONFIG_OF_ADDRESS) && is_of_node(fwnode) check (3rd
+> >   patch).
+> >
+> > Sakari Ailus (4):
+> >   device property: Convert device_{dma_supported,get_dma_attr} to fwnode
+> >   ACPI: property: Move acpi_fwnode_device_get_match_data() up
+> >   device property: Add iomap to fwnode operations
+> >   device property: Add irq_get to fwnode operation
+> >
+> >  drivers/acpi/property.c | 36 +++++++++++++++++++++++++++++++----
+> >  drivers/base/property.c | 42 ++++++-----------------------------------
+> >  drivers/of/property.c   | 34 +++++++++++++++++++++++++++++++++
+> >  include/linux/fwnode.h  |  5 +++++
+> >  4 files changed, 77 insertions(+), 40 deletions(-)
 >
-> Support the "DmaProperty" with the same semantics. This is useful for
-> internal PCI devices that do not hang off a PCIe rootport, but offer
-> an attack surface for DMA attacks (e.g. internal network devices).
+> These look good to me. FWIW:
 >
-> Signed-off-by: Rajat Jain <rajatja@google.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-> ---
-> v5: * Reorder the patches in the series
-> v4: * Add the GUID.
->     * Update the comment and commitlog.
-> v3: * Use Microsoft's documented property "DmaProperty"
->     * Resctrict to ACPI only
->
->  drivers/acpi/property.c |  3 +++
->  drivers/pci/pci-acpi.c  | 16 ++++++++++++++++
->  2 files changed, 19 insertions(+)
->
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index d0986bda2964..20603cacc28d 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -48,6 +48,9 @@ static const guid_t prp_guids[] = {
->         /* Storage device needs D3 GUID: 5025030f-842f-4ab4-a561-99a5189762d0 */
->         GUID_INIT(0x5025030f, 0x842f, 0x4ab4,
->                   0xa5, 0x61, 0x99, 0xa5, 0x18, 0x97, 0x62, 0xd0),
-> +       /* DmaProperty for PCI devices GUID: 70d24161-6dd5-4c9e-8070-705531292865 */
-> +       GUID_INIT(0x70d24161, 0x6dd5, 0x4c9e,
-> +                 0x80, 0x70, 0x70, 0x55, 0x31, 0x29, 0x28, 0x65),
->  };
->
->  /* ACPI _DSD data subnodes GUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 1f15ab7eabf8..378e05096c52 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -1350,12 +1350,28 @@ static void pci_acpi_set_external_facing(struct pci_dev *dev)
->                 dev->external_facing = 1;
->  }
->
-> +static void pci_acpi_check_for_dma_protection(struct pci_dev *dev)
-> +{
-> +       u8 val;
-> +
-> +       /*
-> +        * Property also used by Microsoft Windows for same purpose,
-> +        * (to implement DMA protection from a device, using the IOMMU).
-> +        */
-> +       if (device_property_read_u8(&dev->dev, "DmaProperty", &val))
-> +               return;
-> +
-> +       if (val)
-> +               dev->untrusted = 1;
-> +}
-> +
->  void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
->  {
->         struct pci_dev *pci_dev = to_pci_dev(dev);
->
->         pci_acpi_optimize_delay(pci_dev, adev->handle);
->         pci_acpi_set_external_facing(pci_dev);
-> +       pci_acpi_check_for_dma_protection(pci_dev);
->         pci_acpi_add_edr_notifier(pci_dev);
->
->         pci_acpi_add_pm_notifier(adev, pci_dev);
-> --
-> 2.35.1.1021.g381101b075-goog
->
+All patches in the series applied as 5.19 material, thanks!
