@@ -2,94 +2,100 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51FF6C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D1DEC4332F
 	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 14:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234712AbiDEOqf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Apr 2022 10:46:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35472 "EHLO
+        id S236722AbiDEOql (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Apr 2022 10:46:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387855AbiDEOc4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 10:32:56 -0400
-Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26E18EDF2B
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Apr 2022 06:14:40 -0700 (PDT)
-Received: by mail-yb1-f181.google.com with SMTP id x21so17058305ybd.6
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Apr 2022 06:14:40 -0700 (PDT)
+        with ESMTP id S1349825AbiDENGH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 09:06:07 -0400
+Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8800175625;
+        Tue,  5 Apr 2022 05:07:16 -0700 (PDT)
+Received: by mail-yb1-f171.google.com with SMTP id g9so22971564ybf.1;
+        Tue, 05 Apr 2022 05:07:16 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=zvOaH0ER71tusCcIPLqQC4dJdJu4fGW+h9h/KwcZ8Y8=;
-        b=iNc1IzVsWCjf8tIfoD2ZSZ8tJqFZdg9Cg2hyCGYQL2SgszrLY13QfjxtpEg/H3rY9a
-         iwqfQtDIdxyu+6MNKeV5kUIpz48aHsIZdNcDOuStDv2nKL0LV+gWn7/brhqVjd/9uCUC
-         1jK0gjaSrkADzh22gTdTHwQm40CB/RUo3CszFTTOTcb+lN1vsO6FTsAx4ILlknlciS1I
-         9b3doxGQH1h4EZgVDvgu5ESKdcBMQzCMd8hkn8oJWXp6tl3N7E778qpUyvhjLJpwCuVT
-         s4MxuCmSufmjRWkwuAvjt26dQK2qb6x/kULqKKrj+7kCN8s42FUzKiPAAW+dVrP5YXI6
-         tuvA==
-X-Gm-Message-State: AOAM532qtVVUzXKAQQ7LtWJTWf3hZOIiHkilpoPTQiI1KlO4uRAQ65iH
-        UswaNRGo7aLlR5F+XFyyPmAoLvu2aRjrYSkPloM=
-X-Google-Smtp-Source: ABdhPJyQFt/MP1BpjrApObfcj1Gi1R/qyxjxsm0AbmN2lntNyuWJq9z9W/qYAInQcwlCtizabIjuuzArYHpSytEd7cM=
-X-Received: by 2002:a05:6902:1544:b0:63d:d3a7:8cc4 with SMTP id
- r4-20020a056902154400b0063dd3a78cc4mr2540036ybu.622.1649164478907; Tue, 05
- Apr 2022 06:14:38 -0700 (PDT)
+        bh=knCnV41xjhnnJ0VL0WEqN+kHikKWH8noX35ww6a147E=;
+        b=O7lckBcjELkuaLNv/vx9Zk/dwxb9uNuvdTAK9RfD2UeFpLI+xa1ocEs2O+vfLgUcsy
+         E6lMViABScXgrmVNn0UwQsQhGsBMZjx2E+J1SF4r6LWvm47xalDPaI0XJ2x+wI7/O4VW
+         hLWnU8IchmREOD59IjWNEVY3v3AhTniApfIMW+33/WKIqoHL00Cc5FpHrYpe82q0Sw5f
+         yYlqC0H9t+ZUIzWY9yhWmmJlA9jlW+JvfvfUm1iPBPJBlGqg44x1XmHa5Mx2jl+5l5Nx
+         YtKYSoqyZDYZ+I2EUT8bGKLtTFar7nvRsKdGKsStiFkHJo53hRUX/Zyy2PYRi16wMF4W
+         oWMw==
+X-Gm-Message-State: AOAM531oN2BMuSlLOg4c+fubzN47QHtqt6CXO/IXNgKM6WoRUnL+NEHf
+        dOMvpaK3MYr/99JV7bZnf1StMsg1GNX/S5tJN+ueJseC
+X-Google-Smtp-Source: ABdhPJzm72VVZWMJatZlptDAM3D3/uPEoLzUPr4PBmAZeVrej6UKEUv7t6NBnltKTsOgvbQB0rfxyKF5TOgeLVOvss8=
+X-Received: by 2002:a25:cc08:0:b0:63d:2c6d:162 with SMTP id
+ l8-20020a25cc08000000b0063d2c6d0162mr2240396ybf.137.1649160435809; Tue, 05
+ Apr 2022 05:07:15 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1647525033.git.vit@kabele.me> <YjM/6rqxZN19en2I@czspare1-lap.sysgo.cz>
-In-Reply-To: <YjM/6rqxZN19en2I@czspare1-lap.sysgo.cz>
+References: <21439956.EfDdHjke4D@kreacher> <YkwQAKcFU4CzYX5E@lahna>
+In-Reply-To: <YkwQAKcFU4CzYX5E@lahna>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 5 Apr 2022 15:14:27 +0200
-Message-ID: <CAJZ5v0iSCrU3AeEaTxVkbma_0Wi9LPPRiP_NbmuAgDOeDS9c0g@mail.gmail.com>
-Subject: Re: [PATCH 2/3] acpica: Check that the EBDA pointer is in valid range
-To:     platform-driver-x86@kernel.org, r.marek@assembler.cz,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Robert Moore <robert.moore@intel.com>, linux-kernel@kernel.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     vit@kabele.me
+Date:   Tue, 5 Apr 2022 14:07:03 +0200
+Message-ID: <CAJZ5v0ja5OKUh004wEMhrgVtk-yp_Dzvmk33xNhabjDqzV0JsQ@mail.gmail.com>
+Subject: Re: [PATCH v1 0/3] ACPI: PCI: PM: Power up PCI devices with ACPI
+ companions upfront
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Mar 17, 2022 at 3:12 PM Vit Kabele <vit@kabele.me> wrote:
+On Tue, Apr 5, 2022 at 1:45 PM Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 >
-> If the memory at 0x40e is uninitialized, the retrieved physical_memory
-> address of EBDA may be beyond the low memory (i.e. above 640K).
+> Hi Rafael,
 >
-> If so, the kernel may unintentionally access the VGA memory, that
-> might not be decoded or even present in case of virtualization.
+> On Mon, Apr 04, 2022 at 05:20:30PM +0200, Rafael J. Wysocki wrote:
+> > Hi All,
+> >
+> > There are cases in which the power state of a PCI device depends on an ACPI
+> > power resource (or more of them) in such a way that when the given power
+> > resource is in the "off" state, the PCI device depending on it is in D3cold.
+> >
+> > On some systems, the initial state of these power resources is "off", so the
+> > kernel should not access the config space of PCI devices depending on them,
+> > until the power resources in question are turned "on", but currently that is
+> > not respected during PCI device enumeration.  Namely, the PCI device
+> > enumeration code walks the entire bus and enumerates all of the devices it
+> > can find, including the ones whose initial power state in principle depends on
+> > the ACPI power resources in the "off" state.
 >
-> Signed-off-by: Vit Kabele <vit@kabele.me>
-> Reviewed-by: Rudolf Marek <r.marek@assembler.cz>
-> ---
->  drivers/acpi/acpica/tbxfroot.c | 7 +++++--
+> I guess these devices do not have _PRE() method either.
 
-Changes in the ACPICA code need to be submitted to the upstream ACPICA
-project via https://github.com/acpica/acpica and they are pulled from
-there into the kernel.
+Personally, I haven't seen any ACPI tables containing any _PRE yet.
 
-Of course, this applies to the next patch in the series too.
+> > Apparently, most of the time, the config space of such devices is accessible
+> > regardless of the state of the ACPI power resource associated with the PCI
+> > device, so the device enumeration is successful, but there are two potential
+> > issues related to this behavior.  First off, even if the given PCI device
+> > is accessible when the ACPI power resource depended on by it is "off",
+> > changing its configuration may confuse the platform firmware and lead to
+> > problems when the ACPI power resource in question is turned "on".  Second,
+> > the PCI device may not be actually accessible at all when the ACPI power
+> > resource depended on by it is "off", in which case it won't be found during
+> > the PCI enumeration of devices.
+> >
+> > This patch series addresses that problem by turning "on" all ACPI power
+> > resources depended on by PCI devices before attempting to access the config
+> > space of those devices for the first time.
+>
+> Makes sense.
+>
+> For the series,
+>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
-> index 9fec3df6c3ba..67b7df1c0520 100644
-> --- a/drivers/acpi/acpica/tbxfroot.c
-> +++ b/drivers/acpi/acpica/tbxfroot.c
-> @@ -138,8 +138,11 @@ acpi_find_root_pointer(acpi_physical_address *table_address)
->         acpi_os_unmap_memory(table_ptr, ACPI_EBDA_PTR_LENGTH);
->
->         /* EBDA present? */
-> -
-> -       if (physical_address > 0x400) {
-> +       /* Check that the EBDA pointer from 0x40e is sane and does not point
-> +        * above valid low memory
-> +        */
-> +       if (physical_address > 0x400 &&
-> +           physical_address < 0xA0000) {
->                 /*
->                  * 1b) Search EBDA paragraphs (EBDA is required to be a
->                  *     minimum of 1K length)
-> --
-> 2.30.2
->
+Thanks!
