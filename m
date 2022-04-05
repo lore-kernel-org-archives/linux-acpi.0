@@ -2,252 +2,333 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8CDAC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED572C4332F
 	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 20:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240032AbiDEUph (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Apr 2022 16:45:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38684 "EHLO
+        id S240301AbiDEUpr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Apr 2022 16:45:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382107AbiDEPO2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 11:14:28 -0400
-Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20B081700BE;
-        Tue,  5 Apr 2022 06:26:15 -0700 (PDT)
-Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-2e5e9025c20so135503637b3.7;
-        Tue, 05 Apr 2022 06:26:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=5bma3Hv9/Du0X4/97+r/i96qcpXIT9vsWsP+NmZQEhc=;
-        b=Vl4ngRqcIeckA/jKuKB4ELhRPTohkhg1Wqw0NA5NEXPIN81N78SpyBvYEtGcDGO/yj
-         fHwy8V4//fTFc1pnlG+xf2tsbQQya205qkpRU3j2uzJ5oxizPaVI+8mkcS5C/RQ3h8xE
-         sRhWmiHrMiHPG0PiMypbe4mrarR24sjBwetednlAJ9au+MQyRawPrbulFdXDd7Fw9TL+
-         UvZw0tsi2g0b+sef2fagOeD1ivYsAWj4RO5WBgTapngrnL88e+UMLGEFWPl3jWTo2q+N
-         8AcVXOyPgDBJsWTRaDgOdj4rvGWiAXVvu42r2AOyzggO0WBsK87unrPD1uAa0zFHVxUz
-         ozDQ==
-X-Gm-Message-State: AOAM530pzAdLWJ7ZQT4ykfJBCEAhhMe/HMePa2yhBoy0sEm7Ksvcy3XF
-        7lbsbDJ4Sxlx9Pswf+SZd7yWkcM+D+JGhfWzPhA=
-X-Google-Smtp-Source: ABdhPJwSoRVMoL8d5NZt/uFMN/p5bnGsKoxUE2f3GX9NbHU0ViSKhN6b3N2cxmhRKLuKcvzdrUX4TUIagp1Us0uHFq8=
-X-Received: by 2002:a81:1549:0:b0:2eb:3dc7:bd16 with SMTP id
- 70-20020a811549000000b002eb3dc7bd16mr2689122ywv.7.1649165174251; Tue, 05 Apr
- 2022 06:26:14 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220325184609.4059963-1-rajatja@google.com> <20220325184609.4059963-2-rajatja@google.com>
-In-Reply-To: <20220325184609.4059963-2-rajatja@google.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 5 Apr 2022 15:26:03 +0200
-Message-ID: <CAJZ5v0hH-Xujak9jGLOvxnLVHXCms8SU-2qJnzPXpAGK4FBxqA@mail.gmail.com>
-Subject: Re: [PATCH v5 2/2] PCI: Rename pci_dev->untrusted to pci_dev->untrusted_dma
-To:     Rajat Jain <rajatja@google.com>
+        with ESMTP id S244252AbiDEUUc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 16:20:32 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBE22692BA;
+        Tue,  5 Apr 2022 13:00:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1649188806; x=1680724806;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=s9+5sWIrw/8+D5NpfC6Yf1k8qyONKg8kSkpaSpE5bF8=;
+  b=mwjp+Uy7XBAj/JvV932wF7wUZOXvjrLH7tuCmQJ5TJg/R2fYOc1m9656
+   LJUXKyBqigXEtwQYmps0KK368DlxNR8ZCL/yqUk9xPygyr6TATXkfQnZB
+   +UC8GAHp2GZB7GUFUGX6sQVMg/+zM0TU11vxpdcTHph8t8cTH864Yc1Bt
+   oAYQVZPE7NICBo+93+VY7rLIvDq6+JxJUDZpiRVMo7RDiYANcV/cHt9QJ
+   ruQ5J7c/zWDxz6plL8fGmFGUX2Igfe3cWkn0VZFJ2n3Sgiamw1iIBUQSK
+   nZ7/VIuiFWgjVInC2mlDGVXjG3GNJ6kgL3zQvE4saE6ZsVrr5d4o3NZQA
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10308"; a="260548291"
+X-IronPort-AV: E=Sophos;i="5.90,238,1643702400"; 
+   d="scan'208";a="260548291"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2022 13:00:06 -0700
+X-IronPort-AV: E=Sophos;i="5.90,238,1643702400"; 
+   d="scan'208";a="588073914"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2022 13:00:05 -0700
+Subject: [PATCH v2] PM: CXL: Disable suspend
+From:   Dan Williams <dan.j.williams@intel.com>
+To:     linux-cxl@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Rajat Jain <rajatxjain@gmail.com>,
-        Dmitry Torokhov <dtor@google.com>,
-        Jesse Barnes <jsbarnes@google.com>,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>,
-        Pavel Machek <pavel@denx.de>,
-        "Oliver O'Halloran" <oohall@gmail.com>,
-        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+        Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Date:   Tue, 05 Apr 2022 13:00:05 -0700
+Message-ID: <164918880566.2022733.9710638662231385597.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <164894751774.951952.9428402449668442020.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Mar 25, 2022 at 7:46 PM Rajat Jain <rajatja@google.com> wrote:
->
-> Rename the field to make it more clear, that the device can execute DMA
-> attacks on the system, and thus the system may need protection from
-> such attacks from this device.
->
-> No functional change intended.
->
-> Signed-off-by: Rajat Jain <rajatja@google.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+The CXL specification claims S3 support at a hardware level, but at a
+system software level there are some missing pieces. Section 9.4 (CXL
+2.0) rightly claims that "CXL mem adapters may need aux power to retain
+memory context across S3", but there is no enumeration mechanism for the
+OS to determine if a given adapter has that support. Moreover the save
+state and resume image for the system may inadvertantly end up in a CXL
+device that needs to be restored before the save state is recoverable.
+I.e. a circular dependency that is not resolvable without a third party
+save-area.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Arrange for the cxl_mem driver to fail S3 attempts. This still nominaly
+allows for suspend, but requires unbinding all CXL memory devices before
+the suspend to ensure the typical DRAM flow is taken. The cxl_mem unbind
+flow is intended to also tear down all CXL memory regions associated
+with a given cxl_memdev.
 
-> ---
-> v5: Use "untrusted_dma" as property name, based on feedback.
->     Reorder the patches in the series.
-> v4: Initial version, created based on comments on other patch
->
->  drivers/iommu/dma-iommu.c   | 6 +++---
->  drivers/iommu/intel/iommu.c | 2 +-
->  drivers/iommu/iommu.c       | 2 +-
->  drivers/pci/ats.c           | 2 +-
->  drivers/pci/pci-acpi.c      | 2 +-
->  drivers/pci/pci.c           | 2 +-
->  drivers/pci/probe.c         | 8 ++++----
->  drivers/pci/quirks.c        | 2 +-
->  include/linux/pci.h         | 5 +++--
->  9 files changed, 16 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-> index d85d54f2b549..7cbe300fe907 100644
-> --- a/drivers/iommu/dma-iommu.c
-> +++ b/drivers/iommu/dma-iommu.c
-> @@ -497,14 +497,14 @@ static int iova_reserve_iommu_regions(struct device *dev,
->         return ret;
->  }
->
-> -static bool dev_is_untrusted(struct device *dev)
-> +static bool dev_has_untrusted_dma(struct device *dev)
->  {
-> -       return dev_is_pci(dev) && to_pci_dev(dev)->untrusted;
-> +       return dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma;
->  }
->
->  static bool dev_use_swiotlb(struct device *dev)
->  {
-> -       return IS_ENABLED(CONFIG_SWIOTLB) && dev_is_untrusted(dev);
-> +       return IS_ENABLED(CONFIG_SWIOTLB) && dev_has_untrusted_dma(dev);
->  }
->
->  /**
-> diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-> index 92fea3fbbb11..9246b7c9ab46 100644
-> --- a/drivers/iommu/intel/iommu.c
-> +++ b/drivers/iommu/intel/iommu.c
-> @@ -5570,7 +5570,7 @@ intel_iommu_enable_nesting(struct iommu_domain *domain)
->   */
->  static bool risky_device(struct pci_dev *pdev)
->  {
-> -       if (pdev->untrusted) {
-> +       if (pdev->untrusted_dma) {
->                 pci_info(pdev,
->                          "Skipping IOMMU quirk for dev [%04X:%04X] on untrusted PCI link\n",
->                          pdev->vendor, pdev->device);
-> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-> index 8b86406b7162..79fb66af2e68 100644
-> --- a/drivers/iommu/iommu.c
-> +++ b/drivers/iommu/iommu.c
-> @@ -1522,7 +1522,7 @@ static int iommu_get_def_domain_type(struct device *dev)
->  {
->         const struct iommu_ops *ops = dev->bus->iommu_ops;
->
-> -       if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted)
-> +       if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma)
->                 return IOMMU_DOMAIN_DMA;
->
->         if (ops->def_domain_type)
-> diff --git a/drivers/pci/ats.c b/drivers/pci/ats.c
-> index c967ad6e2626..477c16ba9341 100644
-> --- a/drivers/pci/ats.c
-> +++ b/drivers/pci/ats.c
-> @@ -42,7 +42,7 @@ bool pci_ats_supported(struct pci_dev *dev)
->         if (!dev->ats_cap)
->                 return false;
->
-> -       return (dev->untrusted == 0);
-> +       return (dev->untrusted_dma == 0);
->  }
->  EXPORT_SYMBOL_GPL(pci_ats_supported);
->
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 378e05096c52..1d5a284c3661 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -1362,7 +1362,7 @@ static void pci_acpi_check_for_dma_protection(struct pci_dev *dev)
->                 return;
->
->         if (val)
-> -               dev->untrusted = 1;
-> +               dev->untrusted_dma = 1;
->  }
->
->  void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index 9ecce435fb3f..1fb0eb8646c8 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -958,7 +958,7 @@ static void pci_std_enable_acs(struct pci_dev *dev)
->         ctrl |= (cap & PCI_ACS_UF);
->
->         /* Enable Translation Blocking for external devices and noats */
-> -       if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
-> +       if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
->                 ctrl |= (cap & PCI_ACS_TB);
->
->         pci_write_config_word(dev, pos + PCI_ACS_CTRL, ctrl);
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 17a969942d37..d2a9b26fcede 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1587,7 +1587,7 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
->                 dev->is_thunderbolt = 1;
->  }
->
-> -static void set_pcie_untrusted(struct pci_dev *dev)
-> +static void pci_set_untrusted_dma(struct pci_dev *dev)
->  {
->         struct pci_dev *parent;
->
-> @@ -1596,8 +1596,8 @@ static void set_pcie_untrusted(struct pci_dev *dev)
->          * untrusted as well.
->          */
->         parent = pci_upstream_bridge(dev);
-> -       if (parent && (parent->untrusted || parent->external_facing))
-> -               dev->untrusted = true;
-> +       if (parent && (parent->untrusted_dma || parent->external_facing))
-> +               dev->untrusted_dma = true;
->  }
->
->  static void pci_set_removable(struct pci_dev *dev)
-> @@ -1862,7 +1862,7 @@ int pci_setup_device(struct pci_dev *dev)
->         /* Need to have dev->cfg_size ready */
->         set_pcie_thunderbolt(dev);
->
-> -       set_pcie_untrusted(dev);
-> +       pci_set_untrusted_dma(dev);
->
->         /* "Unknown power state" */
->         dev->current_state = PCI_UNKNOWN;
-> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-> index 5f46fed01e6c..7ca3c2cdfb20 100644
-> --- a/drivers/pci/quirks.c
-> +++ b/drivers/pci/quirks.c
-> @@ -5134,7 +5134,7 @@ static int pci_quirk_enable_intel_spt_pch_acs(struct pci_dev *dev)
->         ctrl |= (cap & PCI_ACS_CR);
->         ctrl |= (cap & PCI_ACS_UF);
->
-> -       if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
-> +       if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
->                 ctrl |= (cap & PCI_ACS_TB);
->
->         pci_write_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, ctrl);
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 678fecdf6b81..b7c5fede0b93 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -444,13 +444,14 @@ struct pci_dev {
->         unsigned int    shpc_managed:1;         /* SHPC owned by shpchp */
->         unsigned int    is_thunderbolt:1;       /* Thunderbolt controller */
->         /*
-> -        * Devices marked being untrusted are the ones that can potentially
-> +        * Devices marked with untrusted_dma are the ones that can potentially
->          * execute DMA attacks and similar. They are typically connected
->          * through external ports such as Thunderbolt but not limited to
->          * that. When an IOMMU is enabled they should be getting full
->          * mappings to make sure they cannot access arbitrary memory.
->          */
-> -       unsigned int    untrusted:1;
-> +       unsigned int    untrusted_dma:1;
-> +
->         /*
->          * Info from the platform, e.g., ACPI or device tree, may mark a
->          * device as "external-facing".  An external-facing device is
-> --
-> 2.35.1.1021.g381101b075-goog
->
+It is reasonable to assume that any device participating in a System RAM
+range published in the EFI memory map is covered by aux power and
+save-area outside the device itself. So this restriction can be
+minimized in the future once pre-existing region enumeration support
+arrives, and perhaps a spec update to clarify if the EFI memory map is
+sufficent for determining the range of devices managed by
+platform-firmware for S3 support.
+
+Per Rafael, if the CXL configuration prevents suspend then it should
+fail early before tasks are frozen, and mem_sleep should stop showing
+'mem' as an option [1]. Effectively CXL augments the platform suspend
+->valid() op since, for example, the ACPI ops are not aware of the CXL /
+PCI dependencies. Given the split role of platform firmware vs OS
+provisioned CXL memory it is up to the cxl_mem driver to determine if
+the CXL configuration has elements that platform firmware may not be
+prepared to restore.
+
+Link: https://lore.kernel.org/r/CAJZ5v0hGVN_=3iU8OLpHY3Ak35T5+JcBM-qs8SbojKrpd0VXsA@mail.gmail.com [1]
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/Makefile           |    2 +-
+ drivers/cxl/Kconfig        |    4 ++++
+ drivers/cxl/Makefile       |    2 +-
+ drivers/cxl/core/Makefile  |    1 +
+ drivers/cxl/core/memdev.c  |    1 -
+ drivers/cxl/core/suspend.c |   23 +++++++++++++++++++++++
+ drivers/cxl/cxlmem.h       |   11 +++++++++++
+ drivers/cxl/mem.c          |   22 +++++++++++++++++++++-
+ include/linux/pm.h         |    9 +++++++++
+ kernel/power/hibernate.c   |    2 +-
+ kernel/power/main.c        |    5 ++++-
+ kernel/power/suspend.c     |    3 ++-
+ 12 files changed, 78 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/cxl/core/suspend.c
+
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 020780b6b4d2..f735c4955143 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -72,9 +72,9 @@ obj-$(CONFIG_PARPORT)		+= parport/
+ obj-y				+= base/ block/ misc/ mfd/ nfc/
+ obj-$(CONFIG_LIBNVDIMM)		+= nvdimm/
+ obj-$(CONFIG_DAX)		+= dax/
+-obj-$(CONFIG_CXL_BUS)		+= cxl/
+ obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf/
+ obj-$(CONFIG_NUBUS)		+= nubus/
++obj-y				+= cxl/
+ obj-y				+= macintosh/
+ obj-y				+= scsi/
+ obj-y				+= nvme/
+diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+index b88ab956bb7c..f64e3984689f 100644
+--- a/drivers/cxl/Kconfig
++++ b/drivers/cxl/Kconfig
+@@ -98,4 +98,8 @@ config CXL_PORT
+ 	default CXL_BUS
+ 	tristate
+ 
++config CXL_SUSPEND
++	def_bool y
++	depends on SUSPEND && CXL_MEM
++
+ endif
+diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
+index ce267ef11d93..a78270794150 100644
+--- a/drivers/cxl/Makefile
++++ b/drivers/cxl/Makefile
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+-obj-$(CONFIG_CXL_BUS) += core/
++obj-y += core/
+ obj-$(CONFIG_CXL_PCI) += cxl_pci.o
+ obj-$(CONFIG_CXL_MEM) += cxl_mem.o
+ obj-$(CONFIG_CXL_ACPI) += cxl_acpi.o
+diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
+index 6d37cd78b151..9d35085d25af 100644
+--- a/drivers/cxl/core/Makefile
++++ b/drivers/cxl/core/Makefile
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_CXL_BUS) += cxl_core.o
++obj-$(CONFIG_CXL_SUSPEND) += suspend.o
+ 
+ ccflags-y += -I$(srctree)/drivers/cxl
+ cxl_core-y := port.o
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index 1f76b28f9826..efe4d2e9bfef 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -251,7 +251,6 @@ static struct cxl_memdev *cxl_memdev_alloc(struct cxl_dev_state *cxlds,
+ 	dev->bus = &cxl_bus_type;
+ 	dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
+ 	dev->type = &cxl_memdev_type;
+-	device_set_pm_not_required(dev);
+ 	INIT_WORK(&cxlmd->detach_work, detach_memdev);
+ 
+ 	cdev = &cxlmd->cdev;
+diff --git a/drivers/cxl/core/suspend.c b/drivers/cxl/core/suspend.c
+new file mode 100644
+index 000000000000..88bdbe30a1df
+--- /dev/null
++++ b/drivers/cxl/core/suspend.c
+@@ -0,0 +1,23 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
++#include <linux/atomic.h>
++#include <linux/export.h>
++
++static atomic_t mem_active;
++
++bool cxl_mem_active(void)
++{
++	return atomic_read(&mem_active) != 0;
++}
++
++void cxl_mem_active_inc(void)
++{
++	atomic_inc(&mem_active);
++}
++EXPORT_SYMBOL_NS_GPL(cxl_mem_active_inc, CXL);
++
++void cxl_mem_active_dec(void)
++{
++	atomic_dec(&mem_active);
++}
++EXPORT_SYMBOL_NS_GPL(cxl_mem_active_dec, CXL);
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 243dd86a8b46..7235d2f976e5 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -353,6 +353,17 @@ int cxl_mem_create_range_info(struct cxl_dev_state *cxlds);
+ struct cxl_dev_state *cxl_dev_state_create(struct device *dev);
+ void set_exclusive_cxl_commands(struct cxl_dev_state *cxlds, unsigned long *cmds);
+ void clear_exclusive_cxl_commands(struct cxl_dev_state *cxlds, unsigned long *cmds);
++#ifdef CONFIG_CXL_SUSPEND
++void cxl_mem_active_inc(void);
++void cxl_mem_active_dec(void);
++#else
++static inline void cxl_mem_active_inc(void)
++{
++}
++static inline void cxl_mem_active_dec(void)
++{
++}
++#endif
+ 
+ struct cxl_hdm {
+ 	struct cxl_component_regs regs;
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index 49a4b1c47299..0576d2d3df07 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -129,6 +129,11 @@ __mock bool cxl_dvsec_decode_init(struct cxl_dev_state *cxlds)
+ 	return do_hdm_init;
+ }
+ 
++static void enable_suspend(void *data)
++{
++	cxl_mem_active_dec();
++}
++
+ static int cxl_mem_probe(struct device *dev)
+ {
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+@@ -207,7 +212,22 @@ static int cxl_mem_probe(struct device *dev)
+ out:
+ 	cxl_device_unlock(&parent_port->dev);
+ 	put_device(&parent_port->dev);
+-	return rc;
++
++	/*
++	 * The kernel may be operating out of CXL memory on this device,
++	 * there is no spec defined way to determine whether this device
++	 * preserves contents over suspend, and there is no simple way
++	 * to arrange for the suspend image to avoid CXL memory which
++	 * would setup a circular dependency between PCI resume and save
++	 * state restoration.
++	 *
++	 * TODO: support suspend when all the regions this device is
++	 * hosting are locked and covered by the system address map,
++	 * i.e. platform firmware owns restoring the HDM configuration
++	 * that it locked.
++	 */
++	cxl_mem_active_inc();
++	return devm_add_action_or_reset(dev, enable_suspend, NULL);
+ }
+ 
+ static struct cxl_driver cxl_mem_driver = {
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index e65b3ab28377..7911c4c9a7be 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -36,6 +36,15 @@ static inline void pm_vt_switch_unregister(struct device *dev)
+ }
+ #endif /* CONFIG_VT_CONSOLE_SLEEP */
+ 
++#ifdef CONFIG_CXL_SUSPEND
++bool cxl_mem_active(void);
++#else
++static inline bool cxl_mem_active(void)
++{
++	return false;
++}
++#endif
++
+ /*
+  * Device power management
+  */
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index 938d5c78b421..20a66bf9f465 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -83,7 +83,7 @@ bool hibernation_available(void)
+ {
+ 	return nohibernate == 0 &&
+ 		!security_locked_down(LOCKDOWN_HIBERNATION) &&
+-		!secretmem_active();
++		!secretmem_active() && !cxl_mem_active();
+ }
+ 
+ /**
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+index 7e646079fbeb..3e6be1c33e0b 100644
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -127,7 +127,9 @@ static ssize_t mem_sleep_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 	char *s = buf;
+ 	suspend_state_t i;
+ 
+-	for (i = PM_SUSPEND_MIN; i < PM_SUSPEND_MAX; i++)
++	for (i = PM_SUSPEND_MIN; i < PM_SUSPEND_MAX; i++) {
++		if (i >= PM_SUSPEND_MEM && cxl_mem_active())
++			continue;
+ 		if (mem_sleep_states[i]) {
+ 			const char *label = mem_sleep_states[i];
+ 
+@@ -136,6 +138,7 @@ static ssize_t mem_sleep_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 			else
+ 				s += sprintf(s, "%s ", label);
+ 		}
++	}
+ 
+ 	/* Convert the last space to a newline if needed. */
+ 	if (s != buf)
+diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+index 6fcdee7e87a5..827075944d28 100644
+--- a/kernel/power/suspend.c
++++ b/kernel/power/suspend.c
+@@ -236,7 +236,8 @@ EXPORT_SYMBOL_GPL(suspend_valid_only_mem);
+ 
+ static bool sleep_state_supported(suspend_state_t state)
+ {
+-	return state == PM_SUSPEND_TO_IDLE || valid_state(state);
++	return state == PM_SUSPEND_TO_IDLE ||
++	       (valid_state(state) && !cxl_mem_active());
+ }
+ 
+ static int platform_suspend_prepare(suspend_state_t state)
+
