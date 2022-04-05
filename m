@@ -2,110 +2,252 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8089C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8CDAC433EF
 	for <linux-acpi@archiver.kernel.org>; Tue,  5 Apr 2022 20:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240206AbiDEUpn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Apr 2022 16:45:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42656 "EHLO
+        id S240032AbiDEUph (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Apr 2022 16:45:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1457915AbiDEQ7M (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 12:59:12 -0400
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C618B4A915;
-        Tue,  5 Apr 2022 09:57:13 -0700 (PDT)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id 742f0ee565e3f865; Tue, 5 Apr 2022 18:57:12 +0200
-Received: from kreacher.localnet (unknown [213.134.181.136])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 8220B66BCB7;
-        Tue,  5 Apr 2022 18:57:11 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org
-Subject: [PATCH v1] ACPI: bus: Eliminate acpi_bus_get_device()
-Date:   Tue, 05 Apr 2022 18:57:10 +0200
-Message-ID: <5817980.lOV4Wx5bFT@kreacher>
+        with ESMTP id S1382107AbiDEPO2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2022 11:14:28 -0400
+Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20B081700BE;
+        Tue,  5 Apr 2022 06:26:15 -0700 (PDT)
+Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-2e5e9025c20so135503637b3.7;
+        Tue, 05 Apr 2022 06:26:15 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5bma3Hv9/Du0X4/97+r/i96qcpXIT9vsWsP+NmZQEhc=;
+        b=Vl4ngRqcIeckA/jKuKB4ELhRPTohkhg1Wqw0NA5NEXPIN81N78SpyBvYEtGcDGO/yj
+         fHwy8V4//fTFc1pnlG+xf2tsbQQya205qkpRU3j2uzJ5oxizPaVI+8mkcS5C/RQ3h8xE
+         sRhWmiHrMiHPG0PiMypbe4mrarR24sjBwetednlAJ9au+MQyRawPrbulFdXDd7Fw9TL+
+         UvZw0tsi2g0b+sef2fagOeD1ivYsAWj4RO5WBgTapngrnL88e+UMLGEFWPl3jWTo2q+N
+         8AcVXOyPgDBJsWTRaDgOdj4rvGWiAXVvu42r2AOyzggO0WBsK87unrPD1uAa0zFHVxUz
+         ozDQ==
+X-Gm-Message-State: AOAM530pzAdLWJ7ZQT4ykfJBCEAhhMe/HMePa2yhBoy0sEm7Ksvcy3XF
+        7lbsbDJ4Sxlx9Pswf+SZd7yWkcM+D+JGhfWzPhA=
+X-Google-Smtp-Source: ABdhPJwSoRVMoL8d5NZt/uFMN/p5bnGsKoxUE2f3GX9NbHU0ViSKhN6b3N2cxmhRKLuKcvzdrUX4TUIagp1Us0uHFq8=
+X-Received: by 2002:a81:1549:0:b0:2eb:3dc7:bd16 with SMTP id
+ 70-20020a811549000000b002eb3dc7bd16mr2689122ywv.7.1649165174251; Tue, 05 Apr
+ 2022 06:26:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20220325184609.4059963-1-rajatja@google.com> <20220325184609.4059963-2-rajatja@google.com>
+In-Reply-To: <20220325184609.4059963-2-rajatja@google.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 5 Apr 2022 15:26:03 +0200
+Message-ID: <CAJZ5v0hH-Xujak9jGLOvxnLVHXCms8SU-2qJnzPXpAGK4FBxqA@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] PCI: Rename pci_dev->untrusted to pci_dev->untrusted_dma
+To:     Rajat Jain <rajatja@google.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Rajat Jain <rajatxjain@gmail.com>,
+        Dmitry Torokhov <dtor@google.com>,
+        Jesse Barnes <jsbarnes@google.com>,
+        Jean-Philippe Brucker <jean-philippe@linaro.org>,
+        Pavel Machek <pavel@denx.de>,
+        "Oliver O'Halloran" <oohall@gmail.com>,
+        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.181.136
-X-CLIENT-HOSTNAME: 213.134.181.136
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudejgedguddtfecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhephfegtdffjeehkeegleejveevtdeugfffieeijeduuddtkefgjedvheeujeejtedvnecukfhppedvudefrddufeegrddukedurddufeeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekuddrudefiedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegsrhhoohhnihgvsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhsphhisehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Mar 25, 2022 at 7:46 PM Rajat Jain <rajatja@google.com> wrote:
+>
+> Rename the field to make it more clear, that the device can execute DMA
+> attacks on the system, and thus the system may need protection from
+> such attacks from this device.
+>
+> No functional change intended.
+>
+> Signed-off-by: Rajat Jain <rajatja@google.com>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Replace the last instance of acpi_bus_get_device(), added recently
-by commit 87e59b36e5e2 ("spi: Support selection of the index of the
-ACPI Spi Resource before alloc"), with acpi_fetch_acpi_dev() and
-finally drop acpi_bus_get_device() that has no more users.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c     |   13 -------------
- drivers/spi/spi.c       |    3 ++-
- include/acpi/acpi_bus.h |    1 -
- 3 files changed, 2 insertions(+), 15 deletions(-)
-
-Index: linux-pm/drivers/spi/spi.c
-===================================================================
---- linux-pm.orig/drivers/spi/spi.c
-+++ linux-pm/drivers/spi/spi.c
-@@ -2406,7 +2406,8 @@ static int acpi_spi_add_resource(struct
- 			} else {
- 				struct acpi_device *adev;
- 
--				if (acpi_bus_get_device(parent_handle, &adev))
-+				adev = acpi_fetch_acpi_dev(parent_handle);
-+				if (!adev)
- 					return -ENODEV;
- 
- 				ctlr = acpi_spi_find_controller_by_adev(adev);
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -511,7 +511,6 @@ extern int unregister_acpi_notifier(stru
-  * External Functions
-  */
- 
--int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device);
- struct acpi_device *acpi_fetch_acpi_dev(acpi_handle handle);
- acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- 				       unsigned long long *sta);
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -588,19 +588,6 @@ static struct acpi_device *handle_to_dev
- 	return adev;
- }
- 
--int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
--{
--	if (!device)
--		return -EINVAL;
--
--	*device = handle_to_device(handle, NULL);
--	if (!*device)
--		return -ENODEV;
--
--	return 0;
--}
--EXPORT_SYMBOL(acpi_bus_get_device);
--
- /**
-  * acpi_fetch_acpi_dev - Retrieve ACPI device object.
-  * @handle: ACPI handle associated with the requested ACPI device object.
-
-
-
+> ---
+> v5: Use "untrusted_dma" as property name, based on feedback.
+>     Reorder the patches in the series.
+> v4: Initial version, created based on comments on other patch
+>
+>  drivers/iommu/dma-iommu.c   | 6 +++---
+>  drivers/iommu/intel/iommu.c | 2 +-
+>  drivers/iommu/iommu.c       | 2 +-
+>  drivers/pci/ats.c           | 2 +-
+>  drivers/pci/pci-acpi.c      | 2 +-
+>  drivers/pci/pci.c           | 2 +-
+>  drivers/pci/probe.c         | 8 ++++----
+>  drivers/pci/quirks.c        | 2 +-
+>  include/linux/pci.h         | 5 +++--
+>  9 files changed, 16 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+> index d85d54f2b549..7cbe300fe907 100644
+> --- a/drivers/iommu/dma-iommu.c
+> +++ b/drivers/iommu/dma-iommu.c
+> @@ -497,14 +497,14 @@ static int iova_reserve_iommu_regions(struct device *dev,
+>         return ret;
+>  }
+>
+> -static bool dev_is_untrusted(struct device *dev)
+> +static bool dev_has_untrusted_dma(struct device *dev)
+>  {
+> -       return dev_is_pci(dev) && to_pci_dev(dev)->untrusted;
+> +       return dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma;
+>  }
+>
+>  static bool dev_use_swiotlb(struct device *dev)
+>  {
+> -       return IS_ENABLED(CONFIG_SWIOTLB) && dev_is_untrusted(dev);
+> +       return IS_ENABLED(CONFIG_SWIOTLB) && dev_has_untrusted_dma(dev);
+>  }
+>
+>  /**
+> diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
+> index 92fea3fbbb11..9246b7c9ab46 100644
+> --- a/drivers/iommu/intel/iommu.c
+> +++ b/drivers/iommu/intel/iommu.c
+> @@ -5570,7 +5570,7 @@ intel_iommu_enable_nesting(struct iommu_domain *domain)
+>   */
+>  static bool risky_device(struct pci_dev *pdev)
+>  {
+> -       if (pdev->untrusted) {
+> +       if (pdev->untrusted_dma) {
+>                 pci_info(pdev,
+>                          "Skipping IOMMU quirk for dev [%04X:%04X] on untrusted PCI link\n",
+>                          pdev->vendor, pdev->device);
+> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+> index 8b86406b7162..79fb66af2e68 100644
+> --- a/drivers/iommu/iommu.c
+> +++ b/drivers/iommu/iommu.c
+> @@ -1522,7 +1522,7 @@ static int iommu_get_def_domain_type(struct device *dev)
+>  {
+>         const struct iommu_ops *ops = dev->bus->iommu_ops;
+>
+> -       if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted)
+> +       if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma)
+>                 return IOMMU_DOMAIN_DMA;
+>
+>         if (ops->def_domain_type)
+> diff --git a/drivers/pci/ats.c b/drivers/pci/ats.c
+> index c967ad6e2626..477c16ba9341 100644
+> --- a/drivers/pci/ats.c
+> +++ b/drivers/pci/ats.c
+> @@ -42,7 +42,7 @@ bool pci_ats_supported(struct pci_dev *dev)
+>         if (!dev->ats_cap)
+>                 return false;
+>
+> -       return (dev->untrusted == 0);
+> +       return (dev->untrusted_dma == 0);
+>  }
+>  EXPORT_SYMBOL_GPL(pci_ats_supported);
+>
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index 378e05096c52..1d5a284c3661 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -1362,7 +1362,7 @@ static void pci_acpi_check_for_dma_protection(struct pci_dev *dev)
+>                 return;
+>
+>         if (val)
+> -               dev->untrusted = 1;
+> +               dev->untrusted_dma = 1;
+>  }
+>
+>  void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 9ecce435fb3f..1fb0eb8646c8 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -958,7 +958,7 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+>         ctrl |= (cap & PCI_ACS_UF);
+>
+>         /* Enable Translation Blocking for external devices and noats */
+> -       if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
+> +       if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
+>                 ctrl |= (cap & PCI_ACS_TB);
+>
+>         pci_write_config_word(dev, pos + PCI_ACS_CTRL, ctrl);
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 17a969942d37..d2a9b26fcede 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -1587,7 +1587,7 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
+>                 dev->is_thunderbolt = 1;
+>  }
+>
+> -static void set_pcie_untrusted(struct pci_dev *dev)
+> +static void pci_set_untrusted_dma(struct pci_dev *dev)
+>  {
+>         struct pci_dev *parent;
+>
+> @@ -1596,8 +1596,8 @@ static void set_pcie_untrusted(struct pci_dev *dev)
+>          * untrusted as well.
+>          */
+>         parent = pci_upstream_bridge(dev);
+> -       if (parent && (parent->untrusted || parent->external_facing))
+> -               dev->untrusted = true;
+> +       if (parent && (parent->untrusted_dma || parent->external_facing))
+> +               dev->untrusted_dma = true;
+>  }
+>
+>  static void pci_set_removable(struct pci_dev *dev)
+> @@ -1862,7 +1862,7 @@ int pci_setup_device(struct pci_dev *dev)
+>         /* Need to have dev->cfg_size ready */
+>         set_pcie_thunderbolt(dev);
+>
+> -       set_pcie_untrusted(dev);
+> +       pci_set_untrusted_dma(dev);
+>
+>         /* "Unknown power state" */
+>         dev->current_state = PCI_UNKNOWN;
+> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+> index 5f46fed01e6c..7ca3c2cdfb20 100644
+> --- a/drivers/pci/quirks.c
+> +++ b/drivers/pci/quirks.c
+> @@ -5134,7 +5134,7 @@ static int pci_quirk_enable_intel_spt_pch_acs(struct pci_dev *dev)
+>         ctrl |= (cap & PCI_ACS_CR);
+>         ctrl |= (cap & PCI_ACS_UF);
+>
+> -       if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
+> +       if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
+>                 ctrl |= (cap & PCI_ACS_TB);
+>
+>         pci_write_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, ctrl);
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 678fecdf6b81..b7c5fede0b93 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -444,13 +444,14 @@ struct pci_dev {
+>         unsigned int    shpc_managed:1;         /* SHPC owned by shpchp */
+>         unsigned int    is_thunderbolt:1;       /* Thunderbolt controller */
+>         /*
+> -        * Devices marked being untrusted are the ones that can potentially
+> +        * Devices marked with untrusted_dma are the ones that can potentially
+>          * execute DMA attacks and similar. They are typically connected
+>          * through external ports such as Thunderbolt but not limited to
+>          * that. When an IOMMU is enabled they should be getting full
+>          * mappings to make sure they cannot access arbitrary memory.
+>          */
+> -       unsigned int    untrusted:1;
+> +       unsigned int    untrusted_dma:1;
+> +
+>         /*
+>          * Info from the platform, e.g., ACPI or device tree, may mark a
+>          * device as "external-facing".  An external-facing device is
+> --
+> 2.35.1.1021.g381101b075-goog
+>
