@@ -2,196 +2,160 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB57EC433EF
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Apr 2022 16:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07B5DC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Apr 2022 17:15:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231922AbiDFQYT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Apr 2022 12:24:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52000 "EHLO
+        id S232898AbiDFRRo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Apr 2022 13:17:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237641AbiDFQX3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2022 12:23:29 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 341AF3C8D6A;
-        Wed,  6 Apr 2022 06:46:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1649252795; x=1680788795;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Ly37bf7KE1/2e2jYQWJyGiJWGtDdYuEz5soj2EbR73k=;
-  b=cPJE0XNvEiehtOo4xJ4VgzTbmDjbCma9rGl2XgVXg3BYYViPvBWu0IF2
-   oUVu0D1Gsjw4mBL21E+5PhNvT+NX9BIMgFi5w7XJdCY/o0j5CSRr21iLl
-   C0BKfCqsXJvQN7brp0RmUH9KqJpE998XbhvIZmoMXPYCpae7Qj5oisldb
-   TeptIGpmJ4bq7wdd06oMSQPkBCUdf687pCFRmVah+jjwx65vQiiixtGBX
-   hAKefV8E9LdqCWjRyevxOp4akwx1HqEvufmAspBDprrWj7YaRxi6nmqV5
-   mg+0lNrCfzmARlsK/mxn9iC5G12iVY/XVZcClo+nvvC3UWLhZQJHHG6BQ
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10308"; a="259873395"
-X-IronPort-AV: E=Sophos;i="5.90,239,1643702400"; 
-   d="scan'208";a="259873395"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2022 06:09:57 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,239,1643702400"; 
-   d="scan'208";a="556951803"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 06 Apr 2022 06:09:54 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 6DDA212B; Wed,  6 Apr 2022 16:05:55 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, Michael Walle <michael@walle.cc>
-Subject: [PATCH v5 2/4] device property: Introduce fwnode_for_each_parent_node()
-Date:   Wed,  6 Apr 2022 16:05:50 +0300
-Message-Id: <20220406130552.30930-2-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220406130552.30930-1-andriy.shevchenko@linux.intel.com>
-References: <20220406130552.30930-1-andriy.shevchenko@linux.intel.com>
+        with ESMTP id S238775AbiDFRRY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2022 13:17:24 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6C4BA40E69F
+        for <linux-acpi@vger.kernel.org>; Wed,  6 Apr 2022 08:13:08 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A3F2F12FC;
+        Wed,  6 Apr 2022 08:13:07 -0700 (PDT)
+Received: from lpieralisi (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 8B1543F73B;
+        Wed,  6 Apr 2022 08:13:04 -0700 (PDT)
+Date:   Wed, 6 Apr 2022 16:12:50 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linuxarm@huawei.com,
+        joro@8bytes.org, robin.murphy@arm.com, will@kernel.org,
+        wanghuiqiang@huawei.com, guohanjun@huawei.com,
+        steven.price@arm.com, Sami.Mujawar@arm.com, jon@solid-run.com,
+        eric.auger@redhat.com, laurentiu.tudor@nxp.com,
+        yangyicong@huawei.com
+Subject: Re: [PATCH v9 03/11] ACPI/IORT: Make
+ iort_iommu_msi_get_resv_regions() return void
+Message-ID: <20220406151250.GA27518@lpieralisi>
+References: <20220404124209.1086-1-shameerali.kolothum.thodi@huawei.com>
+ <20220404124209.1086-4-shameerali.kolothum.thodi@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220404124209.1086-4-shameerali.kolothum.thodi@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In a few cases the functionality of fwnode_for_each_parent_node()
-is already in use. Introduce a common helper macro for it.
+On Mon, Apr 04, 2022 at 01:42:01PM +0100, Shameer Kolothum wrote:
+> At present iort_iommu_msi_get_resv_regions() returns the number of
+> MSI reserved regions on success and there are no users for this.
+> The reserved region list will get populated anyway for platforms
+> that require the HW MSI region reservation. Hence, change the
+> function to return void instead.
+> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 26 ++++++++++----------------
+>  include/linux/acpi_iort.h |  6 +++---
+>  2 files changed, 13 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index fd06cf43ba31..c5ebb2be9a19 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -832,25 +832,23 @@ static struct acpi_iort_node *iort_get_msi_resv_iommu(struct device *dev)
+>  
+>  /**
+>   * iort_iommu_msi_get_resv_regions - Reserved region driver helper
+> + *                                   for HW MSI regions.
 
-It may be used by others as well in the future.
+Very minor but is this a spurious change ?
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v5: new patch
- drivers/base/property.c  | 56 +++++++++++++++++++++-------------------
- include/linux/property.h |  9 +++++--
- 2 files changed, 36 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 3376d3971a93..bca9a28ce271 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -596,17 +596,17 @@ EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
-  */
- struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode)
- {
-+	struct fwnode_handle *parent;
- 	struct device *dev;
- 
--	fwnode_handle_get(fwnode);
--	do {
--		fwnode = fwnode_get_next_parent(fwnode);
--		if (!fwnode)
--			return NULL;
-+	fwnode_for_each_parent_node(fwnode, parent) {
- 		dev = get_dev_from_fwnode(fwnode);
--	} while (!dev);
--	fwnode_handle_put(fwnode);
--	return dev;
-+		if (dev) {
-+			fwnode_handle_put(parent);
-+			return dev;
-+		}
-+	}
-+	return NULL;
- }
- 
- /**
-@@ -617,13 +617,11 @@ struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode)
-  */
- unsigned int fwnode_count_parents(const struct fwnode_handle *fwnode)
- {
--	struct fwnode_handle *__fwnode;
--	unsigned int count;
--
--	__fwnode = fwnode_get_parent(fwnode);
-+	struct fwnode_handle *parent;
-+	unsigned int count = 0;
- 
--	for (count = 0; __fwnode; count++)
--		__fwnode = fwnode_get_next_parent(__fwnode);
-+	fwnode_for_each_parent_node(fwnode, parent)
-+		count++;
- 
- 	return count;
- }
-@@ -644,15 +642,16 @@ EXPORT_SYMBOL_GPL(fwnode_count_parents);
- struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
- 					    unsigned int depth)
- {
--	fwnode_handle_get(fwnode);
-+	struct fwnode_handle *parent;
- 
--	do {
--		if (depth-- == 0)
--			break;
--		fwnode = fwnode_get_next_parent(fwnode);
--	} while (fwnode);
-+	if (depth == 0)
-+		return fwnode_handle_get(fwnode);
- 
--	return fwnode;
-+	fwnode_for_each_parent_node(fwnode, parent) {
-+		if (--depth == 0)
-+			return parent;
-+	}
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
- 
-@@ -669,17 +668,20 @@ EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
- bool fwnode_is_ancestor_of(struct fwnode_handle *test_ancestor,
- 				  struct fwnode_handle *test_child)
- {
-+	struct fwnode_handle *parent;
-+
- 	if (IS_ERR_OR_NULL(test_ancestor))
- 		return false;
- 
--	fwnode_handle_get(test_child);
--	do {
--		if (test_child == test_ancestor) {
--			fwnode_handle_put(test_child);
-+	if (test_child == test_ancestor)
-+		return true;
-+
-+	fwnode_for_each_parent_node(test_child, parent) {
-+		if (parent == test_ancestor) {
-+			fwnode_handle_put(parent);
- 			return true;
- 		}
--		test_child = fwnode_get_next_parent(test_child);
--	} while (test_child);
-+	}
- 	return false;
- }
- 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 4cd4b326941f..15d6863ae962 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -83,9 +83,14 @@ struct fwnode_handle *fwnode_find_reference(const struct fwnode_handle *fwnode,
- 
- const char *fwnode_get_name(const struct fwnode_handle *fwnode);
- const char *fwnode_get_name_prefix(const struct fwnode_handle *fwnode);
-+
- struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
--struct fwnode_handle *fwnode_get_next_parent(
--	struct fwnode_handle *fwnode);
-+struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
-+
-+#define fwnode_for_each_parent_node(fwnode, parent)		\
-+	for (parent = fwnode_get_parent(fwnode); parent;	\
-+	     parent = fwnode_get_next_parent(parent))
-+
- struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode);
- unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
- struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
--- 
-2.35.1
-
+>   * @dev: Device from iommu_get_resv_regions()
+>   * @head: Reserved region list from iommu_get_resv_regions()
+>   *
+> - * Returns: Number of msi reserved regions on success (0 if platform
+> - *          doesn't require the reservation or no associated msi regions),
+> - *          appropriate error value otherwise. The ITS interrupt translation
+> - *          spaces (ITS_base + SZ_64K, SZ_64K) associated with the device
+> - *          are the msi reserved regions.
+> + * The ITS interrupt translation spaces (ITS_base + SZ_64K, SZ_64K)
+> + * associated with the device are the HW MSI reserved regions.
+>   */
+> -int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> +void iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+>  {
+>  	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
+>  	struct acpi_iort_its_group *its;
+>  	struct acpi_iort_node *iommu_node, *its_node = NULL;
+> -	int i, resv = 0;
+> +	int i;
+>  
+>  	iommu_node = iort_get_msi_resv_iommu(dev);
+>  	if (!iommu_node)
+> -		return 0;
+> +		return;
+>  
+>  	/*
+>  	 * Current logic to reserve ITS regions relies on HW topologies
+> @@ -870,7 +868,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+>  	}
+>  
+>  	if (!its_node)
+> -		return 0;
+> +		return;
+>  
+>  	/* Move to ITS specific data */
+>  	its = (struct acpi_iort_its_group *)its_node->node_data;
+> @@ -884,14 +882,10 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+>  
+>  			region = iommu_alloc_resv_region(base + SZ_64K, SZ_64K,
+>  							 prot, IOMMU_RESV_MSI);
+> -			if (region) {
+> +			if (region)
+>  				list_add_tail(&region->list, head);
+> -				resv++;
+> -			}
+>  		}
+>  	}
+> -
+> -	return (resv == its->its_count) ? resv : -ENODEV;
+>  }
+>  
+>  static inline bool iort_iommu_driver_enabled(u8 type)
+> @@ -1058,8 +1052,8 @@ int iort_iommu_configure_id(struct device *dev, const u32 *id_in)
+>  }
+>  
+>  #else
+> -int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> -{ return 0; }
+> +void iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> +{ }
+>  int iort_iommu_configure_id(struct device *dev, const u32 *input_id)
+>  { return -ENODEV; }
+>  #endif
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index f1f0842a2cb2..a8198b83753d 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -36,7 +36,7 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
+>  /* IOMMU interface */
+>  int iort_dma_get_ranges(struct device *dev, u64 *size);
+>  int iort_iommu_configure_id(struct device *dev, const u32 *id_in);
+> -int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head);
+> +void iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head);
+>  phys_addr_t acpi_iort_dma_get_max_cpu_address(void);
+>  #else
+>  static inline void acpi_iort_init(void) { }
+> @@ -52,8 +52,8 @@ static inline int iort_dma_get_ranges(struct device *dev, u64 *size)
+>  static inline int iort_iommu_configure_id(struct device *dev, const u32 *id_in)
+>  { return -ENODEV; }
+>  static inline
+> -int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> -{ return 0; }
+> +void iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> +{ }
+>  
+>  static inline phys_addr_t acpi_iort_dma_get_max_cpu_address(void)
+>  { return PHYS_ADDR_MAX; }
+> -- 
+> 2.25.1
+> 
