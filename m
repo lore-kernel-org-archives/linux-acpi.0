@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C469C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Apr 2022 15:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CD4FC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Apr 2022 15:49:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236094AbiDFPpF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Apr 2022 11:45:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59024 "EHLO
+        id S236479AbiDFPvu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Apr 2022 11:51:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236502AbiDFPoK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2022 11:44:10 -0400
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EF214DBFD0;
-        Wed,  6 Apr 2022 06:10:10 -0700 (PDT)
+        with ESMTP id S236488AbiDFPvj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2022 11:51:39 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84D3F1587A0;
+        Wed,  6 Apr 2022 06:11:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1649250611; x=1680786611;
+  t=1649250693; x=1680786693;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=yw0fQih9tXF/247W2afpZYqH7VzQIZItG2AyzEHXwk4=;
-  b=XgpIo6Jm5VdGRs3Zg4Xcmzw7TPr7IY44ewIPg732B7JILdGDESLbeiYW
-   SXbcuW9T8Xu1jgKhuaahTTfNQWu1Xf0XM0Prfy7ETeNgtz+NdXGfZ45RF
-   HXlTHWh/XWRPIvPKTSfQSS5BDCzzNr/AwPzaJpvAZALp/kDDn6OGqJT17
-   6EwGsprYvvEp9HB7Ti4Mi//d5zNmzU+0JL1J+Jju442uIhjejQLaocHoK
-   npsbS1vy1c0nNwyI71szycX9vG/lNKIMBaSREeEyXz0rx5xvM8JpSolMY
-   ZcG4sclF3draygJOt4GajL0D8oHbHh0NpvbIYoXrBPQMkiVKHjO/OCyGU
+  bh=dhKZFE7l+zk7iULmf3peuVOi1f+iSF+Jfyv10og7Xqg=;
+  b=K+B+TTuPShb+CIS2OhycOLA0rPPpcVS8C1jshFWIZBOJVeVTK8tvvV9v
+   RzKXDAziLWqC+QXEO6hbGsq7a7u4RimL4Y6+RZoF/1Czk+nKAc09DqNL7
+   0Oyevl9S3XamrbbYZJ41mThbu9FmUwJiN6FQ4sDIQyjVzp3hBpD3W0BwS
+   AWK3iTD9gV4qv10rLHU7zen0O0zBIsY0GO3DTQHg7CCKCcrMrrwrL0bLu
+   c2sB97wGzsLzjDGCTVb57gJuYjskHqRL7RIducPPqLiMnfEvqJeRu0SxZ
+   RF7Pskf6fqxVPGaZKct15pwk78xYsXSSEVPlD4tjhoWQpDd6Sq6YsHD1w
    Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10309"; a="258628717"
+X-IronPort-AV: E=McAfee;i="6200,9189,10309"; a="324208113"
 X-IronPort-AV: E=Sophos;i="5.90,239,1643702400"; 
-   d="scan'208";a="258628717"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2022 06:09:58 -0700
+   d="scan'208";a="324208113"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2022 06:09:57 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.90,239,1643702400"; 
-   d="scan'208";a="588363716"
+   d="scan'208";a="697364975"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga001.jf.intel.com with ESMTP; 06 Apr 2022 06:09:54 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 06 Apr 2022 06:09:54 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 79BC12FB; Wed,  6 Apr 2022 16:05:55 +0300 (EEST)
+        id 8585B405; Wed,  6 Apr 2022 16:05:55 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
@@ -48,9 +48,9 @@ Cc:     Daniel Scally <djrscally@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>, Michael Walle <michael@walle.cc>
-Subject: [PATCH v5 3/4] device property: Drop 'test' prefix in parameters of fwnode_is_ancestor_of()
-Date:   Wed,  6 Apr 2022 16:05:51 +0300
-Message-Id: <20220406130552.30930-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v5 4/4] device property: Constify fwnode APIs that uses fwnode_get_next_parent()
+Date:   Wed,  6 Apr 2022 16:05:52 +0300
+Message-Id: <20220406130552.30930-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220406130552.30930-1-andriy.shevchenko@linux.intel.com>
 References: <20220406130552.30930-1-andriy.shevchenko@linux.intel.com>
@@ -60,71 +60,73 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The part 'is' in the function name implies the test against something.
-Drop unnecessary 'test' prefix in the fwnode_is_ancestor_of() parameters.
+Due to fwnode_get_next_parent() used to be called against the parameters
+of some of fwnode APIs those parameters have no const qualifier. However,
+after switching to fwnode_for_each_parent_node() API now it's possible to
+constify the parameters. Do it for good.
 
-No functional change intended.
+The affected functions are:
+
+	fwnode_get_next_parent_dev()
+	fwnode_get_nth_parent()
+	fwnode_is_ancestor_of()
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
 v5: new patch
- drivers/base/property.c  | 20 +++++++++-----------
- include/linux/property.h |  3 +--
- 2 files changed, 10 insertions(+), 13 deletions(-)
+ drivers/base/property.c  | 7 +++----
+ include/linux/property.h | 9 ++++-----
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index bca9a28ce271..839ee7f3ee12 100644
+index 839ee7f3ee12..79e0adfa1e24 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -656,28 +656,26 @@ struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
- EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
- 
- /**
-- * fwnode_is_ancestor_of - Test if @test_ancestor is ancestor of @test_child
-- * @test_ancestor: Firmware which is tested for being an ancestor
-- * @test_child: Firmware which is tested for being the child
-+ * fwnode_is_ancestor_of - Test if @ancestor is ancestor of @child
-+ * @ancestor: Firmware which is tested for being an ancestor
-+ * @child: Firmware which is tested for being the child
-  *
-  * A node is considered an ancestor of itself too.
-  *
-- * Returns true if @test_ancestor is an ancestor of @test_child.
-- * Otherwise, returns false.
-+ * Returns true if @ancestor is an ancestor of @child. Otherwise, returns false.
+@@ -594,7 +594,7 @@ EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+  * The caller of this function is expected to call put_device() on the returned
+  * device when they are done.
   */
--bool fwnode_is_ancestor_of(struct fwnode_handle *test_ancestor,
--				  struct fwnode_handle *test_child)
-+bool fwnode_is_ancestor_of(struct fwnode_handle *ancestor, struct fwnode_handle *child)
+-struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode)
++struct device *fwnode_get_next_parent_dev(const struct fwnode_handle *fwnode)
+ {
+ 	struct fwnode_handle *parent;
+ 	struct device *dev;
+@@ -639,8 +639,7 @@ EXPORT_SYMBOL_GPL(fwnode_count_parents);
+  * The caller is responsible for calling fwnode_handle_put() for the returned
+  * node.
+  */
+-struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
+-					    unsigned int depth)
++struct fwnode_handle *fwnode_get_nth_parent(const struct fwnode_handle *fwnode, unsigned int depth)
  {
  	struct fwnode_handle *parent;
  
--	if (IS_ERR_OR_NULL(test_ancestor))
-+	if (IS_ERR_OR_NULL(ancestor))
- 		return false;
+@@ -664,7 +663,7 @@ EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
+  *
+  * Returns true if @ancestor is an ancestor of @child. Otherwise, returns false.
+  */
+-bool fwnode_is_ancestor_of(struct fwnode_handle *ancestor, struct fwnode_handle *child)
++bool fwnode_is_ancestor_of(const struct fwnode_handle *ancestor, const struct fwnode_handle *child)
+ {
+ 	struct fwnode_handle *parent;
  
--	if (test_child == test_ancestor)
-+	if (child == ancestor)
- 		return true;
- 
--	fwnode_for_each_parent_node(test_child, parent) {
--		if (parent == test_ancestor) {
-+	fwnode_for_each_parent_node(child, parent) {
-+		if (parent == ancestor) {
- 			fwnode_handle_put(parent);
- 			return true;
- 		}
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 15d6863ae962..fc24d45632eb 100644
+index fc24d45632eb..119bf7d6a02f 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -95,8 +95,7 @@ struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode);
- unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
- struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
- 					    unsigned int depth);
--bool fwnode_is_ancestor_of(struct fwnode_handle *test_ancestor,
--				  struct fwnode_handle *test_child);
-+bool fwnode_is_ancestor_of(struct fwnode_handle *ancestor, struct fwnode_handle *child);
+@@ -91,11 +91,10 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
+ 	for (parent = fwnode_get_parent(fwnode); parent;	\
+ 	     parent = fwnode_get_next_parent(parent))
+ 
+-struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode);
+-unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
+-struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
+-					    unsigned int depth);
+-bool fwnode_is_ancestor_of(struct fwnode_handle *ancestor, struct fwnode_handle *child);
++struct device *fwnode_get_next_parent_dev(const struct fwnode_handle *fwnode);
++unsigned int fwnode_count_parents(const struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_get_nth_parent(const struct fwnode_handle *fwnode, unsigned int depth);
++bool fwnode_is_ancestor_of(const struct fwnode_handle *ancestor, const struct fwnode_handle *child);
  struct fwnode_handle *fwnode_get_next_child_node(
  	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
  struct fwnode_handle *fwnode_get_next_available_child_node(
