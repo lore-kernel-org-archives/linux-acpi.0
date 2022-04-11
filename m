@@ -2,34 +2,34 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1763C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:06:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EA7EC4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:06:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349374AbiDKTIR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Apr 2022 15:08:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38602 "EHLO
+        id S1349402AbiDKTIS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Apr 2022 15:08:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349462AbiDKTHP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:07:15 -0400
+        with ESMTP id S1349499AbiDKTHk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:07:40 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E91BA34644;
-        Mon, 11 Apr 2022 12:04:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 942103467B;
+        Mon, 11 Apr 2022 12:04:49 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id 515c4f03d8550e34; Mon, 11 Apr 2022 21:04:46 +0200
+ id 0df72b2669e94012; Mon, 11 Apr 2022 21:04:47 +0200
 Received: from kreacher.localnet (unknown [213.134.175.113])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 6141766BDFC;
-        Mon, 11 Apr 2022 21:04:45 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id B7DD166BDFC;
+        Mon, 11 Apr 2022 21:04:46 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 02/20] ACPICA: Add the subtable CFMWS to the CEDT table
-Date:   Mon, 11 Apr 2022 20:47:40 +0200
-Message-ID: <2256118.ElGaqSPkdT@kreacher>
+Subject: [PATCH 01/20] ACPICA: Add support for the Windows 11 _OSI string
+Date:   Mon, 11 Apr 2022 20:47:00 +0200
+Message-ID: <4750716.31r3eYUQgx@kreacher>
 In-Reply-To: <5578328.DvuYhMxLoT@kreacher>
 References: <5578328.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
@@ -38,37 +38,50 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.175.113
 X-CLIENT-HOSTNAME: 213.134.175.113
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudekiedgudefhecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepgfektdehueehteffueelleehhfffgfejtdehvddtfeetjeffveetheehvdejgfdunecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudejhedruddufeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduudefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudekiedgudefgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepgfektdehueehteffueelleehhfffgfejtdehvddtfeetjeffveetheehvdejgfdunecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudejhedruddufeenucevlhhushhtvghrufhiiigvpeefnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduudefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Lawrence Hileman <larry.hileman@xconn-tech.com>
+From: Mario Limonciello <mario.limonciello@amd.com>
 
-ACPICA commit 19b11f91660b1a38a8e9655b0b1a4ad51ec4db1e
+ACPICA commit f2e9fb8345b9146a67f8c63474b65ccfc06d962a
 
-Link: https://github.com/acpica/acpica/commit/19b11f91
+See https://github.com/microsoft_docs/windows-driver-docs/commit/a061e31fd77c20cc8e6eb0234e5d3a83e417f48
+
+Link: https://github.com/acpica/acpica/commit/f2e9fb83
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- actbl1.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpica/utosi.c |    1 +
+ include/acpi/actypes.h      |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -Nurp linux.before_name/include/acpi/actbl1.h linux.after_name/include/acpi/actbl1.h
---- linux.before_name/include/acpi/actbl1.h	2022-04-01 18:22:39.697289385 +0200
-+++ linux.after_name/include/acpi/actbl1.h	2022-04-01 18:22:36.230333871 +0200
-@@ -373,6 +373,10 @@ struct acpi_cedt_cfmws {
- 	u32 interleave_targets[];
- };
+Index: linux-pm/drivers/acpi/acpica/utosi.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpica/utosi.c
++++ linux-pm/drivers/acpi/acpica/utosi.c
+@@ -74,6 +74,7 @@ static struct acpi_interface_info acpi_d
+ 	{"Windows 2018.2", NULL, 0, ACPI_OSI_WIN_10_RS5},	/* Windows 10 version 1809 - Added 11/2018 */
+ 	{"Windows 2019", NULL, 0, ACPI_OSI_WIN_10_19H1},	/* Windows 10 version 1903 - Added 08/2019 */
+ 	{"Windows 2020", NULL, 0, ACPI_OSI_WIN_10_20H1},	/* Windows 10 version 2004 - Added 08/2021 */
++	{"Windows 2021", NULL, 0, ACPI_OSI_WIN_11},	/* Windows 11 - Added 01/2022 */
  
-+struct acpi_cedt_cfmws_target_element {
-+	u32 interleave_target;
-+};
-+
- /* Values for Interleave Arithmetic field above */
+ 	/* Feature Group Strings */
  
- #define ACPI_CEDT_CFMWS_ARITHMETIC_MODULO	(0)
+Index: linux-pm/include/acpi/actypes.h
+===================================================================
+--- linux-pm.orig/include/acpi/actypes.h
++++ linux-pm/include/acpi/actypes.h
+@@ -1303,6 +1303,7 @@ typedef enum {
+ #define ACPI_OSI_WIN_10_RS5             0x13
+ #define ACPI_OSI_WIN_10_19H1            0x14
+ #define ACPI_OSI_WIN_10_20H1            0x15
++#define ACPI_OSI_WIN_11                 0x16
+ 
+ /* Definitions of getopt */
+ 
 
 
 
