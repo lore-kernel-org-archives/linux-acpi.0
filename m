@@ -2,105 +2,73 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA84DC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 15:49:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8473BC433F5
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:04:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238147AbiDKPwI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Apr 2022 11:52:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59604 "EHLO
+        id S239590AbiDKTGg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Apr 2022 15:06:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348265AbiDKPwH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 11:52:07 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 324AEF21;
-        Mon, 11 Apr 2022 08:49:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1649692192; x=1681228192;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=gyDoMc98GJmanTHsL9qK4pOeFXXJEueQFvdOn+5W79Q=;
-  b=amlsel1Uy9yIbiytLhirB8tp8mpgRstrJ90lUEyqAAmyFZLMARkfR7Eu
-   5d5QDnl+FkGSTqL5dkKbm/vlvEtuInXaYiY4q/VuK+2zlWgfi3Ob3S9yR
-   2ndh6do8c/9ap3JUZ7FESw0kYbojapUR/2kEKiKAcBLXUcF3x3C9MOM/O
-   grzHdNRIQShBOEWP5CZ6qv/NGEVCcr2SeRkIScHlJJs8/Nf1oM46Okvp0
-   nXe0sHDz244+uKrx1nYSlUeqGcJmgQVRlUU/EclKDOCjdVAV38ZKNtRlG
-   qnehE2fXfGC8g0fBajnryQDuFb1riB1olRaSiHt0hJveFsd+MPzPjFRaI
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10314"; a="262326628"
-X-IronPort-AV: E=Sophos;i="5.90,252,1643702400"; 
-   d="scan'208";a="262326628"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2022 08:49:51 -0700
-X-IronPort-AV: E=Sophos;i="5.90,252,1643702400"; 
-   d="scan'208";a="660096199"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2022 08:49:47 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1ndwEx-001J5c-Tx;
-        Mon, 11 Apr 2022 18:46:07 +0300
-Date:   Mon, 11 Apr 2022 18:46:07 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Rob Herring <robh@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Len Brown <lenb@kernel.org>,
-        Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
-        Michael Walle <michael@walle.cc>
-Subject: Re: [PATCH v6 1/5] device property: Allow error pointer to be passed
- to fwnode APIs
-Message-ID: <YlRNPyxHcNRQE/5A@smile.fi.intel.com>
-References: <20220408184844.22829-1-andriy.shevchenko@linux.intel.com>
- <YlQyEz3/J0rb2Hew@smile.fi.intel.com>
- <YlQ69jMduq/evgTt@kroah.com>
+        with ESMTP id S229498AbiDKTGg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:06:36 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2C02120A7;
+        Mon, 11 Apr 2022 12:04:17 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
+ id cf5e4a35756211dc; Mon, 11 Apr 2022 21:04:15 +0200
+Received: from kreacher.localnet (unknown [213.134.175.113])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id DB57466BDFD;
+        Mon, 11 Apr 2022 21:04:14 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Bob Moore <robert.moore@intel.com>
+Subject: [PATCH 20/20] ACPICA: Update version to 20220331
+Date:   Mon, 11 Apr 2022 21:04:03 +0200
+Message-ID: <2318216.NG923GbCHz@kreacher>
+In-Reply-To: <5578328.DvuYhMxLoT@kreacher>
+References: <5578328.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YlQ69jMduq/evgTt@kroah.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.175.113
+X-CLIENT-HOSTNAME: 213.134.175.113
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudekiedgudefgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepgfektdehueehteffueelleehhfffgfejtdehvddtfeetjeffveetheehvdejgfdunecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudejhedruddufeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduudefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Apr 11, 2022 at 04:28:06PM +0200, Greg Kroah-Hartman wrote:
-> On Mon, Apr 11, 2022 at 04:50:11PM +0300, Andy Shevchenko wrote:
-> > On Fri, Apr 08, 2022 at 09:48:40PM +0300, Andy Shevchenko wrote:
-> > > Some of the fwnode APIs might return an error pointer instead of NULL
-> > > or valid fwnode handle. The result of such API call may be considered
-> > > optional and hence the test for it is usually done in a form of
-> > > 
-> > > 	fwnode = fwnode_find_reference(...);
-> > > 	if (IS_ERR(fwnode))
-> > > 		...error handling...
-> > > 
-> > > Nevertheless the resulting fwnode may have bumped the reference count
-> > > and hence caller of the above API is obliged to call fwnode_handle_put().
-> > > Since fwnode may be not valid either as NULL or error pointer the check
-> > > has to be performed there. This approach uglifies the code and adds
-> > > a point of making a mistake, i.e. forgetting about error point case.
-> > > 
-> > > To prevent this, allow an error pointer to be passed to the fwnode APIs.
-> > 
-> > Rafael and Greg, if this okay for you, can the first three patches be
-> > applied, so we will have at least the fix in and consider constification
-> > a further work?
-> 
-> Give us a chance, you sent this on friday and are asking about it first
-> thing Monday morning?
-> 
-> Please go and review other patches sent on the list to help us catch up.
+From: Bob Moore <robert.moore@intel.com>
 
-OK! Reviewed (actually commented on) a few patches so far.
+ACPICA commit ada5b805eaa7480930082af9bc3d689c6f181329
 
--- 
-With Best Regards,
-Andy Shevchenko
+Version 20220331.
+
+Link: https://github.com/acpica/acpica/commit/ada5b805
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -Nurp linux.before_name/include/acpi/acpixf.h linux.after_name/include/acpi/acpixf.h
+--- linux.before_name/include/acpi/acpixf.h	2022-04-01 18:29:38.976995751 +0200
++++ linux.after_name/include/acpi/acpixf.h	2022-04-01 18:29:34.139056278 +0200
+@@ -12,7 +12,7 @@
+ 
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20211217
++#define ACPI_CA_VERSION                 0x20220331
+ 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
+
 
 
