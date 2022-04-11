@@ -2,31 +2,31 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F5CEC3527D
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 23:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59339C4321E
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 23:42:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239376AbiDKXoH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Apr 2022 19:44:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53740 "EHLO
+        id S234515AbiDKXoj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Apr 2022 19:44:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239027AbiDKXmI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 19:42:08 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [46.235.227.227])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AFA22316F;
-        Mon, 11 Apr 2022 16:39:45 -0700 (PDT)
+        with ESMTP id S242632AbiDKXnP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 19:43:15 -0400
+Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1984629817;
+        Mon, 11 Apr 2022 16:40:18 -0700 (PDT)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: dmitry.osipenko)
-        with ESMTPSA id A8ED81F43D21
+        with ESMTPSA id ECBE41F43D65
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1649720384;
-        bh=3jxNCr50hXMiuQKPY6aSTyDwgW9MB8tpZKXxC2xIhis=;
+        s=mail; t=1649720416;
+        bh=iYfrEabh/hAGujUdJ+A/I+DmpedLWQ8gHOkzzfFNwA8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=R6Pz+NW8C1nY5ThJ2I8cAwEUAIBn3TF8sggu7KSDpBA2Ut/0exz6Xps+3/DnVgwBN
-         qp6Lqyx7CPyAYk+qZkUxz2KCm7SnCRJ4eOYnawabjYhGt6nRnQa9Y02z/Ytkv2jXpZ
-         wEcsyt2MDHlC1WX/nw52J0c857HvVJOhLeDrY7yRKznEzlbGj2ZC8hDBsKt1V+pZeP
-         zbdktiCEBi99v8s5+GasfGckA5YJsjqZH0zL18RDx2s4TE9tXf9pP/XNP1Ahm7vU8u
-         u3DSr1rfrTs/d19jgQcujhTQ+xjiQHnAYsKAqXTDcAVEVHrQCWORpLx/uihf64AFFO
-         sfXLGACDgXMIg==
+        b=c1svoiAR7m0K6n7FtQj4RQRVEfLDNf+rwLT3neRX08SjGxKJYiC6HyM61WH9D/o3y
+         vAJO3f/Ys3tCCGTE9bmhQwmmHvzdi+chCvJXp1Npd/GlWrZMZHyViOEgNhsLyOJzTk
+         WaypFbLIoOXzHL4B5nWZOTZInVtzuAgZL1HRm6zaAYZPbJVUGS8V4EJ2Mc0SPMy0Sw
+         qJHgIWiLSIgASKFu7wMg0n4w6xwajTCa/N/m8HFcI9swRLPhXyd9bPMTdXw6j07VZa
+         h6Rg8HGTvAD0gX8doiBfJ8Letk7TvBw7eZK4sZ4E0EPUScPBbaZsR1J8aceqd22he4
+         YaYXWDOj7297Q==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -78,9 +78,9 @@ Cc:     linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
         linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-pm@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v7 12/20] m68k: Switch to new sys-off handler API
-Date:   Tue, 12 Apr 2022 02:38:24 +0300
-Message-Id: <20220411233832.391817-13-dmitry.osipenko@collabora.com>
+Subject: [PATCH v7 20/20] reboot: Remove pm_power_off_prepare()
+Date:   Tue, 12 Apr 2022 02:38:32 +0300
+Message-Id: <20220411233832.391817-21-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220411233832.391817-1-dmitry.osipenko@collabora.com>
 References: <20220411233832.391817-1-dmitry.osipenko@collabora.com>
@@ -90,133 +90,56 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Kernel now supports chained power-off handlers. Use
-register_power_off_handler() that registers power-off handlers and
-do_kernel_power_off() that invokes chained power-off handlers. Legacy
-pm_power_off() will be removed once all drivers will be converted to
-the new power-off API.
+All pm_power_off_prepare() users were converted to sys-off handler API.
+Remove the obsolete callback.
 
-Normally arch code should adopt only the do_kernel_power_off() at first,
-but m68k is a special case because it uses pm_power_off() "inside out",
-i.e. pm_power_off() invokes machine_power_off() [in fact it does nothing],
-while it's machine_power_off() that should invoke the pm_power_off(), and
-thus, we can't convert platforms to the new API separately. There are only
-two platforms changed here, so it's not a big deal.
-
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- arch/m68k/emu/natfeat.c         | 3 ++-
- arch/m68k/include/asm/machdep.h | 1 -
- arch/m68k/kernel/process.c      | 5 ++---
- arch/m68k/kernel/setup_mm.c     | 1 -
- arch/m68k/kernel/setup_no.c     | 1 -
- arch/m68k/mac/config.c          | 4 +++-
- 6 files changed, 7 insertions(+), 8 deletions(-)
+ include/linux/pm.h |  1 -
+ kernel/reboot.c    | 11 -----------
+ 2 files changed, 12 deletions(-)
 
-diff --git a/arch/m68k/emu/natfeat.c b/arch/m68k/emu/natfeat.c
-index 71b78ecee75c..b19dc00026d9 100644
---- a/arch/m68k/emu/natfeat.c
-+++ b/arch/m68k/emu/natfeat.c
-@@ -15,6 +15,7 @@
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/reboot.h>
- #include <linux/io.h>
- #include <asm/machdep.h>
- #include <asm/natfeat.h>
-@@ -90,5 +91,5 @@ void __init nf_init(void)
- 	pr_info("NatFeats found (%s, %lu.%lu)\n", buf, version >> 16,
- 		version & 0xffff);
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index ffe941958501..6cdf279c7f2f 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -21,7 +21,6 @@
+  * Callbacks for platform drivers to implement.
+  */
+ extern void (*pm_power_off)(void);
+-extern void (*pm_power_off_prepare)(void);
  
--	mach_power_off = nf_poweroff;
-+	register_platform_power_off(nf_poweroff);
- }
-diff --git a/arch/m68k/include/asm/machdep.h b/arch/m68k/include/asm/machdep.h
-index 8fd80ef1b77e..8d8c3ee2069f 100644
---- a/arch/m68k/include/asm/machdep.h
-+++ b/arch/m68k/include/asm/machdep.h
-@@ -24,7 +24,6 @@ extern int (*mach_get_rtc_pll)(struct rtc_pll_info *);
- extern int (*mach_set_rtc_pll)(struct rtc_pll_info *);
- extern void (*mach_reset)( void );
- extern void (*mach_halt)( void );
--extern void (*mach_power_off)( void );
- extern unsigned long (*mach_hd_init) (unsigned long, unsigned long);
- extern void (*mach_hd_setup)(char *, int *);
- extern void (*mach_heartbeat) (int);
-diff --git a/arch/m68k/kernel/process.c b/arch/m68k/kernel/process.c
-index a6030dbaa089..e160a7c57bd3 100644
---- a/arch/m68k/kernel/process.c
-+++ b/arch/m68k/kernel/process.c
-@@ -67,12 +67,11 @@ void machine_halt(void)
+ struct device; /* we have a circular dep with device.h */
+ #ifdef CONFIG_VT_CONSOLE_SLEEP
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index e76e2570dcf5..f2f5c9d7caa0 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -48,13 +48,6 @@ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
+ int reboot_force;
  
- void machine_power_off(void)
+-/*
+- * If set, this is used for preparing the system to power off.
+- */
+-
+-void (*pm_power_off_prepare)(void);
+-EXPORT_SYMBOL_GPL(pm_power_off_prepare);
+-
+ /**
+  *	emergency_restart - reboot the system
+  *
+@@ -877,10 +870,6 @@ void do_kernel_power_off(void)
+ 
+ static void do_kernel_power_off_prepare(void)
  {
--	if (mach_power_off)
--		mach_power_off();
-+	do_kernel_power_off();
- 	for (;;);
+-	/* legacy pm_power_off_prepare() is unchained and has highest priority */
+-	if (pm_power_off_prepare)
+-		return pm_power_off_prepare();
+-
+ 	blocking_notifier_call_chain(&power_off_handler_list, POWEROFF_PREPARE,
+ 				     NULL);
  }
- 
--void (*pm_power_off)(void) = machine_power_off;
-+void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
- 
- void show_regs(struct pt_regs * regs)
-diff --git a/arch/m68k/kernel/setup_mm.c b/arch/m68k/kernel/setup_mm.c
-index 8f94feed969c..47d55541612f 100644
---- a/arch/m68k/kernel/setup_mm.c
-+++ b/arch/m68k/kernel/setup_mm.c
-@@ -98,7 +98,6 @@ EXPORT_SYMBOL(mach_get_rtc_pll);
- EXPORT_SYMBOL(mach_set_rtc_pll);
- void (*mach_reset)( void );
- void (*mach_halt)( void );
--void (*mach_power_off)( void );
- #ifdef CONFIG_HEARTBEAT
- void (*mach_heartbeat) (int);
- EXPORT_SYMBOL(mach_heartbeat);
-diff --git a/arch/m68k/kernel/setup_no.c b/arch/m68k/kernel/setup_no.c
-index 5e4104f07a44..00bf82258233 100644
---- a/arch/m68k/kernel/setup_no.c
-+++ b/arch/m68k/kernel/setup_no.c
-@@ -55,7 +55,6 @@ int (*mach_hwclk) (int, struct rtc_time*);
- /* machine dependent reboot functions */
- void (*mach_reset)(void);
- void (*mach_halt)(void);
--void (*mach_power_off)(void);
- 
- #ifdef CONFIG_M68000
- #if defined(CONFIG_M68328)
-diff --git a/arch/m68k/mac/config.c b/arch/m68k/mac/config.c
-index 65d124ec80bb..382f656c29ea 100644
---- a/arch/m68k/mac/config.c
-+++ b/arch/m68k/mac/config.c
-@@ -12,6 +12,7 @@
- 
- #include <linux/errno.h>
- #include <linux/module.h>
-+#include <linux/reboot.h>
- #include <linux/types.h>
- #include <linux/mm.h>
- #include <linux/tty.h>
-@@ -140,7 +141,6 @@ void __init config_mac(void)
- 	mach_hwclk = mac_hwclk;
- 	mach_reset = mac_reset;
- 	mach_halt = mac_poweroff;
--	mach_power_off = mac_poweroff;
- #if IS_ENABLED(CONFIG_INPUT_M68K_BEEP)
- 	mach_beep = mac_mksound;
- #endif
-@@ -160,6 +160,8 @@ void __init config_mac(void)
- 
- 	if (macintosh_config->ident == MAC_MODEL_IICI)
- 		mach_l2_flush = via_l2_flush;
-+
-+	register_platform_power_off(mac_poweroff);
- }
- 
- 
 -- 
 2.35.1
 
