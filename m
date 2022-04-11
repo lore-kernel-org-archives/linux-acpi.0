@@ -2,34 +2,34 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9413C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67838C4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:04:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346807AbiDKTGh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Apr 2022 15:06:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35546 "EHLO
+        id S1349344AbiDKTGi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Apr 2022 15:06:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231265AbiDKTGg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:06:36 -0400
+        with ESMTP id S1349338AbiDKTGh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:06:37 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF3F013D21;
-        Mon, 11 Apr 2022 12:04:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E61AA17E32;
+        Mon, 11 Apr 2022 12:04:21 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id e1d793a703fbcef3; Mon, 11 Apr 2022 21:04:17 +0200
+ id cf7a92b9eec07bc9; Mon, 11 Apr 2022 21:04:20 +0200
 Received: from kreacher.localnet (unknown [213.134.175.113])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 4763266BDFD;
-        Mon, 11 Apr 2022 21:04:16 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 8637566BDFD;
+        Mon, 11 Apr 2022 21:04:19 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 19/20] ACPICA: exsystem.c: Use ACPI_FORMAT_UINT64 for 64-bit output
-Date:   Mon, 11 Apr 2022 21:03:16 +0200
-Message-ID: <110004027.nniJfEyVGO@kreacher>
+Subject: [PATCH 17/20] ACPICA: executer/exsystem: Fix some typo mistakes
+Date:   Mon, 11 Apr 2022 21:01:36 +0200
+Message-ID: <1879458.taCxCBeP46@kreacher>
 In-Reply-To: <5578328.DvuYhMxLoT@kreacher>
 References: <5578328.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
@@ -44,31 +44,38 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Selvarasu Ganesan <selvarasu.ganesan@arm.com>
 
-ACPICA commit 82a46ba57fe03ae99342740b92a04d8a8184860d
+ACPICA commit 441747f1dcff770d692acbfd4d85b2cfaabdb38a
 
-%llu fails on 32-bit compilers.
-
-Link: https://github.com/acpica/acpica/commit/82a46ba5
+Link: https://github.com/acpica/acpica/commit/441747f1
+Signed-off-by: Selvarasu Ganesan <selvarasu.ganesan@arm.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- exsystem.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ exsystem.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff -Nurp linux.before_name/drivers/acpi/acpica/exsystem.c linux.after_name/drivers/acpi/acpica/exsystem.c
---- linux.before_name/drivers/acpi/acpica/exsystem.c	2022-04-01 18:28:45.856660253 +0200
-+++ linux.after_name/drivers/acpi/acpica/exsystem.c	2022-04-01 18:28:42.231705592 +0200
-@@ -175,8 +175,9 @@ acpi_status acpi_ex_system_do_sleep(u64
+--- linux.before_name/drivers/acpi/acpica/exsystem.c	2022-04-01 18:28:19.025995819 +0200
++++ linux.after_name/drivers/acpi/acpica/exsystem.c	2022-04-01 18:28:14.163056634 +0200
+@@ -137,7 +137,7 @@ acpi_status acpi_ex_system_do_stall(u32
+ 			    "Time parameter is too large (%u)", how_long_us));
+ 		status = AE_AML_OPERAND_VALUE;
+ 	} else {
+-		if (how_long_US > 100) {
++		if (how_long_us > 100) {
+ 			ACPI_WARNING((AE_INFO,
+ 				      "Time parameter %u us > 100 us violating ACPI spec, please fix the firmware.",
+ 				      how_long_us));
+@@ -175,8 +175,8 @@ acpi_status acpi_ex_system_do_sleep(u64
  	 */
  	if (how_long_ms > 10) {
  		ACPI_WARNING((AE_INFO,
--			      "Firmware issue: Excessive sleep time (%lu ms > 10 ms) in ACPI Control Method",
--			      how_long_ms));
-+			      "Firmware issue: Excessive sleep time (0x%8.8X%8.8X ms > 10 ms)"
-+			      " in ACPI Control Method",
-+			      ACPI_FORMAT_UINT64(how_long_ms)));
+-			      "Firmware issue: Excessive sleep time (%llu ms > 10 ms) in ACPI Control Method",
+-			      how_long_us));
++			      "Firmware issue: Excessive sleep time (%lu ms > 10 ms) in ACPI Control Method",
++			      how_long_ms));
  	}
  
  	/*
