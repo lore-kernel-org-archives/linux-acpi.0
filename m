@@ -2,31 +2,31 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80CA9C433F5
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 23:40:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1910C4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 23:41:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239952AbiDKXmR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Apr 2022 19:42:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51168 "EHLO
+        id S235850AbiDKXn7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Apr 2022 19:43:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237984AbiDKXly (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 19:41:54 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CB4C21276;
-        Mon, 11 Apr 2022 16:39:37 -0700 (PDT)
+        with ESMTP id S242003AbiDKXnI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 19:43:08 -0400
+Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [46.235.227.227])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFED227B1A;
+        Mon, 11 Apr 2022 16:40:05 -0700 (PDT)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: dmitry.osipenko)
-        with ESMTPSA id 915191F43D1A
+        with ESMTPSA id C54481F43D47
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1649720376;
-        bh=/6N1NqWTzjqffsr0MYGq4IYVUQskqSynn6Y334kzapg=;
+        s=mail; t=1649720404;
+        bh=cnHjDAfLjeN/AIsHQIAOeHk5PbeJoiUi4VLInc7k0yc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mQsjTJIn+P3/qMm6CgQ+bPQ7EleJ40FaGcgtLTxE/ao4KfvFaQYrjidT8XaGySRfW
-         LtMhTqRxWtDelluYdNNnvCF2SHtqFrhbTq6SQjR/wYerXvArxXHqIe46wUNgoMmR75
-         e5GuMQ+FN0MnaxSGFHmBAxERZcEN6zLzn9MNxkwOchkm5cUvhvFF3WsvMyY+Wvj/Bf
-         FZ61MdojqgQMFK3VHKf9XPK7pidFdgqxhl15dckSHVqGqULXhOrHjm1H0/aTJSki+S
-         2lHLWe0gcmF+BXemoi+m6zGClffgIvI5J5rTM647heG7g0c1/HMiTMFnNnbbpJz5I+
-         S9piQ2GTV7bFg==
+        b=N3hDoAur/4R+Ao3qbUrQ9sph7VfA2pPJkO49+7pzUDxKozw+TJHr9twtA1owBoHaK
+         jeJ6B07npfM+SylxlSqnME8JfVE2vevyxKZ9lTn4s9Qw9vx+X6hhDoouVhYJDq5apc
+         y7lsoKFIkiE0/+667mmNFPBQQ/5lfxEeBIQEc7C2QBX4hmq+L87GQYAfi2gzcxAGio
+         u+zbvkNur7jarlv+OuyEU/CSCUrFclTe1l/ZXiNfPE9aKi/UUzKTU/f1AmCalNxuAo
+         3xfp4XM4wHtnjC3ixsxh5HNKTfwCEN6VEvSBB5gq5BRCqg81jXfmgQzP5Ib+l0LREw
+         E3JVhJaC/Ac2Q==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -78,9 +78,9 @@ Cc:     linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
         linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-pm@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v7 10/20] xen/x86: Use do_kernel_power_off()
-Date:   Tue, 12 Apr 2022 02:38:22 +0300
-Message-Id: <20220411233832.391817-11-dmitry.osipenko@collabora.com>
+Subject: [PATCH v7 17/20] memory: emif: Use kernel_can_power_off()
+Date:   Tue, 12 Apr 2022 02:38:29 +0300
+Message-Id: <20220411233832.391817-18-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220411233832.391817-1-dmitry.osipenko@collabora.com>
 References: <20220411233832.391817-1-dmitry.osipenko@collabora.com>
@@ -90,39 +90,27 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Kernel now supports chained power-off handlers. Use do_kernel_power_off()
-that invokes chained power-off handlers. It also invokes legacy
-pm_power_off() for now, which will be removed once all drivers will
-be converted to the new power-off API.
+Replace legacy pm_power_off with kernel_can_power_off() helper that
+is aware about chained power-off handlers.
 
-Acked-by: Juergen Gross <jgross@suse.com>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- arch/x86/xen/enlighten_pv.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memory/emif.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/xen/enlighten_pv.c b/arch/x86/xen/enlighten_pv.c
-index 5038edb79ad5..af1f6e886225 100644
---- a/arch/x86/xen/enlighten_pv.c
-+++ b/arch/x86/xen/enlighten_pv.c
-@@ -31,6 +31,7 @@
- #include <linux/gfp.h>
- #include <linux/edd.h>
- #include <linux/objtool.h>
-+#include <linux/reboot.h>
+diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
+index edf3ba7447ed..fa6845313a43 100644
+--- a/drivers/memory/emif.c
++++ b/drivers/memory/emif.c
+@@ -630,7 +630,7 @@ static irqreturn_t emif_threaded_isr(int irq, void *dev_id)
+ 		dev_emerg(emif->dev, "SDRAM temperature exceeds operating limit.. Needs shut down!!!\n");
  
- #include <xen/xen.h>
- #include <xen/events.h>
-@@ -1071,8 +1072,7 @@ static void xen_machine_halt(void)
- 
- static void xen_machine_power_off(void)
- {
--	if (pm_power_off)
--		pm_power_off();
-+	do_kernel_power_off();
- 	xen_reboot(SHUTDOWN_poweroff);
- }
- 
+ 		/* If we have Power OFF ability, use it, else try restarting */
+-		if (pm_power_off) {
++		if (kernel_can_power_off()) {
+ 			kernel_power_off();
+ 		} else {
+ 			WARN(1, "FIXME: NO pm_power_off!!! trying restart\n");
 -- 
 2.35.1
 
