@@ -2,34 +2,34 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 441C7C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:05:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B79AAC433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Apr 2022 19:05:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349435AbiDKTHN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Apr 2022 15:07:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36768 "EHLO
+        id S1349424AbiDKTHP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Apr 2022 15:07:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349376AbiDKTGz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:06:55 -0400
+        with ESMTP id S1349416AbiDKTHN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2022 15:07:13 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFACE2F388;
-        Mon, 11 Apr 2022 12:04:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED1EF33E25;
+        Mon, 11 Apr 2022 12:04:36 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id 2d7cc22c75eb7076; Mon, 11 Apr 2022 21:04:27 +0200
+ id 985912d5c9d862fb; Mon, 11 Apr 2022 21:04:35 +0200
 Received: from kreacher.localnet (unknown [213.134.175.113])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id B40E266BDFE;
-        Mon, 11 Apr 2022 21:04:26 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 7A3E966BDFC;
+        Mon, 11 Apr 2022 21:04:34 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 12/20] ACPICA: executer/exsystem: Add units to time variable names
-Date:   Mon, 11 Apr 2022 20:57:02 +0200
-Message-ID: <8110555.NyiUUSuA9g@kreacher>
+Subject: [PATCH 07/20] ACPICA: Add new ACPI 6.4 semantics for LoadTable() operator
+Date:   Mon, 11 Apr 2022 20:52:26 +0200
+Message-ID: <2200163.iZASKD2KPV@kreacher>
 In-Reply-To: <5578328.DvuYhMxLoT@kreacher>
 References: <5578328.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
@@ -38,100 +38,77 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.175.113
 X-CLIENT-HOSTNAME: 213.134.175.113
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudekiedgudefgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepgfektdehueehteffueelleehhfffgfejtdehvddtfeetjeffveetheehvdejgfdunecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudejhedruddufeenucevlhhushhtvghrufhiiigvpedunecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduudefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrudekiedgudefhecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepgfektdehueehteffueelleehhfffgfejtdehvddtfeetjeffveetheehvdejgfdunecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudejhedruddufeenucevlhhushhtvghrufhiiigvpeefnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddujeehrdduudefpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
 X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Paul Menzel <pmenzel@molgen.mpg.de>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit b69cbef7a83eadb102a1ff6c6f6fc5abce34805a
+ACPICA commit b32dde35e26a63a85d78d4dc0a7260b61e626ac1
 
-`how_long` refers to different units in both functions, so make it more
-clear, what unit they expect. That also makes one comment superfluous.
+DDB_HANDLE is gone, now LoadTable() returns a pass/fail integer.
 
-Link: https://github.com/acpica/acpica/commit/b69cbef7
+Link: https://github.com/acpica/acpica/commit/b32dde35
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- exsystem.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ exconfig.c |   24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
-diff -Nurp linux.before_name/drivers/acpi/acpica/exsystem.c linux.after_name/drivers/acpi/acpica/exsystem.c
---- linux.before_name/drivers/acpi/acpica/exsystem.c	2022-04-01 18:26:24.556426955 +0200
-+++ linux.after_name/drivers/acpi/acpica/exsystem.c	2022-04-01 18:26:20.646475824 +0200
-@@ -107,7 +107,7 @@ acpi_status acpi_ex_system_wait_mutex(ac
-  *
-  * FUNCTION:    acpi_ex_system_do_stall
-  *
-- * PARAMETERS:  how_long        - The amount of time to stall,
-+ * PARAMETERS:  how_long_us     - The amount of time to stall,
-  *                                in microseconds
-  *
-  * RETURN:      Status
-@@ -120,24 +120,24 @@ acpi_status acpi_ex_system_wait_mutex(ac
-  *
-  ******************************************************************************/
+diff -Nurp linux.before_name/drivers/acpi/acpica/exconfig.c linux.after_name/drivers/acpi/acpica/exconfig.c
+--- linux.before_name/drivers/acpi/acpica/exconfig.c	2022-04-01 18:23:55.873311880 +0200
++++ linux.after_name/drivers/acpi/acpica/exconfig.c	2022-04-01 18:23:52.190359143 +0200
+@@ -87,11 +87,21 @@ acpi_ex_load_table_op(struct acpi_walk_s
+ 	struct acpi_namespace_node *parent_node;
+ 	struct acpi_namespace_node *start_node;
+ 	struct acpi_namespace_node *parameter_node = NULL;
++	union acpi_operand_object *return_obj;
+ 	union acpi_operand_object *ddb_handle;
+ 	u32 table_index;
  
--acpi_status acpi_ex_system_do_stall(u32 how_long)
-+acpi_status acpi_ex_system_do_stall(u32 how_long_us)
- {
- 	acpi_status status = AE_OK;
+ 	ACPI_FUNCTION_TRACE(ex_load_table_op);
  
- 	ACPI_FUNCTION_ENTRY();
++	/* Create the return object */
++
++	return_obj = acpi_ut_create_integer_object((u64)0);
++	if (!return_obj) {
++		return_ACPI_STATUS(AE_NO_MEMORY);
++	}
++
++	*return_desc = return_obj;
++
+ 	/* Find the ACPI table in the RSDT/XSDT */
  
--	if (how_long > 255) {	/* 255 microseconds */
-+	if (how_long_us > 255) {
- 		/*
--		 * Longer than 255 usec, this is an error
-+		 * Longer than 255 microseconds, this is an error
- 		 *
- 		 * (ACPI specifies 100 usec as max, but this gives some slack in
- 		 * order to support existing BIOSs)
- 		 */
- 		ACPI_ERROR((AE_INFO,
--			    "Time parameter is too large (%u)", how_long));
-+			    "Time parameter is too large (%u)", how_long_us));
- 		status = AE_AML_OPERAND_VALUE;
- 	} else {
--		acpi_os_stall(how_long);
-+		acpi_os_stall(how_long_us);
+ 	acpi_ex_exit_interpreter();
+@@ -106,12 +116,6 @@ acpi_ex_load_table_op(struct acpi_walk_s
+ 
+ 		/* Table not found, return an Integer=0 and AE_OK */
+ 
+-		ddb_handle = acpi_ut_create_integer_object((u64) 0);
+-		if (!ddb_handle) {
+-			return_ACPI_STATUS(AE_NO_MEMORY);
+-		}
+-
+-		*return_desc = ddb_handle;
+ 		return_ACPI_STATUS(AE_OK);
  	}
  
- 	return (status);
-@@ -147,7 +147,7 @@ acpi_status acpi_ex_system_do_stall(u32
-  *
-  * FUNCTION:    acpi_ex_system_do_sleep
-  *
-- * PARAMETERS:  how_long        - The amount of time to sleep,
-+ * PARAMETERS:  how_long_ms     - The amount of time to sleep,
-  *                                in milliseconds
-  *
-  * RETURN:      None
-@@ -156,7 +156,7 @@ acpi_status acpi_ex_system_do_stall(u32
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_ex_system_do_sleep(u64 how_long)
-+acpi_status acpi_ex_system_do_sleep(u64 how_long_ms)
- {
- 	ACPI_FUNCTION_ENTRY();
- 
-@@ -168,11 +168,11 @@ acpi_status acpi_ex_system_do_sleep(u64
- 	 * For compatibility with other ACPI implementations and to prevent
- 	 * accidental deep sleeps, limit the sleep time to something reasonable.
- 	 */
--	if (how_long > ACPI_MAX_SLEEP) {
--		how_long = ACPI_MAX_SLEEP;
-+	if (how_long_ms > ACPI_MAX_SLEEP) {
-+		how_long_ms = ACPI_MAX_SLEEP;
+@@ -198,7 +202,13 @@ acpi_ex_load_table_op(struct acpi_walk_s
+ 		}
  	}
  
--	acpi_os_sleep(how_long);
-+	acpi_os_sleep(how_long_ms);
- 
- 	/* And now we must get the interpreter again */
+-	*return_desc = ddb_handle;
++	/* Remove the reference to ddb_handle created by acpi_ex_add_table above */
++
++	acpi_ut_remove_reference(ddb_handle);
++
++	/* Return -1 (non-zero) indicates success */
++
++	return_obj->integer.value = 0xFFFFFFFFFFFFFFFF;
+ 	return_ACPI_STATUS(status);
+ }
  
 
 
