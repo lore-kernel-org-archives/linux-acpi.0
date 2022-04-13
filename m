@@ -2,52 +2,55 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CA1C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Apr 2022 18:10:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8E9AC433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Apr 2022 18:21:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237596AbiDMSNN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 Apr 2022 14:13:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59688 "EHLO
+        id S233434AbiDMSYT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 Apr 2022 14:24:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237698AbiDMSMz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2022 14:12:55 -0400
-Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ABA526AF7;
-        Wed, 13 Apr 2022 11:10:34 -0700 (PDT)
-Received: by mail-yb1-f181.google.com with SMTP id g34so5266240ybj.1;
-        Wed, 13 Apr 2022 11:10:34 -0700 (PDT)
+        with ESMTP id S232530AbiDMSYS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2022 14:24:18 -0400
+Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com [209.85.128.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 098DD1EC69;
+        Wed, 13 Apr 2022 11:21:53 -0700 (PDT)
+Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-2ebd70a4cf5so32081327b3.3;
+        Wed, 13 Apr 2022 11:21:53 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=QWnLw7pcgFg7OO/Mp5u2CJgjWXHz+s+DaK73ibuVFlU=;
-        b=55DySKyrYv/fNb5oDcmg1V44RYLhlz8LvWDgTlx7nTkQ+FFlkvOSpUHJgGSO++XAFf
-         /cMfVfOhhexjpTjbW4QCL36nX7JQmairVfqE2+tZVFXdjAYQqPG7goW5Zm6KQWVBD2UV
-         uYjXYAR/e8XNwsjlFy6mESrk4bwaoKCJQGX+sCL1A9qBU+W73Xmzwwzj/BI8WLwOoxez
-         CSWVWEsK0xcg6lHAUfzNMz9rM13TZsN5HDW+3eCuHtFWl4pF4irpteUpVLLbRndO9sgB
-         7d7EGH5Y0r6FCLpYJCdIS5jgu9kyUTdXwuSHFIaX2JU/tNjg8OIyO17Cf2gxH4RSY4z5
-         X3Fg==
-X-Gm-Message-State: AOAM5315e634pQ/H/HnJtSGe6kRVF1vFIfX2neZNA9JQSlVaPaI9h2ts
-        cIHD+UaW6fyatRtSsJ4vFQcm79u9UCNbYV/acic=
-X-Google-Smtp-Source: ABdhPJzhrYFwc77slRKKGPSvgQKp3I24ZGfcYuYi9ZzAPo/jWfp3TjnJB9dQmBb7nWtQDG5MRNl7xRiOK+ISKc8OtXE=
-X-Received: by 2002:a25:3cc3:0:b0:63e:6ee9:4840 with SMTP id
- j186-20020a253cc3000000b0063e6ee94840mr112067yba.153.1649873433436; Wed, 13
- Apr 2022 11:10:33 -0700 (PDT)
+        bh=Loh92sh7gXXIMM+xZlFKvmQrGTMosnWDw8l4bYatwi4=;
+        b=MwZ27xmwaA6Pddjb51TOWoKalJXTfY7u4eZZ12Gx1/pUzLloequcx39RE/6kIyBZAn
+         KrM1rV8W/bT7SjWxjDS7T/8pOmnhpRtBjP2sd9A+qBjxHqFMMJF9bijadHn43VZ8RPDN
+         Vaoz+6IlsHueKZxa54CBs+f/jOqsrE/akXXfEXCwCqviq77HyBtEp/LHlJmS+ibpSxVc
+         EdlmsMKikrNCrmCpB7VGi0VgB7KhbyO0i1McirT+5F1xBh2mLxH5un3Y8HYMwrjP37TI
+         eC2f+e31J38qNRu/9lunnBTWljCK13jGrXeMxlr09dhPYDJa2Y+a0ANbbFk1Nj0nKhP6
+         ifCQ==
+X-Gm-Message-State: AOAM531i96Ent0eoA75sj+l9aqOku8nPXZyiFl5ufzES+sUjt1ai0xrH
+        xaZ3nds7K4RipDlZq7tNIkSeKtIGSjX5wAdfZfg=
+X-Google-Smtp-Source: ABdhPJy0QfC7cfF9K+H0ZNCn7FaTuWEXk3t/NydqhNkNaQqbHedbuHrlNSZApLdviurLxeWz0TiBOt/IaTXl2hhEWMo=
+X-Received: by 2002:a81:4b8e:0:b0:2ef:5240:69fc with SMTP id
+ y136-20020a814b8e000000b002ef524069fcmr165747ywa.19.1649874112323; Wed, 13
+ Apr 2022 11:21:52 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220408184844.22829-1-andriy.shevchenko@linux.intel.com> <20220408184844.22829-4-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20220408184844.22829-4-andriy.shevchenko@linux.intel.com>
+References: <20220408184844.22829-1-andriy.shevchenko@linux.intel.com>
+ <20220408184844.22829-4-andriy.shevchenko@linux.intel.com>
+ <YlCq79KveByePxe9@paasikivi.fi.intel.com> <CAHp75Ve-5=6bsF1mMQ4RceobV=OsR6VwZeP==iFGQJLEbt0-yg@mail.gmail.com>
+ <YlbfwjQcxj6fK7re@paasikivi.fi.intel.com> <YlcAYpZ0yB6wh1uA@smile.fi.intel.com>
+In-Reply-To: <YlcAYpZ0yB6wh1uA@smile.fi.intel.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 13 Apr 2022 20:10:22 +0200
-Message-ID: <CAJZ5v0jnyg6n-1QRmVg1tjzu3szsG3DYqYTXAbobbKwkFhTreg@mail.gmail.com>
+Date:   Wed, 13 Apr 2022 20:21:41 +0200
+Message-ID: <CAJZ5v0jcDztpR4rn0JqksCDwbFzq8VD8nZG-9QypQo63y-h1Sg@mail.gmail.com>
 Subject: Re: [PATCH v6 4/5] device property: Constify fwnode_handle_get()
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Rob Herring <robh@kernel.org>,
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rob Herring <robh@kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>, Daniel Scally <djrscally@gmail.com>,
+        devicetree <devicetree@vger.kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
@@ -58,88 +61,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Apr 8, 2022 at 8:49 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Wed, Apr 13, 2022 at 6:58 PM Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
 >
-> As to_of_node() suggests and the way the code in the OF and software node
-> back ends actually uses the fwnode handle, it may be constified. Do this
-> for good.
+> On Wed, Apr 13, 2022 at 05:35:46PM +0300, Sakari Ailus wrote:
+> > On Sun, Apr 10, 2022 at 05:10:23PM +0300, Andy Shevchenko wrote:
+> > > On Sat, Apr 9, 2022 at 2:35 AM Sakari Ailus
+> > > <sakari.ailus@linux.intel.com> wrote:
+> > > > On Fri, Apr 08, 2022 at 09:48:43PM +0300, Andy Shevchenko wrote:
+> > > > > As to_of_node() suggests and the way the code in the OF and software node
+> > > > > back ends actually uses the fwnode handle, it may be constified. Do this
+> > > > > for good.
+> > > >
+> > > > How?
+> > > >
+> > > > If the fwnode is const, then the struct it contains must be presumed to be
+> > > > const, too.
+> > >
+> > > Why? The idea is that we are not updating the fwnode, but the container.
+> > > The container may or may not be const. It's orthogonal, no?
+> >
+> > As you wrote: may or may not. The stricter requirement, i.e. const, must be
+> > thus followed. I think it would be fine (after adding a comment on what is
+> > being done) if you *know* the container struct is not const. But that is
+> > not the case here.
 >
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
-> v6: new patch
->  drivers/base/property.c  | 2 +-
->  drivers/base/swnode.c    | 2 +-
->  drivers/of/property.c    | 2 +-
->  include/linux/fwnode.h   | 2 +-
->  include/linux/property.h | 2 +-
->  5 files changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 36401cfe432c..1ad4b37cd312 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -776,7 +776,7 @@ EXPORT_SYMBOL_GPL(device_get_named_child_node);
->   *
->   * Returns the fwnode handle.
->   */
-> -struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode)
-> +struct fwnode_handle *fwnode_handle_get(const struct fwnode_handle *fwnode)
->  {
->         if (!fwnode_has_op(fwnode, get))
->                 return fwnode;
-> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> index b0bbd1805970..84a11008ffb8 100644
-> --- a/drivers/base/swnode.c
-> +++ b/drivers/base/swnode.c
-> @@ -363,7 +363,7 @@ EXPORT_SYMBOL_GPL(property_entries_free);
->  /* -------------------------------------------------------------------------- */
->  /* fwnode operations */
->
-> -static struct fwnode_handle *software_node_get(struct fwnode_handle *fwnode)
-> +static struct fwnode_handle *software_node_get(const struct fwnode_handle *fwnode)
->  {
->         struct swnode *swnode = to_swnode(fwnode);
->
-> diff --git a/drivers/of/property.c b/drivers/of/property.c
-> index 9a50ad25906e..8d06282af8e4 100644
-> --- a/drivers/of/property.c
-> +++ b/drivers/of/property.c
-> @@ -858,7 +858,7 @@ struct device_node *of_graph_get_remote_node(const struct device_node *node,
->  }
->  EXPORT_SYMBOL(of_graph_get_remote_node);
->
-> -static struct fwnode_handle *of_fwnode_get(struct fwnode_handle *fwnode)
-> +static struct fwnode_handle *of_fwnode_get(const struct fwnode_handle *fwnode)
->  {
->         return of_fwnode_handle(of_node_get(to_of_node(fwnode)));
->  }
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index 9a81c4410b9f..a94bd47192a3 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -108,7 +108,7 @@ struct fwnode_reference_args {
->   *             zero on success, a negative error code otherwise.
->   */
->  struct fwnode_operations {
-> -       struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
-> +       struct fwnode_handle *(*get)(const struct fwnode_handle *fwnode);
->         void (*put)(struct fwnode_handle *fwnode);
->         bool (*device_is_available)(const struct fwnode_handle *fwnode);
->         const void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
-> diff --git a/include/linux/property.h b/include/linux/property.h
-> index fc24d45632eb..c631ee7fd161 100644
-> --- a/include/linux/property.h
-> +++ b/include/linux/property.h
-> @@ -121,7 +121,7 @@ struct fwnode_handle *fwnode_get_named_child_node(
->  struct fwnode_handle *device_get_named_child_node(struct device *dev,
->                                                   const char *childname);
->
-> -struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode);
-> +struct fwnode_handle *fwnode_handle_get(const struct fwnode_handle *fwnode);
->  void fwnode_handle_put(struct fwnode_handle *fwnode);
->
->  int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int index);
-> --
+> But even with the original code one may not guarantee that. How the original
+> code works or prevents of using a const container against non-const fwnode
+> pointer?
 
-Why is 0-day complaining about this one?
+I don't think that this is the point here.
+
+If const struct fwnode_handle *fwnode is passed to the ->get()
+callback, the callback itself (and any function called by it)
+shouldn't attempt to update the memory pointed to by fwnode.  It need
+not be the memory starting at the fwnode address IIUC, so that would
+cover the whole object the fwnode is embedded in.
+
+This way the caller of ->get() can assume the immutability of the
+memory passed to it for read access.
+
+The question is whether or not ->get() needs to update the memory in
+question.  If it doesn't, making fwnode const is correct.
