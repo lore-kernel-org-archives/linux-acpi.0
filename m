@@ -2,182 +2,221 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63B22C4321E
-	for <linux-acpi@archiver.kernel.org>; Tue, 19 Apr 2022 16:47:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64865C433F5
+	for <linux-acpi@archiver.kernel.org>; Tue, 19 Apr 2022 20:55:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243849AbiDSQuU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 19 Apr 2022 12:50:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57206 "EHLO
+        id S239656AbiDSU6i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 19 Apr 2022 16:58:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352873AbiDSQsU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Apr 2022 12:48:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB47EA1BF;
-        Tue, 19 Apr 2022 09:45:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4862461883;
-        Tue, 19 Apr 2022 16:45:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6748FC385A7;
-        Tue, 19 Apr 2022 16:45:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650386728;
-        bh=G0OvqP43pBlucS2bwhbAfQlIUn2CHJUI1Pp798ChPPw=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=jhhGUe+s0QSuW058hOTgQRDXlLp07EUc0RpaIWBYFIkUe/WP3XBJhga9Ehm7dXgJz
-         VPVoU+3Qox99raGnuwwt+IMRCxX6x1G9enBw9BB7m5wUCCGckdk/mc+UOzL9dgwUMt
-         ji1s62SkIYKv9d+tyu2Tl878AV2ArQbwR/Nznr6E0P1kqtLdt1cDEMCvBJU285cyIS
-         2kvJTr+fBiw63HkIiFrp79WZUVxFQlbfZ7Dpy82rlclnMwH9jMtqg5Wih8dKJwjvyG
-         voxxODzyRe3U7c1GdW+MD5woPipjVGr8Kl7ulS4/SvhXnQrZDtilz8w1EZxoxq5uAX
-         3396mF+8umvEw==
-Date:   Tue, 19 Apr 2022 11:45:26 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     "Rafael J . Wysocki" <rjw@rjwysocki.net>,
-        Borislav Petkov <bp@alien8.de>,
-        "H . Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>,
-        Benoit =?iso-8859-1?Q?Gr=E9goire?= <benoitg@coeus.ca>,
-        Hui Wang <hui.wang@canonical.com>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        x86@kernel.org, linux-kernel@vger.kernel.org,
-        Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 0/3] x86/PCI: Log E820 clipping
-Message-ID: <20220419164526.GA1204065@bhelgaas>
+        with ESMTP id S234976AbiDSU6h (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Apr 2022 16:58:37 -0400
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2082.outbound.protection.outlook.com [40.107.243.82])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D41741320;
+        Tue, 19 Apr 2022 13:55:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=I45GJ8dwJ8oAkEQdopi1o1+zthbz0hUGO8ZNop3cV5e5Sfm5mcN+jAdlT/6UnCBj45OY7kOLYBbsODWPbWF+ADg7XO7Na8XpXD240/LZEnm3yRVTg/zKoO3JGw1xOg8BsKVlXylXY8wcoolVXqqzBpiLvuvEUfMXGniRhiNaX5/yPUxZ7wRX8M6HqfAL+asXz1WlW9uyUhKR18Qub90JIxn6WUQS1d2CtWHTwSGHLKHQjSugDaPs8WHjpwfhd7xN2Dk95m/LXntOlZYyzy16P9TFl2K/2/wz/oGTcSRCJYIvDwcqNLpiCXltFkW65YT2LM+IzzmqtBwccs4YKBnC8g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=p/IK9aRbx7KFLOBpCoZe9AU0u3qKcMBHjaFIESar21E=;
+ b=L+UJrOobj99TeMEXPgYGyZK+ToPjQUcKMIWt8kL4mM9ZSY400NtE0/kdkbqR06NdNr2XiHxKDv42t55OBvHqIWTOX2BBJD0M1XQ3EkTBCfi7ehsUYQCmB3oSCIZJcC0nwwewu1EMBSz9IlmIhIE/bclZ806C38dXJGCxrlWFrAS6e6IAtNx0or5kCmQFPRD9O1grnJO6FIK2HjLOVmqyMjVDAHw9EOGN05/r9rqn1IuQ37rnvBmnBNZkvEp48TWiU92vgX4+zlSbVxhFgxLnapYn8iv3S9vHugqQvXHDY0h0MgxJ99JmjESkGzwOzkMoLFARU2ZuPmYjBAdbty+H5g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 12.22.5.234) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=p/IK9aRbx7KFLOBpCoZe9AU0u3qKcMBHjaFIESar21E=;
+ b=C8TMvHQn4kTnq9CglG6Xd3L26CChsxsb1RDUTv+CnJQt4/rY9xNlE3eUgqIvDRPzYlcgbG/VrYxh0M+wT2xRWJS3XVcUWo3t3u2LwlmuPIFeBn3epYbonxZhmoYFHvS8t52VnOug9ITkZtPI/yWqgUjWNjoiaV7JFeCOVLBWfyonwbYlz376x+7IoKfiSVCLZbJIKC+pgrToCFk291NIueKXSHJ74H0gc/3oh0eTV1/SSUBPRivHQ7WDLiQqnNB+7D0sFAc0JDgs61/PMNapUQfmn4fvChPutemWDC/0XuOE+y7Ca0BNqge/Dlkalhx4WNjwF6Mf+OhHxmuBkP4zDg==
+Received: from BN9P222CA0023.NAMP222.PROD.OUTLOOK.COM (2603:10b6:408:10c::28)
+ by BL0PR12MB2356.namprd12.prod.outlook.com (2603:10b6:207:4d::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5164.25; Tue, 19 Apr
+ 2022 20:55:52 +0000
+Received: from BN8NAM11FT031.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:10c:cafe::cb) by BN9P222CA0023.outlook.office365.com
+ (2603:10b6:408:10c::28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5164.20 via Frontend
+ Transport; Tue, 19 Apr 2022 20:55:52 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.234)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 12.22.5.234 as permitted sender) receiver=protection.outlook.com;
+ client-ip=12.22.5.234; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (12.22.5.234) by
+ BN8NAM11FT031.mail.protection.outlook.com (10.13.177.25) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.5164.19 via Frontend Transport; Tue, 19 Apr 2022 20:55:52 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by DRHQMAIL101.nvidia.com
+ (10.27.9.10) with Microsoft SMTP Server (TLS) id 15.0.1497.32; Tue, 19 Apr
+ 2022 20:55:51 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.22; Tue, 19 Apr
+ 2022 13:55:50 -0700
+Received: from msst-build.nvidia.com (10.127.8.14) by mail.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server id 15.2.986.22 via Frontend
+ Transport; Tue, 19 Apr 2022 13:55:50 -0700
+From:   Besar Wicaksono <bwicaksono@nvidia.com>
+To:     <rafael@kernel.org>, <lenb@kernel.org>, <robert.moore@intel.com>,
+        <catalin.marinas@arm.com>, <will@kernel.org>,
+        <lorenzo.pieralisi@arm.com>, <guohanjun@huawei.com>,
+        <sudeep.holla@arm.com>
+CC:     <linux-tegra@vger.kernel.org>, <treding@nvidia.com>,
+        <jonathanh@nvidia.com>, <linux-acpi@vger.kernel.org>,
+        <devel@acpica.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Besar Wicaksono" <bwicaksono@nvidia.com>
+Subject: [PATCH 1/2] ACPICA: Add support for ARM Performance Monitoring Unit Table.
+Date:   Tue, 19 Apr 2022 15:54:31 -0500
+Message-ID: <20220419205432.46021-2-bwicaksono@nvidia.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220419205432.46021-1-bwicaksono@nvidia.com>
+References: <20220419205432.46021-1-bwicaksono@nvidia.com>
+X-NVConfidentiality: public
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7fa9afde-5cc4-2e5d-30ac-ccc6ff4c8039@redhat.com>
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: c52452d8-bbff-43b1-0fdb-08da2246fdca
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2356:EE_
+X-Microsoft-Antispam-PRVS: <BL0PR12MB23566F7D9E1E67316D6E1468A0F29@BL0PR12MB2356.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: qObEJIVJkg6A1EWndOP+m7xZ6qzlAO4OVINrxm5rxN/whjMmCoqRJ++i9hBwpoWp3JpJWsTZglh9TX2z3bBCfIdz91wHeIrxx6zVn21mv2IdX4N5/tHE4wfOsOxblWvpmF2nTEjuH4GcSZRwXkFWvZuAJmirTOq/OAB58kbZYT6RwUlxsik/nJeA0uLXZ5vdTvy45KgqZP4DbT+ik1k5/0d/HUArl43u66MNCP0DATGYaL7CUYmN7yF/vE7+R+OPBa2zi85dPwXC0+nkFMReb+q/pEAgC2PXRanjwwLgof6EzryI7s7GPr/raiRZdWD62PM2Jx1TNWbTT0oJiqMYqqAiEHBXpe6Us5qjZTQVXVNhNXGq6Hfg7Ugmx3APJiM5HLwHp7bMfZyMXwoEsw+Fz5D+N2v8Hs3a/RBvkhgyqR49XeQ0Oh7KhH5U0zEZTS4N2b9HKgaHfddK6BvqNhT+NQM5LYmNpUtRbk4kkFJpweUn6vJxMDZDdIOgTV2JDFTJVUgL5orIHgcPhG+4Nov2ryAnFObmJmBMtghMyc11PDbFreNS5E1UiY+lEutmwx4YwAYTaTWwlc1UmP9k8B4yy9+XW/ptLp7hPTk/z1MSegbXlLCcZ0QzPEFY9FOW2cOJJvCOUnJ1b35nDhbK7RFQw36AHWpH682ImgbFUv/H4Akz2A3mgvLzv4NSyYVJdJBKX/GugIe9tzlFiD41KJJC/itnwuFTzmQzMuzsfjMvn/8SMasjN2g4sCvQUotCvcwI8hN8Vce6BZdRcOdZtj7/e8tFOsGaqi+W3HFG/99M7Ik=
+X-Forefront-Antispam-Report: CIP:12.22.5.234;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(46966006)(36840700001)(40470700004)(7416002)(86362001)(70206006)(7696005)(8936002)(356005)(81166007)(316002)(54906003)(966005)(508600001)(70586007)(110136005)(6666004)(186003)(40460700003)(426003)(8676002)(5660300002)(336012)(4326008)(47076005)(36860700001)(2616005)(1076003)(107886003)(82310400005)(26005)(36756003)(2906002)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Apr 2022 20:55:52.5404
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c52452d8-bbff-43b1-0fdb-08da2246fdca
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.234];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT031.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR12MB2356
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Apr 19, 2022 at 05:16:44PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 4/19/22 17:03, Bjorn Helgaas wrote:
-> > On Tue, Apr 19, 2022 at 11:59:17AM +0200, Hans de Goede wrote:
-> >> On 1/1/70 01:00, Bjorn Helgaas wrote:
-> >>> This is still work-in-progress on the issue of PNP0A03 _CRS methods that
-> >>> are buggy or not interpreted correctly by Linux.
-> >>>
-> >>> The previous try at:
-> >>>   https://lore.kernel.org/r/20220304035110.988712-1-helgaas@kernel.org
-> >>> caused regressions on some Chromebooks:
-> >>>   https://lore.kernel.org/r/Yjyv03JsetIsTJxN@sirena.org.uk
-> >>>
-> >>> This v2 drops the commit that caused the Chromebook regression, so it also
-> >>> doesn't fix the issue we were *trying* to fix on Lenovo Yoga and Clevo
-> >>> Barebones.
-> >>>
-> >>> The point of this v2 update is to split the logging patch into (1) a pure
-> >>> logging addition and (2) the change to only clip PCI windows, which was
-> >>> previously hidden inside the logging patch and not well documented.
-> >>>
-> >>> Bjorn Helgaas (3):
-> >>>   x86/PCI: Eliminate remove_e820_regions() common subexpressions
-> >>>   x86: Log resource clipping for E820 regions
-> >>>   x86/PCI: Clip only host bridge windows for E820 regions
-> >>
-> >> Thanks, the entire series looks good to me:
-> >>
-> >> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-> > 
-> > Thank you!
-> > 
-> >> So what is the plan to actually fix the issue seen on some Lenovo models
-> >> and Clevo Barebones ?   As I mentioned previously I think that since all
-> >> our efforts have failed so far that we should maybe reconsider just
-> >> using DMI quirks to ignore the E820 reservation windows for host bridges
-> >> on affected models ?
-> > 
-> > I have been resisting DMI quirks but I'm afraid there's no other way.
-> 
-> Well there is the first match adjacent windows returned by _CRS and
-> only then do the "covers whole region" exception check. I still
-> think that would work at least for the chromebook regression...
+ACPICA commit 002165ecc0a3dc703bb24c789aaa02fdada01675
 
-Without a crystal clear strategy, I think we're going to be tweaking
-the algorithm forever as the _CRS/E820 mix changes.  That's why I
-think that in the long term, a "use _CRS only, with quirks for
-exceptions" strategy will be simplest.
+The specification of this table is described in
+"ARM Performance Monitoring Unit Architecture 1.0 Platform Design Document"
+ARM DEN0117.
 
-> So do you want me to give that a try; or shall I write a patch
-> using DMI quirks. And if we go the DMI quirks, what about
-> matching cmdline arguments?  If we add matching cmdline arguments,
-> which seems to be the sensible thing to do then to allow users
-> to test if they need the quirk, then we basically end up with my
-> first attempt at fixing this from 6 months ago:
-> 
-> https://lore.kernel.org/linux-pci/20211005150956.303707-1-hdegoede@redhat.com/
+This patch adds the necessary types and support for
+compiling/disassembling APMT.
 
-So I think we should go ahead with DMI quirks instead of trying to
-make the algorithm smarter, and yes, I think we will need commandline
-arguments, probably one to force E820 clipping for future machines,
-and one to disable it for old machines.
+Link: https://github.com/acpica/acpica/commit/002165ec
+Signed-off-by: Besar Wicaksono <bwicaksono@nvidia.com>
+---
+ include/acpi/actbl2.h | 81 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
-> > I think the web we've gotten into, where vendors have used E820 to
-> > interact with _CRS in incompatible and undocumented ways, is not
-> > sustainable.
-> > 
-> > I'm not aware of any spec that says the OS should use E820 to clip
-> > things out of _CRS, so I think the long term plan should be to
-> > decouple them by default.
-> 
-> Right and AFAICT the reason Windows is getting away with this is
-> the same as with the original Dell _CRS has overlap with
-> physical RAM issue (1), Linux assigns address to unassigneds BAR-s
-> starting with the lowest available address in the bridge window,
-> where as Windows assigns addresses from the highest available
-> address in the window.
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 16847c8d9d5f..8fc5cf318c15 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -25,6 +25,7 @@
+  * the wrong signature.
+  */
+ #define ACPI_SIG_AGDI           "AGDI"	/* Arm Generic Diagnostic Dump and Reset Device Interface */
++#define ACPI_SIG_APMT           "APMT"	/* Arm Performance Monitoring Unit table */
+ #define ACPI_SIG_BDAT           "BDAT"	/* BIOS Data ACPI Table */
+ #define ACPI_SIG_IORT           "IORT"	/* IO Remapping Table */
+ #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
+@@ -258,6 +259,86 @@ struct acpi_table_agdi {
+ 
+ #define ACPI_AGDI_SIGNALING_MODE (1)
+ 
++/*******************************************************************************
++ *
++ * APMT - ARM Performance Monitoring Unit Table
++ *
++ * Conforms to:
++ * ARM Performance Monitoring Unit Architecture 1.0 Platform Design Document
++ * ARM DEN0117 v1.0 November 25, 2021
++ *
++ ******************************************************************************/
++
++struct acpi_table_apmt {
++	struct acpi_table_header header;    /* Common ACPI table header */
++};
++
++#define ACPI_APMT_NODE_ID_LENGTH                4
++
++/*
++ * APMT subtables
++ */
++struct acpi_apmt_node {
++	u16                                  length;
++	u8                                   flags;
++	u8                                   type;
++	u32                                  id;
++	u64                                  inst_primary;
++	u32                                  inst_secondary;
++	u64                                  base_address0;
++	u64                                  base_address1;
++	u32                                  ovflw_irq;
++	u32                                  reserved;
++	u32                                  ovflw_irq_flags;
++	u32                                  proc_affinity;
++	u32                                  impl_id;
++};
++
++/* Masks for Flags field above */
++
++#define ACPI_APMT_FLAGS_DUAL_PAGE               (1<<0)
++#define ACPI_APMT_FLAGS_AFFINITY                (1<<1)
++#define ACPI_APMT_FLAGS_ATOMIC                  (1<<2)
++
++/* Values for Flags dual page field above */
++
++#define ACPI_APMT_FLAGS_DUAL_PAGE_NSUPP         (0<<0)
++#define ACPI_APMT_FLAGS_DUAL_PAGE_SUPP          (1<<0)
++
++/* Values for Flags processor affinity field above */
++#define ACPI_APMT_FLAGS_AFFINITY_PROC           (0<<1)
++#define ACPI_APMT_FLAGS_AFFINITY_PROC_CONTAINER (1<<1)
++
++/* Values for Flags 64-bit atomic field above */
++#define ACPI_APMT_FLAGS_ATOMIC_NSUPP            (0<<2)
++#define ACPI_APMT_FLAGS_ATOMIC_SUPP             (1<<2)
++
++/* Values for Type field above */
++
++enum acpi_apmt_node_type {
++	ACPI_APMT_NODE_TYPE_MC                      = 0x00,
++	ACPI_APMT_NODE_TYPE_SMMU                    = 0x01,
++	ACPI_APMT_NODE_TYPE_PCIE_ROOT               = 0x02,
++	ACPI_APMT_NODE_TYPE_ACPI                    = 0x03,
++	ACPI_APMT_NODE_TYPE_CACHE                   = 0x04,
++	ACPI_APMT_NODE_TYPE_COUNT
++};
++
++/* Masks for ovflw_irq_flags field above */
++
++#define ACPI_APMT_OVFLW_IRQ_FLAGS_MODE          (1<<0)
++#define ACPI_APMT_OVFLW_IRQ_FLAGS_TYPE          (1<<1)
++
++/* Values for ovflw_irq_flags mode field above */
++
++#define ACPI_APMT_OVFLW_IRQ_FLAGS_MODE_LEVEL    (0<<0)
++#define ACPI_APMT_OVFLW_IRQ_FLAGS_MODE_EDGE     (1<<0)
++
++/* Values for ovflw_irq_flags type field above */
++
++#define ACPI_APMT_OVFLW_IRQ_FLAGS_TYPE_WIRED    (0<<1)
++
++
+ /*******************************************************************************
+  *
+  * BDAT - BIOS Data ACPI Table
+-- 
+2.17.1
 
-Right, I agree.  I'm guessing Chromebooks don't get tested with
-Windows at all, so we don't even have that level of testing to help.
-
-> So the real fix here might very well be
-> to rework the BAR assignment code to switch to fill the window
-> from the top rather then from the bottom. AFAICT all issues where
-> excluding _E820 reservations have helped are with _E820 - bridge
-> window overlaps at the bottom of the window.
-> 
-> IOW these are really all bugs in the _CRS method for the bridge,
-> which Windows does not hit because it never actually uses
-> the lowest address(es) of the _CRS returned window.
-
-Yes.  We actually did try this
-(https://git.kernel.org/linus/1af3c2e45e7a), but unfortunately we had
-to revert it.  Even more unfortunately, the revert
-(https://git.kernel.org/linus/5e52f1c5e85f) doesn't have any details
-about what went wrong.
-
-> 1) At least I read in either a bugzilla, or email thread about
-> this that Windows allocating bridge window space from the top
-> was assumed to be why Windows was not impacted.
-> 
-> > Straw man:
-> > 
-> >   - Disable E820 clipping by default.
-> > 
-> >   - Add a quirk to enable E820 clipping for machines older than X,
-> >     e.g., 2023, to avoid breaking machines that currently work.
-> > 
-> >   - Add quirks to disable E820 clipping for individual machines like
-> >     the Lenovo and Clevos that predate X, but E820 clipping breaks
-> >     them.
-> > 
-> >   - Add quirks to enable E820 clipping for individual machines like
-> >     the Chromebooks (and probably machines we don't know about yet)
-> >     that have devices that consume part of _CRS but are not
-> >     enumerable.
-> > 
-> >   - Communicate this to OEMs to try to prevent future machines that
-> >     need quirks.
-> > 
-> > Bjorn
-> > 
-> 
