@@ -2,133 +2,97 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6ED0C433FE
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Apr 2022 15:45:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8CA4C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 Apr 2022 16:43:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1390262AbiDUPse (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Apr 2022 11:48:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45972 "EHLO
+        id S232155AbiDUQp7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Apr 2022 12:45:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1390285AbiDUPsd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2022 11:48:33 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3F9004706E
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Apr 2022 08:45:43 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D754B1516;
-        Thu, 21 Apr 2022 08:45:42 -0700 (PDT)
-Received: from [10.57.41.251] (unknown [10.57.41.251])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A455D3F73B;
-        Thu, 21 Apr 2022 08:45:39 -0700 (PDT)
-Message-ID: <4c3cce25-cd40-092f-5316-e5c5d3adbcc6@arm.com>
-Date:   Thu, 21 Apr 2022 16:45:34 +0100
+        with ESMTP id S232105AbiDUQp4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2022 12:45:56 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9CFF548E55
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Apr 2022 09:43:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1650559385;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=+Bjh4A2xgvA65XgQNDvQgstLNivQfww0GqMpHMFLzMk=;
+        b=XxcHHESF1ktRllaZMJAEpFTvcbaapMSnHTNSJ80pLmtGyXUsbHsBmK+Ngw3xhtoTPvkaiF
+        gtF8PU1WVhfoOK6B37BMiLGzp5jtukqckKn2pWBLm7fBrKtI7sYms6aNz+je28dKmJGo0Q
+        cQeFehS13Y8ZdjMqzFEQHSEbWzNfF+E=
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com
+ [209.85.222.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-410-bM-J-634PWCAgMk2HQafHA-1; Thu, 21 Apr 2022 12:43:04 -0400
+X-MC-Unique: bM-J-634PWCAgMk2HQafHA-1
+Received: by mail-qk1-f199.google.com with SMTP id q12-20020ae9e40c000000b0069f091022dbso880887qkc.3
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Apr 2022 09:43:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=+Bjh4A2xgvA65XgQNDvQgstLNivQfww0GqMpHMFLzMk=;
+        b=JKrocvIwuxGpwITVgPgwaTyVSXt7JaFaNXYjjpINivWEnpUcXiF49OfUXXe4wW42gv
+         KbcHCbW4FgXk+K9eSwETN9ZkSQE+sFk1r9vKBTS3Ye34lqK4of0aQKoBI5FWi4EDvbN/
+         +/vniU9SPw7EbIlhaQxmOIzcqUp2HM5X2iVpvw65N9ovzcZygYLGWOrJ7e0kTDa2Ax3F
+         ghk3aLTK2vpk72nH1zbWOJBcnyJmQ5Gw3KyY2c7zivRNWaNxbQYi3pnzd6Ql1wFZmtY+
+         L2/I9b/8AJE5NgIhmSXQe6uSmzVKmgkfwX+OshHWFe1w0YEHQWIo4o+G+ArcymN7rdoF
+         3nhw==
+X-Gm-Message-State: AOAM531ArODblfAMPJUOY8NotcObnnNMTsAUVOQ8ud9bOa0VVJ/RBSJX
+        TPx+fGlpx6XvUY5RyYTKoVQqpIsI3T89x/bRsxkM0lUMJRCBqKf7YtSD4R4cHOe8FH+smE/Ltah
+        I8SQ3z0wQQtko4JEzxScJjg==
+X-Received: by 2002:a37:65ca:0:b0:69e:d32a:91ff with SMTP id z193-20020a3765ca000000b0069ed32a91ffmr213238qkb.766.1650559383963;
+        Thu, 21 Apr 2022 09:43:03 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwNg8tV2VAaDIcr+Juw0PHofmf5dHfJBDMtp/TlbLkvBCvx+GsRyiFAk7MK5zPhP5ECQJbrTw==
+X-Received: by 2002:a37:65ca:0:b0:69e:d32a:91ff with SMTP id z193-20020a3765ca000000b0069ed32a91ffmr213227qkb.766.1650559383776;
+        Thu, 21 Apr 2022 09:43:03 -0700 (PDT)
+Received: from dell-per740-01.7a2m.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id z8-20020ac87f88000000b002e1cecad0e4sm3631641qtj.33.2022.04.21.09.43.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Apr 2022 09:43:03 -0700 (PDT)
+From:   Tom Rix <trix@redhat.com>
+To:     rafael@kernel.org, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Tom Rix <trix@redhat.com>
+Subject: [PATCH] ACPI: bgrt: use static for BGRT_SHOW kobj_attribute defines
+Date:   Thu, 21 Apr 2022 12:42:54 -0400
+Message-Id: <20220421164254.859162-1-trix@redhat.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: [PATCH v10 0/9] ACPI/IORT: Support for IORT RMR node
-Content-Language: en-GB
-To:     Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>,
-        Steven Price <steven.price@arm.com>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc:     Linuxarm <linuxarm@huawei.com>,
-        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
-        "joro@8bytes.org" <joro@8bytes.org>,
-        "will@kernel.org" <will@kernel.org>,
-        wanghuiqiang <wanghuiqiang@huawei.com>,
-        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
-        "jon@solid-run.com" <jon@solid-run.com>,
-        "eric.auger@redhat.com" <eric.auger@redhat.com>,
-        "laurentiu.tudor@nxp.com" <laurentiu.tudor@nxp.com>,
-        "hch@infradead.org" <hch@infradead.org>
-References: <20220420164836.1181-1-shameerali.kolothum.thodi@huawei.com>
- <b75dd20c-24b9-7944-bfb7-9f102623e725@arm.com>
- <78cd48d112b144b69bcc498748c584e3@huawei.com>
-From:   Robin Murphy <robin.murphy@arm.com>
-In-Reply-To: <78cd48d112b144b69bcc498748c584e3@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2022-04-21 15:43, Shameerali Kolothum Thodi wrote:
-> 
-> 
->> -----Original Message-----
->> From: Steven Price [mailto:steven.price@arm.com]
->> Sent: 21 April 2022 13:59
->> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>;
->> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
->> iommu@lists.linux-foundation.org
->> Cc: Linuxarm <linuxarm@huawei.com>; lorenzo.pieralisi@arm.com;
->> joro@8bytes.org; robin.murphy@arm.com; will@kernel.org; wanghuiqiang
->> <wanghuiqiang@huawei.com>; Guohanjun (Hanjun Guo)
->> <guohanjun@huawei.com>; Sami.Mujawar@arm.com; jon@solid-run.com;
->> eric.auger@redhat.com; laurentiu.tudor@nxp.com; hch@infradead.org
->> Subject: Re: [PATCH v10 0/9] ACPI/IORT: Support for IORT RMR node
->>
->> On 20/04/2022 17:48, Shameer Kolothum wrote:
->>> Hi
->>>
->>> v9 --> v10
->>>   - Dropped patch #1 ("Add temporary RMR node flag definitions") since
->>>     the ACPICA header updates patch is now in the mailing list[1]
->>>   - Based on the suggestion from Christoph, introduced a
->>>     resv_region_free_fw_data() callback in struct iommu_resv_region and
->>>     used that to free RMR specific memory allocations.
->>>
->>> Though there is a small change from v9 with respect to how we free up
->>> the FW specific data, I have taken the liberty to pick up the R-by and
->>> T-by tags from Lorenzo, Steve and Laurentiu. But please do take a look
->>> again and let me know.
->>
->> I've given this a go and it works fine on my Juno setup. So do keep my
->> T-by tag.
-> 
-> Many thanks for that.
-> 
->> Sami has been kind enough to give me an updated firmware which also
->> fixes the RMR node in the IORT. Although as mentioned before the details
->> of the RMR node are currently being ignored so this doesn't change the
->> functionality but silences the warning.
+Smatch reports this repesentative issue
+bgrt.c:26:1: warning: symbol 'bgrt_attr_version' was not declared. Should it be static?
+Similar for *status,type,xoffset,yoffset
 
-Strictly they're not ignored, you just won't be getting past the point 
-where they're not entirely not ignored. It'll appear to work because 
-arm_smmu_rmr_install_bypass_smr() just bypasses the whole stream until 
-the actual device turns up to join up to the StreamID and the "real" 
-processing of RMRs happens via iommu_create_device_direct_mappings() - 
-if there's no actual HDLCD device described in the DSDT, that will never 
-happen, and even if there is, chances are that things will currently 
-happen in the wrong order such we'd end up waiting to replay 
-iommu_probe_device() from acpi_iommu_configure_id() once a driver binds, 
-and *that* definitely can't happen without teaching the HDLCD driver 
-about ACPI.
+These variables are defined with the BGRT_SHOW macro.
+For the definition of bgrt_attr_##_name,
+the storage-class specifier should be static
 
->> My concern is that with the RMR region effectively ignored we may see
->> more broken firmware, and while a length of zero produces a warning, an
->> otherwise incorrect length will currently "silently work" but mean that
->> any future tightening would cause problems. For example if the SMMU
->> driver were to recreate the mappings to only cover the region specified
->> in the RMR it may not be large enough if the RMR base/length are not
->> correct.
-> 
-> Not sure how we can further validate the RMR if the firmware provides an
-> incorrect one. I see your point of future tightening causing problems
-> with broken firmware. But then it is indeed a "broken firmware"...
-> 
->   It's up to the maintainers as to whether they see this as a
->> problem or not.
-> 
-> Hi Robin,
-> 
-> Any thoughts on this?
+Signed-off-by: Tom Rix <trix@redhat.com>
+---
+ drivers/acpi/bgrt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In general we can't second-guess firmware. Even a zero-length RMR should 
-have ample opportunity to blow up outside this one corner case where 
-Linux never gets to associate the StreamID with a corresponding device.
+diff --git a/drivers/acpi/bgrt.c b/drivers/acpi/bgrt.c
+index 02d208732f9a..e4fb9e225ddf 100644
+--- a/drivers/acpi/bgrt.c
++++ b/drivers/acpi/bgrt.c
+@@ -21,7 +21,7 @@ static struct kobject *bgrt_kobj;
+ 	{									\
+ 		return sysfs_emit(buf, "%d\n", bgrt_tab._member);		\
+ 	}									\
+-	struct kobj_attribute bgrt_attr_##_name = __ATTR_RO(_name)
++	static struct kobj_attribute bgrt_attr_##_name = __ATTR_RO(_name)
+ 
+ BGRT_SHOW(version, version);
+ BGRT_SHOW(status, status);
+-- 
+2.27.0
 
-Robin.
