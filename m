@@ -2,31 +2,31 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12834C433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Apr 2022 06:45:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C913C433F5
+	for <linux-acpi@archiver.kernel.org>; Thu, 21 Apr 2022 06:49:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1385065AbiDUGsN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Apr 2022 02:48:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45788 "EHLO
+        id S1385308AbiDUGwD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Apr 2022 02:52:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1385297AbiDUGrj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2022 02:47:39 -0400
+        with ESMTP id S1385201AbiDUGvx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2022 02:51:53 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B17E14028
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Apr 2022 23:44:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 506B81902B
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Apr 2022 23:46:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
         :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
         Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=; b=sxYCZD/moAPHIntc2gbtGWNX89
-        /i9ctHCr8URC/r5War+ctWmrBCLHPmnLEpAMShjQmA6XDW4XJiJbSI3RMQpGjkeDBtRTakEslRWQu
-        WMpsJAG8pfXCziFg5bDgkFUbpIg9ttlTDAHQd8TlSqMu2wOFLs5wvvF17Uq+AD7ogS9aSdszzRMJM
-        Ck9SiuKsD0A9sHk8DvIbY45sZgMFJFyx6XDcFwohWvvjO7jO1amTQ4SCgfTITAabtOfEMnHI6GvWv
-        AvE7JV590mgGdMHewJ/BfoGaUWo99kmxg5qrxQt2m9oHxAks2Ejk1SKyQsUy717M9Ukawinxam8sg
-        hZZ32XvQ==;
+        bh=qRe7vVjPJnHyP0cePRDkMY8xq1/p2U8RyI0nOsV3x/Y=; b=gXTsIB/cqOFjcI2VVEPlTTOA/z
+        JkDaeAbQkTqWCmZQWPF2ud1tjTcCPl9gGvqF1cbbelDgbwib3XeammJKt5j6sFWVIOEU+dzKg7iSN
+        yMZ2/K34n1kAt9TEZmdH+AadMMJ8x/SxyO96p7sMhG/8SiHufQvCmfTxVUK4J/O1zxY3hKzvRc5W7
+        112L3TTd3hsNoKEUhHo1/RudxRQNIg4jeruHz1cfxbA15O8FvZN+JbMufRnYg++ECHv/w3OLD29nn
+        xSimUZI8scvoZRvioaHzZXORXk3dRwdPdKYeX/5c0WPMTsPIG6w9kdEk2EQZqurSseYK4MsCdwIju
+        cVmW2Y8A==;
 Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nhQYA-00BoZJ-Tw; Thu, 21 Apr 2022 06:44:22 +0000
-Date:   Wed, 20 Apr 2022 23:44:22 -0700
+        id 1nhQa8-00Bpjs-FO; Thu, 21 Apr 2022 06:46:24 +0000
+Date:   Wed, 20 Apr 2022 23:46:24 -0700
 From:   Christoph Hellwig <hch@infradead.org>
 To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
@@ -35,20 +35,30 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
         will@kernel.org, wanghuiqiang@huawei.com, guohanjun@huawei.com,
         steven.price@arm.com, Sami.Mujawar@arm.com, jon@solid-run.com,
         eric.auger@redhat.com, laurentiu.tudor@nxp.com, hch@infradead.org
-Subject: Re: [PATCH v10 2/9] ACPI/IORT: Make
- iort_iommu_msi_get_resv_regions() return void
-Message-ID: <YmD9RhNK9PMBsMBB@infradead.org>
+Subject: Re: [PATCH v10 1/9] iommu: Introduce a union to struct
+ iommu_resv_region
+Message-ID: <YmD9wBhR8/j8HOaX@infradead.org>
 References: <20220420164836.1181-1-shameerali.kolothum.thodi@huawei.com>
- <20220420164836.1181-3-shameerali.kolothum.thodi@huawei.com>
+ <20220420164836.1181-2-shameerali.kolothum.thodi@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220420164836.1181-3-shameerali.kolothum.thodi@huawei.com>
+In-Reply-To: <20220420164836.1181-2-shameerali.kolothum.thodi@huawei.com>
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Looks good:
+On Wed, Apr 20, 2022 at 05:48:28PM +0100, Shameer Kolothum wrote:
+> @@ -141,6 +149,11 @@ struct iommu_resv_region {
+>  	size_t			length;
+>  	int			prot;
+>  	enum iommu_resv_type	type;
+> +	union {
+> +		struct iommu_iort_rmr_data rmr;
+> +	} fw_data;
+> +	void (*resv_region_free_fw_data)(struct device *dev,
+> +					 struct iommu_resv_region *region);
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+I'd shorten the name to just free.  Also any reason the call to this
+method isn't also added in this patch as it logically belongs here?
