@@ -2,138 +2,354 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78879C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Apr 2022 16:31:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED6E0C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Apr 2022 22:54:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1448232AbiDVQdy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 22 Apr 2022 12:33:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35720 "EHLO
+        id S233993AbiDVW5G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 22 Apr 2022 18:57:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1446435AbiDVQdx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Apr 2022 12:33:53 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83B385DA79
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 09:30:59 -0700 (PDT)
-Received: from fraeml708-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KlKbD73cxz689Nq;
-        Sat, 23 Apr 2022 00:28:24 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml708-chm.china.huawei.com (10.206.15.36) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 22 Apr 2022 18:30:57 +0200
-Received: from A2006125610.china.huawei.com (10.202.227.178) by
- lhreml710-chm.china.huawei.com (10.201.108.61) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 22 Apr 2022 17:30:50 +0100
-From:   Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-To:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>, <iommu@lists.linux-foundation.org>
-CC:     <linuxarm@huawei.com>, <lorenzo.pieralisi@arm.com>,
-        <joro@8bytes.org>, <robin.murphy@arm.com>, <will@kernel.org>,
-        <wanghuiqiang@huawei.com>, <guohanjun@huawei.com>,
-        <steven.price@arm.com>, <Sami.Mujawar@arm.com>,
-        <jon@solid-run.com>, <eric.auger@redhat.com>,
-        <laurentiu.tudor@nxp.com>, <hch@infradead.org>
-Subject: [PATCH v11 9/9] iommu/arm-smmu: Get associated RMR info and install bypass SMR
-Date:   Fri, 22 Apr 2022 17:29:07 +0100
-Message-ID: <20220422162907.1276-10-shameerali.kolothum.thodi@huawei.com>
-X-Mailer: git-send-email 2.12.0.windows.1
-In-Reply-To: <20220422162907.1276-1-shameerali.kolothum.thodi@huawei.com>
-References: <20220422162907.1276-1-shameerali.kolothum.thodi@huawei.com>
+        with ESMTP id S233897AbiDVW47 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Apr 2022 18:56:59 -0400
+Received: from mail-oa1-x2c.google.com (mail-oa1-x2c.google.com [IPv6:2001:4860:4864:20::2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66B993766AD
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 15:21:59 -0700 (PDT)
+Received: by mail-oa1-x2c.google.com with SMTP id 586e51a60fabf-e2afb80550so10087575fac.1
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 15:21:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=YfdyUeRBKR7/kufYH33kid5tsUaSAg2QglexM2TYAZE=;
+        b=S25cr15PWqZVQoaeR93yTdLNOyjL74an2NA5fiXvUN03SfqBvkwUc6/NJ90wfypL6n
+         7qnczyOLRDGNi6Qy28R0x8oTvofoG9WX/Fc27z5mU0aF1mw0AB7pFoU6mLVNG/5JGeVW
+         OLj2uQPq8NFb6be6O4z0NPT1JhEAWH2HfCh9e/NBdrzGjq9oKTg4VDm9F+Li5xCUfOEv
+         ULg+g6VaAjSjYqTqGODCKxJAIEtj6flZaplXDSM8WtFAFZrHaSEgt4p3gmRhd1MC8wvr
+         e+lRijbqUCY2tzpQHXe+yGcltJKrP9sBBoqrHPWSs+mansOmL6v0I1MDmZKJBUHp0BuZ
+         +hDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=YfdyUeRBKR7/kufYH33kid5tsUaSAg2QglexM2TYAZE=;
+        b=X2ZFSPQm+QxxFPZ9BoZmCNj5w6SUyczGfkkucGQJ8cfhS8KV4zR5SjbHJMDIxR3xwZ
+         I0PQa9AkVjWPgtrvtJqFNMX0iCfxPSqYPUmPwNKE9tt4yvKAiKFH/bnKGBzOSXi66lhm
+         edNmRjmOWwmKwwb4fY8YOBsnE+DCDZbXtN8ufYG5F5F0CqdN4SblQ9a6G8NIGNwdTl3p
+         kQziRT4rETy6WglJTcbEZW1OjCF+JGlMZL3o7F4euzc0SwIGFW4dAYyBNAgdHV6ZjzXN
+         UvkPpAfuz0jDQOyNij20Z9U8vqwKaUI8aISbWwT3N+/gRiND1Ey2KdaEvpFh2SGu+KgN
+         m4+Q==
+X-Gm-Message-State: AOAM530gm8iGh0+aLO6coJGUbO2BrtTuTVsDE/V0LSMFY3IuJl3vAl2W
+        uRrgOuBrSLlmSFMGGb3MMGxwkw==
+X-Google-Smtp-Source: ABdhPJxzLx2x/E6WOR5Si0YdPNktJBV8OkVVmeAAG7G+uedRUBkDjgfJ8N9psrJxZUh6jlA7ixI/8g==
+X-Received: by 2002:a05:6870:5802:b0:de:ce5e:33ea with SMTP id r2-20020a056870580200b000dece5e33eamr2967613oap.57.1650666118478;
+        Fri, 22 Apr 2022 15:21:58 -0700 (PDT)
+Received: from ripper.. ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
+        by smtp.gmail.com with ESMTPSA id js4-20020a056870bac400b000e687cdf5adsm1049224oab.55.2022.04.22.15.21.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 Apr 2022 15:21:57 -0700 (PDT)
+From:   Bjorn Andersson <bjorn.andersson@linaro.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>
+Cc:     linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [PATCH v5 7/7] usb: typec: mux: Add On Semi fsa4480 driver
+Date:   Fri, 22 Apr 2022 15:23:51 -0700
+Message-Id: <20220422222351.1297276-8-bjorn.andersson@linaro.org>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220422222351.1297276-1-bjorn.andersson@linaro.org>
+References: <20220422222351.1297276-1-bjorn.andersson@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.202.227.178]
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jon Nettleton <jon@solid-run.com>
+The ON Semiconductor FSA4480 is a USB Type-C port multimedia switch with
+support for analog audio headsets. It allows sharing a common USB Type-C
+port to pass USB2.0 signal, analog audio, sideband use wires and analog
+microphone signal.
 
-Check if there is any RMR info associated with the devices behind
-the SMMU and if any, install bypass SMRs for them. This is to
-keep any ongoing traffic associated with these devices alive
-when we enable/reset SMMU during probe().
+Due to lacking upstream audio support for testing, the audio muxing is
+left untouched, but implementation of muxing the SBU lines is provided
+as a pair of Type-C mux and switch devices. This provides the necessary
+support for enabling the DisplayPort altmode on devices with this
+circuit.
 
-Signed-off-by: Jon Nettleton <jon@solid-run.com>
-Signed-off-by: Steven Price <steven.price@arm.com>
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
- drivers/iommu/arm/arm-smmu/arm-smmu.c | 52 +++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
 
-diff --git a/drivers/iommu/arm/arm-smmu/arm-smmu.c b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-index 568cce590ccc..e02cc2d4fb4e 100644
---- a/drivers/iommu/arm/arm-smmu/arm-smmu.c
-+++ b/drivers/iommu/arm/arm-smmu/arm-smmu.c
-@@ -2068,6 +2068,54 @@ err_reset_platform_ops: __maybe_unused;
- 	return err;
- }
+Changes since v4:
+- Disable locking of the regmap
+- Use dev_fwnode() instead of explicit dereference
+
+ drivers/usb/typec/mux/Kconfig   |  10 ++
+ drivers/usb/typec/mux/Makefile  |   1 +
+ drivers/usb/typec/mux/fsa4480.c | 218 ++++++++++++++++++++++++++++++++
+ 3 files changed, 229 insertions(+)
+ create mode 100644 drivers/usb/typec/mux/fsa4480.c
+
+diff --git a/drivers/usb/typec/mux/Kconfig b/drivers/usb/typec/mux/Kconfig
+index edead555835e..5eb2c17d72c1 100644
+--- a/drivers/usb/typec/mux/Kconfig
++++ b/drivers/usb/typec/mux/Kconfig
+@@ -2,6 +2,16 @@
  
-+static void arm_smmu_rmr_install_bypass_smr(struct arm_smmu_device *smmu)
+ menu "USB Type-C Multiplexer/DeMultiplexer Switch support"
+ 
++config TYPEC_MUX_FSA4480
++	tristate "ON Semi FSA4480 Analog Audio Switch driver"
++	depends on I2C
++	select REGMAP_I2C
++	help
++	  Driver for the ON Semiconductor FSA4480 Analog Audio Switch, which
++	  provides support for muxing analog audio and sideband signals on a
++	  common USB Type-C connector.
++	  If compiled as a module, the module will be named fsa4480.
++
+ config TYPEC_MUX_PI3USB30532
+ 	tristate "Pericom PI3USB30532 Type-C cross switch driver"
+ 	depends on I2C
+diff --git a/drivers/usb/typec/mux/Makefile b/drivers/usb/typec/mux/Makefile
+index 280a6f553115..e52a56c16bfb 100644
+--- a/drivers/usb/typec/mux/Makefile
++++ b/drivers/usb/typec/mux/Makefile
+@@ -1,4 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
++obj-$(CONFIG_TYPEC_MUX_FSA4480)		+= fsa4480.o
+ obj-$(CONFIG_TYPEC_MUX_PI3USB30532)	+= pi3usb30532.o
+ obj-$(CONFIG_TYPEC_MUX_INTEL_PMC)	+= intel_pmc_mux.o
+diff --git a/drivers/usb/typec/mux/fsa4480.c b/drivers/usb/typec/mux/fsa4480.c
+new file mode 100644
+index 000000000000..6184f5367190
+--- /dev/null
++++ b/drivers/usb/typec/mux/fsa4480.c
+@@ -0,0 +1,218 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2021-2022 Linaro Ltd.
++ * Copyright (C) 2018-2020 The Linux Foundation
++ */
++
++#include <linux/bits.h>
++#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/regmap.h>
++#include <linux/usb/typec_dp.h>
++#include <linux/usb/typec_mux.h>
++
++#define FSA4480_SWITCH_ENABLE	0x04
++#define FSA4480_SWITCH_SELECT	0x05
++#define FSA4480_SWITCH_STATUS1	0x07
++#define FSA4480_SLOW_L		0x08
++#define FSA4480_SLOW_R		0x09
++#define FSA4480_SLOW_MIC	0x0a
++#define FSA4480_SLOW_SENSE	0x0b
++#define FSA4480_SLOW_GND	0x0c
++#define FSA4480_DELAY_L_R	0x0d
++#define FSA4480_DELAY_L_MIC	0x0e
++#define FSA4480_DELAY_L_SENSE	0x0f
++#define FSA4480_DELAY_L_AGND	0x10
++#define FSA4480_RESET		0x1e
++#define FSA4480_MAX_REGISTER	0x1f
++
++#define FSA4480_ENABLE_DEVICE	BIT(7)
++#define FSA4480_ENABLE_SBU	GENMASK(6, 5)
++#define FSA4480_ENABLE_USB	GENMASK(4, 3)
++
++#define FSA4480_SEL_SBU_REVERSE	GENMASK(6, 5)
++#define FSA4480_SEL_USB		GENMASK(4, 3)
++
++struct fsa4480 {
++	struct i2c_client *client;
++
++	/* used to serialize concurrent change requests */
++	struct mutex lock;
++
++	struct typec_switch_dev *sw;
++	struct typec_mux_dev *mux;
++
++	struct regmap *regmap;
++
++	u8 cur_enable;
++	u8 cur_select;
++};
++
++static const struct regmap_config fsa4480_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = FSA4480_MAX_REGISTER,
++	/* Accesses only done under fsa4480->lock */
++	.disable_locking = true,
++};
++
++static int fsa4480_switch_set(struct typec_switch_dev *sw,
++			      enum typec_orientation orientation)
 +{
-+	struct list_head rmr_list;
-+	struct iommu_resv_region *e;
-+	int idx, cnt = 0;
-+	u32 reg;
++	struct fsa4480 *fsa = typec_switch_get_drvdata(sw);
++	u8 new_sel;
 +
-+	INIT_LIST_HEAD(&rmr_list);
-+	iort_get_rmr_sids(dev_fwnode(smmu->dev), &rmr_list);
++	mutex_lock(&fsa->lock);
++	new_sel = FSA4480_SEL_USB;
++	if (orientation == TYPEC_ORIENTATION_REVERSE)
++		new_sel |= FSA4480_SEL_SBU_REVERSE;
 +
-+	/*
-+	 * Rather than trying to look at existing mappings that
-+	 * are setup by the firmware and then invalidate the ones
-+	 * that do no have matching RMR entries, just disable the
-+	 * SMMU until it gets enabled again in the reset routine.
-+	 */
-+	reg = arm_smmu_gr0_read(smmu, ARM_SMMU_GR0_sCR0);
-+	reg |= ARM_SMMU_sCR0_CLIENTPD;
-+	arm_smmu_gr0_write(smmu, ARM_SMMU_GR0_sCR0, reg);
++	if (new_sel == fsa->cur_select)
++		goto out_unlock;
 +
-+	list_for_each_entry(e, &rmr_list, list) {
-+		struct iommu_iort_rmr_data *rmr;
-+		int i;
++	if (fsa->cur_enable & FSA4480_ENABLE_SBU) {
++		/* Disable SBU output while re-configuring the switch */
++		regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE,
++			     fsa->cur_enable & ~FSA4480_ENABLE_SBU);
 +
-+		rmr = container_of(e, struct iommu_iort_rmr_data, rr);
-+		for (i = 0; i < rmr->num_sids; i++) {
-+			idx = arm_smmu_find_sme(smmu, rmr->sids[i], ~0);
-+			if (idx < 0)
-+				continue;
-+
-+			if (smmu->s2crs[idx].count == 0) {
-+				smmu->smrs[idx].id = rmr->sids[i];
-+				smmu->smrs[idx].mask = 0;
-+				smmu->smrs[idx].valid = true;
-+			}
-+			smmu->s2crs[idx].count++;
-+			smmu->s2crs[idx].type = S2CR_TYPE_BYPASS;
-+			smmu->s2crs[idx].privcfg = S2CR_PRIVCFG_DEFAULT;
-+
-+			cnt++;
-+		}
++		/* 35us to allow the SBU switch to turn off */
++		usleep_range(35, 1000);
 +	}
 +
-+	dev_notice(smmu->dev, "\tpreserved %d boot mapping%s\n", cnt,
-+		   cnt == 1 ? "" : "s");
-+	iort_put_rmr_sids(dev_fwnode(smmu->dev), &rmr_list);
++	regmap_write(fsa->regmap, FSA4480_SWITCH_SELECT, new_sel);
++	fsa->cur_select = new_sel;
++
++	if (fsa->cur_enable & FSA4480_ENABLE_SBU) {
++		regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, fsa->cur_enable);
++
++		/* 15us to allow the SBU switch to turn on again */
++		usleep_range(15, 1000);
++	}
++
++out_unlock:
++	mutex_unlock(&fsa->lock);
++
++	return 0;
 +}
 +
- static int arm_smmu_device_probe(struct platform_device *pdev)
- {
- 	struct resource *res;
-@@ -2189,6 +2237,10 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
- 	}
- 
- 	platform_set_drvdata(pdev, smmu);
++static int fsa4480_mux_set(struct typec_mux_dev *mux, struct typec_mux_state *state)
++{
++	struct fsa4480 *fsa = typec_mux_get_drvdata(mux);
++	u8 new_enable;
 +
-+	/* Check for RMRs and install bypass SMRs if any */
-+	arm_smmu_rmr_install_bypass_smr(smmu);
++	mutex_lock(&fsa->lock);
 +
- 	arm_smmu_device_reset(smmu);
- 	arm_smmu_test_smr_masks(smmu);
- 
++	new_enable = FSA4480_ENABLE_DEVICE | FSA4480_ENABLE_USB;
++	if (state->mode >= TYPEC_DP_STATE_A)
++		new_enable |= FSA4480_ENABLE_SBU;
++
++	if (new_enable == fsa->cur_enable)
++		goto out_unlock;
++
++	regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, new_enable);
++	fsa->cur_enable = new_enable;
++
++	if (new_enable & FSA4480_ENABLE_SBU) {
++		/* 15us to allow the SBU switch to turn off */
++		usleep_range(15, 1000);
++	}
++
++out_unlock:
++	mutex_unlock(&fsa->lock);
++
++	return 0;
++}
++
++static int fsa4480_probe(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++	struct typec_switch_desc sw_desc = { };
++	struct typec_mux_desc mux_desc = { };
++	struct fsa4480 *fsa;
++
++	fsa = devm_kzalloc(dev, sizeof(*fsa), GFP_KERNEL);
++	if (!fsa)
++		return -ENOMEM;
++
++	fsa->client = client;
++	mutex_init(&fsa->lock);
++
++	fsa->regmap = devm_regmap_init_i2c(client, &fsa4480_regmap_config);
++	if (IS_ERR(fsa->regmap))
++		return dev_err_probe(dev, PTR_ERR(fsa->regmap), "failed to initialize regmap\n");
++
++	fsa->cur_enable = FSA4480_ENABLE_DEVICE | FSA4480_ENABLE_USB;
++	fsa->cur_select = FSA4480_SEL_USB;
++
++	/* set default settings */
++	regmap_write(fsa->regmap, FSA4480_SLOW_L, 0x00);
++	regmap_write(fsa->regmap, FSA4480_SLOW_R, 0x00);
++	regmap_write(fsa->regmap, FSA4480_SLOW_MIC, 0x00);
++	regmap_write(fsa->regmap, FSA4480_SLOW_SENSE, 0x00);
++	regmap_write(fsa->regmap, FSA4480_SLOW_GND, 0x00);
++	regmap_write(fsa->regmap, FSA4480_DELAY_L_R, 0x00);
++	regmap_write(fsa->regmap, FSA4480_DELAY_L_MIC, 0x00);
++	regmap_write(fsa->regmap, FSA4480_DELAY_L_SENSE, 0x00);
++	regmap_write(fsa->regmap, FSA4480_DELAY_L_AGND, 0x09);
++	regmap_write(fsa->regmap, FSA4480_SWITCH_SELECT, fsa->cur_select);
++	regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, fsa->cur_enable);
++
++	sw_desc.drvdata = fsa;
++	sw_desc.fwnode = dev_fwnode(dev);
++	sw_desc.set = fsa4480_switch_set;
++
++	fsa->sw = typec_switch_register(dev, &sw_desc);
++	if (IS_ERR(fsa->sw))
++		return dev_err_probe(dev, PTR_ERR(fsa->sw), "failed to register typec switch\n");
++
++	mux_desc.drvdata = fsa;
++	mux_desc.fwnode = dev_fwnode(dev);
++	mux_desc.set = fsa4480_mux_set;
++
++	fsa->mux = typec_mux_register(dev, &mux_desc);
++	if (IS_ERR(fsa->mux)) {
++		typec_switch_unregister(fsa->sw);
++		return dev_err_probe(dev, PTR_ERR(fsa->mux), "failed to register typec mux\n");
++	}
++
++	i2c_set_clientdata(client, fsa);
++	return 0;
++}
++
++static int fsa4480_remove(struct i2c_client *client)
++{
++	struct fsa4480 *fsa = i2c_get_clientdata(client);
++
++	typec_mux_unregister(fsa->mux);
++	typec_switch_unregister(fsa->sw);
++
++	return 0;
++}
++
++static const struct i2c_device_id fsa4480_table[] = {
++	{ "fsa4480" },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, fsa4480_table);
++
++static const struct of_device_id fsa4480_of_table[] = {
++	{ .compatible = "fcs,fsa4480" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, fsa4480_of_table);
++
++static struct i2c_driver fsa4480_driver = {
++	.driver = {
++		.name = "fsa4480",
++		.of_match_table = fsa4480_of_table,
++	},
++	.probe_new	= fsa4480_probe,
++	.remove		= fsa4480_remove,
++	.id_table	= fsa4480_table,
++};
++module_i2c_driver(fsa4480_driver);
++
++MODULE_DESCRIPTION("ON Semiconductor FSA4480 driver");
++MODULE_LICENSE("GPL v2");
 -- 
-2.17.1
+2.35.1
 
