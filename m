@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED6E0C433EF
-	for <linux-acpi@archiver.kernel.org>; Fri, 22 Apr 2022 22:54:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 324BDC433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Apr 2022 22:54:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233993AbiDVW5G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S233981AbiDVW5G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 22 Apr 2022 18:57:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51622 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233897AbiDVW47 (ORCPT
+        with ESMTP id S233783AbiDVW47 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Apr 2022 18:56:59 -0400
 Received: from mail-oa1-x2c.google.com (mail-oa1-x2c.google.com [IPv6:2001:4860:4864:20::2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66B993766AD
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 15:21:59 -0700 (PDT)
-Received: by mail-oa1-x2c.google.com with SMTP id 586e51a60fabf-e2afb80550so10087575fac.1
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 15:21:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED11376682
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 15:21:57 -0700 (PDT)
+Received: by mail-oa1-x2c.google.com with SMTP id 586e51a60fabf-d39f741ba0so10034507fac.13
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Apr 2022 15:21:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=YfdyUeRBKR7/kufYH33kid5tsUaSAg2QglexM2TYAZE=;
-        b=S25cr15PWqZVQoaeR93yTdLNOyjL74an2NA5fiXvUN03SfqBvkwUc6/NJ90wfypL6n
-         7qnczyOLRDGNi6Qy28R0x8oTvofoG9WX/Fc27z5mU0aF1mw0AB7pFoU6mLVNG/5JGeVW
-         OLj2uQPq8NFb6be6O4z0NPT1JhEAWH2HfCh9e/NBdrzGjq9oKTg4VDm9F+Li5xCUfOEv
-         ULg+g6VaAjSjYqTqGODCKxJAIEtj6flZaplXDSM8WtFAFZrHaSEgt4p3gmRhd1MC8wvr
-         e+lRijbqUCY2tzpQHXe+yGcltJKrP9sBBoqrHPWSs+mansOmL6v0I1MDmZKJBUHp0BuZ
-         +hDw==
+        bh=MZN6Zt3nDrquMGvxHt/QElrh6H38NKlikXj3lsOy1lI=;
+        b=dSoGWyLvstbL4O3lghCrhJfbLZQ9PPNdEpiAqQBZaeCuTDnM3EHyVR4hCZlbt6YUG0
+         7COIeBGGRULeoKoqIdyJdVyoQ2dNh0KYpCJgcxfQ+Hgoh9r5dKnHY9t+8aKkXTRKjqhg
+         WHzuwIDLzMZ0WFe/lfX5M/v/eaq9SVAAOLUFcESQmQX/QqJ/s+m/iKuOObFmbhTgbACE
+         Hb8r52nPhXwgwhp06wfhayF5zq4pssB0xgvgPwe1YCtqIzT+pJb9b/Nj91Jjk3DImzVR
+         PYyWwTf5fze35nZ0hO0B88nNWNnC867JHDGKpHdSDPRsYhYt6Cad0VK7Pcg9l15IA39x
+         LdtA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=YfdyUeRBKR7/kufYH33kid5tsUaSAg2QglexM2TYAZE=;
-        b=X2ZFSPQm+QxxFPZ9BoZmCNj5w6SUyczGfkkucGQJ8cfhS8KV4zR5SjbHJMDIxR3xwZ
-         I0PQa9AkVjWPgtrvtJqFNMX0iCfxPSqYPUmPwNKE9tt4yvKAiKFH/bnKGBzOSXi66lhm
-         edNmRjmOWwmKwwb4fY8YOBsnE+DCDZbXtN8ufYG5F5F0CqdN4SblQ9a6G8NIGNwdTl3p
-         kQziRT4rETy6WglJTcbEZW1OjCF+JGlMZL3o7F4euzc0SwIGFW4dAYyBNAgdHV6ZjzXN
-         UvkPpAfuz0jDQOyNij20Z9U8vqwKaUI8aISbWwT3N+/gRiND1Ey2KdaEvpFh2SGu+KgN
-         m4+Q==
-X-Gm-Message-State: AOAM530gm8iGh0+aLO6coJGUbO2BrtTuTVsDE/V0LSMFY3IuJl3vAl2W
-        uRrgOuBrSLlmSFMGGb3MMGxwkw==
-X-Google-Smtp-Source: ABdhPJxzLx2x/E6WOR5Si0YdPNktJBV8OkVVmeAAG7G+uedRUBkDjgfJ8N9psrJxZUh6jlA7ixI/8g==
-X-Received: by 2002:a05:6870:5802:b0:de:ce5e:33ea with SMTP id r2-20020a056870580200b000dece5e33eamr2967613oap.57.1650666118478;
-        Fri, 22 Apr 2022 15:21:58 -0700 (PDT)
+        bh=MZN6Zt3nDrquMGvxHt/QElrh6H38NKlikXj3lsOy1lI=;
+        b=nbf88yrvM/bH9nutUXQS2MiRw1ZYKLjEM+NcUrEY00NsU24Y82pqqMDWl1x6P4n3Ep
+         hOjVs7cKnsVY+UugA9PaOsVWfRDRNkFaaeT1gcncatkC1yU6y8rdjr4moTzfZJdeEDVV
+         StJtMXNS8eJmA3kk4V//hn4LaGXnpdWoSXZfRFw/fkSAI/g5QVSdbA5Nd0cNVUg/OhME
+         VqpDL++sl76YwUp4b6qUXzDrIUhHBbxEfb9w8NNxD0x3LLwkqJ1sFVMcNOGsLsM7g5ZD
+         G6bpvnCOzMzsknW5U4d8QrGCOVIXrQxXQlNsOIquiiiUEmHWtKZ/eXOY4JWGm+ZRQalV
+         J/oQ==
+X-Gm-Message-State: AOAM533mH5c4PEXPP4IXufSPOgRYx4SiHl/8JOZMbuN5cD9MgBNVVxq8
+        ckEJCqJS9GcdwnNW/TOndyaivA==
+X-Google-Smtp-Source: ABdhPJxx8HVT12hM8dHtgpR8ya/52JDTLcKh4apdtUfXZReIakG45ZoMf581rVq74RFPawXvKQvkhg==
+X-Received: by 2002:a05:6870:9a21:b0:e5:c836:9456 with SMTP id fo33-20020a0568709a2100b000e5c8369456mr2956229oab.282.1650666115987;
+        Fri, 22 Apr 2022 15:21:55 -0700 (PDT)
 Received: from ripper.. ([2600:1700:a0:3dc8:205:1bff:fec0:b9b3])
-        by smtp.gmail.com with ESMTPSA id js4-20020a056870bac400b000e687cdf5adsm1049224oab.55.2022.04.22.15.21.57
+        by smtp.gmail.com with ESMTPSA id js4-20020a056870bac400b000e687cdf5adsm1049224oab.55.2022.04.22.15.21.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 Apr 2022 15:21:57 -0700 (PDT)
+        Fri, 22 Apr 2022 15:21:55 -0700 (PDT)
 From:   Bjorn Andersson <bjorn.andersson@linaro.org>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rob Herring <robh+dt@kernel.org>,
@@ -59,9 +59,9 @@ To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans de Goede <hdegoede@redhat.com>
 Cc:     linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH v5 7/7] usb: typec: mux: Add On Semi fsa4480 driver
-Date:   Fri, 22 Apr 2022 15:23:51 -0700
-Message-Id: <20220422222351.1297276-8-bjorn.andersson@linaro.org>
+Subject: [PATCH v5 5/7] usb: typec: mux: Allow multiple mux_devs per mux
+Date:   Fri, 22 Apr 2022 15:23:49 -0700
+Message-Id: <20220422222351.1297276-6-bjorn.andersson@linaro.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220422222351.1297276-1-bjorn.andersson@linaro.org>
 References: <20220422222351.1297276-1-bjorn.andersson@linaro.org>
@@ -71,285 +71,262 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The ON Semiconductor FSA4480 is a USB Type-C port multimedia switch with
-support for analog audio headsets. It allows sharing a common USB Type-C
-port to pass USB2.0 signal, analog audio, sideband use wires and analog
-microphone signal.
+In the Qualcomm platforms the USB/DP PHY handles muxing and orientation
+switching of the SuperSpeed lines, but the SBU lines needs to be
+connected and switched by external (to the SoC) hardware.
 
-Due to lacking upstream audio support for testing, the audio muxing is
-left untouched, but implementation of muxing the SBU lines is provided
-as a pair of Type-C mux and switch devices. This provides the necessary
-support for enabling the DisplayPort altmode on devices with this
-circuit.
+It's therefor necessary to be able to have the TypeC controller operate
+multiple TypeC muxes and switches. Use the newly introduced indirection
+object to handle this, to avoid having to taint the TypeC controllers
+with knowledge about the downstream hardware configuration.
 
+The max number of devs per indirection is set to 3, which account for
+being able to mux/switch the USB HS, SS and SBU lines, as per defined
+defined in the usb-c-connector binding. This number could be grown if
+need arrises at a later point in time.
+
+Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
 
 Changes since v4:
-- Disable locking of the regmap
-- Use dev_fwnode() instead of explicit dereference
+- None
 
- drivers/usb/typec/mux/Kconfig   |  10 ++
- drivers/usb/typec/mux/Makefile  |   1 +
- drivers/usb/typec/mux/fsa4480.c | 218 ++++++++++++++++++++++++++++++++
- 3 files changed, 229 insertions(+)
- create mode 100644 drivers/usb/typec/mux/fsa4480.c
+ drivers/usb/typec/mux.c | 128 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 102 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/usb/typec/mux/Kconfig b/drivers/usb/typec/mux/Kconfig
-index edead555835e..5eb2c17d72c1 100644
---- a/drivers/usb/typec/mux/Kconfig
-+++ b/drivers/usb/typec/mux/Kconfig
-@@ -2,6 +2,16 @@
+diff --git a/drivers/usb/typec/mux.c b/drivers/usb/typec/mux.c
+index bb6c095b4af9..fd55c2c516a5 100644
+--- a/drivers/usb/typec/mux.c
++++ b/drivers/usb/typec/mux.c
+@@ -17,8 +17,11 @@
+ #include "class.h"
+ #include "mux.h"
  
- menu "USB Type-C Multiplexer/DeMultiplexer Switch support"
++#define TYPEC_MUX_MAX_DEVS	3
++
+ struct typec_switch {
+-	struct typec_switch_dev *sw_dev;
++	struct typec_switch_dev *sw_devs[TYPEC_MUX_MAX_DEVS];
++	unsigned int num_sw_devs;
+ };
  
-+config TYPEC_MUX_FSA4480
-+	tristate "ON Semi FSA4480 Analog Audio Switch driver"
-+	depends on I2C
-+	select REGMAP_I2C
-+	help
-+	  Driver for the ON Semiconductor FSA4480 Analog Audio Switch, which
-+	  provides support for muxing analog audio and sideband signals on a
-+	  common USB Type-C connector.
-+	  If compiled as a module, the module will be named fsa4480.
-+
- config TYPEC_MUX_PI3USB30532
- 	tristate "Pericom PI3USB30532 Type-C cross switch driver"
- 	depends on I2C
-diff --git a/drivers/usb/typec/mux/Makefile b/drivers/usb/typec/mux/Makefile
-index 280a6f553115..e52a56c16bfb 100644
---- a/drivers/usb/typec/mux/Makefile
-+++ b/drivers/usb/typec/mux/Makefile
-@@ -1,4 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
+ static int switch_fwnode_match(struct device *dev, const void *fwnode)
+@@ -67,25 +70,50 @@ static void *typec_switch_match(struct fwnode_handle *fwnode, const char *id,
+  */
+ struct typec_switch *fwnode_typec_switch_get(struct fwnode_handle *fwnode)
+ {
+-	struct typec_switch_dev *sw_dev;
++	struct typec_switch_dev *sw_devs[TYPEC_MUX_MAX_DEVS];
+ 	struct typec_switch *sw;
++	int count;
++	int err;
++	int i;
  
-+obj-$(CONFIG_TYPEC_MUX_FSA4480)		+= fsa4480.o
- obj-$(CONFIG_TYPEC_MUX_PI3USB30532)	+= pi3usb30532.o
- obj-$(CONFIG_TYPEC_MUX_INTEL_PMC)	+= intel_pmc_mux.o
-diff --git a/drivers/usb/typec/mux/fsa4480.c b/drivers/usb/typec/mux/fsa4480.c
-new file mode 100644
-index 000000000000..6184f5367190
---- /dev/null
-+++ b/drivers/usb/typec/mux/fsa4480.c
-@@ -0,0 +1,218 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2021-2022 Linaro Ltd.
-+ * Copyright (C) 2018-2020 The Linux Foundation
-+ */
-+
-+#include <linux/bits.h>
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/regmap.h>
-+#include <linux/usb/typec_dp.h>
-+#include <linux/usb/typec_mux.h>
-+
-+#define FSA4480_SWITCH_ENABLE	0x04
-+#define FSA4480_SWITCH_SELECT	0x05
-+#define FSA4480_SWITCH_STATUS1	0x07
-+#define FSA4480_SLOW_L		0x08
-+#define FSA4480_SLOW_R		0x09
-+#define FSA4480_SLOW_MIC	0x0a
-+#define FSA4480_SLOW_SENSE	0x0b
-+#define FSA4480_SLOW_GND	0x0c
-+#define FSA4480_DELAY_L_R	0x0d
-+#define FSA4480_DELAY_L_MIC	0x0e
-+#define FSA4480_DELAY_L_SENSE	0x0f
-+#define FSA4480_DELAY_L_AGND	0x10
-+#define FSA4480_RESET		0x1e
-+#define FSA4480_MAX_REGISTER	0x1f
-+
-+#define FSA4480_ENABLE_DEVICE	BIT(7)
-+#define FSA4480_ENABLE_SBU	GENMASK(6, 5)
-+#define FSA4480_ENABLE_USB	GENMASK(4, 3)
-+
-+#define FSA4480_SEL_SBU_REVERSE	GENMASK(6, 5)
-+#define FSA4480_SEL_USB		GENMASK(4, 3)
-+
-+struct fsa4480 {
-+	struct i2c_client *client;
-+
-+	/* used to serialize concurrent change requests */
-+	struct mutex lock;
-+
-+	struct typec_switch_dev *sw;
-+	struct typec_mux_dev *mux;
-+
-+	struct regmap *regmap;
-+
-+	u8 cur_enable;
-+	u8 cur_select;
-+};
-+
-+static const struct regmap_config fsa4480_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.max_register = FSA4480_MAX_REGISTER,
-+	/* Accesses only done under fsa4480->lock */
-+	.disable_locking = true,
-+};
-+
-+static int fsa4480_switch_set(struct typec_switch_dev *sw,
-+			      enum typec_orientation orientation)
-+{
-+	struct fsa4480 *fsa = typec_switch_get_drvdata(sw);
-+	u8 new_sel;
-+
-+	mutex_lock(&fsa->lock);
-+	new_sel = FSA4480_SEL_USB;
-+	if (orientation == TYPEC_ORIENTATION_REVERSE)
-+		new_sel |= FSA4480_SEL_SBU_REVERSE;
-+
-+	if (new_sel == fsa->cur_select)
-+		goto out_unlock;
-+
-+	if (fsa->cur_enable & FSA4480_ENABLE_SBU) {
-+		/* Disable SBU output while re-configuring the switch */
-+		regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE,
-+			     fsa->cur_enable & ~FSA4480_ENABLE_SBU);
-+
-+		/* 35us to allow the SBU switch to turn off */
-+		usleep_range(35, 1000);
+ 	sw = kzalloc(sizeof(*sw), GFP_KERNEL);
+ 	if (!sw)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	sw_dev = fwnode_connection_find_match(fwnode, "orientation-switch", NULL,
+-					      typec_switch_match);
+-	if (IS_ERR_OR_NULL(sw_dev)) {
++	count = fwnode_connection_find_matches(fwnode, "orientation-switch", NULL,
++					       typec_switch_match,
++					       (void **)sw_devs,
++					       ARRAY_SIZE(sw_devs));
++	if (count <= 0) {
+ 		kfree(sw);
+-		return ERR_CAST(sw_dev);
++		return NULL;
+ 	}
+ 
+-	WARN_ON(!try_module_get(sw_dev->dev.parent->driver->owner));
++	for (i = 0; i < count; i++) {
++		if (IS_ERR(sw_devs[i])) {
++			err = PTR_ERR(sw_devs[i]);
++			goto put_sw_devs;
++		}
++	}
+ 
+-	sw->sw_dev = sw_dev;
++	for (i = 0; i < count; i++) {
++		WARN_ON(!try_module_get(sw_devs[i]->dev.parent->driver->owner));
++		sw->sw_devs[i] = sw_devs[i];
 +	}
 +
-+	regmap_write(fsa->regmap, FSA4480_SWITCH_SELECT, new_sel);
-+	fsa->cur_select = new_sel;
++	sw->num_sw_devs = count;
+ 
+ 	return sw;
 +
-+	if (fsa->cur_enable & FSA4480_ENABLE_SBU) {
-+		regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, fsa->cur_enable);
-+
-+		/* 15us to allow the SBU switch to turn on again */
-+		usleep_range(15, 1000);
++put_sw_devs:
++	for (i = 0; i < count; i++) {
++		if (!IS_ERR(sw_devs[i]))
++			put_device(&sw_devs[i]->dev);
 +	}
 +
-+out_unlock:
-+	mutex_unlock(&fsa->lock);
++	kfree(sw);
 +
++	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_typec_switch_get);
+ 
+@@ -98,14 +126,17 @@ EXPORT_SYMBOL_GPL(fwnode_typec_switch_get);
+ void typec_switch_put(struct typec_switch *sw)
+ {
+ 	struct typec_switch_dev *sw_dev;
++	unsigned int i;
+ 
+ 	if (IS_ERR_OR_NULL(sw))
+ 		return;
+ 
+-	sw_dev = sw->sw_dev;
++	for (i = 0; i < sw->num_sw_devs; i++) {
++		sw_dev = sw->sw_devs[i];
+ 
+-	module_put(sw_dev->dev.parent->driver->owner);
+-	put_device(&sw_dev->dev);
++		module_put(sw_dev->dev.parent->driver->owner);
++		put_device(&sw_dev->dev);
++	}
+ 	kfree(sw);
+ }
+ EXPORT_SYMBOL_GPL(typec_switch_put);
+@@ -173,13 +204,21 @@ int typec_switch_set(struct typec_switch *sw,
+ 		     enum typec_orientation orientation)
+ {
+ 	struct typec_switch_dev *sw_dev;
++	unsigned int i;
++	int ret;
+ 
+ 	if (IS_ERR_OR_NULL(sw))
+ 		return 0;
+ 
+-	sw_dev = sw->sw_dev;
++	for (i = 0; i < sw->num_sw_devs; i++) {
++		sw_dev = sw->sw_devs[i];
++
++		ret = sw_dev->set(sw_dev, orientation);
++		if (ret)
++			return ret;
++	}
+ 
+-	return sw_dev->set(sw_dev, orientation);
 +	return 0;
-+}
-+
-+static int fsa4480_mux_set(struct typec_mux_dev *mux, struct typec_mux_state *state)
-+{
-+	struct fsa4480 *fsa = typec_mux_get_drvdata(mux);
-+	u8 new_enable;
-+
-+	mutex_lock(&fsa->lock);
-+
-+	new_enable = FSA4480_ENABLE_DEVICE | FSA4480_ENABLE_USB;
-+	if (state->mode >= TYPEC_DP_STATE_A)
-+		new_enable |= FSA4480_ENABLE_SBU;
-+
-+	if (new_enable == fsa->cur_enable)
-+		goto out_unlock;
-+
-+	regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, new_enable);
-+	fsa->cur_enable = new_enable;
-+
-+	if (new_enable & FSA4480_ENABLE_SBU) {
-+		/* 15us to allow the SBU switch to turn off */
-+		usleep_range(15, 1000);
+ }
+ EXPORT_SYMBOL_GPL(typec_switch_set);
+ 
+@@ -211,7 +250,8 @@ EXPORT_SYMBOL_GPL(typec_switch_get_drvdata);
+ /* ------------------------------------------------------------------------- */
+ 
+ struct typec_mux {
+-	struct typec_mux_dev *mux_dev;
++	struct typec_mux_dev *mux_devs[TYPEC_MUX_MAX_DEVS];
++	unsigned int num_mux_devs;
+ };
+ 
+ static int mux_fwnode_match(struct device *dev, const void *fwnode)
+@@ -294,25 +334,50 @@ static void *typec_mux_match(struct fwnode_handle *fwnode, const char *id,
+ struct typec_mux *fwnode_typec_mux_get(struct fwnode_handle *fwnode,
+ 				       const struct typec_altmode_desc *desc)
+ {
+-	struct typec_mux_dev *mux_dev;
++	struct typec_mux_dev *mux_devs[TYPEC_MUX_MAX_DEVS];
+ 	struct typec_mux *mux;
++	int count;
++	int err;
++	int i;
+ 
+ 	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
+ 	if (!mux)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	mux_dev = fwnode_connection_find_match(fwnode, "mode-switch", (void *)desc,
+-					       typec_mux_match);
+-	if (IS_ERR_OR_NULL(mux_dev)) {
++	count = fwnode_connection_find_matches(fwnode, "mode-switch",
++					       (void *)desc, typec_mux_match,
++					       (void **)mux_devs,
++					       ARRAY_SIZE(mux_devs));
++	if (count <= 0) {
+ 		kfree(mux);
+-		return ERR_CAST(mux_dev);
++		return NULL;
+ 	}
+ 
+-	WARN_ON(!try_module_get(mux_dev->dev.parent->driver->owner));
++	for (i = 0; i < count; i++) {
++		if (IS_ERR(mux_devs[i])) {
++			err = PTR_ERR(mux_devs[i]);
++			goto put_mux_devs;
++		}
 +	}
 +
-+out_unlock:
-+	mutex_unlock(&fsa->lock);
++	for (i = 0; i < count; i++) {
++		WARN_ON(!try_module_get(mux_devs[i]->dev.parent->driver->owner));
++		mux->mux_devs[i] = mux_devs[i];
++	}
+ 
+-	mux->mux_dev = mux_dev;
++	mux->num_mux_devs = count;
+ 
+ 	return mux;
 +
-+	return 0;
-+}
-+
-+static int fsa4480_probe(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+	struct typec_switch_desc sw_desc = { };
-+	struct typec_mux_desc mux_desc = { };
-+	struct fsa4480 *fsa;
-+
-+	fsa = devm_kzalloc(dev, sizeof(*fsa), GFP_KERNEL);
-+	if (!fsa)
-+		return -ENOMEM;
-+
-+	fsa->client = client;
-+	mutex_init(&fsa->lock);
-+
-+	fsa->regmap = devm_regmap_init_i2c(client, &fsa4480_regmap_config);
-+	if (IS_ERR(fsa->regmap))
-+		return dev_err_probe(dev, PTR_ERR(fsa->regmap), "failed to initialize regmap\n");
-+
-+	fsa->cur_enable = FSA4480_ENABLE_DEVICE | FSA4480_ENABLE_USB;
-+	fsa->cur_select = FSA4480_SEL_USB;
-+
-+	/* set default settings */
-+	regmap_write(fsa->regmap, FSA4480_SLOW_L, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_SLOW_R, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_SLOW_MIC, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_SLOW_SENSE, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_SLOW_GND, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_DELAY_L_R, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_DELAY_L_MIC, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_DELAY_L_SENSE, 0x00);
-+	regmap_write(fsa->regmap, FSA4480_DELAY_L_AGND, 0x09);
-+	regmap_write(fsa->regmap, FSA4480_SWITCH_SELECT, fsa->cur_select);
-+	regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, fsa->cur_enable);
-+
-+	sw_desc.drvdata = fsa;
-+	sw_desc.fwnode = dev_fwnode(dev);
-+	sw_desc.set = fsa4480_switch_set;
-+
-+	fsa->sw = typec_switch_register(dev, &sw_desc);
-+	if (IS_ERR(fsa->sw))
-+		return dev_err_probe(dev, PTR_ERR(fsa->sw), "failed to register typec switch\n");
-+
-+	mux_desc.drvdata = fsa;
-+	mux_desc.fwnode = dev_fwnode(dev);
-+	mux_desc.set = fsa4480_mux_set;
-+
-+	fsa->mux = typec_mux_register(dev, &mux_desc);
-+	if (IS_ERR(fsa->mux)) {
-+		typec_switch_unregister(fsa->sw);
-+		return dev_err_probe(dev, PTR_ERR(fsa->mux), "failed to register typec mux\n");
++put_mux_devs:
++	for (i = 0; i < count; i++) {
++		if (!IS_ERR(mux_devs[i]))
++			put_device(&mux_devs[i]->dev);
 +	}
 +
-+	i2c_set_clientdata(client, fsa);
++	kfree(mux);
++
++	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_typec_mux_get);
+ 
+@@ -325,13 +390,16 @@ EXPORT_SYMBOL_GPL(fwnode_typec_mux_get);
+ void typec_mux_put(struct typec_mux *mux)
+ {
+ 	struct typec_mux_dev *mux_dev;
++	unsigned int i;
+ 
+ 	if (IS_ERR_OR_NULL(mux))
+ 		return;
+ 
+-	mux_dev = mux->mux_dev;
+-	module_put(mux_dev->dev.parent->driver->owner);
+-	put_device(&mux_dev->dev);
++	for (i = 0; i < mux->num_mux_devs; i++) {
++		mux_dev = mux->mux_devs[i];
++		module_put(mux_dev->dev.parent->driver->owner);
++		put_device(&mux_dev->dev);
++	}
+ 	kfree(mux);
+ }
+ EXPORT_SYMBOL_GPL(typec_mux_put);
+@@ -339,13 +407,21 @@ EXPORT_SYMBOL_GPL(typec_mux_put);
+ int typec_mux_set(struct typec_mux *mux, struct typec_mux_state *state)
+ {
+ 	struct typec_mux_dev *mux_dev;
++	unsigned int i;
++	int ret;
+ 
+ 	if (IS_ERR_OR_NULL(mux))
+ 		return 0;
+ 
+-	mux_dev = mux->mux_dev;
++	for (i = 0; i < mux->num_mux_devs; i++) {
++		mux_dev = mux->mux_devs[i];
++
++		ret = mux_dev->set(mux_dev, state);
++		if (ret)
++			return ret;
++	}
+ 
+-	return mux_dev->set(mux_dev, state);
 +	return 0;
-+}
-+
-+static int fsa4480_remove(struct i2c_client *client)
-+{
-+	struct fsa4480 *fsa = i2c_get_clientdata(client);
-+
-+	typec_mux_unregister(fsa->mux);
-+	typec_switch_unregister(fsa->sw);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id fsa4480_table[] = {
-+	{ "fsa4480" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, fsa4480_table);
-+
-+static const struct of_device_id fsa4480_of_table[] = {
-+	{ .compatible = "fcs,fsa4480" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, fsa4480_of_table);
-+
-+static struct i2c_driver fsa4480_driver = {
-+	.driver = {
-+		.name = "fsa4480",
-+		.of_match_table = fsa4480_of_table,
-+	},
-+	.probe_new	= fsa4480_probe,
-+	.remove		= fsa4480_remove,
-+	.id_table	= fsa4480_table,
-+};
-+module_i2c_driver(fsa4480_driver);
-+
-+MODULE_DESCRIPTION("ON Semiconductor FSA4480 driver");
-+MODULE_LICENSE("GPL v2");
+ }
+ EXPORT_SYMBOL_GPL(typec_mux_set);
+ 
 -- 
 2.35.1
 
