@@ -2,57 +2,58 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F22C4321E
-	for <linux-acpi@archiver.kernel.org>; Tue, 26 Apr 2022 17:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DEB9C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 26 Apr 2022 17:21:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231265AbiDZRRh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 26 Apr 2022 13:17:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39332 "EHLO
+        id S232228AbiDZRYY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 26 Apr 2022 13:24:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233700AbiDZRRC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Apr 2022 13:17:02 -0400
-Received: from mail-pg1-x52a.google.com (mail-pg1-x52a.google.com [IPv6:2607:f8b0:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98C7E1DA72
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Apr 2022 10:13:54 -0700 (PDT)
-Received: by mail-pg1-x52a.google.com with SMTP id v10so5499283pgl.11
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Apr 2022 10:13:54 -0700 (PDT)
+        with ESMTP id S1347698AbiDZRYV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Apr 2022 13:24:21 -0400
+Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFD7F3C482
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Apr 2022 10:21:12 -0700 (PDT)
+Received: by mail-yb1-xb4a.google.com with SMTP id b11-20020a5b008b000000b00624ea481d55so16526173ybp.19
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Apr 2022 10:21:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=COISYBtLemURzEtVRJTSOaoU1kvxhQruqFG2UXo9XUw=;
-        b=ICQKMM5VJ8dZCmZ5IDftKBD0tk2p/btzOGUR1kYXd/zFRS/EkvTLCpPCF1BWQ1lKzH
-         Bqh4vxvd9/HnKEhvMjZIYnNj2yFTyCqWnJW+u9sWIKXgfunEJOyiAGcoiGom0Fjw4+ka
-         PLtm7GIGMzzUN3ttrb56TQfPJKwV2PasGCyTFseghYcMYWl+0iS+YumxymWwxECcFY1g
-         JRdSZQT+i9TCp8T5DDInsYfDjIyKVFo702VauqiPnw8KYNWqo4U3LUZim+g67CUif1E7
-         I2M4VxY3Hs8iCvYzmtDEU4yfuI4Q/MIIivgirMZZUMt0ThznOwHSbGUBfWZwJDUpmo8/
-         B/oA==
+        bh=PI6P4hVmL5VSlNStDa8yoRCKf8zCtm5J26ICwUjLazU=;
+        b=nmszqekbq0eqmAOrxhoxhpOUtjONopanoK4BLzf6Y7SO0MdbDpxoPMN7TldeHuYxU1
+         FAcxQslQWcISEhOLRyXucSQvrVGbNevk/n9eGT7cC0ffdZLPqDnqWVJIe+Li9DrIsc65
+         Ip3Upkx2bX5Bn8uFUpWeoJklm9//BrntC9OYtGHiowTnSikOduUyBEq67k2Pdfdd3hrW
+         +JSXGuRf1XPyXek3iJppsuE/1YIxw+L9FcPhOf6A9WZGIkG+vwrYyMyP5udv4FKGosh2
+         d5Ve8EwwsNt7sA1X4j0zlzgBiI5lO1ZC4ydpfkbf8CtwIMqSFXtPfocTcYO4s4ezzpbW
+         VlWA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=COISYBtLemURzEtVRJTSOaoU1kvxhQruqFG2UXo9XUw=;
-        b=0fmu+ojaYGy1v9Hu/Qv0Ze83rCEqySEjsYpEqwbboUJ9nNxUHhmV69HvOEzjP8WMgE
-         PKKsZwn4/d0m6eBgahgb59wRegHt65X99k6f+RFZ0mTd8+23Igpuxa1guY2rR6g3grM6
-         9IuaHHTR7dIoaBrhAOi1q3NTOt/3oECWuhOiHDibG83IKA0RJaP72Tkiti+wVbEbKdBn
-         uI+WlLsjIPtUVGTLtXZQPnVmLe4j5Py0w+xARsX3ESMzxB1XDeEy7ywQ8I5TJDPbX/1i
-         EnyqDCf3Ui6BoSMXxqLSyiXPXBsk+E90lgFS94RxA15m6rPY5xdvtpJ9SFp1A+KldQCJ
-         jLAA==
-X-Gm-Message-State: AOAM533SLtxdeHFPwtKYHCHd/HnUATZEAacCERDg4xKV1X2vK6A5+nrB
-        DjHy3YZSXKYA4+t1ujCcWzVRLxbQ8oL9Bzb3DJAHnw==
-X-Google-Smtp-Source: ABdhPJw0Ra1dMBKYFZkjWanWW4cefxv2B97eXQvw3FrcmpDznbuhiQB1ig3w2zhaYU9CkF8BOrp7P30WHnRXgF9Udfk=
-X-Received: by 2002:a62:fb0e:0:b0:505:fd9e:9218 with SMTP id
- x14-20020a62fb0e000000b00505fd9e9218mr26023121pfm.78.1650993233860; Tue, 26
- Apr 2022 10:13:53 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220426000640.3581446-1-rajatja@google.com> <030f48f4-44d7-c04c-a194-5f4999873ebe@arm.com>
-In-Reply-To: <030f48f4-44d7-c04c-a194-5f4999873ebe@arm.com>
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=PI6P4hVmL5VSlNStDa8yoRCKf8zCtm5J26ICwUjLazU=;
+        b=fUjdHmT5qh2p7OlhS12+nM1PdgBpxpXjhWwbF+9F4isGxtoV0oK0nWoq8mpzpw94Ry
+         UcRQxO6JmMduJrXzDtZnxfMM1TdpaXOvdH2/wbs/vlqqX5StciVhA5Si4pNtdl89y4F3
+         4oXkqK/Zr5oA7eeQD6Our+HKQ+zOQejSWZftTD3DIGDBEM/6b7x/4J3tHMyTKi6D+6lN
+         +zgdPXMhMkguova+UIjIfMj5MwkmtnFLlh5KrKf9XKPnXYHZgWFAeGVLsQdhVmqC9g5h
+         bWgjZX1q1G5Noy841b8T2/rrf4zDBFW+94B0iIQ4HWtDS+aZgnTpTGAe88fk2UCY2QQH
+         DcbA==
+X-Gm-Message-State: AOAM530948pkJ4nR7S71+qcz5oG/MeCjpV61vKXuVefRaPpqVixdTslF
+        tigcRc0gYJbPqcJUcGPbJvweYxRTef8A
+X-Google-Smtp-Source: ABdhPJxATiLz5ywsTWoQ7JirGS+mZuGjN5/d7L930okabHwvzFCdATmA+VcGAs6znkMpr/Vyp7vGVBotprXt
+X-Received: from rajat2.mtv.corp.google.com ([2620:15c:202:201:ce74:273e:a60f:b750])
+ (user=rajatja job=sendgmr) by 2002:a81:2305:0:b0:2f7:dadb:2162 with SMTP id
+ j5-20020a812305000000b002f7dadb2162mr11938019ywj.42.1650993671724; Tue, 26
+ Apr 2022 10:21:11 -0700 (PDT)
+Date:   Tue, 26 Apr 2022 10:21:05 -0700
+In-Reply-To: <20220426172105.3663170-1-rajatja@google.com>
+Message-Id: <20220426172105.3663170-2-rajatja@google.com>
+Mime-Version: 1.0
+References: <20220426172105.3663170-1-rajatja@google.com>
+X-Mailer: git-send-email 2.36.0.rc2.479.g8af0fa9b8e-goog
+Subject: [PATCH v7 2/2] PCI: Rename pci_dev->untrusted to pci_dev->untrusted_dma
 From:   Rajat Jain <rajatja@google.com>
-Date:   Tue, 26 Apr 2022 10:13:17 -0700
-Message-ID: <CACK8Z6GEPTaQKbxeBqQuKbNmVkL1DoHDrKwDeosCeRXfHbD_=w@mail.gmail.com>
-Subject: Re: [PATCH v6 1/2] PCI/ACPI: Support Microsoft's "DmaProperty"
-To:     Robin Murphy <robin.murphy@arm.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -69,128 +70,196 @@ Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
         David Woodhouse <dwmw2@infradead.org>,
         Lu Baolu <baolu.lu@linux.intel.com>,
-        iommu@lists.linux-foundation.org,
+        iommu@lists.linux-foundation.org
+Cc:     Rajat Jain <rajatja@google.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Apr 26, 2022 at 4:15 AM Robin Murphy <robin.murphy@arm.com> wrote:
->
-> On 2022-04-26 01:06, Rajat Jain via iommu wrote:
-> > The "DmaProperty" is supported and currently documented and used by
-> > Microsoft [link 1 below], to flag internal PCIe root ports that need
-> > DMA protection [link 2 below]. We have discussed with them and reached
-> > a common understanding that they shall change their MSDN documentation
-> > to say that the same property can be used to protect any PCI device,
-> > and not just internal PCIe root ports (since there is no point
-> > introducing yet another property for arbitrary PCI devices). This helps
-> > with security from internal devices that offer an attack surface for
-> > DMA attacks (e.g. internal network devices).
-> >
-> > Support DmaProperty to mark DMA from a PCI device as untrusted.
-> >
-> > Link: [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-internal-pcie-ports-accessible-to-users-and-requiring-dma-protection
-> > Link: [2] https://docs.microsoft.com/en-us/windows/security/information-protection/kernel-dma-protection-for-thunderbolt
-> > Signed-off-by: Rajat Jain <rajatja@google.com>
-> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> > v6: * Take care of Bjorn's comments:
-> >         - Update the commit log
-> >         - Rename to pci_dev_has_dma_property()
-> >         - Use acpi_dev_get_property()
-> > v5: * Reorder the patches in the series
-> > v4: * Add the GUID.
-> >      * Update the comment and commitlog.
-> > v3: * Use Microsoft's documented property "DmaProperty"
-> >      * Resctrict to ACPI only
-> >
-> >   drivers/acpi/property.c |  3 +++
-> >   drivers/pci/pci-acpi.c  | 21 +++++++++++++++++++++
-> >   2 files changed, 24 insertions(+)
-> >
-> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > index 12bbfe833609..bafe35c301ac 100644
-> > --- a/drivers/acpi/property.c
-> > +++ b/drivers/acpi/property.c
-> > @@ -48,6 +48,9 @@ static const guid_t prp_guids[] = {
-> >       /* Storage device needs D3 GUID: 5025030f-842f-4ab4-a561-99a5189762d0 */
-> >       GUID_INIT(0x5025030f, 0x842f, 0x4ab4,
-> >                 0xa5, 0x61, 0x99, 0xa5, 0x18, 0x97, 0x62, 0xd0),
-> > +     /* DmaProperty for PCI devices GUID: 70d24161-6dd5-4c9e-8070-705531292865 */
-> > +     GUID_INIT(0x70d24161, 0x6dd5, 0x4c9e,
-> > +               0x80, 0x70, 0x70, 0x55, 0x31, 0x29, 0x28, 0x65),
-> >   };
-> >
-> >   /* ACPI _DSD data subnodes GUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
-> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > index 3ae435beaf0a..d7c6ba48486f 100644
-> > --- a/drivers/pci/pci-acpi.c
-> > +++ b/drivers/pci/pci-acpi.c
-> > @@ -1369,12 +1369,33 @@ static void pci_acpi_set_external_facing(struct pci_dev *dev)
-> >               dev->external_facing = 1;
-> >   }
-> >
-> > +static int pci_dev_has_dma_property(struct pci_dev *dev)
-> > +{
-> > +     struct acpi_device *adev;
-> > +     const union acpi_object *obj;
-> > +
-> > +     adev = ACPI_COMPANION(&dev->dev);
-> > +     if (!adev)
-> > +             return 0;
-> > +
-> > +     /*
-> > +      * Property also used by Microsoft Windows for same purpose,
-> > +      * (to implement DMA protection from a device, using the IOMMU).
->
-> Nit: there is no context for "same purpose" here, so this comment is
-> more confusing than helpful. Might I suggest a rewording like:
->
->         /*
->          * Property used by Microsoft Windows to enforce IOMMU DMA
->          * protection for any device that the system might not fully
->          * trust; we'll honour it the same way.
->          */
->
-> ?
+Rename the field to make it more clear, that the device can execute DMA
+attacks on the system, and thus the system may need protection from
+such attacks from this device.
 
-Sure, will do.
+No functional change intended.
 
->
-> Personally I think it would have been more logical to handle this in
-> pci_set_dma_untrusted(), but I see some of those implementation aspects
-> have already been discussed, and Bjorn's preference definitely wins over
-> mine here :)
+Signed-off-by: Rajat Jain <rajatja@google.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Lu Baolu <baolu.lu@linux.intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+v7: Added Lu Baolu's "Reviewed by" tag.
+v6: No change in this patch, rebased on top of changes in other patch.
+v5: Use "untrusted_dma" as property name, based on feedback.
+    Reorder the patches in the series.
+v4: Initial version, created based on comments on other patch
 
-Yes, this was discussed. The primary reason is that ACPI properties
-for PCI devices are not available at the time pci_set_untrusted_dma()
-is called.
+ drivers/iommu/dma-iommu.c   | 6 +++---
+ drivers/iommu/intel/iommu.c | 2 +-
+ drivers/iommu/iommu.c       | 2 +-
+ drivers/pci/ats.c           | 2 +-
+ drivers/pci/pci-acpi.c      | 2 +-
+ drivers/pci/pci.c           | 2 +-
+ drivers/pci/probe.c         | 8 ++++----
+ drivers/pci/quirks.c        | 2 +-
+ include/linux/pci.h         | 5 +++--
+ 9 files changed, 16 insertions(+), 15 deletions(-)
 
-Thanks & Best Regards,
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index 09f6e1c0f9c0..aeee4be7614d 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -497,14 +497,14 @@ static int iova_reserve_iommu_regions(struct device *dev,
+ 	return ret;
+ }
+ 
+-static bool dev_is_untrusted(struct device *dev)
++static bool dev_has_untrusted_dma(struct device *dev)
+ {
+-	return dev_is_pci(dev) && to_pci_dev(dev)->untrusted;
++	return dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma;
+ }
+ 
+ static bool dev_use_swiotlb(struct device *dev)
+ {
+-	return IS_ENABLED(CONFIG_SWIOTLB) && dev_is_untrusted(dev);
++	return IS_ENABLED(CONFIG_SWIOTLB) && dev_has_untrusted_dma(dev);
+ }
+ 
+ /**
+diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
+index df5c62ecf942..b88f47391140 100644
+--- a/drivers/iommu/intel/iommu.c
++++ b/drivers/iommu/intel/iommu.c
+@@ -4843,7 +4843,7 @@ static bool intel_iommu_is_attach_deferred(struct device *dev)
+  */
+ static bool risky_device(struct pci_dev *pdev)
+ {
+-	if (pdev->untrusted) {
++	if (pdev->untrusted_dma) {
+ 		pci_info(pdev,
+ 			 "Skipping IOMMU quirk for dev [%04X:%04X] on untrusted PCI link\n",
+ 			 pdev->vendor, pdev->device);
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index f2c45b85b9fc..d8d3133e2947 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -1525,7 +1525,7 @@ static int iommu_get_def_domain_type(struct device *dev)
+ {
+ 	const struct iommu_ops *ops = dev_iommu_ops(dev);
+ 
+-	if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted)
++	if (dev_is_pci(dev) && to_pci_dev(dev)->untrusted_dma)
+ 		return IOMMU_DOMAIN_DMA;
+ 
+ 	if (ops->def_domain_type)
+diff --git a/drivers/pci/ats.c b/drivers/pci/ats.c
+index c967ad6e2626..477c16ba9341 100644
+--- a/drivers/pci/ats.c
++++ b/drivers/pci/ats.c
+@@ -42,7 +42,7 @@ bool pci_ats_supported(struct pci_dev *dev)
+ 	if (!dev->ats_cap)
+ 		return false;
+ 
+-	return (dev->untrusted == 0);
++	return (dev->untrusted_dma == 0);
+ }
+ EXPORT_SYMBOL_GPL(pci_ats_supported);
+ 
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 8cb4725d41fa..bf04e873c96a 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -1396,7 +1396,7 @@ void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
+ 
+ 	pci_acpi_optimize_delay(pci_dev, adev->handle);
+ 	pci_acpi_set_external_facing(pci_dev);
+-	pci_dev->untrusted |= pci_dev_has_dma_property(pci_dev);
++	pci_dev->untrusted_dma |= pci_dev_has_dma_property(pci_dev);
+ 	pci_acpi_add_edr_notifier(pci_dev);
+ 
+ 	pci_acpi_add_pm_notifier(adev, pci_dev);
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 9ecce435fb3f..1fb0eb8646c8 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -958,7 +958,7 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+ 	ctrl |= (cap & PCI_ACS_UF);
+ 
+ 	/* Enable Translation Blocking for external devices and noats */
+-	if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
++	if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
+ 		ctrl |= (cap & PCI_ACS_TB);
+ 
+ 	pci_write_config_word(dev, pos + PCI_ACS_CTRL, ctrl);
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 17a969942d37..d2a9b26fcede 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1587,7 +1587,7 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
+ 		dev->is_thunderbolt = 1;
+ }
+ 
+-static void set_pcie_untrusted(struct pci_dev *dev)
++static void pci_set_untrusted_dma(struct pci_dev *dev)
+ {
+ 	struct pci_dev *parent;
+ 
+@@ -1596,8 +1596,8 @@ static void set_pcie_untrusted(struct pci_dev *dev)
+ 	 * untrusted as well.
+ 	 */
+ 	parent = pci_upstream_bridge(dev);
+-	if (parent && (parent->untrusted || parent->external_facing))
+-		dev->untrusted = true;
++	if (parent && (parent->untrusted_dma || parent->external_facing))
++		dev->untrusted_dma = true;
+ }
+ 
+ static void pci_set_removable(struct pci_dev *dev)
+@@ -1862,7 +1862,7 @@ int pci_setup_device(struct pci_dev *dev)
+ 	/* Need to have dev->cfg_size ready */
+ 	set_pcie_thunderbolt(dev);
+ 
+-	set_pcie_untrusted(dev);
++	pci_set_untrusted_dma(dev);
+ 
+ 	/* "Unknown power state" */
+ 	dev->current_state = PCI_UNKNOWN;
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 41aeaa235132..583d35968413 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -5135,7 +5135,7 @@ static int pci_quirk_enable_intel_spt_pch_acs(struct pci_dev *dev)
+ 	ctrl |= (cap & PCI_ACS_CR);
+ 	ctrl |= (cap & PCI_ACS_UF);
+ 
+-	if (pci_ats_disabled() || dev->external_facing || dev->untrusted)
++	if (pci_ats_disabled() || dev->external_facing || dev->untrusted_dma)
+ 		ctrl |= (cap & PCI_ACS_TB);
+ 
+ 	pci_write_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, ctrl);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 60adf42460ab..2453a794bdb2 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -444,13 +444,14 @@ struct pci_dev {
+ 	unsigned int	shpc_managed:1;		/* SHPC owned by shpchp */
+ 	unsigned int	is_thunderbolt:1;	/* Thunderbolt controller */
+ 	/*
+-	 * Devices marked being untrusted are the ones that can potentially
++	 * Devices marked with untrusted_dma are the ones that can potentially
+ 	 * execute DMA attacks and similar. They are typically connected
+ 	 * through external ports such as Thunderbolt but not limited to
+ 	 * that. When an IOMMU is enabled they should be getting full
+ 	 * mappings to make sure they cannot access arbitrary memory.
+ 	 */
+-	unsigned int	untrusted:1;
++	unsigned int	untrusted_dma:1;
++
+ 	/*
+ 	 * Info from the platform, e.g., ACPI or device tree, may mark a
+ 	 * device as "external-facing".  An external-facing device is
+-- 
+2.36.0.rc2.479.g8af0fa9b8e-goog
 
-Rajat
-
->
-> Thanks,
-> Robin.
->
-> > +      */
-> > +     if (!acpi_dev_get_property(adev, "DmaProperty", ACPI_TYPE_INTEGER,
-> > +                                &obj) && obj->integer.value == 1)
-> > +             return 1;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> >   void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
-> >   {
-> >       struct pci_dev *pci_dev = to_pci_dev(dev);
-> >
-> >       pci_acpi_optimize_delay(pci_dev, adev->handle);
-> >       pci_acpi_set_external_facing(pci_dev);
-> > +     pci_dev->untrusted |= pci_dev_has_dma_property(pci_dev); >      pci_acpi_add_edr_notifier(pci_dev);
-> >
-> >       pci_acpi_add_pm_notifier(adev, pci_dev);
