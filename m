@@ -2,45 +2,45 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F00C433F5
-	for <linux-acpi@archiver.kernel.org>; Thu, 28 Apr 2022 10:29:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C984C433FE
+	for <linux-acpi@archiver.kernel.org>; Thu, 28 Apr 2022 10:36:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234930AbiD1Kc2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 28 Apr 2022 06:32:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47306 "EHLO
+        id S240526AbiD1KjM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 28 Apr 2022 06:39:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234079AbiD1Kc1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Apr 2022 06:32:27 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 994B653E17;
-        Thu, 28 Apr 2022 03:29:13 -0700 (PDT)
+        with ESMTP id S233489AbiD1KjM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Apr 2022 06:39:12 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29D706A02A;
+        Thu, 28 Apr 2022 03:35:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651141753; x=1682677753;
+  t=1651142158; x=1682678158;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=GFRbWkn3PBPqGL9xwfna2VQj3DYDSKswtXSwu8Tf1Gk=;
-  b=ZcxI4eFUw1mPhSL1hSx2KxGaNWbRHxcuiHkLiIv+nNVsEtaAaODezbJv
-   RReahfeQbwuTA/rCsy3km8xibf2KHHiQhHGqSF4/K1UCHqIKy/MTU2qK/
-   vUPzo65fdc5zvPWpVgmHysP+LmnNNotDx9IssfAGPe6H2HgpMbqLpdYqs
-   /aRU66oWCayMd9ZrKJS70O5OY8jjaOhBiHeWKI/CpDqTPpQHlyCRBqGnv
-   wLxByIsRDlP9bH9R8SgJGwfU5lRkW9gFFVRULZVnS0rTKqj0Lg1iCny6Z
-   EqHLs4oxws+V7Zat+6hkQbr7PDEswNO5fSNRIgF0OH449IUudeNXMaxeI
+  bh=gNerj3kD6Y8mhAk9ompGhzAXz6vRVhoVMUf84Vky2Bs=;
+  b=AxB1IynCFV/sawUjAe7ALmfcYROgwH6GcBZGsVj4cvVOSqEo5m16svKP
+   ppaQb9feuMnoFNUM8dUl6wYU/98C7thSE4BjGt0R9MA4Q2pEfJEgvXXas
+   CvU/lAlL1BIMrNWk1ykOgslvjXO2KYwiNV027mDee9zFH2RwUCxDOw/Xh
+   LPixaeEJlfx+Z/CuYcsY6jA176ndSNYSatuF9N0Hj67Yd1HapjYw/67CD
+   MK2uzQHDkeR/kUKSRsIxuEl4Z/Q+GkqBXjJLm0TeTBhKxrVUqwLNqaZpH
+   WrcWrS1Mg1ZG2GI18FIaVWvoaYE0LA7LCanjJmKErUroOSlU/NNjylDIT
    w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10330"; a="246156437"
+X-IronPort-AV: E=McAfee;i="6400,9594,10330"; a="253624161"
 X-IronPort-AV: E=Sophos;i="5.90,295,1643702400"; 
-   d="scan'208";a="246156437"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 03:29:13 -0700
+   d="scan'208";a="253624161"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 03:35:57 -0700
 X-IronPort-AV: E=Sophos;i="5.90,295,1643702400"; 
-   d="scan'208";a="596729808"
+   d="scan'208";a="581267741"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 03:29:10 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 03:35:55 -0700
 Received: from andy by smile.fi.intel.com with local (Exim 4.95)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1nk1OV-009Fbx-Cm;
-        Thu, 28 Apr 2022 13:29:07 +0300
-Date:   Thu, 28 Apr 2022 13:29:07 +0300
+        id 1nk1V2-009FkD-EH;
+        Thu, 28 Apr 2022 13:35:52 +0300
+Date:   Thu, 28 Apr 2022 13:35:52 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Paul Gortmaker <paul.gortmaker@windriver.com>
 Cc:     linux-kernel@vger.kernel.org,
@@ -50,28 +50,39 @@ Cc:     linux-kernel@vger.kernel.org,
         Mark Gross <markgross@kernel.org>,
         platform-driver-x86@vger.kernel.org,
         "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/4] platform/x86: pmc_atom: remove unused
- pmc_atom_write()
-Message-ID: <Ympsc5PG9YRZmJzG@smile.fi.intel.com>
+Subject: Re: [PATCH 2/4] ACPI: LPSS: make the Kconfig dependency on PMC_ATOM
+ explicit
+Message-ID: <YmpuCG76aJ+d5lGH@smile.fi.intel.com>
 References: <20220428062430.31010-1-paul.gortmaker@windriver.com>
- <20220428062430.31010-2-paul.gortmaker@windriver.com>
+ <20220428062430.31010-3-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220428062430.31010-2-paul.gortmaker@windriver.com>
+In-Reply-To: <20220428062430.31010-3-paul.gortmaker@windriver.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Apr 28, 2022 at 02:24:27AM -0400, Paul Gortmaker wrote:
-> This function isn't used anywhere in the driver or anywhere in tree.
-> So remove it.  It can always be re-added if/when a use arises.
+On Thu, Apr 28, 2022 at 02:24:28AM -0400, Paul Gortmaker wrote:
+> The code in acpi_lpss.c has been unconditionally using pmc_atom_read()
+> for about the past six years.  This hasn't been a problem since you
+> currently can't disable PMC_ATOM short of disabling PCI entirely.
+> 
+> But it doesn't need to be that way, and so that we can change Kconfigs
+> in a subsequent commit, we make sure LPSS selects PMC_ATOM in advance,
+> so that existing .config files can live on with "make oldconfig".
+> 
+> In theory, one could make LPSS build w/o PMC_ATOM, similar to what it
+> did six years ago, but I doubt there is any demand for that now.
 
-Can we first move the driver under intel subfolder and then update?
+I'm wondering if without LPSS we may use those devices to some extend.
+If it's the case, this patch is half-baked since it's missed the network
+and audio drivers to also enable it (see PMC clock driver registration
+and usage).
 
-I have no strong opinion, but personally I would keep it (even unexported) just
-for the sake of consistency. Up to Mark and Hans.
+That said, I'm not sure it's beneficial to spread this selection over
+the drivers that may be used widely on non-Intel-Atom platforms.
 
 -- 
 With Best Regards,
