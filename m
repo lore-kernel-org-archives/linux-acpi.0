@@ -2,90 +2,73 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54A49C433F5
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 May 2022 17:02:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19C12C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 May 2022 18:05:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344033AbiEERGc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 May 2022 13:06:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56956 "EHLO
+        id S1382980AbiEESJJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 May 2022 14:09:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238942AbiEERG2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2022 13:06:28 -0400
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB8B2AE;
-        Thu,  5 May 2022 10:02:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651770168; x=1683306168;
-  h=from:to:cc:subject:date:message-id;
-  bh=iBIx4dif3zA1MnfTXgjhJYQX6/T/BHqzgCVF3qHd3U0=;
-  b=McnK0390HTkmOd2oeek/w5OFZspBIB6fjt0RaccWiAP9C/SOXT+8W4+l
-   o+CKlkKsXma5Ed0ge/vkabPbb6pCjnVRAwJt272MLDVi+DeFITv3EC+7o
-   58gSCr5EJ4Wa0Kwo8xCMR4Jfzl2ByxkcBryLyQ3msmJvynOdPDLR5INLe
-   79X62nxoUzg2QUHygZpqtN1P/g/3g/C2FU6EuJHvFzEL8df49kCjJKN3l
-   Xov7PgEVWV17JvaLRiBxx5tjOfPyNYGDlctuOTvs8x0Y5dwAmCjSQO82g
-   XZ2/tzAfuqtBqzdagWDjxDgW3E7LRl5LPFEhKp8NkgufZ72hPjxSdscHr
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="354620448"
-X-IronPort-AV: E=Sophos;i="5.91,201,1647327600"; 
-   d="scan'208";a="354620448"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2022 10:02:41 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,201,1647327600"; 
-   d="scan'208";a="585442467"
-Received: from srpawnik.iind.intel.com ([10.99.123.68])
-  by orsmga008.jf.intel.com with ESMTP; 05 May 2022 10:02:39 -0700
-From:   Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
-To:     rafael@kernel.org, lenb@kernel.org,
-        srinivas.pandruvada@linux.intel.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     sumeet.r.pawnikar@intel.com
-Subject: [PATCH v2] ACPI: DPTF: Add support for high frequency impedance notification
-Date:   Thu,  5 May 2022 22:30:19 +0530
-Message-Id: <20220505170019.26047-1-sumeet.r.pawnikar@intel.com>
-X-Mailer: git-send-email 2.17.1
+        with ESMTP id S1382969AbiEESJI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2022 14:09:08 -0400
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60688B1D2;
+        Thu,  5 May 2022 11:05:27 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id y3so10160287ejo.12;
+        Thu, 05 May 2022 11:05:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=D+x+x3eAAMOz9rwCXOWTN+T+FLs3SH78JsjnNCjceHg=;
+        b=dKPvdDTCIOmho8E5CtGPTl883Ano3OsaIZ1m5vk0So2yVo1c4sTtHQeZkzFOuxbdOM
+         qJj/hlHINiqTciZpLb+xKs6BmHqi3MQR3KQBBlcvi8oXJxFj783VWrvp1cqMjDMnOmDt
+         +lCbRAvNTBvQBJZBG8eMCFI92IK8t9/DXVKVJ/KjC+RufRkd2boaKLsFkblfULhvIvP9
+         IFj9W0jxnKT72EQiTusP0jpGY6PuigIr6CXKUI9im3qeE/4q0ZsnawDiVIl7zyNOBqYG
+         hYc0/fdbTA4o11N00n9ba54k84/keY9hVmJDHzkuMng81xyGH9yCY66N1dwaWQSKLnwx
+         k0cg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=D+x+x3eAAMOz9rwCXOWTN+T+FLs3SH78JsjnNCjceHg=;
+        b=KqrnNt9MhxOteGsO0krSKW9A8ZBLkzUrem8sh3P27nTJLEHd97iVUDF0+VqvfEeBIW
+         2ctdCkczeTmC8yUJgNJxGOT19lLiLdXApEA/l2K5HeJYIhnvXL+ql1U1RCSkcd5AEipW
+         aSBxXsJO9F6sJXaQovckktja0HbEOVIRlkragk1G5QcBBXvghIOgjT8l1dRrrmw1ZfQt
+         3uOoctzLLncCaODMKfuAiL5qsW2VkkRKZYgoV7V/YL6SsUkDMIue8EP2BP03R5b9P6A3
+         pQ1BH7N7V54VnNkzJvwk4XdVcozrHMEDvadBf0ZuqLTzAXZy5a1T5D7PFC/00pYFwl7d
+         hUuA==
+X-Gm-Message-State: AOAM530oGIkDsw4eD0ec+Dq9/fqj0NWoLy86+aRA+kYeZHcnB3DJeIIK
+        cFSnP3n85Bj7brfrMrqjEpXm8Q1fwmMZ5aXueFY=
+X-Google-Smtp-Source: ABdhPJyKdDa/q3PsQDSw9AkVM5GWaz3C7ThxzZrEe9r69mdfIsv629BvvwkOvjwfxn5DQiT4c4IU5CHjwYxUonqMjn0=
+X-Received: by 2002:a17:906:c10d:b0:6f4:a770:846e with SMTP id
+ do13-20020a170906c10d00b006f4a770846emr13186959ejc.497.1651773925823; Thu, 05
+ May 2022 11:05:25 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220418141416.27529-1-asmaa@nvidia.com> <CH2PR12MB3895A1FB2977B725ED92AB57D7C29@CH2PR12MB3895.namprd12.prod.outlook.com>
+ <CACRpkdY1uK=73zpEM5zUyXacm5xaUUFYkuKMxi_q6vwmOPy6tw@mail.gmail.com> <CH2PR12MB389560A1873030472A7A371DD7C29@CH2PR12MB3895.namprd12.prod.outlook.com>
+In-Reply-To: <CH2PR12MB389560A1873030472A7A371DD7C29@CH2PR12MB3895.namprd12.prod.outlook.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Thu, 5 May 2022 20:04:49 +0200
+Message-ID: <CAHp75Vc_-rF+i7U0DAd1Uk4Q+8xwzKidPxYv_Q4Shk__HGUGTg@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] Add driver for Mellanox BlueField-3 GPIO controller
+To:     Asmaa Mnebhi <asmaa@nvidia.com>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
+        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add high frequency impedance notification support under DPTF.
-This returns high frequency impedance value that can be obtained
-from battery fuel gauge whenever there is change over a threshold.
-Also, corrected the typo from IMPEDANCED_CHNGED to IMPEDANCE_CHANGED.
+On Thu, May 5, 2022 at 7:01 PM Asmaa Mnebhi <asmaa@nvidia.com> wrote:
+>
 
-Signed-off-by: Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
----
-v1-->v2 : Addressed review comment recevied from Srinivas Pandruvada to add
-          corrected the spelling from IMPEDANCED_CHNGED to IMPEDANCE_CHANGED
-          under commit message. 
----
- drivers/acpi/dptf/dptf_power.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Your email is broken.  Please, fix the client or other parts that make
+your email unreadable.
 
-diff --git a/drivers/acpi/dptf/dptf_power.c b/drivers/acpi/dptf/dptf_power.c
-index dc1f52a5b3f4..2ef53ca88714 100644
---- a/drivers/acpi/dptf/dptf_power.c
-+++ b/drivers/acpi/dptf/dptf_power.c
-@@ -117,7 +117,7 @@ static const struct attribute_group dptf_battery_attribute_group = {
- #define POWER_STATE_CHANGED		0x81
- #define STEADY_STATE_POWER_CHANGED	0x83
- #define POWER_PROP_CHANGE_EVENT	0x84
--#define IMPEDANCED_CHNGED		0x85
-+#define IMPEDANCE_CHANGED		0x85
- #define VOLTAGE_CURRENT_CHANGED	0x86
- 
- static long long dptf_participant_type(acpi_handle handle)
-@@ -150,6 +150,9 @@ static void dptf_power_notify(acpi_handle handle, u32 event, void *data)
- 	case STEADY_STATE_POWER_CHANGED:
- 		attr = "max_steady_state_power_mw";
- 		break;
-+	case IMPEDANCE_CHANGED:
-+		attr = "high_freq_impedance_mohm";
-+		break;
- 	case VOLTAGE_CURRENT_CHANGED:
- 		attr = "no_load_voltage_mv";
- 		break;
+
 -- 
-2.17.1
-
+With Best Regards,
+Andy Shevchenko
