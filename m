@@ -2,150 +2,96 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BDDFC433F5
-	for <linux-acpi@archiver.kernel.org>; Thu,  5 May 2022 15:12:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31FE0C433EF
+	for <linux-acpi@archiver.kernel.org>; Thu,  5 May 2022 15:20:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231680AbiEEPPr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 5 May 2022 11:15:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38006 "EHLO
+        id S1381264AbiEEPYa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 5 May 2022 11:24:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380513AbiEEPPq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2022 11:15:46 -0400
-Received: from mail-yw1-x1134.google.com (mail-yw1-x1134.google.com [IPv6:2607:f8b0:4864:20::1134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 396C519296
-        for <linux-acpi@vger.kernel.org>; Thu,  5 May 2022 08:12:06 -0700 (PDT)
-Received: by mail-yw1-x1134.google.com with SMTP id 00721157ae682-2ec42eae76bso51722327b3.10
-        for <linux-acpi@vger.kernel.org>; Thu, 05 May 2022 08:12:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=apoghpeFFlLJjbI+JkUxZif30mEbTTO0hnERVhJbN3Q=;
-        b=viiYLjUnWtneZywN8kxyoG7EqkVDupk+UleFm8eVhNouy268w5jp5yAmOB662BTvSK
-         dE0Ioer4x3MLWwLixj6Nlj0CThsRXhoNigU3pGqDAVZICn+WlOwhi5Ci7M6b9lTaN4mu
-         tcR5P4pl4nOMBzOCbh1dUAC3jIWXbq27/dimkCEXtZ4prWaKws7TQ63GerLCpmTQAPDI
-         6Lkml3yJpZsfDKVzQHVIcLC93keO1WQerZxcW37JddZoDuOh5Y2jrbEQtUV72LJJrO1/
-         0XugiztPkXkATS4QtMvABGvtENO+6FpWPuDDXkpC9yj/bj66/cKgaA4Hjj9Ckgt3iCxp
-         c/uw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=apoghpeFFlLJjbI+JkUxZif30mEbTTO0hnERVhJbN3Q=;
-        b=H6vRttqe0+n1/riyvpFFIoNV8HIUdkFggDa98aekSlZmLv0YaUoAiTro6u2CptZOHs
-         aRHdOIFV09+TzVbLjrUWnHhc+h4oCpPDLNnOaGeu/2QzpnEOsqTixN0kzzgHjyT90ziQ
-         s9S226plPRHqdNSptuSoB3KlVCCmg8L1tMFUDq9AAlhZ7+KbFqCx5/tpr+36nLBd1Otl
-         N7CgR4Tck/F5dN2K6zlYkVDd0iiWsg2evbILiqy+c4brA/NbFgEdL1gtI2CicbXfWbrG
-         tZzRMyu0cr4vyp033fMtmkvbvtwwoNerqdsBrBg6GtsfhC42M4qJOY3R6GRrQrK9RhG1
-         3YgQ==
-X-Gm-Message-State: AOAM532v+9FP4h8QYcODq2X5aQuAfwgFzO5/mRr9bAhhz2mkPYfdefhm
-        cgmxZxRH6jV8NH7K9mk9/j95NGIiqGjHCBajIQlpEw==
-X-Google-Smtp-Source: ABdhPJwqyPgR8L7LE6khdxgrPIVH5TCiWOInEzf7tOdB1v+aePHoRW00iTlxrRJkp5hvcQhokJqxZT4OmK0ZKsZsvWA=
-X-Received: by 2002:a0d:ddc6:0:b0:2f8:a506:a5c0 with SMTP id
- g189-20020a0dddc6000000b002f8a506a5c0mr25834850ywe.140.1651763525340; Thu, 05
- May 2022 08:12:05 -0700 (PDT)
+        with ESMTP id S1381219AbiEEPY3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2022 11:24:29 -0400
+Received: from us-smtp-delivery-74.mimecast.com (us-smtp-delivery-74.mimecast.com [170.10.129.74])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 219A3562CD
+        for <linux-acpi@vger.kernel.org>; Thu,  5 May 2022 08:20:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1651764049;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=NOhqwWJm0Xg7KJkj4jc2xm55/msX/E/vXJVK7yWqZr8=;
+        b=VAHc8WlpspXh6niZ2yOSTF3ZG6nY46rK371j+z7YEuXW3Kgd+Zi40Gy9U4csYTVeYU+GzZ
+        YegYkEE2XzjyXWWYRQ9ThmKLsCfWMPHhBiscZVXwUOdoEd5P3E2wRlh9u1qaZfpsc/NB8x
+        2688qVNvHqSZlujpNFczT9RqgxuMQAU=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-195-htru64m9OTylFJ3NnKPgnQ-1; Thu, 05 May 2022 11:20:46 -0400
+X-MC-Unique: htru64m9OTylFJ3NnKPgnQ-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id AF1A53C10229;
+        Thu,  5 May 2022 15:20:40 +0000 (UTC)
+Received: from shalem.redhat.com (unknown [10.39.192.251])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 032207B64;
+        Thu,  5 May 2022 15:20:16 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Myron Stowe <myron.stowe@redhat.com>,
+        Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        "H . Peter Anvin" <hpa@zytor.com>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        =?UTF-8?q?Benoit=20Gr=C3=A9goire?= <benoitg@coeus.ca>,
+        Hui Wang <hui.wang@canonical.com>, linux-acpi@vger.kernel.org,
+        linux-pci@vger.kernel.org, x86@kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v7 0/1] x86/PCI: Ignore E820 reservations for bridge windows on newer systems
+Date:   Thu,  5 May 2022 17:20:15 +0200
+Message-Id: <20220505152016.5059-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-References: <20220418141416.27529-1-asmaa@nvidia.com> <CH2PR12MB3895A1FB2977B725ED92AB57D7C29@CH2PR12MB3895.namprd12.prod.outlook.com>
-In-Reply-To: <CH2PR12MB3895A1FB2977B725ED92AB57D7C29@CH2PR12MB3895.namprd12.prod.outlook.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 5 May 2022 17:11:54 +0200
-Message-ID: <CACRpkdY1uK=73zpEM5zUyXacm5xaUUFYkuKMxi_q6vwmOPy6tw@mail.gmail.com>
-Subject: Re: [PATCH v1 1/1] Add driver for Mellanox BlueField-3 GPIO controller
-To:     Asmaa Mnebhi <asmaa@nvidia.com>
-Cc:     "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>,
-        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.11.54.5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> Could you please have a look at this patch?
+Hi All,
 
-Sure!
+Here is v7 of my patch to address the E820 reservations vs PCI host bridge
+ranges issue which are causing touchpad and/or thunderbolt issues on many
+different laptop models.
 
-> +static void mlxbf3_gpio_set(struct gpio_chip *chip, unsigned int
-> +offset, int val) {
+After previous attemps to identify these systems by looking for E820
+reservations covering the entire bridge window, which broke the boot
+on some coreboot based ChromeBooks we are now back to using a bios date
+based approach, now combined with DMI quirks for systems after the
+cutoff date which still report a wrong window from their _CRS method
+despite them being new(ish).
 
-Put opening bracket on new line.
-Run your code through scripts/checkpatch.pl before submitting.
+This is based on top of Bjorn's pci/resource branch:
+https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git/log/?h=pci/resource
 
-> +       struct mlxbf3_gpio_context *gs = gpiochip_get_data(chip);
-> +
-> +       /* Software can only control GPIO pins defined by ctrl_gpio_mask */
-> +       if (!(BIT(offset) & gs->ctrl_gpio_mask))
-> +               return;
-> +
-> +       if (val)
-> +               writel(BIT(offset), gs->gpio_io + YU_GPIO_FW_DATA_OUT_SET);
-> +       else
-> +               writel(BIT(offset), gs->gpio_io + YU_GPIO_FW_DATA_OUT_CLEAR);
-> +
-> +       /* Make sure all previous writes are done before changing YU_GPIO_FW_CONTROL_SET */
-> +       wmb();
-> +
-> +       /* This needs to be done last to avoid glitches */
-> +       writel(BIT(offset), gs->gpio_io + YU_GPIO_FW_CONTROL_SET); }
+Regards,
 
-Bracket on new line. This coding style is very odd.
+Hans
 
-The hardware is a bit odd too but I see why you can't use GPIO_GENERIC
-properly with this FW_CONTROL_SET business :/
 
-> +static int mlxbf3_gpio_direction_input(struct gpio_chip *chip,
-> +                                      unsigned int offset)
-> +{
-> +       struct mlxbf3_gpio_context *gs = gpiochip_get_data(chip);
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&gs->gc.bgpio_lock, flags);
-> +
-> +       writel(BIT(offset), gs->gpio_io + YU_GPIO_FW_OUTPUT_ENABLE_CLEAR);
-> +       writel(BIT(offset), gs->gpio_io + YU_GPIO_FW_CONTROL_CLEAR);
-> +
-> +       spin_unlock_irqrestore(&gs->gc.bgpio_lock, flags);
-> +
-> +       return 0;
-> +}
-> +
-> +static int mlxbf3_gpio_direction_output(struct gpio_chip *chip,
-> +                                       unsigned int offset,
-> +                                       int value)
-> +{
-> +       struct mlxbf3_gpio_context *gs = gpiochip_get_data(chip);
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&gs->gc.bgpio_lock, flags);
-> +
-> +       writel(BIT(offset), gs->gpio_io + YU_GPIO_FW_OUTPUT_ENABLE_SET);
-> +
-> +       spin_unlock_irqrestore(&gs->gc.bgpio_lock, flags);
-> +
-> +       return 0;
-> +}
+Hans de Goede (1):
+  x86/PCI: Ignore E820 reservations for bridge windows on newer systems
 
-Why isn't FW_CONTROL_CLEAR/SET used when making  a line
-into an output? Seems unsymmetric? At least put a comment in the
-code why this is different from making a line into input.
+ .../admin-guide/kernel-parameters.txt         |  9 +++
+ arch/x86/include/asm/pci_x86.h                |  2 +
+ arch/x86/pci/acpi.c                           | 74 ++++++++++++++++++-
+ arch/x86/pci/common.c                         |  6 ++
+ 4 files changed, 89 insertions(+), 2 deletions(-)
 
-> +       /* To set the direction to input, just give control to HW by setting
-> +        * YU_GPIO_FW_CONTROL_CLEAR.
-> +        * If the GPIO is controlled by HW, read its value via read_data_in register.
-> +        *
-> +        * When the direction = output, the GPIO is controlled by SW and
-> +        * datain=dataout. If software modifies the value of the GPIO pin,
-> +        * the value can be read from read_data_in without changing the direction.
-> +        */
-> +       ret = bgpio_init(gc, dev, 4,
-> +                       gs->gpio_io + YU_GPIO_READ_DATA_IN,
-> +                       NULL,
-> +                       NULL,
-> +                       NULL,
-> +                       NULL,
-> +                       0);
+-- 
+2.36.0
 
-Hm. Is it still worth it?
-
-MVH
-Linus Walleij
