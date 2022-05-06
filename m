@@ -2,159 +2,98 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A9D7C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:47:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F1AC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:58:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1392130AbiEFMvQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 May 2022 08:51:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49728 "EHLO
+        id S232907AbiEFNCP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 May 2022 09:02:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245378AbiEFMvQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 08:51:16 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39A8733E1C;
-        Fri,  6 May 2022 05:47:33 -0700 (PDT)
+        with ESMTP id S233344AbiEFNCO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 09:02:14 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45FBE606C4
+        for <linux-acpi@vger.kernel.org>; Fri,  6 May 2022 05:58:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651841253; x=1683377253;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=lgRANVpIeYbETu3AmcMFp1S7V1/cZNNLTeeu8Vwuz7k=;
-  b=K8fxmXhj7zMxjiI0h3kDihLUorFMXsHQzUU9zwoG3icseoIzc0MWb9pO
-   eggcnKTpW3vaGaXaULG65586eRR4k27YbN3iN6BrRYWexONOUV3mW7dT+
-   9rYaiLtU5JID0n1Qgn8YaTg0SIE5BrIXOXf3Zng+YSJhhe215RW1whosQ
-   Wo39u4i6evVuPBao+25Go8bO6tWbJA0N01wL8OiTQLQ70C/GdB9kkVbMz
-   XpJXZkjXyVRAZOd1VT0xOgGcB6PzTl/7iVVmS/uLcx8iI+wDpXB+5QUwB
-   zb9y4hra7fSDHGh5RlFg/ZTegiOp9Yrg9Cod1bmRQP2aZDfM1a1zjghpy
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="267295609"
+  t=1651841912; x=1683377912;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=hZr81lHBwmVS48mZ2YxKgkzFzlCLFj9XCHoAbU1Kvn4=;
+  b=Xe+1gP39WySf9l7jOztbLaJt8qzF3nKutb5hesbt/zErnnlm2T79wRjl
+   tXH1l99DxwvSbYVJ+2q/IlKaZs2IedVJadGN6X3yu13HdsluBYBy9QF5/
+   ECcqlxILk/U3iDNjngjojyb/9b3Bbpcrq4BUQre9RV92Ek+RxqFUBzuxe
+   EBI5TMo9w+lgm172jTxC8Zzxr74/YiWjx45ICetJ9KdTADtriRU1DFr1k
+   5ToIGKhD3k3Zf3u6WcA7jMxSBQaseAOjECpgZUk77HjW9qVQjrpBshRW8
+   neaCnT4uaKl0ahQcTHvyKuzQdAe6frsypkAfA/HNjV0vS4TsefmPljBzw
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="268603250"
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="267295609"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:47:32 -0700
-X-ExtLoop1: 1
+   d="scan'208";a="268603250"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:31 -0700
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="518024373"
-Received: from lkp-server01.sh.intel.com (HELO 5056e131ad90) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 06 May 2022 05:47:25 -0700
-Received: from kbuild by 5056e131ad90 with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1nmxMi-000DTo-H2;
-        Fri, 06 May 2022 12:47:24 +0000
-Date:   Fri, 6 May 2022 20:47:07 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Muhammad Usama Anjum <usama.anjum@collabora.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Benson Leung <bleung@chromium.org>,
-        Enric Balletbo i Serra <eballetbo@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     kbuild-all@lists.01.org, usama.anjum@collabora.com,
-        Collabora Kernel ML <kernel@collabora.com>,
-        groeck@chromium.org, dtor@chromium.org, gwendal@chromium.org,
-        vbendeb@chromium.org, andy@infradead.org,
-        Ayman Bagabas <ayman.bagabas@gmail.com>,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        =?utf-8?B?Qmxhxb4=?= Hrastnik <blaz@mxxn.io>,
-        Darren Hart <dvhart@infradead.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Jeremy Soller <jeremy@system76.com>,
-        Mattias Jacobsson <2pi@mok.nu>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, Rajat Jain <rajatja@google.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        chrome-platform@lists.linux.dev
-Subject: Re: [PATCH v9] platform/chrome: Add ChromeOS ACPI device driver
-Message-ID: <202205062057.LDuKncYN-lkp@intel.com>
-References: <YnTw/iQ1Asjjmsb9@debian-BULLSEYE-live-builder-AMD64>
+   d="scan'208";a="585962208"
+Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:30 -0700
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id A46892062D;
+        Fri,  6 May 2022 15:58:28 +0300 (EEST)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1nmxZJ-00480R-8j; Fri, 06 May 2022 16:00:25 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
+Subject: [PATCH 02/11] ACPI: acpica: Constify pathname argument for acpi_get_handle()
+Date:   Fri,  6 May 2022 16:00:16 +0300
+Message-Id: <20220506130025.984026-3-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
+References: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YnTw/iQ1Asjjmsb9@debian-BULLSEYE-live-builder-AMD64>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Muhammad,
+acpi_get_handle() uses the pathname argument to find a handle related to
+that pathname but it does not need to modify it. Make it const, in order
+to be able to pass const pathname to it.
 
-I love your patch! Perhaps something to improve:
+Cc: "Moore, Robert" <robert.moore@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/acpica/nsxfname.c | 2 +-
+ include/acpi/acpixf.h          | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-[auto build test WARNING on rafael-pm/linux-next]
-[also build test WARNING on chrome-platform/for-next v5.18-rc5 next-20220506]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Muhammad-Usama-Anjum/platform-chrome-Add-ChromeOS-ACPI-device-driver/20220506-175951
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-config: arc-allyesconfig (https://download.01.org/0day-ci/archive/20220506/202205062057.LDuKncYN-lkp@intel.com/config)
-compiler: arceb-elf-gcc (GCC) 11.3.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/4f6407962feddc57bc7c80e5b29d5d339a1dba6c
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Muhammad-Usama-Anjum/platform-chrome-Add-ChromeOS-ACPI-device-driver/20220506-175951
-        git checkout 4f6407962feddc57bc7c80e5b29d5d339a1dba6c
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.3.0 make.cross W=1 O=build_dir ARCH=arc SHELL=/bin/bash drivers/platform/chrome/
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All warnings (new ones prefixed by >>):
-
-   In file included from include/linux/device.h:15,
-                    from include/linux/acpi.h:15,
-                    from drivers/platform/chrome/chromeos_acpi.c:13:
-   drivers/platform/chrome/chromeos_acpi.c: In function 'chromeos_acpi_device_probe':
->> drivers/platform/chrome/chromeos_acpi.c:253:40: warning: format '%ld' expects argument of type 'long int', but argument 3 has type 'unsigned int' [-Wformat=]
-     253 |                 dev_warn(&(pdev->dev), "Only %ld GPIO attr groups supported by the driver out of total %d.\n",
-         |                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/dev_printk.h:110:30: note: in definition of macro 'dev_printk_index_wrap'
-     110 |                 _p_func(dev, fmt, ##__VA_ARGS__);                       \
-         |                              ^~~
-   include/linux/dev_printk.h:146:61: note: in expansion of macro 'dev_fmt'
-     146 |         dev_printk_index_wrap(_dev_warn, KERN_WARNING, dev, dev_fmt(fmt), ##__VA_ARGS__)
-         |                                                             ^~~~~~~
-   drivers/platform/chrome/chromeos_acpi.c:253:17: note: in expansion of macro 'dev_warn'
-     253 |                 dev_warn(&(pdev->dev), "Only %ld GPIO attr groups supported by the driver out of total %d.\n",
-         |                 ^~~~~~~~
-   drivers/platform/chrome/chromeos_acpi.c:253:48: note: format string is defined here
-     253 |                 dev_warn(&(pdev->dev), "Only %ld GPIO attr groups supported by the driver out of total %d.\n",
-         |                                              ~~^
-         |                                                |
-         |                                                long int
-         |                                              %d
-   At top level:
-   drivers/platform/chrome/chromeos_acpi.c:259:36: warning: 'chromeos_device_ids' defined but not used [-Wunused-const-variable=]
-     259 | static const struct acpi_device_id chromeos_device_ids[] = {
-         |                                    ^~~~~~~~~~~~~~~~~~~
-
-
-vim +253 drivers/platform/chrome/chromeos_acpi.c
-
-   244	
-   245	static int chromeos_acpi_device_probe(struct platform_device *pdev)
-   246	{
-   247		chromeos_acpi_gpio_groups = get_gpio_pkg_num(&pdev->dev);
-   248	
-   249		/* If platform has more GPIO attribute groups than the number of
-   250		 * groups this driver supports, give out a warning message.
-   251		 */
-   252		if (chromeos_acpi_gpio_groups > (ARRAY_SIZE(chromeos_acpi_all_groups) - 2))
- > 253			dev_warn(&(pdev->dev), "Only %ld GPIO attr groups supported by the driver out of total %d.\n",
-   254				 (ARRAY_SIZE(chromeos_acpi_all_groups) - 2), chromeos_acpi_gpio_groups);
-   255		return 0;
-   256	}
-   257	
-
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index b2cfdfef31947..a0592d15dd37c 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -44,7 +44,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
+ 
+ acpi_status
+ acpi_get_handle(acpi_handle parent,
+-		acpi_string pathname, acpi_handle *ret_handle)
++		const char *pathname, acpi_handle *ret_handle)
+ {
+ 	acpi_status status;
+ 	struct acpi_namespace_node *node = NULL;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 67c0b9e734b64..085f23d833349 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -526,7 +526,7 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 					   struct acpi_buffer *ret_path_ptr))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			     acpi_get_handle(acpi_handle parent,
+-					     acpi_string pathname,
++					     const char *pathname,
+ 					     acpi_handle *ret_handle))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			     acpi_attach_data(acpi_handle object,
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+2.30.2
+
