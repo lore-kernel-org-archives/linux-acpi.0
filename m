@@ -2,93 +2,141 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46841C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17625C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:58:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1392203AbiEFNCQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 May 2022 09:02:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57046 "EHLO
+        id S1392141AbiEFNCR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 May 2022 09:02:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1392141AbiEFNCP (ORCPT
+        with ESMTP id S1356442AbiEFNCP (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 09:02:15 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F7006338C
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 876CF6338E
         for <linux-acpi@vger.kernel.org>; Fri,  6 May 2022 05:58:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1651841912; x=1683377912;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=PX2fTtw9stqx+nodH42XF2tRh9CfUYugeGA/EAUIRV4=;
-  b=H4Pmd2TolC/u0xa+64o9FKY61ppQ1Oof5gwcVvmgO1kSSxXgJ3s0Et1d
-   RnQyL0i+bYa9n7l7pIqDTARdr0+qBZ62YTTBXSGWD3KxnO2bGQvzLReui
-   cMtlpGrHNKfWhEbFLGBrONkRMialXSf8efAmbp86NB17aE8/H+rCifRFc
-   lo0aTuwihnLp9vcqVaik7bq/26yrhuZuoxf16QgUupsW6I13OxNGv1qSw
-   s9b+fAU91DlM0KKA42ANBooRYgwC7Re/eyoI5vSGj2NTXEqbKDx2r7Vxd
-   SPioHIJJZ/hIQfTy8iI4Epj72D6LluNh/P7FcXVo2MDe417H0lFMBlMIe
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="250459075"
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=1+u3D5272MmR3cXbcceeLW6iNFLPmVc+zRjoajCHDgI=;
+  b=mivn6oJZ7ZEWDybbi3e1gTqVruUW/mkaRpzYkyXwdAHeMVNDVdfctGl7
+   vNomLQ19r1g3WnuqNwn5ieJ079khyV6+bK5Gegm6fh35VcfwepTJe83n0
+   H14YOH6ON8aPW9rf9E0iPYnr6sXOF3X8+ct1JLy+VcJ7U/99O1MA9i1ze
+   o4tRI9dM+anls4Og0EAOaxOfjWlmlDCTfyVTWI92EQGnkqqIEliQeq3L8
+   dSG7KrqrPFwDP4xtonkFtlqKs1V9PQL+Awh+0HlM/tcOI5uHIJ4ku3Bur
+   8zZnMSW90JRnIkGn1DvEL9m8qp13hxS1nGFNi1lfUQ4Kg0lQTBh1QJfh0
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="266051605"
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="250459075"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:32 -0700
+   d="scan'208";a="266051605"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:32 -0700
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="537875687"
+   d="scan'208";a="695169231"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:30 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:30 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 9672F201D7;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id B008020BC8;
         Fri,  6 May 2022 15:58:28 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1nmxZJ-00480M-5Z; Fri, 06 May 2022 16:00:25 +0300
+        id 1nmxZJ-00480U-AE; Fri, 06 May 2022 16:00:25 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH 00/11] ACPI: Buffer property and reference as string support
-Date:   Fri,  6 May 2022 16:00:14 +0300
-Message-Id: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH 03/11] ACPI: property: Tie data nodes to acpi handles
+Date:   Fri,  6 May 2022 16:00:17 +0300
+Message-Id: <20220506130025.984026-4-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
+References: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hello everyone,
+ACPICA allows associating additional information (i.e. pointers with
+specific tag) to acpi_handles. The acpi_device's are associated to
+acpi_handle's in acpi_tie_acpi_dev() in scan.c, do the same here for the
+_DSD data nodes.
 
-This set adds support for _DSD buffer properties (specified by DSD Guide
-<URL:https://github.com/UEFI/DSD-Guide/blob/main/dsd-guide.md>) as well as
-support for references as strings. Reference property type was previously
-supported for device objects only, whereas string references enable
-referencing also _DSD sub-node objects --- also included in the set.
+This allows direct data node references in properties, implemented later on
+in the series.
 
-The ACPICA patch has been submitted to upstream but not merged yet.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/property.c | 42 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-
-Sakari Ailus (11):
-  ACPI: property: Return type of acpi_add_nondev_subnodes() should be
-    bool
-  ACPI: acpica: Constify pathname argument for acpi_get_handle()
-  ACPI: property: Tie data nodes to acpi handles
-  ACPI: property: Use acpi_object_type consistently in property ref
-    parsing
-  ACPI: property: Move property ref argument parsing into a new function
-  ACPI: property: Switch node property referencing from ifs to a switch
-  ACPI: Initialise device child list early to access data nodes early
-  ACPI: property: Parse data node string references in properties
-  ACPI: property: Unify integer value reading functions
-  ACPI: property: Add support for parsing buffer property UUID
-  ACPI: property: Read buffer properties as integers
-
- drivers/acpi/acpica/nsxfname.c |   2 +-
- drivers/acpi/property.c        | 517 ++++++++++++++++++++++++---------
- drivers/acpi/scan.c            |   2 +-
- include/acpi/acpi_bus.h        |   3 +-
- include/acpi/acpixf.h          |   2 +-
- include/linux/acpi.h           |   2 +-
- 6 files changed, 382 insertions(+), 146 deletions(-)
-
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index bc9a645f8bb77..f8c83ee6c8d59 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -340,6 +340,43 @@ acpi_data_add_props(struct acpi_device_data *data, const guid_t *guid,
+ 	return props;
+ }
+ 
++static void acpi_nondev_subnode_tag(acpi_handle handle, void *context)
++{
++}
++
++static void acpi_untie_nondev_subnodes(struct acpi_device_data *data)
++{
++	struct acpi_data_node *dn;
++
++	list_for_each_entry(dn, &data->subnodes, sibling) {
++		acpi_detach_data(dn->handle, acpi_nondev_subnode_tag);
++
++		acpi_untie_nondev_subnodes(&dn->data);
++	}
++}
++
++static int acpi_tie_nondev_subnodes(struct acpi_device_data *data)
++{
++	struct acpi_data_node *dn;
++
++	list_for_each_entry(dn, &data->subnodes, sibling) {
++		acpi_status status;
++		int ret;
++
++		status = acpi_attach_data(dn->handle, acpi_nondev_subnode_tag, dn);
++		if (ACPI_FAILURE(status)) {
++			acpi_handle_err(dn->handle, "Can't tag data node\n");
++			return 0;
++		}
++
++		ret = acpi_tie_nondev_subnodes(&dn->data);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
+ static bool acpi_extract_properties(const union acpi_object *desc,
+ 				    struct acpi_device_data *data)
+ {
+@@ -419,7 +456,9 @@ void acpi_init_properties(struct acpi_device *adev)
+ 					&adev->data, acpi_fwnode_handle(adev)))
+ 		adev->data.pointer = buf.pointer;
+ 
+-	if (!adev->data.pointer) {
++	if (!adev->data.pointer ||
++	    acpi_tie_nondev_subnodes(&adev->data) < 0) {
++		acpi_untie_nondev_subnodes(&adev->data);
+ 		acpi_handle_debug(adev->handle, "Invalid _DSD data, skipping\n");
+ 		ACPI_FREE(buf.pointer);
+ 	}
+@@ -462,6 +501,7 @@ static void acpi_destroy_nondev_subnodes(struct list_head *list)
+ 
+ void acpi_free_properties(struct acpi_device *adev)
+ {
++	acpi_untie_nondev_subnodes(&adev->data);
+ 	acpi_destroy_nondev_subnodes(&adev->data.subnodes);
+ 	ACPI_FREE((void *)adev->data.pointer);
+ 	adev->data.of_compatible = NULL;
 -- 
 2.30.2
 
