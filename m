@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6615EC43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45D72C43217
 	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:58:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346526AbiEFNCZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1392220AbiEFNCZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 6 May 2022 09:02:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57120 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1392207AbiEFNCV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 09:02:21 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 792016338C
+        with ESMTP id S1392209AbiEFNCW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 09:02:22 -0400
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6AF06338E
         for <linux-acpi@vger.kernel.org>; Fri,  6 May 2022 05:58:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1651841915; x=1683377915;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=NbVeTbVwxSZQoXoxcW2hpdR9WvVt23TD8U7Zul1E8C0=;
-  b=n8WGvNX123ARJJAA7zbK0dTG+Ha8OjU5mgrRRHKwax3UhCZbTNZmzf1K
-   MJMjJZyFLwEwEHSQ2PPNBUMMmK/gmTp8LUZSviB6qbcqRRQ00x/Mr/BET
-   p7YcxfmDXIDsh1iAdGEhJd+KXnFGYYpyWiiexPsR3jnnHXY466oEK214r
-   LwmocK9HzeZxzJDHtSAc15DAGXnRKrGvvTDufakhucHeGkt92PjGbFWUW
-   hdyyjstjadNqnpzcMR39+lO3VZb7+1qxNGiOcOup0Tem4EkaHUSaftbjM
-   THMbxiQZ0HEGJsx0EwtKiNNemPKPpN3uT4w3a0iQEgUTRMpZ8nkrsuLLp
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="250459088"
+  bh=AWXX9RIJyfn+TklamiDPXtkmP70XK6wxbDByAy02EMA=;
+  b=QTzrj5CvTGk2CvOAK+itSIAmulNCO875cxPVRMbe0h6zyYMaWP3OR7Av
+   wkLK9rW4wks1bV9/R1pGiNbMsaPajDa8Lz9MmYUbffbBUdEvHCScE1SU6
+   0KmuGmCVf+tQiHCjHSACFAR2bT20S5NoQfhl1ghvwvgS6R059owKg2QMU
+   ML7+9/8RFq2OLYZjrp2UTzhFwGrWMjz2ZzwjsAGCOnkOHRhyYIyPnttcM
+   0qG9pxV0Px7QDymmG+hiN36OvCZMDWz+7cqlgoYIAGd5084JQMpZXnRB4
+   2rWq+FIXSIoC6JdDRxpP9M6z74cEl+4oaS2y7vY0/dbadrUEA/FjSJgZr
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="266051622"
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="250459088"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:35 -0700
+   d="scan'208";a="266051622"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:35 -0700
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="563802956"
+   d="scan'208";a="695169289"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:34 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:34 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 082E221016;
-        Fri,  6 May 2022 15:58:29 +0300 (EEST)
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id EAA3E20EAC;
+        Fri,  6 May 2022 15:58:28 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1nmxZJ-00480w-Ks; Fri, 06 May 2022 16:00:25 +0300
+        id 1nmxZJ-00480p-IU; Fri, 06 May 2022 16:00:25 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH 11/11] ACPI: property: Read buffer properties as integers
-Date:   Fri,  6 May 2022 16:00:25 +0300
-Message-Id: <20220506130025.984026-12-sakari.ailus@linux.intel.com>
+Subject: [PATCH 09/11] ACPI: property: Unify integer value reading functions
+Date:   Fri,  6 May 2022 16:00:23 +0300
+Message-Id: <20220506130025.984026-10-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
 References: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
@@ -57,75 +57,108 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Instead of adding a new property type, read buffer properties as integers.
-Even though the internal representation in ACPI is different, the data
-type is the same (byte) than on 8-bit integers.
+Unify functions reading ACPI property integer values into a single macro,
+and call that macro to generate the functions for each bit depth.
+
+Also use size_t for the counter instead of int.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ drivers/acpi/property.c | 79 +++++++++++------------------------------
+ 1 file changed, 20 insertions(+), 59 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index d3f6d95e0fb19..f23d15abadd65 100644
+index 9325a9b2c0543..2205612fd6e98 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -1108,6 +1108,10 @@ static int acpi_data_prop_read_single(const struct acpi_device_data *data,
- 		size_t i;						\
- 									\
- 		for (i = 0; i < nval; i++) {				\
-+			if (items->type == ACPI_TYPE_BUFFER) {		\
-+				val[i] = items->buffer.pointer[i];	\
-+				continue;				\
-+			}						\
- 			if (items[i].type != ACPI_TYPE_INTEGER)		\
- 				return -EPROTO;				\
- 			if (items[i].integer.value > U##bits##_MAX)	\
-@@ -1163,18 +1167,40 @@ static int acpi_data_prop_read(const struct acpi_device_data *data,
+@@ -985,67 +985,28 @@ static int acpi_data_prop_read_single(const struct acpi_device_data *data,
+ 	return ret;
+ }
+ 
+-static int acpi_copy_property_array_u8(const union acpi_object *items, u8 *val,
+-				       size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-		if (items[i].integer.value > U8_MAX)
+-			return -EOVERFLOW;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
+-
+-static int acpi_copy_property_array_u16(const union acpi_object *items,
+-					u16 *val, size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-		if (items[i].integer.value > U16_MAX)
+-			return -EOVERFLOW;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
+-
+-static int acpi_copy_property_array_u32(const union acpi_object *items,
+-					u32 *val, size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-		if (items[i].integer.value > U32_MAX)
+-			return -EOVERFLOW;
+-
+-		val[i] = items[i].integer.value;
++#define DECLARE_ACPI_PROPERTY_COPY(bits)				\
++	static int							\
++	acpi_copy_property_array_u##bits(const union acpi_object *items, \
++					 u##bits *val, size_t nval)	\
++	{								\
++		size_t i;						\
++									\
++		for (i = 0; i < nval; i++) {				\
++			if (items[i].type != ACPI_TYPE_INTEGER)		\
++				return -EPROTO;				\
++			if (items[i].integer.value > U##bits##_MAX)	\
++				return -EOVERFLOW;			\
++									\
++			val[i] = items[i].integer.value;		\
++		}							\
++		return 0;						\
  	}
+-	return 0;
+-}
  
- 	ret = acpi_data_get_property_array(data, propname, ACPI_TYPE_ANY, &obj);
-+	if (ret && proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64)
-+		ret = acpi_data_get_property(data, propname, ACPI_TYPE_BUFFER,
-+					     &obj);
- 	if (ret)
- 		return ret;
+-static int acpi_copy_property_array_u64(const union acpi_object *items,
+-					u64 *val, size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
++DECLARE_ACPI_PROPERTY_COPY(8)
++DECLARE_ACPI_PROPERTY_COPY(16)
++DECLARE_ACPI_PROPERTY_COPY(32)
++DECLARE_ACPI_PROPERTY_COPY(64)
  
--	if (!val)
-+	if (!val) {
-+		if (obj->type == ACPI_TYPE_BUFFER)
-+			return obj->buffer.length;
-+
- 		return obj->package.count;
-+	}
- 
--	if (proptype != DEV_PROP_STRING && nval > obj->package.count)
--		return -EOVERFLOW;
-+	switch (proptype) {
-+	case DEV_PROP_STRING:
-+		break;
-+	case DEV_PROP_U8 ... DEV_PROP_U64:
-+		if (obj->type == ACPI_TYPE_BUFFER) {
-+			if (nval <= obj->buffer.length)
-+				break;
-+			return -EOVERFLOW;
-+		}
-+		fallthrough;
-+	default:
-+		if (nval > obj->package.count)
-+			return -EOVERFLOW;
-+	}
- 	if (nval == 0)
- 		return -EINVAL;
- 
--	items = obj->package.elements;
-+	if (obj->type != ACPI_TYPE_BUFFER)
-+		items = obj->package.elements;
-+	else
-+		items = obj;
- 
- 	switch (proptype) {
- 	case DEV_PROP_U8:
+ static int acpi_copy_property_array_string(const union acpi_object *items,
+ 					   char **val, size_t nval)
 -- 
 2.30.2
 
