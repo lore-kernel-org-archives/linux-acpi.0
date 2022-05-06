@@ -2,82 +2,93 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F476C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:58:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46841C433F5
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 12:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233344AbiEFNCQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S1392203AbiEFNCQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 6 May 2022 09:02:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57044 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346526AbiEFNCP (ORCPT
+        with ESMTP id S1392141AbiEFNCP (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 09:02:15 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A57263383
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F7006338C
         for <linux-acpi@vger.kernel.org>; Fri,  6 May 2022 05:58:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1651841912; x=1683377912;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=YoOjvt6ZWy+Epk5pxRi/nkuhj8uwUo7L7f23DdSGlTE=;
-  b=bryyFBZ5Kgh6p/HnyHS2KgP9NWmiS88/wBaNSb4o7+ppWjjBgviyJGHJ
-   QgrKMvwTxn8+DH5QoIlbQIynDV88Rxa8aany38coqrnLWaQHf9bFbzVLa
-   eNGzo4RaPcesQX/LNKmrSrTNB7q8OxhLZFjsXZn7gdRcbsy+b7vImi2VM
-   jM9eymIY8m7YOEoHFTnplxlPBHyIx7a+pXRiwSP2aABcEf8I+Zf0DQk0m
-   g++nlxOFvNBN7LHeKSGiJ8qt7m0Q+he+EaQX9muhWUH8NiP467U80EGbC
-   YbszlRv502mEbl0ttuZgfjAbWG08lhz6DnsVWHY5XaL1WOYwjnggdyi3o
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="329004152"
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=PX2fTtw9stqx+nodH42XF2tRh9CfUYugeGA/EAUIRV4=;
+  b=H4Pmd2TolC/u0xa+64o9FKY61ppQ1Oof5gwcVvmgO1kSSxXgJ3s0Et1d
+   RnQyL0i+bYa9n7l7pIqDTARdr0+qBZ62YTTBXSGWD3KxnO2bGQvzLReui
+   cMtlpGrHNKfWhEbFLGBrONkRMialXSf8efAmbp86NB17aE8/H+rCifRFc
+   lo0aTuwihnLp9vcqVaik7bq/26yrhuZuoxf16QgUupsW6I13OxNGv1qSw
+   s9b+fAU91DlM0KKA42ANBooRYgwC7Re/eyoI5vSGj2NTXEqbKDx2r7Vxd
+   SPioHIJJZ/hIQfTy8iI4Epj72D6LluNh/P7FcXVo2MDe417H0lFMBlMIe
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="250459075"
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="329004152"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:31 -0700
+   d="scan'208";a="250459075"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:32 -0700
 X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
-   d="scan'208";a="709452094"
+   d="scan'208";a="537875687"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:30 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2022 05:58:30 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id BABF320D40;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 9672F201D7;
         Fri,  6 May 2022 15:58:28 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1nmxZJ-00480X-Bn; Fri, 06 May 2022 16:00:25 +0300
+        id 1nmxZJ-00480M-5Z; Fri, 06 May 2022 16:00:25 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH 04/11] ACPI: property: Use acpi_object_type consistently in property ref parsing
-Date:   Fri,  6 May 2022 16:00:18 +0300
-Message-Id: <20220506130025.984026-5-sakari.ailus@linux.intel.com>
+Subject: [PATCH 00/11] ACPI: Buffer property and reference as string support
+Date:   Fri,  6 May 2022 16:00:14 +0300
+Message-Id: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
-References: <20220506130025.984026-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The type of union acpi_object field type is acpi_object_type. Use that
-instead of int.
+Hello everyone,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/acpi/property.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This set adds support for _DSD buffer properties (specified by DSD Guide
+<URL:https://github.com/UEFI/DSD-Guide/blob/main/dsd-guide.md>) as well as
+support for references as strings. Reference property type was previously
+supported for device objects only, whereas string references enable
+referencing also _DSD sub-node objects --- also included in the set.
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index f8c83ee6c8d59..b36cb7e36e420 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -793,7 +793,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
- 			 * nor integer, return an error, we can't parse it.
- 			 */
- 			for (i = 0; element + i < end && i < num_args; i++) {
--				int type = element[i].type;
-+				acpi_object_type type = element[i].type;
- 
- 				if (type == ACPI_TYPE_LOCAL_REFERENCE)
- 					break;
+The ACPICA patch has been submitted to upstream but not merged yet.
+
+
+Sakari Ailus (11):
+  ACPI: property: Return type of acpi_add_nondev_subnodes() should be
+    bool
+  ACPI: acpica: Constify pathname argument for acpi_get_handle()
+  ACPI: property: Tie data nodes to acpi handles
+  ACPI: property: Use acpi_object_type consistently in property ref
+    parsing
+  ACPI: property: Move property ref argument parsing into a new function
+  ACPI: property: Switch node property referencing from ifs to a switch
+  ACPI: Initialise device child list early to access data nodes early
+  ACPI: property: Parse data node string references in properties
+  ACPI: property: Unify integer value reading functions
+  ACPI: property: Add support for parsing buffer property UUID
+  ACPI: property: Read buffer properties as integers
+
+ drivers/acpi/acpica/nsxfname.c |   2 +-
+ drivers/acpi/property.c        | 517 ++++++++++++++++++++++++---------
+ drivers/acpi/scan.c            |   2 +-
+ include/acpi/acpi_bus.h        |   3 +-
+ include/acpi/acpixf.h          |   2 +-
+ include/linux/acpi.h           |   2 +-
+ 6 files changed, 382 insertions(+), 146 deletions(-)
+
 -- 
 2.30.2
 
