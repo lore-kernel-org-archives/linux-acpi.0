@@ -2,137 +2,206 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 051CBC433F5
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 20:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 428B2C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  6 May 2022 21:46:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344368AbiEFU5v (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 May 2022 16:57:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50634 "EHLO
+        id S1442903AbiEFVue (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 6 May 2022 17:50:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245037AbiEFU5u (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 16:57:50 -0400
-Received: from beige.elm.relay.mailchannels.net (beige.elm.relay.mailchannels.net [23.83.212.16])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D9B26EB20
-        for <linux-acpi@vger.kernel.org>; Fri,  6 May 2022 13:54:06 -0700 (PDT)
-X-Sender-Id: dreamhost|x-authsender|ian@linux.cowan.aero
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id 572EA1219F1;
-        Fri,  6 May 2022 20:47:39 +0000 (UTC)
-Received: from pdx1-sub0-mail-a267.dreamhost.com (unknown [127.0.0.6])
-        (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id A7CAC121C1F;
-        Fri,  6 May 2022 20:47:38 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1651870058; a=rsa-sha256;
-        cv=none;
-        b=PYMHuFimCV4mPT0zA3FohWIbqtldqpt2Yt6GECAIkFNmPOopAXcrdORmVPvgTD1fD/StR/
-        8muCsmqphb+OKi3gtM7IJEdL51rGPuglCWemPk0dTIuLWfbX6ehCPdbFNbMIqStHi0iWM6
-        1zaIfg53cYgpkqJJ5ciWMvwQ+wwS/AOcy7SxZMsA9hru+n2PLYNE4tuDkmCCQQFjT+LYYq
-        V1dsr+NStNpY2kHFBAcDdbFVvfuduCgL6/ca/oTuvUF8qef/DkwX5Fn3qV+zfi0eTRrcJ2
-        HrqYaqNiFkLNsH3J6lmoW4otf5gdHB3CJcDzOlY4dvSDKVjNhQGtpP9Imt1P9Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-        s=arc-2022; t=1651870058;
+        with ESMTP id S1348985AbiEFVud (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 May 2022 17:50:33 -0400
+Received: from relay9-d.mail.gandi.net (relay9-d.mail.gandi.net [217.70.183.199])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A54E2637D;
+        Fri,  6 May 2022 14:46:48 -0700 (PDT)
+Received: (Authenticated sender: alexandre.belloni@bootlin.com)
+        by mail.gandi.net (Postfix) with ESMTPSA id 52EABFF802;
+        Fri,  6 May 2022 21:46:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+        t=1651873602;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:dkim-signature;
-        bh=ni7bqdS03z4h5SXMAsYuuzVOnX1oevvYBXsf9q9pN0U=;
-        b=flrzyR93UR+9cbeNYvYGEo1VWXl83kfLw2ysv7xdjZduSk/xCiOwdIo0JQ5t7EKWLa41zC
-        9tzSTZ7RLAn6VRRJoaNkF05tQGuHSrWzwg+WIJj5t7SGNCaVdP7duAxdAfKA1i1yhkX/8W
-        vAqUYALVRfTpIzeKnuAwX9MZgBLVFp6j6+jtwMEUOwkXSIFfCscLZQIgw+frAVBOpS4dXw
-        RxPAqaWZ9085TQtXsXLeSZVSDUZJaMtoq+GLmlKGLZ0jz9cAoTGDiZoyNf+eLwod51k33W
-        4uRIjt+vSJQfoDarI4OpnY2yjp65gXdgkPA+GE9byYcNLg3PIg9FUawUCM2EKQ==
-ARC-Authentication-Results: i=1;
-        rspamd-847cd55849-z7gxd;
-        auth=pass smtp.auth=dreamhost smtp.mailfrom=ian@linux.cowan.aero
-X-Sender-Id: dreamhost|x-authsender|ian@linux.cowan.aero
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|ian@linux.cowan.aero
-X-MailChannels-Auth-Id: dreamhost
-X-Quick-Cooing: 2a94c6b13ff68ba4_1651870059003_335350544
-X-MC-Loop-Signature: 1651870059002:1064267323
-X-MC-Ingress-Time: 1651870059002
-Received: from pdx1-sub0-mail-a267.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-        by 100.105.211.134 (trex/6.7.1);
-        Fri, 06 May 2022 20:47:38 +0000
-Received: from localhost.localdomain (unknown [69.12.38.97])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        (Authenticated sender: ian@linux.cowan.aero)
-        by pdx1-sub0-mail-a267.dreamhost.com (Postfix) with ESMTPSA id 4Kw2gs66BNz3V;
-        Fri,  6 May 2022 13:47:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.cowan.aero;
-        s=dreamhost; t=1651870058;
-        bh=ni7bqdS03z4h5SXMAsYuuzVOnX1oevvYBXsf9q9pN0U=;
-        h=From:To:Cc:Subject:Date:Content-Transfer-Encoding;
-        b=scUwtUP29ocNYAs4+MZOgbf2Oy/LkuQTr5o5JiyQ4gYbZFDAPU82UcuKbgfjH+Fzh
-         q0kQgyVbxgVkL+eKvcFY5AivbSb+k2Xz0QwSPWQYnerb5srlS8HLDR1gTv1GURGot9
-         dgctQNSkV7ciqMgqxTJVcLmefqQNevEzPlftZVxdoV5gF8H+rK2YQq8n9SVMcoH1zz
-         CtTIf2QvHwUkTyb7dHjSezhu2NxVY6FJF/Z8Axq70sJTC++ZwwCbOVpv+IbYLgCBEH
-         o+MiRcG6U8TSHpOxH6u5/EicLNFY4LcHdjG3FyBY2l+KPtzvY7ovoeE/pyDABcQjsD
-         qVHc1Ik0cCBYA==
-From:   Ian Cowan <ian@linux.cowan.aero>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>
-Cc:     Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Ian Cowan <ian@linux.cowan.aero>
-Subject: [PATCH v2] drivers: acpi: clean up spaces to be consistent
-Date:   Fri,  6 May 2022 16:47:31 -0400
-Message-Id: <20220506204731.330378-1-ian@linux.cowan.aero>
-X-Mailer: git-send-email 2.35.1
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=jgdW+utjX69lw9hZBaJPICrrQFeG4ACbfoIiurJVsC0=;
+        b=cWZn2bIvqcSVFGu3IsFqsqClQjrfuRcnBfGvVG1LC+EZb+VCl3Yve3JqmG+2HHscqfqp4i
+        vX97M++arG5GXblHmiyRHG9ZIgYSYZVpCZKXHS8td9kNTSj4IS28/SMJNhO9jrkVvk0ATN
+        24bIxEbxb/BKyXuR5gp81RK8bjzdn5jkjH//ttYhUvkv0x4kUkoWf4YX59s1KBc9aZOfNG
+        0gJTBGziACERliLJVvJ3QeGv//sGN7+r852isaiAwAtl7iQ64GSyw4gmGupgAcheSJ1W+9
+        g30110feSLlykUWTJKC7WTbThbnp43eb6vzRn+UpM8oxgk68GpzG5k+tY7GEVA==
+Date:   Fri, 6 May 2022 23:46:40 +0200
+From:   Alexandre Belloni <alexandre.belloni@bootlin.com>
+To:     Zhang Rui <rui.zhang@intel.com>
+Cc:     rjw@rjwysocki.net, kvalo@kernel.org, linux-pm@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-rtc@vger.kernel.org,
+        linux-wireless@vger.kernel.org, daniel.lezcano@linaro.org,
+        merez@codeaurora.org, mat.jonczyk@o2.pl,
+        sumeet.r.pawnikar@intel.com, len.brown@intel.com
+Subject: Re: [PATCH 7/7] rtc: cmos: Add suspend/resume endurance testing hook
+Message-ID: <YnWXQE9QASycOzZo@mail.local>
+References: <20220505015814.3727692-1-rui.zhang@intel.com>
+ <20220505015814.3727692-8-rui.zhang@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220505015814.3727692-8-rui.zhang@intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This cleans up a few line spaces so that it is consistent with the rest
-of the file. There are a few places where a space was added before a
-return and two spots where a double line space was made into one line
-space.
+Hello,
 
-Signed-off-by: Ian Cowan <ian@linux.cowan.aero>
----
- drivers/acpi/ac.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I assume I can ignore this patch as this seems to be only for testing
+I'm not even sure why this is needed as this completely breaks setting
+the alarm time.
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index db487ff9dd1b..f8ec48cd7659 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -32,7 +32,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
- 
--
- static int acpi_ac_add(struct acpi_device *device);
- static int acpi_ac_remove(struct acpi_device *device);
- static void acpi_ac_notify(struct acpi_device *device, u32 event);
-@@ -125,6 +124,7 @@ static int get_ac_property(struct power_supply *psy,
- 	default:
- 		return -EINVAL;
- 	}
-+
- 	return 0;
- }
- 
-@@ -286,6 +288,7 @@ static int acpi_ac_resume(struct device *dev)
- 		return 0;
- 	if (old_state != ac->state)
- 		kobject_uevent(&ac->charger->dev.kobj, KOBJ_CHANGE);
-+
- 	return 0;
- }
- #else
-@@ -296,7 +299,6 @@ static int acpi_ac_remove(struct acpi_device *device)
- {
- 	struct acpi_ac *ac = NULL;
- 
--
- 	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
- 
+On 05/05/2022 09:58:14+0800, Zhang Rui wrote:
+> Automated suspend/resume testing uses the RTC for wakeup.
+> A short rtcwake period is desirable, so that more suspend/resume
+> cycles can be completed, while the machine is available for testing.
+> 
+> But if too short a wake interval is specified, the event can occur,
+> while still suspending, and then no event wakes the suspended system
+> until the user notices that testing has stalled, and manually intervenes.
+> 
+> Here we add a hook to the rtc-cmos driver to
+> a) remove the alarm timer in the beginning of suspend, if there is any
+> b) arm the wakeup in PM notifier callback, which is in the very late stage
+>    before the system really suspends
+> The remaining part of suspend is usually measured under 10 ms,
+> and so arming the timer at this point could be as fast as the minimum
+> time of 1-second.
+> 
+> But there is a 2nd race.  The RTC has 1-second granularity, and unless
+> you are timing the timer with a higher resolution timer,
+> there is no telling if the current time + 1 will occur immediately,
+> or a full second in the future.  And so 2-seconds is the safest minimum:
+> 
+> Run 1,000 s2idle cycles with (max of) 2 second wakeup period:
+> 
+>  # echo 2 > /sys/module/rtc_cmos/parameters/rtc_wake_override_sec
+>  # sleepgraph.py -m freeze -multi 1000 0 -skiphtml -gzip
+> 
+> Clear the timer override, to not interfere with subsequent
+> real use of the machine's suspend/resume feature:
+> 
+>  # echo 0 > /sys/module/rtc_cmos/parameters/rtc_wake_override_sec
+> 
+> Originally-by: Len Brown <len.brown@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Tested-by: Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
+> ---
+>  drivers/rtc/interface.c |  1 +
+>  drivers/rtc/rtc-cmos.c  | 45 +++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 46 insertions(+)
+> 
+> diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+> index 9edd662c69ac..fb93aa2dc99c 100644
+> --- a/drivers/rtc/interface.c
+> +++ b/drivers/rtc/interface.c
+> @@ -1020,6 +1020,7 @@ void rtc_timer_cancel(struct rtc_device *rtc, struct rtc_timer *timer)
+>  		rtc_timer_remove(rtc, timer);
+>  	mutex_unlock(&rtc->ops_lock);
+>  }
+> +EXPORT_SYMBOL_GPL(rtc_timer_cancel);
+>  
+>  /**
+>   * rtc_read_offset - Read the amount of rtc offset in parts per billion
+> diff --git a/drivers/rtc/rtc-cmos.c b/drivers/rtc/rtc-cmos.c
+> index 7c006c2b125f..9590c40fa9d8 100644
+> --- a/drivers/rtc/rtc-cmos.c
+> +++ b/drivers/rtc/rtc-cmos.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/init.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/spinlock.h>
+> +#include <linux/suspend.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/log2.h>
+>  #include <linux/pm.h>
+> @@ -70,6 +71,9 @@ static inline int cmos_use_acpi_alarm(void)
+>  }
+>  #endif
+>  
+> +static int rtc_wake_override_sec;
+> +module_param(rtc_wake_override_sec, int, 0644);
+> +
+>  struct cmos_rtc {
+>  	struct rtc_device	*rtc;
+>  	struct device		*dev;
+> @@ -89,6 +93,7 @@ struct cmos_rtc {
+>  	u8			century;
+>  
+>  	struct rtc_wkalrm	saved_wkalrm;
+> +	struct notifier_block	pm_nb;
+>  };
+>  
+>  /* both platform and pnp busses use negative numbers for invalid irqs */
+> @@ -744,6 +749,42 @@ static irqreturn_t cmos_interrupt(int irq, void *p)
+>  		return IRQ_NONE;
+>  }
+>  
+> +static int cmos_pm_notify(struct notifier_block *nb, unsigned long mode, void *_unused)
+> +{
+> +	struct cmos_rtc *cmos = container_of(nb, struct cmos_rtc, pm_nb);
+> +	struct rtc_device       *rtc = cmos->rtc;
+> +	unsigned long           now;
+> +	struct rtc_wkalrm       alm;
+> +
+> +	if (rtc_wake_override_sec == 0)
+> +		return NOTIFY_OK;
+> +
+> +	switch (mode) {
+> +	case PM_SUSPEND_PREPARE:
+> +		/*
+> +		 * Cancel the timer to make sure it won't fire
+> +		 * before rtc is rearmed later.
+> +		 */
+> +		rtc_timer_cancel(rtc, &rtc->aie_timer);
+> +		break;
+> +	case PM_SUSPEND_LATE:
+> +		if (rtc_read_time(rtc, &alm.time))
+> +			return NOTIFY_BAD;
+> +
+> +		now = rtc_tm_to_time64(&alm.time);
+> +		memset(&alm, 0, sizeof(alm));
+> +		rtc_time64_to_tm(now + rtc_wake_override_sec, &alm.time);
+> +		alm.enabled = true;
+> +		if (rtc_set_alarm(rtc, &alm))
+> +			return NOTIFY_BAD;
+> +		if (cmos->wake_on)
+> +			cmos->wake_on(cmos->dev);
+> +		break;
+> +	}
+> +
+> +	return NOTIFY_OK;
+> +}
+> +
+>  #ifdef	CONFIG_PNP
+>  #define	INITSECTION
+>  
+> @@ -937,6 +978,9 @@ cmos_do_probe(struct device *dev, struct resource *ports, int rtc_irq)
+>  		 nvmem_cfg.size,
+>  		 use_hpet_alarm() ? ", hpet irqs" : "");
+>  
+> +	cmos_rtc.pm_nb.notifier_call = cmos_pm_notify;
+> +	register_pm_notifier(&cmos_rtc.pm_nb);
+> +
+>  	return 0;
+>  
+>  cleanup2:
+> @@ -965,6 +1009,7 @@ static void cmos_do_remove(struct device *dev)
+>  	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+>  	struct resource *ports;
+>  
+> +	unregister_pm_notifier(&cmos_rtc.pm_nb);
+>  	cmos_do_shutdown(cmos->irq);
+>  
+>  	if (is_valid_irq(cmos->irq)) {
+> -- 
+> 2.17.1
+> 
+
 -- 
-2.35.1
-
+Alexandre Belloni, co-owner and COO, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
