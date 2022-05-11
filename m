@@ -2,115 +2,115 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87B39C43217
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 May 2022 02:47:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF00C433FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 May 2022 10:12:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240559AbiEKCrc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 May 2022 22:47:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59632 "EHLO
+        id S241774AbiEKKMn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 May 2022 06:12:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243328AbiEKCkf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 May 2022 22:40:35 -0400
-Received: from mail-oo1-xc2d.google.com (mail-oo1-xc2d.google.com [IPv6:2607:f8b0:4864:20::c2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B6EF20F4C4
-        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2022 19:40:32 -0700 (PDT)
-Received: by mail-oo1-xc2d.google.com with SMTP id q73-20020a4a334c000000b0035eb110dd0dso723925ooq.10
-        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2022 19:40:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=endlessos.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=jtaiydWG/wHEMbYT/FSFofg9mXlu8btSO46ZLTfW2rA=;
-        b=eGyFVrO10lmw+zfaf5pcltLktNJ/1CbPOHymz7tN2r3TOcOAfeRKz40YqA963vP6Sj
-         4+pnLx6kifsxT1QTpSkWWCvT4wJFDRgxVEoNYJTNnEUcNXwtYAow1ohLI7MDL0WpObqn
-         gZ1nDsuhO86xqC+aFz2sB7vp0Ouj/1FMnmCy72wpLNUxqg+7C/l6Mo2WdgmQGLgSzuZk
-         OFFxkfvg12/OVpCkcbcp4SILs5YLxNRAHP7/XiWcAZIdRMXK7xsXq8bAqaFQKeaBgyhA
-         +uf0OmAUGoclt2ZWaXD3s1vaf6OuMtxkT6nDPaBm+PzUVYwoyq1a668E06SVvS8yzasc
-         AVlg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=jtaiydWG/wHEMbYT/FSFofg9mXlu8btSO46ZLTfW2rA=;
-        b=HH4AdFr2/dwOcU40M9gQ96EvAM6+O88xOLl792wxLIJGuPNkrPcbz/snSb+oUlNd7x
-         mZTFpguj2JGgSrIixXjmW43BF2NtYKi+jhr22GoI/uw30RA7lGlXVozxOWZ2aFRk2rhB
-         uDkgTOC7PNwfk/icLwt5JfUGLClv16uOYZPigSQEE7k/Mg9/uDZ0eUCyk9Vbus4am028
-         KH3wU5m8AbRuf7TugZXYDqT3Kr7hA6SvSBDl66kLnKZkNMzNKiMUrlTmnQss9Xet0T89
-         n0K3aiYEZlNV8XeGZ4nHTNap4Tz6iLE6MiPqVC4NJna3aNuwiP6F3N8h1MhWqQQwcyO2
-         ja9Q==
-X-Gm-Message-State: AOAM533UOrQd1VurM/nHEx010015Ywy+Jd2w9woRcISJAa80ky4g8KLz
-        gg3bT2Lhm58WA7pCk1mH95CuuSUeVt5fSy7dEHd8wQ==
-X-Google-Smtp-Source: ABdhPJz+ei/hQMAcBiVGCP/disKXAMzLMiX0vJBayUYqAiRMua51m3bNh5IsKSq1ogoNfL8nyG0RKn+rtIE9XjUvhAU=
-X-Received: by 2002:a05:6830:246f:b0:606:bbb:f613 with SMTP id
- x47-20020a056830246f00b006060bbbf613mr8997032otr.102.1652236831957; Tue, 10
- May 2022 19:40:31 -0700 (PDT)
+        with ESMTP id S241418AbiEKKMd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2022 06:12:33 -0400
+Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [46.235.227.227])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D63021AA8E;
+        Wed, 11 May 2022 03:12:19 -0700 (PDT)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: dmitry.osipenko)
+        with ESMTPSA id 6482B1F44D36
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
+        s=mail; t=1652263934;
+        bh=qcj+acMxU0ciOKBaVy6pJbQiEuRN08dsxaJseG6RfwE=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=ALAQu/eEe04LAruPgoaxZO/rAmAmbVl+HcocVYpgGrXIRB8C3EP1FAmUZXjQFjUKn
+         wfogK/QUTiSxNChIDNBZqO/aeRmGclTu4TrSdSdMO/cmWfEIqdry6AZOEiAP2fouZ6
+         Ze5K+g3wOPlOW2v6pMuegjSC6cihNNChKdrphdfE2ltP+RE0LEmom809Y8+fvE6J4/
+         Ahs2yVkxSRw3aK+Wy1uhxbsXzAskjDUGhwcgP9S4/r1ElfK42qDIjASJs4PEUZO9GN
+         V4ie/nhjCksrQsC7KjRypS3JpnKPKwmWfZcBd1V4WsAwj2K9BvhnPx92oDSMYGMk4e
+         Jp2S214QNnEnQ==
+Message-ID: <5894c310-fe50-8037-fc9c-cbedb0d8e71f@collabora.com>
+Date:   Wed, 11 May 2022 13:12:07 +0300
 MIME-Version: 1.0
-References: <20220510131136.1103-1-mario.limonciello@amd.com>
-In-Reply-To: <20220510131136.1103-1-mario.limonciello@amd.com>
-From:   Jian-Hong Pan <jhp@endlessos.org>
-Date:   Wed, 11 May 2022 10:39:25 +0800
-Message-ID: <CAPpJ_efn1YiLRtbhNwDEr8j+jJfZrHBM9fukDJpuH0czJpgRTQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: PM: Block ASUS B1400CEAE from suspend to idle by default
-To:     Mario Limonciello <mario.limonciello@amd.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.0
+Subject: Re: [PATCH v8 01/27] notifier: Add
+ atomic_notifier_call_chain_is_empty()
+Content-Language: en-US
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Joshua Thompson <funaho@jurai.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Sebastian Reichel <sre@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greentime Hu <green.hu@gmail.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
         Len Brown <lenb@kernel.org>,
-        "open list:ACPI" <linux-acpi@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Pavel Machek <pavel@ucw.cz>,
+        Lee Jones <lee.jones@linaro.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        xen-devel@lists.xenproject.org,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        linux-tegra <linux-tegra@vger.kernel.org>
+References: <20220509233235.995021-1-dmitry.osipenko@collabora.com>
+ <20220509233235.995021-2-dmitry.osipenko@collabora.com>
+ <CAJZ5v0gApRhc9+jZLxgNXC2B2tmz450=8+mFZUjTFF1iU7C-gw@mail.gmail.com>
+From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
+In-Reply-To: <CAJZ5v0gApRhc9+jZLxgNXC2B2tmz450=8+mFZUjTFF1iU7C-gw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Mario Limonciello <mario.limonciello@amd.com> =E6=96=BC 2022=E5=B9=B45=E6=
-=9C=8810=E6=97=A5 =E9=80=B1=E4=BA=8C =E4=B8=8B=E5=8D=889:11=E5=AF=AB=E9=81=
-=93=EF=BC=9A
->
-> ASUS B1400CEAE fails to resume from suspend to idle by default.  This was
-> bisected back to commit df4f9bc4fb9c ("nvme-pci: add support for ACPI
-> StorageD3Enable property") but this is a red herring to the problem.
->
-> Before this commit the system wasn't getting into deepest sleep state.
-> Presumably this commit is allowing entry into deepest sleep state as
-> advertised by firmware, but there are some other problems related to
-> the wakeup.
->
-> As it is confirmed the system works properly with S3, set the default for
-> this system to S3.
->
-> Reported-by: Jian-Hong Pan <jhp@endlessos.org>
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D215742
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
->  drivers/acpi/sleep.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
->
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index c992e57b2c79..3147702710af 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -373,6 +373,18 @@ static const struct dmi_system_id acpisleep_dmi_tabl=
-e[] __initconst =3D {
->                 DMI_MATCH(DMI_PRODUCT_NAME, "20GGA00L00"),
->                 },
->         },
-> +       /*
-> +        * ASUS B1400CEAE hangs on resume from suspend (see
-> +        * https://bugzilla.kernel.org/show_bug.cgi?id=3D215742).
-> +        */
-> +       {
-> +       .callback =3D init_default_s3,
-> +       .ident =3D "ASUS B1400CEAE",
-> +       .matches =3D {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +               DMI_MATCH(DMI_PRODUCT_NAME, "ASUS EXPERTBOOK B1400CEAE"),
-> +               },
-> +       },
->         {},
->  };
->
-> --
-> 2.34.1
->
+On 5/10/22 21:14, Rafael J. Wysocki wrote:
+> On Tue, May 10, 2022 at 1:33 AM Dmitry Osipenko
+> <dmitry.osipenko@collabora.com> wrote:
+>> Add atomic_notifier_call_chain_is_empty() that returns true if given
+>> atomic call chain is empty.
+> It would be good to mention a use case for it.
+> 
 
-Tested-by: Jian-Hong Pan <jhp@endlessos.org>
+I'll update this patch for v9.
+
+-- 
+Best regards,
+Dmitry
