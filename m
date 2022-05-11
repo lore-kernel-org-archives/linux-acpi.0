@@ -2,24 +2,24 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AFA8C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 May 2022 13:46:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8520EC433FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 May 2022 13:47:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244089AbiEKNqk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 May 2022 09:46:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32978 "EHLO
+        id S231741AbiEKNrO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 May 2022 09:47:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244058AbiEKNqb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2022 09:46:31 -0400
+        with ESMTP id S244090AbiEKNqi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2022 09:46:38 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A517D1D30A;
-        Wed, 11 May 2022 06:46:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 75B088B0A6;
+        Wed, 11 May 2022 06:46:37 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 758241042;
-        Wed, 11 May 2022 06:46:30 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 39E16ED1;
+        Wed, 11 May 2022 06:46:37 -0700 (PDT)
 Received: from pierre123.arm.com (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id AFAA23F66F;
-        Wed, 11 May 2022 06:46:27 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id A4FDC3F66F;
+        Wed, 11 May 2022 06:46:34 -0700 (PDT)
 From:   Pierre Gondois <pierre.gondois@arm.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Ionela.Voinescu@arm.com, Dietmar.Eggemann@arm.com,
@@ -31,9 +31,9 @@ Cc:     Ionela.Voinescu@arm.com, Dietmar.Eggemann@arm.com,
         Robert Moore <robert.moore@intel.com>,
         linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
         devel@acpica.org
-Subject: [PATCH v1 3/5] ACPI: CPPC: Assume no transition latency if no PCCT
-Date:   Wed, 11 May 2022 15:45:57 +0200
-Message-Id: <20220511134559.1466925-3-pierre.gondois@arm.com>
+Subject: [PATCH v1 5/5] cpufreq: CPPC: Enable dvfs_possible_from_any_cpu
+Date:   Wed, 11 May 2022 15:45:59 +0200
+Message-Id: <20220511134559.1466925-5-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220511134559.1466925-1-pierre.gondois@arm.com>
 References: <20220511134559.1466925-1-pierre.gondois@arm.com>
@@ -45,87 +45,30 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Pierre Gondois <Pierre.Gondois@arm.com>
 
-The transition_delay_us (struct cpufreq_policy) is currently defined
-as:
-  Preferred average time interval between consecutive invocations of
-  the driver to set the frequency for this policy.  To be set by the
-  scaling driver (0, which is the default, means no preference).
-The transition_latency represents the amount of time necessary for a
-CPU to change its frequency.
+The communication mean of the _CPC desired performance can be
+PCC, System Memory, System IO, or Functional Fixed Hardware (FFH).
 
-A PCCT table advertises mutliple values:
-- pcc_nominal: Expected latency to process a command, in microseconds
-- pcc_mpar: The maximum number of periodic requests that the subspace
-  channel can support, reported in commands per minute. 0 indicates no
-  limitation.
-- pcc_mrtt: The minimum amount of time that OSPM must wait after the
-  completion of a command before issuing the next command,
-  in microseconds.
-cppc_get_transition_latency() allows to get the max of them.
-
-commit d4f3388afd48 ("cpufreq / CPPC: Set platform specific
-transition_delay_us") allows to select transition_delay_us based on
-the platform, and fallbacks to cppc_get_transition_latency()
-otherwise.
-
-If _CPC objects are not using PCC channels (no PPCT table), the
-transition_delay_us is set to CPUFREQ_ETERNAL, leading to really long
-periods between frequency updates (~4s).
-
-If the desired_reg, where performance requests are written, is in
-SystemMemory or SystemIo ACPI address space, there is no delay
-in requests. So return 0 instead of CPUFREQ_ETERNAL, leading to
-transition_delay_us being set to LATENCY_MULTIPLIER us (1000 us).
-
-This patch also adds two macros to check the address spaces.
+PCC, SystemMemory and SystemIo address spaces are available from any
+CPU. Thus, dvfs_possible_from_any_cpu should be enabled in such case.
+For FFH, let the FFH implementation do smp_call_function_*() calls.
 
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- drivers/acpi/cppc_acpi.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/cpufreq/cppc_cpufreq.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 6f09fe011544..cc932ec1b613 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -100,6 +100,16 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
- 				(cpc)->cpc_entry.reg.space_id ==	\
- 				ACPI_ADR_SPACE_PLATFORM_COMM)
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index 000a0c610c30..ad1535fbf389 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -558,6 +558,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	}
  
-+/* Check if a CPC register is in SystemMemory */
-+#define CPC_IN_SM(cpc) ((cpc)->type == ACPI_TYPE_BUFFER &&		\
-+				(cpc)->cpc_entry.reg.space_id ==	\
-+				ACPI_ADR_SPACE_SYSTEM_MEMORY)
-+
-+/* Check if a CPC register is in SystemIo */
-+#define CPC_IN_SIO(cpc) ((cpc)->type == ACPI_TYPE_BUFFER &&		\
-+				(cpc)->cpc_entry.reg.space_id ==	\
-+				ACPI_ADR_SPACE_SYSTEM_IO)
-+
- /* Evaluates to True if reg is a NULL register descriptor */
- #define IS_NULL_REG(reg) ((reg)->space_id ==  ACPI_ADR_SPACE_SYSTEM_MEMORY && \
- 				(reg)->address == 0 &&			\
-@@ -1456,6 +1466,9 @@ EXPORT_SYMBOL_GPL(cppc_set_perf);
-  * transition latency for performance change requests. The closest we have
-  * is the timing information from the PCCT tables which provides the info
-  * on the number and frequency of PCC commands the platform can handle.
-+ *
-+ * If desired_reg is in the SystemMemory or SystemIo ACPI address space,
-+ * then assume there is no latency.
-  */
- unsigned int cppc_get_transition_latency(int cpu_num)
- {
-@@ -1481,7 +1494,9 @@ unsigned int cppc_get_transition_latency(int cpu_num)
- 		return CPUFREQ_ETERNAL;
+ 	policy->fast_switch_possible = cppc_allow_fast_switch();
++	policy->dvfs_possible_from_any_cpu = true;
  
- 	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
--	if (!CPC_IN_PCC(desired_reg))
-+	if (CPC_IN_SM(desired_reg) || CPC_IN_SIO(desired_reg))
-+		return 0;
-+	else if (!CPC_IN_PCC(desired_reg))
- 		return CPUFREQ_ETERNAL;
- 
- 	if (pcc_ss_id < 0)
+ 	/*
+ 	 * If 'highest_perf' is greater than 'nominal_perf', we assume CPU Boost
 -- 
 2.25.1
 
