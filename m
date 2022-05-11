@@ -2,115 +2,154 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF00C433FE
-	for <linux-acpi@archiver.kernel.org>; Wed, 11 May 2022 10:12:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3DC5C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed, 11 May 2022 13:46:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241774AbiEKKMn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 11 May 2022 06:12:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59976 "EHLO
+        id S244060AbiEKNq1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 11 May 2022 09:46:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241418AbiEKKMd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2022 06:12:33 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [46.235.227.227])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D63021AA8E;
-        Wed, 11 May 2022 03:12:19 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: dmitry.osipenko)
-        with ESMTPSA id 6482B1F44D36
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1652263934;
-        bh=qcj+acMxU0ciOKBaVy6pJbQiEuRN08dsxaJseG6RfwE=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=ALAQu/eEe04LAruPgoaxZO/rAmAmbVl+HcocVYpgGrXIRB8C3EP1FAmUZXjQFjUKn
-         wfogK/QUTiSxNChIDNBZqO/aeRmGclTu4TrSdSdMO/cmWfEIqdry6AZOEiAP2fouZ6
-         Ze5K+g3wOPlOW2v6pMuegjSC6cihNNChKdrphdfE2ltP+RE0LEmom809Y8+fvE6J4/
-         Ahs2yVkxSRw3aK+Wy1uhxbsXzAskjDUGhwcgP9S4/r1ElfK42qDIjASJs4PEUZO9GN
-         V4ie/nhjCksrQsC7KjRypS3JpnKPKwmWfZcBd1V4WsAwj2K9BvhnPx92oDSMYGMk4e
-         Jp2S214QNnEnQ==
-Message-ID: <5894c310-fe50-8037-fc9c-cbedb0d8e71f@collabora.com>
-Date:   Wed, 11 May 2022 13:12:07 +0300
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: [PATCH v8 01/27] notifier: Add
- atomic_notifier_call_chain_is_empty()
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Joshua Thompson <funaho@jurai.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Sebastian Reichel <sre@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Greentime Hu <green.hu@gmail.com>,
-        Vincent Chen <deanbo422@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
+        with ESMTP id S244065AbiEKNq0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2022 09:46:26 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 686045FF36;
+        Wed, 11 May 2022 06:46:23 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 314D8ED1;
+        Wed, 11 May 2022 06:46:23 -0700 (PDT)
+Received: from pierre123.arm.com (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id A065C3F66F;
+        Wed, 11 May 2022 06:46:20 -0700 (PDT)
+From:   Pierre Gondois <pierre.gondois@arm.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Ionela.Voinescu@arm.com, Dietmar.Eggemann@arm.com,
+        Pierre Gondois <pierre.gondois@arm.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Pavel Machek <pavel@ucw.cz>,
-        Lee Jones <lee.jones@linaro.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        xen-devel@lists.xenproject.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        linux-tegra <linux-tegra@vger.kernel.org>
-References: <20220509233235.995021-1-dmitry.osipenko@collabora.com>
- <20220509233235.995021-2-dmitry.osipenko@collabora.com>
- <CAJZ5v0gApRhc9+jZLxgNXC2B2tmz450=8+mFZUjTFF1iU7C-gw@mail.gmail.com>
-From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
-In-Reply-To: <CAJZ5v0gApRhc9+jZLxgNXC2B2tmz450=8+mFZUjTFF1iU7C-gw@mail.gmail.com>
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Robert Moore <robert.moore@intel.com>,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        devel@acpica.org
+Subject: [PATCH v1 1/5] ACPI: CPPC: Check _OSC for flexible address space
+Date:   Wed, 11 May 2022 15:45:55 +0200
+Message-Id: <20220511134559.1466925-1-pierre.gondois@arm.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 5/10/22 21:14, Rafael J. Wysocki wrote:
-> On Tue, May 10, 2022 at 1:33 AM Dmitry Osipenko
-> <dmitry.osipenko@collabora.com> wrote:
->> Add atomic_notifier_call_chain_is_empty() that returns true if given
->> atomic call chain is empty.
-> It would be good to mention a use case for it.
-> 
+ACPI 6.2 Section 6.2.11.2 'Platform-Wide OSPM Capabilities':
+  Starting with ACPI Specification 6.2, all _CPC registers can be in
+  PCC, System Memory, System IO, or Functional Fixed Hardware address
+  spaces. OSPM support for this more flexible register space scheme is
+  indicated by the “Flexible Address Space for CPPC Registers” _OSC bit
 
-I'll update this patch for v9.
+Otherwise (cf ACPI 6.1, s8.4.7.1.1.X), _CPC registers must be in:
+- PCC or Functional Fixed Hardware address space if defined
+- SystemMemory address space (NULL register) if not defined
 
+Add the corresponding _OSC bit and check it when parsing _CPC objects.
+
+Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+---
+ drivers/acpi/bus.c       | 18 ++++++++++++++++++
+ drivers/acpi/cppc_acpi.c |  9 +++++++++
+ include/linux/acpi.h     |  2 ++
+ 3 files changed, 29 insertions(+)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 3e58b613a2c4..a5d08de5d1e9 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -278,6 +278,20 @@ bool osc_sb_apei_support_acked;
+ bool osc_pc_lpi_support_confirmed;
+ EXPORT_SYMBOL_GPL(osc_pc_lpi_support_confirmed);
+ 
++/*
++ * ACPI 6.2 Section 6.2.11.2 'Platform-Wide OSPM Capabilities':
++ *   Starting with ACPI Specification 6.2, all _CPC registers can be in
++ *   PCC, System Memory, System IO, or Functional Fixed Hardware address
++ *   spaces. OSPM support for this more flexible register space scheme is
++ *   indicated by the “Flexible Address Space for CPPC Registers” _OSC bit.
++ *
++ * Otherwise (cf ACPI 6.1, s8.4.7.1.1.X), _CPC registers must be in:
++ * - PCC or Functional Fixed Hardware address space if defined
++ * - SystemMemory address space (NULL register) if not defined
++ */
++bool osc_cpc_flexible_adr_space_confirmed;
++EXPORT_SYMBOL_GPL(osc_cpc_flexible_adr_space_confirmed);
++
+ /*
+  * ACPI 6.4 Operating System Capabilities for USB.
+  */
+@@ -321,6 +335,8 @@ static void acpi_bus_osc_negotiate_platform_control(void)
+ 	}
+ #endif
+ 
++	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_FLEXIBLE_ADR_SP;
++
+ 	if (IS_ENABLED(CONFIG_SCHED_MC_PRIO))
+ 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_DIVERSE_HIGH_SUPPORT;
+ 
+@@ -366,6 +382,8 @@ static void acpi_bus_osc_negotiate_platform_control(void)
+ 			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
+ 		osc_sb_native_usb4_support_confirmed =
+ 			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_NATIVE_USB4_SUPPORT;
++		osc_cpc_flexible_adr_space_confirmed =
++			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_CPC_FLEXIBLE_ADR_SP;
+ 	}
+ 
+ 	kfree(context.ret.pointer);
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index bc1454789a06..6f09fe011544 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -736,6 +736,11 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 				if (gas_t->address) {
+ 					void __iomem *addr;
+ 
++					if (!osc_cpc_flexible_adr_space_confirmed) {
++						pr_debug("Flexible address space capability not supported\n");
++						goto out_free;
++					}
++
+ 					addr = ioremap(gas_t->address, gas_t->bit_width/8);
+ 					if (!addr)
+ 						goto out_free;
+@@ -758,6 +763,10 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 						 gas_t->address);
+ 					goto out_free;
+ 				}
++				if (!osc_cpc_flexible_adr_space_confirmed) {
++					pr_debug("Flexible address space capability not supported\n");
++					goto out_free;
++				}
+ 			} else {
+ 				if (gas_t->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE || !cpc_ffh_supported()) {
+ 					/* Support only PCC, SystemMemory, SystemIO, and FFH type regs. */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d7136d13aa44..977d74d0465b 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -574,6 +574,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
+ #define OSC_SB_OSLPI_SUPPORT			0x00000100
+ #define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
+ #define OSC_SB_GENERIC_INITIATOR_SUPPORT	0x00002000
++#define OSC_SB_CPC_FLEXIBLE_ADR_SP		0x00004000
+ #define OSC_SB_NATIVE_USB4_SUPPORT		0x00040000
+ #define OSC_SB_PRM_SUPPORT			0x00200000
+ 
+@@ -581,6 +582,7 @@ extern bool osc_sb_apei_support_acked;
+ extern bool osc_pc_lpi_support_confirmed;
+ extern bool osc_sb_native_usb4_support_confirmed;
+ extern bool osc_sb_cppc_not_supported;
++extern bool osc_cpc_flexible_adr_space_confirmed;
+ 
+ /* USB4 Capabilities */
+ #define OSC_USB_USB3_TUNNELING			0x00000001
 -- 
-Best regards,
-Dmitry
+2.25.1
+
