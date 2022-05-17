@@ -2,69 +2,70 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D7D1C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 17:22:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F6E3C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 17:56:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238192AbiEQRWL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 May 2022 13:22:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51952 "EHLO
+        id S239176AbiEQR4o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 May 2022 13:56:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239817AbiEQRWK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 13:22:10 -0400
-Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com [148.163.143.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37BEE26AEB
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 10:22:08 -0700 (PDT)
-Received: from pps.filterd (m0150244.ppops.net [127.0.0.1])
-        by mx0b-002e3701.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24HG1uRG013590;
-        Tue, 17 May 2022 17:22:00 GMT
+        with ESMTP id S1350016AbiEQR4n (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 13:56:43 -0400
+Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com [148.163.147.86])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FEAE50067;
+        Tue, 17 May 2022 10:56:40 -0700 (PDT)
+Received: from pps.filterd (m0150242.ppops.net [127.0.0.1])
+        by mx0a-002e3701.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24HHaJas028882;
+        Tue, 17 May 2022 17:56:32 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=date : from : to : cc :
  subject : message-id : references : mime-version : content-type :
- in-reply-to; s=pps0720; bh=fbhNVkT48Leo+tZFX9eAH8IMVC1on/ZlIEy+NSeDomE=;
- b=Sp1M+O6VntiyD9b4vvVaZUZ/7dS3PWPUaQgAxmDL6ZT+GzyL95yM8hPJoy8RNnlh6a2G
- vlnzaYtR0SAaaQ82yb0Gk3g4rvH/53NfVDsimdTZdwSapQT28twx6wUKPNo6X88apEsk
- zhw0nY2aWkMwoTJMcBkwSKM4Fnz7y0fFouQm0upG/g+87sTvnEyqo/2wNDH/dTRIbOZs
- gPO5dDRb0wkaPnD3WoJOw0sxYbJY9iwpBzZwbdgc9UToubSBrWIFaP8LLX/COQQIA6L9
- KvJox3aHEG2spRdzWBEkhdpAV6E/q36g2Vcmrg219irIigcg/SCpXmc3rFp3t6IMa7OR wQ== 
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
-        by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 3g4935dwnr-1
+ in-reply-to; s=pps0720; bh=6LZ8jU3+K8LPvnlHjnTzUT4p6ahBohmi4B8Y1g0MNFY=;
+ b=fLj5z/o9TFT2rmeW9HwvXpin8ZIbDdoS4fFNGBZOCvmKoQFpUFHVQUTTiLLZN/hVxR2N
+ Smt4B+PRtTNsxxqyg8dN5KMQdWbfAhgMK2Uk38aujaCI4ou6Fw6yDb9NKTQbMdJMZzE3
+ asISnlxBmr6AuWLvdPH0sScENVTouTFcj3Zy/vm20+N2Y8DTalXgYPyi+xvu/IFTI5Qm
+ hOHqyhZUCmu4EXQetmem2s07ZcuEUH/Byi/RB+Y+jz8Y3pvSlHvDcmfl1eB24SriPPBY
+ l00X+ei2BuAHpgGjvMbtAOBWRLdL2LVffce577hbNe5Jole0nVyj5EHQaEU37devh46I Lg== 
+Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
+        by mx0a-002e3701.pphosted.com (PPS) with ESMTPS id 3g47ev7uyp-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 17 May 2022 17:22:00 +0000
-Received: from g4t3433.houston.hpecorp.net (g4t3433.houston.hpecorp.net [16.208.49.245])
-        by g9t5009.houston.hpe.com (Postfix) with ESMTP id 008EF51;
-        Tue, 17 May 2022 17:21:59 +0000 (UTC)
+        Tue, 17 May 2022 17:56:32 +0000
+Received: from g2t2360.austin.hpecorp.net (g2t2360.austin.hpecorp.net [16.196.225.135])
+        by g2t2354.austin.hpe.com (Postfix) with ESMTP id 4B42883;
+        Tue, 17 May 2022 17:56:31 +0000 (UTC)
 Received: from ubuntu-20.04.3 (unknown [16.99.205.220])
-        by g4t3433.houston.hpecorp.net (Postfix) with SMTP id 2603245;
-        Tue, 17 May 2022 17:21:58 +0000 (UTC)
-Date:   Tue, 17 May 2022 12:17:43 +0000
+        by g2t2360.austin.hpecorp.net (Postfix) with SMTP id 4965B3D;
+        Tue, 17 May 2022 17:56:30 +0000 (UTC)
+Date:   Tue, 17 May 2022 17:56:29 +0000
 From:   James Liu <james.liu@hpe.com>
 To:     rafael@kernel.org, lenb@kernel.org
-Cc:     linux-acpi@vger.kernel.org
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Subject: Re: [PATCH] ACPI: OSL: Fix the memory mapping of an ACPI GAS that
  addresses a data structure
-Message-ID: <20220517121743.GA4191@ubuntu-20.04.3>
+Message-ID: <20220517175629.GA4788@ubuntu-20.04.3>
 References: <20220401172840.1252-1-james.liu@hpe.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20220401172840.1252-1-james.liu@hpe.com>
-X-Proofpoint-GUID: Z7XdTE4jBqixaMoOyhHsFNn6mFr4d7V3
-X-Proofpoint-ORIG-GUID: Z7XdTE4jBqixaMoOyhHsFNn6mFr4d7V3
+X-Proofpoint-GUID: JciBQzZfoZnr2tAHbRWlB54r6XiY_eao
+X-Proofpoint-ORIG-GUID: JciBQzZfoZnr2tAHbRWlB54r6XiY_eao
 X-HPE-SCL: -1
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.486,FMLib:17.11.64.514
  definitions=2022-05-17_03,2022-05-17_02,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0
- impostorscore=0 clxscore=1011 adultscore=0 lowpriorityscore=0 mlxscore=0
- bulkscore=0 priorityscore=1501 spamscore=0 mlxlogscore=972 phishscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2205170104
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 malwarescore=0
+ phishscore=0 mlxlogscore=896 spamscore=0 lowpriorityscore=0 mlxscore=0
+ impostorscore=0 bulkscore=0 priorityscore=1501 clxscore=1011 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
+ definitions=main-2205170106
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 Hi Rafael and all,
-Could you take a look at this patch? The mentioned bug blocks EINJ testing
-when a firmware can correctly support ACPI 6.4 spec. 
+Could you take a look into this patches? The mentioned bug blocks EINJ
+testing whenever a system firmware can correctly support GAS according 
+to ACPI 6.4.
 
 On Fri, Apr 01, 2022 at 05:28:40PM +0000, james.liu@hpe.com wrote:
 > From: James Liu <james.liu@hpe.com>
