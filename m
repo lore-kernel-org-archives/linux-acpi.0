@@ -2,148 +2,127 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF7A7C4167E
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 15:25:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5462AC433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 15:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344031AbiEQPZA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 May 2022 11:25:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37498 "EHLO
+        id S1350777AbiEQPon (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 May 2022 11:44:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349959AbiEQPYh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 11:24:37 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 10EB54F474
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 08:24:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1652801074;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=SM+oIku0zpwXMbsZmv/a6O4i1ruoS/+laftsB9Obs2M=;
-        b=fcAIRi2sDRFX/x15zwiIgflnF5ZVDJYO4vVBkQSE/UTAJ1GYMNgr6RXix7g2TzxXlJsyxe
-        8+YXJzvGfrkvVJZnsCIdhJKidscbrTBa7uuqNDIZaRvZ0AxaoESDSgYM9p0ejSmRKcRJPJ
-        qhvMKizNDMoswejFx8tKiKhSvfCbS38=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-274-KkmTNu2UNVKcFxlJtTo1BA-1; Tue, 17 May 2022 11:24:30 -0400
-X-MC-Unique: KkmTNu2UNVKcFxlJtTo1BA-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 0C4532999B2A;
-        Tue, 17 May 2022 15:24:29 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.162])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 56387C15D5C;
-        Tue, 17 May 2022 15:24:25 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
-        Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Pan@vger.kernel.org, Xinhui <Xinhui.Pan@amd.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Mark Gross <markgross@kernel.org>,
-        Andy Shevchenko <andy@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, nouveau@lists.freedesktop.org,
-        Daniel Vetter <daniel@ffwll.ch>,
-        David Airlie <airlied@linux.ie>,
-        intel-gfx <intel-gfx@lists.freedesktop.org>,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH 13/14] drm/amdgpu: Register ACPI video backlight when skipping amdgpu backlight registration
-Date:   Tue, 17 May 2022 17:23:30 +0200
-Message-Id: <20220517152331.16217-14-hdegoede@redhat.com>
-In-Reply-To: <20220517152331.16217-1-hdegoede@redhat.com>
-References: <20220517152331.16217-1-hdegoede@redhat.com>
+        with ESMTP id S1350495AbiEQPof (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 11:44:35 -0400
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EDA1517C3;
+        Tue, 17 May 2022 08:42:54 -0700 (PDT)
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-2fefb051547so63696677b3.5;
+        Tue, 17 May 2022 08:42:54 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ih99ClvoAeqjGYS9QU/k2msQKrRE+HtIf5pCOCjsnKg=;
+        b=S6HykbWBR44YSkt63OB0vtxiaDCWfdeP5wg0lwRiIuqjr3bX/MR6hXjUdJsPdybzyY
+         219k87DDTBACyKpPjkOmwBZv8Wq1wKm4mrcRxgdvjNLplnJDK+Q35XX3p/nMQ6MG6QmN
+         zMU9D++gs0erEkMI2dUC8qThSxsAIwU/nthfg51LQJCRQZziwtL8eFRFkR7PWo/mPQWn
+         qkzWIjE9tXBuu0bk9shZKBkZifbZWKCuqsEkt9HKeascLL3DhHuW4kAG6zFi7UzUCGxJ
+         Q2I7EY1JdbTXXFCUNrkUU3Wy4zq0SjjL7ZoX89LNl9/VdDGm3HNYxSz5lS/VB/E6LIDx
+         CxMA==
+X-Gm-Message-State: AOAM531QS6lz5g4SwRl6gUYKS0bokiVh299knPqAEMhHxvPIMf0eoBCp
+        MdfjZqWjQBTh66K7+WOdOtKyDzvRi8Mi+Kc5B2Q=
+X-Google-Smtp-Source: ABdhPJw+IFfD9QLRka+RlaDlPyTO9zp9vrwr4b9R/6wrJEYajaNeGitZUWVkuCAg7gGsuxWz7+CRNZCCFawuylcycrc=
+X-Received: by 2002:a81:91d4:0:b0:2fe:e300:3581 with SMTP id
+ i203-20020a8191d4000000b002fee3003581mr14868030ywg.7.1652802159726; Tue, 17
+ May 2022 08:42:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.85 on 10.11.54.8
+References: <20220507125443.2766939-1-daniel.lezcano@linexp.org> <20220507125443.2766939-2-daniel.lezcano@linexp.org>
+In-Reply-To: <20220507125443.2766939-2-daniel.lezcano@linexp.org>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 17 May 2022 17:42:28 +0200
+Message-ID: <CAJZ5v0ik_JQ4Awtw7iR68W4-9ZL8FRDsDd-kWmL-n09fgg3reg@mail.gmail.com>
+Subject: Re: [PATCH v2 01/14] thermal/core: Change thermal_zone_ops to thermal_sensor_ops
+To:     Daniel Lezcano <daniel.lezcano@linexp.org>
+Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Amit Kucheria <amitk@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>,
+        Raju Rangoju <rajur@chelsio.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Ido Schimmel <idosch@nvidia.com>,
+        Petr Machata <petrm@nvidia.com>,
+        Luca Coelho <luciano.coelho@intel.com>,
+        Kalle Valo <kvalo@kernel.org>, Peter Kaestle <peter@piie.net>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        Support Opensource <support.opensource@diasemi.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Miri Korenblit <miriam.rachel.korenblit@intel.com>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Chuansheng Liu <chuansheng.liu@intel.com>,
+        Jiasheng Jiang <jiasheng@iscas.ac.cn>,
+        Antoine Tenart <atenart@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        "open list:ACPI THERMAL DRIVER" <linux-acpi@vger.kernel.org>,
+        "open list:CXGB4 ETHERNET DRIVER (CXGB4)" <netdev@vger.kernel.org>,
+        "open list:INTEL WIRELESS WIFI LINK (iwlwifi)" 
+        <linux-wireless@vger.kernel.org>,
+        "open list:ACER ASPIRE ONE TEMPERATURE AND FAN DRIVER" 
+        <platform-driver-x86@vger.kernel.org>,
+        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "open list:RENESAS R-CAR THERMAL DRIVERS" 
+        <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Typically the acpi_video driver will initialize before amdgpu, which
-used to cause /sys/class/backlight/acpi_video0 to get registered and then
-amdgpu would register its own amdgpu_bl# device later. After which
-the drivers/acpi/video_detect.c code unregistered the acpi_video0 device
-to avoid there being 2 backlight devices.
+On Sat, May 7, 2022 at 2:55 PM Daniel Lezcano <daniel.lezcano@linexp.org> wrote:
+>
+> A thermal zone is software abstraction of a sensor associated with
+> properties and cooling devices if any.
+>
+> The fact that we have thermal_zone and thermal_zone_ops mixed is
+> confusing and does not clearly identify the different components
+> entering in the thermal management process. A thermal zone appears to
+> be a sensor while it is not.
 
-This means that userspace used to briefly see 2 devices and the
-disappearing of acpi_video0 after a brief time confuses the systemd
-backlight level save/restore code, see e.g.:
-https://bbs.archlinux.org/viewtopic.php?id=269920
+Well, the majority of the operations in thermal_zone_ops don't apply
+to thermal sensors.  For example, ->set_trips(), ->get_trip_type(),
+->get_trip_temp().
 
-To fix this the ACPI video code has been modified to make backlight class
-device registration a separate step, relying on the drm/kms driver to
-ask for the acpi_video backlight registration after it is done setting up
-its native backlight device.
+> In order to set the scene for multiple thermal sensors aggregated into
+> a single thermal zone. Rename the thermal_zone_ops to
+> thermal_sensor_ops, that will appear clearyl the thermal zone is not a
+> sensor but an abstraction of one [or multiple] sensor(s).
 
-Add a call to the new acpi_video_register_backlight() when amdgpu skips
-registering its own backlight device because of either the firmware_flags
-or the acpi_video_get_backlight_type() return value. This ensures that
-if the acpi_video backlight device should be used, it will be available
-before the amdgpu drm_device gets registered with userspace.
+So I'm not convinced that the renaming mentioned above is particularly
+clean either.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/gpu/drm/amd/amdgpu/atombios_encoders.c    | 9 +++++++--
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 2 ++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+IMV the way to go would be to split the thermal sensor operations,
+like ->get_temp(), out of thermal_zone_ops.
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c b/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
-index f9c62cd84a18..26f638ab7a5f 100644
---- a/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
-+++ b/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
-@@ -186,11 +186,11 @@ void amdgpu_atombios_encoder_init_backlight(struct amdgpu_encoder *amdgpu_encode
- 		return;
- 
- 	if (!(adev->mode_info.firmware_flags & ATOM_BIOS_INFO_BL_CONTROLLED_BY_GPU))
--		return;
-+		goto register_acpi_backlight;
- 
- 	if (acpi_video_get_backlight_type(true) != acpi_backlight_native) {
- 		DRM_INFO("Skipping amdgpu atom DIG backlight registration\n");
--		return;
-+		goto register_acpi_backlight;
- 	}
- 
- 	pdata = kmalloc(sizeof(struct amdgpu_backlight_privdata), GFP_KERNEL);
-@@ -227,6 +227,11 @@ void amdgpu_atombios_encoder_init_backlight(struct amdgpu_encoder *amdgpu_encode
- error:
- 	kfree(pdata);
- 	return;
-+
-+register_acpi_backlight:
-+	/* Try registering an ACPI video backlight device instead. */
-+	acpi_video_register_backlight();
-+	return;
- }
- 
- void
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index a838c7b5d942..06baa4f27680 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4083,6 +4083,8 @@ amdgpu_dm_register_backlight_device(struct amdgpu_display_manager *dm)
- 
- 	if (acpi_video_get_backlight_type(true) != acpi_backlight_native) {
- 		DRM_INFO("Skipping amdgpu DM backlight registration\n");
-+		/* Try registering an ACPI video backlight device instead. */
-+		acpi_video_register_backlight();
- 		return;
- 	}
- 
--- 
-2.36.0
+But then it is not clear what a thermal zone with multiple sensors in
+it really means.  I guess it would require an aggregation function to
+combine the thermal sensors in it that would produce an effective
+temperature to check against the trip points.
 
+Honestly, I don't think that setting a separate set of trips for each
+sensor in a thermal zone would make a lot of sense.
