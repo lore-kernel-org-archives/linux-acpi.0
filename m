@@ -2,95 +2,64 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A90DC433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 16:21:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF2AC433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 16:23:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347553AbiEQQV6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 May 2022 12:21:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58004 "EHLO
+        id S1350876AbiEQQXf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 May 2022 12:23:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350852AbiEQQV5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 12:21:57 -0400
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E3A13B023
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 09:21:56 -0700 (PDT)
-Received: by mail-yb1-f180.google.com with SMTP id o130so17734002ybc.8
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 09:21:56 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=UvleERSawxplffshiaVSIMQjlXqAyLMjM5BckhxYrjw=;
-        b=ivbZioX+GDtLybg2fffHi70EGKC36b4r6+/ofhHpgK71P4JJyidQf2xU0mH6v9IQ9f
-         775oAswGosfhBj/y3/8YEleJhImA9DjgKml0DS9oVVt9tq2pfIjSohkfkHxnwtQATvY9
-         oJ855TSo63ZMBKrvhUo2k6thmJMQj2zpwA6PgRNW4/wQ5VmDnCDREhB4WTO0xBK31hdE
-         GMQkMoA8gvgEkJlDoApA1l25t6Vq34KIPi7VyuehwIM26raldajbd3PqNc0tr+s8RBdR
-         ACpgOmJDCyy2v04AQ/XB6XVos6VPspq5fSoMjCaYz2bQkqv/i6FP0kYGfZ/QeTH4s7BX
-         NqaA==
-X-Gm-Message-State: AOAM531asMESYBAJ9CegBQBOHEsKqhdUBBXe3B6fxRCtOR/vYDJJhR9v
-        VikQCFGFY6CBM4e5bdtQEd7zouY+wUyyKub8abo=
-X-Google-Smtp-Source: ABdhPJxqzvO/ig6U0TVqK+YipaVTNsi1Wa9RbZ7pgC5o9XQnAL74qBTZciWm62RfXpygQvd9wJHwmUVCkGHaDntiAQ4=
-X-Received: by 2002:a25:c6:0:b0:64d:8a54:d45c with SMTP id 189-20020a2500c6000000b0064d8a54d45cmr13677345yba.153.1652804515824;
- Tue, 17 May 2022 09:21:55 -0700 (PDT)
+        with ESMTP id S1350871AbiEQQXe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 12:23:34 -0400
+X-Greylist: delayed 1196 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 17 May 2022 09:23:33 PDT
+Received: from mail.neweas.com (mail.neweas.com [162.19.155.127])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58EC93B3D8
+        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 09:23:32 -0700 (PDT)
+Received: by mail.neweas.com (Postfix, from userid 1002)
+        id 50EE522C91; Tue, 17 May 2022 15:45:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=neweas.com; s=mail;
+        t=1652802381; bh=qQhd+6rcOH+OhrNQ6A9OWLCE/79cwvyTtb6LUe1aYuU=;
+        h=Date:From:To:Subject:From;
+        b=QDvpy8Y392/ITAE8pLm7iTxNLemcdevD0BiTDxuXteUrbCe2nrTpd7hI5eOOCzLOh
+         SE9vsqZuJBSxU89xTITM+Yo2VQW8I4ROVcmHjmOsg4nUknZWE012W+xW/SUHDmNYZx
+         BFGzpAJxFQwJw8rfM4zIXbK6z5DnxFWKc+av8pjUY4M7n0+w53H9zC9ZyS67cuidNp
+         kjwvh+PWsVFVWYznsFtbR7jI9KGV8olVJ4PfFwg2H0jNm8otnLfgm39U0Ld+BdDFeM
+         kfwSVSqGy5DpWI6wcfA+PE4PiQtceCsNED5yds3ELM+5Ols/Y27N4NhRT1JtOd/SwL
+         F8YnpcNfAOtjg==
+Received: by mail.neweas.com for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 15:45:46 GMT
+Message-ID: <20220517141500-0.1.f.zpy.0.15fo76bm2d@neweas.com>
+Date:   Tue, 17 May 2022 15:45:46 GMT
+From:   "Luca Gauthier" <luca.gauthier@neweas.com>
+To:     <linux-acpi@vger.kernel.org>
+Subject: New collaboration
+X-Mailer: mail.neweas.com
 MIME-Version: 1.0
-References: <20220506130025.984026-1-sakari.ailus@linux.intel.com> <20220506130025.984026-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20220506130025.984026-3-sakari.ailus@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 17 May 2022 18:21:44 +0200
-Message-ID: <CAJZ5v0ip==ZYopb3sJvyrNpErpa1gGaJLk+OfLgff3x2tH98Og@mail.gmail.com>
-Subject: Re: [PATCH 02/11] ACPI: acpica: Constify pathname argument for acpi_get_handle()
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, May 6, 2022 at 2:58 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> acpi_get_handle() uses the pathname argument to find a handle related to
-> that pathname but it does not need to modify it. Make it const, in order
-> to be able to pass const pathname to it.
->
-> Cc: "Moore, Robert" <robert.moore@intel.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hello,
 
-Which patches in the rest of the series depend on this one?
+are you looking for more business clients?
 
-> ---
->  drivers/acpi/acpica/nsxfname.c | 2 +-
->  include/acpi/acpixf.h          | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
-> index b2cfdfef31947..a0592d15dd37c 100644
-> --- a/drivers/acpi/acpica/nsxfname.c
-> +++ b/drivers/acpi/acpica/nsxfname.c
-> @@ -44,7 +44,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
->
->  acpi_status
->  acpi_get_handle(acpi_handle parent,
-> -               acpi_string pathname, acpi_handle *ret_handle)
-> +               const char *pathname, acpi_handle *ret_handle)
->  {
->         acpi_status status;
->         struct acpi_namespace_node *node = NULL;
-> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-> index 67c0b9e734b64..085f23d833349 100644
-> --- a/include/acpi/acpixf.h
-> +++ b/include/acpi/acpixf.h
-> @@ -526,7 +526,7 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->                                            struct acpi_buffer *ret_path_ptr))
->  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->                              acpi_get_handle(acpi_handle parent,
-> -                                            acpi_string pathname,
-> +                                            const char *pathname,
->                                              acpi_handle *ret_handle))
->  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->                              acpi_attach_data(acpi_handle object,
-> --
-> 2.30.2
->
+We would like to start working with you as a partner in acquiring or exch=
+anging leads, which directly translates into mutual benefits in the form =
+of an increased client portfolio.
+
+We work in the sector of internet marketing and as one of the first in Eu=
+rope SEO Agencies we=E2=80=99ve introduced the SEO 360 service which allo=
+ws your clients to gain the access to original SEO consultations.
+
+By choosing to work with us you receive support in achieving your busines=
+s goals, and help in handling Digital Marketing for your clients.
+
+We support over 237 partner companies. We have one of the biggest executi=
+ve departments in Europe at our disposal, we=E2=80=99ve prepared over 200=
+0 campaigns in Europe and 200 in the USA and Canada.
+
+Are you interested in the details of our partnership programme?
+
+Yours sincerely,
+Luca Gauthier
