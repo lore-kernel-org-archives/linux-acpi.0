@@ -2,99 +2,97 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27028C433F5
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 18:26:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C62C5C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 18:28:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231573AbiEQS0b convert rfc822-to-8bit (ORCPT
+        id S1352197AbiEQS2z convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 May 2022 14:26:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60308 "EHLO
+        Tue, 17 May 2022 14:28:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352115AbiEQS0Q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 14:26:16 -0400
-Received: from sender4-of-o58.zoho.com (sender4-of-o58.zoho.com [136.143.188.58])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29FE4220EA;
-        Tue, 17 May 2022 11:26:14 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1652811971; cv=none; 
-        d=zohomail.com; s=zohoarc; 
-        b=E7nkhhzyAb2NSHwmsADpzJJWrCBT2Vk6ISmdbqYkrk/rG7Cr+Do73hCcR8g6gyPzIzBy7GgnGiEyEDQR+C+i06sl3brUJLXY9BnNZk4t2QyJ1gbG+d+DfT6bLXj1+W5DBnkPRV7PJRU1vfPovdQzZCO7Gh2ZYAnZeU7y1U97rd4=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-        t=1652811971; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=Y9YimAnJKBglTx1djbp8syx3nqzLsbEglYyst69uI5Q=; 
-        b=TGhUqune1tf51bd7y1egfs2EWMS2T4+QvYyAUWigD9nw2wH1d1ZMTr1vmfsFAvmgO7oI40I3DI93CqV1vnOrhsCJ9+5Ep2/E4aZGo2RTajeVlwYIWla5gXgYbdjRT5zQE8wGqTEADZYC1CICTXlhwso5irv5fxFYU5EoVT0jegU=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-        spf=pass  smtp.mailfrom=linux@mniewoehner.de;
-        dmarc=pass header.from=<linux@mniewoehner.de>
-Received: from z3r0.lan (185.31.62.161 [185.31.62.161]) by mx.zohomail.com
-        with SMTPS id 1652811946661528.7783926675852; Tue, 17 May 2022 11:25:46 -0700 (PDT)
-Message-ID: <28686e8d994c297a78fb816805cd3652a8f8c90a.camel@mniewoehner.de>
+        with ESMTP id S1352248AbiEQS2p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 14:28:45 -0400
+Received: from mail-yb1-f172.google.com (mail-yb1-f172.google.com [209.85.219.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1549449F19;
+        Tue, 17 May 2022 11:28:42 -0700 (PDT)
+Received: by mail-yb1-f172.google.com with SMTP id a3so14824099ybg.5;
+        Tue, 17 May 2022 11:28:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=yLKFTvllEnb3n3nFUIfBrKxcB6r2mY4TZ0eJaZi1jOo=;
+        b=iyC1p4vbdozsAmKTgsiO69uGEugKzSk9HnSGJqxPzPE6xl78cQ0jUS6AfICx2pR1kP
+         X7T/zIH0T4NNTnlqxLTPorh9VMqESfhzZ/E5MvC1yi8QDlGIPt4cGVHiAt7AmbQB7YTf
+         8MBnVXaFUn0JFTyctt0EStxCzUhcdCfV/9feKwHtmR5xm0K0OGERk1ygHU2Rz6/OKv1q
+         myBbxQfx4Amqg9vioTunmAHydDxUyrwtk4GufaKLwg9a5fAvowJlFkerEInIKxZf0zVW
+         mlIwbpfFha6hWhusxMOxG/RTSBbQ7k/JoopAgmM+pFRLmvpVjuNn6GCG/QYd9xeN2DmV
+         u73w==
+X-Gm-Message-State: AOAM530c/IJ0iymz8jIG3i3jqya3/qFAfGdzK2cARgARdtjDCbCjc7bZ
+        a5XbEBWJQ4lTUmosV4fccuoMPu2ZKDR6UVdUC/f++vfF
+X-Google-Smtp-Source: ABdhPJygZZcshgEgipo6qKLVDSNEV4d442F2Y1m4FFHpoe9ENg6PLcKPOa83NuL3VpOGX/liUe0jzjwEBdFcig8Z7pE=
+X-Received: by 2002:a25:1145:0:b0:64d:d6be:c741 with SMTP id
+ 66-20020a251145000000b0064dd6bec741mr8749396ybr.137.1652812121705; Tue, 17
+ May 2022 11:28:41 -0700 (PDT)
+MIME-Version: 1.0
+References: <f80dfd57fdca87897f070a3ea4ee0a26b03e7831.camel@mniewoehner.de>
+ <CAJZ5v0h+kKwdntGPC5PP6N0ZRbRzLxuwcwTGm-PNBH6Z3mnETg@mail.gmail.com> <28686e8d994c297a78fb816805cd3652a8f8c90a.camel@mniewoehner.de>
+In-Reply-To: <28686e8d994c297a78fb816805cd3652a8f8c90a.camel@mniewoehner.de>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 17 May 2022 20:28:30 +0200
+Message-ID: <CAJZ5v0hWxhn9WM3ciQgbZpa7x8JwpHK=Bz4kefB_3VnAM0gB9Q@mail.gmail.com>
 Subject: Re: [PATCH] ACPI: utils: include UUID in _DSM evaluation warning
-From:   Michael =?ISO-8859-1?Q?Niew=F6hner?= <linux@mniewoehner.de>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Len Brown <lenb@kernel.org>,
+To:     =?UTF-8?Q?Michael_Niew=C3=B6hner?= <linux@mniewoehner.de>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
         "open list:ACPI" <linux-acpi@vger.kernel.org>,
         open list <linux-kernel@vger.kernel.org>
-In-Reply-To: <CAJZ5v0h+kKwdntGPC5PP6N0ZRbRzLxuwcwTGm-PNBH6Z3mnETg@mail.gmail.com>
-References: <f80dfd57fdca87897f070a3ea4ee0a26b03e7831.camel@mniewoehner.de>
-         <CAJZ5v0h+kKwdntGPC5PP6N0ZRbRzLxuwcwTGm-PNBH6Z3mnETg@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Date:   Tue, 17 May 2022 20:25:43 +0200
-MIME-Version: 1.0
-User-Agent: Evolution 3.42.2 
 Content-Transfer-Encoding: 8BIT
-X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 2022-05-17 at 16:49 +0200, Rafael J. Wysocki wrote:
-> On Mon, May 16, 2022 at 7:25 PM Michael Niewöhner <linux@mniewoehner.de>
-> wrote:
-> > 
-> > The _DSM evaluation warning in its current form is not very helpful, as
-> > it lacks any specific information:
-> >   ACPI: \: failed to evaluate _DSM (0x1001)
-> > 
-> > Thus, include the UUID of the missing _DSM:
-> >   ACPI: \: failed to evaluate _DSM bf0212f2-... (0x1001)
-> > 
-> > Signed-off-by: Michael Niewöhner <linux@mniewoehner.de>
-> > ---
-> >  drivers/acpi/utils.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> > index d5cedffeeff9..7da993f5b6c3 100644
-> > --- a/drivers/acpi/utils.c
-> > +++ b/drivers/acpi/utils.c
-> > @@ -681,7 +681,8 @@ acpi_evaluate_dsm(acpi_handle handle, const guid_t
-> > *guid,
-> > u64 rev, u64 func,
-> > 
-> >         if (ret != AE_NOT_FOUND)
-> >                 acpi_handle_warn(handle,
-> > -                               "failed to evaluate _DSM (0x%x)\n", ret);
-> > +                               "failed to evaluate _DSM %pUb (0x%x)\n",
-> > +                               ret, guid);
-> 
-> Shouldn't this be "guid, ret" ?
+On Tue, May 17, 2022 at 8:26 PM Michael Niewöhner <linux@mniewoehner.de> wrote:
+>
+> On Tue, 2022-05-17 at 16:49 +0200, Rafael J. Wysocki wrote:
+> > On Mon, May 16, 2022 at 7:25 PM Michael Niewöhner <linux@mniewoehner.de>
+> > wrote:
+> > >
+> > > The _DSM evaluation warning in its current form is not very helpful, as
+> > > it lacks any specific information:
+> > >   ACPI: \: failed to evaluate _DSM (0x1001)
+> > >
+> > > Thus, include the UUID of the missing _DSM:
+> > >   ACPI: \: failed to evaluate _DSM bf0212f2-... (0x1001)
+> > >
+> > > Signed-off-by: Michael Niewöhner <linux@mniewoehner.de>
+> > > ---
+> > >  drivers/acpi/utils.c | 3 ++-
+> > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> > > index d5cedffeeff9..7da993f5b6c3 100644
+> > > --- a/drivers/acpi/utils.c
+> > > +++ b/drivers/acpi/utils.c
+> > > @@ -681,7 +681,8 @@ acpi_evaluate_dsm(acpi_handle handle, const guid_t
+> > > *guid,
+> > > u64 rev, u64 func,
+> > >
+> > >         if (ret != AE_NOT_FOUND)
+> > >                 acpi_handle_warn(handle,
+> > > -                               "failed to evaluate _DSM (0x%x)\n", ret);
+> > > +                               "failed to evaluate _DSM %pUb (0x%x)\n",
+> > > +                               ret, guid);
+> >
+> > Shouldn't this be "guid, ret" ?
+>
+> Ouch, yes ofc.
+>
+> > Also, don't you want to print the
+> > value of the GUID rather than the address of its location?
+>
+> Not sure what you mean tbh. Documentation/core-api/printk-formats.rst states
+> %pUb being the right format. lib/test_printf.c implements it that way, too.
 
-Ouch, yes ofc.
-
-> Also, don't you want to print the
-> value of the GUID rather than the address of its location?
-
-Not sure what you mean tbh. Documentation/core-api/printk-formats.rst states
-%pUb being the right format. lib/test_printf.c implements it that way, too.
-
-> 
-> And I don't think you need to break the line here.
-> 
-> > 
-> >         return NULL;
-> >  }
-> > --
-> > 2.34.1
-> > 
-> > 
-
+I missed that, sorry.
