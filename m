@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CFDFC4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC2E9C433F5
 	for <linux-acpi@archiver.kernel.org>; Tue, 17 May 2022 15:25:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229774AbiEQPY6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 May 2022 11:24:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37428 "EHLO
+        id S1349962AbiEQPY7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 May 2022 11:24:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350010AbiEQPYc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 11:24:32 -0400
+        with ESMTP id S1349978AbiEQPYi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2022 11:24:38 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9A7DF50048
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 08:24:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1D8544F9C4
+        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2022 08:24:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1652801069;
+        s=mimecast20190719; t=1652801076;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=t+H/TswPkMRXO5vBRUWnPMtn4ad0PJrC+rqLbyxYlrs=;
-        b=bSKSND4MZ88uaC4TT5uphmdoFO5vhKQExd4HMgNELRMvhtUFpgMbjz3LcOnp/LnHSD+66S
-        7/sHNhOhVxV1OhEVMKDhSDbPi7xsUmQCBotg/Gk6kR1LCXmh7wjfV8QCmdUlHKCAwldVHz
-        0nPAv/XMNv5PYSIXxKaqLCRWr2Loepg=
+        bh=hMV/pO71tp7Tnmw0apJUjOC22eI0KpMfGNgJNZ8mGcM=;
+        b=eNGGqIQZ6sv6QC27gu0q8TRvcHajvAOMhUeeGV+koinYemR1tWVKLvo5nhxDRywi7nVQnI
+        BBKg2UOFShxvxwQ2rMN2+VihNQX45J5Cxii6zy5NgrwlrER8Mg6G3oFsckphfR2pbmZon6
+        WbTWfJxIYrg+qVHzcMBqN98HKF7YwRU=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-393-Lq3kuABZNsiv6QA1BZU6Qw-1; Tue, 17 May 2022 11:24:26 -0400
-X-MC-Unique: Lq3kuABZNsiv6QA1BZU6Qw-1
+ us-mta-319-XN_9o3srMm2CwS02pjP2vw-1; Tue, 17 May 2022 11:24:34 -0400
+X-MC-Unique: XN_9o3srMm2CwS02pjP2vw-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 21EF4101A52C;
-        Tue, 17 May 2022 15:24:25 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C029F1857F02;
+        Tue, 17 May 2022 15:24:32 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.162])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8F58EC15D75;
-        Tue, 17 May 2022 15:24:21 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 41153C15D70;
+        Tue, 17 May 2022 15:24:29 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
         Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
@@ -61,9 +61,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, nouveau@lists.freedesktop.org,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: [PATCH 12/14] drm/nouveau: Register ACPI video backlight when nv_backlight registration fails
-Date:   Tue, 17 May 2022 17:23:29 +0200
-Message-Id: <20220517152331.16217-13-hdegoede@redhat.com>
+Subject: [PATCH 14/14] drm/radeon: Register ACPI video backlight when skipping radeon backlight registration
+Date:   Tue, 17 May 2022 17:23:31 +0200
+Message-Id: <20220517152331.16217-15-hdegoede@redhat.com>
 In-Reply-To: <20220517152331.16217-1-hdegoede@redhat.com>
 References: <20220517152331.16217-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -73,9 +73,9 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Typically the acpi_video driver will initialize before nouveau, which
+Typically the acpi_video driver will initialize before radeon, which
 used to cause /sys/class/backlight/acpi_video0 to get registered and then
-nouveau would register its own nv_backlight device later. After which
+radeon would register its own radeon_bl# device later. After which
 the drivers/acpi/video_detect.c code unregistered the acpi_video0 device
 to avoid there being 2 backlight devices.
 
@@ -89,34 +89,53 @@ device registration a separate step, relying on the drm/kms driver to
 ask for the acpi_video backlight registration after it is done setting up
 its native backlight device.
 
-Add a call to the new acpi_video_register_backlight() when native backlight
-device registration has failed / was skipped to ensure that there is a
-backlight device available before the drm_device gets registered with
-userspace.
+Add a call to the new acpi_video_register_backlight() when radeon skips
+registering its own backlight device because of e.g. the firmware_flags
+or the acpi_video_get_backlight_type() return value. This ensures that
+if the acpi_video backlight device should be used, it will be available
+before the radeon drm_device gets registered with userspace.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_backlight.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/gpu/drm/radeon/radeon_encoders.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
-index f56ff797c78c..0ae8793357a4 100644
---- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
-@@ -436,6 +436,13 @@ nouveau_backlight_init(struct drm_connector *connector)
+diff --git a/drivers/gpu/drm/radeon/radeon_encoders.c b/drivers/gpu/drm/radeon/radeon_encoders.c
+index 46549d5179ee..c1cbebb51be1 100644
+--- a/drivers/gpu/drm/radeon/radeon_encoders.c
++++ b/drivers/gpu/drm/radeon/radeon_encoders.c
+@@ -30,6 +30,8 @@
+ #include <drm/drm_device.h>
+ #include <drm/radeon_drm.h>
  
- fail_alloc:
- 	kfree(bl);
-+	/*
-+	 * If we get here we have an internal panel, but no nv_backlight,
-+	 * try registering an ACPI video backlight device instead.
-+	 */
-+	if (ret == 0)
-+		acpi_video_register_backlight();
++#include <acpi/video.h>
 +
- 	return ret;
+ #include "radeon.h"
+ #include "radeon_atombios.h"
+ #include "radeon_legacy_encoders.h"
+@@ -167,7 +169,7 @@ static void radeon_encoder_add_backlight(struct radeon_encoder *radeon_encoder,
+ 		return;
+ 
+ 	if (radeon_backlight == 0) {
+-		return;
++		use_bl = false;
+ 	} else if (radeon_backlight == 1) {
+ 		use_bl = true;
+ 	} else if (radeon_backlight == -1) {
+@@ -193,6 +195,13 @@ static void radeon_encoder_add_backlight(struct radeon_encoder *radeon_encoder,
+ 		else
+ 			radeon_legacy_backlight_init(radeon_encoder, connector);
+ 	}
++
++	/*
++	 * If there is no native backlight device (which may happen even when
++	 * use_bl==true) try registering an ACPI video backlight device instead.
++	 */
++	if (!rdev->mode_info.bl_encoder)
++		acpi_video_register_backlight();
  }
  
+ void
 -- 
 2.36.0
 
