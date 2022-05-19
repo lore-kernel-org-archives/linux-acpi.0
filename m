@@ -2,450 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09671C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 18 May 2022 22:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3BA7C433FE
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 May 2022 02:33:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229618AbiERWIJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 18 May 2022 18:08:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38428 "EHLO
+        id S229766AbiESCd4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 18 May 2022 22:33:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229624AbiERWID (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 May 2022 18:08:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A025390;
-        Wed, 18 May 2022 15:07:59 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BEFBDB821A8;
-        Wed, 18 May 2022 22:07:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 297A3C385A5;
-        Wed, 18 May 2022 22:07:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1652911676;
-        bh=JjACeUk5rx5lSEj8kRa/MwSxhcfFbIPRYiECvjE5EDQ=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=gZAyEXqUpg3kobnTJJhl/WX9mBKo5tQYcwfE5mSEHNAJmF4vzlgA7qHe4jDR4qY49
-         nqK7ckGmFerOujKMJ+ASnopKlsCBiEO7787bTzQZg7uqqvxiLpBc4xd+Bp1psSPUXV
-         cnmNH17cLeGPCFXrSaK+XJCRPgCj3Y2QeMdnzL2RT6gjaMQl6RdScZuXfmdYa6sVeX
-         gRRnlRE9IkfWv7KtyVo5347yQR7FkgJFS2HKOs8xexWlf32KEkSdy6dfEUZJPSvKlk
-         /EXxB2Ee3Hx5aN20ke+3MFvNwHDJr5A3osnZWmNBz/492TDtVLIIfr5X8e/LK1HLKI
-         pvx9k9SH0u6GA==
-Date:   Wed, 18 May 2022 17:07:54 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Benoit =?iso-8859-1?Q?Gr=E9goire?= <benoitg@coeus.ca>,
-        Hui Wang <hui.wang@canonical.com>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v7 1/1] x86/PCI: Ignore E820 reservations for bridge
- windows on newer systems
-Message-ID: <20220518220754.GA7911@bhelgaas>
+        with ESMTP id S229437AbiESCdz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 May 2022 22:33:55 -0400
+Received: from mail-vk1-f177.google.com (mail-vk1-f177.google.com [209.85.221.177])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12548C6E74;
+        Wed, 18 May 2022 19:33:55 -0700 (PDT)
+Received: by mail-vk1-f177.google.com with SMTP id d132so2118250vke.0;
+        Wed, 18 May 2022 19:33:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=e6jbyutOwumj+LrvLcjzetQUKqPKzUNIp/FTCu48hvw=;
+        b=jOoVC97FIxfNPed3L7v50RfQbh4AxRDz6r5YpX9jAZhcRTU0o+NQKZykKjHAh2F/ys
+         xrm0S25mrpm5bSv+yLmkFFLSy7E/yEB1FdoBWm40eZqCcIqzOHOyz3T0aJ7jJk8q+bSK
+         MHNlEdAHDIapuoQug+gYN8/qLy2ZuuEKXToj7ELyy0Q8jDxQj2QJiYHv67p9Dar+Tfpi
+         KzUczpBWalmeW13dOSI428BpE2wF8Ao+1QAp6M2v/wyw/3d8X3SH7oWwOodIuuyOzUzj
+         4gZxvH3+fnz2X5zF+db+v5uAiHLXzSe7bJPGIm/0vbEdygxuJxOW9AWTAtvEd0AyCTht
+         RC3A==
+X-Gm-Message-State: AOAM530F454QTKv0KMPfxJUShz+1r9KRmFXRwOYuVoL1bEyqPCu0gPFc
+        zDzLC9EjLHuS6wFEP4vKSwRrb6JDUpVPhHhkrK8=
+X-Google-Smtp-Source: ABdhPJwON+5z8eNTjw6bpXmLZQJvvRhiCNs5QCAZObqr3pRwKRoTxGdMQmC3/+8n/nYodjdo61T9rduIi1V9+RNE1ck=
+X-Received: by 2002:a1f:5907:0:b0:352:6327:926f with SMTP id
+ n7-20020a1f5907000000b003526327926fmr986181vkb.1.1652927634185; Wed, 18 May
+ 2022 19:33:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3e92c4b6-8976-2bd4-ebe2-465990eb66d2@redhat.com>
+References: <20220505015814.3727692-1-rui.zhang@intel.com> <20220505015814.3727692-8-rui.zhang@intel.com>
+ <CAJZ5v0jt1OND_d08mC0TC1LZ-JGANDY5fiDmH5RUfdtRk1vZFw@mail.gmail.com>
+ <2dc4aa933d07add206a2aeefa15a4837aca6ff62.camel@intel.com>
+ <CAJZ5v0h=pYZkbhN2EiYzUGn36Q4-2tMyzfUP0uyFO=Sybse4DA@mail.gmail.com> <20ad397b7975775d69d6c0ea902ca362fa3cf395.camel@intel.com>
+In-Reply-To: <20ad397b7975775d69d6c0ea902ca362fa3cf395.camel@intel.com>
+From:   Len Brown <lenb@kernel.org>
+Date:   Wed, 18 May 2022 16:33:43 -1000
+Message-ID: <CAJvTdKnRmsR+1b2urHr7=u7AcvCfr7m+GqLfLLgOgoB9KaB-zQ@mail.gmail.com>
+Subject: Re: [PATCH 7/7] rtc: cmos: Add suspend/resume endurance testing hook
+To:     Zhang Rui <rui.zhang@intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Kalle Valo <kvalo@kernel.org>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        linux-rtc@vger.kernel.org,
+        "open list:NETWORKING DRIVERS (WIRELESS)" 
+        <linux-wireless@vger.kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        merez@codeaurora.org, mat.jonczyk@o2.pl,
+        Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>,
+        Len Brown <len.brown@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, May 09, 2022 at 07:33:27PM +0200, Hans de Goede wrote:
-> On 5/7/22 17:31, Bjorn Helgaas wrote:
->> On Sat, May 07, 2022 at 12:09:03PM +0200, Hans de Goede wrote:
->>> On 5/6/22 18:51, Bjorn Helgaas wrote:
->>>> On Thu, May 05, 2022 at 05:20:16PM +0200, Hans de Goede wrote:
->>>>> Some BIOS-es contain bugs where they add addresses which are already
->>>>> used in some other manner to the PCI host bridge window returned by
->>>>> the ACPI _CRS method. To avoid this Linux by default excludes
->>>>> E820 reservations when allocating addresses since 2010, see:
->>>>> commit 4dc2287c1805 ("x86: avoid E820 regions when allocating address
->>>>> space").
->>>>>
->>>>> Recently (2019) some systems have shown-up with E820 reservations which
->>>>> cover the entire _CRS returned PCI bridge memory window, causing all
->>>>> attempts to assign memory to PCI BARs which have not been setup by the
->>>>> BIOS to fail. For example here are the relevant dmesg bits from a
->>>>> Lenovo IdeaPad 3 15IIL 81WE:
->>>>>
->>>>>  [mem 0x000000004bc50000-0x00000000cfffffff] reserved
->>>>>  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
->>>>>
->>>>> The ACPI specifications appear to allow this new behavior:
->>>>>
->>>>> The relationship between E820 and ACPI _CRS is not really very clear.
->>>>> ACPI v6.3, sec 15, table 15-374, says AddressRangeReserved means:
->>>>>
->>>>>   This range of addresses is in use or reserved by the system and is
->>>>>   not to be included in the allocatable memory pool of the operating
->>>>>   system's memory manager.
->>>>>
->>>>> and it may be used when:
->>>>>
->>>>>   The address range is in use by a memory-mapped system device.
->>>>>
->>>>> Furthermore, sec 15.2 says:
->>>>>
->>>>>   Address ranges defined for baseboard memory-mapped I/O devices, such
->>>>>   as APICs, are returned as reserved.
->>>>>
->>>>> A PCI host bridge qualifies as a baseboard memory-mapped I/O device,
->>>>> and its apertures are in use and certainly should not be included in
->>>>> the general allocatable pool, so the fact that some BIOS-es reports
->>>>> the PCI aperture as "reserved" in E820 doesn't seem like a BIOS bug.
->>>>>
->>>>> So it seems that the excluding of E820 reserved addresses is a mistake.
->>>>>
->>>>> Ideally Linux would fully stop excluding E820 reserved addresses,
->>>>> but then various old systems will regress.
->>>>> Instead keep the old behavior for old systems, while ignoring
->>>>> the E820 reservations for any systems from now on.
->>>>>
->>>>> Old systems are defined here as BIOS year < 2018, this was chosen to
->>>>> make sure that pci_use_e820 will not be set on the currently affected
->>>>> systems, the oldest known one is from 2019.
->>>>>
->>>>> Testing has shown that some newer systems also have a bad _CRS return.
->>>>> The pci_crs_quirks DMI table is used to keep excluding E820 reservations
->>>>> from the bridge window on these systems.
->>>>>
->>>>> Also add pci=no_e820 and pci=use_e820 options to allow overriding
->>>>> the BIOS year + DMI matching logic.
->>>>>
->>>>> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=206459
->>>>> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1868899
->>>>> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1871793
->>>>> BugLink: https://bugs.launchpad.net/bugs/1878279
->>>>> BugLink: https://bugs.launchpad.net/bugs/1931715
->>>>> BugLink: https://bugs.launchpad.net/bugs/1932069
->>>>> BugLink: https://bugs.launchpad.net/bugs/1921649
->>>>> Cc: Benoit Grégoire <benoitg@coeus.ca>
->>>>> Cc: Hui Wang <hui.wang@canonical.com>
->>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>>>
->>>>> +	 * Ideally Linux would fully stop using E820 reservations, but then
->>>>> +	 * various old systems will regress. Instead keep the old behavior for
->>>>> +	 * old systems + known to be broken newer systems in pci_crs_quirks.
->>>>> +	 */
->>>>> +	if (year >= 0 && year < 2018)
->>>>> +		pci_use_e820 = true;
->>>>
->>>> How did you pick 2018?  Prior to this patch, we used E820 reservations
->>>> for all machines.  This patch would change that for 2019-2022
->>>> machines, so there's a risk of breaking some of them.
->>>
->>> Correct. I picked 2018 because the first devices where using E820
->>> reservations are causing issues (i2c controller not getting resources
->>> leading to non working touchpad / thunderbolt hotplug issues) have
->>> BIOS dates starting in 2019. I added a year margin, so we could make
->>> this 2019.
->>>
->>>> I'm hesitant about changing the behavior for machines already in the
->>>> field because if they were tested at all with Linux, it was without
->>>> this patch.  So I would lean toward preserving the current behavior
->>>> for BIOS year < 2023.
->>>
->>> I see, I presume the idea is to then use DMI to disable E820 clipping
->>> on current devices where this is known to cause problems ?
->>>
->>> So for v8 I would:
->>>
->>> 1. Change the cut-off check to < 2023
->>> 2. Drop the DMI quirks I added for models which are known to need E820
->>>    clipping hit by the < 2018 check
->>> 3. Add DMI quirks for models for which it is known that we must _not_
->>>    do E820 clipping
->>>
->>> Is this the direction you want to go / does that sound right?
->> 
->> Yes, I think that's what we should do.  All the machines in the field
->> will be unaffected, except that we add quirks for known problems.
-> 
-> I've been working on this today. I've mostly been going through
-> the all the existing bugs about this, to make a list of DMI matches
-> for devices on which we should _not_ do e820 clipping to fix th
-> kernel being unable to assign BARs there.
-> 
-> I've found an interesting pattern there, all affected devices
-> are Lenovo devices with "IIL" in there device name, e.g. :
-> "IdeaPad 3 15IIL05". I've looked up all Lenovo devices which
-> have "IIL" as part of their DMI_PRODUCT_VERSION string here:
-> https://github.com/linuxhw/DMI/
-> 
-> And then looked them up at https://linux-hardware.org/ and checked
-> their dmesg to see if they have the e820 problem other ideapads
-> have. I've gone through approx. half the list now and all
-> except one model seem to have the e820 problem.
-> 
-> So it looks like we might be able to match all problem models
-> with a single DMI match.
-> 
+First let's agree on why this should not be ignored.
 
-> So the problem seems to be limited to one specific device
-> series / range and this is making me have second thoughts
-> about doing a date based cut-off at all. Trying to switch
-> over any models which are new in 2023 is fine, the problem
-> with a DMI BIOS date approach though is that as soon as some
-> new management-engine CVE comes out we will also see BIOS
-> updates with a year of 2023 for many existing models, of
-> up to 3-4 years old at least; and chances are that some of
-> those older models getting BIOS updates will be bitten by
-> this change.
-> 
-> So as said I'm having second thoughts about the date based
-> approach. Bjorn, what do you think of just using DMI quirks
-> to disable e820 clipping on known problematic models and
-> otherwise keeping things as is ?
+Our development team at Intel has lab with laptops, we run sleepgraph
+on every RC, and we publish the tool in public:
+https://www.intel.com/content/www/us/en/developer/topic-technology/open/pm-graph/overview.html
 
-The current v8 patch [1] adds quirks to disable clipping for Lenovo
-"*IIL*" and Acer Spin 5.  I think we also need to add one for Clevo
-Barebones [2], don't we?
+But even if we were funded to do it (which we are not), we can't
+possibly test every kind of device.
+We need the community to help testing Linux (suspend/resume,
+specifically) on a broad range of devices, so together we can make it
+better for all.
 
-Here's how I think about the date-based approach.  See if it seems
-sensible to you.
+The community is made up mostly of users, rather than kernel hackers,
+and so this effectively means that distro binary kernels need to be
+able to support testing.
 
-Without a date check, we'll continue clipping by default:
+Enabling that broad community of users/contributors is the goal.
 
-  - Future systems like Lenovo *IIL*, Acer Spin, and Clevo Barebones
-    will require new quirks to disable clipping.
+As Rui explained, this patch does nothing and breaks nothing if the
+new hook remains unused.
+If it is used, then overrides the wakeup duration for all subsequent
+system suspends, until it is cleared.
+If it does more than that, or does that in a clumsy way, then let's fix that.
 
-  - The problem here is E820 entries that cover entire _CRS windows
-    that should not be clipped out.
+Today it gives us two new capabilities:
 
-  - I think these E820 entries are legal per spec, and it would be
-    hard to get BIOS vendors to change them.
+1. Prevents a lost wake event.  Commonly we see this with kcompatd
+taking 20 seconds when we had previously armed the RTC for 15 seconds.
+The system will sleep forever, until the user intervenes -- which may
+be a very long time later.
 
-  - We will discover new systems that need clipping disabled piecemeal
-    as they are released.
+Rafael, If you have a better way to fix that, I'm all ears.  Aborted
+suspend flows are ugly -- particularly when the user didn't want them,
+but they are much less ugly then losing a wake event, which can result
+in losing, say 10-hours of test time.
 
-  - Future systems like Lenovo X1 Carbon and the Chromebooks (probably
-    anything using coreboot) will just work and we will not notice new
-    ones that rely on the clipping.
+2. Allows more suspends/resume cycles per time.  Say the early wake is
+fixed.  Then we have to decide how long to sleep before being
+suspended.  If we set it for 1 second, and suspend takes longer than 1
+second, then all of our tests will fail with early wakeups and we have
+tested nothing.  If we set it to 60 seconds, and suspend takes 1
+second, then 59/60 seconds are spent sleeping, when they could be
+spent testing Linux.  With this patch, we can set it to the minimum of
+2 seconds right before we sleep, guaranteeing that we spend at least 1
+second, and under 2 seconds sleeping, and the rest of the time testing
+-- which allows us to meet the goal.
 
-  - BIOS updates will not require new quirks unless they change the
-    DMI model string.
-
-With a date check that disables clipping, e.g., "no clipping when
-date > 2022":
-
-  - Future systems like Lenovo *IIL*, Acer Spin, and Clevo Barebones
-    will just work without new quirks.
-
-  - Future systems like Lenovo X1 Carbon and the Chromebooks will
-    require new quirks to *enable* clipping.
-
-  - The problem here is that _CRS contains regions that are not usable
-    by PCI devices, and we rely on the E820 kludge to clip them out.
-
-  - I think this use of E820 is clearly a firmware bug, so we have a
-    fighting chance of getting it changed eventually.
-
-  - BIOS updates after the cutoff date *will* require quirks, but only
-    for systems like Lenovo X1 Carbon and Chromebooks that we already
-    think have broken firmware.
-
-Is that a fair summary?
-
-If so, it still seems to me like it's better to add quirks for
-firmware that we think is broken than for firmware that seems unusual
-but correct.
-
-But I do think maybe we should split the date check to a separate
-patch.  The rationale for the date check (to put the quirk burden on
-systems with buggy firmware) is a little different from the "disable
-E820 clipping" reason for the quirks.
-
-I think the "disable clipping" quirks by themselves should fix all the
-known broken systems, shouldn't they?  I'd really, really like to get
-these quirks in for v5.18 if possible.
-
-For future reference, I'm attaching below all the bugs I know about
-and the details of what's in E820 and _CRS.
-
-Bjorn
-
-[1] https://lore.kernel.org/r/20220512202511.34197-1-hdegoede@redhat.com
-[2] https://bugzilla.kernel.org/show_bug.cgi?id=214259
-
-
-https://bugzilla.kernel.org/show_bug.cgi?id=16228       Dell Precision T3500
-  BIOS-e820:                                   0xbfe4dc00-0xc0000000 (reserved)
-  pci_root PNP0A03:00: host bridge window [mem 0xbff00000-0xdfffffff]
-  pci 0000:00:1f.2: BAR 5: assigned [mem 0xbff00000-0xbff007ff]
-  ahci 0000:00:1f.2: controller reset failed (0xffffffff)
-  E820 covers part of _CRS window, 4dc2287c1805 clips that out.
-  Without 4dc2287c1805, doesn't boot because AHCI at
-  [mem 0xbff00000-0xbff007ff] is unusable.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=206459      Lenovo Yoga C940-14IIL
-  DMI: LENOVO 81Q9/LNVNB161216, BIOS AUCN54WW 01/09/2020
-  BIOS-e820:                         [mem 0x4bc50000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
-  pci 0000:2b:00.0: BAR 14: no space for [mem size 0x0c200000]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, Thunderbolt dock hot-add can't allocate MMIO
-  space.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=214259      Clevo X170KM Barebone
-  DMI: TUXEDO TUXEDO Book XUX7 - Gen12/X170KM-G, BIOS 1.07.05RTR1 02/01/2021
-  BIOS-e820:                         [mem 0x6bc00000-0xefffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x71000000-0xdfffffff window]
-  BIOS-e820:                         [mem 0x0100000000-0x48effffff] usable
-  pci_bus 0000:00: root bus resource [mem 0x4000000000-0x7fffffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit] # intel-lpss
-  pci 0000:00:15.1: reg 0x10: [mem 0x00000000-0x00000fff 64bit] # intel-lpss
-  pci 0000:00:15.2: reg 0x10: [mem 0x00000000-0x00000fff 64bit] # intel-lpss
-  pci 0000:00:19.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit] # intel-lpss
-  pci 0000:00:1f.5: reg 0x10: [mem 0xfe010000-0xfe010fff]       # intel_spi_pci, no window
-  pci 0000:00:15.0: BAR 0: assigned [mem 0x420210f000-0x420210ffff 64bit]
-  pci 0000:00:15.1: BAR 0: assigned [mem 0x4202111000-0x4202111fff 64bit]
-  pci 0000:00:15.2: BAR 0: assigned [mem 0x4202112000-0x4202112fff 64bit]
-  pci 0000:00:19.0: BAR 0: assigned [mem 0x4202113000-0x4202113fff 64bit]
-  pci 0000:00:1f.5: BAR 0: no space for [mem size 0x00001000]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-
-https://bugzilla.redhat.com/show_bug.cgi?id=1868899     Lenovo IdeaPad 3 15IIL05
-  DMI: LENOVO 81WE/LNVNB161216, BIOS EMCN44WW 12/23/2020
-  BIOS-e820:                         [mem 0x4bc50000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://bugzilla.redhat.com/show_bug.cgi?id=1871793     Lenovo IdeaPad 5 14IIL05
-  DMI: LENOVO 81YH/LNVNB161216, BIOS DSCN22WW(V1.08) 03/06/2020
-  BIOS-e820:                         [mem 0x5bc50000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x6d400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://bugzilla.redhat.com/show_bug.cgi?id=2029207     Lenovo X1 Carbon (20A7)
-  DMI: LENOVO 20A7008CUK/20A7008CUK, BIOS GRET63WW (1.40 ) 03/27/2020
-  BIOS-e820:                         [mem 0xdceff000-0xdfa0ffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0xdfa00000-0xfebfffff window]
-  pci 0000:00:1c.0: BAR 14: assigned [mem 0xdfa00000-0xdfbfffff]
-  E820 covers part of _CRS window, 4dc2287c1805 clips that out.
-  Without 4dc2287c1805, doesn't wake from suspend because
-  [mem 0xdfa00000-0xdfa0ffff] unusable.
-
-https://bugs.launchpad.net/bugs/1878279 Lenovo IdeaPad 5 14IIL05
-  DMI: LENOVO 81YH/LNVNB161216, BIOS DSCN23WW(V1.09) 03/25/2020
-  BIOS-e820:                         [mem 0x5bc50000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x6d400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://bugs.launchpad.net/bugs/1880172 Lenovo IdeaPad 3 14IIL05 Core i3-1005G1 (81WD004MGE)
-  DMI: LENOVO 81WD/LNVNB161216, BIOS EMCN13WW 03/06/2020
-  BIOS-e820:                         [mem 0x6b000000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x70400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://bugs.launchpad.net/bugs/1884232 Acer Spin SP513-54N
-  DMI: Acer Spin SP513-54N/Caboom_IL, BIOS V1.00 02/21/2020
-  BIOS-e820:                         [mem 0x39e00000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x3f800000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://bugs.launchpad.net/bugs/1921649 Lenovo IdeaPad S145 82DJ0000BR
-  DMI: LENOVO 82DJ/LNVNB161216, BIOS DKCN48WW 07/22/2020
-  BIOS-e820:                         [mem 0x6b000000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x70400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://bugs.launchpad.net/bugs/1931715 Lenovo IdeaPad S145 82DJ0001BR
-  DMI: LENOVO 82DJ/LNVNB161216, BIOS DKCN51WW 12/23/2020
-  BIOS-e820:                         [mem 0x6b000000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x70400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken, no dmesg from broken case.
-
-https://bugs.launchpad.net/bugs/1932069 Lenovo BS145-15IIL
-  DMI: LENOVO 82HB/LNVNB161216, BIOS DKCN51WW 12/23/2020
-  BIOS-e820:                         [mem 0x4bc50000-0xcfffffff] reserved
-  pci_bus 0000:00: root bus resource [mem 0x65400000-0xbfffffff window]
-  pci 0000:00:15.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
-  pci 0000:00:15.0: BAR 0: no space for [mem size 0x00001000 64bit]
-  E820 covers entire _CRS window.  4dc2287c1805 clips it all out.
-  With 4dc2287c1805, touchpad broken (BIOS didn't assign, no space to
-  allocate).
-
-https://lore.kernel.org/r/4e9fca2f-0af1-3684-6c97-4c35befd5019@redhat.com
-Google internal report b/148759816
-  Chromebook asus-C523NA-A20057-coral
-  BIOS-e820:                         [mem 0x7b000000-0x7fffffff] reserved
-  BIOS-e820:                         [mem 0xd0000000-0xd0ffffff]
-  acpi PNP0A08:00: ... [mem 0x7b800000-0x7fffffff window] ...
-  acpi PNP0A08:00: ... [mem 0x80000000-0xe0000000 window] ...
-  pci_bus 0000:00: root bus resource [mem 0x7b800000-0xe0000000 window]
-  E820 covers [mem 0x7b800000-0x7fffffff] of _CRS window.
-  E820 punches [mem 0xd0000000-0xd0ffffff] hole for hidden device.
-  4dc2287c1805 clips these out.  Without 4dc2287c1805, boot fails.
-  Hidden device is a landmine unless we trim it out.
-
-  But 4c5e242d3e93 ("x86/PCI: Clip only host bridge windows for E820
-  regions") changes the time at which clipping is done.
-
-  If clipping preserves resources *completely* covered by E820, and we
-  clip *before* coalescing, [mem 0x7b800000-0x7fffffff window] is
-  preserved and [mem 0xd0000000-0xd0ffffff] is clipped out, resulting
-  in [mem 0x7b800000-0xcfffffff window], where 0x7b800000-0x7fffffff is
-  not usable.
-
-  If clipping preserves resources *completely* covered by E820, and we
-  clip *after* coalescing, we clip out [mem 0x7b000000-0x7fffffff]
-  and [mem 0xd0000000-0xd0ffffff], resulting in [mem
-  0x80000000-0xcfffffff window], which is usable.
-
-Chromebook hp-x360-12b-n4000-octopus similar to asus-C523NA-A20057-coral
-
-Summary:
-  These are broken by 4dc2287c1805:
-    https://bugzilla.kernel.org/show_bug.cgi?id=206459  01/09/2020 LENOVO
-    https://bugzilla.redhat.com/show_bug.cgi?id=1868899 12/23/2020 LENOVO
-    https://bugzilla.redhat.com/show_bug.cgi?id=1871793 03/06/2020 LENOVO
-    https://bugs.launchpad.net/bugs/1878279             03/25/2020 LENOVO
-    https://bugs.launchpad.net/bugs/1880172             03/06/2020 LENOVO
-    https://bugs.launchpad.net/bugs/1884232             02/21/2020 Acer
-    https://bugs.launchpad.net/bugs/1921649             07/22/2020 LENOVO
-    https://bugs.launchpad.net/bugs/1931715             12/23/2020 LENOVO
-    https://bugs.launchpad.net/bugs/1932069             12/23/2020 LENOVO
-      For all of the above, E820 covers entire _CRS window.  Trimming
-      the entire window means we can't assign any MMIO space.
-
-  These require 4dc2287c1805:
-    https://bugzilla.kernel.org/show_bug.cgi?id=16228   03/09/2009 Dell
-    https://bugzilla.redhat.com/show_bug.cgi?id=2029207 03/27/2020 LENOVO
-    b/148759816 Chromebooks
-      For the above, E820 covers part of _CRS window.  Failure to trim
-      that part means we assign MMIO space that doesn't work.
+thanks,
+Len Brown, Intel
