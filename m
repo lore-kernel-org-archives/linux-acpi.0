@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECB7C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 664A1C4332F
 	for <linux-acpi@archiver.kernel.org>; Fri, 20 May 2022 06:11:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241384AbiETGLl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 20 May 2022 02:11:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37676 "EHLO
+        id S244942AbiETGLm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 20 May 2022 02:11:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244942AbiETGLj (ORCPT
+        with ESMTP id S236617AbiETGLj (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 May 2022 02:11:39 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70C27A812
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75EDE75218
         for <linux-acpi@vger.kernel.org>; Thu, 19 May 2022 23:11:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1653027098; x=1684563098;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=S5b95Kaj7dMb6Y2XDMJXvWieDst0bDySoTHaHwIApcQ=;
-  b=PYIA4gHkKfBg7ZR2mLAuSI5v+apes2WGx+hAxNQUiiGwPyiVWoGl+9a2
-   ZNdUqCNHXZ/bHhEquYoBcWFZsg3sLTi1fKYnI8R4Fn+NTFzY42KRPZIvW
-   Bu7O3YmXn7UvtcYm2CyU+AgP4jHzWVtJxlRmUbR2KIuM+fj4Abi6D7N3n
-   6NSkD+ZMc8NLbSIwy8oWWkUV2jDtzsBjFg1r1WU0LbppNm7Zk97DzZwKt
-   ycQItdtBLPzHoYMhunwhajmg9xwetSTh/BtQ982HkmVPX2kdJuFbuDQA9
-   sOY6endZd9sbYMUlBtjWq9tNzveiqNMWHkjDvbDh5q7AKPCtBGiz8NF+A
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10352"; a="297813972"
+  bh=YoOjvt6ZWy+Epk5pxRi/nkuhj8uwUo7L7f23DdSGlTE=;
+  b=dUGr1SF1hS2h+hkRSwXLh6uPPWSAvKFDtmape7OcGWINe5A0KLSgnYC4
+   l19qrhRLKchgRO9bwMdoEAguJjk18eppCqAbtJygirOQ1eBmobAtyZf1+
+   96q7RD5iy4C6cNe16zB7vycyUHTaA8tQki+mKNVV0I9TLwy61iocyHZr8
+   slqWBxObVV8ccNbSHm/YxWi9UhesjhaofbbVxpQDEfJBmBB0Js5w6hgcF
+   SkI2KfVQ7hVAoqYW2aUIQudt+8g42PI4Zh4SJXt5Z7sUFS+ugcPbM3kjt
+   1t5qeAnVXj30Zf9dNoPYLy+QvuAbXRxoQVrd1xqEhkNb1gPk+gmNl2kn4
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10352"; a="260084995"
 X-IronPort-AV: E=Sophos;i="5.91,238,1647327600"; 
-   d="scan'208";a="297813972"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2022 23:11:38 -0700
+   d="scan'208";a="260084995"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2022 23:11:38 -0700
 X-IronPort-AV: E=Sophos;i="5.91,238,1647327600"; 
-   d="scan'208";a="743339746"
+   d="scan'208";a="606876155"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2022 23:11:37 -0700
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2022 23:11:37 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id E9FE020656;
-        Fri, 20 May 2022 09:11:34 +0300 (EEST)
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 0C3C220BAD;
+        Fri, 20 May 2022 09:11:35 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1nrvrZ-0005ZZ-3p; Fri, 20 May 2022 09:11:49 +0300
+        id 1nrvrZ-0005Zf-6q; Fri, 20 May 2022 09:11:49 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH v2 1/8] ACPI: property: Return type of acpi_add_nondev_subnodes() should be bool
-Date:   Fri, 20 May 2022 09:11:41 +0300
-Message-Id: <20220520061148.21366-2-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 3/8] ACPI: property: Use acpi_object_type consistently in property ref parsing
+Date:   Fri, 20 May 2022 09:11:43 +0300
+Message-Id: <20220520061148.21366-4-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220520061148.21366-1-sakari.ailus@linux.intel.com>
 References: <20220520061148.21366-1-sakari.ailus@linux.intel.com>
@@ -57,34 +57,27 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The value acpi_add_nondev_subnodes() returns is bool so change the return
-type of the function to match that.
+The type of union acpi_object field type is acpi_object_type. Use that
+instead of int.
 
-Fixes: 445b0eb058f5 ("ACPI / property: Add support for data-only subnodes")
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/property.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index d3173811614ec..bc9a645f8bb77 100644
+index f8c83ee6c8d59..b36cb7e36e420 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -155,10 +155,10 @@ static bool acpi_nondev_subnode_ok(acpi_handle scope,
- 	return acpi_nondev_subnode_data_ok(handle, link, list, parent);
- }
+@@ -793,7 +793,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 			 * nor integer, return an error, we can't parse it.
+ 			 */
+ 			for (i = 0; element + i < end && i < num_args; i++) {
+-				int type = element[i].type;
++				acpi_object_type type = element[i].type;
  
--static int acpi_add_nondev_subnodes(acpi_handle scope,
--				    const union acpi_object *links,
--				    struct list_head *list,
--				    struct fwnode_handle *parent)
-+static bool acpi_add_nondev_subnodes(acpi_handle scope,
-+				     const union acpi_object *links,
-+				     struct list_head *list,
-+				     struct fwnode_handle *parent)
- {
- 	bool ret = false;
- 	int i;
+ 				if (type == ACPI_TYPE_LOCAL_REFERENCE)
+ 					break;
 -- 
 2.30.2
 
