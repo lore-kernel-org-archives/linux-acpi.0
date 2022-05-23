@@ -2,145 +2,152 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19025C433EF
-	for <linux-acpi@archiver.kernel.org>; Sun, 22 May 2022 21:44:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEA16C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 May 2022 17:39:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229583AbiEVVoN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 22 May 2022 17:44:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38942 "EHLO
+        id S241035AbiEWRjU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 May 2022 13:39:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229521AbiEVVoM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 22 May 2022 17:44:12 -0400
-Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com [148.163.143.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 079C037BF4;
-        Sun, 22 May 2022 14:44:10 -0700 (PDT)
-Received: from pps.filterd (m0134423.ppops.net [127.0.0.1])
-        by mx0b-002e3701.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24M7rXZB005618;
-        Sun, 22 May 2022 21:44:02 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pps0720;
- bh=aGlcc2GqZT7sFyR5O7EQRE6Or8G/wOVNNNJPdqhnb1g=;
- b=LNx6cnTyNZsU94EnbIJXZX3wMGyeLwkYfgwKEhUrRdhNBlZIYhcMx7RKicKiBdHrzSnU
- Cn2EnENshrNe1HqrEVfdP7wtg2gLbM4jGq9qigdw+PfgWRoxCqbgTLhmT9ggCP+XLjMm
- lNmXZlud0g+xA9m9RYy32O+R1VtEJhBLzJsDIzXaLUGiLzh1mKDly/y/jW4yPEGAuAom
- uFE/WAN8PTpBpcecvMmS8adr87cLaHnkbr8INhvmzzEctFwSLm6YWh4C73/XJfP3pMbP
- Fuuj+S+zNpijbvkkaH15zDM0q9g6ImcAq6g3oYwi8kGl7xilgD04NqGPbksvYKJxktsQ Rg== 
-Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
-        by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 3g7h6cbtft-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Sun, 22 May 2022 21:44:02 +0000
-Received: from g2t2360.austin.hpecorp.net (g2t2360.austin.hpecorp.net [16.196.225.135])
-        by g2t2354.austin.hpe.com (Postfix) with ESMTP id E049683;
-        Sun, 22 May 2022 21:44:01 +0000 (UTC)
-Received: from ubuntu-20.04.3 (unknown [16.99.181.233])
-        by g2t2360.austin.hpecorp.net (Postfix) with ESMTP id E4E9F42;
-        Sun, 22 May 2022 21:43:59 +0000 (UTC)
-From:   james.liu@hpe.com
-To:     rafael@kernel.org, lenb@kernel.org
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        rwright@hpe.com, david.chang@hpe.com, clayc@hpe.com,
-        james.liu@hpe.com
-Subject: [PATCH v2] ACPI: OSL: Fix the memory mapping of an ACPI GAS that addresses a data structure
-Date:   Mon, 23 May 2022 05:43:02 +0800
-Message-Id: <20220522214302.39024-1-james.liu@hpe.com>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-ORIG-GUID: rXzbSKsVRFGGutJm2lHosWwBjVEqn7jd
-X-Proofpoint-GUID: rXzbSKsVRFGGutJm2lHosWwBjVEqn7jd
-X-HPE-SCL: -1
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-05-22_11,2022-05-20_02,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- malwarescore=0 mlxlogscore=944 mlxscore=0 spamscore=0 impostorscore=0
- clxscore=1015 phishscore=0 bulkscore=0 suspectscore=0 priorityscore=1501
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2205220137
+        with ESMTP id S242871AbiEWRht (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 May 2022 13:37:49 -0400
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F7615DD32;
+        Mon, 23 May 2022 10:31:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1653327112; x=1684863112;
+  h=from:to:cc:subject:date:message-id;
+  bh=1a6xvUVraNwPsJU4Rdg2VoIzY6z3cXUo5L9xyuMQW10=;
+  b=jZZ4Ss2cC9FdaYUiYD7eMciUNKwWofAf83XDg39+G+pLQdKr7UfIDN9M
+   NOZ5dO/pIEExNs0Q5Qe/7WhDsG0mkigC7xumOAZsnp8XX6ry1/hqqaJXY
+   krrRtjY+/tL5mVpzLFBQkARspOEYeiwZxHh+8ECCDD6T831NcpTeNqQ8g
+   325H4AE1/A1Sl1kQbC5maHrz9z1odexDxkaxdq3iPZREZH6ijuEqyL7t9
+   NLHukXG80s9R0v4i3Wz/5VWTg20ml8X9VBT8fp+D3Ab9vteLajrdB0T3p
+   V9A1U5OuTQLoC8ezi8Mqe+l+LNQRV9D964k8TLedNEY2nfeDybM/wOyMY
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10356"; a="272115807"
+X-IronPort-AV: E=Sophos;i="5.91,246,1647327600"; 
+   d="scan'208";a="272115807"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 May 2022 10:30:17 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,246,1647327600"; 
+   d="scan'208";a="744846445"
+Received: from srpawnik.iind.intel.com ([10.99.123.68])
+  by orsmga005.jf.intel.com with ESMTP; 23 May 2022 10:30:14 -0700
+From:   Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
+To:     rafael@kernel.org, lenb@kernel.org,
+        srinivas.pandruvada@linux.intel.com, daniel.lezcano@linaro.org,
+        rui.zhang@intel.com, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     sumeet.r.pawnikar@intel.com
+Subject: [PATCH] ACPI: DPTF: Support Meteor Lake
+Date:   Mon, 23 May 2022 22:57:24 +0530
+Message-Id: <20220523172724.30556-1-sumeet.r.pawnikar@intel.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: James Liu <james.liu@hpe.com>
+Add Meteor Lake ACPI IDs for DPTF devices.
 
-    Modify acpi_os_map_generic_address() & acpi_os_unmap_generic_address()
-    to correctly handle cases that a GAS table (i.e., Table 5.1, ACPI 6.4)
-    is used to address a data structure; in the case, the GAS has the field
-    of "Register Bit Width" equal to 0.
-
-    For example, "Injection Instruction Entry" (Table 18.25, ACPI 6.4) has
-    a RegisterRegion field that is a GAS that points to a data structure
-    SET_ERROR_TYPE_WITH_ADDRESS (Table 18.30), which is required when using
-    EINJ (Error Injection module).
-
-    This fix preserves a fairly sufficient memory space (i.e. page size) to
-    store the data structure to prevent EINJ module from loading failure if
-    platform firmware can correctly support Injection Instruction Entry in
-    an EINJ table.
-
-Signed-off-by: James Liu <james.liu@hpe.com>
+Signed-off-by: Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- drivers/acpi/osl.c | 27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
+ drivers/acpi/dptf/dptf_pch_fivr.c                       | 1 +
+ drivers/acpi/dptf/dptf_power.c                          | 2 ++
+ drivers/acpi/dptf/int340x_thermal.c                     | 6 ++++++
+ drivers/acpi/fan.h                                      | 1 +
+ drivers/thermal/intel/int340x_thermal/int3400_thermal.c | 1 +
+ drivers/thermal/intel/int340x_thermal/int3403_thermal.c | 1 +
+ 6 files changed, 12 insertions(+)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 45c5c0e45..99f987c8c 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -452,14 +452,20 @@ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+diff --git a/drivers/acpi/dptf/dptf_pch_fivr.c b/drivers/acpi/dptf/dptf_pch_fivr.c
+index c0da24c9f8c3..4919e7abe93f 100644
+--- a/drivers/acpi/dptf/dptf_pch_fivr.c
++++ b/drivers/acpi/dptf/dptf_pch_fivr.c
+@@ -151,6 +151,7 @@ static int pch_fivr_remove(struct platform_device *pdev)
+ static const struct acpi_device_id pch_fivr_device_ids[] = {
+ 	{"INTC1045", 0},
+ 	{"INTC1049", 0},
++	{"INTC1064", 0},
+ 	{"INTC10A3", 0},
+ 	{"", 0},
+ };
+diff --git a/drivers/acpi/dptf/dptf_power.c b/drivers/acpi/dptf/dptf_power.c
+index dc1f52a5b3f4..a5f29d061b37 100644
+--- a/drivers/acpi/dptf/dptf_power.c
++++ b/drivers/acpi/dptf/dptf_power.c
+@@ -231,6 +231,8 @@ static const struct acpi_device_id int3407_device_ids[] = {
+ 	{"INTC1050", 0},
+ 	{"INTC1060", 0},
+ 	{"INTC1061", 0},
++	{"INTC1065", 0},
++	{"INTC1066", 0},
+ 	{"INTC10A4", 0},
+ 	{"INTC10A5", 0},
+ 	{"", 0},
+diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int340x_thermal.c
+index 42a556346548..b7113fa92fa6 100644
+--- a/drivers/acpi/dptf/int340x_thermal.c
++++ b/drivers/acpi/dptf/int340x_thermal.c
+@@ -27,6 +27,7 @@ static const struct acpi_device_id int340x_thermal_device_ids[] = {
+ 	{"INT3532"},
+ 	{"INTC1040"},
+ 	{"INTC1041"},
++	{"INTC1042"},
+ 	{"INTC1043"},
+ 	{"INTC1044"},
+ 	{"INTC1045"},
+@@ -37,6 +38,11 @@ static const struct acpi_device_id int340x_thermal_device_ids[] = {
+ 	{"INTC1050"},
+ 	{"INTC1060"},
+ 	{"INTC1061"},
++	{"INTC1062"},
++	{"INTC1063"},
++	{"INTC1064"},
++	{"INTC1065"},
++	{"INTC1066"},
+ 	{"INTC10A0"},
+ 	{"INTC10A1"},
+ 	{"INTC10A2"},
+diff --git a/drivers/acpi/fan.h b/drivers/acpi/fan.h
+index 44728529a5b6..e7b4b4e4a55e 100644
+--- a/drivers/acpi/fan.h
++++ b/drivers/acpi/fan.h
+@@ -14,6 +14,7 @@
+ 	{"INT3404", }, /* Fan */ \
+ 	{"INTC1044", }, /* Fan for Tiger Lake generation */ \
+ 	{"INTC1048", }, /* Fan for Alder Lake generation */ \
++	{"INTC1063", }, /* Fan for Meteor Lake generation */ \
+ 	{"INTC10A2", }, /* Fan for Raptor Lake generation */ \
+ 	{"PNP0C0B", } /* Generic ACPI fan */
  
- void __iomem *acpi_os_map_generic_address(struct acpi_generic_address *gas)
- {
--	u64 addr;
-+	u64 addr = 0;
- 
- 	if (gas->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		return NULL;
- 
-+	/* Handle a case that GAS is used to address an ACPI data structure */
-+	if (!gas->bit_width) {
-+		pr_info("An ACPI data structure at 0x%llx is mapped\n", addr);
-+		return  acpi_os_map_iomem(addr, PAGE_SIZE);
-+	}
-+
- 	/* Handle possible alignment issues */
- 	memcpy(&addr, &gas->address, sizeof(addr));
--	if (!addr || !gas->bit_width)
-+	if (!addr)
- 		return NULL;
- 
- 	return acpi_os_map_iomem(addr, gas->bit_width / 8);
-@@ -468,15 +474,28 @@ EXPORT_SYMBOL(acpi_os_map_generic_address);
- 
- void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
- {
--	u64 addr;
-+	u64 addr = 0;
- 	struct acpi_ioremap *map;
- 
- 	if (gas->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		return;
- 
-+	/* Handle a case that GAS is used to address an ACPI data structure */
-+	if (!gas->bit_width) {
-+		pr_info("An ACPI data structure at 0x%llx is unmapped\n", addr);
-+		mutex_lock(&acpi_ioremap_lock);
-+		map = acpi_map_lookup(addr, PAGE_SIZE);
-+		if (!map) {
-+			mutex_unlock(&acpi_ioremap_lock);
-+			return;
-+		}
-+		acpi_os_drop_map_ref(map);
-+		mutex_unlock(&acpi_ioremap_lock);
-+	}
-+
- 	/* Handle possible alignment issues */
- 	memcpy(&addr, &gas->address, sizeof(addr));
--	if (!addr || !gas->bit_width)
-+	if (!addr)
- 		return;
- 
- 	mutex_lock(&acpi_ioremap_lock);
+diff --git a/drivers/thermal/intel/int340x_thermal/int3400_thermal.c b/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
+index 79931ddc582a..1ea861473cba 100644
+--- a/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
++++ b/drivers/thermal/intel/int340x_thermal/int3400_thermal.c
+@@ -669,6 +669,7 @@ static const struct acpi_device_id int3400_thermal_match[] = {
+ 	{"INT3400", 0},
+ 	{"INTC1040", 0},
+ 	{"INTC1041", 0},
++	{"INTC1042", 0},
+ 	{"INTC10A0", 0},
+ 	{}
+ };
+diff --git a/drivers/thermal/intel/int340x_thermal/int3403_thermal.c b/drivers/thermal/intel/int340x_thermal/int3403_thermal.c
+index 07e25321dfe3..71d084c4c456 100644
+--- a/drivers/thermal/intel/int340x_thermal/int3403_thermal.c
++++ b/drivers/thermal/intel/int340x_thermal/int3403_thermal.c
+@@ -285,6 +285,7 @@ static const struct acpi_device_id int3403_device_ids[] = {
+ 	{"INT3403", 0},
+ 	{"INTC1043", 0},
+ 	{"INTC1046", 0},
++	{"INTC1062", 0},
+ 	{"INTC10A1", 0},
+ 	{"", 0},
+ };
 -- 
-2.25.1
+2.17.1
 
