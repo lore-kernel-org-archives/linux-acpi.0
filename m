@@ -2,136 +2,82 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 687A7C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 May 2022 08:59:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 408A1C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 May 2022 13:01:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232725AbiEYI7q convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 25 May 2022 04:59:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44352 "EHLO
+        id S236236AbiEYNBC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 25 May 2022 09:01:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233812AbiEYI7p (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2022 04:59:45 -0400
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B681070350
-        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2022 01:59:43 -0700 (PDT)
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.56])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4L7Q496S71zDqSw;
-        Wed, 25 May 2022 16:59:37 +0800 (CST)
-Received: from dggpemm500007.china.huawei.com (7.185.36.183) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Wed, 25 May 2022 16:59:41 +0800
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- dggpemm500007.china.huawei.com (7.185.36.183) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Wed, 25 May 2022 16:59:40 +0800
-Received: from lhreml710-chm.china.huawei.com ([169.254.81.184]) by
- lhreml710-chm.china.huawei.com ([169.254.81.184]) with mapi id
- 15.01.2375.024; Wed, 25 May 2022 09:59:39 +0100
-From:   Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        "rafael@kernel.org" <rafael@kernel.org>,
-        "joro@8bytes.org" <joro@8bytes.org>
-CC:     "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
-        Linuxarm <linuxarm@huawei.com>,
-        "will@kernel.org" <will@kernel.org>,
-        wanghuiqiang <wanghuiqiang@huawei.com>,
-        "steven.price@arm.com" <steven.price@arm.com>,
-        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
-        "jon@solid-run.com" <jon@solid-run.com>,
-        "eric.auger@redhat.com" <eric.auger@redhat.com>,
-        "laurentiu.tudor@nxp.com" <laurentiu.tudor@nxp.com>,
-        "hch@infradead.org" <hch@infradead.org>
-Subject: RE: [PATCH v12 0/9] ACPI/IORT: Support for IORT RMR node
-Thread-Topic: [PATCH v12 0/9] ACPI/IORT: Support for IORT RMR node
-Thread-Index: AQHYXwu3gTgIMyz0zUiu6Dja1BmGsa0PbqaAgAhOLiD///4qAIAE064AgAYtdiCADLBS4A==
-Date:   Wed, 25 May 2022 08:59:39 +0000
-Message-ID: <0c12f81f62f8415f8061cb844f779904@huawei.com>
-References: <20220503163330.509-1-shameerali.kolothum.thodi@huawei.com>
- <2234ad60-c49f-8c72-616c-dfa5300354ef@huawei.com>
- <8e4f012717e34195a53cb73f8ce28627@huawei.com>
- <5c8ae673-f8e3-0ed3-e62d-d445913b012c@arm.com>
- <20220513094940.GA23371@lpieralisi> 
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.202.227.178]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        with ESMTP id S243672AbiEYNBB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2022 09:01:01 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A218A5AB4
+        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2022 06:01:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1653483661; x=1685019661;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=YoOjvt6ZWy+Epk5pxRi/nkuhj8uwUo7L7f23DdSGlTE=;
+  b=bZAy3VArBEmntzCIoNZBqXeMuN2XXDo9SSJFrmTbfgh/edQQoK6xi2fM
+   pwQCxqwQ6czoxGHyPSmnC3SEL2hRA45XFdhbDy6uplF+J9kIr2XQFQicP
+   gE111iVIGYWWrHxX82+fQ5D34ezTwCsJDF5nVc6zfSc5v+ZdirJFlHKhM
+   SbhLWO/SL0G6j9UUvHHTsbvU/SRI0v/v11mVTSZRe2vHeHp3i0XUoDOf2
+   X/BPKFm9teLD5OAczdjM7PRJsEAE4f+A6MtNyB43D28Rbr13mxFEaI6Lh
+   vcf7b7vTtQakaVRuv39PMbxNA/Bli8QhwZY+6XedCD5ZvKJSJ1mT9Nw23
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10357"; a="273532423"
+X-IronPort-AV: E=Sophos;i="5.91,250,1647327600"; 
+   d="scan'208";a="273532423"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:01:00 -0700
+X-IronPort-AV: E=Sophos;i="5.91,250,1647327600"; 
+   d="scan'208";a="573225761"
+Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:00:59 -0700
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 90CE920772;
+        Wed, 25 May 2022 16:00:57 +0300 (EEST)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1ntqdf-003Ded-FD; Wed, 25 May 2022 16:01:23 +0300
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
+Subject: [PATCH v3 3/8] ACPI: property: Use acpi_object_type consistently in property ref parsing
+Date:   Wed, 25 May 2022 16:01:18 +0300
+Message-Id: <20220525130123.767410-4-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
+References: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The type of union acpi_object field type is acpi_object_type. Use that
+instead of int.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/property.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> -----Original Message-----
-> From: Shameerali Kolothum Thodi
-> Sent: 17 May 2022 08:18
-> To: 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>; Robin Murphy
-> <robin.murphy@arm.com>; rafael@kernel.org; joro@8bytes.org
-> Cc: Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> iommu@lists.linux-foundation.org; Linuxarm <linuxarm@huawei.com>;
-> will@kernel.org; wanghuiqiang <wanghuiqiang@huawei.com>;
-> steven.price@arm.com; Sami.Mujawar@arm.com; jon@solid-run.com;
-> eric.auger@redhat.com; laurentiu.tudor@nxp.com; hch@infradead.org
-> Subject: RE: [PATCH v12 0/9] ACPI/IORT: Support for IORT RMR node
-> 
-> 
-> > -----Original Message-----
-> > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> > Sent: 13 May 2022 10:50
-> > To: Robin Murphy <robin.murphy@arm.com>; Shameerali Kolothum Thodi
-> > <shameerali.kolothum.thodi@huawei.com>; rafael@kernel.org;
-> > joro@8bytes.org
-> > Cc: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>;
-> > Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> > iommu@lists.linux-foundation.org; Linuxarm <linuxarm@huawei.com>;
-> > will@kernel.org; wanghuiqiang <wanghuiqiang@huawei.com>;
-> > steven.price@arm.com; Sami.Mujawar@arm.com; jon@solid-run.com;
-> > eric.auger@redhat.com; laurentiu.tudor@nxp.com; hch@infradead.org
-> > Subject: Re: [PATCH v12 0/9] ACPI/IORT: Support for IORT RMR node
-> >
-> > [with Christoph's correct email address]
-> >
-> > On Tue, May 10, 2022 at 09:07:00AM +0100, Robin Murphy wrote:
-> > > On 2022-05-10 08:23, Shameerali Kolothum Thodi wrote:
-> > > > Hi Joerg/Robin,
-> > > >
-> > > > I think this series is now ready to be merged. Could you please let
-> > > > me know if there is anything missing.
-> > >
-> > > Fine by me - these patches have had enough review and testing now that
-> > > even if anything else did come up, I think it would be better done as
-> > > follow-up work on the merged code.
-> >
-> > Given the ACPICA dependency I believe it is best for this series
-> > to go via the ACPI tree, right ?
-> >
-> > I assume there are all the required ACKs for that to happen.
-> 
-> The SMMUv3/SMMU related changes (patches 6 - 9) still doesn't have
-> explicit ACK from maintainers other than the go ahead above from Robin.
-> 
-> Just thought of highlighting it as not sure that will be an issue or not.
-> 
-
-All,
-
-Just a gentle ping on this series again. Any chance this can make into 5.19?
-
-Please consider.
-
-Thanks,
-Shameer
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index f8c83ee6c8d59..b36cb7e36e420 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -793,7 +793,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 			 * nor integer, return an error, we can't parse it.
+ 			 */
+ 			for (i = 0; element + i < end && i < num_args; i++) {
+-				int type = element[i].type;
++				acpi_object_type type = element[i].type;
+ 
+ 				if (type == ACPI_TYPE_LOCAL_REFERENCE)
+ 					break;
+-- 
+2.30.2
 
