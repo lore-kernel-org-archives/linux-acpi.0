@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B492AC433F5
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 May 2022 13:01:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96BB1C433EF
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 May 2022 13:01:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237621AbiEYNBJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 25 May 2022 09:01:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42180 "EHLO
+        id S243835AbiEYNBZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 25 May 2022 09:01:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243707AbiEYNBI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2022 09:01:08 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B33CDA5AB0
-        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2022 06:01:07 -0700 (PDT)
+        with ESMTP id S243674AbiEYNBK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2022 09:01:10 -0400
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 899C49D4E2
+        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2022 06:01:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1653483667; x=1685019667;
+  t=1653483669; x=1685019669;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=zi5cjQFC1838grmpR4io2PGlZVTBTN4P4rakv1O9iwM=;
-  b=gSpqxvwjw8R/J1palNj9hZGP0qtRy08cWRWCSh3CV5EucFkvXpT56kK0
-   f8vXwzkVIIAtIpggmA7zElNnr8BSrxrae1XMxupF9E77QNdv0av1lKKFy
-   O80K4Wvc1340YjXzUKRmyIhB2gFNBDR7UBB08OPDDx2UEV/jaAZn00c2o
-   eqsRZYZHfaOpu+T/YMiM5aTokSghxM8h+g3b52bpFCOHnG87gyqxp5vrg
-   TtO5T+qhEdXcgwQeAaKnKdbmBSqu+3urIAI5WNi0ndG6Zq8zK84tCGZhB
-   CCASZYUmrXd2LEKRv42PT8B68/Sl2z878xR622UVau3ZDG/rXKKzVirwi
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10357"; a="253679021"
+  bh=S5b95Kaj7dMb6Y2XDMJXvWieDst0bDySoTHaHwIApcQ=;
+  b=K3MDUV2mXPgCFMlYrULiRL6V36LySQuVrcAhfNu7/oTGLniVAMn0gjfv
+   gvkvvPVrmgndvbpq2Ftvo3PElZPs+t1dSW5Q6U5jcfdEMdmBjqE2zAnsT
+   KwKELz2bFn4wKA81ZU/rZiTyX/iX5KSIWSgP/sp0+14S8Xr0iIgFqY/fo
+   kviCgD0jR87PFrKp4zLMiN4WrP3d4KxO9t9eupgwFHJzoqJVjH0xEnClI
+   aCoVs9gnxTkUctNCBnxEevAkTfO39p6f3J2cOZmGGjntr332c2OTRM84V
+   eFNHCpXp8rzmSSD0iIwXt591mDXOTnlI5T31Uuph7QkE0Co/ae3pRwZ1g
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10357"; a="273803063"
 X-IronPort-AV: E=Sophos;i="5.91,250,1647327600"; 
-   d="scan'208";a="253679021"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:01:00 -0700
+   d="scan'208";a="273803063"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:01:01 -0700
 X-IronPort-AV: E=Sophos;i="5.91,250,1647327600"; 
-   d="scan'208";a="676858001"
+   d="scan'208";a="549013051"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:00:59 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:00:59 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 9D92B20799;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 7A630205BD;
         Wed, 25 May 2022 16:00:57 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1ntqdf-003Deg-Ge; Wed, 25 May 2022 16:01:23 +0300
+        id 1ntqdf-003DeX-C7; Wed, 25 May 2022 16:01:23 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH v3 4/8] ACPI: property: Move property ref argument parsing into a new function
-Date:   Wed, 25 May 2022 16:01:19 +0300
-Message-Id: <20220525130123.767410-5-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 1/8] ACPI: property: Return type of acpi_add_nondev_subnodes() should be bool
+Date:   Wed, 25 May 2022 16:01:16 +0300
+Message-Id: <20220525130123.767410-2-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
 References: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
@@ -57,149 +57,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Split out property reference argument parsing out of the
-__acpi_node_get_property_reference() function into a new one,
-acpi_get_ref_args(). The new function will be needed also for parsing
-string references soon.
+The value acpi_add_nondev_subnodes() returns is bool so change the return
+type of the function to match that.
 
+Fixes: 445b0eb058f5 ("ACPI / property: Add support for data-only subnodes")
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 105 +++++++++++++++++++++++-----------------
- 1 file changed, 60 insertions(+), 45 deletions(-)
+ drivers/acpi/property.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index b36cb7e36e420..dd6cce955ee28 100644
+index d3173811614ec..bc9a645f8bb77 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -673,6 +673,60 @@ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
- 	return NULL;
+@@ -155,10 +155,10 @@ static bool acpi_nondev_subnode_ok(acpi_handle scope,
+ 	return acpi_nondev_subnode_data_ok(handle, link, list, parent);
  }
  
-+static int
-+acpi_get_ref_args(struct fwnode_reference_args *args,
-+		  struct fwnode_handle *ref_fwnode,
-+		  const union acpi_object **element,
-+		  const union acpi_object *end, size_t num_args)
-+{
-+	u32 nargs = 0, i;
-+
-+	/*
-+	 * Find the referred data extension node under the
-+	 * referred device node.
-+	 */
-+	for (; *element < end && (*element)->type == ACPI_TYPE_STRING;
-+	     (*element)++) {
-+		const char *child_name = (*element)->string.pointer;
-+
-+		ref_fwnode = acpi_fwnode_get_named_child_node(ref_fwnode,
-+							      child_name);
-+		if (!ref_fwnode)
-+			return -EINVAL;
-+	}
-+
-+	/*
-+	 * Assume the following integer elements are all args. Stop counting on
-+	 * the first reference or end of the package arguments. In case of
-+	 * neither reference, nor integer, return an error, we can't parse it.
-+	 */
-+	for (i = 0; (*element) + i < end && i < num_args; i++) {
-+		acpi_object_type type = (*element)[i].type;
-+
-+		if (type == ACPI_TYPE_LOCAL_REFERENCE)
-+			break;
-+
-+		if (type == ACPI_TYPE_INTEGER)
-+			nargs++;
-+		else
-+			return -EINVAL;
-+	}
-+
-+	if (nargs > NR_FWNODE_REFERENCE_ARGS)
-+		return -EINVAL;
-+
-+	if (args) {
-+		args->fwnode = ref_fwnode;
-+		args->nargs = nargs;
-+		for (i = 0; i < nargs; i++)
-+			args->args[i] = (*element)[i].integer.value;
-+	}
-+
-+	(*element) += nargs;
-+
-+	return 0;
-+}
-+
- /**
-  * __acpi_node_get_property_reference - returns handle to the referenced object
-  * @fwnode: Firmware node to get the property from
-@@ -761,61 +815,22 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
- 	end = element + obj->package.count;
- 
- 	while (element < end) {
--		u32 nargs, i;
--
- 		if (element->type == ACPI_TYPE_LOCAL_REFERENCE) {
--			struct fwnode_handle *ref_fwnode;
--
- 			device = acpi_fetch_acpi_dev(element->reference.handle);
- 			if (!device)
- 				return -EINVAL;
- 
--			nargs = 0;
- 			element++;
- 
--			/*
--			 * Find the referred data extension node under the
--			 * referred device node.
--			 */
--			for (ref_fwnode = acpi_fwnode_handle(device);
--			     element < end && element->type == ACPI_TYPE_STRING;
--			     element++) {
--				ref_fwnode = acpi_fwnode_get_named_child_node(
--					ref_fwnode, element->string.pointer);
--				if (!ref_fwnode)
--					return -EINVAL;
--			}
--
--			/*
--			 * Assume the following integer elements are all args.
--			 * Stop counting on the first reference or end of the
--			 * package arguments. In case of neither reference,
--			 * nor integer, return an error, we can't parse it.
--			 */
--			for (i = 0; element + i < end && i < num_args; i++) {
--				acpi_object_type type = element[i].type;
--
--				if (type == ACPI_TYPE_LOCAL_REFERENCE)
--					break;
--				if (type == ACPI_TYPE_INTEGER)
--					nargs++;
--				else
--					return -EINVAL;
--			}
--
--			if (nargs > NR_FWNODE_REFERENCE_ARGS)
--				return -EINVAL;
--
--			if (idx == index) {
--				args->fwnode = ref_fwnode;
--				args->nargs = nargs;
--				for (i = 0; i < nargs; i++)
--					args->args[i] = element[i].integer.value;
-+			ret = acpi_get_ref_args(idx == index ? args : NULL,
-+						acpi_fwnode_handle(device),
-+						&element, end, num_args);
-+			if (ret < 0)
-+				return ret;
- 
-+			if (idx == index)
- 				return 0;
--			}
- 
--			element += nargs;
- 		} else if (element->type == ACPI_TYPE_INTEGER) {
- 			if (idx == index)
- 				return -ENOENT;
+-static int acpi_add_nondev_subnodes(acpi_handle scope,
+-				    const union acpi_object *links,
+-				    struct list_head *list,
+-				    struct fwnode_handle *parent)
++static bool acpi_add_nondev_subnodes(acpi_handle scope,
++				     const union acpi_object *links,
++				     struct list_head *list,
++				     struct fwnode_handle *parent)
+ {
+ 	bool ret = false;
+ 	int i;
 -- 
 2.30.2
 
