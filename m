@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F3C7C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D894CC433FE
 	for <linux-acpi@archiver.kernel.org>; Wed, 25 May 2022 13:01:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243662AbiEYNBG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S237591AbiEYNBG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Wed, 25 May 2022 09:01:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42038 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243674AbiEYNBD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2022 09:01:03 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0D40A5AA0
-        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2022 06:01:01 -0700 (PDT)
+        with ESMTP id S243698AbiEYNBF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2022 09:01:05 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E059A76EC
+        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2022 06:01:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1653483661; x=1685019661;
+  t=1653483664; x=1685019664;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=1+u3D5272MmR3cXbcceeLW6iNFLPmVc+zRjoajCHDgI=;
-  b=Z/02fRTNyQhWasjpaYSKBoRiJ4/qKk/nRgkjCtKMUcfYltGbW1MbxeZo
-   zloUPu0dA0XxPH46AecNIv0BDiHQlvZVunxG0CuWeC/SqHOTdjA+VgmNB
-   pQf46pZlH1HVkb9QwV9a7OJWX4VGXdk77Z+9CBiTvEL6RACn474RVIMZ2
-   UC+AwvCAf3D6WiVk2K+jaa7mM27PHcnnpzZY6X0MjlPd7MqjEGtWu2a1t
-   vZ6O+xGnCFfcgNjL8El34EZmPoerAK/FLvsOamn8tWdShhaBWaz3jakwE
-   vzeHcScFZ1VIIJLZQ9CrMwAWvXSZ3GWei6Rm/+90Bag5WqpastKa4ZG4Z
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10357"; a="255868667"
+  bh=6YFtl1CncQBs0qabx3ituBdMIf1Q77I6RUiLHnlVTK0=;
+  b=YG4oSYVkt9OYIBCeO+k5OW/ewuGaClbWjs6jGiPqlmatKWf8yKltKhrA
+   0mgvF7pgYEU/4Zqp2oAh8W3DarZhm6cclTJFGw8ZvdGsg0sBwaBfxVV84
+   qf/PW/feV5i8byGa6WYuSjDFIZRT58eO08L6j3avhr0VUT+iwBQhU6z9K
+   9Yms8jJ8bYKCNzKjmGHWKQDuLptrFqAHnlJfEiRN4aUce36ThQdJfPU8O
+   4hSndLaJyUXQXgoVCezzs/S1Vad3kvoWNZlbJ1oYAET0yDHqSA9WBbUjz
+   h718hWgg1pW4IN//78OvIYKq9B1cDBbjdXV5H2ibCS79ozF7LPqlVJQOS
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10357"; a="273915578"
 X-IronPort-AV: E=Sophos;i="5.91,250,1647327600"; 
-   d="scan'208";a="255868667"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:01:01 -0700
+   d="scan'208";a="273915578"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:01:03 -0700
 X-IronPort-AV: E=Sophos;i="5.91,250,1647327600"; 
-   d="scan'208";a="601894138"
+   d="scan'208";a="630337077"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:00:59 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2022 06:01:02 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 860172073E;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id C9895209CC;
         Wed, 25 May 2022 16:00:57 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1ntqdf-003Dea-Db; Wed, 25 May 2022 16:01:23 +0300
+        id 1ntqdf-003Deu-Mm; Wed, 25 May 2022 16:01:23 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH v3 2/8] ACPI: property: Tie data nodes to acpi handles
-Date:   Wed, 25 May 2022 16:01:17 +0300
-Message-Id: <20220525130123.767410-3-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 8/8] ACPI: property: Read buffer properties as integers
+Date:   Wed, 25 May 2022 16:01:23 +0300
+Message-Id: <20220525130123.767410-9-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
 References: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
@@ -57,86 +57,75 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPICA allows associating additional information (i.e. pointers with
-specific tag) to acpi_handles. The acpi_device's are associated to
-acpi_handle's in acpi_tie_acpi_dev() in scan.c, do the same here for the
-_DSD data nodes.
-
-This allows direct data node references in properties, implemented later on
-in the series.
+Instead of adding a new property type, read buffer properties as integers.
+Even though the internal representation in ACPI is different, the data
+type is the same (byte) than on 8-bit integers.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 42 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ drivers/acpi/property.c | 34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index bc9a645f8bb77..f8c83ee6c8d59 100644
+index b07a8c9fee876..9ac5cb03e4914 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -340,6 +340,43 @@ acpi_data_add_props(struct acpi_device_data *data, const guid_t *guid,
- 	return props;
- }
- 
-+static void acpi_nondev_subnode_tag(acpi_handle handle, void *context)
-+{
-+}
-+
-+static void acpi_untie_nondev_subnodes(struct acpi_device_data *data)
-+{
-+	struct acpi_data_node *dn;
-+
-+	list_for_each_entry(dn, &data->subnodes, sibling) {
-+		acpi_detach_data(dn->handle, acpi_nondev_subnode_tag);
-+
-+		acpi_untie_nondev_subnodes(&dn->data);
-+	}
-+}
-+
-+static int acpi_tie_nondev_subnodes(struct acpi_device_data *data)
-+{
-+	struct acpi_data_node *dn;
-+
-+	list_for_each_entry(dn, &data->subnodes, sibling) {
-+		acpi_status status;
-+		int ret;
-+
-+		status = acpi_attach_data(dn->handle, acpi_nondev_subnode_tag, dn);
-+		if (ACPI_FAILURE(status)) {
-+			acpi_handle_err(dn->handle, "Can't tag data node\n");
-+			return 0;
-+		}
-+
-+		ret = acpi_tie_nondev_subnodes(&dn->data);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static bool acpi_extract_properties(const union acpi_object *desc,
- 				    struct acpi_device_data *data)
- {
-@@ -419,7 +456,9 @@ void acpi_init_properties(struct acpi_device *adev)
- 					&adev->data, acpi_fwnode_handle(adev)))
- 		adev->data.pointer = buf.pointer;
- 
--	if (!adev->data.pointer) {
-+	if (!adev->data.pointer ||
-+	    acpi_tie_nondev_subnodes(&adev->data) < 0) {
-+		acpi_untie_nondev_subnodes(&adev->data);
- 		acpi_handle_debug(adev->handle, "Invalid _DSD data, skipping\n");
- 		ACPI_FREE(buf.pointer);
+@@ -1031,6 +1031,10 @@ static int acpi_data_prop_read_single(const struct acpi_device_data *data,
+ 		int ret = 0;						\
+ 									\
+ 		for (i = 0; i < (nval); i++) {				\
++			if ((items)->type == ACPI_TYPE_BUFFER) {	\
++				(val)[i] = (items)->buffer.pointer[i];	\
++				continue;				\
++			}						\
+ 			if ((items)[i].type != ACPI_TYPE_INTEGER) {	\
+ 				ret = -EPROTO;				\
+ 				break;					\
+@@ -1090,18 +1094,40 @@ static int acpi_data_prop_read(const struct acpi_device_data *data,
  	}
-@@ -462,6 +501,7 @@ static void acpi_destroy_nondev_subnodes(struct list_head *list)
  
- void acpi_free_properties(struct acpi_device *adev)
- {
-+	acpi_untie_nondev_subnodes(&adev->data);
- 	acpi_destroy_nondev_subnodes(&adev->data.subnodes);
- 	ACPI_FREE((void *)adev->data.pointer);
- 	adev->data.of_compatible = NULL;
+ 	ret = acpi_data_get_property_array(data, propname, ACPI_TYPE_ANY, &obj);
++	if (ret && proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64)
++		ret = acpi_data_get_property(data, propname, ACPI_TYPE_BUFFER,
++					     &obj);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!val)
++	if (!val) {
++		if (obj->type == ACPI_TYPE_BUFFER)
++			return obj->buffer.length;
++
+ 		return obj->package.count;
++	}
+ 
+-	if (proptype != DEV_PROP_STRING && nval > obj->package.count)
+-		return -EOVERFLOW;
++	switch (proptype) {
++	case DEV_PROP_STRING:
++		break;
++	case DEV_PROP_U8 ... DEV_PROP_U64:
++		if (obj->type == ACPI_TYPE_BUFFER) {
++			if (nval <= obj->buffer.length)
++				break;
++			return -EOVERFLOW;
++		}
++		fallthrough;
++	default:
++		if (nval > obj->package.count)
++			return -EOVERFLOW;
++	}
+ 	if (nval == 0)
+ 		return -EINVAL;
+ 
+-	items = obj->package.elements;
++	if (obj->type != ACPI_TYPE_BUFFER)
++		items = obj->package.elements;
++	else
++		items = obj;
+ 
+ 	switch (proptype) {
+ 	case DEV_PROP_U8:
 -- 
 2.30.2
 
