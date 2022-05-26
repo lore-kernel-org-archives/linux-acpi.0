@@ -2,121 +2,139 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C5F4C4332F
-	for <linux-acpi@archiver.kernel.org>; Thu, 26 May 2022 08:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D398BC433F5
+	for <linux-acpi@archiver.kernel.org>; Thu, 26 May 2022 19:19:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345368AbiEZIQw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 26 May 2022 04:16:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39296 "EHLO
+        id S1348704AbiEZTTb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 26 May 2022 15:19:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346687AbiEZIQg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 May 2022 04:16:36 -0400
-Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83FA04C7BB
-        for <linux-acpi@vger.kernel.org>; Thu, 26 May 2022 01:16:17 -0700 (PDT)
-Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-2fed274f3fbso7281627b3.17
-        for <linux-acpi@vger.kernel.org>; Thu, 26 May 2022 01:16:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=6dgEjD+4R2dKDRgscs/xv70YgyhfXrRwkUylnVTphfk=;
-        b=XL1eUaOAcssMtqvMAb2JLoXAqGRiBPWRpPBJh6rTDvytgReAH+LjXHDFnDZXS9f9I2
-         35g3JMRGxQZlCvxOhWMcOSoY7fmD/fBdQK3AfpTe4+KDVzo3ISAmWs2bpcJGBQMEHxn2
-         XOrBvHACbTqtONiyNPB/vydyMzterA8qUwVfxsEqd+Vz+8qcEbmdk9FVpwyv4JToLFBL
-         EPR58mdlFaKlltO8fCr0xZCvNvm+F4UFw5xJYUT6ue5rms9F3TPGMAGF7HdiGvNufzye
-         R8r2YJjaY8RuLAuVFWX7SLMYTTkhhepWRDKwQDGC55z4gixqwa9JauWCwnOhgDgX/TTb
-         SoiA==
+        with ESMTP id S1348719AbiEZTTa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 May 2022 15:19:30 -0400
+Received: from mail-yw1-f177.google.com (mail-yw1-f177.google.com [209.85.128.177])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C21F72980C
+        for <linux-acpi@vger.kernel.org>; Thu, 26 May 2022 12:19:29 -0700 (PDT)
+Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-2ef5380669cso25763227b3.9
+        for <linux-acpi@vger.kernel.org>; Thu, 26 May 2022 12:19:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=6dgEjD+4R2dKDRgscs/xv70YgyhfXrRwkUylnVTphfk=;
-        b=i6ymNG0txeD66k0R4/XzqEnHlx5LF222RMIsVaBosi+/1FDDPSTWprdv1kEUVqRuvd
-         8mmtyCbGwtn0qnF6q8YWP5hvUM0D3O6xc5IAulSJggjzXuYJFmXNWv+PLTo7uNas6HyJ
-         m8EKcPmtbvLktreew1IbyIsiCAiBWdvaC3p7or3zYV7d80xwO6P/PGcI9MWKOhPe2f41
-         KFlO40/WW8/eDO/NERAzRYa6BrbIx8KfcwWAHJRZFxHT1xU+nSL6tsA46dlojOZ0PRrU
-         TM8wVrs41p6kYXtOituy9MDvy843jQeKCr3blTKFuaWcCos2BfmYpVK+3+Ox2NK5j5ib
-         nyEQ==
-X-Gm-Message-State: AOAM533WFQg1fwqVt3QNCwzQDt1jup6kMdn6eF9/2C/JKcUuz6ViLz37
-        OG2TIs9VsACUGIcevYoCjbUFo5cjKLoMGZA=
-X-Google-Smtp-Source: ABdhPJx5hTzSS2LFu7RkqlQ7KLRzxV0Py+PZHVG9x+dcAcINC/1HXYTnTXlf9OdhjLu3DXMEHDG7SkiPohYReIE=
-X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:ff1f:a3b7:b6de:d30f])
- (user=saravanak job=sendgmr) by 2002:a25:fb12:0:b0:64d:d6fb:406a with SMTP id
- j18-20020a25fb12000000b0064dd6fb406amr34790013ybe.433.1653552977155; Thu, 26
- May 2022 01:16:17 -0700 (PDT)
-Date:   Thu, 26 May 2022 01:15:47 -0700
-In-Reply-To: <20220526081550.1089805-1-saravanak@google.com>
-Message-Id: <20220526081550.1089805-9-saravanak@google.com>
-Mime-Version: 1.0
-References: <20220526081550.1089805-1-saravanak@google.com>
-X-Mailer: git-send-email 2.36.1.124.g0e6072fb45-goog
-Subject: [RFC PATCH v1 8/9] net: ipconfig: Force fw_devlink to unblock any
- devices that might probe
-From:   Saravana Kannan <saravanak@google.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=NgXAO40gBIUu1WUEitfXKOQleyYY2QlsEz9jRKAKfEM=;
+        b=31idHmDXSJWh+qJuLyiI+tUVS8SgEGWnuQDiZK+7qUYqWq5E/+sNsOiGROvxGW4DSA
+         egsLCmmu443+o8QpgTX16y5oRCsJwSMmfclrRL7JZEvBXvvgbNeyWC6joFaMRU4Mrnfi
+         29/eutgdd/Mg/bmVamF/fCRWrADt8q2bO9TTcr7FfTEIPXB5MtoP48vDfR5Kjc2Q7Ll7
+         PyegcIw7zXvtHCpDQRpECnVYeOdFQeYJFSTHxX/+JTP2eNBYeHAviOWe8tynVgmOh0Dg
+         d6duyfhg6sTNV0P04DCFasKE9upRkBzzXBB1LJVNWTMDGfXUeoFPHTReMNyhr8a7kfZX
+         OOHg==
+X-Gm-Message-State: AOAM531L3PZexiyPJNvFgltgtXGZMXPtHqXXC+bpAHY55aEXRXf2UW0p
+        QRE4PFHgSt1FPpXTQ0bWuKh/Xa3ETrQ7eSTnQtzwurOD
+X-Google-Smtp-Source: ABdhPJyStcz0BCiDJHyEn6Fd9ODy2pVez1ESnH1qgNfaBLGtUgvxQnV374PGU3VqeTMztgwbbjznN39ASx+f/NZbrnc=
+X-Received: by 2002:a0d:c442:0:b0:2fe:beab:1fef with SMTP id
+ g63-20020a0dc442000000b002febeab1fefmr41387396ywd.196.1653592769022; Thu, 26
+ May 2022 12:19:29 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220525130123.767410-1-sakari.ailus@linux.intel.com> <20220525130123.767410-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20220525130123.767410-3-sakari.ailus@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 26 May 2022 21:19:17 +0200
+Message-ID: <CAJZ5v0jrFQk2aH78Fg=W+6KAzhony3yZ+NjYy8ki5atKoaPwLw@mail.gmail.com>
+Subject: Re: [PATCH v3 2/8] ACPI: property: Tie data nodes to acpi handles
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>,
-        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>
-Cc:     Saravana Kannan <saravanak@google.com>,
-        Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>,
-        John Stultz <jstultz@google.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        kernel-team@android.com, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org, iommu@lists.linux-foundation.org,
-        netdev@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org
+        "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-If there are network devices that could probe without some of their
-suppliers probing and those network devices are needed for IP auto
-config to work, then fw_devlink=on might break that usecase by blocking
-the network devices from probing by the time IP auto config starts.
+On Wed, May 25, 2022 at 3:01 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> ACPICA allows associating additional information (i.e. pointers with
+> specific tag) to acpi_handles. The acpi_device's are associated to
+> acpi_handle's in acpi_tie_acpi_dev() in scan.c, do the same here for the
+> _DSD data nodes.
+>
+> This allows direct data node references in properties, implemented later on
+> in the series.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/acpi/property.c | 42 ++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 41 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index bc9a645f8bb77..f8c83ee6c8d59 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -340,6 +340,43 @@ acpi_data_add_props(struct acpi_device_data *data, const guid_t *guid,
+>         return props;
+>  }
+>
+> +static void acpi_nondev_subnode_tag(acpi_handle handle, void *context)
+> +{
+> +}
+> +
+> +static void acpi_untie_nondev_subnodes(struct acpi_device_data *data)
+> +{
+> +       struct acpi_data_node *dn;
+> +
+> +       list_for_each_entry(dn, &data->subnodes, sibling) {
+> +               acpi_detach_data(dn->handle, acpi_nondev_subnode_tag);
+> +
+> +               acpi_untie_nondev_subnodes(&dn->data);
+> +       }
+> +}
+> +
+> +static int acpi_tie_nondev_subnodes(struct acpi_device_data *data)
+> +{
+> +       struct acpi_data_node *dn;
+> +
+> +       list_for_each_entry(dn, &data->subnodes, sibling) {
+> +               acpi_status status;
+> +               int ret;
+> +
+> +               status = acpi_attach_data(dn->handle, acpi_nondev_subnode_tag, dn);
+> +               if (ACPI_FAILURE(status)) {
+> +                       acpi_handle_err(dn->handle, "Can't tag data node\n");
+> +                       return 0;
+> +               }
+> +
+> +               ret = acpi_tie_nondev_subnodes(&dn->data);
+> +               if (ret)
+> +                       return ret;
 
-So, when IP auto config is enabled, make sure fw_devlink doesn't block
-the probing of any device that has a driver by the time we get to IP
-auto config.
+Is it actually possible that this returns anything different from 0?
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- net/ipv4/ipconfig.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/ipv4/ipconfig.c b/net/ipv4/ipconfig.c
-index 9d41d5d5cd1e..aa7b8ba68ca6 100644
---- a/net/ipv4/ipconfig.c
-+++ b/net/ipv4/ipconfig.c
-@@ -1435,6 +1435,8 @@ static int __init wait_for_devices(void)
- {
- 	int i;
- 
-+	fw_devlink_unblock_may_probe();
-+
- 	for (i = 0; i < DEVICE_WAIT_MAX; i++) {
- 		struct net_device *dev;
- 		int found = 0;
--- 
-2.36.1.124.g0e6072fb45-goog
-
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static bool acpi_extract_properties(const union acpi_object *desc,
+>                                     struct acpi_device_data *data)
+>  {
+> @@ -419,7 +456,9 @@ void acpi_init_properties(struct acpi_device *adev)
+>                                         &adev->data, acpi_fwnode_handle(adev)))
+>                 adev->data.pointer = buf.pointer;
+>
+> -       if (!adev->data.pointer) {
+> +       if (!adev->data.pointer ||
+> +           acpi_tie_nondev_subnodes(&adev->data) < 0) {
+> +               acpi_untie_nondev_subnodes(&adev->data);
+>                 acpi_handle_debug(adev->handle, "Invalid _DSD data, skipping\n");
+>                 ACPI_FREE(buf.pointer);
+>         }
+> @@ -462,6 +501,7 @@ static void acpi_destroy_nondev_subnodes(struct list_head *list)
+>
+>  void acpi_free_properties(struct acpi_device *adev)
+>  {
+> +       acpi_untie_nondev_subnodes(&adev->data);
+>         acpi_destroy_nondev_subnodes(&adev->data.subnodes);
+>         ACPI_FREE((void *)adev->data.pointer);
+>         adev->data.of_compatible = NULL;
+> --
+> 2.30.2
+>
