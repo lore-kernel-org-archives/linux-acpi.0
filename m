@@ -2,98 +2,111 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3FA7C433F5
-	for <linux-acpi@archiver.kernel.org>; Fri, 27 May 2022 10:02:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 821DBC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 27 May 2022 12:45:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350747AbiE0KCB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 27 May 2022 06:02:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41482 "EHLO
+        id S239316AbiE0Mpa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 27 May 2022 08:45:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350728AbiE0KCA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2022 06:02:00 -0400
+        with ESMTP id S1352923AbiE0Mon (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2022 08:44:43 -0400
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FDDF5B3F0
-        for <linux-acpi@vger.kernel.org>; Fri, 27 May 2022 03:01:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 057D117A88
+        for <linux-acpi@vger.kernel.org>; Fri, 27 May 2022 05:43:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1653645719; x=1685181719;
+  t=1653655418; x=1685191418;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=AAr/czPNDSFNgpifeUkpIuwM+0tIfgiUZBVSrJjoKbs=;
-  b=FGtSV9BHUJ0ia8MVtIyvJA/quLexnLT9YrbFdhleZstsfrSzKiAyLt/o
-   ceNlQQ5ffl0zZomWxHj1iI3fdntJcRbcEiLzUxHxD2j50CE6+xDsjYC0+
-   CKFEDYB2OPIUq1u70bTr6ji1u5g3n/pCh9ilx5ft6YaamXf9aPezJ3fDN
-   orluRPVQIcDF0N/HboD58YKAIDVjOPkrF5a+Ijg9/zlmEHckTVag4FRkV
-   jFE8fWZ6urLiRKAcaUapaeysP8Gua6+M8T7I/szKtFt2HKnuGULpWBq3d
-   4ho8W78qyBh37D7V/MenuxnepzHBxrr8Q5ubyScLVND+a2I30wLtAxe1X
+  bh=mgb2inh/KPajRf59aaZDnbQKbztDLPP9kUPYrp4i3ZY=;
+  b=BWpIeD8dn1bUfW5Vvt+rPmsuZmtYQGd7GkKA6d7INdGVle2H5xyyot6n
+   RG/cw6furHcMZgpvuH4JxvdKcYHzBwTgIlL2HnR0ozn19RKTWTLoeMtY+
+   qfld8EdLYonujOXuyvXpJUxRqBqYJ9U5nH1rOOr1bgaHR36gFNSafmjFH
+   8Br3hmNZK9ETcQgpIMsPwIreq/GDSzAbRASDs6oKeA79yuo7tPgc+my2O
+   fowF8547IUhIoRbm1RA2atukGx/h8Zag/bRt05POMQxZoO9AZNHvh25G9
+   nsO1Qu7D/+hbC4F0rh/ckHlCFHdHDHdsJ/pl3QuYcJQYvn5GrNielFIYP
    A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10359"; a="335088311"
+X-IronPort-AV: E=McAfee;i="6400,9594,10359"; a="335119316"
 X-IronPort-AV: E=Sophos;i="5.91,255,1647327600"; 
-   d="scan'208";a="335088311"
+   d="scan'208";a="335119316"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2022 03:01:59 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2022 05:43:37 -0700
 X-IronPort-AV: E=Sophos;i="5.91,255,1647327600"; 
-   d="scan'208";a="560686081"
+   d="scan'208";a="560752155"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2022 03:01:58 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2022 05:43:36 -0700
 Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with SMTP id DA4E6201A7;
-        Fri, 27 May 2022 13:01:55 +0300 (EEST)
-Date:   Fri, 27 May 2022 13:01:55 +0300
+        by paasikivi.fi.intel.com (Postfix) with SMTP id E45182057F;
+        Fri, 27 May 2022 15:43:33 +0300 (EEST)
+Date:   Fri, 27 May 2022 15:43:33 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@intel.com>
 Cc:     linux-acpi@vger.kernel.org, rafael@kernel.org
-Subject: Re: [PATCH v3 8/8] ACPI: property: Read buffer properties as integers
-Message-ID: <YpChk8dtDe/xqMOQ@paasikivi.fi.intel.com>
+Subject: Re: [PATCH v3 7/8] ACPI: property: Add support for parsing buffer
+ property UUID
+Message-ID: <YpDHdVa574WiyxCD@paasikivi.fi.intel.com>
 References: <20220525130123.767410-1-sakari.ailus@linux.intel.com>
- <20220525130123.767410-9-sakari.ailus@linux.intel.com>
- <Yo5pNjsb2oNX9Knf@smile.fi.intel.com>
+ <20220525130123.767410-8-sakari.ailus@linux.intel.com>
+ <Yo5q6/qVkRyESOa+@smile.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Yo5pNjsb2oNX9Knf@smile.fi.intel.com>
+In-Reply-To: <Yo5q6/qVkRyESOa+@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 Hi Andy,
 
-On Wed, May 25, 2022 at 08:36:54PM +0300, Andy Shevchenko wrote:
-> On Wed, May 25, 2022 at 04:01:23PM +0300, Sakari Ailus wrote:
-> > Instead of adding a new property type, read buffer properties as integers.
-> > Even though the internal representation in ACPI is different, the data
-> > type is the same (byte) than on 8-bit integers.
+On Wed, May 25, 2022 at 08:44:11PM +0300, Andy Shevchenko wrote:
+> On Wed, May 25, 2022 at 04:01:22PM +0300, Sakari Ailus wrote:
+> > Add support for newly added buffer property UUID, as defined in the DSD
+> > guide.
 > 
 > ...
 > 
-> > +	switch (proptype) {
-> > +	case DEV_PROP_STRING:
-> > +		break;
-> > +	case DEV_PROP_U8 ... DEV_PROP_U64:
-> > +		if (obj->type == ACPI_TYPE_BUFFER) {
+> > +	if (check_mul_overflow((size_t)properties->package.count,
 > 
-> > +			if (nval <= obj->buffer.length)
-> > +				break;
-> > +			return -EOVERFLOW;
-> 
-> Why not traditional pattern and be consistent with default case?
-> 
-> 			if (nval > obj->buffer.length)
-> 				return -EOVERFLOW;
-> 			break;
+> Why do you need casting? Any issues on 32-bit compilation?
 
-Agreed.
+I think it can be removed. I'll see.
 
 > 
+> Looking at the below code snippets, it seems you also can have a local
+> copy with needed type and use it everywhere (as outer_package_count or so).
+> But first question first...
+
+u32 should be fine.
+
+> 
+> > +			       sizeof(*package) + sizeof(void *),
+> > +			       &alloc_size) ||
+> > +	    check_add_overflow(sizeof(*props) + sizeof(*package), alloc_size,
+> > +			       &alloc_size)) {
+> > +		acpi_handle_warn(handle,
+> > +				 "can't allocate memory for %u buffer props",
+> > +				 properties->package.count);
+> > +		return;
+> > +	}
+> 
+> ...
+> 
+> > +		if (ACPI_FAILURE(status)) {
+> > +			acpi_handle_warn(handle,
+> > +					 "can't evaluate \"%s\" as buffer\n",
+> > +					 obj->string.pointer);
+> 
+> I'm wondering if better to use %*pE here to show the full data of the buffer.
+
+The string is supposed to be printable. If it's not, something is seriously
+wrong. There's no harm though to prepare for this possibility. It'll make
+backslashes printing twice but that is hardly an issue in practice.
+
+> 
+> > +			continue;
 > > +		}
-> > +		fallthrough;
-> > +	default:
-> > +		if (nval > obj->package.count)
-> > +			return -EOVERFLOW;
 > 
-> I would add break statement here.
-
-Sounds good.
 
 -- 
 Sakari Ailus
