@@ -2,105 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92843C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 May 2022 14:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F196C433EF
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 May 2022 15:47:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237146AbiE3OYD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 May 2022 10:24:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40116 "EHLO
+        id S241608AbiE3Pr3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 May 2022 11:47:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240968AbiE3OUs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 May 2022 10:20:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C58E1269A7;
-        Mon, 30 May 2022 06:50:10 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S242366AbiE3PrL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 May 2022 11:47:11 -0400
+Received: from mailbox.box.xen0n.name (mail.xen0n.name [115.28.160.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86C72222A18;
+        Mon, 30 May 2022 08:00:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=xen0n.name; s=mail;
+        t=1653922822; bh=s1QiOz9wspSFr3MKcctc4iYPmhaFi0B1Ir77QXPhGkQ=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=XfTYcoObJmrg/JDjGJc1MTn8iRm6p9KRmLhJGb19BxuVDXKKtNE0cQ2gWHsF9L+p0
+         dIpeX7wWK2a9S4ui6qfeVUc2FQZiqJyJIw5ZbLpSGeapzW6+8zzFTniivYOrQZqCSp
+         2f7dkspWYhoyPbx9PLNCS+9mqHuvG4xR3MX9aq/M=
+Received: from [192.168.9.172] (unknown [101.88.28.48])
+        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A6CE760FCC;
-        Mon, 30 May 2022 13:48:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 206C1C36AEA;
-        Mon, 30 May 2022 13:48:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1653918520;
-        bh=+y+tqItgn462wYbLLs6LsQooLjpGTjCvYb7UO89/G2c=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Np8mF6Nt2o8fDJNF5jjiSbJnrYt/QmU7/taIINYP/txt5wg+E3lJkuGSBQIkiKRxd
-         ojOLjiElxeuF/NOb8b88Kythf/BkOLCxixQf2zaiCBKR1NHtolcTn4AitEWf+qEYHz
-         huO912CGrOoVmKpyWipluX2yn8dpSsORb06J99aqcvT7/lGOEx1JrrvVm2gEZ1O33X
-         CR7C4pwHIzCtfz3OvpQCEL7Qu96rFabkLkm152hWoVOVcLNIWksoCFIpJGnwVXZxN5
-         atwwkYQ/35wz+M+q9/hJmdhFiMswQmAEWDNgZh50MZ0LDp/JrgZ+HfzM9m1VGF6wlb
-         X4N6McXMobRNQ==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mario Limonciello <mario.limonciello@amd.com>,
-        Jian-Hong Pan <jhp@endlessos.org>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 38/55] ACPI: PM: Block ASUS B1400CEAE from suspend to idle by default
-Date:   Mon, 30 May 2022 09:46:44 -0400
-Message-Id: <20220530134701.1935933-38-sashal@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220530134701.1935933-1-sashal@kernel.org>
-References: <20220530134701.1935933-1-sashal@kernel.org>
+        by mailbox.box.xen0n.name (Postfix) with ESMTPSA id EB8A86011F;
+        Mon, 30 May 2022 23:00:21 +0800 (CST)
+Message-ID: <358025d1-28e6-708b-d23d-3f22ae12a800@xen0n.name>
+Date:   Mon, 30 May 2022 23:00:21 +0800
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.0a1
+Subject: Re: [GIT PULL] asm-generic changes for 5.19
+To:     Huacai Chen <chenhuacai@kernel.org>,
+        Arnd Bergmann <arnd@kernel.org>
+Cc:     WANG Xuerui <kernel@xen0n.name>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        libc-alpha@sourceware.org,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Marc Zyngier <maz@kernel.org>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        musl@lists.openwall.com,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Jianmin Lv <lvjianmin@loongson.cn>,
+        linux-pci <linux-pci@vger.kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Huacai Chen <chenhuacai@loongson.cn>
+References: <CAK8P3a2_52JPnBWNvTTkFVwLxPAa7=NaQ4whwC1UeH_NYHeUKQ@mail.gmail.com>
+ <CAK8P3a0SpU1n+29KQxzKnPRvzmDE=L0V9RUpKxhemv=74kevcQ@mail.gmail.com>
+ <df5c406c-eec6-c340-2847-49670b7fe8bf@xen0n.name>
+ <CAK8P3a3awFdB1-G65DC38NBuSTvo6SvFTaS0m9YBxunHjHjQvQ@mail.gmail.com>
+ <CAAhV-H6sNr-yo8brBFtzziH6k9Tby0dFp7yehK55SfH5HjZ8hQ@mail.gmail.com>
+Content-Language: en-US
+From:   WANG Xuerui <kernel@xen0n.name>
+In-Reply-To: <CAAhV-H6sNr-yo8brBFtzziH6k9Tby0dFp7yehK55SfH5HjZ8hQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Mario Limonciello <mario.limonciello@amd.com>
+On 5/30/22 21:01, Huacai Chen wrote:
+> Hi, Arnd,
+>
+> On Mon, May 30, 2022 at 4:21 PM Arnd Bergmann <arnd@kernel.org> wrote:
+>> On Sun, May 29, 2022 at 3:10 PM WANG Xuerui <kernel@xen0n.name> wrote:
+>>> But what for the users and downstream projects? Do the users owning
+>>> LoongArch hardware (me included) and projects/companies porting their
+>>> offerings have to pay for Loongson's mistakes and wait another [2mo,
+>>> 1yr], "ideally" also missing the glibc 2.36 release too?
+>> ...
+>>> Lastly, I'd like to clarify, that this is by no means a
+>>> passive-aggressive statement to make the community look like "the bad
+>>> guy", or to make Loongson "look bad"; I just intend to provide a
+>>> hopefully fresh perspective from a/an {end user, hobbyist kernel
+>>> developer, distro developer, native Chinese speaker with a hopefully
+>>> decent grasp of English}'s view.
+>> Your feedback has been extremely valuable, as always. I definitely
+>> don't want to hold up merging the port for the glibc-2.36 release. If
+>> that is a risk, and if merging the architecture port without the drivers
+>> helps with that, I agree we should just do that. This will also help
+>> with build testing and any treewide changes that are going to be
+>> done on top of v5.19-rc1.
+>>
+>> For the continuous maintenance, would you be available as an
+>> additional Reviewer or co-maintainer to be listed in the maintainers
+>> file? I think in general it is a good idea to have at least one maintainer
+>> that is not directly part of the organization that owns the product,
+>> and you are clearly the best person outside of loongson technology
+>> for this.
+> Yes, Xuerui is very suitable as a Reviewer.
 
-[ Upstream commit d52848620de00cde4a3a5df908e231b8c8868250 ]
+Thanks for the recognition from both of you; it is my honor and pleasure 
+to contribute to the LoongArch port and to Linux in general.
 
-ASUS B1400CEAE fails to resume from suspend to idle by default.  This was
-bisected back to commit df4f9bc4fb9c ("nvme-pci: add support for ACPI
-StorageD3Enable property") but this is a red herring to the problem.
+As I'm still not entirely satisfied with my kernel development skills, 
+plus my day job is not kernel-related nor Loongson/LoongArch-related at 
+all, listing me as reviewer should be enough for now. I will take care 
+of the arch as long as I have the hardware.
 
-Before this commit the system wasn't getting into deepest sleep state.
-Presumably this commit is allowing entry into deepest sleep state as
-advertised by firmware, but there are some other problems related to
-the wakeup.
-
-As it is confirmed the system works properly with S3, set the default for
-this system to S3.
-
-Reported-by: Jian-Hong Pan <jhp@endlessos.org>
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=215742
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-Tested-by: Jian-Hong Pan <jhp@endlessos.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/sleep.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index b0e23e3fe0d5..34966128293b 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -374,6 +374,18 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "20GGA00L00"),
- 		},
- 	},
-+	/*
-+	 * ASUS B1400CEAE hangs on resume from suspend (see
-+	 * https://bugzilla.kernel.org/show_bug.cgi?id=215742).
-+	 */
-+	{
-+	.callback = init_default_s3,
-+	.ident = "ASUS B1400CEAE",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "ASUS EXPERTBOOK B1400CEAE"),
-+		},
-+	},
- 	{},
- };
- 
--- 
-2.35.1
+BTW, there were already several breakages when rebasing the previous 
+revision (I believe it's commit 215da6d2dac0 ("MAINTAINERS: Add 
+maintainer information for LoongArch")) on top of linus' tree. Now I see 
+the loongarch-next HEAD is already rebased on top of what I believe to 
+be the current main branch, however I vaguely remember that it's not 
+good to base one's patches on top of "some random commit", so I wonder 
+whether the current branch state is appropriate for a PR?
 
