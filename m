@@ -2,33 +2,33 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34427C43334
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A95C2C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:09:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243587AbiFGMJG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jun 2022 08:09:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56246 "EHLO
+        id S242324AbiFGMJH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jun 2022 08:09:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243585AbiFGMI7 (ORCPT
+        with ESMTP id S243584AbiFGMI7 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 08:08:59 -0400
-X-Greylist: delayed 63 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 05:08:55 PDT
-Received: from esa7.hc1455-7.c3s2.iphmx.com (esa7.hc1455-7.c3s2.iphmx.com [139.138.61.252])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7589E8D6B7
-        for <linux-acpi@vger.kernel.org>; Tue,  7 Jun 2022 05:08:53 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="54332932"
+X-Greylist: delayed 70 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 05:08:55 PDT
+Received: from esa1.hc1455-7.c3s2.iphmx.com (esa1.hc1455-7.c3s2.iphmx.com [207.54.90.47])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75AA29157C
+        for <linux-acpi@vger.kernel.org>; Tue,  7 Jun 2022 05:08:54 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="75590270"
 X-IronPort-AV: E=Sophos;i="5.91,283,1647270000"; 
-   d="scan'208";a="54332932"
-Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
-  by esa7.hc1455-7.c3s2.iphmx.com with ESMTP; 07 Jun 2022 21:07:48 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-        by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 51419D5028;
-        Tue,  7 Jun 2022 21:07:47 +0900 (JST)
+   d="scan'208";a="75590270"
+Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
+  by esa1.hc1455-7.c3s2.iphmx.com with ESMTP; 07 Jun 2022 21:07:41 +0900
+Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
+        by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id E57B4D63B8;
+        Tue,  7 Jun 2022 21:07:40 +0900 (JST)
 Received: from oym-om4.fujitsu.com (oym-om4.o.css.fujitsu.com [10.85.58.164])
-        by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7901FD35B2;
-        Tue,  7 Jun 2022 21:07:46 +0900 (JST)
+        by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 1C6D5BF4BA;
+        Tue,  7 Jun 2022 21:07:40 +0900 (JST)
 Received: from cn-r05-10.example.com (n3235113.np.ts.nmh.cs.fujitsu.co.jp [10.123.235.113])
-        by oym-om4.fujitsu.com (Postfix) with ESMTP id EB3744008021D;
-        Tue,  7 Jun 2022 21:07:45 +0900 (JST)
+        by oym-om4.fujitsu.com (Postfix) with ESMTP id D44CA40080208;
+        Tue,  7 Jun 2022 21:07:39 +0900 (JST)
 From:   Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
 To:     catalin.marinas@arm.com, will@kernel.org, tglx@linutronix.de,
         mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
@@ -42,9 +42,9 @@ To:     catalin.marinas@arm.com, will@kernel.org, tglx@linutronix.de,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org
 Cc:     tarumizu.kohei@fujitsu.com
-Subject: [PATCH v5 5/6] x86: Add Kconfig/Makefile to build hardware prefetch control driver
-Date:   Tue,  7 Jun 2022 21:05:29 +0900
-Message-Id: <20220607120530.2447112-6-tarumizu.kohei@fujitsu.com>
+Subject: [PATCH v5 3/6] arm64: Create cache sysfs directory without ACPI PPTT for hardware prefetch control
+Date:   Tue,  7 Jun 2022 21:05:27 +0900
+Message-Id: <20220607120530.2447112-4-tarumizu.kohei@fujitsu.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
 References: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
@@ -55,69 +55,141 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This adds Kconfig/Makefile to build hardware prefetch control driver
-for x86 support. This also adds a MAINTAINERS entry.
+Create a cache sysfs directory without ACPI PPTT if the CPU model is
+A64FX and CONFIG_ALLOW_INCOMPLETE_CACHE_SYSFS is true. Currentry,
+CONFIG_ALLOW_INCOMPLETE_CACHE_SYSFS is set only when
+CONFIG_A64FX_HWPF_CONTROL is enabled.
+
+Hardware prefetch control driver need cache sysfs directory and cache
+level/type information. In ARM processor, these information can be
+obtained from the register even without PPTT.
+
+This patch set the cpu_map_populated to true if the machine doesn't
+have PPTT. It use only the level/type information obtained from
+CLIDR_EL1, and don't use CCSIDR information.
 
 Signed-off-by: Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
 ---
- MAINTAINERS                  |  1 +
- arch/x86/Kconfig             | 17 +++++++++++++++++
- arch/x86/kernel/cpu/Makefile |  2 ++
- 3 files changed, 20 insertions(+)
+ arch/arm64/kernel/cacheinfo.c | 27 +++++++++++++++++++++++++++
+ drivers/acpi/pptt.c           | 18 ++++++++++++++++++
+ include/linux/acpi.h          |  5 +++++
+ include/linux/cacheinfo.h     | 10 ++++++++++
+ 4 files changed, 60 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b3e920a8a044..4f44bbef2614 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8623,6 +8623,7 @@ K:	(devm_)?hwmon_device_(un)?register(|_with_groups|_with_info)
- HARDWARE PREFETCH CONTROL DRIVERS
- M:	Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
- S:	Maintained
-+F:	arch/x86/kernel/cpu/x86-pfctl.c
- F:	drivers/soc/fujitsu/a64fx-pfctl.c
+diff --git a/arch/arm64/kernel/cacheinfo.c b/arch/arm64/kernel/cacheinfo.c
+index 587543c6c51c..3b337a425acb 100644
+--- a/arch/arm64/kernel/cacheinfo.c
++++ b/arch/arm64/kernel/cacheinfo.c
+@@ -43,6 +43,30 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+ 	this_leaf->type = type;
+ }
  
- HARDWARE RANDOM NUMBER GENERATOR CORE
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 4bed3abf444d..3ee173483f9f 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1359,6 +1359,23 @@ config X86_CPUID
- 	  with major 203 and minors 0 to 31 for /dev/cpu/0/cpuid to
- 	  /dev/cpu/31/cpuid.
++static const struct midr_range allow_list[] = {
++	MIDR_ALL_VERSIONS(MIDR_FUJITSU_A64FX),
++};
++
++/*
++ * This function works only for FUJITSU A64FX processor.
++ * If CONFIG_ALLOW_INCOMPLETE_CACHE_SYSFS is not defined, do nothing.
++ *
++ * Hardware prefetch functions need cache sysfs directory and cache
++ * level/type information. In ARM processor, these information can be
++ * obtained from registers even without PPTT. Therefore, we set the
++ * cpu_map_populated to true to create cache sysfs directory, if the
++ * machine doesn't have PPTT.
++ */
++static void allow_incomplete_cache_sysfs(struct cpu_cacheinfo *cpu_ci)
++{
++	if (!is_midr_in_range_list(read_cpuid_id(), allow_list))
++		return;
++
++	if (!acpi_disabled)
++		if (!acpi_has_pptt())
++			enable_cpu_map_populated(cpu_ci);
++}
++
+ int init_cache_level(unsigned int cpu)
+ {
+ 	unsigned int ctype, level, leaves, fw_level;
+@@ -95,5 +119,8 @@ int populate_cache_leaves(unsigned int cpu)
+ 			ci_leaf_init(this_leaf++, type, level);
+ 		}
+ 	}
++
++	allow_incomplete_cache_sysfs(this_cpu_ci);
++
+ 	return 0;
+ }
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index 701f61c01359..fcd7295b81d7 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -838,3 +838,21 @@ int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
+ 	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
+ 					  ACPI_PPTT_ACPI_IDENTICAL);
+ }
++
++/**
++ * acpi_has_pptt() - Determine if ACPI has PPTT table or not
++ *
++ * Return: true if ACPI has PPTT, false if ACPI doesn't have PPTT.
++ */
++bool acpi_has_pptt(void)
++{
++	struct acpi_table_header *table;
++	acpi_status status;
++
++	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	acpi_put_table(table);
++	return true;
++}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d7136d13aa44..9daea11edad7 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1391,6 +1391,7 @@ int find_acpi_cpu_topology_cluster(unsigned int cpu);
+ int find_acpi_cpu_topology_package(unsigned int cpu);
+ int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
+ int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
++bool acpi_has_pptt(void);
+ #else
+ static inline int acpi_pptt_cpu_is_thread(unsigned int cpu)
+ {
+@@ -1416,6 +1417,10 @@ static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+ {
+ 	return -EINVAL;
+ }
++static inline bool acpi_has_pptt(void)
++{
++	return false;
++}
+ #endif
  
-+config X86_HWPF_CONTROL
-+	tristate "x86 Hardware Prefetch Control support"
-+	depends on X86_64
-+	help
-+	  This provides a sysfs interface to control the Hardware Prefetch
-+	  behavior for X86.
-+
-+	  Some Intel processors have MSR 0x1a4 (MSR_MISC_FEATURE_CONTROL),
-+	  which can control the hardware prefech behavior. If the processor
-+	  supports this, the module can be loaded with the name x86-pfctl.
-+
-+	  Depending on the characteristics of the application, this register
-+	  parameters improve or degrade performance.
-+
-+	  Please see Documentation/ABI/testing/sysfs-devices-system-cpu for
-+	  more information.
-+
- choice
- 	prompt "High Memory Support"
- 	default HIGHMEM4G
-diff --git a/arch/x86/kernel/cpu/Makefile b/arch/x86/kernel/cpu/Makefile
-index 9661e3e802be..1aa13dad17a3 100644
---- a/arch/x86/kernel/cpu/Makefile
-+++ b/arch/x86/kernel/cpu/Makefile
-@@ -56,6 +56,8 @@ obj-$(CONFIG_X86_LOCAL_APIC)		+= perfctr-watchdog.o
- obj-$(CONFIG_HYPERVISOR_GUEST)		+= vmware.o hypervisor.o mshyperv.o
- obj-$(CONFIG_ACRN_GUEST)		+= acrn.o
+ #ifdef CONFIG_ACPI_PCC
+diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
+index 4ff37cb763ae..71f89da6792b 100644
+--- a/include/linux/cacheinfo.h
++++ b/include/linux/cacheinfo.h
+@@ -99,6 +99,16 @@ static inline int acpi_find_last_cache_level(unsigned int cpu)
+ int acpi_find_last_cache_level(unsigned int cpu);
+ #endif
  
-+obj-$(CONFIG_X86_HWPF_CONTROL)		+= x86-pfctl.o
++#ifndef CONFIG_ALLOW_INCOMPLETE_CACHE_SYSFS
++#define enable_cpu_map_populated(cpu_ci)
++#else
++static inline void enable_cpu_map_populated(struct cpu_cacheinfo *cpu_ci)
++{
++	cpu_ci->cpu_map_populated = true;
++}
++#endif
 +
- ifdef CONFIG_X86_FEATURE_NAMES
- quiet_cmd_mkcapflags = MKCAP   $@
-       cmd_mkcapflags = $(CONFIG_SHELL) $(srctree)/$(src)/mkcapflags.sh $@ $^
++
+ const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
+ 
+ /*
 -- 
 2.27.0
 
