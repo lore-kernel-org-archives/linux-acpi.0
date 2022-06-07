@@ -2,113 +2,172 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6997C43334
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 07:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79397C43334
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:08:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237497AbiFGHP1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jun 2022 03:15:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48514 "EHLO
+        id S243461AbiFGMIK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jun 2022 08:08:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237323AbiFGHPZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 03:15:25 -0400
-Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D5DADEC8
-        for <linux-acpi@vger.kernel.org>; Tue,  7 Jun 2022 00:15:24 -0700 (PDT)
-Received: by mail-lf1-x12c.google.com with SMTP id j10so26845681lfe.12
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Jun 2022 00:15:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=YtcjALjI2RZjsiofJNrRsd8EXD975AiTacZTv5laD3A=;
-        b=f19PMMaVtX+BpJFFtU0Q2VO6fMGbOuJgz1c/nFXb3jADKHD6RE8bc/7KA/pI+rkX00
-         ybDIVaW11W0wAoniwtNsqCLG/50GCtvMU8/n4twyfDCbZ8cjJRj4a7qRSeyqA1vLLLrZ
-         7GTNTZmnzfob0R++KIEhuymJltw9rPlWjAm7GHHK8n+bICqn7KRgKh1VAvOdmrIH25rL
-         226hoidniZOStstv09tB6xTZVHpwYC795Ig5R1HrELOOmPC6MFGVJ0m0tnle7VE2/4oG
-         ejvQQGfLuvOGSSUrsZPjtQ6CM3cdp7Gfd6V8Cg29vyhLqnFbV6fEUQ7p+YYNkjXCc0Xw
-         eEUA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=YtcjALjI2RZjsiofJNrRsd8EXD975AiTacZTv5laD3A=;
-        b=Ie6T0fX9BcBfMU7OAKQ6vX0Kg9ZGPWYAm+XmJAhLJepsBlNz6Uoy5uJf4ksyV3i98f
-         /pxMjPru14q6POWEedXnaBd8dV8W5yDS1S6bsypzvADFyBk4rcB8qDgtbxIZWw1ksA7p
-         3eG0YxOB4thZwA8QaNM1iwtoAuBk5B13dmpIee0EWcXda+AKq0GNRchpwTohagC4+5PO
-         PoAhiXGgtBafK/H9XNik++r7UYfB3k89vTf84KxHijMca90Qk7RG/KlvcmS/cO+vh+1b
-         eMtTWICjl8BD5gqh0ZKMBu2dzPiBhhtcGflnAROTxBEHcytwufHpt0T0dJpWDXiHFtNs
-         /ryQ==
-X-Gm-Message-State: AOAM531s4YxBCkEY/7Hsgt9Ey8G8h5RZOn2oYCAdpC20asythdXv7Mrx
-        WsXRMl/cWSEJhS2/OpfGj/Pb7VvFBaqLR3PW39bozg==
-X-Google-Smtp-Source: ABdhPJz4O8/a80YWrP8iHg32QGtqg64ZDJWv3CN+Yh1UTo6DQ30IJZeQhx92HsCuaD0TO7q46mPTTeT7H0VNqwLKbBg=
-X-Received: by 2002:a05:6512:1085:b0:479:478b:d2cc with SMTP id
- j5-20020a056512108500b00479478bd2ccmr5934514lfg.540.1654586122236; Tue, 07
- Jun 2022 00:15:22 -0700 (PDT)
+        with ESMTP id S243448AbiFGMH5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 08:07:57 -0400
+Received: from esa8.hc1455-7.c3s2.iphmx.com (esa8.hc1455-7.c3s2.iphmx.com [139.138.61.253])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A2328CB07;
+        Tue,  7 Jun 2022 05:07:52 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="63506366"
+X-IronPort-AV: E=Sophos;i="5.91,283,1647270000"; 
+   d="scan'208";a="63506366"
+Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
+  by esa8.hc1455-7.c3s2.iphmx.com with ESMTP; 07 Jun 2022 21:07:50 +0900
+Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
+        by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6843CC68A4;
+        Tue,  7 Jun 2022 21:07:49 +0900 (JST)
+Received: from oym-om4.fujitsu.com (oym-om4.o.css.fujitsu.com [10.85.58.164])
+        by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 90D6CFA56;
+        Tue,  7 Jun 2022 21:07:48 +0900 (JST)
+Received: from cn-r05-10.example.com (n3235113.np.ts.nmh.cs.fujitsu.co.jp [10.123.235.113])
+        by oym-om4.fujitsu.com (Postfix) with ESMTP id 3A50640080208;
+        Tue,  7 Jun 2022 21:07:48 +0900 (JST)
+From:   Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
+To:     catalin.marinas@arm.com, will@kernel.org, tglx@linutronix.de,
+        mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
+        x86@kernel.org, hpa@zytor.com, rafael@kernel.org, lenb@kernel.org,
+        gregkh@linuxfoundation.org, mchehab+huawei@kernel.org,
+        eugenis@google.com, tony.luck@intel.com, pcc@google.com,
+        peterz@infradead.org, marcos@orca.pet, marcan@marcan.st,
+        linus.walleij@linaro.org, nicolas.ferre@microchip.com,
+        conor.dooley@microchip.com, arnd@arndb.de, ast@kernel.org,
+        peter.chen@kernel.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-acpi@vger.kernel.org
+Cc:     tarumizu.kohei@fujitsu.com
+Subject: [PATCH v5 6/6] docs: ABI: Add sysfs documentation interface of hardware prefetch control driver
+Date:   Tue,  7 Jun 2022 21:05:30 +0900
+Message-Id: <20220607120530.2447112-7-tarumizu.kohei@fujitsu.com>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
+References: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
 MIME-Version: 1.0
-References: <000000000000bb7f1c05da29b601@google.com> <00000000000010b7d305e08837c8@google.com>
- <YpnqpMYcokTwCB6u@smile.fi.intel.com> <Ypor265BTdnmgwpM@rowland.harvard.edu>
- <YpouRmanvCQeKA3S@kroah.com> <Ypow1LRZ3Hau36ci@rowland.harvard.edu>
- <Ypoyy/stICFdHauR@kroah.com> <CACT4Y+bBWrLRwiowaWk8o4+XAtCHxxJiEQfiSkgM3BDut9atAw@mail.gmail.com>
- <20220606123839.GW2146@kadam>
-In-Reply-To: <20220606123839.GW2146@kadam>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Tue, 7 Jun 2022 09:15:09 +0200
-Message-ID: <CACT4Y+Y_kg1J00iBL=sMr5AP7U4RXuBizusvQG52few2NcJ6dg@mail.gmail.com>
-Subject: Re: [syzbot] general protection fault in __device_attach
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-Cc:     Greg KH <gregkh@linuxfoundation.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        syzbot <syzbot+dd3c97de244683533381@syzkaller.appspotmail.com>,
-        hdanton@sina.com, lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com,
-        rafael@kernel.org, rjw@rjwysocki.net,
-        syzkaller-bugs@googlegroups.com, linux-usb@vger.kernel.org,
-        Linux-MM <linux-mm@kvack.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, 6 Jun 2022 at 14:39, Dan Carpenter <dan.carpenter@oracle.com> wrote:
->
-> On Sat, Jun 04, 2022 at 10:32:46AM +0200, 'Dmitry Vyukov' via syzkaller-bugs wrote:
-> > On Fri, 3 Jun 2022 at 18:12, Greg KH <gregkh@linuxfoundation.org> wrote:
-> > >
-> > > But again, is this a "real and able to be triggered from userspace"
-> > > problem, or just fault-injection-induced?
-> >
-> > Then this is something to fix in the fault injection subsystem.
-> > Testing systems shouldn't be reporting false positives.
-> > What allocations cannot fail in real life? Is it <=page_size?
-> >
->
-> Apparently in 2014, anything less than *EIGHT?!!* pages succeeded!
->
-> https://lwn.net/Articles/627419/
->
-> I have been on the look out since that article and never seen anyone
-> mention it changing.  I think we should ignore that and say that
-> anything over PAGE_SIZE can fail.  Possibly we could go smaller than
-> PAGE_SIZE...
+This describes the sysfs interface implemented by the hardware prefetch
+control driver.
 
-+linux-mm for GFP expertise re what allocations cannot possibly fail
-and should be excluded from fault injection.
+Signed-off-by: Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
+---
+ .../ABI/testing/sysfs-devices-system-cpu      | 98 +++++++++++++++++++
+ 1 file changed, 98 insertions(+)
 
-Interesting, thanks for the link.
+diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
+index 2ad01cad7f1c..0da4c1bac51e 100644
+--- a/Documentation/ABI/testing/sysfs-devices-system-cpu
++++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
+@@ -688,3 +688,101 @@ Description:
+ 		(RO) the list of CPUs that are isolated and don't
+ 		participate in load balancing. These CPUs are set by
+ 		boot parameter "isolcpus=".
++
++What:		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/hardware_prefetcher_enable
++		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/ip_prefetcher_enable
++		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/adjacent_cache_line_prefetcher_enable
++Date:		March 2022
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:	Parameters for some Intel CPU's hardware prefetch control
++
++		This sysfs interface provides Hardware Prefetch control
++		attribute for some Intel processors. Attributes are only
++		present if the particular cache implements the relevant
++		prefetcher controls.
++
++		*_prefetcher_enable:
++		    (RW) control this prefetcher's enablement state.
++		    Read returns current status:
++			0: this prefetcher is disabled
++			1: this prefetcher is enabled
++
++		- Attribute mapping
++
++		    Some Intel processors have MSR 0x1a4. This register has several
++		    specifications depending on the model. This interface provides
++		    a one-to-one attribute file to control all the tunable
++		    parameters the CPU provides of the following.
++
++			- "* Hardware Prefetcher Disable (R/W)"
++			    corresponds to the "hardware_prefetcher_enable"
++
++			- "* Adjacent Cache Line Prefetcher Disable (R/W)"
++			    corresponds to the "adjacent_cache_line_prefetcher_enable"
++
++			- "* IP Prefetcher Disable (R/W)"
++			    corresponds to the "ip_prefetcher_enable"
++
++What:		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/stream_detect_prefetcher_enable
++		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/stream_detect_prefetcher_strength
++		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/stream_detect_prefetcher_strength_available
++		/sys/devices/system/cpu/cpu*/cache/index*/prefetch_control/stream_detect_prefetcher_dist
++Date:		March 2022
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:	Parameters for A64FX's hardware prefetch control
++
++		This sysfs interface provides Hardware Prefetch control
++		attribute for the processor A64FX. Attributes are only
++		present if the particular cache implements the relevant
++		prefetcher controls.
++
++		stream_detect_prefetcher_enable:
++		    (RW) control the prefetcher's enablement state.
++		    Read returns current status:
++			0: this prefetcher is disabled
++			1: this prefetcher is enabled
++
++		stream_detect_prefetcher_strength:
++		    (RW) control the prefetcher operation's strongness state.
++		    Read returns current status:
++			weak: prefetch operation is weak
++			strong: prefetch operation is strong
++
++		    Strong prefetch operation is surely executed, if there is
++		    no corresponding data in cache.
++		    Weak prefetch operation allows the hardware not to execute
++		    operation depending on hardware state.
++
++
++		stream_detect_prefetcher_strength_available:
++		    (RO) displays a space separated list of available strongness
++		    state.
++
++		stream_detect_prefetcher_dist:
++		    (RW) control the prefetcher distance value.
++		    Read return current prefetcher distance value in bytes
++		    or the string "auto".
++
++		    Write either a value in byte or the string "auto" to this
++		    parameter. If you write a value less than multiples of a
++		    specific value, it is rounded up.
++
++		    The string "auto" have a special meaning. This means that
++		    instead of setting dist to a user-specified value, it
++		    operates using hardware-specific values.
++
++		- Attribute mapping
++
++		    The processor A64FX has register IMP_PF_STREAM_DETECT_CTRL_EL0
++		    for Hardware Prefetch Control. This attribute maps each
++		    specification to the following.
++
++			- "L*PF_DIS": enablement of hardware prefetcher
++			    corresponds to the "stream_detect_prefetcher_enable"
++
++			- "L*W": strongness of hardware prefetcher
++			    corresponds to "stream_detect_prefetcher_strength"
++			    and "stream_detect_prefetcher_strength_available"
++
++			- "L*_DIST": distance of hardware prefetcher
++			    corresponds to the "stream_detect_prefetcher_dist"
+-- 
+2.27.0
 
-PAGE_SIZE looks like a good start. Once we have the predicate in
-place, we can refine it later when/if we have more inputs.
-
-But I wonder about GFP flags. They definitely have some impact on allocations.
-If GFP_ACCOUNT is set, all allocations can fail, right?
-If GFP_DMA/DMA32 is set, allocations can fail, right? What about other zones?
-If GFP_NORETRY is set, allocations can fail?
-What about GFP_NOMEMALLOC and GFP_ATOMIC?
-What about GFP_IO/GFP_FS/GFP_DIRECT_RECLAIM/GFP_KSWAPD_RECLAIM? At
-least some of these need to be set for allocations to not fail? Which
-ones?
-Any other flags are required to be set/unset for allocations to not fail?
-
-FTR here is quick link to flags list:
-https://elixir.bootlin.com/linux/v5.19-rc1/source/include/linux/gfp.h#L32
