@@ -2,153 +2,140 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A349CCA47C
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:09:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA951C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:37:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243551AbiFGMJK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jun 2022 08:09:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55770 "EHLO
+        id S244034AbiFGMhl convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jun 2022 08:37:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243563AbiFGMIv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 08:08:51 -0400
-X-Greylist: delayed 67 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 05:08:50 PDT
-Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34FD28B0AD
-        for <linux-acpi@vger.kernel.org>; Tue,  7 Jun 2022 05:08:49 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="76072289"
-X-IronPort-AV: E=Sophos;i="5.91,283,1647270000"; 
-   d="scan'208";a="76072289"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP; 07 Jun 2022 21:07:40 +0900
-Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
-        by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 1C30FD63BA;
-        Tue,  7 Jun 2022 21:07:38 +0900 (JST)
-Received: from oym-om4.fujitsu.com (oym-om4.o.css.fujitsu.com [10.85.58.164])
-        by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 1B52BD99E4;
-        Tue,  7 Jun 2022 21:07:37 +0900 (JST)
-Received: from cn-r05-10.example.com (n3235113.np.ts.nmh.cs.fujitsu.co.jp [10.123.235.113])
-        by oym-om4.fujitsu.com (Postfix) with ESMTP id CCE964007FE5D;
-        Tue,  7 Jun 2022 21:07:36 +0900 (JST)
-From:   Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
-To:     catalin.marinas@arm.com, will@kernel.org, tglx@linutronix.de,
-        mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
-        x86@kernel.org, hpa@zytor.com, rafael@kernel.org, lenb@kernel.org,
-        gregkh@linuxfoundation.org, mchehab+huawei@kernel.org,
-        eugenis@google.com, tony.luck@intel.com, pcc@google.com,
-        peterz@infradead.org, marcos@orca.pet, marcan@marcan.st,
-        linus.walleij@linaro.org, nicolas.ferre@microchip.com,
-        conor.dooley@microchip.com, arnd@arndb.de, ast@kernel.org,
-        peter.chen@kernel.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org
-Cc:     tarumizu.kohei@fujitsu.com
-Subject: [PATCH v5 2/6] soc: fujitsu: Add Kconfig/Makefile to build hardware prefetch control driver
-Date:   Tue,  7 Jun 2022 21:05:26 +0900
-Message-Id: <20220607120530.2447112-3-tarumizu.kohei@fujitsu.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
-References: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
+        with ESMTP id S243802AbiFGMg4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 08:36:56 -0400
+Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C848FE27BE;
+        Tue,  7 Jun 2022 05:36:52 -0700 (PDT)
+Received: by mail-qt1-f175.google.com with SMTP id y15so12480292qtx.4;
+        Tue, 07 Jun 2022 05:36:52 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=jI9Eiy9NqYqthM/bM2aEWTmdS6Ov8FCqsQpj0jvzrm0=;
+        b=i3xBIdu0Imzpn7+GeYihuu7FZqWWmUkazEo4w0O0JfJkM7NFbnww16nSsMSFMTi63J
+         JTWuN+HETtLS1Y5fkmYBDcUOVvWwqhvOpWH6xy6RoqPkMkUfQso5BzvgDQ6o4T4VS1Rt
+         EF3ySOVUrBr1UbmGhLHYW6vWT09lScATSRKYr9hGX9Mul0eAmxpJLyFo3LksEE5gqTM/
+         +RvOAS1OXDaFm1XVKfh0OPFKEyODmUKNf9SIK9ZcLDLgkNKOfYWydhzrZRr7udEiV18O
+         UcfMvwm5Qjsh7J+AoSH7zaULP/wWZM06S11g97yWYCTho902T+y11AxyNShLqgafZ/KA
+         II4A==
+X-Gm-Message-State: AOAM532Wsv1yYYwZaR6/bKwMD1Yfb8coa9nL0sMVLNRUD9oWdOs03zZP
+        IdjRE0PZG/l9Pxp67ej1t3agCddLmjgyCQ==
+X-Google-Smtp-Source: ABdhPJwGod2ZTC35dVzxa46M26uqJXqucakYCo0RId/YXLNI8RDb6tjB9wj6NF6g49Hm73uxz8q1Ig==
+X-Received: by 2002:ac8:58ca:0:b0:2f3:da32:ab1 with SMTP id u10-20020ac858ca000000b002f3da320ab1mr22157947qta.308.1654605400840;
+        Tue, 07 Jun 2022 05:36:40 -0700 (PDT)
+Received: from mail-yb1-f179.google.com (mail-yb1-f179.google.com. [209.85.219.179])
+        by smtp.gmail.com with ESMTPSA id f12-20020a05620a280c00b0069fe1dfbeffsm218111qkp.92.2022.06.07.05.36.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 07 Jun 2022 05:36:40 -0700 (PDT)
+Received: by mail-yb1-f179.google.com with SMTP id p13so30908697ybm.1;
+        Tue, 07 Jun 2022 05:36:40 -0700 (PDT)
+X-Received: by 2002:a05:6902:a:b0:65c:b38e:6d9f with SMTP id
+ l10-20020a056902000a00b0065cb38e6d9fmr30887112ybh.36.1654605399923; Tue, 07
+ Jun 2022 05:36:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
+References: <20220526081550.1089805-1-saravanak@google.com> <20220526081550.1089805-9-saravanak@google.com>
+In-Reply-To: <20220526081550.1089805-9-saravanak@google.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Tue, 7 Jun 2022 14:36:28 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdXrTjjNcqro+FA0BPJ+rK3bCAX+boYdf5=ZvGGocVJPMw@mail.gmail.com>
+Message-ID: <CAMuHMdXrTjjNcqro+FA0BPJ+rK3bCAX+boYdf5=ZvGGocVJPMw@mail.gmail.com>
+Subject: Re: [RFC PATCH v1 8/9] net: ipconfig: Force fw_devlink to unblock any
+ devices that might probe
+To:     Saravana Kannan <saravanak@google.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>,
+        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>,
+        Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>,
+        John Stultz <jstultz@google.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Android Kernel Team <kernel-team@android.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux PM list <linux-pm@vger.kernel.org>,
+        Linux IOMMU <iommu@lists.linux-foundation.org>,
+        netdev <netdev@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Adds Kconfig/Makefile to build hardware prefetch control driver for
-A64FX support, and also adds a MAINTAINERS entry.
+Hi Saravana,
 
-Signed-off-by: Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
----
- MAINTAINERS                  |  5 +++++
- drivers/soc/Kconfig          |  1 +
- drivers/soc/Makefile         |  1 +
- drivers/soc/fujitsu/Kconfig  | 26 ++++++++++++++++++++++++++
- drivers/soc/fujitsu/Makefile |  2 ++
- 5 files changed, 35 insertions(+)
- create mode 100644 drivers/soc/fujitsu/Kconfig
- create mode 100644 drivers/soc/fujitsu/Makefile
+On Thu, May 26, 2022 at 10:16 AM Saravana Kannan <saravanak@google.com> wrote:
+> If there are network devices that could probe without some of their
+> suppliers probing and those network devices are needed for IP auto
+> config to work, then fw_devlink=on might break that usecase by blocking
+> the network devices from probing by the time IP auto config starts.
+>
+> So, when IP auto config is enabled, make sure fw_devlink doesn't block
+> the probing of any device that has a driver by the time we get to IP
+> auto config.
+>
+> Signed-off-by: Saravana Kannan <saravanak@google.com>
+> ---
+>  net/ipv4/ipconfig.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/net/ipv4/ipconfig.c b/net/ipv4/ipconfig.c
+> index 9d41d5d5cd1e..aa7b8ba68ca6 100644
+> --- a/net/ipv4/ipconfig.c
+> +++ b/net/ipv4/ipconfig.c
+> @@ -1435,6 +1435,8 @@ static int __init wait_for_devices(void)
+>  {
+>         int i;
+>
+> +       fw_devlink_unblock_may_probe();
+> +
+>         for (i = 0; i < DEVICE_WAIT_MAX; i++) {
+>                 struct net_device *dev;
+>                 int found = 0;
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d6d879cb0afd..b3e920a8a044 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8620,6 +8620,11 @@ F:	include/linux/hwmon*.h
- F:	include/trace/events/hwmon*.h
- K:	(devm_)?hwmon_device_(un)?register(|_with_groups|_with_info)
- 
-+HARDWARE PREFETCH CONTROL DRIVERS
-+M:	Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
-+S:	Maintained
-+F:	drivers/soc/fujitsu/a64fx-pfctl.c
-+
- HARDWARE RANDOM NUMBER GENERATOR CORE
- M:	Matt Mackall <mpm@selenic.com>
- M:	Herbert Xu <herbert@gondor.apana.org.au>
-diff --git a/drivers/soc/Kconfig b/drivers/soc/Kconfig
-index c5aae42673d3..d87754799d90 100644
---- a/drivers/soc/Kconfig
-+++ b/drivers/soc/Kconfig
-@@ -9,6 +9,7 @@ source "drivers/soc/atmel/Kconfig"
- source "drivers/soc/bcm/Kconfig"
- source "drivers/soc/canaan/Kconfig"
- source "drivers/soc/fsl/Kconfig"
-+source "drivers/soc/fujitsu/Kconfig"
- source "drivers/soc/imx/Kconfig"
- source "drivers/soc/ixp4xx/Kconfig"
- source "drivers/soc/litex/Kconfig"
-diff --git a/drivers/soc/Makefile b/drivers/soc/Makefile
-index 904eec2a7871..6c8ff1792cda 100644
---- a/drivers/soc/Makefile
-+++ b/drivers/soc/Makefile
-@@ -12,6 +12,7 @@ obj-$(CONFIG_SOC_CANAAN)	+= canaan/
- obj-$(CONFIG_ARCH_DOVE)		+= dove/
- obj-$(CONFIG_MACH_DOVE)		+= dove/
- obj-y				+= fsl/
-+obj-y				+= fujitsu/
- obj-$(CONFIG_ARCH_GEMINI)	+= gemini/
- obj-y				+= imx/
- obj-y				+= ixp4xx/
-diff --git a/drivers/soc/fujitsu/Kconfig b/drivers/soc/fujitsu/Kconfig
-new file mode 100644
-index 000000000000..6c5990b75cc5
---- /dev/null
-+++ b/drivers/soc/fujitsu/Kconfig
-@@ -0,0 +1,26 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+
-+menu "Fujitsu SoC drivers"
-+
-+config ALLOW_INCOMPLETE_CACHE_SYSFS
-+	bool
-+
-+config A64FX_HWPF_CONTROL
-+	tristate "A64FX Hardware Prefetch Control driver"
-+	depends on ARM64
-+	select ALLOW_INCOMPLETE_CACHE_SYSFS
-+	help
-+	  This provides a sysfs interface to control the Hardware Prefetch
-+	  behavior for A64FX.
-+
-+	  A64FX has IMP_PF_STREAM_DETECT_CTRL_EL0, which can control the
-+	  hardware prefech behavior. If the processor supports this, the
-+	  module can be loaded with the name a64fx-pfctl.
-+
-+	  Depending on the characteristics of the application, this register
-+	  parameters improve or degrade performance.
-+
-+	  Please see Documentation/ABI/testing/sysfs-devices-system-cpu for
-+	  more information.
-+
-+endmenu
-diff --git a/drivers/soc/fujitsu/Makefile b/drivers/soc/fujitsu/Makefile
-new file mode 100644
-index 000000000000..35e284a548bb
---- /dev/null
-+++ b/drivers/soc/fujitsu/Makefile
-@@ -0,0 +1,2 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+obj-$(CONFIG_A64FX_HWPF_CONTROL)	+= a64fx-pfctl.o
--- 
-2.27.0
+FTR, this lacks an include <linux/fwnode.h>, as my mips rbtx4927
+build fails with:
 
+net/ipv4/ipconfig.c:1438:2: error: implicit declaration of function
+‘fw_devlink_unblock_may_probe’ [-Werror=implicit-function-declaration]
+
+Switching to v2 instead...
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
