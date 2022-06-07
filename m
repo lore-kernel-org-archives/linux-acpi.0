@@ -2,33 +2,33 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0086CC43334
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:09:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34427C43334
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Jun 2022 12:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243441AbiFGMIs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Jun 2022 08:08:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54580 "EHLO
+        id S243587AbiFGMJG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Jun 2022 08:09:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243551AbiFGMIg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 08:08:36 -0400
-X-Greylist: delayed 66 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 05:08:31 PDT
-Received: from esa10.hc1455-7.c3s2.iphmx.com (esa10.hc1455-7.c3s2.iphmx.com [139.138.36.225])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E89988FFAA
-        for <linux-acpi@vger.kernel.org>; Tue,  7 Jun 2022 05:08:31 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="63351129"
+        with ESMTP id S243585AbiFGMI7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jun 2022 08:08:59 -0400
+X-Greylist: delayed 63 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 05:08:55 PDT
+Received: from esa7.hc1455-7.c3s2.iphmx.com (esa7.hc1455-7.c3s2.iphmx.com [139.138.61.252])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7589E8D6B7
+        for <linux-acpi@vger.kernel.org>; Tue,  7 Jun 2022 05:08:53 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="54332932"
 X-IronPort-AV: E=Sophos;i="5.91,283,1647270000"; 
-   d="scan'208";a="63351129"
-Received: from unknown (HELO yto-r4.gw.nic.fujitsu.com) ([218.44.52.220])
-  by esa10.hc1455-7.c3s2.iphmx.com with ESMTP; 07 Jun 2022 21:07:22 +0900
-Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
-        by yto-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id 8C1ADD3EB0;
-        Tue,  7 Jun 2022 21:07:21 +0900 (JST)
+   d="scan'208";a="54332932"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa7.hc1455-7.c3s2.iphmx.com with ESMTP; 07 Jun 2022 21:07:48 +0900
+Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
+        by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 51419D5028;
+        Tue,  7 Jun 2022 21:07:47 +0900 (JST)
 Received: from oym-om4.fujitsu.com (oym-om4.o.css.fujitsu.com [10.85.58.164])
-        by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 9C17CF89E;
-        Tue,  7 Jun 2022 21:07:20 +0900 (JST)
+        by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7901FD35B2;
+        Tue,  7 Jun 2022 21:07:46 +0900 (JST)
 Received: from cn-r05-10.example.com (n3235113.np.ts.nmh.cs.fujitsu.co.jp [10.123.235.113])
-        by oym-om4.fujitsu.com (Postfix) with ESMTP id 36B3D4007A996;
-        Tue,  7 Jun 2022 21:07:20 +0900 (JST)
+        by oym-om4.fujitsu.com (Postfix) with ESMTP id EB3744008021D;
+        Tue,  7 Jun 2022 21:07:45 +0900 (JST)
 From:   Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
 To:     catalin.marinas@arm.com, will@kernel.org, tglx@linutronix.de,
         mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
@@ -42,10 +42,12 @@ To:     catalin.marinas@arm.com, will@kernel.org, tglx@linutronix.de,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-acpi@vger.kernel.org
 Cc:     tarumizu.kohei@fujitsu.com
-Subject: [PATCH v5 0/6] Add hardware prefetch control driver for A64FX and x86
-Date:   Tue,  7 Jun 2022 21:05:24 +0900
-Message-Id: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
+Subject: [PATCH v5 5/6] x86: Add Kconfig/Makefile to build hardware prefetch control driver
+Date:   Tue,  7 Jun 2022 21:05:29 +0900
+Message-Id: <20220607120530.2447112-6-tarumizu.kohei@fujitsu.com>
 X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
+References: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
@@ -53,209 +55,69 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This patch series add sysfs interface to control CPU's hardware
-prefetch behavior for performance tuning from userspace for the
-processor A64FX and x86 (on supported CPU).
+This adds Kconfig/Makefile to build hardware prefetch control driver
+for x86 support. This also adds a MAINTAINERS entry.
 
-Changes from v4:
-  - remove core driver
-  - fix to use attribute_group instead of attribute (patch 1, 4)
-  - fix to store a pointer of CPU number in driver_data when the
-    initialization of sysfs (patch 1, 4)
-  - move #if in .c file to .h file (patch 3)
-  - fix drivers to be loaded automatically (patch 1, 4)
-    - for x86, it is tied to the discovery of a specific CPU model
-    - for A64FX, it is tied to the discovery of a specific ACPI device
-  - add Kconfig description (patch 2, 5)
-https://lore.kernel.org/lkml/20220518063032.2377351-1-tarumizu.kohei@fujitsu.com/
+Signed-off-by: Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
+---
+ MAINTAINERS                  |  1 +
+ arch/x86/Kconfig             | 17 +++++++++++++++++
+ arch/x86/kernel/cpu/Makefile |  2 ++
+ 3 files changed, 20 insertions(+)
 
-[Background]
-============
-A64FX and some Intel processors have implementation-dependent register
-for controlling CPU's hardware prefetch behavior. A64FX has
-IMP_PF_STREAM_DETECT_CTRL_EL0[1], and Intel processors have MSR 0x1a4
-(MSR_MISC_FEATURE_CONTROL)[2]. These registers cannot be accessed from
-userspace.
-
-[1]https://github.com/fujitsu/A64FX/tree/master/doc/
-   A64FX_Specification_HPC_Extension_v1_EN.pdf
-
-[2]https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html
-    Volume 4
-
-The advantage of using these is improved performance. As an example of
-performance improvements, the results of running the Stream benchmark
-on the A64FX are described in section [Merit].
-
-For MSR 0x1a4, it is also possible to change the value from userspace
-via the MSR driver. However, using MSR driver is not recommended, so
-it needs a proper kernel interface[3].
-
-[3]https://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git/about/
-
-For these reasons, we provide a new proper kernel interface to control
-both IMP_PF_STREAM_DETECT_CTRL_EL0 and MSR 0x1a4.
-
-[Overall design]
-================
-This driver creates "prefetch_control" directory and some attributes
-in every CPU's cache/indexX directory, if CPU supports hardware
-prefetch control behavior.
-
-Detailed description of this sysfs interface is in
-Documentation/ABI/testing/sysfs-devices-system-cpu (patch6).
-
-This driver needs cache sysfs directory and cache level/type
-information. In ARM processor, these information can be obtained
-from registers even without ACPI PPTT.
-We add processing to create a cache/index directory using only the
-information from the register if the machine does not support ACPI
-PPTT and CONFIG_ALLOW_INCOMPLETE_CACHE_SYSFS is true in patch3.
-This action caused a problem and is described in [Known problem].
-
-[Examples]
-==========
-This section provides an example of using this sysfs interface at the
-x86's model of INTEL_FAM6_BROADWELL_X.
-
-This model has the following register specifications:
-
-[0]    L2 Hardware Prefetcher Disable (R/W)
-[1]    L2 Adjacent Cache Line Prefetcher Disable (R/W)
-[2]    DCU Hardware Prefetcher Disable (R/W)
-[3]    DCU IP Prefetcher Disable (R/W)
-[63:4] Reserved
-
-In this case, index0 (L1d cache) corresponds to bit[2,3] and index2
-(L2 cache) corresponds to bit [0,1]. A list of attribute files of
-index0 and index2 in CPU1 at BROADWELL_X is following:
-
-```
-# ls /sys/devices/system/cpu/cpu1/cache/index0/prefetch_control/
-
-hardware_prefetcher_enable
-ip_prefetcher_enable
-
-# ls /sys/devices/system/cpu/cpu1/cache/index2/prefetch_control/
-
-adjacent_cache_line_prefetcher_enable
-hardware_prefetcher_enable
-```
-
-If user would like to disable the setting of "L2 Adjacent Cache Line
-Prefetcher Disable (R/W)" in CPU1, do the following:
-
-```
-# echo 0 >
-# /sys/devices/system/cpu/cpu1/cache/index2/prefetch_control/adjacent_cache_line_prefetcher_enable
-```
-
-In another example, a list of index0 at A64FX is following:
-
-```
-# ls /sys/devices/system/cpu/cpu1/cache/index0/prefetch_control/
-
-stream_detect_prefetcher_dist
-stream_detect_prefetcher_enable
-stream_detect_prefetcher_strength
-stream_detect_prefetcher_strength_available
-```
-
-[Patch organizations]
-=====================
-This patch series add hardware prefetch control driver for A64FX
-and x86.
-
-- patch1: Add hardware prefetch control driver for A64FX
-
-  Adds module init/exit code to create sysfs attributes for A64FX with
-  "stream_detect_prefetcher_enable", "stream_detect_prefetcher_strong"
-  and "stream_detect_prefetcher_dist".
-
-- patch2: Add Kconfig/Makefile to build driver for A64FX
-
-- patch3: Create cache sysfs directory without ACPI PPTT for hardware
-  prefetch control
-
-  Hardware Prefetch control driver needs cache sysfs directory and cache
-  level/type information. In ARM processor, these information can be
-  obtained from register(CLIDR_EL1) even without PPTT. Therefore, we
-  set the cpu_map_populated to true to create cache sysfs directory, if
-  the machine doesn't have PPTT.
-
-- patch4: Add hardware prefetch control driver for x86
-
-  Adds module init/exit code to create sysfs attributes for x86 with
-  "hardware_prefetcher_enable", "ip_prefetcher_enable" and
-  "adjacent_cache_line_prefetcher_enable".
-
-- patch5: Add Kconfig/Makefile to build driver for x86
-
-- patch6: Add documentation for the new sysfs interface
-
-[Known problem]
-===============
-- `lscpu` command terminates with -ENOENT because cache/index directory
-  is exists but shared_cpu_map file does not exist. This is due to
-  patch5, which creates a cache/index directory containing only level
-  and type without ACPI PPTT.
-
-[Merit]
-=======
-For reference, here is the result of STREAM Triad when tuning with
-the "s file in L1 and L2 cache on A64FX.
-
-| dist combination  | Pattern A   | Pattern B   |
-|-------------------|-------------|-------------|
-| L1:256,  L2:1024  | 234505.2144 | 114600.0801 |
-| L1:1536, L2:1024  | 279172.8742 | 118979.4542 |
-| L1:256,  L2:10240 | 247716.7757 | 127364.1533 |
-| L1:1536, L2:10240 | 283675.6625 | 125950.6847 |
-
-In pattern A, we set the size of the array to 174720, which is about
-half the size of the L1d cache. In pattern B, we set the size of the
-array to 10485120, which is about twice the size of the L2 cache.
-
-In pattern A, a change of dist at L1 has a larger effect. On the other
-hand, in pattern B, the change of dist at L2 has a larger effect.
-As described above, the optimal dist combination depends on the
-characteristics of the application. Therefore, such a sysfs interface
-is useful for performance tuning.
-
-Best regards,
-Kohei Tarumizu
-
-Kohei Tarumizu (6):
-  soc: fujitsu: Add hardware prefetch control driver for A64FX
-  soc: fujitsu: Add Kconfig/Makefile to build hardware prefetch control
-    driver
-  arm64: Create cache sysfs directory without ACPI PPTT for hardware
-    prefetch control
-  x86: Add hardware prefetch control driver for x86
-  x86: Add Kconfig/Makefile to build hardware prefetch control driver
-  docs: ABI: Add sysfs documentation interface of hardware prefetch
-    control driver
-
- .../ABI/testing/sysfs-devices-system-cpu      |  98 ++++
- MAINTAINERS                                   |   6 +
- arch/arm64/kernel/cacheinfo.c                 |  27 +
- arch/x86/Kconfig                              |  17 +
- arch/x86/kernel/cpu/Makefile                  |   2 +
- arch/x86/kernel/cpu/x86-pfctl.c               | 363 +++++++++++++
- drivers/acpi/pptt.c                           |  18 +
- drivers/soc/Kconfig                           |   1 +
- drivers/soc/Makefile                          |   1 +
- drivers/soc/fujitsu/Kconfig                   |  26 +
- drivers/soc/fujitsu/Makefile                  |   2 +
- drivers/soc/fujitsu/a64fx-pfctl.c             | 484 ++++++++++++++++++
- include/linux/acpi.h                          |   5 +
- include/linux/cacheinfo.h                     |  10 +
- 14 files changed, 1060 insertions(+)
- create mode 100644 arch/x86/kernel/cpu/x86-pfctl.c
- create mode 100644 drivers/soc/fujitsu/Kconfig
- create mode 100644 drivers/soc/fujitsu/Makefile
- create mode 100644 drivers/soc/fujitsu/a64fx-pfctl.c
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b3e920a8a044..4f44bbef2614 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8623,6 +8623,7 @@ K:	(devm_)?hwmon_device_(un)?register(|_with_groups|_with_info)
+ HARDWARE PREFETCH CONTROL DRIVERS
+ M:	Kohei Tarumizu <tarumizu.kohei@fujitsu.com>
+ S:	Maintained
++F:	arch/x86/kernel/cpu/x86-pfctl.c
+ F:	drivers/soc/fujitsu/a64fx-pfctl.c
+ 
+ HARDWARE RANDOM NUMBER GENERATOR CORE
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 4bed3abf444d..3ee173483f9f 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1359,6 +1359,23 @@ config X86_CPUID
+ 	  with major 203 and minors 0 to 31 for /dev/cpu/0/cpuid to
+ 	  /dev/cpu/31/cpuid.
+ 
++config X86_HWPF_CONTROL
++	tristate "x86 Hardware Prefetch Control support"
++	depends on X86_64
++	help
++	  This provides a sysfs interface to control the Hardware Prefetch
++	  behavior for X86.
++
++	  Some Intel processors have MSR 0x1a4 (MSR_MISC_FEATURE_CONTROL),
++	  which can control the hardware prefech behavior. If the processor
++	  supports this, the module can be loaded with the name x86-pfctl.
++
++	  Depending on the characteristics of the application, this register
++	  parameters improve or degrade performance.
++
++	  Please see Documentation/ABI/testing/sysfs-devices-system-cpu for
++	  more information.
++
+ choice
+ 	prompt "High Memory Support"
+ 	default HIGHMEM4G
+diff --git a/arch/x86/kernel/cpu/Makefile b/arch/x86/kernel/cpu/Makefile
+index 9661e3e802be..1aa13dad17a3 100644
+--- a/arch/x86/kernel/cpu/Makefile
++++ b/arch/x86/kernel/cpu/Makefile
+@@ -56,6 +56,8 @@ obj-$(CONFIG_X86_LOCAL_APIC)		+= perfctr-watchdog.o
+ obj-$(CONFIG_HYPERVISOR_GUEST)		+= vmware.o hypervisor.o mshyperv.o
+ obj-$(CONFIG_ACRN_GUEST)		+= acrn.o
+ 
++obj-$(CONFIG_X86_HWPF_CONTROL)		+= x86-pfctl.o
++
+ ifdef CONFIG_X86_FEATURE_NAMES
+ quiet_cmd_mkcapflags = MKCAP   $@
+       cmd_mkcapflags = $(CONFIG_SHELL) $(srctree)/$(src)/mkcapflags.sh $@ $^
 -- 
 2.27.0
 
