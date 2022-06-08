@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64EF2CCA47F
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jun 2022 14:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72841C43334
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jun 2022 14:49:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242669AbiFHOtm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 8 Jun 2022 10:49:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56854 "EHLO
+        id S241796AbiFHOto (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:49:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242119AbiFHOq4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2022 10:46:56 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08BDD2B185;
-        Wed,  8 Jun 2022 07:46:42 -0700 (PDT)
+        with ESMTP id S242211AbiFHOrB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2022 10:47:01 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E76425224E;
+        Wed,  8 Jun 2022 07:46:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
-        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
-        Content-ID:Content-Description:In-Reply-To;
-        bh=aqLG9Lqq+GxkmTG8UwvHapEbGSsmV7F2cXGrE5BS5NY=; b=rPiUyMGWkK4HyA4MoXkM+UgqQ6
-        VaXgt6RcOydOxoUnaRfCfMbAtBJ/29g86kj1c39TrjyrRRw5LNAXi6xAiwbQsca2Qg3+3equHWL8Q
-        BhQmKdDrNUwB5m2NMymYGWNyhw4vbbfRaNwVesyIacBXyasPDLHjRfwj2fnza/c1itcSej3QP8np4
-        N1THP4hm8m55mZuiz8nir3RlMX7ANrUAqVzLqiDWZ5C5oo3J/NLzmvKS2fSk9/Gc2Jc7QCKQQFsyN
-        BKw9k4A5B+34GthUiYDWMzBwEJ7C7YClTrI/O4L3ITlq7VQuCJHusFMO2qIDniFPVC3uGQ2ZKKFb/
-        QUHvCXdQ==;
+        d=infradead.org; s=desiato.20200630; h=Subject:Cc:To:From:Date:Message-ID:
+        Sender:Reply-To:MIME-Version:Content-Type:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=p3ITF8gI2GW93+lJzbbS6NFG2q6U7tMgsXybvfaCekw=; b=LkAMiHzSQ/opHdOEFeCurG9NLG
+        JO+M8wPRoXp+rjlvRp1g6p4deHSrGJRvv4d7IdwxYVZCA6fgQpHjtmLJrV4PCdmnHmGUQvAnyE2UA
+        fwHv2wTNOAIYIT2wUB43GTR5ZNwxfCy55ZYqs3Y348h+pLzkkwczLn6aebzuIqWu8dokLe6hAbrDd
+        HGdq3+b1S6vX0Rc7tglUdTJgdx3k3cOs/ctzEtERltWW/a158CACl3uvpcO8KTF7iW2z1cVJAFUAo
+        mkT6mFk7UPVkskxcPvv+XGScuTuObwFsVrFSWvKd6APK2jNtbqiwDpZU4VuGFDFHTmU5HS3u40Eee
+        GVLfhZEg==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywx2-00ChX6-2S; Wed, 08 Jun 2022 14:46:28 +0000
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywwx-0066BC-3C; Wed, 08 Jun 2022 14:46:24 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 9C4CE302E87;
-        Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 5A6423005B7;
+        Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 84CF720C10ECC; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144517.124597382@infradead.org>
+        id 3237720C0F991; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608142723.103523089@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:42 +0200
+Date:   Wed, 08 Jun 2022 16:27:23 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -98,465 +98,145 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org
-Subject: [PATCH 19/36] objtool/idle: Validate __cpuidle code as noinstr
-References: <20220608142723.103523089@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH 00/36] cpuidle,rcu: Cleanup the mess
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Idle code is very like entry code in that RCU isn't available. As
-such, add a little validation.
+Hi All! (omg so many)
 
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+These here few patches mostly clear out the utter mess that is cpuidle vs rcuidle.
+
+At the end of the ride there's only 2 real RCU_NONIDLE() users left
+
+  arch/arm64/kernel/suspend.c:            RCU_NONIDLE(__cpu_suspend_exit());
+  drivers/perf/arm_pmu.c:                 RCU_NONIDLE(armpmu_start(event, PERF_EF_RELOAD));
+  kernel/cfi.c:   RCU_NONIDLE({
+
+(the CFI one is likely dead in the kCFI rewrite) and there's only a hand full
+of trace_.*_rcuidle() left:
+
+  kernel/trace/trace_preemptirq.c:                        trace_irq_enable_rcuidle(CALLER_ADDR0, CALLER_ADDR1);
+  kernel/trace/trace_preemptirq.c:                        trace_irq_disable_rcuidle(CALLER_ADDR0, CALLER_ADDR1);
+  kernel/trace/trace_preemptirq.c:                        trace_irq_enable_rcuidle(CALLER_ADDR0, caller_addr);
+  kernel/trace/trace_preemptirq.c:                        trace_irq_disable_rcuidle(CALLER_ADDR0, caller_addr);
+  kernel/trace/trace_preemptirq.c:                trace_preempt_enable_rcuidle(a0, a1);
+  kernel/trace/trace_preemptirq.c:                trace_preempt_disable_rcuidle(a0, a1);
+
+All of them are in 'deprecated' code that is unused for GENERIC_ENTRY.
+
+I've touched a _lot_ of code that I can't test and likely broken some of it :/
+In particular, the whole ARM cpuidle stuff was quite involved with OMAP being
+the absolute 'winner'.
+
+I'm hoping Mark can help me sort the remaining ARM64 bits as he moves that to
+GENERIC_ENTRY. I've also got a note that says ARM64 can probably do a WFE based
+idle state and employ TIF_POLLING_NRFLAG to avoid some IPIs.
+
 ---
- arch/alpha/kernel/vmlinux.lds.S      |    1 -
- arch/arc/kernel/vmlinux.lds.S        |    1 -
- arch/arm/include/asm/vmlinux.lds.h   |    1 -
- arch/arm64/kernel/vmlinux.lds.S      |    1 -
- arch/csky/kernel/vmlinux.lds.S       |    1 -
- arch/hexagon/kernel/vmlinux.lds.S    |    1 -
- arch/ia64/kernel/vmlinux.lds.S       |    1 -
- arch/loongarch/kernel/vmlinux.lds.S  |    1 -
- arch/m68k/kernel/vmlinux-nommu.lds   |    1 -
- arch/m68k/kernel/vmlinux-std.lds     |    1 -
- arch/m68k/kernel/vmlinux-sun3.lds    |    1 -
- arch/microblaze/kernel/vmlinux.lds.S |    1 -
- arch/mips/kernel/vmlinux.lds.S       |    1 -
- arch/nios2/kernel/vmlinux.lds.S      |    1 -
- arch/openrisc/kernel/vmlinux.lds.S   |    1 -
- arch/parisc/kernel/vmlinux.lds.S     |    1 -
- arch/powerpc/kernel/vmlinux.lds.S    |    1 -
- arch/riscv/kernel/vmlinux-xip.lds.S  |    1 -
- arch/riscv/kernel/vmlinux.lds.S      |    1 -
- arch/s390/kernel/vmlinux.lds.S       |    1 -
- arch/sh/kernel/vmlinux.lds.S         |    1 -
- arch/sparc/kernel/vmlinux.lds.S      |    1 -
- arch/um/kernel/dyn.lds.S             |    1 -
- arch/um/kernel/uml.lds.S             |    1 -
- arch/x86/include/asm/irqflags.h      |   11 ++++-------
- arch/x86/include/asm/mwait.h         |    2 +-
- arch/x86/kernel/vmlinux.lds.S        |    1 -
- arch/xtensa/kernel/vmlinux.lds.S     |    1 -
- include/asm-generic/vmlinux.lds.h    |    9 +++------
- include/linux/compiler_types.h       |    8 ++++++--
- include/linux/cpu.h                  |    3 ---
- kernel/module/main.c                 |    2 ++
- kernel/sched/idle.c                  |   15 +++++++++++++--
- tools/objtool/check.c                |   15 ++++++++++++++-
- 34 files changed, 43 insertions(+), 48 deletions(-)
-
---- a/arch/alpha/kernel/vmlinux.lds.S
-+++ b/arch/alpha/kernel/vmlinux.lds.S
-@@ -27,7 +27,6 @@ SECTIONS
- 		HEAD_TEXT
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		*(.fixup)
- 		*(.gnu.warning)
---- a/arch/arc/kernel/vmlinux.lds.S
-+++ b/arch/arc/kernel/vmlinux.lds.S
-@@ -85,7 +85,6 @@ SECTIONS
- 		_stext = .;
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/arm/include/asm/vmlinux.lds.h
-+++ b/arch/arm/include/asm/vmlinux.lds.h
-@@ -96,7 +96,6 @@
- 		SOFTIRQENTRY_TEXT					\
- 		TEXT_TEXT						\
- 		SCHED_TEXT						\
--		CPUIDLE_TEXT						\
- 		LOCK_TEXT						\
- 		KPROBES_TEXT						\
- 		ARM_STUBS_TEXT						\
---- a/arch/arm64/kernel/vmlinux.lds.S
-+++ b/arch/arm64/kernel/vmlinux.lds.S
-@@ -163,7 +163,6 @@ SECTIONS
- 			ENTRY_TEXT
- 			TEXT_TEXT
- 			SCHED_TEXT
--			CPUIDLE_TEXT
- 			LOCK_TEXT
- 			KPROBES_TEXT
- 			HYPERVISOR_TEXT
---- a/arch/csky/kernel/vmlinux.lds.S
-+++ b/arch/csky/kernel/vmlinux.lds.S
-@@ -38,7 +38,6 @@ SECTIONS
- 		SOFTIRQENTRY_TEXT
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		*(.fixup)
---- a/arch/hexagon/kernel/vmlinux.lds.S
-+++ b/arch/hexagon/kernel/vmlinux.lds.S
-@@ -41,7 +41,6 @@ SECTIONS
- 		IRQENTRY_TEXT
- 		SOFTIRQENTRY_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		*(.fixup)
---- a/arch/ia64/kernel/vmlinux.lds.S
-+++ b/arch/ia64/kernel/vmlinux.lds.S
-@@ -51,7 +51,6 @@ SECTIONS {
- 		__end_ivt_text = .;
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/loongarch/kernel/vmlinux.lds.S
-+++ b/arch/loongarch/kernel/vmlinux.lds.S
-@@ -40,7 +40,6 @@ SECTIONS
- 	.text : {
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/m68k/kernel/vmlinux-nommu.lds
-+++ b/arch/m68k/kernel/vmlinux-nommu.lds
-@@ -48,7 +48,6 @@ SECTIONS {
- 		IRQENTRY_TEXT
- 		SOFTIRQENTRY_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		*(.fixup)
- 		. = ALIGN(16);
---- a/arch/m68k/kernel/vmlinux-std.lds
-+++ b/arch/m68k/kernel/vmlinux-std.lds
-@@ -19,7 +19,6 @@ SECTIONS
- 	IRQENTRY_TEXT
- 	SOFTIRQENTRY_TEXT
- 	SCHED_TEXT
--	CPUIDLE_TEXT
- 	LOCK_TEXT
- 	*(.fixup)
- 	*(.gnu.warning)
---- a/arch/m68k/kernel/vmlinux-sun3.lds
-+++ b/arch/m68k/kernel/vmlinux-sun3.lds
-@@ -19,7 +19,6 @@ SECTIONS
- 	IRQENTRY_TEXT
- 	SOFTIRQENTRY_TEXT
- 	SCHED_TEXT
--	CPUIDLE_TEXT
- 	LOCK_TEXT
- 	*(.fixup)
- 	*(.gnu.warning)
---- a/arch/microblaze/kernel/vmlinux.lds.S
-+++ b/arch/microblaze/kernel/vmlinux.lds.S
-@@ -36,7 +36,6 @@ SECTIONS {
- 		EXIT_TEXT
- 		EXIT_CALL
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/mips/kernel/vmlinux.lds.S
-+++ b/arch/mips/kernel/vmlinux.lds.S
-@@ -61,7 +61,6 @@ SECTIONS
- 	.text : {
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/nios2/kernel/vmlinux.lds.S
-+++ b/arch/nios2/kernel/vmlinux.lds.S
-@@ -24,7 +24,6 @@ SECTIONS
- 	.text : {
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		IRQENTRY_TEXT
- 		SOFTIRQENTRY_TEXT
---- a/arch/openrisc/kernel/vmlinux.lds.S
-+++ b/arch/openrisc/kernel/vmlinux.lds.S
-@@ -52,7 +52,6 @@ SECTIONS
-           _stext = .;
- 	  TEXT_TEXT
- 	  SCHED_TEXT
--	  CPUIDLE_TEXT
- 	  LOCK_TEXT
- 	  KPROBES_TEXT
- 	  IRQENTRY_TEXT
---- a/arch/parisc/kernel/vmlinux.lds.S
-+++ b/arch/parisc/kernel/vmlinux.lds.S
-@@ -86,7 +86,6 @@ SECTIONS
- 		TEXT_TEXT
- 		LOCK_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
- 		SOFTIRQENTRY_TEXT
---- a/arch/powerpc/kernel/vmlinux.lds.S
-+++ b/arch/powerpc/kernel/vmlinux.lds.S
-@@ -107,7 +107,6 @@ SECTIONS
- #endif
- 		NOINSTR_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/riscv/kernel/vmlinux-xip.lds.S
-+++ b/arch/riscv/kernel/vmlinux-xip.lds.S
-@@ -39,7 +39,6 @@ SECTIONS
- 		_stext = .;
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		ENTRY_TEXT
---- a/arch/riscv/kernel/vmlinux.lds.S
-+++ b/arch/riscv/kernel/vmlinux.lds.S
-@@ -42,7 +42,6 @@ SECTIONS
- 		_stext = .;
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		ENTRY_TEXT
---- a/arch/s390/kernel/vmlinux.lds.S
-+++ b/arch/s390/kernel/vmlinux.lds.S
-@@ -42,7 +42,6 @@ SECTIONS
- 		HEAD_TEXT
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/sh/kernel/vmlinux.lds.S
-+++ b/arch/sh/kernel/vmlinux.lds.S
-@@ -29,7 +29,6 @@ SECTIONS
- 		HEAD_TEXT
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/sparc/kernel/vmlinux.lds.S
-+++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -50,7 +50,6 @@ SECTIONS
- 		HEAD_TEXT
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		IRQENTRY_TEXT
---- a/arch/um/kernel/dyn.lds.S
-+++ b/arch/um/kernel/dyn.lds.S
-@@ -74,7 +74,6 @@ SECTIONS
-     _stext = .;
-     TEXT_TEXT
-     SCHED_TEXT
--    CPUIDLE_TEXT
-     LOCK_TEXT
-     IRQENTRY_TEXT
-     SOFTIRQENTRY_TEXT
---- a/arch/um/kernel/uml.lds.S
-+++ b/arch/um/kernel/uml.lds.S
-@@ -35,7 +35,6 @@ SECTIONS
-     _stext = .;
-     TEXT_TEXT
-     SCHED_TEXT
--    CPUIDLE_TEXT
-     LOCK_TEXT
-     IRQENTRY_TEXT
-     SOFTIRQENTRY_TEXT
---- a/arch/x86/include/asm/irqflags.h
-+++ b/arch/x86/include/asm/irqflags.h
-@@ -8,9 +8,6 @@
- 
- #include <asm/nospec-branch.h>
- 
--/* Provide __cpuidle; we can't safely include <linux/cpu.h> */
--#define __cpuidle __section(".cpuidle.text")
--
- /*
-  * Interrupt control:
-  */
-@@ -45,13 +42,13 @@ static __always_inline void native_irq_e
- 	asm volatile("sti": : :"memory");
- }
- 
--static inline __cpuidle void native_safe_halt(void)
-+static __always_inline void native_safe_halt(void)
- {
- 	mds_idle_clear_cpu_buffers();
- 	asm volatile("sti; hlt": : :"memory");
- }
- 
--static inline __cpuidle void native_halt(void)
-+static __always_inline void native_halt(void)
- {
- 	mds_idle_clear_cpu_buffers();
- 	asm volatile("hlt": : :"memory");
-@@ -84,7 +81,7 @@ static __always_inline void arch_local_i
-  * Used in the idle loop; sti takes one instruction cycle
-  * to complete:
-  */
--static inline __cpuidle void arch_safe_halt(void)
-+static __always_inline void arch_safe_halt(void)
- {
- 	native_safe_halt();
- }
-@@ -93,7 +90,7 @@ static inline __cpuidle void arch_safe_h
-  * Used when interrupts are already enabled or to
-  * shutdown the processor:
-  */
--static inline __cpuidle void halt(void)
-+static __always_inline void halt(void)
- {
- 	native_halt();
- }
---- a/arch/x86/include/asm/mwait.h
-+++ b/arch/x86/include/asm/mwait.h
-@@ -104,7 +104,7 @@ static inline void __sti_mwait(unsigned
-  * New with Core Duo processors, MWAIT can take some hints based on CPU
-  * capability.
-  */
--static inline void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
-+static __always_inline void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
- {
- 	if (static_cpu_has_bug(X86_BUG_MONITOR) || !current_set_polling_and_test()) {
- 		if (static_cpu_has_bug(X86_BUG_CLFLUSH_MONITOR)) {
---- a/arch/x86/kernel/vmlinux.lds.S
-+++ b/arch/x86/kernel/vmlinux.lds.S
-@@ -129,7 +129,6 @@ SECTIONS
- 		HEAD_TEXT
- 		TEXT_TEXT
- 		SCHED_TEXT
--		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
- 		ALIGN_ENTRY_TEXT_BEGIN
---- a/arch/xtensa/kernel/vmlinux.lds.S
-+++ b/arch/xtensa/kernel/vmlinux.lds.S
-@@ -125,7 +125,6 @@ SECTIONS
-     ENTRY_TEXT
-     TEXT_TEXT
-     SCHED_TEXT
--    CPUIDLE_TEXT
-     LOCK_TEXT
-     *(.fixup)
-   }
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -559,6 +559,9 @@
- 		ALIGN_FUNCTION();					\
- 		__noinstr_text_start = .;				\
- 		*(.noinstr.text)					\
-+		__cpuidle_text_start = .;				\
-+		*(.cpuidle.text)					\
-+		__cpuidle_text_end = .;					\
- 		__noinstr_text_end = .;
- 
- /*
-@@ -600,12 +603,6 @@
- 		*(.spinlock.text)					\
- 		__lock_text_end = .;
- 
--#define CPUIDLE_TEXT							\
--		ALIGN_FUNCTION();					\
--		__cpuidle_text_start = .;				\
--		*(.cpuidle.text)					\
--		__cpuidle_text_end = .;
--
- #define KPROBES_TEXT							\
- 		ALIGN_FUNCTION();					\
- 		__kprobes_text_start = .;				\
---- a/include/linux/compiler_types.h
-+++ b/include/linux/compiler_types.h
-@@ -225,10 +225,14 @@ struct ftrace_likely_data {
- #endif
- 
- /* Section for code which can't be instrumented at all */
--#define noinstr								\
--	noinline notrace __attribute((__section__(".noinstr.text")))	\
-+#define __noinstr_section(section)					\
-+	noinline notrace __attribute((__section__(section)))		\
- 	__no_kcsan __no_sanitize_address __no_profile __no_sanitize_coverage
- 
-+#define noinstr __noinstr_section(".noinstr.text")
-+
-+#define __cpuidle __noinstr_section(".cpuidle.text")
-+
- #endif /* __KERNEL__ */
- 
- #endif /* __ASSEMBLY__ */
---- a/include/linux/cpu.h
-+++ b/include/linux/cpu.h
-@@ -171,9 +171,6 @@ void __noreturn cpu_startup_entry(enum c
- 
- void cpu_idle_poll_ctrl(bool enable);
- 
--/* Attach to any functions which should be considered cpuidle. */
--#define __cpuidle	__section(".cpuidle.text")
--
- bool cpu_in_idle(unsigned long pc);
- 
- void arch_cpu_idle(void);
---- a/tools/objtool/check.c
-+++ b/tools/objtool/check.c
-@@ -376,7 +376,8 @@ static int decode_instructions(struct ob
- 			sec->text = true;
- 
- 		if (!strcmp(sec->name, ".noinstr.text") ||
--		    !strcmp(sec->name, ".entry.text"))
-+		    !strcmp(sec->name, ".entry.text") ||
-+		    !strcmp(sec->name, ".cpuidle.text"))
- 			sec->noinstr = true;
- 
- 		for (offset = 0; offset < sec->sh.sh_size; offset += insn->len) {
-@@ -3080,6 +3081,12 @@ static inline bool noinstr_call_dest(str
- 		return true;
- 
- 	/*
-+	 * If the symbol is a static_call trampoline, we can't tell.
-+	 */
-+	if (func->static_call_tramp)
-+		return true;
-+
-+	/*
- 	 * The __ubsan_handle_*() calls are like WARN(), they only happen when
- 	 * something 'BAD' happened. At the risk of taking the machine down,
- 	 * let them proceed to get the message out.
-@@ -3648,6 +3655,12 @@ static int validate_noinstr_sections(str
- 	if (sec) {
- 		warnings += validate_section(file, sec);
- 		warnings += validate_unwind_hints(file, sec);
-+	}
-+
-+	sec = find_section_by_name(file->elf, ".cpuidle.text");
-+	if (sec) {
-+		warnings += validate_section(file, sec);
-+		warnings += validate_unwind_hints(file, sec);
- 	}
- 
- 	return warnings;
-
+ arch/alpha/kernel/process.c          |    1 
+ arch/alpha/kernel/vmlinux.lds.S      |    1 
+ arch/arc/kernel/process.c            |    3 +
+ arch/arc/kernel/vmlinux.lds.S        |    1 
+ arch/arm/include/asm/vmlinux.lds.h   |    1 
+ arch/arm/kernel/process.c            |    1 
+ arch/arm/kernel/smp.c                |    6 +--
+ arch/arm/mach-gemini/board-dt.c      |    3 +
+ arch/arm/mach-imx/cpuidle-imx6q.c    |    4 +-
+ arch/arm/mach-imx/cpuidle-imx6sx.c   |    5 ++
+ arch/arm/mach-omap2/cpuidle34xx.c    |   16 ++++++++
+ arch/arm/mach-omap2/cpuidle44xx.c    |   29 +++++++++------
+ arch/arm/mach-omap2/pm.h             |    2 -
+ arch/arm/mach-omap2/pm34xx.c         |   14 +++++--
+ arch/arm/mach-omap2/powerdomain.c    |   10 ++---
+ arch/arm64/kernel/idle.c             |    1 
+ arch/arm64/kernel/smp.c              |    4 +-
+ arch/arm64/kernel/vmlinux.lds.S      |    1 
+ arch/csky/kernel/process.c           |    1 
+ arch/csky/kernel/smp.c               |    2 -
+ arch/csky/kernel/vmlinux.lds.S       |    1 
+ arch/hexagon/kernel/process.c        |    1 
+ arch/hexagon/kernel/vmlinux.lds.S    |    1 
+ arch/ia64/kernel/process.c           |    1 
+ arch/ia64/kernel/vmlinux.lds.S       |    1 
+ arch/loongarch/kernel/vmlinux.lds.S  |    1 
+ arch/m68k/kernel/vmlinux-nommu.lds   |    1 
+ arch/m68k/kernel/vmlinux-std.lds     |    1 
+ arch/m68k/kernel/vmlinux-sun3.lds    |    1 
+ arch/microblaze/kernel/process.c     |    1 
+ arch/microblaze/kernel/vmlinux.lds.S |    1 
+ arch/mips/kernel/idle.c              |    8 +---
+ arch/mips/kernel/vmlinux.lds.S       |    1 
+ arch/nios2/kernel/process.c          |    1 
+ arch/nios2/kernel/vmlinux.lds.S      |    1 
+ arch/openrisc/kernel/process.c       |    1 
+ arch/openrisc/kernel/vmlinux.lds.S   |    1 
+ arch/parisc/kernel/process.c         |    2 -
+ arch/parisc/kernel/vmlinux.lds.S     |    1 
+ arch/powerpc/kernel/idle.c           |    5 +-
+ arch/powerpc/kernel/vmlinux.lds.S    |    1 
+ arch/riscv/kernel/process.c          |    1 
+ arch/riscv/kernel/vmlinux-xip.lds.S  |    1 
+ arch/riscv/kernel/vmlinux.lds.S      |    1 
+ arch/s390/kernel/idle.c              |    1 
+ arch/s390/kernel/vmlinux.lds.S       |    1 
+ arch/sh/kernel/idle.c                |    1 
+ arch/sh/kernel/vmlinux.lds.S         |    1 
+ arch/sparc/kernel/leon_pmc.c         |    4 ++
+ arch/sparc/kernel/process_32.c       |    1 
+ arch/sparc/kernel/process_64.c       |    3 +
+ arch/sparc/kernel/vmlinux.lds.S      |    1 
+ arch/um/kernel/dyn.lds.S             |    1 
+ arch/um/kernel/process.c             |    1 
+ arch/um/kernel/uml.lds.S             |    1 
+ arch/x86/coco/tdx/tdcall.S           |   15 +-------
+ arch/x86/coco/tdx/tdx.c              |   25 +++----------
+ arch/x86/events/amd/brs.c            |   13 ++-----
+ arch/x86/include/asm/irqflags.h      |   11 ++---
+ arch/x86/include/asm/mwait.h         |   14 +++----
+ arch/x86/include/asm/nospec-branch.h |    2 -
+ arch/x86/include/asm/paravirt.h      |    6 ++-
+ arch/x86/include/asm/perf_event.h    |    2 -
+ arch/x86/include/asm/shared/io.h     |    4 +-
+ arch/x86/include/asm/shared/tdx.h    |    1 
+ arch/x86/include/asm/special_insns.h |    6 +--
+ arch/x86/include/asm/xen/hypercall.h |    2 -
+ arch/x86/kernel/paravirt.c           |   14 ++++++-
+ arch/x86/kernel/process.c            |   65 +++++++++++++++++------------------
+ arch/x86/kernel/vmlinux.lds.S        |    1 
+ arch/x86/xen/enlighten_pv.c          |    2 -
+ arch/x86/xen/irq.c                   |    2 -
+ arch/xtensa/kernel/process.c         |    1 
+ arch/xtensa/kernel/vmlinux.lds.S     |    1 
+ drivers/acpi/processor_idle.c        |   46 ++++++++++++++----------
+ drivers/base/power/runtime.c         |   24 ++++++------
+ drivers/clk/clk.c                    |    8 ++--
+ drivers/cpuidle/cpuidle-arm.c        |    1 
+ drivers/cpuidle/cpuidle-big_little.c |    8 +++-
+ drivers/cpuidle/cpuidle-mvebu-v7.c   |    7 +++
+ drivers/cpuidle/cpuidle-psci.c       |   10 +++--
+ drivers/cpuidle/cpuidle-qcom-spm.c   |    1 
+ drivers/cpuidle/cpuidle-riscv-sbi.c  |   10 +++--
+ drivers/cpuidle/cpuidle-tegra.c      |   21 ++++++++---
+ drivers/cpuidle/cpuidle.c            |   21 +++++------
+ drivers/cpuidle/dt_idle_states.c     |    2 -
+ drivers/cpuidle/poll_state.c         |   10 ++++-
+ drivers/idle/intel_idle.c            |   29 ++++++++++++---
+ include/asm-generic/vmlinux.lds.h    |    9 +---
+ include/linux/compiler_types.h       |    8 +++-
+ include/linux/cpu.h                  |    3 -
+ include/linux/cpuidle.h              |   33 +++++++++++++++++
+ include/linux/cpumask.h              |    4 +-
+ include/linux/sched/idle.h           |   40 ++++++++++++++++-----
+ include/linux/thread_info.h          |   18 +++++++++
+ include/linux/tracepoint.h           |   13 ++++++-
+ kernel/cpu_pm.c                      |    9 ----
+ kernel/printk/printk.c               |    2 -
+ kernel/rcu/tree.c                    |    9 +---
+ kernel/sched/idle.c                  |   47 +++++++------------------
+ kernel/time/tick-broadcast-hrtimer.c |   29 ++++++---------
+ kernel/time/tick-broadcast.c         |    6 ++-
+ kernel/trace/trace.c                 |    3 +
+ tools/objtool/check.c                |   15 +++++++-
+ 104 files changed, 449 insertions(+), 342 deletions(-)
 
