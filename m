@@ -2,162 +2,232 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E44C43334
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jun 2022 09:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81905C43334
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Jun 2022 14:46:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233904AbiFHJF7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 8 Jun 2022 05:05:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57658 "EHLO
+        id S241757AbiFHOqs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:46:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234238AbiFHJE2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2022 05:04:28 -0400
-Received: from mail-lj1-x233.google.com (mail-lj1-x233.google.com [IPv6:2a00:1450:4864:20::233])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B4AA222345
-        for <linux-acpi@vger.kernel.org>; Wed,  8 Jun 2022 01:24:21 -0700 (PDT)
-Received: by mail-lj1-x233.google.com with SMTP id s13so21877397ljd.4
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Jun 2022 01:24:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qn1e9UAfXz5aNABeJOAzysJEyHPbsjfCU7HdITnS84k=;
-        b=Zf/rY8UPfUil7LCo0AmPL0ktcOejRjNbVkLs6BfbQEG0tklgICY+14UzNT7D2l+FDP
-         kd/C58CeMvLCk8v3OokScSeoWleedGL2pCuZ4fpDA/Jq1KQDZNs4yJvNeRq2uK5ohQfv
-         x4JYv71VyLAWcCv/E2Q2Aj30ajf43xjO6xVU0l7ZmWZuCFV8Mab02uK+G5KxWVWLxWab
-         pz3zN5y+pykDMGv075WbOy8vrLxMM7b81TO1CCsC2Cjxlj6PBZkA0QWRSCsNtnZJpAjf
-         OGONEqGxWA91wAD7DPtau1HbAdjZEXl/4fttRzwneXCGvy6jRrNp4vyt+nqKNTR9wue/
-         xJKA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qn1e9UAfXz5aNABeJOAzysJEyHPbsjfCU7HdITnS84k=;
-        b=aAul12IlDTKVr/LaZj+QIq2Ham7bwpEoGMs6NcHgs4Vk5H/8aPa2iei2evgSDmZObc
-         u0Y5WenPFZ9bqn9vWCllS5XnSSN1TTxCl3IjTsAC3PEKyrx75NTTZgc+Px23EM+WukXO
-         APdxdcu4kx8AWgLgiIcDXoXlhgBMKTPhl4Pervzo+OY2SkIePETcTCTNmQyiZCbg+TRg
-         TDy0cGdnslCZfKJubnOwqxsA6adjwDeRuPeLw3vXbzuwdMSwfhpyqImflVfjpTN9Fd3A
-         49BxRYoHCf74CsXL+OKdyBmU14touLue+DDK0SboYQmUQQeBGzVoN1txLhg5PGo5glqZ
-         Tayw==
-X-Gm-Message-State: AOAM531/ssu6sckTCEJP3W2Rewc0rCEfPEWPra24NNSjcuDwKZoK+amm
-        i5JXnFdXqi+KXdI2sVSsL1IiTrJqWBmLI+2MQgFc5g==
-X-Google-Smtp-Source: ABdhPJwud0+3E/Q29u9oy+kzSCNdY14guBqBmA0Hqpt4c+PmhIEHReOxdmFrIBDqbHdvMdQZbHcRxllXIDLHtj3hagQ=
-X-Received: by 2002:a2e:bf14:0:b0:255:b789:576b with SMTP id
- c20-20020a2ebf14000000b00255b789576bmr3093006ljr.47.1654676659002; Wed, 08
- Jun 2022 01:24:19 -0700 (PDT)
+        with ESMTP id S241794AbiFHOqr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2022 10:46:47 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C229C1D8197;
+        Wed,  8 Jun 2022 07:46:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To;
+        bh=o5HILV8lXWZVR34kQkfXu7ELtM3PHvDf12JWqGFz8as=; b=IHv5dA5xONKsf6YvlQ/r5zZAXC
+        z8+ORB0iuI9NP+6CPk0aEmrUBqk0vF+4sxBwbSZMsZ/NC3S3ZS38ZU9G35HcA+0UaCrG/E9E2EDya
+        UReQc8yVMX9pQI9jRJz7p1XHl/kZg0b9sz5G4w60p8kG48dZM3JHI9u9B3cwEc9mWpdE1irkTHwHv
+        vFAuUWNdgGncaOHJ29M9zRZ7mTLIHItHgHZTBRk/yw0+J5vvdVaXpILAqvpeL4ZG4iFIXkLeni8oT
+        hj5R5Sb8cBmHtO4CcW0rlPwzsaXP+dBDNey1h5Tusr3iBUhw4anJ2Y7TMiZYOXMDPrxId092Aephk
+        NIa0kBnw==;
+Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywx3-00ChYJ-It; Wed, 08 Jun 2022 14:46:29 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id C639E302F14;
+        Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
+        id A2E5D20C119A0; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144517.570101266@infradead.org>
+User-Agent: quilt/0.66
+Date:   Wed, 08 Jun 2022 16:27:49 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     peterz@infradead.org
+Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, bcain@quicinc.com,
+        chenhuacai@kernel.org, kernel@xen0n.name, geert@linux-m68k.org,
+        sammy@sammy.net, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        dinguyen@kernel.org, jonas@southpole.se,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        acme@kernel.org, mark.rutland@arm.com,
+        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
+        amakhalov@vmware.com, pv-drivers@vmware.com,
+        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
+        gregkh@linuxfoundation.org, mturquette@baylibre.com,
+        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, anup@brainfault.org,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        jacob.jun.pan@linux.intel.com, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        paulmck@kernel.org, frederic@kernel.org, quic_neeraju@quicinc.com,
+        josh@joshtriplett.org, mathieu.desnoyers@efficios.com,
+        jiangshanlai@gmail.com, joel@joelfernandes.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
+        rcu@vger.kernel.org
+Subject: [PATCH 26/36] cpuidle,sched: Remove annotations from TIF_{POLLING_NRFLAG,NEED_RESCHED}
+References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
-References: <000000000000bb7f1c05da29b601@google.com> <00000000000010b7d305e08837c8@google.com>
- <YpnqpMYcokTwCB6u@smile.fi.intel.com> <Ypor265BTdnmgwpM@rowland.harvard.edu>
- <YpouRmanvCQeKA3S@kroah.com> <Ypow1LRZ3Hau36ci@rowland.harvard.edu>
- <Ypoyy/stICFdHauR@kroah.com> <CACT4Y+bBWrLRwiowaWk8o4+XAtCHxxJiEQfiSkgM3BDut9atAw@mail.gmail.com>
- <20220606123839.GW2146@kadam> <CACT4Y+Y_kg1J00iBL=sMr5AP7U4RXuBizusvQG52few2NcJ6dg@mail.gmail.com>
- <YqAWpMdi4o1IQslu@casper.infradead.org> <CACT4Y+anOkc=-A5=3EBrvmu+AJ+f7CcrOfWp85hEu+CHkS3BGw@mail.gmail.com>
-In-Reply-To: <CACT4Y+anOkc=-A5=3EBrvmu+AJ+f7CcrOfWp85hEu+CHkS3BGw@mail.gmail.com>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Wed, 8 Jun 2022 10:24:07 +0200
-Message-ID: <CACT4Y+YM8__WOVAQcpNBNxneHCp5dv2tF7ySDpivRJ-efGNCUQ@mail.gmail.com>
-Subject: Re: [syzbot] general protection fault in __device_attach
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        syzbot <syzbot+dd3c97de244683533381@syzkaller.appspotmail.com>,
-        hdanton@sina.com, lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com,
-        rafael@kernel.org, rjw@rjwysocki.net,
-        syzkaller-bugs@googlegroups.com, linux-usb@vger.kernel.org,
-        Linux-MM <linux-mm@kvack.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 8 Jun 2022 at 10:20, Dmitry Vyukov <dvyukov@google.com> wrote:
-> > On Tue, Jun 07, 2022 at 09:15:09AM +0200, Dmitry Vyukov wrote:
-> > > On Mon, 6 Jun 2022 at 14:39, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > > >
-> > > > On Sat, Jun 04, 2022 at 10:32:46AM +0200, 'Dmitry Vyukov' via syzkaller-bugs wrote:
-> > > > > On Fri, 3 Jun 2022 at 18:12, Greg KH <gregkh@linuxfoundation.org> wrote:
-> > > > > >
-> > > > > > But again, is this a "real and able to be triggered from userspace"
-> > > > > > problem, or just fault-injection-induced?
-> > > > >
-> > > > > Then this is something to fix in the fault injection subsystem.
-> > > > > Testing systems shouldn't be reporting false positives.
-> > > > > What allocations cannot fail in real life? Is it <=page_size?
-> > > > >
-> > > >
-> > > > Apparently in 2014, anything less than *EIGHT?!!* pages succeeded!
-> > > >
-> > > > https://lwn.net/Articles/627419/
-> > > >
-> > > > I have been on the look out since that article and never seen anyone
-> > > > mention it changing.  I think we should ignore that and say that
-> > > > anything over PAGE_SIZE can fail.  Possibly we could go smaller than
-> > > > PAGE_SIZE...
-> > >
-> > > +linux-mm for GFP expertise re what allocations cannot possibly fail
-> > > and should be excluded from fault injection.
-> > >
-> > > Interesting, thanks for the link.
-> > >
-> > > PAGE_SIZE looks like a good start. Once we have the predicate in
-> > > place, we can refine it later when/if we have more inputs.
-> > >
-> > > But I wonder about GFP flags. They definitely have some impact on allocations.
-> > > If GFP_ACCOUNT is set, all allocations can fail, right?
-> > > If GFP_DMA/DMA32 is set, allocations can fail, right? What about other zones?
-> > > If GFP_NORETRY is set, allocations can fail?
-> > > What about GFP_NOMEMALLOC and GFP_ATOMIC?
-> > > What about GFP_IO/GFP_FS/GFP_DIRECT_RECLAIM/GFP_KSWAPD_RECLAIM? At
-> > > least some of these need to be set for allocations to not fail? Which
-> > > ones?
-> > > Any other flags are required to be set/unset for allocations to not fail?
-> >
-> > I'm not the expert on page allocation, but ...
-> >
-> > I don't think GFP_ACCOUNT makes allocations fail.  It might make reclaim
-> > happen from within that cgroup, and it might cause an OOM kill for
-> > something in that cgroup.  But I don't think it makes a (low order)
-> > allocation more likely to fail.
->
-> Interesting.
-> I was thinking of some malicious specifically crafted configurations
-> with very low limit and particular pattern of allocations. Also what
-> if there is just 1 process (current)? Is it possible to kill and
-> reclaim the current process when a thread is stuck in the middle of
-> the kernel on a kmalloc?
-> Also I see e.g.:
->         Tasks with the OOM protection (oom_score_adj set to -1000)
->         are treated as an exception and are never killed.
->
-> I am not an expert on this either, but I think it may be hard to fight
-> with a specifically crafted attack.
->
->
-> > There's usually less memory avilable in DMA/DMA32 zones, but we have
-> > so few allocations from those zones, I question the utility of focusing
-> > testing on those allocations.
-> >
-> > GFP_ATOMIC allows access to emergency pools, so I would say _less_ likely
-> > to fail.  KSWAPD_RECLAIM has no effect on whether _this_ allocation
-> > succeeds or fails; it kicks kswapd to do reclaim, rather than doing
-> > reclaim directly.  DIRECT_RECLAIM definitely makes allocations more likely
-> > to succeed.  GFP_FS allows (direct) reclaim to happen from filesystems.
-> > GFP_IO allows IO to start (ie writeback can start) in order to clean
-> > dirty memory.
-> >
-> > Anyway, I hope somebody who knows the page allocator better than I do
-> > can say smarter things than this.  Even better if they can put it into
-> > Documentation/ somewhere ;-)
->
-> Even better to put this into code as a predicate function that fault
-> injection will use. It will also serve as precise up-to-date
-> documentation.
+vmlinux.o: warning: objtool: mwait_idle+0x5: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0xbc: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to current_set_polling_and_test() leaves .noinstr.text section
 
-Also at the end of kmalloc as:
-WARN_ON(!ret && !cant_fail(size, gfp));
-!
+vmlinux.o: warning: objtool: intel_idle+0xa6: call to current_clr_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xbf: call to current_clr_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0xa1: call to current_clr_polling() leaves .noinstr.text section
 
-> > https://www.kernel.org/doc/html/latest/core-api/memory-allocation.html
-> > exists but isn't quite enough to answer this question.
+vmlinux.o: warning: objtool: mwait_idle+0xe: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0xbc: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to __current_set_polling() leaves .noinstr.text section
+
+vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0x73: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0x91: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0x78: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_safe_halt+0xf: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ include/linux/sched/idle.h  |   40 ++++++++++++++++++++++++++++++----------
+ include/linux/thread_info.h |   18 +++++++++++++++++-
+ 2 files changed, 47 insertions(+), 11 deletions(-)
+
+--- a/include/linux/sched/idle.h
++++ b/include/linux/sched/idle.h
+@@ -23,12 +23,37 @@ static inline void wake_up_if_idle(int c
+  */
+ #ifdef TIF_POLLING_NRFLAG
+ 
+-static inline void __current_set_polling(void)
++#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H
++
++static __always_inline void __current_set_polling(void)
+ {
+-	set_thread_flag(TIF_POLLING_NRFLAG);
++	arch_set_bit(TIF_POLLING_NRFLAG,
++		     (unsigned long *)(&current_thread_info()->flags));
+ }
+ 
+-static inline bool __must_check current_set_polling_and_test(void)
++static __always_inline void __current_clr_polling(void)
++{
++	arch_clear_bit(TIF_POLLING_NRFLAG,
++		       (unsigned long *)(&current_thread_info()->flags));
++}
++
++#else
++
++static __always_inline void __current_set_polling(void)
++{
++	set_bit(TIF_POLLING_NRFLAG,
++		(unsigned long *)(&current_thread_info()->flags));
++}
++
++static __always_inline void __current_clr_polling(void)
++{
++	clear_bit(TIF_POLLING_NRFLAG,
++		  (unsigned long *)(&current_thread_info()->flags));
++}
++
++#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H */
++
++static __always_inline bool __must_check current_set_polling_and_test(void)
+ {
+ 	__current_set_polling();
+ 
+@@ -41,12 +66,7 @@ static inline bool __must_check current_
+ 	return unlikely(tif_need_resched());
+ }
+ 
+-static inline void __current_clr_polling(void)
+-{
+-	clear_thread_flag(TIF_POLLING_NRFLAG);
+-}
+-
+-static inline bool __must_check current_clr_polling_and_test(void)
++static __always_inline bool __must_check current_clr_polling_and_test(void)
+ {
+ 	__current_clr_polling();
+ 
+@@ -73,7 +93,7 @@ static inline bool __must_check current_
+ }
+ #endif
+ 
+-static inline void current_clr_polling(void)
++static __always_inline void current_clr_polling(void)
+ {
+ 	__current_clr_polling();
+ 
+--- a/include/linux/thread_info.h
++++ b/include/linux/thread_info.h
+@@ -177,7 +177,23 @@ static __always_inline unsigned long rea
+ 	clear_ti_thread_flag(task_thread_info(t), TIF_##fl)
+ #endif /* !CONFIG_GENERIC_ENTRY */
+ 
+-#define tif_need_resched() test_thread_flag(TIF_NEED_RESCHED)
++#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H
++
++static __always_inline bool tif_need_resched(void)
++{
++	return arch_test_bit(TIF_NEED_RESCHED,
++			     (unsigned long *)(&current_thread_info()->flags));
++}
++
++#else
++
++static __always_inline bool tif_need_resched(void)
++{
++	return test_bit(TIF_NEED_RESCHED,
++			(unsigned long *)(&current_thread_info()->flags));
++}
++
++#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H */
+ 
+ #ifndef CONFIG_HAVE_ARCH_WITHIN_STACK_FRAMES
+ static inline int arch_within_stack_frames(const void * const stack,
+
+
