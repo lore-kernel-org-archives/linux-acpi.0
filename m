@@ -2,27 +2,27 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D58CCA481
-	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jun 2022 14:21:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE1ACCA482
+	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jun 2022 14:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244443AbiFIOUu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Jun 2022 10:20:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45364 "EHLO
+        id S244682AbiFIOU7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Jun 2022 10:20:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244855AbiFIOUf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2022 10:20:35 -0400
+        with ESMTP id S245497AbiFIOUs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2022 10:20:48 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54C8626A096;
-        Thu,  9 Jun 2022 07:20:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E423C2AD5F1;
+        Thu,  9 Jun 2022 07:20:46 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id be4704fa09209c3c; Thu, 9 Jun 2022 16:20:30 +0200
+ id 62a5a1690f92c961; Thu, 9 Jun 2022 16:20:45 +0200
 Received: from kreacher.localnet (unknown [213.134.186.232])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id A406866C7D7;
-        Thu,  9 Jun 2022 16:20:29 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 57C8566C7D8;
+        Thu,  9 Jun 2022 16:20:44 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
@@ -30,12 +30,10 @@ Cc:     LKML <linux-kernel@vger.kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Hans de Goede <hdegoede@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org
-Subject: [PATCH v1 15/16] ACPI / MMC: PM: Unify fixing up device power
-Date:   Thu, 09 Jun 2022 16:18:40 +0200
-Message-ID: <2159220.NgBsaNRSFp@kreacher>
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v1 07/16] ACPI: property: Use acpi_dev_for_each_child() for child lookup
+Date:   Thu, 09 Jun 2022 15:59:27 +0200
+Message-ID: <1752295.VLH7GnMWUR@kreacher>
 In-Reply-To: <1843211.tdWV9SEqCh@kreacher>
 References: <1843211.tdWV9SEqCh@kreacher>
 MIME-Version: 1.0
@@ -44,20 +42,18 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.186.232
 X-CLIENT-HOSTNAME: 213.134.186.232
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddtledgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppedvudefrddufeegrddukeeirddvfedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekiedrvdefvddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepuddtpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidr
- ihhnthgvlhdrtghomhdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomhdprhgtphhtthhopehsrghkrghrihdrrghilhhusheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopegrughrihgrnhdrhhhunhhtvghrsehinhhtvghlrdgtohhmpdhrtghpthhtohepuhhlfhdrhhgrnhhsshhonheslhhinhgrrhhordhorhhgpdhrtghpthhtoheplhhinhhugidqmhhmtgesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=10 Fuz1=10 Fuz2=10
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddtledgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppedvudefrddufeegrddukeeirddvfedvnecuvehluhhsthgvrhfuihiivgepudenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekiedrvdefvddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepjedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhi
+ nhhtvghlrdgtohhmpdhrtghpthhtohepmhhikhgrrdifvghsthgvrhgsvghrgheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehhuggvghhovgguvgesrhgvughhrghtrdgtohhmpdhrtghpthhtohepshgrkhgrrhhirdgrihhluhhssehlihhnuhigrdhinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Introduce acpi_device_fix_up_power_extended() for fixing up power of
-a device having an ACPI companion in a manner that takes the device's
-children into account and make the MMC code use it in two places
-instead of walking the list of the device ACPI companion's children
-directly.
+Instead of using the list of children of an ACPI device directly,
+use acpi_dev_for_each_child() to find the next child of a given
+ACPI device.
 
 This will help to eliminate the children list head from struct
 acpi_device as it is redundant and it is used in questionable ways
@@ -66,107 +62,81 @@ list pointed to it safely, but it is often missing).
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/device_pm.c          |   22 ++++++++++++++++++++++
- drivers/mmc/host/sdhci-acpi.c     |    7 ++-----
- drivers/mmc/host/sdhci-pci-core.c |   11 +++--------
- include/acpi/acpi_bus.h           |    1 +
- 4 files changed, 28 insertions(+), 13 deletions(-)
+ drivers/acpi/property.c |   47 +++++++++++++++++++++++++----------------------
+ 1 file changed, 25 insertions(+), 22 deletions(-)
 
-Index: linux-pm/drivers/mmc/host/sdhci-acpi.c
+Index: linux-pm/drivers/acpi/property.c
 ===================================================================
---- linux-pm.orig/drivers/mmc/host/sdhci-acpi.c
-+++ linux-pm/drivers/mmc/host/sdhci-acpi.c
-@@ -775,8 +775,8 @@ static int sdhci_acpi_probe(struct platf
- {
- 	struct device *dev = &pdev->dev;
- 	const struct sdhci_acpi_slot *slot;
--	struct acpi_device *device, *child;
- 	const struct dmi_system_id *id;
-+	struct acpi_device *device;
- 	struct sdhci_acpi_host *c;
- 	struct sdhci_host *host;
- 	struct resource *iomem;
-@@ -796,10 +796,7 @@ static int sdhci_acpi_probe(struct platf
- 	slot = sdhci_acpi_get_slot(device);
- 
- 	/* Power on the SDHCI controller and its children */
--	acpi_device_fix_up_power(device);
--	list_for_each_entry(child, &device->children, node)
--		if (child->status.present && child->status.enabled)
--			acpi_device_fix_up_power(child);
-+	acpi_device_fix_up_power_extended(device);
- 
- 	if (sdhci_acpi_byt_defer(dev))
- 		return -EPROBE_DEFER;
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -369,6 +369,28 @@ int acpi_device_fix_up_power(struct acpi
+--- linux-pm.orig/drivers/acpi/property.c
++++ linux-pm/drivers/acpi/property.c
+@@ -1012,6 +1012,22 @@ static int acpi_node_prop_read(const str
+ 				   propname, proptype, val, nval);
  }
- EXPORT_SYMBOL_GPL(acpi_device_fix_up_power);
  
-+static int fix_up_power_if_applicable(struct acpi_device *adev, void *not_used)
++static int stop_on_next(struct acpi_device *adev, void *data)
 +{
-+	if (adev->status.present && adev->status.enabled)
-+		acpi_device_fix_up_power(adev);
++	struct acpi_device **ret_p = data;
++
++	if (!*ret_p) {
++		*ret_p = adev;
++		return 1;
++	}
++
++	/* Skip until the "previous" object is found. */
++	if (*ret_p == adev)
++		*ret_p = NULL;
 +
 +	return 0;
 +}
 +
-+/**
-+ * acpi_device_fix_up_power_extended - Force device and its children into D0.
-+ * @adev: Parent device object whose power state is to be fixed up.
-+ *
-+ * Call acpi_device_fix_up_power() for @adev and its children so long as they
-+ * are reported as present and enabled.
-+ */
-+void acpi_device_fix_up_power_extended(struct acpi_device *adev)
-+{
-+	acpi_device_fix_up_power(adev);
-+	acpi_dev_for_each_child(adev, fix_up_power_if_applicable, NULL);
-+}
-+EXPORT_SYMBOL_GPL(acpi_device_fix_up_power_extended);
-+
- int acpi_device_update_power(struct acpi_device *device, int *state_p)
+ /**
+  * acpi_get_next_subnode - Return the next child node handle for a fwnode
+  * @fwnode: Firmware node to find the next child node for.
+@@ -1020,35 +1036,22 @@ static int acpi_node_prop_read(const str
+ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+ 					    struct fwnode_handle *child)
  {
- 	int state;
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -524,6 +524,7 @@ const char *acpi_power_state_string(int
- int acpi_device_set_power(struct acpi_device *device, int state);
- int acpi_bus_init_power(struct acpi_device *device);
- int acpi_device_fix_up_power(struct acpi_device *device);
-+void acpi_device_fix_up_power_extended(struct acpi_device *adev);
- int acpi_bus_update_power(acpi_handle handle, int *state_p);
- int acpi_device_update_power(struct acpi_device *device, int *state_p);
- bool acpi_bus_power_manageable(acpi_handle handle);
-Index: linux-pm/drivers/mmc/host/sdhci-pci-core.c
-===================================================================
---- linux-pm.orig/drivers/mmc/host/sdhci-pci-core.c
-+++ linux-pm/drivers/mmc/host/sdhci-pci-core.c
-@@ -1240,16 +1240,11 @@ static const struct sdhci_pci_fixes sdhc
- #ifdef CONFIG_ACPI
- static void intel_mrfld_mmc_fix_up_power_slot(struct sdhci_pci_slot *slot)
- {
--	struct acpi_device *device, *child;
-+	struct acpi_device *device;
+-	const struct acpi_device *adev = to_acpi_device_node(fwnode);
+-	const struct list_head *head;
+-	struct list_head *next;
++	struct acpi_device *adev = to_acpi_device_node(fwnode);
  
- 	device = ACPI_COMPANION(&slot->chip->pdev->dev);
--	if (!device)
--		return;
+ 	if ((!child || is_acpi_device_node(child)) && adev) {
+-		struct acpi_device *child_adev;
++		struct acpi_device *child_adev = to_acpi_device_node(child);
++
++		acpi_dev_for_each_child(adev, stop_on_next, &child_adev);
++		if (child_adev)
++			return acpi_fwnode_handle(child_adev);
+ 
+-		head = &adev->children;
+-		if (list_empty(head))
+-			goto nondev;
 -
--	acpi_device_fix_up_power(device);
--	list_for_each_entry(child, &device->children, node)
--		if (child->status.present && child->status.enabled)
--			acpi_device_fix_up_power(child);
-+	if (device)
-+		acpi_device_fix_up_power_extended(device);
- }
- #else
- static inline void intel_mrfld_mmc_fix_up_power_slot(struct sdhci_pci_slot *slot) {}
+-		if (child) {
+-			adev = to_acpi_device_node(child);
+-			next = adev->node.next;
+-			if (next == head) {
+-				child = NULL;
+-				goto nondev;
+-			}
+-			child_adev = list_entry(next, struct acpi_device, node);
+-		} else {
+-			child_adev = list_first_entry(head, struct acpi_device,
+-						      node);
+-		}
+-		return acpi_fwnode_handle(child_adev);
++		child = NULL;
+ 	}
+ 
+- nondev:
+ 	if (!child || is_acpi_data_node(child)) {
+ 		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
++		const struct list_head *head;
++		struct list_head *next;
+ 		struct acpi_data_node *dn;
+ 
+ 		/*
 
 
 
