@@ -2,27 +2,27 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3548CCA47F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D58CCA481
 	for <linux-acpi@archiver.kernel.org>; Thu,  9 Jun 2022 14:21:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245443AbiFIOU5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 9 Jun 2022 10:20:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46338 "EHLO
+        id S244443AbiFIOUu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 9 Jun 2022 10:20:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245410AbiFIOUp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2022 10:20:45 -0400
+        with ESMTP id S244855AbiFIOUf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2022 10:20:35 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B5092A141F;
-        Thu,  9 Jun 2022 07:20:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54C8626A096;
+        Thu,  9 Jun 2022 07:20:32 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id de8c5f8182d4514d; Thu, 9 Jun 2022 16:20:41 +0200
+ id be4704fa09209c3c; Thu, 9 Jun 2022 16:20:30 +0200
 Received: from kreacher.localnet (unknown [213.134.186.232])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 0982666C7CA;
-        Thu,  9 Jun 2022 16:20:40 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id A406866C7D7;
+        Thu,  9 Jun 2022 16:20:29 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
@@ -30,10 +30,12 @@ Cc:     LKML <linux-kernel@vger.kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Hans de Goede <hdegoede@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v1 09/16] ACPI: video: Use acpi_dev_for_each_child()
-Date:   Thu, 09 Jun 2022 16:03:37 +0200
-Message-ID: <22695031.6Emhk5qWAg@kreacher>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org
+Subject: [PATCH v1 15/16] ACPI / MMC: PM: Unify fixing up device power
+Date:   Thu, 09 Jun 2022 16:18:40 +0200
+Message-ID: <2159220.NgBsaNRSFp@kreacher>
 In-Reply-To: <1843211.tdWV9SEqCh@kreacher>
 References: <1843211.tdWV9SEqCh@kreacher>
 MIME-Version: 1.0
@@ -42,18 +44,20 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.186.232
 X-CLIENT-HOSTNAME: 213.134.186.232
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddtledgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppedvudefrddufeegrddukeeirddvfedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekiedrvdefvddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepjedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhi
- nhhtvghlrdgtohhmpdhrtghpthhtohepmhhikhgrrdifvghsthgvrhgsvghrgheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehhuggvghhovgguvgesrhgvughhrghtrdgtohhmpdhrtghpthhtohepshgrkhgrrhhirdgrihhluhhssehlihhnuhigrdhinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddtledgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppedvudefrddufeegrddukeeirddvfedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekiedrvdefvddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepuddtpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidr
+ ihhnthgvlhdrtghomhdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomhdprhgtphhtthhopehsrghkrghrihdrrghilhhusheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopegrughrihgrnhdrhhhunhhtvghrsehinhhtvghlrdgtohhmpdhrtghpthhtohepuhhlfhdrhhgrnhhsshhonheslhhinhgrrhhordhorhhgpdhrtghpthhtoheplhhinhhugidqmhhmtgesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=10 Fuz1=10 Fuz2=10
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Instead of walking the list of children of an ACPI device directly,
-use acpi_dev_for_each_child() to carry out an action for all of
-the given ACPI device's children.
+Introduce acpi_device_fix_up_power_extended() for fixing up power of
+a device having an ACPI companion in a manner that takes the device's
+children into account and make the MMC code use it in two places
+instead of walking the list of the device ACPI companion's children
+directly.
 
 This will help to eliminate the children list head from struct
 acpi_device as it is redundant and it is used in questionable ways
@@ -62,90 +66,107 @@ list pointed to it safely, but it is often missing).
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_video.c |   42 +++++++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 25 deletions(-)
+ drivers/acpi/device_pm.c          |   22 ++++++++++++++++++++++
+ drivers/mmc/host/sdhci-acpi.c     |    7 ++-----
+ drivers/mmc/host/sdhci-pci-core.c |   11 +++--------
+ include/acpi/acpi_bus.h           |    1 +
+ 4 files changed, 28 insertions(+), 13 deletions(-)
 
-Index: linux-pm/drivers/acpi/acpi_video.c
+Index: linux-pm/drivers/mmc/host/sdhci-acpi.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/acpi_video.c
-+++ linux-pm/drivers/acpi/acpi_video.c
-@@ -1149,24 +1149,25 @@ acpi_video_get_device_type(struct acpi_v
- 	return 0;
- }
- 
--static int
--acpi_video_bus_get_one_device(struct acpi_device *device,
--			      struct acpi_video_bus *video)
-+static int acpi_video_bus_get_one_device(struct acpi_device *device, void *arg)
+--- linux-pm.orig/drivers/mmc/host/sdhci-acpi.c
++++ linux-pm/drivers/mmc/host/sdhci-acpi.c
+@@ -775,8 +775,8 @@ static int sdhci_acpi_probe(struct platf
  {
--	unsigned long long device_id;
--	int status, device_type;
--	struct acpi_video_device *data;
-+	struct acpi_video_bus *video = arg;
- 	struct acpi_video_device_attrib *attribute;
-+	struct acpi_video_device *data;
-+	unsigned long long device_id;
-+	acpi_status status;
-+	int device_type;
+ 	struct device *dev = &pdev->dev;
+ 	const struct sdhci_acpi_slot *slot;
+-	struct acpi_device *device, *child;
+ 	const struct dmi_system_id *id;
++	struct acpi_device *device;
+ 	struct sdhci_acpi_host *c;
+ 	struct sdhci_host *host;
+ 	struct resource *iomem;
+@@ -796,10 +796,7 @@ static int sdhci_acpi_probe(struct platf
+ 	slot = sdhci_acpi_get_slot(device);
  
--	status =
--	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
--	/* Some device omits _ADR, we skip them instead of fail */
-+	status = acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
-+	/* Skip devices without _ADR instead of failing. */
- 	if (ACPI_FAILURE(status))
--		return 0;
-+		goto exit;
+ 	/* Power on the SDHCI controller and its children */
+-	acpi_device_fix_up_power(device);
+-	list_for_each_entry(child, &device->children, node)
+-		if (child->status.present && child->status.enabled)
+-			acpi_device_fix_up_power(child);
++	acpi_device_fix_up_power_extended(device);
  
- 	data = kzalloc(sizeof(struct acpi_video_device), GFP_KERNEL);
--	if (!data)
-+	if (!data) {
-+		dev_dbg(&device->dev, "Cannot attach\n");
- 		return -ENOMEM;
-+	}
+ 	if (sdhci_acpi_byt_defer(dev))
+ 		return -EPROBE_DEFER;
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -369,6 +369,28 @@ int acpi_device_fix_up_power(struct acpi
+ }
+ EXPORT_SYMBOL_GPL(acpi_device_fix_up_power);
  
- 	strcpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
-@@ -1226,7 +1227,9 @@ acpi_video_bus_get_one_device(struct acp
- 	list_add_tail(&data->entry, &video->video_device_list);
- 	mutex_unlock(&video->device_list_lock);
- 
--	return status;
-+exit:
-+	video->child_count++;
++static int fix_up_power_if_applicable(struct acpi_device *adev, void *not_used)
++{
++	if (adev->status.present && adev->status.enabled)
++		acpi_device_fix_up_power(adev);
++
 +	return 0;
- }
- 
- /*
-@@ -1538,9 +1541,6 @@ static int
- acpi_video_bus_get_devices(struct acpi_video_bus *video,
- 			   struct acpi_device *device)
++}
++
++/**
++ * acpi_device_fix_up_power_extended - Force device and its children into D0.
++ * @adev: Parent device object whose power state is to be fixed up.
++ *
++ * Call acpi_device_fix_up_power() for @adev and its children so long as they
++ * are reported as present and enabled.
++ */
++void acpi_device_fix_up_power_extended(struct acpi_device *adev)
++{
++	acpi_device_fix_up_power(adev);
++	acpi_dev_for_each_child(adev, fix_up_power_if_applicable, NULL);
++}
++EXPORT_SYMBOL_GPL(acpi_device_fix_up_power_extended);
++
+ int acpi_device_update_power(struct acpi_device *device, int *state_p)
  {
--	int status = 0;
--	struct acpi_device *dev;
--
- 	/*
- 	 * There are systems where video module known to work fine regardless
- 	 * of broken _DOD and ignoring returned value here doesn't cause
-@@ -1548,16 +1548,8 @@ acpi_video_bus_get_devices(struct acpi_v
- 	 */
- 	acpi_video_device_enumerate(video);
+ 	int state;
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -524,6 +524,7 @@ const char *acpi_power_state_string(int
+ int acpi_device_set_power(struct acpi_device *device, int state);
+ int acpi_bus_init_power(struct acpi_device *device);
+ int acpi_device_fix_up_power(struct acpi_device *device);
++void acpi_device_fix_up_power_extended(struct acpi_device *adev);
+ int acpi_bus_update_power(acpi_handle handle, int *state_p);
+ int acpi_device_update_power(struct acpi_device *device, int *state_p);
+ bool acpi_bus_power_manageable(acpi_handle handle);
+Index: linux-pm/drivers/mmc/host/sdhci-pci-core.c
+===================================================================
+--- linux-pm.orig/drivers/mmc/host/sdhci-pci-core.c
++++ linux-pm/drivers/mmc/host/sdhci-pci-core.c
+@@ -1240,16 +1240,11 @@ static const struct sdhci_pci_fixes sdhc
+ #ifdef CONFIG_ACPI
+ static void intel_mrfld_mmc_fix_up_power_slot(struct sdhci_pci_slot *slot)
+ {
+-	struct acpi_device *device, *child;
++	struct acpi_device *device;
  
--	list_for_each_entry(dev, &device->children, node) {
+ 	device = ACPI_COMPANION(&slot->chip->pdev->dev);
+-	if (!device)
+-		return;
 -
--		status = acpi_video_bus_get_one_device(dev, video);
--		if (status) {
--			dev_err(&dev->dev, "Can't attach device\n");
--			break;
--		}
--		video->child_count++;
--	}
--	return status;
-+	return acpi_dev_for_each_child(device, acpi_video_bus_get_one_device,
-+				       video);
+-	acpi_device_fix_up_power(device);
+-	list_for_each_entry(child, &device->children, node)
+-		if (child->status.present && child->status.enabled)
+-			acpi_device_fix_up_power(child);
++	if (device)
++		acpi_device_fix_up_power_extended(device);
  }
- 
- /* acpi_video interface */
+ #else
+ static inline void intel_mrfld_mmc_fix_up_power_slot(struct sdhci_pci_slot *slot) {}
 
 
 
