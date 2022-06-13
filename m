@@ -2,154 +2,144 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C75C43334
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jun 2022 20:12:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76BA2CCA47D
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jun 2022 20:16:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243364AbiFMUMz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Jun 2022 16:12:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47660 "EHLO
+        id S1348375AbiFMUQ5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Jun 2022 16:16:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239374AbiFMUMp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2022 16:12:45 -0400
-Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B38264C43C
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jun 2022 11:47:31 -0700 (PDT)
-Received: by mail-lj1-x236.google.com with SMTP id d19so7165428lji.10
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jun 2022 11:47:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=gnUSbe8CiTQ19HP1QRaMovzHPwVV5AH7oRueQxzbr2w=;
-        b=psqvyg4bPOOObXvl93Zxro9XA/ODLoG6iBN8VzURq2kWrUR7F3BHDeeHNMu0CFKyIh
-         Niks5hKvSuVELNC275GXW5lNVLONvG604XONrgXtzQCBbODYI+FiNC4UHOy01ziKEw6P
-         PnJJ8X8mCYdNE116ke64zsX9sSqEcXHCfXLltO9UXIpqgB60u1m1gOJgKSvqZ2Vu7Rt3
-         Fab5Mj4u35jsb3FBf1q2tLM98qhaB60LVo3lH+ODCh+pfDogtGE59OZmPCThjZAo5F3C
-         uARnmPJ0E0/9jMWP5IEUMjK7PRjAVPO04tktB/Od36POLALwftkbezadySNHJrj1LtR7
-         bRTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=gnUSbe8CiTQ19HP1QRaMovzHPwVV5AH7oRueQxzbr2w=;
-        b=f8N7uLdalAFQMtJESc0vmxGuhWUBq6ksu1Y9FRf35K/FYybDZMyIlXvf6StthNH964
-         9kPS/muK5Np9I20epo5Hz7yUea4r5AbBHyQxul+J7ULRJH8cEwhzV8ApnYj2V4XRlH6N
-         GErz5OzGvaiTkrzg0hSDSmYsaHTnKYHWGw4jaFPLn7C9HUrOEQJ7NW4g89XSVKe7Xkx2
-         SSItglM+MhktdQP2TQ/BGP5ctQBBz9vW6TekdtL82yW1lJ6xMlJ0qFvIO4Cj9CVQo00r
-         zv+8kt21a0UuwT2pzB4tA7diz++ZjZu6yQNJvRBf1g/BvtLO23+pnzU1kdnVEyhmD4eI
-         mXww==
-X-Gm-Message-State: AJIora/UXKmydOWurV2F1N9zH9jiItyiHE4AHTgkhqmFAQcCk1OgP7mW
-        dW0JC1WM3qvoB8LJsfbZHlVjjXP8H6EepHFoGj3m
-X-Google-Smtp-Source: AGRyM1uMA1RswQj/kRbYWxpa2gpbkIqW/H3Lhp9QgKWhkKjVKtC7uz71CWdrVgWOGoL64GzPA+QRw4qUugKbzHueGjo=
-X-Received: by 2002:a05:651c:1581:b0:255:48d1:fdae with SMTP id
- h1-20020a05651c158100b0025548d1fdaemr472476ljq.286.1655146049852; Mon, 13 Jun
- 2022 11:47:29 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220609221702.347522-1-morbo@google.com> <20220609221702.347522-9-morbo@google.com>
- <YqYTExy0IpVbunBL@equinox>
-In-Reply-To: <YqYTExy0IpVbunBL@equinox>
-From:   Bill Wendling <morbo@google.com>
-Date:   Mon, 13 Jun 2022 11:47:18 -0700
-Message-ID: <CAGG=3QVc4STHym0hszpr1SP=RYWag5=J-MB-zhz4JzNZnRnbvg@mail.gmail.com>
-Subject: Re: [PATCH 08/12] cdrom: use correct format characters
-To:     Phillip Potter <phil@philpotter.co.uk>
-Cc:     Bill Wendling <isanbard@gmail.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
+        with ESMTP id S230115AbiFMUQm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2022 16:16:42 -0400
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34ECB2AE3C;
+        Mon, 13 Jun 2022 11:53:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655146419; x=1686682419;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=N/FooetRT0zhGj9JT4wTV9Q1LeNSCJr8h76SMTw5COE=;
+  b=QHyD+zEUTks6H3km+26SNY3qIxehbSgv3Yp1iJt5Drm3t3a8Ni1bmJqC
+   irggBQsXWq/5l3h22o5O+ZReLBZb/vBHcs5I5m6MKDg9wJbvXr2VCGy3P
+   3tVz4zG5UjMzh9s1f3eBka7ylVtZy0dnF2vujqo3iYuKK7dt34Da5tW0P
+   174mmabEEKj7kOGu9IDDW45ucz3dp9SL22PiAIv6WqyFf1cslmRX6UkDW
+   f5L6YDjAp6KC3p2yQR/L8BUizcgune/C5bSG+RXocEygVMC3Sg3U8BVn6
+   q2NUQz9tn6BCjYZHZuq9/YcCLmSu+US1215RmmrLFy5l7SoBO2FwXyxiE
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10377"; a="275909478"
+X-IronPort-AV: E=Sophos;i="5.91,297,1647327600"; 
+   d="scan'208";a="275909478"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2022 11:53:39 -0700
+X-IronPort-AV: E=Sophos;i="5.91,297,1647327600"; 
+   d="scan'208";a="673448816"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2022 11:53:36 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.95)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1o0pBt-000bIT-Rw;
+        Mon, 13 Jun 2022 21:53:33 +0300
+Date:   Mon, 13 Jun 2022 21:53:33 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jan Kara <jack@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Ross Philipson <ross.philipson@oracle.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
-        linux-edac@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-mm@kvack.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        alsa-devel@alsa-project.org,
-        clang-built-linux <llvm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        linux-usb@vger.kernel.org
+Subject: Re: [PATCH v2 05/16] USB: ACPI: Replace usb_acpi_find_port() with
+ acpi_find_child_by_adr()
+Message-ID: <YqeHrRe/VFUpEJd6@smile.fi.intel.com>
+References: <1843211.tdWV9SEqCh@kreacher>
+ <2653857.mvXUDI8C0e@kreacher>
+ <23334378.ouqheUzb2q@kreacher>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <23334378.ouqheUzb2q@kreacher>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Jun 12, 2022 at 9:23 AM Phillip Potter <phil@philpotter.co.uk> wrote:
->
-> On Thu, Jun 09, 2022 at 10:16:27PM +0000, Bill Wendling wrote:
-> > From: Bill Wendling <isanbard@gmail.com>
-> >
-> > When compiling with -Wformat, clang emits the following warnings:
-> >
-> > drivers/cdrom/cdrom.c:3454:48: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
-> >         ret = scnprintf(info + *pos, max_size - *pos, header);
-> >                                                       ^~~~~~
-> >
-> > Use a string literal for the format string.
-> >
-> > Link: https://github.com/ClangBuiltLinux/linux/issues/378
-> > Signed-off-by: Bill Wendling <isanbard@gmail.com>
-> > ---
-> >  drivers/cdrom/cdrom.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/cdrom/cdrom.c b/drivers/cdrom/cdrom.c
-> > index 416f723a2dbb..52b40120c76e 100644
-> > --- a/drivers/cdrom/cdrom.c
-> > +++ b/drivers/cdrom/cdrom.c
-> > @@ -3451,7 +3451,7 @@ static int cdrom_print_info(const char *header, int val, char *info,
-> >       struct cdrom_device_info *cdi;
-> >       int ret;
-> >
-> > -     ret = scnprintf(info + *pos, max_size - *pos, header);
-> > +     ret = scnprintf(info + *pos, max_size - *pos, "%s", header);
-> >       if (!ret)
-> >               return 1;
-> >
-> > --
-> > 2.36.1.255.ge46751e96f-goog
-> >
->
-> Hi Bill,
->
-> Thank you for the patch, much appreciated.
->
-> Looking at this though, all callers of cdrom_print_info() provide 'header'
-> as a string literal defined within the driver, when making the call.
-> Therefore, I'm not convinced this change is necessary for cdrom.c -
-> that said, in this particular use case I don't think it would hurt
-> either.
->
-> I've followed the other responses on parts of this series, so I
-> understand that a different solution is potentially in the works.
-> Thought I'd respond anyway though out of courtesy.
->
-Thanks, Phillip.
+On Mon, Jun 13, 2022 at 08:39:37PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Instead of walking the list of children of an ACPI device directly
+> in order to find the child matching a given bus address, use
+> acpi_find_child_by_adr() for this purpose.
+> 
+> Also notice that if acpi_find_child_by_adr() doesn't find a matching
+> child, acpi_find_child_device() will not find it too, so directly
+> replace usb_acpi_find_port() in usb_acpi_get_companion_for_port() with
+> acpi_find_child_by_adr() and drop it entirely.
+> 
+> Apart from simplifying the code, this will help to eliminate the
+> children list head from struct acpi_device as it is redundant and it
+> is used in questionable ways in some places (in particular, locking is
+> needed for walking the list pointed to it safely, but it is often
+> missing).
 
-I pointed out in a separate response that this specific warning is
-disabled by default, but when I ran into while hacking stuff there
-weren't a lot of places where the warning popped up (at least for x86
-builds) and thought it would be a nice cleanup. I understand if you
-don't think this patch is necessary for your code. There are some
-places where visual inspection of the code is "good enough" to ensure
-that nothing untoward will happen (Greg pointed out a similar thing in
-an mm/ file).
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Cheers!
--bw
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> v1 -> v2:
+>    * Drop usb_acpi_find_port() (Heikki, Andy).
+>    * Change the subject accordingly.
+> 
+> ---
+>  drivers/usb/core/usb-acpi.c |   18 +-----------------
+>  1 file changed, 1 insertion(+), 17 deletions(-)
+> 
+> Index: linux-pm/drivers/usb/core/usb-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/usb/core/usb-acpi.c
+> +++ linux-pm/drivers/usb/core/usb-acpi.c
+> @@ -124,22 +124,6 @@ out:
+>   */
+>  #define USB_ACPI_LOCATION_VALID (1 << 31)
+>  
+> -static struct acpi_device *usb_acpi_find_port(struct acpi_device *parent,
+> -					      int raw)
+> -{
+> -	struct acpi_device *adev;
+> -
+> -	if (!parent)
+> -		return NULL;
+> -
+> -	list_for_each_entry(adev, &parent->children, node) {
+> -		if (acpi_device_adr(adev) == raw)
+> -			return adev;
+> -	}
+> -
+> -	return acpi_find_child_device(parent, raw, false);
+> -}
+> -
+>  static struct acpi_device *
+>  usb_acpi_get_companion_for_port(struct usb_port *port_dev)
+>  {
+> @@ -170,7 +154,7 @@ usb_acpi_get_companion_for_port(struct u
+>  		port1 = port_dev->portnum;
+>  	}
+>  
+> -	return usb_acpi_find_port(adev, port1);
+> +	return acpi_find_child_by_adr(adev, port1);
+>  }
+>  
+>  static struct acpi_device *
+> 
+> 
+> 
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
