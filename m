@@ -2,157 +2,241 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1ED3CCA47B
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jun 2022 20:17:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51541CCA47D
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jun 2022 20:33:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350984AbiFMURg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Jun 2022 16:17:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53930 "EHLO
+        id S229733AbiFMUdj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Jun 2022 16:33:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231437AbiFMURW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2022 16:17:22 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E61AC1EC3;
-        Mon, 13 Jun 2022 11:55:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655146513; x=1686682513;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=inO0kVsYPwubIHU/Lc+8Us9pBNkjnlVt647PW9FkfD4=;
-  b=kFiYvfYDma04KuneN9hDic1XXd7P53w9a44kXJg8uWxmzXAl2iALK5JB
-   wYDh1Ic4HJJZdifqcKAUzdFGQUOtTW1Enz2FwTAvE71f/3RtTbcALJh7I
-   qzxBRwDa5UHTddW93rfF4Rj+4iVKtKGDv8ZSFKokpq8xvXv7iNNpDrh2p
-   FjlXhf7VmzluBCSVNdiDu58+GJSQlM+LYxLH3/Amkk+nMvBAV/0LK1gPn
-   pTe3H51ieyPnGT3aymq9HDQSEKbmKraGYfr3CNgkIx1eMKNGao0wrGAoW
-   5XlXQQPL/luQwnvKeUTim4z+O8CpkrXlAnKPTZgggDq/HNsXoSUjGGQUs
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10377"; a="279425921"
-X-IronPort-AV: E=Sophos;i="5.91,297,1647327600"; 
-   d="scan'208";a="279425921"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2022 11:55:13 -0700
-X-IronPort-AV: E=Sophos;i="5.91,297,1647327600"; 
-   d="scan'208";a="568796226"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2022 11:55:10 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1o0pDP-000bIi-4d;
-        Mon, 13 Jun 2022 21:55:07 +0300
-Date:   Mon, 13 Jun 2022 21:55:06 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Michael Jamet <michael.jamet@intel.com>,
-        Yehezkel Bernat <YehezkelShB@gmail.com>,
-        linux-usb@vger.kernel.org,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v2 04/16] thunderbolt: ACPI: Replace tb_acpi_find_port()
- with acpi_find_child_by_adr()
-Message-ID: <YqeICh2mrZP1LX9n@smile.fi.intel.com>
-References: <1843211.tdWV9SEqCh@kreacher>
- <2653857.mvXUDI8C0e@kreacher>
- <2851774.e9J7NaK4W3@kreacher>
+        with ESMTP id S231982AbiFMUdJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2022 16:33:09 -0400
+X-Greylist: delayed 1981 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 13 Jun 2022 12:23:08 PDT
+Received: from outgoing-stata.csail.mit.edu (outgoing-stata.csail.mit.edu [128.30.2.210])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 358485A5BC;
+        Mon, 13 Jun 2022 12:23:07 -0700 (PDT)
+Received: from [77.23.249.31] (helo=srivatsab-a02.vmware.com)
+        by outgoing-stata.csail.mit.edu with esmtpsa (TLS1.2:RSA_AES_128_CBC_SHA1:128)
+        (Exim 4.82)
+        (envelope-from <srivatsa@csail.mit.edu>)
+        id 1o0p7j-0002lx-0j; Mon, 13 Jun 2022 14:49:15 -0400
+Subject: Re: [PATCH 29/36] cpuidle,xenpv: Make more PARAVIRT_XXL noinstr clean
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, bcain@quicinc.com,
+        chenhuacai@kernel.org, kernel@xen0n.name, geert@linux-m68k.org,
+        sammy@sammy.net, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        dinguyen@kernel.org, jonas@southpole.se,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        acme@kernel.org, mark.rutland@arm.com,
+        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+        namhyung@kernel.org, jgross@suse.com, amakhalov@vmware.com,
+        pv-drivers@vmware.com, boris.ostrovsky@oracle.com,
+        chris@zankel.net, jcmvbkbc@gmail.com, rafael@kernel.org,
+        lenb@kernel.org, pavel@ucw.cz, gregkh@linuxfoundation.org,
+        mturquette@baylibre.com, sboyd@kernel.org,
+        daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, anup@brainfault.org,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        jacob.jun.pan@linux.intel.com, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        paulmck@kernel.org, frederic@kernel.org, quic_neeraju@quicinc.com,
+        josh@joshtriplett.org, mathieu.desnoyers@efficios.com,
+        jiangshanlai@gmail.com, joel@joelfernandes.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
+        rcu@vger.kernel.org
+References: <20220608142723.103523089@infradead.org>
+ <20220608144517.759631860@infradead.org>
+From:   "Srivatsa S. Bhat" <srivatsa@csail.mit.edu>
+Message-ID: <510b9b68-7d53-7d4d-5a05-37fbd199eb4b@csail.mit.edu>
+Date:   Mon, 13 Jun 2022 20:48:49 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.12.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2851774.e9J7NaK4W3@kreacher>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20220608144517.759631860@infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jun 13, 2022 at 08:11:36PM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 6/8/22 4:27 PM, Peter Zijlstra wrote:
+> vmlinux.o: warning: objtool: acpi_idle_enter_s2idle+0xde: call to wbinvd() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: default_idle+0x4: call to arch_safe_halt() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: xen_safe_halt+0xa: call to HYPERVISOR_sched_op.constprop.0() leaves .noinstr.text section
 > 
-> Use acpi_find_child_by_adr() to find the child matching a given bus
-> address instead of tb_acpi_find_port() that walks the list of children
-> of an ACPI device directly for this purpose and drop the latter.
-> 
-> Apart from simplifying the code, this will help to eliminate the
-> children list head from struct acpi_device as it is redundant and it
-> is used in questionable ways in some places (in particular, locking is
-> needed for walking the list pointed to it safely, but it is often
-> missing).
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Srivatsa S. Bhat (VMware) <srivatsa@csail.mit.edu>
 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Regards,
+Srivatsa
+VMware Photon OS
+
 > ---
+>  arch/x86/include/asm/paravirt.h      |    6 ++++--
+>  arch/x86/include/asm/special_insns.h |    4 ++--
+>  arch/x86/include/asm/xen/hypercall.h |    2 +-
+>  arch/x86/kernel/paravirt.c           |   14 ++++++++++++--
+>  arch/x86/xen/enlighten_pv.c          |    2 +-
+>  arch/x86/xen/irq.c                   |    2 +-
+>  6 files changed, 21 insertions(+), 9 deletions(-)
 > 
-> v1 -> v2:
->    * Drop tb_acpi_find_port() (Heikki, Andy).
->    * Change the subject accordingly
-> 
-> ---
->  drivers/thunderbolt/acpi.c |   27 ++++-----------------------
->  1 file changed, 4 insertions(+), 23 deletions(-)
-> 
-> Index: linux-pm/drivers/thunderbolt/acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/thunderbolt/acpi.c
-> +++ linux-pm/drivers/thunderbolt/acpi.c
-> @@ -301,26 +301,6 @@ static bool tb_acpi_bus_match(struct dev
->  	return tb_is_switch(dev) || tb_is_usb4_port_device(dev);
+> --- a/arch/x86/include/asm/paravirt.h
+> +++ b/arch/x86/include/asm/paravirt.h
+> @@ -168,7 +168,7 @@ static inline void __write_cr4(unsigned
+>  	PVOP_VCALL1(cpu.write_cr4, x);
 >  }
 >  
-> -static struct acpi_device *tb_acpi_find_port(struct acpi_device *adev,
-> -					     const struct tb_port *port)
-> -{
-> -	struct acpi_device *port_adev;
-> -
-> -	if (!adev)
-> -		return NULL;
-> -
-> -	/*
-> -	 * Device routers exists under the downstream facing USB4 port
-> -	 * of the parent router. Their _ADR is always 0.
-> -	 */
-> -	list_for_each_entry(port_adev, &adev->children, node) {
-> -		if (acpi_device_adr(port_adev) == port->port)
-> -			return port_adev;
-> -	}
-> -
-> -	return NULL;
-> -}
-> -
->  static struct acpi_device *tb_acpi_switch_find_companion(struct tb_switch *sw)
+> -static inline void arch_safe_halt(void)
+> +static __always_inline void arch_safe_halt(void)
 >  {
->  	struct acpi_device *adev = NULL;
-> @@ -331,7 +311,8 @@ static struct acpi_device *tb_acpi_switc
->  		struct tb_port *port = tb_port_at(tb_route(sw), parent_sw);
->  		struct acpi_device *port_adev;
->  
-> -		port_adev = tb_acpi_find_port(ACPI_COMPANION(&parent_sw->dev), port);
-> +		port_adev = acpi_find_child_by_adr(ACPI_COMPANION(&parent_sw->dev),
-> +						   port->port);
->  		if (port_adev)
->  			adev = acpi_find_child_device(port_adev, 0, false);
->  	} else {
-> @@ -364,8 +345,8 @@ static struct acpi_device *tb_acpi_find_
->  	if (tb_is_switch(dev))
->  		return tb_acpi_switch_find_companion(tb_to_switch(dev));
->  	else if (tb_is_usb4_port_device(dev))
-> -		return tb_acpi_find_port(ACPI_COMPANION(dev->parent),
-> -					 tb_to_usb4_port_device(dev)->port);
-> +		return acpi_find_child_by_adr(ACPI_COMPANION(dev->parent),
-> +					      tb_to_usb4_port_device(dev)->port->port);
->  	return NULL;
+>  	PVOP_VCALL0(irq.safe_halt);
+>  }
+> @@ -178,7 +178,9 @@ static inline void halt(void)
+>  	PVOP_VCALL0(irq.halt);
 >  }
 >  
+> -static inline void wbinvd(void)
+> +extern noinstr void pv_native_wbinvd(void);
+> +
+> +static __always_inline void wbinvd(void)
+>  {
+>  	PVOP_ALT_VCALL0(cpu.wbinvd, "wbinvd", ALT_NOT(X86_FEATURE_XENPV));
+>  }
+> --- a/arch/x86/include/asm/special_insns.h
+> +++ b/arch/x86/include/asm/special_insns.h
+> @@ -115,7 +115,7 @@ static inline void wrpkru(u32 pkru)
+>  }
+>  #endif
+>  
+> -static inline void native_wbinvd(void)
+> +static __always_inline void native_wbinvd(void)
+>  {
+>  	asm volatile("wbinvd": : :"memory");
+>  }
+> @@ -179,7 +179,7 @@ static inline void __write_cr4(unsigned
+>  	native_write_cr4(x);
+>  }
+>  
+> -static inline void wbinvd(void)
+> +static __always_inline void wbinvd(void)
+>  {
+>  	native_wbinvd();
+>  }
+> --- a/arch/x86/include/asm/xen/hypercall.h
+> +++ b/arch/x86/include/asm/xen/hypercall.h
+> @@ -382,7 +382,7 @@ MULTI_stack_switch(struct multicall_entr
+>  }
+>  #endif
+>  
+> -static inline int
+> +static __always_inline int
+>  HYPERVISOR_sched_op(int cmd, void *arg)
+>  {
+>  	return _hypercall2(int, sched_op, cmd, arg);
+> --- a/arch/x86/kernel/paravirt.c
+> +++ b/arch/x86/kernel/paravirt.c
+> @@ -233,6 +233,11 @@ static noinstr void pv_native_set_debugr
+>  	native_set_debugreg(regno, val);
+>  }
+>  
+> +noinstr void pv_native_wbinvd(void)
+> +{
+> +	native_wbinvd();
+> +}
+> +
+>  static noinstr void pv_native_irq_enable(void)
+>  {
+>  	native_irq_enable();
+> @@ -242,6 +247,11 @@ static noinstr void pv_native_irq_disabl
+>  {
+>  	native_irq_disable();
+>  }
+> +
+> +static noinstr void pv_native_safe_halt(void)
+> +{
+> +	native_safe_halt();
+> +}
+>  #endif
+>  
+>  enum paravirt_lazy_mode paravirt_get_lazy_mode(void)
+> @@ -273,7 +283,7 @@ struct paravirt_patch_template pv_ops =
+>  	.cpu.read_cr0		= native_read_cr0,
+>  	.cpu.write_cr0		= native_write_cr0,
+>  	.cpu.write_cr4		= native_write_cr4,
+> -	.cpu.wbinvd		= native_wbinvd,
+> +	.cpu.wbinvd		= pv_native_wbinvd,
+>  	.cpu.read_msr		= native_read_msr,
+>  	.cpu.write_msr		= native_write_msr,
+>  	.cpu.read_msr_safe	= native_read_msr_safe,
+> @@ -307,7 +317,7 @@ struct paravirt_patch_template pv_ops =
+>  	.irq.save_fl		= __PV_IS_CALLEE_SAVE(native_save_fl),
+>  	.irq.irq_disable	= __PV_IS_CALLEE_SAVE(pv_native_irq_disable),
+>  	.irq.irq_enable		= __PV_IS_CALLEE_SAVE(pv_native_irq_enable),
+> -	.irq.safe_halt		= native_safe_halt,
+> +	.irq.safe_halt		= pv_native_safe_halt,
+>  	.irq.halt		= native_halt,
+>  #endif /* CONFIG_PARAVIRT_XXL */
+>  
+> --- a/arch/x86/xen/enlighten_pv.c
+> +++ b/arch/x86/xen/enlighten_pv.c
+> @@ -1019,7 +1019,7 @@ static const typeof(pv_ops) xen_cpu_ops
+>  
+>  		.write_cr4 = xen_write_cr4,
+>  
+> -		.wbinvd = native_wbinvd,
+> +		.wbinvd = pv_native_wbinvd,
+>  
+>  		.read_msr = xen_read_msr,
+>  		.write_msr = xen_write_msr,
+> --- a/arch/x86/xen/irq.c
+> +++ b/arch/x86/xen/irq.c
+> @@ -24,7 +24,7 @@ noinstr void xen_force_evtchn_callback(v
+>  	(void)HYPERVISOR_xen_version(0, NULL);
+>  }
+>  
+> -static void xen_safe_halt(void)
+> +static noinstr void xen_safe_halt(void)
+>  {
+>  	/* Blocking includes an implicit local_irq_enable(). */
+>  	if (HYPERVISOR_sched_op(SCHEDOP_block, NULL) != 0)
 > 
 > 
-> 
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
