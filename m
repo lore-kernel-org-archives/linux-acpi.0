@@ -2,27 +2,27 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CB7FC433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jun 2022 20:06:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42CE5C43334
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Jun 2022 20:07:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346463AbiFMUGq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Jun 2022 16:06:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44642 "EHLO
+        id S1348981AbiFMUHQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Jun 2022 16:07:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235224AbiFMUGH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2022 16:06:07 -0400
+        with ESMTP id S239982AbiFMUGi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2022 16:06:38 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFA51BDA1F;
-        Mon, 13 Jun 2022 11:41:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71992BCEBB;
+        Mon, 13 Jun 2022 11:40:55 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id aa3b020eaa639e53; Mon, 13 Jun 2022 20:41:04 +0200
+ id 1e9a0e90a79fd5e7; Mon, 13 Jun 2022 20:40:53 +0200
 Received: from kreacher.localnet (unknown [213.134.187.64])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 82C2066C81D;
-        Mon, 13 Jun 2022 20:41:03 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id E0DF266C81D;
+        Mon, 13 Jun 2022 20:40:52 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
@@ -30,10 +30,11 @@ Cc:     LKML <linux-kernel@vger.kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Hans de Goede <hdegoede@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 06/16] ACPI: container: Use acpi_dev_for_each_child()
-Date:   Mon, 13 Jun 2022 20:15:26 +0200
-Message-ID: <10114811.nUPlyArG6x@kreacher>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH v2 13/16] mfd: core: Use acpi_dev_for_each_child()
+Date:   Mon, 13 Jun 2022 20:31:08 +0200
+Message-ID: <2726954.BEx9A2HvPv@kreacher>
 In-Reply-To: <2653857.mvXUDI8C0e@kreacher>
 References: <1843211.tdWV9SEqCh@kreacher> <2653857.mvXUDI8C0e@kreacher>
 MIME-Version: 1.0
@@ -42,9 +43,9 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.187.64
 X-CLIENT-HOSTNAME: 213.134.187.64
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddujedguddviecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepvddufedrudefgedrudekjedrieegnecuvehluhhsthgvrhfuihiivgepvdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekjedrieegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeejpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidrihhn
- thgvlhdrtghomhdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomhdprhgtphhtthhopehsrghkrghrihdrrghilhhusheslhhinhhugidrihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddujedguddviecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepvddufedrudefgedrudekjedrieegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekjedrieegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeekpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidrihhn
+ thgvlhdrtghomhdprhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomhdprhgtphhtthhopehsrghkrghrihdrrghilhhusheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehlvggvrdhjohhnvghssehlihhnrghrohdrohhrgh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=8 Fuz1=8 Fuz2=8
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -65,44 +66,68 @@ Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
 
 v1 -> v2:
-   * Do not break the acpi_dev_for_each_child() call line (Andy).
    * Add R-by from Andy.
 
 ---
- drivers/acpi/container.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/mfd/mfd-core.c |   31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-Index: linux-pm/drivers/acpi/container.c
+Index: linux-pm/drivers/mfd/mfd-core.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/container.c
-+++ linux-pm/drivers/acpi/container.c
-@@ -23,17 +23,18 @@ static const struct acpi_device_id conta
+--- linux-pm.orig/drivers/mfd/mfd-core.c
++++ linux-pm/drivers/mfd/mfd-core.c
+@@ -60,12 +60,29 @@ int mfd_cell_disable(struct platform_dev
+ EXPORT_SYMBOL(mfd_cell_disable);
  
- #ifdef CONFIG_ACPI_CONTAINER
- 
--static int acpi_container_offline(struct container_dev *cdev)
-+static int check_offline(struct acpi_device *adev, void *not_used)
- {
--	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
--	struct acpi_device *child;
-+	if (acpi_scan_is_offline(adev, false))
-+		return 0;
- 
--	/* Check all of the dependent devices' physical companions. */
--	list_for_each_entry(child, &adev->children, node)
--		if (!acpi_scan_is_offline(child, false))
--			return -EBUSY;
-+	return -EBUSY;
-+}
- 
--	return 0;
-+static int acpi_container_offline(struct container_dev *cdev)
+ #if IS_ENABLED(CONFIG_ACPI)
++struct match_ids_walk_data {
++	struct acpi_device_id *ids;
++	struct acpi_device *adev;
++};
++
++static int match_device_ids(struct acpi_device *adev, void *data)
 +{
-+	/* Check all of the dependent devices' physical companions. */
-+	return acpi_dev_for_each_child(ACPI_COMPANION(&cdev->dev), check_offline, NULL);
- }
++	struct match_ids_walk_data *wd = data;
++
++	if (!acpi_match_device_ids(adev, wd->ids)) {
++		wd->adev = adev;
++		return 1;
++	}
++
++	return 0;
++}
++
+ static void mfd_acpi_add_device(const struct mfd_cell *cell,
+ 				struct platform_device *pdev)
+ {
+ 	const struct mfd_cell_acpi_match *match = cell->acpi_match;
+-	struct acpi_device *parent, *child;
+ 	struct acpi_device *adev = NULL;
++	struct acpi_device *parent;
  
- static void acpi_container_release(struct device *dev)
+ 	parent = ACPI_COMPANION(pdev->dev.parent);
+ 	if (!parent)
+@@ -83,14 +100,14 @@ static void mfd_acpi_add_device(const st
+ 	if (match) {
+ 		if (match->pnpid) {
+ 			struct acpi_device_id ids[2] = {};
++			struct match_ids_walk_data wd = {
++				.adev = NULL,
++				.ids = ids,
++			};
+ 
+ 			strlcpy(ids[0].id, match->pnpid, sizeof(ids[0].id));
+-			list_for_each_entry(child, &parent->children, node) {
+-				if (!acpi_match_device_ids(child, ids)) {
+-					adev = child;
+-					break;
+-				}
+-			}
++			acpi_dev_for_each_child(parent, match_device_ids, &wd);
++			adev = wd.adev;
+ 		} else {
+ 			adev = acpi_find_child_device(parent, match->adr, false);
+ 		}
 
 
 
