@@ -2,177 +2,157 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 648B6C43334
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jun 2022 15:47:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 920F6C433EF
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jun 2022 16:15:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236671AbiFNPrz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Jun 2022 11:47:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57014 "EHLO
+        id S243469AbiFNQOx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Jun 2022 12:14:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243828AbiFNPrx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2022 11:47:53 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 668D013FA8
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jun 2022 08:47:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1655221669;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=c3D5rXBFggKZyiDmUUePVR2BksUY/F8xwEAjtaxtYb8=;
-        b=G/RDSnI7/j1r9uo/0cbVwoYGA7NlGM/El87MQ9VacvYb1hUkeUN2CrPiOPr+WVZ6MXDyfN
-        uKJ/XVRyHtKvnA+7IUge9DQrSM/J2DP78UCcmJ2jXvC98Wb96UK/y61O1UP67EunSJjjXQ
-        ao2Fc0qhwwoeE53gJ+GoRVOf4luR25k=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-118-zUr7boolMWGC-j4ttPm2tg-1; Tue, 14 Jun 2022 11:47:47 -0400
-X-MC-Unique: zUr7boolMWGC-j4ttPm2tg-1
-Received: by mail-ej1-f72.google.com with SMTP id p10-20020a170906b20a00b0070c21a6d378so3064858ejz.2
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jun 2022 08:47:46 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=c3D5rXBFggKZyiDmUUePVR2BksUY/F8xwEAjtaxtYb8=;
-        b=Epy8PNWTvm1japwoZJ16as75V67ZcouUHyZNWERo85Nfx+pnQraYuKMGgyRiGBfAOF
-         mrnwkCLJQ+Ef2daMM4tTNBr3UAcE+fEx+d7wYkLZ6CAZByGnOPjtOKMDqalSmq9Tg9QN
-         b6BRQ9JsB8k+ihZmuf9vLBLYb1RmcJq+r+WW6JA0sHO1hJN21H2p+ff7VsIv1iYpOg/E
-         Y5Teyksa813CNIuVCB4oTVpYueSNdph/gsE9eX3CCu5VYn84xH6+saRaHza9eLceeMnq
-         v50cQvkALa8rCYK9qPJlbQfpVtGzFkyMy8WKAsYWY3GhQQH3ceFCPic7ORD2QLc8QCc0
-         iRSQ==
-X-Gm-Message-State: AJIora+zu7uD6IvoXSRzBb0c4Ocx/uq1jvM663CY9zI8d24JBTeN/adC
-        Tek2Q+u+iQGoWuipAtuqXt+2RdAbo/Wy4P5/O0RohxGnWq8u4m5muGiuGlZ3Ti4bozZqB9NCWKk
-        8/R2VNDPMmzZMuIfT/vsg1g==
-X-Received: by 2002:a17:907:9496:b0:711:f459:664 with SMTP id dm22-20020a170907949600b00711f4590664mr4822922ejc.704.1655221665108;
-        Tue, 14 Jun 2022 08:47:45 -0700 (PDT)
-X-Google-Smtp-Source: AGRyM1uL7b2WJ9GqE48Lc8Oa55SIbLe3r72HnMhv92SlzzeuVVgeUFDg0m6ZrYBmGVWItHxA6UV0/w==
-X-Received: by 2002:a17:907:9496:b0:711:f459:664 with SMTP id dm22-20020a170907949600b00711f4590664mr4822894ejc.704.1655221664848;
-        Tue, 14 Jun 2022 08:47:44 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:c1e:bf00:d69d:5353:dba5:ee81? (2001-1c00-0c1e-bf00-d69d-5353-dba5-ee81.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:d69d:5353:dba5:ee81])
-        by smtp.gmail.com with ESMTPSA id u26-20020a170906951a00b00709e786c7b2sm5142116ejx.213.2022.06.14.08.47.43
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 14 Jun 2022 08:47:44 -0700 (PDT)
-Message-ID: <5c8923df-3d89-c7be-690d-fbef2c53eeb6@redhat.com>
-Date:   Tue, 14 Jun 2022 17:47:43 +0200
+        with ESMTP id S1357083AbiFNQNm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2022 12:13:42 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A1CEC37A0E;
+        Tue, 14 Jun 2022 09:13:38 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0EB231691;
+        Tue, 14 Jun 2022 09:13:38 -0700 (PDT)
+Received: from FVFF77S0Q05N (unknown [10.57.41.154])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4946B3F66F;
+        Tue, 14 Jun 2022 09:13:20 -0700 (PDT)
+Date:   Tue, 14 Jun 2022 17:13:16 +0100
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, bcain@quicinc.com,
+        chenhuacai@kernel.org, kernel@xen0n.name, geert@linux-m68k.org,
+        sammy@sammy.net, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        dinguyen@kernel.org, jonas@southpole.se,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        acme@kernel.org, alexander.shishkin@linux.intel.com,
+        jolsa@kernel.org, namhyung@kernel.org, jgross@suse.com,
+        srivatsa@csail.mit.edu, amakhalov@vmware.com,
+        pv-drivers@vmware.com, boris.ostrovsky@oracle.com,
+        chris@zankel.net, jcmvbkbc@gmail.com, rafael@kernel.org,
+        lenb@kernel.org, pavel@ucw.cz, gregkh@linuxfoundation.org,
+        mturquette@baylibre.com, sboyd@kernel.org,
+        daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, anup@brainfault.org,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        jacob.jun.pan@linux.intel.com, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        paulmck@kernel.org, frederic@kernel.org, quic_neeraju@quicinc.com,
+        josh@joshtriplett.org, mathieu.desnoyers@efficios.com,
+        jiangshanlai@gmail.com, joel@joelfernandes.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
+        rcu@vger.kernel.org
+Subject: Re: [PATCH 15/36] cpuidle,cpu_pm: Remove RCU fiddling from
+ cpu_pm_{enter,exit}()
+Message-ID: <YqiznJL7qB9uSQ9c@FVFF77S0Q05N>
+References: <20220608142723.103523089@infradead.org>
+ <20220608144516.871305980@infradead.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: [PATCH] x86/PCI: Revert: "Clip only host bridge windows for E820
- regions"
-Content-Language: en-US
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        =?UTF-8?Q?Krzysztof_Wilczy=c5=84ski?= <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Myron Stowe <myron.stowe@redhat.com>,
-        Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        =?UTF-8?Q?Benoit_Gr=c3=a9goire?= <benoitg@coeus.ca>,
-        Hui Wang <hui.wang@canonical.com>, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org,
-        "Guilherme G . Piccoli" <gpiccoli@igalia.com>
-References: <20220614151708.GA756100@bhelgaas>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <20220614151708.GA756100@bhelgaas>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220608144516.871305980@infradead.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, Jun 08, 2022 at 04:27:38PM +0200, Peter Zijlstra wrote:
+> All callers should still have RCU enabled.
 
-On 6/14/22 17:17, Bjorn Helgaas wrote:
-> On Tue, Jun 14, 2022 at 10:15:29AM +0200, Hans de Goede wrote:
->> On 6/14/22 01:15, Bjorn Helgaas wrote:
->>> On Sun, Jun 12, 2022 at 04:43:25PM +0200, Hans de Goede wrote:
->>>> Clipping the bridge windows directly from pci_acpi_root_prepare_resources()
->>>> instead of clipping from arch_remove_reservations(), has a number of
->>>> unforseen consequences.
->>>>
->>>> If there is an e820 reservation in the middle of a bridge window, then
->>>> the smallest of the 2 remaining parts of the window will be also clipped
->>>> off. Where as the previous code would clip regions requested by devices,
->>>> rather then the entire window, leaving regions which were either entirely
->>>> above or below a reservation in the middle of the window alone.
->>>>
->>>> E.g. on the Steam Deck this leads to this log message:
->>>>
->>>> acpi PNP0A08:00: clipped [mem 0x80000000-0xf7ffffff window] to [mem 0xa0100000-0xf7ffffff window]
->>>>
->>>> which then gets followed by these log messages:
->>>>
->>>> pci 0000:00:01.2: can't claim BAR 14 [mem 0x80600000-0x806fffff]: no compatible bridge window
->>>> pci 0000:00:01.3: can't claim BAR 14 [mem 0x80500000-0x805fffff]: no compatible bridge window
->>>>
->>>> and many more of these. Ultimately this leads to the Steam Deck
->>>> no longer booting properly, so revert the change.
->>>>
->>>> Note this is not a clean revert, this revert keeps the later change
->>>> to make the clipping dependent on a new pci_use_e820 bool, moving
->>>> the checking of this bool to arch_remove_reservations().
->>>
->>> 4c5e242d3e93 was definitely a mistake (my fault).  My intent was to
->>> mainly to improve logging of the clipping, but I didn't implement it
->>> well.
->>>
->>> That said, I'd like to understand the connection between the messages
->>> you mention and the failure.  There are four bridges whose MMIO
->>> windows were in the [mem 0x80000000-0x9fffffff] area that we clipped
->>> out.  The log shows that we moved all those windows and the devices in
->>> them to the [mem 0xa0100000-0xf7ffffff] area that remained after
->>> clipping.
->>>
->>> So I think this *should* have worked even though we moved things
->>> around unnecessarily.  What am I missing?
->>
->> I don't know? My guess is that maybe the ACPI table do MMIO accesses
->> somewhere to hardcoded addresses and moving things breaks the ACPI
->> tables.
+IIUC with that true we should be able to drop the RCU_NONIDLE() from
+drivers/perf/arm_pmu.c, as we only needed that for an invocation via a pm
+notifier.
+
+I should be able to give that a spin on some hardware.
+
 > 
-> This would be a firmware defect, IMHO.  There is a mechanism (_DSM for
-> preserving PCI Boot Configurations) for the firmware to tell us about
-> things that can't be moved.
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> ---
+>  kernel/cpu_pm.c |    9 ---------
+>  1 file changed, 9 deletions(-)
 > 
->>> The E820 map reports [mem 0xa0000000-0xa00fffff] in the middle of the
->>> _CRS, and we currently trim that out.  We think this is a firmware
->>> defect, so it's likely to break in 2023 if we stop clipping by
->>> default.  I'm concerned that there may be other things in _CRS that we
->>> need to avoid, but firmware isn't telling us about them.
->>>
->>> Or there's some dependency in the devices that we moved on their
->>> original addresses, e.g., firmware on the device latched the address
->>> and didn't notice the reassignment.
->>
->> Right this is the most likely cause I believe.
+> --- a/kernel/cpu_pm.c
+> +++ b/kernel/cpu_pm.c
+> @@ -30,16 +30,9 @@ static int cpu_pm_notify(enum cpu_pm_eve
+>  {
+>  	int ret;
+>  
+> -	/*
+> -	 * This introduces a RCU read critical section, which could be
+> -	 * disfunctional in cpu idle. Copy RCU_NONIDLE code to let RCU know
+> -	 * this.
+> -	 */
+> -	rcu_irq_enter_irqson();
+>  	rcu_read_lock();
+>  	ret = raw_notifier_call_chain(&cpu_pm_notifier.chain, event, NULL);
+>  	rcu_read_unlock();
+> -	rcu_irq_exit_irqson();
+
+To make this easier to debug, is it worth adding an assertion that RCU is
+watching here? e.g.
+
+	RCU_LOCKDEP_WARN(!rcu_is_watching(),
+			 "cpu_pm_notify() used illegally from EQS");
+
+>  
+>  	return notifier_to_errno(ret);
+>  }
+> @@ -49,11 +42,9 @@ static int cpu_pm_notify_robust(enum cpu
+>  	unsigned long flags;
+>  	int ret;
+>  
+> -	rcu_irq_enter_irqson();
+>  	raw_spin_lock_irqsave(&cpu_pm_notifier.lock, flags);
+>  	ret = raw_notifier_call_chain_robust(&cpu_pm_notifier.chain, event_up, event_down, NULL);
+>  	raw_spin_unlock_irqrestore(&cpu_pm_notifier.lock, flags);
+> -	rcu_irq_exit_irqson();
+
+
+... and likewise here?
+
+Thanks,
+Mark.
+
+>  
+>  	return notifier_to_errno(ret);
+>  }
 > 
-> This would be another defect, in the device this time.  If we can
-> identify the device, possibly we could quirk around it.
 > 
-> Either one will be back to bite us in the future if we support
-> rebalancing resources to make room for hot-added devices.  I *think*
-> Windows already supports this kind of rebalancing.  Anyway, this is
-> why we need to dig a little deeper to figure out exactly what's going
-> wrong here.
-
-Have you looked at the log of the failed boot in the Steam Deck kernel
-bugzilla? Everything there seems to work just fine and then the system
-just hangs. I think that maybe it cannot find its root disk, so maybe
-an NVME issue ?
-
-I'm afraid that if we cannot figure out the exact root cause from
-the failed boot log there is not much more we can do. Unless you
-have an idea how to debug this further and want to ask the reporter
-for more info?
-
-Regards,
-
-Hans
-
