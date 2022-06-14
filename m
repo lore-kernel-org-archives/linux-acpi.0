@@ -2,25 +2,25 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A087DC43334
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jun 2022 16:54:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F224CCA480
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Jun 2022 17:00:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236702AbiFNQyG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Jun 2022 12:54:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44302 "EHLO
+        id S244367AbiFNRA0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Jun 2022 13:00:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357246AbiFNQxs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2022 12:53:48 -0400
+        with ESMTP id S1344307AbiFNRAJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2022 13:00:09 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9921093;
-        Tue, 14 Jun 2022 09:53:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7E70B140BB;
+        Tue, 14 Jun 2022 10:00:08 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7150D1713;
-        Tue, 14 Jun 2022 09:53:47 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 14734175D;
+        Tue, 14 Jun 2022 10:00:08 -0700 (PDT)
 Received: from FVFF77S0Q05N (unknown [10.57.41.154])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 913753F66F;
-        Tue, 14 Jun 2022 09:53:29 -0700 (PDT)
-Date:   Tue, 14 Jun 2022 17:53:25 +0100
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4A1F03F66F;
+        Tue, 14 Jun 2022 09:59:50 -0700 (PDT)
+Date:   Tue, 14 Jun 2022 17:59:46 +0100
 From:   Mark Rutland <mark.rutland@arm.com>
 To:     Peter Zijlstra <peterz@infradead.org>
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -81,67 +81,64 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org
-Subject: Re: [PATCH 15/36] cpuidle,cpu_pm: Remove RCU fiddling from
- cpu_pm_{enter,exit}()
-Message-ID: <Yqi9BTTnlbcUsD5c@FVFF77S0Q05N>
+Subject: Re: [PATCH 14/36] cpuidle: Fix rcu_idle_*() usage
+Message-ID: <Yqi+gg+p0sv0F7Di@FVFF77S0Q05N>
 References: <20220608142723.103523089@infradead.org>
- <20220608144516.871305980@infradead.org>
- <YqiznJL7qB9uSQ9c@FVFF77S0Q05N>
- <Yqi6Zp+DTm22dLB9@hirez.programming.kicks-ass.net>
+ <20220608144516.808451191@infradead.org>
+ <YqiB6YpVqq4wuDtO@FVFF77S0Q05N>
+ <Yqi6Fd38ZCsDUnQG@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Yqi6Zp+DTm22dLB9@hirez.programming.kicks-ass.net>
+In-Reply-To: <Yqi6Fd38ZCsDUnQG@hirez.programming.kicks-ass.net>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jun 14, 2022 at 06:42:14PM +0200, Peter Zijlstra wrote:
-> On Tue, Jun 14, 2022 at 05:13:16PM +0100, Mark Rutland wrote:
-> > On Wed, Jun 08, 2022 at 04:27:38PM +0200, Peter Zijlstra wrote:
-> > > All callers should still have RCU enabled.
-> > 
-> > IIUC with that true we should be able to drop the RCU_NONIDLE() from
-> > drivers/perf/arm_pmu.c, as we only needed that for an invocation via a pm
-> > notifier.
-> > 
-> > I should be able to give that a spin on some hardware.
-> > 
-> > > 
-> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> > > ---
-> > >  kernel/cpu_pm.c |    9 ---------
-> > >  1 file changed, 9 deletions(-)
-> > > 
-> > > --- a/kernel/cpu_pm.c
-> > > +++ b/kernel/cpu_pm.c
-> > > @@ -30,16 +30,9 @@ static int cpu_pm_notify(enum cpu_pm_eve
+On Tue, Jun 14, 2022 at 06:40:53PM +0200, Peter Zijlstra wrote:
+> On Tue, Jun 14, 2022 at 01:41:13PM +0100, Mark Rutland wrote:
+> > On Wed, Jun 08, 2022 at 04:27:37PM +0200, Peter Zijlstra wrote:
+> > > --- a/kernel/time/tick-broadcast.c
+> > > +++ b/kernel/time/tick-broadcast.c
+> > > @@ -622,9 +622,13 @@ struct cpumask *tick_get_broadcast_onesh
+> > >   * to avoid a deep idle transition as we are about to get the
+> > >   * broadcast IPI right away.
+> > >   */
+> > > -int tick_check_broadcast_expired(void)
+> > > +noinstr int tick_check_broadcast_expired(void)
 > > >  {
-> > >  	int ret;
-> > >  
-> > > -	/*
-> > > -	 * This introduces a RCU read critical section, which could be
-> > > -	 * disfunctional in cpu idle. Copy RCU_NONIDLE code to let RCU know
-> > > -	 * this.
-> > > -	 */
-> > > -	rcu_irq_enter_irqson();
-> > >  	rcu_read_lock();
-> > >  	ret = raw_notifier_call_chain(&cpu_pm_notifier.chain, event, NULL);
-> > >  	rcu_read_unlock();
-> > > -	rcu_irq_exit_irqson();
+> > > +#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H
+> > > +	return arch_test_bit(smp_processor_id(), cpumask_bits(tick_broadcast_force_mask));
+> > > +#else
+> > >  	return cpumask_test_cpu(smp_processor_id(), tick_broadcast_force_mask);
+> > > +#endif
+> > >  }
 > > 
-> > To make this easier to debug, is it worth adding an assertion that RCU is
-> > watching here? e.g.
-> > 
-> > 	RCU_LOCKDEP_WARN(!rcu_is_watching(),
-> > 			 "cpu_pm_notify() used illegally from EQS");
-> > 
+> > This is somewhat not-ideal. :/
 > 
-> My understanding is that rcu_read_lock() implies something along those
-> lines when PROVE_RCU.
+> I'll say.
+> 
+> > Could we unconditionally do the arch_test_bit() variant, with a comment, or
+> > does that not exist in some cases?
+> 
+> Loads of build errors ensued, which is how I ended up with this mess ...
 
-Ah, duh. Given that:
+Yaey :(
 
-Acked-by: Mark Rutland <mark.rutland@arm.com>
+I see the same is true for the thread flag manipulation too.
+
+I'll take a look and see if we can layer things so that we can use the arch_*()
+helpers and wrap those consistently so that we don't have to check the CPP
+guard.
+
+Ideally we'd have a a better language that allows us to make some
+context-senstive decisions, then we could hide all this gunk in the lower
+levels with somethin like:
+
+	if (!THIS_IS_A_NOINSTR_FUNCTION()) {
+		explicit_instrumentation(...);
+	}
+
+... ho hum.
 
 Mark.
