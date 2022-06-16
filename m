@@ -2,24 +2,24 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD64C433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Jun 2022 09:01:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9480BC43334
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Jun 2022 09:01:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232295AbiFPJBY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Jun 2022 05:01:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56608 "EHLO
+        id S231800AbiFPJBZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Jun 2022 05:01:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231800AbiFPJBV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jun 2022 05:01:21 -0400
+        with ESMTP id S232156AbiFPJBX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jun 2022 05:01:23 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DB038192B5
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Jun 2022 02:01:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D0CB8192B5
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Jun 2022 02:01:22 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BB0A913D5;
-        Thu, 16 Jun 2022 02:01:19 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B153812FC;
+        Thu, 16 Jun 2022 02:01:22 -0700 (PDT)
 Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 7F95C3F7F5;
-        Thu, 16 Jun 2022 02:01:18 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 83A643F7F5;
+        Thu, 16 Jun 2022 02:01:21 -0700 (PDT)
 From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc:     Sudeep Holla <sudeep.holla@arm.com>,
@@ -27,9 +27,9 @@ Cc:     Sudeep Holla <sudeep.holla@arm.com>,
         Lorenzo Pieralisi <lpieralisi@kernel.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>
-Subject: [PATCH 1/3] ACPICA: Add support for FFH Opregion special context data
-Date:   Thu, 16 Jun 2022 10:01:04 +0100
-Message-Id: <20220616090106.2154906-2-sudeep.holla@arm.com>
+Subject: [PATCH 3/3] arm64: Add architecture specific ACPI FFH Opregion callbacks
+Date:   Thu, 16 Jun 2022 10:01:06 +0100
+Message-Id: <20220616090106.2154906-4-sudeep.holla@arm.com>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220616090106.2154906-1-sudeep.holla@arm.com>
 References: <20220616090106.2154906-1-sudeep.holla@arm.com>
@@ -39,124 +39,144 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-FFH(Fixed Function Hardware) Opregion is approved to be added in ACPIC 6.5 via
-code first approach[1]. It requires special context data similar to GPIO and
-Generic Serial Bus as it needs to know platform specific offset and length.
+FFH Operation Region space can be used to trigger SMC or HVC calls,
+using the Arm SMC Calling Convention (SMCCC). The choice of conduit
+(SMC or HVC) is based on what the kernel choose based on PSCI as with
+any other users of SMCCC within the kernel.
 
-Add support for the special context data needed by FFH Opregion.
+Function identifiers only the SMCCC SiP Service, OEM Service and FF-A
+specific call range.
 
-FFH OpRegion enables advanced use of FFH on some architectures. For example,
-it could be used to easily proxy AML code to architecture-specific behavior
-(to ensure it is OS initiated)
+Offset can be either 0(32 bit calling convention) or 1(64 bit calling
+convention). The length must be set with the range applicable based
+on the value of the offset.
 
-Actual behavior of FFH is ofcourse architecture specific and depends on
-the FFH bindings. The offset and length could have arch specific meaning
-or usage.
-
-[1] https://bugzilla.tianocore.org/show_bug.cgi?id=3598
-
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/acpi/acpica/evregion.c | 8 ++++++++
- drivers/acpi/acpica/exfield.c  | 8 ++++++--
- drivers/acpi/acpica/exserial.c | 6 ++++++
- include/acpi/acconfig.h        | 2 ++
- include/acpi/actypes.h         | 7 +++++++
- 5 files changed, 29 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/acpi.c | 104 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 104 insertions(+)
 
-diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index b96b3a7e78e5..d5aed3249630 100644
---- a/drivers/acpi/acpica/evregion.c
-+++ b/drivers/acpi/acpica/evregion.c
-@@ -172,6 +172,14 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
- 			ctx->subspace_id = (u8)region_obj->region.address;
- 		}
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index e4dea8db6924..3eb64d443ab0 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -13,6 +13,7 @@
+ #define pr_fmt(fmt) "ACPI: " fmt
  
-+		if (region_obj->region.space_id ==
-+			ACPI_ADR_SPACE_FIXED_HARDWARE) {
-+			struct acpi_ffh_info *ctx =
-+			    handler_desc->address_space.context;
+ #include <linux/acpi.h>
++#include <linux/arm-smccc.h>
+ #include <linux/cpumask.h>
+ #include <linux/efi.h>
+ #include <linux/efi-bgrt.h>
+@@ -411,3 +412,106 @@ void arch_reserve_mem_area(acpi_physical_address addr, size_t size)
+ {
+ 	memblock_mark_nomap(addr, size);
+ }
 +
-+			ctx->offset = region_obj->region.address;
-+			ctx->length = region_obj->region.length;
-+		}
- 		/*
- 		 * We must exit the interpreter because the region setup will
- 		 * potentially execute control methods (for example, the _REG method
-diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-index 2b89a496de65..657f4002f9dc 100644
---- a/drivers/acpi/acpica/exfield.c
-+++ b/drivers/acpi/acpica/exfield.c
-@@ -141,7 +141,9 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
- 		    || obj_desc->field.region_obj->region.space_id ==
- 		    ACPI_ADR_SPACE_IPMI
- 		    || obj_desc->field.region_obj->region.space_id ==
--		    ACPI_ADR_SPACE_PLATFORM_RT)) {
-+		    ACPI_ADR_SPACE_PLATFORM_RT
-+		    || obj_desc->field.region_obj->region.space_id ==
-+		    ACPI_ADR_SPACE_FIXED_HARDWARE)) {
- 
- 		/* SMBus, GSBus, IPMI serial */
- 
-@@ -305,7 +307,9 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
- 		    || obj_desc->field.region_obj->region.space_id ==
- 		    ACPI_ADR_SPACE_IPMI
- 		    || obj_desc->field.region_obj->region.space_id ==
--		    ACPI_ADR_SPACE_PLATFORM_RT)) {
-+		    ACPI_ADR_SPACE_PLATFORM_RT
-+		    || obj_desc->field.region_obj->region.space_id ==
-+		    ACPI_ADR_SPACE_FIXED_HARDWARE)) {
- 
- 		/* SMBus, GSBus, IPMI serial */
- 
-diff --git a/drivers/acpi/acpica/exserial.c b/drivers/acpi/acpica/exserial.c
-index 4da20d7845df..fd63f2042514 100644
---- a/drivers/acpi/acpica/exserial.c
-+++ b/drivers/acpi/acpica/exserial.c
-@@ -323,6 +323,12 @@ acpi_ex_write_serial_bus(union acpi_operand_object *source_desc,
- 		function = ACPI_WRITE;
- 		break;
- 
-+	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-+
-+		buffer_length = ACPI_FFH_INPUT_BUFFER_SIZE;
-+		function = ACPI_WRITE;
-+		break;
-+
- 	default:
- 		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
- 	}
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index c3ae3ea88e17..02e57191c1fd 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -190,6 +190,8 @@
- 
- #define ACPI_PRM_INPUT_BUFFER_SIZE      26
- 
-+#define ACPI_FFH_INPUT_BUFFER_SIZE      144
-+
- /* _sx_d and _sx_w control methods */
- 
- #define ACPI_NUM_sx_d_METHODS           4
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 3491e454b2ab..1b4f81f1ac5d 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1115,6 +1115,13 @@ struct acpi_pcc_info {
- 	u8 *internal_buffer;
- };
- 
-+/* Special Context data for FFH Opregion (ACPI 6.5) */
-+
-+struct acpi_ffh_info {
-+	u64 offset;
-+	u64 length;
++#ifdef CONFIG_ACPI_FFH
++/*
++ * Implements ARM64 specific callbacks to support ACPI FFH Operation Region as
++ * specified in https://developer.arm.com/docs/den0048/latest
++ */
++struct acpi_ffh_data {
++	struct acpi_ffh_info info;
++	void (*invoke_ffh_fn)(unsigned long, unsigned long, unsigned long,
++			      unsigned long, unsigned long, unsigned long,
++			      unsigned long, unsigned long,
++			      struct arm_smccc_res *, struct arm_smccc_quirk *);
++	void (*invoke_ffh64_fn)(const struct arm_smccc_1_2_regs *,
++				struct arm_smccc_1_2_regs *);
 +};
 +
- typedef
- acpi_status (*acpi_adr_space_setup) (acpi_handle region_handle,
- 				     u32 function,
++int acpi_ffh_address_space_arch_setup(void *handler_ctxt, void **region_ctxt)
++{
++	enum arm_smccc_conduit conduit;
++	struct acpi_ffh_data *ffh_ctxt;
++
++	ffh_ctxt = kzalloc(sizeof(*ffh_ctxt), GFP_KERNEL);
++	if (!ffh_ctxt)
++		return -ENOMEM;
++
++	if (arm_smccc_get_version() < ARM_SMCCC_VERSION_1_2)
++		return -EOPNOTSUPP;
++
++	conduit = arm_smccc_1_1_get_conduit();
++	if (conduit == SMCCC_CONDUIT_NONE) {
++		pr_err("%s: invalid SMCCC conduit\n", __func__);
++		return -EOPNOTSUPP;
++	}
++
++	if (conduit == SMCCC_CONDUIT_SMC) {
++		ffh_ctxt->invoke_ffh_fn = __arm_smccc_smc;
++		ffh_ctxt->invoke_ffh64_fn = arm_smccc_1_2_smc;
++	} else {
++		ffh_ctxt->invoke_ffh_fn = __arm_smccc_hvc;
++		ffh_ctxt->invoke_ffh64_fn = arm_smccc_1_2_hvc;
++	}
++
++	memcpy(ffh_ctxt, handler_ctxt, sizeof(ffh_ctxt->info));
++
++	*region_ctxt = ffh_ctxt;
++	return AE_OK;
++}
++
++static bool acpi_ffh_smccc_owner_allowed(u32 fid)
++{
++	int owner = ARM_SMCCC_OWNER_NUM(fid);
++
++	if (owner == ARM_SMCCC_OWNER_STANDARD ||
++	    owner == ARM_SMCCC_OWNER_SIP || owner == ARM_SMCCC_OWNER_OEM)
++		return true;
++
++	return false;
++}
++
++int acpi_ffh_address_space_arch_handler(acpi_integer *value, void *region_context)
++{
++	int ret = 0;
++	struct acpi_ffh_data *ffh_ctxt = region_context;
++
++	if (ffh_ctxt->info.offset == 0) {
++		/* SMC/HVC 32bit call */
++		struct arm_smccc_res res;
++		u32 a[8] = { 0 }, *ptr = (u32 *)value;
++
++		if (!ARM_SMCCC_IS_FAST_CALL(*ptr) || ARM_SMCCC_IS_64(*ptr) ||
++		    !acpi_ffh_smccc_owner_allowed(*ptr) ||
++		    ffh_ctxt->info.length > 32) {
++			ret = AE_ERROR;
++		} else {
++			int idx, len = ffh_ctxt->info.length >> 2;
++
++			for (idx = 0; idx < len; idx++)
++				a[idx] = *(ptr + idx);
++
++			ffh_ctxt->invoke_ffh_fn(a[0], a[1], a[2], a[3], a[4],
++						a[5], a[6], a[7], &res, NULL);
++			memcpy(value, &res, sizeof(res));
++		}
++
++	} else if (ffh_ctxt->info.offset == 1) {
++		/* SMC/HVC 64bit call */
++		struct arm_smccc_1_2_regs *r = (struct arm_smccc_1_2_regs *)value;
++
++		if (!ARM_SMCCC_IS_FAST_CALL(r->a0) || !ARM_SMCCC_IS_64(r->a0) ||
++		    !acpi_ffh_smccc_owner_allowed(r->a0) ||
++		    ffh_ctxt->info.length > sizeof(*r)) {
++			ret = AE_ERROR;
++		} else {
++			ffh_ctxt->invoke_ffh64_fn(r, r);
++			memcpy(value, r, ffh_ctxt->info.length);
++		}
++	} else {
++		ret = AE_ERROR;
++	}
++
++	return ret;
++}
++#endif /* CONFIG_ACPI_FFH */
 -- 
 2.36.1
 
