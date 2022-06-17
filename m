@@ -2,114 +2,172 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A23C433EF
-	for <linux-acpi@archiver.kernel.org>; Fri, 17 Jun 2022 09:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33569C43334
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Jun 2022 12:41:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381379AbiFQJmT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 17 Jun 2022 05:42:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59364 "EHLO
+        id S1381941AbiFQMlo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 17 Jun 2022 08:41:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380925AbiFQJmS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jun 2022 05:42:18 -0400
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5041A69483
-        for <linux-acpi@vger.kernel.org>; Fri, 17 Jun 2022 02:42:17 -0700 (PDT)
-Received: by mail-wr1-x42b.google.com with SMTP id s1so5022372wra.9
-        for <linux-acpi@vger.kernel.org>; Fri, 17 Jun 2022 02:42:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:subject:references:date:in-reply-to:message-id
-         :user-agent:mime-version;
-        bh=NZv4CkZhHVjo2WiQVeulQzBHOA+fH2nS6TIJym/u7XA=;
-        b=wLK3Z+5OFc/0E1XIc8LL/90johcd6W+wkAsVUSfrxaeVlkEj5UFZwBP2SaBBFcbiPe
-         6QKWfAPioSFs0mHG+8JuRvpGfRDKCgIFzTUEVw9uHqHPYkGRH5KnW4y2uDattFW0Elew
-         pzUUf42e2Io/lRgJ1ixs9Fylh9BnDtEZeF1JZhjq57BfG1ZyuMW5XrbOGaoob7/uJGCd
-         3Yzn2c12Ct7hssXOTZAFvBv5HNuHC9b1euSSBEmjQkeIp2VJkY7+XJ5V1bWE0EzKPBfH
-         BB3TcU1l/sKeEQAmOLDERw8nz1OLScdt7frEllsap+9Z0ZQ8zDC2l2VZ2wTuGDqEDREf
-         /ZKg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:references:date:in-reply-to
-         :message-id:user-agent:mime-version;
-        bh=NZv4CkZhHVjo2WiQVeulQzBHOA+fH2nS6TIJym/u7XA=;
-        b=Et66O76/gNOT5NccfSMwPMLd6CZEtVGTQyHuF/vetztOhdwtbr36fHxrwUPd30yCi/
-         FemTjQm/Xca6pVCH9dLfCAC2KZF4BEe4SD1igqw5RQq4MkkDWnmqDPleCYMDzZ7tx341
-         OWO0nak8hv2BW5Qj2QUzrIzi5ipMx5QPbm/cAjHKeq9Yfa2vem/LuH5TyvYm6O6Zjqgn
-         apVmfblsj8Rs2f+WUjDQCKHgBPFrhHnUdwacZHdRMQekDVhFo3JGdSoo7lj8DuKxiPA8
-         HnkxJe32jKOqHBmwo5BRnjfi57pAlWAQtzFhzJKRygjTHxT4PqSyzd7E9PLNnhp8jnLl
-         WEYA==
-X-Gm-Message-State: AJIora/83PIABWmeGpik8G5nSvazlHbdYKnxYo3nNOXCfvzdDGJ3iDhw
-        OjgIwPUw8VkO32NpnxtN9+fiZDN6hPzrqLOo
-X-Google-Smtp-Source: AGRyM1t5CBxs8rFvCtjdn/6EoixNlpinrPqzTAfs/Ix5emh/N76GE+n4QqBBCNqRUjnO9yVIrSBzMQ==
-X-Received: by 2002:a5d:4108:0:b0:213:b585:66c7 with SMTP id l8-20020a5d4108000000b00213b58566c7mr8373386wrp.335.1655458935880;
-        Fri, 17 Jun 2022 02:42:15 -0700 (PDT)
-Received: from localhost ([109.180.234.132])
-        by smtp.gmail.com with ESMTPSA id m13-20020a5d4a0d000000b0021a2c923c72sm4213296wrq.69.2022.06.17.02.42.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Jun 2022 02:42:15 -0700 (PDT)
-From:   Punit Agrawal <punit.agrawal@bytedance.com>
-To:     Riwen Lu <luriwen@hotmail.com>
-Cc:     rafael@kernel.org, lenb@kernel.org, rui.zhang@intel.com,
-        robert.moore@intel.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devel@acpica.org,
-        punit.agrawal@bytedance.com, Riwen Lu <luriwen@kylinos.cn>
-Subject: Re: [PATCH v2] ACPI/processor: Remove unused function
- acpi_processor_get_limit_info()
-References: <20220617025152.1908638-1-luriwen@hotmail.com>
-        <TYWP286MB2601A75D517AE71EE569CE15B1AF9@TYWP286MB2601.JPNP286.PROD.OUTLOOK.COM>
-Date:   Fri, 17 Jun 2022 10:42:14 +0100
-In-Reply-To: <TYWP286MB2601A75D517AE71EE569CE15B1AF9@TYWP286MB2601.JPNP286.PROD.OUTLOOK.COM>
-        (Riwen Lu's message of "Fri, 17 Jun 2022 10:51:52 +0800")
-Message-ID: <87v8szoccp.fsf@stealth>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+        with ESMTP id S1382390AbiFQMlo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jun 2022 08:41:44 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1E177663C2
+        for <linux-acpi@vger.kernel.org>; Fri, 17 Jun 2022 05:41:38 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7D27F12FC;
+        Fri, 17 Jun 2022 05:41:38 -0700 (PDT)
+Received: from [10.1.31.15] (e122027.cambridge.arm.com [10.1.31.15])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D734A3F7F5;
+        Fri, 17 Jun 2022 05:41:35 -0700 (PDT)
+Message-ID: <03b03d88-87cd-0b29-863b-2cb2a9a117d1@arm.com>
+Date:   Fri, 17 Jun 2022 13:41:34 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.1
+Subject: Re: [PATCH v13 0/9] ACPI/IORT: Support for IORT RMR node
+Content-Language: en-GB
+To:     Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
+        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux-foundation.org
+Cc:     linuxarm@huawei.com, lorenzo.pieralisi@arm.com, joro@8bytes.org,
+        robin.murphy@arm.com, will@kernel.org, wanghuiqiang@huawei.com,
+        guohanjun@huawei.com, Sami.Mujawar@arm.com, jon@solid-run.com,
+        eric.auger@redhat.com, laurentiu.tudor@nxp.com, hch@infradead.org
+References: <20220615101044.1972-1-shameerali.kolothum.thodi@huawei.com>
+From:   Steven Price <steven.price@arm.com>
+In-Reply-To: <20220615101044.1972-1-shameerali.kolothum.thodi@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Riwen Lu <luriwen@hotmail.com> writes:
+On 15/06/2022 11:10, Shameer Kolothum wrote:
+> Hi
+> 
+> v12 --> v13
+>   -No changes. Rebased to 5.19-rc1.
+>   -Picked up tags received from Laurentiu, Hanjun and Will. Thanks!.
 
-> From: Riwen Lu <luriwen@kylinos.cn>
->
-> Commit 22e7551eb6fd ("ACPI / processor: Remove acpi_processor_get_limit_info()"),
-> left behind this, remove it.
->
-> Signed-off-by: Riwen Lu <luriwen@kylinos.cn>
->
-> ---
-> v1 -> v2:
->  - Make this patch base on ("ACPI: Split out processor thermal register
->    from ACPI PSS").
+You've already got my Tested-by tags, but just to confirm I gave this a
+spin and it works fine.
 
-For such changes, it is better to send all the related patches as a
-series so it's easy to see the dependencies . In a series the easy /
-obvious fixes should be earlier so it's easier for them to be merged
-while the more significant changes are still being discussed.
+Thanks,
 
-Hopefully in this case Rafael too agrees with the dependency patch -
-otherwise, it's just extra churn on the lists.
+Steve
 
-But don't resend just yet - give some time for others to add their
-feedback.
+> 
+> Thanks,
+> Shameer
+> 
+> From old:
+> We have faced issues with 3408iMR RAID controller cards which
+> fail to boot when SMMU is enabled. This is because these
+> controllers make use of host memory for various caching related
+> purposes and when SMMU is enabled the iMR firmware fails to
+> access these memory regions as there is no mapping for them.
+> IORT RMR provides a way for UEFI to describe and report these
+> memory regions so that the kernel can make a unity mapping for
+> these in SMMU.
+> 
+> Change History:
+> 
+> v11 --> v12
+>   -Minor fix in patch #4 to address the issue reported by the kernel test robot.
+>   -Added R-by tags by Christoph(patch #1) and Lorenzo(patch #4).
+>   -Added T-by from Steve to all relevant patches. Many thanks!.
+> 
+> v10 --> v11
+>  -Addressed Christoph's comments. We now have a  callback to 
+>   struct iommu_resv_region to free all related memory and also dropped
+>   the FW specific union and now has a container struct iommu_iort_rmr_data.
+>   See patches #1 & #4
+>  -Added R-by from Christoph.
+>  -Dropped R-by from Lorenzo for patches #4 & #5 due to the above changes.
+>  -Also dropped T-by from Steve and Laurentiu. Many thanks for your test
+>   efforts. I have done basic sanity testing on my platform but please
+>   do it again at your end.
+> 
+> v9 --> v10
+>  - Dropped patch #1 ("Add temporary RMR node flag definitions") since
+>    the ACPICA header updates patch is now in the mailing list
+>  - Based on the suggestion from Christoph, introduced a 
+>    resv_region_free_fw_data() callback in struct iommu_resv_region and
+>    used that to free RMR specific memory allocations.
+> 
+> v8 --> v9
+>  - Adressed comments from Robin on interfaces.
+>  - Addressed comments from Lorenzo.
+> 
+> v7 --> v8
+>   - Patch #1 has temp definitions for RMR related changes till
+>     the ACPICA header changes are part of kernel.
+>   - No early parsing of RMR node info and is only parsed at the
+>     time of use.
+>   - Changes to the RMR get/put API format compared to the
+>     previous version.
+>   - Support for RMR descriptor shared by multiple stream IDs.
+> 
+> v6 --> v7
+>  -fix pointed out by Steve to the SMMUv2 SMR bypass install in patch #8.
+> 
+> v5 --> v6
+> - Addressed comments from Robin & Lorenzo.
+>   : Moved iort_parse_rmr() to acpi_iort_init() from
+>     iort_init_platform_devices().
+>   : Removed use of struct iort_rmr_entry during the initial
+>     parse. Using struct iommu_resv_region instead.
+>   : Report RMR address alignment and overlap errors, but continue.
+>   : Reworked arm_smmu_init_bypass_stes() (patch # 6).
+> - Updated SMMUv2 bypass SMR code. Thanks to Jon N (patch #8).
+> - Set IOMMU protection flags(IOMMU_CACHE, IOMMU_MMIO) based
+>   on Type of RMR region. Suggested by Jon N.
+> 
+> v4 --> v5
+>  -Added a fw_data union to struct iommu_resv_region and removed
+>   struct iommu_rmr (Based on comments from Joerg/Robin).
+>  -Added iommu_put_rmrs() to release mem.
+>  -Thanks to Steve for verifying on SMMUv2, but not added the Tested-by
+>   yet because of the above changes.
+> 
+> v3 -->v4
+> -Included the SMMUv2 SMR bypass install changes suggested by
+>  Steve(patch #7)
+> -As per Robin's comments, RMR reserve implementation is now
+>  more generic  (patch #8) and dropped v3 patches 8 and 10.
+> -Rebase to 5.13-rc1
+> 
+> RFC v2 --> v3
+>  -Dropped RFC tag as the ACPICA header changes are now ready to be
+>   part of 5.13[0]. But this series still has a dependency on that patch.
+>  -Added IORT E.b related changes(node flags, _DSM function 5 checks for
+>   PCIe).
+>  -Changed RMR to stream id mapping from M:N to M:1 as per the spec and
+>   discussion here[1].
+>  -Last two patches add support for SMMUv2(Thanks to Jon Nettleton!)
+> 
+> Jon Nettleton (1):
+>   iommu/arm-smmu: Get associated RMR info and install bypass SMR
+> 
+> Shameer Kolothum (8):
+>   iommu: Introduce a callback to struct iommu_resv_region
+>   ACPI/IORT: Make iort_iommu_msi_get_resv_regions() return void
+>   ACPI/IORT: Provide a generic helper to retrieve reserve regions
+>   ACPI/IORT: Add support to retrieve IORT RMR reserved regions
+>   ACPI/IORT: Add a helper to retrieve RMR info directly
+>   iommu/arm-smmu-v3: Introduce strtab init helper
+>   iommu/arm-smmu-v3: Refactor arm_smmu_init_bypass_stes() to force
+>     bypass
+>   iommu/arm-smmu-v3: Get associated RMR info and install bypass STE
+> 
+>  drivers/acpi/arm64/iort.c                   | 360 ++++++++++++++++++--
+>  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c |  78 ++++-
+>  drivers/iommu/arm/arm-smmu/arm-smmu.c       |  52 +++
+>  drivers/iommu/dma-iommu.c                   |   2 +-
+>  drivers/iommu/iommu.c                       |  16 +-
+>  include/linux/acpi_iort.h                   |  14 +-
+>  include/linux/iommu.h                       |  10 +
+>  7 files changed, 486 insertions(+), 46 deletions(-)
+> 
 
-> ---
->  include/acpi/processor.h | 1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index ba1e3ed98d3d..9fa49686957a 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -441,7 +441,6 @@ static inline int acpi_processor_hotplug(struct acpi_processor *pr)
->  #endif /* CONFIG_ACPI_PROCESSOR_IDLE */
->  
->  /* in processor_thermal.c */
-> -int acpi_processor_get_limit_info(struct acpi_processor *pr);
->  int acpi_processor_thermal_init(struct acpi_processor *pr,
->  				struct acpi_device *device);
->  void acpi_processor_thermal_exit(struct acpi_processor *pr,
-
-Fwiw,
-
-Reviewed-by: Punit Agrawal <punit.agrawal@bytedance.com>
