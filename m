@@ -2,131 +2,237 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B5E6C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Jun 2022 15:04:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6B0DCCA479
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Jun 2022 15:12:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240310AbiFTPDW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Jun 2022 11:03:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59740 "EHLO
+        id S242772AbiFTPMR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 20 Jun 2022 11:12:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241572AbiFTPDM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2022 11:03:12 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 81C2F2B255
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 07:33:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1655735601;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=NZEKAY2GGhOuRw66r1V3hBnlbCKh6JZDPOisgvEphIw=;
-        b=Vnhi2WyOibu2bKDoWsGusQfDYBbPPGEbweVQfGLe7QNvF5P4X5XZIxCa8z9lriHwjHOx6l
-        dZwS61gO9EeZGD4eMDXg7p2hU5zqSfwjBoVR7OlHCyk8yWdjzNZx77byU0ahKD1GRLcjlY
-        5wVTE5Lw4zKv3xhGr13OWXWPN5y2XJk=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-55-Hif_LVdXM82pw1io1DZqdw-1; Mon, 20 Jun 2022 10:33:20 -0400
-X-MC-Unique: Hif_LVdXM82pw1io1DZqdw-1
-Received: by mail-ed1-f69.google.com with SMTP id x8-20020a056402414800b0042d8498f50aso8818341eda.23
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 07:33:20 -0700 (PDT)
+        with ESMTP id S242437AbiFTPMH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2022 11:12:07 -0400
+Received: from mail-lj1-x22b.google.com (mail-lj1-x22b.google.com [IPv6:2a00:1450:4864:20::22b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386FA15818
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 08:02:47 -0700 (PDT)
+Received: by mail-lj1-x22b.google.com with SMTP id j22so5610275ljg.0
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 08:02:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=semihalf.com; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=odsCatuXRn3NiFBtyBRCzHVor61VJmIiPLvNMLhLp6I=;
+        b=aZ2SA144QSpo6RHPerj2ftJyZhKtwm1sbmaAaXQeL8x/+FjvAw1MuVtdCiO1orB+c5
+         PssXfydj1OxhxMzSx5OEdScZJfG+HvDkJxx5WkSBG4es+EcPWMncU9JqCqrPGSPMTcbz
+         muMw85qeCuumFnWW1OKyMMbnPM1C4Rix+jVgu0ta9mx2SRKIU4hEpsivzXa6TzH4xyW/
+         cwOez0dj6qOpr7ErEML5XyhVBcRzLLN5mwunrciIkU1gTa8ys3ekZ4fh0LNrNwudQghn
+         ivCGgNJK73nka/wA1n8QIfPFx96JR/3yPdqHxwR+Nd53rGfsrImCxuN9gJ2ixjmVIk/G
+         ru5w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=NZEKAY2GGhOuRw66r1V3hBnlbCKh6JZDPOisgvEphIw=;
-        b=ioveF4UxHNfcItLD+dNTgWkkDRJlTnB2au6AvNxOyQTm/NxkAtrWrzVl6IgzeAHXJn
-         1f5BGnhr/tOGe+ijkB0XrxdPfJDMYDTGqE5mBFcbmHyPbvzrALp11D/tUPTZe+3jtpAt
-         KYZEQIhbMEUVYF2v8vy40EfnUpHvOBCBtsZzMS2qK1E+kU4Ou6haEAL/E6+i4fpPWcOj
-         vIH7BCIFsIb5wLnJ+Zn3QKiFptHKJpL73kZyk70C62jbYFqLYnKEMjFwQFe8wA9s8e4f
-         w0poH3VWQ754KopA9F2m8xdzvVChAruTybA6sNrEdloTqDOLzTeP3FG90OHMQK1TAkCl
-         1NgA==
-X-Gm-Message-State: AJIora/N/CTG5f5QzIn81RfsaD8X1gqmyttljPDpPfwi75LITwRxBrZ8
-        9p8kyja9SYbd8YsWHyzb7/wAV+tZXDoIC/L6mHvxScy003Gh1hBP1ffB8xNfp3IhklWEBXvsW2i
-        ROtZ3i+2VWLfT5t4FQaynCQ==
-X-Received: by 2002:a05:6402:51d3:b0:431:6c7b:c35 with SMTP id r19-20020a05640251d300b004316c7b0c35mr30413671edd.28.1655735598999;
-        Mon, 20 Jun 2022 07:33:18 -0700 (PDT)
-X-Google-Smtp-Source: AGRyM1tcxT+KH7RtnHCZ9KdXiEfKheSE4uLLpoKMBbIDfv6DAHNER0Is80zeDp/VwUQYW3OW4TOl/A==
-X-Received: by 2002:a05:6402:51d3:b0:431:6c7b:c35 with SMTP id r19-20020a05640251d300b004316c7b0c35mr30413645edd.28.1655735598768;
-        Mon, 20 Jun 2022 07:33:18 -0700 (PDT)
-Received: from [10.0.0.147] (D57D5A4B.static.ziggozakelijk.nl. [213.125.90.75])
-        by smtp.gmail.com with ESMTPSA id a24-20020aa7cf18000000b004356c18b2b9sm6287475edy.44.2022.06.20.07.33.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 20 Jun 2022 07:33:18 -0700 (PDT)
-Message-ID: <b2ad4b62-89bc-48c5-ebc3-c9d8f86aa902@redhat.com>
-Date:   Mon, 20 Jun 2022 16:33:17 +0200
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=odsCatuXRn3NiFBtyBRCzHVor61VJmIiPLvNMLhLp6I=;
+        b=l0W0tw5UVLF/ZK6Reqgj+JWT5bttgu+t9Oz7W0w1L1Bj/al61lQO/p8oNoYRKZVeUO
+         /1jDMcrcWBmJ65S/ZfGVLael8qv/x26ZSG5NZuCt7GoNTzLZ3Q3laYmNG8uKSjhEYbJw
+         1Q4ELPmMCKEi20Gr1xJjg1RixrOQz6rGzRU64EUz5IdLNFfQcv4UJM+FC/qeI94ApzUo
+         QChmGrnBCDqEMzm2Aa1tAuXnJfOrEJYByHFvvOYi9HhqkYzOfh4wbByJjGFxDRvlO2n7
+         ui/J13K91Y1uR1VTUzb/xbcggbgBtQxjdoD8PCgOKGVFX3BuG7ep2ZZZXiFwHhGQGRsc
+         KeVw==
+X-Gm-Message-State: AJIora94QUnfY61PObCLvExMq4o5yAG7L2zDj/eRoDMWsiYbN3DXC8Vz
+        fsnjDheF7N+2OeH2wr+mO7Xt9w==
+X-Google-Smtp-Source: AGRyM1uVExzZpk82Zbw+UxgYL4S8+8n1cDZH0dX8WGn051iDAvPPamQIsf6HPyuEmJXNRZSVdWgdJA==
+X-Received: by 2002:a05:651c:b29:b0:255:6ecc:96f with SMTP id b41-20020a05651c0b2900b002556ecc096fmr11849054ljr.176.1655737365366;
+        Mon, 20 Jun 2022 08:02:45 -0700 (PDT)
+Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
+        by smtp.gmail.com with ESMTPSA id e19-20020a05651236d300b0047f79f7758asm17564lfs.22.2022.06.20.08.02.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Jun 2022 08:02:44 -0700 (PDT)
+From:   Marcin Wojtas <mw@semihalf.com>
+To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        netdev@vger.kernel.org
+Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
+        lenb@kernel.org, andrew@lunn.ch, vivien.didelot@gmail.com,
+        f.fainelli@gmail.com, olteanv@gmail.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        linux@armlinux.org.uk, hkallweit1@gmail.com, gjb@semihalf.com,
+        mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com,
+        Samer.El-Haj-Mahmoud@arm.com, upstream@semihalf.com
+Subject: [net-next: PATCH 01/12] net: phy: fixed_phy: switch to fwnode_ API
+Date:   Mon, 20 Jun 2022 17:02:14 +0200
+Message-Id: <20220620150225.1307946-2-mw@semihalf.com>
+X-Mailer: git-send-email 2.29.0
+In-Reply-To: <20220620150225.1307946-1-mw@semihalf.com>
+References: <20220620150225.1307946-1-mw@semihalf.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: [PATCH 2/4] ACPI: EC: Drop the EC_FLAGS_IGNORE_DSDT_GPE quirk
-Content-Language: en-US
-To:     Daniel Drake <drake@endlessos.org>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Andy Shevchenko <andy@kernel.org>,
-        Kai-Heng Feng <kai.heng.feng@canonical.com>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        devel@acpica.org, Lv Zheng <lv.zheng@intel.com>,
-        Chris Chiu <chris.chiu@canonical.com>,
-        Jian-Hong Pan <jhp@endlessos.org>,
-        Carlo Caione <carlo@caione.org>
-References: <20220620092546.8298-1-hdegoede@redhat.com>
- <20220620092546.8298-3-hdegoede@redhat.com>
- <CAD8Lp45ismm5yG2ajGH_h=BKLh6hs8yC7gy3jq1Kn1pst0AFKg@mail.gmail.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <CAD8Lp45ismm5yG2ajGH_h=BKLh6hs8yC7gy3jq1Kn1pst0AFKg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+This patch allows to use fixed_phy driver and its helper
+functions without Device Tree dependency, by swtiching from
+of_ to fwnode_ API.
 
-On 6/20/22 12:47, Daniel Drake wrote:
-> Hi Hans,
-> 
-> Thanks for looking at this.
-> 
-> On Mon, Jun 20, 2022 at 5:26 PM Hans de Goede <hdegoede@redhat.com> wrote:
->> Which leaves commit 6306f0431914 ("ACPI: EC: Make more Asus laptops
->> use ECDT _GPE"), which was committed way after the generic fix.
->> But this was just due to slow upstreaming of it. This commit stems
->> from Endless from 15 Aug 2017 (committed upstream 20 May 2021):
->> https://github.com/endlessm/linux/pull/288
->>
->> The current code should work fine without this:
-> 
-> Your explanation of the code flow seems clear and logical, but I have
-> not checked the details. This is a bit of a tricky issue as you have
-> probably seen from history, we went in a couple of wrong directions
-> before we spotted the real cause.
-> 
-> The one thing I don't see clearly in your explanation (which I may
-> have read too quickly) is how the generic fix 69b957c26b32 is
-> responsible for making this a "no-op" code flow now.
+Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+---
+ include/linux/phy_fixed.h   |  4 +--
+ drivers/net/mdio/of_mdio.c  |  2 +-
+ drivers/net/phy/fixed_phy.c | 37 ++++++++------------
+ 3 files changed, 18 insertions(+), 25 deletions(-)
 
-It is a no-op now because after that commit the acpi_ec struct
-which gets allocated when parsing the ECDT now gets re-used
-when parsing the DSDT if the EC's cmd + data addresses match.
-
-When we enter the if for re-using that boot_ec acpi_ec struct then
-only boot_ec->handle is re-used; and we keep boot_ec->gpe to the
-value set when parsing the ECDT.
-
-The quirk does:
-
-ec->gpe is boot_ec->gpe, but since we throw ec away now
-(after taking ec->handle) and reuse boot_ec->gpe we will end
-up using boot_ec->gpe just as the quirk caused us to do before
-we started re-using the boot_ec acpi_ec struct.
-
-Regards,
-
-Hans
+diff --git a/include/linux/phy_fixed.h b/include/linux/phy_fixed.h
+index 52bc8e487ef7..449a927231ec 100644
+--- a/include/linux/phy_fixed.h
++++ b/include/linux/phy_fixed.h
+@@ -19,7 +19,7 @@ extern int fixed_phy_add(unsigned int irq, int phy_id,
+ 			 struct fixed_phy_status *status);
+ extern struct phy_device *fixed_phy_register(unsigned int irq,
+ 					     struct fixed_phy_status *status,
+-					     struct device_node *np);
++					     struct fwnode_handle *fwnode);
+ 
+ extern struct phy_device *
+ fixed_phy_register_with_gpiod(unsigned int irq,
+@@ -38,7 +38,7 @@ static inline int fixed_phy_add(unsigned int irq, int phy_id,
+ }
+ static inline struct phy_device *fixed_phy_register(unsigned int irq,
+ 						struct fixed_phy_status *status,
+-						struct device_node *np)
++						struct fwnode_handle *fwnode)
+ {
+ 	return ERR_PTR(-ENODEV);
+ }
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index 9e3c815a070f..d755fe1ecdda 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -421,7 +421,7 @@ int of_phy_register_fixed_link(struct device_node *np)
+ 	return -ENODEV;
+ 
+ register_phy:
+-	return PTR_ERR_OR_ZERO(fixed_phy_register(PHY_POLL, &status, np));
++	return PTR_ERR_OR_ZERO(fixed_phy_register(PHY_POLL, &status, of_fwnode_handle(np)));
+ }
+ EXPORT_SYMBOL(of_phy_register_fixed_link);
+ 
+diff --git a/drivers/net/phy/fixed_phy.c b/drivers/net/phy/fixed_phy.c
+index aef739c20ac4..0dbe6c344b05 100644
+--- a/drivers/net/phy/fixed_phy.c
++++ b/drivers/net/phy/fixed_phy.c
+@@ -15,9 +15,9 @@
+ #include <linux/mii.h>
+ #include <linux/phy.h>
+ #include <linux/phy_fixed.h>
++#include <linux/property.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+-#include <linux/of.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/idr.h>
+ #include <linux/netdevice.h>
+@@ -186,16 +186,15 @@ static void fixed_phy_del(int phy_addr)
+ 	}
+ }
+ 
+-#ifdef CONFIG_OF_GPIO
+-static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
++static struct gpio_desc *fixed_phy_get_gpiod(struct fwnode_handle *fwnode)
+ {
+-	struct device_node *fixed_link_node;
++	struct fwnode_handle *fixed_link_node;
+ 	struct gpio_desc *gpiod;
+ 
+-	if (!np)
++	if (!fwnode)
+ 		return NULL;
+ 
+-	fixed_link_node = of_get_child_by_name(np, "fixed-link");
++	fixed_link_node = fwnode_get_named_child_node(fwnode, "fixed-link");
+ 	if (!fixed_link_node)
+ 		return NULL;
+ 
+@@ -204,7 +203,7 @@ static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
+ 	 * Linux device associated with it, we simply have obtain
+ 	 * the GPIO descriptor from the device tree like this.
+ 	 */
+-	gpiod = fwnode_gpiod_get_index(of_fwnode_handle(fixed_link_node),
++	gpiod = fwnode_gpiod_get_index(fixed_link_node,
+ 				       "link", 0, GPIOD_IN, "mdio");
+ 	if (IS_ERR(gpiod) && PTR_ERR(gpiod) != -EPROBE_DEFER) {
+ 		if (PTR_ERR(gpiod) != -ENOENT)
+@@ -212,20 +211,14 @@ static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
+ 			       fixed_link_node);
+ 		gpiod = NULL;
+ 	}
+-	of_node_put(fixed_link_node);
++	fwnode_handle_put(fixed_link_node);
+ 
+ 	return gpiod;
+ }
+-#else
+-static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
+-{
+-	return NULL;
+-}
+-#endif
+ 
+ static struct phy_device *__fixed_phy_register(unsigned int irq,
+ 					       struct fixed_phy_status *status,
+-					       struct device_node *np,
++					       struct fwnode_handle *fwnode,
+ 					       struct gpio_desc *gpiod)
+ {
+ 	struct fixed_mdio_bus *fmb = &platform_fmb;
+@@ -238,7 +231,7 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
+ 
+ 	/* Check if we have a GPIO associated with this fixed phy */
+ 	if (!gpiod) {
+-		gpiod = fixed_phy_get_gpiod(np);
++		gpiod = fixed_phy_get_gpiod(fwnode);
+ 		if (IS_ERR(gpiod))
+ 			return ERR_CAST(gpiod);
+ 	}
+@@ -269,8 +262,8 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
+ 		phy->asym_pause = status->asym_pause;
+ 	}
+ 
+-	of_node_get(np);
+-	phy->mdio.dev.of_node = np;
++	fwnode_handle_get(fwnode);
++	phy->mdio.dev.fwnode = fwnode;
+ 	phy->is_pseudo_fixed_link = true;
+ 
+ 	switch (status->speed) {
+@@ -299,7 +292,7 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
+ 	ret = phy_device_register(phy);
+ 	if (ret) {
+ 		phy_device_free(phy);
+-		of_node_put(np);
++		fwnode_handle_put(fwnode);
+ 		fixed_phy_del(phy_addr);
+ 		return ERR_PTR(ret);
+ 	}
+@@ -309,9 +302,9 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
+ 
+ struct phy_device *fixed_phy_register(unsigned int irq,
+ 				      struct fixed_phy_status *status,
+-				      struct device_node *np)
++				      struct fwnode_handle *fwnode)
+ {
+-	return __fixed_phy_register(irq, status, np, NULL);
++	return __fixed_phy_register(irq, status, fwnode, NULL);
+ }
+ EXPORT_SYMBOL_GPL(fixed_phy_register);
+ 
+@@ -327,7 +320,7 @@ EXPORT_SYMBOL_GPL(fixed_phy_register_with_gpiod);
+ void fixed_phy_unregister(struct phy_device *phy)
+ {
+ 	phy_device_remove(phy);
+-	of_node_put(phy->mdio.dev.of_node);
++	fwnode_handle_put(phy->mdio.dev.fwnode);
+ 	fixed_phy_del(phy->mdio.addr);
+ }
+ EXPORT_SYMBOL_GPL(fixed_phy_unregister);
+-- 
+2.29.0
 
