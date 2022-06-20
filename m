@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE0DCCA47C
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Jun 2022 15:12:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8BD1CCA479
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Jun 2022 15:12:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242127AbiFTPMU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Jun 2022 11:12:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42018 "EHLO
+        id S243471AbiFTPMY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 20 Jun 2022 11:12:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242891AbiFTPMG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2022 11:12:06 -0400
-Received: from mail-lj1-x235.google.com (mail-lj1-x235.google.com [IPv6:2a00:1450:4864:20::235])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7DF913F2C
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 08:02:46 -0700 (PDT)
-Received: by mail-lj1-x235.google.com with SMTP id b23so3654710ljh.7
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 08:02:46 -0700 (PDT)
+        with ESMTP id S242945AbiFTPMI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2022 11:12:08 -0400
+Received: from mail-lf1-x133.google.com (mail-lf1-x133.google.com [IPv6:2a00:1450:4864:20::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73C6619FB8
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 08:02:48 -0700 (PDT)
+Received: by mail-lf1-x133.google.com with SMTP id a13so7848823lfr.10
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2022 08:02:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=semihalf.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=yxQNSbinrTsgQGxNEqtziHy+t5H7kRQgWCro6p1KBMA=;
-        b=WPXUf7U5nc8yTs7HL25c+VZwbO5QQ8T1QE+oQNxnT2blOmFQzN3XoFS/PHoxbQ/T31
-         fiqhWBaEDnIxujWfPayn2+tJJRfFzsx0aKRSv1es0t9hBbz7BoG56nmQepi5xs/A4dHl
-         Xk82m+eF76wCTnIkBRZ5dnb8GLVqsT+ME6Iva/hKtAmD3jK8h7Vt5ATRxDSASk9Ps4/e
-         pDLk6tU9UV1a7WtWzYI3tDjPclrLJBkEuo4lA13sX1i1t9X8tHXhGybICgtHao5lJqEV
-         IfC5iJ6zmZWDFrNZ4jFr2e4E4Rh7zW5P4prmXo7jXJrStYsEoZ2BaEdIaC5t8rBmXKy6
-         aCsA==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=xFucQ3C/FYSxEEKLXgm7WEUAFTqRGfOx5PDeN0uOhvc=;
+        b=I/l5jek5ysAPkzJhksovOM5xmWjXfNbCusHoQYicryGVeH2FpRoLLs1n7zbOGDy0w0
+         2JhlU2J/4rMAtZMYtqplfZSwsvgYiaLEJ0i1gdIj6W69DJ7tznZre1A5fQKR+WtgEzkf
+         Jgfms8bXzux9le5rE4IsfakL8nt33uedbbwWUeNEkjghENjTsacOG46qJV38EP1WH7oI
+         eReHw7Eqzr5imRh9gcg8olJHtAWHq147h0oWqlYVSyDpvi181fBSDXat/KfmQco8FoaA
+         QdHlrunaRjrMS5tCDCnBrYKFtfrYRXxDCw6EljUXWA9R+PA1zBJen6/tkE7Gzemjk4hf
+         YNLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=yxQNSbinrTsgQGxNEqtziHy+t5H7kRQgWCro6p1KBMA=;
-        b=c7dHmTr710FiPw0v/ju+MP1Iz7bD5sBrs2RPfe+uN++p99PPmvW4armgtlvlI67f3k
-         0pwBexCtuL4spYui1LbbPf37o4eLS0NZ/OH3VJffsgs6QebSxe3UOtXkAqxLb+yXMJXy
-         9x85YCCZ+Xe9cHFE10z8cGmN7bpKkH8Wh9BnkPXioa9JMicuin9nJW84bA5j1G2z6k3x
-         JwOLlBLH7XrDZvuu9UrFht+3aQSgBEPUZNA02rof2ptGqQOSicfpy9tg3DuEPLIlsOcN
-         wj89Zq4yCT+OSALBqatz3AALQi/KoJsEJuWXsimkgAgzJQKTGaoii87CBUxy4KD9RzCA
-         47VQ==
-X-Gm-Message-State: AJIora84avknOAkcm5LXIZBmPimRhcuRm9Ad5i2JheaiD8I8lvtHH0za
-        a1oQpsbwH+V+vACF2dpJcnTKUA==
-X-Google-Smtp-Source: AGRyM1tVQkRQxXTDvCUQrJ4dJeOiz18tvgdU6yJBqRC1zlngaVtLknPavVc+pf1G6HMrLNPY1QVPTg==
-X-Received: by 2002:a05:651c:12c5:b0:255:9384:b385 with SMTP id 5-20020a05651c12c500b002559384b385mr12087450lje.229.1655737363697;
-        Mon, 20 Jun 2022 08:02:43 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=xFucQ3C/FYSxEEKLXgm7WEUAFTqRGfOx5PDeN0uOhvc=;
+        b=MBcqEfLDCKL/b7tSThDP7lICfgz4Rr8BUKGoe0AuNk4JuPbQlQ/0EroI+iSmn0GrZk
+         R1QFSPQ/1L3A5YhV5+Y2HU4LEMU6Nb/JD36HKvK+tDuESq3ROYZuiCy03jB2wLK59nKy
+         60LuZJg1HLdfnuQHaCO3w4rHUXuibUQJWmahFDOqJfcmtK6HNHBKljn1sDAzFdvWSlSv
+         EA6SKgup6J80HZVLnKbfnVzUHMZtaW5WOaP9llC0Uol7w1o0mNajfyL1LUwTjuuxtnOt
+         LQXRLMe39ePAXrlwx9A5R4bBQwEejpcYj4ZYXPw9fIKcg23FT8IabhziAe+evxZBunr/
+         7L8A==
+X-Gm-Message-State: AJIora+Ja4Q6EIZwUMZyu/PXwueae9aEg+S6rIESZ9FGpGqKdSXj9aw0
+        CPXDZiXufpnD3HxtG7PusIbAMg==
+X-Google-Smtp-Source: AGRyM1uP5Akkrn+zO5ywGqHgQ1zT/LsX1aQLDykb/IEqucwHpSCG6STCHEn2ODcLvYDyjcwthz1pGA==
+X-Received: by 2002:a05:6512:2207:b0:47f:70b3:52d with SMTP id h7-20020a056512220700b0047f70b3052dmr2566673lfu.174.1655737366560;
+        Mon, 20 Jun 2022 08:02:46 -0700 (PDT)
 Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
-        by smtp.gmail.com with ESMTPSA id e19-20020a05651236d300b0047f79f7758asm17564lfs.22.2022.06.20.08.02.42
+        by smtp.gmail.com with ESMTPSA id e19-20020a05651236d300b0047f79f7758asm17564lfs.22.2022.06.20.08.02.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jun 2022 08:02:43 -0700 (PDT)
+        Mon, 20 Jun 2022 08:02:46 -0700 (PDT)
 From:   Marcin Wojtas <mw@semihalf.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org
@@ -57,121 +57,281 @@ Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
         linux@armlinux.org.uk, hkallweit1@gmail.com, gjb@semihalf.com,
         mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com,
         Samer.El-Haj-Mahmoud@arm.com, upstream@semihalf.com
-Subject: [net-next: PATCH 00/12] ACPI support for DSA
-Date:   Mon, 20 Jun 2022 17:02:13 +0200
-Message-Id: <20220620150225.1307946-1-mw@semihalf.com>
+Subject: [net-next: PATCH 02/12] net: mdio: switch fixed-link PHYs API to fwnode_
+Date:   Mon, 20 Jun 2022 17:02:15 +0200
+Message-Id: <20220620150225.1307946-3-mw@semihalf.com>
 X-Mailer: git-send-email 2.29.0
+In-Reply-To: <20220620150225.1307946-1-mw@semihalf.com>
+References: <20220620150225.1307946-1-mw@semihalf.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi!
+fixed-link PHYs API is used by DSA and a number of drivers
+and was depending on of_. Switch to fwnode_ so to make it
+hardware description agnostic and allow to be used in ACPI
+world as well.
 
-This patchset introduces the support for DSA in ACPI world. A couple of
-words about the background and motivation behind those changes:
+Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+---
+ include/linux/fwnode_mdio.h    |  19 ++++
+ drivers/net/mdio/fwnode_mdio.c | 100 ++++++++++++++++++++
+ drivers/net/mdio/of_mdio.c     |  79 +---------------
+ 3 files changed, 122 insertions(+), 76 deletions(-)
 
-The DSA code is strictly dependent on the Device Tree and Open Firmware
-(of_*) interface, both in the drivers and the common high-level net/dsa API.
-The only alternative is to pass the information about the topology via
-platform data - a legacy approach used by older systems that compiled the
-board description into the kernel.
-
-The above constraint is problematic for the embedded devices based e.g. on
-x86_64 SoCs, which are described by ACPI tables - to use DSA, some tricks
-and workarounds have to be applied. Addition of switch description to
-DSDT/SSDT tables would help to solve many similar cases and use unmodified
-kernel modules. It also enables this feature for ARM64 ACPI users.
-
-The key enablements allowing for adding ACPI support for DSA in Linux were
-NIC drivers, MDIO, PHY, and phylink modifications – the latter three merged
-in 2021. I thought it would be worth to experiment with DSA, which seemed
-to be a natural follow-up challenge.
-
-It turned out that without much hassle it is possible to describe
-DSA-compliant switches as child devices of the MDIO busses, which are
-responsible for their enumeration based on the standard _ADR fields and
-description in _DSD objects under 'device properties' UUID [1].
-The vast majority of required changes were simple of_* to fwnode_*
-transition, as the DT and ACPI topolgies are analogous, except for
-'ports' and 'mdio' subnodes naming, as they don't conform ACPI
-namespace constraints [2].
-
-The patchset can be logically split to subsets of commits:
-* Move a couple of missing routines to fwnode_ equivalents
-* Rework net/dsa to use fwnode_*/device_* API
-* Introduce fwnode_mdiobus_register_device() and allow MDIO device probing
-  in ACPI world.
-* Add necessary ACPI-related modifications to net/dsa and add Documentation
-  entry.
-* Shift example mv88e6xxx driver to fwnode_*/device_* and add ACPI hooks.
-The changes details can be found in the commit messages.
-
-Note that for now cascade topology remains unsupported in ACPI world
-(based on "dsa" label and "link" property values). It seems to be feasible,
-but would extend this patchset due to necessity of of_phandle_iterator
-migration to fwnode_. Leave it as a possible future step.
-
-Testing:
-* EACH commit was tested against regression with device tree on EspressoBIN
-  and SolidRun CN913x CEx7 Evaluation board. It works as expected throughout
-  entire patchset.
-* The latter board was used as example ACPI user of the feature - it's 1:1
-  to what's available when booting with DT. Please check [3] and [4] to
-  compare the DT/ACPI description.
-
-For convenience, this patchset is also available on a public branch [5].
-
-I am looking forward to any comments or remarks, your review will be
-appreciated.
-
-Best regards,
-Marcin
-
-[1] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-[2] https://uefi.org/specs/ACPI/6.4/05_ACPI_Software_Programming_Model/ACPI_Software_Programming_Model.html#acpi-namespace
-[3] https://github.com/semihalf-wojtas-marcin/edk2-platforms/commit/6368ee09a232c1348e19729f21c05e9c5410cdb9
-[4] https://github.com/tianocore/edk2-non-osi/blob/master/Silicon/Marvell/OcteonTx/DeviceTree/T91/cn9130-cex7.dts#L252
-[5] https://github.com/semihalf-wojtas-marcin/Linux-Kernel/commits/dsa-acpi-v1
-
-Marcin Wojtas (12):
-  net: phy: fixed_phy: switch to fwnode_ API
-  net: mdio: switch fixed-link PHYs API to fwnode_
-  net: dsa: switch to device_/fwnode_ APIs
-  net: mvpp2: initialize port fwnode pointer
-  net: core: switch to fwnode_find_net_device_by_node()
-  net: mdio: introduce fwnode_mdiobus_register_device()
-  net: mdio: allow registering non-PHY devices in ACPI world
-  ACPI: scan: prevent double enumeration of MDIO bus children
-  Documentation: ACPI: DSD: introduce DSA description
-  net: dsa: add ACPI support
-  net: dsa: mv88e6xxx: switch to device_/fwnode_ APIs
-  net: dsa: mv88e6xxx: add ACPI support
-
- include/linux/etherdevice.h                     |   1 +
- include/linux/fwnode_mdio.h                     |  22 ++
- include/linux/of_net.h                          |   6 -
- include/linux/phy_fixed.h                       |   4 +-
- include/net/dsa.h                               |   1 +
- drivers/acpi/scan.c                             |  15 +
- drivers/net/dsa/mv88e6xxx/chip.c                |  76 +++--
- drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c |   1 +
- drivers/net/mdio/acpi_mdio.c                    |  40 ++-
- drivers/net/mdio/fwnode_mdio.c                  | 129 +++++++
- drivers/net/mdio/of_mdio.c                      | 105 +-----
- drivers/net/phy/fixed_phy.c                     |  37 +-
- drivers/net/phy/mdio_bus.c                      |   4 +
- net/core/net-sysfs.c                            |  18 +-
- net/dsa/dsa2.c                                  | 104 ++++--
- net/dsa/port.c                                  |  54 ++-
- net/dsa/slave.c                                 |   6 +-
- Documentation/firmware-guide/acpi/dsd/dsa.rst   | 359 ++++++++++++++++++++
- Documentation/firmware-guide/acpi/index.rst     |   1 +
- 19 files changed, 748 insertions(+), 235 deletions(-)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/dsa.rst
-
+diff --git a/include/linux/fwnode_mdio.h b/include/linux/fwnode_mdio.h
+index faf603c48c86..98755b8c6c8a 100644
+--- a/include/linux/fwnode_mdio.h
++++ b/include/linux/fwnode_mdio.h
+@@ -16,6 +16,11 @@ int fwnode_mdiobus_phy_device_register(struct mii_bus *mdio,
+ int fwnode_mdiobus_register_phy(struct mii_bus *bus,
+ 				struct fwnode_handle *child, u32 addr);
+ 
++int fwnode_phy_register_fixed_link(struct fwnode_handle *fwnode);
++
++void fwnode_phy_deregister_fixed_link(struct fwnode_handle *fwnode);
++
++bool fwnode_phy_is_fixed_link(struct fwnode_handle *fwnode);
+ #else /* CONFIG_FWNODE_MDIO */
+ int fwnode_mdiobus_phy_device_register(struct mii_bus *mdio,
+ 				       struct phy_device *phy,
+@@ -30,6 +35,20 @@ static inline int fwnode_mdiobus_register_phy(struct mii_bus *bus,
+ {
+ 	return -EINVAL;
+ }
++
++static inline int fwnode_phy_register_fixed_link(struct fwnode_handle *fwnode)
++{
++	return -ENODEV;
++}
++
++static inline void fwnode_phy_deregister_fixed_link(struct fwnode_handle *fwnode)
++{
++}
++
++static inline bool fwnode_phy_is_fixed_link(struct fwnode_handle *fwnode)
++{
++	return false;
++}
+ #endif
+ 
+ #endif /* __LINUX_FWNODE_MDIO_H */
+diff --git a/drivers/net/mdio/fwnode_mdio.c b/drivers/net/mdio/fwnode_mdio.c
+index 1c1584fca632..b1c20c48b6cb 100644
+--- a/drivers/net/mdio/fwnode_mdio.c
++++ b/drivers/net/mdio/fwnode_mdio.c
+@@ -10,6 +10,7 @@
+ #include <linux/fwnode_mdio.h>
+ #include <linux/of.h>
+ #include <linux/phy.h>
++#include <linux/phy_fixed.h>
+ 
+ MODULE_AUTHOR("Calvin Johnson <calvin.johnson@oss.nxp.com>");
+ MODULE_LICENSE("GPL");
+@@ -147,3 +148,102 @@ int fwnode_mdiobus_register_phy(struct mii_bus *bus,
+ 	return 0;
+ }
+ EXPORT_SYMBOL(fwnode_mdiobus_register_phy);
++
++/*
++ * fwnode_phy_is_fixed_link() and fwnode_phy_register_fixed_link() must
++ * support two bindings:
++ * - the old binding, where 'fixed-link' was a property with 5
++ *   cells encoding various information about the fixed PHY
++ * - the new binding, where 'fixed-link' is a sub-node of the
++ *   Ethernet device.
++ */
++bool fwnode_phy_is_fixed_link(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *fixed_link_node;
++	const char *managed;
++	int len;
++
++	/* New binding */
++	fixed_link_node = fwnode_get_named_child_node(fwnode, "fixed-link");
++	if (fixed_link_node) {
++		fwnode_handle_put(fixed_link_node);
++		return true;
++	}
++
++	if (fwnode_property_read_string(fwnode, "managed", &managed) == 0 &&
++	    strcmp(managed, "auto") != 0)
++		return true;
++
++	/* Old binding */
++	len = fwnode_property_read_u32_array(fwnode, "fixed-link", NULL, 0);
++	if (len == (5 * sizeof(u32)))
++		return true;
++
++	return false;
++}
++EXPORT_SYMBOL(fwnode_phy_is_fixed_link);
++
++int fwnode_phy_register_fixed_link(struct fwnode_handle *fwnode)
++{
++	struct fixed_phy_status status = {};
++	struct fwnode_handle *fixed_link_node;
++	u32 fixed_link_prop[5];
++	const char *managed;
++
++	if (fwnode_property_read_string(fwnode, "managed", &managed) == 0 &&
++	    strcmp(managed, "in-band-status") == 0) {
++		/* status is zeroed, namely its .link member */
++		goto register_phy;
++	}
++
++	/* New binding */
++	fixed_link_node = fwnode_get_named_child_node(fwnode, "fixed-link");
++	if (fixed_link_node) {
++		status.link = 1;
++		status.duplex = fwnode_property_present(fixed_link_node,
++							"full-duplex");
++		if (fwnode_property_read_u32(fixed_link_node, "speed",
++					     &status.speed)) {
++			fwnode_handle_put(fixed_link_node);
++			return -EINVAL;
++		}
++		status.pause = fwnode_property_present(fixed_link_node, "pause");
++		status.asym_pause = fwnode_property_present(fixed_link_node,
++							    "asym-pause");
++		fwnode_handle_put(fixed_link_node);
++
++		goto register_phy;
++	}
++
++	/* Old binding */
++	if (fwnode_property_read_u32_array(fwnode, "fixed-link", fixed_link_prop,
++					   ARRAY_SIZE(fixed_link_prop)) == 0) {
++		status.link = 1;
++		status.duplex = fixed_link_prop[1];
++		status.speed  = fixed_link_prop[2];
++		status.pause  = fixed_link_prop[3];
++		status.asym_pause = fixed_link_prop[4];
++		goto register_phy;
++	}
++
++	return -ENODEV;
++
++register_phy:
++	return PTR_ERR_OR_ZERO(fixed_phy_register(PHY_POLL, &status, fwnode));
++}
++EXPORT_SYMBOL(fwnode_phy_register_fixed_link);
++
++void fwnode_phy_deregister_fixed_link(struct fwnode_handle *fwnode)
++{
++	struct phy_device *phydev;
++
++	phydev = fwnode_phy_find_device(fwnode);
++	if (!phydev)
++		return;
++
++	fixed_phy_unregister(phydev);
++
++	put_device(&phydev->mdio.dev);	/* fwnode_phy_find_device() */
++	phy_device_free(phydev);	/* fixed_phy_register() */
++}
++EXPORT_SYMBOL(fwnode_phy_deregister_fixed_link);
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index d755fe1ecdda..409da6e92f7d 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -351,91 +351,18 @@ EXPORT_SYMBOL(of_phy_get_and_connect);
+  */
+ bool of_phy_is_fixed_link(struct device_node *np)
+ {
+-	struct device_node *dn;
+-	int len, err;
+-	const char *managed;
+-
+-	/* New binding */
+-	dn = of_get_child_by_name(np, "fixed-link");
+-	if (dn) {
+-		of_node_put(dn);
+-		return true;
+-	}
+-
+-	err = of_property_read_string(np, "managed", &managed);
+-	if (err == 0 && strcmp(managed, "auto") != 0)
+-		return true;
+-
+-	/* Old binding */
+-	if (of_get_property(np, "fixed-link", &len) &&
+-	    len == (5 * sizeof(__be32)))
+-		return true;
+-
+-	return false;
++	return fwnode_phy_is_fixed_link(of_fwnode_handle(np));
+ }
+ EXPORT_SYMBOL(of_phy_is_fixed_link);
+ 
+ int of_phy_register_fixed_link(struct device_node *np)
+ {
+-	struct fixed_phy_status status = {};
+-	struct device_node *fixed_link_node;
+-	u32 fixed_link_prop[5];
+-	const char *managed;
+-
+-	if (of_property_read_string(np, "managed", &managed) == 0 &&
+-	    strcmp(managed, "in-band-status") == 0) {
+-		/* status is zeroed, namely its .link member */
+-		goto register_phy;
+-	}
+-
+-	/* New binding */
+-	fixed_link_node = of_get_child_by_name(np, "fixed-link");
+-	if (fixed_link_node) {
+-		status.link = 1;
+-		status.duplex = of_property_read_bool(fixed_link_node,
+-						      "full-duplex");
+-		if (of_property_read_u32(fixed_link_node, "speed",
+-					 &status.speed)) {
+-			of_node_put(fixed_link_node);
+-			return -EINVAL;
+-		}
+-		status.pause = of_property_read_bool(fixed_link_node, "pause");
+-		status.asym_pause = of_property_read_bool(fixed_link_node,
+-							  "asym-pause");
+-		of_node_put(fixed_link_node);
+-
+-		goto register_phy;
+-	}
+-
+-	/* Old binding */
+-	if (of_property_read_u32_array(np, "fixed-link", fixed_link_prop,
+-				       ARRAY_SIZE(fixed_link_prop)) == 0) {
+-		status.link = 1;
+-		status.duplex = fixed_link_prop[1];
+-		status.speed  = fixed_link_prop[2];
+-		status.pause  = fixed_link_prop[3];
+-		status.asym_pause = fixed_link_prop[4];
+-		goto register_phy;
+-	}
+-
+-	return -ENODEV;
+-
+-register_phy:
+-	return PTR_ERR_OR_ZERO(fixed_phy_register(PHY_POLL, &status, of_fwnode_handle(np)));
++	return fwnode_phy_register_fixed_link(of_fwnode_handle(np));
+ }
+ EXPORT_SYMBOL(of_phy_register_fixed_link);
+ 
+ void of_phy_deregister_fixed_link(struct device_node *np)
+ {
+-	struct phy_device *phydev;
+-
+-	phydev = of_phy_find_device(np);
+-	if (!phydev)
+-		return;
+-
+-	fixed_phy_unregister(phydev);
+-
+-	put_device(&phydev->mdio.dev);	/* of_phy_find_device() */
+-	phy_device_free(phydev);	/* fixed_phy_register() */
++	fwnode_phy_deregister_fixed_link(of_fwnode_handle(np));
+ }
+ EXPORT_SYMBOL(of_phy_deregister_fixed_link);
 -- 
 2.29.0
 
