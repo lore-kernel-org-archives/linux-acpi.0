@@ -2,45 +2,45 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D63C433EF
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 11:05:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 983E4C43334
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 11:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235545AbiFVLFJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Jun 2022 07:05:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47564 "EHLO
+        id S235840AbiFVLIO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Jun 2022 07:08:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234590AbiFVLFI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 07:05:08 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D0B93BBC6;
-        Wed, 22 Jun 2022 04:05:04 -0700 (PDT)
+        with ESMTP id S232097AbiFVLIL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 07:08:11 -0400
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52D0736E3F;
+        Wed, 22 Jun 2022 04:08:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655895904; x=1687431904;
+  t=1655896091; x=1687432091;
   h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=rXGfo5TTPJwt5jxUV2HzNzGOHPZqSFUbroQvi0MTJtU=;
-  b=iJPc+90YX3cbc0j7aNdAhCoYE2BHhRRE94Ca+q1g87E8u9BQ53egU+IY
-   4Bwq7+0eY4bNobPcesg8RpZJ6vjMhvwcy0Tba4UWdt8hCBk3JRpkKcilg
-   ng2E7VSfYlAXLwvInwgg2FAWD+R0KV93OYBhddhsOL+jUleVDw9vF3d1G
-   /Iamzg64WLRGjNSY/4ZWHJnKl9xoTa+VyEoKUMFGNb6Eu7F3hiodwny35
-   EDAvIiqREfygDiryKkJ9qgn/u3GbURO5MhbRRAo0eUX9TKZKSY/oCAaSN
-   FxacSJ5Jgn/L+aGk31u3qDkRFnXjXHmCDX13BgxCDdFArI5XYhI59tp8v
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10385"; a="281462478"
+   mime-version:in-reply-to;
+  bh=UECPX/Hrh6IDLmJoQE4SMkZQeUBQbE4AVAEal5WWxwo=;
+  b=Y94+k74m6SHheIkxla+Vd81y9cMdNBaYRjXEH0Ju5wC33GD0HF4QLw57
+   GVOKzoslBCOnDLdSDu+9jwf7yAsOYRRPExQNn4CzK4RJELp91TwVKJzEv
+   3EIrx4Dh+LdhHyVccgCkk1EOrVEYMA4gBZEgJxmz3n/C+x8/L284LEofC
+   +92qdFPtxRo2eWLfqiZ3KIO/FOGeA/vKIKfHdNKcrkRXEuyY+TpygFRoy
+   yT2hVHmrA2d2w3nBjpG3HOqHhgfbMkLN1W7pyUiDullx2RHI2viGrCTfq
+   uQ71OpZ1s7ddiD/6czmvZsbfQMqnRrbo6A4Z/8dj8KvBQHKoE5nLA9ps1
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10385"; a="305839453"
 X-IronPort-AV: E=Sophos;i="5.92,212,1650956400"; 
-   d="scan'208";a="281462478"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2022 04:05:00 -0700
+   d="scan'208";a="305839453"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2022 04:08:11 -0700
 X-IronPort-AV: E=Sophos;i="5.92,212,1650956400"; 
-   d="scan'208";a="620872649"
+   d="scan'208";a="562935226"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2022 04:04:54 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2022 04:08:05 -0700
 Received: from andy by smile.fi.intel.com with local (Exim 4.95)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1o3yAE-000sGc-W2;
-        Wed, 22 Jun 2022 14:04:50 +0300
-Date:   Wed, 22 Jun 2022 14:04:50 +0300
+        id 1o3yDK-000sGk-6b;
+        Wed, 22 Jun 2022 14:08:02 +0300
+Date:   Wed, 22 Jun 2022 14:08:01 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andrew Lunn <andrew@lunn.ch>
 Cc:     Marcin Wojtas <mw@semihalf.com>,
@@ -63,7 +63,7 @@ Cc:     Marcin Wojtas <mw@semihalf.com>,
         upstream@semihalf.com
 Subject: Re: [net-next: PATCH 09/12] Documentation: ACPI: DSD: introduce DSA
  description
-Message-ID: <YrL3UtIYjmBiWmuH@smile.fi.intel.com>
+Message-ID: <YrL4EQxM1c+p9EUY@smile.fi.intel.com>
 References: <20220620150225.1307946-1-mw@semihalf.com>
  <20220620150225.1307946-10-mw@semihalf.com>
  <YrDO05TMK8SVgnBP@lunn.ch>
@@ -72,66 +72,31 @@ References: <20220620150225.1307946-1-mw@semihalf.com>
  <YrGukfw4uiQz0NpW@smile.fi.intel.com>
  <CAPv3WKf_2QYh0F2LEr1DeErvnMeQqT0M5t40ROP2G6HSUwKpQQ@mail.gmail.com>
  <YrLft+BrP2jI5lwp@lunn.ch>
+ <CAPv3WKcAPb1Kc7=YpfmOWKa_kZYQvN8HyvjG91SiMK9c8yZa-Q@mail.gmail.com>
+ <YrLw+um7l9LbPqhu@lunn.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <YrLft+BrP2jI5lwp@lunn.ch>
+In-Reply-To: <YrLw+um7l9LbPqhu@lunn.ch>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jun 22, 2022 at 11:24:07AM +0200, Andrew Lunn wrote:
-> On Wed, Jun 22, 2022 at 11:08:13AM +0200, Marcin Wojtas wrote:
-> > wt., 21 cze 2022 o 13:42 Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> napisał(a):
-> > > On Tue, Jun 21, 2022 at 01:18:38PM +0200, Andrew Lunn wrote:
-> > > > On Tue, Jun 21, 2022 at 02:09:14PM +0300, Andy Shevchenko wrote:
-> > > > > On Mon, Jun 20, 2022 at 09:47:31PM +0200, Andrew Lunn wrote:
+On Wed, Jun 22, 2022 at 12:37:46PM +0200, Andrew Lunn wrote:
+> On Wed, Jun 22, 2022 at 12:22:23PM +0200, Marcin Wojtas wrote:
 
 ...
 
-> > > > > > > +            Memory32Fixed (ReadWrite,
-> > > > > > > +                0xf212a200,
-> > > > > > > +                0x00000010,
-> > > > > >
-> > > > > > What do these magic numbers mean?
-> > > > >
-> > > > > Address + Length, it's all described in the ACPI specification.
-> > > >
-> > > > The address+plus length of what? This device is on an MDIO bus. As
-> > > > such, there is no memory! It probably makes sense to somebody who
-> > > > knows ACPI, but to me i have no idea what it means.
-> > >
-> > > I see what you mean. Honestly I dunno what the device this description is for.
-> > > For the DSA that's behind MDIO bus? Then it's definitely makes no sense and
-> > > MDIOSerialBus() resources type is what would be good to have in ACPI
-> > > specification.
-> > 
-> > It's not device on MDIO bus, but the MDIO controller's register itself
-> 
-> Ah. So this is equivalent to
-> 
->                 CP11X_LABEL(mdio): mdio@12a200 {
->                         #address-cells = <1>;
->                         #size-cells = <0>;
->                         compatible = "marvell,orion-mdio";
->                         reg = <0x12a200 0x10>;
->                         clocks = <&CP11X_LABEL(clk) 1 9>, <&CP11X_LABEL(clk) 1 5>,
->                                  <&CP11X_LABEL(clk) 1 6>, <&CP11X_LABEL(clk) 1 18>;
->                         status = "disabled";
->                 };
-> 
-> DT seems a lot more readable, "marvell,orion-mdio" is a good hint that
-> device this is. But maybe it is more readable because that is what i'm
-> used to.
+> MRVL0100 is pretty meaningless, but marvell,orion-mdio gives you a
+> much better idea what the device is. That i would say is the key of
+> the problem here. Without knowing what MRVL0100 means, it is hard to
+> guess the rest.
 
-In ACPI we have _HID and _DDN. _DDN may put a descriptive string.
-
-> Please could you add a lot more comments. Given that nobody currently
-> actually does networking via ACPI, we have to assume everybody trying
-> to use it is a newbie, and more comments are better than less.
+As I pointed out they may use _DDN which will be part of the DSDT independenly
+of the ACPICA version (`iasl` may add comments on the devices it knows) or any
+other ACPI tools. The cons of this is the unused bulk in the ACPI tables,
+meaning wasted space in firmware.
 
 -- 
 With Best Regards,
