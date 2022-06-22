@@ -2,183 +2,145 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC4CCCA480
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 12:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DB15C43334
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 13:08:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232260AbiFVMuW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Jun 2022 08:50:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49334 "EHLO
+        id S1350817AbiFVNIH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Jun 2022 09:08:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347612AbiFVMuV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 08:50:21 -0400
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B676019039
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 05:50:19 -0700 (PDT)
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-3178acf2a92so127629697b3.6
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 05:50:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=LjImQd/ow4ise4Z8zr9ZK5lwVyVw0hn736HAa5U/9Ek=;
-        b=vb4S1j9xSEIw6KuMBkyoZPjgNJFfJIHjd9jFrRzG42VKhN+w3/f9SJgmFl2Zsn2NAR
-         LkaI7kTMx5IGrnrXUXBKtWvI2vya/aUbDrFQ2LwnaXetp36Z72z5TNC5Zz1saPhBwPnO
-         /FCs0hcWYS7rENYl88GVdnkm8///lOB8UIoc8ByifL4gttjlO/56VIEbZs8oQ8g660Jy
-         W3lDaCqNunFYguJuqT2yfV2kvUOIYQ5L5pT0d66XaA+9JHV1nmk/05/mpXAKMzD1SSNn
-         48Y0El2RIE5cjeBKdRiqzMd9oHkrnKA+Zgz91ZNB03bAj0v496JVIt7a7AYvqsm98zVj
-         Q0YQ==
-X-Gm-Message-State: AJIora+2dYxghATSHBkHZ6aPnEVMit1v4NgBucEqgBeSFDvHzh95fYp2
-        wlQpRHHlHT1qeUIO6HcaSHvTkxkHsYQdFqPXuT0=
-X-Google-Smtp-Source: AGRyM1vkylxwgQxriMQkeegWzZV9FCFxuREkfWa5W45QoNyFuu5PUU9vxfh0mHk/0IzWltB9GP4zmprU5DQlq+4IkbM=
-X-Received: by 2002:a81:57d7:0:b0:317:b111:34d5 with SMTP id
- l206-20020a8157d7000000b00317b11134d5mr4114819ywb.7.1655902218957; Wed, 22
- Jun 2022 05:50:18 -0700 (PDT)
+        with ESMTP id S1350562AbiFVNIH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 09:08:07 -0400
+Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF29B64E9;
+        Wed, 22 Jun 2022 06:08:04 -0700 (PDT)
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25M8oRuP016502;
+        Wed, 22 Jun 2022 08:07:57 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=PODMain02222019;
+ bh=ntxFv34fd+vFLPQPi1Xmyq/mW6Q27ifhC5yz+XojRyE=;
+ b=V1vqjGNaFSkM+gdJj+xs+Z8tnK5DsQR46sXTEh/ke1Fa11WYcY6/tGv94NscN2IGw+I7
+ zBMSV9c/+p/zQ+PMSrLuUxtl6mvIW5q6Hwqv6aPmWn0qtW3upwKvt117Q1n8o8zXHzK/
+ Kcl75B+j3cTC80guD2jZPjvezp+VdsaHQeye25CcNSOh92VTIgfMNJxhq/kidYjwnfbs
+ CyUogcZq8Xz7DZhtn/AD5MhRsNiP20b/UN4h6bGX/4IcC5lv5mK0zumWNTa0BNtEq7n2
+ A4jyQLOYtkthki8dl3aon3K4CGhF52CBmcRwaGG+t5RZy3CjfDGLsPUSDHgonTRw5SCH 6Q== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41d2wb-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Wed, 22 Jun 2022 08:07:57 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Wed, 22 Jun
+ 2022 14:07:55 +0100
+Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
+ Transport; Wed, 22 Jun 2022 14:07:55 +0100
+Received: from sbinding-cirrus-dsktp.ad.cirrus.com (unknown [198.90.238.151])
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 35A7A478;
+        Wed, 22 Jun 2022 13:07:53 +0000 (UTC)
+From:   Stefan Binding <sbinding@opensource.cirrus.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>
+CC:     <linux-acpi@vger.kernel.org>, <alsa-devel@alsa-project.org>,
+        <linux-kernel@vger.kernel.org>, <patches@opensource.cirrus.com>,
+        Stefan Binding <sbinding@opensource.cirrus.com>
+Subject: [PATCH v1 1/2] ACPI: utils: Add api to read _SUB from ACPI
+Date:   Wed, 22 Jun 2022 14:07:29 +0100
+Message-ID: <20220622130730.1573747-2-sbinding@opensource.cirrus.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220622130730.1573747-1-sbinding@opensource.cirrus.com>
+References: <20220622130730.1573747-1-sbinding@opensource.cirrus.com>
 MIME-Version: 1.0
-References: <20220616090106.2154906-1-sudeep.holla@arm.com> <20220616090106.2154906-2-sudeep.holla@arm.com>
-In-Reply-To: <20220616090106.2154906-2-sudeep.holla@arm.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 22 Jun 2022 14:50:08 +0200
-Message-ID: <CAJZ5v0j0Ayb3KGpfxuuXH9CHUrt8rupVg5OK=r6hqZQEYm3jFA@mail.gmail.com>
-Subject: Re: [PATCH 1/3] ACPICA: Add support for FFH Opregion special context data
-To:     Sudeep Holla <sudeep.holla@arm.com>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-GUID: OtYPNvyMW17wUUEj7zk8fODjthptNpou
+X-Proofpoint-ORIG-GUID: OtYPNvyMW17wUUEj7zk8fODjthptNpou
+X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jun 16, 2022 at 11:01 AM Sudeep Holla <sudeep.holla@arm.com> wrote:
->
-> FFH(Fixed Function Hardware) Opregion is approved to be added in ACPIC 6.5 via
+Add a wrapper function to read the _SUB string from ACPI.
 
-s/ACPIC/ACPI/
+Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
+---
+ drivers/acpi/utils.c | 26 ++++++++++++++++++++++++++
+ include/linux/acpi.h |  8 ++++++++
+ 2 files changed, 34 insertions(+)
 
-> code first approach[1]. It requires special context data similar to GPIO and
-> Generic Serial Bus as it needs to know platform specific offset and length.
->
-> Add support for the special context data needed by FFH Opregion.
->
-> FFH OpRegion enables advanced use of FFH on some architectures. For example,
-> it could be used to easily proxy AML code to architecture-specific behavior
-> (to ensure it is OS initiated)
->
-> Actual behavior of FFH is ofcourse architecture specific and depends on
-> the FFH bindings. The offset and length could have arch specific meaning
-> or usage.
->
-> [1] https://bugzilla.tianocore.org/show_bug.cgi?id=3598
->
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 3a9773a09e19..5d1bdb79e372 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -291,6 +291,32 @@ int acpi_get_local_address(acpi_handle handle, u32 *addr)
+ }
+ EXPORT_SYMBOL(acpi_get_local_address);
+ 
++int acpi_get_sub(acpi_handle handle, char *sub, size_t size)
++{
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *obj;
++	acpi_status status;
++	int ret;
++
++	status = acpi_evaluate_object(handle, METHOD_NAME__SUB, NULL, &buffer);
++	if (!ACPI_SUCCESS(status)) {
++		acpi_handle_debug(handle, "Reading ACPI _SUB failed: %#x\n", status);
++		return -ENOENT;
++	}
++
++	obj = buffer.pointer;
++	if (obj->type == ACPI_TYPE_STRING) {
++		ret = strscpy(sub, obj->string.pointer, size);
++	} else {
++		acpi_handle_warn(handle, "Warning ACPI _SUB did not return a string\n");
++		ret = -EINVAL;
++	}
++	acpi_os_free(buffer.pointer);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(acpi_get_sub);
++
+ acpi_status
+ acpi_evaluate_reference(acpi_handle handle,
+ 			acpi_string pathname,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4f82a5bc6d98..9bf18adf5920 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -21,6 +21,8 @@
+ #endif
+ #include <acpi/acpi.h>
+ 
++#define ACPI_MAX_SUB_BUF_SIZE	9
++
+ #ifdef	CONFIG_ACPI
+ 
+ #include <linux/list.h>
+@@ -762,6 +764,7 @@ static inline u64 acpi_arch_get_root_pointer(void)
+ #endif
+ 
+ int acpi_get_local_address(acpi_handle handle, u32 *addr);
++int acpi_get_sub(acpi_handle handle, char *sub, size_t size);
+ 
+ #else	/* !CONFIG_ACPI */
+ 
+@@ -1023,6 +1026,11 @@ static inline int acpi_get_local_address(acpi_handle handle, u32 *addr)
+ 	return -ENODEV;
+ }
+ 
++static int acpi_get_sub(acpi_handle handle, char *sub, size_t size)
++{
++	return -ENODEV;
++}
++
+ static inline int acpi_register_wakeup_handler(int wake_irq,
+ 	bool (*wakeup)(void *context), void *context)
+ {
+-- 
+2.25.1
 
-This looks reasonable to me and I see that you've already submitted a
-pull request to the upstream ACPICA.
-
-> ---
->  drivers/acpi/acpica/evregion.c | 8 ++++++++
->  drivers/acpi/acpica/exfield.c  | 8 ++++++--
->  drivers/acpi/acpica/exserial.c | 6 ++++++
->  include/acpi/acconfig.h        | 2 ++
->  include/acpi/actypes.h         | 7 +++++++
->  5 files changed, 29 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-> index b96b3a7e78e5..d5aed3249630 100644
-> --- a/drivers/acpi/acpica/evregion.c
-> +++ b/drivers/acpi/acpica/evregion.c
-> @@ -172,6 +172,14 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
->                         ctx->subspace_id = (u8)region_obj->region.address;
->                 }
->
-> +               if (region_obj->region.space_id ==
-> +                       ACPI_ADR_SPACE_FIXED_HARDWARE) {
-> +                       struct acpi_ffh_info *ctx =
-> +                           handler_desc->address_space.context;
-> +
-> +                       ctx->offset = region_obj->region.address;
-> +                       ctx->length = region_obj->region.length;
-> +               }
->                 /*
->                  * We must exit the interpreter because the region setup will
->                  * potentially execute control methods (for example, the _REG method
-> diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-> index 2b89a496de65..657f4002f9dc 100644
-> --- a/drivers/acpi/acpica/exfield.c
-> +++ b/drivers/acpi/acpica/exfield.c
-> @@ -141,7 +141,9 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
->                     || obj_desc->field.region_obj->region.space_id ==
->                     ACPI_ADR_SPACE_IPMI
->                     || obj_desc->field.region_obj->region.space_id ==
-> -                   ACPI_ADR_SPACE_PLATFORM_RT)) {
-> +                   ACPI_ADR_SPACE_PLATFORM_RT
-> +                   || obj_desc->field.region_obj->region.space_id ==
-> +                   ACPI_ADR_SPACE_FIXED_HARDWARE)) {
->
->                 /* SMBus, GSBus, IPMI serial */
->
-> @@ -305,7 +307,9 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
->                     || obj_desc->field.region_obj->region.space_id ==
->                     ACPI_ADR_SPACE_IPMI
->                     || obj_desc->field.region_obj->region.space_id ==
-> -                   ACPI_ADR_SPACE_PLATFORM_RT)) {
-> +                   ACPI_ADR_SPACE_PLATFORM_RT
-> +                   || obj_desc->field.region_obj->region.space_id ==
-> +                   ACPI_ADR_SPACE_FIXED_HARDWARE)) {
->
->                 /* SMBus, GSBus, IPMI serial */
->
-> diff --git a/drivers/acpi/acpica/exserial.c b/drivers/acpi/acpica/exserial.c
-> index 4da20d7845df..fd63f2042514 100644
-> --- a/drivers/acpi/acpica/exserial.c
-> +++ b/drivers/acpi/acpica/exserial.c
-> @@ -323,6 +323,12 @@ acpi_ex_write_serial_bus(union acpi_operand_object *source_desc,
->                 function = ACPI_WRITE;
->                 break;
->
-> +       case ACPI_ADR_SPACE_FIXED_HARDWARE:
-> +
-> +               buffer_length = ACPI_FFH_INPUT_BUFFER_SIZE;
-> +               function = ACPI_WRITE;
-> +               break;
-> +
->         default:
->                 return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
->         }
-> diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-> index c3ae3ea88e17..02e57191c1fd 100644
-> --- a/include/acpi/acconfig.h
-> +++ b/include/acpi/acconfig.h
-> @@ -190,6 +190,8 @@
->
->  #define ACPI_PRM_INPUT_BUFFER_SIZE      26
->
-> +#define ACPI_FFH_INPUT_BUFFER_SIZE      144
-> +
->  /* _sx_d and _sx_w control methods */
->
->  #define ACPI_NUM_sx_d_METHODS           4
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index 3491e454b2ab..1b4f81f1ac5d 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -1115,6 +1115,13 @@ struct acpi_pcc_info {
->         u8 *internal_buffer;
->  };
->
-> +/* Special Context data for FFH Opregion (ACPI 6.5) */
-> +
-> +struct acpi_ffh_info {
-> +       u64 offset;
-> +       u64 length;
-> +};
-> +
->  typedef
->  acpi_status (*acpi_adr_space_setup) (acpi_handle region_handle,
->                                      u32 function,
-> --
-> 2.36.1
->
