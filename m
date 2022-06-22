@@ -2,71 +2,71 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54D8FC43334
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 15:00:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14FE8C43334
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 15:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234818AbiFVPAt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Jun 2022 11:00:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60346 "EHLO
+        id S1359060AbiFVPFz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Jun 2022 11:05:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358885AbiFVPAi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 11:00:38 -0400
-Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B78D13E0F3
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 08:00:36 -0700 (PDT)
-Received: by mail-lf1-x135.google.com with SMTP id c2so28282961lfk.0
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 08:00:36 -0700 (PDT)
+        with ESMTP id S1359003AbiFVPFx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 11:05:53 -0400
+Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D095A3B007
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 08:05:43 -0700 (PDT)
+Received: by mail-lj1-x236.google.com with SMTP id o23so12593187ljg.13
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 08:05:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=semihalf.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc:content-transfer-encoding;
-        bh=Ot619CPCB+Os3Ma2zzaC2EQcVEWPZ51BE3CwtG6/D/Y=;
-        b=gRu32UY4Bm+ZmXkImTLAi5ks8x/VhZVMF8bm+1iriWv6IAOvsztz8SZ5nCBkLf3OJC
-         tEQATuW6ysvNT0R5+g9gUZE3620Ht5OUsTXDyM754PAv+hP+6JDy0G1su/lus37M4Ghg
-         qrBXbP2NCP/uwxDro5K2norKo3vMsCfN6HVtt3obD1OjDmqMSrM96ylCuv30zFpjUXR5
-         ZHXBZXhcKgXRmX85r87v18m/Uep6tkd3spwYispgbXxpmdfcaRkiZELWD8TXE/EUb4Vh
-         6jzc74qipm2b+UVw2vKoZFN0Ghtg4qw7395UG3glEG1IXM3QipBxVgdgmUdGtGN3FNdY
-         3uzQ==
+        bh=kyUcdhzGFcDndqqzlq8u6bhrtYYzLp4ulxMjiB9uh5c=;
+        b=C+EQKQ+Z8Vj1vQdoeE5hwXUYHEKkxl5yDsbmhz3+uTszsXb7+8IqY870rcQtZMmMve
+         VpiNN0O7wAe+fRNcuPfvtOeJzsJzJJeFexeMUUihMgs5+xELfjcSKzNE6Tw7an2EuDlJ
+         l9itCW1E7/zzF2iY0uuGzRjN7EfkxWbgFniQfI1ig9hJBuLAAU6YtgnvS2qsDDMjfPMq
+         g9tozy1bAayaY2bUFb0o6GVxI9nZaG10jdXi963nV3FzTJdibHeg06H22231sObEoWSt
+         qU605cKW93bqjsW9lI4NmMQdA3dHSz9bBOJoowWaneiVi6MI/l1Oj/TICYyYRzjq15JX
+         bVvg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=Ot619CPCB+Os3Ma2zzaC2EQcVEWPZ51BE3CwtG6/D/Y=;
-        b=uvEYSKvWFjwWRAka52hqG9bR6poUmClJMoFR/S2jYcQ22XRn7kC4Y0VUJ1IHBvzDe3
-         apvCd0XpqEMqhwBypMjzAjAwculxBfrviO6YKT4jEaT5lZuqDyliPnIzimPQmw5DYmid
-         wceAWS8AMTG46K8O6uRslWhgrD/vAxUTBGJtmHUDfVzWnucaQI2Nyp8Egi2yMpyVPkqe
-         GF0KAUD32Tb0/nVjcHu4aVhZp40WqrZZd33MxJAt4rP3mX7EAO9j6/T5SSsYx3v0lw6b
-         kEvNj6kgNJXIBdpLY01W212za5iC87adtCOjzRpRpUsQEQ+njYqvwA35A2ENCmBeqkEd
-         iSJw==
-X-Gm-Message-State: AJIora/UsQQydjtj5maEMlxviasZQ/AM26Pw2TIHQG0g8K7knAVnTQjq
-        pMGDIZD2DDshReP+6LbElZAjo+M+jfrW2uyW6lkwHw==
-X-Google-Smtp-Source: AGRyM1unI7r0V2nFtbd0hAmRtQ/C4hrOSHl9aG7WH7LVtA0iL1YvX6N5FIgi3bqsqZw20IPX+PzcHlNiajpNUeu6q5U=
-X-Received: by 2002:a05:6512:3090:b0:47f:60f8:31d6 with SMTP id
- z16-20020a056512309000b0047f60f831d6mr2454957lfd.514.1655910033821; Wed, 22
- Jun 2022 08:00:33 -0700 (PDT)
+        bh=kyUcdhzGFcDndqqzlq8u6bhrtYYzLp4ulxMjiB9uh5c=;
+        b=YWyv3+5EGVKNrSJ0EEyDAaLavcMDKpermrkLTN3xZL28UldqItJFGVf57Y/hxav9/K
+         LURo/3L8UH1AkL6S5lDD10YlRYKi1Vnp3NcJGgvSmlYNeO0FnlcW5PtOTlvuR7tQGzvq
+         GDAeBK6qBuegDQyk95NGXKSbXcFyxagi2m7NRtqk2tiPy30ZIrzIJ5oIUorET8fU1IZB
+         DV0KiXjZ/mzjUwZYyNOJCZxjG0YVPrTbcw7Y5C1wRDaKsgpdPaAo6PP9TpNEjdxYDh83
+         A5gx+mdCeFesMVEZcfXC2fDSQHrobW+suG2Mu8DfLW0NqlfSZZaW1anfzKEsPUUwVdt0
+         dyrA==
+X-Gm-Message-State: AJIora/s/PEXyjOCGMcX9SG3n5cJQzvtTZRWzKuXwzClxuNPYTa3N6GC
+        xHeOKZYEqrYGmzjGXWusou9FdpWaDjSKw/Gv+0zHZA==
+X-Google-Smtp-Source: AGRyM1vi+zjahGXXcpbt0CqwKznHFVRgSDpwgZA5t5LpY6k47Bt24hhcLlYP11MJUxs1rAREcnH3d+ZuAGphRNygiSk=
+X-Received: by 2002:a2e:90d6:0:b0:25a:86c8:93be with SMTP id
+ o22-20020a2e90d6000000b0025a86c893bemr2094952ljg.107.1655910342131; Wed, 22
+ Jun 2022 08:05:42 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220620150225.1307946-1-mw@semihalf.com> <20220620150225.1307946-10-mw@semihalf.com>
- <YrDO05TMK8SVgnBP@lunn.ch> <YrGm2jmR7ijHyQjJ@smile.fi.intel.com>
- <YrGpDgtm4rPkMwnl@lunn.ch> <YrGukfw4uiQz0NpW@smile.fi.intel.com>
- <CAPv3WKf_2QYh0F2LEr1DeErvnMeQqT0M5t40ROP2G6HSUwKpQQ@mail.gmail.com>
- <YrL3DQD92ijLam2V@smile.fi.intel.com> <YrL7Z6/ghTO/9wlx@lunn.ch> <YrMlEcKwpTmR5qj6@smile.fi.intel.com>
-In-Reply-To: <YrMlEcKwpTmR5qj6@smile.fi.intel.com>
+References: <20220620150225.1307946-1-mw@semihalf.com> <20220620150225.1307946-9-mw@semihalf.com>
+ <YrC0BSeUJaBkhEop@smile.fi.intel.com> <CAPv3WKdiftkA4_D-z_j1GqyAVk9Rit2Rwf_z=OttMaAZ4f2oAQ@mail.gmail.com>
+ <CAJZ5v0gzd_Tmvq27695o=PuGoneGUW=gd4f9_5nQPMHgMk+xwA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gzd_Tmvq27695o=PuGoneGUW=gd4f9_5nQPMHgMk+xwA@mail.gmail.com>
 From:   Marcin Wojtas <mw@semihalf.com>
-Date:   Wed, 22 Jun 2022 17:00:21 +0200
-Message-ID: <CAPv3WKeT_OaTS6es=WKx8gmQ=zuzv0EqfW=vPafNA2hYbhQJ6g@mail.gmail.com>
-Subject: Re: [net-next: PATCH 09/12] Documentation: ACPI: DSD: introduce DSA description
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Andrew Lunn <andrew@lunn.ch>,
+Date:   Wed, 22 Jun 2022 17:05:30 +0200
+Message-ID: <CAPv3WKcpKYV2OQuy3KMKW6u09Rp2-d422WspB6uo6ta=mvhN8Q@mail.gmail.com>
+Subject: Re: [net-next: PATCH 08/12] ACPI: scan: prevent double enumeration of
+ MDIO bus children
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, vivien.didelot@gmail.com,
+        netdev <netdev@vger.kernel.org>, Len Brown <lenb@kernel.org>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Vivien Didelot <vivien.didelot@gmail.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Vladimir Oltean <olteanv@gmail.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, pabeni@redhat.com,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
         Russell King - ARM Linux <linux@armlinux.org.uk>,
         Heiner Kallweit <hkallweit1@gmail.com>,
         Grzegorz Bernacki <gjb@semihalf.com>,
@@ -80,58 +80,59 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-=C5=9Br., 22 cze 2022 o 16:20 Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> napisa=C5=82(a):
+=C5=9Br., 22 cze 2022 o 14:09 Rafael J. Wysocki <rafael@kernel.org> napisa=
+=C5=82(a):
 >
-> On Wed, Jun 22, 2022 at 01:22:15PM +0200, Andrew Lunn wrote:
-> > > > It's not device on MDIO bus, but the MDIO controller's register its=
-elf
-> > > > (this _CSR belongs to the parent, subnodes do not refer to it in an=
-y
-> > > > way). The child device requires only _ADR (or whatever else is need=
-ed
-> > > > for the case the DSA device is attached to SPI/I2C controllers).
+> On Tue, Jun 21, 2022 at 1:05 AM Marcin Wojtas <mw@semihalf.com> wrote:
+> >
+> > pon., 20 cze 2022 o 19:53 Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> napisa=C5=82(a):
 > > >
-> > > More and more the idea of standardizing the MDIOSerialBus() resource =
-looks
-> > > plausible. The _ADR() usage is a bit grey area in ACPI specification.=
- Maybe
-> > > someone can also make it descriptive, so Microsoft and others won't u=
-tilize
-> > > _ADR() in any level of weirdness.
+> > > On Mon, Jun 20, 2022 at 05:02:21PM +0200, Marcin Wojtas wrote:
+> > > > The MDIO bus is responsible for probing and registering its respect=
+ive
+> > > > children, such as PHYs or other kind of devices.
+> > > >
+> > > > It is required that ACPI scan code should not enumerate such
+> > > > devices, leaving this task for the generic MDIO bus routines,
+> > > > which are initiated by the controller driver.
+> > > >
+> > > > This patch prevents unwanted enumeration of the devices by setting
+> > > > 'enumeration_by_parent' flag, depending on whether their parent
+> > > > device is a member of a known list of MDIO controllers. For now,
+> > > > the Marvell MDIO controllers' IDs are added.
+> > >
+> > > This flag is used for serial buses that are not self-discoverable. No=
+t sure
+> > > about MDIO, but the current usage has a relation to the _CRS. Have yo=
+u
+> > > considered to propose the MdioSerialBus() resource type to ACPI speci=
+fication?
+> > >
 > >
-> > I don't know if it makes any difference, but there are two protocols
-> > spoken over MDIO, c22 and c45, specified in clause 22 and clause 45 of
-> > the 802.3 specification. In some conditions, you need to specify which
-> > protocol to speak to a device at a particular address. In DT we
-> > indicate this with the compatible string, when maybe it should really
-> > be considered as an extension of the address.
+> > Indeed, one of the cases checked in the
+> > acpi_device_enumeration_by_parent() is checking _CRS (of the bus child
+> > device) for being of the serial bus type. Currently I see
+> > I2C/SPI/UARTSerialBus resource descriptors in the specification. Since
+> > MDIO doesn't seem to require any special description macros like the
+> > mentioned ones (for instance see I2CSerialBusV2 [1]), Based on
+> > example: dfda4492322ed ("ACPI / scan: Do not enumerate Indirect IO
+> > host children"), I thought of similar one perhaps being applicable.
 > >
-> > If somebody does produce a draft for MDIOSerialBus() i'm happy to
-> > review it.
+> > Maybe there is some different, more proper solution, I'd be happy to
+> > hear from the ACPI Maintainers.
+> >
+> > [1] https://uefi.org/specs/ACPI/6.4/19_ASL_Reference/ACPI_Source_Langua=
+ge_Reference.html?highlight=3Di2cserialbus#i2cserialbusterm
 >
-> I also can review it. Marcin, would it be hard for you to prepare a forma=
-l
-> proposal for ACPI specification?
+> Well, the approach based on lists of device IDs is not scalable and
+> generally used as the last resort one.
 >
+> It would be a lot better to have a way of representing connections to
+> the MDIO bus as resources in _CRS.
 
-I've just consulted this to get an understanding of the process.
-* I will initiate it with the code-first ECR using the linux-acpi
-mailing list, where all the technical review will take place.
-* At the same time a ticket and the formal process for this will be
-triggered within UEFI Forum.
-* Once everything gets approved, an official confirmation will be
-provided and from that moment, it would allow us to proceed with
-implementation without need of waiting months for another ACPI
-Specification release.
-
-Unless anyone objects, I will include this thread recipients to take
-part in review of the proposed MDIOSerialBus _CRS resource macro
-contents, so it contains all relevant information.
-
-Note: Once this hopefully gets accepted one day and allow us proceed
-with Linux handling, it should be easy to satisfy backward
-compatibility with current users of MDIO+PHY in ACPI.
+Thank you for your input. I will submit a proposal for MDIOSerialBus
+_CRS resource macro then.
 
 Best regards,
 Marcin
