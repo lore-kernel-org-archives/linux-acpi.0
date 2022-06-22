@@ -2,52 +2,56 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B123C43334
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 21:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A07C43334
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 21:59:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347203AbiFVV7a (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Jun 2022 17:59:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44144 "EHLO
+        id S236532AbiFVV7s (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Jun 2022 17:59:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242676AbiFVV71 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 17:59:27 -0400
+        with ESMTP id S1354061AbiFVV7h (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 17:59:37 -0400
 Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E783E6317
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 14:59:17 -0700 (PDT)
-Received: by mail-yb1-xb4a.google.com with SMTP id q138-20020a252a90000000b006694ac29d4eso5865310ybq.14
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 14:59:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 262D81659B
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 14:59:23 -0700 (PDT)
+Received: by mail-yb1-xb4a.google.com with SMTP id j2-20020a2597c2000000b0064b3e54191aso15664780ybo.20
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2022 14:59:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
-        h=date:message-id:mime-version:subject:from:to:cc;
-        bh=ShVpNHmjygEofAqZTHbL2NPyHgeZoFDheDozlrqz8Mo=;
-        b=mPUp1ZaiPzHiX/ODKTWQHSWhTGs2yrj0nz46pJea4DKVIWXpl3q0hnFrpNlVeVuFMu
-         O6opAaXQuvi5uzX9EE3KaV2tOUFGq1jDJOmlWAwGI9JnOmBxCTczh9qb6dkX4IMOxw4R
-         7k5Jju5GTUCe3yiEswDVY4cctHhutRwGFrXTp4d6H7EswQNBSuousy5e+nF8IFajtZYo
-         OjoVhxEhdXwBTMSSxpG6OZNtheT6Ku7+aQY740oMkBnQKdxNivQym1AS38woNuH1PkQi
-         LMpv++OC1nrl7lO39MRZ8QiA8XyTUqyfG3zJSRr2zKL91xKNcPmDsDkOZgGsgRtYkxv9
-         yh6w==
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=Ah2iRj02YiwPhgw+fxQ8yR+iMVe2r8+mhYVV0rIvZow=;
+        b=i3p4bjKEtbMXzQEuzp8oUcL2dOBUx5t3ouIxH3WFaHxtQBesxVZ95zRpRsbv0rotKc
+         DCfLguFUFd9z7qjx0Dt8NAVaz0jRnB1K5Fh9Yi5/ZA7DG9FgX6RK9DwoMGuX/btXSeNY
+         jRizfq/806YnP4p7qCTtBJ9GK0YOoKEvQNuF2KL6ayR3OaHneYEgbFUH1cZ3RoYx5Y7f
+         2KbJ9cRY3K9bypygWX7MY4tpexszDMtIlE99YgGPEudPytCeem3ndf6dqYBx6cC19AlU
+         1k9DIcVe8I+qgmnTG95ADMGi1utSftyTTlGvgR8EUYa2yoeI/p7XaS4EVakP4MZtD+7U
+         xgkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
-        bh=ShVpNHmjygEofAqZTHbL2NPyHgeZoFDheDozlrqz8Mo=;
-        b=tsy0MLglZcbhdD66krbhleNW+UWmkiCfmjtu0Ioa9MHMjpnduBNelNZhlScI+MXpEb
-         /JgOm0kul8tqBVC2ir7TDLtZX3AMWN3bkYs3jldufdC6zDTUdOwrl/dqqt9koS+9OpYv
-         kT26Ju4e5hSPYpF+eCHYr66hvXiy6U56q4AGzKDFVpXam8rNRGvFl8gZuZLHOJ6Hdl42
-         WhlPbSECCnsl+a2xohE2uBWf1HZVvljkuAOIhICoUTBbbNsFV10xSZogjsX2//X6BZNQ
-         rzYnjkmXSK31bi9a8bHXzXyJTtb3G/Z1TsyAT/pjj3s/q+fBvym068X2Qfp7LT8b0cks
-         Kffw==
-X-Gm-Message-State: AJIora97yp5yZMqwMr6THGFFHoDYy7/zC5xvpmfWFB3285sdoAFshVyk
-        p6vaRb6LQ9GDMEFJ4AuICPyrJYG0dvQQl4s=
-X-Google-Smtp-Source: AGRyM1sPRolQYIbNGET+LNO41EG5xKdb86jsaddJpKTB6LWlD19bkf1RVr0BB1uN5nuhu99u7pbeK+zWsKcFtIE=
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=Ah2iRj02YiwPhgw+fxQ8yR+iMVe2r8+mhYVV0rIvZow=;
+        b=mcg2g+NxSg7UAxIEzVboOkGJviBLBCNyMg8IrK72sNXRyobWzgc9Ieqkbx5IHedLiI
+         SHMdafw6RmVmNW2PQ3bZFtEYoOoFwiNF9sTk+zPK3y5Gn/DMbeK5CMhRwJhrw0RbZ0u9
+         Der0414bQepy89/i/iGoMGP/DFWvv5nRHIx59bcUN/qzo4vCR8PEb0VicDahm1ZK9YI7
+         VH9/bksST8RRv72j9FRztu7LU2m9rTjDFtjo4S6K5FU5o4mVw7pAG2iDXKNC5WNc1G3t
+         VYaopzRAw7W4gprx0Jti5TKsssMv/zzptgWApu3xjnxN/UX2CvevqSN7DgvANyWHKy5R
+         0LOA==
+X-Gm-Message-State: AJIora+a85/lRTJffyUEbVFMnZnOCckr98ctnqzKKNCdyqDNYum1w8rx
+        hVa0OEX8RUH9JXDz6mazMwV5bhwVuJvBgTA=
+X-Google-Smtp-Source: AGRyM1serWNuSMZl/j+NqgnonDe+81gNNUGvZ49e005IqIx08CvB3Gw4PJWEQaMJYGKoe5Xwjqr9aD6KRs6btJ0=
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:be1f:89ac:a37d:6bb4])
- (user=saravanak job=sendgmr) by 2002:a25:73d7:0:b0:668:e7db:d62 with SMTP id
- o206-20020a2573d7000000b00668e7db0d62mr6272113ybc.265.1655935157166; Wed, 22
- Jun 2022 14:59:17 -0700 (PDT)
-Date:   Wed, 22 Jun 2022 14:59:09 -0700
-Message-Id: <20220622215912.550419-1-saravanak@google.com>
+ (user=saravanak job=sendgmr) by 2002:a25:6a46:0:b0:669:1da2:ba1d with SMTP id
+ f67-20020a256a46000000b006691da2ba1dmr5894467ybc.163.1655935163161; Wed, 22
+ Jun 2022 14:59:23 -0700 (PDT)
+Date:   Wed, 22 Jun 2022 14:59:11 -0700
+In-Reply-To: <20220622215912.550419-1-saravanak@google.com>
+Message-Id: <20220622215912.550419-3-saravanak@google.com>
 Mime-Version: 1.0
+References: <20220622215912.550419-1-saravanak@google.com>
 X-Mailer: git-send-email 2.37.0.rc0.161.g10f37bed90-goog
-Subject: [PATCH v1 0/2] Fix console probe delay due to fw_devlink
+Subject: [PATCH v1 2/2] of: base: Avoid console probe delay when fw_devlink.strict=1
 From:   Saravana Kannan <saravanak@google.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -83,50 +87,38 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-fw_devlink.strict=1 has been enabled by default. This was delaying the
-probe of console devices. This series fixes that.
+Commit 71066545b48e ("driver core: Set fw_devlink.strict=1 by default")
+enabled iommus and dmas dependency enforcement by default. On some
+systems, this caused the console device's probe to get delayed until the
+deferred_probe_timeout expires.
 
-Sasha/Peng,
+We need consoles to work as soon as possible, so mark the console device
+node with FWNODE_FLAG_BEST_EFFORT so that fw_delink knows not to delay
+the probe of the console device for suppliers without drivers. The
+driver can then make the decision on where it can probe without those
+suppliers or defer its probe.
 
-Can you test this please?
+Fixes: 71066545b48e ("driver core: Set fw_devlink.strict=1 by default")
+Reported-by: Sascha Hauer <sha@pengutronix.de>
+Reported-by: Peng Fan <peng.fan@nxp.com>
+Signed-off-by: Saravana Kannan <saravanak@google.com>
+---
+ drivers/of/base.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
--Saravana
-
-Cc: Sascha Hauer <sha@pengutronix.de>
-Cc: Peng Fan <peng.fan@nxp.com>
-Cc: Kevin Hilman <khilman@kernel.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: David Ahern <dsahern@kernel.org>
-Cc: kernel-team@android.com
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-pm@vger.kernel.org
-Cc: iommu@lists.linux-foundation.org
-Cc: netdev@vger.kernel.org
-Cc: linux-gpio@vger.kernel.org
-Cc: kernel@pengutronix.de
-
-Saravana Kannan (2):
-  driver core: fw_devlink: Allow firmware to mark devices as best effort
-  of: base: Avoid console probe delay when fw_devlink.strict=1
-
- drivers/base/core.c    | 3 ++-
- drivers/of/base.c      | 2 ++
- include/linux/fwnode.h | 4 ++++
- 3 files changed, 8 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index d4f98c8469ed..a19cd0c73644 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -1919,6 +1919,8 @@ void of_alias_scan(void * (*dt_alloc)(u64 size, u64 align))
+ 			of_property_read_string(of_aliases, "stdout", &name);
+ 		if (name)
+ 			of_stdout = of_find_node_opts_by_path(name, &of_stdout_options);
++		if (of_stdout)
++			of_stdout->fwnode.flags |= FWNODE_FLAG_BEST_EFFORT;
+ 	}
+ 
+ 	if (!of_aliases)
 -- 
 2.37.0.rc0.161.g10f37bed90-goog
 
