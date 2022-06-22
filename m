@@ -2,86 +2,156 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51599C43334
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 13:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BF0EC43334
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Jun 2022 13:19:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351355AbiFVNIJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Jun 2022 09:08:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58470 "EHLO
+        id S1350274AbiFVNTx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Jun 2022 09:19:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350879AbiFVNII (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 09:08:08 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BC1611C0F;
-        Wed, 22 Jun 2022 06:08:05 -0700 (PDT)
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25M7FLQE012089;
-        Wed, 22 Jun 2022 08:07:54 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=PODMain02222019;
- bh=gBYOHgPVp12lYmk5v3IHB2WXYsDvG+/8wdG4s8qgEuQ=;
- b=fXUNsaIY8RSc18mWHMTird7xW4JaSQg4PwgrbLI7JYASOTkfOcLlgTwlpaA1FIGdfc4c
- NHjyXxwU2J3P+BIgYfAvDrDJwLVIe5yf25F45ioXc+ZmUksCoJLa04rps6ybeQb/NLPI
- 0n1BqHXAck3Wreoh4D7Ko1XWHBZ2B5UrbbFnpc1aRpyPd7D+lQVQPs5PzvjXkTZ0OQWn
- SWTT7mJ1AFG9Jj+RBs5kdQ+praPhcCQ3jLYnJX7dr+8ZYz1WQE2q/x3XTHxN6OZ3HfTd
- s4JC677o3XMmQjIW8Ncuhqnpoi79lFoYRQdZYdtbfUF7cpCQzWNhr+1CxiVryhcnzohJ XA== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gsb4p4ybp-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Wed, 22 Jun 2022 08:07:54 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Wed, 22 Jun
- 2022 14:07:53 +0100
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Wed, 22 Jun 2022 14:07:53 +0100
-Received: from sbinding-cirrus-dsktp.ad.cirrus.com (unknown [198.90.238.151])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id D69127C;
-        Wed, 22 Jun 2022 13:07:46 +0000 (UTC)
-From:   Stefan Binding <sbinding@opensource.cirrus.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>
-CC:     <linux-acpi@vger.kernel.org>, <alsa-devel@alsa-project.org>,
-        <linux-kernel@vger.kernel.org>, <patches@opensource.cirrus.com>,
-        Stefan Binding <sbinding@opensource.cirrus.com>
-Subject: [PATCH v1 0/2] Read _SUB from ACPI to be able to identify firmware
-Date:   Wed, 22 Jun 2022 14:07:28 +0100
-Message-ID: <20220622130730.1573747-1-sbinding@opensource.cirrus.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S242604AbiFVNTw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2022 09:19:52 -0400
+Received: from mail-yw1-f173.google.com (mail-yw1-f173.google.com [209.85.128.173])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFAD82F01F;
+        Wed, 22 Jun 2022 06:19:51 -0700 (PDT)
+Received: by mail-yw1-f173.google.com with SMTP id 00721157ae682-31772f8495fso161616017b3.4;
+        Wed, 22 Jun 2022 06:19:51 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=JqOQ1mRCFn6Ej3pl8pj+iDE9h6BQbGKpcTypXijaYr0=;
+        b=0tQ8NA9u/3hnZsK81/BvJnnUSvICkO0g/Wp0ibQM1F3Odcv7enRTgwzVAALGz4rYeh
+         C8MihQmlQMiN0Yk0d4+e3cVfMupzbyKvlc3K2ct48spQ7WTEdTqYMoOr/A7N8wbOpeet
+         D5c2BDN6q1iW1OJuv5PvYbArmcd5wOhrVUcIFew84qZWc9StjxLQxDiG+nTso0HNR1x8
+         Zx8Ty8GWq1QiIRaFf/HiXZI7m8jt+6NDSrGxZzChDRfIUUuWboXa1rOuvXiRuzc0jvsL
+         6VN7xjrtq23gNOOjWbffMIgg/7zjOoPIO2j12C9QnyE7ZbtiAJZhPXs0Nn2VTRCy3zj9
+         5PRA==
+X-Gm-Message-State: AJIora8SE7fkp9w1HUvTN7+Lf63bcKnkun4/A+orbxayWH3IrBebTeKw
+        BDs/c8rKzRaHmmXdNc6Y++obyTTSFjdEDHd4E8E=
+X-Google-Smtp-Source: AGRyM1sn53Rt6HkhjVlMSbjNcbNLgVPQ9GwJB20ZiQABo8pxntYhAsovfB2VWcuhTxwAeGHL8rNEKt8B/xh/xVXVPjM=
+X-Received: by 2002:a0d:ed83:0:b0:317:50bb:5463 with SMTP id
+ w125-20020a0ded83000000b0031750bb5463mr4185434ywe.149.1655903990990; Wed, 22
+ Jun 2022 06:19:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-GUID: pI4CQgaqMYeQBZynIB44jpdYyBigxKCt
-X-Proofpoint-ORIG-GUID: pI4CQgaqMYeQBZynIB44jpdYyBigxKCt
-X-Proofpoint-Spam-Reason: safe
+References: <20220622130730.1573747-1-sbinding@opensource.cirrus.com> <20220622130730.1573747-2-sbinding@opensource.cirrus.com>
+In-Reply-To: <20220622130730.1573747-2-sbinding@opensource.cirrus.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Wed, 22 Jun 2022 15:19:40 +0200
+Message-ID: <CAJZ5v0ij63HVTTWUBwv9WiWhCfKewJR48reUaGN3nvbzoS31tw@mail.gmail.com>
+Subject: Re: [PATCH v1 1/2] ACPI: utils: Add api to read _SUB from ACPI
+To:     Stefan Binding <sbinding@opensource.cirrus.com>
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." 
+        <alsa-devel@alsa-project.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        patches@opensource.cirrus.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-CS35L41 has a DSP which is able to run firmware, as well as a tuning file.
-Different systems may want to use different firmwares and tuning files, and
-some firmwares/tunings may not be compatible with other systems.
-To allow a system to select the correct fimware/tuning, we can read an _SUB
-from the ACPI. This _SUB can then be used to uniquely identify the system
-in the firmware/tuning file name.
+On Wed, Jun 22, 2022 at 3:08 PM Stefan Binding
+<sbinding@opensource.cirrus.com> wrote:
+>
+> Add a wrapper function to read the _SUB string from ACPI.
+>
+> Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
+> ---
+>  drivers/acpi/utils.c | 26 ++++++++++++++++++++++++++
+>  include/linux/acpi.h |  8 ++++++++
+>  2 files changed, 34 insertions(+)
+>
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 3a9773a09e19..5d1bdb79e372 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -291,6 +291,32 @@ int acpi_get_local_address(acpi_handle handle, u32 *addr)
+>  }
+>  EXPORT_SYMBOL(acpi_get_local_address);
+>
+> +int acpi_get_sub(acpi_handle handle, char *sub, size_t size)
 
-Add a helper function which reads the _SUB, so this can be used by other
-parts in the future.
-Add support inside the CS35L41 ASoC driver to read this _SUB, and save it
-appropriately.
+I'd call it acpi_get_subsystem_id().
 
-Stefan Binding (2):
-  ACPI: utils: Add api to read _SUB from ACPI
-  ASoC: cs35l41: Read System Name from ACPI _SUB to identify firmware
+> +{
+> +       struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> +       union acpi_object *obj;
+> +       acpi_status status;
+> +       int ret;
+> +
+> +       status = acpi_evaluate_object(handle, METHOD_NAME__SUB, NULL, &buffer);
+> +       if (!ACPI_SUCCESS(status)) {
 
- drivers/acpi/utils.c       | 26 ++++++++++++++++++++++++++
- include/linux/acpi.h       |  8 ++++++++
- sound/soc/codecs/cs35l41.c | 27 +++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+Typically, ACPI_FAILURE() is used in checks like this.
 
--- 
-2.25.1
+> +               acpi_handle_debug(handle, "Reading ACPI _SUB failed: %#x\n", status);
 
+It would be enough to say "_SUB evaluation failed".
+
+> +               return -ENOENT;
+
+Why not use -ENODATA here?
+
+> +       }
+> +
+> +       obj = buffer.pointer;
+> +       if (obj->type == ACPI_TYPE_STRING) {
+> +               ret = strscpy(sub, obj->string.pointer, size);
+
+It may be simpler to allocate the memory here so that callers don't
+have to worry about it.
+
+Also, this is expected to be a proper device ID, not just a string, so
+maybe some validation checks could be made here?
+
+> +       } else {
+> +               acpi_handle_warn(handle, "Warning ACPI _SUB did not return a string\n");
+> +               ret = -EINVAL;
+> +       }
+> +       acpi_os_free(buffer.pointer);
+> +
+> +       return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_sub);
+> +
+>  acpi_status
+>  acpi_evaluate_reference(acpi_handle handle,
+>                         acpi_string pathname,
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 4f82a5bc6d98..9bf18adf5920 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -21,6 +21,8 @@
+>  #endif
+>  #include <acpi/acpi.h>
+>
+> +#define ACPI_MAX_SUB_BUF_SIZE  9
+> +
+>  #ifdef CONFIG_ACPI
+>
+>  #include <linux/list.h>
+> @@ -762,6 +764,7 @@ static inline u64 acpi_arch_get_root_pointer(void)
+>  #endif
+>
+>  int acpi_get_local_address(acpi_handle handle, u32 *addr);
+> +int acpi_get_sub(acpi_handle handle, char *sub, size_t size);
+>
+>  #else  /* !CONFIG_ACPI */
+>
+> @@ -1023,6 +1026,11 @@ static inline int acpi_get_local_address(acpi_handle handle, u32 *addr)
+>         return -ENODEV;
+>  }
+>
+> +static int acpi_get_sub(acpi_handle handle, char *sub, size_t size)
+> +{
+> +       return -ENODEV;
+> +}
+> +
+>  static inline int acpi_register_wakeup_handler(int wake_irq,
+>         bool (*wakeup)(void *context), void *context)
+>  {
+> --
