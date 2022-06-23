@@ -2,119 +2,127 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F068C43334
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jun 2022 07:41:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D8F1CCA47C
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Jun 2022 08:04:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230168AbiFWHl4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Jun 2022 03:41:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55876 "EHLO
+        id S231134AbiFWIE4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Jun 2022 04:04:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229913AbiFWHlz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2022 03:41:55 -0400
-Received: from vps0.lunn.ch (vps0.lunn.ch [185.16.172.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED57346677;
-        Thu, 23 Jun 2022 00:41:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-        bh=+R/xhEucoyrrWHquY5Y6qcKmIfXy3pTHFtwvFEcWWgY=; b=cIYPzQly7i6A0laU0PeL+cCUVj
-        8VjqJnSAjP/XMl2ei8giBxNJe7lC1GOlVnpuF9bDnvgfn9mpvoMk15xz+UYixAGpPxSXTaScfeP0b
-        WG9C/YsZy7TMQk6QP8IPUrPl+KgX6+dWb5Hv9IIxIbbBP4w29VArqtaxuithK8YUpLLs=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-        (envelope-from <andrew@lunn.ch>)
-        id 1o4HTF-007wTu-Vv; Thu, 23 Jun 2022 09:41:45 +0200
-Date:   Thu, 23 Jun 2022 09:41:45 +0200
-From:   Andrew Lunn <andrew@lunn.ch>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Florian Fainelli <f.fainelli@gmail.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
+        with ESMTP id S230512AbiFWIEy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2022 04:04:54 -0400
+Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA85944768
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Jun 2022 01:04:52 -0700 (PDT)
+Received: by mail-yb1-xb2b.google.com with SMTP id n144so30376310ybf.12
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Jun 2022 01:04:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=aJdGY8if0kKaADIOnNz/K5T0O1hT/jUoomceGsgv8qg=;
+        b=VTQtFvKLR234TeEsJG9hJ1cv/fTlg/g75r8DUnXK6ZHcXDiNZlsJYB9CHo/M+MtXXm
+         kHxKIuNF0rtlBZTftpqriI4HPVkNAF8Kgf2nEavzZoQhhOEgRbl56Yidg8QEwndgSNmo
+         guDcAYV+JbY07aCqXNXOm0MAQ374EyPk3ywDSm8OW4cMFCwWkHtQXObbRqfIV1Au2qL/
+         2xJX/OVUmoI0Ru+JwXOHrC9gjW8I3BqdmxJTIj+bkS/ZKg4cBj3SDMQZSf2iggQyehVV
+         s0m81yWPr2B/Nu8wqEz2Z07cBjk9Ng0bbJAp4gpara4efxy5PPr9RgZdjjBJiDIEtWTH
+         KYew==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=aJdGY8if0kKaADIOnNz/K5T0O1hT/jUoomceGsgv8qg=;
+        b=2f1SSwzmk071yZf8JFnxn4A0l48QOB3n0ikeFKVmOdLlVxYQtdvwjtT1Y9SaiAWjqk
+         WFW492Sn9pdbDaNaOaLPbVB/YvtNmMYxkew/fM6aUr0BMn6j+F7d1uHQCKiNmIsPfqpR
+         Qfmf0/m0hRxOHuptY4VHbDu8mcEHy4CqGUzn4ZGhCP6o5gssV8mtZGXuja6FB5pgOxGW
+         FUoTwbXkA/udy2W9gOoUox9tkz0t28LzVVKIO3DT4UselyLONp6F/oGEcDLh6g0tKMlF
+         i+ihHP6RyIYgnFPEQLIY3BHn5iRue+OKvZ4S2tpn3G9kVTx65+ya3iBQPzr/bxzTE9sz
+         5rKA==
+X-Gm-Message-State: AJIora+OQ5qeI/c9Y4HTDi/ukjsQGi1Q88cgD5OEhTtNk0MSJKpykK8r
+        ssVFcSTlixm202UW+kwWSYZ/Quny77cHO61trVpinw==
+X-Google-Smtp-Source: AGRyM1vSa06Bo2VNf1pFNqSEQ2ygrs7ov2BN88IdRJyYwpujxiov2K55jHdtpFFoYamFYqbsbeU9U6O7j7pmqWeF7uU=
+X-Received: by 2002:a25:d8c8:0:b0:669:5f5b:7d75 with SMTP id
+ p191-20020a25d8c8000000b006695f5b7d75mr8205442ybg.80.1655971491674; Thu, 23
+ Jun 2022 01:04:51 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220622215912.550419-1-saravanak@google.com> <20220622215912.550419-2-saravanak@google.com>
+ <20220623065031.GX1615@pengutronix.de>
+In-Reply-To: <20220623065031.GX1615@pengutronix.de>
+From:   Saravana Kannan <saravanak@google.com>
+Date:   Thu, 23 Jun 2022 01:04:14 -0700
+Message-ID: <CAGETcx_TaR+_Z9bf-Gsx3pXC9QwSUT85TTwALj5KjaOY1oNK8g@mail.gmail.com>
+Subject: Re: [PATCH v1 1/2] driver core: fw_devlink: Allow firmware to mark
+ devices as best effort
+To:     Sascha Hauer <sha@pengutronix.de>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Len Brown <lenb@kernel.org>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vladimir Oltean <olteanv@gmail.com>,
-        David Miller <davem@davemloft.net>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Len Brown <lenb@kernel.org>, Peng Fan <peng.fan@nxp.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>,
+        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Grzegorz Bernacki <gjb@semihalf.com>,
-        Grzegorz Jaszczyk <jaz@semihalf.com>,
-        Tomasz Nowicki <tn@semihalf.com>,
-        Samer El-Haj-Mahmoud <Samer.El-Haj-Mahmoud@arm.com>,
-        upstream@semihalf.com
-Subject: Re: [net-next: PATCH 08/12] ACPI: scan: prevent double enumeration
- of MDIO bus children
-Message-ID: <YrQZOX4n0ZuTSANP@lunn.ch>
-References: <20220620150225.1307946-1-mw@semihalf.com>
- <20220620150225.1307946-9-mw@semihalf.com>
- <YrDFmw4rziGQJCAu@lunn.ch>
- <CAJZ5v0g4q8N5wMgk7pRYpYoCLPQoH==Z+nrM0JLyFXSgF9y0+Q@mail.gmail.com>
- <54618c2a-e1f3-bbd0-8fb2-1669366a3b59@gmail.com>
- <CAJZ5v0j3A-VYFgcnziSqejp-qJVbrbyFP40S-m9eYTv=H9J0ow@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0j3A-VYFgcnziSqejp-qJVbrbyFP40S-m9eYTv=H9J0ow@mail.gmail.com>
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        iommu@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-gpio@vger.kernel.org, kernel@pengutronix.de,
+        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-> And when the ACPI subsystem finds those device objects present in the
-> ACPI tables, the mdio_device things have not been created yet and it
-> doesn't know which ACPI device object will correspond to mdio_device
-> eventually unless it is told about that somehow.  One way of doing
-> that is to use a list of device IDs in the kernel.  The other is to
-> have the firmware tell it about that which is what we are discussing.
+On Wed, Jun 22, 2022 at 11:50 PM Sascha Hauer <sha@pengutronix.de> wrote:
+>
+> On Wed, Jun 22, 2022 at 02:59:10PM -0700, Saravana Kannan wrote:
+> > When firmware sets the FWNODE_FLAG_BEST_EFFORT flag for a fwnode,
+> > fw_devlink will do a best effort ordering for that device where it'll
+> > only enforce the probe/suspend/resume ordering of that device with
+> > suppliers that have drivers. The driver of that device can then decide
+> > if it wants to defer probe or probe without the suppliers.
+> >
+> > This will be useful for avoid probe delays of the console device that
+> > were caused by commit 71066545b48e ("driver core: Set
+> > fw_devlink.strict=1 by default").
+> >
+> > Fixes: 71066545b48e ("driver core: Set fw_devlink.strict=1 by default")
+> > Reported-by: Sascha Hauer <sha@pengutronix.de>
+> > Reported-by: Peng Fan <peng.fan@nxp.com>
+> > Signed-off-by: Saravana Kannan <saravanak@google.com>
+> > ---
+> >  drivers/base/core.c    | 3 ++-
+> >  include/linux/fwnode.h | 4 ++++
+> >  2 files changed, 6 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/base/core.c b/drivers/base/core.c
+> > index 839f64485a55..61edd18b7bf3 100644
+> > --- a/drivers/base/core.c
+> > +++ b/drivers/base/core.c
+> > @@ -968,7 +968,8 @@ static void device_links_missing_supplier(struct device *dev)
+> >
+> >  static bool dev_is_best_effort(struct device *dev)
+> >  {
+> > -     return fw_devlink_best_effort && dev->can_match;
+> > +     return (fw_devlink_best_effort && dev->can_match) ||
+> > +             dev->fwnode->flags & FWNODE_FLAG_BEST_EFFORT;
+>
+> Check for dev->fwnode first. I am running in a NULL pointer exception
+> here for a device that doesn't have a fwnode.
 
-Device IDs is a complex subject with MDIO devices. It has somewhat
-evolved over time, and it could also be that ACPI decides to do
-something different, or simpler, to what DT does.
+Oops. Fixed and sent out a v2.
 
-If the device is an Ethernet PHY, and it follows C22, it has two
-registers in a well defined location, which when combined give you a
-vendor model and version. So we scan the bus, look at each address on
-the bus, try to read these registers and if we don't get 0xffff back,
-we assume it is a PHY, create an mdio_device, sub type it to
-phy_device, and then load and probe the driver based on the ID
-registers.
-
-If the device is using C45, we currently will not be able to enumerate
-it this way. We have a number of MDIO bus drivers which don't
-implement C45, but also don't return -EOPNOTSUPP. They will perform a
-malformed C22 transaction, or go wrong in some other horrible way. So
-in DT, we have a compatible string to indicate there is a C45 devices
-at the address. We then do look around in the C45 address space at the
-different locations where the ID registers can be, and if we get a
-valid looking ID, probe the driver using that.
-
-We also have some chicken/egg problems. Some PHYs won't respond when
-you read there ID registers until you have turned on clocks, disabled
-reset lines, enable regulators etc. For these devices, we place the ID
-as you would read from the ID registers in DT as the compatible
-string. The mdio_device is created, sub-types as a PHY and the probe
-happens using the ID register found in DT. The driver can then do what
-it needs to do to get the device to respond on the bus.
-
-Then we have devices on the bus which are not PHYs, but generic
-mdio_devices. These are mostly Ethernet switches, but Broadcom have
-some other MDIO devices which are not switches. For these, we have
-compatible strings which identifies the device as a normal string,
-which then probes the correct driver in the normal way for a
-compatible string.
-
-So giving the kernel a list of device IDs is not simple. I expect
-dealing with this will be a big part of defining how MDIOSerialBus
-works.
-
-   Andrew
-
-
-
-
-
+-Saravana
