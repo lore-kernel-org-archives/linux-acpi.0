@@ -2,176 +2,122 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 970F2CCA47F
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jun 2022 11:24:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15154CCA473
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jun 2022 12:00:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231181AbiFXLYM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Jun 2022 07:24:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51996 "EHLO
+        id S231518AbiFXMAO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Jun 2022 08:00:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231313AbiFXLYH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2022 07:24:07 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AD94D7C508
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2022 04:24:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1656069845;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=JiC2ttPcK4jbIqmWkR/0dSZUmikhtPV7gNuoggW+vR4=;
-        b=XMrvSPR3UzaiVBgAM9peM4w0OLbKUSYMAuaiqeAEWxc1qcJKv43n31kr7+aa3cdZmBXc++
-        wgiveNhlawGZEV0nD744oHDg8DCZEUt/GeB98z0uDvGfqgbb3ZFmc0RvaOFVWiUvDnSzX8
-        cFNCpguS97pmqulyKwp/hXjlbMJebpQ=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-557-gJuTfcBXPc2vVSr1wTs-ww-1; Fri, 24 Jun 2022 07:23:59 -0400
-X-MC-Unique: gJuTfcBXPc2vVSr1wTs-ww-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 48D318032F0;
-        Fri, 24 Jun 2022 11:23:59 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.193.57])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id E247E492C3B;
-        Fri, 24 Jun 2022 11:23:57 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Mark Gross <markgross@kernel.org>,
-        Andy Shevchenko <andy@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org,
-        Stefan Seyfried <stefan.seyfried@googlemail.com>,
-        Kenneth Chan <kenneth.t.chan@gmail.com>,
-        platform-driver-x86@vger.kernel.org,
-        Stefan Seyfried <seife+kernel@b1-systems.com>
-Subject: [PATCH 6/7] platform/x86: panasonic-laptop: filter out duplicate volume up/down/mute keypresses
-Date:   Fri, 24 Jun 2022 13:23:39 +0200
-Message-Id: <20220624112340.10130-7-hdegoede@redhat.com>
-In-Reply-To: <20220624112340.10130-1-hdegoede@redhat.com>
-References: <20220624112340.10130-1-hdegoede@redhat.com>
+        with ESMTP id S231421AbiFXMAN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2022 08:00:13 -0400
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2047.outbound.protection.outlook.com [40.107.94.47])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30BD36F7A3;
+        Fri, 24 Jun 2022 05:00:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=jDDcRZ6eizcMwCoDDpPOskdeBhZMBpXRa9TbwOXyHA0idyQx8bzsfCUrK0LNcCsVEdmC0okuZL50uWepDPDPAvhSdFbYjHePsucb440r2/SbThsIrCfjQ0fQ0LWqYXxhFJcnWaddu2nUUqkuV3HRggJ2MrdeBSQLVvOiYS+Mgomjkt5TDy0RVAWCWhHOeVqsrJrzKxA9RDmtzhpuYEfOEcvGk5dGRDFDH5bo3dNu8pSv+xSN6FBiOVhrQaSB6rhlUDPO494f+335txUvc61GPH7TuMDh1R7tORHhbWlEVQhOqL03rC0IEsOiZXAcx2YxSzYqVYSG70c2SDh/MbUd3Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=VRtZPd9wsZ/Ox8tuYJn4oLK0HiH3a6yfv8EaNw+9Rwo=;
+ b=c3c9nakIu5cB+xgawo3tXkYXYubtemaLkXySKmCwM4w1Zm9QOM7/jWXnh5dfG0qIlrNCf7N8fAvv9q+ipQh2cf7XC2YVvJGKMagTUWQUXXqp0e3SIecbWBMjTgkhSk/GV5CPfltLNMyjrP3KFAeQyy0ap+2jcVAudysYUnU3T30brJMQb8c4Qr7oUxlmAcjpIbcQbopX+FKpjond1VZhuUMgh+X96jdML/oWXX1fc4MnIWOzfYhIUYaUnKRKRvXsDZfXRZdn7K2ZaIT2N9geZhykRy/4eX7HUe4HlINZtGh1B+NAvb7QIt1pa3ypQyDJKYQb2ir0L1T8TnNOH+XF2g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=VRtZPd9wsZ/Ox8tuYJn4oLK0HiH3a6yfv8EaNw+9Rwo=;
+ b=DhCneliBuPXLJOqeBet7HWiZwXeWUy7dhYLV9+AMppR2Y+apRPADR/XukXdshnxeRsJzSmyvGBzgKpaOaiDwHp5kgDjwnvPz86u5a+gs8fgsV04oZAhepzZMQTYUAzr+wHM+Igm+gh0ZDMHb12HraUd/z2kNbsDw/NlwMYdac+Q=
+Received: from DM6PR02CA0046.namprd02.prod.outlook.com (2603:10b6:5:177::23)
+ by MN2PR12MB4301.namprd12.prod.outlook.com (2603:10b6:208:1d4::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5373.16; Fri, 24 Jun
+ 2022 12:00:10 +0000
+Received: from DM6NAM11FT049.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:177:cafe::d9) by DM6PR02CA0046.outlook.office365.com
+ (2603:10b6:5:177::23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5373.16 via Frontend
+ Transport; Fri, 24 Jun 2022 12:00:09 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ DM6NAM11FT049.mail.protection.outlook.com (10.13.172.188) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5373.15 via Frontend Transport; Fri, 24 Jun 2022 12:00:09 +0000
+Received: from pyuan-desktop.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Fri, 24 Jun
+ 2022 07:00:04 -0500
+From:   Perry Yuan <Perry.Yuan@amd.com>
+To:     <Ray.Huang@amd.com>, <Mario.Limonciello@amd.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Huang Rui <ray.huang@amd.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     <Nathan.Fontenot@amd.com>, <Jinzhou.Su@amd.com>,
+        <Xinmei.Huang@amd.com>, <Xiaojian.Du@amd.com>, <Li.Meng@amd.com>,
+        <linux-pm@vger.kernel.org>, "Perry Yuan" <Perry.Yuan@amd.com>
+Subject: [PATCH] ACPI: bus: Fix osc_sb_cppc_not_supported check
+Date:   Fri, 24 Jun 2022 07:59:40 -0400
+Message-ID: <20220624115940.272422-1-Perry.Yuan@amd.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.85 on 10.11.54.9
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: fa57c60c-41d5-48ea-e2c3-08da55d91651
+X-MS-TrafficTypeDiagnostic: MN2PR12MB4301:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: VxQBE16Y9oZtRQd84qX2uhaUYln6fEtLcDb/G6fr8vYLJqFIHF4UmLgumvwnqsD+gRn+/XZN2F0rBbSKbNQndC+cu5EGFrY/+GTMJ8/yZy9vm0AwrbHsu3FDpOBOJXxEqYw4zq7jjcSCL5ZTQ1Z3SPzVUNs4YypC5ILJ7F1050q6mNqTAvAwof+CpjtKSvG/g1p4Tdq9ZWP1M3PLNumSJuHSaXRwVzaqeRy0LokZouIx/yiqY4nzLZUNPoAbw+AeRDXybYZMx9AOUVR9HdGxrfuilKF1+b5p0+HQg1UoCQBNDz5WF0GQGH923ZkuykhuWNt5N3IbMDfQBc9L0Z+TCXDfkgGs0dYVI9E4vOLC3bhMzqLGPX107FiltimlMrrtO+Pt7/ak7fCQXnb+WFB2fFtCLmfTX2O6eGixqZOGy8R02nDv850ay64l3rymOym6JKg8Pv1sTMSN5ZkMjRIjtgfWoH8xK+HY6XIDPxrudWEwRtkTNQiGWalJXOnAAcQOcs4xKFPsuUP30CFVnQP3ZbqPM09G6R2MWkC/n/tgK9DEpv95vI4cLAxu88y7bJWdqAzDD1xvh2FVffoAot3zIwI+e+PlMVp+dyzGXQkVWLv2D1VoXU8l6BCSngT0w0UUdRoJTDH4a+PnzTVOlPKPR51aB89YpA7k3glKwIaDF2jWTis/hKuKGbaY+DQo23PJfor+tKor71ERCwAm9luGT9ve9bbDqGBnmXQlOZZ8iMlGqFDDR/7H+Pt+gaQqCdqp+piwAfenfhF26/AjcoSKhVjuC2szvLEHQnUITNMxzdzzzDKvlW4lChJMLZxexkTPGtQGgUlNiFy9eEjaJjO2Kw==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(376002)(39860400002)(396003)(346002)(136003)(40470700004)(46966006)(36840700001)(47076005)(336012)(356005)(4744005)(83380400001)(40480700001)(36860700001)(81166007)(426003)(316002)(40460700003)(110136005)(8936002)(54906003)(41300700001)(82310400005)(2906002)(70206006)(8676002)(70586007)(1076003)(2616005)(478600001)(7696005)(16526019)(82740400003)(36756003)(6666004)(5660300002)(186003)(86362001)(4326008)(26005)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2022 12:00:09.6138
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: fa57c60c-41d5-48ea-e2c3-08da55d91651
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT049.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4301
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On some Panasonic models the volume up/down/mute keypresses get
-reported both through the Panasonic ACPI HKEY interface as well as
-through the atkbd device.
+The patch fixs the osc_sb_cppc_not_supported variable checking
+Otherwise the cppc acpi driver will be failed to register causing AMD
+pstate driver failed to load when calling acpi_cpc_valid()
 
-Filter out the atkbd scan-codes for these to avoid reporting presses
-twice.
-
-Note normally we would leave the filtering of these to userspace by mapping
-the scan-codes to KEY_UNKNOWN through /lib/udev/hwdb.d/60-keyboard.hwdb.
-However in this case that would cause regressions since we were filtering
-the Panasonic ACPI HKEY events before, so filter these in the kernel.
-
-Fixes: ed83c9171829 ("platform/x86: panasonic-laptop: Resolve hotkey double trigger bug")
-Reported-and-tested-by: Stefan Seyfried <seife+kernel@b1-systems.com>
-Reported-and-tested-by: Kenneth Chan <kenneth.t.chan@gmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Fixes: c42fa24b447("ACPI: bus: Avoid using CPPC if not supported by firmware")
+Signed-off-by: Perry Yuan <Perry.Yuan@amd.com>
 ---
- drivers/platform/x86/Kconfig            |  1 +
- drivers/platform/x86/panasonic-laptop.c | 41 +++++++++++++++++++++++++
- 2 files changed, 42 insertions(+)
+ drivers/acpi/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 156cb7e3f422..6e22ac916f7a 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -944,6 +944,7 @@ config PANASONIC_LAPTOP
- 	depends on INPUT && ACPI
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on ACPI_VIDEO=n || ACPI_VIDEO
-+	depends on SERIO_I8042 || SERIO_I8042 = n
- 	select INPUT_SPARSEKMAP
- 	help
- 	  This driver adds support for access to backlight control and hotkeys
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index d65e6c2372ca..615e39cbbbf1 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -122,6 +122,7 @@
- #include <linux/acpi.h>
- #include <linux/backlight.h>
- #include <linux/ctype.h>
-+#include <linux/i8042.h>
- #include <linux/init.h>
- #include <linux/input.h>
- #include <linux/input/sparse-keymap.h>
-@@ -129,6 +130,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/seq_file.h>
-+#include <linux/serio.h>
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/uaccess.h>
-@@ -241,6 +243,42 @@ struct pcc_acpi {
- 	struct platform_device	*platform;
- };
- 
-+/*
-+ * On some Panasonic models the volume up / down / mute keys send duplicate
-+ * keypress events over the PS/2 kbd interface, filter these out.
-+ */
-+static bool panasonic_i8042_filter(unsigned char data, unsigned char str,
-+				   struct serio *port)
-+{
-+	static bool extended;
-+
-+	if (str & I8042_STR_AUXDATA)
-+		return false;
-+
-+	if (data == 0xe0) {
-+		extended = true;
-+		return true;
-+	} else if (extended) {
-+		extended = false;
-+
-+		switch (data & 0x7f) {
-+		case 0x20: /* e0 20 / e0 a0, Volume Mute press / release */
-+		case 0x2e: /* e0 2e / e0 ae, Volume Down press / release */
-+		case 0x30: /* e0 30 / e0 b0, Volume Up press / release */
-+			return true;
-+		default:
-+			/*
-+			 * Report the previously filtered e0 before continuing
-+			 * with the next non-filtered byte.
-+			 */
-+			serio_interrupt(port, 0xe0, 0);
-+			return false;
-+		}
-+	}
-+
-+	return false;
-+}
-+
- /* method access functions */
- static int acpi_pcc_write_sset(struct pcc_acpi *pcc, int func, int val)
- {
-@@ -1006,6 +1044,7 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 		pcc->platform = NULL;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 4d7c51a33b01..9731e4a1e338 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -359,7 +359,7 @@ static void acpi_bus_osc_negotiate_platform_control(void)
  	}
  
-+	i8042_install_filter(panasonic_i8042_filter);
- 	return 0;
+ #ifdef CONFIG_ACPI_CPPC_LIB
+-	osc_sb_cppc_not_supported = !(capbuf_ret[OSC_SUPPORT_DWORD] &
++	osc_sb_cppc_not_supported = !(capbuf_ret[OSC_SUPPORT_DWORD] &&
+ 			(OSC_SB_CPC_SUPPORT | OSC_SB_CPCV2_SUPPORT));
+ #endif
  
- out_platform:
-@@ -1029,6 +1068,8 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device)
- 	if (!device || !pcc)
- 		return -EINVAL;
- 
-+	i8042_remove_filter(panasonic_i8042_filter);
-+
- 	if (pcc->platform) {
- 		device_remove_file(&pcc->platform->dev, &dev_attr_cdpower);
- 		platform_device_unregister(pcc->platform);
 -- 
-2.36.0
+2.25.1
 
