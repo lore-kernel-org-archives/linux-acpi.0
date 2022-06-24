@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03923CCA482
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jun 2022 11:24:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 709B5C43334
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Jun 2022 11:24:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231302AbiFXLYF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Jun 2022 07:24:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51884 "EHLO
+        id S231258AbiFXLYG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Jun 2022 07:24:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229552AbiFXLYC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2022 07:24:02 -0400
+        with ESMTP id S231181AbiFXLYE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2022 07:24:04 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 872C47A1B7
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2022 04:24:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DBA227C844
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2022 04:24:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1656069840;
+        s=mimecast20190719; t=1656069841;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=iuk8QZOl+nh2xXZU03NRWI2qOzs4ik4DXsycBssvxiM=;
-        b=eTGmzI5LZjOhFmDr//wadkj7QOo/k4Gnlu/Bva6X4NE48sPGVkcHT9OIJdMhyxFb9qHOme
-        Glz2HtVbzTnCwgWMX/RTrD6FbCqSE+VmujdM7ivJWrMhz0+628HzI71P8QG7VvxeszBYtf
-        79G9quHQJMQBhN7i2mzgr13hW1R7t7k=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=WIdAzRH//YDBP9niHIfZJUECvvDzS1UevFto9sI81Mg=;
+        b=XLtwzG0BAa2EXHU5Xbs9hZwq4PYLlDCtSuBm+Cea52BnmztpA38Eb+9gEt0i2aP5Et+JAL
+        Cd6Ob07VDzPhtl++Jal0ox2oVehfIDGllsecPsagDLde+OdxP4SCV+AMNx1m0kerFo9osi
+        STFn2hfuBQtd2FdNLNPQQcORRx33wtA=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-635-y_jFnhbaOBeCi6ojkSHYcw-1; Fri, 24 Jun 2022 07:23:53 -0400
-X-MC-Unique: y_jFnhbaOBeCi6ojkSHYcw-1
+ us-mta-551-bvDZhF70MjGkgxe1oQfgAA-1; Fri, 24 Jun 2022 07:23:58 -0400
+X-MC-Unique: bvDZhF70MjGkgxe1oQfgAA-1
 Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D8D33101AA48;
-        Fri, 24 Jun 2022 11:23:52 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id AC20A29324B0;
+        Fri, 24 Jun 2022 11:23:57 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.193.57])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 7C43B492C3B;
-        Fri, 24 Jun 2022 11:23:51 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 34289492C3B;
+        Fri, 24 Jun 2022 11:23:56 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Mark Gross <markgross@kernel.org>,
@@ -47,9 +47,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Kenneth Chan <kenneth.t.chan@gmail.com>,
         platform-driver-x86@vger.kernel.org,
         Stefan Seyfried <seife+kernel@b1-systems.com>
-Subject: [PATCH 2/7] platform/x86: panasonic-laptop: de-obfuscate button codes
-Date:   Fri, 24 Jun 2022 13:23:35 +0200
-Message-Id: <20220624112340.10130-3-hdegoede@redhat.com>
+Subject: [PATCH 5/7] platform/x86: panasonic-laptop: don't report duplicate brightness key-presses
+Date:   Fri, 24 Jun 2022 13:23:38 +0200
+Message-Id: <20220624112340.10130-6-hdegoede@redhat.com>
 In-Reply-To: <20220624112340.10130-1-hdegoede@redhat.com>
 References: <20220624112340.10130-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -59,62 +59,56 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Stefan Seyfried <seife+kernel@b1-systems.com>
-
-In the definition of panasonic_keymap[] the key codes are given in
-decimal, later checks are done with hexadecimal values, which does
-not help in understanding the code.
-Additionally use two helper variables to shorten the code and make
-the logic more obvious.
+The brightness key-presses might also get reported by the ACPI video bus,
+check for this and in this case don't report the presses to avoid reporting
+2 presses for a single key-press.
 
 Fixes: ed83c9171829 ("platform/x86: panasonic-laptop: Resolve hotkey double trigger bug")
-Signed-off-by: Stefan Seyfried <seife+kernel@b1-systems.com>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Reported-and-tested-by: Stefan Seyfried <seife+kernel@b1-systems.com>
+Reported-and-tested-by: Kenneth Chan <kenneth.t.chan@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/panasonic-laptop.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/platform/x86/Kconfig            | 1 +
+ drivers/platform/x86/panasonic-laptop.c | 8 ++++++++
+ 2 files changed, 9 insertions(+)
 
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 263082fc5407..156cb7e3f422 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -943,6 +943,7 @@ config PANASONIC_LAPTOP
+ 	tristate "Panasonic Laptop Extras"
+ 	depends on INPUT && ACPI
+ 	depends on BACKLIGHT_CLASS_DEVICE
++	depends on ACPI_VIDEO=n || ACPI_VIDEO
+ 	select INPUT_SPARSEKMAP
+ 	help
+ 	  This driver adds support for access to backlight control and hotkeys
 diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index 37850d07987d..ca6137f4000f 100644
+index 2e6531dd15f9..d65e6c2372ca 100644
 --- a/drivers/platform/x86/panasonic-laptop.c
 +++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -762,6 +762,8 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 	struct input_dev *hotk_input_dev = pcc->input_dev;
- 	int rc;
- 	unsigned long long result;
-+	unsigned int key;
-+	unsigned int updown;
+@@ -132,6 +132,7 @@
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/uaccess.h>
++#include <acpi/video.h>
  
- 	rc = acpi_evaluate_integer(pcc->handle, METHOD_HKEY_QUERY,
- 				   NULL, &result);
-@@ -770,18 +772,22 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 		return;
+ MODULE_AUTHOR("Hiroshi Miura <miura@da-cha.org>");
+ MODULE_AUTHOR("David Bronaugh <dbronaugh@linuxboxen.org>");
+@@ -783,6 +784,13 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
+ 					key, 0x80, false);
  	}
  
-+	key = result & 0xf;
-+	updown = result & 0x80; /* 0x80 == key down; 0x00 = key up */
++	/*
++	 * Don't report brightness key-presses if they are also reported
++	 * by the ACPI video bus.
++	 */
++	if ((key == 1 || key == 2) && acpi_video_handles_brightness_key_presses())
++		return;
 +
- 	/* hack: some firmware sends no key down for sleep / hibernate */
--	if ((result & 0xf) == 0x7 || (result & 0xf) == 0xa) {
--		if (result & 0x80)
-+	if (key == 7 || key == 10) {
-+		if (updown)
- 			sleep_keydown_seen = 1;
- 		if (!sleep_keydown_seen)
- 			sparse_keymap_report_event(hotk_input_dev,
--					result & 0xf, 0x80, false);
-+					key, 0x80, false);
- 	}
- 
--	if ((result & 0xf) == 0x7 || (result & 0xf) == 0x9 || (result & 0xf) == 0xa) {
-+	/* for the magic values, see panasonic_keymap[] above */
-+	if (key == 7 || key == 9 || key == 10) {
- 		if (!sparse_keymap_report_event(hotk_input_dev,
--						result & 0xf, result & 0x80, false))
-+						key, updown, false))
- 			pr_err("Unknown hotkey event: 0x%04llx\n", result);
- 	}
+ 	if (!sparse_keymap_report_event(hotk_input_dev, key, updown, false))
+ 		pr_err("Unknown hotkey event: 0x%04llx\n", result);
  }
 -- 
 2.36.0
