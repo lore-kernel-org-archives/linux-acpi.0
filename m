@@ -2,186 +2,148 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25235CCA47F
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jun 2022 11:50:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18C2CC43334
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jun 2022 11:53:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238268AbiF0Luk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Jun 2022 07:50:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49988 "EHLO
+        id S238402AbiF0Lxh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Jun 2022 07:53:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238458AbiF0Lss (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2022 07:48:48 -0400
-Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F0B3CE2E
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 04:42:33 -0700 (PDT)
-Received: by mail-ej1-x62b.google.com with SMTP id fi2so18522164ejb.9
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 04:42:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=U96yknaouPbBJnn6hQmbtloh8lKJEQa8m942bJHa948=;
-        b=gR09IPhQCrv3LwR2L7BZnlde8fwVSTkEfqgZYCg+h1/8OnDr3nZee0MNthTw6HlGrY
-         2AQrJ0g+oPw8+luhOr0iDZuRW0ybwzVsyCnlXbiaED7GgzAcjvqlGB3nmH6OXcDPAscz
-         tW+tnXzlhE8BHKI0oYgKTq+r//qbVVvmJMk1DZsl3RTTp6OK6s5/HrwEi9XzrVNUKZsF
-         byyfBDxPRQwrDuZpkIhu114h7eljFiRRKBQWHoRACyC/PbjHheqf4037fa429yoPP/ob
-         SOVHl11OyPz56nCmN7dnP0jEk58sZhsKLu5xM21ssBip7ookihOyAU34qcO0jLMc5O4d
-         Seuw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=U96yknaouPbBJnn6hQmbtloh8lKJEQa8m942bJHa948=;
-        b=kLEV57ALUDexSttfDVhDk0mqV4SVOS5YlvEK41ILYLqDSKiXTC9noo0ypLm7lPztlL
-         4v/mN8SALA8b6Oht+ZsSfmTpKGZlNXmnaHyLlbTMQBMLJyNrCe1S0Yp/e9drsgSK/MM7
-         PM/2/hGAMbqCOEotcKxfO3S7FGnsD3Nc3B2rKLs3/twD3x6heExfVqZq3FnNOZXEhP38
-         jj6GiaTdBcf8Z7j8Dgo/C/eMkkEYhzTZEAQkVzVUcpc8mXaWQHF5KipEvTiaNPCnz/wZ
-         TN2y+G3hbBdeTy0KBB2NYFTyP9FHiqAxMuuvy6P92mnH08ZY+o66pNZ6ePGTwWvR2bOA
-         VALg==
-X-Gm-Message-State: AJIora+PQ34/Th5e8PYxmY2oLQOMyiw863oB7MA7eMIsrnBR6tXFdmKr
-        dKWhQMDhKBSJv9ADi/ccEvzbCmhA8DU1Ng==
-X-Google-Smtp-Source: AGRyM1u2TvQPgd533Q8/sOg471TCJvIlg4REDbqbfTzwcOpw2EpWH6A0ulTqXsYQiaAvbj9MCmB8aw==
-X-Received: by 2002:a17:907:3f82:b0:726:3732:961c with SMTP id hr2-20020a1709073f8200b007263732961cmr12757395ejc.727.1656330151600;
-        Mon, 27 Jun 2022 04:42:31 -0700 (PDT)
-Received: from linaro.org ([94.52.112.99])
-        by smtp.gmail.com with ESMTPSA id x10-20020a170906298a00b00722e8f4b459sm4984948eje.93.2022.06.27.04.42.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 27 Jun 2022 04:42:31 -0700 (PDT)
-Date:   Mon, 27 Jun 2022 14:42:29 +0300
-From:   Abel Vesa <abel.vesa@linaro.org>
-To:     Saravana Kannan <saravanak@google.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        kernel-team@android.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 13/17] driver core: Use device's fwnode to check if it
- is waiting for suppliers
-Message-ID: <YrmXpcU1NTYW6T/n@linaro.org>
-References: <20201121020232.908850-1-saravanak@google.com>
- <20201121020232.908850-14-saravanak@google.com>
+        with ESMTP id S238688AbiF0Lw3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2022 07:52:29 -0400
+X-Greylist: delayed 404 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 27 Jun 2022 04:45:08 PDT
+Received: from mx1.sbone.de (cross.sbone.de [195.201.62.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D287AA474
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 04:45:08 -0700 (PDT)
+Received: from mail.sbone.de (mail.sbone.de [IPv6:fde9:577b:c1a9:31::2013:587])
+        (using TLSv1 with cipher ADH-CAMELLIA256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.sbone.de (Postfix) with ESMTPS id 179AF8D4A162;
+        Mon, 27 Jun 2022 11:38:18 +0000 (UTC)
+Received: from content-filter.sbone.de (content-filter.sbone.de [IPv6:fde9:577b:c1a9:31::2013:2742])
+        (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mail.sbone.de (Postfix) with ESMTPS id D9724E70810;
+        Mon, 27 Jun 2022 11:38:17 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at sbone.de
+Received: from mail.sbone.de ([IPv6:fde9:577b:c1a9:31::2013:587])
+        by content-filter.sbone.de (content-filter.sbone.de [fde9:577b:c1a9:31::2013:2742]) (amavisd-new, port 10024)
+        with ESMTP id hpfsF3TvzMS2; Mon, 27 Jun 2022 11:38:15 +0000 (UTC)
+Received: from nv.sbone.de (nv.sbone.de [IPv6:fde9:577b:c1a9:31::2013:138])
+        (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mail.sbone.de (Postfix) with ESMTPSA id C8185E7080F;
+        Mon, 27 Jun 2022 11:38:13 +0000 (UTC)
+Date:   Mon, 27 Jun 2022 11:38:12 +0000 (UTC)
+From:   "Bjoern A. Zeeb" <bzeeb-lists@lists.zabbadoz.net>
+To:     Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+cc:     Steven Price <steven.price@arm.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        Linuxarm <linuxarm@huawei.com>,
+        "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>,
+        "joro@8bytes.org" <joro@8bytes.org>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "will@kernel.org" <will@kernel.org>,
+        wanghuiqiang <wanghuiqiang@huawei.com>,
+        "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
+        "Sami.Mujawar@arm.com" <Sami.Mujawar@arm.com>,
+        "jon@solid-run.com" <jon@solid-run.com>,
+        "eric.auger@redhat.com" <eric.auger@redhat.com>,
+        "laurentiu.tudor@nxp.com" <laurentiu.tudor@nxp.com>,
+        "hch@infradead.org" <hch@infradead.org>,
+        "lorenzo.pieralisi@gmail.com" <lorenzo.pieralisi@gmail.com>
+Subject: RE: [PATCH v13 0/9] ACPI/IORT: Support for IORT RMR node
+In-Reply-To: <44338c87254d4d439d29694de8f19435@huawei.com>
+Message-ID: <alpine.BSF.2.00.2206271005580.68830@ai.fobar.qr>
+References: <20220615101044.1972-1-shameerali.kolothum.thodi@huawei.com> <03b03d88-87cd-0b29-863b-2cb2a9a117d1@arm.com> <44338c87254d4d439d29694de8f19435@huawei.com>
+X-OpenPGP-Key-Id: 0x14003F198FEFA3E77207EE8D2B58B8F83CCF1842
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201121020232.908850-14-saravanak@google.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 20-11-20 18:02:28, Saravana Kannan wrote:
-> To check if a device is still waiting for its supplier devices to be
-> added, we used to check if the devices is in a global
-> waiting_for_suppliers list. Since the global list will be deleted in
-> subsequent patches, this patch stops using this check.
+On Fri, 24 Jun 2022, Shameerali Kolothum Thodi wrote:
+
+Hi,
+
+>> -----Original Message-----
+>> From: Steven Price [mailto:steven.price@arm.com]
+>> Sent: 17 June 2022 13:42
+>> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>;
+>> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
+>> iommu@lists.linux-foundation.org
+>> Cc: Linuxarm <linuxarm@huawei.com>; lorenzo.pieralisi@arm.com;
+>> joro@8bytes.org; robin.murphy@arm.com; will@kernel.org; wanghuiqiang
+>> <wanghuiqiang@huawei.com>; Guohanjun (Hanjun Guo)
+>> <guohanjun@huawei.com>; Sami.Mujawar@arm.com; jon@solid-run.com;
+>> eric.auger@redhat.com; laurentiu.tudor@nxp.com; hch@infradead.org
+>> Subject: Re: [PATCH v13 0/9] ACPI/IORT: Support for IORT RMR node
+>>
+>> On 15/06/2022 11:10, Shameer Kolothum wrote:
+>>> Hi
+>>>
+>>> v12 --> v13
+>>>   -No changes. Rebased to 5.19-rc1.
+>>>   -Picked up tags received from Laurentiu, Hanjun and Will. Thanks!.
+>>
+>> You've already got my Tested-by tags, but just to confirm I gave this a
+>> spin and it works fine.
 >
-> Instead, this patch uses a more device specific check. It checks if the
-> device's fwnode has any fwnode links that haven't been converted to
-> device links yet.
+> Thanks Steve.
 >
-> Signed-off-by: Saravana Kannan <saravanak@google.com>
-> ---
->  drivers/base/core.c | 18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
+> I think the series is now in a good shape to be merged.
 >
-> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> index 395dece1c83a..1873cecb0cc4 100644
-> --- a/drivers/base/core.c
-> +++ b/drivers/base/core.c
-> @@ -51,6 +51,7 @@ static DEFINE_MUTEX(wfs_lock);
->  static LIST_HEAD(deferred_sync);
->  static unsigned int defer_sync_state_count = 1;
->  static DEFINE_MUTEX(fwnode_link_lock);
-> +static bool fw_devlink_is_permissive(void);
+> Hi Will/Robin,
 >
->  /**
->   * fwnode_link_add - Create a link between two fwnode_handles.
-> @@ -995,13 +996,13 @@ int device_links_check_suppliers(struct device *dev)
->  	 * Device waiting for supplier to become available is not allowed to
->  	 * probe.
->  	 */
-> -	mutex_lock(&wfs_lock);
-> -	if (!list_empty(&dev->links.needs_suppliers) &&
-> -	    dev->links.need_for_probe) {
-> -		mutex_unlock(&wfs_lock);
-> +	mutex_lock(&fwnode_link_lock);
-> +	if (dev->fwnode && !list_empty(&dev->fwnode->suppliers) &&
-> +	    !fw_devlink_is_permissive()) {
-> +		mutex_unlock(&fwnode_link_lock);
-
-Hi Saravana,
-
-First of, sorry for going back to this.
-
-There is a scenario where this check will not work and probably should
-work. It goes like this:
-
-A clock controller is not allowed to probe because it uses a clock from a child device of a
-consumer, like so:
-
-	dispcc: clock-controller@af00000 {
-        	clocks = <&dsi0_phy 0>;
-	};
-
-	mdss: mdss@ae00000 {
-		clocks = <&dispcc DISP_CC_MDSS_MDP_CLK>;
-
-		dsi0_phy: dsi-phy@ae94400 {
-        		clocks = <&dispcc DISP_CC_MDSS_AHB_CLK>,
-		};
-	};
-
-This is a real scenario actually, but I stripped it down to the essentials.
-
-So, the dsi0_phy will be "device_add'ed" (through of_platform_populate) by the mdss probe.
-The mdss will probe defer waiting for the DISP_CC_MDSS_MDP_CLK, while
-the dispcc will probe defer waiting for the dsi0_phy (supplier).
-
-Basically, this 'supplier availability check' does not work when a supplier might
-be populated by a consumer of the device that is currently trying to probe.
-
-
-Abel
-
-
->  		return -EPROBE_DEFER;
->  	}
-> -	mutex_unlock(&wfs_lock);
-> +	mutex_unlock(&fwnode_link_lock);
+> Appreciate, if you could please take a look at the remaining SMMU related
+> patches(7-9) and provide your approval?
 >
->  	device_links_write_lock();
->
-> @@ -1167,10 +1168,7 @@ static ssize_t waiting_for_supplier_show(struct device *dev,
->  	bool val;
->
->  	device_lock(dev);
-> -	mutex_lock(&wfs_lock);
-> -	val = !list_empty(&dev->links.needs_suppliers)
-> -	      && dev->links.need_for_probe;
-> -	mutex_unlock(&wfs_lock);
-> +	val = !list_empty(&dev->fwnode->suppliers);
->  	device_unlock(dev);
->  	return sysfs_emit(buf, "%u\n", val);
->  }
-> @@ -2202,7 +2200,7 @@ static int device_add_attrs(struct device *dev)
->  			goto err_remove_dev_groups;
->  	}
->
-> -	if (fw_devlink_flags && !fw_devlink_is_permissive()) {
-> +	if (fw_devlink_flags && !fw_devlink_is_permissive() && dev->fwnode) {
->  		error = device_create_file(dev, &dev_attr_waiting_for_supplier);
->  		if (error)
->  			goto err_remove_dev_online;
-> --
-> 2.29.2.454.gaff20da3a2-goog
->
->
+> Thanks,
+> Shameer
+
+First of all thanks to all of you for keeping this going.
+
+I've read through most of this patch series and it doesn't read
+like the best sunny days.
+
+I do understand that there are incentives to get things right; sometimes
+first make it work, then make it better? Running code often seems a
+better alternative than wrong words on paper as users don't care about
+the paper.  They only care if their hardware becomes a paperweight
+because it's not working.
+
+I was trying to find diplomatic words but the general problem has become
+so much bigger than just this change as I am faced with the fact that
+vendors are talking to give up maintaining Arm/ACPI and go back to FDT
+exclusively, which I believe would be the wrong but an understandable
+exit out of a roundabout.
+
+For me this Arm/Linux/ACPI problem becomes double-impact, as I am not
+even a Linux person.  And part of what Arm/ACPI was solving was the
+any OS can just works on Arm hardware; for a while people were hoping
+it could make FDT the next Flash; it just seems it'll not be because
+people cannot get fixes or workarounds for real world problems into
+Linux timely?
+
+So a very polite but firm prod towards Cambridge from here as well in
+the hope that you can make a big change to this world by helping not
+to miss the next merge window/release leading to way bigger impact.
+It would be rather sad to close the Arm/ACPI chapter for good but it
+seems that we may be standing on the verge of it if things do not move
+quick now and different in the future.  It'll certainly need change from
+all sides but the good things is that at the end of the day we all want
+to make the world a better place.
+
+As I mentioned, I have no stakes in this Linux change.
+I just care about Arm and ACPI because I saw light and a chance in it
+and I would love to see it stay.
+Let's all work together in one direction and make it a brighter future
+for everyone.  Can we?  Are you in?
+
+
+May God bless you and your work,
+Bjoern
