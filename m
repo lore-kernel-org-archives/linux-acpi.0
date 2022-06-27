@@ -2,116 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95EB8C433EF
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jun 2022 09:36:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6417CCA473
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Jun 2022 11:43:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233873AbiF0Jg1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Jun 2022 05:36:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55554 "EHLO
+        id S237021AbiF0LnZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Jun 2022 07:43:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234048AbiF0Jg0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2022 05:36:26 -0400
-Received: from mail-lf1-x136.google.com (mail-lf1-x136.google.com [IPv6:2a00:1450:4864:20::136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEFBD63E2
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 02:36:24 -0700 (PDT)
-Received: by mail-lf1-x136.google.com with SMTP id t25so15566549lfg.7
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 02:36:24 -0700 (PDT)
+        with ESMTP id S237463AbiF0Lmx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2022 07:42:53 -0400
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C7F3DDF
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 04:38:18 -0700 (PDT)
+Received: by mail-wr1-x436.google.com with SMTP id q9so12629975wrd.8
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2022 04:38:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Z3HaeNcG7GUwNm8/fRozB97Y4i9x1s+O7tYwK4jHD7M=;
-        b=QF8DGzrvzH59XuF11YGPgC2m9vdevVtFLu4cKsHEkVjP5E0eo/k5PcEn0wMOl4eeY6
-         Uycf77mBuTJ24IgCm8IhzAUUjCrQm79ID5XfSX9Eg6+CscbLmwa3LvRkzIsrj33PLc0w
-         CUQgHWPSwcdPgGEbbF+AxjKzWVhxDrCKJf7W31rezkmauEpSgHJVRZtVeZVMnVTEcWqW
-         oqx09f24DL1am2dLozxyQtmgIPUGvRZX0BNxuSDG/nECpVsItM8d5b95TocEHhNUVfXB
-         ASDXvIaxD/GHxOb6o9w9Da3cE9BQ+6lHhr6rPARYUyOTlHMa/f3qt3aFtRpFzClUnJQv
-         gMKg==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=6pvGGZaD1oTvFXpN6ftachY08Cd5AqxujCjHUCfc6vc=;
+        b=nNWDY3PjoyUAfo3JFCEPweVZN45kAO4FJmCz++XnV2gMusNLaZwqyHicnSW6ovjL7j
+         JC59MWCAvvw9199bn821CUtYgbJ1VDgQJ2pSXAvMOX97nyamB0+tanaWXJcBWf+AQuFu
+         RIwu/kxplbXL3l5O1dbb8FyCnKzKRNlmUa9XoMoI5Ho1H0eEKP2Xh1W85vOZunEP6qYQ
+         ZaPsVHFIYawk82olsBV+7ZpWKlD9/Ea9eAbtWrWQq6CJ4c65fua5GjkMdVnaqdeiceF3
+         qQqyse60dXLDqPW6aGAUklQTWKrD+WJ6+leF6rblpPBla3JPtXVHRZWEqZRW6hUefmcj
+         mwbw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Z3HaeNcG7GUwNm8/fRozB97Y4i9x1s+O7tYwK4jHD7M=;
-        b=lpwZuk4bmrp9QupVgAGU5luuSzRq4DfxeiqeyJVtNGo1sNWMym5Jb2Y5fQF/cr6sVc
-         rxfHPrIIIOFC/W/9fOP8/F9P8ZNPFF2W9cdsQJFyMbTiyNbteYwZxi3WtRjJIbPKfFXr
-         E1Dd3byFczL2YLsq53wnc4ttghG6+hO14umGUXv2kUK+xYb0MZk6m3Dvm05qNxWrktQe
-         14ZU7tEq1tK1ER7vkouTT9ws1caDC6Yq4E+J8mhdyc7nPSOdSNbL9pGeFkcIkGeLekDI
-         s+4K6B88O4OFcgzsMB79f12WM7WvCR46wbDzFXmCbMLFvL695czkk0V1vKcKuEWSdS2O
-         el3g==
-X-Gm-Message-State: AJIora9ZfgX2zDqKuVpDXhHjvZRzHwxkvGfest/KWfTp9JPLhzhxFfFi
-        vs+Qvgit5r6RJWzQipCS+K/WVg5FxX1uoJQma/6nHA==
-X-Google-Smtp-Source: AGRyM1vYmbCQxG+ZhuBiTxL9XeaO2JU+1o3ytJ35pL/oYBvWbmwYUIsGf47OtQGSi23B/9gdJnm/5/Bwtcvaf+20MBw=
-X-Received: by 2002:ac2:4bcf:0:b0:47f:86f2:812d with SMTP id
- o15-20020ac24bcf000000b0047f86f2812dmr7505512lfq.400.1656322583045; Mon, 27
- Jun 2022 02:36:23 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=6pvGGZaD1oTvFXpN6ftachY08Cd5AqxujCjHUCfc6vc=;
+        b=qRVOQT8r02sTAZ9/H/iUtNedodD/vQ1AFXTuc5yudBUzD1rF1UWvUeVnq7GZzXnS3t
+         buqgRlqQumXYBPf+a3tXmSNPWSAKeHw7o2YUsgL8f2MHdT2+ZJiPjrsQjHV6YXJNnd+T
+         e7NliY7Z2M1HiXU4MbbK9aeiulS2lCl/jXY7wSjd9GdZd5CKNh1IUMdbBV90Z5MyFMid
+         ATOMNVSMQuFI7uSQqpyKRAjnF868xQlMQVSpB0QB4nZ//xQpDWk39sFtll843NkXK/2y
+         r7TNZWNTN2/1fjEAhCAAlAasuuQdh+V3fOQZYIPO9Jp0TW0Ms0hKGHmF/3gwrfVM/hqu
+         Q8Sw==
+X-Gm-Message-State: AJIora9syorpRWIXIscFrLGcNJLlt8QYvMGRDRKZ8yF4c6gHsok5EhfG
+        vQbYq4SHPVRt+rQkCDCuVsz31QMCi1HOUQ==
+X-Google-Smtp-Source: AGRyM1uXQLS8Q4aWycz3GihHCBPtSuHKP6mCc1QtRIrYhgNavIXv6w56zaZYob+9hvQxA8Jfw5/bXw==
+X-Received: by 2002:adf:fb84:0:b0:21a:10f2:1661 with SMTP id a4-20020adffb84000000b0021a10f21661mr12146464wrr.2.1656329896780;
+        Mon, 27 Jun 2022 04:38:16 -0700 (PDT)
+Received: from google.com (cpc155339-bagu17-2-0-cust87.1-3.cable.virginm.net. [86.27.177.88])
+        by smtp.gmail.com with ESMTPSA id o19-20020a1c7513000000b0039c18d3fe27sm12450076wmc.19.2022.06.27.04.38.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Jun 2022 04:38:16 -0700 (PDT)
+Date:   Mon, 27 Jun 2022 12:38:14 +0100
+From:   Lee Jones <lee.jones@linaro.org>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [GIT PULL] Immutable branch between MFD and ACPI due for the v5.20
+ merge window
+Message-ID: <YrmWpn03cys9WUK3@google.com>
+References: <1843211.tdWV9SEqCh@kreacher>
+ <2653857.mvXUDI8C0e@kreacher>
+ <2726954.BEx9A2HvPv@kreacher>
 MIME-Version: 1.0
-References: <20220607120530.2447112-1-tarumizu.kohei@fujitsu.com>
- <YqNCDrqcp9t8HlUJ@kroah.com> <OSBPR01MB203749DA00C7BEE5741AFEB980AA9@OSBPR01MB2037.jpnprd01.prod.outlook.com>
- <YqiAY689pOJbHKUd@kroah.com> <TY2PR01MB20426C7822E46B2E8B2525FB80AF9@TY2PR01MB2042.jpnprd01.prod.outlook.com>
-In-Reply-To: <TY2PR01MB20426C7822E46B2E8B2525FB80AF9@TY2PR01MB2042.jpnprd01.prod.outlook.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Mon, 27 Jun 2022 11:36:11 +0200
-Message-ID: <CACRpkdaV8+06gzxi3ou4+nxa28R5Rhzg+KJ8HWh4gyK4AkoC9g@mail.gmail.com>
-Subject: Re: [PATCH v5 0/6] Add hardware prefetch control driver for A64FX and x86
-To:     "tarumizu.kohei@fujitsu.com" <tarumizu.kohei@fujitsu.com>
-Cc:     Greg KH <gregkh@linuxfoundation.org>,
-        "catalin.marinas@arm.com" <catalin.marinas@arm.com>,
-        "will@kernel.org" <will@kernel.org>,
-        "tglx@linutronix.de" <tglx@linutronix.de>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "bp@alien8.de" <bp@alien8.de>,
-        "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-        "x86@kernel.org" <x86@kernel.org>, "hpa@zytor.com" <hpa@zytor.com>,
-        "rafael@kernel.org" <rafael@kernel.org>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "mchehab+huawei@kernel.org" <mchehab+huawei@kernel.org>,
-        "eugenis@google.com" <eugenis@google.com>,
-        "tony.luck@intel.com" <tony.luck@intel.com>,
-        "pcc@google.com" <pcc@google.com>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        "marcos@orca.pet" <marcos@orca.pet>,
-        "marcan@marcan.st" <marcan@marcan.st>,
-        "nicolas.ferre@microchip.com" <nicolas.ferre@microchip.com>,
-        "conor.dooley@microchip.com" <conor.dooley@microchip.com>,
-        "arnd@arndb.de" <arnd@arndb.de>, "ast@kernel.org" <ast@kernel.org>,
-        "peter.chen@kernel.org" <peter.chen@kernel.org>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2726954.BEx9A2HvPv@kreacher>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jun 17, 2022 at 11:21 AM tarumizu.kohei@fujitsu.com
-<tarumizu.kohei@fujitsu.com> wrote:
+Rafael,
 
-Jumping in here.
+As requested.
 
-> Hi Greg,
->
-> > That's not ok.  Linux is a "general purpose" operating system and needs to
-> > work well for all applications.  Doing application-specific-tuning based on the
-> > specific hardware like this is a nightmare for users,
->
-> Hardware prefetch behavior is enabled by default in x86 and A64FX.
-> Many applications can perform well without changing the register
-> setting. Use this feature for some applications that want to be
-> improved performance.
+The following changes since commit f2906aa863381afb0015a9eb7fefad885d4e5a56:
 
-The right way to solve this is to make the Linux kernel contain the necessary
-heuristics to identify which tasks and thus cores need this to improve
-efficiency and then apply it automatically.
+  Linux 5.19-rc1 (2022-06-05 17:18:54 -0700)
 
-Putting it in userspace is making a human do a machines job which isn't
-sustainable.
+are available in the Git repository at:
 
-By putting the heuristics in kernelspace Linux will improve performance also
-on workloads the human operator didn't think of as the machine will
-detect them from
-statictical or other behaviour patterns.
+  git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git tags/ib-mfd-acpi-for-rafael-v5.20
 
-Yours,
-Linus Walleij
+for you to fetch changes up to 0c9b9c2ac0df57b6b5949a51c45043b345698428:
+
+  mfd: core: Use acpi_dev_for_each_child() (2022-06-27 12:22:06 +0100)
+
+----------------------------------------------------------------
+Immutable branch between MFD and ACPI due for the v5.20 merge window
+
+----------------------------------------------------------------
+Rafael J. Wysocki (1):
+      mfd: core: Use acpi_dev_for_each_child()
+
+ drivers/mfd/mfd-core.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
+
+-- 
+Lee Jones [李琼斯]
+Principal Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
