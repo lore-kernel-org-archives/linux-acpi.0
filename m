@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35909C433EF
-	for <linux-acpi@archiver.kernel.org>; Fri,  1 Jul 2022 02:25:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30F83C433EF
+	for <linux-acpi@archiver.kernel.org>; Fri,  1 Jul 2022 02:33:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229531AbiGACZb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 30 Jun 2022 22:25:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51932 "EHLO
+        id S233533AbiGACdd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 30 Jun 2022 22:33:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233069AbiGACZ0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jun 2022 22:25:26 -0400
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2086.outbound.protection.outlook.com [40.107.237.86])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B22599E3;
-        Thu, 30 Jun 2022 19:25:25 -0700 (PDT)
+        with ESMTP id S232774AbiGACdc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jun 2022 22:33:32 -0400
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2071.outbound.protection.outlook.com [40.107.95.71])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C57583703B;
+        Thu, 30 Jun 2022 19:33:31 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TApxjE5/OxOdErjQhJmeYfQvXFVc8zU7LCPXdi76zclS69xf/Be1Sm/9TeO0qlyY1eoqYC7JdctQmLIDn4DwC63jdidropbYXcXmP+e006SlSBLcmovlAEtwOzufe6B1Dho2esZ6VgAlZLbNIVdlzt2mGFydFBFRWMYD99WgMpG3LZ9/vtWvjooIuP3sJp7fahJiGMpqCWKpfc5x88KZldpUyvYRo9AMmGI/r4ofUILT3sDaWqoOPQ52Dn8wDqfN1Aw2PLdoTmXmiVnvDfbMLnMd1/IDOvdJhZpGyKhG6vqctuFeervJUfUbT5gZLd2uDGYvcpLID7KEku/z1oRRkQ==
+ b=QuBWGnPhYLuDZYvWwskGpaxe+95Sok/GpyKzYmYnBRWLhnls4EnETGnL+i6+9W8wyv/OZa5JYdqksRAMdbkSaSlKBj5qcUJmM98nM8dXli94YYpwG98TuxdgQJtweZ7tmy+yGGMVGb2ZhxrdJgtXfjQz/3MOIKj+59uUb9ZvwboJayRzlyBc7tYGKbu/PKHedE9ragsPY86Zh98eECrruWl/jXqOoQMSDQA2AFIwxw818klw6dP+QQOnI+/CxJFMSNSaAnsIx0yKy2DXeXzILivx/bjPgC/NGVe7NIanmkZO7+GhSBgZRhHnjU7XQnIpwlfOLtG7r7iP7A2oNLAPmg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sGSUShS1hyYCnhvncNZKIhv+nA8VrOtazzMpEQ4gWUM=;
- b=cHDuZzHX/PuJ2Hk77iiS3Ojxhm1ZoRiFeYl3wRy7OlIhulAxNPHbgQseanLzFqjVuoYFscx7PDl1zyyrhsiKC2oSnZX6678pNJ16F01IqshiQERHfHAHCYXDB0MHGveUpjW858wsPwNDhW4GIcLXhknO3fzktKvdfV1E91PkqHitAZ8R9ifXiX+JxWKH5iaf9ueNUIRAbBXLZxW8bP1JyfFgbvFnYXPUvYmtuWlzHVcf81UkQYBXbi0Xd/vRj4TQXvUALvkGF6HxevmI+tqufJYPmHqTIV5VwPY22o+zs21CsipfHRB/2iacXuutWRjvsvxVxLx7d/sSRGo06NCXQA==
+ bh=M4OYHeLBiGCTdHytHu79OW+y55R0NXOUkWnfnEDMBeo=;
+ b=mI9CKUX46Cs9wgnzdUnSsSNyjVbQloCN6crIPOpqEbBDgFoZfAzwqsn8zNReqejl7TEL/BzXinecFtk8anDEZoxBHZoA050fJH0Hi+m5RK+MTfOr5i5veQIt5+qRFx/QyC6Vm2uebLvIH4EyzF43TLg188/cqZxmUFKDvNsV+aTO8ywIcYRR3YiwwqakXR/pkVOnXTw/MgtGNVVVq7kqUZCxXE09JB++5I5gOY7gr158Zyhs2tmP6E3kSQP5GywSPyGUKmG2u7wnj3h8NXufaqoxJVlrQFn4eR5OGXvvGR75MEDR8CZ9eiBplt7dG6FMxvgWBvyYFwuxJZb5rxsBag==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sGSUShS1hyYCnhvncNZKIhv+nA8VrOtazzMpEQ4gWUM=;
- b=KFe6icZSRptDHmdfQpo0d3AlGcAnrY9Xu6ai4dj4ahiheoywQBgtaoOWzgRigxQDSBfYaqW9qQBDZF48yCHZ17wi0gic1NMWvKdSVUZIGn2vUjDMFsQ8+X5DnqEQOAkF6zldBGtqGE4n5GVbg9lmP1xtAOhCwrMDbhUPqnwXO6k=
-Received: from DM6PR11CA0061.namprd11.prod.outlook.com (2603:10b6:5:14c::38)
- by SA0PR12MB4463.namprd12.prod.outlook.com (2603:10b6:806:92::14) with
+ bh=M4OYHeLBiGCTdHytHu79OW+y55R0NXOUkWnfnEDMBeo=;
+ b=y0WIO5/2tDcR9vpn4Fc+0ujzkr2TR0QwLVtGDEZopR94I4Ybq4dfQaJdExgKFP8mlDzhx/7edfck42gI38TFx9TY1CejLrsziaG51DT868c9k4n+fy7KTBSZiD2dHRQbedEHki6x4/oWrGvDQlfX6s83rpYO74uduwGoZO5atPg=
+Received: from BN9PR03CA0964.namprd03.prod.outlook.com (2603:10b6:408:109::9)
+ by CY5PR12MB6299.namprd12.prod.outlook.com (2603:10b6:930:20::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5395.15; Fri, 1 Jul
- 2022 02:25:19 +0000
-Received: from DM6NAM11FT050.eop-nam11.prod.protection.outlook.com
- (2603:10b6:5:14c:cafe::d0) by DM6PR11CA0061.outlook.office365.com
- (2603:10b6:5:14c::38) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5395.15 via Frontend
- Transport; Fri, 1 Jul 2022 02:25:18 +0000
+ 2022 02:33:30 +0000
+Received: from BN8NAM11FT020.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:109:cafe::b3) by BN9PR03CA0964.outlook.office365.com
+ (2603:10b6:408:109::9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5395.14 via Frontend
+ Transport; Fri, 1 Jul 2022 02:33:30 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -46,158 +46,73 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- DM6NAM11FT050.mail.protection.outlook.com (10.13.173.111) with Microsoft SMTP
+ BN8NAM11FT020.mail.protection.outlook.com (10.13.176.223) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5395.14 via Frontend Transport; Fri, 1 Jul 2022 02:25:18 +0000
+ 15.20.5395.14 via Frontend Transport; Fri, 1 Jul 2022 02:33:29 +0000
 Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 30 Jun
- 2022 21:25:16 -0500
+ 2022 21:33:28 -0500
 From:   Mario Limonciello <mario.limonciello@amd.com>
-To:     <mario.limonciello@amd.com>,
+To:     <mario.limonciello@amd.com>, <linux-kernel@vger.kernel.org>
+CC:     <linux-pm@vger.kernel.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Len Brown" <lenb@kernel.org>, Huang Rui <ray.huang@amd.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-CC:     <perry.yuan@amd.com>, CUI Hao <cuihao.leo@gmail.com>,
-        <maxim.novozhilov@gmail.com>, <lethe.tree@protonmail.com>,
-        <garystephenwright@gmail.com>, <galaxyking0419@gmail.com>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 1/2] ACPI: CPPC: Only probe for _CPC if CPPC v2 is acked
-Date:   Thu, 30 Jun 2022 21:25:27 -0500
-Message-ID: <20220701022529.2134-1-mario.limonciello@amd.com>
+        "Len Brown" <lenb@kernel.org>, <linux-acpi@vger.kernel.org>
+Subject: [PATCH v3 02/10] ACPI / x86: Use new `pm_suspend_preferred_s2idle`
+Date:   Thu, 30 Jun 2022 21:33:20 -0500
+Message-ID: <20220701023328.2783-2-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220701023328.2783-1-mario.limonciello@amd.com>
+References: <20220701023328.2783-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: caaae2a2-0e66-4186-57f8-08da5b08f111
-X-MS-TrafficTypeDiagnostic: SA0PR12MB4463:EE_
+X-MS-Office365-Filtering-Correlation-Id: f2a4537d-5b43-42dd-d5ef-08da5b0a15ce
+X-MS-TrafficTypeDiagnostic: CY5PR12MB6299:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: CzLaEzWAKUk44EQOA8Ej6bDTebSABnAMnVIkCDD8qS5HqKhjzVGkdU9I4xHHVhNJPiJtr9iSUR8mDZIR7fR5BVhinwl5A9lxcVh0CGsaUkd/Uqqzsb7nwI1rgQhzwE5wguX+JRDGLdK6knxXyO8eBxJs0+JTSrNeVtUBlwAkLSjdly4hvdhuHpuYg9QKvC2w37aCRw40993IYJLxZd5o0xSUQJMMlpD2yK6R0zqTeyBi0kFSg4YlNR9EEVB3hB1fFeUlz8Jtvk3d8816g0ntxxGljzL3BRFXEqMkzhHjCMAEmFVqcfV2nnLwDhxvKuHv6meE7xlAolPHY0vNn3S80ZezSyiPOdQBt4il9RtdjHZDHuMhMxUTE9JwQ9W1RZpOWY1u0hDDpWWsjD5X5kht9fFNCvhAH2y5Y3MCJgeFoAg+sSFo00uIN7hU5nZKeAZso3lGACVp6D+Bf5B7+p0qqeG/i1GKe6jd7kxVnIuvyJuqDWZ90jYjfVViKl51Q2/00CrfrK/Co3H2H9dh0yJXf+/XgYRb1GqrW6yeIu246yh8gU0kwv+hRU2ramq6E4fqoh1zKUVbHG3LZMIYC0GkKHtDLDY9TuPnZUDcSLHaB5R+/MKtbl5/arlB5Wx83lc/5x19EH3SRFfuY8YZbEH7BVaIKSDlrw4HEbrMJthSlhB+dYQYmCqY1Pw24Jz4oqQRiNl8ekUGfAO2okVKybd8YxPdBzd92mLL5ENgcL9BtU26+ycgQixd1Yvkdhn2USdFMOWnaZJVudtOwnMym1UyK5gKaSUBO+Y2D+Hi2/GyrDOGQF/qU04Jvk6U85jMYDtTyMhMdrNhZCSBvZMKY9C5KrQeb1iUJArAw6d/85YNnDRPnPv5Xy60GkGnM18rPYD+TdHfYx4+9wqlE+YQBACu9DuIa8CG8RLPTL9VTItiwOw=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(396003)(376002)(136003)(39860400002)(346002)(46966006)(40470700004)(36840700001)(40480700001)(2616005)(336012)(7696005)(26005)(186003)(82310400005)(1076003)(16526019)(83380400001)(4326008)(47076005)(426003)(8936002)(8676002)(5660300002)(2906002)(44832011)(7416002)(70586007)(478600001)(316002)(36756003)(70206006)(966005)(54906003)(110136005)(40460700003)(41300700001)(81166007)(6666004)(82740400003)(86362001)(36860700001)(356005)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: oxuJ08nGb30ahGIW0KkuLrMeUySnLQ2fEx0GXTRBdnaNorfum03mA6dtrutWbSiYZffqQ2SHmuq/mCtn2rjdb7iqhGVU47OXJwcMKkJlA30YCiBGsPd3gSmyHjvXBZ1PYjrUbVV7KRiHEs7jt/597GA+jp8Ex/rawMrINhLrzEZh2RJIn8UbzJbwLQlu9QHMFfPBoaKes2RQy44wqJIM10eYtjLH3yCy5UVLwmb98mgFGegw9Imuk2YHInBfqr5Aeb2vgqkn72PZjM9LsuUmoLBKSirHGypkiExK0bTAejSA0TUITdpOEeGSlVERtPb6VivqK+eQZgWgFaYDDA/Pn2axV3wAteNtbcJMmSLK+6N9JNV3Nrh0CN8fNkWmlaMWnyvNr8iMM1aUN3u+xCPngn+grNwjtNQnV/TvuEkisH+22meb9uaj18KMv2KjvDAEcRHNqxjDCVyYMOHZeLn5dYaF38bHmf7GAMKpXDhzMDx4fB2s7D4GCWhvu6d8q2LbpeApLl3jXPo64gmRglEGzYG3XFJXwIelNSAyDi3JxdhifO8wTOYygZv2EdRz36u6JCDaYVRjVPbA7jM9Jpd+ISm8mNfj4iE+SmxlMKTUljehZOwBX0RvYnx03y9iBijMKgILNuR2YAFgM3R3cNskxI6gOblCTkTzjFqUWjLdsZGhufh5Fx10JyYKElkXwfimKgyhPVgGVwSpSIM61YglzVGNmUwGcJ7A7Er4JybBizF4qcWbYvGq/mydUj0PGDJZvcJREO07hDiDJxPeOlR3j+lMCaXyBqkGvBLufDBqx0cg0o/tg2NQI4SL0OazBDgUAm8orAPXPILD1IzhtD0Jq7LvMuZs/drpvN7S698QsnoPubzrF3ymF9e0vLNyWSP9
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(346002)(136003)(396003)(376002)(39860400002)(36840700001)(40470700004)(46966006)(1076003)(478600001)(2906002)(8676002)(7696005)(26005)(316002)(54906003)(110136005)(36756003)(8936002)(4744005)(86362001)(5660300002)(44832011)(2616005)(70206006)(4326008)(70586007)(40460700003)(83380400001)(81166007)(186003)(16526019)(336012)(426003)(47076005)(82310400005)(6666004)(41300700001)(356005)(40480700001)(82740400003)(36860700001)(81973001)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jul 2022 02:25:18.7720
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jul 2022 02:33:29.9242
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: caaae2a2-0e66-4186-57f8-08da5b08f111
+X-MS-Exchange-CrossTenant-Network-Message-Id: f2a4537d-5b43-42dd-d5ef-08da5b0a15ce
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT050.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT020.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4463
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6299
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Previously the kernel used to ignore whether the firmware masked CPPC
-or CPPCv2 and would just pretend that it worked.
+Drop the direct check from the FADT and use the helper instead.
 
-When support for the USB4 bit in _OSC was introduced from commit
-9e1f561afb ("ACPI: Execute platform _OSC also with query bit clear")
-the kernel began to look at the return when the query bit was clear.
-
-This caused regressions that were misdiagnosed and attempted to be solved
-as part of commit 2ca8e6285250 ("Revert "ACPI: Pass the same capabilities
-to the _OSC regardless of the query flag""). This caused a different
-regression where non-Intel systems weren't able to negotiate _OSC
-properly.
-
-This was reverted in commit 2ca8e6285250 ("Revert "ACPI: Pass the same
-capabilities to the _OSC regardless of the query flag"") and attempted to
-be fixed by commit c42fa24b4475 ("ACPI: bus: Avoid using CPPC if not
-supported by firmware") but the regression still returned.
-
-These systems with the regression only load support for CPPC from an SSDT
-dynamically when _OSC reports CPPC v2.  Avoid the problem by not letting
-CPPC satisfy the requirement in `acpi_cppc_processor_probe`.
-
-Reported-by: CUI Hao <cuihao.leo@gmail.com>
-Reported-by: maxim.novozhilov@gmail.com
-Reported-by: lethe.tree@protonmail.com
-Reported-by: garystephenwright@gmail.com
-Reported-by: galaxyking0419@gmail.com
-Fixes: c42fa24b4475 ("ACPI: bus: Avoid using CPPC if not supported by firmware")
-Fixes: 2ca8e6285250 ("Revert "ACPI Pass the same capabilities to the _OSC regardless of the query flag"")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=213023
-Link: https://bugzilla.redhat.com/show_bug.cgi?id=2075387
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
- drivers/acpi/bus.c       | 11 +++++------
- drivers/acpi/cppc_acpi.c |  4 +++-
- include/linux/acpi.h     |  2 +-
- 3 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/acpi/x86/s2idle.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 86fa61a21826c..e2db1bdd9dd25 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -298,7 +298,7 @@ EXPORT_SYMBOL_GPL(osc_cpc_flexible_adr_space_confirmed);
- bool osc_sb_native_usb4_support_confirmed;
- EXPORT_SYMBOL_GPL(osc_sb_native_usb4_support_confirmed);
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index 2963229062f8..b1483d5092c1 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -369,7 +369,7 @@ static int lps0_device_attach(struct acpi_device *adev,
+ 	if (lps0_device_handle)
+ 		return 0;
  
--bool osc_sb_cppc_not_supported;
-+bool osc_sb_cppc2_support_acked;
+-	if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
++	if (!pm_suspend_preferred_s2idle())
+ 		return 0;
  
- static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
- static void acpi_bus_osc_negotiate_platform_control(void)
-@@ -358,11 +358,6 @@ static void acpi_bus_osc_negotiate_platform_control(void)
- 		return;
- 	}
- 
--#ifdef CONFIG_ACPI_CPPC_LIB
--	osc_sb_cppc_not_supported = !(capbuf_ret[OSC_SUPPORT_DWORD] &
--			(OSC_SB_CPC_SUPPORT | OSC_SB_CPCV2_SUPPORT));
--#endif
--
- 	/*
- 	 * Now run _OSC again with query flag clear and with the caps
- 	 * supported by both the OS and the platform.
-@@ -376,6 +371,10 @@ static void acpi_bus_osc_negotiate_platform_control(void)
- 
- 	capbuf_ret = context.ret.pointer;
- 	if (context.ret.length > OSC_SUPPORT_DWORD) {
-+#ifdef CONFIG_ACPI_CPPC_LIB
-+		osc_sb_cppc2_support_acked = capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_CPCV2_SUPPORT;
-+#endif
-+
- 		osc_sb_apei_support_acked =
- 			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
- 		osc_pc_lpi_support_confirmed =
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 903528f7e187e..d64facbda0fb7 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -684,8 +684,10 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	acpi_status status;
- 	int ret = -ENODATA;
- 
--	if (osc_sb_cppc_not_supported)
-+	if (!osc_sb_cppc2_support_acked) {
-+		pr_debug("CPPC v2 _OSC not acked\n");
- 		return -ENODEV;
-+	}
- 
- 	/* Parse the ACPI _CPC table for this CPU. */
- 	status = acpi_evaluate_object_typed(handle, "_CPC", NULL, &output,
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4f82a5bc6d987..44975c1bbe12f 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -584,7 +584,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- extern bool osc_sb_apei_support_acked;
- extern bool osc_pc_lpi_support_confirmed;
- extern bool osc_sb_native_usb4_support_confirmed;
--extern bool osc_sb_cppc_not_supported;
-+extern bool osc_sb_cppc2_support_acked;
- extern bool osc_cpc_flexible_adr_space_confirmed;
- 
- /* USB4 Capabilities */
+ 	if (acpi_s2idle_vendor_amd()) {
 -- 
-2.25.1
+2.34.1
 
