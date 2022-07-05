@@ -2,86 +2,151 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D622C433EF
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Jul 2022 15:35:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76A0CC43334
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Jul 2022 16:00:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229922AbiGEPe7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Jul 2022 11:34:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33200 "EHLO
+        id S232605AbiGEQAs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Jul 2022 12:00:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231867AbiGEPe6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2022 11:34:58 -0400
-Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD821165B4;
-        Tue,  5 Jul 2022 08:34:57 -0700 (PDT)
-Received: by mail-yb1-f171.google.com with SMTP id e80so15232083ybb.4;
-        Tue, 05 Jul 2022 08:34:57 -0700 (PDT)
+        with ESMTP id S233003AbiGEQAp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2022 12:00:45 -0400
+Received: from mail-yb1-f173.google.com (mail-yb1-f173.google.com [209.85.219.173])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1775A1839A;
+        Tue,  5 Jul 2022 09:00:44 -0700 (PDT)
+Received: by mail-yb1-f173.google.com with SMTP id j7so16252932ybj.10;
+        Tue, 05 Jul 2022 09:00:44 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=05H09XnT3WZbiSMH9r/MVR5bDYs6xgTwQVYFnBFoc7g=;
-        b=s1/+YjlzLriaP4I5SETHiRZBMX7ZE8Qh8LGluD4fi/cNapHYeggPPbzu6npp/34oBI
-         OlkachEKTOc2q3jyPLq282W+zS4IiTlCRVnqrO+tV7nbLEosBwrH0ffAWp9RCH11g6mg
-         N1J3OpyRhCkmF10UmYEM09GsM6KQsiBFJiZcdvaj2/OiBgr0yO139tKUzuBiKbecAelG
-         O2BwDnxzuoZF23DBDzm9t/Bs3B/9AaziSz9c8tJoo8SUpTsW4t3huRCmOp85VX00w+fT
-         j1d2sm7gTp2DxHbIzQrG2Q0/YZHk8l+ZoPNW55AnuAj/q4Zk94iyLhTnmiz9sgxyq1Vs
-         k01g==
-X-Gm-Message-State: AJIora+Wk/zzw29NyXD+lKYanM1d6Afqv+MsKBlKebTvSL4JsxD8Ub11
-        NzRc/IJbueGtR+KNgr5hln/WOjJq85cf1lnfvdncwZ1A
-X-Google-Smtp-Source: AGRyM1tuDF+EANxQ0ZkrD6kGUfMTAnQ/+/Wd9MeSdNYjtrpy0WML0J8pXHRBHLcy03+z5VKBSPTcaRc98Eh2+qJ/rhE=
-X-Received: by 2002:a25:6b50:0:b0:64f:4b33:664 with SMTP id
- o16-20020a256b50000000b0064f4b330664mr40085416ybm.153.1657035297103; Tue, 05
- Jul 2022 08:34:57 -0700 (PDT)
+        bh=0PWyJkGbY1QecBgTJVZxXj+1AZU7IHfNHTa4FKb8zOI=;
+        b=QYuM7m+Q97t6nZQNV6/ggJc+DuE1yR0185yj5iVWh5OLgYpfHrCgYzxhAs80mx3HUz
+         6F7i16k/Hx3ugzQEHBIwe7xc5gntSjxP6bCW+VAudGjQgcC9OaJe7G4QOnBFUBr6H3B9
+         jQlTYGiF/VVnOXaWAmfuvtEB43zeD4jsVfIWvKmOjkKXfWZ727iDHxIsB8bSc0npJiwl
+         AzlOF/ZWUya8qyWkDxYoh81AIkXi9D8gt8BRBH8iMvDTbx4HIU6MqT/RNcCKNm3/eJXn
+         OKsz4U1vTY0/etIGKd5ZwD1HG1t5JHUPPEWtwPJfzoMV2yCyNlfufsyEo3YbMnrk6riw
+         Ra1A==
+X-Gm-Message-State: AJIora8ATw5CICSCcNKuFyPrvpey5uA/PoqJbv4qg6kSLTOiace6NPNA
+        DYHuQCQuesovZx9reWm3FHSwnLzs02/9BXMricmALHRT
+X-Google-Smtp-Source: AGRyM1tcBwZLh8rRYpqHw497xW826C2jzB0Zuqve2AKbtsgc3kdwC5WdPPJja5gSs9nyc6dKnOr9oErdWKb927wiSpg=
+X-Received: by 2002:a25:9847:0:b0:669:b4c6:d081 with SMTP id
+ k7-20020a259847000000b00669b4c6d081mr37036694ybo.633.1657036843024; Tue, 05
+ Jul 2022 09:00:43 -0700 (PDT)
 MIME-Version: 1.0
-References: <12026357.O9o76ZdvQC@kreacher> <2657553.mvXUDI8C0e@kreacher>
- <5606189.DvuYhMxLoT@kreacher> <e9666883-3285-36a6-6278-ace219b88f3c@huawei.com>
- <CAHp75Ve-Cm43HhqqxxfmKTbC_Gkx=0aAcj0jJmA=-Nr-NT1FqQ@mail.gmail.com>
- <CAHp75VdT1YZUQbdHupA2RmucUBSzypcPwKBgSa4=sVQAhC+Vsw@mail.gmail.com>
- <61fbd71b-9c36-345c-7aed-561b81c34259@huawei.com> <CAHp75VdxaBG8Sj3j7Wa7BrZOrn1j2eAtJMw0N8z255HwMSohYw@mail.gmail.com>
- <df8c0a5d-e950-1726-5d30-80dcc8b20ff9@huawei.com> <CAJZ5v0hv7nm57QrCYX+aX=fVoE0s0BxEpJfz+a8bsPzzSZt7+g@mail.gmail.com>
- <71dfc3cd-c2ae-8096-9280-67e77c21055e@huawei.com> <CAHp75VfqJwF4YypH3QE0MRgZAyjEMKche-4czUuiC=aTYoYwig@mail.gmail.com>
- <CAHp75VfpQfBYD-AmVhbxm4tp_1EVv8xqCChYpuuRKOC=P_Y_og@mail.gmail.com>
- <050e5a2f-42b9-f851-ec6e-e2a9d3fdbe1c@huawei.com> <CAJZ5v0j++HZJfL2+0uWgDRqVeZPviaZSWyL3Yn7T2Ky=bcRQMQ@mail.gmail.com>
- <752f92ba-4957-545c-51f7-7e71648d92e4@huawei.com>
-In-Reply-To: <752f92ba-4957-545c-51f7-7e71648d92e4@huawei.com>
+References: <20220630150135.1799535-1-sbinding@opensource.cirrus.com> <20220630150135.1799535-2-sbinding@opensource.cirrus.com>
+In-Reply-To: <20220630150135.1799535-2-sbinding@opensource.cirrus.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 5 Jul 2022 17:34:46 +0200
-Message-ID: <CAJZ5v0hkiOqhWyOcd2vjj-tcyHWB-cK=Dae-3sifhRfcbKWWGg@mail.gmail.com>
-Subject: Re: [PATCH v3] hisi_lpc: Use acpi_dev_for_each_child()
-To:     John Garry <john.garry@huawei.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Yang Yingliang <yangyingliang@huawei.com>
+Date:   Tue, 5 Jul 2022 18:00:32 +0200
+Message-ID: <CAJZ5v0i-UQYVimV0wPygV3Qe_ASEAPA66Taeardg_LdxT7rGkg@mail.gmail.com>
+Subject: Re: [PATCH v5 1/2] ACPI: utils: Add api to read _SUB from ACPI
+To:     Stefan Binding <sbinding@opensource.cirrus.com>
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." 
+        <alsa-devel@alsa-project.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        patches@opensource.cirrus.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Jul 5, 2022 at 5:17 PM John Garry <john.garry@huawei.com> wrote:
+On Thu, Jun 30, 2022 at 5:01 PM Stefan Binding
+<sbinding@opensource.cirrus.com> wrote:
 >
-> > Next, I'd look at introducing something like
-> >
-> > acpi_create_platform_device_ops(struct acpi_device *adev, const struct
-> > property_entry *properties, const struct *platform_device_create_ops
-> > *ops);
-> >
-> > where ops would be a set of callbacks to invoke as a matter of customization.
-> >
-> > Then, acpi_create_platform_device() can be defined as a wrapper around
-> > the above.
-> > .
+> Add a wrapper function to read the _SUB string from ACPI.
 >
-> ok, that seems easiest. But alternatively do you see any scope to have
-> that platform_device_create_ops * ops in the acpi_device struct (so that
-> we don't need to create this new API)?
+> Signed-off-by: Stefan Binding <sbinding@opensource.cirrus.com>
+> ---
+>  drivers/acpi/utils.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h |  6 ++++++
+>  2 files changed, 44 insertions(+)
+>
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 3a9773a09e19..394954f4b6ef 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -291,6 +291,44 @@ int acpi_get_local_address(acpi_handle handle, u32 *addr)
+>  }
+>  EXPORT_SYMBOL(acpi_get_local_address);
+>
+> +#define ACPI_MAX_SUB_BUF_SIZE  9
+> +
+> +const char *acpi_get_subsystem_id(acpi_handle handle)
+> +{
+> +       struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> +       union acpi_object *obj;
+> +       acpi_status status;
+> +       const char *sub;
+> +
+> +       status = acpi_evaluate_object(handle, METHOD_NAME__SUB, NULL, &buffer);
+> +       if (ACPI_FAILURE(status)) {
+> +               acpi_handle_debug(handle, "Reading ACPI _SUB failed: %#x\n", status);
+> +               return ERR_PTR(-ENODATA);
+> +       }
+> +
+> +       obj = buffer.pointer;
+> +       if (obj->type == ACPI_TYPE_STRING) {
+> +               if (strlen(obj->string.pointer) < ACPI_MAX_SUB_BUF_SIZE &&
+> +                   strlen(obj->string.pointer) > 0) {
+> +                       sub = kstrdup(obj->string.pointer, GFP_KERNEL);
+> +                       if (!sub)
+> +                               sub = ERR_PTR(-ENOMEM);
 
-Well, ops and struct acpi_device have different life cycles (the
-former is only needed at the init time whereas the latter lives as
-long as the platform device based on it), so I'd rather keep them
-separate.
+The error codes below are somewhat questionable.
+
+> +               } else {
+> +                       acpi_handle_err(handle, "ACPI _SUB Length %zu is Invalid\n",
+> +                                       strlen(obj->string.pointer));
+> +                       sub = ERR_PTR(-EINVAL);
+
+This is as good as failure, so why not use -ENODATA here?
+
+> +               }
+> +       } else {
+> +               acpi_handle_warn(handle, "Warning ACPI _SUB did not return a string\n");
+> +               sub = ERR_PTR(-EINVAL);
+
+Likewise.
+
+> +       }
+> +
+> +       acpi_os_free(buffer.pointer);
+> +
+> +       return sub;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_subsystem_id);
+> +
+>  acpi_status
+>  acpi_evaluate_reference(acpi_handle handle,
+>                         acpi_string pathname,
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 7b96a8bff6d2..7651198ad6f5 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -762,6 +762,7 @@ static inline u64 acpi_arch_get_root_pointer(void)
+>  #endif
+>
+>  int acpi_get_local_address(acpi_handle handle, u32 *addr);
+> +const char *acpi_get_subsystem_id(acpi_handle handle);
+>
+>  #else  /* !CONFIG_ACPI */
+>
+> @@ -1023,6 +1024,11 @@ static inline int acpi_get_local_address(acpi_handle handle, u32 *addr)
+>         return -ENODEV;
+>  }
+>
+> +static inline const char *acpi_get_subsystem_id(acpi_handle handle)
+> +{
+> +       return ERR_PTR(-ENODEV);
+> +}
+> +
+>  static inline int acpi_register_wakeup_handler(int wake_irq,
+>         bool (*wakeup)(void *context), void *context)
+>  {
+> --
+> 2.25.1
+>
