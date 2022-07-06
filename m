@@ -2,219 +2,237 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C3D0CCA473
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jul 2022 14:04:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 243D6C43334
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jul 2022 20:14:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232759AbiGFOE4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Jul 2022 10:04:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34504 "EHLO
+        id S233908AbiGFUOV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Jul 2022 16:14:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232935AbiGFOE4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2022 10:04:56 -0400
-Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386F4D72;
-        Wed,  6 Jul 2022 07:04:54 -0700 (PDT)
-Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-2ef5380669cso140921697b3.9;
-        Wed, 06 Jul 2022 07:04:54 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=UBE539EKjjJ8zkn99yLgr6sf0hQeHTgO/l2k1f9VAKg=;
-        b=j7Hpuh+rnxj8p8uzhPFHnQPamCKDD//gbhyIFdN1y25RjFaNQ+hpMekINnCZ4pLLmC
-         hc2g5LPX9BtAYs9kDES2t/wL/dDyLY302bbDf2L+HG7njpoj4DSFY6aJeytEfEVSnhiv
-         qSjMqh/pT3aoJtHyYCu8AHKURj1TtP5mLiV1YZrZiPQ+cW6lmI8HbDwo8PBJ6j0P103m
-         ULpvZwtTKNqPUAujleOqPFQpbCkIH0xEwxHD/X8tyO0WTXs91tV2lFa3DuEa3N+cPxug
-         YfdggNuMLerHmaOwP821rM7mFTGyik4dQvldXpYrYj7uTZAdwprdiz5KML2+95CkqBR8
-         MMBA==
-X-Gm-Message-State: AJIora/nEoDBdwild/DaYPMHgAKtsMFKqtaEufUH27d1lZxUKpDDvvWl
-        rY+Hh9YD5iE93IlCFQNbO1y1gQ0EA1YTPfKfMq4=
-X-Google-Smtp-Source: AGRyM1tzweDvK/HpOTrEcMtuYgu75xJlbU4wLmWYqVeEsIhNId5gL4a/NC1jAK4t+CVNf/Oa7/ufr1ZdqBFMCfc4FVA=
-X-Received: by 2002:a81:24c7:0:b0:314:1e60:a885 with SMTP id
- k190-20020a8124c7000000b003141e60a885mr46512506ywk.301.1657116293184; Wed, 06
- Jul 2022 07:04:53 -0700 (PDT)
+        with ESMTP id S231724AbiGFUOU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2022 16:14:20 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C330C21B1
+        for <linux-acpi@vger.kernel.org>; Wed,  6 Jul 2022 13:14:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1657138458;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=8xfDMOGch/IV+fHWlNEOhMkFLCnf5tqI8lB1lNGVAg0=;
+        b=FYUjDLmVSa5aRxDOnsHy0P8CeLuZybX5bcvi12ZAXD7QJWSB5Eq62hrbtyetzBk8c3Wpzi
+        Y5L7ALYzCAU3xhoWYupYKiINMr4dJfj/Hi1yKA1231KOTmHvbvzaO9jvgtTu/YAfO8AmvG
+        Q8HptdurG0i85fP5XliRCUoiEQc0Z0o=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-52-a_mFrUyXM0mygSP06ue3iw-1; Wed, 06 Jul 2022 16:14:15 -0400
+X-MC-Unique: a_mFrUyXM0mygSP06ue3iw-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 5FE7C3C0D862;
+        Wed,  6 Jul 2022 20:14:14 +0000 (UTC)
+Received: from shalem.redhat.com (unknown [10.39.192.108])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id DD97A1415117;
+        Wed,  6 Jul 2022 20:14:12 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Andy Shevchenko <andy@kernel.org>, kai.heng.feng@canonical.com,
+        =?UTF-8?q?Johannes=20Pen=C3=9Fel?= <johannespenssel@posteo.net>,
+        linux-acpi@vger.kernel.org, devel@acpica.org
+Subject: [RFC v2 1/2] ACPICA: Make address_space_handler Install and _REG execution 2 separate steps
+Date:   Wed,  6 Jul 2022 22:14:09 +0200
+Message-Id: <20220706201410.88244-2-hdegoede@redhat.com>
+In-Reply-To: <20220706201410.88244-1-hdegoede@redhat.com>
+References: <20220706201410.88244-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-References: <20220608142723.103523089@infradead.org> <20220608144517.885263942@infradead.org>
-In-Reply-To: <20220608144517.885263942@infradead.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 6 Jul 2022 16:04:42 +0200
-Message-ID: <CAJZ5v0j6=x-u3dorwQNd6Sihaa1rx1-uaFXbL1Kc37Hu-fcH3A@mail.gmail.com>
-Subject: Re: [PATCH 31/36] cpuidle,acpi: Make noinstr clean
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
-        vgupta@kernel.org,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        ulli.kroll@googlemail.com,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        dl-linux-imx <linux-imx@nxp.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        bcain@quicinc.com, Huacai Chen <chenhuacai@kernel.org>,
-        kernel@xen0n.name, Geert Uytterhoeven <geert@linux-m68k.org>,
-        sammy@sammy.net, Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        dinguyen@kernel.org, jonas@southpole.se,
-        stefan.kristiansson@saunalahti.fi,
-        Stafford Horne <shorne@gmail.com>,
-        James Bottomley <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        David Miller <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        anton.ivanov@cambridgegreys.com,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, acme@kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        jolsa@kernel.org, namhyung@kernel.org,
-        Juergen Gross <jgross@suse.com>, srivatsa@csail.mit.edu,
-        amakhalov@vmware.com, pv-drivers@vmware.com,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Chris Zankel <chris@zankel.net>, jcmvbkbc@gmail.com,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Anup Patel <anup@brainfault.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jon Hunter <jonathanh@nvidia.com>,
-        Jacob Pan <jacob.jun.pan@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Yury Norov <yury.norov@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Petr Mladek <pmladek@suse.com>, senozhatsky@chromium.org,
-        John Ogness <john.ogness@linutronix.de>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        quic_neeraju@quicinc.com, Josh Triplett <josh@joshtriplett.org>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Benjamin Segall <bsegall@google.com>,
-        Mel Gorman <mgorman@suse.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        vschneid@redhat.com, jpoimboe@kernel.org,
-        linux-alpha@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-snps-arc@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        openrisc@lists.librecores.org,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-s390@vger.kernel.org,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-perf-users@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        linux-clk <linux-clk@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>, rcu@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.85 on 10.11.54.7
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jun 8, 2022 at 4:47 PM Peter Zijlstra <peterz@infradead.org> wrote:
->
-> vmlinux.o: warning: objtool: io_idle+0xc: call to __inb.isra.0() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: acpi_idle_enter+0xfe: call to num_online_cpus() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: acpi_idle_enter+0x115: call to acpi_idle_fallback_to_c1.isra.0() leaves .noinstr.text section
->
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+ACPICA pull-req: https://github.com/acpica/acpica/pull/786
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+ACPI-2.0 says that the EC op_region handler must be available immediately
+(like the standard default op_region handlers):
 
-> ---
->  arch/x86/include/asm/shared/io.h |    4 ++--
->  drivers/acpi/processor_idle.c    |    2 +-
->  include/linux/cpumask.h          |    4 ++--
->  3 files changed, 5 insertions(+), 5 deletions(-)
->
-> --- a/arch/x86/include/asm/shared/io.h
-> +++ b/arch/x86/include/asm/shared/io.h
-> @@ -5,13 +5,13 @@
->  #include <linux/types.h>
->
->  #define BUILDIO(bwl, bw, type)                                         \
-> -static inline void __out##bwl(type value, u16 port)                    \
-> +static __always_inline void __out##bwl(type value, u16 port)           \
->  {                                                                      \
->         asm volatile("out" #bwl " %" #bw "0, %w1"                       \
->                      : : "a"(value), "Nd"(port));                       \
->  }                                                                      \
->                                                                         \
-> -static inline type __in##bwl(u16 port)                                 \
-> +static __always_inline type __in##bwl(u16 port)                                \
->  {                                                                      \
->         type value;                                                     \
->         asm volatile("in" #bwl " %w1, %" #bw "0"                        \
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -593,7 +593,7 @@ static int acpi_idle_play_dead(struct cp
->         return 0;
->  }
->
-> -static bool acpi_idle_fallback_to_c1(struct acpi_processor *pr)
-> +static __always_inline bool acpi_idle_fallback_to_c1(struct acpi_processor *pr)
->  {
->         return IS_ENABLED(CONFIG_HOTPLUG_CPU) && !pr->flags.has_cst &&
->                 !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED);
-> --- a/include/linux/cpumask.h
-> +++ b/include/linux/cpumask.h
-> @@ -908,9 +908,9 @@ static inline const struct cpumask *get_
->   * concurrent CPU hotplug operations unless invoked from a cpuhp_lock held
->   * region.
->   */
-> -static inline unsigned int num_online_cpus(void)
-> +static __always_inline unsigned int num_online_cpus(void)
->  {
-> -       return atomic_read(&__num_online_cpus);
-> +       return arch_atomic_read(&__num_online_cpus);
->  }
->  #define num_possible_cpus()    cpumask_weight(cpu_possible_mask)
->  #define num_present_cpus()     cpumask_weight(cpu_present_mask)
->
->
+Quoting from the ACPI spec version 6.3: "6.5.4 _REG (Region) ...
+2. OSPM must make Embedded Controller operation regions, accessed via
+the Embedded Controllers described in ECDT, available before executing
+any control method. These operation regions may become inaccessible
+after OSPM runs _REG(EmbeddedControl, 0)."
+
+So the OS must probe the ECDT described EC and install the op_region handler
+before calling acpi_enable_subsystem() and acpi_initialize_objects().
+
+This is a problem because calling acpi_install_address_space_handler()
+does not just install the op_region handler, it also runs the EC's _REG
+method. This _REG method may rely on initialization done by the _INI
+methods of one of the PCI / _SB root devices.
+
+For the other early/default op_region handlers the op_region handler
+install and the _REG execution is split into 2 separate steps:
+1. acpi_ev_install_region_handlers(), called early from acpi_load_tables()
+2. acpi_ev_initialize_op_regions(), called from acpi_initialize_objects()
+
+To fix the EC op_region issue, add a new flags parameter to
+acpi_install_address_space_handler() to allow doing things in
+2 steps for other op_region handlers, like the EC handler, too.
+
+To avoid having to modify all acpi_install_address_space_handler() callers,
+the function is renamed to acpi_install_address_space_handler_flags() and
+a static inline acpi_install_address_space_handler() is provided.
+
+bug_link: https://bugzilla.kernel.org/show_bug.cgi?id=214899
+
+Link: https://github.com/acpica/acpica/commit/a44f29d0
+Reported-and-tested-by: Johannes Penßel <johannespenssel@posteo.net>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by:  <hdegoede@redhat.com>
+---
+ drivers/acpi/acpica/evxfregn.c | 32 +++++++++++++++++++------------
+ include/acpi/acpixf.h          | 35 +++++++++++++++++++++++++---------
+ include/acpi/actypes.h         |  2 ++
+ 3 files changed, 48 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/acpi/acpica/evxfregn.c b/drivers/acpi/acpica/evxfregn.c
+index 0a8372bf6a77..da6ab9ce1dc8 100644
+--- a/drivers/acpi/acpica/evxfregn.c
++++ b/drivers/acpi/acpica/evxfregn.c
+@@ -27,6 +27,7 @@ ACPI_MODULE_NAME("evxfregn")
+  *              handler         - Address of the handler
+  *              setup           - Address of the setup function
+  *              context         - Value passed to the handler on each access
++ *              flags           - Flags
+  *
+  * RETURN:      Status
+  *
+@@ -37,13 +38,17 @@ ACPI_MODULE_NAME("evxfregn")
+  * are executed here, and these methods can only be safely executed after
+  * the default handlers have been installed and the hardware has been
+  * initialized (via acpi_enable_subsystem.)
++ * To avoid this problem pass the ACPI_NO_EXEC__REG flag and
++ * later call this function again with ACPI_NO_INSTALL_SPACE_HANDLER to
++ * execute _REG.
+  *
+  ******************************************************************************/
+ acpi_status
+-acpi_install_address_space_handler(acpi_handle device,
+-				   acpi_adr_space_type space_id,
+-				   acpi_adr_space_handler handler,
+-				   acpi_adr_space_setup setup, void *context)
++acpi_install_address_space_handler_flags(acpi_handle device,
++					 acpi_adr_space_type space_id,
++					 acpi_adr_space_handler handler,
++					 acpi_adr_space_setup setup,
++					 void *context, u32 flags)
+ {
+ 	struct acpi_namespace_node *node;
+ 	acpi_status status;
+@@ -71,23 +76,26 @@ acpi_install_address_space_handler(acpi_handle device,
+ 
+ 	/* Install the handler for all Regions for this Space ID */
+ 
+-	status =
+-	    acpi_ev_install_space_handler(node, space_id, handler, setup,
+-					  context);
+-	if (ACPI_FAILURE(status)) {
+-		goto unlock_and_exit;
++	if (!(flags & ACPI_NO_INSTALL_SPACE_HANDLER)) {
++		status =
++		    acpi_ev_install_space_handler(node, space_id, handler,
++						  setup, context);
++		if (ACPI_FAILURE(status)) {
++			goto unlock_and_exit;
++		}
+ 	}
+ 
+ 	/* Run all _REG methods for this address space */
+-
+-	acpi_ev_execute_reg_methods(node, space_id, ACPI_REG_CONNECT);
++	if (!(flags & ACPI_NO_EXEC__REG)) {
++		acpi_ev_execute_reg_methods(node, space_id, ACPI_REG_CONNECT);
++	}
+ 
+ unlock_and_exit:
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+-ACPI_EXPORT_SYMBOL(acpi_install_address_space_handler)
++ACPI_EXPORT_SYMBOL(acpi_install_address_space_handler_flags)
+ 
+ /*******************************************************************************
+  *
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 67c0b9e734b6..08e8cfbed1a0 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -643,15 +643,32 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 							acpi_notify_handler
+ 							handler))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+-			     acpi_install_address_space_handler(acpi_handle
+-								device,
+-								acpi_adr_space_type
+-								space_id,
+-								acpi_adr_space_handler
+-								handler,
+-								acpi_adr_space_setup
+-								setup,
+-								void *context))
++			    acpi_install_address_space_handler_flags(acpi_handle
++								     device,
++								     acpi_adr_space_type
++								     space_id,
++								     acpi_adr_space_handler
++								     handler,
++								     acpi_adr_space_setup
++								     setup,
++								     void
++								     *context,
++								     u32 flags))
++static ACPI_INLINE acpi_status acpi_install_address_space_handler(acpi_handle
++								  device,
++								  acpi_adr_space_type
++								  space_id,
++								  acpi_adr_space_handler
++								  handler,
++								  acpi_adr_space_setup
++								  setup,
++								  void *context)
++{
++	return acpi_install_address_space_handler_flags(device, space_id,
++							handler, setup, context,
++							ACPI_FULL_INITIALIZATION);
++}
++
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			     acpi_remove_address_space_handler(acpi_handle
+ 							       device,
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 3491e454b2ab..aba0a86fcf1e 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -566,6 +566,8 @@ typedef u64 acpi_integer;
+ #define ACPI_NO_OBJECT_INIT             0x0020
+ #define ACPI_NO_DEVICE_INIT             0x0040
+ #define ACPI_NO_ADDRESS_SPACE_INIT      0x0080
++#define ACPI_NO_INSTALL_SPACE_HANDLER   0x0100
++#define ACPI_NO_EXEC__REG               0x0200
+ 
+ /*
+  * Initialization state
+-- 
+2.36.0
+
