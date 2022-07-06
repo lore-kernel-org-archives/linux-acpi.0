@@ -2,128 +2,133 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42558C43334
-	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jul 2022 08:17:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 066AEC433EF
+	for <linux-acpi@archiver.kernel.org>; Wed,  6 Jul 2022 09:54:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229740AbiGFIRg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Jul 2022 04:17:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56056 "EHLO
+        id S232396AbiGFJyf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 6 Jul 2022 05:54:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229592AbiGFIRf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2022 04:17:35 -0400
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A404521265;
-        Wed,  6 Jul 2022 01:17:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657095454; x=1688631454;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=QJdbd0sqRzbuJvDZDdncwbnN1AAfcsaUkYqnPqI4xSg=;
-  b=FN1lh8xp839H0goWYQncchjVpd5qg7EUtXhgYVgL3hxGB35HZUlUrHKV
-   o1EqebfSxdGB0+opFKNRPUHB4iVQbxHOxW3fZELvvvY81UYnUcVNEP+f9
-   IcBRXx01AqWHhsDUYL6jliDehroJ0jVQgpwDbmpsL7eRKP2FHfDIhUtGA
-   eKTP2GPuvXDWOmbkCefTntWYNAnTPuhixnC8t5LBYtc5NGswuo0TZS2B4
-   zajsfOYRoK/oA8xi/xEQ3byZgpq0njYU4Tm6MGEZyOKicTEvroLyk7E+1
-   uOADiaLbB+PGYRR12Q3dX3FnQm+MqEiUWtvIMo5DnbDNrzZFAUrT+8wwR
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10399"; a="369998131"
-X-IronPort-AV: E=Sophos;i="5.92,249,1650956400"; 
-   d="scan'208";a="369998131"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jul 2022 01:17:34 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,249,1650956400"; 
-   d="scan'208";a="920061818"
-Received: from lkp-server01.sh.intel.com (HELO 68b931ab7ac1) ([10.239.97.150])
-  by fmsmga005.fm.intel.com with ESMTP; 06 Jul 2022 01:17:32 -0700
-Received: from kbuild by 68b931ab7ac1 with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1o90E0-000KFZ-8q;
-        Wed, 06 Jul 2022 08:17:32 +0000
-Date:   Wed, 06 Jul 2022 16:16:46 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
-        linux-acpi@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 7a713b029862c784eaf30793456b1c83240675e5
-Message-ID: <62c544ee.WVUmFTMxrJ2pC2aE%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        with ESMTP id S231791AbiGFJxx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2022 05:53:53 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B3F301ED;
+        Wed,  6 Jul 2022 02:53:21 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CBE8AD6E;
+        Wed,  6 Jul 2022 02:53:21 -0700 (PDT)
+Received: from [10.57.40.86] (unknown [10.57.40.86])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 30D7F3F66F;
+        Wed,  6 Jul 2022 02:53:19 -0700 (PDT)
+Message-ID: <35de3948-d8f2-c2da-05f9-995eecf275ce@arm.com>
+Date:   Wed, 6 Jul 2022 11:52:56 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.1
+Subject: Re: [PATCH RESEND v1 1/2] ACPI/PCI: Make _SRS optional for link
+ device
+Content-Language: en-US
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+References: <20220705172931.GA71865@bhelgaas>
+From:   Pierre Gondois <pierre.gondois@arm.com>
+In-Reply-To: <20220705172931.GA71865@bhelgaas>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 7a713b029862c784eaf30793456b1c83240675e5  Merge branch 'powercap' into bleeding-edge
 
-elapsed time: 727m
 
-configs tested: 52
-configs skipped: 2
+On 7/5/22 19:29, Bjorn Helgaas wrote:
+> On Fri, Jul 01, 2022 at 06:16:23PM +0200, Pierre Gondois wrote:
+>> From: Pierre Gondois <Pierre.Gondois@arm.com>
+>>
+>> In ACPI 6.4, s6.2.13 "_PRT (PCI Routing Table)", PCI legacy
+>> interrupts can be described though a link device (first model).
+>>  From s6.2.16 "_SRS (Set Resource Settings)":
+>> "This optional control method [...]"
+>>
+>> Make it optional to have a _SRS method for link devices.
+> 
+> I think it would be helpful to outline the reason for wanting these
+> changes in the commit log.  Otherwise we don't know the benefit and
+> it's harder to justify making the change since it's not an obvious
+> cleanup.
+> 
+> IIRC from [1] there *is* a good reason: you need to use Interrupt Link
+> devices so you can specify "level triggered, active high".
+> 
+> Without an Interrupt Link, you would get the default "level triggered,
+> active low" setting, which apparently isn't compatible with GICv2.
+> 
+> I assume this fixes a device that previously didn't work correctly,
+> but I don't see the details of that in the bugzilla.  I'm a little
+> confused about this.  Isn't GICv2 widely used already?  How are things
+> working now?  Or are there just a lot of broken devices?
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+It was unsure which of the 2 models described in ACPI 6.4, s6.2.13
+"_PRT (PCI Routing Table)" would be used for UEFI for kvmtool.
 
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm                              allyesconfig
-ia64                             allmodconfig
-mips                             allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-sh                               allmodconfig
-alpha                            allyesconfig
-m68k                             allmodconfig
-arc                              allyesconfig
-m68k                             allyesconfig
-i386                                defconfig
-i386                             allyesconfig
-x86_64                        randconfig-a004
-x86_64                        randconfig-a002
-x86_64                        randconfig-a006
-i386                          randconfig-a001
-i386                          randconfig-a003
-i386                          randconfig-a005
-x86_64                        randconfig-a011
-x86_64                        randconfig-a013
-x86_64                        randconfig-a015
-i386                          randconfig-a014
-i386                          randconfig-a012
-i386                          randconfig-a016
-riscv                randconfig-r042-20220703
-arc                  randconfig-r043-20220703
-s390                 randconfig-r044-20220703
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                          rhel-8.3-func
-x86_64                         rhel-8.3-kunit
-x86_64                    rhel-8.3-kselftests
-x86_64                           rhel-8.3-syz
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                           allyesconfig
+Remainder:
+The first model allows to accurately describe interrupts: level/edge
+triggered and active high/low. Interrupts are also configurable with
+_CRS/_PRS/_SRS/_DIS methods
+The second model allows to describe hardwired interrupts, and are
+by default level triggered, active low.
 
-clang tested configs:
-x86_64                        randconfig-a005
-x86_64                        randconfig-a001
-x86_64                        randconfig-a003
-i386                          randconfig-a002
-i386                          randconfig-a004
-i386                          randconfig-a006
-x86_64                        randconfig-a012
-x86_64                        randconfig-a016
-x86_64                        randconfig-a014
-i386                          randconfig-a013
-i386                          randconfig-a015
-i386                          randconfig-a011
-hexagon              randconfig-r045-20220703
-hexagon              randconfig-r041-20220703
+The kernel is aware that GivV2 interrupts are active high, so there
+was actually no need to accurately describe them. Thus the second
+model was used.
+While experimenting, we temporarily had a configuration using
+the first model, and only had a _CRS method (no _PRS/_SRS), which
+triggered some warnings.
 
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+So these patches are not fixes for existing platforms, but merely
+to make _PRS/_SRS methods optional.
+
+In [1] I said I would submit patches to change that. If you think
+this is not necessary as the configuration is non-existing, I am
+perfectly fine to drop the patches.
+
+Also as Rafael noted, the _DIS method should also be taken into
+consideration if _PRS/_SRS are made optional.
+
+Regards,
+Pierre
+
+
+> 
+> [1] https://lore.kernel.org/r/e2ae06ba-de8f-2cae-60fa-fe9a215d779b@arm.com
+> 
+>> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=215560
+>> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+>> ---
+>>   drivers/acpi/pci_link.c | 7 +++++++
+>>   1 file changed, 7 insertions(+)
+>>
+>> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+>> index 58647051c948..129e3e7e80ee 100644
+>> --- a/drivers/acpi/pci_link.c
+>> +++ b/drivers/acpi/pci_link.c
+>> @@ -288,6 +288,13 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>>   	if (!irq)
+>>   		return -EINVAL;
+>>   
+>> +	if (!acpi_has_method(handle, METHOD_NAME__SRS)) {
+>> +		if (link->irq.active == irq)
+>> +			return 0;
+>> +		acpi_handle_err(handle, "Unable to set IRQ %d: No _SRS.\n", irq);
+>> +		return -ENODEV;
+>> +	}
+>> +
+>>   	resource = kzalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
+>>   	if (!resource)
+>>   		return -ENOMEM;
+>> -- 
+>> 2.25.1
+>>
