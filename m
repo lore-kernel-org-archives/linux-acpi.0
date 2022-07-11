@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12F48C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97818CCA47B
 	for <linux-acpi@archiver.kernel.org>; Mon, 11 Jul 2022 11:37:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231553AbiGKLhS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S231491AbiGKLhS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 11 Jul 2022 07:37:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55080 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231491AbiGKLgy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2022 07:36:54 -0400
+        with ESMTP id S231566AbiGKLgz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2022 07:36:55 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0E248CC83
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Jul 2022 04:24:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4659C8CC8B
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Jul 2022 04:24:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657538653; x=1689074653;
+  t=1657538656; x=1689074656;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=QpHao9gHcDm8aajq6jUIYt3R7xeDPpVj8JfzaffUFnw=;
-  b=Ik+czpxrKSXGGOmQRMtRhNScEAfP2BYZcK+UPuvrEdON0YOUX2kMFnFi
-   xIdVk2pP+RTWVR1cSfP7PYWOlPYxlMWyDpVrT0qDmdR7nO/+Xeo0hML12
-   1QXuUX7TKTyQPP6zFwRago5pDxIWy9qQr3tiJdvxz12N8pJuzD0QJwaog
-   Z3pow72bnBvehWznI9AvxbEdJ+MAr8A+rffqZO/6p/KAXlB6Ozn9oqMqe
-   ZHQ8oMT+aSAFsBrc48q4sVW0baBgyuNt2f+81VnToGIEqoM6+ltpK1lBD
-   j1HYqSl/Ez7pwRpj0wXMYRF0Wp7Iw+s3wkDaG55mRczr5siKIpkB5VlAE
+  bh=hqFCK5307o7mcbNOsL35AaW+Rib09PnmYoL/+sZ3aQ0=;
+  b=Ugm4deItUtIjeJ86PgBSk3d2L9suf3HrOgeF/aVTir2auGjYGOEnJEDS
+   JLq41pwmizel8Hrt0f035A89n0nn6pehwxB0bJa7HNHkg2hvZY3hugG+m
+   BgJOTVRx1Zlx6noAnqptPjM+eEJ89mhS0Fw4FM2VCbarlEYBRLlE9aPsI
+   EvxhPIwqIlygqBzFwysSD/7rPbWEvYbc+v7MxieNuhiC6SFTyIPtTuR81
+   mCmXPOwkG0agDpCsZwuOd/oRSwCCykEauVgeAix0mx4xiXqxcSymGYDRD
+   C457lSWxjuzfsy6HeqM040u1kGzsYDb/nZ36Jg5VwKlb5spgvWMjy9unP
    A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10404"; a="310239430"
+X-IronPort-AV: E=McAfee;i="6400,9594,10404"; a="310239442"
 X-IronPort-AV: E=Sophos;i="5.92,262,1650956400"; 
-   d="scan'208";a="310239430"
+   d="scan'208";a="310239442"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2022 04:24:01 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2022 04:24:03 -0700
 X-IronPort-AV: E=Sophos;i="5.92,262,1650956400"; 
-   d="scan'208";a="684350396"
+   d="scan'208";a="684350410"
 Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2022 04:24:00 -0700
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2022 04:24:02 -0700
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 0871F21AFD;
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 1F1D521FE5;
         Mon, 11 Jul 2022 14:23:58 +0300 (EEST)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1oArYE-00CnYa-D1; Mon, 11 Jul 2022 14:26:06 +0300
+        id 1oArYE-00CnYg-GS; Mon, 11 Jul 2022 14:26:06 +0300
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com
-Subject: [PATCH v4 4/8] ACPI: property: Move property ref argument parsing into a new function
-Date:   Mon, 11 Jul 2022 14:26:02 +0300
-Message-Id: <20220711112606.3050368-5-sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 6/8] ACPI: property: Unify integer value reading functions
+Date:   Mon, 11 Jul 2022 14:26:04 +0300
+Message-Id: <20220711112606.3050368-7-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220711112606.3050368-1-sakari.ailus@linux.intel.com>
 References: <20220711112606.3050368-1-sakari.ailus@linux.intel.com>
@@ -57,147 +57,136 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Split out property reference argument parsing out of the
-__acpi_node_get_property_reference() function into a new one,
-acpi_get_ref_args(). The new function will be needed also for parsing
-string references soon.
+Unify functions reading ACPI property integer values into a single macro
+using C99 _Generic().
+
+Also use size_t for the counter instead of int.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 103 ++++++++++++++++++++++------------------
- 1 file changed, 58 insertions(+), 45 deletions(-)
+ drivers/acpi/property.c | 96 +++++++++++++----------------------------
+ 1 file changed, 31 insertions(+), 65 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 8d757ca2a58f3..a2733f8981c7f 100644
+index 3411cd0433b88..236a847f1bfbd 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -673,6 +673,58 @@ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
- 	return NULL;
+@@ -908,67 +908,33 @@ static int acpi_data_prop_read_single(const struct acpi_device_data *data,
+ 	return ret;
  }
  
-+static int acpi_get_ref_args(struct fwnode_reference_args *args,
-+			     struct fwnode_handle *ref_fwnode,
-+			     const union acpi_object **element,
-+			     const union acpi_object *end, size_t num_args)
-+{
-+	u32 nargs = 0, i;
-+
-+	/*
-+	 * Find the referred data extension node under the
-+	 * referred device node.
-+	 */
-+	for (; *element < end && (*element)->type == ACPI_TYPE_STRING;
-+	     (*element)++) {
-+		const char *child_name = (*element)->string.pointer;
-+
-+		ref_fwnode = acpi_fwnode_get_named_child_node(ref_fwnode, child_name);
-+		if (!ref_fwnode)
-+			return -EINVAL;
-+	}
-+
-+	/*
-+	 * Assume the following integer elements are all args. Stop counting on
-+	 * the first reference or end of the package arguments. In case of
-+	 * neither reference, nor integer, return an error, we can't parse it.
-+	 */
-+	for (i = 0; (*element) + i < end && i < num_args; i++) {
-+		acpi_object_type type = (*element)[i].type;
-+
-+		if (type == ACPI_TYPE_LOCAL_REFERENCE)
-+			break;
-+
-+		if (type == ACPI_TYPE_INTEGER)
-+			nargs++;
-+		else
-+			return -EINVAL;
-+	}
-+
-+	if (nargs > NR_FWNODE_REFERENCE_ARGS)
-+		return -EINVAL;
-+
-+	if (args) {
-+		args->fwnode = ref_fwnode;
-+		args->nargs = nargs;
-+		for (i = 0; i < nargs; i++)
-+			args->args[i] = (*element)[i].integer.value;
-+	}
-+
-+	(*element) += nargs;
-+
-+	return 0;
-+}
-+
- /**
-  * __acpi_node_get_property_reference - returns handle to the referenced object
-  * @fwnode: Firmware node to get the property from
-@@ -761,61 +813,22 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
- 	end = element + obj->package.count;
+-static int acpi_copy_property_array_u8(const union acpi_object *items, u8 *val,
+-				       size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-		if (items[i].integer.value > U8_MAX)
+-			return -EOVERFLOW;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
+-
+-static int acpi_copy_property_array_u16(const union acpi_object *items,
+-					u16 *val, size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-		if (items[i].integer.value > U16_MAX)
+-			return -EOVERFLOW;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
+-
+-static int acpi_copy_property_array_u32(const union acpi_object *items,
+-					u32 *val, size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-		if (items[i].integer.value > U32_MAX)
+-			return -EOVERFLOW;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
+-
+-static int acpi_copy_property_array_u64(const union acpi_object *items,
+-					u64 *val, size_t nval)
+-{
+-	int i;
+-
+-	for (i = 0; i < nval; i++) {
+-		if (items[i].type != ACPI_TYPE_INTEGER)
+-			return -EPROTO;
+-
+-		val[i] = items[i].integer.value;
+-	}
+-	return 0;
+-}
++#define acpi_copy_property_array_uint(items, val, nval)			\
++	({								\
++		typeof(items) __items = items;				\
++		typeof(val) __val = val;				\
++		typeof(nval) __nval = nval;				\
++		size_t i;						\
++		int ret = 0;						\
++									\
++		for (i = 0; i < __nval; i++) {				\
++			if (__items[i].type != ACPI_TYPE_INTEGER) {	\
++				ret = -EPROTO;				\
++				break;					\
++			}						\
++			if (__items[i].integer.value > _Generic(__val,	\
++								u8: U8_MAX, \
++								u16: U16_MAX, \
++								u32: U32_MAX, \
++								u64: U64_MAX, \
++								default: 0U)) { \
++				ret = -EOVERFLOW;			\
++				break;					\
++			}						\
++									\
++			__val[i] = __items[i].integer.value;		\
++		}							\
++		ret;							\
++	})
  
- 	while (element < end) {
--		u32 nargs, i;
--
- 		if (element->type == ACPI_TYPE_LOCAL_REFERENCE) {
--			struct fwnode_handle *ref_fwnode;
--
- 			device = acpi_fetch_acpi_dev(element->reference.handle);
- 			if (!device)
- 				return -EINVAL;
+ static int acpi_copy_property_array_string(const union acpi_object *items,
+ 					   char **val, size_t nval)
+@@ -1025,16 +991,16 @@ static int acpi_data_prop_read(const struct acpi_device_data *data,
  
--			nargs = 0;
- 			element++;
- 
--			/*
--			 * Find the referred data extension node under the
--			 * referred device node.
--			 */
--			for (ref_fwnode = acpi_fwnode_handle(device);
--			     element < end && element->type == ACPI_TYPE_STRING;
--			     element++) {
--				ref_fwnode = acpi_fwnode_get_named_child_node(
--					ref_fwnode, element->string.pointer);
--				if (!ref_fwnode)
--					return -EINVAL;
--			}
--
--			/*
--			 * Assume the following integer elements are all args.
--			 * Stop counting on the first reference or end of the
--			 * package arguments. In case of neither reference,
--			 * nor integer, return an error, we can't parse it.
--			 */
--			for (i = 0; element + i < end && i < num_args; i++) {
--				acpi_object_type type = element[i].type;
--
--				if (type == ACPI_TYPE_LOCAL_REFERENCE)
--					break;
--				if (type == ACPI_TYPE_INTEGER)
--					nargs++;
--				else
--					return -EINVAL;
--			}
--
--			if (nargs > NR_FWNODE_REFERENCE_ARGS)
--				return -EINVAL;
--
--			if (idx == index) {
--				args->fwnode = ref_fwnode;
--				args->nargs = nargs;
--				for (i = 0; i < nargs; i++)
--					args->args[i] = element[i].integer.value;
-+			ret = acpi_get_ref_args(idx == index ? args : NULL,
-+						acpi_fwnode_handle(device),
-+						&element, end, num_args);
-+			if (ret < 0)
-+				return ret;
- 
-+			if (idx == index)
- 				return 0;
--			}
- 
--			element += nargs;
- 		} else if (element->type == ACPI_TYPE_INTEGER) {
- 			if (idx == index)
- 				return -ENOENT;
+ 	switch (proptype) {
+ 	case DEV_PROP_U8:
+-		ret = acpi_copy_property_array_u8(items, (u8 *)val, nval);
++		ret = acpi_copy_property_array_uint(items, (u8 *)val, nval);
+ 		break;
+ 	case DEV_PROP_U16:
+-		ret = acpi_copy_property_array_u16(items, (u16 *)val, nval);
++		ret = acpi_copy_property_array_uint(items, (u16 *)val, nval);
+ 		break;
+ 	case DEV_PROP_U32:
+-		ret = acpi_copy_property_array_u32(items, (u32 *)val, nval);
++		ret = acpi_copy_property_array_uint(items, (u32 *)val, nval);
+ 		break;
+ 	case DEV_PROP_U64:
+-		ret = acpi_copy_property_array_u64(items, (u64 *)val, nval);
++		ret = acpi_copy_property_array_uint(items, (u64 *)val, nval);
+ 		break;
+ 	case DEV_PROP_STRING:
+ 		ret = acpi_copy_property_array_string(
 -- 
 2.30.2
 
