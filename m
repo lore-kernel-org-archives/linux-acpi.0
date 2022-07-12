@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A421ECCA47F
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Jul 2022 19:49:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 654DBC43334
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Jul 2022 19:49:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233445AbiGLTtt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Jul 2022 15:49:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57518 "EHLO
+        id S234286AbiGLTtu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Jul 2022 15:49:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235038AbiGLTsO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2022 15:48:14 -0400
+        with ESMTP id S232801AbiGLTs1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2022 15:48:27 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 455C9BD684
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Jul 2022 12:40:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B4D71BD691
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Jul 2022 12:41:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1657654857;
+        s=mimecast20190719; t=1657654869;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=dzP8m0+OdxFl+RF9YZTli7Vf0c0whffJshQRMkWNm88=;
-        b=OR6+7xoD0b+pTHZa2XxvstQFL1/B+VP0EyAMmCaZkXaE7+Xj8mL3Z/G4CzAI8WI+W1Vw2A
-        T1pfJakX5i8sNbucV2pnqfRsBo1ZdW8yMKOZT70UngClc6B854wykR34wxmD/kJQIPUAN/
-        BWO2/c9GFhs4l/Ld3FXdWdLqnnZlsF4=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=Jh7DtWwGXylFw8lACoyjJr2rofKRMUKUnPwfbo3j084=;
+        b=WI7p0qUFirlAPLgQb27jat2EPnIlLFTyXuoxzi1tljQPQEeRyDpamVFTyXOlH9BOfjqiuB
+        ywZHeBZdzBqfqOsB2VYsZklaTKv3k8+HMXZ7DpvpPbzerdP9xQweUjwosOKi3ljQ0eEhYc
+        IGp+6LdcyZWZ57f8O0K5/ogolMEcOwk=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-612-YQIOoUAVPeiO--TSPvAhgA-1; Tue, 12 Jul 2022 15:40:47 -0400
-X-MC-Unique: YQIOoUAVPeiO--TSPvAhgA-1
+ us-mta-222-oaqwdj7CMFecOIVw87QP8A-1; Tue, 12 Jul 2022 15:41:08 -0400
+X-MC-Unique: oaqwdj7CMFecOIVw87QP8A-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E62CB101A589;
-        Tue, 12 Jul 2022 19:40:46 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 93E2A1C0CE69;
+        Tue, 12 Jul 2022 19:41:07 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.30])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4463540E80E0;
-        Tue, 12 Jul 2022 19:40:43 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E4C7440E80E0;
+        Tue, 12 Jul 2022 19:41:03 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
         Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
@@ -62,9 +62,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, nouveau@lists.freedesktop.org,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
         platform-driver-x86@vger.kernel.org
-Subject: [PATCH v2 21/29] platform/x86: asus-wmi: Drop DMI chassis-type check from backlight handling
-Date:   Tue, 12 Jul 2022 21:39:02 +0200
-Message-Id: <20220712193910.439171-22-hdegoede@redhat.com>
+Subject: [PATCH v2 26/29] ACPI: video: Drop "Samsung X360" acpi_backlight=native quirk
+Date:   Tue, 12 Jul 2022 21:39:07 +0200
+Message-Id: <20220712193910.439171-27-hdegoede@redhat.com>
 In-Reply-To: <20220712193910.439171-1-hdegoede@redhat.com>
 References: <20220712193910.439171-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -74,59 +74,49 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Remove this check from the asus-wmi backlight handling:
+acpi_backlight=native is the default for the "Samsung X360", but as
+the comment explains the quirk was still necessary because even
+briefly registering the acpi_video0 backlight; and then unregistering
+it once the native driver showed up, was leading to issues.
 
-	/* Some Asus desktop boards export an acpi-video backlight interface,
-	   stop this from showing up */
-	chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
-	if (chassis_type && !strcmp(chassis_type, "3"))
-		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
+After the "ACPI: video: Make backlight class device registration
+a separate step" patch from earlier in this patch-series, we no
+longer briefly register the acpi_video0 backlight on systems where
+the native driver should be used.
 
-This acpi_video_set_dmi_backlight_type(acpi_backlight_vendor) call must be
-removed because other changes in this series change the native backlight
-drivers to no longer unconditionally register their backlight. Instead
-these drivers now do this check:
-
-        if (acpi_video_get_backlight_type(false) != acpi_backlight_native)
-                return 0; /* bail */
-
-So leaving this in place can break things on laptops with a broken
-DMI chassis-type, which would have GPU native brightness control before
-the addition of the acpi_video_get_backlight_type() != native check.
-
-Removing this should be ok now, since the ACPI video code has improved
-heuristics for this itself now (which includes a chassis-type check).
+So this is no longer an issue an the quirk is no longer needed.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/asus-wmi.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/acpi/video_detect.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index 62ce198a3463..9dab0998cd20 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -3528,7 +3528,6 @@ static int asus_wmi_add(struct platform_device *pdev)
- 	struct platform_driver *pdrv = to_platform_driver(pdev->dev.driver);
- 	struct asus_wmi_driver *wdrv = to_asus_wmi_driver(pdrv);
- 	struct asus_wmi *asus;
--	const char *chassis_type;
- 	acpi_status status;
- 	int err;
- 	u32 result;
-@@ -3610,12 +3609,6 @@ static int asus_wmi_add(struct platform_device *pdev)
- 	if (asus->driver->quirks->wmi_force_als_set)
- 		asus_wmi_set_als();
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 351bd6335d7a..2a4d376a703e 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -130,21 +130,6 @@ static int video_detect_force_none(const struct dmi_system_id *d)
+ }
  
--	/* Some Asus desktop boards export an acpi-video backlight interface,
--	   stop this from showing up */
--	chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
--	if (chassis_type && !strcmp(chassis_type, "3"))
--		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
--
- 	if (asus->driver->quirks->wmi_backlight_power)
- 		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
- 
+ static const struct dmi_system_id video_detect_dmi_table[] = {
+-	/* On Samsung X360, the BIOS will set a flag (VDRV) if generic
+-	 * ACPI backlight device is used. This flag will definitively break
+-	 * the backlight interface (even the vendor interface) until next
+-	 * reboot. It's why we should prevent video.ko from being used here
+-	 * and we can't rely on a later call to acpi_video_unregister().
+-	 */
+-	{
+-	 .callback = video_detect_force_vendor,
+-	 /* X360 */
+-	 .matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "X360"),
+-		DMI_MATCH(DMI_BOARD_NAME, "X360"),
+-		},
+-	},
+ 	{
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1128309 */
+ 	 .callback = video_detect_force_vendor,
 -- 
 2.36.0
 
