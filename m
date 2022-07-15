@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD400C43334
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jul 2022 08:51:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C617CC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jul 2022 08:51:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229666AbiGOIvJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Jul 2022 04:51:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43322 "EHLO
+        id S233120AbiGOIvf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Jul 2022 04:51:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232965AbiGOIut (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2022 04:50:49 -0400
-Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 144DE82445
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Jul 2022 01:50:46 -0700 (PDT)
-Received: by mail-lf1-x12f.google.com with SMTP id r9so6760384lfp.10
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Jul 2022 01:50:45 -0700 (PDT)
+        with ESMTP id S232457AbiGOIu4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2022 04:50:56 -0400
+Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC72482478
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Jul 2022 01:50:49 -0700 (PDT)
+Received: by mail-lf1-x12d.google.com with SMTP id u13so6782306lfn.5
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Jul 2022 01:50:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=semihalf.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+d/aojT1TCgagMDA6o2QljnvpRxpeI/WOeBAtluw3O0=;
-        b=Csg+XBvQXDUJJyiEkv/Pn2FIpcj+ic/32obyLUtvvYy93EcsZ0fEMr0vcuA5L4pBVI
-         cXOZEYBpHmORuphlcLHebTylvpZLiWXGZ7J0Zkzz9iKINVQTHWzvdWvm7IYYd5kX1byH
-         A0EDO3IP1RoJjmfQxuSDz0WN49ZvpFaoknWVa4qNtQBfQFAMBKjA1YJClSv8M5dU/Eyh
-         LhUFThZbNEuggtcaGgkAOce4193FmQ1Xya4EBa0O86f0MdLxZwn6IVhF69RJO1VhVlIW
-         sN9fgohUnn8up92RwpwvqmUx6b97AJgr42JXP8pTBMRqerwj7hR1uMoV0ixr2KBwNZA6
-         pWYw==
+        bh=ZsJ1XfZRYI9NmeAXNFV8MuDj1Gltas2LdIIHCwgqqO0=;
+        b=QTH5tkb70ZxN94jwXV0HUGYi7YbC84SL3mnfLNNr9V3uZkgWbe2bTU8K8/7BmV43t3
+         3Tb7bomuZWZgu4z0MuUhPSz9My7ZRJWmzGZVmepWzbRXTdKIfqWJlqiBGvWXp3JgNyWy
+         I8V9df+oHTVWHDVsvt6g22UIETI6zEqh04GZ0zme+AdpU1u9QQuTAo2UkacMHho1hZ2Y
+         sdBBzL5C2kKU1QfaeOEp+G+zF1dkC7r5P+44TnJrLmZ6slsOjd2IBx0Sflt4sVsztsvb
+         zNNd1RLUF2arfKtdVWdWkEdscBhSBpsGpCTbBWwdtxhEiCLGDPAb/rMx6U2UtrDf/XrN
+         mx/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=+d/aojT1TCgagMDA6o2QljnvpRxpeI/WOeBAtluw3O0=;
-        b=mIvoQt6IFud+R7OYQaIF++gQ4litgBy7FwykdJd1AI45dlwOqzOGHq6q9VJLdO7gCG
-         UjCIE+JcB84kGwW/53JgwAzQSjyzsL6dRS9TWKjQaOdcK1QLWrwS+JXAdrLjmXQ2oIwg
-         haEyvgcBDE4f4NloRCEJN9dqnYutSzG1h3lGeJazedabbv2qpwNAVfxss4u5Izprnfhb
-         eGMQhUGn94GNh7nB03zmL8XCgMGA+cNnf7OiUKYEtx8ze08CdExRVqNFnKee4QXxVNff
-         NU/chfmkxisehhjf2UBrpEtFJ7Nwu3xUD5MsFWOPq25pQNzCtBSXM8Ow4++P8u7mfa3d
-         xTTg==
-X-Gm-Message-State: AJIora9Cavwgf+4MfE/pfyBxtjOPwp7NO/eb7MM9bQLlEdQHv93RWs75
-        +6l/68QdMPiWwKNhWOYvCCVz1Q==
-X-Google-Smtp-Source: AGRyM1vGJNBjEBQkEjQov65wX5302UAtQD2jH7TjcEWqfZTkmMOaegIuQZGOutC7HVnFEstpCAhwAw==
-X-Received: by 2002:a05:6512:2030:b0:489:c8bf:3f29 with SMTP id s16-20020a056512203000b00489c8bf3f29mr7867805lfs.274.1657875045544;
-        Fri, 15 Jul 2022 01:50:45 -0700 (PDT)
+        bh=ZsJ1XfZRYI9NmeAXNFV8MuDj1Gltas2LdIIHCwgqqO0=;
+        b=61obs/DQzRVi1plD2rJ4dKGgJ9Ltmc+IJ1+Nrs0u4FBIt7SVipgBc7Ma1vH0YYuKqT
+         LoQK7cO8KC0X2QR39WHtUPZjM+ujkI74bgpHpA9UlozPC0oGEkSPc9I9qF/S365ky7hp
+         jm0r037ILTzoQER4k22W50+gShsTBJufGr2v2+lhVqacwB40F7yEYdaDx3a7CEQfwuv0
+         KEYOs5uUYQZOOMQZLpiBaxHda9Gaym1rX7lmNyFfZt2vf5+cDdG9sWsqc3xzzVr80efV
+         EEUsShkAhlh9xsHjtaWP+V6XvRKkOHz1TaB+DfAZ9TJY3kvqlPuO7cN/d9W1SBcVD45u
+         ktIw==
+X-Gm-Message-State: AJIora+YfLH3c/wty+2B3T4hWbJf5Qc2fLKKg5iUEgUfA+M49UGQMgp1
+        /Gz4dZY9ih2IP2XNXqAYZS401A==
+X-Google-Smtp-Source: AGRyM1uN7SYOYgSM7kELq7ZCklUGDTMuTfH21IXRqbrw4fFlhX6GAOu+ojw4ORdIBa8Tn5vyBLt+0Q==
+X-Received: by 2002:a05:6512:32c2:b0:487:cc5e:9ad2 with SMTP id f2-20020a05651232c200b00487cc5e9ad2mr7849959lfg.78.1657875048134;
+        Fri, 15 Jul 2022 01:50:48 -0700 (PDT)
 Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
-        by smtp.gmail.com with ESMTPSA id e4-20020a2e9e04000000b0025d773448basm667846ljk.23.2022.07.15.01.50.44
+        by smtp.gmail.com with ESMTPSA id e4-20020a2e9e04000000b0025d773448basm667846ljk.23.2022.07.15.01.50.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Jul 2022 01:50:45 -0700 (PDT)
+        Fri, 15 Jul 2022 01:50:47 -0700 (PDT)
 From:   Marcin Wojtas <mw@semihalf.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org
@@ -58,9 +58,9 @@ Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
         linux@armlinux.org.uk, hkallweit1@gmail.com, gjb@semihalf.com,
         mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com,
         Samer.El-Haj-Mahmoud@arm.com, upstream@semihalf.com
-Subject: [net-next: PATCH v2 4/8] net: mvpp2: initialize port fwnode pointer
-Date:   Fri, 15 Jul 2022 10:50:08 +0200
-Message-Id: <20220715085012.2630214-5-mw@semihalf.com>
+Subject: [net-next: PATCH v2 6/8] net: core: switch to fwnode_find_net_device_by_node()
+Date:   Fri, 15 Jul 2022 10:50:10 +0200
+Message-Id: <20220715085012.2630214-7-mw@semihalf.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20220715085012.2630214-1-mw@semihalf.com>
 References: <20220715085012.2630214-1-mw@semihalf.com>
@@ -70,34 +70,134 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-As a preparation to switch the DSA subsystem from using
-of_find_net_device_by_node() to its more generic fwnode_
-equivalent, the port's device structure should be updated
-with its fwnode pointer, similarly to of_node - see analogous
-commit c4053ef32208 ("net: mvpp2: initialize port of_node pointer").
-
-This patch is required to prevent a regression before updating
-the DSA API on boards that connect the mvpp2 port to switch,
-such as Clearfog GT-8K or CN913x CEx7 Evaluation Board.
+A helper function which allows getting the struct net_device pointer
+associated with a given device tree node can be more generic and
+also support alternative hardware description. Switch to fwnode_
+and update the only existing caller in DSA subsystem.
+For that purpose use newly added fwnode_dev_node_match helper routine.
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
 ---
- drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/etherdevice.h |  1 +
+ include/linux/of_net.h      |  6 -----
+ net/core/net-sysfs.c        | 25 ++++++--------------
+ net/dsa/dsa2.c              |  3 ++-
+ 4 files changed, 10 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-index b84128b549b4..03d5ff649c47 100644
---- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-+++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-@@ -6868,7 +6868,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 	dev->min_mtu = ETH_MIN_MTU;
- 	/* 9704 == 9728 - 20 and rounding to 8 */
- 	dev->max_mtu = MVPP2_BM_JUMBO_PKT_SIZE;
--	dev->dev.of_node = port_node;
-+	device_set_node(&dev->dev, port_fwnode);
+diff --git a/include/linux/etherdevice.h b/include/linux/etherdevice.h
+index 92b10e67d5f8..a335775af244 100644
+--- a/include/linux/etherdevice.h
++++ b/include/linux/etherdevice.h
+@@ -35,6 +35,7 @@ int nvmem_get_mac_address(struct device *dev, void *addrbuf);
+ int device_get_mac_address(struct device *dev, char *addr);
+ int device_get_ethdev_address(struct device *dev, struct net_device *netdev);
+ int fwnode_get_mac_address(struct fwnode_handle *fwnode, char *addr);
++struct net_device *fwnode_find_net_device_by_node(struct fwnode_handle *fwnode);
  
- 	port->pcs_gmac.ops = &mvpp2_phylink_gmac_pcs_ops;
- 	port->pcs_xlg.ops = &mvpp2_phylink_xlg_pcs_ops;
+ u32 eth_get_headlen(const struct net_device *dev, const void *data, u32 len);
+ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev);
+diff --git a/include/linux/of_net.h b/include/linux/of_net.h
+index 0484b613ca64..f672f831292d 100644
+--- a/include/linux/of_net.h
++++ b/include/linux/of_net.h
+@@ -15,7 +15,6 @@ struct net_device;
+ extern int of_get_phy_mode(struct device_node *np, phy_interface_t *interface);
+ extern int of_get_mac_address(struct device_node *np, u8 *mac);
+ int of_get_ethdev_address(struct device_node *np, struct net_device *dev);
+-extern struct net_device *of_find_net_device_by_node(struct device_node *np);
+ #else
+ static inline int of_get_phy_mode(struct device_node *np,
+ 				  phy_interface_t *interface)
+@@ -32,11 +31,6 @@ static inline int of_get_ethdev_address(struct device_node *np, struct net_devic
+ {
+ 	return -ENODEV;
+ }
+-
+-static inline struct net_device *of_find_net_device_by_node(struct device_node *np)
+-{
+-	return NULL;
+-}
+ #endif
+ 
+ #endif /* __LINUX_OF_NET_H */
+diff --git a/net/core/net-sysfs.c b/net/core/net-sysfs.c
+index d61afd21aab5..7262e4749f57 100644
+--- a/net/core/net-sysfs.c
++++ b/net/core/net-sysfs.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/capability.h>
++#include <linux/etherdevice.h>
+ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+ #include <linux/if_arp.h>
+@@ -1935,38 +1936,26 @@ static struct class net_class __ro_after_init = {
+ 	.get_ownership = net_get_ownership,
+ };
+ 
+-#ifdef CONFIG_OF
+-static int of_dev_node_match(struct device *dev, const void *data)
+-{
+-	for (; dev; dev = dev->parent) {
+-		if (dev->of_node == data)
+-			return 1;
+-	}
+-
+-	return 0;
+-}
+-
+ /*
+- * of_find_net_device_by_node - lookup the net device for the device node
+- * @np: OF device node
++ * fwnode_find_net_device_by_node - lookup the net device for the device fwnode
++ * @fwnode: firmware node
+  *
+- * Looks up the net_device structure corresponding with the device node.
++ * Looks up the net_device structure corresponding with the fwnode.
+  * If successful, returns a pointer to the net_device with the embedded
+  * struct device refcount incremented by one, or NULL on failure. The
+  * refcount must be dropped when done with the net_device.
+  */
+-struct net_device *of_find_net_device_by_node(struct device_node *np)
++struct net_device *fwnode_find_net_device_by_node(struct fwnode_handle *fwnode)
+ {
+ 	struct device *dev;
+ 
+-	dev = class_find_device(&net_class, NULL, np, of_dev_node_match);
++	dev = class_find_device(&net_class, NULL, fwnode, fwnode_dev_node_match);
+ 	if (!dev)
+ 		return NULL;
+ 
+ 	return to_net_dev(dev);
+ }
+-EXPORT_SYMBOL(of_find_net_device_by_node);
+-#endif
++EXPORT_SYMBOL(fwnode_find_net_device_by_node);
+ 
+ /* Delete sysfs entries but hold kobject reference until after all
+  * netdev references are gone.
+diff --git a/net/dsa/dsa2.c b/net/dsa/dsa2.c
+index 82fb3b009fb4..bba416eba9c2 100644
+--- a/net/dsa/dsa2.c
++++ b/net/dsa/dsa2.c
+@@ -7,6 +7,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/etherdevice.h>
+ #include <linux/err.h>
+ #include <linux/list.h>
+ #include <linux/netdevice.h>
+@@ -1498,7 +1499,7 @@ static int dsa_port_parse_fw(struct dsa_port *dp, struct fwnode_handle *fwnode)
+ 		struct net_device *master;
+ 		const char *user_protocol;
+ 
+-		master = of_find_net_device_by_node(to_of_node(ethernet));
++		master = fwnode_find_net_device_by_node(ethernet);
+ 		fwnode_handle_put(ethernet);
+ 		if (!master)
+ 			return -EPROBE_DEFER;
 -- 
 2.29.0
 
