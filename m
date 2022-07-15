@@ -2,202 +2,204 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33A60CCA480
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jul 2022 13:27:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0D84C43334
+	for <linux-acpi@archiver.kernel.org>; Fri, 15 Jul 2022 14:07:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234757AbiGON1p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Jul 2022 09:27:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60154 "EHLO
+        id S230336AbiGOOHr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Jul 2022 10:07:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234074AbiGON1n (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2022 09:27:43 -0400
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F690796A0
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Jul 2022 06:27:41 -0700 (PDT)
-Received: by mail-pj1-x1029.google.com with SMTP id a15so5730422pjs.0
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Jul 2022 06:27:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=semihalf.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=0w0kQnLZNCUoA67Subv68HnzjOpEtCqrqlpvwcv8QtQ=;
-        b=aQJTeA/7QYoqg4phh6dYbrQSrhVVwmYY+spKooPDbdK0/+3i5UXnK5MMw1/F6ry2/e
-         qTCtfYnU6xf2MfjFDlDdR4Ux7++iRsvOhr+NYVNSwL8ImRpCOv4ju2Kw1ED5ovrhkXsr
-         /3cPLPIg/KN8FEYj6D7UGhWwYiIEhQUQSDw7KC4kEul7gTCFVJ9pvBQ58S+OfNtCxWgo
-         Tex/aWXTs9mccMEc9BzY+3Uk5c7vb6x978y1fzzX8PMgEXdPShX1nGddytJLu2YVEbA9
-         fvNefAmRSSpOR2rEd+qpzYaH66WcfPMXIwBxfyCN5WRFZz0nc9XWxevPlzPZQUn66jwf
-         X4qw==
+        with ESMTP id S230301AbiGOOHq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2022 10:07:46 -0400
+Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD8003F33E;
+        Fri, 15 Jul 2022 07:07:40 -0700 (PDT)
+Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-31d7db3e6e5so47714617b3.11;
+        Fri, 15 Jul 2022 07:07:40 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=0w0kQnLZNCUoA67Subv68HnzjOpEtCqrqlpvwcv8QtQ=;
-        b=0aESHg1btYxVYFIDzDFn/BqwqpDC7JnJ5idf72+LZFQdvn55dpDmf/q6dHlogjoWLr
-         cjcEQUDhLwaeZ5c40bX5tvtxntzgaNJqytZipveNbxanGcm1Q9FXeeXXoc5D+PgvQkKV
-         zVOM+oL2djCWTWDmUvS/MECtuK8O0gdWEBn1TXs4wBELn6XGkaz+YOMB4jL9ZOiN3vR8
-         rqA5ojQsuwqcKCwJbL/eOMgOqsA+wKuhloyjO6LyxYqPLi0/SdaQg5KAgsspCqJenw65
-         loMXE1Kcdx0YJDoeoHgWZlJfPx9ffKlfGwMewD/1XH+JztLAeAbCIzZye0+CDMkq6IKh
-         Tr8Q==
-X-Gm-Message-State: AJIora9/woa/3Vy/pzCIkF6qm1IxDO/x+ETFdWuUfOcnSqSIakUgovix
-        cc/rBrwdVl4bkax++CFSqZk+AVu7oxegGBKux1Nmiw==
-X-Google-Smtp-Source: AGRyM1uxobt3jQNw8mkgTNw7tHuEHXM0gZenwP8TKU40cNS4zzk/pNnAHQubPXJXXJpyrdH3FzItpK7St541HUkKyP4=
-X-Received: by 2002:a17:902:d510:b0:16c:3cd:db78 with SMTP id
- b16-20020a170902d51000b0016c03cddb78mr13974279plg.17.1657891661082; Fri, 15
- Jul 2022 06:27:41 -0700 (PDT)
+         :message-id:subject:to:cc;
+        bh=mB8MshyZQ3H+5jGI7wEpF7cyzflD4Jja5pM/YkTK85U=;
+        b=rSQHJy5YYQWvxis6y5xAezdl61t74BENTD5KMhTrkmil+Kw/QrYsvwkSep2ep4sFjZ
+         52ev2IQnVehsDR2YnyfoZI2wvFAaZxj//1TTiTtxy7LwoX8Qopa+5mGWxznAXjhItVOP
+         eTH9awuPKj1hTkiI3Yw5EXa7WFjs03NIFzUQpS4Yq5LxJnk267IulvSv2hKWXxtvMl2F
+         a8Jo0nD36xkD1D3AU8DEW4z3mh08NxCGGgLpsFnJG7ulySUlf7OgcbCaD85OKqaQmbL0
+         WB6X08RwqNXOk83z+XNRXAm//qxcgx5eJZVpbK6Bh8kIEagV6yNYAzoKWDWs68QPhlPB
+         QzRg==
+X-Gm-Message-State: AJIora83A0ZScZnyCRvofXuPjKhPZ31armzFnvuFiGmmiMFZYZwhw+zv
+        zYcwsTCDTARwkEbbc3lP+zKhwT/ZnPPDiMwFrcM=
+X-Google-Smtp-Source: AGRyM1tyOFeqyd64Y70bmE0mmcv6bkgrBNmUysaRjyZ/ZYypiW98S5p8M+DjLrKlHhNFgPHH6VfcwRkQyy7evQQGUWE=
+X-Received: by 2002:a81:cd6:0:b0:31d:72e3:8b81 with SMTP id
+ 205-20020a810cd6000000b0031d72e38b81mr15877408ywm.301.1657894059985; Fri, 15
+ Jul 2022 07:07:39 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220707125329.378277-1-jaz@semihalf.com> <MN0PR12MB610107D8E99AC05C7884AEE6E2839@MN0PR12MB6101.namprd12.prod.outlook.com>
-In-Reply-To: <MN0PR12MB610107D8E99AC05C7884AEE6E2839@MN0PR12MB6101.namprd12.prod.outlook.com>
-From:   Grzegorz Jaszczyk <jaz@semihalf.com>
-Date:   Fri, 15 Jul 2022 15:27:30 +0200
-Message-ID: <CAH76GKM+bGM77gcPCz1yt=MULOxRW=-TCVFwsn6grP0aGRpsMg@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/2] x86: allow to notify host about guest entering s2idle
-To:     "Limonciello, Mario" <Mario.Limonciello@amd.com>,
-        "seanjc@google.com" <seanjc@google.com>,
+References: <20220713112612.6935-1-limanyi@uniontech.com> <20220713182852.GA841582@bhelgaas>
+ <CAAd53p7g2Md73=UU6Rp-TZkksc+H02KAX58bWCzsgQ__VwvJ+g@mail.gmail.com>
+ <62d11a02.1c69fb81.ee60c.b0efSMTPIN_ADDED_BROKEN@mx.google.com> <CAJZ5v0gKMqOwg3JLx4PBksnpUhgaDDfahmE5RjJMTByOLAQOFg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gKMqOwg3JLx4PBksnpUhgaDDfahmE5RjJMTByOLAQOFg@mail.gmail.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 15 Jul 2022 16:07:28 +0200
+Message-ID: <CAJZ5v0gt761WUPn-3HQ3sA+8N_s_yHrSkk6CH1gBW0gy1c_+KA@mail.gmail.com>
+Subject: Re: [PATCH] PCI/ASPM: Should not report ASPM support to BIOS if FADT
+ indicates ASPM is unsupported
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     Manyi Li <limanyi@uniontech.com>,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "Saheed O. Bolarinwa" <refactormyself@gmail.com>,
+        =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
+        Rajat Jain <rajatja@google.com>,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Vidya Sagar <vidyas@nvidia.com>,
+        Matthew Garrett <mjg59@srcf.ucam.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dmy@semihalf.com" <dmy@semihalf.com>,
-        "dbehr@google.com" <dbehr@google.com>,
-        "upstream@semihalf.com" <upstream@semihalf.com>,
-        "zide.chen@intel.corp-partner.google.com" 
-        <zide.chen@intel.corp-partner.google.com>,
-        Len Brown <lenb@kernel.org>, Mark Gross <markgross@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Sachi King <nakato@nakato.io>,
-        "open list:ACPI" <linux-acpi@vger.kernel.org>,
-        "open list:X86 PLATFORM DRIVERS" 
-        <platform-driver-x86@vger.kernel.org>,
-        "open list:HIBERNATION (aka Software Suspend, aka swsusp)" 
-        <linux-pm@vger.kernel.org>
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-czw., 7 lip 2022 o 17:27 Limonciello, Mario
-<Mario.Limonciello@amd.com> napisa=C5=82(a):
+On Fri, Jul 15, 2022 at 2:24 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
-> [Public]
+> On Fri, Jul 15, 2022 at 9:40 AM Manyi Li <limanyi@uniontech.com> wrote:
+> >
+> >
+> >
+> > On 2022/7/14 11:20, Kai-Heng Feng wrote:
+> > > [+Cc Matthew]
+> > >
+> > > On Thu, Jul 14, 2022 at 2:28 AM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > >>
+> > >> [+cc Kai-Heng, Vidya, who also have ASPM patches in flight]
+> > >>
+> > >> On Wed, Jul 13, 2022 at 07:26:12PM +0800, Manyi Li wrote:
+> > >>> Startup log of ASUSTeK X456UJ Notebook show:
+> > >>> [    0.130563] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+> > >>> [   48.092472] pcieport 0000:00:1c.5: PCIe Bus Error: severity=Corrected, type=Physical Layer, (Receiver ID)
+> > >>> [   48.092479] pcieport 0000:00:1c.5:   device [8086:9d15] error status/mask=00000001/00002000
+> > >>> [   48.092481] pcieport 0000:00:1c.5:    [ 0] RxErr
+> > >>> [   48.092490] pcieport 0000:00:1c.5: AER: Corrected error received: 0000:00:1c.5
+> > >>> [   48.092504] pcieport 0000:00:1c.5: AER: can't find device of ID00e5
+> > >>> [   48.092506] pcieport 0000:00:1c.5: AER: Corrected error received: 0000:00:1c.5
+> > >>
+> > >> Can you elaborate on the connection between the FADT ASPM bit and the
+> > >> AER logs above?
+> >
+> > Sorry,I don't know about that.
+> >
+> > >>
+> > >> What problem are we solving here?  A single corrected error being
+> > >> logged?  An infinite stream of errors?  A device that doesn't work at
+> > >> all?
+> > >
+> > > Agree, what's the real symptom of the issue?
+> >
+> > Please see the details of this issus:
+> > https://bugzilla.kernel.org/show_bug.cgi?id=216245
+> >
+> > >
+> > >>
+> > >> We don't need the dmesg timestamps unless they contribute to
+> > >> understanding the problem.  I don't think they do in this case.
+> > >
+> > > According to commit 387d37577fdd ("PCI: Don't clear ASPM bits when the
+> > > FADT declares it's unsupported"), the bit means "just use the ASPM
+> > > bits handed over by BIOS".
+> > >
+> > > However, I do wonder why both drivers/pci/pci-acpi.c and
+> > > drivers/acpi/pci_root.c are doing the ACPI_FADT_NO_ASPM check,
 >
->
->
-> > -----Original Message-----
-> > From: Grzegorz Jaszczyk <jaz@semihalf.com>
-> > Sent: Thursday, July 7, 2022 07:53
-> > To: linux-kernel@vger.kernel.org
-> > Cc: jaz@semihalf.com; dmy@semihalf.com; Limonciello, Mario
-> > <Mario.Limonciello@amd.com>; seanjc@google.com; dbehr@google.com;
-> > upstream@semihalf.com; zide.chen@intel.corp-partner.google.com; Rafael =
-J.
-> > Wysocki <rafael@kernel.org>; Len Brown <lenb@kernel.org>; Hans de Goede
-> > <hdegoede@redhat.com>; Mark Gross <markgross@kernel.org>; Pavel Machek
-> > <pavel@ucw.cz>; Mika Westerberg <mika.westerberg@linux.intel.com>; Sach=
-i
-> > King <nakato@nakato.io>; open list:ACPI <linux-acpi@vger.kernel.org>; o=
-pen
-> > list:X86 PLATFORM DRIVERS <platform-driver-x86@vger.kernel.org>; open
-> > list:HIBERNATION (aka Software Suspend, aka swsusp) <linux-
-> > pm@vger.kernel.org>
-> > Subject: [RFC PATCH 0/2] x86: allow to notify host about guest entering=
- s2idle
-> >
-> > According to the mailing list discussion [1] about the preferred approa=
-ch
-> > for notifying hypervisor/VMM about guest entering s2idle state this RFC=
- was
-> > implemented.
-> >
-> > Instead of original hypercall based approach, which involves KVM change=
- [2]
-> > and makes it hypervisor specific, implement different mechanism, which
-> > takes advantage of MMIO/PIO trapping and makes it hypervisor independen=
-t.
-> >
-> > Patch #1 extends S2Idle ops by new notify handler which will be invoked=
- as
-> > a very last command before system actually enters S2Idle states. It als=
-o
-> > allows to register and use driver specific notification hook which is u=
-sed
-> > in patch #2.
-> >
-> > Patch #2 introduces new driver for virtual PMC, which registers
-> > acpi_s2idle_dev_ops's notify handler. Its implementation is based on an
-> > ACPI _DSM evaluation, which in turn can perform MMIO access and allow t=
-o
-> > trap and therefore notify the VMM about guest entering S2Idle state.
-> >
-> > Please see individual patches and commit logs for more verbose descript=
-ion.
-> >
-> > This patchset is marked as RFC since patch #2 implements driver for non
-> > existing device "HYPE0001", which ACPI ID was not registered yet.
-> > Furthermore the required registration process [3] will not be started
-> > before getting positive feedback about this patchset.
-> >
-> > [1]
-> > https://nam11.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fpat=
-chw
-> > ork.kernel.org%2Fproject%2Flinux-pm%2Fpatch%2F20220609110337.1238762-
-> > 2-
-> > jaz%40semihalf.com%2F&amp;data=3D05%7C01%7Cmario.limonciello%40amd.co
-> > m%7C514a545cf9aa4a7b6d9508da6018138b%7C3dd8961fe4884e608e11a82d9
-> > 94e183d%7C0%7C0%7C637927953769026163%7CUnknown%7CTWFpbGZsb3d8
-> > eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%
-> > 7C3000%7C%7C%7C&amp;sdata=3DRIDiHUNpHUsBYyK3pwGND%2BWJoioXZNCKt
-> > mML2%2F1LAxs%3D&amp;reserved=3D0
-> > [2]
-> > https://nam11.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fpat=
-chw
-> > ork.kernel.org%2Fproject%2Flinux-pm%2Fpatch%2F20220609110337.1238762-
-> > 3-
-> > jaz%40semihalf.com%2F&amp;data=3D05%7C01%7Cmario.limonciello%40amd.co
-> > m%7C514a545cf9aa4a7b6d9508da6018138b%7C3dd8961fe4884e608e11a82d9
-> > 94e183d%7C0%7C0%7C637927953769026163%7CUnknown%7CTWFpbGZsb3d8
-> > eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%
-> > 7C3000%7C%7C%7C&amp;sdata=3DBqykAwWzO%2BfeGPSsAqTmX13O8F0Vvm3G
-> > PL56EpmdSJ8%3D&amp;reserved=3D0
-> > [3]
-> > https://nam11.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fuef=
-i.org
-> > %2FPNP_ACPI_Registry&amp;data=3D05%7C01%7Cmario.limonciello%40amd.co
-> > m%7C514a545cf9aa4a7b6d9508da6018138b%7C3dd8961fe4884e608e11a82d9
-> > 94e183d%7C0%7C0%7C637927953769026163%7CUnknown%7CTWFpbGZsb3d8
-> > eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%
-> > 7C3000%7C%7C%7C&amp;sdata=3DQXK52zFXJGEBm6xIv6IFeF7Xxgz4Yp5UmgLSQ
-> > diXtlI%3D&amp;reserved=3D0
-> >
-> > Grzegorz Jaszczyk (2):
-> >   suspend: extend S2Idle ops by new notify handler
-> >   platform/x86: Add virtual PMC driver used for S2Idle
-> >
-> >  drivers/acpi/x86/s2idle.c       | 11 +++++
-> >  drivers/platform/x86/Kconfig    |  7 ++++
-> >  drivers/platform/x86/Makefile   |  1 +
-> >  drivers/platform/x86/virt_pmc.c | 73 +++++++++++++++++++++++++++++++++
-> >  include/linux/acpi.h            |  1 +
-> >  include/linux/suspend.h         |  1 +
-> >  kernel/power/suspend.c          |  4 ++
-> >  7 files changed, 98 insertions(+)
-> >  create mode 100644 drivers/platform/x86/virt_pmc.c
-> >
-> > --
-> > 2.37.0.rc0.161.g10f37bed90-goog
->
-> Thanks, you matched the implementation I was expecting.
-> This looks fine by me.
+> Because pci_root.c doesn't read aspm_disabled.
 
-Thank you Mario.
+I've recalled a bit in the meantime.
 
-Rafael, Sean, Hans - could you please kindly tell if this approach is
-ok by you? If so I will want to start the registration process of ACPI
-ID required for this series.
+First off, ACPI_FADT_NO_ASPM forbids the OS from enabling ASPM control
+(quite literally).  It doesn't mean that the OS should not enumerate
+ASPM and it doesn't mean that it should not report ASPM support to the
+firmware via _OSC.  Moreover, there are (or at least there were)
+systems where the firmware expected ASPM support to be reported via
+_OSC anyway (see commit 8b8bae901ce2 PCI/ACPI: Report ASPM support to
+BIOS if not disabled from command line).
 
-Previously Mario suggested that maybe Linux Foundation could own the
-namespace and ID for this Virtual PMC device - could you please advise
-in this matter?
+Thus, if ASPM is not disabled from command line, it would be
+consistent to carry out the _OSC negotiation as usual regardless of
+ACPI_FADT_NO_ASPM and then handle the case in which it is set in the
+same way as the case in which the firmware doesn't grant the kernel
+control of some PCIe features.  Does this sound reasonable?
 
-Thank you in advance,
-Grzegorz
+If it does, I think that ASPM should be enumerated regardless of
+ACPI_FADT_NO_ASPM, but we need to ensure that its configuration is not
+changed in any way if ACPI_FADT_NO_ASPM is set and I'm not sure if
+that is the case now.
+
+Of course, the same needs to happen when the kernel doesn't get full
+control over PCIe features via _OSC, but AFAICS that case is handled
+in the same way as the above already.
+
+> > > maybe one of them should be removed?
+>
+> Arguably, pci_root.c could look at aspm_disabled instead of looking at
+> the FADT flag directly.
+
+Second, if the former does sound reasonable, I'd rather avoid setting
+aspm_disabled from drivers/pci/pci-acpi.c upfront when
+ACPI_FADT_NO_ASPM is set, because doing that is not consistent with
+the above.
+
+Now, there may be BIOSes that don't expect to be informed of the OS
+support for ASPM via _OSC if ACPI_FADT_NO_ASPM is set, and the
+question is what to do with them.  They clearly are at odds with the
+BIOSes that do expect that to happen (mentioned above), so honestly
+I'm not sure.
+
+> > I think duplicate work has been done, but comment
+> > in drivers/acpi/pci_root.c is
+> > * We want to disable ASPM here, but aspm_disabled
+> > * needs to remain in its state from boot so that we
+> > * properly handle PCIe 1.1 devices.  So we set this
+> > * flag here, to defer the action until after the ACPI
+> > * root scan.
+> >
+> > I don't understand this logic.
+>
+> This is about the case after failing acpi_pci_osc_control_set() and
+> generally we need to defer setting aspm_disabled because of
+> pcie_aspm_sanity_check().
+>
+> > >
+> > >>
+> > >>> Signed-off-by: Manyi Li <limanyi@uniontech.com>
+> > >>> ---
+> > >>>   drivers/pci/pcie/aspm.c | 1 +
+> > >>>   1 file changed, 1 insertion(+)
+> > >>>
+> > >>> diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
+> > >>> index a96b7424c9bc..b173d3c75ae7 100644
+> > >>> --- a/drivers/pci/pcie/aspm.c
+> > >>> +++ b/drivers/pci/pcie/aspm.c
+> > >>> @@ -1359,6 +1359,7 @@ void pcie_no_aspm(void)
+> > >>>        if (!aspm_force) {
+> > >>>                aspm_policy = POLICY_DEFAULT;
+> > >>>                aspm_disabled = 1;
+> > >>> +             aspm_support_enabled = false;
+> > >>
+> > >> This makes pcie_no_aspm() work the same as booting with
+> > >> "pcie_aspm=off".  That might be reasonable.
+> > >>
+> > >> I do wonder why we need both "aspm_disabled" and
+> > >> "aspm_support_enabled".  And I wonder why we need to set "aspm_policy"
+> > >> when we're disabling ASPM.  But those aren't really connected to your
+> > >> change here.
+> > >
+> > >  From what I can understand "aspm_disabled" means "don't touch ASPM
+> > > left by BIOS", and "aspm_support_enabled" means "whether ASPM is
+> > > disabled via command line".
+> > > There seems to be some overlaps though.
+> >
+> > According to commit 8b8bae901ce23 ("PCI/ACPI: Report ASPM support to
+> > BIOS if not disabled from command line"), "aspm_support_enabled" means
+> > whether or not report ASPM support to the BIOS through _OSC.
+>
+> Right.
