@@ -2,144 +2,123 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80AA4C433EF
-	for <linux-acpi@archiver.kernel.org>; Thu, 21 Jul 2022 21:36:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A712DC433EF
+	for <linux-acpi@archiver.kernel.org>; Fri, 22 Jul 2022 02:59:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233756AbiGUVgw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 21 Jul 2022 17:36:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53570 "EHLO
+        id S230153AbiGVC74 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 21 Jul 2022 22:59:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233613AbiGUVgv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jul 2022 17:36:51 -0400
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 921E49361D;
-        Thu, 21 Jul 2022 14:36:50 -0700 (PDT)
-Received: by mail-ed1-x52f.google.com with SMTP id m16so3734541edb.11;
-        Thu, 21 Jul 2022 14:36:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=dM5Ipf0pW1sHVngWhRmQL54mzB8rAPcDkpMU7YZORbY=;
-        b=YKlJAtoD5oh1nsR0YPD1gVhOOVqZwjfJsbU0n9t/2F31hZclspGY6Q32l6wCZkocOk
-         J/OpNHXVKk+fIKTwr2bqIgEqJ5VvKzjUC+MZ6OmmRke3gGX0eZQY2McRWxovhGwGwGVd
-         lv1Qj5j4cvOTCmYteGyvhdubnCMPLEaWzWk/jfGRGjvwqsoAkV4wUoULICAdAKKPU+3z
-         MMhYK72GQfqua/zlYpiAJz0Ve9VfpeAurr7E1opw5HoRfuGGYs7/fa0TSsqQL7cWzlxO
-         t9Fki9V1GWMct3KOIQdamrCsvOHL9cmMpmxtE108K5lma4eGcVCvuERxCNLMYmb9Y6bG
-         0rTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=dM5Ipf0pW1sHVngWhRmQL54mzB8rAPcDkpMU7YZORbY=;
-        b=6yc6lWn6GEbF+vkBjxVrHM5+W1m92GFJGLWdA2TgMlVBCf7aGVTs9UJlFRh/5MNsev
-         S0FmbWaA+zmvthR8X40VfqMbs98ijt5KFv3jHpkpV07tRACEW1NTkOTscCHAM047hdxl
-         7ePV2XMhF0RJl9gbqu/Ez6AKTf541mo/+6Hb+wWTPzZ8RdGlDpqC4vNTWZMQ8fcRSDz9
-         W6j9sR5DN5Ubaul6fzBwAg5d84qXFtr5iseUnCzM/+beIKDVAx4qLukzysB56LBJgYCD
-         XeYXDOON2bN6K5WaDdNhQ8e0JaY7Dv2LGfHf9Vz5HdK1Sbhya6BV7ptW3iq7rMbI5flR
-         arvQ==
-X-Gm-Message-State: AJIora9gjB+Ea1HJpifz1+7mzSBDN/hLcerA6MrGYsEh04r8cgwMsxa5
-        PHLXyYm3BDDcEqhpHoFMuEA=
-X-Google-Smtp-Source: AGRyM1sxaAiodhN6poRONOUpx0euQaN7KbvX4J+AQGA8IzCf1dbLoXzyqULJnieH2nqRe23rhJf9TQ==
-X-Received: by 2002:a05:6402:4442:b0:43b:c866:21be with SMTP id o2-20020a056402444200b0043bc86621bemr432882edb.28.1658439409047;
-        Thu, 21 Jul 2022 14:36:49 -0700 (PDT)
-Received: from skbuf ([188.25.231.115])
-        by smtp.gmail.com with ESMTPSA id b21-20020a17090630d500b0072aa1313f5csm1219613ejb.201.2022.07.21.14.36.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jul 2022 14:36:48 -0700 (PDT)
-Date:   Fri, 22 Jul 2022 00:36:45 +0300
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     "Russell King (Oracle)" <linux@armlinux.org.uk>
-Cc:     Marek =?utf-8?B?QmVow7pu?= <kabel@kernel.org>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Alvin __ipraga <alsi@bang-olufsen.dk>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        DENG Qingfang <dqfext@gmail.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        George McCollister <george.mccollister@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hauke Mehrtens <hauke@hauke-m.de>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Kurt Kanzenbach <kurt@linutronix.de>,
-        Landen Chao <Landen.Chao@mediatek.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sean Wang <sean.wang@mediatek.com>,
-        UNGLinuxDriver@microchip.com,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Woojung Huh <woojung.huh@microchip.com>
-Subject: Re: [PATCH net-next 3/6] net: dsa: add support for retrieving the
- interface mode
-Message-ID: <20220721213645.57ne2jf7f6try4ec@skbuf>
-References: <20220716123608.chdzbvpinso546oh@skbuf>
- <YtUec3GTWTC59sky@shell.armlinux.org.uk>
- <20220720224447.ygoto4av7odsy2tj@skbuf>
- <20220721134618.axq3hmtckrumpoy6@skbuf>
- <Ytlol8ApI6O2wy99@shell.armlinux.org.uk>
- <20220721151533.3zomvnfogshk5ze3@skbuf>
- <20220721192145.1f327b2a@dellmb>
- <20220721192145.1f327b2a@dellmb>
- <20220721182216.z4vdaj4zfb6w3emo@skbuf>
- <YtnBmFm8Jhokgp7Q@shell.armlinux.org.uk>
+        with ESMTP id S229997AbiGVC7z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jul 2022 22:59:55 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E21D39965A;
+        Thu, 21 Jul 2022 19:59:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1658458795; x=1689994795;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=jf5a6eJbd1i8i4tKIsKNe30GC5A0Ds+xBn3mTnf2sZk=;
+  b=SujsOjXPrsVzGM6/P8A+Qf8sflaBKQe2np/vpNC38Y4V2JXLH4+AvTjW
+   LAVPJeF+NcOKjps0U0dNIUjl84hDrfKBzBbIVY7u3kPcPPARV3GsVGDka
+   tCb3QJ336yhz5PXDc24mZW+o6CmTqE863H5H/eAyNQPgwFSNtSqljvkzR
+   tSphqFBDj/tImRSKqe9LVL35yqpx/+l+K5mxZRbx7ORfRdALTsdWtSKCN
+   T5OI/6400VPAVfuSotk7H6WEK6rbMGMc2lhRZagRfSJzz3gHFabEnsBtA
+   4jn25WJ+uxaJnKLCxDlJG4vW6clfypct13mk5u+VYQwuzmDP+7jAtOEgK
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10415"; a="287978444"
+X-IronPort-AV: E=Sophos;i="5.93,184,1654585200"; 
+   d="scan'208";a="287978444"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 19:59:54 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,184,1654585200"; 
+   d="scan'208";a="775100917"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by orsmga005.jf.intel.com with ESMTP; 21 Jul 2022 19:59:54 -0700
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28; Thu, 21 Jul 2022 19:59:53 -0700
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28; Thu, 21 Jul 2022 19:59:53 -0700
+Received: from fmsmsx611.amr.corp.intel.com ([10.18.126.91]) by
+ fmsmsx611.amr.corp.intel.com ([10.18.126.91]) with mapi id 15.01.2375.028;
+ Thu, 21 Jul 2022 19:59:53 -0700
+From:   "Zhang, Rui" <rui.zhang@intel.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+CC:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: RE: [PATCH] intel: thermal: PCH: Drop ACPI_FADT_LOW_POWER_S0 check
+Thread-Topic: [PATCH] intel: thermal: PCH: Drop ACPI_FADT_LOW_POWER_S0 check
+Thread-Index: AQHYl7WLPGVORxB/C0KdIx9UYpBjiK2DFQsAgABanYCABk5YYA==
+Date:   Fri, 22 Jul 2022 02:59:53 +0000
+Message-ID: <65fe502db8174defba0f21958499cab0@intel.com>
+References: <12013659.O9o76ZdvQC@kreacher>
+ <61311732eeea1f45e85537e911e4bb024c0a30b7.camel@intel.com>
+ <CAJZ5v0j+FTX4UF-9Y0BQc2mYXQiphsnkt07CALhF7BPtSdDxgg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0j+FTX4UF-9Y0BQc2mYXQiphsnkt07CALhF7BPtSdDxgg@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.6.500.17
+x-originating-ip: [10.108.32.68]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YtnBmFm8Jhokgp7Q@shell.armlinux.org.uk>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jul 21, 2022 at 10:14:00PM +0100, Russell King (Oracle) wrote:
-> > > So currently we try to enable C37 AN in 2500base-x mode, although
-> > > the standard says that it shouldn't be there, and it shouldn't be there
-> > > presumably because they want it to work with C73 AN.
-> > > 
-> > > I don't know how to solve this issue. Maybe declare a new PHY interface
-> > > mode constant, 2500base-x-no-c37-an ?
-> > 
-> > So this is essentially what I'm asking, and you didn't necessarily fully
-> > answer. I take it that there exist Marvell switches which enable in-band
-> > autoneg for 2500base-x and switches which don't, and managed = "in-band-status"
-> > has nothing to do with that decision. Right?
-> 
-> I think we're getting a little too het up over this.
-
-No, I think it's relevant to this patch set.
-
-> We have 1000base-X where, when we're not using in-band-status, we don't
-> use autoneg (some drivers that weren't caught in review annoyingly do
-> still use autoneg, but they shouldn't). We ignore the ethtool autoneg
-> bit.
-> 
-> We also have 1000base-X where we're using in-band-status, and we then
-> respect the ethtool autoneg bit.
-> 
-> So, wouldn't it be logical if 2500base-X were implemented the same way,
-> and on setups where 2500base-X does not support clause 37 AN, we
-> clear the ethtool autoneg bit? If we have 2500base-X being used as the
-> media link, surely this is the right behaviour?
-
-The ethtool autoneg bit is only relevant when the PCS is the last thing
-before the medium. But if the SERDES protocol connects the MAC to the PHY,
-or the MAC to another MAC (such as the case here, CPU or DSA ports),
-there won't be any ethtool bit to take into consideration, and that's
-where my question is. Is there any expected correlation between enabling
-in-band autoneg and the presence or absence of managed = "in-band-status"?
-
-> (This has implications for the rate adaption case, since the 2500base-X
-> link is not the media, and therefore the state of the autoneg bit
-> shouldn't apply to the 2500base-X link.)
-
-This is closer to what I was interested in knowing, but still not that.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
+a2kgPHJhZmFlbEBrZXJuZWwub3JnPg0KPiBTZW50OiBNb25kYXksIEp1bHkgMTgsIDIwMjIgMzoz
+OSBBTQ0KPiBUbzogWmhhbmcsIFJ1aSA8cnVpLnpoYW5nQGludGVsLmNvbT4NCj4gQ2M6IFJhZmFl
+bCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IExpbnV4IFBNIDxsaW51eC0NCj4gcG1A
+dmdlci5rZXJuZWwub3JnPjsgTGludXggQUNQSSA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+
+OyBMS01MIDxsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZz47IE1hcmlvIExpbW9uY2ll
+bGxvIDxtYXJpby5saW1vbmNpZWxsb0BhbWQuY29tPjsNCj4gU3Jpbml2YXMgUGFuZHJ1dmFkYSA8
+c3Jpbml2YXMucGFuZHJ1dmFkYUBsaW51eC5pbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFU
+Q0hdIGludGVsOiB0aGVybWFsOiBQQ0g6IERyb3AgQUNQSV9GQURUX0xPV19QT1dFUl9TMA0KPiBj
+aGVjaw0KPiBJbXBvcnRhbmNlOiBIaWdoDQo+IA0KPiBPbiBTdW4sIEp1bCAxNywgMjAyMiBhdCA4
+OjE0IEFNIFpoYW5nIFJ1aSA8cnVpLnpoYW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4NCj4gPiBP
+biBUaHUsIDIwMjItMDctMTQgYXQgMjE6MTEgKzAyMDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3Rl
+Og0KPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwu
+Y29tPg0KPiA+ID4NCj4gPiA+IElmIEFDUElfRkFEVF9MT1dfUE9XRVJfUzAgaXMgbm90IHNldCwg
+dGhpcyBkb2Vzbid0IG1lYW4gdGhhdCBsb3ctDQo+ID4gPiBwb3dlcg0KPiA+ID4gUzAgaWRsZSBp
+cyBub3QgdXNhYmxlLiAgSXQgbWVyZWx5IG1lYW5zIHRoYXQgdXNpbmcgUzMgb24gdGhlIGdpdmVu
+DQo+ID4gPiBzeXN0ZW0gaXMgbW9yZSBiZW5lZmljaWFsIGZyb20gdGhlIGVuZXJneSBzYXZpbmcg
+cGVyc3BlY3RpdmUgdGhhbg0KPiA+ID4gdXNpbmcgbG93LXBvd2VyIFMwIGlkbGUsIGFzIGxvbmcg
+YXMgUzMgaXMgc3VwcG9ydGVkLg0KPiA+DQo+ID4gQWdyZWVkLg0KPiA+DQo+ID4gPg0KPiA+ID4g
+U3VzcGVuZC10by1pZGxlIGlzIHN0aWxsIGEgdmFsaWQgc3VzcGVuZCBtb2RlIGlmDQo+ID4gPiBB
+Q1BJX0ZBRFRfTE9XX1BPV0VSX1MwDQo+ID4gPiBpcyBub3Qgc2V0IGFuZCB0aGUgcG1fc3VzcGVu
+ZF92aWFfZmlybXdhcmUoKSBjaGVjayBpbg0KPiA+ID4gcGNoX3dwdF9zdXNwZW5kKCkNCj4gPiA+
+IGlzIHN1ZmZpY2llbnQgdG8gZGlzdGluZ3Vpc2ggc3VzcGVuZC10by1pZGxlIGZyb20gUzMsIHNv
+IGRyb3AgdGhlDQo+ID4gPiBjb25mdXNpbmcgQUNQSV9GQURUX0xPV19QT1dFUl9TMCBjaGVjay4N
+Cj4gPg0KPiA+IHRoZSBjb29saW5nIGRlbGF5IGluIHRoZSBzdXNwZW5kIGNhbGxiYWNrIGlzIHRv
+IG1ha2Ugc3VyZSBQQ0gNCj4gPiB0ZW1wZXJhdHVyZSB3b24ndCBibG9jayBTMGl4IGR1cmluZyBz
+MmlkbGUuIFNvIGlmIFMwaXggaXMgbm90DQo+ID4gc3VwcG9ydGVkLCBpdCBpcyBtZWFuaW5nbGVz
+cyB0byBpbnZva2UgdGhlIGNvb2xpbmcgZGVsYXkgZHVyaW5nIHMyaWRsZS4NCj4gDQo+IEJ1dCB0
+aGVyZSBpcyBubyB3YXkgdG8gZGV0ZXJtaW5lIHdoZXRoZXIgb3Igbm90IFMwaXggaXMgc3VwcG9y
+dGVkLiAgSW4NCj4gcGFydGljdWxhciwgQUNQSV9GQURUX0xPV19QT1dFUl9TMCBpcyBub3Qgb25l
+Lg0KPiANCj4gPiBzbyB0aGUgcHJvYmxlbSBpcyB0aGF0IHdlIGRvbid0IGhhdmUgYW4gaW5kaWNh
+dG9yIGZvciBTMGl4IGNhcGFiaWxpdHkuDQo+ID4gQW5kIHRoaXMgYWxzbyBhcHBsaWVzIHRvIGRy
+aXZlcnMvcnRjL3J0Yy1jbW9zLmMsIHdoZXJlIHdlIHVzZSBBQ1BJIFNDSQ0KPiA+IGZvciBydW50
+aW1lIFJUQyB3YWtldXAgaW5zdGVhZCBvZiBIUEVUIGludGVycnVwdCBvbiAiUzBpeCBjYXBhYmxl
+Ig0KPiA+IHBsYXRmb3JtcyBiZWNhdXNlIHRoZSBIUEVUIHRpbWVyIG1heSBibG9jayBTMGl4Lg0K
+PiANCj4gIlMwaXggY2FwYWJsZSIgZG9lc24ndCBtYXR0ZXIuICBXaGF0IG1hdHRlcnMgaXMgd2hl
+dGhlciBvciBub3QgdGhlIGN1cnJlbnQNCj4gdHJhbnNpdGlvbiB1bmRlciB3YXkgaXMgaW50byBT
+MCBvciBpbnRvIHN1c3BlbmQtdG8taWRsZS4gIEluIHRoZSBsYXR0ZXIgY2FzZQ0KPiB0aGVyZSBp
+cyBubyByZWFzb24gdG8gYXZvaWQgZG9pbmcgd2hhdGV2ZXIgaXMgZG9uZSBpbiB0aGUgZXhwZWN0
+YXRpb24gdGhhdA0KPiBTMGl4IG1heSBiZSBlbnRlcmVkIGdvaW5nIGZvcndhcmQuDQoNCk9rYXku
+IEl0IGlzIG5vdCBwZXJmZWN0IGJ1dCB3ZSBoYXZlIHRvIGxpdmUgd2l0aCB0aGlzLg0KDQpBY2tl
+ZC1ieTogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPg0K
