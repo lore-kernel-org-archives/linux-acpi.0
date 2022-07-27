@@ -2,102 +2,133 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D7D7C25B07
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jul 2022 06:44:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75E3EC19F29
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jul 2022 07:42:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230137AbiG0Goi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 27 Jul 2022 02:44:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52938 "EHLO
+        id S229724AbiG0HmD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 Jul 2022 03:42:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230026AbiG0GoJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2022 02:44:09 -0400
-Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 966C240BD5
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2022 23:43:46 -0700 (PDT)
-Received: by mail-lf1-x12c.google.com with SMTP id w15so17710165lft.11
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2022 23:43:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=semihalf.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=+d/aojT1TCgagMDA6o2QljnvpRxpeI/WOeBAtluw3O0=;
-        b=KgE76jCoQUSTM3acGvNgdioxOEkcwqT3ATxQ/UKzncXpzHm99rgdQcDERpI7r0DfFz
-         +kuBVu/gqktgjLZuKQpqo/2Dcsy3A/EbG4tmCU7vt1sShG6wE+bzGY7TwcJNFGCDzK0o
-         9Byu/2RBM6kvb6w4suTzpCgxsv7cq7icKIz6y8yeCHzuM3qVjxrcIBl31wKX7RkywxI9
-         nV1g914DXiCqEsTlKfNgLX1z6BmmnRP6qquAFA4vtuMwWQfeRBAPG975EnFuppbFuFuA
-         M9enYRdLjp4FUaDYzrM6y1LuZp+h/IgPdOSmE11tyligi2Ud46aPuEDcjwnpRwhkl+Dy
-         evlg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=+d/aojT1TCgagMDA6o2QljnvpRxpeI/WOeBAtluw3O0=;
-        b=ArxKl0lTAjtDAjaJ1sIVMWgmIvVxYmSfj9dvdHv6XyNnm0ek0C7uUmJzocfvjXyXED
-         Lq+ivReBYzTGAU1l1kTi6fkUDFR6k5DpeCgYuhB+zU2pn7Kv5u/1AGxHToih/jCiOlJ/
-         dpz5fYVc2S9AOakkrxH92okOE7eiBt70+znmB4FmKaKOOSZj+pr8nbk6+zw5Bw4jBsiN
-         LV5Y9i1lxoCcisbYP0x+FnNrNo0rPnSWFG2dTUYeZzTVjBlKV/RKlcTIr44mB8xS3mDU
-         FsQhpsfJy7EvENjRBhh7OQN/Ylq3NdWVOWIx7T3a3KcFhdihNfBwJMCvAUBEFXIlsjaC
-         JnpA==
-X-Gm-Message-State: AJIora8VdbYZLDvUD4QjUJan53th6RxO/2Fu2jJPqtju8OAeDL/kz3g5
-        6+PAxhnj/xkt/4c7wh9HbwSJWg==
-X-Google-Smtp-Source: AGRyM1stenOwsAHzzcXaa1c51ami5gL6ZJn0lL6L3V+GXYFnR39RX0SCospuWmnJUC7p/bKt+S155A==
-X-Received: by 2002:ac2:456c:0:b0:48a:8c7f:e332 with SMTP id k12-20020ac2456c000000b0048a8c7fe332mr4788547lfm.410.1658904224554;
-        Tue, 26 Jul 2022 23:43:44 -0700 (PDT)
-Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
-        by smtp.gmail.com with ESMTPSA id w19-20020a05651234d300b0048a97a1df02sm1157231lfr.6.2022.07.26.23.43.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jul 2022 23:43:43 -0700 (PDT)
-From:   Marcin Wojtas <mw@semihalf.com>
-To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        netdev@vger.kernel.org
-Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
-        sean.wang@mediatek.com, Landen.Chao@mediatek.com,
-        linus.walleij@linaro.org, andrew@lunn.ch, vivien.didelot@gmail.com,
-        f.fainelli@gmail.com, olteanv@gmail.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        linux@armlinux.org.uk, hkallweit1@gmail.com, gjb@semihalf.com,
-        mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com,
-        Samer.El-Haj-Mahmoud@arm.com, upstream@semihalf.com
-Subject: [net-next: PATCH v3 4/8] net: mvpp2: initialize port fwnode pointer
-Date:   Wed, 27 Jul 2022 08:43:17 +0200
-Message-Id: <20220727064321.2953971-5-mw@semihalf.com>
-X-Mailer: git-send-email 2.29.0
-In-Reply-To: <20220727064321.2953971-1-mw@semihalf.com>
-References: <20220727064321.2953971-1-mw@semihalf.com>
+        with ESMTP id S229478AbiG0HmC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2022 03:42:02 -0400
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7781220193;
+        Wed, 27 Jul 2022 00:42:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1658907721; x=1690443721;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=d4iM8TIPJXWTotJ3yhXeNZkv/L1xvQZLzpOWaWEW7hM=;
+  b=flpb5eHau/ePCFg5/C2OWT36flvPooUzeb7oGFGBGw+wpUvXqwK6ok4u
+   BEfJnZmziJNq/yUqw7+S4l3FpooYzXQcp/XNLj+6RZ2seDYr3jR4mXW36
+   Php80lb5I3gFlFV8lOdT0Ic53tZJ0MpaLjBfVeF/vHF+r5PtxKx9Vo/aY
+   mv8ZyNdXG4+koRRQocncqRQTKhmrBrQKE6tS46U9rVIOnYeAPnIn0qrB5
+   CcARw8rlZukLoBa8HRy0/iWN4fpPAYE3gu9ht4/euzYkcG043NZOlYCN/
+   ejkHHRAKyt2ABp7n35K4gN5IdymkOZ5lXgOIgeDpI+RIXQUjx+wGaW5O/
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10420"; a="349874127"
+X-IronPort-AV: E=Sophos;i="5.93,195,1654585200"; 
+   d="scan'208";a="349874127"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2022 00:42:01 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,195,1654585200"; 
+   d="scan'208";a="689777665"
+Received: from lkp-server01.sh.intel.com (HELO e0eace57cfef) ([10.239.97.150])
+  by FMSMGA003.fm.intel.com with ESMTP; 27 Jul 2022 00:41:59 -0700
+Received: from kbuild by e0eace57cfef with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1oGbg6-0008U4-0z;
+        Wed, 27 Jul 2022 07:41:58 +0000
+Date:   Wed, 27 Jul 2022 15:41:30 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ f11001f2dd7ec311162f0faaa6c2839f313cda41
+Message-ID: <62e0ec2a.kV9Im9JHkpRPiLTo%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-As a preparation to switch the DSA subsystem from using
-of_find_net_device_by_node() to its more generic fwnode_
-equivalent, the port's device structure should be updated
-with its fwnode pointer, similarly to of_node - see analogous
-commit c4053ef32208 ("net: mvpp2: initialize port of_node pointer").
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: f11001f2dd7ec311162f0faaa6c2839f313cda41  Merge branch 'powercap' into bleeding-edge
 
-This patch is required to prevent a regression before updating
-the DSA API on boards that connect the mvpp2 port to switch,
-such as Clearfog GT-8K or CN913x CEx7 Evaluation Board.
+elapsed time: 724m
 
-Signed-off-by: Marcin Wojtas <mw@semihalf.com>
----
- drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+configs tested: 57
+configs skipped: 2
 
-diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-index b84128b549b4..03d5ff649c47 100644
---- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-+++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-@@ -6868,7 +6868,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 	dev->min_mtu = ETH_MIN_MTU;
- 	/* 9704 == 9728 - 20 and rounding to 8 */
- 	dev->max_mtu = MVPP2_BM_JUMBO_PKT_SIZE;
--	dev->dev.of_node = port_node;
-+	device_set_node(&dev->dev, port_fwnode);
- 
- 	port->pcs_gmac.ops = &mvpp2_phylink_gmac_pcs_ops;
- 	port->pcs_xlg.ops = &mvpp2_phylink_xlg_pcs_ops;
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm                              allyesconfig
+ia64                             allmodconfig
+arc                               allnoconfig
+alpha                             allnoconfig
+riscv                             allnoconfig
+csky                              allnoconfig
+powerpc                          allmodconfig
+mips                             allyesconfig
+powerpc                           allnoconfig
+sh                               allmodconfig
+m68k                             allmodconfig
+arc                              allyesconfig
+alpha                            allyesconfig
+m68k                             allyesconfig
+i386                                defconfig
+i386                             allyesconfig
+i386                          randconfig-a001
+i386                          randconfig-a003
+i386                          randconfig-a005
+x86_64                        randconfig-a013
+x86_64                        randconfig-a011
+x86_64                        randconfig-a015
+i386                          randconfig-a014
+i386                          randconfig-a012
+i386                          randconfig-a016
+arc                  randconfig-r043-20220724
+riscv                randconfig-r042-20220724
+s390                 randconfig-r044-20220724
+x86_64                        randconfig-a002
+x86_64                        randconfig-a004
+x86_64                        randconfig-a006
+um                             i386_defconfig
+um                           x86_64_defconfig
+x86_64                           rhel-8.3-kvm
+x86_64                          rhel-8.3-func
+x86_64                         rhel-8.3-kunit
+x86_64                    rhel-8.3-kselftests
+x86_64                           rhel-8.3-syz
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                           allyesconfig
+
+clang tested configs:
+i386                          randconfig-a002
+i386                          randconfig-a004
+i386                          randconfig-a006
+x86_64                        randconfig-a014
+x86_64                        randconfig-a012
+x86_64                        randconfig-a016
+i386                          randconfig-a013
+i386                          randconfig-a011
+i386                          randconfig-a015
+hexagon              randconfig-r041-20220724
+hexagon              randconfig-r045-20220724
+x86_64                        randconfig-a001
+x86_64                        randconfig-a003
+x86_64                        randconfig-a005
+
 -- 
-2.29.0
-
+0-DAY CI Kernel Test Service
+https://01.org/lkp
