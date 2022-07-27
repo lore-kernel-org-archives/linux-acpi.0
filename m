@@ -2,93 +2,80 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DB3C3F6B0
-	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jul 2022 10:00:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99FB1C04A68
+	for <linux-acpi@archiver.kernel.org>; Wed, 27 Jul 2022 10:24:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231519AbiG0KAa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 27 Jul 2022 06:00:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38646 "EHLO
+        id S229768AbiG0KYw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 27 Jul 2022 06:24:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231358AbiG0KA0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2022 06:00:26 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0D5DA1A0;
-        Wed, 27 Jul 2022 03:00:25 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26R4SNEg032560;
-        Wed, 27 Jul 2022 04:59:32 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=PODMain02222019;
- bh=OVWLOViijHvZ0gyrsr6sZosQT9smEiGwvFnRB0/TaRY=;
- b=mRbjPnM414VhyBwRFy9PC6SYYkXxG9KZHx50DRageHYP29fol+z3rOCN4NH4SluNwVPS
- Sl29+Ica17m9URmQU237sVDdieEvVJlOXM3IHctJN42WSKmBtqToO2vAlUmPMr+G50T4
- mdgYRf+57DBKJTzX81GCkIMy+QVVnI7qkZtFqfuD/SvexyJ6XWx6FmkYeHkDEQ0Jesh0
- 713+YUqO9bGG4vWUyJfjWxLXRzy8x0nKSsOuiob0f1OUzD7+P9HgQnM6e+hb25EIdWka
- MFz9O0xzXMQBqIf6O2QJs0z6ILEU03RWj9GCpa0+uAMMs8ZtrZrLLdYqC7vRtQGGpbUv 5Q== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3hged1vtk6-3
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 27 Jul 2022 04:59:32 -0500
-Received: from ediex01.ad.cirrus.com (198.61.84.80) by ediex02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1118.9; Wed, 27 Jul
- 2022 04:59:29 -0500
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by
- anon-ediex01.ad.cirrus.com (198.61.84.80) with Microsoft SMTP Server id
- 15.2.1118.9 via Frontend Transport; Wed, 27 Jul 2022 04:59:29 -0500
-Received: from aryzen.ad.cirrus.com (unknown [198.61.65.94])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id E041E477;
-        Wed, 27 Jul 2022 09:59:28 +0000 (UTC)
-From:   Lucas Tanure <tanureal@opensource.cirrus.com>
-To:     Jaroslav Kysela <perex@perex.cz>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Takashi Iwai <tiwai@suse.com>,
-        Cameron Berkenpas <cam@neo-zeon.de>
-CC:     <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
-        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <platform-driver-x86@vger.kernel.org>,
-        Lucas Tanure <tanureal@opensource.cirrus.com>
-Subject: [PATCH v2 3/4] ACPI: scan: Add CLSA0101 Laptop Support
-Date:   Wed, 27 Jul 2022 10:59:23 +0100
-Message-ID: <20220727095924.80884-4-tanureal@opensource.cirrus.com>
-X-Mailer: git-send-email 2.37.1
-In-Reply-To: <20220727095924.80884-1-tanureal@opensource.cirrus.com>
-References: <20220727095924.80884-1-tanureal@opensource.cirrus.com>
+        with ESMTP id S229594AbiG0KYv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2022 06:24:51 -0400
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B82843317;
+        Wed, 27 Jul 2022 03:24:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1658917490; x=1690453490;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=JGWTlbYvtfSIAbNWy4AzEM+K/LsjT7gFuzUMIKvcb7g=;
+  b=BgD8BmFlsmEk64ERIBst7UCd+wjcCPOprJfvWbwzYuWu2cFt/UyOKSEf
+   xXyOXO9gfHPr2F3ud9lR/XFds4nr6MYJa0ndtOofWkU1vu7ttmxX4dHZv
+   W3tC2FTpdG1Jnhx8ZJkmh/gUiOj4VQIR6KXzxL9lAQnILQ1TKpbcIqloH
+   LusfyYU5BdXorFeEMdZ8cl4iNGw3xgSGbt2a0vfPoGMOV7xRDgy2zRAeX
+   wfonFJE5XcKrwbw1xaDo7HSn8+QmxT1EdSP2hVZlqzmwg3KkQwlCjZtcT
+   fETHryADugvu2Ym74V9YfCMvmeFP+OqNXTR246BWtdAI5rJgXtlq8cwtW
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10420"; a="349902989"
+X-IronPort-AV: E=Sophos;i="5.93,195,1654585200"; 
+   d="scan'208";a="349902989"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2022 03:24:49 -0700
+X-IronPort-AV: E=Sophos;i="5.93,195,1654585200"; 
+   d="scan'208";a="659138634"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2022 03:24:44 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1oGeDZ-001Y3n-16;
+        Wed, 27 Jul 2022 13:24:41 +0300
+Date:   Wed, 27 Jul 2022 13:24:41 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Marcin Wojtas <mw@semihalf.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        netdev@vger.kernel.org, rafael@kernel.org, sean.wang@mediatek.com,
+        Landen.Chao@mediatek.com, linus.walleij@linaro.org, andrew@lunn.ch,
+        vivien.didelot@gmail.com, f.fainelli@gmail.com, olteanv@gmail.com,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, linux@armlinux.org.uk, hkallweit1@gmail.com,
+        gjb@semihalf.com, jaz@semihalf.com, tn@semihalf.com,
+        Samer.El-Haj-Mahmoud@arm.com, upstream@semihalf.com
+Subject: Re: [net-next: PATCH v3 1/8] net: phy: fixed_phy: switch to fwnode_
+ API
+Message-ID: <YuESaa42FZbJr3Jt@smile.fi.intel.com>
+References: <20220727064321.2953971-1-mw@semihalf.com>
+ <20220727064321.2953971-2-mw@semihalf.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-GUID: AtdIxN_CFm9gOicAvdNFl88eKK2K7cCh
-X-Proofpoint-ORIG-GUID: AtdIxN_CFm9gOicAvdNFl88eKK2K7cCh
-X-Proofpoint-Spam-Reason: safe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220727064321.2953971-2-mw@semihalf.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add CLSA0101 id to the ignore_serial_bus_ids
-so serial-multi-instantiate can correctly
-instantiate the driver.
+On Wed, Jul 27, 2022 at 08:43:14AM +0200, Marcin Wojtas wrote:
+> This patch allows to use fixed_phy driver and its helper
 
-Signed-off-by: Lucas Tanure <tanureal@opensource.cirrus.com>
----
- drivers/acpi/scan.c | 1 +
- 1 file changed, 1 insertion(+)
+Check "Submitting Patches" for "This patch..." and fix your message
+accordingly.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index b100e6ca9bb4..42cec8120f18 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1722,6 +1722,7 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
- 		{"INT3515", },
- 		/* Non-conforming _HID for Cirrus Logic already released */
- 		{"CLSA0100", },
-+		{"CLSA0101", },
- 	/*
- 	 * Some ACPI devs contain SerialBus resources even though they are not
- 	 * attached to a serial bus at all.
+> functions without Device Tree dependency, by swtiching from
+> of_ to fwnode_ API.
+
 -- 
-2.37.1
+With Best Regards,
+Andy Shevchenko
+
 
