@@ -2,226 +2,320 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 115ACC00144
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 Aug 2022 20:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C667FC3F6B0
+	for <linux-acpi@archiver.kernel.org>; Tue,  2 Aug 2022 11:31:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234182AbiHAUwx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 1 Aug 2022 16:52:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54786 "EHLO
+        id S236210AbiHBLbs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 2 Aug 2022 07:31:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234079AbiHAUwx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Aug 2022 16:52:53 -0400
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B700032EF5;
-        Mon,  1 Aug 2022 13:52:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1659387170; x=1690923170;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=Q080o7ke6jEv77NTqadDBXECQjH5oskETOi0vYy1iSs=;
-  b=dZadDSboDlW5DKttx+jp3amN4H+pf02JdSpOMMyFMn6WNTa7LoA1hCsn
-   jMUs8xXIlmFfUcmqUZFJKxj+RenwfQY/l8DB0Mc2ZJs7UhPOBGchLvHzY
-   isj3PSASUh75J92oVaKFszBfXoVwrzLtsmvvxzr5GNhdoj/OITXb89MmE
-   nIEs0TlTKSI7yN4UskjSfVWHD3ykPknBkXOFLIuBx9c79YXDooktxp2KP
-   N0mAKiYcl6QnsMB4Ym1RbjZPZBwB1vPnjK4PZuBh9ZCtZVsAUh7tBTG2X
-   4j4rqn0prbaJIfAcxIhOXCCmE5HNkPr3O4cR/0viGI+UoY4wco4G9iSpD
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10426"; a="286807599"
-X-IronPort-AV: E=Sophos;i="5.93,209,1654585200"; 
-   d="scan'208";a="286807599"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Aug 2022 13:39:39 -0700
-X-IronPort-AV: E=Sophos;i="5.93,209,1654585200"; 
-   d="scan'208";a="577925699"
-Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Aug 2022 13:39:33 -0700
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id EDF28203B7;
-        Mon,  1 Aug 2022 23:39:30 +0300 (EEST)
-Date:   Mon, 1 Aug 2022 20:39:30 +0000
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Paul Elder <paul.elder@ideasonboard.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        "Paul J. Murphy" <paul.j.murphy@intel.com>,
-        Martina Krasteva <martinax.krasteva@intel.com>,
-        Shawn Tu <shawnx.tu@intel.com>, Arec Kao <arec.kao@intel.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jimmy Su <jimmy.su@intel.com>,
-        Martin Kepplinger <martink@posteo.de>,
-        Daniel Scally <djrscally@gmail.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        linux-media@vger.kernel.org, rafael@kernel.org,
-        linux-acpi@vger.kernel.org,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Wolfram Sang <wsa@kernel.org>, linux-i2c@vger.kernel.org,
-        bingbu.cao@intel.com, andriy.shevchenko@intel.com,
-        "hidenorik@chromium.org" <hidenorik@chromium.org>,
-        jacopo mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH v2] media: ov5640: Use runtime PM
-Message-ID: <Yug6Apa23KghjCVW@paasikivi.fi.intel.com>
-References: <Yi3rQGmeXQD70Tkh@pendragon.ideasonboard.com>
- <Yi3z2nR8j+ee4E4m@paasikivi.fi.intel.com>
- <Yi38zOHsh68FrrKK@pendragon.ideasonboard.com>
- <Yi+e/IK+eVpKit/F@paasikivi.fi.intel.com>
- <Yi+gEVB0FuOcY5qn@pendragon.ideasonboard.com>
- <Yi+vdvMeXqb/BvKo@paasikivi.fi.intel.com>
- <YkMDfvuhAvsrjbON@pendragon.ideasonboard.com>
- <YlfplRQYDYhFvc5U@paasikivi.fi.intel.com>
- <CAAFQd5C7-OuNpnduwKpZXFUPQKDeqkz2xkvP+JBBs+aNjB87FQ@mail.gmail.com>
- <CAAFQd5Bgx2u6quaCobrKEFjMPqP1S-HihCo-XP0k_OhAEUDm-g@mail.gmail.com>
+        with ESMTP id S233683AbiHBLbr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2022 07:31:47 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 433C94D171
+        for <linux-acpi@vger.kernel.org>; Tue,  2 Aug 2022 04:31:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1659439905;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=FxqPiRlh1yMkKL/E8jj94PNhXHLVuyAe9c6skMkF0Wc=;
+        b=RJvZ8ZYLK/nE0NFxFyz8saYNBzmPHZA4R6AFhZrjWRGqxXxtbIGtDvGMuIM1gxjigtGF7l
+        IBrnGUVUf4GM7yIwG/BEwjtXixsgYvD584FhfaJDddKc5TPoXrHTd/7VwS+erNYbUByVye
+        8L4lrSYE98oxjHRNzBZXnRFJ736Z+b8=
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
+ [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-632-HxLX9255Oky3RbitJKsdYQ-1; Tue, 02 Aug 2022 07:31:44 -0400
+X-MC-Unique: HxLX9255Oky3RbitJKsdYQ-1
+Received: by mail-ej1-f72.google.com with SMTP id nc38-20020a1709071c2600b007309af9e482so1184652ejc.2
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Aug 2022 04:31:44 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=FxqPiRlh1yMkKL/E8jj94PNhXHLVuyAe9c6skMkF0Wc=;
+        b=BVhFJCjQGI60MrHf9DiIzXCzlsUzsW/NDFZ1lMvohRROO/6XGbL/PVrM5msbSSml+C
+         WwET1KLoUQi9OsFrGjqgScg+V/H/G+hXxvt7lHNFSHyCzV4VC4deNx33jSs2I4Q5ee0K
+         kLhdB9boL3MRBsrtClqVg4jiPgHYM2vOuQk9jT/hOrSg0Ybkf1SdgyCPo3HedmzmUy6w
+         D7s75VBSEhmtK14sdF2Zhrt9LiQHlsLjrA7d7OLEkWmOYBXUXNQ+Chzzlba8S3k1KvxF
+         9RHTUjnSvYLAbsCBMmwOGEYxZMgvOTS+8+jNFl25sb5rYZgLEzrXEgeBaTBSZmZFt87R
+         ohow==
+X-Gm-Message-State: AJIora/PYEMXsJkGHaSClmgEjguQ+OJS1Cx1n5sAjDv7cgzgLSf/gqYM
+        rwTEY6ervHGCDv1TPX7QFr6gqXrBeSVFo/qXZtSPsUpAyUY32lj8+egkwxs7mpSIOrVUjogUdOp
+        QhtmA+8NUJqvsD8TspvAz3Q==
+X-Received: by 2002:a05:6402:3693:b0:43d:1a40:21fd with SMTP id ej19-20020a056402369300b0043d1a4021fdmr19622996edb.206.1659439902778;
+        Tue, 02 Aug 2022 04:31:42 -0700 (PDT)
+X-Google-Smtp-Source: AGRyM1tNxpGaKCMx+igbAw2yE0EpAVqV6AkR7oivw+9P3IiykmsJcYsdcyEeEWSy1/fVO3/cp3fmOg==
+X-Received: by 2002:a05:6402:3693:b0:43d:1a40:21fd with SMTP id ej19-20020a056402369300b0043d1a4021fdmr19622969edb.206.1659439902460;
+        Tue, 02 Aug 2022 04:31:42 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c1e:bf00:d69d:5353:dba5:ee81? (2001-1c00-0c1e-bf00-d69d-5353-dba5-ee81.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:d69d:5353:dba5:ee81])
+        by smtp.gmail.com with ESMTPSA id s4-20020a056402036400b0043cbdb16fbbsm8116245edw.24.2022.08.02.04.31.41
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 02 Aug 2022 04:31:41 -0700 (PDT)
+Message-ID: <331ebd23-d2a4-bb33-5462-b9bd3284ab69@redhat.com>
+Date:   Tue, 2 Aug 2022 13:31:41 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [PATCH v2 01/29] ACPI: video: Add
+ acpi_video_backlight_use_native() helper
+Content-Language: en-US
+To:     Daniel Dadap <ddadap@nvidia.com>, Ben Skeggs <bskeggs@redhat.com>,
+        Karol Herbst <kherbst@redhat.com>, Lyude <lyude@redhat.com>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Xinhui <Xinhui.Pan@amd.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        Mark Gross <markgross@kernel.org>,
+        Andy Shevchenko <andy@kernel.org>
+Cc:     nouveau@lists.freedesktop.org, Daniel Vetter <daniel@ffwll.ch>,
+        David Airlie <airlied@linux.ie>,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org
+References: <20220712193910.439171-1-hdegoede@redhat.com>
+ <20220712193910.439171-2-hdegoede@redhat.com>
+ <641cb059-48f5-5f05-5ec2-610f1215391c@nvidia.com>
+ <20e4ffcf-2a3a-e671-5f98-1602b78df3cb@nvidia.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <20e4ffcf-2a3a-e671-5f98-1602b78df3cb@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAAFQd5Bgx2u6quaCobrKEFjMPqP1S-HihCo-XP0k_OhAEUDm-g@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Tomasz,
+Hi Daniel,
 
-On Mon, Aug 01, 2022 at 04:23:54PM +0900, Tomasz Figa wrote:
-> [Fixed Jacopo's email address.]
+On 7/21/22 23:30, Daniel Dadap wrote:
 > 
-> On Mon, Aug 1, 2022 at 4:17 PM Tomasz Figa <tfiga@chromium.org> wrote:
-> >
-> > On Thu, Apr 14, 2022 at 6:30 PM Sakari Ailus
-> > <sakari.ailus@linux.intel.com> wrote:
-> > >
-> > > Hi Laurent,
-> > >
-> > > On Tue, Mar 29, 2022 at 04:02:54PM +0300, Laurent Pinchart wrote:
-> > > > Hi Sakari,
-> > > >
-> > > > On Mon, Mar 14, 2022 at 11:11:18PM +0200, Sakari Ailus wrote:
-> > > > > On Mon, Mar 14, 2022 at 10:05:37PM +0200, Laurent Pinchart wrote:
-> > > > > ...
-> > > > > > > > Yes, after reading the version register (or doing any other harware
-> > > > > > > > access). Actually the full code would be
-> > > > > > > >
-> > > > > > > >
-> > > > > > > >       pm_runtime_enable(dev);
-> > > > > > > >       pm_runtime_resume_and_get(dev);
-> > > > > > > >
-> > > > > > > >       /* Hardware access */
-> > > > > > > >
-> > > > > > > >       pm_runtime_set_autosuspend_delay(dev, 1000);
-> > > > > > > >       pm_runtime_use_autosuspend(dev);
-> > > > > > > >       pm_runtime_put_autosuspend(dev);
-> > > > > > > >
-> > > > > > > > (plus error handling).
-> > > > > > > >
-> > > > > > > > If the probe function doesn't need to access the hardware, then
-> > > > > > > > the above becomes
-> > > > > > > >
-> > > > > > > >       pm_runtime_enable(dev);
-> > > > > > > >       pm_runtime_set_autosuspend_delay(dev, 1000);
-> > > > > > > >       pm_runtime_use_autosuspend(dev);
-> > > > > > > >
-> > > > > > > > instead of having to power up the device just in case !PM.
-> > > > > > > >
-> > > > > > > > > Also the latter only works on DT-based systems so it's not an option for
-> > > > > > > > > most of the drivers.
-> > > >
-> > > > Does the former work on ACPI systems ?
-> > >
-> > > Yes (i.e. the one that was above the quoted text).
-> > >
-> > > >
-> > > > > > > > How so, what's wrong with the above for ACPI-based system ?
-> > > > > > >
-> > > > > > > I涎 devices are already powered on for probe on ACPI based systems.
-> > > > > >
-> > > > > > Not through RPM I suppose ?
-> > > > >
-> > > > > Runtime PM isn't involved, this takes place in the ACPI framework (via
-> > > > > dev_pm_domain_attach() called in i2c_device_probe()).
-> > > >
-> > > > How can we fix this ? It may have made sense a long time ago, but it's
-> > > > making RPM handling way too difficult in I2C drivers now. We need
-> > > > something better instead of continuing to rely on cargo-cult for probe
-> > > > functions. Most drivers are broken.
-> > >
-> > > Some could be broken, there's no question of that. A lot of drivers support
-> > > either ACPI or DT, too, so not _that_ many need to work with both. Albeit
-> > > that number is probably increasing constantly for the same devices are used
-> > > on both.
-> > >
-> > > Then there are drivers that prefer not powering on the device in probe (see
-> > > <URL:https://lore.kernel.org/linux-acpi/20210210230800.30291-2-sakari.ailus@linux.intel.com/T/>),
-> > > it gets complicated to support all the combinatios of DT/ACPI (with or
-> > > without the flag / property for waiving powering device on for probe) and
-> > > CONFIG_PM enabled/disabled.
-> > >
-> > > What I think could be done to add a flag for drivers that handle power on
-> > > their own, or perhaps rather change how I2C_DRV_ACPI_WAIVE_D0_PROBE flag
-> > > works. Right now it expects a property on the device but that check could
-> > > be moved to existing drivers using the flag. Not many drivers are currently
-> > > using the flag. I think this would simplify driver implementation as both
-> > > firmware interfaces would work the same way in this respect.
-> > >
-> > > You'd have to change one driver at a time, and people should be encouraged
-> > > to write new drivers with that flag. Or add the flag to all existing
-> > > drivers and not accept new ones with it.
-> > >
-> > > These devices I think are all I涎 but my understanding is that such
-> > > differences exist elsewhere in the kernel, too. If they are to be
-> > > addressed, it would probably be best to have a unified approach towards it.
-> > >
-> > > Added a few more people and lists to cc.
-> >
-> > + Hidenori from my team for visibility.
-> >
-> > I think we may want to take a step back and first define the problem
-> > itself. To do that, let's take a look separately at DT and ACPI cases
-> > (is platform data still relevant? are there any other firmware
-> > interfaces that deal with I2C devices?).
-> > For simplicity, let's forget about the ACPI waived power on in probe.
-> >
-> > DT:
-> >  1) hardware state unknown when probe is called
-> >  2) claim any independently managed resources (e.g. GPIOs)
-> >  3) enable runtime PM
-> >  4) if driver wants to access the hardware:
-> >     a) runtime PM get
-> >     b) enable any independently controlled resources (e.g. reset GPIO)
-> >     c) [do access]
-> >     d) disable any independently controlled resources
-> >     e) runtime PM put
-> >  5) after probe returns, regulators, clocks (and other similarly
-> > managed resources) would be force disabled if their enable count is 0
-> >  6) hardware state is off (after the runtime PM state settles)
-> >
-> > ACPI:
-> >  1) hardware state is active when probe is called
+> On 7/21/22 16:24, Daniel Dadap wrote:
+>>
+>> On 7/12/22 14:38, Hans de Goede wrote:
+>>> ATM on x86 laptops where we want userspace to use the acpi_video backlight
+>>> device we often register both the GPU's native backlight device and
+>>> acpi_video's firmware acpi_video# backlight device. This relies on
+>>> userspace preferring firmware type backlight devices over native ones, but
+>>> registering 2 backlight devices for a single display really is undesirable.
+>>>
+>>> On x86 laptops where the native GPU backlight device should be used,
+>>> the registering of other backlight devices is avoided by their drivers
+>>> using acpi_video_get_backlight_type() and only registering their backlight
+>>> if the return value matches their type.
+>>>
+>>> acpi_video_get_backlight_type() uses
+>>> backlight_device_get_by_type(BACKLIGHT_RAW) to determine if a native
+>>> driver is available and will never return native if this returns
+>>> false. This means that the GPU's native backlight registering code
+>>> cannot just call acpi_video_get_backlight_type() to determine if it
+>>> should register its backlight, since acpi_video_get_backlight_type() will
+>>> never return native until the native backlight has already registered.
+>>>
+>>> To fix this add a new internal native function parameter to
+>>> acpi_video_get_backlight_type(), which when set to true will make
+>>> acpi_video_get_backlight_type() behave as if a native backlight has
+>>> already been registered.
+>>>
+>>> And add a new acpi_video_backlight_use_native() helper, which sets this
+>>> to true, for use in native GPU backlight code.
+>>>
+>>> Changes in v2:
+>>> - Replace adding a native parameter to acpi_video_get_backlight_type() with
+>>>    adding a new acpi_video_backlight_use_native() helper.
+>>>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>> ---
+>>>   drivers/acpi/video_detect.c | 24 ++++++++++++++++++++----
+>>>   include/acpi/video.h        |  5 +++++
+>>>   2 files changed, 25 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+>>> index becc198e4c22..4346c990022d 100644
+>>> --- a/drivers/acpi/video_detect.c
+>>> +++ b/drivers/acpi/video_detect.c
+>>> @@ -17,8 +17,9 @@
+>>>    * Otherwise vendor specific drivers like thinkpad_acpi, asus-laptop,
+>>>    * sony_acpi,... can take care about backlight brightness.
+>>>    *
+>>> - * Backlight drivers can use acpi_video_get_backlight_type() to determine
+>>> - * which driver should handle the backlight.
+>>> + * Backlight drivers can use acpi_video_get_backlight_type() to determine which
+>>> + * driver should handle the backlight. RAW/GPU-driver backlight drivers must
+>>> + * use the acpi_video_backlight_use_native() helper for this.
+>>>    *
+>>>    * If CONFIG_ACPI_VIDEO is neither set as "compiled in" (y) nor as a module (m)
+>>>    * this file will not be compiled and acpi_video_get_backlight_type() will
+>>> @@ -548,9 +549,10 @@ static int acpi_video_backlight_notify(struct notifier_block *nb,
+>>>    * Arguably the native on win8 check should be done first, but that would
+>>>    * be a behavior change, which may causes issues.
+>>>    */
+>>> -enum acpi_backlight_type acpi_video_get_backlight_type(void)
+>>> +static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
+>>>   {
+>>>       static DEFINE_MUTEX(init_mutex);
+>>> +    static bool native_available;
+>>>       static bool init_done;
+>>>       static long video_caps;
+>>>   @@ -570,6 +572,8 @@ enum acpi_backlight_type acpi_video_get_backlight_type(void)
+>>>               backlight_notifier_registered = true;
+>>>           init_done = true;
+>>>       }
+>>> +    if (native)
+>>> +        native_available = true;
+>>>       mutex_unlock(&init_mutex);
+>>>         if (acpi_backlight_cmdline != acpi_backlight_undef)
+>>> @@ -581,13 +585,25 @@ enum acpi_backlight_type acpi_video_get_backlight_type(void)
+>>>       if (!(video_caps & ACPI_VIDEO_BACKLIGHT))
+>>>           return acpi_backlight_vendor;
+>>>   -    if (acpi_osi_is_win8() && backlight_device_get_by_type(BACKLIGHT_RAW))
+>>> +    if (acpi_osi_is_win8() &&
+>>> +        (native_available || backlight_device_get_by_type(BACKLIGHT_RAW)))
+>>>           return acpi_backlight_native;
+>>>         return acpi_backlight_video;
+>>
+>>
+>> So I ran into a minor problem when testing the NVIDIA proprietary driver against this change set, after checking acpi_video_backlight_use_native() before registering the NVIDIA proprietary driver's backlight handler. Namely, for the case where a user installs the NVIDIA proprietary driver after the video.ko has already registered its backlight handler, we end up with both the firmware and native handlers registered simultaneously, since the ACPI video driver no longer unregisters its backlight handler. In this state, desktop environments end up preferring the registered but non-functional firmware handler from video.ko. (Manually twiddling the sysfs interface for the native NVIDIA handler works fine.) When rebooting the system after installing the NVIDIA proprietary driver, it is able to register its native handler before the delayed work to register the ACPI video backlight handler fires, so we end up with only one (native) handler, and userspace is happy.
+>>
+>> Maybe this will be moot later on, when the existing sysfs interface is deprecated, and it probably isn't a huge deal, since a reboot fixes things (I imagine installing an in-tree DRM/KMS driver on an already running kernel isn't really a thing, which is why this isn't a problem with the in-tree drivers), but would it make sense to unregister the ACPI video backlight handler here before returning acpi_backlight_native? That way, we'll briefly end up with zero backlight handlers rather than briefly ending up with two of them. Not sure if that's really any better, though.
+>>
+> 
+> Thinking about this a little more, maybe it's better not to overly complicate things, and just assert that users of the NVIDIA proprietary driver will need to reboot after installation in order to get the backlight working, at least until we get further along in this effort and the backlight interface transitions to the DRM connector property you have proposed.
 
-This isn't a property of ACPI as such, but rather what I²C core does
-to ACPI devices before calling probe (or after remove).
+Right, this series stops unregistering the acpi_video# /sys/class/backlight
+devices because the idea is to never register them in the first place.
 
-> >  2) [n/a]
-> >  3) tell runtime PM framework that the state is active and then enable
-> > runtime PM
-> >  4) if driver wants to access the hardware:
-> >     a) runtime PM get
-> >     b) [n/a]
-> >     c) [do access]
-> >     d) [n/a]
-> >     e) runtime PM put
-> >  5) [n/a]
-> >  6) hardware state is off (after the runtime PM state settles)
-> >
-> > It seems like the relevant difference here is that for ACPI, the
-> > driver needs to know that the initial state is active and also relay
-> > this knowledge to the runtime PM subsystem. If we could make the ACPI
-> > PM domain work the same way as regulators and clocks and eventually
-> > power off some time later when the enable count is 0, then perhaps we
-> > could avoid the problem in the first place?
+Registering them in the first place causes 2 problems:
 
--- 
+1. It causes userspace to see udev events for the register + unregister
+and by the time the systemd backlight level save/restore helper runs
+from udev the unregister has already happened and it logs ugly errors.
+More in general this kinda racy behavior just is ugly.
+
+2. On some hw merely registering the backlight device, which I think
+at least tries to retrieve the current level through ACPI, is causing
+issues. So now we have DMI quirks to force the native backlight on
+some devices, even though the heuristics also say native eventually,
+just to avoid the race. Avoiding the add + remove dance allows
+us to drop a bunch of quirks and likely also fixes issues on other
+devices which we don't yet know need the quirk.
+
+
+So this patch-set changes the acpi_video.c code to no longer register
+the acpi_video# backlight devices at init time *at all*. Instead native
+drivers are supposed to now call acpi_video_register_backlight()
+when they have found an internal panel. But to avoid this causing
+the acpi_video# backlight devices to not show up at all in some
+cases (e.g. native kms drivers blacklisted) the acpi_video code
+also calls acpi_video_register_backlight() itself after 8 seconds.
+
+I believe this is what you are hitting, the 8 seconds have passed
+before the nvidia driver calls acpi_video_backlight_use_native(),
+so the acpi_video# backlight devices have registered (and no longer
+go away).
+
+This is not only a problem when installing the nvidia binary driver
+for the first time. It can also be a problem if the binary driver
+is not in the initrd and leaving the initrd takes longer then
+8 seconds, say because of a diskcrypt password. So I believe that
+this really can be a problem with the nvidia binary driver.
+
+But I think this is easy to fix. We could make the 8 second
+delay configurable by replacing the ACPI_VIDEO_REGISTER_BACKLIGHT_DELAY
+define with a module-parameter; and we could make "0" as value mean
+that acpi_video.c will never call acpi_video_register_backlight()
+itself.
+
+Since the various (also counting distor packaging) nvidia binary
+driver installers already all modify the kernel commandline to
+blacklist nouveau, then the installers can just also pass this
+parameter and then acpi_video.c will never register the acpi_video#.
+
+This does mean that the nvidia binary driver then must call
+acpi_video_register_backlight() when an internal panel is found.
+
+Note the current patches to amdgpu/nouveau skip the calling of
+acpi_video_register_backlight() when
+the acpi_video_backlight_use_native() call returns true and they
+have registered their own backlight. But calling it always is ok
+*as long as the driver is driving the laptops internal panel* !
+
+acpi_video_register_backlight() contains:
+
+       if (acpi_video_get_backlight_type() != acpi_backlight_video)
+                return 0;
+
+So calling it when a native backlight has already been registered
+is a no-op.
+
+Please let me know if the proposed solution works for you and
+if you want me to make ACPI_VIDEO_REGISTER_BACKLIGHT_DELAY a
+module-option for the next version.
+
 Regards,
 
-Sakari Ailus
+Hans
+
+
+p.s.
+
+I think that eventually I might even try to make the new
+module-param default to 0 / default to not having acpi_video.c
+do the registering itself ever and see how that goes...
+
+
+
+
+>>>   }
+>>> +
+>>> +enum acpi_backlight_type acpi_video_get_backlight_type(void)
+>>> +{
+>>> +    return __acpi_video_get_backlight_type(false);
+>>> +}
+>>>   EXPORT_SYMBOL(acpi_video_get_backlight_type);
+>>>   +bool acpi_video_backlight_use_native(void)
+>>> +{
+>>> +    return __acpi_video_get_backlight_type(true) == acpi_backlight_native;
+>>> +}
+>>> +EXPORT_SYMBOL(acpi_video_backlight_use_native);
+>>> +
+>>>   /*
+>>>    * Set the preferred backlight interface type based on DMI info.
+>>>    * This function allows DMI blacklists to be implemented by external
+>>> diff --git a/include/acpi/video.h b/include/acpi/video.h
+>>> index db8548ff03ce..4705e339c252 100644
+>>> --- a/include/acpi/video.h
+>>> +++ b/include/acpi/video.h
+>>> @@ -56,6 +56,7 @@ extern void acpi_video_unregister(void);
+>>>   extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>>>                      int device_id, void **edid);
+>>>   extern enum acpi_backlight_type acpi_video_get_backlight_type(void);
+>>> +extern bool acpi_video_backlight_use_native(void);
+>>>   extern void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type);
+>>>   /*
+>>>    * Note: The value returned by acpi_video_handles_brightness_key_presses()
+>>> @@ -77,6 +78,10 @@ static inline enum acpi_backlight_type acpi_video_get_backlight_type(void)
+>>>   {
+>>>       return acpi_backlight_vendor;
+>>>   }
+>>> +static inline bool acpi_video_backlight_use_native(void)
+>>> +{
+>>> +    return true;
+>>> +}
+>>>   static inline void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type)
+>>>   {
+>>>   }
+> 
+
