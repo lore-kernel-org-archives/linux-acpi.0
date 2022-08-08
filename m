@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB447C25B0F
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Aug 2022 01:42:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FB8C25B0E
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Aug 2022 01:42:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242690AbiHHBmR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Aug 2022 21:42:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41856 "EHLO
+        id S242721AbiHHBmZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 7 Aug 2022 21:42:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243072AbiHHBls (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Aug 2022 21:41:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49415DF14;
-        Sun,  7 Aug 2022 18:35:22 -0700 (PDT)
+        with ESMTP id S243127AbiHHBlx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Aug 2022 21:41:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8302313D72;
+        Sun,  7 Aug 2022 18:35:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D8291B80E0D;
-        Mon,  8 Aug 2022 01:35:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC806C433B5;
-        Mon,  8 Aug 2022 01:35:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6C506B80DCF;
+        Mon,  8 Aug 2022 01:35:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EB85C433B5;
+        Mon,  8 Aug 2022 01:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1659922519;
-        bh=XBYd5KmOyO7N25HDSPYLqT45ga2LwnRyBjaXX8A/4ks=;
+        s=k20201202; t=1659922523;
+        bh=Sja0o4WT94abP/9yeowwf/8JUqSGSH1x3gwkaizUJp0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=D3zuElR8SR/6fnk/uSYTEptbl1VS9g0Giy87Ty4n5JI60/1dX+HVz+Zl6tp+o3CIE
-         a67AXdsc08xHf8PNuuhxR4xdOfMESNDudUhAORXoSWn5SJjuNDdgp1IqaSDeZVqv6a
-         Wmj2UPG9tKyiNO1Wc6SGqQsYpDNWPBsIDaySxYcsAW2vSyr0sR8hG55FUF6ICTu09G
-         dpSKBuPbbdg4nc2LoQ2EXLqGeBN3TAuihVvzTWm0Zhp5QPdXxxZDECuMO1yhsjdaff
-         5blh7+XwWGdlHsX8chbJPibjf2RXnWFwawrxBfpsYOBDwk6XLJa2/DHs7cUoEdhKPf
-         Itwg5XIDwhIYw==
+        b=D3yz1Qghy8uyRUOlYLVgtWa3Yfx/kXlyvR5gd8GJjQNf4A6+HzFtntkC0d/pA1e4r
+         lA8uFovZMu+98cOsMsyIjgK9XDL9/rX9evOIDDS/ULjigiwCXKC2oMqhzRE38KYHl6
+         h1sui1Tc01ZE5nYGHTL85qz88gpRX5nC17mapa15u32R1RNYxaI7x7Q8hXOjMz/dT8
+         3093o2shDBd9So6NCHfZSqQswuPJXSpgPj3G3X09EkOublM3H9rsslpa61k63yKJXL
+         dJ80viEVgTVUD+KSNzZkZlvnToEMrb/PhMmoHMGQs65FoFtfIteiCxQaZ3cbxtc+rP
+         NtrIw8LhrqCjg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
+Cc:     huhai <huhai@kylinos.cn>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.18 36/53] ACPI: EC: Remove duplicate ThinkPad X1 Carbon 6th entry from DMI quirks
-Date:   Sun,  7 Aug 2022 21:33:31 -0400
-Message-Id: <20220808013350.314757-36-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.18 39/53] ACPI: LPSS: Fix missing check in register_device_clock()
+Date:   Sun,  7 Aug 2022 21:33:34 -0400
+Message-Id: <20220808013350.314757-39-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220808013350.314757-1-sashal@kernel.org>
 References: <20220808013350.314757-1-sashal@kernel.org>
@@ -51,39 +51,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: huhai <huhai@kylinos.cn>
 
-[ Upstream commit 0dd6db359e5f206cbf1dd1fd40dd211588cd2725 ]
+[ Upstream commit b4f1f61ed5928b1128e60e38d0dffa16966f06dc ]
 
-Somehow the "ThinkPad X1 Carbon 6th" entry ended up twice in the
-struct dmi_system_id acpi_ec_no_wakeup[] array. Remove one of
-the entries.
+register_device_clock() misses a check for platform_device_register_simple().
+Add a check to fix it.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: huhai <huhai@kylinos.cn>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/acpi/acpi_lpss.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a1b871a418f8..f6a022892ee0 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -2207,13 +2207,6 @@ static const struct dmi_system_id acpi_ec_no_wakeup[] = {
- 			DMI_MATCH(DMI_PRODUCT_FAMILY, "Thinkpad X1 Carbon 6th"),
- 		},
- 	},
--	{
--		.ident = "ThinkPad X1 Carbon 6th",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_FAMILY, "ThinkPad X1 Carbon 6th"),
--		},
--	},
- 	{
- 		.ident = "ThinkPad X1 Yoga 3rd",
- 		.matches = {
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index fbe0756259c5..c4d4d21391d7 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -422,6 +422,9 @@ static int register_device_clock(struct acpi_device *adev,
+ 	if (!lpss_clk_dev)
+ 		lpt_register_clock_device();
+ 
++	if (IS_ERR(lpss_clk_dev))
++		return PTR_ERR(lpss_clk_dev);
++
+ 	clk_data = platform_get_drvdata(lpss_clk_dev);
+ 	if (!clk_data)
+ 		return -ENODEV;
 -- 
 2.35.1
 
