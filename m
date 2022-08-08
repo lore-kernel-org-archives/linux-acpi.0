@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB04C25B07
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 Aug 2022 01:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E8BFC25B0C
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 Aug 2022 01:36:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242387AbiHHBf7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 7 Aug 2022 21:35:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57856 "EHLO
+        id S242405AbiHHBgI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 7 Aug 2022 21:36:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242317AbiHHBew (ORCPT
+        with ESMTP id S242326AbiHHBew (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Aug 2022 21:34:52 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0839BCA4;
-        Sun,  7 Aug 2022 18:33:04 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38EC4BC9E;
+        Sun,  7 Aug 2022 18:33:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 88646B80E09;
-        Mon,  8 Aug 2022 01:33:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AA03C433D7;
-        Mon,  8 Aug 2022 01:33:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A34360E03;
+        Mon,  8 Aug 2022 01:33:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C4C8C4347C;
+        Mon,  8 Aug 2022 01:33:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1659922383;
-        bh=XBYd5KmOyO7N25HDSPYLqT45ga2LwnRyBjaXX8A/4ks=;
+        s=k20201202; t=1659922386;
+        bh=z8eH2YCWtzXeziL3IDd+ciLA3px/Rel1/M0UzW/TDLI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WwPybDkEc+5sXk/AeJlgZAodePyMIngAIn2nJo1ptX60JwoOVkEXpbFAWHSKoBS3J
-         DaYslR949kVn+csGSIkbO1uNQRmLPqm0ykJzoyKBAYWhjLDm8+tbbEXq5JyHap2aGg
-         kcmyaoNhXH/piiAiPQi4cPZPNF8Uvxhst9zHi5EPwWxlSZTz1Imintag8i3f7+hO8V
-         OvVX0XPj6f5djxESIG9aFEU4OXHz8hL5rqIGYVJSLpOjpI/JH902heQvm0RG3EhSPJ
-         AO2+YyBSLfI5fPP4bsWEOfoPDqMLQdMU1BVVJkaxhrKju7Jjb8WhECGCH7EvjM7MLu
-         iitPyRjp30MFA==
+        b=Bx4HyATfDzSgVRcVlg8Zz4JElwcRKA4mBpfS2BkrZZsPYHsopwEJBuEzt++Q2ubQk
+         8pp5Gy+G3UtST19RgBZqJp8VvyikAPueuYWyh8DywdyWeQWGJcqhcxZ8Q0DkimkRDx
+         YROqOOn74BtZo2qS2BvxVJ7MNay1Sxe901NsR5dCQ6ms2ykQocAF758avsAg0YwktB
+         SDaICwLxCVGebWogLEjuSF5X5zrmYRxiP9hqzzRpK8VdII53FUlKA80uoGUSUXFvgS
+         kOuJ5B7QhtyM1Z8EodIigzUDvb9qn4QlGBzND736aWjCGhe5FTY5dPqdLXvhl0Adxd
+         57AAIXl0hNBOQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
+Cc:     Manyi Li <limanyi@uniontech.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.19 37/58] ACPI: EC: Remove duplicate ThinkPad X1 Carbon 6th entry from DMI quirks
-Date:   Sun,  7 Aug 2022 21:30:55 -0400
-Message-Id: <20220808013118.313965-37-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.19 39/58] ACPI: PM: save NVS memory for Lenovo G40-45
+Date:   Sun,  7 Aug 2022 21:30:57 -0400
+Message-Id: <20220808013118.313965-39-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220808013118.313965-1-sashal@kernel.org>
 References: <20220808013118.313965-1-sashal@kernel.org>
@@ -51,39 +51,42 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: Manyi Li <limanyi@uniontech.com>
 
-[ Upstream commit 0dd6db359e5f206cbf1dd1fd40dd211588cd2725 ]
+[ Upstream commit 4b7ef7b05afcde44142225c184bf43a0cd9e2178 ]
 
-Somehow the "ThinkPad X1 Carbon 6th" entry ended up twice in the
-struct dmi_system_id acpi_ec_no_wakeup[] array. Remove one of
-the entries.
+[821d6f0359b0614792ab8e2fb93b503e25a65079] is to make machines
+produced from 2012 to now not saving NVS region to accelerate S3.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+But, Lenovo G40-45, a platform released in 2015, still needs NVS memory
+saving during S3. A quirk is introduced for this platform.
+
+Signed-off-by: Manyi Li <limanyi@uniontech.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/acpi/sleep.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a1b871a418f8..f6a022892ee0 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -2207,13 +2207,6 @@ static const struct dmi_system_id acpi_ec_no_wakeup[] = {
- 			DMI_MATCH(DMI_PRODUCT_FAMILY, "Thinkpad X1 Carbon 6th"),
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 04ea1569df78..974746e6e59d 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -360,6 +360,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "80E3"),
  		},
  	},
--	{
--		.ident = "ThinkPad X1 Carbon 6th",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_FAMILY, "ThinkPad X1 Carbon 6th"),
--		},
--	},
- 	{
- 		.ident = "ThinkPad X1 Yoga 3rd",
- 		.matches = {
++	{
++	.callback = init_nvs_save_s3,
++	.ident = "Lenovo G40-45",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "80E1"),
++		},
++	},
+ 	/*
+ 	 * ThinkPad X1 Tablet(2016) cannot do suspend-to-idle using
+ 	 * the Low Power S0 Idle firmware interface (see
 -- 
 2.35.1
 
