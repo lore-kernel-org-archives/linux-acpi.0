@@ -2,215 +2,103 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41284C38147
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Aug 2022 06:02:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 210C0C00140
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Aug 2022 06:49:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231218AbiHJGBh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Aug 2022 02:01:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60344 "EHLO
+        id S230242AbiHJGtr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Aug 2022 02:49:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231225AbiHJGBQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2022 02:01:16 -0400
-Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C12B8326C3
-        for <linux-acpi@vger.kernel.org>; Tue,  9 Aug 2022 23:01:14 -0700 (PDT)
-Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-329a474c437so68109847b3.18
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Aug 2022 23:01:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:from:subject:references:mime-version:message-id:in-reply-to
-         :date:from:to:cc;
-        bh=vx+dUbGYOv+iuawfVE7Ay+tk/KEU0DVIy9gKSjJSbfM=;
-        b=DHsiPm8AGi/hRuAdwy5HbH6s2r/Oy5+6hpbTVaZ+kokvPnDRVEbJgOyfLDYxmu38/4
-         6c/USgm4pyf2vbNHq2+wO1DqxDN5IleK1JLrmt4AmI8cQZgYb+f2P8+NrSaqXDmNELCn
-         CG/sox7zZCWs8YPB3eduZ7lrqv9LIN7coqgFfSQDtS+H7/JcQsLLKRN2VBjD4MmQ7DpP
-         V+5QayoprOrleKbfgiC/nxCDcHAwk4cSCm1cUXlQqVrZJZ//d/l82UMam/ZZEF7Q/FKj
-         9IuQ3rPDGmmZL1xAEzGgeod2tuD2Rqc7w2LAiEWL8rfN2QjYE28QmkM4/wTaMPoRbas6
-         UhAw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:from:subject:references:mime-version:message-id:in-reply-to
-         :date:x-gm-message-state:from:to:cc;
-        bh=vx+dUbGYOv+iuawfVE7Ay+tk/KEU0DVIy9gKSjJSbfM=;
-        b=ECaTvHs1XbAYHkj/XrB6QDLG3zzdAuX84Y07MQz1xVVnt+6lpZWDS+UXTlEZ7DC6Kg
-         onffhEKEwPF1nNT2xqtTcfTeuwsTBfJSZ7691Ca923eIlbE2GVVOsGkEdmCE6tyABZZ6
-         yAMbV/FaG+lkmjKMV+W2ggix3j00FoIQGZ4mosTqH+vNc2uL5uqEyoIfJavMSEuYtBmE
-         DBU6CejTMl81ryB3eoN4KCnfERbIdWhMMaopNYFCTNJNCT8Le5F7vhj0T45LEkPeWbKg
-         PWDI34YGZdyUq9fd7PXWPYNzfRzG9loKBmK6cvsfP4+2VBN4QuDWVVTRlZZcV0dVix7a
-         BvmA==
-X-Gm-Message-State: ACgBeo3BopcqszRSqYg7VRBg/mledvj99D2tvFOR1gJoOKTo7fASYrBY
-        D5QZwkLqJK4VAYQG8A0JkW+K2380XRo6Jho=
-X-Google-Smtp-Source: AA6agR4Khze5AtD+WD0fh1ffw9yPithpzLXIHHaEEIY0YlMjElr9n+/FhIjncVMO9+wvqV/HHySsaIt/gn01T+Q=
-X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:f21:76ca:766f:e0ab])
- (user=saravanak job=sendgmr) by 2002:a5b:b8e:0:b0:67c:237b:760b with SMTP id
- l14-20020a5b0b8e000000b0067c237b760bmr5624436ybq.627.1660111274504; Tue, 09
- Aug 2022 23:01:14 -0700 (PDT)
-Date:   Tue,  9 Aug 2022 23:00:38 -0700
-In-Reply-To: <20220810060040.321697-1-saravanak@google.com>
-Message-Id: <20220810060040.321697-10-saravanak@google.com>
-Mime-Version: 1.0
-References: <20220810060040.321697-1-saravanak@google.com>
-X-Mailer: git-send-email 2.37.1.559.g78731f0fdb-goog
-Subject: [PATCH v1 9/9] of: property: Simplify of_link_to_phandle()
-From:   Saravana Kannan <saravanak@google.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Len Brown <lenb@kernel.org>
-Cc:     Saravana Kannan <saravanak@google.com>,
-        Abel Vesa <abel.vesa@linaro.org>,
-        Alexander Stein <alexander.stein@ew.tq-group.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        John Stultz <jstultz@google.com>,
-        Doug Anderson <dianders@chromium.org>,
-        Guenter Roeck <linux@roeck-us.net>, kernel-team@android.com,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        with ESMTP id S229475AbiHJGtq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2022 02:49:46 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5171371722;
+        Tue,  9 Aug 2022 23:49:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1660114185; x=1691650185;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=ng4aUm4odUinFQNAnLjcT37l1NPbArZDHokfS3Y2qgo=;
+  b=CnY3yczirE47P6qijD4x+XXeyNxMsKKpNVf0rY9vcijJva0jwBeL/wfj
+   yPA70sAqP9B9yizXSTgfLWupY9NA693/rexjJPGdQupYwlUoIFd/2yqU+
+   EOXO3bsuWOAkJdbub0HmDYLgClC5I7OgXDzhxfsz0+mlhu5VmbDiG6EV0
+   h/dGfTqqzDJPQjCO3XsellNqd7ueuG8IEhFCw/ZFdaHcvfQLPXZGzXSCk
+   swGEi2O4YsDgpsKmJobfQP99RU24m6VrJtJv5x8suNQTx6uKQLlWEn5qY
+   FVqtuNEG+R+aTugHABHv3Ri1IoQPnb5ngnDtKja0+/tPXLHgPu9GMrv/t
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10434"; a="291801113"
+X-IronPort-AV: E=Sophos;i="5.93,226,1654585200"; 
+   d="scan'208";a="291801113"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2022 23:49:44 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,226,1654585200"; 
+   d="scan'208";a="932777087"
+Received: from lkp-server02.sh.intel.com (HELO 5d6b42aa80b8) ([10.239.97.151])
+  by fmsmga005.fm.intel.com with ESMTP; 09 Aug 2022 23:49:42 -0700
+Received: from kbuild by 5d6b42aa80b8 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1oLfXC-00001P-03;
+        Wed, 10 Aug 2022 06:49:42 +0000
+Date:   Wed, 10 Aug 2022 14:49:09 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
         linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ ad393690b235f40d3b4dc72d84e6fab3960edf9f
+Message-ID: <62f354e5.j4wVK1ptuDBGM6vU%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The driver core now:
-- Has the parent device of a supplier pick up the consumers if the
-  supplier never has a device created for it.
-- Ignores a supplier if the supplier has no parent device and will never
-  be probed by a driver
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: ad393690b235f40d3b4dc72d84e6fab3960edf9f  Merge branch 'acpi-properties' into linux-next
 
-And already prevents creating a device link with the consumer as a
-supplier of a parent.
+elapsed time: 729m
 
-So, we no longer need to find the "compatible" node of the supplier or
-do any other checks in of_link_to_phandle(). We simply need to make sure
-that the supplier is available in DT.
+configs tested: 27
+configs skipped: 2
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- drivers/of/property.c | 84 +++++++------------------------------------
- 1 file changed, 13 insertions(+), 71 deletions(-)
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index 967f79b59016..98ca0399a354 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -1060,20 +1060,6 @@ of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- 	return of_device_get_match_data(dev);
- }
- 
--static bool of_is_ancestor_of(struct device_node *test_ancestor,
--			      struct device_node *child)
--{
--	of_node_get(child);
--	while (child) {
--		if (child == test_ancestor) {
--			of_node_put(child);
--			return true;
--		}
--		child = of_get_next_parent(child);
--	}
--	return false;
--}
--
- static struct device_node *of_get_compat_node(struct device_node *np)
- {
- 	of_node_get(np);
-@@ -1104,71 +1090,27 @@ static struct device_node *of_get_compat_node_parent(struct device_node *np)
- 	return node;
- }
- 
--/**
-- * of_link_to_phandle - Add fwnode link to supplier from supplier phandle
-- * @con_np: consumer device tree node
-- * @sup_np: supplier device tree node
-- *
-- * Given a phandle to a supplier device tree node (@sup_np), this function
-- * finds the device that owns the supplier device tree node and creates a
-- * device link from @dev consumer device to the supplier device. This function
-- * doesn't create device links for invalid scenarios such as trying to create a
-- * link with a parent device as the consumer of its child device. In such
-- * cases, it returns an error.
-- *
-- * Returns:
-- * - 0 if fwnode link successfully created to supplier
-- * - -EINVAL if the supplier link is invalid and should not be created
-- * - -ENODEV if struct device will never be create for supplier
-- */
--static int of_link_to_phandle(struct device_node *con_np,
-+static void of_link_to_phandle(struct device_node *con_np,
- 			      struct device_node *sup_np)
- {
--	struct device *sup_dev;
--	struct device_node *tmp_np = sup_np;
-+	struct device_node *tmp_np = of_node_get(sup_np);
- 
--	/*
--	 * Find the device node that contains the supplier phandle.  It may be
--	 * @sup_np or it may be an ancestor of @sup_np.
--	 */
--	sup_np = of_get_compat_node(sup_np);
--	if (!sup_np) {
--		pr_debug("Not linking %pOFP to %pOFP - No device\n",
--			 con_np, tmp_np);
--		return -ENODEV;
--	}
-+	/* Check that sup_np and its ancestors are available. */
-+	while (tmp_np) {
-+		if (of_fwnode_handle(tmp_np)->dev) {
-+			of_node_put(tmp_np);
-+			break;
-+		}
- 
--	/*
--	 * Don't allow linking a device node as a consumer of one of its
--	 * descendant nodes. By definition, a child node can't be a functional
--	 * dependency for the parent node.
--	 */
--	if (of_is_ancestor_of(con_np, sup_np)) {
--		pr_debug("Not linking %pOFP to %pOFP - is descendant\n",
--			 con_np, sup_np);
--		of_node_put(sup_np);
--		return -EINVAL;
--	}
-+		if (!of_device_is_available(tmp_np)) {
-+			of_node_put(tmp_np);
-+			return;
-+		}
- 
--	/*
--	 * Don't create links to "early devices" that won't have struct devices
--	 * created for them.
--	 */
--	sup_dev = get_dev_from_fwnode(&sup_np->fwnode);
--	if (!sup_dev &&
--	    (of_node_check_flag(sup_np, OF_POPULATED) ||
--	     sup_np->fwnode.flags & FWNODE_FLAG_NOT_DEVICE)) {
--		pr_debug("Not linking %pOFP to %pOFP - No struct device\n",
--			 con_np, sup_np);
--		of_node_put(sup_np);
--		return -ENODEV;
-+		tmp_np = of_get_next_parent(tmp_np);
- 	}
--	put_device(sup_dev);
- 
- 	fwnode_link_add(of_fwnode_handle(con_np), of_fwnode_handle(sup_np));
--	of_node_put(sup_np);
--
--	return 0;
- }
- 
- /**
+gcc tested configs:
+um                             i386_defconfig
+um                           x86_64_defconfig
+i386                          randconfig-a014
+i386                          randconfig-a012
+i386                          randconfig-a016
+x86_64                              defconfig
+x86_64                           rhel-8.3-syz
+x86_64                        randconfig-a006
+x86_64                           allyesconfig
+x86_64                               rhel-8.3
+arc                  randconfig-r043-20220810
+riscv                randconfig-r042-20220810
+s390                 randconfig-r044-20220810
+powerpc                           allnoconfig
+powerpc                          allmodconfig
+sh                               allmodconfig
+mips                             allyesconfig
+m68k                             allmodconfig
+arc                              allyesconfig
+alpha                            allyesconfig
+m68k                             allyesconfig
+
+clang tested configs:
+i386                          randconfig-a013
+i386                          randconfig-a011
+i386                          randconfig-a015
+x86_64                        randconfig-a005
+hexagon              randconfig-r041-20220810
+hexagon              randconfig-r045-20220810
+
 -- 
-2.37.1.559.g78731f0fdb-goog
-
+0-DAY CI Kernel Test Service
+https://01.org/lkp
