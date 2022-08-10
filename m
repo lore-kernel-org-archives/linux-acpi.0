@@ -2,325 +2,182 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54F0CC25B06
-	for <linux-acpi@archiver.kernel.org>; Tue,  9 Aug 2022 19:07:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31710C3F6B0
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Aug 2022 06:01:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345235AbiHITHd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 9 Aug 2022 15:07:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38592 "EHLO
+        id S230433AbiHJGB0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Aug 2022 02:01:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345971AbiHITGP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2022 15:06:15 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C67CC109;
-        Tue,  9 Aug 2022 11:46:31 -0700 (PDT)
-Received: from zn.tnic (p200300ea971b9800329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:971b:9800:329c:23ff:fea6:a903])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id D0E8D1EC050F;
-        Tue,  9 Aug 2022 20:46:25 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1660070786;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=isELGFuYHhfnrRtAt5/XPB2ebAau9OPRcs9FGy+PSbc=;
-        b=Hxoy+RtUpZ/w/UKftVYnwLRTTT0rEO7w8pYKPx9or6CQWCQH0qQjzSfKfbPURvIEIsVqPP
-        IXktObR7fQ+e4BG30rhKCFGcrGZTja01CZssG0krf7ZO9o0168V41Bc0DgGnklW3UYFVIU
-        sm1NJr378G8BI4o3uC4D44Y2gJH2jqo=
-Date:   Tue, 9 Aug 2022 20:46:22 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Justin He <Justin.He@arm.com>
-Cc:     "Kani, Toshi" <toshi.kani@hpe.com>,
+        with ESMTP id S230453AbiHJGAx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2022 02:00:53 -0400
+Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7392BE53
+        for <linux-acpi@vger.kernel.org>; Tue,  9 Aug 2022 23:00:48 -0700 (PDT)
+Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-31f46b4759bso118248777b3.0
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Aug 2022 23:00:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:from:subject:mime-version:message-id:date:from:to:cc;
+        bh=TCO2xyxVuPd3/tBUV+s0EeQJwLyZQsGvsrrIoFAUabA=;
+        b=BvFe715tdJHTFzLiuUTS/Q7VYOCApMDwcI0d8adcuT6VY23Mzv0LjVB/oCe1EYUH6I
+         GrUEBHGuCyX9om+3m+2zl2rmB8DHkIoDhCoJHkxwfbcimGGF2Au9Yt8rAFlE5vLE4zOT
+         FBke0i6x4PfWRbfl2D3iR0cCU4z0WmA3iKlcfcXB0BYjlIhk2JqckwGp1G7FtAQR48/7
+         pqJ0XtbeVUishXdC4XToLF9FWmAVWf/m/3RJfH4tl7k3Jd+oE21AZHO7Wt0qAh9vtQ8/
+         piA6XmFBChiJiUmunvUDrKZvlyy2Mu3J3SrWw8IQ6KPqPhlxUX1s7KWZK+OvnRu3v5v3
+         Y72Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:from:subject:mime-version:message-id:date:x-gm-message-state
+         :from:to:cc;
+        bh=TCO2xyxVuPd3/tBUV+s0EeQJwLyZQsGvsrrIoFAUabA=;
+        b=M8GM6YKqD8uLqSdKY+N29lsoOfXBxD7GbjrYgJkdmlPSErBteane5Sf6MWGgSUL6eZ
+         j0wbFvCzq9KbL3q+Q/bKtGdbb7Ev0/R7oqiPTJUqgpNN+IRybeDg1qNRA0fLN9aaPOwu
+         fC2Yt4Mk3zgs3XbBmvg+CZ0sGXseLd53zfe8CF3HdR4H2nhAGMKeMKkhJIfK1HI1lxpd
+         acqVyfs6ScKnMJalmm6raKRW7nOmyjL8Cgzm0In0t9r/GdIpDml3kVY6ZhwblWEE/4IE
+         DSLegtuIOzUmVP/pM6RlAB847A1d512wEn49wXieuzwQVarSct5VknY8w4HRQ8sq5MVy
+         OMsQ==
+X-Gm-Message-State: ACgBeo0O/wXda/IWdPg3trkqALVVkuLp2Uz4cY+XUU23QTXozu/U8zji
+        bEDGx5/9FwA9UtQ9wYpzT8bJIabK8ed8R30=
+X-Google-Smtp-Source: AA6agR4Luo9mfYOGUmow5n6t7VfAyPObtMuTRPi8OYX4fTwH65RIMuWKTPOsfnkREdcPNXAbTsM3U3vFPMT0E+A=
+X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:f21:76ca:766f:e0ab])
+ (user=saravanak job=sendgmr) by 2002:a25:7613:0:b0:67a:700a:f9e1 with SMTP id
+ r19-20020a257613000000b0067a700af9e1mr23778556ybc.53.1660111247299; Tue, 09
+ Aug 2022 23:00:47 -0700 (PDT)
+Date:   Tue,  9 Aug 2022 23:00:29 -0700
+Message-Id: <20220810060040.321697-1-saravanak@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.37.1.559.g78731f0fdb-goog
+Subject: [PATCH v1 0/9] fw_devlink improvements
+From:   Saravana Kannan <saravanak@google.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, James Morse <James.Morse@arm.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robert Richter <rric@kernel.org>,
-        Shuai Xue <xueshuai@linux.alibaba.com>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:EDAC-CORE" <linux-edac@vger.kernel.org>
-Subject: Re: =?utf-8?B?5Zue5aSNOiBbUEFUQ0hdIEFDUEk=?= =?utf-8?Q?=3A?= APEI:
- move edac_init ahead of ghes platform drv register
-Message-ID: <YvKrfqAsVLUqW5PN@zn.tnic>
-References: <PH7PR84MB1838379B8C2DF488DE729A9182639@PH7PR84MB1838.NAMPRD84.PROD.OUTLOOK.COM>
- <YvF4p01WJGGUwIJC@zn.tnic>
- <PH7PR84MB1838492812F5ABAA4BB54D9982639@PH7PR84MB1838.NAMPRD84.PROD.OUTLOOK.COM>
- <YvF+J/dfyOEVSbSQ@zn.tnic>
- <PH7PR84MB1838BF4F8B56EF1E24FCF1DC82639@PH7PR84MB1838.NAMPRD84.PROD.OUTLOOK.COM>
- <YvIPf/m3hU46S9Ik@zn.tnic>
- <DBBPR08MB4538A5C080B09A96A77CCDA9F7629@DBBPR08MB4538.eurprd08.prod.outlook.com>
- <YvJB5cxSldpigw1g@zn.tnic>
- <DBBPR08MB453870FA5C5D26AADFDF05C7F7629@DBBPR08MB4538.eurprd08.prod.outlook.com>
- <YvKWP2BcAh/+YKXM@zn.tnic>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <YvKWP2BcAh/+YKXM@zn.tnic>
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Len Brown <lenb@kernel.org>
+Cc:     Saravana Kannan <saravanak@google.com>,
+        Abel Vesa <abel.vesa@linaro.org>,
+        Alexander Stein <alexander.stein@ew.tq-group.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        John Stultz <jstultz@google.com>,
+        Doug Anderson <dianders@chromium.org>,
+        Guenter Roeck <linux@roeck-us.net>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Aug 09, 2022 at 07:15:43PM +0200, Borislav Petkov wrote:
-> Yes, I think you do. Lemme write something and you can finish it/test
-> it.
+This patch series improves fw_devlink in the following ways:
 
-Here's something to only show what I'm thinking of. It doesn't build
-because of:
+1. It no longer cares about a fwnode having a "compatible" property. It
+   figures this our more dynamically. The only expectation is that
+   fwnode that are converted to devices actually get probed by a driver
+   for the dependencies to be enforced correctly.
 
-drivers/acpi/apei/ghes.c: In function ‘ghes_do_proc’:
-drivers/acpi/apei/ghes.c:651:25: error: implicit declaration of function ‘ghes_edac_report_mem_error’; did you mean ‘arch_apei_report_mem_error’? [-Werror=implicit-function-declaration]
-  651 |                         ghes_edac_report_mem_error(sev, mem_err);
+2. Finer grained dependency tracking. fw_devlink will now create device
+   links from the consumer to the actual resource's device (if it has one,
+   Eg: gpio_device) instead of the parent supplier device. This improves
+   things like async suspend/resume ordering, potentially remove the need
+   for frameworks to create device links, more parallelized async probing,
+   and better sync_state() tracking.
 
+3. Handle hardware/software quirks where a child firmware node gets
+   populated as a device before its parent firmware node AND actually
+   supplies a non-optional resource to the parent firmware node's
+   device.
 
-and that needs more thinking what to do. My idea currently is to do a
-notifier like we do for MCA...
+4. Way more robust at cycle handling (see patch for the insane cases).
 
-And I'm not really happy about returning a list of ghes devices just so
-ghes_edac instances can get their struct device * pointers. Maybe we'll
-think of something better.
+5. Stops depending on OF_POPULATED to figure out some corner cases.
 
-But this is the general goal: not call module code from builtin code -
-i.e., call ghes_edac.c code from ghes.c. It works now because ghes_edac
-is forced builtin which is ugly as hell.
+6. Simplifies the work that needs to be done by the firmware specific
+   code.
 
-Anyway, enough for today...
+This took way too long to get done due to typo bugs I had in my rewrite or
+corner cases I had to find and handle. But it's fairly well tested at this
+point and I expect this to work properly.
 
----
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index d91ad378c00d..0919317b8313 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -118,6 +118,9 @@ module_param_named(disable, ghes_disable, bool, 0);
- static LIST_HEAD(ghes_hed);
- static DEFINE_MUTEX(ghes_list_mutex);
- 
-+static LIST_HEAD(ghes_devs);
-+static DEFINE_MUTEX(ghes_devs_mutex);
-+
- /*
-  * Because the memory area used to transfer hardware error information
-  * from BIOS to Linux can be determined only in NMI, IRQ or timer
-@@ -1376,7 +1379,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 
- 	platform_set_drvdata(ghes_dev, ghes);
- 
--	ghes_edac_register(ghes, &ghes_dev->dev);
-+	ghes->dev = &ghes_dev->dev;
-+
-+	mutex_lock(&ghes_devs_mutex);
-+	list_add_tail(&ghes->elist, &ghes_devs);
-+	mutex_unlock(&ghes_devs_mutex);
- 
- 	/* Handle any pending errors right away */
- 	spin_lock_irqsave(&ghes_notify_lock_irq, flags);
-@@ -1440,8 +1447,6 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 
- 	ghes_fini(ghes);
- 
--	ghes_edac_unregister(ghes);
--
- 	kfree(ghes);
- 
- 	platform_set_drvdata(ghes_dev, NULL);
-@@ -1497,3 +1502,25 @@ void __init acpi_ghes_init(void)
- 	else
- 		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
- }
-+
-+/*
-+ * Known x86 systems that prefer GHES error reporting:
-+ */
-+static struct acpi_platform_list plat_list[] = {
-+	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
-+	{ } /* End */
-+};
-+
-+struct list_head *ghes_get_devices(bool force)
-+{
-+	int idx = -1;
-+
-+	if (IS_ENABLED(CONFIG_X86)) {
-+		idx = acpi_match_platform_list(plat_list);
-+		if (idx < 0 && !force)
-+			return NULL;
-+	}
-+
-+	return &ghes_devs;
-+}
-+EXPORT_SYMBOL_GPL(ghes_get_devices);
-diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-index 17562cf1fe97..df45db81858b 100644
---- a/drivers/edac/Kconfig
-+++ b/drivers/edac/Kconfig
-@@ -53,8 +53,8 @@ config EDAC_DECODE_MCE
- 	  has been initialized.
- 
- config EDAC_GHES
--	bool "Output ACPI APEI/GHES BIOS detected errors via EDAC"
--	depends on ACPI_APEI_GHES && (EDAC=y)
-+	tristate "Output ACPI APEI/GHES BIOS detected errors via EDAC"
-+	depends on ACPI_APEI_GHES
- 	select UEFI_CPER
- 	help
- 	  Not all machines support hardware-driven error report. Some of those
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index c8fa7dcfdbd0..da6d1a9e107d 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -59,6 +59,8 @@ module_param(force_load, bool, 0);
- 
- static bool system_scanned;
- 
-+static struct list_head *ghes_devs;
-+
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
- 	u8 type;
-@@ -376,34 +378,15 @@ void ghes_edac_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
- 	spin_unlock_irqrestore(&ghes_lock, flags);
- }
- 
--/*
-- * Known systems that are safe to enable this module.
-- */
--static struct acpi_platform_list plat_list[] = {
--	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
--	{ } /* End */
--};
--
--int ghes_edac_register(struct ghes *ghes, struct device *dev)
-+static int ghes_edac_register(struct device *dev)
- {
- 	bool fake = false;
- 	struct mem_ctl_info *mci;
- 	struct ghes_pvt *pvt;
- 	struct edac_mc_layer layers[1];
- 	unsigned long flags;
--	int idx = -1;
- 	int rc = 0;
- 
--	if (IS_ENABLED(CONFIG_X86)) {
--		/* Check if safe to enable on this system */
--		idx = acpi_match_platform_list(plat_list);
--		if (!force_load && idx < 0)
--			return -ENODEV;
--	} else {
--		force_load = true;
--		idx = 0;
--	}
--
- 	/* finish another registration/unregistration instance first */
- 	mutex_lock(&ghes_reg_mutex);
- 
-@@ -447,7 +430,7 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
- 		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
- 		pr_info("work on such system. Use this driver with caution\n");
--	} else if (idx < 0) {
-+	} else if (force_load) {
- 		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
- 		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
- 		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
-@@ -517,7 +500,7 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	return rc;
- }
- 
--void ghes_edac_unregister(struct ghes *ghes)
-+static void ghes_edac_unregister(struct ghes *ghes)
- {
- 	struct mem_ctl_info *mci;
- 	unsigned long flags;
-@@ -551,3 +534,30 @@ void ghes_edac_unregister(struct ghes *ghes)
- unlock:
- 	mutex_unlock(&ghes_reg_mutex);
- }
-+
-+static int __init ghes_edac_init(void)
-+{
-+	struct ghes *g, *g_tmp;
-+
-+	ghes_devs = ghes_get_devices(force_load);
-+	if (ghes_devs)
-+		return -ENODEV;
-+
-+	list_for_each_entry_safe(g, g_tmp, ghes_devs, elist) {
-+		ghes_edac_register(g->dev);
-+	}
-+
-+	return 0;
-+}
-+module_init(ghes_edac_init);
-+
-+static void __exit ghes_edac_exit(void)
-+{
-+	struct ghes *g, *g_tmp;
-+
-+
-+	list_for_each_entry_safe(g, g_tmp, ghes_devs, elist) {
-+		ghes_edac_unregister(g);
-+	}
-+}
-+module_exit(ghes_edac_exit);
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 34fb3431a8f3..f39b75c3f9c6 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -27,6 +27,8 @@ struct ghes {
- 		struct timer_list timer;
- 		unsigned int irq;
- 	};
-+	struct device *dev;
-+	struct list_head elist;
- };
- 
- struct ghes_estatus_node {
-@@ -69,35 +71,13 @@ int ghes_register_vendor_record_notifier(struct notifier_block *nb);
-  * @nb: pointer to the notifier_block structure of the vendor record handler.
-  */
- void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
-+struct list_head *ghes_get_devices(bool force);
-+#else
-+static inline struct list_head *ghes_get_devices(bool force) { return NULL; }
- #endif
- 
- int ghes_estatus_pool_init(int num_ghes);
- 
--/* From drivers/edac/ghes_edac.c */
--
--#ifdef CONFIG_EDAC_GHES
--void ghes_edac_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
--
--int ghes_edac_register(struct ghes *ghes, struct device *dev);
--
--void ghes_edac_unregister(struct ghes *ghes);
--
--#else
--static inline void ghes_edac_report_mem_error(int sev,
--				       struct cper_sec_mem_err *mem_err)
--{
--}
--
--static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
--{
--	return -ENODEV;
--}
--
--static inline void ghes_edac_unregister(struct ghes *ghes)
--{
--}
--#endif
--
- static inline int acpi_hest_get_version(struct acpi_hest_generic_data *gdata)
- {
- 	return gdata->revision >> 8;
+Abel & Doug,
+
+This should fix your cyclic dependency issues with your display. Can you
+give it a shot please?
+
+Alexander,
+
+This should fix your issue where the power domain device not having a
+compatible property. Can you give it a shot please?
+
+Tony,
+
+This should handle the odd case of the child being the supplier of the
+parent. Can you please give this a shot? I want to make sure the cycle
+detection code handles this properly and treats it like it's NOT a cycle.
+
+Geert,
+
+Can you test the renesas stuff I changed please? They should continue
+working like before. Any other sanity test on other hardware would be
+great too.
+
+Sudeep,
+
+I don't think there are any unfixed issues you had reported in my other
+patches that this series might fix, but it'll be nice if you could give
+this a sanity test.
+
+Guenter,
+
+I don't think this will fix the issue you reported in the amba patch, but
+it's worth a shot because it improves a bunch of corner case handling. So
+it might be better at handling whatever corner cases you might have in the
+qemu platforms.
+
+Thanks,
+Saravana
+
+Cc: Abel Vesa <abel.vesa@linaro.org>
+Cc: Alexander Stein <alexander.stein@ew.tq-group.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: John Stultz <jstultz@google.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+
+Saravana Kannan (9):
+  driver core: fw_devlink: Don't purge child fwnode's consumer links
+  driver core: fw_devlink: Improve check for fwnode with no
+    device/driver
+  soc: renesas: Move away from using OF_POPULATED for fw_devlink
+  gpiolib: Clear the gpio_device's fwnode initialized flag before adding
+  driver core: fw_devlink: Add DL_FLAG_CYCLE support to device links
+  driver core: fw_devlink: Allow marking a fwnode link as being part of
+    a cycle
+  driver core: fw_devlink: Consolidate device link flag computation
+  driver core: fw_devlink: Make cycle detection more robust
+  of: property: Simplify of_link_to_phandle()
+
+ drivers/base/core.c             | 437 +++++++++++++++++++++-----------
+ drivers/gpio/gpiolib.c          |   6 +
+ drivers/of/property.c           |  84 +-----
+ drivers/soc/renesas/rcar-sysc.c |   2 +-
+ include/linux/device.h          |   1 +
+ include/linux/fwnode.h          |  12 +-
+ 6 files changed, 323 insertions(+), 219 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
+2.37.1.559.g78731f0fdb-goog
 
-https://people.kernel.org/tglx/notes-about-netiquette
