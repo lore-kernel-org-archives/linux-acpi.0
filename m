@@ -2,347 +2,459 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5427C32774
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 Aug 2022 06:02:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31BE1C3814E
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 Aug 2022 06:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231261AbiHJGBd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 Aug 2022 02:01:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60090 "EHLO
+        id S231281AbiHJGBg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 Aug 2022 02:01:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231203AbiHJGBF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2022 02:01:05 -0400
-Received: from EUR03-VE1-obe.outbound.protection.outlook.com (mail-eopbgr50073.outbound.protection.outlook.com [40.107.5.73])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A99582715E;
-        Tue,  9 Aug 2022 23:01:03 -0700 (PDT)
-ARC-Seal: i=2; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=pass;
- b=Vo4rm71s/+t1juXbPIF/MWOzMfzC1y38B8NYOviv6ZLjaUUw75ofEz5EjRSPvu9fnSDGBx1z71CkR8kAicZlb8dxhbEmIL1b0CyKvetkKM92rbHyBOuwI8qTmg04IbQFmz1RuIHYxvLW4iGKD1u0EzQUxhHQTc3s4ce37qy0FupfBTDGZTSFTsi/8jMbzpp1cA+A1Y7EBpImeujwVLS67AFYpjjICJ5sX8kY3HoA6Jiji8N2UWCCx2RNZO9cIMvhBnuCdWCyeaG79wYu3bE82eSZuW7Goo0T5mYwVa7vnjxxUdWbuRY7Mrtlc09GD3RoD16oQGNMhU2vSUIj8mic3g==
-ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=RNHKNyQh1zaNhqRxqVxzTVbtusIVNC3CPsI45ZrHGxM=;
- b=AWgYvVtn2H4vpkxM9Qbef7Gh3Y87U6P/e41rNR/fL8GzVYVjU0yNjwIJKtzXZaZVMxAP6UXbc/erxv1kLzSZkF2alz9kad6XxPXqowYDuW7EmGqzZpaz74EtZGMqSfDa9ZqNDEdtsrZS+p8077FX8T65M4t0kO8W6Ns4TkZWfrMIocJCLh2Bx7d/XSw7nF+QPtEWALKT2Ij4QPv6a0QriWb1p8H/c2dCHcAQC82jQD0IS+YV63ALxGXtJ2rbCuvslwgeVB2L77tAcsxcMfO7Z+PLSK9qs5dA4Wenb+2AJZaiZrUwdU1AxbloQ4kKPJpYvN0IrNP1uGmNqwAOXy77Ng==
-ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
- 63.35.35.123) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=arm.com;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=arm.com;
- dkim=pass (signature was verified) header.d=armh.onmicrosoft.com; arc=pass (0
- oda=1 ltdi=1 spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
- dmarc=[1,1,header.from=arm.com])
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=armh.onmicrosoft.com;
- s=selector2-armh-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=RNHKNyQh1zaNhqRxqVxzTVbtusIVNC3CPsI45ZrHGxM=;
- b=J/67HCIILCSQBceDve61lu5pNHNBkuzf7LWdPbzgdGlnBOSw3JLrveuzBx4BYrENayx2NA0o7cGTF5RhsQxq9tz3qoji2cXuOVIuv652idsiRqrDTpuOwjSNj5zjWyYMwC+6wxrxmeI8Iu7bVkRH0my+eeUxnz5rsgHMdTF2E7o=
-Received: from AS9PR06CA0184.eurprd06.prod.outlook.com (2603:10a6:20b:45d::24)
- by AM0PR08MB3940.eurprd08.prod.outlook.com (2603:10a6:208:124::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.14; Wed, 10 Aug
- 2022 06:00:58 +0000
-Received: from AM5EUR03FT006.eop-EUR03.prod.protection.outlook.com
- (2603:10a6:20b:45d:cafe::bb) by AS9PR06CA0184.outlook.office365.com
- (2603:10a6:20b:45d::24) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5458.24 via Frontend
- Transport; Wed, 10 Aug 2022 06:00:58 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 63.35.35.123)
- smtp.mailfrom=arm.com; dkim=pass (signature was verified)
- header.d=armh.onmicrosoft.com;dmarc=pass action=none header.from=arm.com;
-Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
- 63.35.35.123 as permitted sender) receiver=protection.outlook.com;
- client-ip=63.35.35.123; helo=64aa7808-outbound-1.mta.getcheckrecipient.com;
- pr=C
-Received: from 64aa7808-outbound-1.mta.getcheckrecipient.com (63.35.35.123) by
- AM5EUR03FT006.mail.protection.outlook.com (10.152.16.122) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5504.16 via Frontend Transport; Wed, 10 Aug 2022 06:00:58 +0000
-Received: ("Tessian outbound 73dd6a25223d:v123"); Wed, 10 Aug 2022 06:00:58 +0000
-X-CheckRecipientChecked: true
-X-CR-MTA-CID: 500e424471c043a2
-X-CR-MTA-TID: 64aa7808
-Received: from fb1f516a1121.2
-        by 64aa7808-outbound-1.mta.getcheckrecipient.com id 7C675215-04B3-48FB-A27B-773EA1D3BB66.1;
-        Wed, 10 Aug 2022 06:00:51 +0000
-Received: from EUR04-DB3-obe.outbound.protection.outlook.com
-    by 64aa7808-outbound-1.mta.getcheckrecipient.com with ESMTPS id fb1f516a1121.2
-    (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384);
-    Wed, 10 Aug 2022 06:00:51 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ICcT34IvTEM6IRjMYD+ifhMNwZDlJvYKeEmOI+DVWFuTMLsRoWBJDMJvVP/cUGugsgk9dtcECazoXDxCgqce8d9JnDSq6XTo/V3SJxfrH/FgV3PKVmKU4VEYz6yP7gBlw0HnBWFPgOrcmSq1JP0xPFPcNAL7FGIJr0bt0ZlCpp4fYB6+eU4TMzxciy810aAA8j20WLXCSrSvl1yUo6MZbpx0foEyP2IbfNOjMzL67UpcNxgS9xbayYvFfb+l9DWz1dWOerbH/FxnBZcYoLkSVhSeKBd6lBVDyVgjF7UpmoS6ZaoFHKj1FgausbEQoOCaIbW0nuBY/NUC2wXnN45u1g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=RNHKNyQh1zaNhqRxqVxzTVbtusIVNC3CPsI45ZrHGxM=;
- b=ApvhNc2ZV3Yahc23C33oaEU6zRWp5van8Vu81Wu1LnRKg2lCcDZ3js5YD1guSySGsvbeld9S7woOdFgo868SulVqOLPxExKccu/OeZA8RduRBP+ckW6dJhY2Ysy+dxRvho31os9OLH1VV3tyT/9TFT/iBq7+eFDE40WCa+Oq2iGDRFQVCD07cRc+tMYhPzIJJd5kUfpG0gfFlBPI50CW+cafcGJKNeK+zD/UjHPXQvGrjlEqK5PiQCvAszox84n0uqhZQx1o+JoGjZZWzb6jUjyk4o/8gv6Q5jP2VOep8Mfqq9yLFN52zMaMLrb5q/3Gb/5Q9E2Ty4nILZ4+55WkdQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
- header.d=arm.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=armh.onmicrosoft.com;
- s=selector2-armh-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=RNHKNyQh1zaNhqRxqVxzTVbtusIVNC3CPsI45ZrHGxM=;
- b=J/67HCIILCSQBceDve61lu5pNHNBkuzf7LWdPbzgdGlnBOSw3JLrveuzBx4BYrENayx2NA0o7cGTF5RhsQxq9tz3qoji2cXuOVIuv652idsiRqrDTpuOwjSNj5zjWyYMwC+6wxrxmeI8Iu7bVkRH0my+eeUxnz5rsgHMdTF2E7o=
-Received: from DBBPR08MB4538.eurprd08.prod.outlook.com (2603:10a6:10:d2::15)
- by AM5PR0802MB2498.eurprd08.prod.outlook.com (2603:10a6:203:98::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.16; Wed, 10 Aug
- 2022 06:00:49 +0000
-Received: from DBBPR08MB4538.eurprd08.prod.outlook.com
- ([fe80::9139:c501:db7f:6d6b]) by DBBPR08MB4538.eurprd08.prod.outlook.com
- ([fe80::9139:c501:db7f:6d6b%3]) with mapi id 15.20.5504.021; Wed, 10 Aug 2022
- 06:00:49 +0000
-From:   Justin He <Justin.He@arm.com>
-To:     Borislav Petkov <bp@alien8.de>
-CC:     "Kani, Toshi" <toshi.kani@hpe.com>,
+        with ESMTP id S231218AbiHJGBN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2022 02:01:13 -0400
+Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E221A326C1
+        for <linux-acpi@vger.kernel.org>; Tue,  9 Aug 2022 23:01:11 -0700 (PDT)
+Received: by mail-yb1-xb49.google.com with SMTP id bu13-20020a056902090d00b00671743601f1so11335974ybb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Aug 2022 23:01:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:from:subject:references:mime-version:message-id:in-reply-to
+         :date:from:to:cc;
+        bh=0OeIVdqZFtuzFksZAGEwimHr/eXJ/y/bblGdVkQb4U4=;
+        b=bsicgi1AognCScR7IjuFDncgNtikVlD9KUavrAswfny8Y58HX2O4KWrmg7Bgbp9S6J
+         Mb+K0qEiRH9gnwPyjwKAAm12+nvbOWCt3Laji+xXknuaznkjsEM6presQXX9TW88985V
+         /QnPntgMffouMG0JWAktuzBvvLMrGixQuJGcvS7tUg9eTWnYiQZQ1MQRNNqRKMfw7DnH
+         yCfzmDUcaYY3uJc3r5ifz7+4DAfAm3Zz5x1tEtoRyGtzGryxszxXQmjYehvMoPH3ypLQ
+         G3bkgMUtDBnFG2IrUAyWDVgaCM8zD+PXhc/KFqgRQbDJLtq6PQO2ezZvzdcb3UwzMsTJ
+         pseg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:from:subject:references:mime-version:message-id:in-reply-to
+         :date:x-gm-message-state:from:to:cc;
+        bh=0OeIVdqZFtuzFksZAGEwimHr/eXJ/y/bblGdVkQb4U4=;
+        b=g+gIXR3PsuWczDxBl2wFK1u/jMJUm5YNEJSluPqMcca3gARDDnIE7EiuqluqvbJJWn
+         RN2goLkzsIas5De05r+Z/it5bmK267Mcgi2yA3Rwxx8W7/EGzj6bhL0EBD7Tji4JV6gL
+         nFgsNy/BbM6uizGUtMpo8CmI7CQYZ83kfoCNnHaDm+TI1EkWbREByTIXTj4qi//a+MaO
+         GZHrQC55CeKJbQJwdqejelb5mthdnCDu1d+Qhf1w4S+YPN7zRySUSaVwlykE3TapnLmH
+         AohlwKDk6fpk+V4mDVglR5HQ81K0zSY4PQi3raP7aKKxPM/vcK70ibJQpaW6VDFHeyAo
+         /BPg==
+X-Gm-Message-State: ACgBeo26IJdByGla+39Umg5ZQYIaueF84eEWkfBuRYVB8jXeGFZM8CRM
+        jK4BivnK/6FBRMXZhl+NvWm0554L+qZquII=
+X-Google-Smtp-Source: AA6agR4lRb1pOFi9LBMVZwF0W1xxhUoosjbkh/XGmyo3Z++3BkWQS/essjhb7uDiESA7FHHA1sMr7x4IMOj5OaU=
+X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:f21:76ca:766f:e0ab])
+ (user=saravanak job=sendgmr) by 2002:a0d:ee07:0:b0:324:cb8a:130f with SMTP id
+ x7-20020a0dee07000000b00324cb8a130fmr26672570ywe.409.1660111271650; Tue, 09
+ Aug 2022 23:01:11 -0700 (PDT)
+Date:   Tue,  9 Aug 2022 23:00:37 -0700
+In-Reply-To: <20220810060040.321697-1-saravanak@google.com>
+Message-Id: <20220810060040.321697-9-saravanak@google.com>
+Mime-Version: 1.0
+References: <20220810060040.321697-1-saravanak@google.com>
+X-Mailer: git-send-email 2.37.1.559.g78731f0fdb-goog
+Subject: [PATCH v1 8/9] driver core: fw_devlink: Make cycle detection more robust
+From:   Saravana Kannan <saravanak@google.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, James Morse <James.Morse@arm.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robert Richter <rric@kernel.org>,
-        Shuai Xue <xueshuai@linux.alibaba.com>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:EDAC-CORE" <linux-edac@vger.kernel.org>
-Subject: =?utf-8?B?UkU6IOWbnuWkjTogW1BBVENIXSBBQ1BJOiBBUEVJOiBtb3ZlIGVkYWNfaW5p?=
- =?utf-8?Q?t_ahead_of_ghes_platform_drv_register?=
-Thread-Topic: =?utf-8?B?5Zue5aSNOiBbUEFUQ0hdIEFDUEk6IEFQRUk6IG1vdmUgZWRhY19pbml0IGFo?=
- =?utf-8?Q?ead_of_ghes_platform_drv_register?=
-Thread-Index: AQHYqHOdT73gyPDB9Uq80vSHBXC6162lVXgAgAAFgwCAACJBAIAABLiAgAAEGgCAAAJ0gIAABFqAgACo6oCAABqDYIAAIZGAgABbUgCAAAk8gIAAGVQAgACxJoA=
-Date:   Wed, 10 Aug 2022 06:00:49 +0000
-Message-ID: <DBBPR08MB4538F9C5F3EAC189722F8F61F7659@DBBPR08MB4538.eurprd08.prod.outlook.com>
-References: <PH7PR84MB1838379B8C2DF488DE729A9182639@PH7PR84MB1838.NAMPRD84.PROD.OUTLOOK.COM>
- <YvF4p01WJGGUwIJC@zn.tnic>
- <PH7PR84MB1838492812F5ABAA4BB54D9982639@PH7PR84MB1838.NAMPRD84.PROD.OUTLOOK.COM>
- <YvF+J/dfyOEVSbSQ@zn.tnic>
- <PH7PR84MB1838BF4F8B56EF1E24FCF1DC82639@PH7PR84MB1838.NAMPRD84.PROD.OUTLOOK.COM>
- <YvIPf/m3hU46S9Ik@zn.tnic>
- <DBBPR08MB4538A5C080B09A96A77CCDA9F7629@DBBPR08MB4538.eurprd08.prod.outlook.com>
- <YvJB5cxSldpigw1g@zn.tnic>
- <DBBPR08MB453870FA5C5D26AADFDF05C7F7629@DBBPR08MB4538.eurprd08.prod.outlook.com>
- <YvKWP2BcAh/+YKXM@zn.tnic> <YvKrfqAsVLUqW5PN@zn.tnic>
-In-Reply-To: <YvKrfqAsVLUqW5PN@zn.tnic>
-Accept-Language: en-US, zh-CN
-Content-Language: zh-CN
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-Authentication-Results-Original: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=arm.com;
-X-MS-Office365-Filtering-Correlation-Id: 36cef673-eacd-4eff-3886-08da7a95b20c
-x-ms-traffictypediagnostic: AM5PR0802MB2498:EE_|AM5EUR03FT006:EE_|AM0PR08MB3940:EE_
-x-checkrecipientrouted: true
-nodisclaimer: true
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam-Untrusted: BCL:0;
-X-Microsoft-Antispam-Message-Info-Original: a03A+2BLTzjf29c1VEopOfSpKdkz8QsBA3b7qtKKFLFdNMKctKtTITbsBeZBdlZtuBEWYZ4b8Svg39xqvxuGI0m+7CM2NlE0OvlzKHmQ6Zo5sKVT1ekpQ8A0J0lcfLheGrSfHon1aprHwZ2rokqOJ+e2WctnRztcEj9q/ZXfoWbjkBIqiPXNkCiQdkMUWpY9P/cU7Nu6htevqVLuMkiI16l7DfduJ7N2QJkyooPO0Gx6u30oAInJUVfBNfb/uoTyYvbBxJAfi7qrX/gxcyQAWgJLfVEpxZy43y4NxmbvR9YA4nPaXpMGX5e5AZt4H5fbyUyloFA1Hmbx2Bj+S3pIC+FCMUedWH1Zo7uCfgEf7z6PGNG6XfhyELYlH5HqcAwuecIkpx7TKAPkBz/ZiSSb7bTOrusogzKZhnDZeLBqDDaa16l0L6Pby8XVHyW2e1LB4NO7E70S4/hw8UQvZcR3a+MXNQ9E800US11lwrKbFZ3o/v0KlPhozEfDbCjUA3wKghAXZY8FzSsNsiegI054VtE7utLV3Jd+6k28kEDBrrWEwQB51Knbwt81Qol3+w0kmPtoBFPGDXvDoILlgKJuPomNW6ilnpP2MQaeHsZX47yGsP2D06asv2tP7hwcTjIMo6mC4aRiOpZR9JUAj5s4Ny8HnhrLjlvz30ujYsIJvKW6c3Sp6R8JBI7EhGQj6+4sFGUOD5+Mww7o5ZaZsI28G85JsBVBQLpn91TSdKYWswLXTdp0pMwi9bW3qrfOzVpVLAvKaRWRoCoNthghiqqEL3uq0eFEJ4RMlrKayzuXJa0Tt/xn3zPTbM72wbVxR4J0e0ZrEt+1uLZmRjYIWR20wA==
-X-Forefront-Antispam-Report-Untrusted: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBPR08MB4538.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(396003)(366004)(376002)(136003)(346002)(39860400002)(71200400001)(9686003)(478600001)(41300700001)(966005)(86362001)(38070700005)(224303003)(6506007)(186003)(26005)(7696005)(83380400001)(53546011)(316002)(6916009)(54906003)(64756008)(66476007)(66556008)(55016003)(5660300002)(4326008)(76116006)(8936002)(66446008)(52536014)(38100700002)(66946007)(33656002)(7416002)(2906002)(122000001);DIR:OUT;SFP:1101;
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM5PR0802MB2498
-Original-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=arm.com;
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Transport-CrossTenantHeadersStripped: AM5EUR03FT006.eop-EUR03.prod.protection.outlook.com
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id-Prvs: c577d383-3c31-4343-645d-08da7a95aca7
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: Yo2cirj97LifRwvuIC2kQK9SqdIh7uU5tNQG52uFnsoyNTw/hxtbzlwTAWDJ3yrtlP1jyEf7JLAs/GJh1ZuI8reFLrdkZb0yyK455SLJgO5GSACdOLjEqdO+ZkJQqytDIfNNityvFv0qy67sU/g9RZtD4d9r5xOjaOZTIlLWsJEKBIno7qOkERWs8Qe1LRWJdSIgl93ui8s2lIgLSsBK2qydBguggMuHxlYdR2uuT66Weju8kJfnffUkz8lJfdtAc7lJQwUwSqzWNQAw8+sLYb3B2O1TYzgfX4b7cIS/pPfVwwryqoBMR2FtJ2iqdPITg7ym5N435lG/VTteRqyVv5y02R7BCSIZ4833WnfgX1T6GFcb+KnQGDtg8EN915l5Nll/IybmgL8li5GdNJUVDIma3QAhVnPnOsFZNzt/oZ/hzZ0E5MjqCQUgVXpSNgqGj7K2pX+KzsvUzUaxebK49+xs7bxPROROfzwLlXlfyp5rdwNq2RJ4t9Vj2lg7A0I+yNh53uoC5zo7AWLjgCWGY34jk9CU4XAb/9IGpArdq4+2UAIoDc4ao3eKQEUHSSe6LJsHhAmRNIyhdZt3xAeKt9Odo+1ajNglC4mJPbxCoYYtflT4BXbKZN2wGop5IBqB5y6ua/kjAdMhuRczMwpbPHTMzAIew20YlisQpOstC4mWfHyJKpY5GHztX7Kwyt8TMontzUWrb9bejU575LYJonZy6HODzQjp5P2CQkywLxRTgNSYuwSRtVeVklhhXnd1eOu8BgsR0bQ6h12K/TRd/NK+82aqyxV+oea0NNSIVZ6KTdBmadnAwdTE1mEwfF31PGrjr408wy1OoyiZL+wqKg==
-X-Forefront-Antispam-Report: CIP:63.35.35.123;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:64aa7808-outbound-1.mta.getcheckrecipient.com;PTR:ec2-63-35-35-123.eu-west-1.compute.amazonaws.com;CAT:NONE;SFS:(13230016)(4636009)(396003)(376002)(346002)(39860400002)(136003)(40470700004)(36840700001)(46966006)(966005)(6506007)(41300700001)(478600001)(53546011)(7696005)(33656002)(224303003)(86362001)(40480700001)(2906002)(9686003)(26005)(186003)(336012)(47076005)(54906003)(83380400001)(82310400005)(8936002)(40460700003)(450100002)(70586007)(4326008)(316002)(70206006)(52536014)(82740400003)(81166007)(55016003)(36860700001)(6862004)(5660300002)(356005);DIR:OUT;SFP:1101;
-X-OriginatorOrg: arm.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Aug 2022 06:00:58.0957
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 36cef673-eacd-4eff-3886-08da7a95b20c
-X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[63.35.35.123];Helo=[64aa7808-outbound-1.mta.getcheckrecipient.com]
-X-MS-Exchange-CrossTenant-AuthSource: AM5EUR03FT006.eop-EUR03.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR08MB3940
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Len Brown <lenb@kernel.org>
+Cc:     Saravana Kannan <saravanak@google.com>,
+        Abel Vesa <abel.vesa@linaro.org>,
+        Alexander Stein <alexander.stein@ew.tq-group.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        John Stultz <jstultz@google.com>,
+        Doug Anderson <dianders@chromium.org>,
+        Guenter Roeck <linux@roeck-us.net>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-SGkgQm9yaXNsYXYNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBCb3Jp
-c2xhdiBQZXRrb3YgPGJwQGFsaWVuOC5kZT4NCj4gU2VudDogV2VkbmVzZGF5LCBBdWd1c3QgMTAs
-IDIwMjIgMjo0NiBBTQ0KPiBUbzogSnVzdGluIEhlIDxKdXN0aW4uSGVAYXJtLmNvbT4NCj4gQ2M6
-IEthbmksIFRvc2hpIDx0b3NoaS5rYW5pQGhwZS5jb20+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmFm
-YWVsQGtlcm5lbC5vcmc+Ow0KPiBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz47IEphbWVzIE1v
-cnNlIDxKYW1lcy5Nb3JzZUBhcm0uY29tPjsNCj4gVG9ueSBMdWNrIDx0b255Lmx1Y2tAaW50ZWwu
-Y29tPjsgTWF1cm8gQ2FydmFsaG8gQ2hlaGFiDQo+IDxtY2hlaGFiQGtlcm5lbC5vcmc+OyBSb2Jl
-cnQgUmljaHRlciA8cnJpY0BrZXJuZWwub3JnPjsgU2h1YWkgWHVlDQo+IDx4dWVzaHVhaUBsaW51
-eC5hbGliYWJhLmNvbT47IEphcmtrbyBTYWtraW5lbiA8amFya2tvQGtlcm5lbC5vcmc+OyBBQ1BJ
-DQo+IERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IExpbnV4
-IEtlcm5lbCBNYWlsaW5nIExpc3QNCj4gPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBv
-cGVuIGxpc3Q6RURBQy1DT1JFDQo+IDxsaW51eC1lZGFjQHZnZXIua2VybmVsLm9yZz4NCj4gU3Vi
-amVjdDogUmU6IOWbnuWkjTogW1BBVENIXSBBQ1BJOiBBUEVJOiBtb3ZlIGVkYWNfaW5pdCBhaGVh
-ZCBvZiBnaGVzDQo+IHBsYXRmb3JtIGRydiByZWdpc3Rlcg0KPg0KPiBPbiBUdWUsIEF1ZyAwOSwg
-MjAyMiBhdCAwNzoxNTo0M1BNICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6DQo+ID4gWWVz
-LCBJIHRoaW5rIHlvdSBkby4gTGVtbWUgd3JpdGUgc29tZXRoaW5nIGFuZCB5b3UgY2FuIGZpbmlz
-aCBpdC90ZXN0DQo+ID4gaXQuDQo+DQo+IEhlcmUncyBzb21ldGhpbmcgdG8gb25seSBzaG93IHdo
-YXQgSSdtIHRoaW5raW5nIG9mLiBJdCBkb2Vzbid0IGJ1aWxkIGJlY2F1c2UNCj4gb2Y6DQo+DQo+
-IGRyaXZlcnMvYWNwaS9hcGVpL2doZXMuYzogSW4gZnVuY3Rpb24g4oCYZ2hlc19kb19wcm9j4oCZ
-Og0KPiBkcml2ZXJzL2FjcGkvYXBlaS9naGVzLmM6NjUxOjI1OiBlcnJvcjogaW1wbGljaXQgZGVj
-bGFyYXRpb24gb2YgZnVuY3Rpb24NCj4g4oCYZ2hlc19lZGFjX3JlcG9ydF9tZW1fZXJyb3LigJk7
-IGRpZCB5b3UgbWVhbg0KPiDigJhhcmNoX2FwZWlfcmVwb3J0X21lbV9lcnJvcuKAmT8gWy1XZXJy
-b3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dDQo+ICAgNjUxIHwgICAgICAgICAgICAg
-ICAgICAgICAgICAgZ2hlc19lZGFjX3JlcG9ydF9tZW1fZXJyb3Ioc2V2LA0KPiBtZW1fZXJyKTsN
-Cj4NCj4NCj4gYW5kIHRoYXQgbmVlZHMgbW9yZSB0aGlua2luZyB3aGF0IHRvIGRvLiBNeSBpZGVh
-IGN1cnJlbnRseSBpcyB0byBkbyBhIG5vdGlmaWVyDQo+IGxpa2Ugd2UgZG8gZm9yIE1DQS4uLg0K
-DQpUaGVyZSBpcyBzdGlsbCBhIHNtYWxsIGdhcCBldmVuIGlmIHdlIHVzZSBub3RpZmllciBmb3Ig
-Z2hlcyBlZGFjIHJlcG9ydCBtZW0gZXJyb3IuDQoNClRoZSBub3RpZmllciB3aWxsIGJlIHJlZ2lz
-dGVyZWQgb25seSB3aGVuIGNhbGxpbmcgbW9kdWxlX2luaXQoKSBvZiBnaGVzX2VkYWMgbW9kdWxl
-Lg0KVGhlbiB0aGVyZSB3aWxsIGJlIGRpZmZlcmVudCBiZWhhdmlvciBmb3IgZ2hlc19kb19wcm9j
-Og0KMS4gaWYgZ2hlc19kb19wcm9jIGlzIGludm9rZWQgaW4gdGhlIGFjcGlfaW5pdCBjb2RlIHBh
-dGgsIHRoZSBub3RpZmllciBoYXMgTk9UIGJlZW4gcmVnaXN0ZXJlZCwNCmdoZXNfZWRhY19yZXBv
-cnRfbWVtX2VycigpIGRvZXMgbm90aGluZy4NCjIuSWYgZ2hlc19kb19wcm9jIGlzIGludm9rZWQg
-YWZ0ZXIgbW9kdWxlX2luaXQoKSwgdGhlIG5vdGlmaWVyIGlzIHJlZ2lzdGVyZWQsIGV2ZXJ5dGhp
-bmcgaXMgZmluZS4NCg0KSXMgdGhpcyBzdHJhbmdlIG9yIGFueSBvdGhlciBzaWRlIGVmZmVjdHM/
-DQoNCi0tDQpDaGVlcnMsDQpKdXN0aW4gKEppYSBIZSkNCj4NCj4gQW5kIEknbSBub3QgcmVhbGx5
-IGhhcHB5IGFib3V0IHJldHVybmluZyBhIGxpc3Qgb2YgZ2hlcyBkZXZpY2VzIGp1c3Qgc28NCj4g
-Z2hlc19lZGFjIGluc3RhbmNlcyBjYW4gZ2V0IHRoZWlyIHN0cnVjdCBkZXZpY2UgKiBwb2ludGVy
-cy4gTWF5YmUgd2UnbGwgdGhpbmsNCj4gb2Ygc29tZXRoaW5nIGJldHRlci4NCj4NCj4gQnV0IHRo
-aXMgaXMgdGhlIGdlbmVyYWwgZ29hbDogbm90IGNhbGwgbW9kdWxlIGNvZGUgZnJvbSBidWlsdGlu
-IGNvZGUgLSBpLmUuLCBjYWxsDQo+IGdoZXNfZWRhYy5jIGNvZGUgZnJvbSBnaGVzLmMuIEl0IHdv
-cmtzIG5vdyBiZWNhdXNlIGdoZXNfZWRhYyBpcyBmb3JjZWQNCj4gYnVpbHRpbiB3aGljaCBpcyB1
-Z2x5IGFzIGhlbGwuDQo+DQo+IEFueXdheSwgZW5vdWdoIGZvciB0b2RheS4uLg0KPg0KPiAtLS0N
-Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hcGVpL2doZXMuYyBiL2RyaXZlcnMvYWNwaS9h
-cGVpL2doZXMuYyBpbmRleA0KPiBkOTFhZDM3OGMwMGQuLjA5MTkzMTdiODMxMyAxMDA2NDQNCj4g
-LS0tIGEvZHJpdmVycy9hY3BpL2FwZWkvZ2hlcy5jDQo+ICsrKyBiL2RyaXZlcnMvYWNwaS9hcGVp
-L2doZXMuYw0KPiBAQCAtMTE4LDYgKzExOCw5IEBAIG1vZHVsZV9wYXJhbV9uYW1lZChkaXNhYmxl
-LCBnaGVzX2Rpc2FibGUsIGJvb2wsDQo+IDApOyAgc3RhdGljIExJU1RfSEVBRChnaGVzX2hlZCk7
-ICBzdGF0aWMgREVGSU5FX01VVEVYKGdoZXNfbGlzdF9tdXRleCk7DQo+DQo+ICtzdGF0aWMgTElT
-VF9IRUFEKGdoZXNfZGV2cyk7DQo+ICtzdGF0aWMgREVGSU5FX01VVEVYKGdoZXNfZGV2c19tdXRl
-eCk7DQo+ICsNCj4gIC8qDQo+ICAgKiBCZWNhdXNlIHRoZSBtZW1vcnkgYXJlYSB1c2VkIHRvIHRy
-YW5zZmVyIGhhcmR3YXJlIGVycm9yIGluZm9ybWF0aW9uDQo+ICAgKiBmcm9tIEJJT1MgdG8gTGlu
-dXggY2FuIGJlIGRldGVybWluZWQgb25seSBpbiBOTUksIElSUSBvciB0aW1lciBAQA0KPiAtMTM3
-Niw3ICsxMzc5LDExIEBAIHN0YXRpYyBpbnQgZ2hlc19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2
-aWNlDQo+ICpnaGVzX2RldikNCj4NCj4gICAgICAgcGxhdGZvcm1fc2V0X2RydmRhdGEoZ2hlc19k
-ZXYsIGdoZXMpOw0KPg0KPiAtICAgICBnaGVzX2VkYWNfcmVnaXN0ZXIoZ2hlcywgJmdoZXNfZGV2
-LT5kZXYpOw0KPiArICAgICBnaGVzLT5kZXYgPSAmZ2hlc19kZXYtPmRldjsNCj4gKw0KPiArICAg
-ICBtdXRleF9sb2NrKCZnaGVzX2RldnNfbXV0ZXgpOw0KPiArICAgICBsaXN0X2FkZF90YWlsKCZn
-aGVzLT5lbGlzdCwgJmdoZXNfZGV2cyk7DQo+ICsgICAgIG11dGV4X3VubG9jaygmZ2hlc19kZXZz
-X211dGV4KTsNCj4NCj4gICAgICAgLyogSGFuZGxlIGFueSBwZW5kaW5nIGVycm9ycyByaWdodCBh
-d2F5ICovDQo+ICAgICAgIHNwaW5fbG9ja19pcnFzYXZlKCZnaGVzX25vdGlmeV9sb2NrX2lycSwg
-ZmxhZ3MpOyBAQCAtMTQ0MCw4ICsxNDQ3LDYNCj4gQEAgc3RhdGljIGludCBnaGVzX3JlbW92ZShz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpnaGVzX2RldikNCj4NCj4gICAgICAgZ2hlc19maW5pKGdo
-ZXMpOw0KPg0KPiAtICAgICBnaGVzX2VkYWNfdW5yZWdpc3RlcihnaGVzKTsNCj4gLQ0KPiAgICAg
-ICBrZnJlZShnaGVzKTsNCj4NCj4gICAgICAgcGxhdGZvcm1fc2V0X2RydmRhdGEoZ2hlc19kZXYs
-IE5VTEwpOw0KPiBAQCAtMTQ5NywzICsxNTAyLDI1IEBAIHZvaWQgX19pbml0IGFjcGlfZ2hlc19p
-bml0KHZvaWQpDQo+ICAgICAgIGVsc2UNCj4gICAgICAgICAgICAgICBwcl9pbmZvKEdIRVNfUEZY
-ICJGYWlsZWQgdG8gZW5hYmxlIEFQRUkgZmlybXdhcmUgZmlyc3QNCj4gbW9kZS5cbiIpOyAgfQ0K
-PiArDQo+ICsvKg0KPiArICogS25vd24geDg2IHN5c3RlbXMgdGhhdCBwcmVmZXIgR0hFUyBlcnJv
-ciByZXBvcnRpbmc6DQo+ICsgKi8NCj4gK3N0YXRpYyBzdHJ1Y3QgYWNwaV9wbGF0Zm9ybV9saXN0
-IHBsYXRfbGlzdFtdID0gew0KPiArICAgICB7IkhQRSAgICIsICJTZXJ2ZXIgICIsIDAsIEFDUElf
-U0lHX0ZBRFQsIGFsbF92ZXJzaW9uc30sDQo+ICsgICAgIHsgfSAvKiBFbmQgKi8NCj4gK307DQo+
-ICsNCj4gK3N0cnVjdCBsaXN0X2hlYWQgKmdoZXNfZ2V0X2RldmljZXMoYm9vbCBmb3JjZSkgew0K
-PiArICAgICBpbnQgaWR4ID0gLTE7DQo+ICsNCj4gKyAgICAgaWYgKElTX0VOQUJMRUQoQ09ORklH
-X1g4NikpIHsNCj4gKyAgICAgICAgICAgICBpZHggPSBhY3BpX21hdGNoX3BsYXRmb3JtX2xpc3Qo
-cGxhdF9saXN0KTsNCj4gKyAgICAgICAgICAgICBpZiAoaWR4IDwgMCAmJiAhZm9yY2UpDQo+ICsg
-ICAgICAgICAgICAgICAgICAgICByZXR1cm4gTlVMTDsNCj4gKyAgICAgfQ0KPiArDQo+ICsgICAg
-IHJldHVybiAmZ2hlc19kZXZzOw0KPiArfQ0KPiArRVhQT1JUX1NZTUJPTF9HUEwoZ2hlc19nZXRf
-ZGV2aWNlcyk7DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2VkYWMvS2NvbmZpZyBiL2RyaXZlcnMv
-ZWRhYy9LY29uZmlnIGluZGV4DQo+IDE3NTYyY2YxZmU5Ny4uZGY0NWRiODE4NThiIDEwMDY0NA0K
-PiAtLS0gYS9kcml2ZXJzL2VkYWMvS2NvbmZpZw0KPiArKysgYi9kcml2ZXJzL2VkYWMvS2NvbmZp
-Zw0KPiBAQCAtNTMsOCArNTMsOCBAQCBjb25maWcgRURBQ19ERUNPREVfTUNFDQo+ICAgICAgICAg
-aGFzIGJlZW4gaW5pdGlhbGl6ZWQuDQo+DQo+ICBjb25maWcgRURBQ19HSEVTDQo+IC0gICAgIGJv
-b2wgIk91dHB1dCBBQ1BJIEFQRUkvR0hFUyBCSU9TIGRldGVjdGVkIGVycm9ycyB2aWEgRURBQyIN
-Cj4gLSAgICAgZGVwZW5kcyBvbiBBQ1BJX0FQRUlfR0hFUyAmJiAoRURBQz15KQ0KPiArICAgICB0
-cmlzdGF0ZSAiT3V0cHV0IEFDUEkgQVBFSS9HSEVTIEJJT1MgZGV0ZWN0ZWQgZXJyb3JzIHZpYSBF
-REFDIg0KPiArICAgICBkZXBlbmRzIG9uIEFDUElfQVBFSV9HSEVTDQo+ICAgICAgIHNlbGVjdCBV
-RUZJX0NQRVINCj4gICAgICAgaGVscA0KPiAgICAgICAgIE5vdCBhbGwgbWFjaGluZXMgc3VwcG9y
-dCBoYXJkd2FyZS1kcml2ZW4gZXJyb3IgcmVwb3J0LiBTb21lIG9mIHRob3NlDQo+IGRpZmYgLS1n
-aXQgYS9kcml2ZXJzL2VkYWMvZ2hlc19lZGFjLmMgYi9kcml2ZXJzL2VkYWMvZ2hlc19lZGFjLmMg
-aW5kZXgNCj4gYzhmYTdkY2ZkYmQwLi5kYTZkMWE5ZTEwN2QgMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
-cnMvZWRhYy9naGVzX2VkYWMuYw0KPiArKysgYi9kcml2ZXJzL2VkYWMvZ2hlc19lZGFjLmMNCj4g
-QEAgLTU5LDYgKzU5LDggQEAgbW9kdWxlX3BhcmFtKGZvcmNlX2xvYWQsIGJvb2wsIDApOw0KPg0K
-PiAgc3RhdGljIGJvb2wgc3lzdGVtX3NjYW5uZWQ7DQo+DQo+ICtzdGF0aWMgc3RydWN0IGxpc3Rf
-aGVhZCAqZ2hlc19kZXZzOw0KPiArDQo+ICAvKiBNZW1vcnkgRGV2aWNlIC0gVHlwZSAxNyBvZiBT
-TUJJT1Mgc3BlYyAqLyAgc3RydWN0IG1lbWRldl9kbWlfZW50cnkNCj4gew0KPiAgICAgICB1OCB0
-eXBlOw0KPiBAQCAtMzc2LDM0ICszNzgsMTUgQEAgdm9pZCBnaGVzX2VkYWNfcmVwb3J0X21lbV9l
-cnJvcihpbnQgc2V2LCBzdHJ1Y3QNCj4gY3Blcl9zZWNfbWVtX2VyciAqbWVtX2VycikNCj4gICAg
-ICAgc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZ2hlc19sb2NrLCBmbGFncyk7ICB9DQo+DQo+IC0v
-Kg0KPiAtICogS25vd24gc3lzdGVtcyB0aGF0IGFyZSBzYWZlIHRvIGVuYWJsZSB0aGlzIG1vZHVs
-ZS4NCj4gLSAqLw0KPiAtc3RhdGljIHN0cnVjdCBhY3BpX3BsYXRmb3JtX2xpc3QgcGxhdF9saXN0
-W10gPSB7DQo+IC0gICAgIHsiSFBFICAgIiwgIlNlcnZlciAgIiwgMCwgQUNQSV9TSUdfRkFEVCwg
-YWxsX3ZlcnNpb25zfSwNCj4gLSAgICAgeyB9IC8qIEVuZCAqLw0KPiAtfTsNCj4gLQ0KPiAtaW50
-IGdoZXNfZWRhY19yZWdpc3RlcihzdHJ1Y3QgZ2hlcyAqZ2hlcywgc3RydWN0IGRldmljZSAqZGV2
-KQ0KPiArc3RhdGljIGludCBnaGVzX2VkYWNfcmVnaXN0ZXIoc3RydWN0IGRldmljZSAqZGV2KQ0K
-PiAgew0KPiAgICAgICBib29sIGZha2UgPSBmYWxzZTsNCj4gICAgICAgc3RydWN0IG1lbV9jdGxf
-aW5mbyAqbWNpOw0KPiAgICAgICBzdHJ1Y3QgZ2hlc19wdnQgKnB2dDsNCj4gICAgICAgc3RydWN0
-IGVkYWNfbWNfbGF5ZXIgbGF5ZXJzWzFdOw0KPiAgICAgICB1bnNpZ25lZCBsb25nIGZsYWdzOw0K
-PiAtICAgICBpbnQgaWR4ID0gLTE7DQo+ICAgICAgIGludCByYyA9IDA7DQo+DQo+IC0gICAgIGlm
-IChJU19FTkFCTEVEKENPTkZJR19YODYpKSB7DQo+IC0gICAgICAgICAgICAgLyogQ2hlY2sgaWYg
-c2FmZSB0byBlbmFibGUgb24gdGhpcyBzeXN0ZW0gKi8NCj4gLSAgICAgICAgICAgICBpZHggPSBh
-Y3BpX21hdGNoX3BsYXRmb3JtX2xpc3QocGxhdF9saXN0KTsNCj4gLSAgICAgICAgICAgICBpZiAo
-IWZvcmNlX2xvYWQgJiYgaWR4IDwgMCkNCj4gLSAgICAgICAgICAgICAgICAgICAgIHJldHVybiAt
-RU5PREVWOw0KPiAtICAgICB9IGVsc2Ugew0KPiAtICAgICAgICAgICAgIGZvcmNlX2xvYWQgPSB0
-cnVlOw0KPiAtICAgICAgICAgICAgIGlkeCA9IDA7DQo+IC0gICAgIH0NCj4gLQ0KPiAgICAgICAv
-KiBmaW5pc2ggYW5vdGhlciByZWdpc3RyYXRpb24vdW5yZWdpc3RyYXRpb24gaW5zdGFuY2UgZmly
-c3QgKi8NCj4gICAgICAgbXV0ZXhfbG9jaygmZ2hlc19yZWdfbXV0ZXgpOw0KPg0KPiBAQCAtNDQ3
-LDcgKzQzMCw3IEBAIGludCBnaGVzX2VkYWNfcmVnaXN0ZXIoc3RydWN0IGdoZXMgKmdoZXMsIHN0
-cnVjdA0KPiBkZXZpY2UgKmRldikNCj4gICAgICAgICAgICAgICBwcl9pbmZvKCJUaGlzIHN5c3Rl
-bSBoYXMgYSB2ZXJ5IGNyYXBweSBCSU9TOiBJdCBkb2Vzbid0IGV2ZW4gbGlzdCB0aGUNCj4gRElN
-TVMuXG4iKTsNCj4gICAgICAgICAgICAgICBwcl9pbmZvKCJJdHMgU01CSU9TIGluZm8gaXMgd3Jv
-bmcuIEl0IGlzIGRvdWJ0ZnVsIHRoYXQgdGhlIGVycm9yIHJlcG9ydA0KPiB3b3VsZFxuIik7DQo+
-ICAgICAgICAgICAgICAgcHJfaW5mbygid29yayBvbiBzdWNoIHN5c3RlbS4gVXNlIHRoaXMgZHJp
-dmVyIHdpdGggY2F1dGlvblxuIik7DQo+IC0gICAgIH0gZWxzZSBpZiAoaWR4IDwgMCkgew0KPiAr
-ICAgICB9IGVsc2UgaWYgKGZvcmNlX2xvYWQpIHsNCj4gICAgICAgICAgICAgICBwcl9pbmZvKCJU
-aGlzIEVEQUMgZHJpdmVyIHJlbGllcyBvbiBCSU9TIHRvIGVudW1lcmF0ZSBtZW1vcnkgYW5kDQo+
-IGdldCBlcnJvciByZXBvcnRzLlxuIik7DQo+ICAgICAgICAgICAgICAgcHJfaW5mbygiVW5mb3J0
-dW5hdGVseSwgbm90IGFsbCBCSU9TZXMgcmVmbGVjdCB0aGUgbWVtb3J5IGxheW91dA0KPiBjb3Jy
-ZWN0bHkuXG4iKTsNCj4gICAgICAgICAgICAgICBwcl9pbmZvKCJTbywgdGhlIGVuZCByZXN1bHQg
-b2YgdXNpbmcgdGhpcyBkcml2ZXIgdmFyaWVzIGZyb20gdmVuZG9yIHRvDQo+IHZlbmRvci5cbiIp
-OyBAQCAtNTE3LDcgKzUwMCw3IEBAIGludCBnaGVzX2VkYWNfcmVnaXN0ZXIoc3RydWN0IGdoZXMg
-KmdoZXMsDQo+IHN0cnVjdCBkZXZpY2UgKmRldikNCj4gICAgICAgcmV0dXJuIHJjOw0KPiAgfQ0K
-Pg0KPiAtdm9pZCBnaGVzX2VkYWNfdW5yZWdpc3RlcihzdHJ1Y3QgZ2hlcyAqZ2hlcykNCj4gK3N0
-YXRpYyB2b2lkIGdoZXNfZWRhY191bnJlZ2lzdGVyKHN0cnVjdCBnaGVzICpnaGVzKQ0KPiAgew0K
-PiAgICAgICBzdHJ1Y3QgbWVtX2N0bF9pbmZvICptY2k7DQo+ICAgICAgIHVuc2lnbmVkIGxvbmcg
-ZmxhZ3M7DQo+IEBAIC01NTEsMyArNTM0LDMwIEBAIHZvaWQgZ2hlc19lZGFjX3VucmVnaXN0ZXIo
-c3RydWN0IGdoZXMgKmdoZXMpDQo+ICB1bmxvY2s6DQo+ICAgICAgIG11dGV4X3VubG9jaygmZ2hl
-c19yZWdfbXV0ZXgpOw0KPiAgfQ0KPiArDQo+ICtzdGF0aWMgaW50IF9faW5pdCBnaGVzX2VkYWNf
-aW5pdCh2b2lkKQ0KPiArew0KPiArICAgICBzdHJ1Y3QgZ2hlcyAqZywgKmdfdG1wOw0KPiArDQo+
-ICsgICAgIGdoZXNfZGV2cyA9IGdoZXNfZ2V0X2RldmljZXMoZm9yY2VfbG9hZCk7DQo+ICsgICAg
-IGlmIChnaGVzX2RldnMpDQo+ICsgICAgICAgICAgICAgcmV0dXJuIC1FTk9ERVY7DQo+ICsNCj4g
-KyAgICAgbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKGcsIGdfdG1wLCBnaGVzX2RldnMsIGVsaXN0
-KSB7DQo+ICsgICAgICAgICAgICAgZ2hlc19lZGFjX3JlZ2lzdGVyKGctPmRldik7DQo+ICsgICAg
-IH0NCj4gKw0KPiArICAgICByZXR1cm4gMDsNCj4gK30NCj4gK21vZHVsZV9pbml0KGdoZXNfZWRh
-Y19pbml0KTsNCj4gKw0KPiArc3RhdGljIHZvaWQgX19leGl0IGdoZXNfZWRhY19leGl0KHZvaWQp
-IHsNCj4gKyAgICAgc3RydWN0IGdoZXMgKmcsICpnX3RtcDsNCj4gKw0KPiArDQo+ICsgICAgIGxp
-c3RfZm9yX2VhY2hfZW50cnlfc2FmZShnLCBnX3RtcCwgZ2hlc19kZXZzLCBlbGlzdCkgew0KPiAr
-ICAgICAgICAgICAgIGdoZXNfZWRhY191bnJlZ2lzdGVyKGcpOw0KPiArICAgICB9DQo+ICt9DQo+
-ICttb2R1bGVfZXhpdChnaGVzX2VkYWNfZXhpdCk7DQo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2Fj
-cGkvZ2hlcy5oIGIvaW5jbHVkZS9hY3BpL2doZXMuaCBpbmRleA0KPiAzNGZiMzQzMWE4ZjMuLmYz
-OWI3NWMzZjljNiAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9hY3BpL2doZXMuaA0KPiArKysgYi9p
-bmNsdWRlL2FjcGkvZ2hlcy5oDQo+IEBAIC0yNyw2ICsyNyw4IEBAIHN0cnVjdCBnaGVzIHsNCj4g
-ICAgICAgICAgICAgICBzdHJ1Y3QgdGltZXJfbGlzdCB0aW1lcjsNCj4gICAgICAgICAgICAgICB1
-bnNpZ25lZCBpbnQgaXJxOw0KPiAgICAgICB9Ow0KPiArICAgICBzdHJ1Y3QgZGV2aWNlICpkZXY7
-DQo+ICsgICAgIHN0cnVjdCBsaXN0X2hlYWQgZWxpc3Q7DQo+ICB9Ow0KPg0KPiAgc3RydWN0IGdo
-ZXNfZXN0YXR1c19ub2RlIHsNCj4gQEAgLTY5LDM1ICs3MSwxMyBAQCBpbnQgZ2hlc19yZWdpc3Rl
-cl92ZW5kb3JfcmVjb3JkX25vdGlmaWVyKHN0cnVjdA0KPiBub3RpZmllcl9ibG9jayAqbmIpOw0K
-PiAgICogQG5iOiBwb2ludGVyIHRvIHRoZSBub3RpZmllcl9ibG9jayBzdHJ1Y3R1cmUgb2YgdGhl
-IHZlbmRvciByZWNvcmQgaGFuZGxlci4NCj4gICAqLw0KPiAgdm9pZCBnaGVzX3VucmVnaXN0ZXJf
-dmVuZG9yX3JlY29yZF9ub3RpZmllcihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iKTsNCj4gK3N0
-cnVjdCBsaXN0X2hlYWQgKmdoZXNfZ2V0X2RldmljZXMoYm9vbCBmb3JjZSk7ICNlbHNlIHN0YXRp
-YyBpbmxpbmUNCj4gK3N0cnVjdCBsaXN0X2hlYWQgKmdoZXNfZ2V0X2RldmljZXMoYm9vbCBmb3Jj
-ZSkgeyByZXR1cm4gTlVMTDsgfQ0KPiAgI2VuZGlmDQo+DQo+ICBpbnQgZ2hlc19lc3RhdHVzX3Bv
-b2xfaW5pdChpbnQgbnVtX2doZXMpOw0KPg0KPiAtLyogRnJvbSBkcml2ZXJzL2VkYWMvZ2hlc19l
-ZGFjLmMgKi8NCj4gLQ0KPiAtI2lmZGVmIENPTkZJR19FREFDX0dIRVMNCj4gLXZvaWQgZ2hlc19l
-ZGFjX3JlcG9ydF9tZW1fZXJyb3IoaW50IHNldiwgc3RydWN0IGNwZXJfc2VjX21lbV9lcnINCj4g
-Km1lbV9lcnIpOw0KPiAtDQo+IC1pbnQgZ2hlc19lZGFjX3JlZ2lzdGVyKHN0cnVjdCBnaGVzICpn
-aGVzLCBzdHJ1Y3QgZGV2aWNlICpkZXYpOw0KPiAtDQo+IC12b2lkIGdoZXNfZWRhY191bnJlZ2lz
-dGVyKHN0cnVjdCBnaGVzICpnaGVzKTsNCj4gLQ0KPiAtI2Vsc2UNCj4gLXN0YXRpYyBpbmxpbmUg
-dm9pZCBnaGVzX2VkYWNfcmVwb3J0X21lbV9lcnJvcihpbnQgc2V2LA0KPiAtICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IGNwZXJfc2VjX21lbV9lcnIgKm1lbV9lcnIp
-DQo+IC17DQo+IC19DQo+IC0NCj4gLXN0YXRpYyBpbmxpbmUgaW50IGdoZXNfZWRhY19yZWdpc3Rl
-cihzdHJ1Y3QgZ2hlcyAqZ2hlcywgc3RydWN0IGRldmljZSAqZGV2KSAtew0KPiAtICAgICByZXR1
-cm4gLUVOT0RFVjsNCj4gLX0NCj4gLQ0KPiAtc3RhdGljIGlubGluZSB2b2lkIGdoZXNfZWRhY191
-bnJlZ2lzdGVyKHN0cnVjdCBnaGVzICpnaGVzKSAteyAtfSAtI2VuZGlmDQo+IC0NCj4gIHN0YXRp
-YyBpbmxpbmUgaW50IGFjcGlfaGVzdF9nZXRfdmVyc2lvbihzdHJ1Y3QgYWNwaV9oZXN0X2dlbmVy
-aWNfZGF0YSAqZ2RhdGEpDQo+IHsNCj4gICAgICAgcmV0dXJuIGdkYXRhLT5yZXZpc2lvbiA+PiA4
-Ow0KPg0KPiAtLQ0KPiBSZWdhcmRzL0dydXNzLA0KPiAgICAgQm9yaXMuDQo+DQo+IGh0dHBzOi8v
-cGVvcGxlLmtlcm5lbC5vcmcvdGdseC9ub3Rlcy1hYm91dC1uZXRpcXVldHRlDQpJTVBPUlRBTlQg
-Tk9USUNFOiBUaGUgY29udGVudHMgb2YgdGhpcyBlbWFpbCBhbmQgYW55IGF0dGFjaG1lbnRzIGFy
-ZSBjb25maWRlbnRpYWwgYW5kIG1heSBhbHNvIGJlIHByaXZpbGVnZWQuIElmIHlvdSBhcmUgbm90
-IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIHBsZWFzZSBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlh
-dGVseSBhbmQgZG8gbm90IGRpc2Nsb3NlIHRoZSBjb250ZW50cyB0byBhbnkgb3RoZXIgcGVyc29u
-LCB1c2UgaXQgZm9yIGFueSBwdXJwb3NlLCBvciBzdG9yZSBvciBjb3B5IHRoZSBpbmZvcm1hdGlv
-biBpbiBhbnkgbWVkaXVtLiBUaGFuayB5b3UuDQo=
+fw_devlink could only detect a single and simple cycle because it relied
+mainly on device link cycle detection code that only checked for cycles
+between devices. The expectation was that the firmware wouldn't have
+complicated cycles and multiple cycles between devices. That expectation
+has been proven to be wrong.
+
+For example, fw_devlink could handle:
+
++-+        +-+
+|A+------> |B+
++-+        +++
+ ^          |
+ |          |
+ +----------+
+
+But it couldn't handle even something as "simple" as:
+
+ +---------------------+
+ |                     |
+ v                     |
++-+        +-+        +++
+|A+------> |B+------> |C|
++-+        +++        +-+
+ ^          |
+ |          |
+ +----------+
+
+But firmware has even more complicated cycles like:
+
+    +---------------------+
+    |                     |
+    v                     |
+   +-+       +---+       +++
++--+A+------>| B +-----> |C|<--+
+|  +-+       ++--+       +++   |
+|   ^         | ^         |    |
+|   |         | |         |    |
+|   +---------+ +---------+    |
+|                              |
++------------------------------+
+
+And this is without including parent child dependencies or nodes in the
+cycle that are just firmware nodes that'll never have a struct device
+created for them.
+
+The proper way to treat these devices it to not force any probe ordering
+between them, while still enforce dependencies between node in the
+cycles (A, B and C) and their consumers.
+
+So this patch goes all out and just deals with all types of cycles. It
+does this by:
+
+1. Following dependencies across device links, parent-child and fwnode
+   links.
+2. When it find cycles, it mark the device links and fwnode links as
+   such instead of just deleting them or making the indistinguishable
+   from proxy SYNC_STATE_ONLY device links.
+
+This way, when new nodes get added, we can immediately find and mark any
+new cycles whether the new node is a device or firmware node.
+
+Signed-off-by: Saravana Kannan <saravanak@google.com>
+---
+ drivers/base/core.c | 245 +++++++++++++++++++++++---------------------
+ 1 file changed, 130 insertions(+), 115 deletions(-)
+
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 296cfb714fe1..2f012e826986 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1864,47 +1864,6 @@ static void fw_devlink_unblock_consumers(struct device *dev)
+ 	device_links_write_unlock();
+ }
+ 
+-/**
+- * fw_devlink_relax_cycle - Convert cyclic links to SYNC_STATE_ONLY links
+- * @con: Device to check dependencies for.
+- * @sup: Device to check against.
+- *
+- * Check if @sup depends on @con or any device dependent on it (its child or
+- * its consumer etc).  When such a cyclic dependency is found, convert all
+- * device links created solely by fw_devlink into SYNC_STATE_ONLY device links.
+- * This is the equivalent of doing fw_devlink=permissive just between the
+- * devices in the cycle. We need to do this because, at this point, fw_devlink
+- * can't tell which of these dependencies is not a real dependency.
+- *
+- * Return 1 if a cycle is found. Otherwise, return 0.
+- */
+-static int fw_devlink_relax_cycle(struct device *con, void *sup)
+-{
+-	struct device_link *link;
+-	int ret;
+-
+-	if (con == sup)
+-		return 1;
+-
+-	ret = device_for_each_child(con, sup, fw_devlink_relax_cycle);
+-	if (ret)
+-		return ret;
+-
+-	list_for_each_entry(link, &con->links.consumers, s_node) {
+-		if (!(link->flags & DL_FLAG_CYCLE) &&
+-		    device_link_flag_is_sync_state_only(link->flags))
+-			continue;
+-
+-		if (!fw_devlink_relax_cycle(link->consumer, sup))
+-			continue;
+-
+-		ret = 1;
+-
+-		fw_devlink_relax_link(link);
+-		link->flags |= DL_FLAG_CYCLE;
+-	}
+-	return ret;
+-}
+ 
+ static bool fwnode_init_without_drv(struct fwnode_handle *fwnode)
+ {
+@@ -1935,6 +1894,113 @@ static bool fwnode_ancestor_init_without_drv(struct fwnode_handle *fwnode)
+ 	return false;
+ }
+ 
++/**
++ * __fw_devlink_relax_cycles - Relax and mark dependency cycles.
++ * @con: Potential consumer device.
++ * @sup_handle: Potential supplier's fwnode.
++ *
++ * Needs to be called with fwnode_lock and device link lock held.
++ *
++ * Check if @sup_handle or any of its ancestors or suppliers direct/indirectly
++ * depend on @con.  This function can detect multiple cyles between @sup_handle
++ * and @con. When such dependency cycles are found, convert all device links
++ * created solely by fw_devlink into SYNC_STATE_ONLY device links.  Also, mark
++ * all fwnode links in the cycle with FWLINK_FLAG_CYCLE so that when they are
++ * converted into a device link in the future, they are created as
++ * SYNC_STATE_ONLY device links.  This is the equivalent of doing
++ * fw_devlink=permissive just between the devices in the cycle. We need to do
++ * this because, at this point, fw_devlink can't tell which of these
++ * dependencies is not a real dependency.
++ *
++ * Return true if one or more cycles were found. Otherwise, return false.
++ */
++static bool __fw_devlink_relax_cycles(struct device *con,
++				 struct fwnode_handle *sup_handle)
++{
++	struct fwnode_link *link;
++	struct device_link *dev_link;
++	struct device *sup_dev = NULL, *par_dev = NULL;
++	bool ret = false;
++
++	if (!sup_handle)
++		return false;
++
++	/*
++	 * We aren't trying to find all cycles. Just a cycle between con and
++	 * sup_handle.
++	 */
++	if (sup_handle->flags & FWNODE_FLAG_VISITED)
++		return false;
++
++	sup_handle->flags |= FWNODE_FLAG_VISITED;
++
++	sup_dev = get_dev_from_fwnode(sup_handle);
++
++	/* Termination condition. */
++	if (sup_dev == con) {
++		ret = true;
++		goto out;
++	}
++
++	/*
++	 * If sup_dev is bound to a driver and @con hasn't started binding to
++	 * a driver, @sup_dev can't be a consumer of @con.  So, no need to
++	 * check further.
++	 */
++	if (sup_dev && sup_dev->links.status ==  DL_DEV_DRIVER_BOUND &&
++	    con->links.status == DL_DEV_NO_DRIVER) {
++		ret = false;
++		goto out;
++	}
++
++	list_for_each_entry(link, &sup_handle->suppliers, c_hook) {
++		if (__fw_devlink_relax_cycles(con, link->supplier)) {
++			__fwnode_link_cycle(link);
++			ret = true;
++		}
++	}
++
++	/*
++	 * Give priority to device parent over fwnode parent to account for any
++	 * quirks in how fwnodes are converted to devices.
++	 */
++	if (sup_dev) {
++		par_dev = sup_dev->parent;
++		get_device(par_dev);
++	} else {
++		par_dev = fwnode_get_next_parent_dev(sup_handle);
++	}
++
++	if (par_dev)
++		ret |= __fw_devlink_relax_cycles(con, par_dev->fwnode);
++
++	if (!sup_dev)
++		goto out;
++
++	list_for_each_entry(dev_link, &sup_dev->links.suppliers, c_node) {
++		/*
++		 * Ignore a SYNC_STATE_ONLY flag only if it wasn't marked as a
++		 * such due to a cycle.
++		 */
++		if (device_link_flag_is_sync_state_only(dev_link->flags) &&
++		    !(dev_link->flags & DL_FLAG_CYCLE))
++			continue;
++
++		if (__fw_devlink_relax_cycles(con,
++					      dev_link->supplier->fwnode)) {
++			fw_devlink_relax_link(dev_link);
++			dev_link->flags |= DL_FLAG_CYCLE;
++			ret = true;
++		}
++	}
++
++out:
++	sup_handle->flags &= ~FWNODE_FLAG_VISITED;
++	put_device(sup_dev);
++	put_device(par_dev);
++	return ret;
++}
++
+ /**
+  * fw_devlink_create_devlink - Create a device link from a consumer to fwnode
+  * @con: consumer device for the device link
+@@ -1987,6 +2053,21 @@ static int fw_devlink_create_devlink(struct device *con,
+ 	    fwnode_is_ancestor_of(sup_handle, con->fwnode))
+ 		return -EINVAL;
+ 
++	/*
++	 * SYNC_STATE_ONLY device links don't block probing and supports cycles.
++	 * So cycle detection isn't necessary and shouldn't be done.
++	 */
++	if (!(flags & DL_FLAG_SYNC_STATE_ONLY)) {
++		device_links_write_lock();
++		if (__fw_devlink_relax_cycles(con, sup_handle)) {
++			__fwnode_link_cycle(link);
++			flags = fw_devlink_get_flags(link->flags);
++			dev_info(con, "Fixed dependency cycle(s) with %pfwf\n",
++				 sup_handle);
++		}
++		device_links_write_unlock();
++	}
++
+ 	sup_dev = get_dev_from_fwnode(sup_handle);
+ 	if (sup_dev) {
+ 		/*
+@@ -1996,23 +2077,16 @@ static int fw_devlink_create_devlink(struct device *con,
+ 		 */
+ 		if (sup_dev->links.status == DL_DEV_NO_DRIVER &&
+ 		    sup_handle->flags & FWNODE_FLAG_INITIALIZED) {
++			dev_dbg(con,
++				"Not linking %pfwf - dev might never probe\n",
++				sup_handle);
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+ 
+-		/*
+-		 * If this fails, it is due to cycles in device links.  Just
+-		 * give up on this link and treat it as invalid.
+-		 */
+-		if (!device_link_add(con, sup_dev, flags) &&
+-		    !(flags & DL_FLAG_SYNC_STATE_ONLY)) {
+-			dev_info(con, "Fixing up cyclic dependency with %s\n",
+-				 dev_name(sup_dev));
+-			device_links_write_lock();
+-			fw_devlink_relax_cycle(con, sup_dev);
+-			device_links_write_unlock();
+-			device_link_add(con, sup_dev,
+-					FW_DEVLINK_FLAGS_PERMISSIVE);
++		if (!device_link_add(con, sup_dev, flags)) {
++			dev_err(con, "Failed to create device link with %s\n",
++				dev_name(sup_dev));
+ 			ret = -EINVAL;
+ 		}
+ 
+@@ -2025,49 +2099,12 @@ static int fw_devlink_create_devlink(struct device *con,
+ 	 */
+ 	if (fwnode_init_without_drv(sup_handle) ||
+ 	    fwnode_ancestor_init_without_drv(sup_handle)) {
+-		dev_dbg(con, "Not linking %pfwP - Might never probe\n",
++		dev_dbg(con, "Not linking %pfwf - might never become dev\n",
+ 			sup_handle);
+ 		return -EINVAL;
+ 	}
+ 
+-	/*
+-	 * DL_FLAG_SYNC_STATE_ONLY doesn't block probing and supports
+-	 * cycles. So cycle detection isn't necessary and shouldn't be
+-	 * done.
+-	 */
+-	if (flags & DL_FLAG_SYNC_STATE_ONLY)
+-		return -EAGAIN;
+-
+-	/*
+-	 * If we can't find the supplier device from its fwnode, it might be
+-	 * due to a cyclic dependency between fwnodes. Some of these cycles can
+-	 * be broken by applying logic. Check for these types of cycles and
+-	 * break them so that devices in the cycle probe properly.
+-	 *
+-	 * If the supplier's parent is dependent on the consumer, then the
+-	 * consumer and supplier have a cyclic dependency. Since fw_devlink
+-	 * can't tell which of the inferred dependencies are incorrect, don't
+-	 * enforce probe ordering between any of the devices in this cyclic
+-	 * dependency. Do this by relaxing all the fw_devlink device links in
+-	 * this cycle and by treating the fwnode link between the consumer and
+-	 * the supplier as an invalid dependency.
+-	 */
+-	sup_dev = fwnode_get_next_parent_dev(sup_handle);
+-	if (sup_dev && device_is_dependent(con, sup_dev)) {
+-		dev_info(con, "Fixing up cyclic dependency with %pfwP (%s)\n",
+-			 sup_handle, dev_name(sup_dev));
+-		device_links_write_lock();
+-		fw_devlink_relax_cycle(con, sup_dev);
+-		device_links_write_unlock();
+-		ret = -EINVAL;
+-	} else {
+-		/*
+-		 * Can't check for cycles or no cycles. So let's try
+-		 * again later.
+-		 */
+-		ret = -EAGAIN;
+-	}
+-
++	ret = -EAGAIN;
+ out:
+ 	put_device(sup_dev);
+ 	return ret;
+@@ -2174,7 +2211,6 @@ static void __fw_devlink_link_to_suppliers(struct device *dev,
+ 
+ 	list_for_each_entry_safe(link, tmp, &fwnode->suppliers, c_hook) {
+ 		int ret;
+-		struct device *sup_dev;
+ 		struct fwnode_handle *sup = link->supplier;
+ 
+ 		ret = fw_devlink_create_devlink(dev, sup, link);
+@@ -2182,27 +2218,6 @@ static void __fw_devlink_link_to_suppliers(struct device *dev,
+ 			continue;
+ 
+ 		__fwnode_link_del(link);
+-
+-		/* If no device link was created, nothing more to do. */
+-		if (ret)
+-			continue;
+-
+-		/*
+-		 * If a device link was successfully created to a supplier, we
+-		 * now need to try and link the supplier to all its suppliers.
+-		 *
+-		 * This is needed to detect and delete false dependencies in
+-		 * fwnode links that haven't been converted to a device link
+-		 * yet. See comments in fw_devlink_create_devlink() for more
+-		 * details on the false dependency.
+-		 *
+-		 * Without deleting these false dependencies, some devices will
+-		 * never probe because they'll keep waiting for their false
+-		 * dependency fwnode links to be converted to device links.
+-		 */
+-		sup_dev = get_dev_from_fwnode(sup);
+-		__fw_devlink_link_to_suppliers(sup_dev, sup_dev->fwnode);
+-		put_device(sup_dev);
+ 	}
+ 
+ 	/*
+-- 
+2.37.1.559.g78731f0fdb-goog
+
