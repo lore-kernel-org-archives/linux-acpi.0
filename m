@@ -2,109 +2,80 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7527CC2BB41
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 Aug 2022 11:15:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D3D3C28B2B
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 Aug 2022 11:55:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232584AbiHPLPt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 Aug 2022 07:15:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38660 "EHLO
+        id S233350AbiHPLzh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 Aug 2022 07:55:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235406AbiHPLP1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2022 07:15:27 -0400
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E03974E11;
-        Tue, 16 Aug 2022 03:16:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1660644992; x=1692180992;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=6zUPqg/E6WJ3Fq2O6W3oFh9h+ZOs8adLY8vipG0PDk0=;
-  b=jyva4G3NI+lIsqimwh2EBMfSVs57p9C/NLr0alaoz39fAxsZuG59BEEI
-   76b9qlJcfkysP89FXVWyb3s4HJoSXL72pGff/bmh581gz4mJQa5t0Aik1
-   7pQdtExqNen1eyQ5Zvzsk4oSfoE6I/gqyIWeVtUIrGbj+lbDKOpxJs6wf
-   hbL3YLyu94kfsxdynkUV+kx2AqN9XkpF6onCg1bYIa4VKk0tzBvdk77o9
-   1OEbV3NJIlUINe6c6Gk5E/PEpKxVM/bNH0J2WybdYXNMltI2YJ5XRb+O9
-   FwNsD26Wv2g7EHubpQSPpFIQ42FAJJXzkVKaI3/CS+yaVZz8H+f/LDBrF
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10440"; a="279141273"
-X-IronPort-AV: E=Sophos;i="5.93,240,1654585200"; 
-   d="scan'208";a="279141273"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2022 03:16:26 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,240,1654585200"; 
-   d="scan'208";a="749260771"
-Received: from black.fi.intel.com (HELO black.fi.intel.com.) ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 16 Aug 2022 03:16:24 -0700
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Utkarsh Patel <utkarsh.h.patel@intel.com>, rajmohan.mani@intel.com,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Subject: [PATCH 3/6] ACPI: resource: Add helper function acpi_dev_get_memory_resources()
-Date:   Tue, 16 Aug 2022 13:16:26 +0300
-Message-Id: <20220816101629.69054-4-heikki.krogerus@linux.intel.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220816101629.69054-1-heikki.krogerus@linux.intel.com>
-References: <20220816101629.69054-1-heikki.krogerus@linux.intel.com>
+        with ESMTP id S233569AbiHPLy4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2022 07:54:56 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45B6F1FC;
+        Tue, 16 Aug 2022 04:33:39 -0700 (PDT)
+Received: from fraeml744-chm.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4M6TRy3SbYz67tfn;
+        Tue, 16 Aug 2022 19:28:46 +0800 (CST)
+Received: from lhrpeml500003.china.huawei.com (7.191.162.67) by
+ fraeml744-chm.china.huawei.com (10.206.15.225) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Tue, 16 Aug 2022 13:33:36 +0200
+Received: from localhost.localdomain (10.69.192.58) by
+ lhrpeml500003.china.huawei.com (7.191.162.67) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Tue, 16 Aug 2022 12:33:34 +0100
+From:   John Garry <john.garry@huawei.com>
+To:     <lenb@kernel.org>, <rafael@kernel.org>, <andy.shevchenko@gmail.com>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linuxarm@huawei.com>, John Garry <john.garry@huawei.com>
+Subject: [PATCH PoC 0/3] ACPI/PNP/HISI_LPC: Refactor ACPI platform code for reuse
+Date:   Tue, 16 Aug 2022 19:27:21 +0800
+Message-ID: <1660649244-146842-1-git-send-email-john.garry@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.58]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ lhrpeml500003.china.huawei.com (7.191.162.67)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Wrapper function that finds all memory type resources by
-using acpi_dev_get_resources(). It removes the need for the
-drivers to check the resource data type separately.
+This series attempts to refactor the ACPI platform device creation code
+such that it may reused in the HiSilicon LPC driver. The topic was
+recently discussed at the following:
+https://lore.kernel.org/lkml/CAJZ5v0hkiOqhWyOcd2vjj-tcyHWB-cK=Dae-3sifhRfcbKWWGg@mail.gmail.com/
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/acpi/resource.c | 17 +++++++++++++++++
- include/linux/acpi.h    |  1 +
- 2 files changed, 18 insertions(+)
+So first off I'll say that I am not advocating pursing the changes in this
+series, but just wanted to share to show others how it would look.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index e644e90d18847..8032d50ca9441 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -721,6 +721,23 @@ int acpi_dev_get_dma_resources(struct acpi_device *adev, struct list_head *list)
- }
- EXPORT_SYMBOL_GPL(acpi_dev_get_dma_resources);
- 
-+/**
-+ * acpi_dev_get_memory_resources - Get current memory resources of a device.
-+ * @adev: ACPI device node to get the resources for.
-+ * @list: Head of the resultant list of resources (must be empty).
-+ *
-+ * This is a helper function that locates all memory type resources of @adev
-+ * with acpi_dev_get_resources().
-+ *
-+ * The number of resources in the output list is returned on success, an error
-+ * code reflecting the error condition is returned otherwise.
-+ */
-+int acpi_dev_get_memory_resources(struct acpi_device *adev, struct list_head *list)
-+{
-+	return acpi_dev_get_resources(adev, list, is_memory, NULL);
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_get_memory_resources);
-+
- /**
-  * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
-  *				   types
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 6f64b2f3dc547..ed4aa395cc49b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -506,6 +506,7 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
- 			   void *preproc_data);
- int acpi_dev_get_dma_resources(struct acpi_device *adev,
- 			       struct list_head *list);
-+int acpi_dev_get_memory_resources(struct acpi_device *adev, struct list_head *list);
- int acpi_dev_filter_resource_type(struct acpi_resource *ares,
- 				  unsigned long types);
- 
+Apart from requiring PNP driver changes, the API in
+acpi_create_platform_device_ops() ain't pretty. And also the PNP change
+means that the LPC uart changes from ttyS1 -> ttyS0, which would be a
+nuisance for anyone still using a board which uses the LPC UART.
+
+I have a separate change to show how the HiSilicon LPC driver would look
+by using platform_device_register_full() instead, and it is a lot neater:
+https://github.com/hisilicon/kernel-dev/commits/private-topic-lpc-6.0-platform-full
+
+Anyway, the commit messages should describe anything else needed to be
+known.
+
+Please share any comments, thanks.
+
+John Garry (3):
+  ACPI / PNP: Don't add enumeration_by_parent devices
+  ACPI: platform: Refactor acpi_create_platform_device()
+  bus: hisi_lpc: Use acpi_create_platform_device_ops()
+
+ drivers/acpi/acpi_platform.c |  37 ++++++--
+ drivers/bus/hisi_lpc.c       | 165 +++++++++++++++--------------------
+ drivers/pnp/pnpacpi/core.c   |  13 ++-
+ include/linux/acpi.h         |  17 +++-
+ 4 files changed, 122 insertions(+), 110 deletions(-)
+
 -- 
-2.35.1
+2.35.3
 
