@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FE60C32789
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Aug 2022 18:46:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB21C32773
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Aug 2022 18:46:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345577AbiHRSqX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S234758AbiHRSqX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 18 Aug 2022 14:46:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39604 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345571AbiHRSpT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Aug 2022 14:45:19 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3448CC480C
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2022 11:45:16 -0700 (PDT)
+        with ESMTP id S1345583AbiHRSpV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Aug 2022 14:45:21 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FC0BD2BE
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2022 11:45:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1660848314;
+        s=mimecast20190719; t=1660848319;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=b+WwRxEdCVdarnzDRFRxnJovcZqV0Un4yfxEDD/jTvU=;
-        b=RJNgYDf4WUF1/zPLANJg5aiz4N+32PMtwGZYBagYflZ4nOZK/lOeDSoOO/olRrsG06+Nlh
-        NW9UmVRcQYVUjjNPwpyRD2K6DpqBv+ciBHOtq/vH51z5jjz2e2dJaZAyrLBlqRkAQHPMZF
-        vfJheEW2eLCi8Ed8t6Gr6Z+X5ZjASp8=
+        bh=YzMej/8MO0+IXN3an7AmTVswM/jhEN+N0PC0nPqORQQ=;
+        b=ew0F2m35VMrCWnWV0z9F3VYWv7U9X/1iL/ZdLo1DLJHyyM9N2Z9Z7igCox0g2OV/tgquOx
+        OmUfl666zGMng63gRktFosaO+MPfGisbYnikuwaa1eTNVarUucTNc+Fe+xLnqf6NQUs5uP
+        Ziuno2dE8s3sf6sRKo7nwVuXDXqDqNE=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-184-2Xm76Og3PJqpDhGYnxN0vw-1; Thu, 18 Aug 2022 14:45:10 -0400
-X-MC-Unique: 2Xm76Og3PJqpDhGYnxN0vw-1
+ us-mta-571-fRO_3F_rNAKxaOavvoA-MA-1; Thu, 18 Aug 2022 14:45:15 -0400
+X-MC-Unique: fRO_3F_rNAKxaOavvoA-MA-1
 Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 56274101A54E;
-        Thu, 18 Aug 2022 18:45:06 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6FE96811E80;
+        Thu, 18 Aug 2022 18:45:14 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.20])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 32BC7492C3B;
-        Thu, 18 Aug 2022 18:45:02 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id B6F8B492C3B;
+        Thu, 18 Aug 2022 18:45:10 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
         Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
@@ -63,9 +63,9 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, nouveau@lists.freedesktop.org,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
         platform-driver-x86@vger.kernel.org,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v3 28/31] ACPI: video: Drop "Samsung X360" acpi_backlight=native quirk
-Date:   Thu, 18 Aug 2022 20:42:59 +0200
-Message-Id: <20220818184302.10051-29-hdegoede@redhat.com>
+Subject: [PATCH v3 30/31] ACPI: video: Fix indentation of video_detect_dmi_table[] entries
+Date:   Thu, 18 Aug 2022 20:43:01 +0200
+Message-Id: <20220818184302.10051-31-hdegoede@redhat.com>
 In-Reply-To: <20220818184302.10051-1-hdegoede@redhat.com>
 References: <20220818184302.10051-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -75,50 +75,126 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_backlight=native is the default for the "Samsung X360", but as
-the comment explains the quirk was still necessary because even
-briefly registering the acpi_video0 backlight; and then unregistering
-it once the native driver showed up, was leading to issues.
+The video_detect_dmi_table[] uses an unusual indentation for
+before the ".name = ..." named struct initializers.
 
-After the "ACPI: video: Make backlight class device registration
-a separate step" patch from earlier in this patch-series, we no
-longer briefly register the acpi_video0 backlight on systems where
-the native driver should be used.
+Instead of being indented with an extra tab compared to
+the previous line's '{' these are indented to with only
+a single space to allow for long DMI_MATCH() lines without
+wrapping.
 
-So this is no longer an issue an the quirk is no longer needed.
+But over time some entries did not event have the single space
+indent in front of the ".name = ..." lines.
+
+Make things consistent by using a single space indent for these
+lines everywhere.
 
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video_detect.c | 15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/acpi/video_detect.c | 48 ++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 84ae22670e54..ce6d89fcdc0e 100644
+index 150ef8214c73..9b84657f8f6a 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -132,21 +132,6 @@ static int video_detect_force_none(const struct dmi_system_id *d)
- }
- 
- static const struct dmi_system_id video_detect_dmi_table[] = {
--	/* On Samsung X360, the BIOS will set a flag (VDRV) if generic
--	 * ACPI backlight device is used. This flag will definitively break
--	 * the backlight interface (even the vendor interface) until next
--	 * reboot. It's why we should prevent video.ko from being used here
--	 * and we can't rely on a later call to acpi_video_unregister().
--	 */
--	{
--	 .callback = video_detect_force_vendor,
--	 /* X360 */
--	 .matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "X360"),
--		DMI_MATCH(DMI_BOARD_NAME, "X360"),
--		},
--	},
+@@ -142,17 +142,17 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		},
+ 	},
  	{
- 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1128309 */
- 	 .callback = video_detect_force_vendor,
+-	.callback = video_detect_force_vendor,
+-	/* Asus UL30VT */
+-	.matches = {
++	 .callback = video_detect_force_vendor,
++	 /* Asus UL30VT */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30VT"),
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_vendor,
+-	/* Asus UL30A */
+-	.matches = {
++	 .callback = video_detect_force_vendor,
++	 /* Asus UL30A */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+ 		},
+@@ -198,9 +198,9 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_vendor,
+-	/* GIGABYTE GB-BXBT-2807 */
+-	.matches = {
++	 .callback = video_detect_force_vendor,
++	 /* GIGABYTE GB-BXBT-2807 */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "GIGABYTE"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "GB-BXBT-2807"),
+ 		},
+@@ -233,17 +233,17 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_vendor,
+-	/* Sony VPCEH3U1E */
+-	.matches = {
++	 .callback = video_detect_force_vendor,
++	 /* Sony VPCEH3U1E */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEH3U1E"),
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_vendor,
+-	/* Xiaomi Mi Pad 2 */
+-	.matches = {
++	 .callback = video_detect_force_vendor,
++	 /* Xiaomi Mi Pad 2 */
++	 .matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Xiaomi Inc"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Mipad2"),
+ 		},
+@@ -551,25 +551,25 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_native,
+-	/* ASUSTeK COMPUTER INC. GA401 */
+-	.matches = {
++	 .callback = video_detect_force_native,
++	 /* ASUSTeK COMPUTER INC. GA401 */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "GA401"),
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_native,
+-	/* ASUSTeK COMPUTER INC. GA502 */
+-	.matches = {
++	 .callback = video_detect_force_native,
++	 /* ASUSTeK COMPUTER INC. GA502 */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "GA502"),
+ 		},
+ 	},
+ 	{
+-	.callback = video_detect_force_native,
+-	/* ASUSTeK COMPUTER INC. GA503 */
+-	.matches = {
++	 .callback = video_detect_force_native,
++	 /* ASUSTeK COMPUTER INC. GA503 */
++	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "GA503"),
+ 		},
 -- 
 2.37.2
 
