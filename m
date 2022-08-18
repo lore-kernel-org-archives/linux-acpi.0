@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CD65C32789
-	for <linux-acpi@archiver.kernel.org>; Thu, 18 Aug 2022 18:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73AF3C00140
+	for <linux-acpi@archiver.kernel.org>; Thu, 18 Aug 2022 18:44:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344872AbiHRSoQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 Aug 2022 14:44:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37078 "EHLO
+        id S1345012AbiHRSoZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 Aug 2022 14:44:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241671AbiHRSn5 (ORCPT
+        with ESMTP id S1344351AbiHRSn5 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Aug 2022 14:43:57 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECA453F335
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2022 11:43:43 -0700 (PDT)
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7622B647F5
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2022 11:43:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1660848223;
+        s=mimecast20190719; t=1660848227;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=hEJ8SXloggM3M2XutUR+tagT8o5Og49UCIlmmB2kvDg=;
-        b=Pn6CpMnMQ9/8X0RMAb7wwO9yK2euMiLhi09jrK8EPQ9ovPQXAp8opnxLLgU5OjQ5lZFs3x
-        blQUJ0xySmmVN8vmZqPS+JYplJ5AE5JftEifG6OdarCFX2wRK9dzN81b1sPKPa6SSQmHSi
-        e7K70x/Y4ib7zHdlNSbklgJ8i2mBxT4=
+        bh=c7cbLrhybeXhTd6E0KCP79PiLRPmdaDHe09WAOWHr3I=;
+        b=dxNTDCi8MkMrLNHFEq6QEQO6CYVOc4WePMPx3TnsK0CF0Ct353/M3rFZl1ALH7Ob78gS35
+        FqrMVUy0nOa9b6QAAvC+kT3wWHzxyjObS6h9N3WkelZYcoFD0R40l6Tje/oqMWL6J34Phd
+        lfiHDatDdYz9mW6SvRkO2ortL5/lGoI=
 Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
  [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-412-MYdS7txrO8-_M9phFCn_lA-1; Thu, 18 Aug 2022 14:43:32 -0400
-X-MC-Unique: MYdS7txrO8-_M9phFCn_lA-1
+ us-mta-259-iWkuLWGsMGaCrmdhUUlncA-1; Thu, 18 Aug 2022 14:43:44 -0400
+X-MC-Unique: iWkuLWGsMGaCrmdhUUlncA-1
 Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 166083815D28;
-        Thu, 18 Aug 2022 18:43:31 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 0813329AA3B6;
+        Thu, 18 Aug 2022 18:43:43 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.20])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 7767C492C3B;
-        Thu, 18 Aug 2022 18:43:27 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 19807403340;
+        Thu, 18 Aug 2022 18:43:38 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
         Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
@@ -61,10 +61,11 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, nouveau@lists.freedesktop.org,
         intel-gfx <intel-gfx@lists.freedesktop.org>,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH v3 04/31] drm/radeon: Don't register backlight when another backlight should be used (v3)
-Date:   Thu, 18 Aug 2022 20:42:35 +0200
-Message-Id: <20220818184302.10051-5-hdegoede@redhat.com>
+        platform-driver-x86@vger.kernel.org,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v3 07/31] ACPI: video: Remove acpi_video_bus from list before tearing it down
+Date:   Thu, 18 Aug 2022 20:42:38 +0200
+Message-Id: <20220818184302.10051-8-hdegoede@redhat.com>
 In-Reply-To: <20220818184302.10051-1-hdegoede@redhat.com>
 References: <20220818184302.10051-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -74,102 +75,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Before this commit when we want userspace to use the acpi_video backlight
-device we register both the GPU's native backlight device and acpi_video's
-firmware acpi_video# backlight device. This relies on userspace preferring
-firmware type backlight devices over native ones.
+Move the list_del removing an acpi_video_bus from video_bus_head
+on teardown to before the teardown is done, to avoid code iterating
+over the video_bus_head list seeing acpi_video_bus objects on there
+which are (partly) torn down already.
 
-Registering 2 backlight devices for a single display really is
-undesirable, don't register the GPU's native backlight device when
-another backlight device should be used.
-
-Changes in v2:
-- To avoid linker errors when amdgpu is builtin and video_detect.c is in
-  a module, select ACPI_VIDEO and its deps if ACPI is enabled.
-  When ACPI is disabled, ACPI_VIDEO is also always disabled, ensuring
-  the stubs from acpi/video.h will be used.
-
-Changes in v3:
-- Use drm_info(drm_dev, "...") to log messages
-- ACPI_VIDEO can now be enabled on non X86 too,
-  adjust the Kconfig changes to match this.
-
-Acked-by: Alex Deucher <alexander.deucher@amd.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/gpu/drm/Kconfig                         | 7 +++++++
- drivers/gpu/drm/radeon/atombios_encoders.c      | 7 +++++++
- drivers/gpu/drm/radeon/radeon_legacy_encoders.c | 7 +++++++
- 3 files changed, 21 insertions(+)
+ drivers/acpi/acpi_video.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index 95ca33938b4a..0471505e951d 100644
---- a/drivers/gpu/drm/Kconfig
-+++ b/drivers/gpu/drm/Kconfig
-@@ -234,6 +234,13 @@ config DRM_RADEON
- 	select HWMON
- 	select BACKLIGHT_CLASS_DEVICE
- 	select INTERVAL_TREE
-+	# radeon depends on ACPI_VIDEO when ACPI is enabled, for select to work
-+	# ACPI_VIDEO's dependencies must also be selected.
-+	select INPUT if ACPI
-+	select ACPI_VIDEO if ACPI
-+	# On x86 ACPI_VIDEO also needs ACPI_WMI
-+	select X86_PLATFORM_DEVICES if ACPI && X86
-+	select ACPI_WMI if ACPI && X86
- 	help
- 	  Choose this option if you have an ATI Radeon graphics card.  There
- 	  are both PCI and AGP versions.  You don't need to choose this to
-diff --git a/drivers/gpu/drm/radeon/atombios_encoders.c b/drivers/gpu/drm/radeon/atombios_encoders.c
-index c93040e60d04..2b01edea8fe8 100644
---- a/drivers/gpu/drm/radeon/atombios_encoders.c
-+++ b/drivers/gpu/drm/radeon/atombios_encoders.c
-@@ -32,6 +32,8 @@
- #include <drm/drm_file.h>
- #include <drm/radeon_drm.h>
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 5cbe2196176d..cde8ffa9f0b8 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -2111,14 +2111,14 @@ static int acpi_video_bus_remove(struct acpi_device *device)
  
-+#include <acpi/video.h>
-+
- #include "atom.h"
- #include "radeon_atombios.h"
- #include "radeon.h"
-@@ -209,6 +211,11 @@ void radeon_atom_backlight_init(struct radeon_encoder *radeon_encoder,
- 	if (!(rdev->mode_info.firmware_flags & ATOM_BIOS_INFO_BL_CONTROLLED_BY_GPU))
- 		return;
+ 	video = acpi_driver_data(device);
  
-+	if (!acpi_video_backlight_use_native()) {
-+		drm_info(dev, "Skipping radeon atom DIG backlight registration\n");
-+		return;
-+	}
-+
- 	pdata = kmalloc(sizeof(struct radeon_backlight_privdata), GFP_KERNEL);
- 	if (!pdata) {
- 		DRM_ERROR("Memory allocation failed\n");
-diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-index 1a66fb969ee7..0cd32c65456c 100644
---- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-+++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-@@ -33,6 +33,8 @@
- #include <drm/drm_util.h>
- #include <drm/radeon_drm.h>
+-	acpi_video_bus_remove_notify_handler(video);
+-	acpi_video_bus_unregister_backlight(video);
+-	acpi_video_bus_put_devices(video);
+-
+ 	mutex_lock(&video_list_lock);
+ 	list_del(&video->entry);
+ 	mutex_unlock(&video_list_lock);
  
-+#include <acpi/video.h>
++	acpi_video_bus_remove_notify_handler(video);
++	acpi_video_bus_unregister_backlight(video);
++	acpi_video_bus_put_devices(video);
 +
- #include "radeon.h"
- #include "radeon_asic.h"
- #include "radeon_legacy_encoders.h"
-@@ -387,6 +389,11 @@ void radeon_legacy_backlight_init(struct radeon_encoder *radeon_encoder,
- 		return;
- #endif
+ 	kfree(video->attached_array);
+ 	kfree(video);
  
-+	if (!acpi_video_backlight_use_native()) {
-+		drm_info(dev, "Skipping radeon legacy LVDS backlight registration\n");
-+		return;
-+	}
-+
- 	pdata = kmalloc(sizeof(struct radeon_backlight_privdata), GFP_KERNEL);
- 	if (!pdata) {
- 		DRM_ERROR("Memory allocation failed\n");
 -- 
 2.37.2
 
