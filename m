@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6720CC32772
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Aug 2022 14:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 678EFC3F6B0
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Aug 2022 14:25:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349137AbiHSOZn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 19 Aug 2022 10:25:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58356 "EHLO
+        id S1349248AbiHSOZo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 19 Aug 2022 10:25:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349354AbiHSOZ1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Aug 2022 10:25:27 -0400
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2081.outbound.protection.outlook.com [40.107.102.81])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AE1DE8339;
-        Fri, 19 Aug 2022 07:25:25 -0700 (PDT)
+        with ESMTP id S1349437AbiHSOZa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Aug 2022 10:25:30 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2048.outbound.protection.outlook.com [40.107.93.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2844E3408;
+        Fri, 19 Aug 2022 07:25:28 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=PBAwpg6TQEPMaZI+GzIbAXtXPX7wLapVBWJCq58xBiIQHSe04VOGnvULdh6yTU4t8T1XdZBBw3VM/3Jrt3Qh/iPjW9xDyQn78OIGh/7Vegb78FCf++mulss1mI4DIKw9G3ADnb/ake7VJpjjGtnPv9I9f1SJZvJ0H41oMhzI6McPa4mV8VTfxNE1Yy9YrC3L3QvDMQ7sRBnIjDCl0PhGAx1xrVd6jed8K0dsDsIZcM2Ahp3/vxucrnhv5mRJXCZlOU5+Fg5dbCXv5E1cobFUtBjrQNCB1qiLF5liSJAHjyWdeDhxETewf/H0aoac4A44A7Es74Si30UxiPNX484+wg==
+ b=XoeCnETxMHiDor9FS/gUMaOx6kFwTup9aP8hlXikIIhtWSJ98DJe4mR52RTFHXa+gbjT9vyAGSfz7t1/n9BR0r5NyDdSH3uZOUwgxuHcbdfN54+BvJPiGfGzdV9KexKlWnpX1SFLijRpGtmkGxGX+L8vM+1dwycJYyUrnKu3quAwN9G0X7ekzF1nRWfrIB1kGdj0mMVYjdzGqQS99IpvQn/XauIA8qhBA21OYQDhrRu2iupvi1DDHsV8rxqBRVB9yn3skT3KcrvyZN4KKjfq0hXmHfMjRmxtb8bhPIJwouBQWwucfk/BcTbqccxDyABWz7bj3ji9IttAjGh4Mx9zNA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9m1ru5Pu7YcTFvPDs265iRDzQRoE0egCuTHROhKwPV8=;
- b=Y3EzK0YnT0RO28/Ep0oT6IhJsCb3kpHXhO3h8jkI5WFfDVsqGZMYfLPUM0vpLwqjklnC4GWP46zJ0JfqufUQGAqMGtSDEs6IXCL7qLM3rRQG3RFPqyTw1YJdcuqB5Doo/9VEjfVwj5s2KAGCmFl2Scrn8doRoCBWaD/l92qaezS2WZtcvCbtSUn48qTJ7sRvDgjG95YQQj6aptUj0Oj3QxLQWGWMQjPvxG2u3NGbcXuUwXgXRGMTALFMu37g+MbEFL8tZ4B+9CWOsjR9DA22E/+DpSTRMvutW2gf7l9rvOYbS1KAoUdEr8gIW699jkfBlFZ421uf4RYO9KKNM1uefQ==
+ bh=ooLROBHiS6KoHewByiEnTleKMdarIbLcRyBNTCcHaHg=;
+ b=WxGN610tZFlsyOP1HGKEnXvgkMeTj5iYBhAv6wtvoNapVm9rvlJcgzqy0Rts0gVgoN/O6TFLUzEwSp/IZDO8G9i6NyeAo2DFDKE+8gRxdWVxJkNc8axlx06+DRqLu3kLQMmAMP1z0Mi8pGqYN2sC63W0noFbeQceMI3t80E/NCDDxlw3K6zavwFB/HAjK/fdPVGqioIfsKEvJXDbeTGOxcL22wANxhOEOsfFYtSaL0ftNWT3OSXZ1wkTUHABQOh81MQYTbi+3bSk6Ea+cCa0UW8f0tvFZWXzPtBkp5SP4lnnKra3KJvjmjt85zck8fANqnyrC3a7ATgmAYA+yxzkqQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9m1ru5Pu7YcTFvPDs265iRDzQRoE0egCuTHROhKwPV8=;
- b=s8LdFYubrY004FXctcB+VZx14Cx/5YF+UWLNq91bUyItuAm8kIwU8w8VnW2k/JtmJMWl04O2qHy+Q0NFTQYf3jYfMDw+7Nl9T/Dg6VOdr7Qnn+84W/OXmTCQRmqBekti5ZVScLTW4jiOA2JnZeazB6MXVFud9BbGtvouWkjLDE0=
-Received: from BN0PR04CA0196.namprd04.prod.outlook.com (2603:10b6:408:e9::21)
- by BL0PR12MB4658.namprd12.prod.outlook.com (2603:10b6:207:32::24) with
+ bh=ooLROBHiS6KoHewByiEnTleKMdarIbLcRyBNTCcHaHg=;
+ b=aTlnszmwdyMo25sNYmfSFL21PrHvaLi9yOYeky4h89PzRnNTKWQ/SPbEEeyaikbZGUmiqSz477axySMCr27WQzET6zC/9XCQ0TRYKl604GuuG/xDdULcq978iFFIh/1PvnHqoNULzeCKE9kso91q+xGhNPZRPs2saamu0g2LTJQ=
+Received: from BN0PR04CA0202.namprd04.prod.outlook.com (2603:10b6:408:e9::27)
+ by DM6PR12MB4123.namprd12.prod.outlook.com (2603:10b6:5:21f::23) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.28; Fri, 19 Aug
- 2022 14:25:23 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.18; Fri, 19 Aug
+ 2022 14:25:25 +0000
 Received: from BN8NAM11FT105.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:e9:cafe::49) by BN0PR04CA0196.outlook.office365.com
- (2603:10b6:408:e9::21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5525.18 via Frontend
- Transport; Fri, 19 Aug 2022 14:25:23 +0000
+ (2603:10b6:408:e9:cafe::77) by BN0PR04CA0202.outlook.office365.com
+ (2603:10b6:408:e9::27) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.16 via Frontend
+ Transport; Fri, 19 Aug 2022 14:25:25 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,11 +48,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
  BN8NAM11FT105.mail.protection.outlook.com (10.13.176.183) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5546.7 via Frontend Transport; Fri, 19 Aug 2022 14:25:23 +0000
+ 15.20.5546.7 via Frontend Transport; Fri, 19 Aug 2022 14:25:25 +0000
 Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Fri, 19 Aug
- 2022 09:25:21 -0500
+ 2022 09:25:24 -0500
 From:   Mario Limonciello <mario.limonciello@amd.com>
 To:     <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <rafael@kernel.org>, Len Brown <lenb@kernel.org>
@@ -60,10 +60,12 @@ CC:     <kherbst@redhat.com>, <nouveau@lists.freedesktop.org>,
         <hdegoede@redhat.com>, <ddadap@nvidia.com>,
         <kai.heng.feng@canonical.com>, <Dell.Client.Kernel@dell.com>,
         Mario Limonciello <mario.limonciello@amd.com>
-Subject: [RFC 0/2]  Stop the abuse of Linux-* _OSI strings
-Date:   Fri, 19 Aug 2022 09:25:17 -0500
-Message-ID: <20220819142519.5684-1-mario.limonciello@amd.com>
+Subject: [RFC 2/2] ACPI: OSI: Deprecate some abused _OSI strings
+Date:   Fri, 19 Aug 2022 09:25:19 -0500
+Message-ID: <20220819142519.5684-3-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220819142519.5684-1-mario.limonciello@amd.com>
+References: <20220819142519.5684-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -72,66 +74,157 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c514d754-c3a3-4dd9-8064-08da81eea75e
-X-MS-TrafficTypeDiagnostic: BL0PR12MB4658:EE_
+X-MS-Office365-Filtering-Correlation-Id: facf9baa-81dc-406d-d222-08da81eea858
+X-MS-TrafficTypeDiagnostic: DM6PR12MB4123:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: UvjF58R0HD+AMDF+p8p5MYBlo+IeFKrN2kjLslKb9fjoeC+qxAYuZi43RhvfnrolnhtMe0NLgVNP2jPI4WKl02uS9vu8K4m/vg7IQunJt9S9AMcpWl+hkSHU1QeGU/banjv2PVdOTfvCVMq0sjDFLwnz//q0Z1FMAvzifrcni6eLgpsoBbNZ8nsFMkUQvAq0J5C2Tvf1zB6gHMNu+bILZTaz6qAEAN3eLrch1Hb7AdpPiEK/u9B+SUKxWSH/jH40lKJ3mtVMGbviowbvkO49HNukOju2Bpk4kpuAwj4NUeRuXfQ3wuiqXfxRllmfqgJzr+QuCyfo/47nf6eHpRSnK0lN5pYLz/6tNo8+osuwZDVUzfn1S+kiWXU9KDQF9lFAH/20nzzc+0otQlR/QMlOfTEgJKZxgHE69cVjsSGmAt24xND1QoQn8Knt9NNxTY1WBSvLIUiNL5DCVy708iZ45CN9BUEa4Qs+4/P8D9wJdfBI+2H/Q1x7pyyGXcHQO6kHh9xPLAo4yH8Kh+xPHGHYpJg7Y6K3uLoRjDmEoE/URh5vkUWSkHeQPHQb3a3MxjsMZXp8GDkUQV1HgQPQOaE/QqmbOaNnAaA1Mhbgt1qP9jeYLkUqsM2nXcZGVfZi/5q57xwxrXyzcsToRfM3MA+URDP7KI/iioBvGGmCsqlHzdeQdkXSqMLs2XWOW/VwwCUTKRmqUmPXcyAJlEuLKf1Pp+R80srLRcI45RlhjZHXyD1iH7EzKhwdVmp6yT0k9ccKYDSo2JP8UlSX+JrBRb58C6F29ieK74PWJxdxIVCAk+9jlitbKtLRInxoKKEyfPvfdFZ6AXnFBFXwheym0U0T2Q==
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(39860400002)(346002)(136003)(376002)(396003)(46966006)(36840700001)(40470700004)(316002)(81166007)(7416002)(86362001)(966005)(478600001)(5660300002)(40480700001)(8936002)(54906003)(82310400005)(41300700001)(110136005)(356005)(4326008)(8676002)(6666004)(70206006)(70586007)(186003)(336012)(16526019)(1076003)(40460700003)(2906002)(2616005)(36756003)(36860700001)(426003)(7696005)(26005)(44832011)(47076005)(82740400003)(83380400001)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: t4kjWwnDYL8sT3B1/fw6Ajt1hdkLzdqHeZxZRwoqlnKO16kmebzp7Np4BVCLId+4coSg3JivihZhul0wiVA8QKUiVJhoqCfxdCzM8PHbzuj5kiyl4K3COxhEWdv5vTgsVZ3YdFccZHSahSbB0Uo4le/3kWdFlHh2Ohesrb0RFP/Vvx8dcYTFaIIVaqrs9A0PXs5gCTa85oDrh0AKVxYxeFrL0Ld3aF0A5wnf3jeG2Bj2cHiEC8+1X71qyCjGSnHyZwMyLLKxqRaVye6zhU/Tkshu1rPT5eZh2b+a5qXLMquRKfdbRAY2AnIOhi/pxkzv3AaG0fTjjo/B6dBWYMITrqTMi/QlZGpNIhBfDJajNq+DOC6pw+xKZkffTPxjYrycyyzE0b4PwnSPr4+CggOcqPk70dHqm+vjM2HFGS5egPHjAARrcPzpmlMNbh2zGccbIjVvNoCKjKgBwx4SVMcfgAuVbiYrfWJWfp2L1AHgyVdSiU2qOVZucqiUZSYwh78PFJQe30Q8gnPQB2MoakESJvNXBjocw0a/Dkw0FSsieu57k/kvS2KR0wTaYklopHuzOilfSNbl6fJ35dCfegdpe9miScMh9duW2L9KqTwVFTV+PVj2NUqS272HkIGmtsVsTpwqYno0vvzvx+xU+768aRiJ0UULtmpbEEluPnFroE6Q/KsXRNgsWPVjFX5viFsKS40IxHDGP1RweH7CHxpEjY9Zp3psAQDIt6aC1428nopw7jAPyduGQT891t5Pj/n3vUkyqZMRhIGbv1D8NkIMySjN+Xp/8fnQ/v+ZzfWq7LkNsuzUURGfL2YmlOArmVTN
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(376002)(396003)(136003)(346002)(39860400002)(46966006)(40470700004)(36840700001)(7416002)(70206006)(4326008)(44832011)(110136005)(54906003)(316002)(5660300002)(8936002)(36756003)(2906002)(82310400005)(478600001)(8676002)(41300700001)(7696005)(6666004)(40480700001)(26005)(2616005)(81166007)(356005)(82740400003)(86362001)(83380400001)(70586007)(1076003)(40460700003)(36860700001)(336012)(186003)(426003)(47076005)(16526019)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Aug 2022 14:25:23.5909
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Aug 2022 14:25:25.2158
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c514d754-c3a3-4dd9-8064-08da81eea75e
+X-MS-Exchange-CrossTenant-Network-Message-Id: facf9baa-81dc-406d-d222-08da81eea858
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT105.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR12MB4658
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4123
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-3 _OSI strings were introduced in recent years that were intended
-to workaround very specific problems found on specific systems.
+The Linux-Lenovo-NV-HDMI-Audio and Linux-HPI-Hybrid-Graphics have
+been seen in the wild being abused by other vendors.  If these use
+cases are still needed for modern laptops, they should be done via
+kernel drivers instead.
 
-The idea was supposed to be that these quirks were only used on
-those systems, but this proved to be a bad assumption.  I've found
-at least one system in the wild where the vendor using the _OSI
-string doesn't match the _OSI string and the neither does the use.
+As we can't have nice things, mark these strings to only be applied
+to laptops from 2022 or earlier.  This should avoid breaking any
+older laptops.  In the future if the kernel drivers need to call
+Linux-only ASL for any reason, it could be a custom _DSM used only
+for Linux or something similar. This approach allows kernel developers
+to control whether to stop calling the ASL when the deficiency by
+the kernel is resolved.
 
-So this brings a good time to review keeping those strings in the kernel.
-There are 3 strings that were introduced:
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ Documentation/firmware-guide/acpi/osi.rst | 24 ++++++++++-------------
+ drivers/acpi/osi.c                        | 22 +++++++++++++++------
+ 2 files changed, 26 insertions(+), 20 deletions(-)
 
-Linux-Dell-Video
--> Intended for systems with NVIDIA cards that didn't support RTD3
-Linux-Lenovo-NV-HDMI-Audio
--> Intended for powering on NVIDIA HDMI device
-Linux-HPI-Hybrid-Graphics
--> Intended for changing dGPU output
-
-AFAIK the first string is no longer relevant as nouveau now supports
-RTD3.  If that's wrong, this can be changed for the series.
-
-The second two strings appear to be non-scalable workarounds.  For
-accomplishing these tasks, registers can be written from kernel drivers
-or custom ASL can be put behind a _DSM.  By forcing either of these two
-solutions it will better let the Linux kernel control the behavior.
-
-Based on the above this series drops the first string and marks the second
-two strings to only apply to older systems.
-
-Link: https://lore.kernel.org/all/54add026bb6f45fd94a2dc2bae4adf9f@AUSX13MPC101.AMER.DELL.COM/T/
-
-Mario Limonciello (2):
-  ACPI: OSI: Remove Linux-Dell-Video _OSI string
-  ACPI: OSI: Deprecate some abused _OSI strings
-
- Documentation/firmware-guide/acpi/osi.rst | 24 ++++++++----------
- drivers/acpi/osi.c                        | 31 ++++++++++++-----------
- 2 files changed, 26 insertions(+), 29 deletions(-)
-
+diff --git a/Documentation/firmware-guide/acpi/osi.rst b/Documentation/firmware-guide/acpi/osi.rst
+index 05869c0045d7..392b982741fe 100644
+--- a/Documentation/firmware-guide/acpi/osi.rst
++++ b/Documentation/firmware-guide/acpi/osi.rst
+@@ -41,26 +41,22 @@ But it is likely that they will all eventually be added.
+ What should an OEM do if they want to support Linux and Windows
+ using the same BIOS image?  Often they need to do something different
+ for Linux to deal with how Linux is different from Windows.
+-Here the BIOS should ask exactly what it wants to know:
+ 
++In this case, the OEM should create custom ASL to be executed by the
++Linux kernel and changes to Linux kernel drivers to execute this custom
++ASL.  The easiest way to accomplish this is to introduce a device specific
++method (_DSM) that is called from the Linux kernel.
++
++In the past the kernel used to support something like:
+ _OSI("Linux-OEM-my_interface_name")
+ where 'OEM' is needed if this is an OEM-specific hook,
+ and 'my_interface_name' describes the hook, which could be a
+ quirk, a bug, or a bug-fix.
+ 
+-In addition, the OEM should send a patch to upstream Linux
+-via the linux-acpi@vger.kernel.org mailing list.  When that patch
+-is checked into Linux, the OS will answer "YES" when the BIOS
+-on the OEM's system uses _OSI to ask if the interface is supported
+-by the OS.  Linux distributors can back-port that patch for Linux
+-pre-installs, and it will be included by all distributions that
+-re-base to upstream.  If the distribution can not update the kernel binary,
+-they can also add an acpi_osi=Linux-OEM-my_interface_name
+-cmdline parameter to the boot loader, as needed.
+-
+-If the string refers to a feature where the upstream kernel
+-eventually grows support, a patch should be sent to remove
+-the string when that support is added to the kernel.
++However this was discovered to be abused by other BIOS vendors to change
++completely unrelated code on completely unrelated systems.  As such it's
++been deprecated and any old hooks will not be activated on systems from
++2023 or later.
+ 
+ That was easy.  Read on, to find out how to do it wrong.
+ 
+diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+index c2f6b2f553d9..18c339c3f277 100644
+--- a/drivers/acpi/osi.c
++++ b/drivers/acpi/osi.c
+@@ -25,6 +25,7 @@
+ struct acpi_osi_entry {
+ 	char string[OSI_STRING_LENGTH_MAX];
+ 	bool enable;
++	unsigned int max_bios_year;
+ };
+ 
+ static struct acpi_osi_config {
+@@ -40,25 +41,29 @@ static struct acpi_osi_config {
+ static struct acpi_osi_config osi_config;
+ static struct acpi_osi_entry
+ osi_setup_entries[OSI_STRING_ENTRIES_MAX] __initdata = {
+-	{"Module Device", true},
+-	{"Processor Device", true},
+-	{"3.0 _SCP Extensions", true},
+-	{"Processor Aggregator Device", true},
++	{"Module Device", true, 0},
++	{"Processor Device", true, 0},
++	{"3.0 _SCP Extensions", true, 0},
++	{"Processor Aggregator Device", true, 0},
+ 	/*
+ 	 * Linux-Lenovo-NV-HDMI-Audio is used by BIOS to power on NVidia's HDMI
+ 	 * audio device which is turned off for power-saving in Windows OS.
+ 	 * This power management feature observed on some Lenovo Thinkpad
+ 	 * systems which will not be able to output audio via HDMI without
+ 	 * a BIOS workaround.
++	 *
++	 * This _OSI string is only applied to systems from 2022 or earlier.
+ 	 */
+-	{"Linux-Lenovo-NV-HDMI-Audio", true},
++	{"Linux-Lenovo-NV-HDMI-Audio", true, 2022},
+ 	/*
+ 	 * Linux-HPI-Hybrid-Graphics is used by BIOS to enable dGPU to
+ 	 * output video directly to external monitors on HP Inc. mobile
+ 	 * workstations as Nvidia and AMD VGA drivers provide limited
+ 	 * hybrid graphics supports.
++	 *
++	 * This _OSI string is only applied to systems from 2022 or earlier.
+ 	 */
+-	{"Linux-HPI-Hybrid-Graphics", true},
++	{"Linux-HPI-Hybrid-Graphics", true, 2022},
+ };
+ 
+ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+@@ -122,9 +127,11 @@ void __init acpi_osi_setup(char *str)
+ 		osi = &osi_setup_entries[i];
+ 		if (!strcmp(osi->string, str)) {
+ 			osi->enable = enable;
++			osi->max_bios_year = 0;
+ 			break;
+ 		} else if (osi->string[0] == '\0') {
+ 			osi->enable = enable;
++			osi->max_bios_year = 0;
+ 			strncpy(osi->string, str, OSI_STRING_LENGTH_MAX);
+ 			break;
+ 		}
+@@ -225,6 +232,9 @@ static void __init acpi_osi_setup_late(void)
+ 		str = osi->string;
+ 		if (*str == '\0')
+ 			break;
++		if (osi->max_bios_year &&
++		    dmi_get_bios_year() > osi->max_bios_year)
++			continue;
+ 		if (osi->enable) {
+ 			status = acpi_install_interface(str);
+ 			if (ACPI_SUCCESS(status))
 -- 
 2.34.1
 
