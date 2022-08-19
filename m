@@ -2,83 +2,92 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A14C32771
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 Aug 2022 10:20:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5F86C32772
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 Aug 2022 10:33:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348206AbiHSKUN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 19 Aug 2022 06:20:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34402 "EHLO
+        id S1346819AbiHSKdX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 19 Aug 2022 06:33:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348304AbiHSKUL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Aug 2022 06:20:11 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FD0BEF9DF;
-        Fri, 19 Aug 2022 03:20:09 -0700 (PDT)
-Received: from fraeml743-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4M8Hn24YPHz67h3l;
-        Fri, 19 Aug 2022 18:19:50 +0800 (CST)
-Received: from lhrpeml500003.china.huawei.com (7.191.162.67) by
- fraeml743-chm.china.huawei.com (10.206.15.224) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 19 Aug 2022 12:20:07 +0200
-Received: from [10.195.34.98] (10.195.34.98) by lhrpeml500003.china.huawei.com
- (7.191.162.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Fri, 19 Aug
- 2022 11:20:06 +0100
-Message-ID: <1a5eb773-d339-512f-7c5d-7ef72edfdc2a@huawei.com>
-Date:   Fri, 19 Aug 2022 11:20:06 +0100
+        with ESMTP id S1348042AbiHSKdW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Aug 2022 06:33:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5AB463BB;
+        Fri, 19 Aug 2022 03:33:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A664616EC;
+        Fri, 19 Aug 2022 10:33:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1841CC433D7;
+        Fri, 19 Aug 2022 10:33:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1660905195;
+        bh=P0ohKSkFshdhJ/jP9vFwkBZFmB+9KCEud3AFiAiMbmQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=zjJfROVURJQxCvUOeg4Nkgxqx9luhmsRP5yzv95BZBWKg4eJHf5UGpZQb5Ret5hrk
+         lhdlelPhJ0Ez06/6q+3qZRWsC9vfsWVf123a+7H1SnfCDqDWABG+2Z1naBXTnNuzPH
+         av3xOcUd2jLMnbAe1GsPmTTaBWHErkYy0dNegwt0=
+Date:   Fri, 19 Aug 2022 12:33:12 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Utkarsh Patel <utkarsh.h.patel@intel.com>,
+        rajmohan.mani@intel.com, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH 0/6] ACPI: New helper function
+ acpi_dev_get_memory_resources() and a new ACPI ID
+Message-ID: <Yv9m6LSGKXvnnBSY@kroah.com>
+References: <20220816101629.69054-1-heikki.krogerus@linux.intel.com>
+ <Yv6PLl4aLPzHTJTQ@kroah.com>
+ <Yv9ftg2MVx+okmzC@kuha.fi.intel.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.6.1
-From:   John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH PoC 1/3] ACPI / PNP: Don't add enumeration_by_parent
- devices
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-CC:     Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "ACPI Devel Maling List" <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-References: <1660649244-146842-1-git-send-email-john.garry@huawei.com>
- <1660649244-146842-2-git-send-email-john.garry@huawei.com>
- <CAHp75Vc4vT==hB=svhDBhSpNFCQXwzZ1RMxy4mQspFhmSjQ03g@mail.gmail.com>
- <366fd6dd-a37b-c7ec-fdf3-48f8a8024834@huawei.com>
- <CAHp75Vd-6mfK=Or4MjXswUZsovHhMyDDJCv8srBH70f24MGvpA@mail.gmail.com>
-In-Reply-To: <CAHp75Vd-6mfK=Or4MjXswUZsovHhMyDDJCv8srBH70f24MGvpA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.195.34.98]
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
- lhrpeml500003.china.huawei.com (7.191.162.67)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Yv9ftg2MVx+okmzC@kuha.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 19/08/2022 10:59, Andy Shevchenko wrote:
->>>> The hisi_lpc driver also creates a platform device serial device for uart,
->>>> which is the actual uart which we want to use - see
->>>> hisi_lpc_acpi_add_child(). That function does not check
->>>> physical_node_count value, but acpi_create_platform_device() does check it.
->>>> So if we were to move hisi_lpc_acpi_add_child() across to use
->>>> acpi_create_platform_device(), then the change in this patch is required to
->>>> not create the PNP binding (so that physical_node_count is not set from
->>>> PNP probe).
->>> Hmm... The flag, as I interpret it, is equal to "the device in
->>> question is a peripheral device to the non-discoverable bus, such as
->>> SPI, I2C or UART". I.o.w. I do not see how PNP suits here. So, from my
->>> point of view it seems like an abuse of the flag. Not sure the current
->>> state of affairs in ACPI glue layer regarding this, though.
->> Sorry, but I'm not following you here. Which flag are you talking about?
-> "enumerated by parent".
+On Fri, Aug 19, 2022 at 01:02:30PM +0300, Heikki Krogerus wrote:
+> Hi,
+> 
+> On Thu, Aug 18, 2022 at 09:12:46PM +0200, Greg Kroah-Hartman wrote:
+> > On Tue, Aug 16, 2022 at 01:16:23PM +0300, Heikki Krogerus wrote:
+> > > Hi,
+> > > 
+> > > The helper function returns all memory resources described for a
+> > > device regardless of the ACPI descriptor type (as long as it's
+> > > memory), but the first patch introduces new ACPI ID for the IOM
+> > > controller on Intel Meteor Lake and also separately modifies the
+> > > driver so that it can get the memory resource from Address Space
+> > > Resource Descriptor.
+> > > 
+> > > An alternative would have been to introduce that helper function first
+> > > so we would not need to modify the driver when the new ID is added,
+> > > but then the helper would also need to be applied to the stable kernel
+> > > releases, and that does not feel necessary or appropriate in this
+> > > case, at least not IMO.
+> > > 
+> > > So that's why I'm proposing here that we first add the ID, and only
+> > > after that introduce the helper, and only for mainline. That way the
+> > > patch introducing the ID is the only that goes to the stable releases.
+> > > 
+> > > If that's okay, and these don't have any other problems, I assume it's
+> > > OK if Rafael takes all of these, including the ID?
+> > 
+> > I took the id now, for 6.0-final as it seems to be totally independant
+> > of the other commits (otherwise you would not have tagged it for the
+> > stable tree.)
+> > 
+> > The remainder should probably be resent and send through the acpi tree.
+> 
+> Okay. The last patch depends on that ID patch, so Rafael, you need to
+> handle that conflict with immutable branch I guess. Or should we just
+> skip that patch for now?
 
-ok, right. So I thought that PNP0501 was a standard cid to describe 
-16550-compat UART which may be on an LPC bus. And a LPC bus is 
-non-discoverable, like SPI or I2C, which also use "enumerated by parent".
+You can wait for -rc3 or so which should have that commit in it.
 
-Indeed, using PNP0501 for hisi lpc UART cid would be without problem, 
-apart from the fact that we can't do all the PIO translation (so need 
-"enumerated by parent").
+thanks,
 
-Thanks,
-john
+greg k-h
