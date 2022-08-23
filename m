@@ -2,81 +2,77 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB64EC32774
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Aug 2022 18:13:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D54FDC32772
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Aug 2022 18:17:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233839AbiHWSNE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Aug 2022 14:13:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41120 "EHLO
+        id S231635AbiHWSRW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Aug 2022 14:17:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231896AbiHWSMo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Aug 2022 14:12:44 -0400
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD0416E896;
-        Tue, 23 Aug 2022 09:25:16 -0700 (PDT)
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-3376851fe13so360342757b3.6;
-        Tue, 23 Aug 2022 09:25:16 -0700 (PDT)
+        with ESMTP id S233759AbiHWSPY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Aug 2022 14:15:24 -0400
+Received: from mail-yw1-f173.google.com (mail-yw1-f173.google.com [209.85.128.173])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 192F81165
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Aug 2022 09:29:47 -0700 (PDT)
+Received: by mail-yw1-f173.google.com with SMTP id 00721157ae682-3378303138bso353476207b3.9
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Aug 2022 09:29:46 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc;
-        bh=e1ByaHgjT5aI+pkPeAiB/CuoKQTWUEVfvmAhYGOVHzY=;
-        b=UpztGszl4Wk+OEvdstrECX4nGznd/K/1k7PPcYYUWr15a00jm6biTrLYpOoKZdQFBj
-         Ergw/levxJRrWU9QWSgZ22f0zduysxtthR30+25BPmxW89+EUQx4haA+p+rK29ge5aCF
-         g21lnU+6ryAEEhbS3cav/aPQReR9LsMvvWFNSVgmjIzh4/2gOrCSoLfk6fJK7tBHnNVj
-         34OXubS0it7qwTIFalfXLlhxx+VQf/b2cSuzKgJYcqolmPPcvUW7Vw4r+pNo5TK4DYQR
-         FFkvov5J2Roi9J9BBZN4eCSUmHgW4HPJdPRd//O2W3e3TwBpsiICx2DPw8RDuIbtl0mY
-         kZMw==
-X-Gm-Message-State: ACgBeo0GwCqwp+LMKfiAYBAeATG0t06KNDhVvhd7b32ouCaiq0qrv66V
-        4l5sgtZ07yN7yfaSctLXrkximLMv+jp6DfllbmIHxTON
-X-Google-Smtp-Source: AA6agR4ufkdeFlSVd0hEGz/ZxKyiVvu1D9etm5aEB4P1tHJPl+mKMBJ35SUVfBRAP1kGsBOnUtpamNoW7FA41r623lU=
+        bh=EbN2+B9FOsFQerAauxUt5kHcJeVWvPCLOc8XK2LUD1k=;
+        b=ncKnbuWqABw9fVFiRZmv1043SNvJdDONYKtdR/xx12RIR1usCCci8cLFP5NxwdJm3M
+         JscOOmR+cxcJTSWFWqxogkUmgDu3RWKoIaIj05dijXedI+sVH7uoSFZdsa/qKaDZu2MK
+         jBYnZNnaenqqYk3X+mw5PV1/mOJoDU+kIIt1ExiEJIuwgLX7NV2Z0XTN0FAi0307oSd2
+         XYast8uI4zj4oP/ssRJgHNeMuLMyxtxzHmeFkZi/0vzv4q6uiUW9U1oY/qyqL8fu+fdr
+         sONWWvbnEaOVs5liNIxWwo2/SrYUDo28iLWarGsVlj/mHp0f4uILyGtIbvuvRZjQRXjr
+         yd7Q==
+X-Gm-Message-State: ACgBeo02vcYSdI9RcVDB6hYrUzBARnj+mClugLfBOeCpcwvRG/ufAAgN
+        z3E+XcEmwvoovt73s33bQmOkbx58jB0TAD6Ss1xiYrpn
+X-Google-Smtp-Source: AA6agR7i/FzKDUyWyPQmXKQ5/RgEKS5YuKZlYqREDbCxJj6l9JNq7pju/MTerR07ms6utBhuTAKpz9T3juWNtKRtmqs=
 X-Received: by 2002:a0d:f647:0:b0:328:317c:9069 with SMTP id
- g68-20020a0df647000000b00328317c9069mr25955261ywf.301.1661271916000; Tue, 23
- Aug 2022 09:25:16 -0700 (PDT)
+ g68-20020a0df647000000b00328317c9069mr25970442ywf.301.1661272186158; Tue, 23
+ Aug 2022 09:29:46 -0700 (PDT)
 MIME-Version: 1.0
-References: <12036348.O9o76ZdvQC@kreacher> <875yixk3ng.fsf@stealth>
-In-Reply-To: <875yixk3ng.fsf@stealth>
+References: <1660554889-174857-1-git-send-email-dmtrmonakhov@yandex-team.ru>
+In-Reply-To: <1660554889-174857-1-git-send-email-dmtrmonakhov@yandex-team.ru>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Tue, 23 Aug 2022 18:25:04 +0200
-Message-ID: <CAJZ5v0jeZZLP9nPWrEwxct61UnabrMqifZZgcBbLy0u8-z4xmg@mail.gmail.com>
-Subject: Re: [PATCH v1 0/5] ACPI: Device enumeration rearrangements and parent
- field elimination
-To:     Punit Agrawal <punit.agrawal@bytedance.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linux PM <linux-pm@vger.kernel.org>
+Date:   Tue, 23 Aug 2022 18:29:35 +0200
+Message-ID: <CAJZ5v0hi8jRukb26Th6QX60a9pd9CAZ6wuKYV8zGqtYt4iFKzg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: APEI: Add bert error log footer
+To:     Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Tony Luck <tony.luck@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Aug 12, 2022 at 3:11 PM Punit Agrawal
-<punit.agrawal@bytedance.com> wrote:
+On Mon, Aug 15, 2022 at 11:22 AM Dmitry Monakhov
+<dmtrmonakhov@yandex-team.ru> wrote:
 >
-> Hi Rafael,
->
-> "Rafael J. Wysocki" <rjw@rjwysocki.net> writes:
->
-> > Hi All,
-> >
-> > There are still opportunities to clean up the ACPI support code and
-> > this series is part of the effort in that direction.
-> >
-> > It makes changes without functional impact (AFAICS) to the core ACPI
-> > code related to devices and to some of its users.
-> >
-> > Please refer to the patch changelogs for details.
->
-> Other than the single typo I noticed in Patch 2,
+> Print total number of records found during bert log parsing.
 
-I've fixed that one while applying the patch.
+Please spell BERT in capitals everywhere, including the subject.
 
-> the changes look good!
+> This also simplify dmesg parser implementation for bert events.
 >
-> If it helps,
+> Signed-off-by: Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>
 >
-> Reviewed-by: Punit Agrawal <punit.agrawal@bytedance.com>
-
-Thank you!
+> diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
+> index 45973aa6e06d..c23eb75866d0 100644
+> --- a/drivers/acpi/apei/bert.c
+> +++ b/drivers/acpi/apei/bert.c
+> @@ -90,6 +90,9 @@ static void __init bert_print_all(struct acpi_bert_region *region,
+>
+>         if (skipped)
+>                 pr_info(HW_ERR "Skipped %d error records\n", skipped);
+> +
+> +       if (printed + skipped)
+> +               pr_info("Total records found: %d\n", printed + skipped);
+>  }
+>
+>  static int __init setup_bert_disable(char *str)
+> --
+> 2.7.4
+>
