@@ -2,266 +2,157 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D4E0C32789
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 Aug 2022 19:44:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 700FFC32772
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 Aug 2022 19:48:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230033AbiHWTol (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 Aug 2022 15:44:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54652 "EHLO
+        id S232935AbiHWTsT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 Aug 2022 15:48:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233355AbiHWToV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Aug 2022 15:44:21 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6B4FFB274E;
-        Tue, 23 Aug 2022 11:46:47 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E8636113E;
-        Tue, 23 Aug 2022 11:46:50 -0700 (PDT)
-Received: from [192.168.122.164] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CC8763F718;
-        Tue, 23 Aug 2022 11:46:46 -0700 (PDT)
-Message-ID: <cbbc3156-507c-9b88-06b9-c1e7bda50c32@arm.com>
-Date:   Tue, 23 Aug 2022 13:46:45 -0500
+        with ESMTP id S232359AbiHWTra (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Aug 2022 15:47:30 -0400
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2069.outbound.protection.outlook.com [40.107.94.69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58A9679A7E;
+        Tue, 23 Aug 2022 11:51:27 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=lpEvTF0zqQNFrwAMUOOQJg9OTdV3L4tj+zrdfHMF8djHZwJokr2ZP+zTOEoNDPUIUImunTUSMkXDkUpxEju+FXCJpTqowZNdwvjYyFAITL/XYuGZagLRtsUSYN8Y7wKhdO5Dqr8lEC24lp2P6jwOAY9b5FDpLsvYYYnrfzAWWsX6F0noxXXk1qnTaKGeKyFWG6CEZprIRBlV2z/DPO7BL2/HP8dZWb6SbTXhDbqqjlydZGhDqq9lPGPp/07mluSAx9JstPlozpxdTYlBx6NSCH73h6kygg46uNHnC0tfrX/LIY+AGobshZsrWZnX4aH1y+QZ+zD0m5ZaLCSYsQferg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=lFnR3bXw3qX7mpCr4BxgPiUUU7a3SMELH8mcisBCcOU=;
+ b=UT+Dq29fmxiOCIizlbm/5AqOey0PkJ+/0ab1aO1u6vB6DmoiN5kGe4quEJ2GM5wnEN60E6Xj0FezJMc3uCvpLabclLxC2BuT4EdpxFSeKapyQYK740JJXKfeTzA/DoIQUwROxw4+EbUA65RDGK37yAwG2+3+1VT5bYP0cU4AyG3ELTCJa2ndOpvhj1EzbA59BkpBBnzlPj7/JC+uTQP9c6ZW9GR+iutrA8m7Caa6F1kJqab+2/WOVo5MGFphyfVy61tYNZev6m7f+/89lpu41A2zsWjA8RowSdtNQszfgRMHiNMmWbuCwrOa5xwuKxGFAo3q3xTewo8+QXGzqZbM9g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lFnR3bXw3qX7mpCr4BxgPiUUU7a3SMELH8mcisBCcOU=;
+ b=dAPZljonxU0Xj61no47gh7896Eu661KiWDWYvdOrgXtHSSEOV7EtKK7OKXav9yrnDtWrkI+AXlOa5CCbQDHmWHMdxbTjckMv2KZWLx84cM89EfiOz3qzgJNRJLmHwqAnyXbXmsuBpEigPBMoNj18cCZySxDAQOFcDROvPdZ0dZg=
+Received: from MW4PR03CA0103.namprd03.prod.outlook.com (2603:10b6:303:b7::18)
+ by CY4PR12MB1784.namprd12.prod.outlook.com (2603:10b6:903:11e::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.21; Tue, 23 Aug
+ 2022 18:51:25 +0000
+Received: from CO1NAM11FT064.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:b7:cafe::31) by MW4PR03CA0103.outlook.office365.com
+ (2603:10b6:303:b7::18) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.20 via Frontend
+ Transport; Tue, 23 Aug 2022 18:51:25 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CO1NAM11FT064.mail.protection.outlook.com (10.13.175.77) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5566.15 via Frontend Transport; Tue, 23 Aug 2022 18:51:25 +0000
+Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Tue, 23 Aug
+ 2022 13:51:24 -0500
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+CC:     <nouveau@lists.freedesktop.org>, <hdegoede@redhat.com>,
+        <ddadap@nvidia.com>, <Dell.Client.Kernel@dell.com>,
+        <kai.heng.feng@canonical.com>, <kherbst@redhat.com>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH 4/4] ACPI: OSI: Update Documentation on custom _OSI strings
+Date:   Tue, 23 Aug 2022 13:51:34 -0500
+Message-ID: <20220823185134.14464-5-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220823185134.14464-1-mario.limonciello@amd.com>
+References: <20220823185134.14464-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: [PATCH v3 1/2] ACPI: CPPC: Disable FIE if registers in PCC
- regions
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.or>,
-        Len Brown <lenb@kernel.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Punit Agrawal <punit.agrawal@bytedance.com>,
-        Lukasz Luba <lukasz.luba@arm.com>,
-        Ionela Voinescu <ionela.voinescu@arm.com>,
-        Pierre Gondois <pierre.gondois@arm.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <devel@acpica.org>,
-        Linux PM <linux-pm@vger.kernel.org>
-References: <20220818211619.4193362-1-jeremy.linton@arm.com>
- <20220818211619.4193362-2-jeremy.linton@arm.com>
- <CAJZ5v0h7s0WnyBtwuQbTZXwq+jmYDF74gjc9-c-=Krt23KgF1w@mail.gmail.com>
-From:   Jeremy Linton <jeremy.linton@arm.com>
-In-Reply-To: <CAJZ5v0h7s0WnyBtwuQbTZXwq+jmYDF74gjc9-c-=Krt23KgF1w@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 29c8b374-d37d-4be9-8736-08da85387aff
+X-MS-TrafficTypeDiagnostic: CY4PR12MB1784:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: K+PHUQuXyAN9k3u26Re7Tg8/lsUs6dsi8hz83U0scoF+JwnRgVPbWhq10rFTVcxXOeeSEAOvCmcYNZxgFG4Mdf70rMDCv/hds39Wvdqz6AXAugueqNki3zihlH8tujoUlmC3Bx02OoeuKmhIVPlywQYKddw2DNYcqBkelGEOmr+mZUy6LP6NC74YRYPIbrRPcwyVj1cj4jaaKotiJo/T5h57kniPOrdZt1e0A6xCmM8kBo9itIgDnzfjavgZS02kWGvTfj4H1L1yWbEwEkCxLJjuqg/8ssDjGIQ1hZ7iQZmeoD5U5Dtmg9eA0JRvf1cNEOJcYAu3BC8Y7M5qeqCD0eJObjdt0tV5ovqdANuFf+8s4AUtYx+QocWg1ixDd+AnLgMf8x8gOdUfAFrbNvPpcHEII111be/DYtS4+3LNx8NzKlrVAUPD1eXgt14ZK8m1l14HiQjf3tW8qGAqXODWqjQ1fuanrFWYiVlgJTPoOva7yrtQiC8HEQDL8XYedgbzCS7ehHVjJnwv4mSkDiR2cf4DWeVVoQITGvfmw7i4IxEX2WH579v8VH6bm/X+/SnlaKGG3hYTTFmtXvsAagUAjM8SNRPJjxtmlBQlTcbVC3vGrhyzAtWS8XAyN6z6+xrdM42LmUZXE8BXXmKJjM8NsJpVI0p8Oe08lfI50oCBrS+tErgyXRS14Ig6tdOCvPXGBuGpjYxG3E4H1WKaeMbc77CjFiu4hCGYBsyVn32uSm9ZkJOe0UTZuvViSGC1W8DFBLrM0zRZufmZ+p80/Dc2h8+DgrPOLtgsi9TTLrhnjXEmTy7EZZTNb0kGpncfrl51
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(39860400002)(136003)(346002)(376002)(396003)(46966006)(40470700004)(36840700001)(1076003)(8676002)(70206006)(478600001)(70586007)(4326008)(54906003)(316002)(110136005)(5660300002)(41300700001)(8936002)(36756003)(7416002)(16526019)(2906002)(82310400005)(2616005)(47076005)(7696005)(15650500001)(6666004)(44832011)(426003)(83380400001)(26005)(40480700001)(36860700001)(336012)(356005)(86362001)(40460700003)(186003)(82740400003)(81166007)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Aug 2022 18:51:25.2701
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 29c8b374-d37d-4be9-8736-08da85387aff
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT064.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR12MB1784
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+Originally when there was some custom ASL needed for Linux the guidance
+for Linux friendly OEMs was to introduced a new string in APCI tables
+and discuss it on the kernel mailing lists.  This lead to 3 strings
+being introduced.  Those strings now have the original problems fixed
+in the kernel and have since been removed.  The kernel no longer
+advertises any custom Linux-* _OSI strings for OEM use.
 
-On 8/23/22 12:10, Rafael J. Wysocki wrote:
-> On Thu, Aug 18, 2022 at 11:24 PM Jeremy Linton <jeremy.linton@arm.com> wrote:
->>
->> PCC regions utilize a mailbox to set/retrieve register values used by
->> the CPPC code. This is fine as long as the operations are
->> infrequent. With the FIE code enabled though the overhead can range
->> from 2-11% of system CPU overhead (ex: as measured by top) on Arm
->> based machines.
->>
->> So, before enabling FIE assure none of the registers used by
->> cppc_get_perf_ctrs() are in the PCC region. Furthermore lets also
->> enable a module parameter which can also disable it at boot or module
->> reload.
->>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   drivers/acpi/cppc_acpi.c       | 41 ++++++++++++++++++++++++++++++++++
->>   drivers/cpufreq/cppc_cpufreq.c | 31 +++++++++++++++++++++----
->>   include/acpi/cppc_acpi.h       |  5 +++++
->>   3 files changed, 73 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> index 1e15a9f25ae9..c840bf606b30 100644
->> --- a/drivers/acpi/cppc_acpi.c
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -1240,6 +1240,47 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->>   }
->>   EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
->>
->> +/**
->> + * cppc_perf_ctrs_in_pcc - Check if any perf counters are in a PCC region.
->> + *
->> + * CPPC has flexibility about how counters describing CPU perf are delivered.
-> 
-> "CPU performance counters are accessed"
+It was discovered that these removed strings were actually being abused
+to detect Linux for unrelated reasons.  So drop the encouragement for
+new ones to be added.
 
-Sure,
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ Documentation/firmware-guide/acpi/osi.rst | 25 ++++++++++-------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-> 
-> 
->> + * One of the choices is PCC regions, which can have a high access latency. This
->> + * routine allows callers of cppc_get_perf_ctrs() to know this ahead of time.
->> + *
->> + * Return: true if any of the counters are in PCC regions, false otherwise
->> + */
->> +bool cppc_perf_ctrs_in_pcc(void)
->> +{
->> +       int cpu;
->> +
->> +       for_each_present_cpu(cpu) {
->> +               struct cpc_register_resource *ref_perf_reg;
->> +               struct cpc_desc *cpc_desc;
->> +
->> +               cpc_desc = per_cpu(cpc_desc_ptr, cpu);
->> +
->> +               if (CPC_IN_PCC(&cpc_desc->cpc_regs[DELIVERED_CTR]) ||
->> +                   CPC_IN_PCC(&cpc_desc->cpc_regs[REFERENCE_CTR]) ||
->> +                   CPC_IN_PCC(&cpc_desc->cpc_regs[CTR_WRAP_TIME]))
->> +                       return true;
->> +
->> +
->> +               ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
->> +
->> +               /*
->> +                * If reference perf register is not supported then we should
->> +                * use the nominal perf value
->> +                */
->> +               if (!CPC_SUPPORTED(ref_perf_reg))
->> +                       ref_perf_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
->> +
->> +               if (CPC_IN_PCC(ref_perf_reg))
->> +                       return true;
->> +       }
->> +       return false;
->> +}
->> +EXPORT_SYMBOL_GPL(cppc_perf_ctrs_in_pcc);
->> +
->>   /**
->>    * cppc_get_perf_ctrs - Read a CPU's performance feedback counters.
->>    * @cpunum: CPU from which to read counters.
->> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
->> index 24eaf0ec344d..32fcb0bf74a4 100644
->> --- a/drivers/cpufreq/cppc_cpufreq.c
->> +++ b/drivers/cpufreq/cppc_cpufreq.c
->> @@ -63,7 +63,15 @@ static struct cppc_workaround_oem_info wa_info[] = {
->>
->>   static struct cpufreq_driver cppc_cpufreq_driver;
->>
->> +static enum {
->> +       FIE_UNSET = -1,
->> +       FIE_ENABLED,
->> +       FIE_DISABLED
->> +} fie_disabled = FIE_UNSET;
->> +
->>   #ifdef CONFIG_ACPI_CPPC_CPUFREQ_FIE
->> +module_param(fie_disabled, int, 0444);
->> +MODULE_PARM_DESC(fie_disabled, "Disable Frequency Invariance Engine (FIE)");
->>
->>   /* Frequency invariance support */
->>   struct cppc_freq_invariance {
->> @@ -158,7 +166,7 @@ static void cppc_cpufreq_cpu_fie_init(struct cpufreq_policy *policy)
->>          struct cppc_freq_invariance *cppc_fi;
->>          int cpu, ret;
->>
->> -       if (cppc_cpufreq_driver.get == hisi_cppc_cpufreq_get_rate)
->> +       if (fie_disabled)
->>                  return;
->>
->>          for_each_cpu(cpu, policy->cpus) {
->> @@ -199,7 +207,7 @@ static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
->>          struct cppc_freq_invariance *cppc_fi;
->>          int cpu;
->>
->> -       if (cppc_cpufreq_driver.get == hisi_cppc_cpufreq_get_rate)
->> +       if (fie_disabled)
->>                  return;
->>
->>          /* policy->cpus will be empty here, use related_cpus instead */
->> @@ -229,7 +237,21 @@ static void __init cppc_freq_invariance_init(void)
->>          };
->>          int ret;
->>
->> -       if (cppc_cpufreq_driver.get == hisi_cppc_cpufreq_get_rate)
->> +       switch (fie_disabled) {
->> +       /* honor user request */
->> +       case FIE_DISABLED:
->> +       case FIE_ENABLED:
->> +               break;
->> +       case FIE_UNSET:
->> +       default:
-> 
-> Would be more straightforward to do
-> 
-> if (fie_disabled == FIE_UNSET) {
-> 
-> here.
-
-Right, but then it wouldn't catch the other billion+ values that are the 
-result of not being able to export a limit (AFAIK) on the module 
-parameter. I could use an if:
-
-if !((fie_disabled == FIE_DISABLE) || (fie_disabled == FIE_ENABLED)) {
-
-}
-
-
-if that is preferable. I thought the case with the explict default: 
-though made it clearer that it was treating all those other values as unset.
-
-> 
->> +               fie_disabled = FIE_ENABLED;
->> +               if (cppc_perf_ctrs_in_pcc()) {
->> +                       pr_info("FIE not enabled on systems with registers in PCC\n");
->> +                       fie_disabled = FIE_DISABLED;
->> +               }
->> +               break;
->> +       }
->> +       if (fie_disabled)
->>                  return;
->>
->>          kworker_fie = kthread_create_worker(0, "cppc_fie");
->> @@ -247,7 +269,7 @@ static void __init cppc_freq_invariance_init(void)
->>
->>   static void cppc_freq_invariance_exit(void)
->>   {
->> -       if (cppc_cpufreq_driver.get == hisi_cppc_cpufreq_get_rate)
->> +       if (fie_disabled)
->>                  return;
->>
->>          kthread_destroy_worker(kworker_fie);
->> @@ -936,6 +958,7 @@ static void cppc_check_hisi_workaround(void)
->>                      wa_info[i].oem_revision == tbl->oem_revision) {
->>                          /* Overwrite the get() callback */
->>                          cppc_cpufreq_driver.get = hisi_cppc_cpufreq_get_rate;
->> +                       fie_disabled = FIE_DISABLED;
->>                          break;
->>                  }
->>          }
->> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
->> index f73d357ecdf5..c5614444031f 100644
->> --- a/include/acpi/cppc_acpi.h
->> +++ b/include/acpi/cppc_acpi.h
->> @@ -140,6 +140,7 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
->>   extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
->>   extern int cppc_set_enable(int cpu, bool enable);
->>   extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
->> +extern bool cppc_perf_ctrs_in_pcc(void);
->>   extern bool acpi_cpc_valid(void);
->>   extern bool cppc_allow_fast_switch(void);
->>   extern int acpi_get_psd_map(unsigned int cpu, struct cppc_cpudata *cpu_data);
->> @@ -173,6 +174,10 @@ static inline int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps)
->>   {
->>          return -ENOTSUPP;
->>   }
->> +static inline bool cppc_perf_ctrs_in_pcc(void)
->> +{
->> +       return false;
->> +}
->>   static inline bool acpi_cpc_valid(void)
->>   {
->>          return false;
->> --
-> 
-> Apart from the above it looks fine to me, but I would like to get an
-> ACK from Viresh on the second patch.
-> 
-> Thanks!
-
-Thanks for looking at this.
-
+diff --git a/Documentation/firmware-guide/acpi/osi.rst b/Documentation/firmware-guide/acpi/osi.rst
+index 05869c0045d7..c9d508ba2ec7 100644
+--- a/Documentation/firmware-guide/acpi/osi.rst
++++ b/Documentation/firmware-guide/acpi/osi.rst
+@@ -41,26 +41,23 @@ But it is likely that they will all eventually be added.
+ What should an OEM do if they want to support Linux and Windows
+ using the same BIOS image?  Often they need to do something different
+ for Linux to deal with how Linux is different from Windows.
+-Here the BIOS should ask exactly what it wants to know:
+ 
++In this case, the OEM should create custom ASL to be executed by the
++Linux kernel and changes to Linux kernel drivers to execute this custom
++ASL.  The easiest way to accomplish this is to introduce a device specific
++method (_DSM) that is called from the Linux kernel.
++
++In the past the kernel used to support something like:
+ _OSI("Linux-OEM-my_interface_name")
+ where 'OEM' is needed if this is an OEM-specific hook,
+ and 'my_interface_name' describes the hook, which could be a
+ quirk, a bug, or a bug-fix.
+ 
+-In addition, the OEM should send a patch to upstream Linux
+-via the linux-acpi@vger.kernel.org mailing list.  When that patch
+-is checked into Linux, the OS will answer "YES" when the BIOS
+-on the OEM's system uses _OSI to ask if the interface is supported
+-by the OS.  Linux distributors can back-port that patch for Linux
+-pre-installs, and it will be included by all distributions that
+-re-base to upstream.  If the distribution can not update the kernel binary,
+-they can also add an acpi_osi=Linux-OEM-my_interface_name
+-cmdline parameter to the boot loader, as needed.
+-
+-If the string refers to a feature where the upstream kernel
+-eventually grows support, a patch should be sent to remove
+-the string when that support is added to the kernel.
++However this was discovered to be abused by other BIOS vendors to change
++completely unrelated code on completely unrelated systems.  This prompted
++an evaluation of all of it's uses. This uncovered that they aren't needed
++for any of the original reasons. As such, the kernel will not respond to
++any custom Linux-* strings by default.
+ 
+ That was easy.  Read on, to find out how to do it wrong.
+ 
+-- 
+2.34.1
 
