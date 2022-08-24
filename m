@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D60E4C32793
-	for <linux-acpi@archiver.kernel.org>; Wed, 24 Aug 2022 12:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE7AC32796
+	for <linux-acpi@archiver.kernel.org>; Wed, 24 Aug 2022 12:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236822AbiHXMQy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 24 Aug 2022 08:16:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53112 "EHLO
+        id S237280AbiHXMRL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 24 Aug 2022 08:17:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237212AbiHXMQi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2022 08:16:38 -0400
+        with ESMTP id S237420AbiHXMQq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2022 08:16:46 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D2BB6FA3C
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Aug 2022 05:16:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AD1C71719
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Aug 2022 05:16:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1661343389;
+        s=mimecast20190719; t=1661343394;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=odfSBCZPzbhtIghrqB9jKxIVVOwBiMpifs1qKmZ4b0A=;
-        b=Q+av9p4Eq2+MN4lWU6uEpcBxA1xDe4WcMHoRhZ31nPc8+Ov393iGivKmianRvp+2yOlBPq
-        YAKVOVFs53rZZynuazaceorjlQU4TZqsSdFPewohYeARwE7x2GfN1EkwG2oYmeL8RfrM+V
-        ajRPqhG0mcs5IllFICda4vwxGzzd7kg=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=+6tHZYyrogyhGbIdsbwjzHRumcVlNmmYf2j+CeiUK6U=;
+        b=Ef+dhKa6kFuc3AHM7BRdL/PgUjaKYPPtYzwRJqLxLnFAHy6g5tOIcFrjVaxY6/nvW9Mfwm
+        aYAX+jgiEoGu6spBSdQcooiXcOWVQz2teTDX5Omc41bus+CGFXhozGpO7i6JwXdD52TFWl
+        8kVa2aN4uyeM3uG2oEJ/DdCw0SV17Lw=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-210-neY4vKq6OGKc_VqKz5e7Kg-1; Wed, 24 Aug 2022 08:16:18 -0400
-X-MC-Unique: neY4vKq6OGKc_VqKz5e7Kg-1
+ us-mta-446-DDsAqTpaNFCB40fgRjquQw-1; Wed, 24 Aug 2022 08:16:31 -0400
+X-MC-Unique: DDsAqTpaNFCB40fgRjquQw-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A5624101A54E;
-        Wed, 24 Aug 2022 12:16:17 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 00CA5380115A;
+        Wed, 24 Aug 2022 12:16:30 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.193.103])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B762FC15BB3;
-        Wed, 24 Aug 2022 12:16:13 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 47598C15BB3;
+        Wed, 24 Aug 2022 12:16:26 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
         Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
@@ -61,11 +61,10 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, nouveau@lists.freedesktop.org,
         intel-gfx <intel-gfx@lists.freedesktop.org>,
         dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v4 10/31] ACPI: video: Remove code to unregister acpi_video backlight when a native backlight registers
-Date:   Wed, 24 Aug 2022 14:15:02 +0200
-Message-Id: <20220824121523.1291269-11-hdegoede@redhat.com>
+        platform-driver-x86@vger.kernel.org
+Subject: [PATCH v4 13/31] drm/amdgpu: Register ACPI video backlight when skipping amdgpu backlight registration
+Date:   Wed, 24 Aug 2022 14:15:05 +0200
+Message-Id: <20220824121523.1291269-14-hdegoede@redhat.com>
 In-Reply-To: <20220824121523.1291269-1-hdegoede@redhat.com>
 References: <20220824121523.1291269-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -75,107 +74,78 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Remove the code to unregister acpi_video backlight devices when
-a native backlight device gets registered later.
+Typically the acpi_video driver will initialize before amdgpu, which
+used to cause /sys/class/backlight/acpi_video0 to get registered and then
+amdgpu would register its own amdgpu_bl# device later. After which
+the drivers/acpi/video_detect.c code unregistered the acpi_video0 device
+to avoid there being 2 backlight devices.
 
-Now that the acpi_video backlight device registration is a separate step
-which runs later, after the drm/kms driver is done setting up its own
-native backlight device, it is no longer necessary to monitor for a
-native (BACKLIGHT_RAW) device showing up later and to then unregister
-the acpi_video backlight device(s).
+This means that userspace used to briefly see 2 devices and the
+disappearing of acpi_video0 after a brief time confuses the systemd
+backlight level save/restore code, see e.g.:
+https://bbs.archlinux.org/viewtopic.php?id=269920
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+To fix this the ACPI video code has been modified to make backlight class
+device registration a separate step, relying on the drm/kms driver to
+ask for the acpi_video backlight registration after it is done setting up
+its native backlight device.
+
+Add a call to the new acpi_video_register_backlight() when amdgpu skips
+registering its own backlight device because of either the firmware_flags
+or the acpi_video_get_backlight_type() return value. This ensures that
+if the acpi_video backlight device should be used, it will be available
+before the amdgpu drm_device gets registered with userspace.
+
+Acked-by: Alex Deucher <alexander.deucher@amd.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/acpi_video.c   |  2 --
- drivers/acpi/video_detect.c | 36 ------------------------------------
- 2 files changed, 38 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/atombios_encoders.c    | 9 +++++++--
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 2 ++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 09dd86f86cf3..d1e41f30c004 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -94,7 +94,6 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
- static void acpi_video_bus_register_backlight_work(struct work_struct *ignored);
- static DECLARE_DELAYED_WORK(video_bus_register_backlight_work,
- 			    acpi_video_bus_register_backlight_work);
--void acpi_video_detect_exit(void);
+diff --git a/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c b/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
+index b4e3cedceaf8..6be9ac2b9c5b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
++++ b/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
+@@ -184,11 +184,11 @@ void amdgpu_atombios_encoder_init_backlight(struct amdgpu_encoder *amdgpu_encode
+ 		return;
  
- /*
-  * Indices in the _BCL method response: the first two items are special,
-@@ -2342,7 +2341,6 @@ static int __init acpi_video_init(void)
+ 	if (!(adev->mode_info.firmware_flags & ATOM_BIOS_INFO_BL_CONTROLLED_BY_GPU))
+-		return;
++		goto register_acpi_backlight;
  
- static void __exit acpi_video_exit(void)
- {
--	acpi_video_detect_exit();
- 	acpi_video_unregister();
- }
- 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 385eb49c763f..fb49b8f4523a 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -38,10 +38,6 @@
- 
- void acpi_video_unregister_backlight(void);
- 
--static bool backlight_notifier_registered;
--static struct notifier_block backlight_nb;
--static struct work_struct backlight_notify_work;
--
- static enum acpi_backlight_type acpi_backlight_cmdline = acpi_backlight_undef;
- static enum acpi_backlight_type acpi_backlight_dmi = acpi_backlight_undef;
- 
-@@ -538,26 +534,6 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 	{ },
- };
- 
--/* This uses a workqueue to avoid various locking ordering issues */
--static void acpi_video_backlight_notify_work(struct work_struct *work)
--{
--	if (acpi_video_get_backlight_type() != acpi_backlight_video)
--		acpi_video_unregister_backlight();
--}
--
--static int acpi_video_backlight_notify(struct notifier_block *nb,
--				       unsigned long val, void *bd)
--{
--	struct backlight_device *backlight = bd;
--
--	/* A raw bl registering may change video -> native */
--	if (backlight->props.type == BACKLIGHT_RAW &&
--	    val == BACKLIGHT_REGISTERED)
--		schedule_work(&backlight_notify_work);
--
--	return NOTIFY_OK;
--}
--
- /*
-  * Determine which type of backlight interface to use on this system,
-  * First check cmdline, then dmi quirks, then do autodetect.
-@@ -587,12 +563,6 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
- 		acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
- 				    ACPI_UINT32_MAX, find_video, NULL,
- 				    &video_caps, NULL);
--		INIT_WORK(&backlight_notify_work,
--			  acpi_video_backlight_notify_work);
--		backlight_nb.notifier_call = acpi_video_backlight_notify;
--		backlight_nb.priority = 0;
--		if (backlight_register_notifier(&backlight_nb) == 0)
--			backlight_notifier_registered = true;
- 		init_done = true;
+ 	if (!acpi_video_backlight_use_native()) {
+ 		drm_info(dev, "Skipping amdgpu atom DIG backlight registration\n");
+-		return;
++		goto register_acpi_backlight;
  	}
- 	if (native)
-@@ -639,9 +609,3 @@ void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type)
- 		acpi_video_unregister_backlight();
+ 
+ 	pdata = kmalloc(sizeof(struct amdgpu_backlight_privdata), GFP_KERNEL);
+@@ -225,6 +225,11 @@ void amdgpu_atombios_encoder_init_backlight(struct amdgpu_encoder *amdgpu_encode
+ error:
+ 	kfree(pdata);
+ 	return;
++
++register_acpi_backlight:
++	/* Try registering an ACPI video backlight device instead. */
++	acpi_video_register_backlight();
++	return;
  }
- EXPORT_SYMBOL(acpi_video_set_dmi_backlight_type);
--
--void __exit acpi_video_detect_exit(void)
--{
--	if (backlight_notifier_registered)
--		backlight_unregister_notifier(&backlight_nb);
--}
+ 
+ void
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index 706c67f4bda8..c450964f84d4 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4037,6 +4037,8 @@ amdgpu_dm_register_backlight_device(struct amdgpu_display_manager *dm)
+ 
+ 	if (!acpi_video_backlight_use_native()) {
+ 		drm_info(adev_to_drm(dm->adev), "Skipping amdgpu DM backlight registration\n");
++		/* Try registering an ACPI video backlight device instead. */
++		acpi_video_register_backlight();
+ 		return;
+ 	}
+ 
 -- 
 2.37.2
 
