@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CEBBECAA27
-	for <linux-acpi@archiver.kernel.org>; Thu, 25 Aug 2022 16:41:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95AD5ECAA28
+	for <linux-acpi@archiver.kernel.org>; Thu, 25 Aug 2022 16:41:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239769AbiHYQlI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 25 Aug 2022 12:41:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41082 "EHLO
+        id S241730AbiHYQlJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 25 Aug 2022 12:41:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237937AbiHYQlH (ORCPT
+        with ESMTP id S238069AbiHYQlH (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2022 12:41:07 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7C6FB9F85;
-        Thu, 25 Aug 2022 09:41:02 -0700 (PDT)
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F941B99D8;
+        Thu, 25 Aug 2022 09:41:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661445662; x=1692981662;
+  t=1661445663; x=1692981663;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=2ipgmuE2YNebiTYyr6pNxvrRl4wbsFK6T5Vp+SAGbN4=;
-  b=QjX5J3l7+u+bljJOJJuezvzgSlPWdgMvTO4+csQfNn7XFKsfz9f/FJe0
-   FtS7Vc/U4rTzefRjY8R+Srk56N3sZgOjcAUGoKzCvTqJknApCF45LJkFw
-   D5W25sJAk5Pc1PC3k7+UdwGvT0tLsGbiQxjqm6TgojW2iEbIISv/YzZT/
-   yI1NcHhwQVdHocZKiuzri4meuPD7jlxZhIJfsrtGYfWiqrMv6zvIrVe+a
-   okRDiY9rl4oQzqyqf+JC557HDzHJcVu0HyzrOb/AbPpFhwzCP+S8lTMhd
-   aMefOIvYPydyUS2yqLhM7chb7UG7e93UQnXD+HCXTuXXBowcqeXEN6hEv
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10450"; a="274046559"
+  bh=bK5Pr9tx4aF8qD5Hm5yfT5c8GZSZbo0EmA54sQj8Dug=;
+  b=O9nFwkyJR28qcCsHGsaFnXXfDxMoHFRZiuEw3h5ykINYQkWMqq+mAipx
+   dXIdAwka1OsO0WcArBJ0Z63zmcRzmjzPixb88nHVoVtyVNyeacjzH4N2f
+   gR6xWMMMnDcGWqDAeWHvbH25ubCOBerE4Xucpkut3kRA2Sfcn6G5utrxl
+   c3k03n+6YymJoBL3QCOKZBZE+gMAWkAn/zIS2HENO/R/0ogoxP4V8Az//
+   3JfyxFtjMx0sP0LetNzKf2ccKRSkgeZ183Et10mngXUftnpdpHRLrsNWH
+   R0IMLtgqZY5KVDrEnQQ3UD+YOkf2vrrR8v1ki9wQw6X724j6znWVChxpd
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10450"; a="380586964"
 X-IronPort-AV: E=Sophos;i="5.93,263,1654585200"; 
-   d="scan'208";a="274046559"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2022 09:41:02 -0700
+   d="scan'208";a="380586964"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2022 09:41:02 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,263,1654585200"; 
-   d="scan'208";a="938403134"
+   d="scan'208";a="786072443"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga005.fm.intel.com with ESMTP; 25 Aug 2022 09:41:01 -0700
+  by orsmga005.jf.intel.com with ESMTP; 25 Aug 2022 09:41:00 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 4231C2E7; Thu, 25 Aug 2022 19:41:15 +0300 (EEST)
+        id 71E621C3; Thu, 25 Aug 2022 19:41:14 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 4/5] ACPI: bus: Move bus type operations upper in the code
-Date:   Thu, 25 Aug 2022 19:41:02 +0300
-Message-Id: <20220825164103.27694-4-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 2/5] ACPI: bus: Refactor acpi_driver_match_device() for better readability
+Date:   Thu, 25 Aug 2022 19:41:00 +0300
+Message-Id: <20220825164103.27694-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220825164103.27694-1-andriy.shevchenko@linux.intel.com>
 References: <20220825164103.27694-1-andriy.shevchenko@linux.intel.com>
@@ -57,285 +57,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Move ACPI bus type operations upper in the code, it may be used later
-by ACPI device matching code. No functional change intended.
-
-While at it, provide dev_is_acpi() macro helper as it's done for some
-other bus types.
+With temporary variables for OF and ACPI IDs, it's easier to read
+the code. No functional change intended.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/bus.c | 250 +++++++++++++++++++++++----------------------
- 1 file changed, 126 insertions(+), 124 deletions(-)
+ drivers/acpi/bus.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 607e664b7976..3c0f2d050d47 100644
+index 8e87996607ec..c4d63c594d68 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
-@@ -647,6 +647,132 @@ static int __init acpi_setup_sb_notify_handler(void)
- 	return 0;
+@@ -948,14 +948,13 @@ EXPORT_SYMBOL(acpi_match_device_ids);
+ bool acpi_driver_match_device(struct device *dev,
+ 			      const struct device_driver *drv)
+ {
+-	if (!drv->acpi_match_table)
+-		return acpi_of_match_device(ACPI_COMPANION(dev),
+-					    drv->of_match_table,
+-					    NULL);
+-
+-	return __acpi_match_device(acpi_companion_match(dev),
+-				   drv->acpi_match_table, drv->of_match_table,
+-				   NULL, NULL);
++	const struct acpi_device_id *acpi_ids = drv->acpi_match_table;
++	const struct of_device_id *of_ids = drv->of_match_table;
++
++	if (!acpi_ids)
++		return acpi_of_match_device(ACPI_COMPANION(dev), of_ids, NULL);
++
++	return __acpi_match_device(acpi_companion_match(dev), acpi_ids, of_ids, NULL, NULL);
  }
+ EXPORT_SYMBOL_GPL(acpi_driver_match_device);
  
-+/* --------------------------------------------------------------------------
-+                              ACPI Bus operations
-+   -------------------------------------------------------------------------- */
-+
-+static int acpi_bus_match(struct device *dev, struct device_driver *drv)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
-+
-+	return acpi_dev->flags.match_driver
-+		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
-+}
-+
-+static int acpi_device_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	return __acpi_device_uevent_modalias(to_acpi_device(dev), env);
-+}
-+
-+static int acpi_device_probe(struct device *dev)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
-+	int ret;
-+
-+	if (acpi_dev->handler && !acpi_is_pnp_device(acpi_dev))
-+		return -EINVAL;
-+
-+	if (!acpi_drv->ops.add)
-+		return -ENOSYS;
-+
-+	ret = acpi_drv->ops.add(acpi_dev);
-+	if (ret)
-+		return ret;
-+
-+	pr_debug("Driver [%s] successfully bound to device [%s]\n",
-+		 acpi_drv->name, acpi_dev->pnp.bus_id);
-+
-+	if (acpi_drv->ops.notify) {
-+		ret = acpi_device_install_notify_handler(acpi_dev);
-+		if (ret) {
-+			if (acpi_drv->ops.remove)
-+				acpi_drv->ops.remove(acpi_dev);
-+
-+			acpi_dev->driver_data = NULL;
-+			return ret;
-+		}
-+	}
-+
-+	pr_debug("Found driver [%s] for device [%s]\n", acpi_drv->name,
-+		 acpi_dev->pnp.bus_id);
-+
-+	get_device(dev);
-+	return 0;
-+}
-+
-+static void acpi_device_remove(struct device *dev)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
-+
-+	if (acpi_drv->ops.notify)
-+		acpi_device_remove_notify_handler(acpi_dev);
-+
-+	if (acpi_drv->ops.remove)
-+		acpi_drv->ops.remove(acpi_dev);
-+
-+	acpi_dev->driver_data = NULL;
-+
-+	put_device(dev);
-+}
-+
-+struct bus_type acpi_bus_type = {
-+	.name		= "acpi",
-+	.match		= acpi_bus_match,
-+	.probe		= acpi_device_probe,
-+	.remove		= acpi_device_remove,
-+	.uevent		= acpi_device_uevent,
-+};
-+
-+#define dev_is_acpi(dev)	((dev)->bus == &acpi_bus_type)
-+
-+int acpi_bus_for_each_dev(int (*fn)(struct device *, void *), void *data)
-+{
-+	return bus_for_each_dev(&acpi_bus_type, NULL, data, fn);
-+}
-+EXPORT_SYMBOL_GPL(acpi_bus_for_each_dev);
-+
-+struct acpi_dev_walk_context {
-+	int (*fn)(struct acpi_device *, void *);
-+	void *data;
-+};
-+
-+static int acpi_dev_for_one_check(struct device *dev, void *context)
-+{
-+	struct acpi_dev_walk_context *adwc = context;
-+
-+	if (!dev_is_acpi(dev))
-+		return 0;
-+
-+	return adwc->fn(to_acpi_device(dev), adwc->data);
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_for_each_child);
-+
-+int acpi_dev_for_each_child(struct acpi_device *adev,
-+			    int (*fn)(struct acpi_device *, void *), void *data)
-+{
-+	struct acpi_dev_walk_context adwc = {
-+		.fn = fn,
-+		.data = data,
-+	};
-+
-+	return device_for_each_child(&adev->dev, &adwc, acpi_dev_for_one_check);
-+}
-+
-+int acpi_dev_for_each_child_reverse(struct acpi_device *adev,
-+				    int (*fn)(struct acpi_device *, void *),
-+				    void *data)
-+{
-+	struct acpi_dev_walk_context adwc = {
-+		.fn = fn,
-+		.data = data,
-+	};
-+
-+	return device_for_each_child_reverse(&adev->dev, &adwc, acpi_dev_for_one_check);
-+}
-+
- /* --------------------------------------------------------------------------
-                              Device Matching
-    -------------------------------------------------------------------------- */
-@@ -998,130 +1124,6 @@ void acpi_bus_unregister_driver(struct acpi_driver *driver)
- 
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
- 
--/* --------------------------------------------------------------------------
--                              ACPI Bus operations
--   -------------------------------------------------------------------------- */
--
--static int acpi_bus_match(struct device *dev, struct device_driver *drv)
--{
--	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
--
--	return acpi_dev->flags.match_driver
--		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
--}
--
--static int acpi_device_uevent(struct device *dev, struct kobj_uevent_env *env)
--{
--	return __acpi_device_uevent_modalias(to_acpi_device(dev), env);
--}
--
--static int acpi_device_probe(struct device *dev)
--{
--	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
--	int ret;
--
--	if (acpi_dev->handler && !acpi_is_pnp_device(acpi_dev))
--		return -EINVAL;
--
--	if (!acpi_drv->ops.add)
--		return -ENOSYS;
--
--	ret = acpi_drv->ops.add(acpi_dev);
--	if (ret)
--		return ret;
--
--	pr_debug("Driver [%s] successfully bound to device [%s]\n",
--		 acpi_drv->name, acpi_dev->pnp.bus_id);
--
--	if (acpi_drv->ops.notify) {
--		ret = acpi_device_install_notify_handler(acpi_dev);
--		if (ret) {
--			if (acpi_drv->ops.remove)
--				acpi_drv->ops.remove(acpi_dev);
--
--			acpi_dev->driver_data = NULL;
--			return ret;
--		}
--	}
--
--	pr_debug("Found driver [%s] for device [%s]\n", acpi_drv->name,
--		 acpi_dev->pnp.bus_id);
--
--	get_device(dev);
--	return 0;
--}
--
--static void acpi_device_remove(struct device *dev)
--{
--	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
--
--	if (acpi_drv->ops.notify)
--		acpi_device_remove_notify_handler(acpi_dev);
--
--	if (acpi_drv->ops.remove)
--		acpi_drv->ops.remove(acpi_dev);
--
--	acpi_dev->driver_data = NULL;
--
--	put_device(dev);
--}
--
--struct bus_type acpi_bus_type = {
--	.name		= "acpi",
--	.match		= acpi_bus_match,
--	.probe		= acpi_device_probe,
--	.remove		= acpi_device_remove,
--	.uevent		= acpi_device_uevent,
--};
--
--int acpi_bus_for_each_dev(int (*fn)(struct device *, void *), void *data)
--{
--	return bus_for_each_dev(&acpi_bus_type, NULL, data, fn);
--}
--EXPORT_SYMBOL_GPL(acpi_bus_for_each_dev);
--
--struct acpi_dev_walk_context {
--	int (*fn)(struct acpi_device *, void *);
--	void *data;
--};
--
--static int acpi_dev_for_one_check(struct device *dev, void *context)
--{
--	struct acpi_dev_walk_context *adwc = context;
--
--	if (dev->bus != &acpi_bus_type)
--		return 0;
--
--	return adwc->fn(to_acpi_device(dev), adwc->data);
--}
--EXPORT_SYMBOL_GPL(acpi_dev_for_each_child);
--
--int acpi_dev_for_each_child(struct acpi_device *adev,
--			    int (*fn)(struct acpi_device *, void *), void *data)
--{
--	struct acpi_dev_walk_context adwc = {
--		.fn = fn,
--		.data = data,
--	};
--
--	return device_for_each_child(&adev->dev, &adwc, acpi_dev_for_one_check);
--}
--
--int acpi_dev_for_each_child_reverse(struct acpi_device *adev,
--				    int (*fn)(struct acpi_device *, void *),
--				    void *data)
--{
--	struct acpi_dev_walk_context adwc = {
--		.fn = fn,
--		.data = data,
--	};
--
--	return device_for_each_child_reverse(&adev->dev, &adwc, acpi_dev_for_one_check);
--}
--
- /* --------------------------------------------------------------------------
-                              Initialization/Cleanup
-    -------------------------------------------------------------------------- */
 -- 
 2.35.1
 
