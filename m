@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4AD4ECAAD5
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 14:11:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16F7CECAAD5
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 14:11:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbiH2OLL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Aug 2022 10:11:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55592 "EHLO
+        id S230346AbiH2OLT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Aug 2022 10:11:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230297AbiH2OLC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 10:11:02 -0400
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA4ED83F32;
-        Mon, 29 Aug 2022 07:10:52 -0700 (PDT)
+        with ESMTP id S230312AbiH2OLE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 10:11:04 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63BBC85FD6;
+        Mon, 29 Aug 2022 07:10:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661782252; x=1693318252;
+  t=1661782254; x=1693318254;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=5mdqMNR2eL5FmZvRmeIyMK1iB5FOZvG+sogI99gXKfM=;
-  b=TNKK4Ry2hkCAks+Sl4B/UP3RilBgx9jyY90pwM97I7gFSRwLhetnMz1r
-   aTIVhgKe1unINThYjxU/5+Ff/lbdys6OZMkNdwsxH7Tj0xkPcdVDiP4cB
-   9XPzToRddtNkYuSO5lVmM2arDOw6ZnnvU9EQw98tLLOF+tqJ3q6iB8puB
-   FBSNQizEiCLvHN0ODUgDsHRNrPKVbBju9NQCj3lRbXHxmWgnPTtqXggVp
-   Hq+40FKYlvJIpHY9O7YAoh1VoEs2ySDG+NlMdnCXSWCHsy9B0F75i2Esg
-   JXCYK4nWM+zj/QpRNWxe/b1ydHtV2beJSWyu6bU1CQYF2YgngTD7ddIcJ
+  bh=+HhBA62FoyfYtqtJY+7hzMyC+yrK3wjqOhR5xyZFgC8=;
+  b=n8tk4WXNLAWElVTN3SW0x1qJEod7Ncd0BzZ9bj8PYnHNvCUuOLIbQMzK
+   pWiPleeFOwBhcKbcx5g99Iiu/Ei5b6obJpx6lcpIrtGfQBieDirzsKjIC
+   rj3zv1bfVrPsaTSQaJVEEuVqk2l/3ijlD8jd8C6gUksvBTmhLLsqt0t8M
+   eD+3eqaY5GYkGr0U/ZzP5NQ5TMuNxdnFeRc4qRf9s1d4iDatEmvVxDoay
+   4lClSEDY8sljrXrvduxhYIgRTsyNooIwY32YjXpNofUp/MFxpOduWa1HI
+   H95WgfXPIQH2r+9lP8lWFpgfIrRLKp/5CR44K3XRCN4Y3tWz/hYEphB+i
    A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10454"; a="358865159"
+X-IronPort-AV: E=McAfee;i="6500,9779,10454"; a="277915228"
 X-IronPort-AV: E=Sophos;i="5.93,272,1654585200"; 
-   d="scan'208";a="358865159"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2022 07:10:51 -0700
+   d="scan'208";a="277915228"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2022 07:10:51 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,272,1654585200"; 
-   d="scan'208";a="614227836"
+   d="scan'208";a="737340737"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga007.fm.intel.com with ESMTP; 29 Aug 2022 07:10:50 -0700
+  by orsmga004.jf.intel.com with ESMTP; 29 Aug 2022 07:10:50 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id A949BAD; Mon, 29 Aug 2022 17:11:04 +0300 (EEST)
+        id B46921C3; Mon, 29 Aug 2022 17:11:04 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 2/4] ACPI: platform: Remove redundant print on ENOMEM
-Date:   Mon, 29 Aug 2022 17:10:58 +0300
-Message-Id: <20220829141100.63934-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/4] ACPI: platform: Keep list of ACPI IDs sorted
+Date:   Mon, 29 Aug 2022 17:11:00 +0300
+Message-Id: <20220829141100.63934-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220829141100.63934-1-andriy.shevchenko@linux.intel.com>
 References: <20220829141100.63934-1-andriy.shevchenko@linux.intel.com>
@@ -56,27 +56,35 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-We rely on somebody else to print enough information on failures.
-So remove the log in acpi_create_platform_device() when return
--ENOMEM.
+For better maintenance keep list of the ACPI IDs sorted.
+While at it, replace terminator with more standard '{ }'.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/acpi_platform.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/acpi_platform.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 75e26528056d..042f80588c18 100644
+index 0d812fe248d4..f13409583cd9 100644
 --- a/drivers/acpi/acpi_platform.c
 +++ b/drivers/acpi/acpi_platform.c
-@@ -120,7 +120,6 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 		resources = kcalloc(count, sizeof(struct resource),
- 				    GFP_KERNEL);
- 		if (!resources) {
--			dev_err(&adev->dev, "No memory for resources\n");
- 			acpi_dev_free_resource_list(&resource_list);
- 			return ERR_PTR(-ENOMEM);
- 		}
+@@ -20,13 +20,13 @@
+ #include "internal.h"
+ 
+ static const struct acpi_device_id forbidden_id_list[] = {
++	{"ACPI0009", 0},	/* IOxAPIC */
++	{"ACPI000A", 0},	/* IOAPIC */
+ 	{"PNP0000",  0},	/* PIC */
+ 	{"PNP0100",  0},	/* Timer */
+ 	{"PNP0200",  0},	/* AT DMA Controller */
+-	{"ACPI0009", 0},	/* IOxAPIC */
+-	{"ACPI000A", 0},	/* IOAPIC */
+ 	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
+-	{"", 0},
++	{ }
+ };
+ 
+ static struct platform_device *acpi_platform_device_find_by_companion(struct acpi_device *adev)
 -- 
 2.35.1
 
