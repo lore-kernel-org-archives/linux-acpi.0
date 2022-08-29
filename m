@@ -2,123 +2,98 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65469ECAAD2
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 16:30:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EDCEECAAD5
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 16:36:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230496AbiH2Q37 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Aug 2022 12:29:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37898 "EHLO
+        id S229992AbiH2QgF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Aug 2022 12:36:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230402AbiH2Q34 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 12:29:56 -0400
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2060.outbound.protection.outlook.com [40.107.243.60])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC9FA6472;
-        Mon, 29 Aug 2022 09:29:51 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RRkvyvT/YQN9atMunPddCGmCHC6JHf9OahPeKqK/zJL79FCJTDbHYN7l7rm5bw/MTNrs4F+lhu6kCsrJV0ZnqB2OpZWA69vhwCdhj5F5t2C3YHNFPxL7I9N9/VxxfUzvdo+YOL5D5wJdbZu2HuAG0edsblWiEcDS3nZeWXXYYuUtikA9WIxrzRYeo3GTjT1ns7PdxqNGSJbD2ZjipmYzncgoerRY7iKUYvAbyrBrWrBfljKgmRYlmvqd9uUuWP2G8EKLFfQnK0Xj7cgGeTiXRldePrUFeohHVQ/myBpF3gwpHja145ez6xUEaBxGv1Y8IcwGBugFrmp5TgL/73eCNw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Qi0v7uUIEnygesPe114SRlzMP8pF8bPFzmJOUL0kKTE=;
- b=K80F91tq1gWESU6f6ta3F+BPi2t9B5144Rc+JgdsUqpc0t1BIHrLNtAUk5EbvtSMeDuCYahwIdb/nOLvffw9Wx+e3D73Dwm4HoPJszHxYc5ER0YP3L9fLJZx0YZPswSNEIDYbGvDdR8NAyzkNtTfFBtgjJBrAK2bds/U0HFLoE3vIxUBRxYUQvwthCEHb5kJ2dDU9nHSYKGji3a4+U5887RpkHkEZU2G3vyaunf+D/JnlGMoS+FXGMmFawfuAgr/9Kpqk5aPEHeDb5ra8g7cNLdb2HuK0SJ0FKIULB9jc6r0jKEjT24jW+24Qf2M3ANSVQA1rofLiRmZpDBRNjrvUA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Qi0v7uUIEnygesPe114SRlzMP8pF8bPFzmJOUL0kKTE=;
- b=LuZSO7MhAoAqIoToDS0ZdN0yqGnQ3CwNuA5SmGZBWQ3PHHSb0Z/7wNTi8l2mEcc48EV/Ih87f+GiF6c+c+KLI5tiLEA71Ip4PUhnfjzc/eEFph2H2wEpMzPcw9tu111aCaSnHqHLt8KleqAsqZQhEVbT9kSM512N/WKR0ucMiOo=
-Received: from MW4PR03CA0015.namprd03.prod.outlook.com (2603:10b6:303:8f::20)
- by MN2PR12MB2877.namprd12.prod.outlook.com (2603:10b6:208:ae::32) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5566.16; Mon, 29 Aug
- 2022 16:29:48 +0000
-Received: from CO1NAM11FT082.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:8f:cafe::95) by MW4PR03CA0015.outlook.office365.com
- (2603:10b6:303:8f::20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5566.15 via Frontend
- Transport; Mon, 29 Aug 2022 16:29:47 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- CO1NAM11FT082.mail.protection.outlook.com (10.13.175.224) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5566.15 via Frontend Transport; Mon, 29 Aug 2022 16:29:47 +0000
-Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Mon, 29 Aug
- 2022 11:29:45 -0500
-From:   Mario Limonciello <mario.limonciello@amd.com>
-To:     <mario.limonciello@amd.com>, Len Brown <lenb@kernel.org>,
-        <linux-acpi@vger.kernel.org>,
-        <platform-driver-x86@vger.kernel.org>, <linux-pm@vger.kernel.org>
-CC:     <rafael@kernel.org>, <hdegoede@redhat.com>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 0/4] Add some extra debugging mechanisms for s0i3
-Date:   Mon, 29 Aug 2022 11:29:48 -0500
-Message-ID: <20220829162953.5947-1-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S229469AbiH2QgD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 12:36:03 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92CA62C12A
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2022 09:36:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1661790960;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=633hcKwB65o3TRyR8CoUo0+iIVy6Wow8+41OLG/NlBo=;
+        b=VPetW3luEcBYRcEPApHiExuAlZTsz/qHeXA48LvsdvWf9iHtmmAK2oBo7eaEf5dAA/YmHP
+        MeUj0Fsqe8oYcAijGcANnLwaUTLhxm54BSIzGT+eLRWMj6rNTNipYUV12ntqIOPex1Mzmp
+        KyKrUY/q/glj+XNcDCREl8Y4CoOZ1qw=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-530-94c9aUbdOrOBl0Qg9x890A-1; Mon, 29 Aug 2022 12:35:54 -0400
+X-MC-Unique: 94c9aUbdOrOBl0Qg9x890A-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 591C2803520;
+        Mon, 29 Aug 2022 16:35:54 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.78])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 879EE1410F36;
+        Mon, 29 Aug 2022 16:35:53 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     Mark Gross <markgross@kernel.org>,
+        Andy Shevchenko <andy@kernel.org>, Lee Chun-Yi <jlee@suse.com>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+Subject: [PATCH] platform/x86: acer-wmi: Acer Aspire One AOD270/Packard Bell Dot keymap fixes
+Date:   Mon, 29 Aug 2022 18:35:44 +0200
+Message-Id: <20220829163544.5288-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c3e25b9d-20b4-4c04-6aa8-08da89dbb05f
-X-MS-TrafficTypeDiagnostic: MN2PR12MB2877:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: EHk8bSF2fIZ+0N7h0wWQwt7CZyJq5EjlKaoN7O0imyzKKPl+kot5X7sZOB30yUgrMv0BFgcEs1QwytxTj1eqsAuyiag20/+oT4dzkBhVTI79o1FogE2sq8pSKQ68a5OzA4kAJAKxzq3/QVKUIJmM5uipXeM5T1welnrwqezCpwoOwNX53ogcxbd8+WUveXrbaprWNlr6ZaEem6YDPnrOUz5YuizzXNd8Gnmt79uuGF8J278uOuJLY0QNXIUG76/gkYW/PhcQ69ci7JFCbOopm5xC2PLQQ6d+KpWrI1XhxNX/QbgzcMubKXAugq3cW8euO/mAzNb4U5lgJVunF+2GV3yoQd/qIzwQugV4NTAFqjcXkBwuwpNByzJP/brTi2u0HROaIrvU+nYFecDtVcL9RwlimAh/0lw8FZWqWp8L5srS8A9poGzXIMxPmzc8YXHw00jsnzlfSspAOvwfdrOMRsOSh9BtecFQ9eFKlHjgtYXUvqGZA51vQrRE57+ghupSUOjDGQX7Q+AB3Tdwld7OVAL8V8JVOdINEa8Vjv4ImbeHnXmqVYQkkUJ8KF9ORWpceqC/NzssNaxv8o4X3hCyKwdL9+8FGZsc4+zAvrNqeJNPB6S0Dt8DOPS64LFFwoplGhTEI3SydfVUggwg9LGrgqY/M4fulwv94/XZQ8MS3VS2TcTvrxr+N5Pxuhwxjp+MJwO8Bia6358YjZC/cbn4T24Jg2+FBKJ147ZCsWScYFxmYpSo5ccQiaaA4b1z9Obs9jp/xCVUNFo5Zrmc0+b4P7o4aBvS1EOHqT/REnvkhoXRb+azfiS6YAVJNecLshQlpmB0DtpcMXXFsrN2n07rXavXWibyqEhLKfwCQqUOdQ4=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(396003)(136003)(39860400002)(346002)(376002)(40470700004)(46966006)(36840700001)(70586007)(4326008)(110136005)(316002)(54906003)(70206006)(82310400005)(40480700001)(40460700003)(44832011)(5660300002)(2906002)(36860700001)(81166007)(356005)(82740400003)(8936002)(8676002)(36756003)(7696005)(26005)(86362001)(41300700001)(478600001)(83380400001)(16526019)(2616005)(186003)(336012)(426003)(1076003)(47076005)(138113003)(2101003)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Aug 2022 16:29:47.4357
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c3e25b9d-20b4-4c04-6aa8-08da89dbb05f
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT082.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB2877
+X-Scanned-By: MIMEDefang 2.85 on 10.11.54.7
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Recently there have been reports of problems where the system consumes
-too much power after certain interrupts occur that would notify the
-kernel of some event but those events aren't marked for wakeup.
+2 keymap fixes for the Acer Aspire One AOD270 and the same hardware
+rebranded as Packard Bell Dot SC:
 
-These problems have been root caused to the timing of the kernel moving
-the cores into ACPI C3 relative to other events from the previous wakeup
-not being settled.  Linux will more aggressively move the cores into C3
-for s2idle than Windows does for Modern Standby.
+1. The F2 key is marked with a big '?' symbol on the Packard Bell Dot SC,
+this sends WMID_HOTKEY_EVENTs with a scancode of 0x27 add a mapping
+for this.
 
-To aide with debugging this class of problems in the future add a new
-set of optional debugging infrastructure.
+2. Scancode 0x61 is KEY_SWITCHVIDEOMODE. Usually this is a duplicate
+input event with the "Video Bus" input device events. But on these devices
+the "Video Bus" does not send events for this key. Map 0x61 to KEY_UNKNOWN
+instead of using KE_IGNORE so that udev/hwdb can override it on these devs.
 
-Mario Limonciello (4):
-  ACPI: s2idle: Add a new ->check() callback for platform_s2idle_ops
-  platform/x86/amd: pmc: Add defines for STB events
-  platform/x86/amd: pmc: Always write to the STB
-  platform/x86/amd: pmc: Add an extra STB message for checking s2idle
-    entry
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/platform/x86/acer-wmi.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
- drivers/acpi/sleep.h           |  1 +
- drivers/acpi/x86/s2idle.c      | 14 ++++++++++++++
- drivers/platform/x86/amd/pmc.c | 32 ++++++++++++++++++++------------
- include/linux/acpi.h           |  1 +
- include/linux/suspend.h        |  1 +
- kernel/power/suspend.c         |  3 +++
- 6 files changed, 40 insertions(+), 12 deletions(-)
-
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index b933a5165edb..9610742fe6aa 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -99,6 +99,7 @@ static const struct key_entry acer_wmi_keymap[] __initconst = {
+ 	{KE_KEY, 0x22, {KEY_PROG2} },    /* Arcade */
+ 	{KE_KEY, 0x23, {KEY_PROG3} },    /* P_Key */
+ 	{KE_KEY, 0x24, {KEY_PROG4} },    /* Social networking_Key */
++	{KE_KEY, 0x27, {KEY_HELP} },
+ 	{KE_KEY, 0x29, {KEY_PROG3} },    /* P_Key for TM8372 */
+ 	{KE_IGNORE, 0x41, {KEY_MUTE} },
+ 	{KE_IGNORE, 0x42, {KEY_PREVIOUSSONG} },
+@@ -112,7 +113,13 @@ static const struct key_entry acer_wmi_keymap[] __initconst = {
+ 	{KE_IGNORE, 0x48, {KEY_VOLUMEUP} },
+ 	{KE_IGNORE, 0x49, {KEY_VOLUMEDOWN} },
+ 	{KE_IGNORE, 0x4a, {KEY_VOLUMEDOWN} },
+-	{KE_IGNORE, 0x61, {KEY_SWITCHVIDEOMODE} },
++	/*
++	 * 0x61 is KEY_SWITCHVIDEOMODE. Usually this is a duplicate input event
++	 * with the "Video Bus" input device events. But sometimes it is not
++	 * a dup. Map it to KEY_UNKNOWN instead of using KE_IGNORE so that
++	 * udev/hwdb can override it on systems where it is not a dup.
++	 */
++	{KE_KEY, 0x61, {KEY_UNKNOWN} },
+ 	{KE_IGNORE, 0x62, {KEY_BRIGHTNESSUP} },
+ 	{KE_IGNORE, 0x63, {KEY_BRIGHTNESSDOWN} },
+ 	{KE_KEY, 0x64, {KEY_SWITCHVIDEOMODE} },	/* Display Switch */
 -- 
-2.34.1
+2.37.2
 
