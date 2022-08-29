@@ -2,88 +2,167 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E005EECAAD2
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 14:14:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2D7BECAAD2
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 14:20:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230176AbiH2OOt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 Aug 2022 10:14:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33076 "EHLO
+        id S230339AbiH2OUT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Aug 2022 10:20:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230144AbiH2OOr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 10:14:47 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A14AC9;
-        Mon, 29 Aug 2022 07:14:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661782484; x=1693318484;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=n5lFkFMiDHmXDh+teOu5BNnWiyJQmubHjavTDdvL20s=;
-  b=kURI0VAzfXpsQ/fF5XT3thXKBAtp80MKQVQw180a56YM13Twg+E0wHW+
-   cKfu5ca3MmNmxrJJxHyQmvizDOjavhPV7MoWQRPYkAI/heaDqZ5KjevDJ
-   FqQYQioUvm+GzA5WkoEbUB9LklVRB6w+qD6cOL5nF5qiKez3oHXZ6kssM
-   Q2SnugTeUsZaX1cxs2T6tsAFKe7okGGdU1idgzys+l1jRmueynOU1m7pS
-   3QRQSQX5QK1c+8IER3oU1Xnk2U0hUe1bAuaXb1sPOmWnff9lc3jWZnbtO
-   iFM8TZ4hU0adx3cvr1F48Uj8mTrzdcyrBPw/vyIvBU7XrMasUemcrHBR8
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10454"; a="274651484"
-X-IronPort-AV: E=Sophos;i="5.93,272,1654585200"; 
-   d="scan'208";a="274651484"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2022 07:10:51 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,272,1654585200"; 
-   d="scan'208";a="787089908"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 29 Aug 2022 07:10:50 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 9C19D19D; Mon, 29 Aug 2022 17:11:04 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 1/4] ACPI: platform: Get rid of redundant 'else'
-Date:   Mon, 29 Aug 2022 17:10:57 +0300
-Message-Id: <20220829141100.63934-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.35.1
+        with ESMTP id S230359AbiH2OUQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 10:20:16 -0400
+Received: from mail-yw1-f170.google.com (mail-yw1-f170.google.com [209.85.128.170])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F5212408C;
+        Mon, 29 Aug 2022 07:20:15 -0700 (PDT)
+Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-340f82c77baso83721117b3.1;
+        Mon, 29 Aug 2022 07:20:15 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=1p7BUIQ+fp1bYUwTlQE8F/ZpBFXEYfElvWMJ48hUNkM=;
+        b=PFNe7C6I1Ep7DNMkPho9b+eKO/xovqO57lPbxkzXnmdzLdBH+/O9uZvNMOHBLFFXAB
+         K6iR7GRjNU9kDT75LyMluq9QwtCXsD3IKW+44iVGycYYQQcos8OzMqoU3ipa4q53wbjk
+         fT+zqietivvwnLQW48lOgFAGxdTuRGoC3f2sTuEgoeSX2lmIiiw7w6s0vtw/Xh1QQ0n+
+         azITUhX4i9NE1iSQAdo6HtueqbWEZxC61OAxN8hLuHBABweJG/kU8MWQWZ5cWNsLbjd4
+         swFsjRayHAfctHPVaBhwcLx/5PZ47LdWfNiENqyBMULdeSj5JXh6kxrmmJIPK4vdnRLi
+         ZR1g==
+X-Gm-Message-State: ACgBeo0ImAbr5uiDqpEHvQssiOst/sQX1OtCCXPJgkNbUFW+F37oGKXB
+        czp305pyYE9hT6OH4Xo73EZbpMqs4Zg8d9BU0rg=
+X-Google-Smtp-Source: AA6agR4F/krzLDgya0v466f9YmXrHXnnHI7/b3x8fmHCUjPhph2Yus4Xc3quzkG+1BjkSJSIjoAMAAWcOf2oVxV7IVQ=
+X-Received: by 2002:a0d:f647:0:b0:328:317c:9069 with SMTP id
+ g68-20020a0df647000000b00328317c9069mr9461412ywf.301.1661782814810; Mon, 29
+ Aug 2022 07:20:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220829132908.5254-1-mario.limonciello@amd.com> <20220829132908.5254-2-mario.limonciello@amd.com>
+In-Reply-To: <20220829132908.5254-2-mario.limonciello@amd.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 29 Aug 2022 16:20:03 +0200
+Message-ID: <CAJZ5v0hfYhNLp+x9iFiqsQaL4XA8QdFhRK7Csgr8po8JPoimyQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] ACPI: s2idle: Add a new ->enter() callback for platform_s2idle_ops
+To:     Mario Limonciello <mario.limonciello@amd.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>,
+        Hans de Goede <hdegoede@redhat.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In the snippets like the following
+On Mon, Aug 29, 2022 at 3:29 PM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
+>
+> On some platforms it is found that Linux more aggressively enters s2idle
+> than Windows enters Modern Standby and this uncovers some synchronization
+> issues for the platform.  To aid in debugging this class of problems in
+> the future, add support for an extra optional callback intended for
+> drivers to emit extra debugging.
 
-	if (...)
-		return / goto / break / continue ...;
-	else
-		...
+I'm not liking this.
 
-the 'else' is redundant. Get rid of it.
+If you want debug, why not simply add it where it is needed?
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/acpi_platform.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> ---
+> v1->v2:
+>  * Add a prototype for `acpi_s2idle_enter`
+>
+>  drivers/acpi/sleep.h      |  1 +
+>  drivers/acpi/x86/s2idle.c | 14 ++++++++++++++
+>  include/linux/acpi.h      |  1 +
+>  include/linux/suspend.h   |  1 +
+>  kernel/power/suspend.c    |  3 +++
+>  5 files changed, 20 insertions(+)
+>
+> diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
+> index 7fe41ee489d6..7856930a7da9 100644
+> --- a/drivers/acpi/sleep.h
+> +++ b/drivers/acpi/sleep.h
+> @@ -18,6 +18,7 @@ static inline acpi_status acpi_set_waking_vector(u32 wakeup_address)
+>  extern int acpi_s2idle_begin(void);
+>  extern int acpi_s2idle_prepare(void);
+>  extern int acpi_s2idle_prepare_late(void);
+> +extern void acpi_s2idle_enter(void);
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 1a1c78b23fba..75e26528056d 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -114,9 +114,9 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 
- 	INIT_LIST_HEAD(&resource_list);
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
--	if (count < 0) {
-+	if (count < 0)
- 		return NULL;
--	} else if (count > 0) {
-+	if (count > 0) {
- 		resources = kcalloc(count, sizeof(struct resource),
- 				    GFP_KERNEL);
- 		if (!resources) {
--- 
-2.35.1
+And this name is confusing, because it suggests that the role of the
+callback is to make the platform enter s2idle which isn't the case.
 
+>  extern bool acpi_s2idle_wake(void);
+>  extern void acpi_s2idle_restore_early(void);
+>  extern void acpi_s2idle_restore(void);
+> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> index f9ac12b778e6..c984093a3657 100644
+> --- a/drivers/acpi/x86/s2idle.c
+> +++ b/drivers/acpi/x86/s2idle.c
+> @@ -486,6 +486,19 @@ int acpi_s2idle_prepare_late(void)
+>         return 0;
+>  }
+>
+> +void acpi_s2idle_enter(void)
+> +{
+> +       struct acpi_s2idle_dev_ops *handler;
+> +
+> +       if (!lps0_device_handle || sleep_no_lps0)
+> +               return;
+> +
+> +       list_for_each_entry(handler, &lps0_s2idle_devops_head, list_node) {
+> +               if (handler->enter)
+> +                       handler->enter();
+> +       }
+> +}
+> +
+>  void acpi_s2idle_restore_early(void)
+>  {
+>         struct acpi_s2idle_dev_ops *handler;
+> @@ -527,6 +540,7 @@ static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
+>         .begin = acpi_s2idle_begin,
+>         .prepare = acpi_s2idle_prepare,
+>         .prepare_late = acpi_s2idle_prepare_late,
+> +       .enter = acpi_s2idle_enter,
+>         .wake = acpi_s2idle_wake,
+>         .restore_early = acpi_s2idle_restore_early,
+>         .restore = acpi_s2idle_restore,
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 6f64b2f3dc54..9df14b5a875c 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1076,6 +1076,7 @@ struct acpi_s2idle_dev_ops {
+>         struct list_head list_node;
+>         void (*prepare)(void);
+>         void (*restore)(void);
+> +       void (*enter)(void);
+>  };
+>  int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg);
+>  void acpi_unregister_lps0_dev(struct acpi_s2idle_dev_ops *arg);
+> diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+> index 70f2921e2e70..5a3fdca0a628 100644
+> --- a/include/linux/suspend.h
+> +++ b/include/linux/suspend.h
+> @@ -191,6 +191,7 @@ struct platform_s2idle_ops {
+>         int (*begin)(void);
+>         int (*prepare)(void);
+>         int (*prepare_late)(void);
+> +       void (*enter)(void);
+>         bool (*wake)(void);
+>         void (*restore_early)(void);
+>         void (*restore)(void);
+> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+> index 827075944d28..0c08032d6b50 100644
+> --- a/kernel/power/suspend.c
+> +++ b/kernel/power/suspend.c
+> @@ -136,6 +136,9 @@ static void s2idle_loop(void)
+>                         break;
+>                 }
+>
+> +               if (s2idle_ops && s2idle_ops->enter)
+> +                       s2idle_ops->enter();
+> +
+>                 s2idle_enter();
+>         }
+>
+> --
+> 2.34.1
+>
