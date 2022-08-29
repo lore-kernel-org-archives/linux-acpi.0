@@ -2,129 +2,68 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B54ECC0502E
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 03:08:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A56ECAAD4
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 Aug 2022 05:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229765AbiH2DIi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 28 Aug 2022 23:08:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41652 "EHLO
+        id S229468AbiH2FNy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 Aug 2022 01:13:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229773AbiH2DIa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Aug 2022 23:08:30 -0400
-Received: from mail-qt1-x833.google.com (mail-qt1-x833.google.com [IPv6:2607:f8b0:4864:20::833])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E61133F1DF
-        for <linux-acpi@vger.kernel.org>; Sun, 28 Aug 2022 20:08:16 -0700 (PDT)
-Received: by mail-qt1-x833.google.com with SMTP id r6so5272310qtx.6
-        for <linux-acpi@vger.kernel.org>; Sun, 28 Aug 2022 20:08:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fusetak.com; s=google;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc;
-        bh=XFPVDLt22Mf+eywEhtbrRGQZP+BqmzTLYoHmyhTVdSw=;
-        b=fcbB/iInZapQUJ2oYudpXbpXZpEX3NIzrhQSi0gN5gKzpw6P/juoLEESyKTdrZ5d8d
-         /YDB/uh3pG+lKkCmMcb+js/fZaWQxXk+ZmvGcDleQ0hk9SvRIAzQyN4A8vPmcsRfRmZX
-         l8Kl3+ah2OGElogYljWy3pnzOQ/GGAfo4fHFLXCTel8CVKmRuTkExVT2mbHnm3cMhqhk
-         LZuogQqdTh9vpe6QSHPwouC3tTlAtK8C6zjibQNA96wGAj9Zw1v4tvCbTot+W+jYwhoo
-         Sqy+Fnre0Sw3zmNjNnaX6jGnRqjRjxIxqC/SQsWPUgkLME1j+LYPHYUtM+DS+b99ny7P
-         QCkg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc;
-        bh=XFPVDLt22Mf+eywEhtbrRGQZP+BqmzTLYoHmyhTVdSw=;
-        b=L4lekn+pDAKCG8CQp8Bf5MMTOvdjKTOItwV8s8l0Q2EJhqVcdLYEh2HA8yDSPQGHXH
-         dfYmujaCQUmWXZFPDaiupHIc6Fi/d0Tfj4tx4j8xEOd3WQoby797pBeUyhGwGpA773hn
-         qPH7yTKweRySAi0Xn7/eTmt77VTjpJctbIYvgbtK4Xr1Ivvs7xTqDQNdoy8Qu2BDMf/h
-         S5YVkKYV93Tt/Jyp2YYshJlPqhkwknz5ykMeb1dSNEi2/Ft/4fEQQqb+NyxFNRgLJWKB
-         eTcqt2Wgh0BcmMR1MWxWIP2SE1TMf1aWTf5j4ELjuau+5qanjSMKh7b12owV/DrUvBxT
-         iCzw==
-X-Gm-Message-State: ACgBeo1qokU21Xcr4xZMFVBGcFqEyOEQYOtWzKo/VYV0AehIZLbN8Gw+
-        O/KgX7k+FKHm8aDOXlbEGkOBvLB2aD54ZgDk
-X-Google-Smtp-Source: AA6agR7hLwZ29c1VezpHHkk+bMHwJXVH/dx7lvm8lqxW0VcnNRQnAaL+1jCUrBfQ7E506itw19MPJA==
-X-Received: by 2002:a05:622a:130d:b0:344:8f5c:2cda with SMTP id v13-20020a05622a130d00b003448f5c2cdamr8589786qtk.685.1661742480648;
-        Sun, 28 Aug 2022 20:08:00 -0700 (PDT)
-Received: from fusetakDesktop.internal.fusetak.net (cpe84948c2a9a83-cm84948c2a9a80.cpe.net.fido.ca. [72.140.25.213])
-        by smtp.gmail.com with ESMTPSA id s16-20020ac85290000000b0034305a91aaesm4457940qtn.83.2022.08.28.20.07.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 28 Aug 2022 20:08:00 -0700 (PDT)
-From:   Tamim Khan <tamim@fusetak.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     lenb@kernel.org, rafael@kernel.org, linux-kernel@vger.kernel.org,
-        Tamim Khan <tamim@fusetak.com>,
-        Hui Wang <hui.wang@canonical.com>,
-        Sunand <sunandchakradhar@gmail.com>
-Subject: [PATCH] ACPI: Skip IRQ override on Asus Vivobook K3402ZA/K3502ZA
-Date:   Sun, 28 Aug 2022 23:04:19 -0400
-Message-Id: <20220829030417.236471-1-tamim@fusetak.com>
-X-Mailer: git-send-email 2.37.2
+        with ESMTP id S229453AbiH2FNv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2022 01:13:51 -0400
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E963422F5;
+        Sun, 28 Aug 2022 22:13:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1661750030; x=1693286030;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=tfTTN8fVVmqUhF1jQjcmRJRxUTSzT6rPsDhYFizdeYE=;
+  b=mnPOzLekELSKI91CFFZA86EJUW93Gt+m9E97YW5a0ghsasqi2eRJWJIZ
+   abdmHscEd4/mBWFO26xhoVAwfksJGbuNzXt+FALlcJmACjFqvxK3Ibb9G
+   Vt/ZArtxTb7v7aUeQj7cJheVbFPEFteTyE0jfIAvhrsfhl7c/kFuLHhLz
+   7blUfZ3j4SzVUxqLdh7Gjrzz/tjzwF4NxvR5sAsoTuzUl3S8qNeMoR2Qy
+   ECaLJNK6STJCcrXYrFY3BSjuOfcXAQrOCGzq1p11afvZyRX7u6TQ1ISa0
+   P7qrou6TDomPTHon7rKQtTwIqq3wJckLuqzz6kF4a/doxRChB0UkUmk6R
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10453"; a="274558757"
+X-IronPort-AV: E=Sophos;i="5.93,271,1654585200"; 
+   d="scan'208";a="274558757"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2022 22:13:50 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,272,1654585200"; 
+   d="scan'208";a="939443235"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga005.fm.intel.com with ESMTP; 28 Aug 2022 22:13:32 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1001)
+        id EC602AD; Mon, 29 Aug 2022 08:13:46 +0300 (EEST)
+Date:   Mon, 29 Aug 2022 08:13:46 +0300
+From:   Mika Westerberg <mika.westerberg@linux.intel.com>
+To:     Li Zhong <floridsleeves@gmail.com>
+Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        rafael@kernel.org, lenb@kernel.org, mario.limonciello@amd.com,
+        hdegoede@redhat.com, Shyam-sundar.S-k@amd.com, nakato@nakato.io
+Subject: Re: [PATCH v1] drivers/acpi/x86: check return null pointer from
+ acpi_evaluate_dsm()
+Message-ID: <YwxLCtMCncW3j7iE@black.fi.intel.com>
+References: <20220828205120.1956222-1-floridsleeves@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220828205120.1956222-1-floridsleeves@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In the ACPI DSDT table for Asus VivoBook K3402ZA/K3502ZA
-IRQ 1 is described as ActiveLow; however, the kernel overrides
-it to Edge_High. This prevents the internal keyboard from working
-on these laptops. In order to fix this add these laptops to the
-skip_override_table so that the kernel does not override IRQ 1 to
-Edge_High.
+Hi,
 
-BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=216158
-Reviewed-by: Hui Wang <hui.wang@canonical.com>
-Tested-by: Tamim Khan <tamim@fusetak.com>
-Tested-by: Sunand <sunandchakradhar@gmail.com>
-Signed-off-by: Tamim Khan <tamim@fusetak.com>
----
-This patch is very similar to the fix implemented for keyboards on 
-Medion laptops in 892a012699fc0b91a2ed6309078936191447f480 
-(ACPI: resources: Add DMI-based legacy IRQ override quirk) and 
-1b26ae40092b43bb6e9c5df376227382b390b953 (ACPI: resources: Add one 
-more Medion model in IRQ override quirk) and has been reviewed by the
-author of those commits. It has also been tested by myself on a K3502ZA 
-and by someone else with a K3402ZA to verify that this patch allows
-the internal keyboard to work.
+On Sun, Aug 28, 2022 at 01:51:20PM -0700, Li Zhong wrote:
+> From: lily <floridsleeves@gmail.com>
+> 
+> Check return value from acpi_evaluate_dsm(). Only do ACPI_FREE() when
+> out_obj is not NULL pointers.
 
- drivers/acpi/resource.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
-
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 510cdec375c4..2ebc85233bac 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -399,6 +399,24 @@ static const struct dmi_system_id medion_laptop[] = {
- 	{ }
- };
- 
-+static const struct dmi_system_id asus_laptop[] = {
-+	{
-+		.ident = "Asus Vivobook K3402ZA",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "K3402ZA"),
-+		},
-+	},
-+	{
-+		.ident = "Asus Vivobook K3502ZA",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "K3502ZA"),
-+		},
-+	},
-+	{ }
-+};
-+
- struct irq_override_cmp {
- 	const struct dmi_system_id *system;
- 	unsigned char irq;
-@@ -409,6 +427,7 @@ struct irq_override_cmp {
- 
- static const struct irq_override_cmp skip_override_table[] = {
- 	{ medion_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0 },
-+	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0 },
- };
- 
- static bool acpi_dev_irq_override(u32 gsi, u8 triggering, u8 polarity,
--- 
-2.37.2
-
+ACPI_FREE() expands to kfree() and that allows NULL pointers so I don't
+think this patch is necessary.
