@@ -2,65 +2,68 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE3CECAAD1
-	for <linux-acpi@archiver.kernel.org>; Tue, 30 Aug 2022 15:57:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1363AECAAA1
+	for <linux-acpi@archiver.kernel.org>; Tue, 30 Aug 2022 16:08:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229437AbiH3P5U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 30 Aug 2022 11:57:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41956 "EHLO
+        id S230509AbiH3QIQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 30 Aug 2022 12:08:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230326AbiH3P5R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2022 11:57:17 -0400
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C097B6D70;
-        Tue, 30 Aug 2022 08:57:16 -0700 (PDT)
+        with ESMTP id S230511AbiH3QIP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2022 12:08:15 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B9BFF7B07;
+        Tue, 30 Aug 2022 09:08:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661875036; x=1693411036;
+  t=1661875694; x=1693411694;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=nyO3eXpBciEJYkjPPepKRjcZ/w25Y4N/Ho+bxQPdMgU=;
-  b=HVAiyw3OSK0shxnPWsNOmHWfLJ48EqFUWhcWqIHsSToWNhlSaVwLPU2I
-   7FZ3U2rS3KRIxLl/OU3DTtbt7Cut63sO6ZcbMBW/P+QHmh2DzyHLKZT8o
-   XeiUcfjuXhf+MlSS/D+nVzsPd/UqQYG697PX2U2mKm+gkobwC0MzCVzC8
-   ckyLeWKLIKOHk+KZ1IqLzsJ4/8dU6eZpsP3flBol+uQpK4l8siWMEFgtI
-   zQjXPrzVfQ++4HniD//YBGA7Zh0xbDcD+jxfN6QqyzolAUWS5vDYGjNzU
-   pxcNt4DMftG8gt0Fwk+9Kj4R7rVbxTstKOAFOxAnCFOz0lFh8DwNEZv/w
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10455"; a="282185430"
+  bh=Z0/Ubngx7Rd7BOFwF6Nv7y8NUPvSEx2rhy2J3cUSUqk=;
+  b=icGeuF+GCrIT6iD5/50/L9kqm/z1O+EApORnk9e5VBue5dJ+a/eM8OZg
+   YebevJNym6yXKQwjRzT9fWTCAr+RV1bf4LQi4oJFuY2VA84E0iVzdgOHq
+   QZgBqasWV6uY5ucAyTLfAnZ3yoWI+fqst+wzSm7mb/TxAF4xFvGKrmyX4
+   6Tzzszh1glmEGC1J0HM93b8n6FXTEynbD/BbDpzWjFONUvLYjPQLPkNss
+   c/10YQ8w8GHck7j1iSBzcN0jRGqRXJscykc1f7GkzZYU4o4Un+iKsiFjJ
+   tdJd3L4IM2UmMxBydc1JlUPBU6I2PEzdzxzRpHapI6U4eaxqJFBbPf8Tt
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10455"; a="295218911"
 X-IronPort-AV: E=Sophos;i="5.93,275,1654585200"; 
-   d="scan'208";a="282185430"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2022 08:57:16 -0700
+   d="scan'208";a="295218911"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2022 09:05:50 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,275,1654585200"; 
-   d="scan'208";a="672920904"
+   d="scan'208";a="680087910"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 30 Aug 2022 08:57:14 -0700
+  by fmsmga004.fm.intel.com with ESMTP; 30 Aug 2022 09:05:48 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id C86B2AD; Tue, 30 Aug 2022 18:57:28 +0300 (EEST)
-Date:   Tue, 30 Aug 2022 18:57:28 +0300
+        id 13D11AD; Tue, 30 Aug 2022 19:06:02 +0300 (EEST)
+Date:   Tue, 30 Aug 2022 19:06:02 +0300
 From:   Mika Westerberg <mika.westerberg@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>, Andy Shevchenko <andy@kernel.org>
-Subject: Re: [PATCH v1 1/2] ACPI: PMIC: Use sizeof() instead of hard coded
- value
-Message-ID: <Yw4zaBJu81SvkFMM@black.fi.intel.com>
+Subject: Re: [PATCH v1 2/2] ACPI: PMIC: Replace open coded be16_to_cpu()
+Message-ID: <Yw41ai0mYHIgtgs4@black.fi.intel.com>
 References: <20220830135532.28992-1-andriy.shevchenko@linux.intel.com>
+ <20220830135532.28992-2-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220830135532.28992-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20220830135532.28992-2-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Aug 30, 2022 at 04:55:31PM +0300, Andy Shevchenko wrote:
-> It's better to use sizeof() of a given buffer than spreading
-> a hard coded value.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Hi,
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Tue, Aug 30, 2022 at 04:55:32PM +0300, Andy Shevchenko wrote:
+> +
+> +#include <asm/byteorder.h>
+
+Isn't there <linux/byteorder/*> as well? Is there something that
+prevents using it?
+
+Otherwise looks good to me.
