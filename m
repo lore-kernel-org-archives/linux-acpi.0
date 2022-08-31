@@ -2,24 +2,24 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3AABC0502C
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Aug 2022 07:42:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD0DC54EE9
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Aug 2022 07:42:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230124AbiHaHmN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 31 Aug 2022 03:42:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46250 "EHLO
+        id S230169AbiHaHmX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 31 Aug 2022 03:42:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230207AbiHaHlc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2022 03:41:32 -0400
+        with ESMTP id S230183AbiHaHlf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2022 03:41:35 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F1EA5BD29F;
-        Wed, 31 Aug 2022 00:41:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EA36D726AC;
+        Wed, 31 Aug 2022 00:41:33 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CEAD5ED1;
-        Wed, 31 Aug 2022 00:41:25 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CBDBAED1;
+        Wed, 31 Aug 2022 00:41:39 -0700 (PDT)
 Received: from entos-ampere-02.shanghai.arm.com (entos-ampere-02.shanghai.arm.com [10.169.212.212])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 962143F766;
-        Wed, 31 Aug 2022 00:41:41 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 977583F766;
+        Wed, 31 Aug 2022 00:41:55 -0700 (PDT)
 From:   Jia He <justin.he@arm.com>
 To:     Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
         Tony Luck <tony.luck@intel.com>,
@@ -38,9 +38,9 @@ Cc:     Ard Biesheuvel <ardb@kernel.org>, linux-acpi@vger.kernel.org,
         Shuai Xue <xueshuai@linux.alibaba.com>,
         Jarkko Sakkinen <jarkko@kernel.org>, linux-efi@vger.kernel.org,
         nd@arm.com, Jia He <justin.he@arm.com>
-Subject: [PATCH v4 4/8] ghes: Introduce a helper ghes_edac_preferred()
-Date:   Wed, 31 Aug 2022 07:40:23 +0000
-Message-Id: <20220831074027.13849-5-justin.he@arm.com>
+Subject: [PATCH v4 6/8] EDAC: Add the ghes_edac_preferred check for chipset-specific edac drivers
+Date:   Wed, 31 Aug 2022 07:40:25 +0000
+Message-Id: <20220831074027.13849-7-justin.he@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220831074027.13849-1-justin.he@arm.com>
 References: <20220831074027.13849-1-justin.he@arm.com>
@@ -50,95 +50,179 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Introduce a flag ghes_present to differentiate between the system ROM
-really not offering GHES vs. the ghes module not running. ghes-present
-is latched on ghes_probe() and never unlatched since ACPI GHES table
-is static.
-
-Introduce a helper ghes_edac_preferred() and it is true if the
-platform-check passes.
+edac_mc_add_mc* is too late in the init path and that check should happen
+as the very first thing in the driver init function.
+Add the newly introduced helper ghes_edac_preferred() for the platform
+check.
 
 Suggested-by: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Jia He <justin.he@arm.com>
 ---
- drivers/acpi/apei/ghes.c | 29 +++++++++++++++++++++++++++++
- include/acpi/ghes.h      |  2 ++
- 2 files changed, 31 insertions(+)
+ drivers/edac/amd64_edac.c      | 3 +++
+ drivers/edac/armada_xp_edac.c  | 3 +++
+ drivers/edac/edac_module.h     | 1 +
+ drivers/edac/i10nm_base.c      | 3 +++
+ drivers/edac/igen6_edac.c      | 3 +++
+ drivers/edac/layerscape_edac.c | 3 +++
+ drivers/edac/pnd2_edac.c       | 3 +++
+ drivers/edac/sb_edac.c         | 3 +++
+ drivers/edac/skx_base.c        | 3 +++
+ drivers/edac/thunderx_edac.c   | 3 +++
+ drivers/edac/xgene_edac.c      | 3 +++
+ 11 files changed, 31 insertions(+)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 6bc9c78f916b..d798a58fbbd9 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -117,6 +117,8 @@ bool ghes_edac_force_load;
- module_param_named(edac_force_load, ghes_edac_force_load, bool, 0);
- EXPORT_SYMBOL(ghes_edac_force_load);
+diff --git a/drivers/edac/amd64_edac.c b/drivers/edac/amd64_edac.c
+index 2f854feeeb23..5314a934c2bf 100644
+--- a/drivers/edac/amd64_edac.c
++++ b/drivers/edac/amd64_edac.c
+@@ -4329,6 +4329,9 @@ static int __init amd64_edac_init(void)
+ 	int err = -ENODEV;
+ 	int i;
  
-+static bool ghes_present;
++	if (ghes_edac_preferred())
++		return -EBUSY;
 +
- /*
-  * All error sources notified with HED (Hardware Error Device) share a
-  * single notifier callback, so they need to be linked and checked one
-@@ -1388,6 +1390,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 
- 	ghes_edac_register(ghes, &ghes_dev->dev);
- 
-+	ghes_present = true;
-+
- 	/* Handle any pending errors right away */
- 	spin_lock_irqsave(&ghes_notify_lock_irq, flags);
- 	ghes_proc(ghes);
-@@ -1511,6 +1515,31 @@ void __init acpi_ghes_init(void)
- 		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
- }
- 
-+/*
-+ * Known x86 systems that prefer GHES error reporting:
-+ */
-+static struct acpi_platform_list plat_list[] = {
-+	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
-+	{ } /* End */
-+};
-+
-+bool ghes_edac_preferred(void)
-+{
-+	int idx = -1;
-+
-+	if (!ghes_present)
-+		return false;
-+
-+	if (IS_ENABLED(CONFIG_X86)) {
-+		idx = acpi_match_platform_list(plat_list);
-+		if (idx < 0 && !ghes_edac_force_load)
-+			return false;
-+	}
-+
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(ghes_edac_preferred);
-+
- void ghes_register_report_chain(struct notifier_block *nb)
+ 	owner = edac_get_owner();
+ 	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
+ 		return -EBUSY;
+diff --git a/drivers/edac/armada_xp_edac.c b/drivers/edac/armada_xp_edac.c
+index 038abbb83f4b..486532b92ce0 100644
+--- a/drivers/edac/armada_xp_edac.c
++++ b/drivers/edac/armada_xp_edac.c
+@@ -599,6 +599,9 @@ static int __init armada_xp_edac_init(void)
  {
- 	atomic_notifier_chain_register(&ghes_report_chain, nb);
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 5cbd38b6e4e1..7ce91c0ff3eb 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -80,6 +80,7 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev);
+ 	int res;
  
- void ghes_edac_unregister(struct ghes *ghes);
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	/* only polling is supported */
+ 	edac_op_state = EDAC_OPSTATE_POLL;
  
-+bool ghes_edac_preferred(void);
- #else
- static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
+diff --git a/drivers/edac/edac_module.h b/drivers/edac/edac_module.h
+index 96f6de0c8ff6..3826f82de487 100644
+--- a/drivers/edac/edac_module.h
++++ b/drivers/edac/edac_module.h
+@@ -11,6 +11,7 @@
+ #ifndef	__EDAC_MODULE_H__
+ #define	__EDAC_MODULE_H__
+ 
++#include <acpi/ghes.h>
+ #include "edac_mc.h"
+ #include "edac_pci.h"
+ #include "edac_device.h"
+diff --git a/drivers/edac/i10nm_base.c b/drivers/edac/i10nm_base.c
+index 6cf50ee0b77c..691df9b51622 100644
+--- a/drivers/edac/i10nm_base.c
++++ b/drivers/edac/i10nm_base.c
+@@ -548,6 +548,9 @@ static int __init i10nm_init(void)
+ 
+ 	edac_dbg(2, "\n");
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	owner = edac_get_owner();
+ 	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
+ 		return -EBUSY;
+diff --git a/drivers/edac/igen6_edac.c b/drivers/edac/igen6_edac.c
+index a07bbfd075d0..4ac6d0c533ec 100644
+--- a/drivers/edac/igen6_edac.c
++++ b/drivers/edac/igen6_edac.c
+@@ -1271,6 +1271,9 @@ static int __init igen6_init(void)
+ 
+ 	edac_dbg(2, "\n");
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	owner = edac_get_owner();
+ 	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
+ 		return -ENODEV;
+diff --git a/drivers/edac/layerscape_edac.c b/drivers/edac/layerscape_edac.c
+index 94cac7686a56..60ff4c6674cd 100644
+--- a/drivers/edac/layerscape_edac.c
++++ b/drivers/edac/layerscape_edac.c
+@@ -38,6 +38,9 @@ static int __init fsl_ddr_mc_init(void)
  {
-@@ -89,6 +90,7 @@ static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
- static inline void ghes_edac_unregister(struct ghes *ghes)
- {
- }
-+static bool ghes_edac_preferred(void) { return false; }
- #endif
+ 	int res;
  
- static inline int acpi_hest_get_version(struct acpi_hest_generic_data *gdata)
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	/* make sure error reporting method is sane */
+ 	switch (edac_op_state) {
+ 	case EDAC_OPSTATE_POLL:
+diff --git a/drivers/edac/pnd2_edac.c b/drivers/edac/pnd2_edac.c
+index a20b299f1202..4ddc43e6c420 100644
+--- a/drivers/edac/pnd2_edac.c
++++ b/drivers/edac/pnd2_edac.c
+@@ -1528,6 +1528,9 @@ static int __init pnd2_init(void)
+ 
+ 	edac_dbg(2, "\n");
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	owner = edac_get_owner();
+ 	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
+ 		return -EBUSY;
+diff --git a/drivers/edac/sb_edac.c b/drivers/edac/sb_edac.c
+index 9678ab97c7ac..3ff604a5e95a 100644
+--- a/drivers/edac/sb_edac.c
++++ b/drivers/edac/sb_edac.c
+@@ -3506,6 +3506,9 @@ static int __init sbridge_init(void)
+ 
+ 	edac_dbg(2, "\n");
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	owner = edac_get_owner();
+ 	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
+ 		return -EBUSY;
+diff --git a/drivers/edac/skx_base.c b/drivers/edac/skx_base.c
+index 1abc020d49ab..286370728552 100644
+--- a/drivers/edac/skx_base.c
++++ b/drivers/edac/skx_base.c
+@@ -653,6 +653,9 @@ static int __init skx_init(void)
+ 
+ 	edac_dbg(2, "\n");
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	owner = edac_get_owner();
+ 	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
+ 		return -EBUSY;
+diff --git a/drivers/edac/thunderx_edac.c b/drivers/edac/thunderx_edac.c
+index f13674081cb6..2c4baa6817a9 100644
+--- a/drivers/edac/thunderx_edac.c
++++ b/drivers/edac/thunderx_edac.c
+@@ -2114,6 +2114,9 @@ static int __init thunderx_edac_init(void)
+ {
+ 	int rc = 0;
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	rc = pci_register_driver(&thunderx_lmc_driver);
+ 	if (rc)
+ 		return rc;
+diff --git a/drivers/edac/xgene_edac.c b/drivers/edac/xgene_edac.c
+index 54081403db4f..9aa68220b625 100644
+--- a/drivers/edac/xgene_edac.c
++++ b/drivers/edac/xgene_edac.c
+@@ -2004,6 +2004,9 @@ static int __init xgene_edac_init(void)
+ {
+ 	int rc;
+ 
++	if (ghes_edac_preferred())
++		return -EBUSY;
++
+ 	/* Make sure error reporting method is sane */
+ 	switch (edac_op_state) {
+ 	case EDAC_OPSTATE_POLL:
 -- 
 2.25.1
 
