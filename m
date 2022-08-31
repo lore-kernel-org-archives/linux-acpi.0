@@ -2,89 +2,84 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34B4EECAAD4
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Aug 2022 14:03:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A8DECAAD1
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Aug 2022 14:03:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231421AbiHaODQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 31 Aug 2022 10:03:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43062 "EHLO
+        id S229567AbiHaODS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 31 Aug 2022 10:03:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229616AbiHaODQ (ORCPT
+        with ESMTP id S231214AbiHaODQ (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2022 10:03:16 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFA80D5EB8;
-        Wed, 31 Aug 2022 07:03:15 -0700 (PDT)
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B37CD5DDE;
+        Wed, 31 Aug 2022 07:03:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661954595; x=1693490595;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=RbY/aWnpX9nBBwm/4aR1TT5UBpgs0Ub5zqkXni9Jkno=;
-  b=C+hhsvwgk+cvEYSxGuf9X3jSov0NpC8Pyc8DMwiy+lcL5MUEtqjKtQlI
-   3X0hvDdL2GGQTKLpq0mlaMdcHddGV58vxkkhTVi1XLYhKKViqSR3T9f7K
-   ssaTQu1Q6RkoGBJHUB4wiAhFcSYN6P0AT6YA6wp4ikf9thVNBU32wV0rJ
-   j2eNI3POxQ7q8YaJpWbobxGg/ifvQM0sX8fdYAxZsHxQRZxfihNAGZ0mA
-   tCNPdw2in37DvOeA9laI/6U6bku4n1/2HZK3U2xdRFir9En71NsJF8eVN
-   IQ0xREFMQ1sUyhj2cHhj3SWM8SE+0RsAM4v2wSLtfgPph5W0/G7SEDb1i
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10456"; a="294192360"
+  t=1661954596; x=1693490596;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=6EwmQveao5l0Fwty8NY+Z7wsdjEwNp5091Gc7ah/CRU=;
+  b=igyePLAtkuP+tPf0S+3BuAUd4PgQsMLbqp3vxQXPq4ZxVAxK32v68l1d
+   p1f5T9AasqbqNw3FlgOav4PCXqRZjfVxRtwGZLG7oOoKSorH15txL2YK0
+   RVJxnjjE5QtA1CQRj1WABl3eKUCSdSmbcVCiyLK/+VVDZoGtybRoULhZ3
+   MwnjSe4TDvSYlMjHvFPBhMgdraJi8LDHMELCdSaHjBytre8w+/e6udG9P
+   BMCYbaIDCM5QWuBuhLM2BPg1peIUXVcMHjgDVJ+rZjU37BxXtKQVlwXGc
+   gB+wepWExZJLSazFe8YLLPRAj/fZzkL/EZsr9bYJ+UeIcM10ZujIisbNZ
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10456"; a="282425885"
 X-IronPort-AV: E=Sophos;i="5.93,278,1654585200"; 
-   d="scan'208";a="294192360"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2022 07:03:15 -0700
+   d="scan'208";a="282425885"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2022 07:03:15 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,278,1654585200"; 
-   d="scan'208";a="673363568"
+   d="scan'208";a="940443522"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 31 Aug 2022 07:03:14 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 31 Aug 2022 07:03:14 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id C48AA174; Wed, 31 Aug 2022 17:03:28 +0300 (EEST)
+        id D8D3119D; Wed, 31 Aug 2022 17:03:28 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>
-Subject: [PATCH v2 1/4] ACPI: platform: Get rid of redundant 'else'
-Date:   Wed, 31 Aug 2022 17:03:24 +0300
-Message-Id: <20220831140327.79149-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/4] ACPI: platform: Use sizeof(*pointer) instead of sizeof(type)
+Date:   Wed, 31 Aug 2022 17:03:26 +0300
+Message-Id: <20220831140327.79149-3-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220831140327.79149-1-andriy.shevchenko@linux.intel.com>
+References: <20220831140327.79149-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In the snippets like the following
-
-	if (...)
-		return / goto / break / continue ...;
-	else
-		...
-
-the 'else' is redundant. Get rid of it.
+It is preferred to use sizeof(*pointer) instead of sizeof(type).
+The type of the variable can change and one needs not change
+the former (unlike the latter). No functional change intended.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
 v2: no changes
- drivers/acpi/acpi_platform.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_platform.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 1a1c78b23fba..75e26528056d 100644
+index 042f80588c18..0d812fe248d4 100644
 --- a/drivers/acpi/acpi_platform.c
 +++ b/drivers/acpi/acpi_platform.c
-@@ -114,9 +114,9 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 
- 	INIT_LIST_HEAD(&resource_list);
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
--	if (count < 0) {
-+	if (count < 0)
+@@ -117,8 +117,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 	if (count < 0)
  		return NULL;
--	} else if (count > 0) {
-+	if (count > 0) {
- 		resources = kcalloc(count, sizeof(struct resource),
- 				    GFP_KERNEL);
+ 	if (count > 0) {
+-		resources = kcalloc(count, sizeof(struct resource),
+-				    GFP_KERNEL);
++		resources = kcalloc(count, sizeof(*resources), GFP_KERNEL);
  		if (!resources) {
+ 			acpi_dev_free_resource_list(&resource_list);
+ 			return ERR_PTR(-ENOMEM);
 -- 
 2.35.1
 
