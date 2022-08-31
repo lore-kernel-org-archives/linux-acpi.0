@@ -2,99 +2,111 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6CCAECAAD1
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 Aug 2022 13:44:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43AECECAAD4
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 Aug 2022 13:57:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231782AbiHaNoW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 31 Aug 2022 09:44:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36668 "EHLO
+        id S229882AbiHaN5l (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 31 Aug 2022 09:57:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231897AbiHaNoP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2022 09:44:15 -0400
-Received: from vorpal.se (vorpal.se [151.236.221.200])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1381D124A
-        for <linux-acpi@vger.kernel.org>; Wed, 31 Aug 2022 06:44:10 -0700 (PDT)
-Received: by vorpal.se (Postfix) with ESMTPSA id 15E13142D4;
-        Wed, 31 Aug 2022 13:44:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=vorpal.se; s=2019;
-        t=1661953448; bh=HKk3f41Y4Roi0bsePunhLGMmO/fsxwHf7+iaDMZOn9I=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=AJqnFJTGuMORwL7QSR2UdIEOcz1gmarN/4YlI4ioBrp13WNqMobaDBn0hsrJRfAxX
-         3OjCtrJtzHWbpOm5apKyNN5m2AQhrcVEpUjhqDvzDZo8RVPPEfo4rY0Ng7RCO/WD2g
-         xdk0Kt3Twn9U3Uipi1aaxEDTzLBY8NwQipDkuVwmnkcEmNQNBSSE+MI+Ho/tatz499
-         4CD9hlhhcLeR0YPXXvjl+j5NmmMmxqkVxsYPlSXh3AgZaOhpCRS7KJBsFDLySq96cH
-         V09FvKwbVFEjIC0vARjcdJwkAJbe8eld4rfJ47x70qNOtt0F/5+qIlLgXVZaVol7oI
-         N3TPyTy0Tg/UA==
-Message-ID: <918639a6-3cb0-5b8d-73b2-7eed623002a0@vorpal.se>
-Date:   Wed, 31 Aug 2022 15:44:07 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.12.0
-Subject: Re: [PATCH 1/1] ACPI: video: Add Toshiba Satellite/Portege Z830 quirk
-Content-Language: en-US
-To:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+        with ESMTP id S229647AbiHaN5k (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2022 09:57:40 -0400
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EB57D5DEE;
+        Wed, 31 Aug 2022 06:57:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1661954259; x=1693490259;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=bSCpQemP9GCiNd65ezhOmkR6CRf+YU/xosrXiMoIVAE=;
+  b=SVmmqI4vl1xkvWWcbtbQqRVpnW6z5Xv4zV4pmHiN7bqbWq8u7CSyh69F
+   hceHA/Mu1EkgDu5/FcToHtSJrx5F6hD4F8y1cUNA1qBdPwZOAUhfIYnmD
+   D58QGbcvaLIJnI3HWFKkuBOYdceIJLUmWoRAalPYg7jjSCv7vS7e25bB+
+   FunHUDgbRIta+RIEXQwrOgx9twBqBvgfrA1DjxSMXWwM2XV6VcUGwyFND
+   CYlBagsQwDV2aIhry+6foT9BhMWoW0y8JBkl+k5z+p6RTPHLtnwPxJKlR
+   5VWhz+0Tby6XpE+GNXiYF/Q3aNexEbSgSAu/4KJdd8j8TMYUKkCVlMyVr
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10456"; a="275853486"
+X-IronPort-AV: E=Sophos;i="5.93,278,1654585200"; 
+   d="scan'208";a="275853486"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2022 06:57:38 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,278,1654585200"; 
+   d="scan'208";a="673361223"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga008.fm.intel.com with ESMTP; 31 Aug 2022 06:57:36 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 006D919D; Wed, 31 Aug 2022 16:57:50 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>
-References: <20220824184950.631520-1-lkml@vorpal.se>
- <20220824184950.631520-2-lkml@vorpal.se>
- <d097b844-8fe4-3469-2137-9e8407348175@redhat.com>
- <3863cad2-1910-b377-011b-4970eeb68e13@vorpal.se>
- <91260f39-27d9-222b-53e7-41ab4bb412a3@redhat.com>
- <9640be14-b478-5887-9057-de2796eccd6b@redhat.com>
- <ef3046e5-f402-3d33-8d94-4d9f87ceadd5@vorpal.se>
- <68b1c4fd-56a4-8de6-62ec-98bd6ef8b169@redhat.com>
-From:   Arvid Norlander <lkml@vorpal.se>
-In-Reply-To: <68b1c4fd-56a4-8de6-62ec-98bd6ef8b169@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Len Brown <lenb@kernel.org>, Andy Shevchenko <andy@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v3 3/3] ACPI: PMIC: Convert pr_*() to dev_*() printing macros
+Date:   Wed, 31 Aug 2022 16:57:49 +0300
+Message-Id: <20220831135749.78743-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220831135749.78743-1-andriy.shevchenko@linux.intel.com>
+References: <20220831135749.78743-1-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+Since we have a device pointer in the regmap, use it for
+error messages.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+v3: added tag (Mika)
+ drivers/acpi/pmic/intel_pmic_chtwc.c  | 5 +++--
+ drivers/acpi/pmic/intel_pmic_xpower.c | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-On 2022-08-29 20:58, Hans de Goede wrote:
-> Hi,
-> 
-> On 8/29/22 20:30, Arvid Norlander wrote:
->> Hi,
->>
->> On 2022-08-29 16:12, Hans de Goede wrote:
->>> Hi,
->>>
->>
->> <snip>
->>
->>>
->>> Arvid, here is a git branch with my backlight-refactor for you
->>> to test:
->>>
->>> https://github.com/jwrdegoede/linux-sunxi/commits/backlight-refactor-for-arvid
->>>
->>> If you can give this a test spin (without any special kernel
->>> commandline options) then that would be great.
->>
->> I'll set up a PKGBUILD and get this built (I'm building on other computers).
->> It may take a couple of days before I get around to that however. I hope
->> this is okay with you.
-> 
-> Yes that is fine, thank you.
+diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
+index f2c42f4c79ca..25aa3e33b09a 100644
+--- a/drivers/acpi/pmic/intel_pmic_chtwc.c
++++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
+@@ -236,11 +236,12 @@ static int intel_cht_wc_exec_mipi_pmic_seq_element(struct regmap *regmap,
+ 						   u32 reg_address,
+ 						   u32 value, u32 mask)
+ {
++	struct device *dev = regmap_get_device(regmap);
+ 	u32 address;
+ 
+ 	if (i2c_client_address > 0xff || reg_address > 0xff) {
+-		pr_warn("%s warning addresses too big client 0x%x reg 0x%x\n",
+-			__func__, i2c_client_address, reg_address);
++		dev_warn(dev, "warning addresses too big client 0x%x reg 0x%x\n",
++			 i2c_client_address, reg_address);
+ 		return -ERANGE;
+ 	}
+ 
+diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
+index 3c7380ec8203..a6dc8dd0d191 100644
+--- a/drivers/acpi/pmic/intel_pmic_xpower.c
++++ b/drivers/acpi/pmic/intel_pmic_xpower.c
+@@ -278,11 +278,12 @@ static int intel_xpower_exec_mipi_pmic_seq_element(struct regmap *regmap,
+ 						   u16 i2c_address, u32 reg_address,
+ 						   u32 value, u32 mask)
+ {
++	struct device *dev = regmap_get_device(regmap);
+ 	int ret;
+ 
+ 	if (i2c_address != 0x34) {
+-		pr_err("%s: Unexpected i2c-addr: 0x%02x (reg-addr 0x%x value 0x%x mask 0x%x)\n",
+-		       __func__, i2c_address, reg_address, value, mask);
++		dev_err(dev, "Unexpected i2c-addr: 0x%02x (reg-addr 0x%x value 0x%x mask 0x%x)\n",
++			i2c_address, reg_address, value, mask);
+ 		return -ENXIO;
+ 	}
+ 
+-- 
+2.35.1
 
-Just and update to let you know that your tree works, at least for suspend.
-
-I'm not set up to test hibernation (using swap file on btrfs). Nor do I
-know if it even works on this laptop. It has some sort of auto hibernate
-feature in BIOS called Intel Rapid Start. It supposedly auto transitions to
-hibernation after being asleep for a while. I have not looked into if this
-is supported on Linux, and what setup would be required to support it in
-that case.
-
-> 
-> Regards,
-> 
-> Hans
-> 
-
-Best regards,
-Arvid Norlander
