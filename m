@@ -2,102 +2,165 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6313ECAAA1
-	for <linux-acpi@archiver.kernel.org>; Fri,  9 Sep 2022 08:44:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0DECECAAA1
+	for <linux-acpi@archiver.kernel.org>; Fri,  9 Sep 2022 09:24:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231370AbiIIIoy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 9 Sep 2022 04:44:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38306 "EHLO
+        id S231597AbiIIJYt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 9 Sep 2022 05:24:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231496AbiIIIox (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Sep 2022 04:44:53 -0400
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1EC552804;
-        Fri,  9 Sep 2022 01:44:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1662713091; x=1694249091;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Dx9fQD19vhc3Jmyo1THX6cO2GO5PTZm/g2LWty61b2Y=;
-  b=QHJpo1E6dJTFxXdxjg8SBKDzuiS7/urim38S/RO1qaRRdBd2XP988Ecv
-   9tLqlJovQe2PD08cuXLwF/sdkE00wSXtcUOxMIaNak+JOAE0JqLrtenmP
-   ck7SHlXHrJV3Dtk5PAwXopKGiVdoTQ07CgTLZWrEQdiX3zZCuQPNuHeDA
-   MdjXbjYsYoSKF+o4wiK7a0UKBg/XKgZxpbg+rvXDk9vsf56uS8cTshb5n
-   uS4lW0/W8cflaLO8+9WNqGUioCxrUgRKPQfbJcBN2NFlmLQaXXT2j9ev5
-   QbicBYoILqrJk4fzGuCUvjJL6oNDqTV8SOkE1MEEmVrdK1yKUhSqliPXt
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10464"; a="284448271"
-X-IronPort-AV: E=Sophos;i="5.93,302,1654585200"; 
-   d="scan'208";a="284448271"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2022 01:44:51 -0700
-X-IronPort-AV: E=Sophos;i="5.93,302,1654585200"; 
-   d="scan'208";a="615204912"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2022 01:44:44 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1oWZcu-00AUCb-2A;
-        Fri, 09 Sep 2022 11:44:40 +0300
-Date:   Fri, 9 Sep 2022 11:44:40 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     kernel test robot <lkp@intel.com>
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-spi@vger.kernel.org,
-        devel@acpica.org, kbuild-all@lists.01.org,
-        Len Brown <lenb@kernel.org>, Elie Morisse <syniurge@gmail.com>,
-        Nehal Shah <nehal-bakulchandra.shah@amd.com>,
-        Shyam Sundar S K <shyam-sundar.s-k@amd.com>,
-        Khalil Blaiech <kblaiech@nvidia.com>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konrad.dybcio@somainline.org>,
-        Will Deacon <will@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Robert Moore <robert.moore@intel.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-Subject: Re: [PATCH v2 6/8] perf: qcom_l2_pmu: Refactor _UID handling to use
- acpi_dev_uid_to_integer()
-Message-ID: <Yxr8+NYw/+gbmTBu@smile.fi.intel.com>
-References: <20220908132910.62122-7-andriy.shevchenko@linux.intel.com>
- <202209091254.rIFedxQL-lkp@intel.com>
+        with ESMTP id S231555AbiIIJYO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Sep 2022 05:24:14 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3EC51177AC;
+        Fri,  9 Sep 2022 02:23:09 -0700 (PDT)
+Received: from dggpemm500020.china.huawei.com (unknown [172.30.72.54])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4MP9Qs26TTzmV5k;
+        Fri,  9 Sep 2022 17:18:45 +0800 (CST)
+Received: from dggpemm100009.china.huawei.com (7.185.36.113) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Fri, 9 Sep 2022 17:22:23 +0800
+Received: from huawei.com (10.175.113.32) by dggpemm100009.china.huawei.com
+ (7.185.36.113) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Fri, 9 Sep
+ 2022 17:22:22 +0800
+From:   Liu Shixin <liushixin2@huawei.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Liu Shixin <liushixin2@huawei.com>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: [PATCH] ACPI: HMAT: remove unused dev_fmt() and redundant prefixing 'HMAT'
+Date:   Fri, 9 Sep 2022 17:56:24 +0800
+Message-ID: <20220909095624.3719051-1-liushixin2@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <202209091254.rIFedxQL-lkp@intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.113.32]
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ dggpemm100009.china.huawei.com (7.185.36.113)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Sep 09, 2022 at 12:40:36PM +0800, kernel test robot wrote:
-> Hi Andy,
-> 
-> I love your patch! Perhaps something to improve:
+Remove unused macro dev_pmt() and redundant prefixing 'HMAT' from pr_*() calls.
 
-Indeed.
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+---
+ drivers/acpi/numa/hmat.c | 25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-> All warnings (new ones prefixed by >>):
-> 
->    In file included from include/linux/device.h:15,
->                     from include/linux/acpi.h:15,
->                     from drivers/perf/qcom_l2_pmu.c:4:
->    drivers/perf/qcom_l2_pmu.c: In function 'l2_cache_pmu_probe_cluster':
-> >> drivers/perf/qcom_l2_pmu.c:882:17: warning: format '%ld' expects argument of type 'long int', but argument 3 has type 'u64' {aka 'long long unsigned int'} [-Wformat=]
-
-Fixed locally.
-
+diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+index c3d783aca196..23f49a2f4d14 100644
+--- a/drivers/acpi/numa/hmat.c
++++ b/drivers/acpi/numa/hmat.c
+@@ -9,7 +9,6 @@
+  */
+ 
+ #define pr_fmt(fmt) "acpi/hmat: " fmt
+-#define dev_fmt(fmt) "acpi/hmat: " fmt
+ 
+ #include <linux/acpi.h>
+ #include <linux/bitops.h>
+@@ -302,7 +301,7 @@ static __init int hmat_parse_locality(union acpi_subtable_headers *header,
+ 	u8 type, mem_hier;
+ 
+ 	if (hmat_loc->header.length < sizeof(*hmat_loc)) {
+-		pr_notice("HMAT: Unexpected locality header length: %u\n",
++		pr_notice("Unexpected locality header length: %u\n",
+ 			 hmat_loc->header.length);
+ 		return -EINVAL;
+ 	}
+@@ -314,12 +313,12 @@ static __init int hmat_parse_locality(union acpi_subtable_headers *header,
+ 	total_size = sizeof(*hmat_loc) + sizeof(*entries) * ipds * tpds +
+ 		     sizeof(*inits) * ipds + sizeof(*targs) * tpds;
+ 	if (hmat_loc->header.length < total_size) {
+-		pr_notice("HMAT: Unexpected locality header length:%u, minimum required:%u\n",
++		pr_notice("Unexpected locality header length:%u, minimum required:%u\n",
+ 			 hmat_loc->header.length, total_size);
+ 		return -EINVAL;
+ 	}
+ 
+-	pr_info("HMAT: Locality: Flags:%02x Type:%s Initiator Domains:%u Target Domains:%u Base:%lld\n",
++	pr_info("Locality: Flags:%02x Type:%s Initiator Domains:%u Target Domains:%u Base:%lld\n",
+ 		hmat_loc->flags, hmat_data_type(type), ipds, tpds,
+ 		hmat_loc->entry_base_unit);
+ 
+@@ -363,13 +362,13 @@ static __init int hmat_parse_cache(union acpi_subtable_headers *header,
+ 	u32 attrs;
+ 
+ 	if (cache->header.length < sizeof(*cache)) {
+-		pr_notice("HMAT: Unexpected cache header length: %u\n",
++		pr_notice("Unexpected cache header length: %u\n",
+ 			 cache->header.length);
+ 		return -EINVAL;
+ 	}
+ 
+ 	attrs = cache->cache_attributes;
+-	pr_info("HMAT: Cache: Domain:%u Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
++	pr_info("Cache: Domain:%u Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
+ 		cache->memory_PD, cache->cache_size, attrs,
+ 		cache->number_of_SMBIOShandles);
+ 
+@@ -424,24 +423,24 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+ 	struct memory_target *target = NULL;
+ 
+ 	if (p->header.length != sizeof(*p)) {
+-		pr_notice("HMAT: Unexpected address range header length: %u\n",
++		pr_notice("Unexpected address range header length: %u\n",
+ 			 p->header.length);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (hmat_revision == 1)
+-		pr_info("HMAT: Memory (%#llx length %#llx) Flags:%04x Processor Domain:%u Memory Domain:%u\n",
++		pr_info("Memory (%#llx length %#llx) Flags:%04x Processor Domain:%u Memory Domain:%u\n",
+ 			p->reserved3, p->reserved4, p->flags, p->processor_PD,
+ 			p->memory_PD);
+ 	else
+-		pr_info("HMAT: Memory Flags:%04x Processor Domain:%u Memory Domain:%u\n",
++		pr_info("Memory Flags:%04x Processor Domain:%u Memory Domain:%u\n",
+ 			p->flags, p->processor_PD, p->memory_PD);
+ 
+ 	if ((hmat_revision == 1 && p->flags & ACPI_HMAT_MEMORY_PD_VALID) ||
+ 	    hmat_revision > 1) {
+ 		target = find_mem_target(p->memory_PD);
+ 		if (!target) {
+-			pr_debug("HMAT: Memory Domain missing from SRAT\n");
++			pr_debug("Memory Domain missing from SRAT\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -449,7 +448,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+ 		int p_node = pxm_to_node(p->processor_PD);
+ 
+ 		if (p_node == NUMA_NO_NODE) {
+-			pr_debug("HMAT: Invalid Processor Domain\n");
++			pr_debug("Invalid Processor Domain\n");
+ 			return -EINVAL;
+ 		}
+ 		target->processor_pxm = p->processor_PD;
+@@ -840,7 +839,7 @@ static __init int hmat_init(void)
+ 	case 2:
+ 		break;
+ 	default:
+-		pr_notice("Ignoring HMAT: Unknown revision:%d\n", hmat_revision);
++		pr_notice("Ignoring: Unknown revision:%d\n", hmat_revision);
+ 		goto out_put;
+ 	}
+ 
+@@ -848,7 +847,7 @@ static __init int hmat_init(void)
+ 		if (acpi_table_parse_entries(ACPI_SIG_HMAT,
+ 					     sizeof(struct acpi_table_hmat), i,
+ 					     hmat_parse_subtable, 0) < 0) {
+-			pr_notice("Ignoring HMAT: Invalid table");
++			pr_notice("Ignoring: Invalid table");
+ 			goto out_put;
+ 		}
+ 	}
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.25.1
 
