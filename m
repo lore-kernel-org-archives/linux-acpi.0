@@ -2,37 +2,39 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C99AFECAAA1
-	for <linux-acpi@archiver.kernel.org>; Fri,  9 Sep 2022 09:30:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B7DFECAAA1
+	for <linux-acpi@archiver.kernel.org>; Fri,  9 Sep 2022 09:30:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231126AbiIIJaj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 9 Sep 2022 05:30:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44194 "EHLO
+        id S232139AbiIIJay (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 9 Sep 2022 05:30:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231936AbiIIJaP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Sep 2022 05:30:15 -0400
+        with ESMTP id S231304AbiIIJaX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Sep 2022 05:30:23 -0400
 Received: from loongson.cn (mail.loongson.cn [114.242.206.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7059813CB1B;
-        Fri,  9 Sep 2022 02:28:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4BC7E13A054;
+        Fri,  9 Sep 2022 02:28:35 -0700 (PDT)
 Received: from loongson-pc.loongson.cn (unknown [10.20.42.105])
-        by localhost.localdomain (Coremail) with SMTP id AQAAf8DxBOIrBxtjH04VAA--.19971S2;
-        Fri, 09 Sep 2022 17:28:11 +0800 (CST)
+        by localhost.localdomain (Coremail) with SMTP id AQAAf8DxBOIrBxtjH04VAA--.19971S4;
+        Fri, 09 Sep 2022 17:28:16 +0800 (CST)
 From:   Jianmin Lv <lvjianmin@loongson.cn>
 To:     lpieralisi@kernel.org, robin.murphy@arm.com, chenhuacai@loongson.cn
 Cc:     guohanjun@huawei.com, sudeep.holla@arm.com, rafael@kernel.org,
         lenb@kernel.org, robert.moore@intel.com,
         linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         loongarch@lists.linux.dev
-Subject: [PATCH V4 0/2] DMA: update acpi_dma_get_range to return dma map regions 
-Date:   Fri,  9 Sep 2022 17:28:09 +0800
-Message-Id: <20220909092811.22627-1-lvjianmin@loongson.cn>
+Subject: [PATCH V4 2/2] LoongArch: Use acpi_arch_dma_setup() and remove ARCH_HAS_PHYS_TO_DMA
+Date:   Fri,  9 Sep 2022 17:28:11 +0800
+Message-Id: <20220909092811.22627-3-lvjianmin@loongson.cn>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20220909092811.22627-1-lvjianmin@loongson.cn>
+References: <20220909092811.22627-1-lvjianmin@loongson.cn>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: AQAAf8DxBOIrBxtjH04VAA--.19971S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7uF4UKF4xtr1ftF1xXF4xZwb_yoW8Jw4DpF
-        9a9r43Gr1UKrZxJry3Aw1rZw15Xw1fZry7Ga9rK34kJF4jvr17Jry8Z3WxCa4UAa47Gr40
-        qF98Ja45WF1UAwUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID: AQAAf8DxBOIrBxtjH04VAA--.19971S4
+X-Coremail-Antispam: 1UD129KBjvJXoWxWw47XF4rAF45CryDXF1UZFb_yoW7Gr43pa
+        srCrs8Gr4xKrs7XrykCw18Zr15X3s2kay7XFW7K3sakFnFqr1UXr1vyF9rZF1YqrZrKF4I
+        qF95CFyYqF4UWw7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
         9KBjDU0xBIdaVrnRJUUU921xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
         w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
         IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2
@@ -51,41 +53,176 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The patch series changed acpi_dma_get_range to return dma regions
-as of_dma_get_range, so that dev->dma_range_map can be initialized
-conveniently.
+Use _DMA defined in ACPI spec for translation between
+DMA address and CPU address, and implement acpi_arch_dma_setup
+for initializing dev->dma_range_map, where acpi_dma_get_range
+is called for parsing _DMA.
 
-And acpi_arch_dma_setup for ARM64 is changed wih removing dma_base
-and size from it's parameters.
+e.g.
+If we have two dma ranges:
+cpu address      dma address    size         offset
+0x200080000000   0x2080000000   0x400000000  0x1fe000000000
+0x400080000000   0x4080000000   0x400000000  0x3fc000000000
 
-Remove ARCH_HAS_PHYS_TO_DMA for LoongArch and use generic
-phys_to_dma/dma_to_phys in include/linux/dma-direct.h.
+_DMA for pci devices should be declared in host bridge as
+flowing:
 
-V1 -> V2
-- Removed dma_base and size from acpi_arch_dma_setup' parameters
-- Add patch to remove ARCH_HAS_PHYS_TO_DMA for LoongArch
+Name (_DMA, ResourceTemplate() {
+        QWordMemory (ResourceProducer,
+            PosDecode,
+            MinFixed,
+            MaxFixed,
+            NonCacheable,
+            ReadWrite,
+            0x0,
+            0x4080000000,
+            0x447fffffff,
+            0x3fc000000000,
+            0x400000000,
+            ,
+            ,
+            )
 
-V2 -> V3
-- Add kerneldoc for acpi_dma_get_range changing
-- Remove redundant code in acpi_arch_dma_setup, and check map
+        QWordMemory (ResourceProducer,
+            PosDecode,
+            MinFixed,
+            MaxFixed,
+            NonCacheable,
+            ReadWrite,
+            0x0,
+            0x2080000000,
+            0x247fffffff,
+            0x1fe000000000,
+            0x400000000,
+            ,
+            ,
+            )
+    })
 
-V3 -> V4
-- Change title to "Use acpi_arch_dma_setup() and remove ARCH_HAS_PHYS_TO_DMA"
-- Use resource_size() to get size 
-
-Jianmin Lv (2):
-  ACPI / scan: Support multiple dma windows with different offsets
-  LoongArch: Use acpi_arch_dma_setup() and remove ARCH_HAS_PHYS_TO_DMA
-
+Acked-by: Huacai Chen <chenhuacai@loongson.cn>
+Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn>
+---
  arch/loongarch/Kconfig        |  1 -
- arch/loongarch/kernel/dma.c   | 52 ++++++++++++++--------------------
+ arch/loongarch/kernel/dma.c   | 52 ++++++++++++++---------------------
  arch/loongarch/kernel/setup.c |  2 +-
- drivers/acpi/arm64/dma.c      | 29 +++++++++++--------
- drivers/acpi/scan.c           | 53 +++++++++++++++--------------------
- include/acpi/acpi_bus.h       |  3 +-
- include/linux/acpi.h          | 12 ++++----
- 7 files changed, 71 insertions(+), 81 deletions(-)
+ include/linux/acpi.h          |  9 ++++--
+ 4 files changed, 28 insertions(+), 36 deletions(-)
 
+diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
+index c7dd6ad779af..551dd99e98b8 100644
+--- a/arch/loongarch/Kconfig
++++ b/arch/loongarch/Kconfig
+@@ -10,7 +10,6 @@ config LOONGARCH
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+-	select ARCH_HAS_PHYS_TO_DMA
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_INLINE_READ_LOCK if !PREEMPTION
+diff --git a/arch/loongarch/kernel/dma.c b/arch/loongarch/kernel/dma.c
+index 8c9b5314a13e..7a9c6a9dd2d0 100644
+--- a/arch/loongarch/kernel/dma.c
++++ b/arch/loongarch/kernel/dma.c
+@@ -2,39 +2,29 @@
+ /*
+  * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
+  */
+-#include <linux/init.h>
++#include <linux/acpi.h>
+ #include <linux/dma-direct.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/dma-map-ops.h>
+-#include <linux/swiotlb.h>
+ 
+-#include <asm/bootinfo.h>
+-#include <asm/dma.h>
+-#include <asm/loongson.h>
+-
+-/*
+- * We extract 4bit node id (bit 44~47) from Loongson-3's
+- * 48bit physical address space and embed it into 40bit.
+- */
+-
+-static int node_id_offset;
+-
+-dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
+-{
+-	long nid = (paddr >> 44) & 0xf;
+-
+-	return ((nid << 44) ^ paddr) | (nid << node_id_offset);
+-}
+-
+-phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
++void acpi_arch_dma_setup(struct device *dev)
+ {
+-	long nid = (daddr >> node_id_offset) & 0xf;
++	int ret;
++	u64 mask, end = 0;
++	const struct bus_dma_region *map = NULL;
++
++	ret = acpi_dma_get_range(dev, &map);
++	if (!ret && map) {
++		const struct bus_dma_region *r = map;
++
++		for (end = 0; r->size; r++) {
++			if (r->dma_start + r->size - 1 > end)
++				end = r->dma_start + r->size - 1;
++		}
++
++		mask = DMA_BIT_MASK(ilog2(end) + 1);
++		dev->bus_dma_limit = end;
++		dev->dma_range_map = map;
++		dev->coherent_dma_mask = min(dev->coherent_dma_mask, mask);
++		*dev->dma_mask = min(*dev->dma_mask, mask);
++	}
+ 
+-	return ((nid << node_id_offset) ^ daddr) | (nid << 44);
+-}
+-
+-void __init plat_swiotlb_setup(void)
+-{
+-	swiotlb_init(true, SWIOTLB_VERBOSE);
+-	node_id_offset = ((readl(LS7A_DMA_CFG) & LS7A_DMA_NODE_MASK) >> LS7A_DMA_NODE_SHF) + 36;
+ }
+diff --git a/arch/loongarch/kernel/setup.c b/arch/loongarch/kernel/setup.c
+index 8f5c2f9a1a83..d97c69dbe553 100644
+--- a/arch/loongarch/kernel/setup.c
++++ b/arch/loongarch/kernel/setup.c
+@@ -247,7 +247,7 @@ static void __init arch_mem_init(char **cmdline_p)
+ 	sparse_init();
+ 	memblock_set_bottom_up(true);
+ 
+-	plat_swiotlb_setup();
++	swiotlb_init(true, SWIOTLB_VERBOSE);
+ 
+ 	dma_contiguous_reserve(PFN_PHYS(max_low_pfn));
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index bb41623dab77..a71d73a0d43e 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -279,14 +279,17 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa) { }
+ 
+ void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
+ 
++#if defined(CONFIG_ARM64) || defined(CONFIG_LOONGARCH)
++void acpi_arch_dma_setup(struct device *dev);
++#else
++static inline void acpi_arch_dma_setup(struct device *dev) { }
++#endif
++
+ #ifdef CONFIG_ARM64
+ void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
+-void acpi_arch_dma_setup(struct device *dev);
+ #else
+ static inline void
+ acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
+-static inline void
+-acpi_arch_dma_setup(struct device *dev) { }
+ #endif
+ 
+ int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
 -- 
 2.31.1
 
