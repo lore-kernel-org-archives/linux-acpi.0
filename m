@@ -2,440 +2,625 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9742AC6FA8A
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Sep 2022 12:54:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6535EC6FA8D
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Sep 2022 12:54:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbiILMyV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 12 Sep 2022 08:54:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59186 "EHLO
+        id S229845AbiILMyW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 12 Sep 2022 08:54:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229834AbiILMyF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2022 08:54:05 -0400
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 865D4386B3;
-        Mon, 12 Sep 2022 05:54:03 -0700 (PDT)
+        with ESMTP id S229873AbiILMyT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2022 08:54:19 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99E6F39B89;
+        Mon, 12 Sep 2022 05:54:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1662987230;
-        bh=k9YDAppcKkq2ArgBg9pY+g/nuPhYMJY6cXdn4yJClEs=;
+        s=badeba3b8450; t=1662987234;
+        bh=hk5t2e+oj5yO3UwZJOPmpX0A2h5nxw6Irm3GZCkWWjU=;
         h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=k0YKkh5qU1cs2dy+vXJddPmszGCj1TIYZCm78r6murV3spf/j6Dw5yuX4jtqydr/t
-         ceFNVpasD4hluSzzBYG5B5TxbRK1DrkYJubcXA+MwLkTPA7DjGfGR5iP4ARaPPnvfj
-         a2CiHbuqDa6f1RYo8ij6deAONRjC2hfTQnm01WgI=
+        b=HZWjZnyC8mmH39rZ70BLIu0Cim5NB0ZDJxvgLF2XA2+ZjU/HS6umYzThUSSCyUhu2
+         CzrGQuaulWf7Cg7ZHPFgfyXfX14qpYhrUPL3q6tBO/0tuVA1NWVXTln5W3OEzRObDB
+         LUHCe8EFkba8Cq5SN2fs6ScYdGZbc4MPErYPY8tk=
 X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
 Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
- (mrgmx005 [212.227.17.190]) with ESMTPSA (Nemesis) id
- 1McpNo-1p6VSu1BYY-00Zx13; Mon, 12 Sep 2022 14:53:50 +0200
+ (mrgmx104 [212.227.17.168]) with ESMTPSA (Nemesis) id
+ 1MwQXN-1pNM1s3Em5-00sQDs; Mon, 12 Sep 2022 14:53:53 +0200
 From:   Armin Wolf <W_Armin@gmx.de>
 To:     hdegoede@redhat.com, markgross@kernel.org
 Cc:     rafael@kernel.org, lenb@kernel.org, hmh@hmh.eng.br,
         matan@svgalib.org, corentin.chary@gmail.com, jeremy@system76.com,
         productdev@system76.com, platform-driver-x86@vger.kernel.org,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/5] ACPI: battery: Allow battery hooks to be registered multiple times.
-Date:   Mon, 12 Sep 2022 14:53:40 +0200
-Message-Id: <20220912125342.7395-4-W_Armin@gmx.de>
+Subject: [PATCH 5/5] platform/x86: dell: Add new dell-wmi-ddv driver
+Date:   Mon, 12 Sep 2022 14:53:42 +0200
+Message-Id: <20220912125342.7395-6-W_Armin@gmx.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220912125342.7395-1-W_Armin@gmx.de>
 References: <20220912125342.7395-1-W_Armin@gmx.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:vntFRVjmTWKgpdc0xf7mZru17K6B4tMLwPKwGfWCecrzly2Ef6j
- ubroTEusCDQx2KHwGyP+UuPMXYJLtJKswDIWC8QxoKP+n3DHTSpXq0+XIAfHqE6jtjT1WPR
- sA3E4Xjmc7OBD5lHIjOv9fDxgggc703TMpPxeXvr6R9pOUdG38+CV61yKmJsaSYW/5qCwV+
- LEDoDehU6DbOyscriA0dw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:Ow+eob142Wg=:RlZ6EFXhSuGcO2A23A/Bcj
- MVzgdRpmUfdjVvzsdLDKncPqI5KwDx2es51R2bCMfijXA8VlyEX7MCMX9nSacYZ3wxzns8O8p
- pg3reMDc8EEKiT2hHEu+0QuYyNDRRBSgfILGBNcDRpdh9HrF6oovYagJGov4z9xJyi/EZZv6k
- +Y0b/AYgz3KNqCD3SCIj/aIO5d0pmIi1K+MGYJTb+E45zMaCqcNt1KF1ZmPmQsUi3+m4jpG1m
- dFhdKK3jF4t+kOd6uQshIbZMv3V7BmSnKadC8uAZNWCek03Vpv8qMJU3Ljix7NbwjJCPa9M0V
- hJe9fU1HqtvY2jWQFgStSFx6q/pQSvSKQuVFhTVNeAz0J8mMoSLx0VWJn1oUaDNUaADEEL2Mn
- oBAG1CUwZhtvPtmflf20pBPI1r4XxRbRTtn6cW9NBNsX8q73Xo5wPYpws8FJRMFU4Hsj7RYJD
- zu+flPfrqTqwYXZ0J9vrweow8jhUNezcpyzgV5Iy1YaCiAgWC4+G7Al81GFBOwess7UiInCSQ
- iYW1jycrg2AbXQJ5DbaUaVYGS3ndt5JJ7gKXLRNtAS983Fj2DaVJ/aosOyWCin0Kq5PSNqh60
- 0gNHwpn1zui8gbgPmGuo11DG+WSHjNS3entRBC3HgiS1qNQuqNEGNBydvjiaS2CuBAjq8KZny
- 8ysB/LO9A+7n2Bu+VpS+GZOZ9+gZCapN2Z47JU9Aa6NhKh4cRUJdmV8oo5Pidtx+6WrkB72qn
- OOm3jK/of/pd4CwU/tuL2/MVMf24NtJ3ACs80YfIKQITfGS3UuYf+oFzOLfIsXj01M2b1h6so
- vyOA2hDHa9srX2C0Ds3ynDZ4b7NOf9zKHrGmC0bV2bqKWoVCz6ITODeemM8tBsFo1LZGjN0Wx
- vgb8/GE3+u5raEstzESx6OgT3LynzUh+L18q5JM0K2UEQUqGGWQb0+eHKZeXbFO8vxM9C2WCV
- zybfMYT3SIAmdKDVGg2ANf1DXgF37RmYRY7UX0u/EPKBuvo0sebEdio8ZB1v9Om1O6+XTy25/
- C/qiP1PAP0CjEPChkYeEOPqlhcVGC8kmJ0oFWF371EfyPWPpYrzmIDcVAdBB6Djshqam23ayX
- r4kh9/L+pqG9YkfFDEU/dtiF4GpD5OYbPo4Tt00GZjpEBggskKzRbbKOEToNAYpHuvGGE/ksZ
- +aWqW08DykR0B6QRIAZoYQBTkT
+X-Provags-ID: V03:K1:KaVfppH25SNtBQGGAmEyAtS0NiHFH55eBR6zzMvq90fkEtS/DPR
+ GOPZeJ8Sgpddz82XlGlApc+1btIcF6tZCxiXFlq/+W2ScyIDPmzYtX2OqqNccNGnr20z9Ir
+ oGXVXh++sR3sN0MKOjnGY1HF4JNpZdareqocfjMZ8U9pPY/Gu3fB3aQ4UOKWXMYz2l9E21+
+ yJ69fKP0PxGjbuIIX6dgg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:RzHAru8r6rI=:JdiMj+2Ur3Qi89yC8XarXY
+ P28XAeVcDLdAVGc+WXot5FlgU4sQNjm1uPnJ6m/8pgS5R792MZtVmpJe+Ox17msIE2ASxsSWW
+ A/+TYktsBlOiz4b/AJ8EGpwDM1opE5kvi2/l/y+dbUWjAruc6YpzDXVNVjzE3LbxrYwocmi0g
+ JYhN1o/uSjFfJChFq38X8HLY5jGaAzQnnC1t9iUsC78lgW1DwbO7iMHZLB7g7N+cN66G/d7Cb
+ sJZUQ8qTPkIj5gW+Cya4BdVR4GaOuHdAnHzhgSyHbUsY7R4QZlEdXvd5zn39gLAPA9ezjRZoE
+ Eg/XQ7RiR61NeMPvQbxEkPq2Y37VD3v7RYqNlAX3Mda2D1Kb0d1VohqtD8DCvc90rZ3iQxTL9
+ nYKGEHzcrkye8auHZpzguiYU+Bnl8aLRg7WLO9F2fei6MFCpYgES3ncmsEHv4b9pQBgz6vL19
+ vj6gckoiYgvGhWQkuZE5/ARb6PbzerHLK85aHxFluVnnTnbdnaE9su5KxzxsHrNwmD6JFE3kN
+ Mv+49KQIYRkkpzPrp4rG2Cvd9ZpKR5yb+tfup6+0bpmrplOxXDDitTkE/HDhfpK11+Cs7aw96
+ 7MC8OGs+avPUBJLoOLriRNrXro8BY57IISIjex9DWBRIyeAT39ShAyi80foHHeM4USJ/EoJkd
+ Zz9VuewbsWoWdJIjMe5PaIDjbTjyOVqMsecseBbDY2mPe7n0VAT/dqXmwnKShwcOCsc/gSabl
+ R0JHD4i3+6ttotCIshOxuslYmQt/MdDPYk2Y0omQ5L+vKprk5bIfrhq21WdNNRrmWQaTdVkn4
+ aIEu1TRiZKaIB9pM3JXQu09wBFV8Ql3mmba09Y5H3NslLKALyzfPZLZZoIfeEIqD/J/nqP6MG
+ wcL/jwll7Rcj7LL0tR5weRqCe3MdHMiFv/zTLH0CHAGOGI0MlLEkU5YrtM2fDI+hiAEDOaDTd
+ m3RPY+IB2zZUgM2dkkM5ECfS8du1duYwAva00aMzSnBL2q+BY6knqbm9zsJ1XspngWjTHEglA
+ i4kJe1aO4ujL4h0SMEYVDTuola7RDhVILiKv/x5FM9lGJ/RJvB1C4e0WtEy7yIbsjj/Pj/qip
+ WyoxpOBOtTf10EMFqob715c+Vxz22UdiuOK/sDEwvUkzWxlmOoZ+624s6p0ZZQm2BTexTALij
+ APYx4XIjfdIYTHoX8QIC+1MasJ
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Registering multiple instances of a battery hook is beneficial
-for drivers which can be instantiated multiple times. Until now,
-this would mean that such a driver would have to implement some
-logic to manage battery hooks.
+The dell-wmi-ddv driver adds support for reading
+the current temperature and ePPID of ACPI batteries
+on supported Dell machines.
 
-Extend the battery hook handling instead.
+Since the WMI interface used by this driver does not
+do any input validation and thus cannot be used for probing,
+the driver depends on the ACPI battery extension machanism
+to discover batteries.
+
+The driver also supports a debugfs interface for retrieving
+buffers containing fan and thermal sensor information.
+Since the meaing of the content of those buffers is currently
+unknown, the interface is meant for reverse-engineering and
+will likely be replaced with an hwmon interface once the
+meaning has been understood.
+
+The driver was tested on a Dell Inspiron 3505.
 
 Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 =2D--
- drivers/acpi/battery.c               | 21 ++++++++++++++++-----
- drivers/platform/x86/asus-wmi.c      | 15 ++++++---------
- drivers/platform/x86/huawei-wmi.c    | 11 +++++++----
- drivers/platform/x86/lg-laptop.c     | 10 ++++++----
- drivers/platform/x86/system76_acpi.c | 18 ++++++++++--------
- drivers/platform/x86/thinkpad_acpi.c | 11 +++++++----
- include/acpi/battery.h               | 11 ++++++++---
- 7 files changed, 60 insertions(+), 37 deletions(-)
+ .../ABI/testing/debugfs-dell-wmi-ddv          |  21 +
+ .../ABI/testing/sysfs-platform-dell-wmi-ddv   |  16 +
+ MAINTAINERS                                   |   7 +
+ drivers/platform/x86/dell/Kconfig             |  13 +
+ drivers/platform/x86/dell/Makefile            |   1 +
+ drivers/platform/x86/dell/dell-wmi-ddv.c      | 365 ++++++++++++++++++
+ drivers/platform/x86/wmi.c                    |   1 +
+ 7 files changed, 424 insertions(+)
+ create mode 100644 Documentation/ABI/testing/debugfs-dell-wmi-ddv
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-dell-wmi-ddv
+ create mode 100644 drivers/platform/x86/dell/dell-wmi-ddv.c
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 4aea65f3d8c3..15bb5d868a56 100644
-=2D-- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -696,19 +696,28 @@ void battery_hook_unregister(struct acpi_battery_hoo=
-k *hook)
- 	mutex_lock(&hook_mutex);
-
- 	list_for_each_entry(battery, &acpi_battery_list, list) {
--		hook->remove_battery(battery->bat);
-+		hook->ops->remove_battery(battery->bat);
- 	}
- 	list_del(&hook->list);
-
- 	mutex_unlock(&hook_mutex);
- 	pr_info("extension unregistered: %s\n", hook->name);
-+	kfree(hook);
- }
- EXPORT_SYMBOL_GPL(battery_hook_unregister);
-
--void battery_hook_register(struct acpi_battery_hook *hook)
-+struct acpi_battery_hook *battery_hook_register(const char *name,
-+						const struct acpi_battery_hook_ops *ops)
- {
-+	struct acpi_battery_hook *hook =3D kzalloc(sizeof(*hook), GFP_KERNEL);
- 	struct acpi_battery *battery;
-
-+	if (!hook)
-+		return ERR_PTR(-ENOMEM);
+diff --git a/Documentation/ABI/testing/debugfs-dell-wmi-ddv b/Documentatio=
+n/ABI/testing/debugfs-dell-wmi-ddv
+new file mode 100644
+index 000000000000..fbcc5d6f7388
+=2D-- /dev/null
++++ b/Documentation/ABI/testing/debugfs-dell-wmi-ddv
+@@ -0,0 +1,21 @@
++What:		/sys/kernel/debug/dell-wmi-ddv-<wmi_device_name>/fan_sensor_inform=
+ation
++Date:		September 2022
++KernelVersion:	6.1
++Contact:	Armin Wolf <W_Armin@gmx.de>
++Description:
++		This file contains the contents of the fan sensor information buffer,
++		which contains fan sensor entries and a terminating character (0xFF).
 +
-+	hook->name =3D name;
-+	hook->ops =3D ops;
++		Each fan sensor entry consists of three bytes with an unknown meaning,
++		interested people may use this file for reverse-engineering.
 +
- 	mutex_lock(&hook_mutex);
- 	INIT_LIST_HEAD(&hook->list);
- 	list_add(&hook->list, &battery_hook_list);
-@@ -719,11 +728,13 @@ void battery_hook_register(struct acpi_battery_hook =
-*hook)
- 	 * its attributes.
- 	 */
- 	list_for_each_entry(battery, &acpi_battery_list, list) {
--		hook->add_battery(battery->bat);
-+		hook->ops->add_battery(battery->bat);
- 	}
- 	pr_info("new extension: %s\n", hook->name);
-
- 	mutex_unlock(&hook_mutex);
++What:		/sys/kernel/debug/dell-wmi-ddv-<wmi_device_name>/thermal_sensor_in=
+formation
++Date:		September 2022
++KernelVersion:	6.1
++Contact:	Armin Wolf <W_Armin@gmx.de>
++Description:
++		This file contains the contents of the thermal sensor information buffe=
+r,
++		which contains thermal sensor entries and a terminating character (0xFF=
+).
 +
-+	return hook;
- }
- EXPORT_SYMBOL_GPL(battery_hook_register);
-
-@@ -747,7 +758,7 @@ static void battery_hook_add_battery(struct acpi_batte=
-ry *battery)
- 	 * during the battery module initialization.
- 	 */
- 	list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
--		hook_node->add_battery(battery->bat);
-+		hook_node->ops->add_battery(battery->bat);
- 	}
- 	mutex_unlock(&hook_mutex);
- }
-@@ -762,7 +773,7 @@ static void battery_hook_remove_battery(struct acpi_ba=
-ttery *battery)
- 	 * custom attributes from the battery.
- 	 */
- 	list_for_each_entry(hook, &battery_hook_list, list) {
--		hook->remove_battery(battery->bat);
-+		hook->ops->remove_battery(battery->bat);
- 	}
- 	/* Then, just remove the battery from the list */
- 	list_del(&battery->list);
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-w=
-mi.c
-index d95170b7dba0..37d8649418f4 100644
-=2D-- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -252,8 +252,8 @@ struct asus_wmi {
- 	struct platform_profile_handler platform_profile_handler;
- 	bool platform_profile_support;
-
--	// The RSOC controls the maximum charging percentage.
--	bool battery_rsoc_available;
-+	// The RSOC battery hook controls the maximum charging percentage.
-+	struct acpi_battery_hook *hook;
-
- 	bool panel_overdrive_available;
-
-@@ -916,25 +916,22 @@ static int asus_wmi_battery_remove(struct power_supp=
-ly *battery)
- 	return 0;
- }
-
--static struct acpi_battery_hook battery_hook =3D {
-+static const struct acpi_battery_hook_ops battery_hook_ops =3D {
- 	.add_battery =3D asus_wmi_battery_add,
- 	.remove_battery =3D asus_wmi_battery_remove,
--	.name =3D "ASUS Battery Extension",
- };
-
- static void asus_wmi_battery_init(struct asus_wmi *asus)
- {
--	asus->battery_rsoc_available =3D false;
- 	if (asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_RSOC)) {
--		asus->battery_rsoc_available =3D true;
--		battery_hook_register(&battery_hook);
-+		asus->hook =3D battery_hook_register("ASUS Battery Extension", &battery=
-_hook_ops);
- 	}
- }
-
- static void asus_wmi_battery_exit(struct asus_wmi *asus)
- {
--	if (asus->battery_rsoc_available)
--		battery_hook_unregister(&battery_hook);
-+	if (!IS_ERR_OR_NULL(asus->hook))
-+		battery_hook_unregister(asus->hook);
- }
-
- /* LEDs *****************************************************************=
-******/
-diff --git a/drivers/platform/x86/huawei-wmi.c b/drivers/platform/x86/huaw=
-ei-wmi.c
-index eac3e6b4ea11..6fd02b25a97b 100644
-=2D-- a/drivers/platform/x86/huawei-wmi.c
-+++ b/drivers/platform/x86/huawei-wmi.c
-@@ -62,6 +62,7 @@ struct huawei_wmi {
- 	bool battery_available;
- 	bool fn_lock_available;
-
-+	struct acpi_battery_hook *hook;
- 	struct huawei_wmi_debug debug;
- 	struct input_dev *idev[2];
- 	struct led_classdev cdev;
-@@ -491,10 +492,9 @@ static int huawei_wmi_battery_remove(struct power_sup=
-ply *battery)
- 	return 0;
- }
-
--static struct acpi_battery_hook huawei_wmi_battery_hook =3D {
-+static const struct acpi_battery_hook_ops huawei_wmi_battery_hook_ops =3D=
- {
- 	.add_battery =3D huawei_wmi_battery_add,
- 	.remove_battery =3D huawei_wmi_battery_remove,
--	.name =3D "Huawei Battery Extension"
- };
-
- static void huawei_wmi_battery_setup(struct device *dev)
-@@ -507,7 +507,8 @@ static void huawei_wmi_battery_setup(struct device *de=
-v)
- 		return;
- 	}
-
--	battery_hook_register(&huawei_wmi_battery_hook);
-+	huawei->hook =3D battery_hook_register("Huawei Battery Extension",
-+					     &huawei_wmi_battery_hook_ops);
- 	device_create_file(dev, &dev_attr_charge_control_thresholds);
- }
-
-@@ -516,7 +517,9 @@ static void huawei_wmi_battery_exit(struct device *dev=
-)
- 	struct huawei_wmi *huawei =3D dev_get_drvdata(dev);
-
- 	if (huawei->battery_available) {
--		battery_hook_unregister(&huawei_wmi_battery_hook);
-+		if (!IS_ERR(huawei->hook))
-+			battery_hook_unregister(huawei->hook);
++		Each thermal sensor entry consists of five bytes with an unknown meanin=
+g,
++		interested people may use this file for reverse-engineering.
+diff --git a/Documentation/ABI/testing/sysfs-platform-dell-wmi-ddv b/Docum=
+entation/ABI/testing/sysfs-platform-dell-wmi-ddv
+new file mode 100644
+index 000000000000..98e0b8399d13
+=2D-- /dev/null
++++ b/Documentation/ABI/testing/sysfs-platform-dell-wmi-ddv
+@@ -0,0 +1,16 @@
++What:		/sys/class/power_supply/<battery_name>/temp
++Date:		September 2022
++KernelVersion:	6.1
++Contact:	Armin Wolf <W_Armin@gmx.de>
++Description:
++		Reports the current ACPI battery temperature on supported Dell machines=
+.
 +
- 		device_remove_file(dev, &dev_attr_charge_control_thresholds);
- 	}
- }
-diff --git a/drivers/platform/x86/lg-laptop.c b/drivers/platform/x86/lg-la=
-ptop.c
-index 332868b140ed..d8a61a07313e 100644
-=2D-- a/drivers/platform/x86/lg-laptop.c
-+++ b/drivers/platform/x86/lg-laptop.c
-@@ -73,6 +73,7 @@ static u32 inited;
- #define INIT_SPARSE_KEYMAP      0x80
-
- static int battery_limit_use_wmbb;
-+static struct acpi_battery_hook *hook;
- static struct led_classdev kbd_backlight;
- static enum led_brightness get_kbd_backlight_level(void);
-
-@@ -562,10 +563,9 @@ static int lg_battery_remove(struct power_supply *bat=
-tery)
- 	return 0;
- }
-
--static struct acpi_battery_hook battery_hook =3D {
-+static const struct acpi_battery_hook_ops battery_hook_ops =3D {
- 	.add_battery =3D lg_battery_add,
- 	.remove_battery =3D lg_battery_remove,
--	.name =3D "LG Battery Extension",
- };
-
- static struct attribute *dev_attributes[] =3D {
-@@ -750,7 +750,7 @@ static int acpi_add(struct acpi_device *device)
- 	led_classdev_register(&pf_device->dev, &tpad_led);
-
- 	wmi_input_setup();
--	battery_hook_register(&battery_hook);
-+	hook =3D battery_hook_register("LG Battery Extension", &battery_hook_ops=
-);
-
- 	return 0;
-
-@@ -768,7 +768,9 @@ static int acpi_remove(struct acpi_device *device)
- 	led_classdev_unregister(&tpad_led);
- 	led_classdev_unregister(&kbd_backlight);
-
--	battery_hook_unregister(&battery_hook);
-+	if (!IS_ERR(hook))
-+		battery_hook_unregister(hook);
++		Values are represented in 1/10 Degrees Celsius.
 +
- 	wmi_input_destroy();
- 	platform_device_unregister(pf_device);
- 	pf_device =3D NULL;
-diff --git a/drivers/platform/x86/system76_acpi.c b/drivers/platform/x86/s=
-ystem76_acpi.c
-index 958df41ad509..1ec22db32bd0 100644
-=2D-- a/drivers/platform/x86/system76_acpi.c
-+++ b/drivers/platform/x86/system76_acpi.c
-@@ -26,6 +26,7 @@
++What:		/sys/class/power_supply/<battery_name>/eppid
++Date:		September 2022
++KernelVersion:	6.1
++Contact:	Armin Wolf <W_Armin@gmx.de>
++Description:
++		Reports the Dell ePPID (electronic Dell Piece Part Identification)
++		of the ACPI battery.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6bb894ea4a77..d9fd4c9eebbc 100644
+=2D-- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5821,6 +5821,13 @@ L:	Dell.Client.Kernel@dell.com
+ S:	Maintained
+ F:	drivers/platform/x86/dell/dell-wmi-descriptor.c
 
- struct system76_data {
- 	struct acpi_device *acpi_dev;
-+	struct acpi_battery_hook *hook;
- 	struct led_classdev ap_led;
- 	struct led_classdev kb_led;
- 	enum led_brightness kb_brightness;
-@@ -272,20 +273,21 @@ static int system76_battery_remove(struct power_supp=
-ly *battery)
- 	return 0;
- }
-
--static struct acpi_battery_hook system76_battery_hook =3D {
-+static const struct acpi_battery_hook_ops system76_battery_hook_ops =3D {
- 	.add_battery =3D system76_battery_add,
- 	.remove_battery =3D system76_battery_remove,
--	.name =3D "System76 Battery Extension",
- };
-
--static void system76_battery_init(void)
-+static void system76_battery_init(struct system76_data *data)
- {
--	battery_hook_register(&system76_battery_hook);
-+	data->hook =3D battery_hook_register("System76 Battery Extension",
-+					   &system76_battery_hook_ops);
- }
-
--static void system76_battery_exit(void)
-+static void system76_battery_exit(struct system76_data *data)
- {
--	battery_hook_unregister(&system76_battery_hook);
-+	if (!IS_ERR(data->hook))
-+		battery_hook_unregister(data->hook);
- }
-
- // Get the airplane mode LED brightness
-@@ -730,7 +732,7 @@ static int system76_add(struct acpi_device *acpi_dev)
- 		if (err)
- 			goto error;
-
--		system76_battery_init();
-+		system76_battery_init(data);
- 	}
-
- 	return 0;
-@@ -751,7 +753,7 @@ static int system76_remove(struct acpi_device *acpi_de=
-v)
- 	data =3D acpi_driver_data(acpi_dev);
-
- 	if (data->has_open_ec) {
--		system76_battery_exit();
-+		system76_battery_exit(data);
- 		kfree(data->nfan);
- 		kfree(data->ntmp);
- 	}
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/t=
-hinkpad_acpi.c
-index 8fbe21ebcc52..8adafc3c31fa 100644
-=2D-- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -9407,6 +9407,7 @@ struct tpacpi_battery_data {
-
- struct tpacpi_battery_driver_data {
- 	struct tpacpi_battery_data batteries[3];
-+	struct acpi_battery_hook *hook;
- 	int individual_addressing;
- };
-
-@@ -9914,10 +9915,9 @@ static int tpacpi_battery_remove(struct power_suppl=
-y *battery)
- 	return 0;
- }
-
--static struct acpi_battery_hook battery_hook =3D {
-+static const struct acpi_battery_hook_ops battery_hook_ops =3D {
- 	.add_battery =3D tpacpi_battery_add,
- 	.remove_battery =3D tpacpi_battery_remove,
--	.name =3D "ThinkPad Battery Extension",
- };
-
- /* Subdriver init/exit */
-@@ -9943,13 +9943,16 @@ static int __init tpacpi_battery_init(struct ibm_i=
-nit_struct *ibm)
- 					battery_quirk_table,
- 					ARRAY_SIZE(battery_quirk_table));
-
--	battery_hook_register(&battery_hook);
-+	battery_info.hook =3D battery_hook_register("ThinkPad Battery Extension"=
-,
-+						  &battery_hook_ops);
++DELL WMI DDV DRIVER
++M:	Armin Wolf <W_Armin@gmx.de>
++S:	Maintained
++F:	Documentation/ABI/testing/debugfs-dell-wmi-ddv
++F:	Documentation/ABI/testing/sysfs-platform-dell-wmi-ddv
++F:	drivers/platform/x86/dell/dell-wmi-ddv.c
 +
- 	return 0;
- }
+ DELL WMI SYSMAN DRIVER
+ M:	Divya Bharathi <divya.bharathi@dell.com>
+ M:	Prasanth Ksr <prasanth.ksr@dell.com>
+diff --git a/drivers/platform/x86/dell/Kconfig b/drivers/platform/x86/dell=
+/Kconfig
+index 25421e061c47..209e63e347e2 100644
+=2D-- a/drivers/platform/x86/dell/Kconfig
++++ b/drivers/platform/x86/dell/Kconfig
+@@ -189,6 +189,19 @@ config DELL_WMI_DESCRIPTOR
+ 	default n
+ 	depends on ACPI_WMI
 
- static void tpacpi_battery_exit(void)
- {
--	battery_hook_unregister(&battery_hook);
-+	if (!IS_ERR(battery_info.hook))
-+		battery_hook_unregister(battery_info.hook);
- }
-
- static struct ibm_struct battery_driver_data =3D {
-diff --git a/include/acpi/battery.h b/include/acpi/battery.h
-index b8d56b702c7a..b3c81abada1e 100644
-=2D-- a/include/acpi/battery.h
-+++ b/include/acpi/battery.h
-@@ -10,14 +10,19 @@
- #define ACPI_BATTERY_NOTIFY_INFO	0x81
- #define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
-
--struct acpi_battery_hook {
--	const char *name;
-+struct acpi_battery_hook_ops {
- 	int (*add_battery)(struct power_supply *battery);
- 	int (*remove_battery)(struct power_supply *battery);
++config DELL_WMI_DDV
++	tristate "Dell WMI sensors Support"
++	default m
++	depends on ACPI_BATTERY
++	depends on ACPI_WMI
++	help
++	  This option adds support for WMI-based sensors like
++	  battery temperature sensors found on some Dell notebooks.
++	  It also supports reading of the batteries ePPID.
++
++	  To compile this drivers as a module, choose M here: the module will
++	  be called dell-wmi-ddv.
++
+ config DELL_WMI_LED
+ 	tristate "External LED on Dell Business Netbooks"
+ 	default m
+diff --git a/drivers/platform/x86/dell/Makefile b/drivers/platform/x86/del=
+l/Makefile
+index ddba1df71e80..1b8942426622 100644
+=2D-- a/drivers/platform/x86/dell/Makefile
++++ b/drivers/platform/x86/dell/Makefile
+@@ -19,5 +19,6 @@ dell-wmi-objs				:=3D dell-wmi-base.o
+ dell-wmi-$(CONFIG_DELL_WMI_PRIVACY)	+=3D dell-wmi-privacy.o
+ obj-$(CONFIG_DELL_WMI_AIO)		+=3D dell-wmi-aio.o
+ obj-$(CONFIG_DELL_WMI_DESCRIPTOR)	+=3D dell-wmi-descriptor.o
++obj-$(CONFIG_DELL_WMI_DDV)		+=3D dell-wmi-ddv.o
+ obj-$(CONFIG_DELL_WMI_LED)		+=3D dell-wmi-led.o
+ obj-$(CONFIG_DELL_WMI_SYSMAN)		+=3D dell-wmi-sysman/
+diff --git a/drivers/platform/x86/dell/dell-wmi-ddv.c b/drivers/platform/x=
+86/dell/dell-wmi-ddv.c
+new file mode 100644
+index 000000000000..6eef298f13eb
+=2D-- /dev/null
++++ b/drivers/platform/x86/dell/dell-wmi-ddv.c
+@@ -0,0 +1,365 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * dell-wmi-ddv.c -- Linux driver for WMI sensor information on Dell note=
+books.
++ *
++ * Copyright (C) 2022 Armin Wolf <W_Armin@gmx.de>
++ */
++
++#define pr_format(fmt) KBUILD_MODNAME ": " fmt
++
++#include <acpi/battery.h>
++#include <linux/acpi.h>
++#include <linux/debugfs.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
++#include <linux/kstrtox.h>
++#include <linux/math.h>
++#include <linux/module.h>
++#include <linux/limits.h>
++#include <linux/power_supply.h>
++#include <linux/seq_file.h>
++#include <linux/sysfs.h>
++#include <linux/wmi.h>
++
++#define DRIVER_NAME	"dell-wmi-ddv"
++
++#define DELL_DDV_SUPPORTED_INTERFACE 2
++#define DELL_DDV_GUID	"8A42EA14-4F2A-FD45-6422-0087F7A7E608"
++
++enum dell_ddv_method {
++	DELL_DDV_BATTERY_DESIGN_CAPACITY	=3D 0x01,
++	DELL_DDV_BATTERY_FULL_CHARGE_CAPACITY	=3D 0x02,
++	DELL_DDV_BATTERY_MANUFACTURE_NAME	=3D 0x03,
++	DELL_DDV_BATTERY_MANUFACTURE_DATE	=3D 0x04,
++	DELL_DDV_BATTERY_SERIAL_NUMBER		=3D 0x05,
++	DELL_DDV_BATTERY_CHEMISTRY_VALUE	=3D 0x06,
++	DELL_DDV_BATTERY_TEMPERATURE		=3D 0x07,
++	DELL_DDV_BATTERY_CURRENT		=3D 0x08,
++	DELL_DDV_BATTERY_VOLTAGE		=3D 0x09,
++	DELL_DDV_BATTERY_MANUFACTURER_ACCESS	=3D 0x0A,
++	DELL_DDV_BATTERY_RELATIVE_CHARGE_STATE	=3D 0x0B,
++	DELL_DDV_BATTERY_CYCLE_COUNT		=3D 0x0C,
++	DELL_DDV_BATTERY_EPPID			=3D 0x0D,
++	DELL_DDV_BATTERY_RAW_ANALYTICS_START	=3D 0x0E,
++	DELL_DDV_BATTERY_RAW_ANALYTICS		=3D 0x0F,
++	DELL_DDV_BATTERY_DESIGN_VOLTAGE		=3D 0x10,
++
++	DELL_DDV_INTERFACE_VERSION		=3D 0x12,
++
++	DELL_DDV_FAN_SENSOR_INFORMATION		=3D 0x20,
++	DELL_DDV_THERMAL_SENSOR_INFORMATION	=3D 0x22,
 +};
 +
-+struct acpi_battery_hook {
-+	const char *name;
-+	const struct acpi_battery_hook_ops *ops;
- 	struct list_head list;
++struct dell_wmi_ddv_data {
++	struct device_attribute temp_attr, eppid_attr;
++	struct wmi_device *wdev;
++};
++
++static int dell_wmi_ddv_query_type(struct wmi_device *wdev, enum dell_ddv=
+_method method, u32 arg,
++				   union acpi_object **result, acpi_object_type type)
++{
++	struct acpi_buffer out =3D { ACPI_ALLOCATE_BUFFER, NULL };
++	const struct acpi_buffer in =3D {
++		.length =3D sizeof(arg),
++		.pointer =3D &arg,
++	};
++	union acpi_object *obj;
++	acpi_status ret;
++
++	ret =3D wmidev_evaluate_method(wdev, 0x0, method, &in, &out);
++	if (ACPI_FAILURE(ret))
++		return -EIO;
++
++	obj =3D out.pointer;
++	if (!obj)
++		return -ENODATA;
++
++	if (obj->type !=3D type) {
++		kfree(obj);
++		return -EIO;
++	}
++
++	*result =3D obj;
++
++	return 0;
++}
++
++static int dell_wmi_ddv_query_integer(struct wmi_device *wdev, enum dell_=
+ddv_method method,
++				      u32 arg, u32 *res)
++{
++	union acpi_object *obj;
++	int ret;
++
++	ret =3D dell_wmi_ddv_query_type(wdev, method, arg, &obj, ACPI_TYPE_INTEG=
+ER);
++	if (ret < 0)
++		return ret;
++
++	if (obj->integer.value <=3D U32_MAX)
++		*res =3D (u32)obj->integer.value;
++	else
++		ret =3D -ERANGE;
++
++	kfree(obj);
++
++	return ret;
++}
++
++static int dell_wmi_ddv_query_buffer(struct wmi_device *wdev, enum dell_d=
+dv_method method,
++				     u32 arg, union acpi_object **result)
++{
++	union acpi_object *obj;
++	u64 buffer_size;
++	int ret;
++
++	ret =3D dell_wmi_ddv_query_type(wdev, method, arg, &obj, ACPI_TYPE_PACKA=
+GE);
++	if (ret < 0)
++		return ret;
++
++	if (obj->package.count !=3D 2)
++		goto err_free;
++
++	if (obj->package.elements[0].type !=3D ACPI_TYPE_INTEGER)
++		goto err_free;
++
++	buffer_size =3D obj->package.elements[0].integer.value;
++
++	if (obj->package.elements[1].type !=3D ACPI_TYPE_BUFFER)
++		goto err_free;
++
++	if (buffer_size !=3D obj->package.elements[1].buffer.length) {
++		dev_warn(&wdev->dev,
++			 FW_WARN "ACPI buffer size (%llu) does not match WMI buffer size (%d)\=
+n",
++			 buffer_size, obj->package.elements[1].buffer.length);
++
++		goto err_free;
++	}
++
++	*result =3D obj;
++
++	return 0;
++
++err_free:
++	kfree(obj);
++
++	return -EIO;
++}
++
++static int dell_wmi_ddv_query_string(struct wmi_device *wdev, enum dell_d=
+dv_method method,
++				     u32 arg, union acpi_object **result)
++{
++	return dell_wmi_ddv_query_type(wdev, method, arg, result, ACPI_TYPE_STRI=
+NG);
++}
++
++static int dell_wmi_ddv_battery_index(struct acpi_device *acpi_dev, u32 *=
+index)
++{
++	const char *uid_str =3D acpi_device_uid(acpi_dev);
++
++	if (!uid_str)
++		return -ENODEV;
++
++	return kstrtou32(uid_str, 10, index);
++}
++
++static ssize_t temp_show(struct device *dev, struct device_attribute *att=
+r, char *buf)
++{
++	struct dell_wmi_ddv_data *data =3D container_of(attr, struct dell_wmi_dd=
+v_data, temp_attr);
++	u32 index, value;
++	int ret;
++
++	ret =3D dell_wmi_ddv_battery_index(to_acpi_device(dev->parent), &index);
++	if (ret < 0)
++		return ret;
++
++	ret =3D dell_wmi_ddv_query_integer(data->wdev, DELL_DDV_BATTERY_TEMPERAT=
+URE, index, &value);
++	if (ret < 0)
++		return ret;
++
++	return sysfs_emit(buf, "%d\n", DIV_ROUND_CLOSEST(value, 10));
++}
++
++static ssize_t eppid_show(struct device *dev, struct device_attribute *at=
+tr, char *buf)
++{
++	struct dell_wmi_ddv_data *data =3D container_of(attr, struct dell_wmi_dd=
+v_data, eppid_attr);
++	union acpi_object *obj;
++	u32 index;
++	int ret;
++
++	ret =3D dell_wmi_ddv_battery_index(to_acpi_device(dev->parent), &index);
++	if (ret < 0)
++		return ret;
++
++	ret =3D dell_wmi_ddv_query_string(data->wdev, DELL_DDV_BATTERY_EPPID, in=
+dex, &obj);
++	if (ret < 0)
++		return ret;
++
++	ret =3D sysfs_emit(buf, "%s\n", obj->string.pointer);
++
++	kfree(obj);
++
++	return ret;
++}
++
++static int dell_wmi_ddv_add_battery(void *drvdata, struct power_supply *b=
+attery)
++{
++	struct dell_wmi_ddv_data *data =3D drvdata;
++	u32 index;
++	int ret;
++
++	ret =3D dell_wmi_ddv_battery_index(to_acpi_device(battery->dev.parent), =
+&index);
++	if (ret < 0)
++		return ret;
++
++	ret =3D device_create_file(&battery->dev, &data->temp_attr);
++	if (ret < 0)
++		return ret;
++
++	ret =3D device_create_file(&battery->dev, &data->eppid_attr);
++	if (ret < 0) {
++		device_remove_file(&battery->dev, &data->temp_attr);
++
++		return ret;
++	}
++
++	return 0;
++}
++
++static int dell_wmi_ddv_remove_battery(void *drvdata, struct power_supply=
+ *battery)
++{
++	struct dell_wmi_ddv_data *data =3D drvdata;
++
++	device_remove_file(&battery->dev, &data->temp_attr);
++	device_remove_file(&battery->dev, &data->eppid_attr);
++
++	return 0;
++}
++
++static const struct acpi_battery_hook_ops dell_wmi_ddv_battery_hook_ops =
+=3D {
++	.add_battery =3D dell_wmi_ddv_add_battery,
++	.remove_battery =3D dell_wmi_ddv_remove_battery,
++};
++
++static void dell_wmi_ddv_battery_remove(void *data)
++{
++	struct acpi_battery_hook *hook =3D data;
++
++	battery_hook_unregister(hook);
++}
++
++static int dell_wmi_ddv_battery_add(struct dell_wmi_ddv_data *data)
++{
++	struct acpi_battery_hook *hook;
++
++	sysfs_attr_init(&data->temp_attr.attr);
++	data->temp_attr.attr.name =3D "temp";
++	data->temp_attr.attr.mode =3D 0444;
++	data->temp_attr.show =3D temp_show;
++
++	sysfs_attr_init(&data->eppid_attr.attr);
++	data->eppid_attr.attr.name =3D "eppid";
++	data->eppid_attr.attr.mode =3D 0444;
++	data->eppid_attr.show =3D eppid_show;
++
++	hook =3D battery_hook_register("DELL Battery Extension", data,
++				     &dell_wmi_ddv_battery_hook_ops);
++	if (IS_ERR(hook))
++		return PTR_ERR(hook);
++
++	return devm_add_action_or_reset(&data->wdev->dev, dell_wmi_ddv_battery_r=
+emove, hook);
++}
++
++static int dell_wmi_ddv_buffer_read(struct seq_file *seq, enum dell_ddv_m=
+ethod method)
++{
++	struct device *dev =3D seq->private;
++	struct dell_wmi_ddv_data *data =3D dev_get_drvdata(dev);
++	union acpi_object *obj;
++	union acpi_object buf;
++	int ret;
++
++	ret =3D dell_wmi_ddv_query_buffer(data->wdev, method, 0, &obj);
++	if (ret < 0)
++		return ret;
++
++	buf =3D obj->package.elements[1];
++	ret =3D seq_write(seq, buf.buffer.pointer, buf.buffer.length);
++	kfree(obj);
++
++	return ret;
++}
++
++static int dell_wmi_ddv_fan_read(struct seq_file *seq, void *offset)
++{
++	return dell_wmi_ddv_buffer_read(seq, DELL_DDV_FAN_SENSOR_INFORMATION);
++}
++
++static int dell_wmi_ddv_temp_read(struct seq_file *seq, void *offset)
++{
++	return dell_wmi_ddv_buffer_read(seq, DELL_DDV_THERMAL_SENSOR_INFORMATION=
+);
++}
++
++static void dell_wmi_ddv_debugfs_remove(void *data)
++{
++	struct dentry *entry =3D data;
++
++	debugfs_remove(entry);
++}
++
++static void dell_wmi_ddv_debugfs_init(struct wmi_device *wdev)
++{
++	struct dentry *entry;
++	char name[64];
++
++	scnprintf(name, ARRAY_SIZE(name), "%s-%s", DRIVER_NAME, dev_name(&wdev->=
+dev));
++	entry =3D debugfs_create_dir(name, NULL);
++
++	debugfs_create_devm_seqfile(&wdev->dev, "fan_sensor_information", entry,
++				    dell_wmi_ddv_fan_read);
++	debugfs_create_devm_seqfile(&wdev->dev, "thermal_sensor_information", en=
+try,
++				    dell_wmi_ddv_temp_read);
++
++	devm_add_action_or_reset(&wdev->dev, dell_wmi_ddv_debugfs_remove, entry)=
+;
++}
++
++static int dell_wmi_ddv_probe(struct wmi_device *wdev, const void *contex=
+t)
++{
++	struct dell_wmi_ddv_data *data;
++	u32 version;
++	int ret;
++
++	ret =3D dell_wmi_ddv_query_integer(wdev, DELL_DDV_INTERFACE_VERSION, 0, =
+&version);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(&wdev->dev, "WMI interface version: %d\n", version);
++	if (version !=3D DELL_DDV_SUPPORTED_INTERFACE)
++		return -ENODEV;
++
++	data =3D devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	dev_set_drvdata(&wdev->dev, data);
++	data->wdev =3D wdev;
++
++	dell_wmi_ddv_debugfs_init(wdev);
++
++	return dell_wmi_ddv_battery_add(data);
++}
++
++static const struct wmi_device_id dell_wmi_ddv_id_table[] =3D {
++	{ DELL_DDV_GUID, NULL },
++	{ }
++};
++MODULE_DEVICE_TABLE(wmi, dell_wmi_ddv_id_table);
++
++static struct wmi_driver dell_wmi_ddv_driver =3D {
++	.driver =3D {
++		.name =3D DRIVER_NAME,
++	},
++	.id_table =3D dell_wmi_ddv_id_table,
++	.probe =3D dell_wmi_ddv_probe,
++};
++module_wmi_driver(dell_wmi_ddv_driver);
++
++MODULE_AUTHOR("Armin Wolf <W_Armin@gmx.de>");
++MODULE_DESCRIPTION("Dell WMI sensor driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index aff23309b5d3..f307d8c5c6c3 100644
+=2D-- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -108,6 +108,7 @@ MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
+ /* allow duplicate GUIDs as these device drivers use struct wmi_driver */
+ static const char * const allow_duplicates[] =3D {
+ 	"05901221-D566-11D1-B2F0-00A0C9062910",	/* wmi-bmof */
++	"8A42EA14-4F2A-FD45-6422-0087F7A7E608",	/* dell-wmi-ddv */
+ 	NULL
  };
 
--void battery_hook_register(struct acpi_battery_hook *hook);
-+struct acpi_battery_hook *battery_hook_register(const char *name,
-+						const struct acpi_battery_hook_ops *hook);
- void battery_hook_unregister(struct acpi_battery_hook *hook);
-
- #endif
 =2D-
 2.30.2
 
