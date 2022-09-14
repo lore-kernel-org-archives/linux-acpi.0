@@ -2,139 +2,100 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9136C6FA82
-	for <linux-acpi@archiver.kernel.org>; Wed, 14 Sep 2022 11:29:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42768ECAAD3
+	for <linux-acpi@archiver.kernel.org>; Wed, 14 Sep 2022 15:26:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229575AbiINL3j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 14 Sep 2022 07:29:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39120 "EHLO
+        id S229965AbiINP0y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 14 Sep 2022 11:26:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229872AbiINL3h (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2022 07:29:37 -0400
-Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1B19FEB;
-        Wed, 14 Sep 2022 04:29:36 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailout.nyi.internal (Postfix) with ESMTP id 151235C002F;
-        Wed, 14 Sep 2022 07:29:36 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute3.internal (MEProxy); Wed, 14 Sep 2022 07:29:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cerno.tech; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm2; t=1663154976; x=1663241376; bh=nQu2SC9skj
-        3zvKgRAY+OE/EsK7UjSaSgeju0QfEt0Cs=; b=sI6+pKkRrFiyWe0Di0vUI4Elub
-        WU2WZ16qg5NsAIf4cYxne5RPHmLNkNbOnTap31OE31Ikj6KyXkxyRBvzyARaAhH1
-        4WaF17Vp33VyqXlgHWVeTnX5TE8blIAtgT28busRsPYDhgksEk1HjeCc08Wvga+t
-        bskfWscIPId4Ly552s6iPRxZIfV693nUdEISY1m1C6cuM/CBHr2clsj2w6waZpUc
-        kcNd7KZM3nEz3ZczPhAysdEw9m6h8AG4IDnT16cTpd7wxRGIT51rselgZprVkbNo
-        cV2i7Zr6x+DVMwNNIE9IhKXuFhnjxru5j7vvcHFaD2a37X7XKXbzwbCoWkvw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm2; t=1663154976; x=1663241376; bh=nQu2SC9skj3zvKgRAY+OE/EsK7Uj
-        SaSgeju0QfEt0Cs=; b=tB/hgMgRkBvvDe2Larr5g2Xf2i8pcNlw8zMWLcyXqMtz
-        RB6o4uF3NQfWxsrTx4foH9n8N0buQUyc78NvdvGkG4UlhuwObb4DLW7+hBTGHLOI
-        lz+e2Q5CLfsdCvSDgB0+WnUG5qLcyw1qIvyWSVO2MWJgapsJp1mP+Gu2aPma6Ict
-        WXXqlCMcwpPIUC+xd91w/xzze6dFXsOtXBwdztItwSbghsQjRH2NPHQVRhFBnZ6q
-        dY908u0Y4DOR5UQPGpXG3/WuBqpOiYl5lrcVVme9qasVWakJqRmTomu16NE1d1XL
-        GnsoGxdlzWy+uNseiD8/XdR6ysJ9+BdoSF2XaJiEiw==
-X-ME-Sender: <xms:H7shYy-z-Sy-s0CYkYhiWGEo-Fk_sa4yzpFsShmbVmcw8NKVEim-Ow>
-    <xme:H7shYyuhl7apl0uzCWtoXaLVdsY3vIuHlVJPZVfymPsr4NqTL0cxTJskRvonuk2hn
-    j43Mbjcps8eNMsiwoQ>
-X-ME-Received: <xmr:H7shY4CZYM4ETUI7hJOe8i-3Bo9XlCMwvu1ooLO0z2Jo5DxvZAi390_OMsGo>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfeduiedggeduucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvfevuffkfhggtggujgesghdtreertddtvdenucfhrhhomhepofgrgihi
-    mhgvucftihhprghrugcuoehmrgigihhmvgestggvrhhnohdrthgvtghhqeenucggtffrrg
-    htthgvrhhnpeetfefffefgkedtfefgledugfdtjeefjedvtddtkeetieffjedvgfehheff
-    hfevudenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    hmrgigihhmvgestggvrhhnohdrthgvtghh
-X-ME-Proxy: <xmx:H7shY6fH7W_BVuQc_Pv1wOCbe0JZZwDcqIOQjR9ElV0d0XyvT8FDFA>
-    <xmx:H7shY3PQ1WXtryglSTdW3rrdTj3tpcFZXxBJFYoc6JJb0xJRVeA8nQ>
-    <xmx:H7shY0mvO9oKdlpqejxArcWaOLnY7GbsVZO4bMdJEo1YmlDQ9Owr_w>
-    <xmx:ILshY6hp7U4y67xd1z7aW61uMylQ-NOWf_PLrKUGCD3bAJEil6TFPg>
-Feedback-ID: i8771445c:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 14 Sep 2022 07:29:34 -0400 (EDT)
-Date:   Wed, 14 Sep 2022 12:29:33 +0100
-From:   Maxime Ripard <maxime@cerno.tech>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Ben Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>,
-        Lyude <lyude@redhat.com>, Daniel Dadap <ddadap@nvidia.com>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-        Xinhui <Xinhui.Pan@amd.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Lukas Wunner <lukas@wunner.de>,
-        Mark Gross <markgross@kernel.org>,
-        Andy Shevchenko <andy@kernel.org>,
-        nouveau@lists.freedesktop.org, Daniel Vetter <daniel@ffwll.ch>,
-        David Airlie <airlied@redhat.com>,
-        intel-gfx <intel-gfx@lists.freedesktop.org>,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: Re: [GIT PULL] Immutable backlight-detect-refactor branch between
- acpi, drm-* and pdx86
-Message-ID: <20220914112933.64ovljgsrv2l25rs@penduick>
-References: <261afe3d-7790-e945-adf6-a2c96c9b1eff@redhat.com>
+        with ESMTP id S230244AbiINP0t (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2022 11:26:49 -0400
+Received: from mail-qk1-x72b.google.com (mail-qk1-x72b.google.com [IPv6:2607:f8b0:4864:20::72b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE1B68053F
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Sep 2022 08:26:48 -0700 (PDT)
+Received: by mail-qk1-x72b.google.com with SMTP id 3so10733460qka.5
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Sep 2022 08:26:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=8sVnRYf4lRZtHclJFM/PYgijezwVHsVwJUa/M1F9Nfw=;
+        b=aU+pRvep+sXGVRr01+jPV7M1KGeUuIOdGm/7Imgv2e35rdbyXzmARUq1pX7NbUK31d
+         P7JnZtuwOHE1Y3V+NSrCkrjcfy/IVgYVBkLzYROVFEJ2rN4QRKzlug+IhDRBgsnblfD/
+         z6gvdEo890XqggiMeBDVIPT5KAcHLF/iLDo5o=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=8sVnRYf4lRZtHclJFM/PYgijezwVHsVwJUa/M1F9Nfw=;
+        b=qzUJ5x/no2IwwrtBpY3FGVTNi3t+szrusqcDA1QHf8HNxJV2Nd7tc5xzcXkc2/Tr7b
+         oVHM6/DBwff2ntoxpKORkqhNkVzTtyzb11KceiKcEPgSvb+rpi1HFoFC9rpokqMacp/6
+         0obOIrhj9MW63vCVp7OGChAZ+FqENtl2a3opL4JSqYu8nOevvU9FYnas0MeQ9DVkBOm5
+         TgeIyjk9KdNm4dZd1VVWgFkJyQlNRbD/hiUmgBw+i86Lq41jJng7rKiiHKFe1UtbxWcC
+         sx9Q5dfCtEEfMB0Gh1g6kwa8CsGu4kkyords+zs/W2ez+sskL4qQVNEeQHajLGuzqZ7d
+         Fcdw==
+X-Gm-Message-State: ACgBeo3qu597cUCqRxSO3fJwf46XuF7vc6rjDCyfLhElI232abA0XsOu
+        tsEEb8T+7S+CivMjyFSKQ+B8z5ZHmimT1Q==
+X-Google-Smtp-Source: AA6agR7n4xum2zgoGHnoLoWhyC0cBFnyI9aorm1ST9uFXgyiaB4tBf7SKAPUDVVlboKVbxm4Oq8N7w==
+X-Received: by 2002:a05:620a:4623:b0:6ce:59b8:a175 with SMTP id br35-20020a05620a462300b006ce59b8a175mr8651412qkb.210.1663169207493;
+        Wed, 14 Sep 2022 08:26:47 -0700 (PDT)
+Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com. [209.85.160.174])
+        by smtp.gmail.com with ESMTPSA id u13-20020a05620a430d00b006b953a7929csm2079826qko.73.2022.09.14.08.26.46
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 14 Sep 2022 08:26:47 -0700 (PDT)
+Received: by mail-qt1-f174.google.com with SMTP id j10so8610668qtv.4
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Sep 2022 08:26:46 -0700 (PDT)
+X-Received: by 2002:a02:9509:0:b0:349:b6cb:9745 with SMTP id
+ y9-20020a029509000000b00349b6cb9745mr18869971jah.281.1663168880396; Wed, 14
+ Sep 2022 08:21:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hy5cszh57lz34buf"
-Content-Disposition: inline
-In-Reply-To: <261afe3d-7790-e945-adf6-a2c96c9b1eff@redhat.com>
+References: <20220912221317.2775651-1-rrangel@chromium.org>
+ <20220912160931.v2.5.I4ff95ba7e884a486d7814ee888bf864be2ebdef4@changeid> <YyFs5q67RYR2aAy7@black.fi.intel.com>
+In-Reply-To: <YyFs5q67RYR2aAy7@black.fi.intel.com>
+From:   Raul Rangel <rrangel@chromium.org>
+Date:   Wed, 14 Sep 2022 09:21:08 -0600
+X-Gmail-Original-Message-ID: <CAHQZ30CU2-YtOfGYXJq3c=-1ttyw=hKZvViOfWGAKkxXO1C5Gw@mail.gmail.com>
+Message-ID: <CAHQZ30CU2-YtOfGYXJq3c=-1ttyw=hKZvViOfWGAKkxXO1C5Gw@mail.gmail.com>
+Subject: Re: [PATCH v2 05/13] gpiolib: acpi: Add wake_capable parameter to acpi_dev_gpio_irq_get_by
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        linux-input <linux-input@vger.kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        "jingle.wu" <jingle.wu@emc.com.tw>,
+        "Limonciello, Mario" <mario.limonciello@amd.com>,
+        Tim Van Patten <timvp@google.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Asmaa Mnebhi <asmaa@nvidia.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        "David S. Miller" <davem@davemloft.net>,
+        David Thompson <davthompson@nvidia.com>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>, Len Brown <lenb@kernel.org>,
+        Lu Wei <luwei32@huawei.com>, Paolo Abeni <pabeni@redhat.com>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Tue, Sep 13, 2022 at 11:55 PM Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+>
+> Hi,
+>
+> On Mon, Sep 12, 2022 at 04:13:09PM -0600, Raul E Rangel wrote:
+> > +int acpi_dev_gpio_irq_get_by(struct acpi_device *adev, const char *name,
+> > +                          int index, int *wake_capable)
+>
+> Here too bool.
 
---hy5cszh57lz34buf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Hans,
-
-On Mon, Sep 05, 2022 at 10:35:47AM +0200, Hans de Goede wrote:
-> Hi All,
->=20
-> Now that all patches have been reviewed/acked here is an immutable backli=
-ght-detect-refactor
-> branch with 6.0-rc1 + the v5 patch-set, for merging into the relevant (ac=
-pi, drm-* and pdx86)
-> subsystems.
->=20
-> Please pull this branch into the relevant subsystems.
->=20
-> I will merge this into the review-hans branch of the pdx86 git tree today=
- and
-> from there it will move to for-next once the builders have successfully b=
-uild-tested
-> the merge.
-
-I merged it into drm-misc-next, thanks!
-Maxime
-
---hy5cszh57lz34buf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABMIAB0WIQTXEe0+DlZaRlgM8LOIQ8rmN6G3ywUCYyG7HQAKCRCIQ8rmN6G3
-yxexAQD6R+v7rkQb0GeB4b/P6qIJ8gkrhQhlZLrmcPYoUuwldAD/fLehBZhVa7TE
-ohzG1kghzg7S8i2Op8YPG+18dMDqoTU=
-=37BB
------END PGP SIGNATURE-----
-
---hy5cszh57lz34buf--
+I've incorporated both of your suggestions. I instead added
+`acpi_dev_gpio_irq_wake_get_by` as the basic function and left
+`acpi_dev_gpio_irq_get_by` the same. THis way I don't have to update
+any of the callers.
