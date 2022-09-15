@@ -2,239 +2,148 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7709DC6FA89
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Sep 2022 15:49:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD8BECAAA1
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Sep 2022 18:23:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229528AbiIOPtI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 15 Sep 2022 11:49:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59862 "EHLO
+        id S229471AbiIOSXc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 15 Sep 2022 14:23:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229515AbiIOPtH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Sep 2022 11:49:07 -0400
-Received: from mail-io1-xd2e.google.com (mail-io1-xd2e.google.com [IPv6:2607:f8b0:4864:20::d2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DB2F45F46
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Sep 2022 08:49:06 -0700 (PDT)
-Received: by mail-io1-xd2e.google.com with SMTP id g8so12593222iob.0
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Sep 2022 08:49:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=RbcmCrt9MgNwVtS84rioFN6K+2EnzOOlimgTAZwP98I=;
-        b=ZWfyszh5ASkbDN5lS0dfsNxWt9+T9r+fI0UExDTPZRhVQuglIZnwGXd9pcrBMwT+DF
-         trkp5ZM/q57uF+azefdt/8dxoYLykqpa37Jz+ZulL03PsWodP3IVhsgjqanPo4bG8iPT
-         htWBYNR5phBWSyLHfrPJuwYCya2nS+S7SWHcg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=RbcmCrt9MgNwVtS84rioFN6K+2EnzOOlimgTAZwP98I=;
-        b=R3/lG1WW9ehWDlZhPbryqCjs+/GdtyeYi+oaL0yN6SqF7X7owGWlMIfsIjR7o0vlkv
-         C7BYAawuLP42xMRUtVrLy6jJ08ijL23KtwqMmqGXk+YG0zb5N1A7I2fAvOr4MldS6KuR
-         N0W6dxgYMTgLuyjsI0lNTLUwc3IMasoxCHABiO/9Y75NSSWciDTMgmTO0oR9Ek2gyCYZ
-         9d25+R229cPSyhyOhhODnfvKFn6rYCchgUzEd1SKmY5wU0d1gKvlz9JR1Wyn5QbO2OR+
-         LN7OtPp/qdAkswOJhdv25dzQfAl3NI7INMPzAStdDfAkgMy6TbmqaiLoRJsdSBjPmeaN
-         MT4w==
-X-Gm-Message-State: ACrzQf1TCRZOyrWQCeZWZxIvXvTrfgnyNL0q6MdRvim/L3HbE5msKjY2
-        rj/hR4otJFXVZb09AYJ8VVyIQDDy0LdfUA==
-X-Google-Smtp-Source: AMsMyM4Rb6hNosOXPB8XOTRWE26WoFFZqamoowIIt5Wmux3EW+5mn1fjHioDZHFE+fkyBUDeQG1uTg==
-X-Received: by 2002:a05:6638:3a10:b0:356:703d:2ce5 with SMTP id cn16-20020a0566383a1000b00356703d2ce5mr325917jab.112.1663256945382;
-        Thu, 15 Sep 2022 08:49:05 -0700 (PDT)
-Received: from mail-io1-f41.google.com (mail-io1-f41.google.com. [209.85.166.41])
-        by smtp.gmail.com with ESMTPSA id g6-20020a92c7c6000000b002eae6cf8898sm8019273ilk.30.2022.09.15.08.49.03
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 15 Sep 2022 08:49:04 -0700 (PDT)
-Received: by mail-io1-f41.google.com with SMTP id h194so13422630iof.4
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Sep 2022 08:49:03 -0700 (PDT)
-X-Received: by 2002:a05:6638:4110:b0:35a:6d6b:57f7 with SMTP id
- ay16-20020a056638411000b0035a6d6b57f7mr326227jab.134.1663256942370; Thu, 15
- Sep 2022 08:49:02 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220914235801.1731478-1-rrangel@chromium.org>
- <20220914155914.v3.7.I8af4282adc72eb9f247adcd03676a43893a020a6@changeid> <YyMCcNl2zU4/xEHN@black.fi.intel.com>
-In-Reply-To: <YyMCcNl2zU4/xEHN@black.fi.intel.com>
-From:   Raul Rangel <rrangel@chromium.org>
-Date:   Thu, 15 Sep 2022 09:48:50 -0600
-X-Gmail-Original-Message-ID: <CAHQZ30A2Tpst-WKj-u_rmrnV69Dby3j0+mFBKorzF4YMBySqBw@mail.gmail.com>
-Message-ID: <CAHQZ30A2Tpst-WKj-u_rmrnV69Dby3j0+mFBKorzF4YMBySqBw@mail.gmail.com>
-Subject: Re: [PATCH v3 07/13] i2c: acpi: Use ACPI wake capability bit to set wake_irq
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
-        linux-input <linux-input@vger.kernel.org>,
-        "jingle.wu" <jingle.wu@emc.com.tw>,
+        with ESMTP id S229501AbiIOSXb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Sep 2022 14:23:31 -0400
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2075.outbound.protection.outlook.com [40.107.92.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19C2C1D0;
+        Thu, 15 Sep 2022 11:23:30 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=C2/ZuSI3mnZ6DVJ4REnMbJwgDSqZdv1OhRPOEAz3ZHFLV+Wy5GknaBq9B+N9JXitAdtc1loTQdFEF3R38oe8pnmZDdVB9i5E2xIp4khSfxDYgiQJPGbcpuXkeYAa9ghNQNtmKq+uP47r9duj9/iMtJcxuvIxyrCs6yVdSdS5EHD03PWiDrPnOnZbIHRysTHAigvJ5K1YIiLvAtPz0OwuyoKs5j8hbYtBeF+GuXXiYp+EHGfacWqs+mkbLDXjRe2MuCy1az3Cqemm8ADWsOibOV1hWwipngBjMLHVnw3vlwGRSb5MT0xR3uLekNqC3pnpW0Rpq9ebkiiw+9QOM5WuCQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=b45p/arZe3QwMBsG0aylw02+MUnkRzkTnZVNSRYZ0tY=;
+ b=inLg82uogtoUM9u02iXZ/ukfqTOvXPMVqqS73oJ8VpY1wIoxAmeZsjGJd8uDp4F2W0hYa8/V3uXQmBJEHsxUppGQ93NJ1OR/zM2z2NXJ+t0WaqS7GjdXDbPM0BwR6QWV7yQKMyB39dn87w06md7V9SrCSWzzYygk4wifLxZQ9Nv1VeN8MYSPq+ym2r00aOt0IFJwYTg9OZnbvED4BF5pogoMWQioPHsFoCw9CH7JVbqK0TUSbXj4in71iiPXSCxUccPLdZ+eUdjATksor1ARqH8yUA4VDq01N28jFfevs27tlQNSFCOaahcY0UC7l4PW8Jv2VfKKUUHN7ZpXzvtCBA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=b45p/arZe3QwMBsG0aylw02+MUnkRzkTnZVNSRYZ0tY=;
+ b=x57ElTVQMKOpOfvGA5+tYVe9EkE8mFMzRk7O0K7rEpKecXNJHxXg6fPabgEk9JJMas63mtLyvJfZLbrMPLVGcyEYWQge3dtxZDqMclKzV9131Zvtmv8HfX1EPz0X4WXGHQaA+Abn0YGvGZbEMwDfXPaNPO7kUHg7e+GDg0Wd22U=
+Received: from MW4PR03CA0164.namprd03.prod.outlook.com (2603:10b6:303:8d::19)
+ by SJ0PR12MB6927.namprd12.prod.outlook.com (2603:10b6:a03:483::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5612.20; Thu, 15 Sep
+ 2022 18:23:28 +0000
+Received: from CO1NAM11FT091.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:8d:cafe::d6) by MW4PR03CA0164.outlook.office365.com
+ (2603:10b6:303:8d::19) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.15 via Frontend
+ Transport; Thu, 15 Sep 2022 18:23:27 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CO1NAM11FT091.mail.protection.outlook.com (10.13.175.146) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5632.12 via Frontend Transport; Thu, 15 Sep 2022 18:23:27 +0000
+Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 15 Sep
+ 2022 13:23:26 -0500
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     <mario.limonciello@amd.com>, <linux-kernel@vger.kernel.org>
+CC:     Hans de Goede <hdegoede@redhat.com>,
+        Luya Tshimbalanga <luya@fedoraproject.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "Limonciello, Mario" <mario.limonciello@amd.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Tim Van Patten <timvp@google.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Wolfram Sang <wsa@kernel.org>,
-        "open list:I2C SUBSYSTEM HOST DRIVERS" <linux-i2c@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Len Brown <lenb@kernel.org>, <linux-acpi@vger.kernel.org>
+Subject: [PATCH] ACPI / x86: Add a quirk for Dell Inspiron 14 2-in-1 for StorageD3Enable
+Date:   Thu, 15 Sep 2022 13:23:14 -0500
+Message-ID: <20220915182315.276-1-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1NAM11FT091:EE_|SJ0PR12MB6927:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7f2b3373-c0bb-4801-dace-08da97476299
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: hWkxrLM1SmX0sDDSpROshjdFpw1AfUSvhKkGhmNXAYzdwz0pTJsb1bmgHVmsN+MjDkYSBo1GTFN8vCxugBw1LY5eEuv8A/aDSSinrNDrb86hJnpDtMD4p7n+DL1+FsFWXYmi6zPV5zscJM9QrWuN09iYnfrjc7uHMahRRA+mB/41lcLh/J8Aq8phBvFVcxSXp747F0K/OMgPdyOJ+myxdCFtPrzerVpx1L0tFjJZ4GdCbbgobTkiQ+6a22CImpHjNCIzxlhB8a4zxrutHIh59Uu5vopEzGF1sgfDynJxqgYH3bWDNgEaFAieqqdX/YyVEVXjihB0S6Q1EHJRYebky7kRWYIlRksWqg4nRBTfvPhJP0bgXL3LUms6rSDKMedmMSFpx6yj1o1sfsIABp+EXGAs8JH0GZgODTqhq3c9Nu4YW5D9ak69JziFWEabNrgS/Cmj88teMup1UEgRp+X9wpglxDjolvFnt78p4okBWFXeD2JfFJazG5VKS8YKetSjk1AvJrkMbpTe94X0GVZpDfSzihmzXtEAI5p+Tm6mdDsbSQGOQEcHESTlytLKTL1gR5bzFIbeENlMggz8p05X3uoXkWtxbl6b/zdNqt0hDYv0ghn6GB8OFQv/w8YOB0yaMY6/2ACpsZwKo089akcmDlzCzrwdyv9WaLHioSm4nx68U6YntISTENcfcVPiQJkX4Cmnh34cMNi7w0PC4srfo94lJS0TuQGF1ubs5vis4VrAa9Gx/y/INj2RP6SE1kgbBKYdIN1IwRt7YsH9685gWcFGgTPYas3+sT/x7LOTKzG1GqKWzx50QGOFn6ZpXc1s2LdIqHtzy85q3PqfWh4kvw==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(136003)(346002)(39860400002)(396003)(451199015)(40470700004)(36840700001)(46966006)(26005)(41300700001)(7696005)(6666004)(44832011)(5660300002)(186003)(40460700003)(82740400003)(86362001)(4326008)(81166007)(2906002)(426003)(16526019)(36756003)(478600001)(336012)(83380400001)(54906003)(1076003)(8676002)(966005)(47076005)(82310400005)(70206006)(2616005)(8936002)(70586007)(356005)(40480700001)(110136005)(36860700001)(316002)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Sep 2022 18:23:27.7194
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7f2b3373-c0bb-4801-dace-08da97476299
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT091.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6927
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Sep 15, 2022 at 4:46 AM Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
->
-> On Wed, Sep 14, 2022 at 05:57:55PM -0600, Raul E Rangel wrote:
-> > Device tree already has a mechanism to pass the wake_irq. It does this
-> > by looking for the wakeup-source property and setting the
-> > I2C_CLIENT_WAKE flag. This CL adds the ACPI equivalent. It uses the
-> > ACPI interrupt wake flag to determine if the interrupt can be used to
-> > wake the system. Previously the i2c drivers had to make assumptions and
-> > blindly enable the wake IRQ. This can cause spurious wake events. e.g.,
-> > If there is a device with an Active Low interrupt and the device gets
-> > powered off while suspending, the interrupt line will go low since it's
-> > no longer powered and wakes the system. For this reason we should
-> > respect the board designers wishes and honor the wake bit defined on the
-> > interrupt.
-> >
-> > Signed-off-by: Raul E Rangel <rrangel@chromium.org>
-> > ---
-> >
-> > Changes in v3:
-> > - Convert wake_capable to bool
-> > - Only update wake_capable pointer once
-> > - Move wake_capable local into local block
-> >
-> > Changes in v2:
-> > - Look at wake_cabple bit for IRQ/Interrupt resources
-> >
-> >  drivers/i2c/i2c-core-acpi.c | 33 ++++++++++++++++++++++++---------
-> >  drivers/i2c/i2c-core-base.c |  8 +++++++-
-> >  drivers/i2c/i2c-core.h      |  4 ++--
-> >  3 files changed, 33 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> > index c762a879c4cc6b..b3d68a9659ff4f 100644
-> > --- a/drivers/i2c/i2c-core-acpi.c
-> > +++ b/drivers/i2c/i2c-core-acpi.c
-> > @@ -137,6 +137,11 @@ static const struct acpi_device_id i2c_acpi_ignored_device_ids[] = {
-> >       {}
-> >  };
-> >
-> > +struct i2c_acpi_irq_context {
-> > +     int irq;
-> > +     bool wake_capable;
-> > +};
-> > +
-> >  static int i2c_acpi_do_lookup(struct acpi_device *adev,
-> >                             struct i2c_acpi_lookup *lookup)
-> >  {
-> > @@ -170,11 +175,14 @@ static int i2c_acpi_do_lookup(struct acpi_device *adev,
-> >
-> >  static int i2c_acpi_add_resource(struct acpi_resource *ares, void *data)
-> >  {
-> > -     int *irq = data;
-> > +     struct i2c_acpi_irq_context *irq_ctx = data;
-> >       struct resource r;
-> >
+Dell Inspiron 14 2-in-1 has two ACPI nodes under GPP1 both with _ADR of
+0, both without _HID.  It's ambiguous which the kernel should take, but
+it seems to take "DEV0".  Unfortunately "DEV0" is missing the device
+property `StorageD3Enable` which is present on "NVME".
 
-> > -     if (*irq <= 0 && acpi_dev_resource_interrupt(ares, 0, &r))
-> > -             *irq = i2c_dev_irq_from_resources(&r, 1);
-> > +     if (irq_ctx->irq <= 0 && acpi_dev_resource_interrupt(ares, 0, &r)) {
-> > +             irq_ctx->irq = i2c_dev_irq_from_resources(&r, 1);
-> > +             irq_ctx->wake_capable =
-> > +                     !!(r.flags & IORESOURCE_IRQ_WAKECAPABLE);
->
-> You don't need the !!() here. Just
->
->                 irq_ctx->wake_capable = r.flags & IORESOURCE_IRQ_WAKECAPABLE;
->
-You know, I learned something new today! I was concerned about this
-setting `wake_capable` to something that wasn't 0 or 1, but apparently
-this is handled by the compiler!
+To avoid this causing problems for suspend, add a quirk for this system
+to behave like `StorageD3Enable` property was found.
 
-http://port70.net/~nsz/c/c11/n1570.html#6.3.1.2
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=216440
+Reported-and-tested-by: Luya Tshimbalanga <luya@fedoraproject.org>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+I had attempted to modify the heuristics for when two ACPI devices
+have the same _ADR to prefer the one with a _DSD, but this wasn't enough
+of a help. As the ACPI node doesn't contain anything valuable besides
+the _DSD, it seems that a quirk for the system is a fine enough solution.
 
-> 6.3.1.2 Boolean type
-> When any scalar value is converted to _Bool, the result is 0 if the value compares equal to 0; otherwise, the result is 1.
+ drivers/acpi/x86/utils.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-Whoah!
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index 664070fc8349..d7cdd8406c84 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -207,9 +207,26 @@ static const struct x86_cpu_id storage_d3_cpu_ids[] = {
+ 	{}
+ };
+ 
++static const struct dmi_system_id force_storage_d3_dmi[] = {
++	{
++		/*
++		 * _ADR is ambiguous between GPP1.DEV0 and GPP1.NVME
++		 * but .NVME is needed to get StorageD3Enable node
++		 * https://bugzilla.kernel.org/show_bug.cgi?id=216440
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 14 7425 2-in-1"),
++		}
++	},
++	{}
++};
++
+ bool force_storage_d3(void)
+ {
+-	return x86_match_cpu(storage_d3_cpu_ids);
++	const struct dmi_system_id *dmi_id = dmi_first_match(force_storage_d3_dmi);
++
++	return dmi_id || x86_match_cpu(storage_d3_cpu_ids);
+ }
+ 
+ /*
+-- 
+2.34.1
 
-> > +     }
-> >
-> >       return 1; /* No need to add resource to the list */
-> >  }
-> > @@ -182,31 +190,38 @@ static int i2c_acpi_add_resource(struct acpi_resource *ares, void *data)
-> >  /**
-> >   * i2c_acpi_get_irq - get device IRQ number from ACPI
-> >   * @client: Pointer to the I2C client device
-> > + * @wake_capable: Set to true if the IRQ is wake capable
-> >   *
-> >   * Find the IRQ number used by a specific client device.
-> >   *
-> >   * Return: The IRQ number or an error code.
-> >   */
-> > -int i2c_acpi_get_irq(struct i2c_client *client)
-> > +int i2c_acpi_get_irq(struct i2c_client *client, bool *wake_capable)
-> >  {
-> >       struct acpi_device *adev = ACPI_COMPANION(&client->dev);
-> >       struct list_head resource_list;
-> > -     int irq = -ENOENT;
-> > +     struct i2c_acpi_irq_context irq_ctx = {
-> > +             .irq = -ENOENT,
-> > +     };
-> >       int ret;
-> >
-> >       INIT_LIST_HEAD(&resource_list);
-> >
-> >       ret = acpi_dev_get_resources(adev, &resource_list,
-> > -                                  i2c_acpi_add_resource, &irq);
-> > +                                  i2c_acpi_add_resource, &irq_ctx);
-> >       if (ret < 0)
-> >               return ret;
-> >
-> >       acpi_dev_free_resource_list(&resource_list);
-> >
-> > -     if (irq == -ENOENT)
-> > -             irq = acpi_dev_gpio_irq_get(adev, 0);
-> > +     if (irq_ctx.irq == -ENOENT)
-> > +             irq_ctx.irq = acpi_dev_gpio_irq_wake_get(adev, 0,
-> > +                                                      &irq_ctx.wake_capable);
-> > +
-> > +     if (wake_capable)
-> > +             *wake_capable = irq_ctx.wake_capable;
-> >
-> > -     return irq;
-> > +     return irq_ctx.irq;
-> >  }
-> >
-> >  static int i2c_acpi_get_info(struct acpi_device *adev,
-> > diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> > index 91007558bcb260..c4debd46c6340f 100644
-> > --- a/drivers/i2c/i2c-core-base.c
-> > +++ b/drivers/i2c/i2c-core-base.c
-> > @@ -487,8 +487,14 @@ static int i2c_device_probe(struct device *dev)
-> >                       if (irq == -EINVAL || irq == -ENODATA)
-> >                               irq = of_irq_get(dev->of_node, 0);
-> >               } else if (ACPI_COMPANION(dev)) {
-> > -                     irq = i2c_acpi_get_irq(client);
-> > +                     bool wake_capable;
-> > +
-> > +                     irq = i2c_acpi_get_irq(client, &wake_capable);
-> > +
->
-> Drop the empty line here.
-Done
-
->
-> > +                     if (irq > 0 && wake_capable)
-> > +                             client->flags |= I2C_CLIENT_WAKE;
-> >               }
-> > +
->
-> Unrelated whitespace change.
-Done
-
->
-> With those fixed feel free to add,
->
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-Added, thanks!
