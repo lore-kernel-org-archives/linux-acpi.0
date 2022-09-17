@@ -2,74 +2,115 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4DEBECAAD3
-	for <linux-acpi@archiver.kernel.org>; Sat, 17 Sep 2022 10:01:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9A54ECAAD3
+	for <linux-acpi@archiver.kernel.org>; Sat, 17 Sep 2022 10:39:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229454AbiIQKB0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 17 Sep 2022 06:01:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51602 "EHLO
+        id S229669AbiIQKjn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 17 Sep 2022 06:39:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229487AbiIQKBY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Sep 2022 06:01:24 -0400
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51975356DF
-        for <linux-acpi@vger.kernel.org>; Sat, 17 Sep 2022 03:01:22 -0700 (PDT)
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.55])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4MV5xv1J6yzHnVp;
-        Sat, 17 Sep 2022 17:59:15 +0800 (CST)
-Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Sat, 17 Sep 2022 18:01:20 +0800
-Received: from linux-ibm.site (10.175.102.37) by
- dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Sat, 17 Sep 2022 18:01:20 +0800
-From:   Hanjun Guo <guohanjun@huawei.com>
-To:     <linux-acpi@vger.kernel.org>
-CC:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH] ACPI: AC: Remove the leftover struct acpi_ac_bl
-Date:   Sat, 17 Sep 2022 17:45:09 +0800
-Message-ID: <1663407909-17686-1-git-send-email-guohanjun@huawei.com>
-X-Mailer: git-send-email 1.7.12.4
+        with ESMTP id S229450AbiIQKjb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Sep 2022 06:39:31 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7BCB2DC
+        for <linux-acpi@vger.kernel.org>; Sat, 17 Sep 2022 03:39:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1663411168;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Js+pDsDZVgZBmTabvM6o9xVyy1VsRkAd5kz24EsL8CI=;
+        b=NqVEPPfhEphsn898RhWjPzWYJ/I6lH/rQT94PkqeweWCiYWnikLEG03f3+XMQK10DDoKne
+        kVhgIS+RbA6z/7qNuZpldVlSkpL/eOeSGjdj3IkahUxO0KWVXtA64GVBFlJwAdhKSxEyAQ
+        JpJg/CYNhQOZhZBhFVumQ0KYb7Q9Iqo=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-79-SM7qlNnfMfWHoy0723E3aw-1; Sat, 17 Sep 2022 06:39:24 -0400
+X-MC-Unique: SM7qlNnfMfWHoy0723E3aw-1
+Received: by mail-ed1-f70.google.com with SMTP id z13-20020a05640240cd00b0045276a79364so9212888edb.2
+        for <linux-acpi@vger.kernel.org>; Sat, 17 Sep 2022 03:39:24 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date;
+        bh=Js+pDsDZVgZBmTabvM6o9xVyy1VsRkAd5kz24EsL8CI=;
+        b=ht2IN5RNT9Pm1D051aGhUqWIu1mCwWbrboa45IWpOxeeYk/YA5lBZRckPjI1koP1kW
+         t76cEU+H1hSq40N/qffweljcYMXOw34c4INgc6IXsIKL0/8u77P1UJiONGpvLBhVW8nG
+         cNoG9BDeWh80bTcWMrtgjLhSlzexa8rpj6zehdkUfWLfIQZ82RXEGOZqsNH3gTyVtuSC
+         Ko7Cfz2uEa8r8jWbDFE+y6T1YGD/KE2vO0ydV0kb22PZ9ckUuwIx6sajUXncPpro3QEW
+         SFhxmXqjOZ+ftK+Myziu6+t0JVrtxykohU8H4/xMlRLkfXk9c0FsA32y15qmvxSz7qfe
+         gVYg==
+X-Gm-Message-State: ACrzQf33xoGLMECrEV4yowbFnMxfLPFxWTA64rBw0cA73fEqPGmI2kE0
+        Pn1MM6y8Fr1F9frxtfMX6B1zIWfdT60/Y4EJNwyQIxJ1ACaePXwo8TgW7F8mSB+ZUKkBMSmViN7
+        ZSZtdOubk+tP9ohIGkrBwwA==
+X-Received: by 2002:a17:906:4fce:b0:780:e1d8:eacc with SMTP id i14-20020a1709064fce00b00780e1d8eaccmr1479895ejw.366.1663411163399;
+        Sat, 17 Sep 2022 03:39:23 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM5TqQPPEh5xLUYL6dFxx+u0rLERe2nCIyTVyV3eMraf0YrShDD/joxP33xpx9uWiydaFx/zmw==
+X-Received: by 2002:a17:906:4fce:b0:780:e1d8:eacc with SMTP id i14-20020a1709064fce00b00780e1d8eaccmr1479887ejw.366.1663411163188;
+        Sat, 17 Sep 2022 03:39:23 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c1e:bf00:d69d:5353:dba5:ee81? (2001-1c00-0c1e-bf00-d69d-5353-dba5-ee81.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:d69d:5353:dba5:ee81])
+        by smtp.gmail.com with ESMTPSA id g22-20020a170906539600b0072f4f4dc038sm11826690ejo.42.2022.09.17.03.39.22
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 17 Sep 2022 03:39:22 -0700 (PDT)
+Message-ID: <7b421d09-eacb-de83-4218-3c3757b004ff@redhat.com>
+Date:   Sat, 17 Sep 2022 12:39:22 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.102.37]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- dggpemm500002.china.huawei.com (7.185.36.229)
-X-CFilter-Loop: Reflected
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.1
+Subject: Re: [PATCH] ACPI: AC: Remove the leftover struct acpi_ac_bl
+Content-Language: en-US
+To:     Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>
+References: <1663407909-17686-1-git-send-email-guohanjun@huawei.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <1663407909-17686-1-git-send-email-guohanjun@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In commit 57a183222271 ("ACPI / x86: Introduce an
-acpi_quirk_skip_acpi_ac_and_battery() helper"), the usage of struct
-acpi_ac_bl was removed, but left the definition of the struct in
-the file, so remove the useless code.
+Hi,
 
-Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
----
- drivers/acpi/ac.c | 5 -----
- 1 file changed, 5 deletions(-)
+On 9/17/22 11:45, Hanjun Guo wrote:
+> In commit 57a183222271 ("ACPI / x86: Introduce an
+> acpi_quirk_skip_acpi_ac_and_battery() helper"), the usage of struct
+> acpi_ac_bl was removed, but left the definition of the struct in
+> the file, so remove the useless code.
+> 
+> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index c29e41b..bb9fe79 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -36,11 +36,6 @@
- static int acpi_ac_remove(struct acpi_device *device);
- static void acpi_ac_notify(struct acpi_device *device, u32 event);
- 
--struct acpi_ac_bl {
--	const char *hid;
--	int hrv;
--};
--
- static const struct acpi_device_id ac_device_ids[] = {
- 	{"ACPI0003", 0},
- 	{"", 0},
--- 
-1.7.12.4
+Good catch, thanks. Patch looks good to me:
+
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+
+Regards,
+
+Hans
+
+
+
+> ---
+>  drivers/acpi/ac.c | 5 -----
+>  1 file changed, 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+> index c29e41b..bb9fe79 100644
+> --- a/drivers/acpi/ac.c
+> +++ b/drivers/acpi/ac.c
+> @@ -36,11 +36,6 @@
+>  static int acpi_ac_remove(struct acpi_device *device);
+>  static void acpi_ac_notify(struct acpi_device *device, u32 event);
+>  
+> -struct acpi_ac_bl {
+> -	const char *hid;
+> -	int hrv;
+> -};
+> -
+>  static const struct acpi_device_id ac_device_ids[] = {
+>  	{"ACPI0003", 0},
+>  	{"", 0},
 
