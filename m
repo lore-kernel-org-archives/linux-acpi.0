@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93BBAC6FD32
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8522C6FD2D
 	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 10:21:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231574AbiISKVH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Sep 2022 06:21:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49874 "EHLO
+        id S231585AbiISKVL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:21:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230421AbiISKRp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:17:45 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72F1922B20;
-        Mon, 19 Sep 2022 03:17:41 -0700 (PDT)
+        with ESMTP id S229548AbiISKSK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:18:10 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6432512771;
+        Mon, 19 Sep 2022 03:17:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=DdEsMVUZF4If17doP56YIzy8DGEaYRA+HGcY5bau4R0=; b=jqHZgeFh3oCBgwT003zG9s2gjC
-        NezJyvyixinM4ERqxFhZtUISrOXW8i6MLLnuICKomLr7AbtR8v72zY+8bw/cWPW2/QvND6Rwx4Q2d
-        qjrqewLEupnsgcJ14d1u/q+BvBv5v8kX/h8JBR56A5BEetgbXcPWarCexJ78cxzK5gZJYUDUAEoOT
-        vM8X10xsA7/NNWmxGL3307kKYqIC1woYOcW8+VSoI+sRpSxqk/Ew8xBvTA93sr8w9fFjmdHB/anNI
-        DljTLjNK/qwU3GgRskIhPhKOq40gbXaYpXRYIxmcmMo7792McGRuHm+laihmXnhk0bIFOHTEjtfMi
-        BBIavKFA==;
+        bh=eYoUngVW9N27gIhULqYrRlt6uLJ7xBInAkMSAu6ULjk=; b=de8Ma0kUSLlpu9C7wjE0bKPqy1
+        XqEba5xqAdofgaCeD0EFCPxSUEaRkRAgjFRoMbIx4M+0V7wELbCLKeeVFFR0wNlrjHcnZLWYJm55P
+        uRlK2Rz4vnFy1/0aTyn+FOGPA/EXvq6yKYe+ohaePZigZebYiKMThVgpdgc1+u2ub8r4dPxRVK1EA
+        5Ok1zD5hXm3rRTBSE5/gkRLvygHpwJU/wMSK1zI3fqkjUwc9f5XPvzXZPztAW13/NBa8Gn7dLmhTK
+        q3ZFBBXJe9nl7eLEaYOqUMINiavDDs9axbwozKmP3uMv4s17DeRlgnYwLmlsISEW7FTsgverVouPZ
+        qawYKoxw==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oaDq5-004b7h-H1; Mon, 19 Sep 2022 10:17:21 +0000
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1oaDq8-00E2C6-MU; Mon, 19 Sep 2022 10:17:25 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 122E8302EF6;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id A4D7A302F8B;
         Mon, 19 Sep 2022 12:16:25 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 251012BA7B0F1; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
-Message-ID: <20220919101521.543128460@infradead.org>
+        id ABA4E2BAC75B6; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
+Message-ID: <20220919101523.244550344@infradead.org>
 User-Agent: quilt/0.66
-Date:   Mon, 19 Sep 2022 11:59:57 +0200
+Date:   Mon, 19 Sep 2022 12:00:22 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -99,7 +99,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v2 18/44] cpuidle,intel_idle: Fix CPUIDLE_FLAG_IRQ_ENABLE *again*
+Subject: [PATCH v2 43/44] sched: Always inline __this_cpu_preempt_check()
 References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,42 +107,33 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-  vmlinux.o: warning: objtool: intel_idle_irq+0x10c: call to trace_hardirqs_off() leaves .noinstr.text section
+vmlinux.o: warning: objtool: in_entry_stack+0x9: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: default_do_nmi+0x10: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: fpu_idle_fpregs+0x41: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: kvm_read_and_reset_apf_flags+0x1: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: lockdep_hardirqs_on+0xb0: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: lockdep_hardirqs_off+0xae: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: irqentry_nmi_enter+0x69: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: irqentry_nmi_exit+0x32: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0x9: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_idle_enter+0x43: call to __this_cpu_preempt_check() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_idle_enter_s2idle+0x45: call to __this_cpu_preempt_check() leaves .noinstr.text section
 
-As per commit 32d4fd5751ea ("cpuidle,intel_idle: Fix
-CPUIDLE_FLAG_IRQ_ENABLE"):
-
-  "must not have tracing in idle functions"
-
-Clearly people can't read and tinker along until splat dissapears.
-This straight up reverts commit d295ad34f236 ("intel_idle: Fix false
-positive RCU splats due to incorrect hardirqs state").
-
-It doesn't re-introduce the problem because preceding patches fixed it
-properly.
-
-Fixes: d295ad34f236 ("intel_idle: Fix false positive RCU splats due to incorrect hardirqs state")
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- drivers/idle/intel_idle.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ include/linux/percpu-defs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -168,13 +168,7 @@ static __cpuidle int intel_idle_irq(stru
+--- a/include/linux/percpu-defs.h
++++ b/include/linux/percpu-defs.h
+@@ -310,7 +310,7 @@ extern void __bad_size_call_parameter(vo
+ #ifdef CONFIG_DEBUG_PREEMPT
+ extern void __this_cpu_preempt_check(const char *op);
+ #else
+-static inline void __this_cpu_preempt_check(const char *op) { }
++static __always_inline void __this_cpu_preempt_check(const char *op) { }
+ #endif
  
- 	raw_local_irq_enable();
- 	ret = __intel_idle(dev, drv, index);
--
--	/*
--	 * The lockdep hardirqs state may be changed to 'on' with timer
--	 * tick interrupt followed by __do_softirq(). Use local_irq_disable()
--	 * to keep the hardirqs state correct.
--	 */
--	local_irq_disable();
-+	raw_local_irq_disable();
- 
- 	return ret;
- }
+ #define __pcpu_size_call_return(stem, variable)				\
 
 
