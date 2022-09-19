@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9E25C6FA9C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08B41C6FD18
 	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 10:21:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231627AbiISKV3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Sep 2022 06:21:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50070 "EHLO
+        id S231633AbiISKVa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:21:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230463AbiISKSK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:18:10 -0400
+        with ESMTP id S231190AbiISKTL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:19:11 -0400
 Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B34823BC7;
-        Mon, 19 Sep 2022 03:17:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 748CA2408B;
+        Mon, 19 Sep 2022 03:17:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=rkOK81skpZJ6vGDiywjg6par8UEvxeO3DasZhSxIJok=; b=cAtb8qUkHNlc5NRJ9JhqfpYpkn
-        vuGqBiBbBfBDjT2LpWfT687vM9h60iKW1aFAzXLhiA55bEnFFazjOCOZ2LysiecNhReuLF7QGNGpm
-        bzlj5HhCACK1SPU9CGBmX0kVTQxmSOgA2VEHrUS5Zw0AWdTeCjOVaZgBAFczN3aAogfzhug/dGmAa
-        TuYKGdlO4Bb9tZNMzEoEouJaWwKcP8yxVH/TIXCLPgfyPJnI9nMLJwB6LaKCKaliv9Au2vUMIrdV6
-        XeVwgwhuo6jK3GAqFqvfOIumRDVFnEjf6RD+aYYchbD6DtuvbFxNOd3LvzzaJc4svxhha3MC/xoUW
-        Q9y4Oczg==;
+        bh=/I1E7kMyDvpkyM4o9FUteLnfSJJBslYUHIxNSMQuhnw=; b=M5fXrpQMm74qN+ZxFtzbh1Nxuj
+        gxW6Jsl3eXTWjImW7L9CNnsIoeU5+5RheU0dcFsG4vTcX/t5SP6E6kfeSLiE7hP20/uLiAHZZSH4H
+        xUhX69A69T27XUaMRj1IBP9kx2do31XzYREzRBrxcU4aiK9DqEjwWt8loCRv204w+AGxcnkOVUHsS
+        NIHGHmNUNbj6+tYTokI3bjDGNSORFpNvzwp3qAJ8t4y2mmty2xJB0/W6eb+UuP84dH1hJ+zHKHWlz
+        p6pwwVbLTvMMLzMPNVYW9tWm8CiRnjdhqNBGDXpuFktmvXMautyHxOBsJ1IuaDgb3AlrYOldZSzS3
+        OtEatbew==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oaDq6-00E2Bj-NA; Mon, 19 Sep 2022 10:17:23 +0000
+        id 1oaDq3-00E2Ao-GJ; Mon, 19 Sep 2022 10:17:20 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 75FA0302F5E;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 1F224302F15;
         Mon, 19 Sep 2022 12:16:25 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 822FD2BAC75B3; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
-Message-ID: <20220919101522.707997632@infradead.org>
+        id 3E8432BABB0C8; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
+Message-ID: <20220919101521.813876881@infradead.org>
 User-Agent: quilt/0.66
-Date:   Mon, 19 Sep 2022 12:00:14 +0200
+Date:   Mon, 19 Sep 2022 12:00:01 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -99,7 +99,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v2 35/44] cpuidle,omap3: Push RCU-idle into omap_sram_idle()
+Subject: [PATCH v2 22/44] x86/tdx: Remove TDX_HCALL_ISSUE_STI
 References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,91 +107,108 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-OMAP3 uses full SoC suspend modes as idle states, as such it needs the
-whole power-domain and clock-domain code from the idle path.
+Now that arch_cpu_idle() is expected to return with IRQs disabled,
+avoid the useless STI/CLI dance.
 
-All that code is not suitable to run with RCU disabled, as such push
-RCU-idle deeper still.
+Per the specs this is supposed to work, but nobody has yet relied up
+this behaviour so broken implementations are possible.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    4 +---
- arch/arm/mach-omap2/pm.h          |    2 +-
- arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++++--
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ arch/x86/coco/tdx/tdcall.S        |   13 -------------
+ arch/x86/coco/tdx/tdx.c           |   23 ++++-------------------
+ arch/x86/include/asm/shared/tdx.h |    1 -
+ 3 files changed, 4 insertions(+), 33 deletions(-)
 
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -133,9 +133,7 @@ static int omap3_enter_idle(struct cpuid
- 	}
+--- a/arch/x86/coco/tdx/tdcall.S
++++ b/arch/x86/coco/tdx/tdcall.S
+@@ -139,19 +139,6 @@ SYM_FUNC_START(__tdx_hypercall)
  
- 	/* Execute ARM wfi */
--	ct_cpuidle_enter();
--	omap_sram_idle();
--	ct_cpuidle_exit();
-+	omap_sram_idle(true);
+ 	movl $TDVMCALL_EXPOSE_REGS_MASK, %ecx
+ 
+-	/*
+-	 * For the idle loop STI needs to be called directly before the TDCALL
+-	 * that enters idle (EXIT_REASON_HLT case). STI instruction enables
+-	 * interrupts only one instruction later. If there is a window between
+-	 * STI and the instruction that emulates the HALT state, there is a
+-	 * chance for interrupts to happen in this window, which can delay the
+-	 * HLT operation indefinitely. Since this is the not the desired
+-	 * result, conditionally call STI before TDCALL.
+-	 */
+-	testq $TDX_HCALL_ISSUE_STI, %rsi
+-	jz .Lskip_sti
+-	sti
+-.Lskip_sti:
+ 	tdcall
  
  	/*
- 	 * Call idle CPU PM enter notifier chain to restore
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -29,7 +29,7 @@ static inline int omap4_idle_init(void)
- 
- extern void *omap3_secure_ram_storage;
- extern void omap3_pm_off_mode_enable(int);
--extern void omap_sram_idle(void);
-+extern void omap_sram_idle(bool rcuidle);
- extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
- 
- #if defined(CONFIG_PM_OPP)
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/cpuidle.h>
- 
- #include <trace/events/power.h>
- 
-@@ -174,7 +175,7 @@ static int omap34xx_do_sram_idle(unsigne
- 	return 0;
+--- a/arch/x86/coco/tdx/tdx.c
++++ b/arch/x86/coco/tdx/tdx.c
+@@ -169,7 +169,7 @@ static int ve_instr_len(struct ve_info *
+ 	}
  }
  
--void omap_sram_idle(void)
-+void omap_sram_idle(bool rcuidle)
+-static u64 __cpuidle __halt(const bool irq_disabled, const bool do_sti)
++static u64 __cpuidle __halt(const bool irq_disabled)
  {
- 	/* Variable to tell what needs to be saved and restored
- 	 * in omap_sram_idle*/
-@@ -254,11 +255,18 @@ void omap_sram_idle(void)
+ 	struct tdx_hypercall_args args = {
+ 		.r10 = TDX_HYPERCALL_STANDARD,
+@@ -189,20 +189,14 @@ static u64 __cpuidle __halt(const bool i
+ 	 * can keep the vCPU in virtual HLT, even if an IRQ is
+ 	 * pending, without hanging/breaking the guest.
  	 */
- 	if (save_state)
- 		omap34xx_save_context(omap3_arm_context);
-+
-+	if (rcuidle)
-+		ct_cpuidle_enter();
-+
- 	if (save_state == 1 || save_state == 3)
- 		cpu_suspend(save_state, omap34xx_do_sram_idle);
- 	else
- 		omap34xx_do_sram_idle(save_state);
+-	return __tdx_hypercall(&args, do_sti ? TDX_HCALL_ISSUE_STI : 0);
++	return __tdx_hypercall(&args, 0);
+ }
  
-+	if (rcuidle)
-+		ct_cpuidle_exit();
-+
- 	/* Restore normal SDRC POWER settings */
- 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
- 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-@@ -316,7 +324,7 @@ static int omap3_pm_suspend(void)
+ static int handle_halt(struct ve_info *ve)
+ {
+-	/*
+-	 * Since non safe halt is mainly used in CPU offlining
+-	 * and the guest will always stay in the halt state, don't
+-	 * call the STI instruction (set do_sti as false).
+-	 */
+ 	const bool irq_disabled = irqs_disabled();
+-	const bool do_sti = false;
  
- 	omap3_intc_suspend();
+-	if (__halt(irq_disabled, do_sti))
++	if (__halt(irq_disabled))
+ 		return -EIO;
  
--	omap_sram_idle();
-+	omap_sram_idle(false);
+ 	return ve_instr_len(ve);
+@@ -210,22 +204,13 @@ static int handle_halt(struct ve_info *v
  
- restore:
- 	/* Restore next_pwrsts */
+ void __cpuidle tdx_safe_halt(void)
+ {
+-	 /*
+-	  * For do_sti=true case, __tdx_hypercall() function enables
+-	  * interrupts using the STI instruction before the TDCALL. So
+-	  * set irq_disabled as false.
+-	  */
+ 	const bool irq_disabled = false;
+-	const bool do_sti = true;
+ 
+ 	/*
+ 	 * Use WARN_ONCE() to report the failure.
+ 	 */
+-	if (__halt(irq_disabled, do_sti))
++	if (__halt(irq_disabled))
+ 		WARN_ONCE(1, "HLT instruction emulation failed\n");
+-
+-	/* XXX I can't make sense of what @do_sti actually does */
+-	raw_local_irq_disable();
+ }
+ 
+ static int read_msr(struct pt_regs *regs, struct ve_info *ve)
+--- a/arch/x86/include/asm/shared/tdx.h
++++ b/arch/x86/include/asm/shared/tdx.h
+@@ -8,7 +8,6 @@
+ #define TDX_HYPERCALL_STANDARD  0
+ 
+ #define TDX_HCALL_HAS_OUTPUT	BIT(0)
+-#define TDX_HCALL_ISSUE_STI	BIT(1)
+ 
+ #define TDX_CPUID_LEAF_ID	0x21
+ #define TDX_IDENT		"IntelTDX    "
 
 
