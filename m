@@ -2,110 +2,140 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9310FC54EE9
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 16:00:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A852C54EE9
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 16:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230402AbiISQAd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Sep 2022 12:00:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48082 "EHLO
+        id S229717AbiISQ1i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Sep 2022 12:27:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230417AbiISP74 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 11:59:56 -0400
-Received: from mail-io1-xd34.google.com (mail-io1-xd34.google.com [IPv6:2607:f8b0:4864:20::d34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBF802A3
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Sep 2022 08:59:30 -0700 (PDT)
-Received: by mail-io1-xd34.google.com with SMTP id e205so19201151iof.1
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Sep 2022 08:59:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=H54d0G6AAErtN9paRV2+6Wo2Il0gAFeOcBLywRUXXa0=;
-        b=BuHj0aYj11V/uqzAPjciFvNDd0tPx4EwB5NLho7OZ14QYt6P6pPn+/U1G2oP2hOrTG
-         W/tY0awdaDq3v+rcheReD8bKyehbxyXSMhSl0M/Jlt6CA88yU3S0R2cMtm8d5TTk9D97
-         TnCC3An/UStxFHYuxPuvf38pqX+NkDTNUURDw=
+        with ESMTP id S229663AbiISQ1h (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 12:27:37 -0400
+Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 484F33B955;
+        Mon, 19 Sep 2022 09:27:36 -0700 (PDT)
+Received: by mail-qk1-f177.google.com with SMTP id d17so20075054qko.13;
+        Mon, 19 Sep 2022 09:27:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=H54d0G6AAErtN9paRV2+6Wo2Il0gAFeOcBLywRUXXa0=;
-        b=1D9SnOud2ukipvF4vdKrUOgOgd3spGTt70CiCa96rnt9TnckD6wSxNfcjRCxOWVD1V
-         mUYClgeMENm5BYheojS4tMTFf8IrGEfmt3j7VlmK3FIPFWa5X31IwH4LuUhtuwE7zCml
-         0PJa0wQdyZG9m6V7M0gpy4rarLr2CyGNLHZEzWF/sGBKsCoH3MbsvEcNxok70XSou6f5
-         SRx/4TPTe/NFX9ZZcTIHNFDz0WpYP4P+hUoJGNzR8AcSvf+ueIuz6fh9FvrdJDHZ12zs
-         AG1wibVsqZPpeYecUQNmYVndW/XRqlNNk/Q7VjDAdopp/Cv7AnWOONCo+W49DPzyehuI
-         j0KQ==
-X-Gm-Message-State: ACrzQf1H8oPErqEN8dI9TqixmdgfbMFxgM2oQZcczkStZMUuceUVMq6A
-        fodFzItFAHb7zp8OD9lcrsaUH20lJ1Fx7w==
-X-Google-Smtp-Source: AMsMyM4YIquTjh66qbsIX9P21MyXK/1UIiwMITpixcMruE6C/vvNhmUKpt7oGmKFM9QZcrhK266mZQ==
-X-Received: by 2002:a05:6638:35a1:b0:35a:27ec:b00b with SMTP id v33-20020a05663835a100b0035a27ecb00bmr8540372jal.245.1663603170347;
-        Mon, 19 Sep 2022 08:59:30 -0700 (PDT)
-Received: from rrangel920.bld.corp.google.com (h24-56-189-219.arvdco.broadband.dynamic.tds.net. [24.56.189.219])
-        by smtp.gmail.com with ESMTPSA id t70-20020a025449000000b00349fb9b1abesm5634154jaa.106.2022.09.19.08.59.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Sep 2022 08:59:30 -0700 (PDT)
-From:   Raul E Rangel <rrangel@chromium.org>
-To:     linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
-Cc:     timvp@google.com, hdegoede@redhat.com,
-        andriy.shevchenko@linux.intel.com, rafael@kernel.org,
-        mario.limonciello@amd.com, jingle.wu@emc.com.tw,
-        mika.westerberg@linux.intel.com, dmitry.torokhov@gmail.com,
-        linus.walleij@linaro.org, Raul E Rangel <rrangel@chromium.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v4 11/13] Input: elan_i2c - Don't set wake_capable and wake_irq
-Date:   Mon, 19 Sep 2022 09:59:13 -0600
-Message-Id: <20220919095504.v4.11.I7309b8f322082437b93581c6e2953886eeb998d7@changeid>
-X-Mailer: git-send-email 2.37.3.968.ga6b4b080e4-goog
-In-Reply-To: <20220919155916.1044219-1-rrangel@chromium.org>
-References: <20220919155916.1044219-1-rrangel@chromium.org>
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=dEokQm5n7CvZvcm2/TuaTTXN7aMhR9oWpeaOPSUYU4I=;
+        b=2VB1+Tr3QCxgJH8CMgvGesRM8iys/5TAkWesrqMfkx2TTD+lFfC81RWae/u3/sgiqi
+         u5IM7ISnTFLG6Pc3hTlDpEqf51p5QgoJ8yNm/1RaKrOwnVBw+BDIddCHeYS7DiTnNT+K
+         0ILoxd1n/2jMvghPUuXCkQ5MTbksVxl9cJVMLIuD6l5GKsXQZGRFQa5/ZlWqRm++h3Y7
+         vV4dti/OmiUT8LRIImLwY0O1LIARe7cCIYJs+txCUnQyhNcGK+S3NyOMhPSAj3PaMZcg
+         /2h5Ws3tnxssuwkj6hrlWw4uvG0WPg0vjimRST7fLdd9mvsSryo8SjUbMHPx+blPTEFE
+         PSvQ==
+X-Gm-Message-State: ACrzQf0rj2RXm/fckP1O+OoVg5RVUgF8eiAkxSYYNC3Ugi4E4iQlEcGB
+        DDkbT3mKLHfHRY3WFPWAJQVUixF1+R7GEGGKEAPGZzQaBV8=
+X-Google-Smtp-Source: AMsMyM4XZU0z1J3kzFB53bs7jo2hBp6BEvaMD6zIiq/E5pFGeXvdD251SJwkmfPDO2xF+FINSxCgav8IXCY7rRiYzZ0=
+X-Received: by 2002:a05:620a:2988:b0:6ce:cc3f:73b9 with SMTP id
+ r8-20020a05620a298800b006cecc3f73b9mr10917915qkp.9.1663604855357; Mon, 19 Sep
+ 2022 09:27:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220912125342.7395-1-W_Armin@gmx.de> <20220912125342.7395-2-W_Armin@gmx.de>
+ <f8fa6d10-6eb1-7fa7-80eb-ea190d29ba4a@redhat.com>
+In-Reply-To: <f8fa6d10-6eb1-7fa7-80eb-ea190d29ba4a@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 19 Sep 2022 18:27:24 +0200
+Message-ID: <CAJZ5v0jWVMMTjc+KtBRS86f8kYpbPcDCH9JV2ZgeN4f-MSO8rQ@mail.gmail.com>
+Subject: Re: [PATCH 1/5] ACPI: battery: Do not unload battery hooks on single error
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Armin Wolf <W_Armin@gmx.de>, Mark Gross <markgross@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
+        Matan Ziv-Av <matan@svgalib.org>,
+        Corentin Chary <corentin.chary@gmail.com>,
+        Jeremy Soller <jeremy@system76.com>, productdev@system76.com,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The i2c-core will now handle setting the wake_irq and wake capability
-for DT and ACPI systems.
+On Mon, Sep 19, 2022 at 12:42 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> Hi,
+>
+> On 9/12/22 13:53, Armin Wolf wrote:
+> > Currently, battery hooks are being unloaded if they return
+> > an error when adding a single battery.
+> > This however also causes the removal of successfully added
+> > hooks if they return -ENODEV for a single unsupported
+> > battery.
+> >
+> > Do not unload battery hooks in such cases since the hook
+> > handles any cleanup actions.
+> >
+> > Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+>
+> Maybe instead of removing all error checking, allow -ENODEV
+> and behave as before when the error is not -ENODEV ?
+>
+> Otherwise we should probably make the add / remove callbacks
+> void to indicate that any errors are ignored.
+>
+> Rafael, do you have any opinion on this?
 
-Signed-off-by: Raul E Rangel <rrangel@chromium.org>
----
+IMV this is not a completely safe change, because things may simply
+not work in the cases in which an error is returned.
 
-(no changes since v2)
+It would be somewhat better to use a special error code to indicate
+"no support" (eg. -ENOTSUPP) and ignore that one only.
 
-Changes in v2:
-- I chose not to keep the legacy code around since systems without DT or ACPI should be rare.
-
- drivers/input/mouse/elan_i2c_core.c | 16 ----------------
- 1 file changed, 16 deletions(-)
-
-diff --git a/drivers/input/mouse/elan_i2c_core.c b/drivers/input/mouse/elan_i2c_core.c
-index 3947474e93d16a..b25b94aba3e88e 100644
---- a/drivers/input/mouse/elan_i2c_core.c
-+++ b/drivers/input/mouse/elan_i2c_core.c
-@@ -1332,22 +1332,6 @@ static int elan_probe(struct i2c_client *client,
- 		}
- 	}
- 
--	/*
--	 * Systems using device tree should set up wakeup via DTS,
--	 * the rest will configure device as wakeup source by default.
--	 */
--	if (!dev->of_node)
--		device_init_wakeup(dev, true);
--
--	/*
--	 * The wake IRQ should be declared via device tree instead of assuming
--	 * the IRQ can wake the system. This is here for legacy reasons and
--	 * will be removed once the i2c-core supports querying ACPI for wake
--	 * capabilities.
--	 */
--	if (!dev->power.wakeirq)
--		dev_pm_set_wake_irq(dev, client->irq);
--
- 	return 0;
- }
- 
--- 
-2.37.3.968.ga6b4b080e4-goog
-
+> > ---
+> >  drivers/acpi/battery.c | 24 +++---------------------
+> >  1 file changed, 3 insertions(+), 21 deletions(-)
+> >
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index 306513fec1e1..e59c261c7c59 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -724,20 +724,10 @@ void battery_hook_register(struct acpi_battery_hook *hook)
+> >        * its attributes.
+> >        */
+> >       list_for_each_entry(battery, &acpi_battery_list, list) {
+> > -             if (hook->add_battery(battery->bat)) {
+> > -                     /*
+> > -                      * If a add-battery returns non-zero,
+> > -                      * the registration of the extension has failed,
+> > -                      * and we will not add it to the list of loaded
+> > -                      * hooks.
+> > -                      */
+> > -                     pr_err("extension failed to load: %s", hook->name);
+> > -                     __battery_hook_unregister(hook, 0);
+> > -                     goto end;
+> > -             }
+> > +             hook->add_battery(battery->bat);
+> >       }
+> >       pr_info("new extension: %s\n", hook->name);
+> > -end:
+> > +
+> >       mutex_unlock(&hook_mutex);
+> >  }
+> >  EXPORT_SYMBOL_GPL(battery_hook_register);
+> > @@ -762,15 +752,7 @@ static void battery_hook_add_battery(struct acpi_battery *battery)
+> >        * during the battery module initialization.
+> >        */
+> >       list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
+> > -             if (hook_node->add_battery(battery->bat)) {
+> > -                     /*
+> > -                      * The notification of the extensions has failed, to
+> > -                      * prevent further errors we will unload the extension.
+> > -                      */
+> > -                     pr_err("error in extension, unloading: %s",
+> > -                                     hook_node->name);
+> > -                     __battery_hook_unregister(hook_node, 0);
+> > -             }
+> > +             hook_node->add_battery(battery->bat);
+> >       }
+> >       mutex_unlock(&hook_mutex);
+> >  }
+> > --
+> > 2.30.2
+> >
+>
