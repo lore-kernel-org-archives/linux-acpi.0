@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B1EC6FA9C
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 10:22:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 217D0C6FD19
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 10:22:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231726AbiISKV5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Sep 2022 06:21:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49930 "EHLO
+        id S231740AbiISKV7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:21:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229807AbiISKRr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:17:47 -0400
+        with ESMTP id S230432AbiISKRw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:17:52 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 715DB22BCF;
-        Mon, 19 Sep 2022 03:17:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C8A122B00;
+        Mon, 19 Sep 2022 03:17:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=o5HILV8lXWZVR34kQkfXu7ELtM3PHvDf12JWqGFz8as=; b=dV5VKjJCiRArWKFRCsJ/bMmVqi
-        MZc+Fiq1hs7Q8065CPPuCPM++cJGcbJ2uK4pePawOSvj84w+Cj9nGfG3jRg8SJcmMT3VlQzhtpHcE
-        7DxBGc+h+RUkfY05BSxLFaTZoocBLId06eVUapYH+F389mVZv4uwqsOZ39kjcy7z5X4kbfPOi9LD3
-        OI1eZdVNictzk9UShsGBuw6E0nq6gQPuXvNBgAidL3xMkeRH4flAF0aYuc+RcKk2rEy4TB9b3KsMd
-        hB3xGHqoKGY4+0yF9SxEHiv7OIe/Hya5bibW1ua9+IRKxlOFf+eeSWEId23pJfafqh1OLSfm2yQZJ
-        3sERPfag==;
+        bh=QoMAr3LApQWawpgafmfgLtjlo5s7sxEjoowggy+JX/o=; b=kEL0jdoeDuXpIUENKRvpLsR2sv
+        0zAz+fP+mIxElsrdbbO1xpXzDOap+WRebbmPNQ1ONsvisMt1NH+BXft1IZG51vqSfudHX4+LIHrSX
+        GpuYNjx2dLnu7Z5tT3hUgpnBnHxsdHEDHmwnC8iDVR8fYaQ5EQ9prZ7UiulCISmqAQGiWbvfv/Fka
+        7RqUHmLKy9t6tMrFWsMxzBo+91RuvQ9ccepql5V9ZWkf8+nomRELgmwDvAsaOBzjxLtdWQ+/I4CgT
+        5P697PEJZAJaRZ4DYe+zb/QXGU0PQvLAotVDC2hCkaErqtdMBvS+goXfu3YsSUVpKgdBiM2Lkvw/S
+        lfEPmrfw==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oaDq7-004b92-78; Mon, 19 Sep 2022 10:17:23 +0000
+        id 1oaDqB-004bEl-2D; Mon, 19 Sep 2022 10:17:27 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 45F65302F39;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id A7CD5302F92;
         Mon, 19 Sep 2022 12:16:25 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 5B7DB2BAC75A2; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
-Message-ID: <20220919101522.156951075@infradead.org>
+        id AFEB12BABC0C7; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
+Message-ID: <20220919101523.312333837@infradead.org>
 User-Agent: quilt/0.66
-Date:   Mon, 19 Sep 2022 12:00:06 +0200
+Date:   Mon, 19 Sep 2022 12:00:23 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -99,7 +99,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v2 27/44] cpuidle,sched: Remove annotations from TIF_{POLLING_NRFLAG,NEED_RESCHED}
+Subject: [PATCH v2 44/44] arm64,riscv,perf: Remove RCU_NONIDLE() usage
 References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,128 +107,53 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-vmlinux.o: warning: objtool: mwait_idle+0x5: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle+0xbc: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to current_set_polling_and_test() leaves .noinstr.text section
-
-vmlinux.o: warning: objtool: intel_idle+0xa6: call to current_clr_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0xbf: call to current_clr_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0xa1: call to current_clr_polling() leaves .noinstr.text section
-
-vmlinux.o: warning: objtool: mwait_idle+0xe: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle+0xbc: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to __current_set_polling() leaves .noinstr.text section
-
-vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0x73: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0x91: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle+0x78: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
-vmlinux.o: warning: objtool: acpi_safe_halt+0xf: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+The PM notifiers should no longer be ran with RCU disabled (per the
+previous patches), as such this hack is no longer required either.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- include/linux/sched/idle.h  |   40 ++++++++++++++++++++++++++++++----------
- include/linux/thread_info.h |   18 +++++++++++++++++-
- 2 files changed, 47 insertions(+), 11 deletions(-)
+ drivers/perf/arm_pmu.c       |   11 +----------
+ drivers/perf/riscv_pmu_sbi.c |    8 +-------
+ 2 files changed, 2 insertions(+), 17 deletions(-)
 
---- a/include/linux/sched/idle.h
-+++ b/include/linux/sched/idle.h
-@@ -23,12 +23,37 @@ static inline void wake_up_if_idle(int c
-  */
- #ifdef TIF_POLLING_NRFLAG
- 
--static inline void __current_set_polling(void)
-+#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H
-+
-+static __always_inline void __current_set_polling(void)
- {
--	set_thread_flag(TIF_POLLING_NRFLAG);
-+	arch_set_bit(TIF_POLLING_NRFLAG,
-+		     (unsigned long *)(&current_thread_info()->flags));
- }
- 
--static inline bool __must_check current_set_polling_and_test(void)
-+static __always_inline void __current_clr_polling(void)
-+{
-+	arch_clear_bit(TIF_POLLING_NRFLAG,
-+		       (unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#else
-+
-+static __always_inline void __current_set_polling(void)
-+{
-+	set_bit(TIF_POLLING_NRFLAG,
-+		(unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+static __always_inline void __current_clr_polling(void)
-+{
-+	clear_bit(TIF_POLLING_NRFLAG,
-+		  (unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H */
-+
-+static __always_inline bool __must_check current_set_polling_and_test(void)
- {
- 	__current_set_polling();
- 
-@@ -41,12 +66,7 @@ static inline bool __must_check current_
- 	return unlikely(tif_need_resched());
- }
- 
--static inline void __current_clr_polling(void)
--{
--	clear_thread_flag(TIF_POLLING_NRFLAG);
--}
--
--static inline bool __must_check current_clr_polling_and_test(void)
-+static __always_inline bool __must_check current_clr_polling_and_test(void)
- {
- 	__current_clr_polling();
- 
-@@ -73,7 +93,7 @@ static inline bool __must_check current_
- }
- #endif
- 
--static inline void current_clr_polling(void)
-+static __always_inline void current_clr_polling(void)
- {
- 	__current_clr_polling();
- 
---- a/include/linux/thread_info.h
-+++ b/include/linux/thread_info.h
-@@ -177,7 +177,23 @@ static __always_inline unsigned long rea
- 	clear_ti_thread_flag(task_thread_info(t), TIF_##fl)
- #endif /* !CONFIG_GENERIC_ENTRY */
- 
--#define tif_need_resched() test_thread_flag(TIF_NEED_RESCHED)
-+#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H
-+
-+static __always_inline bool tif_need_resched(void)
-+{
-+	return arch_test_bit(TIF_NEED_RESCHED,
-+			     (unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#else
-+
-+static __always_inline bool tif_need_resched(void)
-+{
-+	return test_bit(TIF_NEED_RESCHED,
-+			(unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H */
- 
- #ifndef CONFIG_HAVE_ARCH_WITHIN_STACK_FRAMES
- static inline int arch_within_stack_frames(const void * const stack,
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -762,17 +762,8 @@ static void cpu_pm_pmu_setup(struct arm_
+ 		case CPU_PM_ENTER_FAILED:
+ 			 /*
+ 			  * Restore and enable the counter.
+-			  * armpmu_start() indirectly calls
+-			  *
+-			  * perf_event_update_userpage()
+-			  *
+-			  * that requires RCU read locking to be functional,
+-			  * wrap the call within RCU_NONIDLE to make the
+-			  * RCU subsystem aware this cpu is not idle from
+-			  * an RCU perspective for the armpmu_start() call
+-			  * duration.
+ 			  */
+-			RCU_NONIDLE(armpmu_start(event, PERF_EF_RELOAD));
++			armpmu_start(event, PERF_EF_RELOAD);
+ 			break;
+ 		default:
+ 			break;
+--- a/drivers/perf/riscv_pmu_sbi.c
++++ b/drivers/perf/riscv_pmu_sbi.c
+@@ -747,14 +747,8 @@ static int riscv_pm_pmu_notify(struct no
+ 		case CPU_PM_ENTER_FAILED:
+ 			/*
+ 			 * Restore and enable the counter.
+-			 *
+-			 * Requires RCU read locking to be functional,
+-			 * wrap the call within RCU_NONIDLE to make the
+-			 * RCU subsystem aware this cpu is not idle from
+-			 * an RCU perspective for the riscv_pmu_start() call
+-			 * duration.
+ 			 */
+-			RCU_NONIDLE(riscv_pmu_start(event, PERF_EF_RELOAD));
++			riscv_pmu_start(event, PERF_EF_RELOAD);
+ 			break;
+ 		default:
+ 			break;
 
 
