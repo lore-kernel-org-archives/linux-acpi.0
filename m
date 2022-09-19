@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02BDDC6FA9E
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 10:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B1EC6FA9C
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Sep 2022 10:22:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231737AbiISKV6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Sep 2022 06:21:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50442 "EHLO
+        id S231726AbiISKV5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:21:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230469AbiISKSL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:18:11 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B944123BDC;
-        Mon, 19 Sep 2022 03:17:54 -0700 (PDT)
+        with ESMTP id S229807AbiISKRr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2022 06:17:47 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 715DB22BCF;
+        Mon, 19 Sep 2022 03:17:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=6o9qTJ/QjCltP+zmu0PkeSqB0nVcTaPJ8iw1lVGI/YI=; b=fh6jTDX0iTAQBch3m1E8OK/teW
-        GEjpiaTGkYRg8vW/aNBRkADkEkRImQUbzpta6LI3AmhS4mLdaW44WlTemKQQHS4Rib2Jfagk+JvNt
-        68yaJmGcdY82ZdDz3uA87H5wQgt/XUMfWTG9ArE4FLvW/Q1KIsjvg4XIJz1Peh9lF2VNg15j8v85Y
-        4WT3iEDs4Y+JCcmg6XLoixnFygR6J3BhKqIRZKs+QG8Lg6WzUGeQtqQJvH/MYkNqMTCc25mz62Mdv
-        1r8UW5CvdoSFJxq4HftoO38anvP9uEWdLAZrJvn5BWoV7b0HiT7bN+lsCpQ1+FWS29ScGWW8uBlG+
-        r0yDTsUA==;
+        bh=o5HILV8lXWZVR34kQkfXu7ELtM3PHvDf12JWqGFz8as=; b=dV5VKjJCiRArWKFRCsJ/bMmVqi
+        MZc+Fiq1hs7Q8065CPPuCPM++cJGcbJ2uK4pePawOSvj84w+Cj9nGfG3jRg8SJcmMT3VlQzhtpHcE
+        7DxBGc+h+RUkfY05BSxLFaTZoocBLId06eVUapYH+F389mVZv4uwqsOZ39kjcy7z5X4kbfPOi9LD3
+        OI1eZdVNictzk9UShsGBuw6E0nq6gQPuXvNBgAidL3xMkeRH4flAF0aYuc+RcKk2rEy4TB9b3KsMd
+        hB3xGHqoKGY4+0yF9SxEHiv7OIe/Hya5bibW1ua9+IRKxlOFf+eeSWEId23pJfafqh1OLSfm2yQZJ
+        3sERPfag==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oaDpE-00E290-QQ; Mon, 19 Sep 2022 10:17:17 +0000
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1oaDq7-004b92-78; Mon, 19 Sep 2022 10:17:23 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id E0700302EC3;
-        Mon, 19 Sep 2022 12:16:24 +0200 (CEST)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 45F65302F39;
+        Mon, 19 Sep 2022 12:16:25 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 052C92BA49043; Mon, 19 Sep 2022 12:16:21 +0200 (CEST)
-Message-ID: <20220919101521.139727471@infradead.org>
+        id 5B7DB2BAC75A2; Mon, 19 Sep 2022 12:16:22 +0200 (CEST)
+Message-ID: <20220919101522.156951075@infradead.org>
 User-Agent: quilt/0.66
-Date:   Mon, 19 Sep 2022 11:59:51 +0200
+Date:   Mon, 19 Sep 2022 12:00:06 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -99,7 +99,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v2 12/44] cpuidle,dt: Push RCU-idle into driver
+Subject: [PATCH v2 27/44] cpuidle,sched: Remove annotations from TIF_{POLLING_NRFLAG,NEED_RESCHED}
 References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,143 +107,128 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Doing RCU-idle outside the driver, only to then temporarily enable it
-again before going idle is daft.
+vmlinux.o: warning: objtool: mwait_idle+0x5: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0xbc: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to current_set_polling_and_test() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to current_set_polling_and_test() leaves .noinstr.text section
 
-Notably: this converts all dt_init_idle_driver() and
-__CPU_PM_CPU_IDLE_ENTER() users for they are inextrably intertwined.
+vmlinux.o: warning: objtool: intel_idle+0xa6: call to current_clr_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xbf: call to current_clr_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0xa1: call to current_clr_polling() leaves .noinstr.text section
+
+vmlinux.o: warning: objtool: mwait_idle+0xe: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0xbc: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to __current_set_polling() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to __current_set_polling() leaves .noinstr.text section
+
+vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0x73: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0x91: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0x78: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_safe_halt+0xf: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c    |    4 ++--
- drivers/acpi/processor_idle.c        |    2 ++
- drivers/cpuidle/cpuidle-arm.c        |    1 +
- drivers/cpuidle/cpuidle-big_little.c |    8 ++++++--
- drivers/cpuidle/cpuidle-psci.c       |    1 +
- drivers/cpuidle/cpuidle-qcom-spm.c   |    1 +
- drivers/cpuidle/cpuidle-riscv-sbi.c  |    1 +
- drivers/cpuidle/dt_idle_states.c     |    2 +-
- include/linux/cpuidle.h              |    4 ++++
- 9 files changed, 19 insertions(+), 5 deletions(-)
+ include/linux/sched/idle.h  |   40 ++++++++++++++++++++++++++++++----------
+ include/linux/thread_info.h |   18 +++++++++++++++++-
+ 2 files changed, 47 insertions(+), 11 deletions(-)
 
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1200,6 +1200,8 @@ static int acpi_processor_setup_lpi_stat
- 		state->target_residency = lpi->min_residency;
- 		if (lpi->arch_flags)
- 			state->flags |= CPUIDLE_FLAG_TIMER_STOP;
-+		if (lpi->entry_method == ACPI_CSTATE_FFH)
-+			state->flags |= CPUIDLE_FLAG_RCU_IDLE;
- 		state->enter = acpi_idle_lpi_enter;
- 		drv->safe_state_index = i;
- 	}
---- a/drivers/cpuidle/cpuidle-arm.c
-+++ b/drivers/cpuidle/cpuidle-arm.c
-@@ -53,6 +53,7 @@ static struct cpuidle_driver arm_idle_dr
- 	 * handler for idle state index 0.
- 	 */
- 	.states[0] = {
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.enter                  = arm_enter_idle_state,
- 		.exit_latency           = 1,
- 		.target_residency       = 1,
---- a/drivers/cpuidle/cpuidle-big_little.c
-+++ b/drivers/cpuidle/cpuidle-big_little.c
-@@ -64,7 +64,8 @@ static struct cpuidle_driver bl_idle_lit
- 		.enter			= bl_enter_powerdown,
- 		.exit_latency		= 700,
- 		.target_residency	= 2500,
--		.flags			= CPUIDLE_FLAG_TIMER_STOP,
-+		.flags			= CPUIDLE_FLAG_TIMER_STOP |
-+					  CPUIDLE_FLAG_RCU_IDLE,
- 		.name			= "C1",
- 		.desc			= "ARM little-cluster power down",
- 	},
-@@ -85,7 +86,8 @@ static struct cpuidle_driver bl_idle_big
- 		.enter			= bl_enter_powerdown,
- 		.exit_latency		= 500,
- 		.target_residency	= 2000,
--		.flags			= CPUIDLE_FLAG_TIMER_STOP,
-+		.flags			= CPUIDLE_FLAG_TIMER_STOP |
-+					  CPUIDLE_FLAG_RCU_IDLE,
- 		.name			= "C1",
- 		.desc			= "ARM big-cluster power down",
- 	},
-@@ -124,11 +126,13 @@ static int bl_enter_powerdown(struct cpu
- 				struct cpuidle_driver *drv, int idx)
+--- a/include/linux/sched/idle.h
++++ b/include/linux/sched/idle.h
+@@ -23,12 +23,37 @@ static inline void wake_up_if_idle(int c
+  */
+ #ifdef TIF_POLLING_NRFLAG
+ 
+-static inline void __current_set_polling(void)
++#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H
++
++static __always_inline void __current_set_polling(void)
  {
- 	cpu_pm_enter();
-+	ct_idle_enter();
+-	set_thread_flag(TIF_POLLING_NRFLAG);
++	arch_set_bit(TIF_POLLING_NRFLAG,
++		     (unsigned long *)(&current_thread_info()->flags));
+ }
  
- 	cpu_suspend(0, bl_powerdown_finisher);
+-static inline bool __must_check current_set_polling_and_test(void)
++static __always_inline void __current_clr_polling(void)
++{
++	arch_clear_bit(TIF_POLLING_NRFLAG,
++		       (unsigned long *)(&current_thread_info()->flags));
++}
++
++#else
++
++static __always_inline void __current_set_polling(void)
++{
++	set_bit(TIF_POLLING_NRFLAG,
++		(unsigned long *)(&current_thread_info()->flags));
++}
++
++static __always_inline void __current_clr_polling(void)
++{
++	clear_bit(TIF_POLLING_NRFLAG,
++		  (unsigned long *)(&current_thread_info()->flags));
++}
++
++#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H */
++
++static __always_inline bool __must_check current_set_polling_and_test(void)
+ {
+ 	__current_set_polling();
  
- 	/* signals the MCPM core that CPU is out of low power state */
- 	mcpm_cpu_powered_up();
-+	ct_idle_exit();
+@@ -41,12 +66,7 @@ static inline bool __must_check current_
+ 	return unlikely(tif_need_resched());
+ }
  
- 	cpu_pm_exit();
+-static inline void __current_clr_polling(void)
+-{
+-	clear_thread_flag(TIF_POLLING_NRFLAG);
+-}
+-
+-static inline bool __must_check current_clr_polling_and_test(void)
++static __always_inline bool __must_check current_clr_polling_and_test(void)
+ {
+ 	__current_clr_polling();
  
---- a/drivers/cpuidle/cpuidle-psci.c
-+++ b/drivers/cpuidle/cpuidle-psci.c
-@@ -357,6 +357,7 @@ static int psci_idle_init_cpu(struct dev
- 	 * PSCI idle states relies on architectural WFI to be represented as
- 	 * state index 0.
- 	 */
-+	drv->states[0].flags = CPUIDLE_FLAG_RCU_IDLE;
- 	drv->states[0].enter = psci_enter_idle_state;
- 	drv->states[0].exit_latency = 1;
- 	drv->states[0].target_residency = 1;
---- a/drivers/cpuidle/cpuidle-qcom-spm.c
-+++ b/drivers/cpuidle/cpuidle-qcom-spm.c
-@@ -72,6 +72,7 @@ static struct cpuidle_driver qcom_spm_id
- 	.owner = THIS_MODULE,
- 	.states[0] = {
- 		.enter			= spm_enter_idle_state,
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.exit_latency		= 1,
- 		.target_residency	= 1,
- 		.power_usage		= UINT_MAX,
---- a/drivers/cpuidle/cpuidle-riscv-sbi.c
-+++ b/drivers/cpuidle/cpuidle-riscv-sbi.c
-@@ -332,6 +332,7 @@ static int sbi_cpuidle_init_cpu(struct d
- 	drv->cpumask = (struct cpumask *)cpumask_of(cpu);
+@@ -73,7 +93,7 @@ static inline bool __must_check current_
+ }
+ #endif
  
- 	/* RISC-V architectural WFI to be represented as state index 0. */
-+	drv->states[0].flags = CPUIDLE_FLAG_RCU_IDLE;
- 	drv->states[0].enter = sbi_cpuidle_enter_state;
- 	drv->states[0].exit_latency = 1;
- 	drv->states[0].target_residency = 1;
---- a/drivers/cpuidle/dt_idle_states.c
-+++ b/drivers/cpuidle/dt_idle_states.c
-@@ -77,7 +77,7 @@ static int init_state_node(struct cpuidl
- 	if (err)
- 		desc = state_node->name;
+-static inline void current_clr_polling(void)
++static __always_inline void current_clr_polling(void)
+ {
+ 	__current_clr_polling();
  
--	idle_state->flags = 0;
-+	idle_state->flags = CPUIDLE_FLAG_RCU_IDLE;
- 	if (of_property_read_bool(state_node, "local-timer-stop"))
- 		idle_state->flags |= CPUIDLE_FLAG_TIMER_STOP;
- 	/*
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -282,14 +282,18 @@ extern s64 cpuidle_governor_latency_req(
- 	int __ret = 0;							\
- 									\
- 	if (!idx) {							\
-+		ct_idle_enter();					\
- 		cpu_do_idle();						\
-+		ct_idle_exit();						\
- 		return idx;						\
- 	}								\
- 									\
- 	if (!is_retention)						\
- 		__ret =  cpu_pm_enter();				\
- 	if (!__ret) {							\
-+		ct_idle_enter();					\
- 		__ret = low_level_idle_enter(state);			\
-+		ct_idle_exit();						\
- 		if (!is_retention)					\
- 			cpu_pm_exit();					\
- 	}								\
+--- a/include/linux/thread_info.h
++++ b/include/linux/thread_info.h
+@@ -177,7 +177,23 @@ static __always_inline unsigned long rea
+ 	clear_ti_thread_flag(task_thread_info(t), TIF_##fl)
+ #endif /* !CONFIG_GENERIC_ENTRY */
+ 
+-#define tif_need_resched() test_thread_flag(TIF_NEED_RESCHED)
++#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H
++
++static __always_inline bool tif_need_resched(void)
++{
++	return arch_test_bit(TIF_NEED_RESCHED,
++			     (unsigned long *)(&current_thread_info()->flags));
++}
++
++#else
++
++static __always_inline bool tif_need_resched(void)
++{
++	return test_bit(TIF_NEED_RESCHED,
++			(unsigned long *)(&current_thread_info()->flags));
++}
++
++#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H */
+ 
+ #ifndef CONFIG_HAVE_ARCH_WITHIN_STACK_FRAMES
+ static inline int arch_within_stack_frames(const void * const stack,
 
 
