@@ -2,38 +2,40 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E973ECAAD8
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 09:48:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F941C6FA8B
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 09:48:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231159AbiITJsD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 20 Sep 2022 05:48:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59166 "EHLO
+        id S231191AbiITJsE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 20 Sep 2022 05:48:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230313AbiITJry (ORCPT
+        with ESMTP id S230385AbiITJry (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2022 05:47:54 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F4F56F54A;
-        Tue, 20 Sep 2022 02:47:47 -0700 (PDT)
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MWxV12wDNzpTF9;
-        Tue, 20 Sep 2022 17:44:57 +0800 (CST)
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E8C16BCC0;
+        Tue, 20 Sep 2022 02:47:48 -0700 (PDT)
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4MWxSX6xytz14QcJ;
+        Tue, 20 Sep 2022 17:43:40 +0800 (CST)
 Received: from kwepemm600004.china.huawei.com (7.193.23.242) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2375.31; Tue, 20 Sep 2022 17:47:45 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Tue, 20 Sep 2022 17:47:44 +0800
+ 15.1.2375.31; Tue, 20 Sep 2022 17:47:45 +0800
 From:   Huisong Li <lihuisong@huawei.com>
 To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC:     <rafael@kernel.org>, <sudeep.holla@arm.com>,
         <rafael.j.wysocki@intel.com>, <wanghuiqiang@huawei.com>,
         <huangdaode@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH 0/2] ACPI: PCC: add waiting timeout and fix Tx done interface 
-Date:   Tue, 20 Sep 2022 17:44:58 +0800
-Message-ID: <20220920094500.11283-1-lihuisong@huawei.com>
+Subject: [PATCH 2/2] ACPI: PCC: fix Tx done interface in handler
+Date:   Tue, 20 Sep 2022 17:45:00 +0800
+Message-ID: <20220920094500.11283-3-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20220920094500.11283-1-lihuisong@huawei.com>
+References: <20220920094500.11283-1-lihuisong@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -45,17 +47,32 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This patchset is used to fix following problems:
-1) method execution may be blocked in abnormal case.
-2) a error log when command is executed successfully.
+A error, "Client can't run the TX ticker", is printed even if PCC command
+executed successfully. This root cause is that PCC handler calls
+'mbox_client_txdone()' which depands on the client can received 'ACK'
+packet. But PCC handler detects whether the command is complete through
+the Tx ACK interrupt. So this patch fix it.
 
-Huisong Li (2):
-  ACPI: PCC: replace wait_for_completion()
-  ACPI: PCC: fix Tx done interface in handler
+Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
 
- drivers/acpi/acpi_pcc.c | 25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+---
+ drivers/acpi/acpi_pcc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
+index a1052fe998bf..95d2dc274bd9 100644
+--- a/drivers/acpi/acpi_pcc.c
++++ b/drivers/acpi/acpi_pcc.c
+@@ -118,7 +118,7 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ 		}
+ 	}
+ 
+-	mbox_client_txdone(data->pcc_chan->mchan, ret);
++	mbox_chan_txdone(data->pcc_chan->mchan, ret);
+ 
+ 	memcpy_fromio(value, data->pcc_comm_addr, data->ctx.length);
+ 
 -- 
 2.33.0
 
