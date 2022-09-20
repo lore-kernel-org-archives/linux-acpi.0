@@ -2,385 +2,181 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 096DDC6FA90
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 17:22:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BBFC6FA82
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 20:34:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230003AbiITRWe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 20 Sep 2022 13:22:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41388 "EHLO
+        id S230116AbiITUe1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 20 Sep 2022 16:34:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229630AbiITRWd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2022 13:22:33 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BDA45FAF2;
-        Tue, 20 Sep 2022 10:22:31 -0700 (PDT)
-Received: from zn.tnic (p200300ea9733e791329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9733:e791:329c:23ff:fea6:a903])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 77AE11EC01CE;
-        Tue, 20 Sep 2022 19:22:25 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1663694545;
+        with ESMTP id S230240AbiITUe0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2022 16:34:26 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3683C7548F
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Sep 2022 13:34:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1663706064;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=aTo5BCIIhVWElTta5Q80oaSGkccBfpExJYkW8aRkMUg=;
-        b=h6SpxGoxqOkReeKy9bJ79HGdmTMk2Yjva6RO25WmrAtjZo1AoB+MJidyJBwXp/BeOOnC7Z
-        Ixn68JdCuXF8cTzPfcEVrxzf/XN9QJFRtqa4e8lYxoDsmMqpVi7mtnBgWZnftDBOK9jcBW
-        MmjOAyDN/hmQHkLfZXdgpoIDBezPT+g=
-Date:   Tue, 20 Sep 2022 19:22:21 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Jia He <justin.he@arm.com>
-Cc:     Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robert Richter <rric@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
-        Yazen Ghannam <yazen.ghannam@amd.com>,
-        Jan Luebbe <jlu@pengutronix.de>,
-        Khuong Dinh <khuong@os.amperecomputing.com>,
-        Kani Toshi <toshi.kani@hpe.com>,
-        Ard Biesheuvel <ardb@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
-        devel@acpica.org, "Rafael J . Wysocki" <rafael@kernel.org>,
-        Shuai Xue <xueshuai@linux.alibaba.com>,
-        Jarkko Sakkinen <jarkko@kernel.org>, linux-efi@vger.kernel.org,
-        nd@arm.com
-Subject: Re: [PATCH v6 5/8] EDAC/ghes: Make ghes_edac a proper module to
- remove the dependency on ghes
-Message-ID: <Yyn2zYLP9So0heBW@zn.tnic>
-References: <20220912144005.212624-1-justin.he@arm.com>
- <20220912144005.212624-6-justin.he@arm.com>
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=AW/dBlE2AQIyAJdoiRe+IiNWCzn2tZIwTsT8MkCs6dw=;
+        b=Y0h6V1dvuzXbSYT2kozfZe/n8tkrub1U0YmE25i94DYcRrIYUI8Dp/5wRnRAoWLqxHAFrl
+        crVFlXY78MdCKZTX/SH/ZcmEIhODb2fU1S2/ss/Ubl/ZgDlI3QOpvckCgzjickBlBCNNgd
+        6nSeFtRMctdPYWj//5iZdah5h4PlTvI=
+Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
+ [209.85.208.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-574-jkVSQnVmM5-XYgBrshd0lw-1; Tue, 20 Sep 2022 16:34:22 -0400
+X-MC-Unique: jkVSQnVmM5-XYgBrshd0lw-1
+Received: by mail-ed1-f72.google.com with SMTP id b16-20020a056402279000b0044f1102e6e2so2745165ede.20
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Sep 2022 13:34:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date;
+        bh=AW/dBlE2AQIyAJdoiRe+IiNWCzn2tZIwTsT8MkCs6dw=;
+        b=d0o7dKLREMbjjqcmHPj5ym4RCJlvJwqcQYZvXqhlUnb1dW+/m8aXDkO74TGNmVbgAd
+         9y8Hpl02cYxfPNlM707PMjehv5DG5pNYKeE37rBFBSfuzQpDnKDK15wiAtlVQXxZcsky
+         bXzoVRGAZ5lscop7sFoj93G4EEyoCIIsR4WD31C344AFHVzQPjN/Vm9bce+hZs1mdpnm
+         LRSlCZD/7emog3g3mo6uQj38M/YQnOIehyBL3FoF3vaJtcC4S/vk3qZvWY6HDSCgJC/B
+         LqaZCW1qPoBBcVHP2i4BrptqzwGwRlzPf8rjBQ4fAQSkuCQYuMPy06RPNPtzhcEuUWmO
+         lPuw==
+X-Gm-Message-State: ACrzQf2F0N0PF+O495xcQLPRz1+1v8EnE+SYhJxGv8FKqEJRqcvCnlVu
+        LBHlNVHZWen9uQO5ohd290cqN/Spyi7iZ610OgZYDLOTtX+ywVQsC/nwQvRtKb9AR4hPYCdjuxV
+        aLFWEteRJA3+bRd1Bdv+aEQ==
+X-Received: by 2002:a05:6402:148e:b0:44e:aa8c:abc5 with SMTP id e14-20020a056402148e00b0044eaa8cabc5mr21854666edv.145.1663706060859;
+        Tue, 20 Sep 2022 13:34:20 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM5FchS9e4VFCieS+jJqLY+dTOU/Tx49Du5MG0zdHE5Otei40J9KDFt3Sdcf4z5v6zK+N5MWgw==
+X-Received: by 2002:a05:6402:148e:b0:44e:aa8c:abc5 with SMTP id e14-20020a056402148e00b0044eaa8cabc5mr21854652edv.145.1663706060620;
+        Tue, 20 Sep 2022 13:34:20 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c1e:bf00:d69d:5353:dba5:ee81? (2001-1c00-0c1e-bf00-d69d-5353-dba5-ee81.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:d69d:5353:dba5:ee81])
+        by smtp.gmail.com with ESMTPSA id n26-20020aa7c45a000000b00452ff2c203asm415245edr.92.2022.09.20.13.34.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 20 Sep 2022 13:34:20 -0700 (PDT)
+Message-ID: <0df56807-f8d3-e284-3c4d-f510b2c5604a@redhat.com>
+Date:   Tue, 20 Sep 2022 22:34:18 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220912144005.212624-6-justin.he@arm.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.1
+Subject: Re: [PATCH RFC 1/2] staging: quickstart: Add ACPI quickstart button
+ (PNP0C32) driver
+To:     Arvid Norlander <lkml@vorpal.se>,
+        platform-driver-x86@vger.kernel.org
+Cc:     linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-input@vger.kernel.org, Azael Avalos <coproscefalo@gmail.com>
+References: <20220911194934.558019-1-lkml@vorpal.se>
+ <20220911194934.558019-2-lkml@vorpal.se>
+ <0e88f032-5f29-8842-401e-48a573319ecf@redhat.com>
+ <484b5248-ebf2-74c9-0629-08daa538a5c0@vorpal.se>
+Content-Language: en-US
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <484b5248-ebf2-74c9-0629-08daa538a5c0@vorpal.se>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 12, 2022 at 02:40:02PM +0000, Jia He wrote:
-> Commit dc4e8c07e9e2 ("ACPI: APEI: explicit init of HEST and GHES in
-> apci_init()") introduced a bug that ghes_edac_register() would be invoked
-> before edac_init(). Because at that time, the bus "edac" hadn't been even
-> registered, this created sysfs /devices/mc0 instead of
-> /sys/devices/system/edac/mc/mc0 on an Ampere eMag server.
+Hi Arvid,
+
+On 9/20/22 11:48, Arvid Norlander wrote:
+> On 2022-09-19 11:27, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 9/11/22 20:49, Arvid Norlander wrote:
+>>> This is loosly based on a previous staging driver that was removed. See
+>>> links below for more info on that driver. The original commit ID was
+>>> 0be013e3dc2ee79ffab8a438bbb4e216837e3d52.
+>>>
+>>> However, here a completely different approach is taken to the user space
+>>> API (which should solve the issues the original driver had). Each PNP0C32
+>>> device is a button, and each such button gets a separate input device
+>>> associated with it (instead of a shared platform input device).
+>>>
+>>> The button ID (as read from ACPI method GHID) is provided via a sysfs file
+>>> "button_id".
+>>>
+>>> If the button caused a wakeup it will "latch" the "wakeup_cause" sysfs file
+>>> to true. This can be reset by a user space process.
+>>>
+>>> Link: https://marc.info/?l=linux-acpi&m=120550727131007
+>>> Link: https://lkml.org/lkml/2010/5/28/327
+>>> Signed-off-by: Arvid Norlander <lkml@vorpal.se>
+>>
+>> 2 high level remarks here:
+>>
+>> 1. I believe we should strive for having all issues with this driver fixed
+>> before merging it, at which point it should not sit under drivers/staging
+>> but rather under drivers/platform/x86 (as an added bonus this can also make
+>> toshiba_apci's Kconfig bit select it automatically). So for the next version
+>> please move this to drivers/platform/x86
 > 
-> To remove the dependency of ghes_edac on ghes, make it a proper module. Use
-> a list to save the probing devices in ghes_probe(), and defer the
-> ghes_edac_register() to module_init() of the new ghes_edac module by
-> iterating over the devices list.
+> Makes sense, will do. However, there is nothing x86 specific in theory with
+> this driver. Would it not make more sense to put it under drivers/acpi?
+
+Since the spec is from Microsoft I expect it to be a x86 only thing
+(AFAIK this predates there couple of ARM attempts). Also since this has
+some tie-in with toshiba-acpi (at least for the laptops you are actually
+testing this on) keeping it in the same dir as toshiba-acpi seems to
+make the most sense to me.
+
+A lot of ACPI drivers actually live under drivers/platform/x86 for
+similar reasons.
+
+>> 2. This is using struct acpi_driver, but as Rafael (ACPI maintainer) always
+>> said that is really only for very special cases. The ACPI subsystem should
+>> instantiate standard platform devices for each PNP0C32 device, you can
+>> check this under: /sys/bus/devices/platform.  And this driver should then
+>> be convered to a standard platform_driver binding to the platform devices
+>> instead of being a struct acpi_driver.
 > 
-> The ghes_edac_force_enable check is not needed in ghes_edac_unregister()
-> since it has been checked in ghes_edac_init().
+> I had a look at this, and it seems like a much more complicated a approach,
+> for example, there is no dedicated .ops.notify, which means I need to use
+> acpi_install_notify_handler, and there is no devm_ version of that either.
+> A lot of other things seem to be ever so slightly more complicated as well. 
 > 
-> Co-developed-by: Borislav Petkov <bp@alien8.de>
-> Signed-off-by: Borislav Petkov <bp@alien8.de>
-> Signed-off-by: Jia He <justin.he@arm.com>
-> Fixes: dc4e8c07e9e2 ("ACPI: APEI: explicit init of HEST and GHES in apci_init()")
-> Cc: Shuai Xue <xueshuai@linux.alibaba.com>
-> Acked-by: Toshi Kani <toshi.kani@hpe.com>
-> ---
->  drivers/acpi/apei/ghes.c | 22 +++++++++++++--
->  drivers/edac/Kconfig     |  4 +--
->  drivers/edac/ghes_edac.c | 59 +++++++++++++++++++++++-----------------
->  include/acpi/ghes.h      | 24 ++++------------
->  4 files changed, 62 insertions(+), 47 deletions(-)
+> What is the motivation behind this being preferred? And are most of the
+> existing drivers using acpi_driver legacy (e.g. toshiba_acpi)?
 
-So those last three patches look unnecessarily complex. You don't
-need to export ghes_edac_force_enable and you don't need that
-ghes_edac_preferred() thing.
+I'm mostly just parroting (repeating) the party-line here. Not making
+new drivers an acpi_driver is typically requested by Rafael, the ACPI
+maintainer. Rafael can you explain why?
 
-IOW, I'd like to see the below split into two patches:
+From my own view point I guess this has to do with ACPI having changed
+over time from mostly offering firmware interfaces which mostly talk
+to the EC, to actually also describing the hw.
 
-1. Add ghes_get_devices() to ghes.c along with moving the
-ghes_edac_force_enable param to ghes.c
+Now a days of lot of ACPI devices are actually describing real hardware
+devices, e.g. PCI cards, I2C devices, SPI decices and UART attached devices
+including things like IO / MMIO addresses, I2C slave addresses, SPI chip
+selects, GPIOs, IRQs, etc.
 
-2. Add init() and exit() module functions and fixup Kconfig
+So the kernel now a days instantiates actual SPI / I2C / UART / PCI /
+other(platform) devices for all the devices in ACPI, with all the physicial
+resources attached to the struct platform_device / struct i2c_client / etc.
+using the kernels standard resource mechanisms.
 
-There's no need for ghes_present - ghes.c has either registered devices
-or not.
+The struct platform_device / struct i2c_client / etc. devices then have
+a firmware_node pointer (aka companion device) pointing to the ACPI
+device in case the driver also needs to make some actual ACPI calls on
+either to query some extra information stored in ACPI, or sometimes
+to enable / disable special features driven through ACPI methods.
 
-And ghes_edac is preferred if ghes_get_devices() gives you a list of
-devices or not.
+The instantiation of these struct platform_device / struct i2c_client / etc.
+devices is done through a special default/fallback acpi_driver. If you
+attach your own acpi_driver to an acpi_device then this will not happen.
 
-IOW, it all boils down to whether the list returned is NULL or not.
+So for any devices which also have some physical part (and not just pure
+firmware interface) using an acpi_driver is not what you want. At which
+point I guess we simply just want to avoid it even for pure virtual/fw
+devices like the PNP0C32 case for consistency.
 
-HTH.
+Note this is just my view on this, perhaps Rafael can explain this better?
 
----
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 8cb65f757d06..27c72b175e4b 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -109,6 +109,13 @@ static inline bool is_hest_type_generic_v2(struct ghes *ghes)
- bool ghes_disable;
- module_param_named(disable, ghes_disable, bool, 0);
- 
-+/*
-+ * "ghes.edac_force_enable" forcibly enables ghes_edac and skips the platform
-+ * check.
-+ */
-+static bool ghes_edac_force_enable;
-+module_param_named(edac_force_enable, ghes_edac_force_enable, bool, 0);
-+
- /*
-  * All error sources notified with HED (Hardware Error Device) share a
-  * single notifier callback, so they need to be linked and checked one
-@@ -120,6 +127,9 @@ module_param_named(disable, ghes_disable, bool, 0);
- static LIST_HEAD(ghes_hed);
- static DEFINE_MUTEX(ghes_list_mutex);
- 
-+static LIST_HEAD(ghes_devs);
-+static DEFINE_MUTEX(ghes_devs_mutex);
-+
- /*
-  * Because the memory area used to transfer hardware error information
-  * from BIOS to Linux can be determined only in NMI, IRQ or timer
-@@ -1378,7 +1388,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 
- 	platform_set_drvdata(ghes_dev, ghes);
- 
--	ghes_edac_register(ghes, &ghes_dev->dev);
-+	ghes->dev = &ghes_dev->dev;
-+
-+	mutex_lock(&ghes_devs_mutex);
-+	list_add_tail(&ghes->elist, &ghes_devs);
-+	mutex_unlock(&ghes_devs_mutex);
- 
- 	/* Handle any pending errors right away */
- 	spin_lock_irqsave(&ghes_notify_lock_irq, flags);
-@@ -1442,7 +1456,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 
- 	ghes_fini(ghes);
- 
--	ghes_edac_unregister(ghes);
-+	mutex_lock(&ghes_devs_mutex);
-+	list_del(&ghes->elist);
-+	mutex_unlock(&ghes_devs_mutex);
- 
- 	kfree(ghes);
- 
-@@ -1500,6 +1516,32 @@ void __init acpi_ghes_init(void)
- 		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
- }
- 
-+/*
-+ * Known x86 systems that prefer GHES error reporting:
-+ */
-+static struct acpi_platform_list plat_list[] = {
-+	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
-+	{ } /* End */
-+};
-+
-+struct list_head *ghes_get_devices(void)
-+{
-+	int idx = -1;
-+
-+	if (IS_ENABLED(CONFIG_X86)) {
-+		idx = acpi_match_platform_list(plat_list);
-+		if (idx < 0) {
-+			if (!ghes_edac_force_enable)
-+				return NULL;
-+
-+			pr_warn_once("Force-loading ghes_edac on an unsupported platform. You're on your own!\n");
-+		}
-+	}
-+
-+	return &ghes_devs;
-+}
-+EXPORT_SYMBOL_GPL(ghes_get_devices);
-+
- void ghes_register_report_chain(struct notifier_block *nb)
- {
- 	atomic_notifier_chain_register(&ghes_report_chain, nb);
-diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-index 17562cf1fe97..df45db81858b 100644
---- a/drivers/edac/Kconfig
-+++ b/drivers/edac/Kconfig
-@@ -53,8 +53,8 @@ config EDAC_DECODE_MCE
- 	  has been initialized.
- 
- config EDAC_GHES
--	bool "Output ACPI APEI/GHES BIOS detected errors via EDAC"
--	depends on ACPI_APEI_GHES && (EDAC=y)
-+	tristate "Output ACPI APEI/GHES BIOS detected errors via EDAC"
-+	depends on ACPI_APEI_GHES
- 	select UEFI_CPER
- 	help
- 	  Not all machines support hardware-driven error report. Some of those
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 7b8d56a769f6..8460108e8623 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -54,12 +54,10 @@ static DEFINE_MUTEX(ghes_reg_mutex);
-  */
- static DEFINE_SPINLOCK(ghes_lock);
- 
--/* "ghes_edac.force_load=1" skips the platform check */
--static bool __read_mostly force_load;
--module_param(force_load, bool, 0);
--
- static bool system_scanned;
- 
-+static struct list_head *ghes_devs;
-+
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
- 	u8 type;
-@@ -387,34 +385,15 @@ static struct notifier_block ghes_edac_mem_err_nb = {
- 	.priority	= 0,
- };
- 
--/*
-- * Known systems that are safe to enable this module.
-- */
--static struct acpi_platform_list plat_list[] = {
--	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
--	{ } /* End */
--};
--
--int ghes_edac_register(struct ghes *ghes, struct device *dev)
-+static int ghes_edac_register(struct device *dev)
- {
- 	bool fake = false;
- 	struct mem_ctl_info *mci;
- 	struct ghes_pvt *pvt;
- 	struct edac_mc_layer layers[1];
- 	unsigned long flags;
--	int idx = -1;
- 	int rc = 0;
- 
--	if (IS_ENABLED(CONFIG_X86)) {
--		/* Check if safe to enable on this system */
--		idx = acpi_match_platform_list(plat_list);
--		if (!force_load && idx < 0)
--			return -ENODEV;
--	} else {
--		force_load = true;
--		idx = 0;
--	}
--
- 	/* finish another registration/unregistration instance first */
- 	mutex_lock(&ghes_reg_mutex);
- 
-@@ -458,15 +437,10 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
- 		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
- 		pr_info("work on such system. Use this driver with caution\n");
--	} else if (idx < 0) {
--		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
--		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
--		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
--		pr_info("If you find incorrect reports, please contact your hardware vendor\n");
--		pr_info("to correct its BIOS.\n");
--		pr_info("This system has %d DIMM sockets.\n", ghes_hw.num_dimms);
- 	}
- 
-+	pr_info("This system has %d DIMM sockets.\n", ghes_hw.num_dimms);
-+
- 	if (!fake) {
- 		struct dimm_info *src, *dst;
- 		int i = 0;
-@@ -530,14 +504,11 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	return rc;
- }
- 
--void ghes_edac_unregister(struct ghes *ghes)
-+static void ghes_edac_unregister(struct ghes *ghes)
- {
- 	struct mem_ctl_info *mci;
- 	unsigned long flags;
- 
--	if (!force_load)
--		return;
--
- 	mutex_lock(&ghes_reg_mutex);
- 
- 	system_scanned = false;
-@@ -566,3 +537,32 @@ void ghes_edac_unregister(struct ghes *ghes)
- unlock:
- 	mutex_unlock(&ghes_reg_mutex);
- }
-+
-+static int __init ghes_edac_init(void)
-+{
-+	struct ghes *g, *g_tmp;
-+
-+	ghes_devs = ghes_get_devices();
-+	if (!ghes_devs)
-+		return -ENODEV;
-+
-+	list_for_each_entry_safe(g, g_tmp, ghes_devs, elist) {
-+		ghes_edac_register(g->dev);
-+	}
-+
-+	return 0;
-+}
-+module_init(ghes_edac_init);
-+
-+static void __exit ghes_edac_exit(void)
-+{
-+	struct ghes *g, *g_tmp;
-+
-+	list_for_each_entry_safe(g, g_tmp, ghes_devs, elist) {
-+		ghes_edac_unregister(g);
-+	}
-+}
-+module_exit(ghes_edac_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Output ACPI APEI/GHES BIOS detected errors module via EDAC");
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 5cbd38b6e4e1..2e785d3554d8 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -27,6 +27,8 @@ struct ghes {
- 		struct timer_list timer;
- 		unsigned int irq;
- 	};
-+	struct device *dev;
-+	struct list_head elist;
- };
- 
- struct ghes_estatus_node {
-@@ -69,28 +71,14 @@ int ghes_register_vendor_record_notifier(struct notifier_block *nb);
-  * @nb: pointer to the notifier_block structure of the vendor record handler.
-  */
- void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
--#endif
--
--int ghes_estatus_pool_init(int num_ghes);
--
--/* From drivers/edac/ghes_edac.c */
--
--#ifdef CONFIG_EDAC_GHES
--int ghes_edac_register(struct ghes *ghes, struct device *dev);
--
--void ghes_edac_unregister(struct ghes *ghes);
- 
-+struct list_head *ghes_get_devices(void);
- #else
--static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
--{
--	return -ENODEV;
--}
--
--static inline void ghes_edac_unregister(struct ghes *ghes)
--{
--}
-+static inline struct list_head *ghes_get_devices(void) { return NULL; }
- #endif
- 
-+int ghes_estatus_pool_init(int num_ghes);
-+
- static inline int acpi_hest_get_version(struct acpi_hest_generic_data *gdata)
- {
- 	return gdata->revision >> 8;
+Regards,
 
--- 
-Regards/Gruss,
-    Boris.
+Hans
 
-https://people.kernel.org/tglx/notes-about-netiquette
