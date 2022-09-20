@@ -2,131 +2,113 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EC8AC54EE9
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 09:26:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA049ECAAD8
+	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 09:48:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230239AbiITJ0S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 20 Sep 2022 05:26:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56144 "EHLO
+        id S230201AbiITJsB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 20 Sep 2022 05:48:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230355AbiITJ0R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2022 05:26:17 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 149DE6A4A9;
-        Tue, 20 Sep 2022 02:26:16 -0700 (PDT)
-Received: from zn.tnic (p200300ea9733e791329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9733:e791:329c:23ff:fea6:a903])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 965DE1EC0380;
-        Tue, 20 Sep 2022 11:26:10 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1663665970;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=zP1NkRhYUiHW8Z4Cjl9uESlEcyLKkpoT10sJq+VUOXI=;
-        b=Jxb3tMlwXBS+WYLMTAcR68WY6sEb9gmqi337ahH+pBBWnITp6FG60PhXCD37K2u3zfNGR+
-        DBW0O77ElthTe5H0yD7OMnyg9zU+oCFCjPNNa/C+JaBC/4A87HA/ZreaCS3VX6lZfSZzc7
-        isaevu2/SzCFnGIEyq9B96oETeIW3F0=
-Date:   Tue, 20 Sep 2022 11:26:06 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Jay Lu <jaylu102@amd.com>
-Cc:     linux-kernel@vger.kernel.org, rafael@kernel.org, lenb@kernel.org,
-        james.morse@arm.com, tony.luck@intel.com,
-        dave.hansen@linux.intel.com, jarkko@kernel.org,
-        xueshuai@linux.alibaba.com, terry.bowman@amd.com,
-        yazen.ghannam@amd.com, smita.koralahallichannabasappa@amd.com,
-        robert.richter@amd.com, linux-acpi@vger.kernel.org,
-        jayakumar.govindankalivu@amd.com
-Subject: Re: [PATCH 2/3] ACPI, APEI, EINJ: Refactor available_error_type_show
-Message-ID: <YymHLo5JzuqdcMab@zn.tnic>
-References: <20220729153550.181209-1-jaylu102@amd.com>
- <20220729153550.181209-3-jaylu102@amd.com>
+        with ESMTP id S230300AbiITJrx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2022 05:47:53 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F7FD6F554;
+        Tue, 20 Sep 2022 02:47:46 -0700 (PDT)
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MWxV14DnlzpTDQ;
+        Tue, 20 Sep 2022 17:44:57 +0800 (CST)
+Received: from kwepemm600004.china.huawei.com (7.193.23.242) by
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Tue, 20 Sep 2022 17:47:45 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Tue, 20 Sep 2022 17:47:44 +0800
+From:   Huisong Li <lihuisong@huawei.com>
+To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     <rafael@kernel.org>, <sudeep.holla@arm.com>,
+        <rafael.j.wysocki@intel.com>, <wanghuiqiang@huawei.com>,
+        <huangdaode@huawei.com>, <lihuisong@huawei.com>
+Subject: [PATCH 1/2] ACPI: PCC: replace wait_for_completion()
+Date:   Tue, 20 Sep 2022 17:44:59 +0800
+Message-ID: <20220920094500.11283-2-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20220920094500.11283-1-lihuisong@huawei.com>
+References: <20220920094500.11283-1-lihuisong@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220729153550.181209-3-jaylu102@amd.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ kwepemm600004.china.huawei.com (7.193.23.242)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jul 29, 2022 at 10:35:49AM -0500, Jay Lu wrote:
-> Move error type descriptions into an array and loop over error types
-> to improve readability and maintainability.
-> 
-> Replace seq_printf() with seq_puts() as recommended by checkpatch.pl.
-> 
-> Signed-off-by: Jay Lu <jaylu102@amd.com>
-> ---
->  drivers/acpi/apei/einj.c | 41 +++++++++++++++++-----------------------
->  1 file changed, 17 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-> index da039c630fd0..a68103280f74 100644
-> --- a/drivers/acpi/apei/einj.c
-> +++ b/drivers/acpi/apei/einj.c
-> @@ -569,6 +569,20 @@ static u64 error_param2;
->  static u64 error_param3;
->  static u64 error_param4;
->  static struct dentry *einj_debug_dir;
-> +static const char * const einj_error_type_string[] = {
-> +	"0x00000001\tProcessor Correctable\n",                          /* bit 0  */
-> +	"0x00000002\tProcessor Uncorrectable non-fatal\n",              /* bit 1  */
-> +	"0x00000004\tProcessor Uncorrectable fatal\n",                  /* bit 2  */
-> +	"0x00000008\tMemory Correctable\n",                             /* bit 3  */
-> +	"0x00000010\tMemory Uncorrectable non-fatal\n",                 /* bit 4  */
-> +	"0x00000020\tMemory Uncorrectable fatal\n",                     /* bit 5  */
-> +	"0x00000040\tPCI Express Correctable\n",                        /* bit 6  */
-> +	"0x00000080\tPCI Express Uncorrectable non-fatal\n",            /* bit 7  */
-> +	"0x00000100\tPCI Express Uncorrectable fatal\n",                /* bit 8  */
-> +	"0x00000200\tPlatform Correctable\n",                           /* bit 9  */
-> +	"0x00000400\tPlatform Uncorrectable non-fatal\n",               /* bit 10 */
-> +	"0x00000800\tPlatform Uncorrectable fatal\n",                   /* bit 11 */
-									^^^^^^^^^^^^
+Currently, the function waiting for completion of mailbox operation is
+'wait_for_completion()'.  The PCC method will be permanently blocked if
+this mailbox message fails to execute. So this patch replaces it with
+'wait_for_completion_timeout()'. And set the timeout interval to an
+arbitrary retries on top of nominal to prevent the remote processor is
+slow to respond to PCC commands.
 
-Those comments look useless - you have the bit numbers in front already.
+Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
 
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+---
+ drivers/acpi/acpi_pcc.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
->  static int available_error_type_show(struct seq_file *m, void *v)
->  {
-> @@ -578,30 +592,9 @@ static int available_error_type_show(struct seq_file *m, void *v)
->  	rc = einj_get_available_error_type(&available_error_type);
->  	if (rc)
->  		return rc;
-> -	if (available_error_type & 0x0001)
-> -		seq_printf(m, "0x00000001\tProcessor Correctable\n");
-> -	if (available_error_type & 0x0002)
-> -		seq_printf(m, "0x00000002\tProcessor Uncorrectable non-fatal\n");
-> -	if (available_error_type & 0x0004)
-> -		seq_printf(m, "0x00000004\tProcessor Uncorrectable fatal\n");
-> -	if (available_error_type & 0x0008)
-> -		seq_printf(m, "0x00000008\tMemory Correctable\n");
-> -	if (available_error_type & 0x0010)
-> -		seq_printf(m, "0x00000010\tMemory Uncorrectable non-fatal\n");
-> -	if (available_error_type & 0x0020)
-> -		seq_printf(m, "0x00000020\tMemory Uncorrectable fatal\n");
-> -	if (available_error_type & 0x0040)
-> -		seq_printf(m, "0x00000040\tPCI Express Correctable\n");
-> -	if (available_error_type & 0x0080)
-> -		seq_printf(m, "0x00000080\tPCI Express Uncorrectable non-fatal\n");
-> -	if (available_error_type & 0x0100)
-> -		seq_printf(m, "0x00000100\tPCI Express Uncorrectable fatal\n");
-> -	if (available_error_type & 0x0200)
-> -		seq_printf(m, "0x00000200\tPlatform Correctable\n");
-> -	if (available_error_type & 0x0400)
-> -		seq_printf(m, "0x00000400\tPlatform Uncorrectable non-fatal\n");
-> -	if (available_error_type & 0x0800)
-> -		seq_printf(m, "0x00000800\tPlatform Uncorrectable fatal\n");
-> +	for (int pos = 0; pos < ARRAY_SIZE(einj_error_type_string); pos++)
-> +		if (available_error_type & (BIT(0) << pos))
-					   ^^^^^^^^^^^^^^^
-
-That's a weird way of saying:
-
-	BIT(pos)
-
+diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
+index a12b55d81209..a1052fe998bf 100644
+--- a/drivers/acpi/acpi_pcc.c
++++ b/drivers/acpi/acpi_pcc.c
+@@ -23,6 +23,12 @@
+ 
+ #include <acpi/pcc.h>
+ 
++/*
++ * Arbitrary retries in case the remote processor is slow to respond
++ * to PCC commands
++ */
++#define PCC_CMD_WAIT_RETRIES_NUM	500
++
+ struct pcc_data {
+ 	struct pcc_mbox_chan *pcc_chan;
+ 	void __iomem *pcc_comm_addr;
+@@ -86,6 +92,7 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ {
+ 	int ret;
+ 	struct pcc_data *data = region_context;
++	u64 usecs_lat;
+ 
+ 	reinit_completion(&data->done);
+ 
+@@ -96,8 +103,20 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ 	if (ret < 0)
+ 		return AE_ERROR;
+ 
+-	if (data->pcc_chan->mchan->mbox->txdone_irq)
+-		wait_for_completion(&data->done);
++	if (data->pcc_chan->mchan->mbox->txdone_irq) {
++		/*
++		 * pcc_chan->latency is just a Nominal value. In reality the remote
++		 * processor could be much slower to reply. So add an arbitrary
++		 * amount of wait on top of Nominal.
++		 */
++		usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * data->pcc_chan->latency;
++		ret = wait_for_completion_timeout(&data->done,
++						  usecs_to_jiffies(usecs_lat));
++		if (ret == 0) {
++			pr_err("PCC command executed timeout!\n");
++			return AE_TIME;
++		}
++	}
+ 
+ 	mbox_client_txdone(data->pcc_chan->mchan, ret);
+ 
 -- 
-Regards/Gruss,
-    Boris.
+2.33.0
 
-https://people.kernel.org/tglx/notes-about-netiquette
