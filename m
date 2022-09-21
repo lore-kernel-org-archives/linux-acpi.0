@@ -2,107 +2,107 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D8BCC6FA90
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Sep 2022 16:18:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B245CC6FA82
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Sep 2022 17:24:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbiIUQSw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Sep 2022 12:18:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50054 "EHLO
+        id S229630AbiIURYc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Sep 2022 13:24:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232004AbiIUQS0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Sep 2022 12:18:26 -0400
-Received: from mail-il1-x129.google.com (mail-il1-x129.google.com [IPv6:2607:f8b0:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A56BAB409
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 09:03:11 -0700 (PDT)
-Received: by mail-il1-x129.google.com with SMTP id x2so3351985ill.10
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 09:03:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=THUFniOK+VEaZvk3WrlhDVy764x1MLYSOQIxcILEvxQ=;
-        b=X0gOecgOXbR09B7uWiGNA3l57ZH5gzdV7m2fMkuQmBtbM0SHP5TFh/xGTkWyKMdd6k
-         bYpQNI35i3B3pvOfI+0U3gvY9f46t3tfzi3Cngcf2p06SP/YugBowaJzwFQnjtycWsIm
-         yvQwRVcp/HB0tQHhH92QQfiTU3aLyBnLZx8zo=
+        with ESMTP id S229523AbiIURYb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Sep 2022 13:24:31 -0400
+Received: from smtp-relay-internal-0.canonical.com (smtp-relay-internal-0.canonical.com [185.125.188.122])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD5771BE
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 10:24:28 -0700 (PDT)
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com [209.85.215.198])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 0E7BB3F337
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 17:24:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1663781067;
+        bh=9piyT/VCnJlMmHymPvmNLYxbTaKtOFLio9F+8h9hJ9c=;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version;
+        b=uRzvoVjcl871kW1r3aqyrkmqv2OKBponIPV7J7xTHutTOuOTA7Ku6msdy4MFgF4l8
+         W47y7WDSp49/HsrbWBBc9ggE38s00keGollHQvHsxFK+bh1x+7GlOwMhIgDtB1SyaC
+         x0yyCpZut4ZJiMzg1w8qSbs1sz3rT1EZoQoBDZmfHhFsVf9tyhmb8j0+EnlVwm6yBm
+         d4cfd7U+DJddgaag/RWAQZUhguHXPLrgT3s02qVP/EmqmY1rfF4sJmigQEC2oG5xT3
+         JYFvBDXudgPeXiWXswGRykcJrHUN2O0howmupSDuhphnn5SN44jT24uE2PAaHeq2jv
+         g5RyiGHqV5Lwg==
+Received: by mail-pg1-f198.google.com with SMTP id w1-20020a63d741000000b0042c254a4ccdso3795841pgi.15
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 10:24:26 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=THUFniOK+VEaZvk3WrlhDVy764x1MLYSOQIxcILEvxQ=;
-        b=CLEX3gKs2Bt28VQ5n/UNzNPxaMBzZKvbRtIrrF/aPeQfj1CsDZWRYIzNaMy0mIWyOI
-         2Zkz84/4BQuiGTi1yniAju7c5L3cd22CrgFRv3+lRgsegdyYMDVVp3QYII4QVu+VJBDV
-         BoyjE5Z3FTH8JgINEkrLkjHRWNlnRgebYZbAxj+rCgkuD+nUY+C3HM77M1KBbDU38b9x
-         cNul/2miyUEcm8jktN7dWKvzyYYyIq9glFrANapJox6AgC1Iz1KEnoIAnCCTHd3Ql/In
-         lpbuBrxgqo+Q8JSeZonBfeH1VdvtE3kDY//EDiL4QyNi58fuQAx/QUU9X7B83dW/QrCA
-         eNdw==
-X-Gm-Message-State: ACrzQf3bBGuMfYNJ1gFkp8hzBsG48jqjrP/1Z0YTdVLpIDYSbLP+tVAe
-        vggS6l5fw9eYIF97eeAunJUzuG9c4AHXlA==
-X-Google-Smtp-Source: AMsMyM7Y39hoLqgIounsHo+rfvleaY90wBHu2R1tTiv/+BtlKIZ58AXKbEM8mFWmHFs9E7lq3sofGg==
-X-Received: by 2002:a05:6e02:1c48:b0:2f1:db4b:66df with SMTP id d8-20020a056e021c4800b002f1db4b66dfmr12601061ilg.35.1663775541555;
-        Wed, 21 Sep 2022 08:52:21 -0700 (PDT)
-Received: from rrangel920.bld.corp.google.com (h24-56-189-219.arvdco.broadband.dynamic.tds.net. [24.56.189.219])
-        by smtp.gmail.com with ESMTPSA id c14-20020a023b0e000000b0035a8d644a31sm1148061jaa.117.2022.09.21.08.52.20
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date;
+        bh=9piyT/VCnJlMmHymPvmNLYxbTaKtOFLio9F+8h9hJ9c=;
+        b=dFmE07tg03URdzGPObkgt0QZLyUdBrx4sHCsMTJN0X5x7dYkp61MBy5vrEU5Dc4wjB
+         S1EjxftexbofX6ln1LvuyN9r7U+zI4vSNNDp/ox1yRHeq/lYVsk7Yfpaf0hE0EyCvMpt
+         wdWo3AmRUTcsZCWjwVN5WycVLGDqoezYL9tbQ8Ar1sgG3oCqYWIu6mjepCpUFouDNT3F
+         e/HTnOGaHeaPKAcftDsY3tFNJXUqXnoCe7Wzukm1GmRWhhOl10vYuZd55K0/gIWeFPCC
+         bSlSNbu7V1x2V6f7twJ9wTv8BJDW2u18We5KEFdzOIFTvFDVphHnsaUVnGBXEK6sK5iK
+         3sng==
+X-Gm-Message-State: ACrzQf1H2eoqXgibUsW9kzaViNJVO5j/em381y0rwqjulx7EY7ieEDsT
+        cmH/+xlcoudmhuM7zLC0Z3h17BLjasB8t9fbo8mb+ggLjTyIayBRPcd8WHLVDpaleJVTUi9015O
+        yrweVRTIfr5m0uOITrfNe3lKScUbXxxlGPKBpqpA=
+X-Received: by 2002:a17:902:d4c1:b0:176:b795:c639 with SMTP id o1-20020a170902d4c100b00176b795c639mr5717731plg.154.1663781065317;
+        Wed, 21 Sep 2022 10:24:25 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM4WX1aYTbIwRcfCVN4W588CV/XvjYWHcK6PVkEXvP4qjobX++S8B4HCEEzInRCAY75VXKnmwQ==
+X-Received: by 2002:a17:902:d4c1:b0:176:b795:c639 with SMTP id o1-20020a170902d4c100b00176b795c639mr5717712plg.154.1663781065065;
+        Wed, 21 Sep 2022 10:24:25 -0700 (PDT)
+Received: from workstation.canonical.bluequartz.xyz (c-68-84-194-247.hsd1.az.comcast.net. [68.84.194.247])
+        by smtp.gmail.com with ESMTPSA id b8-20020a170902650800b00178a9b193cfsm2310861plk.140.2022.09.21.10.24.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Sep 2022 08:52:21 -0700 (PDT)
-From:   Raul E Rangel <rrangel@chromium.org>
-To:     linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
-Cc:     rafael@kernel.org, timvp@google.com,
-        mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com,
-        dmitry.torokhov@gmail.com, jingle.wu@emc.com.tw,
-        hdegoede@redhat.com, mario.limonciello@amd.com,
-        linus.walleij@linaro.org, Raul E Rangel <rrangel@chromium.org>,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        Alistair Francis <alistair@alistair23.me>,
-        Bartosz Szczepanek <bsz@semihalf.com>,
-        Jiri Kosina <jikos@kernel.org>, Rob Herring <robh@kernel.org>,
-        Yang Li <yang.lee@linux.alibaba.com>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v5 10/13] HID: i2c-hid: Don't set wake_capable and wake_irq
-Date:   Wed, 21 Sep 2022 09:52:02 -0600
-Message-Id: <20220921094736.v5.10.Id22d056440953134d8e8fe2c2aff79c79bc78424@changeid>
-X-Mailer: git-send-email 2.37.3.968.ga6b4b080e4-goog
-In-Reply-To: <20220921155205.1332614-1-rrangel@chromium.org>
-References: <20220921155205.1332614-1-rrangel@chromium.org>
+        Wed, 21 Sep 2022 10:24:24 -0700 (PDT)
+From:   Kellen Renshaw <kellen.renshaw@canonical.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, rafael@kernel.org, lenb@kernel.org,
+        hui.wang@canonical.com, kellen.renshaw@canonical.com
+Subject: [PATCH] ACPI: resources: Add ASUS model S5402ZA to quirks
+Date:   Wed, 21 Sep 2022 10:24:22 -0700
+Message-Id: <20220921172422.650880-1-kellen.renshaw@canonical.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The i2c-core will now handle setting the wake_irq for DT and ACPI
-systems.
+The Asus Vivobook S5402ZA has the same keyboard issue as Asus Vivobook 
+K3402ZA/K3502ZA. The kernel overrides IRQ 1 to Edge_High when it
+should be Active_Low.
 
-Signed-off-by: Raul E Rangel <rrangel@chromium.org>
-Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+This patch adds the S5402ZA model to the quirk list.
+
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=216158
+Tested-by: Kellen Renshaw <kellen.renshaw@canonical.com>
+Signed-off-by: Kellen Renshaw <kellen.renshaw@canonical.com>
 ---
+Follows e12dee373673 (ACPI: resource: Skip IRQ override on Asus Vivobook 
+K3402ZA/K3502ZA).
 
-Changes in v5:
-- Added Acked-by: Benjamin Tissoires
+ drivers/acpi/resource.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
- drivers/hid/i2c-hid/i2c-hid-core.c | 9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/drivers/hid/i2c-hid/i2c-hid-core.c b/drivers/hid/i2c-hid/i2c-hid-core.c
-index a2fa40dec04ea5..65b7a95956866d 100644
---- a/drivers/hid/i2c-hid/i2c-hid-core.c
-+++ b/drivers/hid/i2c-hid/i2c-hid-core.c
-@@ -1036,15 +1036,6 @@ int i2c_hid_core_probe(struct i2c_client *client, struct i2chid_ops *ops,
- 	if (ret < 0)
- 		goto err_powered;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 8b4faec8cae7..5d688e546239 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -414,6 +414,13 @@ static const struct dmi_system_id asus_laptop[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "K3502ZA"),
+ 		},
+ 	},
++	{
++		.ident = "Asus Vivobook S5402ZA",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "S5402ZA"),
++		},
++	},
+ 	{ }
+ };
  
--	/*
--	 * The wake IRQ should be declared via device tree instead of assuming
--	 * the IRQ can wake the system. This is here for legacy reasons and
--	 * will be removed once the i2c-core supports querying ACPI for wake
--	 * capabilities.
--	 */
--	if (!client->dev.power.wakeirq)
--		dev_pm_set_wake_irq(&client->dev, client->irq);
--
- 	hid = hid_allocate_device();
- 	if (IS_ERR(hid)) {
- 		ret = PTR_ERR(hid);
 -- 
-2.37.3.968.ga6b4b080e4-goog
+2.25.1
 
