@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40298ECAAD8
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Sep 2022 16:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B22C6FA82
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Sep 2022 16:18:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232206AbiIUQRK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Sep 2022 12:17:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48926 "EHLO
+        id S232155AbiIUQSD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Sep 2022 12:18:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232154AbiIUQQk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Sep 2022 12:16:40 -0400
-Received: from mail-pg1-x52a.google.com (mail-pg1-x52a.google.com [IPv6:2607:f8b0:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF6E7A98E8
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 09:01:28 -0700 (PDT)
-Received: by mail-pg1-x52a.google.com with SMTP id e67so247973pgc.12
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 09:01:28 -0700 (PDT)
+        with ESMTP id S232386AbiIUQRe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Sep 2022 12:17:34 -0400
+Received: from mail-qt1-x829.google.com (mail-qt1-x829.google.com [IPv6:2607:f8b0:4864:20::829])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAF60AA3F4
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 09:02:36 -0700 (PDT)
+Received: by mail-qt1-x829.google.com with SMTP id f26so4398381qto.11
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2022 09:02:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=uhn02vEcgNMuC4NDL/sdnIiKkA3NV83noPVamoKM5ng=;
-        b=J+m/6s3OweW7a/eo9st4eaQgCj5FBjVxWu4cd0CaPO5cml8TYlNkg/w5YMuvK+r+GQ
-         wzhrojO6SeTZXM/fmsxo/ctc7AJ+AoKGqVMF18GQ8VM2foK5SHjyhGHiByVZJBVAX1i1
-         obzlAwJ08YXB3oRiWQZ0lmKoLJMRn+Pegtamw=
+        bh=FeCM68gkQ9FF2bI4ULoqKrlayWCcShzPlt5I44au1/c=;
+        b=GtmCk56HIqS2j7htWOn/zd2QgPTD1TYRl91W0+5vL/qucf8cUNggcbH51MiyegyUPJ
+         A9CmJif3svdMmc0fGZYnepR08XJ2LAeeHufyL8dvufUYu+LQLUF4QeT/9obZ4+t/Kzwi
+         tiV1uf63qtX/4WZCyIbo4VS4rbeUYscBntzyA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=uhn02vEcgNMuC4NDL/sdnIiKkA3NV83noPVamoKM5ng=;
-        b=hN5cD93YQtDh5tXCme5PT4eYj11o3WSn29sMApM2461vW4ta55/fiDPazT8oiKsL3R
-         U6Eq+J39XPngVtLZkOcVMrrzG2lzXAZ7FoKTqh0bBdr/67UZ6uUf5onl83Y5MiDd1yIP
-         7z0wypoVftP1uI1h394KwyAfn0WY1Ig+n6JPkTP/KeSJCqYMuqOR/nMnuXvEeSv/LxxC
-         SHmeXT3ZNGnFw+N6x82EEO967cMNX5pXTAwEkidHQo0wrIX6AEbGrK5z5NUfBT2ncg2L
-         Y8AVNKFixpNYcV3RtnTqdcCvNCCi2owiay5kdvqeC0rOU1RVqsKsUrEflA4kOE8pSppn
-         D6vw==
-X-Gm-Message-State: ACrzQf2jCdVd16o6OmY7AbzVZOHh1QPlsGGFM0O9m81BtlIjhZHXKw0a
-        r14ba1f/zzBhF3nmGJoDayjwAKdISZWwuQ==
-X-Google-Smtp-Source: AMsMyM5y+0hpMGJsf2ExwaciR2mijAedWncBixNTzl39icNIG8bLyvsSsOzqJ1lKOuRVy46al2qq4w==
-X-Received: by 2002:a05:6e02:20ce:b0:2f3:4a1f:3db4 with SMTP id 14-20020a056e0220ce00b002f34a1f3db4mr12919850ilq.278.1663775545355;
-        Wed, 21 Sep 2022 08:52:25 -0700 (PDT)
+        bh=FeCM68gkQ9FF2bI4ULoqKrlayWCcShzPlt5I44au1/c=;
+        b=VDBR0gUY4LQyVMSY5Z4140/0ITlrJir2Cc3yK4Q+wt2BF5P1n/CAYrIc1wzJFsuEj0
+         eThd8dRhRAGcQZPltqFiiR6s5KV/E90kovr1IOxcOofl3ZZIUYDfSFwWL1zyizr2m0S4
+         RYxlJuIAgcGG4RX/fTOGZ5do5dVFpNEF0Xw/DB2ufc4ii8eoco3pWVV/e/1OEoYGqIkF
+         NM6BYDNuGououeaigvuAGzvpPzws+NY7A29xbpL+JXbyzOmJNACkBQtC0fM+1fLysYPS
+         gFXO3Ng3cs5jUkAH+sCGJhO4C0tvLohrNfPyOnERYTJlj4njXSHGAb8swjcHWgT845hr
+         VJsA==
+X-Gm-Message-State: ACrzQf0Nb8EiXPBWpNcJeZGb54n5msWLqbfu9KHI0BOo8+bgDMXsSwX3
+        s4N6NmlxpUHqRO7BW4owo50DIZUEuvwiJA==
+X-Google-Smtp-Source: AMsMyM51AVUJbQY3PPH4vR13sh6JHTTSpHiCRizwFXEe4R+ue1vv4/RVAHvxMTPRddIJjnBApDIYUg==
+X-Received: by 2002:a05:6638:2595:b0:35a:5433:d7a9 with SMTP id s21-20020a056638259500b0035a5433d7a9mr13085111jat.320.1663775531648;
+        Wed, 21 Sep 2022 08:52:11 -0700 (PDT)
 Received: from rrangel920.bld.corp.google.com (h24-56-189-219.arvdco.broadband.dynamic.tds.net. [24.56.189.219])
-        by smtp.gmail.com with ESMTPSA id c14-20020a023b0e000000b0035a8d644a31sm1148061jaa.117.2022.09.21.08.52.24
+        by smtp.gmail.com with ESMTPSA id c14-20020a023b0e000000b0035a8d644a31sm1148061jaa.117.2022.09.21.08.52.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Sep 2022 08:52:25 -0700 (PDT)
+        Wed, 21 Sep 2022 08:52:10 -0700 (PDT)
 From:   Raul E Rangel <rrangel@chromium.org>
 To:     linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 Cc:     rafael@kernel.org, timvp@google.com,
@@ -52,11 +52,10 @@ Cc:     rafael@kernel.org, timvp@google.com,
         dmitry.torokhov@gmail.com, jingle.wu@emc.com.tw,
         hdegoede@redhat.com, mario.limonciello@amd.com,
         linus.walleij@linaro.org, Raul E Rangel <rrangel@chromium.org>,
-        Cai Huoqing <cai.huoqing@linux.dev>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v5 13/13] Input: raydium_ts_i2c - Don't set wake_capable and wake_irq
-Date:   Wed, 21 Sep 2022 09:52:05 -0600
-Message-Id: <20220921094736.v5.13.Ia0b24ab02c22125c5fd686cc25872bd26c27ac23@changeid>
+Subject: [PATCH v5 02/13] Input: elan_i2c - Use PM subsystem to manage wake irq
+Date:   Wed, 21 Sep 2022 09:51:54 -0600
+Message-Id: <20220921094736.v5.2.Id022caf53d01112188308520915798f08a33cd3e@changeid>
 X-Mailer: git-send-email 2.37.3.968.ga6b4b080e4-goog
 In-Reply-To: <20220921155205.1332614-1-rrangel@chromium.org>
 References: <20220921155205.1332614-1-rrangel@chromium.org>
@@ -66,37 +65,89 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The i2c-core will now handle setting the wake_irq and wake capability
-for DT and ACPI systems.
+The Elan I2C touchpad driver is currently manually managing the wake
+IRQ. This change removes the explicit enable_irq_wake/disable_irq_wake
+and instead relies on the PM subsystem. This is done by calling
+dev_pm_set_wake_irq.
+
+i2c_device_probe already calls dev_pm_set_wake_irq when using device
+tree, and i2c_device_remove also already calls dev_pm_clear_wake_irq.
+There could be some device tree systems that have incorrectly declared
+`wake` capabilities, so this change will set the wake irq if one is
+missing. This matches the previous behavior.
+
+I tested this on an ACPI system where the touchpad doesn't have _PRW
+defined. I verified I can still wake the system and that the wake source
+was the touchpad IRQ GPIO.
 
 Signed-off-by: Raul E Rangel <rrangel@chromium.org>
 ---
 
-(no changes since v1)
+(no changes since v2)
 
- drivers/input/touchscreen/raydium_i2c_ts.c | 9 ---------
- 1 file changed, 9 deletions(-)
+Changes in v2:
+- Set the wake_irq when not configured by the i2c-core. This is
+  different than v1, where the wake_irq was only set for non DT systems.
 
-diff --git a/drivers/input/touchscreen/raydium_i2c_ts.c b/drivers/input/touchscreen/raydium_i2c_ts.c
-index 66c5b577b791d4..88d187dc5d325f 100644
---- a/drivers/input/touchscreen/raydium_i2c_ts.c
-+++ b/drivers/input/touchscreen/raydium_i2c_ts.c
-@@ -1185,15 +1185,6 @@ static int raydium_i2c_probe(struct i2c_client *client,
- 		return error;
+ drivers/input/mouse/elan_i2c_core.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/input/mouse/elan_i2c_core.c b/drivers/input/mouse/elan_i2c_core.c
+index e1758d5ffe4218..3947474e93d16a 100644
+--- a/drivers/input/mouse/elan_i2c_core.c
++++ b/drivers/input/mouse/elan_i2c_core.c
+@@ -33,6 +33,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/completion.h>
+ #include <linux/of.h>
++#include <linux/pm_wakeirq.h>
+ #include <linux/property.h>
+ #include <linux/regulator/consumer.h>
+ #include <asm/unaligned.h>
+@@ -86,8 +87,6 @@ struct elan_tp_data {
+ 	u16			fw_page_size;
+ 	u32			fw_signature_address;
+ 
+-	bool			irq_wake;
+-
+ 	u8			min_baseline;
+ 	u8			max_baseline;
+ 	bool			baseline_ready;
+@@ -1340,6 +1339,15 @@ static int elan_probe(struct i2c_client *client,
+ 	if (!dev->of_node)
+ 		device_init_wakeup(dev, true);
+ 
++	/*
++	 * The wake IRQ should be declared via device tree instead of assuming
++	 * the IRQ can wake the system. This is here for legacy reasons and
++	 * will be removed once the i2c-core supports querying ACPI for wake
++	 * capabilities.
++	 */
++	if (!dev->power.wakeirq)
++		dev_pm_set_wake_irq(dev, client->irq);
++
+ 	return 0;
+ }
+ 
+@@ -1362,8 +1370,6 @@ static int __maybe_unused elan_suspend(struct device *dev)
+ 
+ 	if (device_may_wakeup(dev)) {
+ 		ret = elan_sleep(data);
+-		/* Enable wake from IRQ */
+-		data->irq_wake = (enable_irq_wake(client->irq) == 0);
+ 	} else {
+ 		ret = elan_set_power(data, false);
+ 		if (ret)
+@@ -1394,9 +1400,6 @@ static int __maybe_unused elan_resume(struct device *dev)
+ 			dev_err(dev, "error %d enabling regulator\n", error);
+ 			goto err;
+ 		}
+-	} else if (data->irq_wake) {
+-		disable_irq_wake(client->irq);
+-		data->irq_wake = false;
  	}
  
--	/*
--	 * The wake IRQ should be declared via device tree instead of assuming
--	 * the IRQ can wake the system. This is here for legacy reasons and
--	 * will be removed once the i2c-core supports querying ACPI for wake
--	 * capabilities.
--	 */
--	if (!client->dev.power.wakeirq)
--		dev_pm_set_wake_irq(&client->dev, client->irq);
--
- 	error = devm_device_add_group(&client->dev,
- 				   &raydium_i2c_attribute_group);
- 	if (error) {
+ 	error = elan_set_power(data, true);
 -- 
 2.37.3.968.ga6b4b080e4-goog
 
