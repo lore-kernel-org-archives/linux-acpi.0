@@ -2,181 +2,223 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BBFC6FA82
-	for <linux-acpi@archiver.kernel.org>; Tue, 20 Sep 2022 20:34:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D235C32771
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Sep 2022 06:37:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230116AbiITUe1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 20 Sep 2022 16:34:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33510 "EHLO
+        id S229938AbiIUGha (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Sep 2022 02:37:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230240AbiITUe0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2022 16:34:26 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3683C7548F
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Sep 2022 13:34:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1663706064;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=AW/dBlE2AQIyAJdoiRe+IiNWCzn2tZIwTsT8MkCs6dw=;
-        b=Y0h6V1dvuzXbSYT2kozfZe/n8tkrub1U0YmE25i94DYcRrIYUI8Dp/5wRnRAoWLqxHAFrl
-        crVFlXY78MdCKZTX/SH/ZcmEIhODb2fU1S2/ss/Ubl/ZgDlI3QOpvckCgzjickBlBCNNgd
-        6nSeFtRMctdPYWj//5iZdah5h4PlTvI=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-574-jkVSQnVmM5-XYgBrshd0lw-1; Tue, 20 Sep 2022 16:34:22 -0400
-X-MC-Unique: jkVSQnVmM5-XYgBrshd0lw-1
-Received: by mail-ed1-f72.google.com with SMTP id b16-20020a056402279000b0044f1102e6e2so2745165ede.20
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Sep 2022 13:34:21 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date;
-        bh=AW/dBlE2AQIyAJdoiRe+IiNWCzn2tZIwTsT8MkCs6dw=;
-        b=d0o7dKLREMbjjqcmHPj5ym4RCJlvJwqcQYZvXqhlUnb1dW+/m8aXDkO74TGNmVbgAd
-         9y8Hpl02cYxfPNlM707PMjehv5DG5pNYKeE37rBFBSfuzQpDnKDK15wiAtlVQXxZcsky
-         bXzoVRGAZ5lscop7sFoj93G4EEyoCIIsR4WD31C344AFHVzQPjN/Vm9bce+hZs1mdpnm
-         LRSlCZD/7emog3g3mo6uQj38M/YQnOIehyBL3FoF3vaJtcC4S/vk3qZvWY6HDSCgJC/B
-         LqaZCW1qPoBBcVHP2i4BrptqzwGwRlzPf8rjBQ4fAQSkuCQYuMPy06RPNPtzhcEuUWmO
-         lPuw==
-X-Gm-Message-State: ACrzQf2F0N0PF+O495xcQLPRz1+1v8EnE+SYhJxGv8FKqEJRqcvCnlVu
-        LBHlNVHZWen9uQO5ohd290cqN/Spyi7iZ610OgZYDLOTtX+ywVQsC/nwQvRtKb9AR4hPYCdjuxV
-        aLFWEteRJA3+bRd1Bdv+aEQ==
-X-Received: by 2002:a05:6402:148e:b0:44e:aa8c:abc5 with SMTP id e14-20020a056402148e00b0044eaa8cabc5mr21854666edv.145.1663706060859;
-        Tue, 20 Sep 2022 13:34:20 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM5FchS9e4VFCieS+jJqLY+dTOU/Tx49Du5MG0zdHE5Otei40J9KDFt3Sdcf4z5v6zK+N5MWgw==
-X-Received: by 2002:a05:6402:148e:b0:44e:aa8c:abc5 with SMTP id e14-20020a056402148e00b0044eaa8cabc5mr21854652edv.145.1663706060620;
-        Tue, 20 Sep 2022 13:34:20 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:c1e:bf00:d69d:5353:dba5:ee81? (2001-1c00-0c1e-bf00-d69d-5353-dba5-ee81.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:d69d:5353:dba5:ee81])
-        by smtp.gmail.com with ESMTPSA id n26-20020aa7c45a000000b00452ff2c203asm415245edr.92.2022.09.20.13.34.19
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 20 Sep 2022 13:34:20 -0700 (PDT)
-Message-ID: <0df56807-f8d3-e284-3c4d-f510b2c5604a@redhat.com>
-Date:   Tue, 20 Sep 2022 22:34:18 +0200
+        with ESMTP id S229554AbiIUGh3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Sep 2022 02:37:29 -0400
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (mail-sn1anam02on2057.outbound.protection.outlook.com [40.107.96.57])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A1EA804A1;
+        Tue, 20 Sep 2022 23:37:28 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=OIBf8qImdUMZUFwFYNCcsIhpR79OPV4kv0O9ITvp7KoKcTjqzH12gtwG0Hk6wQTlbqd96YwmHZxBIXNkWp7MMZaiGjVoHt87g2S22/oHqry1CqkUFqDGExeGzPk4a1SeCQQ3oEIA+zORhQJ4WBmfIJRvEVGELQOV8eHIdE6axPalb9uJJaYDcmbFJ2cW6YRCWWZs/x+njFCTTZvzgvLGcZM8dbGkWP0Wdr81sZdGeyJEsOG/+5T8EEXxF4e4iLt5kQBCP17qfrJo+SLCUmm4jtTO3+/JCLTMWrGSFnZ9v8MV+D6QLKzt+bryR9TtRP8OH127EJj+AWuINYIGJlUDuA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=OFZUrob1MKW8MJEFnvgdtmTB67esIn0EtMWyk4PUanw=;
+ b=cIpaWyTZ7b/y6xzRHJ5o1gjDHO/kW7GfLbUDTF42cwF4wZUjsPSQl9KAWQnjlqwDtVQ11fqFTscEHuyZQTfC4AhCWfJJ6M1olFHAc5dBDqJQdOP9n/STUmHEFow52MR6NNgN+QuGwP/WyEqK0uRv2dSiD+3pqS5o9ChNC88KyGq9Kc1+OHHQ2ci/eheeZ0nb8G7Pk5pMG0NB4Vacr32nHCe/HIEX4UoriqxMrRvBpj9txjHccq/ysiLas7ohrjGW4jlref5MR/gw2frQR6hMJ+G/EvdmDmmN5znpQ8h73EKb4yamn8sjiDIztkIpwPCruSRush5neFL+LY9zhuGoWA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=OFZUrob1MKW8MJEFnvgdtmTB67esIn0EtMWyk4PUanw=;
+ b=VQ9T4tISTzVqR5cVfVTf9hkAX6XHAAURLZ067TRwul8PEhkTVyZ3qqx+gEq5VVp4So3IIcLk3vdSU9YaOa8f1cxRJ2P/ZQnel/q4rgFB3FZ6KPBGUCsGOsgDnXGdmNstHmHh1iw8MC3SU9wSywH85ceBy2Tamd4mheiA7z2WsIE=
+Received: from MW4P222CA0015.NAMP222.PROD.OUTLOOK.COM (2603:10b6:303:114::20)
+ by DM4PR12MB6039.namprd12.prod.outlook.com (2603:10b6:8:aa::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.21; Wed, 21 Sep
+ 2022 06:37:25 +0000
+Received: from CO1NAM11FT039.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:114:cafe::9b) by MW4P222CA0015.outlook.office365.com
+ (2603:10b6:303:114::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.17 via Frontend
+ Transport; Wed, 21 Sep 2022 06:37:25 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CO1NAM11FT039.mail.protection.outlook.com (10.13.174.110) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5654.14 via Frontend Transport; Wed, 21 Sep 2022 06:37:25 +0000
+Received: from BLR5CG134614W.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Wed, 21 Sep
+ 2022 01:36:55 -0500
+From:   K Prateek Nayak <kprateek.nayak@amd.com>
+To:     <linux-kernel@vger.kernel.org>
+CC:     <rafael@kernel.org>, <lenb@kernel.org>,
+        <linux-acpi@vger.kernel.org>, <linux-pm@vger.kernel.org>,
+        <dave.hansen@linux.intel.com>, <bp@alien8.de>,
+        <tglx@linutronix.de>, <andi@lisas.de>, <puwen@hygon.cn>,
+        <mario.limonciello@amd.com>, <peterz@infradead.org>,
+        <rui.zhang@intel.com>, <gpiccoli@igalia.com>,
+        <daniel.lezcano@linaro.org>, <ananth.narayan@amd.com>,
+        <gautham.shenoy@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>,
+        "Calvin Ong" <calvin.ong@amd.com>, <stable@vger.kernel.org>,
+        <regressions@lists.linux.dev>
+Subject: [PATCH] ACPI: processor_idle: Skip dummy wait for processors based on the Zen microarchitecture
+Date:   Wed, 21 Sep 2022 12:06:38 +0530
+Message-ID: <20220921063638.2489-1-kprateek.nayak@amd.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.1
-Subject: Re: [PATCH RFC 1/2] staging: quickstart: Add ACPI quickstart button
- (PNP0C32) driver
-To:     Arvid Norlander <lkml@vorpal.se>,
-        platform-driver-x86@vger.kernel.org
-Cc:     linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-input@vger.kernel.org, Azael Avalos <coproscefalo@gmail.com>
-References: <20220911194934.558019-1-lkml@vorpal.se>
- <20220911194934.558019-2-lkml@vorpal.se>
- <0e88f032-5f29-8842-401e-48a573319ecf@redhat.com>
- <484b5248-ebf2-74c9-0629-08daa538a5c0@vorpal.se>
-Content-Language: en-US
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <484b5248-ebf2-74c9-0629-08daa538a5c0@vorpal.se>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1NAM11FT039:EE_|DM4PR12MB6039:EE_
+X-MS-Office365-Filtering-Correlation-Id: f68be7b3-0c33-47da-7ce7-08da9b9bbf19
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: weARpWcvIWSaHbhk/RmyWRZ4YMLP+Ipn+m9Czcpq+0Sr42PDSnZIUf6iX0HSeeqtTKvzg/VbmFz3vzTaW7FCmdym+tx8PE7oJisfSCb0SNYCO4ZSVDPKJCEKGO1mV1tMZpTo7VRabOsy9b0kbTDdUwYdyUUTJAh87r6G/helCSkREfGHxx87bvFnpEFPNcRVKeExuYuwKsvbiDhiOGMzOLsktNO2ct25aZ/Ka1D96cpdNJtNiol+uri1SLdpfjSWIjTyhlvys2OW+qFAhvA/HDClyQ9TDWex3OXJibbhS4V/XGMtczFqOYC7kKBJxNlyq9/1DEWlUen0ouRj9NkO8mYt8rBNdsFoRpYgsLDAdjcsZ0TvV0jRAMA3rAeAWp3ZR0H+S1ups7Gh61jBu/IYi0lpWO0ui8s5ABRsfg1otXs23lyEQj71wAMYwpHzlMNbUAr6iQxUkf/B1v9YVNlktinlGoj7GotCQCsQNFWQoywXmFlzLmG20+BRVlHeJGiJiDcjXOrBMRVr49LSjzid18tyEq6hxFufstGGTjOt1iF1HWaQRPVF56lYSs3vluzyXhcJLiY7sdJ7EAVcXeO6B7CS+5BxKwFN7XgmTMgesjouCdRb5Ay+9WXtPoNwy5lYGtbe3d9meqai0uho2H3Rv3liZOjj9npXed2xSZgjTIHmikTZot6JDaKDtHUhGAsYZR4OX3IiKpX7d2KIWVVbT4OUFoBPIEsGf9UcCLOwF8CBI8eEGyAA8OuMsb42Cs5PJqawppp1Ivn/z1r88TVSF4hzXdY6q3Khmq6xbDaPa1W+en2BAqjWYk6MYxUxmbLYQQto4CT6svEspPf7jsfq4DZqUcY4T1jovEd1BPnYqj938q75OjBOOb0jFROhPrAD
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(346002)(396003)(136003)(39860400002)(451199015)(46966006)(36840700001)(40470700004)(36860700001)(40460700003)(36756003)(86362001)(40480700001)(81166007)(356005)(8676002)(316002)(82740400003)(6916009)(16526019)(83380400001)(54906003)(2906002)(70206006)(7416002)(5660300002)(8936002)(70586007)(41300700001)(4326008)(426003)(336012)(82310400005)(186003)(1076003)(47076005)(6666004)(2616005)(478600001)(966005)(26005)(7696005)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Sep 2022 06:37:25.2982
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: f68be7b3-0c33-47da-7ce7-08da9b9bbf19
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT039.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6039
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Arvid,
+Processors based on the Zen microarchitecture support IOPORT based deeper
+C-states. The idle driver reads the acpi_gbl_FADT.xpm_timer_block.address
+in the IOPORT based C-state exit path which is claimed to be a
+"Dummy wait op" and has been around since ACPI introduction to Linux
+dating back to Andy Grover's Mar 14, 2002 posting [1].
+The comment above the dummy operation was elaborated by Andreas Mohr back
+in 2006 in commit b488f02156d3d ("ACPI: restore comment justifying 'extra'
+P_LVLx access") [2] where the commit log claims:
+"this dummy read was about: STPCLK# doesn't get asserted in time on
+(some) chipsets, which is why we need to have a dummy I/O read to delay
+further instruction processing until the CPU is fully stopped."
 
-On 9/20/22 11:48, Arvid Norlander wrote:
-> On 2022-09-19 11:27, Hans de Goede wrote:
->> Hi,
->>
->> On 9/11/22 20:49, Arvid Norlander wrote:
->>> This is loosly based on a previous staging driver that was removed. See
->>> links below for more info on that driver. The original commit ID was
->>> 0be013e3dc2ee79ffab8a438bbb4e216837e3d52.
->>>
->>> However, here a completely different approach is taken to the user space
->>> API (which should solve the issues the original driver had). Each PNP0C32
->>> device is a button, and each such button gets a separate input device
->>> associated with it (instead of a shared platform input device).
->>>
->>> The button ID (as read from ACPI method GHID) is provided via a sysfs file
->>> "button_id".
->>>
->>> If the button caused a wakeup it will "latch" the "wakeup_cause" sysfs file
->>> to true. This can be reset by a user space process.
->>>
->>> Link: https://marc.info/?l=linux-acpi&m=120550727131007
->>> Link: https://lkml.org/lkml/2010/5/28/327
->>> Signed-off-by: Arvid Norlander <lkml@vorpal.se>
->>
->> 2 high level remarks here:
->>
->> 1. I believe we should strive for having all issues with this driver fixed
->> before merging it, at which point it should not sit under drivers/staging
->> but rather under drivers/platform/x86 (as an added bonus this can also make
->> toshiba_apci's Kconfig bit select it automatically). So for the next version
->> please move this to drivers/platform/x86
-> 
-> Makes sense, will do. However, there is nothing x86 specific in theory with
-> this driver. Would it not make more sense to put it under drivers/acpi?
+However, sampling certain workloads with IBS on AMD Zen3 system shows
+that a significant amount of time is spent in the dummy op, which
+incorrectly gets accounted as C-State residency. A large C-State
+residency value can prime the cpuidle governor to recommend a deeper
+C-State during the subsequent idle instances, starting a vicious cycle,
+leading to performance degradation on workloads that rapidly switch
+between busy and idle phases.
 
-Since the spec is from Microsoft I expect it to be a x86 only thing
-(AFAIK this predates there couple of ARM attempts). Also since this has
-some tie-in with toshiba-acpi (at least for the laptops you are actually
-testing this on) keeping it in the same dir as toshiba-acpi seems to
-make the most sense to me.
+One such workload is tbench where a massive performance degradation can
+be observed during certain runs. Following are some statistics gathered
+by running tbench with 128 clients, on a dual socket (2 x 64C/128T) Zen3
+system with the baseline kernel, baseline kernel keeping C2 disabled,
+and baseline kernel with this patch applied keeping C2 enabled:
 
-A lot of ACPI drivers actually live under drivers/platform/x86 for
-similar reasons.
+baseline kernel was tip:sched/core at
+commit f3dd3f674555 ("sched: Remove the limitation of WF_ON_CPU on
+wakelist if wakee cpu is idle")
 
->> 2. This is using struct acpi_driver, but as Rafael (ACPI maintainer) always
->> said that is really only for very special cases. The ACPI subsystem should
->> instantiate standard platform devices for each PNP0C32 device, you can
->> check this under: /sys/bus/devices/platform.  And this driver should then
->> be convered to a standard platform_driver binding to the platform devices
->> instead of being a struct acpi_driver.
-> 
-> I had a look at this, and it seems like a much more complicated a approach,
-> for example, there is no dedicated .ops.notify, which means I need to use
-> acpi_install_notify_handler, and there is no devm_ version of that either.
-> A lot of other things seem to be ever so slightly more complicated as well. 
-> 
-> What is the motivation behind this being preferred? And are most of the
-> existing drivers using acpi_driver legacy (e.g. toshiba_acpi)?
+Kernel        : baseline      baseline + C2 disabled   baseline + patch
 
-I'm mostly just parroting (repeating) the party-line here. Not making
-new drivers an acpi_driver is typically requested by Rafael, the ACPI
-maintainer. Rafael can you explain why?
+Min (MB/s)    : 2215.06       33072.10 (+1393.05%)     33016.10 (+1390.52%)
+Max (MB/s)    : 32938.80      34399.10                 34774.50
+Median (MB/s) : 32191.80      33476.60                 33805.70
+AMean (MB/s)  : 22448.55      33649.27 (+49.89%)       33865.43 (+50.85%)
+AMean Stddev  : 17526.70      680.14                   880.72
+AMean CoefVar : 78.07%        2.02%                    2.60%
 
-From my own view point I guess this has to do with ACPI having changed
-over time from mostly offering firmware interfaces which mostly talk
-to the EC, to actually also describing the hw.
+The data shows there are edge cases that can cause massive regressions
+in case of tbench. Profiling the bad runs with IBS shows a significant
+amount of time being spent in acpi_idle_do_entry method:
 
-Now a days of lot of ACPI devices are actually describing real hardware
-devices, e.g. PCI cards, I2C devices, SPI decices and UART attached devices
-including things like IO / MMIO addresses, I2C slave addresses, SPI chip
-selects, GPIOs, IRQs, etc.
+Overhead  Command          Shared Object             Symbol
+  74.76%  swapper          [kernel.kallsyms]         [k] acpi_idle_do_entry
+   0.71%  tbench           [kernel.kallsyms]         [k] update_sd_lb_stats.constprop.0
+   0.69%  tbench_srv       [kernel.kallsyms]         [k] update_sd_lb_stats.constprop.0
+   0.49%  swapper          [kernel.kallsyms]         [k] psi_group_change
+   ...
 
-So the kernel now a days instantiates actual SPI / I2C / UART / PCI /
-other(platform) devices for all the devices in ACPI, with all the physicial
-resources attached to the struct platform_device / struct i2c_client / etc.
-using the kernels standard resource mechanisms.
+Annotation of acpi_idle_do_entry method reveals almost all the time in
+acpi_idle_do_entry is spent on the port I/O in wait_for_freeze():
 
-The struct platform_device / struct i2c_client / etc. devices then have
-a firmware_node pointer (aka companion device) pointing to the ACPI
-device in case the driver also needs to make some actual ACPI calls on
-either to query some extra information stored in ACPI, or sometimes
-to enable / disable special features driven through ACPI methods.
+  0.14 │      in     (%dx),%al       # <------ First "in" corresponding to inb(cx->address)
+  0.51 │      mov    0x144d64d(%rip),%rax
+  0.00 │      test   $0x80000000,%eax
+       │    ↓ jne    62 	     # <------ Skip if running in guest
+  0.00 │      mov    0x19800c3(%rip),%rdx
+ 99.33 │      in     (%dx),%eax      # <------ Second "in" corresponding to inl(acpi_gbl_FADT.xpm_timer_block.address)
+  0.00 │62:   mov    -0x8(%rbp),%r12
+  0.00 │      leave
+  0.00 │    ← ret
 
-The instantiation of these struct platform_device / struct i2c_client / etc.
-devices is done through a special default/fallback acpi_driver. If you
-attach your own acpi_driver to an acpi_device then this will not happen.
+This overhead is reflected in the C2 residency on the test system where
+C2 is an IOPORT based C-State. The total C-state residency reported by
+"cpupower idle-info" on CPU0 for good and bad case over the 80s tbench
+run is as follows (all numbers are in microseconds):
 
-So for any devices which also have some physical part (and not just pure
-firmware interface) using an acpi_driver is not what you want. At which
-point I guess we simply just want to avoid it even for pure virtual/fw
-devices like the PNP0C32 case for consistency.
+			    Good Run 		Bad Run
+			   (Baseline)
 
-Note this is just my view on this, perhaps Rafael can explain this better?
+POLL: 			       43338		   6231  (-85.62%)
+C1 (MWAIT Based): 	    23576156 		 363861  (-98.45%)
+C2 (IOPORT Based): 	    10781218 	       77027280  (+614.45%)
 
-Regards,
+The larger residency value in bad case leads to the system recommending
+C2 state again for subsequent idle instances. The pattern lasts till the
+end of the tbench run. Following is the breakdown of "entry_method"
+passed to acpi_idle_do_entry during good run and bad run:
 
-Hans
+                                        			Good Run    Bad Run
+							       (Baseline)
+
+Number of times acpi_idle_do_entry was called:             	6149573     6149050  (-0.01%)
+ |-> Number of times entry_method was "ACPI_CSTATE_FFH":        6141494       88144  (-98.56%)
+ |-> Number of times entry_method was "ACPI_CSTATE_HALT":             0           0  (+0.00%)
+ |-> Number of times entry_method was "ACPI_CSTATE_SYSTEMIO":      8079     6060906  (+74920.49%)
+
+For processors based on the Zen microarchitecture, this dummy wait op is
+unnecessary and can be skipped when choosing IOPORT based C-States to
+avoid polluting the C-state residency information.
+
+Link: https://git.kernel.org/pub/scm/linux/kernel/git/mpe/linux-fullhistory.git/commit/?id=972c16130d9dc182cedcdd408408d9eacc7d6a2d [1]
+Link: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b488f02156d3deb08f5ad7816d565c370a8cc6f1 [2]
+
+Suggested-by: Calvin Ong <calvin.ong@amd.com>
+Cc: stable@vger.kernel.org
+Cc: regressions@lists.linux.dev
+Signed-off-by: K Prateek Nayak <kprateek.nayak@amd.com>
+---
+ drivers/acpi/processor_idle.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 16a1663d02d4..18850aa2b79b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -528,8 +528,11 @@ static int acpi_idle_bm_check(void)
+ static void wait_for_freeze(void)
+ {
+ #ifdef	CONFIG_X86
+-	/* No delay is needed if we are in guest */
+-	if (boot_cpu_has(X86_FEATURE_HYPERVISOR))
++	/*
++	 * No delay is needed if we are in guest or on a processor
++	 * based on the Zen microarchitecture.
++	 */
++	if (boot_cpu_has(X86_FEATURE_HYPERVISOR) || boot_cpu_has(X86_FEATURE_ZEN))
+ 		return;
+ #endif
+ 	/* Dummy wait op - must do something useless after P_LVL2 read
+-- 
+2.25.1
 
