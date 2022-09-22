@@ -2,198 +2,241 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D529C54EE9
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 18:32:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E333BECAAD8
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 18:53:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232572AbiIVScH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Sep 2022 14:32:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49634 "EHLO
+        id S229835AbiIVSxp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Sep 2022 14:53:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230150AbiIVSbQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 14:31:16 -0400
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2086.outbound.protection.outlook.com [40.107.223.86])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBDB210BB3A;
-        Thu, 22 Sep 2022 11:28:50 -0700 (PDT)
+        with ESMTP id S229570AbiIVSxo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 14:53:44 -0400
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E64212E9FB;
+        Thu, 22 Sep 2022 11:53:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1663872822; x=1695408822;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=l0SFrv35Yog7AcCl+muyzRnBuzQwchOHkXugmxKZk2g=;
+  b=hjyNA+WzJeG2uD93/gh/2f6ROfPqzbjpxAwAYuszhQv/9KxubThGXczo
+   1B+Mhn9lIi0xA+rQjiPT54vRZ1A4+gycDYo+wIDVzyZ01RWKMTNqTCjQX
+   nMMoQQPv0tqiP5asXluXIROQ+HvGjmgtgRwzcpAoLnuzuxk1X0UVQc4dr
+   NztAaodcLOX0UQMa0QamKFQ5D0T+hR4roUX/wFJIyl/FcxTMoApKLcMYf
+   VfoFjh/5mIBAOITz7vZNQfDhZCp5YRl9f966Aw+tboyDCC9In9uq3a2FU
+   g+iENlZM/2x77LNnDp35fsXC0ntl+tyeiaeQwaQqcJ+qP0CZVZ25w38D4
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10478"; a="297996854"
+X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
+   d="scan'208";a="297996854"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 11:53:42 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
+   d="scan'208";a="948726348"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmsmga005.fm.intel.com with ESMTP; 22 Sep 2022 11:53:42 -0700
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 22 Sep 2022 11:53:41 -0700
+Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 22 Sep 2022 11:53:41 -0700
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Thu, 22 Sep 2022 11:53:41 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.102)
+ by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Thu, 22 Sep 2022 11:53:41 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ElX/Boa6ZCj+rq8Q+Udq9awW7SaiypypDTxRRC9cYJ3BmK1m+0HXsMoVWkzUOF8rw14ubleOuxvJb712rmVLEQ26zCpo3HUkj4LKEQEy7oyr4cU50gzRHFETRHPH4SOOEvvbon3y8g5DWHCCd4OExfs/rBB7B8yVFLccY9c7Kd+/oG0G6UpMzfs8tMjQG+KcyVW258S0DHcAiGNWQHmqlI0ieXeHFZ2lF546KnPB+/H6/tH5hT8Dr3c/J4eMqeXzqEVDIY/hz2qQvvreehn1WMDBU5eEyYl8NUURBj2Q8KhN3Fp1ulGoYw64Mv7YPcb2jyNL/a9qaR/S99BX3qW+vA==
+ b=YJypxzIDbUoe8DQEItuLNJtt2PcaSQxrmn0UozPZ/I//KPgRtHLq6FKhak8GsNmzHMLGVNcZFDEw07SxNbHqD++WKUp0yvbOj5zwArnOyGOPduYBPfT+pB+Tvboz83ZLOn2aJBTKwXU2qELcgb4TuHqFYWdzPODOFlgzsVSxgyeZa8VIljBdRLbEPXiKH+xTJZNlV38wMyUW5UezfmCoaJqWwqwltzyNqx3IvT4OBSZOcUtcPzmgYobepLm2fBeCT/HvBoOavo6k4u5vjkQ9EeFdDOI/o++l3yxeqYAbV7yRyE0X5UH4MxmHi1ctXT3JlKsH9lWm/TOHWpUF4BMCwA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=DScZeIXzc8B68zCX9dXyhS8SohM9vesdvsjInlklyP0=;
- b=c1Z3Br+gXLeMl8dFM5ISx49FY5yJE805vbzcScU5/ReJWrT3TwkZMKYCt05zy0uvQtVryqcI55Wc7jU8kZwjTMq5tPKaf0PCZvY45eYOMfT42hDrE/rlGxOaof6bFqaH+BJIw2WEyW3m9nlLosYnGQF4Om7e3gGP0s+XBqmLh5Qimx/BcAKwQMqVFoXirct9HN0l/xwal03PhDB5puNg1Aw9poJ+S/tApJIvyfVIsLzXLrnZukcJD91+eYOb2r+kqdWNPRLF8oH2yBFsQfPe83gsfcLVft1vW2tdRlHjrxjJHK/ASPvTwOs4B5JC5JHrO9RZ6UcXYdDL2rISGkfE6A==
+ bh=hfX4kbYUO2D2P0UIE9nnF9n4mqUQCrVB7cwcgg5N9OU=;
+ b=Y96HM1PECtGWQDRAeDS8NFNZ+xdmfC6gCAvJs47M5OhLQuhao2M25/LgtOSGuMLbgevDZO9dzPBEraa2e+zZvDEvnPfCJ6hPYP1ZQBayUyKqYPOQZxA3OYQmR3vjL23IUmDbcRnE3RF1jRlBxoEutWbEv0ikRsn1Khu0LOKhuGr2jlDeGZuaY2sb7wliPwv2EIerZhV04e87hLXDKhBDLG4+za/S6QlJnJpuD1gLcNoFXi+bIEG7wNkhZIX6DQNxM50qhltxYOul8ngIzLXAKKCqiJLQMlU2PbLnOO28I+2NTnU8rVhP9t85qS9Rcv2LGdWUVnIsjg3R6kFoWiKh+Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=DScZeIXzc8B68zCX9dXyhS8SohM9vesdvsjInlklyP0=;
- b=117THGyM1bqK9WCQXG+ijQGgaI7GoFU2I4HwVOVZzEEJLhZlZzDdH0jFBJ2e8c0kNWBVC6aRBh6uqXjwKDYK7A3wAyZFDIGNRoyNCI9Kd/pwG40fDKGvdIB90gA9umn0M4taO3kcxNriQh35UPke1cybn6XBn7mfAdxS/H+zP3I=
-Received: from MN0PR12MB6101.namprd12.prod.outlook.com (2603:10b6:208:3cb::10)
- by CY5PR12MB6083.namprd12.prod.outlook.com (2603:10b6:930:29::12) with
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MW5PR11MB5810.namprd11.prod.outlook.com (2603:10b6:303:192::22)
+ by MW5PR11MB5857.namprd11.prod.outlook.com (2603:10b6:303:19d::17) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.19; Thu, 22 Sep
- 2022 18:28:48 +0000
-Received: from MN0PR12MB6101.namprd12.prod.outlook.com
- ([fe80::76ec:6acf:dd4d:76a3]) by MN0PR12MB6101.namprd12.prod.outlook.com
- ([fe80::76ec:6acf:dd4d:76a3%7]) with mapi id 15.20.5654.017; Thu, 22 Sep 2022
- 18:28:48 +0000
-From:   "Limonciello, Mario" <Mario.Limonciello@amd.com>
-To:     Dave Hansen <dave.hansen@intel.com>,
-        "Nayak, K Prateek" <KPrateek.Nayak@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC:     "rafael@kernel.org" <rafael@kernel.org>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-        "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-        "bp@alien8.de" <bp@alien8.de>,
-        "tglx@linutronix.de" <tglx@linutronix.de>,
-        "andi@lisas.de" <andi@lisas.de>, "puwen@hygon.cn" <puwen@hygon.cn>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        "rui.zhang@intel.com" <rui.zhang@intel.com>,
-        "gpiccoli@igalia.com" <gpiccoli@igalia.com>,
-        "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>,
-        "Narayan, Ananth" <Ananth.Narayan@amd.com>,
-        "Shenoy, Gautham Ranjal" <gautham.shenoy@amd.com>,
-        "Ong, Calvin" <Calvin.Ong@amd.com>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        "regressions@lists.linux.dev" <regressions@lists.linux.dev>
-Subject: RE: [PATCH] ACPI: processor_idle: Skip dummy wait for processors
- based on the Zen microarchitecture
-Thread-Topic: [PATCH] ACPI: processor_idle: Skip dummy wait for processors
- based on the Zen microarchitecture
-Thread-Index: AQHYzYSfJnaVyId5REam4NmoMbIuNa3rqjGAgAACsYCAAAITAIAACtxAgAAKaICAAADq4A==
-Date:   Thu, 22 Sep 2022 18:28:48 +0000
-Message-ID: <MN0PR12MB6101D3B6F6FF4C5BC2208FB2E24E9@MN0PR12MB6101.namprd12.prod.outlook.com>
-References: <20220921063638.2489-1-kprateek.nayak@amd.com>
- <20e78a49-25df-c83d-842e-1d624655cfd7@intel.com>
- <0885eecb-042f-3b74-2965-7d657de59953@amd.com>
- <88c17568-8694-940a-0f1f-9d345e8dcbdb@intel.com>
- <MN0PR12MB610110D90985366A4B952CCCE24E9@MN0PR12MB6101.namprd12.prod.outlook.com>
- <9d3d3424-a6d4-4076-87ff-a1c216de79c6@intel.com>
-In-Reply-To: <9d3d3424-a6d4-4076-87ff-a1c216de79c6@intel.com>
-Accept-Language: en-US
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.15; Thu, 22 Sep
+ 2022 18:53:39 +0000
+Received: from MW5PR11MB5810.namprd11.prod.outlook.com
+ ([fe80::6262:c42:ea50:926e]) by MW5PR11MB5810.namprd11.prod.outlook.com
+ ([fe80::6262:c42:ea50:926e%5]) with mapi id 15.20.5654.018; Thu, 22 Sep 2022
+ 18:53:39 +0000
+Message-ID: <78d13a19-2806-c8af-573e-7f2625edfab8@intel.com>
+Date:   Thu, 22 Sep 2022 20:53:29 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.3.0
+Subject: Re: [PATCH] ACPI: processor idle: Practically limit "Dummy wait"
+ workaround to old Intel systems
+To:     Dave Hansen <dave.hansen@intel.com>, <linux-kernel@vger.kernel.org>
+CC:     Dave Hansen <dave.hansen@linux.intel.com>,
+        Len Brown <lenb@kernel.org>,
+        Mario Limonciello <Mario.Limonciello@amd.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Borislav Petkov <bp@alien8.de>,
+        K Prateek Nayak <kprateek.nayak@amd.com>,
+        <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+References: <20220922184745.3252932-1-dave.hansen@intel.com>
 Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-msip_labels: MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_Enabled=true;
- MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_SetDate=2022-09-22T18:21:11Z;
- MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_Method=Privileged;
- MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_Name=Public-AIP 2.0;
- MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_SiteId=3dd8961f-e488-4e60-8e11-a82d994e183d;
- MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_ActionId=308b76b7-57c7-4545-ace9-a8fa0d4aa709;
- MSIP_Label_d4243a53-6221-4f75-8154-e4b33a5707a1_ContentBits=1
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_enabled: true
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_setdate: 2022-09-22T18:28:47Z
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_method: Privileged
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_name: Public-AIP 2.0
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_siteid: 3dd8961f-e488-4e60-8e11-a82d994e183d
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_actionid: 90f561a8-cf19-4439-a59b-9684169713e3
-msip_label_d4243a53-6221-4f75-8154-e4b33a5707a1_contentbits: 0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MN0PR12MB6101:EE_|CY5PR12MB6083:EE_
-x-ms-office365-filtering-correlation-id: 8cd30fcc-30d0-4daa-5867-08da9cc84a95
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: nKsSsB9x787nTu6ODVjoV2FrrCzeFkdJSz0543zdL0KTDlW7OUPnBnRaHn0vvzjX34FM4QoThHQDM03O22feL9ev64JPaFhjCTptDECnSj7Ak/iHVqWLD8alQKZF3IZu/bixgwIu6CQgx7tea4frB1/VZWm1jQYfRG0OZhdvje98PdzXLnsHxAR3gnT5aCNV3FzVO4E9Uxk6yhZVjpRPYh+7Luu8+UXNWY7nsYwOdO/ShXQvHQZXEO4gfWLXDBChDK5eRJ/N5lQuCx4vemtX1pgqh5SNr22XjV6uyBSiBgO2ba+g2uiTLnw2WJuXUekEGeqZEjWrChVM7RV+uUb7RvUpIQD9Tl7ZSI5mHdXfBbqbUjHs9HjVubOz0kvs8uE1KswcbxpT8SOoVqS/tsVfpM3ivDf3nAhFy9ld5CvqWeuePXd0ns8gH4HquJITNKyEcuCotXyypHucFbbm6ibFg3Y5HIZD9J0Me7WEDixIvRCFcbf2h+XJN1TVdfzNMd2DUOzqXB3H6zkTCzwBHCKdHLQVGOOU4jKl6gqzyfgCxPCEiXJGzri8BBUHYbAcbZCqDPLYeUhScCCK+Ts/KvaLGr1bxUGkq3RIUKE0dN7xyNuVbDtsW0x1zZWi90xfeXDKX29rE2DSRq2WIACqk77/R81c89VfN+aZYxxkqhILS1m5NiKiv9EgL+G0CnW4vBPpWvubqCT1BzNKdH4oDJoZklh5MO2RbJRNgQlV7b6DZja8RzwZMHnpjZppmpvlqDUOOVo+lzXl0q0hIVFzt16jjw==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6101.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(366004)(39860400002)(346002)(376002)(136003)(396003)(451199015)(26005)(55016003)(53546011)(41300700001)(6506007)(38070700005)(9686003)(7696005)(86362001)(33656002)(316002)(54906003)(4326008)(8676002)(71200400001)(64756008)(66446008)(66946007)(66556008)(66476007)(110136005)(478600001)(76116006)(122000001)(83380400001)(52536014)(8936002)(186003)(2906002)(5660300002)(7416002)(38100700002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?SlZVTDZUTTk0aGw4ZkphUUhvU3JOYmpISmR5WVRRZm9RWkpUK09jWkwvNURs?=
- =?utf-8?B?aVdNM1BkWTJpcm0veXF6WW1RcGc3QStXZzIwZ2R5eVJhcCtmblh2Nk5tYXJG?=
- =?utf-8?B?MHVXZ1kzUUFadnozRW1xUk9EelJtaGt6eVFWbDNZL25ja1FGZGRYN3d1dklL?=
- =?utf-8?B?SndxckVFU3MwS1VyVlorSWVvL1RBMHBIMmFRaXBZRzFXR2ZaRFF3c1ZFVWhD?=
- =?utf-8?B?L1JvNnA1MWhVVmJDVkRMTlN5elp4OHUzUGR5VGkwem8ycllZZ2pEb20vWHVn?=
- =?utf-8?B?RXd3MlFZUnRIbFl6TVBZdzFMaU5TdnR6c2tPeGJlbStIYUdXWEpBRi9lVHV5?=
- =?utf-8?B?MUx3VGVFYThkWVc0ZXpBMGFmNVlNdTJmNndVWUdlU1FucWFraTNiS09iNWU0?=
- =?utf-8?B?Nk1rUlpMNjg5NG5IQklLZHpqdkV6bFRHdU9wUzhiNHg1V2dsSmp2cU9jOSsz?=
- =?utf-8?B?NzI2OUJud3ltR0M0L1o2RkpqZEpxYjJ5NFZRd3pIblRyZmtpRVp4M1RZcHdK?=
- =?utf-8?B?dUhHQTVUMFFFRk83UU1WN3BPNWtSQTI1eUdhdE5QQjZVWEFSbVNvalVSbkVl?=
- =?utf-8?B?cFlNUDRHM0N4ZGYrM2lRSlZlb0tWN3JCck1OekI4ODVEdy9YUXQwd1RIZk9m?=
- =?utf-8?B?cVo4ekxpS3ZCY2tud0JsR1dSVzI1cFIySUM4Y1ZCK2hPc3RTcytTTHZCMHNL?=
- =?utf-8?B?bHRUMWJWb0doVXc2a0x2bTRMejM2M09QN0F3a2tDZS83TEx0WXFDaWF1a0Rn?=
- =?utf-8?B?S0JsM2F4RjZSMEUvZVZVWWZjbEtLWXVDSERsUFFleDlZUVFmN1gxeGl3UU5r?=
- =?utf-8?B?aGI1d2hWcStMdEduUHpqMU1tSytVcmRWcS9PV2FFYUl6OC9FY1h1ZjNnZDhY?=
- =?utf-8?B?c1h4L2FiNWxXaVFSb1RrdXkzVTRJdXgrc3poaU0zWWJSbXVPNGZucHl2d1l3?=
- =?utf-8?B?dlRpYmIxdklEQnhsYXhMa1FxNENUMWtWYUErYmxSZWNtR2J5M0ZyRGJDQVFq?=
- =?utf-8?B?K1lKcW40RUhsNzMrZXFpMXNZbC8zeVVFdjdnYTQvenQzMzZYK2txa3lya3VY?=
- =?utf-8?B?c0hXTHFIaTBSZzNQZXBid1YvdE1IbFM4c0sxUDBoM1U0MWVia0tuMVdrOWcr?=
- =?utf-8?B?dE1COGRPVDRqRE9CWG9YcmMrTXFwK1oxZVNJWHV5a2U1dDJMUURRU3RueFJP?=
- =?utf-8?B?MnkzTDZCbVVSNU1CUnRaQXRvWmNBaTRObDRWcC82dUFCeis0ZnhndnpGUVVU?=
- =?utf-8?B?VEVjdkFsS3VPbTNtM1g2bDBHYXZSbVhNZXNQOWc5VUhsRC8vMEpPWXpNcGpk?=
- =?utf-8?B?NUQ4VHR5a2IvMHlJRzlQTWFQbmxJOFBxNzhDQVlLdi9XSnBmY0ZPem1JdDds?=
- =?utf-8?B?M0VjTWVVeXRFUDRJYjBudldoT2ZpTXpjaTM2WmI5MEY1YkNHV2NQK1YzVUFn?=
- =?utf-8?B?WWx4MExBN0ZMNHBNSWpvTHdBaWF6RXJRZXErY1MwbDBjVFNwYm81MG1yTDB5?=
- =?utf-8?B?TUUrZkFyUHpEMk9hRFdxamVwZ0wwYzVSNjR2c0N4czk1eU81V2dEU044TjJ3?=
- =?utf-8?B?ZWxseXFKMXFyUFlYUUQ1Mm40bHVqakVXYjRqeFJOVUpZZ28zYktaK2pZMUo1?=
- =?utf-8?B?TWw5TWNiLy9LaW94aWxReGFKUzRyc013M0lsZlB6akc2S0ZqZThNM21CWW0r?=
- =?utf-8?B?d3l2S21aemJ0MVRmM1FCZEowRjFnVkppZUk0SEdRMUxybnVWQ0thNTdKZUxV?=
- =?utf-8?B?NFBnMlZCMU9wTVNaUFltYkkrakpjQXRuM3RTL2J0TnZKY3p6OUk3Syt6UU0x?=
- =?utf-8?B?UmFEdnQwUzlPMEV4SXlhT2lLNHZJNHhpZ1VLd1YrdEJ0cXRQVnQzeDZhMitw?=
- =?utf-8?B?OGtCbFhaV1M0UzJUU29LWTcwWVpzYk1maUs0RnZFTzFFUDdIenVvRjhlV1I4?=
- =?utf-8?B?ZDBIUXBJbm5HbzZSUVM2alpkZElhRzZCOUkveW9RWHhvZDBqVWprNndUQUNr?=
- =?utf-8?B?azhQMG4za2NlTlM0QnhZWlRTYjNGcjBSUFlPdkdwNWcvSTd5ZEtLVTU2bG1j?=
- =?utf-8?B?ZUtqL0FrNDRRdGQxZHlRT09GRmhac25uNzdUWnl6d0RYTlJPdHp6NU1BcGNX?=
- =?utf-8?Q?JYkc=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From:   "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Organization: Intel Technology Poland Sp. z o. o., KRS 101882, ul. Slowackiego
+ 173, 80-298 Gdansk
+In-Reply-To: <20220922184745.3252932-1-dave.hansen@intel.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR3P281CA0015.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:1d::13) To MW5PR11MB5810.namprd11.prod.outlook.com
+ (2603:10b6:303:192::22)
 MIME-Version: 1.0
-X-OriginatorOrg: amd.com
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MW5PR11MB5810:EE_|MW5PR11MB5857:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0a48d300-efc5-45bf-4feb-08da9ccbc353
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: vjyynXE3XS1fsGK3kv4DtS2n4wkHbqt+vtHQPWL95qhtbYsPfF3N8jsKYJ2lRiFhHyNYv2ss03DfCXRpPzKJ+RR19dab4HIVakXDFc79+F1LxVz8scbvOCX1al1nXtU/Ddn/4LSmgsccNZptnfVaGmn/YtK2bnKuDgmCo4Ltx8XpSCLuCnaNwFRMw43Js0Vs77kmWGzVFkVhl0sMyWZrt2//f/J+bwUPaBqf6mvt/OsiHoCOP7yUVBrg99jVuXprILGUqKOHjA1W+kW9jsNkqnkePiJhSp9XFxO9GoPLq09aT6ZzTmfGzwDCENKa+XseGp6MIm7BN74dAU50AEoEWq9un+72cAiV1C0w5wFA1mVW62lIslF6n8ER/2obsXjY6PyAgfETCTabZw4RgxK3byZ3UNVMOOf/FcCU1hhKojsusjV3NfTvdhNahHSJ0T154iiSYYBs0M3zz+KE249YIADqhHUk/XOSBRdyG5ghSv77yMo8E2sdBHClLiZfQSwcr7uxfTlVtVBj0BI9FDOzSz4ScHTZ70d+dMIbulu3KLqo2IqGh8oELLQKkBMEJDTi1I2sgoOAyjbI+2Oqp9vbTxZ8Df57KvVRK0rJE2MbSSqrtVJXwbizdu/yD7dNUKGIrYtHSJXE2223A+acHVYhn+TCoUrt0JFIEIKwDpvRAOn5PXEkJZyceHXEr6cC0nvWrEVbvO9G3h+nQn5N+G3qRMFedGPPyoZvAYAoV0/BNmvd6YDtpWDVpYTyhTtyADc9STdk/6vBvQf+uXhD+GAqLq9WfProUXP2TqIFgW3EUfL6A60mUXLP+U1egA+gnyOtqHLD93QZI9jZltkGksphciZHVf9qSQNbKVgkFihf9zbVHLSrGbFRSjg4hdbicAWU
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW5PR11MB5810.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(376002)(366004)(346002)(396003)(39860400002)(136003)(451199015)(2906002)(54906003)(31686004)(316002)(478600001)(6486002)(966005)(5660300002)(2616005)(6666004)(38100700002)(41300700001)(66946007)(8676002)(8936002)(6506007)(31696002)(82960400001)(86362001)(66556008)(186003)(26005)(66476007)(36916002)(83380400001)(53546011)(36756003)(4326008)(6512007)(43740500002)(45980500001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?SjZDQzEyVmY4YlJoZDBDUE9TQ2JkNHk0RFA0dy9keDFabTFLQXcwS05JbTJp?=
+ =?utf-8?B?MnU0NDdadHNORVZIbDJWRFJIaE9nN3gvbk9vTGVNMGtocHNTc2pUeTcyZXBN?=
+ =?utf-8?B?VkVaclJKaUVyTyttMTE4RWY3aU1zcnF6M24yeTdCTGJnSWVjaVExWHBHMnpa?=
+ =?utf-8?B?SWk3cW1kWVg3WERoSTlUNGIrODB3dE84c0p3anNqb2s3MUV3L3Z4S1dOMGpR?=
+ =?utf-8?B?L0NHYzhtSThZWUl4QkNudTlpa0FiVUlzNnMwT2xyKzdTRnRXVk1rN29MZXYw?=
+ =?utf-8?B?ZlEwOThadDE1UzFtazZCUkQvRno5ZlNjcjJITjBCcmJBRTdHakg2bExsQzNi?=
+ =?utf-8?B?a0dpY1RTcEJuWjVnam95UXJ3Q2Z3U0dKNm5tT1Qyck1lTXhkTUtjbUFzTzNB?=
+ =?utf-8?B?SzBEVzA5eUhDZnNYTlVIdFdEdjNlQ2xDQjdsZ29hSy96WUZWaHVWV0xab3Fj?=
+ =?utf-8?B?TEdvbW4rcTZvaDNNVVYveG5SdnBJQTdUaTFjaWxHY3pnSE95NDI1bFl0NXBn?=
+ =?utf-8?B?WGNqOG50ZndRUjY4Tm0xM0Y5RXptZHVJNDFMWDdTUHN6UTR4cE5rWjVDb2ZC?=
+ =?utf-8?B?MlFxL2lGWEl4eS9CRmdBQkRtb1JONFVkbkRxb0VzSjdJNStZZFd1RnNFRnBx?=
+ =?utf-8?B?U3MwZGpHYmVOZWRBczBjSjFIK2xBelArQ1pKNjM3NkJJMlZpMHl1NDYrbW1D?=
+ =?utf-8?B?aUcyd2tNVFAxZ3NhdG5lazJ2UE9GY3VQRmxWWUd0SU9mT0N2NUJLYkxsVXFp?=
+ =?utf-8?B?OUE5dEdIYXZHNmg2UXhsaFNibzF1dnpDN3ByVm16aDMwWU5ZVGxEVkpXQisx?=
+ =?utf-8?B?blVPVnZZOEhKU3Z0cTFBQzBBN3JqWjNaRUtGNDlPVncvcGtZSGdaRDVLSlpW?=
+ =?utf-8?B?RW1GNUtjY25Id1BMbDhvSGsrbGxNVDNjRG5kV2pCYzlPL0lWWERrNHpiSHEz?=
+ =?utf-8?B?WGRGaHdqTDJQUDUxK2EvVENHSEJReHQ1R0t2RWdJRC94N3ZLckRPNCtYT0tZ?=
+ =?utf-8?B?WnROWDBTZ28rTld1SlJEbWZsYXpTZGhPQjNNbXg5WEx4NVRDMEtya1N4K29R?=
+ =?utf-8?B?Smd2S1k4a0pCb1Bnc1ZiTy9rV2NBVSs5WFB2UTNYdjdLZ1VaNFVxVVc1VmlW?=
+ =?utf-8?B?azRRNW1pRncrRy83Y2RTSGx1WTcvZ05WbDBBUTBVUml0c2hTczcyalA0a09K?=
+ =?utf-8?B?d0Q5ZVcwUjZZVktlUWVHUVJELzN2TXU2UnEwbll5QlphRUxhYlEwbFNpc2w3?=
+ =?utf-8?B?ZnY4NTc5K2JzYUlhbW5wYWFNNWxZUThkcmhpSGp1aHNBK2RRVkU0YnRGVWRi?=
+ =?utf-8?B?bHd6NGFBSHNOYVE0b0pzdndDb0I3cVF5OUpVTXpqaWxzWG8zdUs3a3k4Tnky?=
+ =?utf-8?B?YTdScUF6QXd2Q3Z3Y0M0VEZKSnJDcTgrRm9jaXVUeEtYYVBVTGFkb0grZlJu?=
+ =?utf-8?B?TUUrejIvelNBNndJQzU5UU5oSDlZUHR6NzVwSnVseXVzN1hzTzJ2WnhBOXFz?=
+ =?utf-8?B?c0lsajNRaDVSZERldHQyempKK1dES093bVJYUmcrb3JMbmhVVkZVOGllcytt?=
+ =?utf-8?B?Nm93bjRCSjBBOTA5emxmbS9JdEt5bmtjQnUwdGYxNnVMRzVaUHdiTlJiSXFo?=
+ =?utf-8?B?WkUzeHI4RW94S0pZM1dDUzA3L0RFSWtxRWJaUlc0c3g3b0hmT2JiSkFRSlZa?=
+ =?utf-8?B?RFBpSWtwRjZJLytZZ1NIdExWSGM1Zm1vUVA4ZEU2U055VFFrNXdOYUlITll2?=
+ =?utf-8?B?TlNvaG5BYTJjcjZYbzNhS0xZNG1GSElzS3pRSFpIUHpNWU5ucEwrQjI5c0c2?=
+ =?utf-8?B?R0Y0ajdRcnZ6akhyYUZ2cFdFNUdIcE9aTUFLMmZHK2ZUL3pwY1BsMlpvQnJ5?=
+ =?utf-8?B?M1o4enNKZml0U09ydFBXUW43WjJkaGFaNjVQRnkwSlJaN1JCTkdWYU1HMTM2?=
+ =?utf-8?B?TFdsVk5qV21ySnBjQVBybGdyNEtFaEN4T2xwQ0JZN2hOYjZ5MDNwUlRKM3Zh?=
+ =?utf-8?B?azBzeEd1RjZhcTcrZTB3R21maitUYkdBRnpNQ0lyWFAwRVZKZDdBb3QvQ3dC?=
+ =?utf-8?B?aHk0OFlxUmZJdjYwRHh5Tk1sV2ZPU1M5QmhuZmxqRDE2Uk0wZW5sbFJLbndy?=
+ =?utf-8?B?NGZIV1RGK1NOZTNWTXRycVVIYjMwRkxUMGRwM0N1RzhOTWw5bmVocWVleFpV?=
+ =?utf-8?B?L0E9PQ==?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0a48d300-efc5-45bf-4feb-08da9ccbc353
+X-MS-Exchange-CrossTenant-AuthSource: MW5PR11MB5810.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6101.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8cd30fcc-30d0-4daa-5867-08da9cc84a95
-X-MS-Exchange-CrossTenant-originalarrivaltime: 22 Sep 2022 18:28:48.4691
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Sep 2022 18:53:39.8313
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: XREqY2WvYLD5smTHdbHtWpAyz1x2MUNOOYkgt+FPaCCan43ddtVQHPiER1RBuFLHjbw3BXcIhRH3+6zt6N3fdQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6083
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: DjXP+ftJKx/jIvW/gTsJOBNAY79msSiWFvkXFqt5HkJZj8HKGbGpUtntbUVooW9IwWYbEcxVSCoQadPjiw/IIqVrEWasYbIhjX4adWzHduA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW5PR11MB5857
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-W1B1YmxpY10NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYXZlIEhh
-bnNlbiA8ZGF2ZS5oYW5zZW5AaW50ZWwuY29tPg0KPiBTZW50OiBUaHVyc2RheSwgU2VwdGVtYmVy
-IDIyLCAyMDIyIDEzOjE4DQo+IFRvOiBMaW1vbmNpZWxsbywgTWFyaW8gPE1hcmlvLkxpbW9uY2ll
-bGxvQGFtZC5jb20+OyBOYXlhaywgSyBQcmF0ZWVrDQo+IDxLUHJhdGVlay5OYXlha0BhbWQuY29t
-PjsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0KPiBDYzogcmFmYWVsQGtlcm5lbC5vcmc7
-IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBw
-bUB2Z2VyLmtlcm5lbC5vcmc7IGRhdmUuaGFuc2VuQGxpbnV4LmludGVsLmNvbTsgYnBAYWxpZW44
-LmRlOw0KPiB0Z2x4QGxpbnV0cm9uaXguZGU7IGFuZGlAbGlzYXMuZGU7IHB1d2VuQGh5Z29uLmNu
-OyBwZXRlcnpAaW5mcmFkZWFkLm9yZzsNCj4gcnVpLnpoYW5nQGludGVsLmNvbTsgZ3BpY2NvbGlA
-aWdhbGlhLmNvbTsgZGFuaWVsLmxlemNhbm9AbGluYXJvLm9yZzsNCj4gTmFyYXlhbiwgQW5hbnRo
-IDxBbmFudGguTmFyYXlhbkBhbWQuY29tPjsgU2hlbm95LCBHYXV0aGFtIFJhbmphbA0KPiA8Z2F1
-dGhhbS5zaGVub3lAYW1kLmNvbT47IE9uZywgQ2FsdmluIDxDYWx2aW4uT25nQGFtZC5jb20+Ow0K
-PiBzdGFibGVAdmdlci5rZXJuZWwub3JnOyByZWdyZXNzaW9uc0BsaXN0cy5saW51eC5kZXYNCj4g
-U3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSTogcHJvY2Vzc29yX2lkbGU6IFNraXAgZHVtbXkgd2Fp
-dCBmb3IgcHJvY2Vzc29ycw0KPiBiYXNlZCBvbiB0aGUgWmVuIG1pY3JvYXJjaGl0ZWN0dXJlDQo+
-IA0KPiBPbiA5LzIyLzIyIDEwOjQ4LCBMaW1vbmNpZWxsbywgTWFyaW8gd3JvdGU6DQo+ID4NCj4g
-PiAyKSBUaGUgdGl0bGUgc2F5cyB0byBsaW1pdCBpdCB0byBvbGQgaW50ZWwgc3lzdGVtcywgYnV0
-IG5vdGhpbmcgYWJvdXQgdGhpcw0KPiBhY3R1YWxseSBlbmZvcmNlcyB0aGF0Lg0KPiA+IEl0IGFj
-dHVhbGx5IGlzIGxpbWl0ZWQgdG8gYWxsIEludGVsIHN5c3RlbXMsIGJ1dCBlZmZlY3RpdmVseSB3
-b24ndCBiZSB1c2VkIG9uDQo+IGFueXRoaW5nIGJ1dCBuZXcNCj4gPiBvbmVzIGJlY2F1c2Ugb2Yg
-aW50ZWxfaWRsZS4NCj4gPg0KPiA+IEFzIGFuIGlkZWEgZm9yICMyIHlvdSBjb3VsZCBjaGVjayBm
-b3IgQ09ORklHX0lOVEVMX0lETEUgaW4gdGhlIEludGVsIGNhc2UNCj4gYW5kDQo+ID4gaWYgaXQn
-cyBub3QgZGVmaW5lZCBzaG93IGEgcHJfbm90aWNlX29uY2UoKSB0eXBlIG9mIG1lc3NhZ2UgdHJ5
-aW5nIHRvIHRlbGwNCj4gcGVvcGxlIHRvIHVzZQ0KPiA+IEludGVsIElkbGUgaW5zdGVhZCBmb3Ig
-YmV0dGVyIHBlcmZvcm1hbmNlLg0KPiANCj4gV2hhdCBkb2VzIHRoYXQgaGF2ZSB0byBkbyB3aXRo
-ICp0aGlzKiBwYXRjaCwgdGhvdWdoPw0KDQpJdCB3YXMganVzdCBhIHRob3VnaHQgdHJpZ2dlcmVk
-IGJ5IHlvdXIgY29tbWl0IG1lc3NhZ2UgdGl0bGUuDQoNCj4gDQo+IElmIHlvdSd2ZSBnb3QgQ09O
-RklHX0lOVEVMX0lETEUgZGlzYWJsZWQsIHlvdSdsbCBiZSBzbG93IGJlZm9yZSB0aGlzDQo+IHBh
-dGNoLiAgWW91J2xsIGFsc28gYmUgc2xvdyBhZnRlciB0aGlzIHBhdGNoLiAgSXQncyBlbnRpcmVs
-eSBvcnRob2dvbmFsLg0KPiANCg0KWWVhaCBpdCdzIG9ydGhvZ29uYWwsIGJ1dCB3aXRoIHRoaXMg
-ZGlzY3Vzc2lvbiBoYXBwZW5pbmcgYW5kIHRoZSBjb2RlIGlzDQpjaGFuZ2luZyAvYW55d2F5LyB0
-aGVuIGEgcHJfbm90aWNlX29uY2UoKSBzZWVtZWQgbGlrZSBhIG5pY2Ugd2F5IHRvDQpndWlkZSBw
-ZW9wbGUgdG93YXJkcyBpbnRlbF9pZGxlIGF0IHRoZSBzYW1lIHRpbWUgc28gdGhleSBkaWRuJ3Qg
-dHJpcCBpbnRvDQp0aGUgc2FtZSBwcm9ibGVtIEFNRCBzeXN0ZW1zIGRvIHRvZGF5Lg0KDQo+IEkg
-Y2FuIGFkZCBhICJQcmFjdGljYWxseSIgdG8gdGhlIHN1YmplY3Qgc28gZm9sa3MgZG9uJ3QgY29u
-ZnVzZSBpdCB3aXRoDQo+IHNvbWUgaGFyZCBsaW1pdCB0aGF0IGlzIGJlaW5nIGVuZm9yY2VkOg0K
-PiANCj4gCUFDUEk6IHByb2Nlc3NvciBpZGxlOiBQcmFjdGljYWxseSBsaW1pdCAiRHVtbXkgd2Fp
-dCIgd29ya2Fyb3VuZCB0bw0KPiBvbGQNCj4gSW50ZWwgc3lzdGVtcw0KDQpUaGF0IHdvcmtzLg0K
-DQo+IA0KPiBCVFcsIGlzIHRoZXJlIHNlcmlvdXNseSBhIHN0cm9uZyB0ZWNobmljYWwgcmVhc29u
-IHRoYXQgQU1EIHN5c3RlbXMgYXJlDQo+IHN0aWxsIHVzaW5nIHRoaXMgY29kZT8gIE9yIGlzIGl0
-IHB1cmUgaW5lcnRpYT8NCg0KTWF5YmUgYSBiZXR0ZXIgcXVlc3Rpb24gZm9yIEFuYW50aCBhbmQg
-UHJhdGVlayB0byBjb21tZW50IG9uLg0K
+On 9/22/2022 8:47 PM, Dave Hansen wrote:
+> Old, circa 2002 chipsets have a bug: they don't go idle when they are
+> supposed to.  So, a workaround was added to slow the CPU down and
+> ensure that the CPU waits a bit for the chipset to actually go idle.
+> This workaround is ancient and has been in place in some form since
+> the original kernel ACPI implementation.
+>
+> But, this workaround is very painful on modern systems.  The "inl()"
+> can take thousands of cycles (see Link: for some more detailed
+> numbers and some fun kernel archaeology).
+>
+> First and foremost, modern systems should not be using this code.
+> Typical Intel systems have not used it in over a decade because it is
+> horribly inferior to MWAIT-based idle.
+>
+> Despite this, people do seem to be tripping over this workaround on
+> AMD system today.
+>
+> Limit the "dummy wait" workaround to Intel systems.  Keep Modern AMD
+> systems from tripping over the workaround.  Remotely modern Intel
+> systems use intel_idle instead of this code and will, in practice,
+> remain unaffected by the dummy wait.
+>
+> Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Mario Limonciello <Mario.Limonciello@amd.com>
+> Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Reported-by: K Prateek Nayak <kprateek.nayak@amd.com>
+> Link: https://lore.kernel.org/all/20220921063638.2489-1-kprateek.nayak@amd.com/
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+or do you want me to pick this up?
+
+
+> ---
+>   drivers/acpi/processor_idle.c | 23 ++++++++++++++++++++---
+>   1 file changed, 20 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 16a1663d02d4..9f40917c49ef 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -531,10 +531,27 @@ static void wait_for_freeze(void)
+>   	/* No delay is needed if we are in guest */
+>   	if (boot_cpu_has(X86_FEATURE_HYPERVISOR))
+>   		return;
+> +	/*
+> +	 * Modern (>=Nehalem) Intel systems use ACPI via intel_idle,
+> +	 * not this code.  Assume that any Intel systems using this
+> +	 * are ancient and may need the dummy wait.  This also assumes
+> +	 * that the motivating chipset issue was Intel-only.
+> +	 */
+> +	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
+> +		return;
+>   #endif
+> -	/* Dummy wait op - must do something useless after P_LVL2 read
+> -	   because chipsets cannot guarantee that STPCLK# signal
+> -	   gets asserted in time to freeze execution properly. */
+> +	/*
+> +	 * Dummy wait op - must do something useless after P_LVL2 read
+> +	 * because chipsets cannot guarantee that STPCLK# signal gets
+> +	 * asserted in time to freeze execution properly
+> +	 *
+> +	 * This workaround has been in place since the original ACPI
+> +	 * implementation was merged, circa 2002.
+> +	 *
+> +	 * If a profile is pointing to this instruction, please first
+> +	 * consider moving your system to a more modern idle
+> +	 * mechanism.
+> +	 */
+>   	inl(acpi_gbl_FADT.xpm_timer_block.address);
+>   }
+>   
+
+
