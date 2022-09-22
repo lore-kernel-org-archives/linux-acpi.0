@@ -2,157 +2,175 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1C45C54EE9
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 19:02:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FE80ECAAD8
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 19:03:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbiIVTCZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Sep 2022 15:02:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42288 "EHLO
+        id S230321AbiIVTC7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Sep 2022 15:02:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230241AbiIVTCX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 15:02:23 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BAE5F9630;
-        Thu, 22 Sep 2022 12:02:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663873342; x=1695409342;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=K91cFaaVpeaE0ZmJxi/NGwqsumkKWIZFucMXaH09Bk4=;
-  b=ZUjA4AcqX2/tVXGJOHxtAlQZu+xAkF2KFT5x2RBxdJWBzgTmpoXKuX3W
-   wVzhKT/Ys9QMMut1gIdobeg9sSSigsGONsGp510L3YYpExYW4yYErIuR/
-   qCUZTJg0BWQb7jAkDgb5lgg3ecGdWd/mV1yRAVGLO0AxskDhPc5YWDozS
-   /EO/hmuv3QvIPRRmOPk8WKItnHafljCeRM0LqZK4/IvvRjDEiKbEbYzBc
-   b8ndo8zZ2zMtyEXyVXEEUeQlZZ4ZreXhgfWAzZRyNfmMJDrUFIxbu4oSH
-   dlX2fzuRF1x7AemtAwHWgvG54slNj8rHokrhbRr6CpKfOTJVUliszvfhv
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10478"; a="301835126"
-X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
-   d="scan'208";a="301835126"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 11:49:39 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
-   d="scan'208";a="650651297"
-Received: from lkp-server01.sh.intel.com (HELO c0a60f19fe7e) ([10.239.97.150])
-  by orsmga008.jf.intel.com with ESMTP; 22 Sep 2022 11:49:36 -0700
-Received: from kbuild by c0a60f19fe7e with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1obRGR-0004sY-28;
-        Thu, 22 Sep 2022 18:49:35 +0000
-Date:   Fri, 23 Sep 2022 02:48:37 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Binbin Zhou <zhoubinbin@loongson.cn>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-i2c@vger.kernel.org
-Cc:     kbuild-all@lists.01.org, loongarch@lists.linux.dev,
-        linux-acpi@vger.kernel.org, WANG Xuerui <kernel@xen0n.name>,
-        Jianmin Lv <lvjianmin@loongson.cn>,
-        Binbin Zhou <zhoubinbin@loongson.cn>,
-        Huacai Chen <chenhuacai@loongson.cn>
-Subject: Re: [PATCH 1/5] i2c: core: Pick i2c bus number from ACPI if present
-Message-ID: <202209230216.faCwluIB-lkp@intel.com>
-References: <be5cd69c7c58d44ca119d4ca692d95a2ae924533.1663835855.git.zhoubinbin@loongson.cn>
+        with ESMTP id S230241AbiIVTC6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 15:02:58 -0400
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72208F960A;
+        Thu, 22 Sep 2022 12:02:55 -0700 (PDT)
+Received: by mail-qt1-f178.google.com with SMTP id f26so6971327qto.11;
+        Thu, 22 Sep 2022 12:02:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=PG7ysh4ioWP0KhhQ5IxzyuZoQeN9BWk1s+R/SHxkGzE=;
+        b=cBoWxpAjBueBSr0khDJ2p1UvaWFXnN7k9pL4KZOz5xzUDmiezB9IG0V4fVg5mzjUI9
+         0AI38lxxT9yEC4/kqHEH9CBnIzexSjwpZydNI4PeCoDbc/GZz0wXPNpeyGHjc4tBNbKn
+         YYpgwc9XaUB5iyva0u/G6gFxNvEGGwq5YzjZNiYDQdf3LZrAm50JSdjfnEMqKhdfW3zh
+         PdcDtrFbEfRE6VeMbPguokPiKswM0QQqHtPpv/WYEz5yVDo1ebBPUrFOQwN6xgb37ri8
+         rUwiuT3QY4OoPurPowfJDdGlLM+Ow0E1M6NqItHK9xAqpCtLc77AZE51FeYrPlFgnRQt
+         DjvA==
+X-Gm-Message-State: ACrzQf1bupMkuOVcaMlMhBB9uVSFNRE9pRknewPOncsQ/o8UH2Li4umV
+        JerLt6t1EvEr+uQdubpbBzxilM1UJgejdcqUGkc=
+X-Google-Smtp-Source: AMsMyM7aD+iPDfles5HFP6Yp54CbcPhkeJ4ebl2AM+dn3j+3RDsEGQdLTzkbuwkDpZf9U1mnskBrCMK0ptAvKANF3iE=
+X-Received: by 2002:a05:622a:11c8:b0:35c:e912:a8ea with SMTP id
+ n8-20020a05622a11c800b0035ce912a8eamr4158122qtk.17.1663873374486; Thu, 22 Sep
+ 2022 12:02:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <be5cd69c7c58d44ca119d4ca692d95a2ae924533.1663835855.git.zhoubinbin@loongson.cn>
+References: <20220909095624.3719051-1-liushixin2@huawei.com>
+In-Reply-To: <20220909095624.3719051-1-liushixin2@huawei.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 22 Sep 2022 21:02:43 +0200
+Message-ID: <CAJZ5v0jCutvsjW8Pjhq2GdsDb+-5W=f_UWLkuA0ndrOhQApxog@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: HMAT: remove unused dev_fmt() and redundant
+ prefixing 'HMAT'
+To:     Liu Shixin <liushixin2@huawei.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Binbin,
+On Fri, Sep 9, 2022 at 11:22 AM Liu Shixin <liushixin2@huawei.com> wrote:
+>
+> Remove unused macro dev_pmt() and redundant prefixing 'HMAT' from pr_*() calls.
+>
+> Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+> ---
+>  drivers/acpi/numa/hmat.c | 25 ++++++++++++-------------
+>  1 file changed, 12 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> index c3d783aca196..23f49a2f4d14 100644
+> --- a/drivers/acpi/numa/hmat.c
+> +++ b/drivers/acpi/numa/hmat.c
+> @@ -9,7 +9,6 @@
+>   */
+>
+>  #define pr_fmt(fmt) "acpi/hmat: " fmt
+> -#define dev_fmt(fmt) "acpi/hmat: " fmt
+>
+>  #include <linux/acpi.h>
+>  #include <linux/bitops.h>
+> @@ -302,7 +301,7 @@ static __init int hmat_parse_locality(union acpi_subtable_headers *header,
+>         u8 type, mem_hier;
+>
+>         if (hmat_loc->header.length < sizeof(*hmat_loc)) {
+> -               pr_notice("HMAT: Unexpected locality header length: %u\n",
+> +               pr_notice("Unexpected locality header length: %u\n",
+>                          hmat_loc->header.length);
+>                 return -EINVAL;
+>         }
+> @@ -314,12 +313,12 @@ static __init int hmat_parse_locality(union acpi_subtable_headers *header,
+>         total_size = sizeof(*hmat_loc) + sizeof(*entries) * ipds * tpds +
+>                      sizeof(*inits) * ipds + sizeof(*targs) * tpds;
+>         if (hmat_loc->header.length < total_size) {
+> -               pr_notice("HMAT: Unexpected locality header length:%u, minimum required:%u\n",
+> +               pr_notice("Unexpected locality header length:%u, minimum required:%u\n",
+>                          hmat_loc->header.length, total_size);
+>                 return -EINVAL;
+>         }
+>
+> -       pr_info("HMAT: Locality: Flags:%02x Type:%s Initiator Domains:%u Target Domains:%u Base:%lld\n",
+> +       pr_info("Locality: Flags:%02x Type:%s Initiator Domains:%u Target Domains:%u Base:%lld\n",
+>                 hmat_loc->flags, hmat_data_type(type), ipds, tpds,
+>                 hmat_loc->entry_base_unit);
+>
+> @@ -363,13 +362,13 @@ static __init int hmat_parse_cache(union acpi_subtable_headers *header,
+>         u32 attrs;
+>
+>         if (cache->header.length < sizeof(*cache)) {
+> -               pr_notice("HMAT: Unexpected cache header length: %u\n",
+> +               pr_notice("Unexpected cache header length: %u\n",
+>                          cache->header.length);
+>                 return -EINVAL;
+>         }
+>
+>         attrs = cache->cache_attributes;
+> -       pr_info("HMAT: Cache: Domain:%u Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
+> +       pr_info("Cache: Domain:%u Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
+>                 cache->memory_PD, cache->cache_size, attrs,
+>                 cache->number_of_SMBIOShandles);
+>
+> @@ -424,24 +423,24 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+>         struct memory_target *target = NULL;
+>
+>         if (p->header.length != sizeof(*p)) {
+> -               pr_notice("HMAT: Unexpected address range header length: %u\n",
+> +               pr_notice("Unexpected address range header length: %u\n",
+>                          p->header.length);
+>                 return -EINVAL;
+>         }
+>
+>         if (hmat_revision == 1)
+> -               pr_info("HMAT: Memory (%#llx length %#llx) Flags:%04x Processor Domain:%u Memory Domain:%u\n",
+> +               pr_info("Memory (%#llx length %#llx) Flags:%04x Processor Domain:%u Memory Domain:%u\n",
+>                         p->reserved3, p->reserved4, p->flags, p->processor_PD,
+>                         p->memory_PD);
+>         else
+> -               pr_info("HMAT: Memory Flags:%04x Processor Domain:%u Memory Domain:%u\n",
+> +               pr_info("Memory Flags:%04x Processor Domain:%u Memory Domain:%u\n",
+>                         p->flags, p->processor_PD, p->memory_PD);
+>
+>         if ((hmat_revision == 1 && p->flags & ACPI_HMAT_MEMORY_PD_VALID) ||
+>             hmat_revision > 1) {
+>                 target = find_mem_target(p->memory_PD);
+>                 if (!target) {
+> -                       pr_debug("HMAT: Memory Domain missing from SRAT\n");
+> +                       pr_debug("Memory Domain missing from SRAT\n");
+>                         return -EINVAL;
+>                 }
+>         }
+> @@ -449,7 +448,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
+>                 int p_node = pxm_to_node(p->processor_PD);
+>
+>                 if (p_node == NUMA_NO_NODE) {
+> -                       pr_debug("HMAT: Invalid Processor Domain\n");
+> +                       pr_debug("Invalid Processor Domain\n");
+>                         return -EINVAL;
+>                 }
+>                 target->processor_pxm = p->processor_PD;
+> @@ -840,7 +839,7 @@ static __init int hmat_init(void)
+>         case 2:
+>                 break;
+>         default:
+> -               pr_notice("Ignoring HMAT: Unknown revision:%d\n", hmat_revision);
+> +               pr_notice("Ignoring: Unknown revision:%d\n", hmat_revision);
+>                 goto out_put;
+>         }
+>
+> @@ -848,7 +847,7 @@ static __init int hmat_init(void)
+>                 if (acpi_table_parse_entries(ACPI_SIG_HMAT,
+>                                              sizeof(struct acpi_table_hmat), i,
+>                                              hmat_parse_subtable, 0) < 0) {
+> -                       pr_notice("Ignoring HMAT: Invalid table");
+> +                       pr_notice("Ignoring: Invalid table");
+>                         goto out_put;
+>                 }
+>         }
+> --
 
-Thank you for the patch! Yet something to improve:
+Applied as 6.1 material with edited subject and changelog.
 
-[auto build test ERROR on wsa/i2c/for-next]
-[also build test ERROR on linus/master v6.0-rc6 next-20220921]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Binbin-Zhou/i2c-ls2x-Add-support-for-the-Loongson-2K-LS7A-I2C/20220922-194252
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/for-next
-config: arc-randconfig-r043-20220922 (https://download.01.org/0day-ci/archive/20220923/202209230216.faCwluIB-lkp@intel.com/config)
-compiler: arceb-elf-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/749fc796eb66dc42c209c6a5808c6b2a5e47fbb6
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Binbin-Zhou/i2c-ls2x-Add-support-for-the-Loongson-2K-LS7A-I2C/20220922-194252
-        git checkout 749fc796eb66dc42c209c6a5808c6b2a5e47fbb6
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arc SHELL=/bin/bash drivers/
-
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
-   drivers/i2c/i2c-core-base.c: In function 'i2c_add_adapter':
->> drivers/i2c/i2c-core-base.c:1568:26: error: implicit declaration of function 'acpi_evaluate_integer'; did you mean 'acpi_evaluate_object'? [-Werror=implicit-function-declaration]
-    1568 |                 status = acpi_evaluate_integer(ACPI_HANDLE(dev->parent),
-         |                          ^~~~~~~~~~~~~~~~~~~~~
-         |                          acpi_evaluate_object
-   cc1: some warnings being treated as errors
-
-
-vim +1568 drivers/i2c/i2c-core-base.c
-
-  1540	
-  1541	/**
-  1542	 * i2c_add_adapter - declare i2c adapter, use dynamic bus number
-  1543	 * @adapter: the adapter to add
-  1544	 * Context: can sleep
-  1545	 *
-  1546	 * This routine is used to declare an I2C adapter when its bus number
-  1547	 * doesn't matter or when its bus number is specified by an dt alias.
-  1548	 * Examples of bases when the bus number doesn't matter: I2C adapters
-  1549	 * dynamically added by USB links or PCI plugin cards.
-  1550	 *
-  1551	 * When this returns zero, a new bus number was allocated and stored
-  1552	 * in adap->nr, and the specified adapter became available for clients.
-  1553	 * Otherwise, a negative errno value is returned.
-  1554	 */
-  1555	int i2c_add_adapter(struct i2c_adapter *adapter)
-  1556	{
-  1557		struct device *dev = &adapter->dev;
-  1558		acpi_status status;
-  1559		unsigned long long id;
-  1560	
-  1561		if (dev->of_node) {
-  1562			id = of_alias_get_id(dev->of_node, "i2c");
-  1563			if (id >= 0) {
-  1564				adapter->nr = id;
-  1565				return __i2c_add_numbered_adapter(adapter);
-  1566			}
-  1567		} else if (dev->parent->fwnode) {
-> 1568			status = acpi_evaluate_integer(ACPI_HANDLE(dev->parent),
-  1569							"_UID", NULL, &id);
-  1570			if (ACPI_SUCCESS(status) && (id >= 0)) {
-  1571				adapter->nr = id;
-  1572				return __i2c_add_numbered_adapter(adapter);
-  1573			}
-  1574		}
-  1575	
-  1576		mutex_lock(&core_lock);
-  1577		id = idr_alloc(&i2c_adapter_idr, adapter,
-  1578			       __i2c_first_dynamic_bus_num, 0, GFP_KERNEL);
-  1579		mutex_unlock(&core_lock);
-  1580		if (WARN(id < 0, "couldn't get idr"))
-  1581			return id;
-  1582	
-  1583		adapter->nr = id;
-  1584	
-  1585		return i2c_register_adapter(adapter);
-  1586	}
-  1587	EXPORT_SYMBOL(i2c_add_adapter);
-  1588	
-
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+Thanks!
