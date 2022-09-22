@@ -2,101 +2,445 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9329C6FA8B
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 18:18:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C1A4C6FA82
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 18:28:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232396AbiIVSSZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Sep 2022 14:18:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57498 "EHLO
+        id S232617AbiIVS2F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Sep 2022 14:28:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232392AbiIVSSY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 14:18:24 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D86D910912A;
-        Thu, 22 Sep 2022 11:18:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663870703; x=1695406703;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=irvpxRGJNiroM1fXkhuMmUhHwaH1jS9Bj7zSfZHS2YY=;
-  b=anQvo6aPXHB1/aXMtMyd2JhzZviW6g3lc23KwKyZHqzdKSdTEPKTQGyc
-   /QUrg3MVohEdIgsoUSxWACnfkHD24Tjr3jYOLCSmGPf65zsiMD2kRZFZb
-   UywDvHf0/Ed+U2S2QM5zsc2VWBTi8K7qHDmblp08c0InFBL5AlrkwVDyy
-   9Ndx6C6EQkgq+eWaspsmTNj0sWts8YfG08UGd3lP5o1bp7mU5igLiPqvz
-   IFzo5c18+js1u1+oaB7LtQJf7LaE5qhz/0orqiUcsjd5sCwecoxcjX2Pl
-   9fmAms5qGgHCCPoTsJi7qaMUAL3TnwGEpvNg4f/2STOLDzoydUuLmOH4R
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10478"; a="300371015"
-X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
-   d="scan'208";a="300371015"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 11:17:55 -0700
-X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
-   d="scan'208";a="682328889"
-Received: from sponnura-mobl1.amr.corp.intel.com (HELO [10.209.58.200]) ([10.209.58.200])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 11:17:53 -0700
-Message-ID: <9d3d3424-a6d4-4076-87ff-a1c216de79c6@intel.com>
-Date:   Thu, 22 Sep 2022 11:17:53 -0700
+        with ESMTP id S232625AbiIVS1r (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 14:27:47 -0400
+Received: from vorpal.se (vorpal.se [151.236.221.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A70510976E;
+        Thu, 22 Sep 2022 11:25:58 -0700 (PDT)
+Received: by vorpal.se (Postfix) with ESMTPSA id 48D63147E1;
+        Thu, 22 Sep 2022 18:24:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=vorpal.se; s=2019;
+        t=1663871077; bh=aQ+ViA5x+HULAnhUILGd1OgDAcRTyuhk/tHUYAPcC6c=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=T0QL1PfMvQowM1BXLxpLZYoOlUIHya7XiYyM+MeLFsaPut1eRjmLW2TGU/rvPDZZF
+         Y0xJlN2rdkHq7iA+Vbxpg/uCiPYuGtpQW2vrkPF6xF+wnPblKZwSvDrSTUREXlTnOH
+         SoC/JNdhhAS7Asf+nR+d+eyrFJs1xGYf2ci9sIFMnDJlMKE2ZlfsRIute1YRjT9rsX
+         gb1fxHIBYXcZ+sMFSX/gDgmtcQ0j50Dof3V5XJAjUXeaapXlthv6ezldCvQKBOoCSA
+         eUK/0KSASi2hpOrgF0roCOlKMg3ZJuWMCBXlYIyc3Bi//ollaLOBq7roTnZTbuqDZF
+         HyKpX40m0Gxig==
+From:   Arvid Norlander <lkml@vorpal.se>
+To:     platform-driver-x86@vger.kernel.org
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
+        Len Brown <lenb@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-input@vger.kernel.org, Azael Avalos <coproscefalo@gmail.com>,
+        =?UTF-8?q?Barnab=C3=A1s=20P=C5=91cze?= <pobrn@protonmail.com>,
+        Arvid Norlander <lkml@vorpal.se>
+Subject: [PATCH RFC v2 1/2] platform/x86: quickstart: Add ACPI quickstart button (PNP0C32) driver
+Date:   Thu, 22 Sep 2022 20:24:23 +0200
+Message-Id: <20220922182424.934340-2-lkml@vorpal.se>
+X-Mailer: git-send-email 2.37.3
+In-Reply-To: <20220922182424.934340-1-lkml@vorpal.se>
+References: <20220922182424.934340-1-lkml@vorpal.se>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH] ACPI: processor_idle: Skip dummy wait for processors
- based on the Zen microarchitecture
-Content-Language: en-US
-To:     "Limonciello, Mario" <Mario.Limonciello@amd.com>,
-        "Nayak, K Prateek" <KPrateek.Nayak@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc:     "rafael@kernel.org" <rafael@kernel.org>,
-        "lenb@kernel.org" <lenb@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-        "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-        "bp@alien8.de" <bp@alien8.de>,
-        "tglx@linutronix.de" <tglx@linutronix.de>,
-        "andi@lisas.de" <andi@lisas.de>, "puwen@hygon.cn" <puwen@hygon.cn>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        "rui.zhang@intel.com" <rui.zhang@intel.com>,
-        "gpiccoli@igalia.com" <gpiccoli@igalia.com>,
-        "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>,
-        "Narayan, Ananth" <Ananth.Narayan@amd.com>,
-        "Shenoy, Gautham Ranjal" <gautham.shenoy@amd.com>,
-        "Ong, Calvin" <Calvin.Ong@amd.com>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        "regressions@lists.linux.dev" <regressions@lists.linux.dev>
-References: <20220921063638.2489-1-kprateek.nayak@amd.com>
- <20e78a49-25df-c83d-842e-1d624655cfd7@intel.com>
- <0885eecb-042f-3b74-2965-7d657de59953@amd.com>
- <88c17568-8694-940a-0f1f-9d345e8dcbdb@intel.com>
- <MN0PR12MB610110D90985366A4B952CCCE24E9@MN0PR12MB6101.namprd12.prod.outlook.com>
-From:   Dave Hansen <dave.hansen@intel.com>
-In-Reply-To: <MN0PR12MB610110D90985366A4B952CCCE24E9@MN0PR12MB6101.namprd12.prod.outlook.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 9/22/22 10:48, Limonciello, Mario wrote:
-> 
-> 2) The title says to limit it to old intel systems, but nothing about this actually enforces that.
-> It actually is limited to all Intel systems, but effectively won't be used on anything but new
-> ones because of intel_idle.
-> 
-> As an idea for #2 you could check for CONFIG_INTEL_IDLE in the Intel case and
-> if it's not defined show a pr_notice_once() type of message trying to tell people to use
-> Intel Idle instead for better performance.
+This is loosely based on a previous staging driver that was removed. See
+links below for more info on that driver. The original commit ID was
+0be013e3dc2ee79ffab8a438bbb4e216837e3d52.
 
-What does that have to do with *this* patch, though?
+However, here a completely different approach is taken to the user space
+API (which should solve the issues the original driver had). Each PNP0C32
+device is a button, and each such button gets a separate input device
+associated with it (instead of a shared platform input device).
 
-If you've got CONFIG_INTEL_IDLE disabled, you'll be slow before this
-patch.  You'll also be slow after this patch.  It's entirely orthogonal.
+The button ID (as read from ACPI method GHID) is provided via a sysfs file
+"button_id".
 
-I can add a "Practically" to the subject so folks don't confuse it with
-some hard limit that is being enforced:
+If the button caused a wakeup it will "latch" the "wakeup_cause" sysfs file
+to true. This can be reset by a user space process.
 
-	ACPI: processor idle: Practically limit "Dummy wait" workaround to old
-Intel systems
+Link: https://marc.info/?l=linux-acpi&m=120550727131007
+Link: https://lkml.org/lkml/2010/5/28/327
+Signed-off-by: Arvid Norlander <lkml@vorpal.se>
+---
+ drivers/platform/x86/Kconfig      |  13 ++
+ drivers/platform/x86/Makefile     |   3 +
+ drivers/platform/x86/quickstart.c | 320 ++++++++++++++++++++++++++++++
+ 3 files changed, 336 insertions(+)
+ create mode 100644 drivers/platform/x86/quickstart.c
 
-BTW, is there seriously a strong technical reason that AMD systems are
-still using this code?  Or is it pure inertia?
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index f5312f51de19..eebd70ef4a7c 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -685,6 +685,18 @@ config THINKPAD_LMI
+ 
+ source "drivers/platform/x86/intel/Kconfig"
+ 
++config ACPI_QUICKSTART
++	tristate "ACPI Quickstart key driver"
++	depends on ACPI
++	depends on INPUT
++	select INPUT_SPARSEKMAP
++	help
++	  Say Y here if you have a platform that supports the ACPI
++	  quickstart key protocol.
++
++	  To compile this driver as a module, choose M here: the module will be
++	  called quickstart.
++
+ config MSI_LAPTOP
+ 	tristate "MSI Laptop Extras"
+ 	depends on ACPI
+@@ -803,6 +815,7 @@ config ACPI_TOSHIBA
+ 	depends on RFKILL || RFKILL = n
+ 	depends on IIO
+ 	select INPUT_SPARSEKMAP
++	select ACPI_QUICKSTART
+ 	help
+ 	  This driver adds support for access to certain system settings
+ 	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 5a428caa654a..a8a8e1ddb2a3 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -72,6 +72,9 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
+ # Intel
+ obj-y				+= intel/
+ 
++# Microsoft
++obj-$(CONFIG_ACPI_QUICKSTART)	+= quickstart.o
++
+ # MSI
+ obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
+ obj-$(CONFIG_MSI_WMI)		+= msi-wmi.o
+diff --git a/drivers/platform/x86/quickstart.c b/drivers/platform/x86/quickstart.c
+new file mode 100644
+index 000000000000..ce51abe012f7
+--- /dev/null
++++ b/drivers/platform/x86/quickstart.c
+@@ -0,0 +1,320 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ *  quickstart.c - ACPI Direct App Launch driver
++ *
++ *  Copyright (C) 2022 Arvid Norlander <lkml@vorapal.se>
++ *  Copyright (C) 2007-2010 Angelo Arrifano <miknix@gmail.com>
++ *
++ *  Information gathered from disassembled dsdt and from here:
++ *  <https://archive.org/details/microsoft-acpi-dirapplaunch>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/acpi.h>
++#include <linux/platform_device.h>
++#include <linux/input.h>
++#include <linux/input/sparse-keymap.h>
++#include <asm/unaligned.h>
++
++MODULE_AUTHOR("Arvid Norlander <lkml@vorpal.se>");
++MODULE_AUTHOR("Angelo Arrifano");
++MODULE_DESCRIPTION("ACPI Direct App Launch driver");
++MODULE_LICENSE("GPL");
++
++#define QUICKSTART_ACPI_DEVICE_NAME	"quickstart"
++#define QUICKSTART_ACPI_HID		"PNP0C32"
++
++/*
++ * There will be two events:
++ * 0x02 - A hot button was pressed while device was off/sleeping.
++ * 0x80 - A hot button was pressed while device was up.
++ */
++#define QUICKSTART_EVENT_WAKE		0x02
++#define QUICKSTART_EVENT_RUNTIME	0x80
++
++/*
++ * Each PNP0C32 device is an individual button. This structure
++ * keeps track of data associated with said device.
++ */
++struct quickstart_acpi {
++	struct platform_device *platform_dev;
++	struct input_dev *input_device;
++	struct quickstart_button *button;
++	/* ID of button as returned by GHID */
++	u32 id;
++	/* Name of input device */
++	char input_name[32];
++	/* Physical path for the input device */
++	char phys[32];
++	/* Track if a wakeup event was received */
++	bool wakeup_cause;
++};
++
++#define quickstart_name(dev) acpi_device_bid(dev->acpi_dev)
++
++/*
++ * Knowing what these buttons do require system specific knowledge.
++ * This could be done by matching on DMI data in a long quirk table.
++ * However, it is easier to leave it up to user space to figure this out.
++ *
++ * Using for example udev hwdb the scancode 0x1 can be remapped suitably.
++ */
++static const struct key_entry quickstart_keymap[] = {
++	{ KE_KEY, 0x1, { KEY_UNKNOWN } },
++	{ KE_END, 0 },
++};
++
++static ssize_t wakeup_cause_show(struct device *dev,
++				 struct device_attribute *attr, char *buf)
++{
++	struct quickstart_acpi *quickstart = dev_get_drvdata(dev);
++
++	return sysfs_emit(buf, "%s\n",
++			  (quickstart->wakeup_cause ? "true" : "false"));
++}
++
++static ssize_t wakeup_cause_store(struct device *dev,
++				  struct device_attribute *attr,
++				  const char *buf, size_t count)
++{
++	struct quickstart_acpi *quickstart = dev_get_drvdata(dev);
++
++	if (count < 2)
++		return -EINVAL;
++
++	if (strncasecmp(buf, "false", 4) != 0)
++		return -EINVAL;
++
++	quickstart->wakeup_cause = false;
++	return count;
++}
++static DEVICE_ATTR_RW(wakeup_cause);
++
++static ssize_t button_id_show(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct quickstart_acpi *quickstart = dev_get_drvdata(dev);
++
++	return sysfs_emit(buf, "%u\n", quickstart->id);
++}
++static DEVICE_ATTR_RO(button_id);
++
++/* ACPI Driver functions */
++static void quickstart_acpi_notify(acpi_handle handle, u32 event, void *context)
++{
++	struct platform_device *device = context;
++	struct quickstart_acpi *quickstart = dev_get_drvdata(&device->dev);
++
++	if (!quickstart)
++		return;
++
++	switch (event) {
++	case QUICKSTART_EVENT_WAKE:
++		quickstart->wakeup_cause = true;
++		break;
++	case QUICKSTART_EVENT_RUNTIME:
++		if (!sparse_keymap_report_event(quickstart->input_device, 0x1,
++						1, true)) {
++			pr_info("Key handling error\n");
++		}
++		break;
++	default:
++		pr_err("Unexpected ACPI event notify (%u)\n", event);
++		break;
++	}
++}
++
++/*
++ * The GHID ACPI method is used to indicate the "role" of the button.
++ * However, all the meanings of these values are vendor defined.
++ *
++ * We do however expose this value to user space.
++ */
++static int quickstart_acpi_ghid(struct quickstart_acpi *quickstart)
++{
++	acpi_handle handle = ACPI_HANDLE(&quickstart->platform_dev->dev);
++	acpi_status status;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	int ret = 0;
++	union acpi_object *obj = NULL;
++
++	/*
++	 * This returns a buffer telling the button usage ID,
++	 * and triggers pending notify events (The ones before booting).
++	 */
++	status = acpi_evaluate_object(handle, "GHID", NULL, &buffer);
++	if (ACPI_FAILURE(status)) {
++		dev_err(&quickstart->platform_dev->dev,
++			"GHID method failed, ACPI status %u\n", status);
++		return -EINVAL;
++	}
++	obj = buffer.pointer;
++
++	/*
++	 * GHID returns buffers, sanity check that is the case.
++	 */
++	if (obj->type != ACPI_TYPE_BUFFER) {
++		dev_err(&quickstart->platform_dev->dev,
++			"GHID did not return buffer\n");
++		ret = -EINVAL;
++		goto free_and_return;
++	}
++
++	/*
++	 * Quoting the specification:
++	 * "The GHID method can return a BYTE, WORD, or DWORD.
++	 *  The value must be encoded in little-endian byte
++	 *  order (least significant byte first)."
++	 */
++	switch (obj->buffer.length) {
++	case 1:
++		quickstart->id = *(u8 *)obj->buffer.pointer;
++		break;
++	case 2:
++		quickstart->id = get_unaligned_le16(obj->buffer.pointer);
++		break;
++	case 4:
++		quickstart->id = get_unaligned_le32(obj->buffer.pointer);
++		break;
++	case 8:
++		quickstart->id = get_unaligned_le64(obj->buffer.pointer);
++		break;
++	default:
++		dev_err(&quickstart->platform_dev->dev,
++			"GHID method returned buffer of unexpected length %lu\n",
++			(unsigned long)obj->buffer.length);
++		ret = -EINVAL;
++		break;
++	}
++
++free_and_return:
++	kfree(buffer.pointer);
++
++	return ret;
++}
++
++static struct attribute *quickstart_attributes[] = {
++	&dev_attr_wakeup_cause.attr,
++	&dev_attr_button_id.attr,
++	NULL,
++};
++
++static const struct attribute_group quickstart_attr_group = {
++	.attrs = quickstart_attributes,
++};
++
++static int quickstart_remove(struct platform_device *device)
++{
++	acpi_handle handle = ACPI_HANDLE(&device->dev);
++
++	acpi_remove_notify_handler(handle, ACPI_DEVICE_NOTIFY,
++				   quickstart_acpi_notify);
++
++	return 0;
++}
++
++static int quickstart_probe(struct platform_device *device)
++{
++	int ret;
++	acpi_handle handle = ACPI_HANDLE(&device->dev);
++	acpi_status status;
++	struct quickstart_acpi *quickstart;
++
++	if (!device)
++		return -EINVAL;
++
++	quickstart =
++		devm_kzalloc(&device->dev, sizeof(*quickstart), GFP_KERNEL);
++	if (!quickstart)
++		return -ENOMEM;
++
++	/*
++	 * This must be set early for proper cleanup on error handling path.
++	 * After this point generic error handling can be used.
++	 */
++	quickstart->platform_dev = device;
++	dev_set_drvdata(&device->dev, quickstart);
++
++	/* Retrieve the GHID ID */
++	ret = quickstart_acpi_ghid(quickstart);
++	if (ret < 0)
++		goto error;
++
++	/* Set up sysfs entries */
++	ret = devm_device_add_group(&quickstart->platform_dev->dev,
++				    &quickstart_attr_group);
++	if (ret) {
++		dev_err(&device->dev, "Unable to setup sysfs entries\n");
++		goto error;
++	}
++
++	/* Set up input device */
++	quickstart->input_device =
++		devm_input_allocate_device(&quickstart->platform_dev->dev);
++	if (!quickstart->input_device) {
++		ret = -ENOMEM;
++		goto error;
++	}
++	ret = sparse_keymap_setup(quickstart->input_device, quickstart_keymap,
++				  NULL);
++	if (ret)
++		goto error;
++
++	snprintf(quickstart->input_name, sizeof(quickstart->phys),
++		 "Quickstart Button %u", quickstart->id);
++	snprintf(quickstart->phys, sizeof(quickstart->phys),
++		 QUICKSTART_ACPI_DEVICE_NAME "/input%u", quickstart->id);
++
++	quickstart->input_device->name = quickstart->input_name;
++	quickstart->input_device->phys = quickstart->phys;
++	quickstart->input_device->id.bustype = BUS_HOST;
++
++	ret = input_register_device(quickstart->input_device);
++
++	/* Set up notify handler */
++	status = acpi_install_notify_handler(handle, ACPI_DEVICE_NOTIFY,
++					     quickstart_acpi_notify, device);
++	if (ACPI_FAILURE(status)) {
++		dev_err(&device->dev, "Error installing notify handler\n");
++		return -EIO;
++	}
++
++	return 0;
++error:
++	quickstart_remove(device);
++	return ret;
++}
++
++static const struct acpi_device_id quickstart_device_ids[] = {
++	{ QUICKSTART_ACPI_HID, 0 },
++	{ "", 0 },
++};
++MODULE_DEVICE_TABLE(acpi, quickstart_device_ids);
++
++static struct platform_driver quickstart_platform_driver = {
++	.probe	= quickstart_probe,
++	.remove	= quickstart_remove,
++	.driver	= {
++		.name = QUICKSTART_ACPI_DEVICE_NAME,
++		.acpi_match_table = quickstart_device_ids,
++		.owner = THIS_MODULE,
++	}
++};
++
++module_platform_driver(quickstart_platform_driver);
+-- 
+2.37.3
+
