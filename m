@@ -2,73 +2,91 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5FF6C54EE9
-	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 19:07:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A79F7C54EE9
+	for <linux-acpi@archiver.kernel.org>; Thu, 22 Sep 2022 19:10:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231392AbiIVTHp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 22 Sep 2022 15:07:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49288 "EHLO
+        id S232278AbiIVTKb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 22 Sep 2022 15:10:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230294AbiIVTHo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 15:07:44 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32B27F6860;
-        Thu, 22 Sep 2022 12:07:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663873664; x=1695409664;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=8ZeyjYpqe72ewLlASmK/A6hGNqxbAV4/mf1Wzf7Awtc=;
-  b=dNKarn6rl1DpBZxzAuyYnYDIfh38fObmwnmPbctTXNTL/IfhE+C6bZ2J
-   GgSiv4jjjWIM0skiE61zAKiTwayj2gJX8fVnqmel2YiK3lubgElRBsu2F
-   Xzrcw3MQu3D8HF6qPkZSZc1WBjA3H3RnnbqXCitYVv/7bGt4B6OHTLNJW
-   zsvKG+QQ+ajeRTOUILOMBhgMX1AG/3GIEUVnVk9EqY91rfrmOQXRgjBN0
-   AvWQ8KOKywmoyaeXllL9wafb08c9Q3B2KR8OJ4+kUermb8x7DDbZlgu+P
-   UepgbR0NI6QTgtqTIOjDlsTEP2szY/o3TEtopu03dC3+idC9+oZS6fGhi
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10478"; a="301839263"
-X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
-   d="scan'208";a="301839263"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 12:01:57 -0700
-X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
-   d="scan'208";a="597569877"
-Received: from sponnura-mobl1.amr.corp.intel.com (HELO [10.209.58.200]) ([10.209.58.200])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 12:01:57 -0700
-Message-ID: <54572271-d5ca-820f-911e-19fd9d80ae2c@intel.com>
-Date:   Thu, 22 Sep 2022 12:01:57 -0700
+        with ESMTP id S232108AbiIVTKa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2022 15:10:30 -0400
+Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2925DAB1B9;
+        Thu, 22 Sep 2022 12:10:28 -0700 (PDT)
+Received: by mail-qk1-f179.google.com with SMTP id q11so6867416qkc.12;
+        Thu, 22 Sep 2022 12:10:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=i2fFh03PmN9dsDrlqa6Na6TJ/xoZxneYKaZlpWqCHQA=;
+        b=QXRkaQZFyhXLSP5u4FyY7F18yANkzZ8nSltCmZB3/cuc4AkIWpkFrquPxrf8zo/RVN
+         SmVo+nB6TMUh/mNq7uN5P8+FSOWNin5j6D8gzWOrK1iecICBwAx8AiRrVqATXQlcze5M
+         GBOP107yUe90vIwkQl9OX16UW+bxunOMQPzheyGe376ZgDfU8eeJfwyTTeJSXbe+h65u
+         DGrpTwg5QSImJsIu9ey0qiezvAvKG2XnjOkXLkxjYBGDqGyiuTBNBGcLIJVPnWaV+Fvn
+         6kif2bfTDDRf06e0+dHgfsq205RS8aZluoR8QqPowxopCSj/v3+kbFtOTQMjKl+iu/Tw
+         sdNg==
+X-Gm-Message-State: ACrzQf1e4n4kjBhMzuuSYy5rgPY1qpyZQCjv7PXKVEWYInSLEyR278nP
+        6XUpDJ6eDvHFahZsfPT+MbWIdNSDLAiykKkPil0=
+X-Google-Smtp-Source: AMsMyM7/jpbQTYmB0SMqjZX3zyneGSbRIfxLeeAiexcVjm9d+NWw6CU5BB3SivnMJxe5iDQC8ZGJLwBWnhHx8IuCV54=
+X-Received: by 2002:a05:620a:46ac:b0:6ce:3e55:fc21 with SMTP id
+ bq44-20020a05620a46ac00b006ce3e55fc21mr3205441qkb.285.1663873826996; Thu, 22
+ Sep 2022 12:10:26 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH] ACPI: processor idle: Practically limit "Dummy wait"
- workaround to old Intel systems
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        linux-kernel@vger.kernel.org
-Cc:     Dave Hansen <dave.hansen@linux.intel.com>,
-        Len Brown <lenb@kernel.org>,
-        Mario Limonciello <Mario.Limonciello@amd.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Borislav Petkov <bp@alien8.de>,
-        K Prateek Nayak <kprateek.nayak@amd.com>,
-        linux-acpi@vger.kernel.org, Linux PM <linux-pm@vger.kernel.org>
-References: <20220922184745.3252932-1-dave.hansen@intel.com>
- <78d13a19-2806-c8af-573e-7f2625edfab8@intel.com>
-From:   Dave Hansen <dave.hansen@intel.com>
-In-Reply-To: <78d13a19-2806-c8af-573e-7f2625edfab8@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20220920094500.11283-1-lihuisong@huawei.com> <20220920094500.11283-3-lihuisong@huawei.com>
+ <20220921154319.bsczh2nftuypeucs@bogus>
+In-Reply-To: <20220921154319.bsczh2nftuypeucs@bogus>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 22 Sep 2022 21:10:16 +0200
+Message-ID: <CAJZ5v0gfMCw3N1VJmtNU6WPuzrgen-8OiZYFiZkZowo6cFzHwA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ACPI: PCC: fix Tx done interface in handler
+To:     Sudeep Holla <sudeep.holla@arm.com>,
+        Huisong Li <lihuisong@huawei.com>
+Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Rafael Wysocki <rafael.j.wysocki@intel.com>,
+        wanghuiqiang@huawei.com, huangdaode@huawei.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 9/22/22 11:53, Rafael J. Wysocki wrote:
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> or do you want me to pick this up?
+On Wed, Sep 21, 2022 at 5:43 PM Sudeep Holla <sudeep.holla@arm.com> wrote:
+>
+> On Tue, Sep 20, 2022 at 05:45:00PM +0800, Huisong Li wrote:
+> > A error, "Client can't run the TX ticker", is printed even if PCC command
+> > executed successfully. This root cause is that PCC handler calls
+> > 'mbox_client_txdone()' which depands on the client can received 'ACK'
+> > packet. But PCC handler detects whether the command is complete through
+> > the Tx ACK interrupt. So this patch fix it.
+> >
+>
+> Thanks for fixing this. Someone mentioned about the error and it was in
+> my TODO list.
+>
+> I would prefer to reword the subject and commit message as below:
+> "
+> ACPI: PCC: Fix Tx acknowledge in the PCC address space handler
+>
+> Currently, mbox_client_txdone() is called from the PCC address space
+> handler and that expects the user the Tx state machine to be controlled
+> by the client which is not the case and the below warning is thrown:
+>
+>   | PCCT: Client can't run the TX ticker
+>
+> Let the controller run the state machine and the end of Tx can be
+> acknowledge by calling mbox_chan_txdone() instead.
+> "
+>
+> With that:
+>
+> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 
-I'll just stick it in x86/urgent.
+Applied as 6.1 material along with the [1/2].
 
-It's modifying code in a x86 #ifdef.  I'll call it a small enclave of
-sovereign x86 territory in ACPI land, just like an embassy. ;)
+I used the above text in quotes as the subject and changelog instead
+of the original pieces.
+
+Thanks!
