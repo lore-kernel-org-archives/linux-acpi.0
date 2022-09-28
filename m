@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA62C04A95
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C32C32771
 	for <linux-acpi@archiver.kernel.org>; Wed, 28 Sep 2022 10:58:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233805AbiI1K6d (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 28 Sep 2022 06:58:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42624 "EHLO
+        id S234002AbiI1K6e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Sep 2022 06:58:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233812AbiI1K6D (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Sep 2022 06:58:03 -0400
+        with ESMTP id S234018AbiI1K6E (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Sep 2022 06:58:04 -0400
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A461B27CF8;
-        Wed, 28 Sep 2022 03:57:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42CB7275CE;
+        Wed, 28 Sep 2022 03:57:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1664362653; x=1695898653;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=tj6y2wR4OOWe+GceNfoaIX0k9DWCy81qn2nGdhvw8h4=;
-  b=Z1ZXMrYo3YfAxKQBEzgqEEzoff9Ys6EtgV3do1glAUR0u7yv45GgMQ46
-   bZImIHrX25iH/NUhjlMFpHtBT/MS/fJmskqX9MAzId559vTaUVExIt13j
-   cMQUaZ3TCG2LyqTYeF2TKWwNB8a59OvOGkrwtVRspKqhD8rvTtbtPANsK
-   faiPax/UBdGY/GdWr5LCCShHhbhXmjS781oIeRXd/S0UYafQtc8MZoq2x
-   DJkiPd9mex2APRYvWq+c7OmNy1GM/WwfpkkRgcjSp5fWnSuXaj5R5to4g
-   qolHpdy6GHJrrNyV1yU8myRL05KVzaftHxoo0pE5A7wb+WUyJG3GZkTuL
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10483"; a="300288924"
+  t=1664362655; x=1695898655;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=o81USWJuR0ULJE6zRCKGJxkSDRJSTS9vmQtovzNmv88=;
+  b=X5qhG+AAu79CPkaWPc0P3LZzqxoveutyFSjfGWpGDaFYgs0rn+ebOpra
+   WFCWFasCxRUda6uvB0wi3k3YCI2wmkPvEPn9mkaX5YmSARQfz2APSFgNd
+   l9iIlV4iT7Y7jOpPtu9Xesv7G3EQscIE9N+Dgwmf1S0OuHuFUCFVYulHc
+   B3bahr6VHxEoAOencdL1943q/E9+yYllzj/8pyEBDlCYVWCK+E70zt79Y
+   hNfcbqyTKC0O1RIWRi08qAbwkEkxYKpQUJceULOHlIrazLzIVJysDSdIX
+   etr6TYK73YL2APK1DnCd03NCLBmcaZkcyaXadULgeE8nj5Lp+upPXM84G
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10483"; a="300288930"
 X-IronPort-AV: E=Sophos;i="5.93,351,1654585200"; 
-   d="scan'208";a="300288924"
+   d="scan'208";a="300288930"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
   by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2022 03:57:33 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10483"; a="572995037"
+X-IronPort-AV: E=McAfee;i="6500,9779,10483"; a="572995040"
 X-IronPort-AV: E=Sophos;i="5.93,351,1654585200"; 
-   d="scan'208";a="572995037"
+   d="scan'208";a="572995040"
 Received: from black.fi.intel.com ([10.237.72.28])
   by orsmga003.jf.intel.com with ESMTP; 28 Sep 2022 03:57:30 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id CF9D6101; Wed, 28 Sep 2022 13:57:48 +0300 (EEST)
+        id 09798235; Wed, 28 Sep 2022 13:57:49 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
@@ -51,43 +51,41 @@ To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         linux-usb@vger.kernel.org
 Cc:     Daniel Scally <djrscally@gmail.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v2 0/5] device property: Consitify a few APIs and correct dev_fwnode()
-Date:   Wed, 28 Sep 2022 13:57:41 +0300
-Message-Id: <20220928105746.51208-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/5] device property: Constify parameter in fwnode_graph_is_endpoint()
+Date:   Wed, 28 Sep 2022 13:57:44 +0300
+Message-Id: <20220928105746.51208-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220928105746.51208-1-andriy.shevchenko@linux.intel.com>
+References: <20220928105746.51208-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The property.h has inconsistency in how we annotate the parameters which
-are not modified anyhow by the certain APIs. Also dev_fwnode() needs to
-be rectified in sense of the handling const qualifier.
+Constify parameter in fwnode_graph_is_endpoint() since it doesn't
+alter anything related to it.
 
-This series improves the above with only a couple of APIs left for now
-untouched (PHY, which I believe doesn't belong to property.h to begin
-with).
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/linux/property.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Changelog v2:
-- fixed USB Type-C compilation issues (LKP)
-- added tags (Sakari, Heikki)
-
-Andy Shevchenko (5):
-  device property: Keep dev_fwnode() and dev_fwnode_const() separate
-  device property: Constify fwnode connection match APIs
-  device property: Constify parameter in fwnode_graph_is_endpoint()
-  device property: Constify device child node APIs
-  device property: Constify parameter in device_dma_supported() and
-    device_get_dma_attr()
-
- drivers/base/property.c     | 39 ++++++++++++++++++++++---------------
- drivers/usb/roles/class.c   |  2 +-
- drivers/usb/typec/mux.c     |  8 ++++----
- drivers/usb/typec/retimer.c |  2 +-
- include/linux/property.h    | 32 +++++++++++++++---------------
- 5 files changed, 45 insertions(+), 38 deletions(-)
-
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 6f9d6604edc3..fe440211e529 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -406,7 +406,7 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
+ struct fwnode_handle *fwnode_graph_get_remote_endpoint(
+ 	const struct fwnode_handle *fwnode);
+ 
+-static inline bool fwnode_graph_is_endpoint(struct fwnode_handle *fwnode)
++static inline bool fwnode_graph_is_endpoint(const struct fwnode_handle *fwnode)
+ {
+ 	return fwnode_property_present(fwnode, "remote-endpoint");
+ }
 -- 
 2.35.1
 
