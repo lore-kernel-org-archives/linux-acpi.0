@@ -2,90 +2,113 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD9AC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B877C43217
 	for <linux-acpi@archiver.kernel.org>; Tue,  4 Oct 2022 09:22:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231169AbiJDJWx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 4 Oct 2022 05:22:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38356 "EHLO
+        id S231176AbiJDJWy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 4 Oct 2022 05:22:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230268AbiJDJWL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Oct 2022 05:22:11 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E267FAD3;
-        Tue,  4 Oct 2022 02:21:25 -0700 (PDT)
+        with ESMTP id S230354AbiJDJWO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Oct 2022 05:22:14 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AC40E023;
+        Tue,  4 Oct 2022 02:21:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1664875285; x=1696411285;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=4CAu2GstCf6HsCtJs5EBc2bCktiy0cOLGvIt9qTNey4=;
-  b=BpXwzY+DJG8JYRaFK9ywOhk5w4xHxqRgGYcyvE2odU+eDG8PrB0SbF2c
-   HmiDeLxujgohw1I/5rL31LLGM9dO1MUYadaPMtBu2CdnjSBzLUxdkeU5f
-   7GeeQ0yDHcUUPnMIQkcvTim44IcPzWQmEEfTs2UeMMSpPY4U4XUYmj8d9
-   SiLzgkQgVa+Ve05udwHRZkMSgf0IroqCp4dM41m2ooE1MDE8fPsIEkUGH
-   r6+qTC+RKN+MkysD4ePSfvsIkdW0i7Ct3FoC+6r04yGMHW4Z0prvge7+p
-   N8/jzVuXxcXWN4KYTvFyYvkc6Q5ey1sZDlKwvAnfbCLrGmd9SQGba8kmw
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10489"; a="301585209"
+  t=1664875307; x=1696411307;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=6C1wn4VpHnxwWmqYZoBN4fkhztrWvlQuE4Ow78yD49E=;
+  b=RM+J6YMTEC742JbACvzmNjKVKNA0ZjJXwmQ5k9RSzviNVPGOSZpoqHK1
+   nuT+r0MMtKxvOcsd68NqaHbjfzIgCB6dR9qUQepl/Qfq7SiyeWIk+1CTW
+   CVVZUfXpEiEQbyTLS4ZBrcCCzVjHbWuSlHztW+rBS5LMq2TmPdCmXvam2
+   eDoMV9rIMhR+5q9A/vt1rsjqMFoy7CybaEys1WUtdOU1tqpCq8YxD8jjm
+   +dunaZ/z/Mq+A5VHhHnu01ASdY7cKA1NnLvoqFAbo6tw/QxoJ2l2HYGoV
+   ts6Vvs5QNB2dGJh8V/0AyDLawK7XBfZ4JyJan9GJtT9+eVHuzT9rZ9edg
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10489"; a="302843615"
 X-IronPort-AV: E=Sophos;i="5.93,367,1654585200"; 
-   d="scan'208";a="301585209"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Oct 2022 02:21:15 -0700
+   d="scan'208";a="302843615"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Oct 2022 02:21:47 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10489"; a="799050982"
+X-IronPort-AV: E=McAfee;i="6500,9779,10489"; a="868932506"
 X-IronPort-AV: E=Sophos;i="5.93,367,1654585200"; 
-   d="scan'208";a="799050982"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 04 Oct 2022 02:21:12 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id A455C235; Tue,  4 Oct 2022 12:21:31 +0300 (EEST)
+   d="scan'208";a="868932506"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga006.fm.intel.com with ESMTP; 04 Oct 2022 02:21:44 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1ofe7T-001zQw-0f;
+        Tue, 04 Oct 2022 12:21:43 +0300
+Date:   Tue, 4 Oct 2022 12:21:42 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Bjorn Andersson <andersson@kernel.org>,
         Prashant Malani <pmalani@chromium.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Cc:     Daniel Scally <djrscally@gmail.com>,
+        linux-usb@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
         "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v3 3/5] device property: Constify parameter in fwnode_graph_is_endpoint()
-Date:   Tue,  4 Oct 2022 12:21:27 +0300
-Message-Id: <20221004092129.19412-4-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221004092129.19412-1-andriy.shevchenko@linux.intel.com>
-References: <20221004092129.19412-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 1/5] device property: Keep dev_fwnode() and
+ dev_fwnode_const() separate
+Message-ID: <Yzv7JqVRWU8Hq5wF@smile.fi.intel.com>
+References: <Yzb9nXSxvgJ+Mj6z@paasikivi.fi.intel.com>
+ <YzcAh/xtqQM1Qin4@kroah.com>
+ <YzrBO2m/b1MHuKny@paasikivi.fi.intel.com>
+ <Yzr6r5XtmPXCoQx7@kroah.com>
+ <YzsLDUhjDCCVRy2G@kroah.com>
+ <YztBWlmdgylsntgM@paasikivi.fi.intel.com>
+ <Yzvm6XF0Ar35XZvT@kroah.com>
+ <YzvrVoJ3BBhZmaZT@smile.fi.intel.com>
+ <YzvtrXlv5X0LHAxa@kroah.com>
+ <YzvuFBo5Vd6S4QoO@smile.fi.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YzvuFBo5Vd6S4QoO@smile.fi.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Constify parameter in fwnode_graph_is_endpoint() since it doesn't
-alter anything related to it.
+On Tue, Oct 04, 2022 at 11:25:56AM +0300, Andy Shevchenko wrote:
+> On Tue, Oct 04, 2022 at 10:24:13AM +0200, Greg Kroah-Hartman wrote:
+> > On Tue, Oct 04, 2022 at 11:14:14AM +0300, Andy Shevchenko wrote:
+> > > On Tue, Oct 04, 2022 at 09:55:21AM +0200, Greg Kroah-Hartman wrote:
+> > > > On Mon, Oct 03, 2022 at 08:08:58PM +0000, Sakari Ailus wrote:
+> > > > > On Mon, Oct 03, 2022 at 06:17:17PM +0200, Greg Kroah-Hartman wrote:
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/linux/property.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+...
 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 8d82775a901a..7abb1792044f 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -410,7 +410,7 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
- struct fwnode_handle *fwnode_graph_get_remote_endpoint(
- 	const struct fwnode_handle *fwnode);
- 
--static inline bool fwnode_graph_is_endpoint(struct fwnode_handle *fwnode)
-+static inline bool fwnode_graph_is_endpoint(const struct fwnode_handle *fwnode)
- {
- 	return fwnode_property_present(fwnode, "remote-endpoint");
- }
+> > > > > #define kobj_to_dev(kobj)						\
+> > > > > 	(_Generic((kobj),						\
+> > > > > 		  const struct kobject *: __kobj_to_dev_const,		\
+> > > > > 		  struct kobject *: __kobj_to_dev)(kobj))
+> > > > 
+> > > > Ah, doh!  I had the (kobj) part in the wrong place, thanks for that
+> > > > fix...
+> > > > 
+> > > > Ok, this looks better, let me see how well the build breaks with some of
+> > > > these changes
+> > > 
+> > > I believe I can rewrite my patch like this and then it will be much nicer since
+> > > we may constify all the rest without calling __dev_fwnode_const() directly.
+> > > 
+> > > Are you agree?
+> > 
+> > Yes, I think this is a much better option, try it and see.  Below is the
+> > patch I'm running through my build systems at the moment, feel free to
+> > copy the style for your change as well.
+> 
+> Yep, thanks for sharing!
+
+v3 has been just sent out.
+
 -- 
-2.35.1
+With Best Regards,
+Andy Shevchenko
+
 
