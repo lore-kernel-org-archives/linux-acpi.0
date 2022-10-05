@@ -2,77 +2,98 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E146C433F5
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Oct 2022 15:19:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48FF1C433F5
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Oct 2022 15:29:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229881AbiJEPTa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Oct 2022 11:19:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54754 "EHLO
+        id S230236AbiJEP3i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Oct 2022 11:29:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229459AbiJEPT3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Oct 2022 11:19:29 -0400
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52E5975CC1;
-        Wed,  5 Oct 2022 08:19:29 -0700 (PDT)
+        with ESMTP id S230002AbiJEP3g (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Oct 2022 11:29:36 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC85E2FE;
+        Wed,  5 Oct 2022 08:29:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1664983169; x=1696519169;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=MhpH7OK6hRIKWqO2KUFUVILuqkRWDlod+ealvOdarCM=;
-  b=KMoLY5GH40Hf6JB9XvhphvuMqkM9Dg4i3opOlB+rPT3s5k7MqnJ+oYkp
-   O2jpkLbRQrcKH0vV2Ud0aj+2nJchoX1u1RS/N1mq3G/z2JBXfYxBe4W2Z
-   o+iMYMsgXezdhiCHH4Kyf+pqt+PxW74Dduf0Mb4EI0zjQQycScGSpi8+I
-   sITVTfqtkYJv6AaSqfYxyUqt0uTf4LCbvdPAaJWnBi7//5umVVEK9JIXU
-   Yav+a1eiouO4fLCot1M+W77Wa5pXrm1TGu6w44Nu5BaVJ3jenEvOLK7VI
-   YFGi9pu6/KFeR3g2FirdToWPL4cVCSf8O+CsLCnoqEzYtqFO0C7BlpRRU
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10491"; a="283554784"
+  t=1664983774; x=1696519774;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=uI6x+OuIX8Zsde+No42SImigImxqe3gZvNiHUYWU+j8=;
+  b=jTK/k6wlJqtsbUHZYSkT7DkMQkEYRgAvGNDZRcPd491CCu+zgGsz2Tn4
+   eidNqusb4oVg05y6Bx/kvlO8Fs8YhyO4DLhoKL5d69D00x2ZTp2CM28Oe
+   JPXPBOfHDMG8eKy+KexhMr/EHb0vHKL4JeuRAVlg7CV+6VnRgzn7lKnOY
+   Un4gAxV6Do5XgDa7JtVtze4pY/Bu/DY+dXKNb9JsYn0jYI9QH7tBi/5Yk
+   UxQL/rW1JkCB/zA9AT7av0sZv+QP1pqInI/tdyJmKG87d6nPQk8XkZ4lV
+   H/d3O1l5Y0+Qw/ZDkcr1bEPPPyXHMs3eljzzt0lQEXe/LgafUbRJevNaR
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10491"; a="290432486"
 X-IronPort-AV: E=Sophos;i="5.95,161,1661842800"; 
-   d="scan'208";a="283554784"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2022 08:19:27 -0700
+   d="scan'208";a="290432486"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2022 08:29:33 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10491"; a="602041976"
+X-IronPort-AV: E=McAfee;i="6500,9779,10491"; a="626609383"
 X-IronPort-AV: E=Sophos;i="5.95,161,1661842800"; 
-   d="scan'208";a="602041976"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga006.jf.intel.com with ESMTP; 05 Oct 2022 08:19:24 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1og6B9-002iJB-02;
-        Wed, 05 Oct 2022 18:19:23 +0300
-Date:   Wed, 5 Oct 2022 18:19:22 +0300
+   d="scan'208";a="626609383"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga007.fm.intel.com with ESMTP; 05 Oct 2022 08:29:31 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 15725199; Wed,  5 Oct 2022 18:29:51 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     linuxppc-dev@lists.ozlabs.org,
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linuxppc-dev@lists.ozlabs.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org
 Cc:     Qiang Zhao <qiang.zhao@nxp.com>, Li Yang <leoyang.li@nxp.com>,
         Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v1 1/2] device property: Introduce
- fwnode_device_is_compatible() helper
-Message-ID: <Yz2genlaPcji+XKp@smile.fi.intel.com>
-References: <20221005143812.33503-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 2/2] soc: fsl: qe: Switch to use fwnode instead of of_node
+Date:   Wed,  5 Oct 2022 18:29:47 +0300
+Message-Id: <20221005152947.71696-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221005152947.71696-1-andriy.shevchenko@linux.intel.com>
+References: <20221005152947.71696-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221005143812.33503-1-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Oct 05, 2022 at 05:38:11PM +0300, Andy Shevchenko wrote:
-> The fwnode_device_is_compatible() helper searches for the
-> given string in the "compatible" string array property and,
-> if found, returns true.
+The OF node in the GPIO library is deprecated and soon
+will be removed.
 
-Scratch this, it has some flaws.
+GPIO library now accepts fwnode as a firmware node, so
+switch the driver to use it.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/soc/fsl/qe/gpio.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/soc/fsl/qe/gpio.c b/drivers/soc/fsl/qe/gpio.c
+index 99f7de43c3c6..9abb45ab138b 100644
+--- a/drivers/soc/fsl/qe/gpio.c
++++ b/drivers/soc/fsl/qe/gpio.c
+@@ -19,6 +19,8 @@
+ #include <linux/gpio.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
++#include <linux/property.h>
++
+ #include <soc/fsl/qe/qe.h>
+ 
+ struct qe_gpio_chip {
+@@ -179,7 +181,7 @@ struct qe_pin *qe_pin_request(struct device_node *np, int index)
+ 		goto err0;
+ 	}
+ 
+-	if (!of_device_is_compatible(gc->of_node, "fsl,mpc8323-qe-pario-bank")) {
++	if (!fwnode_device_is_compatible(gc->fwnode, "fsl,mpc8323-qe-pario-bank")) {
+ 		pr_debug("%s: tried to get a non-qe pin\n", __func__);
+ 		err = -EINVAL;
+ 		goto err0;
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.35.1
 
