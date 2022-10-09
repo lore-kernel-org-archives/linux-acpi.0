@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E75C32771
-	for <linux-acpi@archiver.kernel.org>; Sun,  9 Oct 2022 20:59:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1554BC4332F
+	for <linux-acpi@archiver.kernel.org>; Sun,  9 Oct 2022 21:02:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230400AbiJIU7D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 9 Oct 2022 16:59:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60860 "EHLO
+        id S231331AbiJIVCD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 9 Oct 2022 17:02:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231197AbiJIU5t (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Oct 2022 16:57:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38DB32E68E;
-        Sun,  9 Oct 2022 13:54:00 -0700 (PDT)
+        with ESMTP id S231337AbiJIVBU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Oct 2022 17:01:20 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 980DE31DC1;
+        Sun,  9 Oct 2022 13:56:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D7DC8B80DC2;
-        Sun,  9 Oct 2022 20:53:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F9DC433D6;
-        Sun,  9 Oct 2022 20:53:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D6A50B80DC2;
+        Sun,  9 Oct 2022 20:54:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5212C433C1;
+        Sun,  9 Oct 2022 20:54:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665348836;
-        bh=/hfU9Hs/EoqRC2bMqwxFdnQrXTEESji2BHKsq/LzPyQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Anzz/tYnpUrFGqbXv0957OJemUe7G4aS4F7WGJw+Sdgyasvsh2dWWRnE/26n47U3a
-         N+sHjp1ou9L9SZEP3dR+WyC43fAkL0+RmIiEcUBVwrOTLNSjK5Q9oi13jJRSNax+MP
-         7S8el2lyYpYLMa4B+QkAJbQXfqPtF5dydACxo2orBIuVtLFBjZgjDPZw80QRt/qsDL
-         gTs7MJlcgmhS7RCx1DDRS1+oZM2VYYymXSQxVafzGaJGNCM8OtnuLdU5szbiZ8mS/E
-         mgvuXGopbABEd91byiOXhd3tqc33RbFvRZpe1WUZiQkQqfIFLi50vYrypCM2xR2c22
-         7VLMzELVqkR9Q==
+        s=k20201202; t=1665348898;
+        bh=ZkKl/EsOt+55to666XhPgsn1/N1tcDCZ1GlCuJY/pbg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=B94K7/L54HtJGLy2R+jE4s/i8ACP3FyyE3sbyz5uH/TNXZno2u5dj7ohbVKSnCoo4
+         DPdOqjTADC3h+XYEiKrnlJXLLsB1Mwn571eeTGDYnwsZsFC3dOpytWdWtcsmgsj+W2
+         LKthEyHpdYAbtR/+4FYhcSMKfWKcvu922g06Yxpk5l4eqXbC8+IWCe8s5d+gJ2gNvK
+         moBSsIiR29wBWLmOQbS1hkmkGsoBF2CEoHjGVA4/gYc+qLP1iuO7iYx8q6YIgLZ65L
+         VLnFLZUIu37AkCawRegAeA0BkMpOrnHM94/vjArFD91rtav1VkXuPDWM1seb6SNbVj
+         hfxyP30g+PrHw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Arvid Norlander <lkml@vorpal.se>,
@@ -38,12 +38,10 @@ Cc:     Arvid Norlander <lkml@vorpal.se>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 03/10] ACPI: video: Add Toshiba Satellite/Portege Z830 quirk
-Date:   Sun,  9 Oct 2022 16:53:42 -0400
-Message-Id: <20221009205350.1203176-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 1/6] ACPI: video: Add Toshiba Satellite/Portege Z830 quirk
+Date:   Sun,  9 Oct 2022 16:54:50 -0400
+Message-Id: <20221009205456.1203807-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221009205350.1203176-1-sashal@kernel.org>
-References: <20221009205350.1203176-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -77,10 +75,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 16 insertions(+)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index eb04b2f828ee..cf6c9ffe04a2 100644
+index 5a69260edf80..cc228e5ad2b3 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -498,6 +498,22 @@ static const struct dmi_system_id video_dmi_table[] = {
+@@ -511,6 +511,22 @@ static const struct dmi_system_id video_dmi_table[] = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "SATELLITE R830"),
  		},
  	},
