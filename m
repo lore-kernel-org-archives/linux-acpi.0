@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 969C0C433F5
-	for <linux-acpi@archiver.kernel.org>; Sun,  9 Oct 2022 21:02:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3210AC433F5
+	for <linux-acpi@archiver.kernel.org>; Sun,  9 Oct 2022 21:04:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231428AbiJIVCX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 9 Oct 2022 17:02:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60424 "EHLO
+        id S230360AbiJIVEI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 9 Oct 2022 17:04:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231403AbiJIVBa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Oct 2022 17:01:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4563F2F66A;
-        Sun,  9 Oct 2022 13:56:18 -0700 (PDT)
+        with ESMTP id S231356AbiJIVDL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Oct 2022 17:03:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D77037406;
+        Sun,  9 Oct 2022 13:57:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91B0560CBA;
-        Sun,  9 Oct 2022 20:54:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27256C433D6;
-        Sun,  9 Oct 2022 20:54:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 836D4B80DC7;
+        Sun,  9 Oct 2022 20:55:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68F27C433C1;
+        Sun,  9 Oct 2022 20:55:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665348866;
-        bh=cLGKtLbXVqnDb/ajd2omM5QR/yxh49jN/ogXfZjmH1Y=;
+        s=k20201202; t=1665348911;
+        bh=nMsxlgLRGEX0FtD0r/V/YW2d/mRCby5PdiPhCodz1Z4=;
         h=From:To:Cc:Subject:Date:From;
-        b=g/7cMi5WG8zfLCTE3UE1TWfe+C77Sox3UFY6StuIpaBFhv75XlbozsLeh/Sj7Gcju
-         KakiX4k2ZKCS7jLY6fPleCWeWZtY7LkJtzBHmNYGUzWkN0wm+MlyPxLEhbcwyhkV1d
-         G1CYUP0s/pwzMKhEc3CKAgLNFBxfVxoxKnIZ0wDGkPktJ8SzSz6kFpcU40EjIrRGle
-         dmnQtYzu697vruFtWwgzh9UdMalIaW4WDLPElbwgL0OTms42jYowUKrAf0OH4jVDD/
-         sJKxqLeXCuoB6BqqHxyEkoJsofU+ZQ6cT5HDr7AzoxVtJWuCUTKy+fhjOBaBlQ9bON
-         jmR7gBR/wzWnw==
+        b=A9qtf7Qo96MTKFWq1GhqKaLoaX7NW9753yIsio2CFSWLmO8tb5XjT8APs/2jdk6Vi
+         E+8ZfOQAUKOg9K2O+8EKbNH0Y4PefChLMF/VtQp8dZbQEJUJkqWQdtoo2qR62hejLX
+         Mxjgv1DN87H5CtlP77uAJUBYCG8M6n14Mf1qVZXq/SQyHEAEQ9VAe+oepGmTaA86Cz
+         LtHT76mHQMMyMroLg53B4Z50GB2oXHTtpzIDcXAMeqP4vZs1/yLq36SRIPwcsZzwQR
+         MvTF/IRrDjLG3HxoSMzig+oBEnAWM/VQjO2H7XNHg0WbTJv955qV3yuJKVoMKAIoDz
+         BFs5pP7KjcdBw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Arvid Norlander <lkml@vorpal.se>,
@@ -38,9 +38,9 @@ Cc:     Arvid Norlander <lkml@vorpal.se>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 1/6] ACPI: video: Add Toshiba Satellite/Portege Z830 quirk
-Date:   Sun,  9 Oct 2022 16:54:17 -0400
-Message-Id: <20221009205423.1203538-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 1/4] ACPI: video: Add Toshiba Satellite/Portege Z830 quirk
+Date:   Sun,  9 Oct 2022 16:55:05 -0400
+Message-Id: <20221009205508.1204042-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 X-stable: review
@@ -75,10 +75,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 16 insertions(+)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 81cd47d29932..bf18efd49a25 100644
+index ea0573176894..209903c2ee85 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -498,6 +498,22 @@ static const struct dmi_system_id video_dmi_table[] = {
+@@ -485,6 +485,22 @@ static struct dmi_system_id video_dmi_table[] = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "SATELLITE R830"),
  		},
  	},
