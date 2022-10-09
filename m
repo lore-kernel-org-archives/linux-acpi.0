@@ -2,20 +2,20 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A761C43219
-	for <linux-acpi@archiver.kernel.org>; Sun,  9 Oct 2022 06:44:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B914C433F5
+	for <linux-acpi@archiver.kernel.org>; Sun,  9 Oct 2022 06:45:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229886AbiJIGoz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 9 Oct 2022 02:44:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58594 "EHLO
+        id S229948AbiJIGpE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 9 Oct 2022 02:45:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58764 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229912AbiJIGox (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Oct 2022 02:44:53 -0400
+        with ESMTP id S229928AbiJIGoy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Oct 2022 02:44:54 -0400
 Received: from loongson.cn (mail.loongson.cn [114.242.206.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6F9E865B9;
-        Sat,  8 Oct 2022 23:44:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 71C1665C1;
+        Sat,  8 Oct 2022 23:44:51 -0700 (PDT)
 Received: from loongson-pc.loongson.cn (unknown [10.20.42.32])
-        by localhost.localdomain (Coremail) with SMTP id AQAAf8DxX+DPbUJjsykpAA--.19711S2;
+        by localhost.localdomain (Coremail) with SMTP id AQAAf8DxX+DPbUJjsykpAA--.19711S4;
         Sun, 09 Oct 2022 14:44:31 +0800 (CST)
 From:   Jianmin Lv <lvjianmin@loongson.cn>
 To:     Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <maz@kernel.org>
@@ -25,16 +25,18 @@ Cc:     linux-kernel@vger.kernel.org, loongarch@lists.linux.dev,
         Bjorn Helgaas <bhelgaas@google.com>,
         Len Brown <lenb@kernel.org>, rafael@kernel.org,
         linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH V3 0/4] irqchip: Support to set irq type for ACPI path
-Date:   Sun,  9 Oct 2022 14:44:27 +0800
-Message-Id: <20221009064431.18839-1-lvjianmin@loongson.cn>
+Subject: [PATCH V3 2/4] irqchip/loongson-pch-pic: fix translate callback for DT path
+Date:   Sun,  9 Oct 2022 14:44:29 +0800
+Message-Id: <20221009064431.18839-3-lvjianmin@loongson.cn>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20221009064431.18839-1-lvjianmin@loongson.cn>
+References: <20221009064431.18839-1-lvjianmin@loongson.cn>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: AQAAf8DxX+DPbUJjsykpAA--.19711S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrKFWUur13CryDAFy3XrWfAFb_yoWkZrX_uF
-        4I934DZa4vqF1IvayxJry5XFyqyFWDWa1v9FWvyFn3W34rJws3Ar47uwnI934xKa4rXFn3
-        GrZ5Jr1Fk34I9jkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+X-CM-TRANSID: AQAAf8DxX+DPbUJjsykpAA--.19711S4
+X-Coremail-Antispam: 1UD129KBjvdXoW7Xr15GF4rZr43JFyxZF1rCrg_yoWktrg_uF
+        1SqFn3Kw17Zr1Iq3y8Kr4rXFy7ta4Du3WvkFs5Aay5WayUXayxAr1Svw4fJa9rGFWUAF1f
+        C395ur1xZF4I9jkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
         9fnUUIcSsGvfJTRUUUba8Fc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wAFIxvE14AK
         wVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20x
         vE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j6r4UJwA2z4x0Y4vEx4A2
@@ -53,35 +55,35 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For ACPI path of pch-pic and liointc driver, setting irq
-type is not supported yet, so the patch series add code
-to implement it.
+In DT path of translate callback, if fwspec->param_count==1
+and of_node is non-null, fwspec->param[1] will be accessed,
+which is introduced from previous commit bcdd75c596c8
+(irqchip/loongson-pch-pic: Add ACPI init support).
 
-And a bug in translate callback of irqchip/loongson-pch-pic, which
-is introduced by previous patch, is fixed.
+Before the patch, for non-null of_node, translate callback
+(use irq_domain_translate_twocell) will return -EINVAL if
+fwspec->param_count < 2, so the check in the patch is added.
 
-GSI for legacy irqs of PCI devices are mapped in pch-pic domain, after
-supporting setting_irq_type for pch-pic domain, we add the workaround
-for LoongArch based PCI controller with high-level trigger intterrupt
-so that the high-level trigger type is passed into acpi_register_gsi().
-  
-V1 -> V2
-- Change comment information and fix a bug for DT path in patch[1].
+Fixes: bcdd75c596c8 ("irqchip/loongson-pch-pic: Add ACPI init support")
+Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn>
+---
+ drivers/irqchip/irq-loongson-pch-pic.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-V2 -> V3
-- Separate original patch[1] to three patches[1][2][3].
-
-Jianmin Lv (4):
-  ACPI / PCI: fix LPIC irq model default PCI IRQ polarity
-  irqchip/loongson-pch-pic: fix translate callback for DT path
-  irqchip/loongson-pch-pic: Support to set irq type for ACPI path
-  irqchip/loongson-liointc: Support to set irq type for ACPI path
-
- drivers/acpi/pci_irq.c                 |  6 ++++--
- drivers/irqchip/irq-loongson-liointc.c |  7 ++++++-
- drivers/irqchip/irq-loongson-pch-pic.c | 14 ++++++++++----
- 3 files changed, 20 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/irqchip/irq-loongson-pch-pic.c b/drivers/irqchip/irq-loongson-pch-pic.c
+index c01b9c257005..03493cda65a3 100644
+--- a/drivers/irqchip/irq-loongson-pch-pic.c
++++ b/drivers/irqchip/irq-loongson-pch-pic.c
+@@ -159,6 +159,9 @@ static int pch_pic_domain_translate(struct irq_domain *d,
+ 		return -EINVAL;
+ 
+ 	if (of_node) {
++		if (fwspec->param_count < 2)
++			return -EINVAL;
++
+ 		*hwirq = fwspec->param[0] + priv->ht_vec_base;
+ 		*type = fwspec->param[1] & IRQ_TYPE_SENSE_MASK;
+ 	} else {
 -- 
 2.31.1
 
