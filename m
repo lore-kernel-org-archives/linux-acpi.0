@@ -2,108 +2,77 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5E3CC433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Oct 2022 19:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FFE6C43217
+	for <linux-acpi@archiver.kernel.org>; Tue, 18 Oct 2022 22:16:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229592AbiJRTMV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 18 Oct 2022 15:12:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44718 "EHLO
+        id S229526AbiJRWQR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 18 Oct 2022 18:16:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229871AbiJRTMN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2022 15:12:13 -0400
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE1628F269;
-        Tue, 18 Oct 2022 12:11:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666120316; x=1697656316;
-  h=message-id:subject:from:reply-to:to:cc:date:in-reply-to:
-   references:content-transfer-encoding:mime-version;
-  bh=J5Axrfhz5/wL/Kf2l0pHtNIJ+g37kVIeODA4nBzqE+g=;
-  b=QHvhvn2A+AomiDvxOJuMnVIPcqY8flERNNNydkNBIUWUkrrb5ZcivdTR
-   puOw8dhjK49rrL2v93wmkTDJJKDqXWyL1BL7ka02LMXm1Yhip8rSlIdIQ
-   qrkRkxGSPMUxofde9XabRclI7yHXZ9p9MWX8a+JmLo6PRi5mvzawvsYZs
-   0gJ00V1qkwaq070+jDSD33Ov01AxH/M4w8k2+WE2Y6vpRgpgvMKLmzsxi
-   DSIHFRl0+T07x/yvDfbvA/6DBl7c+DTZ8mjOTX1Xj9Kx6DIfhcclogfyi
-   zefurnlbHmYdWkzTnKfR+wUcek7ziT994p3v+TKDcTVVuq27f8cfTeF/g
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10504"; a="303824875"
-X-IronPort-AV: E=Sophos;i="5.95,194,1661842800"; 
-   d="scan'208";a="303824875"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2022 12:11:54 -0700
-X-IronPort-AV: E=McAfee;i="6500,9779,10504"; a="957941399"
-X-IronPort-AV: E=Sophos;i="5.95,194,1661842800"; 
-   d="scan'208";a="957941399"
-Received: from mhans-mobl3.amr.corp.intel.com ([10.209.54.123])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2022 12:11:52 -0700
-Message-ID: <7f905f62ab85c9728c56482896cfd9d6d970929e.camel@linux.intel.com>
-Subject: Re: [PATCH] rtc: rtc-cmos: Fix wake alarm breakage
-From:   Todd Brandt <todd.e.brandt@linux.intel.com>
-Reply-To: todd.e.brandt@linux.intel.com
-To:     Len Brown <lenb@kernel.org>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Mario Limonciello <mario.limonciello@amd.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Zhang Rui <rui.zhang@intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Alessandro Zummo <a.zummo@towertech.it>,
-        linux-rtc@vger.kernel.org
-Date:   Tue, 18 Oct 2022 12:11:52 -0700
-In-Reply-To: <CAJvTdKnNM=bT9q=Ypv9FESBLSo0GOViRFn=SOUz_pYk3dFvBaQ@mail.gmail.com>
-References: <5887691.lOV4Wx5bFT@kreacher>
-         <166611112152.2353171.9661532286339710942.b4-ty@bootlin.com>
-         <CAJvTdKnNM=bT9q=Ypv9FESBLSo0GOViRFn=SOUz_pYk3dFvBaQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.44.1-0ubuntu1 
+        with ESMTP id S229592AbiJRWQO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2022 18:16:14 -0400
+X-Greylist: delayed 1087 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 18 Oct 2022 15:16:11 PDT
+Received: from smtpcmd02101.aruba.it (smtpcmd02101.aruba.it [62.149.158.101])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 46D2D8E9B7
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Oct 2022 15:16:11 -0700 (PDT)
+Received: from localhost.localdomain ([146.241.87.206])
+        by Aruba Outgoing Smtp  with ESMTPSA
+        id kub2omqjesjaWkub4oJ4kH; Tue, 18 Oct 2022 23:58:02 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
+        t=1666130282; bh=8dZypNrMfB1+G/UELohyzH1JgpNG3hmgKJYujA5q944=;
+        h=From:To:Subject:Date:MIME-Version;
+        b=SRuSHNeq39k9KgeenHkhgIDWL0dDk3CDEC2KmcWWMYAQ+5xXSOwq+Vg0Xy7BBto90
+         jwJCHbZU7nGq4mORcMLQGQq0MP/Btk8JWhpDSA0RWLfHO0+cotbPODYuVyCCaAAuCZ
+         3dF7WaPvnBi8ehCbA5lxRKIt4nc3kvukG8RBwCPNx9oVxefZSfuO/U+zfFr9K2Q3yr
+         80EgY3cc1Aj2QBswcjXe2MEe37ZaxtqaVIuvIKBviJN88ZV6LSjTyW6JU7Uwf+CPT7
+         RUI1Y0zHdZPBiUnVGQdGWQRH9ENqI4xx7tIPBnoftCLvG7wKUtlyoZADIgNQyEHe0F
+         DXZOIyFZUwW7Q==
+From:   Giulio Benetti <giulio.benetti@benettiengineering.com>
+To:     Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
+        linux-raid@vger.kernel.org
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>,
+        Song Liu <song@kernel.org>,
+        Giulio Benetti <giulio.benetti@benettiengineering.com>
+Subject: [PATCH 2/3] spi: fsl-cpm: substitute empty_zero_page with helper ZERO_PAGE(0)
+Date:   Tue, 18 Oct 2022 23:57:54 +0200
+Message-Id: <20221018215755.33566-2-giulio.benetti@benettiengineering.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20221018215755.33566-1-giulio.benetti@benettiengineering.com>
+References: <20221018215755.33566-1-giulio.benetti@benettiengineering.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4xfLP2urURZfQFB1yAY55ub1PVpneyUyJ0CHOO3oG9A8j9epcn57H4WVK+0ow2sxVOxI/GMoQzCt3q4X9ONmIe6QPNrjBO+Pu3SC60MP1YHQ0YnsUZpEhs
+ kppXUQ/W23tfU8VcLha7d6EfRUCpvKaOHPmyQj4oDi4PHXJfLl/k5083pJzmbwdKc4sab0oP9kM88PqZjhZbsLlb+7af01eviIlOVmxeQgtfNIrA3r9PtuCM
+ 38tjmV0Rvf8iRqJg3GclatvHMBMastuttgrqZfWIM96yUj/bbZx904Tok7HVi5rbJdmxvhhuXBvEk7pWnsw5AWxBhQRPjCdEQ6cXU1ceWAVoh5EThxOy67mB
+ pnnEoIHN8bPt1SahRnxY7XY5/eUQrxsFole9s6cvRinoSVA7CFTdnkRoCdSgP+BLnjunBjUbAYYXy3q/ZeO0JKDgENo5W0HDcs8Dm2KkEHiYJSE5ebUxorax
+ jmzqjWu4h8c6iyQlNseXLWIrqT+vHcYeO934LA8PJ2Cc5l7QWNvLtXVfQR+EaO/VH7/VS9dA1FMmQ2yT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 2022-10-18 at 18:58 +0200, Len Brown wrote:
-> Works for me!
->=20
-> Tested-by: Len Brown <len.brown@intel.com>
->=20
-> On Tue, Oct 18, 2022 at 6:39 PM Alexandre Belloni
+Not all zero page implementations use empty_zero_page global pointer so
+let's substitute empty_zero_page occurence with helper ZERO_PAGE(0).
 
-Works for me too
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ drivers/spi/spi-fsl-cpm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Tested-by: Todd Brandt <todd.e.brandt@intel.com>
-
-> <alexandre.belloni@bootlin.com> wrote:
-> >=20
-> > On Tue, 18 Oct 2022 18:09:31 +0200, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >=20
-> > > Commit 4919d3eb2ec0 ("rtc: cmos: Fix event handler registration
-> > > ordering issue") overlooked the fact that cmos_do_probe()
-> > > depended
-> > > on the preparations carried out by cmos_wake_setup() and the wake
-> > > alarm stopped working after the ordering of them had been
-> > > changed.
-> > >=20
-> > > [...]
-> >=20
-> > Applied, thanks!
-> >=20
-> > [1/1] rtc: rtc-cmos: Fix wake alarm breakage
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 commit: 0782b66ed2fbb035dda76111df095451=
-5e417b24
-> >=20
-> > Best regards,
-> >=20
-> > --
-> > Alexandre Belloni, co-owner and COO, Bootlin
-> > Embedded Linux and Kernel engineering
-> > https://bootlin.com
->=20
->=20
->=20
+diff --git a/drivers/spi/spi-fsl-cpm.c b/drivers/spi/spi-fsl-cpm.c
+index ee905880769e..17a44d4f5021 100644
+--- a/drivers/spi/spi-fsl-cpm.c
++++ b/drivers/spi/spi-fsl-cpm.c
+@@ -333,7 +333,7 @@ int fsl_spi_cpm_init(struct mpc8xxx_spi *mspi)
+ 		goto err_bds;
+ 	}
+ 
+-	mspi->dma_dummy_tx = dma_map_single(dev, empty_zero_page, PAGE_SIZE,
++	mspi->dma_dummy_tx = dma_map_single(dev, ZERO_PAGE(0), PAGE_SIZE,
+ 					    DMA_TO_DEVICE);
+ 	if (dma_mapping_error(dev, mspi->dma_dummy_tx)) {
+ 		dev_err(dev, "unable to map dummy tx buffer\n");
+-- 
+2.34.1
 
