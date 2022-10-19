@@ -2,76 +2,92 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B164C4332F
-	for <linux-acpi@archiver.kernel.org>; Tue, 18 Oct 2022 22:16:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A786C433FE
+	for <linux-acpi@archiver.kernel.org>; Wed, 19 Oct 2022 00:42:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229456AbiJRWQU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 18 Oct 2022 18:16:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48894 "EHLO
+        id S229498AbiJSAmp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 18 Oct 2022 20:42:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbiJRWQP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2022 18:16:15 -0400
-Received: from smtpcmd02101.aruba.it (smtpcmd02101.aruba.it [62.149.158.101])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 46AEA8E0F2
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Oct 2022 15:16:11 -0700 (PDT)
-Received: from localhost.localdomain ([146.241.87.206])
-        by Aruba Outgoing Smtp  with ESMTPSA
-        id kub2omqjesjaWkub4oJ4kc; Tue, 18 Oct 2022 23:58:02 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
-        t=1666130282; bh=ZwhxLxF6g1lFuT2l3LTNGqDL0I52Ig9aGdGV08f+w3s=;
-        h=From:To:Subject:Date:MIME-Version;
-        b=oCQr2GrCqLrPSn7BIL2PUk6aMU0FvWCF7q6OCMNgpGsmEgtYnBfcai5q2R0ySoba8
-         Qpu5crxM3dY02lEKLLmx2lH/4/pozFGX37nXXxNe5Wo7pB0MzghKc00NTHPLBYI19S
-         wo5ybgypogTbli7ikx4WpTygwulLb2mjtKuSdAjp1xZOybFiH5zmzw2hJJN/SuZcC6
-         ffkD0DMiVph2K0vjil8j1a5NOwTnAaQyvbr+0KJA7yZtJWmfHtJaqwaZ/iSRm7lLD+
-         hRTtMwhbBoPiVkBezezRWYoJZugA+VGj1arRzJ1opXWFgTAzbp8NAyijsVM5EqzlU2
-         8TfC8VH8aef/g==
-From:   Giulio Benetti <giulio.benetti@benettiengineering.com>
-To:     Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-raid@vger.kernel.org
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>,
-        Song Liu <song@kernel.org>,
-        Giulio Benetti <giulio.benetti@benettiengineering.com>
-Subject: [PATCH 3/3] raid: substitute empty_zero_page with helper ZERO_PAGE(0)
-Date:   Tue, 18 Oct 2022 23:57:55 +0200
-Message-Id: <20221018215755.33566-3-giulio.benetti@benettiengineering.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20221018215755.33566-1-giulio.benetti@benettiengineering.com>
-References: <20221018215755.33566-1-giulio.benetti@benettiengineering.com>
+        with ESMTP id S229660AbiJSAmn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2022 20:42:43 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7F85B9AF9B;
+        Tue, 18 Oct 2022 17:42:41 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2CBEB1042;
+        Tue, 18 Oct 2022 17:42:47 -0700 (PDT)
+Received: from [192.168.122.164] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 238213F792;
+        Tue, 18 Oct 2022 17:42:40 -0700 (PDT)
+Message-ID: <a63cddd8-b9d3-2bd7-1965-8cd974511678@arm.com>
+Date:   Tue, 18 Oct 2022 19:41:44 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4xfLP2urURZfQFB1yAY55ub1PVpneyUyJ0CHOO3oG9A8j9epcn57H4WVK+0ow2sxVOxI/GMoQzCt3q4X9ONmIe6QPNrjBO+Pu3SC60MP1YHQ0YnsUZpEhs
- kppXUQ/W23tfU8VcLha7d6EfRUCpvKaOHPmyQj4oDi4PHXJfLl/k5083pJzmbwdKc4sab0oP9kM88PqZjhZbsLlb+7af01eviIlOVmxeQgtfNIrA3r9PtuCM
- 38tjmV0Rvf8iRqJg3GclatvHMBMastuttgrqZfWIM96yUj/bbZx904Tok7HVi5rbJdmxvhhuXBvEk7pWnsw5AWxBhQRPjCdEQ6cXU1ceWAVoh5EThxOy67mB
- pnnEoIHN8bPt1SahRnxY7XY5/eUQrxsFole9s6cvRinoSVA7CFTdnkRoCdSgP+BLnjunBjUbAYYXy3q/ZeO0JKDgENo5W0HDcs8Dm2KkEHiYJSE5ebUxorax
- jmzqjWu4h8c6iyQlNseXLWIrqT+vHcYeO934LA8PJ2Cc5l7QWNvLtXVfQR+EaO/VH7/VS9dA1FMmQ2yT
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.0
+Subject: Re: [PATCH] ACPI: scan: Fix DMA range assignment
+Content-Language: en-US
+To:     Robin Murphy <robin.murphy@arm.com>, rafael@kernel.org
+Cc:     lvjianmin@loongson.cn, yangyicong@huawei.com,
+        lpieralisi@kernel.org, chenhuacai@loongson.cn,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        lenb@kernel.org
+References: <e94f99cfe09a64c590f009d21c566339117394e2.1666098844.git.robin.murphy@arm.com>
+From:   Jeremy Linton <jeremy.linton@arm.com>
+In-Reply-To: <e94f99cfe09a64c590f009d21c566339117394e2.1666098844.git.robin.murphy@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Not all zero page implementations use empty_zero_page global pointer so
-let's substitute empty_zero_page occurence with helper ZERO_PAGE(0).
+Hi,
 
-Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
----
- include/linux/raid/pq.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 10/18/22 08:14, Robin Murphy wrote:
+> Assigning the device's dma_range_map from the iterator variable after
+> the loop means it always points to the empty terminator at the end of
+> the map, which is not what we want. Similarly, freeing the iterator on
+> error when it points to somwhere in the middle of the allocated array
+> won't work either. Fix this.
 
-diff --git a/include/linux/raid/pq.h b/include/linux/raid/pq.h
-index d6e5a1feb947..2dd46f4c7318 100644
---- a/include/linux/raid/pq.h
-+++ b/include/linux/raid/pq.h
-@@ -17,7 +17,7 @@
- /* We need a pre-zeroed page... if we don't want to use the kernel-provided
-    one define it here */
- #if RAID6_USE_EMPTY_ZERO_PAGE
--# define raid6_empty_zero_page empty_zero_page
-+# define raid6_empty_zero_page ZERO_PAGE(0)
- #else
- extern const char raid6_empty_zero_page[PAGE_SIZE];
- #endif
--- 
-2.34.1
+This fixes the boot problem on both SoC generations of the rpi4+ACPI,
+
+Thanks,
+
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+
+> 
+> Fixes: bf2ee8d0c385 ("ACPI: scan: Support multiple DMA windows with different offsets")
+> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+>   drivers/acpi/scan.c | 7 ++++---
+>   1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 558664d169fc..024cc373a197 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1509,9 +1509,12 @@ int acpi_dma_get_range(struct device *dev, const struct bus_dma_region **map)
+>   			goto out;
+>   		}
+>   
+> +		*map = r;
+> +
+>   		list_for_each_entry(rentry, &list, node) {
+>   			if (rentry->res->start >= rentry->res->end) {
+> -				kfree(r);
+> +				kfree(*map);
+> +				*map = NULL;
+>   				ret = -EINVAL;
+>   				dev_dbg(dma_dev, "Invalid DMA regions configuration\n");
+>   				goto out;
+> @@ -1523,8 +1526,6 @@ int acpi_dma_get_range(struct device *dev, const struct bus_dma_region **map)
+>   			r->offset = rentry->offset;
+>   			r++;
+>   		}
+> -
+> -		*map = r;
+>   	}
+>    out:
+>   	acpi_dev_free_resource_list(&list);
 
