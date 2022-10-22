@@ -2,92 +2,101 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 394FAC04A95
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Oct 2022 10:26:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF2CFC433FE
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Oct 2022 10:44:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230394AbiJVK0T (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 22 Oct 2022 06:26:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37160 "EHLO
+        id S230369AbiJVKoe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 22 Oct 2022 06:44:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230160AbiJVKZm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Oct 2022 06:25:42 -0400
-Received: from loongson.cn (mail.loongson.cn [114.242.206.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E098930A40E;
-        Sat, 22 Oct 2022 02:41:19 -0700 (PDT)
-Received: from loongson.cn (unknown [10.20.42.32])
-        by gateway (Coremail) with SMTP id _____8Bxnrf8olNjMp0BAA--.2161S3;
-        Sat, 22 Oct 2022 15:59:56 +0800 (CST)
-Received: from loongson-pc.loongson.cn (unknown [10.20.42.32])
-        by localhost.localdomain (Coremail) with SMTP id AQAAf8Dx_1f7olNjLlUDAA--.13337S4;
-        Sat, 22 Oct 2022 15:59:55 +0800 (CST)
-From:   Jianmin Lv <lvjianmin@loongson.cn>
-To:     Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <maz@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, loongarch@lists.linux.dev,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        Huacai Chen <chenhuacai@loongson.cn>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Len Brown <lenb@kernel.org>, rafael@kernel.org,
-        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH V5 2/4] irqchip/loongson-pch-pic: fix translate callback for DT path
-Date:   Sat, 22 Oct 2022 15:59:53 +0800
-Message-Id: <20221022075955.11726-3-lvjianmin@loongson.cn>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20221022075955.11726-1-lvjianmin@loongson.cn>
-References: <20221022075955.11726-1-lvjianmin@loongson.cn>
+        with ESMTP id S231178AbiJVKoQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Oct 2022 06:44:16 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA96631BF6E;
+        Sat, 22 Oct 2022 03:01:54 -0700 (PDT)
+Received: from zn.tnic (p200300ea9733e714329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9733:e714:329c:23ff:fea6:a903])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 752A21EC0629;
+        Sat, 22 Oct 2022 12:00:36 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1666432836;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=8JIbHKcJJ+kMxdbJLrXmFhUHK09tqfA4e7vxfuzOL3s=;
+        b=BJfz4jtTpZ9Fd4zl2nfhPjfuGwymwBFYWxmyqQiqR59npXdqgP1XxhKZEyqsL4qQcdMFod
+        sxt+i/g3gZQBqiqetv9wP6LHjSdq5L6WGr9BGq6iHeq78+eSG1fIN+cgPL6x3AowP1L5Xa
+        K54bH9dY+mAb/8fZoipOD5o+lL0angc=
+Date:   Sat, 22 Oct 2022 12:00:32 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     Jia He <justin.he@arm.com>, Len Brown <lenb@kernel.org>,
+        Tony Luck <tony.luck@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Richter <rric@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
+        Yazen Ghannam <yazen.ghannam@amd.com>,
+        Jan Luebbe <jlu@pengutronix.de>,
+        Khuong Dinh <khuong@os.amperecomputing.com>,
+        Kani Toshi <toshi.kani@hpe.com>,
+        James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
+        devel@acpica.org, "Rafael J . Wysocki" <rafael@kernel.org>,
+        Shuai Xue <xueshuai@linux.alibaba.com>,
+        Jarkko Sakkinen <jarkko@kernel.org>, linux-efi@vger.kernel.org,
+        nd@arm.com, Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v10 6/7] apei/ghes: Use xchg_release() for updating new
+ cache slot instead of cmpxchg()
+Message-ID: <Y1O/QN32d2AlzEiA@zn.tnic>
+References: <20221018082214.569504-1-justin.he@arm.com>
+ <20221018082214.569504-7-justin.he@arm.com>
+ <Y1OtRpLRwPPG/4Il@zn.tnic>
+ <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: AQAAf8Dx_1f7olNjLlUDAA--.13337S4
-X-CM-SenderInfo: 5oymxthqpl0qxorr0wxvrqhubq/
-X-Coremail-Antispam: 1Uk129KBjvdXoW7Xr15GF4rZr43JFyxZF1rCrg_yoWktFb_uF
-        1SqFn3Kw17Zr1Iq3y8Kr4rXF9rta4Du3WvkFs5Aay5GayUXayxAr1Svw4fJa9rGFWUAF1f
-        C395ur1xZF4I9jkaLaAFLSUrUUUU0b8apTn2vfkv8UJUUUU8wcxFpf9Il3svdxBIdaVrn0
-        xqx4xG64xvF2IEw4CE5I8CrVC2j2Jv73VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUY
-        C7kC6x804xWl14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3w
-        AFIxvE14AKwVWUXVWUAwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK
-        6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j6F4UM28EF7
-        xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJwAa
-        w2AFwI0_JF0_Jw1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqjxCEc2xF0cIa020Ex4CE44
-        I27wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jw0_WrylYx0Ex4A2
-        jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwCY1x0262
-        kKe7AKxVWUAVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwCFI7km
-        07C267AKxVWUAVWUtwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r
-        1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVW8
-        JVW5JwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r
-        1j6r1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1U
-        YxBIdaVFxhVjvjDU0xZFpf9x07jz5lbUUUUU=
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In DT path of translate callback, if fwspec->param_count==1
-and of_node is non-null, fwspec->param[1] will be accessed,
-which is introduced from previous commit bcdd75c596c8
-(irqchip/loongson-pch-pic: Add ACPI init support).
+On Sat, Oct 22, 2022 at 11:01:01AM +0200, Ard Biesheuvel wrote:
+> But the point is that the new element we are adding has the same
+> properties as the one we want to avoid replacing inadvertently,
 
-Before the patch, for non-null of_node, translate callback
-(use irq_domain_translate_twocell()) will return -EINVAL if
-fwspec->param_count < 2, so the check in the patch is added.
+No, we're removing the oldest element we found. The new one is anything
+but we don't compare it to slot_cache which we're about to remove.
 
-Fixes: bcdd75c596c8 ("irqchip/loongson-pch-pic: Add ACPI init support")
-Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn>
----
- drivers/irqchip/irq-loongson-pch-pic.c | 3 +++
- 1 file changed, 3 insertions(+)
+> and if the cmpxchg() failed, we just drop it on the floor.
 
-diff --git a/drivers/irqchip/irq-loongson-pch-pic.c b/drivers/irqchip/irq-loongson-pch-pic.c
-index c01b9c257005..03493cda65a3 100644
---- a/drivers/irqchip/irq-loongson-pch-pic.c
-+++ b/drivers/irqchip/irq-loongson-pch-pic.c
-@@ -159,6 +159,9 @@ static int pch_pic_domain_translate(struct irq_domain *d,
- 		return -EINVAL;
- 
- 	if (of_node) {
-+		if (fwspec->param_count < 2)
-+			return -EINVAL;
-+
- 		*hwirq = fwspec->param[0] + priv->ht_vec_base;
- 		*type = fwspec->param[1] & IRQ_TYPE_SENSE_MASK;
- 	} else {
+Yeah, I guess the intent here was: oh well, we'll log that thing again
+because our "throttling cache" didn't manage to enter it.
+
+> So instead of dropping 'our' new element, we now drop 'the other' new
+> element.
+
+Aha, this is what you mean with logging something twice. That other new
+element gets dropped so if it happens again, it'll get logged and if it
+then gets entered in the cache properly, then it gets ignored on the
+next logging run.
+
+Oh well, fine with me.
+
+> The correct approach here would be to rerun the selection loop on
+> failure, but I doubt whether it is worth it. This is just a fancy rate
+> limiter.
+
+Yap, exactly.
+
+Ok, so I'll try to summarize what we talked here in the commit message
+so that it is written down somewhere for later.
+
+Thx.
+
 -- 
-2.31.1
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
