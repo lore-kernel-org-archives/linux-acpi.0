@@ -2,91 +2,128 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F785C433FE
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Oct 2022 09:08:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EAF3FA373D
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Oct 2022 10:07:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232460AbiJVJI2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 22 Oct 2022 05:08:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37878 "EHLO
+        id S229932AbiJVKGd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 22 Oct 2022 06:06:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233057AbiJVJHs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Oct 2022 05:07:48 -0400
-Received: from loongson.cn (mail.loongson.cn [114.242.206.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7DAA530071A;
-        Sat, 22 Oct 2022 01:21:52 -0700 (PDT)
-Received: from loongson.cn (unknown [10.20.42.32])
-        by gateway (Coremail) with SMTP id _____8BxHdn8olNjPp0BAA--.6980S3;
-        Sat, 22 Oct 2022 15:59:56 +0800 (CST)
-Received: from loongson-pc.loongson.cn (unknown [10.20.42.32])
-        by localhost.localdomain (Coremail) with SMTP id AQAAf8Dx_1f7olNjLlUDAA--.13337S6;
-        Sat, 22 Oct 2022 15:59:56 +0800 (CST)
-From:   Jianmin Lv <lvjianmin@loongson.cn>
-To:     Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <maz@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, loongarch@lists.linux.dev,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        Huacai Chen <chenhuacai@loongson.cn>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Len Brown <lenb@kernel.org>, rafael@kernel.org,
-        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH V5 4/4] irqchip/loongson-liointc: Support to set IRQ type for ACPI path
-Date:   Sat, 22 Oct 2022 15:59:55 +0800
-Message-Id: <20221022075955.11726-5-lvjianmin@loongson.cn>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20221022075955.11726-1-lvjianmin@loongson.cn>
-References: <20221022075955.11726-1-lvjianmin@loongson.cn>
+        with ESMTP id S229992AbiJVKGF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Oct 2022 06:06:05 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AE0432CC54;
+        Sat, 22 Oct 2022 02:22:20 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 96F4EB81AFB;
+        Sat, 22 Oct 2022 09:01:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F7DC43140;
+        Sat, 22 Oct 2022 09:01:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666429275;
+        bh=NVy7cwX6C23sERHy1g/nnuGIjErNtZyXyTNgD2+Z8lo=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=hkdoLSo4YoYvszhmKO8wDid/L8ZK2oEDeBpeBgfhSAzXitpKlqDL4xRbeqmPgY0Y/
+         EEqFUomF7UshpP5lc9rladRCEJo6VbL7GX2+yw2nrt0bPsLUSja8deN8fMgc5afKN0
+         tURbO0z+fjDe4sGWYpnRA2VysvFUcLZGL2E10h2stBS7U4t55ufhNnsamg9zSnHgN/
+         oEm2NPFC2pP32E1IdA0bPQaMxj36naCwbeW5HkSltSPxmAWFYWEc5pGANFFBS8r6V+
+         ZFD7kmV6HhMJ1EXLLhDxGblCYpHir/URlq5kP+bQ8K7xBbRsjeUIUuW0YfpoVb1cp2
+         tTl/o4uOYRZVA==
+Received: by mail-lj1-f173.google.com with SMTP id bs14so6660489ljb.9;
+        Sat, 22 Oct 2022 02:01:15 -0700 (PDT)
+X-Gm-Message-State: ACrzQf34J+gboSTV6z9lSVAmEW0T2/yhsD20vp/zgJGtbrcyYrJZ5Bps
+        YFLT3Sqlgcv+4tfMfgzP6rmfYoMDdz9O/LX+5iU=
+X-Google-Smtp-Source: AMsMyM5F3pcPecCVma1z4hA5Ubjj98E32W8YwWQjcBGZOhJmB8By+ME04iKb6STAkgLC/rbG8+zw0NOQeOUua+pqEwE=
+X-Received: by 2002:a2e:9a81:0:b0:26c:5b63:7a83 with SMTP id
+ p1-20020a2e9a81000000b0026c5b637a83mr8989214lji.291.1666429273074; Sat, 22
+ Oct 2022 02:01:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: AQAAf8Dx_1f7olNjLlUDAA--.13337S6
-X-CM-SenderInfo: 5oymxthqpl0qxorr0wxvrqhubq/
-X-Coremail-Antispam: 1Uk129KBjvdXoW7XF4DXF15XrWxCF4Dtry5Arb_yoWfKwc_u3
-        yIgwnxGa4rZF1xJr97Ww1YvrWI9aykW3WqgF45uasIy3y8W343urW7AwnxJa93KrW0vFZ7
-        AF1F9rySya47tjkaLaAFLSUrUUUU0b8apTn2vfkv8UJUUUU8wcxFpf9Il3svdxBIdaVrn0
-        xqx4xG64xvF2IEw4CE5I8CrVC2j2Jv73VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUY
-        C7kC6x804xWl14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3w
-        AFIxvE14AKwVWUXVWUAwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK
-        6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j6F4UM28EF7
-        xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJwAa
-        w2AFwI0_JF0_Jw1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqjxCEc2xF0cIa020Ex4CE44
-        I27wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jw0_WrylYx0Ex4A2
-        jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwCY1x0262
-        kKe7AKxVWUAVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwCFI7km
-        07C267AKxVWUAVWUtwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r
-        1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVW5
-        JVW7JwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r
-        1j6r1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1U
-        YxBIdaVFxhVjvjDU0xZFpf9x07jz5lbUUUUU=
+References: <20221018082214.569504-1-justin.he@arm.com> <20221018082214.569504-7-justin.he@arm.com>
+ <Y1OtRpLRwPPG/4Il@zn.tnic>
+In-Reply-To: <Y1OtRpLRwPPG/4Il@zn.tnic>
+From:   Ard Biesheuvel <ardb@kernel.org>
+Date:   Sat, 22 Oct 2022 11:01:01 +0200
+X-Gmail-Original-Message-ID: <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
+Message-ID: <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
+Subject: Re: [PATCH v10 6/7] apei/ghes: Use xchg_release() for updating new
+ cache slot instead of cmpxchg()
+To:     Borislav Petkov <bp@alien8.de>
+Cc:     Jia He <justin.he@arm.com>, Len Brown <lenb@kernel.org>,
+        Tony Luck <tony.luck@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Richter <rric@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
+        Yazen Ghannam <yazen.ghannam@amd.com>,
+        Jan Luebbe <jlu@pengutronix.de>,
+        Khuong Dinh <khuong@os.amperecomputing.com>,
+        Kani Toshi <toshi.kani@hpe.com>,
+        James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
+        devel@acpica.org, "Rafael J . Wysocki" <rafael@kernel.org>,
+        Shuai Xue <xueshuai@linux.alibaba.com>,
+        Jarkko Sakkinen <jarkko@kernel.org>, linux-efi@vger.kernel.org,
+        nd@arm.com, Peter Zijlstra <peterz@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For ACPI path, the xlate callback used IRQ_TYPE_NONE and ignored
-the IRQ type in intspec[1]. For supporting to set type for
-IRQs of the irqdomain, intspec[1] should be used to get IRQ
-type.
+On Sat, 22 Oct 2022 at 10:44, Borislav Petkov <bp@alien8.de> wrote:
+>
+> On Tue, Oct 18, 2022 at 08:22:13AM +0000, Jia He wrote:
+> > From: Ard Biesheuvel <ardb@kernel.org>
+> >
+> > From: Ard Biesheuvel <ardb@kernel.org>
+> >
+> > ghes_estatus_cache_add() selects a slot, and either succeeds in
+> > replacing its contents with a pointer to a new cached item, or it just
+> > gives up and frees the new item again, without attempting to select
+> > another slot even if one might be available.
+> >
+> > Since only inserting new items is needed, the race can only cause a failure
+> > if the selected slot was updated with another new item concurrently,
+> > which means that it is arbitrary which of those two items gets
+> > dropped. This means the cmpxchg() and the special case are not necessary,
+>
+> Hmm, are you sure about this?
+>
+> Looking at this complex code, I *think* the intent of the cache is to
+> collect already reported errors - the ghes_estatus_cached() checks - and
+> the adding happens when you report a new one:
+>
+>         if (!ghes_estatus_cached(estatus)) {
+>                 if (ghes_print_estatus(NULL, ghes->generic, estatus))
+>                         ghes_estatus_cache_add(ghes->generic, estatus);
+>
+> Now, the loop in ghes_estatus_cache_add() is trying to pick out the,
+> well, oldest element in there. Meaning, something which got reported
+> already but a long while ago. There's even a sentence trying to say what
+> this does:
+>
+> /*
+>  * GHES error status reporting throttle, to report more kinds of
+>  * errors, instead of just most frequently occurred errors.
+>  */
+>
+> And the cmpxchg() is there to make sure when that selected element
+> slot_cache is removed, it really *is* that element that gets removed and
+> not one which replaced it in the meantime.
+>
+> So it is likely I'm missing something here but it sure looks like this
+> is some sort of a complex, lockless, LRU scheme...
+>
 
-Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn>
----
- drivers/irqchip/irq-loongson-liointc.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+You are correct.
 
-diff --git a/drivers/irqchip/irq-loongson-liointc.c b/drivers/irqchip/irq-loongson-liointc.c
-index 0da8716f8f24..838c8fa2d868 100644
---- a/drivers/irqchip/irq-loongson-liointc.c
-+++ b/drivers/irqchip/irq-loongson-liointc.c
-@@ -167,7 +167,12 @@ static int liointc_domain_xlate(struct irq_domain *d, struct device_node *ctrlr,
- 	if (WARN_ON(intsize < 1))
- 		return -EINVAL;
- 	*out_hwirq = intspec[0] - GSI_MIN_CPU_IRQ;
--	*out_type = IRQ_TYPE_NONE;
-+
-+	if (intsize > 1)
-+		*out_type = intspec[1] & IRQ_TYPE_SENSE_MASK;
-+	else
-+		*out_type = IRQ_TYPE_NONE;
-+
- 	return 0;
- }
- 
--- 
-2.31.1
+But the point is that the new element we are adding has the same
+properties as the one we want to avoid replacing inadvertently, and if
+the cmpxchg() failed, we just drop it on the floor.
 
+So instead of dropping 'our' new element, we now drop 'the other' new element.
+
+The correct approach here would be to rerun the selection loop on
+failure, but I doubt whether it is worth it. This is just a fancy rate
+limiter.
