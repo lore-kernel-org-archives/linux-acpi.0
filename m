@@ -2,128 +2,104 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EAF3FA373D
-	for <linux-acpi@archiver.kernel.org>; Sat, 22 Oct 2022 10:07:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB434C433FE
+	for <linux-acpi@archiver.kernel.org>; Sat, 22 Oct 2022 10:25:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229932AbiJVKGd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 22 Oct 2022 06:06:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37384 "EHLO
+        id S230193AbiJVKZo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 22 Oct 2022 06:25:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229992AbiJVKGF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Oct 2022 06:06:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AE0432CC54;
-        Sat, 22 Oct 2022 02:22:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 96F4EB81AFB;
-        Sat, 22 Oct 2022 09:01:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F7DC43140;
-        Sat, 22 Oct 2022 09:01:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666429275;
-        bh=NVy7cwX6C23sERHy1g/nnuGIjErNtZyXyTNgD2+Z8lo=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=hkdoLSo4YoYvszhmKO8wDid/L8ZK2oEDeBpeBgfhSAzXitpKlqDL4xRbeqmPgY0Y/
-         EEqFUomF7UshpP5lc9rladRCEJo6VbL7GX2+yw2nrt0bPsLUSja8deN8fMgc5afKN0
-         tURbO0z+fjDe4sGWYpnRA2VysvFUcLZGL2E10h2stBS7U4t55ufhNnsamg9zSnHgN/
-         oEm2NPFC2pP32E1IdA0bPQaMxj36naCwbeW5HkSltSPxmAWFYWEc5pGANFFBS8r6V+
-         ZFD7kmV6HhMJ1EXLLhDxGblCYpHir/URlq5kP+bQ8K7xBbRsjeUIUuW0YfpoVb1cp2
-         tTl/o4uOYRZVA==
-Received: by mail-lj1-f173.google.com with SMTP id bs14so6660489ljb.9;
-        Sat, 22 Oct 2022 02:01:15 -0700 (PDT)
-X-Gm-Message-State: ACrzQf34J+gboSTV6z9lSVAmEW0T2/yhsD20vp/zgJGtbrcyYrJZ5Bps
-        YFLT3Sqlgcv+4tfMfgzP6rmfYoMDdz9O/LX+5iU=
-X-Google-Smtp-Source: AMsMyM5F3pcPecCVma1z4hA5Ubjj98E32W8YwWQjcBGZOhJmB8By+ME04iKb6STAkgLC/rbG8+zw0NOQeOUua+pqEwE=
-X-Received: by 2002:a2e:9a81:0:b0:26c:5b63:7a83 with SMTP id
- p1-20020a2e9a81000000b0026c5b637a83mr8989214lji.291.1666429273074; Sat, 22
- Oct 2022 02:01:13 -0700 (PDT)
+        with ESMTP id S230222AbiJVKZR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Oct 2022 06:25:17 -0400
+Received: from loongson.cn (mail.loongson.cn [114.242.206.163])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EA14C309E20;
+        Sat, 22 Oct 2022 02:41:19 -0700 (PDT)
+Received: from loongson.cn (unknown [10.20.42.32])
+        by gateway (Coremail) with SMTP id _____8DxPdn7olNjLJ0BAA--.6893S3;
+        Sat, 22 Oct 2022 15:59:55 +0800 (CST)
+Received: from loongson-pc.loongson.cn (unknown [10.20.42.32])
+        by localhost.localdomain (Coremail) with SMTP id AQAAf8Dx_1f7olNjLlUDAA--.13337S3;
+        Sat, 22 Oct 2022 15:59:55 +0800 (CST)
+From:   Jianmin Lv <lvjianmin@loongson.cn>
+To:     Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <maz@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, loongarch@lists.linux.dev,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Huacai Chen <chenhuacai@loongson.cn>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Len Brown <lenb@kernel.org>, rafael@kernel.org,
+        linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [PATCH V5 1/4] ACPI / PCI: fix LPIC IRQ model default PCI IRQ polarity
+Date:   Sat, 22 Oct 2022 15:59:52 +0800
+Message-Id: <20221022075955.11726-2-lvjianmin@loongson.cn>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20221022075955.11726-1-lvjianmin@loongson.cn>
+References: <20221022075955.11726-1-lvjianmin@loongson.cn>
 MIME-Version: 1.0
-References: <20221018082214.569504-1-justin.he@arm.com> <20221018082214.569504-7-justin.he@arm.com>
- <Y1OtRpLRwPPG/4Il@zn.tnic>
-In-Reply-To: <Y1OtRpLRwPPG/4Il@zn.tnic>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Sat, 22 Oct 2022 11:01:01 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
-Message-ID: <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
-Subject: Re: [PATCH v10 6/7] apei/ghes: Use xchg_release() for updating new
- cache slot instead of cmpxchg()
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     Jia He <justin.he@arm.com>, Len Brown <lenb@kernel.org>,
-        Tony Luck <tony.luck@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robert Richter <rric@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
-        Yazen Ghannam <yazen.ghannam@amd.com>,
-        Jan Luebbe <jlu@pengutronix.de>,
-        Khuong Dinh <khuong@os.amperecomputing.com>,
-        Kani Toshi <toshi.kani@hpe.com>,
-        James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
-        devel@acpica.org, "Rafael J . Wysocki" <rafael@kernel.org>,
-        Shuai Xue <xueshuai@linux.alibaba.com>,
-        Jarkko Sakkinen <jarkko@kernel.org>, linux-efi@vger.kernel.org,
-        nd@arm.com, Peter Zijlstra <peterz@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: AQAAf8Dx_1f7olNjLlUDAA--.13337S3
+X-CM-SenderInfo: 5oymxthqpl0qxorr0wxvrqhubq/
+X-Coremail-Antispam: 1Uk129KBjvJXoW7CF1UAryUJr1rXF48JF43ZFb_yoW8ZFyfpF
+        Za9a1ayr4ktFZ8Xan2k3W8ZFyrJ3ZxCrWYkan5Cw47Ga1Dur4IqFyxWFW7J3s8WFZrZa1U
+        Zr1Yyw48WasrCFJanT9S1TB71UUUUj7qnTZGkaVYY2UrUUUUj1kv1TuYvTs0mT0YCTnIWj
+        qI5I8CrVACY4xI64kE6c02F40Ex7xfYxn0WfASr-VFAUDa7-sFnT9fnUUIcSsGvfJTRUUU
+        bSxYFVCjjxCrM7AC8VAFwI0_Jr0_Gr1l1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s
+        1l1IIY67AEw4v_Jrv_JF1l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xv
+        wVC0I7IYx2IY67AKxVWUCVW8JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwA2z4
+        x0Y4vEx4A2jsIE14v26r4UJVWxJr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r4UJVWxJr1l
+        n4kS14v26r126r1DM2AIxVAIcxkEcVAq07x20xvEncxIr21l57IF6xkI12xvs2x26I8E6x
+        ACxx1l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1q6rW5McIj6I8E
+        87Iv67AKxVW8JVWxJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lc7CjxV
+        Aaw2AFwI0_JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1l4IxY
+        O2xFxVAFwI0_JF0_Jw1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGV
+        WUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_
+        JFI_Gr1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rV
+        WUJVWUCwCI42IY6I8E87Iv67AKxVW8JVWxJwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4U
+        JbIYCTnIWIevJa73UjIFyTuYvjxU4Xo7DUUUU
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, 22 Oct 2022 at 10:44, Borislav Petkov <bp@alien8.de> wrote:
->
-> On Tue, Oct 18, 2022 at 08:22:13AM +0000, Jia He wrote:
-> > From: Ard Biesheuvel <ardb@kernel.org>
-> >
-> > From: Ard Biesheuvel <ardb@kernel.org>
-> >
-> > ghes_estatus_cache_add() selects a slot, and either succeeds in
-> > replacing its contents with a pointer to a new cached item, or it just
-> > gives up and frees the new item again, without attempting to select
-> > another slot even if one might be available.
-> >
-> > Since only inserting new items is needed, the race can only cause a failure
-> > if the selected slot was updated with another new item concurrently,
-> > which means that it is arbitrary which of those two items gets
-> > dropped. This means the cmpxchg() and the special case are not necessary,
->
-> Hmm, are you sure about this?
->
-> Looking at this complex code, I *think* the intent of the cache is to
-> collect already reported errors - the ghes_estatus_cached() checks - and
-> the adding happens when you report a new one:
->
->         if (!ghes_estatus_cached(estatus)) {
->                 if (ghes_print_estatus(NULL, ghes->generic, estatus))
->                         ghes_estatus_cache_add(ghes->generic, estatus);
->
-> Now, the loop in ghes_estatus_cache_add() is trying to pick out the,
-> well, oldest element in there. Meaning, something which got reported
-> already but a long while ago. There's even a sentence trying to say what
-> this does:
->
-> /*
->  * GHES error status reporting throttle, to report more kinds of
->  * errors, instead of just most frequently occurred errors.
->  */
->
-> And the cmpxchg() is there to make sure when that selected element
-> slot_cache is removed, it really *is* that element that gets removed and
-> not one which replaced it in the meantime.
->
-> So it is likely I'm missing something here but it sure looks like this
-> is some sort of a complex, lockless, LRU scheme...
->
+On LoongArch based systems, the PCI devices (e.g. SATA controllers and
+PCI-to-PCI bridge controllers) in Loongson chipsets output high-level
+interrupt signal to the interrupt controller they are connected (see
+Loongson 7A1000 Bridge User Manual v2.00, sec 5.3, "For the bridge chip,
+AC97 DMA interrupts are edge triggered, gpio interrupts can be configured
+to be level triggered or edge triggered as needed, and the rest of the
+interrupts are level triggered and active high."), while the IRQs are
+active low from the perspective of PCI (see Conventional PCI spec r3.0,
+sec 2.2.6, "Interrupts on PCI are optional and defined as level sensitive,
+asserted low."), which means that the interrupt output of PCI devices plugged
+into PCI-to-PCI bridges of Loongson chipset will be also converted to high-level.
+So high level triggered type is required to be passed to acpi_register_gsi()
+when creating mappings for PCI devices.
 
-You are correct.
+Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn>
+---
+ drivers/acpi/pci_irq.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-But the point is that the new element we are adding has the same
-properties as the one we want to avoid replacing inadvertently, and if
-the cmpxchg() failed, we just drop it on the floor.
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 08e15774fb9f..ff30ceca2203 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -387,13 +387,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	u8 pin;
+ 	int triggering = ACPI_LEVEL_SENSITIVE;
+ 	/*
+-	 * On ARM systems with the GIC interrupt model, level interrupts
++	 * On ARM systems with the GIC interrupt model, or LoongArch
++	 * systems with the LPIC interrupt model, level interrupts
+ 	 * are always polarity high by specification; PCI legacy
+ 	 * IRQs lines are inverted before reaching the interrupt
+ 	 * controller and must therefore be considered active high
+ 	 * as default.
+ 	 */
+-	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
++	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ||
++		       acpi_irq_model == ACPI_IRQ_MODEL_LPIC ?
+ 				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+ 	char *link = NULL;
+ 	char link_desc[16];
+-- 
+2.31.1
 
-So instead of dropping 'our' new element, we now drop 'the other' new element.
-
-The correct approach here would be to rerun the selection loop on
-failure, but I doubt whether it is worth it. This is just a fancy rate
-limiter.
