@@ -2,290 +2,105 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DA8AC38A2D
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 15:50:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6994FA3740
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 15:56:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231442AbiJXPuD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 11:50:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39742 "EHLO
+        id S232042AbiJXP4v (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 11:56:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231421AbiJXPtl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 11:49:41 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D18787FB8
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 07:43:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1666622461;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=sj0H0AetxBx+UDf7B/9MIT35ZXn55Y7gNC/8ryl/LHw=;
-        b=PsUD5vIxwRJc7gQA4LKIziTkVAFHuM4DCXU8UY3aAgIZk0/HSNuUZpZQg4wjTzJSfFMnWN
-        Bma4E2cNYCpiSfJqqkv8WFYtYqDaXHYbuOlFLSKwzO6Myyc5PK8ssyBgvsonf92BJuE9SV
-        HIky/ZdDRB+sNm14Y8IA0Z0ReAAP8jk=
-Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
- [209.85.208.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-474-LUyeeQ-IN8220FdVzHcHQA-1; Mon, 24 Oct 2022 10:37:47 -0400
-X-MC-Unique: LUyeeQ-IN8220FdVzHcHQA-1
-Received: by mail-ed1-f70.google.com with SMTP id y10-20020a056402358a00b0045d5cf18d4cso9993646edc.17
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 07:37:46 -0700 (PDT)
+        with ESMTP id S232055AbiJXP4T (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 11:56:19 -0400
+Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 225669E0EF;
+        Mon, 24 Oct 2022 07:51:28 -0700 (PDT)
+Received: by mail-wr1-x42d.google.com with SMTP id j15so6108866wrq.3;
+        Mon, 24 Oct 2022 07:51:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=+yJKU+ExsNVkoi0YWDqZM4bb9zmcpHW/L+eJL77nzMo=;
+        b=kcv9Q+DGTmLpvKENjUYPRYpWizSHVrOgrm+lnz4MJuEdYVWaq5N0gjzP4o01iAcCSG
+         YrsI+MN8HZ956OjH2SbOJJINv3DRIw7PdSgpjpbxCI/odXAG7+BpZBbtmpMqAC4Ff9zb
+         /wYIuCxT+Z8UDT0t42DzUnOfgandRkJUTCKQWHIo2RyZHFulWJlCKfmA31croirefIt8
+         S3Hp4huGYJxTnvUbkY1x4W2JN7sX1K++VMfdz5ocAp5gE2moYkar/NzKH7dCk4qpe9Jz
+         0TibPn17yCIbUmWZjWwOmpISYfRcNFqsCd5nBdU+MbIQNFSJL2o63evumX3YhgfPNCmf
+         XOsA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=sj0H0AetxBx+UDf7B/9MIT35ZXn55Y7gNC/8ryl/LHw=;
-        b=6W3pgLI/6zZhk6516r0Ckfsiv5mY8u3fQB9ZDuTztwQsDMN98A+lT0BM/XHVIbT9Ec
-         Jij4vv5cGXBSsKTSVDkaHWQXBWVNx8KYo59U4hn4iFLmOnL2fzk6co7eOF/quD3R4yOS
-         hXIqJJmOuJ74R5mOEpvKGDg3pHe0A51gQg3grDmQncI8uHfnOezPNOceJRzuOh7CepR3
-         7VUz10o6AGAKaVAgM+ojWIGepOOloSzCuiLTmQPQYrrNP32b5cowSpFiqJ/+Zo69x8R2
-         9pRsVLgHwbnB/hNO+szEXm7h+rLl/i+X9/QP07ps20kXEnkuYHST8/EZqQhb1G1yjx5S
-         lAsA==
-X-Gm-Message-State: ACrzQf2BfsUBhYMawCf34f801FeOXq/9BRedsRZ3N4sUqUwIBTd8agCR
-        qUar6cOnwZR3Td433SWHG76xMo9XdAezu6nMK1AbNAmrkQ57BFM2+YGNwYIvLhcIignGrcLLXWQ
-        8bUQ1BpOaZhoK1ZqKFrlLtg==
-X-Received: by 2002:a05:6402:550e:b0:456:f79f:2bed with SMTP id fi14-20020a056402550e00b00456f79f2bedmr31565796edb.106.1666622265666;
-        Mon, 24 Oct 2022 07:37:45 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM5laScRkt+5EsmfdhfrsisIZfhqwZSfSpP1Rz+6FzomB1hR4A5mm5gyOzvnRAXCnpM0u8CWVA==
-X-Received: by 2002:a17:906:eec9:b0:73d:c369:690f with SMTP id wu9-20020a170906eec900b0073dc369690fmr27976822ejb.767.1666622254606;
-        Mon, 24 Oct 2022 07:37:34 -0700 (PDT)
-Received: from [10.40.98.142] ([78.108.130.194])
-        by smtp.gmail.com with ESMTPSA id q7-20020a170906540700b0078d9cd0d2d6sm15976572ejo.11.2022.10.24.07.37.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 24 Oct 2022 07:37:33 -0700 (PDT)
-Message-ID: <ae3497ed-b68d-c36a-6b6f-f7b9771d9238@redhat.com>
-Date:   Mon, 24 Oct 2022 16:37:32 +0200
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=+yJKU+ExsNVkoi0YWDqZM4bb9zmcpHW/L+eJL77nzMo=;
+        b=qo4ERZZ6M6Nnc5jcEiNtR/1/ejDN5pIjgjKhpUROQaq6EC8xc2KhXb+7sF090EPcm1
+         GmBmeb07C5CB1G4AOvJwGZaijYk3JikoaCEJnvgxnEoDD1H7yPHRKYfIwXHft6mVkDsQ
+         xitz/qpGLpjLN0nzMppC7BZLAK5zNrrejUrITFTHn8mIWVjkjBFqnDq3DL1+2EsdgsUI
+         KEfkvzMYvfIZxUIp7cpWiX8wWNszZGHfyQ35qE4wkS+SINQMy2qTO8aHo9Er79S5/y3p
+         GobumggYov3c6S3tqA5XUXy4w6ZxLkmL/6Xsf1KCFRzjHS0KgQ+//Dy38Yk091a5oZsn
+         WbWg==
+X-Gm-Message-State: ACrzQf06PcIPX7aoyKFZM0jbEcnAt/Nk0740lyhWAEcK0EPcLdpibXGg
+        4ASRYjxdyba4VcrvYw9Q9r4z6cYj50jy/xJx
+X-Google-Smtp-Source: AMsMyM5YJA4vDeVWRHAhN/daBb/BroIvZUmIYaT5xU2j8Ed1+mwRu1JA77YbwvqrAdNQOD0uGsO+DQ==
+X-Received: by 2002:a5d:5a85:0:b0:236:6c52:bc27 with SMTP id bp5-20020a5d5a85000000b002366c52bc27mr5126054wrb.581.1666618380046;
+        Mon, 24 Oct 2022 06:33:00 -0700 (PDT)
+Received: from localhost (cpc154979-craw9-2-0-cust193.16-3.cable.virginm.net. [80.193.200.194])
+        by smtp.gmail.com with ESMTPSA id bk16-20020a0560001d9000b002366f9bd717sm4017259wrb.45.2022.10.24.06.32.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Oct 2022 06:32:59 -0700 (PDT)
+From:   Colin Ian King <colin.i.king@gmail.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] ACPI: processor_throttling: remove variable count
+Date:   Mon, 24 Oct 2022 14:32:58 +0100
+Message-Id: <20221024133258.2158083-1-colin.i.king@gmail.com>
+X-Mailer: git-send-email 2.37.3
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.1
-Subject: Re: [PATCH 00/22] Fallback to native backlight
-Content-Language: en-US
-To:     Akihiko Odaki <akihiko.odaki@daynix.com>
-Cc:     David Airlie <airlied@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        "Lee, Chun-Yi" <jlee@suse.com>, Mark Gross <markgross@kernel.org>,
-        Corentin Chary <corentin.chary@gmail.com>,
-        Cezary Jackiewicz <cezary.jackiewicz@gmail.com>,
-        Matthew Garrett <mjg59@srcf.ucam.org>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali@kernel.org>,
-        Jonathan Woithe <jwoithe@just42.net>,
-        Ike Panhc <ike.pan@canonical.com>,
-        Daniel Dadap <ddadap@nvidia.com>,
-        Kenneth Chan <kenneth.t.chan@gmail.com>,
-        Mattia Dongili <malattia@linux.it>,
-        Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-        Azael Avalos <coproscefalo@gmail.com>,
-        Lee Jones <lee@kernel.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Helge Deller <deller@gmx.de>,
-        Robert Moore <robert.moore@intel.com>,
-        dri-devel@lists.freedesktop.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org,
-        platform-driver-x86@vger.kernel.org,
-        acpi4asus-user@lists.sourceforge.net,
-        ibm-acpi-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org,
-        devel@acpica.org
-References: <20221024113513.5205-1-akihiko.odaki@daynix.com>
- <746e5cc6-516f-8f69-9d4b-8fe237de8fd6@redhat.com>
- <edec5950-cec8-b647-ccb1-ba48f9b3bbb0@daynix.com>
- <60672af8-05d2-113c-12b9-d635608be0dd@redhat.com>
- <ea69242c-0bc8-c7bb-9602-c7489bb69684@daynix.com>
- <7373e258-f7cc-4416-9b1c-c8c9dab59ada@daynix.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <7373e258-f7cc-4416-9b1c-c8c9dab59ada@daynix.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+Variable count is just being incremented and it's never used
+anywhere else. The variable and the increment are redundant so
+remove it.
 
-On 10/24/22 16:31, Akihiko Odaki wrote:
-> On 2022/10/24 23:06, Akihiko Odaki wrote:
->> On 2022/10/24 22:21, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 10/24/22 14:58, Akihiko Odaki wrote:
->>>> On 2022/10/24 20:53, Hans de Goede wrote:
->>>>> Hi Akihiko,
->>>>>
->>>>> On 10/24/22 13:34, Akihiko Odaki wrote:
->>>>>> Commit 2600bfa3df99 ("ACPI: video: Add acpi_video_backlight_use_native()
->>>>>> helper") and following commits made native backlight unavailable if
->>>>>> CONFIG_ACPI_VIDEO is set and the backlight feature of ACPI video is
->>>>>> unavailable, which broke the backlight functionality on Lenovo ThinkPad
->>>>>> C13 Yoga Chromebook. Allow to fall back to native backlight in such
->>>>>> cases.
->>>>>
->>>>> I appreciate your work on this, but what this in essence does is
->>>>> it allows 2 backlight drivers (vendor + native) to get registered
->>>>> for the same panel again. While the whole goal of the backlight refactor
->>>>> series landing in 6.1 was to make it so that there always is only
->>>>> *1* backlight device registered instead of (possibly) registering
->>>>> multiple and letting userspace figure it out. It is also important
->>>>> to only always have 1 backlight device per panel for further
->>>>> upcoming changes.
->>>>>
->>>>> So nack for this solution, sorry.
->>>>>
->>>>> I am aware that this breaks backlight control on some Chromebooks,
->>>>> this was already reported and I wrote a long reply explaining why
->>>>> things are done the way they are done now and also suggesting
->>>>> 2 possible (much simpler) fixes, see:
->>>>> https://lore.kernel.org/linux-acpi/42a5f2c9-a1dc-8fc0-7334-fe6c390ecfbb@redhat.com/
->>>>>
->>>>> Unfortunately the reported has not followed-up on this and
->>>>> I don't have the hardware to test this myself.
->>>>>
->>>>> Can you please try implementing 1 of the fixes suggested there
->>>>> and then submit that upstream ?
->>>>>
->>>>> Regards,
->>>>>
->>>>> Hans
->>>>>
->>>>
->>>> Hi Hans,
->>>>
->>>> Thanks for reviewing and letting me know the prior attempt.
->>>>
->>>> In this case, there is only a native backlight device and no vendor backlight device so the duplication of backlight devices does not happen. I think it is better to handle such a case without quirks.
->>>
->>> Adding a single heuristic for all chromebooks is something completely different
->>> then adding per model quirks which indeed ideally should be avoided (but this
->>> is not always possible).
->>>
->>>> I understand it is still questionable to cover the case by allowing duplication when both of a vendor backlight device and native one. To explain my understanding and reasoning for *not* trying to apply the de-duplication rule to the vendor/native combination, let me first describe that the de-duplication which happens in acpi_video_get_backlight_type() is a heuristics and limited.
->>>>
->>>> As the background of acpi_video_get_backlight_type(), there is an assumption that it should be common that both of the firmware, implementing ACPI, and the kernel have code to drive backlight. In the case, the more reliable one should be picked instead of using both, and that is what the statements in `if (video_caps & ACPI_VIDEO_BACKLIGHT)` does.
->>>>
->>>> However, the method has two limitations:
->>>> 1. It does not cover the case where two backlight devices with the same type exist.
->>>
->>> This only happens when there are 2 panels; or 2 gpus driving a single panel
->>> which are both special cases where we actually want 2 backlight devices.
->>>
->>>> 2. The underlying assumption does not apply to vendor/native combination.
->>>>
->>>> Regarding the second limitation, I don't even understand the difference between vendor and native. My guess is that a vendor backlight device uses vendor-specific ACPI interface, and a native one directly uses hardware registers. If my guess is correct, the difference between vendor and native does not imply that both of them are likely to exist at the same time. As the conclusion, there is no more motivation to try to de-duplicate the vendor/native combination than to try to de-duplicate combination of devices with a single type.
->>>>
->>>> Of course, it is better if we could also avoid registering two devices with one type for one physical device. Possibly we can do so by providing a parameter to indicate that it is for the same "internal" backlight to devm_backlight_device_register(), and let the function check for the duplication. However, this rule may be too restrict, or may have problems I missed.
->>>>
->>>> Based on the discussion above, we can deduce three possibilities:
->>>> a. There is no reason to distinguish vendor and native in this case, and we can stick to my current proposal.
->>>> b. There is a valid reason to distinguish vendor and native, and we can adopt the same strategy that already adopted for ACPI video/vendor combination.
->>>> c. We can implement de-duplication in devm_backlight_device_register().
->>>> d. The other possible options are not worth, and we can just implement quirks specific to Chromebook/coreboot.
->>>>
->>>> In case b, it should be noted that vendor and native backlight device do not require ACPI video, and CONFIG_ACPI_VIDEO may not be enabled. In the case, the de-duplication needs to be implemented in backlight class device.
->>>
->>> I have been working on the ACPI/x86 backlight detection code since 2015, please trust
->>> me when I say that allowing both vendor + native backlight devices at the same time
->>> is a bad idea.
->>>
->>> I'm currently in direct contact with the ChromeOS team about fixing the Chromebook
->>> backlight issue introduced in 6.1-rc1.
->>>
->>> If you wan to help, please read:
->>>
->>> https://lore.kernel.org/linux-acpi/42a5f2c9-a1dc-8fc0-7334-fe6c390ecfbb@redhat.com/
->>>
->>> And try implementing 1 if the 2 solutions suggested there.
->>>
->>> Regards,
->>>
->>> Hans
->>
->> Hi,
->>
->> I just wanted to confirm your intention that we should distinguish vendor and native. In the case I think it is better to modify __acpi_video_get_backlight_type() and add "native_available" check in case of no ACPI video as already done for the ACPI video/native combination.
->>
->> Unfortunately this has one pitfall though: it does not work if CONFIG_ACPI_VIDEO is disabled. If it is, acpi_video_get_backlight_type() always return acpi_backlight_vendor, and acpi_video_backlight_use_native() always returns true. It is not a regression but the current behavior. Fixing it requires also refactoring touching both of ACPI video and backlight class driver so I guess I'm not an appropriate person to do that, and I should just add "native_available" check to __acpi_video_get_backlight_type().
->>
->> Does that sound good?
-> 
-> Well, it would not be that easy since just adding native_available cannot handle the case where the vendor driver gets registered first. Checking with "native_available" was possible for ACPI video/vendor combination because ACPI video registers its backlight after some delay. I still think it does not overcomplicate things to modify __acpi_video_get_backlight_type() so that it can use both of vendor and native as fallback while preventing duplicate registration.
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+---
+ drivers/acpi/processor_throttling.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-In the mean time this has already been fixed by a single patch of just a few
-lines, rather then requiring 22 patches, see:
-
-https://lore.kernel.org/dri-devel/20221024141210.67784-1-dmitry.osipenko@collabora.com/
-
-Regards,
-
-Hans
-
-
-
-
->>>>>> Akihiko Odaki (22):
->>>>>>     drm/i915/opregion: Improve backlight request condition
->>>>>>     ACPI: video: Introduce acpi_video_get_backlight_types()
->>>>>>     LoongArch: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: acer-wmi: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: asus-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: asus-wmi: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: compal-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: eeepc-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: fujitsu-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: ideapad-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: msi-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: msi-wmi: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: nvidia-wmi-ec-backlight: Use
->>>>>>       acpi_video_get_backlight_types()
->>>>>>     platform/x86: panasonic-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: samsung-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: sony-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: thinkpad_acpi: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: toshiba_acpi: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: dell-laptop: Use acpi_video_get_backlight_types()
->>>>>>     platform/x86: intel_oaktrail: Use acpi_video_get_backlight_types()
->>>>>>     ACPI: video: Remove acpi_video_get_backlight_type()
->>>>>>     ACPI: video: Fallback to native backlight
->>>>>>
->>>>>>    Documentation/gpu/todo.rst                    |  8 +--
->>>>>>    drivers/acpi/acpi_video.c                     |  2 +-
->>>>>>    drivers/acpi/video_detect.c                   | 54 ++++++++++---------
->>>>>>    drivers/gpu/drm/i915/display/intel_opregion.c |  3 +-
->>>>>>    drivers/platform/loongarch/loongson-laptop.c  |  4 +-
->>>>>>    drivers/platform/x86/acer-wmi.c               |  2 +-
->>>>>>    drivers/platform/x86/asus-laptop.c            |  2 +-
->>>>>>    drivers/platform/x86/asus-wmi.c               |  4 +-
->>>>>>    drivers/platform/x86/compal-laptop.c          |  2 +-
->>>>>>    drivers/platform/x86/dell/dell-laptop.c       |  2 +-
->>>>>>    drivers/platform/x86/eeepc-laptop.c           |  2 +-
->>>>>>    drivers/platform/x86/fujitsu-laptop.c         |  4 +-
->>>>>>    drivers/platform/x86/ideapad-laptop.c         |  2 +-
->>>>>>    drivers/platform/x86/intel/oaktrail.c         |  2 +-
->>>>>>    drivers/platform/x86/msi-laptop.c             |  2 +-
->>>>>>    drivers/platform/x86/msi-wmi.c                |  2 +-
->>>>>>    .../platform/x86/nvidia-wmi-ec-backlight.c    |  2 +-
->>>>>>    drivers/platform/x86/panasonic-laptop.c       |  2 +-
->>>>>>    drivers/platform/x86/samsung-laptop.c         |  2 +-
->>>>>>    drivers/platform/x86/sony-laptop.c            |  2 +-
->>>>>>    drivers/platform/x86/thinkpad_acpi.c          |  4 +-
->>>>>>    drivers/platform/x86/toshiba_acpi.c           |  2 +-
->>>>>>    drivers/video/backlight/backlight.c           | 18 +++++++
->>>>>>    include/acpi/video.h                          | 21 ++++----
->>>>>>    include/linux/backlight.h                     |  1 +
->>>>>>    25 files changed, 85 insertions(+), 66 deletions(-)
->>>>>>
->>>>>
->>>>
->>>
-> 
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index a822fe410dda..00d045e5f524 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -50,7 +50,7 @@ static int __acpi_processor_set_throttling(struct acpi_processor *pr,
+ 
+ static int acpi_processor_update_tsd_coord(void)
+ {
+-	int count, count_target;
++	int count_target;
+ 	int retval = 0;
+ 	unsigned int i, j;
+ 	cpumask_var_t covered_cpus;
+@@ -107,7 +107,6 @@ static int acpi_processor_update_tsd_coord(void)
+ 
+ 		/* Validate the Domain info */
+ 		count_target = pdomain->num_processors;
+-		count = 1;
+ 
+ 		for_each_possible_cpu(j) {
+ 			if (i == j)
+@@ -140,7 +139,6 @@ static int acpi_processor_update_tsd_coord(void)
+ 
+ 			cpumask_set_cpu(j, covered_cpus);
+ 			cpumask_set_cpu(j, pthrottling->shared_cpu_map);
+-			count++;
+ 		}
+ 		for_each_possible_cpu(j) {
+ 			if (i == j)
+-- 
+2.37.3
 
