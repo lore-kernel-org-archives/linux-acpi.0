@@ -2,76 +2,78 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D724FA3740
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 21:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73C52FA373F
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 22:07:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232878AbiJXVPQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 17:15:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46930 "EHLO
+        id S231553AbiJXWHq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 18:07:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233134AbiJXVO4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 17:14:56 -0400
+        with ESMTP id S231993AbiJXWH0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 18:07:26 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A406A87B6
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 12:20:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E86481B76D8
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 13:20:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1666639141;
+        s=mimecast20190719; t=1666642764;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=1ebv5PfsZX2R6eh39y9WmbJdsnetujUEQgGrB9f3X2I=;
-        b=gZg/D7/ZsLC0gLZaxhJgvTcCfI//6URS51kh1x/2Kuq8MUSm/1Euiqvw6+Un/L+P6mfdqM
-        BZRyMZUOPMpEhX6jf4i597uVhZpZPMZPL4/yGTNxBAhA1yZPM6ThKsdhkuDkYmfdCVBl0Q
-        DRThVQgZ72b1If68EneP688YCixaFUE=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=6q/xMoeVmga+HpwADG17OmHFg0oiwCuCqYr1QHNmRRc=;
+        b=FJwbUUGvJkM3kKizsX6QKeOD8lW7j3N1Vpdsb5GqJbXM4eKwJGxhHlprZ+cT1Y0+GqMssf
+        8awHkpfOCwiQ+5++75mDKcjAeVWuZLqP4gzBIjEqqGxt3AXuZkluVxucpPUM0eXaRrLbaQ
+        tVAuxBWd/+iqmdOyZ0/Vhdh/HLcxtaM=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-164-dnLzNAadMOGZCkctO89I8g-1; Mon, 24 Oct 2022 09:47:40 -0400
-X-MC-Unique: dnLzNAadMOGZCkctO89I8g-1
-Received: by mail-ed1-f72.google.com with SMTP id x18-20020a05640226d200b00461e027f704so2058366edd.7
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 06:47:40 -0700 (PDT)
+ us-mta-668-zxtdRPvAPeW_smuY43IecQ-1; Mon, 24 Oct 2022 09:46:19 -0400
+X-MC-Unique: zxtdRPvAPeW_smuY43IecQ-1
+Received: by mail-ed1-f69.google.com with SMTP id v13-20020a056402348d00b0045d36615696so9696112edc.14
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 06:46:19 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=1ebv5PfsZX2R6eh39y9WmbJdsnetujUEQgGrB9f3X2I=;
-        b=3tv3fkjtjXTclDeHAhTGszHe63opNGVTNRXMBTvGkSjMrf79O1gkEYBGg9Zd5sX0x0
-         YOgOI63eCa0HEvWijSe6qgzxIqcb91fDGSVXDkByUNxh1DeoPoNstAe5aBZM7EZ70d75
-         0eMfkyYk3RxQQxFadYcgsD312+7rNrPb8UVpMGcRVGc7zRiq4HPZ6T+FG8ub0shofjW0
-         /Og54ns6iLx6HYg3EQciGMLRoGNt4Rarv2TzgcT2kT/9A/YrbJcf8j0mp8jO34nUeFAv
-         YNf5iJFNX/lrsYFiMhTSNCgEpGAPDNZ6gePzHu+f4ey6ibS+3eqGA406Ds2vQhVJbbZv
-         GYLQ==
-X-Gm-Message-State: ACrzQf3787ZbVyS5lvPSOSr/4S9p8gLQMmZJ7i/PSboXe7dYzXcJqDSv
-        hKJZf5RE1KWCgdlFagpoglqXO3GoTFWTIu9HKWiGZpN3nbxn+X0Yq3HjAcPbl9lLuGlwG8mAu+o
-        CkL3cfSGQ4WWoZgiYX1Urqg==
-X-Received: by 2002:a17:907:a067:b0:7a7:dc5e:eb2d with SMTP id ia7-20020a170907a06700b007a7dc5eeb2dmr4709572ejc.121.1666619259238;
-        Mon, 24 Oct 2022 06:47:39 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM7oLEXiE5I2sif+CugVS4fAFykp7aZ+J8hwrp6+8o79Py19z5YlVBnOblcNVHSJKIVCIbJM4Q==
-X-Received: by 2002:a17:907:a067:b0:7a7:dc5e:eb2d with SMTP id ia7-20020a170907a06700b007a7dc5eeb2dmr4709548ejc.121.1666619259029;
-        Mon, 24 Oct 2022 06:47:39 -0700 (PDT)
+        bh=6q/xMoeVmga+HpwADG17OmHFg0oiwCuCqYr1QHNmRRc=;
+        b=Uql53UEyjcdHjOGEwDeXuww5Of5nZxA/r84mQt8BBN0l6KpSq+o6sGKAnYZ45HSV8U
+         3qilteA+y4dDamkbmXHc84UDqonGkhuQN2zqlvwqiY95v06Sg5R/QeveuiNvg+SWmJQL
+         3meOm15lxD/I9g8vZGMFrVnlxOLYFKhfYI9NaNoAAfjvkaE00U8nrKYn19S/lKyj8SDt
+         Urg+cfL4Mk4uGxg0QupasylJ4hDGNIKA+GEvylCOfPPi3kuyN/P+tVSjhMf2Dmwi/qa9
+         FY97K/GefqIBqw6kNYuRvxS//tOdMrUkR6FKvSrXceierUB4XKEqGl+/9TNNvG9tAWMB
+         ADDg==
+X-Gm-Message-State: ACrzQf12Wv67nRVny6ES+nkuBVdOHgV9YBaa5et1dZgmp/2+Sxsm4UrF
+        Zi0Z3dL+K1QnUwtK2oHPsEw837IyGPyKNn1aqsNCEyr7MwrzbWFJLRhlNiK0Iwoobejgu1hOfrU
+        dU5k4GL1gBUW1HwHby/6NFw==
+X-Received: by 2002:a17:906:da86:b0:740:7120:c6e6 with SMTP id xh6-20020a170906da8600b007407120c6e6mr27436720ejb.44.1666619178172;
+        Mon, 24 Oct 2022 06:46:18 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM6uMSQOmAR/n4zmJ/YtVjssY4EoT9E812QLXAB+tzpiYwnRu5WPcD0IDb/sMzkkzPqWVtQXng==
+X-Received: by 2002:a17:906:da86:b0:740:7120:c6e6 with SMTP id xh6-20020a170906da8600b007407120c6e6mr27436705ejb.44.1666619177956;
+        Mon, 24 Oct 2022 06:46:17 -0700 (PDT)
 Received: from [10.40.98.142] ([78.108.130.194])
-        by smtp.gmail.com with ESMTPSA id ck5-20020a0564021c0500b00461b169c02csm2670629edb.91.2022.10.24.06.47.37
+        by smtp.gmail.com with ESMTPSA id i1-20020a170906250100b0077a11b79b9bsm15523488ejb.133.2022.10.24.06.46.16
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 24 Oct 2022 06:47:38 -0700 (PDT)
-Message-ID: <a70f951c-98d2-5b48-e8c0-08067a7a535c@redhat.com>
-Date:   Mon, 24 Oct 2022 15:47:37 +0200
+        Mon, 24 Oct 2022 06:46:17 -0700 (PDT)
+Message-ID: <92e9d424-0672-b37e-b8b3-cac431ade7f7@redhat.com>
+Date:   Mon, 24 Oct 2022 15:46:16 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.3.1
-Subject: Re: [PATCH v2] platform/x86: dell-ddv: Minor style fixes
+Subject: Re: [PATCH v1] ACPI: video: Fix missing native backlight on
+ Chromebooks
 Content-Language: en-US
-To:     Armin Wolf <W_Armin@gmx.de>, markgross@kernel.org
-Cc:     andriy.shevchenko@intel.com, rafael@kernel.org, lenb@kernel.org,
-        hmh@hmh.eng.br, matan@svgalib.org, corentin.chary@gmail.com,
-        jeremy@system76.com, productdev@system76.com,
-        mario.limonciello@amd.com, pobrn@protonmail.com,
-        coproscefalo@gmail.com, platform-driver-x86@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20220928221501.3823-1-W_Armin@gmx.de>
+To:     Dmitry Osipenko <dmitry.osipenko@collabora.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Akihiko Odaki <akihiko.odaki@daynix.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Sean Paul <seanpaul@chromium.org>
+Cc:     kernel@collabora.com, linux-acpi@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <20221024133201.43753-1-dmitry.osipenko@collabora.com>
 From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <20220928221501.3823-1-W_Armin@gmx.de>
+In-Reply-To: <20221024133201.43753-1-dmitry.osipenko@collabora.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -80,87 +82,75 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 Hi,
 
-On 9/29/22 00:15, Armin Wolf wrote:
-> Fix some style issues found during review to improve
-> code maintainability, no functional changes.
+On 10/24/22 15:32, Dmitry Osipenko wrote:
+> Chromebooks don't have backlight in ACPI table, they suppose to use
+> native backlight in this case. Check presence of the CrOS embedded
+> controller ACPI device and prefer the native backlight if EC found.
+
+Thank you for this patch!
+
+> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+> Fixes: b1d36e73cc1c ("drm/i915: Don't register backlight when another backlight should be used (v2)")
+> Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
+> ---
+>  drivers/acpi/video_detect.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> Tested on a Dell Inspiron 3505.
-> 
-> Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 0d9064a9804c..8ed5021de6fb 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -668,6 +668,11 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+>  	{ },
+>  };
+>  
+> +static bool google_cros_ec_present(void)
+> +{
+> +	return acpi_dev_found("GOOG0004");
+> +}
+> +
+>  /*
+>   * Determine which type of backlight interface to use on this system,
+>   * First check cmdline, then dmi quirks, then do autodetect.
+> @@ -730,6 +735,9 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
+>  			return acpi_backlight_video;
+>  	}
+>  
+> +	if (google_cros_ec_present())
+> +		return acpi_backlight_native;
+> +
 
-Thank you for your patch, I've applied this patch to my review-hans 
-branch:
-https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/log/?h=review-hans
+Nice, a couple of remarks:
 
-Note it will show up in my review-hans branch once I've pushed my
-local branch there, which might take a while.
+1. Maybe add a small comment explaining why, like all the other tests in the function have a small comment ?
 
-Once I've run some tests on this branch the patches there will be
-added to the platform-drivers-x86/for-next branch and eventually
-will be included in the pdx86 pull-request to Linus for the next
-merge-window.
+2. I think it would be better to do:
+
+	if (google_cros_ec_present() && native_available)
+		return acpi_backlight_native;
+
+I can e.g. imagine in the future some chromebooks where for some reason native
+GPU backlight control is not available using the EC for backlight control
+and then having the chrome-ec code register a backlight with "vendor" type ?
+
+3. This will also trigger on the Framework laptops and possible other new
+non Chromebook designs which choose to use the Chrome EC code for their EC,
+I don't expect these devices to get to this point of __acpi_video_get_backlight_type()
+(they will hit the earlier acpi_video / native paths) but still I want to
+at least point this out in case someone sees a potential issue with this?
+
+
+If you can address 1. and 2. from above (or explain why 2. is a bad idea)
+then I believe that the next version of this can get merged to resolve
+the chromebook backlight issues introduced in 6.1-rc1, thank you!
+
+
+>  	/* No ACPI video (old hw), use vendor specific fw methods. */
+>  	return acpi_backlight_vendor;
+>  }
+
 
 Regards,
 
 Hans
-
-> ---
-> Changes in v2:
-> - change commit message
-> ---
->  drivers/platform/x86/dell/dell-wmi-ddv.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/dell/dell-wmi-ddv.c b/drivers/platform/x86/dell/dell-wmi-ddv.c
-> index 6ccce90f475d..699feae3c435 100644
-> --- a/drivers/platform/x86/dell/dell-wmi-ddv.c
-> +++ b/drivers/platform/x86/dell/dell-wmi-ddv.c
-> @@ -1,13 +1,12 @@
->  // SPDX-License-Identifier: GPL-2.0-or-later
->  /*
-> - * dell-wmi-ddv.c -- Linux driver for WMI sensor information on Dell notebooks.
-> + * Linux driver for WMI sensor information on Dell notebooks.
->   *
->   * Copyright (C) 2022 Armin Wolf <W_Armin@gmx.de>
->   */
-> 
->  #define pr_format(fmt) KBUILD_MODNAME ": " fmt
-> 
-> -#include <acpi/battery.h>
->  #include <linux/acpi.h>
->  #include <linux/debugfs.h>
->  #include <linux/device.h>
-> @@ -21,6 +20,8 @@
->  #include <linux/sysfs.h>
->  #include <linux/wmi.h>
-> 
-> +#include <acpi/battery.h>
-> +
->  #define DRIVER_NAME	"dell-wmi-ddv"
-> 
->  #define DELL_DDV_SUPPORTED_INTERFACE 2
-> @@ -52,7 +53,8 @@ enum dell_ddv_method {
-> 
->  struct dell_wmi_ddv_data {
->  	struct acpi_battery_hook hook;
-> -	struct device_attribute temp_attr, eppid_attr;
-> +	struct device_attribute temp_attr;
-> +	struct device_attribute eppid_attr;
->  	struct wmi_device *wdev;
->  };
-> 
-> @@ -153,8 +155,9 @@ static int dell_wmi_ddv_query_string(struct wmi_device *wdev, enum dell_ddv_meth
-> 
->  static int dell_wmi_ddv_battery_index(struct acpi_device *acpi_dev, u32 *index)
->  {
-> -	const char *uid_str = acpi_device_uid(acpi_dev);
-> +	const char *uid_str;
-> 
-> +	uid_str = acpi_device_uid(acpi_dev);
->  	if (!uid_str)
->  		return -ENODEV;
-> 
-> --
-> 2.30.2
-> 
 
