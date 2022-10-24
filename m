@@ -2,173 +2,284 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAE86C67871
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 23:23:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6785C38A2D
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 23:53:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231183AbiJXXXV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 19:23:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56524 "EHLO
+        id S229787AbiJXXxU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 19:53:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35264 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230139AbiJXXW5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 19:22:57 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DC342DE44E
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 14:44:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1666647813;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=LLng6C1VOPaKmGfnDAR23yy9IW4xWqG/nhRblDLerDI=;
-        b=bJ8C7Pt0UOrqmo2QVW8PitdUqp6+JU3WvnKpS/JOTAAbNtny556g44bX9yOXH6tdUj1BnA
-        vyKG3TCqymFPfreEhcjx238c+OvhW4jNxbjWqc9ZNTI+FdRLpTcnh/pHR1hCEaabCqMEvs
-        tfkSAw83PvSC0kS6u3gpW85xjDvB2Mc=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-292-K4xUVJDYN665TQ7RxUr15w-1; Mon, 24 Oct 2022 11:12:51 -0400
-X-MC-Unique: K4xUVJDYN665TQ7RxUr15w-1
-Received: by mail-ed1-f71.google.com with SMTP id x18-20020a05640226d200b00461e027f704so2316892edd.7
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 08:12:51 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=LLng6C1VOPaKmGfnDAR23yy9IW4xWqG/nhRblDLerDI=;
-        b=azluCurwyIVbJMssDupK41l/+UJqBSB2M4Rkt95zLU6kBtfWEr2LH6/N5BhCYZe0vS
-         OSZ+Bi/2DbWmi6VnB3fGlY5XPWjk74kQYB8697EmtcdcSj7co0eIMWMq9sKC9CTZGEcq
-         8AZHf+LtanB1+A3qUdaBSAwKGCldODbxOpJVxPjKq62aK0FKbuRJYT2vGgMmVx9zLk2U
-         SrC/Fqm5vZp24I1xhb2FbUtISaABcVTDBxPrD67yBiN7jTOD82+x1pOki6yPzvrjrFRa
-         nA4hgUqJX3317gusiE0YpE7kYIkX6WZLgZ34AUIaq+kZ5Csucscl3sfyQcc93WUbAvLI
-         Gwfg==
-X-Gm-Message-State: ACrzQf1UNU47aHCg4TnlL66+adi/Ze/Ff83aOub4Ca6AnSBvOLBv6tmO
-        ZIKjqsAjqp8H4W9KNAPrfeI9UhOXGFG79AJKlnHOCDkFKR5tFXy5zfPSJeWK01m+EIxE9HIRekc
-        wMTCbLdB8cGyLiogyG/FE0A==
-X-Received: by 2002:a17:907:7f05:b0:78d:e869:f2fe with SMTP id qf5-20020a1709077f0500b0078de869f2femr26654465ejc.684.1666624370477;
-        Mon, 24 Oct 2022 08:12:50 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM7NiY3mR8h0t9Fxj1mnG4UwQWad5Y2Z3MQDaJ6ei5w9igvvCLQDaVpdTc6JMLVHtE1y5iJqvQ==
-X-Received: by 2002:a17:907:7f05:b0:78d:e869:f2fe with SMTP id qf5-20020a1709077f0500b0078de869f2femr26654446ejc.684.1666624370217;
-        Mon, 24 Oct 2022 08:12:50 -0700 (PDT)
-Received: from [10.40.98.142] ([78.108.130.194])
-        by smtp.gmail.com with ESMTPSA id 12-20020a170906318c00b00770812e2394sm15742436ejy.160.2022.10.24.08.12.49
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 24 Oct 2022 08:12:49 -0700 (PDT)
-Message-ID: <db61f939-a4a2-05ec-e09c-03a95c81e922@redhat.com>
-Date:   Mon, 24 Oct 2022 17:12:48 +0200
+        with ESMTP id S230038AbiJXXxA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 19:53:00 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9127A3362FE;
+        Mon, 24 Oct 2022 15:10:49 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
+ id 1e047c12660352c6; Mon, 24 Oct 2022 21:23:36 +0200
+Received: from kreacher.localnet (unknown [213.134.163.181])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 46B5F6692BC;
+        Mon, 24 Oct 2022 21:23:35 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Len Brown <len.brown@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>
+Subject: [PATCH v1 1/2] cpufreq: intel_pstate: Read all MSRs on the target CPU
+Date:   Mon, 24 Oct 2022 21:21:00 +0200
+Message-ID: <3195597.aeNJFYEL58@kreacher>
+In-Reply-To: <2258064.ElGaqSPkdT@kreacher>
+References: <2258064.ElGaqSPkdT@kreacher>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.1
-Subject: Re: [PATCH v2] ACPI: video: Fix missing native backlight on
- Chromebooks
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Dmitry Osipenko <dmitry.osipenko@collabora.com>,
-        Len Brown <lenb@kernel.org>,
-        Akihiko Odaki <akihiko.odaki@daynix.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Sean Paul <seanpaul@chromium.org>, kernel@collabora.com,
-        linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-References: <20221024141210.67784-1-dmitry.osipenko@collabora.com>
- <dda4b024-69d2-1d1d-da23-e922e5b6128a@redhat.com>
- <CAJZ5v0irmk3aAK9t3UYcus+SXDL+AaT88LPXfyJU2PrXbkgfMg@mail.gmail.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <CAJZ5v0irmk3aAK9t3UYcus+SXDL+AaT88LPXfyJU2PrXbkgfMg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.163.181
+X-CLIENT-HOSTNAME: 213.134.163.181
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedrgedtgedgudefudcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepvddufedrudefgedrudeifedrudekudenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddukedupdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhgvnhdrsghrohifnhesihhnthgvlhdrtghomhdprhgtphhtthhopehsrhhinhhivhgrshdrphgrnhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghl
+ rdgtohhmpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-On 10/24/22 16:45, Rafael J. Wysocki wrote:
-> On Mon, Oct 24, 2022 at 4:32 PM Hans de Goede <hdegoede@redhat.com> wrote:
->>
->> Hi,
->>
->> On 10/24/22 16:12, Dmitry Osipenko wrote:
->>> Chromebooks don't have backlight in ACPI table, they suppose to use
->>> native backlight in this case. Check presence of the CrOS embedded
->>> controller ACPI device and prefer the native backlight if EC found.
->>>
->>> Suggested-by: Hans de Goede <hdegoede@redhat.com>
->>> Fixes: 2600bfa3df99 ("ACPI: video: Add acpi_video_backlight_use_native() helper")
->>> Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
->>> ---
->>>
->>> Changelog:
->>>
->>> v2: - Added explanatory comment to the code and added check for the
->>>       native backlight presence, like was requested by Hans de Goede.
->>
->> Thanks this version looks good to me:
->>
->> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
->>
->> Rafael, can you pick this up and send it in a fixes pull-req
->> for 6.1 to Linus? Or shall I pick this one up and include it
->> in my next pull-req?
-> 
-> It would be better if you could pick this up IMV, so please free to add
-> 
-> Acled-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Some of the MSR accesses in intel_pstate are carried out on the CPU
+that is running the code, but the values coming from them are used
+for the performance scaling of the other CPUs.
 
-Ok, I've merged this now and I'll send out fixes pull-req with this
-to Linus before coming Friday.
+This is problematic, for example, on hybrid platforms where
+MSR_TURBO_RATIO_LIMIT for P-cores and E-cores is different, so the
+values read from it on a P-core are generally not applicable to E-cores
+and the other way around.
 
-Dmitry, Thank you for your patch, I've applied this patch to my
-fixes branch:
-https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/log/?h=fixes
+For this reason, make the driver access all MSRs on the target CPU on
+platforms using the "core" pstate_funcs callbacks which is the case for
+all of the hybrid platforms released to date.  For this purpose, pass
+a CPU argument to the ->get_max(), ->get_max_physical(), ->get_min()
+and ->get_turbo() pstate_funcs callbacks and from there pass it to
+rdmsrl_on_cpu() or rdmsrl_safe_on_cpu() to access the MSR on the target
+CPU.
 
-Regards,
+Fixes: 46573fd6369f ("cpufreq: intel_pstate: hybrid: Rework HWP calibration")
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/cpufreq/intel_pstate.c |   66 ++++++++++++++++++++---------------------
+ 1 file changed, 33 insertions(+), 33 deletions(-)
 
-Hans
+Index: linux-pm/drivers/cpufreq/intel_pstate.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/intel_pstate.c
++++ linux-pm/drivers/cpufreq/intel_pstate.c
+@@ -280,10 +280,10 @@ static struct cpudata **all_cpu_data;
+  * structure is used to store those callbacks.
+  */
+ struct pstate_funcs {
+-	int (*get_max)(void);
+-	int (*get_max_physical)(void);
+-	int (*get_min)(void);
+-	int (*get_turbo)(void);
++	int (*get_max)(int cpu);
++	int (*get_max_physical)(int cpu);
++	int (*get_min)(int cpu);
++	int (*get_turbo)(int cpu);
+ 	int (*get_scaling)(void);
+ 	int (*get_cpu_scaling)(int cpu);
+ 	int (*get_aperf_mperf_shift)(void);
+@@ -531,12 +531,12 @@ static void intel_pstate_hybrid_hwp_adju
+ {
+ 	int perf_ctl_max_phys = cpu->pstate.max_pstate_physical;
+ 	int perf_ctl_scaling = cpu->pstate.perf_ctl_scaling;
+-	int perf_ctl_turbo = pstate_funcs.get_turbo();
++	int perf_ctl_turbo = pstate_funcs.get_turbo(cpu->cpu);
+ 	int turbo_freq = perf_ctl_turbo * perf_ctl_scaling;
+ 	int scaling = cpu->pstate.scaling;
+ 
+ 	pr_debug("CPU%d: perf_ctl_max_phys = %d\n", cpu->cpu, perf_ctl_max_phys);
+-	pr_debug("CPU%d: perf_ctl_max = %d\n", cpu->cpu, pstate_funcs.get_max());
++	pr_debug("CPU%d: perf_ctl_max = %d\n", cpu->cpu, pstate_funcs.get_max(cpu->cpu));
+ 	pr_debug("CPU%d: perf_ctl_turbo = %d\n", cpu->cpu, perf_ctl_turbo);
+ 	pr_debug("CPU%d: perf_ctl_scaling = %d\n", cpu->cpu, perf_ctl_scaling);
+ 	pr_debug("CPU%d: HWP_CAP guaranteed = %d\n", cpu->cpu, cpu->pstate.max_pstate);
+@@ -1740,7 +1740,7 @@ static void intel_pstate_hwp_enable(stru
+ 	intel_pstate_update_epp_defaults(cpudata);
+ }
+ 
+-static int atom_get_min_pstate(void)
++static int atom_get_min_pstate(int not_used)
+ {
+ 	u64 value;
+ 
+@@ -1748,7 +1748,7 @@ static int atom_get_min_pstate(void)
+ 	return (value >> 8) & 0x7F;
+ }
+ 
+-static int atom_get_max_pstate(void)
++static int atom_get_max_pstate(int not_used)
+ {
+ 	u64 value;
+ 
+@@ -1756,7 +1756,7 @@ static int atom_get_max_pstate(void)
+ 	return (value >> 16) & 0x7F;
+ }
+ 
+-static int atom_get_turbo_pstate(void)
++static int atom_get_turbo_pstate(int not_used)
+ {
+ 	u64 value;
+ 
+@@ -1834,23 +1834,23 @@ static void atom_get_vid(struct cpudata
+ 	cpudata->vid.turbo = value & 0x7f;
+ }
+ 
+-static int core_get_min_pstate(void)
++static int core_get_min_pstate(int cpu)
+ {
+ 	u64 value;
+ 
+-	rdmsrl(MSR_PLATFORM_INFO, value);
++	rdmsrl_on_cpu(cpu, MSR_PLATFORM_INFO, &value);
+ 	return (value >> 40) & 0xFF;
+ }
+ 
+-static int core_get_max_pstate_physical(void)
++static int core_get_max_pstate_physical(int cpu)
+ {
+ 	u64 value;
+ 
+-	rdmsrl(MSR_PLATFORM_INFO, value);
++	rdmsrl_on_cpu(cpu, MSR_PLATFORM_INFO, &value);
+ 	return (value >> 8) & 0xFF;
+ }
+ 
+-static int core_get_tdp_ratio(u64 plat_info)
++static int core_get_tdp_ratio(int cpu, u64 plat_info)
+ {
+ 	/* Check how many TDP levels present */
+ 	if (plat_info & 0x600000000) {
+@@ -1860,13 +1860,13 @@ static int core_get_tdp_ratio(u64 plat_i
+ 		int err;
+ 
+ 		/* Get the TDP level (0, 1, 2) to get ratios */
+-		err = rdmsrl_safe(MSR_CONFIG_TDP_CONTROL, &tdp_ctrl);
++		err = rdmsrl_safe_on_cpu(cpu, MSR_CONFIG_TDP_CONTROL, &tdp_ctrl);
+ 		if (err)
+ 			return err;
+ 
+ 		/* TDP MSR are continuous starting at 0x648 */
+ 		tdp_msr = MSR_CONFIG_TDP_NOMINAL + (tdp_ctrl & 0x03);
+-		err = rdmsrl_safe(tdp_msr, &tdp_ratio);
++		err = rdmsrl_safe_on_cpu(cpu, tdp_msr, &tdp_ratio);
+ 		if (err)
+ 			return err;
+ 
+@@ -1883,7 +1883,7 @@ static int core_get_tdp_ratio(u64 plat_i
+ 	return -ENXIO;
+ }
+ 
+-static int core_get_max_pstate(void)
++static int core_get_max_pstate(int cpu)
+ {
+ 	u64 tar;
+ 	u64 plat_info;
+@@ -1891,10 +1891,10 @@ static int core_get_max_pstate(void)
+ 	int tdp_ratio;
+ 	int err;
+ 
+-	rdmsrl(MSR_PLATFORM_INFO, plat_info);
++	rdmsrl_on_cpu(cpu, MSR_PLATFORM_INFO, &plat_info);
+ 	max_pstate = (plat_info >> 8) & 0xFF;
+ 
+-	tdp_ratio = core_get_tdp_ratio(plat_info);
++	tdp_ratio = core_get_tdp_ratio(cpu, plat_info);
+ 	if (tdp_ratio <= 0)
+ 		return max_pstate;
+ 
+@@ -1903,7 +1903,7 @@ static int core_get_max_pstate(void)
+ 		return tdp_ratio;
+ 	}
+ 
+-	err = rdmsrl_safe(MSR_TURBO_ACTIVATION_RATIO, &tar);
++	err = rdmsrl_safe_on_cpu(cpu, MSR_TURBO_ACTIVATION_RATIO, &tar);
+ 	if (!err) {
+ 		int tar_levels;
+ 
+@@ -1918,13 +1918,13 @@ static int core_get_max_pstate(void)
+ 	return max_pstate;
+ }
+ 
+-static int core_get_turbo_pstate(void)
++static int core_get_turbo_pstate(int cpu)
+ {
+ 	u64 value;
+ 	int nont, ret;
+ 
+-	rdmsrl(MSR_TURBO_RATIO_LIMIT, value);
+-	nont = core_get_max_pstate();
++	rdmsrl_on_cpu(cpu, MSR_TURBO_RATIO_LIMIT, &value);
++	nont = core_get_max_pstate(cpu);
+ 	ret = (value) & 255;
+ 	if (ret <= nont)
+ 		ret = nont;
+@@ -1952,13 +1952,13 @@ static int knl_get_aperf_mperf_shift(voi
+ 	return 10;
+ }
+ 
+-static int knl_get_turbo_pstate(void)
++static int knl_get_turbo_pstate(int cpu)
+ {
+ 	u64 value;
+ 	int nont, ret;
+ 
+-	rdmsrl(MSR_TURBO_RATIO_LIMIT, value);
+-	nont = core_get_max_pstate();
++	rdmsrl_on_cpu(cpu, MSR_TURBO_RATIO_LIMIT, &value);
++	nont = core_get_max_pstate(cpu);
+ 	ret = (((value) >> 8) & 0xFF);
+ 	if (ret <= nont)
+ 		ret = nont;
+@@ -2025,10 +2025,10 @@ static void intel_pstate_max_within_limi
+ 
+ static void intel_pstate_get_cpu_pstates(struct cpudata *cpu)
+ {
+-	int perf_ctl_max_phys = pstate_funcs.get_max_physical();
++	int perf_ctl_max_phys = pstate_funcs.get_max_physical(cpu->cpu);
+ 	int perf_ctl_scaling = pstate_funcs.get_scaling();
+ 
+-	cpu->pstate.min_pstate = pstate_funcs.get_min();
++	cpu->pstate.min_pstate = pstate_funcs.get_min(cpu->cpu);
+ 	cpu->pstate.max_pstate_physical = perf_ctl_max_phys;
+ 	cpu->pstate.perf_ctl_scaling = perf_ctl_scaling;
+ 
+@@ -2044,8 +2044,8 @@ static void intel_pstate_get_cpu_pstates
+ 		}
+ 	} else {
+ 		cpu->pstate.scaling = perf_ctl_scaling;
+-		cpu->pstate.max_pstate = pstate_funcs.get_max();
+-		cpu->pstate.turbo_pstate = pstate_funcs.get_turbo();
++		cpu->pstate.max_pstate = pstate_funcs.get_max(cpu->cpu);
++		cpu->pstate.turbo_pstate = pstate_funcs.get_turbo(cpu->cpu);
+ 	}
+ 
+ 	if (cpu->pstate.scaling == perf_ctl_scaling) {
+@@ -3221,9 +3221,9 @@ static unsigned int force_load __initdat
+ 
+ static int __init intel_pstate_msrs_not_valid(void)
+ {
+-	if (!pstate_funcs.get_max() ||
+-	    !pstate_funcs.get_min() ||
+-	    !pstate_funcs.get_turbo())
++	if (!pstate_funcs.get_max(0) ||
++	    !pstate_funcs.get_min(0) ||
++	    !pstate_funcs.get_turbo(0))
+ 		return -ENODEV;
+ 
+ 	return 0;
 
 
-
-
-> 
-> to it.
-> 
-> Thanks!
-> 
->>>
->>>  drivers/acpi/video_detect.c | 12 ++++++++++++
->>>  1 file changed, 12 insertions(+)
->>>
->>> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
->>> index 0d9064a9804c..9cd8797d12bb 100644
->>> --- a/drivers/acpi/video_detect.c
->>> +++ b/drivers/acpi/video_detect.c
->>> @@ -668,6 +668,11 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
->>>       { },
->>>  };
->>>
->>> +static bool google_cros_ec_present(void)
->>> +{
->>> +     return acpi_dev_found("GOOG0004");
->>> +}
->>> +
->>>  /*
->>>   * Determine which type of backlight interface to use on this system,
->>>   * First check cmdline, then dmi quirks, then do autodetect.
->>> @@ -730,6 +735,13 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
->>>                       return acpi_backlight_video;
->>>       }
->>>
->>> +     /*
->>> +      * Chromebooks that don't have backlight handle in ACPI table
->>> +      * are supposed to use native backlight if it's available.
->>> +      */
->>> +     if (google_cros_ec_present() && native_available)
->>> +             return acpi_backlight_native;
->>> +
->>>       /* No ACPI video (old hw), use vendor specific fw methods. */
->>>       return acpi_backlight_vendor;
->>>  }
->>
-> 
 
