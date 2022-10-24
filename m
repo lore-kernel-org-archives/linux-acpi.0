@@ -2,105 +2,133 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6994FA3740
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 15:56:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E014FA3740
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 16:03:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232042AbiJXP4v (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 11:56:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40960 "EHLO
+        id S232642AbiJXQDY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 12:03:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232055AbiJXP4T (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 11:56:19 -0400
-Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 225669E0EF;
-        Mon, 24 Oct 2022 07:51:28 -0700 (PDT)
-Received: by mail-wr1-x42d.google.com with SMTP id j15so6108866wrq.3;
-        Mon, 24 Oct 2022 07:51:28 -0700 (PDT)
+        with ESMTP id S232674AbiJXQCa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 12:02:30 -0400
+Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1977DBE26
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 07:55:40 -0700 (PDT)
+Received: by mail-pg1-x532.google.com with SMTP id r18so8840334pgr.12
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 07:55:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=+yJKU+ExsNVkoi0YWDqZM4bb9zmcpHW/L+eJL77nzMo=;
-        b=kcv9Q+DGTmLpvKENjUYPRYpWizSHVrOgrm+lnz4MJuEdYVWaq5N0gjzP4o01iAcCSG
-         YrsI+MN8HZ956OjH2SbOJJINv3DRIw7PdSgpjpbxCI/odXAG7+BpZBbtmpMqAC4Ff9zb
-         /wYIuCxT+Z8UDT0t42DzUnOfgandRkJUTCKQWHIo2RyZHFulWJlCKfmA31croirefIt8
-         S3Hp4huGYJxTnvUbkY1x4W2JN7sX1K++VMfdz5ocAp5gE2moYkar/NzKH7dCk4qpe9Jz
-         0TibPn17yCIbUmWZjWwOmpISYfRcNFqsCd5nBdU+MbIQNFSJL2o63evumX3YhgfPNCmf
-         XOsA==
+        d=daynix-com.20210112.gappssmtp.com; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=3RFUYnxkZfbGB4sUYeSVCHGTolA3bNrSoJ5VxM9ll30=;
+        b=T8fZhnkSRW0EcYMeVwli0zShE13H8FMRgyv42sjmdyBdRt1iAKhbeWLluKgnHZxlQ5
+         UI1vATreT4jIvGzHcmSm9NXP5o7zwk1z5/KuCy+w8rLSUALYMmvI1pgiDwCN7zdufSfe
+         Rpwce8lZ2PXeUAv/dvtoN0dWQXnR6V+PyiDujRVKOEu/BBUs4S0zGFEwnpDw1EsXlo4v
+         fJNcBGY8H5iiBy/SMSoBEhREubwsu7ivvui4kSZtRxAiePHjCG3I7uyfqibtFyBEvS/I
+         frTwfcEEXLFrbgV1lgFay1OJVoH2Jg1HL43V4wJXkDQaJiBGEhgBDDBGVLlCKY9Yl6SH
+         4UAQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=+yJKU+ExsNVkoi0YWDqZM4bb9zmcpHW/L+eJL77nzMo=;
-        b=qo4ERZZ6M6Nnc5jcEiNtR/1/ejDN5pIjgjKhpUROQaq6EC8xc2KhXb+7sF090EPcm1
-         GmBmeb07C5CB1G4AOvJwGZaijYk3JikoaCEJnvgxnEoDD1H7yPHRKYfIwXHft6mVkDsQ
-         xitz/qpGLpjLN0nzMppC7BZLAK5zNrrejUrITFTHn8mIWVjkjBFqnDq3DL1+2EsdgsUI
-         KEfkvzMYvfIZxUIp7cpWiX8wWNszZGHfyQ35qE4wkS+SINQMy2qTO8aHo9Er79S5/y3p
-         GobumggYov3c6S3tqA5XUXy4w6ZxLkmL/6Xsf1KCFRzjHS0KgQ+//Dy38Yk091a5oZsn
-         WbWg==
-X-Gm-Message-State: ACrzQf06PcIPX7aoyKFZM0jbEcnAt/Nk0740lyhWAEcK0EPcLdpibXGg
-        4ASRYjxdyba4VcrvYw9Q9r4z6cYj50jy/xJx
-X-Google-Smtp-Source: AMsMyM5YJA4vDeVWRHAhN/daBb/BroIvZUmIYaT5xU2j8Ed1+mwRu1JA77YbwvqrAdNQOD0uGsO+DQ==
-X-Received: by 2002:a5d:5a85:0:b0:236:6c52:bc27 with SMTP id bp5-20020a5d5a85000000b002366c52bc27mr5126054wrb.581.1666618380046;
-        Mon, 24 Oct 2022 06:33:00 -0700 (PDT)
-Received: from localhost (cpc154979-craw9-2-0-cust193.16-3.cable.virginm.net. [80.193.200.194])
-        by smtp.gmail.com with ESMTPSA id bk16-20020a0560001d9000b002366f9bd717sm4017259wrb.45.2022.10.24.06.32.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Oct 2022 06:32:59 -0700 (PDT)
-From:   Colin Ian King <colin.i.king@gmail.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: processor_throttling: remove variable count
-Date:   Mon, 24 Oct 2022 14:32:58 +0100
-Message-Id: <20221024133258.2158083-1-colin.i.king@gmail.com>
-X-Mailer: git-send-email 2.37.3
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=3RFUYnxkZfbGB4sUYeSVCHGTolA3bNrSoJ5VxM9ll30=;
+        b=SSePyV+vfdv3WGoeAf/+KPZfQB86SfrRxf1DUTnt8wNIolKIHTa8mNQkxBZ68V1bTo
+         6kAxH3hR2tJBf+K/+JXzGlbiKIdQ3oU9DUS1G39IysHlwg7MpCv72o2t9Br4BUcc+X55
+         NO4PdCp5Oj/zWi2CGxn65JrdqX6zCOp/sagMiGgeNmv2ujNICyWklc9kJ01VRSCpN4Qm
+         XAB61ofM3U1UTcFqdNYnj8oUTzZEClaRzaz3OM9L22iBdtD+UISRBOvjScwV3Q9I43K3
+         J9weFmTiT+EQxOGLRAca1flovO1ZejUWtveRl5VTtjjaGu6IYYXCkSBXSqu1Gf5B4oRP
+         +6Vw==
+X-Gm-Message-State: ACrzQf1S0UVwkQyhNX9aiF0Ext++Wh2fG+QVQE4TO2W8TgX1QCm3HV38
+        EpV06obSHJR5mjHGTmfUx4S1pxWO1aSlLCLT
+X-Google-Smtp-Source: AMsMyM7MkD2jDxUhY+Ie+vHsovp22ZlwLzRWnn+eqHGHGwHdaJH1e1WLV2xJ8hBG+s3N0GsXto7nlA==
+X-Received: by 2002:a63:450c:0:b0:443:94a1:3703 with SMTP id s12-20020a63450c000000b0044394a13703mr27735849pga.565.1666623173978;
+        Mon, 24 Oct 2022 07:52:53 -0700 (PDT)
+Received: from ?IPV6:2400:4050:c360:8200:8ae8:3c4:c0da:7419? ([2400:4050:c360:8200:8ae8:3c4:c0da:7419])
+        by smtp.gmail.com with ESMTPSA id oc12-20020a17090b1c0c00b00212735c8898sm4126456pjb.30.2022.10.24.07.52.51
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 24 Oct 2022 07:52:53 -0700 (PDT)
+Message-ID: <37ec64ac-9e08-dd41-4b20-8701bf9413fb@daynix.com>
+Date:   Mon, 24 Oct 2022 23:52:50 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.3.3
+Subject: Re: [PATCH v2] ACPI: video: Fix missing native backlight on
+ Chromebooks
+Content-Language: en-US
+To:     Dmitry Osipenko <dmitry.osipenko@collabora.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Sean Paul <seanpaul@chromium.org>
+Cc:     kernel@collabora.com, linux-acpi@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <20221024141210.67784-1-dmitry.osipenko@collabora.com>
+From:   Akihiko Odaki <akihiko.odaki@daynix.com>
+In-Reply-To: <20221024141210.67784-1-dmitry.osipenko@collabora.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Variable count is just being incremented and it's never used
-anywhere else. The variable and the increment are redundant so
-remove it.
+On 2022/10/24 23:12, Dmitry Osipenko wrote:
+> Chromebooks don't have backlight in ACPI table, they suppose to use
+> native backlight in this case. Check presence of the CrOS embedded
+> controller ACPI device and prefer the native backlight if EC found.
+> 
+> Suggested-by: Hans de Goede <hdegoede@redhat.com>
+> Fixes: 2600bfa3df99 ("ACPI: video: Add acpi_video_backlight_use_native() helper")
+> Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
+> ---
+> 
+> Changelog:
+> 
+> v2: - Added explanatory comment to the code and added check for the
+>        native backlight presence, like was requested by Hans de Goede.
+> 
+>   drivers/acpi/video_detect.c | 12 ++++++++++++
+>   1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 0d9064a9804c..9cd8797d12bb 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -668,6 +668,11 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+>   	{ },
+>   };
+>   
+> +static bool google_cros_ec_present(void)
+> +{
+> +	return acpi_dev_found("GOOG0004");
+> +}
+> +
+>   /*
+>    * Determine which type of backlight interface to use on this system,
+>    * First check cmdline, then dmi quirks, then do autodetect.
+> @@ -730,6 +735,13 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
+>   			return acpi_backlight_video;
+>   	}
+>   
+> +	/*
+> +	 * Chromebooks that don't have backlight handle in ACPI table
+> +	 * are supposed to use native backlight if it's available.
+> +	 */
+> +	if (google_cros_ec_present() && native_available)
+> +		return acpi_backlight_native;
+> +
+>   	/* No ACPI video (old hw), use vendor specific fw methods. */
+>   	return acpi_backlight_vendor;
+>   }
 
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
----
- drivers/acpi/processor_throttling.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Hi,
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index a822fe410dda..00d045e5f524 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -50,7 +50,7 @@ static int __acpi_processor_set_throttling(struct acpi_processor *pr,
- 
- static int acpi_processor_update_tsd_coord(void)
- {
--	int count, count_target;
-+	int count_target;
- 	int retval = 0;
- 	unsigned int i, j;
- 	cpumask_var_t covered_cpus;
-@@ -107,7 +107,6 @@ static int acpi_processor_update_tsd_coord(void)
- 
- 		/* Validate the Domain info */
- 		count_target = pdomain->num_processors;
--		count = 1;
- 
- 		for_each_possible_cpu(j) {
- 			if (i == j)
-@@ -140,7 +139,6 @@ static int acpi_processor_update_tsd_coord(void)
- 
- 			cpumask_set_cpu(j, covered_cpus);
- 			cpumask_set_cpu(j, pthrottling->shared_cpu_map);
--			count++;
- 		}
- 		for_each_possible_cpu(j) {
- 			if (i == j)
--- 
-2.37.3
+The native_available check does not prevent duplicate registration if 
+vendor backlight registers first. It was enough for the combination of 
+ACPI video and native because ACPI video delays its registration, but it 
+is not the case for vendor/native combination.
 
+Regards,
+Akihiko Odaki
