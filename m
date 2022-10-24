@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C786ECAAA1
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 11:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C16C4FA3741
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 11:39:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230475AbiJXLj2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S230481AbiJXLj2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 24 Oct 2022 07:39:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50348 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231231AbiJXLin (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 07:38:43 -0400
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B62F6C756
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:06 -0700 (PDT)
-Received: by mail-pj1-x1029.google.com with SMTP id b11so1811372pjp.2
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:05 -0700 (PDT)
+        with ESMTP id S231281AbiJXLi6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 07:38:58 -0400
+Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 496216D872
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:14 -0700 (PDT)
+Received: by mail-pg1-x532.google.com with SMTP id e129so8438379pgc.9
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=daynix-com.20210112.gappssmtp.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=YFFtfp5Yc7gM2NHS+gJ21jjQnawzT1tRkxQzo/jBQzs=;
-        b=PgRxRL0VweaBpB4MPzFwmQEoLPmtBSUyoflWHPBA/i2qwPwwuqmuLCa/wFO3m2WOgm
-         CG5asatEvhtKxzWCslE5iuXyE9qykeCF0sAXWDQWCpNnz1SKFD09I/9ECN3oqaq/n/qH
-         8rI5q6sFwwrbf+qrqO6sphSgXh8gDNDUjMeXekyPZD3F/TNfhF9NLgFtp4S/EV7wFVYr
-         HIvJzo/gYypH0KtX5FbvkZtyhStclUobYg5s5+qLL1fUloXqGfaHi5da3VFSy44yWKIj
-         FIzxJZjW4aIDCrHCB+/3DHZ36YkLWnsHC5PSQR+boNXax+UF0elBwxF4lI1dewR5AYRU
-         r3Ew==
+        bh=28wDlqMofB1pExK+J7NJqLJ5sSPJ8IDYDWuGoZcg4WU=;
+        b=zPrE3Z79yDGzLtfx2QawETgF1lUMugvN0C6qQ0CWIaiD5/kUtQIJww0VDJMrkYc3N9
+         elYuVucHc32XKow2YGLm3Vr08Z5vsbFCWlv4vq7Nx1QXhYg0jtjzlw0H9CXWI7Ta2vol
+         6FUMEN9tnwiBaSCwpYfKwo7U/Mq0MJA9eOTbkI8+uvO7eXR9gmEds/Sy3ur7LFminYR1
+         NVY1BZW0FhIWVkiQMHh5J542GVxkeRWv1QNvckPM+a6g8eqefXzkOAt0+7UqdUmERKZa
+         J+mLK9mmXa4DfceGk2cEkxou1QrTtBSQu+UKjsPm36wMjvQrtPcLMKbyQMEJWea/JWpP
+         WvvA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=YFFtfp5Yc7gM2NHS+gJ21jjQnawzT1tRkxQzo/jBQzs=;
-        b=jt56SpH6SdwqFsKTZzhm0saQB2cxRYV87ELRIambIwVOCzUVuL+FWMx4+D0pc8IL2X
-         lebfFtqu2TTXDkIVG+9eATCUUdJP+a5h3zbGVSmkJg0tY/RAqfE26QvNzmEOx0ZN9+VN
-         CsctoRLhkho9YtqEgcgk6ATpr3fBTfwj2edHHwrM50RCkaCQL83gZxltix9NCBUypI3n
-         G09iC/4tu6usrmEhi+b5vCzSPyQBhEhHSUBVYJPgBsnzP2CrWPvXF/nvO7xOviqa+n7R
-         iB0Zo1OdNgmvs9vFy9bjqDRvXGjy0byb1WwFNTTAR7/mh8rsi9x7It9GqEkDRnz+4ug1
-         Aq1A==
-X-Gm-Message-State: ACrzQf2N1+9JpwdMo1grRwKTLtnJSdNnB0ux5nIBqv3mEpDMus2JaWVp
-        3dfSTPJkXvmYMSVxmgwG3gzjsg==
-X-Google-Smtp-Source: AMsMyM4JFQloaFqr1HCGBSMPdlEtI9GhtTJPxV54Rk0x44r+FJsDYcm4mRiVB5esproJCpQDWLufkw==
-X-Received: by 2002:a17:903:11c3:b0:178:aec1:189c with SMTP id q3-20020a17090311c300b00178aec1189cmr32705192plh.136.1666611425291;
-        Mon, 24 Oct 2022 04:37:05 -0700 (PDT)
+        bh=28wDlqMofB1pExK+J7NJqLJ5sSPJ8IDYDWuGoZcg4WU=;
+        b=FeT4dSBx3qaPx0DsfTnLllxpjtcFBUnaPDfTVRE4V57UfKg1bZPRUDnPRbqyrjowLi
+         hb/nogWMICxIDPoTGsdy5oC0ALgg0Gvg/BG3FDfqh4wm7yhTL2Ftsldshc2GjGwBTHLv
+         +XgrhkW9ydAYQBU5UZ+sJbxxje1GcxLTXw1vUlu1NODn/sWUuR4E6XsduxdO2ZseCtRW
+         qr24dKp7m6h+Jj2a7RK8dyLw1i1b0ietuU/agBlL0IF3m2eXSFJTW/KdXxglQVVJM3ii
+         2jUzBNvacBjDjRB3EESVOhv6RSWhjoI+P4kh6igyaQtxymPrMPagQmOFOhvlDgnVAt0V
+         9rdw==
+X-Gm-Message-State: ACrzQf3IEn3mFwthtsZ7IghbvvE3DYg77qR7a/bR8kGRnRpfKCAracZY
+        dhAmun2q1AT2H/250ZVZN9O4Cg==
+X-Google-Smtp-Source: AMsMyM6SfjrakTfflVuQ8PwvI36ClP4mxWtm2JBvE32zMW6Lo2xtR9eBT667zzx11rUWR7R7KloyFA==
+X-Received: by 2002:a63:5702:0:b0:44b:290:f24f with SMTP id l2-20020a635702000000b0044b0290f24fmr27871108pgb.558.1666611399944;
+        Mon, 24 Oct 2022 04:36:39 -0700 (PDT)
 Received: from fedora.flets-east.jp ([2400:4050:c360:8200:8ae8:3c4:c0da:7419])
-        by smtp.gmail.com with ESMTPSA id b8-20020a170903228800b001830ed575c3sm19475075plh.117.2022.10.24.04.36.57
+        by smtp.gmail.com with ESMTPSA id b8-20020a170903228800b001830ed575c3sm19475075plh.117.2022.10.24.04.36.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Oct 2022 04:37:04 -0700 (PDT)
+        Mon, 24 Oct 2022 04:36:39 -0700 (PDT)
 From:   Akihiko Odaki <akihiko.odaki@daynix.com>
 Cc:     David Airlie <airlied@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
@@ -87,9 +87,9 @@ Cc:     David Airlie <airlied@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
         acpi4asus-user@lists.sourceforge.net,
         ibm-acpi-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org,
         devel@acpica.org, Akihiko Odaki <akihiko.odaki@daynix.com>
-Subject: [PATCH 10/22] platform/x86: ideapad-laptop: Use acpi_video_get_backlight_types()
-Date:   Mon, 24 Oct 2022 20:35:01 +0900
-Message-Id: <20221024113513.5205-11-akihiko.odaki@daynix.com>
+Subject: [PATCH 07/22] platform/x86: compal-laptop: Use acpi_video_get_backlight_types()
+Date:   Mon, 24 Oct 2022 20:34:58 +0900
+Message-Id: <20221024113513.5205-8-akihiko.odaki@daynix.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20221024113513.5205-1-akihiko.odaki@daynix.com>
 References: <20221024113513.5205-1-akihiko.odaki@daynix.com>
@@ -104,22 +104,22 @@ acpi_video_get_backlight_type() is now deprecated.
 
 Signed-off-by: Akihiko Odaki <akihiko.odaki@daynix.com>
 ---
- drivers/platform/x86/ideapad-laptop.c | 2 +-
+ drivers/platform/x86/compal-laptop.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
-index abd0c81d62c4..befd5dc24ed6 100644
---- a/drivers/platform/x86/ideapad-laptop.c
-+++ b/drivers/platform/x86/ideapad-laptop.c
-@@ -1633,7 +1633,7 @@ static int ideapad_acpi_add(struct platform_device *pdev)
- 			dev_info(&pdev->dev, "DYTC interface is not available\n");
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+index e10d2f64dfad..16ced03fa1b7 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -1043,7 +1043,7 @@ static int __init compal_init(void)
+ 		return -ENODEV;
  	}
  
 -	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
 +	if ((acpi_video_get_backlight_types() & ACPI_BACKLIGHT_VENDOR)) {
- 		err = ideapad_backlight_init(priv);
- 		if (err && err != -ENODEV)
- 			goto backlight_failed;
+ 		struct backlight_properties props;
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_PLATFORM;
 -- 
 2.37.3
 
