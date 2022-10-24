@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C6FEFA3744
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 11:39:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3658DC38A2D
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 11:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230517AbiJXLjc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 07:39:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50738 "EHLO
+        id S231137AbiJXLjd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 07:39:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231305AbiJXLjB (ORCPT
+        with ESMTP id S231314AbiJXLjB (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 07:39:01 -0400
-Received: from mail-pl1-x634.google.com (mail-pl1-x634.google.com [IPv6:2607:f8b0:4864:20::634])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 335B56BD51
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:15 -0700 (PDT)
-Received: by mail-pl1-x634.google.com with SMTP id c24so8190118pls.9
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:15 -0700 (PDT)
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FA5B6C950
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:27 -0700 (PDT)
+Received: by mail-pg1-f171.google.com with SMTP id q71so8442965pgq.8
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 04:38:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=daynix-com.20210112.gappssmtp.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=WXmq/hBcZYGs3Gnnq23+P2GdOlxPxnPnQ9tZiYxhvfM=;
-        b=ePYd4xhaCLyNOikvZx9ObnR59VTQkSAk7bE/21UiNNJwiT7p8qaz2wxEDyrMa76ZiO
-         iTv35XAqYOSWqXDvZUoUvgGmvOlC3hchnWKDqdc2UecEVAX9G/+zMZvtWhcPix3rL/Ze
-         /AxIzkOWAuW0TYSGen1kls5ox9wM7QN637haLeOU+iriv1s6P76gXjgwpd8lXRWr5njq
-         0kb37LvYd9ImC/Je4pwta7WQUaUhAgxFwdWYk856M8Pz+6Ha/ONDf/yTiB0LbDLwz27I
-         DYeq4gLGQYRTSFepUEIMtI9Duv1N/OsA8khwLOQvpXVWzE1RgBOE2QuDDdGxjTnuq5ox
-         ChVQ==
+        bh=mHmQPHH9zZ+33MZuRep7mHnwYbLIC54t+fSNOg5Y268=;
+        b=RqE7F5MvPhA2qPYcGDMg2WC36c/ya8S0CaGTkCLFCoNSy0LYw2pEJBOB/IKoaCEWaV
+         b6+79fB4tTanoZBjY7Fo2X/0NYabUzhBlMuelQGTz957EVppUy7uLHG6QaZSla3B9yXQ
+         6OXhn032XHxg5QRkvk/FCqxh1nFf72KOtez39VVtVU2ZobrTkzAarpAdLc1MHIUicZ7x
+         9IrA8KyX2n1Wc8SGkUaFWVryKzby7j8MCVQOn4hgQjEY8G1/JwHmHTRLpbfS7RTYinzr
+         NNc6x9W1fERMFC/C80tkaVI7MUT/2fXwRFpEdbUrqzdctaRtNeCvR6lKd2fKNhihIYhG
+         3RWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=WXmq/hBcZYGs3Gnnq23+P2GdOlxPxnPnQ9tZiYxhvfM=;
-        b=Ek0hAzDzN025RwQ8r2uw3JfRSHPc3IBKcI//w+L/B4d5j/rjkFO8TF5ziY0/v5uKtY
-         IpQX7EeS1uz6cYDU2V15BPyLwWqngHG6Gs2BzEDLOReZwZlRzJ78eIdizyYeHPciCnmD
-         L1a0V/2Yob46FrraVOadqe/N1nx6qPnZtDhKOi7Y5AjA186X+zHS8O8ZISmMReZKgp3y
-         2Hy3XZHHvVOASt//W4U2KZKEPl7K2PGmId3grB2qoNmXgkGobeD6Z4I1ReyG4h1PKRpI
-         AA9f3QsGfA3tnFOi1b9FmuS/U1jphwxmLVYK4d2rCtuNdWKPhHXqk3GqRhJyJiB3QZNa
-         waPg==
-X-Gm-Message-State: ACrzQf3g6+i/RCjQM89XNaeGiCLFfFbaTEE7AzQas76Zn0QkyDDIx1Yw
-        Z200+yV8VZzGvpiArRHWq5b6Sw==
-X-Google-Smtp-Source: AMsMyM7vtFWcLRmhWO6df2stQtl+qol38s2TTZF/JGQZTKP8WsWjqXQ3dgWj46xKcZZohQd3w2Vh2A==
-X-Received: by 2002:a17:90b:1e0a:b0:212:c44b:fffb with SMTP id pg10-20020a17090b1e0a00b00212c44bfffbmr22703440pjb.113.1666611433791;
-        Mon, 24 Oct 2022 04:37:13 -0700 (PDT)
+        bh=mHmQPHH9zZ+33MZuRep7mHnwYbLIC54t+fSNOg5Y268=;
+        b=b27TswpcQnYoy3duBddHTAM1l7kBSe5MmNkWnkRSuZUfkFX91cGm3fwxzWRFwlMp/v
+         Jgm8W/QtYFh2RtDR7Eia6mnqO9gPIqqMenbvZiUtEOJ38oXCT5JOSSDwRxSGzLj5T63o
+         n9Dmc4Kzm2lL8Q2zDYmVf5XRoHVQ9zJn9S1Al7eXKaXZbR6KdeHDNe7/0ZRQ8AE9MS0v
+         hGaYEpSPsU43Pdqt7FZZQSOvKXlFl09+WJBiwPncUJSVdmhxXK/uU1TFeIktE+YspyRM
+         u3g/BK7NCUih+5fQcJqLXQ+D5rRpGvmQvvlC/Zwhtflf6/Vuz7MqomNOGMHBG19TWPBI
+         tbHA==
+X-Gm-Message-State: ACrzQf02Amcc8okibLOdVxGz3mrhL4+slE1oLxts0/WlMyktRY6R26Dh
+        +CSsZw7dIP6+tOWOkgdZ6pgd3rvKZS/18Dhl
+X-Google-Smtp-Source: AMsMyM6IswFjqEAoVVX0inb+Y9m4C23pNohtdcPX0MoJFcRCefFyK5dlJjEhoQdRFZzuZeVMFsM+Yw==
+X-Received: by 2002:a17:902:7c8c:b0:17f:7565:4a2d with SMTP id y12-20020a1709027c8c00b0017f75654a2dmr33857671pll.65.1666611374702;
+        Mon, 24 Oct 2022 04:36:14 -0700 (PDT)
 Received: from fedora.flets-east.jp ([2400:4050:c360:8200:8ae8:3c4:c0da:7419])
-        by smtp.gmail.com with ESMTPSA id b8-20020a170903228800b001830ed575c3sm19475075plh.117.2022.10.24.04.37.05
+        by smtp.gmail.com with ESMTPSA id b8-20020a170903228800b001830ed575c3sm19475075plh.117.2022.10.24.04.36.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Oct 2022 04:37:13 -0700 (PDT)
+        Mon, 24 Oct 2022 04:36:14 -0700 (PDT)
 From:   Akihiko Odaki <akihiko.odaki@daynix.com>
 Cc:     David Airlie <airlied@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
@@ -87,9 +87,9 @@ Cc:     David Airlie <airlied@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
         acpi4asus-user@lists.sourceforge.net,
         ibm-acpi-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org,
         devel@acpica.org, Akihiko Odaki <akihiko.odaki@daynix.com>
-Subject: [PATCH 11/22] platform/x86: msi-laptop: Use acpi_video_get_backlight_types()
-Date:   Mon, 24 Oct 2022 20:35:02 +0900
-Message-Id: <20221024113513.5205-12-akihiko.odaki@daynix.com>
+Subject: [PATCH 04/22] platform/x86: acer-wmi: Use acpi_video_get_backlight_types()
+Date:   Mon, 24 Oct 2022 20:34:55 +0900
+Message-Id: <20221024113513.5205-5-akihiko.odaki@daynix.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20221024113513.5205-1-akihiko.odaki@daynix.com>
 References: <20221024113513.5205-1-akihiko.odaki@daynix.com>
@@ -104,22 +104,22 @@ acpi_video_get_backlight_type() is now deprecated.
 
 Signed-off-by: Akihiko Odaki <akihiko.odaki@daynix.com>
 ---
- drivers/platform/x86/msi-laptop.c | 2 +-
+ drivers/platform/x86/acer-wmi.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
-index 6b18ec543ac3..19e2f164181f 100644
---- a/drivers/platform/x86/msi-laptop.c
-+++ b/drivers/platform/x86/msi-laptop.c
-@@ -1048,7 +1048,7 @@ static int __init msi_init(void)
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index 18224f9a5bc0..10d0819e48ff 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -2421,7 +2421,7 @@ static int __init acer_wmi_init(void)
  
- 	/* Register backlight stuff */
- 	if (quirks->old_ec_model &&
--	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
-+	    (acpi_video_get_backlight_types() & ACPI_BACKLIGHT_VENDOR)) {
- 		struct backlight_properties props;
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.type = BACKLIGHT_PLATFORM;
+ 	set_quirks();
+ 
+-	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
++	if (!(acpi_video_get_backlight_types() & ACPI_BACKLIGHT_VENDOR))
+ 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
+ 
+ 	if (wmi_has_guid(WMID_GUID3))
 -- 
 2.37.3
 
