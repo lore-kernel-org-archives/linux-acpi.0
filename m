@@ -2,336 +2,265 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4A6AFA3758
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 16:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D689ECAAA1
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 17:10:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229542AbiJXQz7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 12:55:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51634 "EHLO
+        id S235275AbiJXRKt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 13:10:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235792AbiJXQzC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 12:55:02 -0400
-Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C73841ABA1B
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 08:36:00 -0700 (PDT)
-Received: by mail-oi1-x233.google.com with SMTP id p127so11196443oih.9
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Oct 2022 08:36:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=daynix-com.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:in-reply-to:references:cc:to:from
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=wkknqfE8N8iJl5XEQQmyIBiDl6R0jV4HGlicMSZl2gQ=;
-        b=L0/1RRlkmYmA8CLIifUuUlVJ74Kz+AS0tmR8KIQvxLhzv2mfq4GRaFSzf6y7ExNPMt
-         0JMZA7nNRAT//74v5qJU7bQBu9l+wJClqFc6pDeSKQ+AYJN+EOAUDDNv6XD3AjR9AOaH
-         woTW5Wvk4jghdUjKZn0Szj7uOj8nN2IpQjXF9jr/bA963Cnftma2v/vygHFtKVZjQRh8
-         2nGaht+ZSPBBxljf4ve53oU6E/u+s0bGvW8WQ+rw1qYeRn33wNMm3GPyocuKQd6eLN0X
-         tvkX/rZlb+YA+EpML8EgckKck+AwIrn6gKUISkLAzey62Co2gw5l77imQVOsx3pNb9sY
-         BwXw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:references:cc:to:from
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=wkknqfE8N8iJl5XEQQmyIBiDl6R0jV4HGlicMSZl2gQ=;
-        b=xEz0RE53YqdeDUhMN3qjkCKAULKng+4q1IUezdjh1bAC0KL55zJhx3Y+xJXNveKdOI
-         zK0BIWXFj6Yz/HFQutrOYLOFqwAVBwQrER7PNVX4Hld7fXwUcHq/vBIZ8WlSADfjhKzC
-         AG2uDqCynsfnjRNj/7XQWuZRhpMynUH5gesKeDkWCcMfpWciTPCyi2stWl5ldi3Up9CD
-         jMCcsPoBclcWb+bcBtDeoh21/0oc1PuQvfRYBH8hoxvTPwduPVepxBJI0vYoE5a9ipju
-         /ik7B/e8iaoXK90ymxPrtcLtieugWBbDzgT9WtRYr/b21P1Bz6ZpT61RHYfEpEYQySwq
-         xkFw==
-X-Gm-Message-State: ACrzQf2B0axbnApSvT6FmcR2EKTsqhe8jWFw023B3olsW0ZSBGM7fEuv
-        4EBF0ni/b8hHIotrPpty4rj9iNfKMLijiNsm
-X-Google-Smtp-Source: AMsMyM6L4EimJuPN+RegX8YJLfERy+lfPY4csYLFUl7zZWPrHXhB+m+qxFaDBRxxyqG4MIlhTWivBg==
-X-Received: by 2002:a17:90a:b28d:b0:20d:6790:19fa with SMTP id c13-20020a17090ab28d00b0020d679019famr73827828pjr.68.1666621885509;
-        Mon, 24 Oct 2022 07:31:25 -0700 (PDT)
-Received: from ?IPV6:2400:4050:c360:8200:8ae8:3c4:c0da:7419? ([2400:4050:c360:8200:8ae8:3c4:c0da:7419])
-        by smtp.gmail.com with ESMTPSA id l3-20020a170903244300b00174f7d107c8sm19771856pls.293.2022.10.24.07.31.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 24 Oct 2022 07:31:24 -0700 (PDT)
-Message-ID: <7373e258-f7cc-4416-9b1c-c8c9dab59ada@daynix.com>
-Date:   Mon, 24 Oct 2022 23:31:16 +0900
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.3
-Subject: Re: [PATCH 00/22] Fallback to native backlight
-Content-Language: en-US
-From:   Akihiko Odaki <akihiko.odaki@daynix.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     David Airlie <airlied@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        "Lee, Chun-Yi" <jlee@suse.com>, Mark Gross <markgross@kernel.org>,
-        Corentin Chary <corentin.chary@gmail.com>,
-        Cezary Jackiewicz <cezary.jackiewicz@gmail.com>,
-        Matthew Garrett <mjg59@srcf.ucam.org>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali@kernel.org>,
-        Jonathan Woithe <jwoithe@just42.net>,
-        Ike Panhc <ike.pan@canonical.com>,
-        Daniel Dadap <ddadap@nvidia.com>,
-        Kenneth Chan <kenneth.t.chan@gmail.com>,
-        Mattia Dongili <malattia@linux.it>,
-        Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-        Azael Avalos <coproscefalo@gmail.com>,
-        Lee Jones <lee@kernel.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Helge Deller <deller@gmx.de>,
+        with ESMTP id S235289AbiJXRKN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 13:10:13 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A080691852;
+        Mon, 24 Oct 2022 08:45:12 -0700 (PDT)
+Received: from zn.tnic (p200300ea9733e790329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9733:e790:329c:23ff:fea6:a903])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id C09221EC068C;
+        Mon, 24 Oct 2022 17:43:45 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1666626225;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=iwOcNJ3tdFU+iSv3M1smqB1ztPNnc9b/fECkwptfiec=;
+        b=jlVX/Yx8sBzWdXGUX3sE5MvjvGYb4rijjF+jbcs5dwbmUjToExs+VABma8jXgyhGEF9uDp
+        yxWxiI17rTU+H2RnKWXfysJ86dyppaIaMVdXMVDynesTP0DptvgLh6Kt8gkaY5gI6P6DUj
+        ufv8jYZKwXMX1Vwb+BcEt/b8jCyUMYc=
+Date:   Mon, 24 Oct 2022 17:43:41 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Ard Biesheuvel <ardb@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>
+Cc:     Jia He <justin.he@arm.com>, Len Brown <lenb@kernel.org>,
+        Tony Luck <tony.luck@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Richter <rric@kernel.org>,
         Robert Moore <robert.moore@intel.com>,
-        dri-devel@lists.freedesktop.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org,
-        platform-driver-x86@vger.kernel.org,
-        acpi4asus-user@lists.sourceforge.net,
-        ibm-acpi-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org,
-        devel@acpica.org
-References: <20221024113513.5205-1-akihiko.odaki@daynix.com>
- <746e5cc6-516f-8f69-9d4b-8fe237de8fd6@redhat.com>
- <edec5950-cec8-b647-ccb1-ba48f9b3bbb0@daynix.com>
- <60672af8-05d2-113c-12b9-d635608be0dd@redhat.com>
- <ea69242c-0bc8-c7bb-9602-c7489bb69684@daynix.com>
-In-Reply-To: <ea69242c-0bc8-c7bb-9602-c7489bb69684@daynix.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
+        Yazen Ghannam <yazen.ghannam@amd.com>,
+        Jan Luebbe <jlu@pengutronix.de>,
+        Khuong Dinh <khuong@os.amperecomputing.com>,
+        Kani Toshi <toshi.kani@hpe.com>,
+        James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
+        devel@acpica.org, Shuai Xue <xueshuai@linux.alibaba.com>,
+        Jarkko Sakkinen <jarkko@kernel.org>, linux-efi@vger.kernel.org,
+        nd@arm.com, Peter Zijlstra <peterz@infradead.org>
+Subject: [PATCH] apei/ghes: Use xchg_release() for updating new cache slot
+ instead of cmpxchg()
+Message-ID: <Y1ayrYZgLqjp7WOG@zn.tnic>
+References: <20221018082214.569504-1-justin.he@arm.com>
+ <20221018082214.569504-7-justin.he@arm.com>
+ <Y1OtRpLRwPPG/4Il@zn.tnic>
+ <CAMj1kXFu36faTPoGSGPs9KhcKsoh_DE9X2rmwdenxaJwa3P_yw@mail.gmail.com>
+ <Y1O/QN32d2AlzEiA@zn.tnic>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <Y1O/QN32d2AlzEiA@zn.tnic>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 2022/10/24 23:06, Akihiko Odaki wrote:
-> On 2022/10/24 22:21, Hans de Goede wrote:
->> Hi,
->>
->> On 10/24/22 14:58, Akihiko Odaki wrote:
->>> On 2022/10/24 20:53, Hans de Goede wrote:
->>>> Hi Akihiko,
->>>>
->>>> On 10/24/22 13:34, Akihiko Odaki wrote:
->>>>> Commit 2600bfa3df99 ("ACPI: video: Add 
->>>>> acpi_video_backlight_use_native()
->>>>> helper") and following commits made native backlight unavailable if
->>>>> CONFIG_ACPI_VIDEO is set and the backlight feature of ACPI video is
->>>>> unavailable, which broke the backlight functionality on Lenovo 
->>>>> ThinkPad
->>>>> C13 Yoga Chromebook. Allow to fall back to native backlight in such
->>>>> cases.
->>>>
->>>> I appreciate your work on this, but what this in essence does is
->>>> it allows 2 backlight drivers (vendor + native) to get registered
->>>> for the same panel again. While the whole goal of the backlight 
->>>> refactor
->>>> series landing in 6.1 was to make it so that there always is only
->>>> *1* backlight device registered instead of (possibly) registering
->>>> multiple and letting userspace figure it out. It is also important
->>>> to only always have 1 backlight device per panel for further
->>>> upcoming changes.
->>>>
->>>> So nack for this solution, sorry.
->>>>
->>>> I am aware that this breaks backlight control on some Chromebooks,
->>>> this was already reported and I wrote a long reply explaining why
->>>> things are done the way they are done now and also suggesting
->>>> 2 possible (much simpler) fixes, see:
->>>> https://lore.kernel.org/linux-acpi/42a5f2c9-a1dc-8fc0-7334-fe6c390ecfbb@redhat.com/
->>>>
->>>> Unfortunately the reported has not followed-up on this and
->>>> I don't have the hardware to test this myself.
->>>>
->>>> Can you please try implementing 1 of the fixes suggested there
->>>> and then submit that upstream ?
->>>>
->>>> Regards,
->>>>
->>>> Hans
->>>>
->>>
->>> Hi Hans,
->>>
->>> Thanks for reviewing and letting me know the prior attempt.
->>>
->>> In this case, there is only a native backlight device and no vendor 
->>> backlight device so the duplication of backlight devices does not 
->>> happen. I think it is better to handle such a case without quirks.
->>
->> Adding a single heuristic for all chromebooks is something completely 
->> different
->> then adding per model quirks which indeed ideally should be avoided 
->> (but this
->> is not always possible).
->>
->>> I understand it is still questionable to cover the case by allowing 
->>> duplication when both of a vendor backlight device and native one. To 
->>> explain my understanding and reasoning for *not* trying to apply the 
->>> de-duplication rule to the vendor/native combination, let me first 
->>> describe that the de-duplication which happens in 
->>> acpi_video_get_backlight_type() is a heuristics and limited.
->>>
->>> As the background of acpi_video_get_backlight_type(), there is an 
->>> assumption that it should be common that both of the firmware, 
->>> implementing ACPI, and the kernel have code to drive backlight. In 
->>> the case, the more reliable one should be picked instead of using 
->>> both, and that is what the statements in `if (video_caps & 
->>> ACPI_VIDEO_BACKLIGHT)` does.
->>>
->>> However, the method has two limitations:
->>> 1. It does not cover the case where two backlight devices with the 
->>> same type exist.
->>
->> This only happens when there are 2 panels; or 2 gpus driving a single 
->> panel
->> which are both special cases where we actually want 2 backlight devices.
->>
->>> 2. The underlying assumption does not apply to vendor/native 
->>> combination.
->>>
->>> Regarding the second limitation, I don't even understand the 
->>> difference between vendor and native. My guess is that a vendor 
->>> backlight device uses vendor-specific ACPI interface, and a native 
->>> one directly uses hardware registers. If my guess is correct, the 
->>> difference between vendor and native does not imply that both of them 
->>> are likely to exist at the same time. As the conclusion, there is no 
->>> more motivation to try to de-duplicate the vendor/native combination 
->>> than to try to de-duplicate combination of devices with a single type.
->>>
->>> Of course, it is better if we could also avoid registering two 
->>> devices with one type for one physical device. Possibly we can do so 
->>> by providing a parameter to indicate that it is for the same 
->>> "internal" backlight to devm_backlight_device_register(), and let the 
->>> function check for the duplication. However, this rule may be too 
->>> restrict, or may have problems I missed.
->>>
->>> Based on the discussion above, we can deduce three possibilities:
->>> a. There is no reason to distinguish vendor and native in this case, 
->>> and we can stick to my current proposal.
->>> b. There is a valid reason to distinguish vendor and native, and we 
->>> can adopt the same strategy that already adopted for ACPI 
->>> video/vendor combination.
->>> c. We can implement de-duplication in devm_backlight_device_register().
->>> d. The other possible options are not worth, and we can just 
->>> implement quirks specific to Chromebook/coreboot.
->>>
->>> In case b, it should be noted that vendor and native backlight device 
->>> do not require ACPI video, and CONFIG_ACPI_VIDEO may not be enabled. 
->>> In the case, the de-duplication needs to be implemented in backlight 
->>> class device.
->>
->> I have been working on the ACPI/x86 backlight detection code since 
->> 2015, please trust
->> me when I say that allowing both vendor + native backlight devices at 
->> the same time
->> is a bad idea.
->>
->> I'm currently in direct contact with the ChromeOS team about fixing 
->> the Chromebook
->> backlight issue introduced in 6.1-rc1.
->>
->> If you wan to help, please read:
->>
->> https://lore.kernel.org/linux-acpi/42a5f2c9-a1dc-8fc0-7334-fe6c390ecfbb@redhat.com/
->>
->> And try implementing 1 if the 2 solutions suggested there.
->>
->> Regards,
->>
->> Hans
-> 
-> Hi,
-> 
-> I just wanted to confirm your intention that we should distinguish 
-> vendor and native. In the case I think it is better to modify 
-> __acpi_video_get_backlight_type() and add "native_available" check in 
-> case of no ACPI video as already done for the ACPI video/native 
-> combination.
-> 
-> Unfortunately this has one pitfall though: it does not work if 
-> CONFIG_ACPI_VIDEO is disabled. If it is, acpi_video_get_backlight_type() 
-> always return acpi_backlight_vendor, and 
-> acpi_video_backlight_use_native() always returns true. It is not a 
-> regression but the current behavior. Fixing it requires also refactoring 
-> touching both of ACPI video and backlight class driver so I guess I'm 
-> not an appropriate person to do that, and I should just add 
-> "native_available" check to __acpi_video_get_backlight_type().
-> 
-> Does that sound good?
+Ok,
 
-Well, it would not be that easy since just adding native_available 
-cannot handle the case where the vendor driver gets registered first. 
-Checking with "native_available" was possible for ACPI video/vendor 
-combination because ACPI video registers its backlight after some delay. 
-I still think it does not overcomplicate things to modify 
-__acpi_video_get_backlight_type() so that it can use both of vendor and 
-native as fallback while preventing duplicate registration.
+here's what I've done to it, holler if something's still missing.
 
-Regards,
-Akihiko Odaki
+@rjw, if you wanna take this through your tree, it should work too - it
+is unrelated to the ghes_edac changes we're doing. Or I can carry it,
+whatever you prefer.
 
-> 
-> Regards,
-> Akihiko Odaki
-> 
->>  >
->>
->>>>> Akihiko Odaki (22):
->>>>>     drm/i915/opregion: Improve backlight request condition
->>>>>     ACPI: video: Introduce acpi_video_get_backlight_types()
->>>>>     LoongArch: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: acer-wmi: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: asus-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: asus-wmi: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: compal-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: eeepc-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: fujitsu-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: ideapad-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: msi-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: msi-wmi: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: nvidia-wmi-ec-backlight: Use
->>>>>       acpi_video_get_backlight_types()
->>>>>     platform/x86: panasonic-laptop: Use 
->>>>> acpi_video_get_backlight_types()
->>>>>     platform/x86: samsung-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: sony-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: thinkpad_acpi: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: toshiba_acpi: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: dell-laptop: Use acpi_video_get_backlight_types()
->>>>>     platform/x86: intel_oaktrail: Use acpi_video_get_backlight_types()
->>>>>     ACPI: video: Remove acpi_video_get_backlight_type()
->>>>>     ACPI: video: Fallback to native backlight
->>>>>
->>>>>    Documentation/gpu/todo.rst                    |  8 +--
->>>>>    drivers/acpi/acpi_video.c                     |  2 +-
->>>>>    drivers/acpi/video_detect.c                   | 54 
->>>>> ++++++++++---------
->>>>>    drivers/gpu/drm/i915/display/intel_opregion.c |  3 +-
->>>>>    drivers/platform/loongarch/loongson-laptop.c  |  4 +-
->>>>>    drivers/platform/x86/acer-wmi.c               |  2 +-
->>>>>    drivers/platform/x86/asus-laptop.c            |  2 +-
->>>>>    drivers/platform/x86/asus-wmi.c               |  4 +-
->>>>>    drivers/platform/x86/compal-laptop.c          |  2 +-
->>>>>    drivers/platform/x86/dell/dell-laptop.c       |  2 +-
->>>>>    drivers/platform/x86/eeepc-laptop.c           |  2 +-
->>>>>    drivers/platform/x86/fujitsu-laptop.c         |  4 +-
->>>>>    drivers/platform/x86/ideapad-laptop.c         |  2 +-
->>>>>    drivers/platform/x86/intel/oaktrail.c         |  2 +-
->>>>>    drivers/platform/x86/msi-laptop.c             |  2 +-
->>>>>    drivers/platform/x86/msi-wmi.c                |  2 +-
->>>>>    .../platform/x86/nvidia-wmi-ec-backlight.c    |  2 +-
->>>>>    drivers/platform/x86/panasonic-laptop.c       |  2 +-
->>>>>    drivers/platform/x86/samsung-laptop.c         |  2 +-
->>>>>    drivers/platform/x86/sony-laptop.c            |  2 +-
->>>>>    drivers/platform/x86/thinkpad_acpi.c          |  4 +-
->>>>>    drivers/platform/x86/toshiba_acpi.c           |  2 +-
->>>>>    drivers/video/backlight/backlight.c           | 18 +++++++
->>>>>    include/acpi/video.h                          | 21 ++++----
->>>>>    include/linux/backlight.h                     |  1 +
->>>>>    25 files changed, 85 insertions(+), 66 deletions(-)
->>>>>
->>>>
->>>
->>
+Thx.
+
+---
+From: Ard Biesheuvel <ardb@kernel.org>
+
+Some documentation first, about how this machinery works:
+
+It seems, the intent of the GHES error records cache is to collect
+already reported errors - see the ghes_estatus_cached() checks. There's
+even a sentence trying to say what this does:
+
+  /*
+   * GHES error status reporting throttle, to report more kinds of
+   * errors, instead of just most frequently occurred errors.
+   */
+
+New elements are added to the cache this way:
+
+  if (!ghes_estatus_cached(estatus)) {
+          if (ghes_print_estatus(NULL, ghes->generic, estatus))
+                  ghes_estatus_cache_add(ghes->generic, estatus);
+
+The intent being, once this new error record is reported, it gets cached
+so that it doesn't get reported for a while due to too many, same-type
+error records getting reported in burst-like scenarios. I.e., new,
+unreported error types can have a higher chance of getting reported.
+
+Now, the loop in ghes_estatus_cache_add() is trying to pick out the
+oldest element in there. Meaning, something which got reported already
+but a long while ago, i.e., a LRU-type scheme.
+
+And the cmpxchg() is there presumably to make sure when that selected
+element slot_cache is removed, it really *is* that element that gets
+removed and not one which replaced it in the meantime.
+
+Now, ghes_estatus_cache_add() selects a slot, and either succeeds in
+replacing its contents with a pointer to a newly cached item, or it just
+gives up and frees the new item again, without attempting to select
+another slot even if one might be available.
+
+Since only inserting new items is being done here, the race can only
+cause a failure if the selected slot was updated with another new item
+concurrently, which means that it is arbitrary which of those two items
+gets dropped.
+
+And "dropped" here means, the item doesn't get added to the cache so
+the next time it is seen, it'll get reported again and an insertion
+attempt will be done again. Eventually, it'll get inserted and all those
+times when the insertion fails, the item will get reported although the
+cache is supposed to prevent that and "ratelimit" those repeated error
+records. Not a big deal in any case.
+
+This means the cmpxchg() and the special case are not necessary.
+Therefore, just drop the existing item unconditionally.
+
+Move the xchg_release() and call_rcu() out of rcu_read_lock/unlock
+section since there is no actually dereferencing the pointer at all.
+
+  [ bp:
+    - Flesh out and summarize what was discussed on the thread now
+      that that cache contraption is understood;
+    - Touch up code style. ]
+
+Co-developed-by: Jia He <justin.he@arm.com>
+Signed-off-by: Jia He <justin.he@arm.com>
+Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Link: https://lore.kernel.org/r/20221010023559.69655-7-justin.he@arm.com
+---
+ drivers/acpi/apei/ghes.c | 60 ++++++++++++++++++++++------------------
+ 1 file changed, 33 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 249cd01cb920..6164bf737ee6 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -154,7 +154,7 @@ struct ghes_vendor_record_entry {
+ static struct gen_pool *ghes_estatus_pool;
+ static unsigned long ghes_estatus_pool_size_request;
+ 
+-static struct ghes_estatus_cache *ghes_estatus_caches[GHES_ESTATUS_CACHES_SIZE];
++static struct ghes_estatus_cache __rcu *ghes_estatus_caches[GHES_ESTATUS_CACHES_SIZE];
+ static atomic_t ghes_estatus_cache_alloced;
+ 
+ static int ghes_panic_timeout __read_mostly = 30;
+@@ -789,48 +789,42 @@ static struct ghes_estatus_cache *ghes_estatus_cache_alloc(
+ 	return cache;
+ }
+ 
+-static void ghes_estatus_cache_free(struct ghes_estatus_cache *cache)
++static void ghes_estatus_cache_rcu_free(struct rcu_head *head)
+ {
++	struct ghes_estatus_cache *cache;
+ 	u32 len;
+ 
++	cache = container_of(head, struct ghes_estatus_cache, rcu);
+ 	len = cper_estatus_len(GHES_ESTATUS_FROM_CACHE(cache));
+ 	len = GHES_ESTATUS_CACHE_LEN(len);
+ 	gen_pool_free(ghes_estatus_pool, (unsigned long)cache, len);
+ 	atomic_dec(&ghes_estatus_cache_alloced);
+ }
+ 
+-static void ghes_estatus_cache_rcu_free(struct rcu_head *head)
+-{
+-	struct ghes_estatus_cache *cache;
+-
+-	cache = container_of(head, struct ghes_estatus_cache, rcu);
+-	ghes_estatus_cache_free(cache);
+-}
+-
+-static void ghes_estatus_cache_add(
+-	struct acpi_hest_generic *generic,
+-	struct acpi_hest_generic_status *estatus)
++static void
++ghes_estatus_cache_add(struct acpi_hest_generic *generic,
++		       struct acpi_hest_generic_status *estatus)
+ {
+-	int i, slot = -1, count;
+ 	unsigned long long now, duration, period, max_period = 0;
+-	struct ghes_estatus_cache *cache, *slot_cache = NULL, *new_cache;
++	struct ghes_estatus_cache *cache, *new_cache;
++	struct ghes_estatus_cache __rcu *victim;
++	int i, slot = -1, count;
+ 
+ 	new_cache = ghes_estatus_cache_alloc(generic, estatus);
+-	if (new_cache == NULL)
++	if (!new_cache)
+ 		return;
++
+ 	rcu_read_lock();
+ 	now = sched_clock();
+ 	for (i = 0; i < GHES_ESTATUS_CACHES_SIZE; i++) {
+ 		cache = rcu_dereference(ghes_estatus_caches[i]);
+ 		if (cache == NULL) {
+ 			slot = i;
+-			slot_cache = NULL;
+ 			break;
+ 		}
+ 		duration = now - cache->time_in;
+ 		if (duration >= GHES_ESTATUS_IN_CACHE_MAX_NSEC) {
+ 			slot = i;
+-			slot_cache = cache;
+ 			break;
+ 		}
+ 		count = atomic_read(&cache->count);
+@@ -839,18 +833,30 @@ static void ghes_estatus_cache_add(
+ 		if (period > max_period) {
+ 			max_period = period;
+ 			slot = i;
+-			slot_cache = cache;
+ 		}
+ 	}
+-	/* new_cache must be put into array after its contents are written */
+-	smp_wmb();
+-	if (slot != -1 && cmpxchg(ghes_estatus_caches + slot,
+-				  slot_cache, new_cache) == slot_cache) {
+-		if (slot_cache)
+-			call_rcu(&slot_cache->rcu, ghes_estatus_cache_rcu_free);
+-	} else
+-		ghes_estatus_cache_free(new_cache);
+ 	rcu_read_unlock();
++
++	if (slot != -1) {
++		/*
++		 * Use release semantics to ensure that ghes_estatus_cached()
++		 * running on another CPU will see the updated cache fields if
++		 * it can see the new value of the pointer.
++		 */
++		victim = xchg_release(&ghes_estatus_caches[slot],
++				      RCU_INITIALIZER(new_cache));
++
++		/*
++		 * At this point, victim may point to a cached item different
++		 * from the one based on which we selected the slot. Instead of
++		 * going to the loop again to pick another slot, let's just
++		 * drop the other item anyway: this may cause a false cache
++		 * miss later on, but that won't cause any problems.
++		 */
++		if (victim)
++			call_rcu(&unrcu_pointer(victim)->rcu,
++				 ghes_estatus_cache_rcu_free);
++	}
+ }
+ 
+ static void __ghes_panic(struct ghes *ghes,
+-- 
+2.35.1
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
