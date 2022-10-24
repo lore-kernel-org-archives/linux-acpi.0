@@ -2,73 +2,76 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E860AFA373D
-	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 22:50:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D8ADC67871
+	for <linux-acpi@archiver.kernel.org>; Mon, 24 Oct 2022 22:50:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232120AbiJXWuL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 24 Oct 2022 18:50:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47240 "EHLO
+        id S231641AbiJXWuN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 24 Oct 2022 18:50:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231490AbiJXWtp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 18:49:45 -0400
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4934049B6C;
-        Mon, 24 Oct 2022 14:11:34 -0700 (PDT)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
- id 696992e5b47a83ad; Mon, 24 Oct 2022 21:23:37 +0200
-Received: from kreacher.localnet (unknown [213.134.163.181])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id BBC446692BC;
-        Mon, 24 Oct 2022 21:23:36 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux PM <linux-pm@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Len Brown <len.brown@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Linux ACPI <linux-acpi@vger.kernel.org>
-Subject: [PATCH 0/2] cpufreq: intel_pstate: Make HWP calibration work on all hybrid platforms
-Date:   Mon, 24 Oct 2022 21:18:19 +0200
-Message-ID: <2258064.ElGaqSPkdT@kreacher>
+        with ESMTP id S230185AbiJXWtt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2022 18:49:49 -0400
+X-Greylist: delayed 1388 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 24 Oct 2022 14:11:38 PDT
+Received: from cavan.codon.org.uk (irc.codon.org.uk [IPv6:2a00:1098:84:22e::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1482F87087;
+        Mon, 24 Oct 2022 14:11:37 -0700 (PDT)
+Received: by cavan.codon.org.uk (Postfix, from userid 1000)
+        id 9492F40A6A; Mon, 24 Oct 2022 21:30:57 +0100 (BST)
+Date:   Mon, 24 Oct 2022 21:30:57 +0100
+From:   Matthew Garrett <mjg59@srcf.ucam.org>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Dmitry Osipenko <digetx@gmail.com>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Karol Herbst <kherbst@redhat.com>, Lyude <lyude@redhat.com>,
+        Daniel Dadap <ddadap@nvidia.com>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Pan@freedesktop.org, Xinhui <Xinhui.Pan@amd.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        Mark Gross <markgross@kernel.org>,
+        Andy Shevchenko <andy@kernel.org>, linux-acpi@vger.kernel.org,
+        Jani Nikula <jani.nikula@intel.com>,
+        nouveau@lists.freedesktop.org,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        dri-devel@lists.freedesktop.org,
+        platform-driver-x86@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        David Airlie <airlied@redhat.com>, Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v5 02/31] drm/i915: Don't register backlight when another
+ backlight should be used (v2)
+Message-ID: <20221024203057.GA28675@srcf.ucam.org>
+References: <20220825143726.269890-1-hdegoede@redhat.com>
+ <20220825143726.269890-3-hdegoede@redhat.com>
+ <f914ceb3-94bd-743c-f8b6-0334086e731a@gmail.com>
+ <42a5f2c9-a1dc-8fc0-7334-fe6c390ecfbb@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.163.181
-X-CLIENT-HOSTNAME: 213.134.163.181
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedrgedtgedgudefudcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeffffffkefgheehffelteeiveeffeevhfelteejvddvieejjeelvdeiheeuveeuffenucfkphepvddufedrudefgedrudeifedrudekudenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddukedupdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhgvnhdrsghrohifnhesihhnthgvlhdrtghomhdprhgtphhtthhopehsrhhinhhivhgrshdrphgrnhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghlrdgt
- ohhmpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42a5f2c9-a1dc-8fc0-7334-fe6c390ecfbb@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+On Tue, Sep 27, 2022 at 01:04:52PM +0200, Hans de Goede wrote:
 
-The HWP calibration in intel_pstate is needed to map HWP performance levels to
-frequencies, which are used in the cpufreq sysfs interface, in a reliable way.
-On all non-hybrid "core" platforms it is sufficient to multiply the HWP
-performance levels by 100000 to obtain the corresponding frequencies, but on
-hybrid ones there is a difference between P-cores and E-cores.
+> So to fix this we need to make acpi_video_get_backlight_type()
+> return native on the Acer Chromebook Spin 713.
 
-Previous attempts to make this work were based on using CPPC (and in particular
-the nominal performance values provided by _CPC), but it turns out that the
-CPPC information is not sufficiently reliable for this purpose and the only
-way to do it is to use a hard-coded scaling factors for P-cores and for E-cores
-(which fortunately is the same as in the non-hybrid case).  Fortunately, the
-same scaling factor for P-cores works on all of the hybrid platforms to date.
-
-The first patch in the series ensures that all of the CPUs will use correct
-information from MSRs by avoiding the situations in which an MSR values read
-on one CPU will be used for performance scaling of another CPU.
-
-The second one implements the approach outlined above.
-
-Please see the changelogs for details.
-
-Thanks!
-
-
-
+Isn't the issue broader than that? Unless the platform is Windows 8 or 
+later, we'll *always* (outside of some corner cases) return 
+acpi_backlight_vendor if there's no ACPI video interface. This is broken 
+for any platform that implements ACPI but relies on native video 
+control, which is going to include a range of Coreboot platforms, not 
+just Chromebooks. I think for this to work correctly you need to have 
+the infrastructure be aware of whether or not a vendor interface exists, 
+which means having to handle cleanup if a vendor-specific module gets 
+loaded later.
