@@ -2,87 +2,107 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A9DEC4332F
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Nov 2022 18:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4149C43217
+	for <linux-acpi@archiver.kernel.org>; Thu,  3 Nov 2022 18:48:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230395AbiKCSn7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Nov 2022 14:43:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40086 "EHLO
+        id S229667AbiKCSsd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Nov 2022 14:48:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229704AbiKCSn5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2022 14:43:57 -0400
-Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B5669FEF;
-        Thu,  3 Nov 2022 11:43:56 -0700 (PDT)
-Received: by mail-qt1-f182.google.com with SMTP id cg5so1780214qtb.12;
-        Thu, 03 Nov 2022 11:43:56 -0700 (PDT)
+        with ESMTP id S229992AbiKCSsb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2022 14:48:31 -0400
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC4AE17048;
+        Thu,  3 Nov 2022 11:48:30 -0700 (PDT)
+Received: by mail-qv1-f50.google.com with SMTP id mi9so1752686qvb.8;
+        Thu, 03 Nov 2022 11:48:30 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=qXI/xKCKGC5kxj9+tkw9pFSKrL0xw7nU2EjZVTKszx4=;
-        b=vYbsrkcnyFOFdvuN7zPeRqL9O1MhHTDOkPKvet14A63+xSgdAwtOne3T9v9zVOIUNn
-         JZx0YtRzl/7kRTQwxWpCayio8UW53dQOBe8/wYQE1pcsB9QPuduHXaxbZgwVjf+CoZcm
-         LypCrgIX0C0geyZm6/7VDzObYDhjpcbJR2dTOQ+e78neyWuVlGE5PU9rK9jWvej7QSEX
-         wZ5TC9vFtVQi+QV/86ZYkLlKApQfNwKF7TWWAMTv5amjDSWr/pNobLfsXH8pL23BAq/o
-         /EhT+8y39AZiepFcoZ+yYt1Co+nmgncF7HUWsZpKmV/Ly9lJymIS/9UXj4kyzWR6cQoO
-         jpKA==
-X-Gm-Message-State: ACrzQf3GY+y82al/K47DZoE4vug4h0wYRf+t32oXZgGoC+p/22oFObN1
-        z0fsjKzShHAT9fyVqgBC91OsiUBI40CUVMxh0GILTK+3
-X-Google-Smtp-Source: AMsMyM7lE0rPz4rvK4p4ShxvDCRY5rqOe6G3LC7CZHJxN3SeVFBdZ2G2SB1he41nqCUj21KS0hyRcDIRly4Vi/eNnRo=
-X-Received: by 2002:a05:622a:1a25:b0:39c:b862:7318 with SMTP id
- f37-20020a05622a1a2500b0039cb8627318mr26100061qtb.147.1667501035443; Thu, 03
- Nov 2022 11:43:55 -0700 (PDT)
+        bh=qFFj0YnqgTVbsW45BjHNbWg4SjPrNwZE8AOD83zKJ74=;
+        b=Ue83nvM49wxmIJpeW0OdsHD3NSvihD3GyzcevI5S7uiJNIjY+Ud+7eAp3rb+X+S0PR
+         KcAdJrR6FtS+MFBh7QuRpQ4ouO1vEKlg3cLtlQNk8cGUntKbT9y7LMuJClvOeUWGOCQg
+         gVVwUKpUnES7wma6SAPNy3srUgd4nrtt3K/PiMttvc8+4HPNgqfVWwA0hkj4dhni+LQl
+         +83k2EoB0FHv6u7xFh6V886k5VYAZWS/SflmxWB44v3TGzi79KVetJrkTKSz4cRKlFZh
+         A900vMp3zMbR7BDjgRwiNDjbUsNBr+M47xlxrKfDpTtaHhcg60K21MXJjLimqFTNSjXx
+         6l1g==
+X-Gm-Message-State: ACrzQf2SAkYYZsOgrtVdRcAk5Dv+cpiFrsUlgo5ih+YVfDFl9WKJcrLp
+        Oirq8ExSKPB2JPAYMNadb1PLF2JrvRMB2va2Qhnfrcky
+X-Google-Smtp-Source: AMsMyM5ByWBOLNaWU6upUbPGJQZXvuckz/Axld8j4XIsJqWWxPKRr6T3ZjvryDDlHqoJOyOQI58Wmx/N/Sqtel0PzrE=
+X-Received: by 2002:a0c:c684:0:b0:4bb:fc53:5ad9 with SMTP id
+ d4-20020a0cc684000000b004bbfc535ad9mr19725144qvj.3.1667501309876; Thu, 03 Nov
+ 2022 11:48:29 -0700 (PDT)
 MIME-Version: 1.0
-References: <20221029222008.32793-1-chad@redpilled.dev>
-In-Reply-To: <20221029222008.32793-1-chad@redpilled.dev>
+References: <cover.1667336095.git.christophe.jaillet@wanadoo.fr>
+ <57396f1eacfacdb589127499f8ff64225a39e110.1667336095.git.christophe.jaillet@wanadoo.fr>
+ <Y2JVhffdmXkkrIRN@smile.fi.intel.com>
+In-Reply-To: <Y2JVhffdmXkkrIRN@smile.fi.intel.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 3 Nov 2022 19:43:44 +0100
-Message-ID: <CAJZ5v0hkSvZjEKLC+7RY2yz_Ldfq+83Jz2mATneKubN6GAX3gg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: EC: Add quirk for the HP Pavilion Gaming 15-cx0041ur
-To:     Mia Kanashi <chad@redpilled.dev>
-Cc:     rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
+Date:   Thu, 3 Nov 2022 19:48:19 +0100
+Message-ID: <CAJZ5v0hdzYuiKECEdXFB0vmz=6Z697DRp0Xx5jwyqHH4SGrLCA@mail.gmail.com>
+Subject: Re: [PATCH 09/30] ACPI: sysfs: Use kstrtobool() instead of strtobool()
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Oct 30, 2022 at 12:20 AM Mia Kanashi <chad@redpilled.dev> wrote:
+On Wed, Nov 2, 2022 at 12:33 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 >
-> Added GPE quirk entry for the HP Pavilion Gaming 15-cx0041ur.
-> There is a quirk entry for the 15-cx0xxx laptops, but this one has
-> different DMI_PRODUCT_NAME.
+> On Tue, Nov 01, 2022 at 10:13:57PM +0100, Christophe JAILLET wrote:
+> > strtobool() is the same as kstrtobool().
+> > However, the latter is more used within the kernel.
+> >
+> > In order to remove strtobool() and slightly simplify kstrtox.h, switch to
+> > the other function name.
+> >
+> > While at it, include the corresponding header file (<linux/kstrtox.h>)
 >
-> Notably backlight keys and other ACPI events now function correctly.
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 >
-> Signed-off-by: Mia Kanashi <chad@redpilled.dev>
-> ---
->  drivers/acpi/ec.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 9b42628cf21b..9751b84c1b22 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -1875,6 +1875,16 @@ static const struct dmi_system_id ec_dmi_table[] __initconst = {
->                         DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion Gaming Laptop 15-cx0xxx"),
->                 },
->         },
-> +       {
-> +               /*
-> +                * HP Pavilion Gaming Laptop 15-cx0041ur
-> +                */
-> +               .callback = ec_honor_dsdt_gpe,
-> +               .matches = {
-> +                       DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-> +                       DMI_MATCH(DMI_PRODUCT_NAME, "HP 15-cx0041ur"),
-> +               },
-> +       },
->         {
->                 /*
->                  * Samsung hardware
-> --
+> > Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> > ---
+> > This patch is part of a serie that axes all usages of strtobool().
+> > Each patch can be applied independently from the other ones.
+> >
+> > The last patch of the serie removes the definition of strtobool().
+> >
+> > You may not be in copy of the cover letter. So, if needed, it is available
+> > at [1].
+> >
+> > [1]: https://lore.kernel.org/all/cover.1667336095.git.christophe.jaillet@wanadoo.fr/
+> > ---
+> >  drivers/acpi/sysfs.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> > index cc2fe0618178..2d81c742e4d2 100644
+> > --- a/drivers/acpi/sysfs.c
+> > +++ b/drivers/acpi/sysfs.c
+> > @@ -9,6 +9,7 @@
+> >  #include <linux/bitmap.h>
+> >  #include <linux/init.h>
+> >  #include <linux/kernel.h>
+> > +#include <linux/kstrtox.h>
+> >  #include <linux/moduleparam.h>
+> >
+> >  #include "internal.h"
+> > @@ -992,7 +993,7 @@ static ssize_t force_remove_store(struct kobject *kobj,
+> >       bool val;
+> >       int ret;
+> >
+> > -     ret = strtobool(buf, &val);
+> > +     ret = kstrtobool(buf, &val);
+> >       if (ret < 0)
+> >               return ret;
+> >
+> > --
 
 Applied as 6.2 material, thanks!
