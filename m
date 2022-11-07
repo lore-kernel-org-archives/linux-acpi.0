@@ -2,141 +2,125 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA86FC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Nov 2022 19:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05F44C4332F
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Nov 2022 20:03:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231367AbiKGTLH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Nov 2022 14:11:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46076 "EHLO
+        id S232741AbiKGUDi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Nov 2022 15:03:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232483AbiKGTKp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Nov 2022 14:10:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ABF914D25;
-        Mon,  7 Nov 2022 11:10:44 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S231398AbiKGUDh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Nov 2022 15:03:37 -0500
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56F7F178BB;
+        Mon,  7 Nov 2022 12:03:35 -0800 (PST)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.0.0)
+ id 0badc597a4899159; Mon, 7 Nov 2022 21:03:31 +0100
+Received: from kreacher.localnet (unknown [213.134.188.205])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2F58DB81670;
-        Mon,  7 Nov 2022 19:10:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52CA7C433D7;
-        Mon,  7 Nov 2022 19:10:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1667848241;
-        bh=sx18lClMexihvXvYPtPJeHIqpLhp8A2J1jWg0z5jVbg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=gOyZI/DzlYTrvJq8IyKW9aN21QPXmyCHVsV2ItjZ8Y5xhYoHVWt3TMlgK/vHAK37e
-         jrd8qrAhs6/GrH8dw1DX7ur8DuM5BFmgUFeedrmtnZBG+5FPTWQ7kDWKgdsQ8RyRMy
-         rA/T5EwTx+FdSQ0QGkfqKLEUKIza3WMWgtQpn9mlGgLRV2yuySROYr3ves3RGkxcDO
-         b9cWfG4MakMGjLDqxE6fZpFWSe6uR/Aa/L5mT97Y5Pw40wxyI9rZQ/9cig+Cp/yDnk
-         T9lBTESD+FDxVvTfvapnBLFQftoiMU88yaTAxATJVMQ0h6T+UEcbwfQ820V8+VWcKW
-         t8G8hrz97jTfA==
-Date:   Mon, 7 Nov 2022 19:10:35 +0000
-From:   Will Deacon <will@kernel.org>
-To:     Besar Wicaksono <bwicaksono@nvidia.com>
-Cc:     rafael@kernel.org, lenb@kernel.org, catalin.marinas@arm.com,
-        lorenzo.pieralisi@arm.com, guohanjun@huawei.com,
-        sudeep.holla@arm.com, linux-tegra@vger.kernel.org,
-        treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] ACPI: ARM Performance Monitoring Unit Table (APMT)
- initial support
-Message-ID: <20221107191034.GB21991@willie-the-truck>
-References: <20220929002834.32664-1-bwicaksono@nvidia.com>
+        by v370.home.net.pl (Postfix) with ESMTPSA id D8CB46682BE;
+        Mon,  7 Nov 2022 21:03:30 +0100 (CET)
+Authentication-Results: v370.home.net.pl; dmarc=none (p=none dis=none) header.from=rjwysocki.net
+Authentication-Results: v370.home.net.pl; spf=fail smtp.mailfrom=rjwysocki.net
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        linux-rtc@vger.kernel.org
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Alessandro Zummo <a.zummo@towertech.it>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 5/5] rtc: rtc-cmos: Disable ACPI RTC event on removal
+Date:   Mon, 07 Nov 2022 21:03:06 +0100
+Message-ID: <2219830.iZASKD2KPV@kreacher>
+In-Reply-To: <2276401.ElGaqSPkdT@kreacher>
+References: <2276401.ElGaqSPkdT@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220929002834.32664-1-bwicaksono@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.188.205
+X-CLIENT-HOSTNAME: 213.134.188.205
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvgedrvdekgddufedtucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppedvudefrddufeegrddukeekrddvtdehnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekkedrvddthedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepkedprhgtphhtthhopegrlhgvgigrnhgurhgvrdgsvghllhhonhhisegsohhothhlihhnrdgtohhmpdhrtghpthhtoheplhhinhhugidqrhhttgesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgv
+ lhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtoheprgdriihumhhmohesthhofigvrhhtvggthhdrihhtpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidrihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=8 Fuz1=8 Fuz2=8
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Sep 28, 2022 at 07:28:34PM -0500, Besar Wicaksono wrote:
-> diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
-> new file mode 100644
-> index 000000000000..f55167ca51e7
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/apmt.c
-> @@ -0,0 +1,177 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * ARM APMT table support.
-> + * Design document number: ARM DEN0117.
-> + *
-> + * Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES.
-> + *
-> + */
-> +
-> +#define pr_fmt(fmt)	"ACPI: APMT: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/acpi_apmt.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +#include <linux/platform_device.h>
-> +
-> +#define DEV_NAME "arm-cs-arch-pmu"
-> +
-> +/* There can be up to 3 resources: page 0 and 1 address, and interrupt. */
-> +#define DEV_MAX_RESOURCE_COUNT 3
-> +
-> +/* Root pointer to the mapped APMT table */
-> +static struct acpi_table_header *apmt_table;
-> +
-> +static int __init apmt_init_resources(struct resource *res,
-> +					      struct acpi_apmt_node *node)
-> +{
-> +	int irq, trigger;
-> +	int num_res = 0;
-> +
-> +	res[num_res].start = node->base_address0;
-> +	res[num_res].end = node->base_address0 + SZ_4K - 1;
-> +	res[num_res].flags = IORESOURCE_MEM;
-> +
-> +	num_res++;
-> +
-> +	res[num_res].start = node->base_address1;
-> +	res[num_res].end = node->base_address1 + SZ_4K - 1;
-> +	res[num_res].flags = IORESOURCE_MEM;
-> +
-> +	num_res++;
-> +
-> +	if (node->ovflw_irq != 0) {
-> +		trigger = (node->ovflw_irq_flags & ACPI_APMT_OVFLW_IRQ_FLAGS_MODE);
-> +		trigger = (trigger == ACPI_APMT_OVFLW_IRQ_FLAGS_MODE_LEVEL) ?
-> +			ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
-> +		irq = acpi_register_gsi(NULL, node->ovflw_irq, trigger,
-> +						ACPI_ACTIVE_HIGH);
-> +
-> +		if (irq <= 0) {
-> +			pr_warn("APMT could not register gsi hwirq %d\n", irq);
-> +			return num_res;
-> +		}
-> +
-> +		res[num_res].start = irq;
-> +		res[num_res].end = irq;
-> +		res[num_res].flags = IORESOURCE_IRQ;
-> +
-> +		num_res++;
-> +	}
-> +
-> +	return num_res;
-> +}
-> +
-> +/**
-> + * apmt_add_platform_device() - Allocate a platform device for APMT node
-> + * @node: Pointer to device ACPI APMT node
-> + *
-> + * Returns: 0 on success, <0 failure
-> + */
-> +static int __init apmt_add_platform_device(struct acpi_apmt_node *node,
-> +							struct fwnode_handle *fwnode)
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I queued this already, but my testing kicked up a nit that 'fwnode' is not
-described in the kerneldoc. Please can you send a follow-up fix for that,
-based on for-next/acpi? The indentation is also pretty weird with extra
-parameter.
+Make cmos_do_remove() drop the ACPI RTC fixed event handler so as to
+prevent it from operating on stale data in case the event triggers
+after driver removal.
 
-Will
+While at it, make cmos_do_remove() also clear the driver data pointer
+of the device and make cmos_acpi_wake_setup() do that in the error path
+too.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/rtc/rtc-cmos.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+Index: linux-pm/drivers/rtc/rtc-cmos.c
+===================================================================
+--- linux-pm.orig/drivers/rtc/rtc-cmos.c
++++ linux-pm/drivers/rtc/rtc-cmos.c
+@@ -798,6 +798,12 @@ static inline void acpi_rtc_event_setup(
+ 	acpi_disable_event(ACPI_EVENT_RTC, 0);
+ }
+ 
++static inline void acpi_rtc_event_cleanup(void)
++{
++	if (!acpi_disabled)
++		acpi_remove_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler);
++}
++
+ static void rtc_wake_on(struct device *dev)
+ {
+ 	acpi_clear_event(ACPI_EVENT_RTC);
+@@ -884,6 +890,10 @@ static inline void acpi_rtc_event_setup(
+ {
+ }
+ 
++static inline void acpi_rtc_event_cleanup(void)
++{
++}
++
+ static inline void cmos_acpi_wake_setup(struct device *dev)
+ {
+ }
+@@ -1109,6 +1119,7 @@ cleanup2:
+ 		free_irq(rtc_irq, cmos_rtc.rtc);
+ cleanup1:
+ 	cmos_rtc.dev = NULL;
++	dev_set_drvdata(dev, NULL);
+ cleanup0:
+ 	if (RTC_IOMAPPED)
+ 		release_region(ports->start, resource_size(ports));
+@@ -1138,6 +1149,9 @@ static void cmos_do_remove(struct device
+ 			hpet_unregister_irq_handler(cmos_interrupt);
+ 	}
+ 
++	if (!dev_get_platdata(dev))
++		acpi_rtc_event_cleanup();
++
+ 	cmos->rtc = NULL;
+ 
+ 	ports = cmos->iomem;
+@@ -1148,6 +1162,7 @@ static void cmos_do_remove(struct device
+ 	cmos->iomem = NULL;
+ 
+ 	cmos->dev = NULL;
++	dev_set_drvdata(dev, NULL);
+ }
+ 
+ static int cmos_aie_poweroff(struct device *dev)
+
+
+
