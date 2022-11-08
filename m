@@ -2,130 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E80DCC4332F
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Nov 2022 11:12:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87DD9C4332F
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Nov 2022 11:48:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234059AbiKHLMC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Nov 2022 06:12:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55006 "EHLO
+        id S233876AbiKHLsz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Nov 2022 06:48:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233976AbiKHLL5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Nov 2022 06:11:57 -0500
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D09631007;
-        Tue,  8 Nov 2022 03:11:56 -0800 (PST)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B2C1F1424;
-        Tue,  8 Nov 2022 03:12:02 -0800 (PST)
-Received: from [192.168.1.12] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6D56C3F534;
-        Tue,  8 Nov 2022 03:11:53 -0800 (PST)
-Message-ID: <554c4bf5-8981-3d0e-6cd4-68fc854bcb09@arm.com>
-Date:   Tue, 8 Nov 2022 12:11:32 +0100
+        with ESMTP id S233794AbiKHLsy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Nov 2022 06:48:54 -0500
+Received: from jari.cn (unknown [218.92.28.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 56A7B55BA;
+        Tue,  8 Nov 2022 03:48:53 -0800 (PST)
+Received: by ajax-webmail-localhost.localdomain (Coremail) ; Tue, 8 Nov 2022
+ 19:43:54 +0800 (GMT+08:00)
+X-Originating-IP: [182.148.13.29]
+Date:   Tue, 8 Nov 2022 19:43:54 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From:   wangkailong@jari.cn
+To:     Moore <robert.moore@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Wentland <harry.wentland@amd.com>, Li <sunpeng.li@amd.com>,
+        Siqueira <Rodrigo.Siqueira@amd.com>,
+        Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        "Pan, Xinhui" <Xinhui.Pan@amd.com>, Airlie <airlied@gmail.com>,
+        Vetter <daniel@ffwll.ch>
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org
+Subject: [PATCH] ACPICA: Fix return
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version XT6.0.1 build 20210329(c53f3fee)
+ Copyright (c) 2002-2022 www.mailtech.cn
+ mispb-4e503810-ca60-4ec8-a188-7102c18937cf-zhkzyfz.cn
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.2
-Subject: Re: [PATCH 0/5] arch_topology: Build cacheinfo from primary CPU
-To:     linux-kernel@vger.kernel.org
-Cc:     Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Gavin Shan <gshan@redhat.com>, SeongJae Park <sj@kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
-        Jeremy Linton <Jeremy.Linton@arm.com>,
-        Rob Herring <robh@kernel.org>
-References: <20221108110424.166896-1-pierre.gondois@arm.com>
-Content-Language: en-US
-From:   Pierre Gondois <pierre.gondois@arm.com>
-In-Reply-To: <20221108110424.166896-1-pierre.gondois@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Message-ID: <7ce6bd54.f8.184570dd1b6.Coremail.wangkailong@jari.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID: AQAAfwCXq+H6QGpj7csBAA--.64W
+X-CM-SenderInfo: 5zdqwypdlo00nj6mt2flof0/1tbiAQAEB2FEYx0DfAAAsm
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
+        CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+        daVFxhVjvjDU=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-+ Rob Herring
-+ Jeremy Linton
-
-On 11/8/22 12:04, Pierre Gondois wrote:
-> [1] and [2] build the CPU topology from the cacheinfo information for
-> both DT/ACPI based systems and remove (struct cpu_topology).llc_id
-> which was used by ACPI only.
-> 
-> Creating the cacheinfo for secondary CPUs is done during early boot.
-> Preemption and interrupts are disabled at this stage. On PREEMPT_RT
-> kernels, allocating memory (and parsing the PPTT table for ACPI based
-> systems) triggers a:
->    'BUG: sleeping function called from invalid context' [4]
-> 
-> To prevent this bug, allocate the cacheinfo from the primary CPU when
-> preemption and interrupts are enabled and before booting secondary
-> CPUs. The cache levels/leaves are computed from DT/ACPI PPTT information
-> only, without relying on the arm64 CLIDR_EL1 register.
-> If no cache information is found in the DT/ACPI PPTT, then fallback
-> to the current state, triggering [4] on PREEMPT_RT kernels.
-> 
-> Patches to update the arm64 device trees that have incomplete cacheinfo
-> (mostly for missing the 'cache-level' or 'cache-unified' property)
-> have been sent at [3].
-> 
-> Tested platforms:
-> - ACPI + PPTT: Ampere Altra, Ampere eMAG, Cavium ThunderX2,
->    Kunpeng 920, Juno-r2
-> - DT: rb5, db845c, Juno-r2
-> 
-> [1] https://lore.kernel.org/all/20220704101605.1318280-1-sudeep.holla@arm.com/
-> [2] https://lore.kernel.org/all/20220720-arch_topo_fixes-v3-0-43d696288e84@arm.com/
-> [3] https://lore.kernel.org/all/20221107155825.1644604-1-pierre.gondois@arm.com/
-> [4] On an Ampere Altra, with PREEMPT_RT kernel based on v6.0.0-rc4:
-> 
-> 
-> [    7.560791] BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:46
-> [    7.560794] in_atomic(): 1, irqs_disabled(): 128, non_block: 0, pid: 0, name: swapper/111
-> [    7.560796] preempt_count: 1, expected: 0
-> [    7.560797] RCU nest depth: 1, expected: 1
-> [    7.560799] 3 locks held by swapper/111/0:
-> [    7.560800]  #0: ffff403e406cae98 (&pcp->lock){+.+.}-{3:3}, at: get_page_from_freelist+0x218/0x12c8
-> [    7.560811]  #1: ffffc5f8ed09f8e8 (rcu_read_lock){....}-{1:3}, at: rt_spin_trylock+0x48/0xf0
-> [    7.560820]  #2: ffff403f400b4fd8 (&zone->lock){+.+.}-{3:3}, at: rmqueue_bulk+0x64/0xa80
-> [    7.560824] irq event stamp: 0
-> [    7.560825] hardirqs last  enabled at (0): [<0000000000000000>] 0x0
-> [    7.560827] hardirqs last disabled at (0): [<ffffc5f8e9f7d594>] copy_process+0x5dc/0x1ab8
-> [    7.560830] softirqs last  enabled at (0): [<ffffc5f8e9f7d594>] copy_process+0x5dc/0x1ab8
-> [    7.560833] softirqs last disabled at (0): [<0000000000000000>] 0x0
-> [    7.560834] Preemption disabled at:
-> [    7.560835] [<ffffc5f8e9fd3c28>] migrate_enable+0x30/0x130
-> [    7.560838] CPU: 111 PID: 0 Comm: swapper/111 Tainted: G        W          6.0.0-rc4-[...]
-> [    7.560841] Call trace:
-> [...]
-> [    7.560870]  __kmalloc+0xbc/0x1e8
-> [    7.560873]  detect_cache_attributes+0x2d4/0x5f0
-> [    7.560876]  update_siblings_masks+0x30/0x368
-> [    7.560880]  store_cpu_topology+0x78/0xb8
-> [    7.560883]  secondary_start_kernel+0xd0/0x198
-> [    7.560885]  __secondary_switched+0xb0/0xb4
-> 
-> Pierre Gondois (5):
->    cacheinfo: Use riscv's init_cache_level() as generic OF implem
->    cacheinfo: Return error code in init_of_cache_level()
->    ACPI: PPTT: Remove acpi_find_cache_levels()
->    ACPI: PPTT: Update acpi_find_last_cache_level() to
->      acpi_get_cache_info()
->    arch_topology: Build cacheinfo from primary CPU
-> 
->   arch/arm64/kernel/cacheinfo.c |   9 ++-
->   arch/riscv/kernel/cacheinfo.c |  39 +------------
->   drivers/acpi/pptt.c           |  86 +++++++++++++++++------------
->   drivers/base/arch_topology.c  |  10 +++-
->   drivers/base/cacheinfo.c      | 101 ++++++++++++++++++++++++++++++----
->   include/linux/cacheinfo.h     |  10 +++-
->   6 files changed, 164 insertions(+), 91 deletions(-)
-> 
+cmV0dXJuIGlzIG5vdCBhIGZ1bmN0aW9uLCBwYXJlbnRoZXNlcyBhcmUgbm90IHJlcXVpcmVkCgpT
+aWduZWQtb2ZmLWJ5OiBLYWlMb25nIFdhbmcgPHdhbmdrYWlsb25nQGphcmkuY24+Ci0tLQogZHJp
+dmVycy9hY3BpL2FjcGljYS9ldnNjaS5jICAgICAgICAgICAgICAgICAgICAgfCAxMiArKysrKy0t
+LS0tLS0KIGRyaXZlcnMvZ3B1L2RybS9hbWQvZGlzcGxheS9kYy9jb3JlL2RjX3N0cmVhbS5jIHwg
+MTcgKysrKysrKy0tLS0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwg
+MTcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9ldnNjaS5j
+IGIvZHJpdmVycy9hY3BpL2FjcGljYS9ldnNjaS5jCmluZGV4IDM5MTVmZjYxNDEyYi4uNjNkZDJh
+YTJkMTZhIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2c2NpLmMKKysrIGIvZHJp
+dmVycy9hY3BpL2FjcGljYS9ldnNjaS5jCkBAIC0zOCw5ICszOCw4IEBAIHUzMiBhY3BpX2V2X3Nj
+aV9kaXNwYXRjaCh2b2lkKQogCiAJLyogQXJlIHRoZXJlIGFueSBob3N0LWluc3RhbGxlZCBTQ0kg
+aGFuZGxlcnM/ICovCiAKLQlpZiAoIWFjcGlfZ2JsX3NjaV9oYW5kbGVyX2xpc3QpIHsKLQkJcmV0
+dXJuIChpbnRfc3RhdHVzKTsKLQl9CisJaWYgKCFhY3BpX2dibF9zY2lfaGFuZGxlcl9saXN0KQor
+CQlyZXR1cm4gaW50X3N0YXR1czsKIAogCWZsYWdzID0gYWNwaV9vc19hY3F1aXJlX2xvY2soYWNw
+aV9nYmxfZ3BlX2xvY2spOwogCkBAIC01Nyw3ICs1Niw3IEBAIHUzMiBhY3BpX2V2X3NjaV9kaXNw
+YXRjaCh2b2lkKQogCX0KIAogCWFjcGlfb3NfcmVsZWFzZV9sb2NrKGFjcGlfZ2JsX2dwZV9sb2Nr
+LCBmbGFncyk7Ci0JcmV0dXJuIChpbnRfc3RhdHVzKTsKKwlyZXR1cm4gaW50X3N0YXR1czsKIH0K
+IAogLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioKQEAgLTE5Myw5ICsxOTIsOCBAQCBhY3BpX3N0YXR1
+cyBhY3BpX2V2X3JlbW92ZV9hbGxfc2NpX2hhbmRsZXJzKHZvaWQpCiAJICAgIGFjcGlfb3NfcmVt
+b3ZlX2ludGVycnVwdF9oYW5kbGVyKCh1MzIpIGFjcGlfZ2JsX0ZBRFQuc2NpX2ludGVycnVwdCwK
+IAkJCQkJICAgICBhY3BpX2V2X3NjaV94cnVwdF9oYW5kbGVyKTsKIAotCWlmICghYWNwaV9nYmxf
+c2NpX2hhbmRsZXJfbGlzdCkgewotCQlyZXR1cm4gKHN0YXR1cyk7Ci0JfQorCWlmICghYWNwaV9n
+Ymxfc2NpX2hhbmRsZXJfbGlzdCkKKwkJcmV0dXJuIHN0YXR1czsKIAogCWZsYWdzID0gYWNwaV9v
+c19hY3F1aXJlX2xvY2soYWNwaV9nYmxfZ3BlX2xvY2spOwogCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L2dwdS9kcm0vYW1kL2Rpc3BsYXkvZGMvY29yZS9kY19zdHJlYW0uYyBiL2RyaXZlcnMvZ3B1L2Ry
+bS9hbWQvZGlzcGxheS9kYy9jb3JlL2RjX3N0cmVhbS5jCmluZGV4IDM4ZDcxYjVjMWYyZC4uNjY2
+NjFhMjAxMTdiIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vYW1kL2Rpc3BsYXkvZGMvY29y
+ZS9kY19zdHJlYW0uYworKysgYi9kcml2ZXJzL2dwdS9kcm0vYW1kL2Rpc3BsYXkvZGMvY29yZS9k
+Y19zdHJlYW0uYwpAQCAtMjksNyArMjksNiBAQAogI2luY2x1ZGUgImNvcmVfdHlwZXMuaCIKICNp
+bmNsdWRlICJyZXNvdXJjZS5oIgogI2luY2x1ZGUgImlwcC5oIgotI2luY2x1ZGUgInRpbWluZ19n
+ZW5lcmF0b3IuaCIKICNpbmNsdWRlICJkY19kbXViX3Nydi5oIgogCiAjZGVmaW5lIERDX0xPR0dF
+UiBkYy0+Y3R4LT5sb2dnZXIKQEAgLTE1Miw5ICsxNTEsOCBAQCBzdGF0aWMgdm9pZCBkY19zdHJl
+YW1fZnJlZShzdHJ1Y3Qga3JlZiAqa3JlZikKIAogdm9pZCBkY19zdHJlYW1fcmVsZWFzZShzdHJ1
+Y3QgZGNfc3RyZWFtX3N0YXRlICpzdHJlYW0pCiB7Ci0JaWYgKHN0cmVhbSAhPSBOVUxMKSB7CisJ
+aWYgKHN0cmVhbSAhPSBOVUxMKQogCQlrcmVmX3B1dCgmc3RyZWFtLT5yZWZjb3VudCwgZGNfc3Ry
+ZWFtX2ZyZWUpOwotCX0KIH0KIAogc3RydWN0IGRjX3N0cmVhbV9zdGF0ZSAqZGNfY3JlYXRlX3N0
+cmVhbV9mb3Jfc2luaygKQEAgLTMxNiwxMSArMzE0LDExIEBAIGJvb2wgZGNfc3RyZWFtX3NldF9j
+dXJzb3JfYXR0cmlidXRlcygKIAlzdHJ1Y3QgZGMgICpkYzsKIAlib29sIHJlc2V0X2lkbGVfb3B0
+aW1pemF0aW9ucyA9IGZhbHNlOwogCi0JaWYgKE5VTEwgPT0gc3RyZWFtKSB7CisJaWYgKHN0cmVh
+bSA9PSBOVUxMKSB7CiAJCWRtX2Vycm9yKCJEQzogZGNfc3RyZWFtIGlzIE5VTEwhXG4iKTsKIAkJ
+cmV0dXJuIGZhbHNlOwogCX0KLQlpZiAoTlVMTCA9PSBhdHRyaWJ1dGVzKSB7CisJaWYgKGF0dHJp
+YnV0ZXMgPT0gTlVMTCkgewogCQlkbV9lcnJvcigiREM6IGF0dHJpYnV0ZXMgaXMgTlVMTCFcbiIp
+OwogCQlyZXR1cm4gZmFsc2U7CiAJfQpAQCAtMzk5LDEyICszOTcsMTIgQEAgYm9vbCBkY19zdHJl
+YW1fc2V0X2N1cnNvcl9wb3NpdGlvbigKIAlzdHJ1Y3QgZGMgICpkYyA9IHN0cmVhbS0+Y3R4LT5k
+YzsKIAlib29sIHJlc2V0X2lkbGVfb3B0aW1pemF0aW9ucyA9IGZhbHNlOwogCi0JaWYgKE5VTEwg
+PT0gc3RyZWFtKSB7CisJaWYgKHN0cmVhbSA9PSBOVUxMKSB7CiAJCWRtX2Vycm9yKCJEQzogZGNf
+c3RyZWFtIGlzIE5VTEwhXG4iKTsKIAkJcmV0dXJuIGZhbHNlOwogCX0KIAotCWlmIChOVUxMID09
+IHBvc2l0aW9uKSB7CisJaWYgKHBvc2l0aW9uID09IE5VTEwpIHsKIAkJZG1fZXJyb3IoIkRDOiBj
+dXJzb3IgcG9zaXRpb24gaXMgTlVMTCFcbiIpOwogCQlyZXR1cm4gZmFsc2U7CiAJfQpAQCAtNDY4
+LDkgKzQ2Niw4IEBAIGJvb2wgZGNfc3RyZWFtX2FkZF93cml0ZWJhY2soc3RydWN0IGRjICpkYywK
+IAkJfQogCX0KIAotCWlmICghaXNEcmMpIHsKKwlpZiAoIWlzRHJjKQogCQlzdHJlYW0tPndyaXRl
+YmFja19pbmZvW3N0cmVhbS0+bnVtX3diX2luZm8rK10gPSAqd2JfaW5mbzsKLQl9CiAKIAlpZiAo
+ZGMtPmh3c3MuZW5hYmxlX3dyaXRlYmFjaykgewogCQlzdHJ1Y3QgZGNfc3RyZWFtX3N0YXR1cyAq
+c3RyZWFtX3N0YXR1cyA9IGRjX3N0cmVhbV9nZXRfc3RhdHVzKHN0cmVhbSk7CkBAIC01MjYsNyAr
+NTIzLDcgQEAgYm9vbCBkY19zdHJlYW1fcmVtb3ZlX3dyaXRlYmFjayhzdHJ1Y3QgZGMgKmRjLAog
+CS8qIHJlbW92ZSB3cml0ZWJhY2sgaW5mbyBmb3IgZGlzYWJsZWQgd3JpdGViYWNrIHBpcGVzIGZy
+b20gc3RyZWFtICovCiAJZm9yIChpID0gMCwgaiA9IDA7IGkgPCBzdHJlYW0tPm51bV93Yl9pbmZv
+OyBpKyspIHsKIAkJaWYgKHN0cmVhbS0+d3JpdGViYWNrX2luZm9baV0ud2JfZW5hYmxlZCkgewot
+CQkJaWYgKGogPCBpKQorCQkJaWYgKGkgIT0gaikKIAkJCQkvKiB0cmltIHRoZSBhcnJheSAqLwog
+CQkJCXN0cmVhbS0+d3JpdGViYWNrX2luZm9bal0gPSBzdHJlYW0tPndyaXRlYmFja19pbmZvW2ld
+OwogCQkJaisrOwotLSAKMi4zNi4xCg==
