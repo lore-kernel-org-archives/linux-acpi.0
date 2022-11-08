@@ -2,112 +2,189 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87DD9C4332F
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Nov 2022 11:48:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE06CC43217
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Nov 2022 13:06:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233876AbiKHLsz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Nov 2022 06:48:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48584 "EHLO
+        id S233705AbiKHNG4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Nov 2022 08:06:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233794AbiKHLsy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Nov 2022 06:48:54 -0500
-Received: from jari.cn (unknown [218.92.28.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 56A7B55BA;
-        Tue,  8 Nov 2022 03:48:53 -0800 (PST)
-Received: by ajax-webmail-localhost.localdomain (Coremail) ; Tue, 8 Nov 2022
- 19:43:54 +0800 (GMT+08:00)
-X-Originating-IP: [182.148.13.29]
-Date:   Tue, 8 Nov 2022 19:43:54 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From:   wangkailong@jari.cn
-To:     Moore <robert.moore@intel.com>,
+        with ESMTP id S234291AbiKHNGv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Nov 2022 08:06:51 -0500
+Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35EEFA468;
+        Tue,  8 Nov 2022 05:06:50 -0800 (PST)
+Received: by mail-qk1-f181.google.com with SMTP id z30so8974313qkz.13;
+        Tue, 08 Nov 2022 05:06:50 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=LI5tKvQ3xbrBkw4pUpaVa/1GYtcIna1PWM17WCwqkc4=;
+        b=va+HiDmHMsNkjzcg1PqsywD6KByihnSiyvZhMV/t3REDkf7Ce4xmjiv/Eh/o1/oFM7
+         DHPFpa+KG7bP3+A7p4iLHPN6BY5adUFJxjhBlwvn7Ji9oEisQcKRIb0sxSSz8PHe1bZN
+         7heSGr5CuviYAOCW/GD0Z8parrX3YBeuwb0sdM5NL5qJYaFr2G+EuKyDIPPhy6s0jV4v
+         HAvzfV/z2InpgMReBarycPg9ySODQiv9JMhCks1yCgU97IpjATRlEP9pjsUc6/+fwByR
+         7dXNZ6osjITFece0P86LA/VuLlsjoFYxZcC3oA8lUA2WL1qqquCdiyAwYni6gdsliz03
+         H6Lw==
+X-Gm-Message-State: ACrzQf1NgCOO+pUdwzYekenKujMJE12v5wZr15H2qp3SLYBAQahTrKVg
+        eASY1CB0JdzKW0TMwO0cmxY9tYLmaG+G1EJUg3oLe6jb
+X-Google-Smtp-Source: AMsMyM6mWnv7hmiQNfBMlQvN6ojeFaZNX36NmVT47vgzqWz5SZt+WPWZwPyHGmH0W/MgDOOVPQhecxo4I04uf7M7HcI=
+X-Received: by 2002:a05:620a:d89:b0:6cf:c98b:744c with SMTP id
+ q9-20020a05620a0d8900b006cfc98b744cmr38188547qkl.443.1667912809286; Tue, 08
+ Nov 2022 05:06:49 -0800 (PST)
+MIME-Version: 1.0
+References: <7ce6bd54.f8.184570dd1b6.Coremail.wangkailong@jari.cn>
+In-Reply-To: <7ce6bd54.f8.184570dd1b6.Coremail.wangkailong@jari.cn>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 8 Nov 2022 14:06:36 +0100
+Message-ID: <CAJZ5v0iv5FP=RKjyvS6Yaq7JvvxmQnz0LKZj5HmOFDbn2VvS2g@mail.gmail.com>
+Subject: Re: [PATCH] ACPICA: Fix return
+To:     wangkailong@jari.cn
+Cc:     Moore <robert.moore@intel.com>,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Wentland <harry.wentland@amd.com>, Li <sunpeng.li@amd.com>,
         Siqueira <Rodrigo.Siqueira@amd.com>,
         Deucher <alexander.deucher@amd.com>,
         =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
         "Pan, Xinhui" <Xinhui.Pan@amd.com>, Airlie <airlied@gmail.com>,
-        Vetter <daniel@ffwll.ch>
-Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        Vetter <daniel@ffwll.ch>, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
         dri-devel@lists.freedesktop.org
-Subject: [PATCH] ACPICA: Fix return
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version XT6.0.1 build 20210329(c53f3fee)
- Copyright (c) 2002-2022 www.mailtech.cn
- mispb-4e503810-ca60-4ec8-a188-7102c18937cf-zhkzyfz.cn
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
-MIME-Version: 1.0
-Message-ID: <7ce6bd54.f8.184570dd1b6.Coremail.wangkailong@jari.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID: AQAAfwCXq+H6QGpj7csBAA--.64W
-X-CM-SenderInfo: 5zdqwypdlo00nj6mt2flof0/1tbiAQAEB2FEYx0DfAAAsm
-X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
-        CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
-        daVFxhVjvjDU=
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-cmV0dXJuIGlzIG5vdCBhIGZ1bmN0aW9uLCBwYXJlbnRoZXNlcyBhcmUgbm90IHJlcXVpcmVkCgpT
-aWduZWQtb2ZmLWJ5OiBLYWlMb25nIFdhbmcgPHdhbmdrYWlsb25nQGphcmkuY24+Ci0tLQogZHJp
-dmVycy9hY3BpL2FjcGljYS9ldnNjaS5jICAgICAgICAgICAgICAgICAgICAgfCAxMiArKysrKy0t
-LS0tLS0KIGRyaXZlcnMvZ3B1L2RybS9hbWQvZGlzcGxheS9kYy9jb3JlL2RjX3N0cmVhbS5jIHwg
-MTcgKysrKysrKy0tLS0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwg
-MTcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9ldnNjaS5j
-IGIvZHJpdmVycy9hY3BpL2FjcGljYS9ldnNjaS5jCmluZGV4IDM5MTVmZjYxNDEyYi4uNjNkZDJh
-YTJkMTZhIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2c2NpLmMKKysrIGIvZHJp
-dmVycy9hY3BpL2FjcGljYS9ldnNjaS5jCkBAIC0zOCw5ICszOCw4IEBAIHUzMiBhY3BpX2V2X3Nj
-aV9kaXNwYXRjaCh2b2lkKQogCiAJLyogQXJlIHRoZXJlIGFueSBob3N0LWluc3RhbGxlZCBTQ0kg
-aGFuZGxlcnM/ICovCiAKLQlpZiAoIWFjcGlfZ2JsX3NjaV9oYW5kbGVyX2xpc3QpIHsKLQkJcmV0
-dXJuIChpbnRfc3RhdHVzKTsKLQl9CisJaWYgKCFhY3BpX2dibF9zY2lfaGFuZGxlcl9saXN0KQor
-CQlyZXR1cm4gaW50X3N0YXR1czsKIAogCWZsYWdzID0gYWNwaV9vc19hY3F1aXJlX2xvY2soYWNw
-aV9nYmxfZ3BlX2xvY2spOwogCkBAIC01Nyw3ICs1Niw3IEBAIHUzMiBhY3BpX2V2X3NjaV9kaXNw
-YXRjaCh2b2lkKQogCX0KIAogCWFjcGlfb3NfcmVsZWFzZV9sb2NrKGFjcGlfZ2JsX2dwZV9sb2Nr
-LCBmbGFncyk7Ci0JcmV0dXJuIChpbnRfc3RhdHVzKTsKKwlyZXR1cm4gaW50X3N0YXR1czsKIH0K
-IAogLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioKQEAgLTE5Myw5ICsxOTIsOCBAQCBhY3BpX3N0YXR1
-cyBhY3BpX2V2X3JlbW92ZV9hbGxfc2NpX2hhbmRsZXJzKHZvaWQpCiAJICAgIGFjcGlfb3NfcmVt
-b3ZlX2ludGVycnVwdF9oYW5kbGVyKCh1MzIpIGFjcGlfZ2JsX0ZBRFQuc2NpX2ludGVycnVwdCwK
-IAkJCQkJICAgICBhY3BpX2V2X3NjaV94cnVwdF9oYW5kbGVyKTsKIAotCWlmICghYWNwaV9nYmxf
-c2NpX2hhbmRsZXJfbGlzdCkgewotCQlyZXR1cm4gKHN0YXR1cyk7Ci0JfQorCWlmICghYWNwaV9n
-Ymxfc2NpX2hhbmRsZXJfbGlzdCkKKwkJcmV0dXJuIHN0YXR1czsKIAogCWZsYWdzID0gYWNwaV9v
-c19hY3F1aXJlX2xvY2soYWNwaV9nYmxfZ3BlX2xvY2spOwogCmRpZmYgLS1naXQgYS9kcml2ZXJz
-L2dwdS9kcm0vYW1kL2Rpc3BsYXkvZGMvY29yZS9kY19zdHJlYW0uYyBiL2RyaXZlcnMvZ3B1L2Ry
-bS9hbWQvZGlzcGxheS9kYy9jb3JlL2RjX3N0cmVhbS5jCmluZGV4IDM4ZDcxYjVjMWYyZC4uNjY2
-NjFhMjAxMTdiIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vYW1kL2Rpc3BsYXkvZGMvY29y
-ZS9kY19zdHJlYW0uYworKysgYi9kcml2ZXJzL2dwdS9kcm0vYW1kL2Rpc3BsYXkvZGMvY29yZS9k
-Y19zdHJlYW0uYwpAQCAtMjksNyArMjksNiBAQAogI2luY2x1ZGUgImNvcmVfdHlwZXMuaCIKICNp
-bmNsdWRlICJyZXNvdXJjZS5oIgogI2luY2x1ZGUgImlwcC5oIgotI2luY2x1ZGUgInRpbWluZ19n
-ZW5lcmF0b3IuaCIKICNpbmNsdWRlICJkY19kbXViX3Nydi5oIgogCiAjZGVmaW5lIERDX0xPR0dF
-UiBkYy0+Y3R4LT5sb2dnZXIKQEAgLTE1Miw5ICsxNTEsOCBAQCBzdGF0aWMgdm9pZCBkY19zdHJl
-YW1fZnJlZShzdHJ1Y3Qga3JlZiAqa3JlZikKIAogdm9pZCBkY19zdHJlYW1fcmVsZWFzZShzdHJ1
-Y3QgZGNfc3RyZWFtX3N0YXRlICpzdHJlYW0pCiB7Ci0JaWYgKHN0cmVhbSAhPSBOVUxMKSB7CisJ
-aWYgKHN0cmVhbSAhPSBOVUxMKQogCQlrcmVmX3B1dCgmc3RyZWFtLT5yZWZjb3VudCwgZGNfc3Ry
-ZWFtX2ZyZWUpOwotCX0KIH0KIAogc3RydWN0IGRjX3N0cmVhbV9zdGF0ZSAqZGNfY3JlYXRlX3N0
-cmVhbV9mb3Jfc2luaygKQEAgLTMxNiwxMSArMzE0LDExIEBAIGJvb2wgZGNfc3RyZWFtX3NldF9j
-dXJzb3JfYXR0cmlidXRlcygKIAlzdHJ1Y3QgZGMgICpkYzsKIAlib29sIHJlc2V0X2lkbGVfb3B0
-aW1pemF0aW9ucyA9IGZhbHNlOwogCi0JaWYgKE5VTEwgPT0gc3RyZWFtKSB7CisJaWYgKHN0cmVh
-bSA9PSBOVUxMKSB7CiAJCWRtX2Vycm9yKCJEQzogZGNfc3RyZWFtIGlzIE5VTEwhXG4iKTsKIAkJ
-cmV0dXJuIGZhbHNlOwogCX0KLQlpZiAoTlVMTCA9PSBhdHRyaWJ1dGVzKSB7CisJaWYgKGF0dHJp
-YnV0ZXMgPT0gTlVMTCkgewogCQlkbV9lcnJvcigiREM6IGF0dHJpYnV0ZXMgaXMgTlVMTCFcbiIp
-OwogCQlyZXR1cm4gZmFsc2U7CiAJfQpAQCAtMzk5LDEyICszOTcsMTIgQEAgYm9vbCBkY19zdHJl
-YW1fc2V0X2N1cnNvcl9wb3NpdGlvbigKIAlzdHJ1Y3QgZGMgICpkYyA9IHN0cmVhbS0+Y3R4LT5k
-YzsKIAlib29sIHJlc2V0X2lkbGVfb3B0aW1pemF0aW9ucyA9IGZhbHNlOwogCi0JaWYgKE5VTEwg
-PT0gc3RyZWFtKSB7CisJaWYgKHN0cmVhbSA9PSBOVUxMKSB7CiAJCWRtX2Vycm9yKCJEQzogZGNf
-c3RyZWFtIGlzIE5VTEwhXG4iKTsKIAkJcmV0dXJuIGZhbHNlOwogCX0KIAotCWlmIChOVUxMID09
-IHBvc2l0aW9uKSB7CisJaWYgKHBvc2l0aW9uID09IE5VTEwpIHsKIAkJZG1fZXJyb3IoIkRDOiBj
-dXJzb3IgcG9zaXRpb24gaXMgTlVMTCFcbiIpOwogCQlyZXR1cm4gZmFsc2U7CiAJfQpAQCAtNDY4
-LDkgKzQ2Niw4IEBAIGJvb2wgZGNfc3RyZWFtX2FkZF93cml0ZWJhY2soc3RydWN0IGRjICpkYywK
-IAkJfQogCX0KIAotCWlmICghaXNEcmMpIHsKKwlpZiAoIWlzRHJjKQogCQlzdHJlYW0tPndyaXRl
-YmFja19pbmZvW3N0cmVhbS0+bnVtX3diX2luZm8rK10gPSAqd2JfaW5mbzsKLQl9CiAKIAlpZiAo
-ZGMtPmh3c3MuZW5hYmxlX3dyaXRlYmFjaykgewogCQlzdHJ1Y3QgZGNfc3RyZWFtX3N0YXR1cyAq
-c3RyZWFtX3N0YXR1cyA9IGRjX3N0cmVhbV9nZXRfc3RhdHVzKHN0cmVhbSk7CkBAIC01MjYsNyAr
-NTIzLDcgQEAgYm9vbCBkY19zdHJlYW1fcmVtb3ZlX3dyaXRlYmFjayhzdHJ1Y3QgZGMgKmRjLAog
-CS8qIHJlbW92ZSB3cml0ZWJhY2sgaW5mbyBmb3IgZGlzYWJsZWQgd3JpdGViYWNrIHBpcGVzIGZy
-b20gc3RyZWFtICovCiAJZm9yIChpID0gMCwgaiA9IDA7IGkgPCBzdHJlYW0tPm51bV93Yl9pbmZv
-OyBpKyspIHsKIAkJaWYgKHN0cmVhbS0+d3JpdGViYWNrX2luZm9baV0ud2JfZW5hYmxlZCkgewot
-CQkJaWYgKGogPCBpKQorCQkJaWYgKGkgIT0gaikKIAkJCQkvKiB0cmltIHRoZSBhcnJheSAqLwog
-CQkJCXN0cmVhbS0+d3JpdGViYWNrX2luZm9bal0gPSBzdHJlYW0tPndyaXRlYmFja19pbmZvW2ld
-OwogCQkJaisrOwotLSAKMi4zNi4xCg==
+On Tue, Nov 8, 2022 at 12:48 PM <wangkailong@jari.cn> wrote:
+>
+> return is not a function, parentheses are not required
+>
+> Signed-off-by: KaiLong Wang <wangkailong@jari.cn>
+
+ACPICA material is to be submitted to the upstream project at GitHub
+(please see MAINTAINERS for the link).
+
+You may notice, however, that your changes do not align with the
+coding style there.
+
+Moreover, the patch contains non-ACPICA changes that are not mentioned
+in the changelog.
+
+> ---
+>  drivers/acpi/acpica/evsci.c                     | 12 +++++-------
+>  drivers/gpu/drm/amd/display/dc/core/dc_stream.c | 17 +++++++----------
+>  2 files changed, 12 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/evsci.c b/drivers/acpi/acpica/evsci.c
+> index 3915ff61412b..63dd2aa2d16a 100644
+> --- a/drivers/acpi/acpica/evsci.c
+> +++ b/drivers/acpi/acpica/evsci.c
+> @@ -38,9 +38,8 @@ u32 acpi_ev_sci_dispatch(void)
+>
+>         /* Are there any host-installed SCI handlers? */
+>
+> -       if (!acpi_gbl_sci_handler_list) {
+> -               return (int_status);
+> -       }
+> +       if (!acpi_gbl_sci_handler_list)
+> +               return int_status;
+>
+>         flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+>
+> @@ -57,7 +56,7 @@ u32 acpi_ev_sci_dispatch(void)
+>         }
+>
+>         acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+> -       return (int_status);
+> +       return int_status;
+>  }
+>
+>  /*******************************************************************************
+> @@ -193,9 +192,8 @@ acpi_status acpi_ev_remove_all_sci_handlers(void)
+>             acpi_os_remove_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
+>                                              acpi_ev_sci_xrupt_handler);
+>
+> -       if (!acpi_gbl_sci_handler_list) {
+> -               return (status);
+> -       }
+> +       if (!acpi_gbl_sci_handler_list)
+> +               return status;
+>
+>         flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+>
+> diff --git a/drivers/gpu/drm/amd/display/dc/core/dc_stream.c b/drivers/gpu/drm/amd/display/dc/core/dc_stream.c
+> index 38d71b5c1f2d..66661a20117b 100644
+> --- a/drivers/gpu/drm/amd/display/dc/core/dc_stream.c
+> +++ b/drivers/gpu/drm/amd/display/dc/core/dc_stream.c
+> @@ -29,7 +29,6 @@
+>  #include "core_types.h"
+>  #include "resource.h"
+>  #include "ipp.h"
+> -#include "timing_generator.h"
+>  #include "dc_dmub_srv.h"
+>
+>  #define DC_LOGGER dc->ctx->logger
+> @@ -152,9 +151,8 @@ static void dc_stream_free(struct kref *kref)
+>
+>  void dc_stream_release(struct dc_stream_state *stream)
+>  {
+> -       if (stream != NULL) {
+> +       if (stream != NULL)
+>                 kref_put(&stream->refcount, dc_stream_free);
+> -       }
+>  }
+>
+>  struct dc_stream_state *dc_create_stream_for_sink(
+> @@ -316,11 +314,11 @@ bool dc_stream_set_cursor_attributes(
+>         struct dc  *dc;
+>         bool reset_idle_optimizations = false;
+>
+> -       if (NULL == stream) {
+> +       if (stream == NULL) {
+>                 dm_error("DC: dc_stream is NULL!\n");
+>                 return false;
+>         }
+> -       if (NULL == attributes) {
+> +       if (attributes == NULL) {
+>                 dm_error("DC: attributes is NULL!\n");
+>                 return false;
+>         }
+> @@ -399,12 +397,12 @@ bool dc_stream_set_cursor_position(
+>         struct dc  *dc = stream->ctx->dc;
+>         bool reset_idle_optimizations = false;
+>
+> -       if (NULL == stream) {
+> +       if (stream == NULL) {
+>                 dm_error("DC: dc_stream is NULL!\n");
+>                 return false;
+>         }
+>
+> -       if (NULL == position) {
+> +       if (position == NULL) {
+>                 dm_error("DC: cursor position is NULL!\n");
+>                 return false;
+>         }
+> @@ -468,9 +466,8 @@ bool dc_stream_add_writeback(struct dc *dc,
+>                 }
+>         }
+>
+> -       if (!isDrc) {
+> +       if (!isDrc)
+>                 stream->writeback_info[stream->num_wb_info++] = *wb_info;
+> -       }
+>
+>         if (dc->hwss.enable_writeback) {
+>                 struct dc_stream_status *stream_status = dc_stream_get_status(stream);
+> @@ -526,7 +523,7 @@ bool dc_stream_remove_writeback(struct dc *dc,
+>         /* remove writeback info for disabled writeback pipes from stream */
+>         for (i = 0, j = 0; i < stream->num_wb_info; i++) {
+>                 if (stream->writeback_info[i].wb_enabled) {
+> -                       if (j < i)
+> +                       if (i != j)
+>                                 /* trim the array */
+>                                 stream->writeback_info[j] = stream->writeback_info[i];
+>                         j++;
+> --
+> 2.36.1
