@@ -2,148 +2,64 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A3D1C43219
-	for <linux-acpi@archiver.kernel.org>; Thu, 10 Nov 2022 01:52:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B88C433FE
+	for <linux-acpi@archiver.kernel.org>; Thu, 10 Nov 2022 10:25:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231666AbiKJBwx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 9 Nov 2022 20:52:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47908 "EHLO
+        id S229625AbiKJKZg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Nov 2022 05:25:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232093AbiKJBwu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Nov 2022 20:52:50 -0500
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4223BC1D;
-        Wed,  9 Nov 2022 17:52:49 -0800 (PST)
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4N74WQ6lFczpWLN;
-        Thu, 10 Nov 2022 09:49:06 +0800 (CST)
-Received: from kwepemm600004.china.huawei.com (7.193.23.242) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 10 Nov 2022 09:52:48 +0800
-Received: from localhost.localdomain (10.28.79.22) by
- kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 10 Nov 2022 09:52:47 +0800
-From:   Huisong Li <lihuisong@huawei.com>
-To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     <rafael@kernel.org>, <sudeep.holla@arm.com>,
-        <rafael.j.wysocki@intel.com>, <wanghuiqiang@huawei.com>,
-        <zhangzekun11@huawei.com>, <wangxiongfeng2@huawei.com>,
-        <tanxiaofei@huawei.com>, <guohanjun@huawei.com>,
-        <xiexiuqi@huawei.com>, <wangkefeng.wang@huawei.com>,
-        <huangdaode@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH 2/3] ACPI: PCC: add check for platform interrupt
-Date:   Thu, 10 Nov 2022 09:50:33 +0800
-Message-ID: <20221110015034.7943-3-lihuisong@huawei.com>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20221110015034.7943-1-lihuisong@huawei.com>
+        with ESMTP id S229559AbiKJKZe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2022 05:25:34 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5406713EA4;
+        Thu, 10 Nov 2022 02:25:33 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F0BF11FB;
+        Thu, 10 Nov 2022 02:25:38 -0800 (PST)
+Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0A23D3F534;
+        Thu, 10 Nov 2022 02:25:30 -0800 (PST)
+Date:   Thu, 10 Nov 2022 10:25:28 +0000
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     Huisong Li <lihuisong@huawei.com>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Sudeep Holla <sudeep.holla@arm.com>, rafael@kernel.org,
+        rafael.j.wysocki@intel.com, wanghuiqiang@huawei.com,
+        zhangzekun11@huawei.com, wangxiongfeng2@huawei.com,
+        tanxiaofei@huawei.com, guohanjun@huawei.com, xiexiuqi@huawei.com,
+        wangkefeng.wang@huawei.com, huangdaode@huawei.com
+Subject: Re: [PATCH 1/3] mailbox: pcc: rename platform interrupt bit macro
+ name
+Message-ID: <20221110102528.6kuznowxtqkouvlb@bogus>
 References: <20221110015034.7943-1-lihuisong@huawei.com>
+ <20221110015034.7943-2-lihuisong@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.28.79.22]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- kwepemm600004.china.huawei.com (7.193.23.242)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221110015034.7943-2-lihuisong@huawei.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-PCC Operation Region driver senses the completion of command by interrupt
-way. If platform can not generate an interrupt when a command complete,
-the caller never gets the desired result. So let's reject the setup of the
-PCC address space on platform that do not support interrupt mode.
+On Thu, Nov 10, 2022 at 09:50:32AM +0800, Huisong Li wrote:
+> Currently, the name of platform interrupt bit macro, ACPI_PCCT_DOORBELL,
+> is not very appropriate. The doorbell is generally considered as an action
+> when send mailbox data. Actually, the macro value comes from Platform
+> Interrupt in Platform Communications Channel Global Flags. If the bit is
+> '1', it means that the platform is capable of generating an interrupt to
+> indicate completion of a command.
+>
 
-Signed-off-by: Huisong Li <lihuisong@huawei.com>
----
- drivers/acpi/acpi_pcc.c | 47 +++++++++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 18 deletions(-)
+This is touching ACPICA header file, so it must be submitted to ACPICA
+separately following the guidelines in the github and imported into the
+kernel.
 
-diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
-index 3e252be047b8..8efd08e469aa 100644
---- a/drivers/acpi/acpi_pcc.c
-+++ b/drivers/acpi/acpi_pcc.c
-@@ -53,6 +53,7 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
- 	struct pcc_data *data;
- 	struct acpi_pcc_info *ctx = handler_context;
- 	struct pcc_mbox_chan *pcc_chan;
-+	static acpi_status ret;
- 
- 	data = kzalloc(sizeof(*data), GFP_KERNEL);
- 	if (!data)
-@@ -69,23 +70,35 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
- 	if (IS_ERR(data->pcc_chan)) {
- 		pr_err("Failed to find PCC channel for subspace %d\n",
- 		       ctx->subspace_id);
--		kfree(data);
--		return AE_NOT_FOUND;
-+		ret = AE_NOT_FOUND;
-+		goto request_channel_fail;
- 	}
- 
- 	pcc_chan = data->pcc_chan;
-+	if (!pcc_chan->mchan->mbox->txdone_irq) {
-+		pr_err("This channel-%d does not support interrupt.\n",
-+		       ctx->subspace_id);
-+		ret = AE_SUPPORT;
-+		goto request_channel_fail;
-+	}
- 	data->pcc_comm_addr = acpi_os_ioremap(pcc_chan->shmem_base_addr,
- 					      pcc_chan->shmem_size);
- 	if (!data->pcc_comm_addr) {
- 		pr_err("Failed to ioremap PCC comm region mem for %d\n",
- 		       ctx->subspace_id);
--		pcc_mbox_free_channel(data->pcc_chan);
--		kfree(data);
--		return AE_NO_MEMORY;
-+		ret = AE_NO_MEMORY;
-+		goto ioremap_fail;
- 	}
- 
- 	*region_context = data;
- 	return AE_OK;
-+
-+ioremap_fail:
-+	pcc_mbox_free_channel(data->pcc_chan);
-+request_channel_fail:
-+	kfree(data);
-+
-+	return ret;
- }
- 
- static acpi_status
-@@ -106,19 +119,17 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
- 	if (ret < 0)
- 		return AE_ERROR;
- 
--	if (data->pcc_chan->mchan->mbox->txdone_irq) {
--		/*
--		 * pcc_chan->latency is just a Nominal value. In reality the remote
--		 * processor could be much slower to reply. So add an arbitrary
--		 * amount of wait on top of Nominal.
--		 */
--		usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * data->pcc_chan->latency;
--		ret = wait_for_completion_timeout(&data->done,
--						  usecs_to_jiffies(usecs_lat));
--		if (ret == 0) {
--			pr_err("PCC command executed timeout!\n");
--			return AE_TIME;
--		}
-+	/*
-+	 * pcc_chan->latency is just a Nominal value. In reality the remote
-+	 * processor could be much slower to reply. So add an arbitrary
-+	 * amount of wait on top of Nominal.
-+	 */
-+	usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * data->pcc_chan->latency;
-+	ret = wait_for_completion_timeout(&data->done,
-+						usecs_to_jiffies(usecs_lat));
-+	if (ret == 0) {
-+		pr_err("PCC command executed timeout!\n");
-+		return AE_TIME;
- 	}
- 
- 	mbox_chan_txdone(data->pcc_chan->mchan, ret);
+However, I don't see any point in this change. Yes the language "doorbell"
+is not used in this particular context in the spec, but it is implicit from
+other parts. I am not opposing the change though if Rafael is OK and ACPICA
+project accepts it.
+
 -- 
-2.22.0
-
+Regards,
+Sudeep
