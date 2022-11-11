@@ -2,419 +2,128 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6703CC43219
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 22:19:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A077DC433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 23:43:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234660AbiKKWTr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Nov 2022 17:19:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46352 "EHLO
+        id S234673AbiKKXn6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Nov 2022 18:43:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234609AbiKKWTY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2022 17:19:24 -0500
-Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB5AC9FC0;
-        Fri, 11 Nov 2022 14:19:21 -0800 (PST)
-Received: by mail-pf1-x434.google.com with SMTP id 130so5989853pfu.8;
-        Fri, 11 Nov 2022 14:19:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=APhmU9DPCCcS9xfuWfJUzV8D2prFRAJPsvhz8PUvWOQ=;
-        b=C3vq+MXHtCk2Pcvwlj6k2vvKcv+QfgD+DfDJ1L+pUEyu6NOCtnHXchHKzTmmliSSUx
-         /IuW5TfJ8KfAzsBP4XQ8NKVSVwOtoA9Wx16+zWDr4RbwYbpfAZ2ekQDi3c9H45E8ow7d
-         IR7s001MM9uy141YypME70W8USDQ8MR7iqbbJYhEt6sxm9PYNPr55+gaQM9kA+ov6jW3
-         0fCd+MYPWN5YJp9LSmoU1tqdx+FmKMg2ot3aXdBO+2UaoVVR48Aw+XspWWeaMq0qd35z
-         EhiXIs052Ss6eUC83KTc0Pr+zI5ZUDFRPg2zEDk8/emQsjN1gM60exD9e04BBBshu+8H
-         ypsg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=APhmU9DPCCcS9xfuWfJUzV8D2prFRAJPsvhz8PUvWOQ=;
-        b=jrk+FRX+OxO3zmeKWJeKJeGAzo0QNkEqhT8HxfX9YlRDln/t4CWhuHEwrh5pfFYe/6
-         HV9PBnXNs2AQBZosFfQ70OS3vG9zhh5FoB3Z54MFD4wkBs4s4nKwnSCbZgA7aOTqNpR2
-         PLpGxaIs69ybcPwSjAIfwV4XcVu1ZOe0nI5pi0Lv9pG9nAHDnzLPZ78KMq6dUkpif6VU
-         WUc4c8NRtKFgk2tRlfaBVG/ot/mJjlWAYRUSiIcOP/35QIDOoZMXHwWAIobDExlsiUXY
-         wYuOexebO/l03zyIGL/Gqv/OhIc+E/XpHWSPiiUvlm9/m8h0ooSwK775iNQrfBpvkJF1
-         /7Bw==
-X-Gm-Message-State: ANoB5pnnbBXzkffwyFSbQmJjozySOwk/p4/E9S7xakoe6nGTldq7u5JS
-        zx8oTsK73gI86oL09KFwTU2wMzg6zfE=
-X-Google-Smtp-Source: AA0mqf4fWQnDW+jXdMmM5yE0Fo1u+GyKG4mv8VcdVXcLUDPoDKd92s4GH+GDdtNRijDpUQzBh9LeeA==
-X-Received: by 2002:a62:f212:0:b0:561:5c6:62f9 with SMTP id m18-20020a62f212000000b0056105c662f9mr4592018pfh.56.1668205160828;
-        Fri, 11 Nov 2022 14:19:20 -0800 (PST)
-Received: from dtor-ws.mtv.corp.google.com ([2620:15c:9d:2:de05:ad1e:65ae:ea4d])
-        by smtp.gmail.com with ESMTPSA id q9-20020a170902bd8900b00180daa59314sm2201109pls.125.2022.11.11.14.19.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Nov 2022 14:19:20 -0800 (PST)
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     Bartosz Golaszewski <brgl@bgdev.pl>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v4 5/6] gpiolib: consolidate GPIO lookups
-Date:   Fri, 11 Nov 2022 14:19:07 -0800
-Message-Id: <20221031-gpiolib-swnode-v4-5-6c1671890027@gmail.com>
-X-Mailer: git-send-email 2.38.1.431.g37b22c650d-goog
-In-Reply-To: <20221031-gpiolib-swnode-v4-0-6c1671890027@gmail.com>
-References: <20221031-gpiolib-swnode-v4-0-6c1671890027@gmail.com>
+        with ESMTP id S234602AbiKKXn6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2022 18:43:58 -0500
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2069.outbound.protection.outlook.com [40.107.223.69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36F4DCE17;
+        Fri, 11 Nov 2022 15:43:57 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Zd/m+rQCVtoCkpjP0n+ddAZuASR3TFPG2Wdg4mYTJhjddQFMRnUSHMW79SCGuFD04pRbHFHBulJ0SNxyZMJe7FlFEoTi6Xtnlu2cyXRzkDHp8z6ohT2nWnogZKDU8JDOMvIW5MkP74R/U5EboiawUBpiyZI166SlXDknnfgHR1DVkiAxAyxJCHo2WWZx2Xtadc2LgDgmyxYkxZXutUtFTPvtAn/GMuBPBV2Rw709L2RgAmw8K5JBvlPgsTPyyrCabq26rGxAAra4cyKYRwYDMz04uORXff+dsCupEj0XaoDKRYBUFhOdCmomau1APQHSbGq3tjQfsAeLSAqW8qNmkQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=w0PmLlEWGTZU26znzCiDvS0yf/ED5CgleOVcx6RAnbU=;
+ b=m6AxE2zMWHykI/n5JsKcLeE+fDikuEDdBcAm/YOLrnSydnGEQ7zZyXKP8aqqje2f7tiiS33r1SrbGjrUvBHD13qaoOn68KP5sFgNRUeFgcbTyF/6Nyc2GGzOLVodfqhnCc+ZDKRdSfD3q/xIn0uFnhh/0NYdzV9YdSSOyKE8jUnvw7s7AaKm7sqlBvd03pMRjyY/Z52e37D3MFDub+qWBOQRJ82jJjiNXxj7mXY2qXDVErYutmtAtB4ByC1U2z99GRqPNKnERCQpV5ubd5k5Okp6Z5Tn88h2kR5PeGqesIFsPZLgcOuf3QZefPekUL5ibl5wJQ5GXqEHQpp2qRGDPw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=w0PmLlEWGTZU26znzCiDvS0yf/ED5CgleOVcx6RAnbU=;
+ b=Z+HZKAy/mbSOG6hNGs+Hx10WQTueRFWDJpXZfWkM2QTktBr0FL2DUsxRBSvCQFxy4fRvRyhR4sxgw4xMpHBRCcQafKKMm7nyRr51oi3meXYwKa/ignp7E/vVmwtHZjmSAleU5SWKcLAO9R38B3PdG9qW282kDjYkIgvybTdhUhUuiz37QMxcI3Sn3U8Ip68pO1scV05dhKI30ZwLNWUSgp9IPODDePdsFGVU36MZ7vU+hqAPz04VLPUMsZQorBgMl2jZcTEExvVjryERLFXLpgrg7u9QVlf2Btx0o+GIS+sVg6qWOFgPC0nLzdLp3/DpMqfMglqj8Yqj9HMmWOs/wA==
+Received: from DS7PR03CA0213.namprd03.prod.outlook.com (2603:10b6:5:3ba::8) by
+ PH7PR12MB5782.namprd12.prod.outlook.com (2603:10b6:510:1d1::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5813.13; Fri, 11 Nov
+ 2022 23:43:55 +0000
+Received: from DM6NAM11FT030.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:3ba:cafe::9e) by DS7PR03CA0213.outlook.office365.com
+ (2603:10b6:5:3ba::8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5813.14 via Frontend
+ Transport; Fri, 11 Nov 2022 23:43:54 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ DM6NAM11FT030.mail.protection.outlook.com (10.13.172.146) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5813.12 via Frontend Transport; Fri, 11 Nov 2022 23:43:54 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.26; Fri, 11 Nov
+ 2022 15:43:52 -0800
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Fri, 11 Nov
+ 2022 15:43:52 -0800
+Received: from msst-build.nvidia.com (10.127.8.14) by mail.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server id 15.2.986.36 via Frontend
+ Transport; Fri, 11 Nov 2022 15:43:51 -0800
+From:   Besar Wicaksono <bwicaksono@nvidia.com>
+To:     <will@kernel.org>, <lorenzo.pieralisi@arm.com>,
+        <guohanjun@huawei.com>, <sudeep.holla@arm.com>
+CC:     <linux-tegra@vger.kernel.org>, <treding@nvidia.com>,
+        <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
+        <linux-acpi@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Besar Wicaksono <bwicaksono@nvidia.com>
+Subject: [PATCH] ACPI: APMT: Fix kerneldoc and indentation
+Date:   Fri, 11 Nov 2022 17:43:23 -0600
+Message-ID: <20221111234323.16182-1-bwicaksono@nvidia.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.11.0-dev-28747
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT030:EE_|PH7PR12MB5782:EE_
+X-MS-Office365-Filtering-Correlation-Id: 197d33da-fe17-4d0a-65ba-08dac43e9850
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: uzCYyFQSLumYsArLGFEmXmpB8wcaXzRvdtuzbxKOqQgztrJi4axxDCHZlkrggsgUF14Sp7+DJOt2/oSt/Masxwlk/vuRJpgsPx58JQQALO9whYWYOTPuYRhqzwnfavvAKOK4Hgn3V8A40UM7rYL96WnvwFXlDRBf0Knga3U7GsZMaJGMH9Z3C7AWYq/r2BbhNl4J0WsdY3nvCyzNgvubfeQDB9ubuDaIdRjvRpUerQmCHOXsNYRwI6DDQafg9RQ6W5FlSMoYQhrhWoXvVDNNL/MN3oJ8NkKj28pywLn8ina8tVnrbkZElhmgrPAKKmCVwE6y156DSu/N3bg4x+SYq8tCirQDE2hEsdaKG/aKlSVL5zgT17rsxW56PL4XAhSFL+6N0quTMqb2Rob3zrJBDYCQnEd7a7Kzn4yfz9A9uu1WsfAPZRgxM4Zq4mTqSQrSKCy7PXFdgbTBL0nzUDghTqGZ4KkE19hx0qtr7FgMTEPaC6WbovA6agmMx/EJEE889R4YUPBOrZrzBu7y3AWuSZYPznhLIBmJJo16UP5PVy6DRceM1Ua3BkELSF/DdMkYKGWPYNpM+pJFh4ZpgnZ6SoSPhOyLWSy7tINwm7qnJh+6jxahEOUVYSA3P8M9+3JNCeU/tW3rWQag4DhDA2XW9INP3ddZwudUBNpC/VSNTvY0xXyYR3i9fu/KKhI/4aLinxQ2DPXrc1fj2bbYF5HSaymg4h4REAJtPv01pc5mMRuR5NuqXKbjiu1jXJtfo6MQH5gem022XgzcGl7G6I2Bcw==
+X-Forefront-Antispam-Report: CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(396003)(376002)(136003)(346002)(451199015)(40470700004)(46966006)(36840700001)(40460700003)(41300700001)(336012)(4744005)(4326008)(5660300002)(186003)(83380400001)(110136005)(8936002)(7696005)(70586007)(54906003)(26005)(2616005)(1076003)(316002)(36860700001)(7636003)(356005)(36756003)(47076005)(82740400003)(40480700001)(426003)(82310400005)(2906002)(86362001)(8676002)(70206006)(478600001)(107886003)(6666004);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Nov 2022 23:43:54.7206
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 197d33da-fe17-4d0a-65ba-08dac43e9850
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT030.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5782
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Ensure that all paths to obtain/look up GPIOD from generic
-consumer-visible APIs go through the new gpiod_find_and_request()
-helper, so that we can easily extend it with support for new firmware
-mechanisms.
+Add missing kerneldoc and fix alignment on one of the arguments of
+apmt_add_platform_device function.
 
-The only exception is OF-specific [devm_]gpiod_get_from_of_node() API
-that is still being used by a couple of drivers and will be removed as
-soon as patches converting them to use generic fwnode/device APIs are
-accepted.
-
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Besar Wicaksono <bwicaksono@nvidia.com>
 ---
- drivers/gpio/gpiolib-acpi.c |  39 ---------
- drivers/gpio/gpiolib-acpi.h |  10 ---
- drivers/gpio/gpiolib.c      | 204 +++++++++++++++++---------------------------
- 3 files changed, 76 insertions(+), 177 deletions(-)
+ drivers/acpi/arm64/apmt.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 1bc386032ca8..bed0380c5136 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -1024,45 +1024,6 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
- 	return desc;
- }
- 
--/**
-- * acpi_node_get_gpiod() - get a GPIO descriptor from ACPI resources
-- * @fwnode: pointer to an ACPI firmware node to get the GPIO information from
-- * @propname: Property name of the GPIO
-- * @index: index of GpioIo/GpioInt resource (starting from %0)
-- * @lflags: bitmask of gpio_lookup_flags GPIO_* values
-- * @dflags: gpiod initialization flags
-- *
-- * If @fwnode is an ACPI device object, call acpi_get_gpiod_by_index() for it.
-- * Otherwise (i.e. it is a data-only non-device object), use the property-based
-- * GPIO lookup to get to the GPIO resource with the relevant information and use
-- * that to obtain the GPIO descriptor to return.
-- *
-- * If the GPIO cannot be translated or there is an error an ERR_PTR is
-- * returned.
-- */
--struct gpio_desc *acpi_node_get_gpiod(struct fwnode_handle *fwnode,
--				      const char *propname, int index,
--				      unsigned long *lflags,
--				      enum gpiod_flags *dflags)
--{
--	struct acpi_gpio_info info;
--	struct acpi_device *adev;
--	struct gpio_desc *desc;
--
--	adev = to_acpi_device_node(fwnode);
--	if (adev)
--		desc = acpi_get_gpiod_by_index(adev, propname, index, &info);
--	else
--		desc = acpi_get_gpiod_from_data(fwnode, propname, index, &info);
--
--	if (!IS_ERR(desc)) {
--		acpi_gpio_update_gpiod_flags(dflags, &info);
--		acpi_gpio_update_gpiod_lookup_flags(lflags, &info);
--	}
--
--	return desc;
--}
--
+diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
+index f55167ca51e7..5a3f90a34e4b 100644
+--- a/drivers/acpi/arm64/apmt.c
++++ b/drivers/acpi/arm64/apmt.c
+@@ -66,11 +66,12 @@ static int __init apmt_init_resources(struct resource *res,
  /**
-  * acpi_dev_gpio_irq_wake_get_by() - Find GpioInt and translate it to Linux IRQ number
-  * @adev: pointer to a ACPI device to get IRQ from
-diff --git a/drivers/gpio/gpiolib-acpi.h b/drivers/gpio/gpiolib-acpi.h
-index 8880615327ac..9475f99a9694 100644
---- a/drivers/gpio/gpiolib-acpi.h
-+++ b/drivers/gpio/gpiolib-acpi.h
-@@ -36,10 +36,6 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
- 				 unsigned int idx,
- 				 enum gpiod_flags *dflags,
- 				 unsigned long *lookupflags);
--struct gpio_desc *acpi_node_get_gpiod(struct fwnode_handle *fwnode,
--				      const char *propname, int index,
--				      unsigned long *lflags,
--				      enum gpiod_flags *dflags);
- 
- int acpi_gpio_count(struct device *dev, const char *con_id);
- #else
-@@ -61,12 +57,6 @@ acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id,
- {
- 	return ERR_PTR(-ENOENT);
- }
--static inline struct gpio_desc *
--acpi_node_get_gpiod(struct fwnode_handle *fwnode, const char *propname,
--		    int index, unsigned long *lflags, enum gpiod_flags *dflags)
--{
--	return ERR_PTR(-ENXIO);
--}
- static inline int acpi_gpio_count(struct device *dev, const char *con_id)
- {
- 	return -ENODEV;
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index b213f5f93ae0..7f739096c4cf 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -366,7 +366,7 @@ static int gpiochip_set_desc_names(struct gpio_chip *gc)
- static int devprop_gpiochip_set_names(struct gpio_chip *chip)
- {
- 	struct gpio_device *gdev = chip->gpiodev;
--	struct fwnode_handle *fwnode = dev_fwnode(&gdev->dev);
-+	const struct fwnode_handle *fwnode = dev_fwnode(&gdev->dev);
- 	const char **names;
- 	int ret, i;
- 	int count;
-@@ -3853,58 +3853,84 @@ static int platform_gpio_count(struct device *dev, const char *con_id)
- 	return count;
- }
- 
--/**
-- * fwnode_get_named_gpiod - obtain a GPIO from firmware node
-- * @fwnode:	handle of the firmware node
-- * @propname:	name of the firmware property representing the GPIO
-- * @index:	index of the GPIO to obtain for the consumer
-- * @dflags:	GPIO initialization flags
-- * @label:	label to attach to the requested GPIO
-- *
-- * This function can be used for drivers that get their configuration
-- * from opaque firmware.
-- *
-- * The function properly finds the corresponding GPIO using whatever is the
-- * underlying firmware interface and then makes sure that the GPIO
-- * descriptor is requested before it is returned to the caller.
-- *
-- * Returns:
-- * On successful request the GPIO pin is configured in accordance with
-- * provided @dflags.
-- *
-- * In case of error an ERR_PTR() is returned.
-- */
--static struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
--						const char *propname, int index,
--						enum gpiod_flags dflags,
--						const char *label)
-+static struct gpio_desc *gpiod_find_by_fwnode(struct fwnode_handle *fwnode,
-+					      struct device *consumer,
-+					      const char *con_id,
-+					      unsigned int idx,
-+					      enum gpiod_flags *flags,
-+					      unsigned long *lookupflags)
- {
--	unsigned long lflags = GPIO_LOOKUP_FLAGS_DEFAULT;
--	struct gpio_desc *desc = ERR_PTR(-ENODEV);
--	int ret;
-+	struct gpio_desc *desc = ERR_PTR(-ENOENT);
- 
- 	if (is_of_node(fwnode)) {
--		desc = gpiod_get_from_of_node(to_of_node(fwnode),
--					      propname, index,
--					      dflags,
--					      label);
--		return desc;
-+		dev_dbg(consumer, "using DT '%pfw' for '%s' GPIO lookup\n",
-+			fwnode, con_id);
-+		desc = of_find_gpio(to_of_node(fwnode), con_id, idx, lookupflags);
- 	} else if (is_acpi_node(fwnode)) {
--		desc = acpi_node_get_gpiod(fwnode, propname, index,
--					   &lflags, &dflags);
--		if (IS_ERR(desc))
--			return desc;
--	} else {
--		return ERR_PTR(-EINVAL);
-+		dev_dbg(consumer, "using ACPI '%pfw' for '%s' GPIO lookup\n",
-+			fwnode, con_id);
-+		desc = acpi_find_gpio(fwnode, con_id, idx, flags, lookupflags);
- 	}
- 
--	/* Currently only ACPI takes this path */
-+	return desc;
-+}
-+
-+static struct gpio_desc *gpiod_find_and_request(struct device *consumer,
-+						struct fwnode_handle *fwnode,
-+						const char *con_id,
-+						unsigned int idx,
-+						enum gpiod_flags flags,
-+						const char *label,
-+						bool platform_lookup_allowed)
-+{
-+	struct gpio_desc *desc = ERR_PTR(-ENOENT);
-+	unsigned long lookupflags;
-+	int ret;
-+
-+	if (!IS_ERR_OR_NULL(fwnode))
-+		desc = gpiod_find_by_fwnode(fwnode, consumer, con_id, idx,
-+					    &flags, &lookupflags);
-+
-+	if (gpiod_not_found(desc) && platform_lookup_allowed) {
-+		/*
-+		 * Either we are not using DT or ACPI, or their lookup did not
-+		 * return a result. In that case, use platform lookup as a
-+		 * fallback.
-+		 */
-+		dev_dbg(consumer, "using lookup tables for GPIO lookup\n");
-+		desc = gpiod_find(consumer, con_id, idx, &lookupflags);
-+	}
-+
-+	if (IS_ERR(desc)) {
-+		dev_dbg(consumer, "No GPIO consumer %s found\n", con_id);
-+		return desc;
-+	}
-+
-+	/*
-+	 * If a connection label was passed use that, else attempt to use
-+	 * the device name as label
-+	 */
- 	ret = gpiod_request(desc, label);
--	if (ret)
--		return ERR_PTR(ret);
-+	if (ret) {
-+		if (!(ret == -EBUSY && flags & GPIOD_FLAGS_BIT_NONEXCLUSIVE))
-+			return ERR_PTR(ret);
-+
-+		/*
-+		 * This happens when there are several consumers for
-+		 * the same GPIO line: we just return here without
-+		 * further initialization. It is a bit of a hack.
-+		 * This is necessary to support fixed regulators.
-+		 *
-+		 * FIXME: Make this more sane and safe.
-+		 */
-+		dev_info(consumer,
-+			 "nonexclusive access to GPIO for %s\n", con_id);
-+		return desc;
-+	}
- 
--	ret = gpiod_configure_flags(desc, propname, lflags, dflags);
-+	ret = gpiod_configure_flags(desc, con_id, lookupflags, flags);
- 	if (ret < 0) {
-+		dev_dbg(consumer, "setup of GPIO %s failed\n", con_id);
- 		gpiod_put(desc);
- 		return ERR_PTR(ret);
- 	}
-@@ -3937,29 +3963,12 @@ static struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
-  * In case of error an ERR_PTR() is returned.
+  * apmt_add_platform_device() - Allocate a platform device for APMT node
+  * @node: Pointer to device ACPI APMT node
++ * @fwnode: fwnode associated with the APMT node
+  *
+  * Returns: 0 on success, <0 failure
   */
- struct gpio_desc *fwnode_gpiod_get_index(struct fwnode_handle *fwnode,
--					 const char *con_id, int index,
-+					 const char *con_id,
-+					 int index,
- 					 enum gpiod_flags flags,
- 					 const char *label)
+ static int __init apmt_add_platform_device(struct acpi_apmt_node *node,
+-							struct fwnode_handle *fwnode)
++					   struct fwnode_handle *fwnode)
  {
--	struct gpio_desc *desc;
--	char prop_name[32]; /* 32 is max size of property name */
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(gpio_suffixes); i++) {
--		if (con_id)
--			snprintf(prop_name, sizeof(prop_name), "%s-%s",
--					    con_id, gpio_suffixes[i]);
--		else
--			snprintf(prop_name, sizeof(prop_name), "%s",
--					    gpio_suffixes[i]);
--
--		desc = fwnode_get_named_gpiod(fwnode, prop_name, index, flags,
--					      label);
--		if (!gpiod_not_found(desc))
--			break;
--	}
--
--	return desc;
-+	return gpiod_find_and_request(NULL, fwnode, con_id, index, flags, label, false);
- }
- EXPORT_SYMBOL_GPL(fwnode_gpiod_get_index);
- 
-@@ -4113,72 +4122,11 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
- 					       unsigned int idx,
- 					       enum gpiod_flags flags)
- {
--	unsigned long lookupflags = GPIO_LOOKUP_FLAGS_DEFAULT;
--	struct gpio_desc *desc = NULL;
--	int ret;
--	/* Maybe we have a device name, maybe not */
--	const char *devname = dev ? dev_name(dev) : "?";
- 	struct fwnode_handle *fwnode = dev ? dev_fwnode(dev) : NULL;
-+	const char *devname = dev ? dev_name(dev) : "?";
-+	const char *label = con_id ?: devname;
- 
--	dev_dbg(dev, "GPIO lookup for consumer %s\n", con_id);
--
--	/* Using device tree? */
--	if (is_of_node(fwnode)) {
--		dev_dbg(dev, "using device tree for GPIO lookup\n");
--		desc = of_find_gpio(to_of_node(fwnode),
--				    con_id, idx, &lookupflags);
--	} else if (is_acpi_node(fwnode)) {
--		dev_dbg(dev, "using ACPI for GPIO lookup\n");
--		desc = acpi_find_gpio(fwnode,
--				      con_id, idx, &flags, &lookupflags);
--	}
--
--	/*
--	 * Either we are not using DT or ACPI, or their lookup did not return
--	 * a result. In that case, use platform lookup as a fallback.
--	 */
--	if (!desc || gpiod_not_found(desc)) {
--		dev_dbg(dev, "using lookup tables for GPIO lookup\n");
--		desc = gpiod_find(dev, con_id, idx, &lookupflags);
--	}
--
--	if (IS_ERR(desc)) {
--		dev_dbg(dev, "No GPIO consumer %s found\n", con_id);
--		return desc;
--	}
--
--	/*
--	 * If a connection label was passed use that, else attempt to use
--	 * the device name as label
--	 */
--	ret = gpiod_request(desc, con_id ?: devname);
--	if (ret) {
--		if (!(ret == -EBUSY && flags & GPIOD_FLAGS_BIT_NONEXCLUSIVE))
--			return ERR_PTR(ret);
--
--		/*
--		 * This happens when there are several consumers for
--		 * the same GPIO line: we just return here without
--		 * further initialization. It is a bit of a hack.
--		 * This is necessary to support fixed regulators.
--		 *
--		 * FIXME: Make this more sane and safe.
--		 */
--		dev_info(dev, "nonexclusive access to GPIO for %s\n", con_id ?: devname);
--		return desc;
--	}
--
--	ret = gpiod_configure_flags(desc, con_id, lookupflags, flags);
--	if (ret < 0) {
--		dev_dbg(dev, "setup of GPIO %s failed\n", con_id);
--		gpiod_put(desc);
--		return ERR_PTR(ret);
--	}
--
--	blocking_notifier_call_chain(&desc->gdev->notifier,
--				     GPIOLINE_CHANGED_REQUESTED, desc);
--
--	return desc;
-+	return gpiod_find_and_request(dev, fwnode, con_id, idx, flags, label, true);
- }
- EXPORT_SYMBOL_GPL(gpiod_get_index);
- 
-
+ 	struct platform_device *pdev;
+ 	int ret, count;
 -- 
-b4 0.11.0-dev-28747
+2.17.1
+
