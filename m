@@ -2,124 +2,85 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABEA8C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 14:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5B39C4332F
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 15:46:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234129AbiKKO01 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 11 Nov 2022 09:26:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40198 "EHLO
+        id S234029AbiKKPqE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 11 Nov 2022 10:46:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234588AbiKKO0L (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2022 09:26:11 -0500
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 202EF1AD;
-        Fri, 11 Nov 2022 06:26:08 -0800 (PST)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D9AF51FB;
-        Fri, 11 Nov 2022 06:26:14 -0800 (PST)
-Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E55DD3F73D;
-        Fri, 11 Nov 2022 06:26:06 -0800 (PST)
-Date:   Fri, 11 Nov 2022 14:26:04 +0000
-From:   Sudeep Holla <sudeep.holla@arm.com>
-To:     Huisong Li <lihuisong@huawei.com>
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Sudeep Holla <sudeep.holla@arm.com>, rafael@kernel.org,
-        rafael.j.wysocki@intel.com, wanghuiqiang@huawei.com,
-        zhangzekun11@huawei.com, wangxiongfeng2@huawei.com,
-        tanxiaofei@huawei.com, guohanjun@huawei.com, xiexiuqi@huawei.com,
-        wangkefeng.wang@huawei.com, huangdaode@huawei.com
-Subject: Re: [PATCH V2 1/2] ACPI: PCC: add check for platform interrupt
-Message-ID: <20221111142604.qrk7bf2qf6ibfln3@bogus>
-References: <20221110015034.7943-1-lihuisong@huawei.com>
- <20221111024448.25012-1-lihuisong@huawei.com>
- <20221111024448.25012-2-lihuisong@huawei.com>
+        with ESMTP id S233900AbiKKPqD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2022 10:46:03 -0500
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15BEFDE93;
+        Fri, 11 Nov 2022 07:46:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1668181563; x=1699717563;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=s5EAnjlVfk1tGXA/lPL/gyF6PcL/A8uBGKW/S3pRYSU=;
+  b=cdyklsZng7CyD9eoyR+Ahacul6G8INE5W6iPvkfpilZsIrdwniA2dDxN
+   LuZFvHuqJ3cvXw94Rt9SMyHPa9aRa+FfEqKAogD21iowcIw4bHsWiPC7a
+   zEzNrsySooE3+oLQjtgWDKuqZmlQSHnaeT8bRmJJH02dKGvKeIXSAXUo3
+   5eT+gvh/JnHs20xa2aTPrpAdjIRozKv3Y+YCOwaixSSSoQ1uHwt1rsvXq
+   nlEXEL2Q3h4tq4bgXO2HJv/L1XyC8R0Xz68NvK2YtlmQEGA+GKjq+38KG
+   zHEKsRTw4eZWPsR9JkDiA5Ph54hEejiJPuGxnVjjox/JvV8uu/fuUkuXz
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10528"; a="309246130"
+X-IronPort-AV: E=Sophos;i="5.96,156,1665471600"; 
+   d="scan'208";a="309246130"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2022 07:46:02 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10528"; a="668843584"
+X-IronPort-AV: E=Sophos;i="5.96,156,1665471600"; 
+   d="scan'208";a="668843584"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga008.jf.intel.com with ESMTP; 11 Nov 2022 07:46:00 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id A78B129D; Fri, 11 Nov 2022 17:46:24 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 3/3] device property: Add a blank line in Kconfig of tests
+Date:   Fri, 11 Nov 2022 17:46:21 +0200
+Message-Id: <20221111154621.15941-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221111154621.15941-1-andriy.shevchenko@linux.intel.com>
+References: <20221111154621.15941-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221111024448.25012-2-lihuisong@huawei.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Change $subject to:
-"ACPI: PCC: Setup PCC Opregion handler only if platform interrupt is available"
+Seems the blank line to separate entries in Kconfig was missing.
+Add it.
 
-On Fri, Nov 11, 2022 at 10:44:47AM +0800, Huisong Li wrote:
-> Currently, PCC Operation Region driver senses the completion of command by
-> interrupt way. If platform can not generate an interrupt when a command
-> complete, the caller never gets the desired result. So let's reject the
-> setup of the PCC address space on platform that do not support interrupt
-> mode.
->
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v3: new patch
+ drivers/base/test/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Please reword something like below:
-
-"Currently, PCC OpRegion handler depends on the availability of platform
-interrupt to be functional currently. If it is not available, the OpRegion
-can't be executed successfully or the desired outcome won't be possible.
-So let's reject setting up the PCC OpRegion handler on the platform if
-it doesn't support or have platform interrupt available"
-
-> Signed-off-by: Huisong Li <lihuisong@huawei.com>
-> ---
->  drivers/acpi/acpi_pcc.c | 47 +++++++++++++++++++++++++----------------
->  1 file changed, 29 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
-> index 3e252be047b8..8efd08e469aa 100644
-> --- a/drivers/acpi/acpi_pcc.c
-> +++ b/drivers/acpi/acpi_pcc.c
-> @@ -53,6 +53,7 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
->  	struct pcc_data *data;
->  	struct acpi_pcc_info *ctx = handler_context;
->  	struct pcc_mbox_chan *pcc_chan;
-> +	static acpi_status ret;
->  
->  	data = kzalloc(sizeof(*data), GFP_KERNEL);
->  	if (!data)
-> @@ -69,23 +70,35 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
->  	if (IS_ERR(data->pcc_chan)) {
->  		pr_err("Failed to find PCC channel for subspace %d\n",
->  		       ctx->subspace_id);
-> -		kfree(data);
-> -		return AE_NOT_FOUND;
-> +		ret = AE_NOT_FOUND;
-> +		goto request_channel_fail;
-
-The labels are confusing IMO. I would do 's/request_channel_fail/err_free_data/'
-to indicate what is exactly done there rather than just describing what
-failed.
-
->  	}
->  
->  	pcc_chan = data->pcc_chan;
-> +	if (!pcc_chan->mchan->mbox->txdone_irq) {
-> +		pr_err("This channel-%d does not support interrupt.\n",
-> +		       ctx->subspace_id);
-> +		ret = AE_SUPPORT;
-> +		goto request_channel_fail;
-
-This is wrong, you must goto "ioremap_fail" as you have been successful in
-opening the channel and now need to free the same.
-
-> +	}
->  	data->pcc_comm_addr = acpi_os_ioremap(pcc_chan->shmem_base_addr,
->  					      pcc_chan->shmem_size);
->  	if (!data->pcc_comm_addr) {
->  		pr_err("Failed to ioremap PCC comm region mem for %d\n",
->  		       ctx->subspace_id);
-> -		pcc_mbox_free_channel(data->pcc_chan);
-> -		kfree(data);
-> -		return AE_NO_MEMORY;
-> +		ret = AE_NO_MEMORY;
-> +		goto ioremap_fail;
-
-Again I prefer 's/ioremap_fail/err_free_channel/' or something similar.
-
-With all the above comments incorporated, you can add:
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-
+diff --git a/drivers/base/test/Kconfig b/drivers/base/test/Kconfig
+index 2f3fa31a948e..610a1ba7a467 100644
+--- a/drivers/base/test/Kconfig
++++ b/drivers/base/test/Kconfig
+@@ -8,6 +8,7 @@ config TEST_ASYNC_DRIVER_PROBE
+ 	  The module name will be test_async_driver_probe.ko
+ 
+ 	  If unsure say N.
++
+ config DRIVER_PE_KUNIT_TEST
+ 	bool "KUnit Tests for property entry API" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT=y
 -- 
-Regards,
-Sudeep
+2.35.1
+
