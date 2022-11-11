@@ -2,93 +2,79 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 215C7C41535
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 02:37:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90AD9C433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 02:49:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232933AbiKKChM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Nov 2022 21:37:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46858 "EHLO
+        id S232499AbiKKCtu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Nov 2022 21:49:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229758AbiKKCgm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2022 21:36:42 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DAB067135;
-        Thu, 10 Nov 2022 18:35:23 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 7BE97CE253A;
-        Fri, 11 Nov 2022 02:35:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E84EAC433C1;
-        Fri, 11 Nov 2022 02:35:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1668134119;
-        bh=agU2693fQ0geZoZRed5L63YUqgI6tDoXWX99hsy2RKE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qzDJMzVBkfdhUia2yM6kntW1sPlq5i0nZxqvZDnyAGsnyBRtWexoqAbCrExUZ1Lxh
-         GH9pEAh7xH05Dwoz5p90LSGSQa6cAjJbBTXLGNpLYUtMcgLrIEfikfHXDnV6NUIj3z
-         NmhGGkDlDmNJ2FmUHXrwB79YDy3Er2xebLyln1c2TwcW2KQDeO68XTWXx6Q1yA8Slu
-         uXyORXWqJ0ahWWJvKKOp+LAWqJP0BetdlC56UJMaxZ8ikYpgcndl+L6jr552YIjKl0
-         usQ1kaKhMqOhwrV2t2flNhTDLDCxIQXUzYk1bngR/Zu4L7AeaC7hGtjg8IKfVZF+/Y
-         f1vpL/2w6UHHw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mario Limonciello <mario.limonciello@amd.com>,
-        Julius Brockmann <mail@juliusbrockmann.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        hdegoede@redhat.com, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 04/11] ACPI: x86: Add another system to quirk list for forcing StorageD3Enable
-Date:   Thu, 10 Nov 2022 21:35:04 -0500
-Message-Id: <20221111023511.227800-4-sashal@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221111023511.227800-1-sashal@kernel.org>
-References: <20221111023511.227800-1-sashal@kernel.org>
+        with ESMTP id S233015AbiKKCth (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2022 21:49:37 -0500
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD630DF0A;
+        Thu, 10 Nov 2022 18:47:06 -0800 (PST)
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.55])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4N7jgZ37xHzbmlq;
+        Fri, 11 Nov 2022 10:43:22 +0800 (CST)
+Received: from kwepemm600004.china.huawei.com (7.193.23.242) by
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 11 Nov 2022 10:47:04 +0800
+Received: from localhost.localdomain (10.28.79.22) by
+ kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 11 Nov 2022 10:47:04 +0800
+From:   Huisong Li <lihuisong@huawei.com>
+To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     <rafael@kernel.org>, <sudeep.holla@arm.com>,
+        <rafael.j.wysocki@intel.com>, <wanghuiqiang@huawei.com>,
+        <zhangzekun11@huawei.com>, <wangxiongfeng2@huawei.com>,
+        <tanxiaofei@huawei.com>, <guohanjun@huawei.com>,
+        <xiexiuqi@huawei.com>, <wangkefeng.wang@huawei.com>,
+        <huangdaode@huawei.com>, <lihuisong@huawei.com>
+Subject: [PATCH V2 2/2] mailbox: pcc: fix 'pcc_chan_count' when fail to initialize PCC
+Date:   Fri, 11 Nov 2022 10:44:48 +0800
+Message-ID: <20221111024448.25012-3-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20221111024448.25012-1-lihuisong@huawei.com>
+References: <20221110015034.7943-1-lihuisong@huawei.com>
+ <20221111024448.25012-1-lihuisong@huawei.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.28.79.22]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ kwepemm600004.china.huawei.com (7.193.23.242)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Mario Limonciello <mario.limonciello@amd.com>
+Currently, 'pcc_chan_count' is a non-zero value if PCC subspaces are parsed
+successfully and subsequent processes is failure during initializing PCC
+process. This may cause that pcc_mbox_request_channel() can still be
+executed successfully , which will misleads the caller that this channel is
+available.
 
-[ Upstream commit 2124becad797245d49252d2d733aee0322233d7e ]
-
-commit 018d6711c26e4 ("ACPI: x86: Add a quirk for Dell Inspiron 14 2-in-1
-for StorageD3Enable") introduced a quirk to allow a system with ambiguous
-use of _ADR 0 to force StorageD3Enable.
-
-Julius Brockmann reports that Inspiron 16 5625 suffers that same symptoms.
-Add this other system to the list as well.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=216440
-Reported-and-tested-by: Julius Brockmann <mail@juliusbrockmann.com>
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: ce028702ddbc ("mailbox: pcc: Move bulk of PCCT parsing into pcc_mbox_probe")
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/x86/utils.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/mailbox/pcc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index 3a3f09b6cbfc..222b951ff56a 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -210,6 +210,12 @@ static const struct dmi_system_id force_storage_d3_dmi[] = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 14 7425 2-in-1"),
- 		}
- 	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 16 5625"),
-+		}
-+	},
- 	{}
- };
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 3c2bc0ca454c..105d46c9801b 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -743,6 +743,7 @@ static int __init pcc_init(void)
+ 
+ 	if (IS_ERR(pcc_pdev)) {
+ 		pr_debug("Err creating PCC platform bundle\n");
++		pcc_chan_count = 0;
+ 		return PTR_ERR(pcc_pdev);
+ 	}
  
 -- 
-2.35.1
+2.22.0
 
