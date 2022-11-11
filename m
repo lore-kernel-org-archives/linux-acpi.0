@@ -2,29 +2,29 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90AD9C433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 02:49:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 635F0C43217
+	for <linux-acpi@archiver.kernel.org>; Fri, 11 Nov 2022 02:49:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232499AbiKKCtu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 10 Nov 2022 21:49:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38328 "EHLO
+        id S232983AbiKKCtv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 10 Nov 2022 21:49:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233015AbiKKCth (ORCPT
+        with ESMTP id S232594AbiKKCth (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2022 21:49:37 -0500
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD630DF0A;
-        Thu, 10 Nov 2022 18:47:06 -0800 (PST)
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4N7jgZ37xHzbmlq;
-        Fri, 11 Nov 2022 10:43:22 +0800 (CST)
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 120FFCE13;
+        Thu, 10 Nov 2022 18:47:05 -0800 (PST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4N7jlK6LYCzHvm9;
+        Fri, 11 Nov 2022 10:46:37 +0800 (CST)
 Received: from kwepemm600004.china.huawei.com (7.193.23.242) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 11 Nov 2022 10:47:04 +0800
+ 15.1.2375.31; Fri, 11 Nov 2022 10:47:03 +0800
 Received: from localhost.localdomain (10.28.79.22) by
  kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 11 Nov 2022 10:47:04 +0800
+ 15.1.2375.31; Fri, 11 Nov 2022 10:47:03 +0800
 From:   Huisong Li <lihuisong@huawei.com>
 To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC:     <rafael@kernel.org>, <sudeep.holla@arm.com>,
@@ -33,13 +33,12 @@ CC:     <rafael@kernel.org>, <sudeep.holla@arm.com>,
         <tanxiaofei@huawei.com>, <guohanjun@huawei.com>,
         <xiexiuqi@huawei.com>, <wangkefeng.wang@huawei.com>,
         <huangdaode@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH V2 2/2] mailbox: pcc: fix 'pcc_chan_count' when fail to initialize PCC
-Date:   Fri, 11 Nov 2022 10:44:48 +0800
-Message-ID: <20221111024448.25012-3-lihuisong@huawei.com>
+Subject: [PATCH V2 0/2] optimize pcc code and fix one bug
+Date:   Fri, 11 Nov 2022 10:44:46 +0800
+Message-ID: <20221111024448.25012-1-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20221111024448.25012-1-lihuisong@huawei.com>
+In-Reply-To: <20221110015034.7943-1-lihuisong@huawei.com>
 References: <20221110015034.7943-1-lihuisong@huawei.com>
- <20221111024448.25012-1-lihuisong@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -51,30 +50,23 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently, 'pcc_chan_count' is a non-zero value if PCC subspaces are parsed
-successfully and subsequent processes is failure during initializing PCC
-process. This may cause that pcc_mbox_request_channel() can still be
-executed successfully , which will misleads the caller that this channel is
-available.
+This series addes check for platform interrupt in acpi_pcc.c and fixes a
+problem that mailbox channel can still be requested successfully when fail
+to initialize PCC.
 
-Fixes: ce028702ddbc ("mailbox: pcc: Move bulk of PCCT parsing into pcc_mbox_probe")
-Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/mailbox/pcc.c | 1 +
- 1 file changed, 1 insertion(+)
+ -v2: drop the patch that rename platform interrupt bit macro
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 3c2bc0ca454c..105d46c9801b 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -743,6 +743,7 @@ static int __init pcc_init(void)
- 
- 	if (IS_ERR(pcc_pdev)) {
- 		pr_debug("Err creating PCC platform bundle\n");
-+		pcc_chan_count = 0;
- 		return PTR_ERR(pcc_pdev);
- 	}
- 
+---
+
+Huisong Li (2):
+  ACPI: PCC: add check for platform interrupt
+  mailbox: pcc: fix 'pcc_chan_count' when fail to initialize PCC
+
+ drivers/acpi/acpi_pcc.c | 47 +++++++++++++++++++++++++----------------
+ drivers/mailbox/pcc.c   |  1 +
+ 2 files changed, 30 insertions(+), 18 deletions(-)
+
 -- 
 2.22.0
 
