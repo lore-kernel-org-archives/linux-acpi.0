@@ -2,92 +2,67 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1BE5C4332F
-	for <linux-acpi@archiver.kernel.org>; Sat, 12 Nov 2022 20:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4559FC4332F
+	for <linux-acpi@archiver.kernel.org>; Sun, 13 Nov 2022 09:55:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231530AbiKLUOC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 12 Nov 2022 15:14:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39750 "EHLO
+        id S232676AbiKMJzm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 13 Nov 2022 04:55:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230257AbiKLUOC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Nov 2022 15:14:02 -0500
-Received: from mx-out.tlen.pl (mx-out.tlen.pl [193.222.135.148])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0580DDF8B
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Nov 2022 12:14:00 -0800 (PST)
-Received: (wp-smtpd smtp.tlen.pl 4821 invoked from network); 12 Nov 2022 21:07:16 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=o2.pl; s=1024a;
-          t=1668283636; bh=loH1W2wKycWcNMDjsgektwUyaNDFHlHO5th0/v6bRmw=;
-          h=Subject:To:Cc:From;
-          b=egiq0jsRFmHMDiNfMFvMUBgqj5BDQ5X+lvuVFIyXA5M/rniZMizsr4bhOjx8FAWNN
-           x6aZk2v6sI5h3RYl/cblVuoQhVgCnoq80vOEwkpxVdlz5GoMgtdppIQSjy/eXJTy4a
-           U/sC2ojO2XaPvQnNq/dTUPWoFMxtaGLR3J1wULns=
-Received: from aaey149.neoplus.adsl.tpnet.pl (HELO [192.168.1.22]) (mat.jonczyk@o2.pl@[83.4.128.149])
-          (envelope-sender <mat.jonczyk@o2.pl>)
-          by smtp.tlen.pl (WP-SMTPD) with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP
-          for <helgaas@kernel.org>; 12 Nov 2022 21:07:16 +0100
-Message-ID: <35cfe433-bafa-9aeb-20ad-2f275f585b6c@o2.pl>
-Date:   Sat, 12 Nov 2022 21:07:15 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Subject: Re: [PATCH v2] acpi,pci: handle duplicate IRQ routing entries
- returned from _PRT
-To:     Bjorn Helgaas <helgaas@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Len Brown <lenb@kernel.org>, Borislav Petkov <bp@suse.de>,
-        Jean Delvare <jdelvare@suse.com>, linux-i2c@vger.kernel.org
-References: <20221112002023.GA764787@bhelgaas>
-Content-Language: en-GB
-From:   =?UTF-8?Q?Mateusz_Jo=c5=84czyk?= <mat.jonczyk@o2.pl>
-In-Reply-To: <20221112002023.GA764787@bhelgaas>
+        with ESMTP id S229753AbiKMJzk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Nov 2022 04:55:40 -0500
+Received: from jari.cn (unknown [218.92.28.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C7B23E009;
+        Sun, 13 Nov 2022 01:55:39 -0800 (PST)
+Received: by ajax-webmail-localhost.localdomain (Coremail) ; Sun, 13 Nov
+ 2022 17:50:30 +0800 (GMT+08:00)
+X-Originating-IP: [182.148.14.167]
+Date:   Sun, 13 Nov 2022 17:50:30 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From:   wangkailong@jari.cn
+To:     robert.moore@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
+        linux-kernel@vger.kernel.org
+Subject:  [PATCH] ACPICA: fix array_size.cocci warning
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version XT6.0.1 build 20210329(c53f3fee)
+ Copyright (c) 2002-2022 www.mailtech.cn
+ mispb-4e503810-ca60-4ec8-a188-7102c18937cf-zhkzyfz.cn
+Content-Transfer-Encoding: base64
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-WP-MailID: 13e9072270332344864b56994e464f72
-X-WP-AV: skaner antywirusowy Poczty o2
-X-WP-SPAM: NO 0000000 [QbNF]                               
+MIME-Version: 1.0
+Message-ID: <3701ca18.12f.1847065cd7e.Coremail.wangkailong@jari.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID: AQAAfwD3C+LmvXBj4BsDAA--.83W
+X-CM-SenderInfo: 5zdqwypdlo00nj6mt2flof0/1tbiAQAEB2FEYx0DfwAZs8
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
+        CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+        daVFxhVjvjDU=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-W dniu 12.11.2022 o 01:20, Bjorn Helgaas pisze:
-> [+cc Jean, linux-i2c]
->
-> On Sat, Sep 17, 2022 at 11:09:44AM +0200, Mateusz Jończyk wrote:
->> On some platforms, the ACPI _PRT function returns duplicate interrupt
->> routing entries. Linux uses the first matching entry, but sometimes the
->> second matching entry contains the correct interrupt vector.
-> Rafael, Jean, what do you think about this?  It seems like kind of a
-> lot of infrastructure to deal with this oddness, but I'm not really
-> opposed to it.
->
-> This is in i2c-i801.c, which seems to have some support for polling;
-> maybe it could make smart enough to complain and automatically switch
-> to polling if a timeout occurs.
->
-> Or maybe we scan the entire _PRT and let the match win (instead of the
-> first as we do today).
->
-> Or ...?
->
-> Google finds a lot of hits for "i801_smbus" "timeout waiting for
-> interrupt", but I can't tell whether they're a similar _PRT issue or
-> something else.
->
->> This happens on a Dell Latitude E6500 laptop with the i2c-i801 Intel
->> SMBus controller. This controller was nonfunctional unless its interrupt
->> usage was disabled (using the "disable_features=0x10" module parameter).
-
-Hello,
-
-I have prepared a lean patch that only prints a warning when there are
-two matching entries in the table returned from _PRT (I will send it in the
-next e-mail). Perhaps it could be merged and then after a release or two
-it will be known how widespread this problem is.
-
-Greetings,
-
-Mateusz
-
+Rml4IGZvbGxvd2luZyBjb2NjaWNoZWNrIHdhcm5pbmc6Cgpkcml2ZXJzL2FjcGkvYWNwaWNhL3Ri
+ZmFkdC5jOjEwNzoyNy0yODogV0FSTklORzogVXNlIEFSUkFZX1NJWkUKZHJpdmVycy9hY3BpL2Fj
+cGljYS90YmZhZHQuYzoxMzc6MzAtMzE6IFdBUk5JTkc6IFVzZSBBUlJBWV9TSVpFCgpTaWduZWQt
+b2ZmLWJ5OiBLYWlMb25nIFdhbmcgPHdhbmdrYWlsb25nQGphcmkuY24+Ci0tLQogZHJpdmVycy9h
+Y3BpL2FjcGljYS90YmZhZHQuYyB8IDggKystLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2Vy
+dGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGlj
+YS90YmZhZHQuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMKaW5kZXggMzFkN2VhODRh
+MzYwLi42MzdmY2Q3NGYzMGUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0
+LmMKKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYwpAQCAtMTAzLDkgKzEwMyw3IEBA
+IHN0YXRpYyBzdHJ1Y3QgYWNwaV9mYWR0X2luZm8gZmFkdF9pbmZvX3RhYmxlW10gPSB7CiAJIEFD
+UElfRkFEVF9TRVBBUkFURV9MRU5HVEggfCBBQ1BJX0ZBRFRfR1BFX1JFR0lTVEVSfQogfTsKIAot
+I2RlZmluZSBBQ1BJX0ZBRFRfSU5GT19FTlRSSUVTIFwKLQkJCShzaXplb2YgKGZhZHRfaW5mb190
+YWJsZSkgLyBzaXplb2YgKHN0cnVjdCBhY3BpX2ZhZHRfaW5mbykpCi0KKyNkZWZpbmUgQUNQSV9G
+QURUX0lORk9fRU5UUklFUyAoQVJSQVlfU0laRShmYWR0X2luZm9fdGFibGUpKQogLyogVGFibGUg
+dXNlZCB0byBzcGxpdCBFdmVudCBCbG9ja3MgaW50byBzZXBhcmF0ZSBzdGF0dXMvZW5hYmxlIHJl
+Z2lzdGVycyAqLwogCiB0eXBlZGVmIHN0cnVjdCBhY3BpX2ZhZHRfcG1faW5mbyB7CkBAIC0xMzMs
+OSArMTMxLDcgQEAgc3RhdGljIHN0cnVjdCBhY3BpX2ZhZHRfcG1faW5mbyBmYWR0X3BtX2luZm9f
+dGFibGVbXSA9IHsKIAkgMX0KIH07CiAKLSNkZWZpbmUgQUNQSV9GQURUX1BNX0lORk9fRU5UUklF
+UyBcCi0JCQkoc2l6ZW9mIChmYWR0X3BtX2luZm9fdGFibGUpIC8gc2l6ZW9mIChzdHJ1Y3QgYWNw
+aV9mYWR0X3BtX2luZm8pKQotCisjZGVmaW5lIEFDUElfRkFEVF9QTV9JTkZPX0VOVFJJRVMgKEFS
+UkFZX1NJWkUoZmFkdF9wbV9pbmZvX3RhYmxlKSkKIC8qKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqCiAg
+KgogICogRlVOQ1RJT046ICAgIGFjcGlfdGJfaW5pdF9nZW5lcmljX2FkZHJlc3MKLS0gCjIuMjUu
+MQo=
