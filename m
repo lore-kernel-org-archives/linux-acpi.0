@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4228DC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B115BC433FE
 	for <linux-acpi@archiver.kernel.org>; Mon, 14 Nov 2022 14:46:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235825AbiKNOqj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Nov 2022 09:46:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49964 "EHLO
+        id S235984AbiKNOqk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Nov 2022 09:46:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235697AbiKNOqi (ORCPT
+        with ESMTP id S235636AbiKNOqi (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2022 09:46:38 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8594814D13
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 06:45:19 -0800 (PST)
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4946F26FB
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 06:45:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668437118;
+        s=mimecast20190719; t=1668437114;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=C2Q29vIxPQqeJaBK9aZ1aaVxGc8pT8CVQDk/KC5p1EM=;
-        b=jPgSJ5EOk6uF550BEyILoogiZNs/8dJmcNRIc9kw4DOeiahtDXFVRJkbp9bAU/72nzWweT
-        eM1BKuDY073/QcG99Xi7C4/EER1jcB8tQGQOPcHdWnbC8W5at6mrNJwULviEAJPybXlCYe
-        MiVLt6GFP1GixpQYBgulllowHnIU9/k=
+        bh=xHIQBUfqD0ipeTA29MoZZ4xWXf/VHbmW4bpPAmWI8kk=;
+        b=Xt/n6+mhQ1G1/nZE3YL7i54iNjEPJFBgIqfVgaWzKzkRrb2/d3OZV8HWTD1Q+qQm/MkgIP
+        p/jvvRmiVrkmsbshzvJ/gxBL1vuMxFEJ7NMWgI1wBN4ngt/r+C9X7UGw0004zLTp9VDW/d
+        kVQ7nHzNdL/yYc0BF09f7CF3FUiZtQs=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-395-TZI7O_5UP_COHbEb8DgXLQ-1; Mon, 14 Nov 2022 09:45:15 -0500
-X-MC-Unique: TZI7O_5UP_COHbEb8DgXLQ-1
+ us-mta-624-BzDQyg3KOiCO0cZRtFbJFg-1; Mon, 14 Nov 2022 09:45:11 -0500
+X-MC-Unique: BzDQyg3KOiCO0cZRtFbJFg-1
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 1150C87B2A2;
-        Mon, 14 Nov 2022 14:45:15 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A25B687B2A0;
+        Mon, 14 Nov 2022 14:45:10 +0000 (UTC)
 Received: from x1.localdomain.com (unknown [10.39.193.154])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id F0E7E1415102;
-        Mon, 14 Nov 2022 14:45:13 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2AF1B1401C21;
+        Mon, 14 Nov 2022 14:45:08 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Matthew Garrett <mjg59@srcf.ucam.org>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 6/7] ACPI: video: Simplify __acpi_video_get_backlight_type()
-Date:   Mon, 14 Nov 2022 15:44:58 +0100
-Message-Id: <20221114144459.455519-7-hdegoede@redhat.com>
+Subject: [PATCH 3/7] ACPI: video: Change Sony Vaio VPCEH3U1E quirk to force_native
+Date:   Mon, 14 Nov 2022 15:44:55 +0100
+Message-Id: <20221114144459.455519-4-hdegoede@redhat.com>
 In-Reply-To: <20221114144459.455519-1-hdegoede@redhat.com>
 References: <20221114144459.455519-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -54,78 +54,75 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Simplify __acpi_video_get_backlight_type() removing a nested if which
-makes the flow harder to follow.
+According to: https://bugzilla.kernel.org/show_bug.cgi?id=202401
+the Sony Vaio VPCEH3U1E quirk was added to disable the acpi_video0
+backlight interface because that was not working, so that userspace
+will pick the actually working native nv_backlight interface instead.
 
-This also results in having only 1 exit point with
-return acpi_backlight_native instead of 2.
+With the new kernel behavior of hiding native interfaces unless
+acpi_video_get_backlight_type() returns native, the current
+video_detect_force_vendor quirk will cause the working nv_backlight
+interface will be disabled too.
 
-Note this drops the (video_caps & ACPI_VIDEO_BACKLIGHT) check from
-the if (acpi_osi_is_win8() && native_available) return native path.
-Windows 8's hardware certification requirements include that there must
-be ACPI video bus backlight control, so the ACPI_VIDEO_BACKLIGHT check
-is redundant.
+Change the quirk to video_detect_force_native to get the desired
+result of only registering the nv_backlight interface.
+
+After this all currently remaining force_vendor quirks in
+video_detect_dmi_table[] are there to prefer a vendor interface over
+a non working ACPI video interface, add a comment to document this.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video_detect.c | 36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ drivers/acpi/video_detect.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 0e217bf79f17..5da6b1b449d5 100644
+index a1ac7de186be..327e0967ba54 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -715,6 +715,16 @@ static bool google_cros_ec_present(void)
- 	return acpi_dev_found("GOOG0004") || acpi_dev_found("GOOG000C");
+@@ -132,6 +132,10 @@ static int video_detect_force_none(const struct dmi_system_id *d)
  }
  
-+/*
-+ * Windows 8 and newer no longer use the ACPI video interface, so it often
-+ * does not work. So on win8+ systems prefer native brightness control.
-+ * Chromebooks should always prefer native backlight control.
-+ */
-+static bool prefer_native_over_acpi_video(void)
-+{
-+	return acpi_osi_is_win8() || google_cros_ec_present();
-+}
-+
- /*
-  * Determine which type of backlight interface to use on this system,
-  * First check cmdline, then dmi quirks, then do autodetect.
-@@ -760,26 +770,14 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
- 	if (apple_gmux_present())
- 		return acpi_backlight_apple_gmux;
+ static const struct dmi_system_id video_detect_dmi_table[] = {
++	/*
++	 * Models which should use the vendor backlight interface,
++	 * because of broken ACPI video backlight control.
++	 */
+ 	{
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1128309 */
+ 	 .callback = video_detect_force_vendor,
+@@ -226,15 +230,6 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_BOARD_NAME, "NC210/NC110"),
+ 		},
+ 	},
+-	{
+-	 /* https://bugzilla.kernel.org/show_bug.cgi?id=202401 */
+-	 .callback = video_detect_force_vendor,
+-	 /* Sony VPCEH3U1E */
+-	 .matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEH3U1E"),
+-		},
+-	},
+ 	{
+ 	 .callback = video_detect_force_vendor,
+ 	 /* Xiaomi Mi Pad 2 */
+@@ -604,6 +599,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_BOARD_NAME, "N250P"),
+ 		},
+ 	},
++	{
++	 /* https://bugzilla.kernel.org/show_bug.cgi?id=202401 */
++	 .callback = video_detect_force_native,
++	 /* Sony Vaio VPCEH3U1E */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEH3U1E"),
++		},
++	},
  
--	/* Chromebooks should always prefer native backlight control. */
--	if (google_cros_ec_present() && native_available)
--		return acpi_backlight_native;
-+	/* Use ACPI video if available, except when native should be preferred. */
-+	if ((video_caps & ACPI_VIDEO_BACKLIGHT) &&
-+	     !(native_available && prefer_native_over_acpi_video()))
-+		return acpi_backlight_video;
- 
--	/* On systems with ACPI video use either native or ACPI video. */
--	if (video_caps & ACPI_VIDEO_BACKLIGHT) {
--		/*
--		 * Windows 8 and newer no longer use the ACPI video interface,
--		 * so it often does not work. If the ACPI tables are written
--		 * for win8 and native brightness ctl is available, use that.
--		 *
--		 * The native check deliberately is inside the if acpi-video
--		 * block on older devices without acpi-video support native
--		 * is usually not the best choice.
--		 */
--		if (acpi_osi_is_win8() && native_available)
--			return acpi_backlight_native;
--		else
--			return acpi_backlight_video;
--	}
-+	/* Use native if available */
-+	if (native_available && prefer_native_over_acpi_video())
-+		return acpi_backlight_native;
- 
- 	/* No ACPI video (old hw), use vendor specific fw methods. */
- 	return acpi_backlight_vendor;
+ 	/*
+ 	 * These Toshibas have a broken acpi-video interface for brightness
 -- 
 2.37.3
 
