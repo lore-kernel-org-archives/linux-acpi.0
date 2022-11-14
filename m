@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E8B4C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 379D9C4332F
 	for <linux-acpi@archiver.kernel.org>; Mon, 14 Nov 2022 14:47:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235636AbiKNOqz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Nov 2022 09:46:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50324 "EHLO
+        id S235697AbiKNOq4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Nov 2022 09:46:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235697AbiKNOqn (ORCPT
+        with ESMTP id S236238AbiKNOqn (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2022 09:46:43 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEAD5E21
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 06:45:18 -0800 (PST)
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B03496377
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 06:45:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668437118;
+        s=mimecast20190719; t=1668437117;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=TvY9w8CYZaac4npN7JxtQrCbvWhms6Flr5tbiuBECqw=;
-        b=LzJ27qEBLe5V63msdj4bykq/Vho4XU8jZc1E9XzUUXMBUf1gi+8UrkDZdBdZmD02qqLYwG
-        XvVcNumyLFixRc+sjkRu9an4ChF8/eWgLXbZVa1ETIm0YS0PqF34/uyJe04kUhhpwxMVxK
-        qlabEUlcQcW+YaaFK5M4zoD+6vKefrQ=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=pLKwd7LdFoY3d3OGGTqZ2TY1L53YOPPgucadnQcACLc=;
+        b=Hl5G5nlK3YGkOJ4/rEW6yR2N42WjHknu0ql3lqVAO3S8serLPE9DFEpF13oq1C5iUSO9R4
+        g/NeJW34G/VbbiUyY770UaRHr8sItPHt5m5xNCbYqmSG4nygFTewLq2ZU9rNL2Nr8AgXgj
+        922vkW6mUxvpcjwW8YwwO922+G4nRAE=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-546-TR8JUTGYPa-foAHfK2U3jQ-1; Mon, 14 Nov 2022 09:45:16 -0500
-X-MC-Unique: TR8JUTGYPa-foAHfK2U3jQ-1
+ us-mta-651-gA0E6UgPMCq1Vd5ER2K7Sw-1; Mon, 14 Nov 2022 09:45:12 -0500
+X-MC-Unique: gA0E6UgPMCq1Vd5ER2K7Sw-1
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3EA772A2AD4A;
-        Mon, 14 Nov 2022 14:45:16 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E779A800B23;
+        Mon, 14 Nov 2022 14:45:11 +0000 (UTC)
 Received: from x1.localdomain.com (unknown [10.39.193.154])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 449D41415134;
-        Mon, 14 Nov 2022 14:45:15 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1D7D61415102;
+        Mon, 14 Nov 2022 14:45:10 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Matthew Garrett <mjg59@srcf.ucam.org>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 7/7] ACPI: video: Prefer native over vendor
-Date:   Mon, 14 Nov 2022 15:44:59 +0100
-Message-Id: <20221114144459.455519-8-hdegoede@redhat.com>
+Subject: [PATCH 4/7] ACPI: video: Add force_vendor quirk for Sony Vaio PCG-FRV35
+Date:   Mon, 14 Nov 2022 15:44:56 +0100
+Message-Id: <20221114144459.455519-5-hdegoede@redhat.com>
 In-Reply-To: <20221114144459.455519-1-hdegoede@redhat.com>
 References: <20221114144459.455519-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -54,70 +54,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When available prefer native backlight control over vendor backlight
-control.
+The Sony Vaio PCG-FRV35 advertises both native and vendor backlight
+control interfaces. With the upcoming changes to prefer native over
+vendor acpi_video_get_backlight_type() will start returning native on
+these laptops.
 
-Testing has shown that there are quite a few laptop models which rely
-on native backlight control (they don't have ACPI video bus backlight
-control) and on which acpi_osi_is_win8() returns false.
-
-Currently __acpi_video_get_backlight_type() returns vendor on these
-laptops, leading to an empty /sys/class/backlight.
-
-As a workaround for this acpi_video_backlight_use_native() has been
-temporarily changed to always return true.
-
-This re-introduces the problem of having multiple backlight
-devices under /sys/class/backlight for a single panel.
-
-Change __acpi_video_get_backlight_type() to prefer native over vendor
-when available. So that it returns native on these models.
-
-And change acpi_video_backlight_use_native() back to only return
-true when __acpi_video_get_backlight_type() returns native.
+But the native radeon_bl0 interface does not work, where as the sony
+vendor interface does work. Add a quirk to force use of the vendor
+interface.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video_detect.c | 18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ drivers/acpi/video_detect.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 5da6b1b449d5..a934bbc9dd37 100644
+index 327e0967ba54..43f667523ab0 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -776,10 +776,10 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
- 		return acpi_backlight_video;
+@@ -239,6 +239,19 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		},
+ 	},
  
- 	/* Use native if available */
--	if (native_available && prefer_native_over_acpi_video())
-+	if (native_available)
- 		return acpi_backlight_native;
- 
--	/* No ACPI video (old hw), use vendor specific fw methods. */
-+	/* No ACPI video/native (old hw), use vendor specific fw methods. */
- 	return acpi_backlight_vendor;
- }
- 
-@@ -791,18 +791,6 @@ EXPORT_SYMBOL(acpi_video_get_backlight_type);
- 
- bool acpi_video_backlight_use_native(void)
- {
--	/*
--	 * Call __acpi_video_get_backlight_type() to let it know that
--	 * a native backlight is available.
--	 */
--	__acpi_video_get_backlight_type(true);
--
--	/*
--	 * For now just always return true. There is a whole bunch of laptop
--	 * models where (video_caps & ACPI_VIDEO_BACKLIGHT) is false causing
--	 * __acpi_video_get_backlight_type() to return vendor, while these
--	 * models only have a native backlight control.
--	 */
--	return true;
-+	return __acpi_video_get_backlight_type(true) == acpi_backlight_native;
- }
- EXPORT_SYMBOL(acpi_video_backlight_use_native);
++	/*
++	 * Models which should use the vendor backlight interface,
++	 * because of broken native backlight control.
++	 */
++	{
++	 .callback = video_detect_force_vendor,
++	 /* Sony Vaio PCG-FRV35 */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "PCG-FRV35"),
++		},
++	},
++
+ 	/*
+ 	 * Toshiba models with Transflective display, these need to use
+ 	 * the toshiba_acpi vendor driver for proper Transflective handling.
 -- 
 2.37.3
 
