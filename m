@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B115BC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Nov 2022 14:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6FD3C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Nov 2022 14:46:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235984AbiKNOqk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Nov 2022 09:46:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50326 "EHLO
+        id S236023AbiKNOqm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Nov 2022 09:46:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235636AbiKNOqi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2022 09:46:38 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4946F26FB
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 06:45:15 -0800 (PST)
+        with ESMTP id S235697AbiKNOqk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2022 09:46:40 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F3CFE46
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 06:45:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668437114;
+        s=mimecast20190719; t=1668437118;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=xHIQBUfqD0ipeTA29MoZZ4xWXf/VHbmW4bpPAmWI8kk=;
-        b=Xt/n6+mhQ1G1/nZE3YL7i54iNjEPJFBgIqfVgaWzKzkRrb2/d3OZV8HWTD1Q+qQm/MkgIP
-        p/jvvRmiVrkmsbshzvJ/gxBL1vuMxFEJ7NMWgI1wBN4ngt/r+C9X7UGw0004zLTp9VDW/d
-        kVQ7nHzNdL/yYc0BF09f7CF3FUiZtQs=
+        bh=lx77Uu3RmvwS92rQG/csxWjuY8OH5waxBoCdeMtlmWg=;
+        b=BYcseoIGwmmdlWWOT/GI6C8NSb9HqJuMFIPvmhv6Hsb7wzS37BGAKtd8GWHQab8zu5LkF1
+        LHKJSnJ43g/lTytEkj6sdr6mHtoBtunM908O0Seelt5nwGmE+bH7+w5MmZyrwO6OhMMJWm
+        VIGVHWqqpr73Av3HWGYjMC7yDs4FdNI=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-624-BzDQyg3KOiCO0cZRtFbJFg-1; Mon, 14 Nov 2022 09:45:11 -0500
-X-MC-Unique: BzDQyg3KOiCO0cZRtFbJFg-1
+ us-mta-639-w4_Nx4c3MqWP3ODQaiKpFw-1; Mon, 14 Nov 2022 09:45:14 -0500
+X-MC-Unique: w4_Nx4c3MqWP3ODQaiKpFw-1
 Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A25B687B2A0;
-        Mon, 14 Nov 2022 14:45:10 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 922E0185A792;
+        Mon, 14 Nov 2022 14:45:13 +0000 (UTC)
 Received: from x1.localdomain.com (unknown [10.39.193.154])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 2AF1B1401C21;
-        Mon, 14 Nov 2022 14:45:08 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 55FEE1415134;
+        Mon, 14 Nov 2022 14:45:12 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         Matthew Garrett <mjg59@srcf.ucam.org>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH 3/7] ACPI: video: Change Sony Vaio VPCEH3U1E quirk to force_native
-Date:   Mon, 14 Nov 2022 15:44:55 +0100
-Message-Id: <20221114144459.455519-4-hdegoede@redhat.com>
+        linux-acpi@vger.kernel.org, Stefan Joosten <stefan@atcomputing.nl>
+Subject: [PATCH 5/7] ACPI: video: Add force_native quirk for Sony Vaio VPCY11S1E
+Date:   Mon, 14 Nov 2022 15:44:57 +0100
+Message-Id: <20221114144459.455519-6-hdegoede@redhat.com>
 In-Reply-To: <20221114144459.455519-1-hdegoede@redhat.com>
 References: <20221114144459.455519-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -54,70 +54,32 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-According to: https://bugzilla.kernel.org/show_bug.cgi?id=202401
-the Sony Vaio VPCEH3U1E quirk was added to disable the acpi_video0
-backlight interface because that was not working, so that userspace
-will pick the actually working native nv_backlight interface instead.
+The Sony Vaio VPCY11S1E advertises both native and ACPI video backlight
+control interfaces, but only the native interface works and the default
+heuristics end up picking ACPI video on this model.
 
-With the new kernel behavior of hiding native interfaces unless
-acpi_video_get_backlight_type() returns native, the current
-video_detect_force_vendor quirk will cause the working nv_backlight
-interface will be disabled too.
+Add a video_detect_force_native DMI quirk for this.
 
-Change the quirk to video_detect_force_native to get the desired
-result of only registering the nv_backlight interface.
-
-After this all currently remaining force_vendor quirks in
-video_detect_dmi_table[] are there to prefer a vendor interface over
-a non working ACPI video interface, add a comment to document this.
-
+Reported-by: Stefan Joosten <stefan@atcomputing.nl>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video_detect.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index a1ac7de186be..327e0967ba54 100644
+index 43f667523ab0..0e217bf79f17 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -132,6 +132,10 @@ static int video_detect_force_none(const struct dmi_system_id *d)
- }
- 
- static const struct dmi_system_id video_detect_dmi_table[] = {
-+	/*
-+	 * Models which should use the vendor backlight interface,
-+	 * because of broken ACPI video backlight control.
-+	 */
- 	{
- 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1128309 */
- 	 .callback = video_detect_force_vendor,
-@@ -226,15 +230,6 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_BOARD_NAME, "NC210/NC110"),
- 		},
- 	},
--	{
--	 /* https://bugzilla.kernel.org/show_bug.cgi?id=202401 */
--	 .callback = video_detect_force_vendor,
--	 /* Sony VPCEH3U1E */
--	 .matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEH3U1E"),
--		},
--	},
- 	{
- 	 .callback = video_detect_force_vendor,
- 	 /* Xiaomi Mi Pad 2 */
-@@ -604,6 +599,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_BOARD_NAME, "N250P"),
+@@ -621,6 +621,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEH3U1E"),
  		},
  	},
 +	{
-+	 /* https://bugzilla.kernel.org/show_bug.cgi?id=202401 */
 +	 .callback = video_detect_force_native,
-+	 /* Sony Vaio VPCEH3U1E */
++	 /* Sony Vaio VPCY11S1E */
 +	 .matches = {
 +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEH3U1E"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCY11S1E"),
 +		},
 +	},
  
