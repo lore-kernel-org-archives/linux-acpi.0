@@ -2,118 +2,73 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4302EC433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 14 Nov 2022 16:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB3FC433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 14 Nov 2022 16:17:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235941AbiKNQMw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 14 Nov 2022 11:12:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50172 "EHLO
+        id S237411AbiKNQRy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 14 Nov 2022 11:17:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235602AbiKNQMv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2022 11:12:51 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCCE61B79F
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 08:11:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668442311;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=BpPThT6SGaBN78s3OVD/YXOLYpKR7kgZzXJ4kH4zvf4=;
-        b=f3z2cedy/0n6aoQZL8x0kyPpl9oeI3eI3nuKtU++JO/B5AygCpwQ4L3bFxnsFVlpwx6GVo
-        kj+V+M453F9ugbJ+FcK7QNaxYdJfpgS8zqym2ZHwEL37WdL1gii6lD69fXxxhvwclXJUoj
-        nJDe1WZeE8Td/6oRRoG8Rcgp0s48upA=
-Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
- [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-669-VAnIER1APYyHWQKQpfpGIg-1; Mon, 14 Nov 2022 11:11:49 -0500
-X-MC-Unique: VAnIER1APYyHWQKQpfpGIg-1
-Received: by mail-ej1-f69.google.com with SMTP id sb4-20020a1709076d8400b007ae596eac08so5796037ejc.22
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2022 08:11:48 -0800 (PST)
+        with ESMTP id S237458AbiKNQRp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2022 11:17:45 -0500
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB3E62ED63;
+        Mon, 14 Nov 2022 08:17:16 -0800 (PST)
+Received: by mail-qt1-f171.google.com with SMTP id a27so7033567qtw.10;
+        Mon, 14 Nov 2022 08:17:16 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BpPThT6SGaBN78s3OVD/YXOLYpKR7kgZzXJ4kH4zvf4=;
-        b=QW3RZLGxHU8A9bJGJPfFtlzamIP2X3EXGg5SfvKloYzXnvozV4p35rQMGfky+QZfGC
-         UpFxA4vaBe0dvl96QOg9XSTYiP4OHnluSatURSKB4bgPQ2PBFzbmmWg3sxoJyNkZDp+l
-         YwMKcFpPXvRN6MKAzdINGC+v5HgDooIes+m/hOp9pRlpdWBP5+wdHr6Gc2vMWkvnzmH/
-         9dwIfCzmP2hc0u4LkH31lxMM1fHmYgVoX9bEeAq/Gtk7DdoNudZXO0voT1WZ627hLfo9
-         r5xBhw3RpMv6dFVmEOCmJTYyACNTEIxSzgtlj3p78Y5BzzY502QAM6YgGtEHdsBJfSJ5
-         AIcg==
-X-Gm-Message-State: ANoB5pn7Ujgo5jTCRdo7hueN5r2jf0m/IC9JwE3VNWx0S70V6pE9uHDt
-        q7PqpMFjVitKTiOqCNmvL5VotXrdZWxlRDpmsfppspEv4ukKxiSYKcqZgOvH7q5y2lwPjLktOuf
-        lABUJum6XhL1HQm+H2X81bQ==
-X-Received: by 2002:a17:906:29d4:b0:78d:a4ca:32df with SMTP id y20-20020a17090629d400b0078da4ca32dfmr10383703eje.686.1668442306522;
-        Mon, 14 Nov 2022 08:11:46 -0800 (PST)
-X-Google-Smtp-Source: AA0mqf5JabkcuoYygkz/F8fyRb0mrNRG6iZFj1IIeJnLfHw0Gtl2YdVALLipSgTBsx7gPR3DKcIERw==
-X-Received: by 2002:a17:906:29d4:b0:78d:a4ca:32df with SMTP id y20-20020a17090629d400b0078da4ca32dfmr10383685eje.686.1668442306290;
-        Mon, 14 Nov 2022 08:11:46 -0800 (PST)
-Received: from [10.40.98.142] ([78.108.130.194])
-        by smtp.gmail.com with ESMTPSA id b25-20020a17090630d900b0078d38cda2b1sm4293314ejb.202.2022.11.14.08.11.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 14 Nov 2022 08:11:45 -0800 (PST)
-Message-ID: <be4df501-8602-1154-f702-832391c4a362@redhat.com>
-Date:   Mon, 14 Nov 2022 17:11:44 +0100
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=MG2DwBbr5dqsaW3mK7dHyLfa8FobjN2Nv6cl+aBJihI=;
+        b=IuBBeZv4T/VFSqIlKlzqrzBGs3PC4LBj/H8tnI2boma8ku0MO9PtFi36v92WQexVg0
+         aBq9mY2a3cjMP1pIrOu5Kfn0HVh5fjhWZPtH2L1XWK8an8OO1R2v2LsBarR9afLPDBht
+         AVHGZvC8qU0qpI0XO7n/Gh6xhOhe1Rw7555UOPBduitgTxQlkU235HIWMEd7NE9WGuKd
+         IEDUGBPX3dHX8/3NaJ1UdEqVx4TyqkHjroHBAScKRSnm1jPFLIvaTtIKcCslPXbVScEE
+         rHLSdjkZUx8MGbbcvAJh2ajKrgYG4hQmrW861GfrNfgtOO4OWWj859YDS+DCzZtb11wj
+         Of2A==
+X-Gm-Message-State: ANoB5pmH4OqpKMvBhbNn+vop5LHGNqOZO1qhlOvl8eaISKZRB3UbhE8l
+        PRz5nNhivouqZs0qHeaZheFDz6bJRsT00K3GF8A=
+X-Google-Smtp-Source: AA0mqf5sZdpMhkd0wSOTKDrCn1eXwtNpTjnqcyf1w5SxwNQFnlr2SV7SIPNwFVaytbUhruPMS0Tc9i7h5fIr+T1l9R0=
+X-Received: by 2002:a05:622a:8cc:b0:3a5:5987:42c6 with SMTP id
+ i12-20020a05622a08cc00b003a5598742c6mr12559271qte.147.1668442635838; Mon, 14
+ Nov 2022 08:17:15 -0800 (PST)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.1
-Subject: Re: [PATCH 0/7] ACPI: video: Prefer native over vendor + quirk
- updates
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>,
-        linux-acpi@vger.kernel.org
-References: <20221114144459.455519-1-hdegoede@redhat.com>
- <CAJZ5v0jPV3VXSXO+tW+dUwZ7QkWdXmiDtA7TTOgM9++SpBiWZA@mail.gmail.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <CAJZ5v0jPV3VXSXO+tW+dUwZ7QkWdXmiDtA7TTOgM9++SpBiWZA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20221109174720.203723-1-jeremy.linton@arm.com> <20221114161206.5sspq25v57ddco4o@bogus>
+In-Reply-To: <20221114161206.5sspq25v57ddco4o@bogus>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 14 Nov 2022 17:16:59 +0100
+Message-ID: <CAJZ5v0jHk9eEj0EnH-hWnRsabAs+E3LiudTPE+KFhcsZARaw5Q@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: Enable FPDT on arm64
+To:     Sudeep Holla <sudeep.holla@arm.com>
+Cc:     Jeremy Linton <jeremy.linton@arm.com>, rafael@kernel.org,
+        linux-acpi@vger.kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, corbet@lwn.net, lenb@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+On Mon, Nov 14, 2022 at 5:12 PM Sudeep Holla <sudeep.holla@arm.com> wrote:
+>
+> On Wed, Nov 09, 2022 at 11:47:20AM -0600, Jeremy Linton wrote:
+> > FPDT provides some boot timing records useful for analyzing
+> > parts of the UEFI boot stack. Given the existing code works
+> > on arm64, and allows reading the values without utilizing
+> > /dev/mem it seems like a good idea to turn it on.
+> >
+>
+> FWIW, this looks good to me.
+>
+> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+>
+> Hi Rafael,
+>
+> Just saw this marked as "Handled Elsewhere", do you prefer to be merged
+> via arm64 or other tree ? This doesn't have any arm64 changes, just Kconfig
+> and doc changes. Let us know.
 
-On 11/14/22 16:27, Rafael J. Wysocki wrote:
-> On Mon, Nov 14, 2022 at 3:45 PM Hans de Goede <hdegoede@redhat.com> wrote:
->>
->> Hi Rafael, et. al.,
->>
->> As mentioned already in the RFC:
->>
->> """
->> Here is a second attempt at always registering only a single
->> /sys/class/backlight device per panel.
->>
->> This first round of testing has shown that native works well even on
->> systems so old that the don't have acpi_video backlight control support.
->>
->> This patch series makes native be preferred over vendor, which should
->> avoid the problems seen with the 6.1 changes before the fixes.
->> """
->>
->> The 2 base patches (last 2 patches of the series now) are unchanged from
->> the RFC. New is a bunch of video_detect DMI quirk updates, 3 small fixes to
->> existing quirks + 2 new quirks. 1 of the new quirks is necessary to avoid
->> a known regression with preferring native over vendor on 1 model,
->> the other DMI quirk is unrelated to the other changes.
->>
->> This series applies on top of the platform-drivers-x86-v6.1-3 tag from:
->> https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/
->>
->> So either you will need to merge that tag (or merge v6.1-rc5 from Linus)
->> before applying these patches, or I can merge this through my for-next
->> branch which already has these changes. Either way works for me.
-> 
-> I'll apply them on top of the -rc5.
-
-Great, thank you.
-
-Regards,
-
-Hans
-
+There is arm64 in the subject, though, so I think it belongs there.
