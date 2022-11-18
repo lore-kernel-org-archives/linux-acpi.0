@@ -2,94 +2,154 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B4EEC433FE
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Nov 2022 06:34:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E6C9C433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Nov 2022 11:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230287AbiKRGeE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Nov 2022 01:34:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46234 "EHLO
+        id S241608AbiKRLXj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Nov 2022 06:23:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240866AbiKRGd6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2022 01:33:58 -0500
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70D356455C;
-        Thu, 17 Nov 2022 22:33:57 -0800 (PST)
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.53])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4ND6Nh665nzJnpd;
-        Fri, 18 Nov 2022 14:30:44 +0800 (CST)
-Received: from dggpemm500015.china.huawei.com (7.185.36.181) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
+        with ESMTP id S241595AbiKRLXW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2022 06:23:22 -0500
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5845F8C79D;
+        Fri, 18 Nov 2022 03:22:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1668770538; x=1700306538;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=WPB/SBATvGA5bOrIJvv/7uIW5hNUi4HZzvX1SmmezDM=;
+  b=ZahuDmDU4XkdH5rij05wlquQS1R9qJtwavBB1uTm2IMxXoD4UjhkH6Uo
+   9V989YySDjoINqCh7m65K+9PdLUiBTv+iUeg0hEDrOC2sVw2EsSDG4/7d
+   HDnkluMSnsCniUtygmOkPLel1TINnGc5zpqM+4RHALhSAqWmgl/FRvkdJ
+   GwIpCjYllDrJcrJONEra4DQDZM7AQvp8dVMmNGu2TomSrxVd7I3ZQC3XA
+   jz6ZyUWR7IFBd3IKoPAfVJM9dnjT2pOrPNys8VCKXD8iIBU749Kmw1bR7
+   8pp5F4tw0wfVVOOleHXOlmu37Ud5e+y45hk8jwuDA7QJtLmQxxIg5RgyD
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10534"; a="310746149"
+X-IronPort-AV: E=Sophos;i="5.96,174,1665471600"; 
+   d="scan'208";a="310746149"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Nov 2022 03:22:15 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10534"; a="642484753"
+X-IronPort-AV: E=Sophos;i="5.96,174,1665471600"; 
+   d="scan'208";a="642484753"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by fmsmga007.fm.intel.com with ESMTP; 18 Nov 2022 03:22:15 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 18 Nov 2022 14:33:53 +0800
-Received: from huawei.com (10.175.103.91) by dggpemm500015.china.huawei.com
- (7.185.36.181) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 18 Nov
- 2022 14:33:53 +0800
-From:   Wang ShaoBo <bobo.shaobowang@huawei.com>
+ 15.1.2375.31; Fri, 18 Nov 2022 03:22:14 -0800
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Fri, 18 Nov 2022 03:22:14 -0800
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.43) by
+ edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Fri, 18 Nov 2022 03:22:14 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=g1RCpJR9ShvVC+XRp3IMZONLJ1AkKU1pcpcpkJbYH6gF88HDxoxCgqKb09Qscp2pBBQTs2cAsEHIEqkrLtMfOz/uYfbNnHqddJjHGpN7rym7XkOtoKi9E2rkDGykCrg37U5dNTmIuG+xmrvLMdeAOqcopY0lkXcGVpuyL+FN1yEPiLdf+k4Eb0ENx78L3cHdVbN6yAca3q3qyJYFh4la3+a2KozOvK2xn71XP4CpnzDdNr8mruZBnveqmdZxLoqvFmEaUY9PpoC83HyzXLXS8LKNgXbA+eFhY6j0ROKhQ1L/FRjz6kth4KwJNNrs6FL09MMk5sSWPEofhXHwLmZtUw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=NSQC3Z11LWmr3tyOZioC1ICHtpfElSVg2l0oJ8NTQuc=;
+ b=NvtcaeprzDIRpIUx/Je4buzTXGt8ODSJoPoJn9tVaz/HXlFwKaOQQHDyGzXDL7BL5nuXNeoxnJy4ggcBwm6LBbIyeF7SvTVjd/GXBYFoFGQlRBedHVNdOD72sTjSCZ4mm0ABAzJHrvG7g4QYfwkbVHeUywpa2cqaTGL83oAunmkjFGD0wb6t3nuk/zEq0NVRLevswCPBNKVvgCh/TtWNM/v3Xrbeu8DVdtFXbeBqeJ0rCS5pAe7G5vWFeNdoRp3DqGLQ7/ofzvDZaXYGjajhcgiaCmCIEXRAickH473XpyffIjmJEKWDwCHe5NTZrWlhi1dP8uzDsv5jFGT/EqhWhQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MN0PR11MB6206.namprd11.prod.outlook.com (2603:10b6:208:3c6::8)
+ by CY5PR11MB6510.namprd11.prod.outlook.com (2603:10b6:930:42::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5813.20; Fri, 18 Nov
+ 2022 11:22:08 +0000
+Received: from MN0PR11MB6206.namprd11.prod.outlook.com
+ ([fe80::3849:238:f7bb:f1d1]) by MN0PR11MB6206.namprd11.prod.outlook.com
+ ([fe80::3849:238:f7bb:f1d1%7]) with mapi id 15.20.5791.027; Fri, 18 Nov 2022
+ 11:22:08 +0000
+Date:   Fri, 18 Nov 2022 19:21:54 +0800
+From:   Chen Yu <yu.c.chen@intel.com>
+To:     Wang ShaoBo <bobo.shaobowang@huawei.com>
 CC:     <rafael.j.wysocki@intel.com>, <rafael@kernel.org>,
-        <lenb@kernel.org>, <yu.c.chen@intel.com>,
-        <linux-acpi@vger.kernel.org>, <guohanjun@huawei.com>,
-        <liwei391@huawei.com>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH 1/2] ACPI: pfr_telemetry: use ACPI_FREE() to free acpi_object
-Date:   Fri, 18 Nov 2022 14:32:18 +0800
-Message-ID: <20221118063219.2612473-2-bobo.shaobowang@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221118063219.2612473-1-bobo.shaobowang@huawei.com>
+        <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+        <guohanjun@huawei.com>, <liwei391@huawei.com>,
+        <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/2] ACPI: pfr_telemetry: use ACPI_FREE() to free
+ acpi_object
+Message-ID: <Y3dq0oxTbsQs6SJR@chenyu5-mobl1>
 References: <20221118063219.2612473-1-bobo.shaobowang@huawei.com>
+ <20221118063219.2612473-2-bobo.shaobowang@huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20221118063219.2612473-2-bobo.shaobowang@huawei.com>
+X-ClientProxiedBy: SI2PR01CA0049.apcprd01.prod.exchangelabs.com
+ (2603:1096:4:193::13) To MN0PR11MB6206.namprd11.prod.outlook.com
+ (2603:10b6:208:3c6::8)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.103.91]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggpemm500015.china.huawei.com (7.185.36.181)
-X-CFilter-Loop: Reflected
-To:     unlisted-recipients:; (no To-header on input)
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN0PR11MB6206:EE_|CY5PR11MB6510:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2af4cba2-524a-41c6-9939-08dac9572100
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: fap8MQm660nOpzMhLLE1l1u4kA5CCvO0t8M8hxMEPr50fkiO6ZFLgMzG6Ma0rqi18TstqgofiSJM+uN1oWpTDTzxyB0VPE7nydsdRDx6tk1NB1QOmGtbF7j8HD/H/zdkCx4UqRxrPIRTZc78DF0hUWufmGlnPfib31q9TyFSz6K+pY/52rca9uLyZFaYpJP/pUtGUiwGFW2e7FHFNuZGiZJysxDN9YEB1/vaAdpB0JWCwg7P15h2Mu+la2wDSTg6wwwNsb1ORRJk05+G9AUe8vToikf36sOs/wDQLGpSjBvg4DwEyhkW+TNo8STwCx9PDO1vxHXcchot6zBE9Hk2GDR5fBV9uWGJEFuV/vfLqnlclYoigKkf1ATyXZ10XHXI/R2BCBN9+VPQV5/qsAC/xwFfTcZm1PTAYkkFR6of9Hu9HiGWkXjcb+lHzxKMuzOJrZR/UsgHlM8a+DmbRQhwYJGMZhpkBRxSRSKimdbqOIJDfoqL1825NSY/oUT/zUwUA4hN+sIWmL2piltuuVVD4uhyM8i3P6FfTrdJtuU6AdTpCRE0k1HUaKR4BwdCAN2HQ55WEk8JYRuS8vy6nkRAqccKD/ZXbxO+G6nOgVTh52J/xCTQBL7v6HyObdasFKzA/XlfTk2O/L/BEZnaKsMK7Q==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR11MB6206.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(7916004)(366004)(39860400002)(396003)(136003)(346002)(376002)(451199015)(86362001)(83380400001)(66946007)(38100700002)(82960400001)(8936002)(4001150100001)(4744005)(2906002)(4326008)(41300700001)(33716001)(6916009)(66476007)(26005)(66556008)(53546011)(9686003)(6506007)(6666004)(6512007)(186003)(8676002)(316002)(478600001)(5660300002)(6486002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?3SPCZejO2cxAV9Rgd8flbLFicJKBEF5JWH/RbZOqMdB/FmkPY0M2D+/6d7dK?=
+ =?us-ascii?Q?ZxsyZxr9guUQEeZg80EoEZ4OCEeR70Vzqw2Moet5WSBjSbCrRFpFmSTQmF8P?=
+ =?us-ascii?Q?s4MbW/VkDDu/HE/dtq+3yllGHoqAc2oRGqLocEIaZT0+J3SrFvt39SQopfUR?=
+ =?us-ascii?Q?7cS1VDRjt1uRXXMFon6JM17pbVX0lazfZdYckCDtvzQ/QTsC7ycekRnYp6uB?=
+ =?us-ascii?Q?4ksGGQDIt0lIESlwlA6zr+3Q/QkBQ5vCiCKUBana9Y+ngafNxAvMYVDyohrv?=
+ =?us-ascii?Q?i/vqIFgSQDTx4zd6HrSD+7z+RCpxs1II6KgEPJJ1a2J3t90Caz5N4FZYG43c?=
+ =?us-ascii?Q?k5Nki5LQpP13BblPuxsUmgewhxfQfvjtj6HmAhJoXxXEX98XyHNG3Y14duRq?=
+ =?us-ascii?Q?8QcjEd0EjF3e33ta49nh8k3qo/S55uydGBSBL02ZbzWx80ThfvCGp0Y8egGi?=
+ =?us-ascii?Q?YRGUhHdpIiuXb5HOWCCmVSJF1C9jFcoZK4wKLtry/C6+x6DhRp2Hz/IrdK9W?=
+ =?us-ascii?Q?F+muGzssSdoCw/RZqyjW3P5Itki31bkuf99LonAWOVlqv4sG1SEL08b0MwU1?=
+ =?us-ascii?Q?9VlSAmE9NEKbYMhRDBRcBNmPOZ/akCmNNDCNq750wkoqQtDTztCNLwUBpeNF?=
+ =?us-ascii?Q?Sl/+tbo1pozzfyxkUX3W1U6v4C1Dc12PbkMUCNDVJRrI55ZNoY0Yh/0GP4xM?=
+ =?us-ascii?Q?x47KsQqbJ6oc7kF3CQmdiwiOz48mh4JA9IFF2yOr31b7zkwqFoflNgt4Vvyn?=
+ =?us-ascii?Q?AUZwQ/sk3TjFEkAoUo3Ei7asyWMw32vwayzJz2OILKCZr8Ir4Pk1BHPruSuq?=
+ =?us-ascii?Q?OUkHEK7vdn2nYUe927jjyUr2muE71gnMwaJvpCPDwg4bbjeHqsSEbLzru32G?=
+ =?us-ascii?Q?lS1nW0MwrjoItomWU/W0+WnyQrbW09DvewklV07/D4zrGnCH5gNDGf9qUEHb?=
+ =?us-ascii?Q?6G5faNTP+RlwvH3vb2TPTDDhsz441d1bgpskBp9guj+JqLExgkR/RYIlRO5d?=
+ =?us-ascii?Q?+8DWkObH1+pbJ1rWgtsxGF1hLeVGhIQZLWLU3KnQrZsgiEA7y6EqcZ8peaK8?=
+ =?us-ascii?Q?ZwLElk+ga1eJl76rAmEGpUINzJJuhit4v/hSpwOhtJG7u59IDjwLrSAduDUg?=
+ =?us-ascii?Q?m5pjgNQ8jes0FAxmZBhBX08UL280fvknYnwT1UJGdyTc3WOnn42piHlmDRhh?=
+ =?us-ascii?Q?HZuSloElC1X6RY5tTuLf0RjMByWgq4Gb1eYspMC2raKF1XVQocmkkhNwsQaL?=
+ =?us-ascii?Q?c9bT9O89B80rqK0K9C2zfkZwDozSWBAaG/OSFtQQTr9jGlPN/Jxc5P7ksfGr?=
+ =?us-ascii?Q?EEuMzGv9YCVEGRbQBhzapr/ynhOAgT8MztZYS5t1HTab3XfzOVY2I6bBa+SY?=
+ =?us-ascii?Q?cEl2Q7NNbaft7GdIYv0cvNjIKuW2gKbeqEwl16TU2ql/v6+QC2av0lE/bci1?=
+ =?us-ascii?Q?M6pBWEFC2py25luHZPQzvbtNMeo5iLC7wYrwpxR6BxWfoc65ZqGyB9uRViGt?=
+ =?us-ascii?Q?cRWajKDG9+fZoaRMKFqQV4WHhmqafV32k7bQ9z2D7I7Rz5dy7H2mYuGuQY9A?=
+ =?us-ascii?Q?tGHltCwet4TJIc9o7xjDcpUmuBdYvWKSAj+BB7ST?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2af4cba2-524a-41c6-9939-08dac9572100
+X-MS-Exchange-CrossTenant-AuthSource: MN0PR11MB6206.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Nov 2022 11:22:08.0939
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: PzeK1XTqBvK6Ik/cFfTAUfI05Etys8TNEFQXiCqlJzD1ryF7kX5e7hJVCmnvvcligZkjPwMl8Vy8qsKwAA43VA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR11MB6510
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_evaluate_dsm_typed()/acpi_evaluate_dsm() should be coupled
-with ACPI_FREE() to free the ACPI memory, because we need to
-track the allocation of acpi_object when ACPI_DBG_TRACK_ALLOCATIONS
-enabled, so use ACPI_FREE() instead of kfree().
+On 2022-11-18 at 14:32:18 +0800, Wang ShaoBo wrote:
+> acpi_evaluate_dsm_typed()/acpi_evaluate_dsm() should be coupled
+> with ACPI_FREE() to free the ACPI memory, because we need to
+> track the allocation of acpi_object when ACPI_DBG_TRACK_ALLOCATIONS
+> enabled, so use ACPI_FREE() instead of kfree().
+> 
+> Fixes: b0013e037a8b ("ACPI: Introduce Platform Firmware Runtime Telemetry driver")
+> Signed-off-by: Wang ShaoBo <bobo.shaobowang@huawei.com>
+Reviewed-by: Chen Yu <yu.c.chen@intel.com>
 
-Fixes: b0013e037a8b ("ACPI: Introduce Platform Firmware Runtime Telemetry driver")
-Signed-off-by: Wang ShaoBo <bobo.shaobowang@huawei.com>
----
- drivers/acpi/pfr_telemetry.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/pfr_telemetry.c b/drivers/acpi/pfr_telemetry.c
-index 9abf350bd7a5..27fb6cdad75f 100644
---- a/drivers/acpi/pfr_telemetry.c
-+++ b/drivers/acpi/pfr_telemetry.c
-@@ -144,7 +144,7 @@ static int get_pfrt_log_data_info(struct pfrt_log_data_info *data_info,
- 	ret = 0;
- 
- free_acpi_buffer:
--	kfree(out_obj);
-+	ACPI_FREE(out_obj);
- 
- 	return ret;
- }
-@@ -180,7 +180,7 @@ static int set_pfrt_log_level(int level, struct pfrt_log_device *pfrt_log_dev)
- 		ret = -EBUSY;
- 	}
- 
--	kfree(out_obj);
-+	ACPI_FREE(out_obj);
- 
- 	return ret;
- }
-@@ -218,7 +218,7 @@ static int get_pfrt_log_level(struct pfrt_log_device *pfrt_log_dev)
- 	ret = obj->integer.value;
- 
- free_acpi_buffer:
--	kfree(out_obj);
-+	ACPI_FREE(out_obj);
- 
- 	return ret;
- }
--- 
-2.25.1
-
+thanks,
+Chenyu
