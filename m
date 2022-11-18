@@ -2,120 +2,173 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 341E9C4332F
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Nov 2022 18:15:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F59CC433FE
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Nov 2022 19:01:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241904AbiKRSP5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Nov 2022 13:15:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56092 "EHLO
+        id S241802AbiKRTBI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Nov 2022 14:01:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242555AbiKRSPz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2022 13:15:55 -0500
-Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFE55898F4
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Nov 2022 10:15:54 -0800 (PST)
-Received: by mail-pg1-x536.google.com with SMTP id f9so1459577pgf.7
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Nov 2022 10:15:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=tmg0LliGpsZZHm4HXiakpzT3kGjALzuosA9bdBtcr+Q=;
-        b=eiAPF5GM7kr6LedkAaCy65AdbVFDpDohOTBtN5jzYKzNKrFe9SMUfOeHShgkG72ML/
-         TsZq+WEQoaSw0hMt+I5CwhPS5//DaY0NCujymzjFkkHz8CoYyrH7MzIACPlboc+3lm38
-         RDqL5ZoJZO9q+GU5AddFLfwE9IpWtNpDyk7N8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=tmg0LliGpsZZHm4HXiakpzT3kGjALzuosA9bdBtcr+Q=;
-        b=olrHXDgia02jLS8eFfBTStH0BTErzJr7bTKCJCxqnY5YN6PbhGgJGt7Zgnnm+N1PVD
-         5vEyLM/KnPFGCyUL4V+USzCwDxXvc+k9Da+BQVfE9xMrFEweEhZaD68HSoF27EWnJz36
-         n/t+55FCPqYtcsa9j5bbhPzkvqkk5IPmA/Y/jeBvaPKvCsRDlKscZb3FGAt1eqq9ZTJK
-         +3gT1tRDWU4Ai/p8DrVKJSQ89bNEwBllKP1ipincQb9C0HlUAC3DJUWrQhF2PmzsfE3q
-         b07bM38b1TZF3+4AGbqglyQoIg7ibchMjBx63cii5tJhv5L7mvfXy5Fo3i5TYLSJkhos
-         lwPA==
-X-Gm-Message-State: ANoB5pkKZnqTU+7CiN4J4CvUyhRwR+bg4dMuDMt0TduUW7IH7JKwjwrh
-        pNdhQYIeuAaHhx6IaNAt6LfLzw==
-X-Google-Smtp-Source: AA0mqf5WDnA1r5jesMg2Qg61/95ge1c7MF8CtLnRwIZaYDBuT4OQmMYteUJ6lQc50XLxtxY/qLeJXg==
-X-Received: by 2002:a62:ab18:0:b0:56b:9ae8:ca05 with SMTP id p24-20020a62ab18000000b0056b9ae8ca05mr8908089pff.59.1668795354181;
-        Fri, 18 Nov 2022 10:15:54 -0800 (PST)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id e10-20020a17090a4a0a00b00217090ece49sm3068381pjh.31.2022.11.18.10.15.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Nov 2022 10:15:53 -0800 (PST)
-From:   Kees Cook <keescook@chromium.org>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Kees Cook <keescook@chromium.org>, Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-acpi@vger.kernel.org, devel@acpica.org,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: [PATCH] ACPICA: Replace fake flexible arrays with flexible array members
-Date:   Fri, 18 Nov 2022 10:15:51 -0800
-Message-Id: <20221118181538.never.225-kees@kernel.org>
-X-Mailer: git-send-email 2.34.1
+        with ESMTP id S235499AbiKRTBH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2022 14:01:07 -0500
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67A5B10E9;
+        Fri, 18 Nov 2022 11:01:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1668798065; x=1700334065;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=Bxz54gOygFD+2N524o4eOo4LHia2SzsQwfOA3UPhtPM=;
+  b=FVZ8ueyrMLZZZeR+TF+eDvc4zOVDDC1ds47AspOC+cUrIBEZ1orsZaoe
+   nRE88bnMUEPYBUNc1KFO+YBL8Wnx6QA3PcLrV6q3RJt606kIHzY225GrF
+   K9nhLECfrh+nW7zkifz+k07Lg+3j/QIrBHyG7hqxrERdZ1m4j9yoMOkTL
+   xkrZxiCf9tLWfZr7DBbNVhZk79oiAA9+FN6dXapK0rCSxfgwTupiS1/P9
+   PDSocuIBhPq4lCs9j+Gih3UCkjfN9piU3u/3ecVlzXciFqO4O+PWzO4T2
+   pB/WBiwQhi53j2droYd8G+ezuJYY17qW2vg8koWwy1GgAnHga4wtvagC7
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10535"; a="311912178"
+X-IronPort-AV: E=Sophos;i="5.96,175,1665471600"; 
+   d="scan'208";a="311912178"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Nov 2022 11:01:05 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10535"; a="815018698"
+X-IronPort-AV: E=Sophos;i="5.96,175,1665471600"; 
+   d="scan'208";a="815018698"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga005.jf.intel.com with ESMTP; 18 Nov 2022 11:01:01 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 6043A2F3; Fri, 18 Nov 2022 21:01:26 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     =?UTF-8?q?Cl=C3=A9ment=20L=C3=A9ger?= <clement.leger@bootlin.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Cc:     Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tianshu Qiu <tian.shu.qiu@intel.com>
+Subject: [PATCH v1 3/4] software node: Switch property entry test to new API
+Date:   Fri, 18 Nov 2022 20:56:16 +0200
+Message-Id: <20221118185617.33908-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221118185617.33908-1-andriy.shevchenko@linux.intel.com>
+References: <20221118185617.33908-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1891; h=from:subject:message-id; bh=hNQ8xGwsN5w0u1FbYYQ7J14X7B6YxBpfy2M2HM3+Jjc=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBjd8vXU+Wg7XOvkEcmLqHTez5MBdtt0fUOreosAnS4 ntlijcaJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCY3fL1wAKCRCJcvTf3G3AJjDkD/ sFy/fgnccpfOxOXUfmtmxp15lFZTGFZrdm9pbQImExpBb+3wb3jtS5vOigfPdnrVbUAgGA4vw2yBmZ QkApv68Dgc5HzHHbjzpWx2Doo6zdD7kuIygYQqG1TRHIQjr4NWA47yR63Aq3AFYKPh2q+xRCpMrMK5 ZEbxM26zdW+0jmw3BtJ1mmi8V4Q2bhU5+8EyqJ7ESMcqxQKPIrdOtdorD+ACi2P/tJv7prDbSVHFuo 04Jm+Io0K50lcfK9MBGuP45auU9z25kCe/rM5fh5QE9TJrXEVb4lJhoyX64FHY7ya1K9uXk7mGpTuq rCZqhfrGcJvSetSG3qWaP14jtazw1pGpyTE1jMvmuCebgEHupzq2DrThTsn8XX9xLKE9pplLP1OziQ 5tgbmRcDMxNFRQxVL/W1XwTl72j1QD9FbaanBJHksNkYuNAlTPJmVWZR5BowGyuSZJKQ2z0M/fTs0O LXegQJRXyN4FjtHyN/1N7XXNMtEiygKrFXA6YCU4RuSM/C25VrCFo5Rfjlvoed3qfBOTejkqRy1MNV nI21vUXGwSzoJAunS1g5tGn007d7H5tGmp9qY2OTJZBQK3tC1QxMy2Hr1/4XeqygKonufrTM05F3wP eI1e7KQ4oKKMbtYa4eQBq4YsSjyId0Th+edmiKiF/uIcwqjKiKtrc6iqflUg==
-X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Functionally identical to ACPICA upstream pull request 813:
-https://github.com/acpica/acpica/pull/813
+Switch property entry test to use software_node_register_node_group() API.
+The current one is going to be removed soon.
 
-One-element arrays (and multi-element arrays being treated as
-dynamically sized) are deprecated[1] and are being replaced with
-flexible array members in support of the ongoing efforts to tighten the
-FORTIFY_SOURCE routines on memcpy(), correctly instrument array indexing
-with UBSAN_BOUNDS, and to globally enable -fstrict-flex-arrays=3.
-
-Replace one-element array with flexible-array member in struct
-acpi_resource_extended_irq. Replace 4-byte fixed-size array with 4-byte
-padding in a union with a flexible-array member in struct
-acpi_pci_routing_table.
-
-This results in no differences in binary output.
-
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: devel@acpica.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- include/acpi/acrestyp.h | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/base/test/property-entry-test.c | 30 ++++++++++++-------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
-index a7fb8ddb3dc6..ee945084d46e 100644
---- a/include/acpi/acrestyp.h
-+++ b/include/acpi/acrestyp.h
-@@ -332,7 +332,7 @@ struct acpi_resource_extended_irq {
- 	u8 wake_capable;
- 	u8 interrupt_count;
- 	struct acpi_resource_source resource_source;
--	u32 interrupts[1];
-+	u32 interrupts[];
- };
+diff --git a/drivers/base/test/property-entry-test.c b/drivers/base/test/property-entry-test.c
+index 6071d5bc128c..dd2b606d76a3 100644
+--- a/drivers/base/test/property-entry-test.c
++++ b/drivers/base/test/property-entry-test.c
+@@ -405,20 +405,18 @@ static void pe_test_move_inline_str(struct kunit *test)
+ /* Handling of reference properties */
+ static void pe_test_reference(struct kunit *test)
+ {
+-	static const struct software_node nodes[] = {
+-		{ .name = "1", },
+-		{ .name = "2", },
+-		{ }
+-	};
++	static const struct software_node node1 = { .name = "1" };
++	static const struct software_node node2 = { .name = "2" };
++	static const struct software_node *group[] = { &node1, &node2, NULL };
  
- struct acpi_resource_generic_register {
-@@ -679,7 +679,10 @@ struct acpi_pci_routing_table {
- 	u32 pin;
- 	u64 address;		/* here for 64-bit alignment */
- 	u32 source_index;
--	char source[4];		/* pad to 64 bits so sizeof() works in all cases */
-+	union {
-+		char pad[4];	/* pad to 64 bits so sizeof() works in all cases */
-+		DECLARE_FLEX_ARRAY(char, source);
-+	};
- };
+ 	static const struct software_node_ref_args refs[] = {
+-		SOFTWARE_NODE_REFERENCE(&nodes[0]),
+-		SOFTWARE_NODE_REFERENCE(&nodes[1], 3, 4),
++		SOFTWARE_NODE_REFERENCE(&node1),
++		SOFTWARE_NODE_REFERENCE(&node2, 3, 4),
+ 	};
  
- #endif				/* __ACRESTYP_H__ */
+ 	const struct property_entry entries[] = {
+-		PROPERTY_ENTRY_REF("ref-1", &nodes[0]),
+-		PROPERTY_ENTRY_REF("ref-2", &nodes[1], 1, 2),
++		PROPERTY_ENTRY_REF("ref-1", &node1),
++		PROPERTY_ENTRY_REF("ref-2", &node2, 1, 2),
+ 		PROPERTY_ENTRY_REF_ARRAY("ref-3", refs),
+ 		{ }
+ 	};
+@@ -427,7 +425,7 @@ static void pe_test_reference(struct kunit *test)
+ 	struct fwnode_reference_args ref;
+ 	int error;
+ 
+-	error = software_node_register_nodes(nodes);
++	error = software_node_register_node_group(group);
+ 	KUNIT_ASSERT_EQ(test, error, 0);
+ 
+ 	node = fwnode_create_software_node(entries, NULL);
+@@ -436,7 +434,7 @@ static void pe_test_reference(struct kunit *test)
+ 	error = fwnode_property_get_reference_args(node, "ref-1", NULL,
+ 						   0, 0, &ref);
+ 	KUNIT_ASSERT_EQ(test, error, 0);
+-	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &nodes[0]);
++	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &node1);
+ 	KUNIT_EXPECT_EQ(test, ref.nargs, 0U);
+ 
+ 	/* wrong index */
+@@ -447,7 +445,7 @@ static void pe_test_reference(struct kunit *test)
+ 	error = fwnode_property_get_reference_args(node, "ref-2", NULL,
+ 						   1, 0, &ref);
+ 	KUNIT_ASSERT_EQ(test, error, 0);
+-	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &nodes[1]);
++	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &node2);
+ 	KUNIT_EXPECT_EQ(test, ref.nargs, 1U);
+ 	KUNIT_EXPECT_EQ(test, ref.args[0], 1LLU);
+ 
+@@ -455,7 +453,7 @@ static void pe_test_reference(struct kunit *test)
+ 	error = fwnode_property_get_reference_args(node, "ref-2", NULL,
+ 						   3, 0, &ref);
+ 	KUNIT_ASSERT_EQ(test, error, 0);
+-	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &nodes[1]);
++	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &node2);
+ 	KUNIT_EXPECT_EQ(test, ref.nargs, 3U);
+ 	KUNIT_EXPECT_EQ(test, ref.args[0], 1LLU);
+ 	KUNIT_EXPECT_EQ(test, ref.args[1], 2LLU);
+@@ -470,14 +468,14 @@ static void pe_test_reference(struct kunit *test)
+ 	error = fwnode_property_get_reference_args(node, "ref-3", NULL,
+ 						   0, 0, &ref);
+ 	KUNIT_ASSERT_EQ(test, error, 0);
+-	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &nodes[0]);
++	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &node1);
+ 	KUNIT_EXPECT_EQ(test, ref.nargs, 0U);
+ 
+ 	/* second reference in the array */
+ 	error = fwnode_property_get_reference_args(node, "ref-3", NULL,
+ 						   2, 1, &ref);
+ 	KUNIT_ASSERT_EQ(test, error, 0);
+-	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &nodes[1]);
++	KUNIT_EXPECT_PTR_EQ(test, to_software_node(ref.fwnode), &node2);
+ 	KUNIT_EXPECT_EQ(test, ref.nargs, 2U);
+ 	KUNIT_EXPECT_EQ(test, ref.args[0], 3LLU);
+ 	KUNIT_EXPECT_EQ(test, ref.args[1], 4LLU);
+@@ -488,7 +486,7 @@ static void pe_test_reference(struct kunit *test)
+ 	KUNIT_EXPECT_NE(test, error, 0);
+ 
+ 	fwnode_remove_software_node(node);
+-	software_node_unregister_nodes(nodes);
++	software_node_unregister_node_group(group);
+ }
+ 
+ static struct kunit_case property_entry_test_cases[] = {
 -- 
-2.34.1
+2.35.1
 
