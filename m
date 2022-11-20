@@ -2,146 +2,111 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C40DCC4332F
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Nov 2022 15:51:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7795AC433FE
+	for <linux-acpi@archiver.kernel.org>; Sun, 20 Nov 2022 20:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229453AbiKYPvB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Nov 2022 10:51:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37782 "EHLO
+        id S229925AbiKTUKO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 20 Nov 2022 15:10:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229675AbiKYPu7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Nov 2022 10:50:59 -0500
-Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FAE231FB8;
-        Fri, 25 Nov 2022 07:50:56 -0800 (PST)
-Received: by mail-wr1-x436.google.com with SMTP id x17so7363784wrn.6;
-        Fri, 25 Nov 2022 07:50:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=gGtFpd9/hEihcxfaAZXLh+MO2ImBUdS5RPJo51eOJ5A=;
-        b=Wd6tMpn1N5SIEtXHFwc1eScSBrFdtSlj2xAcP/GVikTRm1O6CSkkb4tWt9U3NoCIa4
-         ijWwVQUGwSEiaT41EnbxqcvBjeBbqgZx07Wf0Z2MhTvq72fA/IaeRK77bTB6tSZsvxD9
-         2xKnPOSOK3ua+7nYV3bUIOpZMkWLbqTwnDxvULKNAMT6BN4lAxIrxyeWtc7sX9aJTl5y
-         tOqchmZnX90FCKtSOS4kryZ6ll56ip6D7P+r/50tYc/nXW4J+/pDeMDNF3fr/rX9S7Yu
-         E7YisrgoDNkwMnZEswLQlMssNyAocughTN01RX8UKLKrGTfi3Ldvr6GSGE2hkDDJ8+32
-         nWJg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=gGtFpd9/hEihcxfaAZXLh+MO2ImBUdS5RPJo51eOJ5A=;
-        b=0te77cvKCGbeoPQeWjt4H8E5aJWpZrFAWQhlIBrdc6e3X1JWGd7+URKqE92XKuuLIb
-         em0P9esUtmCcCsI1BOmtSDstYSpqWArgyOtGXaS4NALp5csbqx0dBpuAThqta4UM+jm0
-         wYCQtbDd7JsChomf2QeuB6eU+Z2Bn6UTToG29/zgKAMj4rJ1KbHZnJu/JVBj864JX/0h
-         Iqz6UCAeCWHnmBGiIHnlJ/fbmVWnGbEzunO8L480667IIMNwdj4Eg2jThqo/Ufr7a4F1
-         ujEA8Z5QBv9Qw827zZjuBV9Hpl6JvXddNUWXlKNV80KkR0EClHXg9gpMVorVKSF4T+IY
-         1oiA==
-X-Gm-Message-State: ANoB5plaKCyqIBA66qBYiVWVFoDrUXHTk1B2B+IZbUdcZYQJiQHfO83q
-        wKGjN91o0mHdZ7dMZ6lMu+Qo7lPyfeo=
-X-Google-Smtp-Source: AA0mqf51cWgSgehn/7HYrUUOy965hQUYasigP3oEcbV2hg7FAxvEw+pQQdBzhgOj70jyVM+s/0Hx8A==
-X-Received: by 2002:a5d:4308:0:b0:241:e80e:225a with SMTP id h8-20020a5d4308000000b00241e80e225amr9726284wrq.560.1669391454971;
-        Fri, 25 Nov 2022 07:50:54 -0800 (PST)
-Received: from [192.168.0.14] (cpc141996-chfd3-2-0-cust928.12-3.cable.virginm.net. [86.13.91.161])
-        by smtp.gmail.com with ESMTPSA id j13-20020adfff8d000000b00241bd177f89sm4050389wrr.14.2022.11.25.07.50.54
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 25 Nov 2022 07:50:54 -0800 (PST)
-Message-ID: <5beff345-84c2-d456-1b7f-05309afa397b@gmail.com>
-Date:   Fri, 25 Nov 2022 15:50:53 +0000
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Subject: Re: [PATCH v3] device property: fix of node refcount leak in
- fwnode_graph_get_next_endpoint()
-Content-Language: en-US
-To:     Yang Yingliang <yangyingliang@huawei.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com,
-        sakari.ailus@linux.intel.com, gregkh@linuxfoundation.org,
-        rafael@kernel.org
-References: <20221123022542.2999510-1-yangyingliang@huawei.com>
-From:   Daniel Scally <djrscally@gmail.com>
-In-Reply-To: <20221123022542.2999510-1-yangyingliang@huawei.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S229926AbiKTUJ5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Nov 2022 15:09:57 -0500
+Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36AEE2F397;
+        Sun, 20 Nov 2022 12:09:04 -0800 (PST)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.nyi.internal (Postfix) with ESMTP id C24665C005B;
+        Sun, 20 Nov 2022 15:09:01 -0500 (EST)
+Received: from imap48 ([10.202.2.98])
+  by compute5.internal (MEProxy); Sun, 20 Nov 2022 15:09:01 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:message-id:mime-version
+        :reply-to:sender:subject:subject:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1668974941; x=
+        1669061341; bh=A/l1Y0qAN4hTYqzDIPOQtrpLivbhrove9YLZsjDBhXY=; b=N
+        hb9+fYrrigI3KxlY/Xw+wwrh6mktNlLsNpp1wZLwIGqB1B2JtlV83df3Syq/fv6U
+        DY43+W9JA5FipwBbm7e3CflcgGL3ybluWQvqag22ucC0/SUsXGMqkAY79F5fRnQ+
+        nx8IJoboDUWORpH/lwaZyzVniympVlUqGqvVjrRAHaYgnWBfCvHXp9Ibmg8X3FNR
+        vbaOYDzvQtaQbEhjn4W13LXjwmmIJBm6ts1ObFnk8dLBJfXbRe6RH7hrlyCKHlg2
+        uWFLkvKRPcCu7NBe1mB/GdzsMM6n/IlFdex2yu1LIO8kIJKTgnb8jAZTv+YLzWUE
+        8sX0xM70zN86NFJgxisOw==
+X-ME-Sender: <xms:XYl6Y8t4iF2FtDL21rfqdGvf7DIDGTeIduwo60ChBM76xNlMsDVWPg>
+    <xme:XYl6Y5fsuxw5fl106vN6fYr4fGtX4OC7s6f3vcO6RXgkrdGMe-EYryzT5vVFQCw9L
+    D7nVHDhlgxXcvVabJE>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvgedrheeggddutdelucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenuchmihhsshhinhhgucfvqfcufhhivghlugculdeftd
+    dmnecujfgurhepofgfggfkfffhufgtsehttdertderredtnecuhfhrohhmpehthhhomhgr
+    shcuoehthhhomhgrshesphhouhhrrhhivghlrdhorhhgqeenucggtffrrghtthgvrhhnpe
+    fftedtffekieffjeetteelieehgeekvdevleehheejfeevfefgffegfeefveeludenucff
+    ohhmrghinhepkhgvrhhnvghlrdhorhhgpdhfrhgvvgiivghsrdhsohhfthifrghrvgenuc
+    evlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehthhhomhgr
+    shesphhouhhrrhhivghlrdhorhhg
+X-ME-Proxy: <xmx:XYl6Y3y-Jxfhiqpz3Klus1WKdbDQjdOsgCYLRyyTjXzjV1CY2kTDAw>
+    <xmx:XYl6Y_PuQvhH2m-DodW9LscMm2a7gHN45iOSUDHXPD2KpG4NrhorbQ>
+    <xmx:XYl6Y8_TdRXKQyJGF7F9rKTclKlZxFzhgWLrPNHqXr6KiHZ6dlCK_g>
+    <xmx:XYl6Y-Lrc92Hyltj9pAnlkdLFFkPrKiC92B98wbeRVoOvSecLUo6ew>
+Feedback-ID: i1ac9442a:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 3785C31A0063; Sun, 20 Nov 2022 15:09:01 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.7.0-alpha0-1115-g8b801eadce-fm-20221102.001-g8b801ead
+Mime-Version: 1.0
+Message-Id: <364007fe-1575-4609-a183-835ca1015d77@app.fastmail.com>
+Date:   Sun, 20 Nov 2022 21:08:37 +0100
+From:   thomas <thomas@pourriel.org>
+Subject: [Bug] NVME controller down (Seagate FireCuda 530)
+Content-Type: text/plain
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi all - sorry that took so long
+Hello,
 
-On 23/11/2022 02:25, Yang Yingliang wrote:
-> The 'parent' returned by fwnode_graph_get_port_parent()
-> with refcount incremented when 'prev' is not NULL, it
-> needs be put when finish using it.
->
-> Because the parent is const, introduce a new variable to
-> store the returned fwnode, then put it before returning
-> from fwnode_graph_get_next_endpoint().
->
-> Fixes: b5b41ab6b0c1 ("device property: Check fwnode->secondary in fwnode_graph_get_next_endpoint()")
-> Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-> ---
+Following a recommendation from https://bugzilla.kernel.org/show_bug.cgi?id=216709 , I'm posting this here, in the hope that it finds a resolution.
+
+# ISSUE DESCRIPTION
+A few seconds after GNOME is started, the NVME drive that is mounted (but which is not used to boot from) is inacessible. dmesg output is:
+
+> [  281.692677] nvme nvme0: controller is down; will reset: CSTS=0xffffffff,
+> PCI_STATUS=0x10
+> [  281.778102] nvme 0000:04:00.0: enabling device (0000 -> 0002)
+> [  281.778436] nvme nvme0: Removing after probe failure status: -19
+> [  281.797929] nvme0n1: detected capacity change from 3907029168 to 0
+> [  281.797947] blk_update_request: I/O error, dev nvme0n1, sector 2786568960
+> op 0x1:(WRITE) flags 0x103000 phys_seg 1 prio class 0
+> [  281.797972] Buffer I/O error on dev nvme0n1p3, logical block 308281696,
+> lost async page write
+> [  281.850852] FAT-fs (nvme0n1p4): unable to read boot sector to mark fs as
+> dirty
+> [  343.901432] EXT4-fs warning (device nvme0n1p3):
+> htree_dirblock_to_tree:1067: inode #77070337: lblock 0: comm ls: error -5
+> reading directory block
+> [  343.902354] EXT4-fs error (device nvme0n1p3): __ext4_find_entry:1658:
+> inode #77070337: comm test-nvme-write: reading directory lblock 0
+> [  350.028540] Aborting journal on device nvme0n1p3-8.
+> [  350.028548] Buffer I/O error on dev nvme0n1p3, logical block 223903744,
+> lost sync page write
+> [  350.028554] JBD2: Error -5 detected when updating journal superblock for
+> nvme0n1p3-8.
 
 
-This looks fine to me (thanks for fixing it), and it works fine on my
-Surface:
+# WHAT I'VE TRIED (without much luck)
+- I've managed to install ZorinOS several times on the drive, so the drive works long enough to have everything copied and installed.
+- On the first 2 Samsung drives, I've managed to install Windows. I did not try with the latest drive.
+- This is the 3rd drive I'm testing (tried with 2 Samsung 970 EVO plus 2To before, and now with a Seagate FireCuda 530 2To)
+- I've tried with either kernel parameter pcie_aspm=off or nvme_core.default_ps_max_latency_us=0 and finally with both, but I get the same result in all 3 cases.
+- I've also tried with various values for nvme_core.default_ps_max_latency_us (starting with 5500)
+- If I boot from the drive, starting in recovery mode, and resuming normal start, seems to postpone a bit the freeze of the system but only by a few minutes. But it still freezes.
 
 
-Reviewed-and-tested-by: Daniel Scally <djrscally@gmail.com>
+# SOFTWARE / HARDWARE
+- Linux Kernel : 5.15.0-53-generic
+- Distribution : Zorin OS 16.2
+- Motherboard : GIGABYTE B550 AORUS Elite V2 
+- NVME Drive : Seagate FireCuda 530 2To (latest firmware)
+- CPU : AMD Ryzen 5700X
 
-> v2 -> v3:
->   Add a out label.
->
-> v1 -> v2:
->   Introduce a new variable to store the returned fwnode.
-> ---
->  drivers/base/property.c | 18 ++++++++++++------
->  1 file changed, 12 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 2a5a37fcd998..7f338cb4fb7b 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -989,26 +989,32 @@ struct fwnode_handle *
->  fwnode_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
->  			       struct fwnode_handle *prev)
->  {
-> +	struct fwnode_handle *ep, *port_parent = NULL;
->  	const struct fwnode_handle *parent;
-> -	struct fwnode_handle *ep;
->  
->  	/*
->  	 * If this function is in a loop and the previous iteration returned
->  	 * an endpoint from fwnode->secondary, then we need to use the secondary
->  	 * as parent rather than @fwnode.
->  	 */
-> -	if (prev)
-> -		parent = fwnode_graph_get_port_parent(prev);
-> -	else
-> +	if (prev) {
-> +		port_parent = fwnode_graph_get_port_parent(prev);
-> +		parent = port_parent;
-> +	} else {
->  		parent = fwnode;
-> +	}
->  	if (IS_ERR_OR_NULL(parent))
->  		return NULL;
->  
->  	ep = fwnode_call_ptr_op(parent, graph_get_next_endpoint, prev);
->  	if (ep)
-> -		return ep;
-> +		goto out_put_port_parent;
-> +
-> +	ep = fwnode_graph_get_next_endpoint(parent->secondary, NULL);
->  
-> -	return fwnode_graph_get_next_endpoint(parent->secondary, NULL);
-> +out_put_port_parent:
-> +	fwnode_handle_put(port_parent);
-> +	return ep;
->  }
->  EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
->  
+Thomas.
