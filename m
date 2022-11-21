@@ -2,293 +2,157 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92423C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:07:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1513EC4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:12:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229774AbiKUOH1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Nov 2022 09:07:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40442 "EHLO
+        id S230150AbiKUOMk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Nov 2022 09:12:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231190AbiKUOHD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:07:03 -0500
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 341A012ADA;
-        Mon, 21 Nov 2022 06:03:45 -0800 (PST)
-Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2AL8RlZ9009241;
-        Mon, 21 Nov 2022 14:01:42 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=qcppdkim1;
- bh=6Hu/6DLOQBH7Lhfco7bA9G8E/CwYUETD6eYsdppgHM4=;
- b=b03/SjdLPnIxLVsgWdSBw5fHrANpTAA1LfUTJeC+fe/R0VeBdnLbgNa+3OxzO0/C/tQA
- IqinZZQkxzYMA6g+o/6+A1/LqlVcKw3T1yjocK3VqZENWW4Vdtb6dxlZsquDkR2NLe9f
- Z5LqI7sh6rJOF8AkuOUCWJBYxO5scv2GHse9QxB+xHyyJ74iXFsADmHqKS8U426JD3G8
- 8B1x6k83Dcb6JtSnWU2sfK03RVSFCprBOGtUAGpxLO9KUUsd7jOCroNvD1Ijf3oOGfPu
- gVFrzAwErTfcHBxafTntq+6bg21t109UJkWzQabZ5vBWGssNPBDvF4opd/JSaTkAl5iS /A== 
-Received: from nasanppmta02.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3kxrf5mptk-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 21 Nov 2022 14:01:41 +0000
-Received: from nasanex01b.na.qualcomm.com (corens_vlan604_snip.qualcomm.com [10.53.140.1])
-        by NASANPPMTA02.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2ALE1exo024244
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 21 Nov 2022 14:01:40 GMT
-Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
- nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 21 Nov 2022 06:01:38 -0800
-From:   Elliot Berman <quic_eberman@quicinc.com>
-To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Elliot Berman <quic_eberman@quicinc.com>,
-        Murali Nalajala <quic_mnalajal@quicinc.com>
-CC:     Trilok Soni <quic_tsoni@quicinc.com>,
-        Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
-        Carl van Schaik <quic_cvanscha@quicinc.com>,
-        Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Jassi Brar" <jassisinghbrar@gmail.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        "Mark Rutland" <mark.rutland@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>
-Subject: [PATCH v7 05/20] virt: gunyah: Add hypercalls to identify Gunyah
-Date:   Mon, 21 Nov 2022 05:59:54 -0800
-Message-ID: <20221121140009.2353512-6-quic_eberman@quicinc.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221121140009.2353512-1-quic_eberman@quicinc.com>
-References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
+        with ESMTP id S231226AbiKUOMK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:12:10 -0500
+Received: from EUR04-HE1-obe.outbound.protection.outlook.com (mail-eopbgr70043.outbound.protection.outlook.com [40.107.7.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47C7DFAE4;
+        Mon, 21 Nov 2022 06:10:41 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=PB64rKASW9TdovkFi0wr4fRwsBI2skZZzMhH8A2JQBSFF/qovhnXyYmeeJZ77YHRF6GhHSiaztMpoYsrg7TIe/SskbHjg9zShFpvVE2K2vX5yC3OW3B92lfIvYJiGhpQRb/1Fmwc39ICSXGoyy3VUm/CbBpGRT9wzz3dljzaf1Z9Y3YLD0/dN5rtlbQ5ureAVZqWIHpRaM8PdNoiV7GHx/aJDJjrN2WNIov+TgPZ3qKksRZzlLWFfEelZYiIL5lFLmS5GFMH9qOkWauHIyAOpvmxXW6dQDyILMxq/YR52PE/wPb/teliZ+Yo/XemAefK8vQDbcvh7E5vMYmQGi79uQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=uqGaJMZncYNRrX5y3Oe4JYlD/pqZ6PvqNDJzlD83cig=;
+ b=GbD/q0CHH+ftQZuj16ES82UXhXRdH/q5YbjIB8Kn+60e3i21HdAcg1rz1oFFBOxawWcwttO1d2/EHYcY/BBSzSQIU+9NUKrFIJ5SqG6wXMlZIGA1ErFWCTg5a+wnVIGFzY9N3wndmAM0NOYA3SJNNTpww3F/w/uIMy9wm6k71aGdzVPG6oIsFmOL6XTXu080DiKYPNacVZnUWdrEptT+WG9947fCGnsXneDSRTvujj1TH97YASVAXNlVpOM4f914m5S9BP3ySl1lqIvi984trvdrVDF75P2/x75flnLrEuaW5z3Rg/P+B8fL53wUIRHv6BU70sISEBNvKqftiy2t6A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=suse.com; dmarc=pass action=none header.from=suse.com;
+ dkim=pass header.d=suse.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=uqGaJMZncYNRrX5y3Oe4JYlD/pqZ6PvqNDJzlD83cig=;
+ b=v6r3+Y4WEq2llyvtGv7JE0qpbLI7IOq0xCoZs8/cPdYEf5be1cmEcO36a5AnxwwGyIQeSgxlXAPizEu0vzW6VUtxO1vkSSS1ruGnCZzAHrb1fqGIKybuUp78Aqkxkf4e4Ov8nST6fT3NhHZOz96v4cgGqnVH5Dkb0ejYFVhll8JkR1vUQR3G/0I8S2vvW0cDiTSXgFOAeIUCOuIrm+4/v9LdplgdcTyUm0UZIdB6MtIfa1W9HefXKXE2GwAuNr+dlpsk9bikr1NUzYo7+kbag7RVTYPe37RkRRqaBgMFt1r8uNV0D9EotyMQxewD8p2qLMCcPVek6Tp3yt+28eLA4Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=suse.com;
+Received: from VE1PR04MB6560.eurprd04.prod.outlook.com (2603:10a6:803:122::25)
+ by DB8PR04MB7147.eurprd04.prod.outlook.com (2603:10a6:10:126::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5834.11; Mon, 21 Nov
+ 2022 14:10:38 +0000
+Received: from VE1PR04MB6560.eurprd04.prod.outlook.com
+ ([fe80::4da2:ea8b:e71e:b8d8]) by VE1PR04MB6560.eurprd04.prod.outlook.com
+ ([fe80::4da2:ea8b:e71e:b8d8%4]) with mapi id 15.20.5834.011; Mon, 21 Nov 2022
+ 14:10:38 +0000
+Message-ID: <bac0ed0f-6772-450b-663c-fc0614efa100@suse.com>
+Date:   Mon, 21 Nov 2022 15:10:36 +0100
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+Subject: Re: [PATCH 2/3] acpi/processor: sanitize _PDC buffer bits when
+ running as Xen dom0
+Content-Language: en-US
+To:     Roger Pau Monne <roger.pau@citrix.com>
+Cc:     xen-devel@lists.xenproject.org, jgross@suse.com,
+        stable@vger.kernel.org,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20221121102113.41893-1-roger.pau@citrix.com>
+ <20221121102113.41893-3-roger.pau@citrix.com>
+From:   Jan Beulich <jbeulich@suse.com>
+In-Reply-To: <20221121102113.41893-3-roger.pau@citrix.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR2P281CA0150.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:98::11) To VE1PR04MB6560.eurprd04.prod.outlook.com
+ (2603:10a6:803:122::25)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.49.16.6]
-X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
- nasanex01b.na.qualcomm.com (10.46.141.250)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: Z8Zxdx3Tdp5dR5gfWFKuOMgVa7L5FvfI
-X-Proofpoint-ORIG-GUID: Z8Zxdx3Tdp5dR5gfWFKuOMgVa7L5FvfI
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.219,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2022-11-21_13,2022-11-18_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 adultscore=0
- mlxlogscore=999 spamscore=0 suspectscore=0 bulkscore=0 impostorscore=0
- lowpriorityscore=0 malwarescore=0 priorityscore=1501 clxscore=1015
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2210170000 definitions=main-2211210109
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: VE1PR04MB6560:EE_|DB8PR04MB7147:EE_
+X-MS-Office365-Filtering-Correlation-Id: 28eacf66-2bab-47cf-dc74-08dacbca2a5c
+X-LD-Processed: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba,ExtFwd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ArLkeVlyKAUsEP+nOPGBZSxFsigrfcNRh6/qrkllximvqxqq24T2Qr5XXBJk9geNdEF8KjmJ9qlBQmVQ0UNxAtHCUHs5jIjGUWZ2g4et7aslOWtbBCSLuSj5W4uoE6YMvkhkyAx/T4v6vP5ArKBeLNj8aUIBiZePVTnfoy62uKGgQGGcuM9XxFTIoelXmwsPjzAL6q0XT8Up2qWNpun3EgTz1jl0Mq0uyStH7avFKcZSWWz4CazpClxlfmW4fmjac71wJ20tSEldUE8aN4iVBoeyBHcsOM4jL9tUcbiJznCu42ThWah2/SKZY3uVZNv+flAmydZqmPQTbXEJrnPghwbZJmHSBJbQsKhZgtss1ApQs6GzWJxRW7kUR5yQTbZMZ3iXNVkvolrTyN9cglTc+SbNdMw+Pmz3Z1xJl8lLo+IpMDb8uFWcsI0TmYjmL3lRqBrEeI9LI/TltxfKFlHUUmUSbIxkBjOSaAnXg1bB1DNgluWVfxH+EnKEXL4NbNx+q8kirbEL3GwwoPjDgMYc0UmiTwQhnva05qxwoF3St+uSdDB4h6+hAoaItsiOWe88pvrgSueeWTvGCfSQXpiq4X8QyD9MsBhYeqplvPc9dEE2aogiMegR2FtFC4hb+jfW493UBs0897zQdzxev23KlJu1aeyG54e48OrxZNh9lNSjR2a9MCqWdGmTclnVIlC9WAr93iOvKYut4k9bT2QFWI4wKdHI/FtpJYZ8REvNH9k=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VE1PR04MB6560.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(376002)(366004)(346002)(39860400002)(136003)(396003)(451199015)(31686004)(36756003)(86362001)(31696002)(26005)(38100700002)(2616005)(186003)(6916009)(6512007)(83380400001)(2906002)(54906003)(8936002)(7416002)(5660300002)(6506007)(478600001)(53546011)(6486002)(66476007)(41300700001)(316002)(4326008)(66556008)(66946007)(8676002)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?VXZMd2NMbm5lSnErdGZhTnlndUNkVWlKLzZSNmhwaFQ5Z0ZDc3ZmVVlPWkky?=
+ =?utf-8?B?TFhDaHpCTllUYUFNOHFsQ1JLVnVJellRZWNiamsxWVNvRVdtMGZybnVoL3Ny?=
+ =?utf-8?B?bS9NZkZ0cEpDaG5LemY4d3hKdTBvTmd3L0cvd1FjL2JjTW5DU3ZoL21IREtM?=
+ =?utf-8?B?WDVzZ0orbnEzMjZUWkQwME5vVGdSbzFHejFDUVFVaThEdkhhUmErV1VWR0tn?=
+ =?utf-8?B?dkVjeDIzUmovak1zZjA5U0REckJoOExMRkJuQVp3ZVZhSmdoT1czc0VZN1lN?=
+ =?utf-8?B?dGdZSzBMSXZEbndGN1ZCWUNyYnNKT3VPRlA4TTZiN3NURWdZQTBGNUZQeGgz?=
+ =?utf-8?B?SGl5aTEwUE9DalVFOVozdjlzb2RjYzhSSm1ZQ0gzdTZXU2o5ak4yK1FEWGlG?=
+ =?utf-8?B?cUl4UVA2bDJ6bUxaRk5OQ2Z4cFdXZHpNMFU4Ri9MMk44d2YvS3RiVXU0ZktZ?=
+ =?utf-8?B?S0gvb0c5a3ZNZHoyMjdPaG9ZMzNzbkJMc2tnRmY4Zk01eXRIVE9qWmRMTHhF?=
+ =?utf-8?B?REsvamhwNUpSTzIvL056YndKZEVQWmdFN3IwRk5sUUVaUGlvR01HQm1uMmds?=
+ =?utf-8?B?OUVYZ0Z2TVJkNTRoKzdyeDd0Z3lVaXJXTnJmdW8zWDl1ZEtsQWt4VXR0ODFl?=
+ =?utf-8?B?d1hqQWp3a2pPakNDT2s0RkNhbzFmNFA4UVNNYWFidHRhb25mNUxFMjgyRmxj?=
+ =?utf-8?B?Y1VzRk52L1dRbGlWMVEwM2l4NVpkMmVSQis1RGprR0EzL2tmSzVvNTF0MGNj?=
+ =?utf-8?B?dmovNWVhc2tHQW15TXBONWdvT3JvT09GaTVWcXNMOHFud09vSE5oeWgzYVJE?=
+ =?utf-8?B?U0dhNlVrMkpEMDk4Sk9ydWhsVjNScWI2WWg4bjl6dzVEWWhCck5ZSEVENFVP?=
+ =?utf-8?B?bU1UeUN3Mlc3VVlROEZmaHlHT0U4ZUlhSnFHYUVLVEhoci93MkVFellpNHE3?=
+ =?utf-8?B?bVVnekZtMElPQmxhaEs0TU03eHQ2Sm5BaDNDQWJxazRsTmQ5YmNISGVrblI1?=
+ =?utf-8?B?V1drWEgxSGJtOC9ia3ZzbVNWT20rVEVTSGd6a0U4VXBHOVFJYjB5bEp1UTdn?=
+ =?utf-8?B?NnFFeXBiQW5BblcxMHl0M0d3NHR0WEkrR05DS085RGlkQUdsQTJwdHF1K0ds?=
+ =?utf-8?B?c1o0bWNDT0doR0grNUduNmVScUVRRGxwMDJObjJ4RFBiUmR6ZzhjVkxJVWd2?=
+ =?utf-8?B?Y0V2dG9icE9SVkQwYkZ0TFgvOGJadk9tTDVBTTFlQ1lVdTdPTCtiWFhKTUJX?=
+ =?utf-8?B?S0JJeXdJSXdaaExnRTBDOWMwNHRXK3pqVjBKd3lubXJTTUw2RGYvSkZIaytQ?=
+ =?utf-8?B?YWRmUUI2VDRzVUJZYldWVTYrSEVKb2ZDMEZORHpFQjZuNy8vQk1VNVlWRjJ0?=
+ =?utf-8?B?UkpHUFpwU3RPZU1nSE5KaS9Gc1J6VHNkUEJ5MjBkd3F4NE1LNHBsOXhnZWwy?=
+ =?utf-8?B?MTNuU01xVkJ1ZG9xZDh5WHF2ZlR5WnNSc2xHaW9sUGNUKytGOXRTNEJtS2Zy?=
+ =?utf-8?B?V0RyOGFHWkswZjlRaXptejhXdEpMbGdDaUo1bmR6ZlQ2SGo5VFoxbzVmbEdY?=
+ =?utf-8?B?OWpXbjUyeFBzTDM3Um1ZYXdOSytVM2hCVTVsSVRJd0NWdnpEVVJudXhNK0dz?=
+ =?utf-8?B?bHh6L0tPelNkQ1NWblp6T0RLSUhWaU53Vk55YytEVDZmNXFmUDR2WHhpL2cz?=
+ =?utf-8?B?RTNkaitCYS9YRVFta0UybXNHZEhrV3V5RktiNzI4VXdnNThKeDVCaE83Rm50?=
+ =?utf-8?B?YjRXZGpLQWFsbS9IeGxwTWoyaldkSTAybUFVcllTaEkwY1BrTlFLd3duODVq?=
+ =?utf-8?B?R2FQeTJlN1JldGgwVEtYTFBsSUlFZ2ltWWpITkhUeURBYmpTbWh4dkJGTHdl?=
+ =?utf-8?B?SDlCS1ZDeUIrKzg2K2h1V0hBTk5Yd3dGZFViV0Y1aXN6SHhYSnpwd2Y2UlE4?=
+ =?utf-8?B?UVdMcTBoUmg5Y3dWdkVBK3FQT2RXam9ieW9NeEJ6MTcwcUtzamN5TnN2TDlZ?=
+ =?utf-8?B?Y25pZzFFb3ZIZkRLNjlMQkNjNXhoczJZU0dZekNjaml1Sm1FNzR4YXVpell6?=
+ =?utf-8?B?R3N6ZG9QN0hKSVNxWmk4cVZaR3FlTDB2Z0ZzSzBhZ0VBYVFLQy9BL0tzbzR3?=
+ =?utf-8?Q?r1qIgfJcn8wgWIJC7iZpuwqsL?=
+X-OriginatorOrg: suse.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 28eacf66-2bab-47cf-dc74-08dacbca2a5c
+X-MS-Exchange-CrossTenant-AuthSource: VE1PR04MB6560.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Nov 2022 14:10:38.1845
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: sZd0cmQLoRVHfnpNXcGJg6DZFF7f6gjZ3HwyAaRvOwfyrfDftB0Q0L8usms4R7hSOsh91o6FotJI6ZN8kRd89w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8PR04MB7147
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add hypercalls to identify when Linux is running a virtual machine under
-Gunyah.
+On 21.11.2022 11:21, Roger Pau Monne wrote:
+> --- a/drivers/acpi/processor_pdc.c
+> +++ b/drivers/acpi/processor_pdc.c
+> @@ -137,6 +137,14 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+>  		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
+>  
+>  	}
+> +	if (xen_initial_domain())
+> +		/*
+> +		 * When Linux is running as Xen dom0 it's the hypervisor the
+> +		 * entity in charge of the processor power management, and so
+> +		 * Xen needs to check the OS capabilities reported in the _PDC
+> +		 * buffer matches what the hypervisor driver supports.
+> +		 */
+> +		xen_sanitize_pdc((uint32_t *)pdc_in->pointer->buffer.pointer);
+>  	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
 
-There are two calls to help identify Gunyah:
+Again looking at our old XenoLinux forward port we had this inside the
+earlier if(), as an _alternative_ to the &= (I don't think it's valid
+to apply both the kernel's and Xen's adjustments). That would also let
+you use "buffer" rather than re-calculating it via yet another (risky
+from an abstract pov) cast.
 
-1. gh_hypercall_get_uid() returns a UID when running under a Gunyah
-   hypervisor.
-2. gh_hypercall_hyp_identify() returns build information and a set of
-   feature flags that are supported by Gunyah.
+It was the very nature of requiring Xen-specific conditionals which I
+understand was the reason why so far no attempt was made to get this
+(incl the corresponding logic for patch 1) into any upstream kernel.
 
-Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
----
- MAINTAINERS                          |  2 +
- arch/arm64/Kbuild                    |  1 +
- arch/arm64/gunyah/Makefile           |  1 +
- arch/arm64/gunyah/gunyah_hypercall.c | 69 ++++++++++++++++++++++++++++
- drivers/virt/Kconfig                 |  1 +
- drivers/virt/gunyah/Kconfig          | 12 +++++
- include/linux/gunyah.h               | 25 ++++++++++
- 7 files changed, 111 insertions(+)
- create mode 100644 arch/arm64/gunyah/Makefile
- create mode 100644 arch/arm64/gunyah/gunyah_hypercall.c
- create mode 100644 drivers/virt/gunyah/Kconfig
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c0d46ab5b199..69c1835b3bb4 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8945,6 +8945,8 @@ L:	linux-arm-msm@vger.kernel.org
- S:	Supported
- F:	Documentation/devicetree/bindings/firmware/gunyah-hypervisor.yaml
- F:	Documentation/virt/gunyah/
-+F:	arch/arm64/gunyah/
-+F:	drivers/virt/gunyah/
- F:	include/linux/gunyah.h
- 
- HABANALABS PCI DRIVER
-diff --git a/arch/arm64/Kbuild b/arch/arm64/Kbuild
-index 5bfbf7d79c99..e4847ba0e3c9 100644
---- a/arch/arm64/Kbuild
-+++ b/arch/arm64/Kbuild
-@@ -3,6 +3,7 @@ obj-y			+= kernel/ mm/ net/
- obj-$(CONFIG_KVM)	+= kvm/
- obj-$(CONFIG_XEN)	+= xen/
- obj-$(subst m,y,$(CONFIG_HYPERV))	+= hyperv/
-+obj-$(CONFIG_GUNYAH)	+= gunyah/
- obj-$(CONFIG_CRYPTO)	+= crypto/
- 
- # for cleaning
-diff --git a/arch/arm64/gunyah/Makefile b/arch/arm64/gunyah/Makefile
-new file mode 100644
-index 000000000000..9fbc720b6fb6
---- /dev/null
-+++ b/arch/arm64/gunyah/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_GUNYAH) += gunyah_hypercall.o
-diff --git a/arch/arm64/gunyah/gunyah_hypercall.c b/arch/arm64/gunyah/gunyah_hypercall.c
-new file mode 100644
-index 000000000000..0beb3123d650
---- /dev/null
-+++ b/arch/arm64/gunyah/gunyah_hypercall.c
-@@ -0,0 +1,69 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
-+ */
-+
-+#include <linux/arm-smccc.h>
-+#include <linux/module.h>
-+#include <linux/gunyah.h>
-+
-+#define GH_CALL_TYPE_PLATFORM_CALL		0
-+#define GH_CALL_TYPE_HYPERCALL			2
-+#define GH_CALL_TYPE_SERVICE			3
-+#define GH_CALL_TYPE_SHIFT			14
-+#define GH_CALL_FUNCTION_NUM_MASK		0x3fff
-+
-+#define GH_FN_ID(type, num)	((type) << GH_CALL_TYPE_SHIFT | ((num) & GH_CALL_FUNCTION_NUM_MASK))
-+
-+#define GH_SERVICE(fn)		ARM_SMCCC_CALL_VAL(ARM_SMCCC_FAST_CALL, ARM_SMCCC_SMC_32, \
-+						   ARM_SMCCC_OWNER_VENDOR_HYP, \
-+						   GH_FN_ID(GH_CALL_TYPE_SERVICE, fn))
-+
-+#define GH_HYPERCALL_CALL_UID			GH_SERVICE(0x3f01)
-+
-+#define GH_HYPERCALL(fn)	ARM_SMCCC_CALL_VAL(ARM_SMCCC_FAST_CALL, ARM_SMCCC_SMC_64, \
-+						   ARM_SMCCC_OWNER_VENDOR_HYP, \
-+						   GH_FN_ID(GH_CALL_TYPE_HYPERCALL, fn))
-+
-+#define GH_HYPERCALL_HYP_IDENTIFY		GH_HYPERCALL(0x0000)
-+
-+/**
-+ * gh_hypercall_get_uid() - Returns a UID when running under a Gunyah hypervisor
-+ * @uid: An array of 4 u32's (u32 uid[4];)
-+ *
-+ * Caller should compare the resulting UID to a list of known Gunyah UIDs to
-+ * confirm that Linux is running as a guest of Gunyah.
-+ */
-+void gh_hypercall_get_uid(u32 uid[4])
-+{
-+	struct arm_smccc_res res;
-+
-+	arm_smccc_1_1_hvc(GH_HYPERCALL_CALL_UID, &res);
-+
-+	uid[0] = res.a0;
-+	uid[1] = res.a1;
-+	uid[2] = res.a2;
-+	uid[3] = res.a3;
-+}
-+EXPORT_SYMBOL_GPL(gh_hypercall_get_uid);
-+
-+/**
-+ * gh_hypercall_hyp_identify() - Returns build information and feature flags
-+ *                               supported by Gunyah.
-+ * @hyp_identity: filled by the hypercall with the API info and feature flags.
-+ */
-+void gh_hypercall_hyp_identify(struct gh_hypercall_hyp_identify_resp *hyp_identity)
-+{
-+	struct arm_smccc_res res;
-+
-+	arm_smccc_1_1_hvc(GH_HYPERCALL_HYP_IDENTIFY, &res);
-+
-+	hyp_identity->api_info = res.a0;
-+	hyp_identity->flags[0] = res.a1;
-+	hyp_identity->flags[1] = res.a2;
-+	hyp_identity->flags[2] = res.a3;
-+}
-+EXPORT_SYMBOL_GPL(gh_hypercall_hyp_identify);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Gunyah Hypervisor Hypercalls");
-diff --git a/drivers/virt/Kconfig b/drivers/virt/Kconfig
-index 87ef258cec64..259dc2be6cad 100644
---- a/drivers/virt/Kconfig
-+++ b/drivers/virt/Kconfig
-@@ -52,4 +52,5 @@ source "drivers/virt/coco/efi_secret/Kconfig"
- 
- source "drivers/virt/coco/sev-guest/Kconfig"
- 
-+source "drivers/virt/gunyah/Kconfig"
- endif
-diff --git a/drivers/virt/gunyah/Kconfig b/drivers/virt/gunyah/Kconfig
-new file mode 100644
-index 000000000000..127156a678a6
---- /dev/null
-+++ b/drivers/virt/gunyah/Kconfig
-@@ -0,0 +1,12 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+
-+config GUNYAH
-+	tristate "Gunyah Virtualization drivers"
-+	depends on ARM64
-+	help
-+	  The Gunyah drivers are the helper interfaces that runs in a guest VM
-+	  such as basic inter-VM IPC and signaling mechanisms, and higher level
-+	  services such as memory/device sharing, IRQ sharing, and so on.
-+
-+	  Say Y/M here to enable the drivers needed to interact in a Gunyah
-+	  virtual environment.
-diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
-index 824e20a11d27..2765d2b40198 100644
---- a/include/linux/gunyah.h
-+++ b/include/linux/gunyah.h
-@@ -6,6 +6,7 @@
- #ifndef _GUNYAH_H
- #define _GUNYAH_H
- 
-+#include <linux/bitfield.h>
- #include <linux/types.h>
- #include <linux/errno.h>
- 
-@@ -71,4 +72,28 @@ static inline int gh_remap_error(int gh_error)
- 	}
- }
- 
-+#define GUNYAH_API_V1			1
-+
-+#define GH_API_INFO_API_VERSION_MASK	GENMASK_ULL(13, 0)
-+#define GH_API_INFO_BIG_ENDIAN		BIT_ULL(14)
-+#define GH_API_INFO_IS_64BIT		BIT_ULL(15)
-+#define GH_API_INFO_VARIANT_MASK	GENMASK_ULL(63, 56)
-+
-+#define GH_IDENTIFY_PARTITION_CSPACE		BIT_ULL(0)
-+#define GH_IDENTIFY_DOORBELL			BIT_ULL(1)
-+#define GH_IDENTIFY_MSGQUEUE			BIT_ULL(2)
-+#define GH_IDENTIFY_VIC				BIT_ULL(3)
-+#define GH_IDENTIFY_VPM				BIT_ULL(4)
-+#define GH_IDENTIFY_VCPU			BIT_ULL(5)
-+#define GH_IDENTIFY_MEMEXTENT			BIT_ULL(6)
-+#define GH_IDENTIFY_TRACE_CTRL			BIT_ULL(7)
-+
-+struct gh_hypercall_hyp_identify_resp {
-+	u64 api_info;
-+	u64 flags[3];
-+};
-+
-+void gh_hypercall_get_uid(u32 uid[4]);
-+void gh_hypercall_hyp_identify(struct gh_hypercall_hyp_identify_resp *hyp_identity);
-+
- #endif
--- 
-2.25.1
-
+Jan
