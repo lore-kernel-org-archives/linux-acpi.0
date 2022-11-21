@@ -2,37 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BE14C4332F
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:04:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C2D9C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:04:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231547AbiKUOEL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Nov 2022 09:04:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40472 "EHLO
+        id S231135AbiKUOEO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Nov 2022 09:04:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231578AbiKUOCR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:02:17 -0500
-Received: from alexa-out-sd-01.qualcomm.com (alexa-out-sd-01.qualcomm.com [199.106.114.38])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 360242EF53;
-        Mon, 21 Nov 2022 06:02:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
-  t=1669039335; x=1700575335;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=qy6zLlRt58JzjnAnjZx0E210Sky1kDaCzk1olERIjGA=;
-  b=GtK3PqbbD3BmCUPb550lB/G6QPxm4Da7BWe0G6mllY3emKjUbyrMfD9t
-   yx2jxRk89w0+ebdoFQG3dO7ZSQyFuo/XcbZzGOv3Inl35B7aZSDWpbJP4
-   l510ooPXiKVJGQ1ChGvIQ5m1s+33g0hx7Rv1y+WyMZlaE9ou2veFPS3SW
-   M=;
-Received: from unknown (HELO ironmsg-SD-alpha.qualcomm.com) ([10.53.140.30])
-  by alexa-out-sd-01.qualcomm.com with ESMTP; 21 Nov 2022 06:02:14 -0800
-X-QCInternal: smtphost
-Received: from nasanex01b.na.qualcomm.com ([10.46.141.250])
-  by ironmsg-SD-alpha.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Nov 2022 06:02:14 -0800
+        with ESMTP id S231596AbiKUOCT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:02:19 -0500
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD60C9C7A2;
+        Mon, 21 Nov 2022 06:02:17 -0800 (PST)
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2ALDv8Yr003808;
+        Mon, 21 Nov 2022 14:01:57 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=qcppdkim1;
+ bh=WNgw4FajQnRSTHtH7PHEphfGrA1mFv9j2hiO8jbUXvY=;
+ b=KRuLjrn3/vyPkBz9v0QIZyggSO+FJiXyBcTTOXQnGfVYIyT+N5Wclvd9cWsA7xo6lQK6
+ CTzCP+QNGjzrBqvRYHnwxDYhWMrXfAv6RWfnevZuXQRJkL/Sd4Z58+ciWyLICUicO9Pq
+ JZe4sBYNV0fRYBccrwqOjfvXEXtQ/6GQ8PFM8S4oyX1xegRP8+LIAd30FHO7orQPZTs2
+ BN3ZY2hwJN1HhOlGdT3tKqi8pBPbPoGtDERT0HhLHl+xSAaimKvMyt0Lv/o+qCGfj4W9
+ WvGiWtH/r9Ks8C89ahdSEK+y/YbU3GgIq0xDBDyClGwmE4Jky6Gx/wdoAZyjX5u9V668 IQ== 
+Received: from nasanppmta01.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
+        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3kxrpb4j6d-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 21 Nov 2022 14:01:56 +0000
+Received: from nasanex01b.na.qualcomm.com (corens_vlan604_snip.qualcomm.com [10.53.140.1])
+        by NASANPPMTA01.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2ALE1sRl014812
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 21 Nov 2022 14:01:54 GMT
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 21 Nov 2022 06:02:12 -0800
+ 15.2.986.36; Mon, 21 Nov 2022 06:01:52 -0800
 From:   Elliot Berman <quic_eberman@quicinc.com>
 To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
         Elliot Berman <quic_eberman@quicinc.com>,
@@ -56,9 +61,9 @@ CC:     Trilok Soni <quic_tsoni@quicinc.com>,
         <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>
-Subject: [PATCH v7 17/20] gunyah: rsc_mgr: Add platform ops on mem_lend/mem_reclaim
-Date:   Mon, 21 Nov 2022 06:00:06 -0800
-Message-ID: <20221121140009.2353512-18-quic_eberman@quicinc.com>
+Subject: [PATCH v7 10/20] gunyah: rsc_mgr: Add resource manager RPC core
+Date:   Mon, 21 Nov 2022 05:59:59 -0800
+Message-ID: <20221121140009.2353512-11-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20221121140009.2353512-1-quic_eberman@quicinc.com>
 References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
@@ -68,195 +73,786 @@ Content-Type: text/plain
 X-Originating-IP: [10.49.16.6]
 X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
  nasanex01b.na.qualcomm.com (10.46.141.250)
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-ORIG-GUID: RnFrEbPJ5RqcXS-N6iGyIykwt-GOjhbC
+X-Proofpoint-GUID: RnFrEbPJ5RqcXS-N6iGyIykwt-GOjhbC
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.219,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
+ definitions=2022-11-21_13,2022-11-18_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxscore=0
+ lowpriorityscore=0 suspectscore=0 bulkscore=0 malwarescore=0
+ priorityscore=1501 mlxlogscore=999 phishscore=0 clxscore=1015
+ impostorscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2210170000 definitions=main-2211210109
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Qualcomm platforms, there is a firmware entity which controls access
-to physical pages. In order to share memory with another VM, this entity
-needs to be informed that the guest VM should have access to the memory.
+The resource manager is a special virtual machine which is always
+running on a Gunyah system. It provides APIs for creating and destroying
+VMs, secure memory management, sharing/lending of memory between VMs,
+and setup of inter-VM communication. Calls to the resource manager are
+made via message queues.
 
-Co-developed-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
-Signed-off-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
+This patch implements the basic probing and RPC mechanism to make those
+API calls. Request/response calls can be made with gh_rm_call.
+Drivers can also register to notifications pushed by RM via
+gh_rm_register_notifier
+
+Specific API calls that resource manager supports will be implemented in
+subsequent patches.
+
 Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
 ---
- drivers/virt/gunyah/Kconfig                 |  4 ++
- drivers/virt/gunyah/Makefile                |  1 +
- drivers/virt/gunyah/gunyah_platform_hooks.c | 63 +++++++++++++++++++++
- drivers/virt/gunyah/gunyah_rm_rpc.c         |  7 ++-
- drivers/virt/gunyah/rsc_mgr.h               |  3 +
- include/linux/gunyah_rsc_mgr.h              | 14 +++++
- 6 files changed, 91 insertions(+), 1 deletion(-)
- create mode 100644 drivers/virt/gunyah/gunyah_platform_hooks.c
+ MAINTAINERS                          |   2 +-
+ drivers/virt/gunyah/Kconfig          |   7 +
+ drivers/virt/gunyah/Makefile         |   2 +
+ drivers/virt/gunyah/gunyah_rm_rpc.c  | 570 +++++++++++++++++++++++++++
+ drivers/virt/gunyah/gunyah_rsc_mgr.c |  50 +++
+ drivers/virt/gunyah/rsc_mgr.h        |  37 ++
+ include/linux/gunyah_rsc_mgr.h       |  18 +
+ 7 files changed, 685 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/virt/gunyah/gunyah_rm_rpc.c
+ create mode 100644 drivers/virt/gunyah/gunyah_rsc_mgr.c
+ create mode 100644 drivers/virt/gunyah/rsc_mgr.h
+ create mode 100644 include/linux/gunyah_rsc_mgr.h
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 502798197b80..b65f7ff444e5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8948,7 +8948,7 @@ F:	Documentation/virt/gunyah/
+ F:	arch/arm64/gunyah/
+ F:	drivers/mailbox/gunyah-msgq.c
+ F:	drivers/virt/gunyah/
+-F:	include/linux/gunyah.h
++F:	include/linux/gunyah*.h
+ 
+ HABANALABS PCI DRIVER
+ M:	Oded Gabbay <ogabbay@kernel.org>
 diff --git a/drivers/virt/gunyah/Kconfig b/drivers/virt/gunyah/Kconfig
-index 5856b7c5157b..41e619128b3d 100644
+index 127156a678a6..0bb497372d4e 100644
 --- a/drivers/virt/gunyah/Kconfig
 +++ b/drivers/virt/gunyah/Kconfig
-@@ -11,11 +11,15 @@ config GUNYAH
+@@ -10,3 +10,10 @@ config GUNYAH
+ 
  	  Say Y/M here to enable the drivers needed to interact in a Gunyah
  	  virtual environment.
- 
-+config GUNYAH_PLATFORM_HOOKS
-+	tristate
 +
- if GUNYAH
- config GUNYAH_RESOURCE_MANAGER
- 	tristate
- 	depends on MAILBOX
- 	select GUNYAH_MESSAGE_QUEUES
-+	select GUNYAH_PLATFORM_HOOKS
- 
- config GUNYAH_VM_MANAGER
- 	tristate "Gunyah VM Manager"
++if GUNYAH
++config GUNYAH_RESOURCE_MANAGER
++	tristate
++	depends on MAILBOX
++	select GUNYAH_MESSAGE_QUEUES
++endif
 diff --git a/drivers/virt/gunyah/Makefile b/drivers/virt/gunyah/Makefile
-index 82fd18d518d1..90d589ce1f44 100644
+index 2ac4ee64b89d..b62ac4045621 100644
 --- a/drivers/virt/gunyah/Makefile
 +++ b/drivers/virt/gunyah/Makefile
-@@ -1,4 +1,5 @@
+@@ -1 +1,3 @@
  obj-$(CONFIG_GUNYAH) += gunyah.o
-+obj-$(CONFIG_GUNYAH_PLATFORM_HOOKS) += gunyah_platform_hooks.o
- 
- obj-$(CONFIG_GUNYAH_RESOURCE_MANAGER) += gunyah_rsc_mgr.o gunyah_rm_rpc.o
- 
-diff --git a/drivers/virt/gunyah/gunyah_platform_hooks.c b/drivers/virt/gunyah/gunyah_platform_hooks.c
++
++obj-$(CONFIG_GUNYAH_RESOURCE_MANAGER) += gunyah_rsc_mgr.o gunyah_rm_rpc.o
+diff --git a/drivers/virt/gunyah/gunyah_rm_rpc.c b/drivers/virt/gunyah/gunyah_rm_rpc.c
 new file mode 100644
-index 000000000000..36cc02c75963
+index 000000000000..45b1a8691982
 --- /dev/null
-+++ b/drivers/virt/gunyah/gunyah_platform_hooks.c
-@@ -0,0 +1,63 @@
++++ b/drivers/virt/gunyah/gunyah_rm_rpc.c
+@@ -0,0 +1,570 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
 + */
 +
++#include <linux/of.h>
++#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include <linux/gunyah.h>
 +#include <linux/module.h>
-+#include <linux/rwsem.h>
++#include <linux/of_irq.h>
++#include <linux/kthread.h>
++#include <linux/notifier.h>
++#include <linux/workqueue.h>
++#include <linux/completion.h>
 +#include <linux/gunyah_rsc_mgr.h>
++#include <linux/platform_device.h>
 +
 +#include "rsc_mgr.h"
 +
-+static struct gunyah_rm_platform_ops *rm_platform_ops;
-+static DECLARE_RWSEM(rm_platform_ops_lock);
++/* Resource Manager Header */
++struct gh_rm_rpc_hdr {
++#define RM_RPC_HDR_VERSION_ONE		0x1
++#define RM_RPC_API_VERSION_MASK		GENMASK(3, 0)
 +
-+int gh_rm_platform_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
++#define RM_RPC_HDR_WORDS		0x2
++#define RM_RPC_HEADER_WORDS_MASK	GENMASK(7, 4)
++	u8 api;
++
++#define RM_RPC_TYPE_CONT		0x0
++#define RM_RPC_TYPE_REQ		0x1
++#define RM_RPC_TYPE_RPLY		0x2
++#define RM_RPC_TYPE_NOTIF		0x3
++#define RM_RPC_TYPE_MASK		GENMASK(1, 0)
++
++#define GH_RM_MAX_NUM_FRAGMENTS		62
++#define RM_RPC_FRAGMENTS_MASK		GENMASK(7, 2)
++	u8 type;
++	__le16 seq;
++	__le32 msg_id;
++} __packed;
++
++/* Standard reply header */
++struct gh_rm_rpc_reply_hdr {
++	struct gh_rm_rpc_hdr rpc_hdr;
++	u32 err_code;
++} __packed;
++
++#define GH_RM_MAX_MSG_SIZE	(GH_MSGQ_MAX_MSG_SIZE - sizeof(struct gh_rm_rpc_hdr))
++
++/**
++ * struct gh_rm_connection - Represents a complete message from resource manager
++ * @payload: Combined payload of all the fragments (msg headers stripped off).
++ * @size: Size of the payload.
++ * @ret: Linux return code, set in case there was an error processing connection
++ * @msg_id: Message ID from the header.
++ * @type: RM_RPC_TYPE_RPLY or RM_RPC_TYPE_NOTIF.
++ * @num_fragments: total number of fragments expected to be received.
++ * @fragments_received: fragments received so far.
++ * @rm_error: For request/reply sequences with standard replies.
++ * @seq: Sequence ID for the main message.
++ * @seq_done: Signals caller that the RM reply has been received
++ */
++struct gh_rm_connection {
++	void *payload;
++	size_t size;
++	int ret;
++	u32 msg_id;
++	u8 type;
++
++	u8 num_fragments;
++	u8 fragments_received;
++
++	/* only for req/reply sequence */
++	u32 rm_error;
++	u16 seq;
++	struct completion seq_done;
++};
++
++struct gh_rm_notif_complete {
++	struct gh_rm_connection *conn;
++	struct work_struct work;
++};
++
++struct gh_rm_rpc {
++	struct device *dev;
++	struct gunyah_resource tx_ghrsc, rx_ghrsc;
++	struct gh_msgq msgq;
++	struct mbox_client msgq_client;
++	struct gh_rm_connection *active_rx_connection;
++	int last_tx_ret;
++
++	struct idr call_idr;
++	struct mutex call_idr_lock;
++
++	struct mutex send_lock;
++
++	struct work_struct recv_work;
++};
++
++static struct gh_rm_connection *gh_rm_alloc_connection(u32 msg_id, u8 type)
 +{
-+	int ret = 0;
++	struct gh_rm_connection *connection;
 +
-+	down_read(&rm_platform_ops_lock);
-+	if (rm_platform_ops && rm_platform_ops->pre_mem_share)
-+		ret = rm_platform_ops->pre_mem_share(rm, mem_parcel);
-+	up_read(&rm_platform_ops_lock);
-+	return ret;
++	connection = kzalloc(sizeof(*connection), GFP_KERNEL);
++	if (!connection)
++		return NULL;
++
++	connection->type = type;
++	connection->msg_id = msg_id;
++
++	return connection;
 +}
-+EXPORT_SYMBOL_GPL(gh_rm_platform_pre_mem_share);
 +
-+int gh_rm_platform_post_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
++static int gh_rm_init_connection_payload(struct gh_rm_connection *connection, void *msg,
++					size_t hdr_size, size_t msg_size)
 +{
-+	int ret = 0;
++	struct gh_rm_rpc_hdr *hdr = msg;
++	size_t max_buf_size, payload_size;
 +
-+	down_read(&rm_platform_ops_lock);
-+	if (rm_platform_ops && rm_platform_ops->post_mem_reclaim)
-+		ret = rm_platform_ops->post_mem_reclaim(rm, mem_parcel);
-+	up_read(&rm_platform_ops_lock);
-+	return ret;
++	if (hdr_size > msg_size)
++		return -EINVAL;
++
++	payload_size = msg_size - hdr_size;
++
++	connection->num_fragments = FIELD_GET(RM_RPC_FRAGMENTS_MASK, hdr->type);
++	connection->fragments_received = 0;
++	connection->type = hdr->type;
++
++	/* There's not going to be any payload, no need to allocate buffer. */
++	if (!payload_size && !connection->num_fragments)
++		return 0;
++
++	/*
++	 * maximum payload size is GH_MSGQ_MAX_MSG_SIZE - hdr_size
++	 * and can received (hdr->fragments + 1) of those
++	 */
++	max_buf_size = (GH_MSGQ_MAX_MSG_SIZE - hdr_size) * (connection->num_fragments + 1);
++
++	connection->payload = kzalloc(max_buf_size, GFP_KERNEL);
++	if (!connection->payload)
++		return -ENOMEM;
++
++	memcpy(connection->payload, msg + hdr_size, payload_size);
++	connection->size = payload_size;
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(gh_rm_platform_post_mem_reclaim);
 +
-+int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
++static void gh_rm_notif_work(struct work_struct *work)
 +{
-+	int ret = 0;
++	struct gh_rm_notif_complete *notif = container_of(work, struct gh_rm_notif_complete, work);
++	struct gh_rm_connection *connection = notif->conn;
 +
-+	down_write(&rm_platform_ops_lock);
-+	if (!rm_platform_ops)
-+		rm_platform_ops = platform_ops;
-+	else
-+		ret = -EEXIST;
-+	up_write(&rm_platform_ops_lock);
-+	return ret;
++	/* No users of notifications, yet. */
++
++	kfree(connection->payload);
++	kfree(connection);
++	kfree(notif);
 +}
-+EXPORT_SYMBOL_GPL(gh_rm_register_platform_ops);
 +
-+void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
++static struct gh_rm_connection *gh_rm_process_notif(struct gh_rm_rpc *rsc_mgr,
++						    void *msg, size_t msg_size)
 +{
-+	down_write(&rm_platform_ops_lock);
-+	if (rm_platform_ops == platform_ops)
-+		rm_platform_ops = NULL;
-+	up_write(&rm_platform_ops_lock);
-+}
-+EXPORT_SYMBOL_GPL(gh_rm_unregister_platform_ops);
++	struct gh_rm_rpc_hdr *hdr = msg;
++	struct gh_rm_connection *connection;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Gunyah Platform Hooks");
-diff --git a/drivers/virt/gunyah/gunyah_rm_rpc.c b/drivers/virt/gunyah/gunyah_rm_rpc.c
-index 544ec8022104..f81c7b55e7d7 100644
---- a/drivers/virt/gunyah/gunyah_rm_rpc.c
-+++ b/drivers/virt/gunyah/gunyah_rm_rpc.c
-@@ -671,6 +671,10 @@ static int gh_rm_mem_lend_common(struct gh_rm_rpc *rm, u32 message_id, struct gh
- 	if (initial_n_mem_entries > GH_RM_MAX_MEM_ENTRIES)
- 		initial_n_mem_entries = GH_RM_MAX_MEM_ENTRIES;
- 
-+	ret = gh_rm_platform_pre_mem_share(rm, p);
++	connection = gh_rm_alloc_connection(le32_to_cpu(hdr->msg_id),
++						FIELD_GET(RM_RPC_TYPE_MASK, hdr->type));
++	if (!connection) {
++		dev_err(rsc_mgr->dev, "Failed to alloc connection for notification, dropping.\n");
++		return NULL;
++	}
++
++	if (gh_rm_init_connection_payload(connection, msg, sizeof(*hdr), msg_size)) {
++		dev_err(rsc_mgr->dev, "Failed to alloc connection buffer for notification, dropping.\n");
++		kfree(connection);
++		return NULL;
++	}
++
++	return connection;
++}
++
++static struct gh_rm_connection *gh_rm_process_rply(struct gh_rm_rpc *rsc_mgr,
++						   void *msg, size_t msg_size)
++{
++	struct gh_rm_rpc_reply_hdr *reply_hdr = msg;
++	struct gh_rm_rpc_hdr *hdr = msg;
++	struct gh_rm_connection *connection;
++	u16 seq_id = le16_to_cpu(hdr->seq);
++
++	if (mutex_lock_interruptible(&rsc_mgr->call_idr_lock))
++		return ERR_PTR(-ERESTARTSYS);
++
++	connection = idr_find(&rsc_mgr->call_idr, seq_id);
++	mutex_unlock(&rsc_mgr->call_idr_lock);
++
++	if (!connection) {
++		dev_err(rsc_mgr->dev, "Failed to find connection for sequence %u\n", seq_id);
++		return NULL;
++	}
++	if (connection->msg_id != le32_to_cpu(hdr->msg_id)) {
++		dev_err(rsc_mgr->dev, "Reply for sequence %u expected msg_id: %x but got %x\n",
++			seq_id, connection->msg_id, le32_to_cpu(hdr->msg_id));
++		/*
++		 * Don't complete connection and error the client, maybe
++		 * resource manager will send us the expected reply sequence soon.
++		 */
++		return NULL;
++	}
++
++	if (gh_rm_init_connection_payload(connection, msg, sizeof(*reply_hdr), msg_size)) {
++		dev_err(rsc_mgr->dev, "Failed to alloc connection buffer for sequence %d\n",
++			seq_id);
++		/* Send connection complete and error the client. */
++		connection->ret = -ENOMEM;
++		complete(&connection->seq_done);
++		return NULL;
++	}
++
++	connection->rm_error = reply_hdr->err_code;
++	return connection;
++}
++
++static void gh_rm_process_cont(struct gh_rm_rpc *rsc_mgr, struct gh_rm_connection *connection,
++				void *msg, size_t msg_size)
++{
++	struct gh_rm_rpc_hdr *hdr = msg;
++	size_t payload_size = msg_size - sizeof(*hdr);
++
++	/*
++	 * hdr->fragments and hdr->msg_id preserves the value from first reply
++	 * or notif message. To detect mishandling, check it's still intact.
++	 */
++	if (connection->msg_id != le32_to_cpu(hdr->msg_id))
++		dev_err(rsc_mgr->dev, "Appending mismatched continuation with id %d to connection with id %d\n",
++			le32_to_cpu(hdr->msg_id), connection->msg_id);
++	if (connection->num_fragments != FIELD_GET(RM_RPC_FRAGMENTS_MASK, hdr->type))
++		dev_err(rsc_mgr->dev, "Number of fragments mismatch for seq: %d\n",
++			le16_to_cpu(hdr->seq));
++
++	memcpy(connection->payload + connection->size, msg + sizeof(*hdr), payload_size);
++	connection->size += payload_size;
++	connection->fragments_received++;
++}
++
++static bool gh_rm_complete_connection(struct gh_rm_rpc *rsc_mgr,
++					struct gh_rm_connection *connection)
++{
++	struct gh_rm_notif_complete *notif_work;
++
++	if (!connection)
++		return false;
++
++	if (connection->fragments_received != connection->num_fragments)
++		return false;
++
++	switch (connection->type) {
++	case RM_RPC_TYPE_RPLY:
++		complete(&connection->seq_done);
++		break;
++	case RM_RPC_TYPE_NOTIF:
++		notif_work = kzalloc(sizeof(*notif_work), GFP_KERNEL);
++		if (notif_work == NULL)
++			break;
++
++		notif_work->conn = connection;
++		INIT_WORK(&notif_work->work, gh_rm_notif_work);
++
++		schedule_work(&notif_work->work);
++		break;
++	default:
++		dev_err(rsc_mgr->dev, "Invalid message type (%d) received\n", connection->type);
++		break;
++	}
++
++	return true;
++}
++
++static void gh_rm_abort_connection(struct gh_rm_connection *connection)
++{
++	switch (connection->type) {
++	case RM_RPC_TYPE_RPLY:
++		connection->ret = -EIO;
++		complete(&connection->seq_done);
++		break;
++	case RM_RPC_TYPE_NOTIF:
++		fallthrough;
++	default:
++		kfree(connection->payload);
++		kfree(connection);
++	}
++}
++
++static void gh_rm_msgq_rx_data(struct mbox_client *cl, void *mssg)
++{
++	struct gh_rm_rpc *rsc_mgr = container_of(cl, struct gh_rm_rpc, msgq_client);
++	struct gh_msgq_rx_data *rx_data = mssg;
++	void *msg = rx_data->data;
++	size_t msg_size = rx_data->length;
++	struct gh_rm_rpc_hdr *hdr;
++
++	if (msg_size <= sizeof(struct gh_rm_rpc_hdr)) {
++		dev_err(rsc_mgr->dev, "Incomplete message size: %ld is too small\n", msg_size);
++		return;
++	}
++
++	hdr = msg;
++	switch (FIELD_GET(RM_RPC_TYPE_MASK, hdr->type)) {
++	case RM_RPC_TYPE_NOTIF:
++		if (rsc_mgr->active_rx_connection) {
++			/* Not possible per protocol. Do something better than BUG_ON */
++			dev_err(rsc_mgr->dev, "Received start of new notification without finishing existing message series.\n");
++			gh_rm_abort_connection(rsc_mgr->active_rx_connection);
++		}
++		rsc_mgr->active_rx_connection = gh_rm_process_notif(rsc_mgr, msg, msg_size);
++		break;
++	case RM_RPC_TYPE_RPLY:
++		if (rsc_mgr->active_rx_connection) {
++			/* Not possible per protocol. Do something better than BUG_ON */
++			dev_err(rsc_mgr->dev, "Received start of new reply without finishing existing message series.\n");
++			gh_rm_abort_connection(rsc_mgr->active_rx_connection);
++		}
++		rsc_mgr->active_rx_connection = gh_rm_process_rply(rsc_mgr, msg, msg_size);
++		break;
++	case RM_RPC_TYPE_CONT:
++		if (!rsc_mgr->active_rx_connection) {
++			dev_err(rsc_mgr->dev, "Received a continuation message without receiving initial message\n");
++			break;
++		}
++		gh_rm_process_cont(rsc_mgr, rsc_mgr->active_rx_connection, msg, msg_size);
++		break;
++	default:
++		dev_err(rsc_mgr->dev, "Invalid message type (%lu) received\n",
++			FIELD_GET(RM_RPC_TYPE_MASK, hdr->type));
++		return;
++	}
++
++	if (gh_rm_complete_connection(rsc_mgr, rsc_mgr->active_rx_connection))
++		rsc_mgr->active_rx_connection = NULL;
++}
++
++static void gh_rm_msgq_tx_done(struct mbox_client *cl, void *mssg, int r)
++{
++	struct gh_rm_rpc *rsc_mgr = container_of(cl, struct gh_rm_rpc, msgq_client);
++
++	kfree(mssg);
++	rsc_mgr->last_tx_ret = r;
++}
++
++static int gh_rm_send_request(struct gh_rm_rpc *rsc_mgr, u32 message_id,
++			      const void *req_buff, size_t req_buff_size,
++			      struct gh_rm_connection *connection)
++{
++	size_t buff_size_remaining = req_buff_size;
++	const void *req_buff_curr = req_buff;
++	struct gh_rm_rpc_hdr *hdr;
++	u32 cont_fragments = 0;
++	size_t payload_size;
++	struct gh_msgq_tx_data *msg;
++	int i, ret;
++
++	if (req_buff_size)
++		cont_fragments = (req_buff_size - 1) / GH_RM_MAX_MSG_SIZE;
++
++	if (WARN(cont_fragments > GH_RM_MAX_NUM_FRAGMENTS,
++		 "Limit exceeded for the number of fragments: %u\n", cont_fragments))
++		return -E2BIG;
++
++	ret = mutex_lock_interruptible(&rsc_mgr->send_lock);
 +	if (ret)
 +		return ret;
 +
- 	/* The format of the message goes:
- 	 * request header
- 	 * ACL entries (which VMs get what kind of access to this memory parcel)
-@@ -714,6 +718,7 @@ static int gh_rm_mem_lend_common(struct gh_rm_rpc *rm, u32 message_id, struct gh
- 
- 	if (resp_size != sizeof(u32)) {
- 		ret = -EIO;
-+		gh_rm_platform_post_mem_reclaim(rm, p);
- 		goto out;
- 	}
- 
-@@ -783,7 +788,7 @@ int gh_rm_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *parcel)
- 		return ret;
- 	kfree(resp);
- 
--	return ret;
-+	return gh_rm_platform_post_mem_reclaim(rm, parcel);
- }
- EXPORT_SYMBOL_GPL(gh_rm_mem_reclaim);
- 
-diff --git a/drivers/virt/gunyah/rsc_mgr.h b/drivers/virt/gunyah/rsc_mgr.h
-index 4712405a3486..3a7f171a7416 100644
---- a/drivers/virt/gunyah/rsc_mgr.h
-+++ b/drivers/virt/gunyah/rsc_mgr.h
-@@ -34,6 +34,9 @@ struct platform_device;
- struct gh_rm_rpc *gh_rm_rpc_init(struct platform_device *pdev);
- void gh_rm_rpc_remove(struct gh_rm_rpc *rm);
- 
-+int gh_rm_platform_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
-+int gh_rm_platform_post_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
++	/* Consider also the 'request' packet for the loop count */
++	for (i = 0; i <= cont_fragments; i++) {
++		if (buff_size_remaining > GH_RM_MAX_MSG_SIZE) {
++			payload_size = GH_RM_MAX_MSG_SIZE;
++			buff_size_remaining -= payload_size;
++		} else {
++			payload_size = buff_size_remaining;
++		}
 +
- /* Message IDs: Memory Management */
- #define GH_RM_RPC_MEM_LEND			0x51000012
- #define GH_RM_RPC_MEM_SHARE			0x51000013
-diff --git a/include/linux/gunyah_rsc_mgr.h b/include/linux/gunyah_rsc_mgr.h
-index c0f5c04c64dc..7cdb736f7054 100644
---- a/include/linux/gunyah_rsc_mgr.h
-+++ b/include/linux/gunyah_rsc_mgr.h
-@@ -120,4 +120,18 @@ int gh_rm_get_vmid(struct gh_rm_rpc *rm, u16 *vmid);
- #define GH_RM_BOOT_CONTEXT_REG_SET_SP_ELx	2
- int gh_rm_set_boot_context(struct gh_rm_rpc *rm, u16 vmid, u8 reg_set, u8 reg_idx, u64 value);
- 
-+struct gunyah_rm_platform_ops {
-+	int (*pre_mem_share)(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
-+	int (*post_mem_reclaim)(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
++		msg = kzalloc(sizeof(*msg) + GH_MSGQ_MAX_MSG_SIZE, GFP_KERNEL);
++		if (!msg) {
++			ret = -ENOMEM;
++			goto out;
++		}
++
++		/* Fill header */
++		hdr = (struct gh_rm_rpc_hdr *)msg->data;
++		hdr->api = FIELD_PREP(RM_RPC_API_VERSION_MASK, RM_RPC_HDR_VERSION_ONE) |
++				FIELD_PREP(RM_RPC_HEADER_WORDS_MASK, RM_RPC_HDR_WORDS);
++		hdr->type = FIELD_PREP(RM_RPC_TYPE_MASK,
++					i == 0 ? RM_RPC_TYPE_REQ : RM_RPC_TYPE_CONT) |
++				FIELD_PREP(RM_RPC_FRAGMENTS_MASK, cont_fragments);
++		hdr->seq = cpu_to_le16(connection->seq);
++		hdr->msg_id = cpu_to_le32(message_id);
++
++		/* Copy payload */
++		memcpy(msg->data + sizeof(*hdr), req_buff_curr, payload_size);
++		req_buff_curr += payload_size;
++
++		/* Force the last fragment to immediately alert the receiver */
++		msg->push = i == cont_fragments;
++		msg->length = sizeof(*hdr) + payload_size;
++
++		ret = mbox_send_message(gh_msgq_chan(&rsc_mgr->msgq), msg);
++		if (ret < 0) {
++			kfree(msg);
++			break;
++		}
++
++		if (rsc_mgr->last_tx_ret) {
++			ret = rsc_mgr->last_tx_ret;
++			break;
++		}
++	}
++
++out:
++	mutex_unlock(&rsc_mgr->send_lock);
++	return ret < 0 ? ret : 0;
++}
++
++/**
++ * gh_rm_call: Achieve request-response type communication with RPC
++ * @message_id: The RM RPC message-id
++ * @req_buff: Request buffer that contains the payload
++ * @req_buff_size: Total size of the payload
++ * @resp_buf: Pointer to a response buffer
++ * @resp_buff_size: Size of the response buffer
++ *
++ * Make a request to the RM-VM and wait for reply back. For a successful
++ * response, the function returns the payload. The size of the payload is set in
++ * resp_buff_size. The resp_buf should be freed by the caller.
++ *
++ * Context: Process context. Will sleep waiting for reply.
++ * Return: >0 is standard reply error from RM. <0 on internal error.
++ */
++int gh_rm_call(struct gh_rm_rpc *rsc_mgr, u32 message_id, void *req_buff, size_t req_buff_size,
++	       void **resp_buf, size_t *resp_buff_size)
++{
++	struct gh_rm_connection *connection;
++	int ret;
++
++	/* messaged_id 0 is reserved */
++	if (!message_id)
++		return -EINVAL;
++
++	if (!rsc_mgr)
++		return -EPROBE_DEFER;
++
++	connection = gh_rm_alloc_connection(message_id, RM_RPC_TYPE_RPLY);
++	if (!connection)
++		return -ENOMEM;
++
++	init_completion(&connection->seq_done);
++
++	/* Allocate a new seq number for this connection */
++	if (mutex_lock_interruptible(&rsc_mgr->call_idr_lock)) {
++		kfree(connection);
++		return -ERESTARTSYS;
++	}
++	connection->seq = idr_alloc_cyclic(&rsc_mgr->call_idr, connection, 0, U16_MAX, GFP_KERNEL);
++	mutex_unlock(&rsc_mgr->call_idr_lock);
++
++	/* Send the request to the Resource Manager */
++	ret = gh_rm_send_request(rsc_mgr, message_id, req_buff, req_buff_size, connection);
++	if (ret < 0)
++		goto out;
++
++	/* Wait for response */
++	ret = wait_for_completion_interruptible(&connection->seq_done);
++	if (ret)
++		goto out;
++
++	if (connection->ret) {
++		ret = connection->ret;
++		kfree(connection->payload);
++		goto out;
++	}
++
++	if (connection->rm_error) {
++		ret = connection->rm_error;
++		kfree(connection->payload);
++		goto out;
++	}
++
++	*resp_buf = connection->payload;
++	*resp_buff_size = connection->size;
++
++out:
++	mutex_lock(&rsc_mgr->call_idr_lock);
++	idr_remove(&rsc_mgr->call_idr, connection->seq);
++	mutex_unlock(&rsc_mgr->call_idr_lock);
++
++	kfree(connection);
++	return ret;
++}
++
++static int gh_msgq_platform_probe_direction(struct platform_device *pdev,
++					u8 gh_type, int idx, struct gunyah_resource *ghrsc)
++{
++	int ret;
++	struct device_node *node = pdev->dev.of_node;
++
++	ghrsc->type = gh_type;
++
++	ghrsc->irq = platform_get_irq(pdev, idx);
++	if (ghrsc->irq < 0) {
++		dev_err(&pdev->dev, "Failed to get irq%d: %d\n", idx, ghrsc->irq);
++		return ghrsc->irq;
++	}
++
++	ret = of_property_read_u64_index(node, "reg", idx, &ghrsc->capid);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to get capid%d: %d\n", idx, ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++struct gh_rm_rpc *gh_rm_rpc_init(struct platform_device *pdev)
++{
++	struct gh_rm_rpc *rsc_mgr;
++	int ret;
++
++	rsc_mgr = devm_kzalloc(&pdev->dev, sizeof(*rsc_mgr), GFP_KERNEL);
++	if (!rsc_mgr)
++		return ERR_PTR(-ENOMEM);
++
++	rsc_mgr->dev = &pdev->dev;
++
++	mutex_init(&rsc_mgr->call_idr_lock);
++	idr_init(&rsc_mgr->call_idr);
++	mutex_init(&rsc_mgr->send_lock);
++
++	ret = gh_msgq_platform_probe_direction(pdev, GUNYAH_RESOURCE_TYPE_MSGQ_TX, 0,
++						&rsc_mgr->tx_ghrsc);
++	if (ret)
++		return ERR_PTR(ret);
++
++	ret = gh_msgq_platform_probe_direction(pdev, GUNYAH_RESOURCE_TYPE_MSGQ_RX, 1,
++						&rsc_mgr->rx_ghrsc);
++	if (ret)
++		return ERR_PTR(ret);
++
++	rsc_mgr->msgq_client.dev = &pdev->dev;
++	rsc_mgr->msgq_client.tx_block = true;
++	rsc_mgr->msgq_client.rx_callback = gh_rm_msgq_rx_data;
++	rsc_mgr->msgq_client.tx_done = gh_rm_msgq_tx_done;
++
++	ret = gh_msgq_init(&pdev->dev, &rsc_mgr->msgq, &rsc_mgr->msgq_client,
++				&rsc_mgr->tx_ghrsc, &rsc_mgr->rx_ghrsc);
++	if (ret)
++		return ERR_PTR(ret);
++
++	return rsc_mgr;
++}
++EXPORT_SYMBOL_GPL(gh_rm_rpc_init);
++
++void gh_rm_rpc_remove(struct gh_rm_rpc *rm)
++{
++	mbox_free_channel(gh_msgq_chan(&rm->msgq));
++	gh_msgq_remove(&rm->msgq);
++}
++EXPORT_SYMBOL_GPL(gh_rm_rpc_remove);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Gunyah Resource Manager RPC Driver");
+diff --git a/drivers/virt/gunyah/gunyah_rsc_mgr.c b/drivers/virt/gunyah/gunyah_rsc_mgr.c
+new file mode 100644
+index 000000000000..2fae62bbfe49
+--- /dev/null
++++ b/drivers/virt/gunyah/gunyah_rsc_mgr.c
+@@ -0,0 +1,50 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ */
++
++#include <linux/gunyah_rsc_mgr.h>
++#include <linux/platform_device.h>
++
++#include "rsc_mgr.h"
++
++static int gh_rm_drv_probe(struct platform_device *pdev)
++{
++	struct gh_rm_rpc *rsc_mgr;
++
++	rsc_mgr = gh_rm_rpc_init(pdev);
++	if (IS_ERR(rsc_mgr))
++		return PTR_ERR(rsc_mgr);
++
++	platform_set_drvdata(pdev, rsc_mgr);
++
++	return 0;
++}
++
++static int gh_rm_drv_remove(struct platform_device *pdev)
++{
++	struct gh_rm_rpc *rsc_mgr = platform_get_drvdata(pdev);
++
++	gh_rm_rpc_remove(rsc_mgr);
++
++	return 0;
++}
++
++static const struct of_device_id gh_rm_of_match[] = {
++	{ .compatible = "gunyah-resource-manager" },
++	{}
 +};
++MODULE_DEVICE_TABLE(of, gh_rm_of_match);
 +
-+#if IS_ENABLED(CONFIG_GUNYAH)
-+int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops);
-+void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops);
-+#else
-+static inline int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
-+	{ return 0; }
-+static inline void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops) { }
++static struct platform_driver gh_rm_driver = {
++	.probe = gh_rm_drv_probe,
++	.remove = gh_rm_drv_remove,
++	.driver = {
++		.name = "gh_rsc_mgr",
++		.of_match_table = gh_rm_of_match,
++	},
++};
++module_platform_driver(gh_rm_driver);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Gunyah Resource Manager Driver");
+diff --git a/drivers/virt/gunyah/rsc_mgr.h b/drivers/virt/gunyah/rsc_mgr.h
+new file mode 100644
+index 000000000000..01f0af888fad
+--- /dev/null
++++ b/drivers/virt/gunyah/rsc_mgr.h
+@@ -0,0 +1,37 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ */
++#ifndef __GH_RSC_MGR_PRIV_H
++#define __GH_RSC_MGR_PRIV_H
++
++#include <linux/gunyah.h>
++
++/* RM Error codes */
++#define GH_RM_ERROR_OK			0x0
++#define GH_RM_ERROR_UNIMPLEMENTED	0xFFFFFFFF
++#define GH_RM_ERROR_NOMEM		0x1
++#define GH_RM_ERROR_NORESOURCE		0x2
++#define GH_RM_ERROR_DENIED		0x3
++#define GH_RM_ERROR_INVALID		0x4
++#define GH_RM_ERROR_BUSY		0x5
++#define GH_RM_ERROR_ARGUMENT_INVALID	0x6
++#define GH_RM_ERROR_HANDLE_INVALID	0x7
++#define GH_RM_ERROR_VALIDATE_FAILED	0x8
++#define GH_RM_ERROR_MAP_FAILED		0x9
++#define GH_RM_ERROR_MEM_INVALID		0xA
++#define GH_RM_ERROR_MEM_INUSE		0xB
++#define GH_RM_ERROR_MEM_RELEASED	0xC
++#define GH_RM_ERROR_VMID_INVALID	0xD
++#define GH_RM_ERROR_LOOKUP_FAILED	0xE
++#define GH_RM_ERROR_IRQ_INVALID		0xF
++#define GH_RM_ERROR_IRQ_INUSE		0x10
++#define GH_RM_ERROR_IRQ_RELEASED	0x11
++
++struct gh_rm_rpc;
++struct platform_device;
++
++struct gh_rm_rpc *gh_rm_rpc_init(struct platform_device *pdev);
++void gh_rm_rpc_remove(struct gh_rm_rpc *rm);
++
 +#endif
+diff --git a/include/linux/gunyah_rsc_mgr.h b/include/linux/gunyah_rsc_mgr.h
+new file mode 100644
+index 000000000000..b4f55c19954b
+--- /dev/null
++++ b/include/linux/gunyah_rsc_mgr.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ */
 +
- #endif
++#ifndef _GUNYAH_RSC_MGR_H
++#define _GUNYAH_RSC_MGR_H
++
++#include <linux/list.h>
++#include <linux/notifier.h>
++#include <linux/gunyah.h>
++
++#define GH_VMID_INVAL	U16_MAX
++
++/* Gunyah recognizes VMID0 as an alias to the current VM's ID */
++#define GH_VMID_SELF			0
++
++#endif
 -- 
 2.25.1
 
