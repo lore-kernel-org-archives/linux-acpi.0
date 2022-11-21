@@ -2,523 +2,152 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F942C43217
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:05:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C97BBC4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:05:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229969AbiKUOFB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Nov 2022 09:05:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39974 "EHLO
+        id S230271AbiKUOF1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Nov 2022 09:05:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231668AbiKUODJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:03:09 -0500
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BBEA38B6;
-        Mon, 21 Nov 2022 06:02:30 -0800 (PST)
-Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2AL8OdTT000720;
-        Mon, 21 Nov 2022 14:02:12 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=qcppdkim1;
- bh=gzKrfexqZKPBpWA56YB1YQ8qQNrE07Z0wCn3d46rYAw=;
- b=nXm25ub/rJZKSmfVqfJFDQi3iyGINBCweSUqAeIMqTSMRsrJnWwv37AQxGqpPtIcuYwP
- ZAVL8Bkn6jCWbrbTt+kDmXKS/zAqe3C7/c+nJ/gf628mbB4Jxvofxfud2cpMiUCpug93
- SOhxUf1ZtSMxd31NiQS1fMiDl7bpUdbgKDnQvVKOZN2JEB3DCG7A5z6j4JRqiEQHqJTO
- 0LniHgyKydwkJcSYy4m1gaj4QT82v+95ekdUy0VpmDZMlRsWcXrn0tOzxjjLk8eeHR8M
- H9dmlTwMMZy8PY4HduT+hVOLfQmUmate0S9Z2TOfsk7vPQx2fisWTajNXkCWs23vCjbY CQ== 
-Received: from nasanppmta03.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3kxrf5mpv1-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 21 Nov 2022 14:02:12 +0000
-Received: from nasanex01b.na.qualcomm.com (nasanex01b.na.qualcomm.com [10.46.141.250])
-        by NASANPPMTA03.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2ALE2Ba4016000
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 21 Nov 2022 14:02:11 GMT
-Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
- nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 21 Nov 2022 06:02:09 -0800
-From:   Elliot Berman <quic_eberman@quicinc.com>
-To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Elliot Berman <quic_eberman@quicinc.com>,
-        Murali Nalajala <quic_mnalajal@quicinc.com>
-CC:     Trilok Soni <quic_tsoni@quicinc.com>,
-        Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
-        Carl van Schaik <quic_cvanscha@quicinc.com>,
-        Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>
-Subject: [PATCH v7 16/20] samples: Add sample userspace Gunyah VM Manager
-Date:   Mon, 21 Nov 2022 06:00:05 -0800
-Message-ID: <20221121140009.2353512-17-quic_eberman@quicinc.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221121140009.2353512-1-quic_eberman@quicinc.com>
-References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
+        with ESMTP id S229490AbiKUOEK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:04:10 -0500
+Received: from EUR02-DB5-obe.outbound.protection.outlook.com (mail-db5eur02on2083.outbound.protection.outlook.com [40.107.249.83])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BD4EBF54;
+        Mon, 21 Nov 2022 06:02:35 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=PkY9CRI/ZBJj+43CC5yEuSMdyRs5x5jxpg6wrnu+0PeGBMCw1jheQGQ5U7msP6BgxibLTDLrhcU16PbTPFl7SWA5yrXaGmTd0Xy8+BrwE9YGHzM6uwovyZBSW7HFPqwidj2inN1ucq0wqiNoubkU+lPDdILxVcgKO8smhnK6SSJ8yHEiO13LMarAQjsBB2JVWbUdKraVMFaXFdeMcImKA++hatxlp/TJx4D4UWk3ysHKZGb7igfLMq836CCtt3v095jkL6lbIO/VOFcE4xT+t7uGtfgkvuuPMVP6UiakxiWTPVcWPdn/bI0lVNgPJZjwEwlWdo//QWFchNHd2AdveA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=IPGbfdI0s5RvrhldWpZ8LqzeGn10EJlf7jOZx4NJznk=;
+ b=IkpKNQNEeTGxu7IvfjnwBH67qOoceh+8vLZhG8Sf66sGjZqBWUka+YkRhIxCj+M2TkZDEL0KCYxLd2uqu57zOgc6G+aFYRFndRkaoka2jAnUASA5AhZWSJPooB8sKbm0dmmllAeiq15vnZTGFkHPd9pXX7PihEyZUu5ccj7gkJ8q/Ck1uqefhI61NTrZsU2uNnZwVMj8rbjQzfIDmqA949nSWcMNuCNPZlK8ZNQY/yaR8xI5Tec8ZkWqPqsD/Tusdch9vjm1yzf1c4le3TMnnj708EvsdQ6+JWvck53MOuDQ5qqEJ0U+5t/V5lEhsFM8KTOo8au7Pd2HvUiwNyusYQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=suse.com; dmarc=pass action=none header.from=suse.com;
+ dkim=pass header.d=suse.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=IPGbfdI0s5RvrhldWpZ8LqzeGn10EJlf7jOZx4NJznk=;
+ b=02zimt1lVuSDEoZQr9wxXkm8BsBxL0JYk2OuqPQqzEPOKAFRjGQiXzl6OqurXMk50atHy/kzTTTyqbEVvU21sb/GI/1eQ0sWMPRWLF5ktuttyll1dhGTPgVj2aGolxMxmAd/U5zs3D46ujTJi6/wcPw4Yi3g33Vkr8FXHXmYFNSwXpDglyiWyaoiwBJCOiATsrk8tGET1vWTCnd2xvj/rGPaz9UqdbboTStLcoO9+PTIP/F6KVjRfs8R1j5Td6jpHrdVihgmNvm8zU9gRwa0ovRNLtS44tnihQsFe+MTcXO7o9CeIAEV4y7VN3vsIEUz4JQeTMppLDoXgq5xm3YX5Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=suse.com;
+Received: from VE1PR04MB6560.eurprd04.prod.outlook.com (2603:10a6:803:122::25)
+ by VI1PR04MB6909.eurprd04.prod.outlook.com (2603:10a6:803:13d::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5834.15; Mon, 21 Nov
+ 2022 14:02:33 +0000
+Received: from VE1PR04MB6560.eurprd04.prod.outlook.com
+ ([fe80::4da2:ea8b:e71e:b8d8]) by VE1PR04MB6560.eurprd04.prod.outlook.com
+ ([fe80::4da2:ea8b:e71e:b8d8%4]) with mapi id 15.20.5834.011; Mon, 21 Nov 2022
+ 14:02:32 +0000
+Message-ID: <d1042d77-eb5a-6577-9ec6-e6a7997f15d7@suse.com>
+Date:   Mon, 21 Nov 2022 15:02:30 +0100
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+Subject: Re: [PATCH 1/3] acpi/processor: fix evaluating _PDC method when
+ running as Xen dom0
+Content-Language: en-US
+To:     Roger Pau Monne <roger.pau@citrix.com>
+Cc:     xen-devel@lists.xenproject.org, jgross@suse.com,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Alex Chiang <achiang@hp.com>,
+        Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20221121102113.41893-1-roger.pau@citrix.com>
+ <20221121102113.41893-2-roger.pau@citrix.com>
+From:   Jan Beulich <jbeulich@suse.com>
+In-Reply-To: <20221121102113.41893-2-roger.pau@citrix.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR3P281CA0200.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:a5::15) To VE1PR04MB6560.eurprd04.prod.outlook.com
+ (2603:10a6:803:122::25)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.49.16.6]
-X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
- nasanex01b.na.qualcomm.com (10.46.141.250)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: 22Ls7JAY2zPRYVjs89E7eBrDPLopD2mn
-X-Proofpoint-ORIG-GUID: 22Ls7JAY2zPRYVjs89E7eBrDPLopD2mn
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.219,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2022-11-21_13,2022-11-18_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 adultscore=0
- mlxlogscore=999 spamscore=0 suspectscore=0 bulkscore=0 impostorscore=0
- lowpriorityscore=0 malwarescore=0 priorityscore=1501 clxscore=1015
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2210170000 definitions=main-2211210109
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: VE1PR04MB6560:EE_|VI1PR04MB6909:EE_
+X-MS-Office365-Filtering-Correlation-Id: b3b3abc2-9446-423c-352f-08dacbc90913
+X-LD-Processed: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba,ExtFwd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: DuPP+lxt05pBk77p1hv5/L+Uh4Uz1fptLao2+kV8gQ2fMBevwZN6FGv0z2YYM5XkNVSDbj4UHcCoyHalR7CCD5CkRHv64wmK3LHKPXLXtqipOb1Q1RPdVo1leh1kV9O06Zpm+fK2VwMItbMB9FUxCbQn025GAs9ovvIcccRgI75meGEdRgYd6/mZktaWGRQqxOzrx3bGJZ2cWzs65YEtUJkktPES2GDsUTynzzg7hewGtcUrASW5EQOKimyjYwBJmQ/XdexHiiX972q/qpcQ0eyIvG6y98+J8+LkWdHIvm3rRUUx1iykZ/OJYcAFFtgKnvXegZit3/5T+Gicy4sa03dAqKXtwKDwadshrkMqnMpw2eeSpBz3JBbpgoDET0R7F8jOYVAUuG7kilZEWC2kWIbjyO3kHSKxPM1S8ihJ1g7Yo1sSUPyix64xmBOvpwyoBukV+fFNHPc6dXBO86dZIEwkx3paRF/bNt2U4CK2ZZD9zuOTHe4UAHTIYurmmXtTe0Zgk5/MfQ3sCXq8ia/rQT1p32cKZWYtnC8CHkdWhAFl0Fm/Qupo0Zqy7UopbvlcxHWRQ8P/Qljcl16aKWuFwqnjcLf3f9syx4+iJEKg1uCpy+HoBvjaStJ+YLeQOcj7WVCO6UCsIvr1NaNVqKxRV0kpIwnxWyV0dddr/+i7XjHq742yviF2z19J652pkmWn1zbMxQCNn2fqgDubBu3tnSqryAszs++Un8jhxnl2y/U=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VE1PR04MB6560.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(366004)(396003)(376002)(136003)(346002)(39860400002)(451199015)(6486002)(26005)(2906002)(86362001)(36756003)(6506007)(31696002)(478600001)(6512007)(38100700002)(53546011)(2616005)(186003)(4744005)(8936002)(7416002)(41300700001)(31686004)(66556008)(4326008)(66476007)(8676002)(5660300002)(66946007)(66899015)(6916009)(54906003)(316002)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?Rm5lNmpQT0pQTDc1c1V3T2pxVFNNUEthNkVnU3dCei9yQWxkREY3YThoQlha?=
+ =?utf-8?B?SkwrbkV0TW9maG5yQ0JoNXFnVGJNTWp5QWVFTHR3TUsrdTNkdHQ1OGhMeGVQ?=
+ =?utf-8?B?cDE3OVRjRWowWjZtQXVYZ3JxeFZlSkxwUXhsSnFuUks5dEFQdkpkclRRUXkr?=
+ =?utf-8?B?YnZwL1FqWkhxMEpwbWFNTUlxQU1LeFpaaVQxdUJnY2JMV2dNaDNKTEF3clg3?=
+ =?utf-8?B?ZUx0QlROR29pZ0ZvS2pPRS81VGJHMnhOUytNVXFCdllMRjBjeTlLejI4ci9m?=
+ =?utf-8?B?VTJkTzNZajhWYmo4ZllhbzdsRDZGcTlZaFVGbk1kbXpVK3lQZkdMdjljYzE5?=
+ =?utf-8?B?T3l5OVlRTGkzQkFJUUZaQS8zUG5OZE8rYWswY05mRVUwNHFMQkhCcVNlamgy?=
+ =?utf-8?B?NWt3QTE0ME0yRFFHL1Bzc3Rrbmc5eDVic3k5ejdvbzlPMnpQKzQrck95UkZN?=
+ =?utf-8?B?ZHJnMU8yRkpZTDg5NGIzOHNYK1I3SS9XZUhDVGlXc3luWUE2UzRrUmhsWEFq?=
+ =?utf-8?B?U1JSM3QvaUFMK3dUOGs4NGF3eGFyOFU3L1ppWDY5RVBVQmRVZGxINDlVbStK?=
+ =?utf-8?B?UGw5MG15MjRXdllaa29JMEt0L2N5N3BZa3VGRjlua1RYc09PTmNrelVyYTMz?=
+ =?utf-8?B?VFZRWTV1c1lPeTUwa3NiSUNLb1M0L2Jsa3Nzbk1wRE5ibGV1MjJZTkJwd2E0?=
+ =?utf-8?B?NzFneTczYkpTbWQ2Y0N4NHl4SjZUL0lyWm93ZTV1aWpHeUpwUkVldnhOMndT?=
+ =?utf-8?B?cUJNM0FKejJkd0FUSHQzS3N0MlBsVEtTeVNWSUZkb2o4ODNUaTNTZG5rMlBz?=
+ =?utf-8?B?T0pWN0Uwb0dFTEFvdnM1TXBHcWpkMWw5WUt6Q0kxVmhXeU1BOHBwWU9vblZu?=
+ =?utf-8?B?bml4RlFtRURHUnhFSU41amJoT3B2M3g0RkxFbGt2c0RvNG8vZHp1Y3BLN0cz?=
+ =?utf-8?B?OGRIZkdpVjdNelB5VnRUVjdBWWZEbVJ3SU9rYkUwYmRYckd0ZVhMb0lxWnFY?=
+ =?utf-8?B?SUw2MVFQcHRJeEFQZTVEcnV0b2FqV3BmYU9QZndsNzdxb09lUUloY042UXlQ?=
+ =?utf-8?B?MkpJVUdsci9GQ1FLS2JQNG13OE52ZmhaT0pZRzE5RzE0RlRraFlrN2JFektr?=
+ =?utf-8?B?T0hwM1o3OU5sMUhDYUw0WTQ5UFRtL1NUSVhweG5kc1hJbEVvVzJWZHpaSGJQ?=
+ =?utf-8?B?RXlXUU4vWkFpdzk0YVNNVDVlVEtaNSs0aEFOZlh0V1ZMSWdvYmQrWnZ6L3F4?=
+ =?utf-8?B?MTVxazNrbWNRc0JoVExoakV5RCtjU3AwVWhYWXlONWhkbGRuUGozZGgwZXNt?=
+ =?utf-8?B?bmMxUDVIa2F6M2RTcFdoZ2ZYMTR5UGxrbm5BWCtwWFFMVXR5b2N3QjV6WXhG?=
+ =?utf-8?B?UmZiZHhMcWp5K0NQRjNiV1Nya1VGMWJMSktRcTY5V2kwVC9aaDhZM3pIZVhn?=
+ =?utf-8?B?cERab1FsMG9ObXFEMzVIOHBRVlUyZGx4MEhRRHF0SFVURS93ZDVBbmFvbm9B?=
+ =?utf-8?B?aGR2UjRreUczMExKY2ozbndhWk1Jamx1Uzc3K21PSEtuZzN6V0hPUFlYVGtp?=
+ =?utf-8?B?cHhmNTFCWWxVV0JsYUlZSVczSHZwZXNwckFuY0tiaE9idGRWTzdLTE1IbVRk?=
+ =?utf-8?B?clE4aDJHd05IVHZ2SEdFMkMzcFdVRTgxUXVMZ3kxV1RYQlNVZ2VvTGdtZ3R4?=
+ =?utf-8?B?TkwwNUhFZXRjZVdGZ3k1UERGYmdodlV3ZmcrbXp3cnJtcXhyTHlwQ2ZtSmE0?=
+ =?utf-8?B?dUY0NkV4WmEzeWNhVGVZOUlQRXBTTzdRL0xha2VXK2lkVElyeUdxbWdhSU1x?=
+ =?utf-8?B?YUlNOG1oWjFuakNjT0F2SGIrVFJhUGdQZ2hIWER4b2YrZ255MEY2OTZLT1hm?=
+ =?utf-8?B?RVBKeGFzWDZkL0s4RVhTOGhKR3gwbU5nYWZabmlWRU1WcWVPYjhlTXI4VzIz?=
+ =?utf-8?B?Q3pxOS80eUdIVERNZmpUcWhNS3hjVXJsQUR6Q1lXVEpqTitkME1oTS95QStr?=
+ =?utf-8?B?R29sS1lLeGpXZlIrRDlYZlFtYzdUekU2NlA1emhrTVpDNDR5RHREd0RlZ2xN?=
+ =?utf-8?B?VTVXcG9DSWdMSG5WNzByYzFMS2ZRVU42d21hbE1tVDBZeG56RDNHOVlMVTV6?=
+ =?utf-8?Q?NLE628SCRMJYg6PiYRIyfgGhh?=
+X-OriginatorOrg: suse.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b3b3abc2-9446-423c-352f-08dacbc90913
+X-MS-Exchange-CrossTenant-AuthSource: VE1PR04MB6560.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Nov 2022 14:02:32.9496
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 6wzfbLPY2e+GegVkJLZJ4Gt34eX1XwWbmzN+nFqJMiAwV/tbb95HEMMhcTC8De2WP7DD77Iu6mtgnAgJNHAJCw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR04MB6909
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a sample Gunyah VMM capable of launching a non-proxy scheduled VM.
+On 21.11.2022 11:21, Roger Pau Monne wrote:
+> @@ -47,6 +49,15 @@ static bool __init processor_physically_present(acpi_handle handle)
+>  		return false;
+>  	}
+>  
+> +	if (xen_initial_domain())
+> +		/*
+> +		 * When running as a Xen dom0 the number of processors Linux
+> +		 * sees can be different from the real number of processors on
+> +		 * the system, and we still need to execute _PDC for all of
+> +		 * them.
+> +		 */
+> +		return xen_processor_present(acpi_id);
+> +
+>  	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
+>  	cpuid = acpi_get_cpuid(handle, type, acpi_id);
 
-Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
----
- MAINTAINERS                  |   1 +
- samples/Kconfig              |  10 ++
- samples/Makefile             |   1 +
- samples/gunyah/.gitignore    |   2 +
- samples/gunyah/Makefile      |   6 +
- samples/gunyah/gunyah_vmm.c  | 270 +++++++++++++++++++++++++++++++++++
- samples/gunyah/sample_vm.dts |  69 +++++++++
- 7 files changed, 359 insertions(+)
- create mode 100644 samples/gunyah/.gitignore
- create mode 100644 samples/gunyah/Makefile
- create mode 100644 samples/gunyah/gunyah_vmm.c
- create mode 100644 samples/gunyah/sample_vm.dts
+We had to deal with this in our XenoLinux forward ports as well, but at
+the time it appeared upstream I decided to make use of acpi_get_apicid()
+(which meanwhile was renamed to acpi_get_phys_id()). Wouldn't than be an
+option, eliminating the need for a Xen-specific new function?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b65f7ff444e5..e54c28859827 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8949,6 +8949,7 @@ F:	arch/arm64/gunyah/
- F:	drivers/mailbox/gunyah-msgq.c
- F:	drivers/virt/gunyah/
- F:	include/linux/gunyah*.h
-+F:	samples/gunyah/
- 
- HABANALABS PCI DRIVER
- M:	Oded Gabbay <ogabbay@kernel.org>
-diff --git a/samples/Kconfig b/samples/Kconfig
-index 0d81c00289ee..197c8a3610e7 100644
---- a/samples/Kconfig
-+++ b/samples/Kconfig
-@@ -263,6 +263,16 @@ config SAMPLE_CORESIGHT_SYSCFG
- 	  This demonstrates how a user may create their own CoreSight
- 	  configurations and easily load them into the system at runtime.
- 
-+config SAMPLE_GUNYAH
-+	bool "Build example Gunyah Virtual Machine Manager"
-+	depends on CC_CAN_LINK && HEADERS_INSTALL
-+	depends on GUNYAH_VM_MANAGER
-+	help
-+	  Build an example Gunyah VMM userspace program capable of launching
-+	  a basic virtual machine under the Gunyah hypervisor.
-+	  This demonstrates how to create a virtual machine under the Gunyah
-+	  hypervisor.
-+
- source "samples/rust/Kconfig"
- 
- endif # SAMPLES
-diff --git a/samples/Makefile b/samples/Makefile
-index 9832ef3f8fcb..2600bd4b82f8 100644
---- a/samples/Makefile
-+++ b/samples/Makefile
-@@ -36,3 +36,4 @@ obj-$(CONFIG_DEBUG_KMEMLEAK_TEST)	+= kmemleak/
- obj-$(CONFIG_SAMPLE_CORESIGHT_SYSCFG)	+= coresight/
- obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
- obj-$(CONFIG_SAMPLES_RUST)		+= rust/
-+obj-$(CONFIG_SAMPLE_GUNYAH)		+= gunyah/
-diff --git a/samples/gunyah/.gitignore b/samples/gunyah/.gitignore
-new file mode 100644
-index 000000000000..adc7d1589fde
---- /dev/null
-+++ b/samples/gunyah/.gitignore
-@@ -0,0 +1,2 @@
-+# SPDX-License-Identifier: GPL-2.0
-+/gunyah_vmm
-diff --git a/samples/gunyah/Makefile b/samples/gunyah/Makefile
-new file mode 100644
-index 000000000000..faf14f9bb337
---- /dev/null
-+++ b/samples/gunyah/Makefile
-@@ -0,0 +1,6 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+
-+userprogs-always-y += gunyah_vmm
-+dtb-y += sample_vm.dtb
-+
-+userccflags += -I usr/include
-diff --git a/samples/gunyah/gunyah_vmm.c b/samples/gunyah/gunyah_vmm.c
-new file mode 100644
-index 000000000000..ec74393c864e
---- /dev/null
-+++ b/samples/gunyah/gunyah_vmm.c
-@@ -0,0 +1,270 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
-+ */
-+
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <sys/ioctl.h>
-+#include <getopt.h>
-+#include <limits.h>
-+#include <stdint.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <sys/sysmacros.h>
-+#define __USE_GNU
-+#include <sys/mman.h>
-+
-+#include <linux/gunyah.h>
-+
-+struct vm_config {
-+	int image_fd;
-+	int dtb_fd;
-+	int ramdisk_fd;
-+
-+	uint64_t guest_base;
-+	uint64_t guest_size;
-+
-+	uint64_t image_offset;
-+	off_t image_size;
-+	uint64_t dtb_offset;
-+	off_t dtb_size;
-+	uint64_t ramdisk_offset;
-+	off_t ramdisk_size;
-+};
-+
-+static struct option options[] = {
-+	{ "help", no_argument, NULL, 'h' },
-+	{ "image", required_argument, NULL, 'i' },
-+	{ "dtb", required_argument, NULL, 'd' },
-+	{ "ramdisk", optional_argument, NULL, 'r' },
-+	{ "base", optional_argument, NULL, 'B' },
-+	{ "size", optional_argument, NULL, 'S' },
-+	{ "image_offset", optional_argument, NULL, 'I' },
-+	{ "dtb_offset", optional_argument, NULL, 'D' },
-+	{ "ramdisk_offset", optional_argument, NULL, 'R' },
-+	{ }
-+};
-+
-+static void print_help(char *cmd)
-+{
-+	printf("gunyah_vmm, a sample tool to launch Gunyah VMs\n"
-+	       "Usage: %s <options>\n"
-+	       "       --help,    -h  this menu\n"
-+	       "       --image,   -i <image> VM image file to load (e.g. a kernel Image) [Required]\n"
-+	       "       --dtb,     -d <dtb>   Devicetree to load [Required]\n"
-+	       "       --ramdisk, -r <ramdisk>  Ramdisk to load\n"
-+	       "       --base,    -B <address>  Set the base address of guest's memory [Default: 0x80000000]\n"
-+	       "       --size,    -S <number>   The number of bytes large to make the guest's memory [Default: 0x6400000 (100 MB)]\n"
-+	       "       --image_offset, -I <number>  Offset into guest memory to load the VM image file [Default: 0x10000]\n"
-+	       "        --dtb_offset,  -D <number>  Offset into guest memory to load the DTB [Default: 0]\n"
-+	       "        --ramdisk_offset, -R <number>  Offset into guest memory to load a ramdisk [Default: 0x4600000]\n"
-+	       , cmd);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int gunyah_fd, vm_fd, guest_fd;
-+	struct gh_userspace_memory_region guest_mem_desc = { 0 };
-+	struct gh_vm_dtb_config dtb_config = { 0 };
-+	char *guest_mem;
-+	struct vm_config config = {
-+		/* Defaults good enough to boot static kernel and a basic ramdisk */
-+		.ramdisk_fd = -1,
-+		.guest_base = 0x80000000,
-+		.guest_size = 104857600, /* 100 MB */
-+		.image_offset = 0,
-+		.dtb_offset = 0x45f0000,
-+		.ramdisk_offset = 0x4600000, /* put at +70MB (30MB for ramdisk) */
-+	};
-+	struct stat st;
-+	int opt, optidx, ret = 0;
-+	long int l;
-+
-+	while ((opt = getopt_long(argc, argv, "hi:d:r:B:S:I:D:R:c:", options, &optidx)) != -1) {
-+		switch (opt) {
-+		case 'i':
-+			config.image_fd = open(optarg, O_RDONLY | O_CLOEXEC);
-+			if (config.image_fd < 0) {
-+				perror("Failed to open image");
-+				return -1;
-+			}
-+			if (stat(optarg, &st) < 0) {
-+				perror("Failed to stat image");
-+				return -1;
-+			}
-+			config.image_size = st.st_size;
-+			break;
-+		case 'd':
-+			config.dtb_fd = open(optarg, O_RDONLY | O_CLOEXEC);
-+			if (config.dtb_fd < 0) {
-+				perror("Failed to open dtb");
-+				return -1;
-+			}
-+			if (stat(optarg, &st) < 0) {
-+				perror("Failed to stat dtb");
-+				return -1;
-+			}
-+			config.dtb_size = st.st_size;
-+			break;
-+		case 'r':
-+			config.ramdisk_fd = open(optarg, O_RDONLY | O_CLOEXEC);
-+			if (config.ramdisk_fd < 0) {
-+				perror("Failed to open ramdisk");
-+				return -1;
-+			}
-+			if (stat(optarg, &st) < 0) {
-+				perror("Failed to stat ramdisk");
-+				return -1;
-+			}
-+			config.ramdisk_size = st.st_size;
-+			break;
-+		case 'B':
-+			l = strtol(optarg, NULL, 0);
-+			if (l == LONG_MIN) {
-+				perror("Failed to parse base address");
-+				return -1;
-+			}
-+			config.guest_base = l;
-+			break;
-+		case 'S':
-+			l = strtol(optarg, NULL, 0);
-+			if (l == LONG_MIN) {
-+				perror("Failed to parse memory size");
-+				return -1;
-+			}
-+			config.guest_size = l;
-+			break;
-+		case 'I':
-+			l = strtol(optarg, NULL, 0);
-+			if (l == LONG_MIN) {
-+				perror("Failed to parse image offset");
-+				return -1;
-+			}
-+			config.image_offset = l;
-+			break;
-+		case 'D':
-+			l = strtol(optarg, NULL, 0);
-+			if (l == LONG_MIN) {
-+				perror("Failed to parse dtb offset");
-+				return -1;
-+			}
-+			config.dtb_offset = l;
-+			break;
-+		case 'R':
-+			l = strtol(optarg, NULL, 0);
-+			if (l == LONG_MIN) {
-+				perror("Failed to parse ramdisk offset");
-+				return -1;
-+			}
-+			config.ramdisk_offset = l;
-+			break;
-+		case 'h':
-+			print_help(argv[0]);
-+			return 0;
-+		default:
-+			print_help(argv[0]);
-+			return -1;
-+		}
-+	}
-+
-+	if (!config.image_fd || !config.dtb_fd) {
-+		print_help(argv[0]);
-+		return -1;
-+	}
-+
-+	if (config.image_offset + config.image_size > config.guest_size) {
-+		fprintf(stderr, "Image offset and size puts it outside guest memory. Make image smaller or increase guest memory size.\n");
-+		return -1;
-+	}
-+
-+	if (config.dtb_offset + config.dtb_size > config.guest_size) {
-+		fprintf(stderr, "DTB offset and size puts it outside guest memory. Make dtb smaller or increase guest memory size.\n");
-+		return -1;
-+	}
-+
-+	if (config.ramdisk_fd == -1 &&
-+		config.ramdisk_offset + config.ramdisk_size > config.guest_size) {
-+		fprintf(stderr, "Ramdisk offset and size puts it outside guest memory. Make ramdisk smaller or increase guest memory size.\n");
-+		return -1;
-+	}
-+
-+	gunyah_fd = open("/dev/gunyah", O_RDWR | O_CLOEXEC);
-+	if (gunyah_fd < 0) {
-+		perror("Failed to open /dev/gunyah");
-+		return -1;
-+	}
-+
-+	vm_fd = ioctl(gunyah_fd, GH_CREATE_VM, 0);
-+	if (vm_fd < 0) {
-+		perror("Failed to create vm");
-+		return -1;
-+	}
-+
-+	guest_fd = memfd_create("guest_memory", MFD_CLOEXEC);
-+	if (guest_fd < 0) {
-+		perror("Failed to create guest memfd");
-+		return -1;
-+	}
-+
-+	if (ftruncate(guest_fd, config.guest_size) < 0) {
-+		perror("Failed to grow guest memory");
-+		return -1;
-+	}
-+
-+	guest_mem = mmap(NULL, config.guest_size, PROT_READ | PROT_WRITE, MAP_SHARED, guest_fd, 0);
-+	if (guest_mem == MAP_FAILED) {
-+		perror("Not enough memory");
-+		return -1;
-+	}
-+
-+	if (read(config.image_fd, guest_mem + config.image_offset, config.image_size) < 0) {
-+		perror("Failed to read image into guest memory");
-+		return -1;
-+	}
-+
-+	if (read(config.dtb_fd, guest_mem + config.dtb_offset, config.dtb_size) < 0) {
-+		perror("Failed to read dtb into guest memory");
-+		return -1;
-+	}
-+
-+	if (config.ramdisk_fd > 0 &&
-+		read(config.ramdisk_fd, guest_mem + config.ramdisk_offset,
-+			config.ramdisk_size) < 0) {
-+		perror("Failed to read ramdisk into guest memory");
-+		return -1;
-+	}
-+
-+	guest_mem_desc.label = 0;
-+	guest_mem_desc.flags = GH_MEM_ALLOW_READ | GH_MEM_ALLOW_WRITE | GH_MEM_ALLOW_EXEC;
-+	guest_mem_desc.guest_phys_addr = config.guest_base;
-+	guest_mem_desc.memory_size = config.guest_size;
-+	guest_mem_desc.userspace_addr = (__u64)guest_mem;
-+
-+	if (ioctl(vm_fd, GH_VM_SET_USER_MEM_REGION, &guest_mem_desc) < 0) {
-+		perror("Failed to register guest memory with VM");
-+		return -1;
-+	}
-+
-+	dtb_config.gpa = config.guest_base + config.dtb_offset;
-+	dtb_config.size = config.dtb_size;
-+	if (ioctl(vm_fd, GH_VM_SET_DTB_CONFIG, &dtb_config) < 0) {
-+		perror("Failed to set DTB configuration for VM");
-+		return -1;
-+	}
-+
-+	ret = ioctl(vm_fd, GH_VM_START);
-+	if (ret) {
-+		perror("GH_VM_START failed");
-+		return -1;
-+	}
-+
-+	while (1)
-+		sleep(10);
-+
-+	return 0;
-+}
-diff --git a/samples/gunyah/sample_vm.dts b/samples/gunyah/sample_vm.dts
-new file mode 100644
-index 000000000000..1c410d58c298
---- /dev/null
-+++ b/samples/gunyah/sample_vm.dts
-@@ -0,0 +1,69 @@
-+// SPDX-License-Identifier: BSD-3-Clause
-+/*
-+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
-+ */
-+
-+/dts-v1/;
-+
-+/ {
-+	#address-cells = <2>;
-+	#size-cells = <2>;
-+	interrupt-parent = <&intc>;
-+
-+	chosen {
-+		bootargs = "nokaslr";
-+	};
-+
-+	cpus {
-+		#address-cells = <0x2>;
-+		#size-cells = <0>;
-+
-+		cpu@0 {
-+			device_type = "cpu";
-+			compatible = "arm,armv8";
-+			reg = <0 0>;
-+		};
-+	};
-+
-+	intc: interrupt-controller@3FFF0000 {
-+		compatible = "arm,gic-v3";
-+		#interrupt-cells = <3>;
-+		#address-cells = <2>;
-+		#size-cells = <2>;
-+		interrupt-controller;
-+		reg = <0 0x3FFF0000 0 0x10000>,
-+		      <0 0x3FFD0000 0 0x20000>;
-+	};
-+
-+	timer {
-+		compatible = "arm,armv8-timer";
-+		always-on;
-+		interrupts = <1 13 0x108>,
-+			     <1 14 0x108>,
-+			     <1 11 0x108>,
-+			     <1 10 0x108>;
-+		clock-frequency = <19200000>;
-+	};
-+
-+	gunyah-vm-config {
-+		image-name = "linux_vm_0";
-+		os-type = "linux";
-+
-+		memory {
-+			#address-cells = <2>;
-+			#size-cells = <2>;
-+
-+			base-address = <0 0x80000000>;
-+		};
-+
-+		interrupts {
-+			config = <&intc>;
-+		};
-+
-+		vcpus {
-+			affinity-map = < 0 >;
-+			sched-priority = < (-1) >;
-+			sched-timeslice = < 2000 >;
-+		};
-+	};
-+};
--- 
-2.25.1
-
+Jan
