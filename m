@@ -2,43 +2,41 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25D6BC43217
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D09C433FE
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:02:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231533AbiKUOCN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Nov 2022 09:02:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40140 "EHLO
+        id S231624AbiKUOC3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Nov 2022 09:02:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231623AbiKUOBw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:01:52 -0500
-Received: from alexa-out-sd-01.qualcomm.com (alexa-out-sd-01.qualcomm.com [199.106.114.38])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C6B51C428;
-        Mon, 21 Nov 2022 06:01:51 -0800 (PST)
+        with ESMTP id S231659AbiKUOB6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:01:58 -0500
+Received: from alexa-out-sd-02.qualcomm.com (alexa-out-sd-02.qualcomm.com [199.106.114.39])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B149CF47;
+        Mon, 21 Nov 2022 06:01:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
-  t=1669039311; x=1700575311;
+  t=1669039317; x=1700575317;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=9wqmO7jPqNqSjPOTZene9gcgdP0G34nPdRzWf1dAuV4=;
-  b=NTcLTyEypKCC3VL1cH+BcaSvw/o1s7ma4b98DUJOfqTAoFDZzl8ahG3E
-   Nt9oWsRqQrX044ctbfs40B3DvqB5xX6C5TUEh//S7/tKwC7TASYSgRGve
-   U6lzsEVOB1N7bZe1/FKIy+0aKkH2WMjlpXNLHoZjeXtp3lWr4dJfNIf9a
-   k=;
-Received: from unknown (HELO ironmsg04-sd.qualcomm.com) ([10.53.140.144])
-  by alexa-out-sd-01.qualcomm.com with ESMTP; 21 Nov 2022 06:01:51 -0800
+  bh=6FRhFwKvkVENg+VPhJgJ86aIuZqgwHwm5Um5GmXyQ8w=;
+  b=G686h3oopT7XF6VuRArh4EinyfLCbDtQLxONL7kETZlQxtAt11VroUW/
+   FeJNSaa7HnoEGtZxmRbyYHN8Vq4105MaSXTvtsQxMzyVQzTFosQVrKOq9
+   6a4N26f8Mvy+AJlHndnFHdIZa0b9lJDQsbO40h0sfkk+Yf4UCqDKZu3oI
+   s=;
+Received: from unknown (HELO ironmsg-SD-alpha.qualcomm.com) ([10.53.140.30])
+  by alexa-out-sd-02.qualcomm.com with ESMTP; 21 Nov 2022 06:01:56 -0800
 X-QCInternal: smtphost
 Received: from nasanex01b.na.qualcomm.com ([10.46.141.250])
-  by ironmsg04-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Nov 2022 06:01:51 -0800
+  by ironmsg-SD-alpha.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Nov 2022 06:01:56 -0800
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 21 Nov 2022 06:01:49 -0800
+ 15.2.986.36; Mon, 21 Nov 2022 06:01:55 -0800
 From:   Elliot Berman <quic_eberman@quicinc.com>
 To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
         Elliot Berman <quic_eberman@quicinc.com>,
-        "Murali Nalajala" <quic_mnalajal@quicinc.com>,
-        Jonathan Corbet <corbet@lwn.net>
+        Murali Nalajala <quic_mnalajal@quicinc.com>
 CC:     Trilok Soni <quic_tsoni@quicinc.com>,
         Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
         Carl van Schaik <quic_cvanscha@quicinc.com>,
@@ -47,18 +45,20 @@ CC:     Trilok Soni <quic_tsoni@quicinc.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
         Mark Rutland <mark.rutland@arm.com>,
-        "Lorenzo Pieralisi" <lpieralisi@kernel.org>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
         <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>
-Subject: [PATCH v7 09/20] mailbox: Add Gunyah message queue mailbox
-Date:   Mon, 21 Nov 2022 05:59:58 -0800
-Message-ID: <20221121140009.2353512-10-quic_eberman@quicinc.com>
+Subject: [PATCH v7 11/20] gunyah: rsc_mgr: Add VM lifecycle RPC
+Date:   Mon, 21 Nov 2022 06:00:00 -0800
+Message-ID: <20221121140009.2353512-12-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20221121140009.2353512-1-quic_eberman@quicinc.com>
 References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
@@ -72,392 +72,371 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Gunyah message queues are a unidirectional inter-VM pipe for messages up
-to 1024 bytes. This driver supports pairing a receiver message queue and
-a transmitter message queue to expose a single mailbox channel.
+Add Gunyah Resource Manager RPC to launch an unauthenticated VM.
 
 Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
 ---
- Documentation/virt/gunyah/message-queue.rst |   8 +
- MAINTAINERS                                 |   1 +
- drivers/mailbox/Kconfig                     |  10 +
- drivers/mailbox/Makefile                    |   2 +
- drivers/mailbox/gunyah-msgq.c               | 229 ++++++++++++++++++++
- include/linux/gunyah.h                      |  61 +++++-
- 6 files changed, 309 insertions(+), 2 deletions(-)
- create mode 100644 drivers/mailbox/gunyah-msgq.c
+ drivers/virt/gunyah/gunyah_rm_rpc.c | 217 +++++++++++++++++++++++++++-
+ drivers/virt/gunyah/rsc_mgr.h       |  46 ++++++
+ include/linux/gunyah_rsc_mgr.h      |  58 ++++++++
+ 3 files changed, 319 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/virt/gunyah/message-queue.rst b/Documentation/virt/gunyah/message-queue.rst
-index be4ab289236a..9245dbe6dd8a 100644
---- a/Documentation/virt/gunyah/message-queue.rst
-+++ b/Documentation/virt/gunyah/message-queue.rst
-@@ -54,3 +54,11 @@ vIRQ: two TX message queues will have two vIRQs (and two capability IDs).
-       |               |         |                 |         |               |
-       |               |         |                 |         |               |
-       +---------------+         +-----------------+         +---------------+
-+
-+Gunyah message queues are exposed as mailboxes. To create the mailbox, create
-+a mbox_client and call `gh_msgq_init`. On receipt of the RX_READY interrupt,
-+all messages in the RX message queue are read and pushed via the `rx_callback`
-+of the registered mbox_client.
-+
-+.. kernel-doc:: drivers/mailbox/gunyah-msgq.c
-+   :identifiers: gh_msgq_init
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 69c1835b3bb4..502798197b80 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8946,6 +8946,7 @@ S:	Supported
- F:	Documentation/devicetree/bindings/firmware/gunyah-hypervisor.yaml
- F:	Documentation/virt/gunyah/
- F:	arch/arm64/gunyah/
-+F:	drivers/mailbox/gunyah-msgq.c
- F:	drivers/virt/gunyah/
- F:	include/linux/gunyah.h
+diff --git a/drivers/virt/gunyah/gunyah_rm_rpc.c b/drivers/virt/gunyah/gunyah_rm_rpc.c
+index 45b1a8691982..fe6ba476c4dc 100644
+--- a/drivers/virt/gunyah/gunyah_rm_rpc.c
++++ b/drivers/virt/gunyah/gunyah_rm_rpc.c
+@@ -436,8 +436,8 @@ static int gh_rm_send_request(struct gh_rm_rpc *rsc_mgr, u32 message_id,
+  * Context: Process context. Will sleep waiting for reply.
+  * Return: >0 is standard reply error from RM. <0 on internal error.
+  */
+-int gh_rm_call(struct gh_rm_rpc *rsc_mgr, u32 message_id, void *req_buff, size_t req_buff_size,
+-	       void **resp_buf, size_t *resp_buff_size)
++static int gh_rm_call(struct gh_rm_rpc *rsc_mgr, u32 message_id, void *req_buff,
++			size_t req_buff_size, void **resp_buf, size_t *resp_buff_size)
+ {
+ 	struct gh_rm_connection *connection;
+ 	int ret;
+@@ -566,5 +566,218 @@ void gh_rm_rpc_remove(struct gh_rm_rpc *rm)
+ }
+ EXPORT_SYMBOL_GPL(gh_rm_rpc_remove);
  
-diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index 05d6fae800e3..baf9451c5f04 100644
---- a/drivers/mailbox/Kconfig
-+++ b/drivers/mailbox/Kconfig
-@@ -41,6 +41,16 @@ config IMX_MBOX
- 	help
- 	  Mailbox implementation for i.MX Messaging Unit (MU).
- 
-+config GUNYAH_MESSAGE_QUEUES
-+	tristate "Gunyah Message Queue Mailbox"
-+	depends on GUNYAH
-+	help
-+	  Mailbox implementation for Gunyah Message Queues. Gunyah message queues
-+	  are an IPC mechanism to pass short messages between virtual machines
-+	  running under the Gunyah hypervisor.
-+
-+	  Say Y here if you run Linux as a Gunyah virtual machine.
-+
- config PLATFORM_MHU
- 	tristate "Platform MHU Mailbox"
- 	depends on OF
-diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-index fc9376117111..5f929bb55e9a 100644
---- a/drivers/mailbox/Makefile
-+++ b/drivers/mailbox/Makefile
-@@ -55,6 +55,8 @@ obj-$(CONFIG_MTK_CMDQ_MBOX)	+= mtk-cmdq-mailbox.o
- 
- obj-$(CONFIG_ZYNQMP_IPI_MBOX)	+= zynqmp-ipi-mailbox.o
- 
-+obj-$(CONFIG_GUNYAH)		+= gunyah-msgq.o
-+
- obj-$(CONFIG_SUN6I_MSGBOX)	+= sun6i-msgbox.o
- 
- obj-$(CONFIG_SPRD_MBOX)		+= sprd-mailbox.o
-diff --git a/drivers/mailbox/gunyah-msgq.c b/drivers/mailbox/gunyah-msgq.c
-new file mode 100644
-index 000000000000..d5a324e85428
---- /dev/null
-+++ b/drivers/mailbox/gunyah-msgq.c
-@@ -0,0 +1,229 @@
-+// SPDX-License-Identifier: GPL-2.0-only
 +/*
-+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Several RM calls take only a VMID as a parameter and give only standard
++ * response back. Deduplicate boilerplate code by using this common call.
 + */
-+
-+#include <linux/mailbox_controller.h>
-+#include <linux/module.h>
-+#include <linux/interrupt.h>
-+#include <linux/gunyah.h>
-+#include <linux/printk.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/wait.h>
-+
-+#define mbox_chan_to_msgq(chan) (container_of(chan->mbox, struct gh_msgq, mbox))
-+
-+static inline bool gh_msgq_has_tx(struct gh_msgq *msgq)
++static int gh_rm_common_vmid_call(struct gh_rm_rpc *rm, u32 message_id, u16 vmid)
 +{
-+	return msgq->tx_ghrsc->type == GUNYAH_RESOURCE_TYPE_MSGQ_TX;
-+}
-+
-+static inline bool gh_msgq_has_rx(struct gh_msgq *msgq)
-+{
-+	return msgq->rx_ghrsc->type == GUNYAH_RESOURCE_TYPE_MSGQ_RX;
-+}
-+
-+static irqreturn_t gh_msgq_rx_irq_handler(int irq, void *data)
-+{
-+	struct gh_msgq *msgq = data;
-+	struct gh_msgq_rx_data rx_data;
-+	unsigned long gh_err;
-+	ssize_t ret;
-+	bool ready = false;
-+
-+	do {
-+		gh_err = gh_hypercall_msgq_recv(msgq->rx_ghrsc->capid,
-+				(uintptr_t)&rx_data.data, sizeof(rx_data.data),
-+				&rx_data.length, &ready);
-+		if (gh_err == GH_ERROR_OK) {
-+			mbox_chan_received_data(gh_msgq_chan(msgq), &rx_data);
-+		} else if (GH_ERROR_MSGQUEUE_EMPTY) {
-+			break;
-+		} else {
-+			pr_warn("Failed to receive data from msgq for %s: %ld\n",
-+				msgq->mbox.dev ? dev_name(msgq->mbox.dev) : "", ret);
-+			break;
-+		}
-+	} while (ready);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t gh_msgq_tx_irq_handler(int irq, void *data)
-+{
-+	struct gh_msgq *msgq = data;
-+
-+	mbox_chan_txdone(gh_msgq_chan(msgq), 0);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void gh_msgq_txdone_tasklet(struct tasklet_struct *tasklet)
-+{
-+	struct gh_msgq *msgq = container_of(tasklet, struct gh_msgq, txdone_tasklet);
-+
-+	mbox_chan_txdone(gh_msgq_chan(msgq), msgq->last_status);
-+}
-+
-+static int gh_msgq_send_data(struct mbox_chan *chan, void *data)
-+{
-+	struct gh_msgq *msgq = mbox_chan_to_msgq(chan);
-+	struct gh_msgq_tx_data *msgq_data = data;
-+	u64 tx_flags = 0;
-+	unsigned long ret;
-+	bool ready;
-+
-+	if (msgq_data->push)
-+		tx_flags |= GH_HYPERCALL_MSGQ_TX_FLAGS_PUSH;
-+
-+	ret = gh_hypercall_msgq_send(msgq->tx_ghrsc->capid, msgq_data->length,
-+					(uintptr_t)msgq_data->data, tx_flags, &ready);
-+
-+	/**
-+	 * unlikely because Linux tracks state of msgq and should not try to
-+	 * send message when msgq is full.
-+	 */
-+	if (unlikely(ret == GH_ERROR_MSGQUEUE_FULL))
-+		return -EAGAIN;
-+
-+	/**
-+	 * Propagate all other errors to client. If we return error to mailbox
-+	 * framework, then no other messages can be sent and nobody will know
-+	 * to retry this message.
-+	 */
-+	msgq->last_status = gh_remap_error(ret);
-+
-+	/**
-+	 * This message was successfully sent, but message queue isn't ready to
-+	 * receive more messages because it's now full. Mailbox framework
-+	 * requires that we only report that message was transmitted only when
-+	 * we're ready to transmit another message. We'll get that in the form
-+	 * of tx IRQ once the other side starts to drain the msgq.
-+	 */
-+	if (ret == GH_ERROR_OK && !ready)
-+		return 0;
-+
-+	/**
-+	 * We can send more messages. Mailbox framework requires that tx done
-+	 * happens asynchronously to sending the message. Gunyah message queues
-+	 * tell us right away on the hypercall return whether we can send more
-+	 * messages. To work around this, defer the txdone to a tasklet.
-+	 */
-+	tasklet_schedule(&msgq->txdone_tasklet);
-+
-+	return 0;
-+}
-+
-+struct mbox_chan_ops gh_msgq_ops = {
-+	.send_data = gh_msgq_send_data,
-+};
-+
-+/**
-+ * gh_msgq_init() - Initialize a Gunyah message queue with an mbox_client
-+ * @parent: optional, device parent used for the mailbox controller
-+ * @msgq: Pointer to the gh_msgq to initialize
-+ * @cl: A mailbox client to bind to the mailbox channel that the message queue creates
-+ * @tx_ghrsc: optional, the transmission side of the message queue
-+ * @rx_ghrsc: optional, the receiving side of the message queue
-+ *
-+ * At least one of tx_ghrsc and rx_ghrsc should be not NULL. Most message queue use cases come with
-+ * a pair of message queues to facilitiate bidirectional communication. When tx_ghrsc is set,
-+ * the client can send messages with mbox_send_message(gh_msgq_chan(msgq), msg). When rx_ghrsc
-+ * is set, the mbox_client should register an .rx_callback() and the message queue driver will
-+ * push all available messages upon receiving the RX ready interrupt. The messages should be
-+ * consumed or copied by the client right away as the gh_msgq_rx_data will be replaced/destroyed
-+ * after the callback.
-+ *
-+ * Returns - 0 on success, negative otherwise
-+ */
-+int gh_msgq_init(struct device *parent, struct gh_msgq *msgq, struct mbox_client *cl,
-+		     struct gunyah_resource *tx_ghrsc, struct gunyah_resource *rx_ghrsc)
-+{
++	void *resp = NULL;
++	struct gh_vm_common_vmid_req req_payload = {
++		.vmid = vmid,
++	};
++	size_t resp_size;
 +	int ret;
 +
-+	/* Must have at least a tx_ghrsc or rx_ghrsc and that they are the right device types */
-+	if ((!tx_ghrsc && !rx_ghrsc) ||
-+	    (tx_ghrsc && tx_ghrsc->type != GUNYAH_RESOURCE_TYPE_MSGQ_TX) ||
-+	    (rx_ghrsc && rx_ghrsc->type != GUNYAH_RESOURCE_TYPE_MSGQ_RX))
-+		return -EINVAL;
++	ret = gh_rm_call(rm, message_id, &req_payload, sizeof(req_payload), &resp, &resp_size);
++	if (!ret)
++		kfree(resp);
 +
-+	msgq->tx_ghrsc = tx_ghrsc;
-+	msgq->rx_ghrsc = rx_ghrsc;
++	WARN_ON(!ret && resp_size);
 +
-+	msgq->mbox.dev = parent;
-+	msgq->mbox.ops = &gh_msgq_ops;
-+	msgq->mbox.num_chans = 1;
-+	msgq->mbox.chans = kcalloc(msgq->mbox.num_chans, sizeof(*msgq->mbox.chans), GFP_KERNEL);
-+	if (!msgq->mbox.chans)
-+		return -ENOMEM;
-+	msgq->mbox.txdone_irq = true;
-+
-+	if (gh_msgq_has_tx(msgq)) {
-+		ret = request_irq(msgq->tx_ghrsc->irq, gh_msgq_tx_irq_handler, 0, "gh_msgq_tx",
-+				msgq);
-+		if (ret)
-+			goto err_chans;
-+	}
-+
-+	if (gh_msgq_has_rx(msgq)) {
-+		ret = request_threaded_irq(msgq->rx_ghrsc->irq, NULL, gh_msgq_rx_irq_handler,
-+						IRQF_ONESHOT, "gh_msgq_rx", msgq);
-+		if (ret)
-+			goto err_tx_irq;
-+	}
-+
-+	tasklet_setup(&msgq->txdone_tasklet, gh_msgq_txdone_tasklet);
-+
-+	ret = mbox_controller_register(&msgq->mbox);
-+	if (ret)
-+		goto err_rx_irq;
-+
-+	ret = mbox_bind_client(gh_msgq_chan(msgq), cl);
-+	if (ret)
-+		goto err_mbox;
-+
-+	return 0;
-+err_mbox:
-+	mbox_controller_unregister(&msgq->mbox);
-+err_rx_irq:
-+	if (gh_msgq_has_rx(msgq))
-+		free_irq(msgq->rx_ghrsc->irq, msgq);
-+err_tx_irq:
-+	if (gh_msgq_has_tx(msgq))
-+		free_irq(msgq->tx_ghrsc->irq, msgq);
-+err_chans:
-+	kfree(msgq->mbox.chans);
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(gh_msgq_init);
-+
-+void gh_msgq_remove(struct gh_msgq *msgq)
-+{
-+	mbox_controller_unregister(&msgq->mbox);
-+
-+	if (gh_msgq_has_rx(msgq))
-+		free_irq(msgq->rx_ghrsc->irq, msgq);
-+
-+	if (gh_msgq_has_tx(msgq))
-+		free_irq(msgq->tx_ghrsc->irq, msgq);
-+
-+	kfree(msgq->mbox.chans);
-+}
-+EXPORT_SYMBOL_GPL(gh_msgq_remove);
-+
-+
-+static int __init gh_msgq_init_module(void)
-+{
-+	if (gh_api_version() != GUNYAH_API_V1) {
-+		pr_warn("Unrecognized gunyah version: %u. Currently supported: %d\n",
-+			gh_api_version(), GUNYAH_API_V1);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+module_init(gh_msgq_init_module);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Gunyah Message Queue Driver");
-diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
-index c863cac4a3cf..e317d7ac938f 100644
---- a/include/linux/gunyah.h
-+++ b/include/linux/gunyah.h
-@@ -7,10 +7,67 @@
- #define _GUNYAH_H
- 
- #include <linux/bitfield.h>
--#include <linux/types.h>
- #include <linux/errno.h>
-+#include <linux/interrupt.h>
-+#include <linux/mailbox_controller.h>
-+#include <linux/mailbox_client.h>
-+#include <linux/types.h>
-+
-+/* Follows resource manager's resource types for VM_GET_HYP_RESOURCES */
-+enum gunyah_resource_type {
-+	GUNYAH_RESOURCE_TYPE_BELL_TX	= 0,
-+	GUNYAH_RESOURCE_TYPE_BELL_RX	= 1,
-+	GUNYAH_RESOURCE_TYPE_MSGQ_TX	= 2,
-+	GUNYAH_RESOURCE_TYPE_MSGQ_RX	= 3,
-+	GUNYAH_RESOURCE_TYPE_VCPU	= 4,
-+};
-+
-+struct gunyah_resource {
-+	enum gunyah_resource_type type;
-+	u64 capid;
-+	int irq;
-+};
 +
 +/**
-+ * Gunyah Message Queues
++ * gh_rm_alloc_vmid() - Allocate a new VM in Gunyah. Returns the VM identifier.
++ * @vmid: Use GH_VMID_INVAL to dynamically allocate a VM. A reserved VMID can also be requested
++ *        for a special-purpose platform-defined VM.
++ *
++ * Returns - the allocated VMID or negative value on error
 + */
-+
-+#define GH_MSGQ_MAX_MSG_SIZE	240
-+
-+struct gh_msgq_tx_data {
-+	size_t length;
-+	bool push;
-+	char data[];
-+};
-+
-+struct gh_msgq_rx_data {
-+	size_t length;
-+	char data[GH_MSGQ_MAX_MSG_SIZE];
-+};
-+
-+struct gh_msgq {
-+	struct gunyah_resource *tx_ghrsc;
-+	struct gunyah_resource *rx_ghrsc;
-+
-+	/* msgq private */
-+	int last_status;
-+	struct mbox_controller mbox;
-+	struct tasklet_struct txdone_tasklet;
-+};
-+
-+
-+int gh_msgq_init(struct device *parent, struct gh_msgq *msgq, struct mbox_client *cl,
-+		     struct gunyah_resource *tx_ghrsc, struct gunyah_resource *rx_ghrsc);
-+void gh_msgq_remove(struct gh_msgq *msgq);
-+
-+static inline struct mbox_chan *gh_msgq_chan(struct gh_msgq *msgq)
++int gh_rm_alloc_vmid(struct gh_rm_rpc *rm, u16 vmid)
 +{
-+	return &msgq->mbox.chans[0];
-+}
++	void *resp;
++	struct gh_vm_common_vmid_req req_payload = {
++		.vmid = vmid,
++	};
++	struct gh_vm_common_vmid_req *resp_payload;
++	size_t resp_size;
++	int ret;
 +
-+/******************************************************************************/
-+/* Common arch-independent macros and definitions for Gunyah hypercalls */
++	if (vmid == GH_VMID_INVAL)
++		vmid = 0;
++
++	ret = gh_rm_call(rm, GH_RM_RPC_VM_ALLOC_VMID, &req_payload, sizeof(req_payload), &resp,
++			&resp_size);
++	if (ret)
++		return ret;
++
++	if (!vmid) {
++		if (resp_size != sizeof(*resp_payload)) {
++			ret = -EINVAL;
++		} else {
++			resp_payload = resp;
++			ret = resp_payload->vmid;
++		}
++	}
++	kfree(resp);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_alloc_vmid);
++
++/**
++ * gh_rm_dealloc_vmid() - Dispose the VMID
++ * @vmid: VM identifier
++ */
++int gh_rm_dealloc_vmid(struct gh_rm_rpc *rm, u16 vmid)
++{
++	return gh_rm_common_vmid_call(rm, GH_RM_RPC_VM_DEALLOC_VMID, vmid);
++}
++EXPORT_SYMBOL_GPL(gh_rm_dealloc_vmid);
++
++/**
++ * gh_rm_vm_start() - Move the VM into "ready to run" state
++ * @vmid: VM identifier
++ *
++ * On VMs which use proxy scheduling, vcpu_run is needed to actually run the VM.
++ * On VMs which use Gunyah's scheduling, the vCPUs start executing in accordance with Gunyah
++ * scheduling policies.
++ */
++int gh_rm_vm_start(struct gh_rm_rpc *rm, u16 vmid)
++{
++	return gh_rm_common_vmid_call(rm, GH_RM_RPC_VM_START, vmid);
++}
++EXPORT_SYMBOL_GPL(gh_rm_vm_start);
++
++/**
++ * gh_rm_vm_stop() - Send a request to Resource Manager VM to stop a VM.
++ * @vmid: VM identifier
++ */
++int gh_rm_vm_stop(struct gh_rm_rpc *rm, u16 vmid)
++{
++	struct gh_vm_stop_req req_payload = { 0 };
++	void *resp;
++	size_t resp_size;
++	int ret;
++
++	req_payload.vmid = vmid;
++
++	ret = gh_rm_call(rm, GH_RM_RPC_VM_STOP, &req_payload, sizeof(req_payload), &resp, &resp_size);
++	if (ret)
++		return ret;
++	kfree(resp);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_vm_stop);
++
++int gh_rm_vm_configure(struct gh_rm_rpc *rm, u16 vmid, enum gh_rm_vm_auth_mechanism auth_mechanism,
++		u32 mem_handle, u64 image_offset, u64 image_size, u64 dtb_offset, u64 dtb_size)
++{
++	struct gh_vm_config_image_req req_payload = { 0 };
++	void *resp;
++	size_t resp_size;
++	int ret;
++
++	req_payload.vmid = vmid;
++	req_payload.auth_mech = auth_mechanism;
++	req_payload.mem_handle = mem_handle;
++	req_payload.image_offset_low = image_offset;
++	req_payload.image_offset_high = image_offset >> 32;
++	req_payload.image_size_low = image_size;
++	req_payload.image_size_high = image_size >> 32;
++	req_payload.dtb_offset_low = dtb_offset;
++	req_payload.dtb_offset_high = dtb_offset >> 32;
++	req_payload.dtb_size_low = dtb_size;
++	req_payload.dtb_size_high = dtb_size >> 32;
++
++	ret = gh_rm_call(rm, GH_RM_RPC_VM_CONFIG_IMAGE, &req_payload, sizeof(req_payload),
++			&resp, &resp_size);
++	if (ret)
++		return ret;
++	kfree(resp);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_vm_configure);
++
++/**
++ * gh_rm_vm_init() - Move the VM to initialized state.
++ * @vmid: VM identifier
++ *
++ * RM will allocate needed resources for the VM. After gh_rm_vm_init, gh_rm_get_hyp_resources()
++ * can be called to learn of the capabilities we can use with the new VM.
++ */
++int gh_rm_vm_init(struct gh_rm_rpc *rm, u16 vmid)
++{
++	return gh_rm_common_vmid_call(rm, GH_RM_RPC_VM_INIT, vmid);
++}
++EXPORT_SYMBOL_GPL(gh_rm_vm_init);
++
++/**
++ * gh_rm_get_hyp_resources() - Retrieve hypervisor resources (capabilities) associated with a VM
++ * @vmid: VMID of the other VM to get the resources of
++ * @resources: Set by gh_rm_get_hyp_resources and contains the returned hypervisor resources.
++ *
++ * Return: >=0 value indicates the number of gh_rm_hyp_resource entries filled into *resources
++ */
++ssize_t gh_rm_get_hyp_resources(struct gh_rm_rpc *rm, u16 vmid,
++				struct gh_rm_hyp_resource **resources)
++{
++	struct gh_vm_get_hyp_resources_resp *resp;
++	size_t resp_size;
++	int ret;
++	struct gh_vm_common_vmid_req req_payload = {0};
++
++	req_payload.vmid = vmid;
++
++	ret = gh_rm_call(rm, GH_RM_RPC_VM_GET_HYP_RESOURCES,
++			 &req_payload, sizeof(req_payload),
++			 (void **)&resp, &resp_size);
++	if (ret)
++		return ret;
++
++	if (resp_size < sizeof(*resp) ||
++		(sizeof(*resp->entries) && (resp->n_entries > U32_MAX / sizeof(*resp->entries))) ||
++		(resp_size != sizeof(*resp) + (resp->n_entries * sizeof(*resp->entries)))) {
++		ret = -EIO;
++		goto out;
++	}
++
++	*resources = kmemdup(resp->entries, (resp->n_entries * sizeof(*resp->entries)), GFP_KERNEL);
++	ret = resp->n_entries;
++
++out:
++	kfree(resp);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_get_hyp_resources);
++
++/**
++ * gh_rm_get_vmid() - Retrieve VMID of this virtual machine
++ * @vmid: Filled with the VMID of this VM
++ */
++int gh_rm_get_vmid(struct gh_rm_rpc *rm, u16 *vmid)
++{
++	void *resp;
++	size_t resp_size;
++	int ret;
++	int payload = 0;
++
++	ret = gh_rm_call(rm, GH_RM_RPC_VM_GET_VMID, &payload, sizeof(payload), &resp, &resp_size);
++	if (ret)
++		return ret;
++
++	if (resp_size != sizeof(*vmid))
++		return -EIO;
++	*vmid = *(u16 *)resp;
++	kfree(resp);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_get_vmid);
++
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Gunyah Resource Manager RPC Driver");
+diff --git a/drivers/virt/gunyah/rsc_mgr.h b/drivers/virt/gunyah/rsc_mgr.h
+index 01f0af888fad..11a5afa2c79c 100644
+--- a/drivers/virt/gunyah/rsc_mgr.h
++++ b/drivers/virt/gunyah/rsc_mgr.h
+@@ -34,4 +34,50 @@ struct platform_device;
+ struct gh_rm_rpc *gh_rm_rpc_init(struct platform_device *pdev);
+ void gh_rm_rpc_remove(struct gh_rm_rpc *rm);
  
--/* Common Gunyah macros */
- #define GH_CAPID_INVAL	U64_MAX
- #define GH_VMID_ROOT_VM	0xff
++/* Message IDs: VM Management */
++#define GH_RM_RPC_VM_ALLOC_VMID			0x56000001
++#define GH_RM_RPC_VM_DEALLOC_VMID		0x56000002
++#define GH_RM_RPC_VM_START			0x56000004
++#define GH_RM_RPC_VM_STOP			0x56000005
++#define GH_RM_RPC_VM_CONFIG_IMAGE		0x56000009
++#define GH_RM_RPC_VM_INIT			0x5600000B
++#define GH_RM_RPC_VM_GET_HYP_RESOURCES		0x56000020
++#define GH_RM_RPC_VM_GET_VMID			0x56000024
++#define GH_RM_RPC_VM_SET_BOOT_CONTEXT		0x56000031
++
++/* Call: CONSOLE_OPEN, CONSOLE_CLOSE, CONSOLE_FLUSH */
++struct gh_vm_common_vmid_req {
++	u16 vmid;
++	u16 reserved0;
++} __packed;
++
++/* Call: VM_STOP */
++struct gh_vm_stop_req {
++	u16 vmid;
++	u8 flags;
++	u8 reserved;
++	u32 stop_reason;
++} __packed;
++
++/* Call: VM_CONFIG_IMAGE */
++struct gh_vm_config_image_req {
++	u16 vmid;
++	u16 auth_mech;
++	u32 mem_handle;
++	u32 image_offset_low;
++	u32 image_offset_high;
++	u32 image_size_low;
++	u32 image_size_high;
++	u32 dtb_offset_low;
++	u32 dtb_offset_high;
++	u32 dtb_size_low;
++	u32 dtb_size_high;
++} __packed;
++
++/* Call: GET_HYP_RESOURCES */
++struct gh_vm_get_hyp_resources_resp {
++	u32 n_entries;
++	struct gh_rm_hyp_resource entries[];
++} __packed;
++
+ #endif
+diff --git a/include/linux/gunyah_rsc_mgr.h b/include/linux/gunyah_rsc_mgr.h
+index b4f55c19954b..a0bd6f39c649 100644
+--- a/include/linux/gunyah_rsc_mgr.h
++++ b/include/linux/gunyah_rsc_mgr.h
+@@ -15,4 +15,62 @@
+ /* Gunyah recognizes VMID0 as an alias to the current VM's ID */
+ #define GH_VMID_SELF			0
  
++struct gh_rm_rpc;
++
++enum gh_rm_vm_status {
++	GH_RM_VM_STATUS_NO_STATE	= 0,
++	GH_RM_VM_STATUS_INIT		= 1,
++	GH_RM_VM_STATUS_READY		= 2,
++	GH_RM_VM_STATUS_RUNNING		= 3,
++	GH_RM_VM_STATUS_PAUSED		= 4,
++	GH_RM_VM_STATUS_LOAD		= 5,
++	GH_RM_VM_STATUS_AUTH		= 6,
++	GH_RM_VM_STATUS_INIT_FAILED	= 8,
++	GH_RM_VM_STATUS_EXITED		= 9,
++	GH_RM_VM_STATUS_RESETTING	= 10,
++	GH_RM_VM_STATUS_RESET		= 11,
++};
++
++/* RPC Calls */
++int gh_rm_alloc_vmid(struct gh_rm_rpc *rm, u16 vmid);
++int gh_rm_dealloc_vmid(struct gh_rm_rpc *rm, u16 vmid);
++int gh_rm_vm_start(struct gh_rm_rpc *rm, u16 vmid);
++int gh_rm_vm_stop(struct gh_rm_rpc *rm, u16 vmid);
++
++enum gh_rm_vm_auth_mechanism {
++	GH_RM_VM_AUTH_NONE		= 0,
++	GH_RM_VM_AUTH_QCOM_PIL_ELF	= 1,
++	GH_RM_VM_AUTH_QCOM_ANDROID_PVM	= 2,
++};
++
++int gh_rm_vm_configure(struct gh_rm_rpc *rm, u16 vmid, enum gh_rm_vm_auth_mechanism auth_mechanism,
++			u32 mem_handle, u64 image_offset, u64 image_size,
++			u64 dtb_offset, u64 dtb_size);
++int gh_rm_vm_init(struct gh_rm_rpc *rm, u16 vmid);
++
++struct gh_rm_hyp_resource {
++	u8 type;
++	u8 reserved;
++	u16 partner_vmid;
++	u32 resource_handle;
++	u32 resource_label;
++	u32 cap_id_low;
++	u32 cap_id_high;
++	u32 virq_handle;
++	u32 virq;
++	u32 base_low;
++	u32 base_high;
++	u32 size_low;
++	u32 size_high;
++} __packed;
++
++ssize_t gh_rm_get_hyp_resources(struct gh_rm_rpc *rm, u16 vmid,
++				struct gh_rm_hyp_resource **resources);
++int gh_rm_get_vmid(struct gh_rm_rpc *rm, u16 *vmid);
++
++#define GH_RM_BOOT_CONTEXT_REG_SET_REGISTERS	0
++#define GH_RM_BOOT_CONTEXT_REG_SET_PC		1
++#define GH_RM_BOOT_CONTEXT_REG_SET_SP_ELx	2
++int gh_rm_set_boot_context(struct gh_rm_rpc *rm, u16 vmid, u8 reg_set, u8 reg_idx, u64 value);
++
+ #endif
 -- 
 2.25.1
 
