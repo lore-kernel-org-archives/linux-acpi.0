@@ -2,42 +2,37 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B000C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:03:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BE14C4332F
+	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 14:04:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231478AbiKUODp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Nov 2022 09:03:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40140 "EHLO
+        id S231547AbiKUOEL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Nov 2022 09:04:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230198AbiKUOCN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:02:13 -0500
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFDC81C929;
-        Mon, 21 Nov 2022 06:02:11 -0800 (PST)
-Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2ALCqsGw013197;
-        Mon, 21 Nov 2022 14:01:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=qcppdkim1;
- bh=HF4iBQ+cZRuNQfUCG3QLF2FXAPRplCw3XpMEge6HY8k=;
- b=UdVUMe9dTK7PS7ucA3sbBLlpQmxWyYTpj5rJZ/9B8A0SGS7dUH6UYxl7h3WMD/ZdqnJP
- /JmIzZ45aPZl+heAUTYjIdcfboSrdKomZJ8Y2+8Qm+kxBpfzXDCieBJmZEhxo7S+NwGE
- lWPmeeTHlG5SKQYSLmJsj5JKri8ktFYxVCt7eediSSWHg7tLjwmE5xrFGt3deaOZro86
- ZYIWJf2WltmsB6LAr4UiiwGdxAXt6qyZxMyRM0z5iSIKpcNSOlJO2zXGlgAUaHLbOV5Y
- DvqQ4TpkydFkYSFMVXabL0WMCviE9mWvnDzDyKCh/BXHE/Ixnk7hOgGlvM3xIeRoJV7+ /w== 
-Received: from nasanppmta02.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3kxrbc4n6x-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 21 Nov 2022 14:01:44 +0000
-Received: from nasanex01b.na.qualcomm.com (corens_vlan604_snip.qualcomm.com [10.53.140.1])
-        by NASANPPMTA02.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2ALE1hcL024269
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 21 Nov 2022 14:01:43 GMT
+        with ESMTP id S231578AbiKUOCR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 09:02:17 -0500
+Received: from alexa-out-sd-01.qualcomm.com (alexa-out-sd-01.qualcomm.com [199.106.114.38])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 360242EF53;
+        Mon, 21 Nov 2022 06:02:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
+  t=1669039335; x=1700575335;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=qy6zLlRt58JzjnAnjZx0E210Sky1kDaCzk1olERIjGA=;
+  b=GtK3PqbbD3BmCUPb550lB/G6QPxm4Da7BWe0G6mllY3emKjUbyrMfD9t
+   yx2jxRk89w0+ebdoFQG3dO7ZSQyFuo/XcbZzGOv3Inl35B7aZSDWpbJP4
+   l510ooPXiKVJGQ1ChGvIQ5m1s+33g0hx7Rv1y+WyMZlaE9ou2veFPS3SW
+   M=;
+Received: from unknown (HELO ironmsg-SD-alpha.qualcomm.com) ([10.53.140.30])
+  by alexa-out-sd-01.qualcomm.com with ESMTP; 21 Nov 2022 06:02:14 -0800
+X-QCInternal: smtphost
+Received: from nasanex01b.na.qualcomm.com ([10.46.141.250])
+  by ironmsg-SD-alpha.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Nov 2022 06:02:14 -0800
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 21 Nov 2022 06:01:41 -0800
+ 15.2.986.36; Mon, 21 Nov 2022 06:02:12 -0800
 From:   Elliot Berman <quic_eberman@quicinc.com>
 To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
         Elliot Berman <quic_eberman@quicinc.com>,
@@ -61,9 +56,9 @@ CC:     Trilok Soni <quic_tsoni@quicinc.com>,
         <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>
-Subject: [PATCH v7 06/20] virt: gunyah: Identify hypervisor version
-Date:   Mon, 21 Nov 2022 05:59:55 -0800
-Message-ID: <20221121140009.2353512-7-quic_eberman@quicinc.com>
+Subject: [PATCH v7 17/20] gunyah: rsc_mgr: Add platform ops on mem_lend/mem_reclaim
+Date:   Mon, 21 Nov 2022 06:00:06 -0800
+Message-ID: <20221121140009.2353512-18-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20221121140009.2353512-1-quic_eberman@quicinc.com>
 References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
@@ -73,124 +68,195 @@ Content-Type: text/plain
 X-Originating-IP: [10.49.16.6]
 X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
  nasanex01b.na.qualcomm.com (10.46.141.250)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-ORIG-GUID: LOG0Aj_TUCRD5F2KpVHlPdlGGWX-WR7a
-X-Proofpoint-GUID: LOG0Aj_TUCRD5F2KpVHlPdlGGWX-WR7a
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.219,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2022-11-21_13,2022-11-18_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 phishscore=0
- spamscore=0 bulkscore=0 adultscore=0 suspectscore=0 malwarescore=0
- mlxlogscore=999 priorityscore=1501 clxscore=1015 mlxscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2210170000 definitions=main-2211210109
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Export the version of Gunyah which is reported via the hyp_identify
-hypercall. Increments of the major API version indicate possibly
-backwards incompatible changes.
+On Qualcomm platforms, there is a firmware entity which controls access
+to physical pages. In order to share memory with another VM, this entity
+needs to be informed that the guest VM should have access to the memory.
 
-Export the hypervisor identity so that Gunyah drivers can act according
-to the major API version.
-
+Co-developed-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
+Signed-off-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
 Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
 ---
- drivers/virt/Makefile        |  1 +
- drivers/virt/gunyah/Makefile |  1 +
- drivers/virt/gunyah/gunyah.c | 46 ++++++++++++++++++++++++++++++++++++
- include/linux/gunyah.h       |  6 +++++
- 4 files changed, 54 insertions(+)
- create mode 100644 drivers/virt/gunyah/Makefile
- create mode 100644 drivers/virt/gunyah/gunyah.c
+ drivers/virt/gunyah/Kconfig                 |  4 ++
+ drivers/virt/gunyah/Makefile                |  1 +
+ drivers/virt/gunyah/gunyah_platform_hooks.c | 63 +++++++++++++++++++++
+ drivers/virt/gunyah/gunyah_rm_rpc.c         |  7 ++-
+ drivers/virt/gunyah/rsc_mgr.h               |  3 +
+ include/linux/gunyah_rsc_mgr.h              | 14 +++++
+ 6 files changed, 91 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/virt/gunyah/gunyah_platform_hooks.c
 
-diff --git a/drivers/virt/Makefile b/drivers/virt/Makefile
-index 093674e05c40..92b7e5311548 100644
---- a/drivers/virt/Makefile
-+++ b/drivers/virt/Makefile
-@@ -11,3 +11,4 @@ obj-$(CONFIG_NITRO_ENCLAVES)	+= nitro_enclaves/
- obj-$(CONFIG_ACRN_HSM)		+= acrn/
- obj-$(CONFIG_EFI_SECRET)	+= coco/efi_secret/
- obj-$(CONFIG_SEV_GUEST)		+= coco/sev-guest/
-+obj-y				+= gunyah/
+diff --git a/drivers/virt/gunyah/Kconfig b/drivers/virt/gunyah/Kconfig
+index 5856b7c5157b..41e619128b3d 100644
+--- a/drivers/virt/gunyah/Kconfig
++++ b/drivers/virt/gunyah/Kconfig
+@@ -11,11 +11,15 @@ config GUNYAH
+ 	  Say Y/M here to enable the drivers needed to interact in a Gunyah
+ 	  virtual environment.
+ 
++config GUNYAH_PLATFORM_HOOKS
++	tristate
++
+ if GUNYAH
+ config GUNYAH_RESOURCE_MANAGER
+ 	tristate
+ 	depends on MAILBOX
+ 	select GUNYAH_MESSAGE_QUEUES
++	select GUNYAH_PLATFORM_HOOKS
+ 
+ config GUNYAH_VM_MANAGER
+ 	tristate "Gunyah VM Manager"
 diff --git a/drivers/virt/gunyah/Makefile b/drivers/virt/gunyah/Makefile
-new file mode 100644
-index 000000000000..2ac4ee64b89d
---- /dev/null
+index 82fd18d518d1..90d589ce1f44 100644
+--- a/drivers/virt/gunyah/Makefile
 +++ b/drivers/virt/gunyah/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_GUNYAH) += gunyah.o
-diff --git a/drivers/virt/gunyah/gunyah.c b/drivers/virt/gunyah/gunyah.c
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_GUNYAH) += gunyah.o
++obj-$(CONFIG_GUNYAH_PLATFORM_HOOKS) += gunyah_platform_hooks.o
+ 
+ obj-$(CONFIG_GUNYAH_RESOURCE_MANAGER) += gunyah_rsc_mgr.o gunyah_rm_rpc.o
+ 
+diff --git a/drivers/virt/gunyah/gunyah_platform_hooks.c b/drivers/virt/gunyah/gunyah_platform_hooks.c
 new file mode 100644
-index 000000000000..c34c9046fc08
+index 000000000000..36cc02c75963
 --- /dev/null
-+++ b/drivers/virt/gunyah/gunyah.c
-@@ -0,0 +1,46 @@
++++ b/drivers/virt/gunyah/gunyah_platform_hooks.c
+@@ -0,0 +1,63 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
 + */
 +
-+#define pr_fmt(fmt) "gunyah: " fmt
-+
-+#include <linux/gunyah.h>
-+#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/printk.h>
++#include <linux/rwsem.h>
++#include <linux/gunyah_rsc_mgr.h>
 +
-+struct gh_hypercall_hyp_identify_resp gunyah_api;
-+EXPORT_SYMBOL_GPL(gunyah_api);
++#include "rsc_mgr.h"
 +
-+static const uint32_t gunyah_known_uuids[][4] = {
-+	{0x19bd54bd, 0x0b37571b, 0x946f609b, 0x54539de6}, /* QC_HYP (Qualcomm's build) */
-+	{0x673d5f14, 0x9265ce36, 0xa4535fdb, 0xc1d58fcd}, /* GUNYAH (open source build) */
-+};
++static struct gunyah_rm_platform_ops *rm_platform_ops;
++static DECLARE_RWSEM(rm_platform_ops_lock);
 +
-+static int __init gunyah_init(void)
++int gh_rm_platform_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
 +{
-+	u32 uid[4];
-+	int i;
++	int ret = 0;
 +
-+	gh_hypercall_get_uid(uid);
-+
-+	for (i = 0; i < ARRAY_SIZE(gunyah_known_uuids); i++)
-+		if (!memcmp(uid, gunyah_known_uuids[i], sizeof(uid)))
-+			break;
-+
-+	if (i == ARRAY_SIZE(gunyah_known_uuids))
-+		return -ENODEV;
-+
-+	gh_hypercall_hyp_identify(&gunyah_api);
-+
-+	pr_info("Running under Gunyah hypervisor %llx/v%u\n",
-+		FIELD_GET(GH_API_INFO_VARIANT_MASK, gunyah_api.api_info),
-+		gh_api_version());
-+
-+	return 0;
++	down_read(&rm_platform_ops_lock);
++	if (rm_platform_ops && rm_platform_ops->pre_mem_share)
++		ret = rm_platform_ops->pre_mem_share(rm, mem_parcel);
++	up_read(&rm_platform_ops_lock);
++	return ret;
 +}
-+arch_initcall(gunyah_init);
++EXPORT_SYMBOL_GPL(gh_rm_platform_pre_mem_share);
++
++int gh_rm_platform_post_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
++{
++	int ret = 0;
++
++	down_read(&rm_platform_ops_lock);
++	if (rm_platform_ops && rm_platform_ops->post_mem_reclaim)
++		ret = rm_platform_ops->post_mem_reclaim(rm, mem_parcel);
++	up_read(&rm_platform_ops_lock);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_platform_post_mem_reclaim);
++
++int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
++{
++	int ret = 0;
++
++	down_write(&rm_platform_ops_lock);
++	if (!rm_platform_ops)
++		rm_platform_ops = platform_ops;
++	else
++		ret = -EEXIST;
++	up_write(&rm_platform_ops_lock);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gh_rm_register_platform_ops);
++
++void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
++{
++	down_write(&rm_platform_ops_lock);
++	if (rm_platform_ops == platform_ops)
++		rm_platform_ops = NULL;
++	up_write(&rm_platform_ops_lock);
++}
++EXPORT_SYMBOL_GPL(gh_rm_unregister_platform_ops);
 +
 +MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Gunyah Hypervisor Driver");
-diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
-index 2765d2b40198..166156f69df9 100644
---- a/include/linux/gunyah.h
-+++ b/include/linux/gunyah.h
-@@ -92,6 +92,12 @@ struct gh_hypercall_hyp_identify_resp {
- 	u64 api_info;
- 	u64 flags[3];
- };
-+extern struct gh_hypercall_hyp_identify_resp gunyah_api;
-+
-+static inline u16 gh_api_version(void)
-+{
-+	return FIELD_GET(GH_API_INFO_API_VERSION_MASK, gunyah_api.api_info);
-+}
++MODULE_DESCRIPTION("Gunyah Platform Hooks");
+diff --git a/drivers/virt/gunyah/gunyah_rm_rpc.c b/drivers/virt/gunyah/gunyah_rm_rpc.c
+index 544ec8022104..f81c7b55e7d7 100644
+--- a/drivers/virt/gunyah/gunyah_rm_rpc.c
++++ b/drivers/virt/gunyah/gunyah_rm_rpc.c
+@@ -671,6 +671,10 @@ static int gh_rm_mem_lend_common(struct gh_rm_rpc *rm, u32 message_id, struct gh
+ 	if (initial_n_mem_entries > GH_RM_MAX_MEM_ENTRIES)
+ 		initial_n_mem_entries = GH_RM_MAX_MEM_ENTRIES;
  
- void gh_hypercall_get_uid(u32 uid[4]);
- void gh_hypercall_hyp_identify(struct gh_hypercall_hyp_identify_resp *hyp_identity);
++	ret = gh_rm_platform_pre_mem_share(rm, p);
++	if (ret)
++		return ret;
++
+ 	/* The format of the message goes:
+ 	 * request header
+ 	 * ACL entries (which VMs get what kind of access to this memory parcel)
+@@ -714,6 +718,7 @@ static int gh_rm_mem_lend_common(struct gh_rm_rpc *rm, u32 message_id, struct gh
+ 
+ 	if (resp_size != sizeof(u32)) {
+ 		ret = -EIO;
++		gh_rm_platform_post_mem_reclaim(rm, p);
+ 		goto out;
+ 	}
+ 
+@@ -783,7 +788,7 @@ int gh_rm_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *parcel)
+ 		return ret;
+ 	kfree(resp);
+ 
+-	return ret;
++	return gh_rm_platform_post_mem_reclaim(rm, parcel);
+ }
+ EXPORT_SYMBOL_GPL(gh_rm_mem_reclaim);
+ 
+diff --git a/drivers/virt/gunyah/rsc_mgr.h b/drivers/virt/gunyah/rsc_mgr.h
+index 4712405a3486..3a7f171a7416 100644
+--- a/drivers/virt/gunyah/rsc_mgr.h
++++ b/drivers/virt/gunyah/rsc_mgr.h
+@@ -34,6 +34,9 @@ struct platform_device;
+ struct gh_rm_rpc *gh_rm_rpc_init(struct platform_device *pdev);
+ void gh_rm_rpc_remove(struct gh_rm_rpc *rm);
+ 
++int gh_rm_platform_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
++int gh_rm_platform_post_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
++
+ /* Message IDs: Memory Management */
+ #define GH_RM_RPC_MEM_LEND			0x51000012
+ #define GH_RM_RPC_MEM_SHARE			0x51000013
+diff --git a/include/linux/gunyah_rsc_mgr.h b/include/linux/gunyah_rsc_mgr.h
+index c0f5c04c64dc..7cdb736f7054 100644
+--- a/include/linux/gunyah_rsc_mgr.h
++++ b/include/linux/gunyah_rsc_mgr.h
+@@ -120,4 +120,18 @@ int gh_rm_get_vmid(struct gh_rm_rpc *rm, u16 *vmid);
+ #define GH_RM_BOOT_CONTEXT_REG_SET_SP_ELx	2
+ int gh_rm_set_boot_context(struct gh_rm_rpc *rm, u16 vmid, u8 reg_set, u8 reg_idx, u64 value);
+ 
++struct gunyah_rm_platform_ops {
++	int (*pre_mem_share)(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
++	int (*post_mem_reclaim)(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
++};
++
++#if IS_ENABLED(CONFIG_GUNYAH)
++int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops);
++void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops);
++#else
++static inline int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
++	{ return 0; }
++static inline void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops) { }
++#endif
++
+ #endif
 -- 
 2.25.1
 
