@@ -2,289 +2,330 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B73B8C433FE
-	for <linux-acpi@archiver.kernel.org>; Mon, 21 Nov 2022 22:18:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 176D3C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 03:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231861AbiKUWSB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 21 Nov 2022 17:18:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59546 "EHLO
+        id S231956AbiKVDan (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 21 Nov 2022 22:30:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231749AbiKUWRr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 17:17:47 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C502DA184;
-        Mon, 21 Nov 2022 14:17:45 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B425614C1;
-        Mon, 21 Nov 2022 22:17:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66CF2C433D6;
-        Mon, 21 Nov 2022 22:17:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1669069064;
-        bh=YcA4HOQd/YW4DRhi+HZuV7MPBWmmAJci1dQJmfaijMc=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=dvFsHx+IkXfwwa2EPFunqx3FsaHNGThrwG+j1SJ7O6jecPQ4rTVIQ5BY8MUxt5VeQ
-         oSXDRvpVSP8RWxkZXlD5qiXPdH+bkJE4PjmhjRD6gR33StgcGXHuBo/0xze7RhHLrE
-         ZYJLYQ2AL1b9V8GKeuVRCcEq5Eg7ztOhKcuyOs8HXdECmmkMz9FUJqH7lwYS/yMFeF
-         Q+uhDyBQ4O+ifjPo5SmmeGnUDcmix91c8t252pETUAMT+io9MRcZDQq93XmgQqrVhe
-         qxUmrnmCr/U7htXMzOPZp6w9KMKmu6KqgPFoHMMpbnowXU1Vc37vILrc5mYSsW0Nzx
-         KtucTwTterp/w==
-Date:   Mon, 21 Nov 2022 16:17:42 -0600
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     "Limonciello, Mario" <mario.limonciello@amd.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Mehta Sanju <Sanju.Mehta@amd.com>,
-        Lukas Wunner <lukas@wunner.de>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] PCI/ACPI: PCI/ACPI: Validate devices with power
- resources support D3
-Message-ID: <20221121221742.GA137841@bhelgaas>
+        with ESMTP id S229639AbiKVDah (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2022 22:30:37 -0500
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DB8325EBF;
+        Mon, 21 Nov 2022 19:30:34 -0800 (PST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NGVBN2nTpzRpNh;
+        Tue, 22 Nov 2022 11:30:04 +0800 (CST)
+Received: from kwepemm600004.china.huawei.com (7.193.23.242) by
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Tue, 22 Nov 2022 11:30:32 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Tue, 22 Nov 2022 11:30:31 +0800
+From:   Huisong Li <lihuisong@huawei.com>
+To:     <robbiek@xsightlabs.com>, <sudeep.holla@arm.com>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <rafael@kernel.org>, <rafael.j.wysocki@intel.com>,
+        <wanghuiqiang@huawei.com>, <zhangzekun11@huawei.com>,
+        <wangxiongfeng2@huawei.com>, <tanxiaofei@huawei.com>,
+        <guohanjun@huawei.com>, <xiexiuqi@huawei.com>,
+        <wangkefeng.wang@huawei.com>, <huangdaode@huawei.com>,
+        <lihuisong@huawei.com>
+Subject: [RFC V2] ACPI: PCC: Support shared interrupt for multiple subspaces
+Date:   Tue, 22 Nov 2022 11:30:51 +0800
+Message-ID: <20221122033051.15507-1-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20221016034043.52227-1-lihuisong@huawei.com>
+References: <20221016034043.52227-1-lihuisong@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4448186.LvFx2qVVIh@kreacher>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ kwepemm600004.china.huawei.com (7.193.23.242)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Nov 21, 2022 at 03:33:00PM +0100, Rafael J. Wysocki wrote:
-> On Friday, November 18, 2022 10:13:39 PM CET Rafael J. Wysocki wrote:
-> > On Fri, Nov 18, 2022 at 9:23 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > >
-> > > Hi Rafael,
-> > >
-> > > Sorry, I'm still confused (my perpetual state :)).
-> > 
-> > No worries, doing my best to address that.
-> > 
-> > > On Fri, Nov 18, 2022 at 02:16:17PM +0100, Rafael J. Wysocki wrote:
-> > > > On Thu, Nov 17, 2022 at 11:16 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > > > > On Thu, Nov 17, 2022 at 06:01:26PM +0100, Rafael J. Wysocki wrote:
-> > > > > > On Thu, Nov 17, 2022 at 12:28 AM Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > > > > > > On Wed, Nov 16, 2022 at 01:00:36PM +0100, Rafael J. Wysocki wrote:
-> > > > > > > > On Wed, Nov 16, 2022 at 1:37 AM Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > > > > > > > > On Mon, Nov 14, 2022 at 04:33:52PM +0100, Rafael J. Wysocki wrote:
-> > > > > > > > > > On Fri, Nov 11, 2022 at 10:42 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > > > > > > > > > >
-> > > > > > > > > > > On Fri, Nov 11, 2022 at 12:58:28PM -0600, Limonciello, Mario wrote:
-> > > > > > > > > > > > On 11/11/2022 11:41, Bjorn Helgaas wrote:
-> > > > > > > > > > > > > On Mon, Oct 31, 2022 at 05:33:55PM -0500, Mario Limonciello wrote:
-> > > > > > > > > > > > > > Firmware typically advertises that ACPI devices that represent PCIe
-> > > > > > > > > > > > > > devices can support D3 by a combination of the value returned by
-> > > > > > > > > > > > > > _S0W as well as the HotPlugSupportInD3 _DSD [1].
-> > > > > > > > > > > > > >
-> > > > > > > > > > > > > > `acpi_pci_bridge_d3` looks for this combination but also contains
-> > > > > > > > > > > > > > an assumption that if an ACPI device contains power resources the PCIe
-> > > > > > > > > > > > > > device it's associated with can support D3.  This was introduced
-> > > > > > > > > > > > > > from commit c6e331312ebf ("PCI/ACPI: Whitelist hotplug ports for
-> > > > > > > > > > > > > > D3 if power managed by ACPI").
-> > > > > > > > > > > > > >
-> > > > > > > > > > > > > > Some firmware configurations for "AMD Pink Sardine" do not support
-> > > > > > > > > > > > > > wake from D3 in _S0W for the ACPI device representing the PCIe root
-> > > > > > > > > > > > > > port used for tunneling. The PCIe device will still be opted into
-> > > > > > > > > > > > > > runtime PM in the kernel [2] because of the logic within
-> > > > > > > > > > > > > > `acpi_pci_bridge_d3`. This currently happens because the ACPI
-> > > > > > > > > > > > > > device contains power resources.
-> > > > > > > > > > >
-> > > > > > > > > > > Wait.  Is this as simple as just recognizing that:
-> > > > > > > > > > >
-> > > > > > > > > > >   _PS0 means the OS has a knob to put the device in D0, but it doesn't
-> > > > > > > > > > >   mean the device can wake itself from a low-power state.  The OS has
-> > > > > > > > > > >   to use _S0W to learn the device's ability to wake itself.
-> > > > > > > > > >
-> > > > > > > > > > It is.
-> > > > > > > > >
-> > > > > > > > > Now I'm confused again about what "HotPlugSupportInD3" means.  The MS
-> > > > > > > > > web page [1] says it identifies Root Ports capable of handling hot
-> > > > > > > > > plug events while in D3.  That sounds kind of related to _S0W: If _S0W
-> > > > > > > > > says "I can wake myself from D3hot and D3cold", how is that different
-> > > > > > > > > from "I can handle hotplug events in D3"?
-> > > > > > > >
-> > > > > > > > For native PME/hot-plug signaling there is no difference.  This is the
-> > > > > > > > same interrupt by the spec after all IIRC.
-> > > > > > > >
-> > > > > > > > For GPE-based signaling, though, there is a difference, because GPEs
-> > > > > > > > can only be used directly for wake signaling (this is related to
-> > > > > > > > _PRW).  In particular, the only provision in the ACPI spec for device
-> > > > > > > > hot-add are the Bus Check and Device Check notification values (0 and
-> > > > > > > > 1) which require AML to run and evaluate Notify() on specific AML
-> > > > > > > > objects.
-> > > > > > > >
-> > > > > > > > Hence, there is no spec-defined way to tell the OS that "something can
-> > > > > > > > be hot-added under this device while in D3 and you will get notified
-> > > > > > > > about that".
-> > > > > > >
-> > > > > > > So I guess acpi_pci_bridge_d3() looks for:
-> > > > > > >
-> > > > > > >   - "wake signaling while in D3" (_S0W) and
-> > > > > > >   - "notification of hotplug while in D3" ("HotPlugSupportInD3")
-> > > > > > >
-> > > > > > > For Root Ports with both those abilities (or bridges below such Root
-> > > > > > > Ports), we allow D3, and this patch doesn't change that.
-> > > > > > >
-> > > > > > > What this patch *does* change is that all bridges with _PS0 or _PR0
-> > > > > > > previously could use D3, but now will only be able to use D3 if they
-> > > > > > > are also (or are below) a Root Port that can signal wakeup
-> > > > > > > (wakeup.flags.valid) and can wakeup from D3hot or D3cold (_S0W).
-> > > > > > >
-> > > > > > > And this fixes the Pink Sardine because it has Root Ports that do
-> > > > > > > Thunderbolt tunneling, and they have _PS0 or _PR0 but their _S0W says
-> > > > > > > they cannot wake from D3.  Previously we put those in D3, but they
-> > > > > > > couldn't wake up.  Now we won't put them in D3.
-> > > > > > >
-> > > > > > > I guess there's a possibility that this could break or cause higher
-> > > > > > > power consumption on systems that were fixed by c6e331312ebf
-> > > > > > > ("PCI/ACPI: Whitelist hotplug ports for D3 if power managed by ACPI").
-> > > > > > > I don't know enough about that scenario.  Maybe Lukas will chime in.
-> > > > > >
-> > > > > > Well, it is possible that some of these systems will be affected.
-> > > > > >
-> > > > > > One of such cases is when the port in question has _S0W which says
-> > > > > > that wakeup from D3 is not supported.  In that case I think the kernel
-> > > > > > should honor the _S0W input, because there may be a good reason known
-> > > > > > to the platform integrator for it.
-> > > > > >
-> > > > > > The other case is when wakeup.flags.valid is unset for the port's ACPI
-> > > > > > companion which means that the port cannot signal wakeup through
-> > > > > > ACPI-related means at all and this may be problematic, especially in
-> > > > > > the system-wide suspend case in which the wakeup capability is not too
-> > > > > > relevant unless there is a system wakeup device under the port.
-> > > > > >
-> > > > > > I don't think that the adev->wakeup.flags.valid check has any bearing
-> > > > > > on the _S0W check - if there is _S0W and it says "no wakeup from D3",
-> > > > > > it should still be taken into account - so that check can be moved
-> > > > > > past the _S0W check.
-> > > > >
-> > > > > So if _S0W says it can wake from D3, but wakeup.flags is not valid,
-> > > > > it's still OK to use D3?
-> > > >
-> > > > No, it isn't, as per the code today and I don't think that this
-> > > > particular part should be changed now.
-> > >
-> > > But the current upstream code checks acpi_pci_power_manageable(dev)
-> > > first, so if "dev" has _PR0 or _PS0, we'll use D3 even if _S0W says it
-> > > can wake from D3 and wakeup.flags is not valid.
-> > 
-> > Yes, the current code will return 'true' if _PR0 or _PS0 is present
-> > for dev regardless of anything else.
-> > 
-> > The proposed change is to make that conditional on whether or not _S0W
-> > for the root port says that wakeup from D3 is supported (or it is not
-> > present or unusable).
-> > 
-> > I see that I've missed one point now which is when the root port
-> > doesn't have an ACPI companion, in which case we should go straight
-> > for the "dev is power manageable" check.
-> 
-> Moreover, it is possible that the bridge passed to acpi_pci_bridge_d3() has its
-> own _S0W or a wakeup GPE if it is power-manageable via ACPI.  In those cases
-> it is not necessary to ask the Root Port's _S0W about wakeup from D3, so overall
-> I would go for the patch like the below (not really tested).
-> 
-> This works in the same way as the current code (unless I have missed anything)
-> except for the case when the "target" bridge is power-manageable via ACPI, but
-> it cannot signal wakeup via ACPI and has no _S0W.  In that case it will consult
-> the upstream Root Port's _S0W to check whether or not wakeup from D3 is
-> supported.
-> 
-> [Note that if dev_has_acpi_pm is 'true', it is kind of pointless to look for the
-> "HotPlugSupportInD3" property of the Root Port, because the function is going to
-> return 'true' regardless, but I'm not sure if adding an extra if () for handling
-> this particular case is worth the hassle.]
+If the platform acknowledge interrupt is level triggered, then it can
+be shared by multiple subspaces provided each one has a unique platform
+interrupt ack preserve and ack set masks.
 
-I think this has a lot of potential.  I haven't tried it, but I wonder
-if splitting out the Root Port-specific parts to a separate function
-would be helpful, if only to make it more obvious that there may be
-two different devices involved.
+If it can be shared, then we can request the irq with IRQF_SHARED and
+IRQF_ONESHOT flags. The first one indicating it can be shared and the
+latter one to keep the interrupt disabled until the hardirq handler
+finished.
 
-If there are two devices ("dev" is a bridge below a Root Port), I
-guess support in the Root Port is not necessarily required?  E.g.,
-could "dev" assert a wakeup GPE that's not routed through the Root
-Port?  If Root Port support *is* required, maybe it would read more
-clearly to test that first, before looking at the downstream device.
+Further, since there is no way to detect if the interrupt is for a given
+channel as the interrupt ack preserve and ack set masks are for clearing
+the interrupt and not for reading the status, we need a way to identify
+if the given channel is in use and expecting the interrupt.
 
-> ---
->  drivers/pci/pci-acpi.c |   32 +++++++++++++++++++++++++-------
->  1 file changed, 25 insertions(+), 7 deletions(-)
-> 
-> Index: linux-pm/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-acpi.c
-> +++ linux-pm/drivers/pci/pci-acpi.c
-> @@ -975,6 +975,7 @@ bool acpi_pci_power_manageable(struct pc
->  
->  bool acpi_pci_bridge_d3(struct pci_dev *dev)
->  {
-> +	bool dev_has_acpi_pm = false;
->  	struct pci_dev *rpdev;
->  	struct acpi_device *adev;
->  	acpi_status status;
-> @@ -984,17 +985,34 @@ bool acpi_pci_bridge_d3(struct pci_dev *
->  	if (acpi_pci_disabled || !dev->is_hotplug_bridge)
->  		return false;
->  
-> -	/* Assume D3 support if the bridge is power-manageable by ACPI. */
-> -	if (acpi_pci_power_manageable(dev))
-> -		return true;
-> +	adev = ACPI_COMPANION(&dev->dev);
-> +	if (adev && acpi_device_power_manageable(adev)) {
-> +		/*
-> +		 * Let the bridge go into D3 if it can signal wakeup from these
-> +		 * states (i.e. it has _S0W which says so or it can signal
-> +		 * wakeup via ACPI).
-> +		 */
-> +		status = acpi_evaluate_integer(adev->handle, "_S0W", NULL, &state);
-> +		if (ACPI_SUCCESS(status)) {
-> +			if (state >= ACPI_STATE_D3_HOT)
-> +				return true;
-> +		} else if (adev->wakeup.flags.valid) {
-> +			return true;
-> +		}
-> +		/*
-> +		 * If the bridge is power-manageable by ACPI, let it go into D3
-> +		 * by default.
-> +		 */
-> +		dev_has_acpi_pm = true;
-> +	}
->  
->  	rpdev = pcie_find_root_port(dev);
->  	if (!rpdev)
-> -		return false;
-> +		return dev_has_acpi_pm;
->  
->  	adev = ACPI_COMPANION(&rpdev->dev);
->  	if (!adev)
-> -		return false;
-> +		return dev_has_acpi_pm;
->  
->  	/*
->  	 * If the Root Port cannot signal wakeup signals at all, i.e., it
-> @@ -1002,7 +1020,7 @@ bool acpi_pci_bridge_d3(struct pci_dev *
->  	 * events from low-power states including D3hot and D3cold.
->  	 */
->  	if (!adev->wakeup.flags.valid)
-> -		return false;
-> +		return dev_has_acpi_pm;
->  
->  	/*
->  	 * If the Root Port cannot wake itself from D3hot or D3cold, we
-> @@ -1023,7 +1041,7 @@ bool acpi_pci_bridge_d3(struct pci_dev *
->  	    obj->integer.value == 1)
->  		return true;
->  
-> -	return false;
-> +	return dev_has_acpi_pm;
->  }
->  
->  int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
-> 
-> 
-> 
+The way and differences of identification interrupt of each types for a
+given channel are as follows:
+1) type0, type1 and type5: do not support shared level triggered interrupt.
+2) type2: whether the interrupt belongs to a given channel is detected
+          based on the status field in Generic Communications Channel
+          Shared Memory Region during calling rx_callback in PCC client
+          code.
+3) type3: use the command complete register and chan_in_use flag to control
+4) type4: use the command complete register and need to set the
+          corresponding bit of salve subspace to 1 by default in platform.
+
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Robbie King <robbiek@xsightlabs.com>
+---
+ -v2: don't use platform interrupt ack register to identify if the given
+      channel should respond interrupt.
+
+---
+ drivers/mailbox/pcc.c | 130 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 116 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 3c2bc0ca454c..674e214d64d1 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -80,6 +80,13 @@ struct pcc_chan_reg {
+ 	u64 status_mask;
+ };
+ 
++enum pcc_chan_mesg_dir {
++	PCC_ONLY_AP_TO_SCP,
++	PCC_ONLY_SCP_TO_AP,
++	PCC_BIDIRECTIONAL,
++	PCC_DIR_UNKNOWN,
++};
++
+ /**
+  * struct pcc_chan_info - PCC channel specific information
+  *
+@@ -91,6 +98,10 @@ struct pcc_chan_reg {
+  * @cmd_update: PCC register bundle for the command complete update register
+  * @error: PCC register bundle for the error status register
+  * @plat_irq: platform interrupt
++ * @plat_irq_flags: platform interrupt flags
++ * @chan_in_use: flag indicating whether the channel is in use or not when use
++ *               platform interrupt, and only use it for PCC_ONLY_AP_TO_SCP
++ * @mesg_dir: direction of message transmission supported by the channel
+  */
+ struct pcc_chan_info {
+ 	struct pcc_mbox_chan chan;
+@@ -100,12 +111,17 @@ struct pcc_chan_info {
+ 	struct pcc_chan_reg cmd_update;
+ 	struct pcc_chan_reg error;
+ 	int plat_irq;
++	unsigned int plat_irq_flags;
++	bool chan_in_use;
++	u8 mesg_dir;
+ };
+ 
+ #define to_pcc_chan_info(c) container_of(c, struct pcc_chan_info, chan)
+ static struct pcc_chan_info *chan_info;
+ static int pcc_chan_count;
+ 
++static int pcc_send_data(struct mbox_chan *chan, void *data);
++
+ /*
+  * PCC can be used with perf critical drivers such as CPPC
+  * So it makes sense to locally cache the virtual address and
+@@ -221,6 +237,47 @@ static int pcc_map_interrupt(u32 interrupt, u32 flags)
+ 	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+ }
+ 
++static bool pcc_chan_plat_irq_can_be_shared(struct pcc_chan_info *pchan)
++{
++	return (pchan->plat_irq_flags & ACPI_PCCT_INTERRUPT_MODE) ==
++		ACPI_LEVEL_SENSITIVE;
++}
++
++static bool pcc_chan_need_rsp_irq(struct pcc_chan_info *pchan,
++				  u64 cmd_complete_reg_val)
++{
++	bool need_rsp;
++
++	if (!pchan->cmd_complete.gas)
++		return true;
++
++	cmd_complete_reg_val &= pchan->cmd_complete.status_mask;
++
++	switch (pchan->mesg_dir) {
++	case PCC_ONLY_AP_TO_SCP:
++		/*
++		 * For the communication from AP to SCP, if this channel is in
++		 * use, command complete bit is 1 indicates that the command
++		 * being executed has been completed.
++		 */
++		need_rsp = cmd_complete_reg_val != 0;
++		break;
++	case PCC_ONLY_SCP_TO_AP:
++		/*
++		 * For the communication from SCP to AP， if this channel is in
++		 * use, command complete bit is 0 indicates that the bit has
++		 * been cleared and AP should response the interrupt.
++		 */
++		need_rsp = cmd_complete_reg_val == 0;
++		break;
++	default:
++		need_rsp = true;
++		break;
++	}
++
++	return need_rsp;
++}
++
+ /**
+  * pcc_mbox_irq - PCC mailbox interrupt handler
+  * @irq:	interrupt number
+@@ -232,37 +289,54 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+ {
+ 	struct pcc_chan_info *pchan;
+ 	struct mbox_chan *chan = p;
++	static irqreturn_t rc;
+ 	u64 val;
+ 	int ret;
+ 
+ 	pchan = chan->con_priv;
++	if (pchan->mesg_dir == PCC_ONLY_AP_TO_SCP && !pchan->chan_in_use)
++		return IRQ_NONE;
+ 
+ 	ret = pcc_chan_reg_read(&pchan->cmd_complete, &val);
+ 	if (ret)
+ 		return IRQ_NONE;
++	if (!pcc_chan_need_rsp_irq(pchan, val))
++		return IRQ_NONE;
+ 
+-	if (val) { /* Ensure GAS exists and value is non-zero */
+-		val &= pchan->cmd_complete.status_mask;
+-		if (!val)
+-			return IRQ_NONE;
++	ret = pcc_chan_reg_read(&pchan->error, &val);
++	if (ret) {
++		rc = IRQ_NONE;
++		goto out;
+ 	}
+ 
+-	ret = pcc_chan_reg_read(&pchan->error, &val);
+-	if (ret)
+-		return IRQ_NONE;
+ 	val &= pchan->error.status_mask;
+ 	if (val) {
+ 		val &= ~pchan->error.status_mask;
+ 		pcc_chan_reg_write(&pchan->error, val);
+-		return IRQ_NONE;
++		rc = IRQ_NONE;
++		goto out;
+ 	}
+ 
+-	if (pcc_chan_reg_read_modify_write(&pchan->plat_irq_ack))
+-		return IRQ_NONE;
++	if (pcc_chan_reg_read_modify_write(&pchan->plat_irq_ack)) {
++		rc = IRQ_NONE;
++		goto out;
++	}
+ 
+ 	mbox_chan_received_data(chan, NULL);
++	/*
++	 * For slave subspace, need to set the command complete bit and ring
++	 * doorbell after processing message.
++	 */
++	if (pchan->mesg_dir == PCC_ONLY_SCP_TO_AP)
++		pcc_send_data(chan, NULL);
++
++	rc = IRQ_HANDLED;
+ 
+-	return IRQ_HANDLED;
++out:
++	if (pchan->mesg_dir == PCC_ONLY_AP_TO_SCP)
++		pchan->chan_in_use = false;
++
++	return rc;
+ }
+ 
+ /**
+@@ -309,10 +383,13 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 
+ 	if (pchan->plat_irq > 0) {
++		unsigned long irqflags;
+ 		int rc;
+ 
+-		rc = devm_request_irq(dev, pchan->plat_irq, pcc_mbox_irq, 0,
+-				      MBOX_IRQ_NAME, chan);
++		irqflags = pcc_chan_plat_irq_can_be_shared(pchan) ?
++				IRQF_SHARED | IRQF_ONESHOT : 0;
++		rc = devm_request_irq(dev, pchan->plat_irq, pcc_mbox_irq,
++				      irqflags, MBOX_IRQ_NAME, chan);
+ 		if (unlikely(rc)) {
+ 			dev_err(dev, "failed to register PCC interrupt %d\n",
+ 				pchan->plat_irq);
+@@ -374,7 +451,12 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
+ 	if (ret)
+ 		return ret;
+ 
+-	return pcc_chan_reg_read_modify_write(&pchan->db);
++	ret = pcc_chan_reg_read_modify_write(&pchan->db);
++	if (!ret && pchan->mesg_dir == PCC_ONLY_AP_TO_SCP &&
++	    pchan->plat_irq > 0)
++		pchan->chan_in_use = true;
++
++	return ret;
+ }
+ 
+ static const struct mbox_chan_ops pcc_chan_ops = {
+@@ -457,6 +539,7 @@ static int pcc_parse_subspace_irq(struct pcc_chan_info *pchan,
+ 		       pcct_ss->platform_interrupt);
+ 		return -EINVAL;
+ 	}
++	pchan->plat_irq_flags = pcct_ss->flags;
+ 
+ 	if (pcct_ss->header.type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+ 		struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
+@@ -478,6 +561,12 @@ static int pcc_parse_subspace_irq(struct pcc_chan_info *pchan,
+ 					"PLAT IRQ ACK");
+ 	}
+ 
++	if (pcc_chan_plat_irq_can_be_shared(pchan) &&
++	    !pchan->plat_irq_ack.gas) {
++		pr_err("PCC subspace has level IRQ with no ACK register\n");
++		return -EINVAL;
++	}
++
+ 	return ret;
+ }
+ 
+@@ -613,6 +702,18 @@ static int __init acpi_pcc_probe(void)
+ 	return rc;
+ }
+ 
++static void pcc_set_chan_mesg_dir(struct pcc_chan_info *pchan, u8 type)
++{
++	if (type <= ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)
++		pchan->mesg_dir = PCC_BIDIRECTIONAL;
++	else if (type == ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE)
++		pchan->mesg_dir = PCC_ONLY_AP_TO_SCP;
++	else if (type == ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE)
++		pchan->mesg_dir = PCC_ONLY_AP_TO_SCP;
++	else
++		pchan->mesg_dir = PCC_DIR_UNKNOWN;
++}
++
+ /**
+  * pcc_mbox_probe - Called when we find a match for the
+  *	PCCT platform device. This is purely used to represent
+@@ -680,6 +781,7 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 			rc = -EINVAL;
+ 			goto err;
+ 		}
++		pcc_set_chan_mesg_dir(pchan, pcct_entry->type);
+ 
+ 		if (pcc_mbox_ctrl->txdone_irq) {
+ 			rc = pcc_parse_subspace_irq(pchan, pcct_entry);
+-- 
+2.33.0
+
