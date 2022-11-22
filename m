@@ -2,109 +2,123 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63A1BC4332F
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 12:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F5EEC433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 12:55:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232611AbiKVMCb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Nov 2022 07:02:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49278 "EHLO
+        id S229728AbiKVMzI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Nov 2022 07:55:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231998AbiKVMC3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2022 07:02:29 -0500
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B497B4E;
-        Tue, 22 Nov 2022 04:02:26 -0800 (PST)
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4NGjXy2DrCzmW3s;
-        Tue, 22 Nov 2022 20:01:54 +0800 (CST)
-Received: from dggpemm500007.china.huawei.com (7.185.36.183) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Tue, 22 Nov 2022 20:02:24 +0800
-Received: from huawei.com (10.175.103.91) by dggpemm500007.china.huawei.com
- (7.185.36.183) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Tue, 22 Nov
- 2022 20:02:24 +0800
-From:   Yang Yingliang <yangyingliang@huawei.com>
-To:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     <andriy.shevchenko@linux.intel.com>, <djrscally@gmail.com>,
-        <heikki.krogerus@linux.intel.com>, <sakari.ailus@linux.intel.com>,
-        <gregkh@linuxfoundation.org>, <rafael@kernel.org>
-Subject: [PATCH v2] device property: fix of node refcount leak in fwnode_graph_get_next_endpoint()
-Date:   Tue, 22 Nov 2022 20:00:39 +0800
-Message-ID: <20221122120039.760773-1-yangyingliang@huawei.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S233484AbiKVMyl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2022 07:54:41 -0500
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7788D61525;
+        Tue, 22 Nov 2022 04:54:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1669121680; x=1700657680;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=LXor6RHYDRJcstefbO+GkJ6HY6sh3L0UmFktIRyR5r8=;
+  b=iC2ed3lOU2K48scJ1kigS0NBYxgwPY+l6gMSJEoM9IhNTQ9jiXkM3G2z
+   BSYRhHKk8W+VBa5nW/u7JgX1LdiDXN5vYXvXfqSx3gbM2yH+eu1iugpAc
+   3QQ3aybuXDbptwGUmoaFDeoYGxSGRbPy0H1vVh4ZOYcS/L0ROyzEfRQB9
+   IDPg6WW+gduZVn9uzrI/3LYugojfhyhIo2evip/I5yba2B1l7o/aZDxcu
+   ku/ywH92j23PKwdf5MHwwQkEezy+y68BxxE7EDYPcTYDbIq/dSgBJkBXP
+   rPbuE3r2vt2hGmlUFLPtJHfS/gCPC4mc3wKCZ/9tMTVwM8dZdLzMrup5g
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="313836642"
+X-IronPort-AV: E=Sophos;i="5.96,184,1665471600"; 
+   d="scan'208";a="313836642"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2022 04:54:40 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="970461205"
+X-IronPort-AV: E=Sophos;i="5.96,184,1665471600"; 
+   d="scan'208";a="970461205"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga005.fm.intel.com with ESMTP; 22 Nov 2022 04:54:38 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1oxSnM-00FprD-1f;
+        Tue, 22 Nov 2022 14:54:36 +0200
+Date:   Tue, 22 Nov 2022 14:54:36 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Yang Yingliang <yangyingliang@huawei.com>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        djrscally@gmail.com, heikki.krogerus@linux.intel.com,
+        sakari.ailus@linux.intel.com, gregkh@linuxfoundation.org,
+        rafael@kernel.org
+Subject: Re: [PATCH v2] device property: fix of node refcount leak in
+ fwnode_graph_get_next_endpoint()
+Message-ID: <Y3zGjLsDmVv0ErVR@smile.fi.intel.com>
+References: <20221122120039.760773-1-yangyingliang@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.103.91]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- dggpemm500007.china.huawei.com (7.185.36.183)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221122120039.760773-1-yangyingliang@huawei.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The 'parent' returned by fwnode_graph_get_port_parent()
-with refcount incremented when 'prev' is not null, it
-needs be put when finish using it.
+On Tue, Nov 22, 2022 at 08:00:39PM +0800, Yang Yingliang wrote:
+> The 'parent' returned by fwnode_graph_get_port_parent()
+> with refcount incremented when 'prev' is not null, it
 
-Because the parent is const, introduce a new variable to
-store the returned fwnode, then put it before returning
-from fwnode_graph_get_next_endpoint().
+NULL
 
-Fixes: b5b41ab6b0c1 ("device property: Check fwnode->secondary in fwnode_graph_get_next_endpoint()")
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
----
-v1 -> v2:
-  Introduce a new variable to store the returned fwnode.
----
- drivers/base/property.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+> needs be put when finish using it.
+> 
+> Because the parent is const, introduce a new variable to
+> store the returned fwnode, then put it before returning
+> from fwnode_graph_get_next_endpoint().
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 2a5a37fcd998..7a32582aaca8 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -989,26 +989,32 @@ struct fwnode_handle *
- fwnode_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
- 			       struct fwnode_handle *prev)
- {
-+	struct fwnode_handle *ep, *port_parent = NULL;
- 	const struct fwnode_handle *parent;
--	struct fwnode_handle *ep;
- 
- 	/*
- 	 * If this function is in a loop and the previous iteration returned
- 	 * an endpoint from fwnode->secondary, then we need to use the secondary
- 	 * as parent rather than @fwnode.
- 	 */
--	if (prev)
--		parent = fwnode_graph_get_port_parent(prev);
--	else
-+	if (prev) {
-+		port_parent = fwnode_graph_get_port_parent(prev);
-+		parent = port_parent;
-+	} else {
- 		parent = fwnode;
-+	}
- 	if (IS_ERR_OR_NULL(parent))
- 		return NULL;
- 
- 	ep = fwnode_call_ptr_op(parent, graph_get_next_endpoint, prev);
--	if (ep)
-+	if (ep) {
-+		fwnode_handle_put(port_parent);
- 		return ep;
-+	}
- 
--	return fwnode_graph_get_next_endpoint(parent->secondary, NULL);
-+	ep = fwnode_graph_get_next_endpoint(parent->secondary, NULL);
-+	fwnode_handle_put(port_parent);
-+	return ep;
- }
- EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
- 
+...
+
+>  fwnode_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
+>  			       struct fwnode_handle *prev)
+>  {
+> +	struct fwnode_handle *ep, *port_parent = NULL;
+>  	const struct fwnode_handle *parent;
+> -	struct fwnode_handle *ep;
+>  
+>  	/*
+>  	 * If this function is in a loop and the previous iteration returned
+>  	 * an endpoint from fwnode->secondary, then we need to use the secondary
+>  	 * as parent rather than @fwnode.
+>  	 */
+> -	if (prev)
+> -		parent = fwnode_graph_get_port_parent(prev);
+> -	else
+> +	if (prev) {
+> +		port_parent = fwnode_graph_get_port_parent(prev);
+> +		parent = port_parent;
+> +	} else {
+>  		parent = fwnode;
+> +	}
+>  	if (IS_ERR_OR_NULL(parent))
+>  		return NULL;
+>  
+>  	ep = fwnode_call_ptr_op(parent, graph_get_next_endpoint, prev);
+> -	if (ep)
+> +	if (ep) {
+> +		fwnode_handle_put(port_parent);
+>  		return ep;
+> +	}
+>  
+> -	return fwnode_graph_get_next_endpoint(parent->secondary, NULL);
+> +	ep = fwnode_graph_get_next_endpoint(parent->secondary, NULL);
+> +	fwnode_handle_put(port_parent);
+> +	return ep;
+
+It seems too complicated for the simple fix.
+
+As I said, just drop const qualifier and add fwnode_handle_get() in the 'else'
+branch. This will allow you to drop if (prev) at the end.
+
 -- 
-2.25.1
+With Best Regards,
+Andy Shevchenko
+
 
