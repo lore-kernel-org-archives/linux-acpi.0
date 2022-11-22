@@ -2,85 +2,87 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54822C433FE
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 13:17:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74359C433FE
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 13:35:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233715AbiKVNQ7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Nov 2022 08:16:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46034 "EHLO
+        id S232638AbiKVNfo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Nov 2022 08:35:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233691AbiKVNQ4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2022 08:16:56 -0500
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A21BCE49;
-        Tue, 22 Nov 2022 05:16:55 -0800 (PST)
+        with ESMTP id S231475AbiKVNfn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2022 08:35:43 -0500
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74CD351C1D;
+        Tue, 22 Nov 2022 05:35:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669123016; x=1700659016;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=jt1CUqgeOpQd7tpbxtZzW4+aRWARSRwhtrbZwOcfz0g=;
-  b=KggZqIB1aPpeh8Ce21B0xjnMyKJHZHSjZTT07QpawjrSkj2wHH5KIfPO
-   EOTbJxJFE1jh92PRfw9vgfnOutgvtxm2Px9RN0AtKFA7o2n2EoZZLmErZ
-   PjM9vbbGG73qv7ahIXTYHiOmT1gl5WL7QC2FyOCTNwK0tfN2YI0sW5TI9
-   MTz5uF4G24+cNspAwHfEIcwzB+KkeNIjkXXO4WPp1KT5AWQYHWZDwp2Ql
-   c7qhXqED/8YtPI1bgy6JLyHJUkr1GgR6SRwizYND9qyc7pfsmH1OhPGSK
-   jZggTYa1EnVJ4Dh5+vONTKr4XTEP0Y1TUgDbX+2/vZRa7npi7lFE46G1Z
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="375954199"
+  t=1669124141; x=1700660141;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=E2o75a0dR2r76pyJZbgE/pHYuyelnQX13nzZY5Ng3hk=;
+  b=fwvfdyQUp6NJPUHdjzezC7gOeMznS51dLKg5c1q0X/M2DmGZPvYccSK8
+   xtxGX2nC7nKZjn8RmlNZ9qiOWsbaA8TmKvICNhTUUwjAVEbrbdEKzpJC9
+   Ezgu2K7PHFrBdYD72Ng+ewavoyCAl34GnuicXfV6NexF16/pdO4p4ItOv
+   g8yBGdCNfuUDNASVrdkANCft7mg9TMUCBhQ+uvPGHcT0qFLMTAUq0nX0k
+   5I7QEvtSvXeIs6sORm8oryUJNCfFDzFerv7X7yk8lyaQ92a6wTIYh1QEj
+   IoPKwNNYIAMgLax52k5R5nNaxKqMPh1IyxIB3ZUqP48Z+KhfT1x/xIfMY
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="311442547"
 X-IronPort-AV: E=Sophos;i="5.96,184,1665471600"; 
-   d="scan'208";a="375954199"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2022 05:16:56 -0800
+   d="scan'208";a="311442547"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2022 05:35:41 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="730389472"
+X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="672484470"
 X-IronPort-AV: E=Sophos;i="5.96,184,1665471600"; 
-   d="scan'208";a="730389472"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by FMSMGA003.fm.intel.com with ESMTP; 22 Nov 2022 05:16:52 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1oxT8t-00FqKL-0H;
-        Tue, 22 Nov 2022 15:16:51 +0200
-Date:   Tue, 22 Nov 2022 15:16:50 +0200
+   d="scan'208";a="672484470"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga008.jf.intel.com with ESMTP; 22 Nov 2022 05:35:38 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 8DC4A12B; Tue, 22 Nov 2022 15:36:04 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Yang Yingliang <yangyingliang@huawei.com>
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        djrscally@gmail.com, heikki.krogerus@linux.intel.com,
-        sakari.ailus@linux.intel.com, gregkh@linuxfoundation.org,
-        rafael@kernel.org
-Subject: Re: [PATCH v2] device property: fix of node refcount leak in
- fwnode_graph_get_next_endpoint()
-Message-ID: <Y3zLwj/G/E3kZsJE@smile.fi.intel.com>
-References: <20221122120039.760773-1-yangyingliang@huawei.com>
- <Y3zGjLsDmVv0ErVR@smile.fi.intel.com>
- <75602dce-0780-e51a-c8c9-d1820ddf3e2b@huawei.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Daniel Scally <djrscally@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH v4 4/4] device property: Add a blank line in Kconfig of tests
+Date:   Tue, 22 Nov 2022 15:36:00 +0200
+Message-Id: <20221122133600.49897-4-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221122133600.49897-1-andriy.shevchenko@linux.intel.com>
+References: <20221122133600.49897-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <75602dce-0780-e51a-c8c9-d1820ddf3e2b@huawei.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Nov 22, 2022 at 09:12:41PM +0800, Yang Yingliang wrote:
-> On 2022/11/22 20:54, Andy Shevchenko wrote:
-> > On Tue, Nov 22, 2022 at 08:00:39PM +0800, Yang Yingliang wrote:
+Seems the blank line to separate entries in Kconfig was missing.
+Add it.
 
-...
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+v4: added tag (Heikki)
+v3: new patch
+ drivers/base/test/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-> > It seems too complicated for the simple fix.
-> > 
-> > As I said, just drop const qualifier and add fwnode_handle_get() in the 'else'
-> > branch. This will allow you to drop if (prev) at the end.
-> 
-> fwnode is const, fwnode_handle_get doesn't accept this type.
-
-I'm talking about parent.
-
+diff --git a/drivers/base/test/Kconfig b/drivers/base/test/Kconfig
+index 2f3fa31a948e..610a1ba7a467 100644
+--- a/drivers/base/test/Kconfig
++++ b/drivers/base/test/Kconfig
+@@ -8,6 +8,7 @@ config TEST_ASYNC_DRIVER_PROBE
+ 	  The module name will be test_async_driver_probe.ko
+ 
+ 	  If unsure say N.
++
+ config DRIVER_PE_KUNIT_TEST
+ 	bool "KUnit Tests for property entry API" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT=y
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.35.1
 
