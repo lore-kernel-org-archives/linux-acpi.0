@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7904C43217
-	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 13:35:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9209CC43219
+	for <linux-acpi@archiver.kernel.org>; Tue, 22 Nov 2022 13:35:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233697AbiKVNfq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 22 Nov 2022 08:35:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34838 "EHLO
+        id S233777AbiKVNfr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 22 Nov 2022 08:35:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233422AbiKVNfo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2022 08:35:44 -0500
+        with ESMTP id S232891AbiKVNfn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2022 08:35:43 -0500
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6D4C51C1D;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10DD451C26;
         Tue, 22 Nov 2022 05:35:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1669124143; x=1700660143;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Yd43EAZ8yFG+UVVrj0IDOTJiGeWfCBxtGeYjjE4QLKQ=;
-  b=bsahibRUZSCcBwHECal1SPvf8SRA4rF1yIOWDtOBTHX2bJCk36tN4edZ
-   r8gK7YSeJgEJB6DjCnVCwHD2xQn7zszq4ooNPij+t7WmMtrZn/YxfvdJm
-   kc2aFVoGYKgdByugmJBbBd4h5/U4QWdlaTjQT9UQw/+Lk7LrQittdhq0a
-   ECkFQZbzjZl2jXj9VUBfWHSJ44xbdM117SLRsUHsSl7viL6lF3ZylQO1Z
-   PNaDiMxyxBzC/b4dwK4BhYCValeGvBnCZWFncZ6Neb64RBn4xcSUImTRw
-   9w2Ckth6aTBthpRcCOCbjiAOR2n8FK2D8cRTc8Etg0j17wilaCm+iav3f
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=buFbMo2ULium7j74ddZOqvKKRSi8X7Y7FsUFsVFRKHQ=;
+  b=eXv/2YFrGUTpIdR3r0Aqpa44f8+e1uhNfvyDQGdOzE2Pr/5Sl35YrNvJ
+   SkOuk6BlSQ5B/aHLl1F/HOQdAMStP0N3PyZa0oKjSBhdTZJ5gMzCAPD39
+   0mqejyxzgr5A8x+SlI+NLyfVoDZ1OktonVQVeXXYHu2A8ym2mBT7Uu6OI
+   p58jQ7WEvnpqXYd5FFhCm9M9vNGPy5gZjDrvhKd01XeZM7bqSerfaBYJb
+   g7lkHKAh1LRuqYhVKxf1xKqgYvZcR60U3C3FWQ2DTic5fw/3psbA05N4w
+   6ZHHHUZGTuXlMTpVQU6EV23CCEVwRNOtOqGt8RL3E2SJe7dJ/v6x5X1Yx
    Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="311442551"
+X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="311442548"
 X-IronPort-AV: E=Sophos;i="5.96,184,1665471600"; 
-   d="scan'208";a="311442551"
+   d="scan'208";a="311442548"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Nov 2022 05:35:41 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="672484471"
+X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="672484472"
 X-IronPort-AV: E=Sophos;i="5.96,184,1665471600"; 
-   d="scan'208";a="672484471"
+   d="scan'208";a="672484472"
 Received: from black.fi.intel.com ([10.237.72.28])
   by orsmga008.jf.intel.com with ESMTP; 22 Nov 2022 05:35:38 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 834A5184; Tue, 22 Nov 2022 15:36:04 +0200 (EET)
+        id 6364B128; Tue, 22 Nov 2022 15:36:04 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
@@ -48,48 +48,99 @@ Cc:     Daniel Scally <djrscally@gmail.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v4 3/4] device property: Rename goto label to be more precise
-Date:   Tue, 22 Nov 2022 15:35:59 +0200
-Message-Id: <20221122133600.49897-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 1/4] device property: Get rid of __PROPERTY_ENTRY_ARRAY_EL*SIZE*()
+Date:   Tue, 22 Nov 2022 15:35:57 +0200
+Message-Id: <20221122133600.49897-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221122133600.49897-1-andriy.shevchenko@linux.intel.com>
-References: <20221122133600.49897-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In the fwnode_property_match_string() the goto label out has
-an additional task. Rename the label to be more precise on
-what is going to happen if goto it.
+First of all, _ELEMENT_SIZE() repeats existing sizeof_field() macro.
+Second, usage of _ARRAY_ELSIZE_LEN() adds unnecessary indirection
+to the data layout. It's more understandable when the data structure
+is placed explicitly. That said, get rid of those macros by replacing
+them with the existing helper and explicit data structure layout.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
-v4: new patch
- drivers/base/property.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+v4: added tag (Heikki)
+v3: fixed typo in PROPERTY_ENTRY_REF_ARRAY_LEN() impl (LKP)
+v2: rebased on latest Linux Next, fixed anon union assignment
+ include/linux/property.h | 34 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index f7b5aa8fcf28..ed74083c179d 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -482,12 +482,13 @@ int fwnode_property_match_string(const struct fwnode_handle *fwnode,
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 5d840299146d..0eab13a5c7df 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -12,6 +12,7 @@
  
- 	ret = fwnode_property_read_string_array(fwnode, propname, values, nval);
- 	if (ret < 0)
--		goto out;
-+		goto out_free;
+ #include <linux/bits.h>
+ #include <linux/fwnode.h>
++#include <linux/stddef.h>
+ #include <linux/types.h>
  
- 	ret = match_string(values, nval, string);
- 	if (ret < 0)
- 		ret = -ENODATA;
--out:
-+
-+out_free:
- 	kfree(values);
- 	return ret;
+ struct device;
+@@ -311,24 +312,14 @@ struct property_entry {
+  * crafted to avoid gcc-4.4.4's problems with initialization of anon unions
+  * and structs.
+  */
+-
+-#define __PROPERTY_ENTRY_ELEMENT_SIZE(_elem_)				\
+-	sizeof(((struct property_entry *)NULL)->value._elem_[0])
+-
+-#define __PROPERTY_ENTRY_ARRAY_ELSIZE_LEN(_name_, _elsize_, _Type_,	\
+-					  _val_, _len_)			\
+-(struct property_entry) {						\
+-	.name = _name_,							\
+-	.length = (_len_) * (_elsize_),					\
+-	.type = DEV_PROP_##_Type_,					\
+-	{ .pointer = _val_ },						\
++#define __PROPERTY_ENTRY_ARRAY_LEN(_name_, _elem_, _Type_, _val_, _len_)		\
++(struct property_entry) {								\
++	.name = _name_,									\
++	.length = (_len_) * sizeof_field(struct property_entry, value._elem_[0]),	\
++	.type = DEV_PROP_##_Type_,							\
++	{ .pointer = _val_ },								\
  }
+ 
+-#define __PROPERTY_ENTRY_ARRAY_LEN(_name_, _elem_, _Type_, _val_, _len_)\
+-	__PROPERTY_ENTRY_ARRAY_ELSIZE_LEN(_name_,			\
+-				__PROPERTY_ENTRY_ELEMENT_SIZE(_elem_),	\
+-				_Type_, _val_, _len_)
+-
+ #define PROPERTY_ENTRY_U8_ARRAY_LEN(_name_, _val_, _len_)		\
+ 	__PROPERTY_ENTRY_ARRAY_LEN(_name_, u8_data, U8, _val_, _len_)
+ #define PROPERTY_ENTRY_U16_ARRAY_LEN(_name_, _val_, _len_)		\
+@@ -340,9 +331,12 @@ struct property_entry {
+ #define PROPERTY_ENTRY_STRING_ARRAY_LEN(_name_, _val_, _len_)		\
+ 	__PROPERTY_ENTRY_ARRAY_LEN(_name_, str, STRING, _val_, _len_)
+ #define PROPERTY_ENTRY_REF_ARRAY_LEN(_name_, _val_, _len_)		\
+-	__PROPERTY_ENTRY_ARRAY_ELSIZE_LEN(_name_,			\
+-				sizeof(struct software_node_ref_args),	\
+-				REF, _val_, _len_)
++(struct property_entry) {						\
++	.name = _name_,							\
++	.length = (_len_) * sizeof(struct software_node_ref_args),	\
++	.type = DEV_PROP_REF,						\
++	{ .pointer = _val_ },						\
++}
+ 
+ #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)				\
+ 	PROPERTY_ENTRY_U8_ARRAY_LEN(_name_, _val_, ARRAY_SIZE(_val_))
+@@ -360,7 +354,7 @@ struct property_entry {
+ #define __PROPERTY_ENTRY_ELEMENT(_name_, _elem_, _Type_, _val_)		\
+ (struct property_entry) {						\
+ 	.name = _name_,							\
+-	.length = __PROPERTY_ENTRY_ELEMENT_SIZE(_elem_),		\
++	.length = sizeof_field(struct property_entry, value._elem_[0]),	\
+ 	.is_inline = true,						\
+ 	.type = DEV_PROP_##_Type_,					\
+ 	{ .value = { ._elem_[0] = _val_ } },				\
 -- 
 2.35.1
 
