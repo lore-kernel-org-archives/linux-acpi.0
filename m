@@ -2,139 +2,153 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DA9CC43219
-	for <linux-acpi@archiver.kernel.org>; Thu, 24 Nov 2022 19:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD62AC433FE
+	for <linux-acpi@archiver.kernel.org>; Thu, 24 Nov 2022 20:01:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229533AbiKXT7N (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 24 Nov 2022 14:59:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56754 "EHLO
+        id S229495AbiKXUBJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 24 Nov 2022 15:01:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229729AbiKXT7J (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Nov 2022 14:59:09 -0500
+        with ESMTP id S229472AbiKXUBI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Nov 2022 15:01:08 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEAB92701
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Nov 2022 11:57:55 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CF0364DD
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Nov 2022 12:00:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1669319866;
+        s=mimecast20190719; t=1669320003;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kSYyhzQPfz68JBO1GSnCmXiXgzkI4gleaHz5wVtm2sk=;
-        b=SnvPPxWEiRW+wMmM5q4y32R8wmgXk/dK1e7TkSDtG8z1OxNTsS2BFLNHk8WyClOjbIZGxl
-        k5VpkdqwfR7o23UNU30csGTb9ShQLDtdD/JQABVwR4SoFDH0emFMKaMursUbRJZqCsgcnj
-        gI/m9uU5mrxQkaYIKZmAoZLB4hfQ7IA=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-444-9g6tJMaIPI61jKTEuPtqYQ-1; Thu, 24 Nov 2022 14:57:43 -0500
-X-MC-Unique: 9g6tJMaIPI61jKTEuPtqYQ-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C24D11C05AAC;
-        Thu, 24 Nov 2022 19:57:42 +0000 (UTC)
-Received: from shalem.redhat.com (unknown [10.39.195.152])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 350D24022D5;
-        Thu, 24 Nov 2022 19:57:42 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 2/3] platform/x86: int3472/discrete: Get the polarity from the _DSM entry
-Date:   Thu, 24 Nov 2022 20:57:36 +0100
-Message-Id: <20221124195737.390729-3-hdegoede@redhat.com>
-In-Reply-To: <20221124195737.390729-1-hdegoede@redhat.com>
-References: <20221124195737.390729-1-hdegoede@redhat.com>
+        bh=G8ifTS6PG9dEREX9PR6KkAWzSoCO7YzSSqxtzhe7mPo=;
+        b=g/q9rUWdB3BuaPgd3M6bh6a1OrB/6snI8tJe/eCZORpwzNfIpzQSAS3U+24dQX5aLK8ayn
+        SehCap9SiwVWDjZeCSz0+ksscYqMtWvhS+v2LdG36iT1oW6PZLYMrDh9AUrX8VpuXPeJSN
+        JGPLRJ0X87pxPrQOJ9DxwDC6WgKNYlk=
+Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
+ [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-646-cPP8cuYWMeW5kvLnVDlXUQ-1; Thu, 24 Nov 2022 15:00:02 -0500
+X-MC-Unique: cPP8cuYWMeW5kvLnVDlXUQ-1
+Received: by mail-ed1-f71.google.com with SMTP id e15-20020a056402190f00b00461b0576620so1361892edz.2
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Nov 2022 12:00:01 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=G8ifTS6PG9dEREX9PR6KkAWzSoCO7YzSSqxtzhe7mPo=;
+        b=Md2K/zRrLu7dbQDPKLQ46HBzfb3CrpKyX1ZTpLtxRWFmr+sBTHx2kwpTZNwJs8kNfL
+         iaxoyBuQB4InZG4qAdh/xJFB1xlHqTkt1W7rZAB9G51dJgrsVWTuLtqOLjtGaSXdCQnd
+         dLwL6slJZq/ncVTdkB7sqhsGON0X5WOtOMO/iGALjbQRgFWeeHNvwfSM0hNfKjjtOwkm
+         c7WUpwxZkwplFkdugTKu58FTgv0XDbsip+mwMEzyOiRwo/uhGkjVZeGycL4FFB3NF339
+         993n2WeEQMX8HSwSBxkO+X9nKjX+KxXL7pBqH7eQTXtlEnlp4AoVK8D4jPwNLKc0Lakn
+         J5fA==
+X-Gm-Message-State: ANoB5plCiHvu/HheOK+UpmBdPDofHW2LUdFeXHBmbroRu1NaSGg4iTnu
+        idZ1zfrn32yDMHcV8pPTocVHJNA+l9mLJKX6pn+/w108yLD3FidVyyB9OMhCD+foK2gfv6QR82l
+        spC4JTCTyE0Dl0VkzjwFfZg==
+X-Received: by 2002:a17:906:2e96:b0:7ad:8f76:17c7 with SMTP id o22-20020a1709062e9600b007ad8f7617c7mr18213845eji.315.1669320000647;
+        Thu, 24 Nov 2022 12:00:00 -0800 (PST)
+X-Google-Smtp-Source: AA0mqf76a/mmCkrmvDZGKLFvozcxz02V0B3/EAS4xR/MTqK+LqrUBWq3Lqgu8EwPb3/Oz1AZcj69tg==
+X-Received: by 2002:a17:906:2e96:b0:7ad:8f76:17c7 with SMTP id o22-20020a1709062e9600b007ad8f7617c7mr18213832eji.315.1669320000417;
+        Thu, 24 Nov 2022 12:00:00 -0800 (PST)
+Received: from ?IPV6:2001:1c00:c1e:bf00:d69d:5353:dba5:ee81? (2001-1c00-0c1e-bf00-d69d-5353-dba5-ee81.cable.dynamic.v6.ziggo.nl. [2001:1c00:c1e:bf00:d69d:5353:dba5:ee81])
+        by smtp.gmail.com with ESMTPSA id a4-20020aa7d744000000b004615f7495e0sm888362eds.8.2022.11.24.11.59.59
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 24 Nov 2022 11:59:59 -0800 (PST)
+Message-ID: <a30cba31-e3a9-9ed5-8476-ed88d18d5e4f@redhat.com>
+Date:   Thu, 24 Nov 2022 20:59:59 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+Subject: Re: [PATCH 0/3] platform/x86: int3472/discrete: Make it work with
+ IPU6
+Content-Language: en-US, nl
+To:     "Rafael J . Wysocki" <rafael@kernel.org>
+Cc:     linux-acpi@vger.kernel.org
+References: <20221124195737.390729-1-hdegoede@redhat.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <20221124195737.390729-1-hdegoede@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The out of tree IPU6 driver has moved to also using the in kernel INT3472
-code for doing power-ctrl rather then doing their own thing (good!).
+Hi,
 
-On IPU6 the polarity is encoded in the _DSM entry rather then being
-hardcoded to GPIO_ACTIVE_LOW.
+Sorry this series was sent to the wrong people / list. I will resend it
+to the right people now. Please ignore.
 
-Using the _DSM entry for this on IPU3 leads to regressions, so only
-use the _DSM entry for this on non IPU3 devices.
+Regards,
 
-Note there is a whole bunch of PCI-ids for the IPU6 which is why
-the check is for the IPU3-CIO2, because the CIO2 there has a unique
-PCI-id which can be used for this.
+Hans
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/platform/x86/intel/int3472/discrete.c | 28 +++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
-index bc6c62f3f3bf..9159291be28a 100644
---- a/drivers/platform/x86/intel/int3472/discrete.c
-+++ b/drivers/platform/x86/intel/int3472/discrete.c
-@@ -11,6 +11,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/overflow.h>
-+#include <linux/pci.h>
- #include <linux/platform_device.h>
- #include <linux/uuid.h>
- 
-@@ -36,6 +37,19 @@ static const guid_t cio2_sensor_module_guid =
- 	GUID_INIT(0x822ace8f, 0x2814, 0x4174,
- 		  0xa5, 0x6b, 0x5f, 0x02, 0x9f, 0xe0, 0x79, 0xee);
- 
-+/* IPU3 vs IPU6 needs to be handled differently */
-+#define IPU3_CIO2_PCI_ID				0x9d32
-+
-+static const struct pci_device_id ipu3_cio2_pci_id_table[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, IPU3_CIO2_PCI_ID) },
-+	{ }
-+};
-+
-+static int ipu3_present(void)
-+{
-+	return pci_dev_present(ipu3_cio2_pci_id_table);
-+}
-+
- /*
-  * Here follows platform specific mapping information that we can pass to
-  * the functions mapping resources to the sensors. Where the sensors have
-@@ -242,6 +256,7 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
- 	union acpi_object *obj;
- 	const char *err_msg;
- 	const char *func;
-+	u32 polarity;
- 	int ret;
- 	u8 type;
- 
-@@ -265,13 +280,22 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
- 
- 	type = obj->integer.value & 0xff;
- 
-+	/* IPU3 always uses active-low, IPU6 polarity is encoded in the _DSM entry. */
-+	if (ipu3_present())
-+		polarity = GPIO_ACTIVE_LOW;
-+	else
-+		polarity = ((obj->integer.value >> 24) & 0xff) ? GPIO_ACTIVE_HIGH : GPIO_ACTIVE_LOW;
-+
- 	func = int3472_dsm_type_to_func(type);
- 
-+	dev_dbg(int3472->dev, "%s %s pin %d active-%s\n", func,
-+		agpio->resource_source.string_ptr, agpio->pin_table[0],
-+		(polarity == GPIO_ACTIVE_HIGH) ? "high" : "low");
-+
- 	switch (type) {
- 	case INT3472_GPIO_TYPE_RESET:
- 	case INT3472_GPIO_TYPE_POWERDOWN:
--		ret = skl_int3472_map_gpio_to_sensor(int3472, agpio, func,
--						     GPIO_ACTIVE_LOW);
-+		ret = skl_int3472_map_gpio_to_sensor(int3472, agpio, func, polarity);
- 		if (ret)
- 			err_msg = "Failed to map GPIO pin to sensor\n";
- 
--- 
-2.38.1
+
+On 11/24/22 20:57, Hans de Goede wrote:
+> Hi All,
+> 
+> Here is a small set of patches to make the int3472/discrete code
+> work with the sensor drivers bundled with the (unfortunately out of tree)
+> IPU6 driver.
+> 
+> There are parts of the out of tree IPU6 code, like the sensor drivers,
+> which can be moved to the mainline and I do plan to work on this at some
+> point and then some of this might need to change. But for now the goal is
+> to make the out of tree driver work with standard mainline distro kernels
+> through e.g. dkms. Otherwise users need to run a patched kernel just for
+> a couple of small differences.
+> 
+> This is basically a rewrite of this patch:
+> https://github.com/intel/ipu6-drivers/blob/master/patch/int3472-support-independent-clock-and-LED-gpios-5.17%2B.patch
+> 
+> Wich users who want to use the IPU6 driver so far have had to manually
+> apply to their kernels which is quite inconvenient.
+> 
+> This rewrite makes 2 significant changes:
+> 
+> 1. Don't break things on IPU3 platforms
+> 
+> 2. Instead of extending the int3472_sensor_configs[] quirks table for each
+> model which needs "clken" and "pled" GPIOs, do this based on matching
+> the ACPI HID of the ACPI device describing the sensor.
+> 
+> The need for these GPIOs is a property of the specific sensor driver which
+> binds using this same HID, so by using this we avoid having to extend the
+> int3472_sensor_configs[] quirks table all the time.
+> 
+> This allows roling back the behavior to at least use a clk-framework
+> clk instead of clken GPIO on a per sensor(-driver) basis as we mainline
+> the sensor drivers, assuming that the drivers are switched over to the
+> clk framework as part of their mainlining.
+> 
+> A bigger question is what to do with the privacy-led GPIO on IPU3
+> we so far have turned the LED on/off at the same as te clock,
+> but at least on some IPU6 models this won't work, because they only
+> have a privacy-led GPIO and no clk_en GPIO (there is no sensor
+> clk-control at all on some models).
+> 
+> I think we should maybe move all models, including IPU3 based
+> models over to using a normal GPIO for controlling the privacy-led
+> to make things consistent.
+> 
+> And likewise (eventually) completely drop the "clken" GPIO this
+> patch series introduces (with some sensors) and instead always model
+> this through the clk-framework.
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> Hans de Goede (3):
+>   platform/x86: int3472/discrete: Refactor GPIO to sensor mapping
+>   platform/x86: int3472/discrete: Get the polarity from the _DSM entry
+>   platform/x86: int3472/discrete: Add support for sensor-drivers which
+>     expect clken + pled GPIOs
+> 
+>  drivers/platform/x86/intel/int3472/common.h   |  2 +-
+>  drivers/platform/x86/intel/int3472/discrete.c | 92 ++++++++++++++++---
+>  2 files changed, 78 insertions(+), 16 deletions(-)
+> 
 
