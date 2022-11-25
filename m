@@ -2,111 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7795AC433FE
-	for <linux-acpi@archiver.kernel.org>; Sun, 20 Nov 2022 20:10:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FAAAC4167B
+	for <linux-acpi@archiver.kernel.org>; Fri, 25 Nov 2022 17:42:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229925AbiKTUKO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 20 Nov 2022 15:10:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53056 "EHLO
+        id S229863AbiKYRme (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 25 Nov 2022 12:42:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229926AbiKTUJ5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Nov 2022 15:09:57 -0500
-Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36AEE2F397;
-        Sun, 20 Nov 2022 12:09:04 -0800 (PST)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.nyi.internal (Postfix) with ESMTP id C24665C005B;
-        Sun, 20 Nov 2022 15:09:01 -0500 (EST)
-Received: from imap48 ([10.202.2.98])
-  by compute5.internal (MEProxy); Sun, 20 Nov 2022 15:09:01 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:message-id:mime-version
-        :reply-to:sender:subject:subject:to:x-me-proxy:x-me-proxy
-        :x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1668974941; x=
-        1669061341; bh=A/l1Y0qAN4hTYqzDIPOQtrpLivbhrove9YLZsjDBhXY=; b=N
-        hb9+fYrrigI3KxlY/Xw+wwrh6mktNlLsNpp1wZLwIGqB1B2JtlV83df3Syq/fv6U
-        DY43+W9JA5FipwBbm7e3CflcgGL3ybluWQvqag22ucC0/SUsXGMqkAY79F5fRnQ+
-        nx8IJoboDUWORpH/lwaZyzVniympVlUqGqvVjrRAHaYgnWBfCvHXp9Ibmg8X3FNR
-        vbaOYDzvQtaQbEhjn4W13LXjwmmIJBm6ts1ObFnk8dLBJfXbRe6RH7hrlyCKHlg2
-        uWFLkvKRPcCu7NBe1mB/GdzsMM6n/IlFdex2yu1LIO8kIJKTgnb8jAZTv+YLzWUE
-        8sX0xM70zN86NFJgxisOw==
-X-ME-Sender: <xms:XYl6Y8t4iF2FtDL21rfqdGvf7DIDGTeIduwo60ChBM76xNlMsDVWPg>
-    <xme:XYl6Y5fsuxw5fl106vN6fYr4fGtX4OC7s6f3vcO6RXgkrdGMe-EYryzT5vVFQCw9L
-    D7nVHDhlgxXcvVabJE>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvgedrheeggddutdelucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenuchmihhsshhinhhgucfvqfcufhhivghlugculdeftd
-    dmnecujfgurhepofgfggfkfffhufgtsehttdertderredtnecuhfhrohhmpehthhhomhgr
-    shcuoehthhhomhgrshesphhouhhrrhhivghlrdhorhhgqeenucggtffrrghtthgvrhhnpe
-    fftedtffekieffjeetteelieehgeekvdevleehheejfeevfefgffegfeefveeludenucff
-    ohhmrghinhepkhgvrhhnvghlrdhorhhgpdhfrhgvvgiivghsrdhsohhfthifrghrvgenuc
-    evlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehthhhomhgr
-    shesphhouhhrrhhivghlrdhorhhg
-X-ME-Proxy: <xmx:XYl6Y3y-Jxfhiqpz3Klus1WKdbDQjdOsgCYLRyyTjXzjV1CY2kTDAw>
-    <xmx:XYl6Y_PuQvhH2m-DodW9LscMm2a7gHN45iOSUDHXPD2KpG4NrhorbQ>
-    <xmx:XYl6Y8_TdRXKQyJGF7F9rKTclKlZxFzhgWLrPNHqXr6KiHZ6dlCK_g>
-    <xmx:XYl6Y-Lrc92Hyltj9pAnlkdLFFkPrKiC92B98wbeRVoOvSecLUo6ew>
-Feedback-ID: i1ac9442a:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 3785C31A0063; Sun, 20 Nov 2022 15:09:01 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.7.0-alpha0-1115-g8b801eadce-fm-20221102.001-g8b801ead
-Mime-Version: 1.0
-Message-Id: <364007fe-1575-4609-a183-835ca1015d77@app.fastmail.com>
-Date:   Sun, 20 Nov 2022 21:08:37 +0100
-From:   thomas <thomas@pourriel.org>
-Subject: [Bug] NVME controller down (Seagate FireCuda 530)
-Content-Type: text/plain
-To:     unlisted-recipients:; (no To-header on input)
+        with ESMTP id S229493AbiKYRmc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Nov 2022 12:42:32 -0500
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C50AB69;
+        Fri, 25 Nov 2022 09:42:29 -0800 (PST)
+Received: by mail-qt1-f171.google.com with SMTP id s4so2909522qtx.6;
+        Fri, 25 Nov 2022 09:42:29 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gd7JLS7K2RX5uhImtxN5fxn5NCVFRhRNnrf3mNn1ihY=;
+        b=2yvKlzN+AhaosmP2s0Q5dgwXdTTgtnfxNxpoBVt68B6B1k3tNmXW42aCjZvtfO7baV
+         0DcqqZb6mQxYmvDWbdAEVcwhd9OFyNA6ky/77cab1KyUBgmC1km+xHkauKs60HmzlXR+
+         AQj3XW8zXFdlOhpcGAEkH9KBWNGFeFJXo5BqD9FXHPQyA6ic22JAJPy4r02HD1k8ZxKi
+         TPlkxOCXDvWx5RDKsyIzJtfyM/0ICu0/FcRWd7hIpv1uLzfjj6aIdIbjrp5TFoeBbHNa
+         7IgJz4OCzbyhmLyZxztJ/V59lM1v9FJ8Sl3iDlFa3f9TnOBauG9OjQRB6dKQlhwc80tL
+         d0nw==
+X-Gm-Message-State: ANoB5pnhtQ7m2jWaLGdpVDgQpbmai/boueXZZ7fdyVdkOcOU3Z9UNZVa
+        50nCbUYpQcOcvpzsySOYnTIVM0DBF1/dmXZaFKkNo5mpEMg=
+X-Google-Smtp-Source: AA0mqf4upWQUMGIIarIhe87kp1l3XuEV/NaTdTMUYckAbkiIK6K6lGfd6dgOpdWAoGmdZUeqY4a2Lb6H3O0yVvDK8MU=
+X-Received: by 2002:ac8:60d3:0:b0:3a5:4678:5b24 with SMTP id
+ i19-20020ac860d3000000b003a546785b24mr36364743qtm.411.1669398148180; Fri, 25
+ Nov 2022 09:42:28 -0800 (PST)
+MIME-Version: 1.0
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 25 Nov 2022 18:42:17 +0100
+Message-ID: <CAJZ5v0ifxCo1ZLw8OqUMbnJHQLxP7dKjnxzN1wpogmt+dpm_=Q@mail.gmail.com>
+Subject: [GIT PULL] Power management fixes for v6.1-rc7
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux PM <linux-pm@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hello,
+Hi Linus,
 
-Following a recommendation from https://bugzilla.kernel.org/show_bug.cgi?id=216709 , I'm posting this here, in the hope that it finds a resolution.
+Please pull from the tag
 
-# ISSUE DESCRIPTION
-A few seconds after GNOME is started, the NVME drive that is mounted (but which is not used to boot from) is inacessible. dmesg output is:
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-6.1-rc7
 
-> [  281.692677] nvme nvme0: controller is down; will reset: CSTS=0xffffffff,
-> PCI_STATUS=0x10
-> [  281.778102] nvme 0000:04:00.0: enabling device (0000 -> 0002)
-> [  281.778436] nvme nvme0: Removing after probe failure status: -19
-> [  281.797929] nvme0n1: detected capacity change from 3907029168 to 0
-> [  281.797947] blk_update_request: I/O error, dev nvme0n1, sector 2786568960
-> op 0x1:(WRITE) flags 0x103000 phys_seg 1 prio class 0
-> [  281.797972] Buffer I/O error on dev nvme0n1p3, logical block 308281696,
-> lost async page write
-> [  281.850852] FAT-fs (nvme0n1p4): unable to read boot sector to mark fs as
-> dirty
-> [  343.901432] EXT4-fs warning (device nvme0n1p3):
-> htree_dirblock_to_tree:1067: inode #77070337: lblock 0: comm ls: error -5
-> reading directory block
-> [  343.902354] EXT4-fs error (device nvme0n1p3): __ext4_find_entry:1658:
-> inode #77070337: comm test-nvme-write: reading directory lblock 0
-> [  350.028540] Aborting journal on device nvme0n1p3-8.
-> [  350.028548] Buffer I/O error on dev nvme0n1p3, logical block 223903744,
-> lost sync page write
-> [  350.028554] JBD2: Error -5 detected when updating journal superblock for
-> nvme0n1p3-8.
+with top-most commit 1056d314709d0607a22e589c54b1e47e0da57b9d
+
+ Documentation: add amd-pstate kernel command line options
+
+on top of commit eb7081409f94a9a8608593d0fb63a1aa3d6f95d8
+
+ Linux 6.1-rc6
+
+to receive power management fixes for 6.1-rc7.
+
+These revert a recent change in the schedutil cpufreq governor that
+had not been expected to make any functional difference, but turned
+out to introduce a performance regression, fix an initialization issue
+in the amd-pstate driver and make it actually replace the venerable
+ACPI cpufreq driver on the supported systems by default.
+
+Specifics:
+
+ - Revert a recent schedutil cpufreq governor change that introduced
+   a performance regression on Pixel 6 (Sam Wu).
+
+ - Fix amd-pstate driver initialization after running the kernel via
+   kexec (Wyes Karny).
+
+ - Turn amd-pstate into a built-in driver which allows it to take
+   precedence over acpi-cpufreq by default on supported systems and
+   amend it with a mechanism to disable this behavior (Perry Yuan).
+
+ - Update amd-pstate documentation in accordance with the other changes
+   made to it (Perry Yuan).
+
+Thanks!
 
 
-# WHAT I'VE TRIED (without much luck)
-- I've managed to install ZorinOS several times on the drive, so the drive works long enough to have everything copied and installed.
-- On the first 2 Samsung drives, I've managed to install Windows. I did not try with the latest drive.
-- This is the 3rd drive I'm testing (tried with 2 Samsung 970 EVO plus 2To before, and now with a Seagate FireCuda 530 2To)
-- I've tried with either kernel parameter pcie_aspm=off or nvme_core.default_ps_max_latency_us=0 and finally with both, but I get the same result in all 3 cases.
-- I've also tried with various values for nvme_core.default_ps_max_latency_us (starting with 5500)
-- If I boot from the drive, starting in recovery mode, and resuming normal start, seems to postpone a bit the freeze of the system but only by a few minutes. But it still freezes.
+---------------
 
+Perry Yuan (4):
+      cpufreq: amd-pstate: change amd-pstate driver to be built-in type
+      cpufreq: amd-pstate: add amd-pstate driver parameter for mode selection
+      Documentation: amd-pstate: add driver working mode introduction
+      Documentation: add amd-pstate kernel command line options
 
-# SOFTWARE / HARDWARE
-- Linux Kernel : 5.15.0-53-generic
-- Distribution : Zorin OS 16.2
-- Motherboard : GIGABYTE B550 AORUS Elite V2 
-- NVME Drive : Seagate FireCuda 530 2To (latest firmware)
-- CPU : AMD Ryzen 5700X
+Sam Wu (1):
+      Revert "cpufreq: schedutil: Move max CPU capacity to sugov_policy"
 
-Thomas.
+Wyes Karny (1):
+      cpufreq: amd-pstate: cpufreq: amd-pstate: reset MSR_AMD_PERF_CTL
+register at init
+
+---------------
+
+ Documentation/admin-guide/kernel-parameters.txt | 11 ++++++
+ Documentation/admin-guide/pm/amd-pstate.rst     | 30 +++++++--------
+ drivers/cpufreq/Kconfig.x86                     |  2 +-
+ drivers/cpufreq/amd-pstate.c                    | 49 +++++++++++++++++--------
+ kernel/sched/cpufreq_schedutil.c                | 30 +++++++--------
+ 5 files changed, 74 insertions(+), 48 deletions(-)
