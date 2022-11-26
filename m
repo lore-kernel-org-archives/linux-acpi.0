@@ -2,69 +2,64 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC9C0C4167D
-	for <linux-acpi@archiver.kernel.org>; Fri, 25 Nov 2022 20:48:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBFFAC43217
+	for <linux-acpi@archiver.kernel.org>; Sat, 26 Nov 2022 11:31:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229990AbiKYUsj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 25 Nov 2022 15:48:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40798 "EHLO
+        id S229485AbiKZLbJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 26 Nov 2022 06:31:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229978AbiKYUsi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Nov 2022 15:48:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 623F22E9E4;
-        Fri, 25 Nov 2022 12:48:37 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1DC48B82C1A;
-        Fri, 25 Nov 2022 20:48:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id DF9A3C433D7;
-        Fri, 25 Nov 2022 20:48:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1669409314;
-        bh=nV/0zMx9ZPG2GlgoG5mn8LcuJykPbtK2t6NT7FRDnPo=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=soH+nPv1EtysSqce11d/KhsJHiba7QllfwBH41M7/Plk1WTjIOAzTS5WwQkid6jTf
-         EkIg6ryUmZmRXa5a+f4fniV5JV/WgfEguhO22n3mTCUhNfaoth3dsu0aHL7gHR//gy
-         +YzPM0oRAQWLMApCxsnHMqBuh7TIV7jtsnOAlumfA9dRlr8zx9nsPy5DPMFGzsQKmF
-         IHDQP11bEI8jo84smr6J3dODRAdsrmXalHUhNp9BHc4gPXBqZB0nCwYt2K9ZVy/kk/
-         afsBabTJxdgL2Lx/t/IVsRjZDo/QTneP/potEnQ/QIrbAWrNZF5Aq1BdND2/YzE3a/
-         UXYVsr+im7+KQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C3D5DC395EC;
-        Fri, 25 Nov 2022 20:48:34 +0000 (UTC)
-Subject: Re: [GIT PULL] Power management fixes for v6.1-rc7
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0ifxCo1ZLw8OqUMbnJHQLxP7dKjnxzN1wpogmt+dpm_=Q@mail.gmail.com>
-References: <CAJZ5v0ifxCo1ZLw8OqUMbnJHQLxP7dKjnxzN1wpogmt+dpm_=Q@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0ifxCo1ZLw8OqUMbnJHQLxP7dKjnxzN1wpogmt+dpm_=Q@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-6.1-rc7
-X-PR-Tracked-Commit-Id: 1056d314709d0607a22e589c54b1e47e0da57b9d
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 88817acb8b75fe533fb5dfb6234a4e2104465e53
-Message-Id: <166940931479.23524.4705958189760763521.pr-tracker-bot@kernel.org>
-Date:   Fri, 25 Nov 2022 20:48:34 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        with ESMTP id S229453AbiKZLbI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Nov 2022 06:31:08 -0500
+Received: from smtp.smtpout.orange.fr (smtp-26.smtpout.orange.fr [80.12.242.26])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5AFE20F51
+        for <linux-acpi@vger.kernel.org>; Sat, 26 Nov 2022 03:31:04 -0800 (PST)
+Received: from pop-os.home ([86.243.100.34])
+        by smtp.orange.fr with ESMTPA
+        id ytOfoOUED1LdIytOfoAzaK; Sat, 26 Nov 2022 12:31:03 +0100
+X-ME-Helo: pop-os.home
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Sat, 26 Nov 2022 12:31:03 +0100
+X-ME-IP: 86.243.100.34
+From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
+        Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>
+Cc:     linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH] ACPI: APEI: Remove a useless include
+Date:   Sat, 26 Nov 2022 12:30:55 +0100
+Message-Id: <f619bc0b58a70e1cd1942b3db3716d6f9b261666.1669462247.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 25 Nov 2022 18:42:17 +0100:
+This file does not use rcu, so there is no point in including
+<linux/rculist.h>.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-6.1-rc7
+So just remove it.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/88817acb8b75fe533fb5dfb6234a4e2104465e53
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ drivers/acpi/apei/apei-base.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Thank you!
-
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 02196a312dc5..c7c26872f4ce 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -25,7 +25,6 @@
+ #include <linux/slab.h>
+ #include <linux/io.h>
+ #include <linux/kref.h>
+-#include <linux/rculist.h>
+ #include <linux/interrupt.h>
+ #include <linux/debugfs.h>
+ #include <acpi/apei.h>
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.34.1
+
