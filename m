@@ -2,113 +2,78 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4264C4332F
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Dec 2022 15:43:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FA0AC4332F
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Dec 2022 18:56:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231928AbiLEPnm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Dec 2022 10:43:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50776 "EHLO
+        id S232544AbiLES4u (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Dec 2022 13:56:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232850AbiLEPnf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Dec 2022 10:43:35 -0500
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B55C2A1B9;
-        Mon,  5 Dec 2022 07:43:33 -0800 (PST)
-Received: from canpemm500001.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NQnqk5ZDrzRpmX;
-        Mon,  5 Dec 2022 23:42:42 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- canpemm500001.china.huawei.com (7.192.104.163) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Mon, 5 Dec 2022 23:43:30 +0800
-From:   Xie XiuQi <xiexiuqi@huawei.com>
-To:     <catalin.marinas@arm.com>, <will@kernel.org>,
-        <james.morse@arm.com>, <rafael@kernel.org>, <tony.luck@intel.com>,
-        <robert.moore@intel.com>, <bp@alien8.de>, <devel@acpica.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     <tanxiaofei@huawei.com>, <wangxiongfeng2@huawei.com>,
-        <lvying6@huawei.com>, <naoya.horiguchi@nec.com>,
-        <wangkefeng.wang@huawei.com>
-Subject: [PATCH v3 4/4] arm64: ghes: pass MF_ACTION_REQUIRED to memory_failure when sea
-Date:   Tue, 6 Dec 2022 00:00:43 +0800
-Message-ID: <20221205160043.57465-5-xiexiuqi@huawei.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20221205160043.57465-1-xiexiuqi@huawei.com>
-References: <20221205160043.57465-1-xiexiuqi@huawei.com>
+        with ESMTP id S233496AbiLES4e (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Dec 2022 13:56:34 -0500
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B10182228F;
+        Mon,  5 Dec 2022 10:56:17 -0800 (PST)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
+ id 9598059e2c2966bd; Mon, 5 Dec 2022 19:56:16 +0100
+Received: from kreacher.localnet (unknown [213.134.188.181])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 7DF5A2801DDF;
+        Mon,  5 Dec 2022 19:56:15 +0100 (CET)
+Authentication-Results: v370.home.net.pl; dmarc=none (p=none dis=none) header.from=rjwysocki.net
+Authentication-Results: v370.home.net.pl; spf=fail smtp.mailfrom=rjwysocki.net
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH] ACPI: thermal: Adjust critical.flags.valid check
+Date:   Mon, 05 Dec 2022 19:56:14 +0100
+Message-ID: <5883789.lOV4Wx5bFT@kreacher>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.113.25]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- canpemm500001.china.huawei.com (7.192.104.163)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.188.181
+X-CLIENT-HOSTNAME: 213.134.188.181
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrudeggdduudelucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepffffffekgfehheffleetieevfeefvefhleetjedvvdeijeejledvieehueevueffnecukfhppedvudefrddufeegrddukeekrddukedunecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekkedrudekuddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohephedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtohep
+ shhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-For synchronous external data abort case, pass MF_ACTION_REQUIRED to
-memory_failure, ensure that error recovery is performed before
-return to the user space.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Synchronous external data abort happened in current execution context,
-so as the description for 'action required', MF_ACTION_REQUIRED flag
-is needed.
+It is not necessary to compare critical.flags.valid to 1 in
+acpi_thermal_trips_update() and doing so is also inconsistent with
+other similar checks in that code, so simply check if the flag is
+not 0 instead.
 
-  ``action optional'' if they are not immediately affected by the error
-  ``action required'' if error happened in current execution context
+No expected functional impact.
 
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/apei/ghes.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/acpi/thermal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index ddc4da603215..043a91a7dd17 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -463,7 +463,7 @@ static bool ghes_do_memory_failure(u64 physical_addr, int flags)
- }
- 
- static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
--				       int sev)
-+				       int sev, int notify_type)
- {
- 	int flags = -1;
- 	int sec_sev = ghes_severity(gdata->error_severity);
-@@ -472,6 +472,9 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
- 	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
- 		return false;
- 
-+	if (notify_type == ACPI_HEST_NOTIFY_SEA)
-+		flags |= MF_ACTION_REQUIRED;
-+
- 	/* iff following two events can be handled properly by now */
- 	if (sec_sev == GHES_SEV_CORRECTED &&
- 	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
-@@ -513,7 +516,12 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
- 		 * and don't filter out 'corrected' error here.
- 		 */
- 		if (is_cache && has_pa) {
--			queued = ghes_do_memory_failure(err_info->physical_fault_addr, 0);
-+			int flags = 0;
-+
-+			if (notify_type == ACPI_HEST_NOTIFY_SEA)
-+				flags |= MF_ACTION_REQUIRED;
-+
-+			queued = ghes_do_memory_failure(err_info->physical_fault_addr, flags);
- 			p += err_info->length;
- 			continue;
+Index: linux-pm/drivers/acpi/thermal.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/thermal.c
++++ linux-pm/drivers/acpi/thermal.c
+@@ -291,7 +291,7 @@ static int acpi_thermal_trips_update(str
+ 					  "Found critical threshold [%lu]\n",
+ 					  tz->trips.critical.temperature);
  		}
-@@ -657,7 +665,7 @@ static bool ghes_do_proc(struct ghes *ghes,
- 			ghes_edac_report_mem_error(sev, mem_err);
- 
- 			arch_apei_report_mem_error(sev, mem_err);
--			queued = ghes_handle_memory_failure(gdata, sev);
-+			queued = ghes_handle_memory_failure(gdata, sev, notify_type);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
--- 
-2.20.1
+-		if (tz->trips.critical.flags.valid == 1) {
++		if (tz->trips.critical.flags.valid) {
+ 			if (crt == -1) {
+ 				tz->trips.critical.flags.valid = 0;
+ 			} else if (crt > 0) {
+
+
 
