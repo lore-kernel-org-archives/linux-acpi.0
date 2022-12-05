@@ -2,187 +2,97 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0877BC63705
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Dec 2022 19:08:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B116C4708E
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Dec 2022 19:46:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232300AbiLETI2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Dec 2022 14:08:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56470 "EHLO
+        id S235055AbiLETqY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Dec 2022 14:46:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233178AbiLETIX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Dec 2022 14:08:23 -0500
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59878E0E9;
-        Mon,  5 Dec 2022 11:08:21 -0800 (PST)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
- id 7ac16176b1bff097; Mon, 5 Dec 2022 20:08:19 +0100
-Received: from kreacher.localnet (unknown [213.134.188.181])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 0501A2801EA0;
-        Mon,  5 Dec 2022 20:08:18 +0100 (CET)
-Authentication-Results: v370.home.net.pl; dmarc=none (p=none dis=none) header.from=rjwysocki.net
-Authentication-Results: v370.home.net.pl; spf=fail smtp.mailfrom=rjwysocki.net
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v1 1/5] ACPI: processor: perflib: Adjust white space
-Date:   Mon, 05 Dec 2022 20:03:30 +0100
-Message-ID: <13154277.uLZWGnKmhe@kreacher>
-In-Reply-To: <1836012.tdWV9SEqCh@kreacher>
-References: <1836012.tdWV9SEqCh@kreacher>
+        with ESMTP id S235056AbiLETqF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Dec 2022 14:46:05 -0500
+Received: from mail-oa1-f52.google.com (mail-oa1-f52.google.com [209.85.160.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B62C52DA98;
+        Mon,  5 Dec 2022 11:42:26 -0800 (PST)
+Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-143ffc8c2b2so14723838fac.2;
+        Mon, 05 Dec 2022 11:42:26 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=kwtUnWRhcXi3vHuwS7fJ1x5P4unvbDZKnLOAXO8tzqQ=;
+        b=vytJSjguo358gTWWGPgDDnGu0VuHKmjk21EabO/bSI/k+9ACMIwkFq+9TfNZHG5Lve
+         et/1ZopXwvTJXVk4N4OvIaSu/n2b/58+8Vg3c/Qsm55AOGTowubAnVxUyqKMcuiJV4m7
+         7I6iuMVb7lMs5uVOxBniOEXvNOCtgXrdGch4WfGemMhbyHzb+HyMh4tOoYACjetyfCz2
+         Odq99hQlP50Q7YAi8Jj8vPuf2bcNga7ZjCvMnuDi0dWrbZCr7ciB/nlPrK4/PFSYuhjM
+         G2hk4GIsJxtQWz+XHyKu6yn7L/li9vlFLQKrVaLC1fHjxjC+qq2QSL/2/PT6jeR9q7hR
+         nD2w==
+X-Gm-Message-State: ANoB5plIEUrgXEwk+L+qUKbll5bg9Om9dhzPaQMNw1jZuJyaKNy3pSJu
+        O9yJYMY1ChcuuekUP+JDBA==
+X-Google-Smtp-Source: AA0mqf7mIsgmwqlw8/wmvAHtTjOWt43bx7CJhpx5R1PKP7Ypb/aP8Ye3Bws7U3SFMAb8D4rKuV/myA==
+X-Received: by 2002:a05:6870:6c1b:b0:144:307b:c88a with SMTP id na27-20020a0568706c1b00b00144307bc88amr10087441oab.267.1670269345827;
+        Mon, 05 Dec 2022 11:42:25 -0800 (PST)
+Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
+        by smtp.gmail.com with ESMTPSA id o12-20020a4abe8c000000b0049f3f5afcbasm906400oop.13.2022.12.05.11.42.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 05 Dec 2022 11:42:25 -0800 (PST)
+Received: (nullmailer pid 2470894 invoked by uid 1000);
+        Mon, 05 Dec 2022 19:42:24 -0000
+Date:   Mon, 5 Dec 2022 13:42:24 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Elliot Berman <quic_eberman@quicinc.com>
+Cc:     Will Deacon <will@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        linux-acpi@vger.kernel.org,
+        Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Murali Nalajala <quic_mnalajal@quicinc.com>,
+        devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+        Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
+        linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Trilok Soni <quic_tsoni@quicinc.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Carl van Schaik <quic_cvanscha@quicinc.com>
+Subject: Re: [PATCH v7 02/20] dt-bindings: Add binding for gunyah hypervisor
+Message-ID: <167026934327.2470835.18397895386816332012.robh@kernel.org>
+References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
+ <20221121140009.2353512-3-quic_eberman@quicinc.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 213.134.188.181
-X-CLIENT-HOSTNAME: 213.134.188.181
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrudeggdduvdduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppedvudefrddufeegrddukeekrddukedunecuvehluhhsthgvrhfuihiivgepudenucfrrghrrghmpehinhgvthepvddufedrudefgedrudekkedrudekuddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohephedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthht
- ohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221121140009.2353512-3-quic_eberman@quicinc.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Some inconsistent usage of white space in the ACPI processor performance
-library code causes that code to be somewhat harder to read that it
-would have been otherwise, so adjust the white space in there to
-address that.
+On Mon, 21 Nov 2022 05:59:51 -0800, Elliot Berman wrote:
+> When Linux is booted as a guest under the Gunyah hypervisor, the Gunyah
+> Resource Manager applies a devicetree overlay describing the virtual
+> platform configuration of the guest VM, such as the message queue
+> capability IDs for communicating with the Resource Manager. This
+> information is not otherwise discoverable by a VM: the Gunyah hypervisor
+> core does not provide a direct interface to discover capability IDs nor
+> a way to communicate with RM without having already known the
+> corresponding message queue capability ID. Add the DT bindings that
+> Gunyah adheres for the hypervisor node and message queues.
+> 
+> Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
+> ---
+>  .../bindings/firmware/gunyah-hypervisor.yaml  | 82 +++++++++++++++++++
+>  MAINTAINERS                                   |  1 +
+>  2 files changed, 83 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/firmware/gunyah-hypervisor.yaml
+> 
 
-No expected functional impact.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/processor_perflib.c |   35 +++++++++++++++--------------------
- 1 file changed, 15 insertions(+), 20 deletions(-)
-
-Index: linux-pm/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_perflib.c
-+++ linux-pm/drivers/acpi/processor_perflib.c
-@@ -142,6 +142,7 @@ int acpi_processor_get_bios_limit(int cp
- 	pr = per_cpu(processors, cpu);
- 	if (!pr || !pr->performance || !pr->performance->state_count)
- 		return -ENODEV;
-+
- 	*limit = pr->performance->states[pr->performance_platform_limit].
- 		core_frequency * 1000;
- 	return 0;
-@@ -201,8 +202,7 @@ static int acpi_processor_get_performanc
- 	}
- 
- 	pct = (union acpi_object *)buffer.pointer;
--	if (!pct || (pct->type != ACPI_TYPE_PACKAGE)
--	    || (pct->package.count != 2)) {
-+	if (!pct || (pct->type != ACPI_TYPE_PACKAGE) || (pct->package.count != 2)) {
- 		pr_err("Invalid _PCT data\n");
- 		result = -EFAULT;
- 		goto end;
-@@ -214,9 +214,9 @@ static int acpi_processor_get_performanc
- 
- 	obj = pct->package.elements[0];
- 
--	if ((obj.type != ACPI_TYPE_BUFFER)
--	    || (obj.buffer.length < sizeof(struct acpi_pct_register))
--	    || (obj.buffer.pointer == NULL)) {
-+	if ((obj.type != ACPI_TYPE_BUFFER) ||
-+	    (obj.buffer.length < sizeof(struct acpi_pct_register)) ||
-+	    (obj.buffer.pointer == NULL)) {
- 		pr_err("Invalid _PCT data (control_register)\n");
- 		result = -EFAULT;
- 		goto end;
-@@ -230,9 +230,9 @@ static int acpi_processor_get_performanc
- 
- 	obj = pct->package.elements[1];
- 
--	if ((obj.type != ACPI_TYPE_BUFFER)
--	    || (obj.buffer.length < sizeof(struct acpi_pct_register))
--	    || (obj.buffer.pointer == NULL)) {
-+	if ((obj.type != ACPI_TYPE_BUFFER) ||
-+	    (obj.buffer.length < sizeof(struct acpi_pct_register)) ||
-+	    (obj.buffer.pointer == NULL)) {
- 		pr_err("Invalid _PCT data (status_register)\n");
- 		result = -EFAULT;
- 		goto end;
-@@ -260,8 +260,8 @@ static void amd_fixup_frequency(struct a
- 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
- 		return;
- 
--	if ((boot_cpu_data.x86 == 0x10 && boot_cpu_data.x86_model < 10)
--	    || boot_cpu_data.x86 == 0x11) {
-+	if ((boot_cpu_data.x86 == 0x10 && boot_cpu_data.x86_model < 10) ||
-+	    boot_cpu_data.x86 == 0x11) {
- 		rdmsr(MSR_AMD_PSTATE_DEF_BASE + index, lo, hi);
- 		/*
- 		 * MSR C001_0064+:
-@@ -353,8 +353,7 @@ static int acpi_processor_get_performanc
- 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
- 		 */
- 		if (!px->core_frequency ||
--		    ((u32)(px->core_frequency * 1000) !=
--		     (px->core_frequency * 1000))) {
-+		    ((u32)(px->core_frequency * 1000) != (px->core_frequency * 1000))) {
- 			pr_err(FW_BUG
- 			       "Invalid BIOS _PSS frequency found for processor %d: 0x%llx MHz\n",
- 			       pr->id, px->core_frequency);
-@@ -499,7 +498,6 @@ int acpi_processor_notify_smm(struct mod
- 
- 	return 0;
- }
--
- EXPORT_SYMBOL(acpi_processor_notify_smm);
- 
- int acpi_processor_get_psd(acpi_handle handle, struct acpi_psd_package *pdomain)
-@@ -532,8 +530,7 @@ int acpi_processor_get_psd(acpi_handle h
- 	state.length = sizeof(struct acpi_psd_package);
- 	state.pointer = pdomain;
- 
--	status = acpi_extract_package(&(psd->package.elements[0]),
--		&format, &state);
-+	status = acpi_extract_package(&(psd->package.elements[0]), &format, &state);
- 	if (ACPI_FAILURE(status)) {
- 		pr_err("Invalid _PSD data\n");
- 		result = -EFAULT;
-@@ -716,9 +713,8 @@ err_out:
- }
- EXPORT_SYMBOL(acpi_processor_preregister_performance);
- 
--int
--acpi_processor_register_performance(struct acpi_processor_performance
--				    *performance, unsigned int cpu)
-+int acpi_processor_register_performance(struct acpi_processor_performance
-+					*performance, unsigned int cpu)
- {
- 	struct acpi_processor *pr;
- 
-@@ -751,7 +747,6 @@ acpi_processor_register_performance(stru
- 	mutex_unlock(&performance_mutex);
- 	return 0;
- }
--
- EXPORT_SYMBOL(acpi_processor_register_performance);
- 
- void acpi_processor_unregister_performance(unsigned int cpu)
-@@ -768,11 +763,11 @@ void acpi_processor_unregister_performan
- 
- 	if (pr->performance)
- 		kfree(pr->performance->states);
-+
- 	pr->performance = NULL;
- 
- 	mutex_unlock(&performance_mutex);
- 
- 	return;
- }
--
- EXPORT_SYMBOL(acpi_processor_unregister_performance);
-
-
-
+Reviewed-by: Rob Herring <robh@kernel.org>
