@@ -2,111 +2,109 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26F57C352A1
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Dec 2022 15:34:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8574AC3A5A7
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Dec 2022 17:26:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234805AbiLFPeM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Dec 2022 10:34:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56638 "EHLO
+        id S234448AbiLFR0J (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Dec 2022 12:26:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232458AbiLFPeJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2022 10:34:09 -0500
-Received: from out30-7.freemail.mail.aliyun.com (out30-7.freemail.mail.aliyun.com [115.124.30.7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5521E2AD4;
-        Tue,  6 Dec 2022 07:34:04 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=xueshuai@linux.alibaba.com;NM=0;PH=DS;RN=16;SR=0;TI=SMTPD_---0VWhZY-6_1670340839;
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0VWhZY-6_1670340839)
-          by smtp.aliyun-inc.com;
-          Tue, 06 Dec 2022 23:34:00 +0800
-From:   Shuai Xue <xueshuai@linux.alibaba.com>
-To:     rafael@kernel.org, lenb@kernel.org, james.morse@arm.com,
-        tony.luck@intel.com, bp@alien8.de, dave.hansen@linux.intel.com,
-        jarkko@kernel.org, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        cuibixuan@linux.alibaba.com, baolin.wang@linux.alibaba.com,
-        zhuo.song@linux.alibaba.com, xueshuai@linux.alibaba.com
-Subject: [RFC PATCH 1/2] ACPI: APEI: set memory failure flags as MF_ACTION_REQUIRED on synchronous events
-Date:   Tue,  6 Dec 2022 23:33:53 +0800
-Message-Id: <20221206153354.92394-2-xueshuai@linux.alibaba.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
-References: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
+        with ESMTP id S230450AbiLFR0I (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2022 12:26:08 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93A813AC10;
+        Tue,  6 Dec 2022 09:26:07 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F67B615FC;
+        Tue,  6 Dec 2022 17:26:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BEADC433D6;
+        Tue,  6 Dec 2022 17:26:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1670347566;
+        bh=i4LFHgRC3eGQ/h/gsi4nG4EfbOLbqNKtWfgCfmTwX0c=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=PRHv0B5xJ2GAr1bKgFD8L8KIUI75dpWUvoOl1JkwpcMZpMsZb7mrYf7WUgZQV6f1B
+         vMo94bzvnSOKsXr2LQT8u0cwgAe+00mfYbwEJB68Xvajf8VrALHJdAmlB1CJXkRRxg
+         /dMDgIxn2/IYXp9stpunIJGl3XjA1iUaJjht0UVB3eN6M89zftjSJyjAEV6SFEw4yq
+         SCDJkA3XSCd5yiVePRgsWet6+hxP2Ro4qCebopzCo5+r979Q4aX638QYjCIOddc6zV
+         UoaFSci2x1r+YOg7PssexvqUKZGyK29RTwLHHT+Tsj8H7/1330DjYrM9u/2muuimRg
+         J3SzBtVTwPEZg==
+Date:   Tue, 6 Dec 2022 11:26:04 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>, linuxkernelml@undead.fr,
+        Florent DELAHAYE <kernelorg@undead.fr>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Subject: Re: [PATCH] x86/PCI: Disable E820 reserved region clipping for Clevo
+ NL4XLU laptops
+Message-ID: <20221206172604.GA1356368@bhelgaas>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9faa7393-a985-52f6-4ceb-f853c0210a71@redhat.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There are two major types of uncorrected error (UC) :
+On Sun, Dec 04, 2022 at 10:42:38AM +0100, Hans de Goede wrote:
+> On 12/2/22 22:58, Bjorn Helgaas wrote:
+> > On Wed, Oct 12, 2022 at 10:23:12AM +0200, Hans de Goede wrote:
+> >> On 10/11/22 19:40, Bjorn Helgaas wrote:
+> >>> On Mon, Oct 10, 2022 at 05:02:06PM +0200, Hans de Goede wrote:
+> >>>> Clevo NL4XLU barebones have the same E820 reservation covering
+> >>>> the entire _CRS 32-bit window issue as the Lenovo *IIL* and
+> >>>> Clevo X170KM-G models, relevant dmesg bits (with pci=no_e820):
+> >>>> ...
+> >>>> Add a no_e820 quirk for these models to fix the touchpad not working
+> >>>> (due to Linux being unable to assign a PCI BAR for the i2c-controller).
+> ...
 
-- Action Required: The error is detected and the processor already consumes
-  the memory. OS requires to take action (for example, offline failure
-  page/kill failure thread) to recover this uncorrectable error.
+> As I mentioned in the email-thread about that patch-series (and there
+> now is dmesg E820 output to confirm this) your generic fix will
+> unfortunately only work when people boot in EFI mode. It will still
+> be good to have the generic fix of course.
+> 
+> But maybe we should also add this quirk to make sure these
+> Clevo-s also work properly when booted in BIOS CSM mode ?
 
-- Action Optional: The error is detected out of processor execution
-  context. Some data in the memory are corrupted. But the data have not
-  been consumed. OS is optional to take action to recover this
-  uncorrectable error.
+Yes, if they can boot in CSM mode, we should probably add the quirk.
+But Florent doesn't see a way to boot his Clevo NL41LU2/NL4XLU in CSM
+mode, so I think we can postpone adding the quirk until we find a
+machine where it makes a difference:
 
-For X86 platforms, we can easily distinguish between these two types based
-on the MCA Bank. While for arm64 platform, the memory failure flags for all
-UCs which severity are GHES_SEV_RECOVERABLE are set as 0, a.k.a, Action
-Optional now. Set memory failure flags as MF_ACTION_REQUIRED on synchronous
-events.
+  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1948811/comments/8
 
-Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
----
- drivers/acpi/apei/ghes.c |  2 +-
- include/linux/cper.h     | 22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+), 1 deletion(-)
+I added a note to https://bugzilla.kernel.org/show_bug.cgi?id=216565
+to that effect.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 9952f3a792ba..a420759fce2d 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -475,7 +475,7 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
- 	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
- 		flags = MF_SOFT_OFFLINE;
- 	if (sev == GHES_SEV_RECOVERABLE && sec_sev == GHES_SEV_RECOVERABLE)
--		flags = 0;
-+		flags = (gdata->flags & CPER_SEC_SYNC) ? MF_ACTION_REQUIRED : 0;
- 
- 	if (flags != -1)
- 		return ghes_do_memory_failure(mem_err->physical_addr, flags);
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index eacb7dd7b3af..a3571fa8a73d 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -144,6 +144,28 @@ enum {
-  * corrective action before the data is consumed
-  */
- #define CPER_SEC_LATENT_ERROR			0x0020
-+/*
-+ * If set, the section is to be associated with an error that has been
-+ * propagated due to hardware poisoning. This implies the error is a symptom of
-+ * another error. It is not always possible to ascertain whether this is the
-+ * case for an error, therefore if the flag is not set, it is unknown whether
-+ * the error was propagated. this helps determining FRU when dealing with HW
-+ * failures
-+ */
-+#define CPER_SEC_PROPAGATED                    0x0040
-+/*
-+ * If set this flag indicates the firmware has detected an overflow of
-+ * buffers/queues that are used to accumulate, collect, or report errors (e.g.
-+ * the error status control block exposed to the OS). When this occurs, some
-+ * error records may be lost.
-+ */
-+#define CPER_SEC_OVERFLOW                      0x0080
-+/*
-+ * If set, it indicates that this event record is synchronous(e.g. cpu core
-+ * consumes poison data, then cause instruction/data abort); if not set,
-+ * this event record is asynchronous.
-+ */
-+#define CPER_SEC_SYNC                          0x00100
- 
- /*
-  * Section type definitions, used in section_type field in struct
--- 
-2.20.1.12.g72788fdb
-
+> >>>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=216565
+> >>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>>> ---
+> >>>>  arch/x86/pci/acpi.c | 13 +++++++++++++
+> >>>>  1 file changed, 13 insertions(+)
+> >>>>
+> >>>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> >>>> index 2f82480fd430..45ef65d31a40 100644
+> >>>> --- a/arch/x86/pci/acpi.c
+> >>>> +++ b/arch/x86/pci/acpi.c
+> >>>> @@ -189,6 +189,19 @@ static const struct dmi_system_id pci_crs_quirks[] __initconst = {
+> >>>>  			DMI_MATCH(DMI_BOARD_NAME, "X170KM-G"),
+> >>>>  		},
+> >>>>  	},
+> >>>> +
+> >>>> +	/*
+> >>>> +	 * Clevo NL4XLU barebones have the same E820 reservation covering
+> >>>> +	 * the entire _CRS 32-bit window issue as the Lenovo *IIL* models.
+> >>>> +	 * See https://bugzilla.kernel.org/show_bug.cgi?id=216565
+> >>>> +	 */
+> >>>> +	{
+> >>>> +		.callback = set_no_e820,
+> >>>> +		.ident = "Clevo NL4XLU Barebone",
+> >>>> +		.matches = {
+> >>>> +			DMI_MATCH(DMI_BOARD_NAME, "NL4XLU"),
+> >>>> +		},
+> >>>> +	},
+> >>>>  	{}
+> >>>>  };
