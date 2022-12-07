@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01142C4708D
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Dec 2022 19:32:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FEE1C352A1
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Dec 2022 19:32:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229475AbiLGTcK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Dec 2022 14:32:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50026 "EHLO
+        id S229580AbiLGTcT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Dec 2022 14:32:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229928AbiLGTcI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2022 14:32:08 -0500
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2073.outbound.protection.outlook.com [40.107.243.73])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CCBD28733
-        for <linux-acpi@vger.kernel.org>; Wed,  7 Dec 2022 11:32:07 -0800 (PST)
+        with ESMTP id S229576AbiLGTcL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2022 14:32:11 -0500
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2041.outbound.protection.outlook.com [40.107.236.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4A4B10FD5
+        for <linux-acpi@vger.kernel.org>; Wed,  7 Dec 2022 11:32:10 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=XRSzbosRSEr9WVYtQ+rYiAyf1ypIQThRnm9WiryN6tl44rEJYZ14tp/IQBM48uCb0A2jcsXQ9HWg8RNQe7UbuD6NWrDs92f+/kQUBlPBnlxaGoGNhXAaSljqvV5fjLtTz3aDGV8yzEYvoDUvdr5i2BwBiHB4KQLnAENz3Orif5v939UaHGWnAlAtqYwuRIAWGWrUR7uNjQ9LoUQMB6yz4JPUtFj/yuaqfRk1bepJ3hyZ/O1RoQ+8TsscJbNA4fPpK2Wm8/b4TS6f317nYP/SCL7NqzXkDgQcfVU5+mIqCgLKyASlcCaKG1x6iyMqtNoUqZYmxVosgD0U1uE3SQ920Q==
+ b=UPbG+F7HhHA0dIpRGgXbM5xSp5rNnvBSeU+Tq3fHrHZxtogikwxdSOHwq9KhF/KsyvyqJsOnPlKbJSOesWh7tGBemcbuyuCP096DzfECFlYs72Vjj62CVgsseXAE8joS3X3FRJCtwIG1DYi/j6MNJKIMJMMc6RdrUNr2cxU+G7cn3MfTK7brnB29Yi7zRoBe1ubysOxYl+6mpBujcNNXyfAY9257KcGA/Tpl/nlYhZKxj8zqFBLPjtmnCzB7O5am8+miAlOE8MLA0pE0xT5UIaSRlVfhP/XY/rxevqJdxJeYKyV2GbGpP11DZI5h+IH7pzPURfhHMbr8MCE1/wDg+g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=f6c3pRldaf6r/XYNRIM+pTMlLPrBmAT1utBk0eBOsF0=;
- b=C6xPo0YBv/owOA697yGdI1BKtG9rzc+SRwt1vWLL+RyeYFD0L24txZ40M/KaOrVtyowUn4EPJ8N3K8kh+zGXV31gCF2hipEBQVELS5xDk22j4Cx8fYHv4yKaBrCTnAGwFNcpt5cQlNsaAcVECsR9KV9fnhcRUNUq5SX4DBsoW4FFKTmBpqpJNi95B21bGA/YkvB+T83DWg4gCtlwM91aJmsl7MShZ/AZCAoRY+nfC92/G85pwQBewAtVzO4bjj7JAmcYmoYTHHYRKlIGclRN42zSteAAv9SC3XmsDty1VfThZrJmx2Q916Ikuzax16O+BCcRQbMyrnSYH0n73uL1QQ==
+ bh=6aocV6TuwUZFloBrc3oz2m9I9npUQ51Pe8QlrLnbtLE=;
+ b=cnmsHwCfa8lF1toAQX1nV2YgJnstp/xG/y/J0kO+h3afrVkdMyzzm1f4/iITGDWLNAMXw1iQLszWc6qViAJJnmm2x5uamtvS3tmj9IeqqdS12Wyo1lw2dCihKW8r21aE2G9ov0CGv4Pnlu5vmJc2h0+Gd71UDzUghuonxEOfF/2RLaU4DaqKwN8Rpbrni2XwDZGnNenLwEo++n0NXfEln2rpGNWBiG0knCxz/Rz9R4XnleTQ62lrQUkgIQREptdQNDGG85g4hhepyH5qC38HavVC/zCMK+r5Ez1+ySUUY8t4F4SCS6U35tFu5eQFoPWqJ3DRbV04IqwbEL1N7tFIJw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f6c3pRldaf6r/XYNRIM+pTMlLPrBmAT1utBk0eBOsF0=;
- b=NzQ59hcBRYtSezYLVNQdUSA3P5cis3cFJfuagmNtFWjQkjvJA8Cd8W2sptzm6iRQOcsTPhNeT6TyrrPOV3zj+vqkwAqGI3KgBy+tIEacIK6T3DoyKYbEMzP2YrZTQDXLLSvBSec4S2kkdMLztW/05bJsMomTzmHKL+r8LaJaC2Q=
-Received: from MW4PR03CA0204.namprd03.prod.outlook.com (2603:10b6:303:b8::29)
- by DM6PR12MB4880.namprd12.prod.outlook.com (2603:10b6:5:1bc::10) with
+ bh=6aocV6TuwUZFloBrc3oz2m9I9npUQ51Pe8QlrLnbtLE=;
+ b=xMIcVo17VsK2Dc3IWH6zJBivdM5cNGjjt/nNot9EdrgcBvbc57mcl3DcpDJG/UkXEcr2BvK1lmKoPqFDtYqHKudN9cZ4WBuAxceJe1neT8fTVuEcvRU0/nd5I0KHmD3Ztm1axI3hvWWmsxJYhzqVElvA94riGsl5iutxMEFTdTE=
+Received: from MW4PR03CA0190.namprd03.prod.outlook.com (2603:10b6:303:b8::15)
+ by MW4PR12MB6951.namprd12.prod.outlook.com (2603:10b6:303:207::17) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.14; Wed, 7 Dec
- 2022 19:32:04 +0000
+ 2022 19:32:06 +0000
 Received: from CO1NAM11FT070.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:b8:cafe::94) by MW4PR03CA0204.outlook.office365.com
- (2603:10b6:303:b8::29) with Microsoft SMTP Server (version=TLS1_2,
+ (2603:10b6:303:b8:cafe::5f) by MW4PR03CA0190.outlook.office365.com
+ (2603:10b6:303:b8::15) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.14 via Frontend
- Transport; Wed, 7 Dec 2022 19:32:04 +0000
+ Transport; Wed, 7 Dec 2022 19:32:06 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,21 +48,23 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
  CO1NAM11FT070.mail.protection.outlook.com (10.13.175.20) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5901.16 via Frontend Transport; Wed, 7 Dec 2022 19:32:04 +0000
+ 15.20.5901.16 via Frontend Transport; Wed, 7 Dec 2022 19:32:06 +0000
 Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Wed, 7 Dec
- 2022 13:32:03 -0600
+ 2022 13:32:04 -0600
 From:   Mario Limonciello <mario.limonciello@amd.com>
 To:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
         Alexander Deucher <Alexander.Deucher@amd.com>
 CC:     <amd-gfx@lists.freedesktop.org>, <linux-acpi@vger.kernel.org>,
         "Mario Limonciello" <mario.limonciello@amd.com>
-Subject: [PATCH 0/2] Avoid creating acpi_video0 on desktop APUs
-Date:   Wed, 7 Dec 2022 13:31:32 -0600
-Message-ID: <20221207193134.763-1-mario.limonciello@amd.com>
+Subject: [PATCH 2/2] drm/amd/display: Report to ACPI video if no panels were found
+Date:   Wed, 7 Dec 2022 13:31:34 -0600
+Message-ID: <20221207193134.763-3-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20221207193134.763-1-mario.limonciello@amd.com>
+References: <20221207193134.763-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -71,59 +73,60 @@ X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1NAM11FT070:EE_|DM6PR12MB4880:EE_
-X-MS-Office365-Filtering-Correlation-Id: f5422d82-306d-436b-2df0-08dad889b85e
+X-MS-TrafficTypeDiagnostic: CO1NAM11FT070:EE_|MW4PR12MB6951:EE_
+X-MS-Office365-Filtering-Correlation-Id: 82067bca-e163-465c-ed52-08dad889b9e9
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 0goH/Ur7n/wBZLPoPRFx1UvnWS3wnI7PxWy/X2WSKko7ygFxj0nEMRsxHZblABMmbCWC8zObN52NZvpTWWsSAQNusT7OoE21ahDwqPu/g8tiIAKgx1/qNBt7JFpWbDyNASDKEbc8dhoYGOdKjhesqoL45Mjvrnc6PRG7Z8eF2nufzd3p+yv+cMbOPVldeBnD1CoVNmdofbG4nbEZeCWtyUq9yrFatIVGiJWmLGltAR/ewriW+yt7fCy05MgJDW9AXtblRLBlZsfPkSD6FKubTvyWGLXbHQq7pprxEF0HAz3GgK9Vz1nakDhBaEz9M0InDOSq75j79KvJ9eBqyUkX/XyNQczTl5BJdW4oDf1gbns+4SdqKnw8gUqXW0zFV/vyZ+Ti4KxbKroXmVkVQGgDFcxXZGdXHwsdnXsj1og21D3mUzCvhRtxB8LFkU44+7F8+oNJaybsGjSN5tTs2QuA/SPX+cHSboQDSBT6ezKiMraOxhAVZnT8pby5Sj5ms/cCBueTrJ9+cIhVbd/4iqJ8Gi3jIHx5vX5E8FneQS8b6f+oR6yNFQwlojMRSzW0wmqDYtIehzUHbA8O5MEtAhE+Y86zd+vfz4R5t8ICU85o5UrJXKSps7tWBTxzIteV8syA4HXXN+G7xGN84qyFOY1CQyudpc7HIxO//Z7B6P0C0VL51EDbiw1UxVdoEfHDqDr+bOqw67Hms3q/SDU/i3fmy8/FSqm3KiBGbFVHSWizSCo=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(136003)(346002)(396003)(376002)(451199015)(36840700001)(40470700004)(46966006)(36756003)(54906003)(2906002)(81166007)(86362001)(70586007)(8936002)(356005)(40460700003)(5660300002)(44832011)(4326008)(36860700001)(83380400001)(478600001)(316002)(6636002)(110136005)(2616005)(82740400003)(40480700001)(82310400005)(1076003)(47076005)(8676002)(41300700001)(70206006)(16526019)(336012)(426003)(186003)(7696005)(6666004)(26005)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: ZIzxVNgF3Ojjf8NBx6IgrdeZAbQiZ1caPO4tYCy1IdM31XDvSGaIz5wbLej/vMlhNxV3Ze+kSNWH3ZnQc4vSNIqNyDBVebsTBl9nt7+/S6NjZY5zvgfecIiWz7MMLoVl2IrXN3FPlM4QmWajNb05E+onHb3JkKJg0/PWYmTui2SIhDQrDqVMWtNXUOGUmSTwj3WaDUrBqmU+OeZxOyc20C0L5XDPOHdE8LVKOgWCHN0FqgLwt2ABgc2VzkmtJEmwKgcer3JQ9dmsSDZcLb5ackLOj8bOAFYcVMbnLcnBqdyR4xbeL5trxK3xtlkdNVjZkQsCfoiEWPqIBIM3YH2o04rKoqCWbt3Y+6F1wEpjF5ExDZps8i5vWevjJFi+OYOzLy1VHa3M1A9YzMHqzRNA47k2oSoWLqA25Q5P2wAnSLVxBD62TR8N1YVVdDAcVj/5fYmtHaio1tqmiHmvnkBmKTNqrOjhdBLFkDpXllATOClN4P+mQ9b08mccJiROGqNtk+HL1RCupFEwX3hyAmGcDtj6t6VbD6R7i3vAGTEalQBpDzoOSUHFuQerKzmeo3E5duNz2aui0Rsc7YdLZzg9F/jy8AW5LuoCvzBDXd56+iD35ZVxfV0ogLrkW3aADCheJzXbC2xbwDM7tKkesxEAuY9oQzPpH2v7+vqrgy2NAI58GNCpPefLxxbK5ZoMpjyRnUeq2m2K720eg6XFhtaznk1Sv2hLervd1ksHpPqiZ49l2ZTXB3kFUcmkVu7XSs2+iOdw0XgSjxwyv98cuQHnEA==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(396003)(39860400002)(346002)(136003)(451199015)(36840700001)(46966006)(40470700004)(1076003)(2906002)(16526019)(110136005)(2616005)(81166007)(356005)(8676002)(41300700001)(40480700001)(4326008)(70206006)(186003)(70586007)(26005)(82740400003)(7696005)(82310400005)(36756003)(44832011)(36860700001)(54906003)(8936002)(40460700003)(316002)(5660300002)(6636002)(83380400001)(478600001)(966005)(47076005)(86362001)(336012)(426003)(6666004)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Dec 2022 19:32:04.0239
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Dec 2022 19:32:06.6175
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f5422d82-306d-436b-2df0-08dad889b85e
+X-MS-Exchange-CrossTenant-Network-Message-Id: 82067bca-e163-465c-ed52-08dad889b9e9
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT070.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4880
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6951
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In kernel 6.1 the backlight registration code was overhauled so that
-at most one backlight device got registered. As part of this change
-there was code added to cover the "nomodeset" case to still allow
-making an acpi_video0 device if the BIOS contained backlight control
-methods.
+On desktop APUs amdgpu doesn't create a native backlight device
+as no eDP panels are found.  However if the BIOS has reported
+backlight control methods in the ACPI tables then an acpi_video0
+backlight device will be made 8 seconds after boot.
 
-This fallback logic however is failing on the BIOS from a number of
-motherboard manufacturers supporting Ryzen APUs.  What happens is
-the amdgpu driver finishes registration and as expected doesn't
-create a backlight control device since no eDP panels are connected
-to a desktop.
+This has manifested in a power slider on a number of desktop APUs
+ranging from Ryzen 5000 through Ryzen 7000 on various motherboard
+manufacturers. To avoid this, report to the acpi video detection
+that the system does not have any panel connected in the native
+driver.
 
-Then 8 seconds later the ACPI video detection code creates an
-acpi_video0 device that is non-operational. GNOME then creates a
-backlight slider.
+Link: https://bugzilla.redhat.com/show_bug.cgi?id=1783786
+Reported-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-To avoid this situation from happening add support for video drivers
-to notify the ACPI video detection code that no panel was detected.
-
-To reduce the risk of regressions on multi-GPU systems:
-* only use this logic when the system is reported as a desktop enclosure.
-* in the amdgpu code only report into this for APUs.
-
-Mario Limonciello (2):
-  ACPI: video: Allow GPU drivers to report no panels
-  drm/amd/display: Report to ACPI video if no panels were found
-
- drivers/acpi/acpi_video.c                         | 12 ++++++++++++
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |  4 ++++
- include/acpi/video.h                              |  1 +
- 3 files changed, 17 insertions(+)
-
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index 512c32327eb1..b73f61ac5dd5 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4371,6 +4371,10 @@ static int amdgpu_dm_initialize_drm_device(struct amdgpu_device *adev)
+ 		amdgpu_set_panel_orientation(&aconnector->base);
+ 	}
+ 
++	/* If we didn't find a panel, notify the acpi video detection */
++	if (dm->adev->flags & AMD_IS_APU && dm->num_of_edps == 0)
++		acpi_video_report_nolcd();
++
+ 	/* Software is initialized. Now we can register interrupt handlers. */
+ 	switch (adev->asic_type) {
+ #if defined(CONFIG_DRM_AMD_DC_SI)
 -- 
 2.34.1
 
