@@ -2,118 +2,112 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36562C3A5A7
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Dec 2022 11:33:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB732C63703
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Dec 2022 11:51:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229470AbiLHLdH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Dec 2022 06:33:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60388 "EHLO
+        id S229946AbiLHLvm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 8 Dec 2022 06:51:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbiLHLdG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2022 06:33:06 -0500
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87BA166CA8
-        for <linux-acpi@vger.kernel.org>; Thu,  8 Dec 2022 03:33:05 -0800 (PST)
-Received: by mail-qk1-f176.google.com with SMTP id e1so310533qka.6
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Dec 2022 03:33:05 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=w87TfVGn5PUwe/KKPd/uOeQcjUWN/xjtGNqcaxIYhMM=;
-        b=IbnXV1CNCilvjGWQmwAvl/Ru1+uxYr/i1BNWv92EzkjMzSDLa1N7OIK6l72TUP5Be7
-         Tdc3QT96A6KKMHif5J65/tzp3Ds+QRq9G6Apq7h4URH76xL55uhNKPEqhKauycnCZzbK
-         IIRw546Fh2XdYS4J3T6gBWR73olhYcFhhMEb5AwzlhgwJO5ADKcUBjb9VeFSIYT1eLGo
-         SGXpawZlj1hPwDhtyHBQXScrVj89dm+S8F6CNceFcg6dJM9qPUFyte45KhBh7oAuF+Vg
-         PubiDXtY3dYf/WSulki3rur1sq/wnut+QT+hldMqjpsO4zofoc3ncsZNH3iC/Jyhft71
-         fLyg==
-X-Gm-Message-State: ANoB5pmXnpNE63zN4MLCOLfh90Sb3UM0zHXFzMa5Gb94Sru/qA7MJFgs
-        u7wlGA9ieG5hu3bsg8z/V/57ZmO7dreVyGGnOoE=
-X-Google-Smtp-Source: AA0mqf76Ewz158N05kPTKneS5XKrQagYNX4mcsqZgDDBRvXGV9Q49RFdt3HYFqFsvWInKs66iky0iE3N7ayswexyNKo=
-X-Received: by 2002:a05:620a:22fa:b0:6fb:c38e:e5dd with SMTP id
- p26-20020a05620a22fa00b006fbc38ee5ddmr82252364qki.23.1670499184625; Thu, 08
- Dec 2022 03:33:04 -0800 (PST)
+        with ESMTP id S229760AbiLHLvT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2022 06:51:19 -0500
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41B5784DE5;
+        Thu,  8 Dec 2022 03:50:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1670500202; x=1702036202;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=aU/UU3IhfOGFIf/tX/8uvsZF4JL0yUqrKcro31NQwXo=;
+  b=g/pqbwcPJKxkC29EOKKbsD3RyWVJbxEBrdIzPCF782sJNkLQW7TG9BeX
+   BSu3atTVgDEp9hSE9wB8UjQI8imn6zOT37IrAOoVWMjCwKlmjnwLOqyJr
+   Vnu9DsRC3x3YMW5LT7Qi+xvvuSatzarrZ4IYJ00ApfUyL8VF8mKAyEUsT
+   zTumAld97yAMWZfenjLuHCKZC1zE/DjIV9kqm2sIRcUSB0e6yOXnY0RQU
+   6HOaOlgzrCI/TOggZEcLEzRDS9bsje85X9UrhMcHDAEltbPPNXJxKGxdZ
+   aDrudnbjr9/KHxlsxUQo9AR/eIoaystWk91i7JhZi7q3LaY/x5j7B+CYF
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="297508385"
+X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
+   d="scan'208";a="297508385"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 03:50:02 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="646974577"
+X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
+   d="scan'208";a="646974577"
+Received: from dev2.igk.intel.com ([10.237.148.94])
+  by orsmga002.jf.intel.com with ESMTP; 08 Dec 2022 03:49:59 -0800
+From:   =?UTF-8?q?Amadeusz=20S=C5=82awi=C5=84ski?= 
+        <amadeuszx.slawinski@linux.intel.com>
+To:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Robert Moore <robert.moore@intel.com>
+Cc:     Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Amadeusz=20S=C5=82awi=C5=84ski?= 
+        <amadeuszx.slawinski@linux.intel.com>,
+        Cezary Rojewski <cezary.rojewski@intel.com>
+Subject: [PATCH] ACPICA: Fix operand resolution
+Date:   Thu,  8 Dec 2022 20:50:46 +0100
+Message-Id: <20221208195046.1980312-1-amadeuszx.slawinski@linux.intel.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20221208010910.7621-1-mario.limonciello@amd.com> <20221208010910.7621-2-mario.limonciello@amd.com>
-In-Reply-To: <20221208010910.7621-2-mario.limonciello@amd.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 8 Dec 2022 12:32:53 +0100
-Message-ID: <CAJZ5v0jZd=g_TM5OFiVq-WuaRykdtk-sV1VU6=izsvwGhGPALQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] ACPI: video: Allow GPU drivers to report no panels
-To:     Mario Limonciello <mario.limonciello@amd.com>
-Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Alexander Deucher <Alexander.Deucher@amd.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        amd-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org,
-        Daniel Dadap <ddadap@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Dec 8, 2022 at 2:09 AM Mario Limonciello
-<mario.limonciello@amd.com> wrote:
->
-> The current logic for the ACPI backlight detection will create
-> a backlight device if no native or vendor drivers have created
-> 8 seconds after the system has booted if the ACPI tables
-> included backlight control methods.
->
-> If the GPU drivers have loaded, they may be able to report whether
-> any LCD panels were found.  Allow using this information to factor
-> in whether to enable the fallback logic for making an acpi_video0
-> backlight device.
->
-> Suggested-by: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
-> v1->v2:
->  * Cancel registration for backlight device instead (Hans)
->  * drop desktop check (Dan)
->
->  drivers/acpi/acpi_video.c | 11 +++++++++++
->  include/acpi/video.h      |  1 +
->  2 files changed, 12 insertions(+)
->
-> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> index 32953646caeb..f64fdb029090 100644
-> --- a/drivers/acpi/acpi_video.c
-> +++ b/drivers/acpi/acpi_video.c
-> @@ -2178,6 +2178,17 @@ static bool should_check_lcd_flag(void)
->         return false;
->  }
->
-> +/*
-> + * At least one graphics driver has reported that no LCD is connected
-> + * via the native interface. cancel the registration for fallback acpi_video0.
-> + * If another driver still deems this necessary, it can explicitly register it.
-> + */
-> +void acpi_video_report_nolcd(void)
-> +{
-> +       cancel_delayed_work(&video_bus_register_backlight_work);
-> +}
-> +EXPORT_SYMBOL(acpi_video_report_nolcd);
-> +
->  int acpi_video_register(void)
->  {
->         int ret = 0;
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index a275c35e5249..1fccb111c197 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -53,6 +53,7 @@ enum acpi_backlight_type {
->  };
->
->  #if IS_ENABLED(CONFIG_ACPI_VIDEO)
-> +extern void acpi_video_report_nolcd(void);
+In our tests we get UBSAN warning coming from ACPI parser. This is
+caused by trying to resolve operands when there is none.
 
-It looks like a stub is needed for the other case.  Apparently, things
-fail to compile due to the lack of it.
+[    0.000000] Linux version 5.15.0-rc3chromeavsrel1.0.184+ (root@...) (gcc (Ubuntu 10.3.0-1ubuntu1~20.04) 10.3.0, GNU ld (GNU Binutils for Ubuntu) 2.34) #1 SMP PREEMPT Sat Oct 16 00:08:27 UTC 2021
+...
+[ 14.719508] ================================================================================
+[ 14.719551] UBSAN: array-index-out-of-bounds in /.../linux/drivers/acpi/acpica/dswexec.c:401:12
+[ 14.719594] index -1 is out of range for type 'acpi_operand_object *[9]'
+[ 14.719621] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.15.0-rc3chromeavsrel1.0.184+ #1
+[ 14.719657] Hardware name: Intel Corp. Geminilake/GLK RVP2 LP4SD (07), BIOS GELKRVPA.X64.0214.B50.2009111159 09/11/2020
+[ 14.719694] Call Trace:
+[ 14.719712] dump_stack_lvl+0x38/0x49
+[ 14.719749] dump_stack+0x10/0x12
+[ 14.719775] ubsan_epilogue+0x9/0x45
+[ 14.719801] __ubsan_handle_out_of_bounds.cold+0x44/0x49
+[ 14.719835] acpi_ds_exec_end_op+0x1d7/0x6b5
+[ 14.719870] acpi_ps_parse_loop+0x942/0xb34
+...
 
->  extern int acpi_video_register(void);
->  extern void acpi_video_unregister(void);
->  extern void acpi_video_register_backlight(void);
-> --
-> 2.34.1
->
+Problem happens because WalkState->NumOperands is 0 and it is used when
+trying to access into operands table. Actual code is:
+WalkState->Operands [WalkState->NumOperands -1]
+which causes out of bound access. Improve the check before above access
+to check if ACPI opcode should have any arguments (operands) at all.
+
+Link: https://github.com/acpica/acpica/pull/745
+Signed-off-by: Amadeusz Sławiński <amadeuszx.slawinski@linux.intel.com>
+Reviewed-by: Cezary Rojewski <cezary.rojewski@intel.com>
+---
+ drivers/acpi/acpica/dswexec.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
+index e8ad41387f84..489c9b9d8d15 100644
+--- a/drivers/acpi/acpica/dswexec.c
++++ b/drivers/acpi/acpica/dswexec.c
+@@ -389,9 +389,11 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
+ 
+ 		/*
+ 		 * All opcodes require operand resolution, with the only exceptions
+-		 * being the object_type and size_of operators.
++		 * being the object_type and size_of operators as well as operands that
++		 * take no arguments.
+ 		 */
+-		if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE)) {
++		if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE) &&
++		    (walk_state->op_info->flags & AML_HAS_ARGS)) {
+ 
+ 			/* Resolve all operands */
+ 
+-- 
+2.25.1
+
