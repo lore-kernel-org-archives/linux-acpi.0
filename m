@@ -2,112 +2,113 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB732C63703
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Dec 2022 11:51:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99FA2C4332F
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Dec 2022 11:55:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbiLHLvm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Dec 2022 06:51:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40088 "EHLO
+        id S230026AbiLHLz0 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 8 Dec 2022 06:55:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229760AbiLHLvT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2022 06:51:19 -0500
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41B5784DE5;
-        Thu,  8 Dec 2022 03:50:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670500202; x=1702036202;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=aU/UU3IhfOGFIf/tX/8uvsZF4JL0yUqrKcro31NQwXo=;
-  b=g/pqbwcPJKxkC29EOKKbsD3RyWVJbxEBrdIzPCF782sJNkLQW7TG9BeX
-   BSu3atTVgDEp9hSE9wB8UjQI8imn6zOT37IrAOoVWMjCwKlmjnwLOqyJr
-   Vnu9DsRC3x3YMW5LT7Qi+xvvuSatzarrZ4IYJ00ApfUyL8VF8mKAyEUsT
-   zTumAld97yAMWZfenjLuHCKZC1zE/DjIV9kqm2sIRcUSB0e6yOXnY0RQU
-   6HOaOlgzrCI/TOggZEcLEzRDS9bsje85X9UrhMcHDAEltbPPNXJxKGxdZ
-   aDrudnbjr9/KHxlsxUQo9AR/eIoaystWk91i7JhZi7q3LaY/x5j7B+CYF
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="297508385"
-X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="297508385"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 03:50:02 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="646974577"
-X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="646974577"
-Received: from dev2.igk.intel.com ([10.237.148.94])
-  by orsmga002.jf.intel.com with ESMTP; 08 Dec 2022 03:49:59 -0800
-From:   =?UTF-8?q?Amadeusz=20S=C5=82awi=C5=84ski?= 
-        <amadeuszx.slawinski@linux.intel.com>
-To:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Robert Moore <robert.moore@intel.com>
-Cc:     Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org, linux-kernel@vger.kernel.org,
-        =?UTF-8?q?Amadeusz=20S=C5=82awi=C5=84ski?= 
-        <amadeuszx.slawinski@linux.intel.com>,
-        Cezary Rojewski <cezary.rojewski@intel.com>
-Subject: [PATCH] ACPICA: Fix operand resolution
-Date:   Thu,  8 Dec 2022 20:50:46 +0100
-Message-Id: <20221208195046.1980312-1-amadeuszx.slawinski@linux.intel.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S229962AbiLHLzQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2022 06:55:16 -0500
+Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAC54862EF;
+        Thu,  8 Dec 2022 03:55:14 -0800 (PST)
+Received: by mail-qk1-f175.google.com with SMTP id c23so166165qkl.9;
+        Thu, 08 Dec 2022 03:55:14 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=UOhK73XFUHw28g86cgvDby+sgWSIim/zu34mirshZ70=;
+        b=iZ/uQDK101KzeGLJQVvs+AJovFKO7s0o5sD97Wf9Yn4DOpabcimCVADAgUaAxnv6mc
+         ow56Foqw05CuT3hek6xhDaluX62oQz3SkwM6NZUF8jh32nns4TMQOkDEajQnX7nV8hZb
+         2Qnck7jds2mBD/xqQzXArpOL5U2uDJ4iw/WPXJtFHVxjkI9ZkAkRsmZ2CgbL7kfQp4qI
+         40XsGVB78EXBPTuyVnOQTh6GU6Hj0q3frJu0Hd5yOF69LM2ACVUlqv4LVMt8/gKGw6eC
+         PArm0eUVcvzOhda6323RSxgaC/etQFn0xZZgkBy1VBmmBEICvh1bAbcqVRSct0ejAwHg
+         sXQw==
+X-Gm-Message-State: ANoB5pmDbSiyADooganbSZx9gpq8y+s73y7/IITgMef+tOKq244Dc8jT
+        AMgW/iyetwR21FAI8Cpt1R93mPO57I9eFBjsAhnZz0zN
+X-Google-Smtp-Source: AA0mqf5f88/4HpSHJTj3mgfnKFfZqnvAG7gHcsxQtX7HHGeFInPWoHOyvWZIgkOQC1Q+sJNLBNlw+jBuP6cSP/SCZGQ=
+X-Received: by 2002:a37:ad0c:0:b0:6ee:91b3:2484 with SMTP id
+ f12-20020a37ad0c000000b006ee91b32484mr80173831qkm.648.1670500514005; Thu, 08
+ Dec 2022 03:55:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20221208195046.1980312-1-amadeuszx.slawinski@linux.intel.com>
+In-Reply-To: <20221208195046.1980312-1-amadeuszx.slawinski@linux.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 8 Dec 2022 12:55:03 +0100
+Message-ID: <CAJZ5v0jvEf=7qTqRkdS1v+fDActtZ1mxoyLBL60Vs6FH8b8OFQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPICA: Fix operand resolution
+To:     =?UTF-8?B?QW1hZGV1c3ogU8WCYXdpxYRza2k=?= 
+        <amadeuszx.slawinski@linux.intel.com>
+Cc:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-kernel@vger.kernel.org,
+        Cezary Rojewski <cezary.rojewski@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-In our tests we get UBSAN warning coming from ACPI parser. This is
-caused by trying to resolve operands when there is none.
+On Thu, Dec 8, 2022 at 12:51 PM Amadeusz Sławiński
+<amadeuszx.slawinski@linux.intel.com> wrote:
+>
+> In our tests we get UBSAN warning coming from ACPI parser. This is
+> caused by trying to resolve operands when there is none.
+>
+> [    0.000000] Linux version 5.15.0-rc3chromeavsrel1.0.184+ (root@...) (gcc (Ubuntu 10.3.0-1ubuntu1~20.04) 10.3.0, GNU ld (GNU Binutils for Ubuntu) 2.34) #1 SMP PREEMPT Sat Oct 16 00:08:27 UTC 2021
+> ...
+> [ 14.719508] ================================================================================
+> [ 14.719551] UBSAN: array-index-out-of-bounds in /.../linux/drivers/acpi/acpica/dswexec.c:401:12
+> [ 14.719594] index -1 is out of range for type 'acpi_operand_object *[9]'
+> [ 14.719621] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.15.0-rc3chromeavsrel1.0.184+ #1
+> [ 14.719657] Hardware name: Intel Corp. Geminilake/GLK RVP2 LP4SD (07), BIOS GELKRVPA.X64.0214.B50.2009111159 09/11/2020
+> [ 14.719694] Call Trace:
+> [ 14.719712] dump_stack_lvl+0x38/0x49
+> [ 14.719749] dump_stack+0x10/0x12
+> [ 14.719775] ubsan_epilogue+0x9/0x45
+> [ 14.719801] __ubsan_handle_out_of_bounds.cold+0x44/0x49
+> [ 14.719835] acpi_ds_exec_end_op+0x1d7/0x6b5
+> [ 14.719870] acpi_ps_parse_loop+0x942/0xb34
+> ...
+>
+> Problem happens because WalkState->NumOperands is 0 and it is used when
+> trying to access into operands table. Actual code is:
+> WalkState->Operands [WalkState->NumOperands -1]
+> which causes out of bound access. Improve the check before above access
+> to check if ACPI opcode should have any arguments (operands) at all.
+>
+> Link: https://github.com/acpica/acpica/pull/745
+> Signed-off-by: Amadeusz Sławiński <amadeuszx.slawinski@linux.intel.com>
+> Reviewed-by: Cezary Rojewski <cezary.rojewski@intel.com>
+> ---
+>  drivers/acpi/acpica/dswexec.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
+> index e8ad41387f84..489c9b9d8d15 100644
+> --- a/drivers/acpi/acpica/dswexec.c
+> +++ b/drivers/acpi/acpica/dswexec.c
+> @@ -389,9 +389,11 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
+>
+>                 /*
+>                  * All opcodes require operand resolution, with the only exceptions
+> -                * being the object_type and size_of operators.
+> +                * being the object_type and size_of operators as well as operands that
 
-[    0.000000] Linux version 5.15.0-rc3chromeavsrel1.0.184+ (root@...) (gcc (Ubuntu 10.3.0-1ubuntu1~20.04) 10.3.0, GNU ld (GNU Binutils for Ubuntu) 2.34) #1 SMP PREEMPT Sat Oct 16 00:08:27 UTC 2021
-...
-[ 14.719508] ================================================================================
-[ 14.719551] UBSAN: array-index-out-of-bounds in /.../linux/drivers/acpi/acpica/dswexec.c:401:12
-[ 14.719594] index -1 is out of range for type 'acpi_operand_object *[9]'
-[ 14.719621] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.15.0-rc3chromeavsrel1.0.184+ #1
-[ 14.719657] Hardware name: Intel Corp. Geminilake/GLK RVP2 LP4SD (07), BIOS GELKRVPA.X64.0214.B50.2009111159 09/11/2020
-[ 14.719694] Call Trace:
-[ 14.719712] dump_stack_lvl+0x38/0x49
-[ 14.719749] dump_stack+0x10/0x12
-[ 14.719775] ubsan_epilogue+0x9/0x45
-[ 14.719801] __ubsan_handle_out_of_bounds.cold+0x44/0x49
-[ 14.719835] acpi_ds_exec_end_op+0x1d7/0x6b5
-[ 14.719870] acpi_ps_parse_loop+0x942/0xb34
-...
+Should this be "opcodes that take no arguments" rather?
 
-Problem happens because WalkState->NumOperands is 0 and it is used when
-trying to access into operands table. Actual code is:
-WalkState->Operands [WalkState->NumOperands -1]
-which causes out of bound access. Improve the check before above access
-to check if ACPI opcode should have any arguments (operands) at all.
-
-Link: https://github.com/acpica/acpica/pull/745
-Signed-off-by: Amadeusz Sławiński <amadeuszx.slawinski@linux.intel.com>
-Reviewed-by: Cezary Rojewski <cezary.rojewski@intel.com>
----
- drivers/acpi/acpica/dswexec.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-index e8ad41387f84..489c9b9d8d15 100644
---- a/drivers/acpi/acpica/dswexec.c
-+++ b/drivers/acpi/acpica/dswexec.c
-@@ -389,9 +389,11 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
- 
- 		/*
- 		 * All opcodes require operand resolution, with the only exceptions
--		 * being the object_type and size_of operators.
-+		 * being the object_type and size_of operators as well as operands that
-+		 * take no arguments.
- 		 */
--		if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE)) {
-+		if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE) &&
-+		    (walk_state->op_info->flags & AML_HAS_ARGS)) {
- 
- 			/* Resolve all operands */
- 
--- 
-2.25.1
-
+> +                * take no arguments.
+>                  */
+> -               if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE)) {
+> +               if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE) &&
+> +                   (walk_state->op_info->flags & AML_HAS_ARGS)) {
+>
+>                         /* Resolve all operands */
+>
+> --
