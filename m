@@ -2,206 +2,117 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0E3EC3A5A7
-	for <linux-acpi@archiver.kernel.org>; Thu,  8 Dec 2022 14:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D60BEC63703
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Dec 2022 14:40:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229937AbiLHO0M (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 8 Dec 2022 09:26:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49850 "EHLO
+        id S229619AbiLHOjz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 8 Dec 2022 09:39:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230010AbiLHOZY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2022 09:25:24 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF2FA31FAA
-        for <linux-acpi@vger.kernel.org>; Thu,  8 Dec 2022 06:23:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1670509431;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=UmHqd8LHtLYdPB+Q1nlC5BgqDZb5kugaESIY9H0eB2g=;
-        b=WdxdTiaaV47a4lly4i+AvOYESYynDW4vg+OOmb76gzhVS6FmC/WgXQD+tjuc190ZCouh+5
-        0pWBxqjd953IpX9q891tYuybdI5XvHHCQEg7O91CIgG/JjNV85XXg+n6SRpIjKfpuxFAyq
-        oE7OzpYJpcpgJPRSLSNRaG3L5L3mmIQ=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-615-qY5D4QmSOvioPKmYJIQYug-1; Thu, 08 Dec 2022 09:23:48 -0500
-X-MC-Unique: qY5D4QmSOvioPKmYJIQYug-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3D8CF80A0C7;
-        Thu,  8 Dec 2022 14:23:47 +0000 (UTC)
-Received: from shalem.redhat.com (unknown [10.39.194.54])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 966EB2028E8F;
-        Thu,  8 Dec 2022 14:23:45 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Andy Shevchenko <andy@kernel.org>, kai.heng.feng@canonical.com,
-        =?UTF-8?q?Johannes=20Pen=C3=9Fel?= <johannespenssel@posteo.net>,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH 4/4] ACPI: EC: fix ECDT probe ordering issues
-Date:   Thu,  8 Dec 2022 15:23:35 +0100
-Message-Id: <20221208142335.488382-5-hdegoede@redhat.com>
-In-Reply-To: <20221208142335.488382-1-hdegoede@redhat.com>
-References: <20221208142335.488382-1-hdegoede@redhat.com>
+        with ESMTP id S229870AbiLHOjp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2022 09:39:45 -0500
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A808C30F67;
+        Thu,  8 Dec 2022 06:39:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1670510384; x=1702046384;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=vZEso0JOtNi2b8BGSXFOJV/zyaEPGuE7SOwhK5XQbE0=;
+  b=kjJorVeGe2ft4VeB7McKJb3tCbvnhYVpXSK10gephzenMbRwLitU96iw
+   +C6rISKC4tgRn22MiJ8rBrOQgQ1jp1D5aqMYyWVd6AcnGrCIaEThL3or9
+   e2cOD7/E3xrMKoMH1QeAB3E7eIIzO6lv+CdOSpo+CzuTOZdkMIvl+JO4N
+   VjiO0PWYzO9An02xleLNZKLiFCHFeN0mz10I9gvGOskQkhB9RZE7AFDLF
+   L32nxGSNomC7zWen7dQC37o0nUtRrfjPk3eYSlWMXzj81bPRPaINqc9Vl
+   ytPGWUPjsCikOvVEQGOqpheWhY1lmPVq0m2R0fjMcotxQFdhOHEbKPzL0
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="314831936"
+X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
+   d="scan'208";a="314831936"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 06:39:29 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="975882631"
+X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
+   d="scan'208";a="975882631"
+Received: from dev2.igk.intel.com ([10.237.148.94])
+  by fmsmga005.fm.intel.com with ESMTP; 08 Dec 2022 06:39:27 -0800
+From:   =?UTF-8?q?Amadeusz=20S=C5=82awi=C5=84ski?= 
+        <amadeuszx.slawinski@linux.intel.com>
+To:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Robert Moore <robert.moore@intel.com>
+Cc:     Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Amadeusz=20S=C5=82awi=C5=84ski?= 
+        <amadeuszx.slawinski@linux.intel.com>,
+        Cezary Rojewski <cezary.rojewski@intel.com>
+Subject: [PATCH v2] ACPICA: Fix operand resolution
+Date:   Thu,  8 Dec 2022 23:40:16 +0100
+Message-Id: <20221208224016.2009797-1-amadeuszx.slawinski@linux.intel.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI-2.0 says that the EC OpRegion handler must be available immediately
-(like the standard default OpRegion handlers):
+In our tests we get UBSAN warning coming from ACPI parser. This is
+caused by trying to resolve operands when there is none.
 
-Quoting from the ACPI spec version 6.3: "6.5.4 _REG (Region) ...
-2. OSPM must make Embedded Controller operation regions, accessed via
-the Embedded Controllers described in ECDT, available before executing
-any control method. These operation regions may become inaccessible
-after OSPM runs _REG(EmbeddedControl, 0)."
+[    0.000000] Linux version 5.15.0-rc3chromeavsrel1.0.184+ (root@...) (gcc (Ubuntu 10.3.0-1ubuntu1~20.04) 10.3.0, GNU ld (GNU Binutils for Ubuntu) 2.34) #1 SMP PREEMPT Sat Oct 16 00:08:27 UTC 2021
+...
+[ 14.719508] ================================================================================
+[ 14.719551] UBSAN: array-index-out-of-bounds in /.../linux/drivers/acpi/acpica/dswexec.c:401:12
+[ 14.719594] index -1 is out of range for type 'acpi_operand_object *[9]'
+[ 14.719621] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.15.0-rc3chromeavsrel1.0.184+ #1
+[ 14.719657] Hardware name: Intel Corp. Geminilake/GLK RVP2 LP4SD (07), BIOS GELKRVPA.X64.0214.B50.2009111159 09/11/2020
+[ 14.719694] Call Trace:
+[ 14.719712] dump_stack_lvl+0x38/0x49
+[ 14.719749] dump_stack+0x10/0x12
+[ 14.719775] ubsan_epilogue+0x9/0x45
+[ 14.719801] __ubsan_handle_out_of_bounds.cold+0x44/0x49
+[ 14.719835] acpi_ds_exec_end_op+0x1d7/0x6b5
+[ 14.719870] acpi_ps_parse_loop+0x942/0xb34
+...
 
-So acpi_bus_init() calls acpi_ec_ecdt_probe(), which calls
-acpi_install_address_space_handler() to install the EC's OpRegion
-handler, early on.
+Problem happens because WalkState->NumOperands is 0 and it is used when
+trying to access into operands table. Actual code is:
+WalkState->Operands [WalkState->NumOperands -1]
+which causes out of bound access. Improve the check before above access
+to check if ACPI opcode should have any arguments (operands) at all.
 
-This not only installs the OpRegion handler, but also calls the EC's
-_REG method. The _REG method call is a problem because it may rely on
-initialization done by the _INI methods of one of the PCI / _SB root devs,
-see for example: https://bugzilla.kernel.org/show_bug.cgi?id=214899 .
-
-Generally speaking _REG methods are executed when the ACPI-device they
-are part of has a driver bound to it. Where as _INI methods must be
-executed at table load time (according to the spec). The problem here
-is that the early acpi_install_address_space_handler() call causes
-the _REG handler to run too early.
-
-To allow fixing this the ACPICA code now allows to split the OpRegion
-handler installation and the executing of _REG into 2 separate steps.
-
-This commit uses this ACPICA functionality to fix the EC probe ordering
-by delaying the executing of _REG for ECDT described ECs till the matching
-EC device in the DSDT gets parsed and acpi_ec_add() for it gets called.
-This moves the calling of _REG for the EC on devices with an ECDT to
-the same point in time where it is called on devices without an ECDT table.
-
-BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=214899
-Reported-and-tested-by: Johannes Penßel <johannespenssel@posteo.net>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Link: https://github.com/acpica/acpica/pull/745
+Signed-off-by: Amadeusz Sławiński <amadeuszx.slawinski@linux.intel.com>
+Reviewed-by: Cezary Rojewski <cezary.rojewski@intel.com>
 ---
-Changes in v3:
-- Rebase on top of v2 ACPICA patches which add 2 new functions for this
-  instead of using a flags argument
----
- drivers/acpi/ec.c | 28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 2de00fe218f9..105d2e795afa 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -94,6 +94,7 @@ enum {
- 	EC_FLAGS_QUERY_ENABLED,		/* Query is enabled */
- 	EC_FLAGS_EVENT_HANDLER_INSTALLED,	/* Event handler installed */
- 	EC_FLAGS_EC_HANDLER_INSTALLED,	/* OpReg handler installed */
-+	EC_FLAGS_EC_REG_CALLED,		/* OpReg ACPI _REG method called */
- 	EC_FLAGS_QUERY_METHODS_INSTALLED, /* _Qxx handlers installed */
- 	EC_FLAGS_STARTED,		/* Driver is started */
- 	EC_FLAGS_STOPPED,		/* Driver is stopped */
-@@ -1446,6 +1447,7 @@ static bool install_gpio_irq_event_handler(struct acpi_ec *ec)
-  * ec_install_handlers - Install service callbacks and register query methods.
-  * @ec: Target EC.
-  * @device: ACPI device object corresponding to @ec.
-+ * @call_reg: If _REG should be called to notify OpRegion availability
-  *
-  * Install a handler for the EC address space type unless it has been installed
-  * already.  If @device is not NULL, also look for EC query methods in the
-@@ -1458,7 +1460,8 @@ static bool install_gpio_irq_event_handler(struct acpi_ec *ec)
-  * -EPROBE_DEFER if GPIO IRQ acquisition needs to be deferred,
-  * or 0 (success) otherwise.
-  */
--static int ec_install_handlers(struct acpi_ec *ec, struct acpi_device *device)
-+static int ec_install_handlers(struct acpi_ec *ec, struct acpi_device *device,
-+			       bool call_reg)
- {
- 	acpi_status status;
+Changes:
+v2: Fix comment to tell that opcode has no arguments
+
+---
+ drivers/acpi/acpica/dswexec.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
+index e8ad41387f84..b082eb942a0f 100644
+--- a/drivers/acpi/acpica/dswexec.c
++++ b/drivers/acpi/acpica/dswexec.c
+@@ -389,9 +389,11 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
  
-@@ -1466,10 +1469,10 @@ static int ec_install_handlers(struct acpi_ec *ec, struct acpi_device *device)
+ 		/*
+ 		 * All opcodes require operand resolution, with the only exceptions
+-		 * being the object_type and size_of operators.
++		 * being the object_type and size_of operators as well as opcodes that
++		 * take no arguments.
+ 		 */
+-		if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE)) {
++		if (!(walk_state->op_info->flags & AML_NO_OPERAND_RESOLVE) &&
++		    (walk_state->op_info->flags & AML_HAS_ARGS)) {
  
- 	if (!test_bit(EC_FLAGS_EC_HANDLER_INSTALLED, &ec->flags)) {
- 		acpi_ec_enter_noirq(ec);
--		status = acpi_install_address_space_handler(ec->handle,
--							    ACPI_ADR_SPACE_EC,
--							    &acpi_ec_space_handler,
--							    NULL, ec);
-+		status = acpi_install_address_space_handler_no_reg(ec->handle,
-+								   ACPI_ADR_SPACE_EC,
-+								   &acpi_ec_space_handler,
-+								   NULL, ec);
- 		if (ACPI_FAILURE(status)) {
- 			acpi_ec_stop(ec, false);
- 			return -ENODEV;
-@@ -1478,6 +1481,11 @@ static int ec_install_handlers(struct acpi_ec *ec, struct acpi_device *device)
- 		ec->address_space_handler_holder = ec->handle;
- 	}
+ 			/* Resolve all operands */
  
-+	if (call_reg && !test_bit(EC_FLAGS_EC_REG_CALLED, &ec->flags)) {
-+		acpi_execute_reg_methods(ec->handle, ACPI_ADR_SPACE_EC);
-+		set_bit(EC_FLAGS_EC_REG_CALLED, &ec->flags);
-+	}
-+
- 	if (!device)
- 		return 0;
- 
-@@ -1564,11 +1572,11 @@ static void ec_remove_handlers(struct acpi_ec *ec)
- 	}
- }
- 
--static int acpi_ec_setup(struct acpi_ec *ec, struct acpi_device *device)
-+static int acpi_ec_setup(struct acpi_ec *ec, struct acpi_device *device, bool call_reg)
- {
- 	int ret;
- 
--	ret = ec_install_handlers(ec, device);
-+	ret = ec_install_handlers(ec, device, call_reg);
- 	if (ret)
- 		return ret;
- 
-@@ -1633,7 +1641,7 @@ static int acpi_ec_add(struct acpi_device *device)
- 		}
- 	}
- 
--	ret = acpi_ec_setup(ec, device);
-+	ret = acpi_ec_setup(ec, device, true);
- 	if (ret)
- 		goto err;
- 
-@@ -1752,7 +1760,7 @@ void __init acpi_ec_dsdt_probe(void)
- 	 * At this point, the GPE is not fully initialized, so do not to
- 	 * handle the events.
- 	 */
--	ret = acpi_ec_setup(ec, NULL);
-+	ret = acpi_ec_setup(ec, NULL, true);
- 	if (ret) {
- 		acpi_ec_free(ec);
- 		return;
-@@ -1946,7 +1954,7 @@ void __init acpi_ec_ecdt_probe(void)
- 	 * At this point, the namespace is not initialized, so do not find
- 	 * the namespace objects, or handle the events.
- 	 */
--	ret = acpi_ec_setup(ec, NULL);
-+	ret = acpi_ec_setup(ec, NULL, false);
- 	if (ret) {
- 		acpi_ec_free(ec);
- 		goto out;
 -- 
-2.38.1
+2.25.1
 
