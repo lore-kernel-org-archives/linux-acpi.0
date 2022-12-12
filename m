@@ -2,68 +2,202 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D144CC00145
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Dec 2022 22:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77DF7C4167B
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Dec 2022 23:47:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233943AbiLLWqt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 12 Dec 2022 17:46:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48452 "EHLO
+        id S232867AbiLLXrb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 12 Dec 2022 18:47:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234020AbiLLWqa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2022 17:46:30 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0457A1C112;
-        Mon, 12 Dec 2022 14:46:26 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 51A2BB80E7A;
-        Mon, 12 Dec 2022 22:46:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id F2487C433D2;
-        Mon, 12 Dec 2022 22:46:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1670885184;
-        bh=MstQfPbhIAU7j4DKA3OFGf5pW7AaPX/kJtPtU1oAINA=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=duJ/O74l5PkZ/768MtkNWpVY9AIK+xovaiy1zKdLSZQHbW3NwNQ0s8RFiev68WktA
-         qQXuJqasT7wIonS+TJU/iXLe015GCKV2HVhl/a94a0GDa37il2RAHV403eHlZ7Vtux
-         VHF/to7MQsoPLKeIpsj+kk+nMno8GuLRy1EEhg4yBUhhLNYfRlLouQ4Go/xkHRSBVi
-         LT4rluBqUwK4Yjib6q4kYRAhjJV8EEQApolXiBvLUIiWGxgeZmoUNwdGfvBHt7q9Fz
-         wAKge3MVXG7aLxP35w3C10asxcYU4clvM3srWGUB5fu4VmBBFGd6Gg7YnRvyfYiKmg
-         +vUbYZ+6DwqgQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id DFC4CC00448;
-        Mon, 12 Dec 2022 22:46:23 +0000 (UTC)
-Subject: Re: [GIT PULL] Compute Express Link (CXL) for 6.2
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.2
-X-PR-Tracked-Commit-Id: f04facfb993de47e2133b2b842d72b97b1c50162
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: c1f0fcd85d3d66f002fc1a4986363840fcca766d
-Message-Id: <167088518390.6748.16216442840433238533.pr-tracker-bot@kernel.org>
-Date:   Mon, 12 Dec 2022 22:46:23 +0000
-To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     torvalds@linux-foundation.org, linux-cxl@vger.kernel.org,
-        nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+        with ESMTP id S234176AbiLLXrB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2022 18:47:01 -0500
+Received: from alexa-out-sd-01.qualcomm.com (alexa-out-sd-01.qualcomm.com [199.106.114.38])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C45931C935;
+        Mon, 12 Dec 2022 15:46:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
+  t=1670888819; x=1702424819;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=6zpZjkpO+86b4pC6kqKzJT+g7b3R6qV+dcycPq8ygjE=;
+  b=CtQg+SF5fEuS7JMsTAGuqGY7yL1nY9PrOmTkoUkN58PT0ygHKCFwOi3H
+   iIlu/4IPyvtlZkZ4VEJaqID+RvvfnwcoOHuCzMGl28XDL9VuWepDGIoyG
+   huL9gg8LDVkktOoL8uvsLTbBlmzQubdfKpmatjlVutlkJMN8yvS4JhDw/
+   M=;
+Received: from unknown (HELO ironmsg04-sd.qualcomm.com) ([10.53.140.144])
+  by alexa-out-sd-01.qualcomm.com with ESMTP; 12 Dec 2022 15:46:59 -0800
+X-QCInternal: smtphost
+Received: from nasanex01b.na.qualcomm.com ([10.46.141.250])
+  by ironmsg04-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Dec 2022 15:46:59 -0800
+Received: from [10.134.67.48] (10.80.80.8) by nasanex01b.na.qualcomm.com
+ (10.46.141.250) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Mon, 12 Dec
+ 2022 15:46:58 -0800
+Message-ID: <a5c7089c-9880-e22a-ae33-eba91dc47f0e@quicinc.com>
+Date:   Mon, 12 Dec 2022 15:46:58 -0800
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.2
+Subject: Re: [PATCH v7 10/20] gunyah: rsc_mgr: Add resource manager RPC core
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC:     Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Murali Nalajala <quic_mnalajal@quicinc.com>,
+        Trilok Soni <quic_tsoni@quicinc.com>,
+        "Srivatsa Vaddagiri" <quic_svaddagi@quicinc.com>,
+        Carl van Schaik <quic_cvanscha@quicinc.com>,
+        Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-acpi@vger.kernel.org>
+References: <20221121140009.2353512-1-quic_eberman@quicinc.com>
+ <20221121140009.2353512-11-quic_eberman@quicinc.com>
+ <Y3uX9ywOVLubxYkW@kroah.com>
+Content-Language: en-US
+From:   Elliot Berman <quic_eberman@quicinc.com>
+In-Reply-To: <Y3uX9ywOVLubxYkW@kroah.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.80.80.8]
+X-ClientProxiedBy: nasanex01b.na.qualcomm.com (10.46.141.250) To
+ nasanex01b.na.qualcomm.com (10.46.141.250)
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Sat, 10 Dec 2022 17:54:02 -0800:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.2
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/c1f0fcd85d3d66f002fc1a4986363840fcca766d
+On 11/21/2022 7:23 AM, Greg Kroah-Hartman wrote:
+> On Mon, Nov 21, 2022 at 05:59:59AM -0800, Elliot Berman wrote:
+>> The resource manager is a special virtual machine which is always
+>> running on a Gunyah system. It provides APIs for creating and destroying
+>> VMs, secure memory management, sharing/lending of memory between VMs,
+>> and setup of inter-VM communication. Calls to the resource manager are
+>> made via message queues.
+>>
+>> This patch implements the basic probing and RPC mechanism to make those
+>> API calls. Request/response calls can be made with gh_rm_call.
+>> Drivers can also register to notifications pushed by RM via
+>> gh_rm_register_notifier
+>>
+>> Specific API calls that resource manager supports will be implemented in
+>> subsequent patches.
+>>
+>> Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
+>> ---
+>>   MAINTAINERS                          |   2 +-
+>>   drivers/virt/gunyah/Kconfig          |   7 +
+>>   drivers/virt/gunyah/Makefile         |   2 +
+>>   drivers/virt/gunyah/gunyah_rm_rpc.c  | 570 +++++++++++++++++++++++++++
+>>   drivers/virt/gunyah/gunyah_rsc_mgr.c |  50 +++
+>>   drivers/virt/gunyah/rsc_mgr.h        |  37 ++
+>>   include/linux/gunyah_rsc_mgr.h       |  18 +
+>>   7 files changed, 685 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/virt/gunyah/gunyah_rm_rpc.c
+>>   create mode 100644 drivers/virt/gunyah/gunyah_rsc_mgr.c
+>>   create mode 100644 drivers/virt/gunyah/rsc_mgr.h
+>>   create mode 100644 include/linux/gunyah_rsc_mgr.h
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 502798197b80..b65f7ff444e5 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -8948,7 +8948,7 @@ F:	Documentation/virt/gunyah/
+>>   F:	arch/arm64/gunyah/
+>>   F:	drivers/mailbox/gunyah-msgq.c
+>>   F:	drivers/virt/gunyah/
+>> -F:	include/linux/gunyah.h
+>> +F:	include/linux/gunyah*.h
+>>   
+>>   HABANALABS PCI DRIVER
+>>   M:	Oded Gabbay <ogabbay@kernel.org>
+>> diff --git a/drivers/virt/gunyah/Kconfig b/drivers/virt/gunyah/Kconfig
+>> index 127156a678a6..0bb497372d4e 100644
+>> --- a/drivers/virt/gunyah/Kconfig
+>> +++ b/drivers/virt/gunyah/Kconfig
+>> @@ -10,3 +10,10 @@ config GUNYAH
+>>   
+>>   	  Say Y/M here to enable the drivers needed to interact in a Gunyah
+>>   	  virtual environment.
+>> +
+>> +if GUNYAH
+>> +config GUNYAH_RESOURCE_MANAGER
+>> +	tristate
+>> +	depends on MAILBOX
+>> +	select GUNYAH_MESSAGE_QUEUES
+>> +endif
+>> diff --git a/drivers/virt/gunyah/Makefile b/drivers/virt/gunyah/Makefile
+>> index 2ac4ee64b89d..b62ac4045621 100644
+>> --- a/drivers/virt/gunyah/Makefile
+>> +++ b/drivers/virt/gunyah/Makefile
+>> @@ -1 +1,3 @@
+>>   obj-$(CONFIG_GUNYAH) += gunyah.o
+>> +
+>> +obj-$(CONFIG_GUNYAH_RESOURCE_MANAGER) += gunyah_rsc_mgr.o gunyah_rm_rpc.o
+>> diff --git a/drivers/virt/gunyah/gunyah_rm_rpc.c b/drivers/virt/gunyah/gunyah_rm_rpc.c
+>> new file mode 100644
+>> index 000000000000..45b1a8691982
+>> --- /dev/null
+>> +++ b/drivers/virt/gunyah/gunyah_rm_rpc.c
+>> @@ -0,0 +1,570 @@
+>> +// SPDX-License-Identifier: GPL-2.0-only
+>> +/*
+>> + * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
+>> + */
+>> +
+>> +#include <linux/of.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/mutex.h>
+>> +#include <linux/sched.h>
+>> +#include <linux/gunyah.h>
+>> +#include <linux/module.h>
+>> +#include <linux/of_irq.h>
+>> +#include <linux/kthread.h>
+>> +#include <linux/notifier.h>
+>> +#include <linux/workqueue.h>
+>> +#include <linux/completion.h>
+>> +#include <linux/gunyah_rsc_mgr.h>
+>> +#include <linux/platform_device.h>
+> 
+> This should not have anything to do with a platform device, please see
+> below.
+> 
+>> +#include <linux/gunyah_rsc_mgr.h>
+>> +#include <linux/platform_device.h>
+>> +
+>> +#include "rsc_mgr.h"
+>> +
+>> +static int gh_rm_drv_probe(struct platform_device *pdev)
+> 
+> Why is this tied to a platformm device?
+> 
+> I don't understand the relationship here, sorry.
+> >> +{
+>> +	struct gh_rm_rpc *rsc_mgr;
+>> +
+>> +	rsc_mgr = gh_rm_rpc_init(pdev);
+> 
+> Shouldn't this be creating a new one that is just a child passed in?
+> Shouldn't this call just take a 'struct device *'?
+> 
 
-Thank you!
+I'm following the suggestion from Arnd to have small core module that 
+calls into initialization routines for the other parts of the driver, 
+rather than creating bus for a few (2) devices.
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+https://lore.kernel.org/all/a3754259-9989-495e-a6bd-5501daff06a2@app.fastmail.com/
+
+Thanks,
+Elliot
+
+
