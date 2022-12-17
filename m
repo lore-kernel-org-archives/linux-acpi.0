@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F0D4C3DA7B
-	for <linux-acpi@archiver.kernel.org>; Sat, 17 Dec 2022 15:31:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2EF4C4167B
+	for <linux-acpi@archiver.kernel.org>; Sat, 17 Dec 2022 15:31:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230013AbiLQPbh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 17 Dec 2022 10:31:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37438 "EHLO
+        id S230000AbiLQPbf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 17 Dec 2022 10:31:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230157AbiLQPa7 (ORCPT
+        with ESMTP id S230049AbiLQPa7 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Dec 2022 10:30:59 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD0B815F39;
-        Sat, 17 Dec 2022 07:28:36 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 299E215F3A;
+        Sat, 17 Dec 2022 07:28:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F0AA60C14;
-        Sat, 17 Dec 2022 15:28:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3427C43398;
-        Sat, 17 Dec 2022 15:28:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B8D5060C14;
+        Sat, 17 Dec 2022 15:28:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76AAAC43398;
+        Sat, 17 Dec 2022 15:28:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1671290915;
-        bh=7btK5kH8e8Xyd6l+hOUla2wVBlEdr53EZgl+CozyNOc=;
+        s=k20201202; t=1671290913;
+        bh=scuxibib/wgWJbiVOJ780gC72KxWU3lhTW97mM5HxNo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gZ6969nJdWepMtgxRTsMlHJuoUJ2/oKd2MIbxf7sP2RFddxmPcvSm6yiCYo9LUiQ+
-         GPcbR7z4R+642qFmssHn3oDLqx4fxChk8JuyeUJqrzQIGJobmlms/HBTl3svcuUPpU
-         y+wReN62WZ1OOTP7Oi6hB9U7xcSGZFrxattwC6djkkbQIDM6Q10IjGT83XEUkIPh+G
-         4wWYKEO7QhCs81VXD2Dt7pJJE1MqlObTJKk/1kbGoP8aGDNu0OXxIP/BaU6ZxortaJ
-         i0VMkHRU0X1xUVbSX8fIvKu22h7Ll//pLXZcrj19KqZvBgwLouzq3klDY9ECJFi2/Q
-         SZzhFn8cwuR+g==
+        b=sP2rN0jq5z/Tdsw1IWhf3YHsOoX1c9dbOYVbZ5IZ0iF4n+cdOtS9PNbP39OLWGJzQ
+         yxqsbE+ctwAiaYnDHSHXyp52UtdvpW60o78pwTNoh+RVEpLCIFbmVq5Aj1UXmg0t8+
+         /+zeJ8nU7UENoLTcvCLrdsURA7+28xeIS/OH6LsD1WmJNgIKhrTYtLnngp8MH0NJcb
+         GknDdQ9ii8SLiCw1760Ioctu6z+fKUKdrYRAIeipPlalQhUHP4+JTQnbcWL3sWXoyX
+         2bBe2qahX3kf2aF2mfTJbNAoEnnf/8ntWJkGTeiMJt4fjorY/HH0+qSDBr4M2JDkyQ
+         y/tJXNFGjPS3w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Chen Zhongjin <chenzhongjin@huawei.com>,
-        Sasha Levin <sashal@kernel.org>, robert.moore@intel.com,
-        linux-acpi@vger.kernel.org, devel@acpica.org
-Subject: [PATCH AUTOSEL 6.0 07/16] ACPICA: Fix error code path in acpi_ds_call_control_method()
-Date:   Sat, 17 Dec 2022 10:28:10 -0500
-Message-Id: <20221217152821.98618-7-sashal@kernel.org>
+Cc:     Li Zhong <floridsleeves@gmail.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.0 05/16] ACPI: processor: idle: Check acpi_fetch_acpi_dev() return value
+Date:   Sat, 17 Dec 2022 10:28:08 -0500
+Message-Id: <20221217152821.98618-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221217152821.98618-1-sashal@kernel.org>
 References: <20221217152821.98618-1-sashal@kernel.org>
@@ -51,66 +51,35 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Li Zhong <floridsleeves@gmail.com>
 
-[ Upstream commit 404ec60438add1afadaffaed34bb5fe4ddcadd40 ]
+[ Upstream commit 2437513a814b3e93bd02879740a8a06e52e2cf7d ]
 
-A use-after-free in acpi_ps_parse_aml() after a failing invocaion of
-acpi_ds_call_control_method() is reported by KASAN [1] and code
-inspection reveals that next_walk_state pushed to the thread by
-acpi_ds_create_walk_state() is freed on errors, but it is not popped
-from the thread beforehand.  Thus acpi_ds_get_current_walk_state()
-called by acpi_ps_parse_aml() subsequently returns it as the new
-walk state which is incorrect.
+The return value of acpi_fetch_acpi_dev() could be NULL, which would
+cause a NULL pointer dereference to occur in acpi_device_hid().
 
-To address this, make acpi_ds_call_control_method() call
-acpi_ds_pop_walk_state() to pop next_walk_state from the thread before
-returning an error.
-
-Link: https://lore.kernel.org/linux-acpi/20221019073443.248215-1-chenzhongjin@huawei.com/ # [1]
-Reported-by: Chen Zhongjin <chenzhongjin@huawei.com>
+Signed-off-by: Li Zhong <floridsleeves@gmail.com>
+[ rjw: Subject and changelog edits, added empty line after if () ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Chen Zhongjin <chenzhongjin@huawei.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/acpica/dsmethod.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index ae2e768830bf..9332bc688713 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -517,7 +517,7 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
- 	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
- 	if (!info) {
- 		status = AE_NO_MEMORY;
--		goto cleanup;
-+		goto pop_walk_state;
- 	}
- 
- 	info->parameters = &this_walk_state->operands[0];
-@@ -529,7 +529,7 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
- 
- 	ACPI_FREE(info);
- 	if (ACPI_FAILURE(status)) {
--		goto cleanup;
-+		goto pop_walk_state;
- 	}
- 
- 	next_walk_state->method_nesting_depth =
-@@ -575,6 +575,12 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
- 
- 	return_ACPI_STATUS(status);
- 
-+pop_walk_state:
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 9f40917c49ef..4d1dd255c122 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1134,6 +1134,9 @@ static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
+ 	status = acpi_get_parent(handle, &pr_ahandle);
+ 	while (ACPI_SUCCESS(status)) {
+ 		d = acpi_fetch_acpi_dev(pr_ahandle);
++		if (!d)
++			break;
 +
-+	/* On error, pop the walk state to be deleted from thread */
-+
-+	acpi_ds_pop_walk_state(thread);
-+
- cleanup:
+ 		handle = pr_ahandle;
  
- 	/* On error, we must terminate the method properly */
+ 		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
 -- 
 2.35.1
 
