@@ -2,44 +2,45 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22724C4332F
-	for <linux-acpi@archiver.kernel.org>; Sat, 17 Dec 2022 15:32:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3812C4332F
+	for <linux-acpi@archiver.kernel.org>; Sat, 17 Dec 2022 15:32:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230122AbiLQPbi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 17 Dec 2022 10:31:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32892 "EHLO
+        id S230014AbiLQPcI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 17 Dec 2022 10:32:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230166AbiLQPa7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Dec 2022 10:30:59 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4257B15F3F;
-        Sat, 17 Dec 2022 07:28:35 -0800 (PST)
+        with ESMTP id S230239AbiLQPbQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Dec 2022 10:31:16 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ADC919282;
+        Sat, 17 Dec 2022 07:28:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D002460C12;
-        Sat, 17 Dec 2022 15:28:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94430C433EF;
-        Sat, 17 Dec 2022 15:28:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1886D60C17;
+        Sat, 17 Dec 2022 15:28:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DDABC43396;
+        Sat, 17 Dec 2022 15:28:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1671290914;
-        bh=dIguU8EAz5SPQFZusL+Z8bJhWfheX1iIw5bpo6Y0HAw=;
+        s=k20201202; t=1671290921;
+        bh=wgtxMlx7CjihsMRuaBVm90tUKVAegYDMFYtSba8yGNE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sM0RNIga+RUiB47048UXqRd72Dlq3TtnnYt14Viur/BqM/0ykqPdNwn+53HpvaXrg
-         ChnRZm/8OIqCmy4el3DVv6daL6NGMs6o58m5ZUTTKm2vQWBgMFp8x2njMwI2pxlV0t
-         MSwL0EroOD9Iu0E8rKxH+D5YDM4ecCoLaBFDWiVMyLgkyyP3ym6x6xdtH8dCeEoFpv
-         jb4Tm7EtelrW3y4jzhmIGzF9PuCKUHUBEOoOHbHPhKfiDh7/5UpL0n6+L8uW7mCM4w
-         eocUt8X74Qvu8K8gRGAr7xfmuUR949FsrRcLN6HNAet7qV5KMejjzgZuQPnKbH8dtN
-         pyBBg7sW27vtQ==
+        b=SbZZJk50nBppuIdUY1j4IaiUIDAdmotphFGppfEvTBRSiANIMO/YEGDE20iDxDEvr
+         ysijFiLYlI+wtzzZD9MtLewVCyeOxs1Rab9tQR7QGS53PghO+7wdJ6DlQFpdZuQ0Lf
+         3C/ExFy3q4vvi+T5wtRKCw19IL/Aqcci4w8I7DCvCf54xkE7gmX0tYUrM6rnFfn5sH
+         SHhKXbxsETSC/hpUDmXuHkU99yfUg69Yc5GI8nII+b/WTA4Qypv6pXaQapS791JR2Z
+         Wgjy+iuehu3tkfEn6Kj8ORtOinAC2QsgR7KBfpUzJZdjKDVUHLm9DYQyM2aIoL+GF/
+         8s/oxhHERHSfA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mia Kanashi <chad@redpilled.dev>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
+Cc:     Jianmin Lv <lvjianmin@loongson.cn>,
+        Huacai Chen <chenhuacai@loongson.cn>,
+        Marc Zyngier <maz@kernel.org>, Sasha Levin <sashal@kernel.org>,
+        bhelgaas@google.com, rafael@kernel.org, linux-pci@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.0 06/16] ACPI: EC: Add quirk for the HP Pavilion Gaming 15-cx0041ur
-Date:   Sat, 17 Dec 2022 10:28:09 -0500
-Message-Id: <20221217152821.98618-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.0 11/16] ACPI / PCI: fix LPIC IRQ model default PCI IRQ polarity
+Date:   Sat, 17 Dec 2022 10:28:14 -0500
+Message-Id: <20221217152821.98618-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221217152821.98618-1-sashal@kernel.org>
 References: <20221217152821.98618-1-sashal@kernel.org>
@@ -51,44 +52,55 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Mia Kanashi <chad@redpilled.dev>
+From: Jianmin Lv <lvjianmin@loongson.cn>
 
-[ Upstream commit b423f240a66ad928c4cb5ec6055dfc90ce8d894e ]
+[ Upstream commit d0c50cc4b957b2cf6e43cec4998d212b5abe9220 ]
 
-Added GPE quirk entry for the HP Pavilion Gaming 15-cx0041ur.
-There is a quirk entry for the 15-cx0xxx laptops, but this one has
-different DMI_PRODUCT_NAME.
+On LoongArch based systems, the PCI devices (e.g. SATA controllers and
+PCI-to-PCI bridge controllers) in Loongson chipsets output high-level
+interrupt signal to the interrupt controller they are connected (see
+Loongson 7A1000 Bridge User Manual v2.00, sec 5.3, "For the bridge chip,
+AC97 DMA interrupts are edge triggered, gpio interrupts can be configured
+to be level triggered or edge triggered as needed, and the rest of the
+interrupts are level triggered and active high."), while the IRQs are
+active low from the perspective of PCI (see Conventional PCI spec r3.0,
+sec 2.2.6, "Interrupts on PCI are optional and defined as level sensitive,
+asserted low."), which means that the interrupt output of PCI devices plugged
+into PCI-to-PCI bridges of Loongson chipset will be also converted to high-level.
+So high level triggered type is required to be passed to acpi_register_gsi()
+when creating mappings for PCI devices.
 
-Notably backlight keys and other ACPI events now function correctly.
-
-Signed-off-by: Mia Kanashi <chad@redpilled.dev>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Jianmin Lv <lvjianmin@loongson.cn>
+Reviewed-by: Huacai Chen <chenhuacai@loongson.cn>
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+Link: https://lore.kernel.org/r/20221022075955.11726-2-lvjianmin@loongson.cn
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/acpi/pci_irq.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index c95e535035a0..fdc760e1e09e 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1879,6 +1879,16 @@ static const struct dmi_system_id ec_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion Gaming Laptop 15-cx0xxx"),
- 		},
- 	},
-+	{
-+		/*
-+		 * HP Pavilion Gaming Laptop 15-cx0041ur
-+		 */
-+		.callback = ec_honor_dsdt_gpe,
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "HP 15-cx0041ur"),
-+		},
-+	},
- 	{
- 		/*
- 		 * Samsung hardware
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 08e15774fb9f..ff30ceca2203 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -387,13 +387,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	u8 pin;
+ 	int triggering = ACPI_LEVEL_SENSITIVE;
+ 	/*
+-	 * On ARM systems with the GIC interrupt model, level interrupts
++	 * On ARM systems with the GIC interrupt model, or LoongArch
++	 * systems with the LPIC interrupt model, level interrupts
+ 	 * are always polarity high by specification; PCI legacy
+ 	 * IRQs lines are inverted before reaching the interrupt
+ 	 * controller and must therefore be considered active high
+ 	 * as default.
+ 	 */
+-	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
++	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ||
++		       acpi_irq_model == ACPI_IRQ_MODEL_LPIC ?
+ 				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+ 	char *link = NULL;
+ 	char link_desc[16];
 -- 
 2.35.1
 
