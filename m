@@ -2,70 +2,68 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95DFCC3DA7B
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Dec 2022 23:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E89D5C4167B
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Dec 2022 23:03:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233041AbiLSXCh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Dec 2022 18:02:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54400 "EHLO
+        id S233056AbiLSXDD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Dec 2022 18:03:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232869AbiLSXBr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2022 18:01:47 -0500
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92922F53;
-        Mon, 19 Dec 2022 15:00:42 -0800 (PST)
-Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2BJMja4n008569;
-        Mon, 19 Dec 2022 23:00:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=qcppdkim1;
- bh=c8eofiG3McaTS/A0hhC1mvLBYHAzHVOp0r2z6IdmbO4=;
- b=kD6/2gmESUJHuksg/gOZiOqZNnN+n/5rpOMZW+HeSoc/tMOuVHSJp7wT98dSRYhyxipe
- aApNXY5X+J+suFeuigsKyRcaETA3+7zncLj7r8wkKNxosoKqPca6Cqv2n1Txdn0/LecM
- 2ElOdWjDFf0u+k6A4XMZS4bkjPp0//G4TGb3tjCEwbhLPZV0LuPwZ/Gw5pbAGOmpA0vG
- dTKMhYuCD5TW9Mm+4urB3PiuEXGLaiWY0rJ/Vt87vzioD5DHa/8wgWvFAYF4UsghfwKm
- XAbXIJnV/LwLbaMOTu2KjAs1TsejjZQqiosgoLJnvLB8MxUEEYvs9hO3Z4T+1pgTIo7e eQ== 
-Received: from nasanppmta02.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3mjkwqsk6s-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 19 Dec 2022 23:00:19 +0000
-Received: from nasanex01b.na.qualcomm.com (corens_vlan604_snip.qualcomm.com [10.53.140.1])
-        by NASANPPMTA02.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2BJN0IvM006053
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 19 Dec 2022 23:00:18 GMT
+        with ESMTP id S232889AbiLSXBu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2022 18:01:50 -0500
+Received: from alexa-out-sd-02.qualcomm.com (alexa-out-sd-02.qualcomm.com [199.106.114.39])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D72E01178;
+        Mon, 19 Dec 2022 15:00:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
+  t=1671490844; x=1703026844;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=8UhbIO+bjFBQdkCiu8pP4FCYrwf/TNyQmQumJGPtH4E=;
+  b=mqL+MaM0oAt3wNjvSQZPsr6lUcAJ7uwgwCDKimAPcvtu5OgzAZQ5jwl/
+   o+Qa91l9e1BnAH3t6V7gzcQ6yA+4xB7pdMZw3HEN5by5w7IGPS6vH3NDX
+   NsBqsRVOg87nxXD3NRkPL9Tiv1fBP4kjzKqwn0yVYULq+IE08CZnn44MH
+   c=;
+Received: from unknown (HELO ironmsg04-sd.qualcomm.com) ([10.53.140.144])
+  by alexa-out-sd-02.qualcomm.com with ESMTP; 19 Dec 2022 15:00:43 -0800
+X-QCInternal: smtphost
+Received: from nasanex01b.na.qualcomm.com ([10.46.141.250])
+  by ironmsg04-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Dec 2022 15:00:43 -0800
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 19 Dec 2022 15:00:17 -0800
+ 15.2.986.36; Mon, 19 Dec 2022 15:00:42 -0800
 From:   Elliot Berman <quic_eberman@quicinc.com>
 To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Elliot Berman <quic_eberman@quicinc.com>,
-        Murali Nalajala <quic_mnalajal@quicinc.com>
-CC:     Trilok Soni <quic_tsoni@quicinc.com>,
-        Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@somainline.org>
+CC:     Elliot Berman <quic_eberman@quicinc.com>,
+        Murali Nalajala <quic_mnalajal@quicinc.com>,
+        Trilok Soni <quic_tsoni@quicinc.com>,
+        "Srivatsa Vaddagiri" <quic_svaddagi@quicinc.com>,
         Carl van Schaik <quic_cvanscha@quicinc.com>,
         Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
         Arnd Bergmann <arnd@arndb.de>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        "Krzysztof Kozlowski" <krzysztof.kozlowski+dt@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
-        "Bagas Sanjaya" <bagasdotme@gmail.com>,
+        Bagas Sanjaya <bagasdotme@gmail.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
         Jassi Brar <jassisinghbrar@gmail.com>,
-        "Sudeep Holla" <sudeep.holla@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
         Mark Rutland <mark.rutland@arm.com>,
-        "Lorenzo Pieralisi" <lpieralisi@kernel.org>,
-        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        "Dmitry Baryshkov" <dmitry.baryshkov@linaro.org>,
         <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>
-Subject: [PATCH v8 03/28] gunyah: Common types and error codes for Gunyah hypercalls
-Date:   Mon, 19 Dec 2022 14:58:24 -0800
-Message-ID: <20221219225850.2397345-4-quic_eberman@quicinc.com>
+Subject: [PATCH v8 19/28] firmware: qcom_scm: Register Gunyah platform ops
+Date:   Mon, 19 Dec 2022 14:58:40 -0800
+Message-ID: <20221219225850.2397345-20-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20221219225850.2397345-1-quic_eberman@quicinc.com>
 References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
@@ -75,125 +73,166 @@ Content-Type: text/plain
 X-Originating-IP: [10.49.16.6]
 X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
  nasanex01b.na.qualcomm.com (10.46.141.250)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: zFReobXLi8YHM11CgAgUJ--sCZ1Y8vom
-X-Proofpoint-ORIG-GUID: zFReobXLi8YHM11CgAgUJ--sCZ1Y8vom
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.923,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2022-12-19_01,2022-12-15_02,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 mlxscore=0
- priorityscore=1501 spamscore=0 mlxlogscore=863 lowpriorityscore=0
- suspectscore=0 impostorscore=0 phishscore=0 bulkscore=0 adultscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2212070000 definitions=main-2212190202
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add architecture-independent standard error codes, types, and macros for
-Gunyah hypercalls.
+Qualcomm platforms have a firmware entity which performs access control
+to physical pages. Dynamically started Gunyah virtual machines use the
+QCOM_SCM_RM_MANAGED_VMID for access. Linux thus needs to assign access
+to the memory used by guest VMs. Gunyah doesn't do this operation for us
+since it is the current VM (typically VMID_HLOS) delegating the access
+and not Gunyah itself. Use the Gunyah platform ops to achieve this so
+that only Qualcomm platforms attempt to make the needed SCM calls.
 
-Reviewed-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Co-developed-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
+Signed-off-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
 Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
 ---
- MAINTAINERS            |  1 +
- include/linux/gunyah.h | 74 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 75 insertions(+)
- create mode 100644 include/linux/gunyah.h
+ drivers/firmware/Kconfig    |  2 +
+ drivers/firmware/qcom_scm.c | 95 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 97 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f32320a9efa4..74e76e0ab14d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8941,6 +8941,7 @@ L:	linux-arm-msm@vger.kernel.org
- S:	Supported
- F:	Documentation/devicetree/bindings/firmware/gunyah-hypervisor.yaml
- F:	Documentation/virt/gunyah/
-+F:	include/linux/gunyah.h
+diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+index b59e3041fd62..b888068ff6f2 100644
+--- a/drivers/firmware/Kconfig
++++ b/drivers/firmware/Kconfig
+@@ -214,6 +214,8 @@ config MTK_ADSP_IPC
  
- HABANALABS PCI DRIVER
- M:	Oded Gabbay <ogabbay@kernel.org>
-diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
-new file mode 100644
-index 000000000000..824e20a11d27
---- /dev/null
-+++ b/include/linux/gunyah.h
-@@ -0,0 +1,74 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
-+ */
+ config QCOM_SCM
+ 	tristate
++	select VIRT_DRIVERS
++	select GUNYAH_PLATFORM_HOOKS
+ 
+ config QCOM_SCM_DOWNLOAD_MODE_DEFAULT
+ 	bool "Qualcomm download mode enabled by default"
+diff --git a/drivers/firmware/qcom_scm.c b/drivers/firmware/qcom_scm.c
+index 92763dce6477..bebc848cd3c5 100644
+--- a/drivers/firmware/qcom_scm.c
++++ b/drivers/firmware/qcom_scm.c
+@@ -17,6 +17,7 @@
+ #include <linux/clk.h>
+ #include <linux/reset-controller.h>
+ #include <linux/arm-smccc.h>
++#include <linux/gunyah_rsc_mgr.h>
+ 
+ #include "qcom_scm.h"
+ 
+@@ -27,6 +28,9 @@ module_param(download_mode, bool, 0);
+ #define SCM_HAS_IFACE_CLK	BIT(1)
+ #define SCM_HAS_BUS_CLK		BIT(2)
+ 
++#define QCOM_SCM_RM_MANAGED_VMID	0x3A
++#define QCOM_SCM_MAX_MANAGED_VMID	0x3F
 +
-+#ifndef _GUNYAH_H
-+#define _GUNYAH_H
-+
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+
-+/* Common Gunyah macros */
-+#define GH_CAPID_INVAL	U64_MAX
-+#define GH_VMID_ROOT_VM	0xff
-+
-+#define GH_ERROR_OK			0
-+
-+#define GH_ERROR_UNIMPLEMENTED		-1
-+#define GH_ERROR_RETRY			-2
-+
-+#define GH_ERROR_ARG_INVAL		1
-+#define GH_ERROR_ARG_SIZE		2
-+#define GH_ERROR_ARG_ALIGN		3
-+
-+#define GH_ERROR_NOMEM			10
-+
-+#define GH_ERROR_ADDR_OVFL		20
-+#define GH_ERROR_ADDR_UNFL		21
-+#define GH_ERROR_ADDR_INVAL		22
-+
-+#define GH_ERROR_DENIED			30
-+#define GH_ERROR_BUSY			31
-+#define GH_ERROR_IDLE			32
-+
-+#define GH_ERROR_IRQ_BOUND		40
-+#define GH_ERROR_IRQ_UNBOUND		41
-+
-+#define GH_ERROR_CSPACE_CAP_NULL	50
-+#define GH_ERROR_CSPACE_CAP_REVOKED	51
-+#define GH_ERROR_CSPACE_WRONG_OBJ_TYPE	52
-+#define GH_ERROR_CSPACE_INSUF_RIGHTS	53
-+#define GH_ERROR_CSPACE_FULL		54
-+
-+#define GH_ERROR_MSGQUEUE_EMPTY		60
-+#define GH_ERROR_MSGQUEUE_FULL		61
-+
-+static inline int gh_remap_error(int gh_error)
+ struct qcom_scm {
+ 	struct device *dev;
+ 	struct clk *core_clk;
+@@ -1292,6 +1296,94 @@ int qcom_scm_lmh_dcvsh(u32 payload_fn, u32 payload_reg, u32 payload_val,
+ }
+ EXPORT_SYMBOL(qcom_scm_lmh_dcvsh);
+ 
++static int qcom_scm_gh_rm_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
 +{
-+	switch (gh_error) {
-+	case GH_ERROR_OK:
-+		return 0;
-+	case GH_ERROR_NOMEM:
++	struct qcom_scm_vmperm *new_perms;
++	u64 src, src_cpy;
++	int ret = 0, i, n;
++
++	new_perms = kcalloc(mem_parcel->n_acl_entries, sizeof(*new_perms), GFP_KERNEL);
++	if (!new_perms)
 +		return -ENOMEM;
-+	case GH_ERROR_DENIED:
-+	case GH_ERROR_CSPACE_CAP_NULL:
-+	case GH_ERROR_CSPACE_CAP_REVOKED:
-+	case GH_ERROR_CSPACE_WRONG_OBJ_TYPE:
-+	case GH_ERROR_CSPACE_INSUF_RIGHTS:
-+	case GH_ERROR_CSPACE_FULL:
-+		return -EACCES;
-+	case GH_ERROR_BUSY:
-+	case GH_ERROR_IDLE:
-+		return -EBUSY;
-+	case GH_ERROR_IRQ_BOUND:
-+	case GH_ERROR_IRQ_UNBOUND:
-+	case GH_ERROR_MSGQUEUE_FULL:
-+	case GH_ERROR_MSGQUEUE_EMPTY:
-+		return -EPERM;
-+	default:
-+		return -EINVAL;
++
++	for (n = 0; n < mem_parcel->n_acl_entries; n++) {
++		if (mem_parcel->acl_entries[n].vmid <= QCOM_SCM_MAX_MANAGED_VMID)
++			new_perms[n].vmid = mem_parcel->acl_entries[n].vmid;
++		else
++			new_perms[n].vmid = QCOM_SCM_RM_MANAGED_VMID;
++		if (mem_parcel->acl_entries[n].perms & GH_RM_ACL_X)
++			new_perms[n].perm |= QCOM_SCM_PERM_EXEC;
++		if (mem_parcel->acl_entries[n].perms & GH_RM_ACL_W)
++			new_perms[n].perm |= QCOM_SCM_PERM_WRITE;
++		if (mem_parcel->acl_entries[n].perms & GH_RM_ACL_R)
++			new_perms[n].perm |= QCOM_SCM_PERM_READ;
 +	}
++
++	src = (1ull << QCOM_SCM_VMID_HLOS);
++
++	for (i = 0; i < mem_parcel->n_mem_entries; i++) {
++		src_cpy = src;
++		ret = qcom_scm_assign_mem(mem_parcel->mem_entries[i].ipa_base,
++						mem_parcel->mem_entries[i].size,
++						&src_cpy, new_perms, mem_parcel->n_acl_entries);
++		if (ret) {
++			src = 0;
++			for (n = 0; n < mem_parcel->n_acl_entries; n++) {
++				if (mem_parcel->acl_entries[n].vmid <= QCOM_SCM_MAX_MANAGED_VMID)
++					src |= (1ull << mem_parcel->acl_entries[n].vmid);
++				else
++					src |= (1ull << QCOM_SCM_RM_MANAGED_VMID);
++			}
++
++			new_perms[0].vmid = QCOM_SCM_VMID_HLOS;
++
++			for (i--; i >= 0; i--) {
++				src_cpy = src;
++				ret = qcom_scm_assign_mem(mem_parcel->mem_entries[i].ipa_base,
++								mem_parcel->mem_entries[i].size,
++								&src_cpy, new_perms, 1);
++				WARN_ON_ONCE(ret);
++			}
++			break;
++		}
++	}
++
++	kfree(new_perms);
++	return ret;
 +}
 +
-+#endif
++static int qcom_scm_gh_rm_post_mem_reclaim(struct gh_rm_rpc *rm,
++						struct gh_rm_mem_parcel *mem_parcel)
++{
++	struct qcom_scm_vmperm new_perms;
++	u64 src = 0;
++	int ret = 0, i, n;
++
++	new_perms.vmid = QCOM_SCM_VMID_HLOS;
++	new_perms.perm = QCOM_SCM_PERM_EXEC | QCOM_SCM_PERM_WRITE | QCOM_SCM_PERM_READ;
++
++	for (n = 0; n < mem_parcel->n_acl_entries; n++) {
++		if (mem_parcel->acl_entries[n].vmid <= QCOM_SCM_MAX_MANAGED_VMID)
++			src |= (1ull << mem_parcel->acl_entries[n].vmid);
++		else
++			src |= (1ull << QCOM_SCM_RM_MANAGED_VMID);
++	}
++
++	for (i = 0; i < mem_parcel->n_mem_entries; i++) {
++		ret = qcom_scm_assign_mem(mem_parcel->mem_entries[i].ipa_base,
++						mem_parcel->mem_entries[i].size,
++						&src, &new_perms, 1);
++		WARN_ON_ONCE(ret);
++	}
++
++	return ret;
++}
++
++static struct gunyah_rm_platform_ops qcom_scm_gh_rm_platform_ops = {
++	.pre_mem_share = qcom_scm_gh_rm_pre_mem_share,
++	.post_mem_reclaim = qcom_scm_gh_rm_post_mem_reclaim,
++};
++
+ static int qcom_scm_find_dload_address(struct device *dev, u64 *addr)
+ {
+ 	struct device_node *tcsr;
+@@ -1414,6 +1506,9 @@ static int qcom_scm_probe(struct platform_device *pdev)
+ 	if (download_mode)
+ 		qcom_scm_set_download_mode(true);
+ 
++	if (gh_rm_register_platform_ops(&qcom_scm_gh_rm_platform_ops))
++		dev_warn(__scm->dev, "Gunyah RM platform ops were already registered\n");
++
+ 	return 0;
+ }
+ 
 -- 
 2.25.1
 
