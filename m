@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45F71C4167B
-	for <linux-acpi@archiver.kernel.org>; Mon, 19 Dec 2022 23:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBF1AC001B2
+	for <linux-acpi@archiver.kernel.org>; Mon, 19 Dec 2022 23:05:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232855AbiLSXFV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 19 Dec 2022 18:05:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55420 "EHLO
+        id S233115AbiLSXFY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 19 Dec 2022 18:05:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232984AbiLSXDT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2022 18:03:19 -0500
+        with ESMTP id S232989AbiLSXD2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2022 18:03:28 -0500
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AC2E167E4;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B683167E8;
         Mon, 19 Dec 2022 15:01:09 -0800 (PST)
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2BJMcef5001250;
-        Mon, 19 Dec 2022 23:00:42 GMT
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2BJMN9Wk027753;
+        Mon, 19 Dec 2022 23:00:50 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=qcppdkim1;
- bh=Ce9NS6VF/ZlGRqo1zpRzMWmAMt+GG1MMbt0MLD3M85c=;
- b=SZa/AXj0gQOkBgaHG6ZWyNZRK2EJmR7UV+ekE4BGpsIfp51EfTvkBLVQsV6W7caMKD9H
- yxtud3PjRnlPzhvEm+mSLtaMwMheQh17J4FsPHsEdHph+lMkXnyapx5NvlMsblhBsJ83
- te40oWEmQx6kBPdZaN9++Okoa1huNktVsG58HE56FLCrQUCh0uJ4IEwsJ2VFb5byXzWe
- 3GWMbpaGR35CpjB/0+xsNRKbU1OmTbRDtG/DYGO+n5oq3j47SETbZDK6y+JApbmQfsn8
- LNVKnu9j4vp+U6u1gVhQSKF4ospb22yGa1wVG3yejoULwPCiKTjzyUEzbrY5D5sSq1h/ Aw== 
-Received: from nasanppmta03.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3mh5v25h0m-1
+ bh=CEq8c94IBG6Nvn6CnZAOeBhIxN7kOp8McXlsMOcGt/E=;
+ b=ZDrqc8PJ9eBpd3DhCkpHL8mw95krPSUw8tEyJeWctopdnojP7lQQkWAl7foR4X39MYkT
+ 4j0fO6QyLz1NkBM9v4lMGuCT+Q4R5QKVrZqxvhQYbwcGVDjtekt8WsgOF3rV2W2JuaJp
+ N6j/9Yh0/114HXK03wG7WurEgfh7rzJiAmADpkjJpG5JlF2q4Gh/dvgcTwsiF2tatKan
+ fyA5TnWVvVjMl/xT1jeWnl+ze9meK330aF6X65tVsbh29C7vkhkTWuRXhJDR6WJ2DAuP
+ 9hbumyWnrPghdhBjlHX3eUC0W/v7o0zdnnuqDSryCAhr9xlso6ujWFGZi8RuhVYv17Ng Jg== 
+Received: from nasanppmta05.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
+        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3mh34udrf7-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 19 Dec 2022 23:00:41 +0000
+        Mon, 19 Dec 2022 23:00:50 +0000
 Received: from nasanex01b.na.qualcomm.com (nasanex01b.na.qualcomm.com [10.46.141.250])
-        by NASANPPMTA03.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2BJN0e0m030845
+        by NASANPPMTA05.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 2BJN0n2W007943
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 19 Dec 2022 23:00:40 GMT
+        Mon, 19 Dec 2022 23:00:49 GMT
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.36; Mon, 19 Dec 2022 15:00:39 -0800
+ 15.2.986.36; Mon, 19 Dec 2022 15:00:48 -0800
 From:   Elliot Berman <quic_eberman@quicinc.com>
 To:     Bjorn Andersson <quic_bjorande@quicinc.com>,
         Elliot Berman <quic_eberman@quicinc.com>,
@@ -63,9 +63,9 @@ CC:     Trilok Soni <quic_tsoni@quicinc.com>,
         <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-acpi@vger.kernel.org>
-Subject: [PATCH v8 17/28] gunyah: rsc_mgr: Add platform ops on mem_lend/mem_reclaim
-Date:   Mon, 19 Dec 2022 14:58:38 -0800
-Message-ID: <20221219225850.2397345-18-quic_eberman@quicinc.com>
+Subject: [PATCH v8 23/28] virt: gunyah: Add resource tickets
+Date:   Mon, 19 Dec 2022 14:58:44 -0800
+Message-ID: <20221219225850.2397345-24-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20221219225850.2397345-1-quic_eberman@quicinc.com>
 References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
@@ -77,203 +77,217 @@ X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
  nasanex01b.na.qualcomm.com (10.46.141.250)
 X-QCInternal: smtphost
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-ORIG-GUID: QVRaxSI7JB3k2Xyea0G01Y-X0y1mGWqM
-X-Proofpoint-GUID: QVRaxSI7JB3k2Xyea0G01Y-X0y1mGWqM
+X-Proofpoint-ORIG-GUID: 4_OVl2SDQwk6HGf4b6SFB5ryrjLKLYYt
+X-Proofpoint-GUID: 4_OVl2SDQwk6HGf4b6SFB5ryrjLKLYYt
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.923,Hydra:6.0.545,FMLib:17.11.122.1
  definitions=2022-12-19_01,2022-12-15_02,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- impostorscore=0 suspectscore=0 clxscore=1015 adultscore=0 malwarescore=0
- bulkscore=0 mlxlogscore=999 mlxscore=0 spamscore=0 priorityscore=1501
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 bulkscore=0
+ lowpriorityscore=0 malwarescore=0 suspectscore=0 priorityscore=1501
+ phishscore=0 impostorscore=0 mlxscore=0 adultscore=0 spamscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2212070000 definitions=main-2212190202
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Qualcomm platforms, there is a firmware entity which controls access
-to physical pages. In order to share memory with another VM, this entity
-needs to be informed that the guest VM should have access to the memory.
+Some VM functions need to acquire Gunyah resources. For instance, Gunyah
+vCPUs are exposed to the host as a resource. The Gunyah vCPU function
+will register a resource ticket and be able to interact with the
+hypervisor once the resource ticket is filled.
 
-Co-developed-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
-Signed-off-by: Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>
 Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
 ---
- drivers/virt/gunyah/Kconfig                 |  4 ++
- drivers/virt/gunyah/Makefile                |  1 +
- drivers/virt/gunyah/gunyah_platform_hooks.c | 63 +++++++++++++++++++++
- drivers/virt/gunyah/rsc_mgr.h               |  3 +
- drivers/virt/gunyah/rsc_mgr_rpc.c           |  7 ++-
- include/linux/gunyah_rsc_mgr.h              | 14 +++++
- 6 files changed, 91 insertions(+), 1 deletion(-)
- create mode 100644 drivers/virt/gunyah/gunyah_platform_hooks.c
+ drivers/virt/gunyah/vm_mgr.c  | 93 ++++++++++++++++++++++++++++++++++-
+ drivers/virt/gunyah/vm_mgr.h  |  5 ++
+ include/linux/gunyah.h        |  1 +
+ include/linux/gunyah_vm_mgr.h | 14 ++++++
+ 4 files changed, 112 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/virt/gunyah/Kconfig b/drivers/virt/gunyah/Kconfig
-index 5e5a329c9866..e92318ec8026 100644
---- a/drivers/virt/gunyah/Kconfig
-+++ b/drivers/virt/gunyah/Kconfig
-@@ -11,11 +11,15 @@ config GUNYAH
- 	  Say Y/M here to enable the drivers needed to interact in a Gunyah
- 	  virtual environment.
+diff --git a/drivers/virt/gunyah/vm_mgr.c b/drivers/virt/gunyah/vm_mgr.c
+index a5bda4d6613b..3328b84fa681 100644
+--- a/drivers/virt/gunyah/vm_mgr.c
++++ b/drivers/virt/gunyah/vm_mgr.c
+@@ -115,6 +115,56 @@ static long gh_vm_add_function(struct gunyah_vm *ghvm, struct gunyah_vm_function
+ 	return r;
+ }
  
-+config GUNYAH_PLATFORM_HOOKS
-+	tristate
-+
- if GUNYAH
- config GUNYAH_RESOURCE_MANAGER
- 	tristate "Gunyah Resource Manager"
- 	depends on MAILBOX
- 	select GUNYAH_MESSAGE_QUEUES
-+	select GUNYAH_PLATFORM_HOOKS
- 	help
- 	  The resource manager (RM) is a privileged application VM supporting
- 	  the Gunyah Hypervisor. Enable this driver to support communicating
-diff --git a/drivers/virt/gunyah/Makefile b/drivers/virt/gunyah/Makefile
-index 9d6f900ab7b0..e321c009898f 100644
---- a/drivers/virt/gunyah/Makefile
-+++ b/drivers/virt/gunyah/Makefile
-@@ -1,4 +1,5 @@
- obj-$(CONFIG_GUNYAH) += gunyah.o
-+obj-$(CONFIG_GUNYAH_PLATFORM_HOOKS) += gunyah_platform_hooks.o
- 
- gunyah_rsc_mgr-y += rsc_mgr.o rsc_mgr_rpc.o
- gunyah_rsc_mgr-$(CONFIG_GUNYAH_VM_MANAGER) += vm_mgr.o vm_mgr_mm.o
-diff --git a/drivers/virt/gunyah/gunyah_platform_hooks.c b/drivers/virt/gunyah/gunyah_platform_hooks.c
-new file mode 100644
-index 000000000000..36cc02c75963
---- /dev/null
-+++ b/drivers/virt/gunyah/gunyah_platform_hooks.c
-@@ -0,0 +1,63 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/rwsem.h>
-+#include <linux/gunyah_rsc_mgr.h>
-+
-+#include "rsc_mgr.h"
-+
-+static struct gunyah_rm_platform_ops *rm_platform_ops;
-+static DECLARE_RWSEM(rm_platform_ops_lock);
-+
-+int gh_rm_platform_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
++int ghvm_add_resource_ticket(struct gunyah_vm *ghvm, struct gunyah_vm_resource_ticket *ticket)
 +{
++	struct gunyah_vm_resource_ticket *iter;
++	struct gunyah_resource *ghrsc;
 +	int ret = 0;
 +
-+	down_read(&rm_platform_ops_lock);
-+	if (rm_platform_ops && rm_platform_ops->pre_mem_share)
-+		ret = rm_platform_ops->pre_mem_share(rm, mem_parcel);
-+	up_read(&rm_platform_ops_lock);
++	mutex_lock(&ghvm->resources_lock);
++	list_for_each_entry(iter, &ghvm->resource_tickets, list) {
++		if (iter->resource_type == ticket->resource_type && iter->label == ticket->label) {
++			ret = -EEXIST;
++			goto out;
++		}
++	}
++
++	if (!try_module_get(ticket->owner)) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	list_add(&ticket->list, &ghvm->resource_tickets);
++	INIT_LIST_HEAD(&ticket->resources);
++
++	list_for_each_entry(ghrsc, &ghvm->resources, list) {
++		if (ghrsc->type == ticket->resource_type && ghrsc->rm_label == ticket->label) {
++			if (!ticket->populate(ticket, ghrsc))
++				list_move(&ghrsc->list, &ticket->resources);
++		}
++	}
++out:
++	mutex_unlock(&ghvm->resources_lock);
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(gh_rm_platform_pre_mem_share);
++EXPORT_SYMBOL_GPL(ghvm_add_resource_ticket);
 +
-+int gh_rm_platform_post_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel)
++void ghvm_remove_resource_ticket(struct gunyah_vm *ghvm, struct gunyah_vm_resource_ticket *ticket)
 +{
-+	int ret = 0;
++	struct gunyah_resource *ghrsc;
 +
-+	down_read(&rm_platform_ops_lock);
-+	if (rm_platform_ops && rm_platform_ops->post_mem_reclaim)
-+		ret = rm_platform_ops->post_mem_reclaim(rm, mem_parcel);
-+	up_read(&rm_platform_ops_lock);
-+	return ret;
++	mutex_lock(&ghvm->resources_lock);
++	list_for_each_entry(ghrsc, &ticket->resources, list) {
++		ticket->unpopulate(ticket, ghrsc);
++		list_move(&ghrsc->list, &ghvm->resources);
++	}
++
++	module_put(ticket->owner);
++	list_del(&ticket->list);
++	mutex_unlock(&ghvm->resources_lock);
 +}
-+EXPORT_SYMBOL_GPL(gh_rm_platform_post_mem_reclaim);
++EXPORT_SYMBOL_GPL(ghvm_remove_resource_ticket);
 +
-+int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
+ static void ghvm_put(struct kref *kref)
+ {
+ 	struct gunyah_vm *ghvm = container_of(kref, struct gunyah_vm, kref);
+@@ -156,17 +206,41 @@ static __must_check struct gunyah_vm *gunyah_vm_alloc(struct gh_rm_rpc *rm)
+ 	INIT_LIST_HEAD(&ghvm->memory_mappings);
+ 	init_rwsem(&ghvm->status_lock);
+ 	kref_init(&ghvm->kref);
++	mutex_init(&ghvm->resources_lock);
++	INIT_LIST_HEAD(&ghvm->resources);
++	INIT_LIST_HEAD(&ghvm->resource_tickets);
+ 	INIT_LIST_HEAD(&ghvm->functions);
+ 
+ 	return ghvm;
+ }
+ 
++static void gh_vm_add_resource(struct gunyah_vm *ghvm, struct gunyah_resource *ghrsc)
 +{
-+	int ret = 0;
++	struct gunyah_vm_resource_ticket *ticket;
 +
-+	down_write(&rm_platform_ops_lock);
-+	if (!rm_platform_ops)
-+		rm_platform_ops = platform_ops;
-+	else
-+		ret = -EEXIST;
-+	up_write(&rm_platform_ops_lock);
-+	return ret;
++	mutex_lock(&ghvm->resources_lock);
++	list_for_each_entry(ticket, &ghvm->resource_tickets, list) {
++		if (ghrsc->type == ticket->resource_type && ghrsc->rm_label == ticket->label) {
++			if (!ticket->populate(ticket, ghrsc)) {
++				list_add(&ghrsc->list, &ticket->resources);
++				goto found;
++			}
++		}
++	}
++	list_add(&ghrsc->list, &ghvm->resources);
++found:
++	mutex_unlock(&ghvm->resources_lock);
 +}
-+EXPORT_SYMBOL_GPL(gh_rm_register_platform_ops);
 +
-+void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
-+{
-+	down_write(&rm_platform_ops_lock);
-+	if (rm_platform_ops == platform_ops)
-+		rm_platform_ops = NULL;
-+	up_write(&rm_platform_ops_lock);
-+}
-+EXPORT_SYMBOL_GPL(gh_rm_unregister_platform_ops);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Gunyah Platform Hooks");
-diff --git a/drivers/virt/gunyah/rsc_mgr.h b/drivers/virt/gunyah/rsc_mgr.h
-index e068b5b65d2b..69554602c889 100644
---- a/drivers/virt/gunyah/rsc_mgr.h
-+++ b/drivers/virt/gunyah/rsc_mgr.h
-@@ -33,6 +33,9 @@ struct gh_rm_rpc;
- int gh_rm_call(struct gh_rm_rpc *rsc_mgr, u32 message_id, void *req_buff, size_t req_buff_size,
- 		void **resp_buf, size_t *resp_buff_size);
+ static int gh_vm_start(struct gunyah_vm *ghvm)
+ {
+ 	struct gunyah_vm_memory_mapping *mapping;
+ 	u64 dtb_offset;
+ 	u32 mem_handle;
+-	int ret;
++	ssize_t num_hyp_resources;
++	struct gunyah_resource *ghrsc;
++	struct gh_rm_hyp_resource *resources;
++	int ret, i;
  
-+int gh_rm_platform_pre_mem_share(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
-+int gh_rm_platform_post_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
-+
- /* Message IDs: Memory Management */
- #define GH_RM_RPC_MEM_LEND			0x51000012
- #define GH_RM_RPC_MEM_SHARE			0x51000013
-diff --git a/drivers/virt/gunyah/rsc_mgr_rpc.c b/drivers/virt/gunyah/rsc_mgr_rpc.c
-index 2c9aded7cc09..e81a0dc798e1 100644
---- a/drivers/virt/gunyah/rsc_mgr_rpc.c
-+++ b/drivers/virt/gunyah/rsc_mgr_rpc.c
-@@ -112,6 +112,10 @@ static int gh_rm_mem_lend_common(struct gh_rm_rpc *rm, u32 message_id, struct gh
- 	if (initial_n_mem_entries > GH_RM_MAX_MEM_ENTRIES)
- 		initial_n_mem_entries = GH_RM_MAX_MEM_ENTRIES;
- 
-+	ret = gh_rm_platform_pre_mem_share(rm, p);
-+	if (ret)
-+		return ret;
-+
- 	/* The format of the message goes:
- 	 * request header
- 	 * ACL entries (which VMs get what kind of access to this memory parcel)
-@@ -155,6 +159,7 @@ static int gh_rm_mem_lend_common(struct gh_rm_rpc *rm, u32 message_id, struct gh
- 
- 	if (resp_size != sizeof(__le32)) {
- 		ret = -EIO;
-+		gh_rm_platform_post_mem_reclaim(rm, p);
- 		goto out;
+ 	down_write(&ghvm->status_lock);
+ 	if (ghvm->vm_status != GH_RM_VM_STATUS_NO_STATE) {
+@@ -198,6 +272,23 @@ static int gh_vm_start(struct gunyah_vm *ghvm)
+ 		goto err;
  	}
  
-@@ -224,7 +229,7 @@ int gh_rm_mem_reclaim(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *parcel)
- 		return ret;
- 	kfree(resp);
++	num_hyp_resources = gh_rm_get_hyp_resources(ghvm->rm, ghvm->vmid, &resources);
++	if (num_hyp_resources < 0) {
++		pr_warn("Failed to get hypervisor resources for VM: %ld\n", num_hyp_resources);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	for (i = 0; i < num_hyp_resources; i++) {
++		ghrsc = gh_rm_alloc_resource(ghvm->rm, &resources[i]);
++		if (!ghrsc) {
++			ret = -ENOMEM;
++			goto err;
++		}
++
++		gh_vm_add_resource(ghvm, ghrsc);
++	}
++
+ 	ret = gh_rm_vm_start(ghvm->rm, ghvm->vmid);
+ 	if (ret) {
+ 		pr_warn("Failed to start VM: %d\n", ret);
+diff --git a/drivers/virt/gunyah/vm_mgr.h b/drivers/virt/gunyah/vm_mgr.h
+index 2c4fd240792a..8a71f97960bc 100644
+--- a/drivers/virt/gunyah/vm_mgr.h
++++ b/drivers/virt/gunyah/vm_mgr.h
+@@ -7,6 +7,7 @@
+ #define _GH_PRIV_VM_MGR_H
  
--	return ret;
-+	return gh_rm_platform_post_mem_reclaim(rm, parcel);
- }
- EXPORT_SYMBOL_GPL(gh_rm_mem_reclaim);
+ #include <linux/gunyah_rsc_mgr.h>
++#include <linux/gunyah_vm_mgr.h>
+ #include <linux/list.h>
+ #include <linux/kref.h>
+ #include <linux/miscdevice.h>
+@@ -53,6 +54,10 @@ struct gunyah_vm {
+ 	struct mutex mm_lock;
+ 	struct list_head memory_mappings;
  
-diff --git a/include/linux/gunyah_rsc_mgr.h b/include/linux/gunyah_rsc_mgr.h
-index 0b5b236fd76f..be434bcf9b4e 100644
---- a/include/linux/gunyah_rsc_mgr.h
-+++ b/include/linux/gunyah_rsc_mgr.h
-@@ -115,4 +115,18 @@ ssize_t gh_rm_get_hyp_resources(struct gh_rm_rpc *rm, u16 vmid,
- 				struct gh_rm_hyp_resource **resources);
- int gh_rm_get_vmid(struct gh_rm_rpc *rm, u16 *vmid);
++	struct mutex resources_lock;
++	struct list_head resources;
++	struct list_head resource_tickets;
++
+ 	struct list_head functions;
+ };
  
-+struct gunyah_rm_platform_ops {
-+	int (*pre_mem_share)(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
-+	int (*post_mem_reclaim)(struct gh_rm_rpc *rm, struct gh_rm_mem_parcel *mem_parcel);
+diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
+index 8cb6af88c75d..af69a3479025 100644
+--- a/include/linux/gunyah.h
++++ b/include/linux/gunyah.h
+@@ -28,6 +28,7 @@ struct gunyah_resource {
+ 	int irq;
+ 
+ 	/* To help allocator in resource manager */
++	struct list_head list;
+ 	u32 rm_label;
+ };
+ 
+diff --git a/include/linux/gunyah_vm_mgr.h b/include/linux/gunyah_vm_mgr.h
+index 4bb06f100ae5..3e6e6e0ab7f0 100644
+--- a/include/linux/gunyah_vm_mgr.h
++++ b/include/linux/gunyah_vm_mgr.h
+@@ -65,4 +65,18 @@ void gunyah_vm_function_unregister(struct gunyah_vm_function_driver *f);
+ 	}								\
+ 	module_exit(_name##_mod_exit)
+ 
++struct gunyah_vm_resource_ticket {
++	struct list_head list;
++	struct list_head resources;
++	enum gunyah_resource_type resource_type;
++	u32 label;
++
++	struct module *owner;
++	int (*populate)(struct gunyah_vm_resource_ticket *ticket, struct gunyah_resource *ghrsc);
++	void (*unpopulate)(struct gunyah_vm_resource_ticket *ticket, struct gunyah_resource *ghrsc);
 +};
 +
-+#if IS_ENABLED(CONFIG_GUNYAH_PLATFORM_HOOKS)
-+int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops);
-+void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops);
-+#else
-+static inline int gh_rm_register_platform_ops(struct gunyah_rm_platform_ops *platform_ops)
-+	{ return 0; }
-+static inline void gh_rm_unregister_platform_ops(struct gunyah_rm_platform_ops *platform_ops) { }
-+#endif
++int ghvm_add_resource_ticket(struct gunyah_vm *ghvm, struct gunyah_vm_resource_ticket *ticket);
++void ghvm_remove_resource_ticket(struct gunyah_vm *ghvm, struct gunyah_vm_resource_ticket *ticket);
 +
  #endif
 -- 
