@@ -2,144 +2,147 @@ Return-Path: <linux-acpi-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B153C4332F
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Dec 2022 14:57:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E724DC4332F
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Dec 2022 15:52:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232067AbiLUO5K (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Dec 2022 09:57:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43894 "EHLO
+        id S232603AbiLUPwV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Dec 2022 10:52:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231888AbiLUO5J (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Dec 2022 09:57:09 -0500
-Received: from mail-yb1-xb30.google.com (mail-yb1-xb30.google.com [IPv6:2607:f8b0:4864:20::b30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3D351BB
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2022 06:57:08 -0800 (PST)
-Received: by mail-yb1-xb30.google.com with SMTP id b16so16823275yba.0
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2022 06:57:08 -0800 (PST)
+        with ESMTP id S232524AbiLUPwS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Dec 2022 10:52:18 -0500
+Received: from smtp-fw-6002.amazon.com (smtp-fw-6002.amazon.com [52.95.49.90])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF8601A393;
+        Wed, 21 Dec 2022 07:52:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ASAmxtzr5KDkYvNYhSu+ifwNyTKiPQHYSw8iTP+L3PE=;
-        b=UPGNT1faM2dX79HhwfctBXk0mHNohLnRhkBetBRRCngrOBWavDNRWr+XE6RZpIGSoO
-         ZiIFPr6QL0TxRwERN0DtIfck/XEW7vb8qF/pMwir80UYCqYBjWZmG3l354f30UMIvXt1
-         18AukyLtmp9XfVd4YAekwKAA/fxDvqQoWz0y01ot7fx5vK1gb7Xnxw49m1JTQabi3d7H
-         IFp9Z0DrFN+KCTkbFiLr/OtXsIsLNE9DC4dwwOTvHk6txKwG5sHtz7TJs9WtJUi6fXQy
-         53a5B3ACdZFtrX1zfs0yGEO8q9YosapQOsTnd/B8kMJnaRWAZxTpIPXnyfKQNFpcTfjZ
-         UdYg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ASAmxtzr5KDkYvNYhSu+ifwNyTKiPQHYSw8iTP+L3PE=;
-        b=F0zfeYK1A5Q5Ox1creKh1CAEEtxtK9jcgHBM3eoVWN+nGVbHLlOC3eMVSSwSegDq60
-         4+os6dFw4ffJy/7J1jAtCK+adrg3cvo/7G68xcMG1RRy1msrooEZc933MueFL2i4IqFT
-         9y7dq+FJDi42mDR3egoHtW7HTWDBSNkWE9e4eCeRHW9FgOM0vSrwqWM+PERFCmT0Dp2R
-         cfuTvcJ6Y3VzP0VeD823y9/o6qft4guoe0AUlmp/U07twnQgNHRyeEWbzex5IUipAIx/
-         T/Ngsf4dnN3CybvTWNeiKq2JGJPfgge9rFtoOBph8EfvLhop6K3zd5dB947oiGyAxT1h
-         Mjqg==
-X-Gm-Message-State: AFqh2kphgZP5NoqTz7LxYgu9wjzXQloAb9n+ELhVjeTXmmFeWZMminXa
-        pxLSa4mABAhgKArkKFwui8sj98T7QDQ+SHM16ypggMJGuTk=
-X-Google-Smtp-Source: AMrXdXtgAvVOZzAHranGaEjNdDaUZNT3uF1OASse3dVO6jR6YThuKEg4VeibJf/rnzY46YHpsUNzkQdaSe1PTcY3ZHI=
-X-Received: by 2002:a05:6902:128d:b0:6f9:fd74:22f with SMTP id
- i13-20020a056902128d00b006f9fd74022fmr204422ybu.100.1671634627841; Wed, 21
- Dec 2022 06:57:07 -0800 (PST)
+  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazon201209;
+  t=1671637937; x=1703173937;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=fPHbtq9qCbxUujjnY3/7YX+cvjvbTVPwrWqhH/h+PEk=;
+  b=JJ1Fsp534wZA9AD1yviaKPtplc1g6I0dGyLxS10aSnMnPQZcuoFlA9H0
+   MJjOlk4CoauWjggrH5KI4gsZG3f9sQ2eAKTWp9CFi0dJkwpP3gxVINcuJ
+   c1XzecTP9Ne0c9IR2fKLxMmAPNhuuEE8vE2yWy4wcWzshoQfFsjHY2VMN
+   Y=;
+X-IronPort-AV: E=Sophos;i="5.96,262,1665446400"; 
+   d="scan'208";a="279685468"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-iad-1d-m6i4x-25ac6bd5.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-6002.iad6.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Dec 2022 15:52:14 +0000
+Received: from EX13D46EUB002.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-iad-1d-m6i4x-25ac6bd5.us-east-1.amazon.com (Postfix) with ESMTPS id B0BFB428FE;
+        Wed, 21 Dec 2022 15:52:11 +0000 (UTC)
+Received: from EX19D028EUB002.ant.amazon.com (10.252.61.43) by
+ EX13D46EUB002.ant.amazon.com (10.43.166.241) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.42; Wed, 21 Dec 2022 15:52:10 +0000
+Received: from EX13MTAUWB001.ant.amazon.com (10.43.161.207) by
+ EX19D028EUB002.ant.amazon.com (10.252.61.43) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.2.1118.20; Wed, 21 Dec 2022 15:52:10 +0000
+Received: from dev-dsk-ptyadav-1c-37607b33.eu-west-1.amazon.com (10.15.11.255)
+ by mail-relay.amazon.com (10.43.161.249) with Microsoft SMTP Server id
+ 15.0.1497.42 via Frontend Transport; Wed, 21 Dec 2022 15:52:08 +0000
+Received: by dev-dsk-ptyadav-1c-37607b33.eu-west-1.amazon.com (Postfix, from userid 23027615)
+        id 4B3C120D20; Wed, 21 Dec 2022 16:52:08 +0100 (CET)
+From:   Pratyush Yadav <ptyadav@amazon.de>
+To:     <linux-pm@vger.kernel.org>
+CC:     Pratyush Yadav <ptyadav@amazon.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Robert Moore <robert.moore@intel.com>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <devel@acpica.org>
+Subject: [PATCH 1/2] acpi: processor: allow fixing up the frequency for a performance state
+Date:   Wed, 21 Dec 2022 16:52:02 +0100
+Message-ID: <20221221155203.11347-2-ptyadav@amazon.de>
+X-Mailer: git-send-email 2.38.1
+In-Reply-To: <20221221155203.11347-1-ptyadav@amazon.de>
+References: <20221221155203.11347-1-ptyadav@amazon.de>
 MIME-Version: 1.0
-References: <CADaG5hMao0nRXP9VrvVy__7H3vKUmQuH_rLVhy1m+GZdBGVJkQ@mail.gmail.com>
- <CADaG5hO1FsZ5JKEq4ZbM2j=xB7E-UheKxLB=k=QpEdDHKKBkuA@mail.gmail.com>
- <CADaG5hOc8f228Bmq7=aeA23SkbSuRdQUNSHLQqAS28iFXm0+FA@mail.gmail.com> <CAJZ5v0iUOn7w-RW4f71_80v301iwXzEYVxETjMcZ8n=8f-LEoA@mail.gmail.com>
-In-Reply-To: <CAJZ5v0iUOn7w-RW4f71_80v301iwXzEYVxETjMcZ8n=8f-LEoA@mail.gmail.com>
-From:   Michael Shantzis <shantzis62@gmail.com>
-Date:   Wed, 21 Dec 2022 06:56:56 -0800
-Message-ID: <CADaG5hPECCbzGBiK_eUwi+QdMH3kfuZr6cZ4VaoM-+YfK2mQMQ@mail.gmail.com>
-Subject: Re: help with a sleep state bug (216424)
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     linux-acpi@vger.kernel.org, David Box <david.e.box@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Thanks, Rafael (and David, in advance).
+In some cases the ACPI table can have an incorrect frequency populated
+for a performance state. For example, in Intel platforms, the Turbo
+frequency is just listed as +1 MHz above the max non-turbo frequency.
+The frequency can actually go much higher based on various factors like
+temperature, voltage, etc.
 
-I attached the new dmesg to the bug entry. Just for convenience, it's
-found here:
-https://bugzilla.kernel.org/attachment.cgi?id=3D303447
+Allow drivers like intel_pstate to fix up performance state frequencies
+with the actual maximum value. While at it, also update the QoS
+constraints if needed to match the new frequency values.
 
-I also added the comment about the kernel version I used for
-debugging: 5.19.0-rc1.
+Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
+---
+ drivers/acpi/processor_perflib.c | 40 ++++++++++++++++++++++++++++++++
+ include/acpi/processor.h         |  2 ++
+ 2 files changed, 42 insertions(+)
 
-I have not tried the latest kernel version. I'll do this and get back to yo=
-u.
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 970f04a958cd..4958aee4c024 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -766,3 +766,43 @@ void acpi_processor_unregister_performance(unsigned int cpu)
+ 	mutex_unlock(&performance_mutex);
+ }
+ EXPORT_SYMBOL(acpi_processor_unregister_performance);
++
++int acpi_processor_fixup_perf_state(unsigned int cpu, unsigned int state,
++				    unsigned int frequency)
++{
++	struct acpi_processor *pr;
++	int ret;
++
++	mutex_lock(&performance_mutex);
++
++	pr = per_cpu(processors, cpu);
++	if (!pr) {
++		mutex_unlock(&performance_mutex);
++		return -ENODEV;
++	}
++
++	if (!pr->performance) {
++		mutex_unlock(&performance_mutex);
++		return -EINVAL;
++	}
++
++	if (state >= pr->performance->state_count) {
++		mutex_unlock(&performance_mutex);
++		return -EINVAL;
++	}
++
++	pr->performance->states[state].core_frequency = frequency;
++
++	if (ignore_ppc != 1 && state == pr->performance_platform_limit &&
++	    freq_qos_request_active(&pr->perflib_req)) {
++		ret = freq_qos_update_request(&pr->perflib_req,
++					      frequency * 1000);
++		if (ret < 0)
++			pr_warn("Failed to update perflib freq constraint: CPU%d (%d)\n",
++				pr->id, ret);
++	}
++
++	mutex_unlock(&performance_mutex);
++	return 0;
++}
++EXPORT_SYMBOL(acpi_processor_fixup_perf_state);
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 94181fe9780a..daff978cfa7d 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -258,6 +258,8 @@ extern int acpi_processor_preregister_performance(struct
+ extern int acpi_processor_register_performance(struct acpi_processor_performance
+ 					       *performance, unsigned int cpu);
+ extern void acpi_processor_unregister_performance(unsigned int cpu);
++extern int acpi_processor_fixup_perf_state(unsigned int cpu, unsigned int state,
++					   unsigned int frequency);
+ 
+ int acpi_processor_pstate_control(void);
+ /* note: this locks both the calling module and the processor module
+-- 
+2.38.1
 
-m
-
-On Mon, Dec 19, 2022 at 6:38 AM Rafael J. Wysocki <rafael@kernel.org> wrote=
-:
->
-> Hi,
->
-> On Sat, Dec 17, 2022 at 6:19 PM Michael Shantzis <shantzis62@gmail.com> w=
-rote:
-> >
-> > [resending w/o HTML]
-> >
-> > On Sat, Dec 17, 2022 at 9:16 AM Michael Shantzis <shantzis62@gmail.com>=
- wrote:
-> > >
-> > > Hello Rafael,
-> > >
-> > > I mailed you about this a few months ago and then I got caught up wit=
-h other things. Adding linux-acpi@ to the email.
-> > >
-> > > I'm still trying to figure out what is going on with my computer's in=
-complete sleep state. I have the feeling that if someone who understands th=
-is looks at the logs, they may be able to tell me pretty quickly what is go=
-ing on and how to proceed. If any of you can help me out with that, I'd rea=
-lly appreciate it.
-> > >
-> > > Thank you in advance for any help you can provide. I greatly apprecia=
-te it.
-> > >
-> > > Michael Shantzis
-> > >
-> > > On Sat, Sep 10, 2022 at 11:32 AM Michael Shantzis <shantzis62@gmail.c=
-om> wrote:
-> > >>
-> > >> Hi Rafael,
-> > >>
-> > >> I'm trying to get some help with this bug:
-> > >> Bug 216424 (see https://bugzilla.kernel.org/show_bug.cgi?id=3D216424=
-)  - HP Spectre x360 incomplete sleep state
-> > >>
-> > >>
-> > >>
-> > >> Someone on the thread encouraged me to email you directly. The summa=
-ry is that I have an HP Spectre x360 that doesn't entirely go into sleep st=
-ate and its battery dies fairly quickly when the lid is closed (about 2x-3x=
- more quickly than some of my other laptops/configurations).
-> > >>
-> > >> Any help you can give me in figuring this out would be greatly appre=
-ciated.
-> > >>
-> > >> Thanks so much, both for your contributions to linux (I never get to=
- thank anyone personally :)) and in advance for any help you can give.
->
-> You're welcome.
->
-> According to the turbostat logs, the system doesn't reach the S0ix
-> platform state, even though the PC10 idle state is reached by the SoC.
-> The kernel does what it can do, but the hardware doesn't respond as
-> expected for some reason.  This type of failure is not particularly
-> easy to debug (I've added David Box who has some experience with
-> tracking similar issues to the CC list).
->
-> Can you please attach dmesg output without the initcall_debug command
-> line parameter to the bug entry?
->
-> Also, what's the latest kernel version you have tried?
->
-> Thanks!
