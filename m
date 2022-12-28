@@ -2,158 +2,265 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C17BC10F1B
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Dec 2022 20:55:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAE3AC46467
+	for <linux-acpi@archiver.kernel.org>; Wed, 28 Dec 2022 09:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232677AbiL0UzL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 27 Dec 2022 15:55:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43188 "EHLO
+        id S232702AbiL1JUi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 28 Dec 2022 04:20:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231533AbiL0Uyq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Dec 2022 15:54:46 -0500
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C321615A11;
-        Tue, 27 Dec 2022 12:41:08 -0800 (PST)
+        with ESMTP id S232675AbiL1JUd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Dec 2022 04:20:33 -0500
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E718363F3;
+        Wed, 28 Dec 2022 01:20:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1672173668; x=1703709668;
-  h=message-id:subject:from:to:cc:date:in-reply-to:
+  t=1672219232; x=1703755232;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=ne94dgkkzGg53jyZDGuBXcIDhwnjy96fv/eeDJXON+4=;
-  b=M5w5O+YzbQlouT+7V+zqOsJUS7LvFktyGaT+Mq3Q+TWicrO+LTszOn4p
-   ECs78AP9ceDMiJ6vgyzFWVeJ+G79NjtyfS+96yfzSNHTB5i+qDnFSMqb5
-   U9bVdeFZz21MV05eT5Lr/xW85wbf/+1xw740L23erTsx/7AWxiaifQ9Mz
-   j9RMTeXnYiw25Bmeo9M7ogFh5uXr6Ppj0COQitezLpWArLH4gAc8DAy81
-   hD2GJxAe1TWCMOocfyx+gOs4HMxoLBTRo339Mr4aPartQIYABlZvO3cTL
-   f/8d3Ws5pAhpM4uNe1u5F0QKNUOglQ31sFNqlf4Hbbp5lUTrghGVwOtJ5
+  bh=UMmpQONPDdapY9pS6wpbPLce5H+8MKwTLo52jhIYAws=;
+  b=SVBmqPT1+qYMKiciGn3BF2995TeQslZN7W6/80ckXZ/W2I3b4EWVM+8F
+   /IsAQkpOSXLC/a4Mg3VFjp9eOFA2alcFzvZZdZrNuIWP2qn5xxYYYT4HA
+   hn2M6ipS+ddpqe/Eyb4mAG9A4pFhOF0V+9GNEZOOW+g0ObJMkhEmgZNXH
+   GaKQPzSVKN3vRBe6cXf4pTNS/qirC4rMuN2TYSKdOZ3x61YR0jyxYL+TZ
+   brgFVL6S0MVAPpA0RQrBq706xGAX7U/S3PD8Exg6fQaoX/bS4EtPhkq1g
+   JFz5Ms7pnGocCFrV7io57fzxfk4YBEbL+Ox0pgUFistZnrJDfc5j49Rm6
    w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10573"; a="321990502"
-X-IronPort-AV: E=Sophos;i="5.96,279,1665471600"; 
-   d="scan'208";a="321990502"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Dec 2022 12:40:51 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10573"; a="630780123"
-X-IronPort-AV: E=Sophos;i="5.96,279,1665471600"; 
-   d="scan'208";a="630780123"
-Received: from spandruv-desk.jf.intel.com ([10.54.75.8])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Dec 2022 12:40:51 -0800
-Message-ID: <24821308109ba20d845e11caf32bede92fec5d8e.camel@linux.intel.com>
-Subject: Re: [PATCH v1 1/2] ACPI: processor: perflib: Use the "no limit"
- frequency QoS
-From:   srinivas pandruvada <srinivas.pandruvada@linux.intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux PM <linux-pm@vger.kernel.org>
-Cc:     Pratyush Yadav <ptyadav@amazon.de>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>
-Date:   Tue, 27 Dec 2022 12:40:51 -0800
-In-Reply-To: <12138067.O9o76ZdvQC@kreacher>
-References: <12138067.O9o76ZdvQC@kreacher>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.4 (3.38.4-1.fc33) 
+X-IronPort-AV: E=McAfee;i="6500,9779,10573"; a="301202849"
+X-IronPort-AV: E=Sophos;i="5.96,280,1665471600"; 
+   d="scan'208";a="301202849"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Dec 2022 01:20:32 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10573"; a="603285106"
+X-IronPort-AV: E=Sophos;i="5.96,280,1665471600"; 
+   d="scan'208";a="603285106"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga003.jf.intel.com with ESMTP; 28 Dec 2022 01:20:29 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 1D66619E; Wed, 28 Dec 2022 11:21:01 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Thierry Reding <treding@nvidia.com>
+Subject: [PATCH v4 2/3] gpiolib: Get rid of not used of_node member
+Date:   Wed, 28 Dec 2022 11:20:44 +0200
+Message-Id: <20221228092045.80425-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221228092045.80425-1-andriy.shevchenko@linux.intel.com>
+References: <20221228092045.80425-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 2022-12-27 at 20:51 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> When _PPC returns 0, it means that the CPU frequency is not limited
-> by
-> the platform firmware, so make acpi_processor_get_platform_limit()
-> update the frequency QoS request used by it to "no limit" in that
-> case
-> and avoid updating the QoS request when the _PPC return value has not
-> changed.
-> 
-> This addresses a problem with limiting CPU frequency artificially on
-> some systems after CPU offline/online to the frequency that
-> corresponds
-> to the first entry in the _PSS return package.
-> 
-> While at it, move the _PPC return value check against the state count
-> earlier to avoid setting performance_platform_limit to an invalid
-> value.
-> 
-> Reported-by: Pratyush Yadav <ptyadav@amazon.de>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/processor_perflib.c |   27 +++++++++++++++++++++------
->  1 file changed, 21 insertions(+), 6 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/processor_perflib.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/processor_perflib.c
-> +++ linux-pm/drivers/acpi/processor_perflib.c
-> @@ -53,6 +53,8 @@ static int acpi_processor_get_platform_l
->  {
->         acpi_status status = 0;
->         unsigned long long ppc = 0;
-> +       s32 qos_value;
-> +       int index;
->         int ret;
->  
->         if (!pr)
-> @@ -72,17 +74,30 @@ static int acpi_processor_get_platform_l
->                 }
->         }
->  
-> +       index = ppc;
-> +
-> +       if (pr->performance_platform_limit == index ||
-> +           ppc >= pr->performance->state_count)
-> +               return 0;
+All new drivers should use fwnode and / or parent to provide the
+necessary information to the GPIO library.
 
-Do we need to re initialize pr->performance_platform_limit to 0 in
-acpi_processor_unregister_performance()?
+Cc: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 10 ----------
+ drivers/gpio/gpiolib-acpi.h |  4 ----
+ drivers/gpio/gpiolib-of.c   | 25 +++++--------------------
+ drivers/gpio/gpiolib-of.h   |  5 -----
+ drivers/gpio/gpiolib.c      | 11 +++--------
+ include/linux/gpio/driver.h |  7 -------
+ 6 files changed, 8 insertions(+), 54 deletions(-)
 
-If PPC was 1 before the offline and after online the above check will
-cause it to return as the pr->performance_platform_limit is not
-changed. Not sure if the PM QOS state is preserved after offline and
-online. This is stored in a per CPU variable, not in dynamically
-allocated memory which will be reallocated during online again.
-
-
-Thanks,
-Srinivas
-
-> +
->         pr_debug("CPU %d: _PPC is %d - frequency %s limited\n", pr-
-> >id,
-> -                      (int)ppc, ppc ? "" : "not");
-> +                index, index ? "is" : "is not");
->  
-> -       pr->performance_platform_limit = (int)ppc;
-> +       pr->performance_platform_limit = index;
->  
-> -       if (ppc >= pr->performance->state_count ||
-> -           unlikely(!freq_qos_request_active(&pr->perflib_req)))
-> +       if (unlikely(!freq_qos_request_active(&pr->perflib_req)))
->                 return 0;
->  
-> -       ret = freq_qos_update_request(&pr->perflib_req,
-> -                       pr->performance->states[ppc].core_frequency *
-> 1000);
-> +       /*
-> +        * If _PPC returns 0, it means that all of the available
-> states can be
-> +        * used ("no limit").
-> +        */
-> +       if (index == 0)
-> +               qos_value = FREQ_QOS_MAX_DEFAULT_VALUE;
-> +       else
-> +               qos_value = pr->performance-
-> >states[index].core_frequency * 1000;
-> +
-> +       ret = freq_qos_update_request(&pr->perflib_req, qos_value);
->         if (ret < 0) {
->                 pr_warn("Failed to update perflib freq constraint:
-> CPU%d (%d)\n",
->                         pr->id, ret);
-> 
-> 
-> 
-
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index bed0380c5136..466622a8fb36 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -1387,16 +1387,6 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
+ 	kfree(acpi_gpio);
+ }
+ 
+-void acpi_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev)
+-{
+-	/* Set default fwnode to parent's one if present */
+-	if (gc->parent)
+-		ACPI_COMPANION_SET(&gdev->dev, ACPI_COMPANION(gc->parent));
+-
+-	if (gc->fwnode)
+-		device_set_node(&gdev->dev, gc->fwnode);
+-}
+-
+ static int acpi_gpio_package_count(const union acpi_object *obj)
+ {
+ 	const union acpi_object *element = obj->package.elements;
+diff --git a/drivers/gpio/gpiolib-acpi.h b/drivers/gpio/gpiolib-acpi.h
+index 9475f99a9694..5fa315b3c912 100644
+--- a/drivers/gpio/gpiolib-acpi.h
++++ b/drivers/gpio/gpiolib-acpi.h
+@@ -26,8 +26,6 @@ struct gpio_device;
+ void acpi_gpiochip_add(struct gpio_chip *chip);
+ void acpi_gpiochip_remove(struct gpio_chip *chip);
+ 
+-void acpi_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev);
+-
+ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
+ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip);
+ 
+@@ -42,8 +40,6 @@ int acpi_gpio_count(struct device *dev, const char *con_id);
+ static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
+ static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
+ 
+-static inline void acpi_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev) { }
+-
+ static inline void
+ acpi_gpiochip_request_interrupts(struct gpio_chip *chip) { }
+ 
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index 4fff7258ee41..a6f9788d6db0 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -668,7 +668,7 @@ static struct gpio_desc *of_parse_own_gpio(struct device_node *np,
+ 	u32 tmp;
+ 	int ret;
+ 
+-	chip_np = chip->of_node;
++	chip_np = dev_of_node(&chip->gpiodev->dev);
+ 	if (!chip_np)
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -760,7 +760,7 @@ static int of_gpiochip_scan_gpios(struct gpio_chip *chip)
+ 	struct device_node *np;
+ 	int ret;
+ 
+-	for_each_available_child_of_node(chip->of_node, np) {
++	for_each_available_child_of_node(dev_of_node(&chip->gpiodev->dev), np) {
+ 		if (!of_property_read_bool(np, "gpio-hog"))
+ 			continue;
+ 
+@@ -970,14 +970,15 @@ EXPORT_SYMBOL_GPL(of_mm_gpiochip_remove);
+ #ifdef CONFIG_PINCTRL
+ static int of_gpiochip_add_pin_range(struct gpio_chip *chip)
+ {
+-	struct device_node *np = chip->of_node;
+ 	struct of_phandle_args pinspec;
+ 	struct pinctrl_dev *pctldev;
++	struct device_node *np;
+ 	int index = 0, ret;
+ 	const char *name;
+ 	static const char group_names_propname[] = "gpio-ranges-group-names";
+ 	struct property *group_names;
+ 
++	np = dev_of_node(&chip->gpiodev->dev);
+ 	if (!np)
+ 		return 0;
+ 
+@@ -1063,7 +1064,7 @@ int of_gpiochip_add(struct gpio_chip *chip)
+ 	struct device_node *np;
+ 	int ret;
+ 
+-	np = to_of_node(dev_fwnode(&chip->gpiodev->dev));
++	np = dev_of_node(&chip->gpiodev->dev);
+ 	if (!np)
+ 		return 0;
+ 
+@@ -1092,19 +1093,3 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+ {
+ 	fwnode_handle_put(chip->fwnode);
+ }
+-
+-void of_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev)
+-{
+-	/* Set default OF node to parent's one if present */
+-	if (gc->parent)
+-		gdev->dev.of_node = gc->parent->of_node;
+-
+-	if (gc->fwnode)
+-		gc->of_node = to_of_node(gc->fwnode);
+-
+-	/* If the gpiochip has an assigned OF node this takes precedence */
+-	if (gc->of_node)
+-		gdev->dev.of_node = gc->of_node;
+-	else
+-		gc->of_node = gdev->dev.of_node;
+-}
+diff --git a/drivers/gpio/gpiolib-of.h b/drivers/gpio/gpiolib-of.h
+index a6c593e6766c..e5bb065d82ef 100644
+--- a/drivers/gpio/gpiolib-of.h
++++ b/drivers/gpio/gpiolib-of.h
+@@ -23,7 +23,6 @@ struct gpio_desc *of_find_gpio(struct device_node *np,
+ int of_gpiochip_add(struct gpio_chip *gc);
+ void of_gpiochip_remove(struct gpio_chip *gc);
+ int of_gpio_get_count(struct device *dev, const char *con_id);
+-void of_gpio_dev_init(struct gpio_chip *gc, struct gpio_device *gdev);
+ #else
+ static inline struct gpio_desc *of_find_gpio(struct device_node *np,
+ 					     const char *con_id,
+@@ -38,10 +37,6 @@ static inline int of_gpio_get_count(struct device *dev, const char *con_id)
+ {
+ 	return 0;
+ }
+-static inline void of_gpio_dev_init(struct gpio_chip *gc,
+-				    struct gpio_device *gdev)
+-{
+-}
+ #endif /* CONFIG_OF_GPIO */
+ 
+ extern struct notifier_block gpio_of_notifier;
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index fdb0dc464218..e72c539fbec5 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -659,10 +659,12 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+ 	int base = 0;
+ 	int ret = 0;
+ 
++	/* If the calling driver did not initialize firmware node, do it here */
+ 	if (gc->fwnode)
+ 		fwnode = gc->fwnode;
+ 	else if (gc->parent)
+ 		fwnode = dev_fwnode(gc->parent);
++	gc->fwnode = fwnode;
+ 
+ 	/*
+ 	 * First: allocate and populate the internal stat container, and
+@@ -676,14 +678,7 @@ int gpiochip_add_data_with_key(struct gpio_chip *gc, void *data,
+ 	gdev->chip = gc;
+ 	gc->gpiodev = gdev;
+ 
+-	of_gpio_dev_init(gc, gdev);
+-	acpi_gpio_dev_init(gc, gdev);
+-
+-	/*
+-	 * Assign fwnode depending on the result of the previous calls,
+-	 * if none of them succeed, assign it to the parent's one.
+-	 */
+-	gc->fwnode = gdev->dev.fwnode = dev_fwnode(&gdev->dev) ?: fwnode;
++	device_set_node(&gdev->dev, gc->fwnode);
+ 
+ 	gdev->id = ida_alloc(&gpio_ida, GFP_KERNEL);
+ 	if (gdev->id < 0) {
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index 44783fc16125..2316cb7fa667 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -503,13 +503,6 @@ struct gpio_chip {
+ 	 * the device tree automatically may have an OF translation
+ 	 */
+ 
+-	/**
+-	 * @of_node:
+-	 *
+-	 * Pointer to a device tree node representing this GPIO controller.
+-	 */
+-	struct device_node *of_node;
+-
+ 	/**
+ 	 * @of_gpio_n_cells:
+ 	 *
+-- 
+2.35.1
 
