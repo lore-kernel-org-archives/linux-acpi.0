@@ -2,56 +2,52 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97885C61DB3
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Jan 2023 09:20:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5E44C54EBC
+	for <linux-acpi@archiver.kernel.org>; Sat,  7 Jan 2023 10:23:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231865AbjAGJUe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 7 Jan 2023 04:20:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33010 "EHLO
+        id S231611AbjAGKW7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 7 Jan 2023 05:22:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236886AbjAGJUM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2023 04:20:12 -0500
-Received: from mail-il1-x12e.google.com (mail-il1-x12e.google.com [IPv6:2607:f8b0:4864:20::12e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78D7F88DE0
-        for <linux-acpi@vger.kernel.org>; Sat,  7 Jan 2023 01:19:58 -0800 (PST)
-Received: by mail-il1-x12e.google.com with SMTP id i16so1676429ilq.9
-        for <linux-acpi@vger.kernel.org>; Sat, 07 Jan 2023 01:19:58 -0800 (PST)
+        with ESMTP id S232314AbjAGKWs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2023 05:22:48 -0500
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7932F3C0EA
+        for <linux-acpi@vger.kernel.org>; Sat,  7 Jan 2023 02:22:47 -0800 (PST)
+Received: by mail-pj1-x102e.google.com with SMTP id w4-20020a17090ac98400b002186f5d7a4cso7824614pjt.0
+        for <linux-acpi@vger.kernel.org>; Sat, 07 Jan 2023 02:22:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=PbK2+hAlju8ZkGAxc+UQ8RxlZcml7uwUsydLc2gyPEg=;
-        b=kfpfmOt+J4n/7SFbmM1pUbeuoX2q1niSB/uKPzsnGL7+M0JwLgagBJO3UnWh65gVeF
-         XO11m2J1IDe09i1vfxNVoD6lJRkxkJ4n+RqYZKMvsVrWoM/SCt0NBGzC/SMOz697A2pZ
-         YKJvooichUSfD0CDPe7PH0T5W+F3TJ6QkCkz4=
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cbxRbyImpevpLcgNpmQRY5xjXofgzVP7nhTUY2hiItA=;
+        b=YBlSIcXwtTcNC6c/sLb0A+fA09dZ0F2u1NJHDrT/q2R/iaQ1cjbLt1qyxJ+NZKr+OG
+         sW/aOZ9fN3xTZhfGKzIRuoDqca+1vXKtEQJA08aQuQeMQ1tC3YT2TD5gWitCdQvFDLU6
+         1EdmUmEOxSdsdM3pqfJQ+lllt2BhcD8Tvj980=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=PbK2+hAlju8ZkGAxc+UQ8RxlZcml7uwUsydLc2gyPEg=;
-        b=SbscSMmZ25XuVEqS4+Pu5FmAWZRmZ4YDuhMfNdxFTVcGqUiLzowYfMXzBRjYccbV/L
-         UIuEC8q8Yf1Ik60O+DBeSTrB88I1T7Kitg2avd97cMdtyGMsk4xnJung7lm6lVgrjEze
-         PSN/dyw0k//6uZMGFkEzRFPGlve+8ItZObffp1dLEj1ZehxGNsxY91bcqwTOwf61r1F6
-         03zdHE25HNmxvJew0Yk3vOvOUtoYuS1K2mBsiq0Lqto7ZAFT5G503/61x5Cz+sTp0mEe
-         kJSH5u5SCxgZfGc+glq6ej3tJdAURBcFuej0RJDk3nHK/HoLt9u5c1CLZN5wG+12Qjze
-         vkyQ==
-X-Gm-Message-State: AFqh2kprAOVdvwVaywBmaYq7uZ7L1WcTrsTwYV5jNEPR7/SWtBPdZZfV
-        2u3lYVRw4Z2F6hr8lM263RV4bA91nQq+PKFw7qv9ig==
-X-Google-Smtp-Source: AMrXdXvICIhe7IxdthfJp4igZhpX85NTS+E2nKcOMieonKi7rm9RWK0+me5+LzCr+2tJ6fmZgXKyCZIwff6ecY8f7CA=
-X-Received: by 2002:a92:d0f:0:b0:303:96b3:c8a0 with SMTP id
- 15-20020a920d0f000000b0030396b3c8a0mr5352459iln.192.1673083197870; Sat, 07
- Jan 2023 01:19:57 -0800 (PST)
-MIME-Version: 1.0
-References: <20230105132457.4125372-1-treapking@chromium.org>
- <20230105132457.4125372-8-treapking@chromium.org> <5ad7a6bc-0ffd-9d2d-ed80-62c3530cf2fa@linaro.org>
-In-Reply-To: <5ad7a6bc-0ffd-9d2d-ed80-62c3530cf2fa@linaro.org>
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=cbxRbyImpevpLcgNpmQRY5xjXofgzVP7nhTUY2hiItA=;
+        b=iBTuyAYsDkMC39hb81JMpvPtu4ii5UBBVtHuZYglkKuoCGLdIwCVVbH0GltQ5dPCwS
+         QcPN7KOWWlKchxJbx+TYUdj+l+HywWjtYb1bEQlF3OeFHfS/2mLHJhSELQVRiaUekg2B
+         FF16VJ9d+V5wYC+HbSiYqExXUfYdRuPeVueXs8FW2XNHEcb8SLr+BGRbORYhuzDZUfPc
+         4MMfz77Tw6cnt1rnF1XkW53JLzk3DSIhHdz9iC+i/K/4rEVdNjnafOcHne0gXCGmsNln
+         EWt7tRCUA+IHN9W207oTeTzE70OiAfSjC/cIVbIHim0wgExu9RdRqmDcJuRIBh6f4UR6
+         cmkg==
+X-Gm-Message-State: AFqh2kpW/u/lXEs1H65s20dKEfv3a2gjRxe9F0RDiEjCpZu1aF3zYGx4
+        UMwwV1RBP0IoGCq/pwr5v6DOTw==
+X-Google-Smtp-Source: AMrXdXvGarJZRipkxnWGG7cZHfw/m0d92b3irvWonmWk9YRAc88nnTJSpaQYTRjr83kRgvV6N2mG9A==
+X-Received: by 2002:a17:902:b493:b0:189:cb73:75f0 with SMTP id y19-20020a170902b49300b00189cb7375f0mr53864845plr.8.1673086967014;
+        Sat, 07 Jan 2023 02:22:47 -0800 (PST)
+Received: from treapking.tpe.corp.google.com ([2401:fa00:1:10:180d:95e8:f4:84fb])
+        by smtp.gmail.com with ESMTPSA id b1-20020a170903228100b001892af9472esm2366362plh.261.2023.01.07.02.22.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 07 Jan 2023 02:22:46 -0800 (PST)
 From:   Pin-yen Lin <treapking@chromium.org>
-Date:   Sat, 7 Jan 2023 17:19:46 +0800
-Message-ID: <CAEXTbpdxQDvkJTX0XgNkn8s=KMZHuLaPN8nnyfcbkxJ3fgQbdA@mail.gmail.com>
-Subject: Re: [PATCH v7 7/9] dt/bindings: drm/bridge: it6505: Add mode-switch support
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
+To:     Andrzej Hajda <andrzej.hajda@intel.com>,
         Neil Armstrong <neil.armstrong@linaro.org>,
         Robert Foss <robert.foss@linaro.org>,
         Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
@@ -69,166 +65,83 @@ Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
         Prashant Malani <pmalani@chromium.org>,
         Benson Leung <bleung@chromium.org>,
-        Guenter Roeck <groeck@chromium.org>,
-        =?UTF-8?B?TsOtY29sYXMgRiAuIFIgLiBBIC4gUHJhZG8=?= 
-        <nfraprado@collabora.com>, Xin Ji <xji@analogixsemi.com>,
+        Guenter Roeck <groeck@chromium.org>
+Cc:     Thomas Zimmermann <tzimmermann@suse.de>,
+        dri-devel@lists.freedesktop.org, Lyude Paul <lyude@redhat.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        linux-kernel@vger.kernel.org, Xin Ji <xji@analogixsemi.com>,
+        Pin-yen Lin <treapking@chromium.org>,
         AngeloGioacchino Del Regno 
         <angelogioacchino.delregno@collabora.com>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
+        Allen Chen <allen.chen@ite.com.tw>,
         Hsin-Yi Wang <hsinyi@chromium.org>,
-        linux-kernel@vger.kernel.org, Allen Chen <allen.chen@ite.com.tw>,
-        linux-acpi@vger.kernel.org, Lyude Paul <lyude@redhat.com>,
-        dri-devel@lists.freedesktop.org, chrome-platform@lists.linux.dev,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        Marek Vasut <marex@denx.de>, devicetree@vger.kernel.org,
+        chrome-platform@lists.linux.dev,
+        =?UTF-8?q?N=C3=ADcolas=20F=20=2E=20R=20=2E=20A=20=2E=20Prado?= 
+        <nfraprado@collabora.com>, devicetree@vger.kernel.org,
+        Marek Vasut <marex@denx.de>, linux-acpi@vger.kernel.org,
         Stephen Boyd <swboyd@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH v8 1/9] device property: Add remote endpoint to devcon matcher
+Date:   Sat,  7 Jan 2023 18:22:23 +0800
+Message-Id: <20230107102231.23682-2-treapking@chromium.org>
+X-Mailer: git-send-email 2.39.0.314.g84b9a713c41-goog
+In-Reply-To: <20230107102231.23682-1-treapking@chromium.org>
+References: <20230107102231.23682-1-treapking@chromium.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Krzysztof,
+From: Prashant Malani <pmalani@chromium.org>
 
-Thanks for the review.
+When searching the device graph for device matches, check the
+remote-endpoint itself for a match.
 
-On Fri, Jan 6, 2023 at 8:48 PM Krzysztof Kozlowski
-<krzysztof.kozlowski@linaro.org> wrote:
->
-> On 05/01/2023 14:24, Pin-yen Lin wrote:
-> > ITE IT6505 can be used in systems to switch the DP traffic between
-> > two downstreams, which can be USB Type-C DisplayPort alternate mode
-> > lane or regular DisplayPort output ports.
->
-> Use subject prefixes matching the subsystem (which you can get for
-> example with `git log --oneline -- DIRECTORY_OR_FILE` on the directory
-> your patch is touching).
+Some drivers register devices for individual endpoints. This allows
+the matcher code to evaluate those for a match too, instead
+of only looking at the remote parent devices. This is required when a
+device supports two mode switches in its endpoints, so we can't simply
+register the mode switch with the parent node.
 
-I'll fix this in this patch and the one for anx7625.
->
-> >
-> > Update the binding to accommodate this usage by introducing a
-> > data-lanes and a mode-switch property on endpoints.
-> >
-> > Signed-off-by: Pin-yen Lin <treapking@chromium.org>
-> >
-> > ---
-> >
-> > Changes in v7:
-> > - Fixed issues reported by dt_binding_check.
-> > - Updated the schema and the example dts for data-lanes.
-> > - Changed to generic naming for the example dts node.
-> >
-> > Changes in v6:
-> > - Remove switches node and use endpoints and data-lanes property to
-> >   describe the connections.
-> >
-> >  .../bindings/display/bridge/ite,it6505.yaml   | 95 ++++++++++++++++---
-> >  1 file changed, 84 insertions(+), 11 deletions(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/display/bridge/ite,it6505.yaml b/Documentation/devicetree/bindings/display/bridge/ite,it6505.yaml
-> > index b16a9d9127dd..1ee7cd0d2035 100644
-> > --- a/Documentation/devicetree/bindings/display/bridge/ite,it6505.yaml
-> > +++ b/Documentation/devicetree/bindings/display/bridge/ite,it6505.yaml
-> > @@ -77,20 +77,45 @@ properties:
-> >          unevaluatedProperties: false
-> >          description: Video port for DP output
-> >
-> > -        properties:
-> > -          endpoint:
-> > +        patternProperties:
-> > +          "^endpoint@[01]$":
-> >              $ref: /schemas/graph.yaml#/$defs/endpoint-base
-> >              unevaluatedProperties: false
-> >
-> >              properties:
-> > +              reg:
-> > +                maxItems: 1
-> > +
-> > +              remote-endpoint: true
-> > +
-> >                data-lanes:
-> > -                minItems: 1
-> > -                uniqueItems: true
-> > -                items:
-> > -                  - enum: [ 0, 1 ]
-> > -                  - const: 1
-> > -                  - const: 2
-> > -                  - const: 3
-> > +                oneOf:
-> > +                  - minItems: 1
->
-> Drop minItems.
->
-> > +                    maxItems: 1
->
-> Actually drop this as well and just use items with one item (enum).
+Signed-off-by: Prashant Malani <pmalani@chromium.org>
+Signed-off-by: Pin-yen Lin <treapking@chromium.org>
 
-Sure I'll update this in v8.
->
-> > +                    items:
-> > +                      enum: [0, 1, 2, 3]
-> > +
-> > +                  - items:
-> > +                      - const: 0
-> > +                      - const: 1
-> > +
-> > +                  - items:
-> > +                      - const: 2
-> > +                      - const: 3
-> > +
-> > +                  - items:
-> > +                      - const: 0
-> > +                      - const: 1
-> > +                      - const: 2
-> > +                      - const: 3
-> > +
-> > +              mode-switch:
-> > +                type: boolean
-> > +                description: Register this node as a Type-C mode switch or not.
-> > +
-> > +            required:
-> > +              - reg
-> > +              - remote-endpoint
-> >
-> >      required:
-> >        - port@0
-> > @@ -102,7 +127,6 @@ required:
-> >    - pwr18-supply
-> >    - interrupts
-> >    - reset-gpios
-> > -  - extcon
-> >    - ports
-> >
-> >  additionalProperties: false
-> > @@ -139,8 +163,11 @@ examples:
-> >                  };
-> >
-> >                  port@1 {
-> > +                    #address-cells = <1>;
-> > +                    #size-cells = <0>;
-> >                      reg = <1>;
-> > -                    it6505_out: endpoint {
-> > +                    it6505_out: endpoint@0 {
-> > +                        reg = <0>;
-> >                          remote-endpoint = <&dp_in>;
-> >                          data-lanes = <0 1>;
-> >                      };
-> > @@ -148,3 +175,49 @@ examples:
-> >              };
-> >          };
-> >      };
-> > +  - |
-> > +    #include <dt-bindings/interrupt-controller/irq.h>
-> > +
-> > +    i2c3 {
->
-> Just i2c
+---
 
-Will fix in v8.
->
-> Best regards,
-> Krzysztof
->
+(no changes since v6)
 
-Best regards,
-Pin-yen
+Changes in v6:
+- New in v6
+
+ drivers/base/property.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 2a5a37fcd998..48877af4e444 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1223,6 +1223,21 @@ static unsigned int fwnode_graph_devcon_matches(struct fwnode_handle *fwnode,
+ 			break;
+ 		}
+ 
++		/*
++		 * Some drivers may register devices for endpoints. Check
++		 * the remote-endpoints for matches in addition to the remote
++		 * port parent.
++		 */
++		node = fwnode_graph_get_remote_endpoint(ep);
++		if (fwnode_device_is_available(node)) {
++			ret = match(node, con_id, data);
++			if (ret) {
++				if (matches)
++					matches[count] = ret;
++				count++;
++			}
++		}
++
+ 		node = fwnode_graph_get_remote_port_parent(ep);
+ 		if (!fwnode_device_is_available(node)) {
+ 			fwnode_handle_put(node);
+-- 
+2.39.0.314.g84b9a713c41-goog
+
