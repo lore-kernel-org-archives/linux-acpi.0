@@ -2,100 +2,162 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F6EAC54EBE
-	for <linux-acpi@archiver.kernel.org>; Fri,  6 Jan 2023 23:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F4172C46467
+	for <linux-acpi@archiver.kernel.org>; Sat,  7 Jan 2023 08:57:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230285AbjAFXyw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 6 Jan 2023 18:54:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55804 "EHLO
+        id S230512AbjAGI5v (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 7 Jan 2023 03:57:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbjAFXyu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jan 2023 18:54:50 -0500
-X-Greylist: delayed 86 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 06 Jan 2023 15:54:50 PST
-Received: from forwardcorp1b.mail.yandex.net (forwardcorp1b.mail.yandex.net [IPv6:2a02:6b8:c02:900:1:45:d181:df01])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5811572D22
-        for <linux-acpi@vger.kernel.org>; Fri,  6 Jan 2023 15:54:49 -0800 (PST)
-Received: from myt5-8800bd68420f.qloud-c.yandex.net (myt5-8800bd68420f.qloud-c.yandex.net [IPv6:2a02:6b8:c12:4615:0:640:8800:bd68])
-        by forwardcorp1b.mail.yandex.net (Yandex) with ESMTP id 006F4603D8;
-        Sat,  7 Jan 2023 02:53:21 +0300 (MSK)
-Received: from d-tatianin-nix.yandex-team.ru (unknown [2a02:6b8:b081:a411::1:0])
-        by myt5-8800bd68420f.qloud-c.yandex.net (smtpcorp/Yandex) with ESMTPSA id GrjGHk1QfmI1-jOsvmmwv;
-        Sat, 07 Jan 2023 02:53:20 +0300
-X-Yandex-Fwd: 1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex-team.ru; s=default;
-        t=1673049200; bh=/XBs1WOG92WdqAPsxP3UvFcRV9WrH7qoeiWMRR4XqwU=;
-        h=Message-Id:Date:Cc:Subject:To:From;
-        b=D9peeyCopzp39Z4vZ8aLrE1BZhLXdnat20tJuI7JEUnNvQ6qEAETcZAEPluWH0pjz
-         4rk1xvKhcfya3QoG50pRULVgsT2o1Rm6cWEHK0blHTA0kbnt0XJamnojRCQNS93N6u
-         ZAt1EgzVbbh4CaRW0ygNxaErqhGNnfaU+WDMBUuY=
-Authentication-Results: myt5-8800bd68420f.qloud-c.yandex.net; dkim=pass header.i=@yandex-team.ru
-From:   Daniil Tatianin <d-tatianin@yandex-team.ru>
-To:     Robert Moore <robert.moore@intel.com>
-Cc:     Daniil Tatianin <d-tatianin@yandex-team.ru>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        devel@acpica.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v0] ACPICA: nsrepair: handle cases without a return value correctly
-Date:   Sat,  7 Jan 2023 02:53:08 +0300
-Message-Id: <20230106235308.99999-1-d-tatianin@yandex-team.ru>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S229550AbjAGI5u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2023 03:57:50 -0500
+Received: from mail-io1-xd29.google.com (mail-io1-xd29.google.com [IPv6:2607:f8b0:4864:20::d29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4961F6F97D
+        for <linux-acpi@vger.kernel.org>; Sat,  7 Jan 2023 00:57:48 -0800 (PST)
+Received: by mail-io1-xd29.google.com with SMTP id q190so1871469iod.10
+        for <linux-acpi@vger.kernel.org>; Sat, 07 Jan 2023 00:57:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=UaNgvexmJZouLumz2Hx1He28hMYgrYY+xTAVH7s69FM=;
+        b=USC/6TTWY3c9bq0vKbvX+VWUwpXRkXdBVEauttbI7B/ZQ1oIkIZNu1Yo09lwc7bODo
+         QCeJkFoz0u3wjOvokRLMOJCuh0pQLovmrLZaJqZUkoGcDAXJjZuRBlsC/ypwOPYM3Np1
+         JVnfVqUGM7cQv7XazXT4n7qSdn+bJ6ijtwrAM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=UaNgvexmJZouLumz2Hx1He28hMYgrYY+xTAVH7s69FM=;
+        b=SDiwY9rbfTRuO2BnwNYxZHevJQD20f+GBaXiEC4xK+ovlzJEi5u1F3P1VM6oM0HAOg
+         BMkTcbwobMwtn5TKSt/W/vnlPd2LkHR9IWwK9IIo4e/5siMfR9/TRZFy+UVZmScfjuVh
+         AyM+Vm4Bck+UCzhAMuZZyvCUeXS7tcqPBPUNEsfql5VTjTBD5kCMZb0aPu7PPENsRlOm
+         524PwFivJvBRuYBiwY4zBznK54iA4PKd5sUUrFMexqbjqeOSygKOdXlaEdfxOyvbivAv
+         0nsgxn7RB3AlvjJx0XCTXrvKiJ/6/PbwboxnhqhUSNVO50cyFimTW67YwLzN7/6PsXrh
+         MgdA==
+X-Gm-Message-State: AFqh2kpJcftYVVZBJTrTAi3VySXhhFlAIPIbfD2B3uHWKmHbEb+E0Tvc
+        va3jo3x14eHlTdJt9qcYAVeFz18WmeBXmGxufEtlRA==
+X-Google-Smtp-Source: AMrXdXvTC4JQ09AhshynrLdlXh3M+Z6nMNmW5qrLRJOovdkW8noIBriyLLrx6Nomzovk/IWfzQDu/aOoojNHuYEKlrY=
+X-Received: by 2002:a05:6638:58:b0:38a:9192:2ba6 with SMTP id
+ a24-20020a056638005800b0038a91922ba6mr5151511jap.76.1673081867592; Sat, 07
+ Jan 2023 00:57:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230105132457.4125372-1-treapking@chromium.org>
+ <20230105132457.4125372-3-treapking@chromium.org> <Y7btq4kLxrE4v3TL@smile.fi.intel.com>
+In-Reply-To: <Y7btq4kLxrE4v3TL@smile.fi.intel.com>
+From:   Pin-yen Lin <treapking@chromium.org>
+Date:   Sat, 7 Jan 2023 16:57:36 +0800
+Message-ID: <CAEXTbpcwKnMQ1=D940bf2GUNdK3K+-bhnOs2r5fwuTW+ozQajA@mail.gmail.com>
+Subject: Re: [PATCH v7 2/9] platform/chrome: cros_ec_typec: Purge blocking
+ switch devlinks
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
+        Neil Armstrong <neil.armstrong@linaro.org>,
+        Robert Foss <robert.foss@linaro.org>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        David Airlie <airlied@gmail.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Prashant Malani <pmalani@chromium.org>,
+        Benson Leung <bleung@chromium.org>,
+        Guenter Roeck <groeck@chromium.org>,
+        =?UTF-8?B?TsOtY29sYXMgRiAuIFIgLiBBIC4gUHJhZG8=?= 
+        <nfraprado@collabora.com>, Xin Ji <xji@analogixsemi.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Hsin-Yi Wang <hsinyi@chromium.org>,
+        linux-kernel@vger.kernel.org, Allen Chen <allen.chen@ite.com.tw>,
+        linux-acpi@vger.kernel.org, Lyude Paul <lyude@redhat.com>,
+        dri-devel@lists.freedesktop.org, chrome-platform@lists.linux.dev,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Marek Vasut <marex@denx.de>, devicetree@vger.kernel.org,
+        Stephen Boyd <swboyd@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Previously acpi_ns_simple_repair() would crash if expected_btypes
-contained any combination of ACPI_RTYPE_NONE with a different type,
-e.g | ACPI_RTYPE_INTEGER because of slightly incorrect logic in the
-!return_object branch, which wouldn't return AE_AML_NO_RETURN_VALUE
-for such cases.
+Hi Andy,
 
-Found by Linux Verification Center (linuxtesting.org) with the SVACE
-static analysis tool.
+Thanks for the review.
 
-Link: https://github.com/acpica/acpica/pull/811
-Fixes: 61db45ca2163 ("ACPICA: Restore code that repairs NULL package elements in return values.")
-Signed-off-by: Daniil Tatianin <d-tatianin@yandex-team.ru>
----
- drivers/acpi/acpica/nsrepair.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+On Thu, Jan 5, 2023 at 11:34 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Thu, Jan 05, 2023 at 09:24:50PM +0800, Pin-yen Lin wrote:
+> > From: Prashant Malani <pmalani@chromium.org>
+> >
+> > When using OF graph, the fw_devlink code will create links between the
+> > individual port driver (cros-ec-typec here) and the parent device for
+> > a Type-C switch (like mode-switch). Since the mode-switch will in turn
+> > have the usb-c-connector (i.e the child of the port driver) as a
+> > supplier, fw_devlink will not be able to resolve the cyclic dependency
+> > correctly.
+> >
+> > As a result, the mode-switch driver probe() never runs, so mode-switches
+> > are never registered. Because of that, the port driver probe constantly
+> > fails with -EPROBE_DEFER, because the Type-C connector class requires all
+> > switch devices to be registered prior to port registration.
+> >
+> > To break this deadlock and allow the mode-switch registration to occur,
+> > purge all the usb-c-connector nodes' absent suppliers. This eliminates
+> > the connector as a supplier for a switch and allows it to be probed.
+>
+> > Signed-off-by: Prashant Malani <pmalani@chromium.org>
+> >
+> > Signed-off-by: Pin-yen Lin <treapking@chromium.org>
+>
+> Tag block mustn't have the blank line(s).
+>
+> ...
+>
+> > +     /*
+> > +      * OF graph may have set up some device links with switches, since
+> > +      * connectors have their own compatible. Purge these to avoid a deadlock
+> > +      * in switch probe (the switch mistakenly assumes the connector is a
+> > +      * supplier).
+> > +      */
+>
+> Perhaps even
+>
+>         /*
+>          * OF graph may have set up some device links with switches,
+>          * since connectors have their own compatible. Purge these
+>          * to avoid a deadlock in switch probe (the switch mistakenly
+>          * assumes the connector is a supplier).
+>          */
+>
+> ?
+I can update this in v8, though I wonder why shorter comments are
+preferred as they haven't exceeded the 80-character length
+requirement.
+>
+> > +     if (dev->of_node)
+>
+> I would use if (dev_of_node(dev)), but it's up to you and maintainers.
 
-diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
-index 367fcd201f96..ec512e06a48e 100644
---- a/drivers/acpi/acpica/nsrepair.c
-+++ b/drivers/acpi/acpica/nsrepair.c
-@@ -181,8 +181,9 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
- 	 * Try to fix if there was no return object. Warning if failed to fix.
- 	 */
- 	if (!return_object) {
--		if (expected_btypes && (!(expected_btypes & ACPI_RTYPE_NONE))) {
--			if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
-+		if (expected_btypes) {
-+			if (!(expected_btypes & ACPI_RTYPE_NONE) &&
-+			    package_index != ACPI_NOT_PACKAGE_ELEMENT) {
- 				ACPI_WARN_PREDEFINED((AE_INFO,
- 						      info->full_pathname,
- 						      ACPI_WARN_ALWAYS,
-@@ -196,14 +197,15 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
- 				if (ACPI_SUCCESS(status)) {
- 					return (AE_OK);	/* Repair was successful */
- 				}
--			} else {
-+			}
-+
-+			if (expected_btypes != ACPI_RTYPE_NONE) {
- 				ACPI_WARN_PREDEFINED((AE_INFO,
- 						      info->full_pathname,
- 						      ACPI_WARN_ALWAYS,
- 						      "Missing expected return value"));
-+				return (AE_AML_NO_RETURN_VALUE);
- 			}
--
--			return (AE_AML_NO_RETURN_VALUE);
- 		}
- 	}
- 
--- 
-2.25.1
+dev_of_node looks a bit better as it checks the enabled config for us.
+I'll update this in v8.
 
+>
+> > +             device_for_each_child_node(dev, fwnode)
+> > +                     fw_devlink_purge_absent_suppliers(fwnode);
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
+>
+>
+
+Best regards,
+Pin-yen
