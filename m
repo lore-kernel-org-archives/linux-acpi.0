@@ -2,49 +2,50 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A77FCC6379F
-	for <linux-acpi@archiver.kernel.org>; Sat,  7 Jan 2023 10:23:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E15F9C677F0
+	for <linux-acpi@archiver.kernel.org>; Sat,  7 Jan 2023 10:23:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230384AbjAGKW7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 7 Jan 2023 05:22:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34686 "EHLO
+        id S231781AbjAGKXA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 7 Jan 2023 05:23:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232272AbjAGKWn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2023 05:22:43 -0500
+        with ESMTP id S231723AbjAGKWy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2023 05:22:54 -0500
 Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4DAA3C0EA
-        for <linux-acpi@vger.kernel.org>; Sat,  7 Jan 2023 02:22:41 -0800 (PST)
-Received: by mail-pj1-x1029.google.com with SMTP id o1-20020a17090a678100b00219cf69e5f0so7784499pjj.2
-        for <linux-acpi@vger.kernel.org>; Sat, 07 Jan 2023 02:22:41 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C56288DE6
+        for <linux-acpi@vger.kernel.org>; Sat,  7 Jan 2023 02:22:53 -0800 (PST)
+Received: by mail-pj1-x1029.google.com with SMTP id dw9so2507856pjb.5
+        for <linux-acpi@vger.kernel.org>; Sat, 07 Jan 2023 02:22:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=M5R04EwX4eIZOZILHF8zQrZe1x1GS9dIPxgkF6+Qqr0=;
-        b=akf9h+6HPph8LYoUpBWnZE9ueCAAVE7fkGGFnOW7f5vGFH7ccqvIb67QKgIwFG3F4H
-         EiX0jKlN3C+vDWVOHTROt6baus0ESTgsqcxJ90Jw1vlrcNBJxPbtnVZwY2HZCysHMJX6
-         KE+dlRVIOe8DDOBhRoX7Hr/sOP0lHvlasEcaU=
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nT9gdnbLGuBpWnVg5M2Oo4GmVRIc3FKsY2Rh+Wszh3E=;
+        b=g/GC21wmf8/MD5LCSsmqw0UM9NPshE0aYYzre7tVqamk7Oyn+DzAMclqiKsgTKXDn4
+         ywWy0J6TrILXWq2wgD5zZuI0dwqPYzwix1l72zqSd+PXFJ7gGJM4Pov4BnzTglck6Q9C
+         qgRfAuZogdAtS3kDGHsmijJT2ErxmhKQYDAXs=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=M5R04EwX4eIZOZILHF8zQrZe1x1GS9dIPxgkF6+Qqr0=;
-        b=Z+qa8MMrfMvwGCEcUPByBjkgUHtigDvCJSGBjQH4C9C6MNo3Ti3UdiVgyuLHxgABNJ
-         1TwbzYGoCPld0SURBr6+sNmhp34azpFfHThVhtPRXh66Xv/nAH6TMuXdY50e+rLG/ptK
-         WVMKYyNQLnTXDi1Yf9PRkTKV/+aiCN1417Tcnm+gYk8xS73XLabXDV8kV6vQMPRlIr3n
-         4J9vdp/ZJYvLE36MsSFw1I4C8zMLD6Fz31OVJ7K3xwSuEroNbAdmvkpsxmuRz/yI3rP6
-         SeTAQBMHUTvzGrX1chd29WpaH97+aljEilCrs7h/3DrVD4FITorte/+V+3p9RGORutZh
-         6rwQ==
-X-Gm-Message-State: AFqh2ko0nr+bmhv4UxKCz9nhDJkJxGgcAFXXagXX/hMAzxfOYImzx+N9
-        Tb8GH9MKvEYLAcNLuzcMuYBLdA==
-X-Google-Smtp-Source: AMrXdXsCanC85OIBD7HFU0hQjEKbk7kiLL3g+5Cn5NOlUfjTVfcWHqQr/B+TqYO21un27l3PbdCEtg==
-X-Received: by 2002:a17:902:b495:b0:18c:cde:fddb with SMTP id y21-20020a170902b49500b0018c0cdefddbmr55110444plr.65.1673086960970;
-        Sat, 07 Jan 2023 02:22:40 -0800 (PST)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=nT9gdnbLGuBpWnVg5M2Oo4GmVRIc3FKsY2Rh+Wszh3E=;
+        b=0YuCm2m37LBXUSx5ICp7hhlTZO2Mo534Dhpoz4pwXEJoxrNusu24m359hLBGr+PEu/
+         J8OzcSI8tnY3B4Y+Gz8iH2ZTlfVnsRObX7Jxa6xQEhxwdmhqleXlcITuKfnGPy+nLV+u
+         zi4ILSZUTAayRZdDfzOEX5CNo4uSwaOlOnoc/lS471a8G5QVlNlrAOpbQuD0mOsHKRr/
+         L0YUE7rn9VaW1xtfwAXdB3A2+Tw1fhQlD9F1cWZMTAZwo+165EPGJ75W2WotXQS9+GAK
+         6nGhvPHAcvxmXcjnOwaZ19bk3uB2hWcIKB5iwoWYGAKGKuonMGeLwIOsiHzERpCWcavB
+         VnfQ==
+X-Gm-Message-State: AFqh2ko4bTxPiRER4NBe0eBxEojm6HNl0XZP0v5gboq2rjc7kP9cZZCF
+        na9LbPxNDOPLWkAl5GPk30JcCw==
+X-Google-Smtp-Source: AMrXdXshQueVSSjO1qfCj7EmNNm2bUD58eRfmn/kGRv+NVvqzWZPI1/73g/Jc2D6nYXH7+8ktZI3oA==
+X-Received: by 2002:a17:902:edc5:b0:192:c882:703e with SMTP id q5-20020a170902edc500b00192c882703emr20430020plk.43.1673086973113;
+        Sat, 07 Jan 2023 02:22:53 -0800 (PST)
 Received: from treapking.tpe.corp.google.com ([2401:fa00:1:10:180d:95e8:f4:84fb])
-        by smtp.gmail.com with ESMTPSA id b1-20020a170903228100b001892af9472esm2366362plh.261.2023.01.07.02.22.34
+        by smtp.gmail.com with ESMTPSA id b1-20020a170903228100b001892af9472esm2366362plh.261.2023.01.07.02.22.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 07 Jan 2023 02:22:40 -0800 (PST)
+        Sat, 07 Jan 2023 02:22:52 -0800 (PST)
 From:   Pin-yen Lin <treapking@chromium.org>
 To:     Andrzej Hajda <andrzej.hajda@intel.com>,
         Neil Armstrong <neil.armstrong@linaro.org>,
@@ -78,97 +79,74 @@ Cc:     Thomas Zimmermann <tzimmermann@suse.de>,
         =?UTF-8?q?N=C3=ADcolas=20F=20=2E=20R=20=2E=20A=20=2E=20Prado?= 
         <nfraprado@collabora.com>, devicetree@vger.kernel.org,
         Marek Vasut <marex@denx.de>, linux-acpi@vger.kernel.org,
-        Stephen Boyd <swboyd@chromium.org>,
-        Douglas Anderson <dianders@chromium.org>,
-        Imre Deak <imre.deak@intel.com>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Jim Cromie <jim.cromie@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= 
-        <ville.syrjala@linux.intel.com>
-Subject: [PATCH v8 0/9] Register Type-C mode-switch in DP bridge endpoints
-Date:   Sat,  7 Jan 2023 18:22:22 +0800
-Message-Id: <20230107102231.23682-1-treapking@chromium.org>
+        Stephen Boyd <swboyd@chromium.org>
+Subject: [PATCH v8 2/9] platform/chrome: cros_ec_typec: Purge blocking switch devlinks
+Date:   Sat,  7 Jan 2023 18:22:24 +0800
+Message-Id: <20230107102231.23682-3-treapking@chromium.org>
 X-Mailer: git-send-email 2.39.0.314.g84b9a713c41-goog
+In-Reply-To: <20230107102231.23682-1-treapking@chromium.org>
+References: <20230107102231.23682-1-treapking@chromium.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+From: Prashant Malani <pmalani@chromium.org>
 
-This series introduces bindings for anx7625/it6505 to register Type-C
-mode-switch in their output endpoints, and use data-lanes property to
-describe the pin connections.
+When using OF graph, the fw_devlink code will create links between the
+individual port driver (cros-ec-typec here) and the parent device for
+a Type-C switch (like mode-switch). Since the mode-switch will in turn
+have the usb-c-connector (i.e the child of the port driver) as a
+supplier, fw_devlink will not be able to resolve the cyclic dependency
+correctly.
 
-The first two patch modifies fwnode_graph_devcon_matches and
-cros_typec_init_ports to enable the registration of the switches.
+As a result, the mode-switch driver probe() never runs, so mode-switches
+are never registered. Because of that, the port driver probe constantly
+fails with -EPROBE_DEFER, because the Type-C connector class requires all
+switch devices to be registered prior to port registration.
 
-Patch 4~6 introduce the bindings for anx7625 and the corresponding driver
-modifications.
+To break this deadlock and allow the mode-switch registration to occur,
+purge all the usb-c-connector nodes' absent suppliers. This eliminates
+the connector as a supplier for a switch and allows it to be probed.
 
-Patch 7~9 add similar bindings and driver changes for it6505.
+Signed-off-by: Prashant Malani <pmalani@chromium.org>
+Signed-off-by: Pin-yen Lin <treapking@chromium.org>
 
-v7: https://lore.kernel.org/all/20230105132457.4125372-1-treapking@chromium.org/
-v6: https://lore.kernel.org/all/20221124102056.393220-1-treapking@chromium.org/
-v5: https://lore.kernel.org/linux-usb/20220622173605.1168416-1-pmalani@chromium.org/
+---
 
-Changes in v8:
-- Fixed the build issue when CONFIG_TYPEC=m
-- Fixed some style issues
-- Fixed the subject prefixes for the bindings patches
-- Fixed the bindings for data-lanes properties
+(no changes since v7)
 
 Changes in v7:
 - Fix the long comment lines
-- Extracted the common codes to a helper function
-- Fixed style issues in anx7625 driver
-- Removed DT property validation in anx7625 driver.
-- Fixed style issues in it6505 driver
-- Removed the redundant sleep in it6505 driver
-- Removed DT property validation in it6505 driver
-- Rebased to drm-misc-next
-- Fixed indentations in bindings patches
-- Added a new patch to fix indentations in Kconfig
 
 Changes in v6:
-- Changed it6505_typec_mux_set callback function to accommodate with
-  the latest drm-misc patches
-- Changed the driver implementation to accommodate with the new binding
-- Dropped typec-switch binding and use endpoints and data-lanes properties
-  to describe the pin connections
-- Added new patches (patch 1,2,4) to fix probing issues
-- Changed the bindings of it6505/anx7625 and modified the drivers
-  accordingly
-- Merged it6505/anx7625 driver changes into a single patch
+- New in v6
 
-Pin-yen Lin (7):
-  drm/display: Add Type-C switch helpers
-  dt-bindings: display: bridge: anx7625: Add mode-switch support
-  drm/bridge: anx7625: Check for Type-C during panel registration
-  drm/bridge: anx7625: Register Type C mode switches
-  dt/bindings: display: bridge: it6505: Add mode-switch support
-  drm/bridge: it6505: Fix Kconfig indentation
-  drm/bridge: it6505: Register Type C mode switches
+ drivers/platform/chrome/cros_ec_typec.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Prashant Malani (2):
-  device property: Add remote endpoint to devcon matcher
-  platform/chrome: cros_ec_typec: Purge blocking switch devlinks
-
- .../display/bridge/analogix,anx7625.yaml      |  99 ++++++++++++-
- .../bindings/display/bridge/ite,it6505.yaml   |  93 ++++++++++--
- drivers/base/property.c                       |  15 ++
- drivers/gpu/drm/bridge/Kconfig                |  21 +--
- drivers/gpu/drm/bridge/analogix/Kconfig       |   1 +
- drivers/gpu/drm/bridge/analogix/anx7625.c     | 101 +++++++++++++-
- drivers/gpu/drm/bridge/analogix/anx7625.h     |  13 ++
- drivers/gpu/drm/bridge/ite-it6505.c           | 119 +++++++++++++++-
- drivers/gpu/drm/display/drm_dp_helper.c       | 132 ++++++++++++++++++
- drivers/platform/chrome/cros_ec_typec.c       |  10 ++
- include/drm/display/drm_dp_helper.h           |  16 +++
- 11 files changed, 591 insertions(+), 29 deletions(-)
-
+diff --git a/drivers/platform/chrome/cros_ec_typec.c b/drivers/platform/chrome/cros_ec_typec.c
+index 2a7ff14dc37e..302474a647cc 100644
+--- a/drivers/platform/chrome/cros_ec_typec.c
++++ b/drivers/platform/chrome/cros_ec_typec.c
+@@ -382,6 +382,16 @@ static int cros_typec_init_ports(struct cros_typec_data *typec)
+ 		return -EINVAL;
+ 	}
+ 
++	/*
++	 * OF graph may have set up some device links with switches,
++	 * since connectors have their own compatible. Purge these
++	 * to avoid a deadlock in switch probe (the switch mistakenly
++	 * assumes the connector is a supplier).
++	 */
++	if (dev_of_node(dev))
++		device_for_each_child_node(dev, fwnode)
++			fw_devlink_purge_absent_suppliers(fwnode);
++
+ 	/* DT uses "reg" to specify port number. */
+ 	port_prop = dev->of_node ? "reg" : "port-number";
+ 	device_for_each_child_node(dev, fwnode) {
 -- 
 2.39.0.314.g84b9a713c41-goog
 
