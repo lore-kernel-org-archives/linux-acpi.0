@@ -2,36 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19AA6C678D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8D2C678D6
 	for <linux-acpi@archiver.kernel.org>; Mon,  9 Jan 2023 13:58:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234828AbjAIN6z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 9 Jan 2023 08:58:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37998 "EHLO
+        id S234329AbjAIN64 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Jan 2023 08:58:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237251AbjAIN6o (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2023 08:58:44 -0500
+        with ESMTP id S234186AbjAIN6y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2023 08:58:54 -0500
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9879525FE;
-        Mon,  9 Jan 2023 05:58:43 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0B24BF0F;
+        Mon,  9 Jan 2023 05:58:54 -0800 (PST)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5ECC71650;
-        Mon,  9 Jan 2023 05:59:25 -0800 (PST)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C307F1A00;
+        Mon,  9 Jan 2023 05:59:35 -0800 (PST)
 Received: from lakrids.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 872733F23F;
-        Mon,  9 Jan 2023 05:58:41 -0800 (PST)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id ED59C3F23F;
+        Mon,  9 Jan 2023 05:58:51 -0800 (PST)
 From:   Mark Rutland <mark.rutland@arm.com>
-To:     linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Robert Moore <robert.moore@intel.com>
-Cc:     catalin.marinas@arm.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mark.rutland@arm.com,
-        mhiramat@kernel.org, ndesaulniers@google.com, ojeda@kernel.org,
-        peterz@infradead.org, revest@chromium.org, rostedt@goodmis.org,
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     catalin.marinas@arm.com, lenb@kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mark.rutland@arm.com, mhiramat@kernel.org, ndesaulniers@google.com,
+        ojeda@kernel.org, peterz@infradead.org, rafael.j.wysocki@intel.com,
+        revest@chromium.org, robert.moore@intel.com, rostedt@goodmis.org,
         will@kernel.org
-Subject: [PATCH 2/8] ACPI: Don't build ACPICA with '-Os'
-Date:   Mon,  9 Jan 2023 13:58:22 +0000
-Message-Id: <20230109135828.879136-3-mark.rutland@arm.com>
+Subject: [PATCH 6/8] arm64: patching: Add aarch64_insn_write_literal_u64()
+Date:   Mon,  9 Jan 2023 13:58:26 +0000
+Message-Id: <20230109135828.879136-7-mark.rutland@arm.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230109135828.879136-1-mark.rutland@arm.com>
 References: <20230109135828.879136-1-mark.rutland@arm.com>
@@ -41,83 +40,66 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The ACPICA code has been built with '-Os' since the beginning of git
-history, though there's no explanatory comment as to why.
+In subsequent patches we'll need to atomically write to a
+naturally-aligned 64-bit literal embedded within the kernel text.
 
-This is unfortunate as building with '-Os' overrides -falign-functions,
-which prevents CONFIG_FUNCITON_ALIGNMENT and
-CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B from having their expected effect
-on the ACPICA code. This is doubly unfortunate as in subsequent patches
-arm64 will depend upon CONFIG_FUNCTION_ALIGNMENT for its ftrace
-implementation.
-
-Drop the '-Os' flag when building the ACPICA code. With this removed,
-the code builds cleanly and works correctly in testing so far.
-
-I've tested this by selecting CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B=y,
-building and booting a kernel using ACPI, and looking for misaligned
-text symbols:
-
-* arm64:
-
-  Before:
-    #  grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
-    908
-    #  grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | grep acpi | wc -l
-    576
-
-  After:
-    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
-    322
-    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | grep acpi | wc -l
-    0
-
-* x86_64:
-
-  Before:
-    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
-    2057
-    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | grep acpi | wc -l
-    706
-
-  After:
-    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
-    1351
-    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | grep acpi | wc -l
-    0
-
-With the patch applied, the remaining unaligned text labels are a
-combination of static call trampolines and labels in assembly, which
-will be dealt with in subsequent patches.
+Add a helper for this. For consistency with other text patching code we
+use copy_to_kernel_nofault(), which is atomic for naturally-aligned
+accesses up to 64-bits.
 
 Signed-off-by: Mark Rutland <mark.rutland@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Florent Revest <revest@chromium.org>
-Cc: Len Brown <lenb@kernel.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Will Deacon <will@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/acpica/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/patching.h |  2 ++
+ arch/arm64/kernel/patching.c      | 17 +++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index 9e0d95d76fff7..30f3fc13c29d1 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -3,7 +3,7 @@
- # Makefile for ACPICA Core interpreter
- #
+diff --git a/arch/arm64/include/asm/patching.h b/arch/arm64/include/asm/patching.h
+index 6bf5adc562950..68908b82b168f 100644
+--- a/arch/arm64/include/asm/patching.h
++++ b/arch/arm64/include/asm/patching.h
+@@ -7,6 +7,8 @@
+ int aarch64_insn_read(void *addr, u32 *insnp);
+ int aarch64_insn_write(void *addr, u32 insn);
  
--ccflags-y			:= -Os -D_LINUX -DBUILDING_ACPICA
-+ccflags-y			:= -D_LINUX -DBUILDING_ACPICA
- ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
++int aarch64_insn_write_literal_u64(void *addr, u64 val);
++
+ int aarch64_insn_patch_text_nosync(void *addr, u32 insn);
+ int aarch64_insn_patch_text(void *addrs[], u32 insns[], int cnt);
  
- # use acpi.o to put all files here into acpi.o modparam namespace
+diff --git a/arch/arm64/kernel/patching.c b/arch/arm64/kernel/patching.c
+index 33e0fabc0b79b..b4835f6d594bc 100644
+--- a/arch/arm64/kernel/patching.c
++++ b/arch/arm64/kernel/patching.c
+@@ -88,6 +88,23 @@ int __kprobes aarch64_insn_write(void *addr, u32 insn)
+ 	return __aarch64_insn_write(addr, cpu_to_le32(insn));
+ }
+ 
++noinstr int aarch64_insn_write_literal_u64(void *addr, u64 val)
++{
++	u64 *waddr;
++	unsigned long flags;
++	int ret;
++
++	raw_spin_lock_irqsave(&patch_lock, flags);
++	waddr = patch_map(addr, FIX_TEXT_POKE0);
++
++	ret = copy_to_kernel_nofault(waddr, &val, sizeof(val));
++
++	patch_unmap(FIX_TEXT_POKE0);
++	raw_spin_unlock_irqrestore(&patch_lock, flags);
++
++	return ret;
++}
++
+ int __kprobes aarch64_insn_patch_text_nosync(void *addr, u32 insn)
+ {
+ 	u32 *tp = addr;
 -- 
 2.30.2
 
