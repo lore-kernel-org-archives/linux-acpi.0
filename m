@@ -2,133 +2,171 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BB60C54EBD
-	for <linux-acpi@archiver.kernel.org>; Mon,  9 Jan 2023 11:49:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 533DDC54EBD
+	for <linux-acpi@archiver.kernel.org>; Mon,  9 Jan 2023 13:58:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233736AbjAILsy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 9 Jan 2023 06:48:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34058 "EHLO
+        id S230513AbjAIN6x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 9 Jan 2023 08:58:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237046AbjAILsn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2023 06:48:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCBF3C767;
-        Mon,  9 Jan 2023 03:48:41 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 765E66102F;
-        Mon,  9 Jan 2023 11:48:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58A0BC433D2;
-        Mon,  9 Jan 2023 11:48:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673264920;
-        bh=XVe9ZIsJBVYmm1apnGM4DzZt37qBYjqTL/4caPg0IAg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lVZc/+FUPE8QcOrtnqRxXZlRXAOoREyaa9a/YMj1p/937Jkdo4VD7sxKuUkywRPud
-         /CQwgBnnwxe/WI6ITNCs4su1aWMNLUBDMzxbtXibosPINEJjleTHHTaPnIwoclkEDx
-         FqdGooILgLdKBG5ZMYs/4b229Q5vLkODS3wEX8CB/xuEpgbxtSNsbA1iI1RHaHZRZ8
-         wblCgYzhTOYw9f/w7fZNaPKiAkMwgZcix5uGnrcYaGULE/CT6L74nV/fC3tdllM/au
-         NXcRy/6tu2DAo+fHpkGQWxFNb8AzEYlf+2T3jmzo7kHg8ghYhjh5G/zpai30iHhjfk
-         4J6u7Ni/xo71A==
-Date:   Mon, 9 Jan 2023 12:48:37 +0100
-From:   Wolfram Sang <wsa@kernel.org>
-To:     "Russell King (Oracle)" <linux@armlinux.org.uk>
-Cc:     linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org,
-        netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Paolo Abeni <pabeni@redhat.com>
-Subject: Re: [PATCH RFC v2 0/2] Add I2C fwnode lookup/get interfaces
-Message-ID: <Y7v/FWpjt1MFLafG@ninjato>
-Mail-Followup-To: Wolfram Sang <wsa@kernel.org>,
-        "Russell King (Oracle)" <linux@armlinux.org.uk>,
-        linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org,
-        netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Paolo Abeni <pabeni@redhat.com>
-References: <Y6Az235wsnRWFYWA@shell.armlinux.org.uk>
+        with ESMTP id S237241AbjAIN6l (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2023 08:58:41 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DE339FCA;
+        Mon,  9 Jan 2023 05:58:40 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9B4601515;
+        Mon,  9 Jan 2023 05:59:22 -0800 (PST)
+Received: from lakrids.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id C43293F23F;
+        Mon,  9 Jan 2023 05:58:38 -0800 (PST)
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     catalin.marinas@arm.com, lenb@kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mark.rutland@arm.com, mhiramat@kernel.org, ndesaulniers@google.com,
+        ojeda@kernel.org, peterz@infradead.org, rafael.j.wysocki@intel.com,
+        revest@chromium.org, robert.moore@intel.com, rostedt@goodmis.org,
+        will@kernel.org
+Subject: [PATCH 1/8] Compiler attributes: GCC function alignment workarounds
+Date:   Mon,  9 Jan 2023 13:58:21 +0000
+Message-Id: <20230109135828.879136-2-mark.rutland@arm.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230109135828.879136-1-mark.rutland@arm.com>
+References: <20230109135828.879136-1-mark.rutland@arm.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qLZiiXAOcTg86yPW"
-Content-Disposition: inline
-In-Reply-To: <Y6Az235wsnRWFYWA@shell.armlinux.org.uk>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+From local testing, contemporary versions of of GCC (e.g. GCC 12.2.0)
+don't respect '-falign-functions=N' in all cases. This is unfortunate,
+as (for non-zero values of N) CONFIG_FUNCTION_ALIGNMENT=N will set
+'-falign-functions=N', but this won't take effect for all functions.
+LLVM appears to respect '-falign-functions=N' in call cases.
 
---qLZiiXAOcTg86yPW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Today, for x86 this turns out to be functionally benign, though it does
+somewhat undermine the CONFIG_FUNCTION_ALIGNMENT option, and it means
+that CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B is not as robust as we'd
+like.
 
-Hi Russell,
+On arm64 we'd like to use CONFIG_FUNCTION_ALIGNMENT to implement ftrace
+functionality, and we'll require function alignment to be respected for
+functional reasons.
 
-thank you for this series!
+As far as I can tell, GCC doesn't respect '-falign-functions=N':
 
-> This RFC series is intended for the next merge window, but we will need
-> to decide how to merge it as it is split across two subsystems. These
-> patches have been generated against the net-next, since patch 2 depends
-> on a recently merged patch in that tree (which is now in mainline.)
+* When the __weak__ attribute is used
 
-I'd prefer to apply it all to my I2C tree then. I can also provide an
-immutable branch for net if that is helpful.
+  GCC seems to forget the alignment specified by '-falign-functions=N',
+  but will respect the '__aligned__(N)' function attribute. Thus, we can
+  work around this by explciitly setting the alignment for weak
+  functions.
 
-> In order to reduce this complexity, this series adds fwnode interfaces
-> to the I2C subsystem to allow I2C adapters to be looked up. I also
-> accidentally also converted the I2C clients to also be looked up, so
-> I've left that in patch 1 if people think that could be useful - if
-> not, I'll remove it.
+* When the __cold__ attribute is used
 
-Because you also converted I2C ACPI to use the new function, I'd say
-let's keep it.
+  GCC seems to forget the alignment specified by '-falign-functions=N',
+  and also doesn't seem to respect the '__aligned__(N)' function
+  attribute. The only way to work around this is to not use the __cold__
+  attibute.
 
-> We could also convert the of_* functions to be inline in i2c.h and
-> remove the stub of_* functions and exports.
+This patch implements workarounds for these two cases, using a function
+attribute to set the alignment of __weak__ functions, and preventing the
+use of the __cold__ attribute when CONFIG_FUNCTION_ALIGNMENT is
+non-zero.
 
-I'd like that.
+I've tested this by selecting CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B=y,
+building and booting a kernel, and looking for misaligned text symbols:
 
-> Do we want these to live in i2c-core-fwnode.c ? I don't see a Kconfig
+* arm64:
 
-I don't think this is enough fwnode-specific code yet for a seperate
-source file. I also don't think the helper functions are so large that
-there should be an option to compile them out. I am open for other
-opinions, but IMHO that part looks good as it is.
+  Before:
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    4939
 
-> symbol that indicates whether we want fwnode support, and I know there
-> are people looking to use software nodes to lookup the SFP I2C bus
-> (which is why the manual firmware-specific code in sfp.c is a problem.)
+  After:
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    908
 
-All the best,
+* x86_64:
 
-   Wolfram
+  Before:
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    7969
 
+  After:
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    2057
 
---qLZiiXAOcTg86yPW
-Content-Type: application/pgp-signature; name="signature.asc"
+With the patch applied, the remaining unaligned text labels are a
+combination of static call trampolines, non-function labels in assembly,
+and ACPICA functions, which will be dealt with in subsequent patches.
 
------BEGIN PGP SIGNATURE-----
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Florent Revest <revest@chromium.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+---
+ include/linux/compiler_attributes.h | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmO7/xIACgkQFA3kzBSg
-KbbKPQ/+IGwwAtYwJ64XvFGN53u6K7rCs//39Vxd6VIDaUZi3XR17sefWTLnTCMU
-CI/wYx5es+KKPSNrtbS+oUt1pdfjK2diCm/p8Y5AhUHPJUlHYISgaCrOk5SwtWGn
-Y9w+xfoN4cKrvl8mvJYJ8dseap86n3+fdYBamcaSsF+5R5qmuunzFhgTzuQgDnei
-OF3jYAj1wUj5umG6R8uF+3oMTaJPvsNOlJZlQW31DEBHrUuelcm9pD/wLzXINaBu
-yT3M80zgOR30O4s9LzE059/BuGu14nYZI52UdO8EoL/s02Ugn7rLegdpjymWof8/
-lGEcyVwioNJ3lqkeKHEchBHthT385MrAHxnWlY6SJ6WayATgOFwkwBlXDaYD6P9M
-FMrL1nCTWnI+XQlHcaj6Cpz1BWw1eVY75R4WdSnIoAEz21eRWlXlLGy7ttGc2wOD
-vie4ieJyWRyzsjobw3DJBDdLYGWsq5ARMdJuMWx8HG8uVmrisb4aKTUmpq/0SO1i
-GyiA8V2WCdJQ2Ne4zePMrIt00uSWoHuFr1muVikbkJSLkrIhV0wurbDHknuxuZ2P
-x9/Zrapz+13qYY4Z+8qDIeQSTjSGsfWbRhn9SJlihPUdvJp+/V6ikBP0WfFXpNGu
-JweZ46FeTsV3Yki+mZHu97+MVEh+UJ37Lz6+BWWnDXrSFW0S7lI=
-=Xfqm
------END PGP SIGNATURE-----
+diff --git a/include/linux/compiler_attributes.h b/include/linux/compiler_attributes.h
+index 898b3458b24a0..dcb7ac67b764f 100644
+--- a/include/linux/compiler_attributes.h
++++ b/include/linux/compiler_attributes.h
+@@ -33,6 +33,17 @@
+ #define __aligned(x)                    __attribute__((__aligned__(x)))
+ #define __aligned_largest               __attribute__((__aligned__))
+ 
++/*
++ * Contemporary versions of GCC (e.g. 12.2.0) don't always respect
++ * '-falign-functions=N', and require alignment to be specificed via a function
++ * attribute in some cases.
++ */
++#if CONFIG_FUNCTION_ALIGNMENT > 0
++#define __function_aligned		__aligned(CONFIG_FUNCTION_ALIGNMENT)
++#else
++#define __function_aligned
++#endif
++
+ /*
+  * Note: do not use this directly. Instead, use __alloc_size() since it is conditionally
+  * available and includes other attributes. For GCC < 9.1, __alloc_size__ gets undefined
+@@ -78,8 +89,15 @@
+ /*
+  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-cold-function-attribute
+  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Label-Attributes.html#index-cold-label-attribute
++ *
++ * GCC drops function alignment when the __cold__ attribute is used. Avoid the
++ * __cold__ attribute if function alignment is required.
+  */
++#if !defined(CONFIG_CC_IS_GCC) || (CONFIG_FUNCTION_ALIGNMENT == 0)
+ #define __cold                          __attribute__((__cold__))
++#else
++#define __cold
++#endif
+ 
+ /*
+  * Note the long name.
+@@ -369,8 +387,11 @@
+ /*
+  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-weak-function-attribute
+  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Variable-Attributes.html#index-weak-variable-attribute
++ *
++ * GCC drops function alignment when the __weak__ attribute is used. This can
++ * be restored with function attributes.
+  */
+-#define __weak                          __attribute__((__weak__))
++#define __weak                          __attribute__((__weak__)) __function_aligned
+ 
+ /*
+  * Used by functions that use '__builtin_return_address'. These function
+-- 
+2.30.2
 
---qLZiiXAOcTg86yPW--
