@@ -2,151 +2,366 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0BD5C46467
-	for <linux-acpi@archiver.kernel.org>; Tue, 10 Jan 2023 18:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF0DFC54EBE
+	for <linux-acpi@archiver.kernel.org>; Tue, 10 Jan 2023 18:05:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233719AbjAJSCe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 10 Jan 2023 13:02:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41706 "EHLO
+        id S234635AbjAJSFX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 10 Jan 2023 13:05:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238689AbjAJR6L (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jan 2023 12:58:11 -0500
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91684E45;
-        Tue, 10 Jan 2023 09:57:52 -0800 (PST)
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 30AFZiON027412;
-        Tue, 10 Jan 2023 17:57:41 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=message-id : date :
- mime-version : from : subject : to : cc : references : in-reply-to :
- content-type : content-transfer-encoding; s=qcppdkim1;
- bh=VSAB5O5zW1UEm3r5V4pm/Pjdzw+2Z5dVjrGb0q+FBDk=;
- b=D7N1UAdyF9dOyccRGi/0TivY+QuGO0sx7sMhPJfh9QE4TDzkgPYl+OpKPTmjSJuoHr8a
- kLnXuUI1Enh/qN/an8+8P65cf9+nUwYuIMfVOanbRCAbpyKmtqlklNbMh+IOSM3//VTO
- 8TO/uHE0CLc+pkztyMFB6CdqPxrCpIO2+AcOxWepcliSGUB8fs8Qn+9xAGrBeMqc/mO9
- m2R3usIbvaN0uq3eplndoNwy0/cW85W8SehEs/nD3w9znnWL/F+hykAo8zqLf1EFrFwy
- mONbzri+nHH2g4i3Zq0i5edm2yOvvGUMI2VR1w6UIWdVc16sEvCVGz6PO7aSPbqz6s9M Rw== 
-Received: from nasanppmta05.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3n0q28jq5b-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 10 Jan 2023 17:57:41 +0000
-Received: from nasanex01b.na.qualcomm.com (corens_vlan604_snip.qualcomm.com [10.53.140.1])
-        by NASANPPMTA05.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 30AHvfS3008504
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 10 Jan 2023 17:57:41 GMT
-Received: from [10.134.67.48] (10.80.80.8) by nasanex01b.na.qualcomm.com
- (10.46.141.250) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 10 Jan
- 2023 09:57:40 -0800
-Message-ID: <8f47229a-2785-5f54-f7d1-a42299de64fe@quicinc.com>
-Date:   Tue, 10 Jan 2023 09:57:40 -0800
+        with ESMTP id S233017AbjAJSEl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jan 2023 13:04:41 -0500
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A716C58307;
+        Tue, 10 Jan 2023 10:02:18 -0800 (PST)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
+ id 28d6bfba788c9982; Tue, 10 Jan 2023 19:02:17 +0100
+Received: from kreacher.localnet (unknown [213.134.183.108])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id C39042624FFE;
+        Tue, 10 Jan 2023 19:02:15 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     "Limonciello, Mario" <mario.limonciello@amd.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Mehta Sanju <Sanju.Mehta@amd.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] PCI/ACPI: PCI/ACPI: Validate devices with power resources support D3
+Date:   Tue, 10 Jan 2023 19:02:15 +0100
+Message-ID: <5915557.lOV4Wx5bFT@kreacher>
+In-Reply-To: <1945994.PYKUYFuaPT@kreacher>
+References: <20221121221742.GA137841@bhelgaas> <8191575.T7Z3S40VBb@kreacher> <1945994.PYKUYFuaPT@kreacher>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.0
-From:   Elliot Berman <quic_eberman@quicinc.com>
-Subject: Re: [PATCH v8 07/28] mailbox: Allow direct registration to a channel
-To:     Alex Elder <elder@linaro.org>,
-        Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        "Sudeep Holla" <sudeep.holla@arm.com>
-CC:     Murali Nalajala <quic_mnalajal@quicinc.com>,
-        Trilok Soni <quic_tsoni@quicinc.com>,
-        Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
-        Carl van Schaik <quic_cvanscha@quicinc.com>,
-        Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        "Krzysztof Kozlowski" <krzysztof.kozlowski+dt@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Bagas Sanjaya <bagasdotme@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        "Dmitry Baryshkov" <dmitry.baryshkov@linaro.org>,
-        <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-acpi@vger.kernel.org>
-References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
- <20221219225850.2397345-8-quic_eberman@quicinc.com>
- <942f20cc-87d3-d014-1527-8d3d3e1ae44b@linaro.org>
-Content-Language: en-US
-In-Reply-To: <942f20cc-87d3-d014-1527-8d3d3e1ae44b@linaro.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.80.80.8]
-X-ClientProxiedBy: nasanex01a.na.qualcomm.com (10.52.223.231) To
- nasanex01b.na.qualcomm.com (10.46.141.250)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-ORIG-GUID: q_MOPBZQ5d9shU7caoByWgMe7_Y2jAZx
-X-Proofpoint-GUID: q_MOPBZQ5d9shU7caoByWgMe7_Y2jAZx
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.923,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2023-01-10_07,2023-01-10_03,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 bulkscore=0
- lowpriorityscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0
- adultscore=0 spamscore=0 impostorscore=0 clxscore=1015 priorityscore=1501
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2212070000 definitions=main-2301100115
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.183.108
+X-CLIENT-HOSTNAME: 213.134.183.108
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrledvgdegiecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepvddufedrudefgedrudekfedruddtkeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukeefrddutdekpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeduvddprhgtphhtthhopehhvghlghgrrghssehkvghrnhgvlhdrohhrghdprhgtphhtthhopehmrghrihhordhlihhmohhntghivghllhhosegrmhgurdgtohhmpdhrtghpthhtoheprhgrfhgrvghlsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlvghnsgeskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepsghhvghlghgrrghssehgohhoghhlvgdrtghomhdp
+ rhgtphhtthhopehmihhkrgdrfigvshhtvghrsggvrhhgsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohepufgrnhhjuhdrofgvhhhtrgesrghmugdrtghomhdprhgtphhtthhopehluhhkrghsseifuhhnnhgvrhdruggvpdhrtghpthhtoheprhgrfhgrvghlrdhjrdifhihsohgtkhhisehinhhtvghlrdgtohhmpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphgtihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=12 Fuz1=12 Fuz2=12
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-
-
-On 1/9/2023 1:34 PM, Alex Elder wrote:
-> On 12/19/22 4:58 PM, Elliot Berman wrote:
->> Support virtual mailbox controllers and clients which are not platform
->> devices or come from the devicetree by allowing them to match client to
->> channel via some other mechanism.
+On Monday, January 2, 2023 5:59:36 PM CET Rafael J. Wysocki wrote:
+> On Monday, January 2, 2023 5:34:19 PM CET Rafael J. Wysocki wrote:
+> > On Monday, November 21, 2022 11:17:42 PM CET Bjorn Helgaas wrote:
+> > > On Mon, Nov 21, 2022 at 03:33:00PM +0100, Rafael J. Wysocki wrote:
+> > > > On Friday, November 18, 2022 10:13:39 PM CET Rafael J. Wysocki wrote:
+> > > > > On Fri, Nov 18, 2022 at 9:23 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > > >
+> > > > > > Hi Rafael,
+> > > > > >
+> > > > > > Sorry, I'm still confused (my perpetual state :)).
+> > > > > 
+> > > > > No worries, doing my best to address that.
+> > > > > 
+> > > > > > On Fri, Nov 18, 2022 at 02:16:17PM +0100, Rafael J. Wysocki wrote:
+> > > > > > > On Thu, Nov 17, 2022 at 11:16 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > > > > > On Thu, Nov 17, 2022 at 06:01:26PM +0100, Rafael J. Wysocki wrote:
+> > > > > > > > > On Thu, Nov 17, 2022 at 12:28 AM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > > > > > > > On Wed, Nov 16, 2022 at 01:00:36PM +0100, Rafael J. Wysocki wrote:
+> > > > > > > > > > > On Wed, Nov 16, 2022 at 1:37 AM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > > > > > > > > > On Mon, Nov 14, 2022 at 04:33:52PM +0100, Rafael J. Wysocki wrote:
+> > > > > > > > > > > > > On Fri, Nov 11, 2022 at 10:42 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > > > > > > > > > > >
+> > > > > > > > > > > > > > On Fri, Nov 11, 2022 at 12:58:28PM -0600, Limonciello, Mario wrote:
+> > > > > > > > > > > > > > > On 11/11/2022 11:41, Bjorn Helgaas wrote:
+> > > > > > > > > > > > > > > > On Mon, Oct 31, 2022 at 05:33:55PM -0500, Mario Limonciello wrote:
+> > > > > > > > > > > > > > > > > Firmware typically advertises that ACPI devices that represent PCIe
+> > > > > > > > > > > > > > > > > devices can support D3 by a combination of the value returned by
+> > > > > > > > > > > > > > > > > _S0W as well as the HotPlugSupportInD3 _DSD [1].
+> > > > > > > > > > > > > > > > >
+> > > > > > > > > > > > > > > > > `acpi_pci_bridge_d3` looks for this combination but also contains
+> > > > > > > > > > > > > > > > > an assumption that if an ACPI device contains power resources the PCIe
+> > > > > > > > > > > > > > > > > device it's associated with can support D3.  This was introduced
+> > > > > > > > > > > > > > > > > from commit c6e331312ebf ("PCI/ACPI: Whitelist hotplug ports for
+> > > > > > > > > > > > > > > > > D3 if power managed by ACPI").
+> > > > > > > > > > > > > > > > >
+> > > > > > > > > > > > > > > > > Some firmware configurations for "AMD Pink Sardine" do not support
+> > > > > > > > > > > > > > > > > wake from D3 in _S0W for the ACPI device representing the PCIe root
+> > > > > > > > > > > > > > > > > port used for tunneling. The PCIe device will still be opted into
+> > > > > > > > > > > > > > > > > runtime PM in the kernel [2] because of the logic within
+> > > > > > > > > > > > > > > > > `acpi_pci_bridge_d3`. This currently happens because the ACPI
+> > > > > > > > > > > > > > > > > device contains power resources.
+> > > > > > > > > > > > > >
+> > > > > > > > > > > > > > Wait.  Is this as simple as just recognizing that:
+> > > > > > > > > > > > > >
+> > > > > > > > > > > > > >   _PS0 means the OS has a knob to put the device in D0, but it doesn't
+> > > > > > > > > > > > > >   mean the device can wake itself from a low-power state.  The OS has
+> > > > > > > > > > > > > >   to use _S0W to learn the device's ability to wake itself.
+> > > > > > > > > > > > >
+> > > > > > > > > > > > > It is.
+> > > > > > > > > > > >
+> > > > > > > > > > > > Now I'm confused again about what "HotPlugSupportInD3" means.  The MS
+> > > > > > > > > > > > web page [1] says it identifies Root Ports capable of handling hot
+> > > > > > > > > > > > plug events while in D3.  That sounds kind of related to _S0W: If _S0W
+> > > > > > > > > > > > says "I can wake myself from D3hot and D3cold", how is that different
+> > > > > > > > > > > > from "I can handle hotplug events in D3"?
+> > > > > > > > > > >
+> > > > > > > > > > > For native PME/hot-plug signaling there is no difference.  This is the
+> > > > > > > > > > > same interrupt by the spec after all IIRC.
+> > > > > > > > > > >
+> > > > > > > > > > > For GPE-based signaling, though, there is a difference, because GPEs
+> > > > > > > > > > > can only be used directly for wake signaling (this is related to
+> > > > > > > > > > > _PRW).  In particular, the only provision in the ACPI spec for device
+> > > > > > > > > > > hot-add are the Bus Check and Device Check notification values (0 and
+> > > > > > > > > > > 1) which require AML to run and evaluate Notify() on specific AML
+> > > > > > > > > > > objects.
+> > > > > > > > > > >
+> > > > > > > > > > > Hence, there is no spec-defined way to tell the OS that "something can
+> > > > > > > > > > > be hot-added under this device while in D3 and you will get notified
+> > > > > > > > > > > about that".
+> > > > > > > > > >
+> > > > > > > > > > So I guess acpi_pci_bridge_d3() looks for:
+> > > > > > > > > >
+> > > > > > > > > >   - "wake signaling while in D3" (_S0W) and
+> > > > > > > > > >   - "notification of hotplug while in D3" ("HotPlugSupportInD3")
+> > > > > > > > > >
+> > > > > > > > > > For Root Ports with both those abilities (or bridges below such Root
+> > > > > > > > > > Ports), we allow D3, and this patch doesn't change that.
+> > > > > > > > > >
+> > > > > > > > > > What this patch *does* change is that all bridges with _PS0 or _PR0
+> > > > > > > > > > previously could use D3, but now will only be able to use D3 if they
+> > > > > > > > > > are also (or are below) a Root Port that can signal wakeup
+> > > > > > > > > > (wakeup.flags.valid) and can wakeup from D3hot or D3cold (_S0W).
+> > > > > > > > > >
+> > > > > > > > > > And this fixes the Pink Sardine because it has Root Ports that do
+> > > > > > > > > > Thunderbolt tunneling, and they have _PS0 or _PR0 but their _S0W says
+> > > > > > > > > > they cannot wake from D3.  Previously we put those in D3, but they
+> > > > > > > > > > couldn't wake up.  Now we won't put them in D3.
+> > > > > > > > > >
+> > > > > > > > > > I guess there's a possibility that this could break or cause higher
+> > > > > > > > > > power consumption on systems that were fixed by c6e331312ebf
+> > > > > > > > > > ("PCI/ACPI: Whitelist hotplug ports for D3 if power managed by ACPI").
+> > > > > > > > > > I don't know enough about that scenario.  Maybe Lukas will chime in.
+> > > > > > > > >
+> > > > > > > > > Well, it is possible that some of these systems will be affected.
+> > > > > > > > >
+> > > > > > > > > One of such cases is when the port in question has _S0W which says
+> > > > > > > > > that wakeup from D3 is not supported.  In that case I think the kernel
+> > > > > > > > > should honor the _S0W input, because there may be a good reason known
+> > > > > > > > > to the platform integrator for it.
+> > > > > > > > >
+> > > > > > > > > The other case is when wakeup.flags.valid is unset for the port's ACPI
+> > > > > > > > > companion which means that the port cannot signal wakeup through
+> > > > > > > > > ACPI-related means at all and this may be problematic, especially in
+> > > > > > > > > the system-wide suspend case in which the wakeup capability is not too
+> > > > > > > > > relevant unless there is a system wakeup device under the port.
+> > > > > > > > >
+> > > > > > > > > I don't think that the adev->wakeup.flags.valid check has any bearing
+> > > > > > > > > on the _S0W check - if there is _S0W and it says "no wakeup from D3",
+> > > > > > > > > it should still be taken into account - so that check can be moved
+> > > > > > > > > past the _S0W check.
+> > > > > > > >
+> > > > > > > > So if _S0W says it can wake from D3, but wakeup.flags is not valid,
+> > > > > > > > it's still OK to use D3?
+> > > > > > >
+> > > > > > > No, it isn't, as per the code today and I don't think that this
+> > > > > > > particular part should be changed now.
+> > > > > >
+> > > > > > But the current upstream code checks acpi_pci_power_manageable(dev)
+> > > > > > first, so if "dev" has _PR0 or _PS0, we'll use D3 even if _S0W says it
+> > > > > > can wake from D3 and wakeup.flags is not valid.
+> > > > > 
+> > > > > Yes, the current code will return 'true' if _PR0 or _PS0 is present
+> > > > > for dev regardless of anything else.
+> > > > > 
+> > > > > The proposed change is to make that conditional on whether or not _S0W
+> > > > > for the root port says that wakeup from D3 is supported (or it is not
+> > > > > present or unusable).
+> > > > > 
+> > > > > I see that I've missed one point now which is when the root port
+> > > > > doesn't have an ACPI companion, in which case we should go straight
+> > > > > for the "dev is power manageable" check.
+> > > > 
+> > > > Moreover, it is possible that the bridge passed to acpi_pci_bridge_d3() has its
+> > > > own _S0W or a wakeup GPE if it is power-manageable via ACPI.  In those cases
+> > > > it is not necessary to ask the Root Port's _S0W about wakeup from D3, so overall
+> > > > I would go for the patch like the below (not really tested).
+> > > > 
+> > > > This works in the same way as the current code (unless I have missed anything)
+> > > > except for the case when the "target" bridge is power-manageable via ACPI, but
+> > > > it cannot signal wakeup via ACPI and has no _S0W.  In that case it will consult
+> > > > the upstream Root Port's _S0W to check whether or not wakeup from D3 is
+> > > > supported.
+> > > > 
+> > > > [Note that if dev_has_acpi_pm is 'true', it is kind of pointless to look for the
+> > > > "HotPlugSupportInD3" property of the Root Port, because the function is going to
+> > > > return 'true' regardless, but I'm not sure if adding an extra if () for handling
+> > > > this particular case is worth the hassle.]
+> > > 
+> > > I think this has a lot of potential.  I haven't tried it, but I wonder
+> > > if splitting out the Root Port-specific parts to a separate function
+> > > would be helpful, if only to make it more obvious that there may be
+> > > two different devices involved.
+> > > 
+> > > If there are two devices ("dev" is a bridge below a Root Port), I
+> > > guess support in the Root Port is not necessarily required?  E.g.,
+> > > could "dev" assert a wakeup GPE that's not routed through the Root
+> > > Port?  If Root Port support *is* required, maybe it would read more
+> > > clearly to test that first, before looking at the downstream device.
+> > 
+> > Sorry for the delay.
+> > 
+> > I don't really think that Root Port support is required for a bridge below
+> > a Root Port if that bridge itself is power-manageable via ACPI.  Moreover,
+> > I don't think that the _S0W of a Root Port has any bearing on devices below
+> > it that have their own _S0W.
+> > 
+> > So what we really want appears to be to evaluate _S0W for the target bridge,
+> > regardless of whether or not it is a Root Port, and return 'false' if that
+> > produces D2 or a shallower power state.  Otherwise, we can do what we've
+> > done so far.
+> > 
+> > The patch below implements, this - please let me know what you think.
+> > 
 > 
-> The new function behaves very much like mbox_request_channel()
-> did before.
-> 
-> The new function differs from omap_mbox_request_channel() in that
-> it can change the if chan->txdone_method is TXDONE_BY_POLL, it
-> is changed to TXDONE_BY_ACK if the client's knows_txdone field is
-> set.  Is this OK?  Why?
+> And here's a v2 with somewhat less code duplication.
 
-Both of the current drivers that use mbox_bind_client use TXDONE_BY_IRQ, 
-so this doesn't cause issue for checking whether the client has 
-txdone_method.
+I'm wondering if you have any comments on this one?
 
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: [PATCH] PCI / ACPI: PM: Take _S0W of the target bridge into account in acpi_pci_bridge_d3(()
 > 
-> It also assumes chan->mbox->ops->startup us non-null (though that
-> isn't really a problem).
+> It is generally questionable to allow a PCI bridge to go into D3 if
+> it has _S0W returning D2 or a shallower power state, so modify
+> acpi_pci_bridge_d3(() to always take the return value of _S0W for the
+> target bridge into accout.  That is, make it return 'false' if _S0W
+> returns D2 or a shallower power state for the target bridge regardless
+> of its ancestor PCIe Root Port properties.  Of course, this also causes
+> 'false' to be returned if the PCIe Root Port itself is the target and
+> its _S0W returns D2 or a shallower power state.
 > 
->>
->> Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
->> ---
->>   drivers/mailbox/mailbox.c      | 96 ++++++++++++++++++++++++----------
->>   drivers/mailbox/omap-mailbox.c | 18 ++-----
->>   drivers/mailbox/pcc.c          | 18 ++-----
->>   include/linux/mailbox_client.h |  1 +
->>   4 files changed, 76 insertions(+), 57 deletions(-)
->>
->> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
->> index 4229b9b5da98..adf36c05fa43 100644
->> --- a/drivers/mailbox/mailbox.c
->> +++ b/drivers/mailbox/mailbox.c
->> @@ -317,6 +317,71 @@ int mbox_flush(struct mbox_chan *chan, unsigned 
->> long timeout)
->>   }
->>   EXPORT_SYMBOL_GPL(mbox_flush);
->> +static int __mbox_bind_client(struct mbox_chan *chan, struct 
->> mbox_client *cl)
+> However, still allow bridges without _S0W that are power-manageable via
+> ACPI to enter D3 to retain the current code behavior in that case.
 > 
-> There should be an unbind_client() call.  At a minimum, you are
-> calling try_module_get(), and the matching module_put() call
-> would belong there.  And even though one might just call
-> module_put() elsewhere for this, it would be cleaner to have
-> a function that similarly encapsulates the shutdown call
-> as well.
+> Reported-by: Mario Limonciello <mario.limonciello@amd.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/device_pm.c |   16 ++++++++++++++++
+>  drivers/pci/pci-acpi.c   |   34 ++++++++++++++++++++++++----------
+>  include/acpi/acpi_bus.h  |    1 +
+>  3 files changed, 41 insertions(+), 10 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -977,22 +977,37 @@ bool acpi_pci_bridge_d3(struct pci_dev *
+>  {
+>  	struct pci_dev *rpdev;
+>  	struct acpi_device *adev;
+> -	acpi_status status;
+> -	unsigned long long state;
+>  	const union acpi_object *obj;
+>  
+>  	if (acpi_pci_disabled || !dev->is_hotplug_bridge)
+>  		return false;
+>  
+> -	/* Assume D3 support if the bridge is power-manageable by ACPI. */
+> -	if (acpi_pci_power_manageable(dev))
+> -		return true;
+> +	adev = ACPI_COMPANION(&dev->dev);
+> +	if (adev) {
+> +		/*
+> +		 * If the bridge has _S0W, whether or not it can go into D3
+> +		 * depends on what is returned by that object.  In particular,
+> +		 * if the power state returned by _S0W is D2 or shallower,
+> +		 * entering D3 should not be allowed.
+> +		 */
+> +		if (acpi_dev_no_wakeup_from_d3(adev))
+> +			return false;
+> +
+> +		/*
+> +		 * Otherwise, assume that the bridge can enter D3 so long as it
+> +		 * is power-manageable via ACPI.
+> +		 */
+> +		if (acpi_device_power_manageable(adev))
+> +			return true;
+> +	}
+>  
+>  	rpdev = pcie_find_root_port(dev);
+>  	if (!rpdev)
+>  		return false;
+>  
+> -	adev = ACPI_COMPANION(&rpdev->dev);
+> +	if (rpdev != dev)
+> +		adev = ACPI_COMPANION(&rpdev->dev);
+> +
+>  	if (!adev)
+>  		return false;
+>  
+> @@ -1005,11 +1020,10 @@ bool acpi_pci_bridge_d3(struct pci_dev *
+>  		return false;
+>  
+>  	/*
+> -	 * If the Root Port cannot wake itself from D3hot or D3cold, we
+> -	 * can't use D3.
+> +	 * In the bridge-below-a-Root-Port case, evaluate _S0W for the Root Port
+> +	 * to verify whether or not it can signal wakeup from D3.
+>  	 */
+> -	status = acpi_evaluate_integer(adev->handle, "_S0W", NULL, &state);
+> -	if (ACPI_SUCCESS(status) && state < ACPI_STATE_D3_HOT)
+> +	if (rpdev != dev && acpi_dev_no_wakeup_from_d3(adev))
+>  		return false;
+>  
+>  	/*
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -484,6 +484,22 @@ void acpi_dev_power_up_children_with_adr
+>  	acpi_dev_for_each_child(adev, acpi_power_up_if_adr_present, NULL);
+>  }
+>  
+> +/**
+> + * acpi_dev_no_wakeup_from_d3 - Check if wakeup signaling from D3 is supported
+> + * @adev: ACPI companion of the target device.
+> + *
+> + * Evaluate _S0W for @adev and return 'true' if it is successful and the power
+> + * state returned by it is D2 or shallower.
+> + */
+> +bool acpi_dev_no_wakeup_from_d3(struct acpi_device *adev)
+> +{
+> +	unsigned long long state;
+> +	acpi_status status;
+> +
+> +	status = acpi_evaluate_integer(adev->handle, "_S0W", NULL, &state);
+> +	return ACPI_SUCCESS(status) && state < ACPI_STATE_D3_HOT;
+> +}
+> +
+>  #ifdef CONFIG_PM
+>  static DEFINE_MUTEX(acpi_pm_notifier_lock);
+>  static DEFINE_MUTEX(acpi_pm_notifier_install_lock);
+> Index: linux-pm/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_bus.h
+> +++ linux-pm/include/acpi/acpi_bus.h
+> @@ -533,6 +533,7 @@ int acpi_bus_update_power(acpi_handle ha
+>  int acpi_device_update_power(struct acpi_device *device, int *state_p);
+>  bool acpi_bus_power_manageable(acpi_handle handle);
+>  void acpi_dev_power_up_children_with_adr(struct acpi_device *adev);
+> +bool acpi_dev_no_wakeup_from_d3(struct acpi_device *adev);
+>  int acpi_device_power_add_dependent(struct acpi_device *adev,
+>  				    struct device *dev);
+>  void acpi_device_power_remove_dependent(struct acpi_device *adev,
+> 
+> 
+> 
+> 
 
-The function for this is "mbox_free_channel".
 
-Thanks,
-Elliot
+
+
