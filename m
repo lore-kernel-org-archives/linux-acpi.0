@@ -2,161 +2,189 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37300C678DB
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 20:12:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0ABCC54EBE
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 20:41:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240935AbjALUI2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:08:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44156 "EHLO
+        id S239940AbjALUlK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:41:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232397AbjALT7N (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 14:59:13 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9970BCDF;
-        Thu, 12 Jan 2023 11:58:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
-        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
-        Content-ID:Content-Description:In-Reply-To;
-        bh=Un035BTYhsjREpZ4dpy/MHkkoifcKtLiH3nYidAuKL8=; b=P5c8UU2jghR82uJHaUsCbEyZY2
-        1BjYkq3jeF5ewbeuBixxGQ1MFHR9TCeHAHBjDMgt+hkRsw0FFt2ppNujpZmDy3BclS1Ums/sHfSGF
-        DsoLRzOAcjZb0YeI2dan/xzDO4bLczNXAS9bGqKX112iGbxaDbC1pmZnnUukuGv1RP3YOO+mA12eY
-        yRYq2ks+V6tltY12SJ/UDL++Q4qZeEYg7ljBwFyVCutcyQJ/H9pzwWVke2dKUZwwKrXgIGXwZmcPJ
-        pPt48ptlxwCsahE0v4HXTBqWzoIi9klWddYcc0T3lFrQ7of2NxwaFmInlnyrFVz5DKbqBazXyVs9+
-        ZpRfznRA==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pG3hu-005P7i-Rf; Thu, 12 Jan 2023 19:57:50 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 4EAB5303484;
-        Thu, 12 Jan 2023 20:57:14 +0100 (CET)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 7C19A2CD066F8; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
-Message-ID: <20230112195542.397238052@infradead.org>
-User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:44:04 +0100
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     peterz@infradead.org
-Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
-        nsekhar@ti.com, brgl@bgdev.pl, ulli.kroll@googlemail.com,
-        linus.walleij@linaro.org, shawnguo@kernel.org,
-        Sascha Hauer <s.hauer@pengutronix.de>, kernel@pengutronix.de,
-        festevam@gmail.com, linux-imx@nxp.com, tony@atomide.com,
-        khilman@kernel.org, krzysztof.kozlowski@linaro.org,
-        alim.akhtar@samsung.com, catalin.marinas@arm.com, will@kernel.org,
-        guoren@kernel.org, bcain@quicinc.com, chenhuacai@kernel.org,
-        kernel@xen0n.name, geert@linux-m68k.org, sammy@sammy.net,
-        monstr@monstr.eu, tsbogend@alpha.franken.de, dinguyen@kernel.org,
-        jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
-        shorne@gmail.com, James.Bottomley@HansenPartnership.com,
-        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
-        christophe.leroy@csgroup.eu, paul.walmsley@sifive.com,
-        palmer@dabbelt.com, aou@eecs.berkeley.edu, hca@linux.ibm.com,
-        gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
-        richard@nod.at, anton.ivanov@cambridgegreys.com,
-        johannes@sipsolutions.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, acme@kernel.org, mark.rutland@arm.com,
-        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
-        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
-        amakhalov@vmware.com, pv-drivers@vmware.com,
-        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
-        gregkh@linuxfoundation.org, mturquette@baylibre.com,
-        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
-        sudeep.holla@arm.com, agross@kernel.org, andersson@kernel.org,
-        konrad.dybcio@linaro.org, anup@brainfault.org,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        jacob.jun.pan@linux.intel.com, atishp@atishpatra.org,
-        Arnd Bergmann <arnd@arndb.de>, yury.norov@gmail.com,
-        andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
-        dennis@kernel.org, tj@kernel.org, cl@linux.com,
-        rostedt@goodmis.org, mhiramat@kernel.org, frederic@kernel.org,
-        paulmck@kernel.org, pmladek@suse.com, senozhatsky@chromium.org,
-        john.ogness@linutronix.de, juri.lelli@redhat.com,
-        vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
-        bsegall@google.com, mgorman@suse.de, bristot@redhat.com,
-        vschneid@redhat.com, ryabinin.a.a@gmail.com, glider@google.com,
-        andreyknvl@gmail.com, dvyukov@google.com,
-        vincenzo.frascino@arm.com,
-        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
-        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-perf-users@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v3 50/51] cpuidle: Comments about noinstr/__cpuidle
-References: <20230112194314.845371875@infradead.org>
+        with ESMTP id S232571AbjALUke (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 15:40:34 -0500
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2063.outbound.protection.outlook.com [40.107.244.63])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85CB175D17;
+        Thu, 12 Jan 2023 12:10:24 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=G/zlaxnOKakRWGHtQnCdMjeOR5Qw1nhhkHoW3uKnv8QnEKOReUCIxwWND7P6NBfp+62AHoo1Na2HRHljjj43EA25RYSYfO74P7NL0nI+S8HcJwN8NSRBSedat/qG07IbpHt1oWF5V7ROC1QtSIKlTu7SCiqJyFZYedmWwRK2NLROCrmybEekn3cyUVSTzGI6+OduDPJ0lD/oxNxfk1rNYS3v3/IXxVSDy/uH0q9oolR1z0Fafg/amt9C9lifamihBMCaPJHdr0Vy4vbrCyVfElcSvGkWG+6anwmXNuftA2djX/PefjVYRqfUMy/WBKvl+TBa3/gt1H+nHprw9ddhgg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=0rgLNCsdJegiJyBsOFOBfrGxUu1f4j8umh3D8vo1fjY=;
+ b=i3MgZejSJcIVzEaqaVxfFdd7O9y4bk/Fy7UF2r4jNdd79TtoA/hspWuyqnoQ0ZmUhqL7EYqtsfz5q54CIjVvj5DsSCpK+RyQ0WdcSVMhCJ0ljJ6NDVlYjFaTcq7y6n4fHPn144Awx4WQ0KUgQ5sZzPr1OWAaNy68TpEnd4fFph3+Ap40s7Z20fcsUnIYOykpoq490btPFZti2C4sXe+d89yxJeP/JqRwu9zcL6GinAO79NZJUGQMvp49YXEAKsBx3az5Yvi2JaaTQ6V+P1PuGKU7W7ewYPREumBcpZZHkDWDA6SCh+WiFpvxs0z+lfY30/vbiFrwBri5M0jepsT+8A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0rgLNCsdJegiJyBsOFOBfrGxUu1f4j8umh3D8vo1fjY=;
+ b=YFR3OmYY4DTCnny4pOWaK5REe/yWHdvDGxoXdlVmroa7wqkTLfQgq9XazFbQgZA6chG0fmTp2B+aUJENy3R/vdJvyQGbQDTPGtZY+E51iRD7ta8nz5AqBlOUiWktSN8UySgzTd/TiRvCLF6Q5qzPjM5W/ZztzlP/8DySpuXIWno=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from MN0PR12MB6101.namprd12.prod.outlook.com (2603:10b6:208:3cb::10)
+ by IA0PR12MB7603.namprd12.prod.outlook.com (2603:10b6:208:439::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.18; Thu, 12 Jan
+ 2023 20:09:58 +0000
+Received: from MN0PR12MB6101.namprd12.prod.outlook.com
+ ([fe80::ff3c:2d37:75f3:442a]) by MN0PR12MB6101.namprd12.prod.outlook.com
+ ([fe80::ff3c:2d37:75f3:442a%7]) with mapi id 15.20.5986.018; Thu, 12 Jan 2023
+ 20:09:58 +0000
+Message-ID: <9a88391c-699f-e366-f88b-70fa481aaf7d@amd.com>
+Date:   Thu, 12 Jan 2023 14:09:54 -0600
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH v6 09/13] HID: i2c-hid: acpi: Stop setting wakeup_capable
+Content-Language: en-US
+To:     Werner Sembach <wse@tuxedocomputers.com>,
+        Raul E Rangel <rrangel@chromium.org>,
+        linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Cc:     andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com,
+        hdegoede@redhat.com, rafael@kernel.org,
+        mika.westerberg@linux.intel.com, timvp@google.com,
+        linus.walleij@linaro.org, jingle.wu@emc.com.tw,
+        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+        Alistair Francis <alistair@alistair23.me>,
+        Jiri Kosina <jikos@kernel.org>, Rob Herring <robh@kernel.org>,
+        linux-kernel@vger.kernel.org
+References: <20220929161917.2348231-1-rrangel@chromium.org>
+ <20220929093200.v6.9.I2efb7f551e0aa2dc4c53b5fd5bbea91a1cdd9b32@changeid>
+ <5824c823-dced-bdff-dbd1-5cec9e89480f@tuxedocomputers.com>
+From:   "Limonciello, Mario" <mario.limonciello@amd.com>
+In-Reply-To: <5824c823-dced-bdff-dbd1-5cec9e89480f@tuxedocomputers.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: MN2PR05CA0040.namprd05.prod.outlook.com
+ (2603:10b6:208:236::9) To MN0PR12MB6101.namprd12.prod.outlook.com
+ (2603:10b6:208:3cb::10)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN0PR12MB6101:EE_|IA0PR12MB7603:EE_
+X-MS-Office365-Filtering-Correlation-Id: d1ed8bcd-843d-44c4-3007-08daf4d8faa2
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: hS56HBOBNUnHEKKpm7YIVd/Q38ZTG0sXgKXMh0aG3hR8Q9/69sx9gwMa8PDcIm9PLx2RNnCvy+nleSxbTrpdYBjDr7QPnIJp9CU+hN4i6JqXzKXGiCbZQDvJpNd2GwDdFYhDh+pQ2WqP32Ye1lKSxfSHN956G29w5jp/CW1aMmOMovFoQxg7/D9y21b+NmoC5AGLhqtSHMJLsvdWCzPh2FywVtAauWRv4hIWSSBk+rDohqo1djsfegQPVrbzHqep0SyRnb11tHscK+2ylnlG8yTxYn03PoGdwfXJdBGwXG60zKM59VUUUmM5hxVOaRjI02VSS4OiB7hhEOf2Rx8/PutO9b6rQVxqQ6QDZ7+shY4ggnrZvP1JUIQMcCKwHh47gL0tjN0fChY8xuEMTXr8od9ixWPWf6rydZcUxeK0Vlm/ZW3nFPR7wz15SV3OoaVX3/D+dlX93w5YbO8wXelLi+eIuaNBBVHJIm+TPUomYgOoq8SCpXN6RUdspkrp4diEHJ74dcTTSgdEpoMD5MmqRRqyoEsUmxd+iyhJiUBGnvEboQlXvlYflCUHAfgy6JspyPt6Rahu982q1o5cW4LMhqXM0KEBPgVJ7nUF/cpfjggpxQav6tdblZzmEnNhw/tc2LMiNb9F35qp3IK6OXFJkH3xanKyEKOkB6Ekb2mgBj4/cU6Bw3lxwJe3VM8AYC3g
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6101.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(376002)(39860400002)(346002)(396003)(366004)(136003)(451199015)(36756003)(31686004)(86362001)(110136005)(83380400001)(66946007)(4326008)(66556008)(8676002)(54906003)(31696002)(41300700001)(66476007)(38100700002)(53546011)(186003)(6506007)(6486002)(26005)(966005)(6666004)(7416002)(5660300002)(316002)(8936002)(2906002)(478600001)(2616005)(6512007)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?LytQNkwxS2Z1U2NnZ1VyRzlsWmdXUmZVdWNCVmFjWmlNYTFYaGt4V0NIaER4?=
+ =?utf-8?B?Q3JRazVWaUFsQnMwVFdsTUE3cU8rbUFRTGZPeENMM0U3bkt1TTBOclN4Q3Nk?=
+ =?utf-8?B?UlE3RjdIbVRvQ2M5Uy9vaGxGOXE1Uk1RNVBlWThQWGtJWnFob2pyNUtoZlpw?=
+ =?utf-8?B?WXNYL0NFdm5iYUpHSTJXSEUxQ2RuZUtuTWpHYWZFbXZKbjhpWFFtM2JvOE8v?=
+ =?utf-8?B?RjRBY1ZlVTFQNUdnQi9HN3lmbkppcjl0a0E4bVNGRk9nSGFEalliZm40Z3F4?=
+ =?utf-8?B?WE5ScnoxMkU3NHhCQldWdGJRNzJydjlxaVVoL0tDSElWWTd0OENBVTVQcncy?=
+ =?utf-8?B?TmVWRzg0YXBpTUFRWnVuQ1JHWU5RZS8xQVRCYjJqV2pvcFlvcTJkWUlyZ29W?=
+ =?utf-8?B?T3VNZVZWL3M2UnpXdGNWTHJwcEs2YW03ZG5Venh3c1daVnN4a0xSUDljSDVx?=
+ =?utf-8?B?dE9DRHhjaVhUcyszbzIyc3htcTdYZTNZbHVvYnRMN1R1T2pmbkpEcnVlOSti?=
+ =?utf-8?B?YWg3Y2pvK24zSDJudXJ6ZjgwcDllMWFJYXBWRUwyRldtNmdjMXYvanc1TXNx?=
+ =?utf-8?B?a25EaTV2RE5ScDNOTk52bzlEY3VGekxKU0JMNjdMMEM3UU5KWTFOandZYklU?=
+ =?utf-8?B?MTlNRldLNGxVY1Jwd2YwUWowS3IvUlhwRFdxNjJOWHd0NlF1QnlWU1hMQ0ta?=
+ =?utf-8?B?V0oxUXUvUmM1QVlxaE1IR3dZVWd3R3hDa2NEaEJjbmhKYkllY1lrUW41VkVQ?=
+ =?utf-8?B?bm5EeGhOekRtNk9zSXVxMVpSUFJzNVVsMVp0ZDNHYkQwNFB1ejBQR2NJQkxi?=
+ =?utf-8?B?ZGFvUlluQ0p5VmJUWUNYbFd4dWVBb3M3dmNKNjF4ZjVya1pIdk8vTGs3di92?=
+ =?utf-8?B?OXRQYlY3VGZNV1N4RXJnQ2VFZ0VOaDFydHFZUm10Qlh1eWdJWEtDT2tmUjl2?=
+ =?utf-8?B?SVlNTTZGSW1LaEhYZkZ2Qkd0UUpaTVZNTXNNUjlGamZKTDh6WlVObm5NbmZZ?=
+ =?utf-8?B?SHViNEg5TmVlM0EyNTJCMkJEMTljd0thTW9MOWx3Sko2eU9oTDBHd0o5Uyts?=
+ =?utf-8?B?OTVpSXhpdnNxS0tYaVZIRURTWnUzdVBxRTlManFBZk1ucWtRbXpSb284bHo5?=
+ =?utf-8?B?SlhOMnVZVlJiMUtJWlpUNTFDT1Q0UjQwcFRmRXJNc2dpd1JoM1ZGMi9iT3Jt?=
+ =?utf-8?B?aGR3OXhEbmlVMHBBNzBHWjV6eG1FNTY4SlFVSzdlWFdKeFBGS3A2TGw4Qm9C?=
+ =?utf-8?B?V2VHak5NTmh1dnNmM0x0djdpZTI0VEppbjlkVlh1a2lIbE1wNUdJL2tmN2tU?=
+ =?utf-8?B?b2FxSFBVNkpRbzhaSlZYd3F6YkZkbEhaVlFGYXNDQkYxZ0E2OGpYQUZ0RVpK?=
+ =?utf-8?B?emNkVHpIOVp1QkVnbEZjVHgxMjhVUlRJbWpRWXB5N2JxT0J6dks0Y1FXWGhx?=
+ =?utf-8?B?NkpUMjVVYVhwd0w3dU1uazc4M0ZLV2ZBaTl3amFtSzQySGpJL3N4WG5RdGE1?=
+ =?utf-8?B?OVdUV0FnSDdzYWV5SnBvN3dlT01aZXRTUHp4K1ZnaTZCNkpSK1NwSW9RbjI3?=
+ =?utf-8?B?dS9rNW1qV1hSUjNibDdkT1pIU2JxU0NVV3gwUkdBVEc3emxtNzliVE5ab0xX?=
+ =?utf-8?B?LzhrZGQwSkV0UDNPWUdjREk3NjMzQ2NRb0hLVXdQOUhPWTRyTnFsUCtSNGQ2?=
+ =?utf-8?B?R3pHa3BIRjNkcjdPRlVIVk5vZExld1hhNWdYaTZQcnBObkVrc0dYQTBRQ3BU?=
+ =?utf-8?B?VmZHTnBMUlJVY1Y0SGRuVjRXQlF3NjRVdm82UTJkTTNwU1Fvc2IxemY2ajgw?=
+ =?utf-8?B?cWdGN0NGQzdRMlIrT2JPZ2pGMjVTZmsvNnJUZ3ZIVjAxcWVXSE5hUXhveTdB?=
+ =?utf-8?B?UUVNZDVzN1VuOU8vWjZWdGxzYVp5cG9VRW51aFF6a1cvOVZhNzh4eUl6cmZO?=
+ =?utf-8?B?L2J3MHhLNFQvWTlZNFNpMmVnRkhlaGthL09keGNnVXZHQjBaVWJEREY1b3lV?=
+ =?utf-8?B?TDFGVU4vQjUrbE14djFCWlVkTlczWHRtZmxaR2hnL01veUtCNDZZRWZOSENG?=
+ =?utf-8?B?dE5oZFhBUTlUK0pjQ2RETjBNQzJCODZadGowcTZpRHRyakpRTUxWdlFCUUJ0?=
+ =?utf-8?Q?q7cIZPL4bfipLLkaoVQhkjCKR?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d1ed8bcd-843d-44c4-3007-08daf4d8faa2
+X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6101.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jan 2023 20:09:58.2499
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 08xICaOwxP9f6iJeYTdre05iUN0xDpysZGRiQYo/hHtFEB9BCHTETWXSK7bUOE9AVOsfkndG0fuKWv8QmdDxCw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB7603
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a few words on noinstr / __cpuidle usage.
+On 1/12/2023 13:57, Werner Sembach wrote:
+> Hi,
+> 
+> Am 29.09.22 um 18:19 schrieb Raul E Rangel:
+>> This is now handled by the i2c-core drive >
+>> Signed-off-by: Raul E Rangel <rrangel@chromium.org>
+>> Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+>> ---
+>>
+>> (no changes since v5)
+>>
+>> Changes in v5:
+>> - Added Acked-by: Benjamin Tissoires
+>>
+>>   drivers/hid/i2c-hid/i2c-hid-acpi.c | 5 -----
+>>   1 file changed, 5 deletions(-)
+>>
+>> diff --git a/drivers/hid/i2c-hid/i2c-hid-acpi.c 
+>> b/drivers/hid/i2c-hid/i2c-hid-acpi.c
+>> index b96ae15e0ad917e..375c77c3db74d92 100644
+>> --- a/drivers/hid/i2c-hid/i2c-hid-acpi.c
+>> +++ b/drivers/hid/i2c-hid/i2c-hid-acpi.c
+>> @@ -105,11 +105,6 @@ static int i2c_hid_acpi_probe(struct i2c_client 
+>> *client)
+>>       acpi_device_fix_up_power(adev);
+>> -    if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0) {
+>> -        device_set_wakeup_capable(dev, true);
+>> -        device_set_wakeup_enable(dev, false);
+>> -    }
+>> -
+>>       return i2c_hid_core_probe(client, &ihid_acpi->ops,
+>>                     hid_descriptor_address, 0);
+>>   }
+> 
+> this patch is causing a regression on the Clevo NL50RU of which the 
+> touchpad instantly wakes up the device when going to sleep. That wasn't 
+> triggered until this patch by the default settings: Setting wake capable 
+> but not enabling it by default. So unless a user enabled it by hand, the 
+> device went correctly to sleep.
+> 
+> I'm not deep into this subsystem so I don't know what the best approach 
+> is to ?work around this firmware bug?/?fix this issue?:
+> - Changing the default back again?
+> - Adding a quirk list for bad devices?
+> - Maybe this isn't a firmware bug, but the touchpad was not meant to 
+> wakeup the device and we can somehow detect that?
+> 
 
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
----
- drivers/cpuidle/cpuidle.c      |   12 ++++++++++++
- include/linux/compiler_types.h |   10 ++++++++++
- 2 files changed, 22 insertions(+)
+"Generally" laptops that support modern standby/s2idle can be woken from 
+the touchpad.
 
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -252,6 +252,18 @@ noinstr int cpuidle_enter_state(struct c
- 		instrumentation_begin();
- 	}
- 
-+	/*
-+	 * NOTE!!
-+	 *
-+	 * For cpuidle_state::enter() methods that do *NOT* set
-+	 * CPUIDLE_FLAG_RCU_IDLE RCU will be disabled here and these functions
-+	 * must be marked either noinstr or __cpuidle.
-+	 *
-+	 * For cpuidle_state::enter() methods that *DO* set
-+	 * CPUIDLE_FLAG_RCU_IDLE this isn't required, but they must mark the
-+	 * function calling ct_cpuidle_enter() as noinstr/__cpuidle and all
-+	 * functions called within the RCU-idle region.
-+	 */
- 	entered_state = target_state->enter(dev, drv, index);
- 
- 	if (WARN_ONCE(!irqs_disabled(), "%ps leaked IRQ state", target_state->enter))
---- a/include/linux/compiler_types.h
-+++ b/include/linux/compiler_types.h
-@@ -233,6 +233,16 @@ struct ftrace_likely_data {
- 
- #define noinstr __noinstr_section(".noinstr.text")
- 
-+/*
-+ * The __cpuidle section is used twofold:
-+ *
-+ *  1) the original use -- identifying if a CPU is 'stuck' in idle state based
-+ *     on it's instruction pointer. See cpu_in_idle().
-+ *
-+ *  2) supressing instrumentation around where cpuidle disables RCU; where the
-+ *     function isn't strictly required for #1, this is interchangeable with
-+ *     noinstr.
-+ */
- #define __cpuidle __noinstr_section(".cpuidle.text")
- 
- #endif /* __KERNEL__ */
+By chance can you check Windows?  Wait a few minutes after you put it to
+sleep to ensure it's really gotten down to a hardware sleep state.
 
+> For reference: The debugging issue that lead me here: 
+> https://gitlab.freedesktop.org/drm/amd/-/issues/1722#note_1719789
+
+TLDR - That bug has multiple conflated issues, and you can ignore 95% of 
+it.  It's just the last few comments we concluded and bisected down this 
+regression.
 
