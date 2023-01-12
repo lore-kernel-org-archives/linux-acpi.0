@@ -2,107 +2,226 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF0BFC54EBE
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 20:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E1FEC61DB3
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 20:50:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232583AbjALUuV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:50:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52292 "EHLO
+        id S233829AbjALUuy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:50:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239769AbjALUt5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 15:49:57 -0500
-X-Greylist: delayed 1346 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 12 Jan 2023 12:20:20 PST
-Received: from srv6.fidu.org (srv6.fidu.org [159.69.62.71])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB89D12609;
-        Thu, 12 Jan 2023 12:20:20 -0800 (PST)
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by srv6.fidu.org (Postfix) with ESMTP id 83B4FC80091;
-        Thu, 12 Jan 2023 20:57:52 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at srv6.fidu.org
-Received: from srv6.fidu.org ([127.0.0.1])
-        by localhost (srv6.fidu.org [127.0.0.1]) (amavisd-new, port 10024)
-        with LMTP id Et299hrPquQa; Thu, 12 Jan 2023 20:57:52 +0100 (CET)
-Received: from [192.168.176.165] (host-88-217-226-44.customer.m-online.net [88.217.226.44])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        with ESMTP id S240129AbjALUuJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 15:50:09 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87418193E5;
+        Thu, 12 Jan 2023 12:21:37 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: wse@tuxedocomputers.com)
-        by srv6.fidu.org (Postfix) with ESMTPSA id 6319BC8008D;
-        Thu, 12 Jan 2023 20:57:51 +0100 (CET)
-Message-ID: <5824c823-dced-bdff-dbd1-5cec9e89480f@tuxedocomputers.com>
-Date:   Thu, 12 Jan 2023 20:57:50 +0100
+        by ams.source.kernel.org (Postfix) with ESMTPS id 104E3B81E62;
+        Thu, 12 Jan 2023 20:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63674C433EF;
+        Thu, 12 Jan 2023 20:21:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1673554894;
+        bh=sJrQxbgpJcSinpuASwh8fpAZzuBQXGPnSzJI9r6rvLM=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=vGxTMm1eCbLw6Lz4iwxfmvpA7r3nsuuArRggVP3zFlyP2FP8SaongTVQKaMHrKNwp
+         E3RMgJZdc0whOAU/M9HpyhYfhx5etE/y1qFzWTIDQWU2kRRsbVefjYrJHk5RJ6EXRW
+         eTdBIdhTS8fqabNekWIoz7Y5RfBN814//OgH+qDmFtNfw3XfP/4QUxCg9UPPWKi3XN
+         eGJo+d0/u1WejTmNiOUgHZJHtTc8VE9udws++58RJq59NmTuudsf3L5EnL+0GPvGza
+         +g3S7Bl6Jh2oCLFn7m9hC07x1qCundByOpXqlu6eXDWGvN9xbhZWo+w5FCIH3bfZ+K
+         LLa0Tuw3JsIRA==
+Date:   Thu, 12 Jan 2023 14:21:32 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pci@vger.kernel.org,
+        "Limonciello, Mario" <mario.limonciello@amd.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Mehta Sanju <Sanju.Mehta@amd.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linux PM <linux-pm@vger.kernel.org>
+Subject: Re: [PATCH v3] PCI / ACPI: PM: Take _S0W of the target bridge into
+ account in acpi_pci_bridge_d3(()
+Message-ID: <20230112202132.GA1788706@bhelgaas>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Subject: Re: [PATCH v6 09/13] HID: i2c-hid: acpi: Stop setting wakeup_capable
-Content-Language: en-US
-To:     Raul E Rangel <rrangel@chromium.org>, linux-acpi@vger.kernel.org,
-        linux-input@vger.kernel.org
-Cc:     andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com,
-        hdegoede@redhat.com, rafael@kernel.org,
-        mika.westerberg@linux.intel.com, mario.limonciello@amd.com,
-        timvp@google.com, linus.walleij@linaro.org, jingle.wu@emc.com.tw,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        Alistair Francis <alistair@alistair23.me>,
-        Jiri Kosina <jikos@kernel.org>, Rob Herring <robh@kernel.org>,
-        linux-kernel@vger.kernel.org
-References: <20220929161917.2348231-1-rrangel@chromium.org>
- <20220929093200.v6.9.I2efb7f551e0aa2dc4c53b5fd5bbea91a1cdd9b32@changeid>
-From:   Werner Sembach <wse@tuxedocomputers.com>
-In-Reply-To: <20220929093200.v6.9.I2efb7f551e0aa2dc4c53b5fd5bbea91a1cdd9b32@changeid>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5659681.DvuYhMxLoT@kreacher>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-Am 29.09.22 um 18:19 schrieb Raul E Rangel:
-> This is now handled by the i2c-core drive >
-> Signed-off-by: Raul E Rangel <rrangel@chromium.org>
-> Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+On Wed, Jan 11, 2023 at 11:38:55AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> It is generally questionable to allow a PCI bridge to go into D3 if
+> it has _S0W returning D2 or a shallower power state, so modify
+> acpi_pci_bridge_d3(() to always take the return value of _S0W for the
+> target bridge into accout.  That is, make it return 'false' if _S0W
+> returns D2 or a shallower power state for the target bridge regardless
+> of its ancestor PCIe Root Port properties.  Of course, this also causes
+> 'false' to be returned if the PCIe Root Port itself is the target and
+> its _S0W returns D2 or a shallower power state.
+> 
+> However, still allow bridges without _S0W that are power-manageable via
+> ACPI to enter D3 to retain the current code behavior in that case.
+> 
+> Link: https://lore.kernel.org/linux-pci/20221031223356.32570-1-mario.limonciello@amd.com/
+> Reported-by: Mario Limonciello <mario.limonciello@amd.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
 > 
-> (no changes since v5)
+> v2 -> v3:
+>    * Use rpadev for the ACPI companion of the Root Port in acpi_pci_bridge_d3(()
+>      to avoid confusion.
+>    * Make the function evaluating _S0W return the value produced by it or "unknown
+>      state" on errors and let its caller deal with that value.
 > 
-> Changes in v5:
-> - Added Acked-by: Benjamin Tissoires
+> ---
+>  drivers/acpi/device_pm.c |   19 +++++++++++++++++++
+>  drivers/pci/pci-acpi.c   |   45 +++++++++++++++++++++++++++++++--------------
+>  include/acpi/acpi_bus.h  |    1 +
+>  3 files changed, 51 insertions(+), 14 deletions(-)
 > 
->   drivers/hid/i2c-hid/i2c-hid-acpi.c | 5 -----
->   1 file changed, 5 deletions(-)
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -976,24 +976,41 @@ bool acpi_pci_power_manageable(struct pc
+>  bool acpi_pci_bridge_d3(struct pci_dev *dev)
+>  {
+>  	struct pci_dev *rpdev;
+> -	struct acpi_device *adev;
+> -	acpi_status status;
+> -	unsigned long long state;
+> +	struct acpi_device *adev, *rpadev;
+>  	const union acpi_object *obj;
+>  
+>  	if (acpi_pci_disabled || !dev->is_hotplug_bridge)
+>  		return false;
+>  
+> -	/* Assume D3 support if the bridge is power-manageable by ACPI. */
+> -	if (acpi_pci_power_manageable(dev))
+> -		return true;
+> +	adev = ACPI_COMPANION(&dev->dev);
+> +	if (adev) {
+> +		/*
+> +		 * If the bridge has _S0W, whether or not it can go into D3
+> +		 * depends on what is returned by that object.  In particular,
+> +		 * if the power state returned by _S0W is D2 or shallower,
+> +		 * entering D3 should not be allowed.
+> +		 */
+> +		if (acpi_dev_power_state_for_wake(adev) <= ACPI_STATE_D3_HOT)
+
+The comment suggests that this should check for "<= ACPI_STATE_D2"
+(not ACPI_STATE_D3_HOT).  Or is there some subtlety here that I'm
+missing?
+
+> +			return false;
+> +
+> +		/*
+> +		 * Otherwise, assume that the bridge can enter D3 so long as it
+> +		 * is power-manageable via ACPI.
+> +		 */
+> +		if (acpi_device_power_manageable(adev))
+> +			return true;
+> +	}
+>  
+>  	rpdev = pcie_find_root_port(dev);
+>  	if (!rpdev)
+>  		return false;
+>  
+> -	adev = ACPI_COMPANION(&rpdev->dev);
+> -	if (!adev)
+> +	if (rpdev == dev)
+> +		rpadev = adev;
+> +	else
+> +		rpadev = ACPI_COMPANION(&rpdev->dev);
+> +
+> +	if (!rpadev)
+>  		return false;
+>  
+>  	/*
+> @@ -1001,15 +1018,15 @@ bool acpi_pci_bridge_d3(struct pci_dev *
+>  	 * doesn't supply a wakeup GPE via _PRW, it cannot signal hotplug
+>  	 * events from low-power states including D3hot and D3cold.
+>  	 */
+> -	if (!adev->wakeup.flags.valid)
+> +	if (!rpadev->wakeup.flags.valid)
+>  		return false;
+>  
+>  	/*
+> -	 * If the Root Port cannot wake itself from D3hot or D3cold, we
+> -	 * can't use D3.
+> +	 * In the bridge-below-a-Root-Port case, evaluate _S0W for the Root Port
+> +	 * to verify whether or not it can signal wakeup from D3.
+>  	 */
+> -	status = acpi_evaluate_integer(adev->handle, "_S0W", NULL, &state);
+> -	if (ACPI_SUCCESS(status) && state < ACPI_STATE_D3_HOT)
+> +	if (rpadev != adev &&
+> +	    acpi_dev_power_state_for_wake(rpadev) <= ACPI_STATE_D3_HOT)
+
+Same question here.
+
+>  		return false;
+>  
+>  	/*
+> @@ -1018,7 +1035,7 @@ bool acpi_pci_bridge_d3(struct pci_dev *
+>  	 * bridges *below* that Root Port can also signal hotplug events
+>  	 * while in D3.
+>  	 */
+> -	if (!acpi_dev_get_property(adev, "HotPlugSupportInD3",
+> +	if (!acpi_dev_get_property(rpadev, "HotPlugSupportInD3",
+>  				   ACPI_TYPE_INTEGER, &obj) &&
+>  	    obj->integer.value == 1)
+>  		return true;
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -484,6 +484,25 @@ void acpi_dev_power_up_children_with_adr
+>  	acpi_dev_for_each_child(adev, acpi_power_up_if_adr_present, NULL);
+>  }
+>  
+> +/**
+> + * acpi_dev_power_state_for_wake - Deepest power state for wakeup signaling
+> + * @adev: ACPI companion of the target device.
+> + *
+> + * Evaluate _S0W for @adev and return the value produced by it or return
+> + * ACPI_STATE_UNKNOWN on errors (including _S0W not present).
+> + */
+> +u8 acpi_dev_power_state_for_wake(struct acpi_device *adev)
+> +{
+> +	unsigned long long state;
+> +	acpi_status status;
+> +
+> +	status = acpi_evaluate_integer(adev->handle, "_S0W", NULL, &state);
+> +	if (ACPI_FAILURE(status))
+> +		return ACPI_STATE_UNKNOWN;
+> +
+> +	return state;
+> +}
+> +
+>  #ifdef CONFIG_PM
+>  static DEFINE_MUTEX(acpi_pm_notifier_lock);
+>  static DEFINE_MUTEX(acpi_pm_notifier_install_lock);
+> Index: linux-pm/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_bus.h
+> +++ linux-pm/include/acpi/acpi_bus.h
+> @@ -533,6 +533,7 @@ int acpi_bus_update_power(acpi_handle ha
+>  int acpi_device_update_power(struct acpi_device *device, int *state_p);
+>  bool acpi_bus_power_manageable(acpi_handle handle);
+>  void acpi_dev_power_up_children_with_adr(struct acpi_device *adev);
+> +u8 acpi_dev_power_state_for_wake(struct acpi_device *adev);
+>  int acpi_device_power_add_dependent(struct acpi_device *adev,
+>  				    struct device *dev);
+>  void acpi_device_power_remove_dependent(struct acpi_device *adev,
 > 
-> diff --git a/drivers/hid/i2c-hid/i2c-hid-acpi.c b/drivers/hid/i2c-hid/i2c-hid-acpi.c
-> index b96ae15e0ad917e..375c77c3db74d92 100644
-> --- a/drivers/hid/i2c-hid/i2c-hid-acpi.c
-> +++ b/drivers/hid/i2c-hid/i2c-hid-acpi.c
-> @@ -105,11 +105,6 @@ static int i2c_hid_acpi_probe(struct i2c_client *client)
->   
->   	acpi_device_fix_up_power(adev);
->   
-> -	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0) {
-> -		device_set_wakeup_capable(dev, true);
-> -		device_set_wakeup_enable(dev, false);
-> -	}
-> -
->   	return i2c_hid_core_probe(client, &ihid_acpi->ops,
->   				  hid_descriptor_address, 0);
->   }
-
-this patch is causing a regression on the Clevo NL50RU of which the touchpad 
-instantly wakes up the device when going to sleep. That wasn't triggered until 
-this patch by the default settings: Setting wake capable but not enabling it by 
-default. So unless a user enabled it by hand, the device went correctly to sleep.
-
-I'm not deep into this subsystem so I don't know what the best approach is to 
-?work around this firmware bug?/?fix this issue?:
-- Changing the default back again?
-- Adding a quirk list for bad devices?
-- Maybe this isn't a firmware bug, but the touchpad was not meant to wakeup the 
-device and we can somehow detect that?
-
-For reference: The debugging issue that lead me here: 
-https://gitlab.freedesktop.org/drm/amd/-/issues/1722#note_1719789
-
-Kind regards,
-Werner
+> 
+> 
