@@ -2,43 +2,42 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F542C61DB3
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 20:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82143C61DB3
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 20:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240263AbjALUG7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:06:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44252 "EHLO
+        id S240388AbjALUIV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:08:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232890AbjALT7P (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 14:59:15 -0500
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9B531033;
+        with ESMTP id S232870AbjALT7O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 14:59:14 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D14201096;
         Thu, 12 Jan 2023 11:58:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=2yvU/+KlibzuaJax7jV4X0So1xAo1cwX7MytP6HDPxE=; b=RtS0+QiFQkSPrmnvBwD90sibId
-        2T1OpOZ1W0qyqszWHUUzMCV0mBkRIrI3Jx1Eo0JAoqNefsI6kGnm+W66mZiZGkMhdar4mvnfeJzqB
-        Mdfa8IBKk0Y+xybhQD8fJur/5JucSWfzSMwk9qRjXUfdkXlYvkNZ2Y4RBOUyJnRaHSLDqYeZXBQNg
-        WTA5OvPX8xQS3ggp1UIfW51Es4hw9CZpW5r1RKdyzzrm+0qD4/BaEyGXEwp+ZSdl9Cen7s28be7en
-        nRD7AcYcqzyrGwCA1WGuyYGh+x0XE+JYrkUI5ly2/X9/5uXN0NripAXnpXwTz7toRAm7CDHBUibC0
-        PwPmNH+A==;
+        bh=g+drg6uUsP6YHX5z1pA/AishyJbSIL0Ic60jCQj0FKI=; b=XXUxTtqveFREVYw6+8AB4LdIHp
+        9tBm0Q52XhYpYgwoQcxYxigKngYLFaZ8/xRzmgS4y7qry48gTKg92kcIokiFxq+nXoKsi5V3iEcmw
+        NeSgEYUEAODvsFoe2txTC5A5gjX0FAnKp0Q7yNwBfU6uT1Hqnm5jLS+saV0kDtwrCF///MGUsgvx3
+        1g//CQX4WQUM0ZQk+SvRZnfyPsXRlrLLGN0jK1Pr/WSOQeRzqpxuvUJOC9vpE8dJ7PLwl8i1xnS/H
+        mXWibGn68OUz5LWtcUOt2vHPDy+rJq08dxPxP49gKc05n2AW5cl/Kj6GS1nr66GMTGwMFZlC6eScr
+        aO0GBkaA==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pG3hH-0045p4-0F;
-        Thu, 12 Jan 2023 19:57:15 +0000
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pG3hv-005P8h-Bo; Thu, 12 Jan 2023 19:57:51 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 92E7230343A;
-        Thu, 12 Jan 2023 20:57:13 +0100 (CET)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 5842F300C22;
+        Thu, 12 Jan 2023 20:57:14 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 194442CCF62AF; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
-Message-ID: <20230112195540.988741683@infradead.org>
+        id 810012CD066F0; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
+Message-ID: <20230112195542.458034262@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:41 +0100
+Date:   Thu, 12 Jan 2023 20:44:05 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -102,10 +101,8 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 27/51] cpuidle,sched: Remove annotations from TIF_{POLLING_NRFLAG,NEED_RESCHED}
+        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com
+Subject: [PATCH v3 51/51] context_tracking: Fix noinstr vs KASAN
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -113,132 +110,66 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-vmlinux.o: warning: objtool: mwait_idle+0x5: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle+0xbc: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to current_set_polling_and_test() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to current_set_polling_and_test() leaves .noinstr.text section
-
-vmlinux.o: warning: objtool: intel_idle+0xa6: call to current_clr_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0xbf: call to current_clr_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0xa1: call to current_clr_polling() leaves .noinstr.text section
-
-vmlinux.o: warning: objtool: mwait_idle+0xe: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xc5: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle+0xbc: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0xea: call to __current_set_polling() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0xb4: call to __current_set_polling() leaves .noinstr.text section
-
-vmlinux.o: warning: objtool: cpu_idle_poll.isra.0+0x73: call to test_ti_thread_flag() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_s2idle+0x73: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle_irq+0x91: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
-vmlinux.o: warning: objtool: intel_idle+0x78: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
-vmlinux.o: warning: objtool: acpi_safe_halt+0xf: call to test_ti_thread_flag.constprop.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: __ct_user_enter+0x72: call to __kasan_check_write() leaves .noinstr.text section
+vmlinux.o: warning: objtool: __ct_user_exit+0x47: call to __kasan_check_write() leaves .noinstr.text section
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Frederic Weisbecker <frederic@kernel.org>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- include/linux/sched/idle.h  |   40 ++++++++++++++++++++++++++++++----------
- include/linux/thread_info.h |   18 +++++++++++++++++-
- 2 files changed, 47 insertions(+), 11 deletions(-)
+ kernel/context_tracking.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/sched/idle.h
-+++ b/include/linux/sched/idle.h
-@@ -23,12 +23,37 @@ static inline void wake_up_if_idle(int c
-  */
- #ifdef TIF_POLLING_NRFLAG
+--- a/kernel/context_tracking.c
++++ b/kernel/context_tracking.c
+@@ -510,7 +510,7 @@ void noinstr __ct_user_enter(enum ctx_st
+ 			 * In this we case we don't care about any concurrency/ordering.
+ 			 */
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE))
+-				atomic_set(&ct->state, state);
++				arch_atomic_set(&ct->state, state);
+ 		} else {
+ 			/*
+ 			 * Even if context tracking is disabled on this CPU, because it's outside
+@@ -527,7 +527,7 @@ void noinstr __ct_user_enter(enum ctx_st
+ 			 */
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE)) {
+ 				/* Tracking for vtime only, no concurrent RCU EQS accounting */
+-				atomic_set(&ct->state, state);
++				arch_atomic_set(&ct->state, state);
+ 			} else {
+ 				/*
+ 				 * Tracking for vtime and RCU EQS. Make sure we don't race
+@@ -535,7 +535,7 @@ void noinstr __ct_user_enter(enum ctx_st
+ 				 * RCU only requires RCU_DYNTICKS_IDX increments to be fully
+ 				 * ordered.
+ 				 */
+-				atomic_add(state, &ct->state);
++				arch_atomic_add(state, &ct->state);
+ 			}
+ 		}
+ 	}
+@@ -630,12 +630,12 @@ void noinstr __ct_user_exit(enum ctx_sta
+ 			 * In this we case we don't care about any concurrency/ordering.
+ 			 */
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE))
+-				atomic_set(&ct->state, CONTEXT_KERNEL);
++				arch_atomic_set(&ct->state, CONTEXT_KERNEL);
  
--static inline void __current_set_polling(void)
-+#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H
-+
-+static __always_inline void __current_set_polling(void)
- {
--	set_thread_flag(TIF_POLLING_NRFLAG);
-+	arch_set_bit(TIF_POLLING_NRFLAG,
-+		     (unsigned long *)(&current_thread_info()->flags));
- }
- 
--static inline bool __must_check current_set_polling_and_test(void)
-+static __always_inline void __current_clr_polling(void)
-+{
-+	arch_clear_bit(TIF_POLLING_NRFLAG,
-+		       (unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#else
-+
-+static __always_inline void __current_set_polling(void)
-+{
-+	set_bit(TIF_POLLING_NRFLAG,
-+		(unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+static __always_inline void __current_clr_polling(void)
-+{
-+	clear_bit(TIF_POLLING_NRFLAG,
-+		  (unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_ATOMIC_H */
-+
-+static __always_inline bool __must_check current_set_polling_and_test(void)
- {
- 	__current_set_polling();
- 
-@@ -41,12 +66,7 @@ static inline bool __must_check current_
- 	return unlikely(tif_need_resched());
- }
- 
--static inline void __current_clr_polling(void)
--{
--	clear_thread_flag(TIF_POLLING_NRFLAG);
--}
--
--static inline bool __must_check current_clr_polling_and_test(void)
-+static __always_inline bool __must_check current_clr_polling_and_test(void)
- {
- 	__current_clr_polling();
- 
-@@ -73,7 +93,7 @@ static inline bool __must_check current_
- }
- #endif
- 
--static inline void current_clr_polling(void)
-+static __always_inline void current_clr_polling(void)
- {
- 	__current_clr_polling();
- 
---- a/include/linux/thread_info.h
-+++ b/include/linux/thread_info.h
-@@ -177,7 +177,23 @@ static __always_inline unsigned long rea
- 	clear_ti_thread_flag(task_thread_info(t), TIF_##fl)
- #endif /* !CONFIG_GENERIC_ENTRY */
- 
--#define tif_need_resched() test_thread_flag(TIF_NEED_RESCHED)
-+#ifdef _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H
-+
-+static __always_inline bool tif_need_resched(void)
-+{
-+	return arch_test_bit(TIF_NEED_RESCHED,
-+			     (unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#else
-+
-+static __always_inline bool tif_need_resched(void)
-+{
-+	return test_bit(TIF_NEED_RESCHED,
-+			(unsigned long *)(&current_thread_info()->flags));
-+}
-+
-+#endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_NON_ATOMIC_H */
- 
- #ifndef CONFIG_HAVE_ARCH_WITHIN_STACK_FRAMES
- static inline int arch_within_stack_frames(const void * const stack,
+ 		} else {
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE)) {
+ 				/* Tracking for vtime only, no concurrent RCU EQS accounting */
+-				atomic_set(&ct->state, CONTEXT_KERNEL);
++				arch_atomic_set(&ct->state, CONTEXT_KERNEL);
+ 			} else {
+ 				/*
+ 				 * Tracking for vtime and RCU EQS. Make sure we don't race
+@@ -643,7 +643,7 @@ void noinstr __ct_user_exit(enum ctx_sta
+ 				 * RCU only requires RCU_DYNTICKS_IDX increments to be fully
+ 				 * ordered.
+ 				 */
+-				atomic_sub(state, &ct->state);
++				arch_atomic_sub(state, &ct->state);
+ 			}
+ 		}
+ 	}
 
 
