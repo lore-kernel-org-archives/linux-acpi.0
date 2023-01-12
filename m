@@ -2,62 +2,126 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F17B4C54EBC
-	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 08:58:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1004CC54EBC
+	for <linux-acpi@archiver.kernel.org>; Thu, 12 Jan 2023 10:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239686AbjALI61 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Jan 2023 03:58:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50394 "EHLO
+        id S236560AbjALKnY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 12 Jan 2023 05:43:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236544AbjALI5F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 03:57:05 -0500
-Received: from mail.glencoeaur.com (mail.glencoeaur.com [217.61.97.113])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E84250F7E
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jan 2023 00:55:01 -0800 (PST)
-Received: by mail.glencoeaur.com (Postfix, from userid 1001)
-        id C8CB7821C6; Thu, 12 Jan 2023 08:35:54 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=glencoeaur.com;
-        s=mail; t=1673512571;
-        bh=2S0GQFScndXkBEK4sqdoOhOYLqsB2sEH8Q5XQfVvKpo=;
-        h=Date:From:To:Subject:From;
-        b=iDPoVxE85yN9zpGxu56sGX6YgH3TruuDTMt7m9vT6MAduTozkb1okkJJXR+D4ZRhd
-         R/g4aO0xAjE1WJHwnYU7DiT9Tan4eX5PZet183VsCbFz/+eVD1xuCvr5KaGhHr2Fyt
-         YyV/eVwvkxYHrdg+HK+MXfbPYVY02dmNEAOCya39yg2JAcUB41R7JR1zc3FyRVa0iN
-         MvxtNRKQxMyc8zZaw84S5sPFfbxXXQF2DpIiZLTmavyHZNauT/gUPBi4e+9gBUOnu5
-         /c9LI6oDqEhmJtr+QgwKTPVtir1h6VSEGWY+z7OtnR5S0KW5SzKGl3ctD6sBNL+24N
-         0Z83yvfW/nhnw==
-Received: by mail.glencoeaur.com for <linux-acpi@vger.kernel.org>; Thu, 12 Jan 2023 08:35:33 GMT
-Message-ID: <20230112074500-0.1.z.3g09.0.qskisl43eg@glencoeaur.com>
-Date:   Thu, 12 Jan 2023 08:35:33 GMT
-From:   "Zbynek Spacek" <zbynek.spacek@glencoeaur.com>
-To:     <linux-acpi@vger.kernel.org>
-Subject: Silikonmischungen
-X-Mailer: mail.glencoeaur.com
+        with ESMTP id S234973AbjALKmh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 05:42:37 -0500
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 805F458836;
+        Thu, 12 Jan 2023 02:36:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1673519817; x=1705055817;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=slo6xLj/PY1pP/5JhL5TcH4kig+nfZoqmJ2N2YXxOIk=;
+  b=bOWexgT5Ku3CDRIiDtBXdCT/iZjZOendYgXiB8qVb8+ksOq/MMdG4u4M
+   oDwN1qmDHEuyDU+ABnqiZZbptv/vgWzS30zYJpAcKXxRTJFDN5zX+nRSh
+   sKFoMZI3Nn6jMdJBEQXFKCi3iqVEMd4JIublBDDmB3TNGHkc+UJJ5Sd1g
+   7n0Xl7B/gWqgR9vcyidVezubifVDP1XsHJd6ehx9+V2/GLFFCn0RVkP95
+   3YjHNikj/R5zvqQpRJJfiyyyZNXEZHEfjdpEdc9O0R/CiMtMK9jM3KL+r
+   xiFbca+zzQeDHNOIYudz63YMD6YoOcQCZFGQFli54GDDDr7Vpd6xPC4Wt
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10586"; a="325693728"
+X-IronPort-AV: E=Sophos;i="5.96,319,1665471600"; 
+   d="scan'208";a="325693728"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2023 02:36:56 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10586"; a="651082180"
+X-IronPort-AV: E=Sophos;i="5.96,319,1665471600"; 
+   d="scan'208";a="651082180"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga007.jf.intel.com with ESMTP; 12 Jan 2023 02:36:46 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pFuwo-007zvQ-1N;
+        Thu, 12 Jan 2023 12:36:38 +0200
+Date:   Thu, 12 Jan 2023 12:36:38 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Cc:     Pin-yen Lin <treapking@chromium.org>,
+        Andrzej Hajda <andrzej.hajda@intel.com>,
+        Neil Armstrong <neil.armstrong@linaro.org>,
+        Robert Foss <robert.foss@linaro.org>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        David Airlie <airlied@gmail.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Prashant Malani <pmalani@chromium.org>,
+        Benson Leung <bleung@chromium.org>,
+        Guenter Roeck <groeck@chromium.org>,
+        Stephen Boyd <swboyd@chromium.org>,
+        =?iso-8859-1?Q?N=EDcolas_F_=2E_R_=2E_A_=2E?= Prado 
+        <nfraprado@collabora.com>, Marek Vasut <marex@denx.de>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Lyude Paul <lyude@redhat.com>, chrome-platform@lists.linux.dev,
+        Xin Ji <xji@analogixsemi.com>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        linux-kernel@vger.kernel.org, Allen Chen <allen.chen@ite.com.tw>,
+        linux-acpi@vger.kernel.org, Hsin-Yi Wang <hsinyi@chromium.org>,
+        Douglas Anderson <dianders@chromium.org>,
+        Imre Deak <imre.deak@intel.com>,
+        Jani Nikula <jani.nikula@intel.com>,
+        =?iso-8859-1?Q?Jos=E9_Exp=F3sito?= <jose.exposito89@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Ville =?iso-8859-1?Q?Syrj=E4l=E4?= 
+        <ville.syrjala@linux.intel.com>,
+        shaomin Deng <dengshaomin@cdjrlc.com>
+Subject: Re: [PATCH v10 0/9] Register Type-C mode-switch in DP bridge
+ endpoints
+Message-ID: <Y7/itipjqIyulh6b@smile.fi.intel.com>
+References: <20230112042104.4107253-1-treapking@chromium.org>
+ <61ba2880-6784-1014-a7a2-a1eecc4e810e@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <61ba2880-6784-1014-a7a2-a1eecc4e810e@linaro.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Good morning,
+On Thu, Jan 12, 2023 at 06:34:52AM +0200, Dmitry Baryshkov wrote:
+> On 12/01/2023 06:20, Pin-yen Lin wrote:
+> > 
+> > This series introduces bindings for anx7625/it6505 to register Type-C
+> > mode-switch in their output endpoints, and use data-lanes property to
+> > describe the pin connections.
+> 
+> Please cc everybody on all patches. Having received just a single patch made
+> me spend time on having to look them up on lore.
 
-do you need intermediates for processing, plastics (e.g. rubber) or silic=
-one mixtures?
+Sorry but this seems a bit outdated requirement nowadays.
+Why? Because we have `b4` in each famous Linux distro and
+nice lore.kernel.org. It's really easy for the experienced
+maintainer to catch up the whole thread.
 
-We provide a wide range of silicone rubbers with various properties, sili=
-cone mixtures from renowned manufacturers such as Wacker, Elastosil LR an=
-d dyes, stabilizers, primers and anti-adhesive additives.
+Putting _all_ people on all patches may be an overkill.
+What people should really get is the cover letter (assuming
+that it explains well the structure of the series). The rest
+depends.
 
-We also produce technical silicone compounds with increased resistance to=
- oils, resistant to high temperatures and water vapor, conductive and man=
-y more.
-
-We provide fast order fulfillment, timely deliveries and cost optimizatio=
-n.
-
-Can I introduce what we can offer you?
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-Best regards
-Zbynek Spacek
