@@ -2,385 +2,202 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69F70C677F1
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Jan 2023 18:09:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61CD1C3DA78
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Jan 2023 18:12:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229463AbjAMSJM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 13 Jan 2023 13:09:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52150 "EHLO
+        id S230421AbjAMSM3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 13 Jan 2023 13:12:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229906AbjAMSIA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jan 2023 13:08:00 -0500
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 324BA7D273
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Jan 2023 10:02:45 -0800 (PST)
-Received: by mail-wr1-x42b.google.com with SMTP id v2so10801045wrw.10
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Jan 2023 10:02:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LNsqfRU9ykGWoWek5xNKrp0F+4CtwhY97VSnFh382k4=;
-        b=GXjMWj6b0QBVOokmSEt/vgSRZq8ZACG4z4WA823mCJW/o8ilFa1KKlbNgYZkD+wg34
-         jc12NmSepdqUu3IzcBdQKEmqWjLFwNmmaVZHo15RkEIwhcI6uxfZCjVCLLwWZDAGzpl1
-         wnMqU8oy0vgMFZwCgRGjHJae+2V+EAmltb7tDPNXOHXG3JIq2iSIAngXLxTp9gHcGlab
-         6iD6YTP6hGXie20bDcVkf6q8FnnUUrxT2iSOZcTRfB26oz+EEpAK1Yz2HgN7aqu/b05R
-         Wv44k6+ELZnLcLzT+NkbBdo/xPU5ySlkBDJUSB+staPgEjLNxGemWq7cYBm/tcCsKvw/
-         nVsA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=LNsqfRU9ykGWoWek5xNKrp0F+4CtwhY97VSnFh382k4=;
-        b=DHgLQyYJgUcjwKVhVJTeukSh5bgoyAkN3ELKwp7hNCo6wwKzphOF8NFLFFL4lL5teP
-         jf4NNYmd743bNoEzzJode6lerV+2+AZN6huRzO3DfvQ4spoUHsaH5Yj2SuWbzcw0q2zp
-         2mdlnU/c+0RG/5dX4/BCdrg65aH43sjfywntLvxrsKCxiC4TPg2oD8Ndx86EumqXGrgL
-         /KhsFIK3Mg3YgSsEceflzvEDsv+wdi98vq3Cb+iJ5yzQNJynAY/FcHr8LXp/aux71tds
-         DiunJuDSSQzl8eBN5YqYHMVsk7QQLp6UZmvwU0z55kgU3fxlwHUOpQbN5ifUg1soyyH+
-         UIlQ==
-X-Gm-Message-State: AFqh2kq2oxulWPo9wb7citVsZML242U2VN5h2QOOulUnpx0W8Pwu2UWm
-        S/x7aK3YzoYvb5f8Q/B5amZSjg==
-X-Google-Smtp-Source: AMrXdXu2jhViziNn+M/GNVYT+n9dzSSTqCDeVH9XFzTod2Lsgef3Zf2FwievFPiZkGcGnCdXDE/G0w==
-X-Received: by 2002:adf:ee88:0:b0:2bc:67d:c018 with SMTP id b8-20020adfee88000000b002bc067dc018mr12769919wro.48.1673632963677;
-        Fri, 13 Jan 2023 10:02:43 -0800 (PST)
-Received: from mai.. (146725694.box.freepro.com. [130.180.211.218])
-        by smtp.gmail.com with ESMTPSA id d18-20020adfe852000000b002426d0a4048sm20057227wrn.49.2023.01.13.10.02.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Jan 2023 10:02:43 -0800 (PST)
-From:   Daniel Lezcano <daniel.lezcano@linaro.org>
-To:     daniel.lezcano@linaro.org, rafael@kernel.org
-Cc:     srinivas.pandruvada@linux.intel.com, linux-pm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        rui.zhang@intel.com, christophe.jaillet@wanadoo.fr
-Subject: [PATCH v5 3/3] thermal/drivers/intel: Use generic trip points int340x
-Date:   Fri, 13 Jan 2023 19:02:35 +0100
-Message-Id: <20230113180235.1604526-4-daniel.lezcano@linaro.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230113180235.1604526-1-daniel.lezcano@linaro.org>
-References: <20230113180235.1604526-1-daniel.lezcano@linaro.org>
+        with ESMTP id S229978AbjAMSMB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jan 2023 13:12:01 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 79116A41EE;
+        Fri, 13 Jan 2023 10:04:41 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 55A79106F;
+        Fri, 13 Jan 2023 10:04:51 -0800 (PST)
+Received: from lakrids.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 4F4D93F67D;
+        Fri, 13 Jan 2023 10:04:07 -0800 (PST)
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     linux-arm-kernel@lists.infradead.org
+Cc:     catalin.marinas@arm.com, lenb@kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mark.rutland@arm.com, mhiramat@kernel.org, ndesaulniers@google.com,
+        ojeda@kernel.org, peterz@infradead.org, rafael.j.wysocki@intel.com,
+        revest@chromium.org, robert.moore@intel.com, rostedt@goodmis.org,
+        will@kernel.org
+Subject: [PATCH v2 1/8] Compiler attributes: GCC cold function alignment workarounds
+Date:   Fri, 13 Jan 2023 18:03:48 +0000
+Message-Id: <20230113180355.2930042-2-mark.rutland@arm.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230113180355.2930042-1-mark.rutland@arm.com>
+References: <20230113180355.2930042-1-mark.rutland@arm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The thermal framework gives the possibility to register the trip
-points with the thermal zone. When that is done, no get_trip_* ops are
-needed and they can be removed.
+Contemporary versions of GCC (e.g. GCC 12.2.0) drop the alignment
+specified by '-falign-functions=N' for functions marked with the
+__cold__ attribute, and potentially for callees of __cold__ functions as
+these may be implicitly marked as __cold__ by the compiler. LLVM appears
+to respect '-falign-functions=N' in such cases.
 
-Convert the ops content logic into generic trip points and register
-them with the thermal zone.
+This has been reported to GCC in bug 88345:
 
-In order to consolidate the code, use the ACPI thermal framework API
-to fill the generic trip point from the ACPI tables.
+  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88345
 
-It has been tested on a Intel i7-8650U - x280 with the INT3400, the
-PCH, ACPITZ, and x86_pkg_temp. No regression observed so far.
+... which also covers alignment being dropped when '-Os' is used, which
+will be addressed in a separate patch.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Currently, use of '-falign-functions=N' is limited to
+CONFIG_FUNCTION_ALIGNMENT, which is largely used for performance and/or
+analysis reasons (e.g. with CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B), but
+isn't necessary for correct functionality. However, this dropped
+alignment isn't great for the performance and/or analysis cases.
+
+Subsequent patches will use CONFIG_FUNCTION_ALIGNMENT as part of arm64's
+ftrace implementation, which will require all instrumented functions to
+be aligned to at least 8-bytes.
+
+This patch works around the dropped alignment by avoiding the use of the
+__cold__ attribute when CONFIG_FUNCTION_ALIGNMENT is non-zero, and by
+specifically aligning abort(), which GCC implicitly marks as __cold__.
+As the __cold macro is now dependent upon config options (which is
+against the policy described at the top of compiler_attributes.h), it is
+moved into compiler_types.h.
+
+I've tested this by building and booting a kernel configured with
+defconfig + CONFIG_EXPERT=y + CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B=y,
+and looking for misaligned text symbols in /proc/kallsyms:
+
+* arm64:
+
+  Before:
+    # uname -rm
+    6.2.0-rc3 aarch64
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    5009
+
+  After:
+    # uname -rm
+    6.2.0-rc3-00001-g2a2bedf8bfa9 aarch64
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    919
+
+* x86_64:
+
+  Before:
+    # uname -rm
+    6.2.0-rc3 x86_64
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    11537
+
+  After:
+    # uname -rm
+    6.2.0-rc3-00001-g2a2bedf8bfa9 x86_64
+    # grep ' [Tt] ' /proc/kallsyms | grep -iv '[048c]0 [Tt] ' | wc -l
+    2805
+
+There's clearly a substantial reduction in the number of misaligned
+symbols. From manual inspection, the remaining unaligned text labels are
+a combination of ACPICA functions (due to the use of '-Os'), static call
+trampolines, and non-function labels in assembly, which will be dealt
+with in subsequent patches.
+
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Florent Revest <revest@chromium.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 ---
- drivers/thermal/intel/int340x_thermal/Kconfig |   1 +
- .../int340x_thermal/int340x_thermal_zone.c    | 177 ++++--------------
- .../int340x_thermal/int340x_thermal_zone.h    |  10 +-
- 3 files changed, 43 insertions(+), 145 deletions(-)
+ include/linux/compiler_attributes.h |  6 ------
+ include/linux/compiler_types.h      | 27 +++++++++++++++++++++++++++
+ kernel/exit.c                       |  9 ++++++++-
+ 3 files changed, 35 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/thermal/intel/int340x_thermal/Kconfig b/drivers/thermal/intel/int340x_thermal/Kconfig
-index 5d046de96a5d..b7072d37101d 100644
---- a/drivers/thermal/intel/int340x_thermal/Kconfig
-+++ b/drivers/thermal/intel/int340x_thermal/Kconfig
-@@ -9,6 +9,7 @@ config INT340X_THERMAL
- 	select THERMAL_GOV_USER_SPACE
- 	select ACPI_THERMAL_REL
- 	select ACPI_FAN
-+	select THERMAL_ACPI
- 	select INTEL_SOC_DTS_IOSF_CORE
- 	select PROC_THERMAL_MMIO_RAPL if POWERCAP
- 	help
-diff --git a/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c b/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c
-index 228f44260b27..2a294862d673 100644
---- a/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c
-+++ b/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c
-@@ -37,65 +37,6 @@ static int int340x_thermal_get_zone_temp(struct thermal_zone_device *zone,
- 	return 0;
+diff --git a/include/linux/compiler_attributes.h b/include/linux/compiler_attributes.h
+index 898b3458b24a..b83126452c65 100644
+--- a/include/linux/compiler_attributes.h
++++ b/include/linux/compiler_attributes.h
+@@ -75,12 +75,6 @@
+ # define __assume_aligned(a, ...)
+ #endif
+ 
+-/*
+- *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-cold-function-attribute
+- *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Label-Attributes.html#index-cold-label-attribute
+- */
+-#define __cold                          __attribute__((__cold__))
+-
+ /*
+  * Note the long name.
+  *
+diff --git a/include/linux/compiler_types.h b/include/linux/compiler_types.h
+index 7c1afe0f4129..aab34e30128e 100644
+--- a/include/linux/compiler_types.h
++++ b/include/linux/compiler_types.h
+@@ -79,6 +79,33 @@ static inline void __chk_io_ptr(const volatile void __iomem *ptr) { }
+ /* Attributes */
+ #include <linux/compiler_attributes.h>
+ 
++#if CONFIG_FUNCTION_ALIGNMENT > 0
++#define __function_aligned		__aligned(CONFIG_FUNCTION_ALIGNMENT)
++#else
++#define __function_aligned
++#endif
++
++/*
++ *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-cold-function-attribute
++ *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Label-Attributes.html#index-cold-label-attribute
++ *
++ * When -falign-functions=N is in use, we must avoid the cold attribute as
++ * contemporary versions of GCC drop the alignment for cold functions. Worse,
++ * GCC can implicitly mark callees of cold functions as cold themselves, so
++ * it's not sufficient to add __function_aligned here as that will not ensure
++ * that callees are correctly aligned.
++ *
++ * See:
++ *
++ *   https://lore.kernel.org/lkml/Y77%2FqVgvaJidFpYt@FVFF77S0Q05N
++ *   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88345#c9
++ */
++#if !defined(CONFIG_CC_IS_GCC) || (CONFIG_FUNCTION_ALIGNMENT == 0)
++#define __cold				__attribute__((__cold__))
++#else
++#define __cold
++#endif
++
+ /* Builtins */
+ 
+ /*
+diff --git a/kernel/exit.c b/kernel/exit.c
+index 15dc2ec80c46..c8e0375705f4 100644
+--- a/kernel/exit.c
++++ b/kernel/exit.c
+@@ -1898,7 +1898,14 @@ bool thread_group_exited(struct pid *pid)
  }
+ EXPORT_SYMBOL(thread_group_exited);
  
--static int int340x_thermal_get_trip_temp(struct thermal_zone_device *zone,
--					 int trip, int *temp)
--{
--	struct int34x_thermal_zone *d = zone->devdata;
--	int i;
--
--	if (trip < d->aux_trip_nr)
--		*temp = d->aux_trips[trip];
--	else if (trip == d->crt_trip_id)
--		*temp = d->crt_temp;
--	else if (trip == d->psv_trip_id)
--		*temp = d->psv_temp;
--	else if (trip == d->hot_trip_id)
--		*temp = d->hot_temp;
--	else {
--		for (i = 0; i < INT340X_THERMAL_MAX_ACT_TRIP_COUNT; i++) {
--			if (d->act_trips[i].valid &&
--			    d->act_trips[i].id == trip) {
--				*temp = d->act_trips[i].temp;
--				break;
--			}
--		}
--		if (i == INT340X_THERMAL_MAX_ACT_TRIP_COUNT)
--			return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int int340x_thermal_get_trip_type(struct thermal_zone_device *zone,
--					 int trip,
--					 enum thermal_trip_type *type)
--{
--	struct int34x_thermal_zone *d = zone->devdata;
--	int i;
--
--	if (trip < d->aux_trip_nr)
--		*type = THERMAL_TRIP_PASSIVE;
--	else if (trip == d->crt_trip_id)
--		*type = THERMAL_TRIP_CRITICAL;
--	else if (trip == d->hot_trip_id)
--		*type = THERMAL_TRIP_HOT;
--	else if (trip == d->psv_trip_id)
--		*type = THERMAL_TRIP_PASSIVE;
--	else {
--		for (i = 0; i < INT340X_THERMAL_MAX_ACT_TRIP_COUNT; i++) {
--			if (d->act_trips[i].valid &&
--			    d->act_trips[i].id == trip) {
--				*type = THERMAL_TRIP_ACTIVE;
--				break;
--			}
--		}
--		if (i == INT340X_THERMAL_MAX_ACT_TRIP_COUNT)
--			return -EINVAL;
--	}
--
--	return 0;
--}
--
- static int int340x_thermal_set_trip_temp(struct thermal_zone_device *zone,
- 				      int trip, int temp)
+-__weak void abort(void)
++/*
++ * This needs to be __function_aligned as GCC implicitly makes any
++ * implementation of abort() cold and drops alignment specified by
++ * -falign-functions=N.
++ *
++ * See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88345#c11
++ */
++__weak __function_aligned void abort(void)
  {
-@@ -109,25 +50,6 @@ static int int340x_thermal_set_trip_temp(struct thermal_zone_device *zone,
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
+ 	BUG();
  
--	d->aux_trips[trip] = temp;
--
--	return 0;
--}
--
--
--static int int340x_thermal_get_trip_hyst(struct thermal_zone_device *zone,
--		int trip, int *temp)
--{
--	struct int34x_thermal_zone *d = zone->devdata;
--	acpi_status status;
--	unsigned long long hyst;
--
--	status = acpi_evaluate_integer(d->adev->handle, "GTSH", NULL, &hyst);
--	if (ACPI_FAILURE(status))
--		*temp = 0;
--	else
--		*temp = hyst * 100;
--
- 	return 0;
- }
- 
-@@ -138,58 +60,36 @@ static void int340x_thermal_critical(struct thermal_zone_device *zone)
- 
- static struct thermal_zone_device_ops int340x_thermal_zone_ops = {
- 	.get_temp       = int340x_thermal_get_zone_temp,
--	.get_trip_temp	= int340x_thermal_get_trip_temp,
--	.get_trip_type	= int340x_thermal_get_trip_type,
- 	.set_trip_temp	= int340x_thermal_set_trip_temp,
--	.get_trip_hyst =  int340x_thermal_get_trip_hyst,
- 	.critical	= int340x_thermal_critical,
- };
- 
--static int int340x_thermal_get_trip_config(acpi_handle handle, char *name,
--				      int *temp)
--{
--	unsigned long long r;
--	acpi_status status;
--
--	status = acpi_evaluate_integer(handle, name, NULL, &r);
--	if (ACPI_FAILURE(status))
--		return -EIO;
--
--	*temp = deci_kelvin_to_millicelsius(r);
--
--	return 0;
--}
--
- int int340x_thermal_read_trips(struct int34x_thermal_zone *int34x_zone)
- {
--	int trip_cnt = int34x_zone->aux_trip_nr;
--	int i;
-+	int trip_cnt;
-+	int i, ret;
-+
-+	trip_cnt = int34x_zone->aux_trip_nr;
- 
--	int34x_zone->crt_trip_id = -1;
--	if (!int340x_thermal_get_trip_config(int34x_zone->adev->handle, "_CRT",
--					     &int34x_zone->crt_temp))
--		int34x_zone->crt_trip_id = trip_cnt++;
-+	ret = thermal_acpi_trip_crit(int34x_zone->adev, &int34x_zone->trips[trip_cnt]);
-+	if (!ret)
-+		trip_cnt++;
- 
--	int34x_zone->hot_trip_id = -1;
--	if (!int340x_thermal_get_trip_config(int34x_zone->adev->handle, "_HOT",
--					     &int34x_zone->hot_temp))
--		int34x_zone->hot_trip_id = trip_cnt++;
-+	ret = thermal_acpi_trip_hot(int34x_zone->adev, &int34x_zone->trips[trip_cnt]);
-+	if (!ret)
-+		trip_cnt++;
- 
--	int34x_zone->psv_trip_id = -1;
--	if (!int340x_thermal_get_trip_config(int34x_zone->adev->handle, "_PSV",
--					     &int34x_zone->psv_temp))
--		int34x_zone->psv_trip_id = trip_cnt++;
-+	ret = thermal_acpi_trip_psv(int34x_zone->adev, &int34x_zone->trips[trip_cnt]);
-+	if (!ret)
-+		trip_cnt++;
- 
- 	for (i = 0; i < INT340X_THERMAL_MAX_ACT_TRIP_COUNT; i++) {
--		char name[5] = { '_', 'A', 'C', '0' + i, '\0' };
- 
--		if (int340x_thermal_get_trip_config(int34x_zone->adev->handle,
--					name,
--					&int34x_zone->act_trips[i].temp))
-+		ret = thermal_acpi_trip_act(int34x_zone->adev, &int34x_zone->trips[trip_cnt], i);
-+		if (ret)
- 			break;
- 
--		int34x_zone->act_trips[i].id = trip_cnt++;
--		int34x_zone->act_trips[i].valid = true;
-+		trip_cnt++;
- 	}
- 
- 	return trip_cnt;
-@@ -208,7 +108,7 @@ struct int34x_thermal_zone *int340x_thermal_zone_add(struct acpi_device *adev,
- 	acpi_status status;
- 	unsigned long long trip_cnt;
- 	int trip_mask = 0;
--	int ret;
-+	int i, ret;
- 
- 	int34x_thermal_zone = kzalloc(sizeof(*int34x_thermal_zone),
- 				      GFP_KERNEL);
-@@ -228,32 +128,35 @@ struct int34x_thermal_zone *int340x_thermal_zone_add(struct acpi_device *adev,
- 		int34x_thermal_zone->ops->get_temp = get_temp;
- 
- 	status = acpi_evaluate_integer(adev->handle, "PATC", NULL, &trip_cnt);
--	if (ACPI_FAILURE(status))
--		trip_cnt = 0;
--	else {
--		int i;
--
--		int34x_thermal_zone->aux_trips =
--			kcalloc(trip_cnt,
--				sizeof(*int34x_thermal_zone->aux_trips),
--				GFP_KERNEL);
--		if (!int34x_thermal_zone->aux_trips) {
--			ret = -ENOMEM;
--			goto err_trip_alloc;
--		}
--		trip_mask = BIT(trip_cnt) - 1;
-+	if (!ACPI_FAILURE(status)) {
- 		int34x_thermal_zone->aux_trip_nr = trip_cnt;
--		for (i = 0; i < trip_cnt; ++i)
--			int34x_thermal_zone->aux_trips[i] = THERMAL_TEMP_INVALID;
-+		trip_mask = BIT(trip_cnt) - 1;
-+	}
-+
-+	int34x_thermal_zone->trips = kzalloc(sizeof(*int34x_thermal_zone->trips) *
-+					     (INT340X_THERMAL_MAX_TRIP_COUNT + trip_cnt),
-+					      GFP_KERNEL);
-+	if (!int34x_thermal_zone->trips) {
-+		ret = -ENOMEM;
-+		goto err_trips_alloc;
- 	}
- 
- 	trip_cnt = int340x_thermal_read_trips(int34x_thermal_zone);
- 
-+	for (i = 0; i < trip_cnt; ++i)
-+		int34x_thermal_zone->trips[i].hysteresis = thermal_acpi_trip_gtsh(adev);
-+
-+	for (i = 0; i < int34x_thermal_zone->aux_trip_nr; i++) {
-+		int34x_thermal_zone->trips[i].type = THERMAL_TRIP_PASSIVE;
-+		int34x_thermal_zone->trips[i].temperature = THERMAL_TEMP_INVALID;
-+	}
-+
- 	int34x_thermal_zone->lpat_table = acpi_lpat_get_conversion_table(
- 								adev->handle);
- 
--	int34x_thermal_zone->zone = thermal_zone_device_register(
-+	int34x_thermal_zone->zone = thermal_zone_device_register_with_trips(
- 						acpi_device_bid(adev),
-+						int34x_thermal_zone->trips,
- 						trip_cnt,
- 						trip_mask, int34x_thermal_zone,
- 						int34x_thermal_zone->ops,
-@@ -272,9 +175,9 @@ struct int34x_thermal_zone *int340x_thermal_zone_add(struct acpi_device *adev,
- err_enable:
- 	thermal_zone_device_unregister(int34x_thermal_zone->zone);
- err_thermal_zone:
-+	kfree(int34x_thermal_zone->trips);
- 	acpi_lpat_free_conversion_table(int34x_thermal_zone->lpat_table);
--	kfree(int34x_thermal_zone->aux_trips);
--err_trip_alloc:
-+err_trips_alloc:
- 	kfree(int34x_thermal_zone->ops);
- err_ops_alloc:
- 	kfree(int34x_thermal_zone);
-@@ -287,7 +190,7 @@ void int340x_thermal_zone_remove(struct int34x_thermal_zone
- {
- 	thermal_zone_device_unregister(int34x_thermal_zone->zone);
- 	acpi_lpat_free_conversion_table(int34x_thermal_zone->lpat_table);
--	kfree(int34x_thermal_zone->aux_trips);
-+	kfree(int34x_thermal_zone->trips);
- 	kfree(int34x_thermal_zone->ops);
- 	kfree(int34x_thermal_zone);
- }
-diff --git a/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h b/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h
-index e28ab1ba5e06..0c2c8de92014 100644
---- a/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h
-+++ b/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h
-@@ -10,6 +10,7 @@
- #include <acpi/acpi_lpat.h>
- 
- #define INT340X_THERMAL_MAX_ACT_TRIP_COUNT	10
-+#define INT340X_THERMAL_MAX_TRIP_COUNT INT340X_THERMAL_MAX_ACT_TRIP_COUNT + 3
- 
- struct active_trip {
- 	int temp;
-@@ -19,15 +20,8 @@ struct active_trip {
- 
- struct int34x_thermal_zone {
- 	struct acpi_device *adev;
--	struct active_trip act_trips[INT340X_THERMAL_MAX_ACT_TRIP_COUNT];
--	unsigned long *aux_trips;
-+	struct thermal_trip *trips;
- 	int aux_trip_nr;
--	int psv_temp;
--	int psv_trip_id;
--	int crt_temp;
--	int crt_trip_id;
--	int hot_temp;
--	int hot_trip_id;
- 	struct thermal_zone_device *zone;
- 	struct thermal_zone_device_ops *ops;
- 	void *priv_data;
 -- 
-2.34.1
+2.30.2
 
