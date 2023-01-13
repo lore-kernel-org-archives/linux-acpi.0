@@ -2,135 +2,111 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9173CC3DA78
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Jan 2023 17:49:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F45CC677F1
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Jan 2023 17:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230181AbjAMRtj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 13 Jan 2023 12:49:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59680 "EHLO
+        id S230005AbjAMR6R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 13 Jan 2023 12:58:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229540AbjAMRs5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jan 2023 12:48:57 -0500
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAA938F8C1;
-        Fri, 13 Jan 2023 09:40:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1673631636; x=1705167636;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=aOFHIYXUBrqr9+If/r9gCmOL5KeU2zlnO6suhhT47oc=;
-  b=DpbO396DdHI5HlgDvDqfPK2KI6a0g1pjjkwQmY2vZtu1xtGrY3XNw2mY
-   FtGXbtZ7FmFbZBB+wFWIeQ4JcNxNifrnGDRamfF9GO3pVLlgmWhoCL5Ar
-   jvRDb6ngIYznciZGW47OXDjovlX5GfCOzMuTbSUjMoO8ebag6VR/6MQ1j
-   bFkW/c9YZ1sfRcRuplcMZb7hba4iJUY+OmySx+sMUFarIZKLG+Kw+GYWk
-   4Wa1Q7u4bdiOx31Auw2rcPFtFl33EAAkDuOafvv1ZQIbxDVZJ6Z3Sv2af
-   hPcivWUJE78Br7WLo/J5oKodHVELbMaonoi5BlqRIIvAtG5/7UWDso69f
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10589"; a="386396069"
-X-IronPort-AV: E=Sophos;i="5.97,214,1669104000"; 
-   d="scan'208";a="386396069"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2023 09:40:35 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10589"; a="658287535"
-X-IronPort-AV: E=Sophos;i="5.97,214,1669104000"; 
-   d="scan'208";a="658287535"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga002.jf.intel.com with ESMTP; 13 Jan 2023 09:40:26 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pGO2R-008jqV-0f;
-        Fri, 13 Jan 2023 19:40:23 +0200
-Date:   Fri, 13 Jan 2023 19:40:22 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Prashant Malani <pmalani@chromium.org>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pin-yen Lin <treapking@chromium.org>,
-        Andrzej Hajda <andrzej.hajda@intel.com>,
-        Neil Armstrong <neil.armstrong@linaro.org>,
-        Robert Foss <robert.foss@linaro.org>,
-        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        Jernej Skrabec <jernej.skrabec@gmail.com>,
-        David Airlie <airlied@gmail.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Benson Leung <bleung@chromium.org>,
-        Guenter Roeck <groeck@chromium.org>,
-        Stephen Boyd <swboyd@chromium.org>,
-        =?iso-8859-1?Q?N=EDcolas_F_=2E_R_=2E_A_=2E?= Prado 
-        <nfraprado@collabora.com>, Marek Vasut <marex@denx.de>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        Lyude Paul <lyude@redhat.com>, chrome-platform@lists.linux.dev,
-        Xin Ji <xji@analogixsemi.com>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        linux-kernel@vger.kernel.org, Allen Chen <allen.chen@ite.com.tw>,
-        linux-acpi@vger.kernel.org, Hsin-Yi Wang <hsinyi@chromium.org>,
-        Chen-Yu Tsai <wenst@chromium.org>
-Subject: Re: [PATCH v10 1/9] device property: Add remote endpoint to devcon
- matcher
-Message-ID: <Y8GXhhYY9a7Z/t9H@smile.fi.intel.com>
-References: <20230112042104.4107253-1-treapking@chromium.org>
- <20230112042104.4107253-2-treapking@chromium.org>
- <Y8AL8nTcNcl6zX7H@paasikivi.fi.intel.com>
- <CACeCKaeN7KBi30M1fRWhTPgMbxF6=B+KuAS7Ny7+i9qCx+=49Q@mail.gmail.com>
+        with ESMTP id S230218AbjAMR5y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jan 2023 12:57:54 -0500
+Received: from bee.birch.relay.mailchannels.net (bee.birch.relay.mailchannels.net [23.83.209.14])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E21156C049;
+        Fri, 13 Jan 2023 09:51:08 -0800 (PST)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id 40A203E0F9B;
+        Fri, 13 Jan 2023 17:42:39 +0000 (UTC)
+Received: from pdx1-sub0-mail-a315.dreamhost.com (unknown [127.0.0.6])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id 99E533E1268;
+        Fri, 13 Jan 2023 17:42:38 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1673631758; a=rsa-sha256;
+        cv=none;
+        b=aB6xa21VDCjs87dpabaUSa9RMma55OpPQaxzs5/hFiR/txUcRRtBhKPJN9Lf8kypZUGZve
+        OtaBHAQ7lJb45wZtVNvWkWy0UjltwLbKs+fM7/TV6MTsCzIZxNm7ve3Lm92e+lKQOT9/M3
+        x2ntuoAkr7IkXFeUK+r436fblVe20jhUhg1dMbR2zVJo8HVvQBFe6/hsAuoVO845FMrwd1
+        DJaHz0q9gaJkEBB0RpQykMWm/kz77h9n/xWvu4t5efnoGvLA0iegQuDA1WLsltdJbLYeK7
+        sKD01uBJh7ANtcJ+PB9U17U8AqTBnx3w0q1fSklosI2iA8PnCfO0LWFepTbkLQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+        s=arc-2022; t=1673631758;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references:dkim-signature;
+        bh=twgTTPRo+VXnNzflsrxDFTC/SO/Nbxj3cfBkYLW1hkg=;
+        b=33tB9wnNeVgJi+brT3FXVWGpHrSQprQzqzii7hJosZZtJdQCCj6dbkmrDasJE6JtHzd8Xx
+        bcKHi5hodfbnA9Bfits86Y1WQqQnCXzjR6WHqbW5OpxWcJOJLsosFJLh2xlbmVK82f445F
+        IQpjW7kfl3dqi6M4Fjg4kzYmU1ANGpRLR70vKS5thPIF3+qIM9GWgPX2ZeRcwivWmO4yqm
+        YXxfdvpo9ZSBbSgukYfOiAsNC9S1hq/6tRoqKe9VQP7RVNsxnKHKp4lJgvvTClLZrkQLt4
+        y8PMnTZQ9fxmBgzyLO08X3+gsnMXnDhLIMQgU1D4vpYJDCkvHL29vssuWL6dSQ==
+ARC-Authentication-Results: i=1;
+        rspamd-6f569fcb69-pz4jf;
+        auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Skirt-Oafish: 11b8c2af1ed5ac8b_1673631759033_935896507
+X-MC-Loop-Signature: 1673631759033:1125857754
+X-MC-Ingress-Time: 1673631759033
+Received: from pdx1-sub0-mail-a315.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+        by 100.97.48.85 (trex/6.7.1);
+        Fri, 13 Jan 2023 17:42:39 +0000
+Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: dave@stgolabs.net)
+        by pdx1-sub0-mail-a315.dreamhost.com (Postfix) with ESMTPSA id 4Ntpf51GyWzGX;
+        Fri, 13 Jan 2023 09:42:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+        s=dreamhost; t=1673631758;
+        bh=twgTTPRo+VXnNzflsrxDFTC/SO/Nbxj3cfBkYLW1hkg=;
+        h=Date:From:To:Cc:Subject:Content-Type;
+        b=pK5KpZ772hyobLbvM90Mxb120RtMGLRQc1NTBkdqzOnDx4KQzICc/QtGrON+qOaR6
+         UZaq4nyW/+as5VqCbYpmIdiLzuLlmtJuwtURrOdUunDEOnzlziG6N/1kmiV1al23IR
+         SqK1fErGH759hq9eNs0oZb6AfS72PbVIxAT6Kdc60FyaTDIt3mKElSxhdAgMGJadx2
+         e7q3CGcKDt2AV6RaOapdZ0DIuCkfRrN23NiCnx67+bLvwVWqwl0M4HL33DuTKtNmrH
+         BDg+9bqi9hXA3bvRoHKoXA0ht9/gEKVoWmFNkbweLOG/i13+xd2e7igG1+9Pmkzygi
+         ScYv9WSjENQfg==
+Date:   Fri, 13 Jan 2023 09:16:33 -0800
+From:   Davidlohr Bueso <dave@stgolabs.net>
+To:     Ira Weiny <ira.weiny@intel.com>
+Cc:     Dan Williams <dan.j.williams@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Alison Schofield <alison.schofield@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Ben Widawsky <bwidawsk@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org
+Subject: Re: [PATCH v6 3/8] cxl/mem: Trace General Media Event Record
+Message-ID: <20230113171633.2ooichii3jk4exqe@offworld>
+References: <20221216-cxl-ev-log-v6-0-346583105b30@intel.com>
+ <20221216-cxl-ev-log-v6-3-346583105b30@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <CACeCKaeN7KBi30M1fRWhTPgMbxF6=B+KuAS7Ny7+i9qCx+=49Q@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20221216-cxl-ev-log-v6-3-346583105b30@intel.com>
+User-Agent: NeoMutt/20220429
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Jan 12, 2023 at 02:31:45PM -0800, Prashant Malani wrote:
-> On Thu, Jan 12, 2023 at 5:32 AM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > On Thu, Jan 12, 2023 at 12:20:56PM +0800, Pin-yen Lin wrote:
-> > > From: Prashant Malani <pmalani@chromium.org>
+On Mon, 09 Jan 2023, Ira Weiny wrote:
 
-...
+>CXL rev 3.0 section 8.2.9.2.1.1 defines the General Media Event Record.
+>
+>Determine if the event read is a general media record and if so trace
+>the record as a General Media Event Record.
+>
+>Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+>Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-> > > +             /*
-> > > +              * Some drivers may register devices for endpoints. Check
-> > > +              * the remote-endpoints for matches in addition to the remote
-> > > +              * port parent.
-> > > +              */
-> > > +             node = fwnode_graph_get_remote_endpoint(ep);
-> > > +             if (fwnode_device_is_available(node)) {
-> > > +                     ret = match(node, con_id, data);
-> > > +                     if (ret) {
-> > > +                             if (matches)
-> > > +                                     matches[count] = ret;
-> > > +                             count++;
-> > > +                     }
-> > > +             }
-> >
-> > Aren't you missing fwnode_handle-put(node) here??
-> 
-> It shouldn't be necessary. We aren't break-ing/continue-ing here,
-> and fwnode_handle_put(node) is called latter in the loop [1][2]
-> 
-> BR,
-> 
-> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/base/property.c#n1256
-> [2] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/base/property.c#n1261
-
-I'm really puzzled what do you mean by all this.
-Sakari is right, btw.
-
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
