@@ -2,108 +2,186 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC20EC54EBE
-	for <linux-acpi@archiver.kernel.org>; Fri, 13 Jan 2023 01:15:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E21BC61DB3
+	for <linux-acpi@archiver.kernel.org>; Fri, 13 Jan 2023 08:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232740AbjAMBPX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 12 Jan 2023 20:15:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60066 "EHLO
+        id S240931AbjAMIKx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 13 Jan 2023 03:10:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232226AbjAMBPX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2023 20:15:23 -0500
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D74F1271A5;
-        Thu, 12 Jan 2023 17:15:21 -0800 (PST)
-Received: from kwepemm600010.china.huawei.com (unknown [172.30.72.56])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NtNjM716gzJrJT;
-        Fri, 13 Jan 2023 09:13:59 +0800 (CST)
-Received: from [10.67.110.237] (10.67.110.237) by
- kwepemm600010.china.huawei.com (7.193.23.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Fri, 13 Jan 2023 09:15:18 +0800
-Subject: Re: [PATCH 4/8] ftrace: Add DYNAMIC_FTRACE_WITH_CALL_OPS
-To:     Mark Rutland <mark.rutland@arm.com>
-CC:     <catalin.marinas@arm.com>, <lenb@kernel.org>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <mhiramat@kernel.org>, <ndesaulniers@google.com>,
-        <ojeda@kernel.org>, <peterz@infradead.org>,
-        <rafael.j.wysocki@intel.com>, <revest@chromium.org>,
-        <robert.moore@intel.com>, <rostedt@goodmis.org>, <will@kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-References: <20230109135828.879136-1-mark.rutland@arm.com>
- <20230109135828.879136-5-mark.rutland@arm.com>
- <ec65815e-a8c9-470a-ff89-41626c94df28@huawei.com>
- <Y7/oUy2fIOoq1yFC@FVFF77S0Q05N>
-From:   Li Huafei <lihuafei1@huawei.com>
-Message-ID: <95f421a3-383f-5d05-adaf-3d8188ae3a36@huawei.com>
-Date:   Fri, 13 Jan 2023 09:15:18 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.0
+        with ESMTP id S240936AbjAMIKJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jan 2023 03:10:09 -0500
+Received: from mail-io1-xd36.google.com (mail-io1-xd36.google.com [IPv6:2607:f8b0:4864:20::d36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 559BE1177
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Jan 2023 00:09:22 -0800 (PST)
+Received: by mail-io1-xd36.google.com with SMTP id b127so2166829iof.8
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Jan 2023 00:09:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=W0+4RXTlK0IqIB9mYO3YSmFVYM13UL+Gup7cLGu7Nzw=;
+        b=Fmn00t90xJPmYNPJkrLBinV7c53WSSG1nRO2CEfpjlJfQU2BIZzTmdL1R0NOTFpb9Q
+         eR4ku2xTE6T2EWT8UoP4xt9FpbjU/g5bDKOeEHDAIe56Fp+yotzNdcp0EKF8GTBsTCkt
+         /hm6KiUd+IhQWCRDMH7pa5M0uSbadJuDDgiOA=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=W0+4RXTlK0IqIB9mYO3YSmFVYM13UL+Gup7cLGu7Nzw=;
+        b=hIKqADejV4ES0eALZQYE+FZ+ZUBHMCH0E3IuQItqG6R0tR6p7hiarjZpKUiTvr6TP0
+         ayKYl1xKijrJ5ffYZggDEbayncA7O7gjUSvedMVf0ghIZZp8Wn2vZkR4YNpM7ktrWY77
+         a/GDZ8rVEQ4ZpjU3Dg0fVnybTuhyVAC/GeGGLuym7R1F7IdyJ657f1qI5OUY9l/exrgO
+         dPxCC4OGsEqwg8TMrtY+PXCbk0L4wdsDuZQKzAoVAhzXzB9TGy4ixq7+3FShdLdbZoKW
+         4sGoxPmsUXmO9IG971QEsPwOxU0IGUX9m2nFkNW41DqAXarsTM+VthkKDeAzDnHUn60e
+         oUXw==
+X-Gm-Message-State: AFqh2kpvQPNAtpbIV9rtjESrknXIOZYtc334x3UsctVjN5uudkvyd5Gj
+        YFv28x7wIJRNPD+tqDEmnClevkHCEK3xZ/GmZFezrg==
+X-Google-Smtp-Source: AMrXdXso2wCwKI04DP0Jnwsw8O26tdW8R7cqrPXE3TghshxleDtAvafXMMve9LCUvK+myYIiIF3cGOotr7mepvIezU0=
+X-Received: by 2002:a05:6638:1a7:b0:38a:3770:2fa2 with SMTP id
+ b7-20020a05663801a700b0038a37702fa2mr7649958jaq.208.1673597361628; Fri, 13
+ Jan 2023 00:09:21 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <Y7/oUy2fIOoq1yFC@FVFF77S0Q05N>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.67.110.237]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- kwepemm600010.china.huawei.com (7.193.23.86)
-X-CFilter-Loop: Reflected
+References: <20230112042104.4107253-1-treapking@chromium.org> <CAL_Jsq+KGQH2qTpB6NmmOzid39-oKTzZZJNPF1ybKQu72LbJLw@mail.gmail.com>
+In-Reply-To: <CAL_Jsq+KGQH2qTpB6NmmOzid39-oKTzZZJNPF1ybKQu72LbJLw@mail.gmail.com>
+From:   Pin-yen Lin <treapking@chromium.org>
+Date:   Fri, 13 Jan 2023 16:09:10 +0800
+Message-ID: <CAEXTbpfvGrBWjGV9VcRiuTHo4eVqrFM9qEpvq5CPXEWk=4z+dQ@mail.gmail.com>
+Subject: Re: [PATCH v10 0/9] Register Type-C mode-switch in DP bridge endpoints
+To:     Rob Herring <robh+dt@kernel.org>
+Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
+        Neil Armstrong <neil.armstrong@linaro.org>,
+        Robert Foss <robert.foss@linaro.org>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        David Airlie <airlied@gmail.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Prashant Malani <pmalani@chromium.org>,
+        Benson Leung <bleung@chromium.org>,
+        Guenter Roeck <groeck@chromium.org>,
+        Stephen Boyd <swboyd@chromium.org>,
+        =?UTF-8?B?TsOtY29sYXMgRiAuIFIgLiBBIC4gUHJhZG8=?= 
+        <nfraprado@collabora.com>, Marek Vasut <marex@denx.de>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Lyude Paul <lyude@redhat.com>, chrome-platform@lists.linux.dev,
+        Xin Ji <xji@analogixsemi.com>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        linux-kernel@vger.kernel.org, Allen Chen <allen.chen@ite.com.tw>,
+        linux-acpi@vger.kernel.org, Hsin-Yi Wang <hsinyi@chromium.org>,
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+        Douglas Anderson <dianders@chromium.org>,
+        Imre Deak <imre.deak@intel.com>,
+        Jani Nikula <jani.nikula@intel.com>,
+        =?UTF-8?B?Sm9zw6kgRXhww7NzaXRv?= <jose.exposito89@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+        shaomin Deng <dengshaomin@cdjrlc.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Hi Rob,
 
+On Fri, Jan 13, 2023 at 6:44 AM Rob Herring <robh+dt@kernel.org> wrote:
+>
+> On Wed, Jan 11, 2023 at 10:21 PM Pin-yen Lin <treapking@chromium.org> wrote:
+> >
+> >
+> > This series introduces bindings for anx7625/it6505 to register Type-C
+> > mode-switch in their output endpoints, and use data-lanes property to
+> > describe the pin connections.
+> >
+> > The first two patch modifies fwnode_graph_devcon_matches and
+> > cros_typec_init_ports to enable the registration of the switches.
+> >
+> > Patch 4~6 introduce the bindings for anx7625 and the corresponding driver
+> > modifications.
+> >
+> > Patch 7~9 add similar bindings and driver changes for it6505.
+> >
+> > v9: https://lore.kernel.org/all/20230109084101.265664-1-treapking@chromium.org/
+> > v8: https://lore.kernel.org/all/20230107102231.23682-1-treapking@chromium.org/
+> > v7: https://lore.kernel.org/all/20230105132457.4125372-1-treapking@chromium.org/
+> > v6: https://lore.kernel.org/all/20221124102056.393220-1-treapking@chromium.org/
+> > v5: https://lore.kernel.org/linux-usb/20220622173605.1168416-1-pmalani@chromium.org/
+> >
+> > Changes in v10:
+> > - Collected Reviewed-by and Tested-by tags
+> > - Replaced "void *" with "typec_mux_set_fn_t" for mux_set callbacks
+> > - Print out the node name when errors on parsing DT
+> > - Use dev_dbg instead of dev_warn when no Type-C switch nodes available
+> > - Made the return path of drm_dp_register_mode_switch clearer
+> > - Added a TODO for implementing orientation switch for anx7625
+> > - Updated the commit message for the absence of orientation switch
+> > - Fixed typo in the commit message
+> >
+> > Changes in v9:
+> > - Collected Reviewed-by tag
+> > - Fixed subject prefix again
+> > - Changed the naming of the example node for it6505
+> >
+> > Changes in v8:
+> > - Fixed the build issue when CONFIG_TYPEC=m
+> > - Fixed some style issues
+> > - Fixed the subject prefixes for the bindings patch
+> > - Fixed the bindings for data-lanes properties
+> >
+> > Changes in v7:
+> > - Fix the long comment lines
+> > - Extracted the common codes to a helper function
+> > - Fixed style issues in anx7625 driver
+> > - Removed DT property validation in anx7625 driver.
+> > - Fixed style issues in it6505 driver
+> > - Removed the redundant sleep in it6505 driver
+> > - Removed DT property validation in it6505 driver
+> > - Rebased to drm-misc-next
+> > - Fixed indentations in bindings patches
+> > - Added a new patch to fix indentations in Kconfig
+>
+> 4 versions in a week! Please slow down your pace. When you send a new
+> version, you move to the end of my review queue.
 
-On 2023/1/12 19:00, Mark Rutland wrote:
-> On Thu, Jan 12, 2023 at 02:48:45PM +0800, Li Huafei wrote:
->> On 2023/1/9 21:58, Mark Rutland wrote:
->>
->>> diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
->>> index 99f1146614c04..5eeb2776124c5 100644
->>> --- a/include/linux/ftrace.h
->>> +++ b/include/linux/ftrace.h
->>> @@ -57,6 +57,9 @@ void arch_ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip);
->>>  void arch_ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
->>>  			       struct ftrace_ops *op, struct ftrace_regs *fregs);
->>>  #endif
->>> +extern const struct ftrace_ops ftrace_nop_ops;
->>> +extern const struct ftrace_ops ftrace_list_ops;
->>> +struct ftrace_ops *ftrace_find_unique_ops(struct dyn_ftrace *rec);
->>
->> Hi Mark,
-> 
-> Hi Huafei,
-> 
-> Thanks for the reporrt.
-> 
->> This patch has build issues on x86:
->>
->>     CC      mm/readahead.o
->>   In file included from include/linux/perf_event.h:52:0,
->>                    from arch/x86/events/amd/lbr.c:2:
->>   include/linux/ftrace.h:62:50: error: ‘struct dyn_ftrace’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
->>    struct ftrace_ops *ftrace_find_unique_ops(struct dyn_ftrace *rec);
->>
->> Here we should need 'struct dyn_ftrace' forward declaration.
-> 
-> The build robot spotted this a couple of days ago (from my branch rather than
-> the list), and I fixed it there a couple of days ago. The relevant messages were:
-> 
->   https://lore.kernel.org/oe-kbuild-all/202301100944.E0mV3kSO-lkp@intel.com/
->   https://lore.kernel.org/oe-kbuild-all/Y72TJ3qQuvx3gIOi@FVFF77S0Q05N/#t
-> 
-> ... and the updated commit is at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git/commit/?h=arm64/ftrace/per-callsite-ops&id=acab29d6ea2f20d8d156cdd301ad9790bd1d888f
-> 
+I see. I'll keep this in mind in the future series.
+>
+> IIRC, these 2 chips are a bit different in what the mode switch or
+> muxing looks like. One had a built-in mux and the other doesn't? Do I
+> have to go research this again? No, you need to explain all this in
+> this series.
 
-Okay, you've fixed it. Thanks for pointing out.
+Yes, anx7625 has a built-in mux while it6505 doesn't, but it's for
+another use case.
 
-> 
-> ... I'll post a v2 with that folded in once this has had a bit more time to gather comments.
-> 
-> Thanks,	
-> Mark.
-> 
-> .
-> 
+IIUC the built-in mux in anx7625 is designed for automatically
+switching between two orientations of a single Type-C connector, and
+in that case we might need to register an orientation switch. But we
+don't have hardware for this use case.
+
+The use case this series aimed is having two downstreams for the
+bridges, and registering two mode switches to switch between them. In
+this use case, the built-in mux of anx7625 is not used and the
+behavior of the switches is the same as it6505.
+
+Explanations and TODOs have been added in the anx7625 driver change. I
+can also mention this in the cover letter in the future series and
+please let me know if anything is not clear for you.
+
+>
+> Rob
+
+Thanks and regards,
+Pin-yen
