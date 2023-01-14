@@ -2,89 +2,148 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 027A0C3DA78
-	for <linux-acpi@archiver.kernel.org>; Sat, 14 Jan 2023 08:51:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60518C46467
+	for <linux-acpi@archiver.kernel.org>; Sat, 14 Jan 2023 09:06:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229659AbjANIvP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 14 Jan 2023 03:51:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41440 "EHLO
+        id S229787AbjANJGi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 14 Jan 2023 04:06:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229845AbjANIvH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jan 2023 03:51:07 -0500
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 789AD5BA6;
-        Sat, 14 Jan 2023 00:51:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1673686260; bh=ZRXDOHGn9yZu57/DPz1iMB9OlkHhVNY+RiI8eWQZy7Y=;
-        h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=pLvDoi+UkLmHCYXsNyLYXYV53IObWoyJZafOBDM7/xWU9N2OdOERE+YWsiX9kr8QE
-         21sD5GeM4fvtVk6H6wp4rQWv/rJhUhl9RsSVar35f6QYxod2K3jsgDJCTLQo6hAQrp
-         G/U58GQ/193DUoulcnHyjjsIcWiqInNdAKuZ2dG061FCKGu9//lzxnRkPCrGoC1/w6
-         L9Xy+Usbspusw79LnqU1iX8jN/Gu5IsepspIfmflkTIxSKr3d3lJ7d7H4OoO95znmd
-         IYef5GOS8GZSdeJCd8FnWxUvZgxkYAlJmF91wH23ZjvhEvC60LPHv6baZVILvbnXSt
-         taDtekps0eb7w==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
- (mrgmx104 [212.227.17.168]) with ESMTPSA (Nemesis) id
- 1MTzb8-1p7AIr3qJG-00R4ov; Sat, 14 Jan 2023 09:51:00 +0100
-From:   Armin Wolf <W_Armin@gmx.de>
-To:     rafael@kernel.org, lenb@kernel.org
-Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/4] ACPI: battery: Replace strncpy() with strscpy()
-Date:   Sat, 14 Jan 2023 09:50:52 +0100
-Message-Id: <20230114085053.72059-4-W_Armin@gmx.de>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230114085053.72059-1-W_Armin@gmx.de>
-References: <20230114085053.72059-1-W_Armin@gmx.de>
+        with ESMTP id S229620AbjANJGh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jan 2023 04:06:37 -0500
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3569259E6;
+        Sat, 14 Jan 2023 01:06:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1673687196; x=1705223196;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=w+bh/JTScrGi2k5GFuTgWKil04N/ZfVZFC2I5q32xlE=;
+  b=ADMRDHBswjvqogWffdL63mh/eZYVvnfEDhtcn/deVNxLRepBGHj1I8cQ
+   HG9ziujqUZ8ME5osGavklPeM7QCgBYPmxhOBcDDgfwBXQFOS1ULus6nZW
+   22ihgLaliHdEqqz4wEINypdWJ0JXmqIelQHyhtJsvN+QplnEsCkCEXHea
+   oARxs32s/74pFufUdi1U5EynG2Cdz2mp4mnwwbeZIgz/1IcN+VBdSGi2w
+   HkX04sQHQS+LBJowt/CUs3kGpZ4yfi8qMDioA9qjg5UESPeW3RqYzyzo3
+   avOiiGvd7XU3MKIL8RlSaDbyIyy804IZJmswSnDi3iewuqLZnxgSEPJYr
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10589"; a="303875858"
+X-IronPort-AV: E=Sophos;i="5.97,216,1669104000"; 
+   d="scan'208";a="303875858"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2023 01:06:35 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10589"; a="651775179"
+X-IronPort-AV: E=Sophos;i="5.97,216,1669104000"; 
+   d="scan'208";a="651775179"
+Received: from lkp-server02.sh.intel.com (HELO f1920e93ebb5) ([10.239.97.151])
+  by orsmga007.jf.intel.com with ESMTP; 14 Jan 2023 01:06:33 -0800
+Received: from kbuild by f1920e93ebb5 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1pGcUi-000Bxb-2T;
+        Sat, 14 Jan 2023 09:06:32 +0000
+Date:   Sat, 14 Jan 2023 17:05:55 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     linux-pm@vger.kernel.org, devel@acpica.org,
+        linux-acpi@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ c7b1de870ff7fcb5652bc776a42630b07374b09d
+Message-ID: <63c27073.OSK/WBzbTUDR2ZMn%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:nEZOIaBECnOJgOL0HPTpdVTEJLBlJu+3+2Qk7c4CHM64oEsNvM1
- MK0Qc6IY/nXmbWlmjtoA3YNvPu6SlIutDmjNGhyAgJkBBCnjS2QM3oAA41zn3pVqda0cl0X
- WalSa89lF1lXyN1vhpmY51SrfzKOBdQUWq29Nz9Za4mobsWriR1Wa1ghgzOMBQJexaP3pxI
- qSyVkUsUSAt0aQ/nXocvQ==
-UI-OutboundReport: notjunk:1;M01:P0:GnJcBRdBtq4=;Ih+YY7KENBNCd2SSEcHJVwizecw
- 8vH04p9rGNR7wfwwdEm7hVxG3LGtkwXvYI2ISa+hEassqfFELz/MvpMsm/RWhSTIXvebUBpZ0
- wpdiPxQGhP+QbOaLaXekf7xxXyLAk0yZ1U9X0e0M9LuxwzeblUZ8Oxqi3a5ixf8gTBonesvh1
- mfQY9PGjIzr1SW/zuGDxeZd//lFQvmD/Ybt9OuRAyWxexeE1B8XcEFA/QcvsodqAOpJ9vwtyE
- JANYGX+zhf3saM9AnWiNVGW74VXHV2NtVIjdgEPYaUJqJE4y56c9xXzkQQOPnm2awUWKX3nvU
- Iy0Ta2A1oi8HH/PNEYAHj0G8qVWlykOntQNJdt+I+pbI9CUf+0icaYx+vAR3HzIoN0iYvlZ5C
- AhKw+fYAMpDHhirhHDjhUw8/y332L/xRKkjp+Ex83xHuOsxjpLTYn7bmNNVflBL+F9D/3oUed
- MPcNYKkO8YH1xICNqkS8xj56RUMm3e8Hd/IWHGUZwK5UTs7mnIk0usmTzDjUd8dypX/rqkACt
- m+d5jnC7NvNFk1apjGHAols2Dt0LwkqtOEShsOK1Dje0SNxZAJTOoj26uVZGEHG1bB6+2nROT
- KalYmx4mwVOFJdeYw3259r3PmXB+OcN1sKOtYlIsGClSM/1mOq6PIlV0JZ61P7R/nf+KT1I6W
- gOUPJTTO6Iib0kSLJkWxXNRoyNsjRxgIRVbFP/S5iyFXZnjXRteqrAZSgv7jGOWFkfs5Zhkoq
- Nya1kljngMTHGQMW1ZT0CQrDe+z+mQju0oD1ehrKJyGo7n0QvNLUrVeY354GeHtakIn89w9Yy
- CnmJyQg6EHpEQIrm8sOuvacuHP5uu5YPMHs05GI+pL3uN9p9xvwlI4dxKo1Qbrl/2TMxRCkZ5
- qIXa7C54LuMA/pBLa03jlKCAX2Lmfg4tZUKJkXaDOj/x+7lc55qELSZLy2QpqTa72kATGk8hH
- JEsOV7fJW2zrZoFZkISpQqkHTak=
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently, strncpy() and manual NUL-termination is used
-when copying integers. Switch to strscpy() which takes care
-of NUL-terminating the result.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: c7b1de870ff7fcb5652bc776a42630b07374b09d  Merge branch 'pm-cpuidle' into bleeding-edge
 
-Signed-off-by: Armin Wolf <W_Armin@gmx.de>
-=2D--
- drivers/acpi/battery.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+elapsed time: 721m
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 9f6daa9f2010..b39b84b8f3ae 100644
-=2D-- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -449,8 +449,7 @@ static int extract_package(struct acpi_battery *batter=
-y,
+configs tested: 71
+configs skipped: 2
 
- 				break;
- 			case ACPI_TYPE_INTEGER:
--				strncpy(ptr, (u8 *)&element->integer.value, sizeof(u64));
--				ptr[sizeof(u64)] =3D 0;
-+				strscpy(ptr, (u8 *)&element->integer.value, sizeof(u64) + 1);
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
- 				break;
- 			default:
-=2D-
-2.30.2
+gcc tested configs:
+x86_64                            allnoconfig
+arc                                 defconfig
+alpha                               defconfig
+s390                             allmodconfig
+s390                                defconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+i386                              allnoconfig
+i386                                defconfig
+alpha                             allnoconfig
+arm                               allnoconfig
+x86_64                           rhel-8.3-syz
+arc                               allnoconfig
+x86_64                           rhel-8.3-kvm
+x86_64                           rhel-8.3-bpf
+powerpc                           allnoconfig
+x86_64                         rhel-8.3-kunit
+ia64                             allmodconfig
+s390                             allyesconfig
+x86_64                        randconfig-a013
+arc                  randconfig-r043-20230112
+x86_64                        randconfig-a011
+s390                 randconfig-r044-20230112
+i386                          randconfig-a001
+i386                          randconfig-a003
+x86_64                        randconfig-a015
+x86_64                    rhel-8.3-kselftests
+sh                               allmodconfig
+riscv                randconfig-r042-20230112
+mips                             allyesconfig
+m68k                             allyesconfig
+i386                          randconfig-a005
+x86_64                          rhel-8.3-func
+m68k                             allmodconfig
+arc                              allyesconfig
+alpha                            allyesconfig
+powerpc                          allmodconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+arm                                 defconfig
+i386                          randconfig-a014
+i386                             allyesconfig
+x86_64                        randconfig-a004
+x86_64                        randconfig-a002
+i386                          randconfig-a012
+i386                          randconfig-a016
+x86_64                        randconfig-a006
+x86_64                           allyesconfig
+arm64                            allyesconfig
+arm                              allyesconfig
+openrisc                         alldefconfig
+mips                 decstation_r4k_defconfig
+sh                          urquell_defconfig
+powerpc                       maple_defconfig
+arm64                               defconfig
 
+clang tested configs:
+arm                  randconfig-r046-20230112
+x86_64                          rhel-8.3-rust
+hexagon              randconfig-r041-20230112
+x86_64                        randconfig-a012
+hexagon              randconfig-r045-20230112
+i386                          randconfig-a002
+x86_64                        randconfig-a014
+i386                          randconfig-a004
+x86_64                        randconfig-a016
+i386                          randconfig-a006
+i386                          randconfig-a013
+i386                          randconfig-a011
+x86_64                        randconfig-a001
+x86_64                        randconfig-a003
+i386                          randconfig-a015
+x86_64                        randconfig-a005
+
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
