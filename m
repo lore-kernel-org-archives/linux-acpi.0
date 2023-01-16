@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D39C54EBE
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Jan 2023 17:53:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D441C677F1
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Jan 2023 17:53:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232579AbjAPRxA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Jan 2023 12:53:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37718 "EHLO
+        id S235146AbjAPRxC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Jan 2023 12:53:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234358AbjAPRwX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2023 12:52:23 -0500
-Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15A773B3F6
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:00 -0800 (PST)
-Received: by mail-lj1-x22c.google.com with SMTP id y18so27131560ljk.11
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:34:59 -0800 (PST)
+        with ESMTP id S234976AbjAPRwb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2023 12:52:31 -0500
+Received: from mail-lj1-x235.google.com (mail-lj1-x235.google.com [IPv6:2a00:1450:4864:20::235])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C4692B2A3
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:03 -0800 (PST)
+Received: by mail-lj1-x235.google.com with SMTP id s25so30712166lji.2
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=semihalf.com; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=zEb4lOT+O4pg8nXGe0kZqRkEJZCgvHhijruZskMfGvU=;
-        b=dlmINt9wdDatqcnTccEZ9/hR53OWh+oxXX5cJLeZo1u/d6bJ+UNoZEHgBgmogD2WM8
-         66VKndzb2dX6JsroREQjsRE6SPWlTACzrUSE+jcDUdhYDF/I2iVrfIaGK+Vj65P5SvZC
-         NfRT/Vw19FSIPXHj2IjulhCaQSQQJaNNeKAHP4+2ZofTPVjLVBfgGFq4y8kPKP9f+drF
-         9ET7i3oehoHRk5d707PX3l0B2ep3UDVoadZ7RSozuqBhGa0nHrt8S2kfJoVAEwKMqmGA
-         3SNq4hJ29rhHfeFmVkjtB4tY6wL4nWrAY+HegdmzdOmMQ7VMIlglnpmoQMjyXn3SXpgx
-         Vihw==
+        bh=WLkKdr7pDQEIzmgkyKtN1Zu++zCyw4Keu9Km6S3sT2o=;
+        b=QasTzb8h2vrOzkCrftuDbLS+D57mrkSyDJFNmvhtJg61QCpXBah5MQQ/klFT+Jr44m
+         OfExarCYmScCqot8/2QoF2Kn6hockeWUu27BKBHaw+Vw6fz+Jow6YpMOSiHlDgxC7qhP
+         EM/wOHX1PS88OTZXj6uG2qMVwZFi3u37IBsUODw2sJtv45GymLllUGbqdIyHat9jZEtp
+         5zGyuiyAQFvvbErrOfKVgcXcmSh4wE+9Wf+/et6R0cs1BNYNaTQaqu1mJphmFK7n2v7q
+         InbhxENc/mnmZeHgZx7q7HwnK4+wdwGzz+9hvYhYU6h+LbB+kKtF52ZSeZA/SVyzh2hW
+         tN6Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=zEb4lOT+O4pg8nXGe0kZqRkEJZCgvHhijruZskMfGvU=;
-        b=gdgmp/Es/DwT/V+R7XUjI1LG2d0R8eWzjjRmJFmhL7RnA0rSKwm59wmbGC5kZDzcuq
-         uqMefQLQPoTDGhS7K+VpPAKcZ8J38UiHyVPpZ0HiZYdRsF2slQX85SMpBmqs2x4CJnlC
-         4kVS8s6jG1LX4dGlFSv/1avtPC+eimPpXywVLw/yVWj2oIn6BhMK5kCdqZz8E6ox3T7y
-         6DQ7UEqWbd35IrZ23g+73lJrPKp9uucAH+hdzcYLbXF6trWPCE+ReURk8ypqG6IbPuNp
-         v0Y2wibZ79MgL3GLP397Zn+BOF000bvA8bg03lJpyNfHm0YjdOPjc6ZVM/vj8Od2hKoz
-         bUIQ==
-X-Gm-Message-State: AFqh2krPfUspR3SBVfb1+5wkHTBkuv9GO8u+E1AlpO8QuWo7cuLHfQvu
-        sxie3MbOsfhyC7M1nBs+2ugpsw==
-X-Google-Smtp-Source: AMrXdXsEOa+Vzqq3OenNeL3qmLI1gI2AEgLe399qXt7MFvh/gXSieRTo+VZPpvXMF3DKfZvSP+/hSQ==
-X-Received: by 2002:a2e:868e:0:b0:280:2c4e:3d3e with SMTP id l14-20020a2e868e000000b002802c4e3d3emr3321703lji.41.1673890498322;
-        Mon, 16 Jan 2023 09:34:58 -0800 (PST)
+        bh=WLkKdr7pDQEIzmgkyKtN1Zu++zCyw4Keu9Km6S3sT2o=;
+        b=3OoR8AdUmj1jQFQQaVxmCgzFMSYWmZIHEQWR3RYxVh5k/O0NWepjjhjhRrCsRYy7hF
+         ojcCrAGhAeq76699do28G2wTM8ScT9tJA8SKH8ChbwCpl3HPxioAhJTYB1n9WYEdz/zo
+         0sdCCbm8kQRtJPvsginy0A83GJaAfmbLNMcRtXVMF7dfLgtB9OCcUMEXKy/BO+RXsjwo
+         ONFMEO8oQexiezgkQvj5wdFNvkE+FDtApRvK6Xzd52Nh3qjZUjQJizy8rhcrHqjDM5As
+         KO2Q1QXD1Uzew8TC2LhsVzSYF2tXMr6EdkHxbDYJMQ16+LMir30tFuhElHdIQBPTAvOj
+         w8ZA==
+X-Gm-Message-State: AFqh2koKNti/pr3mzC+3Q8Psidxuov71dOTIVCFK3AEreC2zROrkIofU
+        r/6dAEr5psg0qE28rUTI2f+quA==
+X-Google-Smtp-Source: AMrXdXsY9dU88GrMUZ0keyqwQPbzPga4V1dJtLnUYV90CFWzYZr4I98PrEX0dJGG50/qWJssb6/MCA==
+X-Received: by 2002:a2e:994f:0:b0:281:771:e1cd with SMTP id r15-20020a2e994f000000b002810771e1cdmr3381416ljj.33.1673890502691;
+        Mon, 16 Jan 2023 09:35:02 -0800 (PST)
 Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
-        by smtp.gmail.com with ESMTPSA id k20-20020a2e8894000000b0028b7f51414fsm707333lji.80.2023.01.16.09.34.57
+        by smtp.gmail.com with ESMTPSA id k20-20020a2e8894000000b0028b7f51414fsm707333lji.80.2023.01.16.09.35.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Jan 2023 09:34:57 -0800 (PST)
+        Mon, 16 Jan 2023 09:35:02 -0800 (PST)
 From:   Marcin Wojtas <mw@semihalf.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org
@@ -59,9 +59,9 @@ Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
         linux@armlinux.org.uk, hkallweit1@gmail.com, mw@semihalf.com,
         jaz@semihalf.com, tn@semihalf.com, Samer.El-Haj-Mahmoud@arm.com
-Subject: [net-next: PATCH v4 1/8] net: phy: fixed_phy: switch to fwnode_ API
-Date:   Mon, 16 Jan 2023 18:34:13 +0100
-Message-Id: <20230116173420.1278704-2-mw@semihalf.com>
+Subject: [net-next: PATCH v4 4/8] net: mvpp2: initialize port fwnode pointer
+Date:   Mon, 16 Jan 2023 18:34:16 +0100
+Message-Id: <20230116173420.1278704-5-mw@semihalf.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20230116173420.1278704-1-mw@semihalf.com>
 References: <20230116173420.1278704-1-mw@semihalf.com>
@@ -71,178 +71,29 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Allow to use fixed_phy driver and its helper functions without Device
-Tree dependency, by swtiching from of_ to fwnode_ API.
+As a preparation to switch the DSA subsystem from using
+of_find_net_device_by_node() to its more generic fwnode_ equivalent,
+and later to allow ACPI description, update the port's device structure
+also with its fwnode pointer.
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
-Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- include/linux/phy_fixed.h   |  6 +--
- drivers/net/mdio/of_mdio.c  |  2 +-
- drivers/net/phy/fixed_phy.c | 39 +++++++-------------
- 3 files changed, 18 insertions(+), 29 deletions(-)
+ drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/phy_fixed.h b/include/linux/phy_fixed.h
-index 1acafd86ab13..b3edf0c7c687 100644
---- a/include/linux/phy_fixed.h
-+++ b/include/linux/phy_fixed.h
-@@ -12,7 +12,7 @@ struct fixed_phy_status {
- 	int asym_pause;
- };
+diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+index 5f89fcec07b1..a25e90791700 100644
+--- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
++++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+@@ -6884,7 +6884,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
+ 	dev->min_mtu = ETH_MIN_MTU;
+ 	/* 9704 == 9728 - 20 and rounding to 8 */
+ 	dev->max_mtu = MVPP2_BM_JUMBO_PKT_SIZE;
+-	dev->dev.of_node = port_node;
++	device_set_node(&dev->dev, port_fwnode);
  
--struct device_node;
-+struct fwnode_handle;
- struct gpio_desc;
- struct net_device;
- 
-@@ -22,7 +22,7 @@ extern int fixed_phy_add(unsigned int irq, int phy_id,
- 			 struct fixed_phy_status *status);
- extern struct phy_device *fixed_phy_register(unsigned int irq,
- 					     struct fixed_phy_status *status,
--					     struct device_node *np);
-+					     struct fwnode_handle *fwnode);
- 
- extern struct phy_device *
- fixed_phy_register_with_gpiod(unsigned int irq,
-@@ -41,7 +41,7 @@ static inline int fixed_phy_add(unsigned int irq, int phy_id,
- }
- static inline struct phy_device *fixed_phy_register(unsigned int irq,
- 						struct fixed_phy_status *status,
--						struct device_node *np)
-+						struct fwnode_handle *fwnode)
- {
- 	return ERR_PTR(-ENODEV);
- }
-diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
-index 510822d6d0d9..ba22b7110cdc 100644
---- a/drivers/net/mdio/of_mdio.c
-+++ b/drivers/net/mdio/of_mdio.c
-@@ -423,7 +423,7 @@ int of_phy_register_fixed_link(struct device_node *np)
- 	return -ENODEV;
- 
- register_phy:
--	return PTR_ERR_OR_ZERO(fixed_phy_register(PHY_POLL, &status, np));
-+	return PTR_ERR_OR_ZERO(fixed_phy_register(PHY_POLL, &status, of_fwnode_handle(np)));
- }
- EXPORT_SYMBOL(of_phy_register_fixed_link);
- 
-diff --git a/drivers/net/phy/fixed_phy.c b/drivers/net/phy/fixed_phy.c
-index aef739c20ac4..e59d186f78e6 100644
---- a/drivers/net/phy/fixed_phy.c
-+++ b/drivers/net/phy/fixed_phy.c
-@@ -15,9 +15,9 @@
- #include <linux/mii.h>
- #include <linux/phy.h>
- #include <linux/phy_fixed.h>
-+#include <linux/property.h>
- #include <linux/err.h>
- #include <linux/slab.h>
--#include <linux/of.h>
- #include <linux/gpio/consumer.h>
- #include <linux/idr.h>
- #include <linux/netdevice.h>
-@@ -186,16 +186,12 @@ static void fixed_phy_del(int phy_addr)
- 	}
- }
- 
--#ifdef CONFIG_OF_GPIO
--static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
-+static struct gpio_desc *fixed_phy_get_gpiod(struct fwnode_handle *fwnode)
- {
--	struct device_node *fixed_link_node;
-+	struct fwnode_handle *fixed_link_node;
- 	struct gpio_desc *gpiod;
- 
--	if (!np)
--		return NULL;
--
--	fixed_link_node = of_get_child_by_name(np, "fixed-link");
-+	fixed_link_node = fwnode_get_named_child_node(fwnode, "fixed-link");
- 	if (!fixed_link_node)
- 		return NULL;
- 
-@@ -204,28 +200,21 @@ static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
- 	 * Linux device associated with it, we simply have obtain
- 	 * the GPIO descriptor from the device tree like this.
- 	 */
--	gpiod = fwnode_gpiod_get_index(of_fwnode_handle(fixed_link_node),
--				       "link", 0, GPIOD_IN, "mdio");
-+	gpiod = fwnode_gpiod_get_index(fixed_link_node, "link", 0, GPIOD_IN, "mdio");
- 	if (IS_ERR(gpiod) && PTR_ERR(gpiod) != -EPROBE_DEFER) {
- 		if (PTR_ERR(gpiod) != -ENOENT)
- 			pr_err("error getting GPIO for fixed link %pOF, proceed without\n",
- 			       fixed_link_node);
- 		gpiod = NULL;
- 	}
--	of_node_put(fixed_link_node);
-+	fwnode_handle_put(fixed_link_node);
- 
- 	return gpiod;
- }
--#else
--static struct gpio_desc *fixed_phy_get_gpiod(struct device_node *np)
--{
--	return NULL;
--}
--#endif
- 
- static struct phy_device *__fixed_phy_register(unsigned int irq,
- 					       struct fixed_phy_status *status,
--					       struct device_node *np,
-+					       struct fwnode_handle *fwnode,
- 					       struct gpio_desc *gpiod)
- {
- 	struct fixed_mdio_bus *fmb = &platform_fmb;
-@@ -238,7 +227,7 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
- 
- 	/* Check if we have a GPIO associated with this fixed phy */
- 	if (!gpiod) {
--		gpiod = fixed_phy_get_gpiod(np);
-+		gpiod = fixed_phy_get_gpiod(fwnode);
- 		if (IS_ERR(gpiod))
- 			return ERR_CAST(gpiod);
- 	}
-@@ -269,8 +258,8 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
- 		phy->asym_pause = status->asym_pause;
- 	}
- 
--	of_node_get(np);
--	phy->mdio.dev.of_node = np;
-+	fwnode_handle_get(fwnode);
-+	device_set_node(&phy->mdio.dev, fwnode);
- 	phy->is_pseudo_fixed_link = true;
- 
- 	switch (status->speed) {
-@@ -299,7 +288,7 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
- 	ret = phy_device_register(phy);
- 	if (ret) {
- 		phy_device_free(phy);
--		of_node_put(np);
-+		fwnode_handle_put(fwnode);
- 		fixed_phy_del(phy_addr);
- 		return ERR_PTR(ret);
- 	}
-@@ -309,9 +298,9 @@ static struct phy_device *__fixed_phy_register(unsigned int irq,
- 
- struct phy_device *fixed_phy_register(unsigned int irq,
- 				      struct fixed_phy_status *status,
--				      struct device_node *np)
-+				      struct fwnode_handle *fwnode)
- {
--	return __fixed_phy_register(irq, status, np, NULL);
-+	return __fixed_phy_register(irq, status, fwnode, NULL);
- }
- EXPORT_SYMBOL_GPL(fixed_phy_register);
- 
-@@ -327,7 +316,7 @@ EXPORT_SYMBOL_GPL(fixed_phy_register_with_gpiod);
- void fixed_phy_unregister(struct phy_device *phy)
- {
- 	phy_device_remove(phy);
--	of_node_put(phy->mdio.dev.of_node);
-+	fwnode_handle_put(dev_fwnode(&phy->mdio.dev));
- 	fixed_phy_del(phy->mdio.addr);
- }
- EXPORT_SYMBOL_GPL(fixed_phy_unregister);
+ 	port->pcs_gmac.ops = &mvpp2_phylink_gmac_pcs_ops;
+ 	port->pcs_xlg.ops = &mvpp2_phylink_xlg_pcs_ops;
 -- 
 2.29.0
 
