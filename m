@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02559C677F1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDDB6C46467
 	for <linux-acpi@archiver.kernel.org>; Mon, 16 Jan 2023 17:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233175AbjAPRxj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Jan 2023 12:53:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38604 "EHLO
+        id S233820AbjAPRxk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Jan 2023 12:53:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234156AbjAPRwp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2023 12:52:45 -0500
-Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF2DE3B65C
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:06 -0800 (PST)
-Received: by mail-lj1-x236.google.com with SMTP id bn6so30688380ljb.13
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:06 -0800 (PST)
+        with ESMTP id S235108AbjAPRwr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2023 12:52:47 -0500
+Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69B183B66B
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:09 -0800 (PST)
+Received: by mail-lf1-x135.google.com with SMTP id j17so43706757lfr.3
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=semihalf.com; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RBUWzvDNamFGOC4iHjWn4zwEVY2qfQxl959ozP5DmYU=;
-        b=U8jkVa+yYUfb1cCQseahksgWBpJukt1b1CaGFB+iPybFlVBjpECij+I2ZT4ata0oK0
-         kden32bhaDCCV4Ys+ariMdMSE72FyHU0IEYhws6Opat0vHBpv6NKEsiD/qI6mBsbwzxH
-         xvrFiaCNHxPAZwsIlLTynN5pIZSKI0sWGJpTfj8pkM70sTZyXkndUy9JSkKfx0+LUu8z
-         kc77vOo7mHxmgYrLnzVNM3+LOivOjEQ/QvRewiHQfXQrMOK1a+2iXuFUstPp5L1iChbx
-         mOj9XY2URHfAwUdP9gloI3NqSSwb1dkVKGUJCiPaIt/HiVdwXy+7g3rI/ohGj0L6eQ5c
-         0gxg==
+        bh=/pYK289ULrgsf/Jk8COetz13qlDoBjNKsMyxX7loUDw=;
+        b=pKr/SoBpM/X64xXxDigtMbtty8+VxmqTToE5Vgfyx5AgTZCZq/O/SbGt0/wX7GVCqH
+         8Y352t1YrUJsUC0U0+XZJAKlfgZ9tIzBMz22FPxzGHFBmoZDXFHDjmZSgfLN4TyNUx2r
+         cXHZT/0j+ulQkHENMfQFdztFPN+A4US4owf0UHcYCJsGcJySYx9metSlSm7XqrrBHdt+
+         u6ICsAAbnmehCYG+qrRRkflgH1+EvK52yMd3UliLXV6qsGYsOV1GmJdkPHsl4Llphhs3
+         rerp1uohcvhhRwacpNEAMJnFT3aYJqyvlm9IqrgjtIu7vyd0gmBoPRo9jXPJtFr/hesM
+         yPdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=RBUWzvDNamFGOC4iHjWn4zwEVY2qfQxl959ozP5DmYU=;
-        b=mf3nmx/nW3IgdfokHPDNFRGnDeQMUgJUT6JVz8zzzRLuRIxXfBg/rqW5uj08i4/Oa8
-         eTAk3tyKieHYd8J9YMKsdihzTwxxK15TVJxXw1WRMpK7W+Qwx+jovx1BR339sQFW+PNL
-         +a7N/DDFVt9lZN22YSMDnCUz7RDlVhkgFr6UL9bPqzytMjCcYwF7wzwSmI5Pmn4VefO8
-         VnGlf09q0/Ex7NTRkaZJ5+Y1nrYEUPPyv13aGGuCV+/SG2s+mv3iGM5J8mu5d18uz2Ja
-         0dC1KmwsJ+Ok6jv29JNKuVSk2ZFK+eRU3J8UVGDrMBebTYk7aWarWtjt43BKE3K5XV57
-         XljQ==
-X-Gm-Message-State: AFqh2kqqXww6M9LuM+DZY6H8M1HZnuOBhzM3jqDQ5EnQiEShnw28Wq8i
-        yRWcpWltEsOACrktOxq7cyR69g==
-X-Google-Smtp-Source: AMrXdXtXXluHetGVDb9ihfasqH/ZvEunGrnR+uMrcj5mIztAAZ+L/N9e9JpuKfcIdjjKClxsIUUAbQ==
-X-Received: by 2002:a2e:960b:0:b0:286:6412:7060 with SMTP id v11-20020a2e960b000000b0028664127060mr185195ljh.15.1673890505233;
-        Mon, 16 Jan 2023 09:35:05 -0800 (PST)
+        bh=/pYK289ULrgsf/Jk8COetz13qlDoBjNKsMyxX7loUDw=;
+        b=B5DduAGkZC04EAxZT/hyOlW3YXiSt1iFnNfHYYIDGSZHHS2uxgnEBs/Rg9NX/zdl5+
+         OVNWmQvVGTCEo/wPGQ7kAh2AmL4MWfr8Lr6vukwEU7EMwSFLhKaNhgdAYXOOfdTAre3Y
+         XpPp5uL30joJ9zpyh3/QGLPVDTT2V5dU7n+0/bRxHOJAAwDjotiJefBqgXVdQ+wYDwMI
+         fWPCwPT5ej2pe+CXvf/rELKD0d3sYlP0ejYdfEYlSaJVCrhoPOe3x2PHDxOWZa9qWNzK
+         uXS78JxUxQwWxiiFzU8E9yVzsAGPODvm+gCOzUsWUqJkdsi0SyLuz/4FP/MRF9l6TdYE
+         SJZw==
+X-Gm-Message-State: AFqh2kqVJRFPgUH79C+is6qmMe8pVDxqY4gAeSIIH1CggVMRPwB0d6hU
+        2tuZspUm2Ag+ZwvuIuWh0zVUng==
+X-Google-Smtp-Source: AMrXdXsKJwqskOP/by0HTMPg+FUXa81A0yDzLkE3gsr+Ks87ZDrAVUjBgQY8fXG4kCztFu/RTIIr8w==
+X-Received: by 2002:a19:f514:0:b0:4b5:61e8:8934 with SMTP id j20-20020a19f514000000b004b561e88934mr23683566lfb.64.1673890507730;
+        Mon, 16 Jan 2023 09:35:07 -0800 (PST)
 Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
-        by smtp.gmail.com with ESMTPSA id k20-20020a2e8894000000b0028b7f51414fsm707333lji.80.2023.01.16.09.35.04
+        by smtp.gmail.com with ESMTPSA id k20-20020a2e8894000000b0028b7f51414fsm707333lji.80.2023.01.16.09.35.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Jan 2023 09:35:04 -0800 (PST)
+        Mon, 16 Jan 2023 09:35:07 -0800 (PST)
 From:   Marcin Wojtas <mw@semihalf.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org
@@ -59,9 +59,9 @@ Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
         linux@armlinux.org.uk, hkallweit1@gmail.com, mw@semihalf.com,
         jaz@semihalf.com, tn@semihalf.com, Samer.El-Haj-Mahmoud@arm.com
-Subject: [net-next: PATCH v4 6/8] net: core: switch to fwnode_find_net_device_by_node()
-Date:   Mon, 16 Jan 2023 18:34:18 +0100
-Message-Id: <20230116173420.1278704-7-mw@semihalf.com>
+Subject: [net-next: PATCH v4 8/8] net: dsa: mv88e6xxx: switch to device_/fwnode_ APIs
+Date:   Mon, 16 Jan 2023 18:34:20 +0100
+Message-Id: <20230116173420.1278704-9-mw@semihalf.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20230116173420.1278704-1-mw@semihalf.com>
 References: <20230116173420.1278704-1-mw@semihalf.com>
@@ -71,143 +71,128 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-A helper function which allows getting the struct net_device pointer
-associated with a given device tree node can be more generic and
-also support alternative hardware description. Switch to fwnode_
-and update the only existing caller (in the DSA subsystem).
-For that purpose use newly added fwnode_find_parent_dev_match routine.
+In order to support both DT and ACPI in future, modify the
+mv88e6xx driver  code to use device_/fwnode_ equivalent routines.
+No functional change is introduced by this patch.
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
 ---
- include/linux/etherdevice.h |  1 +
- include/linux/of_net.h      |  6 -----
- net/core/net-sysfs.c        | 25 ++++++--------------
- net/dsa/dsa.c               |  5 ++--
- 4 files changed, 11 insertions(+), 26 deletions(-)
+ drivers/net/dsa/mv88e6xxx/chip.c | 41 +++++++++-----------
+ 1 file changed, 19 insertions(+), 22 deletions(-)
 
-diff --git a/include/linux/etherdevice.h b/include/linux/etherdevice.h
-index a541f0c4f146..3d475ee4a2d7 100644
---- a/include/linux/etherdevice.h
-+++ b/include/linux/etherdevice.h
-@@ -35,6 +35,7 @@ int nvmem_get_mac_address(struct device *dev, void *addrbuf);
- int device_get_mac_address(struct device *dev, char *addr);
- int device_get_ethdev_address(struct device *dev, struct net_device *netdev);
- int fwnode_get_mac_address(struct fwnode_handle *fwnode, char *addr);
-+struct net_device *fwnode_find_net_device_by_node(struct fwnode_handle *fwnode);
- 
- u32 eth_get_headlen(const struct net_device *dev, const void *data, u32 len);
- __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev);
-diff --git a/include/linux/of_net.h b/include/linux/of_net.h
-index d88715a0b3a5..8a677f44c270 100644
---- a/include/linux/of_net.h
-+++ b/include/linux/of_net.h
-@@ -16,7 +16,6 @@ extern int of_get_phy_mode(struct device_node *np, phy_interface_t *interface);
- extern int of_get_mac_address(struct device_node *np, u8 *mac);
- extern int of_get_mac_address_nvmem(struct device_node *np, u8 *mac);
- int of_get_ethdev_address(struct device_node *np, struct net_device *dev);
--extern struct net_device *of_find_net_device_by_node(struct device_node *np);
- #else
- static inline int of_get_phy_mode(struct device_node *np,
- 				  phy_interface_t *interface)
-@@ -38,11 +37,6 @@ static inline int of_get_ethdev_address(struct device_node *np, struct net_devic
- {
- 	return -ENODEV;
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index 6731597bded0..1f1dd3dd4012 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -3932,10 +3932,11 @@ static int mv88e6xxx_mdio_write_c45(struct mii_bus *bus, int phy, int devad,
  }
--
--static inline struct net_device *of_find_net_device_by_node(struct device_node *np)
--{
--	return NULL;
--}
- #endif
  
- #endif /* __LINUX_OF_NET_H */
-diff --git a/net/core/net-sysfs.c b/net/core/net-sysfs.c
-index ca55dd747d6c..652ba785e6f7 100644
---- a/net/core/net-sysfs.c
-+++ b/net/core/net-sysfs.c
-@@ -6,6 +6,7 @@
-  */
- 
- #include <linux/capability.h>
-+#include <linux/etherdevice.h>
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
- #include <linux/if_arp.h>
-@@ -1935,38 +1936,26 @@ static struct class net_class __ro_after_init = {
- 	.get_ownership = net_get_ownership,
- };
- 
--#ifdef CONFIG_OF
--static int of_dev_node_match(struct device *dev, const void *data)
--{
--	for (; dev; dev = dev->parent) {
--		if (dev->of_node == data)
--			return 1;
--	}
--
--	return 0;
--}
--
- /*
-- * of_find_net_device_by_node - lookup the net device for the device node
-- * @np: OF device node
-+ * fwnode_find_net_device_by_node - lookup the net device for the device fwnode
-+ * @fwnode: firmware node
-  *
-- * Looks up the net_device structure corresponding with the device node.
-+ * Looks up the net_device structure corresponding with the fwnode.
-  * If successful, returns a pointer to the net_device with the embedded
-  * struct device refcount incremented by one, or NULL on failure. The
-  * refcount must be dropped when done with the net_device.
-  */
--struct net_device *of_find_net_device_by_node(struct device_node *np)
-+struct net_device *fwnode_find_net_device_by_node(struct fwnode_handle *fwnode)
+ static int mv88e6xxx_mdio_register(struct mv88e6xxx_chip *chip,
+-				   struct device_node *np,
++				   struct fwnode_handle *fwnode,
+ 				   bool external)
  {
- 	struct device *dev;
- 
--	dev = class_find_device(&net_class, NULL, np, of_dev_node_match);
-+	dev = class_find_device(&net_class, NULL, fwnode, fwnode_find_parent_dev_match);
- 	if (!dev)
- 		return NULL;
- 
- 	return to_net_dev(dev);
+ 	static int index;
++	struct device_node *np = to_of_node(fwnode);
+ 	struct mv88e6xxx_mdio_bus *mdio_bus;
+ 	struct mii_bus *bus;
+ 	int err;
+@@ -4016,18 +4017,18 @@ static void mv88e6xxx_mdios_unregister(struct mv88e6xxx_chip *chip)
  }
--EXPORT_SYMBOL(of_find_net_device_by_node);
--#endif
-+EXPORT_SYMBOL(fwnode_find_net_device_by_node);
  
- /* Delete sysfs entries but hold kobject reference until after all
-  * netdev references are gone.
-diff --git a/net/dsa/dsa.c b/net/dsa/dsa.c
-index d1ca3bb03858..55f22a58556b 100644
---- a/net/dsa/dsa.c
-+++ b/net/dsa/dsa.c
-@@ -9,6 +9,7 @@
+ static int mv88e6xxx_mdios_register(struct mv88e6xxx_chip *chip,
+-				    struct device_node *np)
++				    struct fwnode_handle *fwnode)
+ {
+-	struct device_node *child;
++	struct fwnode_handle *child;
+ 	int err;
  
- #include <linux/device.h>
- #include <linux/err.h>
-+#include <linux/etherdevice.h>
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/netdevice.h>
-@@ -374,7 +375,7 @@ struct net_device *dsa_tree_find_first_master(struct dsa_switch_tree *dst)
- 	if (IS_ERR(ethernet))
- 		return NULL;
+ 	/* Always register one mdio bus for the internal/default mdio
+ 	 * bus. This maybe represented in the device tree, but is
+ 	 * optional.
+ 	 */
+-	child = of_get_child_by_name(np, "mdio");
++	child = fwnode_get_named_child_node(fwnode, "mdio");
+ 	err = mv88e6xxx_mdio_register(chip, child, false);
+-	of_node_put(child);
++	fwnode_handle_put(child);
+ 	if (err)
+ 		return err;
  
--	master = of_find_net_device_by_node(to_of_node(ethernet));
-+	master = fwnode_find_net_device_by_node(ethernet);
- 	fwnode_handle_put(ethernet);
+@@ -4035,13 +4036,13 @@ static int mv88e6xxx_mdios_register(struct mv88e6xxx_chip *chip,
+ 	 * which say they are compatible with the external mdio
+ 	 * bus.
+ 	 */
+-	for_each_available_child_of_node(np, child) {
+-		if (of_device_is_compatible(
+-			    child, "marvell,mv88e6xxx-mdio-external")) {
++	fwnode_for_each_available_child_node(fwnode, child) {
++		if (fwnode_property_match_string(child, "compatible",
++						 "marvell,mv88e6xxx-mdio-external") == 0) {
+ 			err = mv88e6xxx_mdio_register(chip, child, true);
+ 			if (err) {
+ 				mv88e6xxx_mdios_unregister(chip);
+-				of_node_put(child);
++				fwnode_handle_put(child);
+ 				return err;
+ 			}
+ 		}
+@@ -7096,18 +7097,14 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	struct dsa_mv88e6xxx_pdata *pdata = mdiodev->dev.platform_data;
+ 	const struct mv88e6xxx_info *compat_info = NULL;
+ 	struct device *dev = &mdiodev->dev;
+-	struct device_node *np = dev->of_node;
++	struct fwnode_handle *fwnode = dev_fwnode(dev);
+ 	struct mv88e6xxx_chip *chip;
+ 	int port;
+ 	int err;
  
- 	return master;
-@@ -1233,7 +1234,7 @@ static int dsa_port_parse_fw(struct dsa_port *dp, struct fwnode_handle *fwnode)
- 		struct net_device *master;
- 		const char *user_protocol;
+-	if (!np && !pdata)
+-		return -EINVAL;
+-
+-	if (np)
+-		compat_info = of_device_get_match_data(dev);
++	compat_info = device_get_match_data(dev);
  
--		master = of_find_net_device_by_node(to_of_node(ethernet));
-+		master = fwnode_find_net_device_by_node(ethernet);
- 		fwnode_handle_put(ethernet);
- 		if (!master)
- 			return -EPROBE_DEFER;
+-	if (pdata) {
++	if (!compat_info && pdata) {
+ 		compat_info = pdata_device_get_match_data(dev);
+ 
+ 		if (!pdata->netdev)
+@@ -7164,9 +7161,9 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	mv88e6xxx_phy_init(chip);
+ 
+ 	if (chip->info->ops->get_eeprom) {
+-		if (np)
+-			of_property_read_u32(np, "eeprom-length",
+-					     &chip->eeprom_len);
++		if (fwnode)
++			device_property_read_u32(dev, "eeprom-length",
++						 &chip->eeprom_len);
+ 		else
+ 			chip->eeprom_len = pdata->eeprom_len;
+ 	}
+@@ -7177,8 +7174,8 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	if (err)
+ 		goto out;
+ 
+-	if (np) {
+-		chip->irq = of_irq_get(np, 0);
++	if (fwnode) {
++		chip->irq = fwnode_irq_get(fwnode, 0);
+ 		if (chip->irq == -EPROBE_DEFER) {
+ 			err = chip->irq;
+ 			goto out;
+@@ -7216,7 +7213,7 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	if (err)
+ 		goto out_g1_atu_prob_irq;
+ 
+-	err = mv88e6xxx_mdios_register(chip, np);
++	err = mv88e6xxx_mdios_register(chip, fwnode);
+ 	if (err)
+ 		goto out_g1_vtu_prob_irq;
+ 
 -- 
 2.29.0
 
