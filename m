@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD10FC54EBE
-	for <linux-acpi@archiver.kernel.org>; Mon, 16 Jan 2023 17:53:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4402DC67871
+	for <linux-acpi@archiver.kernel.org>; Mon, 16 Jan 2023 17:53:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235151AbjAPRxE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 16 Jan 2023 12:53:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38598 "EHLO
+        id S235198AbjAPRxj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 16 Jan 2023 12:53:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235103AbjAPRwk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2023 12:52:40 -0500
-Received: from mail-lj1-x235.google.com (mail-lj1-x235.google.com [IPv6:2a00:1450:4864:20::235])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F42230EA7
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:05 -0800 (PST)
-Received: by mail-lj1-x235.google.com with SMTP id y19so9389151ljq.7
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:05 -0800 (PST)
+        with ESMTP id S235106AbjAPRwp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2023 12:52:45 -0500
+Received: from mail-lj1-x22f.google.com (mail-lj1-x22f.google.com [IPv6:2a00:1450:4864:20::22f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3FE33B663
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:06 -0800 (PST)
+Received: by mail-lj1-x22f.google.com with SMTP id p25so24500143ljn.12
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jan 2023 09:35:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=semihalf.com; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=t7F9JKouL1KurTO0QVKHN8g/5zAESWUg12UOdA+LKsI=;
-        b=E3DYP0epTmdQaBr8PG3Lc8mLskVrmA2L1g1uosAju1bFb9Zd1/cbdiapQ5fFkaSZWK
-         o6rwyTvWmoqnqO3GQ/PewcCOeU0+EVt2OCdA60ZsN2J+CeH1ab2BXc3aMXbO3uUsfHzx
-         qv2fyovh8SRghPRZL80Urm0MOg9l7NaqDEA9Wj0/szZhsXkat75oRTQwgH4S2taaVfvI
-         ye2rM+2rYjemoac3jVmVgsJM7q93qCrMpk1DijXEctb18ivK5LdNH+j1ll+sZnNopfVw
-         p5jf7bQUsXQ7jDJbMKnRbGzaygpSujEZUXF/8g/SGPq88bZcs42LLCGQMTgOI04QcHju
-         UK2g==
+        bh=IG3bSK8xYQLNtQeDwvBcudzQX24jvHqx7mvJjzT4TmQ=;
+        b=NPPSzrmDs8k+ezhrh00GcRf0wAc4JHNJtbo8IqBvhwEOUsIlLvXJcg6xefxvubKk0z
+         mSZ9AXHXqbGkWG+FWznlDA3jSo7MjMc4i076oDzdYwIFhttJ21lQkxkttGPDJuoQFNQg
+         uVEPVEtC/HACLci+urdlpqjvlo17YyhuZUsMDZjlTV4Ju/KPjrBEoZYGbAJPCsx9Xnyf
+         HP5UEyFh4z6xfvbDi+L8oW/vKwzAJS94JjdiyweQE60zv/6YhfzIDfZ3KZy8mW2clk7U
+         efsWN+ZLLlJggSP3XWYdqSJC54Fyo1uGmEavCzN0f7DEnGjpbSZFcv9v3lHmGNsyJgfT
+         XYcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=t7F9JKouL1KurTO0QVKHN8g/5zAESWUg12UOdA+LKsI=;
-        b=VcW6COd/uFFjuXQoojTAYkRZ1BHPuBGElJ4TTw5aitvVbFXcG5vxFy0FZJz1z3ompe
-         rGHcapBj7jIFdMaaDDvR7uVWZaqsk/76Bv4XwNquek9SgFk1sIOr35U32X8vV+HeiV5E
-         C8400FCza0rVuF1Zffw2zpXJEEek9AXpgVFbySHU79E0LAVG7+iWHB+LqbUvSS1zjeSN
-         jRarvS4CHj7EdLOsdfyoN1xv9HHmvqw9zciN1YRx0BX5Tj5FwdrWWZoS2X7VzSZ0ebMz
-         nzsvsJEI/H/5JXiKMQbZVM21o+6EhINlqRmWKF/rPu9U8Dmz7p1QLMhu/cIyHxsRAK8O
-         HkvA==
-X-Gm-Message-State: AFqh2kqT7Q129d9Z+a1OsRY5VRUiwXIdfstK84wDHHRygpPCfwsdt9oy
-        s1Bb8FHfFUuC/907RjzIIBRu4w==
-X-Google-Smtp-Source: AMrXdXuUnMtiRTBXJ6Nfs4XBmV3kM8wxIrl3j8mU01006aaUz85HcnPiZoQhJ+bNzRNdkZ6kmD/RtQ==
-X-Received: by 2002:a2e:90c7:0:b0:28b:77ce:f88b with SMTP id o7-20020a2e90c7000000b0028b77cef88bmr180131ljg.8.1673890504000;
-        Mon, 16 Jan 2023 09:35:04 -0800 (PST)
+        bh=IG3bSK8xYQLNtQeDwvBcudzQX24jvHqx7mvJjzT4TmQ=;
+        b=06QDxFbW9DQ8+EOJGyLaLjrIpHEkQ0jflOZRHqbgFMoKCLnkbRncgNXJXe+WFODVZB
+         av/EE5hS0Ba+oOelDwHRmMAqIqF6K2X+L9DmP6Itn0SExsmbSihwVaZJdm/O0XftYMFO
+         jVqyYSTSQzpSngVgmJHF/wXl2i/kfwqq2HacLjTMqMkKU2Da3liZmHf87exuME7/8JMV
+         PgfTHQFASkBXvid/GcfW0soO/LBbW9C2Z+z7gisCcn4tcbrkHUk/oo45Z2KwSGfnXfRR
+         ojndT2Um4J/ZFIJtt/L+EloW2s8LMzkgP0ol3Zzb9+1J5Y5gIYkO1hZYot7otsZUujmi
+         rCTw==
+X-Gm-Message-State: AFqh2kpqmFJv30/tH7s4gs4uw32erfrJyWGNZbJ7ETfutgbAODPR3woI
+        KwtPWe0BiHv2C+4gFDAfLwaUkg==
+X-Google-Smtp-Source: AMrXdXszKdh7LiiGRlyW8vhmOXa05ofxdBH4JgcNygyrmsBj7cAG1g74BCMnEDuUK1KWC6MWLYhkcA==
+X-Received: by 2002:a05:651c:1592:b0:27f:bede:c748 with SMTP id h18-20020a05651c159200b0027fbedec748mr4008770ljq.35.1673890506496;
+        Mon, 16 Jan 2023 09:35:06 -0800 (PST)
 Received: from gilgamesh.lab.semihalf.net ([83.142.187.85])
-        by smtp.gmail.com with ESMTPSA id k20-20020a2e8894000000b0028b7f51414fsm707333lji.80.2023.01.16.09.35.02
+        by smtp.gmail.com with ESMTPSA id k20-20020a2e8894000000b0028b7f51414fsm707333lji.80.2023.01.16.09.35.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Jan 2023 09:35:03 -0800 (PST)
+        Mon, 16 Jan 2023 09:35:06 -0800 (PST)
 From:   Marcin Wojtas <mw@semihalf.com>
 To:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
         netdev@vger.kernel.org
@@ -59,9 +59,9 @@ Cc:     rafael@kernel.org, andriy.shevchenko@linux.intel.com,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
         linux@armlinux.org.uk, hkallweit1@gmail.com, mw@semihalf.com,
         jaz@semihalf.com, tn@semihalf.com, Samer.El-Haj-Mahmoud@arm.com
-Subject: [net-next: PATCH v4 5/8] device property: introduce fwnode_find_parent_dev_match
-Date:   Mon, 16 Jan 2023 18:34:17 +0100
-Message-Id: <20230116173420.1278704-6-mw@semihalf.com>
+Subject: [net-next: PATCH v4 7/8] net: mdio: introduce fwnode_mdiobus_register_device()
+Date:   Mon, 16 Jan 2023 18:34:19 +0100
+Message-Id: <20230116173420.1278704-8-mw@semihalf.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20230116173420.1278704-1-mw@semihalf.com>
 References: <20230116173420.1278704-1-mw@semihalf.com>
@@ -71,63 +71,124 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add a new generic routine fwnode_find_parent_dev_match that can be used
-e.g. as a callback for class_find_device(). It searches for the struct
-device corresponding to a struct fwnode_handle by iterating over device
-and its parents.
+As a preparation patch to extend MDIO capabilities in the ACPI world,
+introduce fwnode_mdiobus_register_device() to register non-PHY
+devices on the mdiobus.
+
+Use the newly introduced routine instead of of_mdiobus_register_device().
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
 ---
- include/linux/property.h |  1 +
- drivers/base/property.c  | 23 ++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ include/linux/fwnode_mdio.h    |  3 ++
+ drivers/net/mdio/fwnode_mdio.c | 29 +++++++++++++++++
+ drivers/net/mdio/of_mdio.c     | 33 +-------------------
+ 3 files changed, 33 insertions(+), 32 deletions(-)
 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 37179e3abad5..4ae20d7c5103 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -109,6 +109,7 @@ struct device *fwnode_get_next_parent_dev(struct fwnode_handle *fwnode);
- unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
- struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
- 					    unsigned int depth);
-+int fwnode_find_parent_dev_match(struct device *dev, const void *data);
- bool fwnode_is_ancestor_of(struct fwnode_handle *ancestor, struct fwnode_handle *child);
- struct fwnode_handle *fwnode_get_next_child_node(
- 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index bbb3e499ff4a..84849d4934cc 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -693,6 +693,29 @@ struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
+diff --git a/include/linux/fwnode_mdio.h b/include/linux/fwnode_mdio.h
+index 98755b8c6c8a..39d74c5d1bb0 100644
+--- a/include/linux/fwnode_mdio.h
++++ b/include/linux/fwnode_mdio.h
+@@ -16,6 +16,9 @@ int fwnode_mdiobus_phy_device_register(struct mii_bus *mdio,
+ int fwnode_mdiobus_register_phy(struct mii_bus *bus,
+ 				struct fwnode_handle *child, u32 addr);
  
-+/**
-+ * fwnode_find_parent_dev_match - look for a device matching the struct fwnode_handle
-+ * @dev: the struct device to initiate the search
-+ * @data: pointer passed for comparison
-+ *
-+ * Looks up the device structure corresponding with the fwnode by iterating
-+ * over @dev and its parents.
-+ * The routine can be used e.g. as a callback for class_find_device().
-+ *
-+ * Returns: %1 - match is found
-+ *          %0 - match not found
-+ */
-+int fwnode_find_parent_dev_match(struct device *dev, const void *data)
++int fwnode_mdiobus_register_device(struct mii_bus *mdio,
++				   struct fwnode_handle *child, u32 addr);
++
+ int fwnode_phy_register_fixed_link(struct fwnode_handle *fwnode);
+ 
+ void fwnode_phy_deregister_fixed_link(struct fwnode_handle *fwnode);
+diff --git a/drivers/net/mdio/fwnode_mdio.c b/drivers/net/mdio/fwnode_mdio.c
+index 56f57381ae69..4d712d8873d0 100644
+--- a/drivers/net/mdio/fwnode_mdio.c
++++ b/drivers/net/mdio/fwnode_mdio.c
+@@ -187,6 +187,35 @@ int fwnode_mdiobus_register_phy(struct mii_bus *bus,
+ }
+ EXPORT_SYMBOL(fwnode_mdiobus_register_phy);
+ 
++int fwnode_mdiobus_register_device(struct mii_bus *mdio,
++				   struct fwnode_handle *child, u32 addr)
 +{
-+	for (; dev; dev = dev->parent) {
-+		if (device_match_fwnode(dev, data))
-+			return 1;
++	struct mdio_device *mdiodev;
++	int rc;
++
++	mdiodev = mdio_device_create(mdio, addr);
++	if (IS_ERR(mdiodev))
++		return PTR_ERR(mdiodev);
++
++	/* Associate the fwnode with the device structure so it
++	 * can be looked up later.
++	 */
++	device_set_node(&mdiodev->dev, child);
++
++	/* All data is now stored in the mdiodev struct; register it. */
++	rc = mdio_device_register(mdiodev);
++	if (rc) {
++		device_set_node(&mdiodev->dev, NULL);
++		mdio_device_free(mdiodev);
++		return rc;
 +	}
 +
++	dev_dbg(&mdio->dev, "registered mdio device %pfw at address %i\n",
++		child, addr);
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(fwnode_find_parent_dev_match);
++EXPORT_SYMBOL(fwnode_mdiobus_register_device);
 +
- /**
-  * fwnode_is_ancestor_of - Test if @ancestor is ancestor of @child
-  * @ancestor: Firmware which is tested for being an ancestor
+ /*
+  * fwnode_phy_is_fixed_link() and fwnode_phy_register_fixed_link() must
+  * support two bindings:
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index e6b3a4e251a1..685ac00f9dee 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -48,37 +48,6 @@ static int of_mdiobus_register_phy(struct mii_bus *mdio,
+ 	return fwnode_mdiobus_register_phy(mdio, of_fwnode_handle(child), addr);
+ }
+ 
+-static int of_mdiobus_register_device(struct mii_bus *mdio,
+-				      struct device_node *child, u32 addr)
+-{
+-	struct fwnode_handle *fwnode = of_fwnode_handle(child);
+-	struct mdio_device *mdiodev;
+-	int rc;
+-
+-	mdiodev = mdio_device_create(mdio, addr);
+-	if (IS_ERR(mdiodev))
+-		return PTR_ERR(mdiodev);
+-
+-	/* Associate the OF node with the device structure so it
+-	 * can be looked up later.
+-	 */
+-	fwnode_handle_get(fwnode);
+-	device_set_node(&mdiodev->dev, fwnode);
+-
+-	/* All data is now stored in the mdiodev struct; register it. */
+-	rc = mdio_device_register(mdiodev);
+-	if (rc) {
+-		device_set_node(&mdiodev->dev, NULL);
+-		fwnode_handle_put(fwnode);
+-		mdio_device_free(mdiodev);
+-		return rc;
+-	}
+-
+-	dev_dbg(&mdio->dev, "registered mdio device %pOFn at address %i\n",
+-		child, addr);
+-	return 0;
+-}
+-
+ /* The following is a list of PHY compatible strings which appear in
+  * some DTBs. The compatible string is never matched against a PHY
+  * driver, so is pointless. We only expect devices which are not PHYs
+@@ -187,7 +156,7 @@ int of_mdiobus_register(struct mii_bus *mdio, struct device_node *np)
+ 		if (of_mdiobus_child_is_phy(child))
+ 			rc = of_mdiobus_register_phy(mdio, child, addr);
+ 		else
+-			rc = of_mdiobus_register_device(mdio, child, addr);
++			rc = fwnode_mdiobus_register_device(mdio, of_fwnode_handle(child), addr);
+ 
+ 		if (rc == -ENODEV)
+ 			dev_err(&mdio->dev,
 -- 
 2.29.0
 
