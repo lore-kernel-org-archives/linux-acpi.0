@@ -2,67 +2,67 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E105BC3DA78
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39FCBC54E76
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235248AbjAQUj3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Jan 2023 15:39:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53688 "EHLO
+        id S233273AbjAQUjj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Jan 2023 15:39:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235563AbjAQUfv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:35:51 -0500
-Received: from mail-il1-x12b.google.com (mail-il1-x12b.google.com [IPv6:2607:f8b0:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8522A2B284
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:10 -0800 (PST)
-Received: by mail-il1-x12b.google.com with SMTP id d10so15873802ilc.12
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:10 -0800 (PST)
+        with ESMTP id S235476AbjAQUfp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:35:45 -0500
+Received: from mail-io1-xd2a.google.com (mail-io1-xd2a.google.com [IPv6:2607:f8b0:4864:20::d2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8057241F7
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:00 -0800 (PST)
+Received: by mail-io1-xd2a.google.com with SMTP id q130so2397646iod.4
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=content-transfer-encoding:in-reply-to:content-language:references
          :cc:to:subject:from:user-agent:mime-version:date:message-id:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=4Dudq/IZ3pMnxQipACHsMz8BxYg84kEbOIRkYl+isuw=;
-        b=vl8XuKsl9OlNroWuZnXukD8WH0O6Ff7x6kB4sDBWtSpcTbCTdLQJ/mWp6nGKUfUJ8P
-         H8fr0NczwkmFozXi6PhI91cqWp/yXcLqZj/PuyUW02RzUSylvGsd9Q1ukW0O42tp3DLt
-         /A6RhI1zKoXwTYFlCv0xDwqp6tNu3qTLMwO/dEZAQ9rGTNNFa/WnEGi/I4mf8K/kqI18
-         XAt/iBITnHvrI24105yj2W8WxpFFYQoSCTmhtzUS5f94BDfBsNcq7tAhYgzQYW+3Uxn9
-         rhUnek5HiHsnXfvLQ0T4VUiK4orV38prgV8Fz1hgcrR1HEHO3XJeEPE86p6+Kfv4OSF1
-         QSQg==
+        bh=fqyWeWuyc2jRA+5UQYAEtNEii+X4xnVBaHeZrCTvJ0E=;
+        b=WOZiCO0nwdx0/J8RBZ6fUPgASslwTEHjMpdR/SRXtTppO1orXLf+wGpPFAGLkaYr1x
+         OXLmo4L7yLAGA/t16oMCARlsfHU9udsdYYFEWSEPfBAu2jAAhX/3BmhFlbT03H3ElQ3f
+         z2YeV4v8PshtbvM8VhbsyOBdNp/0iFw2tBVfXD0fS955lXZ6AhUOb/t8S3KjJWmIcAyz
+         dWAdwJQro88EBSHB+tSQQqs6DWMWmYU7UFfyEC/EA4d7GdhjRYyjryeAfKTjoJZb+igk
+         JIvT4TOCREnVJp7LIXkVZP/mU8LOw0s/VbrPvNgHeayr12eYVspqEVx5/+zbgbNXXPhq
+         PVGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:in-reply-to:content-language:references
          :cc:to:subject:from:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=4Dudq/IZ3pMnxQipACHsMz8BxYg84kEbOIRkYl+isuw=;
-        b=uXnJjMuUry4GRSmvdmKYPBCqEXzhjbEJwZE9Zake19H2ZohPWktIDlVCtX0VMAZCP4
-         7NLcbEKWWd9vzSAkDo0LWgcWB6aRTjxWGKQfthmPGYAqiPzkJpM8OQ6e2MS2v7lJL5sx
-         GCjvw1h+MpKukoKzhapE6b7+3l/04UXf8nBqc+oYlkZrpu2EGNtwGKFMXw3/8QWjLr1y
-         m5CIcDi7q41R3x+d3TXLCEQsMx3Hg8TtAB73LWy4fCFToeIO/nIu6vrB/XlMyVkdsk1y
-         8VlqR8/j2ORFB08qHWNIvETFXjsv0zw9apdCsMb+Ptg6DxBAESKiN3VxJIW3jm5v+VNO
-         JoVg==
-X-Gm-Message-State: AFqh2krPEK+2TVjWPH/XkymSglwTY2PoKYosl9e6MWIqxZJ9HNzxDpxI
-        SuYEXnktlupbwn+u1nByGK/6Zw==
-X-Google-Smtp-Source: AMrXdXvBiRQtBWfFScJjVhXsnpbIDzbalKWTgtRqn2SowznS9hWQKhuL9agF1vX0NSjbHznhYhRieQ==
-X-Received: by 2002:a92:dc0e:0:b0:302:e4c8:dace with SMTP id t14-20020a92dc0e000000b00302e4c8dacemr3385670iln.22.1673983270145;
-        Tue, 17 Jan 2023 11:21:10 -0800 (PST)
+        bh=fqyWeWuyc2jRA+5UQYAEtNEii+X4xnVBaHeZrCTvJ0E=;
+        b=ZK/P47R0r830+pPrkLx27wTE2v8xaYf+5CW4yT7PMwFRTZVGoTZ+LF2u4BxDGvJeYn
+         KDwCLf++0bdaqLMAttfE8aeB8ga8arpJhkx/M317Mahmc/KOX4xpU8mDRuL39+PvxUsi
+         vIaVqrUGBSCtZiMHlHJd9JjhLHkdbDP9AChCbOORb6nYIWhLVtR6SlEClrvpWZO2axDd
+         wtZvhq6cyrtlSJ03mUs5eetRG3QPGzUKv0VrmObUwt7KwRs5nDiGa1h4UXjS5S5ZXzNK
+         V9lL0xy8MM44jZTuR++gZyT7Rgk/e/BBguX0QdLtR781tSWeDbf2BgHJlAXfplfxIJTN
+         WQtw==
+X-Gm-Message-State: AFqh2koDiJ7Ze0kScQGJu7TyLYh+BjdKNf6i4Co0+4fjSDU5RTmLECeF
+        sngXMacNy3HyWg9opMNDtE23bQ==
+X-Google-Smtp-Source: AMrXdXuk5GmCedTTwYstxz043kwWiO1txPjdUTef03V7SzkRyplINEz+OO3rRduwblja8AQXWLIq1w==
+X-Received: by 2002:a6b:14c2:0:b0:6eb:68a1:78c with SMTP id 185-20020a6b14c2000000b006eb68a1078cmr3273688iou.10.1673983260051;
+        Tue, 17 Jan 2023 11:21:00 -0800 (PST)
 Received: from [172.22.22.4] ([98.61.227.136])
-        by smtp.googlemail.com with ESMTPSA id n5-20020a056638110500b00374fe4f0bc3sm9649869jal.158.2023.01.17.11.21.08
+        by smtp.googlemail.com with ESMTPSA id e10-20020a026d4a000000b0038ac4923addsm9518035jaf.53.2023.01.17.11.20.58
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jan 2023 11:21:09 -0800 (PST)
-Message-ID: <8c819213-b820-0ff3-b2c4-d9af1b6b3f83@linaro.org>
-Date:   Tue, 17 Jan 2023 13:21:08 -0600
+        Tue, 17 Jan 2023 11:20:59 -0800 (PST)
+Message-ID: <b2819f68-8672-4909-c787-d1bdbd35da2e@linaro.org>
+Date:   Tue, 17 Jan 2023 13:20:58 -0600
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.4.2
 From:   Alex Elder <elder@linaro.org>
-Subject: Re: [PATCH v8 07/28] mailbox: Allow direct registration to a channel
+Subject: Re: [PATCH v8 05/28] virt: gunyah: Add hypercalls to identify Gunyah
 To:     Elliot Berman <quic_eberman@quicinc.com>,
         Alex Elder <elder@linaro.org>,
         Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Sudeep Holla <sudeep.holla@arm.com>
-Cc:     Murali Nalajala <quic_mnalajal@quicinc.com>,
-        Trilok Soni <quic_tsoni@quicinc.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Murali Nalajala <quic_mnalajal@quicinc.com>
+Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
         Carl van Schaik <quic_cvanscha@quicinc.com>,
         Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
@@ -72,8 +72,8 @@ Cc:     Murali Nalajala <quic_mnalajal@quicinc.com>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
         Bagas Sanjaya <bagasdotme@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
         Mark Rutland <mark.rutland@arm.com>,
         Lorenzo Pieralisi <lpieralisi@kernel.org>,
         Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
@@ -81,103 +81,43 @@ Cc:     Murali Nalajala <quic_mnalajal@quicinc.com>,
         linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
- <20221219225850.2397345-8-quic_eberman@quicinc.com>
- <942f20cc-87d3-d014-1527-8d3d3e1ae44b@linaro.org>
- <8f47229a-2785-5f54-f7d1-a42299de64fe@quicinc.com>
+ <20221219225850.2397345-6-quic_eberman@quicinc.com>
+ <63bbc640-9b0c-95af-3d35-291da0323db3@linaro.org>
+ <4e8a7fdf-8c91-cf2f-d369-c67b7584f580@quicinc.com>
 Content-Language: en-US
-In-Reply-To: <8f47229a-2785-5f54-f7d1-a42299de64fe@quicinc.com>
+In-Reply-To: <4e8a7fdf-8c91-cf2f-d369-c67b7584f580@quicinc.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 1/10/23 11:57 AM, Elliot Berman wrote:
-> 
-> 
-> On 1/9/2023 1:34 PM, Alex Elder wrote:
->> On 12/19/22 4:58 PM, Elliot Berman wrote:
->>> Support virtual mailbox controllers and clients which are not platform
->>> devices or come from the devicetree by allowing them to match client to
->>> channel via some other mechanism.
->>
->> The new function behaves very much like mbox_request_channel()
->> did before.
->>
->> The new function differs from omap_mbox_request_channel() in that
->> it can change the if chan->txdone_method is TXDONE_BY_POLL, it
->> is changed to TXDONE_BY_ACK if the client's knows_txdone field is
->> set.  Is this OK?  Why?
-
-Sorry, reading that now, I see I placed an "if" in the wrong spot.
-
-> Both of the current drivers that use mbox_bind_client use TXDONE_BY_IRQ, 
-> so this doesn't cause issue for checking whether the client has 
-> txdone_method.
-
-I'm not so sure, but it's on you to make sure you don't break
-anything...  I see only two spots where TXDONE_BY_IRQ is set,
-and TXDONE_BY_IRQ seems to be set when channels are freed.
-
-I spent (too much) time trying to track this back but I'm
-giving up.  If you're sure it's correct, I accept that...
-
->>
->> It also assumes chan->mbox->ops->startup us non-null (though that
->> isn't really a problem).
->>
+On 1/10/23 11:56 AM, Elliot Berman wrote:
+>>> There are two calls to help identify Gunyah:
 >>>
->>> Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
->>> ---
->>>   drivers/mailbox/mailbox.c      | 96 ++++++++++++++++++++++++----------
->>>   drivers/mailbox/omap-mailbox.c | 18 ++-----
->>>   drivers/mailbox/pcc.c          | 18 ++-----
->>>   include/linux/mailbox_client.h |  1 +
->>>   4 files changed, 76 insertions(+), 57 deletions(-)
->>>
->>> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
->>> index 4229b9b5da98..adf36c05fa43 100644
->>> --- a/drivers/mailbox/mailbox.c
->>> +++ b/drivers/mailbox/mailbox.c
->>> @@ -317,6 +317,71 @@ int mbox_flush(struct mbox_chan *chan, unsigned 
->>> long timeout)
->>>   }
->>>   EXPORT_SYMBOL_GPL(mbox_flush);
->>> +static int __mbox_bind_client(struct mbox_chan *chan, struct 
->>> mbox_client *cl)
+>>> 1. gh_hypercall_get_uid() returns a UID when running under a Gunyah
+>>>     hypervisor.
+>>> 2. gh_hypercall_hyp_identify() returns build information and a set of
+>>>     feature flags that are supported by Gunyah.
 >>
->> There should be an unbind_client() call.  At a minimum, you are
->> calling try_module_get(), and the matching module_put() call
->> would belong there.  And even though one might just call
->> module_put() elsewhere for this, it would be cleaner to have
->> a function that similarly encapsulates the shutdown call
->> as well.
-> n
-> The function for this is "mbox_free_channel".
+>> The first is a "service", while the second is a "hypercall".
+>> Can you explain the distinction?  The sentence at the top
+>> refers to both as "hypercalls".
+>>
+> 
+> I learned more details about this to answer your question. "get_uid()" 
+> is a standardized call that is ARM_SMCCC_VENDOR_HYP_CALL_UID_FUNC_ID 
+> defined in include/arm-smccc.h. I'll use that.
 
-My point is about the way you are abstracting the "bind" operation
-as a (now encapsulated) part of requesting the channel.  Yes, when
-mbox_free_channel() is called, it effectively "unbinds" the channel.
-But you're creating a "bind" abstraction, where it's not explicit
-that you're requesting the channel.  I'm suggesting you also create
-an "unbind" operation to reverse that.
+You didn't really explain the distinction between hypercall
+and service in Gunyah.  Both are encoded as "vendor specific
+hypervisor service calls" according to the SVCCC specification.
+I haven't found where ARM_SMCCC_VENDOR_HYP_CALL_UID_FUNC_ID
+gets handled, but I accept your answer that it's basically
+a standard call.  The "get UID" is the only one that's defined
+as a Gunyah "service"; the rest are hypercalls.
 
-This is more important for the mbox_bind_client() call than 
-mbox_request_channel().  (And by the way, it looks like
-pcc_mbox_free_channel() doesn't call pcc_mbox_free_channel()
-as it should, but this unfamiliar code...)
-
-And... it's weird to me that gh_rm_drv_probe() calls gh_msgq_init()
-(to initialize the Gunhah message queue code), but then has to
-call mbox_free_channel() *separate* from gh_msgq_remove(); the
-free channel (or better, unbind client) should happen in the
-message queue code.
-
-It's not a critically important point, but now at least I hope
-you understand what I'm trying to say.
+It's not a big deal, I just noticed the difference and was
+curious about it.
 
 					-Alex
-> 
-> Thanks,
-> Elliot
-
