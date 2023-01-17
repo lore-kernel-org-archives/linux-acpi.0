@@ -2,67 +2,54 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67D06C3DA78
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7648AC38159
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 22:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230250AbjAQUkT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Jan 2023 15:40:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53500 "EHLO
+        id S229742AbjAQWnp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Jan 2023 17:43:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235464AbjAQUfp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:35:45 -0500
-Received: from mail-il1-x131.google.com (mail-il1-x131.google.com [IPv6:2607:f8b0:4864:20::131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1811F2A142
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:20:56 -0800 (PST)
-Received: by mail-il1-x131.google.com with SMTP id i1so12392918ilu.8
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:20:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:in-reply-to:content-language:references
-         :cc:to:subject:from:user-agent:mime-version:date:message-id:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=Wp0QJQDzQBGT8hemYMe9M0vDzPuwdE2J+s/AVQDu9As=;
-        b=sUyWoMXQn68h3GcPqqKEKdyWztOCpbn2A8Wm9ggXrnLDCQEnLF6g7PhjjUpN5jgi5d
-         hrU5fvNfigr3LYsFGQWrCL+xVZEu1LIEPw14g41+GnfDCMXTZ4b5IQDxeiJWRWzxuhwN
-         oXpVoZWPONN+ZPlS+OY6Lz7gBFTFPwwASkjzq3fdQR5Qk6BHRUhxWptOhWtaAZij80sD
-         v7rggb0M86pSa+IdICOumogbXWQkjIGQ86NvRcgejWaIznE1BnRgGXBT0xLdHozYnweE
-         koQAW+M7hUYGl7HPMExjtwaIc0P53UmgNa/gF6cHn1VDQ03UrQt6S8+PxNC6dn1eAHAG
-         mjmg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:content-language:references
-         :cc:to:subject:from:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Wp0QJQDzQBGT8hemYMe9M0vDzPuwdE2J+s/AVQDu9As=;
-        b=o++3BM5RI2/GGqCzSd5uUDuXyAPABWx7NZu5LAlJrEuqyyo4ffbJrRPMzahhSl4lli
-         fAEYFALeIRX6OwtxE+zm//c6shIL2EO+p7+hmcQRxAayLdoigwY/qJk5YlKjym0bsj7q
-         Nvstalh0jppgdhhpIHA1/i0jpBbY6dqZJ0WQ37iINuo1r9qH5M1IutTxf+RweDnsW1nE
-         PnjyFFUoROSQzNjSz2Vu7xRoH6g4z2i8lAbCy6EmZQ13BYkpFF/THlchYKz7iyvN3OMS
-         rRN7JcTyYZJr/MN42MOjkJI3lTfRFIAoS5DphqezqC6k4LLcbEkQ/tN63AZ4L7MdlyN2
-         kOAA==
-X-Gm-Message-State: AFqh2kqqh+YK+AqFp3i9tNA7Xapa3vyHK4m2BrAVERSZzc4PK1pQjaWo
-        kt8k69fonenlxuw4Sp6cO7Ixfg==
-X-Google-Smtp-Source: AMrXdXu/lORiZp2eZqiqVnnjOPOkjH43u2TAvXtFDta2UFu0/KcmiUvJ86/Pc943zYRpsqEbtmEFEQ==
-X-Received: by 2002:a92:a054:0:b0:30b:eb8a:79ba with SMTP id b20-20020a92a054000000b0030beb8a79bamr2844862ilm.27.1673983255338;
-        Tue, 17 Jan 2023 11:20:55 -0800 (PST)
-Received: from [172.22.22.4] ([98.61.227.136])
-        by smtp.googlemail.com with ESMTPSA id g20-20020a92c7d4000000b0030c661606eesm9702252ilk.63.2023.01.17.11.20.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jan 2023 11:20:54 -0800 (PST)
-Message-ID: <08964d93-8118-1176-c2f8-73e14e022a89@linaro.org>
-Date:   Tue, 17 Jan 2023 13:20:53 -0600
+        with ESMTP id S229748AbjAQWmn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 17:42:43 -0500
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC1CC474C6;
+        Tue, 17 Jan 2023 14:29:48 -0800 (PST)
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 30HMQfer016497;
+        Tue, 17 Jan 2023 22:29:34 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=message-id : date :
+ mime-version : subject : to : cc : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=qcppdkim1;
+ bh=L3lrNdGwPI64g1imGZgAD0hLzBBqC1j4gjf4j57+EE0=;
+ b=YHlZxMt+7XD299eEHaW9sYS2VYx8EpJ0BYWQcEHJLxs+Fv6mgxcywKxjVK784CBg02W/
+ Aw6sP1cZUsYQhDs/AhtQchbMMHgVeqHJQhEt7dLZgLOwJptqrIE9tu28q5Hph1Hs3OBV
+ kXNhaalYKkK9V2zn1TpYv+Tddcu5eDHkxbdrxogNkdVdj0802bm3tnCRkz61IvUz3042
+ Sb5Uc3UsXn6Tn1poIKZj+cP5XxgkhrXTPQmgiAZmnkV/WaEjABcJC4bH8nd2+zmQJ2B8
+ 0cKW1ahfwIB94Sd61ODebkpLrJBp9V3xKDJhORs2VYUA8KJbwTdS5zj/cTVfkXupYd+S uA== 
+Received: from nasanppmta04.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
+        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3n55cxbcfr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 17 Jan 2023 22:29:33 +0000
+Received: from nasanex01b.na.qualcomm.com (nasanex01b.na.qualcomm.com [10.46.141.250])
+        by NASANPPMTA04.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 30HMTW46019089
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 17 Jan 2023 22:29:32 GMT
+Received: from [10.134.67.48] (10.80.80.8) by nasanex01b.na.qualcomm.com
+ (10.46.141.250) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 17 Jan
+ 2023 14:29:31 -0800
+Message-ID: <59bddf7a-f420-cccd-8029-65052f834c62@quicinc.com>
+Date:   Tue, 17 Jan 2023 14:29:31 -0800
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-From:   Alex Elder <elder@linaro.org>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
 Subject: Re: [PATCH v8 05/28] virt: gunyah: Add hypercalls to identify Gunyah
-To:     Elliot Berman <quic_eberman@quicinc.com>,
-        Alex Elder <elder@linaro.org>,
+To:     Alex Elder <elder@linaro.org>,
         Bjorn Andersson <quic_bjorande@quicinc.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
+        "Will Deacon" <will@kernel.org>,
         Murali Nalajala <quic_mnalajal@quicinc.com>
-Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
+CC:     Trilok Soni <quic_tsoni@quicinc.com>,
         Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
         Carl van Schaik <quic_cvanscha@quicinc.com>,
         Prakruthi Deepak Heragu <quic_pheragu@quicinc.com>,
@@ -71,70 +58,83 @@ Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
-        Bagas Sanjaya <bagasdotme@gmail.com>,
+        "Bagas Sanjaya" <bagasdotme@gmail.com>,
         Jassi Brar <jassisinghbrar@gmail.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
+        "Sudeep Holla" <sudeep.holla@arm.com>,
         Mark Rutland <mark.rutland@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        "Lorenzo Pieralisi" <lpieralisi@kernel.org>,
         Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
-        linux-arm-msm@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+        <linux-arm-msm@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-acpi@vger.kernel.org>
 References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
  <20221219225850.2397345-6-quic_eberman@quicinc.com>
  <63bbc640-9b0c-95af-3d35-291da0323db3@linaro.org>
  <4e8a7fdf-8c91-cf2f-d369-c67b7584f580@quicinc.com>
+ <b2819f68-8672-4909-c787-d1bdbd35da2e@linaro.org>
 Content-Language: en-US
-In-Reply-To: <4e8a7fdf-8c91-cf2f-d369-c67b7584f580@quicinc.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From:   Elliot Berman <quic_eberman@quicinc.com>
+In-Reply-To: <b2819f68-8672-4909-c787-d1bdbd35da2e@linaro.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.80.80.8]
+X-ClientProxiedBy: nasanex01a.na.qualcomm.com (10.52.223.231) To
+ nasanex01b.na.qualcomm.com (10.46.141.250)
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-GUID: miyKeSpHg7UHbXYqZwTyLjr8gHpRWoe-
+X-Proofpoint-ORIG-GUID: miyKeSpHg7UHbXYqZwTyLjr8gHpRWoe-
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.219,Aquarius:18.0.923,Hydra:6.0.562,FMLib:17.11.122.1
+ definitions=2023-01-17_10,2023-01-17_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 phishscore=0
+ suspectscore=0 priorityscore=1501 mlxscore=0 spamscore=0 bulkscore=0
+ mlxlogscore=917 malwarescore=0 lowpriorityscore=0 impostorscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2212070000 definitions=main-2301170179
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 1/10/23 11:56 AM, Elliot Berman wrote:
->> Is there any need for the endianness of these values to be specified?
->> Does Gunyah operate with a well-defined endianness?  Is there any
->> chance a VM can run with an endianness different from Gunyah?  I
->> see that the arm_smcc_* structures are defined without endianness.
->> (Sorry if these are dumb questions.)
+
+
+On 1/17/2023 11:20 AM, Alex Elder wrote:
+> On 1/10/23 11:56 AM, Elliot Berman wrote:
+>>>> There are two calls to help identify Gunyah:
+>>>>
+>>>> 1. gh_hypercall_get_uid() returns a UID when running under a Gunyah
+>>>>     hypervisor.
+>>>> 2. gh_hypercall_hyp_identify() returns build information and a set of
+>>>>     feature flags that are supported by Gunyah.
+>>>
+>>> The first is a "service", while the second is a "hypercall".
+>>> Can you explain the distinction?  The sentence at the top
+>>> refers to both as "hypercalls".
+>>>
 >>
+>> I learned more details about this to answer your question. "get_uid()" 
+>> is a standardized call that is ARM_SMCCC_VENDOR_HYP_CALL_UID_FUNC_ID 
+>> defined in include/arm-smccc.h. I'll use that.
 > 
-> All of the data transfers for hypercalls happen via registers, so 
-> endianness doesn't have impact here (there is no "low address" in a 
-> register).
+> You didn't really explain the distinction between hypercall
+> and service in Gunyah.  Both are encoded as "vendor specific
+> hypervisor service calls" according to the SVCCC specification.
+> I haven't found where ARM_SMCCC_VENDOR_HYP_CALL_UID_FUNC_ID
+> gets handled, but I accept your answer that it's basically
+> a standard call.  The "get UID" is the only one that's defined
+> as a Gunyah "service"; the rest are hypercalls.
+> 
 
-I don't believe that is technically true.  Practically speaking,
-it's probably almost *always* little-endian.  But for example,
-here:
+This came from a Gunyah implementation detail that separates standard 
+(service) calls from the non-standard calls. I was following the 
+distinction from Gunyah code not realizing that it's actually a 
+standardized call that Linux would already have support for.
 
-https://developer.arm.com/documentation/102376/0100/Alignment-and-endianness
-it says:
+Thanks,
+Elliot
 
-     Endianness
-
-     In Armv8-A, instruction fetches are always treated as
-     little-endian.
-
-     For data accesses, it is IMPLEMENTATION DEFINED whether
-     both little-endian and big-endian are supported. And if
-     only one is supported, it is IMPLEMENTATION DEFINED
-     which one is supported.
-
-     For processors that support both big-endian and
-     little-endian, endianness is configured per Exception
-     level.
-
-Perhaps that last sentence doesn't apply to HVC exceptions
-but to me it *sounds* like it's at least possible for a VM
-to be running with an endianness that differs from the
-hypervisor (perhaps not other VMs though.)
-
-This is not an area of expertise of mine, so I would love
-for someone who knows more to correct me if I'm wrong.
-
-It's likely to be fine as-is, but (other than the work to
-do it and get it right) it doesn't hurt to specify it and
-do the conversions as data is passes to/from the hypervisor.
-
-					-Alex
+> It's not a big deal, I just noticed the difference and was
+> curious about it.
+> 
+>                      -Alex
