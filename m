@@ -2,66 +2,64 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E2C3C3DA78
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBEB2C3DA78
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230326AbjAQUkE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Jan 2023 15:40:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54282 "EHLO
+        id S229919AbjAQUkL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Jan 2023 15:40:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231730AbjAQUhA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:37:00 -0500
-Received: from mail-il1-x129.google.com (mail-il1-x129.google.com [IPv6:2607:f8b0:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A76A2C662
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:15 -0800 (PST)
-Received: by mail-il1-x129.google.com with SMTP id m7so3344923ilh.7
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:15 -0800 (PST)
+        with ESMTP id S235531AbjAQUfv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:35:51 -0500
+Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 759549EE6
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:06 -0800 (PST)
+Received: by mail-io1-xd31.google.com with SMTP id p66so15379274iof.1
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=content-transfer-encoding:in-reply-to:content-language:references
          :cc:to:subject:from:user-agent:mime-version:date:message-id:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=X6QGAdbpO4js38m8kqmMNfNj0cJL5DAjxA6pYUNKH30=;
-        b=EGBN80wbBUdJj7Z/jkUWK5AFLeZOZLo5xHgOEl0PgXYrOSfBG/7dnDJbzvQhOya/ow
-         +jy6ommn0FNq4Wqq83QTFAnhPeX4dDoMUIcfN2dIoY9l4OGUdsYixaaM17Ae+x1IkV8X
-         xGy/1xQdE/J2mTBTSTAwy0GrYJTbaUjoANEguiNcpC5TV2IqfcMURDnsGu5H6RmCm7RY
-         ZlSXTTrU34trY64Y/VT6wmqHwm+9puSKKQDZBIjr3mHpp+++7lx7kTP1g7LiYlDtyZso
-         zzQmejXLekCZG+ZaIwtd1vNYDstgwiSpx9kTxioziEPC6gexAocnuxZtPD1IJrJLBlRe
-         RuIQ==
+        bh=vIhLbztM/35vA7EkIuAply1n/gr+A/gxbpqqXiig2iI=;
+        b=YP+80c+2+bfoYeiZ+D1yzWG17y1TcDmCjHAYIhLZGs8SbY8IBQDmKipU/+qp4L/535
+         w0ROGb6RPVmzWDWi/e4YRTh3nc3BTTNaXGe2eaWAvdJ/PHhULvTEZRs8D2y9qpAgO6RU
+         mPRbqTqErqmdMjrDB7L7RfjE1S3uxEAxLKj0D/uZRoJKyZWNZygUMbXecu5y1VEA8o9Z
+         Iez6RU0Axj8nF/4Uph0kWRNrqBKKIWDENddHW5swPZc6yvVztB2uGSWtxtgfCWzcJxf7
+         7a9OZn4AHbKznPrxibwOSCZF0GxIV20YK5hDFlszP5A+3kJYLxGCnfIBlFf5kJhbZesl
+         CDSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:in-reply-to:content-language:references
          :cc:to:subject:from:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=X6QGAdbpO4js38m8kqmMNfNj0cJL5DAjxA6pYUNKH30=;
-        b=heADoQQjnIoY6d71y5vPdlyeRKEbTD8JBKfmEye1c4AvKbp0HwWBoj9/Nl2RFrXmRC
-         2o2zfR4BRGJz5rF8KrGwPucy3QOgwHSJZkyNXWPCysCUwaS7DsJqYhx44QZ003WwbV17
-         GpQZvpCV6tluSz6SCV1cpTJthm8SpztaKZv6FprWk9qYnd/BfLNYOsIcrFp6Oh/OWr5g
-         5P2rV/z+nsN4KxjIcJ4RZIC/R7m+lytmDvon5Tpzfu5sxOvY9qiDKePBYZTq1K0HnSfe
-         KtjxeI5INZvAaOeeP1pI9/uILHS6QJ92Rg9UxAbVYUWmQ7siK/043F2sJbRSY5gTHjTc
-         UEiw==
-X-Gm-Message-State: AFqh2kqkKVJmPbt235j7y6b5PchQxdpVsdmexfUGyUefsj4BlqUM2oF3
-        qVHPsoJRhiVicgczC1H+BnAlwg==
-X-Google-Smtp-Source: AMrXdXuSn9Mn8FTmXSuDHirPKGy73AMn7jIeXgtlejcuD7V+SVsgxxuOefJLK0Qin4xwXGaY2YwGSA==
-X-Received: by 2002:a92:d6c6:0:b0:304:c91b:4a5c with SMTP id z6-20020a92d6c6000000b00304c91b4a5cmr3292929ilp.24.1673983274699;
-        Tue, 17 Jan 2023 11:21:14 -0800 (PST)
+        bh=vIhLbztM/35vA7EkIuAply1n/gr+A/gxbpqqXiig2iI=;
+        b=t9D0NLTw3hF/AIEicQ1Nc7MSA85MEmb9zqT28lRf2UVGLQQrOr4ytGizEG0nU0EVSf
+         Swqk3GqoaMxq9eu1dG/QYDAzSQFUclU0H9meeL3dhepBZYpX3dSOwg5DsVuwbiPqOlMm
+         ONEKE775R6MvNYdgwzSWDJ8La32rIhFBsk6gI+CmwJRMGJ6J3Rc5SpUENW4voRFleZJ1
+         KyVLU2wKkfNIKrfdWQDVrLjXZg6C4o+I1orcvnEi0z9HBeoKhM+2BHma5yo1mod/cp/e
+         pzw+mCfyPH4XrMh2bhUrTKoaRKXn8ppqMvuMUN7Iilc3wNAHPBOXOoNSXTZMHo+2i+iS
+         8MTA==
+X-Gm-Message-State: AFqh2kqQI6QegbthTbAH/5IAt5wwsS3mATqF0ti2ea5EXS1gTR0zrzXF
+        c2W2QbyUZHwbV4X/eSfk84DYfQ==
+X-Google-Smtp-Source: AMrXdXvti7xeVV7pmm8Zfx//nkzZJfwvn79rWHBkxkJlJi6po1MareStbTQ9fQeaQIevteonHQwCrA==
+X-Received: by 2002:a5d:9d49:0:b0:704:ca73:1758 with SMTP id k9-20020a5d9d49000000b00704ca731758mr2808575iok.9.1673983265774;
+        Tue, 17 Jan 2023 11:21:05 -0800 (PST)
 Received: from [172.22.22.4] ([98.61.227.136])
-        by smtp.googlemail.com with ESMTPSA id l3-20020a056e0205c300b0030f1be2e051sm811189ils.39.2023.01.17.11.21.13
+        by smtp.googlemail.com with ESMTPSA id x20-20020a0566022c5400b006bc039e3224sm10641525iov.17.2023.01.17.11.21.04
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jan 2023 11:21:14 -0800 (PST)
-Message-ID: <65af5abc-3719-95fe-041c-67d1d146aba1@linaro.org>
-Date:   Tue, 17 Jan 2023 13:21:13 -0600
+        Tue, 17 Jan 2023 11:21:05 -0800 (PST)
+Message-ID: <9109de9d-17f2-f1b2-b758-c9df0e562a20@linaro.org>
+Date:   Tue, 17 Jan 2023 13:21:04 -0600
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.4.2
 From:   Alex Elder <elder@linaro.org>
-Subject: Re: [PATCH v8 09/28] mailbox: Add Gunyah message queue mailbox
+Subject: Re: [PATCH v8 06/28] virt: gunyah: Identify hypervisor version
 To:     Elliot Berman <quic_eberman@quicinc.com>,
         Alex Elder <elder@linaro.org>,
         Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Murali Nalajala <quic_mnalajal@quicinc.com>,
-        Jonathan Corbet <corbet@lwn.net>
+        Murali Nalajala <quic_mnalajal@quicinc.com>
 Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
         Carl van Schaik <quic_cvanscha@quicinc.com>,
@@ -70,9 +68,11 @@ Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
         Bagas Sanjaya <bagasdotme@gmail.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
         Mark Rutland <mark.rutland@arm.com>,
         Lorenzo Pieralisi <lpieralisi@kernel.org>,
@@ -81,54 +81,166 @@ Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
- <20221219225850.2397345-10-quic_eberman@quicinc.com>
- <4e064b55-22fd-5f29-620b-715a5d822a75@linaro.org>
- <f626a867-7293-fd70-00d7-706d43342f5f@quicinc.com>
+ <20221219225850.2397345-7-quic_eberman@quicinc.com>
+ <51c36831-19c1-dd67-9e31-87733c190a9c@linaro.org>
+ <7e64039a-55ce-d79d-8501-10de09269afb@quicinc.com>
 Content-Language: en-US
-In-Reply-To: <f626a867-7293-fd70-00d7-706d43342f5f@quicinc.com>
+In-Reply-To: <7e64039a-55ce-d79d-8501-10de09269afb@quicinc.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 1/10/23 12:16 PM, Elliot Berman wrote:
->>> +    ret = gh_hypercall_msgq_send(msgq->tx_ghrsc->capid, 
->>> msgq_data->length,
->>> +                    (uintptr_t)msgq_data->data, tx_flags, &ready);
+On 1/10/23 11:56 AM, Elliot Berman wrote:
+> 
+> 
+> On 1/9/2023 1:34 PM, Alex Elder wrote:
+>> On 12/19/22 4:58 PM, Elliot Berman wrote:
+>>> Export the version of Gunyah which is reported via the hyp_identify
+>>> hypercall. Increments of the major API version indicate possibly
+>>> backwards incompatible changes.
+>>>
+>>> Export the hypervisor identity so that Gunyah drivers can act according
+>>> to the major API version.
+>>>
+>>> Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
+>>> ---
+>>>   drivers/virt/Makefile        |  1 +
+>>>   drivers/virt/gunyah/Makefile |  1 +
+>>>   drivers/virt/gunyah/gunyah.c | 46 ++++++++++++++++++++++++++++++++++++
+>>>   include/linux/gunyah.h       |  6 +++++
+>>>   4 files changed, 54 insertions(+)
+>>>   create mode 100644 drivers/virt/gunyah/Makefile
+>>>   create mode 100644 drivers/virt/gunyah/gunyah.c
+>>>
+>>> diff --git a/drivers/virt/Makefile b/drivers/virt/Makefile
+>>> index 093674e05c40..92b7e5311548 100644
+>>> --- a/drivers/virt/Makefile
+>>> +++ b/drivers/virt/Makefile
+>>> @@ -11,3 +11,4 @@ obj-$(CONFIG_NITRO_ENCLAVES)    += nitro_enclaves/
+>>>   obj-$(CONFIG_ACRN_HSM)        += acrn/
+>>>   obj-$(CONFIG_EFI_SECRET)    += coco/efi_secret/
+>>>   obj-$(CONFIG_SEV_GUEST)       += coco/sev-guest/
+>>> +obj-y                += gunyah/
+>>> diff --git a/drivers/virt/gunyah/Makefile b/drivers/virt/gunyah/Makefile
+>>> new file mode 100644
+>>> index 000000000000..2ac4ee64b89d
+>>> --- /dev/null
+>>> +++ b/drivers/virt/gunyah/Makefile
+>>> @@ -0,0 +1 @@
+>>> +obj-$(CONFIG_GUNYAH) += gunyah.o
+>>> diff --git a/drivers/virt/gunyah/gunyah.c b/drivers/virt/gunyah/gunyah.c
+>>> new file mode 100644
+>>> index 000000000000..c34c9046fc08
+>>> --- /dev/null
+>>> +++ b/drivers/virt/gunyah/gunyah.c
+>>> @@ -0,0 +1,46 @@
+>>> +// SPDX-License-Identifier: GPL-2.0-only
+>>> +/*
+>>> + * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights 
+>>> reserved.
+>>> + */
 >>> +
->>> +    /**
->>> +     * unlikely because Linux tracks state of msgq and should not 
->>> try to
->>> +     * send message when msgq is full.
->>> +     */
+>>> +#define pr_fmt(fmt) "gunyah: " fmt
+>>> +
+>>> +#include <linux/gunyah.h>
+>>> +#include <linux/init.h>
+>>> +#include <linux/module.h>
+>>> +#include <linux/printk.h>
+>>> +
+>>> +struct gh_hypercall_hyp_identify_resp gunyah_api;
+>>> +EXPORT_SYMBOL_GPL(gunyah_api);
+>>> +
+>>> +static const uint32_t gunyah_known_uuids[][4] = {
+>>> +    {0x19bd54bd, 0x0b37571b, 0x946f609b, 0x54539de6}, /*QC_HYP 
+>>> (Qualcomm's build) */
+>>> +    {0x673d5f14, 0x9265ce36, 0xa4535fdb, 0xc1d58fcd}, /*GUNYAH (open 
+>>> source build) */
+>>> +};
+>>> +
+>>> +static int __init gunyah_init(void)
+>>> +{
+>>> +    u32 uid[4];
+>>> +    int i;
+>>> +
+>>> +    gh_hypercall_get_uid(uid);
+>>> +
+>>> +    for (i = 0; i < ARRAY_SIZE(gunyah_known_uuids); i++)
+>>> +        if (!memcmp(uid, gunyah_known_uuids[i], sizeof(uid)))
+>>> +            break;
+>>> +
+>>> +    if (i == ARRAY_SIZE(gunyah_known_uuids))
+>>> +        return -ENODEV;
+>>> +
+>>> +    gh_hypercall_hyp_identify(&gunyah_api);
+>>> +
+>>> +    pr_info("Running under Gunyah hypervisor %llx/v%u\n",
+>>> +        FIELD_GET(GH_API_INFO_VARIANT_MASK, gunyah_api.api_info),
+>>> +        gh_api_version());
+>>> +
+>>> +    return 0;
+>>> +}
+>>> +arch_initcall(gunyah_init);
+>>> +
+>>> +MODULE_LICENSE("GPL");
+>>> +MODULE_DESCRIPTION("Gunyah Hypervisor Driver");
+>>> diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
+>>> index 2765d2b40198..166156f69df9 100644
+>>> --- a/include/linux/gunyah.h
+>>> +++ b/include/linux/gunyah.h
+>>> @@ -92,6 +92,12 @@ struct gh_hypercall_hyp_identify_resp {
+>>>       u64 api_info;
+>>>       u64 flags[3];
+>>>   };
+>>> +extern struct gh_hypercall_hyp_identify_resp gunyah_api;
 >>
->> Is it just unlikely, or is it impossible?
+>> Must this global variable be exposed?  Can't you hide it--as
+>> well as its interpretation--inside "gunyah.c"?
+>>  >> +
+>>> +static inline u16 gh_api_version(void)
+>>> +{
+>>> +    return FIELD_GET(GH_API_INFO_API_VERSION_MASK, 
+>>> gunyah_api.api_info);
+>>> +}
+>>
+>> If you don't make the above function inline, can you hide the
+>> definition of gunyah_api?
 >>
 > 
-> This would require multiple mailbox controllers interacting with the 
-> same message queue.
+> This seems like a good idea to me. I'm thinking to have the following 
+> functions:
 > 
-> The only way I can think this is possible is if the Gunyah drivers are 
-> unloaded when the message queue is full; drivers are then re-loaded 
-> before the receiver processes the messages. The initial internal state 
-> of the message queue controller assumes that there is space in the 
-> message queue. We would get a Tx vIRQ once space becomes available and 
-> the message would then be attempted to sent again. Since there's a safe 
-> flow to recover from a inconsistent internal state and it's very 
-> unlikely to start in that state, I don't think we need to add calls to 
-> check if the message queue is full during initialization.
+> enum gh_api_feature {
+>      GH_API_FEATURE_DOORBELL,
+>      GH_API_FEATURE_MSGQUEUE,
+>      GH_API_FEATURE_VIC,
+>      GH_API_FEATURE_VPM,
+>      GH_API_FEATURE_VCPU,
+>      GH_API_FEATURE_MEMEXTENT,
+>      GH_API_FEATURE_TRACE_CTRL,
+> };
 
-First, your explanation is appreciated but more than what I
-was looking for...  I just mentioned it because if it were
-impossible, then there's no point in having this code handle
-something that literally can't happen.
+My point wasn't necessarily to expose all of that.  Already
+"gunyah.h" defines the bit positions in which these things
+are recorded in the identify response.  My main point was
+about (not) exposing that global variable.
 
-But as far as your explanation, I *hope* if the Gunyah drivers
-are unloaded, everything gets fully cleaned up before that
-completes.  There should be no in-flight activity, or
-any "previous generation" messages that could be processed.
+I support your suggestion of abstracting the feature
+interface that way, but I suggest waiting until it's
+actually needed before you add it.  I don't see any
+code that uses GH_IDENTIFY_PARTITION_CSPACE (and the
+rest) currently.
 
-In any case, I think my question is answered.  Thanks.
+Oh, and interestingly enough I see GH_API_INFO_BIG_ENDIAN
+defined in the API info...
 
 					-Alex
+
+> 
+> u16 gh_api_version(void);
+> bool gh_api_has_feature(enum gh_api_feature feature);
+> 
+> Thanks,
+> Elliot
+
