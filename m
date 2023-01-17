@@ -2,63 +2,65 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBEB2C3DA78
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67D06C3DA78
+	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 20:40:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229919AbjAQUkL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Jan 2023 15:40:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53706 "EHLO
+        id S230250AbjAQUkT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Jan 2023 15:40:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235531AbjAQUfv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:35:51 -0500
-Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 759549EE6
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:06 -0800 (PST)
-Received: by mail-io1-xd31.google.com with SMTP id p66so15379274iof.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:21:06 -0800 (PST)
+        with ESMTP id S235464AbjAQUfp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 15:35:45 -0500
+Received: from mail-il1-x131.google.com (mail-il1-x131.google.com [IPv6:2607:f8b0:4864:20::131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1811F2A142
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:20:56 -0800 (PST)
+Received: by mail-il1-x131.google.com with SMTP id i1so12392918ilu.8
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2023 11:20:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=content-transfer-encoding:in-reply-to:content-language:references
          :cc:to:subject:from:user-agent:mime-version:date:message-id:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=vIhLbztM/35vA7EkIuAply1n/gr+A/gxbpqqXiig2iI=;
-        b=YP+80c+2+bfoYeiZ+D1yzWG17y1TcDmCjHAYIhLZGs8SbY8IBQDmKipU/+qp4L/535
-         w0ROGb6RPVmzWDWi/e4YRTh3nc3BTTNaXGe2eaWAvdJ/PHhULvTEZRs8D2y9qpAgO6RU
-         mPRbqTqErqmdMjrDB7L7RfjE1S3uxEAxLKj0D/uZRoJKyZWNZygUMbXecu5y1VEA8o9Z
-         Iez6RU0Axj8nF/4Uph0kWRNrqBKKIWDENddHW5swPZc6yvVztB2uGSWtxtgfCWzcJxf7
-         7a9OZn4AHbKznPrxibwOSCZF0GxIV20YK5hDFlszP5A+3kJYLxGCnfIBlFf5kJhbZesl
-         CDSQ==
+        bh=Wp0QJQDzQBGT8hemYMe9M0vDzPuwdE2J+s/AVQDu9As=;
+        b=sUyWoMXQn68h3GcPqqKEKdyWztOCpbn2A8Wm9ggXrnLDCQEnLF6g7PhjjUpN5jgi5d
+         hrU5fvNfigr3LYsFGQWrCL+xVZEu1LIEPw14g41+GnfDCMXTZ4b5IQDxeiJWRWzxuhwN
+         oXpVoZWPONN+ZPlS+OY6Lz7gBFTFPwwASkjzq3fdQR5Qk6BHRUhxWptOhWtaAZij80sD
+         v7rggb0M86pSa+IdICOumogbXWQkjIGQ86NvRcgejWaIznE1BnRgGXBT0xLdHozYnweE
+         koQAW+M7hUYGl7HPMExjtwaIc0P53UmgNa/gF6cHn1VDQ03UrQt6S8+PxNC6dn1eAHAG
+         mjmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:in-reply-to:content-language:references
          :cc:to:subject:from:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=vIhLbztM/35vA7EkIuAply1n/gr+A/gxbpqqXiig2iI=;
-        b=t9D0NLTw3hF/AIEicQ1Nc7MSA85MEmb9zqT28lRf2UVGLQQrOr4ytGizEG0nU0EVSf
-         Swqk3GqoaMxq9eu1dG/QYDAzSQFUclU0H9meeL3dhepBZYpX3dSOwg5DsVuwbiPqOlMm
-         ONEKE775R6MvNYdgwzSWDJ8La32rIhFBsk6gI+CmwJRMGJ6J3Rc5SpUENW4voRFleZJ1
-         KyVLU2wKkfNIKrfdWQDVrLjXZg6C4o+I1orcvnEi0z9HBeoKhM+2BHma5yo1mod/cp/e
-         pzw+mCfyPH4XrMh2bhUrTKoaRKXn8ppqMvuMUN7Iilc3wNAHPBOXOoNSXTZMHo+2i+iS
-         8MTA==
-X-Gm-Message-State: AFqh2kqQI6QegbthTbAH/5IAt5wwsS3mATqF0ti2ea5EXS1gTR0zrzXF
-        c2W2QbyUZHwbV4X/eSfk84DYfQ==
-X-Google-Smtp-Source: AMrXdXvti7xeVV7pmm8Zfx//nkzZJfwvn79rWHBkxkJlJi6po1MareStbTQ9fQeaQIevteonHQwCrA==
-X-Received: by 2002:a5d:9d49:0:b0:704:ca73:1758 with SMTP id k9-20020a5d9d49000000b00704ca731758mr2808575iok.9.1673983265774;
-        Tue, 17 Jan 2023 11:21:05 -0800 (PST)
+        bh=Wp0QJQDzQBGT8hemYMe9M0vDzPuwdE2J+s/AVQDu9As=;
+        b=o++3BM5RI2/GGqCzSd5uUDuXyAPABWx7NZu5LAlJrEuqyyo4ffbJrRPMzahhSl4lli
+         fAEYFALeIRX6OwtxE+zm//c6shIL2EO+p7+hmcQRxAayLdoigwY/qJk5YlKjym0bsj7q
+         Nvstalh0jppgdhhpIHA1/i0jpBbY6dqZJ0WQ37iINuo1r9qH5M1IutTxf+RweDnsW1nE
+         PnjyFFUoROSQzNjSz2Vu7xRoH6g4z2i8lAbCy6EmZQ13BYkpFF/THlchYKz7iyvN3OMS
+         rRN7JcTyYZJr/MN42MOjkJI3lTfRFIAoS5DphqezqC6k4LLcbEkQ/tN63AZ4L7MdlyN2
+         kOAA==
+X-Gm-Message-State: AFqh2kqqh+YK+AqFp3i9tNA7Xapa3vyHK4m2BrAVERSZzc4PK1pQjaWo
+        kt8k69fonenlxuw4Sp6cO7Ixfg==
+X-Google-Smtp-Source: AMrXdXu/lORiZp2eZqiqVnnjOPOkjH43u2TAvXtFDta2UFu0/KcmiUvJ86/Pc943zYRpsqEbtmEFEQ==
+X-Received: by 2002:a92:a054:0:b0:30b:eb8a:79ba with SMTP id b20-20020a92a054000000b0030beb8a79bamr2844862ilm.27.1673983255338;
+        Tue, 17 Jan 2023 11:20:55 -0800 (PST)
 Received: from [172.22.22.4] ([98.61.227.136])
-        by smtp.googlemail.com with ESMTPSA id x20-20020a0566022c5400b006bc039e3224sm10641525iov.17.2023.01.17.11.21.04
+        by smtp.googlemail.com with ESMTPSA id g20-20020a92c7d4000000b0030c661606eesm9702252ilk.63.2023.01.17.11.20.53
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jan 2023 11:21:05 -0800 (PST)
-Message-ID: <9109de9d-17f2-f1b2-b758-c9df0e562a20@linaro.org>
-Date:   Tue, 17 Jan 2023 13:21:04 -0600
+        Tue, 17 Jan 2023 11:20:54 -0800 (PST)
+Message-ID: <08964d93-8118-1176-c2f8-73e14e022a89@linaro.org>
+Date:   Tue, 17 Jan 2023 13:20:53 -0600
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.4.2
 From:   Alex Elder <elder@linaro.org>
-Subject: Re: [PATCH v8 06/28] virt: gunyah: Identify hypervisor version
+Subject: Re: [PATCH v8 05/28] virt: gunyah: Add hypercalls to identify Gunyah
 To:     Elliot Berman <quic_eberman@quicinc.com>,
         Alex Elder <elder@linaro.org>,
         Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
         Murali Nalajala <quic_mnalajal@quicinc.com>
 Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         Srivatsa Vaddagiri <quic_svaddagi@quicinc.com>,
@@ -70,8 +72,6 @@ Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
         Bagas Sanjaya <bagasdotme@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
         Jassi Brar <jassisinghbrar@gmail.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
         Mark Rutland <mark.rutland@arm.com>,
@@ -81,11 +81,11 @@ Cc:     Trilok Soni <quic_tsoni@quicinc.com>,
         linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 References: <20221219225850.2397345-1-quic_eberman@quicinc.com>
- <20221219225850.2397345-7-quic_eberman@quicinc.com>
- <51c36831-19c1-dd67-9e31-87733c190a9c@linaro.org>
- <7e64039a-55ce-d79d-8501-10de09269afb@quicinc.com>
+ <20221219225850.2397345-6-quic_eberman@quicinc.com>
+ <63bbc640-9b0c-95af-3d35-291da0323db3@linaro.org>
+ <4e8a7fdf-8c91-cf2f-d369-c67b7584f580@quicinc.com>
 Content-Language: en-US
-In-Reply-To: <7e64039a-55ce-d79d-8501-10de09269afb@quicinc.com>
+In-Reply-To: <4e8a7fdf-8c91-cf2f-d369-c67b7584f580@quicinc.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -93,154 +93,48 @@ List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 On 1/10/23 11:56 AM, Elliot Berman wrote:
-> 
-> 
-> On 1/9/2023 1:34 PM, Alex Elder wrote:
->> On 12/19/22 4:58 PM, Elliot Berman wrote:
->>> Export the version of Gunyah which is reported via the hyp_identify
->>> hypercall. Increments of the major API version indicate possibly
->>> backwards incompatible changes.
->>>
->>> Export the hypervisor identity so that Gunyah drivers can act according
->>> to the major API version.
->>>
->>> Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
->>> ---
->>>   drivers/virt/Makefile        |  1 +
->>>   drivers/virt/gunyah/Makefile |  1 +
->>>   drivers/virt/gunyah/gunyah.c | 46 ++++++++++++++++++++++++++++++++++++
->>>   include/linux/gunyah.h       |  6 +++++
->>>   4 files changed, 54 insertions(+)
->>>   create mode 100644 drivers/virt/gunyah/Makefile
->>>   create mode 100644 drivers/virt/gunyah/gunyah.c
->>>
->>> diff --git a/drivers/virt/Makefile b/drivers/virt/Makefile
->>> index 093674e05c40..92b7e5311548 100644
->>> --- a/drivers/virt/Makefile
->>> +++ b/drivers/virt/Makefile
->>> @@ -11,3 +11,4 @@ obj-$(CONFIG_NITRO_ENCLAVES)    += nitro_enclaves/
->>>   obj-$(CONFIG_ACRN_HSM)        += acrn/
->>>   obj-$(CONFIG_EFI_SECRET)    += coco/efi_secret/
->>>   obj-$(CONFIG_SEV_GUEST)       += coco/sev-guest/
->>> +obj-y                += gunyah/
->>> diff --git a/drivers/virt/gunyah/Makefile b/drivers/virt/gunyah/Makefile
->>> new file mode 100644
->>> index 000000000000..2ac4ee64b89d
->>> --- /dev/null
->>> +++ b/drivers/virt/gunyah/Makefile
->>> @@ -0,0 +1 @@
->>> +obj-$(CONFIG_GUNYAH) += gunyah.o
->>> diff --git a/drivers/virt/gunyah/gunyah.c b/drivers/virt/gunyah/gunyah.c
->>> new file mode 100644
->>> index 000000000000..c34c9046fc08
->>> --- /dev/null
->>> +++ b/drivers/virt/gunyah/gunyah.c
->>> @@ -0,0 +1,46 @@
->>> +// SPDX-License-Identifier: GPL-2.0-only
->>> +/*
->>> + * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights 
->>> reserved.
->>> + */
->>> +
->>> +#define pr_fmt(fmt) "gunyah: " fmt
->>> +
->>> +#include <linux/gunyah.h>
->>> +#include <linux/init.h>
->>> +#include <linux/module.h>
->>> +#include <linux/printk.h>
->>> +
->>> +struct gh_hypercall_hyp_identify_resp gunyah_api;
->>> +EXPORT_SYMBOL_GPL(gunyah_api);
->>> +
->>> +static const uint32_t gunyah_known_uuids[][4] = {
->>> +    {0x19bd54bd, 0x0b37571b, 0x946f609b, 0x54539de6}, /*QC_HYP 
->>> (Qualcomm's build) */
->>> +    {0x673d5f14, 0x9265ce36, 0xa4535fdb, 0xc1d58fcd}, /*GUNYAH (open 
->>> source build) */
->>> +};
->>> +
->>> +static int __init gunyah_init(void)
->>> +{
->>> +    u32 uid[4];
->>> +    int i;
->>> +
->>> +    gh_hypercall_get_uid(uid);
->>> +
->>> +    for (i = 0; i < ARRAY_SIZE(gunyah_known_uuids); i++)
->>> +        if (!memcmp(uid, gunyah_known_uuids[i], sizeof(uid)))
->>> +            break;
->>> +
->>> +    if (i == ARRAY_SIZE(gunyah_known_uuids))
->>> +        return -ENODEV;
->>> +
->>> +    gh_hypercall_hyp_identify(&gunyah_api);
->>> +
->>> +    pr_info("Running under Gunyah hypervisor %llx/v%u\n",
->>> +        FIELD_GET(GH_API_INFO_VARIANT_MASK, gunyah_api.api_info),
->>> +        gh_api_version());
->>> +
->>> +    return 0;
->>> +}
->>> +arch_initcall(gunyah_init);
->>> +
->>> +MODULE_LICENSE("GPL");
->>> +MODULE_DESCRIPTION("Gunyah Hypervisor Driver");
->>> diff --git a/include/linux/gunyah.h b/include/linux/gunyah.h
->>> index 2765d2b40198..166156f69df9 100644
->>> --- a/include/linux/gunyah.h
->>> +++ b/include/linux/gunyah.h
->>> @@ -92,6 +92,12 @@ struct gh_hypercall_hyp_identify_resp {
->>>       u64 api_info;
->>>       u64 flags[3];
->>>   };
->>> +extern struct gh_hypercall_hyp_identify_resp gunyah_api;
->>
->> Must this global variable be exposed?  Can't you hide it--as
->> well as its interpretation--inside "gunyah.c"?
->>  >> +
->>> +static inline u16 gh_api_version(void)
->>> +{
->>> +    return FIELD_GET(GH_API_INFO_API_VERSION_MASK, 
->>> gunyah_api.api_info);
->>> +}
->>
->> If you don't make the above function inline, can you hide the
->> definition of gunyah_api?
+>> Is there any need for the endianness of these values to be specified?
+>> Does Gunyah operate with a well-defined endianness?  Is there any
+>> chance a VM can run with an endianness different from Gunyah?  I
+>> see that the arm_smcc_* structures are defined without endianness.
+>> (Sorry if these are dumb questions.)
 >>
 > 
-> This seems like a good idea to me. I'm thinking to have the following 
-> functions:
-> 
-> enum gh_api_feature {
->      GH_API_FEATURE_DOORBELL,
->      GH_API_FEATURE_MSGQUEUE,
->      GH_API_FEATURE_VIC,
->      GH_API_FEATURE_VPM,
->      GH_API_FEATURE_VCPU,
->      GH_API_FEATURE_MEMEXTENT,
->      GH_API_FEATURE_TRACE_CTRL,
-> };
+> All of the data transfers for hypercalls happen via registers, so 
+> endianness doesn't have impact here (there is no "low address" in a 
+> register).
 
-My point wasn't necessarily to expose all of that.  Already
-"gunyah.h" defines the bit positions in which these things
-are recorded in the identify response.  My main point was
-about (not) exposing that global variable.
+I don't believe that is technically true.  Practically speaking,
+it's probably almost *always* little-endian.  But for example,
+here:
 
-I support your suggestion of abstracting the feature
-interface that way, but I suggest waiting until it's
-actually needed before you add it.  I don't see any
-code that uses GH_IDENTIFY_PARTITION_CSPACE (and the
-rest) currently.
+https://developer.arm.com/documentation/102376/0100/Alignment-and-endianness
+it says:
 
-Oh, and interestingly enough I see GH_API_INFO_BIG_ENDIAN
-defined in the API info...
+     Endianness
+
+     In Armv8-A, instruction fetches are always treated as
+     little-endian.
+
+     For data accesses, it is IMPLEMENTATION DEFINED whether
+     both little-endian and big-endian are supported. And if
+     only one is supported, it is IMPLEMENTATION DEFINED
+     which one is supported.
+
+     For processors that support both big-endian and
+     little-endian, endianness is configured per Exception
+     level.
+
+Perhaps that last sentence doesn't apply to HVC exceptions
+but to me it *sounds* like it's at least possible for a VM
+to be running with an endianness that differs from the
+hypervisor (perhaps not other VMs though.)
+
+This is not an area of expertise of mine, so I would love
+for someone who knows more to correct me if I'm wrong.
+
+It's likely to be fine as-is, but (other than the work to
+do it and get it right) it doesn't hurt to specify it and
+do the conversions as data is passes to/from the hypervisor.
 
 					-Alex
-
-> 
-> u16 gh_api_version(void);
-> bool gh_api_has_feature(enum gh_api_feature feature);
-> 
-> Thanks,
-> Elliot
-
