@@ -2,134 +2,82 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEB25C00A5A
-	for <linux-acpi@archiver.kernel.org>; Tue, 17 Jan 2023 23:32:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38C78C00A5A
+	for <linux-acpi@archiver.kernel.org>; Wed, 18 Jan 2023 00:41:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229768AbjAQXcq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 17 Jan 2023 18:32:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52422 "EHLO
+        id S229649AbjARAl1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 17 Jan 2023 19:41:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229817AbjAQXcC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 18:32:02 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E070A5D11B;
-        Tue, 17 Jan 2023 12:52:08 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 895B8B81A22;
-        Tue, 17 Jan 2023 20:52:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3A04C433D2;
-        Tue, 17 Jan 2023 20:52:04 +0000 (UTC)
-Date:   Tue, 17 Jan 2023 15:52:03 -0500
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Mark Rutland <mark.rutland@arm.com>
-Cc:     linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com,
-        lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mhiramat@kernel.org,
-        ndesaulniers@google.com, ojeda@kernel.org, peterz@infradead.org,
-        rafael.j.wysocki@intel.com, revest@chromium.org,
-        robert.moore@intel.com, will@kernel.org
-Subject: Re: [PATCH v2 4/8] ftrace: Add DYNAMIC_FTRACE_WITH_CALL_OPS
-Message-ID: <20230117155203.3a66744e@gandalf.local.home>
-In-Reply-To: <20230113180355.2930042-5-mark.rutland@arm.com>
-References: <20230113180355.2930042-1-mark.rutland@arm.com>
-        <20230113180355.2930042-5-mark.rutland@arm.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        with ESMTP id S229806AbjARAkt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2023 19:40:49 -0500
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A30BA50840;
+        Tue, 17 Jan 2023 16:15:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1674000915; x=1705536915;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=U+FNsffiUiBOhXgQVY2RTqxZzcTli6D4Y1VLa3Irm2Y=;
+  b=hFXMQG4xl1NOXXWOJN6D2BnlgSPjnSGhOcow34qZah6swOEy9P2dzAGx
+   hPlYOFsxYbmja2/Am9SDIJ5M5r0i7dAJXoO5SVU7uRVO8Ydmzgy55jt0q
+   ln58IaHn/BBvAafu18Lg2XlqJSakXjp0SaX311Zm6YOB/rQaK+4vC1qeN
+   yFMOD8IS+atuFGj4Knkj5r1c/Ks7GPpLGuLBLFgHEmkbmpP6tV/mMQWGt
+   itccpuztPcUawxiDwQL8HEX4uFSC1Nu/Q8v6AHNIKtLl1qGoTmbmOnkZG
+   b6YdkVYfqt45P5YL1PzzZY5xImV/d8zZQAMSINeEWWnFUcajchA2XRlv6
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10593"; a="352102383"
+X-IronPort-AV: E=Sophos;i="5.97,224,1669104000"; 
+   d="scan'208";a="352102383"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2023 16:15:15 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10593"; a="783443930"
+X-IronPort-AV: E=Sophos;i="5.97,224,1669104000"; 
+   d="scan'208";a="783443930"
+Received: from tblanzy-mobl.amr.corp.intel.com (HELO [10.209.6.252]) ([10.209.6.252])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2023 16:15:14 -0800
+Message-ID: <43d0f8b1-0d2e-0e0f-d794-0048641d84f1@intel.com>
+Date:   Tue, 17 Jan 2023 16:15:24 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH v2] acpi: fix suspend with Xen PV
+Content-Language: en-US
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+        x86@kernel.org, linux-acpi@vger.kernel.org,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>,
+        =?UTF-8?Q?Marek_Marczykowski-G=c3=b3recki?= 
+        <marmarek@invisiblethingslab.com>
+References: <20230117155724.22940-1-jgross@suse.com>
+ <CAJZ5v0iCAT2W-m1T-v1wSBw+GQerhMAp1hT6SioJ53RQY=oA3g@mail.gmail.com>
+ <7f969b09-438b-cee3-be4c-e08b97457b12@intel.com>
+ <CAJZ5v0iOmZouhSb_ap0MA3-sk6RWJ7MRpTuGekrJrvOn-Y4JYQ@mail.gmail.com>
+From:   Dave Hansen <dave.hansen@intel.com>
+In-Reply-To: <CAJZ5v0iOmZouhSb_ap0MA3-sk6RWJ7MRpTuGekrJrvOn-Y4JYQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, 13 Jan 2023 18:03:51 +0000
-Mark Rutland <mark.rutland@arm.com> wrote:
+On 1/17/23 09:08, Rafael J. Wysocki wrote:
+> On Tue, Jan 17, 2023 at 5:51 PM Dave Hansen <dave.hansen@intel.com> wrote:
+>> On 1/17/23 08:47, Rafael J. Wysocki wrote:
+>>>> Fixes: f1e525009493 ("x86/boot: Skip realmode init code when running as Xen PV guest")
+>>>> Reported-by: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
+>>>> Signed-off-by: Juergen Gross <jgross@suse.com>
+>>>> ---
+>>>> V2:
+>>>> - new approach, avoid calling acpi_get_wakeup_address()
+>>> I'll queue this up for 6.3 if the x86 people don't object.
+>> That 'Fixes:' patch looked to me like it was applied during the 6.2
+>> merge window.  I would have expected a fix to go up for 6.2 final.
+> Right, sorry.  Definitely, 6.2-rc material.
 
-> Architectures without dynamic ftrace trampolines incur an overhead when
-> multiple ftrace_ops are enabled with distinct filters. in these cases,
-> each call site calls a common trampoline which uses
-> ftrace_ops_list_func() to iterate over all enabled ftrace functions, and
-> so incurs an overhead relative to the size of this list (including RCU
-> protection overhead).
-> 
-> Architectures with dynamic ftrace trampolines avoid this overhead for
-> call sites which have a single associated ftrace_ops. In these cases,
-> the dynamic trampoline is customized to branch directly to the relevant
-> ftrace function, avoiding the list overhead.
-> 
-> On some architectures it's impractical and/or undesirable to implement
-> dynamic ftrace trampolines. For example, arm64 has limited branch ranges
-> and cannot always directly branch from a call site to an arbitrary
-> address (e.g. from a kernel text address to an arbitrary module
-> address). Calls from modules to core kernel text can be indirected via
-> PLTs (allocated at module load time) to address this, but the same is
-> not possible from calls from core kernel text.
-> 
-> Using an indirect branch from a call site to an arbitrary trampoline is
-> possible, but requires several more instructions in the function
-> prologue (or immediately before it), and/or comes with far more complex
-> requirements for patching.
-> 
-> Instead, this patch adds a new option, where an architecture can
-> associate each call site with a pointer to an ftrace_ops, placed at a
-> fixed offset from the call site. A shared trampoline can recover this
-> pointer and call ftrace_ops::func() without needing to go via
-> ftrace_ops_list_func(), avoiding the associated overhead.
-> 
-> This avoids issues with branch range limitations, and avoids the need to
-> allocate and manipulate dynamic trampolines, making it far simpler to
-> implement and maintain, while having similar performance
-> characteristics.
-> 
-> Note that this allows for dynamic ftrace_ops to be invoked directly from
-> an architecture's ftrace_caller trampoline, whereas existing code forces
-> the use of ftrace_ops_get_list_func(), which is in part necessary to
-> permit the ftrace_ops to be freed once unregistereed *and* to avoid
-> branch/address-generation range limitation on some architectures (e.g.
-> where ops->func is a module address, and may be outside of the direct
-> branch range for callsites within the main kernel image).
-> 
-> The CALL_OPS approach avoids this problems and is safe as:
-> 
-> * The existing synchronization in ftrace_shutdown() using
->   ftrace_shutdown() using synchronize_rcu_tasks_rude() (and
->   synchronize_rcu_tasks()) ensures that no tasks hold a stale reference
->   to an ftrace_ops (e.g. in the middle of the ftrace_caller trampoline,
->   or while invoking ftrace_ops::func), when that ftrace_ops is
->   unregistered.
-> 
->   Arguably this could also be relied upon for the existing scheme,
->   permitting dynamic ftrace_ops to be invoked directly when ops->func is
->   in range, but this will require additional logic to handle branch
->   range limitations, and is not handled by this patch.
-> 
-> * Each callsite's ftrace_ops pointer literal can hold any valid kernel
->   address, and is updated atomically. As an architecture's ftrace_caller
->   trampoline will atomically load the ops pointer then derefrence
->   ops->func, there is no risk of invoking ops->func with a mismatches
->   ops pointer, and updates to the ops pointer do not require special
->   care.
-> 
-> A subsequent patch will implement architectures support for arm64. There
-> should be no functional change as a result of this patch alone.
-> 
-> Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Florent Revest <revest@chromium.org>
-> Cc: Masami Hiramatsu <mhiramat@kernel.org>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Will Deacon <will@kernel.org>
-> ---
-> 
-
-Looks good. Looking through it, I don't see any issues. Although I didn't
-test it ;-)
-
-I probably should, but in the mean time (as my tests are currently
-broken)...
-
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-
--- Steve
+I think the original issue went up in x86/boot, so how about I queue
+this in x86/urgent?  Rafael, should I add an ack from you on it?
