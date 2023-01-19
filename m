@@ -2,102 +2,117 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37931C00A5A
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 14:12:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37567C004D4
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 14:21:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231600AbjASOL7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 19 Jan 2023 09:11:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39110 "EHLO
+        id S230293AbjASOVb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Jan 2023 09:21:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231494AbjASOLX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 09:11:23 -0500
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8483B829A5;
-        Thu, 19 Jan 2023 06:09:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674137389; x=1705673389;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=PNmoKYRJVjDp4F17/eUveCKQAApp+O2ZjxB9O8O8wrg=;
-  b=hgyugTjKw7I53S+5Vl8pekG7zY5XHdmtEEdXX01A0rGAi9MbL9JGz9uG
-   HSBUPlJ8w5QWkkzuS3AlucMXTq+4LNFaXZ0tE7ly9ciVoK9xOPirtkMSX
-   9p022+D8XthVHs9zgsA/OOuG6+618jM3BjzbtThuTQijViK2VAnxRv55p
-   5rJyKDnRx4GsEP2MNpRzLlv9qvmApx8KgFPbDyFi3dD1VluY5ro5CE0xg
-   hLpQXcbCgMcxOZBCBrHJ/pizXrOAL4394iAhH3/3gXLNVdPDz8/WRE7M/
-   At/zH2Lte8y/6c3svA2j9fBVRqNbj/gBYaBfFLCvN/fhCHxwd/MSIlT9g
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="327369183"
-X-IronPort-AV: E=Sophos;i="5.97,229,1669104000"; 
-   d="scan'208";a="327369183"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2023 06:04:12 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="690636743"
-X-IronPort-AV: E=Sophos;i="5.97,229,1669104000"; 
-   d="scan'208";a="690636743"
-Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2023 06:04:10 -0800
-Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with SMTP id A7F4C20497;
-        Thu, 19 Jan 2023 16:04:08 +0200 (EET)
-Date:   Thu, 19 Jan 2023 14:04:08 +0000
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org, rafael@kernel.org,
-        linux-media@vger.kernel.org, heikki.krogerus@linux.intel.com
-Subject: Re: [PATCH 2/8] ACPI: property: Parse _CRS CSI-2 descriptor
-Message-ID: <Y8lN2FuKZksOlS0J@paasikivi.fi.intel.com>
-References: <20230117122244.2546597-1-sakari.ailus@linux.intel.com>
- <20230117122244.2546597-3-sakari.ailus@linux.intel.com>
- <Y8ax6TUtTCO6qQmz@smile.fi.intel.com>
+        with ESMTP id S230328AbjASOV3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 09:21:29 -0500
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50CF0402DC;
+        Thu, 19 Jan 2023 06:21:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
+        t=1674138082; bh=z+fQzZKHzfUH7NF/TUveCeidpfldeQForUuhTzrvsYk=;
+        h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
+        b=CkjqS1nNHJjYaFwYSyXVLW+TPmEckCs8YKHS7oUwWpSzDNBtOikU76bAC+MvklKYD
+         xbjOp6SE2333DyQ+lFh1NqwvI9BOmn5HsZwuOf/SJOtzNd3/Q8givTZYvdo1liio1D
+         k5P6lwhLEc5rk4JmxektSrTR0852RL4EFIt3VevVOmPbs5s0/BK+uVyHtXfo/cuDIY
+         iQ3nSSLYMz2yrZyJXc6CVtm9rNeOgcjhcZDvXTIljUm+eGBFmUqeStdwrwfLw1ktnX
+         y6eBbnqjckR6bTaVLIXTRE4tytQb84ie4yJ9fUO8wjmpKtcFj8NI7q1BnXG6R+ixq2
+         HRZVSlJQnOS+w==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
+ (mrgmx105 [212.227.17.168]) with ESMTPSA (Nemesis) id
+ 1N0oBx-1oWzgN1RED-00wmb0; Thu, 19 Jan 2023 15:21:22 +0100
+From:   Armin Wolf <W_Armin@gmx.de>
+To:     rafael@kernel.org, lenb@kernel.org
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 1/2] ACPI: battery: Fix buffer overread if not NUL-terminated
+Date:   Thu, 19 Jan 2023 15:21:14 +0100
+Message-Id: <20230119142115.38260-2-W_Armin@gmx.de>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230119142115.38260-1-W_Armin@gmx.de>
+References: <20230119142115.38260-1-W_Armin@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y8ax6TUtTCO6qQmz@smile.fi.intel.com>
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:dVU26JDgfTRY3TOQ06V2r83qaP9yA8G+jIxMPfP/xcgPS8mluVb
+ LXOHmVWLGVDLEYeh4C76vXsl9e5uPRM3yQevfZ8EpzZeSa+VipnvIFR+vCmZo+ENZc/tCm+
+ Z4Nh4QH/gJSnvTqGTS7qGMukZ/4QMYzUGymeCkigC/CDW1CyNUvwc6vohZ4/UjXIHITbViD
+ OCSDthmX88J3lj6+ajYww==
+UI-OutboundReport: notjunk:1;M01:P0:MY/5IUDF2LA=;IdqnLHL+AaMS4mgs+AscZnqUEIk
+ hPMZQ9DamDtoQp6RJif8mimOOx56n+LhIUtgvNx5w/N2jvVKex8FLoIzjUsBIOowusLNwk6Fy
+ M3jA+wOTODfzvS9jUeFkZfekPdmZCvToflJnSF1AHlM4e1jSU0c0zooDdoUDkRjIvTSZYrw/a
+ PUS1fdEypxEfFWhYj/ggNI8ZT7gjbcg0zXa5sW0k0EdBZFd0qiSzag+DpzXJpOX7xeQWJczxn
+ OpTt3ASt/rqQbrlLwqnN+FV/GO1oo3e+fEPP4zoFe+qtnoP9BsnnDWV14NTijVATUNbSTOk2x
+ Yp+Zy826sxc06seXJd6ctUXmoEgyFSBmpzz3wNyckw70jdJPbohEx9P8Gx9+w6VIk920iuckH
+ BFQGPiHnGZ9mI8YMEeHOTTsdPd/v6cqhvxxxUzY6AduipyHn2o2obQ5XoniZUqsNMX6cqPdGT
+ 1YlD7DIqt3IuFiXWp5CPkJhsBSthR2Fui7y8lpdcQ6hm5ZjFgiW/py9kRFVV1HCgXkHwtbKOJ
+ clS8DRytzeRmU6hJNr/UjqgrDGo6VeWatirWszBxcCn8K1LAUmI7I/riFMYwHpX7LpTv0CeJt
+ cr9ZOh77MzbXF5rFGi3BJRz1C9WcuXC1drD8kbniW8Inj19Xo0qEMwLX4Cua4mZAbhlFgg4hE
+ pdK9SZCNPploDHsHuS7AJjEw0vFtuaMMXLu2ikWbbv/r0JHBceNIz0Po+/VZ7m5P2zI0kIlsb
+ nnnrIZ4/SXTusPclwPjgt/s24qt8rlRQet9QV6y37VlIgMy+fbM6kPEMaABq5KqmOkDtVeukr
+ O0gXvgo/sXXMwmB9dPFg8knJrQXlH4e7uFUjX7GKOmHXTsPQp73ADjavVvTlOIUF5kYlYn7JU
+ wZducAU6ALkyuL1TFbuI2J9Jp2XSwwFvHoxbf1uHm5qbX2gqbzfCM7Fhsml2yemb6Mw2mur0v
+ K5kMlPxbPP2hwMDjRHn7SyO3pZA=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Andy,
+If a buffer containing ASCII characters is not NUL-terminated
+(which is perfectly legal according to the ACPI specification),
+the ACPI battery driver might not honor its length.
+Fix this by limiting the amount of data to be copied to
+the buffer length while also using strscpy() to make sure
+that the resulting string is always NUL-terminated.
+Also replace strncpy() vs strscpy().
 
-On Tue, Jan 17, 2023 at 04:34:17PM +0200, Andy Shevchenko wrote:
-> On Tue, Jan 17, 2023 at 02:22:38PM +0200, Sakari Ailus wrote:
-> > Parse newly added ACPI _CRS CSI-2 descriptor for CSI-2 and camera
-> > configuration. For now, only figure out where the descriptor is present in
-> > order to allow adding information from it to related devices.
-> 
-> ...
-> 
-> > +/*
-> > + * MIPI DisCo for Imaging support.
-> > + *
-> > + * Copyright (C) 2022 Intel Corporation
-> 
-> 2023?
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+=2D--
+ drivers/acpi/battery.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-Yes.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index fb64bd217d82..0ec12a7dbcca 100644
+=2D-- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -437,16 +437,25 @@ static int extract_package(struct acpi_battery *batt=
+ery,
+ 		element =3D &package->package.elements[i];
+ 		if (offsets[i].mode) {
+ 			u8 *ptr =3D (u8 *)battery + offsets[i].offset;
++			u32 len =3D 32;
 
-> 
-> > + */
-> 
-> ...
-> 
-> > +#include <linux/acpi.h>
-> > +#include <linux/module.h>
-> 
-> > +#include <linux/kernel.h>
-> 
-> Not sure why you need this one instead of corresponding types.h and might be a
-> few others (seems list.h, string.h at least).
+-			if (element->type =3D=3D ACPI_TYPE_STRING ||
+-			    element->type =3D=3D ACPI_TYPE_BUFFER)
+-				strscpy(ptr, element->string.pointer, 32);
+-			else if (element->type =3D=3D ACPI_TYPE_INTEGER) {
+-				strncpy(ptr, (u8 *)&element->integer.value,
+-					sizeof(u64));
+-				ptr[sizeof(u64)] =3D 0;
+-			} else
++			switch (element->type) {
++			case ACPI_TYPE_BUFFER:
++				if (len > element->buffer.length + 1)
++					len =3D element->buffer.length + 1;
++
++				fallthrough;
++			case ACPI_TYPE_STRING:
++				strscpy(ptr, element->string.pointer, len);
++
++				break;
++			case ACPI_TYPE_INTEGER:
++				strscpy(ptr, (u8 *)&element->integer.value, sizeof(u64) + 1);
++
++				break;
++			default:
+ 				*ptr =3D 0; /* don't have value */
++			}
+ 		} else {
+ 			int *x =3D (int *)((u8 *)battery + offsets[i].offset);
+ 			*x =3D (element->type =3D=3D ACPI_TYPE_INTEGER) ?
+=2D-
+2.30.2
 
-Good catch.
-
-I'll fix these for v2.
-
-> 
-> > +#include <linux/overflow.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/sort.h>
-
--- 
-Sakari Ailus
