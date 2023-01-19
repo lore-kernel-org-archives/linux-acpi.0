@@ -2,86 +2,102 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8463FC00A5A
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 13:36:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37931C00A5A
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 14:12:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231356AbjASNgy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 19 Jan 2023 08:36:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41836 "EHLO
+        id S231600AbjASOL7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Jan 2023 09:11:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231248AbjASNej (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 08:34:39 -0500
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3336C7E6A9;
-        Thu, 19 Jan 2023 05:34:37 -0800 (PST)
-Received: by mail-ej1-f51.google.com with SMTP id v6so5697057ejg.6;
-        Thu, 19 Jan 2023 05:34:37 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=58Cix+5iRcNAm7+Mebt4ukWRjiEsHxfA5Phv7jZQzQg=;
-        b=jOpnkeMLnjPPnVQY67O7NWMM5JDUB621yOfExSDntzSP0ZzrTl58QjJhnptbM060zu
-         ELYBvE9TSDUoxUYEirxSDFIi2fuard97n5IjYIGaGHlj8nRG/0z3s1kigjW23Kba9RkN
-         Z4FEoZTy3vuPCctbTu8rDhQkXGRapNGcKRkyS2P0gLRt8Y1VSZUNbCKzoJkM1iIzd/WQ
-         95NQJ8+8L0eZ/H9QXYlZJBssZfYjlSbYFjDaxZwn2MbFL2BIGsAAwfHimxC0YYDp84kW
-         mEDas/0vYOKHhj+oOukXMO+28QNqAV8gxIav8sz2LqKQXlleHBZjLiG6pDLsGo9HDR83
-         gpAQ==
-X-Gm-Message-State: AFqh2krQCKfJXMay07u6W3RPmxcOcGyouYVjMviT0VOmma6/ht5frGGh
-        hONTLx20gmQePW97K6GV0/evnkxFMSQIPpm05Og=
-X-Google-Smtp-Source: AMrXdXsZYHp3zJIym04pHVHKz9PxTjsbQ3vfb2LfMZDaevE58+t3Eeltfi9qXgOXQoAs86oTN2iShX+5tdjCHcMOV4c=
-X-Received: by 2002:a17:906:64a:b0:84d:3c6a:4c55 with SMTP id
- t10-20020a170906064a00b0084d3c6a4c55mr1459533ejb.509.1674135276370; Thu, 19
- Jan 2023 05:34:36 -0800 (PST)
+        with ESMTP id S231494AbjASOLX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 09:11:23 -0500
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8483B829A5;
+        Thu, 19 Jan 2023 06:09:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1674137389; x=1705673389;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=PNmoKYRJVjDp4F17/eUveCKQAApp+O2ZjxB9O8O8wrg=;
+  b=hgyugTjKw7I53S+5Vl8pekG7zY5XHdmtEEdXX01A0rGAi9MbL9JGz9uG
+   HSBUPlJ8w5QWkkzuS3AlucMXTq+4LNFaXZ0tE7ly9ciVoK9xOPirtkMSX
+   9p022+D8XthVHs9zgsA/OOuG6+618jM3BjzbtThuTQijViK2VAnxRv55p
+   5rJyKDnRx4GsEP2MNpRzLlv9qvmApx8KgFPbDyFi3dD1VluY5ro5CE0xg
+   hLpQXcbCgMcxOZBCBrHJ/pizXrOAL4394iAhH3/3gXLNVdPDz8/WRE7M/
+   At/zH2Lte8y/6c3svA2j9fBVRqNbj/gBYaBfFLCvN/fhCHxwd/MSIlT9g
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="327369183"
+X-IronPort-AV: E=Sophos;i="5.97,229,1669104000"; 
+   d="scan'208";a="327369183"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2023 06:04:12 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="690636743"
+X-IronPort-AV: E=Sophos;i="5.97,229,1669104000"; 
+   d="scan'208";a="690636743"
+Received: from punajuuri.fi.intel.com (HELO paasikivi.fi.intel.com) ([10.237.72.43])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2023 06:04:10 -0800
+Received: from paasikivi.fi.intel.com (localhost [127.0.0.1])
+        by paasikivi.fi.intel.com (Postfix) with SMTP id A7F4C20497;
+        Thu, 19 Jan 2023 16:04:08 +0200 (EET)
+Date:   Thu, 19 Jan 2023 14:04:08 +0000
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     linux-acpi@vger.kernel.org, rafael@kernel.org,
+        linux-media@vger.kernel.org, heikki.krogerus@linux.intel.com
+Subject: Re: [PATCH 2/8] ACPI: property: Parse _CRS CSI-2 descriptor
+Message-ID: <Y8lN2FuKZksOlS0J@paasikivi.fi.intel.com>
+References: <20230117122244.2546597-1-sakari.ailus@linux.intel.com>
+ <20230117122244.2546597-3-sakari.ailus@linux.intel.com>
+ <Y8ax6TUtTCO6qQmz@smile.fi.intel.com>
 MIME-Version: 1.0
-References: <20230114085053.72059-1-W_Armin@gmx.de> <20230114085053.72059-2-W_Armin@gmx.de>
-In-Reply-To: <20230114085053.72059-2-W_Armin@gmx.de>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 19 Jan 2023 14:34:25 +0100
-Message-ID: <CAJZ5v0j6FMzHRhegQ-hQBmrrkHA=4rH6AeQOSmfTn5BcBW5dsw@mail.gmail.com>
-Subject: Re: [PATCH 1/4] ACPI: battery: Fix missing NUL-termination with large strings
-To:     Armin Wolf <W_Armin@gmx.de>
-Cc:     rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y8ax6TUtTCO6qQmz@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Jan 14, 2023 at 9:51 AM Armin Wolf <W_Armin@gmx.de> wrote:
->
-> When encountering a string bigger than the destination buffer (32 bytes),
-> the string is not properly NUL-terminated, causing buffer overreads later.
->
-> This for example happens on the Inspiron 3505, where the battery
-> model name is larger than 32 bytes, which leads to sysfs showing
-> the model name together with the serial number string (which is
-> NUL-terminated and thus prevents worse).
->
-> Fix this by using strscpy() which ensures that the result is
-> always NUL-terminated.
->
-> Signed-off-by: Armin Wolf <W_Armin@gmx.de>
-> ---
->  drivers/acpi/battery.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index f4badcdde76e..fb64bd217d82 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -440,7 +440,7 @@ static int extract_package(struct acpi_battery *battery,
->
->                         if (element->type == ACPI_TYPE_STRING ||
->                             element->type == ACPI_TYPE_BUFFER)
-> -                               strncpy(ptr, element->string.pointer, 32);
-> +                               strscpy(ptr, element->string.pointer, 32);
->                         else if (element->type == ACPI_TYPE_INTEGER) {
->                                 strncpy(ptr, (u8 *)&element->integer.value,
->                                         sizeof(u64));
-> --
+Hi Andy,
 
-Applied as 6.3 material, thanks!
+On Tue, Jan 17, 2023 at 04:34:17PM +0200, Andy Shevchenko wrote:
+> On Tue, Jan 17, 2023 at 02:22:38PM +0200, Sakari Ailus wrote:
+> > Parse newly added ACPI _CRS CSI-2 descriptor for CSI-2 and camera
+> > configuration. For now, only figure out where the descriptor is present in
+> > order to allow adding information from it to related devices.
+> 
+> ...
+> 
+> > +/*
+> > + * MIPI DisCo for Imaging support.
+> > + *
+> > + * Copyright (C) 2022 Intel Corporation
+> 
+> 2023?
 
-Please do not include this one in the next version of the series.
+Yes.
+
+> 
+> > + */
+> 
+> ...
+> 
+> > +#include <linux/acpi.h>
+> > +#include <linux/module.h>
+> 
+> > +#include <linux/kernel.h>
+> 
+> Not sure why you need this one instead of corresponding types.h and might be a
+> few others (seems list.h, string.h at least).
+
+Good catch.
+
+I'll fix these for v2.
+
+> 
+> > +#include <linux/overflow.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/sort.h>
+
+-- 
+Sakari Ailus
