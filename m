@@ -2,94 +2,115 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E10A5C00A5A
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 14:21:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CB01C004D4
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 14:21:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231408AbjASOVb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 19 Jan 2023 09:21:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44442 "EHLO
+        id S231421AbjASOVc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 19 Jan 2023 09:21:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231377AbjASOV2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 09:21:28 -0500
+        with ESMTP id S231400AbjASOVb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 09:21:31 -0500
 Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25E9B3ABA;
-        Thu, 19 Jan 2023 06:21:26 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDE262133;
+        Thu, 19 Jan 2023 06:21:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1674138081; bh=Ny0LIyIy4GYeNxVRqsepIJrTH+brTIWy5Eqgj908uvM=;
-        h=X-UI-Sender-Class:From:To:Cc:Subject:Date;
-        b=BQy6kjqtVPWffHeFMB7//sMS/abEsee7PWsSBv0cSuNS+s7CBcVSjTwOOjTrim4L1
-         EqDbbXxPYWKLxuyjkHeOdeQYI/isNk8fdvPZBH/EdCggRyXMbPYXeFZSkLczFWlkUn
-         653wVfO83COuLw/V1TLK3hKKEHHTniORt0HU5ODFl18+pbRC30Ra0cIc3bFV3D3+Bk
-         NmA7q4X9xQ8SdVqefbtN+4b0bXemc15fM9d1Z008VBcGvtGq/HBvD6SyuRjn51csLu
-         yKvBfFhQSHPs/G6XbAIqQdy4aEdu2IETdjGeb0jBK9ESqvREiTj/OIEC9+2Rlolk8U
-         cb9ZZ4VRBOyoQ==
+        t=1674138084; bh=FbzFEzuuOBe33q11CFVBIBSo/Y1oAjkTiJWrAEWEqic=;
+        h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
+        b=TT1kq7kRKlPGtrx20q3/N8fwu35DUfzhcd6lFHmJQbiIl1fCmawUIs+MmOv3z1eWF
+         W6n35jNDW+4Da88joR8vnmYwp3O6YbDiVeBTz6Rs96by/+sVK+NNs54TFFQHzYwyO2
+         t5p55wZVZ9uaME9MphGtMehbXK7yRBnNbP7iLB9Gm7+65HK6zCT89ftCeVUHeBBQ4m
+         aBZOtLgEM5xwNbHy/QCohzy/9LaBhabeT3JufoteG/5UuaKL3m94/PQGOAcroZr1tG
+         ZX3/G+jSqwP8pYcehd2PO1rhwRDIrG/f63EIA9wNwv+aM7KB8HsfaVvRxdAqC4IbP6
+         0X0+ZD3BuJGzg==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
  (mrgmx105 [212.227.17.168]) with ESMTPSA (Nemesis) id
- 1MgvrB-1omTEb3cCr-00hKKe; Thu, 19 Jan 2023 15:21:20 +0100
+ 1N1wll-1oY9KU3S6T-012Kxv; Thu, 19 Jan 2023 15:21:23 +0100
 From:   Armin Wolf <W_Armin@gmx.de>
 To:     rafael@kernel.org, lenb@kernel.org
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 0/2] ACPI: battery: Fix various string handling issues
-Date:   Thu, 19 Jan 2023 15:21:13 +0100
-Message-Id: <20230119142115.38260-1-W_Armin@gmx.de>
+Subject: [PATCH v2 2/2] ACPI: battery: Increase maximum string length
+Date:   Thu, 19 Jan 2023 15:21:15 +0100
+Message-Id: <20230119142115.38260-3-W_Armin@gmx.de>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230119142115.38260-1-W_Armin@gmx.de>
+References: <20230119142115.38260-1-W_Armin@gmx.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:J+xZQwCdYjduuupMiKWHSxhYonytUIVNgNt8jouF7YexN/V9PFe
- N2eDHLVOPkxnGmbLZPAMmAzqY1YHDsvE3s+phqMcjgqTY6EMnmUwn/zLKG8sDVt6T/G7zL3
- Sv1B9zjjEq7zAI8OgqjTVpC+287YXQfebG/ruiVtCWPTzUUzyJXxoZ8jFMHmegId12Dc0NL
- jhaLq5crKJl4ECBycTblg==
-UI-OutboundReport: notjunk:1;M01:P0:YX+0BR3tP+s=;TmUGic/D7nPR5cvCyCBpGyhBZZd
- 2Waqveq+Gn7bDybQD/6SHnTAN4y8JK7avKw5IJbGVX2r/k4YdmChbsqUDAj5OHtbiiwPH15kk
- EPwTQhmD+dsn0kaFtfcaktTPnKKL/jKvrfyFqFflsUvOftb6xNR+3WzrukIzaO/Y4s1HKPodm
- pr9Ey2TpFutdP5Uwdc44sSfoFAhZMf2V9yMHl8MXWyxOBwzRE6nKSY2vw+ICx5m3WVWCitx6i
- MnUJ5rTb/heobFTmSl1FOk/WPZObyUIEilwR78rzeL4mlaNiwZN48rk5XilN2IQyUE5ulB1yW
- lYNmfEJFEXOq3uDSKVgbtVclKEo+emaWglW6IbxhCbdtoUVevvwal5huR8FYlSRErPdjNDm+i
- mn/E91Ff0Y+THHBPtTwynlj4yYItPQNmpEnvCnF3z56bhv6uI6bvrFn19T/T7HcokFmXJcE9f
- iuujDBqpLON0c5umgElinZ8hTzmqKa7IqsVCgoeoUuVwMiplamnZ1kd2sRWpc4THllwqH0VoO
- /klRFQnTdOqXzxYPnspMGSdIkiSx55a9jv7aM2O6aZ58Eice3UGoOadvg35sA0PRh/yHA+7N0
- zuN8aJvFI+UWoNMavlQpoDiGF2q/Mu8R5FrDBqrwjpRqw22vhVJ8V93OhsN2o0t2UHEDwIs8G
- mNcKVPJZjDS5Zs0DYY+a0gsItmeXLs/rpUDZnmtnTlMlvep9BeSwsIUBut6wu2syaS8TC/wQs
- SQeIr+MJ8Cly0XhZ297bfuFP/PRvYgk1m3MG8bHn91XCYSmOc/+kbJeeZmMYmw4yRXXtAItUs
- vJiUoDZzt8K2/z9EAtUR9fIxCbX5KPgT+lV1ht5dEK9hn16fOvIbf3kCT9GD63wxcpPb7I3Al
- f5cgvBWgcejuJihdNJr2cni2mAoUsFvVYnr2+B6uGXnaXrTdzWdQvBFWU7FFoaPZUehcHKKYo
- 8ZzFau0gVsM2pXmxQAUQ+rraVRQ=
+X-Provags-ID: V03:K1:Y3hAPY55nvDn9rP2gASyCOXpuGfBLwCogm7hwp0Tnep1QK6uiac
+ LuqzC4m83H3JtbkuV4ZEOawFUqdOPTpNKQF4/nD50SjMN598qThYEPjHukKiUi612nI4Ci5
+ AmFshQzuWuFxMGcStciFMpb+fzBiDo5NUhU2QCo5hTTaV3iZ9f6D6qQCblPd/2e7Wv2o3SF
+ sj7SrOo4r+FrDg2MHJ17Q==
+UI-OutboundReport: notjunk:1;M01:P0:G5itjEFB8KM=;KJg7/i6h1k50KxlPzDDYmbwiYSO
+ ISQv2r4FcKmycbXNE+ocD67ms9N/gj95R0gVSCJ6ZjzWW5+U26sclZQJ9xOHJQIIWsWJqb6VO
+ FxGXZsegkP19Km36UIwmpIfYsWAIi0RZmoHWbHyK0LSG4KwQuoCxsB8hq6N21byXoe+0PDi7p
+ l/H5uZp4OAacFIQan0GeBc0OsU4fXQAOBUZ2wvCm2NOqFO1I3xBgpEWHgd8+D+wQmx4PdzVWG
+ dznrF9K44Y7YGOpGdujXkN4BvZCByjAvYAUOxOmagv+bnn/dlamgYdEEMq6F2payLw7FzBqFq
+ QNbkzdh6YNAqGgKYKmAfisHc3tcBViNQUw1FhaaMGO9iN970GqgjdtNtok+9NnYgvfEVgsg7l
+ gqzDFmoggQqhjXGLlUlH4dxxYNeq8U/4n3KKdkQjXN6Ypzl4mPnCz6i1pzwC/CJjRt3SYIYo4
+ kyIyUji6+UrD29AL2CRYxuW2KWYBryLg73DE8R0jDenUYYhK1LwFOMg0JpWPYVzzJ/zJ8iV/4
+ EMqwBkNtv77G1W2cMIOwUzhXRHh3WoLaH24MvmvU+cvTYOKaWRSxt80DytPEQPPVDm06RpDaF
+ B9OS3hExK/qv60K0Ka9SbWVyBBGRZCph94UL6R6M6Zb2qWzVwChMzj7T2Lxr83WQq063atdTt
+ OV6hXaWD38eun2D1ucDw6GlY7V3/i7q2I/lNSiOyh68KZJWRJ0u2oSRlGvPjcx2uLUU8j2MQo
+ 0gAGQ5Y7fIWU/wa/FsWIfSyCnWuPRK0DtFtGM+/KV35f+0fAY4h1IqvQlHROvp3flwIh97h8C
+ leFJS3KQmPRvGCKsjyuVYn+ghf6A9nBJaYOtBkApIDkQ2FFl9KX1g720OjjyZJ6sT61W7uXcI
+ 2VlAyuP2x9BHGUa6HQNcKXPQTHE9exi8hWVnVX1D//+VxLNK2ifdvTTVs4qZ3evXzkSPopUx5
+ Fw2rnyTuezGFOd95KGI2EUcvQQk=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On my Dell Inspiron 3505, the battery model name was displayed
-differently than when running Windows. While i first suspected an
-ACPI issue, it turned out that the real reason was the ACPI battery
-driver failing to handle strings larger than 32 bytes.
+On the Dell Inspiron 3505, the battery model name
+is represented as a hex string containing seven numbers,
+causing it to be larger than the current maximum string
+length (32).
+Increase this length to 64 to avoid truncating the string
+in such cases. Also introduce a common define for the length.
 
-This caused the model name of the battery (35 bytes long, hex string)
-to miss proper NUL-termination, resulting in a buffer overread later.
-Luckily, a valid string was stored right after the now invalid string,
-appending only the battery serial number to the original model name.
-
-The first patch fixes a potential buffer overread then handling buffers,
-while the second patch finally increases the maximum string length to
-avoid truncating such larger strings.
-
-The patch series was tested on a Dell Inspiron 3505 and appears
-to work properly.
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 =2D--
-Changes in v2:
-- Drop first patch since it was already applied
-- combine the second and third patch
-- do not replace 0 with '\0'
-- spell ACPI in capitals
-- rework the buffer length hdanling
+ drivers/acpi/battery.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-Armin Wolf (2):
-  ACPI: battery: Fix buffer overread if not NUL-terminated
-  ACPI: battery: Increase maximum string length
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 0ec12a7dbcca..9c67ed02d797 100644
+=2D-- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -42,6 +42,8 @@
+ #define ACPI_BATTERY_STATE_CHARGING	0x2
+ #define ACPI_BATTERY_STATE_CRITICAL	0x4
 
- drivers/acpi/battery.c | 35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
++#define MAX_STRING_LENGTH	64
++
+ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
+ MODULE_DESCRIPTION("ACPI Battery Driver");
+@@ -118,10 +120,10 @@ struct acpi_battery {
+ 	int capacity_granularity_1;
+ 	int capacity_granularity_2;
+ 	int alarm;
+-	char model_number[32];
+-	char serial_number[32];
+-	char type[32];
+-	char oem_info[32];
++	char model_number[MAX_STRING_LENGTH];
++	char serial_number[MAX_STRING_LENGTH];
++	char type[MAX_STRING_LENGTH];
++	char oem_info[MAX_STRING_LENGTH];
+ 	int state;
+ 	int power_unit;
+ 	unsigned long flags;
+@@ -437,7 +439,7 @@ static int extract_package(struct acpi_battery *batter=
+y,
+ 		element =3D &package->package.elements[i];
+ 		if (offsets[i].mode) {
+ 			u8 *ptr =3D (u8 *)battery + offsets[i].offset;
+-			u32 len =3D 32;
++			u32 len =3D MAX_STRING_LENGTH;
 
+ 			switch (element->type) {
+ 			case ACPI_TYPE_BUFFER:
 =2D-
 2.30.2
 
