@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 287B7C004D4
-	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 16:38:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E1BC00A5A
+	for <linux-acpi@archiver.kernel.org>; Thu, 19 Jan 2023 16:38:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230198AbjASQiu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S230136AbjASQiu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Thu, 19 Jan 2023 11:38:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32826 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230136AbjASQiq (ORCPT
+        with ESMTP id S230282AbjASQiq (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2023 11:38:46 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A48D54DBED
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Jan 2023 08:38:00 -0800 (PST)
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 623D83D91D
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Jan 2023 08:37:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1674146279;
+        s=mimecast20190719; t=1674146278;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Hf32wGeGMUWb2ECD3ha9nC7DIIlevKq9JoTgV9yQNvM=;
-        b=AFlnlT37W/YEIugd0zknMVFataHYDChKIPso7MyWyp2d6dsiU8unNJxbig9OtVi0+ag+eF
-        6aWEuuDLfoAVwRXzBCeHKOvBAx+ykUQ556PvOjGQB5iVatr23NBi2hrKjMFByLq3epvnO6
-        lYrfrVltoM0hdmMCpWAV+yV2aujGIPI=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=uN67L3mizLHUx2cS89kxYYWRsxiQKiVw7aSFGWTMetY=;
+        b=VppsrV9x01xuP6/4/9EZcAagaOCtTVWgtgIgYIBdf8CJI4nqdVSm8eRey/jT0Mj6KWItcN
+        NyChgVRta4agykkiUwpN1zxh+vOrzOrwpE2uTLIZDplex4FFf/4QrcxxmaVDNKiopt9Svr
+        e5rP5Tj/ZpOJS5TUGKBqCsFkjNXjx+Q=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-490-QDtC1KaZNCeJ2PUBuHI5dg-1; Thu, 19 Jan 2023 11:37:56 -0500
-X-MC-Unique: QDtC1KaZNCeJ2PUBuHI5dg-1
+ us-mta-453-_eHQkZpnMe6tW7RmOzCilg-1; Thu, 19 Jan 2023 11:37:55 -0500
+X-MC-Unique: _eHQkZpnMe6tW7RmOzCilg-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E5268858F09;
-        Thu, 19 Jan 2023 16:37:55 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.194.158])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 0FBA12026D68;
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id CA0A73C0CD44;
         Thu, 19 Jan 2023 16:37:54 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.194.158])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E413A2026D76;
+        Thu, 19 Jan 2023 16:37:53 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>,
         linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: [PATCH 2/2] ACPI: video: Add backlight=native DMI quirk for HP EliteBook 8460p
-Date:   Thu, 19 Jan 2023 17:37:44 +0100
-Message-Id: <20230119163744.548749-3-hdegoede@redhat.com>
+Subject: [PATCH 1/2] ACPI: video: Add backlight=native DMI quirk for HP Pavilion g6-1d80nr
+Date:   Thu, 19 Jan 2023 17:37:43 +0100
+Message-Id: <20230119163744.548749-2-hdegoede@redhat.com>
 In-Reply-To: <20230119163744.548749-1-hdegoede@redhat.com>
 References: <20230119163744.548749-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -53,47 +53,38 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The HP EliteBook 8460p predates Windows 8, so it defaults to using
-acpi_video# for backlight control.
+The HP Pavilion g6-1d80nr predates Windows 8, so it defaults to using
+acpi_video# for backlight control, but this is non functional on
+this model.
 
-Starting with the 6.1.y kernels the native radeon_bl0 backlight is hidden
-in this case instead of relying on userspace preferring acpi_video# over
-native backlight devices.
+Add a DMI quirk to use the native backlight interface which does
+work properly.
 
-It turns out that for the acpi_video# interface to work on
-the HP EliteBook 8460p, the brightness needs to be set at least once
-through the native interface, which now no longer is done breaking
-backlight control.
-
-The native interface however always works without problems, so add
-a quirk to use native backlight on the EliteBook 8460p to fix this.
-
-Fixes: fb1836c91317 ("ACPI: video: Prefer native over vendor")
-Link: https://bugzilla.redhat.com/show_bug.cgi?id=2161428
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video_detect.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/video_detect.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index c660dd6f896e..3a2589917648 100644
+index fb526ba8825b..c660dd6f896e 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -618,6 +618,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+@@ -618,6 +618,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "UX303UB"),
  		},
  	},
 +	{
 +	 .callback = video_detect_force_native,
-+	 /* HP EliteBook 8460p */
++	 /* HP Pavilion g6-1d80nr / B4U19UA */
 +	 .matches = {
 +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8460p"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion g6 Notebook PC"),
++		DMI_MATCH(DMI_PRODUCT_SKU, "B4U19UA"),
 +		},
 +	},
  	{
  	 .callback = video_detect_force_native,
- 	 /* HP Pavilion g6-1d80nr / B4U19UA */
+ 	 /* Samsung N150P */
 -- 
 2.39.0
 
