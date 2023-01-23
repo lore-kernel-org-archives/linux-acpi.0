@@ -2,105 +2,141 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41863C05027
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 17:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D5C4C05027
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 17:24:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233378AbjAWRPX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Jan 2023 12:15:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49900 "EHLO
+        id S233654AbjAWRYl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Jan 2023 12:24:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233282AbjAWRPW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 12:15:22 -0500
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EC152CC55;
-        Mon, 23 Jan 2023 09:15:14 -0800 (PST)
+        with ESMTP id S233651AbjAWRYk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 12:24:40 -0500
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78758A275;
+        Mon, 23 Jan 2023 09:24:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674494114; x=1706030114;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=/DBnlX2nHw8xdE1A7dfpSiRzHDfuI95hSDjM/i9Kzow=;
-  b=YisKAmcEsusnIBZwQXx2fFjo+zxnt0nELBJj2KSgMBjiw9BdJKJN2FqT
-   KGorQyMznTqkRI48vdkq3vBNUdn8hcvDur+eOoenkm8c5ZAKc9uLH1aQ9
-   7tcCmShxvqignrXj096zYOUw2B202QzOWmhBPSjH4ExHHTKSJaybK874l
-   lSzR5rXEO0QPVAVAgneA/zmi0RUfikR1QeyPNWl53g8zrnKIv7/gNNDDh
-   X2dtKTbGkR01EkdFL1qhzgVaGSmP0ICcLp8RWnIrerUPdpJ/fcElsDiZk
-   Jiq6dGRP/4t03p6KDCFzeuMd6xAnEWV2Z49NCnk3Ex2KdkLKznR5thYI4
+  t=1674494678; x=1706030678;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=zl8C9FX9Kwb+SUc6XRL7M9CKn/LKKz+nfvnr/MjjKm0=;
+  b=aUTGG0yTNRDbEAIYXobtHoKKHYddVLuT6ZnAHSKfG2ENtP38P6hnV+9N
+   GT7zfUZiSdMSDvnADSm0M3D+TLkPd0G/f4ZIaVJCbwQvg8KBJ7HuKGwha
+   KIyQ/6m+Y4NhcNadfWP6CGNO2c4TG1aE/iGen8ildAXXpQuUtx/nwNsD1
+   hxpfkD5NLUChbgFsiT4jbxCcB5WkuEQUZ05DsHPRpOdJGTWXwawrDRAH/
+   7V/K0T0j5zbSbmnOi5sKsLmRpNgnBtvzj2HYe27FaRPmZQNJhAzq+1P2/
+   6pUdcM78ImDCFSX9McRJsR/2vGCbhGpHgfnpSV2ct8rEbIX5MMjjSd0hb
    w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="328182987"
+X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="305756555"
 X-IronPort-AV: E=Sophos;i="5.97,240,1669104000"; 
-   d="scan'208";a="328182987"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2023 09:09:41 -0800
+   d="scan'208";a="305756555"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2023 09:19:48 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="639261262"
+X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="611697261"
 X-IronPort-AV: E=Sophos;i="5.97,240,1669104000"; 
-   d="scan'208";a="639261262"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga006.jf.intel.com with ESMTP; 23 Jan 2023 09:09:38 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 5A777119; Mon, 23 Jan 2023 19:10:14 +0200 (EET)
+   d="scan'208";a="611697261"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga003.jf.intel.com with ESMTP; 23 Jan 2023 09:19:46 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pK0Tx-00DqdO-1j;
+        Mon, 23 Jan 2023 19:19:45 +0200
+Date:   Mon, 23 Jan 2023 19:19:45 +0200
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        acpica-devel@lists.linuxfoundation.org
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>
-Subject: [PATCH v1 1/3] ACPI: video: Fix refcounting in apple_gmux_backlight_present()
-Date:   Mon, 23 Jan 2023 19:10:04 +0200
-Message-Id: <20230123171006.58274-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.39.0
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
+        rafael@kernel.org, heikki.krogerus@linux.intel.com
+Subject: Re: [PATCH v2 1/8] ACPI: property: Parse data node string references
+ in properties
+Message-ID: <Y87Bsf7xaFmqmgU8@smile.fi.intel.com>
+References: <20230123134617.265382-1-sakari.ailus@linux.intel.com>
+ <20230123134617.265382-2-sakari.ailus@linux.intel.com>
+ <Y86e9YeHXrNLfwHY@smile.fi.intel.com>
+ <Y86tl2YIP5ZX5W7p@kekkonen.localdomain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y86tl2YIP5ZX5W7p@kekkonen.localdomain>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_dev_get_first_match_dev() gets ACPI device with the bumped
-refcount. The caller must drop it when it's done.
+On Mon, Jan 23, 2023 at 05:53:59PM +0200, Sakari Ailus wrote:
+> On Mon, Jan 23, 2023 at 04:51:33PM +0200, Andy Shevchenko wrote:
+> > On Mon, Jan 23, 2023 at 03:46:10PM +0200, Sakari Ailus wrote:
 
-Fix ACPI device refcounting in apple_gmux_backlight_present().
+...
 
-Fixes: 3cf3b7f012f3 ("ACPI: video: Fix Apple GMUX backlight detection")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/video_detect.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+> > > - * Copyright (C) 2014, Intel Corporation
+> > > + * Copyright (C) 2014--2023, Intel Corporation
+> > 
+> > Isn't one dash enough? 
+> > 
+> > $ git grep -n 'opyright.*[0-9]--[0-9]' | wc -l
+> > 37
+> > 
+> > $ git grep -n 'opyright.*[0-9]-[0-9]' | wc -l
+> > 15064
+> 
+> This is a range, not hyphenation. There's no different character in the
+> ASCII character set for the former, commonly two regular dashes are used.
+> There probably would be a correct Unicode character though.
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 65cec7bb6d96..0ccde0d4c527 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -114,12 +114,14 @@ static bool apple_gmux_backlight_present(void)
- {
- 	struct acpi_device *adev;
- 	struct device *dev;
-+	bool ret;
- 
- 	adev = acpi_dev_get_first_match_dev(GMUX_ACPI_HID, NULL, -1);
- 	if (!adev)
- 		return false;
- 
--	dev = acpi_get_first_physical_node(adev);
-+	dev = get_device(acpi_get_first_physical_node(adev));
-+	acpi_dev_put(adev);
- 	if (!dev)
- 		return false;
- 
-@@ -127,7 +129,9 @@ static bool apple_gmux_backlight_present(void)
- 	 * drivers/platform/x86/apple-gmux.c only supports old style
- 	 * Apple GMUX with an IO-resource.
- 	 */
--	return pnp_get_resource(to_pnp_dev(dev), IORESOURCE_IO, 0) != NULL;
-+	ret = pnp_get_resource(to_pnp_dev(dev), IORESOURCE_IO, 0) != NULL;
-+	put_device(dev);
-+	return ret;
- }
- 
- /* Force to use vendor driver when the ACPI device is known to be
+Fine, but it's not even close to be called "a common use" as I showed by
+running `git grep`.
+
+> > >   * All rights reserved.
+> > >   *
+> > >   * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > >   *          Darren Hart <dvhart@linux.intel.com>
+> > >   *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > + *	    Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Seems wrong indentation in comparison to the others.
+> 
+> Tabs are preferred for intendation. I can change all the lines to use tab.
+
+Dunno, not a maintainer. I just pointed to inconsistency in the comment lines.
+
+> > >   */
+
+...
+
+> > > +static struct fwnode_handle *
+> > > +acpi_parse_string_ref(const struct fwnode_handle *fwnode, const char *refstring)
+> > > +{
+> > > +	acpi_handle scope, handle;
+> > > +	struct acpi_data_node *dn;
+> > > +	struct acpi_device *device;
+> > > +	acpi_status status;
+> > > +
+> > > +	if (is_acpi_device_node(fwnode)) {
+> > 
+> > > +		scope = to_acpi_device_node(fwnode)->handle;
+> > 
+> > Interestingly that we have a helper for this -- ACPI_HANDLE_FWNODE()...
+> > 
+> > > +	} else if (is_acpi_data_node(fwnode)) {
+> > 
+> > > +		scope = to_acpi_data_node(fwnode)->handle;
+> > 
+> > ...but not for this.
+> 
+> I'd either prefer to keep them as-is, as it's easy to see what's being done
+> there, or add a new macro --- or a function to do this.  Say,
+> acpi_fwnode_acpi_handle(), as this is clearly ACPI specific and to
+> differentiate between ACPI handles and fwnode handles.
+
+Since it's an ACPI glue layer code, I'm not insisting on changes. Just pointed
+out that we have a helper function for one of the cases.
+
+> ACPI_HANDLE_FWNODE()'s name suggests it would do something else than it
+> does, if you consider the current fwnode API.
+
 -- 
-2.39.0
+With Best Regards,
+Andy Shevchenko
+
 
