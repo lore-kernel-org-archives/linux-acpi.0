@@ -2,90 +2,123 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4F5AC38142
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 15:27:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F68AC38142
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 15:29:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231556AbjAWP16 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Jan 2023 10:27:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33734 "EHLO
+        id S231587AbjAWP3S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Jan 2023 10:29:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232012AbjAWP14 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 10:27:56 -0500
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31B422728;
-        Mon, 23 Jan 2023 07:27:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674487671; x=1706023671;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=2O9BtSsVVJHtPRdt8tXpowOfHBthP23V97SyyouGhUM=;
-  b=mDgIm5tvAiUohCOe4IgbKRFGoHMHXhxKoIFNVSHiDiChrnYe9UkzDuSz
-   aPC9ANs2PBIdmESEVS7cgtmCXp4iipMoPa+5pqUrRj+MBpRjnbQNW5k7U
-   uXmnpy2zH/0Yc3d6CQPeJqtvE3MJ1KvVKDJyEShSE43bgO0/QqyAGIe57
-   p+0LKdK5YT7QC0hFX4xj3yvrn3aQ2a1YUyWRmpZIVA+3ZUnx5WG83RSDs
-   IE34VK3yyfw4xE7yti/QY32y0wiNqY3n+idTBHA36jQNiPpEQk24XV1fz
-   V+Tm8t6sQx3K/QF26S73GuoDi1Fvl6xpwo/VshFxnNpvaVvb32chmisAe
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="390566340"
-X-IronPort-AV: E=Sophos;i="5.97,239,1669104000"; 
-   d="scan'208";a="390566340"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2023 07:27:50 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="692227608"
-X-IronPort-AV: E=Sophos;i="5.97,239,1669104000"; 
-   d="scan'208";a="692227608"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga008.jf.intel.com with ESMTP; 23 Jan 2023 07:27:48 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pJyjb-00DnhI-0g;
-        Mon, 23 Jan 2023 17:27:47 +0200
-Date:   Mon, 23 Jan 2023 17:27:46 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
-        rafael@kernel.org, heikki.krogerus@linux.intel.com
-Subject: Re: [PATCH v2 7/8] ACPI: property: Skip MIPI property table without
- "mipi-img" prefix
-Message-ID: <Y86ncn54H30xyjJU@smile.fi.intel.com>
-References: <20230123134617.265382-1-sakari.ailus@linux.intel.com>
- <20230123134617.265382-8-sakari.ailus@linux.intel.com>
+        with ESMTP id S231825AbjAWP3S (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 10:29:18 -0500
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CCE2A1A483;
+        Mon, 23 Jan 2023 07:28:56 -0800 (PST)
+Received: from vm02.corp.microsoft.com (unknown [167.220.196.155])
+        by linux.microsoft.com (Postfix) with ESMTPSA id DCD6220E2D11;
+        Mon, 23 Jan 2023 07:23:07 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DCD6220E2D11
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+        s=default; t=1674487389;
+        bh=Li2UJyY0mGyrGpuxPLsk95rzcd9mDiZ9P/GYVetjqcw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=I67w1+gjVjdOUzjLbHb5UkXxSblfXRehrmpBsxd/8+khhfHljgMF+bQMLFSczSexy
+         2gMObMMD5xu1Z4Lg15FsCs1KxVXQs9+7ySNPIhXhsAonwUOxlV5mWQkr37Abd8qcB9
+         lDhQQ4oG8UX6X1wbOYMV0w/lJFeX/DV9M8tfqL6E=
+From:   Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>,
+        "Brijesh Singh" <brijesh.singh@amd.com>,
+        "Tom Lendacky" <thomas.lendacky@amd.com>,
+        "Kalra, Ashish" <ashish.kalra@amd.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Len Brown" <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH v1 1/8] include/acpi: add definition of ASPT table
+Date:   Mon, 23 Jan 2023 15:22:43 +0000
+Message-Id: <20230123152250.26413-2-jpiotrowski@linux.microsoft.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230123152250.26413-1-jpiotrowski@linux.microsoft.com>
+References: <20230123152250.26413-1-jpiotrowski@linux.microsoft.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230123134617.265382-8-sakari.ailus@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 23, 2023 at 03:46:16PM +0200, Sakari Ailus wrote:
-> For all _DSD properties, skip going through the MIPI DisCo for Imaging
-> property name substitution table if the property doesn't have "mipi-img-"
-> prefix.
+The AMD Secure Processor ACPI Table provides the memory location of the
+register window and register offsets necessary to communicate with AMD's
+PSP (Platform Security Processor). This table is exposed on Hyper-V VMs
+configured with support for AMD's SNP isolation technology.
 
-...
+Signed-off-by: Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+---
+ include/acpi/actbl1.h | 46 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-> -	{ "mipi-img-lens-focus", "lens-focus" },
-> -	{ "mipi-img-flash-leds", "flash-leds" },
-> -	{ "mipi-img-clock-frequency", "clock-frequency" },
-> -	{ "mipi-img-led-max-current", "led-max-microamp" },
-> -	{ "mipi-img-flash-max-current", "flash-max-microamp" },
-> -	{ "mipi-img-flash-max-timeout", "flash-max-timeout-us" },
-> +	{ MIPI_IMG_PREFIX "lens-focus", "lens-focus" },
-> +	{ MIPI_IMG_PREFIX "flash-leds", "flash-leds" },
-> +	{ MIPI_IMG_PREFIX "clock-frequency", "clock-frequency" },
-> +	{ MIPI_IMG_PREFIX "led-max-current", "led-max-microamp" },
-> +	{ MIPI_IMG_PREFIX "flash-max-current", "flash-max-microamp" },
-> +	{ MIPI_IMG_PREFIX "flash-max-timeout", "flash-max-timeout-us" },
-
-I don't thing it ads to the readability, so I don't know why this (part of the)
-change is needed.
-
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 15c78678c5d3..00d40373df37 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -26,6 +26,7 @@
+  */
+ #define ACPI_SIG_AEST           "AEST"	/* Arm Error Source Table */
+ #define ACPI_SIG_ASF            "ASF!"	/* Alert Standard Format table */
++#define ACPI_SIG_ASPT           "ASPT"	/* AMD Secure Processor Table */
+ #define ACPI_SIG_BERT           "BERT"	/* Boot Error Record Table */
+ #define ACPI_SIG_BGRT           "BGRT"	/* Boot Graphics Resource Table */
+ #define ACPI_SIG_BOOT           "BOOT"	/* Simple Boot Flag Table */
+@@ -106,6 +107,51 @@ struct acpi_whea_header {
+ 	u64 mask;		/* Bitmask required for this register instruction */
+ };
+ 
++/* https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/acpitabl/ns-acpitabl-aspt_table */
++#define ASPT_REVISION_ID 0x01
++struct acpi_table_aspt {
++	struct acpi_table_header header;
++	u32 num_entries;
++};
++
++struct acpi_aspt_header {
++	u16 type;
++	u16 length;
++};
++
++enum acpi_aspt_type {
++	ACPI_ASPT_TYPE_GLOBAL_REGS = 0,
++	ACPI_ASPT_TYPE_SEV_MBOX_REGS = 1,
++	ACPI_ASPT_TYPE_ACPI_MBOX_REGS = 2,
++};
++
++/* 0: ASPT Global Registers */
++struct acpi_aspt_global_regs {
++	struct acpi_aspt_header header;
++	u32 reserved;
++	u64 feature_reg_addr;
++	u64 irq_en_reg_addr;
++	u64 irq_st_reg_addr;
++};
++
++/* 1: ASPT SEV Mailbox Registers */
++struct acpi_aspt_sev_mbox_regs {
++	struct acpi_aspt_header header;
++	u8 mbox_irq_id;
++	u8 reserved[3];
++	u64 cmd_resp_reg_addr;
++	u64 cmd_buf_lo_reg_addr;
++	u64 cmd_buf_hi_reg_addr;
++};
++
++/* 2: ASPT ACPI Mailbox Registers */
++struct acpi_aspt_acpi_mbox_regs {
++	struct acpi_aspt_header header;
++	u32 reserved1;
++	u64 cmd_resp_reg_addr;
++	u64 reserved2[2];
++};
++
+ /*******************************************************************************
+  *
+  * ASF - Alert Standard Format table (Signature "ASF!")
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.25.1
 
