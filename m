@@ -2,123 +2,93 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F68AC38142
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 15:29:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE2CC05027
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 15:44:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231587AbjAWP3S (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Jan 2023 10:29:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35856 "EHLO
+        id S232629AbjAWPoU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Jan 2023 10:44:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231825AbjAWP3S (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 10:29:18 -0500
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CCE2A1A483;
-        Mon, 23 Jan 2023 07:28:56 -0800 (PST)
-Received: from vm02.corp.microsoft.com (unknown [167.220.196.155])
-        by linux.microsoft.com (Postfix) with ESMTPSA id DCD6220E2D11;
-        Mon, 23 Jan 2023 07:23:07 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DCD6220E2D11
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-        s=default; t=1674487389;
-        bh=Li2UJyY0mGyrGpuxPLsk95rzcd9mDiZ9P/GYVetjqcw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=I67w1+gjVjdOUzjLbHb5UkXxSblfXRehrmpBsxd/8+khhfHljgMF+bQMLFSczSexy
-         2gMObMMD5xu1Z4Lg15FsCs1KxVXQs9+7ySNPIhXhsAonwUOxlV5mWQkr37Abd8qcB9
-         lDhQQ4oG8UX6X1wbOYMV0w/lJFeX/DV9M8tfqL6E=
-From:   Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>,
-        "Brijesh Singh" <brijesh.singh@amd.com>,
-        "Tom Lendacky" <thomas.lendacky@amd.com>,
-        "Kalra, Ashish" <ashish.kalra@amd.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Len Brown" <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Subject: [PATCH v1 1/8] include/acpi: add definition of ASPT table
-Date:   Mon, 23 Jan 2023 15:22:43 +0000
-Message-Id: <20230123152250.26413-2-jpiotrowski@linux.microsoft.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230123152250.26413-1-jpiotrowski@linux.microsoft.com>
-References: <20230123152250.26413-1-jpiotrowski@linux.microsoft.com>
+        with ESMTP id S232864AbjAWPoT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 10:44:19 -0500
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B37B8CDEE
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Jan 2023 07:44:12 -0800 (PST)
+Received: by mail-wm1-x32e.google.com with SMTP id d4-20020a05600c3ac400b003db1de2aef0so8891011wms.2
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Jan 2023 07:44:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=EL69+rPnKeG35tCOAhKwCTlgNoHpcrZ2APlPxC5Kf4s=;
+        b=ASN/i9xD+3TUCWN1tEycO/CFk1Zsr6bUhPwLBz+rcqvKpImrhvevbMueqPdZKW4r2F
+         crJvl9X4O1jz0Obi31lpWPIjqol/AgWYZrNJqMYVDlzqwpnQINDhAzHM0Q7CjjRoG4Ss
+         iBDeEREU9l5tCmB1BQsJ46D/Tpt0DdW/biUhm9hlE+NocVX4pzoz7roMYXOlFWH+ekyy
+         MCKl2EUbrGHDRjpQpZkl+eR3SJUkNnnUIy0qEPimGWUmk2WnbJqIM9P3zh4m7r2xbUoT
+         /z62DybIrHxwsfiRmnZwAvnGHQ1U9TigQqw1zoKBNVWvu87ZiOpYwdji8rsNsPBK/Dgy
+         0TMg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EL69+rPnKeG35tCOAhKwCTlgNoHpcrZ2APlPxC5Kf4s=;
+        b=P7do29/o2vILP930ZtBxU4mSqI0QCqs5KPlE/2yVQ8GnYexnDP53/r5NWYTVm0hYG1
+         TYk++rkqAVEkNIPdjtY2VPqWZnm4nNvU7TE3i3eZ/nVkDxFwvmaVKM18NR58GwUI0PZO
+         vSeb+b5eA4/SSXV5uo4AgpYHwRak+vPFrMBvRChCoGWaNxf1U6p6S8+kHvuzqKiznJ51
+         P4H5ua/tR9yTvcHSgoi/t/K8bbzvjAN9iihy7fBAGTVfWLb79j8kDW4BbNj8RnvRR9C/
+         FeFS5rPwnaNry6AYlKhqs4Utx0IVGOdTSQWY0ST0ZopoJrWAZiar2nXEoMXu03iMoQJ6
+         XFXw==
+X-Gm-Message-State: AFqh2kr4hc6KYgwDHGGYGpO5CEQBkxmlLw6ohz/p410VT/Nj3HQouraz
+        /z5t+8h4L8mobz2A6pbrwv+SeYzMbChQ0g==
+X-Google-Smtp-Source: AMrXdXtG5pwf9+pz1eWKwHr3kW/9Br31uwV7Np4Hs5r+bLuuLI3flpKcwFG8kQQHN/UyR32QHBbLoA==
+X-Received: by 2002:a05:600c:1e1f:b0:3db:e13:750c with SMTP id ay31-20020a05600c1e1f00b003db0e13750cmr22792736wmb.29.1674488651150;
+        Mon, 23 Jan 2023 07:44:11 -0800 (PST)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id q7-20020a05600c46c700b003db11dfc687sm11553878wmo.36.2023.01.23.07.44.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Jan 2023 07:44:10 -0800 (PST)
+Date:   Mon, 23 Jan 2023 18:44:07 +0300
+From:   Dan Carpenter <error27@gmail.com>
+To:     Pierre Gondois <pierre.gondois@arm.com>
+Cc:     linux-acpi@vger.kernel.org
+Subject: Re: [bug report] arch_topology: Build cacheinfo from primary CPU
+Message-ID: <Y86rRxRCbel5xUE0@kadam>
+References: <Y86iruJPuwNN7rZw@kili>
+ <6fc14182-520b-d3ee-410c-8be3bc98a514@arm.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6fc14182-520b-d3ee-410c-8be3bc98a514@arm.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The AMD Secure Processor ACPI Table provides the memory location of the
-register window and register offsets necessary to communicate with AMD's
-PSP (Platform Security Processor). This table is exposed on Hyper-V VMs
-configured with support for AMD's SNP isolation technology.
+On Mon, Jan 23, 2023 at 04:14:56PM +0100, Pierre Gondois wrote:
+> Hello Dan,
+> The 'levels' and 'split_levels' variables are initialized through their
+> addresses when necessary, so I believe the warning can be ignored.
 
-Signed-off-by: Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
----
- include/acpi/actbl1.h | 46 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+I don't understand what "initialized through their addresses when
+necessary" means.  If you have CONFIG_ACPI_PPTT turned off as I do then
+acpi_get_cache_info() is a no-op so it's not initializing anything.
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 15c78678c5d3..00d40373df37 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -26,6 +26,7 @@
-  */
- #define ACPI_SIG_AEST           "AEST"	/* Arm Error Source Table */
- #define ACPI_SIG_ASF            "ASF!"	/* Alert Standard Format table */
-+#define ACPI_SIG_ASPT           "ASPT"	/* AMD Secure Processor Table */
- #define ACPI_SIG_BERT           "BERT"	/* Boot Error Record Table */
- #define ACPI_SIG_BGRT           "BGRT"	/* Boot Graphics Resource Table */
- #define ACPI_SIG_BOOT           "BOOT"	/* Simple Boot Flag Table */
-@@ -106,6 +107,51 @@ struct acpi_whea_header {
- 	u64 mask;		/* Bitmask required for this register instruction */
- };
- 
-+/* https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/acpitabl/ns-acpitabl-aspt_table */
-+#define ASPT_REVISION_ID 0x01
-+struct acpi_table_aspt {
-+	struct acpi_table_header header;
-+	u32 num_entries;
-+};
-+
-+struct acpi_aspt_header {
-+	u16 type;
-+	u16 length;
-+};
-+
-+enum acpi_aspt_type {
-+	ACPI_ASPT_TYPE_GLOBAL_REGS = 0,
-+	ACPI_ASPT_TYPE_SEV_MBOX_REGS = 1,
-+	ACPI_ASPT_TYPE_ACPI_MBOX_REGS = 2,
-+};
-+
-+/* 0: ASPT Global Registers */
-+struct acpi_aspt_global_regs {
-+	struct acpi_aspt_header header;
-+	u32 reserved;
-+	u64 feature_reg_addr;
-+	u64 irq_en_reg_addr;
-+	u64 irq_st_reg_addr;
-+};
-+
-+/* 1: ASPT SEV Mailbox Registers */
-+struct acpi_aspt_sev_mbox_regs {
-+	struct acpi_aspt_header header;
-+	u8 mbox_irq_id;
-+	u8 reserved[3];
-+	u64 cmd_resp_reg_addr;
-+	u64 cmd_buf_lo_reg_addr;
-+	u64 cmd_buf_hi_reg_addr;
-+};
-+
-+/* 2: ASPT ACPI Mailbox Registers */
-+struct acpi_aspt_acpi_mbox_regs {
-+	struct acpi_aspt_header header;
-+	u32 reserved1;
-+	u64 cmd_resp_reg_addr;
-+	u64 reserved2[2];
-+};
-+
- /*******************************************************************************
-  *
-  * ASF - Alert Standard Format table (Signature "ASF!")
--- 
-2.25.1
+> 
+> If you still want to have the variables initialized, please let me know and I
+> will send a patch,
+
+I feel like I have this kind of discussion a lot.  I don't know why
+people don't want to initialize their variables to zero.
+
+1) It doesn't affect runtime on modern distros because they use the
+   CONFIG_ option to zero stack variables.
+
+2) If they don't then syzbot will detect it at runtime.  It will probably
+   take a year or two.  That will set off a bunch of emails.  Meanwhile
+   you will have joined an exciting new start up and won't be around.
+   No one else will remember how this code works.
+
+regards,
+dan carpenter
+
 
