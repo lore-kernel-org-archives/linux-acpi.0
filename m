@@ -2,120 +2,376 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8F56C38142
-	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 18:21:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32BA5C05027
+	for <linux-acpi@archiver.kernel.org>; Mon, 23 Jan 2023 18:41:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233122AbjAWSVx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 23 Jan 2023 13:21:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59986 "EHLO
+        id S231548AbjAWSlv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 23 Jan 2023 13:41:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233045AbjAWSVv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 13:21:51 -0500
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5740D27D79;
-        Mon, 23 Jan 2023 10:21:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674498110; x=1706034110;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=wjKXxFwxKsHhW1Zn2UhqeyPFNrU7rkAFDdAJE1qDxlc=;
-  b=ZremmeRYRUXR1ZSwT9Z2DvcKoJa6PMENiQZhCsasrVfqqeO47p0Oozwy
-   BqgOxQC756WhlGvjnAS0hzi4c08pKUmL9CBZsvofceeHMWHCXymnHVwVz
-   tMFWREzUVoK1jqE2UL9uQlSorRC7nc2szkRrDa1YLf5sbBl+5kLLly+jX
-   z5vm7VSm+Y+J8BHPdbjLK/wn4+cgXRQlSB1hfrBaL0YdEbWp+e40UuyJL
-   HpgNrdbHHTv2z96MTuQ08xoJsmoGkPlzCre4QhEvssn+LsBCdmoTZ4fas
-   +aMfldprQH1xZikiMEdhhM/s84fZY41UXnZgq+1avG6w4hwMhHw/GNS/9
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="390613296"
-X-IronPort-AV: E=Sophos;i="5.97,240,1669104000"; 
-   d="scan'208";a="390613296"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2023 10:21:26 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10599"; a="611715664"
-X-IronPort-AV: E=Sophos;i="5.97,240,1669104000"; 
-   d="scan'208";a="611715664"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga003.jf.intel.com with ESMTP; 23 Jan 2023 10:21:22 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pK1RY-00Ds1K-0p;
-        Mon, 23 Jan 2023 20:21:20 +0200
-Date:   Mon, 23 Jan 2023 20:21:19 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Raul Rangel <rrangel@chromium.org>
-Cc:     Bartosz Golaszewski <brgl@bgdev.pl>,
-        Mario Limonciello <mario.limonciello@amd.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        Wolfram Sang <wsa@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Nathan Smythe <ncsmythe@scruboak.org>,
-        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Hasemeyer <markhas@chromium.org>
-Subject: Re: [PATCH 2/2] gpiolib-acpi: Don't set GPIOs for wakeup in S3 mode
-Message-ID: <Y87QH6jZTcO51GDq@smile.fi.intel.com>
-References: <20230121134812.16637-1-mario.limonciello@amd.com>
- <20230121134812.16637-3-mario.limonciello@amd.com>
- <CAMRc=Meeiix1BuPi81Ad08yePvd7U5S-AVNwU+vYUHv2VcDiEQ@mail.gmail.com>
- <CAHQZ30Dgs=ScuQ2MkNkuHyZNC1wwaBDkMhcvh9dt3oAppTKBbw@mail.gmail.com>
- <Y87ERbaTEhKIK1nq@smile.fi.intel.com>
- <CAHQZ30Aj-S1kRiYhh4sFzZYH8MLKY=sdqYRDqZtqOGGMn1Bang@mail.gmail.com>
+        with ESMTP id S231441AbjAWSlu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2023 13:41:50 -0500
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8314023311;
+        Mon, 23 Jan 2023 10:41:41 -0800 (PST)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
+ id b7ed5d2300cc4e90; Mon, 23 Jan 2023 19:41:39 +0100
+Received: from kreacher.localnet (unknown [213.134.188.170])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id B97AF213259F;
+        Mon, 23 Jan 2023 19:41:38 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH v7 3/3] thermal: intel: int340x: Use generic trip points
+Date:   Mon, 23 Jan 2023 19:41:23 +0100
+Message-ID: <2147918.irdbgypaU6@kreacher>
+In-Reply-To: <5916342.lOV4Wx5bFT@kreacher>
+References: <5916342.lOV4Wx5bFT@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHQZ30Aj-S1kRiYhh4sFzZYH8MLKY=sdqYRDqZtqOGGMn1Bang@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.188.170
+X-CLIENT-HOSTNAME: 213.134.188.170
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedruddukedguddtgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepvddufedrudefgedrudekkedrudejtdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukeekrddujedtpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeeipdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghr
+ rdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghnihgvlhdrlhgviigtrghnoheslhhinhgrrhhordhorhhgpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Jan 23, 2023 at 10:54:29AM -0700, Raul Rangel wrote:
-> On Mon, Jan 23, 2023 at 10:30 AM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Mon, Jan 23, 2023 at 08:55:02AM -0700, Raul Rangel wrote:
-> > > On Mon, Jan 23, 2023 at 8:03 AM Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> > > > On Sat, Jan 21, 2023 at 2:48 PM Mario Limonciello
-> > > > <mario.limonciello@amd.com> wrote:
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-...
+The thermal framework gives the possibility to register the trip
+points along with the thermal zone. When that is done, no get_trip_*
+callbacks are needed and they can be removed.
 
-> > > We still need to figure out a proper fix for this. If you read my post
-> > > here: https://gitlab.freedesktop.org/drm/amd/-/issues/2357#note_1732372
-> > > I think we misinterpreted what the SharedAndWake bit is used for. To
-> > > me it sounds like it's only valid for HW Reduced ACPI platforms, and
-> > > S0ix. My changes made it so we call `dev_pm_set_wake_irq` when the
-> > > Wake bit is set. Does anyone have any additional context on the Wake
-> > > bit? I think we either need to make `dev_pm_set_wake_irq` (or a
-> > > variant) only enable the wake on S0i3, or we can teach the ACPI
-> > > subsystem to manage arming the IRQ's wake bit. Kind of like we already
-> > > manage the GPE events for the device.
-> >
-> > From the spec:
-> >
-> > Shared is an optional argument and can be one of Shared, Exclusive,
-> > SharedAndWake or ExclusiveAndWake. If not specified, Exclusive is assumed.
-> > The “Wake” designation indicates that the interrupt is capable of waking
-> > the system from a low-power idle state or a system sleep state. The bit
-> > field name _SHR is automatically created to refer to this portion of
-> > the resource descriptor.
-> >
-> >
-> > Note: "...a low-power idle state or a system sleep state.". I believe it
-> > applies to both.
-> 
-> Without the _PRW, how do we determine the valid system sleep states
-> the device can wake the system from?
+Convert the existing callbacks content logic into generic trip points
+initialization code and register them along with the thermal zone.
 
-Good question. I believe you need to ask somebody from ASWG for the
-clarifications.
+In order to consolidate the code, use ACPI trip library functions to
+populate generic trip points.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Zhang Rui <rui.zhang@intel.com>
+[ rjw: Subject and changelog edits, rebase ]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/thermal/intel/int340x_thermal/Kconfig                |    1 
+ drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c |  172 ++---------
+ drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h |   10 
+ 3 files changed, 48 insertions(+), 135 deletions(-)
+
+Index: linux-pm/drivers/thermal/intel/int340x_thermal/Kconfig
+===================================================================
+--- linux-pm.orig/drivers/thermal/intel/int340x_thermal/Kconfig
++++ linux-pm/drivers/thermal/intel/int340x_thermal/Kconfig
+@@ -9,6 +9,7 @@ config INT340X_THERMAL
+ 	select THERMAL_GOV_USER_SPACE
+ 	select ACPI_THERMAL_REL
+ 	select ACPI_FAN
++	select THERMAL_ACPI
+ 	select INTEL_SOC_DTS_IOSF_CORE
+ 	select INTEL_TCC
+ 	select PROC_THERMAL_MMIO_RAPL if POWERCAP
+Index: linux-pm/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c
+===================================================================
+--- linux-pm.orig/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c
++++ linux-pm/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.c
+@@ -37,65 +37,6 @@ static int int340x_thermal_get_zone_temp
+ 	return 0;
+ }
+ 
+-static int int340x_thermal_get_trip_temp(struct thermal_zone_device *zone,
+-					 int trip, int *temp)
+-{
+-	struct int34x_thermal_zone *d = zone->devdata;
+-	int i;
+-
+-	if (trip < d->aux_trip_nr)
+-		*temp = d->aux_trips[trip];
+-	else if (trip == d->crt_trip_id)
+-		*temp = d->crt_temp;
+-	else if (trip == d->psv_trip_id)
+-		*temp = d->psv_temp;
+-	else if (trip == d->hot_trip_id)
+-		*temp = d->hot_temp;
+-	else {
+-		for (i = 0; i < INT340X_THERMAL_MAX_ACT_TRIP_COUNT; i++) {
+-			if (d->act_trips[i].valid &&
+-			    d->act_trips[i].id == trip) {
+-				*temp = d->act_trips[i].temp;
+-				break;
+-			}
+-		}
+-		if (i == INT340X_THERMAL_MAX_ACT_TRIP_COUNT)
+-			return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+-static int int340x_thermal_get_trip_type(struct thermal_zone_device *zone,
+-					 int trip,
+-					 enum thermal_trip_type *type)
+-{
+-	struct int34x_thermal_zone *d = zone->devdata;
+-	int i;
+-
+-	if (trip < d->aux_trip_nr)
+-		*type = THERMAL_TRIP_PASSIVE;
+-	else if (trip == d->crt_trip_id)
+-		*type = THERMAL_TRIP_CRITICAL;
+-	else if (trip == d->hot_trip_id)
+-		*type = THERMAL_TRIP_HOT;
+-	else if (trip == d->psv_trip_id)
+-		*type = THERMAL_TRIP_PASSIVE;
+-	else {
+-		for (i = 0; i < INT340X_THERMAL_MAX_ACT_TRIP_COUNT; i++) {
+-			if (d->act_trips[i].valid &&
+-			    d->act_trips[i].id == trip) {
+-				*type = THERMAL_TRIP_ACTIVE;
+-				break;
+-			}
+-		}
+-		if (i == INT340X_THERMAL_MAX_ACT_TRIP_COUNT)
+-			return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ static int int340x_thermal_set_trip_temp(struct thermal_zone_device *zone,
+ 				      int trip, int temp)
+ {
+@@ -109,20 +50,15 @@ static int int340x_thermal_set_trip_temp
+ 	if (ACPI_FAILURE(status))
+ 		return -EIO;
+ 
+-	d->aux_trips[trip] = temp;
+-
+ 	return 0;
+ }
+ 
+-
+-static int int340x_thermal_get_trip_hyst(struct thermal_zone_device *zone,
+-		int trip, int *temp)
++static int int340x_thermal_get_global_hyst(struct acpi_device *adev, int *temp)
+ {
+-	struct int34x_thermal_zone *d = zone->devdata;
+ 	acpi_status status;
+ 	unsigned long long hyst;
+ 
+-	status = acpi_evaluate_integer(d->adev->handle, "GTSH", NULL, &hyst);
++	status = acpi_evaluate_integer(adev->handle, "GTSH", NULL, &hyst);
+ 	if (ACPI_FAILURE(status))
+ 		*temp = 0;
+ 	else
+@@ -131,6 +67,7 @@ static int int340x_thermal_get_trip_hyst
+ 	return 0;
+ }
+ 
++
+ static void int340x_thermal_critical(struct thermal_zone_device *zone)
+ {
+ 	dev_dbg(&zone->device, "%s: critical temperature reached\n", zone->type);
+@@ -138,58 +75,36 @@ static void int340x_thermal_critical(str
+ 
+ static struct thermal_zone_device_ops int340x_thermal_zone_ops = {
+ 	.get_temp       = int340x_thermal_get_zone_temp,
+-	.get_trip_temp	= int340x_thermal_get_trip_temp,
+-	.get_trip_type	= int340x_thermal_get_trip_type,
+ 	.set_trip_temp	= int340x_thermal_set_trip_temp,
+-	.get_trip_hyst =  int340x_thermal_get_trip_hyst,
+ 	.critical	= int340x_thermal_critical,
+ };
+ 
+-static int int340x_thermal_get_trip_config(acpi_handle handle, char *name,
+-				      int *temp)
+-{
+-	unsigned long long r;
+-	acpi_status status;
+-
+-	status = acpi_evaluate_integer(handle, name, NULL, &r);
+-	if (ACPI_FAILURE(status))
+-		return -EIO;
+-
+-	*temp = deci_kelvin_to_millicelsius(r);
+-
+-	return 0;
+-}
+-
+ int int340x_thermal_read_trips(struct int34x_thermal_zone *int34x_zone)
+ {
+-	int trip_cnt = int34x_zone->aux_trip_nr;
+-	int i;
++	int trip_cnt;
++	int i, ret;
+ 
+-	int34x_zone->crt_trip_id = -1;
+-	if (!int340x_thermal_get_trip_config(int34x_zone->adev->handle, "_CRT",
+-					     &int34x_zone->crt_temp))
+-		int34x_zone->crt_trip_id = trip_cnt++;
+-
+-	int34x_zone->hot_trip_id = -1;
+-	if (!int340x_thermal_get_trip_config(int34x_zone->adev->handle, "_HOT",
+-					     &int34x_zone->hot_temp))
+-		int34x_zone->hot_trip_id = trip_cnt++;
+-
+-	int34x_zone->psv_trip_id = -1;
+-	if (!int340x_thermal_get_trip_config(int34x_zone->adev->handle, "_PSV",
+-					     &int34x_zone->psv_temp))
+-		int34x_zone->psv_trip_id = trip_cnt++;
++	trip_cnt = int34x_zone->aux_trip_nr;
++
++	ret = thermal_acpi_trip_critical(int34x_zone->adev, &int34x_zone->trips[trip_cnt]);
++	if (!ret)
++		trip_cnt++;
++
++	ret = thermal_acpi_trip_hot(int34x_zone->adev, &int34x_zone->trips[trip_cnt]);
++	if (!ret)
++		trip_cnt++;
++
++	ret = thermal_acpi_trip_passive(int34x_zone->adev, &int34x_zone->trips[trip_cnt]);
++	if (!ret)
++		trip_cnt++;
+ 
+ 	for (i = 0; i < INT340X_THERMAL_MAX_ACT_TRIP_COUNT; i++) {
+-		char name[5] = { '_', 'A', 'C', '0' + i, '\0' };
+ 
+-		if (int340x_thermal_get_trip_config(int34x_zone->adev->handle,
+-					name,
+-					&int34x_zone->act_trips[i].temp))
++		ret = thermal_acpi_trip_active(int34x_zone->adev, i, &int34x_zone->trips[trip_cnt]);
++		if (ret)
+ 			break;
+ 
+-		int34x_zone->act_trips[i].id = trip_cnt++;
+-		int34x_zone->act_trips[i].valid = true;
++		trip_cnt++;
+ 	}
+ 
+ 	return trip_cnt;
+@@ -208,7 +123,7 @@ struct int34x_thermal_zone *int340x_ther
+ 	acpi_status status;
+ 	unsigned long long trip_cnt;
+ 	int trip_mask = 0;
+-	int ret;
++	int i, ret;
+ 
+ 	int34x_thermal_zone = kzalloc(sizeof(*int34x_thermal_zone),
+ 				      GFP_KERNEL);
+@@ -228,32 +143,35 @@ struct int34x_thermal_zone *int340x_ther
+ 		int34x_thermal_zone->ops->get_temp = get_temp;
+ 
+ 	status = acpi_evaluate_integer(adev->handle, "PATC", NULL, &trip_cnt);
+-	if (ACPI_FAILURE(status))
+-		trip_cnt = 0;
+-	else {
+-		int i;
+-
+-		int34x_thermal_zone->aux_trips =
+-			kcalloc(trip_cnt,
+-				sizeof(*int34x_thermal_zone->aux_trips),
+-				GFP_KERNEL);
+-		if (!int34x_thermal_zone->aux_trips) {
+-			ret = -ENOMEM;
+-			goto err_trip_alloc;
+-		}
+-		trip_mask = BIT(trip_cnt) - 1;
++	if (!ACPI_FAILURE(status)) {
+ 		int34x_thermal_zone->aux_trip_nr = trip_cnt;
+-		for (i = 0; i < trip_cnt; ++i)
+-			int34x_thermal_zone->aux_trips[i] = THERMAL_TEMP_INVALID;
++		trip_mask = BIT(trip_cnt) - 1;
++	}
++
++	int34x_thermal_zone->trips = kzalloc(sizeof(*int34x_thermal_zone->trips) *
++					     (INT340X_THERMAL_MAX_TRIP_COUNT + trip_cnt),
++					      GFP_KERNEL);
++	if (!int34x_thermal_zone->trips) {
++		ret = -ENOMEM;
++		goto err_trips_alloc;
+ 	}
+ 
+ 	trip_cnt = int340x_thermal_read_trips(int34x_thermal_zone);
+ 
++	for (i = 0; i < trip_cnt; ++i)
++		int340x_thermal_get_global_hyst(adev, &int34x_thermal_zone->trips[i].hysteresis);
++
++	for (i = 0; i < int34x_thermal_zone->aux_trip_nr; i++) {
++		int34x_thermal_zone->trips[i].type = THERMAL_TRIP_PASSIVE;
++		int34x_thermal_zone->trips[i].temperature = THERMAL_TEMP_INVALID;
++	}
++	
+ 	int34x_thermal_zone->lpat_table = acpi_lpat_get_conversion_table(
+ 								adev->handle);
+ 
+-	int34x_thermal_zone->zone = thermal_zone_device_register(
++	int34x_thermal_zone->zone = thermal_zone_device_register_with_trips(
+ 						acpi_device_bid(adev),
++						int34x_thermal_zone->trips,
+ 						trip_cnt,
+ 						trip_mask, int34x_thermal_zone,
+ 						int34x_thermal_zone->ops,
+@@ -272,9 +190,9 @@ struct int34x_thermal_zone *int340x_ther
+ err_enable:
+ 	thermal_zone_device_unregister(int34x_thermal_zone->zone);
+ err_thermal_zone:
++	kfree(int34x_thermal_zone->trips);
+ 	acpi_lpat_free_conversion_table(int34x_thermal_zone->lpat_table);
+-	kfree(int34x_thermal_zone->aux_trips);
+-err_trip_alloc:
++err_trips_alloc:
+ 	kfree(int34x_thermal_zone->ops);
+ err_ops_alloc:
+ 	kfree(int34x_thermal_zone);
+@@ -287,7 +205,7 @@ void int340x_thermal_zone_remove(struct
+ {
+ 	thermal_zone_device_unregister(int34x_thermal_zone->zone);
+ 	acpi_lpat_free_conversion_table(int34x_thermal_zone->lpat_table);
+-	kfree(int34x_thermal_zone->aux_trips);
++	kfree(int34x_thermal_zone->trips);
+ 	kfree(int34x_thermal_zone->ops);
+ 	kfree(int34x_thermal_zone);
+ }
+Index: linux-pm/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h
+===================================================================
+--- linux-pm.orig/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h
++++ linux-pm/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.h
+@@ -10,6 +10,7 @@
+ #include <acpi/acpi_lpat.h>
+ 
+ #define INT340X_THERMAL_MAX_ACT_TRIP_COUNT	10
++#define INT340X_THERMAL_MAX_TRIP_COUNT INT340X_THERMAL_MAX_ACT_TRIP_COUNT + 3
+ 
+ struct active_trip {
+ 	int temp;
+@@ -19,15 +20,8 @@ struct active_trip {
+ 
+ struct int34x_thermal_zone {
+ 	struct acpi_device *adev;
+-	struct active_trip act_trips[INT340X_THERMAL_MAX_ACT_TRIP_COUNT];
+-	unsigned long *aux_trips;
++	struct thermal_trip *trips;
+ 	int aux_trip_nr;
+-	int psv_temp;
+-	int psv_trip_id;
+-	int crt_temp;
+-	int crt_trip_id;
+-	int hot_temp;
+-	int hot_trip_id;
+ 	struct thermal_zone_device *zone;
+ 	struct thermal_zone_device_ops *ops;
+ 	void *priv_data;
+
 
 
