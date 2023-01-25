@@ -2,159 +2,138 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C13C61DA4
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 Jan 2023 17:22:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BEADC54E94
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 Jan 2023 18:34:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235607AbjAYRW5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 25 Jan 2023 12:22:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47456 "EHLO
+        id S236014AbjAYSex (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 25 Jan 2023 13:34:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236219AbjAYRWs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2023 12:22:48 -0500
-Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8122B5B588
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Jan 2023 09:22:36 -0800 (PST)
-Received: by mail-yb1-xb2a.google.com with SMTP id h5so6995906ybj.8
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Jan 2023 09:22:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=IqJXv+IInDU1mKTOWecSjx46uIp9RhIiEah7PjvPLrg=;
-        b=QlZyecSvRJAlH7daZiVbTmdMCDJawwIkjqybbPcYd50INvCOOFwycJjGFsDCENBvPF
-         JeBM9yeOQDknmaZC6LT0p7wlzLAJo3QYgAn7K1xQNCTJjPrh6oinOxgRNGwGedAqUfeH
-         4EF6oknHwKU0N6BIZOc0CJi1hrgM4W0zxm3gicvvOuEGF7JC9HCNICDdMPEAz6Lz/B5y
-         FN2dpyuojKkpe3r7ipsFxRIyHaJ4nJmkiiUGkQy6aOsuBhBZ3WzwUsGkq0uXDlGTKFEH
-         iRh4N/trPN148wcbBUC1DmqB3ErHQLF9n9pkmMXooLK6oXyXf0aS41iIJv2buhnN7zSu
-         X8Bw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IqJXv+IInDU1mKTOWecSjx46uIp9RhIiEah7PjvPLrg=;
-        b=PIcvN6gH9nPrNfsRMW3b+3wgj+aPLF+bPudslz/2gb4IQ9Ac86e4bocYkYYYhStDyP
-         sOAMAOlWXgmo2Bb6QQcEdo/LVKOzA6Yd4uo6KQFl0wDLB1L2i6CC6bN5n/ncNVmCWkcO
-         X9Hr9xLfN3zZQzHsnEo3JbKf+35VbQE4b3L7DVYV0VPSZoWAmlckUrek2uto0PQ57riw
-         ATs75GBFs3S1cd/Pco0ptwbpN0lr9WRoPsztuVHN3jaugjwH0/b0QQmgHxTx8TCg+xw/
-         SuvVx5U6BGbLX8NdoiHEdZTi5i8iq6jXcMsLoG6Vm8llb/zqSr8ctx9CgjlH9sSRVhfj
-         hy7A==
-X-Gm-Message-State: AFqh2kqoG9q982y2XSM3WecjkYhf9dvbHanG0gGSZQwv+EDibv1hVdft
-        Tv5tpviB21B+Zf+vAf27t1dtrZ0AFB7l4SuLHjKu0Q==
-X-Google-Smtp-Source: AMrXdXv634nY3BrnZ3PlTUGlyUi8i7L3YenO2gMgxW5qJ4tF6Xha6yZp+2FFeWeU8OQrXrCFeHpomo5nr++haHZW7UI=
-X-Received: by 2002:a25:a408:0:b0:800:28d4:6936 with SMTP id
- f8-20020a25a408000000b0080028d46936mr2303639ybi.431.1674667354997; Wed, 25
- Jan 2023 09:22:34 -0800 (PST)
+        with ESMTP id S235192AbjAYSes (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2023 13:34:48 -0500
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB6F865B1;
+        Wed, 25 Jan 2023 10:34:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1674671687; x=1706207687;
+  h=from:date:subject:mime-version:content-transfer-encoding:
+   message-id:to:cc;
+  bh=DLIRvXMdKH0hTEcM4b9xtXkEm+HmcMdb8x6cxdoVsZE=;
+  b=iYf6/UAaBbqSqOaYgFEKzCmYUfTe13UmSd957x8mBTP/ZrJ9VI3Xiprv
+   KWO0r2bCuMzfCXsk9xjJDsxEr1NPKRDBe0Yks/EsgHsLNPKUdepGtVFzR
+   DmjJGWN3aCfSeiGQty9CrjnupsmImVNX3GmNeBfwEoChldH10mSoRV/Rz
+   EFS1AFm0db8O1PK7VAq9vj1f7e9x7W/V0bwwIEQPEsdsOtFCw+/1Khbvs
+   8gFN2bVAFhZOoTZaDGE2o2Rmv/RgNt3A3333eQ8KobIUqphHPqltlDm6G
+   DSzdUPFH8kjmH7hU+UYTWo0B3tGaKYtGhsFJOc/eQo9r6Qfd1/oBvk+j7
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="326666759"
+X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
+   d="scan'208";a="326666759"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 10:34:42 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="991364139"
+X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
+   d="scan'208";a="991364139"
+Received: from ssgirme-mobl2.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.212.29.187])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 10:34:42 -0800
+From:   Vishal Verma <vishal.l.verma@intel.com>
+Date:   Wed, 25 Jan 2023 11:34:18 -0700
+Subject: [PATCH] ACPI: NFIT: fix a potential deadlock during NFIT teardown
 MIME-Version: 1.0
-References: <20230125083851.27759-1-surenb@google.com> <20230125083851.27759-5-surenb@google.com>
- <Y9D4rWEsajV/WfNx@dhcp22.suse.cz> <CAJuCfpGd2eG0RSMte9OVgsRVWPo+Sj7+t8EOo8o_iKzZoh1MXA@mail.gmail.com>
- <Y9Fh9joU3vTCwYbX@dhcp22.suse.cz>
-In-Reply-To: <Y9Fh9joU3vTCwYbX@dhcp22.suse.cz>
-From:   Suren Baghdasaryan <surenb@google.com>
-Date:   Wed, 25 Jan 2023 09:22:23 -0800
-Message-ID: <CAJuCfpEJ1U2UHBNhLx4gggN3PLZKP5RejiZL_U5ZLxU_wdviVg@mail.gmail.com>
-Subject: Re: [PATCH v2 4/6] mm: replace vma->vm_flags indirect modification in ksm_madvise
-To:     Michal Hocko <mhocko@suse.com>
-Cc:     akpm@linux-foundation.org, michel@lespinasse.org,
-        jglisse@google.com, vbabka@suse.cz, hannes@cmpxchg.org,
-        mgorman@techsingularity.net, dave@stgolabs.net,
-        willy@infradead.org, liam.howlett@oracle.com, peterz@infradead.org,
-        ldufour@linux.ibm.com, paulmck@kernel.org, luto@kernel.org,
-        songliubraving@fb.com, peterx@redhat.com, david@redhat.com,
-        dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de,
-        kent.overstreet@linux.dev, punit.agrawal@bytedance.com,
-        lstoakes@gmail.com, peterjung1337@gmail.com, rientjes@google.com,
-        axelrasmussen@google.com, joelaf@google.com, minchan@google.com,
-        jannh@google.com, shakeelb@google.com, tatashin@google.com,
-        edumazet@google.com, gthelen@google.com, gurua@google.com,
-        arjunroy@google.com, soheil@google.com, hughlynch@google.com,
-        leewalsh@google.com, posk@google.com, will@kernel.org,
-        aneesh.kumar@linux.ibm.com, npiggin@gmail.com,
-        chenhuacai@kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, richard@nod.at,
-        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
-        qianweili@huawei.com, wangzhou1@hisilicon.com,
-        herbert@gondor.apana.org.au, davem@davemloft.net, vkoul@kernel.org,
-        airlied@gmail.com, daniel@ffwll.ch,
-        maarten.lankhorst@linux.intel.com, mripard@kernel.org,
-        tzimmermann@suse.de, l.stach@pengutronix.de,
-        krzysztof.kozlowski@linaro.org, patrik.r.jakobsson@gmail.com,
-        matthias.bgg@gmail.com, robdclark@gmail.com,
-        quic_abhinavk@quicinc.com, dmitry.baryshkov@linaro.org,
-        tomba@kernel.org, hjc@rock-chips.com, heiko@sntech.de,
-        ray.huang@amd.com, kraxel@redhat.com, sre@kernel.org,
-        mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
-        tfiga@chromium.org, m.szyprowski@samsung.com, mchehab@kernel.org,
-        dimitri.sivanich@hpe.com, zhangfei.gao@linaro.org,
-        jejb@linux.ibm.com, martin.petersen@oracle.com,
-        dgilbert@interlog.com, hdegoede@redhat.com, mst@redhat.com,
-        jasowang@redhat.com, alex.williamson@redhat.com, deller@gmx.de,
-        jayalk@intworks.biz, viro@zeniv.linux.org.uk, nico@fluxnic.net,
-        xiang@kernel.org, chao@kernel.org, tytso@mit.edu,
-        adilger.kernel@dilger.ca, miklos@szeredi.hu,
-        mike.kravetz@oracle.com, muchun.song@linux.dev, bhe@redhat.com,
-        andrii@kernel.org, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, pabeni@redhat.com, perex@perex.cz, tiwai@suse.com,
-        haojian.zhuang@gmail.com, robert.jarzmik@free.fr,
-        linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org, linux-graphics-maintainer@vmware.com,
-        linux-ia64@vger.kernel.org, linux-arch@vger.kernel.org,
-        loongarch@lists.linux.dev, kvm@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-sgx@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-crypto@vger.kernel.org, nvdimm@lists.linux.dev,
-        dmaengine@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org,
-        linux-samsung-soc@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        freedreno@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, linux-tegra@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        xen-devel@lists.xenproject.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-accelerators@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev,
-        target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
-        netdev@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-aio@kvack.org, linux-fsdevel@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        devel@lists.orangefs.org, kexec@lists.infradead.org,
-        linux-xfs@vger.kernel.org, bpf@vger.kernel.org,
-        linux-perf-users@vger.kernel.org, kasan-dev@googlegroups.com,
-        selinux@vger.kernel.org, alsa-devel@alsa-project.org,
-        kernel-team@android.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230112-acpi_nfit_lockdep-v1-1-660be4dd10be@intel.com>
+X-B4-Tracking: v=1; b=H4sIACl20WMC/x2N0QqDMAwAf0XybMF2orBfGSI1TWdYiaVVGYj/v
+ rDHOzjugkqFqcKzuaDQyZU3UbBtA7h6eZPhoAyuc4/OWmc8Zp4l8j6nDT+BsnFDH8bYWxpwBO0
+ WX8ksxQuuWsqRkspcKPL3P3pN9/0Dl7n4oXgAAAA=
+To:     Dan Williams <dan.j.williams@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>
+Cc:     nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Vishal Verma <vishal.l.verma@intel.com>
+X-Mailer: b4 0.12.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2708;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=DLIRvXMdKH0hTEcM4b9xtXkEm+HmcMdb8x6cxdoVsZE=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDMkXy2yffTuc+V6KKz1C4fa1Faa1n8o2zJpZLXP+iUVD0CGH
+ A53sHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZhI80OG/14hX3uXHj5xR2C3zXk5sf
+ WnZTkve4hrRoR79jwS+bzokzYjQ+PrnLkVX0xWS0wxjlJUEHHv00yP5QvvK2b04Xvgyb2FFwA=
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jan 25, 2023 at 9:08 AM Michal Hocko <mhocko@suse.com> wrote:
->
-> On Wed 25-01-23 08:57:48, Suren Baghdasaryan wrote:
-> > On Wed, Jan 25, 2023 at 1:38 AM 'Michal Hocko' via kernel-team
-> > <kernel-team@android.com> wrote:
-> > >
-> > > On Wed 25-01-23 00:38:49, Suren Baghdasaryan wrote:
-> > > > Replace indirect modifications to vma->vm_flags with calls to modifier
-> > > > functions to be able to track flag changes and to keep vma locking
-> > > > correctness. Add a BUG_ON check in ksm_madvise() to catch indirect
-> > > > vm_flags modification attempts.
-> > >
-> > > Those BUG_ONs scream to much IMHO. KSM is an MM internal code so I
-> > > gueess we should be willing to trust it.
-> >
-> > Yes, but I really want to prevent an indirect misuse since it was not
-> > easy to find these. If you feel strongly about it I will remove them
-> > or if you have a better suggestion I'm all for it.
->
-> You can avoid that by making flags inaccesible directly, right?
+Lockdep reports that acpi_nfit_shutdown() may deadlock against an
+opportune acpi_nfit_scrub(). acpi_nfit_scrub () is run from inside a
+'work' and therefore has already acquired workqueue-internal locks. It
+also acquiires acpi_desc->init_mutex. acpi_nfit_shutdown() first
+acquires init_mutex, and was subsequently attempting to cancel any
+pending workqueue items. This reversed locking order causes a potential
+deadlock:
 
-Ah, you mean Peter's suggestion of using __private? I guess that would
-cover it. I'll drop these BUG_ONs in the next version. Thanks!
+    ======================================================
+    WARNING: possible circular locking dependency detected
+    6.2.0-rc3 #116 Tainted: G           O     N
+    ------------------------------------------------------
+    libndctl/1958 is trying to acquire lock:
+    ffff888129b461c0 ((work_completion)(&(&acpi_desc->dwork)->work)){+.+.}-{0:0}, at: __flush_work+0x43/0x450
 
->
-> --
-> Michal Hocko
-> SUSE Labs
+    but task is already holding lock:
+    ffff888129b460e8 (&acpi_desc->init_mutex){+.+.}-{3:3}, at: acpi_nfit_shutdown+0x87/0xd0 [nfit]
+
+    which lock already depends on the new lock.
+
+    ...
+
+    Possible unsafe locking scenario:
+
+          CPU0                    CPU1
+          ----                    ----
+     lock(&acpi_desc->init_mutex);
+                                  lock((work_completion)(&(&acpi_desc->dwork)->work));
+                                  lock(&acpi_desc->init_mutex);
+     lock((work_completion)(&(&acpi_desc->dwork)->work));
+
+    *** DEADLOCK ***
+
+Since the workqueue manipulation is protected by its own internal locking,
+the cancellation of pending work doesn't need to be done under
+acpi_desc->init_mutex. Move cancel_delayed_work_sync() outside the
+init_mutex to fix the deadlock. Any work that starts after
+acpi_nfit_shutdown() drops the lock will see ARS_CANCEL, and the
+cancel_delayed_work_sync() will safely flush it out.
+
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/acpi/nfit/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index f1cc5ec6a3b6..4e48d6db05eb 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3297,8 +3297,8 @@ void acpi_nfit_shutdown(void *data)
+ 
+ 	mutex_lock(&acpi_desc->init_mutex);
+ 	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
+-	cancel_delayed_work_sync(&acpi_desc->dwork);
+ 	mutex_unlock(&acpi_desc->init_mutex);
++	cancel_delayed_work_sync(&acpi_desc->dwork);
+ 
+ 	/*
+ 	 * Bounce the nvdimm bus lock to make sure any in-flight
+
+---
+base-commit: b7bfaa761d760e72a969d116517eaa12e404c262
+change-id: 20230112-acpi_nfit_lockdep-264d7f41e6c7
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
