@@ -2,205 +2,258 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE71C54E94
-	for <linux-acpi@archiver.kernel.org>; Wed, 25 Jan 2023 19:35:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68EFFC54E94
+	for <linux-acpi@archiver.kernel.org>; Wed, 25 Jan 2023 22:41:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234862AbjAYTfY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 25 Jan 2023 14:35:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43448 "EHLO
+        id S229499AbjAYWlU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 25 Jan 2023 17:41:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234783AbjAYTfP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2023 14:35:15 -0500
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA03E4997B;
-        Wed, 25 Jan 2023 11:35:12 -0800 (PST)
+        with ESMTP id S229459AbjAYWlU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2023 17:41:20 -0500
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CC5F5A830;
+        Wed, 25 Jan 2023 14:41:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674675312; x=1706211312;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=DjSzYoCvw3gY3t++SjA9T2OGq3u9N+cfLwvPA+C7/CU=;
-  b=mlFrn6T4tgqOXbiQx6Uy7tQXAXAH6dQHHFZHea3nFXNArSYtreg7PZHT
-   u8+/D8+LnWiRQOkNSPdJbvg3VrS5kLUAPyXrHiINgppKSO5bbyjxfLxbQ
-   zooeQBixwuuYB7o8aESA0KtCtlQygXQMvsvN8+MZjRjWYN8insnhwN6Bu
-   1t3p0d4CRyFOUn1DcIbn6G0VTnT0lm4TGVivWY4BsGozXtYDcPukDMIGy
-   cF/GloxdzyQWKA+5k/jro3oAvhwVCrO7AeTiFEduWZtJxoRncS7LQjuDR
-   AShzMRd8vyQxW/vaL/HQdNPi2lVgmWAKC2bc9EwGEi/zwvX8AOSbJCQY/
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="307000387"
+  t=1674686479; x=1706222479;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=gM+J4ZnB2GOeTY84F6jFfce2lS7Hj616p56xjd2yHbg=;
+  b=mvvymuxbIASjP3dlLaJ1AsFoqllI8R7hUqThMNh7uvDWkf/GGoVM53dh
+   KqcIaFSLlA7VesmdCYT7v+Qudg/GNI/t7yuEr7fjM/QZD7WAwI1zVpaOX
+   A417eFg+/kQ83vqzFJbpyrDRs5VrXGNywOJzqFBBr4SQfbDL72AM31CVz
+   10iwAN3rrOR+quBMNjn2TdcK5ZzrevfkjUCzTRXo/BuaNKYE6c/5UygTK
+   I5tblGzEIxDpZ95czVbWnYw14+TqwacZb5Aa1fmQNXlRDdT6U/zElc0mU
+   dA3gbnJqwZQ+CDFJbRSBPmnMgQS8Wev+tMtzNIsEIWL923XNbVXNdEx3/
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="389040001"
 X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
-   d="scan'208";a="307000387"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 11:35:02 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="836443809"
+   d="scan'208";a="389040001"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 14:41:18 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="786604541"
 X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
-   d="scan'208";a="836443809"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by orsmga005.jf.intel.com with ESMTP; 25 Jan 2023 11:35:01 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Wed, 25 Jan 2023 11:35:00 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Wed, 25 Jan 2023 11:35:00 -0800
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.104)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Wed, 25 Jan 2023 11:35:00 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=XR9/Idu1mB2f0sTE9CmRVOcSzr7RcMTPdMS/AxLQUqv9gqIzWa6UnhBpZCUnwyPlkIrP6AilnDoYhucH8NaEbPrB2OMUlHjZpxI9YyczREdgybfOAgu6uYIW0gZIS7NJJUhn2chInpXk5y9+s3mye483XkqTW25H1vty6k1oZbjGXA9sfGQHiAghC1NqugmM4KaRgZyMVFjcCC5A1KIPEFqCk1BFqwcqJfKbUze6jTswyJlTNQNohXath79VZ6XUqbO6ov4wIEnl+Q0+U+aLj2zwfuXFymhukrlOuA6sPCpEUIbKMrWlz5H/1nsMNQqWtMGxNFR5IujvavE3a0aX8w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ClwnrKSzGOFrip7OVOrxLgvGQlizhNV3FcjgSFPsKpc=;
- b=SH0Sex6owmrLDO2NqbmTj35tDNs3BvRyKEdz03Z0EK7yCO+rks92wKIs7P/OjhuqvqY6ED4YaDMHmCHmY4/eldPvrIEqSGmf1TWJVQGc/xBLLrhs/vmQRxaTvzioILrouqSQT1q3UvTXRvyoeyzS3Z+C4P8bbZldw+J68/qH14jvWDOYPMZB2HjjWvKX4+Ac1PmhkY9MP4jpnEhQklC+KxZ9Mg2wsYX5w9gvCw5u/P6vxFDSYx5GDHpvUM+ZvhJB1u4ys0iPwtEnBc1MmUsEreWyPoGpdEVYfXJKOhOOjHwOmMDTS2KVyXmlz5NpP23yPoUur/pYcruiYOHve8sfSg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by CH0PR11MB8213.namprd11.prod.outlook.com (2603:10b6:610:18b::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.33; Wed, 25 Jan
- 2023 19:34:58 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::421b:865b:f356:7dfc]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::421b:865b:f356:7dfc%5]) with mapi id 15.20.6002.033; Wed, 25 Jan 2023
- 19:34:57 +0000
-Date:   Wed, 25 Jan 2023 11:34:55 -0800
-From:   Dan Williams <dan.j.williams@intel.com>
-To:     Vishal Verma <vishal.l.verma@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>
-CC:     <nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Vishal Verma <vishal.l.verma@intel.com>
-Subject: RE: [PATCH] ACPI: NFIT: fix a potential deadlock during NFIT teardown
-Message-ID: <63d1845f8f86f_3a36e529441@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20230112-acpi_nfit_lockdep-v1-1-660be4dd10be@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20230112-acpi_nfit_lockdep-v1-1-660be4dd10be@intel.com>
-X-ClientProxiedBy: BYAPR11CA0088.namprd11.prod.outlook.com
- (2603:10b6:a03:f4::29) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+   d="scan'208";a="786604541"
+Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 14:41:16 -0800
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by kekkonen.fi.intel.com (Postfix) with ESMTP id 434F3122210;
+        Thu, 26 Jan 2023 00:41:14 +0200 (EET)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.94.2)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1pKoS7-001gPI-7Q; Thu, 26 Jan 2023 00:41:11 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     linux-media@vger.kernel.org, rafael@kernel.org,
+        andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com
+Subject: [PATCH v3 1/8] ACPI: property: Parse data node string references in properties
+Date:   Thu, 26 Jan 2023 00:40:54 +0200
+Message-Id: <20230125224101.401285-2-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230125224101.401285-1-sakari.ailus@linux.intel.com>
+References: <20230125224101.401285-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|CH0PR11MB8213:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6d1cb3a9-16c5-4f05-6347-08daff0b3dd2
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: xXXXYFdfpKUMPLdRWbkkLj/gAAwWHlRgqy/tJlQopza2p4XcVQ30nIJz3Y68RbGfKEKNSA6BOPbjbgteRxBU4/be1qmO3VL6fpsCP3hJLj8g+wwTHrMapT08ZmTCQ94KOyKlrAZT/Tsrg3lOn7UJfbQtEt7p3vZBZBd2JYDGOVjNxsbdYmtZVArbUOB+HF04lwCRGk1N+b6uJDfcNSy49lOI0adz5kveZvRM6lsfoo5dK+7dcKU/xjcrHa9o5bAWyOkrxs/ywjYxHRufLSllhwUHXBX94jwdiY/fWwu9fBUbJVNZi9c7oZ0iWv9zQ9fvVFgaRvvwfO9CJzm7GIqzKZEbUzSfX0F/nAcaQwq9fRtOnq7QKH84rNZy6UyEp1e0TqnX3IqBo5pVvMX3PpBEd7bGHRwUIi3JK6E92/BWeloBL8VdcQ/3KSZu3QtbygtaZ8TB25zC3Trr/mfzzEDUvlAD34uTSxu0u9AJToBgWlTdad5MnoAJ+na/Bdmu5V/IrW4X48I5DjgEHbN0D7naGhDtmB+dJQz0Cf8HHQlEjUYh2MZP0BXuojJNkMDemYbkowCfQD6kN4za1VhKeVyWEZcD1iE6vyJakCwj29FayT1AkCMGx2jN7slh9vKG8ysTsrFYCmeS3X5/4sJqK8SGtA==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(366004)(396003)(136003)(346002)(39860400002)(376002)(451199018)(66556008)(110136005)(38100700002)(82960400001)(2906002)(6506007)(6512007)(9686003)(5660300002)(41300700001)(83380400001)(8936002)(186003)(107886003)(26005)(478600001)(66946007)(6486002)(8676002)(316002)(66476007)(86362001)(4326008);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?48gi1aFPFC5Yrfqu+XfwEZU1pnUbi+bDRmm0Xl5AJ2ozwKbk8tTo8zj5uA3o?=
- =?us-ascii?Q?3N4orGjU8UQlde4BSJcr+4aIW9oz4cefPlaK3oiktI9YEUnI6ZzRwccls2wo?=
- =?us-ascii?Q?wjD7utXUblGRiP/ZomhPFlvFnt9AScFot/ydPp+Oc8kDDnr6yzc5APhLl4ou?=
- =?us-ascii?Q?81DBz+2/cPp0g6GamlHfTPC4/lKnAIPd3Rbrp0XCSk1aJifPMLOkztlRzi0t?=
- =?us-ascii?Q?1PULSeW3wYOWT5xRiHnlMEtQXsR7p8l4cmG26N1D3a7XVnjzIunjO2wL9AAq?=
- =?us-ascii?Q?h5ovR7ULHa/1wMMuRXt93jO1icFMFa3ZQSDZbQwxCccpklV/P14G4Mm6fCUm?=
- =?us-ascii?Q?NM94lGmE9DBb0tm34p/QEtNNBe1UrGVhV94palTOJUfL43ts/1Mq6tCwPHl2?=
- =?us-ascii?Q?yGcmUEhljxO10eF0pLS77sfqn1HoMQUMbNMDf4llYiEnMkEahx+rdqh7qIcT?=
- =?us-ascii?Q?s0Ziz2wiBs/AA1VUxoUaq4V0H510MH3cb0fwliw24jKQMSFKJf+cVzGAZ+Dl?=
- =?us-ascii?Q?0dtnWDdb+nfUab1OmM7Ser0qSLDAuzW3yow23IzJ8tNAlQv+VRIFH56Oypd5?=
- =?us-ascii?Q?Qbio+2zhiNuHpO//pk1VkPjUtvX6O2DReOU1T8VmPp+Ea3ejyKpajSJuBXO5?=
- =?us-ascii?Q?UVhQ4ZIMNXWkDvQAgMN00xuq6Th3+y8hcB6Ry6rCxPhENsrJPgM5qIt+3b6E?=
- =?us-ascii?Q?sG9zDPqsuUipBuatZI/HKAlmwPCWYv7XCHN0qe8KR0ysf0wqae1nVYAXppMF?=
- =?us-ascii?Q?5yOdSMXS9rgt/ErfO+awQo/6keEG3iQKRrH/vhzVhX1IJnV6a0mYir4F3F3+?=
- =?us-ascii?Q?PmRbRAypn+JikayaZBkHhukHnoNBrKwHwtOZC9dfu6E+0fUM0lfR19PqxBsg?=
- =?us-ascii?Q?tmMHkP3+nbpPdfkPOWARMHeOQmq+FCEo98yniJ12hZxwzXDGaYQrFwn5OGOC?=
- =?us-ascii?Q?PUiDqJeyLeIm+91M4hanzsbMFANGxPeHoscjh3pY03F2B2RX+gBZvanf0T3J?=
- =?us-ascii?Q?sOW2A+v3LDqaNwr1U2FZZ49fTi73+o0hV1IGdQdtjUCUfd02W5aQID/YRAet?=
- =?us-ascii?Q?StDx7EGHl4qQCn/2ytK/o01PVmdAAHUhIMpxnzrdojNRJegra+56M5N8U2JF?=
- =?us-ascii?Q?58W+GDZ6rgAjaip7kKyZMJFDkfYR7pSjGAGNihFwv+Mh4CxcZoQTdQt2Wu5R?=
- =?us-ascii?Q?fC37BiromWWGgGGweRGSpxeKuJd2Ho3lK/g7OQ4oaI9ZukgLUCUvE/oZjwDX?=
- =?us-ascii?Q?/rINjQXjjzQfrzOdYxMJG125GXFDV1iji4VXFDonS+k5fahd6CWX5uHy0yoX?=
- =?us-ascii?Q?1MjIS+lilp8a6FzP/ajApz+ylmxyjPNQtO0ZCBb0BQURh/l4G2mxd+QZYPCV?=
- =?us-ascii?Q?lSKzpFtOYNHhS4wJ6tWJmOXODSCZzUKrm8ybOIR9EG7aGRoUCjMl0VuYFgkp?=
- =?us-ascii?Q?aYPaaNFMTcdvnjw8sn03yFeH1Exy2PIRnkx6F1ff+klv/An/3JH424t8nH6g?=
- =?us-ascii?Q?uU1FPr6OguNnRcxQAAassiFtfexdqT3PEJHbK3gyKT9fHAWC4rStldQRzlHb?=
- =?us-ascii?Q?5zhbJiBRayIDpQL1eOWoHRqghgJv8HgOyN029aTqU1lE5/954fx6pGI1DFao?=
- =?us-ascii?Q?hg=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6d1cb3a9-16c5-4f05-6347-08daff0b3dd2
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jan 2023 19:34:57.4986
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: MKKUtX/r3u8s3eecXe+li68f7+7uQZaLEY9L9hO1DuE+FUykBUjvcHNZC1wL7alZjhfKVd0zQ6ll18l0ogwI4wZBwks85t0iYt/fyVBfvvo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR11MB8213
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Vishal Verma wrote:
-> Lockdep reports that acpi_nfit_shutdown() may deadlock against an
-> opportune acpi_nfit_scrub(). acpi_nfit_scrub () is run from inside a
-> 'work' and therefore has already acquired workqueue-internal locks. It
-> also acquiires acpi_desc->init_mutex. acpi_nfit_shutdown() first
-> acquires init_mutex, and was subsequently attempting to cancel any
-> pending workqueue items. This reversed locking order causes a potential
-> deadlock:
-> 
->     ======================================================
->     WARNING: possible circular locking dependency detected
->     6.2.0-rc3 #116 Tainted: G           O     N
->     ------------------------------------------------------
->     libndctl/1958 is trying to acquire lock:
->     ffff888129b461c0 ((work_completion)(&(&acpi_desc->dwork)->work)){+.+.}-{0:0}, at: __flush_work+0x43/0x450
-> 
->     but task is already holding lock:
->     ffff888129b460e8 (&acpi_desc->init_mutex){+.+.}-{3:3}, at: acpi_nfit_shutdown+0x87/0xd0 [nfit]
-> 
->     which lock already depends on the new lock.
-> 
->     ...
-> 
->     Possible unsafe locking scenario:
-> 
->           CPU0                    CPU1
->           ----                    ----
->      lock(&acpi_desc->init_mutex);
->                                   lock((work_completion)(&(&acpi_desc->dwork)->work));
->                                   lock(&acpi_desc->init_mutex);
->      lock((work_completion)(&(&acpi_desc->dwork)->work));
-> 
->     *** DEADLOCK ***
-> 
-> Since the workqueue manipulation is protected by its own internal locking,
-> the cancellation of pending work doesn't need to be done under
-> acpi_desc->init_mutex. Move cancel_delayed_work_sync() outside the
-> init_mutex to fix the deadlock. Any work that starts after
-> acpi_nfit_shutdown() drops the lock will see ARS_CANCEL, and the
-> cancel_delayed_work_sync() will safely flush it out.
-> 
-> Reported-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  drivers/acpi/nfit/core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index f1cc5ec6a3b6..4e48d6db05eb 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -3297,8 +3297,8 @@ void acpi_nfit_shutdown(void *data)
->  
->  	mutex_lock(&acpi_desc->init_mutex);
->  	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
-> -	cancel_delayed_work_sync(&acpi_desc->dwork);
->  	mutex_unlock(&acpi_desc->init_mutex);
-> +	cancel_delayed_work_sync(&acpi_desc->dwork);
+Add support for parsing property references using strings, besides
+reference objects that were previously supported. This allows also
+referencing data nodes which was not possible with reference objects.
 
-Looks good, applied.
+Also add pr_fmt() macro to prefix printouts.
+
+While at it, update copyright.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/property.c | 110 ++++++++++++++++++++++++++++++++++------
+ 1 file changed, 94 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index b8d9eb9a433ed..2b69b25c405c5 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -2,14 +2,17 @@
+ /*
+  * ACPI device specific properties support.
+  *
+- * Copyright (C) 2014, Intel Corporation
++ * Copyright (C) 2014--2023, Intel Corporation
+  * All rights reserved.
+  *
+  * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
+- *          Darren Hart <dvhart@linux.intel.com>
+- *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++ *	    Darren Hart <dvhart@linux.intel.com>
++ *	    Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++ *	    Sakari Ailus <sakari.ailus@linux.intel.com>
+  */
+ 
++#define pr_fmt(fmt) "ACPI: " fmt
++
+ #include <linux/acpi.h>
+ #include <linux/device.h>
+ #include <linux/export.h>
+@@ -795,7 +798,8 @@ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+ static int acpi_get_ref_args(struct fwnode_reference_args *args,
+ 			     struct fwnode_handle *ref_fwnode,
+ 			     const union acpi_object **element,
+-			     const union acpi_object *end, size_t num_args)
++			     const union acpi_object *end, size_t num_args,
++			     bool subnode_string)
+ {
+ 	u32 nargs = 0, i;
+ 
+@@ -803,13 +807,16 @@ static int acpi_get_ref_args(struct fwnode_reference_args *args,
+ 	 * Find the referred data extension node under the
+ 	 * referred device node.
+ 	 */
+-	for (; *element < end && (*element)->type == ACPI_TYPE_STRING;
+-	     (*element)++) {
+-		const char *child_name = (*element)->string.pointer;
+-
+-		ref_fwnode = acpi_fwnode_get_named_child_node(ref_fwnode, child_name);
+-		if (!ref_fwnode)
+-			return -EINVAL;
++	if (subnode_string) {
++		for (; *element < end && (*element)->type == ACPI_TYPE_STRING;
++		     (*element)++) {
++			const char *child_name = (*element)->string.pointer;
++
++			ref_fwnode = acpi_fwnode_get_named_child_node(ref_fwnode,
++								      child_name);
++			if (!ref_fwnode)
++				return -EINVAL;
++		}
+ 	}
+ 
+ 	/*
+@@ -820,7 +827,8 @@ static int acpi_get_ref_args(struct fwnode_reference_args *args,
+ 	for (i = 0; (*element) + i < end && i < num_args; i++) {
+ 		acpi_object_type type = (*element)[i].type;
+ 
+-		if (type == ACPI_TYPE_LOCAL_REFERENCE)
++		if (type == ACPI_TYPE_LOCAL_REFERENCE ||
++		    (!subnode_string && type == ACPI_TYPE_STRING))
+ 			break;
+ 
+ 		if (type == ACPI_TYPE_INTEGER)
+@@ -844,6 +852,43 @@ static int acpi_get_ref_args(struct fwnode_reference_args *args,
+ 	return 0;
+ }
+ 
++static struct fwnode_handle *
++acpi_parse_string_ref(const struct fwnode_handle *fwnode, const char *refstring)
++{
++	acpi_handle scope, handle;
++	struct acpi_data_node *dn;
++	struct acpi_device *device;
++	acpi_status status;
++
++	if (is_acpi_device_node(fwnode)) {
++		scope = to_acpi_device_node(fwnode)->handle;
++	} else if (is_acpi_data_node(fwnode)) {
++		scope = to_acpi_data_node(fwnode)->handle;
++	} else {
++		pr_err("bad node type for node %pfw\n", fwnode);
++		return ERR_PTR(-EINVAL);
++	}
++
++	status = acpi_get_handle(scope, refstring, &handle);
++	if (ACPI_FAILURE(status)) {
++		acpi_handle_debug(scope, "can't get handle for %s", refstring);
++		return ERR_PTR(-EINVAL);
++	}
++
++	device = acpi_fetch_acpi_dev(handle);
++	if (device)
++		return acpi_fwnode_handle(device);
++
++	status = acpi_get_data_full(handle, acpi_nondev_subnode_tag,
++				    (void **)&dn, NULL);
++	if (ACPI_FAILURE(status) || !dn) {
++		acpi_handle_debug(handle, "can't find subnode");
++		return ERR_PTR(-EINVAL);
++	}
++
++	return &dn->fwnode;
++}
++
+ /**
+  * __acpi_node_get_property_reference - returns handle to the referenced object
+  * @fwnode: Firmware node to get the property from
+@@ -886,6 +931,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 	const union acpi_object *element, *end;
+ 	const union acpi_object *obj;
+ 	const struct acpi_device_data *data;
++	struct fwnode_handle *ref_fwnode;
+ 	struct acpi_device *device;
+ 	int ret, idx = 0;
+ 
+@@ -909,16 +955,29 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 
+ 		args->fwnode = acpi_fwnode_handle(device);
+ 		args->nargs = 0;
++		return 0;
++	case ACPI_TYPE_STRING:
++		if (index)
++			return -ENOENT;
++
++		ref_fwnode = acpi_parse_string_ref(fwnode, obj->string.pointer);
++		if (IS_ERR(ref_fwnode))
++			return PTR_ERR(ref_fwnode);
++
++		args->fwnode = ref_fwnode;
++		args->nargs = 0;
++
+ 		return 0;
+ 	case ACPI_TYPE_PACKAGE:
+ 		/*
+ 		 * If it is not a single reference, then it is a package of
+-		 * references followed by number of ints as follows:
++		 * references, followed by number of ints as follows:
+ 		 *
+ 		 *  Package () { REF, INT, REF, INT, INT }
+ 		 *
+-		 * The index argument is then used to determine which reference
+-		 * the caller wants (along with the arguments).
++		 * Here, REF may be either a local reference or a string. The
++		 * index argument is then used to determine which reference the
++		 * caller wants (along with the arguments).
+ 		 */
+ 		break;
+ 	default:
+@@ -942,7 +1001,26 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 
+ 			ret = acpi_get_ref_args(idx == index ? args : NULL,
+ 						acpi_fwnode_handle(device),
+-						&element, end, num_args);
++						&element, end, num_args, true);
++			if (ret < 0)
++				return ret;
++
++			if (idx == index)
++				return 0;
++
++			break;
++		case ACPI_TYPE_STRING:
++			ref_fwnode =
++				acpi_parse_string_ref(fwnode,
++						      element->string.pointer);
++			if (IS_ERR(ref_fwnode))
++				return PTR_ERR(ref_fwnode);
++
++			element++;
++
++			ret = acpi_get_ref_args(idx == index ? args : NULL,
++						ref_fwnode, &element, end,
++						num_args, false);
+ 			if (ret < 0)
+ 				return ret;
+ 
+-- 
+2.30.2
+
