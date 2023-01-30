@@ -2,70 +2,147 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ADF7C54EAA
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 18:22:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D78EEC61D97
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 18:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237588AbjA3SWv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Jan 2023 13:22:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55594 "EHLO
+        id S237642AbjA3SXT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Jan 2023 13:23:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237961AbjA3SWk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 13:22:40 -0500
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A93845BD2;
-        Mon, 30 Jan 2023 10:22:17 -0800 (PST)
-Received: by mail-ej1-f52.google.com with SMTP id mc11so11880244ejb.10;
-        Mon, 30 Jan 2023 10:22:17 -0800 (PST)
+        with ESMTP id S237514AbjA3SXS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 13:23:18 -0500
+Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B4DC4522A
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Jan 2023 10:22:49 -0800 (PST)
+Received: by mail-pj1-x1029.google.com with SMTP id e8-20020a17090a9a8800b0022c387f0f93so11345970pjp.3
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Jan 2023 10:22:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ventanamicro.com; s=google;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=H7KlC1E/qchNA2FeI/jtSOoGuHWoLpY70PQmwt3/hBY=;
+        b=UAEtEYB4sxc8KHHENJmXhvAQAx2IpZSpMetPcln5se48nk/nwrzG6OCr8vrvlOUK4R
+         Q+wYu1Ei9STWCCcjnVi0yf8DJySBsWU4urpY0FXpxBrXWGscireaG+r2UxmjnzPvg2IL
+         LxJ0jAlYtFZ2uAx70DH9AUiRgf4N/2VZIKisxxdLNHogJxvEDSHwnESsH5fIRX9kLuQH
+         BSxZoAcbStJwMc5BV5sYkpWhZJcbX2j9cI28SyWWheLy+onRcrtMd6fX6MzSNd7mf+3V
+         X4QmOiVfdgskQjJPOvOk4K9vQRx+ifGBs1R8C9y9NTsQKp25glwE7MQEAxzFO3dGX8kC
+         Qw0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=22MJfPAxydUVdhl0ZP7DuAbHPwrfeEL/jbNsu/UleHc=;
-        b=BNB247ex98qLVfEF96GsiYkcbqtF3kOY9cTqolsTETyN8xv3JZdGbi2Wf3Q99ETER7
-         eTCNr2FC/9NePXNxndqRUfWWU3hWS1J0l0rv8/AHLVVRfyLgTXVZI/IIin5CbtWyOf0s
-         TErJuNetfBGvQ+6VtOmbbvvdaDvUEKQWslYiVkqpcuYXN4nStmRyiCM/pn91xmgM6vTC
-         kgU5LsH6COOX4IP5iZsG3pRR/Vg/QKkuURwTXqiA2jOyhse4izHnZ9q0fGdz9A7sIbP0
-         3AmbDUVmoVkY9uKJgKFYlwa6kIoirbK+Ubr49VpZyR8tfZfVA34JLKDPI0UagqKkXTZA
-         oR+A==
-X-Gm-Message-State: AO0yUKXeH2aNCj3DZ8n2aw+zlbY/EYQYXGVasngvsOhWopOohdBRSz0v
-        rnBLDGvdBwrrz4o4IUUpw4EDHDPxd0BEBeLd07A=
-X-Google-Smtp-Source: AK7set8yj9YPjpPvtIK810pfltfuDgOWCxWxxK5PxhAfmu1n2553bTDrRWEYh+Z4ZvV6fl62SSHaEjURsWkdwck2Wjg=
-X-Received: by 2002:a17:906:95d7:b0:88a:30dc:5730 with SMTP id
- n23-20020a17090695d700b0088a30dc5730mr874290ejy.25.1675102883477; Mon, 30 Jan
- 2023 10:21:23 -0800 (PST)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=H7KlC1E/qchNA2FeI/jtSOoGuHWoLpY70PQmwt3/hBY=;
+        b=NU66qU9kZE42qjIGZYYmAtevWZi58nWAApODm7Vsiun1N18dMlAfUZyI2ljr+PjVwv
+         yX3rl2dts9CyeBawmJ/p/JNuJDkbWMAchKV/x8FDsDOHoefd1GB7gZopRRlgh67HNvnZ
+         caqqDlVrNZvJaomVYjpoitKuYoFP1QRY8ucdeI7oYM6Y7WwzOAZ9IlVD54FBeAt7OS9V
+         xWeC4UXoKqymE/pT3LRt5MaM6L0V7v4e5qg1IR8gJ1FTb9VeVPskittQRCowHcpLIRwT
+         KziIQUBmnxHhQHSs29G/oAHfBNkPL0BGDGgQhpCa+sxgd27wAmlmC336eGQ56FRFZxNu
+         K2Eg==
+X-Gm-Message-State: AO0yUKWfrc//0hvK/pTRZMmDnjaG6OY5Z6m2N7JYs4Pb90DHcThCvaFI
+        CB+3VAUx4IPzbIiXhws8hMvCNQ==
+X-Google-Smtp-Source: AK7set9BFSU/mcgDE8X3OMCmuvOsHIDDbHvxpRXfPUvGLXJNQQEIIvYdvRJRPOqM+/blvkVNGf+CvA==
+X-Received: by 2002:a05:6a20:441f:b0:ae:47a6:e6d9 with SMTP id ce31-20020a056a20441f00b000ae47a6e6d9mr13097359pzb.6.1675102958616;
+        Mon, 30 Jan 2023 10:22:38 -0800 (PST)
+Received: from kerodipc.Dlink ([49.206.9.96])
+        by smtp.gmail.com with ESMTPSA id j193-20020a638bca000000b00478162d9923sm7000291pge.13.2023.01.30.10.22.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 30 Jan 2023 10:22:38 -0800 (PST)
+From:   Sunil V L <sunilvl@ventanamicro.com>
+To:     Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Marc Zyngier <maz@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc:     linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        Anup Patel <apatel@ventanamicro.com>,
+        Andrew Jones <ajones@ventanamicro.com>,
+        Atish Patra <atishp@rivosinc.com>,
+        Jisheng Zhang <jszhang@kernel.org>
+Subject: [PATCH 01/24] riscv: move sbi_init() earlier before jump_label_init()
+Date:   Mon, 30 Jan 2023 23:52:02 +0530
+Message-Id: <20230130182225.2471414-2-sunilvl@ventanamicro.com>
+X-Mailer: git-send-email 2.38.0
+In-Reply-To: <20230130182225.2471414-1-sunilvl@ventanamicro.com>
+References: <20230130182225.2471414-1-sunilvl@ventanamicro.com>
 MIME-Version: 1.0
-References: <20230125224101.401285-1-sakari.ailus@linux.intel.com> <20230125224101.401285-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20230125224101.401285-2-sakari.ailus@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 30 Jan 2023 19:21:12 +0100
-Message-ID: <CAJZ5v0g_KhDHRSOu_0tCtJPy9W1vMcXUF=qxc_6YJ=ADRNUv0g@mail.gmail.com>
-Subject: Re: [PATCH v3 1/8] ACPI: property: Parse data node string references
- in properties
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
-        rafael@kernel.org, andriy.shevchenko@linux.intel.com,
-        heikki.krogerus@linux.intel.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jan 25, 2023 at 11:41 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Add support for parsing property references using strings, besides
-> reference objects that were previously supported. This allows also
-> referencing data nodes which was not possible with reference objects.
->
-> Also add pr_fmt() macro to prefix printouts.
->
-> While at it, update copyright.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Jisheng Zhang <jszhang@kernel.org>
 
-While there is some design documentation in the last patch, at least
-some pieces of it should go into the changelog of this patch IMO.
+We call jump_label_init() in setup_arch() is to use static key
+mechanism earlier, but riscv jump label relies on the sbi functions,
+If we enable static key before sbi_init(), the code path looks like:
+  static_branch_enable()
+    ..
+      arch_jump_label_transform()
+        patch_text_nosync()
+          flush_icache_range()
+            flush_icache_all()
+              sbi_remote_fence_i() for CONFIG_RISCV_SBI case
+                __sbi_rfence()
 
-Also the spec-related information from the cover letter would be
-useful here, because cover letters don't go into the git record.
+Since sbi isn't initialized, so NULL deference! Here is a typical
+panic log:
+
+[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
+[    0.000000] Oops [#1]
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 5.18.0-rc7+ #79
+[    0.000000] Hardware name: riscv-virtio,qemu (DT)
+[    0.000000] epc : 0x0
+[    0.000000]  ra : sbi_remote_fence_i+0x1e/0x26
+[    0.000000] epc : 0000000000000000 ra : ffffffff80005826 sp : ffffffff80c03d50
+[    0.000000]  gp : ffffffff80ca6178 tp : ffffffff80c0ad80 t0 : 6200000000000000
+[    0.000000]  t1 : 0000000000000000 t2 : 62203a6b746e6972 s0 : ffffffff80c03d60
+[    0.000000]  s1 : ffffffff80001af6 a0 : 0000000000000000 a1 : 0000000000000000
+[    0.000000]  a2 : 0000000000000000 a3 : 0000000000000000 a4 : 0000000000000000
+[    0.000000]  a5 : 0000000000000000 a6 : 0000000000000000 a7 : 0000000000080200
+[    0.000000]  s2 : ffffffff808b3e48 s3 : ffffffff808bf698 s4 : ffffffff80cb2818
+[    0.000000]  s5 : 0000000000000001 s6 : ffffffff80c9c345 s7 : ffffffff80895aa0
+[    0.000000]  s8 : 0000000000000001 s9 : 000000000000007f s10: 0000000000000000
+[    0.000000]  s11: 0000000000000000 t3 : ffffffff80824d08 t4 : 0000000000000022
+[    0.000000]  t5 : 000000000000003d t6 : 0000000000000000
+[    0.000000] status: 0000000000000100 badaddr: 0000000000000000 cause: 000000000000000c
+[    0.000000] ---[ end trace 0000000000000000 ]---
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+[    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill the idle task! ]---
+
+Fix this issue by moving sbi_init() earlier before jump_label_init()
+
+Signed-off-by: Jisheng Zhang <jszhang@kernel.org>
+---
+ arch/riscv/kernel/setup.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/riscv/kernel/setup.c b/arch/riscv/kernel/setup.c
+index 86acd690d529..4335f08ffaf2 100644
+--- a/arch/riscv/kernel/setup.c
++++ b/arch/riscv/kernel/setup.c
+@@ -270,6 +270,7 @@ void __init setup_arch(char **cmdline_p)
+ 	*cmdline_p = boot_command_line;
+ 
+ 	early_ioremap_setup();
++	sbi_init();
+ 	jump_label_init();
+ 	parse_early_param();
+ 
+@@ -287,7 +288,6 @@ void __init setup_arch(char **cmdline_p)
+ 	misc_mem_init();
+ 
+ 	init_resources();
+-	sbi_init();
+ 
+ #ifdef CONFIG_KASAN
+ 	kasan_init();
+-- 
+2.38.0
+
