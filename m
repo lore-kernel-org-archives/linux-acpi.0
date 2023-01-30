@@ -2,27 +2,27 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B3C8C54EAA
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 19:07:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1382FC636D6
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 19:07:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238154AbjA3THn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Jan 2023 14:07:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38256 "EHLO
+        id S238246AbjA3THo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Jan 2023 14:07:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238103AbjA3THe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 14:07:34 -0500
+        with ESMTP id S238142AbjA3THm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 14:07:42 -0500
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47A9838B62;
-        Mon, 30 Jan 2023 11:07:33 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F2333A867;
+        Mon, 30 Jan 2023 11:07:36 -0800 (PST)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
- id 6014c07e825ce42e; Mon, 30 Jan 2023 20:07:31 +0100
+ id f1e5e01fe10671b7; Mon, 30 Jan 2023 20:07:34 +0100
 Received: from kreacher.localnet (unknown [213.134.169.112])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id A943F2528287;
-        Mon, 30 Jan 2023 20:07:30 +0100 (CET)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 9535D2528287;
+        Mon, 30 Jan 2023 20:07:33 +0100 (CET)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux PM <linux-pm@vger.kernel.org>
 Cc:     Zhang Rui <rui.zhang@intel.com>,
@@ -30,9 +30,9 @@ Cc:     Zhang Rui <rui.zhang@intel.com>,
         Linux ACPI <linux-acpi@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
         David Box <david.e.box@linux.intel.com>
-Subject: [PATCH v1 5/8] thermal: intel: intel_pch: Fold two functions into their callers
-Date:   Mon, 30 Jan 2023 20:03:11 +0100
-Message-ID: <3662399.MHq7AAxBmi@kreacher>
+Subject: [PATCH v1 3/8] thermal: intel: intel_pch: Rename device operations callbacks
+Date:   Mon, 30 Jan 2023 20:00:48 +0100
+Message-ID: <2546853.Lt9SDvczpP@kreacher>
 In-Reply-To: <1751684.VLH7GnMWUR@kreacher>
 References: <1751684.VLH7GnMWUR@kreacher>
 MIME-Version: 1.0
@@ -50,151 +50,114 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Fold two functions, pch_hw_init() and pch_get_temp(), that each have
-only one caller, into their respective callers to make the code somewhat
-easier to follow.
+Because the same device operations callbacks are used for all supported
+boards, they are in fact generic, so rename them to reflect that.
+
+Also rename the operations object itself for consistency.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/thermal/intel/intel_pch_thermal.c |   98 ++++++++++++------------------
- 1 file changed, 42 insertions(+), 56 deletions(-)
+ drivers/thermal/intel/intel_pch_thermal.c |   34 ++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
 Index: linux-pm/drivers/thermal/intel/intel_pch_thermal.c
 ===================================================================
 --- linux-pm.orig/drivers/thermal/intel/intel_pch_thermal.c
 +++ linux-pm/drivers/thermal/intel/intel_pch_thermal.c
-@@ -117,57 +117,6 @@ static int pch_wpt_add_acpi_psv_trip(str
+@@ -118,7 +118,7 @@ static int pch_wpt_add_acpi_psv_trip(str
  }
  #endif
  
--static int pch_hw_init(struct pch_thermal_device *ptd)
--{
--	int nr_trips = 0;
--	u16 trip_temp;
--	u8 tsel;
--
--	/* Check if BIOS has already enabled thermal sensor */
--	if (WPT_TSEL_ETS & readb(ptd->hw_base + WPT_TSEL)) {
--		ptd->bios_enabled = true;
--		goto read_trips;
--	}
--
--	tsel = readb(ptd->hw_base + WPT_TSEL);
--	/*
--	 * When TSEL's Policy Lock-Down bit is 1, TSEL become RO.
--	 * If so, thermal sensor cannot enable. Bail out.
--	 */
--	if (tsel & WPT_TSEL_PLDB) {
--		dev_err(&ptd->pdev->dev, "Sensor can't be enabled\n");
--		return -ENODEV;
--	}
--
--	writeb(tsel|WPT_TSEL_ETS, ptd->hw_base + WPT_TSEL);
--	if (!(WPT_TSEL_ETS & readb(ptd->hw_base + WPT_TSEL))) {
--		dev_err(&ptd->pdev->dev, "Sensor can't be enabled\n");
--		return -ENODEV;
--	}
--
--read_trips:
--	trip_temp = readw(ptd->hw_base + WPT_CTT);
--	trip_temp &= 0x1FF;
--	if (trip_temp) {
--		ptd->trips[nr_trips].temperature = GET_WPT_TEMP(trip_temp);
--		ptd->trips[nr_trips++].type = THERMAL_TRIP_CRITICAL;
--	}
--
--	trip_temp = readw(ptd->hw_base + WPT_PHL);
--	trip_temp &= 0x1FF;
--	if (trip_temp) {
--		ptd->trips[nr_trips].temperature = GET_WPT_TEMP(trip_temp);
--		ptd->trips[nr_trips++].type = THERMAL_TRIP_HOT;
--	}
--
--	return nr_trips + pch_wpt_add_acpi_psv_trip(ptd, nr_trips);
--}
--
--static int pch_get_temp(struct pch_thermal_device *ptd)
--{
--	return GET_WPT_TEMP(WPT_TEMP_TSR & readw(ptd->hw_base + WPT_TEMP));
--}
--
- /* Cool the PCH when it's overheat in .suspend_noirq phase */
- static int pch_suspend(struct pch_thermal_device *ptd)
+-static int pch_wpt_init(struct pch_thermal_device *ptd)
++static int pch_hw_init(struct pch_thermal_device *ptd)
  {
-@@ -254,7 +203,7 @@ static int pch_thermal_get_temp(struct t
- {
- 	struct pch_thermal_device *ptd = tzd->devdata;
+ 	int nr_trips = 0;
+ 	u16 trip_temp;
+@@ -164,13 +164,13 @@ read_trips:
+ 	return nr_trips + pch_wpt_add_acpi_psv_trip(ptd, nr_trips);
+ }
  
--	*temp = pch_get_temp(ptd);
-+	*temp = GET_WPT_TEMP(WPT_TEMP_TSR & readw(ptd->hw_base + WPT_TEMP));
+-static int pch_wpt_get_temp(struct pch_thermal_device *ptd)
++static int pch_get_temp(struct pch_thermal_device *ptd)
+ {
+ 	return GET_WPT_TEMP(WPT_TEMP_TSR & readw(ptd->hw_base + WPT_TEMP));
+ }
+ 
+ /* Cool the PCH when it's overheat in .suspend_noirq phase */
+-static int pch_wpt_suspend(struct pch_thermal_device *ptd)
++static int pch_suspend(struct pch_thermal_device *ptd)
+ {
+ 	u8 tsel;
+ 	int pch_delay_cnt = 0;
+@@ -237,7 +237,7 @@ static int pch_wpt_suspend(struct pch_th
  	return 0;
  }
  
-@@ -310,8 +259,10 @@ static int intel_pch_thermal_probe(struc
- 	enum board_ids board_id = id->driver_data;
- 	const struct board_info *bi = &board_info[board_id];
- 	struct pch_thermal_device *ptd;
--	int err;
-+	u16 trip_temp;
- 	int nr_trips;
-+	u8 tsel;
-+	int err;
+-static int pch_wpt_resume(struct pch_thermal_device *ptd)
++static int pch_resume(struct pch_thermal_device *ptd)
+ {
+ 	u8 tsel;
  
- 	ptd = devm_kzalloc(&pdev->dev, sizeof(*ptd), GFP_KERNEL);
- 	if (!ptd)
-@@ -339,12 +290,47 @@ static int intel_pch_thermal_probe(struc
- 		goto error_release;
- 	}
+@@ -258,13 +258,11 @@ struct pch_dev_ops {
+ 	int (*resume)(struct pch_thermal_device *ptd);
+ };
  
--	nr_trips = pch_hw_init(ptd);
--	if (nr_trips < 0) {
--		err = nr_trips;
-+	/* Check if BIOS has already enabled thermal sensor */
-+	if (WPT_TSEL_ETS & readb(ptd->hw_base + WPT_TSEL)) {
-+		ptd->bios_enabled = true;
-+		goto read_trips;
-+	}
-+
-+	tsel = readb(ptd->hw_base + WPT_TSEL);
-+	/*
-+	 * When TSEL's Policy Lock-Down bit is 1, TSEL become RO.
-+	 * If so, thermal sensor cannot enable. Bail out.
-+	 */
-+	if (tsel & WPT_TSEL_PLDB) {
-+		dev_err(&ptd->pdev->dev, "Sensor can't be enabled\n");
-+		err = -ENODEV;
- 		goto error_cleanup;
- 	}
+-
+-/* dev ops for Wildcat Point */
+-static const struct pch_dev_ops pch_dev_ops_wpt = {
+-	.hw_init = pch_wpt_init,
+-	.get_temp = pch_wpt_get_temp,
+-	.suspend = pch_wpt_suspend,
+-	.resume = pch_wpt_resume,
++static const struct pch_dev_ops pch_dev_ops = {
++	.hw_init = pch_hw_init,
++	.get_temp = pch_get_temp,
++	.suspend = pch_suspend,
++	.resume = pch_resume,
+ };
  
-+	writeb(tsel|WPT_TSEL_ETS, ptd->hw_base + WPT_TSEL);
-+	if (!(WPT_TSEL_ETS & readb(ptd->hw_base + WPT_TSEL))) {
-+		dev_err(&ptd->pdev->dev, "Sensor can't be enabled\n");
-+		err = -ENODEV;
-+		goto error_cleanup;
-+	}
-+
-+read_trips:
-+	trip_temp = readw(ptd->hw_base + WPT_CTT);
-+	trip_temp &= 0x1FF;
-+	if (trip_temp) {
-+		ptd->trips[nr_trips].temperature = GET_WPT_TEMP(trip_temp);
-+		ptd->trips[nr_trips++].type = THERMAL_TRIP_CRITICAL;
-+	}
-+
-+	trip_temp = readw(ptd->hw_base + WPT_PHL);
-+	trip_temp &= 0x1FF;
-+	if (trip_temp) {
-+		ptd->trips[nr_trips].temperature = GET_WPT_TEMP(trip_temp);
-+		ptd->trips[nr_trips++].type = THERMAL_TRIP_HOT;
-+	}
-+
-+	nr_trips += pch_wpt_add_acpi_psv_trip(ptd, nr_trips);
-+
- 	ptd->tzd = thermal_zone_device_register_with_trips(bi->name, ptd->trips,
- 							   nr_trips, 0, ptd,
- 							   &tzd_ops, NULL, 0, 0);
+ static int pch_thermal_get_temp(struct thermal_zone_device *tzd, int *temp)
+@@ -301,31 +299,31 @@ static const struct board_info {
+ } board_info[] = {
+ 	[board_hsw] = {
+ 		.name = "pch_haswell",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ 	[board_wpt] = {
+ 		.name = "pch_wildcat_point",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ 	[board_skl] = {
+ 		.name = "pch_skylake",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ 	[board_cnl] = {
+ 		.name = "pch_cannonlake",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ 	[board_cml] = {
+ 		.name = "pch_cometlake",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ 	[board_lwb] = {
+ 		.name = "pch_lewisburg",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ 	[board_wbg] = {
+ 		.name = "pch_wellsburg",
+-		.ops = &pch_dev_ops_wpt,
++		.ops = &pch_dev_ops,
+ 	},
+ };
+ 
 
 
 
