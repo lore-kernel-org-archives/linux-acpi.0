@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53F23C61D97
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 18:26:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB632C636CB
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 18:26:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238200AbjA3S03 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Jan 2023 13:26:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56898 "EHLO
+        id S238218AbjA3S0k (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Jan 2023 13:26:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237773AbjA3S0A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 13:26:00 -0500
-Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53BA445880
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Jan 2023 10:24:17 -0800 (PST)
-Received: by mail-pj1-x102c.google.com with SMTP id t12-20020a17090aae0c00b00229f4cff534so13817044pjq.1
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Jan 2023 10:24:17 -0800 (PST)
+        with ESMTP id S238094AbjA3S0Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 13:26:16 -0500
+Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9EEA3D905
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Jan 2023 10:24:25 -0800 (PST)
+Received: by mail-pj1-x102f.google.com with SMTP id n20-20020a17090aab9400b00229ca6a4636so16433894pjq.0
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Jan 2023 10:24:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ventanamicro.com; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=3oZQ53k8sDIi9jBLs3iLBCqJLG9S0A73uETYb1fJYlI=;
-        b=RORdYgIqpJhiT2xO57x39JpRwK2+L1YP/j8KtHmtUDhwVGOrsKIXsmHiJaCq2vsK7S
-         Ma5JepDyFdyQh5oTKjKKlD2acJeJBcX2qUr3Vq5PyGBgmPi21mpCYwdgJD6T8LMrBURs
-         Svuobo44XBMVzKF75A/b7L+pBRHseeTYQkNrXfauxnDQ/8FP56BcIB6AhsncH2NEAv/A
-         cSpICfZhxgL/74xGDxqe/H2GAftpoPX5+9CG+6XCY9rNzu3P88VjuGKbVg4bETIITD+G
-         LQd3QGvZmt6k07JYum1fb52IRLn7lnOdhszfFh87aXmh6rmq5TNFz/wFMOAPpPtM0fwg
-         RQRw==
+        bh=0GmsS1bMG3vhs9nYaH5ehvEVh7IMrCbQji3r9uemxws=;
+        b=FdQa5Nr8gTa9dhRoHNHv6DLl9MMrt0b8LGra3FlgdVR0HXDLToZe7M4Vw8FA842bxO
+         ANogiCr8CkEluK5rksyrobBwZAKJ8A7G98bpLiz8xri62Tumhak9vvXobe/T1z4+dIij
+         Jlqnftn2IXrjlaveSNTGwhALA2SpVI2d8kvV9HY86Y4JMm+idqkTZW4FJJkA1grLa2sm
+         x0PYL9hJD9yklIp6Iu+3fct8g4Ub4r9NHKkc2cqYsfctvGHE+Vyr3INej/nu/6q7BWpl
+         03u7GIFOwrw/uDqPq7+wghYTYt8n5mYmkRz3QQNQr2axPeRxPYEMQorPSn4SyB0vyC3z
+         ggHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=3oZQ53k8sDIi9jBLs3iLBCqJLG9S0A73uETYb1fJYlI=;
-        b=ikb6/FBFhmwPOnYQ0PJ5UAN1/UVyvltXLAYjbUXSJLg5tQdPIJ9ijrjm9xe0Gf+PEr
-         c7rD326KwyAfBgJaJciWZA4MElcpc/MG1CkRgsBaWczdzHnq3c0awpveSbDsJz+dxBBh
-         wklTU3j/kAABzbMZIfj2hSqhk6CR8KTK6jQ36G4lGq/JUtpCoS01oyTB/tTVHcH1FXwO
-         WG/RcSAe4rum+pBv6sE0+BVTA8vfZISXs21XblI4H09EOLl0b6DLuv/KSD/j6Gncbzoi
-         H1cHRtK2NsFJv3jbEBMz3MEeDAimOVrdo/OtJDrziOA/+UDkks/dfjdsA42GgCy9yjCm
-         epTg==
-X-Gm-Message-State: AO0yUKVs8TLgev9iEcjh4cotvPmYKOYMtAyXxCa9gBhRS77ASfBJcFlp
-        IMViU1/qaQTuB0SwjUwkx5zFqw==
-X-Google-Smtp-Source: AK7set9y+8gc1j7btVH3pLsk5baTgirNZhG6cKTLz7X/bnmrD8N8A0A22p9fmsha2Zc63KuBgHho2Q==
-X-Received: by 2002:a05:6a20:d49b:b0:bc:c663:41b6 with SMTP id im27-20020a056a20d49b00b000bcc66341b6mr7187379pzb.28.1675103050552;
-        Mon, 30 Jan 2023 10:24:10 -0800 (PST)
+        bh=0GmsS1bMG3vhs9nYaH5ehvEVh7IMrCbQji3r9uemxws=;
+        b=kyrbq4VnzD1ksqk8kFSxk/qjEYxMs/ain3kG5G+TQbUm6xpvSfq5mody7aSjXARZhe
+         kzrls7AnAzK0y88BPingW6RlgjUA5vOuUpjVRiz4E2120J/umvt0E89zE4Gbu9QWEQ65
+         M0H/fC1Ksj1hg3A8dYpB0LjeCy1QQjgt+rqql3h0FcoLTsJtc19d5vcVj4Z19E6otz9v
+         y4ktkjAMRudBzKimYvKcxCP6FZ1wq7wuxMAv+xINM4naZX2V7bCsatrHWFvcTOjOtOuR
+         lmCkdWI8CSEQeGYqLlCf2sKor0M4a9n274j1EEJTzlrPH8cCEBq/xFcdRSb4mVCNEySJ
+         h7pg==
+X-Gm-Message-State: AO0yUKX/qu4zEuGBfUTUFlBA1Fz6tstOFeLxPJCCNdUeKA2Rcxw+jjXu
+        hsEYzUxRRrhVNAoF6M2TLbBPfg==
+X-Google-Smtp-Source: AK7set/NaUdxXOXi68TuA9LtTnJuAZDAOVCnERp8kT07lTkCp48tqSeuSCZp3ML1m7atqGjopshDlQ==
+X-Received: by 2002:a05:6a20:841f:b0:be:7d46:e5 with SMTP id c31-20020a056a20841f00b000be7d4600e5mr4161873pzd.56.1675103059928;
+        Mon, 30 Jan 2023 10:24:19 -0800 (PST)
 Received: from kerodipc.Dlink ([49.206.9.96])
-        by smtp.gmail.com with ESMTPSA id j193-20020a638bca000000b00478162d9923sm7000291pge.13.2023.01.30.10.24.06
+        by smtp.gmail.com with ESMTPSA id j193-20020a638bca000000b00478162d9923sm7000291pge.13.2023.01.30.10.24.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Jan 2023 10:24:10 -0800 (PST)
+        Mon, 30 Jan 2023 10:24:19 -0800 (PST)
 From:   Sunil V L <sunilvl@ventanamicro.com>
 To:     Palmer Dabbelt <palmer@dabbelt.com>,
         Albert Ou <aou@eecs.berkeley.edu>,
@@ -64,9 +64,9 @@ Cc:     linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
         Andrew Jones <ajones@ventanamicro.com>,
         Atish Patra <atishp@rivosinc.com>,
         Sunil V L <sunilvl@ventanamicro.com>
-Subject: [PATCH 21/24] RISC-V: ACPI: Add ACPI initialization in setup_arch()
-Date:   Mon, 30 Jan 2023 23:52:22 +0530
-Message-Id: <20230130182225.2471414-22-sunilvl@ventanamicro.com>
+Subject: [PATCH 23/24] MAINTAINERS: Add entry for drivers/acpi/riscv
+Date:   Mon, 30 Jan 2023 23:52:24 +0530
+Message-Id: <20230130182225.2471414-24-sunilvl@ventanamicro.com>
 X-Mailer: git-send-email 2.38.0
 In-Reply-To: <20230130182225.2471414-1-sunilvl@ventanamicro.com>
 References: <20230130182225.2471414-1-sunilvl@ventanamicro.com>
@@ -76,53 +76,33 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Initialize ACPI tables for RISC-V during boot.
+ACPI defines few RISC-V specific tables which need
+parsing code added in drivers/acpi/riscv. Add maintainer
+entries for this newly created folder.
 
 Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
 ---
- arch/riscv/kernel/setup.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/riscv/kernel/setup.c b/arch/riscv/kernel/setup.c
-index 4335f08ffaf2..5b4ad1baf664 100644
---- a/arch/riscv/kernel/setup.c
-+++ b/arch/riscv/kernel/setup.c
-@@ -8,6 +8,7 @@
-  *  Nick Kossifidis <mick@ics.forth.gr>
-  */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8a5c25c20d00..b14ceb917a81 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -450,6 +450,13 @@ S:	Orphan
+ F:	drivers/platform/x86/wmi.c
+ F:	include/uapi/linux/wmi.h
  
-+#include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/memblock.h>
-@@ -276,14 +277,22 @@ void __init setup_arch(char **cmdline_p)
- 
- 	efi_init();
- 	paging_init();
++ACPI FOR RISC-V (ACPI/riscv)
++M:	Sunil V L <sunilvl@ventanamicro.com>
++L:	linux-acpi@vger.kernel.org
++L:	linux-riscv@lists.infradead.org
++S:	Maintained
++F:	drivers/acpi/riscv
 +
-+	/* Parse the ACPI tables for possible boot-time configuration */
-+	acpi_boot_table_init();
-+	if (acpi_disabled) {
- #if IS_ENABLED(CONFIG_BUILTIN_DTB)
--	unflatten_and_copy_device_tree();
-+		unflatten_and_copy_device_tree();
- #else
--	if (early_init_dt_verify(__va(XIP_FIXUP(dtb_early_pa))))
--		unflatten_device_tree();
--	else
--		pr_err("No DTB found in kernel mappings\n");
-+		if (early_init_dt_verify(__va(XIP_FIXUP(dtb_early_pa))))
-+			unflatten_device_tree();
-+		else
-+			pr_err("No DTB found in kernel mappings\n");
- #endif
-+	} else {
-+		early_init_dt_verify(__va(XIP_FIXUP(dtb_early_pa)));
-+	}
-+
- 	early_init_fdt_scan_reserved_mem();
- 	misc_mem_init();
- 
+ ACRN HYPERVISOR SERVICE MODULE
+ M:	Fei Li <fei1.li@intel.com>
+ L:	acrn-dev@lists.projectacrn.org (subscribers-only)
 -- 
 2.38.0
 
