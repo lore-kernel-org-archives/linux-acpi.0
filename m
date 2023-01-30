@@ -2,47 +2,47 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14638C636CD
-	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 12:10:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6759BC636D0
+	for <linux-acpi@archiver.kernel.org>; Mon, 30 Jan 2023 12:12:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236819AbjA3MK5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 30 Jan 2023 07:10:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38248 "EHLO
+        id S236768AbjA3MMK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 30 Jan 2023 07:12:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236722AbjA3MKk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 07:10:40 -0500
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDB7518B3F;
-        Mon, 30 Jan 2023 04:09:28 -0800 (PST)
+        with ESMTP id S236792AbjA3MLv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2023 07:11:51 -0500
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8093C37B58;
+        Mon, 30 Jan 2023 04:10:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1675080569; x=1706616569;
+  t=1675080649; x=1706616649;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=JTY9WLS4wVtKo44V42B48degtPfcQUTsiQPaSpOWAqU=;
-  b=Lr7WebiOVHyL2ZVAhEP/TicykpCLcQxpwKbglijyg4LJ1i3nQVELqewr
-   wvW+By2SF9eFR23FINzK5KsL1UBzdkNAi5iEZKOejae3FAoDRo548dEnJ
-   If0WYlAN8ZRZY+0RkhxT0XlaisK33CLX6A5kS1KL0RyLpghSGF44SMBdk
-   6LdbEd3psB0a+PGxWrhKa9lm+VNr+fIDJF5mIYrrhvrDBP1Oyxeb9U2HV
-   T/6LBNz2B0riW5HcfVbOLwjdXBInz7D+PvLd2Sjfl9+vsqOqcXjKR21fV
-   XbXWkF+LQnvZWLOjZAGRsFjojqD2rJhmPDf1ZduVq9BKm+ApJTE59tUGE
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10605"; a="328816522"
+  bh=F7kz/t7goqTvjK8l9cj5cpA+WN6lVLHQofCFYgKQjgM=;
+  b=Aub4vzzByvl995Nq/Eae36nOWF+39w2/pU82SLe6C9hmeMwOlfuI9b+O
+   Uf0bdncd29F7r7mkcdGN7MZvTOIAaU7O3G1sBo0PGndkh8foBDpb6UBCy
+   LBj9eM78iWKpFzdgYCnhGTyniLG6Wh7zGI2o4q1VqKKlVLXEb2dK/gGN2
+   +jMMpesFTQPK3Hk+RYm6ouuPvachQT+BDykaypjIYwn3jiLSNmPsB1RJf
+   DBTpoEVxPZMdhAKRePctHROFkVmPQTUI4aBSISSnlparUHiy8KKKabvwp
+   XYCtpqMsDQyeZ9yVDqtKyqaT06k2+d4s9uu63UceFZ4Zksx9fv2sl7BM/
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10605"; a="389906024"
 X-IronPort-AV: E=Sophos;i="5.97,257,1669104000"; 
-   d="scan'208";a="328816522"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jan 2023 04:08:27 -0800
+   d="scan'208";a="389906024"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jan 2023 04:10:02 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10605"; a="614008770"
+X-IronPort-AV: E=McAfee;i="6500,9779,10605"; a="806649751"
 X-IronPort-AV: E=Sophos;i="5.97,257,1669104000"; 
-   d="scan'208";a="614008770"
+   d="scan'208";a="806649751"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga003.jf.intel.com with ESMTP; 30 Jan 2023 04:08:14 -0800
+  by fmsmga001.fm.intel.com with ESMTP; 30 Jan 2023 04:09:52 -0800
 Received: from andy by smile.fi.intel.com with local (Exim 4.96)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pMSxG-00HKyC-24;
-        Mon, 30 Jan 2023 14:08:10 +0200
-Date:   Mon, 30 Jan 2023 14:08:10 +0200
+        id 1pMSyc-00HKzp-19;
+        Mon, 30 Jan 2023 14:09:34 +0200
+Date:   Mon, 30 Jan 2023 14:09:34 +0200
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Saravana Kannan <saravanak@google.com>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -86,49 +86,49 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
         devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 05/11] driver core: fw_devlink: Add DL_FLAG_CYCLE
- support to device links
-Message-ID: <Y9ezKs4kJPS1S7Jl@smile.fi.intel.com>
+Subject: Re: [PATCH v2 06/11] driver core: fw_devlink: Allow marking a fwnode
+ link as being part of a cycle
+Message-ID: <Y9ezfr3xxFIUoXIF@smile.fi.intel.com>
 References: <20230127001141.407071-1-saravanak@google.com>
- <20230127001141.407071-6-saravanak@google.com>
- <Y9OZh0ZqtnqmKcvT@smile.fi.intel.com>
- <CAGETcx9WX-Nf7oD=sLEsG70hDczrQkDRdQTBmgE2y89hDLbYDg@mail.gmail.com>
+ <20230127001141.407071-7-saravanak@google.com>
+ <Y9OaaC806Ywg7rM9@smile.fi.intel.com>
+ <CAGETcx9XGq20kagmVXwEV6MF9mp9Ta5ra0+Ynhb7GiUKnxkWqg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAGETcx9WX-Nf7oD=sLEsG70hDczrQkDRdQTBmgE2y89hDLbYDg@mail.gmail.com>
+In-Reply-To: <CAGETcx9XGq20kagmVXwEV6MF9mp9Ta5ra0+Ynhb7GiUKnxkWqg@mail.gmail.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jan 27, 2023 at 11:34:11PM -0800, Saravana Kannan wrote:
-> On Fri, Jan 27, 2023 at 1:30 AM Andy Shevchenko
+On Fri, Jan 27, 2023 at 11:34:19PM -0800, Saravana Kannan wrote:
+> On Fri, Jan 27, 2023 at 1:33 AM Andy Shevchenko
 > <andriy.shevchenko@linux.intel.com> wrote:
-> > On Thu, Jan 26, 2023 at 04:11:32PM -0800, Saravana Kannan wrote:
+> > On Thu, Jan 26, 2023 at 04:11:33PM -0800, Saravana Kannan wrote:
 
 ...
 
-> > >                              DL_FLAG_AUTOREMOVE_SUPPLIER | \
-> > >                              DL_FLAG_AUTOPROBE_CONSUMER  | \
-> > >                              DL_FLAG_SYNC_STATE_ONLY | \
-> > > -                            DL_FLAG_INFERRED)
-> > > +                            DL_FLAG_INFERRED | \
-> > > +                            DL_FLAG_CYCLE)
+> > > -     if (dev->fwnode && !list_empty(&dev->fwnode->suppliers) &&
+> > > -         !fw_devlink_is_permissive()) {
+> > > -             sup_fw = list_first_entry(&dev->fwnode->suppliers,
+> > > -                                       struct fwnode_link,
+> > > -                                       c_hook)->supplier;
+> > > +     sup_fw = fwnode_links_check_suppliers(dev->fwnode);
 > >
-> > You can make less churn by squeezing the new one above the last one.
+> > dev_fwnode() ?
+> >
+> > ...
+> >
+> > > -     val = !list_empty(&dev->fwnode->suppliers);
+> > > +     mutex_lock(&fwnode_link_lock);
+> > > +     val = !!fwnode_links_check_suppliers(dev->fwnode);
+> >
+> > Ditto?
 > 
-> I feel like this part is getting bike shedded. I'm going to leave it
-> as is. It's done in the order it's defined in the header and keeping
-> it that way makes it way more easier to read than worry about a single
-> line churn.
+> Similar response as Patch 1 and Patch 4.
 
-Not at all. What you are showing here is the additional churn for the sake of
-the churn. With a no-cost trick you may avoid that.
-
-Also, it will compress better the Git index and save some mW here and there
-and in the size of the world and amount of Git copies of the Linux kernel
-this may save the planet (I'm serious, no jokes).
+Same.
 
 -- 
 With Best Regards,
