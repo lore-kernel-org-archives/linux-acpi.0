@@ -2,318 +2,122 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C010C636D4
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Feb 2023 20:09:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6FBEC636D3
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Feb 2023 20:37:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229960AbjBFUJK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 6 Feb 2023 15:09:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47368 "EHLO
+        id S230235AbjBFUhN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Feb 2023 15:37:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229963AbjBFUJI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2023 15:09:08 -0500
-Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C53D71DBBE
-        for <linux-acpi@vger.kernel.org>; Mon,  6 Feb 2023 12:09:05 -0800 (PST)
-Received: by mail-pj1-x102e.google.com with SMTP id d6-20020a17090ae28600b00230aa72904fso4379888pjz.5
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Feb 2023 12:09:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=g8zQ21lgm/+hysyLZDWkcJECUGjBC4CaZ4mgsX1s5q0=;
-        b=O9Ya8X/CYW79qvsDBwCU4QasH/GJVsFJdbauSxy3ALcMP6Td/e++Sr2/Kk6Y/0Bi8A
-         HExajCOknNGEaSGBqbSIS45SYN+jvrVOYSflvwXC3/9Qjgfb0vkmu/mC3BtSnmYO9Azo
-         YPq/Mke+7pPZKPUQgwb8ALjXPF1KrfIvJzJ39kARqaWQOILz2ekiU1kAmdv7kLwwoYFq
-         Swvoy0nXykBQyGQaOv/e5ca1b3v6nwtm5i0x5rsR/qHbJEI7HvDPoGHOVfAIrnCwXGAV
-         Ve4YLBD8wxoPxTg47Ch0cATZ7vPGTBikjD33kVkmh+AQic7pGD32UqcBXm345/EvJKI8
-         8QpA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=g8zQ21lgm/+hysyLZDWkcJECUGjBC4CaZ4mgsX1s5q0=;
-        b=scg6su9sJwrJCsGpiAZUQObDZg+1RkFrUX1KVSo9Qjp7lJSzEXc7NSayyyZGFAFFr2
-         LnOSEc3GwGB+wyagwhfu96X4lB5OMF6VyNdAqpL8lZanFY7dl/nbrb2MZXM3Bi6/BO+2
-         xpWpXA3LAmg98dHktdSXj9oQbHTRl/mPVGRosz8HMPFmQB5DWJqsvVst49eUCzBku12i
-         LtzmfnP/Qx4IS6gIFATNjDverkZdvWzM4LehSuIV4RuQf3SEWLxw3LUVCECeTZqa5+Q3
-         kVCVyuJkQ+zrau/A+znbZ/rIozAIS8Wf6yUtgvpilSJfSeKFuYPtP8EphY0D8aV5xy6J
-         T83w==
-X-Gm-Message-State: AO0yUKWN+k9/qv36RwCcnU4W122DrPe7BhGbVKkQ6auB7KOJzwxHW89g
-        r82EgSgjoEieS5er9aSt52SOqDH9/WY95HOqCNXoIw==
-X-Google-Smtp-Source: AK7set/KBPOtO+P54MX/LciN9urMG1z25fzyBFed50xf4hc+H6GtlXs0JkU2MZxc6mAROsbMMvV71vF/eDS3vFQiFbE=
-X-Received: by 2002:a17:90a:187:b0:22c:ad5e:e1e3 with SMTP id
- 7-20020a17090a018700b0022cad5ee1e3mr3608581pjc.141.1675714144798; Mon, 06 Feb
- 2023 12:09:04 -0800 (PST)
+        with ESMTP id S230244AbjBFUhL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2023 15:37:11 -0500
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on20601.outbound.protection.outlook.com [IPv6:2a01:111:f400:7eae::601])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BC4612076;
+        Mon,  6 Feb 2023 12:37:10 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=aBMHHKrn59bV/h4WJjMzw+KBOzs4+bn/fondY0P2LCj/KxYLhz/Bm6ZO6JUuzjiDBvNOfvzsGPaopfx5RzKkv47lOYJoKyZSGh3KifhvaPYU3GnWz4roOXuyoYa0J8zPAYXnxgLnxqbwZ+QVGct5WDYKGK1Vw+8tdOJRvmsYaRAmZspcx/sS2IEjyUj8pRLr2Y4P6pQRCyUSgetLdZdW4vQfbWJ715gSToMcWtM6AM1LZP5mNlfJuJKDhVKii21/f8VZwJDBUjvr5R7Yl/YdpDngZmsCU0YsADYA521/XoBBRr9V0UdnReOG4ATi8Q5Ap9I9jtPxB+yfeVcBvtwE2Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=kfQ+NLdRQAoXNwYYLTj2uTr0j0JJiCzxq06PApB8jhI=;
+ b=m7hcnGtunoBQUihMg76nWAjnNBNNBkMvpiqmDsBaqSGQzW5Xm3+y676k1Q8DwDNPduSYUaypLWO663FQleg/cq3iSXNSDu4zAu3hBYu0jfakZno1Kbreh7m7gU+5iYbjHlaw0A8cgTCNLFBtmuGbWHVaiP5QNeQybaDDGzcKXm5VB51z6QT2LkwfzLzGHnoSLZ40FzxbOjtsUen8argsLoCqK/pOjkOLEo3jpWls9Xt+aks0NXKMP+d/4IdePOA0jFiiXcZZJNDcFr5eXtnH0+cy3+XckrqjCeUi/70/VrKN5jPmnKstSsKMhneRX+4GiXvTTNxxBmjDnelVdKDGTA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=memverge.com; dmarc=pass action=none header.from=memverge.com;
+ dkim=pass header.d=memverge.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=memverge.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=kfQ+NLdRQAoXNwYYLTj2uTr0j0JJiCzxq06PApB8jhI=;
+ b=U9iKm5eANlLrNBwy+3jDChirQC80pvs7sJ2v1z5aN8oRr4FIaDV8supzRyIFtbtGNGDtUETREH0pX3huBRpYWbuLU93xODmSdrGgPdIUBbt6tUfFegFXqS7C1XOJiSLHGm0jf7eeLs1cZzpKb1EmVvnCecZEQAGbgY/zuxemB10=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=memverge.com;
+Received: from BN6PR17MB3121.namprd17.prod.outlook.com (2603:10b6:405:7c::19)
+ by PH0PR17MB5937.namprd17.prod.outlook.com (2603:10b6:510:164::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6064.34; Mon, 6 Feb
+ 2023 20:37:06 +0000
+Received: from BN6PR17MB3121.namprd17.prod.outlook.com
+ ([fe80::d253:1eb3:9347:c660]) by BN6PR17MB3121.namprd17.prod.outlook.com
+ ([fe80::d253:1eb3:9347:c660%4]) with mapi id 15.20.6064.034; Mon, 6 Feb 2023
+ 20:37:06 +0000
+Date:   Mon, 6 Feb 2023 11:37:13 -0500
+From:   Gregory Price <gregory.price@memverge.com>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-cxl@vger.kernel.org, dave.hansen@linux.intel.com,
+        linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 01/18] cxl/Documentation: Update references to attributes
+ added in v6.0
+Message-ID: <Y+EsuWzTvNQvYyQ8@memverge.com>
+References: <167564534874.847146.5222419648551436750.stgit@dwillia2-xfh.jf.intel.com>
+ <167564535494.847146.12120939572640882946.stgit@dwillia2-xfh.jf.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <167564535494.847146.12120939572640882946.stgit@dwillia2-xfh.jf.intel.com>
+X-ClientProxiedBy: SJ0PR05CA0024.namprd05.prod.outlook.com
+ (2603:10b6:a03:33b::29) To BN6PR17MB3121.namprd17.prod.outlook.com
+ (2603:10b6:405:7c::19)
 MIME-Version: 1.0
-References: <20230127001141.407071-1-saravanak@google.com> <20230130085542.38546-1-naresh.kamboju@linaro.org>
- <CAGETcx_411fVxsM-ZMK7j2Bvkmi2TKPbzSuD+03M3cb7WKHfJw@mail.gmail.com>
- <20230131101813.goaoy32qvrowvyyb@bogus> <CALHCpMijXAgQx2qq8g8zdq=6AHwP+g5WVBjjry=v+dKEq9KDLw@mail.gmail.com>
- <CAGETcx_UvW819m1Y-QU_ySB1nG_RegKKT06=YjkK=C_qjbAySw@mail.gmail.com>
- <CALHCpMha_1nXt4rUe+A184XSWpyNk0_PkYjWZ+tUN7BJWqENLA@mail.gmail.com>
- <CAGETcx_uri6exkv1Jkzmc4PyEam9yjuH2H1zrq4LYNtJ+XDMWw@mail.gmail.com> <20230206103912.7db5ed72@xps-13>
-In-Reply-To: <20230206103912.7db5ed72@xps-13>
-From:   Saravana Kannan <saravanak@google.com>
-Date:   Mon, 6 Feb 2023 12:08:28 -0800
-Message-ID: <CAGETcx-0VboaAeoa+_AqDtrDj6v6ZytFj6pU-FVyAu-pk-hG6A@mail.gmail.com>
-Subject: Re: [PATCH v2 00/11] fw_devlink improvements
-To:     Miquel Raynal <miquel.raynal@bootlin.com>
-Cc:     Maxim Kiselev <bigunclemax@gmail.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>,
-        abel.vesa@linaro.org, alexander.stein@ew.tq-group.com,
-        andriy.shevchenko@linux.intel.com, brgl@bgdev.pl,
-        colin.foster@in-advantage.com, cristian.marussi@arm.com,
-        devicetree@vger.kernel.org, dianders@chromium.org,
-        djrscally@gmail.com, dmitry.baryshkov@linaro.org,
-        festevam@gmail.com, fido_max@inbox.ru, frowand.list@gmail.com,
-        geert+renesas@glider.be, geert@linux-m68k.org,
-        gregkh@linuxfoundation.org, heikki.krogerus@linux.intel.com,
-        jpb@kernel.org, jstultz@google.com, kernel-team@android.com,
-        kernel@pengutronix.de, lenb@kernel.org, linus.walleij@linaro.org,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-gpio@vger.kernel.org, linux-imx@nxp.com,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux@roeck-us.net, lkft@linaro.org, luca.weiss@fairphone.com,
-        magnus.damm@gmail.com, martin.kepplinger@puri.sm, maz@kernel.org,
-        rafael@kernel.org, robh+dt@kernel.org, s.hauer@pengutronix.de,
-        sakari.ailus@linux.intel.com, shawnguo@kernel.org,
-        tglx@linutronix.de, tony@atomide.com,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN6PR17MB3121:EE_|PH0PR17MB5937:EE_
+X-MS-Office365-Filtering-Correlation-Id: 77a61cac-1911-4969-660f-08db0881e93a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: IKYlSUeUZAttIn/ao3SmrWCkuvWkhmcqwp4uEOApt7vjxC9rJNtydyiCiGU0xgh2HgbOrhXO8TtB+Qv2HdF8sMlJPcukJAKi78oY0+Qwl5K7DiRZuX8iMOGP6ne/CgrRYRL/qWlidPXGtfRjxbEyE7y/tCk3CaBSZiQitio20M+yUJi2a5enY0DRrkTsUxvVaexjTu5WkGZzyhOs2Q6QTXy09nL+Thu3/pOvUxJZlBHfvm3FQQKdB1paFaenxstAIrKkm+oXfeNUnDbPpgl0Bd7nsoJ08hUj7QRqeFPjXRFwwDWp+du8UoTdJSgfydWI+c9MGYK6S10mYgdXQ76tec8pvg+le4kOSvPCHERu1bQ/W8jiIhsGElAMbbrSCQgV7k5Qtckkq+8egX4bsT4iRhPWdp9wU+cciRbDGXtCOT8BquIarNmBR4T6dNNDjfiNCXzDAGOr/jB9PlTik7XcjT+g0EUre2PS2JJVCJ9HyIpda2PWWywgb8Wh/tgDAC6GYORiVXL3r18EvmPSpPjVooE/EM8f6mTjMhXooI5mQnp9On3Gc4latq62yZIW48naZNeGi9WM+pBvw9RCjvnLst2cwgO5vpDiBtQ6naZU2HO0AXlQVIQ13UeO2yiBxGzInPQbC5bujEaSUtITxQR6yBUwDELiuGBs4IvfX864ecLvGkdk+srMAt3MWa5yX5Xx
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN6PR17MB3121.namprd17.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(366004)(376002)(396003)(346002)(136003)(39840400004)(451199018)(6916009)(4326008)(66556008)(8676002)(66946007)(66476007)(2616005)(6666004)(6512007)(26005)(186003)(83380400001)(6506007)(86362001)(316002)(36756003)(478600001)(6486002)(38100700002)(15650500001)(4744005)(2906002)(44832011)(8936002)(5660300002)(41300700001)(67856001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?KoPi2aDWd24Kz06GxFqOfJFdqUboWeJQyV9dYqa0kD0Rb3EO+KxcdFXzY9b9?=
+ =?us-ascii?Q?ISpx3su/EDGIeHJZ/PzMPXFSbl26zlb3Rdk2Sx3khm38HdJK+dzjnLPsAR/s?=
+ =?us-ascii?Q?mzDRFEqb1f8randwvScXuDeZsgP1aKsbZs7Sz75c5Nlk9wb2iKMeYKLTfYqA?=
+ =?us-ascii?Q?wMcpICX+NL7hWXWZ3EPAJCdMjxGzavMbnQxj3xUkxurODjvpV9tZhCWDVGea?=
+ =?us-ascii?Q?u4EUrCb6flsqS287yv6H+NCvbgE7w54yR0BgMH64lraYVTKJ33cRxNrXXYk8?=
+ =?us-ascii?Q?9JYMpo4I2xGyXQ0I7Ss/AWZYzghfGr7Ns7O5knkJo9Q+DSM8p22ft0+cuQuK?=
+ =?us-ascii?Q?oGA7TzQYdwltpql75Q96mxU4iHWW5vY43DT0fr4coSk7qTa2gUFhHc3XY1Jb?=
+ =?us-ascii?Q?TQft6/yKCu2Cz6n7cW1cdGJP4MRYAYSfzfWxK5a15/jvdg5o9OQ0LmQktbLj?=
+ =?us-ascii?Q?dHJMkPykELetavyy9swYppjuXjVgToEo4UY3i3loy4lKkQMVaJBNoMCDI3QS?=
+ =?us-ascii?Q?/8jzThAOgHFCHNQM7hogSFCRB9pmvCitMp/vKtiMcwwerKobwfwP32/doU1C?=
+ =?us-ascii?Q?huVzI7673TOZt3kisPsobOZM06YRToRsjIjIVjSdHd2NQbM5/vAtaRV0I3Et?=
+ =?us-ascii?Q?fora6DIgGTfzOVKZpzenWI6OtKN9lKhlZsHza67so19jKldxO2eS1Z0Sf3Pu?=
+ =?us-ascii?Q?RaQqMOELiMaKj8GEeVbuFWcjPWa1xto4Ysq2T65fW/xc4LGFvJgCfF17PTJc?=
+ =?us-ascii?Q?alOH4CkccEf5P4U08EcusqSVE1rBP9DqVodlRgaF4VrCezDXSyJj5uX4Pkh3?=
+ =?us-ascii?Q?qrLlL6r10/PvrXpTklWQKSRx6RThuzczOinZvaBV0fwJJyWPunWwZSJc1K2A?=
+ =?us-ascii?Q?ahvUg16KQXyQdxxhCRtPANKMsxyavbwwz3gHUGmUfUZjbGERndJ1B1pWG//+?=
+ =?us-ascii?Q?W/uQ2zRKPmiEb2tN0DBDdhwlRaTHMBc18hG7LewKV8dv+p3j7GpvUxvh/0R9?=
+ =?us-ascii?Q?cRGXAwVpWUsZFog7jz7PuSX+Sq+1sIdAV1AblVdw82fUzAqcDrAbl1KWoP6c?=
+ =?us-ascii?Q?yUKzIPOwS/yBz6wecrZO7OkUj/JC2ibUA5GlLpGf5hCJSzaHbATZq9D/oyAW?=
+ =?us-ascii?Q?n+BjfovdWFbVg9kfLtlav/LsGAO80QGLxNJssNnQIOou/n7mJQdEq+3huwOS?=
+ =?us-ascii?Q?SHUafseH76GcXvJ2Gv33tV67AwcKd8Vcot+ruDQu+7flr7dP+AfQAvv4Wj5M?=
+ =?us-ascii?Q?jDubu//nbZSLygaTH+XrUgAmSKi2X9BubsCvGYEzhgs3yE4w5AtvuZhX+9CS?=
+ =?us-ascii?Q?zedmkiGHbvuLg/iT7vAw5pQICAOddWhOmkCumaHE3c1EBMuYCiS1/hHVTk8K?=
+ =?us-ascii?Q?p8KvJmlnnNS3TDKI4QpOC5Xh9Yh1TX2FmqVdKU/okJvA8u7VPKsHWEQo/dXL?=
+ =?us-ascii?Q?nkFRw0853y48g9AaFfXxGTU8qPlaXSRtsDP8m+sV1nLhcanpraZJSXXxVDRJ?=
+ =?us-ascii?Q?1Nv6KrbJEqU3JQxDXY8PabrzBncOsOjy8X+KDqixbNIPfBz7rjYb00iEyLM2?=
+ =?us-ascii?Q?OBVJ3tX2m/O1wtIU8UfxCQdxCJ6X8XLPJP8YJkOoId009CG8L73ogbzAlrkI?=
+ =?us-ascii?Q?Zw=3D=3D?=
+X-OriginatorOrg: memverge.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 77a61cac-1911-4969-660f-08db0881e93a
+X-MS-Exchange-CrossTenant-AuthSource: BN6PR17MB3121.namprd17.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Feb 2023 20:37:06.1029
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 5c90cb59-37e7-4c81-9c07-00473d5fb682
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: LA1v1MFb34glIQt3ZOj2RV3bOPGLfJpirag2kXUEmKM6zwTgCfEiVAeZSUL5uE+I6I/roQAddF3OdK1xr22m+Rz13eAVnNk9vRAZ+W7MesI=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR17MB5937
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Feb 6, 2023 at 1:39 AM Miquel Raynal <miquel.raynal@bootlin.com> wr=
-ote:
->
-> Hi Saravana,
->
-> + Srinivas, nvmem maintainer
->
-> saravanak@google.com wrote on Sun, 5 Feb 2023 17:32:57 -0800:
->
-> > On Fri, Feb 3, 2023 at 1:39 AM Maxim Kiselev <bigunclemax@gmail.com> wr=
-ote:
-> > >
-> > > =D0=BF=D1=82, 3 =D1=84=D0=B5=D0=B2=D1=80. 2023 =D0=B3. =D0=B2 09:07, =
-Saravana Kannan <saravanak@google.com>:
-> > > >
-> > > > On Thu, Feb 2, 2023 at 9:36 AM Maxim Kiselev <bigunclemax@gmail.com=
-> wrote:
-> > > > >
-> > > > > Hi Saravana,
-> > > > >
-> > > > > > Can you try the patch at the end of this email under these
-> > > > > > configurations and tell me which ones fail vs pass? I don't nee=
-d logs
-> > > > >
-> > > > > I did these tests and here is the results:
-> > > >
-> > > > Did you hand edit the In-Reply-To: in the header? Because in the
-> > > > thread you are reply to the wrong email, but the context in your em=
-ail
-> > > > seems to be from the right email.
-> > > >
-> > > > For example, see how your reply isn't under the email you are reply=
-ing
-> > > > to in this thread overview:
-> > > > https://lore.kernel.org/lkml/20230127001141.407071-1-saravanak@goog=
-le.com/#r
-> > > >
-> > > > > 1. On top of this series - Not works
-> > > > > 2. Without this series    - Works
-> > > > > 3. On top of the series with the fwnode_dev_initialized() deleted=
- - Not works
-> > > > > 4. Without this series, with the fwnode_dev_initialized() deleted=
-  - Works
-> > > > >
-> > > > > So your nvmem/core.c patch helps only when it is applied without =
-the series.
-> > > > > But despite the fact that this helps to avoid getting stuck at pr=
-obing
-> > > > > my ethernet device, there is still regression.
-> > > > >
-> > > > > When the ethernet module is loaded it takes a lot of time to drop=
- dependency
-> > > > > from the nvmem-cell with mac address.
-> > > > >
-> > > > > Please look at the kernel logs below.
-> > > >
-> > > > The kernel logs below really aren't that useful for me in their
-> > > > current state. See more below.
-> > > >
-> > > > ---8<---- <snip> --->8----
-> > > >
-> > > > > P.S. Your nvmem patch definitely helps to avoid a device probe st=
-uck
-> > > > > but look like it is not best way to solve a problem which we disc=
-ussed
-> > > > > in the MTD thread.
-> > > > >
-> > > > > P.P.S. Also I don't know why your nvmem-cell patch doesn't help w=
-hen it was
-> > > > > applied on top of this series. Maybe I missed something.
-> > > >
-> > > > Yeah, I'm not too sure if the test was done correctly. You also did=
-n't
-> > > > answer my question about the dts from my earlier email.
-> > > > https://lore.kernel.org/lkml/CAGETcx8FpmbaRm2CCwqt3BRBpgbogwP5gNB+i=
-A5OEtuxWVTNLA@mail.gmail.com/#t
-> > > >
-> > > > So, can you please retest config 1 with all pr_debug and dev_dbg in
-> > > > drivers/core/base.c changed to the _info variants? And then share t=
-he
-> > > > kernel log from the beginning of boot? Maybe attach it to the email=
- so
-> > > > it doesn't get word wrapped by your email client. And please point =
-me
-> > > > to the .dts that corresponds to your board. Without that, I can't
-> > > > debug much.
-> > > >
-> > > > Thanks,
-> > > > Saravana
-> > >
-> > > > Did you hand edit the In-Reply-To: in the header? Because in the
-> > > > thread you are reply to the wrong email, but the context in your em=
-ail
-> > > > seems to be from the right email.
-> > >
-> > > Sorry for that, it seems like I accidently deleted it.
-> > >
-> > > > So, can you please retest config 1 with all pr_debug and dev_dbg in
-> > > > drivers/core/base.c changed to the _info variants? And then share t=
-he
-> > > > kernel log from the beginning of boot? Maybe attach it to the email=
- so
-> > > > it doesn't get word wrapped by your email client. And please point =
-me
-> > > > to the .dts that corresponds to your board. Without that, I can't
-> > > > debug much.
-> > >
-> > > Ok, I retested config 1 with all _debug logs changed to the _info. I
-> > > added the kernel log and the dts file to the attachment of this email=
-.
-> >
-> > Ah, so your device is not supported/present upstream? Even though it's
-> > not upstream, I'll help fix this because it should fix what I believe
-> > are unreported issues in upstream.
-> >
-> > Ok I know why configs 1 - 4 behaved the way they did and why my test
-> > patch didn't help.
-> >
-> > After staring at mtd/nvmem code for a few hours I think mtd/nvmem
-> > interaction is kind of a mess.
->
-> nvmem is a recent subsystem but mtd carries a lot of legacy stuff we
-> cannot really re-wire without breaking users, so nvmem on top of mtd
-> of course inherit from the fragile designs in place.
+On Sun, Feb 05, 2023 at 05:02:35PM -0800, Dan Williams wrote:
+> Prior to Linus deciding that the kernel that following v5.19 would be
+> v6.0, the CXL ABI documentation already referenced v5.20. In preparation
+> for updating these entries update the kernel version to v6.0.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl |   30 +++++++++++++++---------------
+>  1 file changed, 15 insertions(+), 15 deletions(-)
+> 
 
-Thanks for the context. Yeah, I figured. That's why I explicitly
-limited my comment to "interaction". Although, I'd love to see the MTD
-parsers all be converted to proper drivers that probe. MTD is
-essentially repeating the driver matching logic. I think it can be
-cleaned up to move to proper drivers and still not break backward
-compatibility. Not saying it'll be trivial, but it should be possible.
-Ironically MTD uses mtd_class but has real drivers that work on the
-device (compared to nvmem_bus below).
-
-> > mtd core creates "partition" platform
-> > devices (including for nvmem-cells) that are probed by drivers in
-> > drivers/nvmem. However, there's no driver for "nvmem-cells" partition
-> > platform device. However, the nvmem core creates nvmem_device when
-> > nvmem_register() is called by MTD or these partition platform devices
-> > created by MTD. But these nvmem_devices are added to a nvmem_bus but
-> > the bus has no means to even register a driver (it should really be a
-> > nvmem_class and not nvmem_bus).
->
-> Srinivas, do you think we could change this?
-
-Yeah, this part gets a bit tricky. It depends on whether the sysfs
-files for nvmem devices is considered an ABI. Changing from bus to
-class would change the sysfs path for nvmem devices from:
-/sys/class/nvmem to /sys/bus/nvmem
-
-> > And the nvmem_device sometimes points
-> > to the DT node of the MTD device or sometimes the partition platform
-> > devices or maybe no DT node at all.
->
-> I guess this comes from the fact that this is not strongly defined in
-> mtd and depends on the situation (not mentioning 20 years of history
-> there as well). "mtd" is a bit inconsistent on what it means. Older
-> designs mixed: controllers, ECC engines when relevant and memories;
-> while these three components are completely separated. Hence
-> sometimes the mtd device ends up being the top level controller,
-> sometimes it's just one partition...
->
-> But I'm surprised not all of them point to a DT node. Could you show us
-> an example? Because that might likely be unexpected (or perhaps I am
-> missing something).
-
-Well, the logic that sets the DT node for nvmem_device is like so:
-
-        if (config->of_node)
-                nvmem->dev.of_node =3D config->of_node;
-        else if (!config->no_of_node)
-                nvmem->dev.of_node =3D config->dev->of_node;
-
-So there's definitely a path (where both if's could be false) where
-the DT node will not get set. I don't know if that path is possible
-with the existing users of nvmem_register(), but it's definitely
-possible.
-
-> > So it's a mess of multiple devices pointing to the same DT node with
-> > no clear way to identify which ones will point to a DT node and which
-> > ones will probe and which ones won't. In the future, we shouldn't
-> > allow adding new compatible strings for partitions for which we don't
-> > plan on adding nvmem drivers.
-> >
-> > Can you give the patch at the end of the email a shot? It should fix
-> > the issue with this series and without this series. It just avoids
-> > this whole mess by not creating useless platform device for
-> > nvmem-cells compatible DT nodes.
->
-> Thanks a lot for your help.
-
-No problem. I want fw_devlink to work for everyone.
-
-> >
-> > Thanks,
-> > Saravana
-> >
-> > diff --git a/drivers/mtd/mtdpart.c b/drivers/mtd/mtdpart.c
-> > index d442fa94c872..88a213f4d651 100644
-> > --- a/drivers/mtd/mtdpart.c
-> > +++ b/drivers/mtd/mtdpart.c
-> > @@ -577,6 +577,7 @@ static int mtd_part_of_parse(struct mtd_info *maste=
-r,
-> >  {
-> >         struct mtd_part_parser *parser;
-> >         struct device_node *np;
-> > +       struct device_node *child;
-> >         struct property *prop;
-> >         struct device *dev;
-> >         const char *compat;
-> > @@ -594,6 +595,10 @@ static int mtd_part_of_parse(struct mtd_info *mast=
-er,
-> >         else
-> >                 np =3D of_get_child_by_name(np, "partitions");
-> >
-> > +       for_each_child_of_node(np, child)
-> > +               if (of_device_is_compatible(child, "nvmem-cells"))
-> > +                       of_node_set_flag(child, OF_POPULATED);
->
-> What about a comment explaining why we need that in the final patch
-> (with a comment)? Otherwise it's a little bit obscure.
-
-This wasn't meant to be reviewed :) Just a quick patch to make sure
-I'm going down the right path. Once Maxim confirms I was going to roll
-this into a proper patch.
-
-But point noted. Will add a comment.
-
-Thanks,
-Saravana
+Reviewed-by: Gregory Price <gregory.price@memverge.com>
