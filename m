@@ -2,143 +2,105 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22F86C636D3
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Feb 2023 17:27:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F34C05027
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Feb 2023 17:28:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229513AbjBFR1w (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 6 Feb 2023 12:27:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34722 "EHLO
+        id S230353AbjBFR2Z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Feb 2023 12:28:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229873AbjBFR1u (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2023 12:27:50 -0500
-X-Greylist: delayed 461 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 06 Feb 2023 09:27:23 PST
-Received: from out-40.mta0.migadu.com (out-40.mta0.migadu.com [IPv6:2001:41d0:1004:224b::28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D66B32DE6F
-        for <linux-acpi@vger.kernel.org>; Mon,  6 Feb 2023 09:27:23 -0800 (PST)
-Date:   Mon, 6 Feb 2023 17:19:25 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1675703978;
+        with ESMTP id S230180AbjBFR2R (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2023 12:28:17 -0500
+Received: from bird.elm.relay.mailchannels.net (bird.elm.relay.mailchannels.net [23.83.212.17])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DEFF3A89;
+        Mon,  6 Feb 2023 09:27:49 -0800 (PST)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id 41B57260FD4;
+        Mon,  6 Feb 2023 17:27:41 +0000 (UTC)
+Received: from pdx1-sub0-mail-a221.dreamhost.com (unknown [127.0.0.6])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id BFD3E260F34;
+        Mon,  6 Feb 2023 17:27:40 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1675704460; a=rsa-sha256;
+        cv=none;
+        b=pCnfwdmCKaEgpRrn7FRXV1v8vAMl1d43a4C1RAN8/G1QikRcAt3mjX9jY+sH/SVwuUlSvE
+        fAk4YnRwo1jVOq5lTqlBsOCwHcNLSMja0eenGke6XwADUzsmM5knLnQp8QLaTmhKiALtMu
+        tQ3WEU/vv837XvhNvcUvZA12NG596Ts5KgbyTb+1/Z2s4DZEqf0Wlx56HSyzr7iPbLIxrU
+        rS8625uu1L4ViqTLLsbzFqZ6klSn9fLWep/Ov7cCHt3OR1M/VumCaapR8xb4cy+D47AZGG
+        mV0jSU1AJJYR79aaYw+wER1fIsVvn7njtkIU6q3a7Bbll6NX9+E0jwbsED8aYA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+        s=arc-2022; t=1675704460;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=HQYDCy4xAq7++DqBp2PrFrzWfoeLMTv7/t3BwVc+5/M=;
-        b=J9ErNIUpPqZIZXdMg30fbXll1h9T0Tvc0m6YwSEjZKdUoEOooQgqWauEEwTKgz5T3W0FTk
-        rki4AZWQsgRfhqb68OZxWvRzYjB94NkQRpb2vk7/ewhW1i4abF/GN+8YazanH4qC5F0Wee
-        Dwv1drNtXNr6gUzp6+ranIztAkcY0no=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Oliver Upton <oliver.upton@linux.dev>
-To:     Marc Zyngier <maz@kernel.org>
-Cc:     James Morse <james.morse@arm.com>, linux-pm@vger.kernel.org,
-        loongarch@lists.linux.dev, kvmarm@lists.linux.dev,
-        kvm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        x86@kernel.org, Thomas Gleixner <tglx@linutronix.de>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Borislav Petkov <bp@alien8.de>, H Peter Anvin <hpa@zytor.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Suzuki K Poulose <suzuki.poulose@arm.com>,
-        Len Brown <lenb@kernel.org>,
-        Rafael Wysocki <rafael@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Jean-Philippe Brucker <jean-philippe@linaro.org>
-Subject: Re: [RFC PATCH 29/32] KVM: arm64: Pass hypercalls to userspace
-Message-ID: <Y+E2nVnadj1emNs5@google.com>
-References: <20230203135043.409192-1-james.morse@arm.com>
- <20230203135043.409192-30-james.morse@arm.com>
- <865ycg1kv2.wl-maz@kernel.org>
+         in-reply-to:in-reply-to:references:references:dkim-signature;
+        bh=guMc6hsiXGpalu0jr5Z0AEUYKVM2wKO59VlN/G9yblk=;
+        b=qIYusFZ4+eqRr4VbUQ5yr+Z/dI3jX1G0M5eFzivoj6cpGOb3BkaUR/AM7/3JPYTzE7nO3c
+        vGmDmQSIS+wDweev1zWqxuMg2IwboYeF4TDbNJpJHsjcm0x7TssIt5xggC/OqDvf8MDf7G
+        RBZsZt9cPYW+Q12tBBtFMvuKkQQ8IZ8X2Olw9rgP5ebCp4Tj9dv808sf1lMY7H1bZG4bSC
+        e1PE79gXNGM8Jny1biYsIv0tGdccdaLvD2LvdkAk0ryeYyxH9lV9pD1dIKp8RYT2libZlo
+        ed6zoOFU63EGTBFO57UT1ZK0N0Ny0zCL7wvlnh+BO9oS5gV5uIn42yv2tqheYA==
+ARC-Authentication-Results: i=1;
+        rspamd-544f66f495-sp79h;
+        auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Shade-Fearful: 0a702cd819bcb5c1_1675704461055_4197068008
+X-MC-Loop-Signature: 1675704461055:1861061609
+X-MC-Ingress-Time: 1675704461055
+Received: from pdx1-sub0-mail-a221.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+        by 100.103.24.110 (trex/6.7.1);
+        Mon, 06 Feb 2023 17:27:41 +0000
+Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: dave@stgolabs.net)
+        by pdx1-sub0-mail-a221.dreamhost.com (Postfix) with ESMTPSA id 4P9Y9m0d9fz9t;
+        Mon,  6 Feb 2023 09:27:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+        s=dreamhost; t=1675704460;
+        bh=guMc6hsiXGpalu0jr5Z0AEUYKVM2wKO59VlN/G9yblk=;
+        h=Date:From:To:Cc:Subject:Content-Type;
+        b=Nu4mZLu6eXXsFuG1qopNmg9ygmjFl98KLdVMLpjIwokO3awmYsZ+j/5RttTz8r1fU
+         MagIjB/6LJYKufamb/pzF/5+EYBdoHk/cHRUhh9pzXQgbMGEAKCMVbWr2Z42970Rpx
+         CftCLUJxu1/t/7bVVgYFGIk71p1Z1M/SMIEhiqstuXLP6Tsr/yo6tk7eOqUTP2KX2s
+         Dct4So7RYRmLbSCGO2no/G0ygG5hUPQwyNqBGM27O2+BU45Awxqn6L5F2AWRX+MJo8
+         3vFceRoCX0KpEfYXuidSqzEfQZ+pcB2oh52rF5J4uISLHmqx/a4J4mhkG7GyOpMNbI
+         N3GI5BxijFbBw==
+Date:   Mon, 6 Feb 2023 09:27:37 -0800
+From:   Davidlohr Bueso <dave@stgolabs.net>
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     linux-cxl@vger.kernel.org, dave.hansen@linux.intel.com,
+        linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 1/18] cxl/Documentation: Update references to attributes
+ added in v6.0
+Message-ID: <20230206172737.chyul7vz3cpxij4b@offworld>
+References: <167564534874.847146.5222419648551436750.stgit@dwillia2-xfh.jf.intel.com>
+ <167564535494.847146.12120939572640882946.stgit@dwillia2-xfh.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <865ycg1kv2.wl-maz@kernel.org>
-X-Migadu-Flow: FLOW_OUT
+In-Reply-To: <167564535494.847146.12120939572640882946.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: NeoMutt/20220429
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sun, Feb 05, 2023 at 10:12:49AM +0000, Marc Zyngier wrote:
-> On Fri, 03 Feb 2023 13:50:40 +0000,
-> James Morse <james.morse@arm.com> wrote:
-> > 
-> > From: Jean-Philippe Brucker <jean-philippe@linaro.org>
-> > 
-> > When capability KVM_CAP_ARM_HVC_TO_USER is available, userspace can
-> > request to handle all hypercalls that aren't handled by KVM. With the
-> > help of another capability, this will allow userspace to handle PSCI
-> > calls.
-> > 
-> > Suggested-by: James Morse <james.morse@arm.com>
-> > Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
-> > Signed-off-by: James Morse <james.morse@arm.com>
-> > 
-> > ---
-> > 
-> 
-> On top of Oliver's ask not to make this a blanket "steal everything",
-> but instead to have an actual request for ranges of forwarded
-> hypercalls:
-> 
-> > Notes on this implementation:
-> > 
-> > * A similar mechanism was proposed for SDEI some time ago [1]. This RFC
-> >   generalizes the idea to all hypercalls, since that was suggested on
-> >   the list [2, 3].
-> > 
-> > * We're reusing kvm_run.hypercall. I copied x0-x5 into
-> >   kvm_run.hypercall.args[] to help userspace but I'm tempted to remove
-> >   this, because:
-> >   - Most user handlers will need to write results back into the
-> >     registers (x0-x3 for SMCCC), so if we keep this shortcut we should
-> >     go all the way and read them back on return to kernel.
-> >   - QEMU doesn't care about this shortcut, it pulls all vcpu regs before
-> >     handling the call.
-> >   - SMCCC uses x0-x16 for parameters.
-> >   x0 does contain the SMCCC function ID and may be useful for fast
-> >   dispatch, we could keep that plus the immediate number.
-> > 
-> > * Add a flag in the kvm_run.hypercall telling whether this is HVC or
-> >   SMC?  Can be added later in those bottom longmode and pad fields.
-> 
-> We definitely need this. A nested hypervisor can (and does) use SMCs
-> as the conduit. The question is whether they represent two distinct
-> namespaces or not. I *think* we can unify them, but someone should
-> check and maybe get clarification from the owners of the SMCCC spec.
-> 
-> >
-> > * On top of this we could share with userspace which HVC ranges are
-> >   available and which ones are handled by KVM. That can actually be added
-> >   independently, through a vCPU/VM device attribute which doesn't consume
-> >   a new ioctl:
-> >   - userspace issues HAS_ATTR ioctl on the vcpu fd to query whether this
-> >     feature is available.
-> >   - userspace queries the number N of HVC ranges using one GET_ATTR.
-> >   - userspace passes an array of N ranges using another GET_ATTR. The
-> >     array is filled and returned by KVM.
-> 
-> As mentioned above, I think this interface should go both ways.
-> Userspace should request the forwarding of a certain range of
-> hypercalls via a similar SET_ATTR interface.
-> 
-> Another question is how we migrate VMs that have these forwarding
-> requirements. Do we expect the VMM to replay the forwarding as part of
-> the setting up on the other side? Or do we save/restore this via a
-> firmware pseudo-register?
+On Sun, 05 Feb 2023, Dan Williams wrote:
 
-Personally I'd prefer we left that job to userspace.
+>Prior to Linus deciding that the kernel that following v5.19 would be
+>v6.0, the CXL ABI documentation already referenced v5.20. In preparation
+>for updating these entries update the kernel version to v6.0.
+>
+>Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-We could also implement GET_ATTR, in case userspace has forgotten what
-it wrote to the hypercall filter. The firmware pseudo-registers are
-handy for moving KVM state back and forth 'for free', but I don't think
-we need to bend over backwards to migrate state userspace is directly
-responsible for.
+This one seems better for v6.2.
 
--- 
-Thanks,
-Oliver
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
