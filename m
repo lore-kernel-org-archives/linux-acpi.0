@@ -2,134 +2,232 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D199AC636D3
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Feb 2023 17:55:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5DE9C636D3
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Feb 2023 18:16:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232231AbjBGRzH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Feb 2023 12:55:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57588 "EHLO
+        id S231782AbjBGSQV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Feb 2023 13:16:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231992AbjBGRzH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2023 12:55:07 -0500
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D92F110D;
-        Tue,  7 Feb 2023 09:55:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1675792506; x=1707328506;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=P30+lYIVc4wiz0EdRCOy8pNv7bvkxNZJAWCj9CeN+zY=;
-  b=DBwyV7CZrXzQT8cgbLqlDcwODQ2RSPnkLGDEzIfTOpn8G1avGbtLA/y2
-   YBFCoj+S/WvyrVuCuM98kDc+i8ERP8U4E3YcF/kdgs6KrJHZVE3PurIcU
-   3oY3QL4cFgCBTFUoujf1JS6FV2OEOZDuZkCzyq7tElnGUqR3OWFmpQFTZ
-   PxbI21lcTc5fPTw9kSajIbSQpqcUTzXcEosxCUIMcJqnbiy+BP0QJ5t0j
-   bANbHCrNj3W7AnS0pypGHqDH7bSLoy4CygBUHR2hcDqzMBpV0FNHskzKT
-   VVcLESm+UVYY/PvR8nwGYMLC8kUNC28bPWbxfa5yOyS2w8J95hpjNx+SM
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10614"; a="317555509"
-X-IronPort-AV: E=Sophos;i="5.97,278,1669104000"; 
-   d="scan'208";a="317555509"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2023 07:48:01 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10614"; a="809562801"
-X-IronPort-AV: E=Sophos;i="5.97,278,1669104000"; 
-   d="scan'208";a="809562801"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.212.98.37]) ([10.212.98.37])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2023 07:47:59 -0800
-Message-ID: <bd978172-a774-b914-04a1-8e878dddfb92@intel.com>
-Date:   Tue, 7 Feb 2023 08:47:58 -0700
+        with ESMTP id S231695AbjBGSQU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2023 13:16:20 -0500
+Received: from mail-pf1-x435.google.com (mail-pf1-x435.google.com [IPv6:2607:f8b0:4864:20::435])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 365693C2B0
+        for <linux-acpi@vger.kernel.org>; Tue,  7 Feb 2023 10:16:11 -0800 (PST)
+Received: by mail-pf1-x435.google.com with SMTP id h197so1818076pfe.12
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Feb 2023 10:16:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=sSunKu0hLdrmmtMcDNirilKAS0IN5i8wmev5sy3ww80=;
+        b=nvNPBcDWqczrDtDdaJnqEcy2bXszbCVB+iZ0wLX8oaRwsf3sXbqfSUOu97NQd2q7zW
+         MDNljr0XVnF2+uZvx3f4KsnMy2mBE22lT81PLIrrCrPw6pf9IxRWBGNIM+7ZPUDenS37
+         r3yNOS833xnbCFK+fNJdp+omgjAV/pkWLlnB36P67UzHo+YH2BC2V6V7kSyhhmoQwyHw
+         X4t6mt5O/DvFIxDy6rqqKU5+ejg45CNxD5Boi2nvCvkR0/hQC4FmoyOMKs1ktH7Linsg
+         dNdiMLGSRe9bvte8NReis1E6hbme5BErHRptgoOljcu38q/j0LNmIdZ+uwakmYRdohE2
+         sIzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=sSunKu0hLdrmmtMcDNirilKAS0IN5i8wmev5sy3ww80=;
+        b=Mg6p7yD5LvxKqH0B3sTX+jGxrOfeuvMhM7yShOzjoz2WfQnjph4cp85+obByQKpfcJ
+         TSxhYppNzXxgGpLMV/C5UXsE8hukY1vGt7bAH7S/ZT6uNB5l6CfJm46K+sFR9BAegAnK
+         XO1oqPaR6CXfsCUNmUzEvfwr401H9/q7YPefIH8I4KVwCzTk9MAho329W6qxecP75aQj
+         nUfOuQOOP8U+Pn5T9R3M5kC4OOkO/Vpzvm93hcnrRRhvmcF+qaQ28UZnGqdWyAkLPH8U
+         PCXx252GGym2Ot9fimi9HTqiv8uaZhfpHWCr0sTst8/PCN44jQvgVEMDM+k/5BjldFHw
+         Qxjg==
+X-Gm-Message-State: AO0yUKVodK3wAAF+kvo1eleEXOZ0StCbgF90+JG5zV5jTTv5Jpzp7LX+
+        Z3QjG0MkwO07erJVYJGco/I6noOMDTOOf7tSwR3kdQ==
+X-Google-Smtp-Source: AK7set/f6jDh9v+hpyOrJmlr/KCCnwgwcKVGWTVlFNv1/9ietkEewF439YsxUFJFF9c2MR40I0uXbhZpovcGBYrSnRQ=
+X-Received: by 2002:a63:7f12:0:b0:479:45df:425e with SMTP id
+ a18-20020a637f12000000b0047945df425emr772888pgd.116.1675793769045; Tue, 07
+ Feb 2023 10:16:09 -0800 (PST)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.6.0
-Subject: Re: [PATCH 02/18] ACPICA: Export acpi_ut_verify_cdat_checksum()
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     linux-cxl@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-acpi@vger.kernel.org, dan.j.williams@intel.com,
-        ira.weiny@intel.com, vishal.l.verma@intel.com,
-        alison.schofield@intel.com, bhelgaas@google.com,
-        robert.moore@intel.com
-References: <167571650007.587790.10040913293130712882.stgit@djiang5-mobl3.local>
- <167571657859.587790.12435839081602248140.stgit@djiang5-mobl3.local>
- <CAJZ5v0hO-FthRSRD5LPL1Onz7DaRG8zBo=GBDBR+k1_upYHVBQ@mail.gmail.com>
-From:   Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <CAJZ5v0hO-FthRSRD5LPL1Onz7DaRG8zBo=GBDBR+k1_upYHVBQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20230207014207.1678715-1-saravanak@google.com> <CAD=FV=UZxz-nHNsPO1P_W0MHFD8UDTvKXpFm1dSB+53NJaP2=w@mail.gmail.com>
+In-Reply-To: <CAD=FV=UZxz-nHNsPO1P_W0MHFD8UDTvKXpFm1dSB+53NJaP2=w@mail.gmail.com>
+From:   Saravana Kannan <saravanak@google.com>
+Date:   Tue, 7 Feb 2023 10:15:32 -0800
+Message-ID: <CAGETcx86PsZ96CGwvzx7-jvsv=jOFkuPz-K-zjkUXQ3M=yc4zA@mail.gmail.com>
+Subject: Re: [PATCH v3 00/12] fw_devlink improvements
+To:     Doug Anderson <dianders@chromium.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Cristian Marussi <cristian.marussi@arm.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Marc Zyngier <maz@kernel.org>, Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        Richard Weinberger <richard@nod.at>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Len Brown <lenb@kernel.org>,
+        =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <rafal@milecki.pl>,
+        Abel Vesa <abel.vesa@linaro.org>,
+        Alexander Stein <alexander.stein@ew.tq-group.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        John Stultz <jstultz@google.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+        Maxim Kiselev <bigunclemax@gmail.com>,
+        Maxim Kochetkov <fido_max@inbox.ru>,
+        Luca Weiss <luca.weiss@fairphone.com>,
+        Colin Foster <colin.foster@in-advantage.com>,
+        Martin Kepplinger <martin.kepplinger@puri.sm>,
+        Jean-Philippe Brucker <jpb@kernel.org>,
+        Vladimir Oltean <vladimir.oltean@nxp.com>,
+        kernel-team@android.com, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-mtd@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Tue, Feb 7, 2023 at 7:28 AM Doug Anderson <dianders@chromium.org> wrote:
+>
+> Hi,
+>
+> On Mon, Feb 6, 2023 at 5:42 PM Saravana Kannan <saravanak@google.com> wrote:
+> >
+> > Naresh, Tony, Abel, Geert, Dmitry, Maxim(s), Miquel, Luca, Doug, Martin,
+> > Jean-Philippe,
+> >
+> > Can I get your Tested-by's for this v3 series please?
+> >
+> > Vladimir,
+> >
+> > Ccing you because DSA's and fw_devlink have known/existing problems
+> > (still in my TODOs to fix). But I want to make sure this series doesn't
+> > cause additional problems for DSA.
+> >
+> > All,
+> >
+> > This patch series improves fw_devlink in the following ways:
+> >
+> > 1. It no longer cares about a fwnode having a "compatible" property. It
+> >    figures this out more dynamically. The only expectation is that
+> >    fwnodes that are converted to devices actually get probed by a driver
+> >    for the dependencies to be enforced correctly.
+> >
+> > 2. Finer grained dependency tracking. fw_devlink will now create device
+> >    links from the consumer to the actual resource's device (if it has one,
+> >    Eg: gpio_device) instead of the parent supplier device. This improves
+> >    things like async suspend/resume ordering, potentially remove the need
+> >    for frameworks to create device links, more parallelized async probing,
+> >    and better sync_state() tracking.
+> >
+> > 3. Handle hardware/software quirks where a child firmware node gets
+> >    populated as a device before its parent firmware node AND actually
+> >    supplies a non-optional resource to the parent firmware node's
+> >    device.
+> >
+> > 4. Way more robust at cycle handling (see patch for the insane cases).
+> >
+> > 5. Stops depending on OF_POPULATED to figure out some corner cases.
+> >
+> > 6. Simplifies the work that needs to be done by the firmware specific
+> >    code.
+> >
+> > The v3 series has gone through my usual testing on my end and looks good
+> > to me.
+> >
+> > Thanks,
+> > Saravana
+> >
+> > [1] - https://lore.kernel.org/lkml/20220810060040.321697-1-saravanak@google.com/
+> > [2] - https://lore.kernel.org/lkml/CAGETcx-JUV1nj8wBJrTPfyvM7=Mre5j_vkVmZojeiumUGG6QZQ@mail.gmail.com/
+> >
+> > v1 -> v2:
+> > - Fixed Patch 1 to handle a corner case discussed in [2].
+> > - New patch 10 to handle "fsl,imx8mq-gpc" being initialized by 2 drivers.
+> > - New patch 11 to add fw_devlink support for SCMI devices.
+> >
+> > v2 -> v3:
+> > - Addressed most of Andy's comments in v2
+> > - Added Colin and Sudeep's Tested-by for the series (except the imx and
+> >   renesas patches)
+> > - Added Sudeep's Acked-by for the scmi patch.
+> > - Added Geert's Reviewed-by for the renesas patch.
+> > - Fixed gpiolib crash reported by Naresh.
+> > - Patch 6: Fix __fwnode_links_move_consumers() to preserve fwnode link flags.
+> > - New Patch 12 to fix nvmem-cells issue reported by Maxim(s)/Miquel.
+> > - Deleted some stale function doc in Patch 8
+> >
+> > Cc: Abel Vesa <abel.vesa@linaro.org>
+> > Cc: Alexander Stein <alexander.stein@ew.tq-group.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Sudeep Holla <sudeep.holla@arm.com>
+> > Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> > Cc: John Stultz <jstultz@google.com>
+> > Cc: Doug Anderson <dianders@chromium.org>
+> > Cc: Guenter Roeck <linux@roeck-us.net>
+> > Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+> > Cc: Maxim Kiselev <bigunclemax@gmail.com>
+> > Cc: Maxim Kochetkov <fido_max@inbox.ru>
+> > Cc: Miquel Raynal <miquel.raynal@bootlin.com>
+> > Cc: Luca Weiss <luca.weiss@fairphone.com>
+> > Cc: Colin Foster <colin.foster@in-advantage.com>
+> > Cc: Martin Kepplinger <martin.kepplinger@puri.sm>
+> > Cc: Jean-Philippe Brucker <jpb@kernel.org>
+> > Cc: Vladimir Oltean <vladimir.oltean@nxp.com>
+> >
+> > Saravana Kannan (12):
+> >   driver core: fw_devlink: Don't purge child fwnode's consumer links
+> >   driver core: fw_devlink: Improve check for fwnode with no
+> >     device/driver
+> >   soc: renesas: Move away from using OF_POPULATED for fw_devlink
+> >   gpiolib: Clear the gpio_device's fwnode initialized flag before adding
+> >   driver core: fw_devlink: Add DL_FLAG_CYCLE support to device links
+> >   driver core: fw_devlink: Allow marking a fwnode link as being part of
+> >     a cycle
+> >   driver core: fw_devlink: Consolidate device link flag computation
+> >   driver core: fw_devlink: Make cycle detection more robust
+> >   of: property: Simplify of_link_to_phandle()
+> >   irqchip/irq-imx-gpcv2: Mark fwnode device as not initialized
+> >   firmware: arm_scmi: Set fwnode for the scmi_device
+> >   mtd: mtdpart: Don't create platform device that'll never probe
+>
+> I tested the whole series together on several devices. I tried to test
+> on a wide variety since previous versions had broken due to all the
+> dependency cycles in the display and some of these devices used
+> different components in their display pipeline. I didn't do massive
+> testing but did confirm that basic devices came up, including display.
+>
+> Devices tested with your v3 applied atop v6.2-rc7-11-g05ecb680708a:
+>
+> * sc7180-trogdor-lazor (with ps8640 bridge), which had failed to bring
+> up the display on v2.
+>
+> * sc7180-trogdor-lazor (with sn65dsi86 bridge)
+>
+> * sc7180-trogdor-pazquel (with sn65dsi86 bridge)
+>
+> * sc7180-trogdor-homestar (with ps8640 bridge)
+>
+> * sc7180-trogdor-wormdingler
+>
+> * sc7280-herobrine-villager
+>
+> Tested-by: Douglas Anderson <dianders@chromium.org>
 
+Thanks a lot for all this testing and helping me debug the ps8640 issue Doug!
 
-On 2/7/23 7:19 AM, Rafael J. Wysocki wrote:
-> On Mon, Feb 6, 2023 at 9:49 PM Dave Jiang <dave.jiang@intel.com> wrote:
->>
->> Export the CDAT checksum verify function so CXL driver can use it to verify
->> CDAT coming from the CXL devices.
->>
->> Given that this function isn't actually being used by ACPI internals,
->> removing the define check of APCI_CHECKSUM_ABORT so the function would
->> return failure on checksum fail since the driver will need to know.
-> 
-> If you want to make ACPICA changes, please first submit a pull request
-> to the upstream ACPICA project on GitHub.
-> 
-> Having done that, please resubmit the corresponding Linux patch with a
-> Link tag pointing to the upstream PR.
-
-Ok will do. Thanks!
-> 
-> Thanks!
-> 
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->>   drivers/acpi/acpica/utcksum.c |    4 +---
->>   include/linux/acpi.h          |    7 +++++++
->>   2 files changed, 8 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/utcksum.c b/drivers/acpi/acpica/utcksum.c
->> index c166e4c05ab6..c0f98c8f9a0b 100644
->> --- a/drivers/acpi/acpica/utcksum.c
->> +++ b/drivers/acpi/acpica/utcksum.c
->> @@ -102,15 +102,13 @@ acpi_ut_verify_cdat_checksum(struct acpi_table_cdat *cdat_table, u32 length)
->>                                     "should be 0x%2.2X",
->>                                     acpi_gbl_CDAT, cdat_table->checksum,
->>                                     checksum));
->> -
->> -#if (ACPI_CHECKSUM_ABORT)
->>                  return (AE_BAD_CHECKSUM);
->> -#endif
->>          }
->>
->>          cdat_table->checksum = checksum;
->>          return (AE_OK);
->>   }
->> +EXPORT_SYMBOL_GPL(acpi_ut_verify_cdat_checksum);
->>
->>   /*******************************************************************************
->>    *
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 5e6a876e17ba..09b44afef7df 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -1504,9 +1504,16 @@ static inline void acpi_init_ffh(void) { }
->>   #ifdef CONFIG_ACPI
->>   extern void acpi_device_notify(struct device *dev);
->>   extern void acpi_device_notify_remove(struct device *dev);
->> +extern acpi_status
->> +acpi_ut_verify_cdat_checksum(struct acpi_table_cdat *cdat_table, u32 length);
->>   #else
->>   static inline void acpi_device_notify(struct device *dev) { }
->>   static inline void acpi_device_notify_remove(struct device *dev) { }
->> +static inline acpi_status
->> +acpi_ut_verify_cdat_checksum(struct acpi_table_cdat *cdat_table, u32 length)
->> +{
->> +       return (AE_NOT_CONFIGURED);
->> +}
->>   #endif
->>
->>   #endif /*_LINUX_ACPI_H*/
->>
->>
+-Saravana
