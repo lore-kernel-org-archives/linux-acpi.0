@@ -2,57 +2,56 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD8E2C61DA4
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Feb 2023 01:43:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA7AEC05027
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Feb 2023 01:44:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230378AbjBGBnv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 6 Feb 2023 20:43:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41920 "EHLO
+        id S230360AbjBGBoE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Feb 2023 20:44:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230483AbjBGBnE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2023 20:43:04 -0500
-Received: from mail-pj1-x104a.google.com (mail-pj1-x104a.google.com [IPv6:2607:f8b0:4864:20::104a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF31F3645A
-        for <linux-acpi@vger.kernel.org>; Mon,  6 Feb 2023 17:42:43 -0800 (PST)
-Received: by mail-pj1-x104a.google.com with SMTP id a10-20020a17090a740a00b002307faf7db2so3237649pjg.1
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Feb 2023 17:42:43 -0800 (PST)
+        with ESMTP id S230440AbjBGBnU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2023 20:43:20 -0500
+Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D862736684
+        for <linux-acpi@vger.kernel.org>; Mon,  6 Feb 2023 17:42:49 -0800 (PST)
+Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-52a87fc668cso22679707b3.18
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Feb 2023 17:42:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
         h=cc:to:from:subject:references:mime-version:message-id:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=YX1zBRfC33D3rDRElKAdT20jJS5RQeSlv0JzqWYnjho=;
-        b=UGmq1xHhmv8QgalRGnvex5vaBwzzKCS6zloJhLFOA04JYhf7s2xljRYpy9kTAoNsHa
-         iBC98QSDMciwj7mZAoPpI2usajIcl1gF62f5Z4nG2GjxXwW1tEOTSt3uCwYi8iyDdG37
-         BQfwQH+F5b5B8hHp73/BToUo9eBPbPtsoJG7VHsq9ww2xJmU91i6mybd4OadC8hcmn4L
-         z/JS/fusQ1z+bJZfl9x8ljB4BFuvxFXBUNKd3sGG9GJYtq6qpJhSHd3ZvicyZg0osOk+
-         QxgZAlVpjyrodYVEXosDI3FM0qnhjaVmzWT6ld85NejZtUeLAUKpBMz5nIKrGLcp4W86
-         p/oQ==
+        bh=6A/x+0p8PMNq+UMi21kh87Q0g2/Jiu6oRRXgMmXymQw=;
+        b=L5SU9yrkdCoQISM+/wTwNBtt9so41vGiUxcF1ahsAlqhPaBFdZ9BDHj5PmwJYCl3t5
+         yHWeuyzyFi1Vdpek1s61VTHHj+vCMUwdpIlXNVlAwD+q2ZgHmHT68Mgoisp0fKBP+9Ye
+         AKuV+3jXCiNI4TvL5bTaYwjcjvjt6nHSeRli1b16m+nWjdvaQpCaLUzxcHWRE8E5TnS1
+         d0NPJtXNewRsKNlQC1Z7BIw/LVmY8gig4kKT1UdBbSEKM0EGx8tI2Hg9ZraY7mst5nHt
+         8sz2cJJNBzpaUhYmCNVGrSD9LOhg+ouviu7qdeJhnsPY9u5+SlS77RJ9No7k5rq3weF9
+         /HxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:from:subject:references:mime-version:message-id:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YX1zBRfC33D3rDRElKAdT20jJS5RQeSlv0JzqWYnjho=;
-        b=zslzc8n09D7A+i9X1H8zQeZj3icj/X/vVbuxrXsObw/8Ov0gvSwIu45IingSIJycpp
-         GcuLrFrdYWYu0czShbnzt65BxIKGs56aHl3aJyMfjvKAlTpZi2Vn817j8KCFFgBeiUkH
-         LL2dXjLDIpl+6HI9DR2lytn2QPpMQIDaCVL9X6BAnAcEi2fNFkvCngXp+G8AYORvt7iM
-         qvwypLo1F7gK2A6pR8NsFD/4O6CmJ/UBWb8bhdpYb/yXEEmc65E0CsxgOCVmgEULWsV8
-         Awk85Y6rc1Qq/xlnqJyKNo605iji1zPxKFCFgh/k5RlFKSS0RH98+/JNI0NXF/rVJjQJ
-         QsMw==
-X-Gm-Message-State: AO0yUKXOufxJDiVxIRq+yGLQJSy6sGS2csWqpsFBeQTnlKtAKthHCpeN
-        tl/XiYbvLkQxVXYakpk2lPvYvm+o2W8czeE=
-X-Google-Smtp-Source: AK7set8Gcli9J3BzSmSCx9wcmgEyp38uzEhI1HIWAsHDVULR2jB9pwdeXZpjU2A6RPq1Ak9f9gnun0I1Kq/a1mU=
+        bh=6A/x+0p8PMNq+UMi21kh87Q0g2/Jiu6oRRXgMmXymQw=;
+        b=CP5lIbUe5aDt6aaSUWMW6D97E3ZCmpavI7eb2SVvPvsGPgOsNMv9Paj/oWujgW2bZe
+         ml3bABYl9XaAT2c2OlIZwmB4l3LM3/hQ9bnKAm8lPYxhFJxxN5VPV+SWkhGSWflBfOWW
+         xtGUCzpICYRqmR5i/MvuxqCENBDRGsn2dwXVTXucpLCxtFl2+jPXGRdve+4fQpJ4qomL
+         9JE3khDaGINeI6Py0FfVTAnRBWnHAG/BH1VyZavT/9JxCe0m2ocp2ftLJ/8k8Ip8944e
+         O0jccQZeQheKmQDBsbzhzoPvk6Ha5ds5z7HwmLVxhJDhJiCjKaB828BWA5WfO1d8XpOw
+         f+nw==
+X-Gm-Message-State: AO0yUKUp0HlVuw2mffepZ1tD1ySyGWxz/cIAETUHW/6KO0EmuNOIbF9f
+        NcYIN3bN7KxyA/sQ1kjNRsY7HfRbE2/3VaM=
+X-Google-Smtp-Source: AK7set+GZlE4Povwj1RwyeX6tO9l13sdnFTxa+J8n89nUczFeQdItr8brE7AhM3WB/T2LWQ/yln8wcGWuiwenUI=
 X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:ae1:aba6:f21c:4a94])
- (user=saravanak job=sendgmr) by 2002:a17:90a:1d4e:b0:230:ae97:c349 with SMTP
- id u14-20020a17090a1d4e00b00230ae97c349mr441075pju.8.1675734163194; Mon, 06
- Feb 2023 17:42:43 -0800 (PST)
-Date:   Mon,  6 Feb 2023 17:42:04 -0800
+ (user=saravanak job=sendgmr) by 2002:a81:6146:0:b0:526:a392:c07e with SMTP id
+ v67-20020a816146000000b00526a392c07emr128848ywb.106.1675734157775; Mon, 06
+ Feb 2023 17:42:37 -0800 (PST)
+Date:   Mon,  6 Feb 2023 17:42:02 -0800
 In-Reply-To: <20230207014207.1678715-1-saravanak@google.com>
-Message-Id: <20230207014207.1678715-13-saravanak@google.com>
+Message-Id: <20230207014207.1678715-11-saravanak@google.com>
 Mime-Version: 1.0
 References: <20230207014207.1678715-1-saravanak@google.com>
 X-Mailer: git-send-email 2.39.1.519.gcb327c4b5f-goog
-Subject: [PATCH v3 12/12] mtd: mtdpart: Don't create platform device that'll
- never probe
+Subject: [PATCH v3 10/12] irqchip/irq-imx-gpcv2: Mark fwnode device as not initialized
 From:   Saravana Kannan <saravanak@google.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -104,50 +103,45 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-These "nvmem-cells" platform devices never get probed because there's no
-platform driver for it and it's never used anywhere else. So it's a
-waste of memory. These devices also cause fw_devlink to block nvmem
-consumers of "nvmem-cells" partition from probing because the supplier
-device never probes.
+Since this device is only partially initialized by the irqchip driver,
+we need to mark the fwnode device as not initialized. This is to let
+fw_devlink know that the device will be completely initialized at a
+later point. That way, fw_devlink will continue to defer the probe of
+the power domain consumers till the power domain driver successfully
+binds to the struct device and completes the initialization of the
+device.
 
-So stop creating platform devices for nvmem-cells partitions to avoid
-wasting memory and to avoid blocking probing of consumers.
-
-Reported-by: Maxim Kiselev <bigunclemax@gmail.com>
-Fixes: bcdf0315a61a ("mtd: call of_platform_populate() for MTD partitions")
 Signed-off-by: Saravana Kannan <saravanak@google.com>
 ---
- drivers/mtd/mtdpart.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/irqchip/irq-imx-gpcv2.c | 1 +
+ drivers/soc/imx/gpcv2.c         | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/mtd/mtdpart.c b/drivers/mtd/mtdpart.c
-index d442fa94c872..85f5ee6f06fc 100644
---- a/drivers/mtd/mtdpart.c
-+++ b/drivers/mtd/mtdpart.c
-@@ -577,6 +577,7 @@ static int mtd_part_of_parse(struct mtd_info *master,
- {
- 	struct mtd_part_parser *parser;
- 	struct device_node *np;
-+	struct device_node *child;
- 	struct property *prop;
- 	struct device *dev;
- 	const char *compat;
-@@ -594,6 +595,15 @@ static int mtd_part_of_parse(struct mtd_info *master,
- 	else
- 		np = of_get_child_by_name(np, "partitions");
+diff --git a/drivers/irqchip/irq-imx-gpcv2.c b/drivers/irqchip/irq-imx-gpcv2.c
+index b9c22f764b4d..8a0e82067924 100644
+--- a/drivers/irqchip/irq-imx-gpcv2.c
++++ b/drivers/irqchip/irq-imx-gpcv2.c
+@@ -283,6 +283,7 @@ static int __init imx_gpcv2_irqchip_init(struct device_node *node,
+ 	 * later the GPC power domain driver will not be skipped.
+ 	 */
+ 	of_node_clear_flag(node, OF_POPULATED);
++	fwnode_dev_initialized(domain->fwnode, false);
+ 	return 0;
+ }
  
-+	/*
-+	 * Don't create devices that are added to a bus but will never get
-+	 * probed. That'll cause fw_devlink to block probing of consumers of
-+	 * this partition until the partition device is probed.
-+	 */
-+	for_each_child_of_node(np, child)
-+		if (of_device_is_compatible(child, "nvmem-cells"))
-+			of_node_set_flag(child, OF_POPULATED);
-+
- 	of_property_for_each_string(np, "compatible", prop, compat) {
- 		parser = mtd_part_get_compatible_parser(compat);
- 		if (!parser)
+diff --git a/drivers/soc/imx/gpcv2.c b/drivers/soc/imx/gpcv2.c
+index 7a47d14fde44..4b3300b090a8 100644
+--- a/drivers/soc/imx/gpcv2.c
++++ b/drivers/soc/imx/gpcv2.c
+@@ -1518,7 +1518,7 @@ static int imx_gpcv2_probe(struct platform_device *pdev)
+ 		domain->genpd.power_off = imx_pgc_power_down;
+ 
+ 		pd_pdev->dev.parent = dev;
+-		pd_pdev->dev.of_node = np;
++		device_set_node(&pd_pdev->dev, of_fwnode_handle(np));
+ 
+ 		ret = platform_device_add(pd_pdev);
+ 		if (ret) {
 -- 
 2.39.1.519.gcb327c4b5f-goog
 
