@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 511DEC05027
-	for <linux-acpi@archiver.kernel.org>; Wed,  8 Feb 2023 17:34:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 810C1C636CC
+	for <linux-acpi@archiver.kernel.org>; Wed,  8 Feb 2023 17:35:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231915AbjBHRet (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 8 Feb 2023 12:34:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39754 "EHLO
+        id S231880AbjBHRey (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 8 Feb 2023 12:34:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231913AbjBHReF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2023 12:34:05 -0500
+        with ESMTP id S231941AbjBHReH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2023 12:34:07 -0500
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96ADF3251B;
-        Wed,  8 Feb 2023 09:34:00 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6183A4FAE6;
+        Wed,  8 Feb 2023 09:34:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1675877641; x=1707413641;
+  t=1675877645; x=1707413645;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=bloKEk7wdB/KAamzH2f498CjQ4BYd7MQyp/8x7HupR0=;
-  b=ndMqj0wLWnynraZ4MaSqQjmWUqDE9EKatFTzXOej52AbdsLmzrSeNx20
-   aUbcIyl9ImbCOVXwlKr2v9maSlZ95f1685hEjERnKz90rTozgd7IZ3LA2
-   VBdx6PMyPjpmzMtZNJW4hoZRsmMt2iJg888nMlvb/M6Q2Le50JGJpTduM
-   ejGAQTgVythJgG/WxpPKsY6CDVUXa6EluO/z36jEVP5qZBhgMoIpZjisu
-   zhQQOt0Z7AnpH9csGO6juefQ0XASW7A0/OMx6p3ENt4OhxoDwmqBOeJd2
-   hmf/tQW0BlcBluExU+R79G9TnunPJrvN06XyRrkA6Fg0HHj6RRcU4dXgf
+  bh=5X9ZOcG0DiAszti6VyRB72jA0fVrIX+W6b07WZOwIv4=;
+  b=jdOArBm/4aGFroOoS7y2IZI3LRrZ19IkRuwyHrN/7PARDEVmqMV/4iB2
+   ACJd9SLhDva7Aew7kLSGRLJh97/RT0lmqy24Xvdo4oyRhv6aW7Ty9l7a5
+   iWc6+vZLqQgfZisPFIP6/FqosnoASnYViyaR/O+djpvRYNnLd9Y28VZpm
+   r8m6PR17zKwbv/fbMyRNpw6WpLgyAts1n4eoq61KyvlMgeoYpZbQkHRUe
+   k2t3KFDvEfzQOhX9uVL/J6IO+KNgQB+ogP0dS3pm/SwFxrHYOti2Ph8vm
+   bcwnbnJDsxlARxzs0WCTd/fl2PNpE0FU4UUJheG38qbeqxf4yV/H9orM0
    g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="310225283"
+X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="310225334"
 X-IronPort-AV: E=Sophos;i="5.97,281,1669104000"; 
-   d="scan'208";a="310225283"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2023 09:33:21 -0800
+   d="scan'208";a="310225334"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2023 09:33:26 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="697722976"
+X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="660703921"
 X-IronPort-AV: E=Sophos;i="5.97,281,1669104000"; 
-   d="scan'208";a="697722976"
+   d="scan'208";a="660703921"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga008.jf.intel.com with ESMTP; 08 Feb 2023 09:33:15 -0800
+  by orsmga007.jf.intel.com with ESMTP; 08 Feb 2023 09:33:20 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 8B16F1F8; Wed,  8 Feb 2023 19:33:47 +0200 (EET)
+        id B005F252; Wed,  8 Feb 2023 19:33:47 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Arnd Bergmann <arnd@arndb.de>,
@@ -103,9 +103,9 @@ Cc:     Bartosz Golaszewski <brgl@bgdev.pl>,
         Kalle Valo <kvalo@kernel.org>, Qiang Zhao <qiang.zhao@nxp.com>,
         Li Yang <leoyang.li@nxp.com>, Rob Herring <robh+dt@kernel.org>,
         Frank Rowand <frowand.list@gmail.com>
-Subject: [PATCH v4 02/18] ARM: s3c24xx: Use the right include
-Date:   Wed,  8 Feb 2023 19:33:27 +0200
-Message-Id: <20230208173343.37582-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 04/18] gpiolib: Make the legacy <linux/gpio.h> consumer-only
+Date:   Wed,  8 Feb 2023 19:33:29 +0200
+Message-Id: <20230208173343.37582-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.39.1
 In-Reply-To: <20230208173343.37582-1-andriy.shevchenko@linux.intel.com>
 References: <20230208173343.37582-1-andriy.shevchenko@linux.intel.com>
@@ -117,35 +117,29 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Linus Walleij <linus.walleij@linaro.org>
 
-The file s3c64xx.c is including <linux/gpio.h> despite using no
-symbols from the file, however it needs it to implicitly bring in
-of_have_populated_dt() so include <linux/of.h> explicitly instead.
+The legacy <linux/gpio.h> header was an all-inclusive header used
+by drivers and consumers alike. After eliminating the last users
+of the driver defines, we can drop the inclusion of the
+<linux/gpio/driver.h> header.
 
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/arm/mach-s3c/s3c64xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/gpio.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/arm/mach-s3c/s3c64xx.c b/arch/arm/mach-s3c/s3c64xx.c
-index e97bd59083a8..9f9717874d67 100644
---- a/arch/arm/mach-s3c/s3c64xx.c
-+++ b/arch/arm/mach-s3c/s3c64xx.c
-@@ -21,13 +21,13 @@
- #include <linux/ioport.h>
- #include <linux/serial_core.h>
- #include <linux/serial_s3c.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/reboot.h>
- #include <linux/io.h>
- #include <linux/clk/samsung.h>
- #include <linux/dma-mapping.h>
- #include <linux/irq.h>
--#include <linux/gpio.h>
- #include <linux/irqchip/arm-vic.h>
- #include <clocksource/samsung_pwm.h>
+diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
+index 22cb8c9efc1d..1c910d124423 100644
+--- a/include/asm-generic/gpio.h
++++ b/include/asm-generic/gpio.h
+@@ -8,7 +8,6 @@
+ #ifdef CONFIG_GPIOLIB
  
+ #include <linux/compiler.h>
+-#include <linux/gpio/driver.h>
+ #include <linux/gpio/consumer.h>
+ 
+ /*
 -- 
 2.39.1
 
