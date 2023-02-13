@@ -2,106 +2,123 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EC9BC6379F
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 05:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05896C636D7
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 09:25:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229700AbjBMFNx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Feb 2023 00:13:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36792 "EHLO
+        id S229477AbjBMJZH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Feb 2023 04:25:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229558AbjBMFNw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2023 00:13:52 -0500
-Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC106A5E6
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Feb 2023 21:13:51 -0800 (PST)
-Received: by mail-pj1-x102c.google.com with SMTP id d13-20020a17090ad3cd00b0023127b2d602so11047224pjw.2
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Feb 2023 21:13:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=1/rXlbQZUiYssX0GWdtn60fAH8aeaRBmLehOaQBY1mE=;
-        b=BczA9Dit8WldsIfP8UBgYlgc8TWJhovdzXsusWUlS+5qwERWfEecSRfNvw2jdkipTt
-         FftWA7ruHlkUk3JVzZ1R2/G95S9ueaU75uXAfKH/d+o6Wvx4A4+tsy2UkZIZma/LHypW
-         b1HtPzukBNiYeS0/OLsWF5NHpFKXqO/xMwlEYEGDKUzBZ8D91k9sx7/8fVBaxjddDALw
-         /YCfRX/nPAgzOb51JRnSuTkMLiQr0ZQA5dXciGNdnFXKrI+gu84pYpUm/ENQNd65VC1s
-         ugorSZLeiHIEBj3MNBjGdwfT2IeeGdw1kY8bm8vt05A2ZhJTkpwI5IEJNhKGy16PpfJv
-         i99Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1/rXlbQZUiYssX0GWdtn60fAH8aeaRBmLehOaQBY1mE=;
-        b=YjtSvbQNQKyZ3vSfPuVW5bWMeqBDSITWVvjYVwUKY56WSz+UTFOOad/k3tviVvl/rJ
-         Y3qAnnvijMRcwnC7VEL2QviFQYxbw/QHHXwNtVwrWFzqiIECXKMqBBWeOOfpHeava6D0
-         5GD4myxZ7eDnbHzlwQLYki+db3FbzBVx9OgNJ5+s5Cs7Q92ogq/YasetUmtRL90DOra6
-         lQDDITZtUjjZTBDCk6GueqjwicQLTzCJ+FzsGjAjSXtW9drNI0bSskP+i5m5iz0jF5Sh
-         Zg4PNKU6Dnint0VGeJwaLtIfeegceLTa7GXl7Bnqnw05441pWXl370eR1VorutLDCIEo
-         qTMQ==
-X-Gm-Message-State: AO0yUKVHacP/ssnSh+0aVRbcfiksxlV+DZPBSDNeL502gii2PvYpePO+
-        Nd9e5o1a7Y8TYF5BMLWlqgB4kw==
-X-Google-Smtp-Source: AK7set+HBd/TKOpekO2R5ZNBdJ5nlE4W2Q0OVyhq7zVLBYibkTxtu4XeGFM4NuzAT9/O7iEzdrKiyA==
-X-Received: by 2002:a17:903:24c:b0:198:a715:d26d with SMTP id j12-20020a170903024c00b00198a715d26dmr25510023plh.8.1676265231494;
-        Sun, 12 Feb 2023 21:13:51 -0800 (PST)
-Received: from sunil-laptop ([49.206.14.226])
-        by smtp.gmail.com with ESMTPSA id e9-20020a170902784900b00198f9fa23a3sm7079601pln.287.2023.02.12.21.13.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Feb 2023 21:13:51 -0800 (PST)
-Date:   Mon, 13 Feb 2023 10:43:42 +0530
-From:   Sunil V L <sunilvl@ventanamicro.com>
-To:     Conor Dooley <conor@kernel.org>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Marc Zyngier <maz@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        Anup Patel <apatel@ventanamicro.com>,
-        Andrew Jones <ajones@ventanamicro.com>,
-        Atish Patra <atishp@rivosinc.com>,
-        Robert Moore <robert.moore@intel.com>,
-        acpica-devel@lists.linuxfoundation.org
-Subject: Re: [PATCH 02/24] ACPICA: MADT: Add RISC-V INTC interrupt controller
-Message-ID: <Y+nHBivfemYR2NGD@sunil-laptop>
-References: <20230130182225.2471414-1-sunilvl@ventanamicro.com>
- <20230130182225.2471414-3-sunilvl@ventanamicro.com>
- <Y+P/BDbP68vNTOao@spud>
+        with ESMTP id S229980AbjBMJYz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2023 04:24:55 -0500
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 30C8614EBD;
+        Mon, 13 Feb 2023 01:24:54 -0800 (PST)
+Received: from vm02.corp.microsoft.com (unknown [167.220.196.155])
+        by linux.microsoft.com (Postfix) with ESMTPSA id 55D5A20C8B72;
+        Mon, 13 Feb 2023 01:24:52 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 55D5A20C8B72
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+        s=default; t=1676280293;
+        bh=Li2UJyY0mGyrGpuxPLsk95rzcd9mDiZ9P/GYVetjqcw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=MGKw1AOx5lnYWSVA69TTcybXKigN4Rnmbvhut0bR67pQqd4pyo67z+dGftc126bVT
+         ZzE2bzgbsAgsxvtCTY3Qp/1Q52qwUTu4J2x8+GJzyvpA+CYFd5qm2cqzWf/evyutf3
+         O4kh0MtCCWVRtT25uSVzl8GsMWkPmP0n2+Krrj8c=
+From:   Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>,
+        "Brijesh Singh" <brijesh.singh@amd.com>,
+        "Tom Lendacky" <thomas.lendacky@amd.com>,
+        "Kalra, Ashish" <ashish.kalra@amd.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "Len Brown" <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH v2 1/8] include/acpi: add definition of ASPT table
+Date:   Mon, 13 Feb 2023 09:24:22 +0000
+Message-Id: <20230213092429.1167812-2-jpiotrowski@linux.microsoft.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230213092429.1167812-1-jpiotrowski@linux.microsoft.com>
+References: <20230213092429.1167812-1-jpiotrowski@linux.microsoft.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y+P/BDbP68vNTOao@spud>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Feb 08, 2023 at 07:59:00PM +0000, Conor Dooley wrote:
-> On Mon, Jan 30, 2023 at 11:52:03PM +0530, Sunil V L wrote:
-> > The ECR to add RISC-V INTC interrupt controller is approved by
-> > the UEFI forum and will be availabl in the next revision of
-> 
-> nit: available
-> 
-Thanks!
+The AMD Secure Processor ACPI Table provides the memory location of the
+register window and register offsets necessary to communicate with AMD's
+PSP (Platform Security Processor). This table is exposed on Hyper-V VMs
+configured with support for AMD's SNP isolation technology.
 
-> > the ACPI specification.
-> > 
-> > This patch is not yet merged in ACPICA but a PR is raised.
-> > 
-> > ACPICA PR: https://github.com/acpica/acpica/pull/804
-> 
-> I had a quick check with git grep, and as this doesn't appear to be a
-> regular pattern in the history, so could you please make this a regular
-> Link: trailer?
-> 
-This patch should be merged in acpica repo first and then we will get
-this in standard format. Until then, it exists to allow other
-patches get reviewed. I believe by the time we get all other patches
-reviewed, acpica will have this merged.
+Signed-off-by: Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+---
+ include/acpi/actbl1.h | 46 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-Thanks!
-Sunil
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 15c78678c5d3..00d40373df37 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -26,6 +26,7 @@
+  */
+ #define ACPI_SIG_AEST           "AEST"	/* Arm Error Source Table */
+ #define ACPI_SIG_ASF            "ASF!"	/* Alert Standard Format table */
++#define ACPI_SIG_ASPT           "ASPT"	/* AMD Secure Processor Table */
+ #define ACPI_SIG_BERT           "BERT"	/* Boot Error Record Table */
+ #define ACPI_SIG_BGRT           "BGRT"	/* Boot Graphics Resource Table */
+ #define ACPI_SIG_BOOT           "BOOT"	/* Simple Boot Flag Table */
+@@ -106,6 +107,51 @@ struct acpi_whea_header {
+ 	u64 mask;		/* Bitmask required for this register instruction */
+ };
+ 
++/* https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/acpitabl/ns-acpitabl-aspt_table */
++#define ASPT_REVISION_ID 0x01
++struct acpi_table_aspt {
++	struct acpi_table_header header;
++	u32 num_entries;
++};
++
++struct acpi_aspt_header {
++	u16 type;
++	u16 length;
++};
++
++enum acpi_aspt_type {
++	ACPI_ASPT_TYPE_GLOBAL_REGS = 0,
++	ACPI_ASPT_TYPE_SEV_MBOX_REGS = 1,
++	ACPI_ASPT_TYPE_ACPI_MBOX_REGS = 2,
++};
++
++/* 0: ASPT Global Registers */
++struct acpi_aspt_global_regs {
++	struct acpi_aspt_header header;
++	u32 reserved;
++	u64 feature_reg_addr;
++	u64 irq_en_reg_addr;
++	u64 irq_st_reg_addr;
++};
++
++/* 1: ASPT SEV Mailbox Registers */
++struct acpi_aspt_sev_mbox_regs {
++	struct acpi_aspt_header header;
++	u8 mbox_irq_id;
++	u8 reserved[3];
++	u64 cmd_resp_reg_addr;
++	u64 cmd_buf_lo_reg_addr;
++	u64 cmd_buf_hi_reg_addr;
++};
++
++/* 2: ASPT ACPI Mailbox Registers */
++struct acpi_aspt_acpi_mbox_regs {
++	struct acpi_aspt_header header;
++	u32 reserved1;
++	u64 cmd_resp_reg_addr;
++	u64 reserved2[2];
++};
++
+ /*******************************************************************************
+  *
+  * ASF - Alert Standard Format table (Signature "ASF!")
+-- 
+2.25.1
+
