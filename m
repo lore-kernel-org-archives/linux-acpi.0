@@ -2,76 +2,76 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BEEDC636D4
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 18:59:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C05AEC636CC
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 19:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230456AbjBMS7m (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Feb 2023 13:59:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59540 "EHLO
+        id S230443AbjBMTAZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Feb 2023 14:00:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230482AbjBMS7k (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2023 13:59:40 -0500
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5701211D0;
-        Mon, 13 Feb 2023 10:59:14 -0800 (PST)
-Received: by mail-ej1-x62e.google.com with SMTP id lf10so2442677ejc.5;
-        Mon, 13 Feb 2023 10:59:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=OR8Z9cLKxBW1b1gksvWzIK8A0mOtCkd+I+gKj+kdmKw=;
-        b=Sa0UqoXLZkO1/9GN8q6pRyMMhjOW8lI16X9t+7pOQtCjMuDvf/gvic0Qw3JvLrmrLv
-         UXDHTA7L7qPfBml9eA9jG14vcOJltkuzWGtVU22cYF2tgK8tmUXGI5D0/kU9Z8vwXm2z
-         kV4YsiFdaSNQ9GJTeZsjQBm4/qru+HY/22WCh56Iyn1WGt47kF/32lJeNyBhqYl8fcjY
-         RFF97FOrVF7NEdvFv2EzgtflbtQjWis1wUdoLfl72LmZKaOZiAvwS3YHDpOSsch0mGlo
-         gh2cJne9F/1wlSCWWsrH7+179r2dF4NzrdeMv5alY5uy4YJNRqWEnqRYge0jyRo1vge7
-         4RLA==
+        with ESMTP id S230451AbjBMTAV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2023 14:00:21 -0500
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96BE05B8D;
+        Mon, 13 Feb 2023 10:59:55 -0800 (PST)
+Received: by mail-ej1-f42.google.com with SMTP id n10so7373861ejc.4;
+        Mon, 13 Feb 2023 10:59:55 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=OR8Z9cLKxBW1b1gksvWzIK8A0mOtCkd+I+gKj+kdmKw=;
-        b=v7nKe3DNL51XIdMRJHff/Wqf0vtQHOtpxP8584HyXPgJnbTPYNxUI9eU5Hc1pHbWM+
-         oKNqJH5PpyfZCcPF+zu3VRmJsL6mAKarqI1Eq9JCNTCxpP3feTQnswwfunZMx91PrA8X
-         N8Wxqr+irw9ukS7VWWuI89s08VYr+5KvbrTyeRy9rMLNhIx7ikgl99/wFxBNfjwYDcgZ
-         F+5g5Eclh7x3/1P13dEygJ/ixpZ9IahTQYEU7RWkFjBR2yCEUg8+5E3B5KfqQq+dc39Z
-         bpUtFJyU7CyBPYuU/vBR7Xpm1FE+BEym9xosPpdHiGZAtWpaqlbnL1uYRjoOxw2tn1D2
-         9SHg==
-X-Gm-Message-State: AO0yUKU/UX2XcwpTA+pmLy6cntGvzUg3rIL/YGrm1ehsKTqkB8V3pytw
-        JVB9aM22gd0zMLgQm6zgTMVtvADgxO4lE6UAPxsvr+sT
-X-Google-Smtp-Source: AK7set+Z/wQPsh3ircG0B6rdt2n7gPpSWO4BZaCLaY2X9+80cLXuOQ74wbLQw4aS9fCE7b7EgGQtanQVUuyD1jifLao=
-X-Received: by 2002:a17:906:2813:b0:883:b1d3:ae67 with SMTP id
- r19-20020a170906281300b00883b1d3ae67mr5061372ejc.5.1676314750610; Mon, 13 Feb
- 2023 10:59:10 -0800 (PST)
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=G8q51kK6EcMWY45OADx0YlrUAHXXNckmxq84G+AMDoo=;
+        b=I/4NsOWCc8x67ptEEuUxp7fSdh+XsKdLD1XwPcF+GLH0I3T2o7l1lxDRD1qk1QKjv3
+         bRlSzJobJmfdHFfp101rDy+EfpRww0wmaUuFge6TRQF6uDf/+Q2tj86w4kURDGxllPCw
+         XAYSUefJ3x/53iN86Ny8Y7dYd2nhfPvWpEhNgzquKh/DixNOw8qZWCJf1wQ4shF/xJzD
+         R/+qoayhL6dWsFR2Zwo9Otx9TnOE0qa+iHHbD3M/XwAZE0EkLK/Yxgkas2YJPZprqxUX
+         biJrhje8DSu/tfn8XvZw1JyEAwbvta/ZI1rfIQNYX1/PQzkA0b/Tv1SLRagtEytwLuK0
+         bnRw==
+X-Gm-Message-State: AO0yUKXDFL1P29P/WuntopZZ7rYEtuiXFShsz6lglp4T+VEQsoPaD6uJ
+        HZT31RfOc28FOH3oCbEteuteiO0gW4C3k+2HYLjABs/j
+X-Google-Smtp-Source: AK7set/XqnK1+BZIJW75M4vIKfORxIqDUeumVJlSYEssuFY13C3BbT0IgoVIcP5Oz4V35FSTeb4LLvTCwUWrN+l9aq0=
+X-Received: by 2002:a17:906:4e19:b0:8b1:28e5:a1bc with SMTP id
+ z25-20020a1709064e1900b008b128e5a1bcmr182776eju.5.1676314777309; Mon, 13 Feb
+ 2023 10:59:37 -0800 (PST)
 MIME-Version: 1.0
-From:   =?UTF-8?Q?Rafa=C5=82_Wysocki?= <rjwysocki@gmail.com>
-Date:   Mon, 13 Feb 2023 19:58:59 +0100
-Message-ID: <CAJZ5v0heGJ3B5+Uf2u+=upkhskXcEkPQvO-7v_JH6JD_rJxRYw@mail.gmail.com>
-Subject: [Notice] I will be sending pull requests for 6.3-rc1 early
-To:     Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        "Zhang, Rui" <rui.zhang@intel.com>,
-        Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Mario Limonciello <mario.limonciello@amd.com>
+References: <20230213132812.38646-1-andriy.shevchenko@linux.intel.com>
+ <CAJZ5v0jkMez3_7rRqgyvbB9ik55fRxsU6yoLBZ-gVP7djwntmA@mail.gmail.com> <Y+qHpa0GsIilc59A@smile.fi.intel.com>
+In-Reply-To: <Y+qHpa0GsIilc59A@smile.fi.intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 13 Feb 2023 19:59:26 +0100
+Message-ID: <CAJZ5v0jbaemJqNi5bqZXTi2mr0hcfaL+UsJVQt6n4BQjL6ubmA@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] Documentation: firmware-guide: gpio-properties:
+ Clarify Explicit and Implicit
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Len Brown <lenb@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi All,
+On Mon, Feb 13, 2023 at 7:55 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Mon, Feb 13, 2023 at 07:39:10PM +0100, Rafael J. Wysocki wrote:
+> > On Mon, Feb 13, 2023 at 2:27 PM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > >
+>
+> ...
+>
+> > >  That said, for our above example the both GPIOs, since the bias setting
+> > >  is explicit and _DSD is present, will be treated as active with a high
+> >
+> > Applied as 6.3 material, thanks!
+>
+> Can you withdraw it for now, please? It has some formatting issues.
+> I will fix and send a new version instead.
 
-I'll be sending my pull requests for 6.3-rc1 this week, most likely on
-Thursday, because I will be traveling during the following few days
-and I don't want to delay the integration of the new material
-unnecessarily.
-
-This means in particular, that if you have any new material that has
-never been posted before, except for fixes, it is not likely to be
-considered for 6.3 at this point, so please defer posting it, ideally
-until 6.3-rc1 is out.
-
-Thanks!
+Sure.
