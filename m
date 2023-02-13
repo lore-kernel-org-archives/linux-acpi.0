@@ -2,102 +2,223 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB510C64EC4
-	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 09:25:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DF7CC636D4
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 09:26:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229918AbjBMJZI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 13 Feb 2023 04:25:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54946 "EHLO
+        id S230005AbjBMJ0o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 13 Feb 2023 04:26:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229955AbjBMJYy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2023 04:24:54 -0500
+        with ESMTP id S230098AbjBMJY5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2023 04:24:57 -0500
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 915FD14EBF;
-        Mon, 13 Feb 2023 01:24:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 016887A87;
+        Mon, 13 Feb 2023 01:24:55 -0800 (PST)
 Received: from vm02.corp.microsoft.com (unknown [167.220.196.155])
-        by linux.microsoft.com (Postfix) with ESMTPSA id A6C7320C8B6E;
-        Mon, 13 Feb 2023 01:24:49 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A6C7320C8B6E
+        by linux.microsoft.com (Postfix) with ESMTPSA id 2349120C8B73;
+        Mon, 13 Feb 2023 01:24:53 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2349120C8B73
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-        s=default; t=1676280292;
-        bh=4QUbK/o9M3m8NodgfLJgSex5yc5ApLq708AIPOlvkWc=;
-        h=From:To:Cc:Subject:Date:From;
-        b=QqwuvsXOI11qwMfX6Y/EsOY0w+dNHVfb18/3Jx5e6jjgjA0jAAmyX9NU8ez9HLxS7
-         nhbXmfm6N168W4W3T1kk3v/MjD4ZoOz2N3E9dy/j133foWYC/9V4Gd50x43uvbhfs5
-         yuXvDbWcfWElHWSt4e+gMpXADPpoMh3f0jA9nMP0=
+        s=default; t=1676280295;
+        bh=9zBj7lGZiNLssSN0Bow0NnJuBiAOG3TjbvKNnsD+cgs=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=U4oNPXXZ6M0cTM+NIlIoEC9XUveqKDoAD1don5hXHprDigZpvyyWWt8ppS4K8mCGp
+         BcWfvCFcPTd5lcSbfP5J7mtnGqahXYzQ/iRqaAwP8zg5ii+Seu6RH/DspqdDwDR1RJ
+         6aktLLzZ3Z0fLSFd4jbeQ5jvc8jpVoNwB6o+kz+Q=
 From:   Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>,
         "Brijesh Singh" <brijesh.singh@amd.com>,
         "Tom Lendacky" <thomas.lendacky@amd.com>,
         "Kalra, Ashish" <ashish.kalra@amd.com>,
-        linux-crypto@vger.kernel.org,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Len Brown" <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        "Thomas Gleixner" <tglx@linutronix.de>,
-        "Ingo Molnar" <mingo@redhat.com>, "Borislav Petkov" <bp@alien8.de>,
-        "Dave Hansen" <dave.hansen@linux.intel.com>, x86@kernel.org
-Subject: [PATCH v2 0/8] Support ACPI PSP on Hyper-V
-Date:   Mon, 13 Feb 2023 09:24:21 +0000
-Message-Id: <20230213092429.1167812-1-jpiotrowski@linux.microsoft.com>
+        "Len Brown" <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Subject: [PATCH v2 2/8] ACPI: ASPT: Add helper to parse table
+Date:   Mon, 13 Feb 2023 09:24:23 +0000
+Message-Id: <20230213092429.1167812-3-jpiotrowski@linux.microsoft.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230213092429.1167812-1-jpiotrowski@linux.microsoft.com>
+References: <20230213092429.1167812-1-jpiotrowski@linux.microsoft.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This patch series introduces support for discovering AMD's PSP from an ACPI
-table and extends the CCP driver to allow binding to that device on x86. This
-method of PSP discovery is used on Hyper-V when SNP isolation support is
-exposed to the guest. There is no ACPI node associated with this PSP, so after
-parsing the ASPT it is registered with the system as a platform_device.
+The ASP table indicates the presence of a Platform Security Processor
+with a register window and registers to configure interrupt delivery.
+The helper checks for the presence of the table and returns a resource
+and struct with register offsets.
 
-I thought about putting psp.c in arch/x86/coco, but that directory is meant for
-the (confidential) guest side of CoCo, not the supporting host side code.
-It was kept in arch/x86/kernel because configuring the irq for the PSP through
-the ACPI interface requires poking at bits from the architectural vector
-domain.
-
-This series is a prerequisite for nested SNP-host support on Hyper-V but is
-independent of the SNP-host support patch set. Hyper-V only supports nested
-SEV-SNP (not SEV or SEV-ES) so the PSP only supports a subset of the full PSP
-command set. Without SNP-host support (which is not upstream yet), the only
-PSP command that will succeed is SEV_PLATFORM_STATUS.
-
-Changes since v1:
-* move platform_device_add_data() call to commit that introduces psp device
-* change psp dependency from CONFIG_AMD_MEM_ENCRYPT to CONFIG_KVM_AMD_SEV
-* add blank lines, s/plat/platform/, remove variable initializers before first
-  use, remove masking/shifting where not needed
-* dynamically allocate sev_vdata/psp_vdata structs instead of overwriting static
-  variables
-
-Jeremi Piotrowski (8):
-  include/acpi: add definition of ASPT table
-  ACPI: ASPT: Add helper to parse table
-  x86/psp: Register PSP platform device when ASP table is present
-  x86/psp: Add IRQ support
-  crypto: cpp - Bind to psp platform device on x86
-  crypto: ccp - Add vdata for platform device
-  crypto: ccp - Skip DMA coherency check for platform psp
-  crypto: ccp - Allow platform device to be psp master device
-
- arch/x86/kernel/Makefile          |   1 +
- arch/x86/kernel/psp.c             | 219 ++++++++++++++++++++++++++++++
+Signed-off-by: Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+---
  drivers/acpi/Makefile             |   1 +
- drivers/acpi/aspt.c               | 104 ++++++++++++++
- drivers/crypto/ccp/sp-dev.c       |  66 +++++++++
- drivers/crypto/ccp/sp-dev.h       |   4 +
- drivers/crypto/ccp/sp-pci.c       |  48 -------
- drivers/crypto/ccp/sp-platform.c  |  76 ++++++++++-
- include/acpi/actbl1.h             |  46 +++++++
- include/linux/platform_data/psp.h |  32 +++++
- 10 files changed, 548 insertions(+), 49 deletions(-)
- create mode 100644 arch/x86/kernel/psp.c
+ drivers/acpi/aspt.c               | 104 ++++++++++++++++++++++++++++++
+ include/linux/platform_data/psp.h |  32 +++++++++
+ 3 files changed, 137 insertions(+)
  create mode 100644 drivers/acpi/aspt.c
  create mode 100644 include/linux/platform_data/psp.h
 
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 0002eecbf870..9621c90e0221 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -57,6 +57,7 @@ acpi-y				+= evged.o
+ acpi-y				+= sysfs.o
+ acpi-y				+= property.o
+ acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
++acpi-$(CONFIG_X86)		+= aspt.o
+ acpi-$(CONFIG_X86)		+= x86/apple.o
+ acpi-$(CONFIG_X86)		+= x86/utils.o
+ acpi-$(CONFIG_X86)		+= x86/s2idle.o
+diff --git a/drivers/acpi/aspt.c b/drivers/acpi/aspt.c
+new file mode 100644
+index 000000000000..cf629db35036
+--- /dev/null
++++ b/drivers/acpi/aspt.c
+@@ -0,0 +1,104 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#define pr_fmt(fmt) "ACPI: ASPT: " fmt
++#include <linux/acpi.h>
++#include <linux/kernel.h>
++#include <linux/platform_data/psp.h>
++
++static int __init psp_validate_regs(const struct acpi_aspt_global_regs *gregs,
++	const struct acpi_aspt_sev_mbox_regs *sevregs,
++	const struct acpi_aspt_acpi_mbox_regs *acpiregs)
++{
++	u64 pfn;
++	int idx;
++	u64 regs[] = {
++		gregs->feature_reg_addr,
++		gregs->irq_en_reg_addr,
++		gregs->irq_st_reg_addr,
++		sevregs->cmd_resp_reg_addr,
++		sevregs->cmd_buf_lo_reg_addr,
++		sevregs->cmd_buf_hi_reg_addr,
++		acpiregs->cmd_resp_reg_addr
++	};
++	pfn = regs[0] >> PAGE_SHIFT;
++	for (idx = 1; idx < ARRAY_SIZE(regs); idx++) {
++		if (regs[idx] >> PAGE_SHIFT != pfn)
++			return -EINVAL;
++	}
++	return 0;
++}
++
++/**
++ * acpi_parse_aspt - Parse ASPT table and return contained information
++ * @res: will be filled with the address and size of the ASP register window
++ * @pdata: will be filled with the register offsets parsed from the ASPT table
++ */
++int __init acpi_parse_aspt(struct resource *res, struct psp_platform_data *pdata)
++{
++	struct acpi_aspt_acpi_mbox_regs acpiregs = {};
++	struct acpi_aspt_sev_mbox_regs sevregs = {};
++	struct acpi_aspt_global_regs gregs = {};
++	struct acpi_aspt_header *entry, *end;
++	struct acpi_table_aspt *aspt;
++	unsigned long base;
++	acpi_status status;
++	int err = 0;
++
++	status = acpi_get_table(ACPI_SIG_ASPT, 0, (struct acpi_table_header **)&aspt);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++	if (aspt->header.revision != ASPT_REVISION_ID) {
++		pr_err("unsupported table revision: %d\n", (int)aspt->header.revision);
++		err = -ENODEV;
++		goto exit;
++	}
++	entry = (struct acpi_aspt_header *)(aspt + 1);
++	end = (struct acpi_aspt_header *)((void *)aspt + aspt->header.length);
++	while (entry < end) {
++		if (((void *)entry + entry->length) > (void *)end) {
++			pr_err("error during parsing\n");
++			err = -EINVAL;
++			goto exit;
++		}
++		switch (entry->type) {
++		case ACPI_ASPT_TYPE_GLOBAL_REGS:
++			memcpy(&gregs, entry, entry->length);
++			break;
++		case ACPI_ASPT_TYPE_SEV_MBOX_REGS:
++			memcpy(&sevregs, entry, entry->length);
++			break;
++		case ACPI_ASPT_TYPE_ACPI_MBOX_REGS:
++			memcpy(&acpiregs, entry, entry->length);
++			break;
++		}
++		entry = (struct acpi_aspt_header *)((void *)entry + entry->length);
++	}
++	if (!gregs.header.length || !sevregs.header.length || !acpiregs.header.length) {
++		pr_err("missing ASPT table entry: %u %u %u\n", gregs.header.length,
++			sevregs.header.length,
++			acpiregs.header.length);
++		err = -EINVAL;
++		goto exit;
++	}
++	/* All registers are expected to be within the same page */
++	err = psp_validate_regs(&gregs, &sevregs, &acpiregs);
++	if (err) {
++		pr_err("ASPT registers span multiple pages\n");
++		goto exit;
++	}
++
++	base = ALIGN_DOWN(gregs.feature_reg_addr, PAGE_SIZE);
++	*res = (struct resource)DEFINE_RES_MEM(base, PAGE_SIZE);
++
++	pdata->sev_cmd_resp_reg = sevregs.cmd_resp_reg_addr & ~PAGE_MASK;
++	pdata->sev_cmd_buf_lo_reg = sevregs.cmd_buf_lo_reg_addr & ~PAGE_MASK;
++	pdata->sev_cmd_buf_hi_reg = sevregs.cmd_buf_hi_reg_addr & ~PAGE_MASK;
++	pdata->feature_reg = gregs.feature_reg_addr & ~PAGE_MASK;
++	pdata->irq_en_reg = gregs.irq_en_reg_addr & ~PAGE_MASK;
++	pdata->irq_st_reg = gregs.irq_st_reg_addr & ~PAGE_MASK;
++	pdata->mbox_irq_id = sevregs.mbox_irq_id;
++	pdata->acpi_cmd_resp_reg = acpiregs.cmd_resp_reg_addr & ~PAGE_MASK;
++
++exit:
++	acpi_put_table((struct acpi_table_header *)aspt);
++	return err;
++}
+diff --git a/include/linux/platform_data/psp.h b/include/linux/platform_data/psp.h
+new file mode 100644
+index 000000000000..b761f72168d6
+--- /dev/null
++++ b/include/linux/platform_data/psp.h
+@@ -0,0 +1,32 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * psp.h - PSP register offsets parsed from ASPT ACPI table
++ */
++
++#ifndef __LINUX_PSP_H
++#define __LINUX_PSP_H
++
++#include <linux/types.h>
++#include <linux/ioport.h>
++
++struct psp_platform_data {
++	int sev_cmd_resp_reg;
++	int sev_cmd_buf_lo_reg;
++	int sev_cmd_buf_hi_reg;
++	int feature_reg;
++	int irq_en_reg;
++	int irq_st_reg;
++	int mbox_irq_id;
++	int acpi_cmd_resp_reg;
++};
++
++#if IS_ENABLED(CONFIG_ACPI)
++int acpi_parse_aspt(struct resource *res, struct psp_platform_data *pdata);
++#else
++static inline acpi_parse_aspt(struct resource *res, struct psp_platform_data *pdata)
++{
++	return -ENODEV;
++}
++#endif
++
++#endif /* __LINUX_PSP_H */
 -- 
 2.25.1
 
