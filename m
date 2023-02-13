@@ -2,102 +2,115 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6287C636D4
-	for <linux-acpi@archiver.kernel.org>; Sun, 12 Feb 2023 21:04:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45D07C6379F
+	for <linux-acpi@archiver.kernel.org>; Mon, 13 Feb 2023 00:35:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbjBLVEf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 12 Feb 2023 16:04:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52790 "EHLO
+        id S229672AbjBMAfv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 12 Feb 2023 19:35:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229649AbjBLVEe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Feb 2023 16:04:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 688051AB;
-        Sun, 12 Feb 2023 13:04:33 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A419CB80C2C;
-        Sun, 12 Feb 2023 21:04:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1856C433D2;
-        Sun, 12 Feb 2023 21:04:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676235870;
-        bh=MBaZW6ftlbRh7fpFjFjtVfKm2Z6GvDeyDUGMpCPL7rg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ADrL7jgm85xkVfpu1dGdXGx1pwphmSqgDHriEJNOxZlXdB5j+MUeTEZ8kuZU5gZfK
-         6D0ACL5pxcGuhx1dAteh2of94MZCpvABPiSwYTmLQGTxoTqnHtEy6O6aOhLpX1CeGn
-         sYGHq6lonHnagXRPvNxlaL4BnzLuK31CtyZGiELYhZxItXn78HFDVEs3R0XcCZ3ySk
-         IBQrhXAQ+bRD+YKWkFXXtkXewfOUUUfBMYP75X4hPYFJR5dakdZIc4uNbRjRZQfy3p
-         8NM82bHeq8vasRSwdyUgmEtJun5dXgfdXlkGHn51aQyqs5NyqstGN3jkdQ+ghPkc0a
-         ts5+ma/k33cmQ==
-Date:   Sun, 12 Feb 2023 22:04:26 +0100
-From:   Wolfram Sang <wsa@kernel.org>
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc:     Amadeusz =?utf-8?B?U8WCYXdpxYRza2k=?= 
-        <amadeuszx.slawinski@linux.intel.com>,
-        Raul Rangel <rrangel@chromium.org>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Cezary Rojewski <cezary.rojewski@intel.com>,
-        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-        "Limonciello, Mario" <mario.limonciello@amd.com>
-Subject: Re: [RFC] i2c: core: Do not enable wakeup by default
-Message-ID: <Y+lUWpUnjmtp4FuV@shikoro>
-Mail-Followup-To: Wolfram Sang <wsa@kernel.org>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Amadeusz =?utf-8?B?U8WCYXdpxYRza2k=?= <amadeuszx.slawinski@linux.intel.com>,
-        Raul Rangel <rrangel@chromium.org>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Cezary Rojewski <cezary.rojewski@intel.com>,
-        linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-        "Limonciello, Mario" <mario.limonciello@amd.com>
-References: <20230207072540.27226-1-mika.westerberg@linux.intel.com>
- <CAHQZ30Bzn1Lxy+Y2gCcFTmzWzwnxqUZAHAjSh67Pz=WweaKHkg@mail.gmail.com>
- <Y+NH9pjbFfmijHF+@black.fi.intel.com>
- <b429918f-fe63-2897-8ade-d17fe2e3646f@linux.intel.com>
- <Y+Nrhq9l6CIPjL7Z@black.fi.intel.com>
- <eadeb808-1925-164e-3e78-0f14c4f2bdc4@linux.intel.com>
- <Y+S6Wz5P/dMG8I8g@black.fi.intel.com>
+        with ESMTP id S229663AbjBMAfu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Feb 2023 19:35:50 -0500
+Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31C3BEFBF;
+        Sun, 12 Feb 2023 16:35:49 -0800 (PST)
+Received: by mail-ot1-x330.google.com with SMTP id n25-20020a9d7119000000b0068bd8c1e836so3279417otj.3;
+        Sun, 12 Feb 2023 16:35:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Xwk1XI4T0qnu1n1jfvnzGZ0v5aWuLGABipmobiXhSvg=;
+        b=ko+7ji5/CfLIBMNtmGWzudXwb2KQc8WHDKqDX6UsmbKxHtjGBm186rRMijEvnoC0Ui
+         zzaukjr0YTrfW23RBrhmoc0o2H8YIPo5jFXpUVN7Oq7UfdIHGLaxTBWmPPzGcFsHUlqg
+         idmb4ahWYcDJGitHWwgK5tG3gkethjw5IHo1YOIidmIKiGHiKNHAQIvdFIJoncCC1Gww
+         NeIoQjCWRsisIaIutyL20ogwpvugBZ1Eblwa8OD30BWx9JijWWzNO7EheeI3XvrXAUh7
+         So+wdqr23YVx0g1t/fmfJu35F936LCddjsGvWY15ooD8kXMiHud/0yiFgaeptb0lBuJ9
+         xqSg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Xwk1XI4T0qnu1n1jfvnzGZ0v5aWuLGABipmobiXhSvg=;
+        b=JsL46bbdyIoaRNDDRmFowC4j+PicbRHjXPdRsRiHXefZ61JkXoFhPLTsF4kI/EpEaS
+         IgcOxiapfvdLmoeinJCY5NBMaCN93KQu8poi5zZxFO/tE2c9Vh9rKGTukmirsBoI5hZz
+         NsenhRw+4dMICImBtAh0Wp4Qrs/dlmGkhKY7kirysXGFHLrn9nN2uTdBmgvHHbHm+0wa
+         w5Y5u8KqHcuaglCehroEB2b0YQnk//cgM89xHfMRzOnw/VB57erD2CbZB6q2Ndr4xsQk
+         D8NyfHQ/KAEMaCVPcKMTrGMRIdYqIVK0hlQ4wXZJSBrQ8r3/t5Lz4u9j+F0WeELX8GMo
+         6YGw==
+X-Gm-Message-State: AO0yUKUumrV32BVus66QrqeOXph68PksfhGN2qVgjWJaI2JtWbuVbh1N
+        pOQ9TRIScJtlr1n1XGAu6pQ=
+X-Google-Smtp-Source: AK7set9ePtxr+butsPUWLN6x1vNMrrqbFO6H5nZXoYU7jVLvrylRt44a7j9blEGfSdrMnisoyzx9rA==
+X-Received: by 2002:a05:6830:54:b0:684:c243:8584 with SMTP id d20-20020a056830005400b00684c2438584mr7001820otp.2.1676248548546;
+        Sun, 12 Feb 2023 16:35:48 -0800 (PST)
+Received: from server.roeck-us.net ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
+        by smtp.gmail.com with ESMTPSA id t15-20020a9d748f000000b0068d3ec1427bsm4649781otk.69.2023.02.12.16.35.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 12 Feb 2023 16:35:47 -0800 (PST)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Date:   Sun, 12 Feb 2023 16:35:46 -0800
+From:   Guenter Roeck <linux@roeck-us.net>
+To:     Kees Cook <keescook@chromium.org>
+Cc:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v2] ACPICA: Replace fake flexible arrays with flexible
+ array members
+Message-ID: <20230213003546.GA3280303@roeck-us.net>
+References: <20230127191621.gonna.262-kees@kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="H8ylRI22g+LmjiJH"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Y+S6Wz5P/dMG8I8g@black.fi.intel.com>
+In-Reply-To: <20230127191621.gonna.262-kees@kernel.org>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Hi,
 
---H8ylRI22g+LmjiJH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, Jan 27, 2023 at 11:16:25AM -0800, Kees Cook wrote:
+> One-element arrays (and multi-element arrays being treated as
+> dynamically sized) are deprecated[1] and are being replaced with
+> flexible array members in support of the ongoing efforts to tighten the
+> FORTIFY_SOURCE routines on memcpy(), correctly instrument array indexing
+> with UBSAN_BOUNDS, and to globally enable -fstrict-flex-arrays=3.
+> 
+> Replace one-element array with flexible-array member in struct
+> acpi_resource_extended_irq. Replace 4-byte fixed-size array with 4-byte
+> padding in a union with a flexible-array member in struct
+> acpi_pci_routing_table.
+> 
+> This results in no differences in binary output.
+> 
+> Link: https://github.com/acpica/acpica/pull/813
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+This patch results in boot failures of 32-bit images.
+Reverting it fixes the problem.
 
-> Okay good to know, then I think we can forget this patch.
+On the failing boot tests, I see messages such as
 
-Based on this comment, I marked the patch as "Rejected".
+ACPI: \_SB_.GSIA: Enabled at IRQ 117440528
+ERROR: Unable to locate IOAPIC for GSI 117440528
+ahci 0000:00:1f.2: PCI INT A: failed to register GSI
 
+ACPI: \_SB_.GSIG: Enabled at IRQ 117440534
+ERROR: Unable to locate IOAPIC for GSI 117440534
+8139cp 0000:00:02.0: PCI INT A: failed to register GSI
 
---H8ylRI22g+LmjiJH
-Content-Type: application/pgp-signature; name="signature.asc"
+Given that 117440534 == 0x7000016, that looks quite suspicious.
+Indeed, after reverting this patch, the messages are different.
 
------BEGIN PGP SIGNATURE-----
+ACPI: \_SB_.GSIA: Enabled at IRQ 16
+ahci 0000:00:1f.2: AHCI 0001.0000 32 slots 6 ports 1.5 Gbps 0x3f impl SATA mode
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmPpVFoACgkQFA3kzBSg
-KbZOKA/+PhgSgP4+RuIoM1yVTeTZv2B4N0O2mkAYQso9ont3pAfwxnSI9DCPT9vz
-YJNBUCALUR3C5JdyZlVKXgiLKvHH4e7tbS1rvdWQiQjJ+0RRFvYt1Lr/DeTWRi6U
-ZIHk324FlNVPDR4n0O5AyZxjTuajOpBP07fvHgMlRcDQ7f4wMJQW+TWoXe68BKQc
-G3Yzlu8l/f8wFBNyjQhJ0YgsdPh9V7pf09Aa37K0ciJJkPkuM+NYH2uL1Jl+ziae
-n0OKa+ggh15rqTKLHZtHJL+l4ajUZG+CyhBWzrrAFd9pOeK4iJCPnpgfK1bNgZkM
-F4srUry22YhNY3o7HguTYywJZ97PErh4TVktjO+DFLGvwnDurjUklGi65CfZ4l/k
-f22pqY/FfG3Sn9uvF91wVAscyvPpPvBUigDmWqVbcs3dk4FjjXpuxzQC50mt514Q
-m9h1XTXZM/bHTCRMBrMg11ZHM1jU4beE6nzMkQxGBpMHu4t+VZFg3ypFGs8Jr9GT
-Brbn+4kNAk0Y0azowi+gKZPGN4Pw+B6jymdKucJqKKFfVBo7XUVscxON34oTKyu7
-GPkWsyZaohpSVYg1cyZrcaATWaceh1wahJlTxGK48K3kOhqJke3SWG8lJHPmLjXU
-csKadspGTexRC5wLmj9I4RiMKnbWkIPzBiULn0WDkQGuOL1SaW4=
-=G2jA
------END PGP SIGNATURE-----
+ACPI: \_SB_.GSIG: Enabled at IRQ 22
+8139cp 0000:00:02.0 eth0: RTL-8139C+ at 0xd0804000, 52:54:00:12:34:56, IRQ 22
 
---H8ylRI22g+LmjiJH--
+Guenter
