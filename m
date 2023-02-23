@@ -2,138 +2,105 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4DE7C636D6
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Feb 2023 11:07:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA3F3C636D6
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Feb 2023 11:29:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233407AbjBWLHX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Feb 2023 06:07:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44158 "EHLO
+        id S233883AbjBWL3L (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Feb 2023 06:29:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233086AbjBWLHW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2023 06:07:22 -0500
-Received: from mail-qv1-xf30.google.com (mail-qv1-xf30.google.com [IPv6:2607:f8b0:4864:20::f30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06FD754A13;
-        Thu, 23 Feb 2023 03:06:55 -0800 (PST)
-Received: by mail-qv1-xf30.google.com with SMTP id f1so11574684qvx.13;
-        Thu, 23 Feb 2023 03:06:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LQ7vDPLjJ4VXk//zkA9jWLslnKwxJvBeT6R5MRjaDbc=;
-        b=kEscro6vEHJDfmpUYCN3NT+Ru5gx2LZPPD6WD5B+zkn6YwSReaVZYmPLIoFgvC80SH
-         GMitZsPJrxwRTkg4Yzr6ckJfDVC2Mpw/L5JbXUODMk/37YnojpsytqFodY6TfdAuhWj8
-         3yZ+/GT24PDxe4itSx2X27RITrkqthJpYFLMYLqfHBEBSaTYYqQxk5F88TZRrRjwu1va
-         g1IyRu8EK90LVHKz9CqqfTjpDgrB+gtVTBLgHkT18BLnPKuu+nSxHi+OVUrhxRgDGsTP
-         uNMHdtTmf6fQjpKda2Baee350m0UPEOz8LhpgcRu8TcEdMYhjH2vmiYwH4Qq1tv4ukz4
-         btPQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=LQ7vDPLjJ4VXk//zkA9jWLslnKwxJvBeT6R5MRjaDbc=;
-        b=7V/KLrTBBrV+sZbPTeSHLFu3zNsJl+bPkvCM8L6NHGOI49H1+g4cr7mx1uXRz5l13C
-         2YL7wm47oIPF1vGT/Dt6UCdEkkmoNPD2pwJeVwpGmykqB/sRKyjgUIq3UEeRk/3tOf1Q
-         x2Dlx8gNbBvLRwJ4Mh/q5mbNYuNk6d+5nXSxb+8HhqSrkhr1cFfK+x8bxgjg5xCVRuPt
-         UAtWTftU8DY7Wdvb5G049E9WbXrun2UnoKBjlzoJQXjHagOPUmmKdxUc/GsxcN43XVZI
-         5C+2QawsB2WhCdNqkXeHyWduZTxo4RIfpwZnVLY9Lp3vn4XAXeZqwISERBzXYufPeR/U
-         f6Bg==
-X-Gm-Message-State: AO0yUKVWOmhQEGmPaShVm7V4mn4gPgWZph7JNG4wHyWZnp9CvEjiywcc
-        C+9FK70qUTW6Bb9xfsEXAfwT/8Zs/Bql0lWwHgNkFUaa/daAvQ==
-X-Google-Smtp-Source: AK7set9gGwuSb5dhvncPsrYGsaRaMn+mon7HNF1esL8UBBEJEn8sDobopEdnFtMW2Q9y2saxaV6OnLsRyPtQQY1zses=
-X-Received: by 2002:ad4:5588:0:b0:56e:9ad3:ab9c with SMTP id
- f8-20020ad45588000000b0056e9ad3ab9cmr1670481qvx.1.1677150412153; Thu, 23 Feb
- 2023 03:06:52 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.1676042188.git.asmaa@nvidia.com> <cover.1676668853.git.asmaa@nvidia.com>
- <28f0d670407c127614b64d9c382b11c795f5077d.1676668853.git.asmaa@nvidia.com>
- <CAHp75VdeVpjzg5Y_4Y+Ke9=3wog28vUBN4Fd8zxfa8dWGrqUUA@mail.gmail.com> <CH2PR12MB3895520749883D912E5021F1D7AA9@CH2PR12MB3895.namprd12.prod.outlook.com>
-In-Reply-To: <CH2PR12MB3895520749883D912E5021F1D7AA9@CH2PR12MB3895.namprd12.prod.outlook.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Thu, 23 Feb 2023 13:06:15 +0200
-Message-ID: <CAHp75Vc+iSt2XvpOYzwZnzX7Qg013e-E27CPjPaO-QmtferWVg@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] gpio: gpio-mlxbf3: Add gpio driver support
-To:     Asmaa Mnebhi <asmaa@nvidia.com>
-Cc:     "linus.walleij@linaro.org" <linus.walleij@linaro.org>,
-        "bgolaszewski@baylibre.com" <bgolaszewski@baylibre.com>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S233509AbjBWL3L (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2023 06:29:11 -0500
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4529C16AD2;
+        Thu, 23 Feb 2023 03:29:10 -0800 (PST)
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+        by linux.microsoft.com (Postfix) with ESMTPSA id A001320B9C3E;
+        Thu, 23 Feb 2023 03:29:09 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A001320B9C3E
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+        s=default; t=1677151749;
+        bh=9hqMgwt+9rfgzKvMywqn/H23HiHnKG9S9L6A/+1pzh0=;
+        h=From:To:Subject:Date:In-Reply-To:References:From;
+        b=i29yH4QlMPKS4SW/ENT64Kq927tWbvAyF40myhCMlmODmtS0isu0yeES40Bk7yQln
+         9LxjzA3AdY/HaT+O3RgUj41vJ6xOtsSIEM27c6bcB7L6PlsB3afNdTOcdj9p9aLOWQ
+         8BrLEF6ElLVt6kJSJnJZL9WhCMwY6HoOCjAM91yg=
+From:   Saurabh Sengar <ssengar@linux.microsoft.com>
+To:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
+        kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+        decui@microsoft.com, daniel.lezcano@linaro.org, tglx@linutronix.de,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-hyperv@vger.kernel.org, mikelley@microsoft.com,
+        lenb@kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org
+Subject: [PATCH v7 1/5] drivers/clocksource/hyper-v: non ACPI support in hyperv clock
+Date:   Thu, 23 Feb 2023 03:29:01 -0800
+Message-Id: <1677151745-16521-2-git-send-email-ssengar@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1677151745-16521-1-git-send-email-ssengar@linux.microsoft.com>
+References: <1677151745-16521-1-git-send-email-ssengar@linux.microsoft.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Feb 22, 2023 at 8:40 PM Asmaa Mnebhi <asmaa@nvidia.com> wrote:
+Add a placeholder function for the hv_setup_stimer0_irq API to accommodate
+systems without ACPI support. Since this function is not utilized on
+x86/x64 systems and non-ACPI support is only intended for x86/x64 systems,
+a placeholder function is sufficient for now and can be improved upon if
+necessary in the future.
 
-First of all, please, please, fix your email client!
-It's so hard to distinguish my own words from yours.
+Signed-off-by: Saurabh Sengar <ssengar@linux.microsoft.com>
+Reviewed-by: Michael Kelley <mikelley@microsoft.com>
+---
+ drivers/clocksource/hyperv_timer.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-> > +static const struct irq_chip gpio_mlxbf3_irqchip =3D {
-> > +       .name =3D "MLNXBF33",
-> > +       .irq_set_type =3D mlxbf3_gpio_irq_set_type,
-> > +       .irq_enable =3D mlxbf3_gpio_irq_enable,
-> > +       .irq_disable =3D mlxbf3_gpio_irq_disable, };
->
-> Seems missing two things (dunno if bgpio_init() helps with that):
-> - IMMUTABLE flag
-> - actual calls to enable and disable IRQs for internal GPIO library usage
-> See other drivers how it's done. There are even plenty of patches to enab=
-le this thing separately.
->
-> I saw that in other drivers only irq_enable and irq_disable are defined. =
-Example in gpio-davinci.c:
-> static struct irq_chip gpio_irqchip =3D {
-> .name           =3D "GPIO",
-> .irq_enable     =3D gpio_irq_enable,
-> .irq_disable    =3D gpio_irq_disable,
-> .irq_set_type   =3D gpio_irq_type,
-> .flags          =3D IRQCHIP_SET_TYPE_MASKED,
-> };
->
-> Which I think is ok due to the following logic:
->
-> gpiochip_add_irqchip calls
-> gpiochip_set_irq_hooks which contains the following logic:
->
-> if (irqchip->irq_disable) {
->                  gc->irq.irq_disable =3D irqchip->irq_disable;
->                  irqchip->irq_disable =3D gpiochip_irq_disable;
-> } else {
->                  gc->irq.irq_mask =3D irqchip->irq_mask;
->                  irqchip->irq_mask =3D gpiochip_irq_mask;
-> }
-> if (irqchip->irq_enable) {
->                  gc->irq.irq_enable =3D irqchip->irq_enable;
->                  irqchip->irq_enable =3D gpiochip_irq_enable;
-> } else {
->                  gc->irq.irq_unmask =3D irqchip->irq_unmask;
->                  irqchip->irq_unmask =3D gpiochip_irq_unmask;
-> }
+diff --git a/drivers/clocksource/hyperv_timer.c b/drivers/clocksource/hyperv_timer.c
+index c0cef92b12b8..f32948c8a96f 100644
+--- a/drivers/clocksource/hyperv_timer.c
++++ b/drivers/clocksource/hyperv_timer.c
+@@ -49,7 +49,7 @@ static bool direct_mode_enabled;
+ 
+ static int stimer0_irq = -1;
+ static int stimer0_message_sint;
+-static DEFINE_PER_CPU(long, stimer0_evt);
++static __maybe_unused DEFINE_PER_CPU(long, stimer0_evt);
+ 
+ /*
+  * Common code for stimer0 interrupts coming via Direct Mode or
+@@ -68,7 +68,7 @@ EXPORT_SYMBOL_GPL(hv_stimer0_isr);
+  * stimer0 interrupt handler for architectures that support
+  * per-cpu interrupts, which also implies Direct Mode.
+  */
+-static irqreturn_t hv_stimer0_percpu_isr(int irq, void *dev_id)
++static irqreturn_t __maybe_unused hv_stimer0_percpu_isr(int irq, void *dev_id)
+ {
+ 	hv_stimer0_isr();
+ 	return IRQ_HANDLED;
+@@ -196,6 +196,7 @@ void __weak hv_remove_stimer0_handler(void)
+ {
+ };
+ 
++#ifdef CONFIG_ACPI
+ /* Called only on architectures with per-cpu IRQs (i.e., not x86/x64) */
+ static int hv_setup_stimer0_irq(void)
+ {
+@@ -230,6 +231,16 @@ static void hv_remove_stimer0_irq(void)
+ 		stimer0_irq = -1;
+ 	}
+ }
++#else
++static int hv_setup_stimer0_irq(void)
++{
++	return 0;
++}
++
++static void hv_remove_stimer0_irq(void)
++{
++}
++#endif
+ 
+ /* hv_stimer_alloc - Global initialization of the clockevent and stimer0 */
+ int hv_stimer_alloc(bool have_percpu_irqs)
+-- 
+2.34.1
 
-The chips have another flag there:
-
-        .flags          =3D IRQCHIP_IMMUTABLE,
-       GPIOCHIP_IRQ_RESOURCE_HELPERS,
-
-> So it doesn=E2=80=99t seem like we need to define irq_mask/unmask if we h=
-ave irq_enable/disable?
->
-> > +       npins =3D MLXBF3_GPIO_MAX_PINS_PER_BLOCK;
-> > +       device_property_read_u32(dev, "npins", &npins);
->
-> I don't see DT bindings for this property (being added in this series). I=
-s it already established one?
->
-> Ah that=E2=80=99s my bad. The property should be called "ngpios" like in =
-the DT documentation. Will fix.
-
-And why do you need it? What's a corner case that the GPIO library
-doesn't handle yet?
-
---=20
-With Best Regards,
-Andy Shevchenko
