@@ -2,214 +2,141 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5049C7EE23
-	for <linux-acpi@archiver.kernel.org>; Sat, 25 Feb 2023 08:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EB46C7EE31
+	for <linux-acpi@archiver.kernel.org>; Sat, 25 Feb 2023 08:06:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229660AbjBYIGB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 25 Feb 2023 03:06:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51092 "EHLO
+        id S229629AbjBYIGC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 25 Feb 2023 03:06:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229618AbjBYIFu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Feb 2023 03:05:50 -0500
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DAEC1ABC6;
-        Sat, 25 Feb 2023 00:05:49 -0800 (PST)
+        with ESMTP id S229642AbjBYIFx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Feb 2023 03:05:53 -0500
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 997011ACC8;
+        Sat, 25 Feb 2023 00:05:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1677312343; i=w_armin@gmx.de;
-        bh=9r+ibg9eKkn9LExgzAaFAAWxIQXWfKeAQOOzxQ4bOco=;
+        t=1677312346; i=w_armin@gmx.de;
+        bh=Kf5tr2Sg9Jqyp+j3xyIw9/QWCzBL3T6tk+vssRythnI=;
         h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=ly+q8gux9JOzt7C5k/JdiChEfPehPk3l/8Dn9ABkzKzik4y1d+F2y5Vg4/jXxVQkt
-         12j5zMYwP/Y3N3Hz3y5OQDpUSvSf+i8wqPdYYBIZkTt65xUqa+rUvDTYMmKNx35l6e
-         TFSn8FbFZPA+YVl4sdmHtXD8bHpsQOhPoAwsbsBrnnB5FRdJk5yVYbhUywjZVBvt/H
-         DW0tBgU7qKDtVozJlrkkg3JpKcg3wqTsVugxs57Wym3/pZkf3EJlLvKjRvmvUPWPNo
-         M2LIV7GByba9rn4cyPRET9OgEiWujbiNHW7ox//BLsvFCpfSs9YLabErbULvkNt79f
-         Jv8Bfajl/jFKA==
+        b=K99OKWKHOOzh05TDpZSxJE4GN6wiueUJLo6LO0haukLOys0FpZNus5BsgoIogxz/V
+         k+NUWpPFENWVi5MNRNGIH0MqCmq++w9KTv1hPte4Tvnt6FfMfUXFsD0qXvUFxR+lAl
+         VZlKp4Rq8plMnv4PyaSsvvv1Ct4ubVhBoenahAOfQyPrx3Cs0quL6TzRMBSRBcsLAW
+         IkxCR9v6ubd6O1HtTzyk8zj4H8dmxIU+pozts1YYeWxLiJuMJEK0rYIcDeeFdy/I7B
+         8mvytGFZnplh9I+p9DRRIRdr7blAXGdpRK18+if/PbRJ+E1JGRFZJvAP3/UcAs7/bP
+         usEcy5zKn+nEA==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
  (mrgmx104 [212.227.17.168]) with ESMTPSA (Nemesis) id
- 1MTiTt-1p42DS1Ik9-00Tzdq; Sat, 25 Feb 2023 09:05:43 +0100
+ 1MIMbU-1pJmsX44gO-00ENWP; Sat, 25 Feb 2023 09:05:46 +0100
 From:   Armin Wolf <W_Armin@gmx.de>
 To:     rafael@kernel.org, lenb@kernel.org
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/4] ACPI: sbshc: Use ec query notifier call chain
-Date:   Sat, 25 Feb 2023 09:04:56 +0100
-Message-Id: <20230225080458.1342359-3-W_Armin@gmx.de>
+Subject: [PATCH 4/4] ACPI: SBS: Fix handling of Smart Battery Selectors
+Date:   Sat, 25 Feb 2023 09:04:58 +0100
+Message-Id: <20230225080458.1342359-5-W_Armin@gmx.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230225080458.1342359-1-W_Armin@gmx.de>
 References: <20230225080458.1342359-1-W_Armin@gmx.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:/QJk2JY0PRTEasYkeEf2FULmHkSNE/mMBkzvwv67jMa7uh3umD+
- vny1ZCe4cN6VaarxatggGjrQt/0E/FRI5x8MHF1gjSZh3kpp0hjn76IExfr8fl7i0YSdJDK
- My1rKdEQZBDCtB0J2RqrgBj2SV3dLPvWisYQARgb/Cn4WADy667lvlo595QDilybk9g6cmb
- yDv8CYiDXdjCGybAaQXhA==
-UI-OutboundReport: notjunk:1;M01:P0:mXH8Cqbp6vg=;V0EDYoQ0YPtE4yjcApMHYeF5gtw
- W1OdvtsMDkAg9jpZhAOF2OFmxZUUGNJEhaN8ZrTuhRoGbL+VBgZBO58db2HKufZNOsP0trhCu
- hykS59a5Oq7ddYEc+nD0VajfHk3iK1CLlCd9T2hvM8wY1Bv0Y2oaXKHk30/t6bnydWbbnTBUN
- 0y+Pnmyw/LIDV4wu0+rjdbSvI8gqJlL52QjDlvFeJcynPEYOFqCrTmyoroaaec5Weq85bYGvR
- rdv7m8jVJLX+KQYBtosDj0rhyNnb+7FQEK/011QXgQbBDw1DVJVgtxArtfUBa7CKBiWAwaCLY
- RtIJ/Uqfhoj3YNXPvLzZhrh/66ud0wDgoZhvl3g33AEhwzI5ByucQQL0glzSsHTyqI6Aj6pMb
- vmQ6BF7DsOTgF3r5j/nM2QLCtPBEOIbczGLMSRnHy5dd2OZhEZcNeInM9iJD7lglf2NfBCnhA
- JC+0y/CZe5sfPi6pyoM5UUwsfPQDexn9MV+fzbp0oSRdF35VoJ8TpLCSWC+An2mHIOdTJn1qh
- rOqSTkou2O6DZKrnSek30Bv7tKjIir9uqLjkSIrZgqqUWSVfsU0HsnnzflH/SdA/LhqMp3mXb
- cAMtkUI3g7+/yZCNqI/zow5QQNbxHMa7MRVLW2GS/+6NQNP+j00gCpBXAFCzfllb732si9q+D
- 4Vw01MtYs1ppbAlbbXaXgF70oT9ubsbdqHVnrQvbDqViE1DUDsvLtXAhaG9bSxgr/scZs2vCo
- hYfZk+UskrBGmdszb/N3HIG1aZd7kl0LkTkDL084Z6N9GuFI06nEZI0ae31w8K8YeZuV4UMgh
- pvuWxP0T/eo9N1re4l/pmslgf/+BL3XUNzlsrhVr0mkdcBm/Z8Eqhc/24mPQUtRmo74UK7lL3
- XJHffnJR3QC6pwFOfdtsMR150DltiT/lCu+Tqwo4srGn8lizEHxsDq1HN52gIoqD+7RRMDjTY
- zKZQqUIoo8+NravqPzMgYJ/qPMU=
+X-Provags-ID: V03:K1:2Bj5TWsf+QBe1Q82Bfbxp7fvAaNYpdVIE+7sHR7gg5pI5R2KZ89
+ GjKiyw3051qnnEkkMujFls+DULQzloyQ6TTSb5CiWZkMkJVZFTKw9pBo610rbhDv2TM4yGd
+ ztSqxkFrnYOfcGZGR/wOMuT5WvHAFsH5Q9/4fqiKPgfdBUrWM0ndgshCxZo2gck3hNuu9KK
+ tIRp+9XmMymNx1TEEZdBA==
+UI-OutboundReport: notjunk:1;M01:P0:YkRaH1XJPhs=;4hmhe8YZBtQQPoxtSkBWjWo3gb+
+ 4kHbhaTEwcR4ZA8DeiCZnZb5nzpAM4uMPrrEN0+4kxKXzA4Z8K/AHKRmP406obwwew7GUPOsA
+ WIifAuWREaZsEr4F0lWWMAtIm6D/Hxm0ta6wacRWeofnLfuOqPwtppyVMKAuhX82QyzY2q5cO
+ uRWSAjJFFHiPJNCrE5oYjtPfZkm5ieKo0cNQrmwzRetT4V5i+cWMDgoI9697KGtmIGU/Mu+9h
+ 8wZsmz/e/uMmnxzaol18mynTh1XtV7gPaDxzK+KH4VNbrJUOF9K7GQFhq/qNVi4oBk4zqzTf8
+ E79KPqizKKKb9dJNOaMA4gCErFgsSFKhbCzrwq+QDJi143i+jVdQycxVx45djmtB50Vo81sIU
+ S+jPcfn6iViiyD2ZQ5iobu7J4JFzC3VeIj4fHr40NdmxmvlCl3AmTme2+1Q6APtOocenaK+gR
+ 9x8nTqpnd+E1eQNnaPIjtgEh8VYc0Ev4i2aKazy/PlRfUGYaiu8ci0LZfh9ghTPfqLnRh0cO0
+ jQJ2oLXamKDRNdq+G2vPxAF9cLQM3UvCYVklac5l4ARYtSwL6NhIjv8mO3vGOTPlQnuW2voR/
+ sEVewAOMqsRRPgp1m7R6cHv1AdCbGzPYOtVQemq8nkwlSiF37Qfq+H7U0e7GbnPTJ/1sTQn4Y
+ zLIr5RLB0EXMP9qSmchtFqJOpdkkJ2HkhDm0VcNAbeeYcTeCaCum/P4nQyxHGNxIeLLLru/7G
+ 0DewxKlAjP9XscQ9ZftRa6dsc7kJeRW06dBCroH6Fb68BB0jjTcrRJfpXs+DapOU4iOoWPlCY
+ JYQh4+t05CqH83CK2KIObGgXRON/ZqhdVPHwdJyukKcgiGXO5RJp4yzVd0dDxXVbc/lF3QcS4
+ OaP+uQEegNhU46fEoU+nu8i4bDL7SRY1l8vRrTlIXgCoZJT9QTDuRDfbm3GFgAY6EgoNakzmL
+ LcYgGNLeaHZA2Xj8FV5S6oFpwss=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-When using acpi_ec_add_query_handler(), a kernel oops
-can occur when unloading the sbshc module, since the
-handler callback might still be used by a work item
-inside the ec workqueue.
-Use the new ec query notifier call chain to register
-the handler in a safe way. Return NOTIFY_BAD to override
-the existing _Qxx handler in case the query was meant
-for the EC SMBus controller.
+The "Smart Battery Selector" standard says that when writing
+SelectorState (0x1), the nibbles which should not be modified
+need to be masked with 0xff. This is necessary since in contrast
+to a "Smart Battery Manager", the last three nibbles are writable.
+
+Failing to do so might trigger the following cycle:
+1. Host accidentally changes power source of the system (3rd nibble)
+   when selecting a battery.
+2. Power source is invalid, Selector changes to another power source.
+3. Selector notifies host that it changed the power source.
+4. Host re-reads some batteries.
+5. goto 1 for each re-read battery.
+
+This loop might also be entered when a battery which is not present
+is selected for SMBus access. In the end some workqueues fill up,
+which causes the system to lockup upon suspend/shutdown.
+
+Fix this by correctly masking the value to be written, and avoid
+selecting batteries which are absent.
 
 Tested on a Acer Travelmate 4002WLMi.
 
 Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 =2D--
- drivers/acpi/sbshc.c | 45 ++++++++++++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+ drivers/acpi/sbs.c | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-index 16f2daaa2c45..e3280f646eb5 100644
-=2D-- a/drivers/acpi/sbshc.c
-+++ b/drivers/acpi/sbshc.c
-@@ -8,11 +8,14 @@
- #define pr_fmt(fmt) "ACPI: " fmt
-
- #include <linux/acpi.h>
-+#include <linux/notifier.h>
- #include <linux/wait.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
-+
-+#include "internal.h"
- #include "sbshc.h"
-
- #define ACPI_SMB_HC_CLASS	"smbus_host_ctl"
-@@ -20,6 +23,7 @@
-
- struct acpi_smb_hc {
- 	struct acpi_ec *ec;
-+	struct notifier_block nb;
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	u8 offset;
-@@ -194,6 +198,7 @@ int acpi_smbus_unregister_callback(struct acpi_smb_hc =
-*hc)
- 	hc->context =3D NULL;
- 	mutex_unlock(&hc->lock);
- 	acpi_os_wait_events_complete();
-+
- 	return 0;
- }
-
-@@ -206,20 +211,28 @@ static inline void acpi_smbus_callback(void *context=
-)
- 		hc->callback(hc->context);
- }
-
--static int smbus_alarm(void *context)
-+static int acpi_smbus_hc_notify(struct notifier_block *block, unsigned lo=
-ng action, void *data)
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index e90752d4f488..94e3c000df2e 100644
+=2D-- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -473,23 +473,32 @@ static const struct device_attribute alarm_attr =3D =
+{
+    ----------------------------------------------------------------------=
+---- */
+ static int acpi_battery_read(struct acpi_battery *battery)
  {
--	struct acpi_smb_hc *hc =3D context;
-+	struct acpi_smb_hc *hc =3D container_of(block, struct acpi_smb_hc, nb);
- 	union acpi_smb_status status;
-+	struct acpi_ec *ec =3D data;
- 	u8 address;
-+
-+	if (ec !=3D hc->ec || action !=3D hc->query_bit)
-+		return NOTIFY_DONE;
-+
- 	if (smb_hc_read(hc, ACPI_SMB_STATUS, &status.raw))
--		return 0;
-+		return NOTIFY_OK;
-+
- 	/* Check if it is only a completion notify */
- 	if (status.fields.done && status.fields.status =3D=3D SMBUS_OK) {
- 		hc->done =3D true;
- 		wake_up(&hc->wait);
- 	}
-+
- 	if (!status.fields.alarm)
--		return 0;
-+		return NOTIFY_BAD;
-+
- 	mutex_lock(&hc->lock);
- 	smb_hc_read(hc, ACPI_SMB_ALARM_ADDRESS, &address);
- 	status.fields.alarm =3D 0;
-@@ -233,20 +246,16 @@ static int smbus_alarm(void *context)
- 					acpi_smbus_callback, hc);
- 	}
- 	mutex_unlock(&hc->lock);
--	return 0;
--}
+-	int result =3D 0, saved_present =3D battery->present;
++	int result, saved_present =3D battery->present;
+ 	u16 state;
 
--typedef int (*acpi_ec_query_func) (void *data);
+ 	if (battery->sbs->manager_present) {
+ 		result =3D acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+ 				ACPI_SBS_MANAGER, 0x01, (u8 *)&state);
+-		if (!result)
+-			battery->present =3D state & (1 << battery->id);
+-		state &=3D 0x0fff;
++		if (result)
++			return result;
++
++		battery->present =3D state & (1 << battery->id);
++		if (!battery->present)
++			return 0;
++
++		/* Masking necessary for Smart Battery Selectors */
++		state =3D 0x0fff;
+ 		state |=3D 1 << (battery->id + 12);
+ 		acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
+ 				  ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
+-	} else if (battery->id =3D=3D 0)
+-		battery->present =3D 1;
 -
--extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
--			      acpi_handle handle, acpi_ec_query_func func,
--			      void *data);
-+	/* We may need to override existing _Qxx handlers */
-+	return NOTIFY_BAD;
-+}
-
- static int acpi_smbus_hc_add(struct acpi_device *device)
- {
--	int status;
- 	unsigned long long val;
- 	struct acpi_smb_hc *hc;
-+	int status, ret;
-
- 	if (!device)
- 		return -EINVAL;
-@@ -271,15 +280,19 @@ static int acpi_smbus_hc_add(struct acpi_device *dev=
-ice)
- 	hc->query_bit =3D val & 0xff;
- 	device->driver_data =3D hc;
-
--	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
-+	hc->nb.notifier_call =3D acpi_smbus_hc_notify;
-+	ret =3D register_acpi_ec_query_notifier(&hc->nb);
-+	if (ret < 0) {
-+		kfree(hc);
-+		return ret;
+-	if (result || !battery->present)
+-		return result;
++	} else {
++		if (battery->id =3D=3D 0) {
++			battery->present =3D 1;
++		} else {
++			if (!battery->present)
++				return 0;
++		}
 +	}
-+
- 	dev_info(&device->dev, "SBS HC: offset =3D 0x%0x, query_bit =3D 0x%0x\n"=
-,
- 		 hc->offset, hc->query_bit);
 
- 	return 0;
- }
-
--extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit=
-);
--
- static void acpi_smbus_hc_remove(struct acpi_device *device)
- {
- 	struct acpi_smb_hc *hc;
-@@ -288,7 +301,7 @@ static void acpi_smbus_hc_remove(struct acpi_device *d=
-evice)
- 		return;
-
- 	hc =3D acpi_driver_data(device);
--	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
-+	unregister_acpi_ec_query_notifier(&hc->nb);
- 	acpi_os_wait_events_complete();
- 	kfree(hc);
- 	device->driver_data =3D NULL;
+ 	if (saved_present !=3D battery->present) {
+ 		battery->update_time =3D 0;
 =2D-
 2.30.2
 
