@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 244DBC6FA8E
-	for <linux-acpi@archiver.kernel.org>; Sun, 26 Feb 2023 15:29:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FAC9C64ED6
+	for <linux-acpi@archiver.kernel.org>; Sun, 26 Feb 2023 15:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229524AbjBZP3y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 26 Feb 2023 10:29:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35852 "EHLO
+        id S230038AbjBZPbK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 26 Feb 2023 10:31:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229758AbjBZP3g (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Feb 2023 10:29:36 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 942B31CF42;
-        Sun, 26 Feb 2023 07:25:45 -0800 (PST)
+        with ESMTP id S230044AbjBZPa5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Feb 2023 10:30:57 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0E9D9EED;
+        Sun, 26 Feb 2023 07:28:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 65EA4CE0E80;
-        Sun, 26 Feb 2023 14:53:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2A9C4339B;
-        Sun, 26 Feb 2023 14:53:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 24B4760C1F;
+        Sun, 26 Feb 2023 14:51:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 174F0C4339B;
+        Sun, 26 Feb 2023 14:51:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677423193;
-        bh=lsz24TCd7gP3EDM6rJqWrZ9K781z7Zz98Xp4HLIZeW8=;
+        s=k20201202; t=1677423111;
+        bh=3cHPdIx8yaZdN9E+LDZt4UvqpNDwAc4yywObzCervkg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NvtUJijaDfzg7N3QpF5kXkV1o2r6ngUQc954eAFffvocUTHQ7xXJwQHLY9UCWSbBl
-         0ArqAhuK7vLzi6Mx6rVOQqJcOm4IdYt1gREuNM+QlzJ1ExTOFq7yhP/CvMGiYj8Oiu
-         KlVkHGiJkF7uZAHPe/s21MTk2C0Fr5sPHJgE0sjnNo9dwFEGoCmHEX+8v1D9biEMnW
-         WfQlhbOdkjLlqY+QhfRjjOBqxRqO0n2Ntyp4C7d1bmvUGNcr3w6TAhWM54VOPdORlf
-         iLxGTPubFXuSrkfDgnNYePGWtmbZrxcR6IMc6VRj30k3kFuPB5J/s2+a+jitkEp3Kr
-         v5AgrkCUql4WQ==
+        b=ejFMVH5qOUIykhv1E8ng+Ishbyrkr6oF/Ak9zy9oY0JiTau7rjU0ehyjM8qlYZuPR
+         Be+RlN36ghvtLhI6N0UwqHF3qHCuEUKnI6RCyPy8LbaKAu2amxEWVhJZfRvsPqXGSO
+         L47IAJwkMnNApcjT906bqHI/RrBwkAiQvemoz99ZZkTaTky0fKXnap9IbAzHsOS9T8
+         u3Q6LZ+Mb+EadxEcsHRnVCmxX0Yq2DDvCboPbPslkJc0f4qnJKx4lyTEahes4Q6uF9
+         8FacJ2QPC+zWVrL0nqGw8WC/FL02GOlJFPLzxAFZwVSFRWPCQtywOr8JEz+RS4tbjC
+         XujLl3c6zVYEQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Mark Rutland <mark.rutland@arm.com>,
@@ -45,12 +45,12 @@ Cc:     Mark Rutland <mark.rutland@arm.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Sasha Levin <sashal@kernel.org>,
         acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH AUTOSEL 4.14 07/11] ACPI: Don't build ACPICA with '-Os'
-Date:   Sun, 26 Feb 2023 09:52:49 -0500
-Message-Id: <20230226145255.829660-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 10/19] ACPI: Don't build ACPICA with '-Os'
+Date:   Sun, 26 Feb 2023 09:51:12 -0500
+Message-Id: <20230226145123.829229-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20230226145255.829660-1-sashal@kernel.org>
-References: <20230226145255.829660-1-sashal@kernel.org>
+In-Reply-To: <20230226145123.829229-1-sashal@kernel.org>
+References: <20230226145123.829229-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -150,7 +150,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index e05232da05888..1e8e4e7a29cb3 100644
+index 59700433a96e5..f919811156b1f 100644
 --- a/drivers/acpi/acpica/Makefile
 +++ b/drivers/acpi/acpica/Makefile
 @@ -3,7 +3,7 @@
