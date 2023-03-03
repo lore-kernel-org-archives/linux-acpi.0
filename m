@@ -2,69 +2,108 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3215C7EE2D
-	for <linux-acpi@archiver.kernel.org>; Fri,  3 Mar 2023 18:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97B8CC64EC4
+	for <linux-acpi@archiver.kernel.org>; Fri,  3 Mar 2023 19:24:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231964AbjCCSpk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 3 Mar 2023 13:45:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51374 "EHLO
+        id S231383AbjCCTYM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 3 Mar 2023 14:24:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231825AbjCCSpc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Mar 2023 13:45:32 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AC5259419;
-        Fri,  3 Mar 2023 10:45:11 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S231190AbjCCTYL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Mar 2023 14:24:11 -0500
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECBC510408;
+        Fri,  3 Mar 2023 11:24:09 -0800 (PST)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
+ id 45dcb4239fb6fbda; Fri, 3 Mar 2023 20:24:07 +0100
+Received: from kreacher.localnet (unknown [213.134.183.41])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 84918B819B9;
-        Fri,  3 Mar 2023 18:44:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 37D9CC433A0;
-        Fri,  3 Mar 2023 18:44:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677869071;
-        bh=3+blzz/o/7Z3s6nIgKqJFPIN1F2p/Qpg7jNgY10jf8M=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=sys8nl3OGFP5UaIn7XbPVmJuhvXBvNbsmnCxuD3n0oo6M+NSDa0jOpWMqKsCQ6mmr
-         oo2XXhhiN5steJKZKQEOVhX5TxVoI7ZE7ZX/i7sUOMDQ07HPSYYMwJAyFXMrOFlrrx
-         qRWqVVD4AgcxPcQfGsE7xt/oInx6D5fET/R6ed/5IESQNTu0kP4O2UIcTcgsZYSXvg
-         t4e4fZVOGDc51mKJ7KAAvX8yr2BNKKlRMuG6g/3zgP2gCK57GwSrT/+aPLKFm/sP0m
-         frrsZ9s5f7D2T1ObaD+hx85oiwRuyX1omcH+lOyiEz7h3UqeG3nUgE+NJPOIsS29Mx
-         P4ewyyhsRatAA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 23CBCE68D5C;
-        Fri,  3 Mar 2023 18:44:31 +0000 (UTC)
-Subject: Re: [GIT PULL] More ACPI updates for v6.3-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0jwa5wpitjs+wf--ndk4k5zpM4iuXV6gzxAoB4UmnKUfQ@mail.gmail.com>
-References: <CAJZ5v0jwa5wpitjs+wf--ndk4k5zpM4iuXV6gzxAoB4UmnKUfQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0jwa5wpitjs+wf--ndk4k5zpM4iuXV6gzxAoB4UmnKUfQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.3-rc1-2
-X-PR-Tracked-Commit-Id: 57b76324c2a03b7b75d2d93f5c83f4340fd9b621
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 44b6f565e79188760851d58fa59628b4c2a1b334
-Message-Id: <167786907114.30023.17088830195921845954.pr-tracker-bot@kernel.org>
-Date:   Fri, 03 Mar 2023 18:44:31 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        by v370.home.net.pl (Postfix) with ESMTPSA id CE9CC20619DE;
+        Fri,  3 Mar 2023 20:24:06 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     Zhang Rui <rui.zhang@intel.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Quanxian Wang <quanxian.wang@intel.com>
+Subject: [PATCH v1 4/4] ACPI: processor: thermal: Update CPU cooling devices on cpufreq policy changes
+Date:   Fri, 03 Mar 2023 20:23:58 +0100
+Message-ID: <1936685.PYKUYFuaPT@kreacher>
+In-Reply-To: <2148907.irdbgypaU6@kreacher>
+References: <2148907.irdbgypaU6@kreacher>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 213.134.183.41
+X-CLIENT-HOSTNAME: 213.134.183.41
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrudelledguddukecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeefudduuedtuefgleffudeigeeitdeufeelvdejgefftdethffhhfethfeljefgteenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecukfhppedvudefrddufeegrddukeefrdegudenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrddukeefrdeguddphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepkedprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgv
+ rhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepuggrnhhivghlrdhlvgiitggrnhhosehlihhnrghrohdrohhrghdprhgtphhtthhopehsrhhinhhivhgrshdrphgrnhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=8 Fuz1=8 Fuz2=8
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 3 Mar 2023 19:16:18 +0100:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.3-rc1-2
+When a cpufreq policy appears or goes away, the CPU cooling devices for
+the CPUs covered by that policy need to be updated so that the new
+processor_get_max_state() value is stored as max_state and the
+statistics in sysfs are rearranged for each of them.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/44b6f565e79188760851d58fa59628b4c2a1b334
+Do that accordingly in acpi_thermal_cpufreq_init() and
+acpi_thermal_cpufreq_exit().
 
-Thank you!
+Fixes: a365105c685c("thermal: sysfs: Reuse cdev->max_state")
+Reported-by: Wang, Quanxian <quanxian.wang@intel.com>
+Link: https://lore.kernel.org/linux-pm/53ec1f06f61c984100868926f282647e57ecfb2d.camel@intel.com/
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/processor_thermal.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Index: linux-pm/drivers/acpi/processor_thermal.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/processor_thermal.c
++++ linux-pm/drivers/acpi/processor_thermal.c
+@@ -140,9 +140,14 @@ void acpi_thermal_cpufreq_init(struct cp
+ 		ret = freq_qos_add_request(&policy->constraints,
+ 					   &pr->thermal_req,
+ 					   FREQ_QOS_MAX, INT_MAX);
+-		if (ret < 0)
++		if (ret < 0) {
+ 			pr_err("Failed to add freq constraint for CPU%d (%d)\n",
+ 			       cpu, ret);
++			continue;
++		}
++
++		if (!IS_ERR(pr->cdev))
++			thermal_cooling_device_update(pr->cdev);
+ 	}
+ }
+ 
+@@ -153,8 +158,13 @@ void acpi_thermal_cpufreq_exit(struct cp
+ 	for_each_cpu(cpu, policy->related_cpus) {
+ 		struct acpi_processor *pr = per_cpu(processors, cpu);
+ 
+-		if (pr)
+-			freq_qos_remove_request(&pr->thermal_req);
++		if (!pr)
++			continue;
++
++		freq_qos_remove_request(&pr->thermal_req);
++
++		if (!IS_ERR(pr->cdev))
++			thermal_cooling_device_update(pr->cdev);
+ 	}
+ }
+ #else				/* ! CONFIG_CPU_FREQ */
+
+
+
