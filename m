@@ -2,132 +2,197 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2B0C61DA4
-	for <linux-acpi@archiver.kernel.org>; Mon,  6 Mar 2023 09:40:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6AAC61DA4
+	for <linux-acpi@archiver.kernel.org>; Mon,  6 Mar 2023 11:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229969AbjCFJkj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 6 Mar 2023 04:40:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51890 "EHLO
+        id S229457AbjCFLoF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 6 Mar 2023 06:44:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbjCFJki (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Mar 2023 04:40:38 -0500
+        with ESMTP id S229685AbjCFLoA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Mar 2023 06:44:00 -0500
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFE8D211C4;
-        Mon,  6 Mar 2023 01:40:34 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27B4A23D93;
+        Mon,  6 Mar 2023 03:43:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1678095634; x=1709631634;
+  t=1678103039; x=1709639039;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=rphgjThJSOFuhdwVeYanC8RljvKmVnf55cP66GTrCs4=;
-  b=FVRoBHs8rBe1+b+pvGf30uyF9GqY/Kt0PEkWi7VCUYOghQ9ICNcRkGad
-   KcTjJM32/Df2kb5R/InJmcHHXF96e622dCHD7zc4CJ8o89VtV/zAMTqFe
-   upTR8eeUMlH280fK2/o7wl9yjcMRznt3A0faI9AVLQSv2BAwc7+4ly8VZ
-   q1YXPfaHiWGOWMW8EXTl7BlhWPqN16O2vy0G7Tw6BjrAublqC20x5SsbO
-   5MQQYzNLX29kaupnmYYghXe3dSl6GjxOQpsiA1G/XDN9IirTXL8CrpbOC
-   lZLhXpw96nhLtgeayBuALp3rA3KbSDwqW83wyprl/SUw1GwRZ4MT1rJey
+  bh=rmMYzCNrCuAGX+FVKa0uzWAwWT9fcvok0xc1fHs/3wk=;
+  b=ikiLQXvksxr0TsCKP+nbzyUE8oxHuRpfmAVbv0UkBU/l9hnO4Qwcdbk6
+   EPhdhMSLHNw+awy/LoakYbZub6yZHOsSqVzjuCdoa7auInEIMSDtagRcN
+   7PyuGNs6VmUd07fVZ3uJMGwhWT+31N1fA+HOc6yAjwAkDKsONkE51H0Sn
+   qoZxFuiI7e5fG3EPJdycjxw+3J7ETo3N279EY4L/j0lNVAt4+sdirwgTP
+   T4JjXqQwoQTumtORw9bEMUm/EUoC/6auEeiYzeHCaG9A880hbwVWxKIN+
+   a7bMt4ZnKK9/7Hi+Bs5JGn3CWNUO2n3amAC7ewm0Zb0hWztGQeo6pzUSl
    Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10640"; a="337029572"
+X-IronPort-AV: E=McAfee;i="6500,9779,10640"; a="337050644"
 X-IronPort-AV: E=Sophos;i="5.98,236,1673942400"; 
-   d="scan'208";a="337029572"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2023 01:40:34 -0800
+   d="scan'208";a="337050644"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2023 03:43:58 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10640"; a="819244668"
+X-IronPort-AV: E=McAfee;i="6500,9779,10640"; a="740297142"
 X-IronPort-AV: E=Sophos;i="5.98,236,1673942400"; 
-   d="scan'208";a="819244668"
-Received: from kuha.fi.intel.com ([10.237.72.185])
-  by fmsmga001.fm.intel.com with SMTP; 06 Mar 2023 01:40:29 -0800
-Received: by kuha.fi.intel.com (sSMTP sendmail emulation); Mon, 06 Mar 2023 11:40:28 +0200
-Date:   Mon, 6 Mar 2023 11:40:28 +0200
-From:   Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To:     Saravana Kannan <saravanak@google.com>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+   d="scan'208";a="740297142"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga008.fm.intel.com with ESMTP; 06 Mar 2023 03:43:49 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pZ9Fq-00GKVl-0P;
+        Mon, 06 Mar 2023 13:43:46 +0200
+Date:   Mon, 6 Mar 2023 13:43:45 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Pin-yen Lin <treapking@chromium.org>
+Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
+        Neil Armstrong <neil.armstrong@linaro.org>,
+        Robert Foss <rfoss@kernel.org>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        David Airlie <airlied@gmail.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Len Brown <lenb@kernel.org>,
-        Yongqin Liu <yongqin.liu@linaro.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Martin Kepplinger <martin.kepplinger@puri.sm>,
-        Amelie Delaunay <amelie.delaunay@foss.st.com>,
-        kernel-team@android.com, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v1 4/4] driver core: Delete
- fw_devlink_purge_absent_suppliers()
-Message-ID: <ZAW1DF76eULAzNvt@kuha.fi.intel.com>
-References: <20230301214952.2190757-1-saravanak@google.com>
- <20230301214952.2190757-5-saravanak@google.com>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Prashant Malani <pmalani@chromium.org>,
+        Benson Leung <bleung@chromium.org>,
+        Guenter Roeck <groeck@chromium.org>,
+        Xin Ji <xji@analogixsemi.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Lyude Paul <lyude@redhat.com>, linux-kernel@vger.kernel.org,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        chrome-platform@lists.linux.dev,
+        =?iso-8859-1?Q?N=EDcolas_F_=2E_R_=2E_A_=2E?= Prado 
+        <nfraprado@collabora.com>, Marek Vasut <marex@denx.de>,
+        Hsin-Yi Wang <hsinyi@chromium.org>, devicetree@vger.kernel.org,
+        Allen Chen <allen.chen@ite.com.tw>,
+        dri-devel@lists.freedesktop.org,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Stephen Boyd <swboyd@chromium.org>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v13 01/10] device property: Add remote endpoint to devcon
+ matcher
+Message-ID: <ZAXR8emmwuVChL4i@smile.fi.intel.com>
+References: <20230303143350.815623-1-treapking@chromium.org>
+ <20230303143350.815623-2-treapking@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230301214952.2190757-5-saravanak@google.com>
+In-Reply-To: <20230303143350.815623-2-treapking@chromium.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Mar 01, 2023 at 01:49:51PM -0800, Saravana Kannan wrote:
-> After recent changes to fw_devlink that ended with commit 4a032827daa8
-> ("of: property: Simplify of_link_to_phandle()"), fw_devlink no longer
-> cares about the "compatible" property and figures out the correct struct
-> device at runtime.
+On Fri, Mar 03, 2023 at 10:33:41PM +0800, Pin-yen Lin wrote:
+> From: Prashant Malani <pmalani@chromium.org>
 > 
-> So, there's no need for any driver or framework to call
-> fw_devlink_purge_absent_suppliers() anymore and we can delete it.
+> When searching the device graph for device matches, check the
+> remote-endpoint itself for a match.
 > 
-> Signed-off-by: Saravana Kannan <saravanak@google.com>
+> Some drivers register devices for individual endpoints. This allows
+> the matcher code to evaluate those for a match too, instead
+> of only looking at the remote parent devices. This is required when a
+> device supports two mode switches in its endpoints, so we can't simply
+> register the mode switch with the parent node.
 
-FWIW:
+OK!
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-
+> Signed-off-by: Prashant Malani <pmalani@chromium.org>
+> Signed-off-by: Pin-yen Lin <treapking@chromium.org>
+> 
 > ---
->  drivers/base/core.c    | 16 ----------------
->  include/linux/fwnode.h |  1 -
->  2 files changed, 17 deletions(-)
 > 
-> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> index 6878dfcbf0d6..46364c4d1983 100644
-> --- a/drivers/base/core.c
-> +++ b/drivers/base/core.c
-> @@ -186,22 +186,6 @@ void fwnode_links_purge(struct fwnode_handle *fwnode)
->  	fwnode_links_purge_consumers(fwnode);
->  }
+> Changes in v13:
+> - Update the kernel doc of fwnode_connection_find_match
+> 
+> Changes in v12:
+> - Check the availability of the device node in fwnode_graph_devcon_matches
+> - Ensured valid access to "matches" in fwnode_graph_devcon_matches
+> - Updated the documentation in fwnode_connection_find_match(es)
+> - Dropped collected tags due to the new changes
+> 
+> Changes in v11:
+> - Added missing fwnode_handle_put in drivers/base/property.c
+> 
+> Changes in v10:
+> - Collected Reviewed-by and Tested-by tags
+> 
+> Changes in v6:
+> - New in v6
+> 
+>  drivers/base/property.c | 31 ++++++++++++++++++++++++++-----
+>  1 file changed, 26 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 083a95791d3b..4426ac2b16ca 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -1243,6 +1243,23 @@ static unsigned int fwnode_graph_devcon_matches(const struct fwnode_handle *fwno
+>  			continue;
+>  		}
 >  
-> -void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode)
-> -{
-> -	struct fwnode_handle *child;
-> -
-> -	/* Don't purge consumer links of an added child */
-> -	if (fwnode->dev)
-> -		return;
-> -
-> -	fwnode->flags |= FWNODE_FLAG_NOT_DEVICE;
-> -	fwnode_links_purge_consumers(fwnode);
-> -
-> -	fwnode_for_each_available_child_node(fwnode, child)
-> -		fw_devlink_purge_absent_suppliers(child);
-> -}
-> -EXPORT_SYMBOL_GPL(fw_devlink_purge_absent_suppliers);
-> -
->  /**
->   * __fwnode_links_move_consumers - Move consumer from @from to @to fwnode_handle
->   * @from: move consumers away from this fwnode
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index 5700451b300f..63972c863fcd 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -210,6 +210,5 @@ static inline void fwnode_dev_initialized(struct fwnode_handle *fwnode,
->  extern bool fw_devlink_is_strict(void);
->  int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup);
->  void fwnode_links_purge(struct fwnode_handle *fwnode);
-> -void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode);
->  
->  #endif
+> +		ret = match(node, con_id, data);
+> +		fwnode_handle_put(node);
+> +		if (ret) {
+> +			if (matches)
+> +				matches[count] = ret;
+> +			count++;
+> +
+> +			if (matches && count >= matches_len)
+> +				break;
+> +		}
+> +
+> +		/*
+> +		 * Some drivers may register devices for endpoints. Check
+> +		 * the remote-endpoints for matches in addition to the remote
+> +		 * port parent.
+> +		 */
+> +		node = fwnode_graph_get_remote_endpoint(ep);
+>  		ret = match(node, con_id, data);
+>  		fwnode_handle_put(node);
+>  		if (ret) {
+> @@ -1293,8 +1310,11 @@ static unsigned int fwnode_devcon_matches(const struct fwnode_handle *fwnode,
+>   * @match: Function to check and convert the connection description
+>   *
+>   * Find a connection with unique identifier @con_id between @fwnode and another
+> - * device node. @match will be used to convert the connection description to
+> - * data the caller is expecting to be returned.
+> + * device node. For fwnode graph connections, the graph endpoints are also
+> + * checked. @match will be used to convert the connection description to data
+> + * the caller is expecting to be returned.
+> + *
+> + * Return: The pointer to the matched node, or NULL on error.
+>   */
+>  void *fwnode_connection_find_match(const struct fwnode_handle *fwnode,
+>  				   const char *con_id, void *data,
+> @@ -1325,9 +1345,10 @@ EXPORT_SYMBOL_GPL(fwnode_connection_find_match);
+>   * @matches_len: Length of @matches
+>   *
+>   * Find up to @matches_len connections with unique identifier @con_id between
+> - * @fwnode and other device nodes. @match will be used to convert the
+> - * connection description to data the caller is expecting to be returned
+> - * through the @matches array.
+> + * @fwnode and other device nodes. For fwnode graph connections, the graph
+> + * endpoints are also checked. @match will be used to convert the connection
+> + * description to data the caller is expecting to be returned through the
+> + * @matches array.
+>   * If @matches is NULL @matches_len is ignored and the total number of resolved
+>   * matches is returned.
+>   *
 > -- 
-> 2.39.2.722.g9855ee24e9-goog
+> 2.40.0.rc0.216.gc4246ad0f0-goog
+> 
 
 -- 
-heikki
+With Best Regards,
+Andy Shevchenko
+
+
