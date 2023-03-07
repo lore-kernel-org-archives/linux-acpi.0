@@ -2,120 +2,168 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D3CAC678D4
-	for <linux-acpi@archiver.kernel.org>; Tue,  7 Mar 2023 09:33:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00538C678D5
+	for <linux-acpi@archiver.kernel.org>; Tue,  7 Mar 2023 11:42:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229967AbjCGJdQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 7 Mar 2023 04:33:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54778 "EHLO
+        id S231203AbjCGLmz convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 7 Mar 2023 06:42:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229734AbjCGJdP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2023 04:33:15 -0500
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5021B76E
-        for <linux-acpi@vger.kernel.org>; Tue,  7 Mar 2023 01:33:13 -0800 (PST)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pZTh2-0007l7-0d; Tue, 07 Mar 2023 10:33:12 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pZTgz-002RxZ-P9; Tue, 07 Mar 2023 10:33:09 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pZTgy-002wzY-QJ; Tue, 07 Mar 2023 10:33:08 +0100
-Date:   Tue, 7 Mar 2023 10:33:08 +0100
-From:   Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To:     Pierre Asselin <pa@panix.com>
-Cc:     linux-acpi@vger.kernel.org, regressions@lists.linux.dev,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [Regression] acpi: laptop panics early in boot
-Message-ID: <20230307093308.m5enhuegm3r4qwvo@pengutronix.de>
-References: <9f6cba7a8a57e5a687c934e8e406e28c.squirrel@mail.panix.com>
+        with ESMTP id S230456AbjCGLlu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2023 06:41:50 -0500
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D92D7E890;
+        Tue,  7 Mar 2023 03:39:23 -0800 (PST)
+Received: by mail-ed1-f42.google.com with SMTP id a25so51187912edb.0;
+        Tue, 07 Mar 2023 03:39:23 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1678189093;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=827BZ7QHKXX/o/3YKoJ2JGa31MebA6PuHwtCfOkih34=;
+        b=rkz6279ZsoFhZfvNeJyco8gp7CbXeQgUy6JYpfD0qwcuT1pLfrCcjaA7RgM4Z2cizA
+         y4zUkT2Vn4unwQSOZ+WNpNs4fj+1TaESJthIZcbIvY2oNQJ5ffO5NSw8IfYRvs09WE0q
+         eW9SHQXg4ucctAj1ioSkWh12BMdWh2JBpaYR5Z9M4VYGDryVhhP57rIXpQ+V+Tx09PsT
+         pi0a3G4N5zyfsvhuQRFwAjjKlk+xB5JvaAsx46/WSxXmfHsxuIHMX1cKqgFcr/te7QYy
+         73j1jUoXt9bSFQIT0IHOmO+CyrpASksOSszFTvrNLOXXuZpu0EXylQGpJiUOFJmWkkXt
+         GImQ==
+X-Gm-Message-State: AO0yUKW6IwLGDaTWWlV1ce02CQA6x9XEmDE02+5Kot6geiJ9Pq/3kb63
+        uL+qfE7z+kSUtwYeVL6VAbE7UdTfD4uW6Mk49v+SMKjPjsM=
+X-Google-Smtp-Source: AK7set91GVVFAjSNfN3Wl524EpgJm6XPO7jUSYGAzuwAJ7KbSmoxDYk6absqcEyIjriEfblA2UpLdwuGsMvhpKo3Kt4=
+X-Received: by 2002:a17:906:a14:b0:8b1:38d6:9853 with SMTP id
+ w20-20020a1709060a1400b008b138d69853mr6407368ejf.2.1678189093313; Tue, 07 Mar
+ 2023 03:38:13 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="5xwoizhnk7z6op77"
-Content-Disposition: inline
-In-Reply-To: <9f6cba7a8a57e5a687c934e8e406e28c.squirrel@mail.panix.com>
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-acpi@vger.kernel.org
+References: <20230307114145.8933-1-yu.c.chen@intel.com>
+In-Reply-To: <20230307114145.8933-1-yu.c.chen@intel.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 7 Mar 2023 12:38:02 +0100
+Message-ID: <CAJZ5v0h8Z8_zb_seSfsFsgWksG6N41jFcuTycrEicJYJOG1yLQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: tools: pfrut: Check if the input of level and type
+ is in the right numeric range
+To:     Chen Yu <yu.c.chen@intel.com>
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        linux-acpi@vger.kernel.org, acpica-devel@lists.linuxfoundation.org,
+        linux-kernel@vger.kernel.org,
+        Hariganesh Govindarajulu <hariganesh.govindarajulu@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Tue, Mar 7, 2023 at 4:46 AM Chen Yu <yu.c.chen@intel.com> wrote:
+>
+> The user can provide arbitrary non-numeic value to level and type, which
+> brings unexpected behavior:
 
---5xwoizhnk7z6op77
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+So I guess the expected behavior would be to throw an error?
 
-Hello,
+>  pfrut -h
+> usage: pfrut [OPTIONS]
+> code injection:
+> -l, --load
+> -s, --stage
+> -a, --activate
+> -u, --update [stage and activate]
+> -q, --query
+> -d, --revid
+> update telemetry:
+> -G, --getloginfo
+> -T, --type(0:execution, 1:history)
+> -L, --level(0, 1, 2, 4)
+> -R, --read
+> -D, --revid log
+>
+>  pfrut -T A
+>  pfrut -G
+> log_level:0
+> log_type:0
+> log_revid:2
+> max_data_size:65536
+> chunk1_size:0
+> chunk2_size:1530
+> rollover_cnt:0
+> reset_cnt:17
+>
+> Fix this by restricting the input is in the expected range.
+>
+> Reported-by: Hariganesh Govindarajulu <hariganesh.govindarajulu@intel.com>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> ---
+>  tools/power/acpi/tools/pfrut/pfrut.c | 33 ++++++++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
+>
+> diff --git a/tools/power/acpi/tools/pfrut/pfrut.c b/tools/power/acpi/tools/pfrut/pfrut.c
+> index 52aa0351533c..ed672efef83b 100644
+> --- a/tools/power/acpi/tools/pfrut/pfrut.c
+> +++ b/tools/power/acpi/tools/pfrut/pfrut.c
+> @@ -22,6 +22,7 @@
+>  #include <sys/ioctl.h>
+>  #include <sys/mman.h>
+>  #include <uuid/uuid.h>
+> +#include <ctype.h>
+>  #include PFRUT_HEADER
+>
+>  char *capsule_name;
+> @@ -77,6 +78,18 @@ static void help(void)
+>                 progname);
+>  }
+>
+> +static int is_digit_input(char *str)
+> +{
+> +       char *scan;
+> +
+> +       for (scan = str; *scan != '\0'; scan++) {
+> +               if (!isdigit(*scan))
+> +                       return 0;
+> +       }
+> +
+> +       return 1;
+> +}
+> +
+>  char *option_string = "l:sauqd:GT:L:RD:h";
+>  static struct option long_options[] = {
+>         {"load", required_argument, 0, 'l'},
+> @@ -125,11 +138,31 @@ static void parse_options(int argc, char **argv)
+>                         log_getinfo = 1;
+>                         break;
+>                 case 'T':
+> +                       if (!is_digit_input(optarg)) {
+> +                               printf("Please provide numeric value for type (0:execution, 1:history) - Exiting.\n");
+> +                               exit(1);
+> +                       }
+> +
 
-> Problem is still present in 6.3-rc1 .  Bisecting, the first bad commit
-> is d6fb6ee1820c .
+Wouldn't using strtol() instead of atoi() work?
 
-There is a small timeframe where the (now deleted) struct
-acpi_device::driver is different from acpi_device::dev->driver. That's
-because the latter is assigned to in drivers/base/dd.c's really_probe()
-before the acpi probe function is called, while the former is assigned
-only later.
-
-So acpi_drv->ops.add(acpi_dev) is called with the driver set while that
-was not true before d6fb6ee1820c.
-
-To test if this is the culprit, can you please try a 5.19 kernel plus
-the following patch?:
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index e2db1bdd9dd2..657a2520a3e1 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1022,6 +1022,8 @@ static int acpi_device_probe(struct device *dev)
- 	struct acpi_driver *acpi_drv =3D to_acpi_driver(dev->driver);
- 	int ret;
-=20
-+	acpi_dev->driver =3D acpi_drv;
-+
- 	if (acpi_dev->handler && !acpi_is_pnp_device(acpi_dev))
- 		return -EINVAL;
-=20
-@@ -1032,8 +1034,6 @@ static int acpi_device_probe(struct device *dev)
- 	if (ret)
- 		return ret;
-=20
--	acpi_dev->driver =3D acpi_drv;
--
- 	pr_debug("Driver [%s] successfully bound to device [%s]\n",
- 		 acpi_drv->name, acpi_dev->pnp.bus_id);
-=20
-
-If the above patch breaks 5.19 that's the trail we have to follow. That
-this is timing-related is strange though.
-
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | https://www.pengutronix.de/ |
-
---5xwoizhnk7z6op77
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEfnIqFpAYrP8+dKQLwfwUeK3K7AkFAmQHBNEACgkQwfwUeK3K
-7AmcAwf/cgXNS274mBJJlX1uA2cv9j3AFPcMGzLPZ6dKO06ergAcVpboCOiEZ/xG
-OSu/i+awxSCld8dlaiIgmRqjWKL1UGGZz0rcY6h1UucqyS5o5TLaO9bpks3DFUi5
-RZ0wjCB9SEdxoJu7p+LlpC3EJr/17k57U86szOpzXi3V9W1K424w3eS30AEkzw6U
-W81vmf2Asaya3Qv3DVgcG9yqIIOf8fmJiNQJ9n1p6BkyH/TivkQ7QynXjgiTXoFX
-wNJgeA2FT+/K5ZHUGiE3kPCmIhyLA3QkeASg89co+UyCVh//0OsYK7C6Uq0hHeze
-PZ7K79UigClZ9YdZWZvKhnoVYtatvA==
-=H4CK
------END PGP SIGNATURE-----
-
---5xwoizhnk7z6op77--
+>                         log_type = atoi(optarg);
+> +                       if (log_type != 0 && log_type != 1) {
+> +                               printf("Please provide numeric value for type (0:execution, 1:history) - Exiting.\n");
+> +                               exit(1);
+> +                       }
+> +
+>                         set_log_type = 1;
+>                         break;
+>                 case 'L':
+> +                       if (!is_digit_input(optarg)) {
+> +                               printf("Please provide numeric value for level (0, 1, 2, 4) - Exiting.\n");
+> +                               exit(1);
+> +                       }
+> +
+>                         log_level = atoi(optarg);
+> +                       if (log_level > 4) {
+> +                               printf("Please provide numeric value for level (0, 1, 2, 4) - Exiting.\n");
+> +                               exit(1);
+> +                       }
+> +
+>                         set_log_level = 1;
+>                         break;
+>                 case 'R':
+> --
+> 2.25.1
+>
