@@ -2,138 +2,99 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 838DFC64EC4
-	for <linux-acpi@archiver.kernel.org>; Fri, 10 Mar 2023 13:39:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA96C64EC4
+	for <linux-acpi@archiver.kernel.org>; Fri, 10 Mar 2023 13:41:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230246AbjCJNjP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 10 Mar 2023 08:39:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60596 "EHLO
+        id S230000AbjCJNk7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 10 Mar 2023 08:40:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230161AbjCJNjJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2023 08:39:09 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFE4D5A1B0
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2023 05:38:25 -0800 (PST)
+        with ESMTP id S229907AbjCJNk6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2023 08:40:58 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B59F10D33F
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2023 05:40:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1678455505;
+        s=mimecast20190719; t=1678455604;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=j2OR9fIPJYHr1cJflr+8XvQFdV93TGp9o5m8EX8cFoI=;
-        b=ZsT6edn/8cf+eX0MBtQ9ldBv+oR3wTKV+Lz55uEmbkKtsCGyHDzNbaBr1LTUPSshvdaAqa
-        3mNZPo4vk/ZD+KV2aTYl2QlFsBgBXb+2uuCi8WHHHUZwI3POUZojhStpCniA7NrAVSQeEy
-        MdF8QtvLX2XX+hsgfRKJQlHB8CHkl1I=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-587-O4uCNK7HNYGvW62_WP5abw-1; Fri, 10 Mar 2023 08:38:22 -0500
-X-MC-Unique: O4uCNK7HNYGvW62_WP5abw-1
-Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6DD24185A78B;
-        Fri, 10 Mar 2023 13:38:20 +0000 (UTC)
-Received: from xps-13.local (unknown [10.39.194.103])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 21B1E492C3E;
-        Fri, 10 Mar 2023 13:38:19 +0000 (UTC)
-From:   Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Date:   Fri, 10 Mar 2023 14:38:10 +0100
-Subject: [PATCH v2] gpiolib: acpi: use the fwnode in acpi_gpiochip_find()
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Ec5XfNjxgy0+peAVSlU3DabxggNLNiWQ6hIV8ILc0ww=;
+        b=YYRmkBo9A2BPq70tI9+WQ6i6D3CB3O2URzSZvR2tfZUI9NPKLvUGobG3U/NtG3CNtImavu
+        eNFSKcTVn6QbTIhKOrj3Z8r0vXT9SAr6z/cwJaBbZUHvu9uvg8zAcLSW9nVPfDLtVBSc38
+        Gp7R9K7HE05xUuxXR/J15l435I8q0zM=
+Received: from mail-yw1-f198.google.com (mail-yw1-f198.google.com
+ [209.85.128.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-538-ZzgISAObPue6zag75iG5DQ-1; Fri, 10 Mar 2023 08:40:03 -0500
+X-MC-Unique: ZzgISAObPue6zag75iG5DQ-1
+Received: by mail-yw1-f198.google.com with SMTP id 00721157ae682-536c525d470so54259267b3.18
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2023 05:40:02 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1678455602;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Ec5XfNjxgy0+peAVSlU3DabxggNLNiWQ6hIV8ILc0ww=;
+        b=DM9uMeCDtirHWTRDtIOK26ZXhSTHwN66TWcFuAGA1yedSjim/XmXmT6k2B8LuGeZqg
+         D44vt9JqSVcle3scLBUPKHFk9Sk/lUOkLGbddPrISUxH/FgcBVny52IuZrVXI7gSDEJw
+         5HYA/0JCYfNj3nC7POovPQRE34fNZMYUw21tfhBPZxTx/Sh0G0uFdrN/7TZL2w8pfPug
+         OtzvRPo2oaoaX/QulnFvog6Rss6vxhSb1Q69sc9vPKA3tLSm87AP49ad3YOKAVBfpzPl
+         tcB8ynqw/WiyQZrS+CCn1Ch5hXVydb/RYpzOY1d2cdcxNph9ek0StHr8XWw79TkF57OQ
+         JW+Q==
+X-Gm-Message-State: AO0yUKVq491hldlaNTn2OllGBD1WRE3Iu+VX7Tmu5UN+rZ75+0zKH4ht
+        lDo6ThZldx+YzWpFJ3pOiZ1v0D7C9Sr1EdBiJz0p0kcfeyfoJtCBpDFiv9/3gfk2IqmlXfHwZRv
+        g86kFun86VTklLuwmH5DfRWfYnxbMhuvzoU94DA==
+X-Received: by 2002:a81:ac09:0:b0:535:8cb8:6ae9 with SMTP id k9-20020a81ac09000000b005358cb86ae9mr16625686ywh.4.1678455602597;
+        Fri, 10 Mar 2023 05:40:02 -0800 (PST)
+X-Google-Smtp-Source: AK7set/5VI1jqwwIL95f7E9ael6l5fc39fVSnt5yYua59iTmCvE+HObP8/dA4tH6a8PyRPfheRlOalbqTQhZQilnc9k=
+X-Received: by 2002:a81:ac09:0:b0:535:8cb8:6ae9 with SMTP id
+ k9-20020a81ac09000000b005358cb86ae9mr16625674ywh.4.1678455602386; Fri, 10 Mar
+ 2023 05:40:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230309-fix-acpi-gpio-v2-1-9eb20a1fd42c@redhat.com>
-X-B4-Tracking: v=1; b=H4sIAMEyC2QC/3WNMQ6DMAxFr4Iy1xU4VC2deo+KwQmGeIAgB6FWi
- Ls3sHd8/+vpbSaxCifzLDajvEqSOGXAS2F8oGlgkC6zwRJtacsGevkA+VlgmCUCOaTe2rrmuzP
- ZcZQYnNLkw2GNlBbW45iVs3mG3m3mIGmJ+j27a3Ws/xJrBRU422CHeOOeHy/lLtBy9XE07b7vP
- 2hmkJzEAAAA
-To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+References: <20230309-fix-acpi-gpio-v1-1-b392d225efe8@redhat.com>
+ <20230310114150.GA62143@black.fi.intel.com> <CAO-hwJK+yF+0u6cbw4CoV8vS80Vx5xkC2vwPjOQvnUox2SMdTA@mail.gmail.com>
+ <ZAsyaNzhbcWuJS2q@smile.fi.intel.com>
+In-Reply-To: <ZAsyaNzhbcWuJS2q@smile.fi.intel.com>
+From:   Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Date:   Fri, 10 Mar 2023 14:39:51 +0100
+Message-ID: <CAO-hwJL1YA0MnYkQ5pOgCoOd0Kga3+F2nnzkLu=9PdggrB=y6w@mail.gmail.com>
+Subject: Re: [PATCH] gpiolib: acpi: use the fwnode in acpi_gpiochip_find()
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Daniel Kaehn <kaehndan@gmail.com>, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1678455498; l=2737;
- i=benjamin.tissoires@redhat.com; s=20230215; h=from:subject:message-id;
- bh=flBfYltySue3KVmhGsoXQ/zcqrinrRTi7aXDpYk9Y7E=;
- b=F+hEj5C3qLWtzIjuLE97GOReGRIFFpR+wpJj1q0vcQyJybqnS1E8wYsk7ubcnt5EK565IQCBe
- o4StTHgOZhyCvj6X1OK3S3CqRl1p0P1AT0Tn2+n3I7mygPOVPXWbWj4
-X-Developer-Key: i=benjamin.tissoires@redhat.com; a=ed25519;
- pk=7D1DyAVh6ajCkuUTudt/chMuXWIJHlv2qCsRkIizvFw=
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.10
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Daniel Kaehn <kaehndan@gmail.com>, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-While trying to set up an SSDT override for a USB-2-I2C chip [0],
-I realized that the function acpi_gpiochip_find() was using the parent
-of the gpio_chip to do the ACPI matching.
+On Fri, Mar 10, 2023 at 2:36=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Fri, Mar 10, 2023 at 01:51:38PM +0100, Benjamin Tissoires wrote:
+> > On Fri, Mar 10, 2023 at 12:42=E2=80=AFPM Mika Westerberg
+> > <mika.westerberg@linux.intel.com> wrote:
+>
+> ...
+>
+>
+> > > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >
+> > Thanks to both of you for the reviews.
+> >
+> > Andy, should I resend a v2 with the rev-by from Mika and the Ice Lake c=
+hanges?
+>
+> Yes, please.
+>
 
-This works fine on my Ice Lake laptop because AFAICT, the DSDT presents
-the PCI device INT3455 as the "Device (GPI0)", but is in fact handled
-by the pinctrl driver in Linux.
-The pinctrl driver then creates a gpio_chip device. This means that the
-gc->parent device in that case is the GPI0 device from ACPI and everything
-works.
-
-However, in the hid-cp2112 case, the parent is the USB device, and the
-gpio_chip is directly under that USB device. Which means that in this case
-gc->parent points at the USB device, and so we can not do an ACPI match
-towards the GPIO device.
-
-I think it is safe to resolve the ACPI matching through the fwnode
-because when we call gpiochip_add_data(), the first thing it does is
-setting a proper gc->fwnode: if it is not there, it borrows the fwnode
-of the parent.
-
-So in my Ice Lake case, gc->fwnode is the one from the parent, meaning
-that the ACPI handle we will get is the one from the GPI0 in the DSDT
-(the pincrtl one). And in the hid-cp2112 case, we get the actual
-fwnode from the gpiochip we created in the HID device, making it working.
-
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Link: https://lore.kernel.org/linux-input/20230227140758.1575-1-kaehndan@gmail.com/T/#m592f18081ef3b95b618694a612ff864420c5aaf3 [0]
-Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
----
-Hi,
-
-As mentioned on the commit, I believe there is a bug on
-the gpiolib-acpi matching. It relies on the parent of the gpiochip
-when it should IMO trust the fwnode that was given to it.
-
-Tested on both the hid-cp2112 I am refering in the commit
-description and my XPS on Intel Icelake.
+Alright, v2 sent just now :)
 
 Cheers,
 Benjamin
----
-Changes in v2:
-- Fix commit description
-- Link to v1: https://lore.kernel.org/r/20230309-fix-acpi-gpio-v1-1-b392d225efe8@redhat.com
----
- drivers/gpio/gpiolib-acpi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index d8a421ce26a8..5aebc266426b 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -126,7 +126,7 @@ static bool acpi_gpio_deferred_req_irqs_done;
- 
- static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
- {
--	return gc->parent && device_match_acpi_handle(gc->parent, data);
-+	return ACPI_HANDLE_FWNODE(gc->fwnode) == data;
- }
- 
- /**
-
----
-base-commit: 6c71297eaf713ece684a367ce9aff06069d715b9
-change-id: 20230309-fix-acpi-gpio-ab2af3344e7b
-
-Best regards,
--- 
-Benjamin Tissoires <benjamin.tissoires@redhat.com>
 
