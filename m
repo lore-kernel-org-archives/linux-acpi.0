@@ -2,29 +2,29 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94001C6FD1F
-	for <linux-acpi@archiver.kernel.org>; Tue, 14 Mar 2023 09:16:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34619C76196
+	for <linux-acpi@archiver.kernel.org>; Tue, 14 Mar 2023 09:16:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229704AbjCNJQB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 14 Mar 2023 05:16:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52406 "EHLO
+        id S230169AbjCNJQD (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 14 Mar 2023 05:16:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbjCNJQA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2023 05:16:00 -0400
+        with ESMTP id S229960AbjCNJQB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2023 05:16:01 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C40F7567A2;
-        Tue, 14 Mar 2023 02:15:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6AD115AB66;
+        Tue, 14 Mar 2023 02:15:59 -0700 (PDT)
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-        by linux.microsoft.com (Postfix) with ESMTPSA id 395BD2056D70;
+        by linux.microsoft.com (Postfix) with ESMTPSA id 9F32C2056DC3;
         Tue, 14 Mar 2023 02:15:58 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 395BD2056D70
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 9F32C2056DC3
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
         s=default; t=1678785358;
-        bh=iy8BIzK3aDZhgOqRPEOLiHV5IwER2zPeLbwetZaPjyc=;
-        h=From:To:Subject:Date:From;
-        b=V+t2WrWAW0nQpxAAVpyDVlxx88PooO+oXYNUz0VchAFx20SF5DY6JZPOQc9pCCzZZ
-         3sBhd+g6BruT+dG60Pm0s8AjAJB6y+shsTHcfUTgC+K0rMC0612HPwfbVTan7ok6zb
-         QPq+5KGnGhX8pOPLO9XBAIvmqUr2WP/fNJJayI5g=
+        bh=L91Q/pWuok+CEvHHL6cmP9pyIjoRYt8GHHEbzCNE1UI=;
+        h=From:To:Subject:Date:In-Reply-To:References:From;
+        b=I5/b9lBOEDncMXw/62M6vQjJKU+mado24GPsb0khPJs0/l2TZlaO3kXjW0tLQ7IEv
+         ELUrjV2HdJKI37n73aki7EQeF9Xco798AJqiucGyDIL80p67DzogecJjoYeSnF5/ze
+         FCqgvgBoeD3Q1VITcnTCjF2MguH0FD6oy/QPkqv8=
 From:   Saurabh Sengar <ssengar@linux.microsoft.com>
 To:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
         kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
@@ -32,112 +32,98 @@ To:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-hyperv@vger.kernel.org, mikelley@microsoft.com,
         lenb@kernel.org, rafael@kernel.org, linux-acpi@vger.kernel.org
-Subject: [PATCH v8 0/5] Device tree support for Hyper-V VMBus driver
-Date:   Tue, 14 Mar 2023 02:15:45 -0700
-Message-Id: <1678785350-20400-1-git-send-email-ssengar@linux.microsoft.com>
+Subject: [PATCH v8 4/5] dt-bindings: bus: VMBus
+Date:   Tue, 14 Mar 2023 02:15:49 -0700
+Message-Id: <1678785350-20400-5-git-send-email-ssengar@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1678785350-20400-1-git-send-email-ssengar@linux.microsoft.com>
+References: <1678785350-20400-1-git-send-email-ssengar@linux.microsoft.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-This set of patches expands the VMBus driver to include device tree
-support. This feature allows for a kernel boot without the use of ACPI
-tables, resulting in a smaller memory footprint and potentially faster
-boot times. This is tested by enabling CONFIG_FLAT and OF_EARLY_FLATTREE
-for x86.
+Add dt-bindings for Hyper-V VMBus.
 
-The first two patches enable compilation of Hyper-V APIs in a non-ACPI
-build.
-
-The third patch converts the VMBus driver from acpi to more generic
-platform driver.
-
-The fourth patch introduces the device tree documentation for VMBus.
-
-The fifth patch adds device tree support to the VMBus driver. Currently
-this is tested only for x86 and it may not work for other archs.
-
-[V8]
-- Remove the auto select of CONFIG_OF
-- Remove the dependency on !ACPI for OF_EARLY_FLATTREE
-- Used acpi_disabled instead of #ifdef and hence added a dummy function
-  for vmbus_acpi_add
-- GFP_ATOMIC -> GFP_KERNEL
-- used range.flags instead of hard coding flags
-- used __maybe_unused for acpi device id, removed #ifdef
-
-[V7]
-- Use cpu_addr instead of bus_addr.
-- Updated Documentation accordingly.
-
-[V6]
-- define acpi_sleep_state_supported in acpi header for !ACPI,
-  dropped the changes done in hv_common.c under #ifdef CONFIG_ACPI
-- "Devicetree" instead of "device tree"
-- Remove initialize of ret
-- set "np = pdev->dev.of_node;" on declarartion
-- remove one error print
-- use bus_addr instead of pci_addr
-
-
-[V5]
-- Removed #else for device tree parsing code. This should help better
-  test coverage.
-- Fix macro '__maybe_unused' warning
-- Added below options in Kconfig to enable device tree options for HYPERV
-	select OF if !ACPI
-	select OF_EARLY_FLATTREE if !ACPI
-- moved dt documantation to bus folder
-- update the dt node to have 'bus' as parent node instead of 'soc'. Also
-  added compatible and ranges property for parent node.
-- Made sure dt_binding_check have no error/varnings for microsoft,vmbus.yaml file
-- Fix commit messages and add Reviwed-by from Michael for first 3 patches
-
-[V4]
-- rebased which fixed return type of 'vmbus_mmio_remove' from int to void
-- used __maybe_unused for 'vmbus_of_match' and safeguard vmbus_acpi_device_ids
-  under #ifdef
-
-[V3]
-- Changed the logic to use generic api (for_each_of_range) for parsing "ranges".
-- Remove dependency of ACPI for HYPERV in case of x86.
-- Removed "device tree bindings" from title and patch subject.
-- Removed duplicate vendor prefix, used microsoft instead of msft.
-- Use 'soc' in example of device tree documantation for parent node.
-- Fixed compatible schemas error generated in other modules referring to
-  virtio.
-- Drop hex notation and leading zeros from device tree cell properties.
-- Added missing full stop at the end of commit message.
-- Typos fix: s/Initaly/Initially/ and s/hibernate/hibernation/.
-- Replace to_acpi_device with ACPI_COMPANION which simplify the logic.
-- Added more info in cover letter aboutsystem under test.
-
-[v2]
-- Convert VMBus acpi device to platform device, and added device tree support
-  in separate patch. This enables using same driver structure for both the flows.
-- In Device tree documentation, changed virtio folder to hypervisor and moved
-  VMBus documentation there.
-- Moved bindings before Device tree patch.
-- Removed stale ".data" and ".name" field from of_device match table.
-- Removed debug print.
-
-Saurabh Sengar (5):
-  drivers/clocksource/hyper-v: non ACPI support in hyperv clock
-  ACPI: bus: Add stub acpi_sleep_state_supported() in non-ACPI cases
-  Drivers: hv: vmbus: Convert acpi_device to more generic
-    platform_device
-  dt-bindings: bus: VMBus
-  Driver: VMBus: Add Devicetree support
-
- .../bindings/bus/microsoft,vmbus.yaml         |  54 ++++++++
- MAINTAINERS                                   |   1 +
- drivers/clocksource/hyperv_timer.c            |  15 ++-
- drivers/hv/Kconfig                            |   5 +-
- drivers/hv/vmbus_drv.c                        | 120 ++++++++++++++----
- include/linux/acpi.h                          |   5 +
- 6 files changed, 170 insertions(+), 30 deletions(-)
+Signed-off-by: Saurabh Sengar <ssengar@linux.microsoft.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ .../bindings/bus/microsoft,vmbus.yaml         | 54 +++++++++++++++++++
+ MAINTAINERS                                   |  1 +
+ 2 files changed, 55 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/bus/microsoft,vmbus.yaml
 
+diff --git a/Documentation/devicetree/bindings/bus/microsoft,vmbus.yaml b/Documentation/devicetree/bindings/bus/microsoft,vmbus.yaml
+new file mode 100644
+index 000000000000..a8d40c766dcd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/bus/microsoft,vmbus.yaml
+@@ -0,0 +1,54 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/bus/microsoft,vmbus.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Microsoft Hyper-V VMBus
++
++maintainers:
++  - Saurabh Sengar <ssengar@linux.microsoft.com>
++
++description:
++  VMBus is a software bus that implement the protocols for communication
++  between the root or host OS and guest OSs (virtual machines).
++
++properties:
++  compatible:
++    const: microsoft,vmbus
++
++  ranges: true
++
++  '#address-cells':
++    const: 2
++
++  '#size-cells':
++    const: 1
++
++required:
++  - compatible
++  - ranges
++  - '#address-cells'
++  - '#size-cells'
++
++additionalProperties: false
++
++examples:
++  - |
++    soc {
++        #address-cells = <2>;
++        #size-cells = <1>;
++        bus {
++            compatible = "simple-bus";
++            #address-cells = <2>;
++            #size-cells = <1>;
++            ranges;
++
++            vmbus@ff0000000 {
++                compatible = "microsoft,vmbus";
++                #address-cells = <2>;
++                #size-cells = <1>;
++                ranges = <0x0f 0xf0000000 0x0f 0xf0000000 0x10000000>;
++            };
++        };
++    };
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 25a0981c74b6..c4f4c8cd9276 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9544,6 +9544,7 @@ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/hyperv/linux.git
+ F:	Documentation/ABI/stable/sysfs-bus-vmbus
+ F:	Documentation/ABI/testing/debugfs-hyperv
++F:	Documentation/devicetree/bindings/bus/microsoft,vmbus.yaml
+ F:	Documentation/virt/hyperv
+ F:	Documentation/networking/device_drivers/ethernet/microsoft/netvsc.rst
+ F:	arch/arm64/hyperv
 -- 
 2.34.1
 
