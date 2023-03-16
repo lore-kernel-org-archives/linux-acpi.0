@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0445BC6FD1F
-	for <linux-acpi@archiver.kernel.org>; Thu, 16 Mar 2023 16:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C18A6C7619A
+	for <linux-acpi@archiver.kernel.org>; Thu, 16 Mar 2023 16:35:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230384AbjCPQde (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Mar 2023 12:33:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40904 "EHLO
+        id S229556AbjCPQfV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 16 Mar 2023 12:35:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230388AbjCPQdT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2023 12:33:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB1EB24BF0;
-        Thu, 16 Mar 2023 09:33:03 -0700 (PDT)
+        with ESMTP id S231375AbjCPQe6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2023 12:34:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 000FCE503E;
+        Thu, 16 Mar 2023 09:34:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F33B6620B3;
-        Thu, 16 Mar 2023 16:33:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05BC4C4339B;
-        Thu, 16 Mar 2023 16:33:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F66F620B3;
+        Thu, 16 Mar 2023 16:33:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CEF0C433EF;
+        Thu, 16 Mar 2023 16:33:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1678984382;
-        bh=O60AlAK0dYuFe6kh+EJ3AfCHCZSame9FzEHfiT+hQ9U=;
+        s=k20201202; t=1678984431;
+        bh=XXzVjRmJbpyWW4EpUxl0aRwKk9wDzothIVEKLpkoUOo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=e0O8BKgntO0CZa47m0okJ6TgNWSQ1cOIVsyKLMV2GYo/ZDH0rwdyEF0Qq8bQA6ZUf
-         F+DlV31FrJbGqNBwnNWP7mRT7j2Bu5vDUJgrTYcvq+jlrvcKzZqQnCy7Gocmhdv4IO
-         6Qst54aeXtMvojANQlEEPikbPLmmNTCa7KkNoUSyIvcAf3WHdEnWBL0+PGkYzf5bhM
-         CT6ONeh+7yXHuUYgduh5qWYr/WqYsQUvz6zxdt3ZvZEXGskibm3J3b/wH4vqyXi9EO
-         Sqe9saRq2JfdV7PvMGhyAm6STgNDQ+OBIsBFWhJ1XZ1vkUtS+TU5jXMmJm7ouKdDGq
-         L+6RHiQLflDIQ==
+        b=khGuFHtAYvbqPD5BY2pKuLKRVGOwVkG+KyoFpfuJtxiZfln+AHek/oYrblYARkuvz
+         z1M7Rd2g8zZyLQEI7Q5X2/roJHoIw4Lox4wqVDJn8StR6xXqDEVHNhAMe5ERUkrJpq
+         U9d6sfKoJEmIEkakro9408DINeaVVUezu1KH7UTJ9tATIFx0kuLmFwW0s+37wvYD50
+         kUg3F/r+d3HV1/Tjy6OY7SMriFvU25wo6N8kGRuHMjQNyz9bmTVnxDCG7ME6aOoEfV
+         WWAziTFQWEdttKbcaVdJcvSKSFHUqo8wmTQbA7ykYlLeMjqIK5rcwPJKkskgIyRFox
+         KBM6HsvQL+ytw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Mario Limonciello <mario.limonciello@amd.com>,
@@ -41,12 +41,12 @@ Cc:     Mario Limonciello <mario.limonciello@amd.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         hdegoede@redhat.com, andriy.shevchenko@linux.intel.com,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.2 6/7] ACPI: x86: utils: Add Cezanne to the list for forcing StorageD3Enable
-Date:   Thu, 16 Mar 2023 12:32:23 -0400
-Message-Id: <20230316163227.708614-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 2/3] ACPI: x86: utils: Add Cezanne to the list for forcing StorageD3Enable
+Date:   Thu, 16 Mar 2023 12:33:39 -0400
+Message-Id: <20230316163344.708931-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230316163227.708614-1-sashal@kernel.org>
-References: <20230316163227.708614-1-sashal@kernel.org>
+In-Reply-To: <20230316163344.708931-1-sashal@kernel.org>
+References: <20230316163344.708931-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -86,10 +86,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 13 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index 4e816bb402f68..e45285d4e62a4 100644
+index 222b951ff56ae..f1dd086d0b87d 100644
 --- a/drivers/acpi/x86/utils.c
 +++ b/drivers/acpi/x86/utils.c
-@@ -200,39 +200,28 @@ bool acpi_device_override_status(struct acpi_device *adev, unsigned long long *s
+@@ -191,37 +191,26 @@ bool acpi_device_override_status(struct acpi_device *adev, unsigned long long *s
   * a hardcoded allowlist for D3 support, which was used for these platforms.
   *
   * This allows quirking on Linux in a similar fashion.
@@ -140,8 +140,6 @@ index 4e816bb402f68..e45285d4e62a4 100644
 -	return dmi_id || x86_match_cpu(storage_d3_cpu_ids);
 +	return x86_match_cpu(storage_d3_cpu_ids);
  }
- 
- /*
 -- 
 2.39.2
 
