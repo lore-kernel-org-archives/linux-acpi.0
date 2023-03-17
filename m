@@ -2,208 +2,139 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4369C7618E
-	for <linux-acpi@archiver.kernel.org>; Fri, 17 Mar 2023 03:07:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 293D9C7618A
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Mar 2023 07:25:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229971AbjCQDHW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 16 Mar 2023 23:07:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56018 "EHLO
+        id S230244AbjCQHZB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 17 Mar 2023 03:25:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229986AbjCQDG2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2023 23:06:28 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 77FFAB1B03;
-        Thu, 16 Mar 2023 20:06:09 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F0B3F1480;
-        Thu, 16 Mar 2023 20:06:49 -0700 (PDT)
-Received: from a077893.blr.arm.com (unknown [10.162.40.17])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 53D3E3F64C;
-        Thu, 16 Mar 2023 20:06:00 -0700 (PDT)
-From:   Anshuman Khandual <anshuman.khandual@arm.com>
-To:     linux-arm-kernel@lists.infradead.org, coresight@lists.linaro.org,
-        suzuki.poulose@arm.com
-Cc:     scclevenger@os.amperecomputing.com,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Mike Leach <mike.leach@linaro.org>,
-        Leo Yan <leo.yan@linaro.org>, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 7/7] coresight: etm4x: Drop the AMBA driver
-Date:   Fri, 17 Mar 2023 08:35:01 +0530
-Message-Id: <20230317030501.1811905-8-anshuman.khandual@arm.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230317030501.1811905-1-anshuman.khandual@arm.com>
-References: <20230317030501.1811905-1-anshuman.khandual@arm.com>
+        with ESMTP id S230203AbjCQHY7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Mar 2023 03:24:59 -0400
+Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79F305CC0E;
+        Fri, 17 Mar 2023 00:24:56 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=22;SR=0;TI=SMTPD_---0Ve21xtP_1679037888;
+Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0Ve21xtP_1679037888)
+          by smtp.aliyun-inc.com;
+          Fri, 17 Mar 2023 15:24:51 +0800
+From:   Shuai Xue <xueshuai@linux.alibaba.com>
+To:     tony.luck@intel.com, naoya.horiguchi@nec.com
+Cc:     linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, xueshuai@linux.alibaba.com,
+        justin.he@arm.com, akpm@linux-foundation.org, ardb@kernel.org,
+        ashish.kalra@amd.com, baolin.wang@linux.alibaba.com, bp@alien8.de,
+        cuibixuan@linux.alibaba.com, dave.hansen@linux.intel.com,
+        james.morse@arm.com, jarkko@kernel.org, lenb@kernel.org,
+        linmiaohe@huawei.com, lvying6@huawei.com, rafael@kernel.org,
+        xiexiuqi@huawei.com, zhuo.song@linux.alibaba.com
+Subject: [PATCH v3 0/2] ACPI: APEI: handle synchronous exceptions with proper si_code
+Date:   Fri, 17 Mar 2023 15:24:41 +0800
+Message-Id: <20230317072443.3189-1-xueshuai@linux.alibaba.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
+References: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-MMIO based etm4x devices, represented with AMBA device tree entries are now
-detected and operated via the common platform driver. An explicit dedicated
-AMBA driver is no longer required, this just drops that off completely.
+changes since v2 by addressing comments from Naoya:
+- rename mce_task_work to sync_task_work
+- drop ACPI_HEST_NOTIFY_MCE case in is_hest_sync_notify()
+- add steps to reproduce this problem in cover letter
+- Link: https://lore.kernel.org/lkml/1aa0ca90-d44c-aa99-1e2d-bd2ae610b088@linux.alibaba.com/T/#mb3dede6b7a6d189dc8de3cf9310071e38a192f8e
 
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: Mike Leach <mike.leach@linaro.org>
-Cc: Leo Yan <leo.yan@linaro.org>
-Cc: coresight@lists.linaro.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
----
- .../coresight/coresight-etm4x-core.c          | 89 -------------------
- 1 file changed, 89 deletions(-)
+changes since v1:
+- synchronous events by notify type
+- Link: https://lore.kernel.org/lkml/20221206153354.92394-3-xueshuai@linux.alibaba.com/
 
-diff --git a/drivers/hwtracing/coresight/coresight-etm4x-core.c b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-index fe494c9c6bad..e15551355975 100644
---- a/drivers/hwtracing/coresight/coresight-etm4x-core.c
-+++ b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-@@ -2119,32 +2119,6 @@ static int etm4_probe(struct device *dev)
- 	return etm4_add_coresight_dev(&init_arg);
- }
- 
--static int etm4_probe_amba(struct amba_device *adev, const struct amba_id *id)
--{
--	struct etmv4_drvdata *drvdata;
--	void __iomem *base;
--	struct device *dev = &adev->dev;
--	struct resource *res = &adev->res;
--	int ret;
--
--	/* Validity for the resource is already checked by the AMBA core */
--	base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(base))
--		return PTR_ERR(base);
--
--	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
--	if (!drvdata)
--		return -ENOMEM;
--
--	drvdata->base = base;
--	dev_set_drvdata(dev, drvdata);
--	ret = etm4_probe(dev);
--	if (!ret)
--		pm_runtime_put(&adev->dev);
--
--	return ret;
--}
--
- static int etm4_probe_platform_dev(struct platform_device *pdev)
- {
- 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -2205,15 +2179,6 @@ static int etm4_probe_cpu(unsigned int cpu)
- 	return 0;
- }
- 
--static struct amba_cs_uci_id uci_id_etm4[] = {
--	{
--		/*  ETMv4 UCI data */
--		.devarch	= ETM_DEVARCH_ETMv4x_ARCH,
--		.devarch_mask	= ETM_DEVARCH_ID_MASK,
--		.devtype	= ETM_DEVTYPE_ETMv4x_ARCH,
--	}
--};
--
- static void clear_etmdrvdata(void *info)
- {
- 	int cpu = *(int *)info;
-@@ -2253,14 +2218,6 @@ static int __exit etm4_remove_dev(struct etmv4_drvdata *drvdata)
- 	return 0;
- }
- 
--static void __exit etm4_remove_amba(struct amba_device *adev)
--{
--	struct etmv4_drvdata *drvdata = dev_get_drvdata(&adev->dev);
--
--	if (drvdata)
--		etm4_remove_dev(drvdata);
--}
--
- static int __exit etm4_remove_platform_dev(struct platform_device *pdev)
- {
- 	int ret = 0;
-@@ -2276,42 +2233,6 @@ static int __exit etm4_remove_platform_dev(struct platform_device *pdev)
- 	return ret;
- }
- 
--static const struct amba_id etm4_ids[] = {
--	CS_AMBA_ID(0x000bb95d),			/* Cortex-A53 */
--	CS_AMBA_ID(0x000bb95e),			/* Cortex-A57 */
--	CS_AMBA_ID(0x000bb95a),			/* Cortex-A72 */
--	CS_AMBA_ID(0x000bb959),			/* Cortex-A73 */
--	CS_AMBA_UCI_ID(0x000bb9da, uci_id_etm4),/* Cortex-A35 */
--	CS_AMBA_UCI_ID(0x000bbd05, uci_id_etm4),/* Cortex-A55 */
--	CS_AMBA_UCI_ID(0x000bbd0a, uci_id_etm4),/* Cortex-A75 */
--	CS_AMBA_UCI_ID(0x000bbd0c, uci_id_etm4),/* Neoverse N1 */
--	CS_AMBA_UCI_ID(0x000bbd41, uci_id_etm4),/* Cortex-A78 */
--	CS_AMBA_UCI_ID(0x000f0205, uci_id_etm4),/* Qualcomm Kryo */
--	CS_AMBA_UCI_ID(0x000f0211, uci_id_etm4),/* Qualcomm Kryo */
--	CS_AMBA_UCI_ID(0x000bb802, uci_id_etm4),/* Qualcomm Kryo 385 Cortex-A55 */
--	CS_AMBA_UCI_ID(0x000bb803, uci_id_etm4),/* Qualcomm Kryo 385 Cortex-A75 */
--	CS_AMBA_UCI_ID(0x000bb805, uci_id_etm4),/* Qualcomm Kryo 4XX Cortex-A55 */
--	CS_AMBA_UCI_ID(0x000bb804, uci_id_etm4),/* Qualcomm Kryo 4XX Cortex-A76 */
--	CS_AMBA_UCI_ID(0x000bbd0d, uci_id_etm4),/* Qualcomm Kryo 5XX Cortex-A77 */
--	CS_AMBA_UCI_ID(0x000cc0af, uci_id_etm4),/* Marvell ThunderX2 */
--	CS_AMBA_UCI_ID(0x000b6d01, uci_id_etm4),/* HiSilicon-Hip08 */
--	CS_AMBA_UCI_ID(0x000b6d02, uci_id_etm4),/* HiSilicon-Hip09 */
--	{},
--};
--
--MODULE_DEVICE_TABLE(amba, etm4_ids);
--
--static struct amba_driver etm4x_amba_driver = {
--	.drv = {
--		.name   = "coresight-etm4x",
--		.owner  = THIS_MODULE,
--		.suppress_bind_attrs = true,
--	},
--	.probe		= etm4_probe_amba,
--	.remove         = etm4_remove_amba,
--	.id_table	= etm4_ids,
--};
--
- #ifdef CONFIG_PM
- static int etm4_runtime_suspend(struct device *dev)
- {
-@@ -2374,27 +2295,17 @@ static int __init etm4x_init(void)
- 	if (ret)
- 		return ret;
- 
--	ret = amba_driver_register(&etm4x_amba_driver);
--	if (ret) {
--		pr_err("Error registering etm4x AMBA driver\n");
--		goto clear_pm;
--	}
--
- 	ret = platform_driver_register(&etm4_platform_driver);
- 	if (!ret)
- 		return 0;
- 
- 	pr_err("Error registering etm4x platform driver\n");
--	amba_driver_unregister(&etm4x_amba_driver);
--
--clear_pm:
- 	etm4_pm_clear();
- 	return ret;
- }
- 
- static void __exit etm4x_exit(void)
- {
--	amba_driver_unregister(&etm4x_amba_driver);
- 	platform_driver_unregister(&etm4_platform_driver);
- 	etm4_pm_clear();
- }
+Currently, both synchronous and asynchronous error are queued and handled
+by a dedicated kthread in workqueue. And Memory failure for synchronous
+error is synced by a cancel_work_sync trick which ensures that the
+corrupted page is unmapped and poisoned. And after returning to user-space,
+the task starts at current instruction which triggering a page fault in
+which kernel will send SIGBUS to current process due to VM_FAULT_HWPOISON.
+
+However, the memory failure recovery for hwpoison-aware mechanisms does not
+work as expected. For example, hwpoison-aware user-space processes like
+QEMU register their customized SIGBUS handler and enable early kill mode by
+seting PF_MCE_EARLY at initialization. Then the kernel will directy notify
+the process by sending a SIGBUS signal in memory failure with wrong
+si_code: BUS_MCEERR_AO si_code to the actual user-space process instead of
+BUS_MCEERR_AR.
+
+To address this problem:
+
+- PATCH 1 sets mf_flags as MF_ACTION_REQUIRED on synchronous events which
+  indicates error happened in current execution context
+- PATCH 2 separates synchronous error handling into task work so that the
+  current context in memory failure is exactly belongs to the task
+  consuming poison data.
+
+Then, kernel will send SIGBUS with proper si_code in kill_proc().
+
+Lv Ying and XiuQi also proposed to address similar problem and we discussed
+about new solution to add a new flag(acpi_hest_generic_data::flags bit 8) to
+distinguish synchronous event. [2][3] The UEFI community still has no response.
+After a deep dive into the SDEI TRM, the SDEI notification should be used for
+asynchronous error. As SDEI TRM[1] describes "the dispatcher can simulate an
+exception-like entry into the client, **with the client providing an additional
+asynchronous entry point similar to an interrupt entry point**". The client
+(kernel) lacks complete synchronous context, e.g. systeam register (ELR, ESR,
+etc). So notify type is enough to distinguish synchronous event.
+
+To reproduce this problem:
+
+	# STEP1: enable early kill mode
+	#sysctl -w vm.memory_failure_early_kill=1
+	vm.memory_failure_early_kill = 1
+
+	# STEP2: inject an UCE error and consume it to trigger a synchronous error
+	#einj_mem_uc single
+	0: single   vaddr = 0xffffb0d75400 paddr = 4092d55b400
+	injecting ...
+	triggering ...
+	signal 7 code 5 addr 0xffffb0d75000
+	page not present
+	Test passed
+
+The si_code (code 5) from einj_mem_uc indicates that it is BUS_MCEERR_AO error
+and it is not fact.
+
+After this patch set:
+
+	# STEP1: enable early kill mode
+	#sysctl -w vm.memory_failure_early_kill=1
+	vm.memory_failure_early_kill = 1
+
+	# STEP2: inject an UCE error and consume it to trigger a synchronous error
+	#einj_mem_uc single
+	0: single   vaddr = 0xffffb0d75400 paddr = 4092d55b400
+	injecting ...
+	triggering ...
+	signal 7 code 4 addr 0xffffb0d75000
+	page not present
+	Test passed
+
+The si_code (code 4) from einj_mem_uc indicates that it is BUS_MCEERR_AR error
+as we expected.
+
+[1] https://developer.arm.com/documentation/den0054/latest/
+[2] https://lore.kernel.org/linux-arm-kernel/20221205160043.57465-4-xiexiuqi@huawei.com/T/
+[3] https://lore.kernel.org/lkml/20221209095407.383211-1-lvying6@huawei.com/
+
+Shuai Xue (2):
+  ACPI: APEI: set memory failure flags as MF_ACTION_REQUIRED on
+    synchronous events
+  ACPI: APEI: handle synchronous exceptions in task work
+
+ drivers/acpi/apei/ghes.c | 135 ++++++++++++++++++++++++---------------
+ include/acpi/ghes.h      |   3 -
+ mm/memory-failure.c      |  13 ----
+ 3 files changed, 83 insertions(+), 68 deletions(-)
+
 -- 
-2.25.1
+2.20.1.12.g72788fdb
 
