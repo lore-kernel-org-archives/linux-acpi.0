@@ -2,120 +2,115 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05176C74A5B
-	for <linux-acpi@archiver.kernel.org>; Fri, 17 Mar 2023 16:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0628C74A5B
+	for <linux-acpi@archiver.kernel.org>; Fri, 17 Mar 2023 17:04:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229868AbjCQQLj convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 17 Mar 2023 12:11:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47464 "EHLO
+        id S229904AbjCQREQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 17 Mar 2023 13:04:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229654AbjCQQLj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Mar 2023 12:11:39 -0400
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21A4F3FBA1;
-        Fri, 17 Mar 2023 09:11:38 -0700 (PDT)
-Received: by mail-ed1-f48.google.com with SMTP id x3so22337681edb.10;
-        Fri, 17 Mar 2023 09:11:38 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679069496;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=+UuCf1PJrLrKxIyaFZnzsznvIqEjzKrZTS2+zfLkrvo=;
-        b=OsjUPyKkLqc8ePxtbGuhJN1+e65dAUXglNyL6AqLweZgKNYfhFSiB2I/Dl7Cee1vLh
-         EuAOtjVvN79QBGGZT0wedEuNegbVZkI3YYPyBZZfupQXGPYBH5ay/rENqF6zJvVIfNeJ
-         ZQ8pyzuO2AhzHslqD5luDtdU+pIf08pqJ1NNqTdx98EJpWuC3ThGzJJYfaczqO8aLSnz
-         Vb3FlrCIQV4DOLOKxFtfbo7eNSzh5wK+oTP6HPWunuOjePF23/eRGOV3HctN0OGEiDw6
-         8osH4MGgH3GO6VgQMBXdgBbuzvBjIProvd0DaNZePD/1H/cfAkHHXvCn3yQb4H/bqC5G
-         A/3Q==
-X-Gm-Message-State: AO0yUKXiDoe7+NgY1+BAotUHQWo8K33hozZp5PnAYyiIiYTPrWD4uYYn
-        DttLep4+p/CDgG24NUjfjcEvb8Nn20VjNMt6E9HaFx1HpQo=
-X-Google-Smtp-Source: AK7set/XlV/hK+svbmdvfHJLFqE5tbYJnuPdfxiFpfDtsjGq+4WkW2g5cdrxn50qVpzpdKjZtUvhgHIObXZNKqjpUeo=
-X-Received: by 2002:a50:9ecf:0:b0:4fa:b302:6168 with SMTP id
- a73-20020a509ecf000000b004fab3026168mr738078edf.3.1679069496484; Fri, 17 Mar
- 2023 09:11:36 -0700 (PDT)
+        with ESMTP id S229770AbjCQREP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Mar 2023 13:04:15 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF324EB45;
+        Fri, 17 Mar 2023 10:04:13 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
+ id 2a8ba081e2a3b18a; Fri, 17 Mar 2023 18:04:10 +0100
+Received: from kreacher.localnet (unknown [213.134.163.228])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 402721C52C22;
+        Fri, 17 Mar 2023 18:04:09 +0100 (CET)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     Zhang Rui <rui.zhang@intel.com>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Quanxian Wang <quanxian.wang@intel.com>
+Subject: [PATCH v3 4/4] ACPI: processor: thermal: Update CPU cooling devices on cpufreq policy changes
+Date:   Fri, 17 Mar 2023 18:03:40 +0100
+Message-ID: <8199264.T7Z3S40VBb@kreacher>
+In-Reply-To: <2678096.mvXUDI8C0e@kreacher>
+References: <2678096.mvXUDI8C0e@kreacher>
 MIME-Version: 1.0
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 17 Mar 2023 17:11:25 +0100
-Message-ID: <CAJZ5v0gOXYVLXkPmk6_9r+Gwa+FXMdVXZBvjJsY--KW2MOC_tg@mail.gmail.com>
-Subject: [GIT PULL] ACPI fixes for v6.3-rc3
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+X-CLIENT-IP: 213.134.163.228
+X-CLIENT-HOSTNAME: 213.134.163.228
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdefvddgleehucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepfeduudeutdeugfelffduieegiedtueefledvjeegffdttefhhffhtefhleejgfetnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkphepvddufedrudefgedrudeifedrvddvkeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddvvdekpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeekpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomhdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhg
+ vghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghnihgvlhdrlhgviigtrghnoheslhhinhgrrhhordhorhhgpdhrtghpthhtohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=8 Fuz1=8 Fuz2=8
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please pull from the tag
+When a cpufreq policy appears or goes away, the CPU cooling devices for
+the CPUs covered by that policy need to be updated so that the new
+processor_get_max_state() value is stored as max_state and the
+statistics in sysfs are rearranged for each of them.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-6.3-rc3
+Do that accordingly in acpi_thermal_cpufreq_init() and
+acpi_thermal_cpufreq_exit().
 
-with top-most commit f36cc6cd65204352815640a34e37ef39e56fbd42
+Fixes: a365105c685c("thermal: sysfs: Reuse cdev->max_state")
+Reported-by: Wang, Quanxian <quanxian.wang@intel.com>
+Link: https://lore.kernel.org/linux-pm/53ec1f06f61c984100868926f282647e57ecfb2d.camel@intel.com/
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Zhang Rui <rui.zhang@intel.com>
+Reviewed-by: Zhang Rui <rui.zhang@intel.com>
+---
 
- Merge branches 'acpi-video', 'acpi-x86', 'acpi-tools' and 'acpi-docs'
+v2 -> v3: Add tags from Rui.
 
-on top of commit eeac8ede17557680855031c6f305ece2378af326
+v1 -> v2: Remove the now redundant IS_ERR() checks on cdev before calling
+          thermal_cooling_device_update().
 
- Linux 6.3-rc2
+---
+ drivers/acpi/processor_thermal.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-to receive ACPI fixes for 6.3-rc3.
+Index: linux-pm/drivers/acpi/processor_thermal.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/processor_thermal.c
++++ linux-pm/drivers/acpi/processor_thermal.c
+@@ -140,9 +140,13 @@ void acpi_thermal_cpufreq_init(struct cp
+ 		ret = freq_qos_add_request(&policy->constraints,
+ 					   &pr->thermal_req,
+ 					   FREQ_QOS_MAX, INT_MAX);
+-		if (ret < 0)
++		if (ret < 0) {
+ 			pr_err("Failed to add freq constraint for CPU%d (%d)\n",
+ 			       cpu, ret);
++			continue;
++		}
++
++		thermal_cooling_device_update(pr->cdev);
+ 	}
+ }
+ 
+@@ -153,8 +157,12 @@ void acpi_thermal_cpufreq_exit(struct cp
+ 	for_each_cpu(cpu, policy->related_cpus) {
+ 		struct acpi_processor *pr = per_cpu(processors, cpu);
+ 
+-		if (pr)
+-			freq_qos_remove_request(&pr->thermal_req);
++		if (!pr)
++			continue;
++
++		freq_qos_remove_request(&pr->thermal_req);
++
++		thermal_cooling_device_update(pr->cdev);
+ 	}
+ }
+ #else				/* ! CONFIG_CPU_FREQ */
 
-These add some new quirks, fix PPTT handling, fix an ACPI utility and correct a
-mistake in the ACPI documentation.
-
-Specifics:
-
- - Fix ACPI PPTT handling to avoid sleep in the atomic context when it
-   is not present (Sudeep Holla).
-
- - Add backlight=native DMI quirk for Dell Vostro 15 3535 to the ACPI
-   video driver (Chia-Lin Kao).
-
- - Add ACPI quirks for I2C device enumeration on Lenovo Yoga Book X90
-   and Acer Iconia One 7 B1-750 (Hans de Goede).
-
- - Fix handling of invalid command line option values in the ACPI pfrut
-   utility (Chen Yu).
-
- - Fix references to I2C device data type in the ACPI documentation for
-   device enumeration (Andy Shevchenko).
-
-Thanks!
 
 
----------------
-
-Andy Shevchenko (1):
-      ACPI: docs: enumeration: Correct reference to the I²C device data type
-
-Chen Yu (1):
-      ACPI: tools: pfrut: Check if the input of level and type is in
-the right numeric range
-
-Chia-Lin Kao (AceLan) (1):
-      ACPI: video: Add backlight=native DMI quirk for Dell Vostro 15 3535
-
-Hans de Goede (3):
-      ACPI: x86: Introduce an acpi_quirk_skip_gpio_event_handlers() helper
-      ACPI: x86: Add skip i2c clients quirk for Acer Iconia One 7 B1-750
-      ACPI: x86: Add skip i2c clients quirk for Lenovo Yoga Book X90
-
-Sudeep Holla (1):
-      ACPI: PPTT: Fix to avoid sleep in the atomic context when PPTT is absent
-
----------------
-
- Documentation/firmware-guide/acpi/enumeration.rst |  2 +-
- drivers/acpi/pptt.c                               |  5 ++-
- drivers/acpi/video_detect.c                       |  7 ++++
- drivers/acpi/x86/utils.c                          | 45 +++++++++++++++++++++--
- drivers/gpio/gpiolib-acpi.c                       |  3 ++
- include/acpi/acpi_bus.h                           |  5 +++
- tools/power/acpi/tools/pfrut/pfrut.c              | 18 +++++++--
- 7 files changed, 77 insertions(+), 8 deletions(-)
