@@ -2,90 +2,110 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C82F8C7618A
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Mar 2023 17:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C419C7618A
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Mar 2023 17:46:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229640AbjCTRoR convert rfc822-to-8bit (ORCPT
+        id S229967AbjCTRqP convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Mar 2023 13:44:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52424 "EHLO
+        Mon, 20 Mar 2023 13:46:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbjCTRnp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2023 13:43:45 -0400
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5109AEC53;
-        Mon, 20 Mar 2023 10:39:40 -0700 (PDT)
-Received: by mail-ed1-x52a.google.com with SMTP id b20so16923318edd.1;
-        Mon, 20 Mar 2023 10:39:40 -0700 (PDT)
+        with ESMTP id S229662AbjCTRpo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2023 13:45:44 -0400
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 790D39770;
+        Mon, 20 Mar 2023 10:41:42 -0700 (PDT)
+Received: by mail-ed1-f43.google.com with SMTP id eg48so49827076edb.13;
+        Mon, 20 Mar 2023 10:41:42 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679333678;
+        d=1e100.net; s=20210112; t=1679334080;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=fi1OHs7Bk8TJ5UregfyVR/fDxL3BggpeJfKVN6kZ4QI=;
-        b=WfPGmMEhsdSw0Eweit5k38GR7P+DeAopYpE5u6v1Xa5tbYfywacQR9zsnb0nZgXm2R
-         iwwbFQkywh1gV0b2gLMSdZZW4zdpJRMgO+0Y1eZIk/5wHUQmwe6lyYyEjvhrZfRhhd07
-         74xPxeENge83u2taa8wiUzyRXBZaO3Sk8qruAHmiyz4KhSMRShuiJ6eDPWEl+lYQB0gp
-         vpMMFD4oyuJjGZY/9Hr/VM99BCveHisjcDWEHa2/Ns/2zb+emSOIua5V/5dYc5G1ErMd
-         VsIW7/+dI9ONJNXbJ+DvLqR2fww41tAtijFuBBQbls4Zubr+5+OHe0wxwj604DU0gyOd
-         xjIA==
-X-Gm-Message-State: AO0yUKWJXnIlXgLWBApFZ8+1JbDSOXQygSipa3hBNj3mwnVAc45Aq/kU
-        EzILEtDdasquQwZ11vtvI2FxoqO40/+S46CZRo6HYm9k
-X-Google-Smtp-Source: AK7set8VIdb1Yu9eY0D5QYIlbOBWUwqbQOyN3a6t4VASfDsjzfQEnk526Z7QjD0NaX1RghsJpAdGThjMbg73BPPMyYI=
-X-Received: by 2002:a17:906:1b4e:b0:930:310:abcf with SMTP id
- p14-20020a1709061b4e00b009300310abcfmr4702624ejg.2.1679333678504; Mon, 20 Mar
- 2023 10:34:38 -0700 (PDT)
+        bh=HhzCf2AYkG2YKumzfeJoTiU2MHsDxNe3IlKWgvXLaW0=;
+        b=50byycMgjUjNfzF0pnipWmJLHfRsw5aOdF1JozeRiW9KbpXQYzFpoevpoL3ytp0hea
+         TTX5rMJgBhEL3WmlWBCxWJx8wJC9aCBhcYkEK8pD+y5GdCUiLrYoK5bmwwY26MPPUH12
+         g2d2tYzxwqjtecOO5o0VRI1B78UE7n3XJUtxKCWEQFSfPeaIoEUw4IH4uoRT2ZFrhIbl
+         CKLTTEG0if4fGmscGkB9UW7pfUYcdGvluIx4ewk9p1cKdqPs9Lk+4bRCI2GHp5qEr4B3
+         FN0QogjcTkD2gsQ40pU7aKpT8d+i1zcaZHoYKm/m4TPnSoYKiu2UevuZqlBAKoL3WX2/
+         WvhA==
+X-Gm-Message-State: AO0yUKWRfYoVb+fBXzRKrPWFsNyo+pgWP4z90UJtWD/4JRDwK0L7CfY9
+        YlbS0Qk+rlP0BC+BlYFjvsjlO/UEw4BhfKB6h/lQNss4
+X-Google-Smtp-Source: AK7set9ZCAYDwyxGwq/HMIy1Gb0EKrHg3nzqco/G8arJp4ry6hL+DmB7yNw9qpkQBarZZxH1LyrOpeWTV6W5OcD7cio=
+X-Received: by 2002:a17:907:86a9:b0:934:b5d6:14d0 with SMTP id
+ qa41-20020a17090786a900b00934b5d614d0mr2173109ejc.2.1679334080021; Mon, 20
+ Mar 2023 10:41:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230314004611.48583-1-tony.luck@intel.com>
-In-Reply-To: <20230314004611.48583-1-tony.luck@intel.com>
+References: <20230314164416.2219829-1-jean-philippe@linaro.org>
+In-Reply-To: <20230314164416.2219829-1-jean-philippe@linaro.org>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 20 Mar 2023 18:34:27 +0100
-Message-ID: <CAJZ5v0hNQUfWViqxbJ5B4JCGJUuHpWWSpqpCFWPNpGuagoFbsQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: APEI: EINJ: Add CXL error types
-To:     Tony Luck <tony.luck@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
-        linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
-        linux-kernel@vger.kernel.org, patches@lists.linux.dev
+Date:   Mon, 20 Mar 2023 18:41:09 +0100
+Message-ID: <CAJZ5v0jS_YAR8kwEVsi4XZ6Qd2Y1O2nMjaUSaj=NXLPMgw2O0g@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: VIOT: Initialize the correct IOMMU fwspec
+To:     Jean-Philippe Brucker <jean-philippe@linaro.org>
+Cc:     eric.auger@redhat.com, rafael@kernel.org, lenb@kernel.org,
+        linux-acpi@vger.kernel.org, iommu@lists.linux.dev,
+        Linux PCI <linux-pci@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 14, 2023 at 1:47 AM Tony Luck <tony.luck@intel.com> wrote:
->
-> ACPI 6.5 added six new error types for CXL. See chapter 18
-> table 18.30.
->
-> Add strings for the new types so that Linux will list them in the
-> /sys/kernel/debug/apei/einj/available_error_types file.
->
-> It seems no other changes are needed. Linux already accepts
-> the CXL codes (on a BIOS that advertises them).
->
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
-> ---
->  drivers/acpi/apei/einj.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-> index b4373e575660..39bee5a067cc 100644
-> --- a/drivers/acpi/apei/einj.c
-> +++ b/drivers/acpi/apei/einj.c
-> @@ -584,6 +584,12 @@ static const char * const einj_error_type_string[] = {
->         "0x00000200\tPlatform Correctable\n",
->         "0x00000400\tPlatform Uncorrectable non-fatal\n",
->         "0x00000800\tPlatform Uncorrectable fatal\n",
-> +       "0x00001000\tCXL.cache Protocol Correctable\n",
-> +       "0x00002000\tCXL.cache Protocol Uncorrectable non-fatal\n",
-> +       "0x00004000\tCXL.cache Protocol Uncorrectable fatal\n",
-> +       "0x00008000\tCXL.mem Protocol Correctable\n",
-> +       "0x00010000\tCXL.mem Protocol Uncorrectable non-fatal\n",
-> +       "0x00020000\tCXL.mem Protocol Uncorrectable fatal\n",
->  };
->
->  static int available_error_type_show(struct seq_file *m, void *v)
-> --
+This should have been posted with a CC to linux-pci really (now added).
 
-Applied as 6.4 material, thanks!
+I would recommend resending afresh with linux-pci in the CC list, so
+that the people on it don't miss this.
+
+On Tue, Mar 14, 2023 at 5:44 PM Jean-Philippe Brucker
+<jean-philippe@linaro.org> wrote:
+>
+> When setting up DMA for a PCI device, we need to initialize its
+> iommu_fwspec with all possible alias RIDs (such as PCI bridges). To do
+> this we use pci_for_each_dma_alias() which calls
+> viot_pci_dev_iommu_init(). This function incorrectly initializes the
+> fwspec of the bridge instead of the device being configured. Fix it by
+> passing the original device as context to pci_for_each_dma_alias().
+>
+> Fixes: 3cf485540e7b ("ACPI: Add driver for the VIOT table")
+> Reported-by: Eric Auger <eric.auger@redhat.com>
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+> ---
+> This fixes issue (1) reported here:
+> https://lore.kernel.org/all/Y8qzOKm6kvhGWG1T@myrica/
+> ---
+>  drivers/acpi/viot.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/viot.c b/drivers/acpi/viot.c
+> index ed752cbbe636..c8025921c129 100644
+> --- a/drivers/acpi/viot.c
+> +++ b/drivers/acpi/viot.c
+> @@ -328,6 +328,7 @@ static int viot_pci_dev_iommu_init(struct pci_dev *pdev, u16 dev_id, void *data)
+>  {
+>         u32 epid;
+>         struct viot_endpoint *ep;
+> +       struct device *aliased_dev = data;
+>         u32 domain_nr = pci_domain_nr(pdev->bus);
+>
+>         list_for_each_entry(ep, &viot_pci_ranges, list) {
+> @@ -338,7 +339,7 @@ static int viot_pci_dev_iommu_init(struct pci_dev *pdev, u16 dev_id, void *data)
+>                         epid = ((domain_nr - ep->segment_start) << 16) +
+>                                 dev_id - ep->bdf_start + ep->endpoint_id;
+>
+> -                       return viot_dev_iommu_init(&pdev->dev, ep->viommu,
+> +                       return viot_dev_iommu_init(aliased_dev, ep->viommu,
+>                                                    epid);
+>                 }
+>         }
+> @@ -372,7 +373,7 @@ int viot_iommu_configure(struct device *dev)
+>  {
+>         if (dev_is_pci(dev))
+>                 return pci_for_each_dma_alias(to_pci_dev(dev),
+> -                                             viot_pci_dev_iommu_init, NULL);
+> +                                             viot_pci_dev_iommu_init, dev);
+>         else if (dev_is_platform(dev))
+>                 return viot_mmio_dev_iommu_init(to_platform_device(dev));
+>         return -ENODEV;
+> --
