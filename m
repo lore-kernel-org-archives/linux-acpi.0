@@ -2,94 +2,90 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A3CC76195
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Mar 2023 17:42:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C82F8C7618A
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Mar 2023 17:44:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231293AbjCTRmb convert rfc822-to-8bit (ORCPT
+        id S229640AbjCTRoR convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Mar 2023 13:42:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57426 "EHLO
+        Mon, 20 Mar 2023 13:44:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231613AbjCTRmP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2023 13:42:15 -0400
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB8FD2F05A;
-        Mon, 20 Mar 2023 10:38:13 -0700 (PDT)
-Received: by mail-ed1-f51.google.com with SMTP id r11so49914970edd.5;
-        Mon, 20 Mar 2023 10:38:12 -0700 (PDT)
+        with ESMTP id S229700AbjCTRnp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2023 13:43:45 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5109AEC53;
+        Mon, 20 Mar 2023 10:39:40 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id b20so16923318edd.1;
+        Mon, 20 Mar 2023 10:39:40 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679333868;
+        d=1e100.net; s=20210112; t=1679333678;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=rZotrnK0BQHQbLHJH05swEdzFKEdXH40eo0fD7GE5Hc=;
-        b=w1/i/D8MFRUMF0l/zwAvqIhxrOrYyEzqPWtY7f6EJue8ayl8rpl9PyaE5f8W88adQC
-         QQhiDODCDUmJT34pQr9MQ9l8j0DKjiDIGuTziqgFDSij9XREsvWofXfLilVsCpAM1Vjd
-         5XyeRrj+yr3ImwkNQzVEFJZ/nqsVIIgTghYjp+T7MQ4GOXMCZtZo2whTB1GGkyCyV7Nn
-         N9HDgTih8ZoJRf6/sP6f3gMN9OUd9vwXQ3rsylRCOlA2sUAeJ5T/gg6GBVVNXp+9VV1F
-         IvWU4rBB/WY+FAKRteiqsStszoN0f03rpBWAnN2OjGZgvLlG5sBuTLfj5L7JDuRCiKfl
-         KXEg==
-X-Gm-Message-State: AO0yUKXym6NrxtXPhm72G3Zf1tFWAEqqWrLu25C/x+cj1e+Qy9X1LzDi
-        049yfAmqUT1sA6W+NPpexGauFdgnU1FGAZPUyS4=
-X-Google-Smtp-Source: AK7set/7mKYdzFXNHBsJkH4BxDkLEiE9GiBxDky6AIoIRPmj56YQuwHBgUnMSN8Ec87G7/8Jp2UVFLowqIhE4IG2rVU=
-X-Received: by 2002:a50:a451:0:b0:4fb:c8e3:1adb with SMTP id
- v17-20020a50a451000000b004fbc8e31adbmr201778edb.3.1679333868217; Mon, 20 Mar
- 2023 10:37:48 -0700 (PDT)
+        bh=fi1OHs7Bk8TJ5UregfyVR/fDxL3BggpeJfKVN6kZ4QI=;
+        b=WfPGmMEhsdSw0Eweit5k38GR7P+DeAopYpE5u6v1Xa5tbYfywacQR9zsnb0nZgXm2R
+         iwwbFQkywh1gV0b2gLMSdZZW4zdpJRMgO+0Y1eZIk/5wHUQmwe6lyYyEjvhrZfRhhd07
+         74xPxeENge83u2taa8wiUzyRXBZaO3Sk8qruAHmiyz4KhSMRShuiJ6eDPWEl+lYQB0gp
+         vpMMFD4oyuJjGZY/9Hr/VM99BCveHisjcDWEHa2/Ns/2zb+emSOIua5V/5dYc5G1ErMd
+         VsIW7/+dI9ONJNXbJ+DvLqR2fww41tAtijFuBBQbls4Zubr+5+OHe0wxwj604DU0gyOd
+         xjIA==
+X-Gm-Message-State: AO0yUKWJXnIlXgLWBApFZ8+1JbDSOXQygSipa3hBNj3mwnVAc45Aq/kU
+        EzILEtDdasquQwZ11vtvI2FxoqO40/+S46CZRo6HYm9k
+X-Google-Smtp-Source: AK7set8VIdb1Yu9eY0D5QYIlbOBWUwqbQOyN3a6t4VASfDsjzfQEnk526Z7QjD0NaX1RghsJpAdGThjMbg73BPPMyYI=
+X-Received: by 2002:a17:906:1b4e:b0:930:310:abcf with SMTP id
+ p14-20020a1709061b4e00b009300310abcfmr4702624ejg.2.1679333678504; Mon, 20 Mar
+ 2023 10:34:38 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230314121216.413434-1-schnelle@linux.ibm.com> <20230314121216.413434-27-schnelle@linux.ibm.com>
-In-Reply-To: <20230314121216.413434-27-schnelle@linux.ibm.com>
+References: <20230314004611.48583-1-tony.luck@intel.com>
+In-Reply-To: <20230314004611.48583-1-tony.luck@intel.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 20 Mar 2023 18:37:37 +0100
-Message-ID: <CAJZ5v0gYGkbUk4uFXgidMaRBniwiXpizZWwMGixeNNejeZjPzg@mail.gmail.com>
-Subject: Re: [PATCH v3 26/38] pnp: add HAS_IOPORT dependencies
-To:     Niklas Schnelle <schnelle@linux.ibm.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Jaroslav Kysela <perex@perex.cz>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-pci@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>,
-        linux-acpi@vger.kernel.org
+Date:   Mon, 20 Mar 2023 18:34:27 +0100
+Message-ID: <CAJZ5v0hNQUfWViqxbJ5B4JCGJUuHpWWSpqpCFWPNpGuagoFbsQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: APEI: EINJ: Add CXL error types
+To:     Tony Luck <tony.luck@intel.com>
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+        linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
+        linux-kernel@vger.kernel.org, patches@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Mar 14, 2023 at 1:13 PM Niklas Schnelle <schnelle@linux.ibm.com> wrote:
+On Tue, Mar 14, 2023 at 1:47 AM Tony Luck <tony.luck@intel.com> wrote:
 >
-> In a future patch HAS_IOPORT=n will result in inb()/outb() and friends
-> not being declared. We thus need to depend on HAS_IOPORT even when
-> compile testing only.
+> ACPI 6.5 added six new error types for CXL. See chapter 18
+> table 18.30.
 >
-> Co-developed-by: Arnd Bergmann <arnd@kernel.org>
-> Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
+> Add strings for the new types so that Linux will list them in the
+> /sys/kernel/debug/apei/einj/available_error_types file.
+>
+> It seems no other changes are needed. Linux already accepts
+> the CXL codes (on a BIOS that advertises them).
+>
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
 > ---
->  drivers/pnp/isapnp/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/apei/einj.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 >
-> diff --git a/drivers/pnp/isapnp/Kconfig b/drivers/pnp/isapnp/Kconfig
-> index d0479a563123..79bd48f1dd94 100644
-> --- a/drivers/pnp/isapnp/Kconfig
-> +++ b/drivers/pnp/isapnp/Kconfig
-> @@ -4,7 +4,7 @@
->  #
->  config ISAPNP
->         bool "ISA Plug and Play support"
-> -       depends on ISA || COMPILE_TEST
-> +       depends on ISA || (HAS_IOPORT && COMPILE_TEST)
->         help
->           Say Y here if you would like support for ISA Plug and Play devices.
->           Some information is in <file:Documentation/driver-api/isapnp.rst>.
+> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> index b4373e575660..39bee5a067cc 100644
+> --- a/drivers/acpi/apei/einj.c
+> +++ b/drivers/acpi/apei/einj.c
+> @@ -584,6 +584,12 @@ static const char * const einj_error_type_string[] = {
+>         "0x00000200\tPlatform Correctable\n",
+>         "0x00000400\tPlatform Uncorrectable non-fatal\n",
+>         "0x00000800\tPlatform Uncorrectable fatal\n",
+> +       "0x00001000\tCXL.cache Protocol Correctable\n",
+> +       "0x00002000\tCXL.cache Protocol Uncorrectable non-fatal\n",
+> +       "0x00004000\tCXL.cache Protocol Uncorrectable fatal\n",
+> +       "0x00008000\tCXL.mem Protocol Correctable\n",
+> +       "0x00010000\tCXL.mem Protocol Uncorrectable non-fatal\n",
+> +       "0x00020000\tCXL.mem Protocol Uncorrectable fatal\n",
+>  };
+>
+>  static int available_error_type_show(struct seq_file *m, void *v)
 > --
 
 Applied as 6.4 material, thanks!
