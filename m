@@ -2,136 +2,94 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5462C761A6
-	for <linux-acpi@archiver.kernel.org>; Mon, 20 Mar 2023 17:40:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A3CC76195
+	for <linux-acpi@archiver.kernel.org>; Mon, 20 Mar 2023 17:42:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231920AbjCTRke (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 20 Mar 2023 13:40:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45598 "EHLO
+        id S231293AbjCTRmb convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 20 Mar 2023 13:42:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232298AbjCTRj0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2023 13:39:26 -0400
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4F70303D4;
-        Mon, 20 Mar 2023 10:35:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679333731; x=1710869731;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=Am5yY3ShWICJ/fgRdT7iPO2VI2QhvJ0sRM5ORvuu0xI=;
-  b=fFNdPmpE3hG7Pdz7EPxCbpPWWwS++4SjSi85SyCG87wbDjyUPNlH4HoU
-   tK0eulVGEsac4zQLDzSn74RvDejWFCjYNAtetCP2JAWWc31SpJEcSZwLd
-   gatG2yznDzdqGJKGx9sRMcnxr6/NLh8BNsa/qmk06Hex+UmSJ/S8EuCqs
-   Rrw80OoWesC0zVqh3tKHi5Ee8fodjwmwbTY03tVUs7ZVtd2GTALq1XLF/
-   hovhUPgjFVf/7vWcbIiLYH1MFo8YZvMiUxySOup/GnDwEOpxK4loE/IGb
-   KfQ3NeRoLE70EiI7rUtuot/6rehVjncGWcp1OMXj5+sZ1SBQthBC5FDpL
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10655"; a="425003663"
-X-IronPort-AV: E=Sophos;i="5.98,276,1673942400"; 
-   d="scan'208";a="425003663"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2023 10:34:05 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10655"; a="713650247"
-X-IronPort-AV: E=Sophos;i="5.98,276,1673942400"; 
-   d="scan'208";a="713650247"
-Received: from jcardiel-mobl.amr.corp.intel.com (HELO [10.212.226.30]) ([10.212.226.30])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2023 10:34:03 -0700
-Message-ID: <39d7b92a-8f30-8302-049b-d2ee9e6c1a78@linux.intel.com>
-Date:   Mon, 20 Mar 2023 10:34:03 -0700
+        with ESMTP id S231613AbjCTRmP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2023 13:42:15 -0400
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB8FD2F05A;
+        Mon, 20 Mar 2023 10:38:13 -0700 (PDT)
+Received: by mail-ed1-f51.google.com with SMTP id r11so49914970edd.5;
+        Mon, 20 Mar 2023 10:38:12 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1679333868;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=rZotrnK0BQHQbLHJH05swEdzFKEdXH40eo0fD7GE5Hc=;
+        b=w1/i/D8MFRUMF0l/zwAvqIhxrOrYyEzqPWtY7f6EJue8ayl8rpl9PyaE5f8W88adQC
+         QQhiDODCDUmJT34pQr9MQ9l8j0DKjiDIGuTziqgFDSij9XREsvWofXfLilVsCpAM1Vjd
+         5XyeRrj+yr3ImwkNQzVEFJZ/nqsVIIgTghYjp+T7MQ4GOXMCZtZo2whTB1GGkyCyV7Nn
+         N9HDgTih8ZoJRf6/sP6f3gMN9OUd9vwXQ3rsylRCOlA2sUAeJ5T/gg6GBVVNXp+9VV1F
+         IvWU4rBB/WY+FAKRteiqsStszoN0f03rpBWAnN2OjGZgvLlG5sBuTLfj5L7JDuRCiKfl
+         KXEg==
+X-Gm-Message-State: AO0yUKXym6NrxtXPhm72G3Zf1tFWAEqqWrLu25C/x+cj1e+Qy9X1LzDi
+        049yfAmqUT1sA6W+NPpexGauFdgnU1FGAZPUyS4=
+X-Google-Smtp-Source: AK7set/7mKYdzFXNHBsJkH4BxDkLEiE9GiBxDky6AIoIRPmj56YQuwHBgUnMSN8Ec87G7/8Jp2UVFLowqIhE4IG2rVU=
+X-Received: by 2002:a50:a451:0:b0:4fb:c8e3:1adb with SMTP id
+ v17-20020a50a451000000b004fbc8e31adbmr201778edb.3.1679333868217; Mon, 20 Mar
+ 2023 10:37:48 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.8.0
-Subject: Re: [PATCH v1] ACPI: sysfs: Enable ACPI sysfs support for CCEL
- records
-Content-Language: en-US
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Rafael J Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20230302071327.557734-1-sathyanarayanan.kuppuswamy@linux.intel.com>
- <CAJZ5v0gB7WSB3F3+kTnB-r83xO9G7Sk1Vyh2os0=AeYNvHK_Mw@mail.gmail.com>
-From:   Sathyanarayanan Kuppuswamy 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>
-In-Reply-To: <CAJZ5v0gB7WSB3F3+kTnB-r83xO9G7Sk1Vyh2os0=AeYNvHK_Mw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20230314121216.413434-1-schnelle@linux.ibm.com> <20230314121216.413434-27-schnelle@linux.ibm.com>
+In-Reply-To: <20230314121216.413434-27-schnelle@linux.ibm.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Mon, 20 Mar 2023 18:37:37 +0100
+Message-ID: <CAJZ5v0gYGkbUk4uFXgidMaRBniwiXpizZWwMGixeNNejeZjPzg@mail.gmail.com>
+Subject: Re: [PATCH v3 26/38] pnp: add HAS_IOPORT dependencies
+To:     Niklas Schnelle <schnelle@linux.ibm.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Jaroslav Kysela <perex@perex.cz>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-pci@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>,
+        linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Tue, Mar 14, 2023 at 1:13 PM Niklas Schnelle <schnelle@linux.ibm.com> wrote:
+>
+> In a future patch HAS_IOPORT=n will result in inb()/outb() and friends
+> not being declared. We thus need to depend on HAS_IOPORT even when
+> compile testing only.
+>
+> Co-developed-by: Arnd Bergmann <arnd@kernel.org>
+> Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
+> ---
+>  drivers/pnp/isapnp/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/pnp/isapnp/Kconfig b/drivers/pnp/isapnp/Kconfig
+> index d0479a563123..79bd48f1dd94 100644
+> --- a/drivers/pnp/isapnp/Kconfig
+> +++ b/drivers/pnp/isapnp/Kconfig
+> @@ -4,7 +4,7 @@
+>  #
+>  config ISAPNP
+>         bool "ISA Plug and Play support"
+> -       depends on ISA || COMPILE_TEST
+> +       depends on ISA || (HAS_IOPORT && COMPILE_TEST)
+>         help
+>           Say Y here if you would like support for ISA Plug and Play devices.
+>           Some information is in <file:Documentation/driver-api/isapnp.rst>.
+> --
 
-On 3/20/23 10:15 AM, Rafael J. Wysocki wrote:
-> On Thu, Mar 2, 2023 at 8:13 AM Kuppuswamy Sathyanarayanan
-> <sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
->>
->> The Confidential Computing Event Log (CCEL) table provides the address
->> and length of the CCEL records area in UEFI reserved memory. To access
->> these records, userspace can use /dev/mem to retrieve them. But
->> '/dev/mem' is not enabled on many systems for security reasons.
->>
->> So to allow user space access these event log records without the
->> /dev/mem interface, add support to access it via sysfs interface. The
->> ACPI driver has provided read only access to BERT records area via
->> '/sys/firmware/acpi/tables/data/BERT' in sysfs. So follow the same way,
->> and add support for /sys/firmware/acpi/tables/data/CCEL to enable
->> read-only access to the CCEL recorids area.
->>
->> More details about the CCEL table can be found in ACPI specification
->> r6.5, sec titled "CC Event Log ACPI Table".
->>
->> Original-patch-by: Haibo Xu <haibo1.xu@intel.com>
->> [Original patch is for TDEL table, modified it for CCEL support]
->> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
->> ---
->>  drivers/acpi/sysfs.c | 17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
->> index 7db3b530279b..afeac925b31b 100644
->> --- a/drivers/acpi/sysfs.c
->> +++ b/drivers/acpi/sysfs.c
->> @@ -458,11 +458,28 @@ static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
->>         return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
->>  }
->>
->> +static int acpi_ccel_data_init(void *th, struct acpi_data_attr *data_attr)
->> +{
->> +       struct acpi_table_ccel *ccel = th;
->> +
->> +       if (ccel->header.length < sizeof(struct acpi_table_ccel) ||
->> +           !(ccel->log_area_start_address) || !(ccel->log_area_minimum_length)) {
-> 
-> The inner parens in this line are not necessary AFAICS.
-> 
-> Otherwise I have no objections.
-
-Yes. We can do without it. Shall I submit v2 with this change, or you want to
-fix it when applying?
-
-> 
->> +               kfree(data_attr);
->> +               return -EINVAL;
->> +       }
->> +       data_attr->addr = ccel->log_area_start_address;
->> +       data_attr->attr.size = ccel->log_area_minimum_length;
->> +       data_attr->attr.attr.name = "CCEL";
->> +
->> +       return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
->> +}
->> +
->>  static struct acpi_data_obj {
->>         char *name;
->>         int (*fn)(void *, struct acpi_data_attr *);
->>  } acpi_data_objs[] = {
->>         { ACPI_SIG_BERT, acpi_bert_data_init },
->> +       { ACPI_SIG_CCEL, acpi_ccel_data_init },
->>  };
->>
->>  #define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
->> --
-
--- 
-Sathyanarayanan Kuppuswamy
-Linux Kernel Developer
+Applied as 6.4 material, thanks!
