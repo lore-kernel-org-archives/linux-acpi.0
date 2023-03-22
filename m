@@ -2,120 +2,94 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA22BC6FD1F
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Mar 2023 20:42:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B561C6FD1C
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Mar 2023 20:44:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230216AbjCVUmU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Mar 2023 16:42:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
+        id S231748AbjCVUoi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Mar 2023 16:44:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230182AbjCVUmF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2023 16:42:05 -0400
-Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADB64848DB;
-        Wed, 22 Mar 2023 13:34:28 -0700 (PDT)
-Received: by mail-yb1-xb33.google.com with SMTP id e71so22574429ybc.0;
-        Wed, 22 Mar 2023 13:34:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1679517268;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=OiCmR8SN+GLyUIUi6qfPNaqR2nTEBZHOI1Achc59hqY=;
-        b=GYzbYtSRXmK3Ib4jq8P5EgFEy/9nL4KPrIy4QfUsI6ofktsoYPdRWrkN171WmTJiUP
-         iskkjLojIgwXTZcToFnONt83DU8a8UUd9/zfRgChVJ1k4yvmbYK9As+yhGQvYcqSRc7n
-         kuF+kdIuxuKHrLXi9ta2Gn8SBRMOnGeIU/lFZ/rleSjifKLWwaxetRHqHvFfEKrsSEi5
-         b6vmFkHnQyKbzlcgBraFVcqoiYFO4strpoDG0WZVzKcDtclN76oRvLzmTciKzkrHeCFR
-         q18hq7QoHCpGIDfC/xNeplcjJIaJEAT1jUfr3iqK2FWOYnOVGfcMKKO5j7SDubcoHHob
-         eh0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679517268;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=OiCmR8SN+GLyUIUi6qfPNaqR2nTEBZHOI1Achc59hqY=;
-        b=drr0N+gcqJ6Nmz7DzLbaozlARjariWO6A2sSB2MZqHLVt97idP6stmkngAGGAjSNK1
-         SN6wTIYwY7dLtLaVzzI1GzEH8uv3y/uutlRsMFE5j4XOOSNNVvfA6WFKJl6Eb41AdJL/
-         oxK7h5k+290vDiYFlDQ/KASw09vHru0G7cpfp0a5gwZeu5t3QDlk2/Utk/lGG/qIin2K
-         TgPQyOg/RISDoHoco/MWUVPX/6cm5O2A4K/OY7blCDVZo8dDQkyaqKb1iFforKcru0FI
-         sDGdQ5+BDXmmSZwmuQNcRRgHDK5vFtFSXi1SM4EgUxbGrqME7vHHsLaqB/CT5z15LLD8
-         Nk6A==
-X-Gm-Message-State: AAQBX9fzq9bQrxvlk9RVxIS5TfEqzt34EwKr+/wmjJpCSktqbAqtik43
-        tGmh6Pd8OIg+ok9qZLxwaC7c2THk7jfi+upge5njMQ4tyEmcrQ==
-X-Google-Smtp-Source: AKy350barmhAn2AE7ZHYIUsODj2m0RDoHWh0vsLit55+EPuL9XTzx/ZG5/S2fMbnhO9vXdsk3BCjKg46pWwSAoCj18U=
-X-Received: by 2002:a25:8712:0:b0:b6a:2590:6c7f with SMTP id
- a18-20020a258712000000b00b6a25906c7fmr626401ybl.2.1679517267591; Wed, 22 Mar
- 2023 13:34:27 -0700 (PDT)
+        with ESMTP id S230395AbjCVUoZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2023 16:44:25 -0400
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D472D5598;
+        Wed, 22 Mar 2023 13:37:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+        bh=lOw0pWp4oxfyhAJZHJ6ZoPMdYH5fP1+gj8yMHI7HkBI=; b=wVY/UHB9RnKnUdABCeZU9A7o1f
+        QeKOFuEJLIpZovbpowXxnf7p/t78Xpr1VMW4Ylz/5z3MrXtTwWdbb7oiF+10GgeoempoqtuLVN2xX
+        dGcTJsIrJtBDgMeeitW8o7Ng65Z87O8oCZ1GvhAgBtkciIxgTuxeB3fxNJUEdViuc0UY=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+        (envelope-from <andrew@lunn.ch>)
+        id 1pf4tK-0086mL-0U; Wed, 22 Mar 2023 21:17:02 +0100
+Date:   Wed, 22 Mar 2023 21:17:02 +0100
+From:   Andrew Lunn <andrew@lunn.ch>
+To:     "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc:     Heiner Kallweit <hkallweit1@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-acpi@vger.kernel.org,
+        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Vladimir Oltean <olteanv@gmail.com>
+Subject: Re: [PATCH RFC net-next 6/7] net: dsa: mv88e6xxx: provide software
+ node for default settings
+Message-ID: <5922c650-0ef3-4e60-84e6-0bfe535e5a98@lunn.ch>
+References: <ZBrtqPW29NnxVoEc@shell.armlinux.org.uk>
+ <E1pex8f-00Dvo9-KT@rmk-PC.armlinux.org.uk>
+ <04869523-3711-41a6-81ba-ddf2b12fd22e@lunn.ch>
+ <ZBthf8EsnQIttGdI@shell.armlinux.org.uk>
 MIME-Version: 1.0
-References: <20230320212012.12704-1-ubizjak@gmail.com> <CAJZ5v0jAysMPb180tMMmoGBEewENKn-fW7bwzGyMVv4wUrX=LA@mail.gmail.com>
- <18431bad-8595-143b-e8af-14e448af871c@intel.com>
-In-Reply-To: <18431bad-8595-143b-e8af-14e448af871c@intel.com>
-From:   Uros Bizjak <ubizjak@gmail.com>
-Date:   Wed, 22 Mar 2023 21:34:16 +0100
-Message-ID: <CAFULd4YF7L2puma8O9m_hodjRP9tOyBDixpY-=ShPHjdbX8cGA@mail.gmail.com>
-Subject: Re: [PATCH v2] x86/ACPI/boot: Improve __acpi_acquire_global_lock
-To:     Dave Hansen <dave.hansen@intel.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, x86@kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Len Brown <lenb@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZBthf8EsnQIttGdI@shell.armlinux.org.uk>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Mar 22, 2023 at 7:34=E2=80=AFPM Dave Hansen <dave.hansen@intel.com>=
- wrote:
->
-> On 3/22/23 11:24, Rafael J. Wysocki wrote:
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > or please let me know if you want me to pick this up (in which case it
-> > will require an ACK from one of the x86 maintainers).
->
-> I'll pull it into x86/acpi.  I'm kinda shocked the compiler is so
-> clueless, but this makes the C code more readable anyway.  Win/win, I gue=
-ss.
+On Wed, Mar 22, 2023 at 08:13:51PM +0000, Russell King (Oracle) wrote:
+> On Wed, Mar 22, 2023 at 07:57:19PM +0100, Andrew Lunn wrote:
+> > > +static struct fwnode_handle *mv88e6xxx_port_get_fwnode(struct dsa_switch *ds,
+> > > +						       int port,
+> > > +						       struct fwnode_handle *h)
+> > > +{
+> > > +	struct mv88e6xxx_chip *chip = ds->priv;
+> > > +	struct device_node *np, *phy_node;
+> > > +	int speed, duplex, err;
+> > > +	phy_interface_t mode;
+> > > +	struct dsa_port *dp;
+> > > +	unsigned long caps;
+> > > +
+> > > +	dp = dsa_to_port(ds, port);
+> > > +	if (dsa_port_is_user(dp))
+> > > +		return h;
+> > > +
+> > > +	/* No DT? Eh? */
+> > > +	np = to_of_node(h);
+> > > +	if (!np)
+> > > +		return h;
+> > 
+> > I've not looked at the big picture yet, but you can have a simple
+> > switch setup without DT. I have a couple of amd64 boards which use
+> > platform data. The user ports all have internal PHYs, and the CPU port
+> > defaults to 1G, it might even be strapped that way.
+> 
+> Are you suggesting that we should generate some swnode description of
+> the max interface mode and speed if we are missing a DT node?
+> 
+> I'm not seeing any port specific data in the mv88e6xxx platform data.
 
-Please note that the return form __acpi_{acquire,release}_global_lock
-is actually used as bool:
+No, i'm just pointing out that not have DT is not an error, and can
+happen. I just wanted to make sure you are not assuming there is
+always DT.
 
-acenv.h:
-
-int __acpi_acquire_global_lock(unsigned int *lock);
-int __acpi_release_global_lock(unsigned int *lock);
-
-#define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq) \
-((Acq) =3D __acpi_acquire_global_lock(&facs->global_lock))
-
-#define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq) \
-((Acq) =3D __acpi_release_global_lock(&facs->global_lock))
-
-evglock.c:
-
-acpi_status acpi_ev_acquire_global_lock(u16 timeout)
-{
-    ...
-    u8 acquired =3D FALSE;
-    ...
-    ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
-    if (acquired) ...
-}
-
-acpi_status acpi_ev_release_global_lock(void)
-{
-    u8 pending =3D FALSE;
-    ...
-   ACPI_RELEASE_GLOBAL_LOCK(acpi_gbl_FACS, pending);
-   if (pending) ...
-}
-
-These functions are also defined for ia64, so I didn't want to change
-the return value. But ia64 is going to be retired, and this opens the
-optimization opportunity.
-
-Uros.
+	Andrew
