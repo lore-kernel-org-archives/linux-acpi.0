@@ -2,111 +2,120 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D33C6FD1F
-	for <linux-acpi@archiver.kernel.org>; Wed, 22 Mar 2023 20:33:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA22BC6FD1F
+	for <linux-acpi@archiver.kernel.org>; Wed, 22 Mar 2023 20:42:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231953AbjCVUd2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 22 Mar 2023 16:33:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36048 "EHLO
+        id S230216AbjCVUmU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 22 Mar 2023 16:42:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231960AbjCVUdJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2023 16:33:09 -0400
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EB317FD71;
-        Wed, 22 Mar 2023 13:24:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=wPtgvS4lUEBCW56NBEDqzgXIhgHMsvplcJPqCgZkucQ=; b=uE65kOKtuWARTEIImwzqtSNujI
-        ywf123h55UN4uhhZFLPdZqLArBKBI/H+cvoFtKR2/nrJ0/KWEkzSaBljRjwcfcGAO6bzEeE+IdOgO
-        9ngcseH6ApCLR2EMGkLppEaj4AsTZKEpSwqNKGbY+9MiZ92vX88qgH3cFnutllOE2gYqs+fWR7gd0
-        27kevwuzNZ+Q0QvzkypWj7uH7gl41RlycArooulMjHAImunzoV3ySzDELf4/gfdrXWHs766FRcjXR
-        n7My9MAM0mUtAXiROCXxye6mbKOQl77WcZNWdKXnVFOvrEgAmRLtpV89CfruIi6d+9FrhhQo6Q5/4
-        3TGhyqsg==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:60688)
-        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <linux@armlinux.org.uk>)
-        id 1pf4wG-0003sE-WE; Wed, 22 Mar 2023 20:20:05 +0000
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
-        (envelope-from <linux@shell.armlinux.org.uk>)
-        id 1pf4wE-0000eo-Tg; Wed, 22 Mar 2023 20:20:02 +0000
-Date:   Wed, 22 Mar 2023 20:20:02 +0000
-From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
-To:     Andrew Lunn <andrew@lunn.ch>
-Cc:     Heiner Kallweit <hkallweit1@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-acpi@vger.kernel.org,
-        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Vladimir Oltean <olteanv@gmail.com>
-Subject: Re: [PATCH RFC net-next 5/7] net: dsa: avoid DT validation for
- drivers which provide default config
-Message-ID: <ZBti8rZBoTrgLpOa@shell.armlinux.org.uk>
-References: <ZBrtqPW29NnxVoEc@shell.armlinux.org.uk>
- <E1pex8a-00Dvo3-G7@rmk-PC.armlinux.org.uk>
- <db06c9d7-9ad7-42f0-9b40-6e325f6bcc62@lunn.ch>
- <ZBtgaAGkqQ7JVvoP@shell.armlinux.org.uk>
- <ae2c68da-2059-40f3-ad77-e1b6c23d28e5@lunn.ch>
+        with ESMTP id S230182AbjCVUmF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2023 16:42:05 -0400
+Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADB64848DB;
+        Wed, 22 Mar 2023 13:34:28 -0700 (PDT)
+Received: by mail-yb1-xb33.google.com with SMTP id e71so22574429ybc.0;
+        Wed, 22 Mar 2023 13:34:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1679517268;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OiCmR8SN+GLyUIUi6qfPNaqR2nTEBZHOI1Achc59hqY=;
+        b=GYzbYtSRXmK3Ib4jq8P5EgFEy/9nL4KPrIy4QfUsI6ofktsoYPdRWrkN171WmTJiUP
+         iskkjLojIgwXTZcToFnONt83DU8a8UUd9/zfRgChVJ1k4yvmbYK9As+yhGQvYcqSRc7n
+         kuF+kdIuxuKHrLXi9ta2Gn8SBRMOnGeIU/lFZ/rleSjifKLWwaxetRHqHvFfEKrsSEi5
+         b6vmFkHnQyKbzlcgBraFVcqoiYFO4strpoDG0WZVzKcDtclN76oRvLzmTciKzkrHeCFR
+         q18hq7QoHCpGIDfC/xNeplcjJIaJEAT1jUfr3iqK2FWOYnOVGfcMKKO5j7SDubcoHHob
+         eh0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1679517268;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OiCmR8SN+GLyUIUi6qfPNaqR2nTEBZHOI1Achc59hqY=;
+        b=drr0N+gcqJ6Nmz7DzLbaozlARjariWO6A2sSB2MZqHLVt97idP6stmkngAGGAjSNK1
+         SN6wTIYwY7dLtLaVzzI1GzEH8uv3y/uutlRsMFE5j4XOOSNNVvfA6WFKJl6Eb41AdJL/
+         oxK7h5k+290vDiYFlDQ/KASw09vHru0G7cpfp0a5gwZeu5t3QDlk2/Utk/lGG/qIin2K
+         TgPQyOg/RISDoHoco/MWUVPX/6cm5O2A4K/OY7blCDVZo8dDQkyaqKb1iFforKcru0FI
+         sDGdQ5+BDXmmSZwmuQNcRRgHDK5vFtFSXi1SM4EgUxbGrqME7vHHsLaqB/CT5z15LLD8
+         Nk6A==
+X-Gm-Message-State: AAQBX9fzq9bQrxvlk9RVxIS5TfEqzt34EwKr+/wmjJpCSktqbAqtik43
+        tGmh6Pd8OIg+ok9qZLxwaC7c2THk7jfi+upge5njMQ4tyEmcrQ==
+X-Google-Smtp-Source: AKy350barmhAn2AE7ZHYIUsODj2m0RDoHWh0vsLit55+EPuL9XTzx/ZG5/S2fMbnhO9vXdsk3BCjKg46pWwSAoCj18U=
+X-Received: by 2002:a25:8712:0:b0:b6a:2590:6c7f with SMTP id
+ a18-20020a258712000000b00b6a25906c7fmr626401ybl.2.1679517267591; Wed, 22 Mar
+ 2023 13:34:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ae2c68da-2059-40f3-ad77-e1b6c23d28e5@lunn.ch>
-Sender: Russell King (Oracle) <linux@armlinux.org.uk>
+References: <20230320212012.12704-1-ubizjak@gmail.com> <CAJZ5v0jAysMPb180tMMmoGBEewENKn-fW7bwzGyMVv4wUrX=LA@mail.gmail.com>
+ <18431bad-8595-143b-e8af-14e448af871c@intel.com>
+In-Reply-To: <18431bad-8595-143b-e8af-14e448af871c@intel.com>
+From:   Uros Bizjak <ubizjak@gmail.com>
+Date:   Wed, 22 Mar 2023 21:34:16 +0100
+Message-ID: <CAFULd4YF7L2puma8O9m_hodjRP9tOyBDixpY-=ShPHjdbX8cGA@mail.gmail.com>
+Subject: Re: [PATCH v2] x86/ACPI/boot: Improve __acpi_acquire_global_lock
+To:     Dave Hansen <dave.hansen@intel.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, x86@kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Len Brown <lenb@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Mar 22, 2023 at 09:14:31PM +0100, Andrew Lunn wrote:
-> On Wed, Mar 22, 2023 at 08:09:12PM +0000, Russell King (Oracle) wrote:
-> > On Wed, Mar 22, 2023 at 07:51:22PM +0100, Andrew Lunn wrote:
-> > > On Wed, Mar 22, 2023 at 12:00:16PM +0000, Russell King (Oracle) wrote:
-> > > > When a DSA driver (e.g. mv88e6xxx) provides a default configuration,
-> > > > avoid validating the DT description as missing elements will be
-> > > > provided by the DSA driver.
-> > > > 
-> > > > Signed-off-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
-> > > > ---
-> > > >  net/dsa/port.c | 3 +++
-> > > >  1 file changed, 3 insertions(+)
-> > > > 
-> > > > diff --git a/net/dsa/port.c b/net/dsa/port.c
-> > > > index c30e3a7d2145..23d9970c02d3 100644
-> > > > --- a/net/dsa/port.c
-> > > > +++ b/net/dsa/port.c
-> > > > @@ -1951,6 +1951,9 @@ static void dsa_shared_port_validate_of(struct dsa_port *dp,
-> > > >  	*missing_phy_mode = false;
-> > > >  	*missing_link_description = false;
-> > > >  
-> > > > +	if (dp->ds->ops->port_get_fwnode)
-> > > > +		return;
-> > > 
-> > > I wounder if you should actually call it for the given port, and
-> > > ensure it does not return -EOPNOTSUPP, or -EINVAL, etc, because it is
-> > > not going to override that port? Then the DT values should be
-> > > validated?
-> > 
-> > Won't that mean that we need to implement the method for all DSA
-> > drivers?
-> 
-> I mean call it if it exists. We should be only providing overrides for
-> CPU and DSA ports, i think. So i expect it returns an error for user
-> ports? And then we want to continue with the validation with what
-> actually is in DT for user ports.
+On Wed, Mar 22, 2023 at 7:34=E2=80=AFPM Dave Hansen <dave.hansen@intel.com>=
+ wrote:
+>
+> On 3/22/23 11:24, Rafael J. Wysocki wrote:
+> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > or please let me know if you want me to pick this up (in which case it
+> > will require an ACK from one of the x86 maintainers).
+>
+> I'll pull it into x86/acpi.  I'm kinda shocked the compiler is so
+> clueless, but this makes the C code more readable anyway.  Win/win, I gue=
+ss.
 
-I suppose we could do - but before adding that complexity, I think we
-should have a real use case for it.
+Please note that the return form __acpi_{acquire,release}_global_lock
+is actually used as bool:
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
+acenv.h:
+
+int __acpi_acquire_global_lock(unsigned int *lock);
+int __acpi_release_global_lock(unsigned int *lock);
+
+#define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq) \
+((Acq) =3D __acpi_acquire_global_lock(&facs->global_lock))
+
+#define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq) \
+((Acq) =3D __acpi_release_global_lock(&facs->global_lock))
+
+evglock.c:
+
+acpi_status acpi_ev_acquire_global_lock(u16 timeout)
+{
+    ...
+    u8 acquired =3D FALSE;
+    ...
+    ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
+    if (acquired) ...
+}
+
+acpi_status acpi_ev_release_global_lock(void)
+{
+    u8 pending =3D FALSE;
+    ...
+   ACPI_RELEASE_GLOBAL_LOCK(acpi_gbl_FACS, pending);
+   if (pending) ...
+}
+
+These functions are also defined for ia64, so I didn't want to change
+the return value. But ia64 is going to be retired, and this opens the
+optimization opportunity.
+
+Uros.
