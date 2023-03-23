@@ -2,51 +2,51 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55166C76196
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Mar 2023 19:16:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A3B8C77B60
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Mar 2023 19:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231623AbjCWTQP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Mar 2023 15:16:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38324 "EHLO
+        id S231625AbjCWTQQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Mar 2023 15:16:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230399AbjCWTQN (ORCPT
+        with ESMTP id S231589AbjCWTQN (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2023 15:16:13 -0400
 Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 972C19000;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC42E9EEA;
         Thu, 23 Mar 2023 12:16:12 -0700 (PDT)
 Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 32NJ0Iuk026875;
-        Thu, 23 Mar 2023 19:16:08 GMT
+        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 32NJFHFs002308;
+        Thu, 23 Mar 2023 19:16:07 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=qcppdkim1;
- bh=AsLuWZMU0pEXcJlZrbFHzc7hyBlA/hDA5NWZw9Nnua0=;
- b=Zypnxxwjo+Hr7M4zzmbQ69wqnivBcUAY4c/aPoIksT382qE5yXCtYSI1NRd+51f/xzht
- uVZ8FMXijvx9GPu7ybyx4kKGJXH5Zj/8aBl4yxPzLcuUbRe/SHyRls7+xzLEK493EY19
- NKrwyST8eRvxpzr5Bn18TdiptR1lqAMkOVBvaGfkEn/htSAqD2vDy9TSDHdZgd2cwxmo
- p0TZjON2Neo2BiDyE++g0cDcK/0IyWG5CMpNQVEQHh21GUBHCwWeDFWVZmAZIRGoTNtZ
- wKE0OC0j1kMwD+hdFQHPVO8q4TMdPWKZxHQ3wZEkfjDSTHlZ8hnYzmbY0aUMYMibv6G+ fw== 
+ bh=Z651w3Zr09wKIQBW4iFS4x7U8CUJKlv+nPJ1dwbKYMA=;
+ b=EYgFbn7+9ceF/F6+D7Qsbz3ORFndurxbOSE4uhenGSx+Y/J++5c7iWi2l2Hl6vXNZALC
+ D+Yn6yq31yP339Aa4Q6nxK/Lshw4FsefAzCab189oBcyuKrVz1Hnq3C2Tyjmp3ajvBb0
+ juA6RKuhgYM3HCPjnufLuiQ6827rH8t/r3CqOr5FnXNxbla+LPWv4MjTwZdJVI3KYqjU
+ j03AOtoHSbLs7DwSSgm1kLVpnx7A8FFcEqJfGIPByRSTxFtFGbW5kQknPHYtLIMqpFIu
+ M2CZ5hIKN60AVevDVQCLl6v8siYrxZxNa/T+ktGiNw9ws+gJLjCJGSIPnUR8IrcPHeaA yA== 
 Received: from nasanppmta05.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3pgfv6a42m-1
+        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3pgfv6a42h-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 23 Mar 2023 19:16:08 +0000
+        Thu, 23 Mar 2023 19:16:07 +0000
 Received: from nasanex01b.na.qualcomm.com (nasanex01b.na.qualcomm.com [10.46.141.250])
-        by NASANPPMTA05.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 32NJG81i019385
+        by NASANPPMTA05.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 32NJG6sV019372
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 23 Mar 2023 19:16:08 GMT
+        Thu, 23 Mar 2023 19:16:06 GMT
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.41; Thu, 23 Mar 2023 12:16:07 -0700
+ 15.2.986.41; Thu, 23 Mar 2023 12:16:06 -0700
 From:   Elliot Berman <quic_eberman@quicinc.com>
-To:     Jassi Brar <jassisinghbrar@gmail.com>,
-        Sudeep Holla <sudeep.holla@arm.com>
+To:     Jassi Brar <jassisinghbrar@gmail.com>
 CC:     Elliot Berman <quic_eberman@quicinc.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
         <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <linux-arm-msm@vger.kernel.org>
-Subject: [PATCH v2 3/3] mailbox: pcc: Use mbox_bind_client
-Date:   Thu, 23 Mar 2023 12:15:27 -0700
-Message-ID: <20230323191527.1472695-4-quic_eberman@quicinc.com>
+Subject: [PATCH v2 1/3] mailbox: Allow direct registration to a channel
+Date:   Thu, 23 Mar 2023 12:15:25 -0700
+Message-ID: <20230323191527.1472695-2-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230323191527.1472695-1-quic_eberman@quicinc.com>
 References: <20230323191527.1472695-1-quic_eberman@quicinc.com>
@@ -58,13 +58,13 @@ X-ClientProxiedBy: nalasex01a.na.qualcomm.com (10.47.209.196) To
  nasanex01b.na.qualcomm.com (10.46.141.250)
 X-QCInternal: smtphost
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: dhYEWwJk9JL_NKKvzPjdnsCS3gGzx6lw
-X-Proofpoint-ORIG-GUID: dhYEWwJk9JL_NKKvzPjdnsCS3gGzx6lw
+X-Proofpoint-GUID: jMBalDA7of7syKMZqJw2ti_Cdso3AFJJ
+X-Proofpoint-ORIG-GUID: jMBalDA7of7syKMZqJw2ti_Cdso3AFJJ
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
  definitions=2023-03-23_12,2023-03-23_02,2023-02-09_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- suspectscore=0 adultscore=0 mlxlogscore=665 malwarescore=0 mlxscore=0
+ suspectscore=0 adultscore=0 mlxlogscore=980 malwarescore=0 mlxscore=0
  lowpriorityscore=0 spamscore=0 phishscore=0 impostorscore=0 clxscore=1015
  bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2303150002 definitions=main-2303230141
@@ -72,119 +72,55 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Use generic mbox_bind_client() to bind omap mailbox channel to a client.
+Support virtual mailbox controllers and clients which are not platform
+devices or come from the devicetree by allowing them to match client to
+channel via some other mechanism.
 
-mbox_bind_client is identical to the replaced lines, except that it:
- - Does the operation under con_mutex which prevents possible races in
-   removal path
- - Sets TXDONE_BY_ACK if pcc uses TXDONE_BY_POLL and the client knows
-   when tx is done. TXDONE_BY_ACK is already set if there's no interrupt,
-   so this is not applicable.
- - Calls chan->mbox->ops->startup. This is usecase for requesting irq:
-   move the devm_request_irq into the startup callback and unregister it
-   in the shutdown path.
-
-Tested-by: Sudeep Holla <sudeep.holla@arm.com>
+Tested-by: Sudeep Holla <sudeep.holla@arm.com> (pcc)
 Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
 ---
- drivers/mailbox/pcc.c | 82 ++++++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 37 deletions(-)
+ drivers/mailbox/mailbox.c      | 96 ++++++++++++++++++++++++----------
+ include/linux/mailbox_client.h |  1 +
+ 2 files changed, 69 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 105d46c9801b..3a025415c5d5 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -283,7 +283,7 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
- 	struct pcc_chan_info *pchan;
- 	struct mbox_chan *chan;
- 	struct device *dev;
--	unsigned long flags;
-+	int rc;
- 
- 	if (subspace_id < 0 || subspace_id >= pcc_chan_count)
- 		return ERR_PTR(-ENOENT);
-@@ -296,30 +296,9 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
- 	}
- 	dev = chan->mbox->dev;
- 
--	spin_lock_irqsave(&chan->lock, flags);
--	chan->msg_free = 0;
--	chan->msg_count = 0;
--	chan->active_req = NULL;
--	chan->cl = cl;
--	init_completion(&chan->tx_complete);
--
--	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
--		chan->txdone_method = TXDONE_BY_ACK;
--
--	spin_unlock_irqrestore(&chan->lock, flags);
--
--	if (pchan->plat_irq > 0) {
--		int rc;
--
--		rc = devm_request_irq(dev, pchan->plat_irq, pcc_mbox_irq, 0,
--				      MBOX_IRQ_NAME, chan);
--		if (unlikely(rc)) {
--			dev_err(dev, "failed to register PCC interrupt %d\n",
--				pchan->plat_irq);
--			pcc_mbox_free_channel(&pchan->chan);
--			return ERR_PTR(rc);
--		}
--	}
-+	rc = mbox_bind_client(chan, cl);
-+	if (rc)
-+		return ERR_PTR(rc);
- 
- 	return &pchan->chan;
+diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+index 4229b9b5da98..adf36c05fa43 100644
+--- a/drivers/mailbox/mailbox.c
++++ b/drivers/mailbox/mailbox.c
+@@ -317,6 +317,71 @@ int mbox_flush(struct mbox_chan *chan, unsigned long timeout)
  }
-@@ -333,23 +312,12 @@ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
-  */
- void pcc_mbox_free_channel(struct pcc_mbox_chan *pchan)
- {
--	struct pcc_chan_info *pchan_info = to_pcc_chan_info(pchan);
- 	struct mbox_chan *chan = pchan->mchan;
--	unsigned long flags;
+ EXPORT_SYMBOL_GPL(mbox_flush);
  
- 	if (!chan || !chan->cl)
- 		return;
- 
--	if (pchan_info->plat_irq > 0)
--		devm_free_irq(chan->mbox->dev, pchan_info->plat_irq, chan);
--
--	spin_lock_irqsave(&chan->lock, flags);
--	chan->cl = NULL;
--	chan->active_req = NULL;
--	if (chan->txdone_method == TXDONE_BY_ACK)
--		chan->txdone_method = TXDONE_BY_POLL;
--
--	spin_unlock_irqrestore(&chan->lock, flags);
-+	mbox_free_channel(chan);
- }
- EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
- 
-@@ -377,8 +345,48 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
- 	return pcc_chan_reg_read_modify_write(&pchan->db);
- }
- 
-+/**
-+ * pcc_startup - Called from Mailbox Controller code. Used here
-+ *		to request the interrupt.
-+ * @chan: Pointer to Mailbox channel to startup.
-+ *
-+ * Return: Err if something failed else 0 for success.
-+ */
-+int pcc_startup(struct mbox_chan *chan)
++static int __mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
 +{
-+	struct pcc_chan_info *pchan = chan->con_priv;
-+	int rc;
++	struct device *dev = cl->dev;
++	unsigned long flags;
++	int ret;
 +
-+	if (pchan->plat_irq > 0) {
-+		rc = devm_request_irq(chan->mbox->dev, pchan->plat_irq, pcc_mbox_irq, 0,
-+				      MBOX_IRQ_NAME, chan);
-+		if (unlikely(rc)) {
-+			dev_err(chan->mbox->dev, "failed to register PCC interrupt %d\n",
-+				pchan->plat_irq);
-+			return rc;
++	if (chan->cl || !try_module_get(chan->mbox->dev->driver->owner)) {
++		dev_dbg(dev, "%s: mailbox not free\n", __func__);
++		return -EBUSY;
++	}
++
++	spin_lock_irqsave(&chan->lock, flags);
++	chan->msg_free = 0;
++	chan->msg_count = 0;
++	chan->active_req = NULL;
++	chan->cl = cl;
++	init_completion(&chan->tx_complete);
++
++	if (chan->txdone_method	== TXDONE_BY_POLL && cl->knows_txdone)
++		chan->txdone_method = TXDONE_BY_ACK;
++
++	spin_unlock_irqrestore(&chan->lock, flags);
++
++	if (chan->mbox->ops->startup) {
++		ret = chan->mbox->ops->startup(chan);
++
++		if (ret) {
++			dev_err(dev, "Unable to startup the chan (%d)\n", ret);
++			mbox_free_channel(chan);
++			return ret;
 +		}
 +	}
 +
@@ -192,25 +128,94 @@ index 105d46c9801b..3a025415c5d5 100644
 +}
 +
 +/**
-+ * pcc_shutdown - Called from Mailbox Controller code. Used here
-+ *		to free the interrupt.
-+ * @chan: Pointer to Mailbox channel to shutdown.
++ * mbox_bind_client - Request a mailbox channel.
++ * @chan: The mailbox channel to bind the client to.
++ * @cl: Identity of the client requesting the channel.
++ *
++ * The Client specifies its requirements and capabilities while asking for
++ * a mailbox channel. It can't be called from atomic context.
++ * The channel is exclusively allocated and can't be used by another
++ * client before the owner calls mbox_free_channel.
++ * After assignment, any packet received on this channel will be
++ * handed over to the client via the 'rx_callback'.
++ * The framework holds reference to the client, so the mbox_client
++ * structure shouldn't be modified until the mbox_free_channel returns.
++ *
++ * Return: 0 if the channel was assigned to the client successfully.
++ *         <0 for request failure.
 + */
-+void pcc_shutdown(struct mbox_chan *chan)
++int mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
 +{
-+	struct pcc_chan_info *pchan = chan->con_priv;
++	int ret;
 +
-+	if (pchan->plat_irq > 0)
-+		devm_free_irq(chan->mbox->dev, pchan->plat_irq, chan);
++	mutex_lock(&con_mutex);
++	ret = __mbox_bind_client(chan, cl);
++	mutex_unlock(&con_mutex);
++
++	return ret;
 +}
++EXPORT_SYMBOL_GPL(mbox_bind_client);
 +
- static const struct mbox_chan_ops pcc_chan_ops = {
- 	.send_data = pcc_send_data,
-+	.startup = pcc_startup,
-+	.shutdown = pcc_shutdown,
+ /**
+  * mbox_request_channel - Request a mailbox channel.
+  * @cl: Identity of the client requesting the channel.
+@@ -340,7 +405,6 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
+ 	struct mbox_controller *mbox;
+ 	struct of_phandle_args spec;
+ 	struct mbox_chan *chan;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	if (!dev || !dev->of_node) {
+@@ -372,33 +436,9 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
+ 		return chan;
+ 	}
+ 
+-	if (chan->cl || !try_module_get(mbox->dev->driver->owner)) {
+-		dev_dbg(dev, "%s: mailbox not free\n", __func__);
+-		mutex_unlock(&con_mutex);
+-		return ERR_PTR(-EBUSY);
+-	}
+-
+-	spin_lock_irqsave(&chan->lock, flags);
+-	chan->msg_free = 0;
+-	chan->msg_count = 0;
+-	chan->active_req = NULL;
+-	chan->cl = cl;
+-	init_completion(&chan->tx_complete);
+-
+-	if (chan->txdone_method	== TXDONE_BY_POLL && cl->knows_txdone)
+-		chan->txdone_method = TXDONE_BY_ACK;
+-
+-	spin_unlock_irqrestore(&chan->lock, flags);
+-
+-	if (chan->mbox->ops->startup) {
+-		ret = chan->mbox->ops->startup(chan);
+-
+-		if (ret) {
+-			dev_err(dev, "Unable to startup the chan (%d)\n", ret);
+-			mbox_free_channel(chan);
+-			chan = ERR_PTR(ret);
+-		}
+-	}
++	ret = __mbox_bind_client(chan, cl);
++	if (ret)
++		chan = ERR_PTR(ret);
+ 
+ 	mutex_unlock(&con_mutex);
+ 	return chan;
+diff --git a/include/linux/mailbox_client.h b/include/linux/mailbox_client.h
+index 65229a45590f..734694912ef7 100644
+--- a/include/linux/mailbox_client.h
++++ b/include/linux/mailbox_client.h
+@@ -37,6 +37,7 @@ struct mbox_client {
+ 	void (*tx_done)(struct mbox_client *cl, void *mssg, int r);
  };
  
- /**
++int mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl);
+ struct mbox_chan *mbox_request_channel_byname(struct mbox_client *cl,
+ 					      const char *name);
+ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index);
 -- 
 2.39.2
 
