@@ -2,186 +2,91 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B203C74A5B
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Mar 2023 16:30:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B038FC76196
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Mar 2023 16:36:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232046AbjCWQaR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Mar 2023 12:30:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41578 "EHLO
+        id S232342AbjCWQgl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Mar 2023 12:36:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232302AbjCWQ3w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2023 12:29:52 -0400
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC24A29413;
-        Thu, 23 Mar 2023 09:29:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=TsjIJlHCr6RHkaUXi8Zsa2mLTRFAwmW9uSJPS9QodsY=; b=PLPKgya13Ye0I193Mm7ypYz1Sh
-        gHEoR+t54KikNxB29i+nD/MEbjw6QSsn4uPBWtTGovlxzpCi4N3mW80gXCYfuIbfatZsZGExGZRMd
-        nkxXxguxgGBS6hNiF+0+0S5tB+/31O/cUTIk+5SVQ7WGHiF3CCTHQmivyMyyqbOuUevK8EohkK59A
-        MWxop4LfcVGNxrsRhdxPNAqZwopN8sWogiDlJc0NRHhPTXXeMWjBtGWOylTawaDWiJdICXDhiK4Ys
-        G40q/5gBGxdpNuAbgAuvO6sLhfiKzm7qFVj5RmtIBGzx6Xv2LfCLrQn5hlezxVROZuqYmUkW6rtE3
-        CNJmLnuA==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:37188)
-        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <linux@armlinux.org.uk>)
-        id 1pfNop-0005S9-A7; Thu, 23 Mar 2023 16:29:39 +0000
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
-        (envelope-from <linux@shell.armlinux.org.uk>)
-        id 1pfNon-0001Wp-N6; Thu, 23 Mar 2023 16:29:37 +0000
-Date:   Thu, 23 Mar 2023 16:29:37 +0000
-From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Andrew Lunn <andrew@lunn.ch>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-acpi@vger.kernel.org,
-        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+        with ESMTP id S232313AbjCWQgY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2023 12:36:24 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 674C436448;
+        Thu, 23 Mar 2023 09:34:59 -0700 (PDT)
+Received: from zn.tnic (p5de8e687.dip0.t-ipconnect.de [93.232.230.135])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 809A61EC0666;
+        Thu, 23 Mar 2023 17:34:55 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1679589295;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=4sg0gkB9DRPOhlMDZ3zP/dpFav3wNu5TRPV6O3JS84Q=;
+        b=FyrzPcj0DL33qZdewBbLEPpJ1DHFdxbWP3v7Wcce+2+bLo4VhNzy7gZuttjXvFk7hZBOCS
+        ecsQYvzGAW+GdThqAEiKjSgEyu7kLtpNulEsxpV4BP5pH+8qhkKW+Wkp7UdWzULXSTsFwb
+        Y4qa5WnyTodkPt4/nRMIX5Ka24ZQZJI=
+Date:   Thu, 23 Mar 2023 17:34:50 +0100
+From:   Borislav Petkov <bp@alien8.de>
+To:     Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+Cc:     linux-kernel@vger.kernel.org,
+        Brijesh Singh <brijesh.singh@amd.com>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        "Kalra, Ashish" <ashish.kalra@amd.com>,
+        linux-crypto@vger.kernel.org,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Vladimir Oltean <olteanv@gmail.com>
-Subject: Re: [PATCH RFC net-next 3/7] net: dsa: use fwnode_get_phy_mode() to
- get phy interface mode
-Message-ID: <ZBx+cUbdSPxCRK2H@shell.armlinux.org.uk>
-References: <ZBrtqPW29NnxVoEc@shell.armlinux.org.uk>
- <E1pex8Q-00Dvnr-5y@rmk-PC.armlinux.org.uk>
- <ZBxcGXSVe0dlzKZb@smile.fi.intel.com>
- <ZBxiqJo470A7bkig@shell.armlinux.org.uk>
- <ZBxkZYXrfugz0gYw@smile.fi.intel.com>
- <ZBxm3XrQAfnmbHoF@shell.armlinux.org.uk>
- <ZBxpeLOmTMzqVTRV@smile.fi.intel.com>
- <ZBxu4FvyO2JDwmMq@shell.armlinux.org.uk>
- <ZBxxPYyNZrOQ6aVN@smile.fi.intel.com>
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org
+Subject: Re: [PATCH v3 0/8] Support ACPI PSP on Hyper-V
+Message-ID: <20230323163450.GGZBx/qpnclFnMaf7e@fat_crate.local>
+References: <20230320191956.1354602-1-jpiotrowski@linux.microsoft.com>
+ <20230322154655.GDZBsi75f6LnQStxSp@fat_crate.local>
+ <1d25221c-eaab-0f97-83aa-8b4fbe3a53ed@linux.microsoft.com>
+ <20230322181541.GEZBtFzRAMcH9BAzUe@fat_crate.local>
+ <ecf005b1-ddb9-da4c-4526-28df4806426c@linux.microsoft.com>
+ <20230323152342.GFZBxu/m3u6aFUDY/7@fat_crate.local>
+ <105d019c-2249-5dfd-e032-95944ea6dc8c@linux.microsoft.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZBxxPYyNZrOQ6aVN@smile.fi.intel.com>
-Sender: Russell King (Oracle) <linux@armlinux.org.uk>
+In-Reply-To: <105d019c-2249-5dfd-e032-95944ea6dc8c@linux.microsoft.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Mar 23, 2023 at 05:33:17PM +0200, Andy Shevchenko wrote:
-> On Thu, Mar 23, 2023 at 03:23:12PM +0000, Russell King (Oracle) wrote:
-> > On Thu, Mar 23, 2023 at 05:00:08PM +0200, Andy Shevchenko wrote:
-> > > On Thu, Mar 23, 2023 at 02:49:01PM +0000, Russell King (Oracle) wrote:
-> > > > On Thu, Mar 23, 2023 at 04:38:29PM +0200, Andy Shevchenko wrote:
-> > > > > On Thu, Mar 23, 2023 at 02:31:04PM +0000, Russell King (Oracle) wrote:
-> > > > > > On Thu, Mar 23, 2023 at 04:03:05PM +0200, Andy Shevchenko wrote:
-> > > > > > > On Wed, Mar 22, 2023 at 12:00:06PM +0000, Russell King (Oracle) wrote:
-> 
-> ...
-> 
-> > > > > > > > +	struct fwnode_handle *fwnode;
-> > > > > > > 
-> > > > > > > > +	fwnode = of_fwnode_handle(dp->dn);
-> > > > > > > 
-> > > > > > > 	const struct fwnode_handle *fwnode = of_fwnode_handle(dp->dn);
-> > > > > > > 
-> > > > > > > ?
-> > > > > > 
-> > > > > > Why const?
-> > > > > 
-> > > > > Do you modify its content on the fly?
-> > > > 
-> > > > Do you want to litter code with casts to get rid of the const?
-> > > > 
-> > > > > For fwnode as a basic object type we want to reduce the scope of the possible
-> > > > > modifications. If you don't modify and APIs you call do not require non-const
-> > > > > object, use const for fwnode.
-> > > > 
-> > > > Let's start here. We pass this fwnode to fwnode_get_phy_mode():
-> > > > 
-> > > > include/linux/property.h:int fwnode_get_phy_mode(struct fwnode_handle *fwnode);
-> > > > 
-> > > > Does fwnode_get_phy_mode() alter the contents of the fwnode? Probably
-> > > > not, but it doesn't take a const pointer. Therefore, to declare my
-> > > > fwnode as const, I'd need to cast the const-ness away before calling
-> > > > this.
-> > > 
-> > > So, fix the fwnode_get_phy_mode(). Is it a problem?
-> > 
-> > No, I refuse. That's for a different patch set.
-> 
-> I don't disagree, but it can be done as a precursor to your RFC.
+On Thu, Mar 23, 2023 at 05:11:26PM +0100, Jeremi Piotrowski wrote:
+> That same interface is exposed by physical hardware+firmware to the underlying
+> Hyper-V.
 
-And you want that merged through net-next?
+Let me see if I understand it correctly: Hyper-V *baremetal* is using
+the same ASPT spec to to talk to the *physical* PSP device?
 
-> > > > Then there's phylink_create(). Same problem.
-> > > 
-> > > So, fix that. Is it a problem?
-> > 
-> > No for the same reason.
-> > 
-> > > > So NAK to this const - until such time that we have a concerted effort
-> > > > to making functions we call which do not modify the "fwnode" argument
-> > > > constify that argument. Otherwise it's just rediculously crazy to
-> > > > declare a variable const only to then litter the code with casts to get
-> > > > rid of it at every call site.
-> > > > 
-> > > > Please do a bit of research before making suggestions. Thanks.
-> > > 
-> > > So, MAK to your patch. You can fix that, and you know that.
-> > 
-> > Sorry, I don't accept your NAK. While you have a valid point about
-> > these things being const, that is not the fault of this patch series,
-> > and is something that should be addressed separately.
-> 
-> Yes, and since it's not a big deal it can be done as a precursor work.
-> 
-> > The lack of const-ness that has been there for quite some time is no
-> > reason to NAK a patch that has nothing to do with this.
-> 
-> Instead of saying politely that you didn't agree of the necessity of the asked
-> changes, you shoowed your confrontational manner with a strong NAK. Let's not
-> escalate it further, it won't play well with a nervous system.
-> 
-> > > P.S. Please, move that phy thingy away from property.h, it doesn't belong
-> > > there.
-> > 
-> > Again, that's a subject for a separate patch.
-> > 
-> > I will re-post this in due course and ignore your NAK (due to your
-> > lack of research, and confrontational nature.)
-> 
-> Don't make a drama out of it. Many maintainers are asking for a small cleanups
-> before applying a feature.
-> 
-> Nevertheless, since I'm neither a net nor a DSA maintainer, I have only thing
-> to push is to move the PHY APIs out from the property.h. The rest is up to you.
+Is that ASPT interface to talk to the PSP used by the L0 hypervisor?
 
-Really? In your previous message, you were NAKing the patch based on the
-lack of "const"ness. So you've changed your tune to something that was
-a request in a post-script (PS).
+Or does the L0 HV have a normal driver, similar to the Linux one,
+without the functionality this ASPT spec provides?
 
-If you had done due diligence, you would have realised that its
-implementation is in property.c, so presumably if you had known that
-either (a) you wouldn't be making the request or (b) you would be
-asking for that to be moved as well.
+> So it wasn't a matter of Microsoft architects coming up with a
+> guest-host interface but rather exposing the virtual hardware in the same
+> way as on a physical server.
 
-Now, where do you expect it to be moved to? There is nowhere convenient
-in net/ nor drivers/net/ for it today. It's corresponding DT equivalent
-is in net/core/of_net.c, but that is only built if CONFIG_OF is enabled
-which is unsuitable for the fwnode version. I guess we could have a
-net/core/fwnode.c just for this single function... then where do we put
-the prototype? include/linux/fwnode_net.h (which would be a new header
-just for this), and updating the five drivers for this change.
+So if you want to expose the same interface to the L1 guest, why isn't
+Hyper-V emulating an ACPI device just like any other functionality? Why
+does it need to reach into the interrupt handling internals?
 
-In any case, due to the way netdev works, this should *not* be part
-of this patch series, because if there's a reason to revert this
-series, we wouldn't want the move of fwnode_get_phy_mode() to also
-get reverted - that would potentially cause chaos.
+I'd expect that the L0 HV would emulate a PSP device, the L1 would
+simply load the Linux PSP device driver and everything should just work.
+
+What's the point of that alternate access at all?
+
+But I might still be missing something...
 
 -- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
