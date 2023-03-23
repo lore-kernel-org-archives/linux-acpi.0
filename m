@@ -2,52 +2,54 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CD58C74A5B
-	for <linux-acpi@archiver.kernel.org>; Thu, 23 Mar 2023 19:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C058C74A5B
+	for <linux-acpi@archiver.kernel.org>; Thu, 23 Mar 2023 19:16:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230267AbjCWTQC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 23 Mar 2023 15:16:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38112 "EHLO
+        id S229773AbjCWTQP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 23 Mar 2023 15:16:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229951AbjCWTQB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2023 15:16:01 -0400
+        with ESMTP id S231611AbjCWTQN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2023 15:16:13 -0400
 Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E082A46BD;
-        Thu, 23 Mar 2023 12:15:53 -0700 (PDT)
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 32N9c24I012513;
-        Thu, 23 Mar 2023 19:15:49 GMT
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F407E83E6;
+        Thu, 23 Mar 2023 12:16:11 -0700 (PDT)
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 32N42B8s016035;
+        Thu, 23 Mar 2023 19:16:08 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=qcppdkim1;
- bh=E6sRcFYLj/ODfv6xpWX7Y3ex6yAZfSKdj+3I1ftGCPc=;
- b=dfjtRitVi3rHkCqy7A5ssteI91mhJT2f4u1NhkO7Ce56wZVpWjhBe5KYb5aw9Slr7fEH
- kLnuvup0DlsiXh7km5HOrq0FXJ4QiwQUgtsILGMg/9b5DtdH5lSaYLCiISxjsj7iLBYP
- EIwpJY/CWMsJGQdW69qzJvSE0x7nPXuWcdWg+XVLhqimZuIlhMaIi4YMSA9xr/9ST2ap
- S+Ca4szjlgiwbDGeLJE8Q2+fUkC8bJu+vbe2zH32jDyZzJKe3xJf3z++W3JukK+SnVQy
- iR4IFbE7iwBuVYYElwkWoWOAYqk6ox7HbQEob7C+vjD9joX927BlJSKahgIeLz8PBQOV Iw== 
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=qcppdkim1;
+ bh=8YqbOZ+zPszKRteZJwJzU3+KjVpZYfDq8pQt6ZMxOqQ=;
+ b=c/2ZeS9Lq8bBFdeRAmuvtv7bUMPmDVAy1fB2Cg2h1ad+kKfXAf8pUSjWEyzAmMXV94Z5
+ /M5G5bv9M2DJyKHYUk2D7eZBjIEhZZ/yNl7LAAjmIh2UZ+RiYZD8zpopLJnU6mgjtMEo
+ rjNrQC0DDfaBabVaFeQ0jUoRhliTlocmIMVaWU22SvZzev+ultxZSbgHYxDq1S1PocTT
+ y/Dj4pcNhBCEiZpkrTnOLwOuXK5EEkg+yn5RvB47uHLJRNKJ4MPEDJdI7AO6JrWshYXk
+ lOmcijwNuDiVXkgtaXF53aLgeCfxPaPnG5ovGjBhFpqINVtu24LYycWVKJZtkciGSRpj xw== 
 Received: from nasanppmta01.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3pgm9x9g2t-1
+        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3pgfaxj6u4-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 23 Mar 2023 19:15:49 +0000
+        Thu, 23 Mar 2023 19:16:08 +0000
 Received: from nasanex01b.na.qualcomm.com (nasanex01b.na.qualcomm.com [10.46.141.250])
-        by NASANPPMTA01.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 32NJFnqC002479
+        by NASANPPMTA01.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 32NJG733002838
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 23 Mar 2023 19:15:49 GMT
+        Thu, 23 Mar 2023 19:16:07 GMT
 Received: from hu-eberman-lv.qualcomm.com (10.49.16.6) by
  nasanex01b.na.qualcomm.com (10.46.141.250) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.41; Thu, 23 Mar 2023 12:15:48 -0700
+ 15.2.986.41; Thu, 23 Mar 2023 12:16:06 -0700
 From:   Elliot Berman <quic_eberman@quicinc.com>
 To:     Jassi Brar <jassisinghbrar@gmail.com>
 CC:     Elliot Berman <quic_eberman@quicinc.com>,
         Sudeep Holla <sudeep.holla@arm.com>,
         <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
         <linux-arm-msm@vger.kernel.org>
-Subject: [PATCH v2 0/3] mailbox: Allow direct registration to a channel
-Date:   Thu, 23 Mar 2023 12:15:24 -0700
-Message-ID: <20230323191527.1472695-1-quic_eberman@quicinc.com>
+Subject: [PATCH v2 2/3] mailbox: omap: Use mbox_bind_client
+Date:   Thu, 23 Mar 2023 12:15:26 -0700
+Message-ID: <20230323191527.1472695-3-quic_eberman@quicinc.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230323191527.1472695-1-quic_eberman@quicinc.com>
+References: <20230323191527.1472695-1-quic_eberman@quicinc.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -56,54 +58,76 @@ X-ClientProxiedBy: nalasex01a.na.qualcomm.com (10.47.209.196) To
  nasanex01b.na.qualcomm.com (10.46.141.250)
 X-QCInternal: smtphost
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: NLQngCub2PMNedec7vYB8ohVtuvdcKrQ
-X-Proofpoint-ORIG-GUID: NLQngCub2PMNedec7vYB8ohVtuvdcKrQ
+X-Proofpoint-GUID: 1sPoIAR6C65FD0lVjBL4uL4DUAzPP1sy
+X-Proofpoint-ORIG-GUID: 1sPoIAR6C65FD0lVjBL4uL4DUAzPP1sy
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
  definitions=2023-03-23_12,2023-03-23_02,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
- mlxlogscore=709 adultscore=0 spamscore=0 impostorscore=0
- priorityscore=1501 clxscore=1011 mlxscore=0 bulkscore=0 lowpriorityscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 mlxscore=0
+ lowpriorityscore=0 malwarescore=0 phishscore=0 impostorscore=0
+ adultscore=0 spamscore=0 suspectscore=0 mlxlogscore=684 clxscore=1015
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2303150002 definitions=main-2303230141
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Two mailbox controllers have channel/client binding mechanisms that are
-controller-specific and not using the devicetree binding mechanisms. Mailbox
-channel/client is conceptually done in two steps: selecting the channel
-and binding the selected to channel to a client. Channel selection is sometimes
-controller specific (pcc and omap are examples). The channel/client binding
-code is all the same.
+Use generic mbox_bind_client() to bind omap mailbox channel to a client.
 
-This small series de-duplicates and refactors the channel/client binding
-into a common framework function: "mbox_bind_client" which all of the
-channel selection mechanisms can use.
+mbox_bind_client is identical to the replaced lines, except that it:
+ - Does the operation under con_mutex which prevents possible races in
+   removal path
+ - Sets TXDONE_BY_ACK if omap uses TXDONE_BY_POLL. omap uses
+   TXDONE_BY_IRQ, so this check is not applicable.
+ - Calls chan->mbox->ops->startup, if available. omap doesn't have, so
+   this is not applicable.
 
-I found this duplicate code while working on the support for Gunyah hypervisor
-message queues [1]. I've only been able to compile-test omap-mailbox and pcc,
-however it is a straightforward conversion here.
+Signed-off-by: Elliot Berman <quic_eberman@quicinc.com>
+---
+ drivers/mailbox/omap-mailbox.c | 22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
-[1]: https://lore.kernel.org/all/20230120224627.4053418-9-quic_eberman@quicinc.com/
-
-Changes since v1:
- - Rebase to https://git.linaro.org/landing-teams/working/fujitsu/integration.git/log/?h=mailbox-for-next
- - Add Tested-By from Sudeep (thanks!)
-
-Elliot Berman (3):
-  mailbox: Allow direct registration to a channel
-  mailbox: omap: Use mbox_bind_client
-  mailbox: pcc: Use mbox_bind_client
-
- drivers/mailbox/mailbox.c      | 96 ++++++++++++++++++++++++----------
- drivers/mailbox/omap-mailbox.c | 22 ++------
- drivers/mailbox/pcc.c          | 82 ++++++++++++++++-------------
- include/linux/mailbox_client.h |  1 +
- 4 files changed, 118 insertions(+), 83 deletions(-)
-
-
-base-commit: 6ccbe33a39523f6d62b22c5ee99c6695993c935e
+diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
+index 098c82d87137..dfe82a5ff403 100644
+--- a/drivers/mailbox/omap-mailbox.c
++++ b/drivers/mailbox/omap-mailbox.c
+@@ -417,8 +417,6 @@ struct mbox_chan *omap_mbox_request_channel(struct mbox_client *cl,
+ 	struct device *dev = cl->dev;
+ 	struct omap_mbox *mbox = NULL;
+ 	struct omap_mbox_device *mdev;
+-	struct mbox_chan *chan;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	if (!dev)
+@@ -441,23 +439,11 @@ struct mbox_chan *omap_mbox_request_channel(struct mbox_client *cl,
+ 	if (!mbox || !mbox->chan)
+ 		return ERR_PTR(-ENOENT);
+ 
+-	chan = mbox->chan;
+-	spin_lock_irqsave(&chan->lock, flags);
+-	chan->msg_free = 0;
+-	chan->msg_count = 0;
+-	chan->active_req = NULL;
+-	chan->cl = cl;
+-	init_completion(&chan->tx_complete);
+-	spin_unlock_irqrestore(&chan->lock, flags);
+-
+-	ret = chan->mbox->ops->startup(chan);
+-	if (ret) {
+-		pr_err("Unable to startup the chan (%d)\n", ret);
+-		mbox_free_channel(chan);
+-		chan = ERR_PTR(ret);
+-	}
++	ret = mbox_bind_client(mbox->chan, cl);
++	if (ret)
++		return ERR_PTR(ret);
+ 
+-	return chan;
++	return mbox->chan;
+ }
+ EXPORT_SYMBOL(omap_mbox_request_channel);
+ 
 -- 
 2.39.2
 
