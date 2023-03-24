@@ -2,134 +2,141 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DB2BC76195
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 20:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBD82C6FD1C
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 20:26:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231826AbjCXU0o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:26:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40860 "EHLO
+        id S231922AbjCXU0p (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:26:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231770AbjCXU0m (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 16:26:42 -0400
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1A001BAF2;
-        Fri, 24 Mar 2023 13:26:37 -0700 (PDT)
+        with ESMTP id S231867AbjCXU0n (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 16:26:43 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB4F1CAF7;
+        Fri, 24 Mar 2023 13:26:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1679689591; i=w_armin@gmx.de;
-        bh=iBwcc9Yx9rNUnbmKzEiEQczbMJUikxgDl+84KQ+TaMc=;
+        t=1679689594; i=w_armin@gmx.de;
+        bh=Kf5tr2Sg9Jqyp+j3xyIw9/QWCzBL3T6tk+vssRythnI=;
         h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=bZusCgVqqvjz9PVIOZtmG+JPZj2CK/4ZTrp33vSdPDCxEreJMXgou0FtssiE0N0Y1
-         hNWEkelkCsrkC3uC/LaLvwU/Ub5zdZAohvPZ6LXh81PtQNT809nsNatLOeGEhD7h4T
-         Xt1ZYjnhvPpNSzvpwXzi6meGeXCxqbh3/LgCGLPZqQOsc2GO2p2TqqcC2nSG/aB2gp
-         alQAnn8OUjX5Kxf9EFRMVJJQ5u9j5GlYP5L2yZkgY38CVFvrnUJZBRegja5WGNf89O
-         UaYz3brtOxTDE+wQ0l5sZq8ioS3lhJdnRfihIWSoGmI1QltkXk+AmxGNzKg9YqaZfZ
-         6kiBUufmQKhvg==
+        b=jz7UK7X44cZiLlMnPjfqrmg9DTnMY1c4CjqpJ16w6yZIHp3H+D8oGuduCYwJYXzkd
+         BkktoJKPNcaGIemCrhYZqBqpX1YGNlC9d+butJu9yVmQWmdvI7IMZ0hoIrCNCETGqC
+         iZWmUe/6RnKrg/BdQbqOa2gDHV7tVb9Nw0s3mpyIqzCgeiUNlDYfy6CFKs+ey51QFA
+         bqdnT4yeOAgKpW3sErgKrF0VFJaQWBVkgr5sx28WnPiozwZjrbzi6Vwt8UaJSXOtDN
+         /WhiATvc0FG8MnpC31nPZB32eldaDGb4sMjTlQfK/pj1F8hAuqgNq1tX02DCJf2tav
+         EobTL6A7TwIKQ==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
- (mrgmx105 [212.227.17.168]) with ESMTPSA (Nemesis) id
- 1MC30P-1plcLK2G45-00CRBo; Fri, 24 Mar 2023 21:26:31 +0100
+ (mrgmx004 [212.227.17.190]) with ESMTPSA (Nemesis) id
+ 1M5QJD-1peyVz0Wxx-001V9f; Fri, 24 Mar 2023 21:26:34 +0100
 From:   Armin Wolf <W_Armin@gmx.de>
 To:     rafael@kernel.org, lenb@kernel.org
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 1/3] ACPI: EC: Limit explicit removal of query handlers to custom query handlers
-Date:   Fri, 24 Mar 2023 21:26:26 +0100
-Message-Id: <20230324202628.76966-2-W_Armin@gmx.de>
+Subject: [PATCH v3 3/3] ACPI: SBS: Fix handling of Smart Battery Selectors
+Date:   Fri, 24 Mar 2023 21:26:28 +0100
+Message-Id: <20230324202628.76966-4-W_Armin@gmx.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230324202628.76966-1-W_Armin@gmx.de>
 References: <20230324202628.76966-1-W_Armin@gmx.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:2ij0/krkURmRj6a63ZT1bdR+W0yrB6Cqe37dgn3hdvawhyroSfm
- 14UMQKm0JXaWPIpnkSS7aK5btkKmoBLa9McnkbEyHSbcXDTxoJrl77LRUuGALmLByEzmpaE
- R3iGF3eHQquWApSeZn1/KuFs6w/bcOgDTxj0/lxOCaD0E1IoH9Wo39Frvd7cATzOvt5fu5Q
- cYNJNZbS920cv1mD3wOyA==
-UI-OutboundReport: notjunk:1;M01:P0:vxnn8PaQXUY=;DPaNlF7qzJNDDfjL6hDG1temh6E
- JoSdMbgWrMHeXI6XGO93I8+ZF5FRxxf46nP4ZhXjj3zHj3ZdOFW6pH8jRMQo1MAOjToJdwokC
- 5SCc838D1HxzYZeTNPcoWCDZE4GzB1i/q0ZRhkIV+owhCfqgETKfrgqxJVZgcso6bjUpJA4lC
- Uw4+cS7FAmbaK9iDaOU+c16a7YQTAlV7EHu/pIr7UbIfrVhFQLpE76fvk8Ja3zIG7jZMcilzB
- 7mrWASvNRCmjtkDqiFuqccpfIaHLr00bS38PrTju6sxZxKW+qlXzS3zmdInc3YcUaR/4r7R2O
- Nz/h0UIL469w2fnObbjJxZv8akX0wQa5wzMkwutCU/ChVelC0Vlr1zSl/Sl5bIh0EiqjItHHd
- nzGMdMYVOstnxS1URlgjJcRbLFvfdw+GE161wWl9nMGfnZY5fVO3ZccNj+Q1U47v/h05sKh72
- LpOimQIDt3LnqQXjhIzAvtd9mpY2uwLjvFXQhFMc4YT+umdECUAzHgHJq6Rj9dX9slyY+nPD+
- Uls2bX8PodmAU7F404xdFXJRO9ccxbd7tijg1lTGcu6EAhfGpNwiKogsbvfrzrB10zpFtWFB4
- log0/TTOgI9kEZGZyXf3SkQdDsfu8fBX4g6IwSwLqYGQ19w/X4l6vwX1P/JbE8ToiqwnlgB7T
- J7TPz9zUSSzaFQY/2Aqi8vTQ/ijF0KxhctddadhXDz/ON+tZz0sop/lYNvRJ6GxjxiCt2Y9Zq
- 1CHCpTCtgZ7E+oB+2T5vl5Cq977VYFBf/0q6Mttyj4+ls2vz9BTsRpWd1MMRCtwYJu+/TRfnJ
- UqISKu1R6uqDLyjv0qUUOpwnVywwKuIO9dqXIHa6nLGkVd+H/E1HXkMW14/6ssF9is45EBxf2
- Dz2sB+ljAVWp60p+baJDfbocThzHd3S+OmzQ9BcFH0z49heVj+EvVMzaatz/j+9vcseeLFH/A
- Ab6H/0UMk4t5aJu6wnJDHfW55/w=
+X-Provags-ID: V03:K1:6kCTV4lmq1MUZg5UgLFBxpfVLzcFsskWeHIn+zzN7i5VpibZyna
+ iFFCDhPiMsHdnksiw4Lhi3wy7j6sJxeBtonoQOj5LjtGZ/jyeLZviH6nq9U3lIds6b5ulin
+ 5rqOUfNx/pZvx1sHu4AFKpFtnoFyoWv3oId5GQwlevdMfWhAk0pLKd4fgppjsISe82ApVzd
+ OLWM0E6MVsDIJ0N6SRPvg==
+UI-OutboundReport: notjunk:1;M01:P0:KKOaR6Ombfk=;oog638bcX83iT+9+zEnhIL7S1I6
+ dpcRL/Rb8GgrtwD7OZe5jsFs5Q07FyhWoCDkCvsuV5/8oKy6DLxNf7OMAqzYpSY03tVvdcaUt
+ rlhC0ONyFg1b9sOGP5YyNbrlekj14bLdy0weIpxZNKRs6Lyi7Z3WSo/zDJ0O/Pc5s64gJWbD7
+ 4tR/KAskbeWUnHHhn0cCyFgRttkrIdspSzq9tRMDAf3ZHwN2pXQeS8CIYFTyQPEpQM+wjfY/m
+ T5qvr4/L4dlBBXoejTl3AqFZEHK5NDwrMyshslj2YY3SwTuMhI3RkODbpBeijBglDYJsWSKEt
+ BAvoA0IOW3o0py/aiL5Ah1305jd4fkhGOM1Lnr28Kv4E6MQAQPPUoK247lJHoYBMJNTJbRadf
+ 4MMveFi37hK/Ac4nYqo5HTmaxNmZCKCqSIRBUvIiMGOXdG2RARhWKHlV68bGRIt6pUv4RbpRw
+ Ydb8Xg1jEaeD/GtV/2BJMP1kWXOKTo62uu5Mjjt+rOdUdOybWv+KOHSyboPrpSXpGTw1F/SPx
+ dVhaVnUgC8zU/Pr7VZ+RNv8A/6rIP8XhsLMoQB9HzGaGqm9OXMrmzMn9z0QYeBWcmanZdZth6
+ N84ej2UUdHF7uAAQAyDNVWcxa2t07pxSKIsM3i3Pq19FmUNUQv/qsxpL77qySuaQS8ilJJF0V
+ bNFhSk8jteU5i2MmIe+mvQsKgOJ+Eqgc1BLEOIH5UBbpPb6Cz8yL8OPgeCPdQc9ayMMl+rvbW
+ osNMqiuspx29K0wxIl2pK0K9LmrRxVeQ/DZckdZ85l8Pw6UzALcx7TsDMKrLkfvlZOGpZ88S2
+ qYIiqCE9BL+PntGpQs8p6lVJ296Xfc7d1MBAdgsoJ6nxFpn36Sb89bCP1LKr/tY5rxJefjCS4
+ d/eC1dBdVRbp3qQ02eBIk4Vbx+K2weBsEfk67PoB4kDcoK5MzSy+GMrj73HQGQSzxlrbemwut
+ MgPSth72gZePeUxC1Tu9+dAhX4A=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-According to the ACPI spec part 5.6.4.1.2, EC query handlers discovered
-thru ACPI should not be removed when a driver removes his custom query
-handler. On the Acer Travelmate 4002WLMi for example, such a query
-handler is used as a fallback to handle the EC SMBus alert when no driver
-is present.
-Change acpi_ec_remove_query_handlers() so that only custom query
-handlers are removed then remove_all is false. Query handlers discovered
-thru ACPI will still get removed when remove_all is true, which happens
-on device removal. Also add a simple check to ensure that
-acpi_ec_add_query_handler() is always called with either handle or func
-being set, since custom query handlers are detected based whether
-handlers->func is set or not.
+The "Smart Battery Selector" standard says that when writing
+SelectorState (0x1), the nibbles which should not be modified
+need to be masked with 0xff. This is necessary since in contrast
+to a "Smart Battery Manager", the last three nibbles are writable.
+
+Failing to do so might trigger the following cycle:
+1. Host accidentally changes power source of the system (3rd nibble)
+   when selecting a battery.
+2. Power source is invalid, Selector changes to another power source.
+3. Selector notifies host that it changed the power source.
+4. Host re-reads some batteries.
+5. goto 1 for each re-read battery.
+
+This loop might also be entered when a battery which is not present
+is selected for SMBus access. In the end some workqueues fill up,
+which causes the system to lockup upon suspend/shutdown.
+
+Fix this by correctly masking the value to be written, and avoid
+selecting batteries which are absent.
 
 Tested on a Acer Travelmate 4002WLMi.
 
 Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 =2D--
- drivers/acpi/ec.c | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ drivers/acpi/sbs.c | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 105d2e795afa..f84905dbd8ca 100644
-=2D-- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1083,9 +1083,12 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u=
-8 query_bit,
- 			      acpi_handle handle, acpi_ec_query_func func,
- 			      void *data)
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index e90752d4f488..94e3c000df2e 100644
+=2D-- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -473,23 +473,32 @@ static const struct device_attribute alarm_attr =3D =
+{
+    ----------------------------------------------------------------------=
+---- */
+ static int acpi_battery_read(struct acpi_battery *battery)
  {
--	struct acpi_ec_query_handler *handler =3D
--	    kzalloc(sizeof(struct acpi_ec_query_handler), GFP_KERNEL);
-+	struct acpi_ec_query_handler *handler;
-+
-+	if (!handle && !func)
-+		return -EINVAL;
+-	int result =3D 0, saved_present =3D battery->present;
++	int result, saved_present =3D battery->present;
+ 	u16 state;
 
-+	handler =3D kzalloc(sizeof(*handler), GFP_KERNEL);
- 	if (!handler)
- 		return -ENOMEM;
-
-@@ -1097,6 +1100,7 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8=
- query_bit,
- 	kref_init(&handler->kref);
- 	list_add(&handler->node, &ec->list);
- 	mutex_unlock(&ec->mutex);
+ 	if (battery->sbs->manager_present) {
+ 		result =3D acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+ 				ACPI_SBS_MANAGER, 0x01, (u8 *)&state);
+-		if (!result)
+-			battery->present =3D state & (1 << battery->id);
+-		state &=3D 0x0fff;
++		if (result)
++			return result;
 +
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
-@@ -1109,9 +1113,15 @@ static void acpi_ec_remove_query_handlers(struct ac=
-pi_ec *ec,
-
- 	mutex_lock(&ec->mutex);
- 	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
--		if (remove_all || query_bit =3D=3D handler->query_bit) {
-+		/* When remove_all is false, we only remove custom query handlers
-+		 * which have handler->func set. This is done to preserve query
-+		 * handlers discovered thru ACPI, as they should continue handling
-+		 * EC queries.
-+		 */
-+		if (remove_all || (handler->func && handler->query_bit =3D=3D query_bit=
-)) {
- 			list_del_init(&handler->node);
- 			list_add(&handler->node, &free_list);
++		battery->present =3D state & (1 << battery->id);
++		if (!battery->present)
++			return 0;
 +
- 		}
- 	}
- 	mutex_unlock(&ec->mutex);
++		/* Masking necessary for Smart Battery Selectors */
++		state =3D 0x0fff;
+ 		state |=3D 1 << (battery->id + 12);
+ 		acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
+ 				  ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
+-	} else if (battery->id =3D=3D 0)
+-		battery->present =3D 1;
+-
+-	if (result || !battery->present)
+-		return result;
++	} else {
++		if (battery->id =3D=3D 0) {
++			battery->present =3D 1;
++		} else {
++			if (!battery->present)
++				return 0;
++		}
++	}
+
+ 	if (saved_present !=3D battery->present) {
+ 		battery->update_time =3D 0;
 =2D-
 2.30.2
 
