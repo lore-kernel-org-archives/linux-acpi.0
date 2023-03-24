@@ -2,115 +2,116 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B079FC6FD1C
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 11:00:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C8CC6FD1C
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 11:14:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230377AbjCXLAY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Mar 2023 07:00:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52144 "EHLO
+        id S229919AbjCXLOw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Mar 2023 07:14:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230213AbjCXLAX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 07:00:23 -0400
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F96C244A6
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Mar 2023 04:00:22 -0700 (PDT)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pff95-0002EU-MN; Fri, 24 Mar 2023 11:59:43 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pff91-006MVr-R6; Fri, 24 Mar 2023 11:59:39 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pff91-007aB1-3G; Fri, 24 Mar 2023 11:59:39 +0100
-Date:   Fri, 24 Mar 2023 11:59:38 +0100
-From:   Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To:     Sudeep Holla <sudeep.holla@arm.com>
-Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Robert Moore <robert.moore@intel.com>,
-        linux-acpi@vger.kernel.org, kernel@pengutronix.de,
-        acpica-devel@lists.linuxfoundation.org, Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPICA: Make check to install handler more obviously
- correct
-Message-ID: <20230324105938.p4olsh27uy5zdbbv@pengutronix.de>
-References: <20230324075854.458341-1-u.kleine-koenig@pengutronix.de>
- <20230324095329.3oat5nuqhuqqycsr@bogus>
+        with ESMTP id S229536AbjCXLOv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 07:14:51 -0400
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C1E3244BC
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Mar 2023 04:14:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1679656490; x=1711192490;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Ws8XGVO4Gh0ORy6wwh4rfX8IiGkhnjj0jTQLSw4IBjw=;
+  b=TI4tfE0V3Ztfliu1j+6QOfaqR8NASWmNfsWzTYRivlwykSlmco2zUZ65
+   +j6pPPAPaDNGEhrjBx3KVpJAlX46nRSAfOunA8puG5Pi8Fa+OZkzQzOGC
+   QMQgHO8WSxyY7dwlWXUhv/dufa4cjJZD4xw6ooCtWTwD+LU3mmXOv3wXS
+   YNikKHVaP9aLpqUAfVoCH9gJyxTsQI6Vo5cJR0QWnmVYcvwMqrVPxSHDZ
+   fVC0WDErAILNFWJ1DeqfXEr4foKMrwq0q3/OWTH6Zby7F3xdTuoVqKpZQ
+   QVw5QJevTWbWthJh3oQDsCNVOQMio0I5yvNc1ZPNp8nDQtZ1r/8x887o/
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10658"; a="320146787"
+X-IronPort-AV: E=Sophos;i="5.98,287,1673942400"; 
+   d="scan'208";a="320146787"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2023 04:14:49 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10658"; a="715192338"
+X-IronPort-AV: E=Sophos;i="5.98,287,1673942400"; 
+   d="scan'208";a="715192338"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga001.jf.intel.com with ESMTP; 24 Mar 2023 04:14:47 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pffNd-007sQJ-2G;
+        Fri, 24 Mar 2023 13:14:45 +0200
+Date:   Fri, 24 Mar 2023 13:14:45 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>
+Cc:     Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] device property: constify fwnode_get_phy_mode() argument
+Message-ID: <ZB2GJZMAQC4CTy9E@smile.fi.intel.com>
+References: <E1pfdh9-00EQ8t-HB@rmk-PC.armlinux.org.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="6obh4u7kdvvmvoef"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230324095329.3oat5nuqhuqqycsr@bogus>
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-acpi@vger.kernel.org
+In-Reply-To: <E1pfdh9-00EQ8t-HB@rmk-PC.armlinux.org.uk>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Fri, Mar 24, 2023 at 09:26:47AM +0000, Russell King (Oracle) wrote:
+> fwnode_get_phy_mode() does not modify the fwnode argument, merely
+> using it to obtain the phy-mode property value. Therefore, it can
+> be made const.
 
---6obh4u7kdvvmvoef
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Hello,
+Thank you!
 
-On Fri, Mar 24, 2023 at 09:53:29AM +0000, Sudeep Holla wrote:
-> On Fri, Mar 24, 2023 at 08:58:54AM +0100, Uwe Kleine-K=F6nig wrote:
-> > The loop
-> >=20
-> > 	for (i =3D 0; i < ACPI_NUM_NOTIFY_TYPES; i++) {
-> > 		if (handler_type & (i + 1)) {
-> > 			...
-> > 		}
-> > 	}
-> >=20
-> > looks strange. Only with knowing that ACPI_NUM_NOTIFY_TYPES =3D=3D 2 yo=
-u can
-> > see that the two least significant bits are checked. Still replace
-> >=20
-> > 	i + 1
-> >=20
-> > by
-> >=20
-> > 	1 << i
-> >=20
-> > which shouldn't make a relevant difference to compiler and compiled
-> > code, but is easier to understand for a human code reader.
-> >=20
-> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
->=20
-> You need to submit this to ACPICA project first.
-> Documentation/driver-api/acpi/linuxized-acpica.rst explains the process.
-> Refer [1] for details for similar suggestion by Rafael.
+> Signed-off-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+> ---
+> Patch generated against net-next tree as that was where it was used and
+> tested.
+> 
+>  drivers/base/property.c  | 2 +-
+>  include/linux/property.h | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 083a95791d3b..fcc0687f5529 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -895,7 +895,7 @@ EXPORT_SYMBOL_GPL(device_get_dma_attr);
+>   * 'phy-connection-type', and return its index in phy_modes table, or errno in
+>   * error case.
+>   */
+> -int fwnode_get_phy_mode(struct fwnode_handle *fwnode)
+> +int fwnode_get_phy_mode(const struct fwnode_handle *fwnode)
+>  {
+>  	const char *pm;
+>  	int err, i;
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index f7100e836eb4..d18c8cc17315 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -396,7 +396,7 @@ enum dev_dma_attr device_get_dma_attr(const struct device *dev);
+>  const void *device_get_match_data(const struct device *dev);
+>  
+>  int device_get_phy_mode(struct device *dev);
+> -int fwnode_get_phy_mode(struct fwnode_handle *fwnode);
+> +int fwnode_get_phy_mode(const struct fwnode_handle *fwnode);
+>  
+>  void __iomem *fwnode_iomap(struct fwnode_handle *fwnode, int index);
+>  
+> -- 
+> 2.30.2
+> 
 
-My motivation isn't big enough to even read that. If the usual kernel
-workflow doesn't work for ACPICA, let's drop the patch.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Best regards
-Uwe
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | https://www.pengutronix.de/ |
-
---6obh4u7kdvvmvoef
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmQdgpkACgkQj4D7WH0S
-/k7gkQgAp3/vWYTAeTxJdQBeEcQRLdOX0d0ON7QnL/VDoCTGQ1owOjd1/8/p9Xeg
-PvpCIH0KcUGqiKCTrKXKPWaSAlfWZpk3CrwDgY2XxYOVVV5tzepEzrACvI2gxIIn
-XjhemOYqnJ6varurw2UdgbTjpxQGGBAu5fswmo+gYchBqsnGqL/b23dH9n2IS4Ru
-6Ng16VbiinNydejRKn9FWTH+p1/FCsO4qUIopwJPNrQaM1XW6VyeLW5QOA1fJ3zy
-lskkWBSzT9iMsp6gDbLMo2v8IunYcuZi6Tz/rp4B/JmBfIkdR/UE3+rx6I901rCc
-MEm0487K3lXqudOj8ZiDwn0I17Nc4Q==
-=Ii3L
------END PGP SIGNATURE-----
-
---6obh4u7kdvvmvoef--
