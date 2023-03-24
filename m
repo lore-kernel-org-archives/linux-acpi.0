@@ -2,38 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C878C6FD1C
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 15:31:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D76C6FD20
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 15:54:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231661AbjCXPbK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Mar 2023 11:31:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60710 "EHLO
+        id S229900AbjCXPyF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Mar 2023 11:54:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229540AbjCXPbK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 11:31:10 -0400
-Received: from l2mail1.panix.com (l2mail1.panix.com [166.84.1.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 499C81DB8A;
-        Fri, 24 Mar 2023 08:31:09 -0700 (PDT)
+        with ESMTP id S229938AbjCXPyF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 11:54:05 -0400
 Received: from mailbackend.panix.com (mailbackend.panix.com [166.84.1.89])
-        by l2mail1.panix.com (Postfix) with ESMTPS id 4Pjm1W0rdlzDVr;
-        Fri, 24 Mar 2023 11:13:19 -0400 (EDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 027DD15147;
+        Fri, 24 Mar 2023 08:54:03 -0700 (PDT)
 Received: from mail.panix.com (localhost [127.0.0.1])
-        by mailbackend.panix.com (Postfix) with ESMTPA id 4Pjm1T0Qq7z457m;
-        Fri, 24 Mar 2023 11:13:17 -0400 (EDT)
+        by mailbackend.panix.com (Postfix) with ESMTPA id 4PjmwV5V7Vz48TK;
+        Fri, 24 Mar 2023 11:54:02 -0400 (EDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=panix.com; s=panix;
-        t=1679670797; bh=eXxYmdszhhw0kUjABs9t5ImLtFd713sh9gO3yDRDrXY=;
+        t=1679673243; bh=cpWNQV1BBSDO58L8+KL5nGd6M14YxtXoIXU6SBKTF5U=;
         h=In-Reply-To:References:Date:Subject:From:To:Cc;
-        b=hfvJObU8vLggyM7vjS1yXskkkhShaVfiz91Vkius6Wd1933tx1EIrQOPwIZ0o9rzg
-         AVkyHngloAkLt4EVR1I98YF+QwYLAZeqoYaawznV9UXQSxKsD+sIoW/vNQpobNrLBN
-         JiR0m/oclYZuaqCeR6imL5q9dFj6TvoZU5Y3R8O0=
+        b=m7rcBRod9vU/C2TwISSn57ePAR/arM7FJD9tn29MqQLATz5TNBd91uWPJ7SAOWE11
+         QDw/m04U/qAzy04x9it3bq3d6Mtmt3fJGG4j5dbpyA35kjxe7y/nWWIzj413pi0Ij6
+         Nqy40AsAuj6+3l1EjV+1MS+bx3lny+8JXk3H5paQ=
 X-Panix-Received: from 166.84.1.3
         (SquirrelMail authenticated user pa@panix.com)
         by mail.panix.com with HTTP;
-        Fri, 24 Mar 2023 11:13:17 -0400
-Message-ID: <1d7c19066c9b92aaa50bb06cf3ea539d.squirrel@mail.panix.com>
+        Fri, 24 Mar 2023 11:54:02 -0400
+Message-ID: <11fab8f24f976112aa4d025d03f0f322.squirrel@mail.panix.com>
 In-Reply-To: <5687037.DvuYhMxLoT@kreacher>
 References: <5687037.DvuYhMxLoT@kreacher>
-Date:   Fri, 24 Mar 2023 11:13:17 -0400
+Date:   Fri, 24 Mar 2023 11:54:02 -0400
 Subject: Re: [PATCH v1] ACPI: bus: Rework system-level device notification
  handling
 From:   "Pierre Asselin" <pa@panix.com>
@@ -55,10 +52,8 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Rafael, the patch doesn't apply off of 6.3-rc1.  I have the stable tree,
-git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git that goes a little
-past 6.3-rc3.  I can try to adjust the offsets, but a better way would be
-to add your tree.  Can you give me the appropriate git remote and git pull
-incantations ?  I've only been gitting for a month.
+Rafael, the patch is good for 6.3-rc1 (boots to early userspace).
+I'll try a full install now.
 
+--PA
 
