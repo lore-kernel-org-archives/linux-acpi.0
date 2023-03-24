@@ -2,101 +2,92 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 406A9C6FD20
-	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 20:26:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8726DC6FD20
+	for <linux-acpi@archiver.kernel.org>; Fri, 24 Mar 2023 20:26:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231661AbjCXU0i (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:26:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40752 "EHLO
+        id S231706AbjCXU0n (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:26:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231706AbjCXU0h (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 16:26:37 -0400
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 200671C304;
-        Fri, 24 Mar 2023 13:26:35 -0700 (PDT)
+        with ESMTP id S229921AbjCXU0k (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2023 16:26:40 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F9801CAF9;
+        Fri, 24 Mar 2023 13:26:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1679689590; i=w_armin@gmx.de;
-        bh=gPtrA4XXwFpO+QSD0Pp1Uxg5JqNK3hlKWegTIDrJi8U=;
-        h=X-UI-Sender-Class:From:To:Cc:Subject:Date;
-        b=tvlpfmIvXdljnSnpQk0PrswOjNSaO4EqRj44vnq6ZWpSMEmvptnmSO4Ap3a54Zt+N
-         GXf9qM5tZgOmo8Z51ayRz6Cu3ihxBJcXgEAJHxMAFxs0k1oHQrX5DZD724iD2aeY0B
-         bS9yjCxo8QyMaFrjLN1i3fMmNi8QRiSmraliYBVN1T5BVJTaZml8AfKF8qRUK6pLjH
-         X7txqV0exD0dCb1utfuurep1DOwURIUJZ+Cc0ov8JkFYVs9857VEUHjtPhzqSqhpjq
-         iFeJT6WZ3rwl3D/oqX2Tn6SjlPkYQRhcaEw78R6+bDEJdsSaFME/OggkbVqHcdHtkT
-         ypDcdvMLJvk+A==
+        t=1679689593; i=w_armin@gmx.de;
+        bh=6wlZo2xanf4kDtHfqBasjPU5Ds+RDX/QpSs/lo8nd3c=;
+        h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
+        b=nrbT56XNYRYqCKmOZoWucUxx1In/KAgdMWbDJ04ws6uDUW0EVP2goztWojjRgdhF9
+         Wcia+U4gSSeIVD9n7RZQCagRn2FAobCvg/oFfIyLyAWVpgWpyrAMOjwJWqPrT3P0gF
+         /sVIBfR4htC5dDYH6/0FPGKjVKmnTvX5aiQvvn5EWBafmvmSCwK2sam/bQ7qzZl7vL
+         63avB/w+rdYX5fQNlmT2YI8/gUFU2+3K2QTjru6wMdF62oIACg0BcT6frEdBaao4vh
+         xfIQOGdPLH8bncWh5tXIfd+P1NQmq4M+rVvQmh/7bqFtl0lxnXk+IpPbYHg6aJVRPn
+         QzpJPN0QA9X9g==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from esprimo-mx.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
- (mrgmx005 [212.227.17.190]) with ESMTPSA (Nemesis) id
- 1MTiPv-1q3Hid0aOD-00U0on; Fri, 24 Mar 2023 21:26:30 +0100
+ (mrgmx004 [212.227.17.190]) with ESMTPSA (Nemesis) id
+ 1Mof9P-1qHftp3zK5-00p5e2; Fri, 24 Mar 2023 21:26:33 +0100
 From:   Armin Wolf <W_Armin@gmx.de>
 To:     rafael@kernel.org, lenb@kernel.org
 Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 0/3] ACPI: SBS: Fix various issues
-Date:   Fri, 24 Mar 2023 21:26:25 +0100
-Message-Id: <20230324202628.76966-1-W_Armin@gmx.de>
+Subject: [PATCH v3 2/3] ACPI: EC: Fix oops when removing custom query handlers
+Date:   Fri, 24 Mar 2023 21:26:27 +0100
+Message-Id: <20230324202628.76966-3-W_Armin@gmx.de>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230324202628.76966-1-W_Armin@gmx.de>
+References: <20230324202628.76966-1-W_Armin@gmx.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:Hl3kgS54/FH1VV5aYYsy4O4Wqlp1NzLkfJ+iE3s1bWG3sgBt0Am
- ZGx/IH2CtYrdzaDsWKAl5TT9E6xxMjd7FWkWvm+U4z6AKcr4B2aQxCMbJh4x0a0BGlCsRVn
- 1B+SUo6cg2BdU5icgrmcO7+fjoi0kHVcuMBFx2Vb3+0fhinhOhIzbsZX9ZjRDq4l0HQUyjs
- ZOoDFo6beQSDHcoLg45iA==
-UI-OutboundReport: notjunk:1;M01:P0:gQuTgH6+dCc=;OZU0r5gBd1jpoS+AensvGI4Lvvt
- NftPRSWPc3fzQHLlyQdkMR4sSVJAOkTGSP7xpjEfgFKYBN0hXLTDP54pydt7BnYsxROuOg1Hn
- 0TsG4zBll7NzeRejEJ/o5xt0/Lqm7L6CSyaR7ueF0mWDnZ2648mC9kmpW+ULjIcj0mYQCIg3z
- fLdRmPavdFO+ICChyYmUiIHSpdbhaDb4Gn93fH+wmZuPfME1x483xjjPZOVCMuFlsJc/QGFcy
- WCs0kxDvrK1eODZ+2dwIExR9Fl24d7pcdvGcBwk1FkBjgoUlfDvOSs6qJjeeD7Q3Ej16rL8GR
- H+1H2YOMFiLOayC0BD6n0uJom3r2uBMBfedAPoq66y04MKDZbzyKlxJdCrpL54Yy+iZSyjECv
- 2iCkbmmrZoR5323xHN+lMd53LhDAp4gKAupHn7cuzT54dYHqOxKso8XCtKXWaVK89mVNUAj5n
- +qHK382AoRMgVtVvkk8hDx90wNR2cinkVgQjXXw8xfU5PVputfMzdFOr8QQpGT45xBmg1uBiH
- wOeRIntUb/fXN3pRIaevoLsT3k7ryv4Iwf0oQ8bVjsvwqFIiFhj+qqjnR5OS8chWOXRdCndls
- zQ9VYUr/We3UY3x/ymqA1ekcB7lpT7zAx/9M9ojhUvtqIuv7Z3+p/J/7SCj4aeiwyNsup8EMU
- qdX7dNPQKk7m4G3pd2AVSS/IypjJnyBml3Fps/hrr2yyOFwbdK/jH2q+9veM7iWNewdKGiWhD
- 6MMN7CDJQ24JEWaeeIiSX/4sG5r4251vhD67b3BeOT7pAOvm+d4AifTY84tEPUhGID66sw7uS
- tf8GrrTDJxM+VzUCi6Ft7x8gYSDmAnDA8ym5o+tr37toBtQEtKl7YdhfhLBE4IYNG0plc3zz6
- 7veSC4vv4riD6pfCmWrnpNR+I69fRQDDrdys0AOB/cA96bKV7lnLX1UZUK5VIFbPA5Wzo2RFD
- X9+xzxbmIn+6ZKXZV7JkI6hjKbs=
+X-Provags-ID: V03:K1:dC54eEAF45WHEdv420PbB5TkLeb16RrxtmkJEM2R8RRRjtRikov
+ L9JtDBs/XpqFDpq1AMx4lh3lYz8ixhBJ0D4v3p9ajXtX0sRCoIDf7n0NhScllsZtFi79I+R
+ dxpZwg8E2WSqjaJtG38/8ZWFBRbOXBbWbPkIzfKehQXCuUHOx5BOh5Hq5Eb2n7bgb1th1O/
+ VZxTqlSlOOSg6DOlS5xRQ==
+UI-OutboundReport: notjunk:1;M01:P0:gL62lcIRjBI=;8SrmOv4vicIkxI0p42bkhqbBhpV
+ F/Qvx3QU2X7RG+srW+CVgNgVZGUeH+VpGVAizzI2orhvvDjoBW5YLgKeNXxRCbgFAmF1jiXac
+ NXN5SJ9Q1OMapTELciCcQGBey/4INNwRoDZjt5SquDIpTTdTjVkILG/4dbWOi2wVVX/45Zd+M
+ hG52V20cLUjPQIpMWoJaJ3w7VAxb2RhvCt+PM363033aVztVxKBP97J1A59E2tdHdwarWV7By
+ EdchowyP4CJLOxF5Ye4uEjySyvF1e3plwDeN2GQBNRUnmvro0PsWDC2X4Ozky9yOkzWKy0brn
+ Tvhp/R9fgLr/3pia556r2qWdWD3n9rjAPFL/dkvLt2qHnc02KmYij7I5+cwB49xd0Ezong/V2
+ 8RnbOEK4xPMyvwX5caauIKvKisWM6z8YQKZd0qJ/gBOqjuQXqZCRpEfchw/xT1w3eHBvNIKb8
+ pkub1rwuHyAo0/IWN0b2hVd6sFWW5XG69QMxut9ecE9+alRbJ2t4ncRQWIyFhlqzb6qbcWrnD
+ h/Tk1uBzdvgV887bo7+c6Lk0anddLKM1d6y7EnuTZ1Z4CgAyZ7Vqa+Wnv4lA72WuqF8x1mXg5
+ u7b0zrK8f6Ab62lrTN2X2og1QBlizUbbwB52QksIHWOpV4yaI0/FTkfwvxrjpqWMd92qvAyRb
+ NY9wasPRjkVtDdpLn43syNwm1cg/tmZsTI/cZFOavdq9G8Qz8jfwR+GONwUZ8XG1aTpX9gdbF
+ 849dsvsTcxH9SlOViAqbTwZt6VMkC3kqoOYikIBQfGKibA8To3BMJZvlkld7AZTxLq+J+o++a
+ fVk7A1vf/x6X8D7xB8JvfNIVmhcZRGoeJ0YRv/1J6AhVP+9TCJNFZeVA87dw2X4985f9/bWPA
+ 115SOzr4VLgJ64XzUGOZsWNmO32ryfgT/vgEhqXdJFbUyXVJKBXkQumsPZONoSTsJJkFE9Zaf
+ 3dZdiHH/xNX/n3UASd4EKgY0eKw=
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On my Acer Travelmate 4002WLMi, the system locks up upon
-suspend/shutdown. After a lot of research, it turned out
-that the sbs module was the culprit. The driver would not
-correctly mask out the value used to select a battery using
-the "Smart Battery Selector" (subset of the "Smart Battery Manager").
-This accidentally caused a invalid power source to be selected,
-which was automatically corrected by the selector. Upon
-notifing the host about the corrected power source, some batteries
-would be selected for re-reading, causing a endless loop.
-This would lead to some workqueues filling up, which caused the
-lockup upon suspend/shutdown.
+When removing custom query handlers, the handler might still
+be used inside the EC query workqueue, causing a kernel oops
+if the module holding the callback function was already unloaded.
 
-The first patch fixes an issue inside the ec driver regarding the
-removal of query handlers discovered thru ACPI. The second patch fixes
-a kernel oops on module removal caused by a race condition when removing
-custom EC query handlers. The last patch finally fixes the
-suspend/shutdown issues.
+Fix this by flushing the EC query workqueue when removing
+custom query handlers.
 
-As a side note: This was the first machine on which i installed Linux,
-to finally fixing this took ~5 years of tinkering.
+Tested on a Acer Travelmate 4002WLMi
 
-Tested on a Acer Travelmate 4002WLMi.
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 =2D--
-Changes in v3:
-- Rework solution for the kernel oops on module removal
-Changes in v2:
-- make acpi_ec_add_query_handler() static to fix warning
+ drivers/acpi/ec.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Armin Wolf (3):
-  ACPI: EC: Limit explicit removal of query handlers to custom query
-    handlers
-  ACPI: EC: Fix oops when removing custom query handlers
-  ACPI: SBS: Fix handling of Smart Battery Selectors
-
- drivers/acpi/ec.c  | 17 ++++++++++++++---
- drivers/acpi/sbs.c | 27 ++++++++++++++++++---------
- 2 files changed, 32 insertions(+), 12 deletions(-)
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index f84905dbd8ca..4ae017391533 100644
+=2D-- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1132,6 +1132,7 @@ static void acpi_ec_remove_query_handlers(struct acp=
+i_ec *ec,
+ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+ {
+ 	acpi_ec_remove_query_handlers(ec, false, query_bit);
++	flush_workqueue(ec_query_wq);
+ }
+ EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
 
 =2D-
 2.30.2
