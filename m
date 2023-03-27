@@ -2,66 +2,85 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2D10C76195
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Mar 2023 12:31:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07ED7C7619A
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Mar 2023 13:02:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbjC0Mbo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Mar 2023 08:31:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59908 "EHLO
+        id S231986AbjC0NCV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Mar 2023 09:02:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229610AbjC0Mbm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2023 08:31:42 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 637393AA8;
-        Mon, 27 Mar 2023 05:31:41 -0700 (PDT)
-Received: from kwepemm600004.china.huawei.com (unknown [172.30.72.56])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PlXDr4T3XzKtMx;
-        Mon, 27 Mar 2023 20:29:16 +0800 (CST)
-Received: from [10.67.103.231] (10.67.103.231) by
- kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.21; Mon, 27 Mar 2023 20:31:37 +0800
-Message-ID: <570a6f6d-87cb-48ca-3bbc-cd1221bfa88c@huawei.com>
-Date:   Mon, 27 Mar 2023 20:31:37 +0800
+        with ESMTP id S232356AbjC0NCT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2023 09:02:19 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1050195;
+        Mon, 27 Mar 2023 06:02:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1679922130; x=1711458130;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=Weg/0/02UONhZFz14EiBELwBEiOnQdZ6A+iDbpuVdmU=;
+  b=ZGXcNpENaeHm4R1tIt0sTvbA6FhlX+V1BF01/fymP2Jb7mw21UDbt3jX
+   1/1pSYLPmzGGBvVZ7TKbnoctkwVONN+H5dy3exKedFj1F6xsMJSsPNiOW
+   DHiVf77JisAw4COvSdOU1lw4YUKdc1emNPmKA6z0F82z+JmPKQZvK6seK
+   cHo2w8kPKb0s3Xto7dCFINk34ingPedf+bmzck2HKlNM65GCtrOjZwDmj
+   HJ2I86l/X/n53mlpZXukv507WWz2iXD3f+UACdi1dtaq6pQ/Zg6/Z3aW0
+   XZhFe6qQXFnUNCWdVVSE/TOzQZDlx0Mtt4tuMLGaVQsjD4OHfCOh+zgs8
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10661"; a="324137632"
+X-IronPort-AV: E=Sophos;i="5.98,294,1673942400"; 
+   d="scan'208";a="324137632"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2023 06:02:03 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10661"; a="676954401"
+X-IronPort-AV: E=Sophos;i="5.98,294,1673942400"; 
+   d="scan'208";a="676954401"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga007.jf.intel.com with ESMTP; 27 Mar 2023 06:02:00 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id F1053D0; Mon, 27 Mar 2023 16:02:00 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc:     Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [PATCH v2 2/2] device property: Remove unused struct net_device forward declaration
+Date:   Mon, 27 Mar 2023 16:01:50 +0300
+Message-Id: <20230327130150.84114-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
+In-Reply-To: <20230327130150.84114-1-andriy.shevchenko@linux.intel.com>
+References: <20230327130150.84114-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.0
-Subject: Re: [PATCH v2 0/2] mailbox: pcc: Support platform notification for
- type4 and shared interrupt
-To:     Sudeep Holla <sudeep.holla@arm.com>, <robbiek@xsightlabs.com>
-CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <rafael@kernel.org>, <rafael.j.wysocki@intel.com>,
-        <wanghuiqiang@huawei.com>, <zhangzekun11@huawei.com>,
-        <wangxiongfeng2@huawei.com>, <tanxiaofei@huawei.com>,
-        <guohanjun@huawei.com>, <xiexiuqi@huawei.com>,
-        <wangkefeng.wang@huawei.com>, <huangdaode@huawei.com>
-References: <20221016034043.52227-1-lihuisong@huawei.com>
- <20230314111135.16520-1-lihuisong@huawei.com>
- <20230327113326.dgrb5ainl6mv7wr5@bogus>
-From:   "lihuisong (C)" <lihuisong@huawei.com>
-In-Reply-To: <20230327113326.dgrb5ainl6mv7wr5@bogus>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.67.103.231]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- kwepemm600004.china.huawei.com (7.193.23.242)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+There is no users in the property.h for the struct net_device.
+Remove the latter for good.
 
-在 2023/3/27 19:33, Sudeep Holla 写道:
-> On Tue, Mar 14, 2023 at 07:11:33PM +0800, Huisong Li wrote:
->> PCC supports processing platform notification for slave subspaces and
->> shared interrupt for multiple subspaces.
->>
-> Other than a super minor nit in the patch 1/2, this looks good to me.
-> It would be good if we can get tested-by from
-> Robbie King <robbiek@xsightlabs.com>
->
-> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Thanks for your review.😁
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v2: no changes (just Cc'ed accordingly)
+ include/linux/property.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-@Robbie King, can you give us some feedback?
-Looking forward to you reply.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 4a536548606b..59f452198c64 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -16,7 +16,6 @@
+ #include <linux/types.h>
+ 
+ struct device;
+-struct net_device;
+ 
+ enum dev_prop_type {
+ 	DEV_PROP_U8,
+-- 
+2.40.0.1.gaa8946217a0b
+
