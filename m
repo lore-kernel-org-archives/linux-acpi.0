@@ -2,86 +2,84 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FA94C7619A
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Mar 2023 13:02:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE695C7619A
+	for <linux-acpi@archiver.kernel.org>; Mon, 27 Mar 2023 13:02:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbjC0NCk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Mar 2023 09:02:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40040 "EHLO
+        id S232144AbjC0NCv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Mar 2023 09:02:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232544AbjC0NCj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2023 09:02:39 -0400
+        with ESMTP id S232453AbjC0NCu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2023 09:02:50 -0400
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FABE26A8;
-        Mon, 27 Mar 2023 06:02:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 402681FC9;
+        Mon, 27 Mar 2023 06:02:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679922139; x=1711458139;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=IDjT0jS9d3AwsbB9MrexcB6TbQwjnwhd09XzeHpePQU=;
-  b=HQo1hoQOzLu9nEtnED9tgdYHfEp8g4UupLozIIYYXD5jQE4VmmbNKj+2
-   OSm5tzcdU+OdnDsC8HWDyc3ZjgJaK20INH1DF85a//TCCU+FZiMfI7uoS
-   dq9R8wNcXBJFID3KFOmLmb7rChPlz0ed34uND4nD/qlAcmT+XMXZpb/my
-   +WKX9nOOnFkzfMhdXd2j+QMmVaRuKN0LVCVlAl2UjcEu73FG7QYASN8GV
-   YXHqFU595ElgbiNw4DXS7u5NjpqS2wCcyj3fVkTUaeRHjx7BzZVp+bWZ5
-   Ip+gl0XiGmwEFVo2mAaTOgCmn7mrczyxqFiHlwNffSTRrOphlZeMzZPi4
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10661"; a="324137638"
+  t=1679922151; x=1711458151;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=GnN5yMqKyMoVbSr4z5kndngc7czLeDZTZGsv8tnHdGc=;
+  b=V+HX8Eoprow8Teo2tLScxdFqERdBKybHJZIAKrUE6D7IzcEgybG+zAaA
+   NokwtY5lmjykbW7pdR9uwwCyYRdsM3sl/6sfFlWA3eXzugPtxnpOqWHDb
+   8E8kfUFL3tjb/s0NDMSFH7PeKwoY8tbySAf6720kDu5C5bKYGDTbX4aE2
+   40FI+aB7jzTklQKojPNhfBYqDF7IOoty8Ka9TQ9U/lYU7NLelsz9d4J5v
+   B1b4BS4tqu4OQqX/eDjqna4Os19BHQs2XSTlj4GHs5FwJHGffzlrYod8U
+   hc6w5ym63e8vD18QMmaX6WNgTQkBT8yPWJIgJmxpl2rwuauRoTtVIAufx
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10661"; a="324137774"
 X-IronPort-AV: E=Sophos;i="5.98,294,1673942400"; 
-   d="scan'208";a="324137638"
+   d="scan'208";a="324137774"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2023 06:02:03 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2023 06:02:30 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10661"; a="676954402"
+X-IronPort-AV: E=McAfee;i="6600,9927,10661"; a="676954488"
 X-IronPort-AV: E=Sophos;i="5.98,294,1673942400"; 
-   d="scan'208";a="676954402"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga007.jf.intel.com with ESMTP; 27 Mar 2023 06:02:00 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id E617079C; Mon, 27 Mar 2023 16:02:00 +0300 (EEST)
+   d="scan'208";a="676954488"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga007.jf.intel.com with ESMTP; 27 Mar 2023 06:02:28 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pgmUV-009EsW-0c;
+        Mon, 27 Mar 2023 16:02:27 +0300
+Date:   Mon, 27 Mar 2023 16:02:26 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc:     Daniel Scally <djrscally@gmail.com>,
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v2 1/2] device property: Add headers to the Driver Core entry in MAINTAINERS
-Date:   Mon, 27 Mar 2023 16:01:49 +0300
-Message-Id: <20230327130150.84114-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v1 1/1] device property: Remove unused struct net_device
+ forward declaration
+Message-ID: <ZCGT4iONq6hjNQIK@smile.fi.intel.com>
+References: <20230323151519.58479-1-andriy.shevchenko@linux.intel.com>
+ <ZCFryP+yZ7w38Ix9@smile.fi.intel.com>
+ <ZCGChRgzVZoaElge@kroah.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZCGChRgzVZoaElge@kroah.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The header files (fwnode.h and property.h) are part of the device
-property API, which in its turn is part of driver core. Add the
-missed headers to the corresponding record in the MAINTAINERS database.
+On Mon, Mar 27, 2023 at 01:48:21PM +0200, Greg Kroah-Hartman wrote:
+> On Mon, Mar 27, 2023 at 01:11:20PM +0300, Andy Shevchenko wrote:
+> > On Thu, Mar 23, 2023 at 05:15:19PM +0200, Andy Shevchenko wrote:
+> > > There is no users in the property.h for the struct net_device.
+> > > Remove the latter for good.
+> > 
+> > Oh, this seems unfortunate as it doesn't Cc Greg. Folks, shall we add
+> > the header to "DRIVER CORE, KOBJECTS, DEBUGFS AND SYSFS"?
+> 
+> Yes please.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: new patch
- MAINTAINERS | 2 ++
- 1 file changed, 2 insertions(+)
+Done as v2 with this patch also resent there.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 93fb4e5a2814..aa61d9ede78b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6316,7 +6316,9 @@ F:	drivers/base/
- F:	fs/debugfs/
- F:	fs/sysfs/
- F:	include/linux/debugfs.h
-+F:	include/linux/fwnode.h
- F:	include/linux/kobj*
-+F:	include/linux/property.h
- F:	lib/kobj*
- 
- DRIVERS FOR OMAP ADAPTIVE VOLTAGE SCALING (AVS)
 -- 
-2.40.0.1.gaa8946217a0b
+With Best Regards,
+Andy Shevchenko
+
 
