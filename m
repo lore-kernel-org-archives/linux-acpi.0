@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF502C77B6E
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Mar 2023 10:03:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8CF1C77B78
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Mar 2023 10:03:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230497AbjC1KCj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Mar 2023 06:02:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53078 "EHLO
+        id S232440AbjC1KCm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Mar 2023 06:02:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232854AbjC1KCO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2023 06:02:14 -0400
+        with ESMTP id S232893AbjC1KCP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2023 06:02:15 -0400
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30CEA59D4;
-        Tue, 28 Mar 2023 03:02:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86E0A6588;
+        Tue, 28 Mar 2023 03:02:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679997732; x=1711533732;
+  t=1679997734; x=1711533734;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=HB0FVEF2poQXTqGYDhbsHeqUzCIBYvqQG3DyPmHOE8Q=;
-  b=iPr979hn6MmC/EhtL3rcvPKG1bdoBIbr05dEmAMtOgLDITrCoYnCeyCo
-   zMwG0jRWCBfUIvBA6tCoBt5FzSVNVU7Kje6bkbK4d7y+jcfTebAZTwLeq
-   YcDRFlnankEm3drIsl8PQt0XWengRugCi+lEQq75MJDGNbOQGmvcVZgO6
-   Wrntg9YaFagTYqoDtDWFzXoBPoYKGc3XdHl4lMaFl4H7ASixb/mgvBJaa
-   vbGnYGXPed+fl8K6hjP5GsVamdmSVbVU0Xi9pa6kCzR7LXqrpO+BEoSI6
-   Ck1LDZi/XgyP1TeRZvlBJJp1po0+QVkb140FuUUgAtPYtmk1h86FrKiZR
+  bh=5hkNgIaP0g/C3BTjHNqyHJHmBw3OxqK9Z0QZNFnAGY0=;
+  b=XfLYGRadDRRq/cwNUcto5tal5d0CEqTWIjZtkU5afj0qBCbXEc0USOW2
+   iEPJC37lRNkuEvJFr2r9lm5Bz08hYKaKn0NiUstHVEKYyfO4xtJhwKrlB
+   nyOW5OiOSE2z2kfi/2hAyfgSE2WAMrO02I2LJbuYEbAcUyS/WcibguDru
+   vzgFSJAGY3URh1Z+kd5oPAJAdFs88Efw8wWJSUEcgeFdiwBLCbe+mq5AJ
+   hOsDcuVXo/8tpeNPZGhaAu9/QG3j3QwRZ0fIsHrAvfqCOxg+jeXlYW1O1
+   bmyS3dscsABB87hRwt6hLH6dHZbN5GXt3kVfjkid3B/ufo+YRNJzOE/Z2
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="324420007"
+X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="324420025"
 X-IronPort-AV: E=Sophos;i="5.98,297,1673942400"; 
-   d="scan'208";a="324420007"
+   d="scan'208";a="324420025"
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:10 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:14 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="753078544"
+X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="753078565"
 X-IronPort-AV: E=Sophos;i="5.98,297,1673942400"; 
-   d="scan'208";a="753078544"
+   d="scan'208";a="753078565"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:08 -0700
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:12 -0700
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-        by kekkonen.fi.intel.com (Postfix) with ESMTP id ED17511F937;
-        Tue, 28 Mar 2023 13:02:05 +0300 (EEST)
+        by kekkonen.fi.intel.com (Postfix) with ESMTP id AEEFC120243;
+        Tue, 28 Mar 2023 13:02:09 +0300 (EEST)
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     linux-media@vger.kernel.org, rafael@kernel.org,
         andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com
-Subject: [PATCH v6 06/10] ACPI: scan: Generate software nodes based on MIPI DisCo for Imaging
-Date:   Tue, 28 Mar 2023 13:01:54 +0300
-Message-Id: <20230328100159.1457160-7-sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 09/10] ACPI: property: Skip MIPI property table without "mipi-img" prefix
+Date:   Tue, 28 Mar 2023 13:01:58 +0300
+Message-Id: <20230328100159.1457160-11-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230328100159.1457160-1-sakari.ailus@linux.intel.com>
 References: <20230328100159.1457160-1-sakari.ailus@linux.intel.com>
@@ -57,415 +57,38 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Generate software nodes for driver use, based on MIPI DisCo for Imaging
-definitions.
-
-During the (sub-)namespace walk, ACPI device nodes are created but the
-drivers aren't probed for the devices yet. A convenient way to determine
-which ACPI devices this applies to is to find a hierarchical data node that
-begins with "mipi-img-port-". These devices need software nodes that need
-to be present before probing, and can only be constructed once the related
-_CRS CSI2 records have been parsed.
+For all _DSD properties, skip going through the MIPI DisCo for Imaging
+property name substitution table if the property doesn't have "mipi-img-"
+prefix.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/internal.h | 13 ++++++-
- drivers/acpi/mipi.c     |  5 +--
- drivers/acpi/power.c    |  2 +-
- drivers/acpi/property.c | 48 +++++++++++++++--------
- drivers/acpi/scan.c     | 84 +++++++++++++++++++++++++++++++++--------
- 5 files changed, 115 insertions(+), 37 deletions(-)
+ drivers/acpi/mipi.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 4723690d0117..afcd1dc3062c 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -112,16 +112,22 @@ struct acpi_scan_context_csi2 {
-  * struct acpi_scan_context - Context for scanning ACPI devices
-  * @device: The first encountered device, typically the root of the scanned tree
-  * @postponed_head: The list head of the postponed ACPI handles
-+ * @mipi_img_head: The list of ACPI devices with MIPI DisCo for Imaging related
-+ *		   properties
-  * @csi2: Context for scanning _CRS CSI2 resource descriptors
-  */
- struct acpi_scan_context {
- 	struct acpi_device *device;
- 	struct list_head postponed_head;
-+	struct list_head mipi_img_head;
- 	struct acpi_scan_context_csi2 csi2;
- };
- 
-+void acpi_bus_device_postpone(struct acpi_device *device,
-+			      struct list_head *head);
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
--			     int type, void (*release)(struct device *));
-+			     int type, void (*release)(struct device *),
-+			     struct list_head *mipi_img_head);
- int acpi_tie_acpi_dev(struct acpi_device *adev);
- int acpi_device_add(struct acpi_device *device);
- int acpi_device_setup_files(struct acpi_device *dev);
-@@ -275,7 +281,8 @@ static inline bool force_storage_d3(void)
-   -------------------------------------------------------------------------- */
- #define ACPI_DT_NAMESPACE_HID	"PRP0001"
- 
--void acpi_init_properties(struct acpi_device *adev);
-+void acpi_init_properties(struct acpi_device *adev,
-+			  struct list_head *mipi_img_head);
- void acpi_free_properties(struct acpi_device *adev);
- 
- #ifdef CONFIG_X86
-@@ -304,6 +311,8 @@ static inline void acpi_init_lpit(void) { }
- 			ACPI _CRS CSI2 and MIPI DisCo for Imaging conversion
-   -------------------------------------------------------------------------- */
- 
-+#define MIPI_IMG_PORT_PREFIX "mipi-img-port-"
-+
- void acpi_crs_csi2_swnodes_del_free(void);
- void acpi_bus_scan_check_crs_csi2(acpi_handle handle, struct acpi_scan_context *ctx);
- void acpi_bus_scan_crs_csi2(struct acpi_scan_context_csi2 *ctx);
 diff --git a/drivers/acpi/mipi.c b/drivers/acpi/mipi.c
-index 5d05d899bede..315f076b9208 100644
+index fcbef3677558..ae6bdc487363 100644
 --- a/drivers/acpi/mipi.c
 +++ b/drivers/acpi/mipi.c
-@@ -491,11 +491,10 @@ void acpi_bus_scan_crs_csi2(struct acpi_scan_context_csi2 *ctx)
- static struct fwnode_handle *get_mipi_port_handle(struct acpi_device *device,
- 						  unsigned int port)
- {
--	static const char mipi_port_prefix[] = "mipi-img-port-";
--	char mipi_port_name[sizeof(mipi_port_prefix) + 2];
-+	char mipi_port_name[sizeof(MIPI_IMG_PORT_PREFIX) + 2];
- 
- 	if (snprintf(mipi_port_name, sizeof(mipi_port_name), "%s%u",
--		     mipi_port_prefix, port) >= sizeof(mipi_port_name)) {
-+		     MIPI_IMG_PORT_PREFIX, port) >= sizeof(mipi_port_name)) {
- 		acpi_handle_info(acpi_device_handle(device),
- 				 "mipi port name too long for port %u\n", port);
- 		return NULL;
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 23507d29f000..1096cdbf3d28 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -945,7 +945,7 @@ struct acpi_device *acpi_add_power_resource(acpi_handle handle)
- 
- 	device = &resource->device;
- 	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER,
--				acpi_release_power_resource);
-+				acpi_release_power_resource, NULL);
- 	mutex_init(&resource->resource_lock);
- 	INIT_LIST_HEAD(&resource->list_node);
- 	INIT_LIST_HEAD(&resource->dependents);
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 08831ffba26c..1892787e73a6 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -62,10 +62,12 @@ static const guid_t buffer_prop_guid =
- 	GUID_INIT(0xedb12dd0, 0x363d, 0x4085,
- 		  0xa3, 0xd2, 0x49, 0x52, 0x2c, 0xa1, 0x60, 0xc4);
- 
--static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
-+static bool acpi_enumerate_nondev_subnodes(struct acpi_device *device,
-+					   acpi_handle scope,
- 					   union acpi_object *desc,
- 					   struct acpi_device_data *data,
--					   struct fwnode_handle *parent);
-+					   struct fwnode_handle *parent,
-+					   struct list_head *mipi_img_head);
- static bool acpi_extract_properties(acpi_handle handle,
- 				    union acpi_object *desc,
- 				    struct acpi_device_data *data);
-@@ -103,11 +105,12 @@ static bool acpi_nondev_subnode_extract(union acpi_object *desc,
- 		 */
- 		status = acpi_get_parent(handle, &scope);
- 		if (ACPI_SUCCESS(status)
--		    && acpi_enumerate_nondev_subnodes(scope, desc, &dn->data,
--						      &dn->fwnode))
-+		    && acpi_enumerate_nondev_subnodes(NULL, scope, desc,
-+						      &dn->data, &dn->fwnode,
-+						      NULL))
- 			result = true;
--	} else if (acpi_enumerate_nondev_subnodes(NULL, desc, &dn->data,
--						  &dn->fwnode)) {
-+	} else if (acpi_enumerate_nondev_subnodes(NULL, NULL, desc, &dn->data,
-+						  &dn->fwnode, NULL)) {
- 		result = true;
- 	}
- 
-@@ -163,11 +166,14 @@ static bool acpi_nondev_subnode_ok(acpi_handle scope,
- 	return acpi_nondev_subnode_data_ok(handle, link, list, parent);
+@@ -717,6 +717,8 @@ void acpi_init_swnodes(struct acpi_device *device)
+ 	primary->secondary = software_node_fwnode(ads->nodes);
  }
  
--static bool acpi_add_nondev_subnodes(acpi_handle scope,
-+static bool acpi_add_nondev_subnodes(struct acpi_device *device,
-+				     acpi_handle scope,
- 				     union acpi_object *links,
- 				     struct list_head *list,
--				     struct fwnode_handle *parent)
-+				     struct fwnode_handle *parent,
-+				     struct list_head *mipi_img_head)
- {
-+	bool has_mipi_img_nodes = false;
- 	bool ret = false;
- 	int i;
- 
-@@ -188,6 +194,13 @@ static bool acpi_add_nondev_subnodes(acpi_handle scope,
- 		/* The second one may be a string, a reference or a package. */
- 		switch (link->package.elements[1].type) {
- 		case ACPI_TYPE_STRING:
-+			if (!has_mipi_img_nodes && mipi_img_head &&
-+			    !strncmp(MIPI_IMG_PORT_PREFIX,
-+				     link->package.elements[0].string.pointer,
-+				     strlen(MIPI_IMG_PORT_PREFIX))) {
-+				acpi_bus_device_postpone(device, mipi_img_head);
-+				has_mipi_img_nodes = true;
-+			}
- 			result = acpi_nondev_subnode_ok(scope, link, list,
- 							 parent);
- 			break;
-@@ -211,10 +224,12 @@ static bool acpi_add_nondev_subnodes(acpi_handle scope,
- 	return ret;
- }
- 
--static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
-+static bool acpi_enumerate_nondev_subnodes(struct acpi_device *device,
-+					   acpi_handle scope,
- 					   union acpi_object *desc,
- 					   struct acpi_device_data *data,
--					   struct fwnode_handle *parent)
-+					   struct fwnode_handle *parent,
-+					   struct list_head *mipi_img_head)
- {
- 	int i;
- 
-@@ -238,8 +253,9 @@ static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
- 		if (!guid_equal((guid_t *)guid->buffer.pointer, &ads_guid))
- 			continue;
- 
--		return acpi_add_nondev_subnodes(scope, links, &data->subnodes,
--						parent);
-+		return acpi_add_nondev_subnodes(device, scope, links,
-+						&data->subnodes, parent,
-+						mipi_img_head);
- 	}
- 
- 	return false;
-@@ -533,7 +549,8 @@ static bool acpi_extract_properties(acpi_handle scope, union acpi_object *desc,
- 	return !list_empty(&data->properties);
- }
- 
--void acpi_init_properties(struct acpi_device *adev)
-+void acpi_init_properties(struct acpi_device *adev,
-+			  struct list_head *mipi_img_head)
- {
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
- 	struct acpi_hardware_id *hwid;
-@@ -567,8 +584,9 @@ void acpi_init_properties(struct acpi_device *adev)
- 		if (acpi_of)
- 			acpi_init_of_compatible(adev);
- 	}
--	if (acpi_enumerate_nondev_subnodes(adev->handle, buf.pointer,
--					&adev->data, acpi_fwnode_handle(adev)))
-+	if (acpi_enumerate_nondev_subnodes(adev, adev->handle, buf.pointer,
-+					   &adev->data, acpi_fwnode_handle(adev),
-+					   mipi_img_head))
- 		adev->data.pointer = buf.pointer;
- 
- 	if (!adev->data.pointer) {
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c21e5dedc5f1..c54063caaaa2 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1774,7 +1774,8 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
- }
- 
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
--			     int type, void (*release)(struct device *))
-+			     int type, void (*release)(struct device *),
-+			     struct list_head *mipi_img_head)
- {
- 	struct acpi_device *parent = acpi_find_parent_acpi_dev(handle);
- 
-@@ -1788,7 +1789,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	acpi_set_device_status(device, ACPI_STA_DEFAULT);
- 	acpi_device_get_busid(device);
- 	acpi_set_pnp_ids(handle, &device->pnp, type);
--	acpi_init_properties(device);
-+	acpi_init_properties(device, mipi_img_head);
- 	acpi_bus_get_flags(device);
- 	device->flags.match_driver = false;
- 	device->flags.initialized = true;
-@@ -1827,7 +1828,8 @@ static void acpi_scan_init_status(struct acpi_device *adev)
- }
- 
- static int acpi_add_single_object(struct acpi_device **child,
--				  acpi_handle handle, int type, bool dep_init)
-+				  acpi_handle handle, int type, bool dep_init,
-+				  struct list_head *mipi_img_head)
- {
- 	struct acpi_device *device;
- 	bool release_dep_lock = false;
-@@ -1837,7 +1839,9 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	if (!device)
- 		return -ENOMEM;
- 
--	acpi_init_device_object(device, handle, type, acpi_device_release);
-+	acpi_init_device_object(device, handle, type, acpi_device_release,
-+				mipi_img_head);
++#define MIPI_IMG_PREFIX "mipi-img-"
 +
- 	/*
- 	 * Getting the status is delayed till here so that we can call
- 	 * acpi_bus_get_status() and use its quirk handling.  Note that
-@@ -2048,15 +2052,19 @@ static u32 acpi_scan_check_dep(acpi_handle handle, bool check_dep)
- }
+ static const struct mipi_disco_prop {
+ 	const char *mipi_prop;
+ 	const char *dt_prop;
+@@ -743,6 +745,9 @@ void acpi_properties_prepare_mipi(union acpi_object *elements)
+ 	char *e0 = elements[0].string.pointer;
+ 	unsigned int i;
  
- /**
-- * struct acpi_postponed_handle - A postponed ACPI handle
-+ * struct acpi_postponed_handle - A postponed ACPI handle or device
-  * @handle: The postponed handle
-+ * @device: The postponed device
-  * @list: Entry in a postponed list
-  *
-- * One such entry represents an ACPI handle the scanning of which has been
-- * postponed.
-+ * One such entry represents an ACPI handle or an ACPI device the scanning of
-+ * which has been postponed.
-  */
- struct acpi_postponed_handle {
--	acpi_handle handle;
-+	union {
-+		acpi_handle handle;
-+		struct acpi_device *device;
-+	};
- 	struct list_head list;
- };
- 
-@@ -2068,8 +2076,7 @@ struct acpi_postponed_handle {
-  * Add a given ACPI handle to a list of ACPI objects for which the creation
-  * of the device objects is to be postponed.
-  */
--static void acpi_bus_handle_postpone(acpi_handle handle,
--				     struct list_head *head)
-+static void acpi_bus_handle_postpone(acpi_handle handle, struct list_head *head)
- {
- 	struct acpi_postponed_handle *ph;
- 
-@@ -2081,6 +2088,27 @@ static void acpi_bus_handle_postpone(acpi_handle handle,
- 	list_add(&ph->list, head);
- }
- 
-+/**
-+ * acpi_bus_device_postpone - Add an ACPI device to a given postponed list
-+ * @device: The ACPI device
-+ * @head: Postponed list head
-+ *
-+ * Add a given ACPI device to a list of ACPI objects for which the creation
-+ * of the device objects is to be postponed.
-+ */
-+void acpi_bus_device_postpone(struct acpi_device *device,
-+			      struct list_head *head)
-+{
-+	struct acpi_postponed_handle *ph;
-+
-+	ph = kzalloc(sizeof(*ph), GFP_KERNEL);
-+	if (!ph)
++	if (!str_has_prefix(elements[0].string.pointer, MIPI_IMG_PREFIX))
 +		return;
 +
-+	ph->device = device;
-+	list_add(&ph->list, head);
-+}
-+
- static acpi_status acpi_bus_check_add(acpi_handle handle, bool first_pass,
- 				      struct acpi_scan_context *ctx)
- {
-@@ -2132,7 +2160,8 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, bool first_pass,
- 	 * If first_pass is true at this point, the device has no dependencies,
- 	 * or the creation of the device object would have been postponed above.
- 	 */
--	acpi_add_single_object(&device, handle, type, !first_pass);
-+	acpi_add_single_object(&device, handle, type, !first_pass,
-+			       &ctx->mipi_img_head);
- 	if (!device)
- 		return AE_CTRL_DEPTH;
- 
-@@ -2485,6 +2514,7 @@ int acpi_bus_scan(acpi_handle handle)
- {
- 	struct acpi_scan_context ctx = {
- 		.postponed_head = LIST_HEAD_INIT(ctx.postponed_head),
-+		.mipi_img_head = LIST_HEAD_INIT(ctx.mipi_img_head),
- 		.csi2.crs_csi2_head = LIST_HEAD_INIT(ctx.csi2.crs_csi2_head),
- 	};
- 	struct acpi_postponed_handle *ph, *tmp_ph;
-@@ -2514,13 +2544,25 @@ int acpi_bus_scan(acpi_handle handle)
- 	/* Construct software nodes out of _CRS CSI2 records */
- 	acpi_bus_scan_crs_csi2(&ctx.csi2);
- 
-+	/*
-+	 * Initialise software nodes for devices that have MIPI DisCo for
-+	 * Imaging related properties.
-+	 */
-+	list_for_each_entry_safe(ph, tmp_ph, &ctx.mipi_img_head, list) {
-+		list_del(&ph->list);
-+		acpi_init_swnodes(ph->device);
-+		kfree(ph);
-+	}
-+
- 	acpi_bus_attach(ctx.device, (void *)true);
- 
- 	/*
--	 * Proceed to register ACPI devices that were postponed due to _DEP
--	 * objects during the namespace walk.
-+	 * Proceed to register ACPI devices that were postponed due to _CRS CSI2
-+	 * resources or _DEP objects during the namespace walk.
- 	 */
- 	list_for_each_entry_safe(ph, tmp_ph, &ctx.postponed_head, list) {
-+		struct acpi_postponed_handle *pm, *tmp_pm;
-+
- 		list_del(&ph->list);
- 		/* Set device NULL here to obtain the root for this sub-tree. */
- 		ctx.device = NULL;
-@@ -2534,6 +2576,16 @@ int acpi_bus_scan(acpi_handle handle)
- 		acpi_walk_namespace(ACPI_TYPE_ANY, ph->handle, ACPI_UINT32_MAX,
- 				    acpi_bus_check_add_2, NULL, (void *)&ctx,
- 				    NULL);
-+		/*
-+		 * Initialise software nodes for devices that have MIPI DisCo
-+		 * for Imaging related properties but which were postponed
-+		 * because of _DEP.
-+		 */
-+		list_for_each_entry_safe(pm, tmp_pm, &ctx.mipi_img_head, list) {
-+			list_del(&pm->list);
-+			acpi_init_swnodes(pm->device);
-+			kfree(pm);
-+		}
- 		if (ctx.device)
- 			acpi_bus_attach(ctx.device, NULL);
- 		kfree(ph);
-@@ -2594,7 +2646,7 @@ int acpi_bus_register_early_device(int type)
- 	struct acpi_device *device = NULL;
- 	int result;
- 
--	result = acpi_add_single_object(&device, NULL, type, false);
-+	result = acpi_add_single_object(&device, NULL, type, false, NULL);
- 	if (result)
- 		return result;
- 
-@@ -2609,7 +2661,7 @@ static void acpi_bus_scan_fixed(void)
- 		struct acpi_device *adev = NULL;
- 
- 		acpi_add_single_object(&adev, NULL, ACPI_BUS_TYPE_POWER_BUTTON,
--				       false);
-+				       false, NULL);
- 		if (adev) {
- 			adev->flags.match_driver = true;
- 			if (device_attach(&adev->dev) >= 0)
-@@ -2623,7 +2675,7 @@ static void acpi_bus_scan_fixed(void)
- 		struct acpi_device *adev = NULL;
- 
- 		acpi_add_single_object(&adev, NULL, ACPI_BUS_TYPE_SLEEP_BUTTON,
--				       false);
-+				       false, NULL);
- 		if (adev) {
- 			adev->flags.match_driver = true;
- 			if (device_attach(&adev->dev) < 0)
+ 	/* Replace MIPI DisCo for Imaging property names with DT equivalents. */
+ 	for (i = 0; i < ARRAY_SIZE(mipi_disco_props); i++) {
+ 		if (!strcmp(mipi_disco_props[i].mipi_prop, e0)) {
 -- 
 2.30.2
 
