@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D37DC77B75
-	for <linux-acpi@archiver.kernel.org>; Tue, 28 Mar 2023 10:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E27CEC77B70
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Mar 2023 10:03:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232392AbjC1KCm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Mar 2023 06:02:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53100 "EHLO
+        id S230515AbjC1KCk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Mar 2023 06:02:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232372AbjC1KCP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2023 06:02:15 -0400
+        with ESMTP id S232839AbjC1KCM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2023 06:02:12 -0400
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D98A5FCB;
-        Tue, 28 Mar 2023 03:02:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9D685BAE;
+        Tue, 28 Mar 2023 03:02:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679997734; x=1711533734;
+  t=1679997729; x=1711533729;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=vLL1m2QQXU8PS63Q2Za2fPq8nNvJPseI0J5KMCDCQJg=;
-  b=QGTfDn26NVxH+C/n1OSQJbxS+BBljLUOKoSNSS19S8sTsCFJIOVivH+S
-   2T7ylsSpCBjM5tmaaAnMwyKXxeiSemQcTEq6ymm5CYlcQ6lZi/zLW7v7s
-   Q1Isp4ViSBCVUwYwkWEqfjqS3fmCQmmO1w6Q0FsXLMR+HrxPuuN2dZ/Ln
-   x8an4K4JZDRlnXPm7yBtIE/8J304SlPW2SK/+p9SmdT+sXAlSMErXZNmz
-   xt8NivMRj6xPaoIxJmNMHLBuEMEK7bKi9oBaQFpWWM90lOxTBcilQC2Ya
-   ZXfi4x0i3qZfGeYzHe/vNz+z5J/Cu0C4TtZhzjKfA2XNw1EhrpCzDq/YT
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="324420022"
+  bh=/+sS2b+dgkP//cFDbe4YO72zbziuEeW/HhMKgSymv5k=;
+  b=J26WlepnPBwi7+94kqMYvOdDwwEESVCXslbPUAPJ4DK/MzDYSeDHdcz3
+   i3SukAKOJvpor2MDjK/9xR+DvtRMFVPPXshrhevHWr4z1l9gR3Pieg43e
+   hMb0Hl+6RAsI7scZ/duHuTUe4ZOMOBBG+j3yOF04fyIQz/QrffbA2ehrJ
+   DMHPOvccN08StyzeVnZCthhCh8gjQ4cBMFA4l8DU4WMl9w4RUkbOzyRf6
+   AHz3ku0ygQZZKpyV3F+TWu62UjP5vstzB0ZJaw0fj302pnPHs2L1cd9ao
+   cBzKsy6tes983qqNdhoHniQfE6icNLQma0orGBCshcuviUpWJts4LIhYv
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="324419991"
 X-IronPort-AV: E=Sophos;i="5.98,297,1673942400"; 
-   d="scan'208";a="324420022"
+   d="scan'208";a="324419991"
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:13 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:07 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="753078557"
+X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="753078517"
 X-IronPort-AV: E=Sophos;i="5.98,297,1673942400"; 
-   d="scan'208";a="753078557"
+   d="scan'208";a="753078517"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:11 -0700
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:05 -0700
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-        by kekkonen.fi.intel.com (Postfix) with ESMTP id CA26F12233C;
-        Tue, 28 Mar 2023 13:02:08 +0300 (EEST)
+        by kekkonen.fi.intel.com (Postfix) with ESMTP id C2D1E12249A;
+        Tue, 28 Mar 2023 13:02:02 +0300 (EEST)
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     linux-media@vger.kernel.org, rafael@kernel.org,
         andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com
-Subject: [PATCH v6 08/10] ACPI: property: Rename parsed MIPI DisCo for Imaging properties
-Date:   Tue, 28 Mar 2023 13:01:57 +0300
-Message-Id: <20230328100159.1457160-10-sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 03/10] ACPI: property: Parse _CRS CSI-2 descriptor
+Date:   Tue, 28 Mar 2023 13:01:51 +0300
+Message-Id: <20230328100159.1457160-4-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230328100159.1457160-1-sakari.ailus@linux.intel.com>
 References: <20230328100159.1457160-1-sakari.ailus@linux.intel.com>
@@ -57,145 +57,557 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-MIPI DisCo for Imaging defines properties for sensor-adjacent devices such
-as EEPROM, LED flash or lens VCM as either device or sub-node references.
-This is compliant with existing DT definitions apart from property names.
-
-Rename parsed MIPI-defined properties so drivers will have a unified view
-of them as defined in DT and already parsed by drivers. This can be done
-in-place as the MIPI-defined property strings are always longer than the
-DT one. This also results in loss of constness in parser function
-arguments.
-
-Individual bindings to devices could define the references differently
-between MIPI DisCo for Imaging and DT, in terms of device or sub-node
-references. This will still need to be handled in the drivers themselves.
+Parse newly added ACPI _CRS CSI-2 descriptor for CSI-2 and camera
+configuration, associate it with appropriate devices and allocate memory for
+software nodes needed to create a DT-like data structure for drivers.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/internal.h |  1 +
- drivers/acpi/mipi.c     | 36 ++++++++++++++++++++++++++++++++++++
- drivers/acpi/property.c | 22 ++++++++++++----------
- 3 files changed, 49 insertions(+), 10 deletions(-)
+ drivers/acpi/Makefile   |   2 +-
+ drivers/acpi/internal.h |  26 +++
+ drivers/acpi/mipi.c     | 345 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c     |  46 ++++--
+ include/acpi/acpi_bus.h |  11 ++
+ 5 files changed, 415 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/acpi/mipi.c
 
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index a5b649e71ab1..a98fa1bc1554 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -37,7 +37,7 @@ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+ # ACPI Bus and Device Drivers
+ #
+ acpi-y				+= bus.o glue.o
+-acpi-y				+= scan.o
++acpi-y				+= scan.o mipi.o
+ acpi-y				+= resource.o
+ acpi-y				+= acpi_processor.o
+ acpi-y				+= processor_core.o
 diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index afcd1dc3062c..bcacad73c5a7 100644
+index ec584442fb29..9db8b2e2730a 100644
 --- a/drivers/acpi/internal.h
 +++ b/drivers/acpi/internal.h
-@@ -317,5 +317,6 @@ void acpi_crs_csi2_swnodes_del_free(void);
- void acpi_bus_scan_check_crs_csi2(acpi_handle handle, struct acpi_scan_context *ctx);
- void acpi_bus_scan_crs_csi2(struct acpi_scan_context_csi2 *ctx);
- void acpi_init_swnodes(struct acpi_device *device);
-+void acpi_properties_prepare_mipi(union acpi_object *elements);
+@@ -102,6 +102,24 @@ struct acpi_device_bus_id {
+ 	struct list_head node;
+ };
  
- #endif /* _ACPI_INTERNAL_H_ */
-diff --git a/drivers/acpi/mipi.c b/drivers/acpi/mipi.c
-index 9f29bf231eaf..fcbef3677558 100644
---- a/drivers/acpi/mipi.c
-+++ b/drivers/acpi/mipi.c
-@@ -716,3 +716,39 @@ void acpi_init_swnodes(struct acpi_device *device)
- 	primary = acpi_fwnode_handle(device);
- 	primary->secondary = software_node_fwnode(ads->nodes);
- }
-+
-+static const struct mipi_disco_prop {
-+	const char *mipi_prop;
-+	const char *dt_prop;
-+} mipi_disco_props[] = {
-+	{ "mipi-img-lens-focus",	"lens-focus" },
-+	{ "mipi-img-flash-leds",	"flash-leds" },
-+	{ "mipi-img-clock-frequency",	"clock-frequency" },
-+	{ "mipi-img-led-max-current",	"led-max-microamp" },
-+	{ "mipi-img-flash-max-current",	"flash-max-microamp" },
-+	{ "mipi-img-flash-max-timeout",	"flash-max-timeout-us" },
++/* Context for scanning ACPI device nodes for _CRS CSI2 resource descriptors */
++struct acpi_scan_context_csi2 {
++	struct list_head crs_csi2_head;
++	size_t handle_count;
 +};
 +
 +/**
-+ * acpi_properties_prepare_mipi - Rename MIPI properties as commin DT ones
-+ *
-+ * @elements: ACPI object containing _DSD properties for a device node
-+ *
-+ * Renames MIPI-defined properties as common DT ones. The pre-requisite is that
-+ * the names of all such MIPI properties are no longer than the corresponding DT
-+ * ones.
++ * struct acpi_scan_context - Context for scanning ACPI devices
++ * @device: The first encountered device, typically the root of the scanned tree
++ * @postponed_head: The list head of the postponed ACPI handles
++ * @csi2: Context for scanning _CRS CSI2 resource descriptors
 + */
-+void acpi_properties_prepare_mipi(union acpi_object *elements)
-+{
-+	char *e0 = elements[0].string.pointer;
-+	unsigned int i;
++struct acpi_scan_context {
++	struct acpi_device *device;
++	struct list_head postponed_head;
++	struct acpi_scan_context_csi2 csi2;
++};
 +
-+	/* Replace MIPI DisCo for Imaging property names with DT equivalents. */
-+	for (i = 0; i < ARRAY_SIZE(mipi_disco_props); i++) {
-+		if (!strcmp(mipi_disco_props[i].mipi_prop, e0)) {
-+			WARN_ON(strscpy(e0, mipi_disco_props[i].dt_prop,
-+					elements[0].string.length) < 0);
-+			break;
+ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 			     int type, void (*release)(struct device *));
+ int acpi_tie_acpi_dev(struct acpi_device *adev);
+@@ -282,4 +300,12 @@ void acpi_init_lpit(void);
+ static inline void acpi_init_lpit(void) { }
+ #endif
+ 
++/*--------------------------------------------------------------------------
++			ACPI _CRS CSI2 and MIPI DisCo for Imaging conversion
++  -------------------------------------------------------------------------- */
++
++void acpi_crs_csi2_swnodes_del_free(void);
++void acpi_bus_scan_check_crs_csi2(acpi_handle handle, struct acpi_scan_context *ctx);
++void acpi_bus_scan_crs_csi2(struct acpi_scan_context_csi2 *ctx);
++
+ #endif /* _ACPI_INTERNAL_H_ */
+diff --git a/drivers/acpi/mipi.c b/drivers/acpi/mipi.c
+new file mode 100644
+index 000000000000..ffc1768f86ed
+--- /dev/null
++++ b/drivers/acpi/mipi.c
+@@ -0,0 +1,345 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * MIPI DisCo for Imaging support.
++ *
++ * Support MIPI DisCo for Imaging by parsing ACPI _CRS CSI2 records and DisCo
++ * for Imaging data structures.
++ *
++ * Also see <URL:https://www.mipi.org/specifications/mipi-disco-imaging>.
++ *
++ * Copyright (C) 2023 Intel Corporation
++ */
++
++#include <linux/acpi.h>
++#include <linux/limits.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/overflow.h>
++#include <linux/types.h>
++#include <linux/slab.h>
++#include <linux/sort.h>
++#include <linux/string.h>
++
++#include "internal.h"
++
++/* Temporary ACPI device handle to software node data structure mapping */
++struct crs_csi2_swnodes {
++	struct list_head list;
++	acpi_handle handle;
++	struct acpi_device_software_nodes *ads;
++};
++
++static LIST_HEAD(crs_csi2_swnodes);
++
++static void crs_csi2_swnode_del_free(struct crs_csi2_swnodes *swnodes)
++{
++	list_del(&swnodes->list);
++	kfree(swnodes);
++}
++
++void acpi_crs_csi2_swnodes_del_free(void)
++{
++	struct crs_csi2_swnodes *swnodes, *swnodes_tmp;
++
++	list_for_each_entry_safe(swnodes, swnodes_tmp, &crs_csi2_swnodes, list)
++		crs_csi2_swnode_del_free(swnodes);
++}
++
++/*
++ * Description of a _CRS CSI2 resource descriptor before software node creation
++ */
++struct crs_csi2_instance {
++	struct list_head list;
++	struct acpi_resource_csi2_serialbus csi2;
++	acpi_handle remote_handle;
++	char remote_name[];
++};
++
++/* Temporary list of ACPI device nodes with _CRS CSI2 resource descriptors */
++struct crs_csi2 {
++	struct list_head list;
++	acpi_handle handle;
++	struct list_head buses;
++};
++
++/*
++ * Context for collecting _CRS CSI2 resource descriptors during ACPI namespace
++ * walk
++ */
++struct scan_check_crs_csi2_context {
++	struct list_head res_head;
++	acpi_handle handle;
++	size_t handle_count;
++};
++
++/* Scan a single CSI2 resource descriptor in _CRS. */
++static acpi_status scan_check_crs_csi2_instance(struct acpi_resource *res,
++						void *context)
++{
++	struct scan_check_crs_csi2_context *inst_context = context;
++	struct acpi_resource_csi2_serialbus *csi2;
++	struct crs_csi2_instance *inst;
++	acpi_handle remote_handle;
++
++	if (res->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
++		return AE_OK;
++
++	csi2 = &res->data.csi2_serial_bus;
++
++	if (csi2->type != ACPI_RESOURCE_SERIAL_TYPE_CSI2)
++		return AE_OK;
++
++	if (!csi2->resource_source.string_length) {
++		acpi_handle_debug(inst_context->handle,
++				  "invalid resource source string length\n");
++		return AE_OK;
++	}
++
++	if (ACPI_FAILURE(acpi_get_handle(NULL, csi2->resource_source.string_ptr,
++					 &remote_handle))) {
++		acpi_handle_warn(inst_context->handle,
++				 "cannot get handle for %s\n",
++				 csi2->resource_source.string_ptr);
++		return AE_OK;
++	}
++
++	/*
++	 * Allocate space to store the _CRS CSI2 entry and its data and add it
++	 * to the list.
++	 */
++	inst = kmalloc(struct_size(inst, remote_name, csi2->resource_source.string_length),
++		       GFP_KERNEL);
++	if (!inst)
++		return AE_OK;
++
++	inst->csi2 = *csi2;
++	strscpy(inst->remote_name, csi2->resource_source.string_ptr,
++		csi2->resource_source.string_length);
++	inst->csi2.resource_source.string_ptr = inst->remote_name;
++	inst->remote_handle = remote_handle;
++
++	list_add(&inst->list, &inst_context->res_head);
++
++	inst_context->handle_count++;
++
++	return AE_OK;
++}
++
++/*
++ * Find all devices with _CRS CSI2 resource descriptors and collect them
++ * into a list for later use.
++ */
++void acpi_bus_scan_check_crs_csi2(acpi_handle handle, struct acpi_scan_context *ctx)
++{
++	struct scan_check_crs_csi2_context inst_context = {
++		.handle = handle,
++		.res_head = LIST_HEAD_INIT(inst_context.res_head),
++	};
++	struct crs_csi2 *csi2;
++
++	acpi_walk_resources(handle, METHOD_NAME__CRS,
++			    scan_check_crs_csi2_instance, &inst_context);
++
++	if (list_empty(&inst_context.res_head))
++		return;
++
++	/*
++	 * Found entry, so allocate memory for it, fill it and add it to the
++	 * list.
++	 */
++	csi2 = kmalloc(sizeof(*csi2), GFP_KERNEL);
++	if (!csi2)
++		return; /* There's nothing we really can do about this. */
++
++	csi2->handle = handle;
++	list_replace(&inst_context.res_head, &csi2->buses);
++	list_add(&csi2->list, &ctx->csi2.crs_csi2_head);
++
++	/* This handle plus remote handles in _CRS CSI2 resource descriptors */
++	ctx->csi2.handle_count += 1 + inst_context.handle_count;
++}
++
++struct acpi_handle_ref {
++	acpi_handle handle;
++	unsigned int count;
++};
++
++#define NO_CSI2_PORT (UINT_MAX - 1)
++
++static int crs_handle_cmp(const void *__a, const void *__b)
++{
++	const struct acpi_handle_ref *a = __a, *b = __b;
++
++	return a->handle < b->handle ? -1 : a->handle > b->handle;
++}
++
++/*
++ * Release entries in temporary storage of ACPI device nodes with _CRS CSI2
++ * resource descriptors.
++ */
++static void crs_csi2_release(struct list_head *crs_csi2_handles)
++{
++	struct crs_csi2 *csi2, *csi2_tmp;
++
++	list_for_each_entry_safe(csi2, csi2_tmp, crs_csi2_handles, list) {
++		struct crs_csi2_instance *inst, *inst_tmp;
++
++		list_for_each_entry_safe(inst, inst_tmp, &csi2->buses, list) {
++			list_del(&inst->list);
++			kfree(inst);
 +		}
++
++		list_del(&csi2->list);
++		kfree(csi2);
 +	}
 +}
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 1892787e73a6..541bda2c118f 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -127,7 +127,7 @@ static bool acpi_nondev_subnode_extract(union acpi_object *desc,
- }
- 
- static bool acpi_nondev_subnode_data_ok(acpi_handle handle,
--					const union acpi_object *link,
-+					union acpi_object *link,
- 					struct list_head *list,
- 					struct fwnode_handle *parent)
- {
-@@ -148,7 +148,7 @@ static bool acpi_nondev_subnode_data_ok(acpi_handle handle,
- }
- 
- static bool acpi_nondev_subnode_ok(acpi_handle scope,
--				   const union acpi_object *link,
-+				   union acpi_object *link,
- 				   struct list_head *list,
- 				   struct fwnode_handle *parent)
- {
-@@ -292,22 +292,24 @@ static bool acpi_property_value_ok(const union acpi_object *value)
- 	return false;
- }
- 
--static bool acpi_properties_format_valid(const union acpi_object *properties)
-+static bool acpi_properties_prepare(union acpi_object *properties)
- {
--	int i;
-+	unsigned int i;
- 
- 	for (i = 0; i < properties->package.count; i++) {
--		const union acpi_object *property;
-+		union acpi_object *property = &properties->package.elements[i];
-+		union acpi_object *elements = property->package.elements;
- 
--		property = &properties->package.elements[i];
- 		/*
- 		 * Only two elements allowed, the first one must be a string and
- 		 * the second one has to satisfy certain conditions.
- 		 */
--		if (property->package.count != 2
--		    || property->package.elements[0].type != ACPI_TYPE_STRING
--		    || !acpi_property_value_ok(&property->package.elements[1]))
-+		if (property->package.count != 2 ||
-+		    elements[0].type != ACPI_TYPE_STRING ||
-+		    !acpi_property_value_ok(&elements[1]))
- 			return false;
 +
-+		acpi_properties_prepare_mipi(elements);
- 	}
- 	return true;
- }
-@@ -539,7 +541,7 @@ static bool acpi_extract_properties(acpi_handle scope, union acpi_object *desc,
- 		 * We found the matching GUID. Now validate the format of the
- 		 * package immediately following it.
- 		 */
--		if (!acpi_properties_format_valid(properties))
-+		if (!acpi_properties_prepare(properties))
- 			continue;
++/*
++ * Allocate memory and set up software nodes for an ACPI device with given
++ * number of CSI-2 ports.
++ */
++static void acpi_crs_csi2_alloc_fill_swnodes(size_t ports_count, acpi_handle handle)
++{
++	struct acpi_device_software_nodes *ads;
++	struct crs_csi2_swnodes *swnodes;
++	size_t alloc_size;
++	unsigned int i;
++	bool overflow;
++	void *end;
++
++	/*
++	 * Allocate memory for ports, node pointers (number of nodes +
++	 * 1 (guardian), nodes (root + number of ports * 2 (for for
++	 * every port there is an endpoint)).
++	 */
++	overflow = check_mul_overflow(sizeof(*ads->ports) +
++				      sizeof(*ads->nodes) * 2 +
++				      sizeof(*ads->nodeptrs) * 2,
++				      ports_count, &alloc_size);
++	overflow = overflow ||
++		   check_add_overflow(sizeof(*ads) + sizeof(*ads->nodes) +
++				      sizeof(*ads->nodeptrs) * 2,
++				      alloc_size, &alloc_size);
++	if (overflow) {
++		acpi_handle_warn(handle,
++				 "too many _CRS CSI2 resource handles (%zu)",
++				 ports_count);
++		return;
++	}
++
++	swnodes = kzalloc(sizeof(*swnodes), GFP_KERNEL);
++	ads = kmalloc(alloc_size, GFP_KERNEL);
++	if (!swnodes || !ads)
++		goto out_free;
++
++	ads->ports = (void *)(ads + 1);
++	ads->nodes = (void *)(ads->ports + ports_count);
++	ads->nodeptrs = (void *)(ads->nodes + ports_count * 2 + 1);
++	end = ads->nodeptrs + ports_count * 2 + 2;
++	if (WARN_ON((void *)ads + alloc_size != end))
++		goto out_free;
++
++	ads->num_ports = ports_count;
++	for (i = 0; i < ports_count * 2 + 1; i++)
++		ads->nodeptrs[i] = &ads->nodes[i];
++	ads->nodeptrs[i] = NULL;
++	for (i = 0; i < ports_count; i++)
++		ads->ports[i].port_nr = NO_CSI2_PORT;
++	swnodes->handle = handle;
++	swnodes->ads = ads;
++	list_add(&swnodes->list, &crs_csi2_swnodes);
++
++	return;
++
++out_free:
++	kfree(swnodes);
++	kfree(ads);
++	acpi_handle_debug(handle, "cannot allocate for %zu software nodes\n",
++			  ports_count);
++}
++
++/**
++ * acpi_bus_scan_crs_csi2 - Construct software nodes out of ACPI _CRS CSI2
++ *			    resource descriptors
++ * @ctx: ACPI _CRS CSI2 context, gathered during tree walk earlier
++ *
++ * This function does a number of things:
++ *
++ * 1. Count how many references to other devices _CRS CSI-2 instances have in
++ *    total.
++ *
++ * 2. Count the number of references to other devices for each _CRS CSI-2
++ *    instance.
++ *
++ * 3. Allocate memory for swnodes each ACPI device requires later on, and
++ *    generate a list of such allocations.
++ *
++ * Note that struct acpi_device may not be available yet at this time.
++ *
++ * acpi_scan_lock in scan.c must be held when calling this function.
++ */
++void acpi_bus_scan_crs_csi2(struct acpi_scan_context_csi2 *ctx)
++{
++	struct acpi_handle_ref *handle_refs;
++	struct acpi_handle_ref *this = NULL;
++	size_t this_count;
++	unsigned int curr = 0;
++	struct crs_csi2 *csi2;
++
++	/* No handles? Bail out here. */
++	if (!ctx->handle_count)
++		return;
++
++	handle_refs = kcalloc(ctx->handle_count + 1, sizeof(*handle_refs),
++			      GFP_KERNEL);
++	if (!handle_refs) {
++		pr_debug("no memory for %zu handle refs\n",
++			 ctx->handle_count + 1);
++		return;
++	}
++
++	/* Associate handles to the number of references. */
++	list_for_each_entry(csi2, &ctx->crs_csi2_head, list) {
++		struct crs_csi2_instance *inst;
++		struct acpi_handle_ref *handle_ref;
++
++		handle_ref = &handle_refs[curr++];
++		handle_ref->handle = csi2->handle;
++
++		list_for_each_entry(inst, &csi2->buses, list) {
++			handle_refs[curr].handle = inst->remote_handle;
++			handle_refs[curr].count = 1;
++			handle_ref->count++;
++			curr++;
++		}
++	}
++
++	handle_refs[curr].handle = NULL;
++
++	/* Sort the handles by remote so duplicates canbe easily found. */
++	sort(handle_refs, ctx->handle_count, sizeof(*handle_refs), crs_handle_cmp, NULL);
++
++	/*
++	 * Finally count references in each handle, allocate space for device
++	 * specific ports, properties and fill the _CRS CSI2 descriptor
++	 * originated data.
++	 */
++	this = handle_refs;
++	this_count = this->count;
++	for (curr = 1; curr < ctx->handle_count + 1; curr++) {
++		/* Weed out duplicate receiver devices. */
++		if (this->handle == handle_refs[curr].handle) {
++			this_count += handle_refs[curr].count;
++			continue;
++		}
++
++		acpi_crs_csi2_alloc_fill_swnodes(this_count, this->handle);
++
++		this = &handle_refs[curr];
++		this_count = this->count;
++	}
++
++	kfree(handle_refs);
++
++	crs_csi2_release(&ctx->crs_csi2_head);
++}
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index df97c2babf39..4f4f6b0db0a9 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2042,16 +2042,6 @@ struct acpi_postponed_handle {
+ 	struct list_head list;
+ };
  
- 		acpi_data_add_props(data, (const guid_t *)guid->buffer.pointer,
+-/**
+- * struct acpi_scan_context - Context for scanning ACPI devices
+- * @device: The first encountered device, typically the root of the scanned tree
+- * @postponed_head: The list head of the postponed ACPI handles
+- */
+-struct acpi_scan_context {
+-	struct acpi_device *device;
+-	struct list_head postponed_head;
+-};
+-
+ /**
+  * acpi_bus_handle_postpone - Add an ACPI handle to a given postponed list
+  * @handle: The ACPI handle
+@@ -2073,7 +2063,7 @@ static void acpi_bus_handle_postpone(acpi_handle handle,
+ 	list_add(&ph->list, head);
+ }
+ 
+-static acpi_status acpi_bus_check_add(acpi_handle handle, bool check_dep,
++static acpi_status acpi_bus_check_add(acpi_handle handle, bool first_pass,
+ 				      struct acpi_scan_context *ctx)
+ {
+ 	struct acpi_device *device = acpi_fetch_acpi_dev(handle);
+@@ -2091,8 +2081,11 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, bool check_dep,
+ 		if (acpi_device_should_be_hidden(handle))
+ 			return AE_OK;
+ 
++		if (first_pass)
++			acpi_bus_scan_check_crs_csi2(handle, ctx);
++
+ 		/* Bail out if there are dependencies. */
+-		if (acpi_scan_check_dep(handle, check_dep) > 0) {
++		if (acpi_scan_check_dep(handle, first_pass) > 0) {
+ 			acpi_bus_handle_postpone(handle, &ctx->postponed_head);
+ 			return AE_CTRL_DEPTH;
+ 		}
+@@ -2118,10 +2111,10 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, bool check_dep,
+ 	}
+ 
+ 	/*
+-	 * If check_dep is true at this point, the device has no dependencies,
++	 * If first_pass is true at this point, the device has no dependencies,
+ 	 * or the creation of the device object would have been postponed above.
+ 	 */
+-	acpi_add_single_object(&device, handle, type, !check_dep);
++	acpi_add_single_object(&device, handle, type, !first_pass);
+ 	if (!device)
+ 		return AE_CTRL_DEPTH;
+ 
+@@ -2146,6 +2139,14 @@ static acpi_status acpi_bus_check_add_2(acpi_handle handle, u32 lvl_not_used,
+ 	return acpi_bus_check_add(handle, false, (struct acpi_scan_context *)ctx);
+ }
+ 
++static acpi_status acpi_bus_check_csi2(acpi_handle handle, u32 lvl_not_used,
++				       void *ctx, void **unused)
++{
++	acpi_bus_scan_check_crs_csi2(handle, ctx);
++
++	return AE_OK;
++}
++
+ static void acpi_default_enumeration(struct acpi_device *device)
+ {
+ 	/*
+@@ -2466,6 +2467,7 @@ int acpi_bus_scan(acpi_handle handle)
+ {
+ 	struct acpi_scan_context ctx = {
+ 		.postponed_head = LIST_HEAD_INIT(ctx.postponed_head),
++		.csi2.crs_csi2_head = LIST_HEAD_INIT(ctx.csi2.crs_csi2_head),
+ 	};
+ 	struct acpi_postponed_handle *ph, *tmp_ph;
+ 	int ret = 0;
+@@ -2480,6 +2482,20 @@ int acpi_bus_scan(acpi_handle handle)
+ 		goto out_release;
+ 	}
+ 
++	/*
++	 * Check _CRS CSI2 resource descriptors for devices that were not
++	 * traversed during the previous pass.
++	 */
++	list_for_each_entry_safe(ph, tmp_ph, &ctx.postponed_head, list) {
++		acpi_bus_check_csi2(ph->handle, 0, &ctx, NULL);
++		acpi_walk_namespace(ACPI_TYPE_DEVICE, ph->handle, ACPI_UINT32_MAX,
++				    acpi_bus_check_csi2, NULL, (void *)&ctx,
++				    NULL);
++	}
++
++	/* Construct software nodes out of _CRS CSI2 records */
++	acpi_bus_scan_crs_csi2(&ctx.csi2);
++
+ 	acpi_bus_attach(ctx.device, (void *)true);
+ 
+ 	/*
+@@ -2511,6 +2527,8 @@ int acpi_bus_scan(acpi_handle handle)
+ 		kfree(ph);
+ 	}
+ 
++	acpi_crs_csi2_swnodes_del_free();
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(acpi_bus_scan);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index e44be31115a6..a05fe22c1175 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -360,6 +360,17 @@ struct acpi_device_data {
+ 
+ struct acpi_gpio_mapping;
+ 
++struct acpi_device_software_node_port {
++	unsigned int port_nr;
++};
++
++struct acpi_device_software_nodes {
++	struct acpi_device_software_node_port *ports;
++	struct software_node *nodes;
++	const struct software_node **nodeptrs;
++	unsigned int num_ports;
++};
++
+ /* Device */
+ struct acpi_device {
+ 	u32 pld_crc;
 -- 
 2.30.2
 
