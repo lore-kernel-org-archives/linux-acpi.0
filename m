@@ -2,134 +2,89 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1383EC77B6E
-	for <linux-acpi@archiver.kernel.org>; Mon, 27 Mar 2023 21:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FACC6FD1D
+	for <linux-acpi@archiver.kernel.org>; Tue, 28 Mar 2023 01:52:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232251AbjC0Vqf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 27 Mar 2023 17:46:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58460 "EHLO
+        id S232417AbjC1BwN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 27 Mar 2023 21:52:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232477AbjC0VqS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2023 17:46:18 -0400
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49B9A2D67;
-        Mon, 27 Mar 2023 14:46:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679953577; x=1711489577;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=0UAeaeee3yTvKLvqJ/XX58s7B1Cuu8AmvKhY4rlK+DI=;
-  b=eQ5IHQzoTyBDsrhA2KTR22sGcVUpUcCLomh5njS2dhJQPlykXfX3wRC/
-   DJp13usJrobPq+5Rlja1H/6B4WGQNYbXTTTh4kZjSDB8eARlcTzc9E2Iw
-   L8zXESTDeDlkLuvo92hCPlpuIp8z+nNtE+lzPVui9JSvsUQgpKQCQ1Jjt
-   5tQJatoqwj8zDYENvuR1hUNpxpILcY8rJjL9RP9+KIqRwsRkdcxlwGPAI
-   AQAdxAMSRCydlzL5QsRIiS7rsJHho8YLK3C5jLdb9W6b9xbybRL6EDepE
-   jvB4+wJ09Bw9Bs+zxNUF4VyzqVW4Bd/q3ibivAYJyXiWVgUobnOcPuoy4
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="337900401"
-X-IronPort-AV: E=Sophos;i="5.98,295,1673942400"; 
-   d="scan'208";a="337900401"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2023 14:46:06 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="686114808"
-X-IronPort-AV: E=Sophos;i="5.98,295,1673942400"; 
-   d="scan'208";a="686114808"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [192.168.1.177]) ([10.212.91.66])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2023 14:46:06 -0700
-Subject: [PATCH v2 20/21] cxl: Export sysfs attributes for memory device QTG
- ID
-From:   Dave Jiang <dave.jiang@intel.com>
-To:     linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc:     Dan Williams <dan.j.williams@intel.com>, dan.j.williams@intel.com,
-        ira.weiny@intel.com, vishal.l.verma@intel.com,
-        alison.schofield@intel.com, rafael@kernel.org, lukas@wunner.de
-Date:   Mon, 27 Mar 2023 14:46:06 -0700
-Message-ID: <167995356611.2857312.4634198260468536572.stgit@djiang5-mobl3>
-In-Reply-To: <167995336797.2857312.539473939839316778.stgit@djiang5-mobl3>
-References: <167995336797.2857312.539473939839316778.stgit@djiang5-mobl3>
-User-Agent: StGit/1.5
+        with ESMTP id S232269AbjC1BwM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2023 21:52:12 -0400
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F4F21FDE;
+        Mon, 27 Mar 2023 18:52:11 -0700 (PDT)
+X-UUID: 08321cc7251f4a488c4909c7af261d8a-20230328
+X-CID-UNFAMILIAR: 1
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.20,REQID:fcfc3164-7bc9-4ae3-bb3a-67c55f0bc93b,IP:20,
+        URL:0,TC:0,Content:-5,EDM:0,RT:0,SF:14,FILE:0,BULK:0,RULE:Release_Ham,ACTI
+        ON:release,TS:29
+X-CID-INFO: VERSION:1.1.20,REQID:fcfc3164-7bc9-4ae3-bb3a-67c55f0bc93b,IP:20,UR
+        L:0,TC:0,Content:-5,EDM:0,RT:0,SF:14,FILE:0,BULK:0,RULE:Release_HamU,ACTIO
+        N:release,TS:29
+X-CID-META: VersionHash:25b5999,CLOUDID:31748cb4-beed-4dfc-bd9c-e1b22fa6ccc4,B
+        ulkID:2303280952064848OZ6D,BulkQuantity:0,Recheck:0,SF:24|16|19|43|102,TC:
+        nil,Content:0,EDM:-3,IP:-2,URL:0,File:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OS
+        I:0,OSA:0,AV:0
+X-CID-BVR: 0,NGT
+X-UUID: 08321cc7251f4a488c4909c7af261d8a-20230328
+Received: from mail.kylinos.cn [(39.156.73.10)] by mailgw
+        (envelope-from <yijiangshan@kylinos.cn>)
+        (Generic MTA)
+        with ESMTP id 484537904; Tue, 28 Mar 2023 09:52:05 +0800
+Received: from mail.kylinos.cn (localhost [127.0.0.1])
+        by mail.kylinos.cn (NSMail) with SMTP id 3DAABE0084A1;
+        Tue, 28 Mar 2023 09:52:05 +0800 (CST)
+X-ns-mid: postfix-64224844-71411298
+Received: from localhost.localdomain (unknown [172.20.125.154])
+        by mail.kylinos.cn (NSMail) with ESMTPA id D4907E0084A1;
+        Tue, 28 Mar 2023 09:52:03 +0800 (CST)
+From:   Jiangshan Yi <yijiangshan@kylinos.cn>
+To:     robert.moore@intel.com, rafael.j.wysocki@intel.com
+Cc:     lenb@kernel.org, linux-acpi@vger.kernel.org,
+        acpica-devel@lists.linuxfoundation.org,
+        linux-kernel@vger.kernel.org, 13667453960@163.com,
+        Jiangshan Yi <yijiangshan@kylinos.cn>
+Subject: [PATCH] drivers/acpi/acpica/exserial.c: replace ternary operator with min()
+Date:   Tue, 28 Mar 2023 09:51:20 +0800
+Message-Id: <20230328015120.111168-1-yijiangshan@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Export qtg_id sysfs attributes for the CXL memory device. The QTG ID
-should show up as /sys/bus/cxl/devices/memX/qtg_id. The QTG ID is
-retrieved via _DSM after supplying the caluclated bandwidth and latency
-for the entire CXL path from device to the CPU. This ID is used to match
-up to the root decoder QTG ID to determine which CFMWS the memory range
-of a hotplugged CXL mem device should be assigned under.
+Fix the following coccicheck warning:
 
-While there may be multiple DSMAS exported by the device CDAT, the driver
-will only expose the first QTG ID in sysfs for now. In the future when
-multiple QTG IDs are necessary, they can be exposed. [1]
+drivers/acpi/acpica/exserial.c:346: WARNING opportunity for min().
 
-[1]: https://lore.kernel.org/linux-cxl/167571650007.587790.10040913293130712882.stgit@djiang5-mobl3.local/T/#md2a47b1ead3e1ba08f50eab29a4af1aed1d215ab
+min() macro is defined in include/linux/minmax.h. It avoids
+multiple evaluations of the arguments when non-constant and performs
+strict type-checking.
 
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Jiangshan Yi <yijiangshan@kylinos.cn>
 ---
- Documentation/ABI/testing/sysfs-bus-cxl |   11 +++++++++++
- drivers/cxl/core/memdev.c               |   15 +++++++++++++++
- 2 files changed, 26 insertions(+)
+ drivers/acpi/acpica/exserial.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 471ac9a37078..a018f0a21aca 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -58,6 +58,17 @@ Description:
- 		affinity for this device.
- 
- 
-+What:		/sys/bus/cxl/devices/memX/qtg_id
-+Date:		March, 2024
-+KernelVersion:	v6.4
-+Contact:	linux-cxl@vger.kernel.org
-+Description:
-+		(RO) Show the first QoS Throttling Group ID for the device.
-+		The ID is used to match against the CFMWS (root decoder)
-+		QTG ID so that the memory range under a hot-plugged device
-+		is assigned under the appropriate CFMWS.
-+
-+
- What:		/sys/bus/cxl/devices/*/devtype
- Date:		June, 2021
- KernelVersion:	v5.14
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index d2605fc39240..974eff833edd 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -106,12 +106,27 @@ static ssize_t numa_node_show(struct device *dev, struct device_attribute *attr,
- }
- static DEVICE_ATTR_RO(numa_node);
- 
-+static ssize_t qtg_id_show(struct device *dev, struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-+	struct qos_prop_entry *qos;
-+
-+	if (list_empty(&cxlmd->qos_list))
-+		return 0;
-+
-+	qos = list_first_entry(&cxlmd->qos_list, struct qos_prop_entry, list);
-+	return sysfs_emit(buf, "%u\n", qos->qtg_id);
-+}
-+static DEVICE_ATTR_RO(qtg_id);
-+
- static struct attribute *cxl_memdev_attributes[] = {
- 	&dev_attr_serial.attr,
- 	&dev_attr_firmware_version.attr,
- 	&dev_attr_payload_max.attr,
- 	&dev_attr_label_storage_size.attr,
- 	&dev_attr_numa_node.attr,
-+	&dev_attr_qtg_id.attr,
- 	NULL,
- };
- 
-
+diff --git a/drivers/acpi/acpica/exserial.c b/drivers/acpi/acpica/exseria=
+l.c
+index fd63f2042514..dfe507e0a09a 100644
+--- a/drivers/acpi/acpica/exserial.c
++++ b/drivers/acpi/acpica/exserial.c
+@@ -343,8 +343,7 @@ acpi_ex_write_serial_bus(union acpi_operand_object *s=
+ource_desc,
+ 	/* Copy the input buffer data to the transfer buffer */
+=20
+ 	buffer =3D buffer_desc->buffer.pointer;
+-	data_length =3D (buffer_length < source_desc->buffer.length ?
+-		       buffer_length : source_desc->buffer.length);
++	data_length =3D min(buffer_length, source_desc->buffer.length);
+ 	memcpy(buffer, source_desc->buffer.pointer, data_length);
+=20
+ 	/* Lock entire transaction if requested */
+--=20
+2.27.0
 
