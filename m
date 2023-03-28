@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D06FC77B60
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6651C77B6F
 	for <linux-acpi@archiver.kernel.org>; Tue, 28 Mar 2023 10:03:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230128AbjC1KCh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 28 Mar 2023 06:02:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53096 "EHLO
+        id S230386AbjC1KCi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 28 Mar 2023 06:02:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232719AbjC1KCL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2023 06:02:11 -0400
+        with ESMTP id S232873AbjC1KCO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2023 06:02:14 -0400
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9D6555B4;
-        Tue, 28 Mar 2023 03:02:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E729D619C;
+        Tue, 28 Mar 2023 03:02:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679997729; x=1711533729;
+  t=1679997734; x=1711533734;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=aMaKHZ+sOaceKGE77joDQX5kyAJ9jYBW7/J7dxvAchw=;
-  b=h5JuJkQQ4mzmiBHGRtyIpOekqIbv5XAiSMglwZ98ehe6A6oMycXicCJi
-   GRVu98ujaTc2rD5g1jvSQ/VYDSIPRaSMjtK7kG3jD+BH8ObArlun9ZIQe
-   3F6TShGmwY6Qfp4vGLMv8XlBRXqNQGT803fstSl5b6fpnO/tmKx4Xr8Ek
-   9GSBai30mdVhemwaGnCiBxWH2fCrXhM1ncOWv5lX2+fEbaFyH44vH11Ar
-   TUlLv186xPpoUznCz50wD5CPVV5pNBXXKpdG5PfNyB/urgho9/kLDf6Bq
-   D7dfkiyQnZTDxetm8crHsGMSxRvqBF5eIC9aoIkegVF/m6Dw5M5LkOihd
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="324419981"
+  bh=k2wXv6cEvPP8j8J/b9F7VttPHh08sa/YyVhSeBf27tE=;
+  b=P7uT350ZDdQBzlEA2R/j6UTR1vsgdEYKmoMjv/5V3yJv3mLzi/gnGOGH
+   LHcOl/O55EwFCn2Rn04tyU0BrQ2T4rxhfqnaawFMznhEgKPzC39zhuF36
+   xBe60qoVV+M1WUW+36IbLWn3ZNtcqe5KQ2yRm1Z4KOpP8vwpt93kTI5nE
+   APEk2D3FsBGPlhFiKn105P/wFDzrF32UgZVMXAE40kFELY4EA845ix9O1
+   yt3COZOaHP2+mZJrBguwKbBGFsVvm8zCqbIKSyUGF6eRvRPggAd8hk2i1
+   47iRA6PpOQDJGDG+TF80sWixxqNdmOfQAa4784SnNczuuAbydTAg0Puu4
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="324420015"
 X-IronPort-AV: E=Sophos;i="5.98,297,1673942400"; 
-   d="scan'208";a="324419981"
+   d="scan'208";a="324420015"
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:06 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:12 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="753078508"
+X-IronPort-AV: E=McAfee;i="6600,9927,10662"; a="753078552"
 X-IronPort-AV: E=Sophos;i="5.98,297,1673942400"; 
-   d="scan'208";a="753078508"
+   d="scan'208";a="753078552"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:04 -0700
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2023 03:02:10 -0700
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-        by kekkonen.fi.intel.com (Postfix) with ESMTP id EFD8E122499;
-        Tue, 28 Mar 2023 13:02:01 +0300 (EEST)
+        by kekkonen.fi.intel.com (Postfix) with ESMTP id D3D9A122499;
+        Tue, 28 Mar 2023 13:02:07 +0300 (EEST)
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     linux-media@vger.kernel.org, rafael@kernel.org,
         andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com
-Subject: [PATCH v6 02/10] ACPI: property: Parse data node string references in properties
-Date:   Tue, 28 Mar 2023 13:01:50 +0300
-Message-Id: <20230328100159.1457160-3-sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 07/10] ACPI: property: Dig "rotation" property for devices with CSI2 _CRS
+Date:   Tue, 28 Mar 2023 13:01:56 +0300
+Message-Id: <20230328100159.1457160-9-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230328100159.1457160-1-sakari.ailus@linux.intel.com>
 References: <20230328100159.1457160-1-sakari.ailus@linux.intel.com>
@@ -57,201 +57,70 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Add support for parsing property references using strings, besides
-reference objects that were previously supported. This allows also
-referencing data nodes which was not possible with reference objects.
+Dig "rotation" property value for devices with _CRS CSI2 resource
+descriptor. The value comes from _PLD (physical location of device)
+object, if it exists for the device.
 
-Also add pr_fmt() macro to prefix printouts.
-
-While at it, update copyright.
+This way camera sensor drivers that know the "rotation" property do not
+need to care about _PLD on ACPI.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 110 ++++++++++++++++++++++++++++++++++------
- 1 file changed, 94 insertions(+), 16 deletions(-)
+ drivers/acpi/mipi.c     | 17 +++++++++++++++++
+ include/acpi/acpi_bus.h |  1 +
+ 2 files changed, 18 insertions(+)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index b8d9eb9a433e..08831ffba26c 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -2,14 +2,17 @@
- /*
-  * ACPI device specific properties support.
-  *
-- * Copyright (C) 2014, Intel Corporation
-+ * Copyright (C) 2014-2023, Intel Corporation
-  * All rights reserved.
-  *
-  * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
-- *          Darren Hart <dvhart@linux.intel.com>
-- *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+ *	    Darren Hart <dvhart@linux.intel.com>
-+ *	    Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+ *	    Sakari Ailus <sakari.ailus@linux.intel.com>
+diff --git a/drivers/acpi/mipi.c b/drivers/acpi/mipi.c
+index 315f076b9208..9f29bf231eaf 100644
+--- a/drivers/acpi/mipi.c
++++ b/drivers/acpi/mipi.c
+@@ -654,10 +654,12 @@ static void init_port_csi2_remote(struct acpi_device *device,
   */
- 
-+#define pr_fmt(fmt) "ACPI: " fmt
-+
- #include <linux/acpi.h>
- #include <linux/device.h>
- #include <linux/export.h>
-@@ -795,7 +798,8 @@ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
- static int acpi_get_ref_args(struct fwnode_reference_args *args,
- 			     struct fwnode_handle *ref_fwnode,
- 			     const union acpi_object **element,
--			     const union acpi_object *end, size_t num_args)
-+			     const union acpi_object *end, size_t num_args,
-+			     bool subnode_string)
+ void acpi_init_swnodes(struct acpi_device *device)
  {
- 	u32 nargs = 0, i;
++	struct fwnode_handle *fwnode = acpi_fwnode_handle(device);
+ 	struct acpi_device_software_nodes *ads;
+ 	struct acpi_buffer buffer = { .length = ACPI_ALLOCATE_BUFFER };
+ 	acpi_handle handle = acpi_device_handle(device);
+ 	struct fwnode_handle *primary;
++	unsigned int prop_index = 0;
+ 	acpi_status status;
+ 	unsigned int i;
+ 	int ret;
+@@ -666,6 +668,21 @@ void acpi_init_swnodes(struct acpi_device *device)
+ 	if (!ads)
+ 		return;
  
-@@ -803,13 +807,16 @@ static int acpi_get_ref_args(struct fwnode_reference_args *args,
- 	 * Find the referred data extension node under the
- 	 * referred device node.
- 	 */
--	for (; *element < end && (*element)->type == ACPI_TYPE_STRING;
--	     (*element)++) {
--		const char *child_name = (*element)->string.pointer;
--
--		ref_fwnode = acpi_fwnode_get_named_child_node(ref_fwnode, child_name);
--		if (!ref_fwnode)
--			return -EINVAL;
-+	if (subnode_string) {
-+		for (; *element < end && (*element)->type == ACPI_TYPE_STRING;
-+		     (*element)++) {
-+			const char *child_name = (*element)->string.pointer;
++	/*
++	 * Check if "rotation" property exists and if it doesn't but there's a
++	 * _PLD object, then get the rotation value from there.
++	 */
++	if (!fwnode_property_present(fwnode, "rotation")) {
++		struct acpi_pld_info *pld;
 +
-+			ref_fwnode = acpi_fwnode_get_named_child_node(ref_fwnode,
-+								      child_name);
-+			if (!ref_fwnode)
-+				return -EINVAL;
++		status = acpi_get_physical_device_location(handle, &pld);
++		if (ACPI_SUCCESS(status)) {
++			ads->dev_props[NEXT_PROPERTY(prop_index, DEV_ROTATION)] =
++				PROPERTY_ENTRY_U32("rotation", pld->rotation * 45U);
++			kfree(pld);
 +		}
- 	}
- 
- 	/*
-@@ -820,7 +827,8 @@ static int acpi_get_ref_args(struct fwnode_reference_args *args,
- 	for (i = 0; (*element) + i < end && i < num_args; i++) {
- 		acpi_object_type type = (*element)[i].type;
- 
--		if (type == ACPI_TYPE_LOCAL_REFERENCE)
-+		if (type == ACPI_TYPE_LOCAL_REFERENCE ||
-+		    (!subnode_string && type == ACPI_TYPE_STRING))
- 			break;
- 
- 		if (type == ACPI_TYPE_INTEGER)
-@@ -844,6 +852,43 @@ static int acpi_get_ref_args(struct fwnode_reference_args *args,
- 	return 0;
- }
- 
-+static struct fwnode_handle *
-+acpi_parse_string_ref(const struct fwnode_handle *fwnode, const char *refstring)
-+{
-+	acpi_handle scope, handle;
-+	struct acpi_data_node *dn;
-+	struct acpi_device *device;
-+	acpi_status status;
-+
-+	if (is_acpi_device_node(fwnode)) {
-+		scope = to_acpi_device_node(fwnode)->handle;
-+	} else if (is_acpi_data_node(fwnode)) {
-+		scope = to_acpi_data_node(fwnode)->handle;
-+	} else {
-+		pr_debug("bad node type for node %pfw\n", fwnode);
-+		return ERR_PTR(-EINVAL);
 +	}
 +
-+	status = acpi_get_handle(scope, refstring, &handle);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_handle_debug(scope, "can't get handle for %s", refstring);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	device = acpi_fetch_acpi_dev(handle);
-+	if (device)
-+		return acpi_fwnode_handle(device);
-+
-+	status = acpi_get_data_full(handle, acpi_nondev_subnode_tag,
-+				    (void **)&dn, NULL);
-+	if (ACPI_FAILURE(status) || !dn) {
-+		acpi_handle_debug(handle, "can't find subnode");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	return &dn->fwnode;
-+}
-+
- /**
-  * __acpi_node_get_property_reference - returns handle to the referenced object
-  * @fwnode: Firmware node to get the property from
-@@ -886,6 +931,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
- 	const union acpi_object *element, *end;
- 	const union acpi_object *obj;
- 	const struct acpi_device_data *data;
-+	struct fwnode_handle *ref_fwnode;
- 	struct acpi_device *device;
- 	int ret, idx = 0;
+ 	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_handle_warn(handle, "cannot get path name\n");
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index e05d1c1f6ac2..f73e65a21b89 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -361,6 +361,7 @@ struct acpi_device_data {
+ struct acpi_gpio_mapping;
  
-@@ -909,16 +955,29 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
- 
- 		args->fwnode = acpi_fwnode_handle(device);
- 		args->nargs = 0;
-+		return 0;
-+	case ACPI_TYPE_STRING:
-+		if (index)
-+			return -ENOENT;
-+
-+		ref_fwnode = acpi_parse_string_ref(fwnode, obj->string.pointer);
-+		if (IS_ERR(ref_fwnode))
-+			return PTR_ERR(ref_fwnode);
-+
-+		args->fwnode = ref_fwnode;
-+		args->nargs = 0;
-+
- 		return 0;
- 	case ACPI_TYPE_PACKAGE:
- 		/*
- 		 * If it is not a single reference, then it is a package of
--		 * references followed by number of ints as follows:
-+		 * references, followed by number of ints as follows:
- 		 *
- 		 *  Package () { REF, INT, REF, INT, INT }
- 		 *
--		 * The index argument is then used to determine which reference
--		 * the caller wants (along with the arguments).
-+		 * Here, REF may be either a local reference or a string. The
-+		 * index argument is then used to determine which reference the
-+		 * caller wants (along with the arguments).
- 		 */
- 		break;
- 	default:
-@@ -942,7 +1001,26 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
- 
- 			ret = acpi_get_ref_args(idx == index ? args : NULL,
- 						acpi_fwnode_handle(device),
--						&element, end, num_args);
-+						&element, end, num_args, true);
-+			if (ret < 0)
-+				return ret;
-+
-+			if (idx == index)
-+				return 0;
-+
-+			break;
-+		case ACPI_TYPE_STRING:
-+			ref_fwnode =
-+				acpi_parse_string_ref(fwnode,
-+						      element->string.pointer);
-+			if (IS_ERR(ref_fwnode))
-+				return PTR_ERR(ref_fwnode);
-+
-+			element++;
-+
-+			ret = acpi_get_ref_args(idx == index ? args : NULL,
-+						ref_fwnode, &element, end,
-+						num_args, false);
- 			if (ret < 0)
- 				return ret;
- 
+ enum acpi_device_swnode_dev_props {
++	ACPI_DEVICE_SWNODE_DEV_ROTATION,
+ 	ACPI_DEVICE_SWNODE_DEV_NUM_OF,
+ 	ACPI_DEVICE_SWNODE_DEV_NUM_ENTRIES
+ };
 -- 
 2.30.2
 
