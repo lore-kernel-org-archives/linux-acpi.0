@@ -2,47 +2,47 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74482C77B6D
-	for <linux-acpi@archiver.kernel.org>; Sat,  1 Apr 2023 01:43:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56D62C761AF
+	for <linux-acpi@archiver.kernel.org>; Sat,  1 Apr 2023 01:45:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233674AbjDABnx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 31 Mar 2023 21:43:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46102 "EHLO
+        id S233608AbjDABpa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 31 Mar 2023 21:45:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233522AbjDABnc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2023 21:43:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDB7D20C38;
-        Fri, 31 Mar 2023 18:43:05 -0700 (PDT)
+        with ESMTP id S233617AbjDABpD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2023 21:45:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 576BC22916;
+        Fri, 31 Mar 2023 18:43:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FCA362CE6;
-        Sat,  1 Apr 2023 01:42:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D59AFC433EF;
-        Sat,  1 Apr 2023 01:42:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 07E40B8331A;
+        Sat,  1 Apr 2023 01:43:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013BAC4339C;
+        Sat,  1 Apr 2023 01:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1680313359;
+        s=k20201202; t=1680313428;
         bh=MeGy0MOALBiuRe8CcWLS3lryePjtmMT+QnPF+LdrO28=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oIy2vMSAcGmV3EXQBrrDjfoiml1hApfjp5VNrXsQfQEYrOlU6DpKXUVwSb9qRwO3I
-         3nA0l39ywt1QUCI/YensCgyR9ahEulz43XA4qSPS5SxvPQIniDQGnstln4Oh0LdhpU
-         +NjeupBlwtEla/EJBzFuBupveg9+6+RSwgZ4iCA9prKfW0WWt7/qLNgUkI3NfLk3zB
-         8p+N6G2g0JUTgmHba2F21F6ixTmJeHzmgLJPq+Y8o6E3vg3NcdIY2QFyMwTUBoL1kP
-         vUU3lSInbbavKZNyC/Se8asGxGLrPamzKRQP8xE1qBvN7G6PBqd6UsWDl3nNmn09Xb
-         NtCXt+z49NSTQ==
+        b=g463gtaEeQciqP1sUulM+AviomgptnjMaHwmzO/wX3h19e10OhjdS3lTbTMvCTKKk
+         2tWlYy0BF1CrfCQ+4zFaFZAY4K4XfloUxOze93I/D+bLZMH4NxiDknTdk7nO+z+nb4
+         tn+El4LRehzZaSrkZjs0D09L3yXRox5i/HES2ZbbWOaTYTJO5izHdsHDwgh6dxnVZn
+         ykUdGde8DqA95Aq7FIUNEFMqDPA76YYytEF+HIN4vcCRKHW006zjejxLAkC1MS570/
+         +WsQAuQjjZIFuFdekUfylgNlEHjZMlUFdiIXV2GjmhdiPp65qcXor+6Tt6Qc8aErNA
+         FvfRo+GtGKUpQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Aymeric Wibo <obiwac@gmail.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.2 25/25] ACPI: resource: Add Medion S17413 to IRQ override quirk
-Date:   Fri, 31 Mar 2023 21:41:23 -0400
-Message-Id: <20230401014126.3356410-25-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 24/24] ACPI: resource: Add Medion S17413 to IRQ override quirk
+Date:   Fri, 31 Mar 2023 21:42:40 -0400
+Message-Id: <20230401014242.3356780-24-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230401014126.3356410-1-sashal@kernel.org>
-References: <20230401014126.3356410-1-sashal@kernel.org>
+In-Reply-To: <20230401014242.3356780-1-sashal@kernel.org>
+References: <20230401014242.3356780-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
