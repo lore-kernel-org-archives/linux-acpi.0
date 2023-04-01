@@ -2,47 +2,47 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34CFCC76196
-	for <linux-acpi@archiver.kernel.org>; Sat,  1 Apr 2023 01:45:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8EAFC76196
+	for <linux-acpi@archiver.kernel.org>; Sat,  1 Apr 2023 01:48:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233800AbjDABpm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 31 Mar 2023 21:45:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49456 "EHLO
+        id S234000AbjDABsg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 31 Mar 2023 21:48:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233748AbjDABpF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2023 21:45:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E284920C1B;
-        Fri, 31 Mar 2023 18:43:59 -0700 (PDT)
+        with ESMTP id S233949AbjDABsG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2023 21:48:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 603882780A;
+        Fri, 31 Mar 2023 18:45:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D4837B83314;
-        Sat,  1 Apr 2023 01:43:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7A7BC433EF;
-        Sat,  1 Apr 2023 01:43:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 622A362D12;
+        Sat,  1 Apr 2023 01:44:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23291C433A1;
+        Sat,  1 Apr 2023 01:44:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1680313381;
-        bh=+fMqBQJ3HNRVkOcsoALHG97fgpPp7DZScxjVejQUzaQ=;
+        s=k20201202; t=1680313456;
+        bh=4ObIQEFT28XMyBb0BYjDdLUP28ymPeN1aWYQT7wGy+A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Kkz3GfqhGgLm/GAcTIxi+1YWQB7eeWl+1918XXvUC3H/wPnQX3a67q3iXmA/6f1k1
-         L3cldUUd4ORUUFk7OH+b79vsFIzRkq4s1UuqXObqkIUdyMUmfJ8apFQ6arl5owYN3h
-         jMDR/f2xx3UGFrYFoocKPYLNNFgIFOwiLxNXq/15l3aqeH4LDxlLI2Po3dSIUJDqam
-         d0iLjpSuA3WBZ1qtaAJ/Q9ZF3QfvCx3nJyPQTUJX4TZYBUaV6JhKk7gj+Z1i4WdAaG
-         AiO2qwpj8f6bxegC90T/z3TQ3yqR6A1LQDLom0wg948axRDKpvXMnLNXYHdJtIdSOw
-         lQZIqjYQEGKCw==
+        b=Kx8BHMyrhy1efUxXXHain335/BWSVej1/Ec0msG0c/eyaLtHWbOaIP9eFuzJVMuf/
+         OLFI4SEzLFuCZ6rsDPxiNslUU+tuGIcSkKmvo8W07Fegtjwz23UtZV23uV3RJxXkhB
+         UsEXFMbrbAW6Fsb4y7PdZAZEGLjanO7nyRyJLLGweBLwCDNz/a6kG36rYpOHlsY4iy
+         SccwmwuBqrlroCvLPewyDb1sBu/ViWW/yplOzzapea/pXElDRJgZ/EW2erkiZwZkQM
+         MCkuS3Hh+ONv0UExuBo8PZBMrlBx2X2APiYtsv8NBLETHI2s4t3LfmZY3nFtgV8dP6
+         x0zXy+6hXK+BQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
+Cc:     Aymeric Wibo <obiwac@gmail.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 12/24] ACPI: video: Add backlight=native DMI quirk for Acer Aspire 3830TG
-Date:   Fri, 31 Mar 2023 21:42:28 -0400
-Message-Id: <20230401014242.3356780-12-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 11/11] ACPI: resource: Add Medion S17413 to IRQ override quirk
+Date:   Fri, 31 Mar 2023 21:43:49 -0400
+Message-Id: <20230401014350.3357107-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230401014242.3356780-1-sashal@kernel.org>
-References: <20230401014242.3356780-1-sashal@kernel.org>
+In-Reply-To: <20230401014350.3357107-1-sashal@kernel.org>
+References: <20230401014350.3357107-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -51,43 +51,40 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: Aymeric Wibo <obiwac@gmail.com>
 
-[ Upstream commit 5e7a3bf65db57461d0f47955248fcadf37321a74 ]
+[ Upstream commit 2d0ab14634a26e54f8d6d231b47b7ef233e84599 ]
 
-The Acer Aspire 3830TG predates Windows 8, so it defaults to using
-acpi_video# for backlight control, but this is non functional on
-this model.
+Add DMI info of the Medion S17413 (board M1xA) to the IRQ override
+quirk table. This fixes the keyboard not working on these laptops.
 
-Add a DMI quirk to use the native backlight interface which does
-work properly.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=213031
+Signed-off-by: Aymeric Wibo <obiwac@gmail.com>
+[ rjw: Fixed up white space ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/video_detect.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/resource.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 7f0ed845cd6ad..d3a38e1971035 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -493,6 +493,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Precision 7510"),
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 3b9f894873365..803dc6afa6d69 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -396,6 +396,13 @@ static const struct dmi_system_id medion_laptop[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "M17T"),
  		},
  	},
 +	{
-+	 .callback = video_detect_force_native,
-+	 /* Acer Aspire 3830TG */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 3830TG"),
++		.ident = "MEDION S17413",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
++			DMI_MATCH(DMI_BOARD_NAME, "M1xA"),
 +		},
 +	},
- 	{
- 	 .callback = video_detect_force_native,
- 	 /* Acer Aspire 4810T */
+ 	{ }
+ };
+ 
 -- 
 2.39.2
 
