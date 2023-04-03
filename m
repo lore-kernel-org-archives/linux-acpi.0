@@ -2,52 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0688C761A6
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Apr 2023 16:04:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51DC2C76188
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Apr 2023 16:04:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233143AbjDCQEw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 3 Apr 2023 12:04:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59022 "EHLO
+        id S233160AbjDCQEx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 3 Apr 2023 12:04:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233162AbjDCQEn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2023 12:04:43 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFCE5212F
+        with ESMTP id S233118AbjDCQEk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2023 12:04:40 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89DFA2733
         for <linux-acpi@vger.kernel.org>; Mon,  3 Apr 2023 09:03:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1680537826;
+        s=mimecast20190719; t=1680537825;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=T/pk84Fr/RFxb7TE42E27TH2BnZCwPX5iqADsugRvnw=;
-        b=HS+2S6WXixXVybcemaqK9MCBaMpYHdlg0IEU7xXyw4R8GvGMfEcQPOhBfBzo6V5iZwS0gF
-        wdHodXyvE+tLOPt8DaJxOuLbpfP/x5ztAtdmGKVKB0gJQDSN089OzJotTtx2tTG19Lp8Ro
-        ct1hjPrEawBbUr9bSLcHS3iCbbGOEPE=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=Atv3FFKb34RmCZVgW82YChnrjyU6mprkqO4LnTKBjKU=;
+        b=djPJEkwV3vBkpcH2TLFshaaoHqH2Ua+NFawuslzZsdSmU7+pqquiCYwxsXxTymunTrFzp2
+        qdzjeqnyhzUlaqa7r2V2UvnOTJj7WRcpcjgnq1caXBbn203densjUacyZsW293iU8Pi5aN
+        boty+lRAqtUgBmf7u0fw/3qfiBCrA8k=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-622-tYVI3L_9PwSXGEXQkFAfVA-1; Mon, 03 Apr 2023 12:03:42 -0400
-X-MC-Unique: tYVI3L_9PwSXGEXQkFAfVA-1
+ us-mta-515-UvvBpVz2MZyhqtQurvcRdA-1; Mon, 03 Apr 2023 12:03:42 -0400
+X-MC-Unique: UvvBpVz2MZyhqtQurvcRdA-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 385288030D1;
-        Mon,  3 Apr 2023 16:03:42 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B6B3D857F81;
+        Mon,  3 Apr 2023 16:03:38 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.126])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 41B152166B26;
-        Mon,  3 Apr 2023 16:03:41 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id DCFDC2166B26;
+        Mon,  3 Apr 2023 16:03:37 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         Mario Limonciello <mario.limonciello@amd.com>,
         Daniel Dadap <ddadap@nvidia.com>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org, stable@vger.kernel.org
-Subject: [PATCH 3/6] ACPI: video: Add acpi_backlight=video quirk for Apple iMac14,1 and iMac14,2
-Date:   Mon,  3 Apr 2023 18:03:26 +0200
-Message-Id: <20230403160329.707176-4-hdegoede@redhat.com>
-In-Reply-To: <20230403160329.707176-1-hdegoede@redhat.com>
-References: <20230403160329.707176-1-hdegoede@redhat.com>
+        linux-acpi@vger.kernel.org
+Subject: [PATCH 0/6] ACPI: video: Fix missing acpi_video# devices on some systems
+Date:   Mon,  3 Apr 2023 18:03:23 +0200
+Message-Id: <20230403160329.707176-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
@@ -55,61 +52,44 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On the Apple iMac14,1 and iMac14,2 all-in-ones (monitors with builtin "PC")
-the connection between the GPU and the panel is seen by the GPU driver as
-regular DP instead of eDP, causing the GPU driver to never call
-acpi_video_register_backlight().
+Hi Rafael,
 
-(GPU drivers only call acpi_video_register_backlight() when an internal
- panel is detected, to avoid non working acpi_video# devices getting
- registered on desktops which unfortunately is a real issue.)
+This patch series consists of 2 parts:
 
-Fix the missing acpi_video# backlight device on these all-in-ones by
-adding a acpi_backlight=video DMI quirk, so that video.ko will
-immediately register the backlight device instead of waiting for
-an acpi_video_register_backlight() call.
+1. Fix missing acpi_video# devices on some systems, currently in kernels
+   >= 6.1.5 and >= 6.2.0 acpi_video# backlight class devices will only
+   get registered (by default) when a GPU driver asks for this by calling
+   acpi_video_register_backlight(). This is causing backlight control to
+   be missing on some systems.
 
-Fixes: 5aa9d943e9b6 ("ACPI: video: Don't enable fallback path for creating ACPI backlight by default")
-Cc: stable@vger.kernel.org
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video_detect.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+   Patches 1-4 fix this and ideally these should be send to Linus for
+   an upcoming 6.3-rc# release.
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index f7c218dd8742..295744fe7c92 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -276,6 +276,29 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		},
- 	},
- 
-+	/*
-+	 * Models which need acpi_video backlight control where the GPU drivers
-+	 * do not call acpi_video_register_backlight() because no internal panel
-+	 * is detected. Typically these are all-in-ones (monitors with builtin
-+	 * PC) where the panel connection shows up as regular DP instead of eDP.
-+	 */
-+	{
-+	 .callback = video_detect_force_video,
-+	 /* Apple iMac14,1 */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "iMac14,1"),
-+		},
-+	},
-+	{
-+	 .callback = video_detect_force_video,
-+	 /* Apple iMac14,2 */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "iMac14,2"),
-+		},
-+	},
-+
- 	/*
- 	 * These models have a working acpi_video backlight control, and using
- 	 * native backlight causes a regression where backlight does not work
+2. Now that the dust has settled a bit on the backlight refactor we can
+   do some further cleanups. This is done in patches 5 + 6. Note that
+   patch 5 depends on patch 2.
+
+Regards,
+
+Hans
+
+
+Hans de Goede (6):
+  ACPI: video: Add auto_detect arg to __acpi_video_get_backlight_type()
+  ACPI: video: Make acpi_backlight=video work independent from GPU
+    driver
+  ACPI: video: Add acpi_backlight=video quirk for Apple iMac14,1 and
+    iMac14,2
+  ACPI: video: Add acpi_backlight=video quirk for Lenovo ThinkPad W530
+  ACPI: video: Remove register_backlight_delay module option and code
+  ACPI: video: Remove desktops without backlight DMI quirks
+
+ drivers/acpi/acpi_video.c                     | 53 +++--------
+ drivers/acpi/video_detect.c                   | 87 ++++++++++---------
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |  4 -
+ include/acpi/video.h                          | 17 +++-
+ 4 files changed, 71 insertions(+), 90 deletions(-)
+
 -- 
 2.39.1
 
