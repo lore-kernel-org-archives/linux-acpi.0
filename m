@@ -2,49 +2,52 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51DC2C76188
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Apr 2023 16:04:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 706A2C77B6E
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Apr 2023 16:04:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233160AbjDCQEx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 3 Apr 2023 12:04:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58946 "EHLO
+        id S233158AbjDCQEy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 3 Apr 2023 12:04:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233118AbjDCQEk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2023 12:04:40 -0400
+        with ESMTP id S233190AbjDCQEs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2023 12:04:48 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89DFA2733
-        for <linux-acpi@vger.kernel.org>; Mon,  3 Apr 2023 09:03:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E729268E
+        for <linux-acpi@vger.kernel.org>; Mon,  3 Apr 2023 09:03:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1680537825;
+        s=mimecast20190719; t=1680537831;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=Atv3FFKb34RmCZVgW82YChnrjyU6mprkqO4LnTKBjKU=;
-        b=djPJEkwV3vBkpcH2TLFshaaoHqH2Ua+NFawuslzZsdSmU7+pqquiCYwxsXxTymunTrFzp2
-        qdzjeqnyhzUlaqa7r2V2UvnOTJj7WRcpcjgnq1caXBbn203densjUacyZsW293iU8Pi5aN
-        boty+lRAqtUgBmf7u0fw/3qfiBCrA8k=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=8+jnkE8wO/e6osNTrn9Sp9wxcXrWZyhEgmpwfrnqth8=;
+        b=E3XjVUKQ9ISB73NXo+gJBxQ8aNEaGb0Ww71yeDR3U/a0J0JUpxqvGWvGa+LS0x5g9CLOxR
+        R7Dgg0W/YWl5xKFGNp41WOCMYUwlAuQlFAygMyfq/G45fnV6eIFNmwI2z49ydgviQdoR5M
+        lbuCxwFiwsL7tlrEBU5JT2cGGIeNb7E=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-515-UvvBpVz2MZyhqtQurvcRdA-1; Mon, 03 Apr 2023 12:03:42 -0400
-X-MC-Unique: UvvBpVz2MZyhqtQurvcRdA-1
+ us-mta-645-38Qjn3I6M7ejK3NT-rb4Vg-1; Mon, 03 Apr 2023 12:03:46 -0400
+X-MC-Unique: 38Qjn3I6M7ejK3NT-rb4Vg-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B6B3D857F81;
-        Mon,  3 Apr 2023 16:03:38 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B634B3C17F6D;
+        Mon,  3 Apr 2023 16:03:45 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.126])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DCFDC2166B26;
-        Mon,  3 Apr 2023 16:03:37 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D25D22166B26;
+        Mon,  3 Apr 2023 16:03:44 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         Mario Limonciello <mario.limonciello@amd.com>,
         Daniel Dadap <ddadap@nvidia.com>, Len Brown <lenb@kernel.org>,
         linux-acpi@vger.kernel.org
-Subject: [PATCH 0/6] ACPI: video: Fix missing acpi_video# devices on some systems
-Date:   Mon,  3 Apr 2023 18:03:23 +0200
-Message-Id: <20230403160329.707176-1-hdegoede@redhat.com>
+Subject: [PATCH 6/6] ACPI: video: Remove desktops without backlight DMI quirks
+Date:   Mon,  3 Apr 2023 18:03:29 +0200
+Message-Id: <20230403160329.707176-7-hdegoede@redhat.com>
+In-Reply-To: <20230403160329.707176-1-hdegoede@redhat.com>
+References: <20230403160329.707176-1-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
@@ -52,44 +55,62 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+After the recent backlight changes acpi_video# backlight devices are only
+registered when explicitly requested from the cmdline, by DMI quirk or by
+the GPU driver.
 
-This patch series consists of 2 parts:
+This means that we no longer get false-positive backlight control support
+advertised on desktop boards.
 
-1. Fix missing acpi_video# devices on some systems, currently in kernels
-   >= 6.1.5 and >= 6.2.0 acpi_video# backlight class devices will only
-   get registered (by default) when a GPU driver asks for this by calling
-   acpi_video_register_backlight(). This is causing backlight control to
-   be missing on some systems.
+Remove the 3 DMI quirks for desktop boards where the false-positive issue
+was fixed through quirks before. Note many more desktop boards were
+affected but we never build a full quirk list for this.
 
-   Patches 1-4 fix this and ideally these should be send to Linus for
-   an upcoming 6.3-rc# release.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video_detect.c | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
-2. Now that the dust has settled a bit on the backlight refactor we can
-   do some further cleanups. This is done in patches 5 + 6. Note that
-   patch 5 depends on patch 2.
-
-Regards,
-
-Hans
-
-
-Hans de Goede (6):
-  ACPI: video: Add auto_detect arg to __acpi_video_get_backlight_type()
-  ACPI: video: Make acpi_backlight=video work independent from GPU
-    driver
-  ACPI: video: Add acpi_backlight=video quirk for Apple iMac14,1 and
-    iMac14,2
-  ACPI: video: Add acpi_backlight=video quirk for Lenovo ThinkPad W530
-  ACPI: video: Remove register_backlight_delay module option and code
-  ACPI: video: Remove desktops without backlight DMI quirks
-
- drivers/acpi/acpi_video.c                     | 53 +++--------
- drivers/acpi/video_detect.c                   | 87 ++++++++++---------
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |  4 -
- include/acpi/video.h                          | 17 +++-
- 4 files changed, 71 insertions(+), 90 deletions(-)
-
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index e85729fc481f..07fa1bc843f2 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -768,35 +768,6 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 15 3535"),
+ 		},
+ 	},
+-
+-	/*
+-	 * Desktops which falsely report a backlight and which our heuristics
+-	 * for this do not catch.
+-	 */
+-	{
+-	 .callback = video_detect_force_none,
+-	 /* Dell OptiPlex 9020M */
+-	 .matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 9020M"),
+-		},
+-	},
+-	{
+-	 .callback = video_detect_force_none,
+-	 /* GIGABYTE GB-BXBT-2807 */
+-	 .matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "GIGABYTE"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "GB-BXBT-2807"),
+-		},
+-	},
+-	{
+-	 .callback = video_detect_force_none,
+-	 /* MSI MS-7721 */
+-	 .matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "MSI"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "MS-7721"),
+-		},
+-	},
+ 	{ },
+ };
+ 
 -- 
 2.39.1
 
