@@ -2,150 +2,126 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1A3C77B6C
-	for <linux-acpi@archiver.kernel.org>; Tue,  4 Apr 2023 10:54:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0717C761A6
+	for <linux-acpi@archiver.kernel.org>; Tue,  4 Apr 2023 11:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234651AbjDDKyl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 4 Apr 2023 06:54:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39346 "EHLO
+        id S234785AbjDDLHF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 4 Apr 2023 07:07:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234659AbjDDKxw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2023 06:53:52 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30D6A3A8B
-        for <linux-acpi@vger.kernel.org>; Tue,  4 Apr 2023 03:53:01 -0700 (PDT)
+        with ESMTP id S234794AbjDDLGw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2023 07:06:52 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 071525B8F
+        for <linux-acpi@vger.kernel.org>; Tue,  4 Apr 2023 04:04:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1680605580;
+        s=mimecast20190719; t=1680606191;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ugpo7GFITevY2amrXRUhUmMW0Uvhr70TQRjlCEyAeMc=;
-        b=DDioQ4APS32d59CR8VRvvvUaEG3GAqzQz4gcCqA1JwwHBq2gQuvFdiUCaHfejMZjr0vepu
-        byZJ37hBqTBMR88ASQT50g72hPmDxUKT9Jo/L7EmymXv0w6/ZGANBmB1rs7KQaIEBkON1g
-        lVmn1hCG70xUjs+jKSFPITy3k+0DfaU=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-60-lLrrIkM-OjSs2e0LM_wfsg-1; Tue, 04 Apr 2023 06:52:59 -0400
-X-MC-Unique: lLrrIkM-OjSs2e0LM_wfsg-1
-Received: by mail-ed1-f71.google.com with SMTP id k14-20020a508ace000000b005024a8cef5cso34696732edk.22
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Apr 2023 03:52:58 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680605577;
-        h=content-transfer-encoding:in-reply-to:references:cc:to:from
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ugpo7GFITevY2amrXRUhUmMW0Uvhr70TQRjlCEyAeMc=;
-        b=Nxmtk8LZzOdUZ4Y55n7JrPAuzaJEyoVWZXexRNQS7zwObqR7kod4GWGdUapjG09k+8
-         sYHwWOtep5qJ27ihwiSSEF+UKVK1EEwtjt22Tb11KbjHa5orRhP6VWr+ueWyu+siEGd5
-         TVsPf3IRuDWje0iP3sett9JSG9wtqaG3XxuFz3U6KRn6E8EA2U3LQkMIslk97mpG7JeZ
-         JUdJ19cfWts7xv8+RZEXszM/esAO5HCZ4V0r5y2bhBJ8ELqA/WnEvFKlgW3Rh7DeHEVG
-         6tAXjkYVL4ZyIKApsHKl7ZZX6Q5xAA41pcJRuAIYsDlVZMeM+wNXO3ioRjIh0IORLj2f
-         wioA==
-X-Gm-Message-State: AAQBX9eUOcn2VRwhXURRsiEGSVdIgpdodTgFY1ep2yr0hBL08ySOA4sI
-        NoDZaMQPAelCSWZY4ICRIcwqwC7CiC9MZrShDV2QChnVlbl4m9iV9f6Cb4Dz5/1dS2vzI1pS3c7
-        gj7IhxYONRWKvOXws5/O5i4iE9j3m6w==
-X-Received: by 2002:a17:906:3449:b0:930:9197:24d1 with SMTP id d9-20020a170906344900b00930919724d1mr20868630ejb.6.1680605577261;
-        Tue, 04 Apr 2023 03:52:57 -0700 (PDT)
-X-Google-Smtp-Source: AKy350alILQcxMLBknOwU7kFDHqBBwGuRveErtqvCWxi1iNecOd2nYnbepzttTxRiQVDoJIVNRkL/Q==
-X-Received: by 2002:a17:906:3449:b0:930:9197:24d1 with SMTP id d9-20020a170906344900b00930919724d1mr20868622ejb.6.1680605577023;
-        Tue, 04 Apr 2023 03:52:57 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
-        by smtp.gmail.com with ESMTPSA id q6-20020a056402518600b005028c376d50sm4496801edd.71.2023.04.04.03.52.54
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 04 Apr 2023 03:52:55 -0700 (PDT)
-Message-ID: <1c1468c1-6208-492b-ec32-43cf0d69032d@redhat.com>
-Date:   Tue, 4 Apr 2023 12:52:54 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH 0/6] ACPI: video: Fix missing acpi_video# devices on some
- systems
-Content-Language: en-US, nl
+        bh=S6G15+Qb0LvZL3r0FsdCRRwfCNhDekze4m5/CZlC9wE=;
+        b=VmX4fYCUo5L+us6PyN15xDEm98fQEc1baCA4kYMW8lMWeyuPpzA8cj+S7iTm0zu9Q2XaIT
+        j92mGC44m7RrMAaxiT2x19nwbQrKi8AzYgnSotLa32kqKEWo0IfcpIrvvhiy00uKIiht9n
+        +qNypUsmCcAYE8YZEPqCO2ko1BTfMfU=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-215-oo7KBZ4tMXSC8FXq-j5MiA-1; Tue, 04 Apr 2023 07:03:08 -0400
+X-MC-Unique: oo7KBZ4tMXSC8FXq-j5MiA-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id DF79D101A552;
+        Tue,  4 Apr 2023 11:03:07 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.74])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id DEB3F40104E;
+        Tue,  4 Apr 2023 11:03:06 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Limonciello, Mario" <mario.limonciello@amd.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>
-Cc:     Daniel Dadap <ddadap@nvidia.com>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org
-References: <20230403160329.707176-1-hdegoede@redhat.com>
- <25d3331e-a72f-2a92-2a1f-8ea189f1ac7e@amd.com>
- <87b34b72-b16d-9022-7bbe-0c770c4123b0@redhat.com>
-In-Reply-To: <87b34b72-b16d-9022-7bbe-0c770c4123b0@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To:     "Rafael J . Wysocki" <rafael@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Daniel Dadap <ddadap@nvidia.com>, Len Brown <lenb@kernel.org>,
+        linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Subject: [PATCH v2 2/6] ACPI: video: Make acpi_backlight=video work independent from GPU driver
+Date:   Tue,  4 Apr 2023 13:02:47 +0200
+Message-Id: <20230404110251.42449-3-hdegoede@redhat.com>
+In-Reply-To: <20230404110251.42449-1-hdegoede@redhat.com>
+References: <20230404110251.42449-1-hdegoede@redhat.com>
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.10
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
+Commit 3dbc80a3e4c5 ("ACPI: video: Make backlight class device
+registration a separate step (v2)") combined with
+commit 5aa9d943e9b6 ("ACPI: video: Don't enable fallback path for
+creating ACPI backlight by default")
 
-On 4/4/23 11:52, Hans de Goede wrote:
-> Hi,
-> 
-> On 4/3/23 18:41, Limonciello, Mario wrote:
->> On 4/3/2023 11:03, Hans de Goede wrote:
->>> Hi Rafael,
->>>
->>> This patch series consists of 2 parts:
->>>
->>> 1. Fix missing acpi_video# devices on some systems, currently in kernels
->>>     >= 6.1.5 and >= 6.2.0 acpi_video# backlight class devices will only
->>>     get registered (by default) when a GPU driver asks for this by calling
->>>     acpi_video_register_backlight(). This is causing backlight control to
->>>     be missing on some systems.
->>>
->>>     Patches 1-4 fix this and ideally these should be send to Linus for
->>>     an upcoming 6.3-rc# release.
->>>
->>> 2. Now that the dust has settled a bit on the backlight refactor we can
->>>     do some further cleanups. This is done in patches 5 + 6. Note that
->>>     patch 5 depends on patch 2.
->>>
->>> Regards,
->>>
->>> Hans
->>>
->>>
->>> Hans de Goede (6):
->>>    ACPI: video: Add auto_detect arg to __acpi_video_get_backlight_type()
->>>    ACPI: video: Make acpi_backlight=video work independent from GPU
->>>      driver
->>>    ACPI: video: Add acpi_backlight=video quirk for Apple iMac14,1 and
->>>      iMac14,2
->>>    ACPI: video: Add acpi_backlight=video quirk for Lenovo ThinkPad W530
->>>    ACPI: video: Remove register_backlight_delay module option and code
->>>    ACPI: video: Remove desktops without backlight DMI quirks
->>>
->>>   drivers/acpi/acpi_video.c                     | 53 +++--------
->>>   drivers/acpi/video_detect.c                   | 87 ++++++++++---------
->>>   .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |  4 -
->>>   include/acpi/video.h                          | 17 +++-
->>>   4 files changed, 71 insertions(+), 90 deletions(-)
->>>
->>
->> One minor nit on a patch, otherwise:
->>
->> Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
-> 
-> Thank you.
-> 
-> Rafael, can you fix up the typo in the commit msg of 5/6
-> while merging or do you want a new version ?
+Means that the video.ko code now fully depends on the GPU driver calling
+acpi_video_register_backlight() for the acpi_video# backlight class
+devices to get registered.
 
-I just noticed this caused by 6/6, which I somehow missed before:
+This means that if the GPU driver does not do this, acpi_backlight=video
+on the cmdline, or DMI quirks for selecting acpi_video# will not work.
 
-  CC [M]  drivers/acpi/video_detect.o
-drivers/acpi/video_detect.c:133:12: warning: ‘video_detect_force_none’ defined but not used [-Wunused-function]
-  133 | static int video_detect_force_none(const struct dmi_system_id *d)
-      |            ^~~~~~~~~~~~~~~~~~~~~~~
+This is a problem on for example Apple iMac14,1 all-in-ones where
+the monitor's LCD panel shows up as a regular DP connection instead of
+eDP so the GPU driver will not call acpi_video_register_backlight() [1].
 
+Fix this by making video.ko directly register the acpi_video# devices
+when these have been explicitly requested either on the cmdline or
+through DMI quirks (rather then auto-detection being used).
 
-So I need to prepare a new version to fix this. I'll also take
-care of fixing the commit msg of 5/6 in v2.
+[1] GPU drivers only call acpi_video_register_backlight() when an internal
+panel is detected, to avoid non working acpi_video# devices getting
+registered on desktops which unfortunately is a real issue.
 
-Regards,
+Fixes: 5aa9d943e9b6 ("ACPI: video: Don't enable fallback path for creating ACPI backlight by default")
+Cc: stable@vger.kernel.org
+Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpi_video.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-Hans
-
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 97b711e57bff..c7a6d0b69dab 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -1984,6 +1984,7 @@ static int instance;
+ static int acpi_video_bus_add(struct acpi_device *device)
+ {
+ 	struct acpi_video_bus *video;
++	bool auto_detect;
+ 	int error;
+ 	acpi_status status;
+ 
+@@ -2045,10 +2046,20 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	mutex_unlock(&video_list_lock);
+ 
+ 	/*
+-	 * The userspace visible backlight_device gets registered separately
+-	 * from acpi_video_register_backlight().
++	 * If backlight-type auto-detection is used then a native backlight may
++	 * show up later and this may change the result from video to native.
++	 * Therefor normally the userspace visible /sys/class/backlight device
++	 * gets registered separately by the GPU driver calling
++	 * acpi_video_register_backlight() when an internal panel is detected.
++	 * Register the backlight now when not using auto-detection, so that
++	 * when the kernel cmdline or DMI-quirks are used the backlight will
++	 * get registered even if acpi_video_register_backlight() is not called.
+ 	 */
+ 	acpi_video_run_bcl_for_osi(video);
++	if (__acpi_video_get_backlight_type(false, &auto_detect) == acpi_backlight_video &&
++	    !auto_detect)
++		acpi_video_bus_register_backlight(video);
++
+ 	acpi_video_bus_add_notify_handler(video);
+ 
+ 	return 0;
+-- 
+2.39.1
 
