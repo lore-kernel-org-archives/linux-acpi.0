@@ -2,50 +2,50 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3761EC761A6
-	for <linux-acpi@archiver.kernel.org>; Tue,  4 Apr 2023 11:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3E6CC761AF
+	for <linux-acpi@archiver.kernel.org>; Tue,  4 Apr 2023 11:10:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234955AbjDDLHp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 4 Apr 2023 07:07:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39376 "EHLO
+        id S234503AbjDDLKb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 4 Apr 2023 07:10:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234932AbjDDLH0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2023 07:07:26 -0400
+        with ESMTP id S231440AbjDDLK2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2023 07:10:28 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18B8549F1
-        for <linux-acpi@vger.kernel.org>; Tue,  4 Apr 2023 04:04:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3BD18C
+        for <linux-acpi@vger.kernel.org>; Tue,  4 Apr 2023 04:09:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1680606194;
+        s=mimecast20190719; t=1680606555;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=EgmNJkyVd1cusK6HOLOjjJPFUWD2h64HXMSqY5UxpBY=;
-        b=I5w91z9OFF/8HHyJtNn4PEY9mRSzFKlCj/8c8fgY0YQsWqGMU8GLqBtaHpw3zDbPzS9lYn
-        8388MS9hcQEtA4q92d1qZrubl8HtmQHY+/tzgll+/Os5sZXnb78aEVlyD/cqyPFUP/0xcz
-        RMqGCLsP2flQXSRx5//CA1NR2VI9mqA=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=sE0g9GDXpchP6+uVQaldLYqtPrBkthOUQuDCQt9GgVA=;
+        b=FpLL8LcASuFSeq3Z3+whMRKR+DSIafO4MFw/xm8dvXbgrnT6Bml1aH/UcMvLf+eyEJnXLY
+        FpBYSmFEX/Cv1zKgpxhDKOoWm9UX58L9T/d+P0gURylv+5M6qqDvKw8KMXuQ/ElB709qBe
+        ITPxvc8xEVgDp5aGod+7AEEdswJf89A=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-259-yFC-h2ruNn26lBdAx7XcCA-1; Tue, 04 Apr 2023 07:03:10 -0400
-X-MC-Unique: yFC-h2ruNn26lBdAx7XcCA-1
+ us-mta-203-8PelKONZPyqKh6HO2dEEjQ-1; Tue, 04 Apr 2023 07:03:08 -0400
+X-MC-Unique: 8PelKONZPyqKh6HO2dEEjQ-1
 Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 64894884EC7;
-        Tue,  4 Apr 2023 11:03:10 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id AA8A41C02D26;
+        Tue,  4 Apr 2023 11:03:06 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.74])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 59F75400F4F;
-        Tue,  4 Apr 2023 11:03:09 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A1224400F4F;
+        Tue,  4 Apr 2023 11:03:05 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         Mario Limonciello <mario.limonciello@amd.com>,
         Daniel Dadap <ddadap@nvidia.com>, Len Brown <lenb@kernel.org>,
         linux-acpi@vger.kernel.org, stable@vger.kernel.org
-Subject: [PATCH v2 4/6] ACPI: video: Add acpi_backlight=video quirk for Lenovo ThinkPad W530
-Date:   Tue,  4 Apr 2023 13:02:49 +0200
-Message-Id: <20230404110251.42449-5-hdegoede@redhat.com>
+Subject: [PATCH v2 1/6] ACPI: video: Add auto_detect arg to __acpi_video_get_backlight_type()
+Date:   Tue,  4 Apr 2023 13:02:46 +0200
+Message-Id: <20230404110251.42449-2-hdegoede@redhat.com>
 In-Reply-To: <20230404110251.42449-1-hdegoede@redhat.com>
 References: <20230404110251.42449-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -55,61 +55,109 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The Lenovo ThinkPad W530 uses a nvidia k1000m GPU. When this gets used
-together with one of the older nvidia binary driver series (the latest
-series does not support it), then backlight control does not work.
+Allow callers of __acpi_video_get_backlight_type() to pass a pointer
+to a bool which will get set to false if the backlight-type comes from
+the cmdline or a DMI quirk and set to true if auto-detection was used.
 
-This is caused by commit 3dbc80a3e4c5 ("ACPI: video: Make backlight
-class device registration a separate step (v2)") combined with
-commit 5aa9d943e9b6 ("ACPI: video: Don't enable fallback path for
-creating ACPI backlight by default").
+And make __acpi_video_get_backlight_type() non static so that it can
+be called directly outside of video_detect.c .
 
-After these changes the acpi_video# backlight device is only registered
-when requested by a GPU driver calling acpi_video_register_backlight()
-which the nvidia binary driver does not do.
-
-I realize that using the nvidia binary driver is not a supported use-case
-and users can workaround this by adding acpi_backlight=video on the kernel
-commandline, but the ThinkPad W530 is a popular model under Linux users,
-so it seems worthwhile to add a quirk for this.
-
-I will also email Nvidia asking them to make the driver call
-acpi_video_register_backlight() when an internal LCD panel is detected.
-So maybe the next maintenance release of the drivers will fix this...
+While at it turn the acpi_video_get_backlight_type() and
+acpi_video_backlight_use_native() wrappers into static inline functions
+in include/acpi/video.h, so that we need to export one less symbol.
 
 Fixes: 5aa9d943e9b6 ("ACPI: video: Don't enable fallback path for creating ACPI backlight by default")
 Cc: stable@vger.kernel.org
 Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video_detect.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/video_detect.c | 21 ++++++++-------------
+ include/acpi/video.h        | 15 +++++++++++++--
+ 2 files changed, 21 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 295744fe7c92..e85729fc481f 100644
+index fd7cbce8076e..f7c218dd8742 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -299,6 +299,20 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		},
- 	},
+@@ -782,7 +782,7 @@ static bool prefer_native_over_acpi_video(void)
+  * Determine which type of backlight interface to use on this system,
+  * First check cmdline, then dmi quirks, then do autodetect.
+  */
+-static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
++enum acpi_backlight_type __acpi_video_get_backlight_type(bool native, bool *auto_detect)
+ {
+ 	static DEFINE_MUTEX(init_mutex);
+ 	static bool nvidia_wmi_ec_present;
+@@ -807,6 +807,9 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
+ 		native_available = true;
+ 	mutex_unlock(&init_mutex);
  
-+	/*
-+	 * Older models with nvidia GPU which need acpi_video backlight
-+	 * control and where the old nvidia binary driver series does not
-+	 * call acpi_video_register_backlight().
-+	 */
-+	{
-+	 .callback = video_detect_force_video,
-+	 /* ThinkPad W530 */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W530"),
-+		},
-+	},
++	if (auto_detect)
++		*auto_detect = false;
 +
  	/*
- 	 * These models have a working acpi_video backlight control, and using
- 	 * native backlight causes a regression where backlight does not work
+ 	 * The below heuristics / detection steps are in order of descending
+ 	 * presedence. The commandline takes presedence over anything else.
+@@ -818,6 +821,9 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
+ 	if (acpi_backlight_dmi != acpi_backlight_undef)
+ 		return acpi_backlight_dmi;
+ 
++	if (auto_detect)
++		*auto_detect = true;
++
+ 	/* Special cases such as nvidia_wmi_ec and apple gmux. */
+ 	if (nvidia_wmi_ec_present)
+ 		return acpi_backlight_nvidia_wmi_ec;
+@@ -837,15 +843,4 @@ static enum acpi_backlight_type __acpi_video_get_backlight_type(bool native)
+ 	/* No ACPI video/native (old hw), use vendor specific fw methods. */
+ 	return acpi_backlight_vendor;
+ }
+-
+-enum acpi_backlight_type acpi_video_get_backlight_type(void)
+-{
+-	return __acpi_video_get_backlight_type(false);
+-}
+-EXPORT_SYMBOL(acpi_video_get_backlight_type);
+-
+-bool acpi_video_backlight_use_native(void)
+-{
+-	return __acpi_video_get_backlight_type(true) == acpi_backlight_native;
+-}
+-EXPORT_SYMBOL(acpi_video_backlight_use_native);
++EXPORT_SYMBOL(__acpi_video_get_backlight_type);
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 8ed9bec03e53..ff5a8da5d883 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -59,8 +59,6 @@ extern void acpi_video_unregister(void);
+ extern void acpi_video_register_backlight(void);
+ extern int acpi_video_get_edid(struct acpi_device *device, int type,
+ 			       int device_id, void **edid);
+-extern enum acpi_backlight_type acpi_video_get_backlight_type(void);
+-extern bool acpi_video_backlight_use_native(void);
+ /*
+  * Note: The value returned by acpi_video_handles_brightness_key_presses()
+  * may change over time and should not be cached.
+@@ -69,6 +67,19 @@ extern bool acpi_video_handles_brightness_key_presses(void);
+ extern int acpi_video_get_levels(struct acpi_device *device,
+ 				 struct acpi_video_device_brightness **dev_br,
+ 				 int *pmax_level);
++
++extern enum acpi_backlight_type __acpi_video_get_backlight_type(bool native,
++								bool *auto_detect);
++
++static inline enum acpi_backlight_type acpi_video_get_backlight_type(void)
++{
++	return __acpi_video_get_backlight_type(false, NULL);
++}
++
++static inline bool acpi_video_backlight_use_native(void)
++{
++	return __acpi_video_get_backlight_type(true, NULL) == acpi_backlight_native;
++}
+ #else
+ static inline void acpi_video_report_nolcd(void) { return; };
+ static inline int acpi_video_register(void) { return -ENODEV; }
 -- 
 2.39.1
 
