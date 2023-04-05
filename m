@@ -2,32 +2,32 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E801C76188
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:28:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F722C76188
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:28:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237101AbjDEJ2M (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 05:28:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53900 "EHLO
+        id S235049AbjDEJ2V (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 05:28:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237112AbjDEJ2D (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:28:03 -0400
+        with ESMTP id S237433AbjDEJ2M (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:28:12 -0400
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0658F5276
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:27:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F01255BE
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:27:55 -0700 (PDT)
 Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
         by metis.ext.pengutronix.de with esmtp (Exim 4.92)
         (envelope-from <m.felsch@pengutronix.de>)
-        id 1pjzPx-0004pA-P4; Wed, 05 Apr 2023 11:27:01 +0200
+        id 1pjzQ5-0004pA-Mh; Wed, 05 Apr 2023 11:27:09 +0200
 From:   Marco Felsch <m.felsch@pengutronix.de>
-Subject: [PATCH 00/12] Rework PHY reset handling
-Date:   Wed, 05 Apr 2023 11:26:51 +0200
-Message-Id: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
+Date:   Wed, 05 Apr 2023 11:26:58 +0200
+Subject: [PATCH 07/12] net: mdio: make use of phy_device_atomic_register
+ helper
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIANs+LWQC/x2NQQrDMAwEvxJ0rsFNXUL7ldKD40i1ICjGckpKy
- N8rcljY2cPsDoqVUeHZ7VDxy8qLGFwvHaQc5YOOJ2PofX/zwd+dYLNszbWlcDqx5J+rqNYCDQ+
- iYaIQPZhijIpurFFSNoms82xjqUi8nZ+v93H8AdfhtMyDAAAA
+Message-Id: <20230405-net-next-topic-net-phy-reset-v1-7-7e5329f08002@pengutronix.de>
+References: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
+In-Reply-To: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 To:     Andrew Lunn <andrew@lunn.ch>,
         Heiner Kallweit <hkallweit1@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
@@ -63,73 +63,98 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The current phy reset handling is broken in a way that it needs
-pre-running firmware to setup the phy initially. Since the very first
-step is to readout the PHYID1/2 registers before doing anything else.
-
-The whole dection logic will fall apart if the pre-running firmware
-don't setup the phy accordingly or the kernel boot resets GPIOs states
-or disables clocks. In such cases the PHYID1/2 read access will fail and
-so the whole detection will fail.
-
-I fixed this via this series, the fix will include a new kernel API
-called phy_device_atomic_register() which will do all necessary things
-and return a 'struct phy_device' on success. So setting up a phy and the
-phy state machine is more convenient.
-
-I tested the series on a i.MX8MP-EVK and a custom board which have a
-TJA1102 dual-port ethernet phy. Other testers are welcome :)
-
-Regards,
-  Marco
+The current fwnode_mdiobus_register_phy() implementation assume that the
+phy is accessible to read the PHYID register values first which isn't
+the case in some cases. Fix this by using the new
+phy_device_atomic_register() helper which ensures that the prerequisites
+are fulfilled before accessing the PHYID registers.
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
-Marco Felsch (12):
-      net: phy: refactor phy_device_create function
-      net: phy: refactor get_phy_device function
-      net: phy: add phy_device_set_miits helper
-      net: phy: unify get_phy_device and phy_device_create parameter list
-      net: phy: add phy_id_broken support
-      net: phy: add phy_device_atomic_register helper
-      net: mdio: make use of phy_device_atomic_register helper
-      net: phy: add possibility to specify mdio device parent
-      net: phy: nxp-tja11xx: make use of phy_device_atomic_register()
-      of: mdio: remove now unused of_mdiobus_phy_device_register()
-      net: mdiobus: remove now unused fwnode helpers
-      net: phy: add default gpio assert/deassert delay
+ Documentation/firmware-guide/acpi/dsd/phy.rst |  2 +-
+ drivers/net/mdio/acpi_mdio.c                  | 18 ++++++++++++------
+ drivers/net/mdio/of_mdio.c                    | 13 ++++++++++++-
+ 3 files changed, 25 insertions(+), 8 deletions(-)
 
- Documentation/firmware-guide/acpi/dsd/phy.rst     |   2 +-
- MAINTAINERS                                       |   1 -
- drivers/net/ethernet/adi/adin1110.c               |   6 +-
- drivers/net/ethernet/amd/xgbe/xgbe-phy-v2.c       |   8 +-
- drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c |  11 +-
- drivers/net/ethernet/socionext/netsec.c           |   7 +-
- drivers/net/mdio/Kconfig                          |   7 -
- drivers/net/mdio/Makefile                         |   1 -
- drivers/net/mdio/acpi_mdio.c                      |  20 +-
- drivers/net/mdio/fwnode_mdio.c                    | 183 ------------
- drivers/net/mdio/mdio-xgene.c                     |   6 +-
- drivers/net/mdio/of_mdio.c                        |  23 +-
- drivers/net/phy/bcm-phy-ptp.c                     |   2 +-
- drivers/net/phy/dp83640.c                         |   2 +-
- drivers/net/phy/fixed_phy.c                       |   6 +-
- drivers/net/phy/mdio_bus.c                        |   7 +-
- drivers/net/phy/micrel.c                          |   2 +-
- drivers/net/phy/mscc/mscc_ptp.c                   |   2 +-
- drivers/net/phy/nxp-c45-tja11xx.c                 |   2 +-
- drivers/net/phy/nxp-tja11xx.c                     |  47 ++-
- drivers/net/phy/phy_device.c                      | 348 +++++++++++++++++++---
- drivers/net/phy/sfp.c                             |   7 +-
- include/linux/fwnode_mdio.h                       |  35 ---
- include/linux/of_mdio.h                           |   8 -
- include/linux/phy.h                               |  46 ++-
- 25 files changed, 442 insertions(+), 347 deletions(-)
----
-base-commit: 054fbf7ff8143d35ca7d3bb5414bb44ee1574194
-change-id: 20230405-net-next-topic-net-phy-reset-4f79ff7df4a0
+diff --git a/Documentation/firmware-guide/acpi/dsd/phy.rst b/Documentation/firmware-guide/acpi/dsd/phy.rst
+index 673ac374f92a..489e978c7412 100644
+--- a/Documentation/firmware-guide/acpi/dsd/phy.rst
++++ b/Documentation/firmware-guide/acpi/dsd/phy.rst
+@@ -5,7 +5,7 @@ MDIO bus and PHYs in ACPI
+ =========================
+ 
+ The PHYs on an MDIO bus [phy] are probed and registered using
+-fwnode_mdiobus_register_phy().
++phy_device_atomic_register().
+ 
+ Later, for connecting these PHYs to their respective MACs, the PHYs registered
+ on the MDIO bus have to be referenced.
+diff --git a/drivers/net/mdio/acpi_mdio.c b/drivers/net/mdio/acpi_mdio.c
+index 4630dde01974..25feb571bd1f 100644
+--- a/drivers/net/mdio/acpi_mdio.c
++++ b/drivers/net/mdio/acpi_mdio.c
+@@ -31,8 +31,10 @@ MODULE_LICENSE("GPL");
+ int __acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode,
+ 			    struct module *owner)
+ {
++	struct phy_device_config config = {
++		.mii_bus = mdio,
++	};
+ 	struct fwnode_handle *child;
+-	u32 addr;
+ 	int ret;
+ 
+ 	/* Mask out all PHYs from auto probing. */
+@@ -45,15 +47,19 @@ int __acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode,
+ 
+ 	/* Loop over the child nodes and register a phy_device for each PHY */
+ 	fwnode_for_each_child_node(fwnode, child) {
+-		ret = acpi_get_local_address(ACPI_HANDLE_FWNODE(child), &addr);
+-		if (ret || addr >= PHY_MAX_ADDR)
++		struct phy_device *phy;
++
++		ret = acpi_get_local_address(ACPI_HANDLE_FWNODE(child),
++					     &config.phy_addr);
++		if (ret || config.phy_addr >= PHY_MAX_ADDR)
+ 			continue;
+ 
+-		ret = fwnode_mdiobus_register_phy(mdio, child, addr);
+-		if (ret == -ENODEV)
++		config.fwnode = child;
++		phy = phy_device_atomic_register(&config);
++		if (PTR_ERR(phy) == -ENODEV)
+ 			dev_err(&mdio->dev,
+ 				"MDIO device at address %d is missing.\n",
+-				addr);
++				config.phy_addr);
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index 7eb32ebb846d..10dd45c3bde0 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -45,7 +45,18 @@ EXPORT_SYMBOL(of_mdiobus_phy_device_register);
+ static int of_mdiobus_register_phy(struct mii_bus *mdio,
+ 				    struct device_node *child, u32 addr)
+ {
+-	return fwnode_mdiobus_register_phy(mdio, of_fwnode_handle(child), addr);
++	struct phy_device_config config = {
++		.mii_bus = mdio,
++		.phy_addr = addr,
++		.fwnode = of_fwnode_handle(child),
++	};
++	struct phy_device *phy;
++
++	phy = phy_device_atomic_register(&config);
++	if (IS_ERR(phy))
++		return PTR_ERR(phy);
++
++	return 0;
+ }
+ 
+ static int of_mdiobus_register_device(struct mii_bus *mdio,
 
-Best regards,
 -- 
-Marco Felsch <m.felsch@pengutronix.de>
+2.39.2
 
