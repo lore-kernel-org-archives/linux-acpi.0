@@ -2,181 +2,173 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C201CC77B60
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 12:43:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AFA1C76188
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 13:35:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237446AbjDEMnC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 08:43:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51730 "EHLO
+        id S238270AbjDENf5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 09:35:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237141AbjDEMnB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 08:43:01 -0400
-Received: from mail-qv1-xf32.google.com (mail-qv1-xf32.google.com [IPv6:2607:f8b0:4864:20::f32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47C3811A;
-        Wed,  5 Apr 2023 05:43:00 -0700 (PDT)
-Received: by mail-qv1-xf32.google.com with SMTP id cu4so26052689qvb.3;
-        Wed, 05 Apr 2023 05:43:00 -0700 (PDT)
+        with ESMTP id S237259AbjDENf4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 09:35:56 -0400
+Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6171549F9
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 06:35:55 -0700 (PDT)
+Received: by mail-pj1-x1036.google.com with SMTP id q102so33936297pjq.3
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Apr 2023 06:35:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680698579; x=1683290579;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=MTAFf4OGc3JS+3A1a6rqMFwtwcsbwdl9NJcd4nNwT+s=;
-        b=M7Rcawu2mcuUHH+1YQYc0Qtrca+1bdFMX7VnNA+zmum1wzpEtjkRRW0HBzcsE/1NJ+
-         CwY2X4dISP4ImlL4OwVfU5RNqKji+a+eP65Xww9FptlwQQS4H79GsT9p3nMqTGG9gImR
-         1KMaFzGnB/mEXDgHKHfdRBZsx8zVUBresVaf24VlKvT51nQbJyWG55I/xWXKEfDWfLKC
-         31eutXqXaYOGD9abGXVpqplMXNz5jm1FMUtXw6Hp+TUMl4ddqg7msjfr2xuyqLQagf7K
-         IuJ7njMBRZC2RggxQPFUXE2X9UtevTvsKTNfPfq8gHhWADol4jDYmYCOZ6RV39VkLafg
-         De5Q==
+        d=ventanamicro.com; s=google; t=1680701755;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=JIHDYxgUdzzSqTP2brP/Gv5M90CrOXKIjgMsPWUPa3E=;
+        b=CKTKF4kpb7ZHTt5WzSMSNpO/YiANGdZvzrrD77G3R2AwcXrky8I6y4ejU+fBNRkbFN
+         lryZ+EIvfsuH2rhE1cSkHr2YVlmsBsCIb8FDF1XSoF0GPIMefcCmWeKloUJDFICHi6eb
+         7MRvsY+ChHOJQlUMZypaYAaLEZHVZ0W99yx9LtAckYSxsCvWLVnwy22p6QBxC6+q6Wm5
+         UhgAmuMSveoY6oR2rnXWLS00Sqg1O+H6+VjZvXkfNBpXmNdo6GRt3ztEp6czta8goSwK
+         oRSWcq7xRdYhdRHeqG+fJZwC0rkHEmiTgcIOzCeYaKuTbI1JTB78nUaYlT1a1CD4IDgf
+         bc6w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680698579; x=1683290579;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=MTAFf4OGc3JS+3A1a6rqMFwtwcsbwdl9NJcd4nNwT+s=;
-        b=gJFPGmHV0OkuJIFJ4P1VhDjuJFvKfoKseQhXS5U8u6OhtTXYmW+3GFBx6LosAfID7C
-         1ukXZJ15tY2vS8/4F1rHZIJMyQfpi1eslbxTwE/iwUfvKNpDv37TVS5Wh+JUl1HT34Iu
-         /3sZfYYFkQ219Esyk8ylf9UtVTKOISvP7ESuaInIOsi/WYnXypTGkWz04n0rjOk8PT/h
-         JSO4jm8HT+h/PjDcDfNAIHHdjozAIKNUN0nUq/ckJ7pMMs4hFpvCVBZcBPVOVd4UKoXJ
-         Bpx6jEz7D3AD0EGgBlCeGTGAu5pUuyi0fuzV5Tim0ghrvfvYTN8fRBPzOIxj2OPNtBOm
-         Up0A==
-X-Gm-Message-State: AAQBX9c6sdE2sK8bKh4M78xiKWb6SuZ+Gf8znO9PECXI6oRjKv44qOUv
-        SRbsJDR+ZiF3w+LvwoH0S4A=
-X-Google-Smtp-Source: AKy350b0BlbXUr9SfFNX2w2ky6/yZz/Q7/m4ca6EQjDQy3eBX2nJgNUvI1TvFwjjn1xi+voc9a6xXQ==
-X-Received: by 2002:a05:6214:40c:b0:5e0:63ec:5d7b with SMTP id z12-20020a056214040c00b005e063ec5d7bmr10271651qvx.28.1680698579301;
-        Wed, 05 Apr 2023 05:42:59 -0700 (PDT)
-Received: from [192.168.1.105] (ip72-194-116-95.oc.oc.cox.net. [72.194.116.95])
-        by smtp.gmail.com with ESMTPSA id j3-20020ad453a3000000b005dd8b9345edsm4145230qvv.133.2023.04.05.05.42.55
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 05 Apr 2023 05:42:58 -0700 (PDT)
-Message-ID: <03ed8642-e521-f079-05b8-de9ffa97237a@gmail.com>
-Date:   Wed, 5 Apr 2023 05:42:53 -0700
+        d=1e100.net; s=20210112; t=1680701755;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=JIHDYxgUdzzSqTP2brP/Gv5M90CrOXKIjgMsPWUPa3E=;
+        b=qy5gkoTBK95QxxHry2ZlXmDsAZTc+Qp18nvg66AWa7ebLt1Vv/pb4m3JkE/G/FIJIY
+         GEiTxDBZDEMZxR+H2AmpQWHRzSOCzNNs2IwXjU/gJ7t1QF/7UL/LFELG/99CHmFff7Xs
+         6nzR3MgNxtWuuFUaAdhQtPkgmOoaVeNCZ88GFMbfXecRpMJH7bSTAh6qSYUqOduBYL4a
+         ORnGzYGxRNfrkmm7vTE1WplCxElL3dY9IEK/8Hlbrr1M6yBu/BA9y4GnUHRbwW+QT+IL
+         H1qkkCv2VjOmstRWeihYX1pTxPMr5XtPGdQ72sFI40+gaiEEbhalGhI9rgi3vpvoQyOt
+         TLyw==
+X-Gm-Message-State: AAQBX9fP8Barr38NYaXfPdm+z/CW6poCeeXkTvLrz3GIR1nI3Sauxe66
+        tIV/+MUayRjvIrMpqESm1DFBTQ==
+X-Google-Smtp-Source: AKy350YakjU97DwbNOaHnJ7tP50TtKQnFHAXGnpEmklEn/OYjSLROKhCvPK2o+vvLvZ4pWgOW/ApXw==
+X-Received: by 2002:a17:902:e891:b0:1a1:f413:70b1 with SMTP id w17-20020a170902e89100b001a1f41370b1mr7345803plg.18.1680701754753;
+        Wed, 05 Apr 2023 06:35:54 -0700 (PDT)
+Received: from sunil-laptop ([106.51.184.50])
+        by smtp.gmail.com with ESMTPSA id 19-20020a170902c11300b0019cad2de86bsm10131129pli.156.2023.04.05.06.35.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Apr 2023 06:35:54 -0700 (PDT)
+Date:   Wed, 5 Apr 2023 19:05:42 +0530
+From:   Sunil V L <sunilvl@ventanamicro.com>
+To:     Conor Dooley <conor@kernel.org>
+Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
+        linux-crypto@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        llvm@lists.linux.dev,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Tom Rix <trix@redhat.com>, Weili Qian <qianweili@huawei.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Marc Zyngier <maz@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Andrew Jones <ajones@ventanamicro.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Mark Gross <markgross@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Zhou Wang <wangzhou1@hisilicon.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Len Brown <lenb@kernel.org>,
+        Maximilian Luz <luzmaximilian@gmail.com>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: Re: [PATCH V4 13/23] RISC-V: cpufeature: Add ACPI support in
+ riscv_fill_hwcap()
+Message-ID: <ZC15LqYqLzmiVdcr@sunil-laptop>
+References: <20230404182037.863533-1-sunilvl@ventanamicro.com>
+ <20230404182037.863533-14-sunilvl@ventanamicro.com>
+ <20230404-promotion-scarce-7c69ff7e5f99@spud>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [PATCH 00/12] Rework PHY reset handling
-Content-Language: en-US
-To:     Marco Felsch <m.felsch@pengutronix.de>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Broadcom internal kernel review list 
-        <bcm-kernel-feedback-list@broadcom.com>,
-        Richard Cochran <richardcochran@gmail.com>,
-        Radu Pirea <radu-nicolae.pirea@oss.nxp.com>,
-        Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-        Iyappan Subramanian <iyappan@os.amperecomputing.com>,
-        Keyur Chudgar <keyur@os.amperecomputing.com>,
-        Quan Nguyen <quan@os.amperecomputing.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-References: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
-From:   Florian Fainelli <f.fainelli@gmail.com>
-In-Reply-To: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230404-promotion-scarce-7c69ff7e5f99@spud>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Marco,
-
-On 4/5/2023 2:26 AM, Marco Felsch wrote:
-> The current phy reset handling is broken in a way that it needs
-> pre-running firmware to setup the phy initially. Since the very first
-> step is to readout the PHYID1/2 registers before doing anything else.
+On Tue, Apr 04, 2023 at 09:57:19PM +0100, Conor Dooley wrote:
+> On Tue, Apr 04, 2023 at 11:50:27PM +0530, Sunil V L wrote:
+> > On ACPI based systems, the information about the hart
+> > like ISA is provided by the RISC-V Hart Capabilities Table (RHCT).
+> > Enable filling up hwcap structure based on the information in RHCT.
+> > 
+> > Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
+> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> > ---
+> >  arch/riscv/kernel/cpufeature.c | 39 ++++++++++++++++++++++++++++++----
+> >  1 file changed, 35 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/arch/riscv/kernel/cpufeature.c b/arch/riscv/kernel/cpufeature.c
+> > index 63e56ce04162..5d2065b937e5 100644
+> > --- a/arch/riscv/kernel/cpufeature.c
+> > +++ b/arch/riscv/kernel/cpufeature.c
+> > @@ -6,6 +6,7 @@
+> >   * Copyright (C) 2017 SiFive
+> >   */
+> >  
+> > +#include <linux/acpi.h>
+> >  #include <linux/bitmap.h>
+> >  #include <linux/ctype.h>
+> >  #include <linux/libfdt.h>
+> > @@ -13,6 +14,8 @@
+> >  #include <linux/memory.h>
+> >  #include <linux/module.h>
+> >  #include <linux/of.h>
+> > +#include <linux/of_device.h>
+> > +#include <asm/acpi.h>
+> >  #include <asm/alternative.h>
+> >  #include <asm/cacheflush.h>
+> >  #include <asm/errata_list.h>
+> > @@ -91,6 +94,9 @@ void __init riscv_fill_hwcap(void)
+> >  	char print_str[NUM_ALPHA_EXTS + 1];
+> >  	int i, j, rc;
+> >  	unsigned long isa2hwcap[26] = {0};
+> > +	struct acpi_table_header *rhct;
+> > +	acpi_status status;
+> > +	unsigned int cpu;
+> >  
+> >  	isa2hwcap['i' - 'a'] = COMPAT_HWCAP_ISA_I;
+> >  	isa2hwcap['m' - 'a'] = COMPAT_HWCAP_ISA_M;
+> > @@ -103,14 +109,36 @@ void __init riscv_fill_hwcap(void)
+> >  
+> >  	bitmap_zero(riscv_isa, RISCV_ISA_EXT_MAX);
+> >  
+> > -	for_each_of_cpu_node(node) {
+> > +	if (!acpi_disabled) {
+> > +		status = acpi_get_table(ACPI_SIG_RHCT, 0, &rhct);
+> > +		if (ACPI_FAILURE(status))
+> > +			return;
+> > +	}
+> > +
+> > +	for_each_possible_cpu(cpu) {
+> >  		unsigned long this_hwcap = 0;
+> >  		DECLARE_BITMAP(this_isa, RISCV_ISA_EXT_MAX);
+> >  		const char *temp;
+> >  
+> > -		if (of_property_read_string(node, "riscv,isa", &isa)) {
+> > -			pr_warn("Unable to find \"riscv,isa\" devicetree entry\n");
+> > -			continue;
+> > +		if (acpi_disabled) {
+> > +			node = of_cpu_device_node_get(cpu);
+> > +			if (node) {
+> > +				rc = of_property_read_string(node, "riscv,isa", &isa);
 > 
-> The whole dection logic will fall apart if the pre-running firmware
-> don't setup the phy accordingly or the kernel boot resets GPIOs states
-> or disables clocks. In such cases the PHYID1/2 read access will fail and
-> so the whole detection will fail.
-
-PHY reset is a bit too broad and should need some clarifications between:
-
-- external reset to the PHY whereby a hardware pin on the PHY IC may be used
-
-- internal reset to the PHY whereby we call into the PHY driver 
-soft_reset function to have the PHY software reset itself
-
-You are changing the way the former happens, not the latter, at least 
-not changing the latter intentionally if at all.
-
-This is important because your cover letter will be in the merge commit 
-in the networking tree.
-
-Will do a more thorough review on a patch by patch basis. Thanks.
-
+> Hmm, after digging in the previous patch, I think this is actually not
+> possible to fail? We already validated it when setting up the mask of
+> possible cpus, but I think leaving the error handling here makes things
+> a lot more obvious.
 > 
-> I fixed this via this series, the fix will include a new kernel API
-> called phy_device_atomic_register() which will do all necessary things
-> and return a 'struct phy_device' on success. So setting up a phy and the
-> phy state machine is more convenient.
-> 
-> I tested the series on a i.MX8MP-EVK and a custom board which have a
-> TJA1102 dual-port ethernet phy. Other testers are welcome :)
-> 
-> Regards,
->    Marco
-> 
-> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> ---
-> Marco Felsch (12):
->        net: phy: refactor phy_device_create function
->        net: phy: refactor get_phy_device function
->        net: phy: add phy_device_set_miits helper
->        net: phy: unify get_phy_device and phy_device_create parameter list
->        net: phy: add phy_id_broken support
->        net: phy: add phy_device_atomic_register helper
->        net: mdio: make use of phy_device_atomic_register helper
->        net: phy: add possibility to specify mdio device parent
->        net: phy: nxp-tja11xx: make use of phy_device_atomic_register()
->        of: mdio: remove now unused of_mdiobus_phy_device_register()
->        net: mdiobus: remove now unused fwnode helpers
->        net: phy: add default gpio assert/deassert delay
-> 
->   Documentation/firmware-guide/acpi/dsd/phy.rst     |   2 +-
->   MAINTAINERS                                       |   1 -
->   drivers/net/ethernet/adi/adin1110.c               |   6 +-
->   drivers/net/ethernet/amd/xgbe/xgbe-phy-v2.c       |   8 +-
->   drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c |  11 +-
->   drivers/net/ethernet/socionext/netsec.c           |   7 +-
->   drivers/net/mdio/Kconfig                          |   7 -
->   drivers/net/mdio/Makefile                         |   1 -
->   drivers/net/mdio/acpi_mdio.c                      |  20 +-
->   drivers/net/mdio/fwnode_mdio.c                    | 183 ------------
->   drivers/net/mdio/mdio-xgene.c                     |   6 +-
->   drivers/net/mdio/of_mdio.c                        |  23 +-
->   drivers/net/phy/bcm-phy-ptp.c                     |   2 +-
->   drivers/net/phy/dp83640.c                         |   2 +-
->   drivers/net/phy/fixed_phy.c                       |   6 +-
->   drivers/net/phy/mdio_bus.c                        |   7 +-
->   drivers/net/phy/micrel.c                          |   2 +-
->   drivers/net/phy/mscc/mscc_ptp.c                   |   2 +-
->   drivers/net/phy/nxp-c45-tja11xx.c                 |   2 +-
->   drivers/net/phy/nxp-tja11xx.c                     |  47 ++-
->   drivers/net/phy/phy_device.c                      | 348 +++++++++++++++++++---
->   drivers/net/phy/sfp.c                             |   7 +-
->   include/linux/fwnode_mdio.h                       |  35 ---
->   include/linux/of_mdio.h                           |   8 -
->   include/linux/phy.h                               |  46 ++-
->   25 files changed, 442 insertions(+), 347 deletions(-)
-> ---
-> base-commit: 054fbf7ff8143d35ca7d3bb5414bb44ee1574194
-> change-id: 20230405-net-next-topic-net-phy-reset-4f79ff7df4a0
-> 
-> Best regards,
+Yeah, do you prefer to merge these patches again since only in this
+patch, we change the loop to for_each_possible_cpu() from
+for_each_of_cpu_node() which actually makes riscv_of_processor_hartid()
+not useful?
 
--- 
-Florian
+> I'd swear I gave you a (conditional) R-b on v3 though, no?
+> Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+> 
+Thanks,
+Sunil
