@@ -2,91 +2,141 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 374BAC76188
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 08:50:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFEC1C7619A
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237101AbjDEIuQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 04:50:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45754 "EHLO
+        id S237469AbjDEJ2M (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 05:28:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237501AbjDEIuP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 04:50:15 -0400
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 617A92736;
-        Wed,  5 Apr 2023 01:50:14 -0700 (PDT)
-Received: from [192.168.2.41] (77-166-152-30.fixed.kpn.net [77.166.152.30])
-        by linux.microsoft.com (Postfix) with ESMTPSA id B71A4210DECD;
-        Wed,  5 Apr 2023 01:50:11 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B71A4210DECD
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-        s=default; t=1680684613;
-        bh=57bX2Yn8I2wf2e2nSid0EfvUv8qculkKdJgSF0wuaDI=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=iFVxKM2NDuDMdhtMT/d9+4pCUGi1W+d9juefoMlc51Ur6HIxAfXT48Zuzxyrd0me0
-         E6N/u4B9cPxr/O9iTE5I1hgsjQnFVMPmZaKvzdNZi0wSda9Ku+bX+rzploONz0qou2
-         tSxj70KaD5qziqt+mXesRRb6+njF2ssR33e4y3V4=
-Message-ID: <ceece3a9-bbe9-f8d4-f446-c2c8dd285a8e@linux.microsoft.com>
-Date:   Wed, 5 Apr 2023 10:50:10 +0200
+        with ESMTP id S237482AbjDEJ2D (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:28:03 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26F384EED
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:27:48 -0700 (PDT)
+Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
+        by metis.ext.pengutronix.de with esmtp (Exim 4.92)
+        (envelope-from <m.felsch@pengutronix.de>)
+        id 1pjzPz-0004pA-Ue; Wed, 05 Apr 2023 11:27:03 +0200
+From:   Marco Felsch <m.felsch@pengutronix.de>
+Date:   Wed, 05 Apr 2023 11:26:53 +0200
+Subject: [PATCH 02/12] net: phy: refactor get_phy_device function
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [PATCH v3 0/8] Support ACPI PSP on Hyper-V
-Content-Language: en-US
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org,
-        Brijesh Singh <brijesh.singh@amd.com>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        "Kalra, Ashish" <ashish.kalra@amd.com>,
-        linux-crypto@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org
-References: <20230320191956.1354602-1-jpiotrowski@linux.microsoft.com>
- <20230322154655.GDZBsi75f6LnQStxSp@fat_crate.local>
- <1d25221c-eaab-0f97-83aa-8b4fbe3a53ed@linux.microsoft.com>
- <20230322181541.GEZBtFzRAMcH9BAzUe@fat_crate.local>
- <ecf005b1-ddb9-da4c-4526-28df4806426c@linux.microsoft.com>
- <20230323152342.GFZBxu/m3u6aFUDY/7@fat_crate.local>
- <105d019c-2249-5dfd-e032-95944ea6dc8c@linux.microsoft.com>
- <20230323163450.GGZBx/qpnclFnMaf7e@fat_crate.local>
- <c8458bfa-0985-f6a5-52a3-ef96c7669fe6@linux.microsoft.com>
- <20230402154425.GCZCmi2eiKYO2yYhNs@fat_crate.local>
-From:   Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
-In-Reply-To: <20230402154425.GCZCmi2eiKYO2yYhNs@fat_crate.local>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20230405-net-next-topic-net-phy-reset-v1-2-7e5329f08002@pengutronix.de>
+References: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
+In-Reply-To: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
+To:     Andrew Lunn <andrew@lunn.ch>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Broadcom internal kernel review list 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Radu Pirea <radu-nicolae.pirea@oss.nxp.com>,
+        Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+        Iyappan Subramanian <iyappan@os.amperecomputing.com>,
+        Keyur Chudgar <keyur@os.amperecomputing.com>,
+        Quan Nguyen <quan@os.amperecomputing.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+X-Mailer: b4 0.12.1
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:1101:1d::28
+X-SA-Exim-Mail-From: m.felsch@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-acpi@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 4/2/2023 5:44 PM, Borislav Petkov wrote:
-> On Fri, Mar 24, 2023 at 06:10:09PM +0100, Jeremi Piotrowski wrote:
->> Since the AMD PSP is a privileged device, there is a desire to not have to trust the
->> ACPI stack,
-> 
-> And yet you do:
-> 
-> +	err = acpi_parse_aspt(&res[0], &pdata);
-> +	if (err)
-> +		return err;
-> 
-> You don't trust the ACPI stack, and yet you're parsing an ACPI table?!?!
-> You have to make up your mind here.
-> 
-> Btw, you still haven't answered my question about doing:
-> 
-> 	devm_request_irq(dev, 9, ..)
-> 
-> where 9 is the default ACPI interrupt.
-> 
-> You can have some silly table tell you what to map or you can simply map
-> IRQ 9 and be done with it. In this second case you can *really* not
-> trust ACPI because you know which IRQ it is.
-> 
+Split get_phy_device() into local helper function. This commit is in
+preparation of fixing the phy reset handling. No functional changes for
+the public API users.
 
-Sorry I broke threading. Meant to post this email:
-https://lore.kernel.org/lkml/35f6b321-1668-2b62-cb47-3f3760be2e1d@linux.microsoft.com/#t
-as a reply to *this* one.
+Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+---
+ drivers/net/phy/phy_device.c | 44 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 27 insertions(+), 17 deletions(-)
 
-Jeremi
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index dd0aaa866d17..64292e47e3fc 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -938,6 +938,32 @@ int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id)
+ }
+ EXPORT_SYMBOL(fwnode_get_phy_id);
+ 
++static int phy_device_detect(struct mii_bus *bus, int addr, bool *is_c45,
++			     u32 *phy_id, struct phy_c45_device_ids *c45_ids)
++{
++	int r;
++
++	if (*is_c45)
++		r = get_phy_c45_ids(bus, addr, c45_ids);
++	else
++		r = get_phy_c22_id(bus, addr, phy_id);
++
++	if (r)
++		return r;
++
++	/* PHY device such as the Marvell Alaska 88E2110 will return a PHY ID
++	 * of 0 when probed using get_phy_c22_id() with no error. Proceed to
++	 * probe with C45 to see if we're able to get a valid PHY ID in the C45
++	 * space, if successful, create the C45 PHY device.
++	 */
++	if (!*is_c45 && *phy_id == 0 && bus->read_c45) {
++		*is_c45 = true;
++		return get_phy_c45_ids(bus, addr, c45_ids);
++	}
++
++	return 0;
++}
++
+ /**
+  * get_phy_device - reads the specified PHY device and returns its @phy_device
+  *		    struct
+@@ -967,26 +993,10 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
+ 	c45_ids.mmds_present = 0;
+ 	memset(c45_ids.device_ids, 0xff, sizeof(c45_ids.device_ids));
+ 
+-	if (is_c45)
+-		r = get_phy_c45_ids(bus, addr, &c45_ids);
+-	else
+-		r = get_phy_c22_id(bus, addr, &phy_id);
+-
++	r = phy_device_detect(bus, addr, &is_c45, &phy_id, &c45_ids);
+ 	if (r)
+ 		return ERR_PTR(r);
+ 
+-	/* PHY device such as the Marvell Alaska 88E2110 will return a PHY ID
+-	 * of 0 when probed using get_phy_c22_id() with no error. Proceed to
+-	 * probe with C45 to see if we're able to get a valid PHY ID in the C45
+-	 * space, if successful, create the C45 PHY device.
+-	 */
+-	if (!is_c45 && phy_id == 0 && bus->read_c45) {
+-		r = get_phy_c45_ids(bus, addr, &c45_ids);
+-		if (!r)
+-			return phy_device_create(bus, addr, phy_id,
+-						 true, &c45_ids);
+-	}
+-
+ 	return phy_device_create(bus, addr, phy_id, is_c45, &c45_ids);
+ }
+ EXPORT_SYMBOL(get_phy_device);
+
+-- 
+2.39.2
+
