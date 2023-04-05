@@ -2,34 +2,34 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 814F4C76188
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 14:04:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD436C7619A
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 14:04:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238019AbjDEOE2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 10:04:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43888 "EHLO
+        id S238410AbjDEOEo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 10:04:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238403AbjDEODQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 10:03:16 -0400
+        with ESMTP id S237448AbjDEODj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 10:03:39 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3117972B5;
-        Wed,  5 Apr 2023 07:01:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02A1E525B;
+        Wed,  5 Apr 2023 07:01:46 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
- id 16fa3e09ab760ded; Wed, 5 Apr 2023 16:01:23 +0200
+ id 6bc4c385f572d997; Wed, 5 Apr 2023 16:01:24 +0200
 Received: from kreacher.localnet (unknown [213.134.163.219])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 8710F1B4EA6F;
-        Wed,  5 Apr 2023 16:01:22 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id CA9B11B4EA6F;
+        Wed,  5 Apr 2023 16:01:23 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 05/32] ACPICA: Add support for 64 bit loong_arch compilation
-Date:   Wed, 05 Apr 2023 15:36:09 +0200
-Message-ID: <10278375.nUPlyArG6x@kreacher>
+Subject: [PATCH 04/32] ACPICA: acpisrc: Add missing tables to astable
+Date:   Wed, 05 Apr 2023 15:35:31 +0200
+Message-ID: <3256109.44csPzL39Z@kreacher>
 In-Reply-To: <4845957.31r3eYUQgx@kreacher>
 References: <4845957.31r3eYUQgx@kreacher>
 MIME-Version: 1.0
@@ -38,44 +38,85 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.163.219
 X-CLIENT-HOSTNAME: 213.134.163.219
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdejuddgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudeifedrvdduleenucevlhhushhtvghrufhiiigvpeegnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddvudelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdejuddgjedvucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudeifedrvdduleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddvudelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Huacai Chen <chenhuacai@loongson.cn>
+From: Pedro Falcato <pedro.falcato@gmail.com>
 
-ACPICA commit d809b69cf43c632c8fe5b42372a891216fdd9223
+ACPICA commit d4a2c93198cdd9c6f4a83798345851fee96d5ca5
 
-Add 64 bit loong_arch architecture by defining ACPI_MACHINE_WIDTH to 64.
-Useful for acpica tools and incorporating ACPICA into the Firmware Test
-Suite.
+Also renames struct acpi_data_table_mapping's struct to
+struct acpi_data_table_mapping, just so conversion goes smoothly.
 
-Link: https://github.com/acpica/acpica/commit/d809b69c
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Link: https://github.com/acpica/acpica/commit/d4a2c931
+Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/platform/aclinux.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/evrgnini.c | 4 ++--
+ drivers/acpi/acpica/exregion.c | 4 ++--
+ include/acpi/actypes.h         | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index a5550dd4d507..14ac657a7ded 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -199,7 +199,7 @@
+diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+index ca4ba6b351fe..792d1a5f0052 100644
+--- a/drivers/acpi/acpica/evrgnini.c
++++ b/drivers/acpi/acpica/evrgnini.c
+@@ -430,7 +430,7 @@ acpi_ev_data_table_region_setup(acpi_handle handle,
+ {
+ 	union acpi_operand_object *region_desc =
+ 	    (union acpi_operand_object *)handle;
+-	struct acpi_data_table_space_context *local_region_context;
++	struct acpi_data_table_mapping *local_region_context;
  
- #if defined(__ia64__)    || (defined(__x86_64__) && !defined(__ILP32__)) ||\
- 	defined(__aarch64__) || defined(__PPC64__) ||\
--	defined(__s390x__) ||\
-+	defined(__s390x__)   || defined(__loongarch__) ||\
- 	(defined(__riscv) && (defined(__LP64__) || defined(_LP64)))
- #define ACPI_MACHINE_WIDTH          64
- #define COMPILER_DEPENDENT_INT64    long
+ 	ACPI_FUNCTION_TRACE(ev_data_table_region_setup);
+ 
+@@ -445,7 +445,7 @@ acpi_ev_data_table_region_setup(acpi_handle handle,
+ 	/* Create a new context */
+ 
+ 	local_region_context =
+-	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_data_table_space_context));
++	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_data_table_mapping));
+ 	if (!(local_region_context)) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
+index 4ff35852c0b3..6d4a4cc14850 100644
+--- a/drivers/acpi/acpica/exregion.c
++++ b/drivers/acpi/acpica/exregion.c
+@@ -509,12 +509,12 @@ acpi_ex_data_table_space_handler(u32 function,
+ 				 u64 *value,
+ 				 void *handler_context, void *region_context)
+ {
+-	struct acpi_data_table_space_context *mapping;
++	struct acpi_data_table_mapping *mapping;
+ 	char *pointer;
+ 
+ 	ACPI_FUNCTION_TRACE(ex_data_table_space_handler);
+ 
+-	mapping = (struct acpi_data_table_space_context *) region_context;
++	mapping = (struct acpi_data_table_mapping *) region_context;
+ 	pointer = ACPI_CAST_PTR(char, mapping->pointer) +
+ 	    (address - ACPI_PTR_TO_PHYSADDR(mapping->pointer));
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 95e4f56f9754..46878cbb7d39 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1240,7 +1240,7 @@ struct acpi_mem_space_context {
+ 	struct acpi_mem_mapping *first_mm;
+ };
+ 
+-struct acpi_data_table_space_context {
++struct acpi_data_table_mapping {
+ 	void *pointer;
+ };
+ 
 -- 
 2.35.3
-
 
 
 
