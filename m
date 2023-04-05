@@ -2,29 +2,30 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0988BC7619A
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:28:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 460EDC761AF
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:28:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237415AbjDEJ2U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 05:28:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53728 "EHLO
+        id S237112AbjDEJ2W (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 05:28:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237461AbjDEJ2L (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:28:11 -0400
+        with ESMTP id S237442AbjDEJ2O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:28:14 -0400
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 784115585
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:27:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCF2259D5
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:27:55 -0700 (PDT)
 Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
         by metis.ext.pengutronix.de with esmtp (Exim 4.92)
         (envelope-from <m.felsch@pengutronix.de>)
-        id 1pjzQ1-0004pA-8W; Wed, 05 Apr 2023 11:27:05 +0200
+        id 1pjzQ8-0004pA-UM; Wed, 05 Apr 2023 11:27:12 +0200
 From:   Marco Felsch <m.felsch@pengutronix.de>
-Date:   Wed, 05 Apr 2023 11:26:54 +0200
-Subject: [PATCH 03/12] net: phy: add phy_device_set_miits helper
+Date:   Wed, 05 Apr 2023 11:27:01 +0200
+Subject: [PATCH 10/12] of: mdio: remove now unused
+ of_mdiobus_phy_device_register()
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230405-net-next-topic-net-phy-reset-v1-3-7e5329f08002@pengutronix.de>
+Message-Id: <20230405-net-next-topic-net-phy-reset-v1-10-7e5329f08002@pengutronix.de>
 References: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 In-Reply-To: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 To:     Andrew Lunn <andrew@lunn.ch>,
@@ -62,126 +63,61 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Provide a small setter helper to set the mii timestamper. The helper
-detects possible overrides and hides the phydev internal from the
-driver.
+There are no references to of_mdiobus_phy_device_register() anymore so
+we can remove the code.
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- drivers/net/phy/bcm-phy-ptp.c     |  2 +-
- drivers/net/phy/dp83640.c         |  2 +-
- drivers/net/phy/micrel.c          |  2 +-
- drivers/net/phy/mscc/mscc_ptp.c   |  2 +-
- drivers/net/phy/nxp-c45-tja11xx.c |  2 +-
- drivers/net/phy/phy_device.c      | 16 ++++++++++++++++
- include/linux/phy.h               |  2 ++
- 7 files changed, 23 insertions(+), 5 deletions(-)
+ drivers/net/mdio/of_mdio.c | 9 ---------
+ include/linux/of_mdio.h    | 8 --------
+ 2 files changed, 17 deletions(-)
 
-diff --git a/drivers/net/phy/bcm-phy-ptp.c b/drivers/net/phy/bcm-phy-ptp.c
-index ef00d6163061..08bd3d96ce04 100644
---- a/drivers/net/phy/bcm-phy-ptp.c
-+++ b/drivers/net/phy/bcm-phy-ptp.c
-@@ -905,7 +905,7 @@ static void bcm_ptp_init(struct bcm_ptp_private *priv)
- 	priv->mii_ts.hwtstamp = bcm_ptp_hwtstamp;
- 	priv->mii_ts.ts_info = bcm_ptp_ts_info;
- 
--	priv->phydev->mii_ts = &priv->mii_ts;
-+	phy_device_set_miits(priv->phydev, &priv->mii_ts);
+diff --git a/drivers/net/mdio/of_mdio.c b/drivers/net/mdio/of_mdio.c
+index 10dd45c3bde0..e85be8a72978 100644
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -33,15 +33,6 @@ static int of_get_phy_id(struct device_node *device, u32 *phy_id)
+ 	return fwnode_get_phy_id(of_fwnode_handle(device), phy_id);
  }
  
- struct bcm_ptp_private *bcm_ptp_probe(struct phy_device *phydev)
-diff --git a/drivers/net/phy/dp83640.c b/drivers/net/phy/dp83640.c
-index ef8b14135133..144c264cb4eb 100644
---- a/drivers/net/phy/dp83640.c
-+++ b/drivers/net/phy/dp83640.c
-@@ -1456,7 +1456,7 @@ static int dp83640_probe(struct phy_device *phydev)
- 	for (i = 0; i < MAX_RXTS; i++)
- 		list_add(&dp83640->rx_pool_data[i].list, &dp83640->rxpool);
+-int of_mdiobus_phy_device_register(struct mii_bus *mdio, struct phy_device *phy,
+-				   struct device_node *child, u32 addr)
+-{
+-	return fwnode_mdiobus_phy_device_register(mdio, phy,
+-						  of_fwnode_handle(child),
+-						  addr);
+-}
+-EXPORT_SYMBOL(of_mdiobus_phy_device_register);
+-
+ static int of_mdiobus_register_phy(struct mii_bus *mdio,
+ 				    struct device_node *child, u32 addr)
+ {
+diff --git a/include/linux/of_mdio.h b/include/linux/of_mdio.h
+index 8a52ef2e6fa6..ee1fe034f3fe 100644
+--- a/include/linux/of_mdio.h
++++ b/include/linux/of_mdio.h
+@@ -47,8 +47,6 @@ struct mii_bus *of_mdio_find_bus(struct device_node *mdio_np);
+ int of_phy_register_fixed_link(struct device_node *np);
+ void of_phy_deregister_fixed_link(struct device_node *np);
+ bool of_phy_is_fixed_link(struct device_node *np);
+-int of_mdiobus_phy_device_register(struct mii_bus *mdio, struct phy_device *phy,
+-				   struct device_node *child, u32 addr);
  
--	phydev->mii_ts = &dp83640->mii_ts;
-+	phy_device_set_miits(phydev, &dp83640->mii_ts);
- 	phydev->priv = dp83640;
- 
- 	spin_lock_init(&dp83640->rx_lock);
-diff --git a/drivers/net/phy/micrel.c b/drivers/net/phy/micrel.c
-index 2184b1e859ae..d01c4157f704 100644
---- a/drivers/net/phy/micrel.c
-+++ b/drivers/net/phy/micrel.c
-@@ -3054,7 +3054,7 @@ static void lan8814_ptp_init(struct phy_device *phydev)
- 	ptp_priv->mii_ts.hwtstamp = lan8814_hwtstamp;
- 	ptp_priv->mii_ts.ts_info  = lan8814_ts_info;
- 
--	phydev->mii_ts = &ptp_priv->mii_ts;
-+	phy_device_set_miits(phydev, &ptp_priv->mii_ts);
+ static inline int of_mdio_parse_addr(struct device *dev,
+ 				     const struct device_node *np)
+@@ -142,12 +140,6 @@ static inline bool of_phy_is_fixed_link(struct device_node *np)
+ 	return false;
  }
  
- static int lan8814_ptp_probe_once(struct phy_device *phydev)
-diff --git a/drivers/net/phy/mscc/mscc_ptp.c b/drivers/net/phy/mscc/mscc_ptp.c
-index cf728bfd83e2..8c38b4efcedc 100644
---- a/drivers/net/phy/mscc/mscc_ptp.c
-+++ b/drivers/net/phy/mscc/mscc_ptp.c
-@@ -1485,7 +1485,7 @@ static int __vsc8584_init_ptp(struct phy_device *phydev)
- 	vsc8531->mii_ts.txtstamp = vsc85xx_txtstamp;
- 	vsc8531->mii_ts.hwtstamp = vsc85xx_hwtstamp;
- 	vsc8531->mii_ts.ts_info  = vsc85xx_ts_info;
--	phydev->mii_ts = &vsc8531->mii_ts;
-+	phy_device_set_miits(phydev, &vsc8531->mii_ts);
+-static inline int of_mdiobus_phy_device_register(struct mii_bus *mdio,
+-					    struct phy_device *phy,
+-					    struct device_node *child, u32 addr)
+-{
+-	return -ENOSYS;
+-}
+ #endif
  
- 	memcpy(&vsc8531->ptp->caps, &vsc85xx_clk_caps, sizeof(vsc85xx_clk_caps));
  
-diff --git a/drivers/net/phy/nxp-c45-tja11xx.c b/drivers/net/phy/nxp-c45-tja11xx.c
-index 5813b07242ce..360812cea6d6 100644
---- a/drivers/net/phy/nxp-c45-tja11xx.c
-+++ b/drivers/net/phy/nxp-c45-tja11xx.c
-@@ -1326,7 +1326,7 @@ static int nxp_c45_probe(struct phy_device *phydev)
- 		priv->mii_ts.txtstamp = nxp_c45_txtstamp;
- 		priv->mii_ts.hwtstamp = nxp_c45_hwtstamp;
- 		priv->mii_ts.ts_info = nxp_c45_ts_info;
--		phydev->mii_ts = &priv->mii_ts;
-+		phy_device_set_miits(phydev, &priv->mii_ts);
- 		ret = nxp_c45_init_ptp_clock(priv);
- 	} else {
- 		phydev_dbg(phydev, "PTP support not enabled even if the phy supports it");
-diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index 64292e47e3fc..e4d08dcfed70 100644
---- a/drivers/net/phy/phy_device.c
-+++ b/drivers/net/phy/phy_device.c
-@@ -732,6 +732,22 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- }
- EXPORT_SYMBOL(phy_device_create);
- 
-+void phy_device_set_miits(struct phy_device *phydev,
-+			  struct mii_timestamper *mii_ts)
-+{
-+	if (!phydev)
-+		return;
-+
-+	if (phydev->mii_ts) {
-+		phydev_dbg(phydev,
-+			   "MII timestamper already set -> skip set\n");
-+		return;
-+	}
-+
-+	phydev->mii_ts = mii_ts;
-+}
-+EXPORT_SYMBOL(phy_device_set_miits);
-+
- /* phy_c45_probe_present - checks to see if a MMD is present in the package
-  * @bus: the target MII bus
-  * @prtad: PHY package address on the MII bus
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index 2f83cfc206e5..c17a98712555 100644
---- a/include/linux/phy.h
-+++ b/include/linux/phy.h
-@@ -1541,6 +1541,8 @@ int phy_modify_paged(struct phy_device *phydev, int page, u32 regnum,
- struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
- 				     bool is_c45,
- 				     struct phy_c45_device_ids *c45_ids);
-+void phy_device_set_miits(struct phy_device *phydev,
-+			  struct mii_timestamper *mii_ts);
- #if IS_ENABLED(CONFIG_PHYLIB)
- int fwnode_get_phy_id(struct fwnode_handle *fwnode, u32 *phy_id);
- struct mdio_device *fwnode_mdio_find_device(struct fwnode_handle *fwnode);
 
 -- 
 2.39.2
