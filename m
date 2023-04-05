@@ -2,29 +2,29 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AECAC77B6E
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:29:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D87C7619A
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:30:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237739AbjDEJ35 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 05:29:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55086 "EHLO
+        id S237671AbjDEJa3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 05:30:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237672AbjDEJ3l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:29:41 -0400
+        with ESMTP id S237743AbjDEJ35 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:29:57 -0400
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63F9C5FDF
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:29:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B1835258
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:29:29 -0700 (PDT)
 Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
         by metis.ext.pengutronix.de with esmtp (Exim 4.92)
         (envelope-from <m.felsch@pengutronix.de>)
-        id 1pjzQ3-0004pA-Fk; Wed, 05 Apr 2023 11:27:07 +0200
+        id 1pjzQB-0004pA-3d; Wed, 05 Apr 2023 11:27:15 +0200
 From:   Marco Felsch <m.felsch@pengutronix.de>
-Date:   Wed, 05 Apr 2023 11:26:56 +0200
-Subject: [PATCH 05/12] net: phy: add phy_id_broken support
+Date:   Wed, 05 Apr 2023 11:27:03 +0200
+Subject: [PATCH 12/12] net: phy: add default gpio assert/deassert delay
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230405-net-next-topic-net-phy-reset-v1-5-7e5329f08002@pengutronix.de>
+Message-Id: <20230405-net-next-topic-net-phy-reset-v1-12-7e5329f08002@pengutronix.de>
 References: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 In-Reply-To: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 To:     Andrew Lunn <andrew@lunn.ch>,
@@ -62,66 +62,43 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some phy's don't report the correct phy-id, e.g. the TJA1102 dual-port
-report 0 for the 2nd port. To fix this a driver needs to supply the
-phyid instead and tell the phy framework to not try to readout the
-phyid. The latter case is done via the new 'phy_id_broken' flag which
-tells the phy framework to skip phyid readout for the corresponding phy.
+There are phy's not mention any assert/deassert delay within their
+datasheets but the real world showed that this is not true. They need at
+least a few us to be accessible and to readout the register values. So
+add a sane default value of 1000us for both assert and deassert to fix
+this in a global matter.
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- drivers/net/phy/nxp-tja11xx.c | 1 +
- drivers/net/phy/phy_device.c  | 3 +++
- include/linux/phy.h           | 3 +++
- 3 files changed, 7 insertions(+)
+ drivers/net/phy/phy_device.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/net/phy/nxp-tja11xx.c b/drivers/net/phy/nxp-tja11xx.c
-index b5e03d66b7f5..2a4c0f6d74eb 100644
---- a/drivers/net/phy/nxp-tja11xx.c
-+++ b/drivers/net/phy/nxp-tja11xx.c
-@@ -560,6 +560,7 @@ static void tja1102_p1_register(struct work_struct *work)
- 			.mii_bus = bus,
- 			/* Real PHY ID of Port 1 is 0 */
- 			.phy_id = PHY_ID_TJA1102,
-+			.phy_id_broken = true,
- 		};
- 		struct phy_device *phy;
- 
 diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index bb465a324eef..7e4b3b3caba9 100644
+index 30b3ac9818b1..08f2657110e0 100644
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
-@@ -969,6 +969,9 @@ static int phy_device_detect(struct phy_device_config *config)
- 	int addr = config->phy_addr;
- 	int r;
+@@ -3197,6 +3197,9 @@ fwnode_find_mii_timestamper(struct fwnode_handle *fwnode)
+ 	return register_mii_timestamper(arg.np, arg.args[0]);
+ }
  
-+	if (config->phy_id_broken)
-+		return 0;
++#define DEFAULT_GPIO_RESET_ASSERT_DELAY_US	1000
++#define DEFAULT_GPIO_RESET_DEASSERT_DELAY_US	1000
 +
- 	if (is_c45)
- 		r = get_phy_c45_ids(bus, addr, c45_ids);
- 	else
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index 498f4dc7669d..0f0cb72a08ab 100644
---- a/include/linux/phy.h
-+++ b/include/linux/phy.h
-@@ -764,6 +764,8 @@ static inline struct phy_device *to_phy_device(const struct device *dev)
-  * @phy_id: UID for this device found during discovery
-  * @c45_ids: 802.3-c45 Device Identifiers if is_c45.
-  * @is_c45: If true the PHY uses the 802.3 clause 45 protocol
-+ * @phy_id_broken: Skip the phy_id detection instead use the supplied phy_id or
-+ *                 c45_ids.
-  *
-  * The struct contain possible configuration parameters for a PHY device which
-  * are used to setup the struct phy_device.
-@@ -775,6 +777,7 @@ struct phy_device_config {
- 	u32 phy_id;
- 	struct phy_c45_device_ids c45_ids;
- 	bool is_c45;
-+	bool phy_id_broken;
- };
+ static int
+ phy_device_parse_fwnode(struct phy_device *phydev,
+ 			struct phy_device_config *config)
+@@ -3223,8 +3226,11 @@ phy_device_parse_fwnode(struct phy_device *phydev,
  
- /**
+ 	if (fwnode_property_read_bool(fwnode, "broken-turn-around"))
+ 		bus->phy_ignore_ta_mask |= 1 << addr;
++
++	phydev->mdio.reset_assert_delay = DEFAULT_GPIO_RESET_ASSERT_DELAY_US;
+ 	fwnode_property_read_u32(fwnode, "reset-assert-us",
+ 				 &phydev->mdio.reset_assert_delay);
++	phydev->mdio.reset_deassert_delay = DEFAULT_GPIO_RESET_DEASSERT_DELAY_US;
+ 	fwnode_property_read_u32(fwnode, "reset-deassert-us",
+ 				 &phydev->mdio.reset_deassert_delay);
+ 
 
 -- 
 2.39.2
