@@ -2,149 +2,200 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA33C761AF
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 08:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEAF1C7619A
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 08:28:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237385AbjDEILs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 04:11:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57870 "EHLO
+        id S237259AbjDEI2o (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 04:28:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237485AbjDEILc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 04:11:32 -0400
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1DC2149D8;
-        Wed,  5 Apr 2023 01:11:14 -0700 (PDT)
-Received: from [192.168.2.41] (77-166-152-30.fixed.kpn.net [77.166.152.30])
-        by linux.microsoft.com (Postfix) with ESMTPSA id EDD69210DECB;
-        Wed,  5 Apr 2023 01:10:58 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EDD69210DECB
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-        s=default; t=1680682261;
-        bh=dOEo2EG+hg+F81Lh9lwEURZ0dL7IZCs7WplCBPaibvo=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=YC8cjMJ20KxMNhpu8rYiufuNP1UOoAx+dj565ZmzCfHdtTygT+Tx/FCmslVgL76R4
-         /uTKCk2TSXlGpvDPp/mb36P1ZniAUsgYM5srfr+ZsKiQ0I7Mf7hMuiLZ8uuQ1F6M8q
-         bcxqRa5cWCqV/eThGBPjjg96SP7QR9wsD2CVeGH8=
-Message-ID: <35f6b321-1668-2b62-cb47-3f3760be2e1d@linux.microsoft.com>
-Date:   Wed, 5 Apr 2023 10:10:57 +0200
+        with ESMTP id S237165AbjDEI2o (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 04:28:44 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 984281FF9;
+        Wed,  5 Apr 2023 01:28:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1680683322; x=1712219322;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=wrn29fWEWUh9DQE7oDLC0JoUgdEFYGWX1tgF9OvmiyE=;
+  b=PXFb75YqxwFOJl+S6VpMXd/JGFHr4Tz7k73GqaeJPqSllwMdpOLI6lWN
+   lX8IOp/4JY/YEw9RmqGoH6SAL2LjzWz5SCKyV+/1Wo/0bo49d9eigFJ6p
+   Z8QXd7DaSuL4YCcS79tvX5JPBW70kZPyAiqQRkM4x9yVV+An+6R5ONSYn
+   s4xxyYgHxLc2pUpAhqWNW1pOAO/0+DBslbDrEMNv/sCeH0jwd2W84c+rx
+   VhsXyIrrdPQlUgoWbCTG8jxzZ6NwzlaoTt1Qav+Zcs0HsJLrKBUIeX2HQ
+   5E1n2iKl7rxH2Ap1NvhwZyZHhkpgkqWFUTER4izh2NK6Ipuv+lALr/z/g
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10670"; a="344113403"
+X-IronPort-AV: E=Sophos;i="5.98,319,1673942400"; 
+   d="scan'208";a="344113403"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2023 01:28:41 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10670"; a="751192534"
+X-IronPort-AV: E=Sophos;i="5.98,319,1673942400"; 
+   d="scan'208";a="751192534"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga008.fm.intel.com with ESMTP; 05 Apr 2023 01:28:32 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pjyVH-00CkZe-2G;
+        Wed, 05 Apr 2023 11:28:27 +0300
+Date:   Wed, 5 Apr 2023 11:28:27 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        "Maciej W. Rozycki" <macro@orcam.me.uk>,
+        Juergen Gross <jgross@suse.com>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        Miguel Ojeda <ojeda@kernel.org>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Anatolij Gustschin <agust@denx.de>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
+ users
+Message-ID: <ZC0xK4YJrKga7akk@smile.fi.intel.com>
+References: <20230330162434.35055-1-andriy.shevchenko@linux.intel.com>
+ <20230404161101.GA3554747@bhelgaas>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [PATCH v3 0/8] Support ACPI PSP on Hyper-V
-To:     Thomas Gleixner <tglx@linutronix.de>,
-        Borislav Petkov <bp@alien8.de>
-Cc:     linux-kernel@vger.kernel.org,
-        Brijesh Singh <brijesh.singh@amd.com>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        "Kalra, Ashish" <ashish.kalra@amd.com>,
-        linux-crypto@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org
-References: <20230320191956.1354602-1-jpiotrowski@linux.microsoft.com>
- <20230322154655.GDZBsi75f6LnQStxSp@fat_crate.local>
- <1d25221c-eaab-0f97-83aa-8b4fbe3a53ed@linux.microsoft.com>
- <20230322181541.GEZBtFzRAMcH9BAzUe@fat_crate.local>
- <ecf005b1-ddb9-da4c-4526-28df4806426c@linux.microsoft.com>
- <20230323152342.GFZBxu/m3u6aFUDY/7@fat_crate.local>
- <105d019c-2249-5dfd-e032-95944ea6dc8c@linux.microsoft.com>
- <20230323163450.GGZBx/qpnclFnMaf7e@fat_crate.local>
- <c8458bfa-0985-f6a5-52a3-ef96c7669fe6@linux.microsoft.com>
- <20230402154425.GCZCmi2eiKYO2yYhNs@fat_crate.local> <877cutsczn.ffs@tglx>
-Content-Language: en-US
-From:   Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
-In-Reply-To: <877cutsczn.ffs@tglx>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230404161101.GA3554747@bhelgaas>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 4/3/2023 8:20 AM, Thomas Gleixner wrote:
-> On Sun, Apr 02 2023 at 17:44, Borislav Petkov wrote:
->> On Fri, Mar 24, 2023 at 06:10:09PM +0100, Jeremi Piotrowski wrote:
->>> Since the AMD PSP is a privileged device, there is a desire to not have to trust the
->>> ACPI stack,
->>
->> And yet you do:
->>
->> +	err = acpi_parse_aspt(&res[0], &pdata);
->> +	if (err)
->> +		return err;
->>
->> You don't trust the ACPI stack, and yet you're parsing an ACPI table?!?!
->> You have to make up your mind here.
-
-I gave you background on why Microsoft system designers like to use the ASPT on
-*physical hardware* in our datacenters. It is because it allows them to setup a
-highly privileged system component through an isolated ACPI table, without
-needing to depend on the *rest of the ACPI stack* (other ACPI tables and/or the
-ACPI interpreter). The same reason they use IVRS for AMD IOMMU.
-
-I thought it might be good to write this down, as this shows that the ASPT is a
-hardware interface that has *some* value. I don't think further discussion on
-this point helps us make forward progress.
-
-We're trying to adhere to a specification for a physical device when modeling
-that same device in a virtual environment. Yes, this requires parsing an ACPI
-table.
-
->> 
->> Btw, you still haven't answered my question about doing:
->>
->> 	devm_request_irq(dev, 9, ..)
->>
->> where 9 is the default ACPI interrupt.
->>
->> You can have some silly table tell you what to map or you can simply map
->> IRQ 9 and be done with it. In this second case you can *really* not
->> trust ACPI because you know which IRQ it is.
+On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
+> On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
+> > Provide two new helper macros to iterate over PCI device resources and
+> > convert users.
+> > 
+> > Looking at it, refactor existing pci_bus_for_each_resource() and convert
+> > users accordingly.
+> > 
+> > Note, the amount of lines grew due to the documentation update.
+> > 
+> > Changelog v8:
+> > - fixed issue with pci_bus_for_each_resource() macro (LKP)
+> > - due to above added a new patch to document how it works
+> > - moved the last patch to be #2 (Philippe)
+> > - added tags (Philippe)
+> > 
+> > Changelog v7:
+> > - made both macros to share same name (Bjorn)
 > 
+> I didn't actually request the same name for both; I would have had no
+> idea how to even do that :)
+> 
+> v6 had:
+> 
+>   pci_dev_for_each_resource_p(dev, res)
+>   pci_dev_for_each_resource(dev, res, i)
+> 
+> and I suggested:
+> 
+>   pci_dev_for_each_resource(dev, res)
+>   pci_dev_for_each_resource_idx(dev, res, i)
+> 
+> because that pattern is used elsewhere.
 
-So I originally thought I answered when i said "because we're trying to not
-deviate from the hardware specification for the PSP". Interrupt configuration
-is part of that specification.
+Ah, sorry I misinterpreted your suggestion (I thought that at the end of
+the day you wanted the macro to be less intrusive, so we change less code,
+that's why I interpreted it the way described in the Changelog).
 
-But when I think about what you're suggesting, I can interpret it two ways:
+> But you figured out how to do
+> it, and having one name is even better, so thanks for that extra work!
 
-1. Configure the PSP to raise the vector corresponding to ACPI IRQ 9.
-This might work and would look similar to the first version I posted.
-I'd fetch 'struct irq_cfg' for acpi_sci_irq, write the corresponding
-APIC-ID/vector into the PSP, enable PSP interrupt generation and then
-probe the "ccp" driver so that it can call "devm_request_irq(9)".
-I assume this would also require registering an irq affinity notifier,
-much like drivers/iommu/amd/init.c did before commit d1adcfbb520c.
+You are welcome!
 
-2. Deviate from the hardware specification.
-From reading acpi code (not at all an expert on this), that "9" does not
-look like a static value to me, so it requires either:
-a) passing a GSI number in an ACPI table
-b) defining it as being the same interrupt as the SCI, which comes from
-   the FADT table.
-c) using the GPE mechanism of the ACPI SCI interrupt.
+> > - split out the pci_resource_n() conversion (Bjorn)
+> > 
+> > Changelog v6:
+> > - dropped unused variable in PPC code (LKP)
+> > 
+> > Changelog v5:
+> > - renamed loop variable to minimize the clash (Keith)
+> > - addressed smatch warning (Dan)
+> > - addressed 0-day bot findings (LKP)
+> > 
+> > Changelog v4:
+> > - rebased on top of v6.3-rc1
+> > - added tag (Krzysztof)
+> > 
+> > Changelog v3:
+> > - rebased on top of v2 by Mika, see above
+> > - added tag to pcmcia patch (Dominik)
+> > 
+> > Changelog v2:
+> > - refactor to have two macros
+> > - refactor existing pci_bus_for_each_resource() in the same way and
+> >   convert users
+> > 
+> > Andy Shevchenko (6):
+> >   kernel.h: Split out COUNT_ARGS() and CONCATENATE()
+> >   PCI: Introduce pci_resource_n()
+> >   PCI: Document pci_bus_for_each_resource() to avoid confusion
+> >   PCI: Allow pci_bus_for_each_resource() to take less arguments
+> >   EISA: Convert to use less arguments in pci_bus_for_each_resource()
+> >   pcmcia: Convert to use less arguments in pci_bus_for_each_resource()
 
-So I'd need to define a third way for the PSP to interrupt the OS, one that
-would only be supported on Hyper-V. Work with our hypervisor and/or virtual
-firmware teams to make sure that the PSP model supports generating the interrupt
-in this way. Work with the Windows team to make Windows support it
-(the same virtual hardware model/virtual firmware is used regardless of the OS).
+...
 
-I have no objection to doing "1." if it works. I don't see it as a big win over
-using an irq_domain.
+> Applied 2-7 to pci/resource for v6.4, thanks, I really like this!
 
-I don't think "2." is a reasonable thing to ask. We do regularly make suggestions
-to hypervisor/firmware teams on how to make things better supported in Linux
-without requiring hacks. But modelling a piece of hardware in a custom way to avoid
-following hardware specs is questionable.
+Btw, can you actually drop patch 7, please?
+After I have updated the documentation I have realised that why the first
+chunk is invalid. It needs mode careful check and rework.
 
-I also think that soon, when other people deploy more SEV-SNP hardware in their
-datacenters, they will also want to rely on the ASPT for the reasons listed at the
-top of the email, so we'll be adding support for it anyway.
+> I omitted
+> 
+>   [1/7] kernel.h: Split out COUNT_ARGS() and CONCATENATE()"
+> 
+> only because it's not essential to this series and has only a trivial
+> one-line impact on include/linux/pci.h.
 
-Which way do you suggest we go Boris? I'm not attached to the code at all but I am
-attached to adhering to hardware specifications. I can try to do "1." or stick with
-the irq_domain approach that i posted.
+I'm not sure I understood what exactly "essentiality" means to you, but
+I included that because it makes the split which can be used later by
+others and not including kernel.h in the header is the objective I want
+to achieve. Without this patch the achievement is going to be deferred.
+Yet, this, as you have noticed, allows to compile and use the macros in
+the rest of the patches.
 
-Thanks,
-Jeremi
+P.S. Thank you for the review and application of the rest!
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
