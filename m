@@ -2,29 +2,29 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D87C7619A
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AD49C7619A
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 09:30:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237671AbjDEJa3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 05:30:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55814 "EHLO
+        id S237762AbjDEJac (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 05:30:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237743AbjDEJ35 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:29:57 -0400
+        with ESMTP id S237680AbjDEJaF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 05:30:05 -0400
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B1835258
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:29:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 312D25BB0
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Apr 2023 02:29:34 -0700 (PDT)
 Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
         by metis.ext.pengutronix.de with esmtp (Exim 4.92)
         (envelope-from <m.felsch@pengutronix.de>)
-        id 1pjzQB-0004pA-3d; Wed, 05 Apr 2023 11:27:15 +0200
+        id 1pjzPy-0004pA-Rh; Wed, 05 Apr 2023 11:27:02 +0200
 From:   Marco Felsch <m.felsch@pengutronix.de>
-Date:   Wed, 05 Apr 2023 11:27:03 +0200
-Subject: [PATCH 12/12] net: phy: add default gpio assert/deassert delay
+Date:   Wed, 05 Apr 2023 11:26:52 +0200
+Subject: [PATCH 01/12] net: phy: refactor phy_device_create function
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230405-net-next-topic-net-phy-reset-v1-12-7e5329f08002@pengutronix.de>
+Message-Id: <20230405-net-next-topic-net-phy-reset-v1-1-7e5329f08002@pengutronix.de>
 References: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 In-Reply-To: <20230405-net-next-topic-net-phy-reset-v1-0-7e5329f08002@pengutronix.de>
 To:     Andrew Lunn <andrew@lunn.ch>,
@@ -62,42 +62,102 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There are phy's not mention any assert/deassert delay within their
-datasheets but the real world showed that this is not true. They need at
-least a few us to be accessible and to readout the register values. So
-add a sane default value of 1000us for both assert and deassert to fix
-this in a global matter.
+Split phy_device_create() into local helper functions. This commit is in
+preparation of fixing the phy reset handling. No functional changes for
+the public API users.
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- drivers/net/phy/phy_device.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/net/phy/phy_device.c | 42 ++++++++++++++++++++++++++++++------------
+ 1 file changed, 30 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index 30b3ac9818b1..08f2657110e0 100644
+index 917ba84105fc..dd0aaa866d17 100644
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
-@@ -3197,6 +3197,9 @@ fwnode_find_mii_timestamper(struct fwnode_handle *fwnode)
- 	return register_mii_timestamper(arg.np, arg.args[0]);
+@@ -629,13 +629,10 @@ static int phy_request_driver_module(struct phy_device *dev, u32 phy_id)
+ 	return 0;
  }
  
-+#define DEFAULT_GPIO_RESET_ASSERT_DELAY_US	1000
-+#define DEFAULT_GPIO_RESET_DEASSERT_DELAY_US	1000
-+
- static int
- phy_device_parse_fwnode(struct phy_device *phydev,
- 			struct phy_device_config *config)
-@@ -3223,8 +3226,11 @@ phy_device_parse_fwnode(struct phy_device *phydev,
+-struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+-				     bool is_c45,
+-				     struct phy_c45_device_ids *c45_ids)
++static struct phy_device *phy_device_alloc(struct mii_bus *bus, int addr)
+ {
+ 	struct phy_device *dev;
+ 	struct mdio_device *mdiodev;
+-	int ret = 0;
  
- 	if (fwnode_property_read_bool(fwnode, "broken-turn-around"))
- 		bus->phy_ignore_ta_mask |= 1 << addr;
+ 	/* We allocate the device, and initialize the default values */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+@@ -653,6 +650,15 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 	mdiodev->device_free = phy_mdio_device_free;
+ 	mdiodev->device_remove = phy_mdio_device_remove;
+ 
++	dev_set_name(&mdiodev->dev, PHY_ID_FMT, bus->id, addr);
++	device_initialize(&mdiodev->dev);
 +
-+	phydev->mdio.reset_assert_delay = DEFAULT_GPIO_RESET_ASSERT_DELAY_US;
- 	fwnode_property_read_u32(fwnode, "reset-assert-us",
- 				 &phydev->mdio.reset_assert_delay);
-+	phydev->mdio.reset_deassert_delay = DEFAULT_GPIO_RESET_DEASSERT_DELAY_US;
- 	fwnode_property_read_u32(fwnode, "reset-deassert-us",
- 				 &phydev->mdio.reset_deassert_delay);
++	return dev;
++}
++
++static int phy_device_init(struct phy_device *dev, u32 phy_id, bool is_c45,
++			   struct phy_c45_device_ids *c45_ids)
++{
+ 	dev->speed = SPEED_UNKNOWN;
+ 	dev->duplex = DUPLEX_UNKNOWN;
+ 	dev->pause = 0;
+@@ -670,9 +676,6 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 		dev->c45_ids = *c45_ids;
+ 	dev->irq = bus->irq[addr];
+ 
+-	dev_set_name(&mdiodev->dev, PHY_ID_FMT, bus->id, addr);
+-	device_initialize(&mdiodev->dev);
+-
+ 	dev->state = PHY_DOWN;
+ 
+ 	mutex_init(&dev->lock);
+@@ -690,7 +693,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 	 */
+ 	if (is_c45 && c45_ids) {
+ 		const int num_ids = ARRAY_SIZE(c45_ids->device_ids);
+-		int i;
++		int ret, i;
+ 
+ 		for (i = 1; i < num_ids; i++) {
+ 			if (c45_ids->device_ids[i] == 0xffffffff)
+@@ -699,14 +702,29 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
+ 			ret = phy_request_driver_module(dev,
+ 						c45_ids->device_ids[i]);
+ 			if (ret)
+-				break;
++				return ret;
+ 		}
+-	} else {
+-		ret = phy_request_driver_module(dev, phy_id);
++
++		return 0;
+ 	}
+ 
++	return phy_request_driver_module(dev, phy_id);
++}
++
++struct phy_device *phy_device_create(struct mii_bus *bus, int addr, u32 phy_id,
++				     bool is_c45,
++				     struct phy_c45_device_ids *c45_ids)
++{
++	struct phy_device *dev;
++	int ret;
++
++	dev = phy_device_alloc(bus, addr);
++	if (IS_ERR(dev))
++		return dev;
++
++	ret = phy_device_init(dev, phy_id, is_c45, c45_ids);
+ 	if (ret) {
+-		put_device(&mdiodev->dev);
++		put_device(&dev->mdio.dev);
+ 		dev = ERR_PTR(ret);
+ 	}
  
 
 -- 
