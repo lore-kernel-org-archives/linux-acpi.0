@@ -2,34 +2,34 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DE6AC76188
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 14:04:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 814F4C76188
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Apr 2023 14:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238428AbjDEOEV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Apr 2023 10:04:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42532 "EHLO
+        id S238019AbjDEOE2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Apr 2023 10:04:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238232AbjDEODO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 10:03:14 -0400
+        with ESMTP id S238403AbjDEODQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2023 10:03:16 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A412372A0;
-        Wed,  5 Apr 2023 07:01:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3117972B5;
+        Wed,  5 Apr 2023 07:01:39 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.1.0)
- id e95ffb0460b9d498; Wed, 5 Apr 2023 16:01:21 +0200
+ id 16fa3e09ab760ded; Wed, 5 Apr 2023 16:01:23 +0200
 Received: from kreacher.localnet (unknown [213.134.163.219])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id EFB311B4EA6F;
-        Wed,  5 Apr 2023 16:01:20 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 8710F1B4EA6F;
+        Wed,  5 Apr 2023 16:01:22 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>
-Subject: [PATCH 06/32] ACPICA: Add support for ASPT table in disassembler
-Date:   Wed, 05 Apr 2023 15:36:51 +0200
-Message-ID: <1953193.PYKUYFuaPT@kreacher>
+Subject: [PATCH 05/32] ACPICA: Add support for 64 bit loong_arch compilation
+Date:   Wed, 05 Apr 2023 15:36:09 +0200
+Message-ID: <10278375.nUPlyArG6x@kreacher>
 In-Reply-To: <4845957.31r3eYUQgx@kreacher>
 References: <4845957.31r3eYUQgx@kreacher>
 MIME-Version: 1.0
@@ -38,91 +38,41 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 213.134.163.219
 X-CLIENT-HOSTNAME: 213.134.163.219
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdejuddgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepieeuhedtkeejffdtieehheegveegueegteehudeikeetvdffgfdtgeffudehteeunecuffhomhgrihhnpehgihhthhhusgdrtghomhdpmhhitghrohhsohhfthdrtghomhenucfkphepvddufedrudefgedrudeifedrvdduleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddvudelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdejuddgjeduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddufedrudefgedrudeifedrvdduleenucevlhhushhtvghrufhiiigvpeegnecurfgrrhgrmhepihhnvghtpedvudefrddufeegrdduieefrddvudelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeefpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhm
 X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+From: Huacai Chen <chenhuacai@loongson.cn>
 
-ACPICA commit 6771f8b758299bd383bab145d5fd36ec229b2d70
+ACPICA commit d809b69cf43c632c8fe5b42372a891216fdd9223
 
-ASPT is the AMD Secure Processor table, found in Hyper-V VMs when SNP
-isolation is exposed to the VM and in some high-end AMD servers. This
-commit adds support for rev 1 of the ASPT spec in the disassembler.
+Add 64 bit loong_arch architecture by defining ACPI_MACHINE_WIDTH to 64.
+Useful for acpica tools and incorporating ACPICA into the Firmware Test
+Suite.
 
-Link: https://github.com/acpica/acpica/commit/6771f8b7
+Link: https://github.com/acpica/acpica/commit/d809b69c
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/actbl1.h | 46 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ include/acpi/platform/aclinux.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 81b9e794424d..b5e011da5271 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -26,6 +26,7 @@
-  */
- #define ACPI_SIG_AEST           "AEST"	/* Arm Error Source Table */
- #define ACPI_SIG_ASF            "ASF!"	/* Alert Standard Format table */
-+#define ACPI_SIG_ASPT           "ASPT"	/* AMD Secure Processor Table */
- #define ACPI_SIG_BERT           "BERT"	/* Boot Error Record Table */
- #define ACPI_SIG_BGRT           "BGRT"	/* Boot Graphics Resource Table */
- #define ACPI_SIG_BOOT           "BOOT"	/* Simple Boot Flag Table */
-@@ -109,6 +110,51 @@ struct acpi_whea_header {
- 	u64 mask;		/* Bitmask required for this register instruction */
- };
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index a5550dd4d507..14ac657a7ded 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -199,7 +199,7 @@
  
-+/* https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/acpitabl/ns-acpitabl-aspt_table */
-+#define ASPT_REVISION_ID 0x01
-+struct acpi_table_aspt {
-+	struct acpi_table_header header;
-+	u32 num_entries;
-+};
-+
-+struct acpi_aspt_header {
-+	u16 type;
-+	u16 length;
-+};
-+
-+enum acpi_aspt_type {
-+	ACPI_ASPT_TYPE_GLOBAL_REGS = 0,
-+	ACPI_ASPT_TYPE_SEV_MBOX_REGS = 1,
-+	ACPI_ASPT_TYPE_ACPI_MBOX_REGS = 2,
-+};
-+
-+/* 0: ASPT Global Registers */
-+struct acpi_aspt_global_regs {
-+	struct acpi_aspt_header header;
-+	u32 reserved;
-+	u64 feature_reg_addr;
-+	u64 irq_en_reg_addr;
-+	u64 irq_st_reg_addr;
-+};
-+
-+/* 1: ASPT SEV Mailbox Registers */
-+struct acpi_aspt_sev_mbox_regs {
-+	struct acpi_aspt_header header;
-+	u8 mbox_irq_id;
-+	u8 reserved[3];
-+	u64 cmd_resp_reg_addr;
-+	u64 cmd_buf_lo_reg_addr;
-+	u64 cmd_buf_hi_reg_addr;
-+};
-+
-+/* 2: ASPT ACPI Mailbox Registers */
-+struct acpi_aspt_acpi_mbox_regs {
-+	struct acpi_aspt_header header;
-+	u32 reserved1;
-+	u64 cmd_resp_reg_addr;
-+	u64 reserved2[2];
-+};
-+
- /*******************************************************************************
-  *
-  * ASF - Alert Standard Format table (Signature "ASF!")
+ #if defined(__ia64__)    || (defined(__x86_64__) && !defined(__ILP32__)) ||\
+ 	defined(__aarch64__) || defined(__PPC64__) ||\
+-	defined(__s390x__) ||\
++	defined(__s390x__)   || defined(__loongarch__) ||\
+ 	(defined(__riscv) && (defined(__LP64__) || defined(_LP64)))
+ #define ACPI_MACHINE_WIDTH          64
+ #define COMPILER_DEPENDENT_INT64    long
 -- 
 2.35.3
 
