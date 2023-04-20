@@ -2,150 +2,153 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAF33C77B73
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Apr 2023 15:00:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CB59C77B73
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Apr 2023 15:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231293AbjDTPAJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Apr 2023 11:00:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50096 "EHLO
+        id S229709AbjDTPcz convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Apr 2023 11:32:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233814AbjDTPAB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2023 11:00:01 -0400
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2049.outbound.protection.outlook.com [40.107.223.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C07F3AAF
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2023 08:00:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=e1oGjl4LwOjLoQcgbuLUw6cL5uzdo38DlRqS5tfEPyMrzonaRtGCkGXGwWyRBAGHfbUaFVsb/KbpS83+ix8iw6juAhImaTve4tMx4WrieXGs2redl4Os727Q3GqqrVuSBnIvTfXGfk4vY/kEPUQ/VSSnYUOMvVQkn3tsBaWnyhCbhjeb3du4SwH7YzYuMlkhgRUbnNzGU521bd+IDbg4D67TdTZDAKBnMPTPaBzIwLsHC+UPGuoiERum8V/DhIZGQp5io19xTAxDk2LKd/6Iec6kd3qMJBQ0zJRWtlG/1k/A6WiM0Jqvg4ZOrUeOaZTFuTppflmZnSYrYLe/AAaDOA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=c6pmelraxc1z7Xn9kfKLTZmXdkra9BksMRB4bWHqdh0=;
- b=VwPw/kn0OEovU/T19W1JVmtlrzDZvhjoOtaVfT/u2pCPRVPaum7CghoScK+/2alzVc1wdOXS6QIe0SVIDsvq0m5Or5Y7eGfXKNxPdlVmbXBYs5CTbORhV0fh/b9MeA/kbDbqadO9joGv/ZqTxVY+vIj1mwzvSIn81ez6oTvAKzC7pX9psnpuy/mR4bk1Ll9Ekk4Zp4UD0T118h1Jvu6HWyhgktgBZ7MsRANd9vVEf9aWin623q6e1liVVdJaId6Y16rzhvPofTAoajwVBDLiXga8F4CUD1TVErgV26pJtOG/+rfYvs5vhgi4ZTqeSBCoZNK0OsW3NQdfYZEiETEzAA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=c6pmelraxc1z7Xn9kfKLTZmXdkra9BksMRB4bWHqdh0=;
- b=tXU6ISoZXQKdKthK8WsaTSck4rTO3H7DW9/tvZOQoptUWb1hJqwVCG9E9N1jj/Vk2YeynrKpyZzI6xg1zMaOiDRVfM+tJDc7uWFebaOJtaBOIuAEtYj1FfipxnSxV4RKAQNSs5Y+xzACv76cyNurcJSyZ20rMXX4uWPgQrBZlHCJCtjIxoPgIotmhtKlWFo2nY11C+dJJFvXLkASzFxmG7eE7foEbsT/TdT6iUomLkWeeXa6SSxp14jc0+aOLFD1bFNpTn3rizA51ME92CjGfudBypbp/x9RbFTyaBvmbl9E51RB6Zg0OlvyF/eA1ubb+BqTp11Fm4CtIn/NIrlcNg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
- by DS7PR12MB6333.namprd12.prod.outlook.com (2603:10b6:8:96::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6298.45; Thu, 20 Apr
- 2023 14:59:56 +0000
-Received: from LV2PR12MB5869.namprd12.prod.outlook.com
- ([fe80::f7a7:a561:87e9:5fab]) by LV2PR12MB5869.namprd12.prod.outlook.com
- ([fe80::f7a7:a561:87e9:5fab%6]) with mapi id 15.20.6319.020; Thu, 20 Apr 2023
- 14:59:56 +0000
-Date:   Thu, 20 Apr 2023 10:09:02 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Baolu Lu <baolu.lu@linux.intel.com>
-Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>,
-        David Woodhouse <dwmw2@infradead.org>, iommu@lists.linux.dev,
-        Joerg Roedel <joro@8bytes.org>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Kevin Tian <kevin.tian@intel.com>,
-        Nicolin Chen <nicolinc@nvidia.com>
-Subject: Re: [PATCH 10/11] iommu: Split iommu_group_add_device()
-Message-ID: <ZEE5bpvzS+tI+MXP@nvidia.com>
-References: <10-v1-8aecc628b904+2f42-iommu_probe_jgg@nvidia.com>
- <132ceb1f-4559-5a99-af47-1a86a677eae7@linux.intel.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <132ceb1f-4559-5a99-af47-1a86a677eae7@linux.intel.com>
-X-ClientProxiedBy: BL6PEPF00013E08.NAMP222.PROD.OUTLOOK.COM
- (2603:10b6:22e:400:0:1001:0:5) To LV2PR12MB5869.namprd12.prod.outlook.com
- (2603:10b6:408:176::16)
+        with ESMTP id S230089AbjDTPcy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2023 11:32:54 -0400
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DABB1736;
+        Thu, 20 Apr 2023 08:32:53 -0700 (PDT)
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-94ea38c90ccso26376966b.1;
+        Thu, 20 Apr 2023 08:32:52 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682004771; x=1684596771;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=mrbfS9qzAxsg7Mxmkhy5II3bga2P8KO4swtn5KuXyG0=;
+        b=TlMP3bcXxxzTa1z+DfVAg1mqaQr7IS1hhd6hY9R6Vy2ecHTFd32yH+uhtupfN24fVn
+         SBxV4gatEkhNO/kWqDBwBBS5AECalqhyjxqxinbNab1d6R0aKuxWOsSr6Y1zIzndxzAM
+         ckypduQxnjB1r4esT2fFjpONh1VvuVziKOsXL2/zlApaUZPAKobEz95wo9NvhKVPPhW6
+         XodA/CR9tyMFw3NDbV2LCnwtH43+E/orf9bL3NQyl4rdgDm/XHgs4ybNQ5PE8zFP+1y1
+         VVXIWFnkmIqwP0IA5NgVJsfe6ZZ/dqzHuQZfF8Xgqo58wY5a876zlDrcBByr3hptBJmG
+         7G1Q==
+X-Gm-Message-State: AAQBX9eLrqcieB1LMurVwLKOObbk5Wu9CB9fO8TNikKDimnTJznkoFNM
+        ko1K5lJCR0TdVrmqNxNmwKJ/1WHkLNvJdp7CRq0=
+X-Google-Smtp-Source: AKy350Yp5p3Ap4k0cXbpLtdUdBH0oPAfDQGOUBN5Ag0FOx1IxezOJl4tNjCHJh/vRgVV5aucOQ/D3YCwgLgctxjR6+Q=
+X-Received: by 2002:a17:906:54d:b0:94e:dbce:69fe with SMTP id
+ k13-20020a170906054d00b0094edbce69femr1914715eja.2.1682004771101; Thu, 20 Apr
+ 2023 08:32:51 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|DS7PR12MB6333:EE_
-X-MS-Office365-Filtering-Correlation-Id: e524475f-3708-40e5-e74b-08db41afe750
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: o4x8d76y+nra+TVSpO/ZofxKnrb8BNus2EPYmUAP4skYtdOo3JVkF/WADiTvimpjrGj62QSOHm9r7rjF/tvKZfv1gVXk7kL2QChSzLWr4o6Zq3nxJslsiuzcN36QiCrTDiK3V82fYr0WlCAMVuWf6ngGFLFmCoM+0qej2aFBzS12FjKPcypCaDs+NmeD4OpM8WrQBC+Lzq0U0FWnFs8Im3Ondkelpp6nn9Lt5soLcPZSTA5tMcsE1nH7L05aFgg20g8GMPutSjr2oC8aQWuiwUo8CRatvmOM07H1FHsFMiaAzSaQNKrtxNVy76080p4t1pNLknxSmiiEMgCk0jAUMhKB0G3CJ8LiKMRmmU676lt80eZX/5iMUbs2m2pxlI/V+Y3sd3NJ5f+Z6++/akbyKifjSmPOaMfsCVXWuGOLaWEql1vcRU7UcHtSIGn4I9qQz+GZCvF079i3DyEG7eNmme0gYQVMy6Jtpg7AhvhX92nvI4YNV4ddtav71qBe2yB8lzJCllVcOXojsioyRVS+E+mpciTlph6axfLN/86GdvOy2tSnv4L3pK6+HlVFhPE9
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(376002)(396003)(136003)(346002)(39860400002)(366004)(451199021)(36756003)(53546011)(4326008)(54906003)(6916009)(316002)(66556008)(66476007)(66946007)(41300700001)(6486002)(478600001)(6666004)(5660300002)(8676002)(8936002)(4744005)(7416002)(2906002)(86362001)(38100700002)(2616005)(6506007)(107886003)(26005)(83380400001)(186003)(6512007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?WMM4u+N2WFcHNg3Zf8UXd3SMikQMr6dMkSQCk3+ZLkvRdkLa2clhjBpELFAZ?=
- =?us-ascii?Q?qTmrUDl3GTnS9dMjlaakqZiCOr2N6WR2sdGawJ0h1DUWzhUVUWbzpxjRhYCR?=
- =?us-ascii?Q?qcrBZFybExyNoanI931FJDL3zVpn7LBvAAT8gywKzGz4FJqv4G/O3agTsIHz?=
- =?us-ascii?Q?IdvO9tP5TVewStIoKVQsnHLXP0acEfcAC3BLPFVWs5n48lczOOQGVfLqL5qg?=
- =?us-ascii?Q?CRYXL0b4ArAHT1sNnzCmR12xXj71gp2LzMsgZpOducXMCc6nnOyk1x4QSY7v?=
- =?us-ascii?Q?mMUzmihEkA6so8Wec4GNXF9TGvRejlBH3os7lwWMSGzeYT5JBGq+Bx8Vd4+Z?=
- =?us-ascii?Q?hJD8/ncmUGsF/SdaY52tqK08hrXWaiJNjv3KbS2Nr9WoAmPF08lSL/X66qFW?=
- =?us-ascii?Q?geyxi5ygrPLZ3G73INcDyOSKaulfGm/gZddZ9VJPS+knqbgO3Hw67vwA2E4z?=
- =?us-ascii?Q?p9X4WZSGBliQUZoXKimDUD0UOwHWhN8ZcR7XTfG6ujlc/X7owXcWuQpG9+Z4?=
- =?us-ascii?Q?tZPzazQxyXnKxT6nPo4B7w3022y7LxYFrcBGdD0e0WAscLyqKRJkEW/T+pyY?=
- =?us-ascii?Q?pwLL5afkAzOduur6TDvSgMdZRogLQufq/I3DlpPmPMKu4YpRuRyfR3yhAs6k?=
- =?us-ascii?Q?Ekx5+XDXfxaOQslfRz6iBcbTmVX3KOjT3vmhuCTX1QJxnsT0jVxefioX+Xfi?=
- =?us-ascii?Q?0Pqq2julUtkncvHOKkd/kJYKGMO0l46d15J5q8VHeucfOYgTyreTFlnO+uIA?=
- =?us-ascii?Q?2CtSH64kE/qUCiecZD8ddsDDhMh13OehvjKmbZZlcKgSxUjvL48JcUD+H963?=
- =?us-ascii?Q?rTZjO4Hgn9h3FNqpoUkNxqvpebAKeP+5eZbx6Js0YjbIKJRQvYrBvLrxjA0F?=
- =?us-ascii?Q?nOFn8uHCbjlj2J+JuQnTbD420FLnPGKna9j1G64R1474QLtN+waSqEbdlFkp?=
- =?us-ascii?Q?N2LWZiikzqpbzGExISsl4GtCM/KIj+6gTPE0VRJuzoY7ZynhN4XQXBVRo0dc?=
- =?us-ascii?Q?Hd8004Fwn3wrzzNNIXXn54euO2KlJsQOVhf/p4cqI+dW5bPRg2nRNTox7zc4?=
- =?us-ascii?Q?7dS6RUJhZlFobXudrAbYA81wyYXzI/AqtZboOlETbtRbhiDc86Z9iC6asAFc?=
- =?us-ascii?Q?e9zBiI7XlEdGHsG/vB8BWcFWL9AphfeCf4gRnf+kSZPu0+QkeduYihWCRakp?=
- =?us-ascii?Q?v5rdrUpHGb4lK/ST7CD76D6COaIR/002Sf8u5riKj1FTTRSJH7ktqap2Nqlo?=
- =?us-ascii?Q?vTkRpBJaTGNsfKPqbYKa6A4drs369TW+gz/FWF3wiipN3w01C8OEckca1RYX?=
- =?us-ascii?Q?b5tBVbF73nzzMcsskpk1T+IGqHPGXzC0R1+5/0BJDVDA4AaescdMd3cxhnj+?=
- =?us-ascii?Q?5hxxzTLqBjDfGCcCZI7f0+Bd6YtP9UH2mQN5KMoLhmf5Bh+znm2/dtRUeiIx?=
- =?us-ascii?Q?jjfYlqxOa9J5bX0UECoh/GmKfGRboANZ1AgkP81TVXNUNBSEXoGPZ5znrzZ6?=
- =?us-ascii?Q?M41e2mEAfwOKorq5Y33ppLXeqsOI5hvtEnQAI1IWXMDa8d2UIokW+K8sKH+p?=
- =?us-ascii?Q?xuHnLqM5kjxithD9f5aq+Zzq6iC04mWUVd++pco4?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: e524475f-3708-40e5-e74b-08db41afe750
-X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2023 14:59:56.0632
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: QqAAHTzzGQGnDpENY5wrtX25vx+i8mzW42Xc2PspdzNpUdmxLPrGKTloNSZVw8aT
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6333
+References: <ZDawIXBd7gcA8DCk@smile.fi.intel.com> <20230419193432.GA220432@bhelgaas>
+In-Reply-To: <20230419193432.GA220432@bhelgaas>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 20 Apr 2023 17:32:39 +0200
+Message-ID: <CAJZ5v0ir_SQgs=4_tdjbdrF0vnM5=6dQKw-Y=LxTyCAW2kZuhQ@mail.gmail.com>
+Subject: Re: [BUG] net, pci: 6.3-rc1-4 hangs during boot on PowerEdge R620
+ with igb
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rob Herring <robh@kernel.org>,
+        Donald Hunter <donald.hunter@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        Bjorn Helgaas <bhelgaas@google.com>, netdev@vger.kernel.org,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Apr 20, 2023 at 12:25:11PM +0800, Baolu Lu wrote:
-> On 4/20/23 12:11 AM, Jason Gunthorpe wrote:
-> > @@ -451,16 +454,17 @@ static int __iommu_probe_device(struct device *dev, struct list_head *group_list
-> >   		goto out_unlock;
-> >   	group = dev->iommu_group;
-> > -	ret = iommu_group_add_device(group, dev);
-> > +	gdev = iommu_group_alloc_device(group, dev);
-> >   	mutex_lock(&group->mutex);
-> > -	if (ret)
-> > +	if (IS_ERR(gdev)) {
-> > +		ret = PTR_ERR(gdev);
-> >   		goto err_put_group;
-> > +	}
-> > +	list_add_tail(&gdev->list, &group->devices);
-> 
-> Do we need to put
-> 
-> 	dev->iommu_group = group;
-> 
-> here?
+On Wed, Apr 19, 2023 at 9:34 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+>
+> On Wed, Apr 12, 2023 at 04:20:33PM +0300, Andy Shevchenko wrote:
+> > On Tue, Apr 11, 2023 at 02:02:03PM -0500, Rob Herring wrote:
+> > > On Tue, Apr 11, 2023 at 7:53 AM Donald Hunter <donald.hunter@gmail.com> wrote:
+> > > > Bjorn Helgaas <helgaas@kernel.org> writes:
+> > > > > On Mon, Apr 10, 2023 at 04:10:54PM +0100, Donald Hunter wrote:
+> > > > >> On Sun, 2 Apr 2023 at 23:55, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > >> > On Sat, Apr 01, 2023 at 01:52:25PM +0100, Donald Hunter wrote:
+> > > > >> > > On Fri, 31 Mar 2023 at 20:42, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > > >> > > >
+> > > > >> > > > I assume this igb NIC (07:00.0) must be built-in (not a plug-in card)
+> > > > >> > > > because it apparently has an ACPI firmware node, and there's something
+> > > > >> > > > we don't expect about its status?
+> > > > >> > >
+> > > > >> > > Yes they are built-in, to my knowledge.
+> > > > >> > >
+> > > > >> > > > Hopefully Rob will look at this.  If I were looking, I would be
+> > > > >> > > > interested in acpidump to see what's in the DSDT.
+> > > > >> > >
+> > > > >> > > I can get an acpidump. Is there a preferred way to share the files, or just
+> > > > >> > > an email attachment?
+> > > > >> >
+> > > > >> > I think by default acpidump produces ASCII that can be directly
+> > > > >> > included in email.  http://vger.kernel.org/majordomo-info.html says
+> > > > >> > 100K is the limit for vger mailing lists.  Or you could open a report
+> > > > >> > at https://bugzilla.kernel.org and attach it there, maybe along with a
+> > > > >> > complete dmesg log and "sudo lspci -vv" output.
+> > > > >>
+> > > > >> Apologies for the delay, I was unable to access the machine while travelling.
+> > > > >>
+> > > > >> https://bugzilla.kernel.org/show_bug.cgi?id=217317
+> > > > >
+> > > > > Thanks for that!  Can you boot a kernel with 6fffbc7ae137 reverted
+> > > > > with this in the kernel parameters:
+> > > > >
+> > > > >   dyndbg="file drivers/acpi/* +p"
+> > > > >
+> > > > > and collect the entire dmesg log?
+> > > >
+> > > > Added to the bugzilla report.
+> > >
+> > > Rafael, Andy, Any ideas why fwnode_device_is_available() would return
+> > > false for a built-in PCI device with a ACPI device entry? The only
+> > > thing I see in the log is it looks like the parent PCI bridge/bus
+> > > doesn't have ACPI device entry (based on "[    0.913389] pci_bus
+> > > 0000:07: No ACPI support"). For DT, if the parent doesn't have a node,
+> > > then the child can't. Not sure on ACPI.
+> >
+> > Thanks for the Cc'ing. I haven't checked anything yet, but from the above it
+> > sounds like a BIOS issue. If PCI has no ACPI companion tree, then why the heck
+> > one of the devices has the entry? I'm not even sure this is allowed by ACPI
+> > specification, but as I said, I just solely used the above mail.
+>
+> ACPI r6.5, sec 6.3.7, about _STA says:
+>
+>   - Bit [0] - Set if the device is present.
+>   - Bit [1] - Set if the device is enabled and decoding its resources.
+>   - Bit [3] - Set if the device is functioning properly (cleared if
+>     device failed its diagnostics).
+>
+>   ...
+>
+>   If a device is present on an enumerable bus, then _STA must not
+>   return 0. In that case, bit[0] must be set and if the status of the
+>   device can be determined through a bus-specific enumeration and
+>   discovery mechanism, it must be reflected by the values of bit[1]
+>   and bit[3], even though the OSPM is not required to take them into
+>   account.
+>
+> Since PCI *is* an enumerable bus, I don't think we can use _STA to
+> decide whether a PCI device is present.
 
-It is done in iommu_init_driver() and iommu_deinit_driver() NULL's it
+You are right, _STA can't be used for that.
 
-	group = ops->device_group(dev);
-	if (WARN_ON_ONCE(group == NULL))
-		group = ERR_PTR(-EINVAL);
-	if (IS_ERR(group)) {
-		ret = PTR_ERR(group);
-		goto err_unlink;
-	}
-	dev->iommu_group = group;
+> We can use _STA to decide whether a host bridge is present, of course,
+> but that doesn't help here because the host bridge in question is
+> PNP0A08:00 that leads to [bus 00-3d], and it is present.
+>
+> I don't know exactly what path led to the igb issue, but I don't think
+> we need to figure that out.  I think we just need to avoid the use of
+> _STA in fwnode_device_is_available().
 
-Jason
+I agree.  It is incorrect.
+
+> 6fffbc7ae137 ("PCI: Honor firmware's device disabled status") appeared
+> in v6.3-rc1, so I think we need to revert or fix it before v6.3, which
+> will probably be tagged Sunday (and I'll be on vacation
+> Friday-Monday).
+
+Yes, please revert this one ASAP.
+
+Cheers,
+Rafael
