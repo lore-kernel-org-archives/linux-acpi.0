@@ -2,182 +2,262 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C23B2C77B7C
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Apr 2023 12:33:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9DC2C77B72
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Apr 2023 14:06:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234825AbjDTMd3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Apr 2023 08:33:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54284 "EHLO
+        id S231586AbjDTOGZ convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Apr 2023 10:06:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234942AbjDTMdT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2023 08:33:19 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83E8872A8;
-        Thu, 20 Apr 2023 05:32:59 -0700 (PDT)
-Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Q2H6m6q6Vz6J79L;
-        Thu, 20 Apr 2023 20:30:08 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.23; Thu, 20 Apr
- 2023 13:32:57 +0100
-Date:   Thu, 20 Apr 2023 13:32:56 +0100
-From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To:     Dave Jiang <dave.jiang@intel.com>
-CC:     <linux-cxl@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-        <dan.j.williams@intel.com>, <ira.weiny@intel.com>,
-        <vishal.l.verma@intel.com>, <alison.schofield@intel.com>,
-        <rafael@kernel.org>, <lukas@wunner.de>
-Subject: Re: [PATCH v4 12/23] cxl: Add helper function that calculate QoS
- values for PCI path
-Message-ID: <20230420133256.00006cbd@Huawei.com>
-In-Reply-To: <168193573330.1178687.2727689734216767954.stgit@djiang5-mobl3>
-References: <168193556660.1178687.15477509915255912089.stgit@djiang5-mobl3>
-        <168193573330.1178687.2727689734216767954.stgit@djiang5-mobl3>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+        with ESMTP id S229960AbjDTOGX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2023 10:06:23 -0400
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ADE71BE3;
+        Thu, 20 Apr 2023 07:06:21 -0700 (PDT)
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-506bcf9aa50so255456a12.1;
+        Thu, 20 Apr 2023 07:06:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681999579; x=1684591579;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Jgg7OX/T96wNa/Haq/69/L0IA2HKROIWIem4E4UL828=;
+        b=gLnSZXFo6V2i+tP664G3D1rrx6DXVFhongEIx0E40q+L/9ua5eluS8xX+X4mvFsJuU
+         dHn9l7OaFiWlknnh7Agw5bUOSGGC/MCzIM0F5fZePcbeflSxmJeQfpB7jc+DsiZ5rrZl
+         KKZgYijjfmNWI4OXqdtCyIeReoYO9ijIsFeCfuaq8ApIPzFwSikwTDWUMVkjb8t7SKGg
+         4pRILbNUFWTHqlqLxSvpPn1r/106xPES0xOHOx1um8QwyplamCJoIRlZ/eQfWEPCOCy2
+         o2VAH+EAY3j3SGNfS0vJFbUgKKtk7iL2S/oHNbo+7V5P4WKh39TNXjkfm7mxAatIAe9b
+         XIhQ==
+X-Gm-Message-State: AAQBX9cPIAgeewwa8FeMB+1AvuALSuPUQ1SiGORgu/w+WqduEjWBLwga
+        SvXlLSTqXJ4E87TWgmV1BJhfGFNMKf8g6U7P46ZTUK9t
+X-Google-Smtp-Source: AKy350Y9l+3RrBgnRt/ZsV97ky+Whhpraic1B8yk+LoKwK10xK2yro9LelhgWAoWXJW7Fm9Jt9OAbZ7Gg74wD/zZwus=
+X-Received: by 2002:a17:906:35d1:b0:94f:4ec3:f0f5 with SMTP id
+ p17-20020a17090635d100b0094f4ec3f0f5mr1583546ejb.4.1681999579416; Thu, 20 Apr
+ 2023 07:06:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.227.76]
-X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
-X-CFilter-Loop: Reflected
+References: <20230419164127.3773278-1-linux@roeck-us.net>
+In-Reply-To: <20230419164127.3773278-1-linux@roeck-us.net>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Thu, 20 Apr 2023 16:06:08 +0200
+Message-ID: <CAJZ5v0gmDgb+VFwZecbKrbiBejAvODT38Ws=B_wGEGeBHTGR+Q@mail.gmail.com>
+Subject: Re: [PATCH] device property: make device_property functions take
+ const device *
+To:     Guenter Roeck <linux@roeck-us.net>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Chris Packham <chris.packham@alliedtelesis.co.nz>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 19 Apr 2023 13:22:13 -0700
-Dave Jiang <dave.jiang@intel.com> wrote:
+On Wed, Apr 19, 2023 at 6:41 PM Guenter Roeck <linux@roeck-us.net> wrote:
+>
+> device_property functions do not modify the device pointer passed to them.
+> The underlying of_device and fwnode_ functions actually already take
+> const * arguments. Mark the parameter constant to simplify conversion
+> from of_property to device_property functions, and to let the calling code
+> use const device pointers where possible.
+>
+> Cc: Chris Packham <chris.packham@alliedtelesis.co.nz>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-> Calculate the link bandwidth and latency for the PCIe path from the device
-> to the CXL Host Bridge. This does not include the CDAT data from the device
-> or the switch(es) in the path.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-
-Same comment on _qos naming and one trivial comment inline.
-
+Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 
 > ---
-> v4:
-> - 0-day fix, remove unused var. Fix checking < 0 for unsigned var.
-> - Rework port hierachy walk to calculate the latencies correctly
-> ---
->  drivers/cxl/core/port.c |   83 +++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxl.h       |    2 +
->  2 files changed, 85 insertions(+)
-> 
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 770b540d5325..8da437e038b9 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -2002,6 +2002,89 @@ int cxl_port_get_switch_qos(struct cxl_port *port, u64 *rd_bw, u64 *rd_lat,
->  }
->  EXPORT_SYMBOL_NS_GPL(cxl_port_get_switch_qos, CXL);
->  
-> +/**
-> + * cxl_port_get_downstream_qos - retrieve QoS data for PCIE downstream path
-> + * @port: endpoint cxl_port
-> + * @bandwidth: writeback value for min bandwidth
-> + * @latency: writeback value for total latency
-> + *
-> + * Return: Errno on failure, 0 on success.
-> + */
-> +int cxl_port_get_downstream_qos(struct cxl_port *port, u64 *bandwidth,
-> +				u64 *latency)
-> +{
-> +	u64 min_bw = ULONG_MAX;
-> +	struct pci_dev *pdev;
-> +	struct cxl_port *p;
-> +	struct device *dev;
-> +	u64 total_lat = 0;
-> +	long lat;
-> +
-> +	*bandwidth = 0;
-> +	*latency = 0;
-> +
-> +	/* Grab the device that is the PCI device for CXL memdev */
-> +	dev = port->uport->parent;
-> +	/* Skip if it's not PCI, most likely a cxl_test device */
-> +	if (!dev_is_pci(dev))
-> +		return 0;
-> +
-> +	pdev = to_pci_dev(dev);
-> +	min_bw = pcie_bandwidth_available(pdev, NULL, NULL, NULL);
-> +	if (min_bw == 0)
-> +		return -ENXIO;
-> +
-> +	/* convert to MB/s from Mb/s */
-> +	min_bw >>= 3;
-
-/ BITS_PER_BYTE; (well MEGABITS_PER_MEGABYTE but still better than >>= 3;)
-
-> +
-> +	/*
-> +	 * Walk the cxl_port hierachy to retrieve the link latencies for
-> +	 * each of the PCIe segments. The loop will obtain the link latency
-> +	 * via each of the switch downstream port.
-> +	 */
-> +	p = port;
-> +	do {
-> +		struct cxl_dport *dport = p->parent_dport;
-> +		struct device *dport_dev, *uport_dev;
-> +		struct pci_dev *dport_pdev;
-> +
-> +		if (!dport)
-> +			break;
-> +
-> +		dport_dev = dport->dport;
-> +		if (!dev_is_pci(dport_dev))
-> +			break;
-> +
-> +		p = dport->port;
-> +		uport_dev = p->uport;
-> +		if (!dev_is_pci(uport_dev))
-> +			break;
-> +
-> +		dport_pdev = to_pci_dev(dport_dev);
-> +		pdev = to_pci_dev(uport_dev);
-> +		lat = cxl_pci_get_latency(dport_pdev);
-> +		if (lat < 0)
-> +			return lat;
-> +
-> +		total_lat += lat;
-> +	} while (1);
-> +
-> +	/*
-> +	 * pdev would be either the cxl device if there are no switches, or the
-> +	 * upstream port of the last switch.
-> +	 */
-> +	lat = cxl_pci_get_latency(pdev);
-> +	if (lat < 0)
-> +		return lat;
-> +
-> +	total_lat += lat;
-> +	*bandwidth = min_bw;
-> +	*latency = total_lat;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_NS_GPL(cxl_port_get_downstream_qos, CXL);
-> +
->  /* for user tooling to ensure port disable work has completed */
->  static ssize_t flush_store(struct bus_type *bus, const char *buf, size_t count)
+> Found by Chris when trying to convert a driver from of_property_ to
+> device_property_ functions. I don't really see a reason why the device
+> parameter to device_property functions should not be const.
+> Please let me know if I am missing sonething.
+>
+>  drivers/base/property.c  | 16 ++++++++--------
+>  include/linux/property.h | 36 ++++++++++++++++++------------------
+>  2 files changed, 26 insertions(+), 26 deletions(-)
+>
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 083a95791d3b..21d7a5d13e05 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -38,7 +38,7 @@ EXPORT_SYMBOL_GPL(__dev_fwnode_const);
+>   *
+>   * Check if property @propname is present in the device firmware description.
+>   */
+> -bool device_property_present(struct device *dev, const char *propname)
+> +bool device_property_present(const struct device *dev, const char *propname)
 >  {
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 76ccc815134f..6a6387a545db 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -811,6 +811,8 @@ struct qtg_dsm_output *cxl_acpi_evaluate_qtg_dsm(acpi_handle handle,
->  acpi_handle cxl_acpi_get_rootdev_handle(struct device *dev);
->  int cxl_port_get_switch_qos(struct cxl_port *port, u64 *rd_bw, u64 *rd_lat,
->  			    u64 *wr_bw, u64 *wr_lat);
-> +int cxl_port_get_downstream_qos(struct cxl_port *port, u64 *bandwidth,
-> +				u64 *latency);
->  
->  /*
->   * Unit test builds overrides this to __weak, find the 'strong' version
-> 
-> 
-
+>         return fwnode_property_present(dev_fwnode(dev), propname);
+>  }
+> @@ -86,7 +86,7 @@ EXPORT_SYMBOL_GPL(fwnode_property_present);
+>   *        %-EOVERFLOW if the size of the property is not as expected.
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_read_u8_array(struct device *dev, const char *propname,
+> +int device_property_read_u8_array(const struct device *dev, const char *propname,
+>                                   u8 *val, size_t nval)
+>  {
+>         return fwnode_property_read_u8_array(dev_fwnode(dev), propname, val, nval);
+> @@ -114,7 +114,7 @@ EXPORT_SYMBOL_GPL(device_property_read_u8_array);
+>   *        %-EOVERFLOW if the size of the property is not as expected.
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_read_u16_array(struct device *dev, const char *propname,
+> +int device_property_read_u16_array(const struct device *dev, const char *propname,
+>                                    u16 *val, size_t nval)
+>  {
+>         return fwnode_property_read_u16_array(dev_fwnode(dev), propname, val, nval);
+> @@ -142,7 +142,7 @@ EXPORT_SYMBOL_GPL(device_property_read_u16_array);
+>   *        %-EOVERFLOW if the size of the property is not as expected.
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_read_u32_array(struct device *dev, const char *propname,
+> +int device_property_read_u32_array(const struct device *dev, const char *propname,
+>                                    u32 *val, size_t nval)
+>  {
+>         return fwnode_property_read_u32_array(dev_fwnode(dev), propname, val, nval);
+> @@ -170,7 +170,7 @@ EXPORT_SYMBOL_GPL(device_property_read_u32_array);
+>   *        %-EOVERFLOW if the size of the property is not as expected.
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_read_u64_array(struct device *dev, const char *propname,
+> +int device_property_read_u64_array(const struct device *dev, const char *propname,
+>                                    u64 *val, size_t nval)
+>  {
+>         return fwnode_property_read_u64_array(dev_fwnode(dev), propname, val, nval);
+> @@ -198,7 +198,7 @@ EXPORT_SYMBOL_GPL(device_property_read_u64_array);
+>   *        %-EOVERFLOW if the size of the property is not as expected.
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_read_string_array(struct device *dev, const char *propname,
+> +int device_property_read_string_array(const struct device *dev, const char *propname,
+>                                       const char **val, size_t nval)
+>  {
+>         return fwnode_property_read_string_array(dev_fwnode(dev), propname, val, nval);
+> @@ -220,7 +220,7 @@ EXPORT_SYMBOL_GPL(device_property_read_string_array);
+>   *        %-EPROTO or %-EILSEQ if the property type is not a string.
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_read_string(struct device *dev, const char *propname,
+> +int device_property_read_string(const struct device *dev, const char *propname,
+>                                 const char **val)
+>  {
+>         return fwnode_property_read_string(dev_fwnode(dev), propname, val);
+> @@ -242,7 +242,7 @@ EXPORT_SYMBOL_GPL(device_property_read_string);
+>   *        %-EPROTO if the property is not an array of strings,
+>   *        %-ENXIO if no suitable firmware interface is present.
+>   */
+> -int device_property_match_string(struct device *dev, const char *propname,
+> +int device_property_match_string(const struct device *dev, const char *propname,
+>                                  const char *string)
+>  {
+>         return fwnode_property_match_string(dev_fwnode(dev), propname, string);
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 0a29db15ff34..66fe73ee430d 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -40,20 +40,20 @@ struct fwnode_handle *__dev_fwnode(struct device *dev);
+>                  const struct device *: __dev_fwnode_const,     \
+>                  struct device *: __dev_fwnode)(dev)
+>
+> -bool device_property_present(struct device *dev, const char *propname);
+> -int device_property_read_u8_array(struct device *dev, const char *propname,
+> +bool device_property_present(const struct device *dev, const char *propname);
+> +int device_property_read_u8_array(const struct device *dev, const char *propname,
+>                                   u8 *val, size_t nval);
+> -int device_property_read_u16_array(struct device *dev, const char *propname,
+> +int device_property_read_u16_array(const struct device *dev, const char *propname,
+>                                    u16 *val, size_t nval);
+> -int device_property_read_u32_array(struct device *dev, const char *propname,
+> +int device_property_read_u32_array(const struct device *dev, const char *propname,
+>                                    u32 *val, size_t nval);
+> -int device_property_read_u64_array(struct device *dev, const char *propname,
+> +int device_property_read_u64_array(const struct device *dev, const char *propname,
+>                                    u64 *val, size_t nval);
+> -int device_property_read_string_array(struct device *dev, const char *propname,
+> +int device_property_read_string_array(const struct device *dev, const char *propname,
+>                                       const char **val, size_t nval);
+> -int device_property_read_string(struct device *dev, const char *propname,
+> +int device_property_read_string(const struct device *dev, const char *propname,
+>                                 const char **val);
+> -int device_property_match_string(struct device *dev,
+> +int device_property_match_string(const struct device *dev,
+>                                  const char *propname, const char *string);
+>
+>  bool fwnode_property_present(const struct fwnode_handle *fwnode,
+> @@ -143,57 +143,57 @@ int fwnode_irq_get_byname(const struct fwnode_handle *fwnode, const char *name);
+>
+>  unsigned int device_get_child_node_count(const struct device *dev);
+>
+> -static inline bool device_property_read_bool(struct device *dev,
+> +static inline bool device_property_read_bool(const struct device *dev,
+>                                              const char *propname)
+>  {
+>         return device_property_present(dev, propname);
+>  }
+>
+> -static inline int device_property_read_u8(struct device *dev,
+> +static inline int device_property_read_u8(const struct device *dev,
+>                                           const char *propname, u8 *val)
+>  {
+>         return device_property_read_u8_array(dev, propname, val, 1);
+>  }
+>
+> -static inline int device_property_read_u16(struct device *dev,
+> +static inline int device_property_read_u16(const struct device *dev,
+>                                            const char *propname, u16 *val)
+>  {
+>         return device_property_read_u16_array(dev, propname, val, 1);
+>  }
+>
+> -static inline int device_property_read_u32(struct device *dev,
+> +static inline int device_property_read_u32(const struct device *dev,
+>                                            const char *propname, u32 *val)
+>  {
+>         return device_property_read_u32_array(dev, propname, val, 1);
+>  }
+>
+> -static inline int device_property_read_u64(struct device *dev,
+> +static inline int device_property_read_u64(const struct device *dev,
+>                                            const char *propname, u64 *val)
+>  {
+>         return device_property_read_u64_array(dev, propname, val, 1);
+>  }
+>
+> -static inline int device_property_count_u8(struct device *dev, const char *propname)
+> +static inline int device_property_count_u8(const struct device *dev, const char *propname)
+>  {
+>         return device_property_read_u8_array(dev, propname, NULL, 0);
+>  }
+>
+> -static inline int device_property_count_u16(struct device *dev, const char *propname)
+> +static inline int device_property_count_u16(const struct device *dev, const char *propname)
+>  {
+>         return device_property_read_u16_array(dev, propname, NULL, 0);
+>  }
+>
+> -static inline int device_property_count_u32(struct device *dev, const char *propname)
+> +static inline int device_property_count_u32(const struct device *dev, const char *propname)
+>  {
+>         return device_property_read_u32_array(dev, propname, NULL, 0);
+>  }
+>
+> -static inline int device_property_count_u64(struct device *dev, const char *propname)
+> +static inline int device_property_count_u64(const struct device *dev, const char *propname)
+>  {
+>         return device_property_read_u64_array(dev, propname, NULL, 0);
+>  }
+>
+> -static inline int device_property_string_array_count(struct device *dev,
+> +static inline int device_property_string_array_count(const struct device *dev,
+>                                                      const char *propname)
+>  {
+>         return device_property_read_string_array(dev, propname, NULL, 0);
+> --
+> 2.39.2
+>
