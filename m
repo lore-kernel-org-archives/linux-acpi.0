@@ -2,129 +2,134 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B91ADC7EE22
-	for <linux-acpi@archiver.kernel.org>; Thu, 20 Apr 2023 11:05:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D44BC77B72
+	for <linux-acpi@archiver.kernel.org>; Thu, 20 Apr 2023 11:36:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235259AbjDTLF2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 20 Apr 2023 07:05:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54554 "EHLO
+        id S234113AbjDTLgS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 20 Apr 2023 07:36:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235327AbjDTLEs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2023 07:04:48 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5617855A4
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2023 04:02:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681988544;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=Hq3QNEMudW51eMDzNrroNHBYxi5M+MAF5mxOYyUo23U=;
-        b=E2RqiFn0phuGeEqYwqIC1aCxUJKGsBDrLeLjVwFioZG2bHWHOsM/uYZ/6cfI/gabot9l0c
-        eAktN4PH736d29EX1N4DYpYif78lH1VLCoSGbH9+rAv0QlWRSsxMaiXWLgbuSSPe9t0M7h
-        OEeWAA02CrWE5Yh/YWDA1Zfwpadi618=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-247--BaZiDkLPmGhpw1imRHhmA-1; Thu, 20 Apr 2023 07:02:23 -0400
-X-MC-Unique: -BaZiDkLPmGhpw1imRHhmA-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 8CC38800047;
-        Thu, 20 Apr 2023 11:02:22 +0000 (UTC)
-Received: from shalem.redhat.com (unknown [10.39.194.216])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B7026492B05;
-        Thu, 20 Apr 2023 11:02:21 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, regressions@lists.linux.dev,
-        linux-acpi@vger.kernel.org,
-        =?UTF-8?q?G=C3=A9=20Koerkamp?= <ge.koerkamp@gmail.com>
-Subject: [PATCH] ACPI: PM: Do not turn of unused power resources on the Toshiba Click Mini
-Date:   Thu, 20 Apr 2023 13:02:20 +0200
-Message-Id: <20230420110220.23168-1-hdegoede@redhat.com>
+        with ESMTP id S234304AbjDTLgO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2023 07:36:14 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA0B535B1;
+        Thu, 20 Apr 2023 04:35:52 -0700 (PDT)
+Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.201])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Q2Fnx3qXpz67GMJ;
+        Thu, 20 Apr 2023 19:30:29 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.23; Thu, 20 Apr
+ 2023 12:35:13 +0100
+Date:   Thu, 20 Apr 2023 12:35:12 +0100
+From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To:     Dave Jiang <dave.jiang@intel.com>
+CC:     <linux-cxl@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+        <dan.j.williams@intel.com>, <ira.weiny@intel.com>,
+        <vishal.l.verma@intel.com>, <alison.schofield@intel.com>,
+        <rafael@kernel.org>, <lukas@wunner.de>
+Subject: Re: [PATCH v4 05/23] cxl: Add callback to parse the DSMAS subtables
+ from CDAT
+Message-ID: <20230420123512.0000650b@Huawei.com>
+In-Reply-To: <20230420123350.000061b1@Huawei.com>
+References: <168193556660.1178687.15477509915255912089.stgit@djiang5-mobl3>
+        <168193569130.1178687.11664485128816659216.stgit@djiang5-mobl3>
+        <20230420123350.000061b1@Huawei.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The CPR3 power resource on the Toshiba Click Mini toggles a GPIO
-which is called SISP (for SIS touchscreen power?) on/off.
+On Thu, 20 Apr 2023 12:33:50 +0100
+Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
 
-This CPR3 power resource is not listed in any _PR? lists, let alone
-in a _PR0 list for the SIS0817 touchscreen ACPI device which needs it.
+> On Wed, 19 Apr 2023 13:21:31 -0700
+> Dave Jiang <dave.jiang@intel.com> wrote:
+> 
+> > Provide a callback function to the CDAT parser in order to parse the Device
+> > Scoped Memory Affinity Structure (DSMAS). Each DSMAS structure contains the
+> > DPA range and its associated attributes in each entry. See the CDAT
+> > specification for details.
+> > 
+> > Coherent Device Attribute Table 1.03 2.1 Device Scoped memory Affinity
+> > Structure (DSMAS)  
+> 
+> I'm not sure what purpose of this is. If it's just detecting problems
+> with the entry because we aren't interested in the content yet, then fine
+> but good to make that clear in patch intro.
+> 
+> Maybe I'm missing something!
+> 
+Ah. Got to next patch.  Perhaps a forwards reference to that will avoid
+anyone else wondering what is going on here!
 
-Before commit a1224f34d72a ("ACPI: PM: Check states of power resources
-during initialization") this was not an issue because since nothing
-referenced the CPR3 power resource its state was always
-ACPI_POWER_RESOURCE_STATE_UNKNOWN and power resources with this state
-get ignored by acpi_turn_off_unused_power_resources().
-
-This clearly is a bug in the DSDT of this device. Add a DMI quirk
-to make acpi_turn_off_unused_power_resources() a no-op on this
-model to fix the touchscreen no longer working since kernel 5.16 .
-
-This quirk also causes 2 other power resources to not get turned
-off, but the _OFF method on these already was a no-op, so this makes
-no difference for the other 2 power resources.
-
-Fixes: a1224f34d72a ("ACPI: PM: Check states of power resources during initialization")
-Reported-by: Gé Koerkamp <ge.koerkamp@gmail.com>
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=216946
-Link: https://lore.kernel.org/regressions/32a14a8a-9795-4c8c-7e00-da9012f548f8@leemhuis.info/
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/power.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
-
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 292cec3691cc..5dc792961ab8 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -23,6 +23,7 @@
- 
- #define pr_fmt(fmt) "ACPI: PM: " fmt
- 
-+#include <linux/dmi.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -1022,6 +1023,21 @@ void acpi_resume_power_resources(void)
- }
- #endif
- 
-+static const struct dmi_system_id dmi_leave_unused_power_resources_on[] = {
-+	{
-+		/*
-+		 * The Toshiba Click Mini has a CPR3 power-resource which must
-+		 * be on for the touchscreen to work, but which is not in any
-+		 * _PR? lists. The other 2 affected power-resources are no-ops.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "SATELLITE Click Mini L9W-B"),
-+		},
-+	},
-+	{}
-+};
-+
- /**
-  * acpi_turn_off_unused_power_resources - Turn off power resources not in use.
-  */
-@@ -1029,6 +1045,9 @@ void acpi_turn_off_unused_power_resources(void)
- {
- 	struct acpi_power_resource *resource;
- 
-+	if (dmi_check_system(dmi_leave_unused_power_resources_on))
-+		return;
-+
- 	mutex_lock(&power_resource_list_lock);
- 
- 	list_for_each_entry_reverse(resource, &acpi_power_resource_list, list_node) {
--- 
-2.39.2
+> Thanks,
+> 
+> Jonathan
+> 
+> > 
+> > Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> > 
+> > ---
+> > v3:
+> > - Add spec section number. (Alison)
+> > - Remove cast from void *. (Alison)
+> > - Refactor cxl_port_probe() block. (Alison)
+> > - Move CDAT parse to cxl_endpoint_port_probe()
+> > 
+> > v2:
+> > - Add DSMAS table size check. (Lukas)
+> > - Use local DSMAS header for LE handling.
+> > - Remove dsmas lock. (Jonathan)
+> > - Fix handle size (Jonathan)
+> > - Add LE to host conversion for DSMAS address and length.
+> > - Make dsmas_list local  
+> 
+> 
+> > diff --git a/drivers/cxl/port.c b/drivers/cxl/port.c
+> > index 615e0ef6b440..3022bdd52439 100644
+> > --- a/drivers/cxl/port.c
+> > +++ b/drivers/cxl/port.c
+> > @@ -57,6 +57,16 @@ static int discover_region(struct device *dev, void *root)
+> >  	return 0;
+> >  }  
+> 
+> >  static int cxl_switch_port_probe(struct cxl_port *port)
+> >  {
+> >  	struct cxl_hdm *cxlhdm;
+> > @@ -125,6 +135,18 @@ static int cxl_endpoint_port_probe(struct cxl_port *port)
+> >  	device_for_each_child(&port->dev, root, discover_region);
+> >  	put_device(&root->dev);
+> >  
+> > +	if (port->cdat.table) {
+> > +		LIST_HEAD(dsmas_list);
+> > +
+> > +		rc = cdat_table_parse_dsmas(port->cdat.table,
+> > +					    cxl_dsmas_parse_entry,
+> > +					    (void *)&dsmas_list);
+> > +		if (rc < 0)
+> > +			dev_warn(&port->dev, "Failed to parse DSMAS: %d\n", rc);
+> > +
+> > +		dsmas_list_destroy(&dsmas_list);  
+> 
+> I'm a little confused here.  What's the point?  Parse them then throw the info away?
+> Maybe a comment if all we are trying to do is warn about CDAT problems.
+> 
+> 
+> > +	}
+> > +
+> >  	return 0;
+> >  }
+> >  
+> > 
+> >   
+> 
 
