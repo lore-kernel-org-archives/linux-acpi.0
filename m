@@ -2,157 +2,87 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B51C77B60
-	for <linux-acpi@archiver.kernel.org>; Sat, 29 Apr 2023 10:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2507C77B7C
+	for <linux-acpi@archiver.kernel.org>; Sat, 29 Apr 2023 10:39:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230414AbjD2Kbc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 29 Apr 2023 06:31:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49432 "EHLO
+        id S229841AbjD2Kjk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 29 Apr 2023 06:39:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbjD2Kba (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Apr 2023 06:31:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 935D61BE8;
-        Sat, 29 Apr 2023 03:31:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S229458AbjD2Kjj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Apr 2023 06:39:39 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4315B1FC6
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Apr 2023 03:38:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1682764732;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=jwFe3rl21Wgw7CxMS5GHakD5V7cJPvk4X8rAyXApsKM=;
+        b=J36zDaJiqrajEmR7BQlpEsRTMBi4mXcvbq9BY1kQbz6x/ayguj2XyMKIbM0QNYy0WJTLzz
+        FPdKEZjB26M82PGNI9CsStWnvlBgWk1acGUX0CS8taArpCGQgQXAoaAtrGdTeZYt4AIudY
+        pVCPg78R93//CcUWavv1uS4Gd1kX8HI=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-527-yy76-VSRMx-1sFyNN52s9w-1; Sat, 29 Apr 2023 06:38:48 -0400
+X-MC-Unique: yy76-VSRMx-1sFyNN52s9w-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 27A2D61610;
-        Sat, 29 Apr 2023 10:31:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28794C433EF;
-        Sat, 29 Apr 2023 10:31:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682764288;
-        bh=0GbmBMGiNiQlIdnACBgahvtc+QtoJehbHv6nICycqIU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=tFhPkZUDutv1XqNNNayYgpxTWhqBsGyicP5ZE+0P5aZPM1SFgNwGsYutMDbjAeX7r
-         JoIbcHIL0grDinAv1Xen+AI6GLJDOeK7oulXXWtq6Af2EkCNZQ+Mv+TGKx4KpPj8HN
-         o37YI2ZiY580d9dsHNxhOy0NYV9xON8ceNNwkVCsu8Ru8dxYj+hqpK5NDa69iCq5bv
-         r9g9qfYstDE8+Mz8clTHSExMwWUjXwj04kTfT766VTMf5JEJoTxTu2UDU6msp9DTxf
-         zniinNBnHQ9amnPS6KwooRNkDA8OaKb5fE7QYpuHGv+Jrcx6drNQ/sHkF9tOE8VPCP
-         qPbfmrd2AbdWQ==
-Date:   Sat, 29 Apr 2023 11:31:20 +0100
-From:   Conor Dooley <conor@kernel.org>
-To:     Sunil V L <sunilvl@ventanamicro.com>
-Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-crypto@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        llvm@lists.linux.dev, Jonathan Corbet <corbet@lwn.net>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>, Len Brown <lenb@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Weili Qian <qianweili@huawei.com>,
-        Zhou Wang <wangzhou1@hisilicon.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Marc Zyngier <maz@kernel.org>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Andrew Jones <ajones@ventanamicro.com>
-Subject: Re: [PATCH V4 13/23] RISC-V: cpufeature: Add ACPI support in
- riscv_fill_hwcap()
-Message-ID: <20230429-voucher-tutor-715fd4f6c24e@spud>
-References: <20230404182037.863533-1-sunilvl@ventanamicro.com>
- <20230404182037.863533-14-sunilvl@ventanamicro.com>
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 92D983810B16;
+        Sat, 29 Apr 2023 10:38:48 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.57])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 0B3CE492C13;
+        Sat, 29 Apr 2023 10:38:47 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+Subject: [PATCH 2/2] ACPI: button: Add lid disable DMI quirk for Nextbook Ares 8A
+Date:   Sat, 29 Apr 2023 12:38:41 +0200
+Message-Id: <20230429103841.6988-2-hdegoede@redhat.com>
+In-Reply-To: <20230429103841.6988-1-hdegoede@redhat.com>
+References: <20230429103841.6988-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mD53ytQ30VQ4ln/R"
-Content-Disposition: inline
-In-Reply-To: <20230404182037.863533-14-sunilvl@ventanamicro.com>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+The LID0 device on the Nextbook Ares 8A tablet always reports lid
+closed causing userspace to suspend the device as soon as booting
+is complete.
 
---mD53ytQ30VQ4ln/R
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add a DMI quirk to disable the broken lid functionality.
 
-Hey Sunil,
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/button.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-On Tue, Apr 04, 2023 at 11:50:27PM +0530, Sunil V L wrote:
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 475e1eddfa3b..ef77c14c72a9 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -77,6 +77,15 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 		},
+ 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
+ 	},
++	{
++		/* Nextbook Ares 8A tablet, _LID device always reports lid closed */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Insyde"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "CherryTrail"),
++			DMI_MATCH(DMI_BIOS_VERSION, "M882"),
++		},
++		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
++	},
+ 	{
+ 		/*
+ 		 * Lenovo Yoga 9 14ITL5, initial notification of the LID device
+-- 
+2.39.2
 
-> @@ -103,14 +109,36 @@ void __init riscv_fill_hwcap(void)
-> =20
->  	bitmap_zero(riscv_isa, RISCV_ISA_EXT_MAX);
-> =20
-> -	for_each_of_cpu_node(node) {
-> +	if (!acpi_disabled) {
-> +		status =3D acpi_get_table(ACPI_SIG_RHCT, 0, &rhct);
-> +		if (ACPI_FAILURE(status))
-> +			return;
-> +	}
-> +
-> +	for_each_possible_cpu(cpu) {
->  		unsigned long this_hwcap =3D 0;
->  		DECLARE_BITMAP(this_isa, RISCV_ISA_EXT_MAX);
->  		const char *temp;
-> =20
-> -		if (of_property_read_string(node, "riscv,isa", &isa)) {
-> -			pr_warn("Unable to find \"riscv,isa\" devicetree entry\n");
-> -			continue;
-> +		if (acpi_disabled) {
-> +			node =3D of_cpu_device_node_get(cpu);
-> +			if (node) {
-> +				rc =3D of_property_read_string(node, "riscv,isa", &isa);
-> +				of_node_put(node);
-> +				if (rc) {
-> +					pr_warn("Unable to find \"riscv,isa\" devicetree entry\n");
-> +					continue;
-> +				}
-> +			} else {
-> +				pr_warn("Unable to find cpu node\n");
-> +				continue;
-
-I was poking at this the last few days and went back to look at the ACPI
-code again. Is there a reason we don't do early-return here? IOW:
-
-	node =3D of_cpu_device_node_get(cpu);
-	if (!node) {
-		pr_warn()
-		continue;
-	}
-
-	rc =3D of_property_read_string(node, "riscv,isa", &isa);
-	of_node_put(node);
-	if (rc) {
-		pr_warn();
-		continue;
-	}
-
-Cheers,
-Conor.
-
-> +			}
-> +		} else {
-> +			rc =3D acpi_get_riscv_isa(rhct, cpu, &isa);
-> +			if (rc < 0) {
-> +				pr_warn("Unable to get ISA for the hart - %d\n", cpu);
-> +				continue;
-> +			}
->  		}
-> =20
->  		temp =3D isa;
-> @@ -243,6 +271,9 @@ void __init riscv_fill_hwcap(void)
-
---mD53ytQ30VQ4ln/R
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZEzx+AAKCRB4tDGHoIJi
-0uDXAP0UihCqegQRGuBLnWtSMvMhsuIza2XwUNXv6Jsjw1EdNwD5AT1aXZpghWod
-R72zPlGiSaij2J867SuTR51j5SWNmQE=
-=7cU+
------END PGP SIGNATURE-----
-
---mD53ytQ30VQ4ln/R--
