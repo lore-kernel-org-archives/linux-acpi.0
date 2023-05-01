@@ -2,115 +2,115 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA09CC7EE39
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:21:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 689A4C7EE21
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 12:50:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234304AbjEADVQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 30 Apr 2023 23:21:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43676 "EHLO
+        id S232435AbjEAMuu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 1 May 2023 08:50:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233395AbjEADRz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:17:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52FCD1FF7;
-        Sun, 30 Apr 2023 20:07:53 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 48B1060C42;
-        Mon,  1 May 2023 03:05:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCB95C4339B;
-        Mon,  1 May 2023 03:05:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682910358;
-        bh=kavk+tuTqy3NvZ1+Ukd9Oi8+V3LFkbsFCBw5hwsMVZc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GM4H1hCY3R52YX3IuO/fhwZ3HcKG3yPrEoI9DsFokEJwSsmWJJ3ZVYkUEpowxeOjK
-         XShuZ9hgbG8e+QqjlIoRZchmbJzyB3U3zRXh6iXBXLBnzLFFim7X1yKc+hKGZWkeom
-         d2LMbZIZr0un9eDv+bSQYy++V3o5hO/QyNVm2AA/1fxTK7/D4UDtiV0/NnGI589XQB
-         KcSsTj0hGJdOghx7iZ64JQu+42bSOqaYiPrpyR2B8QA6Lau6CenKvYveMf9ALnduM5
-         u667C78kr8e65T9cX93l1cqMDtwJ9lTydPjVQgOkm7vef6ty8ymvVeB9xjwbW+1VWR
-         ebA8sf0RFG86w==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Tamir Duberstein <tamird@google.com>,
-        Bob Moore <robert.moore@intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH AUTOSEL 5.10 09/12] ACPICA: Avoid undefined behavior: applying zero offset to null pointer
-Date:   Sun, 30 Apr 2023 23:05:35 -0400
-Message-Id: <20230501030540.3254928-9-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230501030540.3254928-1-sashal@kernel.org>
-References: <20230501030540.3254928-1-sashal@kernel.org>
+        with ESMTP id S232391AbjEAMut (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 May 2023 08:50:49 -0400
+Received: from mail-pl1-x62d.google.com (mail-pl1-x62d.google.com [IPv6:2607:f8b0:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C16D610EA;
+        Mon,  1 May 2023 05:50:48 -0700 (PDT)
+Received: by mail-pl1-x62d.google.com with SMTP id d9443c01a7336-1aae5c2423dso16638205ad.3;
+        Mon, 01 May 2023 05:50:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1682945448; x=1685537448;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=EwELIRKAHNm5iJVhYK2ZdBO1ZolCnrOqU0qcbC+0lwU=;
+        b=T6t2ELZ5f4JYz9xB/8mCO7Jdnhli4M69GZtETvcJyky9QGHltdL/bcrDqLutJMRE89
+         arMb05ulDD+57eul6j7Wl7gYfPS3e0UQX9R/lXGIcaXmlyR6JoyypUQ152E84eiDOR+l
+         kqbM+wJOsFZrS2WABgdhY/2uEux96MWZU0PlF9yi8/kW5kJinTz9L9pg10YwalMAObuF
+         PVEpEICcZnv6JuguTqAkrW0PXJiTi9tLY73vJ+T+8tE9dUGb8g2JBeTysjEN+dbslU0b
+         pOeHwdB3UKiXR4IXRXbBgW7sAU40fi1I35//qWFON3t5ZvWYm2R6TdVlMIsKikocWDLp
+         kRmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682945448; x=1685537448;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EwELIRKAHNm5iJVhYK2ZdBO1ZolCnrOqU0qcbC+0lwU=;
+        b=dr0IGdwL/HyC5QNPx4SAzHmKKiVwmXxr5lpQbBBIMP9fxYZtImBBgxysLdbkJViwWR
+         2fO/QNjgoiHIGlF6RPPn+7F078toqfBsl2D580FCesgF5xjbFjWe8o06Qog/TekI2BQ0
+         Atorb33xLH8QpUAo2zco1XMarrfaT7FwwTeBhQL0XXLHX2LfnfX7AMQHzCzRxsoFMfrX
+         nQraH3KQ4JY7DFVWTP4yeSe60YUZDOb/THB2CQ8XxrVRoxsedr5rwiEeu4rZ2nZKV3U/
+         buWH4CHaI33HYnauiVdo209gzJ+JhTd8/a01QUBIHmi4QDQfRpn7Py9i2scg5QDuRFeU
+         o+9A==
+X-Gm-Message-State: AC+VfDzPnOzox9jglFwT0OJR3raY7VerGt6HDy54bXurf2vNT+wguNdJ
+        83VJv8JLu9toLYwnO99DfZA=
+X-Google-Smtp-Source: ACHHUZ7wz8w7qpe15Q1dZYqVc/oJ7rXHCQIKJ7OkHfP6Yd/pX/FlKcy8GGym+w/XycFcSpB6gLTRcw==
+X-Received: by 2002:a17:903:18b:b0:1a5:167f:620f with SMTP id z11-20020a170903018b00b001a5167f620fmr13455068plg.15.1682945448226;
+        Mon, 01 May 2023 05:50:48 -0700 (PDT)
+Received: from debian.me (subs02-180-214-232-68.three.co.id. [180.214.232.68])
+        by smtp.gmail.com with ESMTPSA id gb9-20020a17090b060900b0024dee500736sm2648554pjb.57.2023.05.01.05.50.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 May 2023 05:50:47 -0700 (PDT)
+Received: by debian.me (Postfix, from userid 1000)
+        id 482DC106237; Mon,  1 May 2023 19:50:44 +0700 (WIB)
+Date:   Mon, 1 May 2023 19:50:44 +0700
+From:   Bagas Sanjaya <bagasdotme@gmail.com>
+To:     Acid Bong <acidbong@tilde.cafe>, regressions@lists.linux.dev
+Cc:     stable@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [REGRESSION] Asus X541UAK hangs on suspend and poweroff (v6.1.6
+ onward)
+Message-ID: <ZE+1pKbfy1l/tTo6@debian.me>
+References: <CRVU11I7JJWF.367PSO4YAQQEI@bong>
+ <5f445dab-a152-bcaa-4462-1665998c3e2e@gmail.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="o8j3sON65QrdRjDT"
+Content-Disposition: inline
+In-Reply-To: <5f445dab-a152-bcaa-4462-1665998c3e2e@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Tamir Duberstein <tamird@google.com>
 
-[ Upstream commit 05bb0167c80b8f93c6a4e0451b7da9b96db990c2 ]
+--o8j3sON65QrdRjDT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-ACPICA commit 770653e3ba67c30a629ca7d12e352d83c2541b1e
+On Fri, Apr 14, 2023 at 02:51:47PM +0700, Bagas Sanjaya wrote:
+> On 4/14/23 02:35, Acid Bong wrote:
+> > The issue appeared when I was using pf-kernel with genpatches and
+> > updated from 6.1-pf2 to 6.1-pf3 (corresponding to vanilla versions 6.1.3
+> > -> 6.1.6). I used that fork until 6.2-pf2, but since then (early March)
+> > moved to vanilla sources and started following the 6.1.y branch when it
+> > was declared LTS. And the issue was present on all of them.
+> >=20
+> > The hang was last detected 3 days ago on 6.1.22 and today on 6.1.23.
+> >=20
+>=20
+> Have you tried testing latest mainline to see if commits which are
+> backported to 6.1.y cause your regression?
+>=20
 
-Before this change we see the following UBSAN stack trace in Fuchsia:
+#regzbot poke
 
-  #0    0x000021e4213b3302 in acpi_ds_init_aml_walk(struct acpi_walk_state*, union acpi_parse_object*, struct acpi_namespace_node*, u8*, u32, struct acpi_evaluate_info*, u8) ../../third_party/acpica/source/components/dispatcher/dswstate.c:682 <platform-bus-x86.so>+0x233302
-  #1.2  0x000020d0f660777f in ubsan_get_stack_trace() compiler-rt/lib/ubsan/ubsan_diag.cpp:41 <libclang_rt.asan.so>+0x3d77f
-  #1.1  0x000020d0f660777f in maybe_print_stack_trace() compiler-rt/lib/ubsan/ubsan_diag.cpp:51 <libclang_rt.asan.so>+0x3d77f
-  #1    0x000020d0f660777f in ~scoped_report() compiler-rt/lib/ubsan/ubsan_diag.cpp:387 <libclang_rt.asan.so>+0x3d77f
-  #2    0x000020d0f660b96d in handlepointer_overflow_impl() compiler-rt/lib/ubsan/ubsan_handlers.cpp:809 <libclang_rt.asan.so>+0x4196d
-  #3    0x000020d0f660b50d in compiler-rt/lib/ubsan/ubsan_handlers.cpp:815 <libclang_rt.asan.so>+0x4150d
-  #4    0x000021e4213b3302 in acpi_ds_init_aml_walk(struct acpi_walk_state*, union acpi_parse_object*, struct acpi_namespace_node*, u8*, u32, struct acpi_evaluate_info*, u8) ../../third_party/acpica/source/components/dispatcher/dswstate.c:682 <platform-bus-x86.so>+0x233302
-  #5    0x000021e4213e2369 in acpi_ds_call_control_method(struct acpi_thread_state*, struct acpi_walk_state*, union acpi_parse_object*) ../../third_party/acpica/source/components/dispatcher/dsmethod.c:605 <platform-bus-x86.so>+0x262369
-  #6    0x000021e421437fac in acpi_ps_parse_aml(struct acpi_walk_state*) ../../third_party/acpica/source/components/parser/psparse.c:550 <platform-bus-x86.so>+0x2b7fac
-  #7    0x000021e4214464d2 in acpi_ps_execute_method(struct acpi_evaluate_info*) ../../third_party/acpica/source/components/parser/psxface.c:244 <platform-bus-x86.so>+0x2c64d2
-  #8    0x000021e4213aa052 in acpi_ns_evaluate(struct acpi_evaluate_info*) ../../third_party/acpica/source/components/namespace/nseval.c:250 <platform-bus-x86.so>+0x22a052
-  #9    0x000021e421413dd8 in acpi_ns_init_one_device(acpi_handle, u32, void*, void**) ../../third_party/acpica/source/components/namespace/nsinit.c:735 <platform-bus-x86.so>+0x293dd8
-  #10   0x000021e421429e98 in acpi_ns_walk_namespace(acpi_object_type, acpi_handle, u32, u32, acpi_walk_callback, acpi_walk_callback, void*, void**) ../../third_party/acpica/source/components/namespace/nswalk.c:298 <platform-bus-x86.so>+0x2a9e98
-  #11   0x000021e4214131ac in acpi_ns_initialize_devices(u32) ../../third_party/acpica/source/components/namespace/nsinit.c:268 <platform-bus-x86.so>+0x2931ac
-  #12   0x000021e42147c40d in acpi_initialize_objects(u32) ../../third_party/acpica/source/components/utilities/utxfinit.c:304 <platform-bus-x86.so>+0x2fc40d
-  #13   0x000021e42126d603 in acpi::acpi_impl::initialize_acpi(acpi::acpi_impl*) ../../src/devices/board/lib/acpi/acpi-impl.cc:224 <platform-bus-x86.so>+0xed603
+Acid Bong, have you successfully bisected to find the culprit commit?
+How about swapping the hardware? I'm poking because the thread looks
+stale for a while.
 
-Add a simple check that avoids incrementing a pointer by zero, but
-otherwise behaves as before. Note that our findings are against ACPICA
-20221020, but the same code exists on master.
+Thanks.
 
-Link: https://github.com/acpica/acpica/commit/770653e3
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/acpica/dswstate.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+--=20
+An old man doll... just what I always wanted! - Clara
 
-diff --git a/drivers/acpi/acpica/dswstate.c b/drivers/acpi/acpica/dswstate.c
-index 809a0c0536b59..f9ba7695be147 100644
---- a/drivers/acpi/acpica/dswstate.c
-+++ b/drivers/acpi/acpica/dswstate.c
-@@ -576,9 +576,14 @@ acpi_ds_init_aml_walk(struct acpi_walk_state *walk_state,
- 	ACPI_FUNCTION_TRACE(ds_init_aml_walk);
- 
- 	walk_state->parser_state.aml =
--	    walk_state->parser_state.aml_start = aml_start;
--	walk_state->parser_state.aml_end =
--	    walk_state->parser_state.pkg_end = aml_start + aml_length;
-+	    walk_state->parser_state.aml_start =
-+	    walk_state->parser_state.aml_end =
-+	    walk_state->parser_state.pkg_end = aml_start;
-+	/* Avoid undefined behavior: applying zero offset to null pointer */
-+	if (aml_length != 0) {
-+		walk_state->parser_state.aml_end += aml_length;
-+		walk_state->parser_state.pkg_end += aml_length;
-+	}
- 
- 	/* The next_op of the next_walk will be the beginning of the method */
- 
--- 
-2.39.2
+--o8j3sON65QrdRjDT
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZE+1nwAKCRD2uYlJVVFO
+o8f7AP0eyxbUWhfWrmZsy8qwszcvI3TYLD3Dt/xIRbiuZ8d7hQD+KOmcPzg4n8zf
+S06EBMian+f5balo8uwcqvk6MomLXAo=
+=iMRM
+-----END PGP SIGNATURE-----
+
+--o8j3sON65QrdRjDT--
