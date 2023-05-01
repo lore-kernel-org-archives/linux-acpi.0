@@ -2,47 +2,47 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4562C77B73
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:07:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B38A3C7EE25
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:10:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232632AbjEADGy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 30 Apr 2023 23:06:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57814 "EHLO
+        id S232541AbjEADKT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 30 Apr 2023 23:10:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232625AbjEADEi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:04:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5737B46A5;
-        Sun, 30 Apr 2023 20:01:44 -0700 (PDT)
+        with ESMTP id S232909AbjEADJ5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:09:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 908C25BB1;
+        Sun, 30 Apr 2023 20:03:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65BAF61780;
-        Mon,  1 May 2023 03:01:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E21FC433A1;
-        Mon,  1 May 2023 03:01:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B5EE61781;
+        Mon,  1 May 2023 03:03:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 283D7C433EF;
+        Mon,  1 May 2023 03:03:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682910061;
-        bh=FA7dxqNtmn5rTL1SXkwSDJ3nhxD4XuKLZ2jRLt+oH7U=;
+        s=k20201202; t=1682910193;
+        bh=IQgHuOoRnkEGD1Jb5Lkm537dUiI0uLn05CysAyCGk+c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VAnF85rr3wwLvLNFZepfc2tPAZP682xaOAbNJOfnzIbuJOtI8rnJu5Jkd00tPcJnv
-         ahVXY80EObgDJk3yjp/qvyCR9wB1XZU8HRGPLLP2/HZ0lHog899zfLtN3gRK0IShHC
-         R2w/CJ4nIWMbvJMXnQUekwNxXhy/W7YNO9luPYRdVFZAIEntnS4eFqoaY0VPnYXffw
-         jpTj+fBZyROGqPJZEkeorOHdl0yt/LjibxtOzgs8FoGjlOlj51hrPNmYf5N2mXiknZ
-         tcT9bjqNmjvA/4vLm183cvvdooGhe4S1epuA/0Uh4ECaL5jKl3VFl68vOuJYtS4YLP
-         F6KiGdb2hA2Xw==
+        b=WQ01+CKwjXIr5Y9JVM0lCXf2vqLYp2a6RBQjf5XACW2qde4gnej/CUIKAWqP/932+
+         lsLwCWtNYInTymZH7thg+f5OWeF6Xs2gW2CcFZOitky6b43StRWYquhtdwZLB2NUZh
+         3t3r8bJDM/dY6AlElNi768fa52v8DwdkxZo0zoz8TV+1egw/FBF3GpwFbJbFE9Ffdo
+         y/vqffEmUas/+UWSqLaIXtHBMvu/1khCqPLD9ZQo25FT0lkAPclYuktf0NoI/7+C3C
+         1fRmUexxH7mid0FXFV/iG+hl+hD0tHk2EeD7x03WvY0gCyeRAAM7QjP+U1Om9eC2lS
+         VShSGJfuAbVng==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Armin Wolf <W_Armin@gmx.de>,
+Cc:     Kang Chen <void0red@gmail.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.2 21/37] ACPI: EC: Fix oops when removing custom query handlers
-Date:   Sun, 30 Apr 2023 22:59:29 -0400
-Message-Id: <20230501025945.3253774-21-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 13/33] ACPI: processor: Check for null return of devm_kzalloc() in fch_misc_setup()
+Date:   Sun, 30 Apr 2023 23:02:07 -0400
+Message-Id: <20230501030227.3254266-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230501025945.3253774-1-sashal@kernel.org>
-References: <20230501025945.3253774-1-sashal@kernel.org>
+In-Reply-To: <20230501030227.3254266-1-sashal@kernel.org>
+References: <20230501030227.3254266-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -51,38 +51,34 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Armin Wolf <W_Armin@gmx.de>
+From: Kang Chen <void0red@gmail.com>
 
-[ Upstream commit e5b492c6bb900fcf9722e05f4a10924410e170c1 ]
+[ Upstream commit 4dea41775d951ff1f7b472a346a8ca3ae7e74455 ]
 
-When removing custom query handlers, the handler might still
-be used inside the EC query workqueue, causing a kernel oops
-if the module holding the callback function was already unloaded.
+devm_kzalloc() may fail, clk_data->name might be NULL and will
+cause a NULL pointer dereference later.
 
-Fix this by flushing the EC query workqueue when removing
-custom query handlers.
-
-Tested on a Acer Travelmate 4002WLMi
-
-Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+Signed-off-by: Kang Chen <void0red@gmail.com>
+[ rjw: Subject and changelog edits ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/ec.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpi_apd.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 105d2e795afad..9658e348dc17d 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1122,6 +1122,7 @@ static void acpi_ec_remove_query_handlers(struct acpi_ec *ec,
- void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- {
- 	acpi_ec_remove_query_handlers(ec, false, query_bit);
-+	flush_workqueue(ec_query_wq);
- }
- EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 3bbe2276cac76..80f945cbec8a7 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -83,6 +83,8 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+ 	if (!acpi_dev_get_property(adev, "clk-name", ACPI_TYPE_STRING, &obj)) {
+ 		clk_data->name = devm_kzalloc(&adev->dev, obj->string.length,
+ 					      GFP_KERNEL);
++		if (!clk_data->name)
++			return -ENOMEM;
  
+ 		strcpy(clk_data->name, obj->string.pointer);
+ 	} else {
 -- 
 2.39.2
 
