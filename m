@@ -2,45 +2,45 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC90C77B7F
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:00:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 294DEC77B73
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:01:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232505AbjEADAf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 30 Apr 2023 23:00:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49056 "EHLO
+        id S232494AbjEADBY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 30 Apr 2023 23:01:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232422AbjEAC7q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 22:59:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC36F211D;
-        Sun, 30 Apr 2023 19:58:54 -0700 (PDT)
+        with ESMTP id S232498AbjEADAd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:00:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A676B2693;
+        Sun, 30 Apr 2023 19:59:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B21BF616DD;
-        Mon,  1 May 2023 02:58:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50533C4339B;
-        Mon,  1 May 2023 02:58:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 60617616EC;
+        Mon,  1 May 2023 02:58:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 050ADC4339B;
+        Mon,  1 May 2023 02:58:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682909934;
-        bh=9iCPb1n3q1m6MRO13zX8nNwGXFG5gf9fMLylunhSlBU=;
+        s=k20201202; t=1682909919;
+        bh=Y/O9162IMq3Ry2QSMjHXQr8tMPfZrXeNgajqVcH+mb4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qah1vs4EFXBMW+AhQxLzpMqY/7gXTiqr4G5EcIyvmVN7ju72TbYcWKgFSqtSpdt+i
-         37SZIXDNppe7wKMfiwSDptUGMzw77XVDgsYoBnKyqIra8R3dwLdYPDXDCpFzs4AWtj
-         TpBAqDwssoPjrZJ8SZLYNLIBhpg3ZT+wk8VQmg3itY0+HWS2a4AiSgb0sOZjRs/wXw
-         U9melkqEQ8LDlahtg6TQAFM9hxjK3h+7aHd7sIWJI7XxNXEYu/L/aPzSJ7giPyQI6n
-         QvYYsB19rT95wHFwR5aitKvg3hvGr0AnyEYLv6gMVg5v0N19bkwwaOwHxftW/aW0jZ
-         tbTt51zirJgYA==
+        b=cbb2AeLkIpLfNlF2QhMZ4sSmaYRGTf6qvNThQcHNYfaQ939pdpIZzN1HH6A0dhBAv
+         xP8WAPhEuJZpcxnZb+DonqORoZN19KRfbds5SEIhMTj+mGvQkJxMNBvpFvAL7IIw7c
+         1n2cuIoGX59UwQuiWQO3U8cohO+sT2Jc7i8SpwtOaDioZqVbtx+y/4aKdHiE2PpSOP
+         tMKoeUjXaw5LoZkGT2UJZc4MxpaKpB5Gh7NIfCMFTReaFSL3IOL09KVpygR+TM5xGZ
+         hCM4v0i72Qd1P1LiBAw3jz35mefpfZ8ySrAQvDSLzKkwENkbATDCLIVNbUoaYeQ6zp
+         RQTx8BDTxKwzg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Mario Limonciello <mario.limonciello@amd.com>,
+Cc:     Tamir Duberstein <tamird@google.com>,
+        Bob Moore <robert.moore@intel.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.3 36/44] ACPI: video: Remove desktops without backlight DMI quirks
-Date:   Sun, 30 Apr 2023 22:56:24 -0400
-Message-Id: <20230501025632.3253067-36-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
+        acpica-devel@lists.linuxfoundation.org
+Subject: [PATCH AUTOSEL 6.3 29/44] ACPICA: Avoid undefined behavior: applying zero offset to null pointer
+Date:   Sun, 30 Apr 2023 22:56:17 -0400
+Message-Id: <20230501025632.3253067-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230501025632.3253067-1-sashal@kernel.org>
 References: <20230501025632.3253067-1-sashal@kernel.org>
@@ -52,81 +52,64 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: Tamir Duberstein <tamird@google.com>
 
-[ Upstream commit abe4f5ae5efa6a63c7d5abfa07eb02bb56b4654e ]
+[ Upstream commit 05bb0167c80b8f93c6a4e0451b7da9b96db990c2 ]
 
-After the recent backlight changes acpi_video# backlight devices are only
-registered when explicitly requested from the cmdline, by DMI quirk or by
-the GPU driver.
+ACPICA commit 770653e3ba67c30a629ca7d12e352d83c2541b1e
 
-This means that we no longer get false-positive backlight control support
-advertised on desktop boards.
+Before this change we see the following UBSAN stack trace in Fuchsia:
 
-Remove the 3 DMI quirks for desktop boards where the false-positive issue
-was fixed through quirks before. Note many more desktop boards were
-affected but we never build a full quirk list for this.
+  #0    0x000021e4213b3302 in acpi_ds_init_aml_walk(struct acpi_walk_state*, union acpi_parse_object*, struct acpi_namespace_node*, u8*, u32, struct acpi_evaluate_info*, u8) ../../third_party/acpica/source/components/dispatcher/dswstate.c:682 <platform-bus-x86.so>+0x233302
+  #1.2  0x000020d0f660777f in ubsan_get_stack_trace() compiler-rt/lib/ubsan/ubsan_diag.cpp:41 <libclang_rt.asan.so>+0x3d77f
+  #1.1  0x000020d0f660777f in maybe_print_stack_trace() compiler-rt/lib/ubsan/ubsan_diag.cpp:51 <libclang_rt.asan.so>+0x3d77f
+  #1    0x000020d0f660777f in ~scoped_report() compiler-rt/lib/ubsan/ubsan_diag.cpp:387 <libclang_rt.asan.so>+0x3d77f
+  #2    0x000020d0f660b96d in handlepointer_overflow_impl() compiler-rt/lib/ubsan/ubsan_handlers.cpp:809 <libclang_rt.asan.so>+0x4196d
+  #3    0x000020d0f660b50d in compiler-rt/lib/ubsan/ubsan_handlers.cpp:815 <libclang_rt.asan.so>+0x4150d
+  #4    0x000021e4213b3302 in acpi_ds_init_aml_walk(struct acpi_walk_state*, union acpi_parse_object*, struct acpi_namespace_node*, u8*, u32, struct acpi_evaluate_info*, u8) ../../third_party/acpica/source/components/dispatcher/dswstate.c:682 <platform-bus-x86.so>+0x233302
+  #5    0x000021e4213e2369 in acpi_ds_call_control_method(struct acpi_thread_state*, struct acpi_walk_state*, union acpi_parse_object*) ../../third_party/acpica/source/components/dispatcher/dsmethod.c:605 <platform-bus-x86.so>+0x262369
+  #6    0x000021e421437fac in acpi_ps_parse_aml(struct acpi_walk_state*) ../../third_party/acpica/source/components/parser/psparse.c:550 <platform-bus-x86.so>+0x2b7fac
+  #7    0x000021e4214464d2 in acpi_ps_execute_method(struct acpi_evaluate_info*) ../../third_party/acpica/source/components/parser/psxface.c:244 <platform-bus-x86.so>+0x2c64d2
+  #8    0x000021e4213aa052 in acpi_ns_evaluate(struct acpi_evaluate_info*) ../../third_party/acpica/source/components/namespace/nseval.c:250 <platform-bus-x86.so>+0x22a052
+  #9    0x000021e421413dd8 in acpi_ns_init_one_device(acpi_handle, u32, void*, void**) ../../third_party/acpica/source/components/namespace/nsinit.c:735 <platform-bus-x86.so>+0x293dd8
+  #10   0x000021e421429e98 in acpi_ns_walk_namespace(acpi_object_type, acpi_handle, u32, u32, acpi_walk_callback, acpi_walk_callback, void*, void**) ../../third_party/acpica/source/components/namespace/nswalk.c:298 <platform-bus-x86.so>+0x2a9e98
+  #11   0x000021e4214131ac in acpi_ns_initialize_devices(u32) ../../third_party/acpica/source/components/namespace/nsinit.c:268 <platform-bus-x86.so>+0x2931ac
+  #12   0x000021e42147c40d in acpi_initialize_objects(u32) ../../third_party/acpica/source/components/utilities/utxfinit.c:304 <platform-bus-x86.so>+0x2fc40d
+  #13   0x000021e42126d603 in acpi::acpi_impl::initialize_acpi(acpi::acpi_impl*) ../../src/devices/board/lib/acpi/acpi-impl.cc:224 <platform-bus-x86.so>+0xed603
 
-Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Add a simple check that avoids incrementing a pointer by zero, but
+otherwise behaves as before. Note that our findings are against ACPICA
+20221020, but the same code exists on master.
+
+Link: https://github.com/acpica/acpica/commit/770653e3
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/video_detect.c | 35 -----------------------------------
- 1 file changed, 35 deletions(-)
+ drivers/acpi/acpica/dswstate.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index e85729fc481fd..69ef2d9710c2c 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -130,12 +130,6 @@ static int video_detect_force_native(const struct dmi_system_id *d)
- 	return 0;
- }
+diff --git a/drivers/acpi/acpica/dswstate.c b/drivers/acpi/acpica/dswstate.c
+index 0aa735d3b93cc..77076da2029d9 100644
+--- a/drivers/acpi/acpica/dswstate.c
++++ b/drivers/acpi/acpica/dswstate.c
+@@ -576,9 +576,14 @@ acpi_ds_init_aml_walk(struct acpi_walk_state *walk_state,
+ 	ACPI_FUNCTION_TRACE(ds_init_aml_walk);
  
--static int video_detect_force_none(const struct dmi_system_id *d)
--{
--	acpi_backlight_dmi = acpi_backlight_none;
--	return 0;
--}
--
- static const struct dmi_system_id video_detect_dmi_table[] = {
- 	/*
- 	 * Models which should use the vendor backlight interface,
-@@ -768,35 +762,6 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 15 3535"),
- 		},
- 	},
--
--	/*
--	 * Desktops which falsely report a backlight and which our heuristics
--	 * for this do not catch.
--	 */
--	{
--	 .callback = video_detect_force_none,
--	 /* Dell OptiPlex 9020M */
--	 .matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 9020M"),
--		},
--	},
--	{
--	 .callback = video_detect_force_none,
--	 /* GIGABYTE GB-BXBT-2807 */
--	 .matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "GIGABYTE"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "GB-BXBT-2807"),
--		},
--	},
--	{
--	 .callback = video_detect_force_none,
--	 /* MSI MS-7721 */
--	 .matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "MSI"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "MS-7721"),
--		},
--	},
- 	{ },
- };
+ 	walk_state->parser_state.aml =
+-	    walk_state->parser_state.aml_start = aml_start;
+-	walk_state->parser_state.aml_end =
+-	    walk_state->parser_state.pkg_end = aml_start + aml_length;
++	    walk_state->parser_state.aml_start =
++	    walk_state->parser_state.aml_end =
++	    walk_state->parser_state.pkg_end = aml_start;
++	/* Avoid undefined behavior: applying zero offset to null pointer */
++	if (aml_length != 0) {
++		walk_state->parser_state.aml_end += aml_length;
++		walk_state->parser_state.pkg_end += aml_length;
++	}
+ 
+ 	/* The next_op of the next_walk will be the beginning of the method */
  
 -- 
 2.39.2
