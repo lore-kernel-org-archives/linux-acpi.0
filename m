@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 824ADC77B61
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:16:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CB74C77B61
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:17:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232926AbjEADQo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 30 Apr 2023 23:16:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37172 "EHLO
+        id S233074AbjEADRG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 30 Apr 2023 23:17:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233087AbjEADO2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:14:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E9224C0C;
-        Sun, 30 Apr 2023 20:05:15 -0700 (PDT)
+        with ESMTP id S233953AbjEADQ3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:16:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F25E410EF;
+        Sun, 30 Apr 2023 20:07:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F41F61137;
-        Mon,  1 May 2023 03:05:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98602C4339B;
-        Mon,  1 May 2023 03:05:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73A61617C4;
+        Mon,  1 May 2023 03:06:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02810C433D2;
+        Mon,  1 May 2023 03:06:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682910314;
-        bh=T3IVwh1exPrs5tinsS08t/lhNpTlgRhSJcUsU+dfATg=;
+        s=k20201202; t=1682910385;
+        bh=a3qyvo4tjhloZBdN45I2BYPp4DyvNzO05vFPCYMiKak=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WrJ0ooDPtLrv9I3yHxTaF5I7bZKdCuNlxuZBaUG41Jsm3WI2hrjS953sA444/Re8X
-         TlhEODzD50mGZ9YG01EbE59ONbRNyhQ+MzLqERWe5aN1i4QEmTMqRZq+nfINh8+xT0
-         ORKBuM9uKy3eqZpOsTqORaFvNSQkaTPAEtPgDRtlsWMxsuvNnOiFA3sJkwCQPPGJyd
-         U812CoXbGBHCryilNTQsXgGtI6/kYux1JuXe32j35AXAv/6lAEd9b7t48oQkH0gleW
-         NvEyktsCVf9/KsHEzJMSvJzmowRPISnvw6f+ifuLgeuNkAg8m0Ys3W39GKpK4Kk43B
-         U4QD3soBVxrcg==
+        b=dV0qZ+Jc2LEv5RALv9KFmL82TbhSgGoFoflEFwVnrJl35z0Vvjb4LwOLpwITKIWhI
+         p/I+sLfJUeYoFCHDOZl2f2CSskaI5z8tgppUvp4QOk2gqCRdh0p03yhRfjanYj2VB/
+         dV2wrAGwCwPsIMXhhtZqsWC7pgVlxgUI/kKKMDdvoUoaEDpwge8nl44lTbOJd1//zI
+         lZ1IXNgLNM8KX+nY1OeR4PsqbVghPnqk8/Db7wPAnB2suI9DyMWCidBgFF8C7/reZz
+         MIAjWewG7mK26JjOB4Rx9O3RbAqCjOmMyrPALsyNFpNBYKehoeJ4X8QnOKBaDvigOA
+         ZGjUATOB07j0g==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tamir Duberstein <tamird@google.com>,
@@ -38,12 +38,12 @@ Cc:     Tamir Duberstein <tamird@google.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH AUTOSEL 5.15 13/17] ACPICA: Avoid undefined behavior: applying zero offset to null pointer
-Date:   Sun, 30 Apr 2023 23:04:30 -0400
-Message-Id: <20230501030435.3254695-13-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 7/9] ACPICA: Avoid undefined behavior: applying zero offset to null pointer
+Date:   Sun, 30 Apr 2023 23:06:07 -0400
+Message-Id: <20230501030611.3255082-7-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230501030435.3254695-1-sashal@kernel.org>
-References: <20230501030435.3254695-1-sashal@kernel.org>
+In-Reply-To: <20230501030611.3255082-1-sashal@kernel.org>
+References: <20230501030611.3255082-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -90,7 +90,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpica/dswstate.c b/drivers/acpi/acpica/dswstate.c
-index fbe2ba05c82a6..1c862940cc5b2 100644
+index de79f835a3737..7979d52dfbc96 100644
 --- a/drivers/acpi/acpica/dswstate.c
 +++ b/drivers/acpi/acpica/dswstate.c
 @@ -576,9 +576,14 @@ acpi_ds_init_aml_walk(struct acpi_walk_state *walk_state,
