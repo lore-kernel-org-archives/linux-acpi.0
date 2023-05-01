@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91C41C77B7F
-	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37F1AC77B7F
+	for <linux-acpi@archiver.kernel.org>; Mon,  1 May 2023 03:19:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233505AbjEADSi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 30 Apr 2023 23:18:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43844 "EHLO
+        id S233262AbjEADT0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 30 Apr 2023 23:19:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233200AbjEADRK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:17:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 658BA6A6B;
-        Sun, 30 Apr 2023 20:07:43 -0700 (PDT)
+        with ESMTP id S233264AbjEADRZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2023 23:17:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B0FD6A45;
+        Sun, 30 Apr 2023 20:07:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A990660EA5;
-        Mon,  1 May 2023 03:07:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54EFBC4339C;
-        Mon,  1 May 2023 03:07:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9650A6175D;
+        Mon,  1 May 2023 03:06:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B96C4339C;
+        Mon,  1 May 2023 03:05:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682910422;
-        bh=342p/LqQZxMeFHrcgAvtHLZungpIv0bcCYZMTUCByCA=;
+        s=k20201202; t=1682910360;
+        bh=hRj1ydpVYptJsvNmiO59+UYPMUE4NUJHzAScAHy8VdI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BUyS2tovNLkZsM5z16dnFJRuJ/ifuV+NRM+Bnvha4DisAud3QhAvhJGTLBKj8IW08
-         dVYSljPxgbbHHDxdBvzEdU1uzydj86wHrsRygpfcm79J6j6KC37L1ch/l9R+nUU6aM
-         FCywIBpV0amCPVnoUAyH+qvrmG5Xp/AvxzS3e3esBaRFabvqcLHq3T6jh2H8ojk71Z
-         73HUetknduH85klXN/862sSZ3KzUAFcaQLs0yrg1pYLg0ZYkOYtNIRM7dDuSqv0gm9
-         XSBqp2XSU/htL734XcXhew8ieLaknA2WpyeS35e9PlVK9TEXgtLseeU7aXB8NvE4mg
-         eCN2p0ADS11AA==
+        b=Cx9qAJSoQhYmAbyv8EcMAwuLdPLpuSH8OiUshZ6WABU/c1V1Y/BlmmmZ0ogXuEFtG
+         90Q8wQ+Ez/pOymLGPAfZl6LiJCkrCVCwWFYHz4XD6l2lfH1VltG4AAuhPSMJfCTZOD
+         5cax4pUYHsL4a5kE+lg472p8mEef+9ulwZ5G76aV9DfPJ1GMyK3TKMiMK8CBcvI66G
+         LFNN5Jv3cblzWg7/Qbbgy6YBaCZqn4U+DFU7MND9/GTSaZpkKnSBti+1hMFPZGmpMD
+         wS1G4KAhRZI4WCFAjTdT79mo82KKkbm1xIu6cznjh6iQGF0o7eMa/+5LaUsKNP+OB/
+         kqFzsKbt15mlA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     void0red <30990023+void0red@users.noreply.github.com>,
@@ -38,12 +38,12 @@ Cc:     void0red <30990023+void0red@users.noreply.github.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH AUTOSEL 4.14 6/6] ACPICA: ACPICA: check null return of ACPI_ALLOCATE_ZEROED in acpi_db_display_objects
-Date:   Sun, 30 Apr 2023 23:06:52 -0400
-Message-Id: <20230501030653.3255321-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 10/12] ACPICA: ACPICA: check null return of ACPI_ALLOCATE_ZEROED in acpi_db_display_objects
+Date:   Sun, 30 Apr 2023 23:05:36 -0400
+Message-Id: <20230501030540.3254928-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230501030653.3255321-1-sashal@kernel.org>
-References: <20230501030653.3255321-1-sashal@kernel.org>
+In-Reply-To: <20230501030540.3254928-1-sashal@kernel.org>
+References: <20230501030540.3254928-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -70,10 +70,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/acpi/acpica/dbnames.c b/drivers/acpi/acpica/dbnames.c
-index 8c207c7725179..658fd7cfbd6cd 100644
+index 3615e1a6efd8a..b91155ea9c343 100644
 --- a/drivers/acpi/acpica/dbnames.c
 +++ b/drivers/acpi/acpica/dbnames.c
-@@ -600,6 +600,9 @@ acpi_status acpi_db_display_objects(char *obj_type_arg, char *display_count_arg)
+@@ -652,6 +652,9 @@ acpi_status acpi_db_display_objects(char *obj_type_arg, char *display_count_arg)
  		object_info =
  		    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_object_info));
  
