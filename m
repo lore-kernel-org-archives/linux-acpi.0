@@ -2,119 +2,82 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6F21C7EE22
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 May 2023 04:31:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70F6DC77B78
+	for <linux-acpi@archiver.kernel.org>; Wed,  3 May 2023 11:08:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229459AbjECEbW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 May 2023 00:31:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44322 "EHLO
+        id S229606AbjECLIG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 May 2023 07:08:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229449AbjECEbU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2023 00:31:20 -0400
-Received: from mail-pf1-x42f.google.com (mail-pf1-x42f.google.com [IPv6:2607:f8b0:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49386B5;
-        Tue,  2 May 2023 21:31:17 -0700 (PDT)
-Received: by mail-pf1-x42f.google.com with SMTP id d2e1a72fcca58-63b67a26069so5273137b3a.0;
-        Tue, 02 May 2023 21:31:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683088276; x=1685680276;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=j36FxbwcTfFp+Gw+OcG7+yTUIaRmnbVgGu4hODtTOa0=;
-        b=citAXFKdtFhDlYnMr+GPqWXwjQYIvHLtz/niHkqQih/1UNzeLl3TEUTEeb+3Z21JXJ
-         WP0PogRcYNrjxnnih1jSjvxB4iRIrPEv4IV5vmDfIa7cvtGzed2C2bNeFrGR/N/lLmmx
-         CndsSzUQd8zF6VqgbCnal2ZGPgIa4wjfHC8uCssmN+6As/oZ1InjHs6GiZ4b2vnSWqqE
-         Cn4RSAXzV+1yVvnc1ljIrnfow/J3GuthUY0JN59EfER1TNmyJDIjByOYy2dhdLAujOOd
-         UDGMSbS792NCH53/sf23pAg6Ifkh9bnmFdtNR20TrEvH6In0WHiZ30tnAWu7XfZD0tfd
-         +Hqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683088277; x=1685680277;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=j36FxbwcTfFp+Gw+OcG7+yTUIaRmnbVgGu4hODtTOa0=;
-        b=F7APy0VdTF/BnhZ1TWZR1Fziwfsj9o0QM1J/VSc3bTJ+n52rWBtx7/JW5VvEHwDHhd
-         OJ83Dv7vM7TBWBO9r46VCxPvUZB36zG/m7gjeg99Ga/DAhvckEjlZBToIROOQa9cBzFx
-         0Gx0hFaIXfSV0go7wKvCsnpbiAvLaC2kGvXJI9x+jSqPTfudeWxEIePDuL6YWL+Nw57n
-         uvE2WkdvJrhOJ0GYk4D6t3rYQmRTZYJnp6A+fELF9NVfl3CAtvSHCxZ7YC13NYGQ0jT1
-         3NSJfyzYnn8m1tc93Gg0FS/aQU/9xIe3t5r5gKA9O3Vf1GKgyJuSetoR1AAEW1w9nVyW
-         c8wg==
-X-Gm-Message-State: AC+VfDzhDQZQ6eE+hrRBqKqI8CNgxJ1dPWuP2OJwZNYjNniRV1TZ68JF
-        GREQbsxjpCbxekGfX8ZCw1j2vBZMg3I=
-X-Google-Smtp-Source: ACHHUZ7fgYIek3AW/jmP9fqZIwYfJQKDV4HBGtHSbzm88HjynunVyvK7sLCzkGyJubW9ytiB59fATw==
-X-Received: by 2002:a05:6a00:a26:b0:641:3c61:db27 with SMTP id p38-20020a056a000a2600b006413c61db27mr21516460pfh.13.1683088276567;
-        Tue, 02 May 2023 21:31:16 -0700 (PDT)
-Received: from debian.me (subs32-116-206-28-39.three.co.id. [116.206.28.39])
-        by smtp.gmail.com with ESMTPSA id n7-20020a056a00212700b0063b6fb4522esm22460215pfj.20.2023.05.02.21.31.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 02 May 2023 21:31:16 -0700 (PDT)
-Received: by debian.me (Postfix, from userid 1000)
-        id 61B83106248; Wed,  3 May 2023 11:31:13 +0700 (WIB)
-Date:   Wed, 3 May 2023 11:31:13 +0700
-From:   Bagas Sanjaya <bagasdotme@gmail.com>
-To:     Acid Bong <acidbong@tilde.cafe>, regressions@lists.linux.dev
-Cc:     stable@vger.kernel.org, linux-acpi@vger.kernel.org,
-        Thorsten Leemhuis <regressions@leemhuis.info>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [REGRESSION] Asus X541UAK hangs on suspend and poweroff (v6.1.6
- onward)
-Message-ID: <ZFHjkb75lgzKRhRr@debian.me>
-References: <CRVU11I7JJWF.367PSO4YAQQEI@bong>
- <5f445dab-a152-bcaa-4462-1665998c3e2e@gmail.com>
- <ZE+1pKbfy1l/tTo6@debian.me>
- <CSB8TSV6LXJ8.7SHI9VM2YMAR@bong>
+        with ESMTP id S229577AbjECLIF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2023 07:08:05 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 701F31B0
+        for <linux-acpi@vger.kernel.org>; Wed,  3 May 2023 04:07:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1683112039;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=K3jqoqPQDQnEYgn6GJe/Oqoor/fXTlzmxc43rLH1ZDs=;
+        b=Ln5i7ywHeQV397aG5uy4+ome90OPHVVpTmnfiVsj4B8GF63TfDrP77OmNZfLQGwYTJgI7K
+        2EI4QFj8LJNaYgpMN32buvusfsQhs9IYDpVHuYsJPvlmkQQndCQgEFNWLl0GUJzQcbBOdm
+        csWDGPNo5NpeXZlCjGzRU5yermLCV7c=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-55-qUYO1ptePR-3-pk_FxPECQ-1; Wed, 03 May 2023 07:07:16 -0400
+X-MC-Unique: qUYO1ptePR-3-pk_FxPECQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E40EC3C0252E;
+        Wed,  3 May 2023 11:07:15 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.193.23])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 59F684014E87;
+        Wed,  3 May 2023 11:07:15 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+Subject: [PATCH] ACPI: video: Add backlight=native DMI quirk for Apple iMac11,3
+Date:   Wed,  3 May 2023 13:07:09 +0200
+Message-Id: <20230503110709.22260-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qzZ1tcaqoAMep0dQ"
-Content-Disposition: inline
-In-Reply-To: <CSB8TSV6LXJ8.7SHI9VM2YMAR@bong>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Linux defaults to picking the non-working ACPI video backlight interface
+on the Apple iMac11,3 .
 
---qzZ1tcaqoAMep0dQ
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add a DMI quirk to pick the working native radeon_bl0 interface instead.
 
-On Tue, May 02, 2023 at 12:02:26AM +0300, Acid Bong wrote:
-> Hi there, and thank you for the reminder.
->=20
-> Bisecting, unfortunately, takes a long time: I'm only trying out the 7th
-> commit, 15e7433e1dc2 (previous 6 marked as bad). The bug, as noted in
-> the head, doesn't have any (strict) patterns and takes randomly long
-> times: some kernels hung on the next day after compilation, one took 5
-> days. I'm not excluding a possibility that I might've got the versions
-> wrong and the bug occured on the update from 6.1-pf1 to 6.1-pf2 (6.1 and
-> 6.1.3; could be unrelated, but I saw a bunch of commits related to i915
-> and Skylake).
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-OK, try keep updating on bisection process.
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index bcc25d457581..61586caebb01 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -470,6 +470,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "82BK"),
+ 		},
+ 	},
++	{
++	 .callback = video_detect_force_native,
++	 /* Apple iMac11,3 */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "iMac11,3"),
++		},
++	},
+ 	{
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1217249 */
+ 	 .callback = video_detect_force_native,
+-- 
+2.39.2
 
-> What exactly do you mean by "swapping the hardware"? I'm already sure
-> it's not related to my storage, because a month ago I replaced my faulty
-> HDD with an SSD, but the bug still remained. Unfortunately, I don't have
-> spare PCs or resources to purchase new hardware.
-
-In case of laptops, I mean buying out new laptop (maybe with similar
-hardware specs as your current one) and try reproducing the regression
-there.
-
-Thanks.
-
---=20
-An old man doll... just what I always wanted! - Clara
-
---qzZ1tcaqoAMep0dQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZFHjkAAKCRD2uYlJVVFO
-o0hGAP0bEioOcTuwLyb+gkUo3DPx3R9ztyRQPLu3u8KxtSe9LQEAoy7Rm/yGzwrQ
-uibC0VjplPdI/WpcMp7epkioqm6SnQY=
-=Tnp8
------END PGP SIGNATURE-----
-
---qzZ1tcaqoAMep0dQ--
