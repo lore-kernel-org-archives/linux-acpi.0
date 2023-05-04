@@ -2,70 +2,79 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48AFFC7EE21
-	for <linux-acpi@archiver.kernel.org>; Wed,  3 May 2023 19:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BCD9C77B75
+	for <linux-acpi@archiver.kernel.org>; Thu,  4 May 2023 01:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230039AbjECT2e (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 3 May 2023 15:28:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49122 "EHLO
+        id S229461AbjEDBbK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 3 May 2023 21:31:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230034AbjECT2d (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2023 15:28:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B44976A0;
-        Wed,  3 May 2023 12:28:32 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8778362F42;
-        Wed,  3 May 2023 19:28:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id EB02FC433D2;
-        Wed,  3 May 2023 19:28:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1683142111;
-        bh=sPaIfdEpJIxGgVU7FmpRmRlGcrUsImMC4vpTygWZa2o=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=PkASVbYgchDpKfbBtkEti2V7jZWxnS9yGFnl5WoWyaoNQ1Y/+QnNGGVSGpIBP98jS
-         uD1F3pujxijbE4oNLj8qlxQ4R1Eu7lJoKUfAMtj2ccHFL4uP9PaNK+89SXNCr4iaLC
-         KiFZBUPOpcuDhkZYqDXrzvCbNllY9xKSV4qQWaVDHl3WMw/8//4OaUBwxdxyONVhEG
-         iuPPEkON4nWcRfeB8bd7y6slweMbSVfQRbcr5ZkCZCUbAcKGxI/NTSTUG/LtvqJn+u
-         Gppvk5Tp/VHvzFAG/2Lyl4tarkXDI1uU8kPr52loYZnCBgZ6RcmbamP6OHAifpTNt+
-         h8XyjLOd+sVAA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id D0399E5FFC9;
-        Wed,  3 May 2023 19:28:30 +0000 (UTC)
-Subject: Re: [GIT PULL] More thermal control updates for v6.4-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0hv3CrvnrY=7NrpxMeUyoupB43Bu2Cv_4CD7asPFTU-cw@mail.gmail.com>
-References: <CAJZ5v0hv3CrvnrY=7NrpxMeUyoupB43Bu2Cv_4CD7asPFTU-cw@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0hv3CrvnrY=7NrpxMeUyoupB43Bu2Cv_4CD7asPFTU-cw@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git thermal-6.4-rc1-2
-X-PR-Tracked-Commit-Id: 53389edd4020514b876b01d05e851fb7d46eb51f
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 667de5c68440732373f571f7eac4ff44b1b93ee7
-Message-Id: <168314211084.24310.16316351220410969419.pr-tracker-bot@kernel.org>
-Date:   Wed, 03 May 2023 19:28:30 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>
+        with ESMTP id S229459AbjEDBbI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2023 21:31:08 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E1C110E6;
+        Wed,  3 May 2023 18:31:03 -0700 (PDT)
+Received: from kwepemm600004.china.huawei.com (unknown [172.30.72.55])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4QBbnl13YRzsR6S;
+        Thu,  4 May 2023 09:29:15 +0800 (CST)
+Received: from [10.67.103.231] (10.67.103.231) by
+ kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Thu, 4 May 2023 09:31:00 +0800
+Message-ID: <65434e32-d1e5-54ef-2e91-b4aa8d79dfc8@huawei.com>
+Date:   Thu, 4 May 2023 09:30:59 +0800
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.2.0
+Subject: Re: [PATCH v3 0/2] mailbox: pcc: Support platform notification for
+ type4 and shared interrupt
+To:     <robbiek@xsightlabs.com>, <sudeep.holla@arm.com>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <rafael@kernel.org>, <rafael.j.wysocki@intel.com>,
+        <wanghuiqiang@huawei.com>, <zhangzekun11@huawei.com>,
+        <wangxiongfeng2@huawei.com>, <tanxiaofei@huawei.com>,
+        <guohanjun@huawei.com>, <wangkefeng.wang@huawei.com>,
+        <huangdaode@huawei.com>
+References: <20221016034043.52227-1-lihuisong@huawei.com>
+ <20230423110335.2679-1-lihuisong@huawei.com>
+From:   "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <20230423110335.2679-1-lihuisong@huawei.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.67.103.231]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ kwepemm600004.china.huawei.com (7.193.23.242)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Wed, 3 May 2023 16:25:38 +0200:
+Hi Sudeep,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git thermal-6.4-rc1-2
+Can you add Reviewed-by again?
+I forgot to do it when send v3.
+There is no the 'Reviewed-by' tag on patchwork now.
+I'm not sure if this affects patch merging.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/667de5c68440732373f571f7eac4ff44b1b93ee7
+/Huisong
 
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+在 2023/4/23 19:03, Huisong Li 写道:
+> PCC supports processing platform notification for slave subspaces and
+> shared interrupt for multiple subspaces.
+>
+> ---
+>   -v3: update requesting shared irq code due to pcc using mbox_bind_client.
+>   -v2: extract cmd complete code into a function.
+>        unrelated types regard chan_in_use as dummy.
+>   -v1: using subspace type to replace comm_flow_dir in patch [1/2]
+>   -rfc-v3: split V2 into two patches.
+>   -rfc-v2: don't use platform interrupt ack register to identify if the given
+>        channel should respond interrupt.
+>
+> Huisong Li (2):
+>    mailbox: pcc: Add support for platform notification handling
+>    mailbox: pcc: Support shared interrupt for multiple subspaces
+>
+>   drivers/mailbox/pcc.c | 91 +++++++++++++++++++++++++++++++++++++------
+>   1 file changed, 80 insertions(+), 11 deletions(-)
+>
