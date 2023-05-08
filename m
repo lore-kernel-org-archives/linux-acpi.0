@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A010AC77B7F
-	for <linux-acpi@archiver.kernel.org>; Mon,  8 May 2023 11:54:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C218C77B73
+	for <linux-acpi@archiver.kernel.org>; Mon,  8 May 2023 11:55:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236390AbjEHLys (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 8 May 2023 07:54:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56792 "EHLO
+        id S234068AbjEHLzT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 8 May 2023 07:55:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236386AbjEHLyS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2023 07:54:18 -0400
-Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6987E431FE
-        for <linux-acpi@vger.kernel.org>; Mon,  8 May 2023 04:53:45 -0700 (PDT)
-Received: by mail-pl1-x62b.google.com with SMTP id d9443c01a7336-1aad5245632so30990655ad.3
-        for <linux-acpi@vger.kernel.org>; Mon, 08 May 2023 04:53:45 -0700 (PDT)
+        with ESMTP id S236370AbjEHLyv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2023 07:54:51 -0400
+Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B176E44BD2
+        for <linux-acpi@vger.kernel.org>; Mon,  8 May 2023 04:54:09 -0700 (PDT)
+Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-1aaf21bb427so31036135ad.1
+        for <linux-acpi@vger.kernel.org>; Mon, 08 May 2023 04:54:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1683546824; x=1686138824;
+        d=ventanamicro.com; s=google; t=1683546849; x=1686138849;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=hXB6eSvEhnIAtMiQWlMtfWUjRdd7V8Gch2IVA+HK6fk=;
-        b=ebWTZvVaQDx6X+9UsK2RbHTnW183k6BKTsOF+bCMFgqFtgeBzsyP/w5qy7tOKROuUC
-         ZxTuvZiMQiB+Ua4SXOBNs+t7uI0Ats9RXLgJVMycPsYyF2eIPW3Gh+M9ye96yAMc0RH1
-         Mtb+794zmhSFBW/GwJSgBFFZzeQ4b2k2P98Dpl5wOc3MxFTYa2gck9ClbsPUhl//ERS2
-         IWbrVH8Qmq/UF93MEUcUH8RTYSDW0HAjPAZ+t1IaTrcEVR+jx0vficJZuWZHxA7vJzkg
-         Wu3R3iYhGAmBuvaYLY5b/vwtSTaUxwNpNSnCci0i3v1xoRxXfuTlZ4HVqPLs9tkO4dGH
-         MRKg==
+        bh=0nwVNZh7ok4nFqCGOtk3GB5ee+yA98GCkbh3FEbeZck=;
+        b=piWIkweCJS2M/ndkQ7KqeCpLpsvnM9NfNfVHBz8Trqgqbwd+PJBCohrEmwr6044O+i
+         Wv7wfVlpp2cpLpZcdKuEO7+D05xHs/4/E05TB8R5BK140jMALtBNfdHncIdcJWVgqxSK
+         YrkehgOZTcCBZBHxXUXCsNU8cbwEl6l1RwBJHYF9G1ESGV612N8pbUqSipGtar5JM/9k
+         YNLqGDSWAJamyqUo4Rpp2nKBeTuhR/zerBfwgOlafVMOx0CZM2SBs3321YvewrEb4HeB
+         hEmRudxTCGilko4Z5x+7plYEId3JZB/llTsPsFYsiDK6gsVxk9F9cxPnIiMLmBXWddmp
+         Y+DQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683546824; x=1686138824;
+        d=1e100.net; s=20221208; t=1683546849; x=1686138849;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=hXB6eSvEhnIAtMiQWlMtfWUjRdd7V8Gch2IVA+HK6fk=;
-        b=JvmvJ/ukVIOYX5H8x6c5Awlz3m2szoKkUVu07pqUcvNeWa+ULQwGz4S383xAnGso2Z
-         ayd1G/af+XH99l7IOQSnoC2O0eFB0z1bCv+vFC4GNVP1hbVfVPNKNG/uDo2FBN0tjIa6
-         JfH8abYMFiJm97BdpJ2XnyBBJ9p/ScQ8N7477lmXPXDV4Q9aJXzhnSKxR016LOE7DClU
-         5D0Vb3yjT9crqqxKrDRiiJgMSafymweccACrK7W6lurjtW0uML3qIQcl5YeCPjQ/w/Tq
-         8FYAN75VLKHx6befEKeVIIzSnLRh2fcCLvOpTfE0+f4YQ6LH6sUgHC0oeoF6dXTIVO1t
-         y3zw==
-X-Gm-Message-State: AC+VfDwYhSaEN1d3xbL0tuO1sG/RNs7Bs11eEqnjibEthE44bd0E4pYX
-        m5odNS3jTeCtnpCCmEoI2VRRaA==
-X-Google-Smtp-Source: ACHHUZ4PU3YdcmwoLuH4jvs9+bfUcLvXabdC5Eg1na9dV0OJsAf5GJnzwnVXrkvmBEUvHMCJo+05+Q==
-X-Received: by 2002:a17:902:c40b:b0:1aa:fd48:f5e2 with SMTP id k11-20020a170902c40b00b001aafd48f5e2mr13592838plk.32.1683546824698;
-        Mon, 08 May 2023 04:53:44 -0700 (PDT)
+        bh=0nwVNZh7ok4nFqCGOtk3GB5ee+yA98GCkbh3FEbeZck=;
+        b=OtUjI7jMewbFqdfG17MV1xVp3N385gMiIGZ0RRGOSCOAzmWh1Vr60cjN8CMCTsMmbD
+         kgjaUUe5zI7VtoPeQcB6Gub9ISOCr96Ssv7QkswA53es5M+xYPsP9lqpFaaogNJ/djjH
+         QTVQhfETSIQyYaWpl81jjOa97zMFpnmeZM+aIORsQHuvGAqpFa0uiikuQCmV0VmRhGeV
+         BoxGUAhUT5BnIXQRBeAVik6/BeBy3gWEeU1S+0PSkfLWcw4Wf23PyxMdJC8kKS31emsE
+         c2O95eOlU25vDCXPbDI7scsM/hWQdc1W+nUjhpEenZ0m6hTBGPHl2E6j2QWsu2Ty+kwu
+         yjQg==
+X-Gm-Message-State: AC+VfDx8sb7AISLETy/IhcHX2+JJcVsIDAcR+2obMnCJjWeBMXacy9MF
+        YOp7SboYYY/lN1pLaux9LbYAKQ==
+X-Google-Smtp-Source: ACHHUZ7t0fTJ28UqX5wEhl1/Lhe4Z5gJ8AP6alOZm9WDyQPa4TluNugHfOYzIRZbQul6SFWOlKewtg==
+X-Received: by 2002:a17:902:f391:b0:1a1:dd2a:fe6c with SMTP id f17-20020a170902f39100b001a1dd2afe6cmr8913767ple.53.1683546849379;
+        Mon, 08 May 2023 04:54:09 -0700 (PDT)
 Received: from sunil-laptop.. ([106.51.189.144])
-        by smtp.gmail.com with ESMTPSA id w9-20020a170902904900b001aaed524541sm7015149plz.227.2023.05.08.04.53.36
+        by smtp.gmail.com with ESMTPSA id w9-20020a170902904900b001aaed524541sm7015149plz.227.2023.05.08.04.54.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 May 2023 04:53:44 -0700 (PDT)
+        Mon, 08 May 2023 04:54:09 -0700 (PDT)
 From:   Sunil V L <sunilvl@ventanamicro.com>
 To:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
@@ -76,11 +76,10 @@ Cc:     Jonathan Corbet <corbet@lwn.net>,
         Sunil V L <sunilvl@ventanamicro.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Andrew Jones <ajones@ventanamicro.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
         Palmer Dabbelt <palmer@rivosinc.com>
-Subject: [PATCH V5 06/21] RISC-V: Add support to build the ACPI core
-Date:   Mon,  8 May 2023 17:22:22 +0530
-Message-Id: <20230508115237.216337-7-sunilvl@ventanamicro.com>
+Subject: [PATCH V5 09/21] drivers/acpi: RISC-V: Add RHCT related code
+Date:   Mon,  8 May 2023 17:22:25 +0530
+Message-Id: <20230508115237.216337-10-sunilvl@ventanamicro.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230508115237.216337-1-sunilvl@ventanamicro.com>
 References: <20230508115237.216337-1-sunilvl@ventanamicro.com>
@@ -90,259 +89,156 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Enable ACPI core for RISC-V after adding architecture-specific
-interfaces and header files required to build the ACPI core.
-
-1) Couple of header files are required unconditionally by the ACPI
-core. Add empty acenv.h and cpu.h header files.
-
-2) If CONFIG_PCI is enabled, a few PCI related interfaces need to
-be provided by the architecture. Define dummy interfaces for now
-so that build succeeds. Actual implementation will be added when
-PCI support is added for ACPI along with external interrupt
-controller support.
-
-3) A few globals and memory mapping related functions specific
-to the architecture need to be provided.
+RHCT is a new table defined for RISC-V to communicate the
+features of the CPU to the OS. Create a new architecture folder
+in drivers/acpi and add RHCT parsing code.
 
 Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
 Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
 ---
- arch/riscv/Kconfig             |  5 +++
- arch/riscv/include/asm/acenv.h | 11 +++++
- arch/riscv/include/asm/acpi.h  | 61 ++++++++++++++++++++++++++
- arch/riscv/include/asm/cpu.h   |  8 ++++
- arch/riscv/kernel/Makefile     |  1 +
- arch/riscv/kernel/acpi.c       | 80 ++++++++++++++++++++++++++++++++++
- 6 files changed, 166 insertions(+)
- create mode 100644 arch/riscv/include/asm/acenv.h
- create mode 100644 arch/riscv/include/asm/acpi.h
- create mode 100644 arch/riscv/include/asm/cpu.h
- create mode 100644 arch/riscv/kernel/acpi.c
+ arch/riscv/include/asm/acpi.h |  8 ++++
+ drivers/acpi/Makefile         |  2 +
+ drivers/acpi/riscv/Makefile   |  2 +
+ drivers/acpi/riscv/rhct.c     | 83 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 95 insertions(+)
+ create mode 100644 drivers/acpi/riscv/Makefile
+ create mode 100644 drivers/acpi/riscv/rhct.c
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index 348c0fa1fc8c..491ecd7d2336 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -12,6 +12,8 @@ config 32BIT
- 
- config RISCV
- 	def_bool y
-+	select ACPI_GENERIC_GSI if ACPI
-+	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
- 	select ARCH_DMA_DEFAULT_COHERENT
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
-@@ -707,6 +709,7 @@ config EFI
- 	depends on OF && !XIP_KERNEL
- 	depends on MMU
- 	default y
-+	select ARCH_SUPPORTS_ACPI if 64BIT
- 	select EFI_GENERIC_STUB
- 	select EFI_PARAMS_FROM_FDT
- 	select EFI_RUNTIME_WRAPPERS
-@@ -816,3 +819,5 @@ source "drivers/cpufreq/Kconfig"
- endmenu # "CPU Power Management"
- 
- source "arch/riscv/kvm/Kconfig"
-+
-+source "drivers/acpi/Kconfig"
-diff --git a/arch/riscv/include/asm/acenv.h b/arch/riscv/include/asm/acenv.h
-new file mode 100644
-index 000000000000..43ae2e32c779
---- /dev/null
-+++ b/arch/riscv/include/asm/acenv.h
-@@ -0,0 +1,11 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * RISC-V specific ACPICA environments and implementation
-+ */
-+
-+#ifndef _ASM_ACENV_H
-+#define _ASM_ACENV_H
-+
-+/* This header is required unconditionally by the ACPI core */
-+
-+#endif /* _ASM_ACENV_H */
 diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
-new file mode 100644
-index 000000000000..bcade255bd6e
---- /dev/null
+index 6519529c8bdf..39471759bec1 100644
+--- a/arch/riscv/include/asm/acpi.h
 +++ b/arch/riscv/include/asm/acpi.h
-@@ -0,0 +1,61 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *
-+ *  Copyright (C) 2021-2023, Ventana Micro Systems Inc.
-+ *	Author: Sunil V L <sunilvl@ventanamicro.com>
-+ */
-+
-+#ifndef _ASM_ACPI_H
-+#define _ASM_ACPI_H
-+
-+/* Basic configuration for ACPI */
-+#ifdef CONFIG_ACPI
-+
-+/* ACPI table mapping after acpi_permanent_mmap is set */
-+void *acpi_os_ioremap(acpi_physical_address phys, acpi_size size);
-+#define acpi_os_ioremap acpi_os_ioremap
-+
-+#define acpi_strict 1	/* No out-of-spec workarounds on RISC-V */
-+extern int acpi_disabled;
-+extern int acpi_noirq;
-+extern int acpi_pci_disabled;
-+
-+static inline void disable_acpi(void)
-+{
-+	acpi_disabled = 1;
-+	acpi_pci_disabled = 1;
-+	acpi_noirq = 1;
-+}
-+
-+static inline void enable_acpi(void)
-+{
-+	acpi_disabled = 0;
-+	acpi_pci_disabled = 0;
-+	acpi_noirq = 0;
-+}
-+
-+/*
-+ * The ACPI processor driver for ACPI core code needs this macro
-+ * to find out whether this cpu was already mapped (mapping from CPU hardware
-+ * ID to CPU logical ID) or not.
-+ */
-+#define cpu_physical_id(cpu) cpuid_to_hartid_map(cpu)
-+
-+/*
-+ * Since MADT must provide at least one RINTC structure, the
-+ * CPU will be always available in MADT on RISC-V.
-+ */
-+static inline bool acpi_has_cpu_in_madt(void)
-+{
-+	return true;
-+}
-+
-+static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-+
-+#endif /* CONFIG_ACPI */
-+
-+#endif /*_ASM_ACPI_H*/
-diff --git a/arch/riscv/include/asm/cpu.h b/arch/riscv/include/asm/cpu.h
-new file mode 100644
-index 000000000000..28d45a6678ce
---- /dev/null
-+++ b/arch/riscv/include/asm/cpu.h
-@@ -0,0 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+
-+#ifndef _ASM_CPU_H
-+#define _ASM_CPU_H
-+
-+/* This header is required unconditionally by the ACPI core */
-+
-+#endif /* _ASM_CPU_H */
-diff --git a/arch/riscv/kernel/Makefile b/arch/riscv/kernel/Makefile
-index fbdccc21418a..ed5fcd90036e 100644
---- a/arch/riscv/kernel/Makefile
-+++ b/arch/riscv/kernel/Makefile
-@@ -92,3 +92,4 @@ obj-$(CONFIG_COMPAT)		+= compat_signal.o
- obj-$(CONFIG_COMPAT)		+= compat_vdso/
+@@ -62,6 +62,8 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+ void acpi_init_rintc_map(void);
+ struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu);
+ u32 get_acpi_id_for_cpu(int cpu);
++int acpi_get_riscv_isa(struct acpi_table_header *table,
++		       unsigned int cpu, const char **isa);
+ #else
+ static inline void acpi_init_rintc_map(void) { }
+ static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
+@@ -69,6 +71,12 @@ static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
+ 	return NULL;
+ }
  
- obj-$(CONFIG_64BIT)		+= pi/
-+obj-$(CONFIG_ACPI)		+= acpi.o
-diff --git a/arch/riscv/kernel/acpi.c b/arch/riscv/kernel/acpi.c
++static inline int acpi_get_riscv_isa(struct acpi_table_header *table,
++				     unsigned int cpu, const char **isa)
++{
++	return -EINVAL;
++}
++
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index feb36c0b9446..3fc5a0d54f6e 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -131,3 +131,5 @@ obj-y				+= dptf/
+ obj-$(CONFIG_ARM64)		+= arm64/
+ 
+ obj-$(CONFIG_ACPI_VIOT)		+= viot.o
++
++obj-$(CONFIG_RISCV)		+= riscv/
+diff --git a/drivers/acpi/riscv/Makefile b/drivers/acpi/riscv/Makefile
 new file mode 100644
-index 000000000000..81d448c41714
+index 000000000000..8b3b126e0b94
 --- /dev/null
-+++ b/arch/riscv/kernel/acpi.c
-@@ -0,0 +1,80 @@
++++ b/drivers/acpi/riscv/Makefile
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++obj-y 	+= rhct.o
+diff --git a/drivers/acpi/riscv/rhct.c b/drivers/acpi/riscv/rhct.c
+new file mode 100644
+index 000000000000..b280b3e9c7d9
+--- /dev/null
++++ b/drivers/acpi/riscv/rhct.c
+@@ -0,0 +1,83 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
-+ *  RISC-V Specific Low-Level ACPI Boot Support
-+ *
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *	Author: Naresh Bhat <naresh.bhat@linaro.org>
-+ *
-+ *  Copyright (C) 2021-2023, Ventana Micro Systems Inc.
++ * Copyright (C) 2022-2023, Ventana Micro Systems Inc
 + *	Author: Sunil V L <sunilvl@ventanamicro.com>
++ *
 + */
++
++#define pr_fmt(fmt)     "ACPI: RHCT: " fmt
 +
 +#include <linux/acpi.h>
-+#include <linux/io.h>
-+#include <linux/pci.h>
 +
-+int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
-+int acpi_disabled = 1;
-+EXPORT_SYMBOL(acpi_disabled);
++static struct acpi_table_header *acpi_get_rhct(void)
++{
++	static struct acpi_table_header *rhct;
++	acpi_status status;
 +
-+int acpi_pci_disabled = 1;	/* skip ACPI PCI scan and IRQ initialization */
-+EXPORT_SYMBOL(acpi_pci_disabled);
++	/*
++	 * RHCT will be used at runtime on every CPU, so we
++	 * don't need to call acpi_put_table() to release the table mapping.
++	 */
++	if (!rhct) {
++		status = acpi_get_table(ACPI_SIG_RHCT, 0, &rhct);
++		if (ACPI_FAILURE(status)) {
++			pr_warn_once("No RHCT table found\n");
++			return NULL;
++		}
++	}
++
++	return rhct;
++}
 +
 +/*
-+ * __acpi_map_table() will be called before paging_init(), so early_ioremap()
-+ * or early_memremap() should be called here to for ACPI table mapping.
++ * During early boot, the caller should call acpi_get_table() and pass its pointer to
++ * these functions(and free up later). At run time, since this table can be used
++ * multiple times, NULL may be passed in order to use the cached table.
 + */
-+void __init __iomem *__acpi_map_table(unsigned long phys, unsigned long size)
++int acpi_get_riscv_isa(struct acpi_table_header *table, unsigned int cpu, const char **isa)
 +{
-+	if (!size)
-+		return NULL;
++	struct acpi_rhct_node_header *node, *ref_node, *end;
++	u32 size_hdr = sizeof(struct acpi_rhct_node_header);
++	u32 size_hartinfo = sizeof(struct acpi_rhct_hart_info);
++	struct acpi_rhct_hart_info *hart_info;
++	struct acpi_rhct_isa_string *isa_node;
++	struct acpi_table_rhct *rhct;
++	u32 *hart_info_node_offset;
++	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
 +
-+	return early_memremap(phys, size);
-+}
++	BUG_ON(acpi_disabled);
 +
-+void __init __acpi_unmap_table(void __iomem *map, unsigned long size)
-+{
-+	if (!map || !size)
-+		return;
++	if (!table) {
++		rhct = (struct acpi_table_rhct *)acpi_get_rhct();
++		if (!rhct)
++			return -ENOENT;
++	} else {
++		rhct = (struct acpi_table_rhct *)table;
++	}
 +
-+	early_memunmap(map, size);
-+}
++	end = ACPI_ADD_PTR(struct acpi_rhct_node_header, rhct, rhct->header.length);
 +
-+void *acpi_os_ioremap(acpi_physical_address phys, acpi_size size)
-+{
-+	return memremap(phys, size, MEMREMAP_WB);
-+}
++	for (node = ACPI_ADD_PTR(struct acpi_rhct_node_header, rhct, rhct->node_offset);
++	     node < end;
++	     node = ACPI_ADD_PTR(struct acpi_rhct_node_header, node, node->length)) {
++		if (node->type == ACPI_RHCT_NODE_TYPE_HART_INFO) {
++			hart_info = ACPI_ADD_PTR(struct acpi_rhct_hart_info, node, size_hdr);
++			hart_info_node_offset = ACPI_ADD_PTR(u32, hart_info, size_hartinfo);
++			if (acpi_cpu_id != hart_info->uid)
++				continue;
 +
-+#ifdef CONFIG_PCI
++			for (int i = 0; i < hart_info->num_offsets; i++) {
++				ref_node = ACPI_ADD_PTR(struct acpi_rhct_node_header,
++							rhct, hart_info_node_offset[i]);
++				if (ref_node->type == ACPI_RHCT_NODE_TYPE_ISA_STRING) {
++					isa_node = ACPI_ADD_PTR(struct acpi_rhct_isa_string,
++								ref_node, size_hdr);
++					*isa = isa_node->isa;
++					return 0;
++				}
++			}
++		}
++	}
 +
-+/*
-+ * These interfaces are defined just to enable building ACPI core.
-+ * TODO: Update it with actual implementation when external interrupt
-+ * controller support is added in RISC-V ACPI.
-+ */
-+int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
-+		 int reg, int len, u32 *val)
-+{
-+	return PCIBIOS_DEVICE_NOT_FOUND;
-+}
-+
-+int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
-+		  int reg, int len, u32 val)
-+{
-+	return PCIBIOS_DEVICE_NOT_FOUND;
-+}
-+
-+int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
-+{
 +	return -1;
 +}
-+
-+struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-+{
-+	return NULL;
-+}
-+#endif	/* CONFIG_PCI */
 -- 
 2.34.1
 
