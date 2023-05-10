@@ -2,142 +2,159 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D0CEC7EE24
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 May 2023 05:48:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 882D7C77B7C
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 May 2023 08:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235992AbjEJFsI (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 May 2023 01:48:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48482 "EHLO
+        id S236533AbjEJIst (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 May 2023 04:48:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235593AbjEJFsF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 May 2023 01:48:05 -0400
-Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B6613C16
-        for <linux-acpi@vger.kernel.org>; Tue,  9 May 2023 22:48:03 -0700 (PDT)
-Received: by mail-ot1-x330.google.com with SMTP id 46e09a7af769-6ab0a942f46so1871048a34.2
-        for <linux-acpi@vger.kernel.org>; Tue, 09 May 2023 22:48:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1683697682; x=1686289682;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=aLoXxmvmI+TNDBhJrgne+NmasMw88TAHwNMgEXRV8rI=;
-        b=cdGX27W3aTaVuF1lXqNU3dXFL5s/Mxv+Moz1oLv1bQd1dEC9mDTi2x1P2N71gBko7J
-         2+zczCTSBLiri2fJqfSyyz5RHx46ktfWmUOXnHuyj5Cn4nTnemxRsBPtCWjjZawCjJGN
-         78Z4MCWQKxZMpusPRAJQCksQy1Dfq+cU/sE+LDbzedpxxiDwbqNmgut9N0xguAbrwjC6
-         i26od8SWAexY2jtV7kg0NYHScaH2lXuJWt2XqxC61phsOtpGEOKp0RycWSufEb7ci05D
-         XrgVIiuCTq2cXFJRCtMevAMjlG69+8PadWF6hGIxq7j2gai3jXAqXDEXXYFo0g1p+Z4b
-         ehIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683697682; x=1686289682;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aLoXxmvmI+TNDBhJrgne+NmasMw88TAHwNMgEXRV8rI=;
-        b=T+wilDjt0imPMR6gLI0RL9zjwPEi1t0kPagfm+GjcH+wo06K+6HRZ3dJzu0To2RVvg
-         R46XZ5b/dAJKUJlfwVpvXoCL9T4nLEGOAE35oO2bOwGrpFF9XOl9QT228FXYyRCFxgVn
-         EX2/bTLUL3bYmZDnuuRHANUWHUHvsxpPE2lVbEdMZ+TaDGrwgh3w/1rHilbVPMkUwof5
-         XX5D05QKf5E0Xls/I5lIQkUKYV5M6gAUI2kk4OFfQKrE8AbBo/WHyB7dsVwxGsD8ndPo
-         wsvpnUHiO0WhwTgJeEVTwSJY/bPKSDScyvVWqhExtixNt2MNj8uT1bAwGrCaCFrC7Oce
-         1nPg==
-X-Gm-Message-State: AC+VfDzByQILYdj8qW445qU83ho7kXqBSLdbvWMO/hntMKgdHaG1sUdN
-        hQZk75B6Hkh4DghcclEjARtl0g==
-X-Google-Smtp-Source: ACHHUZ4YI0Ows+2qLCE5z9Sy2RLUd1OHJeod9NGdxiAb7Ex5AAbigEasnBSuYpWAru1W0u5cnRfMdw==
-X-Received: by 2002:a9d:730d:0:b0:6ab:b20:18a5 with SMTP id e13-20020a9d730d000000b006ab0b2018a5mr2569954otk.26.1683697682642;
-        Tue, 09 May 2023 22:48:02 -0700 (PDT)
-Received: from sunil-laptop ([106.51.188.76])
-        by smtp.gmail.com with ESMTPSA id p25-20020a9d76d9000000b0068bd922a244sm603978otl.20.2023.05.09.22.47.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 May 2023 22:48:02 -0700 (PDT)
-Date:   Wed, 10 May 2023 11:17:49 +0530
-From:   Sunil V L <sunilvl@ventanamicro.com>
-To:     Herbert Xu <herbert@gondor.apana.org.au>
-Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-crypto@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        llvm@lists.linux.dev, Jonathan Corbet <corbet@lwn.net>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Weili Qian <qianweili@huawei.com>,
-        Zhou Wang <wangzhou1@hisilicon.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Marc Zyngier <maz@kernel.org>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>
-Subject: Re: [PATCH V5 03/21] crypto: hisilicon/qm: Fix to enable build with
- RISC-V clang
-Message-ID: <ZFswBePAtF/ror5G@sunil-laptop>
-References: <20230508115237.216337-1-sunilvl@ventanamicro.com>
- <20230508115237.216337-4-sunilvl@ventanamicro.com>
- <ZFmtSReX9/WR5CkK@gondor.apana.org.au>
+        with ESMTP id S235904AbjEJIsp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 May 2023 04:48:45 -0400
+Received: from EUR04-HE1-obe.outbound.protection.outlook.com (mail-he1eur04on2054.outbound.protection.outlook.com [40.107.7.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1786DE69;
+        Wed, 10 May 2023 01:48:44 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=nbD53cRZuJBiJtwNGE1X4zzj8jNcjNwcWUqg3ShOdYezVME6S1AcPWR0P+C9PusuZX27rpkD2G3mf2NzqbyOateiOBEQXm1mtSmE93zwtwPGZ5eD6EytglDuVWYT4HD5eAuOAwCugXsX0zAuA+oQTPeqeGcACIESmbObgquYNZOI24MXhJKxFUJAsNYqq0+3QSrY6ge+5jlzJ2jmDUgPAfYmn9esBxM/cVU4KODfNSpicuE7/BkJEVcuc/YvCmr1LEJuJkkAefXxhwGVjjLGHUwqMORRLXT0vOgsnW7NhbDtJlfXUjbPEHLC/sjEp3CtPvvSvgXCOzs1ubOD7Dj+xQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=bluWGJmrtO6+YoJNSTOJX3xpI9wJAGqGZ2MBcPqzMbo=;
+ b=aySY4pU8z9DVdZK3Z4AL5vgy/LhFScvYE29Sg/PGa4q8Ecjfe5ci/5WdLGc4jkaoMEdSvyg52VqeDrAymzZ4djYEB2tmZphmsvq4EBhWgG+1NpFP6tYlSg2fByHpqqyfAOkgOD4E7Mtfs9Uc6qLxvUH4QCbIT20pAk+XRFdfnhMm9O8/gjMIZp3ayxXgJniSke8aw5uB+QQaSVEOcAoWiqZwNR4bMBST+LEILnejRu6DxBX3RHt7oOkKT7APv4vnY3GqEJ1sZvDO7S1EyPNKIU5mbZ3XzY0Bk5Dhi6X7R2cpe3Z9IL9KRZv885a+EPhaXGc2P3YUwXn26DS5WI0s8A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=suse.com; dmarc=pass action=none header.from=suse.com;
+ dkim=pass header.d=suse.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bluWGJmrtO6+YoJNSTOJX3xpI9wJAGqGZ2MBcPqzMbo=;
+ b=ir2Wl3vRteTSD6UHsfflNxZNFkiTO/LCwZFNIj6bZv97fVCiYa2pAsS8Z7NJtu+LjtfrYwp8RfgwaqDY75UgrliK2l3nD4rIj3mKIUYWRIyAw4ZYUDZe3w8bwMvE1j0CF68orhn3wom0AVv7oOzXf/7ogEsXElDX5DXUL/pNLcauv/PHy6bnK5Q6tFWfImYQ32fTuZkV5DPRKI+V8anR1xx7Ndrtio+tX8wKwxGmgUtJQ9gL96+nVDaQprV2EYUMIpSrdeka7Ey5HK+rceN91xgEzF+D5jd/H+bRbxzXUk7IWaIvMu2+6XGbRGr9JI71ObLtfAmcQrVZHZn0suoxgg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=suse.com;
+Received: from AM0PR0402MB3395.eurprd04.prod.outlook.com
+ (2603:10a6:208:1a::16) by AM9PR04MB8082.eurprd04.prod.outlook.com
+ (2603:10a6:20b:3e8::11) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6387.18; Wed, 10 May
+ 2023 08:48:40 +0000
+Received: from AM0PR0402MB3395.eurprd04.prod.outlook.com
+ ([fe80::c1be:e15a:5cf9:b881]) by AM0PR0402MB3395.eurprd04.prod.outlook.com
+ ([fe80::c1be:e15a:5cf9:b881%4]) with mapi id 15.20.6363.032; Wed, 10 May 2023
+ 08:48:40 +0000
+Message-ID: <d63c25f5-0b10-b153-023f-4b2d4a42f9a5@suse.com>
+Date:   Wed, 10 May 2023 10:48:38 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH v4] ACPI: cpufreq: use a platform device to load ACPI PPC
+ and PCC drivers
+Content-Language: en-US
+To:     Kevin Locke <kevin@kevinlocke.name>
+References: <20230316151036.10181-1-petr.pavlu@suse.com>
+ <ZFreh8SDMX67EaB6@kevinlocke.name>
+Cc:     rafael@kernel.org, lenb@kernel.org, viresh.kumar@linaro.org,
+        pmladek@suse.com, mcgrof@kernel.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+From:   Petr Pavlu <petr.pavlu@suse.com>
+In-Reply-To: <ZFreh8SDMX67EaB6@kevinlocke.name>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR0P281CA0255.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:af::18) To AM0PR0402MB3395.eurprd04.prod.outlook.com
+ (2603:10a6:208:1a::16)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZFmtSReX9/WR5CkK@gondor.apana.org.au>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: AM0PR0402MB3395:EE_|AM9PR04MB8082:EE_
+X-MS-Office365-Filtering-Correlation-Id: b83fb943-f798-49d8-3b05-08db513359e7
+X-LD-Processed: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba,ExtFwd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: EoHulkyO4cQ0k5qq7Oa1nRCLyBprP8r0LfEFc2b4aLz6kcktbAH8GStvs7uUqilTDF+MN4UHcpZZv4v72EmEIR/OrFUlxgrX+o7IkA4B0lJOYjW5+nTaYUb0rPiMAklBI3og9KCRyRFDF0UsWLMe9L7G6Z4+J4kxxVabuK1B86dHyhXCGBsHmtvpgCcbFxSesfdY1UVtV1HhKCTNBEjb+139hTSTJwrU84IqkMv01EC6EYMpuoVNIlwgqDvYwzUwF1Zh9jLcjp4YbOJPd7/atBfy0SIq+l4CPg1ZpdBvJ0b9F9j/gC5FMFXA3ObznZn5h9ERyzA5ZH0pAC/rj6K9BmzBCV6+SOusY1JH56ed2UbiSLCGuU6YTpWKAqDz3RZAN6syhFD8Wsi1mrd7rgyreChhsI6iTod12oVwjs5E06XWz9vQ0FpLwi8dSdlcpvcg1WduPJv4ARZsU2qheWdKTljjDicvqvLbqpggpYVdDKOoyURCAnm9Lv1V/EwAZ91Up8LTKovoP1dEEz3446+ap32WxFcFgAMqKBVAsMFU6E7uzXJkt21kMp23cDmM5QIdlHw8GAVENv7XxsonwswxBMP9JZkH8Ar+4Oq1kylT9UziAzTL8LpQRseRuP7fiLINWH6qe8DmBOI8vVlH7PofkQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR0402MB3395.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(366004)(376002)(396003)(39860400002)(136003)(346002)(451199021)(66946007)(66476007)(66556008)(2906002)(83380400001)(2616005)(38100700002)(86362001)(31696002)(6486002)(186003)(53546011)(55236004)(6512007)(6506007)(36756003)(26005)(478600001)(31686004)(316002)(4326008)(6916009)(8936002)(8676002)(44832011)(41300700001)(5660300002)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?MDdYR3VJUklJdUxJRzZ3MmJmM3FoSENxVHhiQVVlR1FnOXBXcWoySFdUeDlJ?=
+ =?utf-8?B?SytJY1drTWh6Umovak12WHp0OWE2WU5XL3BXYVo4TnhpTnM1dVY0a3I4YmJa?=
+ =?utf-8?B?M2J4NW1oZldzWExSYVVOZUJIdERzbndUMVVOL0pQYmxKUWVDTEJyRkJHV2tQ?=
+ =?utf-8?B?UWtGMVB2ZS9RSUtwRWtxTVdaZmJhSEROYWNEczRiWTgwQjN3Z0lLMU8zWnBL?=
+ =?utf-8?B?UWRFV1VEbC81NUZESmlXb2c1d0pWWU9qckl2R01uZ2ZzY3NpejAvZVd1UDc0?=
+ =?utf-8?B?NG5hUVlsTG8zS1ZHUmdMbTlyNkJKeHN1QWNjV1JtM0xxeXIxU25McFh0QlFX?=
+ =?utf-8?B?ZHp6alhLNU5oVHJPdFd6ZnpFVkkvcEI4VGVxb1p3aEJaUXIzWFFIRzJrblhD?=
+ =?utf-8?B?ai9oMDVpNlZ3cTBxOFlvOVRVaW5rMEs3ZC9RMTFNTnVLd0JBQXRuK1ZFUTFu?=
+ =?utf-8?B?TTI2QkFBTHN3R0RhSG5Tb3BjQ2xBQjgrQ3J0V09OYzYyTGZuQ2Y2Q094M2g2?=
+ =?utf-8?B?U3IrMWdyQThFRVVUZFNvblJTbXN0RlJybkUrcEpBcWIrWHR6REpzM1hscXJr?=
+ =?utf-8?B?Sys4R1doSE5pZU51U1ViU1EyRWlVVWh3cHVHTk5jbnZrZHJOUmF5QkpzQ3k1?=
+ =?utf-8?B?RkNDaDc1Ky8yajZrK0c4Q3dTSnc3bWJsR0xic29lb2dtZFp4UHY0OGk5eEZa?=
+ =?utf-8?B?akFNaFp3bUlBa1BrTTdsMTdMOVdSR0daYVE5VHhPZXZvU1hOdERVMjEyY1N4?=
+ =?utf-8?B?bzJiVnRpRE0zS1NPcXBEcVc3VkVVSDM1TFNXWHIzcDZaZkVId2RaSDdxMWhj?=
+ =?utf-8?B?VjJPMVhQNFNCM3pmZTNmeDlnVFcrR2NMMWVLZUIwYzRRd1BldGZZZnJ4Vk1l?=
+ =?utf-8?B?aitYY2h4MTFTMGVvSjBrVWt0Y00wQjN2SFhMTFBOaTVNOUdpbWRnQWdMRVdu?=
+ =?utf-8?B?WUp1d0JJc0JmYVQ2VXRzV0ZUV3VzTzdQTjVVZ3hZUEZwYUtCbkUvZEI0RTdy?=
+ =?utf-8?B?ZTFxMTV4THZ2cW8zd284bE1KZExFdkpLekE4SW1LL244VU56WW5vNXdTK21B?=
+ =?utf-8?B?TUFBcWpIanR1aGhxMUZTZVVPbEE1cFFXZFNQOVg0elYxVXdxZHRSeHMxWUVP?=
+ =?utf-8?B?dHl6U0djd0FFM0VmY0ZBTGw1ODF1V1R0R3VGOFRSQlp4emQvK2EvWlVWWFFv?=
+ =?utf-8?B?UDJIZTQrdlRUN0oyUGZob3FVZVE4dTVaclBHRVRzM1AwV2hxTmZETVNoZlFx?=
+ =?utf-8?B?MEdpajBObk50eWtpc1ZGSkJSZzVROTgra0p6dUNIS0ErYnZ6NThEcWZHU2k0?=
+ =?utf-8?B?NE5mS0laK28wWkFYbDVJZDh4OUhmL1A2LzhZRzhodThHYWU1S08yRzlJTVJl?=
+ =?utf-8?B?Z2ZBYXZrVUdwcDAxQ1V6eVNRY3ovYXlpRUV4Ui85V1hHUittZ3ZDWG9wQmtG?=
+ =?utf-8?B?bGxPVzVlemVGZk1tSW8wUzZwa2RtV1JYSkh0M3JFMnNPVFMzYUNYeWw3Q0dr?=
+ =?utf-8?B?S04vdjZWVWt5cXQ2NGdHMW8yRkU3Q2g0ZWJwd1BIcVd3STdlQXAwWlZoUjY4?=
+ =?utf-8?B?TnRPRU16Z1FLN3FjSjkyM3kvTkM5UFE0OEJuVktLcW01UXUrZWl6NFhHQUxK?=
+ =?utf-8?B?TFU5aWozbjhNSnR5YVZyeDlOVkVLMk5KRUV6NzlGbWR2VnV5QXBjUEpYeUVM?=
+ =?utf-8?B?bEFkb3JuWkJFZ29Ib2dSL1JTVmtQUHRVRVdtQWYwTFlrQ210cXlDSGdsbW9B?=
+ =?utf-8?B?VXNmZmtKdkRrd01IR3E5QzBma29IN0h3NmhEbVJFRFlLcEpCZlVmV1Bqd0oy?=
+ =?utf-8?B?c2pDMWQyZmVZV1k0L25PTDAza0xoRVlhdHU5TlAvbXJIUVl5LzNOTjY4NTk4?=
+ =?utf-8?B?Q2ZqNFRncEFPOGtybk5MZlg3NG5tMFF5S2dNZ2ZINDdiNE9mSFZIWDFIU0Rr?=
+ =?utf-8?B?VDlYYlRvcFllbkNiN0d6MWt2dHRvRDkrS1VldUQ0WHVtbUJQRTVaazFiYk9o?=
+ =?utf-8?B?aXJVdGF2ZFp6alVWQzFRVEFndEgyT3N1ZWpxRFc4MDIvckhEM0hGM2l3R1Zp?=
+ =?utf-8?B?U2VRTXV2Q0tyZXp5TFJxTThUaE1qckhxQTVDV2RKaHNYdWR3Z3Z3MlRrazF5?=
+ =?utf-8?Q?bJdBo+juSbmjPwac98Cr/mOe8?=
+X-OriginatorOrg: suse.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b83fb943-f798-49d8-3b05-08db513359e7
+X-MS-Exchange-CrossTenant-AuthSource: AM0PR0402MB3395.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 May 2023 08:48:39.8239
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 5ySClGdg//1wB7DZG5vwTCKJkpsharVzhNx1elL8yrlCUDy0sF88msJpxSdskQLTYYehBgoKNEVfJWTBrPyKew==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM9PR04MB8082
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, May 09, 2023 at 10:17:45AM +0800, Herbert Xu wrote:
-> On Mon, May 08, 2023 at 05:22:19PM +0530, Sunil V L wrote:
-> > With CONFIG_ACPI enabled for RISC-V, this driver gets enabled in
-> > allmodconfig build. However, build fails with clang and below
-> > error is seen.
-> > 
-> > drivers/crypto/hisilicon/qm.c:627:10: error: invalid output constraint '+Q' in asm
-> >                        "+Q" (*((char __iomem *)fun_base))
-> >                        ^
-> > This is expected error with clang due to the way it is designed.
-> > 
-> > To fix this issue, move arm64 assembly code under #if.
-> > 
-> > Link: https://github.com/ClangBuiltLinux/linux/issues/999
-> > Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-> > [sunilvl@ventanamicro.com: Moved tmp0 and tmp1 into the #if]
-> > Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
-> > ---
-> >  drivers/crypto/hisilicon/qm.c | 13 +++++++------
-> >  1 file changed, 7 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/crypto/hisilicon/qm.c b/drivers/crypto/hisilicon/qm.c
-> > index ad0c042b5e66..2eaeaac2e246 100644
-> > --- a/drivers/crypto/hisilicon/qm.c
-> > +++ b/drivers/crypto/hisilicon/qm.c
-> > @@ -610,13 +610,9 @@ EXPORT_SYMBOL_GPL(hisi_qm_wait_mb_ready);
-> >  static void qm_mb_write(struct hisi_qm *qm, const void *src)
-> >  {
-> >  	void __iomem *fun_base = qm->io_base + QM_MB_CMD_SEND_BASE;
-> > -	unsigned long tmp0 = 0, tmp1 = 0;
-> >  
-> > -	if (!IS_ENABLED(CONFIG_ARM64)) {
-> > -		memcpy_toio(fun_base, src, 16);
-> > -		dma_wmb();
-> > -		return;
-> > -	}
+On 5/10/23 02:00, Kevin Locke wrote:
+> On Thu, 2023-03-16 at 16:10 +0100, Petr Pavlu wrote:
+>> The patch extends the ACPI parsing logic to check the ACPI namespace if
+>> the PPC or PCC interface is present and creates a virtual platform
+>> device for each if it is available. The acpi-cpufreq and pcc-cpufreq
+>> drivers are then updated to map to these devices.
+>>
+>> This allows to try loading acpi-cpufreq and pcc-cpufreq only once during
+>> boot and only if a given interface is available in the firmware.
 > 
-> Please leave this bit as it stands.
+> As a result of this patch (691a637123470bfe63bccf5836ead40fac4c7fab)
+> my ThinkPad T430 with an i5-3320M CPU configured with
+> CONFIG_X86_INTEL_PSTATE=y and CONFIG_X86_ACPI_CPUFREQ=m (Debian's
+> amd64 kernel config) now logs
 > 
-> > +#if IS_ENABLED(CONFIG_ARM64)
-> > +	unsigned long tmp0 = 0, tmp1 = 0;
-> >  
-> >  	asm volatile("ldp %0, %1, %3\n"
-> >  		     "stp %0, %1, %2\n"
-> > @@ -626,6 +622,11 @@ static void qm_mb_write(struct hisi_qm *qm, const void *src)
-> >  		       "+Q" (*((char __iomem *)fun_base))
-> >  		     : "Q" (*((char *)src))
-> >  		     : "memory");
+> kernel: acpi-cpufreq: probe of acpi-cpufreq failed with error -17
 > 
-> And simply add the ifdef around the assembly.
-> 
-Sure, Herbert.
+> during boot.  Presumably this occurs because loading acpi-cpufreq
+> returns -EEXIST when intel-pstate is already loaded (or built-in, as
+> in this case).  I'm unsure why the message was not printed before;
+> perhaps a difference between driver probing for platform and cpu bus
+> types?  Although the error message is not wrong, it may lead to
+> unnecessary investigation by sysadmins, as it did for me.  I thought
+> it was worth reporting so you can consider whether the change is
+> desirable.
 
-Thanks!
-Sunil
+Thanks for reporting this issue. The patch moved the setup of
+acpi-cpufreq from being done directly in its module init function to
+going through the probe logic. The reported warning newly comes from
+call_driver_probe() when the probe fails.
+
+One immediate option that I can see to silence this warning would be to
+change the return code for this case in acpi_cpufreq_probe() from
+-EEXIST to -ENODEV/ENXIO. Function call_driver_probe() then prints only
+a debug message about the probe rejecting the device.
+
+-- Petr
