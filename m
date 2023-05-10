@@ -2,97 +2,232 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43FA6C77B7C
-	for <linux-acpi@archiver.kernel.org>; Wed, 10 May 2023 12:21:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 995C7C7EE23
+	for <linux-acpi@archiver.kernel.org>; Wed, 10 May 2023 16:14:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236981AbjEJMVg convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 10 May 2023 08:21:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58446 "EHLO
+        id S230181AbjEJQOw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 10 May 2023 12:14:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236989AbjEJMVc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 May 2023 08:21:32 -0400
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9C737AB7;
-        Wed, 10 May 2023 05:21:31 -0700 (PDT)
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5068638856dso1664776a12.1;
-        Wed, 10 May 2023 05:21:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683721290; x=1686313290;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=e5pFNRwvf284sJgrDKRHuerqevx/y4may+eaccK7H28=;
-        b=Q2I7W+z9Yk3M0KpqxyKPFaIQ+PbQ6cOOnSpyTmkD8QQbJrh4+HUEmLUVRp+8VJ90Yz
-         O4hEQYUAlwhvXNANKw8PCmwaSD2zFgFSiCUO1x935jOTo0Bl4fQSmSV7umE0gHlDyRci
-         NkoHHFj6ZhsIN+Ak3lJHU6WAysAN2f6DrCOnzvpnvrT94lbMibDoddKdixGjNGzJQ/bz
-         TitxYlhAoAEMUXHYDAVZ1SV0hzT3TtEWt4V1gumeoEPpXb0ZYDClPndXxotPV5qxyHyD
-         uslHEd72QIptgItwPsuiLS7wpD15ujRus6D1ieNYi/nv9WU0vB6mgs1kG/ZZxJVr4mFp
-         8Aog==
-X-Gm-Message-State: AC+VfDwGPXQK5cyp5QduUvwx6ACoWvsz9mKaL2Dg41PlzeIGU1hJ9zxp
-        cQeQnox/8vB2TNvMhzlb9/SWbzeHcYUU/bEvZ/U=
-X-Google-Smtp-Source: ACHHUZ41wfVi8X4DwK1ieMwDRElM5/87L8s9/uueP7Vkui3iBwYAYZDD7pRoNFCbOsbvPe+mikiSR/fSovB6yhrLgSc=
-X-Received: by 2002:a17:906:14e:b0:965:9602:3ee1 with SMTP id
- 14-20020a170906014e00b0096596023ee1mr13806894ejh.2.1683721289996; Wed, 10 May
- 2023 05:21:29 -0700 (PDT)
+        with ESMTP id S229826AbjEJQOv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 May 2023 12:14:51 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77EF87AB1;
+        Wed, 10 May 2023 09:14:49 -0700 (PDT)
+Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4QGg7v6gD0z67mYL;
+        Thu, 11 May 2023 00:14:03 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.23; Wed, 10 May
+ 2023 17:14:46 +0100
+Date:   Wed, 10 May 2023 17:14:45 +0100
+From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To:     Dave Jiang <dave.jiang@intel.com>
+CC:     <linux-kernel@vger.kernel.org>, <gregkh@linuxfoundation.org>,
+        <rafael@kernel.org>, <linux-acpi@vger.kernel.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        <linux-cxl@vger.kernel.org>
+Subject: Re: [PATCH] base/node / acpi: Change 'node_hmem_attrs' to
+ 'access_coordinates'
+Message-ID: <20230510171445.00004cea@Huawei.com>
+In-Reply-To: <168332248685.2190392.1983307884583782116.stgit@djiang5-mobl3>
+References: <168332248685.2190392.1983307884583782116.stgit@djiang5-mobl3>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 MIME-Version: 1.0
-References: <20230316151036.10181-1-petr.pavlu@suse.com> <ZFreh8SDMX67EaB6@kevinlocke.name>
- <d63c25f5-0b10-b153-023f-4b2d4a42f9a5@suse.com>
-In-Reply-To: <d63c25f5-0b10-b153-023f-4b2d4a42f9a5@suse.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 10 May 2023 14:21:17 +0200
-Message-ID: <CAJZ5v0jjVKxp-FC2yCbUcwDgBci-CAMvwc6Pp-bCR_PNrpBybw@mail.gmail.com>
-Subject: Re: [PATCH v4] ACPI: cpufreq: use a platform device to load ACPI PPC
- and PCC drivers
-To:     Petr Pavlu <petr.pavlu@suse.com>
-Cc:     Kevin Locke <kevin@kevinlocke.name>, rafael@kernel.org,
-        lenb@kernel.org, viresh.kumar@linaro.org, pmladek@suse.com,
-        mcgrof@kernel.org, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, May 10, 2023 at 10:48 AM Petr Pavlu <petr.pavlu@suse.com> wrote:
->
-> On 5/10/23 02:00, Kevin Locke wrote:
-> > On Thu, 2023-03-16 at 16:10 +0100, Petr Pavlu wrote:
-> >> The patch extends the ACPI parsing logic to check the ACPI namespace if
-> >> the PPC or PCC interface is present and creates a virtual platform
-> >> device for each if it is available. The acpi-cpufreq and pcc-cpufreq
-> >> drivers are then updated to map to these devices.
-> >>
-> >> This allows to try loading acpi-cpufreq and pcc-cpufreq only once during
-> >> boot and only if a given interface is available in the firmware.
-> >
-> > As a result of this patch (691a637123470bfe63bccf5836ead40fac4c7fab)
-> > my ThinkPad T430 with an i5-3320M CPU configured with
-> > CONFIG_X86_INTEL_PSTATE=y and CONFIG_X86_ACPI_CPUFREQ=m (Debian's
-> > amd64 kernel config) now logs
-> >
-> > kernel: acpi-cpufreq: probe of acpi-cpufreq failed with error -17
-> >
-> > during boot.  Presumably this occurs because loading acpi-cpufreq
-> > returns -EEXIST when intel-pstate is already loaded (or built-in, as
-> > in this case).  I'm unsure why the message was not printed before;
-> > perhaps a difference between driver probing for platform and cpu bus
-> > types?  Although the error message is not wrong, it may lead to
-> > unnecessary investigation by sysadmins, as it did for me.  I thought
-> > it was worth reporting so you can consider whether the change is
-> > desirable.
->
-> Thanks for reporting this issue. The patch moved the setup of
-> acpi-cpufreq from being done directly in its module init function to
-> going through the probe logic. The reported warning newly comes from
-> call_driver_probe() when the probe fails.
->
-> One immediate option that I can see to silence this warning would be to
-> change the return code for this case in acpi_cpufreq_probe() from
-> -EEXIST to -ENODEV/ENXIO. Function call_driver_probe() then prints only
-> a debug message about the probe rejecting the device.
+On Fri, 05 May 2023 14:34:46 -0700
+Dave Jiang <dave.jiang@intel.com> wrote:
 
--ENODEV, pretty please.  Or I can send a patch, whichever you prefer.
+> Dan Williams suggested changing the struct 'node_hmem_attrs' to
+> 'access_coordinates' [1]. The struct is a container of r/w-latency and
+> r/w-bandwidth numbers. Moving forward, this container will also be used by
+> CXL to store the performance characteristics of each link hop in
+> the PCIE/CXL topology. So, where node_hmem_attrs is just the access
+> parameters of a memory-node, access_coordinates applies more broadly
+> to hardware topology characteristics.
 
-It would be a better error code for this condition anyway IMV.
+Not that it hugely matters, but why the term "coordinates"?
+Looks like Dan used that term, but I've not come across it being applied
+in this circumstances and it isn't a case of being immediately obvious
+to me what it means.
+
+If it is just another vague entry in kernel word soup then I don't really
+mind the term, but nice to give some reasoning in patch description.
+
+Patch otherwise looks fine to me.
+
+Jonathan
+
+
+> 
+> [1]: http://lore.kernel.org/r/64471313421f7_1b66294d5@dwillia2-xfh.jf.intel.com.notmuch/
+> 
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/acpi/numa/hmat.c |   20 ++++++++++----------
+>  drivers/base/node.c      |   12 ++++++------
+>  include/linux/node.h     |    8 ++++----
+>  3 files changed, 20 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> index bba268ecd802..f9ff992038fa 100644
+> --- a/drivers/acpi/numa/hmat.c
+> +++ b/drivers/acpi/numa/hmat.c
+> @@ -62,7 +62,7 @@ struct memory_target {
+>  	unsigned int memory_pxm;
+>  	unsigned int processor_pxm;
+>  	struct resource memregions;
+> -	struct node_hmem_attrs hmem_attrs[2];
+> +	struct access_coordinate coord[2];
+>  	struct list_head caches;
+>  	struct node_cache_attrs cache_attrs;
+>  	bool registered;
+> @@ -227,24 +227,24 @@ static void hmat_update_target_access(struct memory_target *target,
+>  {
+>  	switch (type) {
+>  	case ACPI_HMAT_ACCESS_LATENCY:
+> -		target->hmem_attrs[access].read_latency = value;
+> -		target->hmem_attrs[access].write_latency = value;
+> +		target->coord[access].read_latency = value;
+> +		target->coord[access].write_latency = value;
+>  		break;
+>  	case ACPI_HMAT_READ_LATENCY:
+> -		target->hmem_attrs[access].read_latency = value;
+> +		target->coord[access].read_latency = value;
+>  		break;
+>  	case ACPI_HMAT_WRITE_LATENCY:
+> -		target->hmem_attrs[access].write_latency = value;
+> +		target->coord[access].write_latency = value;
+>  		break;
+>  	case ACPI_HMAT_ACCESS_BANDWIDTH:
+> -		target->hmem_attrs[access].read_bandwidth = value;
+> -		target->hmem_attrs[access].write_bandwidth = value;
+> +		target->coord[access].read_bandwidth = value;
+> +		target->coord[access].write_bandwidth = value;
+>  		break;
+>  	case ACPI_HMAT_READ_BANDWIDTH:
+> -		target->hmem_attrs[access].read_bandwidth = value;
+> +		target->coord[access].read_bandwidth = value;
+>  		break;
+>  	case ACPI_HMAT_WRITE_BANDWIDTH:
+> -		target->hmem_attrs[access].write_bandwidth = value;
+> +		target->coord[access].write_bandwidth = value;
+>  		break;
+>  	default:
+>  		break;
+> @@ -701,7 +701,7 @@ static void hmat_register_target_cache(struct memory_target *target)
+>  static void hmat_register_target_perf(struct memory_target *target, int access)
+>  {
+>  	unsigned mem_nid = pxm_to_node(target->memory_pxm);
+> -	node_set_perf_attrs(mem_nid, &target->hmem_attrs[access], access);
+> +	node_set_perf_attrs(mem_nid, &target->coord[access], access);
+>  }
+>  
+>  static void hmat_register_target_devices(struct memory_target *target)
+> diff --git a/drivers/base/node.c b/drivers/base/node.c
+> index 2cada01c70da..fc0444b617d0 100644
+> --- a/drivers/base/node.c
+> +++ b/drivers/base/node.c
+> @@ -75,14 +75,14 @@ static BIN_ATTR_RO(cpulist, CPULIST_FILE_MAX_BYTES);
+>   * @dev:	Device for this memory access class
+>   * @list_node:	List element in the node's access list
+>   * @access:	The access class rank
+> - * @hmem_attrs: Heterogeneous memory performance attributes
+> + * @coord:	Heterogeneous memory performance coordinates
+>   */
+>  struct node_access_nodes {
+>  	struct device		dev;
+>  	struct list_head	list_node;
+>  	unsigned int		access;
+>  #ifdef CONFIG_HMEM_REPORTING
+> -	struct node_hmem_attrs	hmem_attrs;
+> +	struct access_coordinate	coord;
+>  #endif
+>  };
+>  #define to_access_nodes(dev) container_of(dev, struct node_access_nodes, dev)
+> @@ -168,7 +168,7 @@ static ssize_t property##_show(struct device *dev,			\
+>  			   char *buf)					\
+>  {									\
+>  	return sysfs_emit(buf, "%u\n",					\
+> -			  to_access_nodes(dev)->hmem_attrs.property);	\
+> +			  to_access_nodes(dev)->coord.property);	\
+>  }									\
+>  static DEVICE_ATTR_RO(property)
+>  
+> @@ -188,10 +188,10 @@ static struct attribute *access_attrs[] = {
+>  /**
+>   * node_set_perf_attrs - Set the performance values for given access class
+>   * @nid: Node identifier to be set
+> - * @hmem_attrs: Heterogeneous memory performance attributes
+> + * @coord: Heterogeneous memory performance coordinates
+>   * @access: The access class the for the given attributes
+>   */
+> -void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
+> +void node_set_perf_attrs(unsigned int nid, struct access_coordinate *coord,
+>  			 unsigned int access)
+>  {
+>  	struct node_access_nodes *c;
+> @@ -206,7 +206,7 @@ void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
+>  	if (!c)
+>  		return;
+>  
+> -	c->hmem_attrs = *hmem_attrs;
+> +	c->coord = *coord;
+>  	for (i = 0; access_attrs[i] != NULL; i++) {
+>  		if (sysfs_add_file_to_group(&c->dev.kobj, access_attrs[i],
+>  					    "initiators")) {
+> diff --git a/include/linux/node.h b/include/linux/node.h
+> index 427a5975cf40..25b66d705ee2 100644
+> --- a/include/linux/node.h
+> +++ b/include/linux/node.h
+> @@ -20,14 +20,14 @@
+>  #include <linux/list.h>
+>  
+>  /**
+> - * struct node_hmem_attrs - heterogeneous memory performance attributes
+> + * struct access_coordinate - generic performance coordinates container
+>   *
+>   * @read_bandwidth:	Read bandwidth in MB/s
+>   * @write_bandwidth:	Write bandwidth in MB/s
+>   * @read_latency:	Read latency in nanoseconds
+>   * @write_latency:	Write latency in nanoseconds
+>   */
+> -struct node_hmem_attrs {
+> +struct access_coordinate {
+>  	unsigned int read_bandwidth;
+>  	unsigned int write_bandwidth;
+>  	unsigned int read_latency;
+> @@ -65,7 +65,7 @@ struct node_cache_attrs {
+>  
+>  #ifdef CONFIG_HMEM_REPORTING
+>  void node_add_cache(unsigned int nid, struct node_cache_attrs *cache_attrs);
+> -void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs,
+> +void node_set_perf_attrs(unsigned int nid, struct access_coordinate *coord,
+>  			 unsigned access);
+>  #else
+>  static inline void node_add_cache(unsigned int nid,
+> @@ -74,7 +74,7 @@ static inline void node_add_cache(unsigned int nid,
+>  }
+>  
+>  static inline void node_set_perf_attrs(unsigned int nid,
+> -				       struct node_hmem_attrs *hmem_attrs,
+> +				       struct access_coordinate *coord,
+>  				       unsigned access)
+>  {
+>  }
+> 
+> 
+
