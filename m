@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91405C7EE26
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 239A5C77B75
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241424AbjELODl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 May 2023 10:03:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41214 "EHLO
+        id S241430AbjELODn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 May 2023 10:03:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241418AbjELODT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:19 -0400
+        with ESMTP id S241437AbjELODW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:22 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7293C1B1
-        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7115E19B2
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683900198; x=1715436198;
+  t=1683900201; x=1715436201;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=XkKJ8TM3GYnv3u7IL03ncZgdAXLi2ZTXpbAt2ivi4h0=;
-  b=DcJlYIDsGB5GK5WmSLUsTnVim2hKtdcyWstS/VYRRNElZW6jQ+c7cuow
-   IAIL1cOEv2T76u9oDb71c0PH02SLzxrvbv7z8LeTQf116iyOCSLncVnXv
-   yRmZrv1jgQPpYWZ1B1hCukL158/Y0bBg+9zm0OhkOxDxi7sPhbLJ0D5F2
-   XPLcCnOhz6zHLHfmjrXGTn7sezu3j34tZkjqq4ub4riv1MJjRILvg5QsE
-   CnreqW+3dEC7c5CM4FG04ImU4zXb+wDu9NwDigefemRqB54j3u4izSi6c
-   EdouP6T6PlM+fTl21FzJzobLXJXPZRUxQypjH+j0YZl95oWNBCuIgV/ni
+  bh=3YaqGO9LFaIBj1gukzA8XXwIj/NiaYsVTjoox1IRCUI=;
+  b=k6+UtgfHSByd/EmsIAJnuL2iWTyiaunYM7CtBWY7rkOyoEd0VlcG/vd3
+   Q2/rctnrVLzozmg6b2Ya7AlWv/r+E1ozHI+8TpjyzLURnY2E19Ist8YTG
+   /q5S5kM9HmkO/Cp792y8HD/mbpPK5MQEZ0Xh+7/QWnhsnFHB0SgNN7h33
+   nX4cXuzoY+0Q0E0Zpf6sZ3YL3DUnHCInvzT4OqkHg/IMb8eIoJxdV+hEw
+   6Tl55JC9jGpUpenBdx7/6uCDKrvBEx6mjaiu/lJfeZ0XakHlYQxIwp5iY
+   /HIDxb4IGWxt77ccaQoxftKJDO+IvahLt1H2ST6sSKaLYcHV6bbxd26cB
    g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931119"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931129"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="378931119"
+   d="scan'208";a="378931129"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:17 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:20 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648977"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648983"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="650648977"
+   d="scan'208";a="650648983"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:16 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:19 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v1 18/34] platform/x86/classmate-laptop: Move handler installing logic to driver
-Date:   Fri, 12 May 2023 16:02:06 +0200
-Message-Id: <20230512140222.124868-19-michal.wilczynski@intel.com>
+Subject: [PATCH v1 20/34] platform/x86/eeepc-laptop: Move handler installing logic to driver
+Date:   Fri, 12 May 2023 16:02:08 +0200
+Message-Id: <20230512140222.124868-21-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230512140222.124868-1-michal.wilczynski@intel.com>
 References: <20230512140222.124868-1-michal.wilczynski@intel.com>
@@ -67,52 +67,64 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/platform/x86/classmate-laptop.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/platform/x86/classmate-laptop.c b/drivers/platform/x86/classmate-laptop.c
-index 2edaea2492df..51a0dd28b8ec 100644
---- a/drivers/platform/x86/classmate-laptop.c
-+++ b/drivers/platform/x86/classmate-laptop.c
-@@ -180,8 +180,9 @@ static acpi_status cmpc_get_accel_v4(acpi_handle handle,
- 	return status;
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 62b71e8e3567..d96e0dce586a 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -1204,12 +1204,15 @@ static void eeepc_input_notify(struct eeepc_laptop *eeepc, int event)
+ 		pr_info("Unknown key %x pressed\n", event);
  }
  
--static void cmpc_accel_handler_v4(struct acpi_device *dev, u32 event)
-+static void cmpc_accel_handler_v4(acpi_handle handle, u32 event, void *data)
+-static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
++static void eeepc_acpi_notify(acpi_handle handle, u32 event, void *data)
  {
-+	struct acpi_device *dev = data;
- 	if (event == 0x81) {
- 		int16_t x, y, z;
- 		acpi_status status;
-@@ -407,7 +408,12 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
- 	inputdev = dev_get_drvdata(&acpi->dev);
- 	dev_set_drvdata(&inputdev->dev, accel);
+-	struct eeepc_laptop *eeepc = acpi_driver_data(device);
+ 	int old_brightness, new_brightness;
++	struct acpi_device *device = data;
++	struct eeepc_laptop *eeepc;
+ 	u16 count;
  
--	return 0;
-+	error =  acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY,
-+						    cmpc_accel_handler_v4);
-+	if (error)
-+		goto failed_input;
++	eeepc = acpi_driver_data(device);
 +
-+	return error;
+ 	if (event > ACPI_MAX_SYS_NOTIFY)
+ 		return;
+ 	count = eeepc->event_count[event % 128]++;
+@@ -1423,7 +1426,12 @@ static int eeepc_acpi_add(struct acpi_device *device)
+ 		goto fail_rfkill;
  
- failed_input:
- 	device_remove_file(&acpi->dev, &cmpc_accel_g_select_attr_v4);
-@@ -420,6 +426,7 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
+ 	eeepc_device_present = true;
+-	return 0;
++	result = acpi_install_notify_handler(device->handle, ACPI_ALL_NOTIFY,
++					     eeepc_acpi_notify, device);
++	if (result)
++		goto fail_rfkill;
++
++	return result;
  
- static void cmpc_accel_remove_v4(struct acpi_device *acpi)
- {
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, cmpc_accel_handler_v4);
- 	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr_v4);
- 	device_remove_file(&acpi->dev, &cmpc_accel_g_select_attr_v4);
- 	cmpc_remove_acpi_notify_device(acpi);
-@@ -1071,7 +1078,6 @@ static struct acpi_driver cmpc_keys_acpi_driver = {
+ fail_rfkill:
+ 	eeepc_led_exit(eeepc);
+@@ -1451,6 +1459,8 @@ static void eeepc_acpi_remove(struct acpi_device *device)
+ 	eeepc_platform_exit(eeepc);
+ 
+ 	kfree(eeepc);
++	acpi_remove_notify_handler(device->handle, ACPI_ALL_NOTIFY,
++				   eeepc_acpi_notify);
+ }
+ 
+ 
+@@ -1465,11 +1475,9 @@ static struct acpi_driver eeepc_acpi_driver = {
+ 	.class = EEEPC_ACPI_CLASS,
+ 	.owner = THIS_MODULE,
+ 	.ids = eeepc_device_ids,
+-	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
- 		.add = cmpc_keys_add,
- 		.remove = cmpc_keys_remove,
--		.notify = cmpc_keys_handler,
- 	}
+ 		.add = eeepc_acpi_add,
+ 		.remove = eeepc_acpi_remove,
+-		.notify = eeepc_acpi_notify,
+ 	},
  };
  
 -- 
