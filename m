@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E22CC77B7C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCFB4C77B75
 	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241385AbjELODH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S241420AbjELODH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 12 May 2023 10:03:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41128 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241380AbjELODB (ORCPT
+        with ESMTP id S241387AbjELODB (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:01 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FE76197
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A563D19BE
         for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:02:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1683900179; x=1715436179;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=2GbV0P1CvPEQGkReiS1XP+SO7s2AdGYiVfzqGrM4eXI=;
-  b=ILZDEDL+RiZu0cVE7rFPeFB279k/4c2pG2rKWobINUqECCa7uR/PZVeh
-   2lbT8WsdASwDATouAc+fZW0ojINxLcNxWySOZctt5jy2tnu2EuNph0edQ
-   VAUEW0rjCwk4JEri94obBSyOmbU3oBzNEYwJydmrcEhIGbEA0bAOnIEXD
-   Q4d0LeoHenqOsA2ViDEPx5yuGZlom4ZPa3iZE4mhBu/OUVTVHJsF9IQCr
-   lOnxrWQpitZuC4UdNXrYPbzY9UT6pPEpq7R60G9NHM+ylMLywFxVNF5oU
-   LzfQ5GOWabUs5CrGKXCUXV/qWccyIOIhqxRmoRiXIBqMyGY+3HzucpCZC
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931022"
+  bh=9ornG7hWOY6i8oXxZC9eMfmzDrjvXb8WBsDPkaTucWY=;
+  b=ICqOlo8UmgjlHjihcX8udwCDRTANg/WtPHjQ7BlBwmndTDzvbiDwOWFc
+   qqKusTA/qvsRJGmV9tf1Y+IK8QAAc/hoIBVmd63rysvYvfusMNvpzzIje
+   zFH6w0exGk/soukYO7K4bNOeLMSweW8T4REv+EM250CG8La2dRlh6YwdC
+   kyv657NJoLKmvUzYmbS7rIvvyad+8gErfsYt73/x+RF1xpcPJvzbE+mf3
+   YeJ1XH9PlvKdIFCtN4gXxihR+AdHWrwHDSkroB/XWjkWW/Lo+gMT7pQnA
+   5Wp3xcglWQ7B7CPW+ALN0Kl/9JhPogaV5iI4CgZIVP1ZoLUXT1xhwbt33
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931024"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="378931022"
+   d="scan'208";a="378931024"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:55 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:56 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648907"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648915"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="650648907"
+   d="scan'208";a="650648915"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:49 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:53 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v1 03/34] acpi/video: Move handler installing logic to driver
-Date:   Fri, 12 May 2023 16:01:51 +0200
-Message-Id: <20230512140222.124868-4-michal.wilczynski@intel.com>
+Subject: [PATCH v1 05/34] acpi/button: Move handler installing logic to driver
+Date:   Fri, 12 May 2023 16:01:53 +0200
+Message-Id: <20230512140222.124868-6-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230512140222.124868-1-michal.wilczynski@intel.com>
 References: <20230512140222.124868-1-michal.wilczynski@intel.com>
@@ -67,70 +67,69 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/acpi/acpi_video.c | 18 +++++++++++++-----
+ drivers/acpi/button.c | 18 +++++++++++++-----
  1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 62f4364e4460..c94f36f14980 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -77,7 +77,7 @@ static DEFINE_MUTEX(video_list_lock);
- static LIST_HEAD(video_bus_head);
- static int acpi_video_bus_add(struct acpi_device *device);
- static void acpi_video_bus_remove(struct acpi_device *device);
--static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
-+static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data);
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 475e1eddfa3b..e978b2eafb27 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -126,7 +126,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
  
- /*
-  * Indices in the _BCL method response: the first two items are special,
-@@ -104,7 +104,6 @@ static struct acpi_driver acpi_video_bus = {
+ static int acpi_button_add(struct acpi_device *device);
+ static void acpi_button_remove(struct acpi_device *device);
+-static void acpi_button_notify(struct acpi_device *device, u32 event);
++static void acpi_button_notify(acpi_handle handle, u32 event, void *data);
+ 
+ #ifdef CONFIG_PM_SLEEP
+ static int acpi_button_suspend(struct device *dev);
+@@ -144,7 +144,6 @@ static struct acpi_driver acpi_button_driver = {
  	.ops = {
- 		.add = acpi_video_bus_add,
- 		.remove = acpi_video_bus_remove,
--		.notify = acpi_video_bus_notify,
- 		},
+ 		.add = acpi_button_add,
+ 		.remove = acpi_button_remove,
+-		.notify = acpi_button_notify,
+ 	},
+ 	.drv.pm = &acpi_button_pm,
  };
- 
-@@ -1527,12 +1526,15 @@ static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
- 				  acpi_osi_is_win8() ? 0 : 1);
+@@ -400,11 +399,14 @@ static void acpi_lid_initialize_state(struct acpi_device *device)
+ 	button->lid_state_initialized = true;
  }
  
--static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
-+static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
+-static void acpi_button_notify(struct acpi_device *device, u32 event)
++static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
  {
--	struct acpi_video_bus *video = acpi_driver_data(device);
+-	struct acpi_button *button = acpi_driver_data(device);
 +	struct acpi_device *device = data;
-+	struct acpi_video_bus *video;
++	struct acpi_button *button;
  	struct input_dev *input;
- 	int keycode = 0;
  
-+	video = acpi_driver_data(device);
++	button = acpi_driver_data(device);
 +
- 	if (!video || !video->input)
- 		return;
+ 	switch (event) {
+ 	case ACPI_FIXED_HARDWARE_EVENT:
+ 		event = ACPI_BUTTON_NOTIFY_STATUS;
+@@ -569,7 +571,12 @@ static int acpi_button_add(struct acpi_device *device)
  
-@@ -2053,7 +2055,12 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- 	acpi_video_bus_add_notify_handler(video);
- 
+ 	device_init_wakeup(&device->dev, true);
+ 	pr_info("%s [%s]\n", name, acpi_device_bid(device));
 -	return 0;
-+	error =  acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY,
-+						    acpi_video_bus_notify);
++
++	error =  acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_button_notify);
 +	if (error)
-+		goto err_put_video;
++		goto err_remove_fs;
 +
 +	return error;
  
- err_put_video:
- 	acpi_video_bus_put_devices(video);
-@@ -2075,6 +2082,7 @@ static void acpi_video_bus_remove(struct acpi_device *device)
+  err_remove_fs:
+ 	acpi_button_remove_fs(device);
+@@ -584,6 +591,7 @@ static void acpi_button_remove(struct acpi_device *device)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
  
- 	video = acpi_driver_data(device);
- 
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_video_bus_notify);
- 	mutex_lock(&video_list_lock);
- 	list_del(&video->entry);
- 	mutex_unlock(&video_list_lock);
++	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_button_notify);
+ 	acpi_button_remove_fs(device);
+ 	input_unregister_device(button->input);
+ 	kfree(button);
 -- 
 2.38.1
 
