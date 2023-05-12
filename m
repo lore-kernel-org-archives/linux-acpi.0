@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80CDAC77B75
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 067EAC7EE23
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241378AbjELODA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 May 2023 10:03:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41100 "EHLO
+        id S241368AbjELODB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 May 2023 10:03:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241368AbjELOC7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:02:59 -0400
+        with ESMTP id S241353AbjELODA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:00 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 659B2B8
-        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:02:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52286198E
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:02:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683900178; x=1715436178;
+  t=1683900179; x=1715436179;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Ri95ibnY+6HXM8Tf3VpgD5BvYyPmbN6W16pWbNmQNHY=;
-  b=gxXs+y4FE+oHdDWO7WGQhfdVsAaD8xXEFB9RyI1hBXAJStQ0GjCss59n
-   0Dvir4XBHIl0NqmL+vaqzwekggmfPWqMimICyh+GJXtnumrcZ/OaBFI4O
-   j2nVWlV+7ZwuWvgrUFMzqy6qAOQz2mSSMTfMRgc35mFhTLvt7ETr1CV40
-   qXJ5xuRp2li81sTBQHxGAsR0yss51j2Mni4MauyxakvlR4Bh1o0GnCnh0
-   yCbghxsJbVl2su13tp5iGR8JJ7NqHNtw/pMM7eJAVMZtoM4QIppL4Gdyi
-   aO9abOaGvztTZlGCoLSRy5JfJfeQjUjYkM1LE4n7wpEkXvwMAv0vBR1NT
+  bh=cQOhgVN9KktkwIdn69lUFA14KuHTSV40NQJJxX6i+1c=;
+  b=epVF8xWbn7LUVJez0VmXIiycZvbRXkB59XhWk1wbgx0XyPV2rgypVTi4
+   BHxxn2V8mZ7OWM4+FvgKvcDgmvERz78HVFPgIQu2YwuE3WSfGQP1Qyq6I
+   x1sFRpoNO5Prj4F6tr6h3YJpffmNM4SDiE/iHnoMKPMVABExkIaaGOCpK
+   OWFrl9AXbUZqVfvyhZDu2AFH+r2MSDkn6dfAkOA1cB488F9FElzvdNiZl
+   4sjDhW+0ydUiUlH352DCjGzK+2W/tKli4Awf0vLshooRYxRvJjIqrI2ss
+   MaiDIq+M1llhvRojbEB7YU9rr6cQ0Ot7EfJi82ZEy3iJHin7+FpBFJUDj
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378930990"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931017"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="378930990"
+   d="scan'208";a="378931017"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:47 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:55 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648901"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648911"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="650648901"
+   d="scan'208";a="650648911"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:46 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:51 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v1 02/34] acpi/ac: Move handler installing logic to driver
-Date:   Fri, 12 May 2023 16:01:50 +0200
-Message-Id: <20230512140222.124868-3-michal.wilczynski@intel.com>
+Subject: [PATCH v1 04/34] acpi/battery: Move handler installing logic to driver
+Date:   Fri, 12 May 2023 16:01:52 +0200
+Message-Id: <20230512140222.124868-5-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230512140222.124868-1-michal.wilczynski@intel.com>
 References: <20230512140222.124868-1-michal.wilczynski@intel.com>
@@ -60,73 +60,68 @@ platform_driver, which doesn't contain notify callback. Furthermore
 as of now handlers are being called indirectly through
 acpi_notify_device(), which decreases performance.
 
-Call acpi_device_install_event_handler() at the end of .add callback.
-Call acpi_device_remove_event_handler() at the beginning of .remove
+Call acpi_device_install_event_handler() at the end of .add() callback.
+Call acpi_device_remove_event_handler() at the beginning of .remove()
 callback. Change arguments passed to the notify callback to match with
-what's required by acpi_install_event_handler().
+what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/acpi/ac.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/acpi/battery.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 1ace70b831cd..208af5a3106e 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -34,7 +34,7 @@ MODULE_LICENSE("GPL");
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 9c67ed02d797..18c496f76d42 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1034,11 +1034,14 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
+ }
  
- static int acpi_ac_add(struct acpi_device *device);
- static void acpi_ac_remove(struct acpi_device *device);
--static void acpi_ac_notify(struct acpi_device *device, u32 event);
-+static void acpi_ac_notify(acpi_handle handle, u32 event, void *data);
+ /* Driver Interface */
+-static void acpi_battery_notify(struct acpi_device *device, u32 event)
++static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_battery *battery = acpi_driver_data(device);
++	struct acpi_device *device = data;
++	struct acpi_battery *battery;
+ 	struct power_supply *old;
  
- static const struct acpi_device_id ac_device_ids[] = {
- 	{"ACPI0003", 0},
-@@ -54,11 +54,9 @@ static struct acpi_driver acpi_ac_driver = {
- 	.name = "ac",
- 	.class = ACPI_AC_CLASS,
- 	.ids = ac_device_ids,
++	battery = acpi_driver_data(device);
++
+ 	if (!battery)
+ 		return;
+ 	old = battery->bat;
+@@ -1212,6 +1215,10 @@ static int acpi_battery_add(struct acpi_device *device)
+ 
+ 	device_init_wakeup(&device->dev, 1);
+ 
++	result  = acpi_device_install_event_handler(device, ACPI_ALL_NOTIFY, acpi_battery_notify);
++	if (result)
++		goto fail;
++
+ 	return result;
+ 
+ fail:
+@@ -1228,6 +1235,7 @@ static void acpi_battery_remove(struct acpi_device *device)
+ 
+ 	if (!device || !acpi_driver_data(device))
+ 		return;
++	acpi_device_remove_event_handler(device, ACPI_ALL_NOTIFY, acpi_battery_notify);
+ 	device_init_wakeup(&device->dev, 0);
+ 	battery = acpi_driver_data(device);
+ 	unregister_pm_notifier(&battery->pm_nb);
+@@ -1264,11 +1272,9 @@ static struct acpi_driver acpi_battery_driver = {
+ 	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+ 	.ids = battery_device_ids,
 -	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
- 		.add = acpi_ac_add,
- 		.remove = acpi_ac_remove,
--		.notify = acpi_ac_notify,
+ 		.add = acpi_battery_add,
+ 		.remove = acpi_battery_remove,
+-		.notify = acpi_battery_notify,
  		},
- 	.drv.pm = &acpi_ac_pm,
+ 	.drv.pm = &acpi_battery_pm,
  };
-@@ -128,9 +126,12 @@ static enum power_supply_property ac_props[] = {
- };
- 
- /* Driver Model */
--static void acpi_ac_notify(struct acpi_device *device, u32 event)
-+static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
- {
--	struct acpi_ac *ac = acpi_driver_data(device);
-+	struct acpi_device *device = data;
-+	struct acpi_ac *ac;
-+
-+	ac = acpi_driver_data(device);
- 
- 	if (!ac)
- 		return;
-@@ -256,6 +257,8 @@ static int acpi_ac_add(struct acpi_device *device)
- 
- 	ac->battery_nb.notifier_call = acpi_ac_battery_notify;
- 	register_acpi_notifier(&ac->battery_nb);
-+
-+	result = acpi_device_install_event_handler(device, ACPI_ALL_NOTIFY, acpi_ac_notify);
- end:
- 	if (result)
- 		kfree(ac);
-@@ -297,6 +300,7 @@ static void acpi_ac_remove(struct acpi_device *device)
- 
- 	ac = acpi_driver_data(device);
- 
-+	acpi_device_remove_event_handler(device, ACPI_ALL_NOTIFY, acpi_ac_notify);
- 	power_supply_unregister(ac->charger);
- 	unregister_acpi_notifier(&ac->battery_nb);
- 
 -- 
 2.38.1
 
