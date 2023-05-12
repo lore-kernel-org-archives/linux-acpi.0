@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21AC3C77B75
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B411C77B7C
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241443AbjELODr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 May 2023 10:03:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41414 "EHLO
+        id S241450AbjELODt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 May 2023 10:03:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241449AbjELODi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:38 -0400
+        with ESMTP id S241453AbjELODj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:39 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C48ED12EA1
-        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C86D213854
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683900209; x=1715436209;
+  t=1683900212; x=1715436212;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Cq01VFhjgj/mEhu0HxUgKXpUNPjV4fQitrA3AnSxcpE=;
-  b=LG+ewfXvd0UFAagpBO/KAwIJv1/W6vrZPAX5t9f6c+vW3J4wy9KZcZfZ
-   oPo9eVtemJEWCMYsdpTAYsKOly3OUzT2m0PqkapWIBQZU+ZYOn0mlmnHd
-   dnorvjR1GX3gUxPOyn8g4NT0Up3sd2uf6NwzlE4elB+6gy9v/qIdxjLHQ
-   fhrXBI1qMlg+SgPnhE+4DYFX89ZDuvoabbCKTHu67Lq66pyX5lLewnxRz
-   eTC+gjOSFudZBQNEThnVqUMW9F2Y3Lj4FTsJJxtTauCvPa4iwXnRGAJTv
-   9r0nV6FjIKlHUzbxiV4OR57N/pJL19eRgXCjKoMxEPMeO5E1zRJO86pgD
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931186"
+  bh=+DuzAcBIoQKvNVVST5kArg3jtPsfRDK7DxEi4uAzm3s=;
+  b=DdZpC8Fso7R0EjlMeNCVHaZ0VtiURDIIr5GNS0hfMaHxrAQpb/8vYy7h
+   P4iZrD4kJIl4fM09vNqDeHDiGJSThhkDOnw1vXEeF9flf4v4w+NrSmV3g
+   JnP3dkFZ+WMNIC453vkxQJ0ZJp7Dq8NHpFbMeKZLsJibwGVgakEawwyOD
+   EodVCIVPN5Qcg31WHMuCURrjmc8VuRAR0ZBy+HIZ66bErT6xV7ItBqy/D
+   VSAKz2jKpsFBK1YckRhqiGJvuEx5mUJRGjzxyZJf07g92hYMElObf/6Ea
+   RkUejDOVVJzgyWR0KbkwBbt3eMRNOdlbMeuK/y5iWxr68NaKFkRR/G5Qd
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931196"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="378931186"
+   d="scan'208";a="378931196"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:29 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:31 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650649005"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650649013"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="650649005"
+   d="scan'208";a="650649013"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:28 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:30 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v1 27/34] platform/x86/toshiba_bluetooth: Move handler installing logic to driver
-Date:   Fri, 12 May 2023 16:02:15 +0200
-Message-Id: <20230512140222.124868-28-michal.wilczynski@intel.com>
+Subject: [PATCH v1 29/34] platform/x86/wireless-hotkey: Move handler installing logic to driver
+Date:   Fri, 12 May 2023 16:02:17 +0200
+Message-Id: <20230512140222.124868-30-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230512140222.124868-1-michal.wilczynski@intel.com>
 References: <20230512140222.124868-1-michal.wilczynski@intel.com>
@@ -67,71 +67,57 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/platform/x86/toshiba_bluetooth.c | 27 ++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ drivers/platform/x86/wireless-hotkey.c | 23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/toshiba_bluetooth.c b/drivers/platform/x86/toshiba_bluetooth.c
-index d8f81962a240..7d8bd5f73eae 100644
---- a/drivers/platform/x86/toshiba_bluetooth.c
-+++ b/drivers/platform/x86/toshiba_bluetooth.c
-@@ -204,9 +204,12 @@ static const struct rfkill_ops rfk_ops = {
- };
- 
- /* ACPI driver functions */
--static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event)
-+static void toshiba_bt_rfkill_notify(acpi_handle handle, u32 event, void *data)
- {
--	struct toshiba_bluetooth_dev *bt_dev = acpi_driver_data(device);
-+	struct toshiba_bluetooth_dev *bt_dev;
-+	struct acpi_device *device = data;
-+
-+	bt_dev = acpi_driver_data(device);
- 
- 	if (toshiba_bluetooth_sync_status(bt_dev))
- 		return;
-@@ -263,8 +266,8 @@ static int toshiba_bt_rfkill_add(struct acpi_device *device)
- 				   bt_dev);
- 	if (!bt_dev->rfk) {
- 		pr_err("Unable to allocate rfkill device\n");
--		kfree(bt_dev);
--		return -ENOMEM;
-+		result = -ENOMEM;
-+		goto fail_allocate;
- 	}
- 
- 	rfkill_set_hw_state(bt_dev->rfk, !bt_dev->killswitch);
-@@ -272,10 +275,20 @@ static int toshiba_bt_rfkill_add(struct acpi_device *device)
- 	result = rfkill_register(bt_dev->rfk);
- 	if (result) {
- 		pr_err("Unable to register rfkill device\n");
--		rfkill_destroy(bt_dev->rfk);
--		kfree(bt_dev);
-+		goto fail_register;
- 	}
- 
-+	result = acpi_device_install_event_handler(acpi_dev, ACPI_DEVICE_NOTIFY,
-+						    toshiba_bt_rfkill_notify);
-+	if (result)
-+		goto fail_register;
-+
-+	return result;
-+
-+fail_register:
-+	rfkill_destroy(bt_dev->rfk);
-+fail_allocate:
-+	kfree(bt_dev);
- 	return result;
+diff --git a/drivers/platform/x86/wireless-hotkey.c b/drivers/platform/x86/wireless-hotkey.c
+index 4422863f47bb..51169509fea1 100644
+--- a/drivers/platform/x86/wireless-hotkey.c
++++ b/drivers/platform/x86/wireless-hotkey.c
+@@ -68,9 +68,12 @@ static void wireless_input_destroy(struct acpi_device *device)
+ 	kfree(button);
  }
  
-@@ -283,6 +296,8 @@ static void toshiba_bt_rfkill_remove(struct acpi_device *device)
+-static void wl_notify(struct acpi_device *acpi_dev, u32 event)
++static void wl_notify(acpi_handle handle, u32 event, void *data)
  {
- 	struct toshiba_bluetooth_dev *bt_dev = acpi_driver_data(device);
- 
-+	acpi_device_remove_event_handler(acpi_dev, ACPI_DEVICE_NOTIFY, toshiba_bt_rfkill_notify);
+-	struct wl_button *button = acpi_driver_data(acpi_dev);
++	struct acpi_device *acpi_dev = data;
++	struct wl_button *button;
 +
- 	/* clean up */
- 	if (bt_dev->rfk) {
- 		rfkill_unregister(bt_dev->rfk);
++	button = acpi_driver_data(acpi_dev);
+ 
+ 	if (event != 0x80) {
+ 		pr_info("Received unknown event (0x%x)\n", event);
+@@ -95,16 +98,24 @@ static int wl_add(struct acpi_device *device)
+ 	device->driver_data = button;
+ 
+ 	err = wireless_input_setup(device);
+-	if (err) {
+-		pr_err("Failed to setup wireless hotkeys\n");
+-		kfree(button);
+-	}
++	if (err)
++		goto fail;
+ 
++	err = acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, wl_notify);
++	if (err)
++		goto fail;
++
++	return err;
++
++fail:
++	pr_err("Failed to setup wireless hotkeys\n");
++	kfree(button);
+ 	return err;
+ }
+ 
+ static void wl_remove(struct acpi_device *device)
+ {
++	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, wl_notify);
+ 	wireless_input_destroy(device);
+ }
+ 
 -- 
 2.38.1
 
