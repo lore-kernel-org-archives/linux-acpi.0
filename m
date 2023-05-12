@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56F9CC7EE2A
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 713F4C77B7C
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241353AbjELODJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 May 2023 10:03:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41176 "EHLO
+        id S241380AbjELODR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 May 2023 10:03:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241397AbjELODG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:06 -0400
+        with ESMTP id S241404AbjELODH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:07 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2CBE1710
-        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9EAC5FD3
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683900182; x=1715436182;
+  t=1683900184; x=1715436184;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=cKUWfqMu2Js1onBYo4CIiZvIbK10uMibsAiFvs+BEGU=;
-  b=mlEYoXxxOiLGTKrjxsgeGbnXp6plnaoD9r7dx7QKlMlc0GaklYqtYhdS
-   Gp8HkUXi5Lbed25YRJsWMa6Bz/roO6rDXqrtN2UxT1LvZjDZNtPxOQi3o
-   yUTtmduCrvwi9bjQ9FgpGBbHm55Ya4jh6YFTR+73hfJecM1PBwSanvbyb
-   3EhMXLziqPsSJGNo83i0AOyH0kRY6MFuFmQQUNOEE7e4n2c8jgUxrYgeu
-   YRZf0Yz6wISQstCXlhTPkKUNk2ogB3kYW4JCHIlc2K3CrV94uOs1d4wAj
-   y31WQBSxI/y30bhrcc0y0/5CHLHA46TWd/MgA+ZWZePUVCGrH3rWhhnwz
+  bh=9vog9QTAcRXotsdmJgCax9RGQS9sfs3MI5wmRFwzndc=;
+  b=ntd7CMtZu64i2+QO//ROBzC5/yZm0PRnrSk7jtApRDsdHS189cQ7Tqig
+   eOliD/ZKrne9R2UZjBNKmsaimJfHGo5vs3DmECVHcJh6f6IMs6v6T4eko
+   uMRoB73crkVguzqC8kslxTyxWBka5XS1SaSbBYbojl+1JH/bYqzteMtEc
+   0X4fmgNl0GArul61q6Un/7vFwC5OnvT4RnjmXl0vBMxGivEJBVtkL8dZ7
+   V2Vqwmv1EE6ekiONpQise72I9goXG9obhez6k4AyDpq/4SY/MW7cX4zGx
+   +/MNhFyhwUsoKH+g73rY/x+TddIuYgRirlufNY4O9p3sHQmbPUvSDni8i
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931044"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931063"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="378931044"
+   d="scan'208";a="378931063"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:59 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:02 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648925"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650648932"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="650648925"
+   d="scan'208";a="650648932"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:02:58 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:01 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v1 07/34] acpi/nfit: Move handler installing logic to driver
-Date:   Fri, 12 May 2023 16:01:55 +0200
-Message-Id: <20230512140222.124868-8-michal.wilczynski@intel.com>
+Subject: [PATCH v1 09/34] acpi/tiny-power-button: Move handler installing logic to driver
+Date:   Fri, 12 May 2023 16:01:57 +0200
+Message-Id: <20230512140222.124868-10-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230512140222.124868-1-michal.wilczynski@intel.com>
 References: <20230512140222.124868-1-michal.wilczynski@intel.com>
@@ -67,46 +67,46 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/acpi/nfit/core.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/acpi/tiny-power-button.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 07204d482968..2029f0fca9bc 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3368,11 +3368,17 @@ static int acpi_nfit_add(struct acpi_device *adev)
+diff --git a/drivers/acpi/tiny-power-button.c b/drivers/acpi/tiny-power-button.c
+index 598f548b21f3..b14ba2f0dd3f 100644
+--- a/drivers/acpi/tiny-power-button.c
++++ b/drivers/acpi/tiny-power-button.c
+@@ -19,16 +19,19 @@ static const struct acpi_device_id tiny_power_button_device_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(acpi, tiny_power_button_device_ids);
  
- 	if (rc)
- 		return rc;
--	return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
-+
-+	rc = devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
-+	if (rc)
-+		return rc;
-+
-+	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_nfit_notify);
- }
- 
- static void acpi_nfit_remove(struct acpi_device *adev)
+-static int acpi_noop_add(struct acpi_device *device)
++static int acpi_tiny_power_button_add(struct acpi_device *device)
  {
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_nfit_notify);
- 	/* see acpi_nfit_unregister */
+-	return 0;
++	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY,
++						  acpi_tiny_power_button_notify);
  }
  
-@@ -3446,7 +3452,7 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
- }
- EXPORT_SYMBOL_GPL(__acpi_nfit_notify);
- 
--static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
-+static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
+-static void acpi_noop_remove(struct acpi_device *device)
++static void acpi_tiny_power_button_remove(struct acpi_device *device)
  {
- 	device_lock(&adev->dev);
- 	__acpi_nfit_notify(&adev->dev, adev->handle, event);
-@@ -3465,7 +3471,6 @@ static struct acpi_driver acpi_nfit_driver = {
++	acpi_device_remove_event_handler(device->handle, ACPI_DEVICE_NOTIFY,
++					 acpi_tiny_power_button_notify);
+ }
+ 
+-static void acpi_tiny_power_button_notify(struct acpi_device *device, u32 event)
++static void acpi_tiny_power_button_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	kill_cad_pid(power_signal, 1);
+ }
+@@ -38,9 +41,8 @@ static struct acpi_driver acpi_tiny_power_button_driver = {
+ 	.class = "tiny-power-button",
+ 	.ids = tiny_power_button_device_ids,
  	.ops = {
- 		.add = acpi_nfit_add,
- 		.remove = acpi_nfit_remove,
--		.notify = acpi_nfit_notify,
+-		.add = acpi_noop_add,
+-		.remove = acpi_noop_remove,
+-		.notify = acpi_tiny_power_button_notify,
++		.add = acpi_tiny_power_button_add,
++		.remove = acpi_tiny_power_button_remove,
  	},
  };
  
