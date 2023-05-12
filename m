@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B066C77B7C
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:04:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FE1FC77B75
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 14:04:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241455AbjELOEA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 May 2023 10:04:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41418 "EHLO
+        id S241458AbjELOEP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 May 2023 10:04:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241456AbjELODj (ORCPT
+        with ESMTP id S241405AbjELODj (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 10:03:39 -0400
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06E2413859
-        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AA3813C02
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2023 07:03:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683900213; x=1715436213;
+  t=1683900216; x=1715436216;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=WEpTBts2uTodF7cAKNj6FMRZNi9l8sfosWjBo4qNrm0=;
-  b=RXjkfmh4GvA5nqUdicVar9Ih4uPdmMaOtMnJl1NnmYBl+t/dNijfu4Lk
-   J8bFFmfnNerQW011Uq8jOj8Z7ItZAE1sXLXCQBmm7/ImoN1U1b6k4l8Q0
-   i4zCVC5+Y4aN+Sm/T8zQzzrh7SQZPCjFLI0pFy15Os0gThBCcOb48m09J
-   UQOBlpDsgqcOG/WtGiupawcwFSw+vEyHD3a9YcPsuzOKONdYBnEwq7RZw
-   Y0mZuaIyB9qLTKyaT4n8Fyx6AoTSljB52sQ3BQbBG2XBF/Vk08Ndtq33/
-   UtNrH0SExS/pYCrCQvb3FcuhQxwy9PBrCRt5hYZFwn1sq77Aeo/s/doSy
+  bh=ZIELIisXLuT7XWw63Y22+2MpV7DcrBhlODB+fjpGyhE=;
+  b=AGBcUj4VMghzFDguzXfXkAzS59qPAlZp8BVDeDAcT1iiiHLXxwD/ZrmC
+   SBgKVMRN5c2qGN5ACbthYdW4PDbmCp03c5FaUlvuEav63DQGcd278lLNs
+   uQeNjvbZLN51CLe3jLpPmKJl3dQ557CGL9vt6judhI89Zow9H7H7vBaCa
+   ZNZf+Ia7O1tEJGwdsZJWt6EAOxAdFNElZKDIVJ1LsWczz9o/IuF6LSFv6
+   6/Ps6Z/KpM034D6JUNQxKCD9OR0nNR4XGRdONFVgt/SM1Omc2pUXxa3tC
+   e93d5ThVPdLnWT1PzaXYuc0FRcPSuI4hSW05ZgwzXscLTESX+rv31KMjS
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931205"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="378931219"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="378931205"
+   d="scan'208";a="378931219"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:33 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:35 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650649016"
+X-IronPort-AV: E=McAfee;i="6600,9927,10708"; a="650649022"
 X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="650649016"
+   d="scan'208";a="650649022"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:32 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 07:03:34 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v1 30/34] platform/x86/xo15-ebook: Move handler installing logic to driver
-Date:   Fri, 12 May 2023 16:02:18 +0200
-Message-Id: <20230512140222.124868-31-michal.wilczynski@intel.com>
+Subject: [PATCH v1 32/34] acpi/bus: Remove installing/removing notify handlers from probe/remove
+Date:   Fri, 12 May 2023 16:02:20 +0200
+Message-Id: <20230512140222.124868-33-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230512140222.124868-1-michal.wilczynski@intel.com>
 References: <20230512140222.124868-1-michal.wilczynski@intel.com>
@@ -53,67 +53,53 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently logic for installing notifications from ACPI devices is
-implemented using notify callback in struct acpi_driver. Preparations
-are being made to replace acpi_driver with more generic struct
-platform_driver, which doesn't contain notify callback. Furthermore
-as of now handlers are being called indirectly through
-acpi_notify_device(), which decreases performance.
+Remove installing/removing .notify callback handlers, to prepare for
+notify callback removal.
 
-Call acpi_device_install_event_handler() at the end of .add() callback.
-Call acpi_device_remove_event_handler() at the beginning of .remove()
-callback. Change arguments passed to the notify callback to match with
-what's required by acpi_device_install_event_handler().
+Remove logic calling .remove callback, as .add should be expected to
+clean after itself in case of the failure, and event handler
+installation will be moved to .add in following commits.
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/platform/x86/xo15-ebook.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/acpi/bus.c | 17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff --git a/drivers/platform/x86/xo15-ebook.c b/drivers/platform/x86/xo15-ebook.c
-index 391f7ea4431e..8b5b05429889 100644
---- a/drivers/platform/x86/xo15-ebook.c
-+++ b/drivers/platform/x86/xo15-ebook.c
-@@ -56,8 +56,9 @@ static int ebook_send_state(struct acpi_device *device)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 00309df56c24..3eeeec70e70b 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1086,20 +1086,6 @@ static int acpi_device_probe(struct device *dev)
+ 	pr_debug("Driver [%s] successfully bound to device [%s]\n",
+ 		 acpi_drv->name, acpi_dev->pnp.bus_id);
+ 
+-	if (acpi_drv->ops.notify) {
+-		ret = acpi_device_install_notify_handler(acpi_dev, acpi_drv);
+-		if (ret) {
+-			if (acpi_drv->ops.remove)
+-				acpi_drv->ops.remove(acpi_dev);
+-
+-			acpi_dev->driver_data = NULL;
+-			return ret;
+-		}
+-	}
+-
+-	pr_debug("Found driver [%s] for device [%s]\n", acpi_drv->name,
+-		 acpi_dev->pnp.bus_id);
+-
+ 	get_device(dev);
  	return 0;
  }
+@@ -1109,9 +1095,6 @@ static void acpi_device_remove(struct device *dev)
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
  
--static void ebook_switch_notify(struct acpi_device *device, u32 event)
-+static void ebook_switch_notify(acpi_handle handle, u32 event, void *data)
- {
-+	struct acpi_device *device = data;
- 	switch (event) {
- 	case ACPI_FIXED_HARDWARE_EVENT:
- 	case XO15_EBOOK_NOTIFY_STATUS:
-@@ -134,7 +135,11 @@ static int ebook_switch_add(struct acpi_device *device)
- 		device_set_wakeup_enable(&device->dev, true);
- 	}
+-	if (acpi_drv->ops.notify)
+-		acpi_device_remove_notify_handler(acpi_dev, acpi_drv);
+-
+ 	if (acpi_drv->ops.remove)
+ 		acpi_drv->ops.remove(acpi_dev);
  
--	return 0;
-+	error = acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, ebook_switch_notify);
-+	if (error)
-+		goto err_free_input;
-+
-+	return error;
- 
-  err_free_input:
- 	input_free_device(input);
-@@ -147,6 +152,7 @@ static void ebook_switch_remove(struct acpi_device *device)
- {
- 	struct ebook_switch *button = acpi_driver_data(device);
- 
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, ebook_switch_notify);
- 	input_unregister_device(button->input);
- 	kfree(button);
- }
-@@ -158,7 +164,6 @@ static struct acpi_driver xo15_ebook_driver = {
- 	.ops = {
- 		.add = ebook_switch_add,
- 		.remove = ebook_switch_remove,
--		.notify = ebook_switch_notify,
- 	},
- 	.drv.pm = &ebook_switch_pm,
- };
 -- 
 2.38.1
 
