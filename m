@@ -2,156 +2,147 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B138C7EE25
-	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 07:54:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D538C77B75
+	for <linux-acpi@archiver.kernel.org>; Fri, 12 May 2023 10:56:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239992AbjELHya (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 12 May 2023 03:54:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55236 "EHLO
+        id S240881AbjELK4t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 12 May 2023 06:56:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240351AbjELHyJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 03:54:09 -0400
-Received: from mail-lj1-x22e.google.com (mail-lj1-x22e.google.com [IPv6:2a00:1450:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03907100CE;
-        Fri, 12 May 2023 00:53:51 -0700 (PDT)
-Received: by mail-lj1-x22e.google.com with SMTP id 38308e7fff4ca-2ac8091351eso101835801fa.2;
-        Fri, 12 May 2023 00:53:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683878025; x=1686470025;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=UamIyRZFBw0Clb1Qm1i1FDtoVxcrvBBxLqTrmWJ4kUM=;
-        b=D8Nfc850hE+XcwHJJnodIg9lQCxPABMpNE8TbL4p2gx6vCBNNWMD8mRzuXKu3uG2lT
-         f4r2EKd8yuMjEtM6VavfoemsphC2bhF5K4RGoWXRQLyl+niVwqjfRlnGj6ZxvDLQuncQ
-         qa5oK5QtZQ3gOOAEiDNccDJpahMSkHZa3c0BQ/UGwVl5sYXQnFpKp64dJoKuNwhdSy//
-         7yQIpoMWbISAjtGPlOR3pO/7Yv8cKtNV8jZP8rAxer3yrSlgXHbyDJYI5Png6/rPcBkn
-         GYP3I0sgq5Als22F3lvCfZ0c5Iqgbzo2Fi5pe84Maoq2Oek4A9xuMWa5c1a9vttTHb/r
-         Qf0g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683878025; x=1686470025;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UamIyRZFBw0Clb1Qm1i1FDtoVxcrvBBxLqTrmWJ4kUM=;
-        b=HrgYkHBmww4Wmkxj06QpYj7knbbg9ZYiQUwxaop5usWRqoa+VJmjqyAVunvYct4K/I
-         XxVivNqhQ55cPtZ857MS5LG6Cv5v6DaYNCQmAITsVebAyjfGfGGle9arHfZ8l0D3vAKr
-         7UqMOLl1TUZ4urDueCAF809eY0PkdhFpU4mEGewTHmJ329sYxFCXBzjoL0QcgB3Imyaq
-         Qq7IHQf9KEAmAo4Ela1SPt61xsfC/HhgxTvC821LhawwN8FmrsMS4A3Pkurp8xjXl5wz
-         M02VLvAvWWAY41va9RpXvaS+i2KBcj/OlRmx5uIjyXLk0pdP5H8hzaO9YWnGJXYjzLfQ
-         OYXg==
-X-Gm-Message-State: AC+VfDxqBjiH+NirDAgTP93jOucNerRmUf+B9Radpshy3xeX+QLFm6LY
-        Xr3SfdBfiBi3qn6yiGhfXgc=
-X-Google-Smtp-Source: ACHHUZ5tTAE/td2qUR/2Oxfo7q0tt4popK4haev3B//DkXySakT8sBeWAwj/t8s7JKOp5UNIAK2d7A==
-X-Received: by 2002:a2e:3211:0:b0:2a8:ba15:eb6f with SMTP id y17-20020a2e3211000000b002a8ba15eb6fmr3979864ljy.6.1683878024857;
-        Fri, 12 May 2023 00:53:44 -0700 (PDT)
-Received: from fedora (62-78-225-252.bb.dnainternet.fi. [62.78.225.252])
-        by smtp.gmail.com with ESMTPSA id z12-20020a19f70c000000b004db3d57c3a8sm1383610lfe.96.2023.05.12.00.53.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 12 May 2023 00:53:44 -0700 (PDT)
-Date:   Fri, 12 May 2023 10:53:41 +0300
-From:   Matti Vaittinen <mazziesaccount@gmail.com>
-To:     Matti Vaittinen <mazziesaccount@gmail.com>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Wolfram Sang <wsa@kernel.org>,
-        Matti Vaittinen <mazziesaccount@gmail.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Akhil R <akhilrajeev@nvidia.com>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org
-Subject: [PATCH v3 3/3] iio: kx022a fix irq getting
-Message-ID: <b45b4b638db109c6078d243252df3a7b0485f7d5.1683875389.git.mazziesaccount@gmail.com>
-References: <cover.1683875389.git.mazziesaccount@gmail.com>
+        with ESMTP id S240880AbjELK4p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2023 06:56:45 -0400
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAA1CFE;
+        Fri, 12 May 2023 03:56:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1683889004; x=1715425004;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=aTme5qDkFV7Mcp0uaOboKBbeV5ze/dqrLO9cBA/tElE=;
+  b=RXB9WXpjC1DvMlJbCHHDAAU+YudODiVQi5nCUUCI8S6qBwG2alUG5t0G
+   FdgMNayGjwIxKv9jVzWaNRENfLBuDWbpR155MyDVLlNqhaae6Xvb9Zet2
+   ICNJZIQgOBm8M2kKwWMOtUkoxyr2TVlS/2f/HRsBgcjSCAuTYpYba913/
+   LayD8z/z5D1/vsIUbnTyeVGyaWtX6iIsWsMTtL8+DNppjRUtf64y3cGxj
+   3JWBvpumkJ25j99MM8FHwtsxdC/LpZQ8ElKNva092BJ5SVlJ4Fe2+bnpw
+   4HaILCrxhJT82KnW2H6sapvFdku/lJop06VVALUZWmbO+u0kgzTzEEPvi
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10707"; a="414132446"
+X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
+   d="scan'208";a="414132446"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 03:56:43 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10707"; a="812041055"
+X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
+   d="scan'208";a="812041055"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga002.fm.intel.com with ESMTP; 12 May 2023 03:56:34 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pxQRq-0004Zv-0i;
+        Fri, 12 May 2023 13:56:30 +0300
+Date:   Fri, 12 May 2023 13:56:29 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
+        linux-pci@vger.kernel.org,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        linux-mips@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
+        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
+        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
+        Anatolij Gustschin <agust@denx.de>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Juergen Gross <jgross@suse.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        linux-kernel@vger.kernel.org,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        "David S. Miller" <davem@davemloft.net>,
+        "Maciej W. Rozycki" <macro@orcam.me.uk>
+Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
+ users
+Message-ID: <ZF4bXaz2r75dlA5g@smile.fi.intel.com>
+References: <20230404161101.GA3554747@bhelgaas>
+ <20230509182122.GA1259567@bhelgaas>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6Xa8OXPmvG4fszxi"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cover.1683875389.git.mazziesaccount@gmail.com>
+In-Reply-To: <20230509182122.GA1259567@bhelgaas>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Tue, May 09, 2023 at 01:21:22PM -0500, Bjorn Helgaas wrote:
+> On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
+> > On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
+> > > Provide two new helper macros to iterate over PCI device resources and
+> > > convert users.
+> 
+> > Applied 2-7 to pci/resource for v6.4, thanks, I really like this!
+> 
+> This is 09cc90063240 ("PCI: Introduce pci_dev_for_each_resource()")
+> upstream now.
+> 
+> Coverity complains about each use,
 
---6Xa8OXPmvG4fszxi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It needs more clarification here. Use of reduced variant of the macro or all of
+them? If the former one, then I can speculate that Coverity (famous for false
+positives) simply doesn't understand `for (type var; var ...)` code.
 
-The fwnode_irq_get_byname() was returning 0 at device-tree mapping
-error. If this occurred, the KX022A driver did abort the probe but
-errorneously directly returned the return value from
-fwnode_irq_get_byname() from probe. In case of a device-tree mapping
-error this indicated success.
+>	sample below from
+> drivers/pci/vgaarb.c.  I didn't investigate at all, so it might be a
+> false positive; just FYI.
+> 
+> 	  1. Condition screen_info.capabilities & (2U /* 1 << 1 */), taking true branch.
+>   556        if (screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE)
+>   557                base |= (u64)screen_info.ext_lfb_base << 32;
+>   558
+>   559        limit = base + size;
+>   560
+>   561        /* Does firmware framebuffer belong to us? */
+> 	  2. Condition __b < PCI_NUM_RESOURCES, taking true branch.
+> 	  3. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
+> 	  6. Condition __b < PCI_NUM_RESOURCES, taking true branch.
+> 	  7. cond_at_most: Checking __b < PCI_NUM_RESOURCES implies that __b may be up to 16 on the true branch.
+> 	  8. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
+> 	  11. incr: Incrementing __b. The value of __b may now be up to 17.
+> 	  12. alias: Assigning: r = &pdev->resource[__b]. r may now point to as high as element 17 of pdev->resource (which consists of 17 64-byte elements).
+> 	  13. Condition __b < PCI_NUM_RESOURCES, taking true branch.
+> 	  14. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
+>   562        pci_dev_for_each_resource(pdev, r) {
+> 	  4. Condition resource_type(r) != 512, taking true branch.
+> 	  9. Condition resource_type(r) != 512, taking true branch.
+> 
+>   CID 1529911 (#1 of 1): Out-of-bounds read (OVERRUN)
+>   15. overrun-local: Overrunning array of 1088 bytes at byte offset 1088 by dereferencing pointer r. [show details]
+>   563                if (resource_type(r) != IORESOURCE_MEM)
+> 	  5. Continuing loop.
+> 	  10. Continuing loop.
+>   564                        continue;
 
-The fwnode_irq_get_byname() has since been fixed to not return zero on
-error so the check for fwnode_irq_get_byname() can be relaxed to only
-treat negative values as errors. This will also do decent fix even when
-backported to branches where fwnode_irq_get_byname() can still return
-zero on error because KX022A probe should later fail at IRQ requesting
-and a prober error handling should follow.
-
-Relax the return value check for fwnode_irq_get_byname() to only treat
-negative values as errors.
-
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
-Closes: https://lore.kernel.org/r/202305110245.MFxC9bUj-lkp@intel.com/
-Link: https://lore.kernel.org/r/202305110245.MFxC9bUj-lkp@intel.com/
-Signed-off-by: Matti Vaittinen <mazziesaccount@gmail.com>
-Fixes: 7c1d1677b322 ("iio: accel: Support Kionix/ROHM KX022A accelerometer")
----
- drivers/iio/accel/kionix-kx022a.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/iio/accel/kionix-kx022a.c b/drivers/iio/accel/kionix-k=
-x022a.c
-index f98393d74666..b8636fa8eaeb 100644
---- a/drivers/iio/accel/kionix-kx022a.c
-+++ b/drivers/iio/accel/kionix-kx022a.c
-@@ -1048,7 +1048,7 @@ int kx022a_probe_internal(struct device *dev)
- 		data->ien_reg =3D KX022A_REG_INC4;
- 	} else {
- 		irq =3D fwnode_irq_get_byname(fwnode, "INT2");
--		if (irq <=3D 0)
-+		if (irq < 0)
- 			return dev_err_probe(dev, irq, "No suitable IRQ\n");
-=20
- 		data->inc_reg =3D KX022A_REG_INC5;
---=20
-2.40.1
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
---=20
-Matti Vaittinen, Linux device drivers
-ROHM Semiconductors, Finland SWDC
-Kiviharjunlenkki 1E
-90220 OULU
-FINLAND
-
-~~~ "I don't think so," said Rene Descartes. Just then he vanished ~~~
-Simon says - in Latin please.
-~~~ "non cogito me" dixit Rene Descarte, deinde evanescavit ~~~
-Thanks to Simon Glass for the translation =3D]=20
-
---6Xa8OXPmvG4fszxi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEEIx+f8wZb28fLKEhTeFA3/03aocUFAmRd8IQACgkQeFA3/03a
-ocVELQf+L8qn+fDoOikmGkAkEd5YHCTzMA0lR7U4izBd2okzfB0yNHNScFafCv75
-YA5yeTb8IIoUsUwyigjEZ6cNFAaIStnhTbX4zjTekhrD5NVDvWwA2coqpheAlpCc
-k3jyi+W1JftnH/z1CTpDZp2jQBn7Bounm5l+ZE/H41qGVdWsSB5upcMmfKllzpl+
-yWU+vqJu+PhRefmisl+YHVhd91/olg4V3L/etM31Qf3GoNpZMvWfPKmFwkjoz/q3
-x1X9TwTXfKi1bY1QFxWiS8MmQIogsYpm64iJF4LzuYGQl8OkP/GZ66m9kXCTcM8l
-3ChtzSsZ84w2Ha0WiW0MwjUUIxGQtA==
-=Cws9
------END PGP SIGNATURE-----
-
---6Xa8OXPmvG4fszxi--
