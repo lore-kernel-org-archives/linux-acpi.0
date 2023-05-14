@@ -2,81 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D032CC77B7D
-	for <linux-acpi@archiver.kernel.org>; Mon, 15 May 2023 06:01:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8660C7EE22
+	for <linux-acpi@archiver.kernel.org>; Mon, 15 May 2023 07:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238961AbjEOGBg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 15 May 2023 02:01:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35374 "EHLO
+        id S238142AbjEOHR3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 15 May 2023 03:17:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239140AbjEOGAw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 May 2023 02:00:52 -0400
-Received: from 167-179-156-38.a7b39c.syd.nbn.aussiebb.net (167-179-156-38.a7b39c.syd.nbn.aussiebb.net [167.179.156.38])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64A682D71;
-        Sun, 14 May 2023 22:54:56 -0700 (PDT)
-Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
-        by formenos.hmeau.com with smtp (Exim 4.94.2 #2 (Debian))
-        id 1pyRAL-0092DT-4p; Mon, 15 May 2023 13:54:38 +0800
-Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Mon, 15 May 2023 13:54:37 +0800
-Date:   Mon, 15 May 2023 13:54:37 +0800
-From:   Herbert Xu <herbert@gondor.apana.org.au>
-To:     Sunil V L <sunilvl@ventanamicro.com>
-Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-crypto@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        llvm@lists.linux.dev, Jonathan Corbet <corbet@lwn.net>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Weili Qian <qianweili@huawei.com>,
-        Zhou Wang <wangzhou1@hisilicon.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Marc Zyngier <maz@kernel.org>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>
-Subject: Re: [PATCH V6 03/21] crypto: hisilicon/qm: Fix to enable build with
- RISC-V clang
-Message-ID: <ZGHJHcECXV0EptuT@gondor.apana.org.au>
-References: <20230515054928.2079268-1-sunilvl@ventanamicro.com>
- <20230515054928.2079268-4-sunilvl@ventanamicro.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230515054928.2079268-4-sunilvl@ventanamicro.com>
+        with ESMTP id S238599AbjEOHRB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 May 2023 03:17:01 -0400
+X-Greylist: delayed 257 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 15 May 2023 00:16:01 PDT
+Received: from mail.hph.co.ir (unknown [130.185.74.210])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D853359E
+        for <linux-acpi@vger.kernel.org>; Mon, 15 May 2023 00:16:01 -0700 (PDT)
+From:   "Delivery Subsystem" <POSTMASTER@hph.co.ir>
+To:     <linux-acpi@vger.kernel.org>
+Subject: Message Delivery Delay
+Date:   Mon, 15 May 2023 03:04:43 +0430
+Message-ID: <7C3D1FE758464570A04EDA2918736039.MAI@hph.co.ir>
+X-MEFilter: 1
+Auto-Submitted: auto-replied
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, May 15, 2023 at 11:19:10AM +0530, Sunil V L wrote:
-> With CONFIG_ACPI enabled for RISC-V, this driver gets enabled in
-> allmodconfig build. However, build fails with clang and below
-> error is seen.
-> 
-> drivers/crypto/hisilicon/qm.c:627:10: error: invalid output constraint '+Q' in asm
->                        "+Q" (*((char __iomem *)fun_base))
->                        ^
-> This is expected error with clang due to the way it is designed.
-> 
-> To fix this issue, move arm64 assembly code under #if.
-> 
-> Link: https://github.com/ClangBuiltLinux/linux/issues/999
-> Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-> [sunilvl@ventanamicro.com: Moved tmp0 and tmp1 into the #if]
-> Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
-> ---
->  drivers/crypto/hisilicon/qm.c | 5 +++++
->  1 file changed, 5 insertions(+)
 
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+MailEnable: Message delivery has been delayed.
+
+Message is waiting at hph.co.ir for delivery to vger.kernel.org.
+
+The message will be retried for another 29 hours.
+
+Reason: Mail Server for vger.kernel.org could not accept your email at this time. MailEnable will keep trying to deliver this message and will notify you of any progress.
+
+
+Message headers follow:
+	
+Received: from d.umn.edu ([198.20.177.60]) by hph.co.ir with
+ MailEnable ESMTPA; Mon, 15 May 2023 02:13:08 +0430
+From: "linux-acpi" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Subject: Your E-mail (linux-acpi@vger.kernel.org) is Due For Upgrade -[Ticket ID: 784506]
+Date: 14 May 2023 23:14:02 -0700
+Message-ID: <20230514231402.431847EEFB621CB6@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_E4BD002E.B90E0806"
