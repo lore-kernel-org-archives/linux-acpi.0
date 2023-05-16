@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C785FC77B75
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 11:48:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96352C7EE23
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 11:48:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231648AbjEPLsR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 May 2023 07:48:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43658 "EHLO
+        id S231913AbjEPLs2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 May 2023 07:48:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231913AbjEPLsO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 07:48:14 -0400
+        with ESMTP id S232958AbjEPLs0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 07:48:26 -0400
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 296083C10
-        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2023 04:47:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF8113C3A
+        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2023 04:47:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684237655; x=1715773655;
+  t=1684237662; x=1715773662;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=wGccJ78CLi03k6nca7s4EOYG5mUfzdzU9KNUU7GPysY=;
-  b=ORRLak4LpXG/oJyyd6zkiUuSsWNWaW+F9ZJqLDxrUDajOHoMaF63yaaQ
-   EHOcn3kvPjGH7XtarzDl4jOIqyNKsx3Pj6dmQohCbaIEzpF2bbomQukwU
-   hBJmXRugaXxqEoawT0VtavwPQx5cvSL1K8cq2j0TMjLtQ0HaEMbIoFatT
-   v18X8rqfrbx67yp1w38RiREywDHonbiEKoFYC/qY0eT0hX3RomAQ1N8w9
-   bbtekaeLRWlRrWSs2ot+SJ3hMj6GvK0qob/eGo8HWG80yElndhY4Fpm56
-   nUNVVXhiU7Vwt3nWK1EMQwvRW453ZrUoRDgSYJ4isdvkGJOBh5VhIh6Do
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="417111636"
+  bh=kqgNW8OvryYyrV4L3xPcxq88n689A4LPp2Kr4WOs0mw=;
+  b=euYkTnfd1fjywfJOhIJl162+x+TGUaJ3tUc9w4Uo5bW+k6Sh5TW3B5q5
+   O7BBpMcy2aX7vosCqAi1dW111t8ZMIIc/RXZLncUEq+zyKc3DYyynwW6p
+   a/g1blA1U9/IhLwWPaaDOG1H/ackdIZdLNmZWRZz/VdtfJgBLNTgYJjVB
+   12kWqZjhvMYvqIJY9wX8N61AGQ3cIAEgEnIc/Ht39RCzgyZ+XAJtay6hV
+   tYY2n68vpRbEqKukofcSaUgUQm5l/9ESSnzAsHzCEWSL4TVKTQIWnm9DY
+   V1RhlHYgwahu2FIeub6rOyvCfuEbHrOn0pkO9c0SK2UoZYcpIvIj0VoUx
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="417111640"
 X-IronPort-AV: E=Sophos;i="5.99,278,1677571200"; 
-   d="scan'208";a="417111636"
+   d="scan'208";a="417111640"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:48 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:50 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="731961807"
+X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="731961813"
 X-IronPort-AV: E=Sophos;i="5.99,278,1677571200"; 
-   d="scan'208";a="731961807"
+   d="scan'208";a="731961813"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:46 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:49 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v2 10/34] hwmon: Move handler installing logic to driver
-Date:   Tue, 16 May 2023 13:45:53 +0200
-Message-Id: <20230516114617.148963-11-michal.wilczynski@intel.com>
+Subject: [PATCH v2 12/34] platform/chromeos_tbmc: Move handler installing logic to driver
+Date:   Tue, 16 May 2023 13:45:55 +0200
+Message-Id: <20230516114617.148963-13-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230516114617.148963-1-michal.wilczynski@intel.com>
 References: <20230516114617.148963-1-michal.wilczynski@intel.com>
@@ -67,64 +67,48 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/hwmon/acpi_power_meter.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/platform/chrome/chromeos_tbmc.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
-index fa28d447f0df..5cc43986d9ab 100644
---- a/drivers/hwmon/acpi_power_meter.c
-+++ b/drivers/hwmon/acpi_power_meter.c
-@@ -817,9 +817,10 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
+diff --git a/drivers/platform/chrome/chromeos_tbmc.c b/drivers/platform/chrome/chromeos_tbmc.c
+index d1cf8f3463ce..ac0f43fc530a 100644
+--- a/drivers/platform/chrome/chromeos_tbmc.c
++++ b/drivers/platform/chrome/chromeos_tbmc.c
+@@ -45,8 +45,10 @@ static __maybe_unused int chromeos_tbmc_resume(struct device *dev)
+ 	return chromeos_tbmc_query_switch(adev, adev->driver_data);
  }
  
- /* Handle ACPI event notifications */
--static void acpi_power_meter_notify(struct acpi_device *device, u32 event)
-+static void acpi_power_meter_notify(acpi_handle handle, u32 event, void *data)
+-static void chromeos_tbmc_notify(struct acpi_device *adev, u32 event)
++static void chromeos_tbmc_notify(acpi_handle handle, u32 event, void *data)
  {
- 	struct acpi_power_meter_resource *resource;
-+	struct acpi_device *device = data;
- 	int res;
- 
- 	if (!device || !acpi_driver_data(device))
-@@ -897,8 +898,12 @@ static int acpi_power_meter_add(struct acpi_device *device)
- 		goto exit_remove;
++	struct acpi_device *adev = data;
++
+ 	acpi_pm_wakeup_event(&adev->dev);
+ 	switch (event) {
+ 	case 0x80:
+@@ -92,7 +94,13 @@ static int chromeos_tbmc_add(struct acpi_device *adev)
+ 		return ret;
  	}
- 
--	res = 0;
--	goto exit;
-+	res = acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY,
-+						acpi_power_meter_notify);
-+	if (res)
-+		goto exit_remove;
+ 	device_init_wakeup(dev, true);
+-	return 0;
 +
-+	return res;
- 
- exit_remove:
- 	remove_attrs(resource);
-@@ -906,7 +911,7 @@ static int acpi_power_meter_add(struct acpi_device *device)
- 	free_capabilities(resource);
- exit_free:
- 	kfree(resource);
--exit:
++	return acpi_device_install_event_handler(adev, ACPI_DEVICE_NOTIFY, chromeos_tbmc_notify);
++}
 +
- 	return res;
++static void chromeos_tbmc_remove(struct acpi_device *adev)
++{
++	acpi_device_remove_event_handler(adev, ACPI_DEVICE_NOTIFY, chromeos_tbmc_notify);
  }
  
-@@ -917,6 +922,7 @@ static void acpi_power_meter_remove(struct acpi_device *device)
- 	if (!device || !acpi_driver_data(device))
- 		return;
- 
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_power_meter_notify);
- 	resource = acpi_driver_data(device);
- 	hwmon_device_unregister(resource->hwmon_dev);
- 
-@@ -953,7 +959,6 @@ static struct acpi_driver acpi_power_meter_driver = {
+ static const struct acpi_device_id chromeos_tbmc_acpi_device_ids[] = {
+@@ -110,7 +118,7 @@ static struct acpi_driver chromeos_tbmc_driver = {
+ 	.ids = chromeos_tbmc_acpi_device_ids,
  	.ops = {
- 		.add = acpi_power_meter_add,
- 		.remove = acpi_power_meter_remove,
--		.notify = acpi_power_meter_notify,
- 		},
- 	.drv.pm = pm_sleep_ptr(&acpi_power_meter_pm),
+ 		.add = chromeos_tbmc_add,
+-		.notify = chromeos_tbmc_notify,
++		.remove = chromeos_tbmc_remove,
+ 	},
+ 	.drv.pm = &chromeos_tbmc_pm_ops,
  };
 -- 
 2.40.1
