@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1562DC77B7F
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 11:49:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9075C7EE2C
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 11:49:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232951AbjEPLte (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 May 2023 07:49:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44774 "EHLO
+        id S233096AbjEPLts (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 May 2023 07:49:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233082AbjEPLtW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 07:49:22 -0400
+        with ESMTP id S233130AbjEPLtk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 07:49:40 -0400
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BD2A6E97
-        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2023 04:48:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEB3D6EB3
+        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2023 04:49:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684237730; x=1715773730;
+  t=1684237751; x=1715773751;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=5hb8gvHab4mv8wwQQFbmgRq9TQ5IHGsf0Qrw+0dkQ4s=;
-  b=TUYAYn0CYsARcaBJNdhsHGgSFwRNR0DmaoESk9Nmepi72FaQH5mQjQfB
-   /hCmbuiA4XDJ2Ofc4yMtuWCxi5DrvKhuzA3NCgclOtII0tKETQoxfX3nU
-   BmqL8L2FNnXV5lArVo8xdy3UjhOxjHhanZNPcULK5fDpAgSYkA97dqP0K
-   GGnpOxTooljSZgZ+e3V3cRHP8HAB9PwdkF6YnKdfp8YWDTpPEQcQ/qY8P
-   P5ir/L3Q3E/GVDHOZ4K1v74kkj4d4qJwiZJeby/sryuw66Yn3fa0uf7HH
-   t5BEqTP1ccW1Y3WatLCGw/xfcwyIsL2/TmStzJxWBO68uL8CedoVWYJrG
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="417111687"
+  bh=txzmCeCA/MPyNx/npYsx9yZon2/dCun/SRz4VGygQnU=;
+  b=DGHLFca54htA7c2UJQiqHw5ZJFwkPfQhY9VKqbPF5KxKCji4MCD7QYA1
+   WXwbJRxAJ8duTO7k4N6K1ks5Z4N6zIOMjd7gGMHXqAfRvjl9GfCItOlPM
+   gj2+rFd/S5FXhwg8BgW1eXFR02c6NOytwAvR/DkpNNAgzHu6KqiYJ+k80
+   zkx9LJ2CAPreYzzYEgMqJRlQkRA+tN6cDOxIprt27Tr3ihn+zBxBfe27D
+   VS0LdQD3YkRZt/fKS0hhQb0Pk61Y260LwAm/B2KIw8BGhd2CXPaE/b8Uk
+   le8BFnB4ZO5ndiX4SNPq2g2F4MBK+OJGLtdGw4QpzVDshFGVTOYHRku+W
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="417111710"
 X-IronPort-AV: E=Sophos;i="5.99,278,1677571200"; 
-   d="scan'208";a="417111687"
+   d="scan'208";a="417111710"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:47:02 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:47:05 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="731961886"
+X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="731961947"
 X-IronPort-AV: E=Sophos;i="5.99,278,1677571200"; 
-   d="scan'208";a="731961886"
+   d="scan'208";a="731961947"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:47:00 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:47:04 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v2 21/34] platform/x86/fujitsu-laptop: Move handler installing logic to driver
-Date:   Tue, 16 May 2023 13:46:04 +0200
-Message-Id: <20230516114617.148963-22-michal.wilczynski@intel.com>
+Subject: [PATCH v2 24/34] platform/x86/system76_acpi: Move handler installing logic to driver
+Date:   Tue, 16 May 2023 13:46:07 +0200
+Message-Id: <20230516114617.148963-25-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230516114617.148963-1-michal.wilczynski@intel.com>
 References: <20230516114617.148963-1-michal.wilczynski@intel.com>
@@ -67,151 +67,83 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/platform/x86/fujitsu-laptop.c | 103 ++++++++++++++------------
- 1 file changed, 56 insertions(+), 47 deletions(-)
+ drivers/platform/x86/system76_acpi.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index 085e044e888e..41b5bdca859a 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -769,6 +769,54 @@ static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
- 	return 0;
+diff --git a/drivers/platform/x86/system76_acpi.c b/drivers/platform/x86/system76_acpi.c
+index 97f5a8255b91..3e729ec08b8b 100644
+--- a/drivers/platform/x86/system76_acpi.c
++++ b/drivers/platform/x86/system76_acpi.c
+@@ -627,29 +627,30 @@ static void input_key(struct system76_data *data, unsigned int code)
  }
  
-+static void acpi_fujitsu_laptop_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct acpi_device *device = data;
-+	struct fujitsu_laptop *priv;
-+	unsigned long flags;
-+	int scancode, i = 0;
-+	unsigned int irb;
-+
-+	priv = acpi_driver_data(device);
-+
-+	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
-+		acpi_handle_info(device->handle, "Unsupported event [0x%x]\n",
-+				 event);
-+		sparse_keymap_report_event(priv->input, -1, 1, true);
-+		return;
-+	}
-+
-+	if (priv->flags_supported)
-+		priv->flags_state = call_fext_func(device, FUNC_FLAGS, 0x4, 0x0,
-+						   0x0);
-+
-+	while ((irb = call_fext_func(device,
-+				     FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0 &&
-+	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE) {
-+		scancode = irb & 0x4ff;
-+		if (sparse_keymap_entry_from_scancode(priv->input, scancode))
-+			acpi_fujitsu_laptop_press(device, scancode);
-+		else if (scancode == 0)
-+			acpi_fujitsu_laptop_release(device);
-+		else
-+			acpi_handle_info(device->handle,
-+					 "Unknown GIRB result [%x]\n", irb);
-+	}
-+
-+	/*
-+	 * First seen on the Skylake-based Lifebook E736/E746/E756), the
-+	 * touchpad toggle hotkey (Fn+F4) is handled in software. Other models
-+	 * have since added additional "soft keys". These are reported in the
-+	 * status flags queried using FUNC_FLAGS.
-+	 */
-+	if (priv->flags_supported & (FLAG_SOFTKEYS)) {
-+		flags = call_fext_func(device, FUNC_FLAGS, 0x1, 0x0, 0x0);
-+		flags &= (FLAG_SOFTKEYS);
-+		for_each_set_bit(i, &flags, BITS_PER_LONG)
-+			sparse_keymap_report_event(priv->input, BIT(i), 1, true);
-+	}
-+}
-+
- static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ // Handle ACPI notification
+-static void system76_notify(struct acpi_device *acpi_dev, u32 event)
++static void system76_notify(acpi_handle handle, u32 event, void *data)
  {
- 	struct fujitsu_laptop *priv;
-@@ -839,7 +887,12 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
- 	if (ret)
- 		goto err_free_fifo;
+-	struct system76_data *data;
++	struct acpi_device *acpi_dev = data;
++	struct system76_data *s_data;
  
--	return 0;
-+	ret = acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY,
-+						acpi_fujitsu_laptop_notify);
-+	if (ret)
-+		goto err_free_fifo;
-+
-+	return ret;
- 
- err_free_fifo:
- 	kfifo_free(&priv->fifo);
-@@ -851,6 +904,8 @@ static void acpi_fujitsu_laptop_remove(struct acpi_device *device)
- {
- 	struct fujitsu_laptop *priv = acpi_driver_data(device);
- 
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_fujitsu_laptop_notify);
-+
- 	fujitsu_laptop_platform_remove(device);
- 
- 	kfifo_free(&priv->fifo);
-@@ -889,51 +944,6 @@ static void acpi_fujitsu_laptop_release(struct acpi_device *device)
+-	data = acpi_driver_data(acpi_dev);
++	s_data = acpi_driver_data(acpi_dev);
+ 	switch (event) {
+ 	case 0x80:
+-		kb_led_hotkey_hardware(data);
++		kb_led_hotkey_hardware(s_data);
+ 		break;
+ 	case 0x81:
+-		kb_led_hotkey_toggle(data);
++		kb_led_hotkey_toggle(s_data);
+ 		break;
+ 	case 0x82:
+-		kb_led_hotkey_down(data);
++		kb_led_hotkey_down(s_data);
+ 		break;
+ 	case 0x83:
+-		kb_led_hotkey_up(data);
++		kb_led_hotkey_up(s_data);
+ 		break;
+ 	case 0x84:
+-		kb_led_hotkey_color(data);
++		kb_led_hotkey_color(s_data);
+ 		break;
+ 	case 0x85:
+-		input_key(data, KEY_SCREENLOCK);
++		input_key(s_data, KEY_SCREENLOCK);
+ 		break;
  	}
  }
+@@ -733,7 +734,11 @@ static int system76_add(struct acpi_device *acpi_dev)
+ 		system76_battery_init();
+ 	}
  
--static void acpi_fujitsu_laptop_notify(struct acpi_device *device, u32 event)
--{
--	struct fujitsu_laptop *priv = acpi_driver_data(device);
--	unsigned long flags;
--	int scancode, i = 0;
--	unsigned int irb;
--
--	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
--		acpi_handle_info(device->handle, "Unsupported event [0x%x]\n",
--				 event);
--		sparse_keymap_report_event(priv->input, -1, 1, true);
--		return;
--	}
--
--	if (priv->flags_supported)
--		priv->flags_state = call_fext_func(device, FUNC_FLAGS, 0x4, 0x0,
--						   0x0);
--
--	while ((irb = call_fext_func(device,
--				     FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0 &&
--	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE) {
--		scancode = irb & 0x4ff;
--		if (sparse_keymap_entry_from_scancode(priv->input, scancode))
--			acpi_fujitsu_laptop_press(device, scancode);
--		else if (scancode == 0)
--			acpi_fujitsu_laptop_release(device);
--		else
--			acpi_handle_info(device->handle,
--					 "Unknown GIRB result [%x]\n", irb);
--	}
--
--	/*
--	 * First seen on the Skylake-based Lifebook E736/E746/E756), the
--	 * touchpad toggle hotkey (Fn+F4) is handled in software. Other models
--	 * have since added additional "soft keys". These are reported in the
--	 * status flags queried using FUNC_FLAGS.
--	 */
--	if (priv->flags_supported & (FLAG_SOFTKEYS)) {
--		flags = call_fext_func(device, FUNC_FLAGS, 0x1, 0x0, 0x0);
--		flags &= (FLAG_SOFTKEYS);
--		for_each_set_bit(i, &flags, BITS_PER_LONG)
--			sparse_keymap_report_event(priv->input, BIT(i), 1, true);
--	}
--}
--
- /* Initialization */
+-	return 0;
++	err = acpi_device_install_event_handler(acpi_dev, ACPI_DEVICE_NOTIFY, system76_notify);
++	if (err)
++		goto error;
++
++	return err;
  
- static const struct acpi_device_id fujitsu_bl_device_ids[] = {
-@@ -963,7 +973,6 @@ static struct acpi_driver acpi_fujitsu_laptop_driver = {
+ error:
+ 	if (data->has_open_ec) {
+@@ -750,6 +755,8 @@ static void system76_remove(struct acpi_device *acpi_dev)
+ 
+ 	data = acpi_driver_data(acpi_dev);
+ 
++	acpi_device_remove_event_handler(acpi_dev, ACPI_DEVICE_NOTIFY, system76_notify);
++
+ 	if (data->has_open_ec) {
+ 		system76_battery_exit();
+ 		kfree(data->nfan);
+@@ -769,7 +776,6 @@ static struct acpi_driver system76_driver = {
  	.ops = {
- 		.add = acpi_fujitsu_laptop_add,
- 		.remove = acpi_fujitsu_laptop_remove,
--		.notify = acpi_fujitsu_laptop_notify,
- 		},
+ 		.add = system76_add,
+ 		.remove = system76_remove,
+-		.notify = system76_notify,
+ 	},
  };
- 
+ module_acpi_driver(system76_driver);
 -- 
 2.40.1
 
