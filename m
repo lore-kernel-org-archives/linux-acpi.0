@@ -2,58 +2,262 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F86DC77B7F
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 10:36:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25A00C77B7F
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 10:38:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230372AbjEPKgs convert rfc822-to-8bit (ORCPT
+        id S231932AbjEPKh7 convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 May 2023 06:36:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34754 "EHLO
+        Tue, 16 May 2023 06:37:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232173AbjEPKgq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 06:36:46 -0400
-X-Greylist: delayed 599 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 16 May 2023 03:36:27 PDT
-Received: from tilde.cafe (tilde.cafe [51.222.161.16])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1283B19A5;
-        Tue, 16 May 2023 03:36:26 -0700 (PDT)
-Received: from [127.0.0.1] (106.208.19.217.sta.idknet.com [217.19.208.106])
-        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by tilde.cafe (Postfix) with ESMTPSA id 7588B2027D;
-        Tue, 16 May 2023 06:26:26 -0400 (EDT)
-Date:   Tue, 16 May 2023 13:26:23 +0300
-From:   Acid Bong <acidbong@tilde.cafe>
-To:     Bjorn Helgaas <helgaas@kernel.org>
-CC:     Linux regressions mailing list <regressions@lists.linux.dev>,
-        Bagas Sanjaya <bagasdotme@gmail.com>, stable@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>, linux-pci@vger.kernel.org
-Subject: =?US-ASCII?Q?Re=3A_=5BREGRESSION=5D_Asus_X541UAK_hangs_o?= =?US-ASCII?Q?n_suspend_and_poweroff_=28v6=2E1=2E6_onward=29?=
-In-Reply-To: <ZGKbRo9shUcR0myC@bhelgaas>
-References: <ZGKbRo9shUcR0myC@bhelgaas>
-Message-ID: <A5B9D233-A082-4C60-9DCB-2B0A2081C089@tilde.cafe>
+        with ESMTP id S232068AbjEPKh6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 06:37:58 -0400
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05ED6213A;
+        Tue, 16 May 2023 03:37:52 -0700 (PDT)
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-94a342f4c8eso355435066b.0;
+        Tue, 16 May 2023 03:37:52 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684233471; x=1686825471;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=aZvG9EwxbAkTIUCb+ia3g2SAb5ao369dYmZpB1L75vM=;
+        b=jW+7dxsscE9FYigkF8o5v8o5XGtHiAt4GanywSyeOo19Rs5lmTgT9I5vsyma3DbXCO
+         jYg+BQz9kPXr9my20V3vJZtMHBMSdt02xZFaqV4DcAUpoMRZi5RSVqyb75M3E9k5wNjt
+         c5/k/4xk6Gc7U7Cwi5XWHN4xay9CLfaqLR/5nvoteeA/k43hN+XWPR+6voauSHJdilbQ
+         Z6e9GNiGZafEtBcgzGQKe1Q416/q/rkrJMJ4hbvyi1w5wWOGafDi5VApFSe6Khbgi5tq
+         zjWTGUi50E5gqWkN2MR1kIGWcTdjsX0JHpcqAhgNQu14QTUsQ8bjabCb4mVkTgjBuCkY
+         ELvg==
+X-Gm-Message-State: AC+VfDwIW47nyhqlwCHpFE6j/Hd8N1in0lg1QXOoIAV5YENvm4oSr+XM
+        UfM56eXTU4DHn4rsiyB+RPFPKPIOlFl36R4ZFGp+TKqY
+X-Google-Smtp-Source: ACHHUZ4XAIHLNhqsjB3xkqymaxap0VVLgEqJosjP7KKpP9ZI6U0MBT02pTufAM2NO1jDA8rTrOcbDb2ntpCgvbLEiMQ=
+X-Received: by 2002:a17:906:51cb:b0:94e:d688:fca6 with SMTP id
+ v11-20020a17090651cb00b0094ed688fca6mr9001606ejk.0.1684233471153; Tue, 16 May
+ 2023 03:37:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
+References: <12223415.O9o76ZdvQC@kreacher> <f665b082-6114-d132-915b-e5b45f52af99@redhat.com>
+In-Reply-To: <f665b082-6114-d132-915b-e5b45f52af99@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 16 May 2023 12:37:37 +0200
+Message-ID: <CAJZ5v0hRzeq201Wt98TdPp6k90Z4J5+eMmibsCXXugGKXzAknA@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: scan: Reduce overhead related to devices with dependencies
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
->Can you collect the complete dmesg log and output of "sudo lspci -vv"
->and post them somewhere (https://bugzilla.kernel.org is a good place)?
-`lspci -vvnn` output is linked in the head of the thread. Append .txt to make it readable in the browser (I only understood it after the upload).
+Hi Hans,
 
->Ideally the dmesg would be from the most recent kernel you have.
-Speaking of that, a couple of questions:
+On Tue, May 16, 2023 at 12:33 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> Hi Rafael,
+>
+> On 5/16/23 12:25, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: [PATCH] ACPI: scan: Reduce overhead related to devices with dependencies
+> >
+> > Notice that all of the objects for which the acpi_scan_check_dep()
+> > return value is greater than 0 are present in acpi_dep_list as consumers
+> > (there may be multiple entries for one object, but that is not a
+> > problem), so after carrying out the initial ACPI namespace walk in which
+> > devices with dependencies are skipped, acpi_bus_scan() can simply walk
+> > acpi_dep_list and enumerate all of the unique consumer objects from
+> > there and their descendants instead of walking the entire target branch
+> > of the ACPI namespace and looking for device objects that have not been
+> > enumerated yet in it.
+> >
+> > Because walking acpi_dep_list is generally less overhead than walking
+> > the entire ACPI namespace, use the observation above to reduce the
+> > system initialization overhead related to ACPI, which is particularly
+> > important on large systems.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >
+> > -> v2: Hold acpi_dep_list_lock around the acpi_fetch_acpi_dev() invocation in
+> >        acpi_scan_postponed() (Hans).
+>
+> This looks good to me now:
+>
+> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+>
+> with the remark that this obviously is going to need a lot
+> of testing in case this somehow breaks some weird corner case.
+>
+> I'll add it to my personal git kernel tree with all my
+> pending work right away, so that it will get tested on
+> various devices as I test other patches on those devices.
+>
+> I'll let you know if I hit any problems which seem to be
+> caused by this.
 
-1) Should I post them with or without pci=nomsi/noaer? The problem with disabling it is that it floods the logs so fast, that they reach 700M in 5-7 minutes, and, when rotation is enabled (my parameters are default, up to 10 copies 10M each), all pre-flood data is lost instantly.
+Awesome, thanks!
 
-Also I'm currently bisecting the kernel with MSI disabled in the config. But I'm keeping the parameter in the bootloader for cases when I'm using Gentoo's prebuilt kernel.
 
-2) Can I delete messages by ufw? They contain MACs of my router, laptop and cellphone and I don't really wanna share them
-
-3) I'm not savvy in logs, how exactly should I share dmesg? `dmesg > file`? /var/log/syslog? I already know kern.log doesn't contain logind and some other messages that are present in dmesg
-
-4) Should we continue in this thread or rather start a new one?
+> >
+> > ---
+> >  drivers/acpi/scan.c     |   81 ++++++++++++++++++++++++++++++++++++------------
+> >  include/acpi/acpi_bus.h |    2 +
+> >  2 files changed, 63 insertions(+), 20 deletions(-)
+> >
+> > Index: linux-pm/include/acpi/acpi_bus.h
+> > ===================================================================
+> > --- linux-pm.orig/include/acpi/acpi_bus.h
+> > +++ linux-pm/include/acpi/acpi_bus.h
+> > @@ -289,6 +289,8 @@ struct acpi_dep_data {
+> >       acpi_handle supplier;
+> >       acpi_handle consumer;
+> >       bool honor_dep;
+> > +     bool met;
+> > +     bool free_when_met;
+> >  };
+> >
+> >  /* Performance Management */
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -2029,8 +2029,6 @@ static u32 acpi_scan_check_dep(acpi_hand
+> >       return count;
+> >  }
+> >
+> > -static bool acpi_bus_scan_second_pass;
+> > -
+> >  static acpi_status acpi_bus_check_add(acpi_handle handle, bool check_dep,
+> >                                     struct acpi_device **adev_p)
+> >  {
+> > @@ -2050,10 +2048,8 @@ static acpi_status acpi_bus_check_add(ac
+> >                       return AE_OK;
+> >
+> >               /* Bail out if there are dependencies. */
+> > -             if (acpi_scan_check_dep(handle, check_dep) > 0) {
+> > -                     acpi_bus_scan_second_pass = true;
+> > +             if (acpi_scan_check_dep(handle, check_dep) > 0)
+> >                       return AE_CTRL_DEPTH;
+> > -             }
+> >
+> >               fallthrough;
+> >       case ACPI_TYPE_ANY:     /* for ACPI_ROOT_OBJECT */
+> > @@ -2301,6 +2297,12 @@ static bool acpi_scan_clear_dep_queue(st
+> >       return true;
+> >  }
+> >
+> > +static void acpi_scan_delete_dep_data(struct acpi_dep_data *dep)
+> > +{
+> > +     list_del(&dep->node);
+> > +     kfree(dep);
+> > +}
+> > +
+> >  static int acpi_scan_clear_dep(struct acpi_dep_data *dep, void *data)
+> >  {
+> >       struct acpi_device *adev = acpi_get_acpi_dev(dep->consumer);
+> > @@ -2311,8 +2313,10 @@ static int acpi_scan_clear_dep(struct ac
+> >                       acpi_dev_put(adev);
+> >       }
+> >
+> > -     list_del(&dep->node);
+> > -     kfree(dep);
+> > +     if (dep->free_when_met)
+> > +             acpi_scan_delete_dep_data(dep);
+> > +     else
+> > +             dep->met = true;
+> >
+> >       return 0;
+> >  }
+> > @@ -2406,6 +2410,55 @@ struct acpi_device *acpi_dev_get_next_co
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_dev_get_next_consumer_dev);
+> >
+> > +static void acpi_scan_postponed_branch(acpi_handle handle)
+> > +{
+> > +     struct acpi_device *adev = NULL;
+> > +
+> > +     if (ACPI_FAILURE(acpi_bus_check_add(handle, false, &adev)))
+> > +             return;
+> > +
+> > +     acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> > +                         acpi_bus_check_add_2, NULL, NULL, (void **)&adev);
+> > +     acpi_bus_attach(adev, NULL);
+> > +}
+> > +
+> > +static void acpi_scan_postponed(void)
+> > +{
+> > +     struct acpi_dep_data *dep, *tmp;
+> > +
+> > +     mutex_lock(&acpi_dep_list_lock);
+> > +
+> > +     list_for_each_entry_safe(dep, tmp, &acpi_dep_list, node) {
+> > +             acpi_handle handle = dep->consumer;
+> > +
+> > +             /*
+> > +              * In case there are multiple acpi_dep_list entries with the
+> > +              * same consumer, skip the current entry if the consumer device
+> > +              * object corresponding to it is present already.
+> > +              */
+> > +             if (!acpi_fetch_acpi_dev(handle)) {
+> > +                     /*
+> > +                      * Even though the lock is released here, tmp is
+> > +                      * guaranteed to be valid, because none of the list
+> > +                      * entries following dep is marked as "free when met"
+> > +                      * and so they cannot be deleted.
+> > +                      */
+> > +                     mutex_unlock(&acpi_dep_list_lock);
+> > +
+> > +                     acpi_scan_postponed_branch(handle);
+> > +
+> > +                     mutex_lock(&acpi_dep_list_lock);
+> > +             }
+> > +
+> > +             if (dep->met)
+> > +                     acpi_scan_delete_dep_data(dep);
+> > +             else
+> > +                     dep->free_when_met = true;
+> > +     }
+> > +
+> > +     mutex_unlock(&acpi_dep_list_lock);
+> > +}
+> > +
+> >  /**
+> >   * acpi_bus_scan - Add ACPI device node objects in a given namespace scope.
+> >   * @handle: Root of the namespace scope to scan.
+> > @@ -2424,8 +2477,6 @@ int acpi_bus_scan(acpi_handle handle)
+> >  {
+> >       struct acpi_device *device = NULL;
+> >
+> > -     acpi_bus_scan_second_pass = false;
+> > -
+> >       /* Pass 1: Avoid enumerating devices with missing dependencies. */
+> >
+> >       if (ACPI_SUCCESS(acpi_bus_check_add(handle, true, &device)))
+> > @@ -2438,19 +2489,9 @@ int acpi_bus_scan(acpi_handle handle)
+> >
+> >       acpi_bus_attach(device, (void *)true);
+> >
+> > -     if (!acpi_bus_scan_second_pass)
+> > -             return 0;
+> > -
+> >       /* Pass 2: Enumerate all of the remaining devices. */
+> >
+> > -     device = NULL;
+> > -
+> > -     if (ACPI_SUCCESS(acpi_bus_check_add(handle, false, &device)))
+> > -             acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> > -                                 acpi_bus_check_add_2, NULL, NULL,
+> > -                                 (void **)&device);
+> > -
+> > -     acpi_bus_attach(device, NULL);
+> > +     acpi_scan_postponed();
+> >
+> >       return 0;
+> >  }
+> >
+> >
+> >
+>
