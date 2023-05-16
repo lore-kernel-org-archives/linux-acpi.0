@@ -2,48 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27886C77B7F
-	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 11:48:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B68B4C77B7F
+	for <linux-acpi@archiver.kernel.org>; Tue, 16 May 2023 11:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231401AbjEPLsq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 16 May 2023 07:48:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44262 "EHLO
+        id S233040AbjEPLtH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 16 May 2023 07:49:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232905AbjEPLsl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 07:48:41 -0400
+        with ESMTP id S233049AbjEPLs7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2023 07:48:59 -0400
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6154D212B
-        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2023 04:48:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6EB665B4
+        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2023 04:48:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684237693; x=1715773693;
+  t=1684237702; x=1715773702;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=eKaXqW+DRkqJGpmPjw5NP4F6Cx+mNw9LMr+YNIGyaoY=;
-  b=fT2xNfSEeu3/Z8cBIchGT27/UjtJ0ITtq9RFs+IDOihhsecURwSAH+J8
-   LRw6Lwy5V71UnXzAFYZeILoYWHbMuNbXy/WbOKGnkjUR0OIdpaRNMuTNV
-   B0S3JLUFqyEHQTP+8W/y/2HnOPNQq3LQLID0cyOWzGwUGrb/TzbKT1cnw
-   B+ocVWbCoWVwhkmU8Ams3fPCsVF0cJylGcP4gOkRYQw9QUoc3j0TZVUuC
-   erUeLOCCO6TwONQsjUF9xs16GGdbUjPXH1csBgG5hchE2SkxczEj1tvo2
-   bIDEDRU+y2OrwS6KCtYFZKKLel0pX9YXw2SwBD0fVdAUHeZd5XV3KN9lK
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="417111638"
+  bh=g78n4JtrV5AuyACtMRvoWGwc1OTpMBYSGKwkHgUu8Lc=;
+  b=A4/F6LuDC5Kxwcvu4YuXDypk+kv6ly2u8aQQsDqtyQjn94G+lZS2Qe/F
+   i35BYFtTaaKnroFuJeSUMLD0uNOHtk69ZrVi6z64cC8jJIlRP8vKZejbc
+   7t3dFjthJhvx3KPFzamd3InNfAvGct08RHPcgFx13PukLf269B41oT+T3
+   A5If2VU5Z32Q8noRSbjHhkrqtTpzDaJeAzQRLnl/znYZMlM7+nfcuIJ6F
+   hVu4x5a/8hzmDWaOvGJkxepl36rkkBj/fBOeAjMYAghdlqu6JiUxs76uL
+   rmEYIp3TwNQp1BPHsWhCmzOi6LSD3KsH2DTn6h9Zz8WBv/lAFtD1jsRNB
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="417111660"
 X-IronPort-AV: E=Sophos;i="5.99,278,1677571200"; 
-   d="scan'208";a="417111638"
+   d="scan'208";a="417111660"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:49 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:55 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="731961810"
+X-IronPort-AV: E=McAfee;i="6600,9927,10711"; a="731961834"
 X-IronPort-AV: E=Sophos;i="5.99,278,1677571200"; 
-   d="scan'208";a="731961810"
+   d="scan'208";a="731961834"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:48 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2023 04:46:54 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v2 11/34] iio/acpi-als: Move handler installing logic to driver
-Date:   Tue, 16 May 2023 13:45:54 +0200
-Message-Id: <20230516114617.148963-12-michal.wilczynski@intel.com>
+Subject: [PATCH v2 16/34] platform/x86/asus-laptop: Move handler installing logic to driver
+Date:   Tue, 16 May 2023 13:45:59 +0200
+Message-Id: <20230516114617.148963-17-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230516114617.148963-1-michal.wilczynski@intel.com>
 References: <20230516114617.148963-1-michal.wilczynski@intel.com>
@@ -67,56 +67,62 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/iio/light/acpi-als.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ drivers/platform/x86/asus-laptop.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/iio/light/acpi-als.c b/drivers/iio/light/acpi-als.c
-index 2d91caf24dd0..5e200c6d91bc 100644
---- a/drivers/iio/light/acpi-als.c
-+++ b/drivers/iio/light/acpi-als.c
-@@ -100,10 +100,14 @@ static int acpi_als_read_value(struct acpi_als *als, char *prop, s32 *val)
- 	return 0;
- }
- 
--static void acpi_als_notify(struct acpi_device *device, u32 event)
-+static void acpi_als_notify(acpi_handle handle, u32 event, void *data)
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 761029f39314..fa348c96be16 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -1515,11 +1515,14 @@ static void asus_input_exit(struct asus_laptop *asus)
+ /*
+  * ACPI driver
+  */
+-static void asus_acpi_notify(struct acpi_device *device, u32 event)
++static void asus_acpi_notify(acpi_handle handle, u32 event, void *data)
  {
--	struct iio_dev *indio_dev = acpi_driver_data(device);
--	struct acpi_als *als = iio_priv(indio_dev);
+-	struct asus_laptop *asus = acpi_driver_data(device);
 +	struct acpi_device *device = data;
-+	struct iio_dev *indio_dev;
-+	struct acpi_als *als;
-+
-+	indio_dev = acpi_driver_data(device);
-+	als = iio_priv(indio_dev);
++	struct asus_laptop *asus;
+ 	u16 count;
  
- 	if (iio_buffer_enabled(indio_dev) && iio_trigger_using_own(indio_dev)) {
- 		switch (event) {
-@@ -225,7 +229,16 @@ static int acpi_als_add(struct acpi_device *device)
- 	if (ret)
- 		return ret;
- 
--	return devm_iio_device_register(dev, indio_dev);
-+	ret = devm_iio_device_register(dev, indio_dev);
-+	if (ret)
-+		return ret;
++	asus = acpi_driver_data(device);
 +
-+	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_als_notify);
-+}
-+
-+static void acpi_als_remove(struct acpi_device *device)
-+{
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_als_notify);
- }
+ 	/* TODO Find a better way to handle events count. */
+ 	count = asus->event_count[event % 128]++;
+ 	acpi_bus_generate_netlink_event(asus->device->pnp.device_class,
+@@ -1880,8 +1883,12 @@ static int asus_acpi_add(struct acpi_device *device)
+ 	if (result && result != -ENODEV)
+ 		goto fail_pega_rfkill;
  
- static const struct acpi_device_id acpi_als_device_ids[] = {
-@@ -241,7 +254,7 @@ static struct acpi_driver acpi_als_driver = {
- 	.ids	= acpi_als_device_ids,
++	result =  acpi_device_install_event_handler(device, ACPI_ALL_NOTIFY, asus_acpi_notify);
++	if (result)
++		goto fail_pega_rfkill;
++
+ 	asus_device_present = true;
+-	return 0;
++	return result;
+ 
+ fail_pega_rfkill:
+ 	pega_accel_exit(asus);
+@@ -1905,6 +1912,7 @@ static void asus_acpi_remove(struct acpi_device *device)
+ {
+ 	struct asus_laptop *asus = acpi_driver_data(device);
+ 
++	acpi_device_remove_event_handler(device, ACPI_ALL_NOTIFY, asus_acpi_notify);
+ 	asus_backlight_exit(asus);
+ 	asus_rfkill_exit(asus);
+ 	asus_led_exit(asus);
+@@ -1928,11 +1936,9 @@ static struct acpi_driver asus_acpi_driver = {
+ 	.class = ASUS_LAPTOP_CLASS,
+ 	.owner = THIS_MODULE,
+ 	.ids = asus_device_ids,
+-	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
- 		.add	= acpi_als_add,
--		.notify	= acpi_als_notify,
-+		.remove = acpi_als_remove,
- 	},
+ 		.add = asus_acpi_add,
+ 		.remove = asus_acpi_remove,
+-		.notify = asus_acpi_notify,
+ 		},
  };
  
 -- 
