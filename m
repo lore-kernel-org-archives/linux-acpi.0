@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB027C7EE23
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:59:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C7CC77B7A
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:59:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbjEQH7I (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 May 2023 03:59:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54742 "EHLO
+        id S230095AbjEQH7J (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 May 2023 03:59:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230012AbjEQH6c (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:32 -0400
+        with ESMTP id S230130AbjEQH6d (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:33 -0400
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 561C9468D
-        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C58EE76
+        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684310310; x=1715846310;
+  t=1684310311; x=1715846311;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=I2qxpSnbpgLjM78ZtYch42J8ILoMjAtDeHGN9eT4sCo=;
-  b=fOrgsKEYd0kgBltToV64lXcKBtW418hCy1l3p/5xpN+TR5KKnAKSyU1O
-   3RkvmO7sp9MR46YFovnWK5tUIjpH0hyZDKiW98zeV5RELNkpX4VCRMzTF
-   rThwp7M3lfFivbN0KJWlxlvQculm16BzMu8OF80JTbzbqOj9wJPWHfLnD
-   jEi/4x8gVPqm1paVuQiESpvmRywsWwtLOZrC3D4yabH8fZfYo7jqhjPdF
-   tGRHaN2z0VtZIlkmz3J2CQiIfGdSgCf8v0IMf1YEtN2ntnCufRyvLqXJK
-   f5+YxZOujVqZQ0MRn/GZfM/V/0xBKMyziCQiVxKOIkYBTVdlTM/WqoYI4
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105424"
+  bh=sz9IE9cEgIQ2ESLugoWDtFHJtdLMme7uINSzOKz8WUA=;
+  b=L3oZAe3KqD9nfRg9WG2XcBLxUGLC2vDACA7R0IhCTTAmlYs0usKErHQ+
+   8iBAVllCK3OK0QUqQH/ve6uaXxf/Ah9aKlBBu/VrvDJ3PMaGiXMblxfyf
+   X4PQWtsbDv5jFegt/9ju7cb3kFMLVLozkzWtTcrYB9+qyKlWB8kOCDu1K
+   IgxM6I1As2tfOp7n2Do/4fA2UrrVKXYh/oPfN5lktC7cnjRdk9kQ7u3e8
+   DKLI6Uqs2cEUqGax87M+UH836LhYz5CTPbvJPuUOAggdZHtJI+Gb3yH6Z
+   K7abJXc3IXAcZ/zgnMVdCp1XMLJ9a386dFe2hJsRhh+grvYS1YD1STCJV
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105448"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="415105424"
+   d="scan'208";a="415105448"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:20 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:25 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877393"
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877416"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="825877393"
+   d="scan'208";a="825877416"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:19 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:23 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, srinivas.pandruvada@linux.intel.com,
         Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v3 15/34] platform/x86/acer-wireless: Move handler installing logic to driver
-Date:   Wed, 17 May 2023 09:57:05 +0200
-Message-Id: <20230517075724.153992-16-michal.wilczynski@intel.com>
+Subject: [PATCH v3 18/34] platform/x86/classmate-laptop: Move handler installing logic to driver
+Date:   Wed, 17 May 2023 09:57:08 +0200
+Message-Id: <20230517075724.153992-19-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230517075724.153992-1-michal.wilczynski@intel.com>
 References: <20230517075724.153992-1-michal.wilczynski@intel.com>
@@ -68,64 +68,54 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/platform/x86/acer-wireless.c | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ drivers/platform/x86/classmate-laptop.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/platform/x86/acer-wireless.c b/drivers/platform/x86/acer-wireless.c
-index 1b5d935d085a..275215fd18c2 100644
---- a/drivers/platform/x86/acer-wireless.c
-+++ b/drivers/platform/x86/acer-wireless.c
-@@ -18,9 +18,12 @@ static const struct acpi_device_id acer_wireless_acpi_ids[] = {
- };
- MODULE_DEVICE_TABLE(acpi, acer_wireless_acpi_ids);
- 
--static void acer_wireless_notify(struct acpi_device *adev, u32 event)
-+static void acer_wireless_notify(acpi_handle handle, u32 event, void *data)
- {
--	struct input_dev *idev = acpi_driver_data(adev);
-+	struct acpi_device *adev = data;
-+	struct input_dev *idev;
-+
-+	idev = acpi_driver_data(adev);
- 
- 	dev_dbg(&adev->dev, "event=%#x\n", event);
- 	if (event != 0x80) {
-@@ -36,6 +39,7 @@ static void acer_wireless_notify(struct acpi_device *adev, u32 event)
- static int acer_wireless_add(struct acpi_device *adev)
- {
- 	struct input_dev *idev;
-+	int ret;
- 
- 	idev = devm_input_allocate_device(&adev->dev);
- 	if (!idev)
-@@ -50,7 +54,17 @@ static int acer_wireless_add(struct acpi_device *adev)
- 	set_bit(EV_KEY, idev->evbit);
- 	set_bit(KEY_RFKILL, idev->keybit);
- 
--	return input_register_device(idev);
-+	ret = input_register_device(idev);
-+
-+	if (ret)
-+		return ret;
-+
-+	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acer_wireless_notify);
-+}
-+
-+static void acer_wireless_remove(struct acpi_device *adev)
-+{
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acer_wireless_notify);
+diff --git a/drivers/platform/x86/classmate-laptop.c b/drivers/platform/x86/classmate-laptop.c
+index 2edaea2492df..f8f84ee9de33 100644
+--- a/drivers/platform/x86/classmate-laptop.c
++++ b/drivers/platform/x86/classmate-laptop.c
+@@ -180,8 +180,9 @@ static acpi_status cmpc_get_accel_v4(acpi_handle handle,
+ 	return status;
  }
  
- static struct acpi_driver acer_wireless_driver = {
-@@ -59,7 +73,7 @@ static struct acpi_driver acer_wireless_driver = {
- 	.ids = acer_wireless_acpi_ids,
+-static void cmpc_accel_handler_v4(struct acpi_device *dev, u32 event)
++static void cmpc_accel_handler_v4(acpi_handle handle, u32 event, void *data)
+ {
++	struct acpi_device *dev = data;
+ 	if (event == 0x81) {
+ 		int16_t x, y, z;
+ 		acpi_status status;
+@@ -407,7 +408,12 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
+ 	inputdev = dev_get_drvdata(&acpi->dev);
+ 	dev_set_drvdata(&inputdev->dev, accel);
+ 
+-	return 0;
++	error = acpi_device_install_event_handler(acpi, ACPI_DEVICE_NOTIFY,
++						  cmpc_accel_handler_v4);
++	if (error)
++		goto failed_input;
++
++	return error;
+ 
+ failed_input:
+ 	device_remove_file(&acpi->dev, &cmpc_accel_g_select_attr_v4);
+@@ -420,6 +426,7 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
+ 
+ static void cmpc_accel_remove_v4(struct acpi_device *acpi)
+ {
++	acpi_device_remove_event_handler(acpi, ACPI_DEVICE_NOTIFY, cmpc_accel_handler_v4);
+ 	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr_v4);
+ 	device_remove_file(&acpi->dev, &cmpc_accel_g_select_attr_v4);
+ 	cmpc_remove_acpi_notify_device(acpi);
+@@ -1071,7 +1078,6 @@ static struct acpi_driver cmpc_keys_acpi_driver = {
  	.ops = {
- 		.add = acer_wireless_add,
--		.notify = acer_wireless_notify,
-+		.remove = acer_wireless_remove,
- 	},
+ 		.add = cmpc_keys_add,
+ 		.remove = cmpc_keys_remove,
+-		.notify = cmpc_keys_handler,
+ 	}
  };
- module_acpi_driver(acer_wireless_driver);
+ 
 -- 
 2.40.1
 
