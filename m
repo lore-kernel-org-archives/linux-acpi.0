@@ -2,146 +2,143 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D05C77B7A
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 08:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24B06C77B75
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 08:17:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229744AbjEQH7t (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 May 2023 03:59:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55220 "EHLO
+        id S229718AbjEQIRs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 May 2023 04:17:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230270AbjEQH6t (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:49 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED7C8272D
-        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684310327; x=1715846327;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=znjg1HTj5xvxahu+0hAY1ilrkW02Q96e/dE6fQc+3t4=;
-  b=FVpqrWwKcGJf1iUl+ibXFmc19FGmTbT00C+ADJmFkOm15jo36Deo44dY
-   5yPXSYkJR97mMd8mD6IVIvW4uaqNvcQZ2i1rwFcDQtUcj7Z0hwUfU00v0
-   6JGskGNGbZtguI4l3IqjhGHcM03rGrUo7bIZYCUn9MWwfF2PnbTJq3X81
-   wb+tj/qyytXMjEBYeKW9t25WatTMfODocqfJMb4XseU+NmDFPbRWht7Qq
-   CFGB6fY3tJhNfKMyeNg/7McvGi+rO0EmA2geJ0BZ+TDiAz28PvJ7vmEbO
-   +yA2ZQO/VYz2cMvw38BXexl0vQL0mmk12f1PRgLq3jKZ2yLpfdyiuilDM
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105520"
-X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="415105520"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:47 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877564"
-X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="825877564"
-Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:45 -0700
-From:   Michal Wilczynski <michal.wilczynski@intel.com>
-To:     linux-acpi@vger.kernel.org
-Cc:     rafael@kernel.org, srinivas.pandruvada@linux.intel.com,
-        Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v3 33/34] acpi/bus: Remove redundant functions
-Date:   Wed, 17 May 2023 09:57:23 +0200
-Message-Id: <20230517075724.153992-34-michal.wilczynski@intel.com>
-X-Mailer: git-send-email 2.37.2
-In-Reply-To: <20230517075724.153992-1-michal.wilczynski@intel.com>
-References: <20230517075724.153992-1-michal.wilczynski@intel.com>
+        with ESMTP id S229575AbjEQIRr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 04:17:47 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 91573139;
+        Wed, 17 May 2023 01:17:44 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CBEA81FB;
+        Wed, 17 May 2023 01:18:28 -0700 (PDT)
+Received: from [10.34.100.110] (e126645.nice.arm.com [10.34.100.110])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 15C713F663;
+        Wed, 17 May 2023 01:17:41 -0700 (PDT)
+Message-ID: <a1075da1-4ff1-4a8b-2902-3954db717ded@arm.com>
+Date:   Wed, 17 May 2023 10:17:37 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.10.0
+Subject: Re: [PATCH v2 1/2] cpufreq: CPPC: keep target core awake when reading
+ its cpufreq rate
+Content-Language: en-US
+To:     Zeng Heng <zengheng4@huawei.com>,
+        Ionela Voinescu <Ionela.Voinescu@arm.com>
+Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        wangxiongfeng2@huawei.com, xiexiuqi@huawei.com,
+        liwei391@huawei.com, linux-acpi@vger.kernel.org,
+        weiyongjun1@huawei.com, lenb@kernel.org, viresh.kumar@linaro.org,
+        rafael@kernel.org, sumitg@nvidia.com,
+        Yang Shi <yang@os.amperecomputing.com>
+References: <20230516133248.712242-1-zengheng4@huawei.com>
+From:   Pierre Gondois <pierre.gondois@arm.com>
+In-Reply-To: <20230516133248.712242-1-zengheng4@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-By this point all drivers switched from using .notify callback to
-installing event handlers on their own. Remove redundant functions
-acpi_device_install_notify_handler(),
-acpi_device_remove_notify_handler() and acpi_notify_device().
++Ionela, Sumit, Yang,
 
-Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
----
- drivers/acpi/bus.c | 60 ----------------------------------------------
- 1 file changed, 60 deletions(-)
+Hello Zeng,
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 3eeeec70e70b..bf0704bf8e04 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -522,14 +522,6 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 	acpi_evaluate_ost(handle, type, ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
- }
- 
--static void acpi_notify_device(acpi_handle handle, u32 event, void *data)
--{
--	struct acpi_device *device = data;
--	struct acpi_driver *acpi_drv = to_acpi_driver(device->dev.driver);
--
--	acpi_drv->ops.notify(device, event);
--}
--
- static void acpi_notify_device_fixed(void *data)
- {
- 	struct acpi_device *device = data;
-@@ -544,58 +536,6 @@ static u32 acpi_device_fixed_event(void *data)
- 	return ACPI_INTERRUPT_HANDLED;
- }
- 
--static int acpi_device_install_notify_handler(struct acpi_device *device,
--					      struct acpi_driver *acpi_drv)
--{
--	acpi_status status;
--
--	if (device->device_type == ACPI_BUS_TYPE_POWER_BUTTON) {
--		device->fixed_event_notify = acpi_notify_device;
--		status =
--		    acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
--						     acpi_device_fixed_event,
--						     device);
--	} else if (device->device_type == ACPI_BUS_TYPE_SLEEP_BUTTON) {
--		device->fixed_event_notify = acpi_notify_device;
--		status =
--		    acpi_install_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
--						     acpi_device_fixed_event,
--						     device);
--	} else {
--		u32 type = acpi_drv->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS ?
--				ACPI_ALL_NOTIFY : ACPI_DEVICE_NOTIFY;
--
--		status = acpi_install_notify_handler(device->handle, type,
--						     acpi_notify_device,
--						     device);
--	}
--
--	if (ACPI_FAILURE(status))
--		return -EINVAL;
--	return 0;
--}
--
--static void acpi_device_remove_notify_handler(struct acpi_device *device,
--					      struct acpi_driver *acpi_drv)
--{
--	if (device->device_type == ACPI_BUS_TYPE_POWER_BUTTON) {
--		acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
--						acpi_device_fixed_event);
--		device->fixed_event_notify = NULL;
--	} else if (device->device_type == ACPI_BUS_TYPE_SLEEP_BUTTON) {
--		acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
--						acpi_device_fixed_event);
--		device->fixed_event_notify = NULL;
--	} else {
--		u32 type = acpi_drv->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS ?
--				ACPI_ALL_NOTIFY : ACPI_DEVICE_NOTIFY;
--
--		acpi_remove_notify_handler(device->handle, type,
--					   acpi_notify_device);
--	}
--	acpi_os_wait_events_complete();
--}
--
- int acpi_device_install_event_handler(struct acpi_device *device,
- 				      u32 type,
- 				      void (*notify)(acpi_handle, u32, void*))
--- 
-2.40.1
+I think solutions around related issues were suggested at:
 
+[1] https://lore.kernel.org/all/20230418113459.12860-7-sumitg@nvidia.com/
+[2] https://lore.kernel.org/all/20230328193846.8757-1-yang@os.amperecomputing.com/
+[3] https://lore.kernel.org/all/ZEl1Fms%2FJmdEZsVn@arm.com/
+
+About this patch, it seems to mean that CPPC counters of CPUx are always
+accessed from CPUx, even when they are not AMUs. For instance CPPC
+counters could be memory mapped and accessible from any CPU.
+cpu_has_amu_feat() should allow to probe if a CPU uses AMUs or not,
+and [2] had an implementation using it.
+
+Another comment about PATCH 2/2 is that if the counters are accessed
+through FFH, arm64 version of cpc_read_ffh() is calling
+counters_read_on_cpu(), and a comment in counters_read_on_cpu() seems
+to specify the function must be called with interrupt enabled.
+
+I think the best solution so far was the one at [3], suggested by Ionela,
+but it doesn't seem to solve your issue. Indeed, it is not checked whether
+the counters are AMU counters and that they must be remotely read (to
+have the CPU awake),
+
+Regards,
+Pierre
+
+
+On 5/16/23 15:32, Zeng Heng wrote:
+> As ARM AMU's document says, all counters are subject to any changes
+> in clock frequency, including clock stopping caused by the WFI and WFE
+> instructions.
+> 
+> Therefore, using smp_call_on_cpu() to trigger target CPU to
+> read self's AMU counters, which ensures the counters are working
+> properly during calculation.
+> 
+> Signed-off-by: Zeng Heng <zengheng4@huawei.com>
+> ---
+>   drivers/cpufreq/cppc_cpufreq.c | 30 +++++++++++++++++++-----------
+>   1 file changed, 19 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index 022e3555407c..910167f58bb3 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -837,9 +837,24 @@ static int cppc_perf_from_fbctrs(struct cppc_cpudata *cpu_data,
+>   	return (reference_perf * delta_delivered) / delta_reference;
+>   }
+>   
+> +static int cppc_get_perf_ctrs_smp(void *val)
+> +{
+> +	int cpu = smp_processor_id();
+> +	struct cppc_perf_fb_ctrs *fb_ctrs = val;
+> +	int ret;
+> +
+> +	ret = cppc_get_perf_ctrs(cpu, fb_ctrs);
+> +	if (ret)
+> +		return ret;
+> +
+> +	udelay(2); /* 2usec delay between sampling */
+> +
+> +	return cppc_get_perf_ctrs(cpu, fb_ctrs + 1);
+> +}
+> +
+>   static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
+>   {
+> -	struct cppc_perf_fb_ctrs fb_ctrs_t0 = {0}, fb_ctrs_t1 = {0};
+> +	struct cppc_perf_fb_ctrs fb_ctrs[2] = {0};
+>   	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
+>   	struct cppc_cpudata *cpu_data = policy->driver_data;
+>   	u64 delivered_perf;
+> @@ -847,19 +862,12 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
+>   
+>   	cpufreq_cpu_put(policy);
+>   
+> -	ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t0);
+> -	if (ret)
+> -		return ret;
+> -
+> -	udelay(2); /* 2usec delay between sampling */
+> -
+> -	ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t1);
+> +	ret = smp_call_on_cpu(cpu, cppc_get_perf_ctrs_smp, fb_ctrs, 1);
+>   	if (ret)
+>   		return ret;
+>   
+> -	delivered_perf = cppc_perf_from_fbctrs(cpu_data, &fb_ctrs_t0,
+> -					       &fb_ctrs_t1);
+> -
+> +	delivered_perf = cppc_perf_from_fbctrs(cpu_data, fb_ctrs,
+> +					       fb_ctrs + 1);
+>   	return cppc_cpufreq_perf_to_khz(cpu_data, delivered_perf);
+>   }
+>   
