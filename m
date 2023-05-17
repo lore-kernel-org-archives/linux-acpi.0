@@ -2,82 +2,142 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 358ABC77B75
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 09:25:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 899D0C7EE2C
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 09:30:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229483AbjEQJZB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 May 2023 05:25:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34762 "EHLO
+        id S229852AbjEQJal (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 May 2023 05:30:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230119AbjEQJYn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 05:24:43 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20182E67
-        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 02:24:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684315442;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=0WXrKVrpOueyuJ+KmObqF1EhWLzszGUe4iUnc0PDLAo=;
-        b=N9Dlr2Uv07m8LNKdi8UHiSwMEFEI6KZGjCvsH+3YpXHiObuPtz3P4MZ1MyixQnx/SeryRY
-        IUSxyV9YOcdZ8Sk7Xk2auE5gdLil6k12Czw/XiZNLF6tkCV7mtgbh7Z7Ezc4sC8FhMjjg0
-        OimEzq4WmG4rxm1oqfnAQsPHjehXt08=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-260-CBbpmHEYOK6dFV62d14THA-1; Wed, 17 May 2023 05:24:00 -0400
-X-MC-Unique: CBbpmHEYOK6dFV62d14THA-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 5D44785A5B1;
-        Wed, 17 May 2023 09:24:00 +0000 (UTC)
-Received: from shalem.redhat.com (unknown [10.39.195.25])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id C052F492B00;
-        Wed, 17 May 2023 09:23:59 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
-Subject: [PATCH 0/2] ACPI: video: Add 2 new backlight=native DMI quirks
-Date:   Wed, 17 May 2023 11:23:57 +0200
-Message-Id: <20230517092359.73840-1-hdegoede@redhat.com>
+        with ESMTP id S229747AbjEQJak (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 05:30:40 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0658BE4E;
+        Wed, 17 May 2023 02:30:38 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 46C571FB;
+        Wed, 17 May 2023 02:31:23 -0700 (PDT)
+Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E7443F663;
+        Wed, 17 May 2023 02:30:35 -0700 (PDT)
+Date:   Wed, 17 May 2023 10:30:33 +0100
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     "lihuisong (C)" <lihuisong@huawei.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Shawn Guo <shawnguo@kernel.org>, linux-kernel@vger.kernel.org,
+        soc@kernel.org, wanghuiqiang@huawei.com, tanxiaofei@huawei.com,
+        liuyonglong@huawei.com, huangdaode@huawei.com,
+        linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        devicetree@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>
+Subject: Re: [PATCH] soc: hisilicon: Support HCCS driver on Kunpeng SoC
+Message-ID: <20230517093033.4jvwjxuoeic46a24@bogus>
+References: <20230425103040.znv66k364ant6klq@bogus>
+ <c7d9c3c5-e400-c60a-52e0-0f267ec8c517@huawei.com>
+ <20230425131918.5tf5vot4h7jf54xk@bogus>
+ <db6c713c-f99c-fa3f-8d38-9a5d50889cc2@huawei.com>
+ <20230515130807.pdvx7bxwjkfdsmsr@bogus>
+ <aa5b1919-74c6-1f97-78af-ab5f0904c3ce@huawei.com>
+ <20230516122931.il4ai7fyxdo5gsff@bogus>
+ <f0733521-2557-fdaf-e59b-b10d515c487c@huawei.com>
+ <20230516143530.venhj4gax6stinah@bogus>
+ <a98e3620-57da-000e-f5ee-2c2e47e97906@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a98e3620-57da-000e-f5ee-2c2e47e97906@huawei.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Wed, May 17, 2023 at 03:16:12PM +0800, lihuisong (C) wrote:
 
-Here is a series adding 2 new backlight=native DMI quirks to video_detect.c
-note the first patch is a resend for a patch which seems to have fallen
-through the cracks. I've included that here again since patch 2/2 will
-show a conflict if 1/2 is nor merged first.
+[...]
 
-Regards,
+> No. I want to use this flag to make compability between different platforms.
+> This driver only use PCC OpRegion to access to the channel if platform
+> support use PCC OpRegion.
 
-Hans
+What do you mean by that ? It is not correct. If there is a PCC Opregion,
+then you need to make it work with drivers/acpi/acpi_pcc.c
 
-p.s.
+You need to have all the other details in the firmware(ASL). By looking
+at the driver, it has no connection to PCC Opregion IMO unless I am missing
+something.
 
-Talking about unmerged patches, FYI I also have the following series +
-2 separate patches still pending:
+> Driver must select one of them (PCC and PCC OpRegion) to communicate with
+> firmware on one platform.
 
-https://lore.kernel.org/linux-acpi/20230429103841.6988-1-hdegoede@redhat.com/
-https://lore.kernel.org/linux-acpi/20230429163458.73479-1-hdegoede@redhat.com/
-https://lore.kernel.org/linux-acpi/20230509124100.288814-1-hdegoede@redhat.com/
+No for reasons mentioned above. PCC Opregion support in the kernel will
+be minimal and already there. Fix that if it is not working. If you are
+attempting to do something with PCC Opregion in this driver, it is just
+wrong and I will NACK it if I see anything around that.
 
+> > If so that may not work as the current implementation of PCC Opregion
+> > assumes the exclusive access to the channel. Since it is initialised
+> > quite early, Opregion must succeed to get the mbox channel acquired and
+> > this driver must fail if they are sharing the channel. Making the sharing
+> > across firmware and this driver may need changes in the PCC Opregion
+> Only using PCC OpRegion after requesting and releasing PCC channel shouldn't
+> change PCC OpRegion code?
 
-Hans de Goede (2):
-  ACPI: video: Add backlight=native DMI quirk for Apple iMac11,3
-  ACPI: video: Add backlight=native DMI quirk for Lenovo ThinkPad X131e
-    (3371 AMD version)
+I don't understand what exactly that means. The spec states clearly that
+PCC subspaces that are used for PCC Operation Regions must not be used
+as PCC subspaces for other std ACPI features. I don't understand what
+really is going on, on this platform as I don't see what you are saying
+(which is wrong and I disagree with approach) in the code posted yet.
 
- drivers/acpi/video_detect.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+> > support code. One possible way is to acquire and release the channel for
+> > each transaction which will be definitely overhead.
+> Yes, transaction will be definitely overhead.
+> The following method should be no such problem.
+> -->
+> If driver want to obtain other info by RegisterAddress and offset in PCC
+> Register(), driver generally needs to do it as follows:
+> 1> get channel ID and RegisterAddress and offset.
+> 2> call pcc_mbox_request_channel to acquire the channel.
+> 3> ioremap 'shmem_base_addr' to get 'pcc_comm_addr'
+> 4> obtain other info based on RegisterAddress, offset and 'pcc_comm_addr'.
+
+Above sound good but it is not PCC Opregion. Either you are not giving
+full context or you are confusing what PCC Opregion means. There is a
+section "Declaring PCC Operation Regions", please refer and see if that
+is what you have on your platform.
+
+> If driver selects PCC OpRegion method, driver may also need to release this
+> PCC channel by calling pcc_mbox_free_channel.
+
+As I mentioned, the driver must not do anything related to PCC Opregion.
+
+> Because this channel will be requested when PCC OpRegion method is executed
+> for the first time.
+>
+
+drivers/acpi/acpi_pcc.c must take care of that. If not patch that and get
+it working. It must be generic and nothing to do with your platform.
+
+> 
+> Overall, the above process is a bit cumbersome if this driver only use PCC
+> OpRegion.
+
+Yes and hence must not touch anything around PCC Opregion.
+
+> In addition, I have to dig one address from comm space in share memory,
+> which will cause the available size of comm space to decrease, right?
+> So it is better to use other way to do get channel ID and other info if it
+> is possible.
+> What do you think?
+
+I am more confused about your platform than yesterday, so I don't have
+much valuable suggestions ATM.
 
 -- 
-2.40.1
-
+Regards,
+Sudeep
