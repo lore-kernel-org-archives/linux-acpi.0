@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2808C77B7A
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CA32C77B7F
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:59:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229711AbjEQH66 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 May 2023 03:58:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54560 "EHLO
+        id S229506AbjEQH67 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 May 2023 03:58:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229506AbjEQH6b (ORCPT
+        with ESMTP id S229520AbjEQH6b (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:31 -0400
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED98910F
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65A9AE0
         for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684310303; x=1715846303;
+  t=1684310302; x=1715846302;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=BncRc/ualuZ8LcPyw+ub2qXe2KebX9KMoBldPR/5MXE=;
-  b=JgHparphMB8+ZFY4kWL94fuibtmxykE6GYVdxxcS7Buq8k3wJWHwD9ns
-   HfXftGVBbiSRFfkRqby03FJlVlh1Gq36NV2iATOZipniYcW4vw/VOLyeO
-   IdLbZBy7idMVjag0mnY8cgdcBLdPzyu7WhBAq1+ibcMDeuOxO7hHiyNXB
-   OISG3JbIrsuQ0eB30WNoZxwIRONqNcOsVE3b7Om+exL1GVih7ATdQjgIo
-   /3ZjwPRJslN0NdfUoPb1GKD22FxP2ywi5j/hso6z6GmI9nof8gVhNwq//
-   G0yMKZr+fPi8QigExNutVzPr4GOu1XWw9i+DQHlWPgVNgpNzakZTM4XGG
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105384"
+  bh=COrm5SufV9+SO+jyJOxyL8qDS/K+TLTiXG1AoI5AHxA=;
+  b=nvs+Cfe3qiS4NZKd85ppeUs5NumMEQuEhMleVU6NB5z2FauXU2y1Rqgn
+   UYrEZRZOI10Z+E1HkmK3XSObfRloCeQOdliTOuIXM+W2WNIIFFVQCZE1q
+   Qpyu+SPwwho6uGuLntnrGofGnCBzQUmFSR+O6/xcGeJUdd1shgGnJ0Uaa
+   b9oRQnmhVEH4W9MqWoLqU1pcs48F1NueMXW2Kc4agEXbIYCF69YQKLVfR
+   ieljXk8zZTkg4jRfF8dQcXlI70d6A6fjg50UVn9yhPoHNw7L9pFr7Bqlq
+   Kd8ZEOu7apRc2nVabHBY89l6jCe+yvw7syAqYiPgPs7B2Dwtu6Q/Qq80y
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105371"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="415105384"
+   d="scan'208";a="415105371"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:07 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:04 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877280"
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877269"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="825877280"
+   d="scan'208";a="825877269"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:05 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:03 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, srinivas.pandruvada@linux.intel.com,
         Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v3 06/34] acpi/hed: Move handler installing logic to driver
-Date:   Wed, 17 May 2023 09:56:56 +0200
-Message-Id: <20230517075724.153992-7-michal.wilczynski@intel.com>
+Subject: [PATCH v3 04/34] acpi/battery: Move handler installing logic to driver
+Date:   Wed, 17 May 2023 09:56:54 +0200
+Message-Id: <20230517075724.153992-5-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230517075724.153992-1-michal.wilczynski@intel.com>
 References: <20230517075724.153992-1-michal.wilczynski@intel.com>
@@ -68,44 +68,61 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/acpi/hed.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/battery.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
-index 78d44e3fe129..2a476415817f 100644
---- a/drivers/acpi/hed.c
-+++ b/drivers/acpi/hed.c
-@@ -42,7 +42,7 @@ EXPORT_SYMBOL_GPL(unregister_acpi_hed_notifier);
-  * it is used by HEST Generic Hardware Error Source with notify type
-  * SCI.
-  */
--static void acpi_hed_notify(struct acpi_device *device, u32 event)
-+static void acpi_hed_notify(acpi_handle handle, u32 event, void *data)
- {
- 	blocking_notifier_call_chain(&acpi_hed_notify_list, 0, NULL);
- }
-@@ -53,11 +53,12 @@ static int acpi_hed_add(struct acpi_device *device)
- 	if (hed_handle)
- 		return -EINVAL;
- 	hed_handle = device->handle;
--	return 0;
-+	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_hed_notify);
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 9c67ed02d797..0dafe6c14509 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1034,11 +1034,14 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
  }
  
- static void acpi_hed_remove(struct acpi_device *device)
+ /* Driver Interface */
+-static void acpi_battery_notify(struct acpi_device *device, u32 event)
++static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
  {
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_hed_notify);
- 	hed_handle = NULL;
- }
+-	struct acpi_battery *battery = acpi_driver_data(device);
++	struct acpi_device *device = data;
++	struct acpi_battery *battery;
+ 	struct power_supply *old;
  
-@@ -68,7 +69,6 @@ static struct acpi_driver acpi_hed_driver = {
++	battery = acpi_driver_data(device);
++
+ 	if (!battery)
+ 		return;
+ 	old = battery->bat;
+@@ -1212,6 +1215,10 @@ static int acpi_battery_add(struct acpi_device *device)
+ 
+ 	device_init_wakeup(&device->dev, 1);
+ 
++	result = acpi_device_install_event_handler(device, ACPI_ALL_NOTIFY, acpi_battery_notify);
++	if (result)
++		goto fail;
++
+ 	return result;
+ 
+ fail:
+@@ -1228,6 +1235,7 @@ static void acpi_battery_remove(struct acpi_device *device)
+ 
+ 	if (!device || !acpi_driver_data(device))
+ 		return;
++	acpi_device_remove_event_handler(device, ACPI_ALL_NOTIFY, acpi_battery_notify);
+ 	device_init_wakeup(&device->dev, 0);
+ 	battery = acpi_driver_data(device);
+ 	unregister_pm_notifier(&battery->pm_nb);
+@@ -1264,11 +1272,9 @@ static struct acpi_driver acpi_battery_driver = {
+ 	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+ 	.ids = battery_device_ids,
+-	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
- 		.add = acpi_hed_add,
- 		.remove = acpi_hed_remove,
--		.notify = acpi_hed_notify,
- 	},
+ 		.add = acpi_battery_add,
+ 		.remove = acpi_battery_remove,
+-		.notify = acpi_battery_notify,
+ 		},
+ 	.drv.pm = &acpi_battery_pm,
  };
- module_acpi_driver(acpi_hed_driver);
 -- 
 2.40.1
 
