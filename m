@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFA2EC77B7F
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:59:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7BD1C77B7A
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:59:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230014AbjEQH7D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 May 2023 03:59:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55108 "EHLO
+        id S230025AbjEQH7E (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 May 2023 03:59:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230155AbjEQH6c (ORCPT
+        with ESMTP id S229708AbjEQH6c (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:32 -0400
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB7F93C06
-        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CEC5468A
+        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684310308; x=1715846308;
+  t=1684310309; x=1715846309;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=eKaXqW+DRkqJGpmPjw5NP4F6Cx+mNw9LMr+YNIGyaoY=;
-  b=gzZKaMhUanQRlABORPLbu6HP10BGQBeFJqTiBQwojeKu+kAgG4ngOo32
-   XlcjVThu21G9ZN2ZiDNoY6WdlY58pofZhmGwp2q975XKVmHVnqrKtoPzi
-   CUINErKKqnRdPoMEL5S3lEv7YVp16ozInU5Sn4ZrxmWjZzAdxfkoRumAp
-   O7TWd/aovjYb8jGtZUmqLshdNcVFrJhIhlCZAA00KAQSZNzRoJA/T0/GZ
-   ys6pJfidJZyd7gNw5SjCx1OYagyS+mM1RzmIE2sg/Cx40E8iUWAfBrg9m
-   V1VbA+6C8hZ7wACs2OqMa0Tx9CYaDztHYx2MCBMceyWnDjwe84PmbOlw+
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105410"
+  bh=dpQXRY65iSYpMYBGCqugkZMcPMypiiSUk2q3EXCvg0U=;
+  b=Lgh8DZlSeTq3LIz2/4M8wC7ovVl7QGVB1R2HSsrgEbVtdJRcQ2RSgCQc
+   PkkLKECBL+xGpz2tu56lYNR8SexK79ZpErI3wL+ZNpfkkPYvqVU7xk72r
+   Q7QyTFl3/7G7uQOIiDYPy3BQYj0kYNMxhOJU5wklQRgFC3IU+7bZHdGYJ
+   Ed9wR5/jpmbhPkkHL7cAq4EX4PV3VJvAQl/2TajO9SqkNKbIF9X2MASeu
+   bnNHq8O9VGt9q5zbpjOONuEHyn5qSGUB0Sqy15LKrv+b+dbQ4GGMx+dik
+   qpOdLdo3CGTFdZpdwzcvmAEx79oJU1Aycw42mJ0GppFagRpO/F89zFIOu
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105415"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="415105410"
+   d="scan'208";a="415105415"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:14 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:17 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877346"
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877378"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="825877346"
+   d="scan'208";a="825877378"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:13 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:16 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, srinivas.pandruvada@linux.intel.com,
         Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v3 11/34] iio/acpi-als: Move handler installing logic to driver
-Date:   Wed, 17 May 2023 09:57:01 +0200
-Message-Id: <20230517075724.153992-12-michal.wilczynski@intel.com>
+Subject: [PATCH v3 13/34] platform/wilco_ec: Move handler installing logic to driver
+Date:   Wed, 17 May 2023 09:57:03 +0200
+Message-Id: <20230517075724.153992-14-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230517075724.153992-1-michal.wilczynski@intel.com>
 References: <20230517075724.153992-1-michal.wilczynski@intel.com>
@@ -68,58 +68,62 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/iio/light/acpi-als.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ drivers/platform/chrome/wilco_ec/event.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/iio/light/acpi-als.c b/drivers/iio/light/acpi-als.c
-index 2d91caf24dd0..5e200c6d91bc 100644
---- a/drivers/iio/light/acpi-als.c
-+++ b/drivers/iio/light/acpi-als.c
-@@ -100,10 +100,14 @@ static int acpi_als_read_value(struct acpi_als *als, char *prop, s32 *val)
+diff --git a/drivers/platform/chrome/wilco_ec/event.c b/drivers/platform/chrome/wilco_ec/event.c
+index a40f60bcefb6..37b83e83f617 100644
+--- a/drivers/platform/chrome/wilco_ec/event.c
++++ b/drivers/platform/chrome/wilco_ec/event.c
+@@ -251,16 +251,10 @@ static int enqueue_events(struct acpi_device *adev, const u8 *buf, u32 length)
  	return 0;
  }
  
--static void acpi_als_notify(struct acpi_device *device, u32 event)
-+static void acpi_als_notify(acpi_handle handle, u32 event, void *data)
+-/**
+- * event_device_notify() - Callback when EC generates an event over ACPI.
+- * @adev: The device that the event is coming from.
+- * @value: Value passed to Notify() in ACPI.
+- *
+- * This function will read the events from the device and enqueue them.
+- */
+-static void event_device_notify(struct acpi_device *adev, u32 value)
++static void event_device_notify(acpi_handle handle, u32 value, void *data)
  {
--	struct iio_dev *indio_dev = acpi_driver_data(device);
--	struct acpi_als *als = iio_priv(indio_dev);
-+	struct acpi_device *device = data;
-+	struct iio_dev *indio_dev;
-+	struct acpi_als *als;
-+
-+	indio_dev = acpi_driver_data(device);
-+	als = iio_priv(indio_dev);
+ 	struct acpi_buffer event_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_device *adev = data;
+ 	union acpi_object *obj;
+ 	acpi_status status;
  
- 	if (iio_buffer_enabled(indio_dev) && iio_trigger_using_own(indio_dev)) {
- 		switch (event) {
-@@ -225,7 +229,16 @@ static int acpi_als_add(struct acpi_device *device)
- 	if (ret)
- 		return ret;
+@@ -490,7 +484,12 @@ static int event_device_add(struct acpi_device *adev)
+ 	if (error)
+ 		goto free_dev_data;
  
--	return devm_iio_device_register(dev, indio_dev);
-+	ret = devm_iio_device_register(dev, indio_dev);
-+	if (ret)
-+		return ret;
+-	return 0;
++	error =  acpi_device_install_event_handler(adev, ACPI_DEVICE_NOTIFY,
++						   event_device_notify);
++	if (error)
++		goto free_dev_data;
 +
-+	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_als_notify);
-+}
-+
-+static void acpi_als_remove(struct acpi_device *device)
-+{
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_als_notify);
- }
++	return error;
  
- static const struct acpi_device_id acpi_als_device_ids[] = {
-@@ -241,7 +254,7 @@ static struct acpi_driver acpi_als_driver = {
- 	.ids	= acpi_als_device_ids,
+ free_dev_data:
+ 	hangup_device(dev_data);
+@@ -503,6 +502,7 @@ static void event_device_remove(struct acpi_device *adev)
+ {
+ 	struct event_device_data *dev_data = adev->driver_data;
+ 
++	acpi_device_remove_event_handler(adev, ACPI_DEVICE_NOTIFY, event_device_notify);
+ 	cdev_device_del(&dev_data->cdev, &dev_data->dev);
+ 	ida_simple_remove(&event_ida, MINOR(dev_data->dev.devt));
+ 	hangup_device(dev_data);
+@@ -520,7 +520,6 @@ static struct acpi_driver event_driver = {
+ 	.ids = event_acpi_ids,
  	.ops = {
- 		.add	= acpi_als_add,
--		.notify	= acpi_als_notify,
-+		.remove = acpi_als_remove,
+ 		.add = event_device_add,
+-		.notify = event_device_notify,
+ 		.remove = event_device_remove,
  	},
- };
- 
+ 	.owner = THIS_MODULE,
 -- 
 2.40.1
 
