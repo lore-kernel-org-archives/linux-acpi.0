@@ -2,49 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6F65C7EE23
-	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:58:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2808C77B7A
+	for <linux-acpi@archiver.kernel.org>; Wed, 17 May 2023 07:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230073AbjEQH6l (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 17 May 2023 03:58:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54962 "EHLO
+        id S229711AbjEQH66 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 17 May 2023 03:58:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230173AbjEQH6Z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:25 -0400
+        with ESMTP id S229506AbjEQH6b (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2023 03:58:31 -0400
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AC31272D
-        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED98910F
+        for <linux-acpi@vger.kernel.org>; Wed, 17 May 2023 00:58:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684310298; x=1715846298;
+  t=1684310303; x=1715846303;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=To5jjQc5hZHgymc4AycNBRTa1IdLEYuRSFR6IabbAkU=;
-  b=NGBQaLYf9j83ROxVD1/EivNaqFBaaBA9wFJFXiZvbHTcqlmmDiZ8lHVl
-   X+AmXNPqVTrAUqMb6FyfkJFQi1gISbEnXN59uXqJItaxM67ZRmM5Zlj6B
-   cIyPFNFYsqjsyTfwNtgpupSDIdfqpO1+xBN5wi87JjA68KhAehLqT/8do
-   aS+uNeVttss3uP/EDwdtWy8Pt5TKPauLOMdLz7G6zAadqSoiRv//6uugg
-   1RYsFLniANjE+LCcTJrYyQFxWOrjgcSmXlIapILH3h+1HfGMkpuL9DUCo
-   kt5tRjIUdg/POt9rSoR6XJ7Q2+2tsR+YKu4+p1J/umXin2BYimqa7DLel
+  bh=BncRc/ualuZ8LcPyw+ub2qXe2KebX9KMoBldPR/5MXE=;
+  b=JgHparphMB8+ZFY4kWL94fuibtmxykE6GYVdxxcS7Buq8k3wJWHwD9ns
+   HfXftGVBbiSRFfkRqby03FJlVlh1Gq36NV2iATOZipniYcW4vw/VOLyeO
+   IdLbZBy7idMVjag0mnY8cgdcBLdPzyu7WhBAq1+ibcMDeuOxO7hHiyNXB
+   OISG3JbIrsuQ0eB30WNoZxwIRONqNcOsVE3b7Om+exL1GVih7ATdQjgIo
+   /3ZjwPRJslN0NdfUoPb1GKD22FxP2ywi5j/hso6z6GmI9nof8gVhNwq//
+   G0yMKZr+fPi8QigExNutVzPr4GOu1XWw9i+DQHlWPgVNgpNzakZTM4XGG
    Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105368"
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="415105384"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="415105368"
+   d="scan'208";a="415105384"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:02 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:07 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877264"
+X-IronPort-AV: E=McAfee;i="6600,9927,10712"; a="825877280"
 X-IronPort-AV: E=Sophos;i="5.99,281,1677571200"; 
-   d="scan'208";a="825877264"
+   d="scan'208";a="825877280"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:01 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2023 00:58:05 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, srinivas.pandruvada@linux.intel.com,
         Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v3 03/34] acpi/video: Move handler installing logic to driver
-Date:   Wed, 17 May 2023 09:56:53 +0200
-Message-Id: <20230517075724.153992-4-michal.wilczynski@intel.com>
+Subject: [PATCH v3 06/34] acpi/hed: Move handler installing logic to driver
+Date:   Wed, 17 May 2023 09:56:56 +0200
+Message-Id: <20230517075724.153992-7-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230517075724.153992-1-michal.wilczynski@intel.com>
 References: <20230517075724.153992-1-michal.wilczynski@intel.com>
@@ -68,70 +68,44 @@ what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/acpi/acpi_video.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/acpi/hed.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 62f4364e4460..ab359a4d7c98 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -77,7 +77,7 @@ static DEFINE_MUTEX(video_list_lock);
- static LIST_HEAD(video_bus_head);
- static int acpi_video_bus_add(struct acpi_device *device);
- static void acpi_video_bus_remove(struct acpi_device *device);
--static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
-+static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data);
- 
- /*
-  * Indices in the _BCL method response: the first two items are special,
-@@ -104,7 +104,6 @@ static struct acpi_driver acpi_video_bus = {
- 	.ops = {
- 		.add = acpi_video_bus_add,
- 		.remove = acpi_video_bus_remove,
--		.notify = acpi_video_bus_notify,
- 		},
- };
- 
-@@ -1527,12 +1526,15 @@ static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
- 				  acpi_osi_is_win8() ? 0 : 1);
+diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
+index 78d44e3fe129..2a476415817f 100644
+--- a/drivers/acpi/hed.c
++++ b/drivers/acpi/hed.c
+@@ -42,7 +42,7 @@ EXPORT_SYMBOL_GPL(unregister_acpi_hed_notifier);
+  * it is used by HEST Generic Hardware Error Source with notify type
+  * SCI.
+  */
+-static void acpi_hed_notify(struct acpi_device *device, u32 event)
++static void acpi_hed_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	blocking_notifier_call_chain(&acpi_hed_notify_list, 0, NULL);
+ }
+@@ -53,11 +53,12 @@ static int acpi_hed_add(struct acpi_device *device)
+ 	if (hed_handle)
+ 		return -EINVAL;
+ 	hed_handle = device->handle;
+-	return 0;
++	return acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_hed_notify);
  }
  
--static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
-+static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
+ static void acpi_hed_remove(struct acpi_device *device)
  {
--	struct acpi_video_bus *video = acpi_driver_data(device);
-+	struct acpi_device *device = data;
-+	struct acpi_video_bus *video;
- 	struct input_dev *input;
- 	int keycode = 0;
++	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_hed_notify);
+ 	hed_handle = NULL;
+ }
  
-+	video = acpi_driver_data(device);
-+
- 	if (!video || !video->input)
- 		return;
- 
-@@ -2053,7 +2055,12 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- 	acpi_video_bus_add_notify_handler(video);
- 
--	return 0;
-+	error =  acpi_device_install_event_handler(device, ACPI_DEVICE_NOTIFY,
-+						   acpi_video_bus_notify);
-+	if (error)
-+		goto err_put_video;
-+
-+	return error;
- 
- err_put_video:
- 	acpi_video_bus_put_devices(video);
-@@ -2075,6 +2082,7 @@ static void acpi_video_bus_remove(struct acpi_device *device)
- 
- 	video = acpi_driver_data(device);
- 
-+	acpi_device_remove_event_handler(device, ACPI_DEVICE_NOTIFY, acpi_video_bus_notify);
- 	mutex_lock(&video_list_lock);
- 	list_del(&video->entry);
- 	mutex_unlock(&video_list_lock);
+@@ -68,7 +69,6 @@ static struct acpi_driver acpi_hed_driver = {
+ 	.ops = {
+ 		.add = acpi_hed_add,
+ 		.remove = acpi_hed_remove,
+-		.notify = acpi_hed_notify,
+ 	},
+ };
+ module_acpi_driver(acpi_hed_driver);
 -- 
 2.40.1
 
