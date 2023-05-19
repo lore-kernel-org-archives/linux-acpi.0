@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AA2DC77B7D
-	for <linux-acpi@archiver.kernel.org>; Fri, 19 May 2023 00:05:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25455C7EE2C
+	for <linux-acpi@archiver.kernel.org>; Fri, 19 May 2023 00:05:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229981AbjESAFC (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 18 May 2023 20:05:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49808 "EHLO
+        id S230156AbjESAFE (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 18 May 2023 20:05:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229512AbjESAFC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 May 2023 20:05:02 -0400
+        with ESMTP id S230056AbjESAFD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 May 2023 20:05:03 -0400
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BC9F10C3;
-        Thu, 18 May 2023 17:05:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 383D1E77;
+        Thu, 18 May 2023 17:05:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684454700; x=1715990700;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=NxrdO54ygL7upV2uL2eTTGfGI0A4vPAHukw5zXs+2vU=;
-  b=M3+JKSlV+3QzKkxlljXzxBQZXyIWgsqB28dkaOJ/16CkKQ7zTjB5z1Xj
-   bOOZzWOAC5tdRlKtzRYlXhmcPY5qEwUXmiIHCg/NjHqb0s9cyeK7KJ+YR
-   PjpDK5W/xxO4dlOKSOsTxXf15Llk3whnRfjNrKF7I4DrkxScC35P2GV2q
-   BRJ42Go9Iu4Co2ZHmNCeoSz8X561wu5J3B9uYJwbxPDLlTfgCNiry9OIE
-   CHq110lXp3UgMlIKAcEYvjugpU8oYaXeanZ6ehrR75UX9INn0+/JRXUJr
-   +u7ag8IYfCmddOJ3xLPeTRZyFfRPqJBFJn9y5PQ3fa/woN05ky9kN+aYR
+  t=1684454702; x=1715990702;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=K3xHRy6KbwsjGx/sRwLZsoxpVJFd7CR2yUrei5ryLZ0=;
+  b=Eb8ZRt8KiHsEN3EXssJCWv+OZ074B7MIrrnUiez0iq6VoMaZy8S/kE7/
+   QZwCKhrEsZGvgwGGfayPhBls5vir9tk7lNyOEAbZ1hsZrz8XOeNf6/E2S
+   GnrRcJnxuzksS5zzXqJlygOeCGtl0iVn5T4Svw2OdtV0YsVa91BWzqDt5
+   I0dxomKp5E851pSIG3Js2ajdlTb3heEWqNDTk9GtREL7N7NkfgJ/pXw7a
+   rMAk0Kuhdj/1jBhCqmNeNaah+/bNuzTxiYGDUfB10i1RBg+jeAt6dOviF
+   jFdunp+IoLy4ERyx5XJzhPaPulgqDJ3ZTUOqTf6I+H7MuejZZ2aajrAp5
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10714"; a="355446205"
+X-IronPort-AV: E=McAfee;i="6600,9927,10714"; a="355446219"
 X-IronPort-AV: E=Sophos;i="6.00,175,1681196400"; 
-   d="scan'208";a="355446205"
+   d="scan'208";a="355446219"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2023 17:04:59 -0700
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2023 17:05:01 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10714"; a="876634912"
+X-IronPort-AV: E=McAfee;i="6600,9927,10714"; a="876634939"
 X-IronPort-AV: E=Sophos;i="6.00,175,1681196400"; 
-   d="scan'208";a="876634912"
+   d="scan'208";a="876634939"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.251.20.44])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2023 17:04:59 -0700
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2023 17:05:01 -0700
 From:   alison.schofield@intel.com
 To:     "Rafael J. Wysocki" <rafael@kernel.org>,
         Len Brown <lenb@kernel.org>,
@@ -54,10 +54,12 @@ To:     "Rafael J. Wysocki" <rafael@kernel.org>,
 Cc:     Alison Schofield <alison.schofield@intel.com>, x86@kernel.org,
         linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 0/2] CXL: Apply SRAT defined PXM to entire CFMWS window
-Date:   Thu, 18 May 2023 17:04:54 -0700
-Message-Id: <cover.1684448934.git.alison.schofield@intel.com>
+Subject: [PATCH 2/2] ACPI: NUMA: Apply SRAT proximity domain to entire CFMWS window
+Date:   Thu, 18 May 2023 17:04:56 -0700
+Message-Id: <ef68b0601955f38b026b0bd41936a0aafea89446.1684448934.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <cover.1684448934.git.alison.schofield@intel.com>
+References: <cover.1684448934.git.alison.schofield@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -66,44 +68,60 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-The CXL subsystem requires the creation of NUMA nodes for CFMWS
-Windows not described in the SRAT. The existing implementation
-only addresses windows that the SRAT describes completely or
-not at all. This work addresses the case of partially described
-CFMWS Windows by extending proximity domains in a portion of
-a CFMWS window to the entire window.
+Commit fd49f99c1809 ("ACPI: NUMA: Add a node and memblk for each
+CFMWS not in SRAT") did not account for the case where the BIOS
+only partially describes a CFMWS Window in the SRAT. That means
+the omitted address ranges, of a partially described CFMWS Window,
+do not get assigned to a NUMA node.
 
-Introduce a NUMA helper, numa_fill_memblks(), to fill gaps in
-a numa_meminfo memblk address range. Update the CFMWS parsing
-in the ACPI driver to use numa_fill_memblks() to extend SRAT
-defined proximity domains to entire CXL windows.
+Replace the call to phys_to_target_node() with numa_add_memblks().
+Numa_add_memblks() searches an HPA range for existing memblk(s)
+and extends those memblk(s) to fill the entire CFMWS Window.
 
-An RFC of this patchset was previously posted for CXL folks
-review.[1] The RFC feedback led to the implementation here,
-extending existing memblks (Dan). Also, both Jonathan and
-Dan influenced the changelog comments in the ACPI patch, with
-regards to setting expectations on this evolving heuristic.
+Extending the existing memblks is a simple strategy that reuses
+SRAT defined proximity domains from part of a window to fill out
+the entire window, based on the knowledge* that all of a CFMWS
+window is of a similar performance class.
 
-Repeating here to set reviewer expectations:
 *Note that this heuristic will evolve when CFMWS Windows present
 a wider range of characteristics. The extension of the proximity
 domain, implemented here, is likely a step in developing a more
 sophisticated performance profile in the future.
 
-[1] https://lore.kernel.org/linux-cxl/cover.1683742429.git.alison.schofield@intel.com/
+There is no change in behavior when the SRAT does not describe
+the CFMWS Window at all. In that case, a new NUMA node with a
+single memblk covering the entire CFMWS Window is created.
 
-Alison Schofield (2):
-  x86/numa: Introduce numa_fill_memblks()
-  ACPI: NUMA: Apply SRAT proximity domain to entire CFMWS window
+Fixes: fd49f99c1809 ("ACPI: NUMA: Add a node and memblk for each CFMWS not in SRAT")
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ drivers/acpi/numa/srat.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
- arch/x86/include/asm/sparsemem.h |  2 +
- arch/x86/mm/numa.c               | 82 ++++++++++++++++++++++++++++++++
- drivers/acpi/numa/srat.c         | 11 +++--
- include/linux/numa.h             |  7 +++
- 4 files changed, 99 insertions(+), 3 deletions(-)
-
-
-base-commit: f81d8f759e7f80c643027e631c586369836aac90
+diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
+index 1f4fc5f8a819..12f330b0eac0 100644
+--- a/drivers/acpi/numa/srat.c
++++ b/drivers/acpi/numa/srat.c
+@@ -310,11 +310,16 @@ static int __init acpi_parse_cfmws(union acpi_subtable_headers *header,
+ 	start = cfmws->base_hpa;
+ 	end = cfmws->base_hpa + cfmws->window_size;
+ 
+-	/* Skip if the SRAT already described the NUMA details for this HPA */
+-	node = phys_to_target_node(start);
+-	if (node != NUMA_NO_NODE)
++	/*
++	 * The SRAT may have already described NUMA details for all,
++	 * or a portion of, this CFMWS HPA range. Extend the memblks
++	 * found for any portion of the window to cover the entire
++	 * window.
++	 */
++	if (!numa_fill_memblks(start, end))
+ 		return 0;
+ 
++	/* No SRAT description. Create a new node. */
+ 	node = acpi_map_pxm_to_node(*fake_pxm);
+ 
+ 	if (node == NUMA_NO_NODE) {
 -- 
 2.37.3
 
