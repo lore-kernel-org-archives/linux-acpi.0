@@ -2,98 +2,84 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1873DC77B7C
-	for <linux-acpi@archiver.kernel.org>; Sun, 21 May 2023 11:45:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C1DDC77B7C
+	for <linux-acpi@archiver.kernel.org>; Sun, 21 May 2023 17:43:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230064AbjEULpx (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 21 May 2023 07:45:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41360 "EHLO
+        id S229693AbjEURnB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 21 May 2023 13:43:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232088AbjEULUc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 21 May 2023 07:20:32 -0400
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C49410C4
-        for <linux-acpi@vger.kernel.org>; Sun, 21 May 2023 04:09:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684667399; x=1716203399;
-  h=message-id:date:mime-version:cc:subject:to:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=+h60Y/O3l7VXQU+u85xeDYR7sDkQUZvus34jpLoH5QY=;
-  b=DC0MntTtd8YsH9RC1PJUCZRYWwbIog1/7vMPA+T9jLnKd1O+DsGO7QU8
-   dzkWFqgk33vrBP5htgDBz3jYlLzGIq9/g8VmaeR75tTUtXuCsD/tZN8UN
-   E+ggOhb+oV0Dg7P5AeWEMpkWISRHiaJ/fk+JtP4StGwnTTOS1qOGPgaCr
-   h3eRGJddHBkjZGHVR9o5g5V1oQZw/v/m/vSYxvVEKZSQBiZBvC30D/wDC
-   pXhGf8UyehXshSSXwQwuYRDSdYfvBk4WG9SEEVgLuIzxYs90hsHSVA+8I
-   62MPU+CVp4E5FY323weR1bJsFbswbSlkrMtzcJcZIRpwihDHtekSqp3dI
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10716"; a="355041155"
-X-IronPort-AV: E=Sophos;i="6.00,182,1681196400"; 
-   d="scan'208";a="355041155"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2023 04:09:58 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10716"; a="768185778"
-X-IronPort-AV: E=Sophos;i="6.00,182,1681196400"; 
-   d="scan'208";a="768185778"
-Received: from allen-box.sh.intel.com (HELO [10.239.159.127]) ([10.239.159.127])
-  by fmsmga008.fm.intel.com with ESMTP; 21 May 2023 04:09:56 -0700
-Message-ID: <f52ef321-ad1a-3664-8100-b3ae78add3ee@linux.intel.com>
-Date:   Sun, 21 May 2023 19:09:16 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Cc:     baolu.lu@linux.intel.com, Kevin Tian <kevin.tian@intel.com>,
-        Nicolin Chen <nicolinc@nvidia.com>
-Subject: Re: [PATCH v2 05/10] iommu: Add iommu_init/deinit_device() paired
- functions
-Content-Language: en-US
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        David Woodhouse <dwmw2@infradead.org>, iommu@lists.linux.dev,
-        Joerg Roedel <joro@8bytes.org>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org,
+        with ESMTP id S231357AbjEURmy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 21 May 2023 13:42:54 -0400
+Received: from fgw22-7.mail.saunalahti.fi (fgw22-7.mail.saunalahti.fi [62.142.5.83])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ADA4B6
+        for <linux-acpi@vger.kernel.org>; Sun, 21 May 2023 10:19:36 -0700 (PDT)
+Received: from localhost (88-113-26-95.elisa-laajakaista.fi [88.113.26.95])
+        by fgw22.mail.saunalahti.fi (Halon) with ESMTP
+        id a73edbf3-f7fb-11ed-a9de-005056bdf889;
+        Sun, 21 May 2023 20:19:33 +0300 (EEST)
+From:   andy.shevchenko@gmail.com
+Date:   Sun, 21 May 2023 20:19:33 +0300
+To:     Matti Vaittinen <mazziesaccount@gmail.com>
+Cc:     Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Will Deacon <will@kernel.org>
-References: <5-v2-3c3bb7aa6e48+1916b-iommu_probe_jgg@nvidia.com>
-From:   Baolu Lu <baolu.lu@linux.intel.com>
-In-Reply-To: <5-v2-3c3bb7aa6e48+1916b-iommu_probe_jgg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Wolfram Sang <wsa@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Michael Hennerich <Michael.Hennerich@analog.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Andreas Klinger <ak@it-klinger.de>,
+        Marcin Wojtas <mw@semihalf.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Akhil R <akhilrajeev@nvidia.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, netdev@vger.kernel.org,
+        openbmc@lists.ozlabs.org, linux-gpio@vger.kernel.org,
+        linux-mips@vger.kernel.org
+Subject: Re: [PATCH v5 3/8] net-next: mvpp2: relax return value check for IRQ
+ get
+Message-ID: <ZGpSpZFEo5cw94U_@surfacebook>
+References: <cover.1684493615.git.mazziesaccount@gmail.com>
+ <7c7b1a123d6d5c15c8b37754f1f0c4bd1cad5a01.1684493615.git.mazziesaccount@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7c7b1a123d6d5c15c8b37754f1f0c4bd1cad5a01.1684493615.git.mazziesaccount@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On 5/20/23 2:42 AM, Jason Gunthorpe wrote:
-> Move the driver init and destruction code into two logically paired
-> functions.
+Fri, May 19, 2023 at 02:01:47PM +0300, Matti Vaittinen kirjoitti:
+> fwnode_irq_get[_byname]() were changed to not return 0 anymore.
 > 
-> There is a subtle ordering dependency in how the group's domains are
-> freed, the current code does the kobject_put() on the group which will
-> hopefully trigger the free of the domains before the module_put() that
-> protects the domain->ops.
-> 
-> Reorganize this to be explicit and documented. The domains are cleaned up
-> by iommu_deinit_device() if it is the last device to be deinit'd from the
-> group.  This must be done in a specific order - after
-> ops->release_device() and before the module_put(). Make it very clear and
-> obvious by putting the order directly in one function.
-> 
-> Leave WARN_ON's in case the refcounting gets messed up somehow.
-> 
-> This also moves the module_put() and dev_iommu_free() under the
-> group->mutex to keep the code simple.
-> 
-> Building paired functions like this helps ensure that error cleanup flows
-> in __iommu_probe_device() are correct because they share the same code
-> that handles the normal flow. These details become relavent as following
-> patches add more error unwind into __iommu_probe_device(), and ultimately
-> a following series adds fine-grained locking to __iommu_probe_device().
-> 
-> Reviewed-by: Kevin Tian<kevin.tian@intel.com>
-> Signed-off-by: Jason Gunthorpe<jgg@nvidia.com>
+> Drop check for return value 0.
 
-Reviewed-by: Lu Baolu <baolu.lu@linux.intel.com>
+...
 
-Best regards,
-baolu
+> -		if (v->irq <= 0) {
+> +		if (v->irq < 0) {
+>  			ret = -EINVAL;
+
+			ret = v->irq;
+
+?
+
+>  			goto err;
+>  		}
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
