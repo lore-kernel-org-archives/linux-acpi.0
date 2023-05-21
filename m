@@ -2,25 +2,24 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D16AC7EE29
-	for <linux-acpi@archiver.kernel.org>; Sun, 21 May 2023 17:58:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE80C77B7C
+	for <linux-acpi@archiver.kernel.org>; Sun, 21 May 2023 18:32:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231189AbjEURyi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 21 May 2023 13:54:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44160 "EHLO
+        id S229999AbjEUScg (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 21 May 2023 14:32:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231519AbjEURnF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 21 May 2023 13:43:05 -0400
-X-Greylist: delayed 62 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 21 May 2023 10:14:26 PDT
-Received: from fgw20-7.mail.saunalahti.fi (fgw20-7.mail.saunalahti.fi [62.142.5.81])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E6D0E42
+        with ESMTP id S231348AbjEURnD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 21 May 2023 13:43:03 -0400
+Received: from fgw21-7.mail.saunalahti.fi (fgw21-7.mail.saunalahti.fi [62.142.5.82])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13DABE4D
         for <linux-acpi@vger.kernel.org>; Sun, 21 May 2023 10:14:26 -0700 (PDT)
 Received: from localhost (88-113-26-95.elisa-laajakaista.fi [88.113.26.95])
-        by fgw20.mail.saunalahti.fi (Halon) with ESMTP
-        id c6755f98-f7fa-11ed-b3cf-005056bd6ce9;
-        Sun, 21 May 2023 20:13:18 +0300 (EEST)
+        by fgw21.mail.saunalahti.fi (Halon) with ESMTP
+        id ee8f2be1-f7fa-11ed-abf4-005056bdd08f;
+        Sun, 21 May 2023 20:14:24 +0300 (EEST)
 From:   andy.shevchenko@gmail.com
-Date:   Sun, 21 May 2023 20:13:16 +0300
+Date:   Sun, 21 May 2023 20:14:23 +0300
 To:     Matti Vaittinen <mazziesaccount@gmail.com>
 Cc:     Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -48,88 +47,67 @@ Cc:     Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
         linux-iio@vger.kernel.org, netdev@vger.kernel.org,
         openbmc@lists.ozlabs.org, linux-gpio@vger.kernel.org,
         linux-mips@vger.kernel.org
-Subject: Re: [PATCH v5 1/8] drivers: fwnode: fix fwnode_irq_get[_byname]()
-Message-ID: <ZGpRLLy1Snez94NQ@surfacebook>
+Subject: Re: [PATCH v5 2/8] iio: mb1232: relax return value check for IRQ get
+Message-ID: <ZGpRb65GcaMRagiq@surfacebook>
 References: <cover.1684493615.git.mazziesaccount@gmail.com>
- <339cc23ccae4580d5551cc2b6b9b4afdde48f25e.1684493615.git.mazziesaccount@gmail.com>
+ <05636b651b9a3b13aa3a3b7d3faa00f2a8de6bca.1684493615.git.mazziesaccount@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <339cc23ccae4580d5551cc2b6b9b4afdde48f25e.1684493615.git.mazziesaccount@gmail.com>
+In-Reply-To: <05636b651b9a3b13aa3a3b7d3faa00f2a8de6bca.1684493615.git.mazziesaccount@gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Fri, May 19, 2023 at 02:00:54PM +0300, Matti Vaittinen kirjoitti:
-> The fwnode_irq_get() and the fwnode_irq_get_byname() return 0 upon
-> device-tree IRQ mapping failure. This is contradicting the
-> fwnode_irq_get_byname() function documentation and can potentially be a
-> source of errors like:
+Fri, May 19, 2023 at 02:01:23PM +0300, Matti Vaittinen kirjoitti:
+> fwnode_irq_get() was changed to not return 0 anymore.
 > 
-> int probe(...) {
-> 	...
+> Drop check for return value 0.
 > 
-> 	irq = fwnode_irq_get_byname();
-> 	if (irq <= 0)
-> 		return irq;
-> 
-> 	...
-> }
-> 
-> Here we do correctly check the return value from fwnode_irq_get_byname()
-> but the driver probe will now return success. (There was already one
-> such user in-tree).
-> 
-> Change the fwnode_irq_get_byname() to work as documented and make also the
-> fwnode_irq_get() follow same common convention returning a negative errno
-> upon failure.
+> Signed-off-by: Matti Vaittinen <mazziesaccount@gmail.com>
 
+With or without below being addressed,
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-> Fixes: ca0acb511c21 ("device property: Add fwnode_irq_get_byname")
-> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Suggested-by: Jonathan Cameron <jic23@kernel.org>
-> Signed-off-by: Matti Vaittinen <mazziesaccount@gmail.com>
-> 
 > ---
-> I dropped the existing reviewed-by tags because change to
-> fwnode_irq_get() was added.
+> Revsion history:
+> v4 => v5:
+>  - drop unnecessary data->irqnr = -1 assignment
 > 
-> Revision history:
-> v3 => v4:
->  - Change also the fwnode_irq_get()
+> The first patch of the series changes the fwnode_irq_get() so this depends
+> on the first patch of the series and should not be applied alone.
 > ---
->  drivers/base/property.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
+>  drivers/iio/proximity/mb1232.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
 > 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index f6117ec9805c..8c40abed7852 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -987,12 +987,18 @@ EXPORT_SYMBOL(fwnode_iomap);
->   * @fwnode:	Pointer to the firmware node
->   * @index:	Zero-based index of the IRQ
->   *
-> - * Return: Linux IRQ number on success. Other values are determined
-> - * according to acpi_irq_get() or of_irq_get() operation.
-> + * Return: Linux IRQ number on success. Negative errno on failure.
->   */
->  int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int index)
->  {
-> -	return fwnode_call_int_op(fwnode, irq_get, index);
-> +	int ret;
-> +
-> +	ret = fwnode_call_int_op(fwnode, irq_get, index);
-> +	/* We treat mapping errors as invalid case */
-> +	if (ret == 0)
-> +		return -EINVAL;
+> diff --git a/drivers/iio/proximity/mb1232.c b/drivers/iio/proximity/mb1232.c
+> index e70cac8240af..3ae226297a00 100644
+> --- a/drivers/iio/proximity/mb1232.c
+> +++ b/drivers/iio/proximity/mb1232.c
+> @@ -76,7 +76,7 @@ static s16 mb1232_read_distance(struct mb1232_data *data)
+>  		goto error_unlock;
+>  	}
+>  
+> -	if (data->irqnr >= 0) {
+> +	if (data->irqnr > 0) {
+>  		/* it cannot take more than 100 ms */
+>  		ret = wait_for_completion_killable_timeout(&data->ranging,
+>  									HZ/10);
+> @@ -212,10 +212,7 @@ static int mb1232_probe(struct i2c_client *client)
+>  	init_completion(&data->ranging);
+>  
+>  	data->irqnr = fwnode_irq_get(dev_fwnode(&client->dev), 0);
+> -	if (data->irqnr <= 0) {
+> -		/* usage of interrupt is optional */
 
-Not sure if this is the best choice, perhaps -EEXIST or -ENOENT might be
-better, but it's just a spoken up thought.
+Maybe this comment can be kept.
 
-> +	return ret;
->  }
->  EXPORT_SYMBOL(fwnode_irq_get);
+> -		data->irqnr = -1;
+> -	} else {
+> +	if (data->irqnr > 0) {
+>  		ret = devm_request_irq(dev, data->irqnr, mb1232_handle_irq,
+>  				IRQF_TRIGGER_FALLING, id->name, indio_dev);
+>  		if (ret < 0) {
 
 -- 
 With Best Regards,
