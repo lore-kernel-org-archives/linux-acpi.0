@@ -2,162 +2,313 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2731C77B75
-	for <linux-acpi@archiver.kernel.org>; Tue, 23 May 2023 18:07:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26E31C7EE26
+	for <linux-acpi@archiver.kernel.org>; Tue, 23 May 2023 18:10:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238145AbjEWSHO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 23 May 2023 14:07:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58494 "EHLO
+        id S229820AbjEWSK2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 23 May 2023 14:10:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238163AbjEWSHN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 May 2023 14:07:13 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C941BF
-        for <linux-acpi@vger.kernel.org>; Tue, 23 May 2023 11:06:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684865190;
+        with ESMTP id S229476AbjEWSK1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 May 2023 14:10:27 -0400
+X-Greylist: delayed 600 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 23 May 2023 11:10:24 PDT
+Received: from debian-mailserver.fidu.org (static.7.84.90.157.clients.your-server.de [157.90.84.7])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC52697;
+        Tue, 23 May 2023 11:10:24 -0700 (PDT)
+Received: from [192.168.178.25] (unknown [24.134.105.141])
+        (Authenticated sender: wse@tuxedocomputers.com)
+        by debian-mailserver.fidu.org (Postfix) with ESMTPSA id B957C2FC00F7;
+        Tue, 23 May 2023 19:52:57 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tuxedocomputers.com;
+        s=default; t=1684864378;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=SG2XCSWG0GUXh4a7boUJOB62oZ1UHvd8/4f8ByVuALo=;
-        b=PvZ9OxBkVWTEniYSyHUVHstt1vPWVkBruZtaRtRZ+N9UJf7nhjaX//iCsA8EBYprpZy5Aq
-        KlzWn8boTx/XOcmd3Ozloxlv/HPNZk1U5fbgD5WWAn8N7qRQqjolmZsGaNyGEqDECmX6jW
-        XcrqLxBs9lhaTR/rjRtIkf/hfjsdxvU=
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com
- [209.85.166.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-522-pfGardrdNnuGm-UmHJ3uxw-1; Tue, 23 May 2023 14:06:29 -0400
-X-MC-Unique: pfGardrdNnuGm-UmHJ3uxw-1
-Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-76371bc5167so8555339f.1
-        for <linux-acpi@vger.kernel.org>; Tue, 23 May 2023 11:06:29 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684865188; x=1687457188;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=SG2XCSWG0GUXh4a7boUJOB62oZ1UHvd8/4f8ByVuALo=;
-        b=RbgIdtRg4d9WYZhr1zeIyy+K9k/VAdy8us6I1nPssmCzphKUyaALlMY+h3gDfxjvFw
-         uT3thlo55kN9KST0qSvNYKrG+9G4HjpbCd6VjlHixJiXs+f0EHaK9Xho9Ovbg1+9gZL4
-         jlbOi62FQCo/CeCWtJ9Hgn/dQlTpaE3vu+5J9vqRYjwhIZFaRLOLPecKqIUixM0u9Tgr
-         HhvSAlARJR/36U9If7vQrogtGnaKaeLxMKRdccotoe//8ugdESxxo/BoU7MhCy2QGxEW
-         y0LX23vg5slsjvIEj05s232MZIuj4zCcfOAk3oOjjO5bsZdd8wivyXRMJFNBXV6qmXHN
-         R9Cg==
-X-Gm-Message-State: AC+VfDxIbxBJ8ZvryApJKfx3Sf1u4IQmieIBrLoyT8L2/n1RhLtgnKf4
-        wumMTahOLkT7x835/48fvdkIPf+ix/Y2y5iFrlgVChHMwTNk/jNA1+l2u1tzHcP2Fc+tSpcbbOu
-        +bDUU3uW8undKByTLhnZp7A==
-X-Received: by 2002:a5d:9499:0:b0:774:8176:6e20 with SMTP id v25-20020a5d9499000000b0077481766e20mr2131562ioj.21.1684865188466;
-        Tue, 23 May 2023 11:06:28 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ6DtVEwkEI5aNETNJ3Rca8ixXfaH9IgtR2PLMVrIfsiDmIeMO0mu5OmcabBctnp3iipzNnDag==
-X-Received: by 2002:a5d:9499:0:b0:774:8176:6e20 with SMTP id v25-20020a5d9499000000b0077481766e20mr2131554ioj.21.1684865188218;
-        Tue, 23 May 2023 11:06:28 -0700 (PDT)
-Received: from redhat.com ([38.15.36.239])
-        by smtp.gmail.com with ESMTPSA id w8-20020a056638138800b0041658c1838asm2684880jad.81.2023.05.23.11.06.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 23 May 2023 11:06:27 -0700 (PDT)
-Date:   Tue, 23 May 2023 12:06:26 -0600
-From:   Alex Williamson <alex.williamson@redhat.com>
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     linux-pci@vger.kernel.org, kvm@vger.kernel.org,
-        linux-acpi@vger.kernel.org, Nirmal Patel <nirmal.patel@intel.com>
-Subject: Re: [Bug 217472] New: ACPI _OSC features have different values in
- Host OS and Guest OS
-Message-ID: <20230523120626.5b76d289.alex.williamson@redhat.com>
-In-Reply-To: <ZGz2FQpHPKYgcc0+@bhelgaas>
-References: <bug-217472-41252@https.bugzilla.kernel.org/>
-        <ZGz2FQpHPKYgcc0+@bhelgaas>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.35; x86_64-redhat-linux-gnu)
+        bh=7Zq5G7Pc/40n5rmr+flZjkj7BiqB0EBVaCzcpRsZzC8=;
+        b=Viq1uFkW3FRY14Yx3guOCjrL23ts9YFeaa04kFJ0yhRmCE3bMOEbZqC7mh6GYIPOAgjsdi
+        D1EAZ3Z6RLWTKgwA3c96MAmsOCdG9v7yI2ukcjeYzE5lKfg4cVTkBDRrbwLrqymFW0tNda
+        iB7bauApxX2CZV1imu+eIuvfM/annns=
+Authentication-Results: debian-mailserver.fidu.org;
+        auth=pass smtp.auth=wse@tuxedocomputers.com smtp.mailfrom=wse@tuxedocomputers.com
+Message-ID: <ca1f3eeb-76b5-d80f-e12f-94890922fdd6@tuxedocomputers.com>
+Date:   Tue, 23 May 2023 19:52:57 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH v2] ACPI: resource: Remove "Zen" specific match and quirks
+To:     Mario Limonciello <mario.limonciello@amd.com>, rafael@kernel.org
+Cc:     gch981213@gmail.com, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, regressions@leemhuis.info,
+        ofenfisch@googlemail.com, adam.niederer@gmail.com,
+        adrian@freund.io, jirislaby@kernel.org,
+        Renjith.Pananchikkal@amd.com, anson.tsao@amd.com,
+        Richard.Gong@amd.com, evilsnoo@proton.me, ruinairas1992@gmail.com
+References: <20230518183920.93472-1-mario.limonciello@amd.com>
+Content-Language: en-US
+From:   Werner Sembach <wse@tuxedocomputers.com>
+In-Reply-To: <20230518183920.93472-1-mario.limonciello@amd.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, 23 May 2023 12:21:25 -0500
-Bjorn Helgaas <helgaas@kernel.org> wrote:
+Hi,
 
-> Hi Nirmal, thanks for the report!
-> 
-> On Mon, May 22, 2023 at 04:32:03PM +0000, bugzilla-daemon@kernel.org wrote:
-> > https://bugzilla.kernel.org/show_bug.cgi?id=217472
-> > ...  
-> 
-> > Created attachment 304301  
-> >   --> https://bugzilla.kernel.org/attachment.cgi?id=304301&action=edit  
-> > Rhel9.1_Guest_dmesg
-> > 
-> > Issue:
-> > NVMe Drives are still present after performing hotplug in guest OS. We have
-> > tested with different combination of OSes, drives and Hypervisor. The issue is
-> > present across all the OSes.   
-> 
-> Maybe attach the specific commands to reproduce the problem in one of
-> these scenarios to the bugzilla?  I'm a virtualization noob, so I
-> can't visualize all the usual pieces.
-> 
-> > The following patch was added to honor ACPI _OSC values set by BIOS and the
-> > patch helped to bring the issue out in VM/ Guest OS.
-> > 
-> > https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git/commit/drivers/pci/controller/vmd.c?id=04b12ef163d10e348db664900ae7f611b83c7a0e
-> > 
-> > 
-> > I also compared the values of the parameters in the patch in Host and Guest OS.
-> > The parameters with different values in Host and Guest OS are:
-> > 
-> > native_pcie_hotplug
-> > native_shpc_hotplug
-> > native_aer
-> > native_ltr
-> > 
-> > i.e.
-> > value of native_pcie_hotplug in Host OS is 1.
-> > value of native_pcie_hotplug in Guest OS is 0.
-> > 
-> > I am not sure why "native_pcie_hotplug" is changed to 0 in guest.
-> > Isn't it OSC_ managed parameter? If that is the case, it should
-> > have same value in Host and Guest OS.  
-> 
-> From your dmesg:
-> 
->   DMI: Red Hat KVM/RHEL, BIOS 1.16.0-4.el9 04/01/2014
->   _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI EDR HPX-Type3]
->   _OSC: platform does not support [PCIeHotplug LTR DPC]
->   _OSC: OS now controls [SHPCHotplug PME AER PCIeCapability]
->   acpiphp: Slot [0] registered
->   virtio_blk virtio3: [vda] 62914560 512-byte logical blocks (32.2 GB/30.0 GiB)
-> 
-> So the DMI ("KVM/RHEL ...") is the BIOS seen by the guest.  Doesn't
-> mean anything to me, but the KVM folks would know about it.  In any
-> event, the guest BIOS is different from the host BIOS, so I'm not
-> surprised that _OSC is different.
+Am 18.05.23 um 20:39 schrieb Mario Limonciello:
+> commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on
+> AMD Zen platforms") attempted to overhaul the override logic so it
+> didn't apply on X86 AMD Zen systems.  This was intentional so that
+> systems would prefer DSDT values instead of default MADT value for
+> IRQ 1 on Ryzen 6000 systems which use ActiveLow for IRQ1.
+>
+> This turned out to be a bad assumption because several vendors seem
+> to add Interrupt Source Override but don't fix the DSDT. A pile of
+> quirks was collecting that proved this wasn't sustaintable.
+>
+> Adjust the logic so that only IRQ1 is overridden in Ryzen 6000 case.
+>
+> This effectively reverts the following commits:
+> commit 17bb7046e7ce ("ACPI: resource: Do IRQ override on all TongFang
+> GMxRGxx")
+> commit f3cb9b740869 ("ACPI: resource: do IRQ override on Lenovo 14ALC7")
+> commit bfcdf58380b1 ("ACPI: resource: do IRQ override on LENOVO IdeaPad")
+> commit 7592b79ba4a9 ("ACPI: resource: do IRQ override on XMG Core 15")
 
-Right, the premise of the issue that guest and host should have the
-same OSC features is flawed.  The guest is a virtual machine that can
-present an entirely different feature set from the host.  A software
-hotplug on the guest can occur without any bearing to the slot status
-on the host.
+The TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD breaks again with this patch (applied to 6.4-rc3). Am I missing an additional patch that is required?
 
-> That guest BIOS _OSC declined to grant control of PCIe native hotplug
-> to the guest OS, so the guest will use acpiphp (not pciehp, which
-> would be used if native_pcie_hotplug were set).
-> 
-> The dmesg doesn't mention the nvme driver.  Are you using something
-> like virtio_blk with qemu pointed at an NVMe drive?  And you
-> hot-remove the NVMe device, but the guest OS thinks it's still
-> present?
-> 
-> Since the guest is using acpiphp, I would think a hot-remove of a host
-> NVMe device should be noticed by qemu and turned into an ACPI
-> notification that the guest OS would consume.  But I don't know how
-> those connections work.
-
-If vfio-pci is involved, a cooperative hot-unplug will attempt to
-unbind the host driver, which triggers a device request through vfio,
-which is ultimately seen as a hotplug eject operation by the guest.
-Surprise hotplugs of assigned devices are not supported.  There's not
-enough info in the bz to speculate how this VM is wired or what actions
-are taken.  Thanks,
-
-Alex
-
+>
+> Cc: ofenfisch@googlemail.com
+> Cc: wse@tuxedocomputers.com
+> Cc: adam.niederer@gmail.com
+> Cc: adrian@freund.io
+> Cc: jirislaby@kernel.org
+> Tested-by: Renjith.Pananchikkal@amd.com
+> Tested-by: anson.tsao@amd.com
+> Tested-by: Richard.Gong@amd.com
+> Tested-by: Chuanhong Guo <gch981213@gmail.com>
+> Reported-by: evilsnoo@proton.me
+> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217394
+> Reported-by: ruinairas1992@gmail.com
+> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217406
+> Fixes: 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen platforms")
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> ---
+> v1->v2:
+>   * Rebase on 71a485624c4c ("ACPI: resource: Add IRQ override quirk for LG UltraPC 17U70P")
+>   * Pick up tag
+> ---
+>   drivers/acpi/resource.c | 154 +++++++++++++++++-----------------------
+>   1 file changed, 65 insertions(+), 89 deletions(-)
+>
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 0800a9d77558..c6ac87e01e1c 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -470,52 +470,6 @@ static const struct dmi_system_id asus_laptop[] = {
+>   	{ }
+>   };
+>   
+> -static const struct dmi_system_id lenovo_laptop[] = {
+> -	{
+> -		.ident = "LENOVO IdeaPad Flex 5 14ALC7",
+> -		.matches = {
+> -			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "82R9"),
+> -		},
+> -	},
+> -	{
+> -		.ident = "LENOVO IdeaPad Flex 5 16ALC7",
+> -		.matches = {
+> -			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "82RA"),
+> -		},
+> -	},
+> -	{ }
+> -};
+> -
+> -static const struct dmi_system_id tongfang_gm_rg[] = {
+> -	{
+> -		.ident = "TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD",
+> -		.matches = {
+> -			DMI_MATCH(DMI_BOARD_NAME, "GMxRGxx"),
+> -		},
+> -	},
+> -	{ }
+> -};
+> -
+> -static const struct dmi_system_id maingear_laptop[] = {
+> -	{
+> -		.ident = "MAINGEAR Vector Pro 2 15",
+> -		.matches = {
+> -			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-15A3070T"),
+> -		}
+> -	},
+> -	{
+> -		.ident = "MAINGEAR Vector Pro 2 17",
+> -		.matches = {
+> -			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-17A3070T"),
+> -		},
+> -	},
+> -	{ }
+> -};
+> -
+>   static const struct dmi_system_id lg_laptop[] = {
+>   	{
+>   		.ident = "LG Electronics 17U70P",
+> @@ -527,7 +481,7 @@ static const struct dmi_system_id lg_laptop[] = {
+>   	{ }
+>   };
+>   
+> -struct irq_override_cmp {
+> +struct irq_override_dmi_cmp {
+>   	const struct dmi_system_id *system;
+>   	unsigned char irq;
+>   	unsigned char triggering;
+> @@ -536,50 +490,86 @@ struct irq_override_cmp {
+>   	bool override;
+>   };
+>   
+> -static const struct irq_override_cmp override_table[] = {
+> +struct irq_override_acpi_cmp {
+> +	const char *id;
+> +	unsigned char irq;
+> +	unsigned char triggering;
+> +	unsigned char polarity;
+> +};
+> +
+> +static const struct irq_override_dmi_cmp dmi_override_table[] = {
+>   	{ medion_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+>   	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+> -	{ lenovo_laptop, 6, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
+> -	{ lenovo_laptop, 10, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
+> -	{ tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+> -	{ maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+>   	{ lg_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+>   };
+>   
+> -static bool acpi_dev_irq_override(u32 gsi, u8 triggering, u8 polarity,
+> -				  u8 shareable)
+> +/*
+> + * Ryzen 6000 requires ActiveLow for keyboard, but a number of machines
+> + * seem to get it wrong in DSDT or don't have an Interrupt Source
+> + * Override.
+> + */
+> +static const struct irq_override_acpi_cmp acpi_override_table[] = {
+> +	{ "AMDI0007", 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW },
+> +};
+> +
+> +static void acpi_dev_irq_override(u32 gsi, u8 *triggering, u8 *polarity,
+> +				  u8 *shareable)
+>   {
+> -	int i;
+> +	int i, p, t;
+> +	int check_override = true;
+>   
+> -	for (i = 0; i < ARRAY_SIZE(override_table); i++) {
+> -		const struct irq_override_cmp *entry = &override_table[i];
+> +	for (i = 0; i < ARRAY_SIZE(dmi_override_table); i++) {
+> +		const struct irq_override_dmi_cmp *entry = &dmi_override_table[i];
+>   
+>   		if (dmi_check_system(entry->system) &&
+>   		    entry->irq == gsi &&
+> -		    entry->triggering == triggering &&
+> -		    entry->polarity == polarity &&
+> -		    entry->shareable == shareable)
+> -			return entry->override;
+> +		    entry->triggering == *triggering &&
+> +		    entry->polarity == *polarity &&
+> +		    entry->shareable == *shareable)
+> +			check_override = entry->override;
+>   	}
+>   
+> -#ifdef CONFIG_X86
+> -	/*
+> -	 * IRQ override isn't needed on modern AMD Zen systems and
+> -	 * this override breaks active low IRQs on AMD Ryzen 6000 and
+> -	 * newer systems. Skip it.
+> -	 */
+> -	if (boot_cpu_has(X86_FEATURE_ZEN))
+> -		return false;
+> -#endif
+> +	if (!check_override)
+> +		return;
+>   
+> -	return true;
+> +	if (!acpi_get_override_irq(gsi, &t, &p)) {
+> +		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
+> +		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+> +
+> +		if (*triggering != trig || *polarity != pol) {
+> +			pr_warn("ACPI: IRQ %d override to %s%s, %s%s\n", gsi,
+> +				t ? "level" : "edge",
+> +				trig == *triggering ? "" : "(!)",
+> +				p ? "low" : "high",
+> +				pol == *polarity ? "" : "(!)");
+> +			*triggering = trig;
+> +			*polarity = pol;
+> +		}
+> +	}
+> +
+> +	for (i = 0; i < ARRAY_SIZE(acpi_override_table); i++) {
+> +		const struct irq_override_acpi_cmp *entry = &acpi_override_table[i];
+> +
+> +		if (acpi_dev_found(entry->id) && gsi == entry->irq &&
+> +		   (*polarity != entry->polarity || *triggering != entry->triggering)) {
+> +			pr_warn("ACPI: IRQ %d override to %s%s, %s%s due to %s\n",
+> +				gsi,
+> +				entry->triggering ? "level" : "edge",
+> +				entry->triggering == *triggering ? "" : "(!)",
+> +				entry->polarity ? "low" : "high",
+> +				entry->polarity == *polarity ? "" : "(!)",
+> +				entry->id);
+> +			*polarity = entry->polarity;
+> +			*triggering = entry->triggering;
+> +		}
+> +	}
+>   }
+>   
+>   static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>   				     u8 triggering, u8 polarity, u8 shareable,
+>   				     u8 wake_capable, bool check_override)
+>   {
+> -	int irq, p, t;
+> +	int irq;
+>   
+>   	if (!valid_IRQ(gsi)) {
+>   		irqresource_disabled(res, gsi);
+> @@ -592,26 +582,12 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>   	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
+>   	 *
+>   	 * We do this only if we are dealing with IRQ() or IRQNoFlags()
+> -	 * resource (the legacy ISA resources). With modern ACPI 5 devices
+> +	 * resource (the legacy ISA resources). With ACPI devices
+>   	 * using extended IRQ descriptors we take the IRQ configuration
+>   	 * from _CRS directly.
+>   	 */
+> -	if (check_override &&
+> -	    acpi_dev_irq_override(gsi, triggering, polarity, shareable) &&
+> -	    !acpi_get_override_irq(gsi, &t, &p)) {
+> -		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
+> -		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+> -
+> -		if (triggering != trig || polarity != pol) {
+> -			pr_warn("ACPI: IRQ %d override to %s%s, %s%s\n", gsi,
+> -				t ? "level" : "edge",
+> -				trig == triggering ? "" : "(!)",
+> -				p ? "low" : "high",
+> -				pol == polarity ? "" : "(!)");
+> -			triggering = trig;
+> -			polarity = pol;
+> -		}
+> -	}
+> +	if (check_override)
+> +		acpi_dev_irq_override(gsi, &triggering, &polarity, &shareable);
+>   
+>   	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable, wake_capable);
+>   	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
+>
+> base-commit: c554eee18c9a440bd2dd5a363b0f79325717f0bf
