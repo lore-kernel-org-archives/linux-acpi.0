@@ -2,24 +2,24 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE578C77B7A
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:27:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFEAC7EE23
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:27:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231438AbjE2G1G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 May 2023 02:27:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53974 "EHLO
+        id S231668AbjE2G1R (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 May 2023 02:27:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231638AbjE2G05 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:26:57 -0400
+        with ESMTP id S231658AbjE2G1O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:27:14 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0318DC4;
-        Sun, 28 May 2023 23:26:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 56FAFC2;
+        Sun, 28 May 2023 23:26:38 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7CAC5AB6;
-        Sun, 28 May 2023 23:26:18 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 84BF814BF;
+        Sun, 28 May 2023 23:26:32 -0700 (PDT)
 Received: from a077893.blr.arm.com (a077893.blr.arm.com [10.162.40.17])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 7147E3F6C4;
-        Sun, 28 May 2023 23:25:27 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 1EEB43F6C4;
+        Sun, 28 May 2023 23:25:40 -0700 (PDT)
 From:   Anshuman Khandual <anshuman.khandual@arm.com>
 To:     linux-arm-kernel@lists.infradead.org, coresight@lists.linaro.org,
         suzuki.poulose@arm.com
@@ -38,9 +38,9 @@ Cc:     scclevenger@os.amperecomputing.com,
         Mike Leach <mike.leach@linaro.org>,
         Leo Yan <leo.yan@linaro.org>, devicetree@vger.kernel.org,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH V5 1/6] coresight: etm4x: Allocate and device assign 'struct etmv4_drvdata' earlier
-Date:   Mon, 29 May 2023 11:55:06 +0530
-Message-Id: <20230529062511.52016-2-anshuman.khandual@arm.com>
+Subject: [PATCH V5 3/6] coresight: etm4x: Drop pid argument from etm4_probe()
+Date:   Mon, 29 May 2023 11:55:08 +0530
+Message-Id: <20230529062511.52016-4-anshuman.khandual@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20230529062511.52016-1-anshuman.khandual@arm.com>
 References: <20230529062511.52016-1-anshuman.khandual@arm.com>
@@ -50,10 +50,11 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Allocate and device assign 'struct etmv4_drvdata' earlier during the driver
-probe, ensuring that it can be retrieved in power management based runtime
-callbacks if required. This will also help in dropping iomem base address
-argument from the function etm4_probe() later.
+Coresight device pid can be retrieved from its iomem base address, which is
+stored in 'struct etm4x_drvdata'. This drops pid argument from etm4_probe()
+and 'struct etm4_init_arg'. Instead etm4_check_arch_features() derives the
+coresight device pid with a new helper coresight_get_pid(), right before it
+is consumed in etm4_hisi_match_pid().
 
 Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
 Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
@@ -64,68 +65,123 @@ Cc: linux-arm-kernel@lists.infradead.org
 Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- .../coresight/coresight-etm4x-core.c          | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ .../coresight/coresight-etm4x-core.c          | 29 ++++++++++---------
+ include/linux/coresight.h                     | 12 ++++++++
+ 2 files changed, 27 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/hwtracing/coresight/coresight-etm4x-core.c b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-index 4c15fae534f3..7e96293c638f 100644
+index 748d2ef53cb0..57a7181017bd 100644
 --- a/drivers/hwtracing/coresight/coresight-etm4x-core.c
 +++ b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-@@ -2046,17 +2046,14 @@ static int etm4_add_coresight_dev(struct etm4_init_arg *init_arg)
+@@ -66,7 +66,6 @@ static u64 etm4_get_access_type(struct etmv4_config *config);
+ static enum cpuhp_state hp_online;
  
- static int etm4_probe(struct device *dev, void __iomem *base, u32 etm_pid)
+ struct etm4_init_arg {
+-	unsigned int		pid;
+ 	struct device		*dev;
+ 	struct csdev_access	*csa;
+ };
+@@ -370,9 +369,17 @@ static void etm4_disable_arch_specific(struct etmv4_drvdata *drvdata)
+ }
+ 
+ static void etm4_check_arch_features(struct etmv4_drvdata *drvdata,
+-				      unsigned int id)
++				     struct csdev_access *csa)
  {
--	struct etmv4_drvdata *drvdata;
-+	struct etmv4_drvdata *drvdata = dev_get_drvdata(dev);
- 	struct csdev_access access = { 0 };
- 	struct etm4_init_arg init_arg = { 0 };
- 	struct etm4_init_arg *delayed;
- 
--	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
--	if (!drvdata)
-+	if (WARN_ON(!drvdata))
- 		return -ENOMEM;
- 
--	dev_set_drvdata(dev, drvdata);
--
- 	if (pm_save_enable == PARAM_PM_SAVE_FIRMWARE)
- 		pm_save_enable = coresight_loses_context_with_cpu(dev) ?
- 			       PARAM_PM_SAVE_SELF_HOSTED : PARAM_PM_SAVE_NEVER;
-@@ -2108,6 +2105,7 @@ static int etm4_probe(struct device *dev, void __iomem *base, u32 etm_pid)
- 
- static int etm4_probe_amba(struct amba_device *adev, const struct amba_id *id)
- {
-+	struct etmv4_drvdata *drvdata;
- 	void __iomem *base;
- 	struct device *dev = &adev->dev;
- 	struct resource *res = &adev->res;
-@@ -2118,6 +2116,11 @@ static int etm4_probe_amba(struct amba_device *adev, const struct amba_id *id)
- 	if (IS_ERR(base))
- 		return PTR_ERR(base);
- 
-+	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
-+	if (!drvdata)
-+		return -ENOMEM;
+-	if (etm4_hisi_match_pid(id))
++	/*
++	 * TRCPIDR* registers are not required for ETMs with system
++	 * instructions. They must be identified by the MIDR+REVIDRs.
++	 * Skip the TRCPID checks for now.
++	 */
++	if (!csa->io_mem)
++		return;
 +
-+	dev_set_drvdata(dev, drvdata);
- 	ret = etm4_probe(dev, base, id->id);
++	if (etm4_hisi_match_pid(coresight_get_pid(csa)))
+ 		set_bit(ETM4_IMPDEF_HISI_CORE_COMMIT, drvdata->arch_features);
+ }
+ #else
+@@ -385,7 +392,7 @@ static void etm4_disable_arch_specific(struct etmv4_drvdata *drvdata)
+ }
+ 
+ static void etm4_check_arch_features(struct etmv4_drvdata *drvdata,
+-				     unsigned int id)
++				     struct csdev_access *csa)
+ {
+ }
+ #endif /* CONFIG_ETM4X_IMPDEF_FEATURE */
+@@ -1161,7 +1168,7 @@ static void etm4_init_arch_data(void *info)
+ 	etm4_os_unlock_csa(drvdata, csa);
+ 	etm4_cs_unlock(drvdata, csa);
+ 
+-	etm4_check_arch_features(drvdata, init_arg->pid);
++	etm4_check_arch_features(drvdata, csa);
+ 
+ 	/* find all capabilities of the tracing unit */
+ 	etmidr0 = etm4x_relaxed_read32(csa, TRCIDR0);
+@@ -2044,7 +2051,7 @@ static int etm4_add_coresight_dev(struct etm4_init_arg *init_arg)
+ 	return 0;
+ }
+ 
+-static int etm4_probe(struct device *dev, u32 etm_pid)
++static int etm4_probe(struct device *dev)
+ {
+ 	struct etmv4_drvdata *drvdata = dev_get_drvdata(dev);
+ 	struct csdev_access access = { 0 };
+@@ -2073,7 +2080,6 @@ static int etm4_probe(struct device *dev, u32 etm_pid)
+ 
+ 	init_arg.dev = dev;
+ 	init_arg.csa = &access;
+-	init_arg.pid = etm_pid;
+ 
+ 	/*
+ 	 * Serialize against CPUHP callbacks to avoid race condition
+@@ -2120,7 +2126,7 @@ static int etm4_probe_amba(struct amba_device *adev, const struct amba_id *id)
+ 
+ 	drvdata->base = base;
+ 	dev_set_drvdata(dev, drvdata);
+-	ret = etm4_probe(dev, id->id);
++	ret = etm4_probe(dev);
  	if (!ret)
  		pm_runtime_put(&adev->dev);
-@@ -2127,8 +2130,14 @@ static int etm4_probe_amba(struct amba_device *adev, const struct amba_id *id)
  
- static int etm4_probe_platform_dev(struct platform_device *pdev)
- {
-+	struct etmv4_drvdata *drvdata;
- 	int ret;
- 
-+	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
-+	if (!drvdata)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&pdev->dev, drvdata);
- 	pm_runtime_get_noresume(&pdev->dev);
+@@ -2142,12 +2148,7 @@ static int etm4_probe_platform_dev(struct platform_device *pdev)
  	pm_runtime_set_active(&pdev->dev);
  	pm_runtime_enable(&pdev->dev);
+ 
+-	/*
+-	 * System register based devices could match the
+-	 * HW by reading appropriate registers on the HW
+-	 * and thus we could skip the PID.
+-	 */
+-	ret = etm4_probe(&pdev->dev, 0);
++	ret = etm4_probe(&pdev->dev);
+ 
+ 	pm_runtime_put(&pdev->dev);
+ 	return ret;
+diff --git a/include/linux/coresight.h b/include/linux/coresight.h
+index f19a47b9bb5a..f85b041ea475 100644
+--- a/include/linux/coresight.h
++++ b/include/linux/coresight.h
+@@ -370,6 +370,18 @@ static inline u32 csdev_access_relaxed_read32(struct csdev_access *csa,
+ 	return csa->read(offset, true, false);
+ }
+ 
++#define CORESIGHT_PIDRn(i)	(0xFE0 + ((i) * 4))
++
++static inline u32 coresight_get_pid(struct csdev_access *csa)
++{
++	u32 i, pid = 0;
++
++	for (i = 0; i < 4; i++)
++		pid |= csdev_access_relaxed_read32(csa, CORESIGHT_PIDRn(i)) << (i * 8);
++
++	return pid;
++}
++
+ static inline u64 csdev_access_relaxed_read_pair(struct csdev_access *csa,
+ 						 u32 lo_offset, u32 hi_offset)
+ {
 -- 
 2.25.1
 
