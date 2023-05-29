@@ -2,166 +2,166 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69785C7EE23
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15AF5C7EE23
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:26:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231626AbjE2G0D (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 May 2023 02:26:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53016 "EHLO
+        id S231588AbjE2G0z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 May 2023 02:26:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231612AbjE2G0B (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:26:01 -0400
-Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65C9819C;
-        Sun, 28 May 2023 23:25:29 -0700 (PDT)
-Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4eed764a10cso3043213e87.0;
-        Sun, 28 May 2023 23:25:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1685341520; x=1687933520;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=C8+bnKjskXykSg/iKyM4tx22OBuA1gQnjvmBSIg+LQg=;
-        b=fFliZVkMY6bLJAuYH+zFK4+JAx6PcjcFknIiq781O2oY3I435SWATGl1m+BLfl752X
-         9VF5qvU7gxfrJcCYmb0eAg3X65C+BMJ3nFUxTBQ0/y7jHU9eQ+9tbfJbLNrfDTBwom73
-         tQ00BJhN236S6OG3HE2gbGrJqlo6ls+rTxX7WUcgwmL/An/DgfvtOswQbaWmjbRxgJJd
-         dr0+1qJ+ZTSsgElhFGpPQ/0V+7uEz9iu9rxuT0m81vFZzJ9NcoAa0ZItX4q4fvbwHX4O
-         SCCYEQsoM0lVFBLlzpYs2CaibCeIqOOYaOj2PJPNS1znR8dAxIHFdobqPTvcE3rtDhDr
-         7eYg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685341520; x=1687933520;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=C8+bnKjskXykSg/iKyM4tx22OBuA1gQnjvmBSIg+LQg=;
-        b=I9yhLMOZUDVehKqgErP+HKR9ptEVmAEmfJarvkBbpi9y3Kcb4FyLXGnAVq7sNp/a/w
-         M1489/diKS6uSZO71GtDWVBsjVbbZNYm/dpQ9dtbRPt/Gc0TNTXRrqmgH4HVtjcdiXwP
-         zwF5xV+yLzoq3fbflTVGpDxb8CMtCDb1u/OF04EzvaYpfQPCt/ne6wBQJnXKB5cgCVpw
-         /BfsHx0DmebcOs20+y6kX1myZMcqK7gJKiVM51pQQuSfXz4txMCszTYFRomA4Mhfr2yp
-         XPYYl4QnZGb5+2xps2atHjtzqzboibqGJ6XHz3GXcJNiDBUgRSWycuJD6PmWG1WOoMPd
-         87pg==
-X-Gm-Message-State: AC+VfDztJ4/tdjG2aPPeZWt3LJacl3tWD1Xh5JDEMj58Q2I1d/+sKhpe
-        i6Cct/TCnnM1G5VhCiMZo5s=
-X-Google-Smtp-Source: ACHHUZ6Xj6UKjjPlJgrfE9uMHkKDWTfWA5sR45BQylbXf8Ay6rkSnz/XTqU+Q3yir0vd0i1zrhMoUw==
-X-Received: by 2002:ac2:4477:0:b0:4f5:76a:2033 with SMTP id y23-20020ac24477000000b004f5076a2033mr46640lfl.25.1685341520423;
+        with ESMTP id S229691AbjE2G0y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:26:54 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D9F40100;
+        Sun, 28 May 2023 23:26:18 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3EF252F4;
+        Sun, 28 May 2023 23:26:12 -0700 (PDT)
+Received: from a077893.blr.arm.com (a077893.blr.arm.com [10.162.40.17])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id E8E573F6C4;
         Sun, 28 May 2023 23:25:20 -0700 (PDT)
-Received: from fedora (62-78-225-252.bb.dnainternet.fi. [62.78.225.252])
-        by smtp.gmail.com with ESMTPSA id c18-20020a197612000000b004efd3c2b746sm1857330lff.162.2023.05.28.23.25.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 28 May 2023 23:25:19 -0700 (PDT)
-Date:   Mon, 29 May 2023 09:25:15 +0300
-From:   Matti Vaittinen <mazziesaccount@gmail.com>
-To:     Matti Vaittinen <mazziesaccount@gmail.com>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
-Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-arm-kernel@lists.infradead.org, coresight@lists.linaro.org,
+        suzuki.poulose@arm.com
+Cc:     scclevenger@os.amperecomputing.com,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Ganapatrao Kulkarni <gankulkarni@os.amperecomputing.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Wolfram Sang <wsa@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Michael Hennerich <Michael.Hennerich@analog.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Andreas Klinger <ak@it-klinger.de>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Paul Cercueil <paul@crapouillou.net>,
-        Akhil R <akhilrajeev@nvidia.com>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org, netdev@vger.kernel.org,
-        openbmc@lists.ozlabs.org, linux-gpio@vger.kernel.org,
-        linux-mips@vger.kernel.org
-Subject: [PATCH v7 9/9] net-next: mvpp2: don't shadow error
-Message-ID: <16d2b244566d4993c8fb26e1e2fbd178f46587f4.1685340157.git.mazziesaccount@gmail.com>
-References: <cover.1685340157.git.mazziesaccount@gmail.com>
+        Len Brown <lenb@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Mike Leach <mike.leach@linaro.org>,
+        Leo Yan <leo.yan@linaro.org>, devicetree@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH V5 0/6] coresight: etm4x: Migrate ACPI AMBA devices to platform driver
+Date:   Mon, 29 May 2023 11:55:05 +0530
+Message-Id: <20230529062511.52016-1-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="SctzMwS3S5m1hcfy"
-Content-Disposition: inline
-In-Reply-To: <cover.1685340157.git.mazziesaccount@gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+CoreSight ETM4x devices could be accessed either via MMIO (handled via
+amba_driver) or CPU system instructions (handled via platform driver). But
+this has the following issues :
 
---SctzMwS3S5m1hcfy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  - Each new CPU comes up with its own PID and thus we need to keep on
+    adding the "known" PIDs to get it working with AMBA driver. While
+    the ETM4 architecture (and CoreSight architecture) defines way to
+    identify a device as ETM4. Thus older kernels  won't be able to
+    "discover" a newer CPU, unless we add the PIDs.
 
-Do not overwrite error from lower layers but return the actual error to
-user if obtaining an IRQ fails.
+  - With ACPI, the ETM4x devices have the same HID to identify the device
+    irrespective of the mode of access. This creates a problem where two
+    different drivers (both AMBA based driver and platform driver) would
+    hook into the "HID" and could conflict. e.g., if AMBA driver gets
+    hold of a non-MMIO device, the probe fails. If we have single driver
+    hooked into the given "HID", we could handle them seamlessly,
+    irrespective of the mode of access.
 
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Matti Vaittinen <mazziesaccount@gmail.com>
----
-Revision history:
-v7: New patch
+  - CoreSight is heavily dependent on the runtime power management. With
+    ACPI, amba_driver doesn't get us anywhere with handling the power
+    and thus one need to always turn the power ON to use them. Moving to
+    platform driver gives us the power management for free.
 
- drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Due to all of the above, we are moving ACPI MMIO based etm4x devices to be
+supported via tha platform driver. The series makes the existing platform
+driver generic to handle both type of the access modes. Although existing
+AMBA driver would still continue to support DT based etm4x MMIO devices.
+Although some problems still remain, such as manually adding PIDs for all
+new AMBA DT based devices.
 
-diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/=
-ethernet/marvell/mvpp2/mvpp2_main.c
-index 5b987af306a5..57cacdcd49ea 100644
---- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-+++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-@@ -5830,13 +5830,13 @@ static int mvpp2_multi_queue_vectors_init(struct mv=
-pp2_port *port,
- 		}
-=20
- 		if (port_node)
--			v->irq =3D of_irq_get_byname(port_node, irqname);
-+			ret =3D of_irq_get_byname(port_node, irqname);
- 		else
--			v->irq =3D fwnode_irq_get(port->fwnode, i);
--		if (v->irq < 0) {
--			ret =3D -EINVAL;
-+			ret =3D fwnode_irq_get(port->fwnode, i);
-+		if (ret < 0)
- 			goto err;
--		}
-+
-+		v->irq =3D ret;
-=20
- 		netif_napi_add(port->dev, &v->napi, mvpp2_poll);
- 	}
---=20
-2.40.1
+The series applies on 6.4-rc4.
+
+Changes in V5:
+
+- Updated the comment for apb clock in drvdata structure
+- Updated conditional check in etm4_runtime_suspend/resume()
+- Asserted that the APB clock is present and also enabled
+
+Changes in V4:
+
+https://lore.kernel.org/all/20230523044553.1525048-1-anshuman.khandual@arm.com/
+
+- Changed in-code comment in etm4_check_arch_features()
+- Re-ordered pm_runtime_disable() in etm4_remove_platform_dev()
+- Renamed back etm4_match as etm4_sysreg_match
+- Moved back [PATCH 6/6] as [PATCH 5/6]
+
+Changes in V3:
+
+https://lore.kernel.org/all/20230519052149.1367814-1-anshuman.khandual@arm.com/
+
+- Returned from etm4_check_arch_features() for non iomem devices 
+- Renamed ETM_DEVTYPE_ETMv4x_ARCH as CS_DEVTYPE_PE_TRACE
+- Renamed is_etm4x_devtype() as is_devtype_cpu_trace()
+- Added a patch to ignore the absence of graph connections
+
+Changes in V2:
+
+https://lore.kernel.org/all/20230327050537.30861-1-anshuman.khandual@arm.com/
+
+- Enables ACPI etm4x device support in the existing platform driver
+- Dropped last two patches from the series
+- Dropped redundant 'devarch' checking from is_etm4x_device()
+- Renamed updated is_etm4x_device() as is_etm4x_devtype()
+- Fixed arguments in fallback stub for etm4_check_arch_features()
+- Tagged etm4_dev_pm_ops with etm4_platform_driver
+- Updated the comment for coresight_get_enable_apb_pclk() helper
+- Updated the comment for new 'pclk' element in struct etm4_drvdata
+- Dropped the clock when devm_ioremap_resource() fails
+- Convert IS_ERR() into a direct pointer check in etm4_remove_platform_dev()
+- Dropped "arm,coresight-etm4x" compatible property from etm4_match[]
+
+Changes in V1:
+
+https://lore.kernel.org/all/20230317030501.1811905-1-anshuman.khandual@arm.com/
+
+Cc: Ganapatrao Kulkarni <gankulkarni@os.amperecomputing.com>
+Cc: Steve Clevenger <scclevenger@os.amperecomputing.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Russell King (Oracle) <linux@armlinux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
+Cc: Mike Leach <mike.leach@linaro.org>
+Cc: Leo Yan <leo.yan@linaro.org>
+Cc: devicetree@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
+Cc: coresight@lists.linaro.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
 
 
---=20
-Matti Vaittinen, Linux device drivers
-ROHM Semiconductors, Finland SWDC
-Kiviharjunlenkki 1E
-90220 OULU
-FINLAND
+Anshuman Khandual (4):
+  coresight: etm4x: Allocate and device assign 'struct etmv4_drvdata' earlier
+  coresight: etm4x: Drop iomem 'base' argument from etm4_probe()
+  coresight: etm4x: Drop pid argument from etm4_probe()
+  coresight: etm4x: Change etm4_platform_driver driver for MMIO devices
 
-~~~ "I don't think so," said Rene Descartes. Just then he vanished ~~~
-Simon says - in Latin please.
-~~~ "non cogito me" dixit Rene Descarte, deinde evanescavit ~~~
-Thanks to Simon Glass for the translation =3D]=20
+Suzuki K Poulose (2):
+  coresight: platform: acpi: Ignore the absence of graph
+  coresight: etm4x: Add ACPI support in platform driver
 
---SctzMwS3S5m1hcfy
-Content-Type: application/pgp-signature; name="signature.asc"
+ drivers/acpi/acpi_amba.c                      |   1 -
+ .../coresight/coresight-etm4x-core.c          | 117 ++++++++++++++----
+ drivers/hwtracing/coresight/coresight-etm4x.h |   4 +
+ .../hwtracing/coresight/coresight-platform.c  |   6 +-
+ include/linux/coresight.h                     |  59 +++++++++
+ 5 files changed, 163 insertions(+), 24 deletions(-)
 
------BEGIN PGP SIGNATURE-----
+-- 
+2.25.1
 
-iQEzBAEBCAAdFiEEIx+f8wZb28fLKEhTeFA3/03aocUFAmR0RUsACgkQeFA3/03a
-ocU54Qf8CkaOG5QvcsAv7Y80ZCZ2KrWN3VVw6ajXQPGUsVHkPHKy+YRDzxzHjWlG
-vZqTFYYV+31mM2MrbjtkgoP6VKIncoMH4ZqK9iFnGFEiNmtLJRz3a7GNQVZFe9xP
-xLQMMxprxtwBUpwDarlyovyuRMyKjJ00i/efaFU9o6n4vAXfwovRy9L+gbuH+vpf
-GwIOUJcNG/UaGvr2+y6msRA4zOLzyef6p+Mr7MK0645A1jPhPkyfqAhfbiYlJ2b5
-S36vWFgRHfjDwU/XZH4s6uT7wdPGl/CRbFeo6f5lCKc4RwWJO3PFNKofNgnV08CI
-RNifxhTc8Pz30LxHLbcQQD7swjI1jg==
-=xQ21
------END PGP SIGNATURE-----
-
---SctzMwS3S5m1hcfy--
