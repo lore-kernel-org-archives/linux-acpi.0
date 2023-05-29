@@ -2,190 +2,246 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C58A0C7EE23
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 03:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05D8EC7EE29
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:22:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbjE2Dvb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 28 May 2023 23:51:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38976 "EHLO
+        id S231516AbjE2GW1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 May 2023 02:22:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbjE2Dva (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 May 2023 23:51:30 -0400
-Received: from mail-pf1-x432.google.com (mail-pf1-x432.google.com [IPv6:2607:f8b0:4864:20::432])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7C06AF;
-        Sun, 28 May 2023 20:51:28 -0700 (PDT)
-Received: by mail-pf1-x432.google.com with SMTP id d2e1a72fcca58-64d3578c25bso3404215b3a.3;
-        Sun, 28 May 2023 20:51:28 -0700 (PDT)
+        with ESMTP id S231526AbjE2GW0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:22:26 -0400
+Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81CD9B1;
+        Sun, 28 May 2023 23:22:24 -0700 (PDT)
+Received: by mail-lj1-x230.google.com with SMTP id 38308e7fff4ca-2af24ee004dso28985001fa.0;
+        Sun, 28 May 2023 23:22:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1685332288; x=1687924288;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=SWkO1L+ouf2ah8LI6jKTrWLnhiGc82nUY4Gt/CvuXVY=;
-        b=HSD1FX44jrvtXqFvvXC6dUBttrRYsdgQkKbG8SUDF6oF9DdTJKY4M5M8yAOqFCeti2
-         xnHYtz/5W3qForvRN+4Dk4V37+CiHhB6lrhyRW9dtAp2uKi5lLmLhHIOq/Tm2bEQDxCa
-         oLgqkwj5a+opXAjjGfy0UwYPcAT3Pwj5bc6BZKFnEp9Q31azjHX5qijKpF+g1L/KRquu
-         TBO+Wf7eYaZTyX7fzkHbfJZtj2i9UK7AiSZvN+dQ2kpDU5ecky3M/Wxhj1oloELfp6FW
-         2tWG8FoGsKeH7cJ8rrmId+UpwDf1k9hb3x2qb7yRhxhOjSDsB1Jc5PDyJwV5hjKifHkl
-         ezjA==
+        d=gmail.com; s=20221208; t=1685341343; x=1687933343;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=vOdzodRAM2H1nmvYMP9+2ZlCwspQLwnxmVWQ2MZpYPM=;
+        b=hxzRRdX8heyI8wsSG3Y9gXKRDUBm+h6aiIzm2U4NbVJcF0PPnKUQd2BPlNJbZfVPc7
+         rj9jYgzdEmjyhEmKiceZCYihYV2JUGLyKo5N/UwXjDxetguifQkcS1k7MiexOh4cb3Wm
+         rVLzLGHpDbLhEjmwktDrHIljuSpGXt95JWP0djP/clnDnFvsqNWg8eLw9tVeB8WHTYFm
+         uZ6rlZw91nPB5a3SdtsNW/19gS6JCeVgkpzd9vfV9bRk2XX1z4yzfst3M3DznMCPQMYj
+         21jL4XTQfD/HyQB8TYRGy2QOYOyx5Iln/oXIrqJ/YIRqdreMXEIPA6oxUS+R8Sgvm7bs
+         feag==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685332288; x=1687924288;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=SWkO1L+ouf2ah8LI6jKTrWLnhiGc82nUY4Gt/CvuXVY=;
-        b=M+nI5PgRNJ/mkuotb37bP7bTGqd51TJmJCTSL371zcoFffOFX5SgbS4OCv+qAsioQP
-         cyx0EeCJIhLDuoTtzJr9XuuF9ZbugfAN6OF+cynh6VXsbsv7jy7Jqp17CtN6SuVh1dyt
-         gSSFAl3Eq4EjGdHlfRhM8QyV/h+fbmbgtd5GM7EvyNhW4bo6IuYooaS+2+BQ+OqnOWTs
-         yjrLFlYEV5C0KRq7TfyKQSURKv7BMhOgRwmVo7pApSvfLYv3NKAeT0pP9b/fIsUJw6fu
-         LSj4S09I+5xQNFx3uvFvxMr8Y9IwzixhHwrIQCLpW/V4ZEuZitvbi1EJ/7r7M6QQvJo6
-         h8yQ==
-X-Gm-Message-State: AC+VfDzD1e9ML9Ng9V0q+4yWfR3FepBLzjCpbR5A2cC8i2f4Ewkpk9SU
-        Je4bG7l60N2Som6o11Yvprb6VJ3b2v0tjQ5P
-X-Google-Smtp-Source: ACHHUZ5wL8TAQK0crfhurwCmme9flkSOyTBq+EFhHKLhu9rItwgzzI/Ai4IcRO11Q6hEgcJW8xFu0g==
-X-Received: by 2002:a05:6a21:33a8:b0:100:b137:3563 with SMTP id yy40-20020a056a2133a800b00100b1373563mr8141116pzb.32.1685332288315;
-        Sun, 28 May 2023 20:51:28 -0700 (PDT)
-Received: from localhost ([2405:6581:d4e0:1600:c494:2aca:bc01:6f7b])
-        by smtp.gmail.com with ESMTPSA id w123-20020a636281000000b00528b78ddbcesm6121959pgb.70.2023.05.28.20.51.27
+        d=1e100.net; s=20221208; t=1685341343; x=1687933343;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=vOdzodRAM2H1nmvYMP9+2ZlCwspQLwnxmVWQ2MZpYPM=;
+        b=YHFbanjSGF226sn1X/ZhY0M1X0pMuLr4Nq1aYRk9V+I6dcow81Vs2GpQ8Z4OXSbkAz
+         sBqAllKaF3Nn06GBzvNbKOQbI+zaZ0t7ov+yrI8LWjjzGMK7Pw8JVQX/tjmnk4JShdlh
+         7ZCQKNDyuKt33OO7DSGSh5J4vlOmngC4yyTtXOG8L9f+36l5yjzikvQMZ5/foqDy8FwS
+         btN1Zz5BZguGS6c5ZHq9OMycDfEq8WcmlYRLDnBCDf00eScCpda1xoHPSZBzl7lJg4ru
+         VIt5Ya7Lh59N8igDj+1ho0dvrSZxmLAyYrDdRn7VJJ/nY15hqo5ooX5ov7f4E2GFFLPP
+         2EoQ==
+X-Gm-Message-State: AC+VfDx0MgNv2JfLH/NgSA4wCBXhviU0IxwMU6tFlVMlytRvRA6n8W9E
+        3xbuWNAYLH0+ws8Y+Ye0yGE=
+X-Google-Smtp-Source: ACHHUZ6z/suHetYnUAr6zG+ImfzBn9sW+n3lS/7H9NuTh8pRvMhTDM6QOBiCNx7BcByzLFd44sKzWA==
+X-Received: by 2002:a2e:8848:0:b0:2af:22a0:81ec with SMTP id z8-20020a2e8848000000b002af22a081ecmr3663644ljj.27.1685341342325;
+        Sun, 28 May 2023 23:22:22 -0700 (PDT)
+Received: from fedora (62-78-225-252.bb.dnainternet.fi. [62.78.225.252])
+        by smtp.gmail.com with ESMTPSA id l19-20020a2e99d3000000b002a777ec77dcsm2303433ljj.34.2023.05.28.23.22.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 28 May 2023 20:51:27 -0700 (PDT)
-Date:   Mon, 29 May 2023 12:51:25 +0900
-From:   Nick Hastings <nicholaschastings@gmail.com>
-To:     Mario Limonciello <mario.limonciello@amd.com>
-Cc:     Salvatore Bonaccorso <carnil@debian.org>, 1036530@bugs.debian.org,
+        Sun, 28 May 2023 23:22:21 -0700 (PDT)
+Date:   Mon, 29 May 2023 09:22:15 +0300
+From:   Matti Vaittinen <mazziesaccount@gmail.com>
+To:     Matti Vaittinen <mazziesaccount@gmail.com>,
+        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, regressions@lists.linux.dev
-Subject: Re: Regression from "ACPI: OSI: Remove Linux-Dell-Video _OSI
- string"? (was: Re: Bug#1036530: linux-signed-amd64: Hard lock up of system)
-Message-ID: <ZHQhPcKUF76Kplwm@xps>
-References: <ZG98fQ+MD4O0nGGE@eldamar.lan>
- <168471337231.1913606.15905047692536779158.reportbug@xps>
- <ZG/8cxxTJ9ZzrVPQ@xps>
- <ZHCYRmD7YeIWoy2W@eldamar.lan>
- <168471337231.1913606.15905047692536779158.reportbug@xps>
- <ZHKrC4/G6ZyvRReI@xps>
- <ZHL5cCNUzVdleiag@eldamar.lan>
- <ab12984e-be17-903d-ba0a-f9c85b8c544f@amd.com>
- <ZHP4IqxBUPuVRvRV@xps>
- <09e24386-de63-e9e9-9e7f-5d04bad62d83@amd.com>
+        Wolfram Sang <wsa@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Michael Hennerich <Michael.Hennerich@analog.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Andreas Klinger <ak@it-klinger.de>,
+        Marcin Wojtas <mw@semihalf.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Akhil R <akhilrajeev@nvidia.com>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, netdev@vger.kernel.org,
+        openbmc@lists.ozlabs.org, linux-gpio@vger.kernel.org,
+        linux-mips@vger.kernel.org
+Subject: [PATCH v7 0/9] fix fwnode_irq_get[_byname()] returnvalue
+Message-ID: <cover.1685340157.git.mazziesaccount@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ApeyYNQ5RiUDsQjW"
 Content-Disposition: inline
-In-Reply-To: <09e24386-de63-e9e9-9e7f-5d04bad62d83@amd.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-* Mario Limonciello <mario.limonciello@amd.com> [230529 10:14]:
-> On 5/28/23 19:56, Nick Hastings wrote:
-> > Hi,
-> > 
-> > * Mario Limonciello <mario.limonciello@amd.com> [230528 21:44]:
-> > > On 5/28/23 01:49, Salvatore Bonaccorso wrote:
-> > > > Hi Mario
-> > > > 
-> > > > Nick Hastings reported in Debian in https://bugs.debian.org/1036530
-> > > > lockups from his system after updating from a 6.0 based version to
-> > > > 6.1.y. >
-> > > > #regzbot ^introduced 24867516f06d
-> > > > 
-> > > > he bisected the issue and tracked it down to:
-> > > > 
-> > > > On Sun, May 28, 2023 at 10:14:51AM +0900, Nick Hastings wrote:
-> > > > > Control: tags -1 - moreinfo
-> > > > > 
-> > > > > Hi,
-> > > > > 
-> > > > > I repeated the git bisect, and the bad commit seems to be:
-> > > > > 
-> > > > > (git)-[v6.1-rc1~206^2~4^5~3|bisect] % git bisect bad
-> > > > > 24867516f06dabedef3be7eea0ef0846b91538bc is the first bad commit
-> > > > > commit 24867516f06dabedef3be7eea0ef0846b91538bc
-> > > > > Author: Mario Limonciello <mario.limonciello@amd.com>
-> > > > > Date:   Tue Aug 23 13:51:31 2022 -0500
-> > > > > 
-> > > > >       ACPI: OSI: Remove Linux-Dell-Video _OSI string
-> > > > >       This string was introduced because drivers for NVIDIA hardware
-> > > > >       had bugs supporting RTD3 in the past.
-> > > > >       Before proprietary NVIDIA driver started to support RTD3, Ubuntu had
-> > > > >       had a mechanism for switching PRIME on and off, though it had required
-> > > > >       to logout/login to make the library switch happen.
-> > > > >       When the PRIME had been off, the mechanism had unloaded the NVIDIA
-> > > > >       driver and put the device into D3cold, but the GPU had never come back
-> > > > >       to D0 again which is why ODMs used the _OSI to expose an old _DSM
-> > > > >       method to switch the power on/off.
-> > > > >       That has been fixed by commit 5775b843a619 ("PCI: Restore config space
-> > > > >       on runtime resume despite being unbound"). so vendors shouldn't be
-> > > > >       using this string to modify ASL any more.
-> > > > >       Reviewed-by: Lyude Paul <lyude@redhat.com>
-> > > > >       Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> > > > >       Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > 
-> > > > >    drivers/acpi/osi.c | 9 ---------
-> > > > >    1 file changed, 9 deletions(-)
-> > > > > 
-> > > > > This machine is a Dell with an nvidia chip so it looks like this really
-> > > > > could be the commit that that is causing the problems. The description
-> > > > > of the commit also seems (to my untrained eye) to be consistent with the
-> > > > > error reported on the console when the lockup occurs:
-> > > > > 
-> > > > > [   58.729863] ACPI Error: Aborting method \_SB.PCI0.PGON due to previous error (AE_AML_LOOP_TIMEOUT) (20220331/psparse-529)
-> > > > > [   58.729904] ACPI Error: Aborting method \_SB.PCI0.PEG0.PG00._ON due to previous error (AE_AML_LOOP_TIMEOUT) (20220331/psparse-529)
-> > > > > [   60.083261] vfio-pci 0000:01:00.0 Unable to change power state from D3cold to D0, device inaccessible
-> > > > > 
-> > > > > Hopefully this is enough information for experts to resolve this.
-> > > > 
-> > > > Does this ring some bell for you? Do you need any further information
-> > > > from Nick?
-> > > > 
-> > > > Regards,
-> > > > Salvatore
-> > > 
-> > 
-> > > Have Nick try using "pcie_port_pm=off" and see if it helps the issue.
-> > 
-> > I booted into a 6.1 kernel with this option. It has been running without
-> > problems for 1.5 hours. Usually I would expect the lockup to have
-> > occurred by now.
 
-I let this run for 3 hours without issue.
+--ApeyYNQ5RiUDsQjW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > > Does this happen in the latest 6.4 RC as well?
-> > 
-> > I have compiled that kernel and will boot into it after running this one
-> > with the pcie_port_pm=off for another hour or so.
+The fwnode_irq_get() and the fwnode_irq_get_byname() may have returned
+zero if mapping the IRQ fails. This contradicts the
+fwnode_irq_get_byname() documentation. Furthermore, returning zero or
+errno on error is unepected and can easily lead to problems
+like:
 
-I'm now running 6.4.0-rc4 without seeing the problem after 1 hour.
+int probe(foo)
+{
+=2E..
+	ret =3D fwnode_irq_get_byname(...);
+	if (ret < 0)
+		return ret;
+=2E..
+}
 
-I did however see two unrelated problems that I include here for
-completeness:
-1. iwlwifi module did not automatically load
-2. Xwayland used huge amount of CPU even though was not running any X
-programs. Recompiling my wayland compositor without XWayland support
-"fixed" this.
+or
 
-> > > I think we need to see a full dmesg and acpidump to better
-> > > characterize it.
-> > 
-> > Please find attached. Let me know if there is anything else I can provide.
-> > 
-> > Regards,
-> > 
-> > Nick.
-> 
-> I don't see nouveau loading, are you explicitly preventing it from
-> loading?
+int probe(foo)
+{
+=2E..
+	ret =3D fwnode_irq_get_byname(...);
+	if (ret <=3D 0)
+		return ret;
+=2E..
+}
 
-Yes nouveau is blacklisted.
+which are both likely to be wrong. First treats zero as successful call and
+misses the IRQ mapping failure. Second returns zero from probe even though
+it detects the IRQ mapping failure correvtly.
 
-> Can I see the journal from a boot when it reproduced?
+Here we change the fwnode_irq_get() and the fwnode_irq_get_byname() to
+always return a negative errno upon failure.
 
-Hmm not sure which n for "journalctl -b n" maps to which kernel (is that
-what you are requesting?). The commit hash doesn't not seem to be
-listed. I may have to boot into a bad kernel again.
+I have audited following callers (v6.4-rc2):
 
-Regards,
+fwnode_irq_get_byname():
+drivers/i2c/i2c-smbus.c
+drivers/iio/accel/adxl355_core.c
+drivers/iio/accel/kionix-kx022a.c
+drivers/iio/adc/ad4130.c
+drivers/iio/adc/max11410.c
+drivers/iio/addac/ad74115.c
+drivers/iio/gyro/fxas21002c_core.c
+drivers/iio/imu/adis16480.c
+drivers/iio/imu/bmi160/bmi160_core.c
+drivers/iio/imu/bmi160/bmi160_core.c
 
-Ncik.
+fwnode_irq_get():
+drivers/gpio/gpio-dwapb.c
+drivers/iio/chemical/scd30_serial.c
+drivers/iio/proximity/mb1232.c
+drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+drivers/net/mdio/fwnode_mdio.c
+drivers/pinctrl/pinctrl-ingenic.c
+drivers/pinctrl/pinctrl-microchip-sgpio.c
+drivers/pinctrl/pinctrl-pistachio.c
+
+and it seems to me these calls will be Ok after the change. The
+i2c-smbus.c and kionix-kx022a.c will gain a functional change (bugfix?) as
+after this patch the probe will return -EINVAL should the IRQ mapping fail.
+The series will also adjust the return value check for zero to be omitted.
+
+NOTES:
+
+Changes are compile-tested only.
+
+drivers/pinctrl/nuvoton/pinctrl-wpcm450.c
+will also gain a functional change. The pinctrl-wpcm450.c change is easy
+to see - after this series the device-tree mapping failures will be
+handled as any other errors - probe will be aborted with -EINVAL. Other
+feasible option could be treating other errors in IRQ getting same way
+as the DT mapping failures - just silently skip the IRQ. Please see
+comment in the respective patch.
+
+drivers/iio/cdc/ad7150.c
+Changed logic so that all the IRQ getting errors jump to the same
+'no-IRQ' branch as the DT mapping error did.
+
+Revision history:
+v6 =3D> v7:
+ - re-ordered patches per subsystem
+ - mvpp2 - added a patch for not shadowing the return value
+v5 =3D> v6:
+ - iio: cdc: ad7150 - never abort probe if IRQ getting fails
+v4 =3D> v5:
+ - Fix subject lines for mvpp2 and wpcm450
+ - drop unnecessary irqno assignment from mb1232
+ - add back the drivers/i2c/i2c-smbus.c change which was accidentally
+   dropped during v3 =3D> v4 work
+v3 =3D> v4:
+ - Change also the fwnode_irq_get() as was suggested by Jonathan.
+Changelog v2 =3D> v3:
+ - rebase/resend/add kx022a fix.
+Changelog v1 =3D> v2:
+ - minor styling
+
+---
+
+Matti Vaittinen (9):
+  drivers: fwnode: fix fwnode_irq_get[_byname]()
+  iio: mb1232: relax return value check for IRQ get
+  iio: cdc: ad7150: relax return value check for IRQ get
+  pinctrl: wpcm450: relax return value check for IRQ get
+  pinctrl: ingenic: relax return value check for IRQ get
+  pinctrl: pistachio: relax return value check for IRQ get
+  i2c: i2c-smbus: fwnode_irq_get_byname() return value fix
+  net-next: mvpp2: relax return value check for IRQ get
+  net-next: mvpp2: don't shadow error
+
+ drivers/base/property.c                         | 12 +++++++++---
+ drivers/i2c/i2c-smbus.c                         |  2 +-
+ drivers/iio/cdc/ad7150.c                        | 10 +++++-----
+ drivers/iio/proximity/mb1232.c                  |  7 ++-----
+ drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 12 ++++++------
+ drivers/pinctrl/nuvoton/pinctrl-wpcm450.c       |  2 --
+ drivers/pinctrl/pinctrl-ingenic.c               |  2 --
+ drivers/pinctrl/pinctrl-pistachio.c             |  6 ------
+ 8 files changed, 23 insertions(+), 30 deletions(-)
 
 
+base-commit: f1fcbaa18b28dec10281551dfe6ed3a3ed80e3d6
+--=20
+2.40.1
+
+
+--=20
+Matti Vaittinen, Linux device drivers
+ROHM Semiconductors, Finland SWDC
+Kiviharjunlenkki 1E
+90220 OULU
+FINLAND
+
+~~~ "I don't think so," said Rene Descartes. Just then he vanished ~~~
+Simon says - in Latin please.
+~~~ "non cogito me" dixit Rene Descarte, deinde evanescavit ~~~
+Thanks to Simon Glass for the translation =3D]=20
+
+--ApeyYNQ5RiUDsQjW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEEIx+f8wZb28fLKEhTeFA3/03aocUFAmR0RJMACgkQeFA3/03a
+ocWMgggAnc9af0RzQuL4f2RCAa2y50+OtDNzSl89ig9U7EQvWU57mrBl/mDP9oVv
+xL9/XLDRx1EWnl7fW+YM5Ju8ghuxOd9ydu5OQSFSdJ97yAJgZUTNMzyv8bBIjAcR
+EdmkQg4UsPJTRoYd5QLTdy5p/Jo2y4rhcwcmX2qxxvXG6OLKwbHSII28be+ripkc
+/Tdy33thGZ9uD3bkWELWD1suiTpcqRbqQAUpRMlEFBMwbKXAf0l9oqkMQHGfCNAD
+xQp5tnVfOs6dziwhYA51scaRtMTh6eqkZiXmq47c3o03fmLTmiapo16NKPjpOdg+
+3ege5LvaWKy6DhpZ7ckP5l2B5YMrpg==
+=2yur
+-----END PGP SIGNATURE-----
+
+--ApeyYNQ5RiUDsQjW--
