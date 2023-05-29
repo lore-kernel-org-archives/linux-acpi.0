@@ -2,84 +2,76 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAABAC7EE23
-	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:28:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C23D9C7EE23
+	for <linux-acpi@archiver.kernel.org>; Mon, 29 May 2023 06:31:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231786AbjE2G2U (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 29 May 2023 02:28:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54838 "EHLO
+        id S230249AbjE2GbX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 29 May 2023 02:31:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231723AbjE2G15 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:27:57 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0918F138;
-        Sun, 28 May 2023 23:27:26 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 290EA153B;
-        Sun, 28 May 2023 23:26:46 -0700 (PDT)
-Received: from a077893.blr.arm.com (a077893.blr.arm.com [10.162.40.17])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id F1D9A3F6C4;
-        Sun, 28 May 2023 23:25:54 -0700 (PDT)
-From:   Anshuman Khandual <anshuman.khandual@arm.com>
-To:     linux-arm-kernel@lists.infradead.org, coresight@lists.linaro.org,
-        suzuki.poulose@arm.com
-Cc:     scclevenger@os.amperecomputing.com,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Ganapatrao Kulkarni <gankulkarni@os.amperecomputing.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Mike Leach <mike.leach@linaro.org>,
-        Leo Yan <leo.yan@linaro.org>, devicetree@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH V5 5/6] coresight: platform: acpi: Ignore the absence of graph
-Date:   Mon, 29 May 2023 11:55:10 +0530
-Message-Id: <20230529062511.52016-6-anshuman.khandual@arm.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230529062511.52016-1-anshuman.khandual@arm.com>
-References: <20230529062511.52016-1-anshuman.khandual@arm.com>
+        with ESMTP id S230328AbjE2GbW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2023 02:31:22 -0400
+X-Greylist: delayed 521 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 28 May 2023 23:30:48 PDT
+Received: from smtp.smtpout.orange.fr (smtp-23.smtpout.orange.fr [80.12.242.23])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9BD66AF
+        for <linux-acpi@vger.kernel.org>; Sun, 28 May 2023 23:30:48 -0700 (PDT)
+Received: from pop-os.home ([86.243.2.178])
+        by smtp.orange.fr with ESMTPA
+        id 3WGaqT3FDsdVE3WGaqliG4; Mon, 29 May 2023 08:22:06 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
+        s=t20230301; t=1685341326;
+        bh=heLRroh3CNUr9htV1zv4nneIJNvGBNjdwo/3UP94dsE=;
+        h=From:To:Cc:Subject:Date;
+        b=btPa7tEYR3wji3B48+qtsDvNhW+06Wj/DppAKuqLoJKXBAOt16OnpHCx92Kpwe3z5
+         J2UuVDEpW1l+c2zCqsm3vLRGXBf78dY2HCOelqcLAV3yG9FgFexkDr2kirFpGuV/xk
+         jCIKPGp313eOanwqlzwb/ENKyu1BZE+6ocLDuLx+bkUj6yF+BWgWEQCfR+gu6r/5Hd
+         k3my2hmg3LFEAR4zDlxTl5dXwKJHWD3z+TWxsYDtJWOU0/1vB8SmH2N8/gR631u9p7
+         oFRTGBYrlE8gzBEGyH2hTjU32hr8232P8LXMrQFbRzdMWpLSrSrudpR3m5Zzu/z45s
+         GfX2z8KLQGm5A==
+X-ME-Helo: pop-os.home
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Mon, 29 May 2023 08:22:06 +0200
+X-ME-IP: 86.243.2.178
+From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To:     Robert Moore <robert.moore@intel.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Len Brown <lenb@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        linux-acpi@vger.kernel.org, acpica-devel@lists.linuxfoundation.org
+Subject: [PATCH] ACPICA: Slightly simplify an error message in acpi_ds_result_push()
+Date:   Mon, 29 May 2023 08:22:02 +0200
+Message-Id: <4464371bc72147e10a392a1873466c8df033039c.1685341309.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
+'object' is known to be NULL at this point. There is little value to log
+it twice in the error message.
 
-Some components may not have graph connections for describing
-the trace path. e.g., ETE, where it could directly use the per
-CPU TRBE. Ignore the absence of graph connections
-
-Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/hwtracing/coresight/coresight-platform.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/dswstate.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwtracing/coresight/coresight-platform.c b/drivers/hwtracing/coresight/coresight-platform.c
-index 475899714104..c4b4fbde8550 100644
---- a/drivers/hwtracing/coresight/coresight-platform.c
-+++ b/drivers/hwtracing/coresight/coresight-platform.c
-@@ -692,8 +692,12 @@ static int acpi_coresight_parse_graph(struct acpi_device *adev,
+diff --git a/drivers/acpi/acpica/dswstate.c b/drivers/acpi/acpica/dswstate.c
+index d3841ded3a81..75338a13c802 100644
+--- a/drivers/acpi/acpica/dswstate.c
++++ b/drivers/acpi/acpica/dswstate.c
+@@ -146,8 +146,8 @@ acpi_ds_result_push(union acpi_operand_object *object,
  
- 	pdata->nr_inport = pdata->nr_outport = 0;
- 	graph = acpi_get_coresight_graph(adev);
-+	/*
-+	 * There are no graph connections, which is fine for some components.
-+	 * e.g., ETE
-+	 */
- 	if (!graph)
--		return -ENOENT;
-+		return 0;
+ 	if (!object) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Null Object! Obj=%p State=%p Num=%u",
+-			    object, walk_state, walk_state->result_count));
++			    "Null Object! State=%p Num=%u",
++			    walk_state, walk_state->result_count));
+ 		return (AE_BAD_PARAMETER);
+ 	}
  
- 	nlinks = graph->package.elements[2].integer.value;
- 	if (!nlinks)
 -- 
-2.25.1
+2.34.1
 
