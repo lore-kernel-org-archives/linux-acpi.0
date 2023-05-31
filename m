@@ -2,82 +2,111 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB94C7EE2E
-	for <linux-acpi@archiver.kernel.org>; Wed, 31 May 2023 17:47:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C307BC7EE29
+	for <linux-acpi@archiver.kernel.org>; Wed, 31 May 2023 21:30:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230038AbjEaRrV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 31 May 2023 13:47:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41230 "EHLO
+        id S229567AbjEaVav (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 31 May 2023 17:30:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230061AbjEaRrU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 May 2023 13:47:20 -0400
-Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44EB2136;
-        Wed, 31 May 2023 10:47:19 -0700 (PDT)
-Received: by mail-qv1-xf2b.google.com with SMTP id 6a1803df08f44-6262d8688baso312266d6.1;
-        Wed, 31 May 2023 10:47:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1685555238; x=1688147238;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=J5tZ4/mNa6d+ma98/1tPD3ntqg9GXUy7bJJNj95+GwY=;
-        b=abMT0/cSeFGxJ65TCxQiqQMmfEu9heDFlQ3o+BPk3ohi6UwNpIZeOTbkHi40ftX/K4
-         Furw3H1RPRiIthoi90tiArM2uXqG8wfZg33tgZ49Hb5ibNm94W4O+JQsVsmzMCU7gyEM
-         /ENIYpB45jqyTxx0IAgPEwA3rI5Zwi5Tc4W8KRzcaUJxsapAb0ZEk8dBLIlwo3PPfXPS
-         /AG6qGEQqBbUY/LFvuI2R1QjELnO0ivge4fGdBK+YjtTaYlwGbPebtrOzvavJ94mzxGj
-         SG9OWRCkW9L2UVTQbEpWfjZqTSSYs1icAA+VVG8I6km6ObjAtXZ8+8ONoJUyr+pNJa8B
-         EYCQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685555238; x=1688147238;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=J5tZ4/mNa6d+ma98/1tPD3ntqg9GXUy7bJJNj95+GwY=;
-        b=gz/lC4/KnvR1WhjJm4ojT256/MAbq5zkvcQ5X9uvyrhu6M5joG9JvTeCY23OEkGYMm
-         9Ay1YgsrBNiXq3t9tf+Yj2Fon4Yi1U+fOx9X0hxNjjnUjZW05Unkw3ppIdVXhUZvfv3F
-         V2nFdmpCrcBpxevxAAsQ4knYBq5cNCFhs2LOKTqFrsWGipbEb0DBAdDRi9fAavBhxuz5
-         zAGq6rI8DGPPgsZNsySflCTOE4NAhzhqu8pVzufRtMO8lylwzDQjOXRjnCVlZOAJjCj4
-         yfqAYIctBm7Gv1Thfe0rv1Qj+qIP9YSHNBj0F5ZPMijucBQSSnGTVIhJEfvoBTZeYMJH
-         7oSg==
-X-Gm-Message-State: AC+VfDyYgORwgJWIKuiloht8Mj2QTIO84A0x3WErSSHaw39UJE8rl9es
-        8IPS2eOMb/cSYW3UyAq/LvuWoeXFN5f90vfcxWoLqZVH
-X-Google-Smtp-Source: ACHHUZ4KnDs+7tv5NjnsuBFAy8ROCocNzgZTMjlPNW2WUNcG627cRoeIaGpeVUJRHbJgPBKvEuvqWKvV+IjbhZSAQbM=
-X-Received: by 2002:ad4:5c88:0:b0:626:3a98:968 with SMTP id
- o8-20020ad45c88000000b006263a980968mr7205511qvh.32.1685555238311; Wed, 31 May
- 2023 10:47:18 -0700 (PDT)
+        with ESMTP id S229484AbjEaVau (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 May 2023 17:30:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E1A01A2;
+        Wed, 31 May 2023 14:30:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A5E2E63391;
+        Wed, 31 May 2023 21:30:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7E1C433D2;
+        Wed, 31 May 2023 21:30:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1685568630;
+        bh=gW9waI0b8IiYUwk0vfOCM7pXk2nDw1QSAznIy/h3ghs=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=KtBbCN/ixHzj8ZulEY/5zCSpe/VVKBpSZFDZuNCSDCoNNZ4IeoA+28lWLQWvSlii6
+         83BDJpZxFh6HJCKpfPSOLONuS2M6Vumh+ceOlzxWjyrmYHupNvr4DztdjDLJl3iqmN
+         E3araGx+1PyOqST2zluz35yOcgzUDjix8glDLTAN/wUxtojSsJeinZtS0BNCLJVOXb
+         hkXJLKswE11TqxiL8vaPqm931ggJJ71GILWlC61yGzVhgB56FeGO9+L1ZryEUY7qlP
+         EPZxdEvOEEyvpu7VdWJnY4Z4bFlhgqbJcQ6tWlmZqEjiu2TPM90LCU6E74dCFHn04m
+         J5aGwHVGTvHag==
+Date:   Wed, 31 May 2023 16:30:28 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Jonas Gorski <jonas.gorski@gmail.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
+        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
+        Anatolij Gustschin <agust@denx.de>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Juergen Gross <jgross@suse.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        Randy Dunlap <rdunlap@infradead.org>,
+        linux-mips@vger.kernel.org,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+        linux-alpha@vger.kernel.org,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        "Maciej W. Rozycki" <macro@orcam.me.uk>
+Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
+ users
+Message-ID: <ZHe8dKb3f392MfBO@bhelgaas>
 MIME-Version: 1.0
-References: <20230531100600.13543-1-Jonathan.Cameron@huawei.com> <20230531100600.13543-7-Jonathan.Cameron@huawei.com>
-In-Reply-To: <20230531100600.13543-7-Jonathan.Cameron@huawei.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 31 May 2023 20:46:42 +0300
-Message-ID: <CAHp75Vctpy_4yoaCWETxF_Ui7uVLzgUkfL_WqEgZdh=baYX5Uw@mail.gmail.com>
-Subject: Re: [RFC PATCH v3 6/7] i2c: aspeed: Set the fwnode for the adap->dev
-To:     Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc:     linux-i2c@vger.kernel.org, Wolfram Sang <wsa@kernel.org>,
-        Niyas Sait <niyas.sait@linaro.org>,
-        Klaus Jensen <its@irrelevant.dk>,
-        Andy Shevchenko <andy@kernel.org>, linux-acpi@vger.kernel.org,
-        Jeremy Kerr <jk@codeconstruct.com.au>,
-        Matt Johnston <matt@codeconstruct.com.au>,
-        Shesha Bhushan Sreenivasamurthy <sheshas@marvell.com>,
-        linux-cxl@vger.kernel.org, linuxarm@huawei.com,
-        "Viacheslav A . Dubeyko" <viacheslav.dubeyko@bytedance.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOiHx==5YWhDiZP2PyHZiJrmtqRzvqCqoSO59RwuYuR85BezBg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, May 31, 2023 at 1:09=E2=80=AFPM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> This is needed for the bus matching used for ACPI based
-> i2c client registration.
+On Wed, May 31, 2023 at 08:48:35PM +0200, Jonas Gorski wrote:
+> ...
 
-Btw, this patch like maybe others (e.g., patch 1) can be sent already
-as non-RFC and applied independently on the goal of the entire series.
+> Looking at the code I understand where coverity is coming from:
+> 
+> #define __pci_dev_for_each_res0(dev, res, ...)                         \
+>        for (unsigned int __b = 0;                                      \
+>             res = pci_resource_n(dev, __b), __b < PCI_NUM_RESOURCES;   \
+>             __b++)
+> 
+>  res will be assigned before __b is checked for being less than
+> PCI_NUM_RESOURCES, making it point to behind the array at the end of
+> the last loop iteration.
+> 
+> Rewriting the test expression as
+> 
+> __b < PCI_NUM_RESOURCES && (res = pci_resource_n(dev, __b));
+> 
+> should avoid the (coverity) warning by making use of lazy evaluation.
+> 
+> It probably makes the code slightly less performant as res will now be
+> checked for being not NULL (which will always be true), but I doubt it
+> will be significant (or in any hot paths).
 
---=20
-With Best Regards,
-Andy Shevchenko
+Thanks a lot for looking into this!  I think you're right, and I think
+the rewritten expression is more logical as well.  Do you want to post
+a patch for it?
+
+Bjorn
