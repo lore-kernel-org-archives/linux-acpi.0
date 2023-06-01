@@ -2,43 +2,43 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16AEEC77B7E
-	for <linux-acpi@archiver.kernel.org>; Thu,  1 Jun 2023 22:12:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39DE7C77B7E
+	for <linux-acpi@archiver.kernel.org>; Thu,  1 Jun 2023 23:29:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232124AbjFAWMu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:12:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40546 "EHLO
+        id S229598AbjFAX3x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 1 Jun 2023 19:29:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230268AbjFAWMt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2023 18:12:49 -0400
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2086.outbound.protection.outlook.com [40.107.94.86])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A49B18D;
-        Thu,  1 Jun 2023 15:12:47 -0700 (PDT)
+        with ESMTP id S231863AbjFAX3q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2023 19:29:46 -0400
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2055.outbound.protection.outlook.com [40.107.244.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E42A136;
+        Thu,  1 Jun 2023 16:29:45 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=le5joztdBVSdCOJAz5HmViaDRK6E32+Or/3byNAPxGM+FTinmmiJ49yiCVWuxlQ39SiRPg5teq7Kb18rNj2qZK+3/rGW9domxzamtsPLDhLYUb3qfskCykUliPRvHQGFh3JXjbIweM87hW7dJBm92RruoPSW0ZEPbRMngOvHo//k1Mn2bfWOuBz589Q0qWc5bfVGq6CqVRBK+SlKAp82BaaZVFF624XqjBdTW1WYzI9QqzFs44f9z9YP1vctuFlrqgdD7hCqNuCNlXuf24b/4lFZNpF3KHpuL8Y2J1ON8ZQvOk65gotX5j1Drb7W92IKCr8ksQ8tTpx8kDqiins+VA==
+ b=dizkZMI5ZJVWcuf0tPAvS9K53vnBKc2o2yM9ellUiSkwpQuc00NfG2x3nC6z/EpccuCUmmhC90rlJ9SdhNzVtSPrGln0CL8XXfNWfiJ8hr9shzz1vSq6Xe4twOQi1V4G2j7xR6LiftGneaAf8XlDIZChgIDKqj780rnN5xomgpGQZ8I2OEcxKpGWsxoxIO3ZjJde5CGOy54Kw8TO+NGXrLDZS2/KyQ3u3nPDEJ22sh0jtf9P3/kWZLMtD3KUeu3knuIY4TbmAHQYck8Pov09OpWjFZSBJVCIAkV9Y//EKNBbv8mGcoIm59QqhRilaHLw7a3cTh6xZsNp4BkUaPlFzg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=A2uvnyadgmPv/UplCy3dfHolCS1iQD6or73uaLQ6l4c=;
- b=D+26heNBkij45LzY9LmCDJpChCTl1Spbb72ZwpMh2aHSu0RQb5VB8fcelqS5XClKjWoZFeruUMvROn++3Ll27sgIBytO0wjTXMhOWtZCFbs7QLM00QAs8Bm8BLqLCh7w2nlP2vglqZqLZz1zq/2gIvEmxk63+v9395RypU+Y+L0yTIH2waWbRzT0/E0zi6fqT0Crg1cneo5NtlOnTCIcm+k1wvogQFKwW20clU6EVVXd1RNblevBEL0qZ5zFD4xY+LPFHrVXtdxEM+p36D9XVcweaXLeXsEKuMJ+8U5Y+YML9F+hc4o8kMw24CIytukQ/trnkn3fYZOlaSNkTtmbyA==
+ bh=HCtaCSh2xp3TLU3Jn9duTu+a0ilJ5rZJIXMRb1Vd+cU=;
+ b=Cxj1EkoTB5xr2Wt7gkGm1SaqMKlyGBWGMIhA7GJr7Qs4iSuSt7MXr0C41MWIiKRpWZa1bDQ4KDrLJAKt/OpfZXF2SR1coWZQd5CRQYHi27Ix30180+fPhJSiftQOuT+2qeLfs5yhh3ZIu2AkZUUCQN4UDbYtubLntYSCd0Rzaoar1tpefp5zFmfyaJZaBPM+8dhHvV26Pi2mXaULsgYeCvs7BOBSZ3k4kppYNMqZUiv/yn8T0I+z7MrQ2nXINlG6L7uCUDXC3F6/cTfx0UCn7/lU0R/cnPn3GCSprITbVrherMeOnN1Zf8HRtgAPi/29XXo8nqP20j3DL8Bt8I0EPQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=A2uvnyadgmPv/UplCy3dfHolCS1iQD6or73uaLQ6l4c=;
- b=FCnTumqEKrTMqujE4Yag4djkJbe/HKrn6pna/auerDlmYd1yZXCOTFEOdPHSp/W68wK93xKc5Bwt1t8GnXkjaAsXAJPk1rbe93KdfMQMyLfl4vCru9fT+ZYkCVibHywenGj+3dur+U/N8LC8i/q+LQqnDjeTOi1RUdFKUBySuW8=
-Received: from MW4P222CA0009.NAMP222.PROD.OUTLOOK.COM (2603:10b6:303:114::14)
- by PH0PR12MB8006.namprd12.prod.outlook.com (2603:10b6:510:28d::8) with
+ bh=HCtaCSh2xp3TLU3Jn9duTu+a0ilJ5rZJIXMRb1Vd+cU=;
+ b=ORWt2kzztJm9REpBfs1fLP1Z5FkZhbG/qauYKzMhvoDvOn0/CMM1JVG7g9v9SFdjFT42lk2/gGvttCsH3hLDeKTSQccaSZ115RCSQG4YBL8HQtagp+4kiULy6jv2YPxP/PBrsxrpzTpy4ySgRPmrpVhZUyvXzPaYiHMNFVRhJxM=
+Received: from DM6PR21CA0010.namprd21.prod.outlook.com (2603:10b6:5:174::20)
+ by CY8PR12MB7337.namprd12.prod.outlook.com (2603:10b6:930:53::9) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6433.23; Thu, 1 Jun
- 2023 22:12:41 +0000
-Received: from CO1NAM11FT019.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:114:cafe::69) by MW4P222CA0009.outlook.office365.com
- (2603:10b6:303:114::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6455.23 via Frontend
- Transport; Thu, 1 Jun 2023 22:12:41 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6411.25; Thu, 1 Jun
+ 2023 23:29:43 +0000
+Received: from DM6NAM11FT053.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:174:cafe::4f) by DM6PR21CA0010.outlook.office365.com
+ (2603:10b6:5:174::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6477.9 via Frontend
+ Transport; Thu, 1 Jun 2023 23:29:43 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -46,198 +46,90 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- CO1NAM11FT019.mail.protection.outlook.com (10.13.175.57) with Microsoft SMTP
+ DM6NAM11FT053.mail.protection.outlook.com (10.13.173.74) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.6455.24 via Frontend Transport; Thu, 1 Jun 2023 22:12:41 +0000
+ 15.20.6455.24 via Frontend Transport; Thu, 1 Jun 2023 23:29:43 +0000
 Received: from SITE-L-T34-2.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Thu, 1 Jun
- 2023 17:12:40 -0500
+ 2023 18:29:42 -0500
 From:   Mario Limonciello <mario.limonciello@amd.com>
-To:     <linux-acpi@vger.kernel.org>, <rafael@kernel.org>
-CC:     <linux-kernel@vger.kernel.org>,
-        Mario Limonciello <mario.limonciello@amd.com>,
-        <ofenfisch@googlemail.com>, <wse@tuxedocomputers.com>,
-        <adam.niederer@gmail.com>, <adrian@freund.io>,
-        <jirislaby@kernel.org>, <Renjith.Pananchikkal@amd.com>,
-        <anson.tsao@amd.com>, <Richard.Gong@amd.com>,
-        Chuanhong Guo <gch981213@gmail.com>, <evilsnoo@proton.me>,
-        <ruinairas1992@gmail.com>, <nmschulte@gmail.com>
-Subject: [PATCH v3] ACPI: resource: Remove "Zen" specific match and quirks
-Date:   Thu, 1 Jun 2023 17:11:51 -0500
-Message-ID: <20230601221151.670-1-mario.limonciello@amd.com>
+To:     Rafael Wysocki <rafael@kernel.org>, <hdegoede@redhat.com>,
+        <linus.walleij@linaro.org>
+CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-gpio@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>, <linux-pm@vger.kernel.org>,
+        S-k Shyam-sundar <Shyam-sundar.S-k@amd.com>,
+        Natikar Basavaraj <Basavaraj.Natikar@amd.com>,
+        Mario Limonciello <mario.limonciello@amd.com>
+Subject: [PATCH v3 3/4] pinctrl: amd: Use pm_pr_dbg to show debugging messages
+Date:   Thu, 1 Jun 2023 18:29:22 -0500
+Message-ID: <20230601232923.1248-3-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230601232923.1248-1-mario.limonciello@amd.com>
+References: <20230601232923.1248-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1NAM11FT019:EE_|PH0PR12MB8006:EE_
-X-MS-Office365-Filtering-Correlation-Id: e3dd9812-acf7-4f12-2c4a-08db62ed516b
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT053:EE_|CY8PR12MB7337:EE_
+X-MS-Office365-Filtering-Correlation-Id: 77336892-228a-420d-972a-08db62f8141f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: phR9WnBwNhSLKCkV3U9b+6BrCSwl2/Wp/+loX/lEmHgnAeqQe3WK0EUzdHuzdllcLYS+d9OXaogEM5ohtsIiBSA66jfer8ILD346bixuCPIXjXGlbjgqHV5nupkW/KlPw6OE5jMihR3D/AIfY6uy20MjMg9+JW1uxBDLhGdcm8nLVQ0chGTwHoa2tWq9qWOhq6lzRjRbgIoWGnOd1hYuZ2WJGFFY3+8ROif7BwHL0zvCa/2lmwzEarx1QxFl/hlhX8B43tTciwIGRK4+XN2RZXW7Gb3ykeR42xAlsgOPpfoWM19Q+ylTPNb6gtAS9IJ0uOgVTYjzUsVF5DeIHe8/zJobECPYTfecVaAdcC7reLS48BOr967NS8VD1fhRqKQGhjhVpPrYUcNLXJYZHBsSRoYbLxUpYGKpVkXxgYj5scXF0MEkXW7dJekBCeNOSsLdtelS7I+DsdHpE1AFgs2RnCLZVC6ZQhhguxcwk6dPdf6u9w6UsoJyPLmOrmHsUR0RbLtmHYjhGPjIzTkaLLpFh6/ZZYWxOk3pn8UH/Ax6Avu5klZkZze/Dt6NUlHwrT34oY/2+86CNQ1IYhK3IQ3NVw0MuOzJREXzNxSnWV7uNtjoGcL+94gHDKw1Q6phaL2AbgxRX4YSCApYTXoSmcHFx7eKHUebWw6NYPSzEBenSUn5M9KLz+Ai00en0R/qztgy1U2ZQ3fc0WyVNS4hv+HUWGttujY4QmDYxVaSHAFzkUzoEONdB8useQnNwYJHEAT/y4a6IzGzNo/VbOCcy/ZsqhLVS3lYv49zvkjhqeLaRA0=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(376002)(39860400002)(136003)(346002)(396003)(451199021)(40470700004)(46966006)(36840700001)(36756003)(82740400003)(86362001)(110136005)(4326008)(478600001)(316002)(54906003)(70206006)(966005)(70586007)(7416002)(44832011)(6666004)(83380400001)(41300700001)(2906002)(8676002)(40480700001)(82310400005)(7696005)(81166007)(2616005)(356005)(5660300002)(36860700001)(47076005)(426003)(26005)(336012)(1076003)(16526019)(8936002)(186003)(40460700003)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: RTMcIr/8bHc99V113LydJUuy0CiOT6Ii1qiI2Q9Oqc9NTGKfnhAb+d520z8wU7gmsxibgDccusa+w0qO0e6hnXO6SPnW1ky2JLsCLv9A7vLN/vb9adOxS4dXTkiCAz1Ad3+NdBeEi5/KIDjlf05U4A/vUfqaqNve1LZkBl+VeJ+loPMqApHKggfuXcaqsO1i7hEGXITmFjKLsHSJjnVdBKl8kzNajmrFMfmPYnCqx9mI9Pi9pX36CjF5ex8mS/X7fMDjNIpNQPTQb0F8gvwE3koyNdvPXKEr2jX5MZb2WsNxWomjtaMFKHLgzzHuQbmy4Q0KQr2Qqlx/1tlQCTYmkfnMpq9BbG5QGk0C7P1xlWHhJD/oArV/dgts56LSkDBCIPV3C5ld6j5I04Emaoj3vHbueagO1REpzS7F8BWjckmwQ3PnM6R9VK4uniqz/xz5dZeFliVNxhkTdQDXaLSGq1YNEFT9H6XGyyXYAnWISou2L/2cqtNt2WHWQfVnnOFVk4voOtaJ7bzezW7x8yazT+FTE3wzmSvlCZAz+Qptb3cnXN4nwTt9DuxInN1o1ms0crIvaXAVtyzyvniO9ILWTXUMIfpusieTvBIwoQcQkqfQwj6Q0DFQ7FnPcj921WrfEUMZnCJtULPbLAZThJ1yhMYO+NhpnxO8BgJMUgamb+gQnVurs5K3px/vpVhXXrXLHvJ2RoRPv+Aq51A0G0PPKwQym1b310prslxBK+iGLWMNCxStlhrRFJvAMaMeH6U7j2DqlMkF7asNfQno7l/xiA==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(376002)(346002)(39860400002)(136003)(396003)(451199021)(40470700004)(36840700001)(46966006)(110136005)(186003)(4326008)(83380400001)(70586007)(47076005)(54906003)(36756003)(15650500001)(2906002)(70206006)(478600001)(16526019)(1076003)(2616005)(40460700003)(26005)(8936002)(336012)(356005)(82740400003)(8676002)(426003)(82310400005)(81166007)(316002)(44832011)(36860700001)(40480700001)(5660300002)(7696005)(6666004)(86362001)(41300700001)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jun 2023 22:12:41.4400
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jun 2023 23:29:43.1302
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e3dd9812-acf7-4f12-2c4a-08db62ed516b
+X-MS-Exchange-CrossTenant-Network-Message-Id: 77336892-228a-420d-972a-08db62f8141f
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT019.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT053.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB8006
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7337
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on
-AMD Zen platforms") attempted to overhaul the override logic so it
-didn't apply on X86 AMD Zen systems.  This was intentional so that
-systems would prefer DSDT values instead of default MADT value for
-IRQ 1 on Ryzen 6000 systems which typically uses ActiveLow for IRQ1.
+To make the GPIO tracking around suspend easier for end users to
+use, link it with pm_debug_messages.  This will make discovering
+sources of spurious GPIOs around suspend easier.
 
-This turned out to be a bad assumption because several vendors
-add Interrupt Source Override but don't fix the DSDT. A pile of
-quirks was collecting that proved this wasn't sustaintable.
-
-Furthermore some vendors have used ActiveHigh for IRQ1.
-To solve this problem revert the following commits:
-* commit 17bb7046e7ce ("ACPI: resource: Do IRQ override on all TongFang
-GMxRGxx")
-* commit f3cb9b740869 ("ACPI: resource: do IRQ override on Lenovo 14ALC7")
-* commit bfcdf58380b1 ("ACPI: resource: do IRQ override on LENOVO IdeaPad")
-* commit 7592b79ba4a9 ("ACPI: resource: do IRQ override on XMG Core 15")
-* commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen
-platforms")
-
-Cc: ofenfisch@googlemail.com
-Cc: wse@tuxedocomputers.com
-Cc: adam.niederer@gmail.com
-Cc: adrian@freund.io
-Cc: jirislaby@kernel.org
-Cc: Renjith.Pananchikkal@amd.com
-Cc: anson.tsao@amd.com
-Cc: Richard.Gong@amd.com
-Cc: Chuanhong Guo <gch981213@gmail.com>
-Reported-by: evilsnoo@proton.me
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217394
-Reported-by: ruinairas1992@gmail.com
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217406
-Reported-by: nmschulte@gmail.com
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217336
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
-v2->v3:
- * Adjust to drop heuristics entirely
- * Drop tested tags
- * Add more links and people to Cc
- * Drop Fixes tag as this got a lot more risky
-v1->v2:
- * Rebase on 71a485624c4c ("ACPI: resource: Add IRQ override quirk for LG UltraPC 17U70P")
- * Pick up tag
+ drivers/pinctrl/pinctrl-amd.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Rafael,
-Please hold off on picking this up until the majority of those on CC
-have tested it on hardware they have and reported results.
-
-Everyone else,
-Please test. If you have problems with this applied, please share
-an acpidump and dmesg either on a bug or to me privately.
----
- drivers/acpi/resource.c | 60 -----------------------------------------
- 1 file changed, 60 deletions(-)
-
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 0800a9d77558..1dd8d5aebf67 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -470,52 +470,6 @@ static const struct dmi_system_id asus_laptop[] = {
- 	{ }
- };
+diff --git a/drivers/pinctrl/pinctrl-amd.c b/drivers/pinctrl/pinctrl-amd.c
+index f279b360c20d..43d3530bab48 100644
+--- a/drivers/pinctrl/pinctrl-amd.c
++++ b/drivers/pinctrl/pinctrl-amd.c
+@@ -30,6 +30,7 @@
+ #include <linux/pinctrl/pinconf.h>
+ #include <linux/pinctrl/pinconf-generic.h>
+ #include <linux/pinctrl/pinmux.h>
++#include <linux/suspend.h>
  
--static const struct dmi_system_id lenovo_laptop[] = {
--	{
--		.ident = "LENOVO IdeaPad Flex 5 14ALC7",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "82R9"),
--		},
--	},
--	{
--		.ident = "LENOVO IdeaPad Flex 5 16ALC7",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "82RA"),
--		},
--	},
--	{ }
--};
--
--static const struct dmi_system_id tongfang_gm_rg[] = {
--	{
--		.ident = "TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD",
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "GMxRGxx"),
--		},
--	},
--	{ }
--};
--
--static const struct dmi_system_id maingear_laptop[] = {
--	{
--		.ident = "MAINGEAR Vector Pro 2 15",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-15A3070T"),
--		}
--	},
--	{
--		.ident = "MAINGEAR Vector Pro 2 17",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-17A3070T"),
--		},
--	},
--	{ }
--};
--
- static const struct dmi_system_id lg_laptop[] = {
- 	{
- 		.ident = "LG Electronics 17U70P",
-@@ -539,10 +493,6 @@ struct irq_override_cmp {
- static const struct irq_override_cmp override_table[] = {
- 	{ medion_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
- 	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
--	{ lenovo_laptop, 6, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
--	{ lenovo_laptop, 10, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
--	{ tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
--	{ maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
- 	{ lg_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
- };
+ #include "core.h"
+ #include "pinctrl-utils.h"
+@@ -636,9 +637,8 @@ static bool do_amd_gpio_irq_handler(int irq, void *dev_id)
+ 			regval = readl(regs + i);
  
-@@ -562,16 +512,6 @@ static bool acpi_dev_irq_override(u32 gsi, u8 triggering, u8 polarity,
- 			return entry->override;
- 	}
+ 			if (regval & PIN_IRQ_PENDING)
+-				dev_dbg(&gpio_dev->pdev->dev,
+-					"GPIO %d is active: 0x%x",
+-					irqnr + i, regval);
++				pm_pr_dbg("GPIO %d is active: 0x%x",
++					  irqnr + i, regval);
  
--#ifdef CONFIG_X86
--	/*
--	 * IRQ override isn't needed on modern AMD Zen systems and
--	 * this override breaks active low IRQs on AMD Ryzen 6000 and
--	 * newer systems. Skip it.
--	 */
--	if (boot_cpu_has(X86_FEATURE_ZEN))
--		return false;
--#endif
--
- 	return true;
- }
- 
+ 			/* caused wake on resume context for shared IRQ */
+ 			if (irq < 0 && (regval & BIT(WAKE_STS_OFF)))
 -- 
 2.34.1
 
