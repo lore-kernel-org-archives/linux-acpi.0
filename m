@@ -2,108 +2,127 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16FF9C7EE2D
-	for <linux-acpi@archiver.kernel.org>; Fri,  2 Jun 2023 14:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE5C7C77B7A
+	for <linux-acpi@archiver.kernel.org>; Fri,  2 Jun 2023 15:00:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236253AbjFBOva convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 2 Jun 2023 10:51:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48870 "EHLO
+        id S236350AbjFBPAf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 2 Jun 2023 11:00:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234989AbjFBOva (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2023 10:51:30 -0400
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA023E49;
-        Fri,  2 Jun 2023 07:51:27 -0700 (PDT)
-Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-50c079eb705so512354a12.1;
-        Fri, 02 Jun 2023 07:51:27 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685717486; x=1688309486;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kXHfdMrgpozX1VOcBn1dgVWQVi3s3HG1/X81+A5jHZo=;
-        b=TCH68Eg01gaFre+ljvdcoNPQIntwKCxFANPIf5v0v6S4xrx+q7O/N88wO8d4mrw6h0
-         7dpJOrBa+P/mBVEJX/Wp2nwx4+t+FFLZNF17w7LvTgTKboWyjaBEncgi4IxHA2XBjnJm
-         yeOJ9a+mKUgISQ7/adlPfE3s5SYTFfL4wI83L5m/GuUe4fGUGFvNdrxbIcvkQ7z/sOsT
-         FOx8gpr7z/gCBtlu8+SGNb2Trg1CEul6Qmw1RSghiYiVVnb/J1gReoF+E/B7EUtT8LHr
-         7N60nxm8e1VNczFdCL3+q8CLAh4a/S9bcFXLsydXFKxuLXdBUMEANVV98J5/9zsUmJdr
-         ujRw==
-X-Gm-Message-State: AC+VfDwKK1zngNkJgAAQIUvzoOH5Pd9Ghj1ZNZFrW7hIYWLLKDvTKumA
-        SSu3+M/VBgOrCiKVw6Mxy8G+aEkRurplfQwM+tK6Y8mS
-X-Google-Smtp-Source: ACHHUZ40ia8U3bhmMtJZKW83lKmq8I3pg3C5oT7SvB79yrvkP1+pKAZzyzJNV2VAYGQnq/2KV8MQdP61loiTbPyHfPw=
-X-Received: by 2002:a17:906:5199:b0:975:bb7:5dc3 with SMTP id
- y25-20020a170906519900b009750bb75dc3mr958357ejk.7.1685717486156; Fri, 02 Jun
- 2023 07:51:26 -0700 (PDT)
+        with ESMTP id S236338AbjFBPAa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2023 11:00:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5851E56;
+        Fri,  2 Jun 2023 08:00:26 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E16E650FE;
+        Fri,  2 Jun 2023 15:00:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 71A95C433A1;
+        Fri,  2 Jun 2023 15:00:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1685718025;
+        bh=pa+sw7piReDEjInKXKqjGINHz86IV7DvHVj4nDWYvdg=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=bi1ioK3XvJ+q3Rle2fRqVnvW64r4HT8l9zsDWx2N6bHMb5QqsnpQCIOMcyY9Hw848
+         Xqg2oqOYe6wkErfYpqyvP8jlZPPlmo0Wumcgle7dFw27lEz/gaQbCj2gaKCdGVzaFf
+         uvJ0LWXz2QpSe9R+7XtwbPIRUxs5EI23BhpgxxrDiAAjqpaGhhGknFjehuO/54fMUE
+         sd7S43jlfkmhLMf+L7AjrFZT70ek2YzNkN/kEZnOIsOyREwA0veeqVsD1k256/LjFB
+         RUi29jySWu1mxRgDYpEgjof6CwLCXLIWY+mywg/AOpAjR1ItHueuzhqH8nbkHuvZFL
+         65Hw2cciOpK4A==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 421D5C395E5;
+        Fri,  2 Jun 2023 15:00:25 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-References: <20230601233953.1332-1-mario.limonciello@amd.com>
- <d1e0d5fc837753c292f78a5357fd9ba4531f06d2.camel@linux.intel.com>
- <b0e0abc0-26ba-d104-ff73-b89745510be8@amd.com> <05162d36a009a1669870a2c82bd0b2b65458b244.camel@linux.intel.com>
-In-Reply-To: <05162d36a009a1669870a2c82bd0b2b65458b244.camel@linux.intel.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Fri, 2 Jun 2023 16:51:13 +0200
-Message-ID: <CAJZ5v0j8-1Kg5v04yBNMEvPJpJ5KdFX8opu+EXFRw_e6jvEAAw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: x86: Adjust Microsoft LPS0 _DSM handling sequence
-To:     david.e.box@linux.intel.com
-Cc:     "Limonciello, Mario" <mario.limonciello@amd.com>,
-        rafael@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH V6 00/21] Add basic ACPI support for RISC-V
+From:   patchwork-bot+linux-riscv@kernel.org
+Message-Id: <168571802526.11683.10109882495660507850.git-patchwork-notify@kernel.org>
+Date:   Fri, 02 Jun 2023 15:00:25 +0000
+References: <20230515054928.2079268-1-sunilvl@ventanamicro.com>
+In-Reply-To: <20230515054928.2079268-1-sunilvl@ventanamicro.com>
+To:     Sunil V L <sunilvl@ventanamicro.com>
+Cc:     linux-riscv@lists.infradead.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-crypto@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        llvm@lists.linux.dev, qianweili@huawei.com, aou@eecs.berkeley.edu,
+        daniel.lezcano@linaro.org, trix@redhat.com, rafael@kernel.org,
+        maz@kernel.org, corbet@lwn.net, ndesaulniers@google.com,
+        markgross@kernel.org, hdegoede@redhat.com, wangzhou1@hisilicon.com,
+        palmer@dabbelt.com, paul.walmsley@sifive.com,
+        herbert@gondor.apana.org.au, tglx@linutronix.de,
+        luzmaximilian@gmail.com, davem@davemloft.net, nathan@kernel.org,
+        lenb@kernel.org
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Jun 2, 2023 at 5:06 AM David E. Box <david.e.box@linux.intel.com> wrote:
->
-> On Thu, 2023-06-01 at 20:46 -0500, Limonciello, Mario wrote:
-> >
-> > On 6/1/2023 8:31 PM, David E. Box wrote:
-> > > On Thu, 2023-06-01 at 18:39 -0500, Mario Limonciello wrote:
-> > > > In Windows the Microsoft _DSM doesn't call functions 3->5->7 for suspend
-> > > > and 8->6->4 for resume like Linux currently does.
-> > > >
-> > > > Rather it calls 3->7->5 for suspend and 6->8->4 for resume.
-> > > > Align this calling order for Linux as well.
-> > > >
-> > > > Link:
-> > > > https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-states
-> > > I didn't catch the ordering in the link.
-> >
-> > Yeah it's tough to interpret from the link, because the picture at the
-> > bottom
-> > is missing annotations.
-> >
-> > Basically if you look at the picture the blue part is the screen on/off.
-> >
-> > The green part is "modern standby" and then the little "humps" are LPS0
-> > enter/exit.
-> >
-> > > Was there any issue that prompted this
-> > > change?
-> >
-> >
-> > We were debugging an unrelated problem and noticed the difference
-> > comparing the
-> >
-> > BIOS debugging log from Windows and Linux.
-> >
-> > If an OEM depends on this call order in that code used in LPS0 phase
-> > requires
-> > changes from MS phase I could hypothesize this fixes it.
-> >
-> >
-> > > David
-> >
-> > BTW - is there interest in supporting the Microsoft _DSM GUID for Intel
-> > side too?
-> >
-> > It's an incongruity today that we run both AMD GUID and Microsoft GUID
-> > for AMD systems
-> > but only run Intel GUID for Intel systems.
->
-> There hasn't been a need yet. Rafael have you look at it?
+Hello:
 
-Nothing official ATM AFAICS.
+This series was applied to riscv/linux.git (for-next)
+by Palmer Dabbelt <palmer@rivosinc.com>:
 
-But I guess it'll need to be used on Intel at one point too.
+On Mon, 15 May 2023 11:19:07 +0530 you wrote:
+> This patch series enables the basic ACPI infrastructure for RISC-V.
+> Supporting external interrupt controllers is in progress and hence it is
+> tested using poll based HVC SBI console and RAM disk.
+> 
+> The first patch in this series is one of the patch from Jisheng's
+> series [1] which is not merged yet. This patch is required to support
+> ACPI since efi_init() which gets called before sbi_init() can enable
+> static branches and hits a panic.
+> 
+> [...]
+
+Here is the summary with links:
+  - [V6,01/21] riscv: move sbi_init() earlier before jump_label_init()
+    https://git.kernel.org/riscv/c/24fc18087f42
+  - [V6,02/21] platform/surface: Disable for RISC-V
+    https://git.kernel.org/riscv/c/7f2e20459b28
+  - [V6,03/21] crypto: hisilicon/qm: Fix to enable build with RISC-V clang
+    https://git.kernel.org/riscv/c/fbb995a7b27c
+  - [V6,04/21] ACPI: tables: Print RINTC information when MADT is parsed
+    https://git.kernel.org/riscv/c/4d02d88d2b92
+  - [V6,05/21] ACPI: OSL: Make should_use_kmap() 0 for RISC-V
+    https://git.kernel.org/riscv/c/214c236223b8
+  - [V6,06/21] RISC-V: Add support to build the ACPI core
+    https://git.kernel.org/riscv/c/a91a9ffbd3a5
+  - [V6,07/21] ACPI: processor_core: RISC-V: Enable mapping processor to the hartid
+    https://git.kernel.org/riscv/c/8b7809e28952
+  - [V6,08/21] RISC-V: Add ACPI initialization in setup_arch()
+    https://git.kernel.org/riscv/c/724f4c0df766
+  - [V6,09/21] RISC-V: ACPI: Cache and retrieve the RINTC structure
+    https://git.kernel.org/riscv/c/f99561199470
+  - [V6,10/21] drivers/acpi: RISC-V: Add RHCT related code
+    https://git.kernel.org/riscv/c/e6b9d8eddb17
+  - [V6,11/21] RISC-V: smpboot: Create wrapper setup_smp()
+    https://git.kernel.org/riscv/c/61946127ab49
+  - [V6,12/21] RISC-V: smpboot: Add ACPI support in setup_smp()
+    https://git.kernel.org/riscv/c/ce92546cd637
+  - [V6,13/21] RISC-V: only iterate over possible CPUs in ISA string parser
+    https://git.kernel.org/riscv/c/914d6f44fc50
+  - [V6,14/21] RISC-V: cpufeature: Add ACPI support in riscv_fill_hwcap()
+    https://git.kernel.org/riscv/c/396c018332a1
+  - [V6,15/21] RISC-V: cpu: Enable cpuinfo for ACPI systems
+    https://git.kernel.org/riscv/c/0b144c818989
+  - [V6,16/21] irqchip/riscv-intc: Add ACPI support
+    https://git.kernel.org/riscv/c/7023b9d83f03
+  - [V6,17/21] clocksource/timer-riscv: Refactor riscv_timer_init_dt()
+    https://git.kernel.org/riscv/c/cd12d206685a
+  - [V6,18/21] clocksource/timer-riscv: Add ACPI support
+    https://git.kernel.org/riscv/c/21f4f92410dc
+  - [V6,19/21] RISC-V: time.c: Add ACPI support for time_init()
+    https://git.kernel.org/riscv/c/714aa1d1c8ca
+  - [V6,20/21] RISC-V: Enable ACPI in defconfig
+    https://git.kernel.org/riscv/c/0b8e15ca0082
+  - [V6,21/21] MAINTAINERS: Add entry for drivers/acpi/riscv
+    https://git.kernel.org/riscv/c/cc9e654a7e81
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
