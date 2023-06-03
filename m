@@ -2,63 +2,74 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB55C77B7A
-	for <linux-acpi@archiver.kernel.org>; Sat,  3 Jun 2023 10:50:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44C8BC7EE2E
+	for <linux-acpi@archiver.kernel.org>; Sat,  3 Jun 2023 11:03:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229475AbjFCKud (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 3 Jun 2023 06:50:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55132 "EHLO
+        id S237169AbjFCLD3 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 3 Jun 2023 07:03:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229609AbjFCKub (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Jun 2023 06:50:31 -0400
-X-Greylist: delayed 4205 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 03 Jun 2023 03:49:57 PDT
-Received: from mail.webtopbits.pl (mail.webtopbits.pl [195.231.64.176])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62EA110CC
-        for <linux-acpi@vger.kernel.org>; Sat,  3 Jun 2023 03:49:57 -0700 (PDT)
-Received: by mail.webtopbits.pl (Postfix, from userid 1001)
-        id 6C1F7A393F; Fri,  2 Jun 2023 10:00:33 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=webtopbits.pl;
-        s=mail; t=1685696434;
-        bh=Eh8ECMiYd4baGAwPAzhz8mhJACXX7NSRkYjh+plaY18=;
-        h=Date:From:To:Subject:From;
-        b=d+6djAwvJXZhj5Wfgs2A/iK5TddodcOGk7g9kEByHmRXdnAItiiWtuGf3Lw2Cl7Ll
-         +4QrfxkrsDUmD8TjDUHmM0FIzA3tN7w7UeTkWrVSPew3LrsVNuptvjD9Z3fOKO5Poc
-         Xto7wZeXXLesr39100eh5ehvwIKfVKgI8yEr8a2unKPSm9VK1adDDw49GvXtXFUVGY
-         jIIDKPpkYKnQRyeNR0nUiqwfxZ1vGDcHhZ539z970/C5eUwjJjpBctp0tfeqZHDKfN
-         hqT8dykL1PNP8/2coqXwYR1bhCyDJSgC6PI4DY/Nc69B4W2RZ7tMptoZ4n8Bcyj8p8
-         jN7Db39HyZ/BQ==
-Received: by mail.webtopbits.pl for <linux-acpi@vger.kernel.org>; Fri,  2 Jun 2023 09:00:32 GMT
-Message-ID: <20230602085530-0.1.8w.5l5l.0.6macgp7eyg@webtopbits.pl>
-Date:   Fri,  2 Jun 2023 09:00:32 GMT
-From:   "Kamil Durjasz" <kamil.durjasz@webtopbits.pl>
-To:     <linux-acpi@vger.kernel.org>
-Subject: =?UTF-8?Q?Wy=C5=BCsza_konwersja_w_e-sklepie_?=
-X-Mailer: mail.webtopbits.pl
+        with ESMTP id S236733AbjFCLD2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Jun 2023 07:03:28 -0400
+Received: from fgw23-7.mail.saunalahti.fi (fgw23-7.mail.saunalahti.fi [62.142.5.84])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59FF3BD
+        for <linux-acpi@vger.kernel.org>; Sat,  3 Jun 2023 04:03:26 -0700 (PDT)
+Received: from localhost (88-113-26-95.elisa-laajakaista.fi [88.113.26.95])
+        by fgw23.mail.saunalahti.fi (Halon) with ESMTP
+        id 4150446e-01fe-11ee-b972-005056bdfda7;
+        Sat, 03 Jun 2023 14:03:24 +0300 (EEST)
+From:   andy.shevchenko@gmail.com
+Date:   Sat, 3 Jun 2023 14:03:22 +0300
+To:     Michal Wilczynski <michal.wilczynski@intel.com>
+Cc:     rafael@kernel.org, lenb@kernel.org, dan.j.williams@intel.com,
+        vishal.l.verma@intel.com, dave.jiang@intel.com,
+        ira.weiny@intel.com, rui.zhang@intel.com, jdelvare@suse.com,
+        linux@roeck-us.net, jic23@kernel.org, lars@metafoo.de,
+        bleung@chromium.org, yu.c.chen@intel.com, hdegoede@redhat.com,
+        markgross@kernel.org, luzmaximilian@gmail.com,
+        corentin.chary@gmail.com, jprvita@gmail.com,
+        cascardo@holoscopio.com, don@syst.com.br, pali@kernel.org,
+        jwoithe@just42.net, matan@svgalib.org, kenneth.t.chan@gmail.com,
+        malattia@linux.it, jeremy@system76.com, productdev@system76.com,
+        herton@canonical.com, coproscefalo@gmail.com, tytso@mit.edu,
+        Jason@zx2c4.com, robert.moore@intel.com,
+        linux-acpi@vger.kernel.org, nvdimm@lists.linux.dev,
+        linux-hwmon@vger.kernel.org, linux-iio@vger.kernel.org,
+        chrome-platform@lists.linux.dev,
+        platform-driver-x86@vger.kernel.org,
+        acpi4asus-user@lists.sourceforge.net
+Subject: Re: [PATCH v4 00/35] Remove .notify callback in acpi_device_ops
+Message-ID: <ZHsd-je7kDDpii2q@surfacebook>
+References: <20230601131655.300675-1-michal.wilczynski@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230601131655.300675-1-michal.wilczynski@intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dzie=C5=84 dobry,
+Thu, Jun 01, 2023 at 03:16:55PM +0200, Michal Wilczynski kirjoitti:
+> Currently drivers support ACPI event handlers by defining .notify
+> callback in acpi_device_ops. This solution is suboptimal as event
+> handler installer installs intermediary function acpi_notify_device as a
+> handler in every driver. Also this approach requires extra variable
+> 'flags' for specifying event types that the driver want to subscribe to.
+> Additionally this is a pre-work required to align acpi_driver with
+> platform_driver and eventually replace acpi_driver with platform_driver.
+> 
+> Remove .notify callback from the acpi_device_ops. Replace it with each
+> driver installing and removing it's event handlers.
 
-w jaki spos=C3=B3b docieraj=C4=85 Pa=C5=84stwo do odbiorc=C3=B3w?
+Somehow this thread is screwed up in a sense of linking messages.
+Even on the archives there are rather individual patches.
 
-Tworzymy pot=C4=99=C5=BCne narz=C4=99dzia sprzeda=C5=BCy, kt=C3=B3re pozw=
-alaj=C4=85 kompleksowo rozwi=C4=85za=C4=87 problemy potencjalnych klient=C3=
-=B3w i skutecznie wp=C5=82yn=C4=85=C4=87 na ich decyzje zakupowe.=20
+Please, be sure you are always use --thread when formatting it.
+Yet you have a possibility to Cc different patches to the different
+mailing lists and people.
 
-Skupiamy si=C4=99 na Pa=C5=84stwa potrzebach zwi=C4=85zanych z obs=C5=82u=
-g=C4=85 sklepu, oczekiwaniach i planach sprzeda=C5=BCowych. Szczeg=C3=B3=C5=
-=82owo dopasowujemy grafik=C4=99, funkcjonalno=C5=9Bci, struktur=C4=99 i =
-mikrointerakcje do Pa=C5=84stwa grupy docelowej, co przek=C5=82ada si=C4=99=
- na oczekiwane rezultaty.
-
-Ch=C4=99tnie przedstawi=C4=99 dotychczasowe realizacje, aby mogli Pa=C5=84=
-stwo przekona=C4=87 si=C4=99 o naszych mo=C5=BCliwo=C5=9Bciach. Mog=C4=99=
- si=C4=99 skontaktowa=C4=87?
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-Pozdrawiam
-Kamil Durjasz
