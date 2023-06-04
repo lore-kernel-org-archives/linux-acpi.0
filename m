@@ -2,275 +2,156 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5660C7EE32
-	for <linux-acpi@archiver.kernel.org>; Sun,  4 Jun 2023 15:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A52D3C7EE2F
+	for <linux-acpi@archiver.kernel.org>; Sun,  4 Jun 2023 16:04:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231195AbjFDPYj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 4 Jun 2023 11:24:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39102 "EHLO
+        id S229578AbjFDQEk convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 4 Jun 2023 12:04:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230354AbjFDPYh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jun 2023 11:24:37 -0400
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6822D3;
-        Sun,  4 Jun 2023 08:24:35 -0700 (PDT)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id d5d90b075636b89b; Sun, 4 Jun 2023 17:24:34 +0200
-Received: from kreacher.localnet (unknown [195.136.19.94])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id EC066961C82;
-        Sun,  4 Jun 2023 17:24:33 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [RFT][PATCH v1 1/4] ACPI: button: Eliminate the driver notify callback
-Date:   Sun, 04 Jun 2023 17:19:06 +0200
-Message-ID: <2176493.Icojqenx9y@kreacher>
-In-Reply-To: <1847933.atdPhlSkOF@kreacher>
-References: <1847933.atdPhlSkOF@kreacher>
+        with ESMTP id S230070AbjFDQEk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jun 2023 12:04:40 -0400
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2861DB;
+        Sun,  4 Jun 2023 09:04:38 -0700 (PDT)
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-94ea38c90ccso72840466b.1;
+        Sun, 04 Jun 2023 09:04:38 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685894677; x=1688486677;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=b+YdCv4qFRXvRPwOlYPYCldTcv+zkomgPih9OT+HI0Q=;
+        b=JTxiD9YjEMeZsF2zB30w3UkShOmbnulZnlg5ozfuKDnuKzI8IC28DSKhO0hb++C6ss
+         u/WNfW0WGgNbtEooZYgf7IrCopEJYOaSJzd3bQ67pH6Q+N4fjAgOT8fyb/8vpf9f+ldO
+         awr2/AIZpiQFTkzXl3x696fB0YOz+CuhDl0H01irAYJI5tpa8cvBk4i403JqWkcPEpCW
+         DybBRM32RCvsZpYgUDmkOeTsUu+aXDfbOaC8Ks5yvUxQNbexRc/x4e24Rb/uvRJ/v58Z
+         6e8raM6LoFcOgBdJ9v282hKjn8NeZRKRkR4T8inO2p6Ru+WdQzmsr7e9Q4pEaHhzMgBc
+         c9Kw==
+X-Gm-Message-State: AC+VfDzrFefl4tflSrn29Rf8Iw/Uffu6ulC+pQ8DBUGP+5EaSACkSXX+
+        nEC8C9ZKsUF1d9EIxzhDbngi3pSuE0qFsvuYx08=
+X-Google-Smtp-Source: ACHHUZ54m+MFnHpOVzLiL4+gc3bnx2pXxkOS3iIdfMsHrkg4Cqnn+VVTZxb7UNWMN3kJHLXsnkA5+CIFhyzBn9ykFVI=
+X-Received: by 2002:a17:906:6494:b0:965:9c7d:df96 with SMTP id
+ e20-20020a170906649400b009659c7ddf96mr12977658ejm.1.1685894677361; Sun, 04
+ Jun 2023 09:04:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20230602073025.22884-1-mario.limonciello@amd.com> <20230602073025.22884-2-mario.limonciello@amd.com>
+In-Reply-To: <20230602073025.22884-2-mario.limonciello@amd.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Sun, 4 Jun 2023 18:04:26 +0200
+Message-ID: <CAJZ5v0jNn1wHtF7c0XYKpM=XzZasdu3OwksUdqRFO3TyZwrPOg@mail.gmail.com>
+Subject: Re: [PATCH v4 2/4] ACPI: x86: Add pm_debug_messages for LPS0 _DSM
+ state tracking
+To:     Mario Limonciello <mario.limonciello@amd.com>
+Cc:     Rafael Wysocki <rafael@kernel.org>, hdegoede@redhat.com,
+        linus.walleij@linaro.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+        Basavaraj.Natikar@amd.com, Shyam-sundar.S-k@amd.com
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 195.136.19.94
-X-CLIENT-HOSTNAME: 195.136.19.94
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrfeeljedgkeekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepfedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehmihgthhgrlhdrfihilhgtiiihnhhskhhisehinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Jun 2, 2023 at 9:32 PM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
+>
+> Enabling debugging messages for the state requires turning on dynamic
+> debugging for the file. To make it more accessible, use
+> `pm_debug_messages` and clearer strings for what is happening.
+>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 
-Rework the ACPI button driver to install notify handlers or fixed
-event handlers for the devices it binds to by itself, reduce the
-indentation level in its notify handler routine and drop its
-notify callback.
+I'm inclined to apply this one and the [1/4] at this point.
 
-This will allow acpi_device_install_notify_handler() and
-acpi_device_remove_notify_handler() to be simplified going forward
-and it will allow the driver to use different notify handlers for the
-lid and for the power and sleep buttons.
+I can also apply the 2 remaining patches in this series if I get ACKs
+for them from the respective subsystem maintainers.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/button.c |  140 ++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 96 insertions(+), 44 deletions(-)
-
-Index: linux-pm/drivers/acpi/button.c
-===================================================================
---- linux-pm.orig/drivers/acpi/button.c
-+++ linux-pm/drivers/acpi/button.c
-@@ -135,7 +135,6 @@ static const struct dmi_system_id dmi_li
- 
- static int acpi_button_add(struct acpi_device *device);
- static void acpi_button_remove(struct acpi_device *device);
--static void acpi_button_notify(struct acpi_device *device, u32 event);
- 
- #ifdef CONFIG_PM_SLEEP
- static int acpi_button_suspend(struct device *dev);
-@@ -153,7 +152,6 @@ static struct acpi_driver acpi_button_dr
- 	.ops = {
- 		.add = acpi_button_add,
- 		.remove = acpi_button_remove,
--		.notify = acpi_button_notify,
- 	},
- 	.drv.pm = &acpi_button_pm,
- };
-@@ -409,45 +407,55 @@ static void acpi_lid_initialize_state(st
- 	button->lid_state_initialized = true;
- }
- 
--static void acpi_button_notify(struct acpi_device *device, u32 event)
-+static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
- {
--	struct acpi_button *button = acpi_driver_data(device);
-+	struct acpi_device *device = data;
-+	struct acpi_button *button;
- 	struct input_dev *input;
-+	int keycode;
- 
--	switch (event) {
--	case ACPI_FIXED_HARDWARE_EVENT:
--		event = ACPI_BUTTON_NOTIFY_STATUS;
--		fallthrough;
--	case ACPI_BUTTON_NOTIFY_STATUS:
--		input = button->input;
--		if (button->type == ACPI_BUTTON_TYPE_LID) {
--			if (button->lid_state_initialized)
--				acpi_lid_update_state(device, true);
--		} else {
--			int keycode;
--
--			acpi_pm_wakeup_event(&device->dev);
--			if (button->suspended)
--				break;
--
--			keycode = test_bit(KEY_SLEEP, input->keybit) ?
--						KEY_SLEEP : KEY_POWER;
--			input_report_key(input, keycode, 1);
--			input_sync(input);
--			input_report_key(input, keycode, 0);
--			input_sync(input);
--
--			acpi_bus_generate_netlink_event(
--					device->pnp.device_class,
--					dev_name(&device->dev),
--					event, ++button->pushed);
--		}
--		break;
--	default:
-+	if (event != ACPI_BUTTON_NOTIFY_STATUS) {
- 		acpi_handle_debug(device->handle, "Unsupported event [0x%x]\n",
- 				  event);
--		break;
-+		return;
-+	}
-+
-+	button = acpi_driver_data(device);
-+
-+	if (button->type == ACPI_BUTTON_TYPE_LID) {
-+		if (button->lid_state_initialized)
-+			acpi_lid_update_state(device, true);
-+
-+		return;
- 	}
-+
-+	acpi_pm_wakeup_event(&device->dev);
-+
-+	if (button->suspended)
-+		return;
-+
-+	input = button->input;
-+	keycode = test_bit(KEY_SLEEP, input->keybit) ? KEY_SLEEP : KEY_POWER;
-+
-+	input_report_key(input, keycode, 1);
-+	input_sync(input);
-+	input_report_key(input, keycode, 0);
-+	input_sync(input);
-+
-+	acpi_bus_generate_netlink_event(device->pnp.device_class,
-+					dev_name(&device->dev),
-+					event, ++button->pushed);
-+}
-+
-+static void acpi_button_notify_run(void *data)
-+{
-+	acpi_button_notify(NULL, ACPI_BUTTON_NOTIFY_STATUS, data);
-+}
-+
-+static u32 acpi_button_event(void *data)
-+{
-+	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_button_notify_run, data);
-+	return ACPI_INTERRUPT_HANDLED;
- }
- 
- #ifdef CONFIG_PM_SLEEP
-@@ -492,8 +500,9 @@ static int acpi_button_add(struct acpi_d
- 	struct acpi_button *button;
- 	struct input_dev *input;
- 	const char *hid = acpi_device_hid(device);
-+	acpi_status status;
- 	char *name, *class;
--	int error;
-+	int error = 0;
- 
- 	if (!strcmp(hid, ACPI_BUTTON_HID_LID) &&
- 	     lid_init_state == ACPI_BUTTON_LID_INIT_DISABLED)
-@@ -535,12 +544,15 @@ static int acpi_button_add(struct acpi_d
- 	} else {
- 		pr_info("Unsupported hid [%s]\n", hid);
- 		error = -ENODEV;
--		goto err_free_input;
- 	}
- 
--	error = acpi_button_add_fs(device);
--	if (error)
--		goto err_free_input;
-+	if (!error)
-+		error = acpi_button_add_fs(device);
-+
-+	if (error) {
-+		input_free_device(input);
-+		goto err_free_button;
-+	}
- 
- 	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", hid);
- 
-@@ -568,6 +580,30 @@ static int acpi_button_add(struct acpi_d
- 	error = input_register_device(input);
- 	if (error)
- 		goto err_remove_fs;
-+
-+	switch (device->device_type) {
-+	case ACPI_BUS_TYPE_POWER_BUTTON:
-+		status = acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
-+							  acpi_button_event,
-+							  device);
-+		break;
-+	case ACPI_BUS_TYPE_SLEEP_BUTTON:
-+		status = acpi_install_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
-+							  acpi_button_event,
-+							  device);
-+		break;
-+	default:
-+		status = acpi_install_notify_handler(device->handle,
-+						     ACPI_DEVICE_NOTIFY,
-+						     acpi_button_notify,
-+						     device);
-+		break;
-+	}
-+	if (ACPI_FAILURE(status)) {
-+		error = -ENODEV;
-+		goto err_input_unregister;
-+	}
-+
- 	if (button->type == ACPI_BUTTON_TYPE_LID) {
- 		/*
- 		 * This assumes there's only one lid device, or if there are
-@@ -580,11 +616,11 @@ static int acpi_button_add(struct acpi_d
- 	pr_info("%s [%s]\n", name, acpi_device_bid(device));
- 	return 0;
- 
-- err_remove_fs:
-+err_input_unregister:
-+	input_unregister_device(input);
-+err_remove_fs:
- 	acpi_button_remove_fs(device);
-- err_free_input:
--	input_free_device(input);
-- err_free_button:
-+err_free_button:
- 	kfree(button);
- 	return error;
- }
-@@ -593,6 +629,22 @@ static void acpi_button_remove(struct ac
- {
- 	struct acpi_button *button = acpi_driver_data(device);
- 
-+	switch (device->device_type) {
-+	case ACPI_BUS_TYPE_POWER_BUTTON:
-+		acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
-+						acpi_button_event);
-+		break;
-+	case ACPI_BUS_TYPE_SLEEP_BUTTON:
-+		acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
-+						acpi_button_event);
-+		break;
-+	default:
-+		acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-+					   acpi_button_notify);
-+		break;
-+	}
-+	acpi_os_wait_events_complete();
-+
- 	acpi_button_remove_fs(device);
- 	input_unregister_device(button->input);
- 	kfree(button);
-
-
-
+> ---
+>  drivers/acpi/x86/s2idle.c | 52 ++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 46 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> index e499c60c4579..7681f6ecab67 100644
+> --- a/drivers/acpi/x86/s2idle.c
+> +++ b/drivers/acpi/x86/s2idle.c
+> @@ -59,6 +59,7 @@ static int lps0_dsm_func_mask;
+>
+>  static guid_t lps0_dsm_guid_microsoft;
+>  static int lps0_dsm_func_mask_microsoft;
+> +static int lps0_dsm_state;
+>
+>  /* Device constraint entry structure */
+>  struct lpi_device_info {
+> @@ -320,6 +321,44 @@ static void lpi_check_constraints(void)
+>         }
+>  }
+>
+> +static bool acpi_s2idle_vendor_amd(void)
+> +{
+> +       return boot_cpu_data.x86_vendor == X86_VENDOR_AMD;
+> +}
+> +
+> +static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
+> +{
+> +       if (lps0_dsm_func_mask_microsoft || !acpi_s2idle_vendor_amd()) {
+> +               switch (state) {
+> +               case ACPI_LPS0_SCREEN_OFF:
+> +                       return "screen off";
+> +               case ACPI_LPS0_SCREEN_ON:
+> +                       return "screen on";
+> +               case ACPI_LPS0_ENTRY:
+> +                       return "lps0 entry";
+> +               case ACPI_LPS0_EXIT:
+> +                       return "lps0 exit";
+> +               case ACPI_LPS0_MS_ENTRY:
+> +                       return "lps0 ms entry";
+> +               case ACPI_LPS0_MS_EXIT:
+> +                       return "lps0 ms exit";
+> +               }
+> +       } else {
+> +               switch (state) {
+> +               case ACPI_LPS0_SCREEN_ON_AMD:
+> +                       return "screen on";
+> +               case ACPI_LPS0_SCREEN_OFF_AMD:
+> +                       return "screen off";
+> +               case ACPI_LPS0_ENTRY_AMD:
+> +                       return "lps0 entry";
+> +               case ACPI_LPS0_EXIT_AMD:
+> +                       return "lps0 exit";
+> +               }
+> +       }
+> +
+> +       return "unknown";
+> +}
+> +
+>  static void acpi_sleep_run_lps0_dsm(unsigned int func, unsigned int func_mask, guid_t dsm_guid)
+>  {
+>         union acpi_object *out_obj;
+> @@ -331,14 +370,15 @@ static void acpi_sleep_run_lps0_dsm(unsigned int func, unsigned int func_mask, g
+>                                         rev_id, func, NULL);
+>         ACPI_FREE(out_obj);
+>
+> -       acpi_handle_debug(lps0_device_handle, "_DSM function %u evaluation %s\n",
+> -                         func, out_obj ? "successful" : "failed");
+> +       lps0_dsm_state = func;
+> +       if (pm_debug_messages_on) {
+> +               acpi_handle_info(lps0_device_handle,
+> +                               "%s transitioned to state %s\n",
+> +                                out_obj ? "Successfully" : "Failed to",
+> +                                acpi_sleep_dsm_state_to_str(lps0_dsm_state));
+> +       }
+>  }
+>
+> -static bool acpi_s2idle_vendor_amd(void)
+> -{
+> -       return boot_cpu_data.x86_vendor == X86_VENDOR_AMD;
+> -}
+>
+>  static int validate_dsm(acpi_handle handle, const char *uuid, int rev, guid_t *dsm_guid)
+>  {
+> --
+> 2.34.1
+>
