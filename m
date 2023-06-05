@@ -2,202 +2,203 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4DF5C7EE23
-	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jun 2023 14:46:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9312AC77B73
+	for <linux-acpi@archiver.kernel.org>; Mon,  5 Jun 2023 15:13:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229611AbjFEOqi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 5 Jun 2023 10:46:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34880 "EHLO
+        id S234701AbjFEPNW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 5 Jun 2023 11:13:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229489AbjFEOqh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2023 10:46:37 -0400
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2058.outbound.protection.outlook.com [40.107.102.58])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8808E9C;
-        Mon,  5 Jun 2023 07:46:36 -0700 (PDT)
+        with ESMTP id S233190AbjFEPNL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2023 11:13:11 -0400
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2078.outbound.protection.outlook.com [40.107.220.78])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA1AB19BF;
+        Mon,  5 Jun 2023 08:12:27 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ZuvwR0vx/iwc5OShzZRIfE9DOQIvkrcb0brwqjp/7oUZJMTcKrTGwgDIdNTPPptl45TpfUwO0CxoNrpBO2qNi3LcKXzU9tHWwDbjJpWLldk4KQrKKDvelnw+5Gzlx5o7djVhOnBNT+lpGyKRMv9zpIB6LVzPeD1qGE4x0ju90xz2jRyKka9ylWeCsKU4pVAkHDEK3bQaVkxrNyD4Ia5ghc4GqFPIj3EH5BMOsO+8XlCJd64IO0it6f0CqRzjoPbqc9OlLk6YHpLUo+5LSgDucqfyz7JI3VtsU9GApi5+stTOO/l5qdj/cv0A07AD4bsIi8EDeuhX0o9lKM1lZgjWCQ==
+ b=GUzQatWOIBafNen1TbSzfE89iblQgK+KlDUx4DJG7D6VVlQdyOqO9JlFhxjmOB9PQ0/yER3Bc6MG9RoJQ0aBHxhhJcR+HK35OIRW9qBx3yuLof92yfI5GvgFykFef8/Nm5fu3Jdwd11U1+xiLn7YEa7eg8zFISbtPZPuy8x7xem3Z5PjJKktnalNHYhqfjg+V9c/YG271dXOsrJxmf6pM1vBfLBXaV0aHM+miC8Gk23CxbKI+C6ahCx82pNqGh+92UH0MSmfhMbi0iSPZerSHxSqJaemY4DnbonlFfqNus6FvIuFqQYd8Y2TBRpamo3oQutrs9PLFXNISs64c0nGNQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=dizmnCaZ5xgwzmAAPkwbpTO1h3wUBXi3MtQmW2f3MAc=;
- b=GP41KxRiD8zzdBkDNQsulaqZZiKGF9m6yc0g0xjPpvumTAF/QNbPdIkAgerhnjLQ1zA80b9sr7IP/v57adiBJxqCqiYQqtI1HWSjGb9qZA4XBswOZuGhOq5G9/6EXhAro+XowUQM3x/Hjzo6Cw5BGyWJfS3k5Kcg09GHRA/1dfaKX3uC3EHYnWwipv+vPW3PxevwbmLZkDhfBXv86jzuPSm2qc5wLe6OI+nhZiSkQRc6dkahspG4NP6dWDsrZfmTOSxoV0AEDsRgraEJinhf/8j2sXiKd6ijweOZXNcER8vIasQg5znEFvVIrBhqHrlMR3pz0Zp0QcqWVdZ1JgN+hg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
+ bh=l+09+kDNMWYV43WnV3d+/pfY/d0oRazO3wK43obyAVA=;
+ b=ceY5rZyyds3XEIJ+KIBNYxzyCrBcQlG4Oz6almazb6XyPl/w8evQxMIWF5dGDN7/s1mpzPH2ymL07iF1dI9HMWdym+nCOWJlThcoazRfmLfb8gDVGW9fJeH3EzGhU7dNroZJc/3SRZkoAjcbDaxSdzf+4DCg/VHi63sdObChlMO/c1wzuY667/asneKdxngR9ZD6IeFaMmciqPL+4sCZ/baiJMvKixT3BoVDJmOb87GKUCY2QPfI86czkV6eAtKYpw9KnxYnkVV5dF5qIAidPNjyP0A2f3pecBa+1+zJ8IUUVMlGBxShigJWCgHE+DFdAYiJISCnxb5hkFVnmibDXQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=linux.intel.com smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dizmnCaZ5xgwzmAAPkwbpTO1h3wUBXi3MtQmW2f3MAc=;
- b=5aAfx5UvpeJG2wmsHlCOd1M3c35ZsXtyZoqYcpd+MrePwwh2JHSHuqwBHykEw1PqHhL1345MTiF0l+Y2cDaLWijKodgQkjSt4Zp5P0l51uYXl0hWlMPs/Oq1Rc4baXrvbduDKBhZt3UdJHqfPWgeXi9cCtNR3OS5wa5g2IyLmSA=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from MN0PR12MB6101.namprd12.prod.outlook.com (2603:10b6:208:3cb::10)
- by PH0PR12MB7983.namprd12.prod.outlook.com (2603:10b6:510:28e::8) with
+ bh=l+09+kDNMWYV43WnV3d+/pfY/d0oRazO3wK43obyAVA=;
+ b=xqxDRQKXe+Ej3y/hVEMEu6mKKJ2872l+glt4JGk2gw6Ld616Yesnz5kzTYaeIP+k2iHad0ishjyzUMWKk4a/8YbhWM6twxTJPYATC3ZqkTs2RzGHM7WYWlDXriC3MguLxA+WJT3YnKUm1ASXnfeOY55Dtjldty8HQlFp8ngGCX8=
+Received: from BN0PR10CA0012.namprd10.prod.outlook.com (2603:10b6:408:143::10)
+ by IA0PR12MB8975.namprd12.prod.outlook.com (2603:10b6:208:48f::11) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6455.33; Mon, 5 Jun
- 2023 14:46:34 +0000
-Received: from MN0PR12MB6101.namprd12.prod.outlook.com
- ([fe80::43b2:55d7:9958:390e]) by MN0PR12MB6101.namprd12.prod.outlook.com
- ([fe80::43b2:55d7:9958:390e%5]) with mapi id 15.20.6455.030; Mon, 5 Jun 2023
- 14:46:33 +0000
-Message-ID: <9d420293-f5af-7563-e7ec-1e42bd69bb8e@amd.com>
-Date:   Mon, 5 Jun 2023 09:46:31 -0500
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.1
-Subject: Re: [PATCH v3] ACPI: resource: Remove "Zen" specific match and quirks
-Content-Language: en-US
-To:     Chuanhong Guo <gch981213@gmail.com>
-Cc:     linux-acpi@vger.kernel.org, rafael@kernel.org,
-        linux-kernel@vger.kernel.org, ofenfisch@googlemail.com,
-        wse@tuxedocomputers.com, adam.niederer@gmail.com, adrian@freund.io,
-        jirislaby@kernel.org, Renjith.Pananchikkal@amd.com,
-        anson.tsao@amd.com, Richard.Gong@amd.com, evilsnoo@proton.me,
-        ruinairas1992@gmail.com, nmschulte@gmail.com
-References: <20230601221151.670-1-mario.limonciello@amd.com>
- <CAJsYDVKoB1AEL47Ud+8jbxMrbZedM0i9p44-PLQTFR9PKLfy6A@mail.gmail.com>
-From:   "Limonciello, Mario" <mario.limonciello@amd.com>
-In-Reply-To: <CAJsYDVKoB1AEL47Ud+8jbxMrbZedM0i9p44-PLQTFR9PKLfy6A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SN1PR12CA0054.namprd12.prod.outlook.com
- (2603:10b6:802:20::25) To MN0PR12MB6101.namprd12.prod.outlook.com
- (2603:10b6:208:3cb::10)
+ 2023 15:12:05 +0000
+Received: from BN8NAM11FT007.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:143:cafe::92) by BN0PR10CA0012.outlook.office365.com
+ (2603:10b6:408:143::10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6455.33 via Frontend
+ Transport; Mon, 5 Jun 2023 15:12:05 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ BN8NAM11FT007.mail.protection.outlook.com (10.13.177.109) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6455.33 via Frontend Transport; Mon, 5 Jun 2023 15:12:05 +0000
+Received: from SITE-L-T34-2.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Mon, 5 Jun
+ 2023 10:12:03 -0500
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     Huang Rui <ray.huang@amd.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+CC:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Robert Moore <robert.moore@intel.com>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-pm@vger.kernel.org>, <devel@acpica.org>,
+        Gautham Ranjal Shenoy <gautham.shenoy@amd.com>,
+        "Wyes Karny" <Wyes.Karny@amd.com>, Perry Yuan <perry.yuan@amd.com>,
+        "Mario Limonciello" <mario.limonciello@amd.com>
+Subject: [PATCH 1/4] ACPI: CPPC: Add a symbol to check if the preferred profile is a server
+Date:   Mon, 5 Jun 2023 10:11:30 -0500
+Message-ID: <20230605151133.2615-2-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230605151133.2615-1-mario.limonciello@amd.com>
+References: <20230605151133.2615-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN0PR12MB6101:EE_|PH0PR12MB7983:EE_
-X-MS-Office365-Filtering-Correlation-Id: aeb979dd-1dfe-4192-4dbc-08db65d3a818
+X-MS-TrafficTypeDiagnostic: BN8NAM11FT007:EE_|IA0PR12MB8975:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7700be57-2833-4ef4-5da2-08db65d7390d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 4KM/gzkgB1Jypi8jt3jcZmDmvAMcZIT+2FIUY/qmlQsCnaZukTFmorPaGLjR2YAQGoGPGejXFwAYYzkmKz3bDSQbLTY8YgiiAJ00fx9/LK9GH0t4jvNYSeCqwSu82i+24SRyQFnQyChcETC4bqSk22V1tNeLNpC99/aUgTmkwbLEDdhKTt02BTCvPKHbR/NpML6Bx2REuPs/pLMy3Frr9stIPeaNWJt2us99KURwrX0AjBM9KI0FOt+w4/NQhtwnhwYQQ6AxbKs2tgd5QGro8ba/lsAwwRgSOPX2KQ7pLzsfdj7jZKYT9m17iYhb2rgupLnMWWDwQv3sQYAq6CkU3LIsODe4pRIcG5ooFXAeI25V5CzWjl2lm7ZEdGNd28UWeNE2lMk3qZnGwzO+9r0hTxcCmfATD8yUrY7wBXJ0YzEMipUaLX/9TzYcByeD269sPRAvkJlejh7zvNEXXmenhtr3lXkDW6QiTRMmOGRM0ozGlunTXET0AN3T1ZF8l9Cwljr3FI0RzF5/s1WLjh5VlhZnQrHzg+0MMZdmfGgtlnyuKCNzQ5eJGAi89cNFJ2it1vfTWablKgndJwCEkBW5kt/HYGSt2tVITo7mutk1CXdnk9fkE3Dt8rdqtjRBuikAdC1pUZQyh6xhWFlUlVVfzA==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6101.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(366004)(39860400002)(136003)(376002)(396003)(346002)(451199021)(83380400001)(38100700002)(86362001)(31696002)(478600001)(6486002)(966005)(5660300002)(8676002)(8936002)(7416002)(66476007)(66556008)(66946007)(6916009)(4326008)(2906002)(316002)(41300700001)(31686004)(2616005)(26005)(6512007)(53546011)(6506007)(36756003)(186003)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?RGJ1RGVDYi9SY1N2Z2R3akNLYWtNSUtBS3RJcEc3a0NGK3lkUW9taXFWdGhr?=
- =?utf-8?B?MWFzRVp0dUxEaEUwR3Y1YUtaeFpYT1RrdEozNzZoTWFXUHVvbnphRW9CWkpY?=
- =?utf-8?B?TldialVEWDFldlFSc2s1c0t3SUJjdm9PUDFnSUtGMVlwUUhJcFZQa2gzZmVV?=
- =?utf-8?B?cDMxYmZTVy9EV1dLNmFGeWZ6UC9aK3NHaU16ZWtta2N6YWpwNzB0Q0QyTzNZ?=
- =?utf-8?B?U2NLUWIvYTFQb3FNQXZDWTVvYWZqV3RFck9JcG1pMTJGa3g0Y2pwbnBjUTFX?=
- =?utf-8?B?NFZzSXZPckhVTHVqK1VlSjBPckJGcnB4MXBJYi9xbjNqYUVCMzJMU1lybzl6?=
- =?utf-8?B?aUoxWktSRGRyZmVlcDdKQTBzMy9tbGJnNkkxVC9uKzRDck5ncGNSWHFiUnY1?=
- =?utf-8?B?UnBZVE9zamFvZmxUdFhFK0VhZzhHRWtjRkY0dzU1UWN0Q0dRdjEwTVNlUk9E?=
- =?utf-8?B?M3lhOFhCN0RXYTdEN05UVWovRnBmTGNkaE9kS1FNQ0VQUGZOSzZERkc4MUZp?=
- =?utf-8?B?by9zOGhSa0JURjBXSXViYWJ2eUJvZk5NSThjSTBCQnlqcUJZcGhnKzU2V1l6?=
- =?utf-8?B?Z0Ezcis1SEsyRm1HUkRRQjhhODNyOFhzSGZZMnZTVWNSVEk5dUJ0QThYTFhz?=
- =?utf-8?B?TitMSW5XTm1IbzlQcnFNaVVRR2JnQlk4aWtZRU5hV25NY2lvYk1BWlRCNnI2?=
- =?utf-8?B?TXdXZFV6ZWZqcmF5NUZzNkk4ZVhzUUhzUTFXRW1DSGI3TDJ3MUZWeVRJOHRO?=
- =?utf-8?B?T2Vpd3pKbXZnM0Fhd2JKVXk0STJuTVRuc2JRYTNZMVpnbnE4TUVkVUZkOUFj?=
- =?utf-8?B?KytiRGN2UVF0Q2lleW5hV0l5c2hhMlFyd0tJMEFFL1FzN1VhSjliWHRHVEcw?=
- =?utf-8?B?c2dIZUVhM01GMG9mUkUzSzMzWHRLZy9vNjd1NDBaSTJMY3BsaFl0T3BrRjZh?=
- =?utf-8?B?Z3JXSUdjRU5pdnRHRUppb2RLVTF6VVhpTHo4UE5VYkdUNldSV3F4MUcyQmtz?=
- =?utf-8?B?WTc3UXdCZ1dJWERzb0hOeTArUm14aEZhVDFmNE90YWMweTJsamlvMkdPWWpH?=
- =?utf-8?B?aSs2eDVvWFNpNnhkVE1LMVVMNkZRNVJYbHFUNURqdGlVQlQrb3V2QVU0ZGlG?=
- =?utf-8?B?dFErekRvdDhoeW5TVWhhR2Z6S2Jka2xybW1VUC9Ud2dncFM3QU5NR0k1elJQ?=
- =?utf-8?B?NzZRcXE2djBwU21tNWtQN0NzVGdtYkNYcC9XZjk2YW9vTWZTbnVaT0J4TFY1?=
- =?utf-8?B?UTdMU2RUNnRaekYvUnY3Yy9CVWo2d09nQWpIbGpLWG9yNyt6eWY1d09ZNDVQ?=
- =?utf-8?B?dkNjN2x5NDZ0aEZmakduZGxZdVBpUEdHQzVQc2pXRkxucklFMENiV2wvL1JR?=
- =?utf-8?B?Z2oyRWRJckMvWHBqdEkxcWdIdHNJVkVuY0VVZE0zemtjVFJjRFA4ak5ERjR2?=
- =?utf-8?B?WlBPYWZxMU9qOUxsOFdZbjFzc2RNOVhZQUIwbXpIenVRdTRmYkZQTzcyaUlP?=
- =?utf-8?B?cUZsNTJHNHRweTZRWXhVUFFkVmhnY2ZLYVJUZzdUS0ttZUxMaTBpd2NNS0Fn?=
- =?utf-8?B?dlpkdWJkY3NFR1ZjU2dmeVdnd1J1NGc2YWxhRlhkNmQ4b0ZYRGJDRlc4b3FO?=
- =?utf-8?B?MDQrZVNDNTExeWE1UkR4a1R4TVJmQnpWR1QyMWVFQ2RnUmR3a0cxeWVVMHo5?=
- =?utf-8?B?alhSb2E4TUd1bjNGOFpPVnFqVnNYcmNTb0VEMGxFOVhHM1J3ZFhyUnZyOHlH?=
- =?utf-8?B?a1c0L2Jsb2NLVFU2WTN0Yy9MYjBTUVFPUXRGRXFWM2VZdTU4SkE0SEd1SnN1?=
- =?utf-8?B?VG1zbzhWbE95NHhLd1NJSXIzR2NMRWJmYnUyOGpsVGYvUlYyeFNIMWhZdStN?=
- =?utf-8?B?UVhJa3pUVlluYUljWG42Z0p5Vks5SHNQSFFpQSsxL3Q4Mk95S3ljRStUalBa?=
- =?utf-8?B?NWloUW5SSmZVYjFWTWo3clZTQmZBNklKNHFSR0s2OW40MGw0OXNGVUp4OU9o?=
- =?utf-8?B?bEVGRUo5Q2h3Y1JEUjBkU2M0VjBDRUZSTVZGYWQxQ1ptNHBGdzVvOE94VDNT?=
- =?utf-8?B?MWVValVYdk9ESjJqdUp6RXhobE1CS2ZZZzd3QU1OR1lNUGF1b2luMnE0eGFn?=
- =?utf-8?Q?zqqCOaZSuBlMT2Tf/i6Y3Mya5?=
+X-Microsoft-Antispam-Message-Info: kLDPJH4gA7haWpOtCF+VK0Tju/dt7u91pNi3jSDU4OtQNeGsctnegIKMM4MP9JOeykL83y2E64h1cNzbWslEmIu85YX78kawRviFKOUvw8q8pfF3mk5iO4ong7sHP+hnBr1Nr1AIb8uYYsDg4qFRC2soTOVl5smXcSLIfabeA2/BRz1geyCr2ehmVCa0DriRlohS1JV0Fq9e4rSaAZoij9i4oQIe8VC0+c+8qPXY/uek6mE2oHkKZpzNwEUdrRc0VE0DwIFmNTtqP3fgv3bh1rYVliXQsSFYrFT5k6nl5KtaCIkcAUlNhsnyNc2BGdqafV5dXVVGsoulWOO2mCbjcFD8BgIBVBJEkP0rC5jIy1S2GKvHA9f6rj8i2oxKUDapEnJ1Y7D++0HkPeap/mdoLY8elS0cNy3J1nALkq+vnINyTcUVfyYSPdPU8umwzIeols2SflfyVz+9WbAkIueF4Wnqbi2I6MIldSlq+XDroqTas2AVif0Cz7TFnogfjSL1AXqa0fyGLzWFOrlDs4+3m0OlnacoC+IQ+Gp33IApbtdva+0E2WwFXMkALJCk7XDobduVyDWDrN1EwD/5+fIjelj8q24BoKiFYmI8UdfHyuAjd0We7oxAKV2wZ4CanArEu1BERsAGPBBgLkn4RezBtVctw1K4sQ/Tp7vQW1Ghgs63nQnCoRYnI+pifqDdsNzagr/QKWOkLd/Mxj3Ie5rTHWqmTA6MadKqY5HB7wUy3nVW207Pkd6CQ00Oaq6ZftpKURWEFyWkHf88Wjo9HhH0Dg==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(396003)(39860400002)(136003)(346002)(376002)(451199021)(36840700001)(40470700004)(46966006)(7696005)(6666004)(82740400003)(2906002)(356005)(81166007)(70586007)(70206006)(36756003)(110136005)(54906003)(8936002)(5660300002)(44832011)(86362001)(8676002)(41300700001)(4326008)(40480700001)(316002)(478600001)(40460700003)(336012)(426003)(2616005)(966005)(26005)(1076003)(16526019)(186003)(36860700001)(82310400005)(83380400001)(47076005)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: aeb979dd-1dfe-4192-4dbc-08db65d3a818
-X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6101.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Jun 2023 14:46:33.7647
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Jun 2023 15:12:05.2139
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7700be57-2833-4ef4-5da2-08db65d7390d
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rEgKY5OMaVy7//LoUNMRmKOtqNNGM2DLTsyMsnZ5oatD3sKBQSo8Gy7cd3ccsv0eC1TyegMdG/nYlzrfofMy3w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7983
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT007.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8975
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+This symbol will be used by intel-pstate and amd-pstate for making
+decisions based on what the FADT indicates the system pm profile is.
 
-On 6/3/2023 5:19 AM, Chuanhong Guo wrote:
-> Hi!
->
-> On Fri, Jun 2, 2023 at 6:12 AM Mario Limonciello
-> <mario.limonciello@amd.com> wrote:
->> commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on
->> AMD Zen platforms") attempted to overhaul the override logic so it
->> didn't apply on X86 AMD Zen systems.  This was intentional so that
->> systems would prefer DSDT values instead of default MADT value for
->> IRQ 1 on Ryzen 6000 systems which typically uses ActiveLow for IRQ1.
->>
->> This turned out to be a bad assumption because several vendors
->> add Interrupt Source Override but don't fix the DSDT. A pile of
->> quirks was collecting that proved this wasn't sustaintable.
->>
->> Furthermore some vendors have used ActiveHigh for IRQ1.
->> To solve this problem revert the following commits:
->> * commit 17bb7046e7ce ("ACPI: resource: Do IRQ override on all TongFang
->> GMxRGxx")
->> * commit f3cb9b740869 ("ACPI: resource: do IRQ override on Lenovo 14ALC7")
->> * commit bfcdf58380b1 ("ACPI: resource: do IRQ override on LENOVO IdeaPad")
->> * commit 7592b79ba4a9 ("ACPI: resource: do IRQ override on XMG Core 15")
->> * commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen
->> platforms")
->>
->> Cc: ofenfisch@googlemail.com
->> Cc: wse@tuxedocomputers.com
->> Cc: adam.niederer@gmail.com
->> Cc: adrian@freund.io
->> Cc: jirislaby@kernel.org
->> Cc: Renjith.Pananchikkal@amd.com
->> Cc: anson.tsao@amd.com
->> Cc: Richard.Gong@amd.com
->> Cc: Chuanhong Guo <gch981213@gmail.com>
->> Reported-by: evilsnoo@proton.me
->> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217394
->> Reported-by: ruinairas1992@gmail.com
->> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217406
->> Reported-by: nmschulte@gmail.com
->> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217336
->> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
->> ---
->> v2->v3:
->>   * Adjust to drop heuristics entirely
->>   * Drop tested tags
->>   * Add more links and people to Cc
->>   * Drop Fixes tag as this got a lot more risky
->> v1->v2:
->>   * Rebase on 71a485624c4c ("ACPI: resource: Add IRQ override quirk for LG UltraPC 17U70P")
->>   * Pick up tag
->>
->> Rafael,
->> Please hold off on picking this up until the majority of those on CC
->> have tested it on hardware they have and reported results.
->>
->> Everyone else,
->> Please test. If you have problems with this applied, please share
->> an acpidump and dmesg either on a bug or to me privately.
-> I was expecting this patch to break my keyboard again but
-> that didn't happen. I'm on the latest UEFI from Lenovo.
-> By dumping ACPI APIC I found that there's this:
->
-> [0C4h 0196   1]                Subtable Type : 02 [Interrupt Source Override]
-> [0C5h 0197   1]                       Length : 0A
-> [0C6h 0198   1]                          Bus : 00
-> [0C7h 0199   1]                       Source : 01
-> [0C8h 0200   4]                    Interrupt : 00000001
-> [0CCh 0204   2]        Flags (decoded below) : 0007
->                                      Polarity : 3
->                                  Trigger Mode : 1
->
-> I don't have a dump of the ACPI table from older UEFIs anymore.
->
-> Tested on Lenovo Thinkbook 14G4+ ARA with the latest
-> UEFI (J6CN45WW).
->
-> Tested-by: Chuanhong Guo <gch981213@gmail.com>
-Thanks!  Yours is the one I was most worried about.
+Suggested-by: Gautham Ranjal Shenoy <gautham.shenoy@amd.com>
+Link: https://uefi.org/htmlspecs/ACPI_Spec_6_4_html/05_ACPI_Software_Programming_Model/ACPI_Software_Programming_Model.html#fixed-acpi-description-table-fadt
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ drivers/acpi/cppc_acpi.c | 34 ++++++++++++++++++++++++++++++++++
+ include/acpi/actbl.h     |  3 ++-
+ include/acpi/processor.h | 10 ++++++++++
+ 3 files changed, 46 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 7ff269a78c20..d8827eae3ba4 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -941,6 +941,40 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ }
+ EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+ 
++
++/**
++ * acpi_pm_profile_server() - Check if the system is a server.
++ *
++ * Return: true for server profiles, false for anything else
++ */
++bool acpi_pm_profile_server(void)
++{
++	switch (acpi_gbl_FADT.preferred_profile) {
++	case PM_ENTERPRISE_SERVER:
++	case PM_SOHO_SERVER:
++	case PM_PERFORMANCE_SERVER:
++		return true;
++	}
++	return false;
++}
++EXPORT_SYMBOL_GPL(acpi_pm_profile_server);
++
++/**
++ * acpi_pm_profile_undefined() - Check if the system is an undefined pm profile.
++ *
++ * Return: true for undefined profiles, false for anything else
++ */
++bool acpi_pm_profile_undefined(void)
++{
++	if (acpi_gbl_FADT.preferred_profile == PM_UNSPECIFIED)
++		return true;
++	if (acpi_gbl_FADT.preferred_profile >= NR_PM_PROFILES)
++		return true;
++	return false;
++}
++EXPORT_SYMBOL_GPL(acpi_pm_profile_undefined);
++
++
+ /**
+  * cpc_read_ffh() - Read FFH register
+  * @cpunum:	CPU number to read
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index e5dfb6f4de52..451f6276da49 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -307,7 +307,8 @@ enum acpi_preferred_pm_profiles {
+ 	PM_SOHO_SERVER = 5,
+ 	PM_APPLIANCE_PC = 6,
+ 	PM_PERFORMANCE_SERVER = 7,
+-	PM_TABLET = 8
++	PM_TABLET = 8,
++	NR_PM_PROFILES = 9
+ };
+ 
+ /* Values for sleep_status and sleep_control registers (V5+ FADT) */
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 94181fe9780a..05a45ebddaea 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -360,6 +360,8 @@ int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
+ #ifdef CONFIG_ACPI_CPPC_LIB
+ extern int acpi_cppc_processor_probe(struct acpi_processor *pr);
+ extern void acpi_cppc_processor_exit(struct acpi_processor *pr);
++extern bool acpi_pm_profile_server(void);
++extern bool acpi_pm_profile_undefined(void);
+ #else
+ static inline int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ {
+@@ -369,6 +371,14 @@ static inline void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ {
+ 	return;
+ }
++static inline bool acpi_pm_profile_server(void)
++{
++	return false;
++}
++static inline bool acpi_pm_profile_undefined(void)
++{
++	return true;
++}
+ #endif	/* CONFIG_ACPI_CPPC_LIB */
+ 
+ /* in processor_pdc.c */
+-- 
+2.34.1
+
