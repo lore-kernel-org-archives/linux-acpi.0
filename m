@@ -2,176 +2,277 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D7D8C7EE37
-	for <linux-acpi@archiver.kernel.org>; Tue,  6 Jun 2023 07:46:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF3BC7EE24
+	for <linux-acpi@archiver.kernel.org>; Tue,  6 Jun 2023 09:35:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236529AbjFFHqa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 6 Jun 2023 03:46:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51210 "EHLO
+        id S235266AbjFFJfo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 6 Jun 2023 05:35:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237056AbjFFHpH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2023 03:45:07 -0400
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A56A91984;
-        Tue,  6 Jun 2023 00:42:52 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=25;SR=0;TI=SMTPD_---0VkVSyCt_1686037366;
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0VkVSyCt_1686037366)
-          by smtp.aliyun-inc.com;
-          Tue, 06 Jun 2023 15:42:47 +0800
-From:   Shuai Xue <xueshuai@linux.alibaba.com>
-To:     rafael@kernel.org, wangkefeng.wang@huawei.com,
-        tanxiaofei@huawei.com, mawupeng1@huawei.com, tony.luck@intel.com,
-        naoya.horiguchi@nec.com
-Cc:     linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, xueshuai@linux.alibaba.com,
-        justin.he@arm.com, akpm@linux-foundation.org, ardb@kernel.org,
-        ashish.kalra@amd.com, baolin.wang@linux.alibaba.com, bp@alien8.de,
-        cuibixuan@linux.alibaba.com, dave.hansen@linux.intel.com,
-        james.morse@arm.com, jarkko@kernel.org, lenb@kernel.org,
-        linmiaohe@huawei.com, lvying6@huawei.com, xiexiuqi@huawei.com,
-        zhuo.song@linux.alibaba.com
-Subject: [RESEND PATCH v7 1/2] ACPI: APEI: set memory failure flags as MF_ACTION_REQUIRED on synchronous events
-Date:   Tue,  6 Jun 2023 15:42:37 +0800
-Message-Id: <20230606074238.97166-2-xueshuai@linux.alibaba.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230606074238.97166-1-xueshuai@linux.alibaba.com>
-References: <20230606074238.97166-1-xueshuai@linux.alibaba.com>
+        with ESMTP id S236615AbjFFJfh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2023 05:35:37 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A9202E4F
+        for <linux-acpi@vger.kernel.org>; Tue,  6 Jun 2023 02:35:35 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 70F352F4;
+        Tue,  6 Jun 2023 02:36:20 -0700 (PDT)
+Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id D8DCD3F587;
+        Tue,  6 Jun 2023 02:35:33 -0700 (PDT)
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc:     Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH v2] ACPI: bus: Consolidate all arm specific initialisation into acpi_arm_init()
+Date:   Tue,  6 Jun 2023 10:35:31 +0100
+Message-Id: <20230606093531.2746732-1-sudeep.holla@arm.com>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-There are two major types of uncorrected recoverable (UCR) errors :
+Move all of the ARM-specific initialization into one function namely
+acpi_arm_init(), so it is not necessary to modify/update bus.c every
+time a new piece of it is added.
 
-- Action Required (AR): The error is detected and the processor already
-  consumes the memory. OS requires to take action (for example, offline
-  failure page/kill failure thread) to recover this uncorrectable error.
-
-- Action Optional (AO): The error is detected out of processor execution
-  context. Some data in the memory are corrupted. But the data have not
-  been consumed. OS is optional to take action to recover this
-  uncorrectable error.
-
-The essential difference between AR and AO errors is that AR is a
-synchronous event, while AO is an asynchronous event. The hardware will
-signal a synchronous exception (Machine Check Exception on X86 and
-Synchronous External Abort on Arm64) when an error is detected and the
-memory access has been architecturally executed.
-
-When APEI firmware first is enabled, a platform may describe one error
-source for the handling of synchronous errors (e.g. MCE or SEA notification
-), or for handling asynchronous errors (e.g. SCI or External Interrupt
-notification). In other words, we can distinguish synchronous errors by
-APEI notification. For AR errors, kernel will kill current process
-accessing the poisoned page by sending SIGBUS with BUS_MCEERR_AR. In
-addition, for AO errors, kernel will notify the process who owns the
-poisoned page by sending SIGBUS with BUS_MCEERR_AO in early kill mode.
-However, the GHES driver always sets mf_flags to 0 so that all UCR errors
-are handled as AO errors in memory failure.
-
-To this end, set memory failure flags as MF_ACTION_REQUIRED on synchronous
-events.
-
-Fixes: ba61ca4aab47 ("ACPI, APEI, GHES: Add hardware memory error recovery support")'
-Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
-Tested-by: Ma Wupeng <mawupeng1@huawei.com>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Xiaofei Tan <tanxiaofei@huawei.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Link: https://lore.kernel.org/r/CAJZ5v0iBZRZmV_oU+VurqxnVMbFN_ttqrL=cLh0sUH+=u0PYsw@mail.gmail.com
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/acpi/apei/ghes.c | 29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ drivers/acpi/arm64/Makefile |  2 +-
+ drivers/acpi/arm64/agdi.c   |  2 +-
+ drivers/acpi/arm64/apmt.c   |  2 +-
+ drivers/acpi/arm64/init.c   | 13 +++++++++++++
+ drivers/acpi/arm64/init.h   |  6 ++++++
+ drivers/acpi/arm64/iort.c   |  1 +
+ drivers/acpi/bus.c          |  7 +------
+ include/linux/acpi.h        |  6 ++++++
+ include/linux/acpi_agdi.h   | 13 -------------
+ include/linux/acpi_apmt.h   | 19 -------------------
+ include/linux/acpi_iort.h   |  2 --
+ 11 files changed, 30 insertions(+), 43 deletions(-)
+ create mode 100644 drivers/acpi/arm64/init.c
+ create mode 100644 drivers/acpi/arm64/init.h
+ delete mode 100644 include/linux/acpi_agdi.h
+ delete mode 100644 include/linux/acpi_apmt.h
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 34ad071a64e9..c479b85899f5 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -101,6 +101,20 @@ static inline bool is_hest_type_generic_v2(struct ghes *ghes)
- 	return ghes->generic->header.type == ACPI_HEST_TYPE_GENERIC_ERROR_V2;
- }
- 
-+/*
-+ * A platform may describe one error source for the handling of synchronous
-+ * errors (e.g. MCE or SEA), or for handling asynchronous errors (e.g. SCI
-+ * or External Interrupt). On x86, the HEST notifications are always
-+ * asynchronous, so only SEA on ARM is delivered as a synchronous
-+ * notification.
-+ */
-+static inline bool is_hest_sync_notify(struct ghes *ghes)
+v1[1]->v2:
+	- Used IS_ENABLED and made the init functions' declarations
+	  unconditional
+	- Added review tags
+
+[1] https://lore.kernel.org/all/20230605103550.2427459-1-sudeep.holla@arm.com
+
+diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+index e21a9e84e394..f81fe24894b2 100644
+--- a/drivers/acpi/arm64/Makefile
++++ b/drivers/acpi/arm64/Makefile
+@@ -3,4 +3,4 @@ obj-$(CONFIG_ACPI_AGDI) 	+= agdi.o
+ obj-$(CONFIG_ACPI_IORT) 	+= iort.o
+ obj-$(CONFIG_ACPI_GTDT) 	+= gtdt.o
+ obj-$(CONFIG_ACPI_APMT) 	+= apmt.o
+-obj-y				+= dma.o
++obj-y				+= dma.o init.o
+diff --git a/drivers/acpi/arm64/agdi.c b/drivers/acpi/arm64/agdi.c
+index f605302395c3..8b3c7d42b41b 100644
+--- a/drivers/acpi/arm64/agdi.c
++++ b/drivers/acpi/arm64/agdi.c
+@@ -9,11 +9,11 @@
+ #define pr_fmt(fmt) "ACPI: AGDI: " fmt
+
+ #include <linux/acpi.h>
+-#include <linux/acpi_agdi.h>
+ #include <linux/arm_sdei.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
++#include "init.h"
+
+ struct agdi_data {
+ 	int sdei_event;
+diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
+index 8cab69fa5d59..e5c3bc99fc79 100644
+--- a/drivers/acpi/arm64/apmt.c
++++ b/drivers/acpi/arm64/apmt.c
+@@ -10,10 +10,10 @@
+ #define pr_fmt(fmt)	"ACPI: APMT: " fmt
+
+ #include <linux/acpi.h>
+-#include <linux/acpi_apmt.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
++#include "init.h"
+
+ #define DEV_NAME "arm-cs-arch-pmu"
+
+diff --git a/drivers/acpi/arm64/init.c b/drivers/acpi/arm64/init.c
+new file mode 100644
+index 000000000000..d3ce53dda122
+--- /dev/null
++++ b/drivers/acpi/arm64/init.c
+@@ -0,0 +1,13 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/acpi.h>
++#include "init.h"
++
++void __init acpi_arm_init(void)
 +{
-+	u8 notify_type = ghes->generic->notify.type;
-+
-+	return notify_type == ACPI_HEST_NOTIFY_SEA;
++	if (IS_ENABLED(CONFIG_ACPI_AGDI))
++		acpi_agdi_init();
++	if (IS_ENABLED(CONFIG_ACPI_APMT))
++		acpi_apmt_init();
++	if (IS_ENABLED(CONFIG_ACPI_IORT))
++		acpi_iort_init();
 +}
+diff --git a/drivers/acpi/arm64/init.h b/drivers/acpi/arm64/init.h
+new file mode 100644
+index 000000000000..a1715a2a34e9
+--- /dev/null
++++ b/drivers/acpi/arm64/init.h
+@@ -0,0 +1,6 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#include <linux/init.h>
 +
- /*
-  * This driver isn't really modular, however for the time being,
-  * continuing to use module_param is the easiest way to remain
-@@ -477,7 +491,7 @@ static bool ghes_do_memory_failure(u64 physical_addr, int flags)
++void __init acpi_agdi_init(void);
++void __init acpi_apmt_init(void);
++void __init acpi_iort_init(void);
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 38fb84974f35..3631230a61c8 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -19,6 +19,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/dma-map-ops.h>
++#include "init.h"
+
+ #define IORT_TYPE_MASK(type)	(1 << (type))
+ #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index d161ff707de4..7a1eaf8c7bde 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -26,9 +26,6 @@
+ #include <asm/mpspec.h>
+ #include <linux/dmi.h>
+ #endif
+-#include <linux/acpi_agdi.h>
+-#include <linux/acpi_apmt.h>
+-#include <linux/acpi_iort.h>
+ #include <linux/acpi_viot.h>
+ #include <linux/pci.h>
+ #include <acpi/apei.h>
+@@ -1408,7 +1405,7 @@ static int __init acpi_init(void)
+ 	acpi_init_ffh();
+
+ 	pci_mmcfg_late_init();
+-	acpi_iort_init();
++	acpi_arm_init();
+ 	acpi_viot_early_init();
+ 	acpi_hest_init();
+ 	acpi_ghes_init();
+@@ -1420,8 +1417,6 @@ static int __init acpi_init(void)
+ 	acpi_debugger_init();
+ 	acpi_setup_sb_notify_handler();
+ 	acpi_viot_init();
+-	acpi_agdi_init();
+-	acpi_apmt_init();
+ 	return 0;
  }
- 
- static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
--				       int sev)
-+				       int sev, bool sync)
- {
- 	int flags = -1;
- 	int sec_sev = ghes_severity(gdata->error_severity);
-@@ -491,7 +505,7 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
- 	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
- 		flags = MF_SOFT_OFFLINE;
- 	if (sev == GHES_SEV_RECOVERABLE && sec_sev == GHES_SEV_RECOVERABLE)
--		flags = 0;
-+		flags = sync ? MF_ACTION_REQUIRED : 0;
- 
- 	if (flags != -1)
- 		return ghes_do_memory_failure(mem_err->physical_addr, flags);
-@@ -499,9 +513,11 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
- 	return false;
+
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 7b71dd74baeb..5ef126a0a50f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1507,6 +1507,12 @@ static inline int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
  }
- 
--static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata, int sev)
-+static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
-+				       int sev, bool sync)
- {
- 	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
-+	int flags = sync ? MF_ACTION_REQUIRED : 0;
- 	bool queued = false;
- 	int sec_sev, i;
- 	char *p;
-@@ -526,7 +542,7 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata, int s
- 		 * and don't filter out 'corrected' error here.
- 		 */
- 		if (is_cache && has_pa) {
--			queued = ghes_do_memory_failure(err_info->physical_fault_addr, 0);
-+			queued = ghes_do_memory_failure(err_info->physical_fault_addr, flags);
- 			p += err_info->length;
- 			continue;
- 		}
-@@ -647,6 +663,7 @@ static bool ghes_do_proc(struct ghes *ghes,
- 	const guid_t *fru_id = &guid_null;
- 	char *fru_text = "";
- 	bool queued = false;
-+	bool sync = is_hest_sync_notify(ghes);
- 
- 	sev = ghes_severity(estatus->error_severity);
- 	apei_estatus_for_each_section(estatus, gdata) {
-@@ -664,13 +681,13 @@ static bool ghes_do_proc(struct ghes *ghes,
- 			atomic_notifier_call_chain(&ghes_report_chain, sev, mem_err);
- 
- 			arch_apei_report_mem_error(sev, mem_err);
--			queued = ghes_handle_memory_failure(gdata, sev);
-+			queued = ghes_handle_memory_failure(gdata, sev, sync);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
--			queued = ghes_handle_arm_hw_error(gdata, sev);
-+			queued = ghes_handle_arm_hw_error(gdata, sev, sync);
- 		} else {
- 			void *err = acpi_hest_get_payload(gdata);
- 
--- 
-2.20.1.12.g72788fdb
+ #endif
+
++#ifdef CONFIG_ARM64
++void acpi_arm_init(void);
++#else
++static inline void acpi_arm_init(void) { }
++#endif
++
+ #ifdef CONFIG_ACPI_PCC
+ void acpi_init_pcc(void);
+ #else
+diff --git a/include/linux/acpi_agdi.h b/include/linux/acpi_agdi.h
+deleted file mode 100644
+index f477f0b452fa..000000000000
+--- a/include/linux/acpi_agdi.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-
+-#ifndef __ACPI_AGDI_H__
+-#define __ACPI_AGDI_H__
+-
+-#include <linux/acpi.h>
+-
+-#ifdef CONFIG_ACPI_AGDI
+-void __init acpi_agdi_init(void);
+-#else
+-static inline void acpi_agdi_init(void) {}
+-#endif
+-#endif /* __ACPI_AGDI_H__ */
+diff --git a/include/linux/acpi_apmt.h b/include/linux/acpi_apmt.h
+deleted file mode 100644
+index 40bd634d082f..000000000000
+--- a/include/linux/acpi_apmt.h
++++ /dev/null
+@@ -1,19 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0
+- *
+- * ARM CoreSight PMU driver.
+- * Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES.
+- *
+- */
+-
+-#ifndef __ACPI_APMT_H__
+-#define __ACPI_APMT_H__
+-
+-#include <linux/acpi.h>
+-
+-#ifdef CONFIG_ACPI_APMT
+-void acpi_apmt_init(void);
+-#else
+-static inline void acpi_apmt_init(void) { }
+-#endif /* CONFIG_ACPI_APMT */
+-
+-#endif /* __ACPI_APMT_H__ */
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index b43be0987b19..e4e7bb6fa720 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -27,7 +27,6 @@ int iort_register_domain_token(int trans_id, phys_addr_t base,
+ void iort_deregister_domain_token(int trans_id);
+ struct fwnode_handle *iort_find_domain_token(int trans_id);
+ #ifdef CONFIG_ACPI_IORT
+-void acpi_iort_init(void);
+ u32 iort_msi_map_id(struct device *dev, u32 id);
+ struct irq_domain *iort_get_device_domain(struct device *dev, u32 id,
+ 					  enum irq_domain_bus_token bus_token);
+@@ -43,7 +42,6 @@ int iort_iommu_configure_id(struct device *dev, const u32 *id_in);
+ void iort_iommu_get_resv_regions(struct device *dev, struct list_head *head);
+ phys_addr_t acpi_iort_dma_get_max_cpu_address(void);
+ #else
+-static inline void acpi_iort_init(void) { }
+ static inline u32 iort_msi_map_id(struct device *dev, u32 id)
+ { return id; }
+ static inline struct irq_domain *iort_get_device_domain(
+--
+2.40.1
 
