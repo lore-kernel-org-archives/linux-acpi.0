@@ -2,90 +2,79 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B370FC77B7A
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Jun 2023 11:20:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EBDDC77B7A
+	for <linux-acpi@archiver.kernel.org>; Wed,  7 Jun 2023 11:20:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239459AbjFGLUC convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Jun 2023 07:20:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54674 "EHLO
+        id S240288AbjFGLUn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Jun 2023 07:20:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235315AbjFGLT6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2023 07:19:58 -0400
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BE41E6C;
-        Wed,  7 Jun 2023 04:19:57 -0700 (PDT)
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-977c8baa86fso127275466b.0;
-        Wed, 07 Jun 2023 04:19:57 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686136796; x=1688728796;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=vyfFJWQd9X29oCetBrv8kPxo6ktxzcpnkHRc+KxeSac=;
-        b=kMqZ2cN/QSFpaF8Qj6aGCMKBbhlYweDJgV1g0EH470pia2YdNMpHfOCRgIap9jyt6c
-         CoAbexsfGnMbsyNrKyFsohq6nyFbEKpUhZpp7RFwHjB/S7/o6spa1RCmntfvGVTV/QaG
-         4p2vGmSPozHUEORBtpHNghAIMNhexrGjNN4eip5LwMwgkuAOFLMkpgipu8YQiuLycQcY
-         gi/zJrC0A5I30zYSz3NqltKXqX4DsrTkwdnKVDh+FmJ2f6RitaX+zZPTaZBBmP6sXJS6
-         IsJ6voTK0sbyw4sP1bZZ1J43J1i2AD+03fe9LP9+9c57oBGJqbOBVV6OMYKmpcMWkAYh
-         Fk9Q==
-X-Gm-Message-State: AC+VfDxHFdo3qQnXjVuU0Ho6/vkZiOywT3xm1obxICTuMHu6Lqna7xHx
-        zIGN9kYUEB/J1JQtk3SW1fylfvUmWCA620V8qe4=
-X-Google-Smtp-Source: ACHHUZ6uB7lkwk0D1ggcEOKYyDgmBy+aW7rS19enPdaJbtrzImYvFeTsyk4SvxyDn9ZYhwpsacXs6kVJ97t/mKzLks8=
-X-Received: by 2002:a17:906:73cc:b0:977:cc87:62b5 with SMTP id
- n12-20020a17090673cc00b00977cc8762b5mr1374862ejl.4.1686136795531; Wed, 07 Jun
- 2023 04:19:55 -0700 (PDT)
+        with ESMTP id S240310AbjFGLUj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2023 07:20:39 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04DFE198B;
+        Wed,  7 Jun 2023 04:20:24 -0700 (PDT)
+Received: from dggpemm500002.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Qbkv7693fzTkyq;
+        Wed,  7 Jun 2023 19:02:11 +0800 (CST)
+Received: from [10.174.178.247] (10.174.178.247) by
+ dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Wed, 7 Jun 2023 19:02:32 +0800
+Subject: Re: [PATCH 0/3 v2] Update ACPI documentation for Arm systems
+To:     Jose Marinho <jose.marinho@arm.com>
+CC:     Catalin Marinas <catalin.marinas@arm.com>,
+        Jeremy Linton <Jeremy.Linton@arm.com>,
+        James Morse <James.Morse@arm.com>,
+        Rob Herring <Rob.Herring@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-doc@vger.kernel.org>, <linux-acpi@vger.kernel.org>
+References: <20230606093528.1494344-1-jose.marinho@arm.com>
+From:   Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <ea79719a-d210-517e-f781-7d54e1a6b0ed@huawei.com>
+Date:   Wed, 7 Jun 2023 19:02:31 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-References: <20230607034403.2885-1-james.liu@hpe.com>
-In-Reply-To: <20230607034403.2885-1-james.liu@hpe.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 7 Jun 2023 13:19:42 +0200
-Message-ID: <CAJZ5v0hTsEzFKvRf-MHpUxyJdFDUqc2ZL63s6BkyJyFtEzxvhw@mail.gmail.com>
-Subject: Re: [PATCH v1] ACPI: reboot: Increase the delay to avoid racing after
- writing to ACPI RESET_REG on AMD Milan platforms.
-To:     James Liu <james.liu@hpe.com>
-Cc:     rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, hpelk@lists.osp.hpe.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20230606093528.1494344-1-jose.marinho@arm.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.178.247]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggpemm500002.china.huawei.com (7.185.36.229)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Jun 7, 2023 at 5:44 AM James Liu <james.liu@hpe.com> wrote:
->
-> For AMD Milan platforms, the delay of 15ms is insufficient to avoid racing
-> of reboot mechanisms. That said, the AMD Milan processors don't reboot
-> in 15ms after invoking acpi_reset().
->
-> The proposed 50ms delay can effectively work around this issue.
-> This extended delay aligns better with ACPI v6.4 (i.e., sec. 4.8.4.6),
-> which indicates that ideally OSPM should execute spin loops on the CPUs
-> in the system following a write to this register.
->
-> Signed-off-by: James Liu <james.liu@hpe.com>
+On 2023/6/6 17:35, Jose Marinho wrote:
+> This set of patches updates the Linux kernel ACPI documentation for Arm
+> systems. The intent is to integrate the developments in the BBR
+> specification that happened over the last couple of years.
+> 
+> Cc: Catalin Marinas<catalin.marinas@arm.com>
+> Cc: Jeremy Linton<Jeremy.Linton@arm.com>
+> Cc: James Morse<James.Morse@arm.com>
+> Cc: Rob Herring<Rob.Herring@arm.com>
+> Cc: Will Deacon<will@kernel.org>
+> Cc: Jonathan Corbet<corbet@lwn.net>
+> Cc: Hanjun Guo<guohanjun@huawei.com>
+> Cc:linux-arm-kernel@lists.infradead.org
+> Cc:linux-doc@vger.kernel.org
+> Cc:linux-acpi@vger.kernel.org
+> 
+> v2:
+>   - Clarify that the RAS tables are conditionaly required when ACPI
+>     Platform Error Interfaces are required: Hanjun Guo.
+>   - Clarify that HMAT is required if NUMA is supported and the system
+>     contains heterogeneous memory: Hanjun Guo.
 
-Why do you want to affect everyone (including guest kernels running in
-virtual machines AFAICS) in order to address a problem specific to one
-platform?
+Thanks for updating the document,
 
-Wouldn't it be better to quirk that platform and document the quirk properly?
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
 
-> ---
->  drivers/acpi/reboot.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-> index b79b7c99c237..002f7c7814a1 100644
-> --- a/drivers/acpi/reboot.c
-> +++ b/drivers/acpi/reboot.c
-> @@ -78,5 +78,5 @@ void acpi_reboot(void)
->          * The 15ms delay has been found to be long enough for the system
->          * to reboot on the affected platforms.
->          */
-> -       mdelay(15);
-> +       mdelay(50);
->  }
-> --
-> 2.40.1
->
+Thanks
+Hanjun
