@@ -2,224 +2,219 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C23DCC7EE2F
-	for <linux-acpi@archiver.kernel.org>; Wed,  7 Jun 2023 16:05:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED99DC7EE23
+	for <linux-acpi@archiver.kernel.org>; Thu,  8 Jun 2023 03:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240881AbjFGQFc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 7 Jun 2023 12:05:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35510 "EHLO
+        id S233889AbjFHDtH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 7 Jun 2023 23:49:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236330AbjFGQFb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2023 12:05:31 -0400
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2055.outbound.protection.outlook.com [40.107.94.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3427C199D;
-        Wed,  7 Jun 2023 09:05:29 -0700 (PDT)
+        with ESMTP id S233153AbjFHDtG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2023 23:49:06 -0400
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2053.outbound.protection.outlook.com [40.107.223.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EEF926B5;
+        Wed,  7 Jun 2023 20:49:05 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=BVXo+i2f90cIBgytFvI131GVdWiaysgLiPhyZRwLcdwP/U9bIGdmqZGtN1w4eS8uiHX1CWLykU9pAIqzX9U2WGYDtPr0qtcgXjTjJaI80Vru4dNzmK97Rh3XUneB4RJC8Ui1VS79oEkcD/EKdIsivM6blDh9dMnqxm9v70Mg6binq7b+EjdZT0V4EZmvFGdFg5S8WzxW85o1xBjVXgGXst0OiiS4PUrO/oXa5uk06Ezih6sjpWp6JG1rifHX7UI3oSDc6uMOCgiQEqnKgk9jy0He2iBl/YjeWOP654qdmALATYNLBniyNK7JvcJB4GZvVletQ2k5ebgT2Z6PTRMy7w==
+ b=IHzXFC2a3xRXW+OzWKguGNHE/OI69NXwfc6ysegWLxaNtg/KAzAl+hMbNsCY4cG/lYUz5aqACIj1U/YWkMtSLF7QMhxgL6uoTff5RfBYsEQHWHGRAO99Z3L1S7ODDFzVpNCjAVQ0Oayf5R/JkQ9qQcNs+Jer/mgVPwBJdK9a1xhKSL+/NvrCGV9aiXS1mzUdyBx/4fsHGd8haQsTTotUEDBLF5ZDl8kOvw5gFoMJUZBurGNU+pj9cgHh7qh2LcC8bWUSvtzq2yvrXujG9BaPhOkqzseT4d+tCDaMorDj/KZRP9+PVv0LJzUwVrdXEZ1kdl7ChlHhr4dBllVnuKGWBQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fD3lPhNfk2Dhr/onYhVmF+h7fPsCUbIoiw0NS6ztlIM=;
- b=gBOk17OX/mZHh7IiD+xwratb/4zuNnI9zuNFRhLjYTM/fiqHuBnMc9ctEn2eFJFDkVFjRoH7RLBDVjt4OXODRIGj2dptX1C0eyNQpbQPbAIIChcBsqYvv+fNeIfBIqF64vLZAFvlHsJv9MFW+7pFdDj9CDYpd1RidXfzczKpAaakw6gvgexaCNWFaoMcSyDtGMB1Dkode7+IEaeBb4X9HtbneDEZzv+QT8ign3bO9ceUipQsbT48Z+q+YpzR0bWop05vWjjIwKJTJp6ZU0AJxzCq6DmReVMBVNGPhzfQ98RghifFVHLpdT38XLCkl/+mINGpo4sjkKyWXdylneSq5w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
+ bh=/L0X9j+SlfrIu/KiAv02S1GhXiAL82f1qIegIMq3eDo=;
+ b=OFDO4IrnvZVjyNX0fbW77G42XZM9YJTqFeA8tagWfH+q7j/3vH9o2E+juOOrIKXye4IKWkBL5JDoGESw4Z37R8Def1X/tNTn6IUEc3B0nb8rNVgxEExtcaJmDKfBw2PxNCTnm7VP6o44dfhgUQYrKl8JLrqlztRVDKTKTbK63Dq43WXAN8UZ5jDvT1ZwoMjI+6+9mFxCSgNEmOjELO0nqnG14Ojp/tqOF9VEwSX1J6R4NCAB7v7Tzw0ID2/uZ+FmGZ4FIklgHhIGGVyHXhevSsA0L/LHaqayabQJHPamAqBVF9NSn4s4NBk4o2qAmahpooot0QsWnsHV5rSlfEn6fQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fD3lPhNfk2Dhr/onYhVmF+h7fPsCUbIoiw0NS6ztlIM=;
- b=sDOvU5dPVshY17eEaZ43eKjpadOGUSfJnz94uFFOwlYVT8fRgXM+aeHErI4Sl6lERmQ2qjiWBEbZpA27iEQqNhnBif+UbCFFH5kOb6SVy11h/ysxvMLs1t/ov8A05N/427MVDSJoJJqhMdvSnkdOo1hFaLcXWDTksG3jUD0gaSQ=
-Received: from SJ0PR13CA0174.namprd13.prod.outlook.com (2603:10b6:a03:2c7::29)
- by SJ2PR12MB7920.namprd12.prod.outlook.com (2603:10b6:a03:4cc::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6455.33; Wed, 7 Jun
- 2023 16:05:26 +0000
-Received: from MWH0EPF000971E6.namprd02.prod.outlook.com
- (2603:10b6:a03:2c7:cafe::70) by SJ0PR13CA0174.outlook.office365.com
- (2603:10b6:a03:2c7::29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6477.19 via Frontend
- Transport; Wed, 7 Jun 2023 16:05:26 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- MWH0EPF000971E6.mail.protection.outlook.com (10.167.243.74) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.6477.13 via Frontend Transport; Wed, 7 Jun 2023 16:05:25 +0000
-Received: from SITE-L-T34-2.amd.com (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Wed, 7 Jun
- 2023 11:05:24 -0500
-From:   Mario Limonciello <mario.limonciello@amd.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>
-CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Len Brown <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
-        Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v3] PCI: Call _REG when transitioning D-states
-Date:   Tue, 6 Jun 2023 21:57:18 -0500
-Message-ID: <20230607025718.29636-1-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.34.1
+ bh=/L0X9j+SlfrIu/KiAv02S1GhXiAL82f1qIegIMq3eDo=;
+ b=QjhYo61U2dujkTFqOjUfFHry0qTMogo2qCVL6kJeGeHgumeEz158gAnLgsoLrh/+Sjvyt33bc9+vwRLX2x5IwGcl1mtooYdcivSgbHQO1PNF6tyMcZH05PWzapUzRHuv1E+BTnJdDWN0eANLSjxsuWtHHh+pL1jpLrsMegI8SmU=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DM6PR12MB2843.namprd12.prod.outlook.com (2603:10b6:5:48::24) by
+ PH0PR12MB7885.namprd12.prod.outlook.com (2603:10b6:510:28f::9) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6455.31; Thu, 8 Jun 2023 03:49:01 +0000
+Received: from DM6PR12MB2843.namprd12.prod.outlook.com
+ ([fe80::ff22:cffa:293:5cef]) by DM6PR12MB2843.namprd12.prod.outlook.com
+ ([fe80::ff22:cffa:293:5cef%3]) with mapi id 15.20.6455.030; Thu, 8 Jun 2023
+ 03:49:01 +0000
+Message-ID: <aeecb9a0-b3b2-cfa2-e5b7-a64d1ffe1c0c@amd.com>
+Date:   Thu, 8 Jun 2023 13:48:51 +1000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.5.1
+Subject: Re: [RFC PATCH v2 1/3] ACPI: APEI: EINJ: Refactor
+ available_error_type_show()
+Content-Language: en-US
+To:     Yazen Ghannam <yazen.ghannam@amd.com>,
+        Avadhut Naik <Avadhut.Naik@amd.com>, rafael@kernel.org,
+        gregkh@linuxfoundation.org, lenb@kernel.org,
+        linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc:     avadnaik@amd.com, alexey.kardashevskiy@amd.com,
+        linux-kernel@vger.kernel.org
+References: <20230525204422.4754-1-Avadhut.Naik@amd.com>
+ <20230525204422.4754-2-Avadhut.Naik@amd.com>
+ <37f64467-c9d7-826d-de41-aa571b2df0ec@amd.com>
+From:   Alexey Kardashevskiy <aik@amd.com>
+In-Reply-To: <37f64467-c9d7-826d-de41-aa571b2df0ec@amd.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SY5PR01CA0048.ausprd01.prod.outlook.com
+ (2603:10c6:10:1fc::18) To DM6PR12MB2843.namprd12.prod.outlook.com
+ (2603:10b6:5:48::24)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000971E6:EE_|SJ2PR12MB7920:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1fe9dc74-468d-47fb-be8e-08db677101b6
+X-MS-TrafficTypeDiagnostic: DM6PR12MB2843:EE_|PH0PR12MB7885:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4a54ad92-fcfa-434b-45ad-08db67d34b98
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: i+9vpPg/j8wmVVjyzGV5wTc0XeM0AUZZwUdSd0s5udsNmou0wVt9h8UEDyIdrShr1MXIfQFRD8C8YOiFbXjnxxqNgrxBtCAtAT8fqmb5E/Am2BuMIUS+OdTBu2B3LGo2qSzL7+1iFgogVt0ZYU7/J488jmT5900MX7QA/sOistkdCOD3f4enPQcOrINU9xVa0NRjM5jidT2jzC6WwIi58uah6yXKEx/4LUdjTSQHo+HxmuE8IQwPFC2abzQmpULCZFQ2AFfynY34C0P2fCVDiF63p8vmnqLaVQH2jR9s8Y2wZ51BDAjTnvHSdIVb8HoS+q2+Oti5wT4A42jn3icr0tDCY3OUWdoGkU4AWhcBdNfqZsulZdl6FqV9PnLiTvO1W5zY2vvyq98a4C2GWL7fnjZpgF20N6G+YA8Zx28+O/gJXguNLyW0WZGToEgWWXygxFjI/gm6/M3yTtKk57AiDMpM3jch2byWVr5L6JdYnfVCt0Rsj1FfhAd+hTt2fuNcPp7PrQpvkzzpObUADxTZn2dKcaRniDV8pUytJoYYs8f8PvKcZJNI67+IShhQv8Dtkzmvh9EtEbJ/PLEPQr0tNfVQiiinL2vQGyKkvWXwXx8bHcqgHnRax5zjQzOjDdcFqSYZYgu4oXliKy4Cpw6S7SDDeiYqhm0oedlWZY3tVTsisUguW6dRxc+Lb2DzfdY+/rLIEq+67JHedZQ0vEmZ/7hUhN1jqBcVbXKszBC4PIpd9weyErTzwQBEpE4I3fYTzC9Q4QM7EEL+mfpr48c5cw==
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(396003)(376002)(346002)(39860400002)(136003)(451199021)(40470700004)(46966006)(36840700001)(16526019)(186003)(82740400003)(81166007)(2616005)(1076003)(26005)(47076005)(426003)(336012)(83380400001)(82310400005)(36860700001)(36756003)(5660300002)(40460700003)(478600001)(86362001)(966005)(110136005)(44832011)(54906003)(7696005)(8676002)(41300700001)(316002)(8936002)(4326008)(356005)(6666004)(70586007)(70206006)(40480700001)(2906002)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: fVIG0m/s2qwLeLN1uRBFRBZ9C6JBa0VnkeEP/2wWd9C5gxbV0MdP0w19NvFCM/+Mx7xBSTFxsXmPbc1YJZpZ46qa6Zdjike0MLe2O1nZ7uCy5fknXhR6RxsbTCiPC3eeGRc0qXdoKbx8VHQakpyd5Mz5Zg9J3wm7IShw//ga4XdRbMzhBfpmkuU1N2tAVo+OAkbDay8ZUFp84axpa+Mm4XWl/yobYLiiiK3WyMWDpBdWRbJqejb4h5mu416OWQWCkLoXljlpIkyk7NIyMShTRVtVT08DEzXKiGhU5dZfdDxZw7oKA6I1sphejgRNVJf5v/Svy8gqtlOGVMIQfHwG9TKUCCIIgAhtgZLnfVz0USjnW1inAQiQooL/GhSCtmg5A9N7xFsz9gNctNLN/fLRFr0b4oQjjOkwxk4s8RJlFNc+HPYYa8cg0hzucSe0Hb9KwM/f19iCZ12+wbTOPqw2Jg6DYmT+qxj/FDRqqAGd3TTaeeYu49r24M2Jp/YWrWGRwt9F8IZSnnCx3lFEgzuvqN6xABz/yWK/PE7sN1vUd8KJIGDUx/CFBCCmpLuVfXiFDX7qc/QZxCZlMTnaqPj+I2biRBmpumfrJevuoJUZkTXiH28zPo3+4OLQqRycVYv0lKw2sXN9dAicP/RGmhsKcA==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB2843.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(136003)(39860400002)(376002)(346002)(366004)(396003)(451199021)(53546011)(478600001)(186003)(36756003)(6506007)(2616005)(83380400001)(6512007)(26005)(6666004)(6486002)(316002)(8676002)(41300700001)(66946007)(66476007)(66556008)(4326008)(31696002)(31686004)(5660300002)(2906002)(110136005)(8936002)(38100700002)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?ZXZiMmxWWlFuNnBZVmZrTjNsb3JJaDBWMldvWFRBRmFZVldDT3BHS2cyUDlF?=
+ =?utf-8?B?S3ROeXJiVXZ5eVh4b2dXc1laT1AwS2RabjdtendXcWxObit3Tk81bGpYa2ZJ?=
+ =?utf-8?B?VEYxTm5reEJYazVsWWFMQTFQeWdWSXBmdEd4NzFhMDFYWGFtNjJ0Skladjk5?=
+ =?utf-8?B?UDJ4OHQ5RjRkcmRQZXY5d0hJdFU5ZzRHWUVQNGJHUmwvNGh5cDh2dmZXWWIz?=
+ =?utf-8?B?VjRZRzlJcGNDWUdPMjFsOWFLUlpkR05OUEtFVitCd3Zhak9QMU81d1dBQVRh?=
+ =?utf-8?B?VzJ0UlU0WjVPOWQxQ3NpemNDb3ZqMFd6cWZERmpITTVhOWhFL0ZaTGxuUlkz?=
+ =?utf-8?B?UENUU3NuaEhoK1gzMkRWOW5uMlM0c3ppem9KVG5XVWl0QWdONzJPZ0UwUXZY?=
+ =?utf-8?B?RGpLdmZEUXNOL0pVSUhsMndJUUlPaHVjRS9CTHc2LytXOERhc2FMK1Fnci9B?=
+ =?utf-8?B?L2RESFRacVZMc2Mzc0IrK1dNdURtSjZGMzBLR2d2OU5XOFg5R2VVc1hsamlT?=
+ =?utf-8?B?YmlZUkpOQUxqVlFaR000WVplbEE2bXRDdXZnL0J2c2lScEVZL1N2b1ZkT2sx?=
+ =?utf-8?B?RlZUdW5QSWVpUnhIMUQ4dndFMHFQTGxhUlFTRUt1T1ZDQVQ3WjlmS1lmNzFQ?=
+ =?utf-8?B?aDJ5WFd1YjlTZW1HSnFnUUluK1NvZHR5eDhPUzNXTEMyYW5kVUFzS3JNamtM?=
+ =?utf-8?B?b09FbjJSQ1d6UllhV3ltaW8vaFJpK2tDOUpHdjhkelVLVDBkbnFzeFl2VXg3?=
+ =?utf-8?B?V25BSEdsNUNsVGI2TGlvcktnbEduOXdkdHBFSzhMemFleGt0N01rajJ0R0tm?=
+ =?utf-8?B?dUZ5dFhTcmdNWE11Y0VhbXNsS213QkVyQXJucSt3bWhvUVJFWDlOOTBvMmRO?=
+ =?utf-8?B?dTk2S29nUEh0K2FJQ3R6LzRHdklJNFJvWk1HUGlqWGpUMVNRUkN1SVJIYUNo?=
+ =?utf-8?B?UjlYTUlBYU9vTUxxOXJXcmtmaklNTUlWK2xnT09wbm8wL0lZdkd5SVBHRnNH?=
+ =?utf-8?B?MmZ5U041SnZFRkxuRjBhZExrYm84Nnl2VmFuVmpvUTVNTFd5UWFiYUdJMG1D?=
+ =?utf-8?B?ZzVIZXhlanByallKTG1UWU5qaFFZTFBGZFNFZ1ZJdWhJMlZNN0g2U3ZSOW9m?=
+ =?utf-8?B?RngxUUZjSzM1ZC96YStPMGZId2w3WUFtMStOdEFUaDZwamh4Q0Rnd2Vmc3lQ?=
+ =?utf-8?B?REFxK0RzVGRBQkJwN2oxNkVHVnNvRVZ0OEZpODVybVppV2dUZDJIYWJVSU5s?=
+ =?utf-8?B?eHZxb0ZKT2JicWhaQjR0SDBrYm1HYURFcjdyZkFjRVNCR0JHd2ZjaVBIZGYw?=
+ =?utf-8?B?THdiOWZvMXR0Snk1OEVPVkltZzFFZWF3dCtDNHNjNGJBenhlR3J0d0MyTEtv?=
+ =?utf-8?B?aTVaN0p1WThoNTQvaUlPRnlzVWo3c0JBWU45TEtUSDUzdGV3ejd4QU9ZNnZM?=
+ =?utf-8?B?c2haRENablQ4eHpDR0J5SFNRb1laeUNYNGJUSHluYWlRYWxBOEJJMS9ldkc3?=
+ =?utf-8?B?bVUxQk9LWlpaMkVyK3JOdEkxcjBzS0cwL0Npb01xUWRWazZTTUxKYkRUei9w?=
+ =?utf-8?B?QmFZdGhuYVlRbFprMmMwWlJ0VkZIWXAyaXhlUFovZ1FRdi8xVWtqeURVMkFZ?=
+ =?utf-8?B?TkkxNklPSjRpQjBLbG9zVmxtakJxS0crY29nSmt6a2kwMW1qejVvbklXcjcr?=
+ =?utf-8?B?aGE1T0Z2SFZyQm9KMExYOE12SzRFbkVOZTQ1MGhINnBQTnl5c0xXc1lhVTE0?=
+ =?utf-8?B?SWI4SDRDM0x1Y0hPYnhoY0NMWXMyRCtCYm1RMmJub1VHNmJqaHJIbFRSdlYv?=
+ =?utf-8?B?ZmJaSENFTnVEcGpGUXdaUHEybzF4Sng0TjI5cjdxK2pLMW1qUWpwUFpBa1g3?=
+ =?utf-8?B?NTZFanVNWlprV0ZibGErZ1IyY01vOFhIdisrYnBBazBQaWNBZHpqbWpHRGJy?=
+ =?utf-8?B?R3VlZW01alE1UDJQZmhxTUtRc3FmOTh5REt5ZG1xU2EwVVJTZnVnYWFIVzVw?=
+ =?utf-8?B?SkNvNnlaNGdMbVpES0doZWlOWXpKUUdRNVlhYXFEYnhtbmIwQjI5UGwvQUk2?=
+ =?utf-8?B?Z1E3cXh1YUdDTjlBOWpxNkpJYW4xaVZlWW53OWZnM3k4QWUzdEphdG5GSjRo?=
+ =?utf-8?Q?At2ZNzmR34J/QmwKT06fJGdmg?=
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Jun 2023 16:05:25.9369
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4a54ad92-fcfa-434b-45ad-08db67d34b98
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB2843.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jun 2023 03:49:01.3620
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1fe9dc74-468d-47fb-be8e-08db677101b6
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: MWH0EPF000971E6.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB7920
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: lzT/J9NaoJC2LMqJREdHvkI7QPGDUeJafDY8400cx17Sr2tqCN3pRy0i3ShAaDC3n3cP3aTTnt+iWmobS1fhIQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7885
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Section 6.5.4 of the ACPI 6.4 spec describes how AML is unable to access
-an OperationRegion unless `_REG` has been called.
 
-"The OS runs _REG control methods to inform AML code of a change in the
-availability of an operation region. When an operation region handler
-is unavailable, AML cannot access data fields in that region.
-(Operation region writes will be ignored and reads will return
-indeterminate data.)"
 
-The PCI core does not call `_REG` at anytime, leading to the undefined
-behavior mentioned in the spec.
+On 8/6/23 00:20, Yazen Ghannam wrote:
+> On 5/25/23 4:44 PM, Avadhut Naik wrote:
+>> OSPM can discover the error injection capabilities of the platform by
+>> executing GET_ERROR_TYPE error injection action.[1] The action returns
+>> a DWORD representing a bitmap of platform supported error injections.[2]
+>>
+>> The available_error_type_show() function determines the bits set within
+>> this DWORD and provides a verbose output, from einj_error_type_string
+>> array, through /sys/kernel/debug/apei/einj/available_error_type file.
+>>
+>> The function however, assumes one to one correspondence between an error's
+>> position in the bitmap and its array entry offset. Consequently, some
+>> errors like Vendor Defined Error Type fail this assumption and will
+>> incorrectly be shown as not supported, even if their corresponding bit is
+>> set in the bitmap and they have an entry in the array.
+>>
+>> Navigate around the issue by converting einj_error_type_string into an
+>> array of structures with a predetermined mask for all error types
+>> corresponding to their bit position in the DWORD returned by GET_ERROR_TYPE
+>> action. The same breaks the aforementioned assumption resulting in all
+>> supported error types by a platform being outputted through the above
+>> available_error_type file.
+>>
+>> [1] ACPI specification 6.5, Table 18.25
+>> [2] ACPI specification 6.5, Table 18.30
+>>
+>> Suggested-by: Alexey Kardashevskiy <alexey.kardashevskiy@amd.com>
+>> Signed-off-by: Avadhut Naik <Avadhut.Naik@amd.com>
+>> ---
+>>   drivers/acpi/apei/einj.c | 43 ++++++++++++++++++++--------------------
+>>   1 file changed, 22 insertions(+), 21 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+>> index 013eb621dc92..d5f8dc4df7a5 100644
+>> --- a/drivers/acpi/apei/einj.c
+>> +++ b/drivers/acpi/apei/einj.c
+>> @@ -577,25 +577,25 @@ static u64 error_param2;
+>>   static u64 error_param3;
+>>   static u64 error_param4;
+>>   static struct dentry *einj_debug_dir;
+>> -static const char * const einj_error_type_string[] = {
+>> -	"0x00000001\tProcessor Correctable\n",
+>> -	"0x00000002\tProcessor Uncorrectable non-fatal\n",
+>> -	"0x00000004\tProcessor Uncorrectable fatal\n",
+>> -	"0x00000008\tMemory Correctable\n",
+>> -	"0x00000010\tMemory Uncorrectable non-fatal\n",
+>> -	"0x00000020\tMemory Uncorrectable fatal\n",
+>> -	"0x00000040\tPCI Express Correctable\n",
+>> -	"0x00000080\tPCI Express Uncorrectable non-fatal\n",
+>> -	"0x00000100\tPCI Express Uncorrectable fatal\n",
+>> -	"0x00000200\tPlatform Correctable\n",
+>> -	"0x00000400\tPlatform Uncorrectable non-fatal\n",
+>> -	"0x00000800\tPlatform Uncorrectable fatal\n",
+>> -	"0x00001000\tCXL.cache Protocol Correctable\n",
+>> -	"0x00002000\tCXL.cache Protocol Uncorrectable non-fatal\n",
+>> -	"0x00004000\tCXL.cache Protocol Uncorrectable fatal\n",
+>> -	"0x00008000\tCXL.mem Protocol Correctable\n",
+>> -	"0x00010000\tCXL.mem Protocol Uncorrectable non-fatal\n",
+>> -	"0x00020000\tCXL.mem Protocol Uncorrectable fatal\n",
+>> +static struct { u32 mask; const char *str; } const einj_error_type_string[] = {
+>> +	{0x00000001, "Processor Correctable"},
+>> +	{0x00000002, "Processor Uncorrectable non-fatal"},
+>> +	{0x00000004, "Processor Uncorrectable fatal"},
+>> +	{0x00000008, "Memory Correctable"},
+>> +	{0x00000010, "Memory Uncorrectable non-fatal"},
+>> +	{0x00000020, "Memory Uncorrectable fatal"},
+>> +	{0x00000040, "PCI Express Correctable"},
+>> +	{0x00000080, "PCI Express Uncorrectable non-fatal"},
+>> +	{0x00000100, "PCI Express Uncorrectable fatal"},
+>> +	{0x00000200, "Platform Correctable"},
+>> +	{0x00000400, "Platform Uncorrectable non-fatal"},
+>> +	{0x00000800, "Platform Uncorrectable fatal"},
+>> +	{0x00001000, "CXL.cache Protocol Correctable"},
+>> +	{0x00002000, "CXL.cache Protocol Uncorrectable non-fatal"},
+>> +	{0x00004000, "CXL.cache Protocol Uncorrectable fatal"},
+>> +	{0x00008000, "CXL.mem Protocol Correctable"},
+>> +	{0x00010000, "CXL.mem Protocol Uncorrectable non-fatal"},
+>> +	{0x00020000, "CXL.mem Protocol Uncorrectable fatal"},
+>>   };
+>>
+> 
+> I think it'd be easier to read if the masks used the BIT() macro rather
+> than a hex value.
 
-The spec explains that _REG should be executed to indicate whether a
-given region can be accessed.
+Makes sense but I'd say because it is easier to match the APCI spec 
+which uses the bit numbers, not easier to read (which is arguable).
 
-"Once _REG has been executed for a particular operation region, indicating
-that the operation region handler is ready, a control method can
-access fields in the operation region. Conversely, control methods
-must not access fields in operation regions when _REG method execution
-has not indicated that the operation region handler is ready."
 
-An example included in the spec demonstrates calling _REG when devices are
-turned off: "when the host controller or bridge controller is turned off
-or disabled, PCI Config Space Operation Regions for child devices are
-no longer available. As such, ETH0’s _REG method will be run when it
-is turned off and will again be run when PCI1 is turned off.".
+> 
+> Thanks,
+> Yazen
 
-It is reported that ASMedia PCIe GPIO controllers fail functional tests
-after the system has returning from suspend (S3 or s2idle). This is
-because the BIOS checks whether the OSPM has called the `_REG` method
-to determine whether it can interact with the OperationRegion assigned
-to the device as part of the other AML called for the device.
-
-To fix this issue, call acpi_evaluate_reg() when devices are
-transitioning between power states.
-
-Link: https://uefi.org/htmlspecs/ACPI_Spec_6_4_html/06_Device_Configuration/Device_Configuration.html#reg-region
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
-v2->v3:
- * Move call site
- * Rename static function to better describe behavior
- * call _REG with disconnect /before/ going into D3
- * call _REG with connect /after/ going into D0/D1/D2
- * Update commit message
-v1->v2:
- * Handle case of no CONFIG_ACPI
- * Rename function
- * Update commit message
- * Move ACPI calling code into pci-acpi.c instead
- * Cite the ACPI spec
----
- drivers/pci/pci-acpi.c | 42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 1698205dd73c..2c80ae4ed362 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -1043,6 +1043,16 @@ bool acpi_pci_bridge_d3(struct pci_dev *dev)
- 	return false;
- }
- 
-+static void acpi_pci_config_space_access(struct pci_dev *dev, bool enable)
-+{
-+	int val = enable ? ACPI_REG_CONNECT : ACPI_REG_DISCONNECT;
-+	int ret = acpi_evaluate_reg(ACPI_HANDLE(&dev->dev),
-+				    ACPI_ADR_SPACE_PCI_CONFIG, val);
-+	if (ret)
-+		pci_dbg(dev, "ACPI _REG %s evaluation failed (%d)\n",
-+			enable ? "connect" : "disconnect", ret);
-+}
-+
- int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-@@ -1053,32 +1063,38 @@ int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
- 		[PCI_D3hot] = ACPI_STATE_D3_HOT,
- 		[PCI_D3cold] = ACPI_STATE_D3_COLD,
- 	};
--	int error = -EINVAL;
-+	int ret;
- 
- 	/* If the ACPI device has _EJ0, ignore the device */
- 	if (!adev || acpi_has_method(adev->handle, "_EJ0"))
- 		return -ENODEV;
- 
- 	switch (state) {
-+	case PCI_POWER_ERROR:
-+	case PCI_UNKNOWN:
-+		return -EINVAL;
- 	case PCI_D3cold:
- 		if (dev_pm_qos_flags(&dev->dev, PM_QOS_FLAG_NO_POWER_OFF) ==
--				PM_QOS_FLAGS_ALL) {
--			error = -EBUSY;
--			break;
--		}
-+				     PM_QOS_FLAGS_ALL)
-+			return -EBUSY;
- 		fallthrough;
--	case PCI_D0:
--	case PCI_D1:
--	case PCI_D2:
- 	case PCI_D3hot:
--		error = acpi_device_set_power(adev, state_conv[state]);
-+		/* Notify AML lack of PCI config space availability */
-+		acpi_pci_config_space_access(dev, false);
-+		break;
- 	}
- 
--	if (!error)
--		pci_dbg(dev, "power state changed by ACPI to %s\n",
--		        acpi_power_state_string(adev->power.state));
-+	ret = acpi_device_set_power(adev, state_conv[state]);
-+	if (ret)
-+		return ret;
-+	pci_dbg(dev, "power state changed by ACPI to %s\n",
-+		acpi_power_state_string(adev->power.state));
- 
--	return error;
-+	/* Notify AML of PCI config space availability */
-+	if (state < PCI_D3hot)
-+		acpi_pci_config_space_access(dev, true);
-+
-+	return 0;
- }
- 
- pci_power_t acpi_pci_get_power_state(struct pci_dev *dev)
 -- 
-2.34.1
-
+Alexey
