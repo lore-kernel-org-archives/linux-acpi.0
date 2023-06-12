@@ -2,81 +2,99 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2012C7EE43
-	for <linux-acpi@archiver.kernel.org>; Mon, 12 Jun 2023 08:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC15EC7EE43
+	for <linux-acpi@archiver.kernel.org>; Mon, 12 Jun 2023 09:08:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232866AbjFLI7g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 12 Jun 2023 04:59:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57062 "EHLO
+        id S231967AbjFLJIR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 12 Jun 2023 05:08:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233238AbjFLI7E (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2023 04:59:04 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB684C15;
-        Mon, 12 Jun 2023 01:56:26 -0700 (PDT)
+        with ESMTP id S232086AbjFLJHn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2023 05:07:43 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C1B0526C;
+        Mon, 12 Jun 2023 02:03:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1686560186; x=1718096186;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=xy2e3u2eLop2iTdpDgrwak2FZeN59pMzNKD71Og9rzQ=;
-  b=WGivlqABS8heX5+NbLPfapvXY215MwfyFlk9uZXkp3mSWYs5KVSQA85a
-   lnHt6qL0UzadoQMPdh5W5ZwiGelVpe5dAof8xyKPCEr79hwSUDOkI3Sbl
-   LBjjf47WZbtdMbgeL217T0nva7Pn4/aZUikWPnBfRD3ENide6KzbITVYK
-   GCAE9oJJeoW+HS8wSvxkmeIeHujSjnQEXCqxAY/UMGy+o0FndOnva9OsA
-   /deT7c/sWlFxnUvM7BfpoCcZT0mmAPOx5nvXje/5nL8UsJA4eCF+9p7Za
-   oWgAZY/Ks4yHJisq1yaV6189RHLYL+tZHcV2VwP4CQUYW8ieWVQuqM2kW
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10738"; a="361333984"
+  t=1686560596; x=1718096596;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Ikq1JZUtD42zuhPeuCVWdxOC98LK4HCQX9rMW7i+Mjg=;
+  b=XntN7dRb49z5yKmZvCpysfHI6d0xSycNAiCr1ax6ql8mbdnuUrmSpR+x
+   hRzuqWybPGwF4Az3SKJwonnVvQ4/ZEiZZ33w3Ri/ZIK9cRVhk8kRYTr05
+   U/npNzWI4e05BW2h392bCWKrwlSTZ/NykDFgxE32uOQcf5xgWTZlvh/0s
+   e/PV31au44qYomFvc891z1Pc3PxMuSJGMpcKKUymnuNQJ5pMPEBtnlMUZ
+   hPXNxg6c0Kq6WHQgtiSp77o6knTAuJH2reBSW3IQ5f9TmFkRZb0fVWAIt
+   zEsbiqdsKzyGqL8QIN9str8T8mkUaPksTvlo1RTQJDvqUfW+dzMTnxizV
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10738"; a="423864270"
 X-IronPort-AV: E=Sophos;i="6.00,236,1681196400"; 
-   d="scan'208";a="361333984"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2023 00:57:35 -0700
+   d="scan'208";a="423864270"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2023 02:03:07 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10738"; a="705293664"
+X-IronPort-AV: E=McAfee;i="6600,9927,10738"; a="835405536"
 X-IronPort-AV: E=Sophos;i="6.00,236,1681196400"; 
-   d="scan'208";a="705293664"
-Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2023 00:57:31 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-        by kekkonen.fi.intel.com (Postfix) with SMTP id B6663120BE1;
-        Mon, 12 Jun 2023 10:57:28 +0300 (EEST)
-Date:   Mon, 12 Jun 2023 07:57:28 +0000
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Damien Le Moal <dlemoal@kernel.org>,
-        Serge Semin <Sergey.Semin@baikalelectronics.ru>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v2 2/3] device property: Implement device_is_compatible()
-Message-ID: <ZIbP6OWq9tmEsjyJ@kekkonen.localdomain>
-References: <20230609154900.43024-1-andriy.shevchenko@linux.intel.com>
- <20230609154900.43024-3-andriy.shevchenko@linux.intel.com>
+   d="scan'208";a="835405536"
+Received: from powerlab.fi.intel.com ([10.237.71.25])
+  by orsmga004.jf.intel.com with ESMTP; 12 Jun 2023 02:03:03 -0700
+From:   Michal Wilczynski <michal.wilczynski@intel.com>
+To:     linux-acpi@vger.kernel.org
+Cc:     rafael@kernel.org, andriy.shevchenko@intel.com,
+        ilpo.jarvinen@linux.intel.com, pali@kernel.org,
+        hdegoede@redhat.com, markgross@kernel.org, fengguang.wu@intel.com,
+        dvhart@linux.intel.com, platform-driver-x86@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v1] platform/x86/dell/dell-rbtn: Fix resources leaking on error path
+Date:   Mon, 12 Jun 2023 12:02:50 +0300
+Message-Id: <20230612090250.1417940-1-michal.wilczynski@intel.com>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230609154900.43024-3-andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Andy,
+Currently rbtn_add() in case of failure is leaking resources. Fix this
+by adding a proper rollback. While at it, remove unnecessary assignment
+of NULL to device->driver_data and unnecessary whitespace, plus add a
+break for the default case in a switch.
 
-On Fri, Jun 09, 2023 at 06:48:59PM +0300, Andy Shevchenko wrote:
-> Some users want to use the struct device pointer to see if the
-> device is compatible in terms of Open Firmware specifications,
-> i.e. if it has a 'compatible' property and it matches to the
-> given value. Provide inline helper for the users.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Fixes: 817a5cdb40c8 ("dell-rbtn: Dell Airplane Mode Switch driver")
+Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/platform/x86/dell/dell-rbtn.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/platform/x86/dell/dell-rbtn.c b/drivers/platform/x86/dell/dell-rbtn.c
+index aa0e6c907494..e9b3f9c3ab7d 100644
+--- a/drivers/platform/x86/dell/dell-rbtn.c
++++ b/drivers/platform/x86/dell/dell-rbtn.c
+@@ -420,10 +420,12 @@ static int rbtn_add(struct acpi_device *device)
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
++		break;
+ 	}
++	if (ret)
++		rbtn_acquire(device, false);
+ 
+ 	return ret;
+-
+ }
+ 
+ static void rbtn_remove(struct acpi_device *device)
+@@ -442,7 +444,6 @@ static void rbtn_remove(struct acpi_device *device)
+ 	}
+ 
+ 	rbtn_acquire(device, false);
+-	device->driver_data = NULL;
+ }
+ 
+ static void rbtn_notify(struct acpi_device *device, u32 event)
 -- 
-Sakari Ailus
+2.40.1
+
