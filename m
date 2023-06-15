@@ -2,88 +2,86 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1656EB64DB
-	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jun 2023 11:37:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40B1EEB64D9
+	for <linux-acpi@archiver.kernel.org>; Thu, 15 Jun 2023 15:44:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343927AbjFOLhk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 15 Jun 2023 07:37:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52858 "EHLO
+        id S229723AbjFOPom (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 15 Jun 2023 11:44:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343928AbjFOLhh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jun 2023 07:37:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E552297E;
-        Thu, 15 Jun 2023 04:37:21 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A01DE63948;
-        Thu, 15 Jun 2023 11:37:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B1DBC433C9;
-        Thu, 15 Jun 2023 11:37:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1686829040;
-        bh=wFknVUKg9Zep7d8KD5madwbt58kjiSFqs26HYAb1rbk=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=s8wZ7QwQnAwBaJb/shpXNC8ztWfk7NIxmFM56AXHYktUqDHJdmxhysd0ZA6Wt3CDs
-         6KUhUniUBuODAE6OKAoMyDcOD9iAF2Kui7EC/JOGlsQpw3u5YUZWprfz1O/t2vIW31
-         7R0yRjpm0hfZFE21TJYs4by/L1wilgzZpHTeLskM=
-Date:   Thu, 15 Jun 2023 13:37:17 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Matti Vaittinen <mazziesaccount@gmail.com>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Wolfram Sang <wsa@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Michael Hennerich <Michael.Hennerich@analog.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Andreas Klinger <ak@it-klinger.de>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Paul Cercueil <paul@crapouillou.net>,
-        Akhil R <akhilrajeev@nvidia.com>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org, netdev@vger.kernel.org,
-        openbmc@lists.ozlabs.org, linux-gpio@vger.kernel.org,
-        linux-mips@vger.kernel.org
-Subject: Re: [PATCH v7 0/9] fix fwnode_irq_get[_byname()] returnvalue
-Message-ID: <2023061553-urging-collision-32f8@gregkh>
-References: <cover.1685340157.git.mazziesaccount@gmail.com>
- <20230530233438.572db3fb@kernel.org>
+        with ESMTP id S241806AbjFOPoZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jun 2023 11:44:25 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87296123;
+        Thu, 15 Jun 2023 08:44:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1686843864; x=1718379864;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=RXbiqLl8GWsL9ZGg7ZpV3Yt5NwEmT30I05Aoa4zNtRk=;
+  b=aagqDEz7d/9T8HgUyOFDewNFIyAunk3chAK120Dz44VRoFOkaSVpk/0P
+   WDTP51nYilfxz6t/R1TRSpEk3VK+plR43qQQjqVCbmodZk0coGpkuvP14
+   CosY0lt2sWwVq1tWYbIUxp92It7nHKfgBd5KUyUvW5kiHcdHH/iIzn38q
+   Lg0NRls+sIVZL2VwDiJviacVEwxMU+Grs69XO9AVvlznZzf99EXWIW1F1
+   dCfDE10/ooLTRl5G5hHtTSwN/HqRrFXU7Y8TlkXJF2qyxf9ubDJ5mMSvn
+   GvHZk9vzHGwA+dMoskIdle/CWZEyGbw4HlohpOTU2bKFBoGE6N9veSfNA
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10742"; a="358943554"
+X-IronPort-AV: E=Sophos;i="6.00,245,1681196400"; 
+   d="scan'208";a="358943554"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2023 08:44:18 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10742"; a="742277036"
+X-IronPort-AV: E=Sophos;i="6.00,245,1681196400"; 
+   d="scan'208";a="742277036"
+Received: from makuznet-mobl1.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.168.134])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2023 08:44:17 -0700
+Date:   Thu, 15 Jun 2023 08:44:15 -0700
+From:   Alison Schofield <alison.schofield@intel.com>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Mike Rapoport <rppt@kernel.org>, x86@kernel.org,
+        linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Derick Marks <derick.w.marks@intel.com>
+Subject: Re: [PATCH v2 1/2] x86/numa: Introduce numa_fill_memblks()
+Message-ID: <ZIsxz6Swf54a66FN@aschofie-mobl2>
+References: <cover.1686712819.git.alison.schofield@intel.com>
+ <9fcc548a6b4727cb2538e5227d7bad2e94e6adaf.1686712819.git.alison.schofield@intel.com>
+ <20230615083407.GB1683497@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230530233438.572db3fb@kernel.org>
+In-Reply-To: <20230615083407.GB1683497@hirez.programming.kicks-ass.net>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, May 30, 2023 at 11:34:38PM -0700, Jakub Kicinski wrote:
-> On Mon, 29 May 2023 09:22:15 +0300 Matti Vaittinen wrote:
-> > The fwnode_irq_get() and the fwnode_irq_get_byname() may have returned
-> > zero if mapping the IRQ fails. This contradicts the
-> > fwnode_irq_get_byname() documentation. Furthermore, returning zero or
-> > errno on error is unepected and can easily lead to problems
-> > like.
+On Thu, Jun 15, 2023 at 10:34:07AM +0200, Peter Zijlstra wrote:
+> On Tue, Jun 13, 2023 at 09:35:24PM -0700, alison.schofield@intel.com wrote:
+> > From: Alison Schofield <alison.schofield@intel.com>
+> > 
+> > numa_fill_memblks() fills in the gaps in numa_meminfo memblks
+> > over an HPA address range.
 > 
-> What's the merging plan? Could patch 1 go to a stable branch 
-> and then driver trees can pull it in and apply their respective 
-> patches locally?
+> What's with the Host part, should that not simply be PA ?
 
-I'll take patch 1 now, and then after 6.5-rc1, Matti, can you send the
-cleanup patches to the respective subsystems?
+Yes, it should be PA.
 
-thanks,
+The HPA acronym usage is CXL-land language, where we qualify
+qualify physical addresses as either HPAs and DPAs (Device),
+seeping in needlessly.
 
-greg k-h
+
