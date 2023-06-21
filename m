@@ -2,104 +2,160 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88DE4EB64D8
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 08:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09B83C001B3
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 09:31:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231357AbjFUIEb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Jun 2023 04:04:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44978 "EHLO
+        id S231856AbjFUJbO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Jun 2023 05:31:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229990AbjFUIEa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 04:04:30 -0400
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BC06170C
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2023 01:04:29 -0700 (PDT)
-Received: by mail-wm1-x329.google.com with SMTP id 5b1f17b1804b1-3f9bece8e19so4826425e9.1
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2023 01:04:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1687334667; x=1689926667;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Bdr99ZnsFuaWd7+2tODjIdBaqRk40Wcx2mkyWMKgAl8=;
-        b=lFls4G02TYGejcUGf7F2yKuKiyQwm27IZuxaz7ZicOiWbynZJ6m8AknpkLLU8fsxVN
-         UFw6M408EmOALQQy3AxLMbgC5k695jz6oQz43eDNvkqg7v+wHHF7ZJyMrPC26sFbVV3i
-         zv2gAmHagzux42h5Nhh/OYbvsQr3BNOI/eVgE/44pMs5ZWM3fnDUoUjrmWVEBeOuWVLE
-         7JOlsXCv7JWgaBTeGNmukewQHRsVfkX1AOuu7MNeDx2uMOi+S33HLzsYpGN5dgxuYNVC
-         or6qB9a2VI+sLmCxPycuQgSmE/i2/qMrOa7ilqnBYYWrcJlUqBajh18WU8fTmJbGu68s
-         4iig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687334667; x=1689926667;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Bdr99ZnsFuaWd7+2tODjIdBaqRk40Wcx2mkyWMKgAl8=;
-        b=cesj1M22r7E1Pax4ghiUQRpWzqoX+fHle3Mmph4wRgb+al6yqGQxVL9MbnMkJ2vE72
-         o0W2YA4kkJX+oWJ3bZHaBszzKiiZBVpaEoA12RULxAQmSaE4WtZYU43dEvdVnswVZ58Z
-         netM64PUjLxglYAK9vfdqtw782s/3OUNtxmtfVhXD6+7ACq/Tj85+3FtWntEV8r7Cm4J
-         +DMzOND+WNpWbft9Ho2UiSiF7P6+QKnr1REb2Kqum0t8TeR8AOSmuEIqA8Lc2oR3vFwl
-         48N4xVDlkfx4OY3Bqit4HDJw/LCsnjTLdGoZZYxb6OihB875Vx39k4LwU/TVbFI7VxWw
-         m6jA==
-X-Gm-Message-State: AC+VfDxz8fUVGfey167Au5xtv2yNGkZrFiFKpHApFfkGpiSuOrjFap02
-        mCsO1Wy1k4JsbNDkR4VGC/GqOClVsX/0aYlwowvEFg==
-X-Google-Smtp-Source: ACHHUZ44Io9K//QUtZqsJ0miupjsyJM4Vmg0fqFUuIr/d5lcyjwwOt9RCqOVmeYyxELVEltNdPnj/LtaG/39Zo3R434=
-X-Received: by 2002:a7b:ca4e:0:b0:3f9:c00:51d3 with SMTP id
- m14-20020a7bca4e000000b003f90c0051d3mr9855397wml.13.1687334667559; Wed, 21
- Jun 2023 01:04:27 -0700 (PDT)
+        with ESMTP id S231803AbjFUJat (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 05:30:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA8071718;
+        Wed, 21 Jun 2023 02:30:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 75CCE614D8;
+        Wed, 21 Jun 2023 09:30:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B940C433C0;
+        Wed, 21 Jun 2023 09:30:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1687339815;
+        bh=18nRxiz3RzRU04UzjxaIi/UAFwMnex+OsDW6C9m9tzM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=avWkxEB92WjPUZaa0OQAtoTDGZAonhUdcVlGDiAyztU1gbW9Ztm9Ou+/Z3QyTYFIa
+         5Y67KG3ef56ckdI/9k479xJcWpjXht5jigCsC9KepP07J6/febDCKKG2x7luXsE2fr
+         b8/Z9nwE+g4Yrm41GnedvZTajj1Ty6dAWgbQb1IXioQi07bJN9qdwdeIbL2S4DR02j
+         iSL1bTYnpcK2TXHTCjotNKLlarnGh0TSfBzOMZEwpn5uIjzZZE2mMjVhuuuNX17eQT
+         qmLjSO1FnRx1EXA/5oEEokd/0FK1w2HHay7Rd/NhlxO4GGGyPPqUthwYa556LgmvZI
+         LQW4/DoTCPsKA==
+Date:   Wed, 21 Jun 2023 11:30:12 +0200
+From:   Andi Shyti <andi.shyti@kernel.org>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Wolfram Sang <wsa@kernel.org>, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+        acpica-devel@lists.linuxfoundation.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Michael Brunner <michael.brunner@kontron.com>
+Subject: Re: [PATCH v1 1/2] ACPI: platform: Ignore SMB0001 only when it has
+ resources
+Message-ID: <20230621093012.nmgrzzepm764kdfy@intel.intel>
+References: <20230620163534.1042-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-References: <20230426034001.16-1-cuiyunhui@bytedance.com> <CAMj1kXEKh9O-ndk3QFibJMYfMbG7vm-cLN2vVQM5eDsYK84NzQ@mail.gmail.com>
- <CAEEQ3wkJB5CKm33mHXUOPX5makYOHF8By6FYGnNzRkM-Mo72OQ@mail.gmail.com>
- <ZEj33QLZqEeL+/y4@FVFF77S0Q05N> <CAEEQ3wmDBJkfOeKCQfcnuE+1=1K0D2pzu+Sn+zPEWk+RHs0NFQ@mail.gmail.com>
- <CAP6exY+ydbzh1EkWTFejzwaW+PA-ySVO2Qj+CVJ1XbSMce2S9Q@mail.gmail.com> <CAP6exY+tqAU0j1TVEMTzTb18M6_mPH5bWWiAS=94gyDGTY3hyQ@mail.gmail.com>
-In-Reply-To: <CAP6exY+tqAU0j1TVEMTzTb18M6_mPH5bWWiAS=94gyDGTY3hyQ@mail.gmail.com>
-From:   =?UTF-8?B?6L+Q6L6J5bSU?= <cuiyunhui@bytedance.com>
-Date:   Wed, 21 Jun 2023 16:04:15 +0800
-Message-ID: <CAEEQ3w=wBdpZWnUd2WWVBC3BtFiUp-PQtNAtdXE4cO4n0XT-fg@mail.gmail.com>
-Subject: Re: [External] Re: [PATCH] firmware: added a firmware information
- passing method FFI
-To:     ron minnich <rminnich@gmail.com>
-Cc:     Mark Rutland <mark.rutland@arm.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>, rafael@kernel.org,
-        lenb@kernel.org, jdelvare@suse.com, yc.hung@mediatek.com,
-        angelogioacchino.delregno@collabora.com,
-        allen-kh.cheng@mediatek.com, pierre-louis.bossart@linux.intel.com,
-        tinghan.shen@mediatek.com, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, geshijian@bytedance.com,
-        weidong.wd@bytedance.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230620163534.1042-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Thanks for Ron's suggestions.
+Hi Andy,
 
-Hi Ard,  Mark,
->
-> Is there some feeling here that it would be ok to restrict this discussion to risc-v, and not bring in ARM considerations.  WDYT?
->
+On Tue, Jun 20, 2023 at 07:35:33PM +0300, Andy Shevchenko wrote:
+> After switchind i2c-scmi driver to be a plaform one it stopped
 
-Hi Ard,  Mark,
+/switchind/switching/
+/one/one,/
 
-Now the coreboot we are using does not support EFI and only supports
-one interface DTB. It seems that we have to pass the firmware
-information through DTB.
+> being enumerated on number of Kontron platformsm, because it's
 
-From another point of view, ACPI and SMBIOS are common modules of the
-kernel, not only EFI, but also other interfaces can also be connected
-to this module, such as 0xF0000 for SMBIOS,
-CONFIG_ACPI_LEGACY_TABLES_LOOKUP for ACPI,  this patch is also.
+/platformsm/platforms/
 
-We just use the DTB channel to add a few nodes to complete the
-transfer of firmware information, which does not interfere with DTS
-itself.
+> listed in the forbidden_id_list.
+> 
+> To resolve the situation, split the list to generic one and
+> another that holds devices that has to be skiped if and only if
 
-We think it is unnecessary to add an ACPI-supporting framework under
-the fdt framework we discussed before. We only need one set of ACPI
-framework, but one more set will cause unnecessary trouble.
+/skiped/skipped/
 
-So, let's move on to this patch, shall we?
+> they have bogus resources attached (_CRS method returns some).
+> 
+> Fixes: 03d4287add6e ("i2c: scmi: Convert to be a platform driver")
+> Closes: https://lore.kernel.org/r/60c1756765b9a3f1eab0dcbd84f59f00fe1caf48.camel@kontron.com
+> Reported-by: Michael Brunner <michael.brunner@kontron.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_platform.c | 27 +++++++++++++++++++++++++--
+>  1 file changed, 25 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index fe00a5783f53..089a98bd18bf 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -19,13 +19,17 @@
+>  
+>  #include "internal.h"
+>  
+> +static const struct acpi_device_id forbidden_id_with_resourses[] = {
+> +	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
+> +	{ }
+> +};
+> +
+>  static const struct acpi_device_id forbidden_id_list[] = {
+>  	{"ACPI0009", 0},	/* IOxAPIC */
+>  	{"ACPI000A", 0},	/* IOAPIC */
+>  	{"PNP0000",  0},	/* PIC */
+>  	{"PNP0100",  0},	/* Timer */
+>  	{"PNP0200",  0},	/* AT DMA Controller */
+> -	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
+>  	{ }
+>  };
+>  
+> @@ -83,6 +87,15 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
+>  		dest->parent = pci_find_resource(to_pci_dev(parent), dest);
+>  }
+>  
+> +static int acpi_platform_resource_count(struct acpi_resource *ares, void *data)
+> +{
+> +	int *count = data;
+> +
+> +	*count = *count + 1;
+> +
+> +	return 1;
+> +}
+> +
+>  /**
+>   * acpi_create_platform_device - Create platform device for ACPI device node
+>   * @adev: ACPI device node to create a platform device for.
+> @@ -103,7 +116,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+>  	struct resource_entry *rentry;
+>  	struct list_head resource_list;
+>  	struct resource *resources = NULL;
+> -	int count;
+> +	int count = 0;
+> +	int ret;
+>  
+>  	/* If the ACPI node already has a physical device attached, skip it. */
+>  	if (adev->physical_node_count)
+> @@ -113,6 +127,15 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+>  		return ERR_PTR(-EINVAL);
+>  
+>  	INIT_LIST_HEAD(&resource_list);
+> +	ret = acpi_dev_get_resources(adev, &resource_list, acpi_platform_resource_count, &count);
+> +	if (ret < 0)
+> +		return ERR_PTR(ret);
+> +
+> +	acpi_dev_free_resource_list(&resource_list);
+> +
+> +	if (count > 0 && !acpi_match_device_ids(adev, forbidden_id_with_resourses))
+> +		return ERR_PTR(-EINVAL);
 
+... so that you rule out first the devices in this list.
 
+Reviewed-by: Andi Shyti <andi.shyti@kernel.org> 
 
-Thanks,
-Yunhui
+Andi
+
+> +
+>  	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+>  	if (count < 0)
+>  		return NULL;
+> -- 
+> 2.40.0.1.gaa8946217a0b
+> 
