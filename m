@@ -2,148 +2,95 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70C1AEB64D8
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 15:20:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FDD5EB64D7
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 15:39:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229563AbjFUPUJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Jun 2023 11:20:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56270 "EHLO
+        id S233490AbjFUPjY (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Jun 2023 11:39:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233356AbjFUPTu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 11:19:50 -0400
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B9984C05;
-        Wed, 21 Jun 2023 08:16:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1687360609; x=1718896609;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=VblY/rm86Nrtd/B1UCaI/PliO/WD8SqNOUgqlsMUt7g=;
-  b=l//1jgSkwfkYX76FIKACDJUB4PKtFBr0f4x/qiTfudQ1nHTreJzfGwI5
-   FkmFcC4y+u0R3HuXrm9ETdg5Okl4/8qf7+9Imh/tQ20D6gZMq4k9ylANO
-   jxT1aGfvHx2pONaPQhzxPMUtulf3iS5LXlsBSGYbreGiueTgcd5O+QHPA
-   h1q/bIuTputnGbb+7CbD25v7Ynjvib7DQ0HJpiera0TB0AtzRYCCr0+eH
-   qKwpT1ABSKoFJcw90lOpuuFzE080yUIAEm7ustQPgATjA8sHC42D47eDz
-   z1SgqFG/8QcN2/0N74iKeFcuSBmvVW4shLwy+vC+oLxb27eGTwpxwbyzw
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10748"; a="446584489"
-X-IronPort-AV: E=Sophos;i="6.00,260,1681196400"; 
-   d="scan'208";a="446584489"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2023 08:16:48 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10748"; a="664702531"
-X-IronPort-AV: E=Sophos;i="6.00,260,1681196400"; 
-   d="scan'208";a="664702531"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga003.jf.intel.com with ESMTP; 21 Jun 2023 08:16:44 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 43DDF1FD; Wed, 21 Jun 2023 18:16:55 +0300 (EEST)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-i2c@vger.kernel.org, acpica-devel@lists.linuxfoundation.org
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Andi Shyti <andi.shyti@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Michael Brunner <michael.brunner@kontron.com>
-Subject: [PATCH v2 1/2] ACPI: platform: Ignore SMB0001 only when it has resources
-Date:   Wed, 21 Jun 2023 18:16:51 +0300
-Message-Id: <20230621151652.79579-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
+        with ESMTP id S233545AbjFUPiz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 11:38:55 -0400
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08D731BC6;
+        Wed, 21 Jun 2023 08:38:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+        bh=UNTcJ7CGT1Lez3ibsb1q0hENK9CgDCucVIYKxGl3TOA=; b=kX5Xr6VI87reS7/GA49etmzzJa
+        8UkZZawMQsboaJaBH0eNpIzk1bR3EcbBbU0KF6jAsbQhofPO8pHw+ovgkoxLGGJjfHxE1vVFC+buE
+        dyHRIxHy1ZMVaryyek2UvdEHqUuLiwmWXnN8UhABnjwmxx9ilAZZaPSduE0A55vaKMZ8=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+        (envelope-from <andrew@lunn.ch>)
+        id 1qBzsX-00H9mp-GK; Wed, 21 Jun 2023 17:36:17 +0200
+Date:   Wed, 21 Jun 2023 17:36:17 +0200
+From:   Andrew Lunn <andrew@lunn.ch>
+To:     Evan Quan <evan.quan@amd.com>
+Cc:     rafael@kernel.org, lenb@kernel.org, alexander.deucher@amd.com,
+        christian.koenig@amd.com, Xinhui.Pan@amd.com, airlied@gmail.com,
+        daniel@ffwll.ch, johannes@sipsolutions.net, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        mario.limonciello@amd.com, mdaenzer@redhat.com,
+        maarten.lankhorst@linux.intel.com, tzimmermann@suse.de,
+        hdegoede@redhat.com, jingyuwang_vip@163.com, lijo.lazar@amd.com,
+        jim.cromie@gmail.com, bellosilicio@gmail.com,
+        andrealmeid@igalia.com, trix@redhat.com, jsg@jsg.id.au,
+        arnd@arndb.de, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-wireless@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH V4 1/8] drivers/acpi: Add support for Wifi band RF
+ mitigations
+Message-ID: <3a7c8ffa-de43-4795-ae76-5cd9b00c52b5@lunn.ch>
+References: <20230621054603.1262299-1-evan.quan@amd.com>
+ <20230621054603.1262299-2-evan.quan@amd.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230621054603.1262299-2-evan.quan@amd.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-After switching i2c-scmi driver to be a plaform one, it stopped
-being enumerated on number of Kontron platforms, because it's
-listed in the forbidden_id_list.
+On Wed, Jun 21, 2023 at 01:45:56PM +0800, Evan Quan wrote:
+> From: Mario Limonciello <mario.limonciello@amd.com>
+> 
+> Due to electrical and mechanical constraints in certain platform designs
+> there may be likely interference of relatively high-powered harmonics of
+> the (G-)DDR memory clocks with local radio module frequency bands used
+> by Wifi 6/6e/7.
+> 
+> To mitigate this, AMD has introduced an ACPI based mechanism that
+> devices can use to notify active use of particular frequencies so
+> that devices can make relative internal adjustments as necessary
+> to avoid this resonance.
 
-To resolve the situation, split the list to generic one and
-another that holds devices that has to be skipped if and only
-if they have bogus resources attached (_CRS method returns some).
+Do only ACPI based systems have:
 
-Fixes: 03d4287add6e ("i2c: scmi: Convert to be a platform driver")
-Closes: https://lore.kernel.org/r/60c1756765b9a3f1eab0dcbd84f59f00fe1caf48.camel@kontron.com
-Reported-by: Michael Brunner <michael.brunner@kontron.com>
-Tested-by: Michael Brunner <michael.brunner@kontron.com>
-Reviewed-by: Andi Shyti <andi.shyti@kernel.org>
-Link: https://lore.kernel.org/r/20230620163534.1042-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: added tags (Andi, Michael), fixed spelling (Andi)
- drivers/acpi/acpi_platform.c | 27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+   interference of relatively high-powered harmonics of the (G-)DDR
+   memory clocks with local radio module frequency bands used by
+   Wifi 6/6e/7."
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index fe00a5783f53..089a98bd18bf 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -19,13 +19,17 @@
- 
- #include "internal.h"
- 
-+static const struct acpi_device_id forbidden_id_with_resourses[] = {
-+	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
-+	{ }
-+};
-+
- static const struct acpi_device_id forbidden_id_list[] = {
- 	{"ACPI0009", 0},	/* IOxAPIC */
- 	{"ACPI000A", 0},	/* IOAPIC */
- 	{"PNP0000",  0},	/* PIC */
- 	{"PNP0100",  0},	/* Timer */
- 	{"PNP0200",  0},	/* AT DMA Controller */
--	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
- 	{ }
- };
- 
-@@ -83,6 +87,15 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
- 		dest->parent = pci_find_resource(to_pci_dev(parent), dest);
- }
- 
-+static int acpi_platform_resource_count(struct acpi_resource *ares, void *data)
-+{
-+	int *count = data;
-+
-+	*count = *count + 1;
-+
-+	return 1;
-+}
-+
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-@@ -103,7 +116,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 	struct resource_entry *rentry;
- 	struct list_head resource_list;
- 	struct resource *resources = NULL;
--	int count;
-+	int count = 0;
-+	int ret;
- 
- 	/* If the ACPI node already has a physical device attached, skip it. */
- 	if (adev->physical_node_count)
-@@ -113,6 +127,15 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 		return ERR_PTR(-EINVAL);
- 
- 	INIT_LIST_HEAD(&resource_list);
-+	ret = acpi_dev_get_resources(adev, &resource_list, acpi_platform_resource_count, &count);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	acpi_dev_free_resource_list(&resource_list);
-+
-+	if (count > 0 && !acpi_match_device_ids(adev, forbidden_id_with_resourses))
-+		return ERR_PTR(-EINVAL);
-+
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
- 	if (count < 0)
- 		return NULL;
--- 
-2.40.0.1.gaa8946217a0b
+Could Device Tree based systems not experience this problem?
 
+> +/**
+> + * APIs needed by drivers/subsystems for contributing frequencies:
+> + * During probe, check `wbrf_supported_producer` to see if WBRF is supported.
+> + * If adding frequencies, then call `wbrf_add_exclusion` with the
+> + * start and end points specified for the frequency ranges added.
+> + * If removing frequencies, then call `wbrf_remove_exclusion` with
+> + * start and end points specified for the frequency ranges added.
+> + */
+> +bool wbrf_supported_producer(struct acpi_device *adev);
+> +int wbrf_add_exclusion(struct acpi_device *adev,
+> +		       struct wbrf_ranges_in *in);
+> +int wbrf_remove_exclusion(struct acpi_device *adev,
+> +			  struct wbrf_ranges_in *in);
+
+Could struct device be used here, to make the API agnostic to where
+the information is coming from? That would then allow somebody in the
+future to implement a device tree based information provider.
+
+       Andrew
