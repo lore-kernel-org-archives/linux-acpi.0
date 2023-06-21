@@ -2,101 +2,119 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1124EB64D7
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 14:25:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BE57C0015E
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 15:20:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231653AbjFUOZX (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Jun 2023 10:25:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40030 "EHLO
+        id S231216AbjFUPUK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Jun 2023 11:20:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232853AbjFUOZX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 10:25:23 -0400
-Received: from sipsolutions.net (s3.sipsolutions.net [IPv6:2a01:4f8:191:4433::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B9321A8;
-        Wed, 21 Jun 2023 07:25:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=sipsolutions.net; s=mail; h=MIME-Version:Content-Transfer-Encoding:
-        Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-To:
-        Resent-Cc:Resent-Message-ID; bh=y8KezyLc/DUW29gVzDAPim1rZ/zbq0krh1pHlYpx9Jc=;
-        t=1687357521; x=1688567121; b=aXxUgrLfDYcIk0kZc3wQJZ6sJIQ2o5un5VkWjAa5NlI8Kd6
-        1WqRe7bb8l/3ejKAnsk5oHtHsw0zTxs0s5SY0KUB5k2P8jPT0fucI5bM/dwbSmrOfyll3Fof/JJnT
-        ncxLb0zpiFRtNF1E2fPMu+R+Jnpj0Y4si5vJ6/keFWlznZT/tYBN3RTBpH7thS4EByyeN6aGmCjqE
-        wKKWcNMRjLT1eTsVTnsxRWOBGJ40Gr67obI6R0RmjCLwsTdPKLUGj8PN6oDt94ngltJAOmQ2/6g2L
-        SiYmQhAFc2wTeOLv1Bsz35GGje2x1ot3MDJnOwsiYedhRd1Q3bdfJQh8CZhTPaBg==;
-Received: by sipsolutions.net with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-        (Exim 4.96)
-        (envelope-from <johannes@sipsolutions.net>)
-        id 1qByln-00Dhei-0G;
-        Wed, 21 Jun 2023 16:25:15 +0200
-Message-ID: <9214266bf969207df60fdbde0157a0a5982bd2e0.camel@sipsolutions.net>
-Subject: Re: [PATCH V4 3/8] wifi: mac80211: Add support for ACPI WBRF
-From:   Johannes Berg <johannes@sipsolutions.net>
-To:     "Limonciello, Mario" <mario.limonciello@amd.com>,
-        Evan Quan <evan.quan@amd.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-        lenb@kernel.org, alexander.deucher@amd.com,
-        christian.koenig@amd.com, Xinhui.Pan@amd.com, airlied@gmail.com,
-        daniel@ffwll.ch, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, mdaenzer@redhat.com,
-        maarten.lankhorst@linux.intel.com, tzimmermann@suse.de,
-        hdegoede@redhat.com, jingyuwang_vip@163.com, lijo.lazar@amd.com,
-        jim.cromie@gmail.com, bellosilicio@gmail.com,
-        andrealmeid@igalia.com, trix@redhat.com, jsg@jsg.id.au,
-        arnd@arndb.de
-Date:   Wed, 21 Jun 2023 16:25:13 +0200
-In-Reply-To: <9fdcd5a6-5315-b4d8-1662-30bfc6cb67d8@amd.com>
-References: <20230621054603.1262299-1-evan.quan@amd.com>
-         <20230621054603.1262299-4-evan.quan@amd.com>
-         <3eb2c16cb0692c8d6b03bd57cb049b1fb3457e92.camel@sipsolutions.net>
-         <9fdcd5a6-5315-b4d8-1662-30bfc6cb67d8@amd.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.3 (3.48.3-1.fc38) 
+        with ESMTP id S233381AbjFUPTx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 11:19:53 -0400
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D832ED2;
+        Wed, 21 Jun 2023 08:16:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687360610; x=1718896610;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=BZCM5lLaApqKK/yTbVaJKND0T8mjA20qNjOsA8/s5nU=;
+  b=bfMDzeCKjGK6H4FHShn/5ZdLutzkHVU11a33O9iqmeqxrfBZJt9ZBljw
+   rSF/InNEnMxd7QULv5c7U0DXmoQdykfDSwJB7tzQO3Z4ARh8o7kJfN+Hi
+   zISSaxlRaMmD9ucQsXB6pauKiGSHaZgDaffPtYEWAPh5umNzHJ5EYMTsX
+   1jGCQOjCYLIhb1/sj+T5+HqK00ggbpqYokCVIO7DXS/Qw74zVtMBVoNhx
+   8lJZxg58k9eHqYsrmEclLp4c8i5OuMDQIp+kyFXrtTz9Y/ALITd6Hp8Aa
+   DpM967FR8z6EpgbMbPN3uq9qzoxMtYjKMHelf6FAxI6DUVdgwlsSWzuRM
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10748"; a="446584496"
+X-IronPort-AV: E=Sophos;i="6.00,260,1681196400"; 
+   d="scan'208";a="446584496"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2023 08:16:48 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10748"; a="664702536"
+X-IronPort-AV: E=Sophos;i="6.00,260,1681196400"; 
+   d="scan'208";a="664702536"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga003.jf.intel.com with ESMTP; 21 Jun 2023 08:16:45 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 8D4D0241; Wed, 21 Jun 2023 18:16:56 +0300 (EEST)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-i2c@vger.kernel.org, acpica-devel@lists.linuxfoundation.org
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Andi Shyti <andi.shyti@kernel.org>,
+        Robert Moore <robert.moore@intel.com>
+Subject: [PATCH v2 2/2] ACPI: platform: Move SMB0001 HID to the header and reuse
+Date:   Wed, 21 Jun 2023 18:16:52 +0300
+Message-Id: <20230621151652.79579-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
+In-Reply-To: <20230621151652.79579-1-andriy.shevchenko@linux.intel.com>
+References: <20230621151652.79579-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-X-malware-bazaar: not-scanned
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, 2023-06-21 at 09:12 -0500, Limonciello, Mario wrote:
-> >=20
-> > But then the next question anyway is how we merge this? The wifi parts
-> > sort of depend on the first patch, although technically I guess I could
-> > merge them since it's all hidden behind the CONFIG_ symbol, assuming yo=
-u
-> > get that in via some other tree it can combine upstream.
-> >=20
-> > I'd also say you can merge those parts elsewhere but I'm planning to
-> > also land some locking rework that I've been working on, so it will
-> > probably conflict somewhere.
-> Since it's all gated by CONFIG_ACPI_WBRF for each subsystem that it touch=
-es,
-> my take is that we should merge like this:
->=20
-> 1) Get A-b/R-b on patch 1 (ACPI patch) from Rafael.
-> 2) Merge mac80211 bits through WLAN trees
-> 3) Merge AMDGPU bits *and* ACPI bits through amd-staging-drm-next=20
-> followed by drm tree
->=20
-> Since WLAN and AMDGPU bits are using the exported ACPI functions from
-> patch 1, we need to make sure that it is accepted and won't change
-> interface before merging other bits.
+There are at least two places in the kernel that are using
+the SMB0001 HID. Make it to be available via acpi_drivers.h
+header file. While at it, replace hard coded one with a
+definition.
 
-Right.
+Reviewed-by: Andi Shyti <andi.shyti@kernel.org>
+Link: https://lore.kernel.org/r/20230620163534.1042-2-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v2: added tag (Andi)
+ drivers/acpi/acpi_platform.c  | 2 +-
+ drivers/i2c/busses/i2c-scmi.c | 3 ---
+ include/acpi/acpi_drivers.h   | 2 ++
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-> Everything can come together in the upstream tree and the bots
-> will be able to test linux-next as well this way.
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 089a98bd18bf..e86f76ee3473 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -20,7 +20,7 @@
+ #include "internal.h"
+ 
+ static const struct acpi_device_id forbidden_id_with_resourses[] = {
+-	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
++	{ACPI_SMBUS_MS_HID,  0},	/* ACPI SMBUS virtual device */
+ 	{ }
+ };
+ 
+diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+index 104570292241..421735acfa14 100644
+--- a/drivers/i2c/busses/i2c-scmi.c
++++ b/drivers/i2c/busses/i2c-scmi.c
+@@ -13,9 +13,6 @@
+ #include <linux/i2c.h>
+ #include <linux/acpi.h>
+ 
+-/* SMBUS HID definition as supported by Microsoft Windows */
+-#define ACPI_SMBUS_MS_HID		"SMB0001"
+-
+ struct smbus_methods_t {
+ 	char *mt_info;
+ 	char *mt_sbr;
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index 8372b0e7fd15..b14d165632e7 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -27,6 +27,8 @@
+ #define ACPI_BAY_HID			"LNXIOBAY"
+ #define ACPI_DOCK_HID			"LNXDOCK"
+ #define ACPI_ECDT_HID			"LNXEC"
++/* SMBUS HID definition as supported by Microsoft Windows */
++#define ACPI_SMBUS_MS_HID		"SMB0001"
+ /* Quirk for broken IBM BIOSes */
+ #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+ 
+-- 
+2.40.0.1.gaa8946217a0b
 
-Yeah, that's what I thought.
-
-Sounds good to me!
-
-Oh, also, since it's pretty late in the cycle I'm assuming for now that
-you're not aiming this for 6.5 anymore. If you still are, it all would
-probably need to happen very quickly.
-
-johannes
