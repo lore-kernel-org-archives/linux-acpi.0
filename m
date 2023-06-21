@@ -2,99 +2,110 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A212EB64D8
-	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 08:47:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C019EB64DC
+	for <linux-acpi@archiver.kernel.org>; Wed, 21 Jun 2023 22:20:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231638AbjFUIrB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 21 Jun 2023 04:47:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38644 "EHLO
+        id S229710AbjFUWUF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 21 Jun 2023 18:20:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231620AbjFUIrA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 04:47:00 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57FB295;
-        Wed, 21 Jun 2023 01:46:59 -0700 (PDT)
-Received: from [2a02:8108:8980:2478:8cde:aa2c:f324:937e]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1qBtUO-0002iS-5L; Wed, 21 Jun 2023 10:46:56 +0200
-Message-ID: <9517bb70-426c-0296-b426-f5b4f075f7c8@leemhuis.info>
-Date:   Wed, 21 Jun 2023 10:46:54 +0200
+        with ESMTP id S229657AbjFUWUE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2023 18:20:04 -0400
+Received: from sipsolutions.net (s3.sipsolutions.net [IPv6:2a01:4f8:191:4433::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D14FD1733;
+        Wed, 21 Jun 2023 15:20:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=sipsolutions.net; s=mail; h=MIME-Version:Content-Transfer-Encoding:
+        Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-To:
+        Resent-Cc:Resent-Message-ID; bh=cP+HR2GmRZPnSeQ8lcOfEZ7k5nuBFTrLSVTHUrZopt8=;
+        t=1687386003; x=1688595603; b=BadH4QmJO0jxGMFzOXm+RhV89LkXMjHB0hoOxRuGYgfUbzG
+        av+OdABdyK0I8912nMNYGlYwCqnM5nK3D7OnE2Qn0pqjI8TbUYgx9TtG/GJLmdFtPmKjqECxvno7T
+        NNETC/vZErGTR5zfyAJx7alhIxudK0fjArwjPUTUhT3sPZcWuuSVSpFf4oGsHU4SjN5pz59oK9Ufp
+        NQv9gDn72dULGVVJ6Olmr3YDQDGHgNE7aFtmrQ6RG4NeguZ8GQVcbHmfcUNfLe+LZLSx//XTFJd4C
+        3f7V/Eyjmbj7EzROJn1nZWV+LGNP1O90ZLURxRQzYrp1OqAQcN3uSLVY7E/tzxzQ==;
+Received: by sipsolutions.net with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+        (Exim 4.96)
+        (envelope-from <johannes@sipsolutions.net>)
+        id 1qC6AD-00Duer-15;
+        Thu, 22 Jun 2023 00:18:58 +0200
+Message-ID: <3e337dc0482e16e2aaa4090b613dc8dea7803fa8.camel@sipsolutions.net>
+Subject: Re: [PATCH V4 1/8] drivers/acpi: Add support for Wifi band RF
+ mitigations
+From:   Johannes Berg <johannes@sipsolutions.net>
+To:     Andrew Lunn <andrew@lunn.ch>,
+        "Limonciello, Mario" <mario.limonciello@amd.com>
+Cc:     Evan Quan <evan.quan@amd.com>, rafael@kernel.org, lenb@kernel.org,
+        alexander.deucher@amd.com, christian.koenig@amd.com,
+        Xinhui.Pan@amd.com, airlied@gmail.com, daniel@ffwll.ch,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, mdaenzer@redhat.com,
+        maarten.lankhorst@linux.intel.com, tzimmermann@suse.de,
+        hdegoede@redhat.com, jingyuwang_vip@163.com, lijo.lazar@amd.com,
+        jim.cromie@gmail.com, bellosilicio@gmail.com,
+        andrealmeid@igalia.com, trix@redhat.com, jsg@jsg.id.au,
+        arnd@arndb.de, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-wireless@vger.kernel.org,
+        netdev@vger.kernel.org
+Date:   Thu, 22 Jun 2023 00:18:53 +0200
+In-Reply-To: <08dd8d17-6825-4e53-8441-85c709326f48@lunn.ch>
+References: <20230621054603.1262299-2-evan.quan@amd.com>
+         <3a7c8ffa-de43-4795-ae76-5cd9b00c52b5@lunn.ch>
+         <216f3c5aa1299100a0009ddf4e95b019855a32be.camel@sipsolutions.net>
+         <b1abec47-04df-4481-d680-43c5ff3cbb48@amd.com>
+         <36902dda-9e51-41b3-b5fc-c641edf6f1fb@lunn.ch>
+         <33d80292-e639-91d0-4d0f-3ed973f89e14@amd.com>
+         <9159c3a5-390f-4403-854d-9b5e87b58d8c@lunn.ch>
+         <a80c215a-c1d9-4c76-d4a8-9b5fd320a2b1@amd.com>
+         <8d3340de-34f6-47ad-8024-f6f5ecd9c4bb@lunn.ch>
+         <07ad6860-8ffb-cc6c-a8e5-e8dc4db4e87a@amd.com>
+         <08dd8d17-6825-4e53-8441-85c709326f48@lunn.ch>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.3 (3.48.3-1.fc38) 
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [REGRESSION][BISECTED] Boot stall from merge tag 'net-next-6.2'
-Content-Language: en-US, de-DE
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc:     Andrew Lunn <andrew@lunn.ch>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux Stable <stable@vger.kernel.org>,
-        Linux Regressions <regressions@lists.linux.dev>,
-        Bagas Sanjaya <bagasdotme@gmail.com>,
-        Sami Korkalainen <sami.korkalainen@proton.me>
-References: <GQUnKz2al3yke5mB2i1kp3SzNHjK8vi6KJEh7rnLrOQ24OrlljeCyeWveLW9pICEmB9Qc8PKdNt3w1t_g3-Uvxq1l8Wj67PpoMeWDoH8PKk=@proton.me>
- <ZHFaFosKY24-L7tQ@debian.me>
- <NVN-hJsvHwaHe6R-y6XIYJp0FV7sCavgMjobFnseULT1wjgkOFNXbGBGT5iVjCfbtU7dW5xy2hIDoq0ASeNaXhvSY-g2Df4aHWVIMQ2c3TQ=@proton.me>
- <ZIcmpcEsTLXFaO0f@debian.me>
- <oEbkgJ-ImLxBDZDUTnIAGFWrRVnwBss3FOlalTpwrz83xWgESC9pcvNKiAVp9BzFgqZ0V-NIwzBZ7icKD8ynuIi_ZMtGt7URu3ftcSt16u4=@proton.me>
- <e2ca75ef-d779-4bad-84a5-a9f262dbe213@lunn.ch>
- <FNzHwp9-AyweVwIMndmih6VuBD0nsyRp3OM72bmOxpeYszF680jFPJjENIknT32FeaqfVBtVSQFw-5mgE3ZXeksVD8VCFbxwojxP3mSZ9DQ=@proton.me>
-From:   "Linux regression tracking (Thorsten Leemhuis)" 
-        <regressions@leemhuis.info>
-Reply-To: Linux regressions mailing list <regressions@lists.linux.dev>
-In-Reply-To: <FNzHwp9-AyweVwIMndmih6VuBD0nsyRp3OM72bmOxpeYszF680jFPJjENIknT32FeaqfVBtVSQFw-5mgE3ZXeksVD8VCFbxwojxP3mSZ9DQ=@proton.me>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1687337219;d7e708c2;
-X-HE-SMSGID: 1qBtUO-0002iS-5L
+X-malware-bazaar: not-scanned
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-[added Jason (who authored the culprit) to the list of recipients; moved
-net people and list to BCC, guess they are not much interested in this
-anymore then]
+On Wed, 2023-06-21 at 21:25 +0200, Andrew Lunn wrote:
+> > ACPI core does has notifiers that are used, but they don't work the sam=
+e.
+> > If you look at patch 4, you'll see amdgpu registers and unregisters usi=
+ng
+> > both
+> >=20
+> > acpi_install_notify_handler()
+> > and
+> > acpi_remove_notify_handler()
+> >=20
+> > If we supported both ACPI notifications and non-ACPI notifications
+> > all consumers would have to have support to register and use both types=
+.
+>=20
+> Why would you want to support ACPI notifications and non-ACPI
+> notifications? All you need is wbrf notification.
+>=20
+> The new wbrf.c should implement wbrf_install_notify_handler() and
+> wbrf_remove_notify_handler().
+>=20
+> As to where to put wbrf.c? I guess either drivers/base/ or
+> drivers/wbrf/. Maybe ask GregKH?
 
-On 21.06.23 08:07, Sami Korkalainen wrote:
-> I bisected again. It seems I made some mistake last time, as I got a
-> different result this time. Maybe, because these problematic kernels may
-> boot fine sometimes, like I said before.
-> 
-> Anyway, first bad commit (makes much more sense this time): 
-> e7b813b32a42a3a6281a4fd9ae7700a0257c1d50 efi: random: refresh
-> non-volatile random seed when RNG is initialized
-> 
-> I confirmed that this is the code causing the issue by commenting it
-> out (see the patch file). Without this code, the latest mainline boots fine.
+Not sure it should even be called WBRF at that point, but hey :)
 
-Jason, in that case it seems this is something for you. For the initial
-report, see here:
+Honestly I'm not sure though we need this complexity right now? I mean,
+it'd be really easy to replace the calls in mac80211 with some other
+more generalised calls in the future?
 
-https://lore.kernel.org/all/GQUnKz2al3yke5mB2i1kp3SzNHjK8vi6KJEh7rnLrOQ24OrlljeCyeWveLW9pICEmB9Qc8PKdNt3w1t_g3-Uvxq1l8Wj67PpoMeWDoH8PKk=@proton.me/
+You need some really deep platform/hardware level knowledge and
+involvement to do this, so I don't think it's something that someone
+will come up with very easily for a DT-based platform...
 
-Quoting a part of it:
+If we do something with a notifier chain in the future, we can just
+install one in the ACPI code too, and react indirectly rather than
+calling from wifi to the ACPI directly.
 
-```
-Linux 6.2 and newer are (mostly) unbootable on my old HP 6730b laptop,
-the 6.1.30 works still fine.
-The weirdest thing is that newer kernels (like 6.3.4 and 6.4-rc3) may
-boot ok on the first try, but when rebooting, the very same version
-doesn't boot.
-
-Some times, when trying to boot, I get this message repeated forever:
-ACPI Error: No handler or method for GPE [XX], disabling event
-(20221020/evgpe-839)
-On newer kernels, the date is 20230331 instead of 20221020. There is
-also some other error, but I can't read it as it gets overwritten by the
-other ACPI error, see image linked at the end.
-
-And some times, the screen will just stay completely blank.
-
-I tried booting with acpi=off, but it does not help.
-```
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
---
-Everything you wanna know about Linux kernel regression tracking:
-https://linux-regtracking.leemhuis.info/about/#tldr
-If I did something stupid, please tell me, as explained on that page.
-
-#regzbot introduced e7b813b32a42a3a6281a4fd9ae7700a0257c1d50
+johannes
