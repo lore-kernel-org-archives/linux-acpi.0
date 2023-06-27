@@ -2,70 +2,167 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E04EEB64D9
-	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jun 2023 02:56:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5040BEB64DC
+	for <linux-acpi@archiver.kernel.org>; Tue, 27 Jun 2023 07:10:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229861AbjF0C40 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 26 Jun 2023 22:56:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57610 "EHLO
+        id S229886AbjF0HKn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 27 Jun 2023 03:10:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230489AbjF0C4U (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2023 22:56:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABD0419A4;
-        Mon, 26 Jun 2023 19:56:17 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8850A60FF6;
-        Tue, 27 Jun 2023 02:56:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id E9B08C433CA;
-        Tue, 27 Jun 2023 02:56:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687834576;
-        bh=hsfUWJ0xkaQxSQXw1IsagHZ+KW0sSoMJ7zs1WEM1ciQ=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=TxK0IQMM/PdvEeRm6tsaA5zZSmXDW3A+M2WuD4tm15+DoxzqJu1k1DxM+aGk2VrtL
-         Cd3D9i7EepZQ7cq0kxIdOjYCNdJvWpI8hE/89DB+0cphXB9mt+B0p/5XPX7tsypfsP
-         2wvkhJ7vqIWRu1rwAMfxRWu66Mdl4zMo7F/kq2TBScCe8HdEdnrQdAktWeH9kOGXpz
-         BDH3cm/vVifNYpyBvQ1DBivYE95BEaqKMp9Noqseu29RNx6gJFaeSXWps9w84Jirlc
-         DPTYLW1qi1Jk0QUUygzj4iwOkYqQQAvc+ZrzbGnofvC0GGqJa3ZpclIzXMNBaHxP9L
-         I8ZLxORct4v4Q==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C95F1E5380A;
-        Tue, 27 Jun 2023 02:56:16 +0000 (UTC)
-Subject: Re: [GIT PULL] Power management updates for v6.5-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iQk8ytZ0953_HCWU6Vr62J9UeC8Z9pirOHAfjpbvcOfg@mail.gmail.com>
-References: <CAJZ5v0iQk8ytZ0953_HCWU6Vr62J9UeC8Z9pirOHAfjpbvcOfg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iQk8ytZ0953_HCWU6Vr62J9UeC8Z9pirOHAfjpbvcOfg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-6.5-rc1
-X-PR-Tracked-Commit-Id: c89a27f4f8fbf4dcbaf1738b42b8c68e160d7cda
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 40e8e98f512fc76891ae2328a63e2e4ffdbe3010
-Message-Id: <168783457682.6991.3642465326113444679.pr-tracker-bot@kernel.org>
-Date:   Tue, 27 Jun 2023 02:56:16 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+        with ESMTP id S230349AbjF0HJs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jun 2023 03:09:48 -0400
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D26F1BDD
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Jun 2023 00:09:23 -0700 (PDT)
+Received: by mail-wr1-x42e.google.com with SMTP id ffacd0b85a97d-313e09a5b19so2510544f8f.0
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Jun 2023 00:09:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1687849762; x=1690441762;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=sLHLCzTSc3N5T11ch7RbVwNiToMIPKfqegBEVT2Bdxg=;
+        b=Y2XpaTpqkxHTut99adctD3UL3X3TTo4BtWjOF1T62bC+140DkeTNyZ26iZTaHvHxZI
+         i+LfkMg2+mpwrHB55cukR2fPDOBdqlHBFvDpu+v//+vbaaQB/R9S5WBQEAsV7L8tB/vG
+         nWfF/4Wd94Pe5qeJNjUUFQ2k3gkX6xN87UhcquFcI4TLsXHagFnbnr6QMshrfWW+A+vZ
+         AvTr1szEZsMpobX1uEpPO9ddUPKA/YDRkNKWyBtWoKcWIC1ocoErM4tBdybaoflwRoYs
+         ibKgxqrC3cO+bUBnvisTt5yYhwJ9AtQAVuGozY9t7fM/1wlE/5+SP9W0KopLvVJtspWR
+         RQeQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687849762; x=1690441762;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=sLHLCzTSc3N5T11ch7RbVwNiToMIPKfqegBEVT2Bdxg=;
+        b=fyoYoly8ulUig1fhrnSfexYS/kA9vm6/dhuF5RydySUtdlwsszuw9ZRj1U6h/qcS5E
+         /TcLqIN0xFYNUYAbPYl3swEQyNqh///ZZXVH3Bjp9qTzrRVjhJwGtJC2IsS28Bb2ZUXh
+         CpSJwCTA6v67XWSgdttjEyA20MundKLjUCXE76+Op6C30UaMjaIp663lkGl/WrKTEWnh
+         0YbvUVqucDZ9fu+TnY0pEbARJTYrVNNDR6cump3hYxrtEq/XCDZIcvExXOdvpmLubAYU
+         nkd4d3OhShyRDcD3f411hXPfTqrDDG2/qWFa3LyInMvgAeth39FvtDETiWiQoV4ycHUt
+         nP5w==
+X-Gm-Message-State: AC+VfDwVNL3LCKPaaMutrVN6EwIHBg6FUbEDWdCGxUieXho8afkUxWK/
+        6/RoM2yyURtTMJVXioX6Mke0oZrCMhoI3VNPyHMtFA==
+X-Google-Smtp-Source: ACHHUZ6cc924CDGf7hOH0PaM3DmcJrQG/nF7GfEYvy2/r0yRr0cQXXB7dEoU8jSQRicJk7yy8NNDql/dq7FpO6us7PM=
+X-Received: by 2002:a5d:61c9:0:b0:313:f5ea:44f7 with SMTP id
+ q9-20020a5d61c9000000b00313f5ea44f7mr3065621wrv.35.1687849761763; Tue, 27 Jun
+ 2023 00:09:21 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230426034001.16-1-cuiyunhui@bytedance.com> <CAMj1kXEKh9O-ndk3QFibJMYfMbG7vm-cLN2vVQM5eDsYK84NzQ@mail.gmail.com>
+ <CAEEQ3wkJB5CKm33mHXUOPX5makYOHF8By6FYGnNzRkM-Mo72OQ@mail.gmail.com>
+ <ZEj33QLZqEeL+/y4@FVFF77S0Q05N> <CAEEQ3wmDBJkfOeKCQfcnuE+1=1K0D2pzu+Sn+zPEWk+RHs0NFQ@mail.gmail.com>
+ <CAP6exY+ydbzh1EkWTFejzwaW+PA-ySVO2Qj+CVJ1XbSMce2S9Q@mail.gmail.com>
+ <CAP6exY+tqAU0j1TVEMTzTb18M6_mPH5bWWiAS=94gyDGTY3hyQ@mail.gmail.com>
+ <CAEEQ3w=wBdpZWnUd2WWVBC3BtFiUp-PQtNAtdXE4cO4n0XT-fg@mail.gmail.com>
+ <CAMj1kXFGpXEPtYpy1+bs13F2P_LLZf9rTMfYMU=6jzgd3=SEcw@mail.gmail.com>
+ <CAEEQ3wnbXE0vJnQRLo5MhfDc-Q4PbNWBoWS-oMn71CcJU51JdA@mail.gmail.com>
+ <CAMj1kXHfqkU2QxvjTkGBSkEcTf_HirbdOReOJwdpgz3hM8fBHw@mail.gmail.com>
+ <CAEEQ3wn2n48TpNQ3MuvrRH4zzg28SaiOswunPeZ01jFm-TbJ5w@mail.gmail.com>
+ <CAMj1kXHgaLD43jx0f6hn_j209LGT_4G+w5XEGaYB9znV5p9tdA@mail.gmail.com>
+ <CAP6exYJRE8iM63SX3hQP9_5aKYcnN5x0KOAtZOgeEWU5bwLEBA@mail.gmail.com>
+ <CAEEQ3wn2zHUZP8gs8ezCczQLdQJqU6MqAgpcG0YeDW2aYTz0TA@mail.gmail.com>
+ <CAMj1kXFn7+W=ZGNcSLL6p383SbA8=wstutJ85+qvXzt2G66Seg@mail.gmail.com>
+ <CAEEQ3wnXJVBLdqW6GRFuCKuBtr38uKHz7E2+P8TAv1_+b6kBKA@mail.gmail.com>
+ <CAMj1kXFAsG0nH+2OcG3CBZYqKg=hCRHp8wAmVBFy9vNx6rWgOQ@mail.gmail.com> <CAEEQ3wkT_2GbdsjfA_VA+LeyCzdeQ+Bh+admyVjz7rE3cSWSxA@mail.gmail.com>
+In-Reply-To: <CAEEQ3wkT_2GbdsjfA_VA+LeyCzdeQ+Bh+admyVjz7rE3cSWSxA@mail.gmail.com>
+From:   =?UTF-8?B?6L+Q6L6J5bSU?= <cuiyunhui@bytedance.com>
+Date:   Tue, 27 Jun 2023 15:09:10 +0800
+Message-ID: <CAEEQ3wkhQJ8G-AsFBMYLFcS=rxSkPojWNLGki470WQ3XJLHoAA@mail.gmail.com>
+Subject: Re: [External] Re: [PATCH] firmware: added a firmware information
+ passing method FFI
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     ron minnich <rminnich@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>, rafael@kernel.org,
+        lenb@kernel.org, jdelvare@suse.com, yc.hung@mediatek.com,
+        angelogioacchino.delregno@collabora.com,
+        allen-kh.cheng@mediatek.com, pierre-louis.bossart@linux.intel.com,
+        tinghan.shen@mediatek.com,
+        lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-acpi@vger.kernel.org,
+        =?UTF-8?B?6JGb5aOr5bu6?= <geshijian@bytedance.com>,
+        =?UTF-8?B?6Z+m5Lic?= <weidong.wd@bytedance.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Mon, 26 Jun 2023 19:21:06 +0200:
+Hi Ard,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-6.5-rc1
+1. Regarding the definition of DTS FFI nodes, according to your
+suggestion, we plan to make the following modifications=EF=BC=9A
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/40e8e98f512fc76891ae2328a63e2e4ffdbe3010
+/ {
+...
+    ffi_cfg {
+        acpi_tbl {
+            root_pinter =3D ; //u64
+            ...
+        };
+        smbios_tbl {
+            root_pinter =3D ; //u64
+            ...
+        };
+    };
+    ...
+};
 
-Thank you!
+2. Let's move on to the discussion: should we put code under arch/risc-v/?
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+On Mon, Jun 26, 2023 at 6:19=E2=80=AFPM =E8=BF=90=E8=BE=89=E5=B4=94 <cuiyun=
+hui@bytedance.com> wrote:
+>
+> Hi Ard, Mark,
+>
+> On Mon, Jun 26, 2023 at 4:23=E2=80=AFPM Ard Biesheuvel <ardb@kernel.org> =
+wrote:
+>
+> > DT support for SMBIOS can live in generic code, but the binding has to
+> > be sane. As I suggested before, it probably makes sense to supplant
+> > the entrypoint rather than just carry its address - this means a 'reg'
+> > property with base and size to describe the physical region, and at
+> > least major/minor/docrev fields to describe the version.
+>
+> Regarding dts node binding, our current definition is as follows:
+> /dts
+> {
+> ...
+> cfgtables {
+> acpi_phy_ptr =3D 0000000000000000; //u64
+> smbios_phy_ptr =3D 0000000000000000; //u64
+> ...
+> }
+> ...
+> }
+>
+> x86 only gave a root_pointer entry address
+> u64 x86_default_get_root_pointer(void)
+> {
+>        return boot_params.acpi_rsdp_addr;
+> }
+>
+> Regarding the naming of the binding above, Mark,  do you have any suggest=
+ions?
+>
+>
+> > For the ACPI side, you should just implement
+> > acpi_arch_get_root_pointer() under arch/riscv, and wire it up in
+> > whichever way you want. But please check with the RISC-V maintainers
+> > if they are up for this, and whether they want to see this mechanism
+> > contributed to one of the pertinent specifications.
+>
+> You suggest putting SMBIOS in general code instead of ACPI, why?
+> From the perspective of firmware information passing, they are a class.
+>
+> SMBIOS and ACPI are not related to ARCH, nor is DTS to obtain firmware
+> information,
+>
+> Why do you have to put part of the ACPI code under arch/risc-v/?
+> The scope of the previous discussion was limited to RISC-V because of
+> historical reasons such as the binding with EFI on ARM64. We will only
+> enable this function on RISC-V in subsequent patches.
+>
+> The realization of the FFI scheme itself is irrelevant to the arch.
+>
+> Thanks=EF=BC=8C
+> Yunhui
