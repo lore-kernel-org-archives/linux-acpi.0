@@ -2,52 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32093EB64D9
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:58:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 040B7EB64D9
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233139AbjGBT6g (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jul 2023 15:58:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43316 "EHLO
+        id S232623AbjGBT67 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:58:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233228AbjGBT55 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:57:57 -0400
+        with ESMTP id S233260AbjGBT6A (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:58:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 335D91FCC;
-        Sun,  2 Jul 2023 12:55:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E6351FE8;
+        Sun,  2 Jul 2023 12:55:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0993160CFB;
-        Sun,  2 Jul 2023 19:52:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0D65C433C7;
-        Sun,  2 Jul 2023 19:52:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D477D60CF6;
+        Sun,  2 Jul 2023 19:51:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59CF9C433C9;
+        Sun,  2 Jul 2023 19:51:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327527;
-        bh=i/JGXHSbLa3j9zpLRJzwZyUSMii2pMgDlb8qMH5Uu8I=;
+        s=k20201202; t=1688327515;
+        bh=1Y5JUZC0hk2+VhStkGcp8Komml8YDXrr6ysKpN0AVgY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=tWu0H/Uh1JHgtQnXorfeaiwl4sT9P27N+t+D+vYvJS/NdwB6GZpaUJRT5nB8BUOaW
-         AkQ0YkFV8bVgsviD5dtVbWHXA1h37gTWpEI0u2EgInBQNhGqSNr6WSJvV7nYLJFtLf
-         nXa0rz1MpgUvmt6mFtSgnFeQsVy1jUENS99WBXS3e5bTTyQcg0lXSW+f4mRbGhPqRY
-         sGf3Ce9TqUM7mh83E5+5PWKpktwYTXCbuGiu/MrevnsnY8hkgGk7u5el31UgdPonrX
-         7UFtM0q+bS5TNH6Y2iIq0OfbWG7SEAMo2tTW3+RbEyX8VLvpdiCSNdAh5bXdTC0tce
-         LvDphwqcoRp4g==
+        b=awkc8FuOpZLSfki8FqTcf40cUJRBzx4/fXyKjtTbvY9LEQ6XkpSKvEKpFBlmBaIja
+         vOdnQ37IS+a+Aso0BqGlOVo6pJ5JJ9bZ/C03xlO03BjexM3hsLb+cIwRB8FHAUgiBt
+         zCtEKuUJ7vXsRxjQEhxMlRknsfEQwIayf37+/DgCgBR0VgrIJ7dC23hbmHoitmQ16t
+         b+J9aC/Dc24awj1RyknBgMZ1rIM/847PsLa8FhEvZyC08qcSX0oKTa6esj1Lsn+MTc
+         wR8YhULT8Oq/yLfO1ONBZ68AzEqr1wnXOZZOdt7ypFERUBv5Lo8yHBMuncUnHwiPC+
+         S6PeNJac2olwg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
+        raycekarneal <raycekarneal@gmail.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 4/9] ACPI: video: Add backlight=native DMI quirk for Lenovo ThinkPad X131e (3371 AMD version)
-Date:   Sun,  2 Jul 2023 15:51:51 -0400
-Message-Id: <20230702195159.1788402-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.3 11/11] ACPI: video: Add backlight=native DMI quirk for Dell Studio 1569
+Date:   Sun,  2 Jul 2023 15:51:27 -0400
+Message-Id: <20230702195127.1787911-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230702195159.1788402-1-sashal@kernel.org>
-References: <20230702195159.1788402-1-sashal@kernel.org>
+In-Reply-To: <20230702195127.1787911-1-sashal@kernel.org>
+References: <20230702195127.1787911-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.1.37
+X-stable-base: Linux 6.3.11
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -55,13 +56,16 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit bd5d93df86a7ddf98a2a37e9c3751e3cb334a66c ]
+[ Upstream commit 23d28cc0444be3f694eb986cd653b6888b78431d ]
 
-Linux defaults to picking the non-working ACPI video backlight interface
-on the Lenovo ThinkPad X131e (3371 AMD version).
+The Dell Studio 1569 predates Windows 8, so it defaults to using
+acpi_video# for backlight control, but this is non functional on
+this model.
 
-Add a DMI quirk to pick the working native radeon_bl0 interface instead.
+Add a DMI quirk to use the native intel_backlight interface which
+does work properly.
 
+Reported-by: raycekarneal <raycekarneal@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
@@ -70,24 +74,24 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index a6f50d4d61143..4a77e7e6e3fa0 100644
+index b87783c5872dd..e7d04ab864a16 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -468,6 +468,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "82BK"),
+@@ -528,6 +528,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Precision 7510"),
  		},
  	},
 +	{
 +	 .callback = video_detect_force_native,
-+	 /* Lenovo ThinkPad X131e (3371 AMD version) */
++	 /* Dell Studio 1569 */
 +	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "3371"),
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1569"),
 +		},
 +	},
  	{
  	 .callback = video_detect_force_native,
- 	 /* Apple iMac11,3 */
+ 	 /* Acer Aspire 3830TG */
 -- 
 2.39.2
 
