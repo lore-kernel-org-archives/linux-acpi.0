@@ -2,36 +2,36 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 040B7EB64D9
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F3E4EB64DD
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:59:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232623AbjGBT67 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jul 2023 15:58:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44190 "EHLO
+        id S233200AbjGBT7J (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:59:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233260AbjGBT6A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:58:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E6351FE8;
-        Sun,  2 Jul 2023 12:55:27 -0700 (PDT)
+        with ESMTP id S233284AbjGBT6D (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:58:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 226DE2680;
+        Sun,  2 Jul 2023 12:55:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D477D60CF6;
-        Sun,  2 Jul 2023 19:51:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59CF9C433C9;
-        Sun,  2 Jul 2023 19:51:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 56B3160D2B;
+        Sun,  2 Jul 2023 19:52:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64ECEC433CA;
+        Sun,  2 Jul 2023 19:52:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327515;
-        bh=1Y5JUZC0hk2+VhStkGcp8Komml8YDXrr6ysKpN0AVgY=;
+        s=k20201202; t=1688327542;
+        bh=lwZ1svAY0g6/mInAGdcu3Le5e9Uq4Rks/r8+ZIvw/h0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=awkc8FuOpZLSfki8FqTcf40cUJRBzx4/fXyKjtTbvY9LEQ6XkpSKvEKpFBlmBaIja
-         vOdnQ37IS+a+Aso0BqGlOVo6pJ5JJ9bZ/C03xlO03BjexM3hsLb+cIwRB8FHAUgiBt
-         zCtEKuUJ7vXsRxjQEhxMlRknsfEQwIayf37+/DgCgBR0VgrIJ7dC23hbmHoitmQ16t
-         b+J9aC/Dc24awj1RyknBgMZ1rIM/847PsLa8FhEvZyC08qcSX0oKTa6esj1Lsn+MTc
-         wR8YhULT8Oq/yLfO1ONBZ68AzEqr1wnXOZZOdt7ypFERUBv5Lo8yHBMuncUnHwiPC+
-         S6PeNJac2olwg==
+        b=kEc2mUH1v6d96NNRMve9JaVCl7c22qr3JbPl1PA3Wps+St6x4xPd7+8EekSRnV+2s
+         a+UE52+VKXu8HBSDHobHqVKfyIgCEO824NT3ZcpAMbif1H+/S6uz+ukZjhkgt3njP0
+         GDVr+M91BbbBM1NVXau7Iwli5RIpshomg62GbtQDcfgSOn/Ck/WF0dqNxlS4nBu73U
+         fYXz7yBKU8rRNPjmb7HRRL7xg4IKRpAV2vv5clVryqFqhBC0A/0HCXgrai96gOL35r
+         zbeZr0fC3f1Mnx9zuP3QCeZMVG7eA4RegLMPvI13dMMthc97H9v9rr0cfRIR+9twfS
+         P6/97dAftX8Lg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
@@ -39,16 +39,16 @@ Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.3 11/11] ACPI: video: Add backlight=native DMI quirk for Dell Studio 1569
-Date:   Sun,  2 Jul 2023 15:51:27 -0400
-Message-Id: <20230702195127.1787911-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 9/9] ACPI: video: Add backlight=native DMI quirk for Dell Studio 1569
+Date:   Sun,  2 Jul 2023 15:51:56 -0400
+Message-Id: <20230702195159.1788402-9-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230702195127.1787911-1-sashal@kernel.org>
-References: <20230702195127.1787911-1-sashal@kernel.org>
+In-Reply-To: <20230702195159.1788402-1-sashal@kernel.org>
+References: <20230702195159.1788402-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.3.11
+X-stable-base: Linux 6.1.37
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -74,10 +74,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index b87783c5872dd..e7d04ab864a16 100644
+index 4a77e7e6e3fa0..c8dd7f7407da2 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -528,6 +528,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+@@ -526,6 +526,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "Precision 7510"),
  		},
  	},
