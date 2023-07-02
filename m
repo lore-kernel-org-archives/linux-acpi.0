@@ -2,52 +2,52 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10501EB64DD
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE6CEB64DD
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:58:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230272AbjGBT6F (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jul 2023 15:58:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43194 "EHLO
+        id S233099AbjGBT6Q (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:58:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232814AbjGBT45 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FE4619AA;
-        Sun,  2 Jul 2023 12:54:48 -0700 (PDT)
+        with ESMTP id S233213AbjGBT54 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:57:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BDB11BC2;
+        Sun,  2 Jul 2023 12:55:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E5C9460C81;
-        Sun,  2 Jul 2023 19:52:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97132C433CA;
-        Sun,  2 Jul 2023 19:52:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AFF2E60CEB;
+        Sun,  2 Jul 2023 19:52:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6869CC433CA;
+        Sun,  2 Jul 2023 19:52:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327571;
-        bh=x7QgD5cbrpnxYXtiHTDilUKOuTppJo9uI3sOZCIeioE=;
+        s=k20201202; t=1688327526;
+        bh=eFMG0XjQIZBGYvYEnpJk2LWeIrqLpuLYfea2Fu8ZBCQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qLmUpkZysWRswgc6i6yxrOe//M6ZdJLpcMX9P7U1Cpz4nduu2cK0rEeMlEk2TxZhE
-         eNErwunlebCowU3Lt7bPXHCRzh84+Ryyj7SLTSvm1sN+wzyDILhs95unaNoyJXHhny
-         7mdnxrMn4j3hwYbm1mT5r+HfFPCj4Xg8hmuiil9oagd0Plo+lLAclrK/ywYStB0ASB
-         M9jdW62aKB8fNj5U9F9Z09VaSoMyXpTVOIKmO6BC2WRW3Cnde8fJTCYpCKoHOThezl
-         Pjkfna0hL5EeFIADCXC0KiLfkSRn1Wx6t7qDy/NViL5CIvcXU5SRvWQk2qklWrWZf9
-         1doTKRjCLZ1tw==
+        b=df/3Ekf1FW6/uSxlOqUVniK5HKAerWWVEMUDR+25IC53fRAOB9Ja24sE4CU0/DdWI
+         sGIGrGsK/Q00+qqN8hdX3/+OdomILLs+0kfHk239kuwVuu1+ynScbOr+umLmfllWTH
+         lja2IJA0X5itxZ9RpUHAom5d/03huhpriyoG8f8HfO3HtHdUXIdUDstqmigcwbjIEZ
+         t1fJ4E8L70hjVjQpiIZL6lAKjPnYOx8G45V8kxizD5i7/klUBECWI0v6zWo1dW2i6t
+         XAlbl7tQV5RLDm9Ab8femw6EwAOtm+tipcnttZh175orM20vZYKjimWuKSZLugua5f
+         onzZQtKB65+9Q==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 2/5] ACPI: video: Add backlight=native DMI quirk for Apple iMac11,3
-Date:   Sun,  2 Jul 2023 15:52:44 -0400
-Message-Id: <20230702195247.1788860-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 3/9] ACPI: video: Add backlight=native DMI quirk for Apple iMac11,3
+Date:   Sun,  2 Jul 2023 15:51:50 -0400
+Message-Id: <20230702195159.1788402-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230702195247.1788860-1-sashal@kernel.org>
-References: <20230702195247.1788860-1-sashal@kernel.org>
+In-Reply-To: <20230702195159.1788402-1-sashal@kernel.org>
+References: <20230702195159.1788402-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.186
+X-stable-base: Linux 6.1.37
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -70,10 +70,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 038542b3a80a7..872b5351f0d8f 100644
+index b6d429a2bcb62..a6f50d4d61143 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -332,6 +332,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+@@ -468,6 +468,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "82BK"),
  		},
  	},
