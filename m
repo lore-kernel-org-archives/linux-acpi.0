@@ -2,47 +2,51 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C86FAC001DE
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:56:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF2BEB64DA
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:56:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229738AbjGBT4x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S232302AbjGBT4x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Sun, 2 Jul 2023 15:56:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42260 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232664AbjGBT4Z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7CC73A87;
-        Sun,  2 Jul 2023 12:54:16 -0700 (PDT)
+        with ESMTP id S233106AbjGBT42 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CD914C0A;
+        Sun,  2 Jul 2023 12:54:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4781260CD4;
-        Sun,  2 Jul 2023 19:52:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 942E0C433C7;
-        Sun,  2 Jul 2023 19:52:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C384C60CA5;
+        Sun,  2 Jul 2023 19:52:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00493C433CC;
+        Sun,  2 Jul 2023 19:52:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327523;
-        bh=69V9Ig/HA5N66PRbyZIkRjsDTHBKFg/+k5b9bW4I/b4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=mrR8GS2jQ1CNBQXA7/vBTPQfR0g+bf3gSFfKONJXzwEzUTSnlACs2T0n6YnoQXnpd
-         Pfn/RaMMA6AjoWbtqNBGdBjHaW/ibP7oumvdUHmbkU3pX2ZP+OAcIdbiWaM7IGh3lY
-         9O1FDcOervM000OSbsxCghoNOSNKqvhNqm/9rgQ2bEivURgEHHXFnWwHRJZP148nH9
-         LKdgxPwGVg28yFPTYItTwCz6ShhskmdIQ1FtiqkJLkC0Lyww87cSolDUj69gijDPYR
-         /q0TnOK6v+SriF1W6OpjcNxNodM6IFacPpMXNG4pJA4TVstZ5b4J1Hc6OxaRxlNE0Y
-         Djgegvs1X6FdA==
+        s=k20201202; t=1688327529;
+        bh=nx5PgQW6CBbnN/yZjzOincoEbQLCNotRpLCStMiJi7M=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=aSg570p9hAbmtmaK1G+1lMi69dYQkQxuiiD4TnFy6nnXMX2ykh8JQKefnj3HJAI7A
+         B2gIcbSt+QxWgb8LCj9xjjckztHkky4ykhFBhWEZ+nS25KkKUj7qbYVnv+QB3aMTXJ
+         7LQi+UHF6tPlNBPlKXGcXM8O+1JMvc9hYZXkThd+xtK7emGR96NpdeUo6KE7JMD3MM
+         m9CS67Ni3Ggbhd2HjD9fqGNGj2rVIarZtepkvuRzuGZfeGl3cf8GPTT/XDSfMzZ83o
+         hJdi+3jy658cLPHechFs6XE3hMTxeK20ar1WzblOIibvMZYHsIPikpNn0NSvf5Ap91
+         uZHZp/kP8EkWw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
+Cc:     Mario Limonciello <mario.limonciello@amd.com>, evilsnoo@proton.me,
+        ruinairas1992@gmail.com, nmschulte@gmail.com,
+        Werner Sembach <wse@tuxedocomputers.com>,
+        Chuanhong Guo <gch981213@gmail.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
-        mario.limonciello@amd.com, andriy.shevchenko@linux.intel.com,
-        mail@mariushoch.de, linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 1/9] ACPI: x86: Add skip i2c clients quirk for Nextbook Ares 8A
-Date:   Sun,  2 Jul 2023 15:51:48 -0400
-Message-Id: <20230702195159.1788402-1-sashal@kernel.org>
+        linux-acpi@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.1 5/9] ACPI: resource: Remove "Zen" specific match and quirks
+Date:   Sun,  2 Jul 2023 15:51:52 -0400
+Message-Id: <20230702195159.1788402-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230702195159.1788402-1-sashal@kernel.org>
+References: <20230702195159.1788402-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -52,74 +56,130 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: Mario Limonciello <mario.limonciello@amd.com>
 
-[ Upstream commit 69d6b37695c1f2320cfa330e1e1636d50dd5040a ]
+[ Upstream commit a9c4a912b7dc7ff922d4b9261160c001558f9755 ]
 
-The Nextbook Ares 8A is a x86 ACPI tablet which ships with Android x86
-as factory OS. Its DSDT contains a bunch of I2C devices which are not
-actually there (the Android x86 kernel fork ignores I2C devices described
-in the DSDT).
+commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on
+AMD Zen platforms") attempted to overhaul the override logic so it
+didn't apply on X86 AMD Zen systems.  This was intentional so that
+systems would prefer DSDT values instead of default MADT value for
+IRQ 1 on Ryzen 6000 systems which typically uses ActiveLow for IRQ1.
 
-On this specific model this just not cause resource conflicts, one of
-the probe() calls for the non existing i2c_clients actually ends up
-toggling a GPIO or executing a _PS3 after a failed probe which turns
-the tablet off.
+This turned out to be a bad assumption because several vendors
+add Interrupt Source Override but don't fix the DSDT. A pile of
+quirks was collecting that proved this wasn't sustaintable.
 
-Add a ACPI_QUIRK_SKIP_I2C_CLIENTS for the Nextbook Ares 8 to the
-acpi_quirk_skip_dmi_ids table to avoid the bogus i2c_clients and
-to fix the tablet turning off during boot because of this.
+Furthermore some vendors have used ActiveHigh for IRQ1.
+To solve this problem revert the following commits:
+* commit 17bb7046e7ce ("ACPI: resource: Do IRQ override on all TongFang
+GMxRGxx")
+* commit f3cb9b740869 ("ACPI: resource: do IRQ override on Lenovo 14ALC7")
+* commit bfcdf58380b1 ("ACPI: resource: do IRQ override on LENOVO IdeaPad")
+* commit 7592b79ba4a9 ("ACPI: resource: do IRQ override on XMG Core 15")
+* commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen
+platforms")
 
-Also add the "10EC5651" HID for the RealTek ALC5651 codec used
-in this tablet to the list of HIDs for which not to skipi2c_client
-instantiation, since the Intel SST sound driver relies on
-the codec being instantiated through ACPI.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Reported-by: evilsnoo@proton.me
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=217394
+Reported-by: ruinairas1992@gmail.com
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=217406
+Reported-by: nmschulte@gmail.com
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=217336
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+Tested-by: Werner Sembach <wse@tuxedocomputers.com>
+Tested-by: Chuanhong Guo <gch981213@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/x86/utils.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/acpi/resource.c | 60 -----------------------------------------
+ 1 file changed, 60 deletions(-)
 
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index e45285d4e62a4..0b65c0d3f5a80 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -330,7 +330,7 @@ static const struct dmi_system_id acpi_quirk_skip_dmi_ids[] = {
- 					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
- 	},
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index a7f12bdbc5e25..1d28f9aea240c 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -456,52 +456,6 @@ static const struct dmi_system_id asus_laptop[] = {
+ 	{ }
+ };
+ 
+-static const struct dmi_system_id lenovo_laptop[] = {
+-	{
+-		.ident = "LENOVO IdeaPad Flex 5 14ALC7",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "82R9"),
+-		},
+-	},
+-	{
+-		.ident = "LENOVO IdeaPad Flex 5 16ALC7",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "82RA"),
+-		},
+-	},
+-	{ }
+-};
+-
+-static const struct dmi_system_id tongfang_gm_rg[] = {
+-	{
+-		.ident = "TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "GMxRGxx"),
+-		},
+-	},
+-	{ }
+-};
+-
+-static const struct dmi_system_id maingear_laptop[] = {
+-	{
+-		.ident = "MAINGEAR Vector Pro 2 15",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-15A3070T"),
+-		}
+-	},
+-	{
+-		.ident = "MAINGEAR Vector Pro 2 17",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-17A3070T"),
+-		},
+-	},
+-	{ }
+-};
+-
+ static const struct dmi_system_id lg_laptop[] = {
  	{
--		/* Nextbook Ares 8 */
-+		/* Nextbook Ares 8 (BYT version)*/
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "Insyde"),
- 			DMI_MATCH(DMI_PRODUCT_NAME, "M890BAP"),
-@@ -338,6 +338,16 @@ static const struct dmi_system_id acpi_quirk_skip_dmi_ids[] = {
- 		.driver_data = (void *)(ACPI_QUIRK_SKIP_I2C_CLIENTS |
- 					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
- 	},
-+	{
-+		/* Nextbook Ares 8A (CHT version)*/
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Insyde"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "CherryTrail"),
-+			DMI_MATCH(DMI_BIOS_VERSION, "M882"),
-+		},
-+		.driver_data = (void *)(ACPI_QUIRK_SKIP_I2C_CLIENTS |
-+					ACPI_QUIRK_SKIP_ACPI_AC_AND_BATTERY),
-+	},
- 	{
- 		/* Whitelabel (sold as various brands) TM800A550L */
- 		.matches = {
-@@ -356,6 +366,7 @@ static const struct dmi_system_id acpi_quirk_skip_dmi_ids[] = {
- #if IS_ENABLED(CONFIG_X86_ANDROID_TABLETS)
- static const struct acpi_device_id i2c_acpi_known_good_ids[] = {
- 	{ "10EC5640", 0 }, /* RealTek ALC5640 audio codec */
-+	{ "10EC5651", 0 }, /* RealTek ALC5651 audio codec */
- 	{ "INT33F4", 0 },  /* X-Powers AXP288 PMIC */
- 	{ "INT33FD", 0 },  /* Intel Crystal Cove PMIC */
- 	{ "INT34D3", 0 },  /* Intel Whiskey Cove PMIC */
+ 		.ident = "LG Electronics 17U70P",
+@@ -525,10 +479,6 @@ struct irq_override_cmp {
+ static const struct irq_override_cmp override_table[] = {
+ 	{ medion_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+ 	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+-	{ lenovo_laptop, 6, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
+-	{ lenovo_laptop, 10, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
+-	{ tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+-	{ maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+ 	{ lg_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+ };
+ 
+@@ -548,16 +498,6 @@ static bool acpi_dev_irq_override(u32 gsi, u8 triggering, u8 polarity,
+ 			return entry->override;
+ 	}
+ 
+-#ifdef CONFIG_X86
+-	/*
+-	 * IRQ override isn't needed on modern AMD Zen systems and
+-	 * this override breaks active low IRQs on AMD Ryzen 6000 and
+-	 * newer systems. Skip it.
+-	 */
+-	if (boot_cpu_has(X86_FEATURE_ZEN))
+-		return false;
+-#endif
+-
+ 	return true;
+ }
+ 
 -- 
 2.39.2
 
