@@ -2,46 +2,48 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8FB2EB64D9
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:57:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00166EB64DD
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:57:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233087AbjGBT53 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jul 2023 15:57:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43266 "EHLO
+        id S233113AbjGBT5b (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:57:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233143AbjGBT4o (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:44 -0400
+        with ESMTP id S233153AbjGBT4q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3030A3C35;
-        Sun,  2 Jul 2023 12:54:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01844420A;
+        Sun,  2 Jul 2023 12:54:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC38360C7A;
-        Sun,  2 Jul 2023 19:52:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C65DC433C8;
-        Sun,  2 Jul 2023 19:52:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C232860D17;
+        Sun,  2 Jul 2023 19:52:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B634C433CA;
+        Sun,  2 Jul 2023 19:52:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327546;
-        bh=Zsj4slkqrA/eZ1T/Xcud8syfsENHN9G8VFtvwEnkfY8=;
-        h=From:To:Cc:Subject:Date:From;
-        b=XKUaqlwGUKYCMYYBQAlqallqHKCME/AhXBzoxA69WlbSTj/4eaK9t5r5M/rAg+pNW
-         JgGb5nvK3ILEpizhDWCZ0zsBCfbGjeT9+HJjo6UMbcAYFRTvjpKWhoSJrK+LD7JM9h
-         RetYzo/xEEpQSQZIRK9alOLp+taSZLANiQIAJwjELf/h44MkGMJdi/imbD5rSelNk/
-         I6bRIr/EdMspsPmdWR9yLkJET/U32oE5sWbZmVH2aMhefzU4g6NzFF/5HNNyzLoDky
-         0O3UKAgEtSV7D9dnzNQhOPXLPFfYAdDvpTich3P418olOMfuzKN07loXW7t1XDzAxR
-         dviZ+Qzo/72bA==
+        s=k20201202; t=1688327549;
+        bh=WHFEqtUCmZTuh2cbQFDwFk94eOgZYmr5cHAGqfSy1/0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=hk0qaYk418HyaghJtp7mdC1EjxOInxTp4m2bzormizO4sD2ctkZGyf9pWst3/Atd1
+         oM+6PF6Po6EPmyNo1KopKpzc8Xb6o+PsQoR+bvEdl9lzACscOk5DawOOwux7Ss7XrY
+         rlnBODXQQzlPE1UhGo7tDmU+CCzdVwZiDmP+0ozvG3/fyIycWnSQuaOa/wW67WLOdo
+         nwW7Ti5XnvA/5IJYgyiIFynSahtPDjBAQeLvATDmNt+JQ3QZ5lfWJ0fS5P51hR09Yj
+         JJbmPRVdRumMyr+92YGPsouFLYD3k+k00aiuQM8ITclTyx9RhmmhWx+jsD1TnWK9zG
+         ab5EgmIBpG5Vw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 1/6] ACPI: button: Add lid disable DMI quirk for Nextbook Ares 8A
-Date:   Sun,  2 Jul 2023 15:52:18 -0400
-Message-Id: <20230702195223.1788563-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 3/6] ACPI: video: Add backlight=native DMI quirk for Lenovo ThinkPad X131e (3371 AMD version)
+Date:   Sun,  2 Jul 2023 15:52:20 -0400
+Message-Id: <20230702195223.1788563-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230702195223.1788563-1-sashal@kernel.org>
+References: <20230702195223.1788563-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -53,41 +55,39 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit 4fd5556608bfa9c2bf276fc115ef04288331aded ]
+[ Upstream commit bd5d93df86a7ddf98a2a37e9c3751e3cb334a66c ]
 
-The LID0 device on the Nextbook Ares 8A tablet always reports lid
-closed causing userspace to suspend the device as soon as booting
-is complete.
+Linux defaults to picking the non-working ACPI video backlight interface
+on the Lenovo ThinkPad X131e (3371 AMD version).
 
-Add a DMI quirk to disable the broken lid functionality.
+Add a DMI quirk to pick the working native radeon_bl0 interface instead.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/button.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 1f9b9a4c38c7d..d8b1481141385 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -77,6 +77,15 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 872b5351f0d8f..b02d381e78483 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -332,6 +332,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "82BK"),
  		},
- 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
  	},
 +	{
-+		/* Nextbook Ares 8A tablet, _LID device always reports lid closed */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Insyde"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "CherryTrail"),
-+			DMI_MATCH(DMI_BIOS_VERSION, "M882"),
++	 .callback = video_detect_force_native,
++	 /* Lenovo ThinkPad X131e (3371 AMD version) */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "3371"),
 +		},
-+		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
 +	},
  	{
- 		/*
- 		 * Lenovo Yoga 9 14ITL5, initial notification of the LID device
+ 	 .callback = video_detect_force_native,
+ 	 /* Apple iMac11,3 */
 -- 
 2.39.2
 
