@@ -2,48 +2,45 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF2BEB64DA
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:56:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A108C001DF
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232302AbjGBT4x (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jul 2023 15:56:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42318 "EHLO
+        id S232590AbjGBT4y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:56:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233106AbjGBT42 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:28 -0400
+        with ESMTP id S233005AbjGBT41 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CD914C0A;
-        Sun,  2 Jul 2023 12:54:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 500313A9B;
+        Sun,  2 Jul 2023 12:54:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C384C60CA5;
-        Sun,  2 Jul 2023 19:52:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00493C433CC;
-        Sun,  2 Jul 2023 19:52:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 75B2960C94;
+        Sun,  2 Jul 2023 19:52:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E307C433CB;
+        Sun,  2 Jul 2023 19:52:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327529;
-        bh=nx5PgQW6CBbnN/yZjzOincoEbQLCNotRpLCStMiJi7M=;
+        s=k20201202; t=1688327524;
+        bh=Zsj4slkqrA/eZ1T/Xcud8syfsENHN9G8VFtvwEnkfY8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aSg570p9hAbmtmaK1G+1lMi69dYQkQxuiiD4TnFy6nnXMX2ykh8JQKefnj3HJAI7A
-         B2gIcbSt+QxWgb8LCj9xjjckztHkky4ykhFBhWEZ+nS25KkKUj7qbYVnv+QB3aMTXJ
-         7LQi+UHF6tPlNBPlKXGcXM8O+1JMvc9hYZXkThd+xtK7emGR96NpdeUo6KE7JMD3MM
-         m9CS67Ni3Ggbhd2HjD9fqGNGj2rVIarZtepkvuRzuGZfeGl3cf8GPTT/XDSfMzZ83o
-         hJdi+3jy658cLPHechFs6XE3hMTxeK20ar1WzblOIibvMZYHsIPikpNn0NSvf5Ap91
-         uZHZp/kP8EkWw==
+        b=MmP1mMdvBaHuC3MBuaYkFHo4EI69KDawLRot1Bv9alhMiwmz9eB798Alx2NsvVwGz
+         ffH7GxmfaMnwFyLHgq7vtxnXXCMlKIXAmVVH2TOPbgmT2X3Ux9WKwpJe2tALDJGPpq
+         OF3h87hQfvmXr2AtAP22xFaM02guUBITRBuIEafDg7IbQvbtYtMM9bHPGxYwDCHriN
+         jVZljfjF+1RqESZyCMWJSjiAz51IoVTm2HaE9hcQbtoSDbplTYFBniWeY1p7lU/ipU
+         VFGZKPeqlFTdbipsdZqqClc/SGhl+t5NKn5GSdF8NbATct7gYw1QLv272QHSFFpA5v
+         m588TDhfE/mjw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mario Limonciello <mario.limonciello@amd.com>, evilsnoo@proton.me,
-        ruinairas1992@gmail.com, nmschulte@gmail.com,
-        Werner Sembach <wse@tuxedocomputers.com>,
-        Chuanhong Guo <gch981213@gmail.com>,
+Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 5/9] ACPI: resource: Remove "Zen" specific match and quirks
-Date:   Sun,  2 Jul 2023 15:51:52 -0400
-Message-Id: <20230702195159.1788402-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 2/9] ACPI: button: Add lid disable DMI quirk for Nextbook Ares 8A
+Date:   Sun,  2 Jul 2023 15:51:49 -0400
+Message-Id: <20230702195159.1788402-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230702195159.1788402-1-sashal@kernel.org>
 References: <20230702195159.1788402-1-sashal@kernel.org>
@@ -56,130 +53,43 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Mario Limonciello <mario.limonciello@amd.com>
+From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit a9c4a912b7dc7ff922d4b9261160c001558f9755 ]
+[ Upstream commit 4fd5556608bfa9c2bf276fc115ef04288331aded ]
 
-commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on
-AMD Zen platforms") attempted to overhaul the override logic so it
-didn't apply on X86 AMD Zen systems.  This was intentional so that
-systems would prefer DSDT values instead of default MADT value for
-IRQ 1 on Ryzen 6000 systems which typically uses ActiveLow for IRQ1.
+The LID0 device on the Nextbook Ares 8A tablet always reports lid
+closed causing userspace to suspend the device as soon as booting
+is complete.
 
-This turned out to be a bad assumption because several vendors
-add Interrupt Source Override but don't fix the DSDT. A pile of
-quirks was collecting that proved this wasn't sustaintable.
+Add a DMI quirk to disable the broken lid functionality.
 
-Furthermore some vendors have used ActiveHigh for IRQ1.
-To solve this problem revert the following commits:
-* commit 17bb7046e7ce ("ACPI: resource: Do IRQ override on all TongFang
-GMxRGxx")
-* commit f3cb9b740869 ("ACPI: resource: do IRQ override on Lenovo 14ALC7")
-* commit bfcdf58380b1 ("ACPI: resource: do IRQ override on LENOVO IdeaPad")
-* commit 7592b79ba4a9 ("ACPI: resource: do IRQ override on XMG Core 15")
-* commit 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen
-platforms")
-
-Reported-by: evilsnoo@proton.me
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217394
-Reported-by: ruinairas1992@gmail.com
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217406
-Reported-by: nmschulte@gmail.com
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217336
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-Tested-by: Werner Sembach <wse@tuxedocomputers.com>
-Tested-by: Chuanhong Guo <gch981213@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/resource.c | 60 -----------------------------------------
- 1 file changed, 60 deletions(-)
+ drivers/acpi/button.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index a7f12bdbc5e25..1d28f9aea240c 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -456,52 +456,6 @@ static const struct dmi_system_id asus_laptop[] = {
- 	{ }
- };
- 
--static const struct dmi_system_id lenovo_laptop[] = {
--	{
--		.ident = "LENOVO IdeaPad Flex 5 14ALC7",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "82R9"),
--		},
--	},
--	{
--		.ident = "LENOVO IdeaPad Flex 5 16ALC7",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "82RA"),
--		},
--	},
--	{ }
--};
--
--static const struct dmi_system_id tongfang_gm_rg[] = {
--	{
--		.ident = "TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD",
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "GMxRGxx"),
--		},
--	},
--	{ }
--};
--
--static const struct dmi_system_id maingear_laptop[] = {
--	{
--		.ident = "MAINGEAR Vector Pro 2 15",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-15A3070T"),
--		}
--	},
--	{
--		.ident = "MAINGEAR Vector Pro 2 17",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-17A3070T"),
--		},
--	},
--	{ }
--};
--
- static const struct dmi_system_id lg_laptop[] = {
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 1f9b9a4c38c7d..d8b1481141385 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -77,6 +77,15 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 		},
+ 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
+ 	},
++	{
++		/* Nextbook Ares 8A tablet, _LID device always reports lid closed */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Insyde"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "CherryTrail"),
++			DMI_MATCH(DMI_BIOS_VERSION, "M882"),
++		},
++		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
++	},
  	{
- 		.ident = "LG Electronics 17U70P",
-@@ -525,10 +479,6 @@ struct irq_override_cmp {
- static const struct irq_override_cmp override_table[] = {
- 	{ medion_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
- 	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
--	{ lenovo_laptop, 6, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
--	{ lenovo_laptop, 10, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
--	{ tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
--	{ maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
- 	{ lg_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
- };
- 
-@@ -548,16 +498,6 @@ static bool acpi_dev_irq_override(u32 gsi, u8 triggering, u8 polarity,
- 			return entry->override;
- 	}
- 
--#ifdef CONFIG_X86
--	/*
--	 * IRQ override isn't needed on modern AMD Zen systems and
--	 * this override breaks active low IRQs on AMD Ryzen 6000 and
--	 * newer systems. Skip it.
--	 */
--	if (boot_cpu_has(X86_FEATURE_ZEN))
--		return false;
--#endif
--
- 	return true;
- }
- 
+ 		/*
+ 		 * Lenovo Yoga 9 14ITL5, initial notification of the LID device
 -- 
 2.39.2
 
