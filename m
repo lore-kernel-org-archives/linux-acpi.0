@@ -2,52 +2,50 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A108C001DF
-	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:56:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8FB2EB64D9
+	for <linux-acpi@archiver.kernel.org>; Sun,  2 Jul 2023 19:57:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232590AbjGBT4y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sun, 2 Jul 2023 15:56:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39284 "EHLO
+        id S233087AbjGBT53 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:57:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233005AbjGBT41 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 500313A9B;
-        Sun,  2 Jul 2023 12:54:23 -0700 (PDT)
+        with ESMTP id S233143AbjGBT4o (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2023 15:56:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3030A3C35;
+        Sun,  2 Jul 2023 12:54:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 75B2960C94;
-        Sun,  2 Jul 2023 19:52:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E307C433CB;
-        Sun,  2 Jul 2023 19:52:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DC38360C7A;
+        Sun,  2 Jul 2023 19:52:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C65DC433C8;
+        Sun,  2 Jul 2023 19:52:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688327524;
+        s=k20201202; t=1688327546;
         bh=Zsj4slkqrA/eZ1T/Xcud8syfsENHN9G8VFtvwEnkfY8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MmP1mMdvBaHuC3MBuaYkFHo4EI69KDawLRot1Bv9alhMiwmz9eB798Alx2NsvVwGz
-         ffH7GxmfaMnwFyLHgq7vtxnXXCMlKIXAmVVH2TOPbgmT2X3Ux9WKwpJe2tALDJGPpq
-         OF3h87hQfvmXr2AtAP22xFaM02guUBITRBuIEafDg7IbQvbtYtMM9bHPGxYwDCHriN
-         jVZljfjF+1RqESZyCMWJSjiAz51IoVTm2HaE9hcQbtoSDbplTYFBniWeY1p7lU/ipU
-         VFGZKPeqlFTdbipsdZqqClc/SGhl+t5NKn5GSdF8NbATct7gYw1QLv272QHSFFpA5v
-         m588TDhfE/mjw==
+        h=From:To:Cc:Subject:Date:From;
+        b=XKUaqlwGUKYCMYYBQAlqallqHKCME/AhXBzoxA69WlbSTj/4eaK9t5r5M/rAg+pNW
+         JgGb5nvK3ILEpizhDWCZ0zsBCfbGjeT9+HJjo6UMbcAYFRTvjpKWhoSJrK+LD7JM9h
+         RetYzo/xEEpQSQZIRK9alOLp+taSZLANiQIAJwjELf/h44MkGMJdi/imbD5rSelNk/
+         I6bRIr/EdMspsPmdWR9yLkJET/U32oE5sWbZmVH2aMhefzU4g6NzFF/5HNNyzLoDky
+         0O3UKAgEtSV7D9dnzNQhOPXLPFfYAdDvpTich3P418olOMfuzKN07loXW7t1XDzAxR
+         dviZ+Qzo/72bA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 2/9] ACPI: button: Add lid disable DMI quirk for Nextbook Ares 8A
-Date:   Sun,  2 Jul 2023 15:51:49 -0400
-Message-Id: <20230702195159.1788402-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 1/6] ACPI: button: Add lid disable DMI quirk for Nextbook Ares 8A
+Date:   Sun,  2 Jul 2023 15:52:18 -0400
+Message-Id: <20230702195223.1788563-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230702195159.1788402-1-sashal@kernel.org>
-References: <20230702195159.1788402-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.1.37
+X-stable-base: Linux 5.15.119
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
