@@ -2,44 +2,44 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8810C001DE
-	for <linux-acpi@archiver.kernel.org>; Mon,  3 Jul 2023 14:23:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6668FC001DF
+	for <linux-acpi@archiver.kernel.org>; Mon,  3 Jul 2023 14:23:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230425AbjGCOXN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 3 Jul 2023 10:23:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48178 "EHLO
+        id S229591AbjGCOXO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 3 Jul 2023 10:23:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230258AbjGCOXM (ORCPT
+        with ESMTP id S230313AbjGCOXM (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2023 10:23:12 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6779EE5C;
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 668A0E5B;
         Mon,  3 Jul 2023 07:23:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1688394191; x=1719930191;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=DNmqWKEUkkpN5FpohkxiaOCL3JlrnO8cxsg2K7hyZ1U=;
-  b=UAw3yuAdSrsx+cmvhnd2skVGDP8IHq1rDSsV1POL75Xf4Sq2ZKFF12U/
-   tLxuLWDan/WOGbmODDHYC1ra9c+fqkP2aK2Dh6GwXrsmp6C1NqeMNPui+
-   G7fQ973wUBkNftIp6TmxsIWt1GUSbV6gYanUyV5RrudewNocFnBLnamw5
-   s4vkOSvXN5FN6iu5Fst1jdD7BVxnW8X6PnJN68qPx+CUp72FuhfQbboPV
-   GEDoi/86zmwQUUuCUSlFJjaHQNVCesJrJ3pxUdSRmC6gmYaKmLQXFBc0f
-   OmFonCXY/glOJdzcgET5L4FnshuSAMfmLQj0uF8rlzUJrwUkJ20SMGOZN
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10760"; a="347681270"
+  bh=tQChtNbKGESPPW51x4K39nGYYp9RM7si+0oe9MCGHJo=;
+  b=E5FG1hNZ8kb9XJgqT6f4mVncKazYb4mk26aA62zlsnViptpCUi+gtkzM
+   sAf5RFQjwRTMxDSX9kupfBrLvXMRIGIR3rWxgrnYebC42+qvJYiQdYkBo
+   vWoLu1tJPQaEt4JWnNKiY2nB5wSUZ7Mi5QnFPZSgCZg+kfVZGqfiBH05n
+   uXqDKyOggx/2u4inFf52yXr2Ms3aX1Y1O7UL39qEwslx61Ik15nWDUQ0z
+   2ozX4c0anFFdhhW0JkxPh4O3V8maMQ5OSs+kvRZf2HWLtfkAW7uAQ11SK
+   Y4meI0S57cdBaIA/mxAXhNHBsNUl09KC4TxCBdgD2AQS0XKsA41tSWAvJ
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10760"; a="361752571"
 X-IronPort-AV: E=Sophos;i="6.01,178,1684825200"; 
-   d="scan'208";a="347681270"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2023 07:23:09 -0700
+   d="scan'208";a="361752571"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2023 07:23:09 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10760"; a="783917061"
+X-IronPort-AV: E=McAfee;i="6600,9927,10760"; a="808602022"
 X-IronPort-AV: E=Sophos;i="6.01,178,1684825200"; 
-   d="scan'208";a="783917061"
+   d="scan'208";a="808602022"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP; 03 Jul 2023 07:23:06 -0700
+  by FMSMGA003.fm.intel.com with ESMTP; 03 Jul 2023 07:23:06 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id C9B44177; Mon,  3 Jul 2023 17:23:09 +0300 (EEST)
+        id BFBB613C; Mon,  3 Jul 2023 17:23:09 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Dmitry Torokhov <dmitry.torokhov@gmail.com>,
@@ -50,9 +50,9 @@ Cc:     Mika Westerberg <mika.westerberg@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <brgl@bgdev.pl>,
         Benjamin Tissoires <bentiss@kernel.org>
-Subject: [PATCH v2 2/3] gpiolib: acpi: Don't use GPIO chip fwnode in acpi_gpiochip_find()
-Date:   Mon,  3 Jul 2023 17:23:07 +0300
-Message-Id: <20230703142308.5772-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 1/3] gpiolib: of: Don't use GPIO chip fwnode in of_gpiochip_*()
+Date:   Mon,  3 Jul 2023 17:23:06 +0300
+Message-Id: <20230703142308.5772-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
 In-Reply-To: <20230703142308.5772-1-andriy.shevchenko@linux.intel.com>
 References: <20230703142308.5772-1-andriy.shevchenko@linux.intel.com>
@@ -63,28 +63,42 @@ List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 GPIO library should rely only on the GPIO device's fwnode.
-Hence, replace GPIO chip fwnode usage by respective handle
+Hence, replace GPIO chip fwnode usage by respective OF node
 of the GPIO device.
+
+JFYI, this is partial revert of 8afe82550240 ("gpiolib: of:
+Prepare of_gpiochip_add() / of_gpiochip_remove() for fwnode").
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Tested-by: Benjamin Tissoires <bentiss@kernel.org>
 ---
- drivers/gpio/gpiolib-acpi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpiolib-of.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 97496c0f9133..fbda452fb4d6 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -128,7 +128,7 @@ static bool acpi_gpio_deferred_req_irqs_done;
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index 1436cdb5fa26..5fde5a3f5118 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -1078,16 +1078,16 @@ int of_gpiochip_add(struct gpio_chip *chip)
+ 	if (ret)
+ 		return ret;
  
- static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
- {
--	return ACPI_HANDLE_FWNODE(gc->fwnode) == data;
-+	return device_match_acpi_handle(&gc->gpiodev->dev, data);
+-	fwnode_handle_get(chip->fwnode);
++	of_node_get(np);
+ 
+ 	ret = of_gpiochip_scan_gpios(chip);
+ 	if (ret)
+-		fwnode_handle_put(chip->fwnode);
++		of_node_put(np);
+ 
+ 	return ret;
  }
  
- /**
+ void of_gpiochip_remove(struct gpio_chip *chip)
+ {
+-	fwnode_handle_put(chip->fwnode);
++	of_node_put(dev_of_node(&chip->gpiodev->dev));
+ }
 -- 
 2.40.0.1.gaa8946217a0b
 
