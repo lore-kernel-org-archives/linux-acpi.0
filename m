@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 863C8EB64DD
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 21:32:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDF6EEB64DD
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 21:33:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232483AbjGEVcs (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Jul 2023 17:32:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37304 "EHLO
+        id S232251AbjGEVcz (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Jul 2023 17:32:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232547AbjGEVck (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 17:32:40 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FC171BD9
+        with ESMTP id S232395AbjGEVcn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 17:32:43 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C10E01BDB
         for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2023 14:30:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688592642;
+        s=mimecast20190719; t=1688592643;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=0XDUjOHZokc15U6DFg/8LeQOr+/kSwwTjY+oa+J1w3M=;
-        b=EcSCuGbbUEuLlGTrMCLALATzJ5Usi9w7TOSlQKhvz9Dj2B2yI0I4unTcwWNR8vm1E4tloK
-        uSSlaNgP+NweiY1emMaq0xM0piHJdGh558h79qc0owlfBqc+a4l+NNVVx4F5w0NcOEabLz
-        w9x7EmY5RGfnUlOXtcDkk/OnSJPU7jo=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=POvUSrAQeac4J46aC8T80jZksu0kSO/4Ef80qxnycQc=;
+        b=faj5fpuvBLh5Mzu0K53Vm+Kxmu5jjkZrO5PhUEV5hKhwEaw1TXGRH6shgk+7E2TxQ/0OyI
+        AESUqmxaHg5GKbUtJA2VufDt0E6wpMuAoTq9ypxXkuPPAO6IqnUCz51dxvgjVb6BO1HGLz
+        eVahpAP9CM+H+zdNeJ5DuQNdZo9JgGU=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-331-43yN5zOoNWCTqElOnVkkeQ-1; Wed, 05 Jul 2023 17:30:37 -0400
-X-MC-Unique: 43yN5zOoNWCTqElOnVkkeQ-1
+ us-mta-204-iJZWaImkPFOKPelEcLb0Pw-1; Wed, 05 Jul 2023 17:30:41 -0400
+X-MC-Unique: iJZWaImkPFOKPelEcLb0Pw-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 44464185A792;
-        Wed,  5 Jul 2023 21:30:37 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id DDAF51C4FD82;
+        Wed,  5 Jul 2023 21:30:40 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.7])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B58DB40C2063;
-        Wed,  5 Jul 2023 21:30:35 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3DE0C40C2063;
+        Wed,  5 Jul 2023 21:30:39 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
@@ -46,10 +46,11 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Andy Shevchenko <andy@kernel.org>, Kate Hsuan <hpa@redhat.com>,
         Hao Yao <hao.yao@intel.com>, Bingbu Cao <bingbu.cao@intel.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v3 09/18] media: ipu-bridge: Drop early setting of sensor->adev
-Date:   Wed,  5 Jul 2023 23:30:01 +0200
-Message-ID: <20230705213010.390849-10-hdegoede@redhat.com>
+        linux-media@vger.kernel.org,
+        Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH v3 11/18] media: ipu-bridge: Move ipu-bridge.h to include/media/
+Date:   Wed,  5 Jul 2023 23:30:03 +0200
+Message-ID: <20230705213010.390849-12-hdegoede@redhat.com>
 In-Reply-To: <20230705213010.390849-1-hdegoede@redhat.com>
 References: <20230705213010.390849-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -59,33 +60,59 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-sensor->adev is no longer dereferenced before it is permanently set by:
+Move ipu-bridge.h to include/media/, so that it can also be used by
+the atomisp code.
 
-	sensor->adev = acpi_dev_get(adev);
-
-So the early assignment with a borrowed reference can be dropped.
-
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/pci/intel/ipu-bridge.c | 5 -----
- 1 file changed, 5 deletions(-)
+ drivers/media/pci/intel/ipu-bridge.c                    | 4 ++--
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c                | 3 ++-
+ {drivers/media/pci/intel => include/media}/ipu-bridge.h | 0
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+ rename {drivers/media/pci/intel => include/media}/ipu-bridge.h (100%)
 
 diff --git a/drivers/media/pci/intel/ipu-bridge.c b/drivers/media/pci/intel/ipu-bridge.c
-index ee0ca5e6e33b..1f01f2c8b8a6 100644
+index db67a75ae1b7..277711db867a 100644
 --- a/drivers/media/pci/intel/ipu-bridge.c
 +++ b/drivers/media/pci/intel/ipu-bridge.c
-@@ -342,11 +342,6 @@ static int ipu_bridge_connect_sensor(const struct ipu_sensor_config *cfg,
- 		}
+@@ -5,9 +5,9 @@
+ #include <linux/device.h>
+ #include <linux/i2c.h>
+ #include <linux/property.h>
+-#include <media/v4l2-fwnode.h>
  
- 		sensor = &bridge->sensors[bridge->n_sensors];
--		/*
--		 * Borrow our adev ref to the sensor for now, on success
--		 * acpi_dev_get(adev) is done further below.
--		 */
--		sensor->adev = adev;
+-#include "ipu-bridge.h"
++#include <media/ipu-bridge.h>
++#include <media/v4l2-fwnode.h>
  
- 		ret = ipu_bridge_parse_ssdb(adev, sensor);
- 		if (ret)
+ /*
+  * Extend this array with ACPI Hardware IDs of devices known to be working
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+index 26c4c1375990..51a6d7cc44d2 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -22,6 +22,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/property.h>
+ #include <linux/vmalloc.h>
++
++#include <media/ipu-bridge.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
+@@ -29,7 +31,6 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf2-dma-sg.h>
+ 
+-#include "../ipu-bridge.h"
+ #include "ipu3-cio2.h"
+ 
+ struct ipu3_cio2_fmt {
+diff --git a/drivers/media/pci/intel/ipu-bridge.h b/include/media/ipu-bridge.h
+similarity index 100%
+rename from drivers/media/pci/intel/ipu-bridge.h
+rename to include/media/ipu-bridge.h
 -- 
 2.41.0
 
