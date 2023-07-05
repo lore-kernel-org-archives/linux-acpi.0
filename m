@@ -2,133 +2,130 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC94EB64DA
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 21:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CB29EB64DA
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 23:28:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230383AbjGEVe5 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Jul 2023 17:34:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37428 "EHLO
+        id S232007AbjGEX2n (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Jul 2023 19:28:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232524AbjGEVct (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 17:32:49 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8D691BEA
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2023 14:30:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688592654;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=2je6FkWJRXTsTMxHOIrRjFLltc7XmjnvmAD6oPDRtGs=;
-        b=YW9ful7ojHeFNcYEEJKxujNqHKeLZmIiGLFPYM8sQXV6Ofei19E1BG0lZLj1y/8k9uN9Wq
-        CKYVE7VRUS9W//Za8AvJbBWdhTe/vJp83YnaL5z33Y81KxyUgSCmBRfxfKV0kX2Zhyz8jO
-        G2293uOJCjosLby3tWh+OVS5WNzfoNU=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-274-OZcjZdZ4NOqugZs_cL_-Ow-1; Wed, 05 Jul 2023 17:30:48 -0400
-X-MC-Unique: OZcjZdZ4NOqugZs_cL_-Ow-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2616F101A529;
-        Wed,  5 Jul 2023 21:30:48 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.7])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 9693C40C2063;
-        Wed,  5 Jul 2023 21:30:46 +0000 (UTC)
-From:   Hans de Goede <hdegoede@redhat.com>
-To:     "Rafael J . Wysocki" <rafael@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Daniel Scally <dan.scally@ideasonboard.com>
-Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Shevchenko <andy@kernel.org>, Kate Hsuan <hpa@redhat.com>,
-        Hao Yao <hao.yao@intel.com>, Bingbu Cao <bingbu.cao@intel.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v3 15/18] ACPI: bus: Introduce acpi_match_acpi_device() function
-Date:   Wed,  5 Jul 2023 23:30:07 +0200
-Message-ID: <20230705213010.390849-16-hdegoede@redhat.com>
-In-Reply-To: <20230705213010.390849-1-hdegoede@redhat.com>
-References: <20230705213010.390849-1-hdegoede@redhat.com>
+        with ESMTP id S231608AbjGEX2m (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 19:28:42 -0400
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFD93171A;
+        Wed,  5 Jul 2023 16:28:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1688599721; x=1720135721;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=td2zakmKMwosjr9MPPIZfOYBx4d0YM0sNWN22EecsJg=;
+  b=erQwLJzP6cpiI8cW2wQAxVKTTkDhMzwI0bPwCkCrmyRO9c0DH8Ng6bxj
+   v9fWS/gg6RwdqcGpbp5RfHaDhFLjIWdpb5US5PW5PPKOfbatnf50Sit4j
+   4pEqgEDd9FhcYg4F5Frztsgg2QpiXtMIc0OGtUwmD00xu7ritYcBt98k0
+   p781M04qWZ0y1Cx9U79oe+oso7xI1D4m9HkKaU7am2BgCVA6dxkNCZecw
+   +WKyjDYhs3px9MW4XooxGdAQpXFdES6+4FBYeKBkiz6n2thOS26T1JLLM
+   EZDSgSWFatXVwN+DZSmnHTNiE86zq6r0nEHhnxgPNyiiLgGDQwSQ4q0Ve
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10762"; a="362333954"
+X-IronPort-AV: E=Sophos;i="6.01,184,1684825200"; 
+   d="scan'208";a="362333954"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2023 16:28:41 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10762"; a="719394171"
+X-IronPort-AV: E=Sophos;i="6.01,184,1684825200"; 
+   d="scan'208";a="719394171"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.61.134])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2023 16:28:40 -0700
+Date:   Wed, 5 Jul 2023 16:28:39 -0700
+From:   Alison Schofield <alison.schofield@intel.com>
+To:     Ben Dooks <ben.dooks@codethink.co.uk>
+Cc:     nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, lenb@kernel.org
+Subject: Re: [PATCH] ACPI: NFIT: add helper to_nfit_mem() to take device to
+ nfit_mem
+Message-ID: <ZKX8p0/H2OKKSh91@aschofie-mobl2>
+References: <20230703131729.1009861-1-ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230703131729.1009861-1-ben.dooks@codethink.co.uk>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some ACPI glue code (1) may want to do an acpi_device_id match while
-it only has a struct acpi_device available because the first physical
-node may not have been instantiated yet.
+On Mon, Jul 03, 2023 at 02:17:29PM +0100, Ben Dooks wrote:
+> Add a quick helper to just do struct device to the struct nfit_mem
+> field it should be referencing. This reduces the number of code
+> lines in some of the followgn code as it removes the intermediate
+> struct nvdimm.
+> 
 
-Add a new acpi_match_acpi_device() helper for this, which takes
-a "struct acpi_device *" as argument rather then the "struct device *"
-which acpi_match_device() takes.
+Hi Ben,
+This a useful cleanup. Minor comments below.
+Alison
 
-1) E.g. code which parses ACPI tables to transforms them
-into more standard kernel data structures like fwnodes
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+>  drivers/acpi/nfit/core.c | 27 +++++++++++++--------------
+>  1 file changed, 13 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 0fcc247fdfac..9213b426b125 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1361,18 +1361,22 @@ static const struct attribute_group *acpi_nfit_attribute_groups[] = {
+>  	NULL,
+>  };
+>  
+> -static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
+> +static struct nfit_mem *to_nfit_mem(struct device *dev)
+>  {
+>  	struct nvdimm *nvdimm = to_nvdimm(dev);
+> -	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> +	return  nvdimm_provider_data(nvdimm);
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/bus.c      | 22 ++++++++++++++++++----
- include/acpi/acpi_bus.h |  2 ++
- 2 files changed, 20 insertions(+), 4 deletions(-)
+I was going to say add a space before that return, but checkpatch
+beat me to it, with a warning. Please fix that up.
+WARNING: Missing a blank line after declarations
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index d161ff707de4..de75ad675f92 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -888,6 +888,23 @@ static bool __acpi_match_device(struct acpi_device *device,
- 	return true;
- }
+> +}
+> +
+> +static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
+> +{
+> +	struct nfit_mem *nfit_mem = to_nfit_mem(dev);
+>  
+>  	return __to_nfit_memdev(nfit_mem);
+>  }
+
+I was a bit puzzled why the diff looked awkward because when I applied
+the patch it fell nicely in order with the new helper function first.
+It all merges the same in the end but it's easier on reviewers eyes
+when well presented. Consider using diff.algorithm=patience (output
+shown below) when things scramble needlessly.
+
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1361,18 +1361,22 @@ static const struct attribute_group *acpi_nfit_attribute_groups[] = {
+ 	NULL,
+ };
  
-+/**
-+ * acpi_match_acpi_device - Match a struct acpi_device against a given list of ACPI IDs
-+ * @ids: Array of struct acpi_device_id object to match against.
-+ * @adev: The acpi_device structure to match.
-+ *
-+ * Return a pointer to the first matching ID on success or %NULL on failure.
-+ */
-+const struct acpi_device_id *acpi_match_acpi_device(const struct acpi_device_id *ids,
-+						    struct acpi_device *adev)
++static struct nfit_mem *to_nfit_mem(struct device *dev)
 +{
-+	const struct acpi_device_id *id = NULL;
-+
-+	__acpi_match_device(adev, ids, NULL, &id, NULL);
-+	return id;
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	return  nvdimm_provider_data(nvdimm);
 +}
-+EXPORT_SYMBOL_GPL(acpi_match_acpi_device);
 +
- /**
-  * acpi_match_device - Match a struct device against a given list of ACPI IDs
-  * @ids: Array of struct acpi_device_id object to match against.
-@@ -902,10 +919,7 @@ static bool __acpi_match_device(struct acpi_device *device,
- const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- 					       const struct device *dev)
+ static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
  {
--	const struct acpi_device_id *id = NULL;
--
--	__acpi_match_device(acpi_companion_match(dev), ids, NULL, &id, NULL);
--	return id;
-+	return acpi_match_acpi_device(ids, acpi_companion_match(dev));
- }
- EXPORT_SYMBOL_GPL(acpi_match_device);
+-	struct nvdimm *nvdimm = to_nvdimm(dev);
+-	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct nfit_mem *nfit_mem = to_nfit_mem(dev);
  
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c941d99162c0..db854e78b2f8 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -561,6 +561,8 @@ void acpi_bus_trim(struct acpi_device *start);
- acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids);
-+const struct acpi_device_id *acpi_match_acpi_device(const struct acpi_device_id *ids,
-+						    struct acpi_device *adev);
- void acpi_set_modalias(struct acpi_device *adev, const char *default_id,
- 		       char *modalias, size_t len);
- int acpi_create_dir(struct acpi_device *);
--- 
-2.41.0
+ 	return __to_nfit_memdev(nfit_mem);
+ }
 
+snip
+
+> 
