@@ -2,41 +2,41 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF13EB64DA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D77A6C001DB
 	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 21:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232549AbjGEVdQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Jul 2023 17:33:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37320 "EHLO
+        id S232609AbjGEVdR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Jul 2023 17:33:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232582AbjGEVcv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 17:32:51 -0400
+        with ESMTP id S232598AbjGEVcw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 17:32:52 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A1191BE4
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2023 14:30:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18D981BEB
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2023 14:30:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688592651;
+        s=mimecast20190719; t=1688592654;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=gkPRmsgtNaiE5BhDEbjECfNCxDwtknkfWP9w40208rw=;
-        b=Lai0P7Fioz0EAs1jP0UAqL9GgFBhHn2SuCbDL1+bPt8fD0lfBIuzMoebuPKDAVolwTkY6B
-        LVJWvGkLSNIP8wjVPx9mYDSuwoy2RX6XkOZm1LEwmmyN4RnVAwo9dr+FndUqwnDJD5n427
-        9aDOQKxw877mCD+b16i9zDo1YtwEwb0=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=HGPL7qg31BekhIykh+XxwHdRoVJ+Bz5FoFtjiMB14Ok=;
+        b=D7JAH/NUpiVy2R7WuDXvaRAv7WjlCvOOJ7H61UxxFUy6XtVB8tcjKLotg12Kjjlkdr4dgt
+        D/cxo5ArAets8yNBmbIm5quCBeHIh1/jCuPbiYdg1RO2gAwI5EueKbh8I+bqHfSkEL/FeD
+        aTwDnRa0acuqKzv25xEcOK/QSp8RFRY=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-638-oUaZUVMiOhW2lRjoutxheQ-1; Wed, 05 Jul 2023 17:30:47 -0400
-X-MC-Unique: oUaZUVMiOhW2lRjoutxheQ-1
+ us-mta-380-qXGEWLIcPpmjw4BkBOVnwg-1; Wed, 05 Jul 2023 17:30:50 -0400
+X-MC-Unique: qXGEWLIcPpmjw4BkBOVnwg-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 62F4D800B35;
-        Wed,  5 Jul 2023 21:30:46 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 1E3301C4FD82;
+        Wed,  5 Jul 2023 21:30:50 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.7])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B724340C2063;
-        Wed,  5 Jul 2023 21:30:44 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5B36A40C2063;
+        Wed,  5 Jul 2023 21:30:48 +0000 (UTC)
 From:   Hans de Goede <hdegoede@redhat.com>
 To:     "Rafael J . Wysocki" <rafael@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
@@ -46,10 +46,11 @@ Cc:     Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Andy Shevchenko <andy@kernel.org>, Kate Hsuan <hpa@redhat.com>,
         Hao Yao <hao.yao@intel.com>, Bingbu Cao <bingbu.cao@intel.com>,
-        linux-media@vger.kernel.org, Daniel Scally <djrscally@gmail.com>
-Subject: [PATCH v3 14/18] media: i2c: Add driver for DW9719 VCM
-Date:   Wed,  5 Jul 2023 23:30:06 +0200
-Message-ID: <20230705213010.390849-15-hdegoede@redhat.com>
+        linux-media@vger.kernel.org,
+        Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH v3 16/18] media: atomisp: csi2-bridge: Switch to new common ipu_bridge_init()
+Date:   Wed,  5 Jul 2023 23:30:08 +0200
+Message-ID: <20230705213010.390849-17-hdegoede@redhat.com>
 In-Reply-To: <20230705213010.390849-1-hdegoede@redhat.com>
 References: <20230705213010.390849-1-hdegoede@redhat.com>
 MIME-Version: 1.0
@@ -59,520 +60,558 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Daniel Scally <djrscally@gmail.com>
+Remove the duplicate IPU ACPI bridge code and use the new
+shared ipu_bridge_init() functionality.
 
-Add a driver for the DW9719 VCM. The driver creates a v4l2 subdevice
-and registers a control to set the desired focus.
+Note this will also use / assume v4l2-async device instantiation for
+ov5693 sensors on atomisp devices since ipu_supported_sensors[]
+already contains a match for this.
 
-Signed-off-by: Daniel Scally <djrscally@gmail.com>
+This is fine since recent atomisp improvements allow the atomisp code
+to work with generic v4l2 sensor drivers and using an unmodified
+drivers/media/i2c/ov5693.c has been successfully tested on
+an Acer Iconia W4 820 tablet with an ISP2400 + OV5693 sensor.
+
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Daniel Scally <dan.scally@ideasonboard.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Changes in v3 (Hans de Goede)
-- New patch in v3 of this series based on Dan Scally's initial
-  DW9719 upstream submission:
-  https://lore.kernel.org/all/20211128232115.38833-1-djrscally@gmail.com/
-- Drop hack to enable "vsio" regulator, this is no longer necessary
-  now that there is a device-link making the VCM a runtime-pm consumer
-  of the sensor
-- Add checking of device-properties for sac-mode and vcm-freq,
-  as requested by Sakari, this is done similar to the dw9768:
-  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9768.yaml
-  Note no devicetree binding doc is added since currently only
-  i2c_device_id enumeration (instantiated by IPU bridge) is
-  supported
+Changes in v3:
+- Add a table with per sensor-HID atomisp_sensor_config settings
+  for sensors which have lanes != 1 or which may have a VCM
+  (VCM support is added in a follow-up patch)
+- Switch to acpi_handle_err() for logging errors
+- Set orientation based on CSI link/port
 ---
- MAINTAINERS                |   7 +
- drivers/media/i2c/Kconfig  |  11 +
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/dw9719.c | 427 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 446 insertions(+)
- create mode 100644 drivers/media/i2c/dw9719.c
+ drivers/staging/media/atomisp/Kconfig         |   3 +
+ .../staging/media/atomisp/pci/atomisp_csi2.h  |  67 ----
+ .../media/atomisp/pci/atomisp_csi2_bridge.c   | 337 ++++--------------
+ .../staging/media/atomisp/pci/atomisp_v4l2.c  |   1 +
+ 4 files changed, 65 insertions(+), 343 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 494682dd437f..cf8e799f6ea2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6266,6 +6266,13 @@ T:	git git://linuxtv.org/media_tree.git
- F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.yaml
- F:	drivers/media/i2c/dw9714.c
+diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
+index e9b168ba97bf..5d8917160d41 100644
+--- a/drivers/staging/media/atomisp/Kconfig
++++ b/drivers/staging/media/atomisp/Kconfig
+@@ -12,9 +12,12 @@ menuconfig INTEL_ATOMISP
+ config VIDEO_ATOMISP
+ 	tristate "Intel Atom Image Signal Processor Driver"
+ 	depends on VIDEO_DEV && INTEL_ATOMISP
++	depends on MEDIA_PCI_SUPPORT
+ 	depends on PMIC_OPREGION
++	depends on I2C
+ 	select V4L2_FWNODE
+ 	select IOSF_MBI
++	select IPU_BRIDGE
+ 	select VIDEOBUF2_VMALLOC
+ 	select VIDEO_V4L2_SUBDEV_API
+ 	help
+diff --git a/drivers/staging/media/atomisp/pci/atomisp_csi2.h b/drivers/staging/media/atomisp/pci/atomisp_csi2.h
+index 16ddb3ab2963..8a112acba1e0 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp_csi2.h
++++ b/drivers/staging/media/atomisp/pci/atomisp_csi2.h
+@@ -30,9 +30,6 @@
+ #define CSI2_PAD_SOURCE		1
+ #define CSI2_PADS_NUM		2
  
-+DONGWOON DW9719 LENS VOICE COIL DRIVER
-+M:	Daniel Scally <djrscally@gmail.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+T:	git git://linuxtv.org/media_tree.git
-+F:	drivers/media/i2c/dw9719.c
-+
- DONGWOON DW9768 LENS VOICE COIL DRIVER
- L:	linux-media@vger.kernel.org
- S:	Orphan
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 26dc365365d8..4864f1df3c7a 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -875,6 +875,17 @@ config VIDEO_DW9714
- 	  capability. This is designed for linear control of
- 	  voice coil motors, controlled via I2C serial interface.
+-#define CSI2_MAX_LANES		4
+-#define CSI2_MAX_LINK_FREQS	3
+-
+ #define CSI2_MAX_ACPI_GPIOS	2u
  
-+config VIDEO_DW9719
-+	tristate "DW9719 lens voice coil support"
-+	depends on I2C && VIDEO_DEV
-+	select MEDIA_CONTROLLER
-+	select VIDEO_V4L2_SUBDEV_API
-+	select V4L2_ASYNC
-+	help
-+	  This is a driver for the DW9719 camera lens voice coil.
-+	  This is designed for linear control of voice coil motors,
-+	  controlled via I2C serial interface.
+ struct acpi_device;
+@@ -55,70 +52,6 @@ struct atomisp_csi2_acpi_gpio_parsing_data {
+ 	unsigned int map_count;
+ };
+ 
+-enum atomisp_csi2_sensor_swnodes {
+-	SWNODE_SENSOR,
+-	SWNODE_SENSOR_PORT,
+-	SWNODE_SENSOR_ENDPOINT,
+-	SWNODE_CSI2_PORT,
+-	SWNODE_CSI2_ENDPOINT,
+-	SWNODE_COUNT
+-};
+-
+-struct atomisp_csi2_property_names {
+-	char clock_frequency[16];
+-	char rotation[9];
+-	char bus_type[9];
+-	char data_lanes[11];
+-	char remote_endpoint[16];
+-	char link_frequencies[17];
+-};
+-
+-struct atomisp_csi2_node_names {
+-	char port[7];
+-	char endpoint[11];
+-	char remote_port[7];
+-};
+-
+-struct atomisp_csi2_sensor_config {
+-	const char *hid;
+-	int lanes;
+-	int nr_link_freqs;
+-	u64 link_freqs[CSI2_MAX_LINK_FREQS];
+-};
+-
+-struct atomisp_csi2_sensor {
+-	/* Append port in "-%u" format as suffix of HID */
+-	char name[ACPI_ID_LEN + 4];
+-	struct acpi_device *adev;
+-	int port;
+-	int lanes;
+-
+-	/* SWNODE_COUNT + 1 for terminating NULL */
+-	const struct software_node *group[SWNODE_COUNT + 1];
+-	struct software_node swnodes[SWNODE_COUNT];
+-	struct atomisp_csi2_node_names node_names;
+-	struct atomisp_csi2_property_names prop_names;
+-	/* "clock-frequency", "rotation" + terminating entry */
+-	struct property_entry dev_properties[3];
+-	/* "bus-type", "data-lanes", "remote-endpoint" + "link-freq" + terminating entry */
+-	struct property_entry ep_properties[5];
+-	/* "data-lanes", "remote-endpoint" + terminating entry */
+-	struct property_entry csi2_properties[3];
+-	struct software_node_ref_args local_ref[1];
+-	struct software_node_ref_args remote_ref[1];
+-	struct software_node_ref_args vcm_ref[1];
+-	/* GPIO mappings storage */
+-	struct atomisp_csi2_acpi_gpio_map gpio_map;
+-};
+-
+-struct atomisp_csi2_bridge {
+-	struct software_node csi2_node;
+-	char csi2_node_name[14];
+-	u32 data_lanes[CSI2_MAX_LANES];
+-	unsigned int n_sensors;
+-	struct atomisp_csi2_sensor sensors[ATOMISP_CAMERA_NR_PORTS];
+-};
+-
+ struct atomisp_mipi_csi2_device {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pads[CSI2_PADS_NUM];
+diff --git a/drivers/staging/media/atomisp/pci/atomisp_csi2_bridge.c b/drivers/staging/media/atomisp/pci/atomisp_csi2_bridge.c
+index 0d12ba78d9c1..551c6fd244fd 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp_csi2_bridge.c
++++ b/drivers/staging/media/atomisp/pci/atomisp_csi2_bridge.c
+@@ -14,31 +14,14 @@
+ #include <linux/device.h>
+ #include <linux/dmi.h>
+ #include <linux/property.h>
 +
- config VIDEO_DW9768
- 	tristate "DW9768 lens voice coil support"
- 	depends on I2C && VIDEO_DEV
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index d175a2e2fb19..745f8d07e649 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_VIDEO_DS90UB913) += ds90ub913.o
- obj-$(CONFIG_VIDEO_DS90UB953) += ds90ub953.o
- obj-$(CONFIG_VIDEO_DS90UB960) += ds90ub960.o
- obj-$(CONFIG_VIDEO_DW9714) += dw9714.o
-+obj-$(CONFIG_VIDEO_DW9719) += dw9719.o
- obj-$(CONFIG_VIDEO_DW9768) += dw9768.o
- obj-$(CONFIG_VIDEO_DW9807_VCM) += dw9807-vcm.o
- obj-$(CONFIG_VIDEO_ET8EK8) += et8ek8/
-diff --git a/drivers/media/i2c/dw9719.c b/drivers/media/i2c/dw9719.c
-new file mode 100644
-index 000000000000..7b83ae102131
---- /dev/null
-+++ b/drivers/media/i2c/dw9719.c
-@@ -0,0 +1,427 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (c) 2012 Intel Corporation
-+
-+/*
-+ * Based on linux/modules/camera/drivers/media/i2c/imx/dw9719.c in this repo:
-+ * https://github.com/ZenfoneArea/android_kernel_asus_zenfone5
-+ */
-+
-+#include <asm/unaligned.h>
-+
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/types.h>
-+
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-subdev.h>
-+
-+#define DW9719_MAX_FOCUS_POS	1023
-+#define DW9719_CTRL_STEPS	16
-+#define DW9719_CTRL_DELAY_US	1000
-+#define DELAY_MAX_PER_STEP_NS	(1000000 * 1023)
-+
-+#define DW9719_INFO			0
-+#define DW9719_ID			0xF1
-+#define DW9719_CONTROL			2
-+#define DW9719_VCM_CURRENT		3
-+
-+#define DW9719_MODE			6
-+#define DW9719_VCM_FREQ			7
-+
-+#define DW9719_MODE_SAC_SHIFT		4
-+#define DW9719_MODE_SAC3		4
-+
-+#define DW9719_DEFAULT_VCM_FREQ		0x60
-+
-+#define DW9719_ENABLE_RINGING		0x02
-+
-+#define to_dw9719_device(x) container_of(x, struct dw9719_device, sd)
-+
-+struct dw9719_device {
-+	struct device *dev;
-+	struct i2c_client *client;
-+	struct regulator *regulator;
-+	struct v4l2_subdev sd;
-+	u32 sac_mode;
-+	u32 vcm_freq;
-+
-+	struct dw9719_v4l2_ctrls {
-+		struct v4l2_ctrl_handler handler;
-+		struct v4l2_ctrl *focus;
-+	} ctrls;
-+};
-+
-+static int dw9719_i2c_rd8(struct i2c_client *client, u8 reg, u8 *val)
-+{
-+	struct i2c_msg msg[2];
-+	u8 buf[2] = { reg };
-+	int ret;
-+
-+	msg[0].addr = client->addr;
-+	msg[0].flags = 0;
-+	msg[0].len = 1;
-+	msg[0].buf = buf;
-+
-+	msg[1].addr = client->addr;
-+	msg[1].flags = I2C_M_RD;
-+	msg[1].len = 1;
-+	msg[1].buf = &buf[1];
-+	*val = 0;
-+
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+	if (ret < 0)
-+		return ret;
-+
-+	*val = buf[1];
-+
-+	return 0;
++#include <media/ipu-bridge.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ #include "atomisp_cmd.h"
+ #include "atomisp_csi2.h"
+ #include "atomisp_internal.h"
+ 
+-#define NODE_SENSOR(_HID, _PROPS)		\
+-	((const struct software_node) {		\
+-		.name = _HID,			\
+-		.properties = _PROPS,		\
+-	})
+-
+-#define NODE_PORT(_PORT, _SENSOR_NODE)		\
+-	((const struct software_node) {		\
+-		.name = _PORT,			\
+-		.parent = _SENSOR_NODE,		\
+-	})
+-
+-#define NODE_ENDPOINT(_EP, _PORT, _PROPS)	\
+-	((const struct software_node) {		\
+-		.name = _EP,			\
+-		.parent = _PORT,		\
+-		.properties = _PROPS,		\
+-	})
+-
+ #define PMC_CLK_RATE_19_2MHZ			19200000
+ 
+ /*
+@@ -83,21 +66,18 @@ static const guid_t atomisp_dsm_guid =
+ 	GUID_INIT(0xdc2f6c4f, 0x045b, 0x4f1d,
+ 		  0x97, 0xb9, 0x88, 0x2a, 0x68, 0x60, 0xa4, 0xbe);
+ 
+-/*
+- * Extend this array with ACPI Hardware IDs of sensors known to be working
+- * plus the default number of links + link-frequencies.
+- *
+- * Do not add an entry for a sensor that is not actually supported,
+- * or which have not yet been converted to work without atomisp_gmin
+- * power-management and with v4l2-async probing.
+- */
+-static const struct atomisp_csi2_sensor_config supported_sensors[] = {
+-	/* GalaxyCore GC0310 */
+-	{ "INT0310", 1 },
+-	/* Omnivision OV2680 */
+-	{ "OVTI2680", 1 },
++struct atomisp_sensor_config {
++	int lanes;
+ };
+ 
++#define ATOMISP_SENSOR_CONFIG(_HID, _LANES)				\
++{									\
++	.id = _HID,							\
++	.driver_data = (long)&((const struct atomisp_sensor_config) {	\
++		.lanes = _LANES,					\
++	})								\
 +}
 +
-+static int dw9719_i2c_wr8(struct i2c_client *client, u8 reg, u8 val)
-+{
-+	struct i2c_msg msg;
-+	int ret;
-+
-+	u8 buf[2] = { reg, val };
-+
-+	msg.addr = client->addr;
-+	msg.flags = 0;
-+	msg.len = sizeof(buf);
-+	msg.buf = buf;
-+
-+	ret = i2c_transfer(client->adapter, &msg, 1);
-+
-+	return ret < 0 ? ret : 0;
-+}
-+
-+static int dw9719_i2c_wr16(struct i2c_client *client, u8 reg, u16 val)
-+{
-+	struct i2c_msg msg;
-+	u8 buf[3] = { reg };
-+	int ret;
-+
-+	put_unaligned_be16(val, buf + 1);
-+
-+	msg.addr = client->addr;
-+	msg.flags = 0;
-+	msg.len = sizeof(buf);
-+	msg.buf = buf;
-+
-+	ret = i2c_transfer(client->adapter, &msg, 1);
-+
-+	return ret < 0 ? ret : 0;
-+}
-+
-+static int dw9719_detect(struct dw9719_device *dw9719)
-+{
-+	int ret;
-+	u8 val;
-+
-+	ret = dw9719_i2c_rd8(dw9719->client, DW9719_INFO, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (val != DW9719_ID) {
-+		dev_err(dw9719->dev, "Failed to detect correct id\n");
-+		ret = -ENXIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9719_power_down(struct dw9719_device *dw9719)
-+{
-+	return regulator_disable(dw9719->regulator);
-+}
-+
-+static int dw9719_power_up(struct dw9719_device *dw9719)
-+{
-+	int ret;
-+
-+	ret = regulator_enable(dw9719->regulator);
-+	if (ret)
-+		return ret;
-+
-+	/* Jiggle SCL pin to wake up device */
-+	ret = dw9719_i2c_wr8(dw9719->client, DW9719_CONTROL, 1);
-+
-+	/* Need 100us to transit from SHUTDOWN to STANDBY*/
-+	usleep_range(100, 1000);
-+
-+	ret = dw9719_i2c_wr8(dw9719->client, DW9719_CONTROL,
-+			     DW9719_ENABLE_RINGING);
-+	if (ret < 0)
-+		goto fail_powerdown;
-+
-+	ret = dw9719_i2c_wr8(dw9719->client, DW9719_MODE,
-+			     dw9719->sac_mode << DW9719_MODE_SAC_SHIFT);
-+	if (ret < 0)
-+		goto fail_powerdown;
-+
-+	ret = dw9719_i2c_wr8(dw9719->client, DW9719_VCM_FREQ, dw9719->vcm_freq);
-+	if (ret < 0)
-+		goto fail_powerdown;
-+
-+	return 0;
-+
-+fail_powerdown:
-+	dw9719_power_down(dw9719);
-+	return ret;
-+}
-+
-+static int dw9719_t_focus_abs(struct dw9719_device *dw9719, s32 value)
-+{
-+	int ret;
-+
-+	value = clamp(value, 0, DW9719_MAX_FOCUS_POS);
-+	ret = dw9719_i2c_wr16(dw9719->client, DW9719_VCM_CURRENT, value);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int dw9719_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct dw9719_device *dw9719 = container_of(ctrl->handler,
-+						    struct dw9719_device,
-+						    ctrls.handler);
-+	int ret;
-+
-+	/* Only apply changes to the controls if the device is powered up */
-+	if (!pm_runtime_get_if_in_use(dw9719->dev))
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_FOCUS_ABSOLUTE:
-+		ret = dw9719_t_focus_abs(dw9719, ctrl->val);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	pm_runtime_put(dw9719->dev);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops dw9719_ctrl_ops = {
-+	.s_ctrl = dw9719_set_ctrl,
-+};
-+
-+static int __maybe_unused dw9719_suspend(struct device *dev)
-+{
-+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-+	struct dw9719_device *dw9719 = to_dw9719_device(sd);
-+	int ret;
-+	int val;
-+
-+	for (val = dw9719->ctrls.focus->val; val >= 0;
-+	     val -= DW9719_CTRL_STEPS) {
-+		ret = dw9719_t_focus_abs(dw9719, val);
-+		if (ret)
-+			return ret;
-+
-+		usleep_range(DW9719_CTRL_DELAY_US, DW9719_CTRL_DELAY_US + 10);
-+	}
-+
-+	return dw9719_power_down(dw9719);
-+}
-+
-+static int __maybe_unused dw9719_resume(struct device *dev)
-+{
-+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-+	struct dw9719_device *dw9719 = to_dw9719_device(sd);
-+	int current_focus = dw9719->ctrls.focus->val;
-+	int ret;
-+	int val;
-+
-+	ret = dw9719_power_up(dw9719);
-+	if (ret)
-+		return ret;
-+
-+	for (val = current_focus % DW9719_CTRL_STEPS; val < current_focus;
-+	     val += DW9719_CTRL_STEPS) {
-+		ret = dw9719_t_focus_abs(dw9719, val);
-+		if (ret)
-+			goto err_power_down;
-+
-+		usleep_range(DW9719_CTRL_DELAY_US, DW9719_CTRL_DELAY_US + 10);
-+	}
-+
-+	return 0;
-+
-+err_power_down:
-+	dw9719_power_down(dw9719);
-+	return ret;
-+}
-+
-+static int dw9719_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return pm_runtime_resume_and_get(sd->dev);
-+}
-+
-+static int dw9719_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	pm_runtime_put(sd->dev);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops dw9719_internal_ops = {
-+	.open = dw9719_open,
-+	.close = dw9719_close,
-+};
-+
-+static int dw9719_init_controls(struct dw9719_device *dw9719)
-+{
-+	const struct v4l2_ctrl_ops *ops = &dw9719_ctrl_ops;
-+	int ret;
-+
-+	ret = v4l2_ctrl_handler_init(&dw9719->ctrls.handler, 1);
-+	if (ret)
-+		return ret;
-+
-+	dw9719->ctrls.focus = v4l2_ctrl_new_std(&dw9719->ctrls.handler, ops,
-+						V4L2_CID_FOCUS_ABSOLUTE, 0,
-+						DW9719_MAX_FOCUS_POS, 1, 0);
-+
-+	if (dw9719->ctrls.handler.error) {
-+		dev_err(dw9719->dev, "Error initialising v4l2 ctrls\n");
-+		ret = dw9719->ctrls.handler.error;
-+		goto err_free_handler;
-+	}
-+
-+	dw9719->sd.ctrl_handler = &dw9719->ctrls.handler;
-+
-+	return ret;
-+
-+err_free_handler:
-+	v4l2_ctrl_handler_free(&dw9719->ctrls.handler);
-+	return ret;
-+}
-+
-+static const struct v4l2_subdev_ops dw9719_ops = { };
-+
-+static int dw9719_probe(struct i2c_client *client)
-+{
-+	struct dw9719_device *dw9719;
-+	int ret;
-+
-+	dw9719 = devm_kzalloc(&client->dev, sizeof(*dw9719), GFP_KERNEL);
-+	if (!dw9719)
+ /*
+  * gmin_cfg parsing code. This is a cleaned up version of the gmin_cfg parsing
+  * code from atomisp_gmin_platform.c.
+@@ -400,8 +380,7 @@ static int atomisp_csi2_handle_acpi_gpio_res(struct acpi_resource *ares, void *_
+  * the INT3472 discrete.c code and there is some overlap, but there are
+  * enough differences that it is difficult to share the code.
+  */
+-static int atomisp_csi2_add_gpio_mappings(struct atomisp_csi2_sensor *sensor,
+-					  struct acpi_device *adev)
++static int atomisp_csi2_add_gpio_mappings(struct acpi_device *adev)
+ {
+ 	struct atomisp_csi2_acpi_gpio_parsing_data data = { };
+ 	LIST_HEAD(resource_list);
+@@ -469,9 +448,12 @@ static int atomisp_csi2_add_gpio_mappings(struct atomisp_csi2_sensor *sensor,
+ 		}
+ 	}
+ 
++	data.map = kzalloc(sizeof(*data.map), GFP_KERNEL);
++	if (!data.map)
 +		return -ENOMEM;
 +
-+	dw9719->client = client;
-+	dw9719->dev = &client->dev;
-+
-+	dw9719->sac_mode = DW9719_MODE_SAC3;
-+	dw9719->vcm_freq = DW9719_DEFAULT_VCM_FREQ;
-+
-+	/* Optional indication of SAC mode select */
-+	device_property_read_u32(&client->dev, "dongwoon,sac-mode",
-+				 &dw9719->sac_mode);
-+
-+	/* Optional indication of VCM frequency */
-+	device_property_read_u32(&client->dev, "dongwoon,vcm-freq",
-+				 &dw9719->vcm_freq);
-+
-+	dw9719->regulator = devm_regulator_get(&client->dev, "vdd");
-+	if (IS_ERR(dw9719->regulator))
-+		return dev_err_probe(&client->dev, PTR_ERR(dw9719->regulator),
-+				     "getting regulator\n");
-+
-+	v4l2_i2c_subdev_init(&dw9719->sd, client, &dw9719_ops);
-+	dw9719->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	dw9719->sd.internal_ops = &dw9719_internal_ops;
-+
-+	ret = dw9719_init_controls(dw9719);
+ 	/* Now parse the ACPI resources and build the lookup table */
+ 	data.adev = adev;
+-	data.map = &sensor->gpio_map;
+ 	ret = acpi_dev_get_resources(adev, &resource_list,
+ 				     atomisp_csi2_handle_acpi_gpio_res, &data);
+ 	if (ret < 0)
+@@ -491,220 +473,68 @@ static int atomisp_csi2_add_gpio_mappings(struct atomisp_csi2_sensor *sensor,
+ 	return ret;
+ }
+ 
+-static const struct atomisp_csi2_property_names prop_names = {
+-	.clock_frequency = "clock-frequency",
+-	.rotation = "rotation",
+-	.bus_type = "bus-type",
+-	.data_lanes = "data-lanes",
+-	.remote_endpoint = "remote-endpoint",
+-	.link_frequencies = "link-frequencies",
++static const struct acpi_device_id atomisp_sensor_configs[] = {
++	ATOMISP_SENSOR_CONFIG("INT33BE", 2),	/* OV5693 */
++	{}
+ };
+ 
+-static void atomisp_csi2_create_fwnode_properties(struct atomisp_csi2_sensor *sensor,
+-						  struct atomisp_csi2_bridge *bridge,
+-						  const struct atomisp_csi2_sensor_config *cfg)
++static int atomisp_csi2_parse_sensor_fwnode(struct acpi_device *adev,
++					    struct ipu_sensor *sensor)
+ {
+-	sensor->prop_names = prop_names;
+-
+-	sensor->local_ref[0] = SOFTWARE_NODE_REFERENCE(&sensor->swnodes[SWNODE_CSI2_ENDPOINT]);
+-	sensor->remote_ref[0] = SOFTWARE_NODE_REFERENCE(&sensor->swnodes[SWNODE_SENSOR_ENDPOINT]);
+-
+-	sensor->dev_properties[0] = PROPERTY_ENTRY_U32(sensor->prop_names.clock_frequency,
+-						       PMC_CLK_RATE_19_2MHZ);
+-	sensor->dev_properties[1] = PROPERTY_ENTRY_U32(sensor->prop_names.rotation, 0);
+-
+-	sensor->ep_properties[0] = PROPERTY_ENTRY_U32(sensor->prop_names.bus_type,
+-						      V4L2_FWNODE_BUS_TYPE_CSI2_DPHY);
+-	sensor->ep_properties[1] = PROPERTY_ENTRY_U32_ARRAY_LEN(sensor->prop_names.data_lanes,
+-								bridge->data_lanes,
+-								sensor->lanes);
+-	sensor->ep_properties[2] = PROPERTY_ENTRY_REF_ARRAY(sensor->prop_names.remote_endpoint,
+-							    sensor->local_ref);
+-	if (cfg->nr_link_freqs > 0)
+-		sensor->ep_properties[3] =
+-			PROPERTY_ENTRY_U64_ARRAY_LEN(sensor->prop_names.link_frequencies,
+-						     cfg->link_freqs, cfg->nr_link_freqs);
+-
+-	sensor->csi2_properties[0] = PROPERTY_ENTRY_U32_ARRAY_LEN(sensor->prop_names.data_lanes,
+-								  bridge->data_lanes,
+-								  sensor->lanes);
+-	sensor->csi2_properties[1] = PROPERTY_ENTRY_REF_ARRAY(sensor->prop_names.remote_endpoint,
+-							      sensor->remote_ref);
+-}
+-
+-static void atomisp_csi2_init_swnode_names(struct atomisp_csi2_sensor *sensor)
+-{
+-	snprintf(sensor->node_names.remote_port,
+-		 sizeof(sensor->node_names.remote_port),
+-		 SWNODE_GRAPH_PORT_NAME_FMT, sensor->port);
+-	snprintf(sensor->node_names.port,
+-		 sizeof(sensor->node_names.port),
+-		 SWNODE_GRAPH_PORT_NAME_FMT, 0); /* Always port 0 */
+-	snprintf(sensor->node_names.endpoint,
+-		 sizeof(sensor->node_names.endpoint),
+-		 SWNODE_GRAPH_ENDPOINT_NAME_FMT, 0); /* And endpoint 0 */
+-}
+-
+-static void atomisp_csi2_init_swnode_group(struct atomisp_csi2_sensor *sensor)
+-{
+-	struct software_node *nodes = sensor->swnodes;
+-
+-	sensor->group[SWNODE_SENSOR] = &nodes[SWNODE_SENSOR];
+-	sensor->group[SWNODE_SENSOR_PORT] = &nodes[SWNODE_SENSOR_PORT];
+-	sensor->group[SWNODE_SENSOR_ENDPOINT] = &nodes[SWNODE_SENSOR_ENDPOINT];
+-	sensor->group[SWNODE_CSI2_PORT] = &nodes[SWNODE_CSI2_PORT];
+-	sensor->group[SWNODE_CSI2_ENDPOINT] = &nodes[SWNODE_CSI2_ENDPOINT];
+-}
+-
+-static void atomisp_csi2_create_connection_swnodes(struct atomisp_csi2_bridge *bridge,
+-						   struct atomisp_csi2_sensor *sensor)
+-{
+-	struct software_node *nodes = sensor->swnodes;
+-
+-	atomisp_csi2_init_swnode_names(sensor);
+-
+-	nodes[SWNODE_SENSOR] = NODE_SENSOR(sensor->name,
+-					   sensor->dev_properties);
+-	nodes[SWNODE_SENSOR_PORT] = NODE_PORT(sensor->node_names.port,
+-					      &nodes[SWNODE_SENSOR]);
+-	nodes[SWNODE_SENSOR_ENDPOINT] = NODE_ENDPOINT(sensor->node_names.endpoint,
+-						      &nodes[SWNODE_SENSOR_PORT],
+-						      sensor->ep_properties);
+-	nodes[SWNODE_CSI2_PORT] = NODE_PORT(sensor->node_names.remote_port,
+-					    &bridge->csi2_node);
+-	nodes[SWNODE_CSI2_ENDPOINT] = NODE_ENDPOINT(sensor->node_names.endpoint,
+-						    &nodes[SWNODE_CSI2_PORT],
+-						    sensor->csi2_properties);
+-
+-	atomisp_csi2_init_swnode_group(sensor);
+-}
+-
+-static void atomisp_csi2_unregister_sensors(struct atomisp_csi2_bridge *bridge)
+-{
+-	struct atomisp_csi2_sensor *sensor;
+-	unsigned int i;
+-
+-	for (i = 0; i < bridge->n_sensors; i++) {
+-		sensor = &bridge->sensors[i];
+-		software_node_unregister_node_group(sensor->group);
+-		acpi_dev_remove_driver_gpios(sensor->adev);
+-		acpi_dev_put(sensor->adev);
+-	}
+-}
+-
+-static int atomisp_csi2_connect_sensor(const struct atomisp_csi2_sensor_config *cfg,
+-				       struct atomisp_csi2_bridge *bridge,
+-				       struct atomisp_device *isp)
+-{
+-	struct fwnode_handle *fwnode, *primary;
+-	struct atomisp_csi2_sensor *sensor;
+-	struct acpi_device *adev;
++	const struct acpi_device_id *id;
+ 	int ret, clock_num;
++	int lanes = 1;
+ 
+-	for_each_acpi_dev_match(adev, cfg->hid, NULL, -1) {
+-		if (!adev->status.enabled)
+-			continue;
++	id = acpi_match_acpi_device(atomisp_sensor_configs, adev);
++	if (id) {
++		struct atomisp_sensor_config *cfg =
++			(struct atomisp_sensor_config *)id->driver_data;
+ 
+-		if (bridge->n_sensors >= ATOMISP_CAMERA_NR_PORTS) {
+-			dev_err(isp->dev, "Exceeded available CSI2 ports\n");
+-			ret = -EOVERFLOW;
+-			goto err_put_adev;
+-		}
+-
+-		sensor = &bridge->sensors[bridge->n_sensors];
+-
+-		/*
+-		 * ACPI takes care of turning the PMC clock on and off, but on BYT
+-		 * the clock defaults to 25 MHz instead of the expected 19.2 MHz.
+-		 * Get the PMC-clock number from ACPI _PR0 method and set it to 19.2 MHz.
+-		 * The PMC-clock number is also used to determine the default CSI port.
+-		 */
+-		clock_num = atomisp_csi2_get_pmc_clk_nr_from_acpi_pr0(adev);
+-
+-		ret = atomisp_csi2_set_pmc_clk_freq(adev, clock_num);
+-		if (ret)
+-			goto err_put_adev;
+-
+-		sensor->port = atomisp_csi2_get_port(adev, clock_num);
+-		if (sensor->port >= ATOMISP_CAMERA_NR_PORTS) {
+-			acpi_handle_err(adev->handle, "Invalid port: %d\n", sensor->port);
+-			ret = -EINVAL;
+-			goto err_put_adev;
+-		}
+-
+-		sensor->lanes = gmin_cfg_get_int(adev, "CsiLanes", cfg->lanes);
+-		if (sensor->lanes > CSI2_MAX_LANES) {
+-			acpi_handle_err(adev->handle, "Invalid number of lanes: %d\n", sensor->lanes);
+-			ret = -EINVAL;
+-			goto err_put_adev;
+-		}
+-
+-		ret = atomisp_csi2_add_gpio_mappings(sensor, adev);
+-		if (ret)
+-			goto err_put_adev;
+-
+-		snprintf(sensor->name, sizeof(sensor->name), "%s-%u",
+-			 cfg->hid, sensor->port);
+-
+-		atomisp_csi2_create_fwnode_properties(sensor, bridge, cfg);
+-		atomisp_csi2_create_connection_swnodes(bridge, sensor);
+-
+-		ret = software_node_register_node_group(sensor->group);
+-		if (ret)
+-			goto err_remove_mappings;
+-
+-		fwnode = software_node_fwnode(&sensor->swnodes[SWNODE_SENSOR]);
+-		if (!fwnode) {
+-			ret = -ENODEV;
+-			goto err_free_swnodes;
+-		}
+-
+-		sensor->adev = acpi_dev_get(adev);
+-
+-		primary = acpi_fwnode_handle(adev);
+-		primary->secondary = fwnode;
+-
+-		bridge->n_sensors++;
++		lanes = cfg->lanes;
+ 	}
+ 
+-	return 0;
++	/*
++	 * ACPI takes care of turning the PMC clock on and off, but on BYT
++	 * the clock defaults to 25 MHz instead of the expected 19.2 MHz.
++	 * Get the PMC-clock number from ACPI PR0 method and set it to 19.2 MHz.
++	 * The PMC-clock number is also used to determine the default CSI port.
++	 */
++	clock_num = atomisp_csi2_get_pmc_clk_nr_from_acpi_pr0(adev);
+ 
+-err_free_swnodes:
+-	software_node_unregister_node_group(sensor->group);
+-err_remove_mappings:
+-	acpi_dev_remove_driver_gpios(adev);
+-err_put_adev:
+-	acpi_dev_put(adev);
+-	return ret;
+-}
++	ret = atomisp_csi2_set_pmc_clk_freq(adev, clock_num);
++	if (ret)
++		return ret;
+ 
+-static int atomisp_csi2_connect_sensors(struct atomisp_csi2_bridge *bridge,
+-					struct atomisp_device *isp)
+-{
+-	unsigned int i;
+-	int ret;
+-
+-	for (i = 0; i < ARRAY_SIZE(supported_sensors); i++) {
+-		const struct atomisp_csi2_sensor_config *cfg = &supported_sensors[i];
+-
+-		ret = atomisp_csi2_connect_sensor(cfg, bridge, isp);
+-		if (ret)
+-			goto err_unregister_sensors;
++	sensor->link = atomisp_csi2_get_port(adev, clock_num);
++	if (sensor->link >= ATOMISP_CAMERA_NR_PORTS) {
++		acpi_handle_err(adev->handle, "%s: Invalid port: %u\n",
++				dev_name(&adev->dev), sensor->link);
++		return -EINVAL;
+ 	}
+ 
+-	return 0;
++	sensor->lanes = gmin_cfg_get_int(adev, "CsiLanes", lanes);
++	if (sensor->lanes > IPU_MAX_LANES) {
++		acpi_handle_err(adev->handle, "%s: Invalid lane-count: %d\n",
++				dev_name(&adev->dev), sensor->lanes);
++		return -EINVAL;
++	}
+ 
+-err_unregister_sensors:
+-	atomisp_csi2_unregister_sensors(bridge);
+-	return ret;
++	ret = atomisp_csi2_add_gpio_mappings(adev);
 +	if (ret)
 +		return ret;
 +
-+	ret = media_entity_pads_init(&dw9719->sd.entity, 0, NULL);
-+	if (ret < 0)
-+		goto err_free_ctrl_handler;
++	sensor->mclkspeed = PMC_CLK_RATE_19_2MHZ;
++	sensor->rotation = 0;
++	sensor->orientation = (sensor->link == 1) ?
++		V4L2_FWNODE_ORIENTATION_BACK : V4L2_FWNODE_ORIENTATION_FRONT;
 +
-+	dw9719->sd.entity.function = MEDIA_ENT_F_LENS;
-+
-+	/*
-+	 * We need the driver to work in the event that pm runtime is disable in
-+	 * the kernel, so power up and verify the chip now. In the event that
-+	 * runtime pm is disabled this will leave the chip on, so that the lens
-+	 * will work.
-+	 */
-+
-+	ret = dw9719_power_up(dw9719);
-+	if (ret)
-+		goto err_cleanup_media;
-+
-+	ret = dw9719_detect(dw9719);
-+	if (ret)
-+		goto err_powerdown;
-+
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_get_noresume(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+
-+	ret = v4l2_async_register_subdev(&dw9719->sd);
-+	if (ret < 0)
-+		goto err_pm_runtime;
-+
-+	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
-+	pm_runtime_use_autosuspend(&client->dev);
-+	pm_runtime_put_autosuspend(&client->dev);
-+
-+	return ret;
-+
-+err_pm_runtime:
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+err_powerdown:
-+	dw9719_power_down(dw9719);
-+err_cleanup_media:
-+	media_entity_cleanup(&dw9719->sd.entity);
-+err_free_ctrl_handler:
-+	v4l2_ctrl_handler_free(&dw9719->ctrls.handler);
-+
-+	return ret;
-+}
-+
-+static void dw9719_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9719_device *dw9719 = container_of(sd, struct dw9719_device, sd);
-+
-+	pm_runtime_disable(&client->dev);
-+	v4l2_async_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&dw9719->ctrls.handler);
-+	media_entity_cleanup(&dw9719->sd.entity);
-+}
-+
-+static const struct i2c_device_id dw9719_id_table[] = {
-+	{ "dw9719" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, dw9719_id_table);
-+
-+static const struct dev_pm_ops dw9719_pm_ops = {
-+	SET_RUNTIME_PM_OPS(dw9719_suspend, dw9719_resume, NULL)
-+};
-+
-+static struct i2c_driver dw9719_i2c_driver = {
-+	.driver = {
-+		.name = "dw9719",
-+		.pm = &dw9719_pm_ops,
-+	},
-+	.probe_new = dw9719_probe,
-+	.remove = dw9719_remove,
-+	.id_table = dw9719_id_table,
-+};
-+module_i2c_driver(dw9719_i2c_driver);
-+
-+MODULE_AUTHOR("Daniel Scally <djrscally@gmail.com>");
-+MODULE_DESCRIPTION("DW9719 VCM Driver");
-+MODULE_LICENSE("GPL");
++	return 0;
+ }
+ 
+ int atomisp_csi2_bridge_init(struct atomisp_device *isp)
+ {
+-	struct atomisp_csi2_bridge *bridge;
+ 	struct device *dev = isp->dev;
+ 	struct fwnode_handle *fwnode;
+-	int i, ret;
+ 
+ 	/*
+ 	 * This function is intended to run only once and then leave
+@@ -716,52 +546,7 @@ int atomisp_csi2_bridge_init(struct atomisp_device *isp)
+ 	if (fwnode && fwnode->secondary)
+ 		return 0;
+ 
+-	bridge = kzalloc(sizeof(*bridge), GFP_KERNEL);
+-	if (!bridge)
+-		return -ENOMEM;
+-
+-	strscpy(bridge->csi2_node_name, "atomisp-csi2", sizeof(bridge->csi2_node_name));
+-	bridge->csi2_node.name = bridge->csi2_node_name;
+-
+-	ret = software_node_register(&bridge->csi2_node);
+-	if (ret < 0) {
+-		dev_err(dev, "Failed to register the CSI2 HID node\n");
+-		goto err_free_bridge;
+-	}
+-
+-	/*
+-	 * Map the lane arrangement, which is fixed for the ISP2 (meaning we
+-	 * only need one, rather than one per sensor). We include it as a
+-	 * member of the bridge struct rather than a global variable so
+-	 * that it survives if the module is unloaded along with the rest of
+-	 * the struct.
+-	 */
+-	for (i = 0; i < CSI2_MAX_LANES; i++)
+-		bridge->data_lanes[i] = i + 1;
+-
+-	ret = atomisp_csi2_connect_sensors(bridge, isp);
+-	if (ret || bridge->n_sensors == 0)
+-		goto err_unregister_csi2;
+-
+-	fwnode = software_node_fwnode(&bridge->csi2_node);
+-	if (!fwnode) {
+-		dev_err(dev, "Error getting fwnode from csi2 software_node\n");
+-		ret = -ENODEV;
+-		goto err_unregister_sensors;
+-	}
+-
+-	set_secondary_fwnode(dev, fwnode);
+-
+-	return 0;
+-
+-err_unregister_sensors:
+-	atomisp_csi2_unregister_sensors(bridge);
+-err_unregister_csi2:
+-	software_node_unregister(&bridge->csi2_node);
+-err_free_bridge:
+-	kfree(bridge);
+-
+-	return ret;
++	return ipu_bridge_init(dev, atomisp_csi2_parse_sensor_fwnode);
+ }
+ 
+ /******* V4L2 sub-device asynchronous registration callbacks***********/
+diff --git a/drivers/staging/media/atomisp/pci/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp_v4l2.c
+index c43b916a006e..0d80f0893a2e 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp_v4l2.c
+@@ -1615,3 +1615,4 @@ MODULE_AUTHOR("Wen Wang <wen.w.wang@intel.com>");
+ MODULE_AUTHOR("Xiaolin Zhang <xiaolin.zhang@intel.com>");
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Intel ATOM Platform ISP Driver");
++MODULE_IMPORT_NS(INTEL_IPU_BRIDGE);
 -- 
 2.41.0
 
