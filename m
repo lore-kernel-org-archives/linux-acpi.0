@@ -2,104 +2,126 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8374BEB64DA
-	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 11:45:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2F79C0015E
+	for <linux-acpi@archiver.kernel.org>; Wed,  5 Jul 2023 14:17:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231569AbjGELpf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 5 Jul 2023 07:45:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48614 "EHLO
+        id S232103AbjGEORd (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 5 Jul 2023 10:17:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231630AbjGELpa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 07:45:30 -0400
-Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A69C9198D
-        for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2023 04:45:00 -0700 (PDT)
-Received: by mail-pl1-x62c.google.com with SMTP id d9443c01a7336-1b89b75dc1cso4279155ad.1
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Jul 2023 04:45:00 -0700 (PDT)
+        with ESMTP id S231630AbjGEORc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2023 10:17:32 -0400
+Received: from mail-oi1-x22c.google.com (mail-oi1-x22c.google.com [IPv6:2607:f8b0:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB412CF
+        for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2023 07:17:30 -0700 (PDT)
+Received: by mail-oi1-x22c.google.com with SMTP id 5614622812f47-3a3a8d21208so2638178b6e.0
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Jul 2023 07:17:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1688557500; x=1691149500;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
+        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1688566650; x=1691158650;
+        h=content-transfer-encoding:mime-version:message-id:to:from:cc
+         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=2/7mU7LG0/LoivTbyL8zN+ZBZKcFo4rglaRaqylxhfQ=;
-        b=Ltfa/6PMTzVFKvupHYoIu25JvZQEj8+TG279VMGSVCFID+E3BGc5M/0cOuZAjs8bL2
-         z9Cgl0L5iCAGnnQ/SuOGo7Tlk2zQTK9bQPleevr+vBadbtzutwf63D4nRPP3IF+qUaFx
-         EvP//jSB2BrpV79rZnIxTxbFyGU2bFXfQ00+rYLUlKKiHn2sM+6/jwg1lRkSLa9Axgpj
-         Txv/dFC2aNPc+fLwMIpNaBCDQ/ZOdivCtVpmurWLgY2ltsQ8x9kA03yypVf4nBnyOGiw
-         Zc7G9su5n0GMnMCvvb8mRkoltS9mmH76Z7KN16SNl20HeoY+KKNBQTu61nHeHB/My8I5
-         vr4g==
+        bh=WDWjRluYFM3mzOmtAT5NxskA0RqCR9Q0xHAxLzDYI6Q=;
+        b=1A0GhTw4X78yyD2diHuDymDRZR0tQNRmSpxLTIj7P8axsyHpQ76WpBlK7JScRTqEyi
+         qKZbGWOykeW46T98BwEJLH7IUhH/2PRp++x/HCuE50ZHgdwfYkF5O/jP8oo2HCTLq3iz
+         b94mo8vfnMuT2Xuna48eP7xM7D7fVhQj+B3YOtrgKhtLPwCQbfg6LITO61uqAyARvdmV
+         nQ3oCq/Ymh1ELjOMes6j/DOkWslMYzhlnDVb/5jSrmDkTzaNkMx4plvYBIdhf3rp1SBG
+         Yjl7RzSl95D8GYwyXeUS/Lgssb6pbH1Le4KEg1hZf5VlIqu08eWtq/q7ZbeVHuGvt7ZR
+         wxcw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688557500; x=1691149500;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2/7mU7LG0/LoivTbyL8zN+ZBZKcFo4rglaRaqylxhfQ=;
-        b=kETwbh0/HPMhhAdHfa8pU+rYAxKzNRZE8jof8/ywEZFxPnJB98JDJv3dbAqB6GB6em
-         gHA04cGcdTibUEsHaRiixOsAW96kD7Dfzmm2l4ve1ob5HmAOJK3biao+rfKNIYHNEXAj
-         R7t5deUnkrwFSsk8G3/xeQFsR6TLhVTHA/e5pmOOiyoP3cLkfvKF/P1m2kteoYyXPZzS
-         Tf0ArN2erlsy8KsJUSfnDvv8EVm8HHqmMioI2Ke8E/7qZfd5Mwf0CM3xGDqlbLVNILYk
-         E9UfigKdG7B7R1ai8by7A5g1sKSskjWS4N+wJE3Z//UeUvvDgNA7EIo0isthXCCiWUh2
-         eI8w==
-X-Gm-Message-State: ABy/qLbx14Q7S5L2d8u6KCf2XjZLVD95hm2cB8lFiCCDAgAMfGoziO2D
-        3YfiWQJ048fuNXpt0tpXkBVBWQ==
-X-Google-Smtp-Source: APBJJlE+p5F5PIvo05kj7fIPA1p9K+VjhFZ7LXhkzaKK45+ZK+JAauB4t1oRak5U+mKJZRNdHuxLkA==
-X-Received: by 2002:a17:90a:f40a:b0:263:f674:490e with SMTP id ch10-20020a17090af40a00b00263f674490emr1749692pjb.3.1688557499886;
-        Wed, 05 Jul 2023 04:44:59 -0700 (PDT)
-Received: from PF2E59YH-BKX.inc.bytedance.com ([61.213.176.5])
-        by smtp.gmail.com with ESMTPSA id 3-20020a17090a194300b00263f6687690sm1177900pjh.18.2023.07.05.04.44.53
+        d=1e100.net; s=20221208; t=1688566650; x=1691158650;
+        h=content-transfer-encoding:mime-version:message-id:to:from:cc
+         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WDWjRluYFM3mzOmtAT5NxskA0RqCR9Q0xHAxLzDYI6Q=;
+        b=HXxch/uH2/veWJnRKzhv5/ZBSXcxLwMd87ERn8xSFFFNirBxhJF43ya6J5X7ZFxtKi
+         BM8omZPFO872vW5Pxp8Zmrq1JYrgibDvZ09jkWM3pNpNXpHcW4w7xi828er4PTJzOAlb
+         MYfCEncidv7rQwHa+EgCG3HACyt6x9REi9fa98fh1txHoEQltzhZZp0nGdu1vmwSMRY2
+         ADUi3S53an5Z0VcgCIGoci3mupkS7PdL9M9dXSp3nsCxIOTwAU/OmnKuATXujdVGow/j
+         aCv3Cmr5+aLph5PX0M23+zfBrK9ytPFlS3tRthdDd6gNWYijt5h/rFvJ1/P/WlkCDIoQ
+         J2tQ==
+X-Gm-Message-State: AC+VfDybYMtRF/arSL6aS+85vPt+x3uBGouNNgKPIhDUytbVL8HsBTBf
+        dv3DLx+OcqfFan8HVfQytNbXkg==
+X-Google-Smtp-Source: ACHHUZ5XPlff29EhdpKAoQIvbVbYkIFGTC1KnDDcA8GRrYOAyjREHvoSgUZXyUCAixVctnbm/B8Qrw==
+X-Received: by 2002:a05:6808:1312:b0:3a3:6329:4cb7 with SMTP id y18-20020a056808131200b003a363294cb7mr20423361oiv.9.1688566649962;
+        Wed, 05 Jul 2023 07:17:29 -0700 (PDT)
+Received: from localhost ([135.180.227.0])
+        by smtp.gmail.com with ESMTPSA id fe21-20020a056a002f1500b0066ebaeb149dsm16562980pfb.88.2023.07.05.07.17.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Jul 2023 04:44:59 -0700 (PDT)
-From:   Yunhui Cui <cuiyunhui@bytedance.com>
-To:     conor@kernel.org, sunilvl@ventanamicro.com, ardb@kernel.org,
-        palmer@dabbelt.com, paul.walmsley@sifive.com,
+        Wed, 05 Jul 2023 07:17:29 -0700 (PDT)
+Date:   Wed, 05 Jul 2023 07:17:29 -0700 (PDT)
+X-Google-Original-Date: Wed, 05 Jul 2023 07:17:25 PDT (-0700)
+Subject:     Re: [PATCH v3 0/4] Obtain SMBIOS and ACPI entry from FFI
+In-Reply-To: <20230705114251.661-1-cuiyunhui@bytedance.com>
+CC:     sunilvl@ventanamicro.com, Paul Walmsley <paul.walmsley@sifive.com>,
         aou@eecs.berkeley.edu, linux-riscv@lists.infradead.org,
-        rminnich@gmail.com, mark.rutland@arm.com, lpieralisi@kernel.org,
-        rafael@kernel.org, lenb@kernel.org, jdelvare@suse.com,
-        yc.hung@mediatek.com, angelogioacchino.delregno@collabora.com,
+        rminnich@gmail.com, Mark Rutland <mark.rutland@arm.com>,
+        lpieralisi@kernel.org, rafael@kernel.org, lenb@kernel.org,
+        jdelvare@suse.com, yc.hung@mediatek.com,
+        angelogioacchino.delregno@collabora.com,
         allen-kh.cheng@mediatek.com, pierre-louis.bossart@linux.intel.com,
         tinghan.shen@mediatek.com, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org, geshijian@bytedance.com,
         weidong.wd@bytedance.com, cuiyunhui@bytedance.com
-Subject: [PATCH v3 3/4] riscv: obtain SMBIOS entry from FFI
-Date:   Wed,  5 Jul 2023 19:42:50 +0800
-Message-Id: <20230705114251.661-4-cuiyunhui@bytedance.com>
-X-Mailer: git-send-email 2.37.3.windows.1
-In-Reply-To: <20230705114251.661-1-cuiyunhui@bytedance.com>
-References: <20230705114251.661-1-cuiyunhui@bytedance.com>
-MIME-Version: 1.0
+From:   Palmer Dabbelt <palmer@dabbelt.com>
+To:     cuiyunhui@bytedance.com, Conor Dooley <conor@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>
+Message-ID: <mhng-48837062-b9f6-4968-be9e-9d3b352be117@palmer-ri-x1c9>
+Mime-Version: 1.0 (MHng)
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On RISC-V, Coreboot does not support EFI booting, only supports
-devicetree, and RISC-V does not have reserved address segments.
-To support Coreboot on RISC-V platforms that require DMI
-functionality, SMBIOS entry need to be passed through FFI.
+On Wed, 05 Jul 2023 04:42:47 PDT (-0700), cuiyunhui@bytedance.com wrote:
+> Here's version 3 of patch series.
+>
+> V1: The FFI (FDT FIRMWARE INTERFACE) scheme has reached a
+> consensus with the Maintainers.
+> Please refer to:
+> https://patches.linaro.org/project/linux-acpi/patch/20230426034001.16-1-cuiyunhui@bytedance.com/
 
-Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
----
- arch/riscv/kernel/ffi.c | 2 ++
- 1 file changed, 2 insertions(+)
+From looking at that thread it seems that the consensus is this is a bad 
+idea?  Sorry if I'm just missing something...
 
-diff --git a/arch/riscv/kernel/ffi.c b/arch/riscv/kernel/ffi.c
-index 147d06a5acff..b959d16fe0b3 100644
---- a/arch/riscv/kernel/ffi.c
-+++ b/arch/riscv/kernel/ffi.c
-@@ -8,6 +8,7 @@
- #include <linux/of.h>
- #include <linux/of_fdt.h>
- #include <linux/libfdt.h>
-+#include <linux/ffi.h>
- 
- static u64 acpi_rsdp;
- 
-@@ -35,4 +36,5 @@ u64 __init riscv_acpi_rsdp(void)
- void __init ffi_init(void)
- {
- 	ffi_acpi_root_pointer();
-+	ffi_smbios_root_pointer();
- }
--- 
-2.20.1
-
+> Changes v1->v2:
+> Adjusted the code structure, put the ACPI part under the RISC-V architecture,
+> and put the general part of obtaining SMBIOS entry through FFI
+> under driver/firmware/.
+> Please refer to:
+> https://lore.kernel.org/lkml/20230703-71f67eb66a037f5c0fb825c6@orel/T/
+>
+> Changes v2->v3:
+> According to the suggestions of maintainers, the code has been modified as follows:
+> 1. Modified the commit log.
+> 2. Added description of "ffitbl" subnod in dt-bindings.
+> 3. Add stub function to the function
+> 4. arch/riscv/ and driver/firmware/ use CONFIG_FDT_FW_INTERFACE to control
+> 5. Modified the ffi_smbios_root_pointer() function logic and printing
+> etc.
+>
+> Yunhui Cui (4):
+>   riscv: obtain ACPI RSDP from devicetree
+>   firmware: introduce FFI for SMBIOS entry
+>   riscv: obtain SMBIOS entry from FFI
+>   dt-bindings: firmware: Document ffitbl binding
+>
+>  .../devicetree/bindings/firmware/ffitbl.txt   | 27 ++++++
+>  MAINTAINERS                                   | 13 +++
+>  arch/riscv/include/asm/acpi.h                 |  9 ++
+>  arch/riscv/include/asm/ffi.h                  | 14 +++
+>  arch/riscv/kernel/Makefile                    |  1 +
+>  arch/riscv/kernel/ffi.c                       | 40 ++++++++
+>  arch/riscv/kernel/setup.c                     |  2 +
+>  drivers/firmware/Kconfig                      | 11 +++
+>  drivers/firmware/Makefile                     |  1 +
+>  drivers/firmware/dmi_scan.c                   | 97 +++++++++++--------
+>  drivers/firmware/ffi.c                        | 42 ++++++++
+>  include/linux/ffi.h                           | 29 ++++++
+>  12 files changed, 246 insertions(+), 40 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/firmware/ffitbl.txt
+>  create mode 100644 arch/riscv/include/asm/ffi.h
+>  create mode 100644 arch/riscv/kernel/ffi.c
+>  create mode 100644 drivers/firmware/ffi.c
+>  create mode 100644 include/linux/ffi.h
