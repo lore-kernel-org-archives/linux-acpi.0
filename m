@@ -2,122 +2,152 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6595EEB64DA
-	for <linux-acpi@archiver.kernel.org>; Sat,  8 Jul 2023 16:26:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC88FC001DE
+	for <linux-acpi@archiver.kernel.org>; Sun,  9 Jul 2023 19:00:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229773AbjGHQ0G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Sat, 8 Jul 2023 12:26:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40686 "EHLO
+        id S229591AbjGITAj (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sun, 9 Jul 2023 15:00:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbjGHQ0F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Jul 2023 12:26:05 -0400
-Received: from mail-pl1-x634.google.com (mail-pl1-x634.google.com [IPv6:2607:f8b0:4864:20::634])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BBC51B5
-        for <linux-acpi@vger.kernel.org>; Sat,  8 Jul 2023 09:26:04 -0700 (PDT)
-Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-1b88e5b3834so12418265ad.3
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2023 09:26:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1688833564; x=1691425564;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=n81lmkpIohF/iUaSujpw1NRiU2XjmhYlsAoXp3Ij8w0=;
-        b=XoJYhRowRtKqhr6yAj3k3G47roVPlfesolIYJyVSQ5jmBRDNulN4MnX0TSgOHGE0sI
-         eEfdbomyMeP3Vd+jM2tWEfFJXsFvzdk4ccig325fpQHhxp1pQjaOshrWNSVD5NQkDWTx
-         s/SnHLirC7MuftFSinmcvvxsv8Jm7dPm2PXsjLJtd/QSTSkkOwPvmq5DAv0eVR4blSN7
-         0ahQfSf1mjWdfPSTGzi2BrhKqh6qP681w6TjLGTBva8TQjhGORiQprYdLAgGx5xf+lTB
-         uVyeR+Tk74WTeozdvUtGIXPS9Xje10Nm01Jty2IJdsKY2Yhy/syZm2ijhUY/iRA2F5mo
-         RUNg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688833564; x=1691425564;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=n81lmkpIohF/iUaSujpw1NRiU2XjmhYlsAoXp3Ij8w0=;
-        b=b3ovWXg+EEvI89dW0n+Bh6PouPVgyFKlRgCBRL2j4A2PHm3SUtLXxKsz+36/n4iRV9
-         z/MYRVGWtzOxIJQcR2SiHdGBa+NtGeDBLlpWTnOP6hN485Ukq9FSNWTvfzNH8JIXOyIR
-         G725V+L3U9glsNne/A3iDowuF5vdFEdropHgQttC/R/Dd7X3XPaTgWI8eNF3VDQUPvWR
-         T+wgyjhatY4F4RowY2L6sSp5HkVHMrrkFdQThklXKrziQfObPAIMPaLLeQkTWabT6AYf
-         bH8LELiF/kq+vkOfc+mQ8xZ1fcu3pDFD4Mv4g8r63/U/5h1X9lGt37F+zyxMQK9Q0CE9
-         qQEA==
-X-Gm-Message-State: ABy/qLYMTqs3+KtrsX+l/py2AR7AW0KSyNw8zVF1MpFGhFmFTB4NOiyb
-        52cBsZczl9rVfNQC8wWn4vbQaQ==
-X-Google-Smtp-Source: APBJJlHXpNokdQddu2gwij/B247jXEox4H02oR5fN5aljXmnnk6OpDbx1BH42oQu7t47hSMyA/Yf1A==
-X-Received: by 2002:a17:902:b118:b0:1b3:c3ca:1513 with SMTP id q24-20020a170902b11800b001b3c3ca1513mr5118192plr.65.1688833563858;
-        Sat, 08 Jul 2023 09:26:03 -0700 (PDT)
-Received: from localhost ([135.180.227.0])
-        by smtp.gmail.com with ESMTPSA id ju19-20020a170903429300b001aadd0d7364sm5142121plb.83.2023.07.08.09.26.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 08 Jul 2023 09:26:03 -0700 (PDT)
-Date:   Sat, 08 Jul 2023 09:26:03 -0700 (PDT)
-X-Google-Original-Date: Sat, 08 Jul 2023 09:26:01 PDT (-0700)
-Subject:     Re: [External] Re: [PATCH v3 0/4] Obtain SMBIOS and ACPI entry from FFI
-In-Reply-To: <CAMj1kXEkL0gF8uGcy2AjJvD-yZHmyLX9jiVVDtR+uBAYf+BfUg@mail.gmail.com>
-CC:     Dong.Wei@arm.com, Conor Dooley <conor@kernel.org>,
-        geshijian@bytedance.com, sunilvl@ventanamicro.com,
-        Conor Dooley <conor.dooley@microchip.com>, rminnich@gmail.com,
-        cuiyunhui@bytedance.com, jrtc27@jrtc27.com, kernel@esmil.dk,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        aou@eecs.berkeley.edu, linux-riscv@lists.infradead.org,
-        Mark Rutland <mark.rutland@arm.com>, lpieralisi@kernel.org,
-        rafael@kernel.org, lenb@kernel.org, jdelvare@suse.com,
-        yc.hung@mediatek.com, angelogioacchino.delregno@collabora.com,
-        allen-kh.cheng@mediatek.com, pierre-louis.bossart@linux.intel.com,
-        tinghan.shen@mediatek.com, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, weidong.wd@bytedance.com
-From:   Palmer Dabbelt <palmer@dabbelt.com>
-To:     Ard Biesheuvel <ardb@kernel.org>
-Message-ID: <mhng-d4a8b5de-5500-43ec-867a-972d873a0759@palmer-ri-x1c9>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
+        with ESMTP id S229450AbjGITAi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2023 15:00:38 -0400
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2079.outbound.protection.outlook.com [40.107.101.79])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EE40128;
+        Sun,  9 Jul 2023 12:00:37 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=h11nbn2CzIrfzx0fe49tX5Kqj24mWfaY19yXG48FQ8GUVtbDFhV/M403dNoQTqs6D+x7bNKA2Y0JpJ2Cnh1Rn15LpeVoez2n5pMItyg7MT9zqvW31R/y/I07sE7VtpaL2PUqiDfZ0RSX4QWkJ1/ehfEanuQhH5oWXLkbr/myktoY4LnOZwbijPJvL+KB/m5h7ER+GaJyy+JAfFvryA/HYITPzAADzIV/NMpzvFma/FzjJOPmAIYrMWytwWtGPpUyQZk1WSKGqu85x2BPGXCnug/lDVlZWHttJDGy8d/0IleuGb0Ez5QkOvtdgCn/D/g2T5byR2NTJePingfvz8ZPig==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=hevWxkLHIDjLd6V3Vug2xDLsaqM8IxPfJVj9nulxmo0=;
+ b=Q0kooEagauFEUxECqArmX0gqH26qHaa8aiOPQV1JswL7hRzUkEoUjRJnv2Q8eibVvfQh5lkToNDNxOLkKNVcxY9dPZvTO7OV4GvjUo6N2JT+AoOvj6c5h4NfICKrOJ93b7PKizqJ6YfQ4F8lm1xAb/AWuS1AhhL7XDbpTBT/B1t2SNp+51Dx7RoW8HarY7Tv8fFFCbQh0LZxPYOvsN6M18FXDTWMm0txzWZgyVwyw5YtKbnv5jnc1dTPiTt6bCRLuGloOri51gZzQCOuJj2WNbi19K93vsGqqWF3rBoEfoL4ZkgkOA2X5KhlnUboB0IY0pfeDtVQLgT7CzxRs/gXeA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=hevWxkLHIDjLd6V3Vug2xDLsaqM8IxPfJVj9nulxmo0=;
+ b=RjnBiY8jgga+HBsQC2UFqiqpEFoNOnVCZom3LC0HmhxB7NwaBZlbvzb/xU+JAIRFdlsIGlKq6qgMUHWqkwSg3wmIZGVGFcjnNBmyKFWxhIPlBDUOzZ/8jj8SvXCxDU+wE3ta4zFy+RsDxSeu/Rv+0q6SdCvY99NSksPJO/8JQFk=
+Received: from BN0PR03CA0032.namprd03.prod.outlook.com (2603:10b6:408:e7::7)
+ by DS0PR12MB7971.namprd12.prod.outlook.com (2603:10b6:8:14e::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6565.26; Sun, 9 Jul
+ 2023 19:00:34 +0000
+Received: from BN8NAM11FT030.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:e7:cafe::d0) by BN0PR03CA0032.outlook.office365.com
+ (2603:10b6:408:e7::7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6565.30 via Frontend
+ Transport; Sun, 9 Jul 2023 19:00:34 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ BN8NAM11FT030.mail.protection.outlook.com (10.13.177.146) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6588.18 via Frontend Transport; Sun, 9 Jul 2023 19:00:34 +0000
+Received: from SITE-L-T34-2.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.23; Sun, 9 Jul
+ 2023 14:00:33 -0500
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>
+CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Len Brown <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        <stable@vger.kernel.org>, Iain Lane <iain@orangesquash.org.uk>
+Subject: [PATCH v6 1/1] PCI: Avoid putting some root ports into D3 on some Ryzen chips
+Date:   Sat, 8 Jul 2023 16:44:57 -0500
+Message-ID: <20230708214457.1229-2-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230708214457.1229-1-mario.limonciello@amd.com>
+References: <20230708214457.1229-1-mario.limonciello@amd.com>
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN8NAM11FT030:EE_|DS0PR12MB7971:EE_
+X-MS-Office365-Filtering-Correlation-Id: c662de27-856d-4358-3af4-08db80aec690
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: RslJRpSo0vjx1GOpY4NPDe6Lby1ra7Ux+kaTiZd2q0LVShtxoDkuCpxlrCycY5pGnkpUIThZfA9q/GLiMSoyMc68ooiRK2scMU9gZV+aJsSp95hvNZq46enXPCk8u+9IIBrtuvhQ8xdx9ylu8AkbUFRl+CAY59Jo6++Oa5P20nkENAmIzr3+lvTERHKK664SJgV//xU+vZ8S78wNxBR1zHamtnTh7lN/LhTD0tiP/IM46UBnH07dRAQr+91EXsk5+3Vv7SQQRhrpZroUJOfOROACQK0Snp3VPjjb9lDTNaNZ0DhZgUBWd8E5euqjQwi/yGMsdXTIg2ysfZKD9pPN/mJINXp+bBUXORvd+M8gpnGNxzu7C8AEoj2yBqXdaRCYJtUbwByzUS5Dij8q6mYuRbjpE/+MXFG9M3n65lhYSLg0ObvyzhCagzBu3Ke4jF8x7FXZMd0e+tT3+qA1+cg10kywAiapLl6sW3dQseqnLI0yAZ0QePUZXZYIIdBC+a1qQZ4fYShN46BZO+GjyhrE1+m5Et5YauU8Rxvl1VpH3YTSzrn11grczVQb+qGEwlVc9q6ozDSdgbDeMiY+AGvi+m0Fq7YgYsdfzDP7+wlEVwq5nR1dQD/0BSmx8q7ihO5bnq+v3gj+/YVvNc/XaEtQw4JwOD7Egv+/ytqRtXyGqEKvK1XYkuF+va86k4xNHJ0CxhkVVbeNJmTSabQArfRQei8HhZS97h1AFYU9O7N49xWkGVukgrtdnjHZHLg5P7Xa
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(396003)(136003)(346002)(376002)(39860400002)(451199021)(46966006)(36840700001)(40470700004)(40460700003)(4326008)(16526019)(186003)(26005)(1076003)(70206006)(70586007)(5660300002)(41300700001)(8676002)(8936002)(478600001)(110136005)(316002)(54906003)(82740400003)(86362001)(81166007)(356005)(44832011)(47076005)(36756003)(7696005)(36860700001)(966005)(6666004)(2906002)(40480700001)(336012)(2616005)(83380400001)(82310400005)(426003)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2023 19:00:34.6594
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c662de27-856d-4358-3af4-08db80aec690
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT030.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7971
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, 08 Jul 2023 01:45:27 PDT (-0700), Ard Biesheuvel wrote:
-> On Fri, 7 Jul 2023 at 18:21, Dong Wei <Dong.Wei@arm.com> wrote:
->>
->> On Arm systems today, the ACPI RSDP is found using the UEFI Configuration Table. This is true for all Arm SystemReady compliant systems: 1) SystemReady LS: LBBRv1 is using a minimal UEFI FW to load LinuxBoot, that minimal UEFI FW is producing the UEFI Configuration Table. We are working on LBBRv2. LBBRv2 is based on Coreboot loading LinuxBoot. But we do not have a way today to get CoreBoot to produce this pointer to ACPI RSDP. Arm does not support x86 E820 BIOS interface. 2) SystemReady IR: this solution uses DT rather than ACPI. 3) SystemReady ES: this solution can use UBoot or EDK2, and it requires ACPI. Since both UBoot and EDK2 support UEFI now, so ACPI RSDP can be found using the UEFI Configuration Table. 4) SystemReady SR: this solution typically uses EDK2 and requires ACPI, so no issue finding RSDP via UEFI Configuration Table.
->>
->>
->>
->> So the ACPI RSDP issue only exist if we want to remove the minimum UEFI FW and go to CoreBoot completely to load LinuxBoot. We are currently exploring how to solve that issue…
->>
->
-> Hello Dong,
->
-> This fixes the RSDP issue perhaps, but that is not the only problem. I
-> have mentioned this many times already, but let me mention it again
-> for completeness:
->
-> ACPI does not have a memory map, and ARM is much more finicky about
-> mapping memory regions with the right attributes, given that uncached
-> accesses don't snoop the caches like they do on x86. This means it is
-> essential that memory mappings constructed from AML code (which
-> doesn't provide any context pertaining to the memory type either) are
-> created with the right memory type.
->
-> Currently, the Linux/arm64 glue code for the ACPI core
-> cross-references every memory mapping created from a SystemMemory
-> OpRegion by AML code against the EFI memory map, and uses the EFI
-> memory type and attributes to infer the memory type to program into
-> the page tables. So simply providing the RSDP is *not* sufficient: on
-> arm64, more work is needed and currently, booting ACPI without a EFI
-> memory map results in SystemMemory OpRegions not working at all.
->
-> Of course, we might be able to work around that by providing a
-> 'coreboot' memory map for doing ACPI on arm64, but that results in
-> more fragmentation and an inflated validation matrix, which puts the
-> burden on the Linux subsystem maintainers to make sure that all these
-> different combinations remain supported.
->
-> AIUI, this memory type issue does not exist for RISC-V today, but I'd
-> suggest to the RISC-V maintainers to take a careful look at arm64's
-> acpi_os_ioremap() implementation and decide whether or not RISC-V
-> needs similar logic.
+commit 9d26d3a8f1b0 ("PCI: Put PCIe ports into D3 during suspend")
+sets the policy that all PCIe ports are allowed to use D3.  When
+the system is suspended if the port is not power manageable by the
+platform and won't be used for wakeup via a PME this sets up the
+policy for these ports to go into D3hot.
 
-We've got a handful of messes around this in RISC-V already, I'd be 
-surprised if we don't need anything for ACPI.  It's probably not going 
-to show up until we're running on real platforms, though, and we're 
-going to need some M-mode interface to get it right in the long run.
+This policy generally makes sense from an OSPM perspective but it leads
+to problems with wakeup from suspend on laptops with AMD chips:
+
+- On family 19h model 44h (PCI 0x14b9) this manifests as a missing wakeup
+  interrupt.
+- On family 19h model 74h (PCI 0x14eb) this manifests as a system hang.
+
+Add a quirk for the PCI device ID used by the problematic root port on
+both chips to ensure that these root ports are not put into D3hot at
+suspend.
+
+Cc: stable@vger.kernel.org # 6.1+
+Reported-by: Iain Lane <iain@orangesquash.org.uk>
+Closes: https://forums.lenovo.com/t5/Ubuntu/Z13-can-t-resume-from-suspend-with-external-USB-keyboard/m-p/5217121
+Fixes: 9d26d3a8f1b0 ("PCI: Put PCIe ports into D3 during suspend")
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ drivers/pci/quirks.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 321156ca273d5..e0346073e5855 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -3867,6 +3867,22 @@ static void quirk_apple_poweroff_thunderbolt(struct pci_dev *dev)
+ DECLARE_PCI_FIXUP_SUSPEND_LATE(PCI_VENDOR_ID_INTEL,
+ 			       PCI_DEVICE_ID_INTEL_CACTUS_RIDGE_4C,
+ 			       quirk_apple_poweroff_thunderbolt);
++
++/*
++ * Putting PCIe root ports on Ryzen SoCs with USB4 controllers into D3hot
++ * may cause problems when the system attempts wake up from s2idle.
++ *
++ * On family 19h model 44h (PCI 0x14b9) this manifests as a missing wakeup
++ * interrupt.
++ * On family 19h model 74h (PCI 0x14eb) this manifests as a system hang.
++ */
++static void quirk_ryzen_rp_d3(struct pci_dev *pdev)
++{
++	if (!acpi_pci_power_manageable(pdev))
++		pdev->dev_flags |= PCI_DEV_FLAGS_NO_D3;
++}
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AMD, 0x14b9, quirk_ryzen_rp_d3);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AMD, 0x14eb, quirk_ryzen_rp_d3);
+ #endif
+ 
+ /*
+-- 
+2.34.1
+
