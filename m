@@ -2,35 +2,35 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B732C001DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D15EB64DC
 	for <linux-acpi@archiver.kernel.org>; Mon, 10 Jul 2023 17:23:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232625AbjGJRXk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S232530AbjGJRXk (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Mon, 10 Jul 2023 13:23:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43502 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232562AbjGJRXj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2023 13:23:39 -0400
+        with ESMTP id S232506AbjGJRXi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2023 13:23:38 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BFDCC7;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60D72CA;
         Mon, 10 Jul 2023 10:23:37 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id b7ba8863853dd43f; Mon, 10 Jul 2023 19:23:36 +0200
+ id a154a8c1b0581b89; Mon, 10 Jul 2023 19:23:35 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 357D1660DCF;
-        Mon, 10 Jul 2023 19:23:36 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id 79890660DCF;
+        Mon, 10 Jul 2023 19:23:35 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>,
         Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH 08/14] ACPICA: Fix misspelled CDAT DSMAS define
-Date:   Mon, 10 Jul 2023 19:17:04 +0200
-Message-ID: <21946983.EfDdHjke4D@kreacher>
+Subject: [PATCH 09/14] ACPICA: Slightly simplify an error message in acpi_ds_result_push()
+Date:   Mon, 10 Jul 2023 19:18:12 +0200
+Message-ID: <3756828.kQq0lBPeGt@kreacher>
 In-Reply-To: <5698695.DvuYhMxLoT@kreacher>
 References: <5698695.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
@@ -46,32 +46,35 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Dave Jiang <dave.jiang@intel.com>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-ACPICA commit 32a50922b66a9e288b9a9b4740de86a542668a43
+ACPICA commit 3a9dbc5cb1573b87a16b50918977ab9e53e24408
 
-ACPI_CEDT_DSMAS_NON_VOLATILE -> ACPI_CDAT_DSMAS_NON_VOLATILE
+'object' is known to be NULL at this point. There is little value to log
+it twice in the error message.
 
-Link: https://github.com/acpica/acpica/commit/32a50922
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Link: https://github.com/acpica/acpica/commit/3a9dbc5c
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/actbl1.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/dswstate.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 58b0490a2ad1..8d5572ad48cb 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -402,7 +402,7 @@ struct acpi_cdat_dsmas {
+diff --git a/drivers/acpi/acpica/dswstate.c b/drivers/acpi/acpica/dswstate.c
+index d3841ded3a81..75338a13c802 100644
+--- a/drivers/acpi/acpica/dswstate.c
++++ b/drivers/acpi/acpica/dswstate.c
+@@ -146,8 +146,8 @@ acpi_ds_result_push(union acpi_operand_object *object,
  
- /* Flags for subtable above */
- 
--#define ACPI_CEDT_DSMAS_NON_VOLATILE        (1 << 2)
-+#define ACPI_CDAT_DSMAS_NON_VOLATILE        (1 << 2)
- 
- /* Subtable 1: Device scoped Latency and Bandwidth Information Structure (DSLBIS) */
+ 	if (!object) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Null Object! Obj=%p State=%p Num=%u",
+-			    object, walk_state, walk_state->result_count));
++			    "Null Object! State=%p Num=%u",
++			    walk_state, walk_state->result_count));
+ 		return (AE_BAD_PARAMETER);
+ 	}
  
 -- 
 2.35.3
