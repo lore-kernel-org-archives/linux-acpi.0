@@ -2,42 +2,42 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B06B8C001DF
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 Jul 2023 14:06:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B86AFEB64D9
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 Jul 2023 14:07:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232295AbjGJOGV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 10 Jul 2023 10:06:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59202 "EHLO
+        id S232519AbjGJOHU (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 10 Jul 2023 10:07:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232659AbjGJOGO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2023 10:06:14 -0400
+        with ESMTP id S233000AbjGJOGi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2023 10:06:38 -0400
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02F07F9;
-        Mon, 10 Jul 2023 07:06:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E019918D;
+        Mon, 10 Jul 2023 07:06:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1688997973; x=1720533973;
+  t=1688997988; x=1720533988;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=oJoKY2tVwh74wigO+g3CR/NVY34uujEe7BnUctfWF6k=;
-  b=IFzBaDGJ5qZm2dBK4QYaBH93a760A0sztYtAZnrk3G47f/msmlj89V01
-   BBKhamQBADv5on16JYLyjWBRW+3X9f88xDbYPaKvyHygggoD9pjLBagDL
-   6YGJ6YdYRzRz8W+at8m7WItjKe6Sc6Pz/wDmZYKCgvrJPr46V8LJJ3/pt
-   NCMwn4KH54USEWAyBcn/s0OgFAZnqJSMcWXlS9SYnS6ibqsiHa+L/xMwM
-   V0Xnk7RMe+Jicob6nzVLMk9YweYhhQe72DW9aJl+ZB2/6+qofprEMGYRF
-   Fc8/P5zZFLT/0JybRf2VK1JG6JBScf0wHn2zXCslthAy4rNJ/RYFlspy/
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10767"; a="361814952"
+  bh=/X+CMAVZ+fFGpEoYBchn+e9YP1RsPOzHxF/nXxtrpeE=;
+  b=E/lIF47yjJ24yaMlcjVExp+LFS+h+ARNsunlZ2KUAIoHAdZhY02EaPI/
+   b9CDtyLOxZLaj+S9zcznkmv6guljD0FKl+RhdDdO/EylHOOiQRbEBMUTl
+   9iCuGUy3rljHmCEiQlXNIePNdT4il6OhioDyxGKnf4cjrHyG4Zd0hr+vC
+   akluhxq0LOfTKbebf7+usoD8hWdWjBlAo1/wz9CDt31sIydDoYTK6knra
+   SJ406DfLt7CwNjBMo/JtLvV1swO0nrAytIhr3sopgite73XQxaA3ONmJk
+   ZAp20XZmTuMa58hxcCod+jkE2gHantF9oWsfJNv6khvVNvMakVlsG20/q
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10767"; a="361815052"
 X-IronPort-AV: E=Sophos;i="6.01,194,1684825200"; 
-   d="scan'208";a="361814952"
+   d="scan'208";a="361815052"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2023 07:05:26 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2023 07:05:39 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10767"; a="714822841"
+X-IronPort-AV: E=McAfee;i="6600,9927,10767"; a="714822968"
 X-IronPort-AV: E=Sophos;i="6.01,194,1684825200"; 
-   d="scan'208";a="714822841"
+   d="scan'208";a="714822968"
 Received: from powerlab.fi.intel.com ([10.237.71.25])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2023 07:05:22 -0700
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2023 07:05:35 -0700
 From:   Michal Wilczynski <michal.wilczynski@intel.com>
 To:     linux-acpi@vger.kernel.org
 Cc:     rafael@kernel.org, andriy.shevchenko@intel.com,
@@ -45,10 +45,11 @@ Cc:     rafael@kernel.org, andriy.shevchenko@intel.com,
         dave.hansen@linux.intel.com, hpa@zytor.com, lenb@kernel.org,
         jgross@suse.com, linux-kernel@vger.kernel.org, x86@kernel.org,
         Michal Wilczynski <michal.wilczynski@intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v4 4/9] acpi: Rename ACPI_PDC constants
-Date:   Mon, 10 Jul 2023 17:03:32 +0300
-Message-ID: <20230710140337.1434060-5-michal.wilczynski@intel.com>
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 7/9] acpi: Introduce acpi_processor_osc()
+Date:   Mon, 10 Jul 2023 17:03:35 +0300
+Message-ID: <20230710140337.1434060-8-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230710140337.1434060-1-michal.wilczynski@intel.com>
 References: <20230710140337.1434060-1-michal.wilczynski@intel.com>
@@ -58,220 +59,98 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-ACPI_PDC constants prefix suggest that those constants are only relevant
-in the context of the _PDC method. This is not true, as they can also be
-used in _OSC context. Change prefix to more generic ACPI_PROC_CAP, that
-better describe the purpose of those constants as they describe bits in
-processor capabilities buffer. Rename pdc_intel.h to proc_cap_intel.h to
-reflect the change in the prefix.
+Currently in ACPI code _OSC method is already used for workaround
+introduced in commit a21211672c9a ("ACPI / processor: Request native
+thermal interrupt handling via _OSC"). Create new function, similar to
+already existing acpi_hwp_native_thermal_lvt_osc(). Call new function
+acpi_processor_osc(). Make this function fulfill the purpose previously
+fulfilled by the workaround plus convey OSPM processor capabilities
+with it by setting correct processor capabilities bits. Don't include
+unnecessary acknowledgment present in
+acpi_hwp_native_thermal_lvt_osc(). Set ACPI_PROC_CAP_COLLAB_PROC_PERF
+in arch code for coherency.
 
 Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/ia64/include/asm/acpi.h  |  4 ++--
- arch/x86/include/asm/acpi.h   | 11 +++++-----
- arch/x86/xen/enlighten_pv.c   |  8 +++----
- drivers/acpi/processor_pdc.c  |  2 +-
- include/acpi/pdc_intel.h      | 36 --------------------------------
- include/acpi/proc_cap_intel.h | 39 +++++++++++++++++++++++++++++++++++
- 6 files changed, 52 insertions(+), 48 deletions(-)
- delete mode 100644 include/acpi/pdc_intel.h
- create mode 100644 include/acpi/proc_cap_intel.h
+ arch/x86/include/asm/acpi.h   |  3 +++
+ drivers/acpi/acpi_processor.c | 29 ++++++++++++++++++++++++++++-
+ include/acpi/proc_cap_intel.h |  1 +
+ 3 files changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index 43797cb44383..58500a964238 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -11,7 +11,7 @@
- 
- #ifdef __KERNEL__
- 
--#include <acpi/pdc_intel.h>
-+#include <acpi/proc_cap_intel.h>
- 
- #include <linux/init.h>
- #include <linux/numa.h>
-@@ -71,7 +71,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
- static inline bool arch_has_acpi_pdc(void) { return true; }
- static inline void arch_acpi_set_proc_cap_bits(u32 *cap)
- {
--	*cap |= ACPI_PDC_EST_CAPABILITY_SMP;
-+	*cap |= ACPI_PROC_CAP_EST_CAPABILITY_SMP;
- }
- 
- #ifdef CONFIG_ACPI_NUMA
 diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 6a498d1781e7..ce5ad6a496e6 100644
+index 6f6752a2ea36..6c3af9486153 100644
 --- a/arch/x86/include/asm/acpi.h
 +++ b/arch/x86/include/asm/acpi.h
-@@ -6,7 +6,7 @@
-  *  Copyright (C) 2001 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-  *  Copyright (C) 2001 Patrick Mochel <mochel@osdl.org>
-  */
--#include <acpi/pdc_intel.h>
-+#include <acpi/proc_cap_intel.h>
- 
- #include <asm/numa.h>
- #include <asm/fixmap.h>
-@@ -104,19 +104,20 @@ static inline void arch_acpi_set_proc_cap_bits(u32 *cap)
- {
- 	struct cpuinfo_x86 *c = &cpu_data(0);
- 
--	*cap |= ACPI_PDC_C_CAPABILITY_SMP;
-+	*cap |= ACPI_PROC_CAP_C_CAPABILITY_SMP;
- 
- 	if (cpu_has(c, X86_FEATURE_EST))
--		*cap |= ACPI_PDC_EST_CAPABILITY_SWSMP;
-+		*cap |= ACPI_PROC_CAP_EST_CAPABILITY_SWSMP;
- 
+@@ -115,6 +115,9 @@ static inline void arch_acpi_set_proc_cap_bits(u32 *cap)
  	if (cpu_has(c, X86_FEATURE_ACPI))
--		*cap |= ACPI_PDC_T_FFH;
-+		*cap |= ACPI_PROC_CAP_T_FFH;
+ 		*cap |= ACPI_PROC_CAP_T_FFH;
  
- 	/*
- 	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
- 	 */
- 	if (!cpu_has(c, X86_FEATURE_MWAIT))
--		*cap &= ~(ACPI_PDC_C_C2C3_FFH);
-+		*cap &= ~(ACPI_PROC_CAP_C_C2C3_FFH);
++	if (cpu_has(c, X86_FEATURE_HWP))
++		*cap |= ACPI_PROC_CAP_COLLAB_PROC_PERF;
 +
+ 	/*
+ 	 * If mwait/monitor is unsupported, C_C1_FFH and
+ 	 * C2/C3_FFH will be disabled.
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index ebb4efd3d0aa..f3c41acdb8ae 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -559,13 +559,40 @@ bool __init processor_physically_present(acpi_handle handle)
+ 	return !invalid_logical_cpuid(cpuid);
  }
  
- static inline bool acpi_has_cpu_in_madt(void)
-diff --git a/arch/x86/xen/enlighten_pv.c b/arch/x86/xen/enlighten_pv.c
-index 93b658248d01..a3864e2167a8 100644
---- a/arch/x86/xen/enlighten_pv.c
-+++ b/arch/x86/xen/enlighten_pv.c
-@@ -79,7 +79,7 @@
- #ifdef CONFIG_ACPI
- #include <linux/acpi.h>
- #include <asm/acpi.h>
--#include <acpi/pdc_intel.h>
-+#include <acpi/proc_cap_intel.h>
- #include <acpi/processor.h>
- #include <xen/interface/platform.h>
- #endif
-@@ -288,17 +288,17 @@ static bool __init xen_check_mwait(void)
- 
- 	native_cpuid(&ax, &bx, &cx, &dx);
- 
--	/* Ask the Hypervisor whether to clear ACPI_PDC_C_C2C3_FFH. If so,
-+	/* Ask the Hypervisor whether to clear ACPI_PROC_CAP_C_C2C3_FFH. If so,
- 	 * don't expose MWAIT_LEAF and let ACPI pick the IOPORT version of C3.
- 	 */
- 	buf[0] = ACPI_PDC_REVISION_ID;
- 	buf[1] = 1;
--	buf[2] = (ACPI_PDC_C_CAPABILITY_SMP | ACPI_PDC_EST_CAPABILITY_SWSMP);
-+	buf[2] = (ACPI_PROC_CAP_C_CAPABILITY_SMP | ACPI_PROC_CAP_EST_CAPABILITY_SWSMP);
- 
- 	set_xen_guest_handle(op.u.set_pminfo.pdc, buf);
- 
- 	if ((HYPERVISOR_platform_op(&op) == 0) &&
--	    (buf[2] & (ACPI_PDC_C_C1_FFH | ACPI_PDC_C_C2C3_FFH))) {
-+	    (buf[2] & (ACPI_PROC_CAP_C_C1_FFH | ACPI_PROC_CAP_C_C2C3_FFH))) {
- 		cpuid_leaf5_ecx_val = cx;
- 		cpuid_leaf5_edx_val = dx;
- 	}
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index b2c6f17fc87c..77d3fe73047c 100644
---- a/drivers/acpi/processor_pdc.c
-+++ b/drivers/acpi/processor_pdc.c
-@@ -21,7 +21,7 @@ static void acpi_set_pdc_bits(u32 *buf)
- 	buf[1] = 1;
- 
- 	/* Enable coordination with firmware's _TSD info */
--	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
-+	buf[2] = ACPI_PROC_CAP_SMP_T_SWCOORD;
- 
- 	/* Twiddle arch-specific bits needed for _PDC */
- 	arch_acpi_set_proc_cap_bits(&buf[2]);
-diff --git a/include/acpi/pdc_intel.h b/include/acpi/pdc_intel.h
-deleted file mode 100644
-index 967c552d1cd3..000000000000
---- a/include/acpi/pdc_intel.h
-+++ /dev/null
-@@ -1,36 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--
--/* _PDC bit definition for Intel processors */
--
--#ifndef __PDC_INTEL_H__
--#define __PDC_INTEL_H__
--
--#define ACPI_PDC_P_FFH			(0x0001)
--#define ACPI_PDC_C_C1_HALT		(0x0002)
--#define ACPI_PDC_T_FFH			(0x0004)
--#define ACPI_PDC_SMP_C1PT		(0x0008)
--#define ACPI_PDC_SMP_C2C3		(0x0010)
--#define ACPI_PDC_SMP_P_SWCOORD		(0x0020)
--#define ACPI_PDC_SMP_C_SWCOORD		(0x0040)
--#define ACPI_PDC_SMP_T_SWCOORD		(0x0080)
--#define ACPI_PDC_C_C1_FFH		(0x0100)
--#define ACPI_PDC_C_C2C3_FFH		(0x0200)
--#define ACPI_PDC_SMP_P_HWCOORD		(0x0800)
--
--#define ACPI_PDC_EST_CAPABILITY_SMP	(ACPI_PDC_SMP_C1PT | \
--					 ACPI_PDC_C_C1_HALT | \
--					 ACPI_PDC_P_FFH)
--
--#define ACPI_PDC_EST_CAPABILITY_SWSMP	(ACPI_PDC_SMP_C1PT | \
--					 ACPI_PDC_C_C1_HALT | \
--					 ACPI_PDC_SMP_P_SWCOORD | \
--					 ACPI_PDC_SMP_P_HWCOORD | \
--					 ACPI_PDC_P_FFH)
--
--#define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3  | \
--					 ACPI_PDC_SMP_C1PT  | \
--					 ACPI_PDC_C_C1_HALT | \
--					 ACPI_PDC_C_C1_FFH  | \
--					 ACPI_PDC_C_C2C3_FFH)
--
--#endif				/* __PDC_INTEL_H__ */
++/* vendor specific UUID indicating an Intel platform */
++static u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
+ static bool acpi_hwp_native_thermal_lvt_set;
++static acpi_status __init acpi_processor_osc(acpi_handle handle, u32 lvl,
++					     void *context, void **rv)
++{
++	u32 capbuf[2] = {};
++	acpi_status status;
++	struct acpi_osc_context osc_context = {
++		.uuid_str = sb_uuid_str,
++		.rev = 1,
++		.cap.length = 8,
++		.cap.pointer = capbuf,
++	};
++
++	if (!processor_physically_present(handle))
++		return AE_OK;
++
++	arch_acpi_set_proc_cap_bits(&capbuf[OSC_SUPPORT_DWORD]);
++
++	status = acpi_run_osc(handle, &osc_context);
++	if (ACPI_FAILURE(status))
++		return status;
++
++	kfree(osc_context.ret.pointer);
++
++	return AE_OK;
++}
++
+ static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
+ 							  u32 lvl,
+ 							  void *context,
+ 							  void **rv)
+ {
+-	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
+ 	u32 capbuf[2];
+ 	struct acpi_osc_context osc_context = {
+ 		.uuid_str = sb_uuid_str,
 diff --git a/include/acpi/proc_cap_intel.h b/include/acpi/proc_cap_intel.h
-new file mode 100644
-index 000000000000..57e5e2628abb
---- /dev/null
+index 57e5e2628abb..ddcdc41d6c3e 100644
+--- a/include/acpi/proc_cap_intel.h
 +++ b/include/acpi/proc_cap_intel.h
-@@ -0,0 +1,39 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+/* Vendor specific processor capabilities bit definition
-+ * for Intel processors. Those bits are used to convey OSPM
-+ * power management capabilities to the platform.
-+ */
-+
-+#ifndef __PROC_CAP_INTEL_H__
-+#define __PROC_CAP_INTEL_H__
-+
-+#define ACPI_PROC_CAP_P_FFH			(0x0001)
-+#define ACPI_PROC_CAP_C_C1_HALT			(0x0002)
-+#define ACPI_PROC_CAP_T_FFH			(0x0004)
-+#define ACPI_PROC_CAP_SMP_C1PT			(0x0008)
-+#define ACPI_PROC_CAP_SMP_C2C3			(0x0010)
-+#define ACPI_PROC_CAP_SMP_P_SWCOORD		(0x0020)
-+#define ACPI_PROC_CAP_SMP_C_SWCOORD		(0x0040)
-+#define ACPI_PROC_CAP_SMP_T_SWCOORD		(0x0080)
-+#define ACPI_PROC_CAP_C_C1_FFH			(0x0100)
-+#define ACPI_PROC_CAP_C_C2C3_FFH		(0x0200)
-+#define ACPI_PROC_CAP_SMP_P_HWCOORD		(0x0800)
-+
-+#define ACPI_PROC_CAP_EST_CAPABILITY_SMP	(ACPI_PROC_CAP_SMP_C1PT | \
-+						 ACPI_PROC_CAP_C_C1_HALT | \
-+						 ACPI_PROC_CAP_P_FFH)
-+
-+#define ACPI_PROC_CAP_EST_CAPABILITY_SWSMP	(ACPI_PROC_CAP_SMP_C1PT | \
-+						 ACPI_PROC_CAP_C_C1_HALT | \
-+						 ACPI_PROC_CAP_SMP_P_SWCOORD | \
-+						 ACPI_PROC_CAP_SMP_P_HWCOORD | \
-+						 ACPI_PROC_CAP_P_FFH)
-+
-+#define ACPI_PROC_CAP_C_CAPABILITY_SMP		(ACPI_PROC_CAP_SMP_C2C3  | \
-+						 ACPI_PROC_CAP_SMP_C1PT  | \
-+						 ACPI_PROC_CAP_C_C1_HALT | \
-+						 ACPI_PROC_CAP_C_C1_FFH  | \
-+						 ACPI_PROC_CAP_C_C2C3_FFH)
-+
-+#endif /* __PROC_CAP_INTEL_H__ */
+@@ -19,6 +19,7 @@
+ #define ACPI_PROC_CAP_C_C1_FFH			(0x0100)
+ #define ACPI_PROC_CAP_C_C2C3_FFH		(0x0200)
+ #define ACPI_PROC_CAP_SMP_P_HWCOORD		(0x0800)
++#define ACPI_PROC_CAP_COLLAB_PROC_PERF		(0x1000)
+ 
+ #define ACPI_PROC_CAP_EST_CAPABILITY_SMP	(ACPI_PROC_CAP_SMP_C1PT | \
+ 						 ACPI_PROC_CAP_C_C1_HALT | \
 -- 
 2.41.0
 
