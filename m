@@ -2,81 +2,92 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36A4AEB64DC
-	for <linux-acpi@archiver.kernel.org>; Mon, 10 Jul 2023 17:23:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24689EB64D9
+	for <linux-acpi@archiver.kernel.org>; Mon, 10 Jul 2023 17:23:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232848AbjGJRXt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 10 Jul 2023 13:23:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43584 "EHLO
+        id S233011AbjGJRXv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 10 Jul 2023 13:23:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232821AbjGJRXn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2023 13:23:43 -0400
+        with ESMTP id S232922AbjGJRXo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2023 13:23:44 -0400
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B46D9137;
-        Mon, 10 Jul 2023 10:23:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06965C7;
+        Mon, 10 Jul 2023 10:23:43 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id 1e24d625bc52e79f; Mon, 10 Jul 2023 19:23:40 +0200
+ id c4c0e8f90a95acfb; Mon, 10 Jul 2023 19:23:42 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id BCE38660DCF;
-        Mon, 10 Jul 2023 19:23:39 +0200 (CEST)
+        by v370.home.net.pl (Postfix) with ESMTPSA id DAE64660DCF;
+        Mon, 10 Jul 2023 19:23:41 +0200 (CEST)
 From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To:     Linux ACPI <linux-acpi@vger.kernel.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>,
         Bob Moore <robert.moore@intel.com>,
         Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH 03/14] ACPICA: exserial.c: replace ternary operator with ACPI_MIN()
-Date:   Mon, 10 Jul 2023 19:13:05 +0200
-Message-ID: <1865812.tdWV9SEqCh@kreacher>
-In-Reply-To: <5698695.DvuYhMxLoT@kreacher>
-References: <5698695.DvuYhMxLoT@kreacher>
+Subject: [PATCH 00/14] ACPICA 20230628
+Date:   Mon, 10 Jul 2023 19:10:09 +0200
+Message-ID: <5698695.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrvdekgddutdefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedvnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgv
- sehinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrvdekgddutdefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnheptefgiedtfeeuheegtdfhleeltdeuledugfehfeekkeekudffgeegtdeufeekvdeunecuffhomhgrihhnpegrtghpihgtrgdrohhrghenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehi
+ nhhtvghlrdgtohhm
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jiangshan Yi <yijiangshan@kylinos.cn>
+Hi All,
 
-ACPICA commit 2250f71fe77396db21df805222ffcbf19e1e7896
+This series of patches is a set of ACPICA 20230628 changes described at
+https://acpica.org/sites/acpica/files/changes_63.txt ported to Linux.
 
-Make the code simpler and more readable.
+It contains the following material:
 
-Link: https://github.com/acpica/acpica/commit/2250f71f
-Signed-off-by: Jiangshan Yi <yijiangshan@kylinos.cn>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/exserial.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Abhishek Mainkar (1):
+      ACPICA: Add AML_NO_OPERAND_RESOLVE flag to Timer
 
-diff --git a/drivers/acpi/acpica/exserial.c b/drivers/acpi/acpica/exserial.c
-index 5d99b1a76c83..5241f4c01c76 100644
---- a/drivers/acpi/acpica/exserial.c
-+++ b/drivers/acpi/acpica/exserial.c
-@@ -343,8 +343,7 @@ acpi_ex_write_serial_bus(union acpi_operand_object *source_desc,
- 	/* Copy the input buffer data to the transfer buffer */
- 
- 	buffer = buffer_desc->buffer.pointer;
--	data_length = (buffer_length < source_desc->buffer.length ?
--		       buffer_length : source_desc->buffer.length);
-+	data_length = ACPI_MIN(buffer_length, source_desc->buffer.length);
- 	memcpy(buffer, source_desc->buffer.pointer, data_length);
- 
- 	/* Lock entire transaction if requested */
--- 
-2.35.3
+Bob Moore (1):
+      ACPICA: Update version to 20230628
 
+Christophe Jaillet (1):
+      ACPICA: Slightly simplify an error message in acpi_ds_result_push()
+
+Dave Jiang (2):
+      ACPICA: Fix misspelled CDAT DSMAS define
+      ACPICA: Add a define for size of struct acpi_srat_generic_affinity device_handle
+
+George Guo (1):
+      ACPICA: Modify ACPI_STATE_COMMON
+
+Jiangshan Yi (1):
+      ACPICA: exserial.c: replace ternary operator with ACPI_MIN()
+
+Jose Marinho (2):
+      ACPICA: Detect GED device and keep track of _EVT
+      ACPICA: Add interrupt command to acpiexec
+
+Najumon B.A (1):
+      ACPICA: fix for conflict macro definition on zephyr interface
+
+Philip Prindeville (1):
+      ACPICA: Fix GCC 12 dangling-pointer warning
+
+Saket Dumbre (1):
+      ACPICA: Add support for _DSC as per ACPI 6.5
+
+Sunil V L (2):
+      ACPICA: MADT: Add RISC-V external interrupt controllers
+      ACPICA: RHCT: Add flags, CMO and MMU nodes
+
+Thanks!
 
 
 
