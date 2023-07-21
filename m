@@ -2,127 +2,113 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3ADFC04A6A
-	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jul 2023 15:18:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF4EBEB64DD
+	for <linux-acpi@archiver.kernel.org>; Fri, 21 Jul 2023 15:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231890AbjGUPSV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 21 Jul 2023 11:18:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52974 "EHLO
+        id S230024AbjGUPXo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 21 Jul 2023 11:23:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231712AbjGUPSR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2023 11:18:17 -0400
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B26C30E2;
-        Fri, 21 Jul 2023 08:18:15 -0700 (PDT)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id 87413cbeceb04564; Fri, 21 Jul 2023 17:18:13 +0200
-Received: from kreacher.localnet (unknown [195.136.19.94])
+        with ESMTP id S231843AbjGUPXZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2023 11:23:25 -0400
+Received: from smtp-relay-canonical-0.canonical.com (smtp-relay-canonical-0.canonical.com [185.125.188.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 360F83AB6;
+        Fri, 21 Jul 2023 08:23:02 -0700 (PDT)
+Received: from localhost.localdomain (unknown [10.101.196.174])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 5061F661901;
-        Fri, 21 Jul 2023 17:18:13 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Michal Wilczynski <michal.wilczynski@intel.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH v2 4/8] ACPI: thermal: Clean up acpi_thermal_register_thermal_zone()
-Date:   Fri, 21 Jul 2023 16:12:35 +0200
-Message-ID: <2908953.e9J7NaK4W3@kreacher>
-In-Reply-To: <5710197.DvuYhMxLoT@kreacher>
-References: <13318886.uLZWGnKmhe@kreacher> <5710197.DvuYhMxLoT@kreacher>
+        by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 7EB9E3F30D;
+        Fri, 21 Jul 2023 15:22:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1689952954;
+        bh=Ce8ROm7GD4JAsILKV21vfET07MwWq4GnXXI4EwwUbYs=;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version;
+        b=KPdeNJq0nBYQ2rVgU5ZOqtJLRnsBt9JCbPDbYwzm1DtsFYrAlU2SsHiWJVsOnn8Cx
+         5+ql8zLYXESOoi7blIJSYAUeeAQ85UbmlB5QHPNMvIPDVnsmqb+vNYeCzWGB+vGEQv
+         npbbAaYsuzPc+u/9ECXc6V22ww6XYp9kkzHfOj6It7jYuSpuqhgGU7ahBx1rKaR6Eb
+         cdVDX0ZAXBEq1eZ2SIK73bD86ER77kNfD7A3fCN9KZ692+h2h49O349LsgamOEUGzs
+         1Ez6bNubQAku0R969HEfxy1rl2JTAm3C0+k+64ARwY+VmD84KPCpkkFc/BuTaZG8Og
+         PXDTvSvWwbp7Q==
+From:   Kai-Heng Feng <kai.heng.feng@canonical.com>
+To:     rafael@kernel.org, lenb@kernel.org, hdegoede@redhat.com
+Cc:     Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3] ACPI: video: Put ACPI video and its child devices to D0 at boot
+Date:   Fri, 21 Jul 2023 23:21:43 +0800
+Message-Id: <20230721152143.3108017-1-kai.heng.feng@canonical.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 195.136.19.94
-X-CLIENT-HOSTNAME: 195.136.19.94
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrhedvgdekvdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeejpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepmhhitghhrghlrdifihhltgiihihnshhkihesihhnthgvlhdrtghomhdprhgt
- phhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Screen brightness can only be changed once on HP ZBook Fury 16 G10.
 
-Rename the trips variable in acpi_thermal_register_thermal_zone() to
-trip_count so its name better reflects the purpose, rearrange white
-space in the loop over active trips for clarity and reduce code
-duplication related to calling thermal_zone_device_register() by
-using an extra local variable to store the passive delay value.
+Vendor identified the root cause as Linux doesn't invoke _PS0 at boot
+for all ACPI devices:
 
-No intentional functional impact.
+    Scope (\_SB.PC00.GFX0)
+    {
+        Scope (DD1F)
+        {
+            Method (_PS0, 0, Serialized)  // _PS0: Power State 0
+            {
+                If (CondRefOf (\_SB.PC00.LPCB.EC0.SSBC))
+                {
+                    \_SB.PC00.LPCB.EC0.SSBC ()
+                }
+            }
+	    ...
+	}
+	...
+    }
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+The \_SB.PC00.GFX0.DD1F is the panel device, and its _PS0 needs to be
+executed to make the brightness control work properly.
+
+_PS0 doesn't get invoked for this device because _PSC is missing,
+which violates ACPI spec 6.3, section 7.3.6. Commit 7cd8407d53ef
+("ACPI / PM: Do not execute _PS0 for devices without _PSC during
+initialization") tried to workaround missing _PSC on defective
+firmwares, but got reverted because of regression.
+
+So the safest approach is to use acpi_device_fix_up_power_extended() to
+put ACPI video and its child devices to D0 to workaround the issue.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=217683
+Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
 ---
+v3:
+ - Wording change to make it clear it's a firmware issue.
+ - Specify the device name in comment.
 
-v1 -> v2: No changes.
+v2:
+ - Wording
+ - Bugzilla
+ - Add comment
 
----
- drivers/acpi/thermal.c |   36 ++++++++++++++++--------------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+ drivers/acpi/acpi_video.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Index: linux-pm/drivers/acpi/thermal.c
-===================================================================
---- linux-pm.orig/drivers/acpi/thermal.c
-+++ linux-pm/drivers/acpi/thermal.c
-@@ -745,34 +745,30 @@ static void acpi_thermal_zone_sysfs_remo
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 62f4364e4460..1732780a672b 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -2027,6 +2027,12 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	if (error)
+ 		goto err_put_video;
  
- static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- {
--	int trips = 0;
-+	int passive_delay = 0;
-+	int trip_count = 0;
- 	int result;
- 	acpi_status status;
- 	int i;
- 
- 	if (tz->trips.critical.valid)
--		trips++;
-+		trip_count++;
- 
- 	if (tz->trips.hot.valid)
--		trips++;
--
--	if (tz->trips.passive.valid)
--		trips++;
--
--	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE && tz->trips.active[i].valid;
--	     i++, trips++);
--
--	if (tz->trips.passive.valid)
--		tz->thermal_zone = thermal_zone_device_register("acpitz", trips, 0, tz,
--								&acpi_thermal_zone_ops, NULL,
--								tz->trips.passive.tsp * 100,
--								tz->polling_frequency * 100);
--	else
--		tz->thermal_zone =
--			thermal_zone_device_register("acpitz", trips, 0, tz,
--						     &acpi_thermal_zone_ops, NULL,
--						     0, tz->polling_frequency * 100);
-+		trip_count++;
- 
-+	if (tz->trips.passive.valid) {
-+		trip_count++;
-+		passive_delay = tz->trips.passive.tsp * 100;
-+	}
++	/*
++	 * HP ZBook Fury 16 G10 requires ACPI video's child devices have _PS0
++	 * evaluated to have functional panel brightness control.
++	 */
++	acpi_device_fix_up_power_extended(device);
 +
-+	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE && tz->trips.active[i].valid; i++)
-+		trip_count++;
-+
-+	tz->thermal_zone = thermal_zone_device_register("acpitz", trip_count, 0,
-+							tz, &acpi_thermal_zone_ops,
-+							NULL, passive_delay,
-+							tz->polling_frequency * 100);
- 	if (IS_ERR(tz->thermal_zone))
- 		return -ENODEV;
- 
-
-
+ 	pr_info("%s [%s] (multi-head: %s  rom: %s  post: %s)\n",
+ 	       ACPI_VIDEO_DEVICE_NAME, acpi_device_bid(device),
+ 	       video->flags.multihead ? "yes" : "no",
+-- 
+2.34.1
 
