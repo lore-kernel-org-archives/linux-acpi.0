@@ -2,224 +2,109 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B9C7C001DE
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 06:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6D9BC41513
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 07:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231726AbjHBGfT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Aug 2023 02:35:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33906 "EHLO
+        id S231909AbjHBHf4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Aug 2023 03:35:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229607AbjHBGfS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 02:35:18 -0400
-Received: from mgamail.intel.com (unknown [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51BA7122;
-        Tue,  1 Aug 2023 23:35:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1690958117; x=1722494117;
-  h=date:from:to:cc:subject:message-id;
-  bh=fgPiCcpWtj+FzHdRH1YAzGX4QGkFNfGElMeEaxYtb00=;
-  b=diygFtU2Kp2yrVgKe71CBCP3r16ECNqAu4J8FyRgTTbs5whUnz6SXB6T
-   fzFYuVtqjAIoA4kHdsx389IfIBxROdKOtTghbaRfYo4mEUVoHl0N5R8TK
-   KrEWleMi4zaed/86lS9yoLg5q3kUsUplszFiAR6b89xQIbEVvrBedtGZ1
-   Ec0GtxML5JSDkynUxFaSCJIEciIREf8Hfcw0OATVvrJvJyo8+yVXNknMS
-   IItau5Fje2HUuaBCCuuN3ANrO/3xzyruj3h2sGa8kntl2iR6XLtYOweMQ
-   zzMooQrF6GGUKeO9pc8f1yKOhvslYjqbwGj/CLOK6i+sg6joBSQesZ+7x
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10789"; a="369491831"
-X-IronPort-AV: E=Sophos;i="6.01,248,1684825200"; 
-   d="scan'208";a="369491831"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Aug 2023 23:35:16 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10789"; a="678934692"
-X-IronPort-AV: E=Sophos;i="6.01,248,1684825200"; 
-   d="scan'208";a="678934692"
-Received: from lkp-server01.sh.intel.com (HELO d1ccc7e87e8f) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 01 Aug 2023 23:35:15 -0700
-Received: from kbuild by d1ccc7e87e8f with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qR5Ry-0000wp-1o;
-        Wed, 02 Aug 2023 06:35:14 +0000
-Date:   Wed, 02 Aug 2023 14:35:10 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc:     linux-acpi@vger.kernel.org, devel@acpica.org,
-        linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS WITH WARNING
- 57fb4aeb308cdc2169b440c112bcbbbbdc7b6cc5
-Message-ID: <202308021405.25Vb9jo2-lkp@intel.com>
-User-Agent: s-nail v14.9.24
+        with ESMTP id S232883AbjHBHfy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 03:35:54 -0400
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAC6D1702
+        for <linux-acpi@vger.kernel.org>; Wed,  2 Aug 2023 00:35:26 -0700 (PDT)
+Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-5222bc91838so9534925a12.0
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Aug 2023 00:35:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1690961725; x=1691566525;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=whzrFiFDXsxlOAugWLGBbpaxuv1pZIzaI72w9ONk2co=;
+        b=VMhdersl41V5+LiCY+XaKEQoOPKdsRq+ydlrbXdNAfX456uEGheeaRnwU+DhDcQh4f
+         wz9ZIcRGQuuixANTzeVLt2GJ3t278GRAIEn9KM2RZHR/6OKF5a8dYkV1BnUOmEsABmrO
+         rH9GHhUhncwgGoB8cV9bFd2dKxNjXuiUu1Ch/vAbg9tFcknJrGek4/JYq4CwPHgnXeNK
+         UZny4EJXlaDgq2UkzOcN7Wp3nLQuNYze7/gLeR8ggzf/ZPCJvUjIVyCkVPwyufKsdT9N
+         lyh9t1+k/qZk/RymxTMKD9Lhrw/kwRZdjofA5SvuTKlj+GGMk+Fb/nbdYw/3q5eZqNqB
+         eKnQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690961725; x=1691566525;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=whzrFiFDXsxlOAugWLGBbpaxuv1pZIzaI72w9ONk2co=;
+        b=JvGAT2T9qz9Q23Jx60Ln2WtgmrWliYVw3AHUl+zgD9Nnij9bKnmlMQMxsAxwSDdh8F
+         YbAtQ2TavZdgSj5/m3K2fwwBNdCvO0NuElL9b4jR39Ha9tzAJ0uLIgijTRy3+hcXiVhg
+         PT1WWjrk6HDCUItsy9qPI8oi1JVk1vMoD6i3G1T/WiWXpRc0cukcS5nC+5BtAHqm/0T+
+         fuuAr9krn8SW8eH0ssvoTFg/8i5DBcc3LlofG7oLwJRl1RnmqJOV7inyreyAJJSWHJSo
+         9xpcyImn9nulwc9AvoWJk/yNfxOKGUFiPRhqHVSQoMPJ5g9RB46kffYPvTHpunmBhL61
+         Aq+A==
+X-Gm-Message-State: ABy/qLZpxo+RUfPmIXHPNP3aCCPmPAeFvXTkco47RgzyN+BN6TC/lpV4
+        wCw6A6Z83HJ2jRpX1YMzKPeDjw==
+X-Google-Smtp-Source: APBJJlFxv46Yn6HfI393SWv6JgHv2CwW0FKGrKUDqw1nyEfyyadbYoswq2hAmTFP/jO87HYyAsmDuQ==
+X-Received: by 2002:a17:907:b0c:b0:997:d627:263a with SMTP id h12-20020a1709070b0c00b00997d627263amr4022193ejl.67.1690961725300;
+        Wed, 02 Aug 2023 00:35:25 -0700 (PDT)
+Received: from localhost (h3221.n1.ips.mtn.co.ug. [41.210.178.33])
+        by smtp.gmail.com with ESMTPSA id gl13-20020a170906e0cd00b00982d0563b11sm8615511ejb.197.2023.08.02.00.35.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Aug 2023 00:35:24 -0700 (PDT)
+Date:   Tue, 1 Aug 2023 10:45:20 +0300
+From:   Dan Carpenter <dan.carpenter@linaro.org>
+To:     Bjorn Helgaas <bhelgaas@google.com>
+Cc:     linux-acpi@vger.kernel.org
+Subject: [bug report] PNP: convert resource options to single linked list
+Message-ID: <63ae790c-ca93-456f-bb15-6fd330f1d6ca@moroto.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 57fb4aeb308cdc2169b440c112bcbbbbdc7b6cc5  Merge branch 'pm-cpuidle' into bleeding-edge
+[ This is obviously ancient code, but maybe you could still take a
+  look? -dan ]
 
-Warning reports:
+Hello Bjorn Helgaas,
 
-https://lore.kernel.org/oe-kbuild-all/202308020253.WHEHp60K-lkp@intel.com
+The patch 1f32ca31e740: "PNP: convert resource options to single
+linked list" from Jun 27, 2008 (linux-next), leads to the following
+Smatch static checker warning:
 
-Warning: (recently discovered and may have been fixed)
+	drivers/pnp/quirks.c:193 quirk_add_irq_optional_dependent_sets()
+	warn: list_entry() does not return NULL 'new_option'
 
-drivers/acpi/thermal.c:1028:32: warning: variable 'result' set but not used [-Wunused-but-set-variable]
-drivers/acpi/thermal.c:1184:32: warning: variable 'result' set but not used [-Wunused-but-set-variable]
+drivers/pnp/quirks.c
+    180 static void quirk_add_irq_optional_dependent_sets(struct pnp_dev *dev)
+    181 {
+    182         struct pnp_option *new_option;
+    183         unsigned int num_sets, i, set;
+    184         struct pnp_irq *irq;
+    185 
+    186         num_sets = dev->num_dependent_sets;
+    187         for (i = 0; i < num_sets; i++) {
+    188                 new_option = pnp_clone_dependent_set(dev, i);
+    189                 if (!new_option)
+    190                         return;
+    191 
+    192                 set = pnp_option_set(new_option);
+--> 193                 while (new_option && pnp_option_set(new_option) == set) {
 
-Warning ids grouped by kconfigs:
+The new_option part of this condition is always non-NULL.  I think
+eventually we will call list_entry() on the list head so we end up
+reading from invalid memory.
 
-gcc_recent_errors
-|-- arm64-allyesconfig
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- arm64-defconfig
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- i386-randconfig-i052-20230730
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- i386-randconfig-i053-20230730
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- i386-randconfig-i062-20230730
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- i386-randconfig-m021-20230730
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- loongarch-allyesconfig
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- x86_64-defconfig
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-|-- x86_64-randconfig-x051-20230730
-|   `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
-`-- x86_64-randconfig-x052-20230730
-    `-- drivers-acpi-thermal.c:warning:variable-result-set-but-not-used
+    194                         if (new_option->type == IORESOURCE_IRQ) {
+    195                                 irq = &new_option->u.irq;
+    196                                 irq->flags |= IORESOURCE_IRQ_OPTIONAL;
+    197                         }
+    198                         dbg_pnp_show_option(dev, new_option);
+    199                         new_option = list_entry(new_option->list.next,
+    200                                                 struct pnp_option, list);
+    201                 }
+    202 
+    203                 dev_info(&dev->dev, "added dependent option set %d (same as "
+    204                          "set %d except IRQ optional)\n", set, i);
+    205         }
+    206 }
 
-elapsed time: 859m
-
-configs tested: 122
-configs skipped: 8
-
-tested configs:
-alpha                            allyesconfig   gcc  
-alpha                               defconfig   gcc  
-alpha                randconfig-r036-20230801   gcc  
-arc                              allyesconfig   gcc  
-arc                                 defconfig   gcc  
-arc                 nsimosci_hs_smp_defconfig   gcc  
-arc                  randconfig-r005-20230731   gcc  
-arc                  randconfig-r023-20230731   gcc  
-arc                  randconfig-r043-20230801   gcc  
-arm                              allmodconfig   gcc  
-arm                              allyesconfig   gcc  
-arm                                 defconfig   clang
-arm                                 defconfig   gcc  
-arm                           imxrt_defconfig   gcc  
-arm                  randconfig-r046-20230801   gcc  
-arm                         socfpga_defconfig   clang
-arm64                            allyesconfig   gcc  
-arm64                               defconfig   gcc  
-csky                                defconfig   gcc  
-hexagon              randconfig-r041-20230801   clang
-hexagon              randconfig-r045-20230801   clang
-i386                             allyesconfig   gcc  
-i386         buildonly-randconfig-r004-20230731   gcc  
-i386         buildonly-randconfig-r005-20230731   gcc  
-i386         buildonly-randconfig-r006-20230731   gcc  
-i386                              debian-10.3   gcc  
-i386                                defconfig   gcc  
-i386                 randconfig-i001-20230731   gcc  
-i386                 randconfig-i002-20230731   gcc  
-i386                 randconfig-i003-20230731   gcc  
-i386                 randconfig-i004-20230731   gcc  
-i386                 randconfig-i005-20230731   gcc  
-i386                 randconfig-i006-20230731   gcc  
-i386                 randconfig-i011-20230731   clang
-i386                 randconfig-i012-20230731   clang
-i386                 randconfig-i013-20230731   clang
-i386                 randconfig-i014-20230731   clang
-i386                 randconfig-i015-20230731   clang
-i386                 randconfig-i016-20230731   clang
-loongarch                        allmodconfig   gcc  
-loongarch                         allnoconfig   gcc  
-loongarch                           defconfig   gcc  
-loongarch            randconfig-r004-20230731   gcc  
-loongarch            randconfig-r012-20230731   gcc  
-loongarch            randconfig-r014-20230731   gcc  
-loongarch            randconfig-r026-20230731   gcc  
-m68k                             allmodconfig   gcc  
-m68k                             allyesconfig   gcc  
-m68k                                defconfig   gcc  
-m68k                        mvme147_defconfig   gcc  
-m68k                           sun3_defconfig   gcc  
-microblaze           randconfig-r021-20230731   gcc  
-microblaze           randconfig-r022-20230731   gcc  
-mips                             allmodconfig   gcc  
-mips                             allyesconfig   gcc  
-mips                           ci20_defconfig   gcc  
-mips                     loongson1b_defconfig   gcc  
-mips                          malta_defconfig   clang
-mips                 randconfig-r002-20230731   clang
-nios2                               defconfig   gcc  
-openrisc             randconfig-r024-20230731   gcc  
-openrisc             randconfig-r034-20230801   gcc  
-parisc                           allyesconfig   gcc  
-parisc                              defconfig   gcc  
-parisc               randconfig-r013-20230731   gcc  
-parisc64                            defconfig   gcc  
-powerpc                          allmodconfig   gcc  
-powerpc                           allnoconfig   gcc  
-powerpc                    amigaone_defconfig   gcc  
-powerpc                     ep8248e_defconfig   gcc  
-powerpc                      mgcoge_defconfig   gcc  
-powerpc                      obs600_defconfig   clang
-powerpc                    sam440ep_defconfig   gcc  
-powerpc                     tqm8555_defconfig   gcc  
-riscv                            allmodconfig   gcc  
-riscv                             allnoconfig   gcc  
-riscv                            allyesconfig   gcc  
-riscv                               defconfig   gcc  
-riscv                randconfig-r042-20230801   clang
-riscv                          rv32_defconfig   gcc  
-s390                             allmodconfig   gcc  
-s390                             allyesconfig   gcc  
-s390                                defconfig   gcc  
-s390                 randconfig-r044-20230801   clang
-sh                               allmodconfig   gcc  
-sh                         apsh4a3a_defconfig   gcc  
-sh                               j2_defconfig   gcc  
-sh                   randconfig-r001-20230731   gcc  
-sh                   randconfig-r006-20230731   gcc  
-sh                           se7722_defconfig   gcc  
-sh                           se7751_defconfig   gcc  
-sh                     sh7710voipgw_defconfig   gcc  
-sparc                            allyesconfig   gcc  
-sparc                               defconfig   gcc  
-sparc                randconfig-r033-20230801   gcc  
-sparc64              randconfig-r031-20230801   gcc  
-um                               allmodconfig   clang
-um                                allnoconfig   clang
-um                               allyesconfig   clang
-um                                  defconfig   gcc  
-um                             i386_defconfig   gcc  
-um                   randconfig-r003-20230731   clang
-um                           x86_64_defconfig   gcc  
-x86_64                           allyesconfig   gcc  
-x86_64       buildonly-randconfig-r001-20230731   gcc  
-x86_64       buildonly-randconfig-r002-20230731   gcc  
-x86_64       buildonly-randconfig-r003-20230731   gcc  
-x86_64                              defconfig   gcc  
-x86_64                                  kexec   gcc  
-x86_64               randconfig-x001-20230731   clang
-x86_64               randconfig-x002-20230731   clang
-x86_64               randconfig-x003-20230731   clang
-x86_64               randconfig-x004-20230731   clang
-x86_64               randconfig-x005-20230731   clang
-x86_64               randconfig-x006-20230731   clang
-x86_64               randconfig-x011-20230731   gcc  
-x86_64               randconfig-x012-20230731   gcc  
-x86_64               randconfig-x013-20230731   gcc  
-x86_64               randconfig-x014-20230731   gcc  
-x86_64               randconfig-x015-20230731   gcc  
-x86_64               randconfig-x016-20230731   gcc  
-x86_64                          rhel-8.3-rust   clang
-x86_64                               rhel-8.3   gcc  
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+regards,
+dan carpenter
