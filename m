@@ -2,62 +2,56 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF47C0015E
-	for <linux-acpi@archiver.kernel.org>; Tue,  1 Aug 2023 09:27:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52985EB64DD
+	for <linux-acpi@archiver.kernel.org>; Tue,  1 Aug 2023 09:41:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232866AbjHAJ1X (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 1 Aug 2023 05:27:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52756 "EHLO
+        id S233360AbjHAJlF (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 1 Aug 2023 05:41:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232868AbjHAJ06 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2023 05:26:58 -0400
-X-Greylist: delayed 86702 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 01 Aug 2023 02:25:56 PDT
-Received: from mail.cothiafon.pl (mail.cothiafon.pl [217.61.106.23])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8BF41735
-        for <linux-acpi@vger.kernel.org>; Tue,  1 Aug 2023 02:25:56 -0700 (PDT)
-Received: by mail.cothiafon.pl (Postfix, from userid 1002)
-        id D08B083717; Mon, 31 Jul 2023 10:36:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=cothiafon.pl; s=mail;
-        t=1690792627; bh=dwoca0X6C9VXklO/zRgFQCPapTk5LFz4tKaENdvy6Po=;
-        h=Date:From:To:Subject:From;
-        b=ogeyWQRSzeIukeM2vbs6ziTA+l4uV3wl9isN3vPprnXwyYBNN6queLjaeN1kw2pBW
-         CJmuzM+osY2qBvvM1amVrV/UfnBa1UzvfCJGCUUhwI2Ky79l70tCU5slkHVaatBjc7
-         2sQZ8wHHWQ4l2cjnoeupf601gLcYdy9rMWwyESWuiYxjBycUssM2U7fZ09wGMe1tCB
-         5m8B3wmlVqLb4fjjOcLVQqqcBlgherBY/yLcNbF7pYRuPghhJ7n0C8814PMsDlFv9D
-         EoJwHRUFamDaHizy0TsKA6z5ktHZ3ncbemEfPLEApKyJp8npHC3PLz0gkKdQNu/cB7
-         CWS/ia0hCt2Zg==
-Received: by mail.cothiafon.pl for <linux-acpi@vger.kernel.org>; Mon, 31 Jul 2023 08:35:48 GMT
-Message-ID: <20230731095940-0.1.28.ong3.0.1o9r6fqhff@cothiafon.pl>
-Date:   Mon, 31 Jul 2023 08:35:48 GMT
-From:   =?UTF-8?Q? "Rados=C5=82aw_Grabowski" ?= 
-        <radoslaw.grabowski@cothiafon.pl>
-To:     <linux-acpi@vger.kernel.org>
-Subject: W sprawie samochodu
-X-Mailer: mail.cothiafon.pl
+        with ESMTP id S233364AbjHAJkq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2023 05:40:46 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DBD1F3C34;
+        Tue,  1 Aug 2023 02:38:36 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9FB17D75;
+        Tue,  1 Aug 2023 02:39:19 -0700 (PDT)
+Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5A38E3F5A1;
+        Tue,  1 Aug 2023 02:38:34 -0700 (PDT)
+Date:   Tue, 1 Aug 2023 10:38:31 +0100
+From:   Sudeep Holla <sudeep.holla@arm.com>
+To:     Huisong Li <lihuisong@huawei.com>, rafael@kernel.org,
+        rafael.j.wysocki@intel.com
+Cc:     robbiek@xsightlabs.com, guohanjun@huawei.com,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        wanghuiqiang@huawei.com, zhangzekun11@huawei.com,
+        wangxiongfeng2@huawei.com, tanxiaofei@huawei.com,
+        wangkefeng.wang@huawei.com, liuyonglong@huawei.com
+Subject: Re: [PATCH RESEND v4 0/2] mailbox: pcc: Support platform
+ notification for type4 and shared interrupt
+Message-ID: <20230801093831.dkamhtuvamjalhaa@bogus>
+References: <20221016034043.52227-1-lihuisong@huawei.com>
+ <20230801063827.25336-1-lihuisong@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230801063827.25336-1-lihuisong@huawei.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Dzie=C5=84 dobry,
+Hi Rafael,
 
-chcieliby=C5=9Bmy zapewni=C4=87 Pa=C5=84stwu kompleksowe rozwi=C4=85zania=
-, je=C5=9Bli chodzi o system monitoringu GPS.
+On Tue, Aug 01, 2023 at 02:38:25PM +0800, Huisong Li wrote:
+> PCC supports processing platform notification for slave subspaces and
+> shared interrupt for multiple subspaces.
+>
 
-Precyzyjne monitorowanie pojazd=C3=B3w na mapach cyfrowych, =C5=9Bledzeni=
-e ich parametr=C3=B3w eksploatacyjnych w czasie rzeczywistym oraz kontrol=
-a paliwa to kluczowe funkcjonalno=C5=9Bci naszego systemu.=20
+These changes have missed last 2 merge window. Let us know if you can pull
+this for v6.6 or you prefer to route this via mailbox.
 
-Organizowanie pracy pracownik=C3=B3w jest dzi=C4=99ki temu prostsze i bar=
-dziej efektywne, a oszcz=C4=99dno=C5=9Bci i optymalizacja w zakresie pono=
-szonych koszt=C3=B3w, maj=C4=85 dla ka=C5=BCdego przedsi=C4=99biorcy ogro=
-mne znaczenie.
-
-Dopasujemy nasz=C4=85 ofert=C4=99 do Pa=C5=84stwa oczekiwa=C5=84 i potrze=
-b organizacji. Czy mogliby=C5=9Bmy porozmawia=C4=87 o naszej propozycji?
-
-
-Pozdrawiam
-Rados=C5=82aw Grabowski
+-- 
+Regards,
+Sudeep
