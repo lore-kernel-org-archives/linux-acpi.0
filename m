@@ -2,116 +2,176 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AEFBC04A6A
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 05:25:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62972C001DE
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 06:32:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229941AbjHBFZ4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Aug 2023 01:25:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46064 "EHLO
+        id S232366AbjHBGcZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Aug 2023 02:32:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbjHBFZy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 01:25:54 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05EF8EE;
-        Tue,  1 Aug 2023 22:25:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1690953954; x=1722489954;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=SUYyiEFaOXroKQDsrvyWD1ilNyTYr4fVpzmSKVWFGCo=;
-  b=iWz30P3aHgJ+eISBJX5FEIjlH4N+wXjVR0TOAk5ZRNLf5rwnquVXiSrF
-   KuwTJuTpiIWo2Q2h9WeNRF4iqAbMEEl6KxIwgniPjz3a7uTfr0qpi9e5y
-   9d6+9q+ipksxV62N50Pc9T1juj7r/G0V11kvXODLI+qb8f1F8PCjEGbb0
-   4NxktdDuk03vqNMu8o2D8Pnf9KahjpteZ7aRKxE8xomx8KUx4WVsUnNQE
-   OygD13h9CMMr+gn/20qxvsSJuII8vTlB8f1c+tuilXqmb3PQm9jrKm4ww
-   wMm0VDMlSQo4CYzYe7NEUCE/ZlL9Ki/Exa0kyo/o0ecFaTMFyFXF4CWVP
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10789"; a="372215666"
-X-IronPort-AV: E=Sophos;i="6.01,248,1684825200"; 
-   d="scan'208";a="372215666"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Aug 2023 22:25:53 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10789"; a="758611562"
-X-IronPort-AV: E=Sophos;i="6.01,248,1684825200"; 
-   d="scan'208";a="758611562"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga008.jf.intel.com with ESMTP; 01 Aug 2023 22:25:51 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1001)
-        id 7132213F; Wed,  2 Aug 2023 08:26:01 +0300 (EEST)
-Date:   Wed, 2 Aug 2023 08:26:01 +0300
-From:   Mika Westerberg <mika.westerberg@linux.intel.com>
-To:     Mario Limonciello <mario.limonciello@amd.com>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org, Iain Lane <iain@orangesquash.org.uk>,
-        Kuppuswamy Sathyanarayanan 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v7 2/2] PCI: Don't put non-power manageable PCIe root
- ports into D3
-Message-ID: <20230802052601.GM14638@black.fi.intel.com>
-References: <20230711221427.GA250962@bhelgaas>
- <b82a50eb-8182-84ca-5b24-dbe8870fa871@amd.com>
- <CAJZ5v0i6PviqW7u3i8hmvSCvR_VHqP-mWRy3Da8Ev_1vi9qBQA@mail.gmail.com>
- <a309e3fe-b1f9-e269-cb97-8af87c8d483b@amd.com>
- <CAJZ5v0jvxrDMR6YHFpYZ4yYpp82-3TtrH==SMRFtUMJsv7=i=g@mail.gmail.com>
- <37b005d5-68fb-f8dd-67e2-c953d677fca2@amd.com>
- <8298c01c-abec-914b-0542-459f38c635fe@amd.com>
- <CAJZ5v0i3g0JujMwikB8niRZ93hXJZqWtjrCjbaDmkMLUbMmwMA@mail.gmail.com>
- <d1b2cf1b-de5f-6c2e-c8dc-fdf60cd0882d@amd.com>
+        with ESMTP id S231726AbjHBGcX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 02:32:23 -0400
+Received: from JPN01-TYC-obe.outbound.protection.outlook.com (mail-tycjpn01on2127.outbound.protection.outlook.com [40.107.114.127])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC80526BA;
+        Tue,  1 Aug 2023 23:32:21 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=H2D7FVb1WDrJ/dFHuMhlbaNu4SQ+59iXuKl04d3pbTH4n3pQOV+TZB0qwp8hBrquaPS5yrjyW3WFh7u2t5/wO1kT3bhfs7pM6CmcYvMNOPy+giN/q8wuXBaU+5o6F09Dlgd8zCBrcpCh4wB+6SJqAploVzAWEzzS3w9k6eWIUrlZUGCaPMwikZ7N1WmIcmzw91EG0Ij+bA2+Ajoh20SXphC26b4azv8UMGThNeusSdj7fIXlGi7hVw0EzNkyD3E3Stb5O2C/3KHBxbmqjIut44QfNVjEgqGtJMOuKsWj0abTD0Lb0gGJ5mlg8pgxXa0mPdnGsBrwFW4qeOMG7V/f+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=7yTlvP8XKQJH7SnNW2UZojRLweEiWfHOSrtgcJ0M5cM=;
+ b=bzCYHzzByCUm3gvBOSH+/5bbMwfUeEFc7e68kTZChXaivz9GBQdFxZjnlDo1GuNlmwqnVrSwPbsJJuOCGEXRTvH6f9OsDn1DjwuIZUhjCS6Hl/4+woVTpQTLKWyLRjBDEDxVeSlCqvhMtYtEARB+1IfEMmxCxpKkxz5vyeCZQPdykrlavlBVyHHOxS4XNNuGk5LQaSbD+1XGRITtZwjSjGocKdW07GEFMZubsLhfolc4x4pnYH7m14qhOKkw3+qEpCbt0LaPBHDfhRnEd36sEeT859zYd4Tk1Zn9E0cFhm7QXz4tHUyvbtjhTQtVgVmlCA9E4dVV6bNGIoA7qbL7FQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=bp.renesas.com; dmarc=pass action=none
+ header.from=bp.renesas.com; dkim=pass header.d=bp.renesas.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bp.renesas.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=7yTlvP8XKQJH7SnNW2UZojRLweEiWfHOSrtgcJ0M5cM=;
+ b=XT1eyTehFyOCnIsvMbHCLKlH0pX2hMeIRKWKExhKkbKUzZuaal4m+h26WSyb4jr/qr22lgAmm5MwBP58W4BQIJ3prSE5fM41qUj54Rs0lhNuu0eDb0d8j19hpOQjPOD3H+ZXVYsNeL3aNgaCLRx3gyn27Lw1ksc9W/j36cRVHEU=
+Received: from OS0PR01MB5922.jpnprd01.prod.outlook.com (2603:1096:604:bb::5)
+ by OS3PR01MB8147.jpnprd01.prod.outlook.com (2603:1096:604:175::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6631.45; Wed, 2 Aug
+ 2023 06:32:19 +0000
+Received: from OS0PR01MB5922.jpnprd01.prod.outlook.com
+ ([fe80::8f98:d64b:f092:766]) by OS0PR01MB5922.jpnprd01.prod.outlook.com
+ ([fe80::8f98:d64b:f092:766%6]) with mapi id 15.20.6631.045; Wed, 2 Aug 2023
+ 06:32:18 +0000
+From:   Biju Das <biju.das.jz@bp.renesas.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+CC:     Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Wolfram Sang <wsa@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        "linux-renesas-soc@vger.kernel.org" 
+        <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [PATCH v3 1/2] drivers: fwnode: Extend device_get_match_data() to
+ struct bus_type
+Thread-Topic: [PATCH v3 1/2] drivers: fwnode: Extend device_get_match_data()
+ to struct bus_type
+Thread-Index: AQHZxJoZheRJ0TW3rUG1+qIPtHxE26/V1n6AgAC2I5A=
+Date:   Wed, 2 Aug 2023 06:32:18 +0000
+Message-ID: <OS0PR01MB592219C8BEF733C6A75DDD5C860BA@OS0PR01MB5922.jpnprd01.prod.outlook.com>
+References: <20230801170318.82682-1-biju.das.jz@bp.renesas.com>
+ <20230801170318.82682-2-biju.das.jz@bp.renesas.com>
+ <ZMlfYU3rOQle0VuH@smile.fi.intel.com>
+In-Reply-To: <ZMlfYU3rOQle0VuH@smile.fi.intel.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=bp.renesas.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: OS0PR01MB5922:EE_|OS3PR01MB8147:EE_
+x-ms-office365-filtering-correlation-id: 58a6103f-5994-49c1-b14e-08db93223880
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: yn3rljnZtTWisLmlx9SuZ2TrA9uCLLqzzUqeVXV7Gd85dOoCnrMTWiQ/dVzX9mJ9wcwbgnE+SgQ8IYhq+8p2gkT9CD8HQt68dc6QneTx7hKYFewUK2yFqY+WdSgWuYnr2kTsFEuFL8CE9uMQP9fuXduL+ER4lwtSn/BnYmrl648zCEu57a/BfFHZlov1osePK5P6HyIwzOUzkct1d/46AvkyOHWe0wN0c6vZhrpYlqbiwFM1iu1SA8qXEKUU3W6+XHPJL0rTjxDcmmozHj1Hc9F2w6soXRBxKuKEwkcFuFADcyZxHaujqXzbVnH5QDCywAl5xcpD8JKTJJY3H+wLyZNSixTmo34v7YHOJFbLztifnY1oX99qu+cnbMBZDaF9jMpB8Z8BKzKwYJoCY8nTS54Jw6VCuM+SFv3G8e6bQNLKgQ4PlmlBirsR/t4k3EZYfYJqM47YXsGdXUg5bQbiL4xrf3IUh/UG5BZwV9YpA745XYSOElWWwG4qQMxY/QMNWWRKL0a7WdoxA4NOE6B9885I/FmtDoxIE+R4ww689xhbZ6KoZueWXol77hDE3yBbwxXg90grZgr0MQGdnBgpQOqW/Lq7FBhB/X5spzQAd/vzXi2kFSff7SPwP1ZmHYP1
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS0PR01MB5922.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(39860400002)(376002)(366004)(136003)(396003)(346002)(451199021)(55016003)(186003)(9686003)(316002)(86362001)(478600001)(122000001)(54906003)(38100700002)(71200400001)(76116006)(66946007)(66446008)(66556008)(66476007)(33656002)(7696005)(64756008)(4326008)(6916009)(6506007)(41300700001)(26005)(8936002)(8676002)(52536014)(5660300002)(2906002)(38070700005)(7416002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?EnyLBny+g/Idv0kWU/W7XEYPueC8FkwlR1Zh68MYbfNXVyHSTaIXJZnLdDdO?=
+ =?us-ascii?Q?qUYFemNupiob9QbahwQpWZYz0UZz4C2yfEd5RBNW5bBe//S9qt4YPFm/GWQO?=
+ =?us-ascii?Q?KW/CE4pZ19RJoeI07SfotKRnRFM+eAl4pDZU3Zrm1ekm30T0PW31hFn9A1nJ?=
+ =?us-ascii?Q?Ruqk3pznI/UvxhFvEQV1Y4dmGBo5fD0JiuYiBqWJMQntqKRqQhGeRVt+pr9e?=
+ =?us-ascii?Q?J64Uzi6qk01xFHUclvWQj1B2poc2JD9XY8c4PCeuSteFxWu1NRMn7r++sUhG?=
+ =?us-ascii?Q?Hnp/1lZXFux5G7yM0HxfySiSHNBc8/2fvukXnM7+h4cUPFRFiZJ+wWpmxeUi?=
+ =?us-ascii?Q?s3Jkcd6fO4zIFfF2SNSHN1v9dOjDSo+4u9l4QqwmPBdcUfkK2tXphyUb96PE?=
+ =?us-ascii?Q?//tPYp3zzphkLllPmDs2NooJj05GRez3tSy7iW2ASFrwXnMZCuZp4mAhQY1Y?=
+ =?us-ascii?Q?KtRAVUlp7qU2KPNN3RiRWeWLDyDNWxN0FG87yG0Ro+6isl/3L42KVrM+w1IO?=
+ =?us-ascii?Q?0SpZdOxd3IZqu6bbd3yred5g0TR0ZZ1deRlZqCfrgGQymT19LjdKjfWos/ON?=
+ =?us-ascii?Q?KimqWFuI8Ahp3KDYQ0wO8V+LdGCw1xsmE+ZRDRpRgJvcHqOEVkYsE0Dmuoh0?=
+ =?us-ascii?Q?inhPidfjRGQCYo2mLZe/J04I6HJvYHTLBu3uqoO0mncrvvQXYfK+GDg4uqL1?=
+ =?us-ascii?Q?QI8sq7RRFyRziu6J4pSKZaFmINiwFwkIbfOpKVseET0pthd6Mdgk6zbN156Z?=
+ =?us-ascii?Q?uzVbxF1zodUquyvukKsO+Y6+crnXPaknC3GajXiXcqGx1xOHMpM4Y5DWYszZ?=
+ =?us-ascii?Q?sopXWdhoFI9lWek7QnYK/ywFhy4rOfqzB9ONFEO9BWlXLOE4DzUGYB2/Nxf/?=
+ =?us-ascii?Q?2Ppqkn0dtNR4KclF984Ic1lQUkTY/wHnRdPoPqm62on+hhJgDUjjY0H/YrzJ?=
+ =?us-ascii?Q?YPsEXAXbSsR412LIhvTBfxYLXn7Pvv5J1/r4fYs6M6P7nq+mT3eQyV1v4Vva?=
+ =?us-ascii?Q?HhY0Jtdvk8bGUZAHfgyGXuvSQdyptz/INcXA7w8awVSOmgfl5lMftsGhSaaa?=
+ =?us-ascii?Q?tXdDZXlE3BvSqwAsxT0ePGXzfKw0vBKsmCVYe2Cs6x8ewSlLIQ8ZVxY2Dj9i?=
+ =?us-ascii?Q?gwEaK/qLifEqkT2m9f4ndh8o/PH9GWwmdQltZdZ1K+f8Fj8oOvwJayTFKupd?=
+ =?us-ascii?Q?NAZnvh1rkcED5pIZ9Zo2nOk+hib5lhle3+d8+JSwiKzKveNgLPjOrg179GVu?=
+ =?us-ascii?Q?iRMsK0O4TbgC5JkIIB7ZK0rfPwwihqqR0t4usnTSx/M1ZumEinq/3jYB6G1A?=
+ =?us-ascii?Q?4QqUmVjGfUzD5CxGz+ar4joOdly+TksjuMZwNkbYkhpjicDJHbzUftOxJrUC?=
+ =?us-ascii?Q?cdhYplTVZDPft6LaDzR8puQrXME/GEszieIMkV7iL4oRIiR4StgvT2KQbOeh?=
+ =?us-ascii?Q?iZVPmf5zARfQDLh7zPrfhYbiq9irBk5PvszOh+IepLTTo9tg6+kEBpig65DI?=
+ =?us-ascii?Q?v1y5Sd308lSI7+3SK56/0pBSn+vaxiWERsns24CyAyGEDUaFUfoNKFoWrZru?=
+ =?us-ascii?Q?1zRmyiD1sJop1yi26f53C0NRQMsPTXfWceZQuzEj?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <d1b2cf1b-de5f-6c2e-c8dc-fdf60cd0882d@amd.com>
+X-OriginatorOrg: bp.renesas.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: OS0PR01MB5922.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 58a6103f-5994-49c1-b14e-08db93223880
+X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Aug 2023 06:32:18.8827
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 53d82571-da19-47e4-9cb4-625a166a4a2a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: cXJUe4nMGbr4fN4VwvnEv5AZe06GEUjrCobV35HGVQLK4a2Ffyvj4z3vpjPpKoiiaYmxJkiAwzHL2FnPH3myL4xTIKYX7Z2fIv46EZDJ+PI=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: OS3PR01MB8147
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Mario,
+Hi Andy Shevchenko,
 
-On Tue, Aug 01, 2023 at 10:17:11PM -0500, Mario Limonciello wrote:
-> > Consequently, platform_pci_bridge_d3() will return false and the only
-> > thing that may allow the port to go into D0 is the dmi_get_bios_year()
-> > check at the end of pci_bridge_d3_possible().
-> > 
-> > However, that was added, because there are Intel platforms on which
-> > Root Ports need to be programmed into D3hot on suspend (which allows
-> > the whole platform to reduce power significantly) and there are no
-> > ACPI device power management objects associated with them (Mika should
-> > know the gory details related to this).  It looks like under Windows
-> > the additional power reduction would not be possible on those systems,
-> > but that would be a problem, wouldn't it?
-> > 
-> 
-> I've been thinking on this today, and I at least have a hypothesis about
-> this behavior.  Perhaps Windows is actually utilizing enabled PEP
-> constraints to enforce what state device should be put into over Modern
-> Standby cycles in the absence of ACPI objects.
-> 
-> In the case of one of my problematic system the PEP constraints for the root
-> port are:
-> 
-> Package (0x04)
-> {
-> 	0x00,
-> 	"\\_SB.PCI0.GP17",
-> 	0x00,
-> 	0x00
-> },
-> 
-> That first 0x00 means the constraint isn't actually enabled for the root
-> port.
-> 
-> Mika,
-> 
-> Could you get an acpidump from one of these problematic Intel systems so we
-> can check the PEP constraints to see if this theory works? Or maybe you have
-> some other ideas why this is different?
+Thanks for the feedback.
 
-The patch adding this was merged in 2016 and unfortunately I don't have
-any of the ACPI dumps from them available anymore (and do not recall the
-details either). I think these were Apollo Lake-P based systems with the
-initial runtime D3cold and S0ix support at the time.
+> Subject: Re: [PATCH v3 1/2] drivers: fwnode: Extend
+> device_get_match_data() to struct bus_type
+>=20
+> On Tue, Aug 01, 2023 at 06:03:17PM +0100, Biju Das wrote:
+> > Extend device_get_match_data() to buses (for eg: I2C) by adding a
+> > callback device_get_match_data() to struct bus_type() and call this
+> > method as a fallback for generic fwnode based device_get_match_data().
+>=20
+> Because of anticipation of v4, see one additional comment below.
+
+Ok.
+
+> ...
+>=20
+> > +/**
+> > + * device_get_match_data - get match data from OF/ACPI/Bus match
+> > +tables
+> > + * @dev: device to find the match data
+> > + *
+> > + * Find match data using generic fwnode-based lookup and if there is
+> > +no
+> > + * match, call the bus->get_match_data() for finding match data.
+> > + *
+> > + * Return: a match data pointer or NULL if there is no match in the
+> > +matching
+> > + * table.
+>=20
+> Also add a note for the corner case.
+>=20
+> """
+>  *
+>  * Besides the fact that some drivers abuse the device ID driver_data
+> type
+>  * and claim it to be integer, for the bus specific ID tables the
+> driver_data
+>  * may be defined as kernel_ulong_t. For these tables 0 is a valid
+> response,
+>  * but not for this function. It's recommended to covert those either to
+
+Will fix the typo covert->convert
+
+Cheers,
+Biju
+
+> avoid
+>  * 0 or use a real pointer to the predefined driver data.
+> """
+>=20
+
