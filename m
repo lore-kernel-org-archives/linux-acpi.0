@@ -2,180 +2,128 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37760C001E0
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 16:49:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF20C001DF
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 20:10:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229788AbjHBQsv convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Aug 2023 12:48:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47390 "EHLO
+        id S231788AbjHBUKo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Aug 2023 16:10:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230175AbjHBQsa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 12:48:30 -0400
-Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C9711AC;
-        Wed,  2 Aug 2023 09:48:29 -0700 (PDT)
-Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-56475c1b930so1027903eaf.0;
-        Wed, 02 Aug 2023 09:48:29 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690994908; x=1691599708;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=x4DJQJkC9NXulAsskXsBVfJzo4vhzZPcLEYBWos2xhk=;
-        b=LGX99bfLc3V1UPzQU4NAqOpkEjEr3BF4Ac9BmD/k4HVaKQp3fmaiKwEaQYSquewhiN
-         bU9Dfo3CyOxCYkuHddprqFjGsMm/2rkAjloqV1IryYSB5Joxf+hQiOZJbg/ZYP4u3dOr
-         KWuTYepa2ZMJUfFTYVH4zmMHT53GqCQhXdHzJt4vKCz4QMRxz86CkUxUUde+uVgjdw47
-         U5pAInc4ui9CaKMf2RZky4eM/KFP4Jxg1yg8LEdTbaox6X1e5eZtmIiVXMwyUvUtfVLS
-         48oMYkbbBw7IIlKVDYIHeVXFNztSIzGmQSUt4MVVWLYHwgXZDPg22JS6eHhPZqY7YrIj
-         NVog==
-X-Gm-Message-State: ABy/qLZ22+Y5OfnSg+U0rYmUohKb18yf9+06OwNknRAWocMRbn0TlsFP
-        duSdnU1fTae251vFgON0azV4psbP06IREK9pkOk=
-X-Google-Smtp-Source: APBJJlHSECy5jKPCEQN5IlcgxAHfjF5aalctkrWz+1/ATuL6Ow+piNoQF2SC+imfMegE01xDjGTvGCOxhAYg0CG8zt4=
-X-Received: by 2002:a05:6820:2201:b0:560:b01a:653d with SMTP id
- cj1-20020a056820220100b00560b01a653dmr12607199oob.0.1690994908588; Wed, 02
- Aug 2023 09:48:28 -0700 (PDT)
+        with ESMTP id S230239AbjHBUKn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 16:10:43 -0400
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2040.outbound.protection.outlook.com [40.107.220.40])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00B071734;
+        Wed,  2 Aug 2023 13:10:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=SK3ijI13GQhoEcZbYepTcCT7/7GKoRYWE6Kl9kHC1ugefOLwezUksbCI6Jxw63ckjdZkJaIbJlpQmcO8ciRfW3Hl+9u6s3LxB/yE/nEZXUmDvsLwmJYp9QvrtVXEJRmVHl1itnUpkOlYc9DA3CKrGTyx+2opeT0SqwhYASk6ro9yHC/KaqAzpyxCfdAi5sWGWJDNsfhF/9XVwgO51Pm6Owy+YSayFc+SEurpTC7cC8sLZianAVuswKy7C1AcISVP/ilTXSHirLVz0ixkjVDBHg1ncR6/rKeKrbaRu6TLGzgAgmXKjOgbZ6nb9wioA4LEoqiu7qO1v0QIa1jY3jHH1Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=v3vLZQAndQUrsGXw591fgzQ/18EKgSFlfr/n0oMklM0=;
+ b=hvgGmgQrn7GgjonnhXqrNcCy6KMa9FvshEf3BdQo84cz4KA1By4SP+Bfp4WHwmDHTs2Qyqx5PJE2tqTFDdLli0LkBA9Q67zEKr7H8FSNTmLfHEzMV+OX8jmGqNsZMNpRc6NM+oMdRa3Eq69HQF9htFt81CePGDG8sBvaSivCNOQMHhJGPguUtLRxdN0CngZuecGAlBUZ5ai6iBGNfYxt/mK505khmFawvKFQLqodgtTW6c7OfhUgGPFqt4GjSuPx3/uzyuHnQe+eOA1vKlGi77w0nnn4nPVjV+gFEJ9xveDfTFUlYktKVUsMXgSWolYNhUjMapwuVxyb6GBdfVuNqQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=linux.intel.com smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=v3vLZQAndQUrsGXw591fgzQ/18EKgSFlfr/n0oMklM0=;
+ b=CL5WTUFoMjI87mW0wzxEFiva2bWMh7AdYiDzgR9dpL8Xo+8baUZExY2sxCjjsh0vrOIN4mKKqEvwY9TuoC2/bAifBXdOmOm2gOL6waVogCUxegLhmONG6M8THV18lvz4gmZ8m4ODlJuiHFrwlucvbQ2ekZnjJm8ANUMbzFKdiLM=
+Received: from MW4PR04CA0323.namprd04.prod.outlook.com (2603:10b6:303:82::28)
+ by IA1PR12MB6628.namprd12.prod.outlook.com (2603:10b6:208:3a0::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6631.45; Wed, 2 Aug
+ 2023 20:10:39 +0000
+Received: from CO1PEPF000044F7.namprd21.prod.outlook.com
+ (2603:10b6:303:82:cafe::5) by MW4PR04CA0323.outlook.office365.com
+ (2603:10b6:303:82::28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.19 via Frontend
+ Transport; Wed, 2 Aug 2023 20:10:39 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CO1PEPF000044F7.mail.protection.outlook.com (10.167.241.197) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6652.5 via Frontend Transport; Wed, 2 Aug 2023 20:10:38 +0000
+Received: from AUS-LX-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Wed, 2 Aug
+ 2023 15:10:35 -0500
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>
+CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-acpi@vger.kernel.org>, Iain Lane <iain@orangesquash.org.uk>,
+        "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Mario Limonciello <mario.limonciello@amd.com>
+Subject: [PATCH v8 1/2] ACPI: Add comments to clarify some #ifdef statements
+Date:   Wed, 2 Aug 2023 15:10:12 -0500
+Message-ID: <20230802201013.910-2-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230802201013.910-1-mario.limonciello@amd.com>
+References: <20230802201013.910-1-mario.limonciello@amd.com>
 MIME-Version: 1.0
-References: <13318886.uLZWGnKmhe@kreacher> <12254967.O9o76ZdvQC@kreacher>
- <4501957.LvFx2qVVIh@kreacher> <2d0315d4-35b4-84db-4dcb-c9528abad825@linaro.org>
- <CAJZ5v0iQDOsTOqWFvbf5nom-b3-pbHPRzJQC-1DM9eoh=0AKjg@mail.gmail.com>
- <eb279cf1-0605-3b87-5cb6-241a91977455@linaro.org> <CAJZ5v0i48=oawDJHoaHhiZRaO_CJokKsOHyNvu2v4PUbS6CH_Q@mail.gmail.com>
- <f8029547-6851-7e0c-00e6-4963ccbc2702@linaro.org>
-In-Reply-To: <f8029547-6851-7e0c-00e6-4963ccbc2702@linaro.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 2 Aug 2023 18:48:17 +0200
-Message-ID: <CAJZ5v0gDQMNSeEU1J7ooJk4Ec=Hw_JuZAtL5k215v7Lf67iTgg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/8] thermal: core: Add mechanism for connecting trips
- with driver data
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Michal Wilczynski <michal.wilczynski@intel.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1PEPF000044F7:EE_|IA1PR12MB6628:EE_
+X-MS-Office365-Filtering-Correlation-Id: 772e70ed-344c-470f-cc25-08db93948a56
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 1pT14d6aZ8s9M8p9V3IcO+5JXZuZr9xJJHesAcu6qhSs/joP3f1tz3zK2aW5GM637LvfRmrXE7z5rq6eQUKjC4NA/TGe/omwnQ0zurou64kjsjKDsylrlB3ftd6T9X5LD/iIPytRM51ywD9JrT9mSolGTue2kbBZ6JfoXY+3BwhNtTLoAvcBNGPPsi3rSG5riTCilToZtQq433OqSm3fQ03ZvGzYiQKc9Vd1FSZ+CF5Y9ou0u6w4MeHJRdCmdHThR7miF8eGHvr8uhLtL+sRrm4x1m8pKbjY5oelH76le8qp6B22z3bjlA136Qsn739g35Ei4LyUUBgMvXdkN33c8ihiGDerMViM0pIkzYF4/TxuOZCGSbli0UJ/iNR9VaimF8ThC4EbYQ6Etq1SfpfHEbSRNn28lkZ561Vspx+ow482eWDVs8PTyPDeQXGFCOMX6lO/oSDvT9f2oC1tZD+maA5oUdw+XRP29nt3RU7D6E7AKXzoi+Z8Y/ryqe3p/+hxYj/8jcuQA3srx+zBjipahC0J0FgFNRrHkUGofGw4v34usFjRvShx0Q6cNzyhEmUYIPtARgzGDaO2hrL3YBl2vempokA3V5XWIADGRrwcCyd+AwHPr2hqL5IOQZtemMiLsn4KOrtM97G5UO18mEnbswZzrS0UufsHapqwyN8KgjqzE4zbW7kSgRKk35bocE8sBnTJvr2revbHUmubvDHp3q5hlY5Q2GV1MLMBOku/Tkg90jvYA8WvyRezN+JXEWueCORIt4YZsggumlH0r3EuUQ==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(396003)(376002)(346002)(136003)(39860400002)(451199021)(82310400008)(40470700004)(36840700001)(46966006)(8936002)(8676002)(4744005)(47076005)(5660300002)(316002)(41300700001)(44832011)(4326008)(70206006)(2906002)(70586007)(478600001)(40460700003)(1076003)(81166007)(26005)(2616005)(110136005)(54906003)(40480700001)(36860700001)(83380400001)(86362001)(7696005)(6666004)(356005)(82740400003)(336012)(186003)(36756003)(426003)(16526019)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Aug 2023 20:10:38.4694
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 772e70ed-344c-470f-cc25-08db93948a56
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1PEPF000044F7.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6628
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 2, 2023 at 5:50 PM Daniel Lezcano <daniel.lezcano@linaro.org> wrote:
->
-> On 02/08/2023 15:03, Rafael J. Wysocki wrote:
->
-> [ ... ]
->
-> >>>>> +struct thermal_trip_ref {
-> >>>>> +     struct thermal_trip *trip;
-> >>>>> +};
-> >>>>
-> >>>> That introduces a circular dependency. That should be avoided.
-> >>>
-> >>> Sorry, but this is an empty statement without any substance.
-> >>
-> >> I'm just pointing that we have a struct A pointing to struct B and
-> >> struct B pointing to struct A.
-> >
-> > Why is this a problem in general?
->
-> Cyclic dependencies are often a sign of a design problem.
->
-> > There are cases in which struct A needs to be found given struct B
-> > (like in the ACPI thermal case, when the driver needs to get to
-> > trips[i] from its local data) and there are cases in which struct B
-> > needs to be found given struct A (like when a driver's callback is
-> > invoked and passed a trip pointer, so the driver needs to get to its
-> > local data from it - arguably this is not the case right now, but I
-> > suppose it will be the case in the future).
-> >
-> >> [ ... ]
-> >>
-> >>>>>     struct thermal_cooling_device_ops {
-> >>>>> Index: linux-pm/drivers/thermal/thermal_core.c
-> >>>>> ===================================================================
-> >>>>> --- linux-pm.orig/drivers/thermal/thermal_core.c
-> >>>>> +++ linux-pm/drivers/thermal/thermal_core.c
-> >>>>> @@ -1306,14 +1306,28 @@ thermal_zone_device_register_with_trips(
-> >>>>>         if (result)
-> >>>>>                 goto release_device;
-> >>>>>
-> >>>>> +     mutex_lock(&tz->lock);
-> >>>>> +
-> >>>>>         for (count = 0; count < num_trips; count++) {
-> >>>>> -             struct thermal_trip trip;
-> >>>>> +             int temperature = 0;
-> >>>>> +
-> >>>>> +             if (trips) {
-> >>>>> +                     temperature = trips[count].temperature;
-> >>>>> +                     if (trips[count].driver_ref)
-> >>>>> +                             trips[count].driver_ref->trip = &trips[count];
-> >>>>> +             } else {
-> >>>>> +                     struct thermal_trip trip;
-> >>>>
-> >>>> As mentioned above, that should not appear in the thermal core code.
-> >>>
-> >>> Well, this is a matter of opinion to me.  Clearly, I disagree with it.
-> >>
-> >> Why? It is not an opinion.
-> >
-> > So what's wrong with it, technically?  What's broken by it?  Why does
-> > it make the code more difficult to maintain?
->
->
->
-> >> The thermal core code has been very very tied
-> >> with the ACPI implementation (which is logical given the history of the
-> >> changes). All the efforts have been made to cut these frictions and make
-> >> the thermal core code driver agnostic.
-> >>
-> >> The changes put in place a mechanism for the ACPI driver.
-> >
-> > Not really, for all drivers that have local trip data and need to get
-> > to trips[i] from there and/or the other way around.
-> >
-> >> The thermal zone lock wrapper is put in place for the ACPI driver.
-> >
-> > Yes, it is, because that's the most straightforward way to address the
-> > use case at hand IMV.
-> >
-> >>> Anyway, I want to be productive, so here's the thing: either something
-> >>> like this is done, or drivers need to be allowed to walk the trips
-> >>> table.
-> >>>
-> >>> Which one is better?
-> >>
-> >> None of them. I think we can find a third solution where the changes are
-> >> self contained in the ACPI driver. What do you think?
-> >
-> > The ACPI thermal driver needs to update trip point temperatures at
-> > times.  For this purpose, it needs to get from its local trip data to
-> > trip[i] somehow.
-> >
-> > Creating a new trips[] array and handing it over to the core is not an
-> > option, because it potentially breaks the thermal device binding to
-> > the zone (in which trip indices are used, mind you).
-> >
-> > So how exactly do you want the driver to do the above?
-> >
-> > It could save a pointer to each trips[i] in its local data structures
-> > before registering the zone, but then if the core reordered the trips,
-> > those pointers would become stale.
-> >
-> > So how?
->
-> Let me check if I can do something on top of your series to move it in
-> the ACPI driver.
+With nested #ifdef statements it's sometimes difficult to tell
+which code goes with which statement.  One comment was wrong,
+so fix it and add another comment to clarify another.
 
-It doesn't need to be on top of my series, so if you have an idea,
-please just let me know what it is.
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ include/linux/acpi.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-It can't be entirely in the ACPI driver AFAICS, though, because
-trips[i] need to be modified on updates and they belong to the core.
-Hence, the driver needs some help from the core to get to them.  It
-can be something like "this is my trip tag and please give me the
-address of the trip matching it" or similar, but it is needed, because
-the driver has to assume that the trip indices used by it initially
-may change.
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 641dc48439873..0d5277b7c6323 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1117,10 +1117,10 @@ static inline void arch_reserve_mem_area(acpi_physical_address addr,
+ 					  size_t size)
+ {
+ }
+-#endif /* CONFIG_X86 */
++#endif /* CONFIG_IA64 */
+ #else
+ #define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
+-#endif
++#endif /* CONFIG_ACPI */
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
+ int acpi_dev_suspend(struct device *dev, bool wakeup);
+-- 
+2.34.1
+
