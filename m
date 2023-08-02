@@ -2,109 +2,147 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6D9BC41513
-	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 07:35:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D79BC001DE
+	for <linux-acpi@archiver.kernel.org>; Wed,  2 Aug 2023 09:30:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231909AbjHBHf4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 2 Aug 2023 03:35:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40166 "EHLO
+        id S233270AbjHBJaT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 2 Aug 2023 05:30:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232883AbjHBHfy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 03:35:54 -0400
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAC6D1702
-        for <linux-acpi@vger.kernel.org>; Wed,  2 Aug 2023 00:35:26 -0700 (PDT)
-Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-5222bc91838so9534925a12.0
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Aug 2023 00:35:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1690961725; x=1691566525;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=whzrFiFDXsxlOAugWLGBbpaxuv1pZIzaI72w9ONk2co=;
-        b=VMhdersl41V5+LiCY+XaKEQoOPKdsRq+ydlrbXdNAfX456uEGheeaRnwU+DhDcQh4f
-         wz9ZIcRGQuuixANTzeVLt2GJ3t278GRAIEn9KM2RZHR/6OKF5a8dYkV1BnUOmEsABmrO
-         rH9GHhUhncwgGoB8cV9bFd2dKxNjXuiUu1Ch/vAbg9tFcknJrGek4/JYq4CwPHgnXeNK
-         UZny4EJXlaDgq2UkzOcN7Wp3nLQuNYze7/gLeR8ggzf/ZPCJvUjIVyCkVPwyufKsdT9N
-         lyh9t1+k/qZk/RymxTMKD9Lhrw/kwRZdjofA5SvuTKlj+GGMk+Fb/nbdYw/3q5eZqNqB
-         eKnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690961725; x=1691566525;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=whzrFiFDXsxlOAugWLGBbpaxuv1pZIzaI72w9ONk2co=;
-        b=JvGAT2T9qz9Q23Jx60Ln2WtgmrWliYVw3AHUl+zgD9Nnij9bKnmlMQMxsAxwSDdh8F
-         YbAtQ2TavZdgSj5/m3K2fwwBNdCvO0NuElL9b4jR39Ha9tzAJ0uLIgijTRy3+hcXiVhg
-         PT1WWjrk6HDCUItsy9qPI8oi1JVk1vMoD6i3G1T/WiWXpRc0cukcS5nC+5BtAHqm/0T+
-         fuuAr9krn8SW8eH0ssvoTFg/8i5DBcc3LlofG7oLwJRl1RnmqJOV7inyreyAJJSWHJSo
-         9xpcyImn9nulwc9AvoWJk/yNfxOKGUFiPRhqHVSQoMPJ5g9RB46kffYPvTHpunmBhL61
-         Aq+A==
-X-Gm-Message-State: ABy/qLZpxo+RUfPmIXHPNP3aCCPmPAeFvXTkco47RgzyN+BN6TC/lpV4
-        wCw6A6Z83HJ2jRpX1YMzKPeDjw==
-X-Google-Smtp-Source: APBJJlFxv46Yn6HfI393SWv6JgHv2CwW0FKGrKUDqw1nyEfyyadbYoswq2hAmTFP/jO87HYyAsmDuQ==
-X-Received: by 2002:a17:907:b0c:b0:997:d627:263a with SMTP id h12-20020a1709070b0c00b00997d627263amr4022193ejl.67.1690961725300;
-        Wed, 02 Aug 2023 00:35:25 -0700 (PDT)
-Received: from localhost (h3221.n1.ips.mtn.co.ug. [41.210.178.33])
-        by smtp.gmail.com with ESMTPSA id gl13-20020a170906e0cd00b00982d0563b11sm8615511ejb.197.2023.08.02.00.35.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Aug 2023 00:35:24 -0700 (PDT)
-Date:   Tue, 1 Aug 2023 10:45:20 +0300
-From:   Dan Carpenter <dan.carpenter@linaro.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>
-Cc:     linux-acpi@vger.kernel.org
-Subject: [bug report] PNP: convert resource options to single linked list
-Message-ID: <63ae790c-ca93-456f-bb15-6fd330f1d6ca@moroto.mountain>
+        with ESMTP id S231765AbjHBJaT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2023 05:30:19 -0400
+X-Greylist: delayed 63 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 02 Aug 2023 02:30:15 PDT
+Received: from esa11.hc1455-7.c3s2.iphmx.com (esa11.hc1455-7.c3s2.iphmx.com [207.54.90.137])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0120BE7
+        for <linux-acpi@vger.kernel.org>; Wed,  2 Aug 2023 02:30:15 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6600,9927,10789"; a="106087032"
+X-IronPort-AV: E=Sophos;i="6.01,248,1684767600"; 
+   d="scan'208";a="106087032"
+Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
+  by esa11.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2023 18:29:10 +0900
+Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
+        by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 68E8CC68E2;
+        Wed,  2 Aug 2023 18:29:07 +0900 (JST)
+Received: from aks-ab1.gw.nic.fujitsu.com (aks-ab1.gw.nic.fujitsu.com [192.51.207.11])
+        by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id A9A88D5EA9;
+        Wed,  2 Aug 2023 18:29:06 +0900 (JST)
+Received: from localhost.localdomain (unknown [10.167.234.230])
+        by aks-ab1.gw.nic.fujitsu.com (Postfix) with ESMTP id ED4DB2FC7B4E;
+        Wed,  2 Aug 2023 18:29:04 +0900 (JST)
+From:   Li Zhijian <lizhijian@cn.fujitsu.com>
+To:     akpm@linux-foundation.org, linux-acpi@vger.kernel.org,
+        linux-mm@kvack.org
+Cc:     rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org,
+        ying.huang@intel.com, aneesh.kumar@linux.ibm.com,
+        Li Zhijian <lizhijian@cn.fujitsu.com>
+Subject: [PATCH] acpi,mm: fix typo sibiling -> sibling
+Date:   Wed,  2 Aug 2023 17:28:56 +0800
+Message-Id: <20230802092856.819328-1-lizhijian@cn.fujitsu.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27788.006
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27788.006
+X-TMASE-Result: 10--4.362300-10.000000
+X-TMASE-MatchedRID: WwTQ5WpbqUAUnpTkX3DbLirLqyE6Ur/jGfZImb3fqAQ6FHRWx2FGsL8F
+        Hrw7frluf146W0iUu2t7Dk+VAslsnY3oygjMeK7eBO00Q/2PQs++F//Mn3a2wwPHqiqIXxKG+03
+        a+MQ8RE2BKmEhSw0fOvlc5/v2Z+iZlwV2iaAfSWcURSScn+QSXt0H8LFZNFG76sBnwpOylLPJ1d
+        yRsn38oPRpGUAneS024pirfueCpzaIU5/Hig73GZ0wLQO1SUhFqQX4Tk3p4TByE6+JCoh/s5Sfx
+        imG/4PbSy9102KxznIhyadlGFXHKsTgfCdKUS4cicSkmYsAV+kLUU1zqiphVX7cGd19dSFd
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-[ This is obviously ancient code, but maybe you could still take a
-  look? -dan ]
+First found this typo as reviewing memory tier code. Fix it by sed like:
+$ sed -i 's/sibiling/sibling/g' $(git grep -l sibiling)
 
-Hello Bjorn Helgaas,
+so the acpi one will be corrected as well.
 
-The patch 1f32ca31e740: "PNP: convert resource options to single
-linked list" from Jun 27, 2008 (linux-next), leads to the following
-Smatch static checker warning:
+Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_pad.c      |  2 +-
+ include/linux/memory-tiers.h |  2 +-
+ mm/memory-tiers.c            | 10 +++++-----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-	drivers/pnp/quirks.c:193 quirk_add_irq_optional_dependent_sets()
-	warn: list_entry() does not return NULL 'new_option'
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index 7a453c5ff303..7f073ca64f0e 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -100,7 +100,7 @@ static void round_robin_cpu(unsigned int tsk_index)
+ 	for_each_cpu(cpu, pad_busy_cpus)
+ 		cpumask_or(tmp, tmp, topology_sibling_cpumask(cpu));
+ 	cpumask_andnot(tmp, cpu_online_mask, tmp);
+-	/* avoid HT sibilings if possible */
++	/* avoid HT siblings if possible */
+ 	if (cpumask_empty(tmp))
+ 		cpumask_andnot(tmp, cpu_online_mask, pad_busy_cpus);
+ 	if (cpumask_empty(tmp)) {
+diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.h
+index fc9647b1b4f9..1e6c8ddcaa92 100644
+--- a/include/linux/memory-tiers.h
++++ b/include/linux/memory-tiers.h
+@@ -22,7 +22,7 @@
+ struct memory_tier;
+ struct memory_dev_type {
+ 	/* list of memory types that are part of same tier as this type */
+-	struct list_head tier_sibiling;
++	struct list_head tier_sibling;
+ 	/* abstract distance for this specific memory type */
+ 	int adistance;
+ 	/* Nodes of same abstract distance */
+diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
+index a516e303e304..56c22470c96d 100644
+--- a/mm/memory-tiers.c
++++ b/mm/memory-tiers.c
+@@ -115,7 +115,7 @@ static __always_inline nodemask_t get_memtier_nodemask(struct memory_tier *memti
+ 	nodemask_t nodes = NODE_MASK_NONE;
+ 	struct memory_dev_type *memtype;
+ 
+-	list_for_each_entry(memtype, &memtier->memory_types, tier_sibiling)
++	list_for_each_entry(memtype, &memtier->memory_types, tier_sibling)
+ 		nodes_or(nodes, nodes, memtype->nodes);
+ 
+ 	return nodes;
+@@ -174,7 +174,7 @@ static struct memory_tier *find_create_memory_tier(struct memory_dev_type *memty
+ 	 * If the memtype is already part of a memory tier,
+ 	 * just return that.
+ 	 */
+-	if (!list_empty(&memtype->tier_sibiling)) {
++	if (!list_empty(&memtype->tier_sibling)) {
+ 		list_for_each_entry(memtier, &memory_tiers, list) {
+ 			if (adistance == memtier->adistance_start)
+ 				return memtier;
+@@ -218,7 +218,7 @@ static struct memory_tier *find_create_memory_tier(struct memory_dev_type *memty
+ 	memtier = new_memtier;
+ 
+ link_memtype:
+-	list_add(&memtype->tier_sibiling, &memtier->memory_types);
++	list_add(&memtype->tier_sibling, &memtier->memory_types);
+ 	return memtier;
+ }
+ 
+@@ -527,7 +527,7 @@ static bool clear_node_memory_tier(int node)
+ 		memtype = node_memory_types[node].memtype;
+ 		node_clear(node, memtype->nodes);
+ 		if (nodes_empty(memtype->nodes)) {
+-			list_del_init(&memtype->tier_sibiling);
++			list_del_init(&memtype->tier_sibling);
+ 			if (list_empty(&memtier->memory_types))
+ 				destroy_memory_tier(memtier);
+ 		}
+@@ -553,7 +553,7 @@ struct memory_dev_type *alloc_memory_type(int adistance)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	memtype->adistance = adistance;
+-	INIT_LIST_HEAD(&memtype->tier_sibiling);
++	INIT_LIST_HEAD(&memtype->tier_sibling);
+ 	memtype->nodes  = NODE_MASK_NONE;
+ 	kref_init(&memtype->kref);
+ 	return memtype;
+-- 
+2.31.1
 
-drivers/pnp/quirks.c
-    180 static void quirk_add_irq_optional_dependent_sets(struct pnp_dev *dev)
-    181 {
-    182         struct pnp_option *new_option;
-    183         unsigned int num_sets, i, set;
-    184         struct pnp_irq *irq;
-    185 
-    186         num_sets = dev->num_dependent_sets;
-    187         for (i = 0; i < num_sets; i++) {
-    188                 new_option = pnp_clone_dependent_set(dev, i);
-    189                 if (!new_option)
-    190                         return;
-    191 
-    192                 set = pnp_option_set(new_option);
---> 193                 while (new_option && pnp_option_set(new_option) == set) {
-
-The new_option part of this condition is always non-NULL.  I think
-eventually we will call list_entry() on the list head so we end up
-reading from invalid memory.
-
-    194                         if (new_option->type == IORESOURCE_IRQ) {
-    195                                 irq = &new_option->u.irq;
-    196                                 irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-    197                         }
-    198                         dbg_pnp_show_option(dev, new_option);
-    199                         new_option = list_entry(new_option->list.next,
-    200                                                 struct pnp_option, list);
-    201                 }
-    202 
-    203                 dev_info(&dev->dev, "added dependent option set %d (same as "
-    204                          "set %d except IRQ optional)\n", set, i);
-    205         }
-    206 }
-
-regards,
-dan carpenter
