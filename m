@@ -2,152 +2,128 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E606C04FDF
-	for <linux-acpi@archiver.kernel.org>; Fri,  4 Aug 2023 16:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D8A4C04A94
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Aug 2023 16:17:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232328AbjHDQEa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 4 Aug 2023 12:04:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55376 "EHLO
+        id S229520AbjHDQRm (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 4 Aug 2023 12:17:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232269AbjHDQEV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Aug 2023 12:04:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1734446B3;
-        Fri,  4 Aug 2023 09:04:17 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E5E46209C;
-        Fri,  4 Aug 2023 16:04:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A08E8C433C9;
-        Fri,  4 Aug 2023 16:04:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691165055;
-        bh=78j4ImjPFLwMIx6dNxzf6NrXohxazUfeSa9T0hDUi78=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=he56eTrMDCJRuBvnSFjHS6R2oxXhVhFZKgncrrAZtjF83SZeZBwKnuTH5Cj2Oo261
-         w4quaG9ZEReckzLQ/mVtaL1Kavb0KEefNG18TWgvThq3c4zLGt3y126gGGD907zAEp
-         DFjNd8M/f+K4Yr21JcwrcuDMHu1h8XX1MlSoy40NvBPftWiwbjofPKfM+tlVEjsIaX
-         pSgQNV+WQhYTx0FIDog/vaF+ILdRcsRvMW2GuWYbJcXA0CS7lHZGCnLqzrBKDG6Lfz
-         1DcNTCalptErD5lV5J2Rocvz3W3+F5jsEJ6QAjDhSNt50hPpf4pY70VbdwQtHoOKoI
-         EmQFRX75OddIg==
-From:   Ard Biesheuvel <ardb@kernel.org>
-To:     linux-efi@vger.kernel.org
-Cc:     linux-acpi@vger.kernel.org, rafael@kernel.org, lenb@kernel.org,
-        Ard Biesheuvel <ardb@kernel.org>
-Subject: [PATCH 3/4] efi/runtime-wrappers: Remove duplicated macro for service returning void
-Date:   Fri,  4 Aug 2023 18:03:58 +0200
-Message-Id: <20230804160359.228901-4-ardb@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230804160359.228901-1-ardb@kernel.org>
-References: <20230804160359.228901-1-ardb@kernel.org>
+        with ESMTP id S229499AbjHDQRl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Aug 2023 12:17:41 -0400
+Received: from relmlie5.idc.renesas.com (relmlor1.renesas.com [210.160.252.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 90250B2;
+        Fri,  4 Aug 2023 09:17:39 -0700 (PDT)
+X-IronPort-AV: E=Sophos;i="6.01,255,1684767600"; 
+   d="scan'208";a="171950178"
+Received: from unknown (HELO relmlir5.idc.renesas.com) ([10.200.68.151])
+  by relmlie5.idc.renesas.com with ESMTP; 05 Aug 2023 01:17:38 +0900
+Received: from localhost.localdomain (unknown [10.226.93.35])
+        by relmlir5.idc.renesas.com (Postfix) with ESMTP id 9436840116B5;
+        Sat,  5 Aug 2023 01:17:33 +0900 (JST)
+From:   Biju Das <biju.das.jz@bp.renesas.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     Biju Das <biju.das.jz@bp.renesas.com>, linux-acpi@vger.kernel.org,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Andi Shyti <andi.shyti@kernel.org>,
+        Wolfram Sang <wsa@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        linux-rtc@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v7 0/4] Extend device_get_match_data() to struct bus_type
+Date:   Fri,  4 Aug 2023 17:17:24 +0100
+Message-Id: <20230804161728.394920-1-biju.das.jz@bp.renesas.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3714; i=ardb@kernel.org; h=from:subject; bh=78j4ImjPFLwMIx6dNxzf6NrXohxazUfeSa9T0hDUi78=; b=owGbwMvMwCFmkMcZplerG8N4Wi2JIeWsYu5vR7Gvq9oebZ57nfGKe8Re7YULvk/S9+E0/xPSX WRwIk61o5SFQYyDQVZMkUVg9t93O09PlKp1niULM4eVCWQIAxenAEykQJaR4WVog4T/+xxD7ymy 3/2PvtkbqyOd2sfLPePT1qQfHJnZxgw/GQ8zzp31vkAu6+qPlul8tnuWmN8tuxWdL8c2p/pz4+4 V/AA=
-X-Developer-Key: i=ardb@kernel.org; a=openpgp; fpr=F43D03328115A198C90016883D200E9CA6329909
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-__efi_call_virt() exists as an alternative for efi_call_virt() for the
-sole reason that ResetSystem() returns void, and so we cannot use a call
-to it in the RHS of an assignment.
+This patch series extend device_get_match_data() to struct bus_type,
+so that buses like I2C can get matched data.
 
-Now that we support the use of _Generic, this is no longer needed, and
-we can handle this by emitting a comma expression inside the default
-branch of a _Generic() switch.
+There is a plan to replace i2c_get_match_data()->device_get_match_data()
+later, once this patch hits mainline as it is redundant.
 
-As a bonus, this ensures that the runtime service call is always
-constructed and type checked by the compiler, as it is passed to
-_Generic() to infer the return type. (both x86 and arm64 override
-arch_efi_call_virt() to invoke a type unsafe variadic wrapper function
-implemented in assembler)
+v6->v7:
+ * Added ack from Greg Kroah-Hartman for patch#1
+ * Swapped patch#2 and patch#3 from v6.
+ * Added Rb tag from Andy for patch#2 and patch#4
+ * Updated commit description of patch#2 by removing unnecessary wrapping.
+ * Updated typo in commit description struct bus_type()->struct bus_type.
+v5->v6:
+ * Cced linux-rtc and linux-iio as these subsytems uses i2c_get_match_
+   data() and this function become redundant once this patch series hits
+   mainline.
+ * Added Rb tag from Sakari for patch#1.
+ * Moved patch#3 from v5 to patch#2 and patch#2 from v5 to patch#4.
+ * Added Rb tag from Andy for patch#2
+ * Separate patch#3 to prepare for better difference for
+   i2c_match_id() changes.
+ * Merged patch#4 from v5 with patch#4.
+v4->v5:
+ * Added const struct device_driver variable 'drv' in i2c_device_get_match
+   _data().
+ * For code readability and maintenance perspective, added separate NULL
+   check for drv and client variable and added comment for NULL check for
+   drv variable.
+ * Created separate patch for converting i2c_of_match_device_sysfs() to
+   non-static.
+ * Removed export symbol for i2c_of_match_device_sysfs().
+ * Replaced 'dev->driver'->'drv'.
+ * Replaced return value data->NULL to avoid (potentially) stale pointers,
+   if there is no match.
+v3->v4:
+ * Documented corner case for device_get_match_data()
+ * Dropped struct i2c_driver parameter from i2c_get_match_data_helper()
+ * Split I2C sysfs handling in separate patch(patch#3)
+ * Added space after of_device_id for i2c_of_match_device_sysfs()
+ * Added const parameter for struct i2c_client, to prevent overriding it's
+   pointer.
+ * Moved declaration from public i2c.h->i2c-core.h
+v2->v3:
+ * Added Rb tag from Andy for patch#1.
+ * Extended to support i2c_of_match_device() as suggested by Andy.
+ * Changed i2c_of_match_device_sysfs() as non-static function as it is
+   needed for i2c_device_get_match_data().
+ * Added a TODO comment to use i2c_verify_client() when it accepts const
+   pointer.
+ * Added multiple returns to make code path for device_get_match_data()
+   faster in i2c_get_match_data().
+RFC v1->v2:
+ * Replaced "Signed-off-by"->"Suggested-by" tag for Dmitry.
+ * Documented device_get_match_data().
+ * Added multiple returns to make code path for generic fwnode-based
+   lookup faster.
+ * Fixed build warnings reported by kernel test robot <lkp@intel.com>
+ * Added const qualifier to return type and parameter struct i2c_driver
+   in i2c_get_match_data_helper().
+ * Added const qualifier to struct i2c_driver in i2c_get_match_data()
+ * Dropped driver variable from i2c_device_get_match_data()
+ * Replaced to_i2c_client with logic for assigning verify_client as it
+   returns non const pointer.
 
-Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
----
- drivers/firmware/efi/runtime-wrappers.c |  4 +---
- include/linux/efi.h                     | 24 ++++----------------
- 2 files changed, 6 insertions(+), 22 deletions(-)
+Biju Das (4):
+  drivers: fwnode: Extend device_get_match_data() to struct bus_type
+  i2c: Enhance i2c_get_match_data()
+  i2c: i2c-core-of: Convert i2c_of_match_device_sysfs() to non-static
+  i2c: Add i2c_device_get_match_data() callback
 
-diff --git a/drivers/firmware/efi/runtime-wrappers.c b/drivers/firmware/efi/runtime-wrappers.c
-index 158685e26f430ac9..b3ef208299ae591e 100644
---- a/drivers/firmware/efi/runtime-wrappers.c
-+++ b/drivers/firmware/efi/runtime-wrappers.c
-@@ -41,8 +41,6 @@
-  */
- #define efi_call_virt(f, args...)   \
- 	efi_call_virt_pointer(efi.runtime, f, args)
--#define __efi_call_virt(f, args...) \
--	__efi_call_virt_pointer(efi.runtime, f, args)
- 
- struct efi_runtime_work efi_rts_work;
- 
-@@ -422,7 +420,7 @@ static void virt_efi_reset_system(int reset_type,
- 		return;
- 	}
- 	efi_rts_work.efi_rts_id = EFI_RESET_SYSTEM;
--	__efi_call_virt(reset_system, reset_type, status, data_size, data);
-+	efi_call_virt(reset_system, reset_type, status, data_size, data);
- 	up(&efi_runtime_lock);
- }
- 
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index b34e11a5e969282c..c72715821016851b 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -1171,8 +1171,7 @@ static inline void efi_check_for_embedded_firmwares(void) { }
- #define arch_efi_call_virt(p, f, args...)	((p)->f(args))
- 
- /*
-- * Arch code can implement the following three template macros, avoiding
-- * reptition for the void/non-void return cases of {__,}efi_call_virt():
-+ * Arch code must implement the following three template macros:
-  *
-  *  * arch_efi_call_virt_setup()
-  *
-@@ -1181,9 +1180,7 @@ static inline void efi_check_for_embedded_firmwares(void) { }
-  *
-  *  * arch_efi_call_virt()
-  *
-- *    Performs the call. The last expression in the macro must be the call
-- *    itself, allowing the logic to be shared by the void and non-void
-- *    cases.
-+ *    Performs the call.
-  *
-  *  * arch_efi_call_virt_teardown()
-  *
-@@ -1198,7 +1195,9 @@ static inline void efi_check_for_embedded_firmwares(void) { }
- 	arch_efi_call_virt_setup();					\
- 									\
- 	__flags = efi_call_virt_save_flags();				\
--	__s = arch_efi_call_virt(p, f, args);				\
-+	__s = _Generic((p)->f(args),					\
-+	       efi_status_t: arch_efi_call_virt((p), f, args),		\
-+	       default: (arch_efi_call_virt((p), f, args), EFI_ABORTED));\
- 	efi_call_virt_check_flags(__flags, __stringify(f));		\
- 									\
- 	arch_efi_call_virt_teardown();					\
-@@ -1206,19 +1205,6 @@ static inline void efi_check_for_embedded_firmwares(void) { }
- 	__s;								\
- })
- 
--#define __efi_call_virt_pointer(p, f, args...)				\
--({									\
--	unsigned long __flags;						\
--									\
--	arch_efi_call_virt_setup();					\
--									\
--	__flags = efi_call_virt_save_flags();				\
--	arch_efi_call_virt(p, f, args);					\
--	efi_call_virt_check_flags(__flags, __stringify(f));		\
--									\
--	arch_efi_call_virt_teardown();					\
--})
--
- #define EFI_RANDOM_SEED_SIZE		32U // BLAKE2S_HASH_SIZE
- 
- struct linux_efi_random_seed {
+ drivers/base/property.c     | 27 ++++++++++++++++-
+ drivers/i2c/i2c-core-base.c | 60 ++++++++++++++++++++++++++++++-------
+ drivers/i2c/i2c-core-of.c   |  4 +--
+ drivers/i2c/i2c-core.h      |  9 ++++++
+ include/linux/device/bus.h  |  3 ++
+ 5 files changed, 90 insertions(+), 13 deletions(-)
+
 -- 
-2.39.2
+2.25.1
 
