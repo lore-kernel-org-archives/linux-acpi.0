@@ -2,153 +2,168 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 517C9C04A6A
-	for <linux-acpi@archiver.kernel.org>; Thu,  3 Aug 2023 19:58:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED899EB64DD
+	for <linux-acpi@archiver.kernel.org>; Fri,  4 Aug 2023 02:32:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231592AbjHCT6q convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 3 Aug 2023 15:58:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40756 "EHLO
+        id S230444AbjHDCcp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 3 Aug 2023 22:32:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231547AbjHCT6p (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2023 15:58:45 -0400
-Received: from mail-oo1-f42.google.com (mail-oo1-f42.google.com [209.85.161.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69C30420F;
-        Thu,  3 Aug 2023 12:58:44 -0700 (PDT)
-Received: by mail-oo1-f42.google.com with SMTP id 006d021491bc7-56d0deeca09so188419eaf.0;
-        Thu, 03 Aug 2023 12:58:44 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691092723; x=1691697523;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=L5lbrYku02MGucWZlgqTufTYfZYAYDVopF3bhZtB7NU=;
-        b=O7d0mAiecBwrknl1PYdSGAQhBY1tQfHHfrAqRoFoUWtWr8hcdwWQlVrWPKjiHMYE0Q
-         qGTZfR+TO7bZ6ux4mzmXB1NGeMXx9dgkux+Yo+5kNOsIXd8X5amTKkMqeRdRQjLjWNR+
-         LD74JRd6hqvYa9hw8XAY5k2QoGYHdCVJxfVATHXrAZVDVQ+GfgllqItv0Kyf1Ojo1WKj
-         gVH4HKSev1ypWGXqR8rI2QB+53RGVHXg22e/De1z6hjzRxCFET2ML4+YwYbo2Gi6IjO2
-         dW7mV6eZyXm92Oj16L7yXA/3vNDFAuVu7wNoO6QI3BnqKkPsbe5Zlrv36RKISrsJts+c
-         Uhkg==
-X-Gm-Message-State: ABy/qLbbH/5HdGQYq+TePwh9v7BT2EuWQWYNaN1ztC8gHKhj8mHXyidC
-        E1q4R+rJd1kJYcX4se+tEicRXYtEjCYTmS5M7ew=
-X-Google-Smtp-Source: APBJJlEFaRUb1D3ofaPFX3gImb+a7isGHR4BOwxQBVGLYqbi8AM4d3+S/zxJiGipzTHQfvRm3JYUepQqqwuz7wcgo3s=
-X-Received: by 2002:a4a:a585:0:b0:56c:484a:923d with SMTP id
- d5-20020a4aa585000000b0056c484a923dmr13794384oom.1.1691092723574; Thu, 03 Aug
- 2023 12:58:43 -0700 (PDT)
+        with ESMTP id S230035AbjHDCco (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2023 22:32:44 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2042.outbound.protection.outlook.com [40.107.93.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4F64119;
+        Thu,  3 Aug 2023 19:32:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=l6/uRuL099iUc50GlTbxq1hHjZtWo51vabVoAnkdeYRkSGUGI4lFk+CJH/ouz8IFU69zQcjOXo3KoAKj0o4WeeZwgMvwwLfoHctx/UhoTdnVDe+JsKtC4J5la31l3OMgWs/013sjVOQVE30HoFRoa/MYYDcpaUyPXLLYSGnb+3b6zOk6iLQ0w4C0Z8fMRtym2YFlM8jkP+agJTwFLoP5A7Rjr1K8uZ086GKkUGFW0JewvNQjyao3T0z/j8SNFL8eeiwmvkXkGM4BlJY8JXj8dxfdjzzMfr84BWNlSo+mVKHMgDUQuoI6LRpR6rCS019X8LgRnh5i8Xc7+QsDunYW9Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=fAIawoKWeYc5Bs9Moet/aYsbA3W41wYv8mJ7OxxKScs=;
+ b=kA3kfV7pfSYpUNo5wWSWQyYZyJFm7lBLSQPvayu8FUcdTnErXm+MOlDhzROh8H8A8TNHbveYKavvRuuNbGoVKDb66REfc9GZEZ/Q6Nod1yXu6ACJZlqoJWfLPjvfDbv1OC7lCNrMd3X+SyS51lhIKeZ/RH1iZ5I4/7a1xAbf4KwdLZf47QdMEQWD1XZi7lo6WYbQTBdyf79zHijEBTtH+0lw9o0z7sjvm7Ki9GoOjNJS8xsAJgv+/OIfUhsKi/2H/12XPxEouGqjmi5WWMHnupUZCXFOVjh8EyDFVKRNve+J9AXKPMqSD0I05H68YaLvjeRUkUSCOQ8/dOHV7R4k9Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fAIawoKWeYc5Bs9Moet/aYsbA3W41wYv8mJ7OxxKScs=;
+ b=Da08GBwcfhFRvWfQO0aBzS1WZWVloG3dDzlbb5lah3/A+EogsfzCZGrwOXHpRvg76Jql/2ZHf7hHGEwOlzSCRbUBaVMDfqPKlqHy6VbhNImdgeawnrKDx4pi7a30flTjjV8NP88E8sksdjZyqEI+hwov85Yj3I3d6oQ/ldSWD2A=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from MN0PR12MB6101.namprd12.prod.outlook.com (2603:10b6:208:3cb::10)
+ by MW3PR12MB4458.namprd12.prod.outlook.com (2603:10b6:303:5d::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.20; Fri, 4 Aug
+ 2023 02:32:38 +0000
+Received: from MN0PR12MB6101.namprd12.prod.outlook.com
+ ([fe80::36f9:ffa7:c770:d146]) by MN0PR12MB6101.namprd12.prod.outlook.com
+ ([fe80::36f9:ffa7:c770:d146%7]) with mapi id 15.20.6631.046; Fri, 4 Aug 2023
+ 02:32:38 +0000
+Message-ID: <846c0e8f-d7b4-bfe5-8b2b-cf72fe7afeb9@amd.com>
+Date:   Thu, 3 Aug 2023 21:32:35 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.12.0
+Subject: Re: [PATCH v8 2/2] PCI/ACPI: Use device constraints instead of dates
+ to opt devices into D3
+Content-Language: en-US
+From:   Mario Limonciello <mario.limonciello@amd.com>
+To:     Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc:     "Rafael J . Wysocki" <rafael@kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Iain Lane <iain@orangesquash.org.uk>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>
+References: <20230802201013.910-1-mario.limonciello@amd.com>
+ <20230802201013.910-3-mario.limonciello@amd.com>
+ <20230803050118.GV14638@black.fi.intel.com>
+ <06cf76ba-de5f-caaa-d1c4-9d34adf15a52@amd.com>
+In-Reply-To: <06cf76ba-de5f-caaa-d1c4-9d34adf15a52@amd.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: SA9PR10CA0029.namprd10.prod.outlook.com
+ (2603:10b6:806:a7::34) To MN0PR12MB6101.namprd12.prod.outlook.com
+ (2603:10b6:208:3cb::10)
 MIME-Version: 1.0
-References: <13318886.uLZWGnKmhe@kreacher> <12254967.O9o76ZdvQC@kreacher>
- <4501957.LvFx2qVVIh@kreacher> <2d0315d4-35b4-84db-4dcb-c9528abad825@linaro.org>
- <CAJZ5v0iQDOsTOqWFvbf5nom-b3-pbHPRzJQC-1DM9eoh=0AKjg@mail.gmail.com>
- <eb279cf1-0605-3b87-5cb6-241a91977455@linaro.org> <CAJZ5v0i48=oawDJHoaHhiZRaO_CJokKsOHyNvu2v4PUbS6CH_Q@mail.gmail.com>
- <f8029547-6851-7e0c-00e6-4963ccbc2702@linaro.org> <CAJZ5v0gDQMNSeEU1J7ooJk4Ec=Hw_JuZAtL5k215v7Lf67iTgg@mail.gmail.com>
- <5c93d78d-835e-c740-280b-9d76456aaeda@linaro.org> <CAJZ5v0gtkZTwt-qP0uwvTJNx8cpO1o1esmW9BfVxB67X3Yt++w@mail.gmail.com>
- <b4e474f9-79e8-534b-509e-12eb5995fa0c@linaro.org>
-In-Reply-To: <b4e474f9-79e8-534b-509e-12eb5995fa0c@linaro.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Thu, 3 Aug 2023 21:58:32 +0200
-Message-ID: <CAJZ5v0iH+qf6eBuZASPKyA6rT8O6FiA7516MiYYUx6Uc+wR4Ow@mail.gmail.com>
-Subject: Re: [PATCH v3 1/8] thermal: core: Add mechanism for connecting trips
- with driver data
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        Michal Wilczynski <michal.wilczynski@intel.com>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN0PR12MB6101:EE_|MW3PR12MB4458:EE_
+X-MS-Office365-Filtering-Correlation-Id: a5304d46-c5fe-4d6a-14b3-08db949311e7
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: GiNi7T4g30b/fjFDl5IhmecL3T0zk65cUC2tPdIvmggxBimXIg4yq2r1IadoPngTACcL4CkRrkr39rTwYRi2ROPHQXjNI7ZqlyJjA7uDMseLG2jVI3KfsdpwFp7NNjQ8FZ2A+1aRpAvAU9tBVptsrhXJ7a0joOOfta0r89a71INW2BllVzbZBHUR3QqFLoOM1O10ZyNHui1b/CivO4b6riXEYY8FWRM5DwWM8irQrpZbk0hBwx/EqrpqSMcLzeW4lQJnm6KVV31rFZ3s2pp7UKiGroaCxIA3ma+QhucjQb8qsS6EOHDeCPNAlQAceMOurgP21ZSrC7g2JP4ld7XgiR3YaWQgzYVtPQDyOFh4jx/UPRKjCqQP2FoGg4rj4IYl8vilVwlRWoBVkH15JRje45pS2snuGfw5jQ4/KID+jpLa1AXRYecY0bwdqpZIWxh+8sLsKGV7Cbf97M+snVRlgvTd08M4+LSlX8Haoy7vo5WSw040QLnvyDkyUgQQNI9slsyHTiOEFgn92zR9udebQ7dhfGlT7zmi21zX7d5UbMhbzEGiH3B/co5YwmoKACSwnt4NrVq6rEOGxGLYRjc6YHl2cz7QxWkBviPHhPR0Se+Y4tWcXWzlIbrp3wIUutaafmoeFRK2fD7Ce6NF9Og/sw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6101.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(346002)(376002)(396003)(39860400002)(366004)(136003)(1800799003)(186006)(451199021)(36756003)(6506007)(53546011)(478600001)(6512007)(6486002)(6666004)(54906003)(2906002)(66556008)(4326008)(41300700001)(316002)(6916009)(5660300002)(66476007)(66946007)(44832011)(8676002)(8936002)(38100700002)(86362001)(31696002)(2616005)(83380400001)(31686004)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?aytsRnU0MlhGWE0vMHJ5RFRKaEM4aEtnOWUxREoxQ05lU0psZnExQTNwNTNa?=
+ =?utf-8?B?SlpBbk90MHd1NW9QZkFDdUV3M2FSK1cxWlNWd3lHNmVPTDJlakliZEh1OFIr?=
+ =?utf-8?B?TU9yU1RiZGIyT0c1QkwxYTByc2xYWUVjN3dlbDY4QkUyNmJPb25BS29XMDRu?=
+ =?utf-8?B?MThRWkE5WERlMlF3MUQxdTRwdjZ2RFluOHFuRERNZXhnMTlRR3U3cmVqNmMx?=
+ =?utf-8?B?azRLZmRjN0JPRE1tb09PWEJUc1BNTkl2Ui9sWXQvU25OTDhxS241cWQxaUxq?=
+ =?utf-8?B?U0NoWitoMHVNQmZ0a1YxSWx4bUpXRGFZc05nU0wwZGljbzkzdEhZWmRnUlFE?=
+ =?utf-8?B?VmJzYVZSM09JdU1ValZjcXduYkduRlI1ZVBEcEw1cWJndFhJWmpUeHcwait2?=
+ =?utf-8?B?V2tDYjZwTDhmRzkxREV1bG1nVVdoRU96eHd1aFZqVm9qamlCUlVyMUtTNnpV?=
+ =?utf-8?B?Q29kNEw0ZCtMUEppQkZiU0NJTnBaQlR2RHV6bG5WV2p1UkxOSzZrV3NwRGU2?=
+ =?utf-8?B?MXZHSGt5bWViVEtnTS9mQkVLWVpSYkl6bTZ3K1RjcGxITlcxQ0dIS0xtM3E5?=
+ =?utf-8?B?U2VzQlZrcnJOekpQU2NGaVdYQmVIbDdLSTVjcGJyT2dHU1R2b3MrQkg1NUcw?=
+ =?utf-8?B?L3hBcTBqaEQxWEt6ckxjTWd5QVBOQzJXbmpNbjNwQVQzK0JGRnFzaXlCOWNE?=
+ =?utf-8?B?MUJ4S2NZTVg2MkVnRlBka09TTStiSU9DaG16WHNzSEtYdGdIamEzZDNJb2Ro?=
+ =?utf-8?B?bEVvZUM5anUzNGtjZVVXQ0xCMDFzN2tmVG9XaVNmTTNXcDh2b2N2RnFRNU9R?=
+ =?utf-8?B?amdFcTQ3TWkxTzluR3YzZ0FwUjFDcnptOTZJVkQzdWJ0ZXhmT2x1Q0pNci9S?=
+ =?utf-8?B?L0hSWGRibnlnL1h2TWM0dDZKMEpzUW1sSFBVbzcrSFhKWVpiMWZBTUpBeTJG?=
+ =?utf-8?B?Nkd3c1ZYVmFaNGp4blJvWUJWRFBwSmlDOHBDRjdyRlJLL09qSFdrNXQxLzJC?=
+ =?utf-8?B?cE1KRVRERVhmT3B0YkhRRU56VGRqNkw2alFYTzZyeFF6cGR3ejZabW0yeks5?=
+ =?utf-8?B?cjQrMW54cysxeEVKbXIvRTVZZjhqZ0ZNRis0ZFQ4SG9EZjZhUkZqUUlBb0lq?=
+ =?utf-8?B?a3ZxUGxDWC90NjBBMXhMY1Z6ZmNVUlVnMU1KMGh5ZzhvUzhWSDkvbitsNk1Q?=
+ =?utf-8?B?TGVIM2NaWDZUc1F0OHlIWDBaUkUzMFhOb1R0cHVOWG8xTVNiekFNZkVEZXZZ?=
+ =?utf-8?B?V3JhUG5CRW5HZ29yNGlTN2JwbTBnQk1seEUvbDlSdnZqczJsRlJRMURIQ1dy?=
+ =?utf-8?B?S3lBb3E0bE1tZjJnSkEzRHlQQnhnN2dGQ3pyUXA2T2llS092OWNXU1I1Y2RW?=
+ =?utf-8?B?bUdLMVd5Zkg2eFNwY2ZqYWlnMTgxZ0FlYlpOOG9oeWc1VXg2b3FXaGFqejZ2?=
+ =?utf-8?B?d0NhSXV6UmhNTll1UU04eHNWY0RrVVRxTzRmdGdLRmh5NFMxbUtBM0tROGRI?=
+ =?utf-8?B?eHNEdVRJQ0h1NXNPNHdJZ2ZUOXBaLzFaK1F0WkhHRllmbUVORnRUeDVKaWhh?=
+ =?utf-8?B?Y2tPZ080aHc2QWN3YzRuRlJ3d2RZRTNsNTVNM1hCR3dCSTVFUE5pWWlyaHQ1?=
+ =?utf-8?B?cjBwS3JDaXF1TXVhMXA3K1BPWDRkbjFjdDBmTmNsWmg5K2pxd1ozVC9HdXlJ?=
+ =?utf-8?B?NUhMYlM2R3hyelByQ2Q2QWx5dk84Y2NuMG9FN1ZDUmRKYTVVQTI2U04ydUxJ?=
+ =?utf-8?B?SUVaRmpHSWVmbm1DVjZueHFIaElocDlZaUVqQ2FQSFlxUnhqYkJnMURDWFpp?=
+ =?utf-8?B?L1lUOWEwaktBSGl0UkFDam0yT2x4WTQyVjNYa1RDM3pMRUNLdWpkQTVBS2RG?=
+ =?utf-8?B?TUx0ZnI0VDErOGJ4UTRZajZObUNtclFFMFk2VGRUY2UyMXM2ZnFmTisyNmdV?=
+ =?utf-8?B?WVFUQjgwV3IwNGVqZDl2OHVUa3kySVVlTHV5b2pYZ0swbWdwRzYwdk5VN0JC?=
+ =?utf-8?B?YkdhVGRrRW51Uzk3WHptZXN2THVNb21VVzNsakNsTWJoakVlamd6UVBKR1JR?=
+ =?utf-8?B?TW5UV0l4bjdWSUxjcWR1aXM5aU5pdXVsQnFnOEhqeXdVZWhZb0Qzc0Zzc0Zw?=
+ =?utf-8?B?M3o3NDR5Tkhtc3BYTkZSWWszZkFlaXFGcnFvSmxRZ3JzUS9pOWlialNDZHNX?=
+ =?utf-8?B?T0E9PQ==?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a5304d46-c5fe-4d6a-14b3-08db949311e7
+X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6101.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Aug 2023 02:32:38.6680
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: pjLeMRxhAzJ7xlJ0I/WhfPB6pv6qvXoqLCPaxWMtbhNK2KxEaMG7RFbThqrv4c0hgt4ZNXr3oZaGiwudlBinMA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR12MB4458
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, Aug 3, 2023 at 6:20 PM Daniel Lezcano <daniel.lezcano@linaro.org> wrote:
->
-> On 03/08/2023 16:15, Rafael J. Wysocki wrote:
-> > On Thu, Aug 3, 2023 at 3:06 PM Daniel Lezcano <daniel.lezcano@linaro.org> wrote:
-> >>
-> >> On 02/08/2023 18:48, Rafael J. Wysocki wrote:
-> >>
-> >> [ ... ]
-> >>
-> >>>> Let me check if I can do something on top of your series to move it in
-> >>>> the ACPI driver.
-> >>>
-> >>> It doesn't need to be on top of my series, so if you have an idea,
-> >>> please just let me know what it is.
-> >>>
-> >>> It can't be entirely in the ACPI driver AFAICS, though, because
-> >>> trips[i] need to be modified on updates and they belong to the core.
-> >>> Hence, the driver needs some help from the core to get to them.  It
-> >>> can be something like "this is my trip tag and please give me the
-> >>> address of the trip matching it" or similar, but it is needed, because
-> >>> the driver has to assume that the trip indices used by it initially
-> >>> may change.
-> >>
-> >> May be I'm missing something but driver_ref does not seems to be used
-> >> except when assigning it, no?
-> >
-> > It is used on the other side.  That is, the value assigned to the trip
-> > field in it is accessed via trip_ref in the driver.
-> >
-> > The idea is that the driver puts a pointer to its local struct
-> > thermal_trip_ref into a struct thermal_trip and the core stores the
-> > address of that struct thermal_trip in there, which allows the driver
-> > to access the struct thermal_trip via its local struct
-> > thermal_trip_ref going forward.
-> >
-> > Admittedly, this is somewhat convoluted.
-> >
-> > I have an alternative approach in the works, just for illustration
-> > purposes if nothing else, but I have encountered a problem that I
-> > would like to ask you about.
-> >
-> > Namely, zone disabling is not particularly useful for preventing the
-> > zone from being used while the trips are updated, because it has side
-> > effects.  First, it triggers __thermal_zone_device_update() and a
-> > netlink message every time the mode changes, which can be kind of
-> > overcome.
->
-> Right
->
-> > But second, if the mode is "disabled", it does not actually
-> > prevent things like __thermal_zone_get_trip() from running and the
-> > zone lock is the only thing that can be used for that AFAICS.
->  >
-> > So by "disabling" a thermal zone, did you mean changing its mode to
-> > "disabled" or something else?
->
-> Yes, that is what I meant.
->
-> May be the initial proposal by updating the thermal trips pointer can
-> solve that [1]
+On 8/3/23 06:38, Mario Limonciello wrote:
+> On 8/3/23 00:01, Mika Westerberg wrote:
+>> Hi,
+>>
+>> On Wed, Aug 02, 2023 at 03:10:13PM -0500, Mario Limonciello wrote:
+>>> @@ -3036,11 +3044,8 @@ bool pci_bridge_d3_possible(struct pci_dev 
+>>> *bridge)
+>>>           if (dmi_check_system(bridge_d3_blacklist))
+>>>               return false;
+>>> -        /*
+>>> -         * It should be safe to put PCIe ports from 2015 or newer
+>>> -         * to D3.
+>>> -         */
+>>> -        if (dmi_get_bios_year() >= 2015)
+>>> +        /* the platform indicates in a device constraint that D3 is 
+>>> needed */
+>>> +        if (platform_constraint_d3(bridge))
+>>
+>> This for sure causes some sort of power regression on the Intel
+>> platforms made after 2015. Why not check for the constraint and:
+>>
+> Are you sure?  I saw it as an explanation of how Windows could put the 
+> systems into D3 when there is no other PM related ACPI objects.
+> 
+>> - If present and enabled, use the desired D-state
+>> - If present and disabled, leave the device in D0
+>> - If not present use the existing cutoff date
+>>
+>> ?
+> 
+> Thanks! That sounds very reasonable to me.  I'll double check it in my 
+> case.
 
-No, it can't.  An existing trips[] table cannot be replaced with a new
-one with different trip indices, because those indices are already in
-use.  And if the indices are the same, there's no reason to replace
-trips.
+I've played with this a bit, and I found that I can make it work by 
+moving the constraints check into pci_target_state() in the non-ACPI 
+power manageable case.
 
-> IMO we can assume the trip point changes are very rare (if any), so
-> rebuilding a new trip array and update the thermal zone with the pointer
-> may solve the situation.
->
-> The routine does a copy of the trips array, so it can reorder it without
-> impacting the array passed as a parameter. And it can take the lock.
-
-The driver can take a lock as well.  Forbidding drivers to use the
-zone lock is an artificial limitation without technical merit IMV.
-
-> We just have to constraint the update function to invalidate arrays with
-> a number of trip points different from the one initially passed when
-> creating the thermal zone.
->
-> Alternatively, we can be smarter in the ACPI driver and update the
-> corresponding temperature+hysteresis trip point by using the
-> thermal_zone_set_trip() function.
-
-I don't see why this would make any difference.
-
-> [1]
-> https://lore.kernel.org/all/20230525140135.3589917-5-daniel.lezcano@linaro.org/
+To me this works pretty well to reflect spec policy ambiguity but should 
+avoid regressions dropping the 2015 check.  I'll send out a v9 with this 
+approach.
