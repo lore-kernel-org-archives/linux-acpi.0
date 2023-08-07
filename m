@@ -2,212 +2,134 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC64DC41513
-	for <linux-acpi@archiver.kernel.org>; Mon,  7 Aug 2023 17:29:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2F9C001B0
+	for <linux-acpi@archiver.kernel.org>; Mon,  7 Aug 2023 18:21:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232301AbjHGR27 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 7 Aug 2023 13:28:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34094 "EHLO
+        id S230137AbjHGSU7 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 7 Aug 2023 14:20:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231397AbjHGR25 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2023 13:28:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48B32F9;
-        Mon,  7 Aug 2023 10:28:55 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S229589AbjHGSU5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2023 14:20:57 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D38B78F;
+        Mon,  7 Aug 2023 11:20:55 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
+ id 94dc6781b6e2d306; Mon, 7 Aug 2023 20:20:53 +0200
+Authentication-Results: v370.home.net.pl; spf=softfail (domain owner 
+   discourages use of this host) smtp.mailfrom=rjwysocki.net 
+   (client-ip=195.136.19.94; helo=[195.136.19.94]; 
+   envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN>)
+Received: from kreacher.localnet (unknown [195.136.19.94])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B956C62043;
-        Mon,  7 Aug 2023 17:28:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE929C433C7;
-        Mon,  7 Aug 2023 17:28:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691429334;
-        bh=umiws+qo/l7mS3mGD2LhwtlaVOENQ2ScuETufuHC9Bs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=D7QbSnaszSbUCdS0UR5Ol4ZssNxf74XnRYwrjiTy1JqoeBOHB1cOodqw61kT7YsHO
-         R76Da1TZh/qA7XCWvxc+cYc3RKfZKhsKNInyrspjZ5hUNMiQmAMzjnvxwNnQORXYLG
-         Lju0vWYKgLer9tq1FzeibolBZnoIunQZLKBdXWSRL5SAQ7c4sf+OGX0FD1hIVo8X0v
-         GyJduxac3udnMALH6lmpwtyyYIYy/iHKkXBfuqDhlPi0cpmvEs2EOtiBhv+joqtMOw
-         1l9aLQ5rh4jbclVBdUEkc2EhEa6IRCuaGPyMCqGI6ipWW/U88bjmHnE8HhuL+9bPYn
-         r0Q1akV/Va7kA==
-Date:   Mon, 7 Aug 2023 12:28:52 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Igor Mammedov <imammedo@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, terraluna977@gmail.com,
-        bhelgaas@google.com, linux-pci@vger.kernel.org, mst@redhat.com,
-        rafael@kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 1/1] PCI: acpiphp:: use
- pci_assign_unassigned_bridge_resources() only if bus->self not NULL
-Message-ID: <20230807172852.GA250768@bhelgaas>
+        by v370.home.net.pl (Postfix) with ESMTPSA id 095486625B2;
+        Mon,  7 Aug 2023 20:20:53 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Michal Wilczynski <michal.wilczynski@intel.com>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v5 11/11] thermal: core: Eliminate code duplication from acpi_thermal_notify()
+Date:   Mon, 07 Aug 2023 20:20:18 +0200
+Message-ID: <23175634.6Emhk5qWAg@kreacher>
+In-Reply-To: <4503814.LvFx2qVVIh@kreacher>
+References: <13318886.uLZWGnKmhe@kreacher> <4503814.LvFx2qVVIh@kreacher>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230807150746.71ca1df3@imammedo.users.ipa.redhat.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrledtgdduudejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepjedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghnihgvlhdrlhgviigtrghnoheslhhinhgrrhhordhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghp
+ thhtohepmhhitghhrghlrdifihhltgiihihnshhkihesihhnthgvlhdrtghomhdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Aug 07, 2023 at 03:07:46PM +0200, Igor Mammedov wrote:
-> On Fri, 4 Aug 2023 18:27:09 -0500
-> Bjorn Helgaas <helgaas@kernel.org> wrote:
-> 
-> > On Wed, Jul 26, 2023 at 02:35:18PM +0200, Igor Mammedov wrote:
-> > > Commit [1] switched acpiphp hotplug to use
-> > >    pci_assign_unassigned_bridge_resources()
-> > > which depends on bridge being available, however in some cases
-> > > when acpiphp is in use, enable_slot() can get a slot without
-> > > bridge associated.  
-> > 
-> > acpiphp is *always* in use if we get to enable_slot(), so that doesn't
-> > really add information here.
-> > 
-> > >   1. legitimate case of hotplug on root bus
-> > >       (likely not exiting on real hw, but widely used in virt world)
-> > >   2. broken firmware, that sends 'Bus check' events to non
-> > >      existing root ports (Dell Inspiron 7352/0W6WV0), which somehow
-> > >      endup at acpiphp:enable_slot(..., bridge = 0) and with bus
-> > >      without bridge assigned to it.  
-> 
-> how about following commit message (incorporating all feed back in this thread):
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I incorporated this commit log and put the patch on for-linus for
-v6.5.  I think the patch is fine, and we can amend the commit log
-again if necessary.
+Move the acpi_bus_generate_netlink_event() invocation into
+acpi_thermal_trips_update() which allows the code duplication in
+acpi_thermal_notify() to be cleaned up, but for this purpose the
+event value needs to be passed to acpi_thermal_trips_update() and
+from there to acpi_thermal_adjust_thermal_zone() which has to
+determine the flag value for __acpi_thermal_trips_update() by
+itself.
 
-> -- cut --
-> Commit [1] switched acpiphp hotplug to use
->    pci_assign_unassigned_bridge_resources()
-> which depends on bridge being available, however in case
-> when acpiphp is enabled [2], enable_slot() can be called without
-> bridge associated.
->   1. legitimate case of hotplug on root bus
->       (widely used in virt world)
->   2. a (misbehaving) firmware, that sends 'Bus check' events
->      to non existing root ports (Dell Inspiron 7352/0W6WV0),
->      which endup at acpiphp:enable_slot(..., bridge = 0)
->      where bus has not bridge assigned to it.
->      acpihp doesn't know that it's a bridge, and bus specific
->      'PCI subsystem' can't argument ACPI context with bridge
->      information since the PCI device to get this data from
->      is/was not available.
-> 
-> Issue is easy to reproduce with QEMU's 'pc' machine, which supports
-> PCI hotplug on hostbridge slots. To reproduce boot kernel at
-> commit [1] in VM started with following CLI (assuming guest root fs
-> is installed on sda1 partition):
-> 
->    # qemu-system-x86_64 -M pc -m 1G -enable-kvm -cpu host \
->          -monitor stdio -serial file:serial.log           \
->          -kernel arch/x86/boot/bzImage                    \
->          -append "root=/dev/sda1 console=ttyS0"           \
->          guest_disk.img
-> 
-> once guest OS is fully booted at qemu prompt:
-> 
-> (qemu) device_add e1000
-> 
-> (check serial.log) it will cause NULL pointer dereference at:
-> 
->     void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
->     {
->         struct pci_bus *parent = bridge->subordinate;
-> 
-> [  612.277651] BUG: kernel NULL pointer dereference, address: 0000000000000018
-> [...]
-> [  612.277798]  ? pci_assign_unassigned_bridge_resources+0x1f/0x260
-> [  612.277804]  ? pcibios_allocate_dev_resources+0x3c/0x2a0
-> [  612.277809]  enable_slot+0x21f/0x3e0
-> [  612.277816]  acpiphp_hotplug_notify+0x13d/0x260
-> [  612.277822]  ? __pfx_acpiphp_hotplug_notify+0x10/0x10
-> [  612.277827]  acpi_device_hotplug+0xbc/0x540
-> [  612.277834]  acpi_hotplug_work_fn+0x15/0x20
-> [  612.277839]  process_one_work+0x1f7/0x370
-> [  612.277845]  worker_thread+0x45/0x3b0
-> [  612.277850]  ? __pfx_worker_thread+0x10/0x10
-> [  612.277854]  kthread+0xdc/0x110
-> [  612.277860]  ? __pfx_kthread+0x10/0x10
-> [  612.277866]  ret_from_fork+0x28/0x40
-> [  612.277871]  ? __pfx_kthread+0x10/0x10
-> [  612.277876]  ret_from_fork_asm+0x1b/0x30
-> 
-> The issue was discovered on Dell Inspiron 7352/0W6WV0 laptop with
-> following sequence:
->    1. suspend to RAM
->    2. wake up with the same backtrace being observed:
->    3. 2nd suspend to RAM attempt makes laptop freeze
-> 
-> Fix it by using __pci_bus_assign_resources() instead of
-> pci_assign_unassigned_bridge_resources() as we used to do
-> but only in case when bus doesn't have a bridge associated
-> (to cover for the case of ACPI event on hostbridge or
-> non existing root port).
-> 
-> That let us keep hotplug on root bus working like it used to be
-> and at the same time keeps resource reassignment usable on
-> root ports (and other 1st level bridges) that was fixed by [1].
-> 
-> 1)
-> Fixes: 40613da52b13 ("PCI: acpiphp: Reassign resources on bridge if necessary")
-> 2) CONFIG_HOTPLUG_PCI_ACPI=y
-> 
-> -- cut --
-> 
-> if commit message is looking acceptable to you, I can respin
-> amended patch with your suggestions taken in account.
-> 
-> > IIUC, the Inspiron problem happens when:
-> > 
-> >   - acpiphp_context->bridge is NULL, so hotplug_event() calls
-> >     enable_slot() instead of acpiphp_check_bridge(), AND
-> > 
-> >   - acpiphp_slot->bus->self is also NULL, because enable_slot() calls
-> >     pci_assign_unassigned_bridge_resources() with that NULL pointer,
-> >     which dereferences "bridge->subordinate"
-> > 
-> > But I can't figure out why acpiphp_context->bridge is NULL for RP07
-> > and RP08 (which don't exist), but not for RP03 (which does).
-> > 
-> > I guess all the acpiphp_contexts (RP03, RP07, RP08) must be allocated in
-> > acpiphp_add_context() by acpiphp_init_context().
-> > 
-> > Woody's lspci from [1] shows only one Root Port:
-> > 
-> >   00:1c.0 Wildcat Point-LP PCI Express Root Port #3
-> > 
-> > The DSDT.DSL includes:
-> > 
-> >   Device (RP01) _ADR 0x001C0000		# 1c.0
-> >   Device (RP02) _ADR 0x001C0001		# 1c.1
-> >   Device (RP03) _ADR 0x001C0002		# 1c.2
-> >   Device (RP04) _ADR 0x001C0003		# 1c.3
-> >   Device (RP05) _ADR 0x001C0004		# 1c.4
-> >   Device (RP06) _ADR 0x001C0005		# 1c.5
-> >   Device (RP07) _ADR 0x001C0006		# 1c.6
-> >   Device (RP08) _ADR 0x001C0007		# 1c.7
-> > 
-> > I can see why we might need a Bus Check after resume to see if
-> > something got added while we were suspended.  But I don't see why we
-> > handle RP03 differently from RP07 and RP08.
-> > 
-> > Can you help me out?  I'm lost in a maze of twisty passages, all
-> > alike.
-> 
-> I'll try to trace call path and see where it leads
-> (based on a guess in updated commit message: OS/nor ACPI
-> has info if it's bridge when the device didn't exists
-> during boot).
-> 
-> (though, I don't think it should hold this patch.
-> while it would be good to understand where bridge
-> gets added in acpi context, it's not directly relevant
-> to the fixing hotplug on hostbridge and buscheck events 
-> on non-existing root-ports)
-> 
-> > Bjorn
-> > 
-> > [1] https://lore.kernel.org/r/92150d8d-8a3a-d600-a996-f60a8e4c876c@gmail.com
-> > 
-> 
-> 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+v4 -> v5: Rebase.
+
+New patch in v4.
+
+---
+ drivers/acpi/thermal.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+Index: linux-pm/drivers/acpi/thermal.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/thermal.c
++++ linux-pm/drivers/acpi/thermal.c
+@@ -419,8 +419,10 @@ static void acpi_thermal_adjust_thermal_
+ 					     unsigned long data)
+ {
+ 	struct acpi_thermal *tz = thermal_zone_device_priv(thermal);
++	int flag = data == ACPI_THERMAL_NOTIFY_THRESHOLDS ?
++				ACPI_TRIPS_THRESHOLDS : ACPI_TRIPS_DEVICES;
+ 
+-	__acpi_thermal_trips_update(tz, data);
++	__acpi_thermal_trips_update(tz, flag);
+ 
+ 	for_each_thermal_trip(tz->thermal_zone, acpi_thermal_adjust_trip, tz);
+ }
+@@ -431,8 +433,10 @@ static void acpi_queue_thermal_check(str
+ 		queue_work(acpi_thermal_pm_queue, &tz->thermal_check_work);
+ }
+ 
+-static void acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
++static void acpi_thermal_trips_update(struct acpi_thermal *tz, u32 event)
+ {
++	struct acpi_device *adev = tz->device;
++
+ 	/*
+ 	 * Use thermal_zone_device_adjust() to carry out the trip points
+ 	 * update, so as to protect thermal_get_trend() from getting stale
+@@ -440,8 +444,10 @@ static void acpi_thermal_trips_update(st
+ 	 * invoked from acpi_thermal_check_fn() from producing inconsistent
+ 	 * results.
+ 	 */
+-	thermal_zone_device_adjust(tz->thermal_zone, flag);
++	thermal_zone_device_adjust(tz->thermal_zone, event);
+ 	acpi_queue_thermal_check(tz);
++	acpi_bus_generate_netlink_event(adev->pnp.device_class,
++					dev_name(&adev->dev), event, 0);
+ }
+ 
+ static int acpi_thermal_get_trip_points(struct acpi_thermal *tz)
+@@ -812,14 +818,8 @@ static void acpi_thermal_notify(acpi_han
+ 		acpi_queue_thermal_check(tz);
+ 		break;
+ 	case ACPI_THERMAL_NOTIFY_THRESHOLDS:
+-		acpi_thermal_trips_update(tz, ACPI_TRIPS_THRESHOLDS);
+-		acpi_bus_generate_netlink_event(device->pnp.device_class,
+-						dev_name(&device->dev), event, 0);
+-		break;
+ 	case ACPI_THERMAL_NOTIFY_DEVICES:
+-		acpi_thermal_trips_update(tz, ACPI_TRIPS_DEVICES);
+-		acpi_bus_generate_netlink_event(device->pnp.device_class,
+-						dev_name(&device->dev), event, 0);
++		acpi_thermal_trips_update(tz, event);
+ 		break;
+ 	default:
+ 		acpi_handle_debug(device->handle, "Unsupported event [0x%x]\n",
+
+
+
