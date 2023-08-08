@@ -2,154 +2,265 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0748C001DE
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 17:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E301DC41513
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 17:53:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234938AbjHHRq1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 13:46:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36464 "EHLO
+        id S234923AbjHHRxh convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:53:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231605AbjHHRpi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 13:45:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FFC325EEB;
-        Tue,  8 Aug 2023 09:20:44 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3A61624D6;
-        Tue,  8 Aug 2023 11:30:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B01BDC433C7;
-        Tue,  8 Aug 2023 11:30:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691494211;
-        bh=vBWSlCDrZROxYuy5ae4tTgkUDzDtAMFgQOHc2MqMN00=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=MxQAHNSR+7FUjdWOuwilrrz5CHO2ObEjZl4fLBcr+LuMNcCNKtQAKcmtgTOIFV+Yh
-         7cu/EogbhTMQiiZ3g+syK5H83K28a+yereJhUBKnA4a/yOMRSjt3nLsKAHhlUvXYXr
-         htGC6od3JcJbQFmH5LiGxzAIRcVqG+ss/EdoPCxLbX1KOl4Sqdx8QNGbbZeNCDXOMi
-         IDR3emYO4U9d0hpj/LVopgLJRCXwtM1TvG6zIv47LavRbQnw6i8QGtabKCjXXlhWqN
-         1FbmPRagUR0jvtHILpvHSXizSC7kIt/kwtCj1gMpev209vnY2NFhuJbNneA3n1sJyO
-         ZFi+GGQOWIk9g==
-Date:   Tue, 8 Aug 2023 12:30:03 +0100
-From:   Conor Dooley <conor@kernel.org>
-To:     Anup Patel <apatel@ventanamicro.com>
-Cc:     Sunil V L <sunilvl@ventanamicro.com>, linux-doc@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Atish Kumar Patra <atishp@rivosinc.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        Will Deacon <will@kernel.org>, Haibo Xu <haibo1.xu@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Marc Zyngier <maz@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Andrew Jones <ajones@ventanamicro.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Anup Patel <anup@brainfault.org>, Len Brown <lenb@kernel.org>
-Subject: Re: [RFC PATCH v1 20/21] RISC-V: ACPI: Create PLIC platform device
-Message-ID: <20230808-ferry-swarm-e2a0abb17165@spud>
-References: <20230803175916.3174453-1-sunilvl@ventanamicro.com>
- <20230803175916.3174453-21-sunilvl@ventanamicro.com>
- <20230808-chalice-easing-1369c7386082@spud>
- <CAK9=C2XZ7_tfSK6HNN1Em5fAHrknWBqGaD9gPL8yGs8AzE3vQg@mail.gmail.com>
+        with ESMTP id S229839AbjHHRxQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 13:53:16 -0400
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D46A29B7C;
+        Tue,  8 Aug 2023 09:23:41 -0700 (PDT)
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-6873f64a290so1574844b3a.0;
+        Tue, 08 Aug 2023 09:23:41 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691511794; x=1692116594;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=xIz8xHvDX016h5cw1rUukWudmsNBq0m1nrGbkhWaLZU=;
+        b=YDjto9KJwXd5bzo8PCPUUi8B+qc500wgas+vuIYgEI6ttiBVgjDSu3DtNA4NBv7aOD
+         +ZuwAqq/cCfKO9zxM5D8QsRnabcR2uB0jJtkkexhcftrVYI5tbVNY4QmpRaFaNJ0lup1
+         S9ECbOCfa8enEPhdTP5NGfNRM5fbwQT6vcWtVcpppJ/alPW/xFHKbR8QhXl9H1TSzq5J
+         RGTK4DaPgcK0BRPwAf4FI8SRoS7smBZUANP5TTdSz647c6yPw9BcwsbjajlgvyMp8Zy+
+         kC8ExuF75o299Uz58D/Tt3IsxMweIYOGmAMuKLpWY2D9JVONYHNHkwpZt/5WYUIvX64I
+         GTDw==
+X-Gm-Message-State: ABy/qLaVRfDr+RgrwhiOwN/ezGnGfcOu+oMr2hkqmD1aqJS3yGpMPdXK
+        cn+YjjajeytKxzEHI67ooxDlQKaYAi4g36xlfPkE4fGw
+X-Google-Smtp-Source: APBJJlGvkRYzTrsgUPkJtu2i243z1/N0LawwcBumLHZaL7SYVSklHjWf5yhoeVk+BUWOtJPtewuSHxufV6ZqhdMKOck=
+X-Received: by 2002:a4a:cf14:0:b0:569:a08a:d9c5 with SMTP id
+ l20-20020a4acf14000000b00569a08ad9c5mr23082881oos.0.1691501864362; Tue, 08
+ Aug 2023 06:37:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="B+bG6e2jHgiFE7ir"
-Content-Disposition: inline
-In-Reply-To: <CAK9=C2XZ7_tfSK6HNN1Em5fAHrknWBqGaD9gPL8yGs8AzE3vQg@mail.gmail.com>
+References: <20230806151453.10690-1-hdegoede@redhat.com> <3cdde518-1c0c-24dc-1ffb-90ae34c23296@redhat.com>
+ <de2864f9-1b70-0e35-b22a-875eb857d274@redhat.com> <CAJZ5v0ijaemfrMemeowYQ9kGcsRVtD0vVoJfuf8YdgsmXe9=VQ@mail.gmail.com>
+ <c2213c75-192b-1fbf-d2dc-5c098c880e17@redhat.com>
+In-Reply-To: <c2213c75-192b-1fbf-d2dc-5c098c880e17@redhat.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Tue, 8 Aug 2023 15:37:33 +0200
+Message-ID: <CAJZ5v0i9Uaw16k2q+7yzFMG+3t40gcK06Xi5Ea6c+RyvV5ePyw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: resource: revert "Remove "Zen" specific match and quirks"
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-acpi@vger.kernel.org,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Linux regressions mailing list <regressions@lists.linux.dev>,
+        stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Hi,
 
---B+bG6e2jHgiFE7ir
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Aug 08, 2023 at 04:27:16PM +0530, Anup Patel wrote:
-> On Tue, Aug 8, 2023 at 2:12=E2=80=AFPM Conor Dooley <conor@kernel.org> wr=
-ote:
+On Tue, Aug 8, 2023 at 3:31 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> Hi,
+>
+> On 8/8/23 13:18, Rafael J. Wysocki wrote:
+> > On Tue, Aug 8, 2023 at 10:36 AM Hans de Goede <hdegoede@redhat.com> wrote:
+> >>
+> >> Hi,
+> >>
+> >> On 8/7/23 17:19, Hans de Goede wrote:
+> >>> Hi All,
+> >>>
+> >>> On 8/6/23 17:14, Hans de Goede wrote:
+> >>>> Commit a9c4a912b7dc ("ACPI: resource: Remove "Zen" specific match and
+> >>>> quirks") is causing keyboard problems for quite a log of AMD based
+> >>>> laptop users, leading to many bug reports.
+> >>>>
+> >>>> Revert this change for now, until we can come up with
+> >>>> a better fix for the PS/2 IRQ trigger-type/polarity problems
+> >>>> on some x86 laptops.
+> >>>>
+> >>>> Fixes: a9c4a912b7dc ("ACPI: resource: Remove "Zen" specific match and quirks")
+> >>>> Link: https://bugzilla.redhat.com/show_bug.cgi?id=2229165
+> >>>> Link: https://bugzilla.redhat.com/show_bug.cgi?id=2229317
+> >>>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=217726
+> >>>> Cc: Mario Limonciello <mario.limonciello@amd.com>
+> >>>> Cc: Linux regressions mailing list <regressions@lists.linux.dev>
+> >>>> Cc: stable@vger.kernel.org
+> >>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>>
+> >>> I've spend most of today analysing the situation / this problem :
+> >>>
+> >>> 213031 - MEDION notebook internal keyboard not recognized / not working correctly
+> >>> https://bugzilla.kernel.org/show_bug.cgi?id=213031
+> >>>
+> >>> This is the bug that started it all, the issue here was overriding
+> >>> a level low DSDT entry:
+> >>>
+> >>>                 IRQ (Level, ActiveLow, Exclusive, )
+> >>>                     {1}
+> >>>
+> >>> With an edge high entry from the MADT, note that edge high is the default
+> >>> mp_irqs[idx].irqflags value for legacy/ISA IRQs. The dmesg for the Ice Lake
+> >>> Medion M15T this bug is about shows no INT_SRC_OVR entry for IRQ 1
+> >>> in the MADT, it does show INT_SRC_OVR entries for IRQ 0 and 9.
+> >>>
+> >>> At first a fix was attempted to not use the MADT override unless
+> >>> the DSDT entry was edge high. But that caused regressions, so a switch
+> >>> to a DMI based approach was used instead. Noteworthy is that some of
+> >>> the regressions benefitted from a MADT override to high edge for
+> >>> IRQ 3 and 4 (UART IRQs) even though there are no INT_SRC_OVR messages
+> >>> in the dmesg of the machine with the regression.
+> >>>
+> >>> *** fast forward to today ***
+> >>>
+> >>> The DMI quirk based approach seems to have worked well for the Ice Lake
+> >>> era problems from approx. 3 years ago. But on AMD Zen based systems
+> >>> the situation seems to be more complex. Not using the MADT override
+> >>> is a problem for quite a few models. But using the MADT override
+> >>> is a problem on quite a few other models ...
+> >>>
+> >>> Looking at the status quo for v6.4 where MADT overriding by default
+> >>> is not used, 3 bugs have been filed where the override is actually
+> >>> necessary (note dmesg snippets with patched kernel to enable
+> >>> MADT override):
+> >>>
+> >>> 217394 - IRQ override skipping breaks the Aya Neo Air Plus 6800U keyboard buttons
+> >>> https://bugzilla.kernel.org/show_bug.cgi?id=217394
+> >>>
+> >>> Aya Neo Air Plus - AMD Ryzen 7 6800U
+> >>>
+> >>> [    0.003333] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+> >>> [    0.003333] ACPI: INT_SRC_OVR (bus 0 bus_irq 1 global_irq 1 low edge)
+> >>> [    0.003333] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+> >>> [    0.410670] ACPI: IRQ 1 override to edge, low(!)
+> >>>
+> >>> 217406 - very slow keyboard typing without IRQ override with new AMD Ryzen CPUs
+> >>> https://bugzilla.kernel.org/show_bug.cgi?id=217406
+> >>>
+> >>> HP Pavilion Aero 13 - AMD Ryzen 7735U
+> >>>
+> >>> [    0.026135] ACPI: INT_SRC_OVR (bus 0 bus_irq 1 global_irq 1 low edge)
+> >>> [    0.026136] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+> >>> [    0.026137] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+> >>>
+> >>> [    0.361640] ACPI: IRQ 1 override to edge, low(!)
+> >>>
+> >>> 217336 - keyboard not working Asus TUF FA617NS
+> >>> https://bugzilla.kernel.org/show_bug.cgi?id=217336
+> >>>
+> >>> Asus TUF FA617NS - AMD Ryzen 7 7735HS
+> >>>
+> >>> Noteworthy DSTD keyboard resource:
+> >>>
+> >>>                 IRQNoFlags ()
+> >>>                     {1}
+> >>>
+> >>> ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+> >>> ACPI: INT_SRC_OVR (bus 0 bus_irq 1 global_irq 1 low edge)
+> >>> ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+> >>> ACPI: IRQ 1 override to edge, low(!)
+> >>>
+> >>> So for all 3 do use MADT override on Zen bugs we have an INT_SRC_OVR dmesg entry
+> >>> for IRQ 1.
+> >>>
+> >>> Unfortunately the "MAINGEAR Vector Pro 2 17" / "MG-VCP2-17A3070T" for
+> >>> which a quirk was added in commit 9946e39fe8d0 to force the override
+> >>> even though it it Zen based breaks this pattern:
+> >>>
+> >>> [    0.073733] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+> >>> [    0.073734] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+> >>> [    0.341347] ACPI: IRQ 1 override to edge, high(!)
+> >>>
+> >>> Still the presence of an INT_SRC_OVR for a specific legacy IRQ seems
+> >>> to be a strong indicator that MADT overriding should be used in that
+> >>> case and can be used to at least reduce the amount of DMI quirks.
+> >>>
+> >>> Another interesting data point is that all the devices for which
+> >>> DMI quirks are present for which MADT overriding should not be used
+> >>> for IRQ 1 all have a DSDT entry with the IRQ configured as level low
+> >>> and exclusive.
+> >>>
+> >>> I think that the best thing to do might be to go back to
+> >>> the original approach from:
+> >>>
+> >>> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?id=0ec4e55e9f571f08970ed115ec0addc691eda613
+> >>>
+> >>> and then limit this to IRQ1. Also maybe inverting the check to:
+> >>>
+> >>> static bool irq_is_legacy(struct acpi_resource_irq *irq)
+> >>> {
+> >>>       return !(irq->triggering == ACPI_LEVEL_SENSITIVE &&
+> >>>                irq->polarity == ACPI_ACTIVE_LOW &&
+> >>>                irq->shareable == ACPI_EXCLUSIVE);
+> >>> }
+> >>>
+> >>> But I need to check if this will work for all the new Zen models
+> >>> for which we got bug reports after the recent dropping of
+> >>> 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen platforms")
+> >>
+> >> So today I have started with continueing the investigation looking
+> >> at laptop models where we used to not override because of:
+> >>
+> >>         if (boot_cpu_has(X86_FEATURE_ZEN))
+> >>                 return false;
+> >>
+> >> And where removing this and thus using the override has led to a
+> >> regression.
+> >>
+> >> Looking at the acpidump-s from the following bugs:
+> >>
+> >> https://bugzilla.redhat.com/show_bug.cgi?id=2229165
+> >> https://bugzilla.redhat.com/show_bug.cgi?id=2229317
+> >> https://bugzilla.kernel.org/show_bug.cgi?id=217726
+> >>
+> >> All of these use the following settings for the kbd in the DSDT:
+> >>
+> >>          IRQ (Edge, ActiveLow, Shared, )
+> >>              {1}
+> >>
+> >> So we know these are at least 3 models with "Edge, ActiveLow, Shared" IRQ 1 settings which must not use the override. But the existing quirks before a9c4a912b7dc ("ACPI: resource: Remove "Zen" specific match and quirks") contain:
+> >>
+> >>         { tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+> >>         { maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+> >>
+> >> IOW models with "Edge, ActiveLow, Shared" IRQ 1 settings which OTOH must use the override, so as I was already afraid there is no easy for these DSDT IRQ 1 settings skip the override solution :|
+> >>
+> >> So I have 2 plans to move forward with this:
+> >>
+> >> Plan 1. Short them for 6.5 and backporting to 6.4.y (and other stable series):
+> >>
+> >> 1. Revert a9c4a912b7dc
+> >> 2. Limit the acpi_dev_irq_override() check to only ever skip the IRQ override
+> >>    (return false) for GSI 1.
+> >> 3. Add a check if there is a INT_SRC_OVR MADT entry for GSI 1 and in that case
+> >>    use the override even on ZEN, fixing:
+> >>
+> >> 217394 - IRQ override skipping breaks the Aya Neo Air Plus 6800U keyboard buttons
+> >>  https://bugzilla.kernel.org/show_bug.cgi?id=217394
+> >> 217406 - very slow keyboard typing without IRQ override with new AMD Ryzen CPUs
+> >>  https://bugzilla.kernel.org/show_bug.cgi?id=217406
+> >> 217336 - keyboard not working Asus TUF FA617NS
+> >>  https://bugzilla.kernel.org/show_bug.cgi?id=217336
+> >>
+> >> Which are known AMD ZEN based laptops which do need the override for IRQ 1.
+> >>
+> >> This short term plan is not ideal, but it does fix all currently known issues / models and does so in a way which will hopefully not cause regressions on any other models.
+> >>
+> >>
+> >> Plan 2. Long term, see if I can come up with a way to read back the actual trigger type set in the IOAPIC for IRQ 1 at boot (in drivers/acpi/resource.c) and use that.
 > >
-> > On Thu, Aug 03, 2023 at 11:29:15PM +0530, Sunil V L wrote:
-> > > Since PLIC needs to be a platform device
+> > Sounds reasonable to me.
 > >
-> > For the unwashed, why does the PLCI need to be a platform device?
-> > (And while you're at that, please try to make use of the extra ~20
-> > characters per line that you can use here.)
->=20
-> As suggested by Marc Z, only timers and IPIs need to be probed early.
-> Everything else needs to be a platform device. The devlink feature of
-> Linux DD framework ensures that platform devices are probed in the
-> right order based on the interdependency.
->=20
-> The PATCH5 of the v7 AIA series converts the PLIC driver into a
-> platform driver. This works perfectly fine.
+> > It looks like using the IRQ 1 configuration left by the BIOS as is
+> > would be the best choice unless that is not viable for some reason.
+>
+> Agreed, do you have a suggestion how to do that ? I've been looking at this but I've gotten a bit lost in all the layers of ioapic code.
+>
+> It looks like we need to add a flag to acpi_register_gsi() for it to register a gsi while keeping the IOAPIC settings as is (or a new function) but it is not clear to me how to implement this.
+>
+> An alternative method would be to call irq_get_trigger_type() for IRQ 1 and use that for the IRQ trigger info when calling acpi_register_gsi(), but I think we need to have the IRQ registered / added to the IRQ domain first ?
 
-To be clear, I want the explanation of why the "PLIC needs to be a
-platform device" to be in the commit message.
+I need to take a deeper look into this, which I guess is going to take
+some time.
 
-Thanks,
-Conor.
-
->=20
-> >
-> > > probe the
-> > > MADT and create platform devices for each PLIC in the
-> > > system. Use software node framework for the fwnode
-> > > which allows to create properties and hence the
-> > > actual irqchip driver doesn't need to do anything
-> > > different for ACPI vs DT.
-> > >
-> > > Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
-> > > Co-developed-by: Haibo Xu <haibo1.xu@intel.com>
-> > > Signed-off-by: Haibo Xu <haibo1.xu@intel.com>
-> >
-> > > +static struct fwnode_handle *acpi_plic_create_fwnode(struct acpi_mad=
-t_plic *plic)
-> > > +{
-> > > +     struct fwnode_handle *fwnode, *parent_fwnode;
-> > > +     struct riscv_irqchip_list *plic_element;
-> > > +     struct software_node_ref_args *refs;
-> > > +     struct property_entry props[8] =3D {};
-> > > +     int nr_contexts;
-> > > +
-> > > +     props[0] =3D PROPERTY_ENTRY_U32("riscv,gsi-base", plic->gsi_bas=
-e);
-> > > +     props[1] =3D PROPERTY_ENTRY_U32("riscv,ndev", plic->num_irqs);
-> > > +     props[2] =3D PROPERTY_ENTRY_U32("riscv,max_prio", plic->max_pri=
-o);
-> >
-> > My OCD wants to know why this gets an _ but the others have a -.
-> >
-> > > +     props[3] =3D PROPERTY_ENTRY_U8("riscv,plic-id", plic->id);
-> > > +     props[4] =3D PROPERTY_ENTRY_U64("riscv,plic-base", plic->base_a=
-ddr);
-> > > +     props[5] =3D PROPERTY_ENTRY_U32("riscv,plic-size", plic->size);
-
---B+bG6e2jHgiFE7ir
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZNInOwAKCRB4tDGHoIJi
-0sLcAQCDXLAw71GxaGzz6Qp83L1Tb3sQIefjSzU544KRvPaIZwEA0NG4WpAU7bh9
-dP9hFr5cEYLKlf5xgRt76/vz3TmyhAM=
-=TeDA
------END PGP SIGNATURE-----
-
---B+bG6e2jHgiFE7ir--
+If you figure this out in the meantime, please let me know.
