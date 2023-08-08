@@ -2,112 +2,154 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B65C1C41513
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 17:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0748C001DE
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 17:46:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234683AbjHHRa1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 13:30:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36234 "EHLO
+        id S234938AbjHHRq1 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:46:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234626AbjHHR3x (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 13:29:53 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB67421786;
-        Tue,  8 Aug 2023 09:12:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=1E5Xb4mTlI5my7Fl2wybf8Wnwo2X+ZiGlfBansiZhhQ=; b=ZAtwYPsfE60mHVpJIFk/gIvr7O
-        6vk8MaE6gPTwSXVl1PAaO4fggnI4YkMO2nNDjnLcdbbAXPRxrfM3+ib2XVBnWsAwFMgNSNtmxKA9N
-        eC0WGKACsplVzoflNfcZ7dDrBun0Os47F4uZm3Yjuya8MEQ5bTbqFu192EO5wrOdw3swWmx+isshi
-        N4dwURI0WMArg/qvkPlZBZyvQINv99TKUjplBNA24zvJQ6ZxEggsS1yhOEHcRN2Kg2VBgo68tCd3S
-        Z1XPDBkjxhHIVYvSdpLD+0TcLFi7Np3pQwLRc1yzkzPAAaCp2SqoYhJZk04uZeHz1YCXkGjgPUqc+
-        Vtp85m6A==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1qTIfr-00GZEv-1b; Tue, 08 Aug 2023 09:06:43 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        with ESMTP id S231605AbjHHRpi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 13:45:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FFC325EEB;
+        Tue,  8 Aug 2023 09:20:44 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id DF7C730003A;
-        Tue,  8 Aug 2023 11:06:41 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id C73062028B118; Tue,  8 Aug 2023 11:06:41 +0200 (CEST)
-Date:   Tue, 8 Aug 2023 11:06:41 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Meng Li <li.meng@amd.com>
-Cc:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Huang Rui <ray.huang@amd.com>, linux-pm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, x86@kernel.org,
-        linux-acpi@vger.kernel.org, Shuah Khan <skhan@linuxfoundation.org>,
-        linux-kselftest@vger.kernel.org,
-        Nathan Fontenot <nathan.fontenot@amd.com>,
-        Deepak Sharma <deepak.sharma@amd.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Mario Limonciello <mario.limonciello@amd.com>,
-        Shimmer Huang <shimmer.huang@amd.com>,
-        Perry Yuan <Perry.Yuan@amd.com>,
-        Xiaojian Du <Xiaojian.Du@amd.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V1 2/6] cpufreq: amd-pstate: Enable AMD Pstate Preferred
- Core Supporting.
-Message-ID: <20230808090641.GV212435@hirez.programming.kicks-ass.net>
-References: <20230808081001.2215240-1-li.meng@amd.com>
- <20230808081001.2215240-3-li.meng@amd.com>
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F3A61624D6;
+        Tue,  8 Aug 2023 11:30:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B01BDC433C7;
+        Tue,  8 Aug 2023 11:30:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691494211;
+        bh=vBWSlCDrZROxYuy5ae4tTgkUDzDtAMFgQOHc2MqMN00=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=MxQAHNSR+7FUjdWOuwilrrz5CHO2ObEjZl4fLBcr+LuMNcCNKtQAKcmtgTOIFV+Yh
+         7cu/EogbhTMQiiZ3g+syK5H83K28a+yereJhUBKnA4a/yOMRSjt3nLsKAHhlUvXYXr
+         htGC6od3JcJbQFmH5LiGxzAIRcVqG+ss/EdoPCxLbX1KOl4Sqdx8QNGbbZeNCDXOMi
+         IDR3emYO4U9d0hpj/LVopgLJRCXwtM1TvG6zIv47LavRbQnw6i8QGtabKCjXXlhWqN
+         1FbmPRagUR0jvtHILpvHSXizSC7kIt/kwtCj1gMpev209vnY2NFhuJbNneA3n1sJyO
+         ZFi+GGQOWIk9g==
+Date:   Tue, 8 Aug 2023 12:30:03 +0100
+From:   Conor Dooley <conor@kernel.org>
+To:     Anup Patel <apatel@ventanamicro.com>
+Cc:     Sunil V L <sunilvl@ventanamicro.com>, linux-doc@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+        linux-pci@vger.kernel.org,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Atish Kumar Patra <atishp@rivosinc.com>,
+        Conor Dooley <conor.dooley@microchip.com>,
+        Will Deacon <will@kernel.org>, Haibo Xu <haibo1.xu@intel.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Marc Zyngier <maz@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Robert Moore <robert.moore@intel.com>,
+        Andrew Jones <ajones@ventanamicro.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Scally <djrscally@gmail.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Anup Patel <anup@brainfault.org>, Len Brown <lenb@kernel.org>
+Subject: Re: [RFC PATCH v1 20/21] RISC-V: ACPI: Create PLIC platform device
+Message-ID: <20230808-ferry-swarm-e2a0abb17165@spud>
+References: <20230803175916.3174453-1-sunilvl@ventanamicro.com>
+ <20230803175916.3174453-21-sunilvl@ventanamicro.com>
+ <20230808-chalice-easing-1369c7386082@spud>
+ <CAK9=C2XZ7_tfSK6HNN1Em5fAHrknWBqGaD9gPL8yGs8AzE3vQg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="B+bG6e2jHgiFE7ir"
 Content-Disposition: inline
-In-Reply-To: <20230808081001.2215240-3-li.meng@amd.com>
+In-Reply-To: <CAK9=C2XZ7_tfSK6HNN1Em5fAHrknWBqGaD9gPL8yGs8AzE3vQg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Aug 08, 2023 at 04:09:57PM +0800, Meng Li wrote:
 
-> +static int amd_pstate_get_highest_perf(int cpu, u64 *highest_perf)
-> +{
-> +       int ret;
-> +
-> +       if (boot_cpu_has(X86_FEATURE_CPPC)) {
-> +               u64 cap1;
-> +
-> +               ret = rdmsrl_safe_on_cpu(cpu, MSR_AMD_CPPC_CAP1, &cap1);
-> +               if (ret)
-> +                       return ret;
-> +               WRITE_ONCE(*highest_perf, AMD_CPPC_HIGHEST_PERF(cap1));
-> +       } else {
-> +               ret = cppc_get_highest_perf(cpu, highest_perf);
-> +       }
-> +
-> +       return (ret);
-> +}
-> +
-> +static void amd_pstate_init_prefcore(void)
-> +{
-> +	int cpu, ret;
-> +	u64 highest_perf;
-> +
-> +	if (no_prefcore)
-> +		return;
-> +
-> +	for_each_possible_cpu(cpu) {
-> +		ret = amd_pstate_get_highest_perf(cpu, &highest_perf);
-> +		if (ret)
-> +			break;
+--B+bG6e2jHgiFE7ir
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So what is the intended behaviour when online != possible ?
+On Tue, Aug 08, 2023 at 04:27:16PM +0530, Anup Patel wrote:
+> On Tue, Aug 8, 2023 at 2:12=E2=80=AFPM Conor Dooley <conor@kernel.org> wr=
+ote:
+> >
+> > On Thu, Aug 03, 2023 at 11:29:15PM +0530, Sunil V L wrote:
+> > > Since PLIC needs to be a platform device
+> >
+> > For the unwashed, why does the PLCI need to be a platform device?
+> > (And while you're at that, please try to make use of the extra ~20
+> > characters per line that you can use here.)
+>=20
+> As suggested by Marc Z, only timers and IPIs need to be probed early.
+> Everything else needs to be a platform device. The devlink feature of
+> Linux DD framework ensures that platform devices are probed in the
+> right order based on the interdependency.
+>=20
+> The PATCH5 of the v7 AIA series converts the PLIC driver into a
+> platform driver. This works perfectly fine.
 
-> +		sched_set_itmt_core_prio(highest_perf, cpu);
-> +	}
-> +
-> +	/*
-> +	 * This code can be run during CPU online under the
-> +	 * CPU hotplug locks, so sched_set_amd_prefcore_support()
-> +	 * cannot be called from here.  Queue up a work item
-> +	 * to invoke it.
-> +	 */
-> +	schedule_work(&sched_prefcore_work);
-> +}
+To be clear, I want the explanation of why the "PLIC needs to be a
+platform device" to be in the commit message.
+
+Thanks,
+Conor.
+
+>=20
+> >
+> > > probe the
+> > > MADT and create platform devices for each PLIC in the
+> > > system. Use software node framework for the fwnode
+> > > which allows to create properties and hence the
+> > > actual irqchip driver doesn't need to do anything
+> > > different for ACPI vs DT.
+> > >
+> > > Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
+> > > Co-developed-by: Haibo Xu <haibo1.xu@intel.com>
+> > > Signed-off-by: Haibo Xu <haibo1.xu@intel.com>
+> >
+> > > +static struct fwnode_handle *acpi_plic_create_fwnode(struct acpi_mad=
+t_plic *plic)
+> > > +{
+> > > +     struct fwnode_handle *fwnode, *parent_fwnode;
+> > > +     struct riscv_irqchip_list *plic_element;
+> > > +     struct software_node_ref_args *refs;
+> > > +     struct property_entry props[8] =3D {};
+> > > +     int nr_contexts;
+> > > +
+> > > +     props[0] =3D PROPERTY_ENTRY_U32("riscv,gsi-base", plic->gsi_bas=
+e);
+> > > +     props[1] =3D PROPERTY_ENTRY_U32("riscv,ndev", plic->num_irqs);
+> > > +     props[2] =3D PROPERTY_ENTRY_U32("riscv,max_prio", plic->max_pri=
+o);
+> >
+> > My OCD wants to know why this gets an _ but the others have a -.
+> >
+> > > +     props[3] =3D PROPERTY_ENTRY_U8("riscv,plic-id", plic->id);
+> > > +     props[4] =3D PROPERTY_ENTRY_U64("riscv,plic-base", plic->base_a=
+ddr);
+> > > +     props[5] =3D PROPERTY_ENTRY_U32("riscv,plic-size", plic->size);
+
+--B+bG6e2jHgiFE7ir
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZNInOwAKCRB4tDGHoIJi
+0sLcAQCDXLAw71GxaGzz6Qp83L1Tb3sQIefjSzU544KRvPaIZwEA0NG4WpAU7bh9
+dP9hFr5cEYLKlf5xgRt76/vz3TmyhAM=
+=TeDA
+-----END PGP SIGNATURE-----
+
+--B+bG6e2jHgiFE7ir--
