@@ -2,278 +2,106 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B48AC001B0
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 20:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2B93C001B0
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 20:44:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230323AbjHHUi4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:38:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40944 "EHLO
+        id S234402AbjHHUoG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:44:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232698AbjHHUbv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 16:31:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 376034AA90;
-        Tue,  8 Aug 2023 09:50:14 -0700 (PDT)
+        with ESMTP id S234474AbjHHUny (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 16:43:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65097271E
+        for <linux-acpi@vger.kernel.org>; Tue,  8 Aug 2023 13:18:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 60970623F2;
-        Tue,  8 Aug 2023 08:31:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A31BC433C8;
-        Tue,  8 Aug 2023 08:31:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 266AF62C35
+        for <linux-acpi@vger.kernel.org>; Tue,  8 Aug 2023 20:18:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE7A3C433C8;
+        Tue,  8 Aug 2023 20:18:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691483517;
-        bh=MpyvTQzwBjHbZI8sMSOd7J9/piSikcHHm+TWFR/stac=;
+        s=k20201202; t=1691525937;
+        bh=6gqxv3INJ4ZEPQUhaCDLMY1vc1+DCDuzEt5dPGtJ1+g=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=pka7NzrVjEQNbyWGI/WnWkrr+a5FjLtxCmsQcCOXphsY9L5W46RUvd6aapwlo9jCS
-         NolUJckCfoY7fX/X9OHUnpMLYiuwRY70OYahppcxYoMgc9SHLse5Xn7id/DhVU/r/7
-         nnGGJeO6e3yUm2+hcyf2EF+9bqOSVK4poXjiqNSyxgEPFVLlt4kExzhNuWuz9Xm7fH
-         b1yO+pqKpbEjzdwsS/cserCryKALKg+zlphWhxpBehWtx4z+lnaAb+TJGL2UPyW0E/
-         ETh8bu5SwkRbm9SP9U2vRi75kNMH8ZwGOZ53Zv9IaZc7clxnmeiTFjwGGpWVI3Plsk
-         /lL4HFoVfbKgQ==
-Date:   Tue, 8 Aug 2023 09:31:49 +0100
-From:   Conor Dooley <conor@kernel.org>
-To:     Sunil V L <sunilvl@ventanamicro.com>
-Cc:     linux-doc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Atish Kumar Patra <atishp@rivosinc.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        Will Deacon <will@kernel.org>, Haibo Xu <haibo1.xu@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Marc Zyngier <maz@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Andrew Jones <ajones@ventanamicro.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Daniel Scally <djrscally@gmail.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Anup Patel <anup@brainfault.org>, Len Brown <lenb@kernel.org>
-Subject: Re: [RFC PATCH v1 12/21] irqchip/riscv-intc: Use swnode framework to
- create fwnode
-Message-ID: <20230808-chuck-jailhouse-0cb08b55d1bd@spud>
-References: <20230803175916.3174453-1-sunilvl@ventanamicro.com>
- <20230803175916.3174453-13-sunilvl@ventanamicro.com>
+        b=Z/SHK5AFiK0O/Gw3/v/gSIk7JXcCZ+0vg19bAY4K12i7wUZid5gbADrK4M5de8csD
+         LVi8AvFnNShG8Pi6Ev45b1t5TKSRQR7CZqFWAWU26uY4pVSjMmuViK7iRiiRKsTN70
+         AbPVakgvZVWLuK1zQGW1O2t0qG5zvyCz2NtscFBTI6pi9oI+SaLtZGjKiBz2bfka9y
+         0lgWeFsvdgrRoPbSm3pQHndRrmTLa0Ynf2s+Bn/WlsVISnOv4wLtVrCyO7YbXCt4Gi
+         bNDl+spkueePYxELzFMHEDWDl82ond1MXWLkX6lLmA5hWRAiWGgMTt7F4sIymusgtl
+         Owv0DTjK6Qh2Q==
+Date:   Tue, 8 Aug 2023 21:18:51 +0100
+From:   Mark Brown <broonie@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     iommu@lists.linux.dev, Joerg Roedel <joro@8bytes.org>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Kevin Tian <kevin.tian@intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Chen-Yu Tsai <wenst@chromium.org>, Aishwarya.TCV@arm.com
+Subject: Re: [PATCH 0/3] Fix device_lock deadlock on two probe() paths
+Message-ID: <0bf0557d-1dd9-45e7-a4a3-8b2527eeff7e@sirena.org.uk>
+References: <0-v1-8612b9ef48da+333-iommu_group_locking2_jgg@nvidia.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KGbrO9FdUrNn/kR9"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="aKHBjBx3iwUEeJQb"
 Content-Disposition: inline
-In-Reply-To: <20230803175916.3174453-13-sunilvl@ventanamicro.com>
+In-Reply-To: <0-v1-8612b9ef48da+333-iommu_group_locking2_jgg@nvidia.com>
+X-Cookie: Every solution breeds new problems.
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
 
---KGbrO9FdUrNn/kR9
+--aKHBjBx3iwUEeJQb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hey Sunil,
-
-On Thu, Aug 03, 2023 at 11:29:07PM +0530, Sunil V L wrote:
-> By using swnode framework, all data from ACPI tables can
-> be populated as properties of the swnode. This simplifies
-> the driver code and removes the need for ACPI vs DT checks.
-> Use this framework for RISC-V INTC driver.
-
-btw, you are permitted to use more than 60 characters in a commit
-message...
-
+On Tue, Aug 08, 2023 at 02:27:04PM -0300, Jason Gunthorpe wrote:
+> I missed two paths where __iommu_probe_device() can be called while
+> already holding the device_lock() for the device that is to be probed.
 >=20
-> Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
-> ---
->  Documentation/riscv/acpi.rst     | 21 +++++++++++++++
->  arch/riscv/include/asm/acpi.h    |  1 +
->  drivers/acpi/riscv/Makefile      |  2 +-
->  drivers/acpi/riscv/irqchip.c     | 46 ++++++++++++++++++++++++++++++++
->  drivers/irqchip/irq-riscv-intc.c | 12 ++++-----
->  5 files changed, 75 insertions(+), 7 deletions(-)
->  create mode 100644 drivers/acpi/riscv/irqchip.c
+> This causes a deadlock because __iommu_probe_device() will attempt to
+> re-acquire the lock.
 >=20
-> diff --git a/Documentation/riscv/acpi.rst b/Documentation/riscv/acpi.rst
-> index 9870a282815b..e2406546bc16 100644
-> --- a/Documentation/riscv/acpi.rst
-> +++ b/Documentation/riscv/acpi.rst
-> @@ -8,3 +8,24 @@ The ISA string parsing rules for ACPI are defined by `Ve=
-rsion ASCIIDOC
->  Conversion, 12/2022 of the RISC-V specifications, as defined by tag
->  "riscv-isa-release-1239329-2023-05-23" (commit 1239329
->  ) <https://github.com/riscv/riscv-isa-manual/releases/tag/riscv-isa-rele=
-ase-1239329-2023-05-23>`_
-> +
-> +Interrupt Controller Drivers
-> +=3D=3D=3D=3D=3D=3D=3D
-> +
-> +ACPI drivers for RISC-V interrupt controllers use software node framewor=
-k to
-> +create the fwnode for the interrupt controllers. Below properties are
-> +additionally required for some firmware nodes apart from the properties
-> +defined by the device tree bindings for these interrupt controllers. The
-> +properties are created using the data in MADT table.
-
-I don't really understand this text, specifically what you are getting
-at w/ the dependency on devicetree properties. What exactly does "apart
-=66rom the properties defined by the devicetree bindings" mean?
-
-Is there prior art for this kind of "ACPI needs swnodes that look
-vaguely similar to devicetree" for other interrupt controllers?
-
-Thanks,
-Conor.
-
-> +1) RISC-V Interrupt Controller (INTC)
-> +-----------
-> +``hartid`` - Hart ID of the hart this interrupt controller belongs to.
-> +
-> +``riscv,imsic-addr`` - Physical base address of the Incoming MSI Control=
-ler
-> +(IMSIC) MMIO region of this hart.
-> +
-> +``riscv,imsic-size`` - Size in bytes of the IMSIC MMIO region of this ha=
-rt.
-> +
-> +``riscv,ext-intc-id`` - The unique ID of the external interrupts connect=
-ed
-> +to this hart.
-> diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
-> index 0c4e8b35103e..0ac2df2dd194 100644
-> --- a/arch/riscv/include/asm/acpi.h
-> +++ b/arch/riscv/include/asm/acpi.h
-> @@ -68,6 +68,7 @@ int acpi_get_riscv_isa(struct acpi_table_header *table,
->  static inline int acpi_numa_get_nid(unsigned int cpu) { return NUMA_NO_N=
-ODE; }
->  int acpi_get_cbo_block_size(struct acpi_table_header *table, unsigned in=
-t cpu, u32 *cbom_size,
->  			    u32 *cboz_size, u32 *cbop_size);
-> +struct fwnode_handle *acpi_rintc_create_irqchip_fwnode(struct acpi_madt_=
-rintc *rintc);
->  #else
->  static inline void acpi_init_rintc_map(void) { }
->  static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
-> diff --git a/drivers/acpi/riscv/Makefile b/drivers/acpi/riscv/Makefile
-> index 8b3b126e0b94..8b664190d172 100644
-> --- a/drivers/acpi/riscv/Makefile
-> +++ b/drivers/acpi/riscv/Makefile
-> @@ -1,2 +1,2 @@
->  # SPDX-License-Identifier: GPL-2.0-only
-> -obj-y 	+=3D rhct.o
-> +obj-y 	+=3D rhct.o irqchip.o
-> diff --git a/drivers/acpi/riscv/irqchip.c b/drivers/acpi/riscv/irqchip.c
-> new file mode 100644
-> index 000000000000..36f066a2cad5
-> --- /dev/null
-> +++ b/drivers/acpi/riscv/irqchip.c
-> @@ -0,0 +1,46 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Copyright (C) 2023, Ventana Micro Systems Inc
-> + *	Author: Sunil V L <sunilvl@ventanamicro.com>
-> + *
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/fwnode.h>
-> +#include <linux/irqdomain.h>
-> +#include <linux/list.h>
-> +#include <linux/property.h>
-> +
-> +struct riscv_irqchip_list {
-> +	struct fwnode_handle *fwnode;
-> +	struct list_head list;
-> +};
-> +
-> +LIST_HEAD(rintc_list);
-> +
-> +struct fwnode_handle *acpi_rintc_create_irqchip_fwnode(struct acpi_madt_=
-rintc *rintc)
-> +{
-> +	struct property_entry props[6] =3D {};
-> +	struct fwnode_handle *fwnode;
-> +	struct riscv_irqchip_list *rintc_element;
-> +
-> +	props[0] =3D PROPERTY_ENTRY_U64("hartid", rintc->hart_id);
-> +	props[1] =3D PROPERTY_ENTRY_U32("riscv,ext-intc-id", rintc->ext_intc_id=
-);
-> +	props[2] =3D PROPERTY_ENTRY_U64("riscv,imsic-addr", rintc->imsic_addr);
-> +	props[3] =3D PROPERTY_ENTRY_U32("riscv,imsic-size", rintc->imsic_size);
-> +	props[4] =3D PROPERTY_ENTRY_U32("#interrupt-cells", 1);
-> +
-> +	fwnode =3D fwnode_create_software_node_early(props, NULL);
-> +	if (fwnode) {
-> +		rintc_element =3D kzalloc(sizeof(*rintc_element), GFP_KERNEL);
-> +		if (!rintc_element) {
-> +			fwnode_remove_software_node(fwnode);
-> +			return NULL;
-> +		}
-> +
-> +		rintc_element->fwnode =3D fwnode;
-> +		list_add_tail(&rintc_element->list, &rintc_list);
-> +	}
-> +
-> +	return fwnode;
-> +}
-> diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv=
--intc.c
-> index 1a0fc87152c5..1ef9cada1ed3 100644
-> --- a/drivers/irqchip/irq-riscv-intc.c
-> +++ b/drivers/irqchip/irq-riscv-intc.c
-> @@ -203,6 +203,12 @@ static int __init riscv_intc_acpi_init(union acpi_su=
-btable_headers *header,
-> =20
->  	rintc =3D (struct acpi_madt_rintc *)header;
-> =20
-> +	fn =3D acpi_rintc_create_irqchip_fwnode(rintc);
-> +	if (!fn) {
-> +		pr_err("unable to create INTC FW node\n");
-> +		return -ENOMEM;
-> +	}
-> +
->  	/*
->  	 * The ACPI MADT will have one INTC for each CPU (or HART)
->  	 * so riscv_intc_acpi_init() function will be called once
-> @@ -212,12 +218,6 @@ static int __init riscv_intc_acpi_init(union acpi_su=
-btable_headers *header,
->  	if (riscv_hartid_to_cpuid(rintc->hart_id) !=3D smp_processor_id())
->  		return 0;
-> =20
-> -	fn =3D irq_domain_alloc_named_fwnode("RISCV-INTC");
-> -	if (!fn) {
-> -		pr_err("unable to allocate INTC FW node\n");
-> -		return -ENOMEM;
-> -	}
-> -
->  	return riscv_intc_init_common(fn);
->  }
-> =20
-> --=20
-> 2.39.2
+> Organize things so that these two paths can re-use the existing already
+> held device_lock by marking the call chains based on if the lock is held
+> or not.
 >=20
->=20
-> _______________________________________________
-> linux-riscv mailing list
-> linux-riscv@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-riscv
+> This is an incremental on top of Joerg's next, but it could also be handl=
+ed by
+> respinning the last patch in that series. Please let me know.
 
---KGbrO9FdUrNn/kR9
+The issues this series fixes have been causing quite a bit of breakage
+in a range of CI systems (Arm's internal stuff, KernelCI and my personal
+CI).  Both the KernelCI bot and my colleague Aishwarya (CCed) bisected
+which pointed to this series so I've tested them - I didn't cover every
+board but this does fix at least some boots so:
+
+Tested-by: Mark Brown <broonie@kernel.org>
+
+It'd be great to get these fixes into -next, thanks for getting the
+patches out so quickly.
+
+--aKHBjBx3iwUEeJQb
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZNH9dQAKCRB4tDGHoIJi
-0irpAQCn4tpo+ZUuKBiS5LlN2kTNA7QFVujwPoaS1jfnlSeJTAEAkLdDYwU7W+ML
-Vydp6LtqVqBQYdbOuMRHnZvBwVgH6A0=
-=cP5x
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmTSoyoACgkQJNaLcl1U
+h9CW0wf/W/pjGFGgTE9Wf1ci+gK1RanzAa19FUc2aRHQYrX8ws2pBOc6zyWUQkBH
+0618UoxVmI/2jQ8wJwzgg7ALPpraXosFv1p0me2ZS6p+QgVr1jJvDWlS3hgloSIP
+623DAAumHbxOmQUOS75R9pNJKRWIkneUV22QLvR9E6CYzGfgfjBHkZaj/vQYaVW4
+AYkLVM9Ene2HH5u0qZyXSrZagjOm4YP+4JRkCz3s8rqV/Ez6OmyHw3Fvuj9Tj5Sy
+DomWIrwrTTYDSF/p6cFMa3OrRub99EgeAbG/ibNN+g1B5tyJRXVSbxqqSOfcz8T1
+9ofA7D6mY5sCdIxZ8wS3svw9tOhLeQ==
+=dkd2
 -----END PGP SIGNATURE-----
 
---KGbrO9FdUrNn/kR9--
+--aKHBjBx3iwUEeJQb--
