@@ -2,108 +2,113 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0B94C41513
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 19:22:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E170C04E69
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 19:50:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234426AbjHHTWe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:22:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53334 "EHLO
+        id S233410AbjHHTus (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:50:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236181AbjHHTWA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 15:22:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A3FC10E9C7;
-        Tue,  8 Aug 2023 09:45:43 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 526CE6254B;
-        Tue,  8 Aug 2023 13:06:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E2DFC433C7;
-        Tue,  8 Aug 2023 13:06:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691499979;
-        bh=cRvpYcI51ENCIOzxv8f5XlXNoDaFznNKaW3wW2zr0ow=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=A6E7wuFXbhqek+azVh3Uj/E3WW6xluz7q3sP84yJsB2qv+iGQaPjVs4wBy+e+S/To
-         XkSdlquUSfO1uKp9oWK2o7UV6fJWQONPEnU1kHpDusthZ0jZdV+YrHV5nYBRJTi/F/
-         lmuRk1voPrSp7JLOh6a8/T2ZJYRo7Ib5bHjpBLjj1aCytZFqHGX4gSO3HR/eDY5uCe
-         30LLEt8CJPSLp/IiPCwKGk3dShL+BqfxQ7d0r3qRhpchAU+sRSViMoHOfC4fN6Knee
-         G0zi+oEi8htuuM5y1qG9meKOZEYv8UboJYiBSNyrFxiWSMXW+mb9BnfTCIPOpCBxxZ
-         Ap7e0/uyynO3w==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
-        by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.95)
-        (envelope-from <maz@kernel.org>)
-        id 1qTMPh-0038M0-9S;
-        Tue, 08 Aug 2023 14:06:17 +0100
-Date:   Tue, 08 Aug 2023 14:06:08 +0100
-Message-ID: <867cq5hef3.wl-maz@kernel.org>
-From:   Marc Zyngier <maz@kernel.org>
-To:     Sunil V L <sunilvl@ventanamicro.com>
-Cc:     linux-doc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        with ESMTP id S233961AbjHHTu1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 15:50:27 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 870F153509;
+        Tue,  8 Aug 2023 09:56:09 -0700 (PDT)
+Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RKxV54TDFz6GD4v;
+        Tue,  8 Aug 2023 23:11:25 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Tue, 8 Aug
+ 2023 16:16:20 +0100
+Date:   Tue, 8 Aug 2023 16:16:19 +0100
+From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Biju Das <biju.das.jz@bp.renesas.com>,
         Daniel Scally <djrscally@gmail.com>,
         Heikki Krogerus <heikki.krogerus@linux.intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Anup Patel <anup@brainfault.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Haibo Xu <haibo1.xu@intel.com>,
-        Andrew Jones <ajones@ventanamicro.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        Atish Kumar Patra <atishp@rivosinc.com>,
-        Anup Patel <apatel@ventanamicro.com>
-Subject: Re: [RFC PATCH v1 11/21] swnode: Add support to create early during boot
-In-Reply-To: <20230803175916.3174453-12-sunilvl@ventanamicro.com>
-References: <20230803175916.3174453-1-sunilvl@ventanamicro.com> <20230803175916.3174453-12-sunilvl@ventanamicro.com>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
- FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/28.2
- (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: sunilvl@ventanamicro.com, linux-doc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, corbet@lwn.net, paul.walmsley@sifive.com, palmer@dabbelt.com, aou@eecs.berkeley.edu, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, lenb@kernel.org, andriy.shevchenko@linux.intel.com, djrscally@gmail.com, heikki.krogerus@linux.intel.com, sakari.ailus@linux.intel.com, gregkh@linuxfoundation.org, daniel.lezcano@linaro.org, tglx@linutronix.de, anup@brainfault.org, bhelgaas@google.com, robert.moore@intel.com, haibo1.xu@intel.com, ajones@ventanamicro.com, conor.dooley@microchip.com, atishp@rivosinc.com, apatel@ventanamicro.com
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        Andi Shyti <andi.shyti@kernel.org>,
+        Wolfram Sang <wsa@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        "linux-rtc@vger.kernel.org" <linux-rtc@vger.kernel.org>,
+        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
+        "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org\" <linux-renesas-soc@vger.kernel.org>"@domain.invalid
+Subject: Re: [PATCH v7 0/4] Extend device_get_match_data() to struct
+ bus_type
+Message-ID: <20230808161619.00000b92@Huawei.com>
+In-Reply-To: <ZNFV+C1HCIRJpbdC@google.com>
+References: <20230804161728.394920-1-biju.das.jz@bp.renesas.com>
+        <20230805174036.129ffbc2@jic23-huawei>
+        <OS0PR01MB59220491C7C8AA40BEFAAD82860EA@OS0PR01MB5922.jpnprd01.prod.outlook.com>
+        <20230806142950.6c409600@jic23-huawei>
+        <ZNEFjyAloqlkMWn7@smile.fi.intel.com>
+        <ZNFV+C1HCIRJpbdC@google.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, 03 Aug 2023 18:59:06 +0100,
-Sunil V L <sunilvl@ventanamicro.com> wrote:
+On Mon, 7 Aug 2023 13:37:12 -0700
+Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+
+> On Mon, Aug 07, 2023 at 05:54:07PM +0300, Andy Shevchenko wrote:
+> > On Sun, Aug 06, 2023 at 02:29:50PM +0100, Jonathan Cameron wrote:  
+> > > On Sat, 5 Aug 2023 17:42:21 +0000
+> > > Biju Das <biju.das.jz@bp.renesas.com> wrote:  
+> > > > > On Fri,  4 Aug 2023 17:17:24 +0100
+> > > > > Biju Das <biju.das.jz@bp.renesas.com> wrote:  
+> > 
+> > ...
+> >   
+> > > > + * Besides the fact that some drivers abuse the device ID driver_data type
+> > > > + * and claim it to be integer, for the bus specific ID tables the driver_data
+> > > > + * may be defined as kernel_ulong_t. For these tables 0 is a valid response,
+> > > > + * but not for this function. It's recommended to convert those either to avoid
+> > > > + * 0 or use a real pointer to the predefined driver data.  
+> >   
+> > > We still need to maintain consistency across the two tables, which
+> > > is a stronger requirement than avoiding 0.  
+> > 
+> > True. Any suggestion how to amend the above comment? Because the documentation
+> > makes sense on its own (may be split from the series?).
+> >   
+> > > Some drivers already do that by forcing the enum used to start at 1 which
+> > > doesn't solver the different data types issue.  
+> > 
+> > And some maintainers do not want to see non-enum values in i2c ID table.
+> > *Shrug*.  
 > 
-> From: Anup Patel <apatel@ventanamicro.com>
+> So in legacy ID lookup path we can safely assume that values below 4096
+> are scalars and return NULL from the new device_get_match_data(). This
+> way current drivers using the values as indices or doing direct
+> comparisons against them can continue doing manual look up and using
+> them as they see fit. And we can convert the drivers at our leisure.
+
+Good idea.  Though I suspect there may still be nasty cases. People have
+been known to put chip ID values in these fields so that they can then
+match them against a who am I register as a 'detect it's the right part' check.
+
+No idea if we have any drivers doing that but if there are hopefully not too many!
+
+Jonathan
+
 > 
-> swnode framework can be used to create fwnode for interrupt
-> controllers. This helps in keeping the drivers same for both
-> DT and ACPI. To enable this, enhance the swnode framework so
-> that it can be created early during boot without dependency
-> on sysfs.
+> Thanks.
+> 
 
-Where is this coming from? We have had common abstractions for
-irqchips for a very long time. We can create fwnodes any odd way we
-want, but why oh why should we invent another method for that?
-
-We already have multiple architectures such as arm64 and loongarch
-already having both DT and ACPI. Do they need another level of
-"abstraction"? No. Why is risc-v so special?
-
-	M.
-
--- 
-Without deviation from the norm, progress is not possible.
