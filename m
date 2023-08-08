@@ -2,117 +2,111 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEA60C04A94
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 20:58:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 760BDC001E0
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 21:00:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230366AbjHHU6y (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:58:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37210 "EHLO
+        id S231706AbjHHVAf (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 17:00:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235709AbjHHUmd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 16:42:33 -0400
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D312711F7C;
-        Tue,  8 Aug 2023 13:15:17 -0700 (PDT)
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id 07c178e901b4681b; Tue, 8 Aug 2023 22:15:15 +0200
-Authentication-Results: v370.home.net.pl; spf=softfail (domain owner 
-   discourages use of this host) smtp.mailfrom=rjwysocki.net 
-   (client-ip=195.136.19.94; helo=[195.136.19.94]; 
-   envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN>)
-Received: from kreacher.localnet (unknown [195.136.19.94])
+        with ESMTP id S234743AbjHHVAK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 17:00:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 425D12132;
+        Tue,  8 Aug 2023 13:58:04 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by v370.home.net.pl (Postfix) with ESMTPSA id 0057166137E;
-        Tue,  8 Aug 2023 22:15:14 +0200 (CEST)
-From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To:     Linux ACPI <linux-acpi@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Linux PM <linux-pm@vger.kernel.org>
-Subject: [PATCH v1] ACPI: thermal: Do not attach private data to ACPI handles
-Date:   Tue, 08 Aug 2023 22:15:15 +0200
-Message-ID: <5703187.DvuYhMxLoT@kreacher>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CDB2862CE4;
+        Tue,  8 Aug 2023 20:58:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3CEAC433C8;
+        Tue,  8 Aug 2023 20:58:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691528283;
+        bh=mYemYrP7GxRXt1G2n3VYbCmt+/S/G4zndMYQnQVP8Ds=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=nsogyuLBgUkJ0Yqi3ufuq76tQCvCd4aRz5PRxcLx2mNmnAOFuJuV6lSDO2jUuJCXf
+         qA/Kcgza+wEAauOSKITfIC9IffWs4bHG6n8g1HDn1pkrNf1TCypMqJK00ILaPLlc2g
+         7O3kgGQxEluLXn7jOxSiy/L/5UlpBX0wtAaIOYgZWfteN5bzStcFIvytflBN6k1WkY
+         +VGLRGkq0kv9Opy5nkJh/rLKrqPPbhDeA/Cvap4l37Trhp6G3nV7MbDo8s/OQGdGZt
+         G2pVOodYUJ5l/J1sMdR7wBc53hgcmhY7Tk/IM8csLCNeI/0/3/FDwSTsvVJDxYdKTR
+         GsLRWCcjTs1QA==
+Date:   Tue, 8 Aug 2023 15:58:00 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>,
+        Igor Mammedov <imammedo@redhat.com>,
+        "Michael S . Tsirkin" <mst@redhat.com>,
+        Woody Suwalski <terraluna977@gmail.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI: acpiphp: Log more slot and notification details
+Message-ID: <20230808205800.GA332785@bhelgaas>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 195.136.19.94
-X-CLIENT-HOSTNAME: 195.136.19.94
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrledvgddugeehucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepffffffekgfehheffleetieevfeefvefhleetjedvvdeijeejledvieehueevueffnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohephedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomhdp
- rhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0jc5dn+6WtH6O30EeJfGDLewiLaAY9YJEAO6d_n+Uv7ig@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, Aug 08, 2023 at 09:39:22PM +0200, Rafael J. Wysocki wrote:
+> On Tue, Aug 8, 2023 at 9:27 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > From: Bjorn Helgaas <bhelgaas@google.com>
+> >
+> > When registering an acpiphp slot, log the slot name in the same style as
+> > pciehp and include the PCI bus/device and whether a device is present or
+> > the slot is empty.
+> >
+> > When handling an ACPI notification, log the PCI bus/device and notification
+> > type.
+> >
+> > Sample dmesg log diff:
+> >
+> >     ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+> >   - acpiphp: Slot [3] registered
+> >   - acpiphp: Slot [4] registered
+> >     PCI host bridge to bus 0000:00
+> >     pci 0000:00:03.0: [8086:100e] type 00 class 0x020000
+> >     <ACPI Device Check notification>
+> >     pci 0000:00:04.0: [8086:100e] type 00 class 0x020000
+> >
+> >     ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+> >   + acpiphp: pci 0000:00:03 Slot(3) registered (enabled)
+> >   + acpiphp: pci 0000:00:04 Slot(4) registered (empty)
+> >     PCI host bridge to bus 0000:00
+> >     pci 0000:00:03.0: [8086:100e] type 00 class 0x020000
+> >     <ACPI Device Check notification>
+> >   + acpiphp: pci 0000:00:04 Slot(4) Device Check
+> >     pci 0000:00:04.0: [8086:100e] type 00 class 0x020000
+> > ...
 
-The ACPI thermal driver uses acpi_bus_attach_private_data() to attach
-the thermal zone object to the ACPI handle of the thermal zone and
-acpi_bus_detach_private_data() to clean that up, but it never uses
-acpi_bus_get_private_data() to retrieve that object.
+> > @@ -793,6 +804,14 @@ static void hotplug_event(u32 type, struct acpiphp_context *context)
+> >
+> >         pci_lock_rescan_remove();
+> >
+> > +       pr_info("pci %04x:%02x:%02x Slot(%s) %s\n",
+> > +               pci_domain_nr(slot->bus), slot->bus->number,
+> > +               slot->device, slot_name(slot->slot),
+> > +               type == ACPI_NOTIFY_BUS_CHECK ? "Bus Check" :
+> > +               type == ACPI_NOTIFY_DEVICE_CHECK ? "Device Check" :
+> > +               type == ACPI_NOTIFY_EJECT_REQUEST ? "Eject Request" :
+> > +               "Notification");
+> 
+> pr_debug() perhaps?
+> 
+> On systems that don't have any hotplug problems these messages will
+> just be filling the kernel log unnecessarily.
 
-Drop the unneded acpi_bus_attach_private_data() and
-acpi_bus_detach_private_data() calls from the ACPI thermal driver and
-clean up the related code.
+If these notifications are really common, pr_debug() sounds like the
+right thing.  I assumed that they would not be common, e.g., they
+would happen for user-time things like dock/undock, plug/unplug,
+suspend/resume, etc.
 
-No intentional functional impact.
+In pciehp, we use _info for attention button presses, presence detect
+changes, link up/down, and I assumed the ACPI notify events would
+roughly correspond to those.  No?
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/thermal.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
-
-Index: linux-pm/drivers/acpi/thermal.c
-===================================================================
---- linux-pm.orig/drivers/acpi/thermal.c
-+++ linux-pm/drivers/acpi/thermal.c
-@@ -742,7 +742,6 @@ static int acpi_thermal_register_thermal
- {
- 	int trips = 0;
- 	int result;
--	acpi_status status;
- 	int i;
- 
- 	if (tz->trips.critical.valid)
-@@ -775,24 +774,15 @@ static int acpi_thermal_register_thermal
- 	if (result)
- 		goto unregister_tzd;
- 
--	status =  acpi_bus_attach_private_data(tz->device->handle,
--					       tz->thermal_zone);
--	if (ACPI_FAILURE(status)) {
--		result = -ENODEV;
--		goto remove_links;
--	}
--
- 	result = thermal_zone_device_enable(tz->thermal_zone);
- 	if (result)
--		goto acpi_bus_detach;
-+		goto remove_links;
- 
- 	dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
- 		 thermal_zone_device_id(tz->thermal_zone));
- 
- 	return 0;
- 
--acpi_bus_detach:
--	acpi_bus_detach_private_data(tz->device->handle);
- remove_links:
- 	acpi_thermal_zone_sysfs_remove(tz);
- unregister_tzd:
-@@ -806,7 +796,6 @@ static void acpi_thermal_unregister_ther
- 	acpi_thermal_zone_sysfs_remove(tz);
- 	thermal_zone_device_unregister(tz->thermal_zone);
- 	tz->thermal_zone = NULL;
--	acpi_bus_detach_private_data(tz->device->handle);
- }
- 
- 
-
-
-
+Bjorn
