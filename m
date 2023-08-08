@@ -2,133 +2,189 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A1C4C04A6A
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 16:50:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF444C41513
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 16:58:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233561AbjHHQuZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:50:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39152 "EHLO
+        id S230486AbjHHQ6G (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 12:58:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232684AbjHHQtT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 12:49:19 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 879F04AAAB;
-        Tue,  8 Aug 2023 08:57:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1691510246; x=1723046246;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=E5LRHteZkEMYNsco/1BxeEDeFFbk8r50PGxxwtuDxOc=;
-  b=exjbdw8fTLjQDA6qhjQkEDgpF35MkCeP6sEAvfXpqFaiodiPmUTj/sd5
-   jXs95AJAldGx/YdIiBibFOphj/xVkYLUtkAL5mfBS59Eq1UhPMj8czuKv
-   DqEEm8lcFOKttVfWdM+WnJ4ykXqcDXZkDy4x0tP6p0c/KG5rZ75foLEYM
-   5/LYxDr5F6V2piuG7CDNe8KW32o2ykFILkUIYfWNCl0IRegNAdx6Itc2i
-   tkfIz9Cj2t15mCdD/lYYBcC1OlCSvzuUJqVcAw6mxJeJB90+eONUJ631P
-   EvZ+DArYhdMriAFY3Ds7ecAXLBAf33E1h95mo9tya+QLQlBBwj1lUmdLv
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="369704780"
-X-IronPort-AV: E=Sophos;i="6.01,156,1684825200"; 
-   d="scan'208";a="369704780"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Aug 2023 05:14:45 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="821344916"
-X-IronPort-AV: E=Sophos;i="6.01,156,1684825200"; 
-   d="scan'208";a="821344916"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by FMSMGA003.fm.intel.com with ESMTP; 08 Aug 2023 05:14:41 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1qTLbj-007EVK-1V;
-        Tue, 08 Aug 2023 15:14:39 +0300
-Date:   Tue, 8 Aug 2023 15:14:39 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Jonathan Cameron <jic23@kernel.org>
-Cc:     Biju Das <biju.das.jz@bp.renesas.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Andi Shyti <andi.shyti@kernel.org>,
-        Wolfram Sang <wsa@kernel.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        "linux-rtc@vger.kernel.org" <linux-rtc@vger.kernel.org>,
-        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-        "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org" 
-        <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH v7 0/4] Extend device_get_match_data() to struct bus_type
-Message-ID: <ZNIxr7yNcpSU4f3k@smile.fi.intel.com>
-References: <20230804161728.394920-1-biju.das.jz@bp.renesas.com>
- <20230805174036.129ffbc2@jic23-huawei>
- <OS0PR01MB59220491C7C8AA40BEFAAD82860EA@OS0PR01MB5922.jpnprd01.prod.outlook.com>
- <20230806142950.6c409600@jic23-huawei>
- <ZNEFjyAloqlkMWn7@smile.fi.intel.com>
- <20230807204505.5f3f245e@jic23-huawei>
+        with ESMTP id S231458AbjHHQ5S (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 12:57:18 -0400
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2062f.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e8c::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16972210D;
+        Tue,  8 Aug 2023 08:42:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=IG6SR1ItAaplwh7WpJ4xDeRBmPQIVp1FSuIRx9kU/GKctc1j/lNOQ7Q+5sxGoOsaN2EVfx7qSP/RyFiQt7FbDYRhkZY0KdiT1Wrk6qDXkr3IsA3cgIEc6VB95MtvBJTy5ttEG27Ay84wvpgWVGtB6IzmrqZUdEbYfg/iJt8KEIN8bObDheZXnh4k0d7azIus7YhwM+ax0bQkZ1ZzwN47HMfV5s0h+bnPYrmExxTMulp/WzNcBtI47jduQP9m3a6cPR/T1uWc+3zxtdHaNEtE+QeJUedxEfyujSlvUk762KhvtN0jvVYcnAnxhjAycAGbZIk/L4upRyjdre00BiwcEQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=7SqfDFHBC/ajNOzpFm4f1gHf6k0T8vldnjGMcmJVBZw=;
+ b=CUYwhmu5W+0GVkUGKhYXr7wxeubJFZzcp/7dIIWSj9jpd/ERT1cXQdmaSAjeDDmuHwOwDGjD/kyoauxV/6YP0wldxIIOjHrSLCHXFs/yN/CoFhvtni8cuE+J1VRUg8Ke3oSIRwUnNCvirA4hHiO3CWvcs46mkCJ0YmZek3tzrSzMfa0KyRqvpLRDb2jk53nhdb7AfDz3G1dBPmsJ/Hy8U4zLk76nJycm7DRc/WrwzQf5tuCIpMPGk4Sjo5SWtMQhjnR8v6yW/cWLTZoactyLZw2+tGZ13xdWKdW7Nl1aITeXVXUAtSobCJsJ4B3ZxaW4yl53ZjtknG/GB9pA5+9l0g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=7SqfDFHBC/ajNOzpFm4f1gHf6k0T8vldnjGMcmJVBZw=;
+ b=o16Kzihzu6IV22pT7c8wozXhlh2GgOMs1E9TR1kT2ydkLVVmhLZMXG1dEunQ7sJXFe6OMX2xahohINlyqXIitECzaBW8/lUU4oZ9yo4XAqd44oHu4CPoejgyBvtSOM6ueHPOrRu7mzC2GLm+HLqKzmSCyIbw9pTKT3AVTWrbSi8=
+Received: from SJ0PR05CA0119.namprd05.prod.outlook.com (2603:10b6:a03:334::34)
+ by DM6PR12MB4297.namprd12.prod.outlook.com (2603:10b6:5:211::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.27; Tue, 8 Aug
+ 2023 08:11:05 +0000
+Received: from MWH0EPF000971E9.namprd02.prod.outlook.com
+ (2603:10b6:a03:334:cafe::c5) by SJ0PR05CA0119.outlook.office365.com
+ (2603:10b6:a03:334::34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6678.17 via Frontend
+ Transport; Tue, 8 Aug 2023 08:11:09 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ MWH0EPF000971E9.mail.protection.outlook.com (10.167.243.71) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6652.19 via Frontend Transport; Tue, 8 Aug 2023 08:11:08 +0000
+Received: from jasmine-meng.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Tue, 8 Aug
+ 2023 03:11:04 -0500
+From:   Meng Li <li.meng@amd.com>
+To:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Huang Rui <ray.huang@amd.com>
+CC:     <linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <x86@kernel.org>, <linux-acpi@vger.kernel.org>,
+        Shuah Khan <skhan@linuxfoundation.org>,
+        <linux-kselftest@vger.kernel.org>,
+        "Nathan Fontenot" <nathan.fontenot@amd.com>,
+        Deepak Sharma <deepak.sharma@amd.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Shimmer Huang <shimmer.huang@amd.com>,
+        "Perry Yuan" <Perry.Yuan@amd.com>,
+        Xiaojian Du <Xiaojian.Du@amd.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Borislav Petkov <bp@alien8.de>, Meng Li <li.meng@amd.com>
+Subject: [PATCH V1 3/6] cpufreq: Add a notification message that the highest perf has changed
+Date:   Tue, 8 Aug 2023 16:09:58 +0800
+Message-ID: <20230808081001.2215240-4-li.meng@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230808081001.2215240-1-li.meng@amd.com>
+References: <20230808081001.2215240-1-li.meng@amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230807204505.5f3f245e@jic23-huawei>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MWH0EPF000971E9:EE_|DM6PR12MB4297:EE_
+X-MS-Office365-Filtering-Correlation-Id: 00895c46-dd95-418b-75d1-08db97e7059c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: f1mekc82Xxrn0f6Pi9ueUJ2MJEQxyfA51/Vunt8JGsPlMXehrh4MDiIV0UBNjcxZPb+EoLvS88lh+heHULl0MPXT6AblQTDCcOv2vxgByqprqbu3YGn0PKilKVW0U7YzbiSt7bec4l6AmhgAA2de4hGzv/yOIEgpb3jljAB12vtN7V5FKvVzsJFa80gjfS2Owzh82g2US6A9DxyNQu2u6XloSANBvxsUaP43pJU3W/ZNawLOnulYJFC2j5JXwrlwTGFH46H3AGlSyDoyiT5lPJwWDXbjexzHlBOO2QaGjeyEVkZoUzwGPpU0iDjnvx73DT5pkLqgeSsdT+biwD5qDjP4LXXTki8Vsaj9hWf2ztK+kTNiqUuSbB6tnrHXvb42UtinWfi0spx4UWxTrXF6fmmUPNGUHh6y2dwgNgekPu8Bb3XttbT2oertaeA9J5/P4PQck8E+YxOsYm5Bfup7rQmalHC6YptD6205YC9RhkG7SgsnfPQLBcOmHwjBGAY7j7QtGM5XtmumFmzEfniuNFR6yITOIyQg0+B/1eyMOkNSXkjQOV0wQ5tPfl3ydY9YFgS+PsALNe26oeFUuVXsF0/+9piQrduAxQU2qovM4NO9fsaX2HZL3PM0kKfzkn2KEr8+zdZTJSiMZn1mkwfOwWnvvwAaCwiI/mYoCN8gUzUxfjeGSy8pFPKesBH2oZhxn/uIkJRWvzZMeMnlmdZJ7pAZDUb9qaa7UtdsevV35sAASqoSulI0/PjKT+5zh6vZJT2oKM3r1he3hnIZ28qyedBE1WkXZUjSMww0dSNLbnFO80WDrLr+qimNmooS4J6d/9J8kyL9bIZLPqBjNSwR0EnXYRMQgWufw07oAKKBHkg=
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(136003)(346002)(39860400002)(396003)(376002)(90011799007)(186006)(1800799003)(82310400008)(451199021)(90021799007)(36840700001)(40470700004)(46966006)(8676002)(110136005)(4326008)(41300700001)(8936002)(40480700001)(70206006)(70586007)(54906003)(36756003)(6636002)(5660300002)(15650500001)(316002)(40460700003)(81166007)(36860700001)(356005)(478600001)(7696005)(6666004)(966005)(2906002)(16526019)(83380400001)(336012)(86362001)(26005)(1076003)(82740400003)(47076005)(426003)(2616005)(226483002)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Aug 2023 08:11:08.9030
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 00895c46-dd95-418b-75d1-08db97e7059c
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: MWH0EPF000971E9.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4297
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Aug 07, 2023 at 08:45:05PM +0100, Jonathan Cameron wrote:
-> On Mon, 7 Aug 2023 17:54:07 +0300
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-> > On Sun, Aug 06, 2023 at 02:29:50PM +0100, Jonathan Cameron wrote:
-> > > On Sat, 5 Aug 2023 17:42:21 +0000
-> > > Biju Das <biju.das.jz@bp.renesas.com> wrote:  
-> > > > > On Fri,  4 Aug 2023 17:17:24 +0100
-> > > > > Biju Das <biju.das.jz@bp.renesas.com> wrote:  
+Please refer to the ACPI_Spec for details on the highest
+performance and notify events of CPPC.
 
-...
+Signed-off-by: Meng Li <li.meng@amd.com>
+Link: https://uefi.org/htmlspecs/AddCPI_Spec_6_4_html/08_Processor_Configuration_and_Control/declaring-processors.html?highlight=0x85#highest-performance
+---
+ drivers/acpi/processor_driver.c |  6 ++++++
+ drivers/cpufreq/cpufreq.c       | 13 +++++++++++++
+ include/linux/cpufreq.h         |  4 ++++
+ 3 files changed, 23 insertions(+)
 
-> > > > + * Besides the fact that some drivers abuse the device ID driver_data type
-> > > > + * and claim it to be integer, for the bus specific ID tables the driver_data
-> > > > + * may be defined as kernel_ulong_t. For these tables 0 is a valid response,
-> > > > + * but not for this function. It's recommended to convert those either to avoid
-> > > > + * 0 or use a real pointer to the predefined driver data.  
-> > 
-> > > We still need to maintain consistency across the two tables, which
-> > > is a stronger requirement than avoiding 0.  
-> > 
-> > True. Any suggestion how to amend the above comment? Because the documentation
-> > makes sense on its own (may be split from the series?).
-> 
-> For bus ID tables it is fine right now as long as no one checks for NULL.
-> I guess adding this to the i2c_get_match_data and spi equivalent wrapper
-> functions might avoid someone shooting themselves in the foot (I've done it
-> for starters more than once).
-
-Ah, okay.
-
-...
-
-> > > Some drivers already do that by forcing the enum used to start at 1 which
-> > > doesn't solver the different data types issue.  
-> > 
-> > And some maintainers do not want to see non-enum values in i2c ID table.
-> > *Shrug*.
-> 
-> That leaves us stuck unless we move to a form where the i2c ID table isn't
-> used if there is an of_device_id table (or maybe we invent yet another table
-> and if that is present it is used for dt and were i2c_device_id is used and
-> hence becomes an opt in?  That will also be tricky however.
-
-This won't ever happen as it will break an ABI (as far as I understand
-the current state of affairs). Seems the easiest path is to try to sell
-the point that having pointers in I2C ID tables is okay to the maintainers
-who don't see it that way.
-
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 4bd16b3f0781..29b2fb68a35d 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -27,6 +27,7 @@
+ #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
+ #define ACPI_PROCESSOR_NOTIFY_POWER	0x81
+ #define ACPI_PROCESSOR_NOTIFY_THROTTLING	0x82
++#define ACPI_PROCESSOR_NOTIFY_HIGEST_PERF_CHANGED	0x85
+ 
+ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI Processor Driver");
+@@ -83,6 +84,11 @@ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
+ 		acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 						  dev_name(&device->dev), event, 0);
+ 		break;
++	case ACPI_PROCESSOR_NOTIFY_HIGEST_PERF_CHANGED:
++		cpufreq_update_highest_perf(pr->id);
++		acpi_bus_generate_netlink_event(device->pnp.device_class,
++						  dev_name(&device->dev), event, 0);
++		break;
+ 	default:
+ 		acpi_handle_debug(handle, "Unsupported event [0x%x]\n", event);
+ 		break;
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 50bbc969ffe5..842357abfae6 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -2675,6 +2675,19 @@ void cpufreq_update_limits(unsigned int cpu)
+ }
+ EXPORT_SYMBOL_GPL(cpufreq_update_limits);
+ 
++/**
++ * cpufreq_update_highest_perf - Update highest performance for a given CPU.
++ * @cpu: CPU to update the highest performance for.
++ *
++ * Invoke the driver's ->update_highest_perf callback if present
++ */
++void cpufreq_update_highest_perf(unsigned int cpu)
++{
++	if (cpufreq_driver->update_highest_perf)
++		cpufreq_driver->update_highest_perf(cpu);
++}
++EXPORT_SYMBOL_GPL(cpufreq_update_highest_perf);
++
+ /*********************************************************************
+  *               BOOST						     *
+  *********************************************************************/
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index 172ff51c1b2a..766c83a4fae7 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -231,6 +231,7 @@ int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
+ void refresh_frequency_limits(struct cpufreq_policy *policy);
+ void cpufreq_update_policy(unsigned int cpu);
+ void cpufreq_update_limits(unsigned int cpu);
++void cpufreq_update_highest_perf(unsigned int cpu);
+ bool have_governor_per_policy(void);
+ bool cpufreq_supports_freq_invariance(void);
+ struct kobject *get_governor_parent_kobj(struct cpufreq_policy *policy);
+@@ -376,6 +377,9 @@ struct cpufreq_driver {
+ 	/* Called to update policy limits on firmware notifications. */
+ 	void		(*update_limits)(unsigned int cpu);
+ 
++	/* Called to update highest performance on firmware notifications. */
++	void		(*update_highest_perf)(unsigned int cpu);
++
+ 	/* optional */
+ 	int		(*bios_limit)(int cpu, unsigned int *limit);
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.34.1
 
