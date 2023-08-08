@@ -2,532 +2,141 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99137C001DB
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 18:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44C3EC04A6A
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 18:19:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232744AbjHHSFM (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 14:05:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43954 "EHLO
+        id S232501AbjHHST0 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 14:19:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231511AbjHHSEh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 14:04:37 -0400
-Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 146265AC68
-        for <linux-acpi@vger.kernel.org>; Tue,  8 Aug 2023 10:02:50 -0700 (PDT)
-Received: by mail-pj1-x1035.google.com with SMTP id 98e67ed59e1d1-267fc1d776eso3309384a91.2
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Aug 2023 10:02:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1691514169; x=1692118969;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=9XlmHUeaRUsL7m/s5aynviI2pipO5mYbmIClc7cRgQ0=;
-        b=KeCUmKy9P4zy8LvTNFUTqhm0ahYttVJFmDExYBplcnxOiJZaoEFnbTzjHe1X3yDPvW
-         ki3FP1cJKBtbWvVrgzoNvgI0NpPrIcIjEvCmAVzUetPk+njQSvN5xwLciFOOpyr7RI9a
-         ZVckbpneDKVePME7ZFWJd4wVKeL95xcMTX+H1QeHjhvjJiE8FR+kJr2duAcnNXFyrdgK
-         db5V9DMwlAg4GjgIQkgn+YOAhttf8+ZOGHKgZnQADDb9xLat4XJIlOEUMDTkuhgqC4hc
-         WLFBMR5T/WEY1RYdsgzIlTPfdB7/qyxe7FX5I6i4y9erEonriaAd6Jw4grnHOgqzYSVn
-         5H9Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691514169; x=1692118969;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=9XlmHUeaRUsL7m/s5aynviI2pipO5mYbmIClc7cRgQ0=;
-        b=e6oDjZpQ/eOMHH8b+49rIcnqMegnoLpVXW+qCJ2Lc80cwAh0wJ2rowXIY2q8d+t+4M
-         a3iB8j7VTTjMBsBsOnxpRco204fJ2G3VLiZzqRQ45bZxOgmuFDuYPQRPUgcZOwv8BmTc
-         dlsLoykdZ3f7nn0DZMmdXMPiH/Br/0rFhNXtf7kfW+Ja9xyoLc3NWOpl6idxg5gDwwHV
-         GivjmCNuCIZ8hqk0OEdEWUGcnKoCAGZ7pj37ls/2fta+sY212jsYKTd84gSD0Eoid1i6
-         aJsYwlvIJFk/hQ+QUHEqahhM3XgGXrXoCS+RdMElox5SkOc4vk0y0Wkdra1dNbBKrzd5
-         AUNw==
-X-Gm-Message-State: AOJu0Yy9sXdLaNEUft9GYXVmWH4B69CBlG31JgmhFs4Pbx/MV6t6zvDM
-        SOKa3QsXBM1qprHd/7P5v27F9yp4mgMe6Pl6Ykk=
-X-Google-Smtp-Source: AGHT+IHwsRXoHKFn08OcPmdycooDY1/71tq7u8t1xFSVYxYNN+UDC9Vb8Pgycj4Y5erIS/ddW/bH7A==
-X-Received: by 2002:a54:4e06:0:b0:3a1:dd1e:a726 with SMTP id a6-20020a544e06000000b003a1dd1ea726mr11019944oiy.44.1691470342166;
-        Mon, 07 Aug 2023 21:52:22 -0700 (PDT)
-Received: from sunil-laptop ([106.51.190.143])
-        by smtp.gmail.com with ESMTPSA id e4-20020a6558c4000000b0056433b1b996sm5042200pgu.45.2023.08.07.21.52.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Aug 2023 21:52:21 -0700 (PDT)
-Date:   Tue, 8 Aug 2023 10:22:10 +0530
-From:   Sunil V L <sunilvl@ventanamicro.com>
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     linux-doc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Anup Patel <anup@brainfault.org>,
-        Marc Zyngier <maz@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Robert Moore <robert.moore@intel.com>,
-        Haibo Xu <haibo1.xu@intel.com>,
-        Andrew Jones <ajones@ventanamicro.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        Atish Kumar Patra <atishp@rivosinc.com>
-Subject: Re: [RFC PATCH v1 05/21] arm64: PCI: Migrate ACPI related functions
- to pci-acpi.c
-Message-ID: <ZNHJ+lO21c+0P4WN@sunil-laptop>
-References: <20230803175916.3174453-6-sunilvl@ventanamicro.com>
- <20230807224152.GA274647@bhelgaas>
+        with ESMTP id S235106AbjHHSTJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 14:19:09 -0400
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2075.outbound.protection.outlook.com [40.107.243.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A199852B3
+        for <linux-acpi@vger.kernel.org>; Tue,  8 Aug 2023 10:27:11 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=FHFecMHuto7F/X0edR0PBMAi8DL6Q07ZAwsg3cJ9o+MqKYyuiHVn1PBfJUhNy0A36Z8khzX9wLyaw1bVi/jd/EsLBJEL44+aXWQ8NHlbTWGWXflSaCeiJqKzd4WJX/qnyVTzAL52Mm9wce4At+IOTwRggd0kg7520104NuRtUo/kKfwIYmFmq79OEyW74vlopGyTsW0bOLUyDkxz4NKTksCDN+00ylJnP3oCSxFNfZpENkCQ2VkWwseoLiDE1JpOMrBr2QwS/RxcOyllo9+ikvZS4L3oZrNe3H3Ad5tzgg3IWZLqke1BCskI3qnda36Kwra1fVNb3IZIFW0za9rQwA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=D4N6sKNg5kBlQPH9HkjBr3JFaOQhx8ALNhkUkeq9GWk=;
+ b=jUHXoF/iwKxRxMcwJvO8HYGCpeThu3w2i2bfRqlvQqymszvzjU31/TLf5cbLxdwSS0OcqNuhXQ0x4THmfd4alY7BgEYzRhvtfhEd5lGy2dVGMUV0HYSfptpnGlayJs6+LCUk7N1XZYLdiSJiKo/KRT2SrzJi2uI/OOGhU8f3PteRfSotLsb0eOdy1Rn/dgPoV5IVb8BSGm6FgMaIgsunw6unDLl6M5u9wL+NEy4V0Bhym+dkHzeHC0WlaUnU4NM023ToI2csGGJk7uyeliibr8IFLfif8Av1io2hjO00G/qig8NITrjJLGrSM6wp5mAJcUU3ocZojqEcEt8KB7iK+w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=D4N6sKNg5kBlQPH9HkjBr3JFaOQhx8ALNhkUkeq9GWk=;
+ b=bVKK61NmeBCObwlWvccRi1njrSKy78uQ7Q05KAhGE/395WyDDhcx5KDeKUT4k73sURZSewl1S3pbZmfxujWN+y/NnhB9BLngpM2j7bdbiMRRsfEZ3rsRR36BVqypVkfMZXCUAZpLlyk48JrwnE6NLWM2p6qkoMmDVZ95XEMK1iGcf1KchP+tTzPgZxW585mkzqzoFH85YhnHgaaQEwx3kZCwW5z2IodQ3Nl+dS6vwoPp7mjvUyetNmgJHBRHo40j+NArfxDtTzNXTqxjyDqFn1WCMvTcpLSJuwMRI1Nfsd8aGyymR/HyYgEmYlaC/eL3xn2GVeLEyWwfmJxGGhvB6Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
+ by DS0PR12MB8454.namprd12.prod.outlook.com (2603:10b6:8:15e::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.26; Tue, 8 Aug
+ 2023 17:27:09 +0000
+Received: from LV2PR12MB5869.namprd12.prod.outlook.com
+ ([fe80::5111:16e8:5afe:1da1]) by LV2PR12MB5869.namprd12.prod.outlook.com
+ ([fe80::5111:16e8:5afe:1da1%6]) with mapi id 15.20.6652.026; Tue, 8 Aug 2023
+ 17:27:09 +0000
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     iommu@lists.linux.dev, Joerg Roedel <joro@8bytes.org>,
+        Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Will Deacon <will@kernel.org>
+Cc:     Lu Baolu <baolu.lu@linux.intel.com>,
+        Kevin Tian <kevin.tian@intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Chen-Yu Tsai <wenst@chromium.org>
+Subject: [PATCH 0/3] Fix device_lock deadlock on two probe() paths
+Date:   Tue,  8 Aug 2023 14:27:04 -0300
+Message-ID: <0-v1-8612b9ef48da+333-iommu_group_locking2_jgg@nvidia.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: BL1PR13CA0419.namprd13.prod.outlook.com
+ (2603:10b6:208:2c2::34) To LV2PR12MB5869.namprd12.prod.outlook.com
+ (2603:10b6:408:176::16)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230807224152.GA274647@bhelgaas>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|DS0PR12MB8454:EE_
+X-MS-Office365-Filtering-Correlation-Id: 97b0e63a-cd7a-482b-3925-08db9834b16b
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 7UQ0GJEGICi2rLd1sdH2nukkDJVHkktOgxPV9flHvO11BL+0Dt3j/8/aECwR2TGrKcJVFWmz6AMKW0Al2gG6OQGiLX3vCYgUK5TtcR5xYg3MdR88GC06SZn878mVU+aZ06avgIXtGY2uAo3yHGUm2Qu1YYiTBliLlevKZEbx5DVYXdhudsAc09yJPZSa6RULZkKG/48XRFdfixuYgYOsm5VgQKkUp2/80dObQtntanwZYTMoHokKnAG6kf9jw73Cr/BWrc74fLAn0hXzgeEFGN8aRIrBvusRhlb7UV9qAcbZKEmyTMr3wQTsCZ642VWeq4DZ4tRG9AZxVsPJiapCxDB0oG9h92FHcki1CxgOzJ4hm/kv9utN4VYFgPrPjdr6lyrqJCORNOpB7q+S/JkTJgR3vOSN2YIEEvuWDcD+MTNBErTnaJM/tHQ4yATVFIGz1EKP0JY1qfNWYcpbYqsTSHO1Afyl9qfxH/jd115bbhnN5K/Me73I8qzJv1/5yDUx5D/GrXPLM7hnk5iMv5CLPrBQaelBFnqd39/CjSN0zgEfV+IpzFce5MZQMWN9k1shXrRheZGxQgj8qeP1PxGHPMoRtZexisgAep+IjLhqORw=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(396003)(366004)(346002)(39860400002)(376002)(136003)(186006)(1800799003)(451199021)(83380400001)(2616005)(2906002)(110136005)(54906003)(4326008)(316002)(8936002)(5660300002)(7416002)(8676002)(38100700002)(66476007)(66556008)(66946007)(6512007)(478600001)(6666004)(6486002)(41300700001)(86362001)(26005)(36756003)(6506007)(4216001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?tOSAIqrwnQc9/lzreYpxyfPB503aOIvFI2G1cV4TOLhHJdu7tbEg8GUEwBqI?=
+ =?us-ascii?Q?xdlbSwzeHP7chNBPeXJlSxU0J6pit3yhKouMljZ+UutN0s1iOsdF+4YhAN1X?=
+ =?us-ascii?Q?nWNPU0MGy+pJayqzaTI/yXUBOKwZK9WrYWlYikZ04NfZOtuV2NZCoH26JbWM?=
+ =?us-ascii?Q?8nuCmvz3veBLeCxM1Sh4f2qTf9ntthHdN2f21NCBYk7lmp3oQkUPZigGzV6t?=
+ =?us-ascii?Q?Nxq1JdaYuPI3vLb5ggCmeI86QVkDJXWfZNgo8/t6+3R++EF/kWK3UrVUtFBK?=
+ =?us-ascii?Q?hvw/JjhawwF0HFEQO+EF5BGioZyafeqoU3xMBu8nbb9hEnduIMdGT9OOL4C+?=
+ =?us-ascii?Q?CuUZEIlnJ1zbcimDWgmJVty/Uq8GTqkrQJHMUFIgkOnIPqSspsobAWUG4QE4?=
+ =?us-ascii?Q?ZtVUq5MmS3+Q+1Ukl/xlD/9aYhIurWYcJ9VmOZsxJXaAXhIc9EvN8vZMXa10?=
+ =?us-ascii?Q?kfSLa+V0mrn3e7/ZL/kpi4w8H/6F55MOVPGBfASN7PxKTZpPjwooewyU8liU?=
+ =?us-ascii?Q?ng546xWnsPQnQb7VE1K7htpOQZgCy2kbKnCzKp1m19nkUQ6+kgla+GhS/Kiv?=
+ =?us-ascii?Q?/HoOOCbbCL78Iw1sII7HHu33wlswk3zWhnd3OOWQWzyrbBXBdHofEwwkAJqb?=
+ =?us-ascii?Q?axeBhLAwbe8co5aDc217xfs7uVIrdvjkHVdQjP8cmhwTF0fs0H5LFBmH3enJ?=
+ =?us-ascii?Q?vSZ/4xPuSEXMUzxb0uIrCIGUlweosi/QhnZvAxN6FgGKaluNFNg1psWc5Fy3?=
+ =?us-ascii?Q?g1RofBDmQXbcNgpBfCghUiSRJAC36gzUZeYmLgB1zuqTjR5gNLEDUgPNdiny?=
+ =?us-ascii?Q?TxkH/WWs/HC7G2cX56J6Tyevafd4Nm1FYVOTMJkbCysCLPRxly1ATd/LTaFx?=
+ =?us-ascii?Q?Cg79M+gF5OWvogZq2XsziKVVDZ+eGTsGXxxGzpIMaay/zijfGKSSo7Z5n7MX?=
+ =?us-ascii?Q?tUV6Teuj+nrRlypOi+7p+v/N9Ijm9vm5vXRWN6my2zySe69hIPHumsSN6rDi?=
+ =?us-ascii?Q?lxVhEZr6kDtW3hylwd/i9DGIKegl71bIGRsq4M/ZdcJlbnWCTKx8b1rCsUtd?=
+ =?us-ascii?Q?wJGBlYvkuYtIqoRM1+NeFavIfUmSF0Yjz6Y9WRFOQxpbQ7i5vf3MHl1U0nc3?=
+ =?us-ascii?Q?mF90OBUGnSNLMpzrnxK+r3T+dWI5lEbLUmmjH1U7CVHbE5oloAzq9ySmc9jD?=
+ =?us-ascii?Q?olMqm1sXYcH4xDpoBZWtjPku30Vyo/o1ff/8TWkjM22jG8bzuw7ZakVN1rUE?=
+ =?us-ascii?Q?5xJfT1vZZgv97NTK6BnRZ8wog9d4Y5Vn/Dl1mcdPMJkL9xJTjleRd8paUzmk?=
+ =?us-ascii?Q?YgPfWCbz/p012+BDk5ILZe9oBuekqMfmIb5rpYn4EgLfBpKkOZrvyo6NLzCF?=
+ =?us-ascii?Q?RjncYkhZhfE2CGOjlO2XGLf5QmuKIvqC4VMdjy+gL85DgvTcUS7gKRQTHwbB?=
+ =?us-ascii?Q?4+ZsGtu0SFUYYcPsew2y4nznOg0xa9mrVxxvACY76x3yCZaHcI5FOn5n64/4?=
+ =?us-ascii?Q?gz/8RJR3n94ayXxycrS2ukEabgR553ub+19Ftu5b/5JklCArR30w6pvZqeaS?=
+ =?us-ascii?Q?YzqJLAmToqi2x9tPlUvL1GMkdEUcmtL7YAs1eE8l?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 97b0e63a-cd7a-482b-3925-08db9834b16b
+X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Aug 2023 17:27:08.6430
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: NUnQJiQ3U9OdPOeYJYgfQOno7ESXzAVpb7AAqnZIf82SuOWOWQDffUQmdWzwSOQf
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8454
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Aug 07, 2023 at 05:41:52PM -0500, Bjorn Helgaas wrote:
-> On Thu, Aug 03, 2023 at 11:29:00PM +0530, Sunil V L wrote:
-> > The functions defined in arm64 for ACPI support are required
-> > for RISC-V also. To avoid duplication, copy these functions
-> > to common location.
-> 
-> I assume this is a "move" (not a copy) and the code being moved isn't
-> being changed.
-> 
-Hi Bjorn,
+I missed two paths where __iommu_probe_device() can be called while
+already holding the device_lock() for the device that is to be probed.
 
-Thank you very much for the review!. Yes, it is a move as is. Let me
-update the commit message in next version.
+This causes a deadlock because __iommu_probe_device() will attempt to
+re-acquire the lock.
 
-Thanks!
-Sunil
-> If so,
-> 
->   Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> > Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
-> > ---
-> >  arch/arm64/kernel/pci.c | 193 ----------------------------------------
-> >  drivers/pci/pci-acpi.c  | 182 +++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 182 insertions(+), 193 deletions(-)
-> > 
-> > diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-> > index 2276689b5411..fd9a7bed83ce 100644
-> > --- a/arch/arm64/kernel/pci.c
-> > +++ b/arch/arm64/kernel/pci.c
-> > @@ -6,30 +6,7 @@
-> >   * Copyright (C) 2014 ARM Ltd.
-> >   */
-> >  
-> > -#include <linux/acpi.h>
-> > -#include <linux/init.h>
-> > -#include <linux/io.h>
-> > -#include <linux/kernel.h>
-> > -#include <linux/mm.h>
-> > -#include <linux/of_pci.h>
-> > -#include <linux/of_platform.h>
-> >  #include <linux/pci.h>
-> > -#include <linux/pci-acpi.h>
-> > -#include <linux/pci-ecam.h>
-> > -#include <linux/slab.h>
-> > -
-> > -#ifdef CONFIG_ACPI
-> > -/*
-> > - * Try to assign the IRQ number when probing a new device
-> > - */
-> > -int pcibios_alloc_irq(struct pci_dev *dev)
-> > -{
-> > -	if (!acpi_disabled)
-> > -		acpi_pci_irq_enable(dev);
-> > -
-> > -	return 0;
-> > -}
-> > -#endif
-> >  
-> >  /*
-> >   * raw_pci_read/write - Platform-specific PCI config space access.
-> > @@ -63,173 +40,3 @@ int pcibus_to_node(struct pci_bus *bus)
-> >  EXPORT_SYMBOL(pcibus_to_node);
-> >  
-> >  #endif
-> > -
-> > -#ifdef CONFIG_ACPI
-> > -
-> > -struct acpi_pci_generic_root_info {
-> > -	struct acpi_pci_root_info	common;
-> > -	struct pci_config_window	*cfg;	/* config space mapping */
-> > -};
-> > -
-> > -int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
-> > -{
-> > -	struct pci_config_window *cfg = bus->sysdata;
-> > -	struct acpi_device *adev = to_acpi_device(cfg->parent);
-> > -	struct acpi_pci_root *root = acpi_driver_data(adev);
-> > -
-> > -	return root->segment;
-> > -}
-> > -
-> > -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-> > -{
-> > -	struct pci_config_window *cfg;
-> > -	struct acpi_device *adev;
-> > -	struct device *bus_dev;
-> > -
-> > -	if (acpi_disabled)
-> > -		return 0;
-> > -
-> > -	cfg = bridge->bus->sysdata;
-> > -
-> > -	/*
-> > -	 * On Hyper-V there is no corresponding ACPI device for a root bridge,
-> > -	 * therefore ->parent is set as NULL by the driver. And set 'adev' as
-> > -	 * NULL in this case because there is no proper ACPI device.
-> > -	 */
-> > -	if (!cfg->parent)
-> > -		adev = NULL;
-> > -	else
-> > -		adev = to_acpi_device(cfg->parent);
-> > -
-> > -	bus_dev = &bridge->bus->dev;
-> > -
-> > -	ACPI_COMPANION_SET(&bridge->dev, adev);
-> > -	set_dev_node(bus_dev, acpi_get_node(acpi_device_handle(adev)));
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> > -{
-> > -	struct resource_entry *entry, *tmp;
-> > -	int status;
-> > -
-> > -	status = acpi_pci_probe_root_resources(ci);
-> > -	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-> > -		if (!(entry->res->flags & IORESOURCE_WINDOW))
-> > -			resource_list_destroy_entry(entry);
-> > -	}
-> > -	return status;
-> > -}
-> > -
-> > -/*
-> > - * Lookup the bus range for the domain in MCFG, and set up config space
-> > - * mapping.
-> > - */
-> > -static struct pci_config_window *
-> > -pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
-> > -{
-> > -	struct device *dev = &root->device->dev;
-> > -	struct resource *bus_res = &root->secondary;
-> > -	u16 seg = root->segment;
-> > -	const struct pci_ecam_ops *ecam_ops;
-> > -	struct resource cfgres;
-> > -	struct acpi_device *adev;
-> > -	struct pci_config_window *cfg;
-> > -	int ret;
-> > -
-> > -	ret = pci_mcfg_lookup(root, &cfgres, &ecam_ops);
-> > -	if (ret) {
-> > -		dev_err(dev, "%04x:%pR ECAM region not found\n", seg, bus_res);
-> > -		return NULL;
-> > -	}
-> > -
-> > -	adev = acpi_resource_consumer(&cfgres);
-> > -	if (adev)
-> > -		dev_info(dev, "ECAM area %pR reserved by %s\n", &cfgres,
-> > -			 dev_name(&adev->dev));
-> > -	else
-> > -		dev_warn(dev, FW_BUG "ECAM area %pR not reserved in ACPI namespace\n",
-> > -			 &cfgres);
-> > -
-> > -	cfg = pci_ecam_create(dev, &cfgres, bus_res, ecam_ops);
-> > -	if (IS_ERR(cfg)) {
-> > -		dev_err(dev, "%04x:%pR error %ld mapping ECAM\n", seg, bus_res,
-> > -			PTR_ERR(cfg));
-> > -		return NULL;
-> > -	}
-> > -
-> > -	return cfg;
-> > -}
-> > -
-> > -/* release_info: free resources allocated by init_info */
-> > -static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
-> > -{
-> > -	struct acpi_pci_generic_root_info *ri;
-> > -
-> > -	ri = container_of(ci, struct acpi_pci_generic_root_info, common);
-> > -	pci_ecam_free(ri->cfg);
-> > -	kfree(ci->ops);
-> > -	kfree(ri);
-> > -}
-> > -
-> > -/* Interface called from ACPI code to setup PCI host controller */
-> > -struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-> > -{
-> > -	struct acpi_pci_generic_root_info *ri;
-> > -	struct pci_bus *bus, *child;
-> > -	struct acpi_pci_root_ops *root_ops;
-> > -	struct pci_host_bridge *host;
-> > -
-> > -	ri = kzalloc(sizeof(*ri), GFP_KERNEL);
-> > -	if (!ri)
-> > -		return NULL;
-> > -
-> > -	root_ops = kzalloc(sizeof(*root_ops), GFP_KERNEL);
-> > -	if (!root_ops) {
-> > -		kfree(ri);
-> > -		return NULL;
-> > -	}
-> > -
-> > -	ri->cfg = pci_acpi_setup_ecam_mapping(root);
-> > -	if (!ri->cfg) {
-> > -		kfree(ri);
-> > -		kfree(root_ops);
-> > -		return NULL;
-> > -	}
-> > -
-> > -	root_ops->release_info = pci_acpi_generic_release_info;
-> > -	root_ops->prepare_resources = pci_acpi_root_prepare_resources;
-> > -	root_ops->pci_ops = (struct pci_ops *)&ri->cfg->ops->pci_ops;
-> > -	bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
-> > -	if (!bus)
-> > -		return NULL;
-> > -
-> > -	/* If we must preserve the resource configuration, claim now */
-> > -	host = pci_find_host_bridge(bus);
-> > -	if (host->preserve_config)
-> > -		pci_bus_claim_resources(bus);
-> > -
-> > -	/*
-> > -	 * Assign whatever was left unassigned. If we didn't claim above,
-> > -	 * this will reassign everything.
-> > -	 */
-> > -	pci_assign_unassigned_root_bus_resources(bus);
-> > -
-> > -	list_for_each_entry(child, &bus->children, node)
-> > -		pcie_bus_configure_settings(child);
-> > -
-> > -	return bus;
-> > -}
-> > -
-> > -void pcibios_add_bus(struct pci_bus *bus)
-> > -{
-> > -	acpi_pci_add_bus(bus);
-> > -}
-> > -
-> > -void pcibios_remove_bus(struct pci_bus *bus)
-> > -{
-> > -	acpi_pci_remove_bus(bus);
-> > -}
-> > -
-> > -#endif
-> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > index a05350a4e49c..d6b2d64b8237 100644
-> > --- a/drivers/pci/pci-acpi.c
-> > +++ b/drivers/pci/pci-acpi.c
-> > @@ -15,6 +15,7 @@
-> >  #include <linux/pci_hotplug.h>
-> >  #include <linux/module.h>
-> >  #include <linux/pci-acpi.h>
-> > +#include <linux/pci-ecam.h>
-> >  #include <linux/pm_runtime.h>
-> >  #include <linux/pm_qos.h>
-> >  #include <linux/rwsem.h>
-> > @@ -1517,4 +1518,185 @@ static int __init acpi_pci_init(void)
-> >  
-> >  	return 0;
-> >  }
-> > +
-> >  arch_initcall(acpi_pci_init);
-> > +
-> > +#if defined(CONFIG_ARM64)
-> > +/*
-> > + * Try to assign the IRQ number when probing a new device
-> > + */
-> > +int pcibios_alloc_irq(struct pci_dev *dev)
-> > +{
-> > +	if (!acpi_disabled)
-> > +		acpi_pci_irq_enable(dev);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +struct acpi_pci_generic_root_info {
-> > +	struct acpi_pci_root_info	common;
-> > +	struct pci_config_window	*cfg;	/* config space mapping */
-> > +};
-> > +
-> > +int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
-> > +{
-> > +	struct pci_config_window *cfg = bus->sysdata;
-> > +	struct acpi_device *adev = to_acpi_device(cfg->parent);
-> > +	struct acpi_pci_root *root = acpi_driver_data(adev);
-> > +
-> > +	return root->segment;
-> > +}
-> > +
-> > +int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-> > +{
-> > +	struct pci_config_window *cfg;
-> > +	struct acpi_device *adev;
-> > +	struct device *bus_dev;
-> > +
-> > +	if (acpi_disabled)
-> > +		return 0;
-> > +
-> > +	cfg = bridge->bus->sysdata;
-> > +
-> > +	/*
-> > +	 * On Hyper-V there is no corresponding ACPI device for a root bridge,
-> > +	 * therefore ->parent is set as NULL by the driver. And set 'adev' as
-> > +	 * NULL in this case because there is no proper ACPI device.
-> > +	 */
-> > +	if (!cfg->parent)
-> > +		adev = NULL;
-> > +	else
-> > +		adev = to_acpi_device(cfg->parent);
-> > +
-> > +	bus_dev = &bridge->bus->dev;
-> > +
-> > +	ACPI_COMPANION_SET(&bridge->dev, adev);
-> > +	set_dev_node(bus_dev, acpi_get_node(acpi_device_handle(adev)));
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> > +{
-> > +	struct resource_entry *entry, *tmp;
-> > +	int status;
-> > +
-> > +	status = acpi_pci_probe_root_resources(ci);
-> > +	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-> > +		if (!(entry->res->flags & IORESOURCE_WINDOW))
-> > +			resource_list_destroy_entry(entry);
-> > +	}
-> > +	return status;
-> > +}
-> > +
-> > +/*
-> > + * Lookup the bus range for the domain in MCFG, and set up config space
-> > + * mapping.
-> > + */
-> > +static struct pci_config_window *
-> > +pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
-> > +{
-> > +	struct device *dev = &root->device->dev;
-> > +	struct resource *bus_res = &root->secondary;
-> > +	u16 seg = root->segment;
-> > +	const struct pci_ecam_ops *ecam_ops;
-> > +	struct resource cfgres;
-> > +	struct acpi_device *adev;
-> > +	struct pci_config_window *cfg;
-> > +	int ret;
-> > +
-> > +	ret = pci_mcfg_lookup(root, &cfgres, &ecam_ops);
-> > +	if (ret) {
-> > +		dev_err(dev, "%04x:%pR ECAM region not found\n", seg, bus_res);
-> > +		return NULL;
-> > +	}
-> > +
-> > +	adev = acpi_resource_consumer(&cfgres);
-> > +	if (adev)
-> > +		dev_info(dev, "ECAM area %pR reserved by %s\n", &cfgres,
-> > +			 dev_name(&adev->dev));
-> > +	else
-> > +		dev_warn(dev, FW_BUG "ECAM area %pR not reserved in ACPI namespace\n",
-> > +			 &cfgres);
-> > +
-> > +	cfg = pci_ecam_create(dev, &cfgres, bus_res, ecam_ops);
-> > +	if (IS_ERR(cfg)) {
-> > +		dev_err(dev, "%04x:%pR error %ld mapping ECAM\n", seg, bus_res,
-> > +			PTR_ERR(cfg));
-> > +		return NULL;
-> > +	}
-> > +
-> > +	return cfg;
-> > +}
-> > +
-> > +/* release_info: free resources allocated by init_info */
-> > +static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
-> > +{
-> > +	struct acpi_pci_generic_root_info *ri;
-> > +
-> > +	ri = container_of(ci, struct acpi_pci_generic_root_info, common);
-> > +	pci_ecam_free(ri->cfg);
-> > +	kfree(ci->ops);
-> > +	kfree(ri);
-> > +}
-> > +
-> > +/* Interface called from ACPI code to setup PCI host controller */
-> > +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-> > +{
-> > +	struct acpi_pci_generic_root_info *ri;
-> > +	struct pci_bus *bus, *child;
-> > +	struct acpi_pci_root_ops *root_ops;
-> > +	struct pci_host_bridge *host;
-> > +
-> > +	ri = kzalloc(sizeof(*ri), GFP_KERNEL);
-> > +	if (!ri)
-> > +		return NULL;
-> > +
-> > +	root_ops = kzalloc(sizeof(*root_ops), GFP_KERNEL);
-> > +	if (!root_ops) {
-> > +		kfree(ri);
-> > +		return NULL;
-> > +	}
-> > +
-> > +	ri->cfg = pci_acpi_setup_ecam_mapping(root);
-> > +	if (!ri->cfg) {
-> > +		kfree(ri);
-> > +		kfree(root_ops);
-> > +		return NULL;
-> > +	}
-> > +
-> > +	root_ops->release_info = pci_acpi_generic_release_info;
-> > +	root_ops->prepare_resources = pci_acpi_root_prepare_resources;
-> > +	root_ops->pci_ops = (struct pci_ops *)&ri->cfg->ops->pci_ops;
-> > +	bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
-> > +	if (!bus)
-> > +		return NULL;
-> > +
-> > +	/* If we must preserve the resource configuration, claim now */
-> > +	host = pci_find_host_bridge(bus);
-> > +	if (host->preserve_config)
-> > +		pci_bus_claim_resources(bus);
-> > +
-> > +	/*
-> > +	 * Assign whatever was left unassigned. If we didn't claim above,
-> > +	 * this will reassign everything.
-> > +	 */
-> > +	pci_assign_unassigned_root_bus_resources(bus);
-> > +
-> > +	list_for_each_entry(child, &bus->children, node)
-> > +		pcie_bus_configure_settings(child);
-> > +
-> > +	return bus;
-> > +}
-> > +
-> > +void pcibios_add_bus(struct pci_bus *bus)
-> > +{
-> > +	acpi_pci_add_bus(bus);
-> > +}
-> > +
-> > +void pcibios_remove_bus(struct pci_bus *bus)
-> > +{
-> > +	acpi_pci_remove_bus(bus);
-> > +}
-> > +
-> > +#endif
-> > -- 
-> > 2.39.2
-> > 
-> > 
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Organize things so that these two paths can re-use the existing already
+held device_lock by marking the call chains based on if the lock is held
+or not.
+
+This is an incremental on top of Joerg's next, but it could also be handled by
+respinning the last patch in that series. Please let me know.
+
+Jason Gunthorpe (3):
+  iommu: Provide iommu_probe_device_locked()
+  iommu: Pass in the iommu_device to probe for in bus_iommu_probe()
+  iommu: Do not attempt to re-lock the iommu device when probing
+
+ drivers/acpi/scan.c        |  5 ++--
+ drivers/iommu/iommu.c      | 60 +++++++++++++++++++++++++++-----------
+ drivers/iommu/of_iommu.c   |  2 +-
+ drivers/iommu/omap-iommu.c | 12 ++++++--
+ include/linux/iommu.h      |  6 +++-
+ 5 files changed, 61 insertions(+), 24 deletions(-)
+
+
+base-commit: 8d3740021d5d461e1ec4c17fc5625b9b4237c2f8
+-- 
+2.41.0
+
