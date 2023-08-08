@@ -2,102 +2,108 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFB4C41513
-	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 19:15:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0B94C41513
+	for <linux-acpi@archiver.kernel.org>; Tue,  8 Aug 2023 19:22:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235480AbjHHTPc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:15:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54566 "EHLO
+        id S234426AbjHHTWe (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:22:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234082AbjHHTPF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 15:15:05 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BCBD3C200;
-        Tue,  8 Aug 2023 09:38:01 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        with ESMTP id S236181AbjHHTWA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2023 15:22:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A3FC10E9C7;
+        Tue,  8 Aug 2023 09:45:43 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 80AA62247E;
-        Tue,  8 Aug 2023 09:25:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1691486707; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=1anG8IJZHp2UOy4q48lcqQRJhQy3OSUMlqLkKSLuNX8=;
-        b=AsKxsIU23VnIvXB6MjRIlupIpguZHhh6Uo3483cmq0eQ54rvU7PfooweNoA04ywlxHdN7P
-        cjr7MhnRQOLUzE3Rqzan1icRYIUiQS/IrUtR4A+E74NuQowflx/Y+Jsn8nA1WwETxeWbM1
-        ZST4X/QT7ijLm5K+qTWSKhRisknEDw4=
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 5658D13451;
-        Tue,  8 Aug 2023 09:25:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id s1joE/MJ0mSBFwAAMHmgww
-        (envelope-from <mkoutny@suse.com>); Tue, 08 Aug 2023 09:25:07 +0000
-Date:   Tue, 8 Aug 2023 11:25:06 +0200
-From:   Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-To:     Igor Mammedov <imammedo@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, terraluna977@gmail.com,
-        bhelgaas@google.com, linux-pci@vger.kernel.org, mst@redhat.com,
-        rafael@kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 1/1] PCI: acpiphp:: use
- pci_assign_unassigned_bridge_resources() only if bus->self not NULL
-Message-ID: <ku2hdnc2wixu5ygnwvtzbti3ujgkcte7fluvypno2zufnqqzt5@5ip4ndk4ha5l>
-References: <20230726123518.2361181-1-imammedo@redhat.com>
- <20230726123518.2361181-2-imammedo@redhat.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="loif23qxzpmsi74g"
-Content-Disposition: inline
-In-Reply-To: <20230726123518.2361181-2-imammedo@redhat.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 526CE6254B;
+        Tue,  8 Aug 2023 13:06:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E2DFC433C7;
+        Tue,  8 Aug 2023 13:06:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691499979;
+        bh=cRvpYcI51ENCIOzxv8f5XlXNoDaFznNKaW3wW2zr0ow=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=A6E7wuFXbhqek+azVh3Uj/E3WW6xluz7q3sP84yJsB2qv+iGQaPjVs4wBy+e+S/To
+         XkSdlquUSfO1uKp9oWK2o7UV6fJWQONPEnU1kHpDusthZ0jZdV+YrHV5nYBRJTi/F/
+         lmuRk1voPrSp7JLOh6a8/T2ZJYRo7Ib5bHjpBLjj1aCytZFqHGX4gSO3HR/eDY5uCe
+         30LLEt8CJPSLp/IiPCwKGk3dShL+BqfxQ7d0r3qRhpchAU+sRSViMoHOfC4fN6Knee
+         G0zi+oEi8htuuM5y1qG9meKOZEYv8UboJYiBSNyrFxiWSMXW+mb9BnfTCIPOpCBxxZ
+         Ap7e0/uyynO3w==
+Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
+        by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.95)
+        (envelope-from <maz@kernel.org>)
+        id 1qTMPh-0038M0-9S;
+        Tue, 08 Aug 2023 14:06:17 +0100
+Date:   Tue, 08 Aug 2023 14:06:08 +0100
+Message-ID: <867cq5hef3.wl-maz@kernel.org>
+From:   Marc Zyngier <maz@kernel.org>
+To:     Sunil V L <sunilvl@ventanamicro.com>
+Cc:     linux-doc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Anup Patel <anup@brainfault.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Robert Moore <robert.moore@intel.com>,
+        Haibo Xu <haibo1.xu@intel.com>,
+        Andrew Jones <ajones@ventanamicro.com>,
+        Conor Dooley <conor.dooley@microchip.com>,
+        Atish Kumar Patra <atishp@rivosinc.com>,
+        Anup Patel <apatel@ventanamicro.com>
+Subject: Re: [RFC PATCH v1 11/21] swnode: Add support to create early during boot
+In-Reply-To: <20230803175916.3174453-12-sunilvl@ventanamicro.com>
+References: <20230803175916.3174453-1-sunilvl@ventanamicro.com> <20230803175916.3174453-12-sunilvl@ventanamicro.com>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/28.2
+ (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: sunilvl@ventanamicro.com, linux-doc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, corbet@lwn.net, paul.walmsley@sifive.com, palmer@dabbelt.com, aou@eecs.berkeley.edu, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, lenb@kernel.org, andriy.shevchenko@linux.intel.com, djrscally@gmail.com, heikki.krogerus@linux.intel.com, sakari.ailus@linux.intel.com, gregkh@linuxfoundation.org, daniel.lezcano@linaro.org, tglx@linutronix.de, anup@brainfault.org, bhelgaas@google.com, robert.moore@intel.com, haibo1.xu@intel.com, ajones@ventanamicro.com, conor.dooley@microchip.com, atishp@rivosinc.com, apatel@ventanamicro.com
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+On Thu, 03 Aug 2023 18:59:06 +0100,
+Sunil V L <sunilvl@ventanamicro.com> wrote:
+> 
+> From: Anup Patel <apatel@ventanamicro.com>
+> 
+> swnode framework can be used to create fwnode for interrupt
+> controllers. This helps in keeping the drivers same for both
+> DT and ACPI. To enable this, enhance the swnode framework so
+> that it can be created early during boot without dependency
+> on sysfs.
 
---loif23qxzpmsi74g
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Where is this coming from? We have had common abstractions for
+irqchips for a very long time. We can create fwnodes any odd way we
+want, but why oh why should we invent another method for that?
 
-Hello.
+We already have multiple architectures such as arm64 and loongarch
+already having both DT and ACPI. Do they need another level of
+"abstraction"? No. Why is risc-v so special?
 
-On Wed, Jul 26, 2023 at 02:35:18PM +0200, Igor Mammedov <imammedo@redhat.co=
-m> wrote:
-> The issue was discovered on Dell Inspiron 7352/0W6WV0 laptop with
-> following sequence:
->    1. suspend to RAM
->    2. wake up with the same backtrace being observed:
->    3. 2nd suspend to RAM attempt makes laptop freeze
+	M.
 
-My Dell laptop suffers this since v6.5-rc1.
-I've found this thread because of the same call stack triggering the
-NULL ptr dereference I captured on my machine.
-
-I applied this patch and resume works as before and I have observed no
-issues during typical usage.
-
-I'd be glad if a fix like this makes it into the next -rc.
-Feel free to add
-
-Tested-by: Michal Koutn=FD <mkoutny@suse.com>
-
-Thanks for looking into this,
-Michal
-
---loif23qxzpmsi74g
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQQpEWyjXuwGT2dDBqAGvrMr/1gcjgUCZNIJ4AAKCRAGvrMr/1gc
-jpuqAQC6YiooWMYGa8M8En3OudIzKzX9KgLGGk4WGtRNpJOoewD/XP+2J37kJXqr
-7MwD+1Fye6AtqSyVCMDokgVsiwqiiwM=
-=hxD1
------END PGP SIGNATURE-----
-
---loif23qxzpmsi74g--
+-- 
+Without deviation from the norm, progress is not possible.
