@@ -2,162 +2,84 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F15F4C2FC0E
-	for <linux-acpi@archiver.kernel.org>; Thu, 17 Aug 2023 09:31:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E02EB64DD
+	for <linux-acpi@archiver.kernel.org>; Thu, 17 Aug 2023 10:11:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349623AbjHQJbR (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 17 Aug 2023 05:31:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43944 "EHLO
+        id S1349944AbjHQKKo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 17 Aug 2023 06:10:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349678AbjHQJbH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Aug 2023 05:31:07 -0400
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2041.outbound.protection.outlook.com [40.107.236.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AF2F30DB;
-        Thu, 17 Aug 2023 02:30:51 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Z2mNPUu/HoK03VggcCXMtv6f7qeaENSTRX1BC42IymjZpeYShd8x6TnocGvthr5TfiVip2pevijsHMFOnn5DNl2jJoUMKq4MfOh+xYd5y+DP+nUL59iV+HFUd+pHtZPVTwZVY4JL6IzqAf9XBC4x18bSAe9gmP0v8WT6MEtDkHd7AxJ3Q80bnMLupgMBSUWkKMNQk6Dg6n3psf7BWOBTHwl0q5mL6dtnM8O6XWRRcIC6/eui1y4jcXb1FCSsvsPMcVJRay5BZlsJIlALoXRXjklZA1e8+dOCLPrF8aDg98s413wHQ+N8zVLod/IfWO3WvzT6V8N6IaqnGWLuantwxQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Bmq/tNP9GwJbqsckesJAvK54MFOZ5hmOOWJQfN105FI=;
- b=AJFR2uRZSTb2s4t0YNdJYKqTa0Udx+EERfn+EQm39iDmRadhhaqAhfACiznI5ZpKvwAQmRzG/m/fgNxJu9aHpHCOqdMDoZY9IdJVVXHvyUU11dRXjpROm8m1KLBHvH5Ad+sNeqcpJENVxaVvY6jJFfbHcEwL0kQrudU7NC4z9hDGxp1AlTeldclBobYxEoXX56eJ7AclJ0jd3jwCoJNo/ZnMqeQEO57j2/vBvSizrmfWjiltp56ehyjxBZzQNmgAMlQthZdT1Wh8Zp2tZciVNMADyeg0CjaJp5XGxz6tlJFngOZ1PXUwmKAS2OE3p8fxrmxQQw/Z2xG1aWC+k0TvPQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Bmq/tNP9GwJbqsckesJAvK54MFOZ5hmOOWJQfN105FI=;
- b=QoeJe0hRVORyMO18RVK03TmPMPX44Pscsdpk/f2tTSxiP6rR3AgZ0NmwmVF5pCvtMvmvoy4cqazJj7bEfQNKxFxGVBFtpuLELxbQX6AFP+AdLF/GnI7xdwlgCtZbHoQdVF02i84grCrYXk3D3rR6iHicvVU5/hSGXrtEJIZm1uaz7Kzpc7dJZ2d+oLuLMg6gpIsHgD7Ofs6i7HvZPeH4QJ1iQihjrZc27b03rXKRvxJ4RuV7LfShf8aehfO0qyfX2D88M/ylLvcus197hlYV/CNXY4bFj4WcrU8+NJ1I3CNLYwUkxeQF4CsViiCAY7uDibsKpZf81QNWG8SoJXbkig==
-Received: from CY5PR15CA0105.namprd15.prod.outlook.com (2603:10b6:930:7::13)
- by CY8PR12MB7538.namprd12.prod.outlook.com (2603:10b6:930:95::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6678.29; Thu, 17 Aug
- 2023 09:30:49 +0000
-Received: from CY4PEPF0000EE31.namprd05.prod.outlook.com
- (2603:10b6:930:7:cafe::bc) by CY5PR15CA0105.outlook.office365.com
- (2603:10b6:930:7::13) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6699.17 via Frontend
- Transport; Thu, 17 Aug 2023 09:30:49 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- CY4PEPF0000EE31.mail.protection.outlook.com (10.167.242.37) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6699.14 via Frontend Transport; Thu, 17 Aug 2023 09:30:49 +0000
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.5; Thu, 17 Aug 2023
- 02:30:28 -0700
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail204.nvidia.com
- (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.37; Thu, 17 Aug
- 2023 02:30:27 -0700
-Received: from sumitg-l4t.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server id 15.2.986.37 via Frontend
- Transport; Thu, 17 Aug 2023 02:30:24 -0700
-From:   Sumit Gupta <sumitg@nvidia.com>
-To:     <rafael@kernel.org>, <rui.zhang@intel.com>, <lenb@kernel.org>,
-        <treding@nvidia.com>, <jonathanh@nvidia.com>,
-        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     <sumitg@nvidia.com>, <sanjayc@nvidia.com>, <ksitaraman@nvidia.com>,
-        <srikars@nvidia.com>, <jbrasen@nvidia.com>, <bbasu@nvidia.com>
-Subject: [Patch 1/2] ACPI: thermal: Add Thermal fast Sampling Period (_TFP) support
-Date:   Thu, 17 Aug 2023 15:00:10 +0530
-Message-ID: <20230817093011.1378-2-sumitg@nvidia.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20230817093011.1378-1-sumitg@nvidia.com>
-References: <20230817093011.1378-1-sumitg@nvidia.com>
-X-NVConfidentiality: public
+        with ESMTP id S1349950AbjHQKKh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Aug 2023 06:10:37 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C4272D61;
+        Thu, 17 Aug 2023 03:10:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1692267034; x=1723803034;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=WF6qHmrA49EIsPHIRj0qWWdYUfEfcmu1pgGm2RKaeN0=;
+  b=QcGULlOj72sh6o5UtRm6XQXEXNJ1iYDTBH0qS1SHsJkKmrQoqvIyVVXt
+   ef5bsHeV4KroDj2UdEArprgx8huFxFiuaE4dS5MMdgkWIV9UZ8os9ddFo
+   PuwvhGDtCKqwui2Djr6Nxyjn0ZjRvivFahheVjJnXFkUYfWmcWAl751wN
+   194kGEkwbLbVRzf+h/ioQsh470dLXEdPjAwIAVM/FQlz8DeQ+9BeDIQck
+   FyNNnnPMZ0J72dpziCCqkAV65o+U8ZY9mB3NoyVQHI3DdfoP3uDcWI6YN
+   ixy20N3h9df2KmdO3Sf2InEWqFsm9Zt8DIUNYy5ivS+AVnSFQaHKvvAxl
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10803"; a="372768928"
+X-IronPort-AV: E=Sophos;i="6.01,179,1684825200"; 
+   d="scan'208";a="372768928"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Aug 2023 03:10:34 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10803"; a="908349051"
+X-IronPort-AV: E=Sophos;i="6.01,179,1684825200"; 
+   d="scan'208";a="908349051"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga005.jf.intel.com with ESMTP; 17 Aug 2023 03:10:29 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1qWZxT-006c9Q-29;
+        Thu, 17 Aug 2023 13:10:27 +0300
+Date:   Thu, 17 Aug 2023 13:10:27 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc:     Mario Limonciello <mario.limonciello@amd.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Iain Lane <iain@orangesquash.org.uk>,
+        Shyam-sundar S-k <Shyam-sundar.S-k@amd.com>
+Subject: Re: [PATCH v12 3/9] ACPI: x86: s2idle: Post-increment variables when
+ getting constraints
+Message-ID: <ZN3yE3V8Ni8uJMse@smile.fi.intel.com>
+References: <20230816204143.66281-1-mario.limonciello@amd.com>
+ <20230816204143.66281-4-mario.limonciello@amd.com>
+ <404044b2-8e7a-4420-9c10-b2ca75d7e3aa@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000EE31:EE_|CY8PR12MB7538:EE_
-X-MS-Office365-Filtering-Correlation-Id: cab14598-b535-49eb-6561-08db9f04a4b4
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: bXLq4MlL0OKHNr7DVj6wg0y7n3v7uDI1lCdaY6C/hFYwowl8JF9gS3iw46kjYH5Ql4yjd9Ltj9eIhOAq0v0QRUxbN+iTYVNTBEXX6OumQU+QBFkfCun8PeJw4Lrjnt7kCKg+7kfsjyfd9mCkNlT+X8Br9mQP75QqDHDFNxH/eSoOPd+kR/SG+Z1EOcK7UBGPHOn7xs9z5VfmA05u5Rza6xrLp5nTJRSUKIpMcwUzh2ibmBkhUV01XSEloqCkvwipS8eyNP+R33GE/4YqknCeBrG9Mwm+4/byfqFVmWFnbQKOPp0DUh/gBnqgcBysS3tIEAKG2XM5jXby6BIoU++bKrD3T5EpE3Ut9LJAq9VGx8jAhotGqWaeL2E/c0RJ90kMXXrsLBgAia/q5MY694uUK9C6Bk25Y98v4lLx1tXY4OGuldKUBTmcvI7o2/dCwE+ZpjqrBsOaTiqGlPQxdIjH35jvmN18WS5b9ehQgvPECLzOIfATf/oCoq2OCbdcxVEITHxwdiw2zWInS7775vgxze2lTC8Lo3qq0dLeqVfHqotpcjTZ7CUBLK5+yRXKZ+hubzj2wT149RwgBX13Zg3aa9Sl/LVlXxvn51KujR8C8qTFN86x6Dbi5oHcGPpxQLJePWHW+8njPHdtl+0vWOj+3BLLZ+7ILcCo4xHZQNlxdiHoPf/AqO3izJjjJrrlsZC4yklDIRNforrRiSufmdmsskYfQnch+U92Qef6XFIBvYZeaM8D70rdunv1/OYt5onH3LHEHb4h8kXX2WMy6x4TCQ==
-X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230031)(4636009)(396003)(136003)(346002)(376002)(39860400002)(1800799009)(451199024)(186009)(82310400011)(46966006)(40470700004)(36840700001)(40460700003)(2906002)(83380400001)(26005)(86362001)(40480700001)(336012)(478600001)(426003)(36756003)(7696005)(107886003)(2616005)(6666004)(1076003)(5660300002)(36860700001)(41300700001)(54906003)(82740400003)(356005)(7636003)(316002)(70206006)(70586007)(110136005)(4326008)(8676002)(8936002)(47076005)(2101003);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Aug 2023 09:30:49.3934
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: cab14598-b535-49eb-6561-08db9f04a4b4
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: CY4PEPF0000EE31.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7538
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <404044b2-8e7a-4420-9c10-b2ca75d7e3aa@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Jeff Brasen <jbrasen@nvidia.com>
+On Wed, Aug 16, 2023 at 07:42:19PM -0700, Kuppuswamy Sathyanarayanan wrote:
+> On 8/16/2023 1:41 PM, Mario Limonciello wrote:
 
-Add support for Thermal fast Sampling Period (_TFP) for Passive cooling.
-As per UEFI spec, _TFP overrides the "Thermal Sampling Period (_TSP)"
-if both are present in a Thermal zone.
+...
 
-Signed-off-by: Jeff Brasen <jbrasen@nvidia.com>
-Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
----
- drivers/acpi/thermal.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+> Reviewed-by: Kuppuswamy Sathyanarayanan
+> <sathyanarayanan.kuppuswamy@linux.intel.com>
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index f9f6ebb08fdb..5dee3722509c 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -111,7 +111,7 @@ struct acpi_thermal_passive {
- 	unsigned long temperature;
- 	unsigned long tc1;
- 	unsigned long tc2;
--	unsigned long tsp;
-+	unsigned long sampling_period;
- 	bool valid;
- };
- 
-@@ -289,11 +289,18 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 					tz->trips.passive.tc2 = tmp;
- 
- 				status = acpi_evaluate_integer(tz->device->handle,
--							       "_TSP", NULL, &tmp);
--				if (ACPI_FAILURE(status))
--					tz->trips.passive.valid = false;
--				else
--					tz->trips.passive.tsp = tmp;
-+							       "_TFP", NULL, &tmp);
-+				if (ACPI_FAILURE(status)) {
-+					status = acpi_evaluate_integer(tz->device->handle,
-+								       "_TSP", NULL, &tmp);
-+					if (ACPI_FAILURE(status))
-+						tz->trips.passive.valid = false;
-+					else
-+						tz->trips.passive.sampling_period = tmp * 100;
-+
-+				} else {
-+					tz->trips.passive.sampling_period = tmp;
-+				}
- 			}
- 		}
- 	}
-@@ -765,7 +772,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 	if (tz->trips.passive.valid)
- 		tz->thermal_zone = thermal_zone_device_register("acpitz", trips, 0, tz,
- 								&acpi_thermal_zone_ops, NULL,
--								tz->trips.passive.tsp * 100,
-+								tz->trips.passive.sampling_period,
- 								tz->polling_frequency * 100);
- 	else
- 		tz->thermal_zone =
+It's not the first time your tag gets broken. Can you fix it?
+
 -- 
-2.17.1
+With Best Regards,
+Andy Shevchenko
+
 
