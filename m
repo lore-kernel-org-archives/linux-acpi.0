@@ -2,123 +2,125 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B31EE4993
-	for <linux-acpi@archiver.kernel.org>; Fri, 18 Aug 2023 18:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5081AEE498D
+	for <linux-acpi@archiver.kernel.org>; Fri, 18 Aug 2023 18:35:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356488AbjHRSYJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 18 Aug 2023 14:24:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39836 "EHLO
+        id S1379088AbjHRSee convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 18 Aug 2023 14:34:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379439AbjHRSYF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Aug 2023 14:24:05 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 334A82D58
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Aug 2023 11:24:04 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id E0A4D2188D;
-        Fri, 18 Aug 2023 18:24:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1692383042; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=SX+D2sM86o3QGpOyvkgvl+QwlBYRKQsPyzgbZzO4nyA=;
-        b=q/qgiyfrEHdFU6TeGd0d+esDu0V4IHfuBebB/dN6UmXgoNUHpwOvKBuvrAF1Bm1s5OUjlp
-        EyogPYXQOvdheT2V079uiUZBNJNnL73SRGY+umBuy5vMnWnEPhqC5u+4IMM1tqdMAzMoUS
-        sg0o5v+/uEcwrvtb0tzecD+40YV0mHA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1692383042;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=SX+D2sM86o3QGpOyvkgvl+QwlBYRKQsPyzgbZzO4nyA=;
-        b=YKUqdP3ZLE7Qh/O516Dsfs9/jy5m5Zx2mbBdxa48rO+L5tyVr+KSNcuqxNGifZn44HG6Jv
-        5GhILpJ6bE5CvYAQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 988CE13441;
-        Fri, 18 Aug 2023 18:24:02 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id CB0NJEK332SqMAAAMHmgww
-        (envelope-from <jroedel@suse.de>); Fri, 18 Aug 2023 18:24:02 +0000
-Date:   Fri, 18 Aug 2023 20:24:01 +0200
-From:   Joerg Roedel <jroedel@suse.de>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Marek Szyprowski <m.szyprowski@samsung.com>, iommu@lists.linux.dev,
-        Joerg Roedel <joro@8bytes.org>, Len Brown <lenb@kernel.org>,
-        linux-acpi@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        Kevin Tian <kevin.tian@intel.com>,
-        Chen-Yu Tsai <wenst@chromium.org>
-Subject: Re: [PATCH v2 0/4] Fix device_lock deadlock on two probe() paths
-Message-ID: <ZN-3Qfp3CyNiwJBK@suse.de>
-References: <CGME20230809144403eucas1p1345aec6ec34440f1794594426e0402ab@eucas1p1.samsung.com>
- <0-v2-d2762acaf50a+16d-iommu_group_locking2_jgg@nvidia.com>
- <d090f196-a5c2-b188-31bf-e42553d8d251@samsung.com>
- <ZN5n7GnlrTS6s5Yg@nvidia.com>
- <ZN-UpDFHab0vGuXp@suse.de>
- <ZN+XE7dk04f2C3D7@nvidia.com>
+        with ESMTP id S229891AbjHRSeC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Aug 2023 14:34:02 -0400
+Received: from mail-oo1-f46.google.com (mail-oo1-f46.google.com [209.85.161.46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FE6B2D7D;
+        Fri, 18 Aug 2023 11:34:01 -0700 (PDT)
+Received: by mail-oo1-f46.google.com with SMTP id 006d021491bc7-56d0deeca09so194048eaf.0;
+        Fri, 18 Aug 2023 11:34:01 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692383640; x=1692988440;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vBlf1nUQbQFfKp2zKc4LcGN+VaY8kuxNt6d+r4cR42E=;
+        b=M1dk1rxTlI9dCNyIuG6vzOIXFNP63CbNcCzQnzj5+84HmYfjcKfxU/Bgut+R7kBXAe
+         A/6QwkUs5Q27G+l4tOqFU+QtCcC9w3SBm8sBBRg/x1Pcga9KgTJkEyn36/yevYBQLIVw
+         8DMLtQYzDnDxgR+LZXv9vdkiCrAo56x0hZ5F+bB8JG8tBoh94wFl7JUhy10gmwCxpFQN
+         0DZFI2MxW4uyr+V4Rm5gEjt3tsWiVH1pJ8FY20bOzQ9Tb8s8q4XT5HIEXelcvFxGNt6J
+         c44MS6EtUXZicg2jcKppSqxSJvZaqfiqlkUVEvT9lsvOMUx7gBBYd61kcM/sFaK5JNm9
+         maAQ==
+X-Gm-Message-State: AOJu0YxoVwoCwwodE1sx3DsZY7jYMc7Pzi+qF3haSECTqwuHvc0LYILk
+        7HRt15kH4nJ+SCLln6D4xlqYAU6UX4/JL/+DA10=
+X-Google-Smtp-Source: AGHT+IGuDEf404L20cLinB+qq0IvT6x+B4zee3DZX6C39FncXp/0fDdfUrlcQSfj4EdEaLs7zjsYafTuCQ2678V5Ghw=
+X-Received: by 2002:a4a:be17:0:b0:56e:72e0:9c5f with SMTP id
+ l23-20020a4abe17000000b0056e72e09c5fmr36938oop.1.1692383640542; Fri, 18 Aug
+ 2023 11:34:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZN+XE7dk04f2C3D7@nvidia.com>
+References: <20230817093011.1378-1-sumitg@nvidia.com> <20230817093011.1378-2-sumitg@nvidia.com>
+In-Reply-To: <20230817093011.1378-2-sumitg@nvidia.com>
+From:   "Rafael J. Wysocki" <rafael@kernel.org>
+Date:   Fri, 18 Aug 2023 20:33:49 +0200
+Message-ID: <CAJZ5v0gKtwgu=ysdROapfK-pnr3om8zXH_xsP3i=HVqQSs_d-g@mail.gmail.com>
+Subject: Re: [Patch 1/2] ACPI: thermal: Add Thermal fast Sampling Period
+ (_TFP) support
+To:     Sumit Gupta <sumitg@nvidia.com>
+Cc:     rafael@kernel.org, rui.zhang@intel.com, lenb@kernel.org,
+        treding@nvidia.com, jonathanh@nvidia.com,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        sanjayc@nvidia.com, ksitaraman@nvidia.com, srikars@nvidia.com,
+        jbrasen@nvidia.com, bbasu@nvidia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Fri, Aug 18, 2023 at 01:06:43PM -0300, Jason Gunthorpe wrote:
-> On Fri, Aug 18, 2023 at 05:56:20PM +0200, Joerg Roedel wrote:
-> > On Thu, Aug 17, 2023 at 03:33:16PM -0300, Jason Gunthorpe wrote:
-> > > Bascially.. Yikes!
-> > 
-> > Hmm, that is a difficult situation. Even if the problem is a misuse of
-> > the APIs we can not just blindly break other drivers by our core
-> > changes.
-> 
-> They are not broken, they just throw a lockdep warning and keep going
-> as before. This is what triggers:
-> 
-> static inline void device_lock_assert(struct device *dev)
-> {
-> 	lockdep_assert_held(&dev->mutex);
-> }
-> 
-> So non-debug builds won't even see anything.
+On Thu, Aug 17, 2023 at 11:30â€¯AM Sumit Gupta <sumitg@nvidia.com> wrote:
+>
+> From: Jeff Brasen <jbrasen@nvidia.com>
+>
+> Add support for Thermal fast Sampling Period (_TFP) for Passive cooling.
+> As per UEFI spec,
 
-But this still means that a function is called without holding the
-proper lock.
+You mean the ACPI spec I suppose?  It would be good to give the
+relevant section number and title.
 
-> Historically we've tolerated lockdep warnings as a way to motivate
-> people who care to fix their stuff properly. eg the Intel VT-D had a
-> lockdep warning at kernel boot for many releases before it was fixed.
+>  _TFP overrides the "Thermal Sampling Period (_TSP)"
+>  if both are present in a Thermal zone.
+>
+> Signed-off-by: Jeff Brasen <jbrasen@nvidia.com>
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> ---
+>  drivers/acpi/thermal.c | 21 ++++++++++++++-------
+>  1 file changed, 14 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index f9f6ebb08fdb..5dee3722509c 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -111,7 +111,7 @@ struct acpi_thermal_passive {
+>         unsigned long temperature;
+>         unsigned long tc1;
+>         unsigned long tc2;
+> -       unsigned long tsp;
+> +       unsigned long sampling_period;
+>         bool valid;
+>  };
+>
+> @@ -289,11 +289,18 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+>                                         tz->trips.passive.tc2 = tmp;
+>
+>                                 status = acpi_evaluate_integer(tz->device->handle,
+> -                                                              "_TSP", NULL, &tmp);
+> -                               if (ACPI_FAILURE(status))
+> -                                       tz->trips.passive.valid = false;
+> -                               else
+> -                                       tz->trips.passive.tsp = tmp;
+> +                                                              "_TFP", NULL, &tmp);
+> +                               if (ACPI_FAILURE(status)) {
+> +                                       status = acpi_evaluate_integer(tz->device->handle,
+> +                                                                      "_TSP", NULL, &tmp);
+> +                                       if (ACPI_FAILURE(status))
+> +                                               tz->trips.passive.valid = false;
+> +                                       else
+> +                                               tz->trips.passive.sampling_period = tmp * 100;
+> +
+> +                               } else {
+> +                                       tz->trips.passive.sampling_period = tmp;
+> +                               }
+>                         }
+>                 }
+>         }
+> @@ -765,7 +772,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+>         if (tz->trips.passive.valid)
+>                 tz->thermal_zone = thermal_zone_device_register("acpitz", trips, 0, tz,
+>                                                                 &acpi_thermal_zone_ops, NULL,
+> -                                                               tz->trips.passive.tsp * 100,
+> +                                                               tz->trips.passive.sampling_period,
+>                                                                 tz->polling_frequency * 100);
+>         else
+>                 tz->thermal_zone =
+> --
 
-There is a difference between knowingly introducing new lockdep warnings
-into upstream and letting warnings discovered upstream rot for a while.
-
-I can't send anything with known problems upstream.
-
-Regards,
-
--- 
-Jörg Rödel
-jroedel@suse.de
-
-SUSE Software Solutions Germany GmbH
-Frankenstraße 146
-90461 Nürnberg
-Germany
-
-(HRB 36809, AG Nürnberg)
-Geschäftsführer: Ivo Totev, Andrew Myers, Andrew McDonald, Boudien Moerman
-
+So this needs to be rebased on top of the current linux-next branch in
+linux-pm.git or on top of the acpi-thermal branch in there.
