@@ -2,159 +2,115 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C27CCC83F18
-	for <linux-acpi@archiver.kernel.org>; Tue, 29 Aug 2023 16:34:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F37BC6FA8F
+	for <linux-acpi@archiver.kernel.org>; Tue, 29 Aug 2023 19:19:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235329AbjH2Qdw (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 29 Aug 2023 12:33:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34712 "EHLO
+        id S239855AbjH2TSt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 29 Aug 2023 15:18:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237474AbjH2Qdu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Aug 2023 12:33:50 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 447EC184;
-        Tue, 29 Aug 2023 09:33:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1693326828; x=1724862828;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=LbBndQ30pApFIdN1pPSoRCOwu6jKcidtzAZxrTxto+I=;
-  b=G0mPdmDJyd0ZFftYDC1qtsdyRxiN4gpfjuxiq7XvUYR83T7NilQOG4IC
-   mvbpVNehg+xBptDZpExL21wpo+9EDcVc3v4FjchcDyUHg8aaeVDivhmDa
-   lrbbMONM+156SM5sy+jMr95Q/+q8kOG2KguvLrkj9solvalS76YYMp1gZ
-   JKTKvlHjQNJGt1O/2zSYK1YOLlRl51//a4iVsIQ+n+G6ijDOIq4c5WeT8
-   Ab5jpK1v2aWqR1jmPxUCn3W+CYgqCOPvsWbN+qSDyzgbTS/SbVhJGK3pK
-   B2o/fWnV6biXXqTnOK5QbG2O3WEsUCwPFwxGYmSBuoYDaUYLZEBsko2zD
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10817"; a="461793834"
-X-IronPort-AV: E=Sophos;i="6.02,210,1688454000"; 
-   d="scan'208";a="461793834"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2023 09:28:01 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10817"; a="741883388"
-X-IronPort-AV: E=Sophos;i="6.02,210,1688454000"; 
-   d="scan'208";a="741883388"
-Received: from lkp-server02.sh.intel.com (HELO daf8bb0a381d) ([10.239.97.151])
-  by fmsmga007.fm.intel.com with ESMTP; 29 Aug 2023 09:27:56 -0700
-Received: from kbuild by daf8bb0a381d with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qb1ZL-0008u3-28;
-        Tue, 29 Aug 2023 16:27:55 +0000
-Date:   Wed, 30 Aug 2023 00:27:13 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Meng Li <li.meng@amd.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Huang Rui <ray.huang@amd.com>
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        x86@kernel.org, linux-acpi@vger.kernel.org,
-        Shuah Khan <skhan@linuxfoundation.org>,
-        linux-kselftest@vger.kernel.org,
-        Nathan Fontenot <nathan.fontenot@amd.com>,
-        Deepak Sharma <deepak.sharma@amd.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Mario Limonciello <mario.limonciello@amd.com>,
-        Shimmer Huang <shimmer.huang@amd.com>,
-        Perry Yuan <Perry.Yuan@amd.com>,
-        Xiaojian Du <Xiaojian.Du@amd.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Borislav Petkov <bp@alien8.de>, Meng Li <li.meng@amd.com>
-Subject: Re: [PATCH V4 4/7] cpufreq: Add a notification message that the
- highest perf has changed
-Message-ID: <202308300057.ASUJQpsV-lkp@intel.com>
-References: <20230829064340.1136448-5-li.meng@amd.com>
+        with ESMTP id S239094AbjH2TSX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Aug 2023 15:18:23 -0400
+Received: from mail-io1-xd30.google.com (mail-io1-xd30.google.com [IPv6:2607:f8b0:4864:20::d30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2991194
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Aug 2023 12:18:20 -0700 (PDT)
+Received: by mail-io1-xd30.google.com with SMTP id ca18e2360f4ac-7927952ca67so140344839f.2
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Aug 2023 12:18:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1693336700; x=1693941500; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Q2EOlIsyyalVzQJ+ySIW4EY7rt0WpPcDJsD4cRWVzLc=;
+        b=Y8ndFGXUdPBDqaEMrjCfmJVCjWK3Y+qe25md0YtblEBllgsSd1oPIVru37PO6prVZU
+         4eqfiJEtZ4He2OXtMXrTkWUKUjXzoKVu1LfH3s94VUxIXZYxKwnpUsQv/egO0yoJp61F
+         SUelLTEiNB1m9OHnbp6uqCRQNu8CQSiYzw6CQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693336700; x=1693941500;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Q2EOlIsyyalVzQJ+ySIW4EY7rt0WpPcDJsD4cRWVzLc=;
+        b=Ormus5RS9ZctjoDtWjVoMTtjq3bM27/58O0tOGM+MnMT68RfyV0w6jzV8xPmyykvTM
+         T48S8ZYVP2I/GxgeIipGc8zAWGUbjm2RnfWsSQN4BUfGFjFz596RXGI98R//2bWxa26D
+         IwJX8t23c6TO5VTMyEpEhRBDRHO4K+yyPUIdRrzHkGuOazkfPoqI67fVWB6cx1nEvUbE
+         T9CI/iSkoMbUGqDFHo3qb1dwc4JDgUsRYHbRT9POhy2NVfcVGA2GwTtnWSAypVLrW7dV
+         EHIifsVPWbbNaUWvzezVGo4/5s5/ohi8/YSk7Nc/DpHDOCcHVLAdAV2inNdyYx3HAK+p
+         wzYA==
+X-Gm-Message-State: AOJu0YzTOiDx15vE0RQDGRmpuxVJYE6yIx4BevwmTGhgkTyi1PZ95Dgx
+        onKy0nVtmB5BysJeSp4iyZHZDg==
+X-Google-Smtp-Source: AGHT+IHcNTUDqeWuGnguf30MnbXSWVIEQf0YgXYlNufXHWllcBHuQB7tTPrRkRrNldw414bQICnkvA==
+X-Received: by 2002:a6b:a05:0:b0:795:16b8:85fc with SMTP id z5-20020a6b0a05000000b0079516b885fcmr406492ioi.0.1693336700070;
+        Tue, 29 Aug 2023 12:18:20 -0700 (PDT)
+Received: from kea.bld.corp.google.com ([2620:15c:183:200:16d9:c947:1a18:4c10])
+        by smtp.gmail.com with ESMTPSA id fq8-20020a056638650800b004332f6537e2sm3359798jab.83.2023.08.29.12.18.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Aug 2023 12:18:19 -0700 (PDT)
+From:   Simon Glass <sjg@chromium.org>
+To:     devicetree@vger.kernel.org
+Cc:     Dhaval Sharma <dhaval@rivosinc.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Gua Guo <gua.guo@intel.com>, Tom Rini <trini@konsulko.com>,
+        Rob Herring <robh@kernel.org>,
+        U-Boot Mailing List <u-boot@lists.denx.de>,
+        ron minnich <rminnich@gmail.com>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Lean Sheng Tan <sheng.tan@9elements.com>,
+        Maximilian Brune <maximilian.brune@9elements.com>,
+        Chiu Chasel <chasel.chiu@intel.com>,
+        lkml <linux-kernel@vger.kernel.org>,
+        Yunhui Cui <cuiyunhui@bytedance.com>,
+        linux-acpi@vger.kernel.org, Guo Dong <guo.dong@intel.com>,
+        Simon Glass <sjg@chromium.org>
+Subject: [PATCH v4 4/4] memory: Add ECC property
+Date:   Tue, 29 Aug 2023 13:18:09 -0600
+Message-ID: <20230829191812.135759-4-sjg@chromium.org>
+X-Mailer: git-send-email 2.42.0.rc2.253.gd59a3bf2b4-goog
+In-Reply-To: <20230829191812.135759-1-sjg@chromium.org>
+References: <20230829191812.135759-1-sjg@chromium.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230829064340.1136448-5-li.meng@amd.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Meng,
+Some memories provides ECC correction. For software which wants to check
+memory, it is helpful to see which regions provide this feature.
 
-kernel test robot noticed the following build errors:
+Add this as a property of the /memory nodes, since it presumably follows
+the hardware-level memory system.
 
-[auto build test ERROR on rafael-pm/linux-next]
-[also build test ERROR on linus/master v6.5 next-20230829]
-[cannot apply to tip/x86/core]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Signed-off-by: Simon Glass <sjg@chromium.org>
+---
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Meng-Li/x86-Drop-CPU_SUP_INTEL-from-SCHED_MC_PRIO-for-the-expansion/20230829-144723
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20230829064340.1136448-5-li.meng%40amd.com
-patch subject: [PATCH V4 4/7] cpufreq: Add a notification message that the highest perf has changed
-config: i386-randconfig-r031-20230829 (https://download.01.org/0day-ci/archive/20230830/202308300057.ASUJQpsV-lkp@intel.com/config)
-compiler: clang version 16.0.4 (https://github.com/llvm/llvm-project.git ae42196bc493ffe877a7e3dff8be32035dea4d07)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230830/202308300057.ASUJQpsV-lkp@intel.com/reproduce)
+(no changes since v3)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202308300057.ASUJQpsV-lkp@intel.com/
+Changes in v3:
+- Add new patch to update the /memory nodes
 
-All errors (new ones prefixed by >>):
+ dtschema/schemas/memory.yaml | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
->> drivers/acpi/processor_driver.c:88:3: error: call to undeclared function 'cpufreq_update_highest_perf'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-                   cpufreq_update_highest_perf(pr->id);
-                   ^
-   1 error generated.
-
-
-vim +/cpufreq_update_highest_perf +88 drivers/acpi/processor_driver.c
-
-    53	
-    54	static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
-    55	{
-    56		struct acpi_device *device = data;
-    57		struct acpi_processor *pr;
-    58		int saved;
-    59	
-    60		if (device->handle != handle)
-    61			return;
-    62	
-    63		pr = acpi_driver_data(device);
-    64		if (!pr)
-    65			return;
-    66	
-    67		switch (event) {
-    68		case ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
-    69			saved = pr->performance_platform_limit;
-    70			acpi_processor_ppc_has_changed(pr, 1);
-    71			if (saved == pr->performance_platform_limit)
-    72				break;
-    73			acpi_bus_generate_netlink_event(device->pnp.device_class,
-    74							  dev_name(&device->dev), event,
-    75							  pr->performance_platform_limit);
-    76			break;
-    77		case ACPI_PROCESSOR_NOTIFY_POWER:
-    78			acpi_processor_power_state_has_changed(pr);
-    79			acpi_bus_generate_netlink_event(device->pnp.device_class,
-    80							  dev_name(&device->dev), event, 0);
-    81			break;
-    82		case ACPI_PROCESSOR_NOTIFY_THROTTLING:
-    83			acpi_processor_tstate_has_changed(pr);
-    84			acpi_bus_generate_netlink_event(device->pnp.device_class,
-    85							  dev_name(&device->dev), event, 0);
-    86			break;
-    87		case ACPI_PROCESSOR_NOTIFY_HIGEST_PERF_CHANGED:
-  > 88			cpufreq_update_highest_perf(pr->id);
-    89			acpi_bus_generate_netlink_event(device->pnp.device_class,
-    90							  dev_name(&device->dev), event, 0);
-    91			break;
-    92		default:
-    93			acpi_handle_debug(handle, "Unsupported event [0x%x]\n", event);
-    94			break;
-    95		}
-    96	
-    97		return;
-    98	}
-    99	
-
+diff --git a/dtschema/schemas/memory.yaml b/dtschema/schemas/memory.yaml
+index 1d74410..981af04 100644
+--- a/dtschema/schemas/memory.yaml
++++ b/dtschema/schemas/memory.yaml
+@@ -34,7 +34,14 @@ patternProperties:
+         description:
+           For the purpose of identification, each NUMA node is associated with
+           a unique token known as a node id.
+-
++      attr:
++        $ref: /schemas/types.yaml#/definitions/string-array
++        description: |
++          Attributes possessed by this memory region:
++
++            "single-bit-ecc" - supports single-bit ECC
++            "multi-bit-ecc" - supports multiple-bit ECC
++            "no-ecc" - non-ECC memory
+ 
+     required:
+       - device_type
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.42.0.rc2.253.gd59a3bf2b4-goog
+
