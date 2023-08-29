@@ -2,50 +2,49 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F37BC6FA8F
-	for <linux-acpi@archiver.kernel.org>; Tue, 29 Aug 2023 19:19:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8C35C71153
+	for <linux-acpi@archiver.kernel.org>; Tue, 29 Aug 2023 19:19:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239855AbjH2TSt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 29 Aug 2023 15:18:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53300 "EHLO
+        id S230476AbjH2TSq (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 29 Aug 2023 15:18:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239094AbjH2TSX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Aug 2023 15:18:23 -0400
-Received: from mail-io1-xd30.google.com (mail-io1-xd30.google.com [IPv6:2607:f8b0:4864:20::d30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2991194
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Aug 2023 12:18:20 -0700 (PDT)
-Received: by mail-io1-xd30.google.com with SMTP id ca18e2360f4ac-7927952ca67so140344839f.2
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Aug 2023 12:18:20 -0700 (PDT)
+        with ESMTP id S236180AbjH2TST (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Aug 2023 15:18:19 -0400
+Received: from mail-il1-x132.google.com (mail-il1-x132.google.com [IPv6:2607:f8b0:4864:20::132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDA82A8
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Aug 2023 12:18:16 -0700 (PDT)
+Received: by mail-il1-x132.google.com with SMTP id e9e14a558f8ab-34ca1bcb48fso16682015ab.2
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Aug 2023 12:18:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1693336700; x=1693941500; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Q2EOlIsyyalVzQJ+ySIW4EY7rt0WpPcDJsD4cRWVzLc=;
-        b=Y8ndFGXUdPBDqaEMrjCfmJVCjWK3Y+qe25md0YtblEBllgsSd1oPIVru37PO6prVZU
-         4eqfiJEtZ4He2OXtMXrTkWUKUjXzoKVu1LfH3s94VUxIXZYxKwnpUsQv/egO0yoJp61F
-         SUelLTEiNB1m9OHnbp6uqCRQNu8CQSiYzw6CQ=
+        d=chromium.org; s=google; t=1693336696; x=1693941496; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=gSArBmMsswRYjnTU8zyo9/Uft3vc1W7OWIExh4GBVPE=;
+        b=B7cfYHF/Z4FanikXPF7tRvvy9I54DYw4LxJrp7AQuCepRbqxe0amMiyKVdcl5LXVI5
+         03T06Z17VtAdtYt2r2noduRl6TxjF1PXmOFQ5aetPIYzzLLQ9pnl46nm4yfLbniBTCHk
+         3G00nZyiLfGhperHwNe8Sz4q/HEc5y90kn4T8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693336700; x=1693941500;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Q2EOlIsyyalVzQJ+ySIW4EY7rt0WpPcDJsD4cRWVzLc=;
-        b=Ormus5RS9ZctjoDtWjVoMTtjq3bM27/58O0tOGM+MnMT68RfyV0w6jzV8xPmyykvTM
-         T48S8ZYVP2I/GxgeIipGc8zAWGUbjm2RnfWsSQN4BUfGFjFz596RXGI98R//2bWxa26D
-         IwJX8t23c6TO5VTMyEpEhRBDRHO4K+yyPUIdRrzHkGuOazkfPoqI67fVWB6cx1nEvUbE
-         T9CI/iSkoMbUGqDFHo3qb1dwc4JDgUsRYHbRT9POhy2NVfcVGA2GwTtnWSAypVLrW7dV
-         EHIifsVPWbbNaUWvzezVGo4/5s5/ohi8/YSk7Nc/DpHDOCcHVLAdAV2inNdyYx3HAK+p
-         wzYA==
-X-Gm-Message-State: AOJu0YzTOiDx15vE0RQDGRmpuxVJYE6yIx4BevwmTGhgkTyi1PZ95Dgx
-        onKy0nVtmB5BysJeSp4iyZHZDg==
-X-Google-Smtp-Source: AGHT+IHcNTUDqeWuGnguf30MnbXSWVIEQf0YgXYlNufXHWllcBHuQB7tTPrRkRrNldw414bQICnkvA==
-X-Received: by 2002:a6b:a05:0:b0:795:16b8:85fc with SMTP id z5-20020a6b0a05000000b0079516b885fcmr406492ioi.0.1693336700070;
-        Tue, 29 Aug 2023 12:18:20 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1693336696; x=1693941496;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=gSArBmMsswRYjnTU8zyo9/Uft3vc1W7OWIExh4GBVPE=;
+        b=KXp9RCSzhJHRgsF2IDKnaVuYeG1PGBO4OTC39PFBiWWJNf/uKEqwhPa85458DCPBg5
+         d5LFQS93Sn93qD/szS/wDYWhlzxmkManvdpqcgVI0VqcS2yTn+2pFaHO84ISxTA16DBc
+         4rBAQqHmPgBSuVHTm2/9/+L4kUGcYuHQxDcsn7OmkBLiIsVegnaUBOKnRGGcR8/Sguj5
+         lIISyx+P+PaoU0naG5uzJSPJ2mX6hhkcEQrLb4l4gg2sU5xF8LLKlls5qU8v5AFUG25b
+         se+dcYp5N7k2hV+zUyabUyVUiKN99iS+kkIoTl5xgmPIX6192P4+hK0uoqpu64h4pqcB
+         XtQQ==
+X-Gm-Message-State: AOJu0YzBo0Jwql3lxb0y5AnX7QiEKlb1qTsqkHBWoLYU0cW6W7QlBUc3
+        gsjy7jVH81ljk+TgXljM2rHH8w==
+X-Google-Smtp-Source: AGHT+IG9piH/z3sYhq1WiiMmi+BovOBIGET+WWTVzIQinivR6hkTahyvuUF3tCHVeiUGB1T13g23MQ==
+X-Received: by 2002:a05:6e02:dca:b0:348:7396:184b with SMTP id l10-20020a056e020dca00b003487396184bmr169828ilj.24.1693336696115;
+        Tue, 29 Aug 2023 12:18:16 -0700 (PDT)
 Received: from kea.bld.corp.google.com ([2620:15c:183:200:16d9:c947:1a18:4c10])
-        by smtp.gmail.com with ESMTPSA id fq8-20020a056638650800b004332f6537e2sm3359798jab.83.2023.08.29.12.18.19
+        by smtp.gmail.com with ESMTPSA id fq8-20020a056638650800b004332f6537e2sm3359798jab.83.2023.08.29.12.18.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Aug 2023 12:18:19 -0700 (PDT)
+        Tue, 29 Aug 2023 12:18:15 -0700 (PDT)
 From:   Simon Glass <sjg@chromium.org>
 To:     devicetree@vger.kernel.org
 Cc:     Dhaval Sharma <dhaval@rivosinc.com>,
@@ -62,55 +61,215 @@ Cc:     Dhaval Sharma <dhaval@rivosinc.com>,
         Yunhui Cui <cuiyunhui@bytedance.com>,
         linux-acpi@vger.kernel.org, Guo Dong <guo.dong@intel.com>,
         Simon Glass <sjg@chromium.org>
-Subject: [PATCH v4 4/4] memory: Add ECC property
-Date:   Tue, 29 Aug 2023 13:18:09 -0600
-Message-ID: <20230829191812.135759-4-sjg@chromium.org>
+Subject: [PATCH v4 1/4] Add reserved-memory
+Date:   Tue, 29 Aug 2023 13:18:06 -0600
+Message-ID: <20230829191812.135759-1-sjg@chromium.org>
 X-Mailer: git-send-email 2.42.0.rc2.253.gd59a3bf2b4-goog
-In-Reply-To: <20230829191812.135759-1-sjg@chromium.org>
-References: <20230829191812.135759-1-sjg@chromium.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Some memories provides ECC correction. For software which wants to check
-memory, it is helpful to see which regions provide this feature.
-
-Add this as a property of the /memory nodes, since it presumably follows
-the hardware-level memory system.
+Bring in this file from Linux v6.5
 
 Signed-off-by: Simon Glass <sjg@chromium.org>
 ---
 
-(no changes since v3)
+Changes in v4:
+- New patch
 
-Changes in v3:
-- Add new patch to update the /memory nodes
+ .../reserved-memory/reserved-memory.yaml      | 181 ++++++++++++++++++
+ 1 file changed, 181 insertions(+)
+ create mode 100644 dtschema/schemas/reserved-memory/reserved-memory.yaml
 
- dtschema/schemas/memory.yaml | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/dtschema/schemas/memory.yaml b/dtschema/schemas/memory.yaml
-index 1d74410..981af04 100644
---- a/dtschema/schemas/memory.yaml
-+++ b/dtschema/schemas/memory.yaml
-@@ -34,7 +34,14 @@ patternProperties:
-         description:
-           For the purpose of identification, each NUMA node is associated with
-           a unique token known as a node id.
--
-+      attr:
-+        $ref: /schemas/types.yaml#/definitions/string-array
-+        description: |
-+          Attributes possessed by this memory region:
+diff --git a/dtschema/schemas/reserved-memory/reserved-memory.yaml b/dtschema/schemas/reserved-memory/reserved-memory.yaml
+new file mode 100644
+index 0000000..c680e39
+--- /dev/null
++++ b/dtschema/schemas/reserved-memory/reserved-memory.yaml
+@@ -0,0 +1,181 @@
++# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/reserved-memory/reserved-memory.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+            "single-bit-ecc" - supports single-bit ECC
-+            "multi-bit-ecc" - supports multiple-bit ECC
-+            "no-ecc" - non-ECC memory
- 
-     required:
-       - device_type
++title: /reserved-memory Child Node Common
++
++maintainers:
++  - devicetree-spec@vger.kernel.org
++
++description: >
++  Reserved memory is specified as a node under the /reserved-memory node. The
++  operating system shall exclude reserved memory from normal usage one can
++  create child nodes describing particular reserved (excluded from normal use)
++  memory regions. Such memory regions are usually designed for the special
++  usage by various device drivers.
++
++  Each child of the reserved-memory node specifies one or more regions
++  of reserved memory. Each child node may either use a 'reg' property to
++  specify a specific range of reserved memory, or a 'size' property with
++  optional constraints to request a dynamically allocated block of
++  memory.
++
++  Following the generic-names recommended practice, node names should
++  reflect the purpose of the node (ie. "framebuffer" or "dma-pool").
++  Unit address (@<address>) should be appended to the name if the node
++  is a static allocation.
++
++properties:
++  reg: true
++
++  size:
++    oneOf:
++      - $ref: /schemas/types.yaml#/definitions/uint32
++      - $ref: /schemas/types.yaml#/definitions/uint64
++    description: >
++      Length based on parent's \#size-cells. Size in bytes of memory to
++      reserve.
++
++  alignment:
++    oneOf:
++      - $ref: /schemas/types.yaml#/definitions/uint32
++      - $ref: /schemas/types.yaml#/definitions/uint64
++    description: >
++      Length based on parent's \#size-cells. Address boundary for
++      alignment of allocation.
++
++  alloc-ranges:
++    $ref: /schemas/types.yaml#/definitions/uint32-array
++    description: >
++      Address and Length pairs. Specifies regions of memory that are
++      acceptable to allocate from.
++
++  iommu-addresses:
++    $ref: /schemas/types.yaml#/definitions/phandle-array
++    description: >
++      A list of phandle and specifier pairs that describe static IO virtual
++      address space mappings and carveouts associated with a given reserved
++      memory region. The phandle in the first cell refers to the device for
++      which the mapping or carveout is to be created.
++
++      The specifier consists of an address/size pair and denotes the IO
++      virtual address range of the region for the given device. The exact
++      format depends on the values of the "#address-cells" and "#size-cells"
++      properties of the device referenced via the phandle.
++
++      When used in combination with a "reg" property, an IOVA mapping is to
++      be established for this memory region. One example where this can be
++      useful is to create an identity mapping for physical memory that the
++      firmware has configured some hardware to access (such as a bootsplash
++      framebuffer).
++
++      If no "reg" property is specified, the "iommu-addresses" property
++      defines carveout regions in the IOVA space for the given device. This
++      can be useful if a certain memory region should not be mapped through
++      the IOMMU.
++
++  no-map:
++    type: boolean
++    description: >
++      Indicates the operating system must not create a virtual mapping
++      of the region as part of its standard mapping of system memory,
++      nor permit speculative access to it under any circumstances other
++      than under the control of the device driver using the region.
++
++  reusable:
++    type: boolean
++    description: >
++      The operating system can use the memory in this region with the
++      limitation that the device driver(s) owning the region need to be
++      able to reclaim it back. Typically that means that the operating
++      system can use that region to store volatile or cached data that
++      can be otherwise regenerated or migrated elsewhere.
++
++allOf:
++  - if:
++      required:
++        - no-map
++
++    then:
++      not:
++        required:
++          - reusable
++
++  - if:
++      required:
++        - reusable
++
++    then:
++      not:
++        required:
++          - no-map
++
++oneOf:
++  - oneOf:
++      - required:
++          - reg
++
++      - required:
++          - size
++
++  - oneOf:
++      # IOMMU reservations
++      - required:
++          - iommu-addresses
++
++      # IOMMU mappings
++      - required:
++          - reg
++          - iommu-addresses
++
++additionalProperties: true
++
++examples:
++  - |
++    / {
++      compatible = "foo";
++      model = "foo";
++
++      #address-cells = <2>;
++      #size-cells = <2>;
++
++      reserved-memory {
++        #address-cells = <2>;
++        #size-cells = <2>;
++        ranges;
++
++        adsp_resv: reservation-adsp {
++          /*
++           * Restrict IOVA mappings for ADSP buffers to the 512 MiB region
++           * from 0x40000000 - 0x5fffffff. Anything outside is reserved by
++           * the ADSP for I/O memory and private memory allocations.
++           */
++          iommu-addresses = <&adsp 0x0 0x00000000 0x00 0x40000000>,
++                            <&adsp 0x0 0x60000000 0xff 0xa0000000>;
++        };
++
++        fb: framebuffer@90000000 {
++          reg = <0x0 0x90000000 0x0 0x00800000>;
++          iommu-addresses = <&dc0 0x0 0x90000000 0x0 0x00800000>;
++        };
++      };
++
++      bus@0 {
++        #address-cells = <1>;
++        #size-cells = <1>;
++        ranges = <0x0 0x0 0x0 0x40000000>;
++
++        adsp: adsp@2990000 {
++          reg = <0x2990000 0x2000>;
++          memory-region = <&adsp_resv>;
++        };
++
++        dc0: display@15200000 {
++          reg = <0x15200000 0x10000>;
++          memory-region = <&fb>;
++        };
++      };
++    };
++...
 -- 
 2.42.0.rc2.253.gd59a3bf2b4-goog
 
