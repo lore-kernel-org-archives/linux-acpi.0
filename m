@@ -2,221 +2,213 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44BBFC83F2C
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 16:07:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3CCFCA0FF8
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 16:07:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238993AbjIEQHP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:07:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48260 "EHLO
+        id S239063AbjIEQHS (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:07:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354186AbjIEKJF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 06:09:05 -0400
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2040.outbound.protection.outlook.com [40.107.236.40])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 043AB90;
-        Tue,  5 Sep 2023 03:09:00 -0700 (PDT)
+        with ESMTP id S245143AbjIEBwW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Sep 2023 21:52:22 -0400
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2088.outbound.protection.outlook.com [40.107.95.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B26FCC5;
+        Mon,  4 Sep 2023 18:52:19 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=WCKdA90DJCn3foSxAvGOEMYEdE6Nizr83hfNo9CrpthIwRJdU35Bz0l5AkBhZ8Sh+3/DLOYP9MxquZVUTdKlcnL3yqhbHu8eD5A7hN6OnANF44ZG2gnw9q8Lj3t5aKIV6Rwf527RAUg38FHuxH12oDHX7mHbaeS7WltceCP9Jl1Lje2nw+TJTO8C5xaVC04PX7SGfiziYo43XrdNY8XJhI+niR/rILElSgx4Etd2hUkZmq8e1cBLwaxmEduAOgIT14SievDY1CRI5pzrIs0HZtn5+jOcqjwSB4fiLYYQ3RtwbnKPRRQ6Or/F11YoVTYWQ8nDyzDTa0ZvjvyTtvk7gA==
+ b=hJKo02BrP69mJRtID9DDw7BD6vPeZNDyWSy7v+C9WaACkZO3O60VbF3nhNyb83cqinQEmYmMbwgBBUTPCqYeuY6ARRZHNayrUAvXRkze3nqOXcaGELL0CHMrLyLc472uOIw5f3Iw81XPrp+UghQm6MNauYaV5dcAlYZPLG8YEwiNziTskAPJd8Yko2mwamUVcD1p4pCF9VjlTXpsX4Sn1GWUav4w4vTWeE2qcxf9XGsSSL9igVqHe4e4hb3/0Xh7TuHVGBtBEPdy26DovBVEC2Sht/QcaT/oZE5o4fuh/IciawXDr9t4GrKD8CoOoBN4kNx0K1wmBVrlPvuB/YjoWg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=JxyfHejIV285ryU6pas1mBSrFU8Jcnwl6AKn/g2F/+w=;
- b=LdAPzrNYCcXNYc52mDm40TPA+/6mWdi5mz7YEkOTpeufHt9oI6c1WGF/JlCQrWUkORs4Du9ffjJ6W+pMHf6PFmsJGwIKR4QbGL09jiczxnOEUzKjHeY5TxgyrDlvsFqv2AabhE2V0qcwUUXJ2EPwUiiEE0z2waSLh4Ti5KVmGz5yNvuSU1xvkSUCEhkvxcvjtnCwwPRI9LeHQjmBUfOZFBqODSHAox6wJaucf4ZzgQMu5pw3qOM0fOc9/QO4cdj22QUgl8oey2Pb89l9VI0jQX1JpColxptGpaBWprJJrxcFK5oRXbS0PY2n00SRm+AcjpoQpJ+eFMGjYTiC3nasZQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
+ bh=QafCinqhB4JcZBw/TmFTAco1fQuxkYe9Bs1oA3tu0UQ=;
+ b=m0kZixesAmV5bmH/vBa4b5L9FdGiNHFrejZSYoiXMc6SwfSgdNwb/6lIMFcvjzfXNJPj0sZ3kTCkDKFWZrROor7LVT7QKWtWp8nay9BurWuOoNhO8Gto0RQ1NcSX1UiX7HAWvXQlTPxZ5ziXI02vyXYKetxooa5h4yDJ8fqZg5nR6rsl0GZZdBHScvYsOSVB5dD3ONtmLqInp03ke3B5CG1qRe8v8WGLblgkR0czP7sOzdpyul1sbBAO6k4/IwNm1AUjG3+7xHk5ojaab2Wsl3ntwpoLd/WNzjJE0bN4PozC3Vjgjja/Uyxb9AnzQIoLHKf68xgKb2JOac6nxbHcbQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=JxyfHejIV285ryU6pas1mBSrFU8Jcnwl6AKn/g2F/+w=;
- b=PDt490WzzyHQPKELFTx1qTM6f++4T3XMM42Ccm1RgJCjjcbS2WZWPVloeUeWL6Q/mhCforgGtB/FB3sQPmwzkTaImdieM/HBbIE146gMzzoUDMG7JXxxak789CTAPJl182VA9jT6Zum3qfaz0MC9BjHWgQi/1MtXJVInZ0zvbxE=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from BL1PR12MB5176.namprd12.prod.outlook.com (2603:10b6:208:311::19)
- by LV3PR12MB9440.namprd12.prod.outlook.com (2603:10b6:408:215::5) with
+ bh=QafCinqhB4JcZBw/TmFTAco1fQuxkYe9Bs1oA3tu0UQ=;
+ b=BNYc6Znqa/1lFkeiJidyQ7H1NhhDcXeOFRxnEdnBuF17yUOHXlBwlNwtKeId82Oi0VU8whSoOMl7itWi4fC/rOb0otgK0mm92jdkJa9yDtEUWlYf55WUyeNbR8v8/nWZk5lAt8E8CpXbyaOr3bVlU59eNU25+gCDv/1doiojS8k=
+Received: from CY5PR15CA0203.namprd15.prod.outlook.com (2603:10b6:930:82::25)
+ by PH7PR12MB6737.namprd12.prod.outlook.com (2603:10b6:510:1a8::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6745.33; Tue, 5 Sep
- 2023 10:08:56 +0000
-Received: from BL1PR12MB5176.namprd12.prod.outlook.com
- ([fe80::5564:8c7:6c3a:867d]) by BL1PR12MB5176.namprd12.prod.outlook.com
- ([fe80::5564:8c7:6c3a:867d%6]) with mapi id 15.20.6745.030; Tue, 5 Sep 2023
- 10:08:56 +0000
-Message-ID: <ceda84a0-e5cd-f6dc-3e3c-52e85fda8318@amd.com>
-Date:   Tue, 5 Sep 2023 15:38:44 +0530
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.1
-Subject: Re: [PATCH v16 3/3] platform/x86/amd: pmc: Don't let PCIe root ports
- go into D3
-To:     Mario Limonciello <mario.limonciello@amd.com>, hdegoede@redhat.com,
-        bhelgaas@google.com, rafael@kernel.org
-Cc:     linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        Iain Lane <iain@orangesquash.org.uk>
-References: <20230829171212.156688-1-mario.limonciello@amd.com>
- <20230829171212.156688-4-mario.limonciello@amd.com>
-From:   Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
-In-Reply-To: <20230829171212.156688-4-mario.limonciello@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN3PR01CA0012.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:95::21) To BL1PR12MB5176.namprd12.prod.outlook.com
- (2603:10b6:208:311::19)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6745.32; Tue, 5 Sep
+ 2023 01:52:16 +0000
+Received: from CY4PEPF0000EDD0.namprd03.prod.outlook.com
+ (2603:10b6:930:82:cafe::9f) by CY5PR15CA0203.outlook.office365.com
+ (2603:10b6:930:82::25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6745.33 via Frontend
+ Transport; Tue, 5 Sep 2023 01:52:15 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CY4PEPF0000EDD0.mail.protection.outlook.com (10.167.241.204) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6768.25 via Frontend Transport; Tue, 5 Sep 2023 01:52:15 +0000
+Received: from jasmine-meng.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 4 Sep
+ 2023 20:52:11 -0500
+From:   Meng Li <li.meng@amd.com>
+To:     "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Huang Rui <ray.huang@amd.com>
+CC:     <linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <x86@kernel.org>, <linux-acpi@vger.kernel.org>,
+        Shuah Khan <skhan@linuxfoundation.org>,
+        <linux-kselftest@vger.kernel.org>,
+        "Nathan Fontenot" <nathan.fontenot@amd.com>,
+        Deepak Sharma <deepak.sharma@amd.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Mario Limonciello <mario.limonciello@amd.com>,
+        Shimmer Huang <shimmer.huang@amd.com>,
+        "Perry Yuan" <Perry.Yuan@amd.com>,
+        Xiaojian Du <Xiaojian.Du@amd.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Borislav Petkov <bp@alien8.de>, Meng Li <li.meng@amd.com>
+Subject: [PATCH V5 6/7] Documentation: amd-pstate: introduce amd-pstate preferred core
+Date:   Tue, 5 Sep 2023 09:51:15 +0800
+Message-ID: <20230905015116.2268926-7-li.meng@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230905015116.2268926-1-li.meng@amd.com>
+References: <20230905015116.2268926-1-li.meng@amd.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL1PR12MB5176:EE_|LV3PR12MB9440:EE_
-X-MS-Office365-Filtering-Correlation-Id: 719af9b6-53a2-491b-a98a-08dbadf81d57
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EDD0:EE_|PH7PR12MB6737:EE_
+X-MS-Office365-Filtering-Correlation-Id: 82820a86-8221-4716-50e1-08dbadb2bb2e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: eP1DR9lNpe1mlbXFIvVnyKxVdUnxyCytjQa5w89BkJx3ZqI6l4ZKOZI1rANuUvG0S8bAF5H8FKhgx3UUEkGLQn+kUnWpYA7Z4qR9CLU18SK9MuBhfC97fg0svJnxDYY71QPg+VMOgB1f6d0baCjDd49h+GA/Xs1fj+GD1+DTD7AEhzuYdmbDLpgWQ1OLKED6qS/v/Mwh4jl5fWDG0pgWeDczKnNR1l7qycaLsoIc5Wp/vLpCt159nzB1sBTJv0GaumzLv66ClqFyreQBcd2hP7/JoAhJ0GQct7ItKfKEUyIovUfwoBueRD2PEzLI4i40hGBYCz3Rm4bdQaK6+Or1FLDJOBftne9SskL0OqDKSSB9XmbIgSOHstqyxwqIAbq6VOFHrlukeapZCpHNQafUriH+EjEfhbUc4zcUWwQ2le4X3vXYIf2y5fNe2KuYFglL4QWJCNJNB+fqcc9OGeoaP4+I9tRzStMB+S63gA5+0HJke4wK0oA6Xe6fSSYe8o13qxDgRLPDSm4MRjdhSUkC/iA91web28hNcSK5YS/L6FivmuOLCrsYV67OyWCZyzBzPPtL3GJ/Ad8Ir4mLzlEa9K/Zn7Uo9TWiqHpuzYdQLzkvlxjc2rJeZ9mAvpw1WWrrPeaaQSZGw37Riqv0PG2m/A==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL1PR12MB5176.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(366004)(39860400002)(136003)(346002)(376002)(451199024)(186009)(1800799009)(38100700002)(41300700001)(966005)(66476007)(66946007)(66556008)(478600001)(2616005)(26005)(6512007)(6506007)(6486002)(6666004)(53546011)(4326008)(8676002)(5660300002)(8936002)(316002)(31696002)(86362001)(31686004)(83380400001)(2906002)(36756003)(45980500001)(43740500002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?T2F3L2RhQTJodnlRc1pUKyt2UmV3cEJFSXRiWDBYTUUyVVNVajBKOHlucUlH?=
- =?utf-8?B?b2xUTzdwd3RSL09BTlZGNTlNV0FOMnJCNThOOVpRMk5yTjNuemZlN2IvQWVM?=
- =?utf-8?B?L1RodEhvYy83ZEZiTCs4OGNBdnlrajdwRDhCWUp3ZHlUVlFxcTRqTkl2aTJO?=
- =?utf-8?B?ZzVJYmFJRzNyMXgzR1NOaG5YdHVFbEUyYUExenBRdUo3WEhzNHNzQTlnd1BQ?=
- =?utf-8?B?UUlGTW1Fb3dVNklhZ2liUjN3Q0Fwa0JHa3FqYXNleWRpTHkrb3lVSFg0bjh6?=
- =?utf-8?B?VEc5ckxJSmI5cmV1NnAxVG4yUzAxMStDT1lSWDFmb044dUpuaUdwQ3J5NGZH?=
- =?utf-8?B?TDNxVm1rUm5mMmxJbUhQWjEvSldCb2ZqTHh6Vjdrck0xa1hNM2Y4NXpnMXVK?=
- =?utf-8?B?K1VuQ2lwVjZrR3k5R1U1VGhqcWViME4xREJzdzREd3BnZCt2YVg0Zm56KzBL?=
- =?utf-8?B?c0VqNEhic0loaDU3dG00NkdZQUt4RFJxZU1wRjYyRDRZUHRpRHRGbmtqd1Ba?=
- =?utf-8?B?OWpWVHJ1eldNYWZHRFVxQTV6NU1qc1ZhNHk4UGNQY0p1OXJtUVlUSTVEaU1M?=
- =?utf-8?B?cGVLVlNjbmRRMURwaHQ3WmFRUnlZdGtpVkJLUlg4cFVzWktxenhZSVl3RWly?=
- =?utf-8?B?aVJ3YVFHN3FzMmdEUHlPM3dPQkxERDVWY28wWmh1dGNTRE8zYW9aV3NGZHV6?=
- =?utf-8?B?YW50RXpFbzZocjVYY1lMU2FqeFVRTXo3RHltZHBoT0hiWG1YQXhteWlPeUdk?=
- =?utf-8?B?c0x3U3NuZFR4SUlVdGdpUkVwTERBQ2hyTnZZbjdpZEtrQWtMdGJaMU83VXNM?=
- =?utf-8?B?Z2ZqWEhwU3FvWUZoalEwaUc1RGJzMHVCZ3ptSTB3Wkl3VGpndVN4UUIwODhy?=
- =?utf-8?B?bFQ3OTRHY2tNb0N4YnZMelpoVFp4bm9jSTBobXF5dHh0YzZodGo0KzVzdGRp?=
- =?utf-8?B?TzJWSndTQkdORlNMWVUreDZNUnBOcW9RN3NGRHoyNXhtMk1ubFkycEpEMG8r?=
- =?utf-8?B?QnR3ZDJvd2VacXZzejE4Tkp6cVdwOEtMNVk3dWovNWVkU2FGeFF0aGwrbTAw?=
- =?utf-8?B?RjVubGRLcVRhMGlIUjMwRUtTUUdLZ1JCTFdiUWpUdDQrNnpmZVBPanlaMVhH?=
- =?utf-8?B?bCtkR2Zvb0JTaDhMdEEyckVGNHNya2ZNT24wVGtwNnJnMjFuSFhzb3B1ZmJ4?=
- =?utf-8?B?VkNUVC8vNVRUV1FQYVBucnE2S0tvYVdTRWZ0UzNNQUx0ekZrWFZtRXNKSDQx?=
- =?utf-8?B?WmpWcEIxQzVweGMySnZjc1ZKb2ovUzZwbEpXYi9IanZsM0NVTForYXRlMVQx?=
- =?utf-8?B?MENkSHgyZmpFUENiSjdyZkR5dHJNQ3UwcysxQnlseGZNcGhTZzRKYTZ0YkU5?=
- =?utf-8?B?aHhwRUpjOENENkNWNUYwZTdwU3g0aml5UGd4TnMrYVEwbDVPczhqa2tqaFlq?=
- =?utf-8?B?OHNNV1kyWUpSUW92TnUzM21NK1pjYkZlb3RkNUNKMkp4cThBbUlWWlcxRHNp?=
- =?utf-8?B?M3lNcExlQ3dKbm5HTkZXcmpTR1FtbGIrbFVMSU1oYUMyWWRDMHpoMkwvUGMx?=
- =?utf-8?B?cW9qc2k0ZUt0TnhIMURocXJGOXBxdncrMEVxSUZBTm5tWjJ3bElPeXJLS0Q4?=
- =?utf-8?B?SkFHQVowYmVuVFdqaEw2RWlDb2VCdjVqK1ZjeWFxYWYyNzNsOGppd3NGdXhm?=
- =?utf-8?B?akhFeFlGWDJQOVpsY3gxSk1LaE1BdTkvNC9XbURZU0d4RDFHNEhKaTRBdVVH?=
- =?utf-8?B?TGFFR1lmTkVwYnNyYUhjU1RUMHZSQWhBaHBoblRzcVFoVEtmaW9HQ2JOME5Z?=
- =?utf-8?B?QWRNSGx6eTJTWC9wQWJsNVRVVUdTb0FSUHlYd3I3NEh2b0xkbWZKWXRSL25v?=
- =?utf-8?B?Q09uaitTaCtnQ1gwK2JvMVE3dHMzMW0xOURGZVpVaUpXanZmWkIwNHBHWFp3?=
- =?utf-8?B?TGhNRWNBU01QSjZtdjMxWW1DMDVUa2Ryeitwek9oQW1RaFF2VHNmV0E1a0V3?=
- =?utf-8?B?TGk3SVowUm5LdUl2SkJhMVVJRUJla2tnTnliSkRDamdOV3V3TnAxTE4yVnZP?=
- =?utf-8?B?WTl0WFIyczhzd0dUZUJjc1RaS0JkMmRDNG5qaENoVG9ETGZwUlgwemhnUm14?=
- =?utf-8?Q?qHdTJ7T8QpzM7O7USszGdf4uw?=
+X-Microsoft-Antispam-Message-Info: DbEYQLH2qyRXrJfbVmBE7z8/Plj2c/0gYUlLojx7aBZCvaz813ttoH+7seB8SWt0UGBHzW2BDntxW2XsY/YSFr/5dsOoah8Urujby447xAay2PmZkhXFyE6Ld/4tRRLgmZjZzm2vqmjEZrtd9dgfLIpiGHIt+hJSSceULDy5F0peoGgCXjly1O2hJgpei2N5xEOsHeIdgcnDG7RquHDKHf+sI+ixriMc8TMeN9pQ/bms/VjYTwmd7d0VWzEegFZ61HCKRywgHTfP3Soo6plnkr3sixKldeNYMXNBbockhEFZhPxBmiTsAbqMNB349DH58fR72kVGB2L8sqZtl+h/mO5IqGzpKgzYcAHIgHoNcIFXzEg6swVXvpgtIyjULQowpRGPhAUJVVYgMUDSi1CdPaAc58f42fj8Ji2kqi2XCVvAI5AX8Pp/vJo3cMhTZdvTGFXC2UrcmZPUkQSO9hufVKLbjZ58MGDSkDyyaNd2o3bUEquDIu+TKSn3nxzRFFdAmPZ4CG88SidY3VvvSR5wUFUYU4dGAR1K1GbkLmuKsZHsR5QTv9Z0TxyKJCp9/mqT1WgCpTJxE09fGIcEk/eQ69+7hyEdriQzOv9guFkKbQvkKY3nN9st5UDhl6/m1hudHBI78L3EsBjxmnVdR84Few3uPYl2LYqWT/1pj0KBHjBtcuFBY1Tk3ARUgpr16Vw7aR8shh67ikA6eiVoRNmHoS+mMFgIvDmkjO58W3X+8XQDQ8ha5iIPWK2RSGae/rV0d+jaJ1JDEVkC/KlsllipSw==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230031)(4636009)(136003)(39860400002)(346002)(396003)(376002)(1800799009)(186009)(82310400011)(451199024)(40470700004)(46966006)(36840700001)(478600001)(110136005)(26005)(2616005)(70206006)(70586007)(16526019)(1076003)(426003)(54906003)(336012)(7696005)(316002)(2906002)(8676002)(4326008)(6636002)(8936002)(5660300002)(86362001)(356005)(36756003)(81166007)(82740400003)(47076005)(41300700001)(40460700003)(83380400001)(36860700001)(40480700001)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 719af9b6-53a2-491b-a98a-08dbadf81d57
-X-MS-Exchange-CrossTenant-AuthSource: BL1PR12MB5176.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Sep 2023 10:08:56.2797
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Sep 2023 01:52:15.8122
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Network-Message-Id: 82820a86-8221-4716-50e1-08dbadb2bb2e
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: oAon2LDG/sfrQSijGIe+8FEN5j2o+JqCcN0hE776tH+u1XMeaEB2uOsOD8JBBrC/UPwub5GpEcbeV6R4qitYDQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR12MB9440
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CY4PEPF0000EDD0.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6737
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
+Introduce amd-pstate preferred core.
 
+check hardware preferred core state:
+$ cat /sys/devices/system/cpu/amd-pstate/hw_prefcore
+check preferred core state:
+$ cat /sys/devices/system/cpu/amd-pstate/prefcore
 
-On 8/29/2023 10:42 PM, Mario Limonciello wrote:
-> commit 9d26d3a8f1b0 ("PCI: Put PCIe ports into D3 during suspend")
-> changed pci_bridge_d3_possible() so that any vendor's PCIe ports
-> from modern machines (>=2015) are allowed to be put into D3.
-> 
-> Iain reports that USB devices can't be used to wake a Lenovo Z13
-> from suspend. This is because the PCIe root port has been put
-> into D3 and AMD's platform can't handle USB devices waking from
-> a hardware sleep state in this case.
-> 
-> This problem only occurs on Linux, and only when the AMD PMC driver
-> is utilized to put the device into a hardware sleep state. Comparing
-> the behavior on Windows and Linux, Windows doesn't put the root ports
-> into D3.
-> 
-> A variety of approaches were discussed to change PCI core to handle this
-> case generically but no consensus was reached. To limit the scope of
-> effect only to the affected machines introduce a workaround into the
-> amd-pmc driver to only apply to the PCI root ports in affected machines
-> when going into hardware sleep.
-> 
-> Link: https://lore.kernel.org/linux-pci/20230818193932.27187-1-mario.limonciello@amd.com/
-> Fixes: 9d26d3a8f1b0 ("PCI: Put PCIe ports into D3 during suspend")
-> Reported-by: Iain Lane <iain@orangesquash.org.uk>
-> Closes: https://forums.lenovo.com/t5/Ubuntu/Z13-can-t-resume-from-suspend-with-external-USB-keyboard/m-p/5217121
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+Signed-off-by: Meng Li <li.meng@amd.com>
+---
+ Documentation/admin-guide/pm/amd-pstate.rst | 68 ++++++++++++++++++++-
+ 1 file changed, 67 insertions(+), 1 deletion(-)
 
-See if this change can be moved to pmc-quirks.c, besides that change
-looks good to me. Thank you.
+diff --git a/Documentation/admin-guide/pm/amd-pstate.rst b/Documentation/admin-guide/pm/amd-pstate.rst
+index 1cf40f69278c..204f5d49d47d 100644
+--- a/Documentation/admin-guide/pm/amd-pstate.rst
++++ b/Documentation/admin-guide/pm/amd-pstate.rst
+@@ -300,7 +300,7 @@ platforms. The AMD P-States mechanism is the more performance and energy
+ efficiency frequency management method on AMD processors.
+ 
+ 
+-AMD Pstate Driver Operation Modes
++``amd-pstate`` Driver Operation Modes
+ =================================
+ 
+ ``amd_pstate`` CPPC has 3 operation modes: autonomous (active) mode,
+@@ -353,6 +353,48 @@ is activated.  In this mode, driver requests minimum and maximum performance
+ level and the platform autonomously selects a performance level in this range
+ and appropriate to the current workload.
+ 
++``amd-pstate`` Preferred Core
++=================================
++
++The core frequency is subjected to the process variation in semiconductors.
++Not all cores are able to reach the maximum frequency respecting the
++infrastructure limits. Consequently, AMD has redefined the concept of
++maximum frequency of a part. This means that a fraction of cores can reach
++maximum frequency. To find the best process scheduling policy for a given
++scenario, OS needs to know the core ordering informed by the platform through
++highest performance capability register of the CPPC interface.
++
++``amd-pstate`` preferred core enables the scheduler to prefer scheduling on
++cores that can achieve a higher frequency with lower voltage. The preferred
++core rankings can dynamically change based on the workload, platform conditions,
++thermals and ageing.
++
++The priority metric will be initialized by the ``amd-pstate`` driver. The ``amd-pstate``
++driver will also determine whether or not ``amd-pstate`` preferred core is
++supported by the platform.
++
++``amd-pstate`` driver will provide an initial core ordering when the system boots.
++The platform uses the CPPC interfaces to communicate the core ranking to the
++operating system and scheduler to make sure that OS is choosing the cores
++with highest performance firstly for scheduling the process. When ``amd-pstate``
++driver receives a message with the highest performance change, it will
++update the core ranking and set the cpu's priority.
++
++``amd-pstate`` Preferred Core Switch
++=================================
++Kernel Parameters
++-----------------
++
++``amd-pstate`` peferred core`` has two states: enable and disable.
++Enable/disable states can be chosen by different kernel parameters.
++Default enable ``amd-pstate`` preferred core.
++
++``amd_prefcore=disable``
++
++for systems that support ``amd-pstate`` preferred core, the core rankings will
++always be advertised by the platform. But OS can choose to ignore that via the
++kernel parameter ``amd_prefcore=disable``.
++
+ User Space Interface in ``sysfs`` - General
+ ===========================================
+ 
+@@ -385,6 +427,30 @@ control its functionality at the system level.  They are located in the
+         to the operation mode represented by that string - or to be
+         unregistered in the "disable" case.
+ 
++``hw_prefcore``
++	Preferred core state of hardware: "supported" or "unsupported".
++
++	"supported"
++		The processor and power firmware support preferred core.
++
++	"unsupported"
++		The processor and power firmware don't support preferred core.
++
++
++        This attribute is read-only to check the state of hardware preferred core.
++
++``prefcore``
++	Preferred core state of the driver: "enabled" or "disabled".
++
++	"enabled"
++		Enable the ``amd-pstate`` preferred core.
++
++	"disabled"
++		Disable the ``amd-pstate`` preferred core
++
++
++        This attribute is read-only to check the state of preferred core.
++
+ ``cpupower`` tool support for ``amd-pstate``
+ ===============================================
+ 
+-- 
+2.34.1
 
-Acked-by: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
-
-> ---
-> v15->v16:
->  * Only match PCIe root ports with ACPI companions
->  * Use constraints when workaround activated
-> ---
->  drivers/platform/x86/amd/pmc/pmc.c | 39 ++++++++++++++++++++++++++++++
->  1 file changed, 39 insertions(+)
-> 
-> diff --git a/drivers/platform/x86/amd/pmc/pmc.c b/drivers/platform/x86/amd/pmc/pmc.c
-> index eb2a4263814c..6a037447ec5a 100644
-> --- a/drivers/platform/x86/amd/pmc/pmc.c
-> +++ b/drivers/platform/x86/amd/pmc/pmc.c
-> @@ -741,6 +741,41 @@ static int amd_pmc_czn_wa_irq1(struct amd_pmc_dev *pdev)
->  	return 0;
->  }
->  
-> +/* only allow PCIe root ports with a LPS0 constraint configured to go to D3 */
-> +static int amd_pmc_rp_wa(struct amd_pmc_dev *pdev)
-> +{
-> +	struct pci_dev *pci_dev = NULL;
-> +
-> +	while ((pci_dev = pci_get_device(PCI_VENDOR_ID_AMD, PCI_ANY_ID, pci_dev))) {
-> +		struct acpi_device *adev;
-> +		int constraint;
-> +
-> +		if (!pci_is_pcie(pci_dev) ||
-> +		    !(pci_pcie_type(pci_dev) == PCI_EXP_TYPE_ROOT_PORT))
-> +			continue;
-> +
-> +		if (pci_dev->current_state == PCI_D3hot ||
-> +		    pci_dev->current_state == PCI_D3cold)
-> +			continue;
-> +
-> +		adev = ACPI_COMPANION(&pci_dev->dev);
-> +		if (!adev)
-> +			continue;
-> +
-> +		constraint = acpi_get_lps0_constraint(adev);
-> +		if (constraint != ACPI_STATE_UNKNOWN &&
-> +		    constraint >= ACPI_STATE_S3)
-> +			continue;
-> +
-> +		if (pci_dev->bridge_d3 == 0)
-> +			continue;
-> +		pci_dev->bridge_d3 = 0;
-> +		dev_info(&pci_dev->dev, "Disabling D3 on PCIe root port due lack of constraint\n");
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int amd_pmc_verify_czn_rtc(struct amd_pmc_dev *pdev, u32 *arg)
->  {
->  	struct rtc_device *rtc_device;
-> @@ -893,6 +928,10 @@ static int amd_pmc_suspend_handler(struct device *dev)
->  	case AMD_CPU_ID_CZN:
->  		rc = amd_pmc_czn_wa_irq1(pdev);
->  		break;
-> +	case AMD_CPU_ID_YC:
-> +	case AMD_CPU_ID_PS:
-> +		rc = amd_pmc_rp_wa(pdev);
-> +		break;
->  	default:
->  		break;
->  	}
-> 
