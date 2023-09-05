@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 150F2CA0FFA
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 18:55:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D813ACA0FFA
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 18:55:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240260AbjIESzJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:55:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41190 "EHLO
+        id S240865AbjIESzb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 14:55:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235360AbjIESzF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 14:55:05 -0400
-Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 239D7CF4
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 11:54:36 -0700 (PDT)
-Received: by mail-wm1-x335.google.com with SMTP id 5b1f17b1804b1-401187f8071so1119325e9.0
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 11:54:36 -0700 (PDT)
+        with ESMTP id S240244AbjIESzW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 14:55:22 -0400
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DAC310DE
+        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 11:54:56 -0700 (PDT)
+Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-401b393df02so28812825e9.1
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 11:54:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940020; x=1694544820; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940032; x=1694544832; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=c6tn4Tgcsi1O0hqP3FN/fJ4KrpHQM0EtczTKadJgTtw=;
-        b=p5Pm7Z7GtX7f2t7IG4RS/bbIikv2+cKC0ePo8uJt1sCuIrmGSi86NIq34dHd7s1AVt
-         74etZCM3bQp7igU+wbL4YcKx++R94GZw4O3msJcc9DJoTYfeSofvrznfchAy6NI+O8RW
-         IHMiiaeuavak/TknzGviS7L60EHvlsoutDxhT13rp5cIOXQMd2Zd1ILUUC1N5cGMTXd6
-         L+yTOcKMJghfURp7PP2aNNTJ+DwFLcMpDkuIMc7aZjR6rAfJo3JDtv5iboe4ZrRm1cjQ
-         0U3ZhkRdlSb3VoRw3Dao7LqgdQlj4CQmMJgcFx1v7p2O/ONpGsK3UT2eWRRtIhCMJJ8A
-         EdDw==
+        bh=UrAFFOP3UXm+2vTLeazN1us+BKa1tnA/xN1dYjhLvHM=;
+        b=MQWbDF4rE965sDGpw+Z8xVUKRHWw3YwzcUYhTRpv6IjQmey/WoA0wHY8VDz3R0Gs38
+         ONt/xesxsRZkGk1oQAbVZ3/Xb76GeT7pfbvfb4yr9zqV/VjJ5K2WB6AlPVPvoo50v0VM
+         k8osQxqM9YtwOMW+1OwNpMmpWUQOpl+gVSuTgLVkExdc/SXvLBOJbw1sLo5ay63Ho/fb
+         YddhACrq0zNDPR8OLrpkxFlpuOCulETe0g8uTQKCP3PPXZZ52MdDVgn9LSEANBfDGdLV
+         nm2HV2DtdgVJ9nmvVVDfsHadpACFPjc9utovdDApP0UYgxae8AB0ZTtfWUDNP5Wf+vfS
+         eyUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693940020; x=1694544820;
+        d=1e100.net; s=20221208; t=1693940032; x=1694544832;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=c6tn4Tgcsi1O0hqP3FN/fJ4KrpHQM0EtczTKadJgTtw=;
-        b=Fp82AqWsIpQ1StIDLMXdrYOIXZULwrz3H6uUSw1L4OFdpnbGtr3rQ72Ib9/ftbnXX2
-         6GMv/sq+xQlz2DljgpddOYQT+6BK5qzf4I11xz6J3Zje2MXDjnwtbxhAQqsDZCwrqJeP
-         JMQVngxVnoupj+09YdsY9KCGr0SqMZeLJtccH1bhaNS8SLNzxhg1UNYgGKBV47KB0YdU
-         RQu93b1N3ATy7NWpIxs4gbjOng3mshwhzmORhNIQK+R+EvHDDXEDGlTouhlYpf2GtXHf
-         f1TZZR0UL2FJMLCepSUIOFjYDyy7YtWo5sZrdqNJglxOcKNleC/GYCgfpFshPPzTAv44
-         1UmQ==
-X-Gm-Message-State: AOJu0Yy57+nw3rsSUgF2hRubQL3uRr0xUMyHhKqrtcWraVeHrWOlmz7d
-        SfizlF6mam7a6Bon8ZZ2b7Z2eA==
-X-Google-Smtp-Source: AGHT+IHaOumSDU3nr/8PNaqRqHS3aAWO3c0eVyPkb5h63GCpGBG6kfLxrczPHvapwSdIRLtHe1YhsQ==
-X-Received: by 2002:a7b:ce90:0:b0:3fe:1b5e:82 with SMTP id q16-20020a7bce90000000b003fe1b5e0082mr547652wmj.20.1693940020693;
-        Tue, 05 Sep 2023 11:53:40 -0700 (PDT)
+        bh=UrAFFOP3UXm+2vTLeazN1us+BKa1tnA/xN1dYjhLvHM=;
+        b=D1mi58UlFURN+Dk+jOZEDxMpxJInIWAhO+IDbwFqJtY/wnT40fGbQZA+Sxwu8vyGqX
+         l+orO0zJy5baBZvQe21/0ooxFClE1Luw8U1twQR7lppmRgtwUdCoDTmtQpMx7/T1a3A9
+         R+tZv+hIfqYhB3Ma5JRoqJc6FDtGw6LKGuVwLIxnJsShS77lwfSe1O66zA5Lfqi+Gg0K
+         0Dj6budzVUaXdG6MsxhnX9v9/emjwt+xDaEBe95IRbMUhBZn2++pLdOfA83J18txBV4/
+         n6TVHAHbtYUQ2bzYeMFjOTgBuyJN8DJmdv6aavGA5CCYVGYFY4J3QGSARegMnQPVwl6f
+         uqwQ==
+X-Gm-Message-State: AOJu0Yw43zUiqAPbfcIVz5mm0qkSh4s23eb9L8rpfdZPBBWXvESc5jQH
+        3/QBt1ROgtq7jII7JpcgH32Kbg==
+X-Google-Smtp-Source: AGHT+IG5rvnvzkhR7zSqbm37o4SyQS5DF2Q3QExpMFHirbdRnNeCry1xvOOt3d5Fk7gOho9h35WBqA==
+X-Received: by 2002:a05:600c:11ce:b0:3fe:2011:a7ce with SMTP id b14-20020a05600c11ce00b003fe2011a7cemr453840wmi.6.1693940031710;
+        Tue, 05 Sep 2023 11:53:51 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.39
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:40 -0700 (PDT)
+        Tue, 05 Sep 2023 11:53:51 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -68,9 +68,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
         linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 12/21] hte: allow building modules with COMPILE_TEST enabled
-Date:   Tue,  5 Sep 2023 20:53:00 +0200
-Message-Id: <20230905185309.131295-13-brgl@bgdev.pl>
+Subject: [PATCH 21/21] gpiolib: remove gpiochip_find()
+Date:   Tue,  5 Sep 2023 20:53:09 +0200
+Message-Id: <20230905185309.131295-22-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
 References: <20230905185309.131295-1-brgl@bgdev.pl>
@@ -82,35 +82,62 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-Allow building all HTE modules with COMPILE_TEST Kconfig option enabled.
+With all users of gpiochip_find() converted to using gpio_device_find(),
+we can now remove this function from the kernel.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/hte/Kconfig | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/gpiolib.c      | 22 ----------------------
+ include/linux/gpio/driver.h |  3 ---
+ 2 files changed, 25 deletions(-)
 
-diff --git a/drivers/hte/Kconfig b/drivers/hte/Kconfig
-index cf29e0218bae..083e67492bf2 100644
---- a/drivers/hte/Kconfig
-+++ b/drivers/hte/Kconfig
-@@ -16,7 +16,7 @@ if HTE
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 90e8c3d8b6f6..bd700fb4871e 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1081,28 +1081,6 @@ void gpiochip_remove(struct gpio_chip *gc)
+ }
+ EXPORT_SYMBOL_GPL(gpiochip_remove);
  
- config HTE_TEGRA194
- 	tristate "NVIDIA Tegra194 HTE Support"
--	depends on ARCH_TEGRA_194_SOC
-+	depends on (ARCH_TEGRA_194_SOC || COMPILE_TEST)
- 	help
- 	  Enable this option for integrated hardware timestamping engine also
- 	  known as generic timestamping engine (GTE) support on NVIDIA Tegra194
-@@ -25,7 +25,7 @@ config HTE_TEGRA194
+-/*
+- * FIXME: This will be removed soon.
+- *
+- * This function is depracated, don't use.
+- */
+-struct gpio_chip *gpiochip_find(void *data,
+-				int (*match)(struct gpio_chip *gc,
+-					     void *data))
+-{
+-	struct gpio_device *gdev;
+-	struct gpio_chip *gc = NULL;
+-
+-	gdev = gpio_device_find(data, match);
+-	if (gdev) {
+-		gc = gdev->chip;
+-		gpio_device_put(gdev);
+-	}
+-
+-	return gc;
+-}
+-EXPORT_SYMBOL_GPL(gpiochip_find);
+-
+ /**
+  * gpio_device_find() - find a specific GPIO device
+  * @data: data to pass to match function
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index bb9ec741bfda..7d2bf464478a 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -603,9 +603,6 @@ int devm_gpiochip_add_data_with_key(struct device *dev, struct gpio_chip *gc,
+ 				    void *data, struct lock_class_key *lock_key,
+ 				    struct lock_class_key *request_key);
  
- config HTE_TEGRA194_TEST
-         tristate "NVIDIA Tegra194 HTE Test"
--        depends on HTE_TEGRA194
-+        depends on (HTE_TEGRA194 || COMPILE_TEST)
-         help
- 	  The NVIDIA Tegra194 GTE test driver demonstrates how to use HTE
- 	  framework to timestamp GPIO and LIC IRQ lines.
+-struct gpio_chip *gpiochip_find(void *data,
+-				int (*match)(struct gpio_chip *gc, void *data));
+-
+ struct gpio_device *gpio_device_find(void *data,
+ 				     int (*match)(struct gpio_chip *gc,
+ 						  void *data));
 -- 
 2.39.2
 
