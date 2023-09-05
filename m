@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4498BCA0FFF
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:00:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCF6ECA0FFF
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:06:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240033AbjIETAa (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 15:00:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37614 "EHLO
+        id S235979AbjIETGc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 15:06:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240039AbjIETAT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:00:19 -0400
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0B43E59
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 11:59:54 -0700 (PDT)
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-401b5516104so28224205e9.2
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 11:59:54 -0700 (PDT)
+        with ESMTP id S232185AbjIETGc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:06:32 -0400
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FE81B0
+        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 12:06:03 -0700 (PDT)
+Received: by mail-ed1-x532.google.com with SMTP id 4fb4d7f45d1cf-52bcd4db4cbso3910611a12.1
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 12:06:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940030; x=1694544830; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940696; x=1694545496; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Y08y4soco06KI/f6qh6fDW5G+nl2ifTZ323XD3WrKbY=;
-        b=tEOX8ffapuX8dZqoUK+7STrJbAT2ZJ/8+Q9lohfNmYgx2Oz7/FpwJgEY1KNzsYQzbY
-         MbaKtvq6EdCGQSy1g5oS+eGaUBch8AJX+LltwEgC2EuV+lNaSx8CQsp5Vr9JNUk9O4wM
-         wYEZAMbUTJvCGllMf4/UzC2dy8crvuO5N5Q6o5D+co01SU/emD1k19QDhLP7YVslRXbv
-         mJ1nmWifpof5PDEEqvMFw2hCaIvph3gDdseOrmRXMETv7Vj1ZDc8w6J1Eh0xWHrbS4u+
-         EQwSl7vvMtbeO1xQRW2i2t6CU5Ko0TcMUV5aWnReCD3egrka24S84fC+fWPfW+jW17WY
-         LrNQ==
+        bh=gFpxyOwy5Bm9Qt9hRSpXKADqH+X+nrhUxL/zhVP0yhY=;
+        b=wP9L0YVDBhvuQbebo0r6pTROXyB/R9dbTOFLNphd8PYPP6KtqIq42kW9psxjEBpW/B
+         J+Tq8FwL6MWqewtzw+kpjQDI9nQCDeOjMffLVYjVUDSqjnYZSg+PIqzvkXDkwvT2JcoD
+         mIeAfskdtA63bqEZNDpc8pY9OtHdMOKwFin8oZLk9GhSeEc3SFQ93SqFYARqJ7skgldD
+         g08UJC+/TS4f3puqmqKrlGVEDFd76RDrPgEmqx+qne8n+HJvxRvogKFBqxXjx0Pamz2A
+         smQB6IwYWxGaN5qMtWL5o8SvkcPyoIqZB/ymeDCcdsbjEhNTDkA6LQ/HFCcfomjhOzFG
+         1/Wg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693940030; x=1694544830;
+        d=1e100.net; s=20221208; t=1693940696; x=1694545496;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Y08y4soco06KI/f6qh6fDW5G+nl2ifTZ323XD3WrKbY=;
-        b=PVgmGP24BibIAv5NBdJspMTsk1qusTBaXez+e93vOAW0+qU/kEP00KMudyKFDs6Z8D
-         /zZOmFRY2vCClL1ZlTdDZqN+o7Wf+GQL7jcAQlEnIym66To5aQVRQVSTJUpZV3Ssjkmj
-         L9Z3X6vdhk0cN8hfJJURl6muHLsh/MNn7nnlvk2Cp/A/QxFi/Gbr7fzbQPP1a6+9vQrb
-         pyuga2wyGScF+pR3O29S8KPIDQjjCBU2zSx5hm0JIcHRdcMZ1vGv3odzsDhLM/xu+kxS
-         JezJzYk7uYZaNNnmPQoINjMbtewFVo+DIc/izqluyymbfsuNy1XJkt/x/SwEoq4yIWZP
-         wecQ==
-X-Gm-Message-State: AOJu0Yzx8YGhhjCdjDnogSYIucgl0YjnqgjTJBypV3nXyJCqsPdp8J5r
-        ci9oc5H5kssRHOI5i3GAwjUpnQ==
-X-Google-Smtp-Source: AGHT+IEgNpZG6hg0L74CESnSvpfFz6XeLAbhQH8cNkX0kwXYqx/uTGgV7V6lKbCtezy+q5QbzDETKg==
-X-Received: by 2002:a05:600c:21cd:b0:401:38dc:8916 with SMTP id x13-20020a05600c21cd00b0040138dc8916mr474754wmj.10.1693940030455;
-        Tue, 05 Sep 2023 11:53:50 -0700 (PDT)
+        bh=gFpxyOwy5Bm9Qt9hRSpXKADqH+X+nrhUxL/zhVP0yhY=;
+        b=itsM7omFOuO2kuUID8wHNaC96aiV5/nRcJjN+/Z+c/ctOAMe5LvS058QhcDJU/W65l
+         juHa5XCeR/jn0GCHeaUEjsWuuHTUOJL3xhgMmK8WXVAFXRgVV1/WuIxBPWW5QN5rk4Q9
+         1v1wNkbBWTJy2SSyGmV81KAsrLj5QHVFxqZc7WDN7QuFs3AvvxxzBOw3j9hAOQV3Z89H
+         XGPjiiOaDm0HEhIGTINIdPXZWkG7lxefzHewI2Aa/Px8JRRszS2Icb+iaBq6lnPyCFud
+         M5RyQvnkYQepeLtGN2mjxznZc0E2NHrg1pydg6fHsmdDB2T8C3N3CnrpSaBrFM6Fvzrs
+         +HQg==
+X-Gm-Message-State: AOJu0YyXxFq7mdgRFLkowHzOpsjH0DqwMLOwxpzbWtv+aHbQlHIQbnzP
+        QlNL7VkoMd9zbNGReMmzfWHp2mqsNhk4bKvWHYA=
+X-Google-Smtp-Source: AGHT+IFRNQIOeT3zr09E3n7bBEGrta/pNu8Vff14KdMD6sxtlr9ZDhLyFMZ76FUBno0gzmLiwhMBVA==
+X-Received: by 2002:a5d:5592:0:b0:317:54de:9719 with SMTP id i18-20020a5d5592000000b0031754de9719mr425005wrv.70.1693940024276;
+        Tue, 05 Sep 2023 11:53:44 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.49
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:49 -0700 (PDT)
+        Tue, 05 Sep 2023 11:53:43 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -68,9 +68,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
         linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 20/21] gpio: sysfs: drop the mention of gpiochip_find() from sysfs code
-Date:   Tue,  5 Sep 2023 20:53:08 +0200
-Message-Id: <20230905185309.131295-21-brgl@bgdev.pl>
+Subject: [RFT PATCH 15/21] arm: omap1: ams-delta: stop using gpiochip_find()
+Date:   Tue,  5 Sep 2023 20:53:03 +0200
+Message-Id: <20230905185309.131295-16-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
 References: <20230905185309.131295-1-brgl@bgdev.pl>
@@ -82,27 +82,75 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-We have removed all callers of gpiochip_find() so don't mention it in
-gpiolib-sysfs.c.
+gpiochip_find() is going away as it's not hot-unplug safe. This platform
+is not affected by any of the related problems as this GPIO controller
+cannot really go away but in order to finally remove this function, we
+need to convert it to using gpio_device_find() as well.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/gpio/gpiolib-sysfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap1/board-ams-delta.c | 36 +++++++++++++--------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib-sysfs.c b/drivers/gpio/gpiolib-sysfs.c
-index 50503a4525eb..6f309a3b2d9a 100644
---- a/drivers/gpio/gpiolib-sysfs.c
-+++ b/drivers/gpio/gpiolib-sysfs.c
-@@ -814,7 +814,7 @@ static int __init gpiolib_sysfs_init(void)
- 		 * gpiochip_sysfs_register() acquires a mutex. This is unsafe
- 		 * and needs to be fixed.
- 		 *
--		 * Also it would be nice to use gpiochip_find() here so we
-+		 * Also it would be nice to use gpio_device_find() here so we
- 		 * can keep gpio_chips local to gpiolib.c, but the yield of
- 		 * gpio_lock prevents us from doing this.
- 		 */
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 9808cd27e2cf..a28ea6ac1eba 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -560,22 +560,6 @@ static struct gpiod_lookup_table *ams_delta_gpio_tables[] __initdata = {
+ 	&ams_delta_nand_gpio_table,
+ };
+ 
+-/*
+- * Some drivers may not use GPIO lookup tables but need to be provided
+- * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
+- * drivers may even not use GPIO layer but expect just IRQ numbers.
+- * We could either define GPIO lookup tables then use them on behalf
+- * of those devices, or we can use GPIO driver level methods for
+- * identification of GPIO and IRQ numbers. For the purpose of the latter,
+- * defina a helper function which identifies GPIO chips by their labels.
+- */
+-static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
+-{
+-	char *label = data;
+-
+-	return !strcmp(label, chip->label);
+-}
+-
+ static struct gpiod_hog ams_delta_gpio_hogs[] = {
+ 	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT, "keybrd_dataout",
+ 		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
+@@ -615,14 +599,28 @@ static void __init modem_assign_irq(struct gpio_chip *chip)
+  */
+ static void __init omap_gpio_deps_init(void)
+ {
++	struct gpio_device *gdev;
+ 	struct gpio_chip *chip;
+ 
+-	chip = gpiochip_find(OMAP_GPIO_LABEL, gpiochip_match_by_label);
+-	if (!chip) {
+-		pr_err("%s: OMAP GPIO chip not found\n", __func__);
++	/*
++	 * Some drivers may not use GPIO lookup tables but need to be provided
++	 * with GPIO numbers. The same applies to GPIO based IRQ lines - some
++	 * drivers may even not use GPIO layer but expect just IRQ numbers.
++	 * We could either define GPIO lookup tables then use them on behalf
++	 * of those devices, or we can use GPIO driver level methods for
++	 * identification of GPIO and IRQ numbers.
++	 *
++	 * This reference will be leaked but that's alright as this device
++	 * never goes down.
++	 */
++	gdev = gpio_device_find_by_label(OMAP_GPIO_LABEL);
++	if (!gdev) {
++		pr_err("%s: OMAP GPIO device not found\n", __func__);
+ 		return;
+ 	}
+ 
++	chip = gpio_device_get_chip(gdev);
++
+ 	/*
+ 	 * Start with FIQ initialization as it may have to request
+ 	 * and release successfully each OMAP GPIO pin in turn.
 -- 
 2.39.2
 
