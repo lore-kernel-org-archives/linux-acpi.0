@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A2BECA0FFE
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 18:55:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 150F2CA0FFA
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 18:55:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239346AbjIESzG (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:55:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41132 "EHLO
+        id S240260AbjIESzJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 14:55:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239333AbjIESzE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 14:55:04 -0400
-Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 220FBE6
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 11:54:32 -0700 (PDT)
-Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-3fef56f7223so26723335e9.3
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 11:54:32 -0700 (PDT)
+        with ESMTP id S235360AbjIESzF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 14:55:05 -0400
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 239D7CF4
+        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 11:54:36 -0700 (PDT)
+Received: by mail-wm1-x335.google.com with SMTP id 5b1f17b1804b1-401187f8071so1119325e9.0
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 11:54:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940009; x=1694544809; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940020; x=1694544820; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=32AzIakwES8QNoZ2moYEZisZgGIsr9B20l41KqZ1PII=;
-        b=bVkVr6e9AkOTkxCzquEO1F6bmJ13DTtPe+Hlmy3RtWYpVhTBK/+e11rYLe971hAgIk
-         Hfn6Jtq2hgPLj3XmPveF0RVG2GTfHf/y+TTKM4YSYXkpdLgQuY8ssi87EMmWHHID1kic
-         bG44xQ71KuvzOFtOY2jJwsDFp37B+Zu8QKcZN8F6rwfBiSVsLNkI0wch+HTeJYi74vk5
-         X9AEvs8jirnc9lI6zn4gofhxMQAAjmugultaMuhxvF9Mi2YT7f8gm8s3bEl8lofZqF8X
-         GyegVUiex5T+oDn6EJgBDB0FZ2l1h2xzhp9UYZklLfnyu16ZWYJGDr7Lm/6Z1iAQxPqN
-         RZyg==
+        bh=c6tn4Tgcsi1O0hqP3FN/fJ4KrpHQM0EtczTKadJgTtw=;
+        b=p5Pm7Z7GtX7f2t7IG4RS/bbIikv2+cKC0ePo8uJt1sCuIrmGSi86NIq34dHd7s1AVt
+         74etZCM3bQp7igU+wbL4YcKx++R94GZw4O3msJcc9DJoTYfeSofvrznfchAy6NI+O8RW
+         IHMiiaeuavak/TknzGviS7L60EHvlsoutDxhT13rp5cIOXQMd2Zd1ILUUC1N5cGMTXd6
+         L+yTOcKMJghfURp7PP2aNNTJ+DwFLcMpDkuIMc7aZjR6rAfJo3JDtv5iboe4ZrRm1cjQ
+         0U3ZhkRdlSb3VoRw3Dao7LqgdQlj4CQmMJgcFx1v7p2O/ONpGsK3UT2eWRRtIhCMJJ8A
+         EdDw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693940009; x=1694544809;
+        d=1e100.net; s=20221208; t=1693940020; x=1694544820;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=32AzIakwES8QNoZ2moYEZisZgGIsr9B20l41KqZ1PII=;
-        b=ELsLLVO+LrCw7lgNjqIgMv1zX5mmkCNZsmeS9nz2+ydNOj57j8YzjixSPJhqCe3s6W
-         oRfAi2xLOw9zJ86zR3HBHtyUs3KjtlKUz538zv6xLMS9kugTktkbcbd8QEpAXucRsxld
-         odPfHb5vEXuyqhdkC9Wo7y3MDOxhu3xF5dm6BsYdV5BAQoC5Hj1gRZ0nnkoJQBtUAbzx
-         ozrcd6SKEWf0SZlIY1M9HXgvGcaLgPWtXk/OQVmRbVFMLfifPlDcyoZNGiBeM+gbE45A
-         f9+85AcYYiqvHej0m3IEXJ/FlyUnWFJW4zIYr+d6QPGWAFqQzXh71IBXmZ2Gyot+rWVo
-         6HKA==
-X-Gm-Message-State: AOJu0Yw0EvDKxZ1UbDPrBQWiq86d+l5V0wtPbRTtIK6sY4JrPN2U0ezz
-        xNjb0n+kTzeqzCgZbaS//FAUog==
-X-Google-Smtp-Source: AGHT+IEMA7O/G04+pJVQEX0HMhuZh3/G19j9j9xyba1JCXjHsE+92yNux09q4RWquXB9Fm3Wgf4zQw==
-X-Received: by 2002:a7b:c7d9:0:b0:3fe:207c:1aea with SMTP id z25-20020a7bc7d9000000b003fe207c1aeamr433332wmk.23.1693940008588;
-        Tue, 05 Sep 2023 11:53:28 -0700 (PDT)
+        bh=c6tn4Tgcsi1O0hqP3FN/fJ4KrpHQM0EtczTKadJgTtw=;
+        b=Fp82AqWsIpQ1StIDLMXdrYOIXZULwrz3H6uUSw1L4OFdpnbGtr3rQ72Ib9/ftbnXX2
+         6GMv/sq+xQlz2DljgpddOYQT+6BK5qzf4I11xz6J3Zje2MXDjnwtbxhAQqsDZCwrqJeP
+         JMQVngxVnoupj+09YdsY9KCGr0SqMZeLJtccH1bhaNS8SLNzxhg1UNYgGKBV47KB0YdU
+         RQu93b1N3ATy7NWpIxs4gbjOng3mshwhzmORhNIQK+R+EvHDDXEDGlTouhlYpf2GtXHf
+         f1TZZR0UL2FJMLCepSUIOFjYDyy7YtWo5sZrdqNJglxOcKNleC/GYCgfpFshPPzTAv44
+         1UmQ==
+X-Gm-Message-State: AOJu0Yy57+nw3rsSUgF2hRubQL3uRr0xUMyHhKqrtcWraVeHrWOlmz7d
+        SfizlF6mam7a6Bon8ZZ2b7Z2eA==
+X-Google-Smtp-Source: AGHT+IHaOumSDU3nr/8PNaqRqHS3aAWO3c0eVyPkb5h63GCpGBG6kfLxrczPHvapwSdIRLtHe1YhsQ==
+X-Received: by 2002:a7b:ce90:0:b0:3fe:1b5e:82 with SMTP id q16-20020a7bce90000000b003fe1b5e0082mr547652wmj.20.1693940020693;
+        Tue, 05 Sep 2023 11:53:40 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.27
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:28 -0700 (PDT)
+        Tue, 05 Sep 2023 11:53:40 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -68,9 +68,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
         linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 02/21] gpiolib: provide gpio_device_find()
-Date:   Tue,  5 Sep 2023 20:52:50 +0200
-Message-Id: <20230905185309.131295-3-brgl@bgdev.pl>
+Subject: [PATCH 12/21] hte: allow building modules with COMPILE_TEST enabled
+Date:   Tue,  5 Sep 2023 20:53:00 +0200
+Message-Id: <20230905185309.131295-13-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
 References: <20230905185309.131295-1-brgl@bgdev.pl>
@@ -82,126 +82,35 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-gpiochip_find() is wrong and its kernel doc is misleading as the
-function doesn't return a reference to the gpio_chip but just a raw
-pointer. The chip itself is not guaranteed to stay alive, in fact it can
-be deleted at any point. Also: other than GPIO drivers themselves,
-nobody else has any business accessing gpio_chip structs.
-
-Provide a new gpio_device_find() function that returns a real reference
-to the opaque gpio_device structure that is guaranteed to stay alive for
-as long as there are active users of it.
+Allow building all HTE modules with COMPILE_TEST Kconfig option enabled.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/gpio/gpiolib.c      | 64 ++++++++++++++++++++++++++-----------
- include/linux/gpio/driver.h |  4 +++
- 2 files changed, 50 insertions(+), 18 deletions(-)
+ drivers/hte/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index f84ad54d8dbd..9e083ecb8df0 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1014,16 +1014,10 @@ void gpiochip_remove(struct gpio_chip *gc)
- }
- EXPORT_SYMBOL_GPL(gpiochip_remove);
+diff --git a/drivers/hte/Kconfig b/drivers/hte/Kconfig
+index cf29e0218bae..083e67492bf2 100644
+--- a/drivers/hte/Kconfig
++++ b/drivers/hte/Kconfig
+@@ -16,7 +16,7 @@ if HTE
  
--/**
-- * gpiochip_find() - iterator for locating a specific gpio_chip
-- * @data: data to pass to match function
-- * @match: Callback function to check gpio_chip
-+/*
-+ * FIXME: This will be removed soon.
-  *
-- * Similar to bus_find_device.  It returns a reference to a gpio_chip as
-- * determined by a user supplied @match callback.  The callback should return
-- * 0 if the device doesn't match and non-zero if it does.  If the callback is
-- * non-zero, this function will return to the caller and not iterate over any
-- * more gpio_chips.
-+ * This function is depracated, don't use.
-  */
- struct gpio_chip *gpiochip_find(void *data,
- 				int (*match)(struct gpio_chip *gc,
-@@ -1031,21 +1025,55 @@ struct gpio_chip *gpiochip_find(void *data,
- {
- 	struct gpio_device *gdev;
- 	struct gpio_chip *gc = NULL;
--	unsigned long flags;
+ config HTE_TEGRA194
+ 	tristate "NVIDIA Tegra194 HTE Support"
+-	depends on ARCH_TEGRA_194_SOC
++	depends on (ARCH_TEGRA_194_SOC || COMPILE_TEST)
+ 	help
+ 	  Enable this option for integrated hardware timestamping engine also
+ 	  known as generic timestamping engine (GTE) support on NVIDIA Tegra194
+@@ -25,7 +25,7 @@ config HTE_TEGRA194
  
--	spin_lock_irqsave(&gpio_lock, flags);
--	list_for_each_entry(gdev, &gpio_devices, list)
--		if (gdev->chip && match(gdev->chip, data)) {
--			gc = gdev->chip;
--			break;
--		}
--
--	spin_unlock_irqrestore(&gpio_lock, flags);
-+	gdev = gpio_device_find(data, match);
-+	if (gdev) {
-+		gc = gdev->chip;
-+		gpio_device_put(gdev);
-+	}
- 
- 	return gc;
- }
- EXPORT_SYMBOL_GPL(gpiochip_find);
- 
-+/**
-+ * gpio_device_find() - find a specific GPIO device
-+ * @data: data to pass to match function
-+ * @match: Callback function to check gpio_chip
-+ *
-+ * Returns:
-+ * New reference to struct gpio_device.
-+ *
-+ * Similar to bus_find_device(). It returns a reference to a gpio_device as
-+ * determined by a user supplied @match callback. The callback should return
-+ * 0 if the device doesn't match and non-zero if it does. If the callback
-+ * returns non-zero, this function will return to the caller and not iterate
-+ * over any more gpio_devices.
-+ *
-+ * The callback takes the GPIO chip structure as argument. During the execution
-+ * of the callback function the chip is protected from being freed. TODO: This
-+ * actually has yet to be implemented.
-+ *
-+ * If the function returns non-NULL, the returned reference must be freed by
-+ * the caller using gpio_device_put().
-+ */
-+struct gpio_device *gpio_device_find(void *data,
-+				     int (*match)(struct gpio_chip *gc,
-+						  void *data))
-+{
-+	struct gpio_device *gdev;
-+
-+	guard(spinlock_irqsave)(&gpio_lock);
-+
-+	list_for_each_entry(gdev, &gpio_devices, list) {
-+		if (gdev->chip && match(gdev->chip, data))
-+			return gpio_device_get(gdev);
-+	}
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(gpio_device_find);
-+
- static int gpiochip_match_name(struct gpio_chip *gc, void *data)
- {
- 	const char *name = data;
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index a2060dc3344b..5c5029cec226 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -606,6 +606,10 @@ int devm_gpiochip_add_data_with_key(struct device *dev, struct gpio_chip *gc,
- struct gpio_chip *gpiochip_find(void *data,
- 				int (*match)(struct gpio_chip *gc, void *data));
- 
-+struct gpio_device *gpio_device_find(void *data,
-+				     int (*match)(struct gpio_chip *gc,
-+						  void *data));
-+
- struct gpio_device *gpio_device_get(struct gpio_device *gdev);
- void gpio_device_put(struct gpio_device *gdev);
- 
+ config HTE_TEGRA194_TEST
+         tristate "NVIDIA Tegra194 HTE Test"
+-        depends on HTE_TEGRA194
++        depends on (HTE_TEGRA194 || COMPILE_TEST)
+         help
+ 	  The NVIDIA Tegra194 GTE test driver demonstrates how to use HTE
+ 	  framework to timestamp GPIO and LIC IRQ lines.
 -- 
 2.39.2
 
