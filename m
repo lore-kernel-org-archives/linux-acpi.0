@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCF6ECA0FFF
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD87CA0FFF
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:07:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235979AbjIETGc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 15:06:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58724 "EHLO
+        id S239286AbjIETHK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 15:07:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232185AbjIETGc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:06:32 -0400
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FE81B0
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 12:06:03 -0700 (PDT)
-Received: by mail-ed1-x532.google.com with SMTP id 4fb4d7f45d1cf-52bcd4db4cbso3910611a12.1
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 12:06:03 -0700 (PDT)
+        with ESMTP id S232185AbjIETHJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:07:09 -0400
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1A99CE2
+        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 12:06:33 -0700 (PDT)
+Received: by mail-ed1-x531.google.com with SMTP id 4fb4d7f45d1cf-52e64bc7c10so1697752a12.1
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 12:06:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940696; x=1694545496; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940727; x=1694545527; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=gFpxyOwy5Bm9Qt9hRSpXKADqH+X+nrhUxL/zhVP0yhY=;
-        b=wP9L0YVDBhvuQbebo0r6pTROXyB/R9dbTOFLNphd8PYPP6KtqIq42kW9psxjEBpW/B
-         J+Tq8FwL6MWqewtzw+kpjQDI9nQCDeOjMffLVYjVUDSqjnYZSg+PIqzvkXDkwvT2JcoD
-         mIeAfskdtA63bqEZNDpc8pY9OtHdMOKwFin8oZLk9GhSeEc3SFQ93SqFYARqJ7skgldD
-         g08UJC+/TS4f3puqmqKrlGVEDFd76RDrPgEmqx+qne8n+HJvxRvogKFBqxXjx0Pamz2A
-         smQB6IwYWxGaN5qMtWL5o8SvkcPyoIqZB/ymeDCcdsbjEhNTDkA6LQ/HFCcfomjhOzFG
-         1/Wg==
+        bh=vPYbcmhlviFwWzuYOu9Z0ne7hiPspJP6iTCWdpKZ06M=;
+        b=W05ZQP+7woy9fEAa+8/j3O7XU6WqIFB2gVzVh/TtggNF5S4CUIavUDZonVh0jbLBdR
+         +OpQKYWTn19jdc1UDWc17ju8dyZKBDEAnXGmpCHk9FYJPTq7FL7ccVIkOzwR776Vf2yH
+         cJ3eEIxSbt27Enpe21sICFSNJ8xRJtLQLWyac8fGvQBrIGYiBpaZtqqwQLwkjGt9MJHv
+         1Ryo47EAi1hbtuNFFk+6e64O0GkfR+0YVFDfuwDjp1OjSBvjXyJUdq+CUTVoYZX445bC
+         UNHoCWu9iPjCugdNXQwnshYis8Gl9bFqME52VW4S8YusA6aOg1x+/yoOTU0Cb7+v/s6p
+         8oIA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693940696; x=1694545496;
+        d=1e100.net; s=20221208; t=1693940727; x=1694545527;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=gFpxyOwy5Bm9Qt9hRSpXKADqH+X+nrhUxL/zhVP0yhY=;
-        b=itsM7omFOuO2kuUID8wHNaC96aiV5/nRcJjN+/Z+c/ctOAMe5LvS058QhcDJU/W65l
-         juHa5XCeR/jn0GCHeaUEjsWuuHTUOJL3xhgMmK8WXVAFXRgVV1/WuIxBPWW5QN5rk4Q9
-         1v1wNkbBWTJy2SSyGmV81KAsrLj5QHVFxqZc7WDN7QuFs3AvvxxzBOw3j9hAOQV3Z89H
-         XGPjiiOaDm0HEhIGTINIdPXZWkG7lxefzHewI2Aa/Px8JRRszS2Icb+iaBq6lnPyCFud
-         M5RyQvnkYQepeLtGN2mjxznZc0E2NHrg1pydg6fHsmdDB2T8C3N3CnrpSaBrFM6Fvzrs
-         +HQg==
-X-Gm-Message-State: AOJu0YyXxFq7mdgRFLkowHzOpsjH0DqwMLOwxpzbWtv+aHbQlHIQbnzP
-        QlNL7VkoMd9zbNGReMmzfWHp2mqsNhk4bKvWHYA=
-X-Google-Smtp-Source: AGHT+IFRNQIOeT3zr09E3n7bBEGrta/pNu8Vff14KdMD6sxtlr9ZDhLyFMZ76FUBno0gzmLiwhMBVA==
-X-Received: by 2002:a5d:5592:0:b0:317:54de:9719 with SMTP id i18-20020a5d5592000000b0031754de9719mr425005wrv.70.1693940024276;
-        Tue, 05 Sep 2023 11:53:44 -0700 (PDT)
+        bh=vPYbcmhlviFwWzuYOu9Z0ne7hiPspJP6iTCWdpKZ06M=;
+        b=HnFrvaQmn9uC/s/2VHHfhX/8rddtDOenV1MYNv2v/MuO+QgbE4w2/HW6Ek08N/KjsS
+         M/t5XzLw0B8p9O0chi0xVVvonhBh1VmBDI95anieuScrcT2OwoYdn/peHs+21UnRT7xT
+         yuDXYHzpAvCfpCxzG0UN9V2HuuLrcA5VvoH+QogKU8vQ3OvnmbslYxI8DBMRt7lD/Vrf
+         SzLouRtCbov0rGvQXLOK5aRZAY691QVETBaXXkie2OS577Z5KXOxjpPb1W9HMA/4mjIy
+         gJkbfEYNQGYHrpbuFoawZItGBBcrmqVmD4ApUKjiKA8/tbclXPuIuOGQU/Rvr6pA7BVV
+         0s4g==
+X-Gm-Message-State: AOJu0YxUboDEgLQgpAkvf5CWVf7RZ8X9rOvTnHQkLRbvi2wuNS2vBmyk
+        pX150RFZmcTjjSMqd5XryfSHLsDSmGtxjKjDN90=
+X-Google-Smtp-Source: AGHT+IH7bFhmwhJkbEP09mNLLK4toqHl75c1c56y8lKZfC2ULSFpMzvdc2De5dyozg7UIqDbZnvopw==
+X-Received: by 2002:a7b:cb96:0:b0:3fe:d6bf:f314 with SMTP id m22-20020a7bcb96000000b003fed6bff314mr414148wmi.39.1693940021910;
+        Tue, 05 Sep 2023 11:53:41 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.43
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:43 -0700 (PDT)
+        Tue, 05 Sep 2023 11:53:41 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -68,9 +68,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
         linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [RFT PATCH 15/21] arm: omap1: ams-delta: stop using gpiochip_find()
-Date:   Tue,  5 Sep 2023 20:53:03 +0200
-Message-Id: <20230905185309.131295-16-brgl@bgdev.pl>
+Subject: [PATCH 13/21] hte: tegra194: improve the GPIO-related comment
+Date:   Tue,  5 Sep 2023 20:53:01 +0200
+Message-Id: <20230905185309.131295-14-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
 References: <20230905185309.131295-1-brgl@bgdev.pl>
@@ -82,75 +82,39 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-gpiochip_find() is going away as it's not hot-unplug safe. This platform
-is not affected by any of the related problems as this GPIO controller
-cannot really go away but in order to finally remove this function, we
-need to convert it to using gpio_device_find() as well.
+Using any of the GPIO interfaces using the global numberspace is
+deprecated. Make it clear in the comment.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- arch/arm/mach-omap1/board-ams-delta.c | 36 +++++++++++++--------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ drivers/hte/hte-tegra194.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 9808cd27e2cf..a28ea6ac1eba 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -560,22 +560,6 @@ static struct gpiod_lookup_table *ams_delta_gpio_tables[] __initdata = {
- 	&ams_delta_nand_gpio_table,
- };
+diff --git a/drivers/hte/hte-tegra194.c b/drivers/hte/hte-tegra194.c
+index 6fe6897047ac..9fd3c00ff695 100644
+--- a/drivers/hte/hte-tegra194.c
++++ b/drivers/hte/hte-tegra194.c
+@@ -407,12 +407,15 @@ static int tegra_hte_line_xlate(struct hte_chip *gc,
+ 		return -EINVAL;
  
--/*
-- * Some drivers may not use GPIO lookup tables but need to be provided
-- * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
-- * drivers may even not use GPIO layer but expect just IRQ numbers.
-- * We could either define GPIO lookup tables then use them on behalf
-- * of those devices, or we can use GPIO driver level methods for
-- * identification of GPIO and IRQ numbers. For the purpose of the latter,
-- * defina a helper function which identifies GPIO chips by their labels.
-- */
--static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
--{
--	char *label = data;
--
--	return !strcmp(label, chip->label);
--}
--
- static struct gpiod_hog ams_delta_gpio_hogs[] = {
- 	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT, "keybrd_dataout",
- 		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
-@@ -615,14 +599,28 @@ static void __init modem_assign_irq(struct gpio_chip *chip)
-  */
- static void __init omap_gpio_deps_init(void)
- {
-+	struct gpio_device *gdev;
- 	struct gpio_chip *chip;
- 
--	chip = gpiochip_find(OMAP_GPIO_LABEL, gpiochip_match_by_label);
--	if (!chip) {
--		pr_err("%s: OMAP GPIO chip not found\n", __func__);
-+	/*
-+	 * Some drivers may not use GPIO lookup tables but need to be provided
-+	 * with GPIO numbers. The same applies to GPIO based IRQ lines - some
-+	 * drivers may even not use GPIO layer but expect just IRQ numbers.
-+	 * We could either define GPIO lookup tables then use them on behalf
-+	 * of those devices, or we can use GPIO driver level methods for
-+	 * identification of GPIO and IRQ numbers.
-+	 *
-+	 * This reference will be leaked but that's alright as this device
-+	 * never goes down.
-+	 */
-+	gdev = gpio_device_find_by_label(OMAP_GPIO_LABEL);
-+	if (!gdev) {
-+		pr_err("%s: OMAP GPIO device not found\n", __func__);
- 		return;
- 	}
- 
-+	chip = gpio_device_get_chip(gdev);
-+
  	/*
- 	 * Start with FIQ initialization as it may have to request
- 	 * and release successfully each OMAP GPIO pin in turn.
++	 * GPIO consumers can access GPIOs in two ways:
+ 	 *
+-	 * There are two paths GPIO consumers can take as follows:
+-	 * 1) The consumer (gpiolib-cdev for example) which uses GPIO global
+-	 * number which gets assigned run time.
+-	 * 2) The consumer passing GPIO from the DT which is assigned
+-	 * statically for example by using TEGRA194_AON_GPIO gpio DT binding.
++	 * 1) Using the global GPIO numberspace.
++	 *
++	 * This is the old, now DEPRECATED method and should not be used in
++	 * new code. TODO: Check if tegra is even concerned by this.
++	 *
++	 * 2) Using GPIO descriptors that can be assigned to consumer devices
++	 * using device-tree, ACPI or lookup tables.
+ 	 *
+ 	 * The code below addresses both the consumer use cases and maps into
+ 	 * HTE/GTE namespace.
 -- 
 2.39.2
 
