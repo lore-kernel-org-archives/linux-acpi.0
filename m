@@ -2,124 +2,167 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CD8DCA100D
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 20:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AAA1C83F3E
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 20:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243652AbjIEUYo (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 16:24:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33050 "EHLO
+        id S229921AbjIEU53 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 16:57:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243547AbjIEUYb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 16:24:31 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EC2CD1;
-        Tue,  5 Sep 2023 13:24:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1693945464; x=1725481464;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=XyUUG1HMbirzP2NvYtvvRf7Q4WUL/r2/+NfmU8fIqRQ=;
-  b=kFY+C0BKyHWPSD/7KnYi9I38EmdHYgsUviXwGbv8BMNmFdv/HjWVRPro
-   htntedvRS/WNBq5Zqzq46h2wQ62vVx5SZ/dj4YuQzeQVxL1SKvfbY70Ac
-   HwMyH9Zify8L2tjWqBzUKTPIj7I2HzbjMGCMgA987fEiU+QLjCLp3GvOn
-   rQDuNdh5R7s/lNE1bRhjFocWv6Y1CMLYXj3Z3x9SdcWaEFhiGEFb0Ju9f
-   oMY7/gl6vosJIQcch7dDTI3z4ZA6IU2gJKzUMZ6FkqvWG/k41arCXOz8T
-   6Rbsj5rYM4wpdfmZQChvRxmgCoWvxoHBPDlKMvSJzfw4AOLLsgpq8zg/u
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10824"; a="380703012"
-X-IronPort-AV: E=Sophos;i="6.02,230,1688454000"; 
-   d="scan'208";a="380703012"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2023 13:24:14 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10824"; a="744410815"
-X-IronPort-AV: E=Sophos;i="6.02,230,1688454000"; 
-   d="scan'208";a="744410815"
-Received: from lkp-server02.sh.intel.com (HELO e0b2ea88afd5) ([10.239.97.151])
-  by fmsmga007.fm.intel.com with ESMTP; 05 Sep 2023 13:24:12 -0700
-Received: from kbuild by e0b2ea88afd5 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qdcag-00022f-26;
-        Tue, 05 Sep 2023 20:24:05 +0000
-Date:   Wed, 6 Sep 2023 04:22:41 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Ben Cheatham <Benjamin.Cheatham@amd.com>, rafael@kernel.org,
-        dan.j.williams@intel.com, linux-cxl@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Cc:     oe-kbuild-all@lists.linux.dev, bhelgaas@google.com,
-        benjamin.cheatham@amd.com, yazen.ghannam@amd.com
-Subject: Re: [PATCH v3 2/3] ACPI, APEI, EINJ: Add CXL 1.1 EINJ error type
- support
-Message-ID: <202309060439.NyMjpqql-lkp@intel.com>
-References: <20230905184406.135851-3-Benjamin.Cheatham@amd.com>
+        with ESMTP id S234705AbjIEU52 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 16:57:28 -0400
+X-Greylist: delayed 376 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 13:57:24 PDT
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9B2FAC;
+        Tue,  5 Sep 2023 13:57:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C655C433CD;
+        Tue,  5 Sep 2023 20:51:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1693947067;
+        bh=j4VZbhneezS5ukKmIZ2uZimOa3neoOXs4OmnssGUIZo=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=SRMIreR3MbvlHVssKklNjRJUN8OK5Yy/okWw4R0X5iuACktEViVghv9GG99706CeT
+         W2gEdQexSVPrWX8Mya07w/Bc9sqJe1TGfUDJV4JOSZcydeOZEl9l2y89/bG1dtCX2m
+         EjKLQyaOaXfYiKMy2wDm72jK5vNGv+gWg3gX0BAUCN2Ouqrc8o8gtZmO3+UzJA0dnL
+         /5Qp+N03IBytPGFxncdP9anpTypbGmI6QUYwpKNnGOxepNLoOJa103PlKVNf5gmQeX
+         8+g4qT6wZOTQKdXonB9tZjiuHp1wNl1wUWmttVnTjVQ8PoALdWgXAv2NbUpqVEM3mp
+         NtsZIJL01cUvQ==
+Date:   Tue, 5 Sep 2023 15:51:05 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Mario Limonciello <mario.limonciello@amd.com>
+Cc:     hdegoede@redhat.com, bhelgaas@google.com, rafael@kernel.org,
+        Shyam-sundar.S-k@amd.com, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Iain Lane <iain@orangesquash.org.uk>
+Subject: Re: [PATCH v16 3/3] platform/x86/amd: pmc: Don't let PCIe root ports
+ go into D3
+Message-ID: <20230905205105.GA191110@bhelgaas>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230905184406.135851-3-Benjamin.Cheatham@amd.com>
+In-Reply-To: <20230829171212.156688-4-mario.limonciello@amd.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Ben,
+[+cc Hans]
 
-kernel test robot noticed the following build warnings:
+On Tue, Aug 29, 2023 at 12:12:12PM -0500, Mario Limonciello wrote:
+> commit 9d26d3a8f1b0 ("PCI: Put PCIe ports into D3 during suspend")
+> changed pci_bridge_d3_possible() so that any vendor's PCIe ports
+> from modern machines (>=2015) are allowed to be put into D3.
+> 
+> Iain reports that USB devices can't be used to wake a Lenovo Z13
+> from suspend. This is because the PCIe root port has been put
+> into D3 and AMD's platform can't handle USB devices waking from
+> a hardware sleep state in this case.
 
-[auto build test WARNING on rafael-pm/linux-next]
-[also build test WARNING on linus/master v6.5 next-20230905]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Can you be specific in the subject and commit log about whether "D3"
+refers to "D3hot", "D3cold", or both?  It's probably obvious to PM
+folks, but it's always a stumbling block for me.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Ben-Cheatham/CXL-PCIE-Add-cxl_rcrb_addr-file-to-dport_dev/20230906-025405
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20230905184406.135851-3-Benjamin.Cheatham%40amd.com
-patch subject: [PATCH v3 2/3] ACPI, APEI, EINJ: Add CXL 1.1 EINJ error type support
-config: alpha-allyesconfig (https://download.01.org/0day-ci/archive/20230906/202309060439.NyMjpqql-lkp@intel.com/config)
-compiler: alpha-linux-gcc (GCC) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230906/202309060439.NyMjpqql-lkp@intel.com/reproduce)
+I assume "can't handle USB devices waking" does not refer to a problem
+with the USB adapter and whatever mechanism it uses to send a wakeup
+event to request that power be turned on, but rather it means that the
+wakeup event doesn't get propagated through the Root Port?
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202309060439.NyMjpqql-lkp@intel.com/
+Is this actually specific to USB devices?  Or could a NIC below the
+Root Port suffer the same problem when a wake-on-lan packet causes it
+to send a wakeup event?  It seems like we've had this conversation
+before; sorry to ask the same questions again.
 
-All warnings (new ones prefixed by >>):
+If it's not specific to USB, I would say something like "when the Root
+Port is in D3cold, wakeup events from devices below it are lost" (or
+whatever the actual problem is).
 
-   In file included from drivers/cxl/cxl.h:11,
-                    from drivers/cxl/cxlmem.h:9,
-                    from drivers/cxl/core/port.c:11:
->> include/linux/cxl.h:12:19: warning: no previous prototype for 'cxl_find_rch_dport_by_rcrb' [-Wmissing-prototypes]
-      12 | struct cxl_dport *cxl_find_rch_dport_by_rcrb(resource_size_t rcrb_base)
-         |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/cxl/core/port.c:1125:19: error: redefinition of 'cxl_find_rch_dport_by_rcrb'
-    1125 | struct cxl_dport *cxl_find_rch_dport_by_rcrb(resource_size_t rcrb_base)
-         |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/cxl.h:12:19: note: previous definition of 'cxl_find_rch_dport_by_rcrb' with type 'struct cxl_dport *(resource_size_t)' {aka 'struct cxl_dport *(long long unsigned int)'}
-      12 | struct cxl_dport *cxl_find_rch_dport_by_rcrb(resource_size_t rcrb_base)
-         |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from drivers/cxl/cxl.h:11,
-                    from drivers/cxl/cxlmem.h:9,
-                    from drivers/cxl/core/pmem.c:6:
->> include/linux/cxl.h:12:19: warning: no previous prototype for 'cxl_find_rch_dport_by_rcrb' [-Wmissing-prototypes]
-      12 | struct cxl_dport *cxl_find_rch_dport_by_rcrb(resource_size_t rcrb_base)
-         |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~
+> This problem only occurs on Linux, and only when the AMD PMC driver
+> is utilized to put the device into a hardware sleep state.
 
+Is the AMD PMC driver doing something magic that can't be done via
+other power management paths?  That's what "only when the AMD PMC
+driver is utilized" suggests.  But if the problem occurs when the Root
+Port is put into D3cold via *any* means, just say that.
 
-vim +/cxl_find_rch_dport_by_rcrb +12 include/linux/cxl.h
+And if you can say a specific PCI power state instead of "hardware
+sleep state", that would be good, too.
 
-     8	
-     9	#if IS_ENABLED(CONFIG_CXL_ACPI)
-    10	struct cxl_dport *cxl_find_rch_dport_by_rcrb(resource_size_t rcrb_base);
-    11	#else
-  > 12	struct cxl_dport *cxl_find_rch_dport_by_rcrb(resource_size_t rcrb_base)
-    13	{
-    14		return NULL;
-    15	}
-    16	#endif
-    17	
+> Comparing
+> the behavior on Windows and Linux, Windows doesn't put the root ports
+> into D3.
+> 
+> A variety of approaches were discussed to change PCI core to handle this
+> case generically but no consensus was reached. To limit the scope of
+> effect only to the affected machines introduce a workaround into the
+> amd-pmc driver to only apply to the PCI root ports in affected machines
+> when going into hardware sleep.
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> +/* only allow PCIe root ports with a LPS0 constraint configured to go to D3 */
+> +static int amd_pmc_rp_wa(struct amd_pmc_dev *pdev)
+> +{
+> +	struct pci_dev *pci_dev = NULL;
+> +
+> +	while ((pci_dev = pci_get_device(PCI_VENDOR_ID_AMD, PCI_ANY_ID, pci_dev))) {
+
+I hate to add more uses of pci_get_device() because it doesn't account
+for hot-added devices.  Maybe there's no need to support hot-add of
+AMD Root Ports, but that's not obvious to readers here.
+
+One mechanism to avoid pci_get_device() is to use quirks, although it
+might be hard to deal with PCI/ACPI ordering issues.
+
+> +		struct acpi_device *adev;
+> +		int constraint;
+> +
+> +		if (!pci_is_pcie(pci_dev) ||
+> +		    !(pci_pcie_type(pci_dev) == PCI_EXP_TYPE_ROOT_PORT))
+> +			continue;
+> +
+> +		if (pci_dev->current_state == PCI_D3hot ||
+> +		    pci_dev->current_state == PCI_D3cold)
+> +			continue;
+
+If we're trying to determine a property of the device, why does the
+current power state make a difference?
+
+It looks like this loop runs every time we suspend (from
+amd_pmc_suspend_handler()), even though this is something we should
+know at boot-time, so we only need it once.
+
+> +		adev = ACPI_COMPANION(&pci_dev->dev);
+> +		if (!adev)
+> +			continue;
+> +
+> +		constraint = acpi_get_lps0_constraint(adev);
+> +		if (constraint != ACPI_STATE_UNKNOWN &&
+> +		    constraint >= ACPI_STATE_S3)
+> +			continue;
+> +
+> +		if (pci_dev->bridge_d3 == 0)
+> +			continue;
+> +		pci_dev->bridge_d3 = 0;
+> +		dev_info(&pci_dev->dev, "Disabling D3 on PCIe root port due lack of constraint\n");
+
+D3hot?  D3cold?  Both?  "lack of constraint"?
+
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int amd_pmc_verify_czn_rtc(struct amd_pmc_dev *pdev, u32 *arg)
+>  {
+>  	struct rtc_device *rtc_device;
+> @@ -893,6 +928,10 @@ static int amd_pmc_suspend_handler(struct device *dev)
+>  	case AMD_CPU_ID_CZN:
+>  		rc = amd_pmc_czn_wa_irq1(pdev);
+>  		break;
+> +	case AMD_CPU_ID_YC:
+> +	case AMD_CPU_ID_PS:
+> +		rc = amd_pmc_rp_wa(pdev);
+> +		break;
+>  	default:
+>  		break;
+>  	}
+> -- 
+> 2.34.1
+> 
