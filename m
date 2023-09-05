@@ -2,199 +2,161 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78488CA101C
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 22:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D86F6CA101E
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 22:32:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbjIEWW2 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 18:22:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53762 "EHLO
+        id S241632AbjIEWcZ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 18:32:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229848AbjIEWW2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 18:22:28 -0400
-X-Greylist: delayed 1200 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 15:22:24 PDT
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94A02185;
-        Tue,  5 Sep 2023 15:22:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD1B5C433CD;
-        Tue,  5 Sep 2023 21:44:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1693950292;
-        bh=vcOAE7cgvg+KKXXIGsF2W5d9uDa6HKdsbuwQ5Vq67Hs=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=jGHavaqS13fmdKZew+/6eohIqfMfSIDMNF8ecF6e6Tftr+0gFeMN24/qbQrr9qzoN
-         sxjSzQY+X2BeJ5p8QM09VzaiUGZPDxYMzFc2tFm0xQl3j44NeH4FDD88TVn7fURIJH
-         rraFiv3Y6vlqQRofV/15pdh7bdx0+7MMtDnydwsxGQ/Cm+NRs5AYqa/G1BK/ZGF2K5
-         m/lkJeefKDtFY/iSGIYyBJnMUO4RUH7KPkJkljUW8bWfhBGcVYEj/rHXMoL9y7xJCz
-         wi6KzwC8QsrTsL18NFWJoQYOQbWKTge8YX+GDvs++0ZnufZNguFeiBI05DYbkUwK+M
-         wGePCE13CxnJQ==
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-500c6ff99acso354590e87.1;
-        Tue, 05 Sep 2023 14:44:52 -0700 (PDT)
-X-Gm-Message-State: AOJu0YztkWauCmyPHnu3U1KIH5nP80myWgODXWj9asxEXQgr+SeHbzrU
-        1sspBihABAfOq+jnwhHwhuqxzlki7ncChtITF4E=
-X-Google-Smtp-Source: AGHT+IE3byYCTiwDkfPmJIHwu7Z9lpjHaSCdjuXL4BOAI9Du2b6eV7bne/cEy1xZahbolkOSiTJRwYub7OiN3c36sv0=
-X-Received: by 2002:a05:6512:2256:b0:4fe:13c9:2071 with SMTP id
- i22-20020a056512225600b004fe13c92071mr356383lfu.2.1693950290708; Tue, 05 Sep
- 2023 14:44:50 -0700 (PDT)
+        with ESMTP id S231249AbjIEWcY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 18:32:24 -0400
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2059.outbound.protection.outlook.com [40.107.223.59])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97A0ECE7;
+        Tue,  5 Sep 2023 15:32:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=MhDn6oaxE5Qix1jItZte6TlBP4HUWexRP9IWPteD3i5ywPwsdnOo6jGg10yvrtqFhfgyvD0FcZZFasSOCKiqrwAc8MbkuoJ2U1vciEqLFjIHfBHPQHTdSGapdgU91mfT5K2wf+WqTyt8mE8J8UZn965GlYvIDYXRaV3iQD+cNQol00kCdJm7zZWOGEbMqona72gZ+P0OOC+FQCuOaetH2Af+eKJEGWIp7BhjDBqiMFRmYERLsf/CYcEblI0kx1uI8AtX2GlpX7yYFSqnuLt3WaEirFQ/tLosD2XkqXKzUjpKQQthpP1HFB+nV5Mdf8qdJmP1qGoJqr+bRo0ES/QqDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=qrBucp5j9d5P+Aa6ai22aVr5xSdGG617Xl+lF5okQig=;
+ b=eje8Ursct1D0W31dwoEfDdMW8PeH+hRDPpuBVCdXWPM7kEsWff1VfaF1j/Xruj/7cA+Yl/J5xa/o+aYS7iB8kL21AbH43gpRQKu8NJjrnVg5zwHDwbSCZAWajPA8c8cbX1e+AwxDhLGAE91x6o8qV+L2IQvWQOoxpdrt2VCrPDftqD4aV3qjP4ksXUBgAUFENbefj1mJp4cDvS918LgHdQ0kH3SAB07KLojRrqPpFRV+LqkTt0ZXgu078TcXUA3iK3GAj42CH2tfU+QD7gxJu4Qyl0qk09g94PyQr7wgdp02mK1R9QcU4nlK0f55romm5JjbO3Ko2wxPJSQLI2l9XQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=qrBucp5j9d5P+Aa6ai22aVr5xSdGG617Xl+lF5okQig=;
+ b=QY9pTa+99aUYsSWb1/37U260ITcRzxrU4j952BZmdwiGTpoV//UwJxuGmDCbgOdRzW5cVNMi1B3v912XgGJzGEvLZpu7mjHJLmeu5/tk2g6N5Wnk89AwKNGfuisRrWCxd4pwORsTTPrIa4FHjlgu7VZlFAi1N3ilqVSC3AzrMCw=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from MN0PR12MB6101.namprd12.prod.outlook.com (2603:10b6:208:3cb::10)
+ by PH7PR12MB7212.namprd12.prod.outlook.com (2603:10b6:510:207::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6745.32; Tue, 5 Sep
+ 2023 22:32:13 +0000
+Received: from MN0PR12MB6101.namprd12.prod.outlook.com
+ ([fe80::36f9:ffa7:c770:d146]) by MN0PR12MB6101.namprd12.prod.outlook.com
+ ([fe80::36f9:ffa7:c770:d146%7]) with mapi id 15.20.6745.030; Tue, 5 Sep 2023
+ 22:32:13 +0000
+Message-ID: <2f1f0111-c9fb-472c-80b5-968267382e32@amd.com>
+Date:   Tue, 5 Sep 2023 17:32:08 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH V5 1/7] x86: Drop CPU_SUP_INTEL from SCHED_MC_PRIO for the
+ expansion.
+Content-Language: en-US
+To:     Meng Li <li.meng@amd.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Huang Rui <ray.huang@amd.com>
+Cc:     linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        x86@kernel.org, linux-acpi@vger.kernel.org,
+        Shuah Khan <skhan@linuxfoundation.org>,
+        linux-kselftest@vger.kernel.org,
+        Nathan Fontenot <nathan.fontenot@amd.com>,
+        Deepak Sharma <deepak.sharma@amd.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Shimmer Huang <shimmer.huang@amd.com>,
+        Perry Yuan <Perry.Yuan@amd.com>,
+        Xiaojian Du <Xiaojian.Du@amd.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Borislav Petkov <bp@alien8.de>
+References: <20230905015116.2268926-1-li.meng@amd.com>
+ <20230905015116.2268926-2-li.meng@amd.com>
+From:   Mario Limonciello <mario.limonciello@amd.com>
+In-Reply-To: <20230905015116.2268926-2-li.meng@amd.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SA1P222CA0194.NAMP222.PROD.OUTLOOK.COM
+ (2603:10b6:806:3c4::19) To MN0PR12MB6101.namprd12.prod.outlook.com
+ (2603:10b6:208:3cb::10)
 MIME-Version: 1.0
-References: <20230830231758.2561402-1-sjg@chromium.org> <20230830231758.2561402-3-sjg@chromium.org>
-In-Reply-To: <20230830231758.2561402-3-sjg@chromium.org>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Tue, 5 Sep 2023 23:44:39 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXG5-aqoOtKdPFEdm=_5SdvgUTOhcDOBP1zdARAvKphJtg@mail.gmail.com>
-Message-ID: <CAMj1kXG5-aqoOtKdPFEdm=_5SdvgUTOhcDOBP1zdARAvKphJtg@mail.gmail.com>
-Subject: Re: [PATCH v5 3/4] schemas: Add some common reserved-memory usages
-To:     Simon Glass <sjg@chromium.org>
-Cc:     devicetree@vger.kernel.org,
-        Maximilian Brune <maximilian.brune@9elements.com>,
-        ron minnich <rminnich@gmail.com>,
-        Tom Rini <trini@konsulko.com>,
-        Dhaval Sharma <dhaval@rivosinc.com>,
-        U-Boot Mailing List <u-boot@lists.denx.de>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Yunhui Cui <cuiyunhui@bytedance.com>,
-        linux-acpi@vger.kernel.org, Gua Guo <gua.guo@intel.com>,
-        Lean Sheng Tan <sheng.tan@9elements.com>,
-        Guo Dong <guo.dong@intel.com>,
-        lkml <linux-kernel@vger.kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Chiu Chasel <chasel.chiu@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN0PR12MB6101:EE_|PH7PR12MB7212:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6bb5408a-d65b-4b21-c1a8-08dbae5ff337
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: DLl3vgO4e6KMmn+J38Mhw+DGqAO7n4Bs+QqkoIjyYtwrDSvEFhif25RbMS6elU3dlSPRrIavlRD3F5SQ0BzHdIIa5y1FwUyWnNVXteDMeFObQm6JFGwHd6nCkP/gn6i/pYxtCJqKrXzzGqbI+JAzc0EPW2oSpv6rZ4lAKMREtz3k9pnFIo8OsXq2wPuA2ccZUjTGIBca0eG29QFxvbyc54uq0M2eH6TfiEXkIP11usFdSefsdZ+vGDZXmIgK36OYuNG2JRdYoQ0VSpV8lxoxmSLTVqvR8y5GbzXHgOhRLEmB56VYEq8yGP1gAZ4HK/9EEpdwA1fcrRTaNzvPQIR6zcPXtA50QjoWkZ0eXpZLbyTBniCNw6idyIxQU8VscqaS1WETaETmL78gIuAe5L3kbfvw1sJIx9Tu8sTqq1UYQIGfsnQSxwZNww86qRpYEuMYYQI5BC0CBlKR3mbq6nFvWGbQn8OlxCPufWmhLDuMSgkcSRlMcdBhLpLZE7QuX0xETKW3U4ousxSHER3lLmeV5/+cw25Ji7qYVyiehJoczQ+Js9dwy3Qr8YzMicaUUvKiOWTzMsAIZZ6F0WjKHuknXgrMbkVgMw42r0wdgYdRRi4sYB+bE2Hpv7tdlbqtlXbLb2pJLo69WpmI0Jm+3ZP0FQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6101.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(136003)(346002)(376002)(366004)(39860400002)(451199024)(186009)(1800799009)(31686004)(53546011)(6486002)(6512007)(6506007)(6666004)(36756003)(38100700002)(86362001)(31696002)(2906002)(2616005)(4744005)(478600001)(26005)(83380400001)(66946007)(110136005)(4326008)(8936002)(8676002)(5660300002)(44832011)(316002)(54906003)(41300700001)(66476007)(6636002)(66556008)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?WFdOUWdPVE5VZ1NjbUZwU3JpZzdhN3kvSS9DVGNNZkJTYTkrRXJuaU9JVkhs?=
+ =?utf-8?B?TTBFSzBrbGRYQ1diYmhoY2tOQzVpQ2lmamE0QVpWbXNHMUhkcmJIRm9xZWFy?=
+ =?utf-8?B?YVQ4am4xUzFYTVptaFFZRXc5WDhjTnQ3dUs4WktNWVBmTVpJZlFHWFZIcHdG?=
+ =?utf-8?B?emNXeGxGbnNBUnNZTXlZL2dpQWdFQ3ZGRlBVd0hLY1JkMis2cEIwcjF5SlBt?=
+ =?utf-8?B?YUtibkNKSHFZbXg1bXNIbWxNZXVDRU8zTDlBNHlVVXdzV0FkMVdpcG5KWW9T?=
+ =?utf-8?B?MHRBcTR6VkJ6SFQ2VTBKZHlxMFN5enVnOU1zemxPRnJBZGp3dlVaNTU4N2lF?=
+ =?utf-8?B?ejVjdUdqQWdKekR3SkwycjNzRzBUQlh3RGw2TjBVUzZVRjlZTzlMQVMzbUF6?=
+ =?utf-8?B?bFBIbC9iOFlXbkdPeHVWZlZtenpwS2pQT2I1NjdTYzBmTlpBUVpCbDZMK1lu?=
+ =?utf-8?B?ZjV1d1d4VHJXR2J3ZFBWZ1l2TjN1aHlwTXlzTnhBZGFmOWhiZ1p2REZkOSt0?=
+ =?utf-8?B?OWFyY1ArUEpFNnJkdEJETWE2bEVVNUFvaGtLaHM0QVVzcU9uVlFuRm54bXl5?=
+ =?utf-8?B?dTZVT2c5T2RISVpwcVFSS0dHOUtpbmNUQVlzbXZpVGNCRmg0OHBid04rRzJj?=
+ =?utf-8?B?RVl1TUNmM1FUYTRxZW9sbmcvZnlQRWNYL0xJTzZyeWhDQklpZi80YzF2YkJD?=
+ =?utf-8?B?aXIzYmZXWTFIZldZMjhiUFRwWlE3cy9pT2RUMkpZOHZtSk9GOUQvdTJGNUo3?=
+ =?utf-8?B?eTBwTVNjS05HeFRPU0FJZUpmY2VmVWp1d25tV1lpaHFNVFFhUzhPWmU2M1Rz?=
+ =?utf-8?B?dENRcGVZaTFWaWFRcjBNVjg4S25odG00SWF0TkJzdkJKWk0rbFplOFNNUUgx?=
+ =?utf-8?B?aGFkYzUwTjFsTkdZZk9BSG9iN2lUSHUzb09DeFhGU1B2UTRJR1RRQmRyL0Zl?=
+ =?utf-8?B?WTQ0QzdOaEdFSENLSUJpNVVrNHVYbmF3ekY0YlM4cSsvMUxGT0xnYVcxVXJs?=
+ =?utf-8?B?Ny9KOTNVOS91aE5DWE5na1ZLY2d3UDFuWGpBdlZVYWd3bUk3cmV5OWFkMTRt?=
+ =?utf-8?B?S21aenVZU01YeG1BZndmUW9XVmtaUzBSQlNhR2RPM1N0Qy85cWNvaDM5cTJW?=
+ =?utf-8?B?VkV0YnRIUis0alVqemVoOVBXUnl5d2dwNzFMY3hFTWVFenl6ZEhmdTlwUnhR?=
+ =?utf-8?B?MmI3UlMxdTJ2SnQwdFFsQ3Z2bWVkOW9DWmRyRzY2YkZibXhsNGdQOW5NbnBB?=
+ =?utf-8?B?ZE9OK1BGT1dmL240bHRkcGcwREZ6SkpvdVJia3dlbHRzbG1WdWhPdWFLTlRF?=
+ =?utf-8?B?anpNK2Z2ZGo4U3pFQTd1b1kvMDFzT2hsVzh4VjV1dVh6YzRHRWJUUnpyY1dq?=
+ =?utf-8?B?QWZZTDR1OTNXVDlKYzdCWUFVdjJaWjNFYllGb1NQMzFGd1RYWGNyb2FMNENm?=
+ =?utf-8?B?RkYxYnBXQmRvenVPc0tHMElrRSs2UFpDUFlQc3BiQlZseHF4cmsyaW1rWFEz?=
+ =?utf-8?B?T3BXU3BOSGJqQjBJSG8rcDFUK3RJK3JTYkJEV2RHcVZ1eUpEbjQ4TVR6MlFD?=
+ =?utf-8?B?QjVaQVFYdzNWSzhDdmhDbndhc3NIVzN4bURDaW0vNkxiMkhFQU9DT1dHc1lZ?=
+ =?utf-8?B?V1daU2FOZmZpYlA4SEJkV0ZFMHNLc3huMUkwUGZxaStmdzlIT0JZZzYxS3BB?=
+ =?utf-8?B?WkVpdmJhQjNxSTFtbkwzWVY2NWQySUlObmJHNis4TkxLTjJsZklzd3ZFUXZN?=
+ =?utf-8?B?YTNlRXRCZ2Y5emJoY2wrOVo0dlZRb0RwRkkyNHFWQ3VlbHVHQVVjdTFUMzJm?=
+ =?utf-8?B?L1lIanRDNVFIcDRQeWp4SWQySmVjdHhWV3o2R0puam1jS2E3UG9sSUN2Vnhr?=
+ =?utf-8?B?b2ltQzg5cW8rb2FjQkhRV2xpQTcrL2k2YXU3WWo2cHJNaDhQOXVDdlR6alY4?=
+ =?utf-8?B?NVU5SUhMUkxnMFI0czZBNFNXY3lYcDlDUkk2ZVNGcVFFanhFZDZ4ODN2aFk0?=
+ =?utf-8?B?N0pVODN4ZWcwU0syQ2pxNWtYMHNUWllMVjI5dkNjSTU1Y3JUc1R1QjQ4a2kv?=
+ =?utf-8?B?cngwNU5zZjdWZDZHbTdySjgvbWZqWEJqa3J0NFRyV2xQcE5YazdLazRyRjBF?=
+ =?utf-8?Q?Ihi5JR7+GU2lnZFhaAnwyuf2U?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6bb5408a-d65b-4b21-c1a8-08dbae5ff337
+X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6101.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Sep 2023 22:32:13.0097
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: +zVRM3f61ILCFZtidvXyYtqk/XDgBrxI589Pbcg1003eOg+jWnV1w9//VU2SBRthDfLPvZSjhhH4ZWd4KALNHg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7212
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, 31 Aug 2023 at 01:18, Simon Glass <sjg@chromium.org> wrote:
->
-> The Devicetree specification skips over handling of a logical view of
-> the memory map, pointing users to the UEFI specification.
->
-> It is common to split firmware into 'Platform Init', which does the
-> initial hardware setup and a "Payload" which selects the OS to be booted.
-> Thus an handover interface is required between these two pieces.
->
-> Where UEFI boot-time services are not available, but UEFI firmware is
-> present on either side of this interface, information about memory usage
-> and attributes must be presented to the "Payload" in some form.
->
+On 9/4/2023 20:51, Meng Li wrote:
+> amd-pstate driver also uses SCHED_MC_PRIO, so decouple the requirement
+> of CPU_SUP_INTEL from the dependencies to allow compilation in kernels
+> without Intel CPU support.
+> 
+> Signed-off-by: Meng Li <li.meng@amd.com>
 
-I don't think the UEFI references are needed or helpful here.
+Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
 
-> This aims to provide an small schema addition for this mapping.
->
-> For now, no attempt is made to create an exhaustive binding, so there are
-> some example types listed. More can be added later.
->
-> The compatible string is not included, since the node name is enough to
-> indicate the purpose of a node, as per the existing reserved-memory
-> schema.
->
-> This binding does not include a binding for the memory 'attribute'
-> property, defined by EFI_BOOT_SERVICES.GetMemoryMap(). It may be useful
-> to have that as well, but perhaps not as a bit mask.
->
-> Signed-off-by: Simon Glass <sjg@chromium.org>
 > ---
->
-> Changes in v5:
-> - Drop the memory-map node (should have done that in v4)
-> - Tidy up schema a bit
->
-> Changes in v4:
-> - Make use of the reserved-memory node instead of creating a new one
->
-> Changes in v3:
-> - Reword commit message again
-> - cc a lot more people, from the FFI patch
-> - Split out the attributes into the /memory nodes
->
-> Changes in v2:
-> - Reword commit message
->
->  .../reserved-memory/common-reserved.yaml      | 53 +++++++++++++++++++
->  1 file changed, 53 insertions(+)
->  create mode 100644 dtschema/schemas/reserved-memory/common-reserved.yaml
->
-> diff --git a/dtschema/schemas/reserved-memory/common-reserved.yaml b/dtschema/schemas/reserved-memory/common-reserved.yaml
-> new file mode 100644
-> index 0000000..d1b466b
-> --- /dev/null
-> +++ b/dtschema/schemas/reserved-memory/common-reserved.yaml
-> @@ -0,0 +1,53 @@
-> +# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/reserved-memory/common-reserved.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> +
-> +title: Common memory reservations
-> +
-> +description: |
-> +  Specifies that the reserved memory region can be used for the purpose
-> +  indicated by its node name.
-> +
-> +  Clients may reuse this reserved memory if they understand what it is for.
-> +
-> +maintainers:
-> +  - Simon Glass <sjg@chromium.org>
-> +
-> +allOf:
-> +  - $ref: reserved-memory.yaml
-> +
-> +properties:
-> +  $nodename:
-> +    enum:
-> +      - acpi-reclaim
-> +      - acpi-nvs
-> +      - boot-code
-> +      - boot-data
-> +      - runtime-code
-> +      - runtime-data
-> +
+>   arch/x86/Kconfig | 5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 8d9e4b362572..887421b5ee8f 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -1052,8 +1052,9 @@ config SCHED_MC
+>   
+>   config SCHED_MC_PRIO
+>   	bool "CPU core priorities scheduler support"
+> -	depends on SCHED_MC && CPU_SUP_INTEL
+> -	select X86_INTEL_PSTATE
+> +	depends on SCHED_MC
+> +	select X86_INTEL_PSTATE if CPU_SUP_INTEL
+> +	select X86_AMD_PSTATE if CPU_SUP_AMD
+>   	select CPU_FREQ
+>   	default y
+>   	help
 
-These types are used by firmware to describe the nature of certain
-memory regions to the OS. Boot code and data can be discarded, as well
-as ACPI reclaim after its contents have been consumed. Runtime code
-and data need to be mapped for runtime features to work.
-
-When one firmware phase communicates the purpose of a certain memory
-reservation to another, it is typically not limited to whether its
-needs to be preserved and when it needs to be mapped (and with which
-attributes). I'd expect a memory reservation appearing under this node
-to have a clearly defined purpose, and the subsequent phases need to
-be able to discover this information.
-
-For example, a communication buffer for secure<->non-secure
-communication or a page with spin tables used by PSCI. None of the
-proposed labels are appropriate for this, and I'd much rather have a
-compatible string or some other property that clarifies the nature in
-a more suitable way. Note that 'no-map' already exists to indicate
-that the CPU should not map this memory unless it does so for the
-specific purpose that the reservation was made for.
-
-
-> +  reg:
-> +    description: region of memory that is reserved for the purpose indicated
-> +      by the node name.
-> +
-> +required:
-> +  - reg
-> +
-> +unevaluatedProperties: false
-> +
-> +examples:
-> +  - |
-> +    reserved-memory {
-> +        #address-cells = <1>;
-> +        #size-cells = <1>;
-> +
-> +        boot-code@12340000 {
-> +            reg = <0x12340000 0x00800000>;
-> +        };
-> +
-> +        boot-data@43210000 {
-> +            reg = <0x43210000 0x00800000>;
-> +        };
-> +    };
-> --
-> 2.42.0.rc2.253.gd59a3bf2b4-goog
->
