@@ -2,133 +2,97 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DC5CA0FFF
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:13:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F738CA0FFB
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:30:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242073AbjIETNT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 15:13:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60206 "EHLO
+        id S242973AbjIETbB (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 15:31:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242071AbjIETNR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:13:17 -0400
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF6EA1B7
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 12:12:44 -0700 (PDT)
-Received: by mail-ed1-x52b.google.com with SMTP id 4fb4d7f45d1cf-52e5900cf77so2171197a12.2
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 12:12:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693941100; x=1694545900; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2+MC7OlTYjYmYcid9pUzzxXRyDGKxkUAmb4nz8uCexs=;
-        b=q1/CkWNfqGPyyZAKmTsgH1hQ2aSVo6BfXklBsFVchM3IoLwJ7SI89Zia9tQkQPNSAh
-         25+tN1hp5O5FDGbawrB5LcAUTPC7sSclTkjWaY3iE7qnwIxY74629ov0KogQc496J1oG
-         96nFvvTJDvNHzTugtfSMKDa/lsuWd3O6DLoMLqjOE4PspGVsCIEZfxrUZN/7Qu4YOzVL
-         yMUkWUXn7SMeYizlM5ZP6mq/kYiMpsM2qH9tgDgrFUvFYkT7downIT4ybSQCbT2JkzU4
-         HGq7jcUpF88EMe2rDF+Am0LE68rISFD3jsYLGYucwOezkfAZVeo6a4I2HMy8E0K7FIGh
-         z1cw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693941100; x=1694545900;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2+MC7OlTYjYmYcid9pUzzxXRyDGKxkUAmb4nz8uCexs=;
-        b=TVsOjUC4POnmJNsEnDerreOAoiowmK1pIPtHo/Qff57PpqoDVfv6/QoNm2KBkATH73
-         ZhuM8IGG/bQfkPTonFWXKyOgev1psKmsXCDJbrKp+bUFCxegIBv101D5SmeTPg8DAVUi
-         AJuGoz2NDID9aHGfl5Rry6+ku8y0B1voZj70stOUBueFtzQ2a0SyWlNPIsjFjkWAP7Ly
-         dQCoxXMy7XGz6sYaOHfJrkf2pMvfCtXSnhCSj+K6G/MTAjGVxMjlOlUO5+5D4JFP4EyS
-         CohEuJ5t9NB2kwYl1TJ7HSOIc/kcG7BRabbbuFQrYcgQwuXwIndKSg+BT+wh+Mn4Ti04
-         euhw==
-X-Gm-Message-State: AOJu0YykruJ4ZnaCsTZYmYT1jcz0sjgc12usVdtaT9KnkAKbMTDeplBD
-        FJduSrZFJxBUh+oObbSLduqtoYRkIkHqZ3oTLW0=
-X-Google-Smtp-Source: AGHT+IGj2EuAvHtXRXD8rdSvHdyQNmCzp7/4dD7j6aPqgw+n/kXSu9aLQQjPpRIFRE646UdFzsOLag==
-X-Received: by 2002:adf:e0c5:0:b0:319:6b6c:dd01 with SMTP id m5-20020adfe0c5000000b003196b6cdd01mr477303wri.17.1693940014702;
-        Tue, 05 Sep 2023 11:53:34 -0700 (PDT)
-Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:34 -0700 (PDT)
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 07/21] gpiolib: provide gpio_device_get_base()
-Date:   Tue,  5 Sep 2023 20:52:55 +0200
-Message-Id: <20230905185309.131295-8-brgl@bgdev.pl>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
-References: <20230905185309.131295-1-brgl@bgdev.pl>
+        with ESMTP id S243032AbjIETbA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:31:00 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386E2E59;
+        Tue,  5 Sep 2023 12:30:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1693942244; x=1725478244;
+  h=date:from:to:cc:subject:message-id:mime-version;
+  bh=iiL9OM34qSRBI8NRC3WNtVK4hk+GTVGm/FW2f4eRxIc=;
+  b=Si0gZyR4No5Zk/9c/uzTCm0jyPnRMJ3vpKXdPWpKTr3pOQnlMRJS7dhY
+   MkbrQyfm3WR1qaYD1nfOXnXq2j0VsQokFVVklVY4gwcTHGP8AlsDfxIPD
+   DqdkYlyQvMjyP5TntxbO4ZDCR9SKAg6aCYgWdRw7iWzL7lRcJqPH2tOst
+   0MZnFtENkzLfRpQyNHN3GWfK76nfYYYjcSdINaLjSbsSaebwIkDqs7JZX
+   SOu0hdsVmvz8NniaIH8CR6seIT/GeyClnNejCcu/NHLXhw3UOYSrZ/XGj
+   nii0O9P2DXHqFbijip9Z7x5BUR7ydFSICUO5wQ/HqPB5dx3Maig46q0Gl
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10824"; a="463259922"
+X-IronPort-AV: E=Sophos;i="6.02,229,1688454000"; 
+   d="scan'208";a="463259922"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2023 12:30:21 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10824"; a="811364853"
+X-IronPort-AV: E=Sophos;i="6.02,229,1688454000"; 
+   d="scan'208";a="811364853"
+Received: from lkp-server02.sh.intel.com (HELO e0b2ea88afd5) ([10.239.97.151])
+  by fmsmga004.fm.intel.com with ESMTP; 05 Sep 2023 12:30:19 -0700
+Received: from kbuild by e0b2ea88afd5 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qdbkf-000209-0c;
+        Tue, 05 Sep 2023 19:30:17 +0000
+Date:   Wed, 6 Sep 2023 03:29:59 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc:     oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge 1/5] include/linux/thermal.h:378:1: error:
+ expected identifier or '(' before '{' token
+Message-ID: <202309060309.BgHDEFgR-lkp@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+head:   3013f879e8da5a4cf707cdb0dfa927f89b9374cd
+commit: 6c106aa9e0f7f8be4146c50bea5cd71052bebe3a [1/5] thermal: core: Clean up headers of thermal zone registration functions
+config: arc-randconfig-001-20230906 (https://download.01.org/0day-ci/archive/20230906/202309060309.BgHDEFgR-lkp@intel.com/config)
+compiler: arc-elf-gcc (GCC) 13.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230906/202309060309.BgHDEFgR-lkp@intel.com/reproduce)
 
-Let's start adding getters for the opaque struct gpio_device. Start with
-a function allowing to retrieve the base GPIO number.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202309060309.BgHDEFgR-lkp@intel.com/
 
-Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
----
- drivers/gpio/gpiolib.c      | 13 +++++++++++++
- include/linux/gpio/driver.h |  3 +++
- 2 files changed, 16 insertions(+)
+All error/warnings (new ones prefixed by >>):
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 9637a79a9a60..9715bbc698e9 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -233,6 +233,19 @@ struct gpio_device *gpiod_to_device(struct gpio_desc *desc)
- }
- EXPORT_SYMBOL_GPL(gpiod_to_device);
- 
-+/**
-+ * gpio_device_get_base() - Get the base GPIO number allocated by this device
-+ * @gdev: GPIO device
-+ *
-+ * Returns:
-+ * First GPIO number in the global GPIO numberspace for this device.
-+ */
-+int gpio_device_get_base(struct gpio_device *gdev)
-+{
-+	return gdev->base;
-+}
-+EXPORT_SYMBOL_GPL(gpio_device_get_base);
-+
- /* dynamic allocation of GPIOs, e.g. on a hotplugged device */
- static int gpiochip_find_base(int ngpio)
- {
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index e3747e730ed1..b68b3493b29d 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -780,6 +780,9 @@ void gpiochip_unlock_as_irq(struct gpio_chip *gc, unsigned int offset);
- struct gpio_chip *gpiod_to_chip(const struct gpio_desc *desc);
- struct gpio_device *gpiod_to_device(struct gpio_desc *desc);
- 
-+/* struct gpio_device getters */
-+int gpio_device_get_base(struct gpio_device *gdev);
-+
- #else /* CONFIG_GPIOLIB */
- 
- #include <linux/err.h>
+   In file included from drivers/hwmon/emc2305.c:13:
+>> include/linux/thermal.h:378:1: error: expected identifier or '(' before '{' token
+     378 | { return ERR_PTR(-ENODEV); }
+         | ^
+>> include/linux/thermal.h:370:43: warning: 'thermal_zone_device_register_with_trips' declared 'static' but never defined [-Wunused-function]
+     370 | static inline struct thermal_zone_device *thermal_zone_device_register_with_trips(
+         |                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+vim +378 include/linux/thermal.h
+
+   369	
+ > 370	static inline struct thermal_zone_device *thermal_zone_device_register_with_trips(
+   371						const char *type,
+   372						struct thermal_trip *trips,
+   373						int num_trips, int mask,
+   374						void *devdata,
+   375						struct thermal_zone_device_ops *ops,
+   376						const struct thermal_zone_params *tzp,
+   377						int passive_delay, int polling_delay);
+ > 378	{ return ERR_PTR(-ENODEV); }
+   379	
+
 -- 
-2.39.2
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
