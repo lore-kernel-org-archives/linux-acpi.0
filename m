@@ -2,53 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD87CA0FFF
-	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 909D4C83F3E
+	for <linux-acpi@archiver.kernel.org>; Tue,  5 Sep 2023 19:08:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239286AbjIETHK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 5 Sep 2023 15:07:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34750 "EHLO
+        id S231421AbjIETIu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 5 Sep 2023 15:08:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232185AbjIETHJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:07:09 -0400
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1A99CE2
-        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 12:06:33 -0700 (PDT)
-Received: by mail-ed1-x531.google.com with SMTP id 4fb4d7f45d1cf-52e64bc7c10so1697752a12.1
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 12:06:33 -0700 (PDT)
+        with ESMTP id S230189AbjIETIu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2023 15:08:50 -0400
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19815CFD
+        for <linux-acpi@vger.kernel.org>; Tue,  5 Sep 2023 12:08:21 -0700 (PDT)
+Received: by mail-ej1-x62f.google.com with SMTP id a640c23a62f3a-99357737980so440871566b.2
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2023 12:08:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940727; x=1694545527; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940837; x=1694545637; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=vPYbcmhlviFwWzuYOu9Z0ne7hiPspJP6iTCWdpKZ06M=;
-        b=W05ZQP+7woy9fEAa+8/j3O7XU6WqIFB2gVzVh/TtggNF5S4CUIavUDZonVh0jbLBdR
-         +OpQKYWTn19jdc1UDWc17ju8dyZKBDEAnXGmpCHk9FYJPTq7FL7ccVIkOzwR776Vf2yH
-         cJ3eEIxSbt27Enpe21sICFSNJ8xRJtLQLWyac8fGvQBrIGYiBpaZtqqwQLwkjGt9MJHv
-         1Ryo47EAi1hbtuNFFk+6e64O0GkfR+0YVFDfuwDjp1OjSBvjXyJUdq+CUTVoYZX445bC
-         UNHoCWu9iPjCugdNXQwnshYis8Gl9bFqME52VW4S8YusA6aOg1x+/yoOTU0Cb7+v/s6p
-         8oIA==
+        bh=0Lyvqa4ehdDUPxRvhVu2QVwAbbRfiYfIlEbafqal+r0=;
+        b=lEEqShX5an0woDEumjTRkdwov2J1Aamim6HKD7NWmSXmxtpGm51eKDmJj9mUoNNbBl
+         mvqpyGajGth4QlpO6SfDV4jvUTp71yzQp4TpcodVrb7Yq15hwsZ0DcbmGkD5iCHVBikM
+         iYarPmygjEg5cpixqZ6IvkDCiweejH/bUpXdaXtvi7scB4ai4K6W/upHmJmXeBAkKmNC
+         FMdMlLQ/eTFkFsiCFubVUrtjZEPSMMDgMmsx3pEn82jlli8h7PY3DNKJaYSAvLAG+Xbl
+         NmG6Y0zg8jdeAvhXKP8l/w0u7oZdBmcGyz2NJ6BipvJBHcrR479q2pE2sKO2x/I7v8P2
+         qHrw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693940727; x=1694545527;
+        d=1e100.net; s=20221208; t=1693940837; x=1694545637;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vPYbcmhlviFwWzuYOu9Z0ne7hiPspJP6iTCWdpKZ06M=;
-        b=HnFrvaQmn9uC/s/2VHHfhX/8rddtDOenV1MYNv2v/MuO+QgbE4w2/HW6Ek08N/KjsS
-         M/t5XzLw0B8p9O0chi0xVVvonhBh1VmBDI95anieuScrcT2OwoYdn/peHs+21UnRT7xT
-         yuDXYHzpAvCfpCxzG0UN9V2HuuLrcA5VvoH+QogKU8vQ3OvnmbslYxI8DBMRt7lD/Vrf
-         SzLouRtCbov0rGvQXLOK5aRZAY691QVETBaXXkie2OS577Z5KXOxjpPb1W9HMA/4mjIy
-         gJkbfEYNQGYHrpbuFoawZItGBBcrmqVmD4ApUKjiKA8/tbclXPuIuOGQU/Rvr6pA7BVV
-         0s4g==
-X-Gm-Message-State: AOJu0YxUboDEgLQgpAkvf5CWVf7RZ8X9rOvTnHQkLRbvi2wuNS2vBmyk
-        pX150RFZmcTjjSMqd5XryfSHLsDSmGtxjKjDN90=
-X-Google-Smtp-Source: AGHT+IH7bFhmwhJkbEP09mNLLK4toqHl75c1c56y8lKZfC2ULSFpMzvdc2De5dyozg7UIqDbZnvopw==
-X-Received: by 2002:a7b:cb96:0:b0:3fe:d6bf:f314 with SMTP id m22-20020a7bcb96000000b003fed6bff314mr414148wmi.39.1693940021910;
-        Tue, 05 Sep 2023 11:53:41 -0700 (PDT)
+        bh=0Lyvqa4ehdDUPxRvhVu2QVwAbbRfiYfIlEbafqal+r0=;
+        b=A6aJSFwZmlnatmNyKhOAYibTeCzA1zr1V8SX5mCHGYBM1xXHaf7PDzGL/GNVVqvRWo
+         k1qHEybAPdqCi4fJTvJolLN88ERywCkA4XoiqmGEKU9qbfQkkTmi4rPu16D6+sxJrGzk
+         5V9pL9VBJUqvr9TBNn9kih9d2oMacQV0EStQVn8n8/VFAf6OXVr4LUkeM537ar36W9st
+         QCBx9iMUwNjI4YkxuZC4N3x/4byS/42XR+5Y9XrsnTVJysxedKIFeKS4+hq/Z/SmBQ0p
+         fWZLvZidq3/4Ez5qt48sw9vIy/mEzl9fgo4Zo2UEvyLykmFb7YK4e++Abux7jwNWUpm5
+         b9dQ==
+X-Gm-Message-State: AOJu0YzKOxCi7VQMcpogM5AULrBdjtpxeNjcw+ltOnZhIZtYlDM/+MNt
+        vA48JJM6ipqADE1fJQ02AciXq9VaTnVFxZ1mtvA=
+X-Google-Smtp-Source: AGHT+IG/jv5LelRKHFkS+zSS/4W2MFsO0ZmIobecKNQDMGWNcj2BwZSzitK+fLdVa7TdoNhlKNwX4g==
+X-Received: by 2002:a05:6000:1190:b0:313:f399:6cea with SMTP id g16-20020a056000119000b00313f3996ceamr489890wrx.4.1693940018296;
+        Tue, 05 Sep 2023 11:53:38 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.40
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:41 -0700 (PDT)
+        Tue, 05 Sep 2023 11:53:37 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -68,9 +68,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
         linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 13/21] hte: tegra194: improve the GPIO-related comment
-Date:   Tue,  5 Sep 2023 20:53:01 +0200
-Message-Id: <20230905185309.131295-14-brgl@bgdev.pl>
+Subject: [PATCH 10/21] gpiolib: replace find_chip_by_name() with gpio_device_find_by_label()
+Date:   Tue,  5 Sep 2023 20:52:58 +0200
+Message-Id: <20230905185309.131295-11-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
 References: <20230905185309.131295-1-brgl@bgdev.pl>
@@ -82,39 +82,106 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-Using any of the GPIO interfaces using the global numberspace is
-deprecated. Make it clear in the comment.
+Remove all remaining uses of find_chip_by_name() (and subsequently:
+gpiochip_find()) from gpiolib.c and use the new
+gpio_device_find_by_label() instead.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/hte/hte-tegra194.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/gpio/gpiolib.c | 36 ++++++++++++------------------------
+ 1 file changed, 12 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/hte/hte-tegra194.c b/drivers/hte/hte-tegra194.c
-index 6fe6897047ac..9fd3c00ff695 100644
---- a/drivers/hte/hte-tegra194.c
-+++ b/drivers/hte/hte-tegra194.c
-@@ -407,12 +407,15 @@ static int tegra_hte_line_xlate(struct hte_chip *gc,
- 		return -EINVAL;
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 408f8a7753f9..90e8c3d8b6f6 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1161,18 +1161,6 @@ struct gpio_device *gpio_device_find_by_label(const char *label)
+ }
+ EXPORT_SYMBOL_GPL(gpio_device_find_by_label);
  
- 	/*
-+	 * GPIO consumers can access GPIOs in two ways:
- 	 *
--	 * There are two paths GPIO consumers can take as follows:
--	 * 1) The consumer (gpiolib-cdev for example) which uses GPIO global
--	 * number which gets assigned run time.
--	 * 2) The consumer passing GPIO from the DT which is assigned
--	 * statically for example by using TEGRA194_AON_GPIO gpio DT binding.
-+	 * 1) Using the global GPIO numberspace.
-+	 *
-+	 * This is the old, now DEPRECATED method and should not be used in
-+	 * new code. TODO: Check if tegra is even concerned by this.
-+	 *
-+	 * 2) Using GPIO descriptors that can be assigned to consumer devices
-+	 * using device-tree, ACPI or lookup tables.
- 	 *
- 	 * The code below addresses both the consumer use cases and maps into
- 	 * HTE/GTE namespace.
+-static int gpiochip_match_name(struct gpio_chip *gc, void *data)
+-{
+-	const char *name = data;
+-
+-	return !strcmp(gc->label, name);
+-}
+-
+-static struct gpio_chip *find_chip_by_name(const char *name)
+-{
+-	return gpiochip_find((void *)name, gpiochip_match_name);
+-}
+-
+ /**
+  * gpio_device_get() - Increase the reference count of this GPIO device
+  * @gdev: GPIO device to increase the refcount for
+@@ -3924,21 +3912,22 @@ EXPORT_SYMBOL_GPL(gpiod_remove_lookup_table);
+  */
+ void gpiod_add_hogs(struct gpiod_hog *hogs)
+ {
+-	struct gpio_chip *gc;
+ 	struct gpiod_hog *hog;
+ 
+ 	mutex_lock(&gpio_machine_hogs_mutex);
+ 
+ 	for (hog = &hogs[0]; hog->chip_label; hog++) {
++		struct gpio_device *gdev __free(gpio_device_put) = NULL;
++
+ 		list_add_tail(&hog->list, &gpio_machine_hogs);
+ 
+ 		/*
+ 		 * The chip may have been registered earlier, so check if it
+ 		 * exists and, if so, try to hog the line now.
+ 		 */
+-		gc = find_chip_by_name(hog->chip_label);
+-		if (gc)
+-			gpiochip_machine_hog(gc, hog);
++		gdev = gpio_device_find_by_label(hog->chip_label);
++		if (gdev)
++			gpiochip_machine_hog(gdev->chip, hog);
+ 	}
+ 
+ 	mutex_unlock(&gpio_machine_hogs_mutex);
+@@ -3999,7 +3988,7 @@ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
+ 		return desc;
+ 
+ 	for (p = &table->table[0]; p->key; p++) {
+-		struct gpio_chip *gc;
++		struct gpio_device *gdev __free(gpio_device_put) = NULL;
+ 
+ 		/* idx must always match exactly */
+ 		if (p->idx != idx)
+@@ -4021,9 +4010,8 @@ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
+ 			return ERR_PTR(-EPROBE_DEFER);
+ 		}
+ 
+-		gc = find_chip_by_name(p->key);
+-
+-		if (!gc) {
++		gdev = gpio_device_find_by_label(p->key);
++		if (!gdev) {
+ 			/*
+ 			 * As the lookup table indicates a chip with
+ 			 * p->key should exist, assume it may
+@@ -4036,15 +4024,15 @@ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
+ 			return ERR_PTR(-EPROBE_DEFER);
+ 		}
+ 
+-		if (gc->ngpio <= p->chip_hwnum) {
++		if (gdev->chip->ngpio <= p->chip_hwnum) {
+ 			dev_err(dev,
+ 				"requested GPIO %u (%u) is out of range [0..%u] for chip %s\n",
+-				idx, p->chip_hwnum, gc->ngpio - 1,
+-				gc->label);
++				idx, p->chip_hwnum, gdev->chip->ngpio - 1,
++				gdev->chip->label);
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 
+-		desc = gpiochip_get_desc(gc, p->chip_hwnum);
++		desc = gpiochip_get_desc(gdev->chip, p->chip_hwnum);
+ 		*flags = p->flags;
+ 
+ 		return desc;
 -- 
 2.39.2
 
