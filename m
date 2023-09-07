@@ -2,84 +2,96 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67264EC8743
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:58:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09113EC873E
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243153AbjIGQ6z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Sep 2023 12:58:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36768 "EHLO
+        id S233780AbjIGQ73 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 12:59:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236814AbjIGQ6y (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:58:54 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8897110CF;
-        Thu,  7 Sep 2023 09:58:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F4AFC116A2;
-        Thu,  7 Sep 2023 16:41:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694104882;
-        bh=TcXlCdBwAdhvSY29Gk4U6YRFj3oqsCMGTaUu7DO7ABc=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=ER06lwSM/j1xnFBQOrUJerziPgcpI5gDKNTqDixQjhU0k8PiCru4SwlOiLg0ImvO/
-         kEl2QkM+/7urjlYrzxPn1a8a1ZCkKhzzM8HypyK/+JghUgI3OsD+X4qRpOf9w0w2ud
-         K9Dp7IOFdNfiBgJcfKNJsRDaKud6Z9tI6+OY2bZa7Y0P6V8dNJpLmHShL8JqTYeGoW
-         mOODtbz272BFtKswS1WP6lEktZ106QkwAwa+Ag4bzzUqiM0KMPvw/7g9cUlUzd6iyd
-         kt9RhoKcdRgV5l2w4Q9WhMRyEXIhDJHAr9j4tVqUCpFDNWVtVVTW6jLSnZrRJfkwKk
-         2NJKmzlChFiyA==
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-2b974031aeaso21275601fa.0;
-        Thu, 07 Sep 2023 09:41:22 -0700 (PDT)
-X-Gm-Message-State: AOJu0YxbHfliM/B982PbsbV5AnwcW3HBXR2UZ3IYfDzwyr4OKSpHe1H9
-        GXArBySVwkE79+ixzrAcXTHzMTBJaDu5bh9EnA==
-X-Google-Smtp-Source: AGHT+IG23bFGvQrEWMPrUuiNiXfBfSQ2nV8yCIxtgarBdJYaaWK6UgdiyOScuIdqPU/mpa09cy/VQ6TL5hv239G+U08=
-X-Received: by 2002:a2e:3a18:0:b0:2bc:bdbd:1542 with SMTP id
- h24-20020a2e3a18000000b002bcbdbd1542mr5251425lja.11.1694104880149; Thu, 07
- Sep 2023 09:41:20 -0700 (PDT)
+        with ESMTP id S237439AbjIGQcV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:32:21 -0400
+Received: from mail-qt1-x82d.google.com (mail-qt1-x82d.google.com [IPv6:2607:f8b0:4864:20::82d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A13513C24
+        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 09:31:37 -0700 (PDT)
+Received: by mail-qt1-x82d.google.com with SMTP id d75a77b69052e-41479b9b4f1so7994351cf.3
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2023 09:31:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1694104241; x=1694709041; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
+        b=f0GaWCF6mcBtAT84RNi9d0TCHKAzyHKJBjeteruwA5vv+dh8eV+BMd3b+avPzY5Yz6
+         23wn1ooPabd/G2JaaRsuikhdWR6MKmWEr3eQtXOCn+dWX/xLlwyH579pcip35ub4teri
+         qgwpPttAsDq/7C4gJ/Yx6b66Q0j1t6zKWkox74FGHsFZei1qwUWOY6s8S6XCmKh1Vz1G
+         MFuXXLeewFAxoxxTRGuHk8xeyCOfXSRK7RYZf9Y9eGXqn6e9UpvYMdnkF++Xw/LHBg/1
+         ueM9yc/YekYe6kyopbYEKnpbxuL1hsYi/oEsJegYEkWE+5PqF1YWbE+KEdX+nGVirzbI
+         8rHg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1694104241; x=1694709041;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
+        b=foemGxQ8tuqcnLlniS9aUCjNRDD1CMnGinCHbLa8uaRA880GxZoLERJzf3XlmLD6cr
+         bGlCLvH1GRYNoNzLeCPYzH/fGkNdl/MTtO7ENzMsZWPywSx4g8+Q9B5tcUzCSlw/cIBq
+         A8XnL8fEzf0qRZFyG1FaKEdb3PQuZyShCUmA5M+0lGsvEOUYj8bJ0KVed8xitlKFjzap
+         61wtK5SBtp6UKhLSO6glO1MDNWNMVSlH/jS4e5KE78DEul95wZ3iF7O8Ha2Gj6Nkm0Q6
+         7pctz2/RjLXKZ/3OPxFqfORvsj90Az99KDWIxgULd2Uho0kyYgaRbx0L/pCPIDQpgnzJ
+         74hg==
+X-Gm-Message-State: AOJu0Yy3RsB6kiwDnR6WVUaxNanCtgiuUlvorw+nKC3AWFtlLICQlDcP
+        g/yy7uevHtfhFcwrrYBk17nJ/4e/JNekKtYRh8hhg6faUMZTjAsK6gQ=
+X-Google-Smtp-Source: AGHT+IFBssMxe62b6gjC3N4aS6mxtu2dG9GSPKFawDHtfKqDxWyo3xiYEaVk7D6s0DhtiZ21qOVsU28YZ+Ws9GvtAJ0=
+X-Received: by 2002:a5b:791:0:b0:d1f:6886:854a with SMTP id
+ b17-20020a5b0791000000b00d1f6886854amr17648637ybq.9.1694071162023; Thu, 07
+ Sep 2023 00:19:22 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230830231758.2561402-1-sjg@chromium.org>
-In-Reply-To: <20230830231758.2561402-1-sjg@chromium.org>
-From:   Rob Herring <robh@kernel.org>
-Date:   Thu, 7 Sep 2023 11:41:07 -0500
-X-Gmail-Original-Message-ID: <CAL_JsqJFyuHfJ1t1gKfDFp1yGuNB_FhVCnY1Tk9iBzvchHwEOw@mail.gmail.com>
-Message-ID: <CAL_JsqJFyuHfJ1t1gKfDFp1yGuNB_FhVCnY1Tk9iBzvchHwEOw@mail.gmail.com>
-Subject: Re: [PATCH v5 1/4] Add reserved-memory
-To:     Simon Glass <sjg@chromium.org>
-Cc:     devicetree@vger.kernel.org,
-        Maximilian Brune <maximilian.brune@9elements.com>,
-        ron minnich <rminnich@gmail.com>,
-        Tom Rini <trini@konsulko.com>,
-        Dhaval Sharma <dhaval@rivosinc.com>,
-        U-Boot Mailing List <u-boot@lists.denx.de>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Yunhui Cui <cuiyunhui@bytedance.com>,
-        linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
-        Gua Guo <gua.guo@intel.com>,
-        Lean Sheng Tan <sheng.tan@9elements.com>,
-        Guo Dong <guo.dong@intel.com>,
-        lkml <linux-kernel@vger.kernel.org>,
-        Chiu Chasel <chasel.chiu@intel.com>
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-10-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-10-brgl@bgdev.pl>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 7 Sep 2023 09:19:09 +0200
+Message-ID: <CACRpkdazRyhqHhH+Ock3U0wFRkd_U5QUTZmOeTFoXx-Pe_jCRw@mail.gmail.com>
+Subject: Re: [PATCH 09/21] gpiolib: reluctantly provide gpio_device_get_chip()
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 30, 2023 at 6:18=E2=80=AFPM Simon Glass <sjg@chromium.org> wrot=
-e:
->
-> Bring in this file from Linux v6.5
->
-> Signed-off-by: Simon Glass <sjg@chromium.org>
-> ---
->
-> (no changes since v4)
->
-> Changes in v4:
-> - New patch
->
->  .../reserved-memory/reserved-memory.yaml      | 181 ++++++++++++++++++
->  1 file changed, 181 insertions(+)
->  create mode 100644 dtschema/schemas/reserved-memory/reserved-memory.yaml
+On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
+wrote:
 
-I've applied this one and patch 2.
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+>
+> The process of converting all unauthorized users of struct gpio_chip to
+> using dedicated struct gpio_device function will be long so in the
+> meantime we must provide a way of retrieving the pointer to struct
+> gpio_chip from a GPIO device.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-Rob
+Yeah, sigh. Maybe add a notice to drivers/gpio/TODO that this needs
+to happen long time.
+
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
