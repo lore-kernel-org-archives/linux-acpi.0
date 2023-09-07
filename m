@@ -2,96 +2,153 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09113EC873E
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:59:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14A4EEC8743
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 17:00:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233780AbjIGQ73 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Sep 2023 12:59:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43582 "EHLO
+        id S240302AbjIGRAc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 13:00:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237439AbjIGQcV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:32:21 -0400
-Received: from mail-qt1-x82d.google.com (mail-qt1-x82d.google.com [IPv6:2607:f8b0:4864:20::82d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A13513C24
-        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 09:31:37 -0700 (PDT)
-Received: by mail-qt1-x82d.google.com with SMTP id d75a77b69052e-41479b9b4f1so7994351cf.3
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2023 09:31:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694104241; x=1694709041; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
-        b=f0GaWCF6mcBtAT84RNi9d0TCHKAzyHKJBjeteruwA5vv+dh8eV+BMd3b+avPzY5Yz6
-         23wn1ooPabd/G2JaaRsuikhdWR6MKmWEr3eQtXOCn+dWX/xLlwyH579pcip35ub4teri
-         qgwpPttAsDq/7C4gJ/Yx6b66Q0j1t6zKWkox74FGHsFZei1qwUWOY6s8S6XCmKh1Vz1G
-         MFuXXLeewFAxoxxTRGuHk8xeyCOfXSRK7RYZf9Y9eGXqn6e9UpvYMdnkF++Xw/LHBg/1
-         ueM9yc/YekYe6kyopbYEKnpbxuL1hsYi/oEsJegYEkWE+5PqF1YWbE+KEdX+nGVirzbI
-         8rHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694104241; x=1694709041;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
-        b=foemGxQ8tuqcnLlniS9aUCjNRDD1CMnGinCHbLa8uaRA880GxZoLERJzf3XlmLD6cr
-         bGlCLvH1GRYNoNzLeCPYzH/fGkNdl/MTtO7ENzMsZWPywSx4g8+Q9B5tcUzCSlw/cIBq
-         A8XnL8fEzf0qRZFyG1FaKEdb3PQuZyShCUmA5M+0lGsvEOUYj8bJ0KVed8xitlKFjzap
-         61wtK5SBtp6UKhLSO6glO1MDNWNMVSlH/jS4e5KE78DEul95wZ3iF7O8Ha2Gj6Nkm0Q6
-         7pctz2/RjLXKZ/3OPxFqfORvsj90Az99KDWIxgULd2Uho0kyYgaRbx0L/pCPIDQpgnzJ
-         74hg==
-X-Gm-Message-State: AOJu0Yy3RsB6kiwDnR6WVUaxNanCtgiuUlvorw+nKC3AWFtlLICQlDcP
-        g/yy7uevHtfhFcwrrYBk17nJ/4e/JNekKtYRh8hhg6faUMZTjAsK6gQ=
-X-Google-Smtp-Source: AGHT+IFBssMxe62b6gjC3N4aS6mxtu2dG9GSPKFawDHtfKqDxWyo3xiYEaVk7D6s0DhtiZ21qOVsU28YZ+Ws9GvtAJ0=
-X-Received: by 2002:a5b:791:0:b0:d1f:6886:854a with SMTP id
- b17-20020a5b0791000000b00d1f6886854amr17648637ybq.9.1694071162023; Thu, 07
- Sep 2023 00:19:22 -0700 (PDT)
+        with ESMTP id S240202AbjIGRAQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 13:00:16 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 663C51FFA;
+        Thu,  7 Sep 2023 09:59:38 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7020EC433BF;
+        Thu,  7 Sep 2023 16:58:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1694105901;
+        bh=9H8krLtYfLzgGeA5i0zuj9qgIuh5eWibHtX4rliuuxQ=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=HZSOww+G/B17lm44Q4pK901JIvTJ+z2HSd8QVDZnTmfMHtw4A/FdMMdg0G9fWUG8n
+         VgwoarbRzt5ypjQeRKWF1UtKEO/iIScBixMwuctbelX+fXPN7iNwDDQkBf/gnAUYkx
+         mf6r1j0bJ0GDOXTs7goJT5QasJ1jlDe/wPpJKZAcuzxHRagM7PMKEn32dCanO0a57H
+         BtndR0lM1QbhEN3hLC1d6wDNm0i/GQHtxpbo5HFx1mhzL5rO/aiEqNINT5VrCu3Wi8
+         xES8vBcm83QU9L+UKQa6B4ed3Ba6vkmpyDuJT0GGJXIAZvb3mgxws/PkYis79hfx4E
+         V0qByRzTyJTSg==
+Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-2b9c907bc68so20219491fa.2;
+        Thu, 07 Sep 2023 09:58:21 -0700 (PDT)
+X-Gm-Message-State: AOJu0Yw95Z9lY3YgVvxcddr3uL29CEkVHg8KuUKJ8n1JDUln1Rz0g6yB
+        asx6LKCtsna8AI/lpTpCt1CdsT+pyTtnaWMbfQ==
+X-Google-Smtp-Source: AGHT+IHLKsGi67L1BWMr0evQdFmmKrCxPICw4WCCL86IJN0XnEYKyZyPOVddUmJXTpGASiUH1k4Vzk7Q+KRVgc7tkH4=
+X-Received: by 2002:a2e:965a:0:b0:2bc:b815:d64d with SMTP id
+ z26-20020a2e965a000000b002bcb815d64dmr5383234ljh.30.1694105899386; Thu, 07
+ Sep 2023 09:58:19 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-10-brgl@bgdev.pl>
-In-Reply-To: <20230905185309.131295-10-brgl@bgdev.pl>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 7 Sep 2023 09:19:09 +0200
-Message-ID: <CACRpkdazRyhqHhH+Ock3U0wFRkd_U5QUTZmOeTFoXx-Pe_jCRw@mail.gmail.com>
-Subject: Re: [PATCH 09/21] gpiolib: reluctantly provide gpio_device_get_chip()
-To:     Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+References: <20230830231758.2561402-1-sjg@chromium.org> <20230830231758.2561402-4-sjg@chromium.org>
+In-Reply-To: <20230830231758.2561402-4-sjg@chromium.org>
+From:   Rob Herring <robh@kernel.org>
+Date:   Thu, 7 Sep 2023 11:58:07 -0500
+X-Gmail-Original-Message-ID: <CAL_JsqKEbqUtWHpHXmiDSZBY7-Nw4-fLs23BEqomBevSDNBprQ@mail.gmail.com>
+Message-ID: <CAL_JsqKEbqUtWHpHXmiDSZBY7-Nw4-fLs23BEqomBevSDNBprQ@mail.gmail.com>
+Subject: Re: [PATCH v5 4/4] memory: Add ECC properties
+To:     Simon Glass <sjg@chromium.org>
+Cc:     devicetree@vger.kernel.org,
+        Maximilian Brune <maximilian.brune@9elements.com>,
+        ron minnich <rminnich@gmail.com>,
+        Tom Rini <trini@konsulko.com>,
+        Dhaval Sharma <dhaval@rivosinc.com>,
+        U-Boot Mailing List <u-boot@lists.denx.de>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Yunhui Cui <cuiyunhui@bytedance.com>,
+        linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+        Gua Guo <gua.guo@intel.com>,
+        Lean Sheng Tan <sheng.tan@9elements.com>,
+        Guo Dong <guo.dong@intel.com>,
+        lkml <linux-kernel@vger.kernel.org>,
+        Chiu Chasel <chasel.chiu@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
-wrote:
-
-> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+On Wed, Aug 30, 2023 at 6:18=E2=80=AFPM Simon Glass <sjg@chromium.org> wrot=
+e:
 >
-> The process of converting all unauthorized users of struct gpio_chip to
-> using dedicated struct gpio_device function will be long so in the
-> meantime we must provide a way of retrieving the pointer to struct
-> gpio_chip from a GPIO device.
+> Some memories provide ECC detection and/or correction. For software which
+> wants to check memory, it is helpful to see which regions provide this
+> feature.
 >
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> Add this as a property of the /memory nodes, since it presumably follows
+> the hardware-level memory system.
+>
+> Signed-off-by: Simon Glass <sjg@chromium.org>
+> ---
+>
+> Changes in v5:
+> - Redo to make this property specific to ECC
+> - Provide properties both for detection and correction
+>
+> Changes in v3:
+> - Add new patch to update the /memory nodes
+>
+>  dtschema/schemas/memory.yaml | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+>
+> diff --git a/dtschema/schemas/memory.yaml b/dtschema/schemas/memory.yaml
+> index 1d74410..944aa9f 100644
+> --- a/dtschema/schemas/memory.yaml
+> +++ b/dtschema/schemas/memory.yaml
+> @@ -34,7 +34,37 @@ patternProperties:
+>          description:
+>            For the purpose of identification, each NUMA node is associate=
+d with
+>            a unique token known as a node id.
+> +      ecc-detection:
+> +        $ref: /schemas/types.yaml#/definitions/string
+> +        enum:
+> +          - none
+> +          - single-bit
+> +          - multi-bit
+> +        description: |
+> +          If present, this inidcates the type of memory errors which can=
+ be
 
-Yeah, sigh. Maybe add a notice to drivers/gpio/TODO that this needs
-to happen long time.
+typo
 
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> +          detected and reported by the Error-Correction Code (ECC) memor=
+y
+> +          subsystem:
+>
+> +            none       - No error detection is possible
+> +            single-bit - Detects and reports single-bit ECC errors
+> +            multi-bit  - Detects and reports multiple-bit ECC errors
 
-Yours,
-Linus Walleij
+I don't think 'multi' is specific enough. Perhaps this should be an
+int instead with how many bits. (And '-bits' is a standard unit suffix
+so a type isn't needed)
+
+> +
+> +          If not present, this is equivalent to 'none'.
+
+Can be expressed as schema:
+
+default: none
+
+Though if that's the default why have it as a value? (It's fine though)
+
+> +      ecc-correction:
+> +        $ref: /schemas/types.yaml#/definitions/string
+> +        enum:
+> +          - none
+> +          - single-bit
+> +          - multi-bit
+> +        description: |
+> +          If present, this inidcates the type of memory errors which can=
+ be
+
+typo
+
+> +          corrected by the Error-Correction Code (ECC) memory subsystem:
+> +
+> +            none       - No error correction is possible
+> +            single-bit - Corrects single-bit ECC errors
+> +            multi-bit  - Corrects multiple-bit ECC errors
+> +
+> +          If not present, this is equivalent to 'none'.
+
+One issue is with 2 properties nonsensical combinations are allowed.
+Not really any way to handle that in the schema though.
+
+Rob
