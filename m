@@ -2,153 +2,95 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14A4EEC8743
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 17:00:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 802F2EC8742
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 17:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240302AbjIGRAc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Sep 2023 13:00:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37920 "EHLO
+        id S241542AbjIGRLN (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 13:11:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240202AbjIGRAQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 13:00:16 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 663C51FFA;
-        Thu,  7 Sep 2023 09:59:38 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7020EC433BF;
-        Thu,  7 Sep 2023 16:58:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694105901;
-        bh=9H8krLtYfLzgGeA5i0zuj9qgIuh5eWibHtX4rliuuxQ=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=HZSOww+G/B17lm44Q4pK901JIvTJ+z2HSd8QVDZnTmfMHtw4A/FdMMdg0G9fWUG8n
-         VgwoarbRzt5ypjQeRKWF1UtKEO/iIScBixMwuctbelX+fXPN7iNwDDQkBf/gnAUYkx
-         mf6r1j0bJ0GDOXTs7goJT5QasJ1jlDe/wPpJKZAcuzxHRagM7PMKEn32dCanO0a57H
-         BtndR0lM1QbhEN3hLC1d6wDNm0i/GQHtxpbo5HFx1mhzL5rO/aiEqNINT5VrCu3Wi8
-         xES8vBcm83QU9L+UKQa6B4ed3Ba6vkmpyDuJT0GGJXIAZvb3mgxws/PkYis79hfx4E
-         V0qByRzTyJTSg==
-Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-2b9c907bc68so20219491fa.2;
-        Thu, 07 Sep 2023 09:58:21 -0700 (PDT)
-X-Gm-Message-State: AOJu0Yw95Z9lY3YgVvxcddr3uL29CEkVHg8KuUKJ8n1JDUln1Rz0g6yB
-        asx6LKCtsna8AI/lpTpCt1CdsT+pyTtnaWMbfQ==
-X-Google-Smtp-Source: AGHT+IHLKsGi67L1BWMr0evQdFmmKrCxPICw4WCCL86IJN0XnEYKyZyPOVddUmJXTpGASiUH1k4Vzk7Q+KRVgc7tkH4=
-X-Received: by 2002:a2e:965a:0:b0:2bc:b815:d64d with SMTP id
- z26-20020a2e965a000000b002bcb815d64dmr5383234ljh.30.1694105899386; Thu, 07
- Sep 2023 09:58:19 -0700 (PDT)
+        with ESMTP id S241480AbjIGRLN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 13:11:13 -0400
+Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91A57E7F
+        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 10:10:44 -0700 (PDT)
+Received: by mail-oi1-x233.google.com with SMTP id 5614622812f47-3a9b41ffe12so850213b6e.3
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2023 10:10:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1694106586; x=1694711386; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9VX520/JAjo5YxFEs6vhZtWf0iQa736VrN0vgqzfoO4=;
+        b=bIp1XI5WuK50n420V25onmC5yl6iasuOBMFz01qMq0J/HaMVu8Xi94N0y23H93dsIR
+         pgPaUbnuMEliZsGkMH99ILVyb/8is40vXuVUZ3vpd+7MGTWMfn2O948/wryNxIrPWGOf
+         q6tb4ye9nAvQZB3U9CINM9JB9bWqfPeRV3MgJYQ1tcIr03qFz78L/X8sP/gfOPlTMQ9U
+         HiBeZW+UrveoAUbAAvFf6Kqo0F/yv2aJMYL+aTdt417dGcqUl9lwoEF1S/mG914OQ6j5
+         0xIpUfmI7wjHc+EYbGS0d3Y8f+n8pWHP9N2xYMq/IJXxOxFHCENfkytI1y5Sd/h4zGCq
+         yDSQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1694106586; x=1694711386;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9VX520/JAjo5YxFEs6vhZtWf0iQa736VrN0vgqzfoO4=;
+        b=B+XUkQz/T9kMslETLpg+SiY16OkuHj9mrQfltcghXuemJzbf3kQA/bUSnCYlX3ud8R
+         SSBnU7obWr1zJsnDp7BvL2y+PkkureUeSK4I1ACbLIFi8LmQmcF8OfyOsnMxJwKPJ0Cf
+         Kq/Ainj5xKhFDapJ0HV4pCETOgrVBPKnHISm0DjAzNLhqdCmyZ/gCq4FBZQaVOh8XVg6
+         r2caYSx6J/OEgVoL8uoJ2pbdOEMIlBPZEW/9LZSum1cqRkvTwfoiv71ptvU0Wt5gPh80
+         XQ7hXECnQfgKrFTVAQM+kqefctT2Z9t+g0dsXsN2wkToE03hDuLcZEW+16ATzMgys99Z
+         tAmw==
+X-Gm-Message-State: AOJu0YxDIfT053SLkplrebYAjOAFTapD4JHkHT5f9kJtCcCe0cg0qLZA
+        VZmcjWPhJeqN1XtHEE3SIgDNY7HmnN+N9bpftyWk8M9SDOiMRdVF
+X-Google-Smtp-Source: AGHT+IGsG5hJJbLxB8MJ18cSL64AbAsKmU8HUkb1gvXKq17Y/8ZLDXSkKoAPtcsGb/CfUJGklHIiazXnZYlmi1tiRYs=
+X-Received: by 2002:a25:d78a:0:b0:d78:47a:d76e with SMTP id
+ o132-20020a25d78a000000b00d78047ad76emr19559951ybg.49.1694072224500; Thu, 07
+ Sep 2023 00:37:04 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230830231758.2561402-1-sjg@chromium.org> <20230830231758.2561402-4-sjg@chromium.org>
-In-Reply-To: <20230830231758.2561402-4-sjg@chromium.org>
-From:   Rob Herring <robh@kernel.org>
-Date:   Thu, 7 Sep 2023 11:58:07 -0500
-X-Gmail-Original-Message-ID: <CAL_JsqKEbqUtWHpHXmiDSZBY7-Nw4-fLs23BEqomBevSDNBprQ@mail.gmail.com>
-Message-ID: <CAL_JsqKEbqUtWHpHXmiDSZBY7-Nw4-fLs23BEqomBevSDNBprQ@mail.gmail.com>
-Subject: Re: [PATCH v5 4/4] memory: Add ECC properties
-To:     Simon Glass <sjg@chromium.org>
-Cc:     devicetree@vger.kernel.org,
-        Maximilian Brune <maximilian.brune@9elements.com>,
-        ron minnich <rminnich@gmail.com>,
-        Tom Rini <trini@konsulko.com>,
-        Dhaval Sharma <dhaval@rivosinc.com>,
-        U-Boot Mailing List <u-boot@lists.denx.de>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Yunhui Cui <cuiyunhui@bytedance.com>,
-        linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
-        Gua Guo <gua.guo@intel.com>,
-        Lean Sheng Tan <sheng.tan@9elements.com>,
-        Guo Dong <guo.dong@intel.com>,
-        lkml <linux-kernel@vger.kernel.org>,
-        Chiu Chasel <chasel.chiu@intel.com>
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-17-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-17-brgl@bgdev.pl>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 7 Sep 2023 09:36:53 +0200
+Message-ID: <CACRpkdap-AFmVFG_gtYeGuR5JFLgHQ6i7w6HRwKP4+pu=nd66A@mail.gmail.com>
+Subject: Re: [PATCH 16/21] gpio: of: correct notifier return codes
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Aug 30, 2023 at 6:18=E2=80=AFPM Simon Glass <sjg@chromium.org> wrot=
-e:
+On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
+wrote:
+
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 >
-> Some memories provide ECC detection and/or correction. For software which
-> wants to check memory, it is helpful to see which regions provide this
-> feature.
+> According to the comments in linux/notifier.h, the code to return when a
+> notifications is "not for us" is NOTIFY_DONE, not NOTIFY_OK.
 >
-> Add this as a property of the /memory nodes, since it presumably follows
-> the hardware-level memory system.
->
-> Signed-off-by: Simon Glass <sjg@chromium.org>
-> ---
->
-> Changes in v5:
-> - Redo to make this property specific to ECC
-> - Provide properties both for detection and correction
->
-> Changes in v3:
-> - Add new patch to update the /memory nodes
->
->  dtschema/schemas/memory.yaml | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
->
-> diff --git a/dtschema/schemas/memory.yaml b/dtschema/schemas/memory.yaml
-> index 1d74410..944aa9f 100644
-> --- a/dtschema/schemas/memory.yaml
-> +++ b/dtschema/schemas/memory.yaml
-> @@ -34,7 +34,37 @@ patternProperties:
->          description:
->            For the purpose of identification, each NUMA node is associate=
-d with
->            a unique token known as a node id.
-> +      ecc-detection:
-> +        $ref: /schemas/types.yaml#/definitions/string
-> +        enum:
-> +          - none
-> +          - single-bit
-> +          - multi-bit
-> +        description: |
-> +          If present, this inidcates the type of memory errors which can=
- be
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-typo
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-> +          detected and reported by the Error-Correction Code (ECC) memor=
-y
-> +          subsystem:
->
-> +            none       - No error detection is possible
-> +            single-bit - Detects and reports single-bit ECC errors
-> +            multi-bit  - Detects and reports multiple-bit ECC errors
+This should just be applied, right? If the notifiers already
+went upstream (sorry for my ignorance) then it should be
+a Fixes: even.
 
-I don't think 'multi' is specific enough. Perhaps this should be an
-int instead with how many bits. (And '-bits' is a standard unit suffix
-so a type isn't needed)
-
-> +
-> +          If not present, this is equivalent to 'none'.
-
-Can be expressed as schema:
-
-default: none
-
-Though if that's the default why have it as a value? (It's fine though)
-
-> +      ecc-correction:
-> +        $ref: /schemas/types.yaml#/definitions/string
-> +        enum:
-> +          - none
-> +          - single-bit
-> +          - multi-bit
-> +        description: |
-> +          If present, this inidcates the type of memory errors which can=
- be
-
-typo
-
-> +          corrected by the Error-Correction Code (ECC) memory subsystem:
-> +
-> +            none       - No error correction is possible
-> +            single-bit - Corrects single-bit ECC errors
-> +            multi-bit  - Corrects multiple-bit ECC errors
-> +
-> +          If not present, this is equivalent to 'none'.
-
-One issue is with 2 properties nonsensical combinations are allowed.
-Not really any way to handle that in the schema though.
-
-Rob
+Yours,
+Linus Walleij
