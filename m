@@ -2,151 +2,194 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00216EE14A9
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 00:13:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ABC2EC8744
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 15:24:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236519AbjIGANh (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 6 Sep 2023 20:13:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47096 "EHLO
+        id S232456AbjIGPYH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 11:24:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229753AbjIGANg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2023 20:13:36 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02C43199F;
-        Wed,  6 Sep 2023 17:13:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1694045613; x=1725581613;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=WlkbumebDoiqA7h5lGLoCyy+L33WG8FJ86yAFQBnwlo=;
-  b=Vp7byVcBnpciHmmv2yagdPIuOSlHuRf92rnKKRZJSxZGTzifHs4EGcTS
-   FzYwv+usoYpyGZzAQ/TIaj2IG1+5IgnvjESqo8fhSSzP6MeUxv7NAQsjc
-   R2e/c/TucrCs7G2I8+CCmYzMoGGsxbmynPAjd4kSVvjwCgMh+MyXbURiQ
-   THoVW/qUgvDbBHie/fUo6uKCuIoYErJZpTY+vdaMsZ2d1yPCgXd1jUy9O
-   nqizCcH5fGHqp1lCBgBFe7TnugF35bT9dLgBvJf7J4yzIBGmdHssaLlf4
-   ooNBoVSTH8mkl5paTiGdF8VVU/vTtdpXILoFP6MtJd1zGOGOM/obrsscX
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10825"; a="374613201"
-X-IronPort-AV: E=Sophos;i="6.02,233,1688454000"; 
-   d="scan'208";a="374613201"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2023 17:13:26 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10825"; a="856680657"
-X-IronPort-AV: E=Sophos;i="6.02,233,1688454000"; 
-   d="scan'208";a="856680657"
-Received: from lkp-server01.sh.intel.com (HELO 59b3c6e06877) ([10.239.97.150])
-  by fmsmga002.fm.intel.com with ESMTP; 06 Sep 2023 17:13:22 -0700
-Received: from kbuild by 59b3c6e06877 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qe2e8-0000j1-0U;
-        Thu, 07 Sep 2023 00:13:20 +0000
-Date:   Thu, 7 Sep 2023 08:12:57 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Andryuk <jandryuk@gmail.com>,
-        Juergen Gross <jgross@suse.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Len Brown <lenb@kernel.org>
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        Roger Pau Monne <roger.pau@citrix.com>,
-        stable@vger.kernel.org, Jason Andryuk <jandryuk@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>, xen-devel@lists.xenproject.org,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2] acpi/processor: sanitize _PDC buffer bits when
- running as Xen dom0
-Message-ID: <202309070741.2n0k8FjN-lkp@intel.com>
-References: <20230906182125.48642-1-jandryuk@gmail.com>
+        with ESMTP id S239180AbjIGPYE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 11:24:04 -0400
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2041.outbound.protection.outlook.com [40.107.236.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BE57184
+        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 08:24:00 -0700 (PDT)
+Received: from BL1PR12MB5349.namprd12.prod.outlook.com (2603:10b6:208:31f::7)
+ by MN0PR12MB5929.namprd12.prod.outlook.com (2603:10b6:208:37c::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6745.34; Thu, 7 Sep
+ 2023 09:42:27 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=UfvHo9Xi+sdF9dHod9wq0Og3iNQkmaNuxdY37hsUcE8XmrpQ4kMHlzBiW+MhJ6IOulUhnbgnuVSLAkfqNEUB+Kp59AF1EKzPLZLIyxP9vN6WUx4UEL3QwqKKVBsqQ8fAYgBC1z+M4VADWngoT6msCYRRimC6haMXA90h55TxnAmhBgMz//YwjfXezrym8LFCZcseJSL5z91uhRF0hPnIc8t2iCZCgAZJULAkHj975J5Uis2JY/vHBNaxfgw/8RicmHFTOhrBQeYYGHTKEuPeQnFK6n2VqAtTfKWw3L0lF9BvzXHXjXHPKVFtqC5ahwDzt924eIdmeTIJZjnJEtYykw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=xEOzMLJVRwgQGzL01ElYdN4scnmBUml8cqnMiU2L+KI=;
+ b=Y7c+stdmrDD5Oben9eEuz9uTPaL0OzR2PmGuiSRYGEcxyCkb2LS46eEpNuaV8aCQYZNPcSaGkSHL1L4Fb9m9XCUmawmlQNA16sVea1U1XorW/9QDX1G0dJJIS3vsPRdZSUkrtMLmYg5qk+WL5Rw+hjIKqwWt8ItlyMwMIdGaIvsMISR0FpKXCrM789IG+aUkpkVXJw+gh1MNJ2J93GPLSuJp64ERiheewI+Ka4mS/IyJbapQLVDExNkwpJ1xSjJWsTk3IRq2pVoTXbgerVIws3tifxZ9GeQAn4PIj4kjSVm69d4ibO+FfwAZfpSEtrDAUmktWw75/qnNbttYnWlk/w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=xEOzMLJVRwgQGzL01ElYdN4scnmBUml8cqnMiU2L+KI=;
+ b=xIbXpOgHO5/1E9GcRN6/lh+ZKorfjInGwHA6ry8YrQ6BZfPZ1+n79gX5z/QHp/Q6K9yg+E6YJK6PwUtnF/YBuBAxkhieJAQ2mc5+WFmt9iKerhDqDxar8pPwg2ViZGsfyCnAmlP5vVHzIxh56ZkbCchnbV7pqbS+uQkwYN3Fu9I=
+Received: from DS7PR05CA0068.namprd05.prod.outlook.com (2603:10b6:8:57::20) by
+ BL1PR12MB5349.namprd12.prod.outlook.com (2603:10b6:208:31f::7) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6745.34; Thu, 7 Sep 2023 07:44:22 +0000
+Received: from CY4PEPF0000EE31.namprd05.prod.outlook.com
+ (2603:10b6:8:57:cafe::21) by DS7PR05CA0068.outlook.office365.com
+ (2603:10b6:8:57::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6768.26 via Frontend
+ Transport; Thu, 7 Sep 2023 07:44:22 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ CY4PEPF0000EE31.mail.protection.outlook.com (10.167.242.37) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6768.25 via Frontend Transport; Thu, 7 Sep 2023 07:44:22 +0000
+Received: from nv14-test.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Thu, 7 Sep
+ 2023 02:44:20 -0500
+From:   Ken Xue <Ken.Xue@amd.com>
+To:     <linux-acpi@vger.kernel.org>, <rafael@kernel.org>,
+        <andriy.shevchenko@linux.intel.com>
+CC:     <Ken.Xue@amd.com>
+Subject: [PATCH] acpi: trigger wakeup key event from power button
+Date:   Thu, 7 Sep 2023 15:43:42 +0800
+Message-ID: <20230907074342.7722-1-Ken.Xue@amd.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230906182125.48642-1-jandryuk@gmail.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EE31:EE_|BL1PR12MB5349:EE_|MN0PR12MB5929:EE_
+X-MS-Office365-Filtering-Correlation-Id: f8d6d867-c5ba-4d56-0aea-08dbaf764084
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: hW5mZOoomudAoL/Ey9ikbT3fVlxNx1NxFX5Lk+bENkkeN+LItmxy9asrcZnZC905FvwDYGMdULF+7FpgrTBFnnUMLmi3ZoKh0r8kjh/83oSC90nlcFBxWgZvrf6jTYRAj4njEl61sCudRz+qKb4BVmbnMgcPSjGEK0l9LL4096bVqCoSZ/Q+UVlbxoliaWQhpNXu5vOFV9X4nq6fr5ifKXAyJOIajOWPwhBaHHd5MxiI8VZel71HMuzDnU2P/ptTbMol9U2gTCAcbYtJqhC5grYuq+Urmq5xYJAgBHbpN2mVXt2qXFkakA9nEa3X7bsJ+BMaByQflE7v7l71wzfGqFgy73b4Yj5grmPotPqCnSFZFr3CEf8nqju7NjOsl106HgcMkGcaVseysVrbQNEWGopzi7ha+2c7UGobEDi0D/PsZ2WTK806vJ1P4PFr79ZgXLvumj+y16N+kN7MBY8Kfsd5KzCg3iGEIBshKhP8/4gLp0R+8SnSo9SBtmS23JwRLFJv5HwRPziSz5rg5Vcv53iE0bhrXKtOQbHyJ+E6WrPOYl5LtpD5jvNxwGv2gwrz9RI5xiY0v2I6AtOziFFZmLaFa8VJeY3me2FemZVh7gsCSForLu6D1DVd8CWRVh+0OHX7zvomjAzH6YJMMZA64KYyEkgSVNWZsV18Rx2GlSBWfx8DmX6gPLsoIiYVTX0zxqADMfrE0lbHBuLtzY3mCs1zjBs/1v+TzcwTXXYJ9MryCv+WdAKLrjqqten1VGzgvc6il/D4D4Hzzwz1oQUODg==
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230031)(4636009)(376002)(136003)(396003)(346002)(39860400002)(451199024)(82310400011)(186009)(1800799009)(46966006)(36840700001)(40470700004)(41300700001)(36860700001)(5660300002)(86362001)(6666004)(478600001)(2906002)(8676002)(4326008)(8936002)(316002)(70206006)(70586007)(110136005)(26005)(1076003)(81166007)(16526019)(7696005)(2616005)(40460700003)(356005)(336012)(426003)(82740400003)(36756003)(47076005)(40480700001)(36900700001);DIR:OUT;SFP:1101;
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2023 07:44:22.5360
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: f8d6d867-c5ba-4d56-0aea-08dbaf764084
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: CY4PEPF0000EE31.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5349
+X-OriginatorOrg: amd.com
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi Jason,
+Andorid can wakeup from various wakeup sources,
+but only several wakeup sources can wake up screen
+with right events(POWER, WAKEUP) from input device.
 
-kernel test robot noticed the following build errors:
+Regarding pressing acpi power button, it can resume system and
+ACPI_BITMASK_WAKE_STATUS and ACPI_BITMASK_POWER_BUTTON_STATUS
+are set in pm1a_sts, but kernel does not report any key
+event to user space during resume by default.
 
-[auto build test ERROR on tip/x86/core]
-[also build test ERROR on v6.5]
-[cannot apply to rafael-pm/linux-next linus/master next-20230906]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+So, trigger wakeup key event to user space during resume
+from power button.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Jason-Andryuk/acpi-processor-sanitize-_PDC-buffer-bits-when-running-as-Xen-dom0/20230907-022235
-base:   tip/x86/core
-patch link:    https://lore.kernel.org/r/20230906182125.48642-1-jandryuk%40gmail.com
-patch subject: [PATCH v2] acpi/processor: sanitize _PDC buffer bits when running as Xen dom0
-config: i386-randconfig-003-20230907 (https://download.01.org/0day-ci/archive/20230907/202309070741.2n0k8FjN-lkp@intel.com/config)
-compiler: clang version 16.0.4 (https://github.com/llvm/llvm-project.git ae42196bc493ffe877a7e3dff8be32035dea4d07)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230907/202309070741.2n0k8FjN-lkp@intel.com/reproduce)
+Signed-off-by: Ken Xue <Ken.Xue@amd.com>
+---
+ drivers/acpi/button.c | 18 ++++++++++++++++++
+ drivers/acpi/sleep.c  |  2 ++
+ include/acpi/button.h |  5 +++++
+ 3 files changed, 25 insertions(+)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202309070741.2n0k8FjN-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
->> drivers/acpi/processor_pdc.c:147:3: error: call to undeclared function 'xen_sanitize_pdc'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-                   xen_sanitize_pdc(buffer);
-                   ^
-   1 error generated.
-
-
-vim +/xen_sanitize_pdc +147 drivers/acpi/processor_pdc.c
-
-   116	
-   117	/*
-   118	 * _PDC is required for a BIOS-OS handshake for most of the newer
-   119	 * ACPI processor features.
-   120	 */
-   121	static acpi_status
-   122	acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
-   123	{
-   124		acpi_status status = AE_OK;
-   125		union acpi_object *obj;
-   126		u32 *buffer = NULL;
-   127	
-   128		obj = pdc_in->pointer;
-   129		buffer = (u32 *)(obj->buffer.pointer);
-   130	
-   131		if (boot_option_idle_override == IDLE_NOMWAIT) {
-   132			/*
-   133			 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-   134			 * mode will be disabled in the parameter of _PDC object.
-   135			 * Of course C1_FFH access mode will also be disabled.
-   136			 */
-   137			buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-   138		}
-   139	
-   140		if (xen_initial_domain()) {
-   141			/*
-   142			 * When Linux is running as Xen dom0, the hypervisor is the
-   143			 * entity in charge of the processor power management, and so
-   144			 * Xen needs to check the OS capabilities reported in the _PDC
-   145			 * buffer matches what the hypervisor driver supports.
-   146			 */
- > 147			xen_sanitize_pdc(buffer);
-   148		}
-   149	
-   150		status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
-   151	
-   152		if (ACPI_FAILURE(status))
-   153			acpi_handle_debug(handle,
-   154			    "Could not evaluate _PDC, using legacy perf control\n");
-   155	
-   156		return status;
-   157	}
-   158	
-
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 1e76a64cce0a..22f41526731e 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -363,6 +363,23 @@ static int acpi_button_remove_fs(struct acpi_device *device)
+ 	return 0;
+ }
+ 
++void acpi_power_button_wakeup(struct acpi_device *device)
++{
++	struct acpi_button *button = acpi_driver_data(device);
++	struct input_dev *input;
++
++	if (button->type == ACPI_BUTTON_TYPE_POWER) {
++		input = button->input;
++		input_report_key(input, KEY_WAKEUP, 1);
++		input_sync(input);
++		input_report_key(input, KEY_WAKEUP, 0);
++		input_sync(input);
++	}
++
++	return;
++}
++EXPORT_SYMBOL(acpi_power_button_wakeup);
++
+ /* Driver Interface */
+ int acpi_lid_open(void)
+ {
+@@ -579,6 +596,7 @@ static int acpi_button_add(struct acpi_device *device)
+ 	switch (button->type) {
+ 	case ACPI_BUTTON_TYPE_POWER:
+ 		input_set_capability(input, EV_KEY, KEY_POWER);
++		input_set_capability(input, EV_KEY, KEY_WAKEUP);
+ 		break;
+ 
+ 	case ACPI_BUTTON_TYPE_SLEEP:
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 808484d11209..dcd5d0237eeb 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -22,6 +22,7 @@
+ #include <linux/syscore_ops.h>
+ #include <asm/io.h>
+ #include <trace/events/power.h>
++#include <acpi/button.h>
+ 
+ #include "internal.h"
+ #include "sleep.h"
+@@ -507,6 +508,7 @@ static void acpi_pm_finish(void)
+ 	pwr_btn_adev = acpi_dev_get_first_match_dev(ACPI_BUTTON_HID_POWERF,
+ 						    NULL, -1);
+ 	if (pwr_btn_adev) {
++		acpi_power_button_wakeup(pwr_btn_adev);
+ 		pm_wakeup_event(&pwr_btn_adev->dev, 0);
+ 		acpi_dev_put(pwr_btn_adev);
+ 	}
+diff --git a/include/acpi/button.h b/include/acpi/button.h
+index af2fce5d2ee3..67e2dab27401 100644
+--- a/include/acpi/button.h
++++ b/include/acpi/button.h
+@@ -8,11 +8,16 @@
+ 
+ #if IS_ENABLED(CONFIG_ACPI_BUTTON)
+ extern int acpi_lid_open(void);
++extern void acpi_power_button_wakeup(struct acpi_device *device);
+ #else
+ static inline int acpi_lid_open(void)
+ {
+ 	return 1;
+ }
++static inline void acpi_power_button_wakeup(struct acpi_device *device)
++{
++	return;
++}
+ #endif /* IS_ENABLED(CONFIG_ACPI_BUTTON) */
+ 
+ #endif /* ACPI_BUTTON_H */
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.35.1
+
