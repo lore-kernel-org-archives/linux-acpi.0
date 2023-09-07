@@ -2,97 +2,84 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95766EC873E
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:53:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67264EC8743
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:58:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235787AbjIGQxp (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Sep 2023 12:53:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39814 "EHLO
+        id S243153AbjIGQ6z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 12:58:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244452AbjIGQxo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:53:44 -0400
-Received: from mail-il1-x12a.google.com (mail-il1-x12a.google.com [IPv6:2607:f8b0:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CA891FE9
-        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 09:53:14 -0700 (PDT)
-Received: by mail-il1-x12a.google.com with SMTP id e9e14a558f8ab-34e25ad38cbso4925565ab.1
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2023 09:53:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694105535; x=1694710335; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2QUcdjgXxrS+bTKkF3r2QRe+Cc9aRk/mkNDQCAPj22c=;
-        b=Zen62yQn8omIlhIs2mjjJAIyicbLMQeEzyo7G/qI7/StumaEYenH9u9fvCck9CuWeH
-         BdbYl1RwMEAx/Q81qlbGuOOSGQTDbJwc6HOvFwG8FynFducmHprCC09fo/IHNmqsGpP+
-         VlZvu9bsWmjj8gAjgItxD+mp7KtQ6KwEG/CzGB8+RKu1++bYEQ/9qwvZY2v6NP2r9gjn
-         mVnGcr7GGv1/SflS56LF/nC+j0kQpoJTa62TuVnUkslezJX1kdMjpTu9z8/lm7htRPgo
-         c0uJP4/bcDk/7VweOcLSYAD9wdDlVXqsX9x2v5+5IFbBszoxWZka/tTkvFkuu4PQFxhP
-         EB0A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694105535; x=1694710335;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2QUcdjgXxrS+bTKkF3r2QRe+Cc9aRk/mkNDQCAPj22c=;
-        b=a4PykTl0d0uf7TP4Zo8JvxdAtOx3MYcGWC9fmXTWANF3qf1MAXqFJg0WyX/iGEeH0p
-         slL5jF0ngQAzM3saNLk8QAvocQ6TPuB6cH9LwX4hDbOD0UDCE31Fbw6g5r8AMO/GtI4E
-         QNok/csXiQeyVh/L0LlY3QKHaQaQtqqNzcCs4T340D4+5LVUi2GlBYTNlIhiOWMOrhtg
-         55+mynWXtz4lGsyK6U0TKg56ebnyIpxbsU8ab14O9bhQH2pg771yziIyYJyEeFwxxdPF
-         L6DSUOkiIal9lE8GreCMyXB0ilehufuEAiSmVt68Zz4YMZAZdfUwkYDV4JGGDZbrqBLH
-         /Dsw==
-X-Gm-Message-State: AOJu0YzaFivlHepSF+7nyE608qUq8FKmPXockwvKYVesU75GlX+5fWAH
-        oEzMO2Mw3XNoBlrNKTMuJHfAfvHzMCxkEaDi4cIBM2JZvUR0WijsKTY=
-X-Google-Smtp-Source: AGHT+IG2TLQ2WqAfuGI+vTl02pQSFPJWDZVOY1MfvYV7hKobdzNo0vRGz8kywS9VyDIIMdmuzYR3qPmWC3h4lMZlj/s=
-X-Received: by 2002:a25:dc81:0:b0:d7b:9a5d:37c with SMTP id
- y123-20020a25dc81000000b00d7b9a5d037cmr18599620ybe.49.1694071708542; Thu, 07
- Sep 2023 00:28:28 -0700 (PDT)
+        with ESMTP id S236814AbjIGQ6y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:58:54 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8897110CF;
+        Thu,  7 Sep 2023 09:58:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F4AFC116A2;
+        Thu,  7 Sep 2023 16:41:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1694104882;
+        bh=TcXlCdBwAdhvSY29Gk4U6YRFj3oqsCMGTaUu7DO7ABc=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=ER06lwSM/j1xnFBQOrUJerziPgcpI5gDKNTqDixQjhU0k8PiCru4SwlOiLg0ImvO/
+         kEl2QkM+/7urjlYrzxPn1a8a1ZCkKhzzM8HypyK/+JghUgI3OsD+X4qRpOf9w0w2ud
+         K9Dp7IOFdNfiBgJcfKNJsRDaKud6Z9tI6+OY2bZa7Y0P6V8dNJpLmHShL8JqTYeGoW
+         mOODtbz272BFtKswS1WP6lEktZ106QkwAwa+Ag4bzzUqiM0KMPvw/7g9cUlUzd6iyd
+         kt9RhoKcdRgV5l2w4Q9WhMRyEXIhDJHAr9j4tVqUCpFDNWVtVVTW6jLSnZrRJfkwKk
+         2NJKmzlChFiyA==
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-2b974031aeaso21275601fa.0;
+        Thu, 07 Sep 2023 09:41:22 -0700 (PDT)
+X-Gm-Message-State: AOJu0YxbHfliM/B982PbsbV5AnwcW3HBXR2UZ3IYfDzwyr4OKSpHe1H9
+        GXArBySVwkE79+ixzrAcXTHzMTBJaDu5bh9EnA==
+X-Google-Smtp-Source: AGHT+IG23bFGvQrEWMPrUuiNiXfBfSQ2nV8yCIxtgarBdJYaaWK6UgdiyOScuIdqPU/mpa09cy/VQ6TL5hv239G+U08=
+X-Received: by 2002:a2e:3a18:0:b0:2bc:bdbd:1542 with SMTP id
+ h24-20020a2e3a18000000b002bcbdbd1542mr5251425lja.11.1694104880149; Thu, 07
+ Sep 2023 09:41:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-15-brgl@bgdev.pl>
-In-Reply-To: <20230905185309.131295-15-brgl@bgdev.pl>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 7 Sep 2023 09:28:17 +0200
-Message-ID: <CACRpkda9=VULj4Cy_sit-UpUQnVEbS-RJKAeULVCw8ZCRTq1sw@mail.gmail.com>
-Subject: Re: [RFT PATCH 14/21] hte: tegra194: don't access struct gpio_chip
-To:     Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+References: <20230830231758.2561402-1-sjg@chromium.org>
+In-Reply-To: <20230830231758.2561402-1-sjg@chromium.org>
+From:   Rob Herring <robh@kernel.org>
+Date:   Thu, 7 Sep 2023 11:41:07 -0500
+X-Gmail-Original-Message-ID: <CAL_JsqJFyuHfJ1t1gKfDFp1yGuNB_FhVCnY1Tk9iBzvchHwEOw@mail.gmail.com>
+Message-ID: <CAL_JsqJFyuHfJ1t1gKfDFp1yGuNB_FhVCnY1Tk9iBzvchHwEOw@mail.gmail.com>
+Subject: Re: [PATCH v5 1/4] Add reserved-memory
+To:     Simon Glass <sjg@chromium.org>
+Cc:     devicetree@vger.kernel.org,
+        Maximilian Brune <maximilian.brune@9elements.com>,
+        ron minnich <rminnich@gmail.com>,
+        Tom Rini <trini@konsulko.com>,
+        Dhaval Sharma <dhaval@rivosinc.com>,
+        U-Boot Mailing List <u-boot@lists.denx.de>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Yunhui Cui <cuiyunhui@bytedance.com>,
+        linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+        Gua Guo <gua.guo@intel.com>,
+        Lean Sheng Tan <sheng.tan@9elements.com>,
+        Guo Dong <guo.dong@intel.com>,
+        lkml <linux-kernel@vger.kernel.org>,
+        Chiu Chasel <chasel.chiu@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
-wrote:
-
-> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+On Wed, Aug 30, 2023 at 6:18=E2=80=AFPM Simon Glass <sjg@chromium.org> wrot=
+e:
 >
-> Using struct gpio_chip is not safe as it will disappear if the
-> underlying driver is unbound for any reason. Switch to using reference
-> counted struct gpio_device and its dedicated accessors.
+> Bring in this file from Linux v6.5
 >
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> Signed-off-by: Simon Glass <sjg@chromium.org>
+> ---
+>
+> (no changes since v4)
+>
+> Changes in v4:
+> - New patch
+>
+>  .../reserved-memory/reserved-memory.yaml      | 181 ++++++++++++++++++
+>  1 file changed, 181 insertions(+)
+>  create mode 100644 dtschema/schemas/reserved-memory/reserved-memory.yaml
 
-As Andy points out add <linux/cleanup.h>, with that fixed:
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+I've applied this one and patch 2.
 
-I think this can be merged into the gpio tree after leaving some
-slack for the HTE maintainer to look at it, things look so much
-better after this.
-
-Yours,
-Linus Walleij
+Rob
