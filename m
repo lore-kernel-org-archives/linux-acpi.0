@@ -2,93 +2,111 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75141EC8742
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 18:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4624AEC8750
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 18:54:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242986AbjIGSfQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Sep 2023 14:35:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38158 "EHLO
+        id S233206AbjIGSyL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 14:54:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244298AbjIGSfP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 14:35:15 -0400
-Received: from mail-yw1-x112c.google.com (mail-yw1-x112c.google.com [IPv6:2607:f8b0:4864:20::112c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D45E91700
-        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 11:35:06 -0700 (PDT)
-Received: by mail-yw1-x112c.google.com with SMTP id 00721157ae682-5925e580f12so12858617b3.3
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2023 11:35:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694111706; x=1694716506; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=pwy6uKOVyjPH/vJMAsaPCoM0fNwaGdU7NPhSy+lwVBs=;
-        b=cXPh7NzRlkcKh5H5iI5+/JmduCcRI8GtO51Ss/x49nUweyTpOeab3HWdJuU29e/JJY
-         O/FfsBZGMocxp1yBBBzysEcAoAwThstXbJVaR0h/0pVHjmWEE0mPqaV+crJx8XQaRIJE
-         HR2yQ+YGRbbN7gJunLX4Iz3K10s0CO85Rp+u/PonaXB0P+ildjzV9YSYsvXuLKANMTQI
-         zqEk4DQBQnGoWHOedO7sy4morctMGjIveYlETVx9jLwvwXmeOnYGKtU2FCXq0KjtnzVY
-         5V/NoX9X1Z5Nuz+420xr7+hkyeFVKQFSAXftSkCHbp3mYbZJE98kdZsG8Iq7o8v3tDbP
-         8obw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694111706; x=1694716506;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=pwy6uKOVyjPH/vJMAsaPCoM0fNwaGdU7NPhSy+lwVBs=;
-        b=W9uPTW3gNmYGC1sTaAX0PFWN9uH9Qd/a5U0e07BcHKefBQSQyPFkme9y4OGeKBDPKc
-         BAPnS7MdidXDVM1HkzH/U5qKY9ywYjy6G3snLv/+z58+7JgTbrLV2iLghYqH9lrdTb9U
-         cKrT5wEugi8IARyR361d80yAxdtMYyoo+jt7P3HTzMlFfwfZZJlhSKP31WuUqn/KSsHp
-         ckASBobBC8HzXg7uVr4L3OvVoUB0hVmaqmdM2vogMx551XjDTUY2E4pGdP2FWUO0U9mC
-         3kJvJXTx8JZ6rDS9ItiMPXHpxuP2z0VCA48wtcTjw3v3TOD/5Nb8w/fmF+EAE6xllDi/
-         T5Rw==
-X-Gm-Message-State: AOJu0YyHSA8pxw1rD2Xsqdj4ygj4EXC8F8VxSxFDPNSAq9z/3nkITdaW
-        4G+y169SHKhFSii5uvgvH3iT0VJyQvEtr629Bqjhc+S2NuC4GDbkO10=
-X-Google-Smtp-Source: AGHT+IFDrgWVURx3JNju7kZZF1wu9Y/TadMJ5yuRpzoXN8X2bh2xdWz8hzInBvmi+tzixNC0aGXs9GN4uotRGCxcdwY=
-X-Received: by 2002:a25:dc54:0:b0:d44:a90b:ba50 with SMTP id
- y81-20020a25dc54000000b00d44a90bba50mr19457872ybe.5.1694071251891; Thu, 07
- Sep 2023 00:20:51 -0700 (PDT)
+        with ESMTP id S232643AbjIGSyL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 14:54:11 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FE2910FA
+        for <linux-acpi@vger.kernel.org>; Thu,  7 Sep 2023 11:53:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1694112811; x=1725648811;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=vgnOU7mN8H0dHSzr5JvqUcawQyl3aS/repDyOYVvMX4=;
+  b=KGtqj5+PbVTOb7Gz92Ov9angvA2pZyHtz8jvG0KM2DRGP8XuUAWQiM6O
+   GbvcNXADG4mFnSPQH7YopaVW28Yn5pa1x+HVRk50YEiwl8n5bmwmNPf6D
+   sxbftuKFP8OLCwYvILgOtDMcpJNX1XAb/5zPwWyapwMY9Rr2Ydwi/agFy
+   kBbOH0bDPpYc00d308EHZxhID3T8VkXlNy8pCFjsrSIA4LSVaVpYYQv7b
+   5/QhNmaAvAMnoowNF2Y9ip091rRlhrS0yOXXhorHogH8VgUjj6/mWKcnZ
+   4/ooyUJPEpp6aVeTVjwyiLyYn6EhqOSuOBNs2wYF0zN0eSujQlSxtcDYq
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10826"; a="408437007"
+X-IronPort-AV: E=Sophos;i="6.02,235,1688454000"; 
+   d="scan'208";a="408437007"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2023 11:51:29 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10826"; a="1072971200"
+X-IronPort-AV: E=Sophos;i="6.02,235,1688454000"; 
+   d="scan'208";a="1072971200"
+Received: from lkp-server01.sh.intel.com (HELO 59b3c6e06877) ([10.239.97.150])
+  by fmsmga005.fm.intel.com with ESMTP; 07 Sep 2023 11:51:28 -0700
+Received: from kbuild by 59b3c6e06877 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qeK69-0001Tb-2z;
+        Thu, 07 Sep 2023 18:51:25 +0000
+Date:   Fri, 8 Sep 2023 02:51:12 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Ken Xue <Ken.Xue@amd.com>, linux-acpi@vger.kernel.org,
+        rafael@kernel.org, andriy.shevchenko@linux.intel.com
+Cc:     oe-kbuild-all@lists.linux.dev, Ken.Xue@amd.com
+Subject: Re: [PATCH] acpi: trigger wakeup key event from power button
+Message-ID: <202309080239.IiC7uLpW-lkp@intel.com>
+References: <20230907074342.7722-1-Ken.Xue@amd.com>
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-11-brgl@bgdev.pl>
-In-Reply-To: <20230905185309.131295-11-brgl@bgdev.pl>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 7 Sep 2023 09:20:40 +0200
-Message-ID: <CACRpkdZdaBELiyR8da2GHxj+=FFzsvL+5POX5139+OTA8rKUeg@mail.gmail.com>
-Subject: Re: [PATCH 10/21] gpiolib: replace find_chip_by_name() with gpio_device_find_by_label()
-To:     Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230907074342.7722-1-Ken.Xue@amd.com>
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
-wrote:
+Hi Ken,
 
-> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
->
-> Remove all remaining uses of find_chip_by_name() (and subsequently:
-> gpiochip_find()) from gpiolib.c and use the new
-> gpio_device_find_by_label() instead.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+kernel test robot noticed the following build warnings:
 
-With Andy's comment addressed:
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+[auto build test WARNING on rafael-pm/linux-next]
+[also build test WARNING on linus/master v6.5 next-20230907]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Yours,
-Linus Walleij
+url:    https://github.com/intel-lab-lkp/linux/commits/Ken-Xue/acpi-trigger-wakeup-key-event-from-power-button/20230907-232828
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+patch link:    https://lore.kernel.org/r/20230907074342.7722-1-Ken.Xue%40amd.com
+patch subject: [PATCH] acpi: trigger wakeup key event from power button
+config: riscv-defconfig (https://download.01.org/0day-ci/archive/20230908/202309080239.IiC7uLpW-lkp@intel.com/config)
+compiler: riscv64-linux-gcc (GCC) 13.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230908/202309080239.IiC7uLpW-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202309080239.IiC7uLpW-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:27:
+>> include/acpi/button.h:11:45: warning: 'struct acpi_device' declared inside parameter list will not be visible outside of this definition or declaration
+      11 | extern void acpi_power_button_wakeup(struct acpi_device *device);
+         |                                             ^~~~~~~~~~~
+
+
+vim +11 include/acpi/button.h
+
+     8	
+     9	#if IS_ENABLED(CONFIG_ACPI_BUTTON)
+    10	extern int acpi_lid_open(void);
+  > 11	extern void acpi_power_button_wakeup(struct acpi_device *device);
+    12	#else
+    13	static inline int acpi_lid_open(void)
+    14	{
+    15		return 1;
+    16	}
+    17	static inline void acpi_power_button_wakeup(struct acpi_device *device)
+    18	{
+    19		return;
+    20	}
+    21	#endif /* IS_ENABLED(CONFIG_ACPI_BUTTON) */
+    22	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
