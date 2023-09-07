@@ -2,38 +2,38 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4448EC873F
-	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:18:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B246EC873E
+	for <linux-acpi@archiver.kernel.org>; Thu,  7 Sep 2023 16:20:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230452AbjIGQSl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Thu, 7 Sep 2023 12:18:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55890 "EHLO
+        id S241012AbjIGQUc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Thu, 7 Sep 2023 12:20:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238924AbjIGQRb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:17:31 -0400
+        with ESMTP id S239388AbjIGQUN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2023 12:20:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 428FA659C;
-        Thu,  7 Sep 2023 08:53:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACE3FC32790;
-        Thu,  7 Sep 2023 14:12:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DBA7469D;
+        Thu,  7 Sep 2023 09:15:58 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B50CC4AF6F;
+        Thu,  7 Sep 2023 15:43:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694095972;
-        bh=QUc1tsLO7zUJeHD0MZENRlZb3TfRCagrYzJmPBEK058=;
+        s=k20201202; t=1694101418;
+        bh=SoO7j1VOUQ3D1fRuNSCSsHszad7kR0l0TYXVmxDPP/Q=;
         h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=f8iIOjw5iXtrWXpBFX07K9kRtKrmN5HdItESH206AVhEZ20Z7OnaEhdUwF4IyYpjN
-         ZfmmnD2kxyqh/HMDf3gdK+dbY54/am2aZEEE/hOyr8RsN6stWR21ckyvMWRdPkztP4
-         blGHhUwgj4TpnaHZTGx7S0ge1TUlLn8BcbnWPaSj5XeHWQnHA9IL/m9A5UO5a9bwFT
-         F98C/rz82pJWREpj97y/hBBSFm/H5WVHacQkYeqQ1dnFWwVNNOLy0BCswpedkP7H+4
-         iJZA8r8OSP9KCtOhx5F4CRj3ugCDeb39eY7cdXxW47ewZj8dUrbDsP0YY43/wzIg6/
-         n//qJIjQJuVGQ==
-Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-2b962c226ceso17443821fa.3;
-        Thu, 07 Sep 2023 07:12:52 -0700 (PDT)
-X-Gm-Message-State: AOJu0YzUPUVr6my5xHQ7wLX3+vAKFTid/zuW77uErMwRhLqKUbQpMcjR
-        8SpSZg9trQRrUuT0mIoWBEZlcIxTeJZC4Y587aw=
-X-Google-Smtp-Source: AGHT+IGR3EPKgQgP4eoW6QqN8tqzLasHJNbaTYYRQ14asiM8DuRVZc0sGAn0HbeQjWcX4owwhl7616t3ciBvj67ZLhM=
-X-Received: by 2002:a2e:9089:0:b0:2b9:4b2b:89d8 with SMTP id
- l9-20020a2e9089000000b002b94b2b89d8mr4717024ljg.35.1694095970585; Thu, 07 Sep
- 2023 07:12:50 -0700 (PDT)
+        b=gyI6WZwjB5tkWPFClPGdj33rQVK8omt5YVDmxhE9bCP/x9jh2ji0NMhEVUcN3d3c3
+         K3bVKVUcarH+6w4rDCF15AXSXjLSj9b5FhA+q4NOnf4YOHjVpEQ0LMbj/Heps0VxVA
+         89ri+qGe60rDaBRlWY3Sc1Vg+0SBI2k7Qkoi84iPHcXjb/uP1/eI+pOXPyjEaCn5Tr
+         Rx+6NRdBKJGHNp4YDE0ufy3elrmtDAg2fUw0cMhlGRE6QfZhE0qMVPv9X8+03QRugh
+         hapXUeaqcCvUdR0+90b20L+51IgOQLGmHz5/GbO/gMKgbjrsy74PE/iEv2e9jy7w8o
+         UTOc4c9Jblx1Q==
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-2bce552508fso19471671fa.1;
+        Thu, 07 Sep 2023 08:43:38 -0700 (PDT)
+X-Gm-Message-State: AOJu0YxTLayt/4KLc0tVh+WO1kyrCSJzOxCoPnzh2DdRy+VQ6dr5suxW
+        UduWcIwdJEGZiprvw8tNSHeQoWlwx0lz9foZDw==
+X-Google-Smtp-Source: AGHT+IHqEdicbh+U2Ssy1kf0cvv+5UMaQdM2oSyf6MDwB1m/0lvr7WNJAYS/VXT1ACEe7pT7004SJE6DEK3sXzCnRwI=
+X-Received: by 2002:a2e:900e:0:b0:2bc:d5ad:2758 with SMTP id
+ h14-20020a2e900e000000b002bcd5ad2758mr5342246ljg.5.1694101416250; Thu, 07 Sep
+ 2023 08:43:36 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230830231758.2561402-1-sjg@chromium.org> <20230830231758.2561402-3-sjg@chromium.org>
  <CAMj1kXG5-aqoOtKdPFEdm=_5SdvgUTOhcDOBP1zdARAvKphJtg@mail.gmail.com>
@@ -43,13 +43,13 @@ References: <20230830231758.2561402-1-sjg@chromium.org> <20230830231758.2561402-
  <CAPnjgZ1oGF0Ni3RhK4fv6mJk40YjqyFVJxt6FfS9AW2rkcs9iA@mail.gmail.com>
  <CAMj1kXEZ4fDvbtgXKjF+L7si-=C-5E0XcjutoEF8pU9a-BGN-g@mail.gmail.com> <CAPnjgZ0vv+s00xvY2FqP+Fxb12tHuVWg-nwyWTrvuG+Mo4PaWg@mail.gmail.com>
 In-Reply-To: <CAPnjgZ0vv+s00xvY2FqP+Fxb12tHuVWg-nwyWTrvuG+Mo4PaWg@mail.gmail.com>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Thu, 7 Sep 2023 16:12:39 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXHGpCt8qkd6XYQF8mMdivQkTnEWjv6NzsFK=+N72LAn=Q@mail.gmail.com>
-Message-ID: <CAMj1kXHGpCt8qkd6XYQF8mMdivQkTnEWjv6NzsFK=+N72LAn=Q@mail.gmail.com>
+From:   Rob Herring <robh@kernel.org>
+Date:   Thu, 7 Sep 2023 10:43:23 -0500
+X-Gmail-Original-Message-ID: <CAL_Jsq+w-mHjGk48vwcsMoZEhDztAu3uAQMM-KLm_z_NF1g=3g@mail.gmail.com>
+Message-ID: <CAL_Jsq+w-mHjGk48vwcsMoZEhDztAu3uAQMM-KLm_z_NF1g=3g@mail.gmail.com>
 Subject: Re: [PATCH v5 3/4] schemas: Add some common reserved-memory usages
 To:     Simon Glass <sjg@chromium.org>
-Cc:     Rob Herring <robh@kernel.org>,
+Cc:     Ard Biesheuvel <ardb@kernel.org>,
         Devicetree Discuss <devicetree@vger.kernel.org>,
         Maximilian Brune <maximilian.brune@9elements.com>,
         ron minnich <rminnich@gmail.com>,
@@ -69,7 +69,8 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Thu, 7 Sept 2023 at 15:56, Simon Glass <sjg@chromium.org> wrote:
+On Thu, Sep 7, 2023 at 8:56=E2=80=AFAM Simon Glass <sjg@chromium.org> wrote=
+:
 >
 > Hi Ard,
 >
@@ -312,24 +313,13 @@ r.
 > Please can you clearly explain which part of the use case you are missing=
 .
 >
-
-'Tianocore on both sides of the interface' means that Tianocore runs
-as the platform init code, and uses a bespoke DT based protocol to
-launch another instance of Tianocore as the payload, right?
-
-Tianocore/EDK2 already implements methods to reinvoke itself if needed
-(e.g., during a firmware update), and does so by launching a new DXE
-core. So the boot sequence looks like
-
-SEC -> PEI -> DXE -> BDS -> app that invokes UpdateCapsule() -> DXE ->
-firmware update
-
-So please elaborate on how this Tianocore on both sides of the
-interface is put together when it uses this DT based handover. We
-really need a better understanding of this in order to design a DT
-binding that meets its needs.
-
-...
+> >
+> > All the ACPI and UEFI lingo needs to be dropped. This is relevant only
+> > to the OS, and only if the prior stage exposes UEFI interfaces, in
+> > which case it does not need this binding.
+>
+> OK I can drop those from the commit message.
+>
 > >
 > > So on one side, there is the requirement for each memory reservation
 > > to be described with sufficient detail so that a subsequent boot stage
@@ -354,12 +344,18 @@ binding that meets its needs.
 > seemed to be saying. If we add 'discardable', does that mean that
 > things default to non-discardable? Would that not be a change of
 > behaviour for existing users?
->
 
-Excellent question. I always assumed that /reserved-memory nodes with
-a defined base address would be honored regardless.
+I believe I said "discardable" should be implied from the compatible,
+not be a discreet property.
 
-> >
+It is possible that some region is passed thru to multiple stages and
+is only discardable by the last stage (or next to last or...). So
+discardable depends on the consumer. There has to be some logic of "I
+know what this foo-bar region is for and know it isn't needed". If the
+consumer doesn't know what the region is, then it must default to
+leaving it reserved.
+
+
 > > One thing that needs to be clarified is how this binding interacts
 > > with /memory nodes. I assume that currently, /reserved-memory is
 > > independent, i.e., it could describe mappable memory that is not
@@ -369,15 +365,20 @@ a defined base address would be honored regardless.
 > > /memory.
 >
 > I would expect all memory to be described in /memory nodes. What is
-> the use case for omitting it? Are you thinking of SRAM, etc?
->
+> the use case for omitting it?
 
-Indeed.
+That is the expectation though nothing prevents a platform from
+omitting areas. Most likely only the beginning or end of memory.
+System partitioning usecases likely just describe each partition's
+portion of memory. I don't recall ever seeing a bunch of memory
+regions rather than 1-2 with reserved-memory nodes.
 
-For example, the SynQuacer platform has SRAM that it uses for
-platform-specific purposes (early stack and heap, passing information
-between secure and non-secure at boot), but it is not wired into the
-hardware cache coherency protocol, so it only tolerates non-shareable
-mappings. Describing this as discardable would be accurate (given that
-it is only used early in the boot), but that doesn't mean it can be
-used as general purpose memory by the OS.
+Also, I don't think we prevent a reserved region outside the memory
+region(s) though I imagine (at least Linux) just ignores them.
+
+> Are you thinking of SRAM, etc?
+
+We have mmio-sram binding for that which has its own way to carve up
+the regions.
+
+Rob
