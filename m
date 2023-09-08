@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 856EDEEB560
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CABEEEB562
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:02:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243480AbjIHSCV (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Sep 2023 14:02:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54634 "EHLO
+        id S245659AbjIHSCi (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Sep 2023 14:02:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245695AbjIHSCT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:02:19 -0400
+        with ESMTP id S242110AbjIHSCe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:02:34 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E34112690;
-        Fri,  8 Sep 2023 11:01:41 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C9E9C43391;
-        Fri,  8 Sep 2023 18:00:53 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 694322114;
+        Fri,  8 Sep 2023 11:02:03 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5AD2C433BD;
+        Fri,  8 Sep 2023 18:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694196054;
-        bh=QHkqxQuF5g5yQOxy9JLwWisHm4xeq+bCIzYItndb6zo=;
+        s=k20201202; t=1694196116;
+        bh=cWfzasjKc6OYRtp8td5HXClSIfRavFdl20grMYcqxao=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Sf84edZRT7A1CpaA0fCFXyLsctHgzn1+eJCbjzVIQCfgait5o41vKviYGAtt0+WeR
-         mr9VwNslWNpQdBmf+H5CxJBYrUUyJQaVGphHA/ku3F1aH3TX14lbTDznpZ9IEHyAaB
-         PnK0FaBvvUo1b3QVxx5fowCfTBE5vr6+6llu26QwyvrQon6bfE6X4I3ciXkUZy5Pm+
-         TX6bhmSuhOtaktkJgxUlRmy4+WE4XSlO1H8ruUp2gjNLJP77hV+i9pR0wTda29mJO3
-         GxMVMgMtcAMoXUjMEOnVYYsKSVKWGfYOR8njtrPssV30OtkKOv9VyHdF9PqFiiRTHR
-         cPUR/WCOye1+Q==
+        b=Lp87JbxawyP2SnMp1OJrIByNaKDV86lYwVoTVWY7KgTN1dkYfKy+XkoBNhcS7Phme
+         j5g3IYg77mCDjHkK9dldUSfqFZ+z2dN5p7ANxjhHqZcmm3mE97myspeW2Vu3ycF10z
+         2XL+8cybJIflb1xp4S9k0uPB8H+HT4gAuEnMMhbY+TsU1LUxNJzhHbKdx+z66bpZMq
+         onzPypMSJJG03UwI9dlZOz235NSyWhGG+y8RbM2aGx+8epoiXTtwlmnszee9ZavtTK
+         uiA9phy4BhW7tUcGwCH9xqxcvpGOAhCrg/74bWAqK/gIlpNn8KJJowEMytyJIL2pX7
+         M0RwLfOgP9GYA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Mario Limonciello <mario.limonciello@amd.com>,
@@ -34,16 +34,16 @@ Cc:     Mario Limonciello <mario.limonciello@amd.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         philipp.zabel@gmail.com, andriy.shevchenko@linux.intel.com,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.5 14/16] ACPI: x86: s2idle: Catch multiple ACPI_TYPE_PACKAGE objects
-Date:   Fri,  8 Sep 2023 13:59:51 -0400
-Message-Id: <20230908175953.3457942-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.4 12/13] ACPI: x86: s2idle: Catch multiple ACPI_TYPE_PACKAGE objects
+Date:   Fri,  8 Sep 2023 14:00:58 -0400
+Message-Id: <20230908180100.3458151-12-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230908175953.3457942-1-sashal@kernel.org>
-References: <20230908175953.3457942-1-sashal@kernel.org>
+In-Reply-To: <20230908180100.3458151-1-sashal@kernel.org>
+References: <20230908180100.3458151-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.5.2
+X-stable-base: Linux 6.4.15
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -66,10 +66,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index ce62e61a9605e..9a179bb5823a0 100644
+index e499c60c45791..2e0778ddd0ad8 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
-@@ -113,6 +113,12 @@ static void lpi_device_get_constraints_amd(void)
+@@ -112,6 +112,12 @@ static void lpi_device_get_constraints_amd(void)
  		union acpi_object *package = &out_obj->package.elements[i];
  
  		if (package->type == ACPI_TYPE_PACKAGE) {
