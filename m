@@ -2,90 +2,97 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170C9EEB560
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5878EEEB56B
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:17:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236666AbjIHSPt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Sep 2023 14:15:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48456 "EHLO
+        id S1343775AbjIHSRb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Sep 2023 14:17:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245071AbjIHSPs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:15:48 -0400
+        with ESMTP id S1343751AbjIHSR0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:17:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1E3E2109;
-        Fri,  8 Sep 2023 11:15:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AE62C4167D;
-        Fri,  8 Sep 2023 18:03:36 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E985211E;
+        Fri,  8 Sep 2023 11:17:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B28C3C433BB;
+        Fri,  8 Sep 2023 18:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694196217;
-        bh=2LSgSlupWcN8n2Gu6k5lEkFjhB99zsLZEaGViBF5Ywg=;
+        s=k20201202; t=1694196105;
+        bh=zFSc0oOUgRHVXI6V5t78Gov2kGzq/C8X29Th1niojrw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JWyudb082FnzmBNzE7cgr0zm8vMLoVoTyCziKx4+Xymf6tgIjwpEb4HB4VL16IMpS
-         xytpaCf8n70hiZ3u7EjRGmXQ7Rm4/5+ws+63MVg4yMqLUN4+04RSyv2VuVU0AWoY/v
-         ydNgOTKCHQ+r6q8Wb8PaAj+Dn20iK9zcjI2mjtWpRx/osSSq6Y0i5zF0Twix+2jSBk
-         sun4/WD8CyfNKgjMr0e0fbdfJbsZiuj4XqjZi3/0DBdVZfN0qG3QmaWy5mIlfA1NEu
-         Zto+IBWk6t2coYIlBFITk+3Qz0P2Y1pcnF4z/qQBEOO5umyBGx3t8EzHtIeJz66+Yx
-         2WVw75aeHFUHA==
+        b=R3EFiB9F0xc2l1XJMbfYHNwCB7c/t+Q0J5PF54sYbeTWAG/VtpaVKbw1VAvCfbp49
+         AcHry7346hHpUULuIs22DQ/NCZBB8ahKIBEbBJP4J/ZOWci9x3/3YbwZlsxGrFfb3k
+         iEp8q7BSEREpQ15Dh6mruT0AjLx361NyutLe4fU66CiOnSDPrsPRVIULZdkjiChxcF
+         o0x8F7f79re2HN0aU2lXQy8ea9NggLTBgwsZBsnEatB7q3vmZT98SYAjJN+6dTR0S5
+         fojT/Std+guMEarxDOY/MkC7p8GMm4XPOoNllvLijKk4Dl3asd7nlMpJX3aQTgxZPC
+         L4D4Cz4gxJmZA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "Jiri Slaby (SUSE)" <jirislaby@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
+Cc:     Hans de Goede <hdegoede@redhat.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 5/8] ACPI: video: Add backlight=native DMI quirk for Lenovo Ideapad Z470
-Date:   Fri,  8 Sep 2023 14:03:16 -0400
-Message-Id: <20230908180320.3458596-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.4 10/13] ACPI: video: Add backlight=native DMI quirk for Apple iMac12,1 and iMac12,2
+Date:   Fri,  8 Sep 2023 14:00:56 -0400
+Message-Id: <20230908180100.3458151-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230908180320.3458596-1-sashal@kernel.org>
-References: <20230908180320.3458596-1-sashal@kernel.org>
+In-Reply-To: <20230908180100.3458151-1-sashal@kernel.org>
+References: <20230908180100.3458151-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.194
+X-stable-base: Linux 6.4.15
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
+From: Hans de Goede <hdegoede@redhat.com>
 
-[ Upstream commit 96b709be183c56293933ef45b8b75f8af268c6de ]
+[ Upstream commit 8cf04bb321f036dd2e523e993897e0789bd5265c ]
 
-The Lenovo Ideapad Z470 predates Windows 8, so it defaults to using
-acpi_video for backlight control. But this is not functional on this
-model.
+Linux defaults to picking the non-working ACPI video backlight interface
+on the Apple iMac12,1 and iMac12,2.
 
-Add a DMI quirk to use the native backlight interface which works.
+Add a DMI quirk to pick the working native radeon_bl0 interface instead.
 
-Link: https://bugzilla.suse.com/show_bug.cgi?id=1208724
-Signed-off-by: Jiri Slaby (SUSE) <jirislaby@kernel.org>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Link: https://gitlab.freedesktop.org/drm/amd/-/issues/1838
+Link: https://gitlab.freedesktop.org/drm/amd/-/issues/2753
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/video_detect.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/video_detect.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index b02d381e78483..28e816be4753e 100644
+index 922a31857397c..1244cf9582886 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -307,6 +307,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_BOARD_NAME, "Lenovo IdeaPad S405"),
+@@ -495,6 +495,24 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "iMac11,3"),
  		},
  	},
 +	{
-+	 /* https://bugzilla.suse.com/show_bug.cgi?id=1208724 */
++	 /* https://gitlab.freedesktop.org/drm/amd/-/issues/1838 */
 +	 .callback = video_detect_force_native,
-+	 /* Lenovo Ideapad Z470 */
++	 /* Apple iMac12,1 */
 +	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "IdeaPad Z470"),
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "iMac12,1"),
++		},
++	},
++	{
++	 /* https://gitlab.freedesktop.org/drm/amd/-/issues/2753 */
++	 .callback = video_detect_force_native,
++	 /* Apple iMac12,2 */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "iMac12,2"),
 +		},
 +	},
  	{
- 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1187004 */
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1217249 */
  	 .callback = video_detect_force_native,
 -- 
 2.40.1
