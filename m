@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87762EEB562
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:38:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4971CEEB568
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 19:02:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230156AbjIHSim (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Sep 2023 14:38:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44204 "EHLO
+        id S236094AbjIHTCb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Sep 2023 15:02:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229957AbjIHSim (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:38:42 -0400
+        with ESMTP id S232174AbjIHTCa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 15:02:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04CF519B5;
-        Fri,  8 Sep 2023 11:38:09 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5928FC433B8;
-        Fri,  8 Sep 2023 18:02:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96D18E65;
+        Fri,  8 Sep 2023 12:02:15 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4386EC43391;
+        Fri,  8 Sep 2023 18:03:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694196126;
-        bh=ujCD0RV5q8aWc/wfAmJnot1hSzU9659zQ2ZOL4KPH1w=;
+        s=k20201202; t=1694196203;
+        bh=vHsETvkSirYxdSRhZIK6BdPFT7z4sK535UZt4xBWOpg=;
         h=From:To:Cc:Subject:Date:From;
-        b=Dw6okEhyGmKejSKUe+Phn9/zbwzltQdfOrCEhXt+akIfZabWuvWVKtv0MUgiCZYw5
-         xkE+lOQE1N+X228IBLMlUjLuzzkPUbFpSF+holaQSP3Fwpfs4A7DXD4hzeeTvayA9n
-         njjcIVDDC+DVGrObp3q1eSPZDvfQnK7l6zsP4g2i9s4N8k9BJYyg40cplyu7gVyJZr
-         vORXXyhugPWu742RNPwYNyZl//HqMwM+m2BnUCOdDWzlf99hnbAFfx5iCsZfII3a6b
-         pRM4jdLQa7LDgqtRM+6OnOvQVFapKY7O1OvSyQjBFyx1JUQywqIb1TFpPhLi65BMUH
-         2UL9hnmypPWZQ==
+        b=djWxNR8fV/RCHAoXeNh1GJUHcrWsA2bKVPE2EgZtNozqDxCx6w1hrRFsHlvsYyhaC
+         3kpBCr8Ee9ygaYfheJOxQWeiBuaI6XdLchrdwaoTuUOHBQFqXTrbXmY10fiSiaUt9Y
+         3OnQPrclN5pI3LgeMyac5eeUCqe60O8xlzDL8IVB8usIzXQ1CekTfk5UNDs87b67nD
+         rNL8Yz8Y1tHXvdA26asRMMbLPcladDzK6qcxAL+7hr9DcYUDEFjGPXeKk14AsPChK/
+         LZOB+sg8OVC09DBey3MEgYnvF7EeNClvf8cGFAujMQLP5WnRxC9l2lNZNXAZS4g6CG
+         PkHGwxg0NEoyw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Abhishek Mainkar <abmainkar@nvidia.com>,
@@ -33,14 +33,14 @@ Cc:     Abhishek Mainkar <abmainkar@nvidia.com>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
         acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH AUTOSEL 6.1 01/10] ACPICA: Add AML_NO_OPERAND_RESOLVE flag to Timer
-Date:   Fri,  8 Sep 2023 14:01:53 -0400
-Message-Id: <20230908180203.3458330-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 1/8] ACPICA: Add AML_NO_OPERAND_RESOLVE flag to Timer
+Date:   Fri,  8 Sep 2023 14:03:12 -0400
+Message-Id: <20230908180320.3458596-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.1.52
+X-stable-base: Linux 5.10.194
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -86,7 +86,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/acpica/psopcode.c b/drivers/acpi/acpica/psopcode.c
-index bef69e87a0a29..8c34c0ffb1d93 100644
+index 28af49263ebfa..62957cba30f61 100644
 --- a/drivers/acpi/acpica/psopcode.c
 +++ b/drivers/acpi/acpica/psopcode.c
 @@ -603,7 +603,7 @@ const struct acpi_opcode_info acpi_gbl_aml_op_info[AML_NUM_OPCODES] = {
