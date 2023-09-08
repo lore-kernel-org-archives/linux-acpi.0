@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47BDBEEB562
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E916EEB560
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:04:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343540AbjIHSEl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Sep 2023 14:04:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40630 "EHLO
+        id S241982AbjIHSEy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Sep 2023 14:04:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343566AbjIHSEi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:04:38 -0400
+        with ESMTP id S232133AbjIHSEw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:04:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2337626B7;
-        Fri,  8 Sep 2023 11:04:09 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6356C116A1;
-        Fri,  8 Sep 2023 18:04:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 671CC1FEB;
+        Fri,  8 Sep 2023 11:04:28 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E60EBC433BD;
+        Fri,  8 Sep 2023 18:04:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694196244;
-        bh=REWAD7E/MGhVxUApTYZNDRMZnuGGT4TE1X1TEag/34E=;
+        s=k20201202; t=1694196257;
+        bh=L0zSuJOhdB2hQ7Bko3h9ZixT0pDP7Rg3T3Sw4Zlh9oE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aFpBtqglen8h+AsGv1WfRlAPBNB95dSf+6Gyk3e/zJMemP1gH4iOSfciF7OGwvHmB
-         jF5Va9r61ZoZ4qe5HiV/QfdjYMF1aFkUI8siJq2d+z2GMYXYfjVXBdmmbJR5OYbGQ6
-         2bC73rvStsOCoDSPTL7tJPaaKFEG30mczGU8Q8rK00NqdIq8ETprL5cQtzAkq9yuW6
-         PfAPbSv5lb2Fa3vPVsQeN+F/G7bpb8XHtA44XMa0fFhyWoCMgudlzt/kgPe4HxIo6b
-         Xm5e069Juzt1XlQVdCWlJx8nLMoTsTZe3wZbg4SN3QcQlzQNu9D7KlFNkVZc00EtXE
-         Il/I50FcMRImg==
+        b=YcDz4c4va0PcZEiN25lw4xRkAgyL8kGXEaKxJN+eWviPFg9hbTNPS7r9nlH8syt5o
+         QulNUAwCbXDYLkti7Im6pHi19ZxFrwFXH1lXf8lIgK0A9zd9oGONZFevp9K3O/Bk/h
+         n5mQrxCwGd3Td9UEbK9fWOAVQ7Fi5YrgfDHLoCtVgdGGbFt3FIcwMKCo985VDcpZy7
+         hVsReS9gaQ58Fj/Uea2XFySKhmToJs27+OYehFdpZ1lRJCCV10+Gx1KWBg8VM0Lg9P
+         /u3lTQCbbusnY0X6Od2ccmgna8cO8JPvEJiC5p1rXFsFPM48Uh+EBS7jg0ofn3n3OT
+         MqU7xAUIOT/8w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Jiri Slaby (SUSE)" <jirislaby@kernel.org>,
@@ -33,16 +33,16 @@ Cc:     "Jiri Slaby (SUSE)" <jirislaby@kernel.org>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 3/5] ACPI: video: Add backlight=native DMI quirk for Lenovo Ideapad Z470
-Date:   Fri,  8 Sep 2023 14:03:49 -0400
-Message-Id: <20230908180352.3458731-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 2/3] ACPI: video: Add backlight=native DMI quirk for Lenovo Ideapad Z470
+Date:   Fri,  8 Sep 2023 14:04:12 -0400
+Message-Id: <20230908180413.3458812-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230908180352.3458731-1-sashal@kernel.org>
-References: <20230908180352.3458731-1-sashal@kernel.org>
+In-Reply-To: <20230908180413.3458812-1-sashal@kernel.org>
+References: <20230908180413.3458812-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.4.256
+X-stable-base: Linux 4.19.294
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
@@ -68,10 +68,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index ef40cd7f36eba..be9c70806b620 100644
+index b4f16073ef432..866bc20c82397 100644
 --- a/drivers/acpi/video_detect.c
 +++ b/drivers/acpi/video_detect.c
-@@ -310,6 +310,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+@@ -294,6 +294,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
  		DMI_MATCH(DMI_BOARD_NAME, "Lenovo IdeaPad S405"),
  		},
  	},
