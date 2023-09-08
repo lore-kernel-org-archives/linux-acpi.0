@@ -2,30 +2,30 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E916EEB560
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:04:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC12FEEB566
+	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 18:05:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241982AbjIHSEy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Sep 2023 14:04:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38368 "EHLO
+        id S1343594AbjIHSFK (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 8 Sep 2023 14:05:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232133AbjIHSEw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:04:52 -0400
+        with ESMTP id S244181AbjIHSFH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 14:05:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 671CC1FEB;
-        Fri,  8 Sep 2023 11:04:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E60EBC433BD;
-        Fri,  8 Sep 2023 18:04:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6182269A;
+        Fri,  8 Sep 2023 11:04:38 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0625FC4166B;
+        Fri,  8 Sep 2023 18:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694196257;
+        s=k20201202; t=1694196266;
         bh=L0zSuJOhdB2hQ7Bko3h9ZixT0pDP7Rg3T3Sw4Zlh9oE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YcDz4c4va0PcZEiN25lw4xRkAgyL8kGXEaKxJN+eWviPFg9hbTNPS7r9nlH8syt5o
-         QulNUAwCbXDYLkti7Im6pHi19ZxFrwFXH1lXf8lIgK0A9zd9oGONZFevp9K3O/Bk/h
-         n5mQrxCwGd3Td9UEbK9fWOAVQ7Fi5YrgfDHLoCtVgdGGbFt3FIcwMKCo985VDcpZy7
-         hVsReS9gaQ58Fj/Uea2XFySKhmToJs27+OYehFdpZ1lRJCCV10+Gx1KWBg8VM0Lg9P
-         /u3lTQCbbusnY0X6Od2ccmgna8cO8JPvEJiC5p1rXFsFPM48Uh+EBS7jg0ofn3n3OT
-         MqU7xAUIOT/8w==
+        b=knO0gHS3GSsgVwC7396ovywKH1TKwz2dazKqn4dRmSpVu3vub7n9nD1VulmqDvYDe
+         ALVDk26cxrWBQ+l98Wl7S1Pz12Eexl0nuUDKqXLcg5/WqxduVfHhOf0Qfiw+FnjpRt
+         jJxoq02hxc3tdxlieD/xRoA7X22kM2pUrV6AlxROwQ1FA2gt2LiVQMLZiILP7kzDFf
+         Iv58wWozqeW2/VUD/pqm6PgU82C/rfeYP/ZEVhgKPYx8BGnUm27PSJMV7GsbBiESmT
+         lrwmZY6Mv+nGaPem5NzvTcgbX+FuI/EFZDx/aa5S2QogWCA07DYnrrsFrulBDB1NAo
+         4mfb8ghGblmtw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Jiri Slaby (SUSE)" <jirislaby@kernel.org>,
@@ -33,16 +33,16 @@ Cc:     "Jiri Slaby (SUSE)" <jirislaby@kernel.org>,
         "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
         Sasha Levin <sashal@kernel.org>, rafael@kernel.org,
         linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 2/3] ACPI: video: Add backlight=native DMI quirk for Lenovo Ideapad Z470
-Date:   Fri,  8 Sep 2023 14:04:12 -0400
-Message-Id: <20230908180413.3458812-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 2/3] ACPI: video: Add backlight=native DMI quirk for Lenovo Ideapad Z470
+Date:   Fri,  8 Sep 2023 14:04:19 -0400
+Message-Id: <20230908180421.3458860-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230908180413.3458812-1-sashal@kernel.org>
-References: <20230908180413.3458812-1-sashal@kernel.org>
+In-Reply-To: <20230908180421.3458860-1-sashal@kernel.org>
+References: <20230908180421.3458860-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 4.19.294
+X-stable-base: Linux 4.14.325
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
