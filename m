@@ -2,102 +2,106 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4971CEEB568
-	for <linux-acpi@archiver.kernel.org>; Fri,  8 Sep 2023 19:02:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1682EEB580
+	for <linux-acpi@archiver.kernel.org>; Sat,  9 Sep 2023 16:25:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236094AbjIHTCb (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 8 Sep 2023 15:02:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49098 "EHLO
+        id S230171AbjIIQZQ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 9 Sep 2023 12:25:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232174AbjIHTCa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2023 15:02:30 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96D18E65;
-        Fri,  8 Sep 2023 12:02:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4386EC43391;
-        Fri,  8 Sep 2023 18:03:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694196203;
-        bh=vHsETvkSirYxdSRhZIK6BdPFT7z4sK535UZt4xBWOpg=;
-        h=From:To:Cc:Subject:Date:From;
-        b=djWxNR8fV/RCHAoXeNh1GJUHcrWsA2bKVPE2EgZtNozqDxCx6w1hrRFsHlvsYyhaC
-         3kpBCr8Ee9ygaYfheJOxQWeiBuaI6XdLchrdwaoTuUOHBQFqXTrbXmY10fiSiaUt9Y
-         3OnQPrclN5pI3LgeMyac5eeUCqe60O8xlzDL8IVB8usIzXQ1CekTfk5UNDs87b67nD
-         rNL8Yz8Y1tHXvdA26asRMMbLPcladDzK6qcxAL+7hr9DcYUDEFjGPXeKk14AsPChK/
-         LZOB+sg8OVC09DBey3MEgYnvF7EeNClvf8cGFAujMQLP5WnRxC9l2lNZNXAZS4g6CG
-         PkHGwxg0NEoyw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Abhishek Mainkar <abmainkar@nvidia.com>,
-        Bob Moore <robert.moore@intel.com>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org,
-        acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH AUTOSEL 5.10 1/8] ACPICA: Add AML_NO_OPERAND_RESOLVE flag to Timer
-Date:   Fri,  8 Sep 2023 14:03:12 -0400
-Message-Id: <20230908180320.3458596-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.40.1
+        with ESMTP id S1346347AbjIIOT2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Sep 2023 10:19:28 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 672E3CF4
+        for <linux-acpi@vger.kernel.org>; Sat,  9 Sep 2023 07:18:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1694269111;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=HzqZJtWejVodVTPKo9Ws7yQdF9+fdIi5BOKy7A68lHY=;
+        b=ESOeIR0E79VTkxCw2aXoW+3lxnkE8Sv+L2cmDmZbV2NsYOJZSe3hPlCb/A2O2TfMVURDT1
+        DAE1X+qYgmHC0NYfvJE06QzKWkXRYNUowrD/RToF9PjRK0QQsbxNleFncUlSFc7tjnpWYr
+        6pv6eDBzBfzeDyM5mrE8v2jv1bUpZhk=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-202-xSrNr5BuPkOcRXu1YLRzRA-1; Sat, 09 Sep 2023 10:18:25 -0400
+X-MC-Unique: xSrNr5BuPkOcRXu1YLRzRA-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 99DBC8ABBC9;
+        Sat,  9 Sep 2023 14:18:24 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.37])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8069414171B6;
+        Sat,  9 Sep 2023 14:18:23 +0000 (UTC)
+From:   Hans de Goede <hdegoede@redhat.com>
+To:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andy@kernel.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Linus Walleij <linus.walleij@linaro.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [PATCH 1/8] gpiolib: acpi: Check if a GPIO is listed in ignore_interrupt earlier
+Date:   Sat,  9 Sep 2023 16:18:09 +0200
+Message-ID: <20230909141816.58358-2-hdegoede@redhat.com>
+In-Reply-To: <20230909141816.58358-1-hdegoede@redhat.com>
+References: <20230909141816.58358-1-hdegoede@redhat.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.194
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.7
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: Abhishek Mainkar <abmainkar@nvidia.com>
+In some cases where a broken AEI is present for a GPIO and the GPIO
+is listed in the ignore_interrupt list to avoid the broken event
+handler, the kernel may want to use the GPIO for another purpose.
 
-[ Upstream commit 3a21ffdbc825e0919db9da0e27ee5ff2cc8a863e ]
+Before this change trying to use such a GPIO for another purpose would
+fail, because the ignore_interrupt list was only checked after
+the acpi_request_own_gpiod() call, causing the GPIO to already be
+claimed even though it is listed in the ignore_interrupt list.
 
-ACPICA commit 90310989a0790032f5a0140741ff09b545af4bc5
+Fix this by moving the ignore_interrupt list to above
+the acpi_request_own_gpiod() call.
 
-According to the ACPI specification 19.6.134, no argument is required to be passed for ASL Timer instruction. For taking care of no argument, AML_NO_OPERAND_RESOLVE flag is added to ASL Timer instruction opcode.
-
-When ASL timer instruction interpreted by ACPI interpreter, getting error. After adding AML_NO_OPERAND_RESOLVE flag to ASL Timer instruction opcode, issue is not observed.
-
-=============================================================
-UBSAN: array-index-out-of-bounds in acpica/dswexec.c:401:12 index -1 is out of range for type 'union acpi_operand_object *[9]'
-CPU: 37 PID: 1678 Comm: cat Not tainted
-6.0.0-dev-th500-6.0.y-1+bcf8c46459e407-generic-64k
-HW name: NVIDIA BIOS v1.1.1-d7acbfc-dirty 12/19/2022 Call trace:
- dump_backtrace+0xe0/0x130
- show_stack+0x20/0x60
- dump_stack_lvl+0x68/0x84
- dump_stack+0x18/0x34
- ubsan_epilogue+0x10/0x50
- __ubsan_handle_out_of_bounds+0x80/0x90
- acpi_ds_exec_end_op+0x1bc/0x6d8
- acpi_ps_parse_loop+0x57c/0x618
- acpi_ps_parse_aml+0x1e0/0x4b4
- acpi_ps_execute_method+0x24c/0x2b8
- acpi_ns_evaluate+0x3a8/0x4bc
- acpi_evaluate_object+0x15c/0x37c
- acpi_evaluate_integer+0x54/0x15c
- show_power+0x8c/0x12c [acpi_power_meter]
-
-Link: https://github.com/acpica/acpica/commit/90310989
-Signed-off-by: Abhishek Mainkar <abmainkar@nvidia.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/acpica/psopcode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpiolib-acpi.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/psopcode.c b/drivers/acpi/acpica/psopcode.c
-index 28af49263ebfa..62957cba30f61 100644
---- a/drivers/acpi/acpica/psopcode.c
-+++ b/drivers/acpi/acpica/psopcode.c
-@@ -603,7 +603,7 @@ const struct acpi_opcode_info acpi_gbl_aml_op_info[AML_NUM_OPCODES] = {
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 97496c0f9133..80b9650a2424 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -437,6 +437,11 @@ static acpi_status acpi_gpiochip_alloc_event(struct acpi_resource *ares,
+ 	if (!handler)
+ 		return AE_OK;
  
- /* 7E */ ACPI_OP("Timer", ARGP_TIMER_OP, ARGI_TIMER_OP, ACPI_TYPE_ANY,
- 			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_0A_0T_1R,
--			 AML_FLAGS_EXEC_0A_0T_1R),
-+			 AML_FLAGS_EXEC_0A_0T_1R | AML_NO_OPERAND_RESOLVE),
++	if (acpi_gpio_in_ignore_list(ignore_interrupt, dev_name(chip->parent), pin)) {
++		dev_info(chip->parent, "Ignoring interrupt on pin %u\n", pin);
++		return AE_OK;
++	}
++
+ 	desc = acpi_request_own_gpiod(chip, agpio, 0, "ACPI:Event");
+ 	if (IS_ERR(desc)) {
+ 		dev_err(chip->parent,
+@@ -461,11 +466,6 @@ static acpi_status acpi_gpiochip_alloc_event(struct acpi_resource *ares,
+ 		goto fail_unlock_irq;
+ 	}
  
- /* ACPI 5.0 opcodes */
- 
+-	if (acpi_gpio_in_ignore_list(ignore_interrupt, dev_name(chip->parent), pin)) {
+-		dev_info(chip->parent, "Ignoring interrupt on pin %u\n", pin);
+-		return AE_OK;
+-	}
+-
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event)
+ 		goto fail_unlock_irq;
 -- 
-2.40.1
+2.41.0
 
