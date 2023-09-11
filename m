@@ -2,86 +2,135 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC06FCA0EC1
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:28:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67B79CA0EC4
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:28:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345353AbjIKVTn (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:19:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38338 "EHLO
+        id S1345370AbjIKVTy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:19:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236109AbjIKJu7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 05:50:59 -0400
-Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25C4FE44
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 02:50:55 -0700 (PDT)
-Received: by mail-ua1-x92c.google.com with SMTP id a1e0cc1a2514c-7a257fabae5so1679717241.2
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 02:50:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694425854; x=1695030654; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=x5UYe75FP8toYURe1y5KQ1BGMkvcZaEW0CyeqMEnRyk=;
-        b=IUSU0ImG9M85d23hYzB7bpDBI94yAXU7yb3KtFO22tR9KyhGzTYX8UrG7x/myd3q72
-         uTFgJOAzv9jw3BpJKVTTDuP4YwYVAdX21idzyoCcMOdqISTqCFBylIocj4WU1o/GHxs6
-         PV0qMe1e4vPgdHht2mLV2pqRbK1wE+BFhRJ3ka4+mACjKue9AWjL2ToE+nYZJlB2gRR+
-         RPxqCBSrPbbkpxeXabtLTE43/NkkH/71EfGofjq8v1QTQcrtLiWtmKvw4AJp3cNP6sm0
-         ajLskmIq/Ub165cTMCNLv8IoL7bViLPYWUVfJAD5pIeUv0MPsd44ConNMJJWdsVIbszi
-         Jytw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694425854; x=1695030654;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=x5UYe75FP8toYURe1y5KQ1BGMkvcZaEW0CyeqMEnRyk=;
-        b=cv2MeZTZq0xA724zc1Hmqdm96AYt5GlpVhkEoDEFdEVmSHSMQDQB3SSYWfQFl2Ws+Y
-         4TysMLTsLsBR8f5D807FLweZKMrfktWLOVy0PPZ3mjY1s2Vn6ETHOx74DcWlt46iXGjn
-         7jSrTiiMis2Vs6m8oJgEa0ScQDELVTNufKK4NW3LLyk9o6lftb0bSS/UeV/HMaLp5wBC
-         3/cNYNXjrmLO3nj+q943uGae6zpfZAgGJobo/cQk3G4ern9YBrhAQcVupP01ajhsehHa
-         voHToB5bIYUbK14uDi4pPyg+aM9SC6ExjWJARSZlG+6P8R8SLeX8gYthnpQ6Xi9AYKws
-         wHFA==
-X-Gm-Message-State: AOJu0YxH4i6xGmxH8n9ctkKv9H9p9wD2NBZZLtW+qHrLWFjBune5ws5D
-        dS2tF8mjAFDPpg7pxx/Oy1MVhlIqMm+0DO6JiloydQ==
-X-Google-Smtp-Source: AGHT+IEggNm68Hr3RRD2F35KLRNwrrw6//YEgnoVHrVVzY9f74otc6OHWj8qqne2MLlaWMad6BNeDq9fIoKfbNoyalU=
-X-Received: by 2002:a67:fd41:0:b0:44e:dece:6b38 with SMTP id
- g1-20020a67fd41000000b0044edece6b38mr8040621vsr.23.1694425853682; Mon, 11 Sep
- 2023 02:50:53 -0700 (PDT)
+        with ESMTP id S235584AbjIKJCx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 05:02:53 -0400
+Received: from mx1.zhaoxin.com (MX1.ZHAOXIN.COM [210.0.225.12])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E0A9CD1
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 02:02:47 -0700 (PDT)
+X-ASG-Debug-ID: 1694422962-086e234a2b484f0001-I98ny2
+Received: from ZXSHMBX2.zhaoxin.com (ZXSHMBX2.zhaoxin.com [10.28.252.164]) by mx1.zhaoxin.com with ESMTP id sMZQdI9jaLiVSJEV (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Mon, 11 Sep 2023 17:02:42 +0800 (CST)
+X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.164
+Received: from ZXBJMBX03.zhaoxin.com (10.29.252.7) by ZXSHMBX2.zhaoxin.com
+ (10.28.252.164) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 11 Sep
+ 2023 17:02:41 +0800
+Received: from [192.168.1.204] (125.76.214.122) by ZXBJMBX03.zhaoxin.com
+ (10.29.252.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 11 Sep
+ 2023 17:02:40 +0800
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.164
+Message-ID: <a3a603ef-b813-4798-bb54-62076d53bd3a@zhaoxin.com>
+X-Barracuda-RBL-Trusted-Forwarder: 192.168.1.204
+Date:   Mon, 11 Sep 2023 17:02:38 +0800
 MIME-Version: 1.0
-References: <20230909141816.58358-1-hdegoede@redhat.com> <20230909141816.58358-2-hdegoede@redhat.com>
-In-Reply-To: <20230909141816.58358-2-hdegoede@redhat.com>
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Mon, 11 Sep 2023 11:50:42 +0200
-Message-ID: <CAMRc=Mdtbnc-uktsgG4rRMRpRfSO7a+6wCQZZgr3Q7uGKprbfg@mail.gmail.com>
-Subject: Re: [PATCH 1/8] gpiolib: acpi: Check if a GPIO is listed in
- ignore_interrupt earlier
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andy@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 0/5] Parse the PCIe AER and set to relevant registers
+To:     Bjorn Helgaas <helgaas@kernel.org>
+X-ASG-Orig-Subj: Re: [PATCH v3 0/5] Parse the PCIe AER and set to relevant registers
+CC:     <lenb@kernel.org>, <james.morse@arm.com>, <tony.luck@intel.com>,
+        <bp@alien8.de>, <bhelgaas@google.com>, <robert.moore@intel.com>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>,
+        <acpica-devel@lists.linuxfoundation.org>, <ErosZhang@zhaoxin.com>
+References: <20230810232041.GA50619@bhelgaas>
+From:   LeoLiu-oc <leoliu-oc@zhaoxin.com>
+In-Reply-To: <20230810232041.GA50619@bhelgaas>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [125.76.214.122]
+X-ClientProxiedBy: ZXSHCAS1.zhaoxin.com (10.28.252.161) To
+ ZXBJMBX03.zhaoxin.com (10.29.252.7)
+X-Barracuda-Connect: ZXSHMBX2.zhaoxin.com[10.28.252.164]
+X-Barracuda-Start-Time: 1694422962
+X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
+X-Barracuda-URL: https://10.28.252.35:4443/cgi-mod/mark.cgi
+X-Virus-Scanned: by bsmtpd at zhaoxin.com
+X-Barracuda-Scan-Msg-Size: 3840
+X-Barracuda-BRTS-Status: 0
+X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
+X-Barracuda-Spam-Score: -2.02
+X-Barracuda-Spam-Status: No, SCORE=-2.02 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=
+X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.113955
+        Rule breakdown below
+         pts rule name              description
+        ---- ---------------------- --------------------------------------------------
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Sep 9, 2023 at 4:18=E2=80=AFPM Hans de Goede <hdegoede@redhat.com> =
-wrote:
->
-> In some cases where a broken AEI is present for a GPIO and the GPIO
-> is listed in the ignore_interrupt list to avoid the broken event
-> handler, the kernel may want to use the GPIO for another purpose.
->
-> Before this change trying to use such a GPIO for another purpose would
-> fail, because the ignore_interrupt list was only checked after
-> the acpi_request_own_gpiod() call, causing the GPIO to already be
-> claimed even though it is listed in the ignore_interrupt list.
->
-> Fix this by moving the ignore_interrupt list to above
-> the acpi_request_own_gpiod() call.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
 
-Acked-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+
+在 2023/8/11 7:20, Bjorn Helgaas 写道:
+> On Tue, Jul 04, 2023 at 08:04:53PM +0800, LeoLiu-oc wrote:
+>> From: leoliu-oc <leoliu-oc@zhaoxin.com>
+>>
+>> According to the sec 18.3.2.4, 18.3.2.5 and 18.3.2.6 in ACPI r6.5, the
+>> register values form HEST PCI Express AER Structure should be written to
+>> relevant PCIe Device's AER Capabilities. So the purpose of the patch set
+>> is to extract register values from HEST PCI Express AER structures and
+>> program them into AER Capabilities.
+>> Refer to the ACPI Spec r6.5 for a more detailed description.
+>> Considering that HEST AER patch is an effective supplement to _HPP/_HPX
+>> method when the Firmware does not support the _HPP/_HPX method and can be
+>> specially configured for the AER register of a specific device.
+>> The question about whether OS has control of AER to write the information
+>> in the HEST AER structure to the AER register of the corresponding device
+>> is similar to the question about _HPX/_HPP method to write the AER
+>> information to the AER register of the corresponding device.I looked in
+>> ACPI Spec for a description of the relationship between writing to the AER
+>> register through the _HPP/_HPX method and whether the OS requires AER
+>> control:
+>> 1.OSPM uses the information returned by _HPX to determine how to
+>> configure PCI Functions that are hot- plugged into the system, to
+>> configure Functions not configured by the platform firmware during initial
+>> system boot, and to configure Functions any time they lose configuration
+>> space settings (e.g. OSPM issues a Secondary Bus Reset/Function Level
+>> Reset or Downstream Port Containment is triggered).
+>>
+>> 2._HPX may return multiple types or Record Settings (each setting in a
+>> single sub-package.) OSPM is responsible for detecting the type of
+>> Function and for applying the appropriate settings. OSPM is also
+>> responsible for detecting the device / port type of the PCI Express
+>> Function and applying the appropriate settings provided.
+>> For example, the Secondary Uncorrectable Error Severity and Secondary
+>> Uncorrectable Error Mask settings of Type 2 record are only applicable to
+>> PCI Express to PCI-X/PCI Bridge whose device / port type is 1000b.
+>> Similarly, AER settings are only applicable to hot plug PCI Express
+>> devices that support the optional AER capability.
+>>
+>> 3.Note: OSPM may override the settings provided by the _HPX object's Type2
+>> record (PCI Express Settings) or Type3 record (PCI Express Descriptor
+>> Settings) when OSPM has assumed native control of the corresponding
+>> feature. For example, if OSPM has assumed ownership of AER (via _OSC),
+>> OSPM may override AER related settings returned by _HPX. This means that
+>> writing the AER register value by _HPX does not require the OS to gain
+>> control of the AER. Also from the usage description of _HPX, I think
+>> ownership of AER means who decides the configuration value of the AER
+>> register rather than who can write the configuration value. Even though
+>> the OS does not have control or ownership of the AER, it should still
+>> write the configuration values determined by the firmware to the AER
+>> register at the request of the firmware.
+>> Therefore, the ownership of AER is not considered in this patch.
+> 
+> There's a lot of good information above, but this is the cover letter,
+> so it won't make it into the git history.  Can you move this
+> information to the relevant patches, where it will help justify the
+> need for the patch?
+> 
+> Also, if at all possible, can you arrange for the patches themselves
+> to be sent as *responses* to the cover letter?  This makes the series
+> thread nicely and makes it much easier to download and apply it.
+> 
+> Bjorn
+
+OK. I will modify in next version.
+
+LeoLiu-oc
