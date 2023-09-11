@@ -2,91 +2,123 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4235CCA0EC6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FC10CA0EC9
 	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344993AbjIKVTJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:19:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38338 "EHLO
+        id S237564AbjIKVSv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:18:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236138AbjIKJv2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 05:51:28 -0400
-Received: from mail-vs1-xe2b.google.com (mail-vs1-xe2b.google.com [IPv6:2607:f8b0:4864:20::e2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA1ACE52
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 02:51:23 -0700 (PDT)
-Received: by mail-vs1-xe2b.google.com with SMTP id ada2fe7eead31-44d3666c6cfso1619140137.3
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 02:51:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694425883; x=1695030683; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=T0WH4+Wc29rD5CEkIjJocX4Prp2Urfkick4BKKKLe1M=;
-        b=nGK0iAXhV0D+oDRRCXPHR5YFlOpdur7MkHCGOuEHBa3zDHDM0jmnOidkAh3amVWZNx
-         xbiTII5sPGbmebJG+FAlzpaIm6jijTqGn/jXpJTvsjscIsLtBAM6c1NW6GG9SIKvkca+
-         kh5Dj6WNpZMQ4fRNRi9y8mD0/JtFTNY2RqV4ZRRFVyZsS5F1+mK7RZFgK641HryEi4lZ
-         K3Bw3WNnxvxfcmRkmKLoNHEDw6ra5EMISskYBx2JGM939ToauUpCuUW1svvX5boHy+Iv
-         5zuiomzACIJfzWvi5zkgXq70q8NsGA5ZvGv5/kGDCEnDGyZmAQ+MYXDQr/NjPHQmgRB9
-         5NVg==
+        with ESMTP id S237604AbjIKNAY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 09:00:24 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 91F62CF0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 05:59:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1694437173;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=fLJlaWuhDVThUjdsKNhZE9FBGgOcB1eXtorgqabDS60=;
+        b=FWQn6fEwQfeAaNFHi2rT9xRjSh9ZDp2lej0d9bxWGIMhvvpOTigqI367rOj3HhfF3lrUhI
+        rEjqZU34sK8IFtQQVFXU2SSqsxiGBya2GpvDcANokgU27ykk1seRrw0CTE5UzHzotZtPVf
+        Xwu5xaRcLvKtI2m2YVSjRBb9yeKwuV0=
+Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
+ [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-351-tReJRIRaNkeTi3wAvORuAQ-1; Mon, 11 Sep 2023 08:59:32 -0400
+X-MC-Unique: tReJRIRaNkeTi3wAvORuAQ-1
+Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-99c8bbc902eso305375866b.1
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 05:59:32 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694425883; x=1695030683;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=T0WH4+Wc29rD5CEkIjJocX4Prp2Urfkick4BKKKLe1M=;
-        b=jGxe2oCObGdNKihgUMfvaHdp0QpeuWSrGR+fYNCIX8UCvS251kp95UrA8cSoKpBJn/
-         844KcXh/dRCiqfR3iGwrtx2SbBfDiwjn8iXTXLdjaXCO3hoN97xKsYUp03ZLeNWb/xJv
-         31jwrzyX+fNyWdNAkEPoG7q9RPp/mVPt4AiK2kpRXt7Vc/50jJp1jgVTMyVcIMpZ+YfZ
-         p7eiPkeRmwQECQIYkVkkOOxw+MkQhpuLk1MbQELB+vb3/o+0ClcpAIDv5xy+DYns2I5h
-         iKQ8YpG+KDuuaZGkiulYLG3f51Ptn5nuYSxUoEiuO1rbghAWrX2i/Vxnz04wRQCeBoRW
-         qXLA==
-X-Gm-Message-State: AOJu0YwjbrLk/yY7Oli3m29YR1V5MwtavOLvfrjm4Fw2XiZWWr3fPUcI
-        IgRhNbQV93jlw6ysPM+aLzZbV9ABa2RCJ4F7rPm14sD6KJLtCTJQu0Q=
-X-Google-Smtp-Source: AGHT+IFOEx+C3bfi/cg9aJe+W1CyEYTAODyP1z7k1dE1LcRmzBWXPMQc1sQ2Pv7QPw6aWchIhQ5xPTtHb868sarlRdE=
-X-Received: by 2002:a67:f3c8:0:b0:44e:d85c:ac48 with SMTP id
- j8-20020a67f3c8000000b0044ed85cac48mr8052269vsn.5.1694425883024; Mon, 11 Sep
- 2023 02:51:23 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1694437170; x=1695041970;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=fLJlaWuhDVThUjdsKNhZE9FBGgOcB1eXtorgqabDS60=;
+        b=ahq8LcjtZyllXM0oP6U16662BglS6BGtsA8Yl9lfM5m3pXdCCcLhL6e6ZNjFTupW7/
+         Fsg62fxGwfAng5gnVADYY1R9tVowDKCzZ2XjAxHKkSr64g7Luyemha73TBYrCUg8ah9s
+         pzQNtw4t/fTdqVuDizNyXhyEMoetirKVIQaC75cQG/wgTR+KYlV7qXPL8nyPFPm5BkS0
+         du00w1o+ZEETR4SlzaXN/dJHJAnRbtrAIcS1QHjxCYIADMdYPcRNQWRWM1EjW52kM3A9
+         NG27jnndTL4aHy7DamdGVT9KESepC0r0mB5+Qc492hVx84ZzjdIzqS46XzXZa9ecN6tx
+         +H8A==
+X-Gm-Message-State: AOJu0Yw/Z2B0NEgELbMxCvOvUwb18g6uHP4E7EwlALNmxosZLwprICTm
+        5bJVr+IA53ZdZk8xFWc0jWGzr41gOCCyDqKb5BAXPydtmBvtgNwz23Ip+ZYtYPVGg8uNi9lHOUy
+        RKh4ntfnIQd9nkXJ/5y3FSfFsCKOvnA==
+X-Received: by 2002:a17:906:25b:b0:9aa:2b9:4559 with SMTP id 27-20020a170906025b00b009aa02b94559mr6847609ejl.41.1694437170406;
+        Mon, 11 Sep 2023 05:59:30 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEAJ3vBN5EImzM8ykAMY9iqMcBiknS3+lG2SPtItZjJ2lKtiLerDWHYPfQZO2GMQ7Iet+Je7Q==
+X-Received: by 2002:a17:906:25b:b0:9aa:2b9:4559 with SMTP id 27-20020a170906025b00b009aa02b94559mr6847598ejl.41.1694437170031;
+        Mon, 11 Sep 2023 05:59:30 -0700 (PDT)
+Received: from [10.40.98.142] ([78.108.130.194])
+        by smtp.gmail.com with ESMTPSA id op5-20020a170906bce500b0098de7d28c34sm5359593ejb.193.2023.09.11.05.59.28
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 11 Sep 2023 05:59:29 -0700 (PDT)
+Message-ID: <7c02ca96-9da0-6881-aa25-7863627baa14@redhat.com>
+Date:   Mon, 11 Sep 2023 14:59:28 +0200
 MIME-Version: 1.0
-References: <20230909141816.58358-1-hdegoede@redhat.com> <20230909141816.58358-3-hdegoede@redhat.com>
-In-Reply-To: <20230909141816.58358-3-hdegoede@redhat.com>
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Mon, 11 Sep 2023 11:51:12 +0200
-Message-ID: <CAMRc=MdnhF1DfaknaxNNt+paB86429C4_CjV5j5FgE0ZyJkR3g@mail.gmail.com>
-Subject: Re: [PATCH 2/8] gpiolib: acpi: Add a ignore interrupt quirk for Peaq C1010
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH 6/8] platform/x86: x86-android-tablets: Stop using gpiolib
+ private APIs
+Content-Language: en-US
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andy@kernel.org>,
         Linus Walleij <linus.walleij@linaro.org>,
         platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+References: <20230909141816.58358-1-hdegoede@redhat.com>
+ <20230909141816.58358-7-hdegoede@redhat.com>
+ <CAHp75Ve888X7xJ0VrQfswaStL8C3SHXjnJV35O2ajZVq6=KfMQ@mail.gmail.com>
+ <afda7862-3c36-98d8-43a3-dd67538de923@redhat.com>
+ <CAMRc=MdmzPWeZ7CtFe2b6xZFAges2cD-ckq4vn-+52CG=tVRSA@mail.gmail.com>
+ <ZP8OiuhvgLxAzmVE@smile.fi.intel.com>
+From:   Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <ZP8OiuhvgLxAzmVE@smile.fi.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Sep 9, 2023 at 4:18=E2=80=AFPM Hans de Goede <hdegoede@redhat.com> =
-wrote:
->
-> On the Peaq C1010 2-in-1 INT33FC:00 pin 3 is connected to
-> a "dolby" button. At the ACPI level an _AEI event-handler
-> is connected which sets an ACPI variable to 1 on both
-> edges. This variable can be polled + cleared to 0 using WMI.
->
-> Since the variable is set on both edges the WMI interface is pretty
-> useless even when polling. So instead of writing a custom WMI
-> driver for this the x86-android-tablets code instantiates
-> a gpio-keys platform device for the "dolby" button.
->
-> Add an ignore_interrupt quirk for INT33FC:00 pin 3 on the Peaq C1010,
-> so that it is not seen as busy when the gpio-keys driver requests it.
->
-> Note this replaces a hack in x86-android-tablets where it would
-> call acpi_gpiochip_free_interrupts() on the INT33FC:00 GPIO
-> controller. acpi_gpiochip_free_interrupts() is considered private
-> (internal) gpiolib API so x86-android-tablets should stop using it.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
+Hi,
 
-Acked-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+On 9/11/23 14:56, Andy Shevchenko wrote:
+> On Mon, Sep 11, 2023 at 02:49:44PM +0200, Bartosz Golaszewski wrote:
+>> On Sun, Sep 10, 2023 at 1:26 PM Hans de Goede <hdegoede@redhat.com> wrote:
+>>> On 9/10/23 10:24, Andy Shevchenko wrote:
+>>>> On Sat, Sep 9, 2023 at 5:18 PM Hans de Goede <hdegoede@redhat.com> wrote:
+> 
+> ...
+> 
+>>>>> +       gpiod = devm_gpiod_get(&x86_android_tablet_device->dev, con_id, dflags);
+> 
+> ^^^
+> 
+>>>>> -       *desc = gpiod;
+>>>>> +       if (desc)
+>>>>> +               *desc = gpiod;
+>>>>
+>>>> Are we expecting that callers may not want the GPIO descriptor out of
+>>>> this function?
+>>>> Sounds a bit weird if so.
+>>>
+>>> Yes specifically the Charge-enable and OTG (Vboost enable) pins on the
+>>> bq25892 charger on the Lenovo Yoga Tab 3 just need to be set to a fixed
+>>> value, so we request the pins with GPIOD_OUT_LOW / _HIGH and then
+>>> leave them at that value.
+>>
+>> You mean you leak the descriptor? It would warrant either a comment or
+>> storing the descriptor somewhere and cleaning it up if the device can
+>> be unbound (I guess it can since the driver can be built as module).
+> 
+> Note devm_*() above.
+
+Right, the GPIOs will be free-ed on unbound through the devm framework.
+
+Regards,
+
+Hans
+
