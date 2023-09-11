@@ -2,110 +2,121 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E662DCA0EC7
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D084CA0EC9
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243254AbjIKVTP (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:19:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51382 "EHLO
+        id S1345051AbjIKVTT (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:19:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236272AbjIKKFb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 06:05:31 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85003E68;
-        Mon, 11 Sep 2023 03:05:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1694426726; x=1725962726;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=00fLvhiMtv2ZiGvbKRwC5xfsj2n/I3VRQoCUrYTyoPk=;
-  b=jl2GuVQ0iTI0oRz0MkQVdaxATSUIUcHK+EK6YhVdHvcJgr9/D9jaWFjr
-   A0ptRbNEC0ApBO+JtBVMiFnMSCCOsTOZTdk5UD+iQDxVvje4Lqpz5pB08
-   rbtxdHxQWRuoF1DydnelJ+U8SGeQgSrVK5TlZKQNAvEsOZdiVitA0n+9N
-   BCZ7zruRf/ZgTd/SQDmUs9JWYzlhegseMge/UkDSffachRH+IbnEiEuQH
-   rA314T4LTrq4x7K8//h2yN56JKIA85KdDhjqiT+YNGNkrS8mFamlnHS9R
-   oItCnMlJ7jzIoTx5ZmUSpt/lEp46bwjfGZUqYm3xLfnbb5S7XemKSouiq
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10829"; a="363065949"
-X-IronPort-AV: E=Sophos;i="6.02,243,1688454000"; 
-   d="scan'208";a="363065949"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Sep 2023 03:05:24 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10829"; a="866884962"
-X-IronPort-AV: E=Sophos;i="6.02,243,1688454000"; 
-   d="scan'208";a="866884962"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga004.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Sep 2023 03:05:18 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1qfdn9-008HnB-00;
-        Mon, 11 Sep 2023 13:05:15 +0300
-Date:   Mon, 11 Sep 2023 13:05:14 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Bartosz Golaszewski <brgl@bgdev.pl>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: Re: [RFT PATCH 11/21] platform: x86: android-tablets: don't access
- GPIOLIB private members
-Message-ID: <ZP7mWk/jx3FZjMih@smile.fi.intel.com>
-References: <20230905185309.131295-1-brgl@bgdev.pl>
- <20230905185309.131295-12-brgl@bgdev.pl>
- <8f51b4a8-bb9c-4918-61a8-4ab402da1ed0@redhat.com>
- <CAMRc=Mfmp3Nd5jwNWr=kc8RFO-arFDwEvLxj5Qu9_1OOXR2gHQ@mail.gmail.com>
- <173bdafa-08da-7473-6711-61131986eb3c@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <173bdafa-08da-7473-6711-61131986eb3c@redhat.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+        with ESMTP id S244449AbjIKUgv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 16:36:51 -0400
+Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E307F1AD
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 13:36:45 -0700 (PDT)
+Received: by mail-yb1-xb4a.google.com with SMTP id 3f1490d57ef6-d7b957fd276so4335343276.0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 13:36:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1694464605; x=1695069405; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=2FnzDM/qQAqed9imlJULqe1YljfAs+NqW+4eAtGoZVY=;
+        b=1U5Wpr8Z1ntC5r0NmUbmnav0wxs52+MVc5TiUu57x4su+ZP1jvlrhuTqvBciYvd6it
+         CnuOV8RyauMJK03yxAkPrZm9IAn3JfZteLJXyW/fbdgbwCwdiqO2M0dBhdrjmDmVvL9v
+         jXMHBZUduNF/b5JC2Oj6Syh12c8FQ9VjvgHk45v+0hyGwSe9i2omChAvIdr2JUQYKu7q
+         Kt5s5ytc/4bOrtVIVNlY6j9Ifd+G4jpsRkp8M17opg7P/70hEFvgQK2+xdrqJtLShuEl
+         oRXXZ9a9udvlkElMSMqmPtZMBPcMnOj2u+znhj4Oe7GOAU+XPhogk3uCuDtqJ73G3F73
+         ou0g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694464605; x=1695069405;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=2FnzDM/qQAqed9imlJULqe1YljfAs+NqW+4eAtGoZVY=;
+        b=Mdo2wVITLOO5sCQAel00+ULsg9T/V4mOU0tzpTdLwAkON5+YDBY1Vo4ybLg8OPqEKN
+         nxaeTKb0o2H3DzdZwXFEwHpRqXudfYIQrjaBwNieNndtV/jIGzAiZZMaUwoj3UnSsnpF
+         dU3n1q5cP6JlRtqzBGwBrMhGvYdlEGWoxtSpdqk1mYCIbir6T+olR7H5SDV0pY5Twzqv
+         N20AHNKbbsumWeJqM8iOcLG92poIP18kglAci5ITKMTeDcQz+aP2kXvClyxHBRqi2tOl
+         bY6shiGeyIkNHpcMfCqeabhhuHQnu7xRW9Uw+FNSnvdcOc8pkggJZ9bhJ6J1t8bsP2T/
+         kuXw==
+X-Gm-Message-State: AOJu0YxnwkruNe8KJDSdiav6iOPu2b41aOfO9KdUIx6Mf7TyC/LC70kO
+        srcflAcnTkLlDwdfES3oEi0TjSg/kS9kUkL32g==
+X-Google-Smtp-Source: AGHT+IFavwzswLW8yPM+m4Foezkzk+uicGyjzH3OefTfV/uWSx1gYNKGFR6NefIDbvFvpW7kzYGAGZiPqAq40xkDnA==
+X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
+ (user=justinstitt job=sendgmr) by 2002:a25:a28d:0:b0:d78:2690:5a47 with SMTP
+ id c13-20020a25a28d000000b00d7826905a47mr230661ybi.7.1694464605062; Mon, 11
+ Sep 2023 13:36:45 -0700 (PDT)
+Date:   Mon, 11 Sep 2023 20:36:44 +0000
+Mime-Version: 1.0
+X-B4-Tracking: v=1; b=H4sIAFt6/2QC/x3MQQqEMAwAwK9Izhtoq1D1K8seNEbNpZZkEUX8u
+ 8XjXOYCYxU26KsLlHcx2VKB/1RA65AWRpmKIbhQu857tL8myidOKjur4UBZcDNBQmqdH2MTYtd GKEFWnuV48+/vvh8Kurk9bAAAAA==
+X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1694464604; l=1891;
+ i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
+ bh=HNx9V4mK74WpkVhxiiuXehucuUIfIncQWa1keuFMymQ=; b=AO4I7CYDSx3ySiPi/FSRJ83HNqGFyhMdWiNYmP5m9j56lpVc9OLlQ9PlTc/x1Y2aKb0JecpaD
+ JdLryhyC6dtArDawSx61qfJu6+mUxUflGPGixf6WDbGpq2P/1WDKP6m
+X-Mailer: b4 0.12.3
+Message-ID: <20230911-strncpy-drivers-acpi-osi-c-v1-1-ca2ec0667b18@google.com>
+Subject: [PATCH] ACPI: OSI: refactor deprecated strncpy
+From:   Justin Stitt <justinstitt@google.com>
+To:     "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>
+Cc:     linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
+        Justin Stitt <justinstitt@google.com>
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Sep 09, 2023 at 04:17:53PM +0200, Hans de Goede wrote:
-> On 9/6/23 16:27, Bartosz Golaszewski wrote:
-> > On Wed, Sep 6, 2023 at 3:01 PM Hans de Goede <hdegoede@redhat.com> wrote:
+`strncpy` is deprecated for use on NUL-terminated destination strings [1].
 
-...
+We know `osi->string` is a NUL-terminated string due to its eventual use
+in `acpi_install_interface()` and `acpi_remove_interface()` which expect
+a `acpi_string` which has been specifically typedef'd as:
+|  typedef char *acpi_string;	/* Null terminated ASCII string */
 
-> > This makes sense! Maybe we'd need a good-old board file setting up all
-> > non-described devices using the driver model?
-> 
-> Right, this is pretty much exactly what the x86-android-tablets
-> code does. Except that it does it for a bunch of boards in a single
-> .ko / driver. There is a lot of commonality between these boards,
-> so this allows sharing most of the code.
-> 
-> The driver uses DMI matching, with the match's driver_data pointing
-> to a description of which devices to instantiate and then the shared
-> code takes care of instantiating those.
-> 
-> About 90% of the data / code is __init or __initdata so both
-> the code to instantiate the devices as well as the per board
-> data is free-ed after module_init() has run.
+... and which also has other string functions used on it like `strlen`.
+Furthermore, padding is not needed in this instance either.
 
-...which is nicely looked and isolated hack (or quirk if you prefer)
-that I like! Thanks, Hans, for maintaining that!
+Due to the reasoning above a suitable replacement is `strscpy` [2] since
+it guarantees NUL-termination on the destination buffer and doesn't
+unnecessarily NUL-pad.
 
--- 
-With Best Regards,
-Andy Shevchenko
+While there is unlikely to be a buffer overread (or other related bug)
+in this case, we should still favor a more robust and less ambiguous
+interface.
 
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
+Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html [2]
+Link: https://github.com/KSPP/linux/issues/90
+Cc: linux-hardening@vger.kernel.org
+Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: Justin Stitt <justinstitt@google.com>
+---
+Note: build-tested
+---
+ drivers/acpi/osi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+index d4405e1ca9b9..df9328c850bd 100644
+--- a/drivers/acpi/osi.c
++++ b/drivers/acpi/osi.c
+@@ -110,7 +110,7 @@ void __init acpi_osi_setup(char *str)
+ 			break;
+ 		} else if (osi->string[0] == '\0') {
+ 			osi->enable = enable;
+-			strncpy(osi->string, str, OSI_STRING_LENGTH_MAX);
++			strscpy(osi->string, str, OSI_STRING_LENGTH_MAX);
+ 			break;
+ 		}
+ 	}
+
+---
+base-commit: 2dde18cd1d8fac735875f2e4987f11817cc0bc2c
+change-id: 20230911-strncpy-drivers-acpi-osi-c-c801b7427987
+
+Best regards,
+--
+Justin Stitt <justinstitt@google.com>
 
