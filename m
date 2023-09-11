@@ -2,83 +2,99 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E4D6CA0EC9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE37ECA0ED0
 	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242655AbjIKVTA (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:19:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33020 "EHLO
+        id S237604AbjIKVSy (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:18:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237438AbjIKMuw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 08:50:52 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 40BA5CEB;
-        Mon, 11 Sep 2023 05:50:48 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 6F29580A2;
-        Mon, 11 Sep 2023 12:50:47 +0000 (UTC)
-Date:   Mon, 11 Sep 2023 15:50:46 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: Re: [RFT PATCH 15/21] arm: omap1: ams-delta: stop using
- gpiochip_find()
-Message-ID: <20230911125046.GA5285@atomide.com>
-References: <20230905185309.131295-1-brgl@bgdev.pl>
- <20230905185309.131295-16-brgl@bgdev.pl>
- <CACRpkdaVUPNYVjAi2XsNKVhwmtk2qpVp62Lke4xeDOwhhBXLtg@mail.gmail.com>
- <6555932.G0QQBjFxQf@dell>
- <CAMRc=Mfrk9q6fJyEAuxDXYPpbjVHeLJaTjHEcKiYHzrE3r+_7A@mail.gmail.com>
+        with ESMTP id S242655AbjIKQDp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 12:03:45 -0400
+Received: from mail-ot1-x336.google.com (mail-ot1-x336.google.com [IPv6:2607:f8b0:4864:20::336])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB301AE
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 09:03:40 -0700 (PDT)
+Received: by mail-ot1-x336.google.com with SMTP id 46e09a7af769-6c07e122a78so3304996a34.2
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 09:03:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694448219; x=1695053019; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UjGgx/qsfESzch376+5oi8LKtc3yIfVpyjdNPeJr0YM=;
+        b=IqgKLwGHB2c+YOvo309pWtvFau9RpYk+a8TJKUlD7mRl2RA4g7IZlH+Owv6dP1BcJe
+         5ifNfwqe9rhbB6utXjARlKAMZwuaLO2FzoSXkEuL530YIbMr9WB2oZfCqknJ+k+4gnc9
+         33CjhoN5Md0sD1cpFVFAS8QbD7IcLE/2qFXZzC8pPLpfO0a6cAw/QXJdchF7S+jPvXWa
+         Bz/nGTX0Ki2RFGSnr/2DlvaTZaIhClNi24FThlEEP2Ky9pJ72MvXMYzJg9XBQpSGz6XM
+         x6qV9tuiWtYpuuHVcEKDOkiN0YzpCN7Eyzv1Cw63e2jX+u2lGjO4b2mLt0B4Kelg33tr
+         4jgQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694448219; x=1695053019;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=UjGgx/qsfESzch376+5oi8LKtc3yIfVpyjdNPeJr0YM=;
+        b=pUz5yyh0DcattInZiK8oSNVYLmTk5kcWYin8Sm8qRhflaMDgqMeRn1YBxmQV/2oY/n
+         u0GaePQqSfwszP8E5K/nJJx9yGnhCCwQoCH2YiJ6WbpsYnWTmZEe8wU/gNspMBDqNNbS
+         kRsFTCalnXMoiAQwSmq8bcvqTfeOhrYIXoOADb96f/42CU6aTLj0I2jp+dhOlGThECdS
+         4LTR5DY/vVQFD1RNFG1C3hvJCxfuRUduPL5R+/35rxvQ2os0k8cJH4cSVmempMkQ9/5B
+         9d67Vpka18BVqoeB+LgmfOOIfzPHTL7DabTDMG8GdJboY4SdD5IEZHWgULAqMkfiQFto
+         v4zg==
+X-Gm-Message-State: AOJu0YyH6frPqe+yIQIv1nTH2XPLaXFTe3xsQ13Fu+32FvAhOJgQaiXi
+        Cp/VtTP8PHz3Ln1JR0bu3LMq5LbRmFT6nGiHr6k3uw==
+X-Google-Smtp-Source: AGHT+IF1yXG5te+VZENGbmsEJ8NJo/z1jgMv5tj0n2Ra074S3+aBtzRPFr249Z8LfT2JGb3cLSR9ZERaLrPdqnXjwtU=
+X-Received: by 2002:a05:6808:a1a:b0:3a7:53a8:aed2 with SMTP id
+ n26-20020a0568080a1a00b003a753a8aed2mr10695492oij.7.1694448219432; Mon, 11
+ Sep 2023 09:03:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=Mfrk9q6fJyEAuxDXYPpbjVHeLJaTjHEcKiYHzrE3r+_7A@mail.gmail.com>
+References: <20230909141816.58358-1-hdegoede@redhat.com> <20230909141816.58358-7-hdegoede@redhat.com>
+ <CAMRc=MfeKirks7N7scu+dh+M1Nf0bNxzC7PE2Q7J4bxgpRnECw@mail.gmail.com>
+ <0b1e0312-9144-85ed-666e-a84110b26418@redhat.com> <CAMRc=MfVZCqc-v+5oMkTkhfLvq1pE66E7GykqT2ymxzS_kw83w@mail.gmail.com>
+ <01a85a3d-c888-11d8-f47e-be2a26d0cb9d@redhat.com> <CAMRc=MeGRreVVz=tCnEWtvixV+ZNEXXvG5SVRRmmnWG_sawMcg@mail.gmail.com>
+ <bf866db7-1231-2fd6-eedf-b287ca4fa1b8@redhat.com> <CAMRc=MdXLBnjFPE8Ac9tFQj6BXEyV6kRyDFNytsdQa++Yk6suw@mail.gmail.com>
+ <22698b72-b293-9ad8-908f-f6aee85430d7@redhat.com> <ZP80AKHkUyFP7B06@smile.fi.intel.com>
+In-Reply-To: <ZP80AKHkUyFP7B06@smile.fi.intel.com>
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+Date:   Mon, 11 Sep 2023 18:03:28 +0200
+Message-ID: <CAMRc=MdyZs7bPSnrKJDi388kjKZnA3vHLEa9unqboiSHwNa=Fw@mail.gmail.com>
+Subject: Re: [PATCH 6/8] platform/x86: x86-android-tablets: Stop using gpiolib
+ private APIs
+To:     Andy Shevchenko <andy@kernel.org>
+Cc:     Hans de Goede <hdegoede@redhat.com>,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-* Bartosz Golaszewski <brgl@bgdev.pl> [230911 11:10]:
-> On Fri, Sep 8, 2023 at 8:07 PM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
-> >
-> > Dnia czwartek, 7 września 2023 09:31:01 CEST Linus Walleij pisze:
-> > > On Tue, Sep 5, 2023 at 8:53 PM Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> > >
-> > > > From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-> > > >
-> > > > gpiochip_find() is going away as it's not hot-unplug safe. This platform
-> > > > is not affected by any of the related problems as this GPIO controller
-> > > > cannot really go away but in order to finally remove this function, we
-> > > > need to convert it to using gpio_device_find() as well.
-> > > >
-> > > > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-> > >
-> > > I was cleaning this one just some merge cycle ago, now it
-> > > looks even better!
-> > > Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-> >
-> > Acked-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> >
-> 
-> Janusz,
-> 
-> Is it fine if I take it through the GPIO tree?
+On Mon, Sep 11, 2023 at 5:36=E2=80=AFPM Andy Shevchenko <andy@kernel.org> w=
+rote:
+>
+> On Mon, Sep 11, 2023 at 04:12:00PM +0200, Hans de Goede wrote:
+> > On 9/11/23 16:04, Bartosz Golaszewski wrote:
+>
+> ...
+>
+> > >>>>>>>> +       lookup->dev_id =3D KBUILD_MODNAME;
+> > >>>>>>>> +       lookup->table[0].key =3D chip;
+> > >>>>>>>> +       lookup->table[0].chip_hwnum =3D pin;
+> > >>>>>>>> +       lookup->table[0].con_id =3D con_id;
+> > >>>>>>>> +       lookup->table[0].flags =3D active_low ? GPIO_ACTIVE_LO=
+W : GPIO_ACTIVE_HIGH;
+>
+> Actually you can use GPIO_LOOKUP() macro here as it provides a compound
+> literal.
+>
+>         lookup->table[0] =3D GPIO_LOOKUP(...);
+>
+> > Therefor I don't want to / cannot change the hashes of the commits,
+> > so a follow-up patch it is.
+>
 
-Works for me at least:
+Which makes me think, I should have used it in my SPI patch...
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Bart
