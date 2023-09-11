@@ -2,172 +2,155 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD34CA0EC5
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C0F6CA0EC2
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239797AbjIKVTJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:19:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56674 "EHLO
+        id S1345021AbjIKVTL (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:19:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237844AbjIKNPA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 09:15:00 -0400
-Received: from mail-vs1-xe32.google.com (mail-vs1-xe32.google.com [IPv6:2607:f8b0:4864:20::e32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A39F2CF0
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 06:14:54 -0700 (PDT)
-Received: by mail-vs1-xe32.google.com with SMTP id ada2fe7eead31-44d4d997dcfso1733735137.0
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 06:14:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694438093; x=1695042893; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RmHlHXBKieO1ptu2ldznM8ZuZhTbj+/naN6JcvAFLCM=;
-        b=wMbspLXnU4SWJPP2pyiFS+UPFCNPGYLSf7ttzlXYAlHzDhVZW7HVGa2l9NwlellZJE
-         njOC3G16h+joZnmK7I9iIFB+fNBIjy4gsffff7BLFLKycGVnAhDL9SNDPFOKQVtPIyKL
-         KgvKxOKEeCpMKUx+LLmH4Kve69knsX4HPJjf0h5QaVBII8vQBPS4tD0JkrVZaqxhJisA
-         jnYS2/kGs69torDAx8w+jn0ySA4fIvj3s8mGyhCjeMldRAFv4+DiDllCXiYLIuZIky1Y
-         bi34YIU6PyRFd+MPjR5QGvsk+pqn/ffJoDFP2AXXlp/Bu18d3f+Mqsa5qSk/HAHiD5Mj
-         ZPEQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694438093; x=1695042893;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=RmHlHXBKieO1ptu2ldznM8ZuZhTbj+/naN6JcvAFLCM=;
-        b=hpU/BIFLEdHf80Cf1MRqbzxPfWVCAXan1XdqGRmC/sYqARSHxbUj8C8WDsHx31kmvQ
-         Y8Wmc9CBwTm3UfRfYNJXOl8GWp08bifdx/h/boE8fUSd9hyERAdeyIVrM/1h2BgOj+wS
-         T/YQUoVv64VxzWuKnT0+L5nFSpuKhNjLPoOo/roonJt67T5OZbjSvWuda2Gj7YNUX0Ts
-         lgmnW+vDurp5/zvRP0XfuSkVkEB3Y54NoBnEinOndNcya/8mwUFTWCkxFj7fUwyhUkQh
-         /KcXe5OWbc9C594HRuR4dq0miL5pqWmXlbRaM609AUe3PUCW/zOW2UjMjVtBOlhXJsCs
-         roiw==
-X-Gm-Message-State: AOJu0YwFOk8L4beX/Ni6hOhvCddAmZAVULptW3+ldPYEfczRN851TZrr
-        2DRuyWleXcgM9+40h2v3IoCvfRx6LoxLS4ifXJ4q2Q==
-X-Google-Smtp-Source: AGHT+IGbBUp7apcBf0Wo94rPuei/uMCOLdfymAUYtbXkWV6tuJHuzpKRqe3xeH+LKJOYB5mMHTLfbCwIf2IHKGe4l8I=
-X-Received: by 2002:a67:fe92:0:b0:44d:5a92:ec45 with SMTP id
- b18-20020a67fe92000000b0044d5a92ec45mr8588355vsr.23.1694438093755; Mon, 11
- Sep 2023 06:14:53 -0700 (PDT)
+        with ESMTP id S236193AbjIKJzN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 05:55:13 -0400
+Received: from mx1.zhaoxin.com (MX1.ZHAOXIN.COM [210.0.225.12])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE9FBE67
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 02:55:07 -0700 (PDT)
+X-ASG-Debug-ID: 1694426104-086e234a2b485f0001-I98ny2
+Received: from ZXSHMBX2.zhaoxin.com (ZXSHMBX2.zhaoxin.com [10.28.252.164]) by mx1.zhaoxin.com with ESMTP id Y8LIEnxLF2E8zCXN (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Mon, 11 Sep 2023 17:55:04 +0800 (CST)
+X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.164
+Received: from ZXBJMBX03.zhaoxin.com (10.29.252.7) by ZXSHMBX2.zhaoxin.com
+ (10.28.252.164) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 11 Sep
+ 2023 17:55:02 +0800
+Received: from [192.168.1.204] (125.76.214.122) by ZXBJMBX03.zhaoxin.com
+ (10.29.252.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 11 Sep
+ 2023 17:54:56 +0800
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.164
+Message-ID: <9e4fa680-f96e-4dfc-a047-37a2a5f8b779@zhaoxin.com>
+X-Barracuda-RBL-Trusted-Forwarder: 192.168.1.204
+Date:   Mon, 11 Sep 2023 17:54:54 +0800
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-3-brgl@bgdev.pl>
- <ZPiISpLoVx35PuYc@smile.fi.intel.com>
-In-Reply-To: <ZPiISpLoVx35PuYc@smile.fi.intel.com>
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Mon, 11 Sep 2023 15:14:42 +0200
-Message-ID: <CAMRc=MfLGZNmQT55dtrLuqsKbfXjTn7kqOm029oJrOnH002wBw@mail.gmail.com>
-Subject: Re: [PATCH 02/21] gpiolib: provide gpio_device_find()
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 2/5] ACPI/APEI: Remove static from apei_hest_parse()
+To:     Bjorn Helgaas <helgaas@kernel.org>
+X-ASG-Orig-Subj: Re: [PATCH v3 2/5] ACPI/APEI: Remove static from apei_hest_parse()
+CC:     <lenb@kernel.org>, <james.morse@arm.com>, <tony.luck@intel.com>,
+        <bp@alien8.de>, <bhelgaas@google.com>, <robert.moore@intel.com>,
+        <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>,
+        <acpica-devel@lists.linuxfoundation.org>, <ErosZhang@zhaoxin.com>
+References: <20230810231718.GA49532@bhelgaas>
+From:   LeoLiu-oc <leoliu-oc@zhaoxin.com>
+In-Reply-To: <20230810231718.GA49532@bhelgaas>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [125.76.214.122]
+X-ClientProxiedBy: ZXSHCAS1.zhaoxin.com (10.28.252.161) To
+ ZXBJMBX03.zhaoxin.com (10.29.252.7)
+X-Barracuda-Connect: ZXSHMBX2.zhaoxin.com[10.28.252.164]
+X-Barracuda-Start-Time: 1694426104
+X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
+X-Barracuda-URL: https://10.28.252.35:4443/cgi-mod/mark.cgi
+X-Virus-Scanned: by bsmtpd at zhaoxin.com
+X-Barracuda-Scan-Msg-Size: 3311
+X-Barracuda-BRTS-Status: 1
+X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
+X-Barracuda-Spam-Score: -2.02
+X-Barracuda-Spam-Status: No, SCORE=-2.02 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=
+X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.113956
+        Rule breakdown below
+         pts rule name              description
+        ---- ---------------------- --------------------------------------------------
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Wed, Sep 6, 2023 at 4:10=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Tue, Sep 05, 2023 at 08:52:50PM +0200, Bartosz Golaszewski wrote:
-> > From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-> >
-> > gpiochip_find() is wrong and its kernel doc is misleading as the
-> > function doesn't return a reference to the gpio_chip but just a raw
-> > pointer. The chip itself is not guaranteed to stay alive, in fact it ca=
-n
-> > be deleted at any point. Also: other than GPIO drivers themselves,
-> > nobody else has any business accessing gpio_chip structs.
-> >
-> > Provide a new gpio_device_find() function that returns a real reference
-> > to the opaque gpio_device structure that is guaranteed to stay alive fo=
-r
-> > as long as there are active users of it.
->
-> ...
->
-> > +/**
-> > + * gpio_device_find() - find a specific GPIO device
-> > + * @data: data to pass to match function
-> > + * @match: Callback function to check gpio_chip
->
-> > + * Returns:
-> > + * New reference to struct gpio_device.
->
-> I believe this is wrong location of the Return section.
-> AFAIU how kernel doc uses section markers, this entire description become=
-s
-> a Return(s) section. Have you tried to render man/html/pdf and see this?
->
 
-Yes, it works just fine. Try for yourself: scripts/kernel-doc -rst
-drivers/gpio/gpiolib.c
 
-Bart
+在 2023/8/11 7:17, Bjorn Helgaas 写道:
+> On Tue, Jul 04, 2023 at 08:05:17PM +0800, LeoLiu-oc wrote:
+>> From: leoliu-oc <leoliu-oc@zhaoxin.com>
+>>
+>> Each dev with AER capability needs to call the apei_hest_parse function to
+>> match and extract register values from HEST PCIe AER structures.
+>> Therefore, remove static from apei_hest_parse() so that it can be called
+>> in another file.
+> 
+> Can you reword the subject line and commit log in the positive?
+> "Removing static" is a negative thing and it's semantically a bit too
+> low level -- it's clearly what the *code* does, but we can see that
+> from the patch, and what we want to know here is *why* it's important.
+> What this really does is expose apei_hest_parse() for use by other
+> subsystems.
+> 
+> Browsing the drivers/acpi commit log history, I see that Rafael adds
+> "()" after function names, so please do the same here (you did do that
+> once above, but not in the first line).
+> 
 
-> > + * Similar to bus_find_device(). It returns a reference to a gpio_devi=
-ce as
-> > + * determined by a user supplied @match callback. The callback should =
-return
-> > + * 0 if the device doesn't match and non-zero if it does. If the callb=
-ack
-> > + * returns non-zero, this function will return to the caller and not i=
-terate
-> > + * over any more gpio_devices.
-> > + *
-> > + * The callback takes the GPIO chip structure as argument. During the =
-execution
-> > + * of the callback function the chip is protected from being freed. TO=
-DO: This
-> > + * actually has yet to be implemented.
-> > + *
-> > + * If the function returns non-NULL, the returned reference must be fr=
-eed by
-> > + * the caller using gpio_device_put().
-> > + */
-> > +struct gpio_device *gpio_device_find(void *data,
+
+This function is required in patch v3 4/5 to traverse the HEST to find 
+the HEST AER structures, so changed the definition to be global.
+
+I will pay attention to this matter in the next version.
+
+LeoLiu-oc
+
+>> Signed-off-by: leoliu-oc <leoliu-oc@zhaoxin.com>
+>> ---
+>>   drivers/acpi/apei/hest.c | 2 +-
+>>   include/acpi/apei.h      | 5 +++++
+>>   2 files changed, 6 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+>> index fb839a5c480ee..fd40c035c9b2e 100644
+>> --- a/drivers/acpi/apei/hest.c
+>> +++ b/drivers/acpi/apei/hest.c
+>> @@ -132,7 +132,7 @@ static bool hest_match_pci(struct acpi_hest_header *hest_hdr,
+>>   	return false;
+>>   }
+>>   
+>> -static int apei_hest_parse(apei_hest_func_t func, void *data)
+>> +int apei_hest_parse(apei_hest_func_t func, void *data)
+> 
+> If this is going to exported to the PCI subsystem, I think it needs
+> some kernel-doc.  For example, it's important to know that it stops
+> parsing the HEST if func returns anything non-zero.  This is how
+> pci_acpi_program_hest_aer_params() knows that it got good data that
+> matches the device it wants.
+> 
+> Given the fact that apei_hest_parse_aer() fills in the struct
+> acpi_hest_parse_aer_info with pointers into the HEST table data, it's
+> also important to know that this HEST table data is persistent.
 >
-> > +                                  int (*match)(struct gpio_chip *gc,
-> > +                                               void *data))
->
-> One line?
-> Or maybe a type for it? (gpio_match_fn, for example)
->
-> > +{
-> > +     struct gpio_device *gdev;
-> > +
-> > +     guard(spinlock_irqsave)(&gpio_lock);
-> > +
-> > +     list_for_each_entry(gdev, &gpio_devices, list) {
-> > +             if (gdev->chip && match(gdev->chip, data))
-> > +                     return gpio_device_get(gdev);
-> > +     }
-> > +
-> > +     return NULL;
-> > +}
->
-> ...
->
-> > +struct gpio_device *gpio_device_find(void *data,
-> > +                                  int (*match)(struct gpio_chip *gc,
-> > +                                               void *data));
->
-> Ditto.
->
->
-> --
-> With Best Regards,
-> Andy Shevchenko
->
->
+Thank you suggestion, and I will consider carefully.
+
+Best Regards.
+LeoLiu-oc
+
+>>   {
+>>   	struct acpi_hest_header *hest_hdr;
+>>   	int i, rc, len;
+>> diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+>> index 8a0b2b9edbafe..f975e4fe78fcb 100644
+>> --- a/include/acpi/apei.h
+>> +++ b/include/acpi/apei.h
+>> @@ -37,9 +37,14 @@ typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
+>>   
+>>   #ifdef CONFIG_ACPI_APEI
+>>   void __init acpi_hest_init(void);
+>> +int apei_hest_parse(apei_hest_func_t func, void *data);
+>>   int apei_hest_parse_aer(struct acpi_hest_header *hest_hdr, void *data);
+>>   #else
+>>   static inline void acpi_hest_init(void) { }
+>> +static inline int apei_hest_parse(apei_hest_func_t func, void *data)
+>> +{
+>> +	return -EINVAL;
+>> +}
+>>   static inline int apei_hest_parse_aer(struct acpi_hest_header *hest_hdr, void *data)
+>>   {
+>>   	return -EINVAL;
+>> -- 
+>> 2.34.1
+>>
