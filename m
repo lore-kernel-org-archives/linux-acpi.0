@@ -2,123 +2,172 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FC10CA0EC9
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD34CA0EC5
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237564AbjIKVSv (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:18:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45786 "EHLO
+        id S239797AbjIKVTJ (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:19:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237604AbjIKNAY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 09:00:24 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 91F62CF0
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 05:59:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1694437173;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=fLJlaWuhDVThUjdsKNhZE9FBGgOcB1eXtorgqabDS60=;
-        b=FWQn6fEwQfeAaNFHi2rT9xRjSh9ZDp2lej0d9bxWGIMhvvpOTigqI367rOj3HhfF3lrUhI
-        rEjqZU34sK8IFtQQVFXU2SSqsxiGBya2GpvDcANokgU27ykk1seRrw0CTE5UzHzotZtPVf
-        Xwu5xaRcLvKtI2m2YVSjRBb9yeKwuV0=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-351-tReJRIRaNkeTi3wAvORuAQ-1; Mon, 11 Sep 2023 08:59:32 -0400
-X-MC-Unique: tReJRIRaNkeTi3wAvORuAQ-1
-Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-99c8bbc902eso305375866b.1
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 05:59:32 -0700 (PDT)
+        with ESMTP id S237844AbjIKNPA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 09:15:00 -0400
+Received: from mail-vs1-xe32.google.com (mail-vs1-xe32.google.com [IPv6:2607:f8b0:4864:20::e32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A39F2CF0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 06:14:54 -0700 (PDT)
+Received: by mail-vs1-xe32.google.com with SMTP id ada2fe7eead31-44d4d997dcfso1733735137.0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 06:14:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694438093; x=1695042893; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=RmHlHXBKieO1ptu2ldznM8ZuZhTbj+/naN6JcvAFLCM=;
+        b=wMbspLXnU4SWJPP2pyiFS+UPFCNPGYLSf7ttzlXYAlHzDhVZW7HVGa2l9NwlellZJE
+         njOC3G16h+joZnmK7I9iIFB+fNBIjy4gsffff7BLFLKycGVnAhDL9SNDPFOKQVtPIyKL
+         KgvKxOKEeCpMKUx+LLmH4Kve69knsX4HPJjf0h5QaVBII8vQBPS4tD0JkrVZaqxhJisA
+         jnYS2/kGs69torDAx8w+jn0ySA4fIvj3s8mGyhCjeMldRAFv4+DiDllCXiYLIuZIky1Y
+         bi34YIU6PyRFd+MPjR5QGvsk+pqn/ffJoDFP2AXXlp/Bu18d3f+Mqsa5qSk/HAHiD5Mj
+         ZPEQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694437170; x=1695041970;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=fLJlaWuhDVThUjdsKNhZE9FBGgOcB1eXtorgqabDS60=;
-        b=ahq8LcjtZyllXM0oP6U16662BglS6BGtsA8Yl9lfM5m3pXdCCcLhL6e6ZNjFTupW7/
-         Fsg62fxGwfAng5gnVADYY1R9tVowDKCzZ2XjAxHKkSr64g7Luyemha73TBYrCUg8ah9s
-         pzQNtw4t/fTdqVuDizNyXhyEMoetirKVIQaC75cQG/wgTR+KYlV7qXPL8nyPFPm5BkS0
-         du00w1o+ZEETR4SlzaXN/dJHJAnRbtrAIcS1QHjxCYIADMdYPcRNQWRWM1EjW52kM3A9
-         NG27jnndTL4aHy7DamdGVT9KESepC0r0mB5+Qc492hVx84ZzjdIzqS46XzXZa9ecN6tx
-         +H8A==
-X-Gm-Message-State: AOJu0Yw/Z2B0NEgELbMxCvOvUwb18g6uHP4E7EwlALNmxosZLwprICTm
-        5bJVr+IA53ZdZk8xFWc0jWGzr41gOCCyDqKb5BAXPydtmBvtgNwz23Ip+ZYtYPVGg8uNi9lHOUy
-        RKh4ntfnIQd9nkXJ/5y3FSfFsCKOvnA==
-X-Received: by 2002:a17:906:25b:b0:9aa:2b9:4559 with SMTP id 27-20020a170906025b00b009aa02b94559mr6847609ejl.41.1694437170406;
-        Mon, 11 Sep 2023 05:59:30 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEAJ3vBN5EImzM8ykAMY9iqMcBiknS3+lG2SPtItZjJ2lKtiLerDWHYPfQZO2GMQ7Iet+Je7Q==
-X-Received: by 2002:a17:906:25b:b0:9aa:2b9:4559 with SMTP id 27-20020a170906025b00b009aa02b94559mr6847598ejl.41.1694437170031;
-        Mon, 11 Sep 2023 05:59:30 -0700 (PDT)
-Received: from [10.40.98.142] ([78.108.130.194])
-        by smtp.gmail.com with ESMTPSA id op5-20020a170906bce500b0098de7d28c34sm5359593ejb.193.2023.09.11.05.59.28
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 11 Sep 2023 05:59:29 -0700 (PDT)
-Message-ID: <7c02ca96-9da0-6881-aa25-7863627baa14@redhat.com>
-Date:   Mon, 11 Sep 2023 14:59:28 +0200
+        d=1e100.net; s=20230601; t=1694438093; x=1695042893;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=RmHlHXBKieO1ptu2ldznM8ZuZhTbj+/naN6JcvAFLCM=;
+        b=hpU/BIFLEdHf80Cf1MRqbzxPfWVCAXan1XdqGRmC/sYqARSHxbUj8C8WDsHx31kmvQ
+         Y8Wmc9CBwTm3UfRfYNJXOl8GWp08bifdx/h/boE8fUSd9hyERAdeyIVrM/1h2BgOj+wS
+         T/YQUoVv64VxzWuKnT0+L5nFSpuKhNjLPoOo/roonJt67T5OZbjSvWuda2Gj7YNUX0Ts
+         lgmnW+vDurp5/zvRP0XfuSkVkEB3Y54NoBnEinOndNcya/8mwUFTWCkxFj7fUwyhUkQh
+         /KcXe5OWbc9C594HRuR4dq0miL5pqWmXlbRaM609AUe3PUCW/zOW2UjMjVtBOlhXJsCs
+         roiw==
+X-Gm-Message-State: AOJu0YwFOk8L4beX/Ni6hOhvCddAmZAVULptW3+ldPYEfczRN851TZrr
+        2DRuyWleXcgM9+40h2v3IoCvfRx6LoxLS4ifXJ4q2Q==
+X-Google-Smtp-Source: AGHT+IGbBUp7apcBf0Wo94rPuei/uMCOLdfymAUYtbXkWV6tuJHuzpKRqe3xeH+LKJOYB5mMHTLfbCwIf2IHKGe4l8I=
+X-Received: by 2002:a67:fe92:0:b0:44d:5a92:ec45 with SMTP id
+ b18-20020a67fe92000000b0044d5a92ec45mr8588355vsr.23.1694438093755; Mon, 11
+ Sep 2023 06:14:53 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH 6/8] platform/x86: x86-android-tablets: Stop using gpiolib
- private APIs
-Content-Language: en-US
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-3-brgl@bgdev.pl>
+ <ZPiISpLoVx35PuYc@smile.fi.intel.com>
+In-Reply-To: <ZPiISpLoVx35PuYc@smile.fi.intel.com>
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+Date:   Mon, 11 Sep 2023 15:14:42 +0200
+Message-ID: <CAMRc=MfLGZNmQT55dtrLuqsKbfXjTn7kqOm029oJrOnH002wBw@mail.gmail.com>
+Subject: Re: [PATCH 02/21] gpiolib: provide gpio_device_find()
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Linus Walleij <linus.walleij@linaro.org>,
-        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
-References: <20230909141816.58358-1-hdegoede@redhat.com>
- <20230909141816.58358-7-hdegoede@redhat.com>
- <CAHp75Ve888X7xJ0VrQfswaStL8C3SHXjnJV35O2ajZVq6=KfMQ@mail.gmail.com>
- <afda7862-3c36-98d8-43a3-dd67538de923@redhat.com>
- <CAMRc=MdmzPWeZ7CtFe2b6xZFAges2cD-ckq4vn-+52CG=tVRSA@mail.gmail.com>
- <ZP8OiuhvgLxAzmVE@smile.fi.intel.com>
-From:   Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <ZP8OiuhvgLxAzmVE@smile.fi.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 9/11/23 14:56, Andy Shevchenko wrote:
-> On Mon, Sep 11, 2023 at 02:49:44PM +0200, Bartosz Golaszewski wrote:
->> On Sun, Sep 10, 2023 at 1:26 PM Hans de Goede <hdegoede@redhat.com> wrote:
->>> On 9/10/23 10:24, Andy Shevchenko wrote:
->>>> On Sat, Sep 9, 2023 at 5:18 PM Hans de Goede <hdegoede@redhat.com> wrote:
-> 
+On Wed, Sep 6, 2023 at 4:10=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Tue, Sep 05, 2023 at 08:52:50PM +0200, Bartosz Golaszewski wrote:
+> > From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> >
+> > gpiochip_find() is wrong and its kernel doc is misleading as the
+> > function doesn't return a reference to the gpio_chip but just a raw
+> > pointer. The chip itself is not guaranteed to stay alive, in fact it ca=
+n
+> > be deleted at any point. Also: other than GPIO drivers themselves,
+> > nobody else has any business accessing gpio_chip structs.
+> >
+> > Provide a new gpio_device_find() function that returns a real reference
+> > to the opaque gpio_device structure that is guaranteed to stay alive fo=
+r
+> > as long as there are active users of it.
+>
 > ...
-> 
->>>>> +       gpiod = devm_gpiod_get(&x86_android_tablet_device->dev, con_id, dflags);
-> 
-> ^^^
-> 
->>>>> -       *desc = gpiod;
->>>>> +       if (desc)
->>>>> +               *desc = gpiod;
->>>>
->>>> Are we expecting that callers may not want the GPIO descriptor out of
->>>> this function?
->>>> Sounds a bit weird if so.
->>>
->>> Yes specifically the Charge-enable and OTG (Vboost enable) pins on the
->>> bq25892 charger on the Lenovo Yoga Tab 3 just need to be set to a fixed
->>> value, so we request the pins with GPIOD_OUT_LOW / _HIGH and then
->>> leave them at that value.
->>
->> You mean you leak the descriptor? It would warrant either a comment or
->> storing the descriptor somewhere and cleaning it up if the device can
->> be unbound (I guess it can since the driver can be built as module).
-> 
-> Note devm_*() above.
+>
+> > +/**
+> > + * gpio_device_find() - find a specific GPIO device
+> > + * @data: data to pass to match function
+> > + * @match: Callback function to check gpio_chip
+>
+> > + * Returns:
+> > + * New reference to struct gpio_device.
+>
+> I believe this is wrong location of the Return section.
+> AFAIU how kernel doc uses section markers, this entire description become=
+s
+> a Return(s) section. Have you tried to render man/html/pdf and see this?
+>
 
-Right, the GPIOs will be free-ed on unbound through the devm framework.
+Yes, it works just fine. Try for yourself: scripts/kernel-doc -rst
+drivers/gpio/gpiolib.c
 
-Regards,
+Bart
 
-Hans
-
+> > + * Similar to bus_find_device(). It returns a reference to a gpio_devi=
+ce as
+> > + * determined by a user supplied @match callback. The callback should =
+return
+> > + * 0 if the device doesn't match and non-zero if it does. If the callb=
+ack
+> > + * returns non-zero, this function will return to the caller and not i=
+terate
+> > + * over any more gpio_devices.
+> > + *
+> > + * The callback takes the GPIO chip structure as argument. During the =
+execution
+> > + * of the callback function the chip is protected from being freed. TO=
+DO: This
+> > + * actually has yet to be implemented.
+> > + *
+> > + * If the function returns non-NULL, the returned reference must be fr=
+eed by
+> > + * the caller using gpio_device_put().
+> > + */
+> > +struct gpio_device *gpio_device_find(void *data,
+>
+> > +                                  int (*match)(struct gpio_chip *gc,
+> > +                                               void *data))
+>
+> One line?
+> Or maybe a type for it? (gpio_match_fn, for example)
+>
+> > +{
+> > +     struct gpio_device *gdev;
+> > +
+> > +     guard(spinlock_irqsave)(&gpio_lock);
+> > +
+> > +     list_for_each_entry(gdev, &gpio_devices, list) {
+> > +             if (gdev->chip && match(gdev->chip, data))
+> > +                     return gpio_device_get(gdev);
+> > +     }
+> > +
+> > +     return NULL;
+> > +}
+>
+> ...
+>
+> > +struct gpio_device *gpio_device_find(void *data,
+> > +                                  int (*match)(struct gpio_chip *gc,
+> > +                                               void *data));
+>
+> Ditto.
+>
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
+>
+>
