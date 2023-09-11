@@ -2,62 +2,65 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E479EE57DF
-	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 08:18:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A57C1CA0EDA
+	for <linux-acpi@archiver.kernel.org>; Mon, 11 Sep 2023 21:27:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229555AbjIKISr (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 11 Sep 2023 04:18:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45202 "EHLO
+        id S241300AbjIKVSW (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Mon, 11 Sep 2023 17:18:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231818AbjIKISq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 04:18:46 -0400
-Received: from mail-yw1-x1132.google.com (mail-yw1-x1132.google.com [IPv6:2607:f8b0:4864:20::1132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 260E7CE7
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 01:18:30 -0700 (PDT)
-Received: by mail-yw1-x1132.google.com with SMTP id 00721157ae682-58e6c05f529so40983327b3.3
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 01:18:30 -0700 (PDT)
+        with ESMTP id S237424AbjIKMuB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2023 08:50:01 -0400
+Received: from mail-vk1-xa30.google.com (mail-vk1-xa30.google.com [IPv6:2607:f8b0:4864:20::a30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1EAEE4B
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 05:49:56 -0700 (PDT)
+Received: by mail-vk1-xa30.google.com with SMTP id 71dfb90a1353d-493639d616eso1569993e0c.0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2023 05:49:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694420309; x=1695025109; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694436596; x=1695041396; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=V3FtP4eYfLciH8NMTppInh1yd0cZJOo0SC9UK5LWqOM=;
-        b=n/Fs+Yw/XZiSsoksmVatDxI/qFr2a96lZEmYxEzOPGRxJQOUTzz8Hn6ajrEIcw4SSZ
-         vKEgH1oeOcYsbAfA9mxrL1ZPxN6DF1Z2r1x/D8B8tH4wALHhPWgIaI6b7VoOjTJcRj/F
-         P0Ns5F1HG8EW1Gf+t9f2z5E9s2AG4B05GcZH7VprhYGhG4LkUIcahPIGk56tx0T/xMi1
-         gmV3/xszPZTU/WI3uQYJS0V9kEWueY94KIbiz2Bn7E0p5K78Wtzl3dibjsPV0L38bt9l
-         nIxcwIcVj2inZ8B7LPuOSgWpgBlMPoKTNwUoYoG+L9E5tnOCmYRIX4r+BkdmDAcpWIDM
-         Xr4Q==
+        bh=mJZ1FZwiFkPljuovGYCrOATIkTG/B1uJPfFfZJohEuw=;
+        b=amV62cb6zjsK3BgqTlvyU5CbPPaAxDgiHXEodGwK8PlpUqgVVVvHhQuMu2ovS8Lf6A
+         OBB2JrG1s7WbWDSsut50VfptuFbrr5xfSFkh8X5XWVaOb/uqJX97jOH+V3IEWtxn3ovg
+         +W2EI3A0jZ0csZuqOfO119WhG/Lh84k++lbVqfjr5Ndp/DMaoDdM5HA7p7eVQhZmE1D/
+         zYshZ/vKJynDkKjd6dxbO3HOBlNvKXni2jWuwdxuj9ULUe5KCqNQJdxk0v1iv8L/vjV5
+         t1KYu5bSS3DAMM5IZ9qtbUBsyXP9P2K9K0RDWe0YSOHO/ui35FuG21necvJHY8YuXwwS
+         HY5g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694420309; x=1695025109;
+        d=1e100.net; s=20230601; t=1694436596; x=1695041396;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=V3FtP4eYfLciH8NMTppInh1yd0cZJOo0SC9UK5LWqOM=;
-        b=m0lpW8flc8ZBpMaWmVrSftnamkQAj/57YaASFNP3MH1X7VjIISZzl9DMvb02CizJqb
-         tnOLX1j/7nwUd9AOXOigMpYdvk8VOfYSEl4DUScJJoSzz+SsIWXerZwKgqUihFxDH3KQ
-         sa/HhCMcifMwVkHQS1jZOr+dOGVLiVKeW2u+1uSyEdJ6g/6xvPM2Eea2qgCHrhXYAobK
-         d05eUUaLjMQ8//aH1NTXQDRx9nDB6gd/8GpILjFhoYO+G16pHHvxm4wqO2bW/M+M12Xp
-         TH6f08RqcUImzMiJikP+PtGDG/nrwsLdOmjgLOSbeP40OwcEfxQmtkNC2y0nNNt6C5Ea
-         A73g==
-X-Gm-Message-State: AOJu0Yy/O35soAwq5ebaa6TmIS3ty1ACHDBbgWgv2L5AR5E0yfGyA/N9
-        RnYl5t/SEZy2BnwJ6X5V8gTUj7oJSCS74FBeGeL1PQ==
-X-Google-Smtp-Source: AGHT+IG6UBPsG3ER528i9u+4r8BVScL4ahYE/NA5v/zdBiZoZtNwPxGro0BQJVKq2AZUOGGOK7dxSEsNfSot8t1uxn8=
-X-Received: by 2002:a81:490e:0:b0:583:9e6c:eb69 with SMTP id
- w14-20020a81490e000000b005839e6ceb69mr9522290ywa.42.1694420309307; Mon, 11
- Sep 2023 01:18:29 -0700 (PDT)
+        bh=mJZ1FZwiFkPljuovGYCrOATIkTG/B1uJPfFfZJohEuw=;
+        b=JKeLY/9eJgEv+og/DRcO1+CCHheX73iCJSJzCZ9vtE1QZ84cG2WyhJyVsBs10rV6Gd
+         zxUqFDCECVutE/8pUSPWPbnHGRri9MKGVDIdtAnJZUEIRAFjKidGQXNC4E8TItozHlHm
+         Km+dql12N3K6TyBptNpqITL8Y0nlJbzDeITGM5wGoQW5+w+lTXtXVqiIQujHjaJsqn+4
+         iHtnY2qx0muYBoag2iJ4e4ET6/6jDrULRiaqak+JQ7GrBmAB53RaW5zahRtZmi/iwDoW
+         TEFtwJmxfCmdsfsm76xo4an9jWDCg7hpo5sMElEYD9zjBjis0LcZ4GVKj/8wCe6Y0cee
+         FW7Q==
+X-Gm-Message-State: AOJu0Yx2Rhd2GUkvECyyZlYguxjtIB1SRynAWMTfVJ2EIz9napP+ZoON
+        lhyxOVep+0d1jztrAqCLPP3nPjNFByPW74YAnu1k6A==
+X-Google-Smtp-Source: AGHT+IFCrtVF9FUlezN8ZWtoWSPV7p/2FrBeRPbP47fzBvVOA2broT4NKCJmO8TCIWnhGp8D7wN3K3NpXEYH5P+5oAQ=
+X-Received: by 2002:a05:6122:251f:b0:48f:cd3a:108 with SMTP id
+ cl31-20020a056122251f00b0048fcd3a0108mr6700350vkb.12.1694436595827; Mon, 11
+ Sep 2023 05:49:55 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230909141816.58358-1-hdegoede@redhat.com>
-In-Reply-To: <20230909141816.58358-1-hdegoede@redhat.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Mon, 11 Sep 2023 10:18:18 +0200
-Message-ID: <CACRpkdYOan92797er6==bvTWVrNd5EepYVts5noZvEdwf5AJsg@mail.gmail.com>
-Subject: Re: [PATCH 0/8] x86-android-tablets: Stop using gpiolib private APIs
+References: <20230909141816.58358-1-hdegoede@redhat.com> <20230909141816.58358-7-hdegoede@redhat.com>
+ <CAHp75Ve888X7xJ0VrQfswaStL8C3SHXjnJV35O2ajZVq6=KfMQ@mail.gmail.com> <afda7862-3c36-98d8-43a3-dd67538de923@redhat.com>
+In-Reply-To: <afda7862-3c36-98d8-43a3-dd67538de923@redhat.com>
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+Date:   Mon, 11 Sep 2023 14:49:44 +0200
+Message-ID: <CAMRc=MdmzPWeZ7CtFe2b6xZFAges2cD-ckq4vn-+52CG=tVRSA@mail.gmail.com>
+Subject: Re: [PATCH 6/8] platform/x86: x86-android-tablets: Stop using gpiolib
+ private APIs
 To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Andy Shevchenko <andy@kernel.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Linus Walleij <linus.walleij@linaro.org>,
         platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -65,14 +68,158 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Sat, Sep 9, 2023 at 4:18=E2=80=AFPM Hans de Goede <hdegoede@redhat.com> =
-wrote:
+On Sun, Sep 10, 2023 at 1:26=E2=80=AFPM Hans de Goede <hdegoede@redhat.com>=
+ wrote:
+>
+> Hi,
+>
+> On 9/10/23 10:24, Andy Shevchenko wrote:
+> > On Sat, Sep 9, 2023 at 5:18=E2=80=AFPM Hans de Goede <hdegoede@redhat.c=
+om> wrote:
+> >>
+> >> Refactor x86_android_tablet_get_gpiod() to no longer use
+> >> gpiolib private functions like gpiochip_find().
+> >>
+> >> As a bonus this allows specifying that the GPIO is active-low,
+> >> like the /CE (charge enable) pin on the bq25892 charger on
+> >> the Lenovo Yoga Tablet 3.
+> >
+> > The best patch in the series!
+> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> >
+> > See below a couple of questions.
+> >
+> > ...
+> >
+> >> -int x86_android_tablet_get_gpiod(const char *label, int pin, struct g=
+pio_desc **desc)
+> >> +int x86_android_tablet_get_gpiod(const char *chip, int pin, const cha=
+r *con_id,
+> >> +                                bool active_low, enum gpiod_flags dfl=
+ags,
+> >> +                                struct gpio_desc **desc)
+> >>  {
+> >> +       struct gpiod_lookup_table *lookup;
+> >>         struct gpio_desc *gpiod;
+> >> -       struct gpio_chip *chip;
+> >>
+> >> -       chip =3D gpiochip_find((void *)label, gpiochip_find_match_labe=
+l);
+> >> -       if (!chip) {
+> >> -               pr_err("error cannot find GPIO chip %s\n", label);
+> >> -               return -ENODEV;
+> >> -       }
+> >> +       lookup =3D kzalloc(struct_size(lookup, table, 2), GFP_KERNEL);
+> >> +       if (!lookup)
+> >> +               return -ENOMEM;
+> >> +
+> >> +       lookup->dev_id =3D KBUILD_MODNAME;
+> >> +       lookup->table[0].key =3D chip;
+> >> +       lookup->table[0].chip_hwnum =3D pin;
+> >> +       lookup->table[0].con_id =3D con_id;
+> >> +       lookup->table[0].flags =3D active_low ? GPIO_ACTIVE_LOW : GPIO=
+_ACTIVE_HIGH;
+> >> +
+> >> +       gpiod_add_lookup_table(lookup);
+> >> +       gpiod =3D devm_gpiod_get(&x86_android_tablet_device->dev, con_=
+id, dflags);
+> >> +       gpiod_remove_lookup_table(lookup);
+> >> +       kfree(lookup);
+> >>
+> >> -       gpiod =3D gpiochip_get_desc(chip, pin);
+> >>         if (IS_ERR(gpiod)) {
+> >> -               pr_err("error %ld getting GPIO %s %d\n", PTR_ERR(gpiod=
+), label, pin);
+> >> +               pr_err("error %ld getting GPIO %s %d\n", PTR_ERR(gpiod=
+), chip, pin);
+> >>                 return PTR_ERR(gpiod);
+> >>         }
+> >
+> >> -       *desc =3D gpiod;
+> >> +       if (desc)
+> >> +               *desc =3D gpiod;
+> >
+> > Are we expecting that callers may not want the GPIO descriptor out of
+> > this function?
+> > Sounds a bit weird if so.
+>
+> Yes specifically the Charge-enable and OTG (Vboost enable) pins on the
+> bq25892 charger on the Lenovo Yoga Tab 3 just need to be set to a fixed
+> value, so we request the pins with GPIOD_OUT_LOW / _HIGH and then
+> leave them at that value.
+>
 
-> As promised here is a patch-series to make the x86-android-tablets code
-> stop using gpiolib private APIs.
+You mean you leak the descriptor? It would warrant either a comment or
+storing the descriptor somewhere and cleaning it up if the device can
+be unbound (I guess it can since the driver can be built as module).
 
-This looks very helpful to me!
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Bart
 
-Yours,
-Linus Walleij
+> I think similar stuff may come up later, so it seems nice to be able
+> to not have to pass an otherwise unused gpio_desc pointer.
+>
+>
+> >
+> >>         return 0;
+> >>  }
+> >
+> > ...
+> >
+> >>          * The bq25890_charger driver controls these through I2C, but =
+this only
+> >>          * works if not overridden by the pins. Set these pins here:
+> >> -        * 1. Set /CE to 0 to allow charging.
+> >
+> >> +        * 1. Set /CE to 1 to allow charging.
+> >>          * 2. Set OTG to 0 disable V5 boost output since the 5V boost =
+output of
+> >>          *    the main "bq25892_1" charger is used when necessary.
+> >
+> > Shouldn't we use terminology "active"/"non-active" instead of plain 0
+> > and 1 in the above?
+>
+> Well the flags are called GPIOD_OUT_HIGH / GPIOD_OUT_LOW and
+> with gpiod_set_value 0/1 is used. I'm not in favor of adding
+> "active"/"non-active" into the mix. That just adds a 3th way to
+> say 0/low or 1/high.
+>
+> Regards,
+>
+> Hans
+>
+>
+>
+>
+> >
+> >>          */
+> >
+> > ...
+> >
+> >> -       ret =3D x86_android_tablet_get_gpiod("INT33FF:02", 22, &gpiod)=
+;
+> >> +       ret =3D x86_android_tablet_get_gpiod("INT33FF:02", 22, "bq2589=
+2_0_ce",
+> >> +                                          true, GPIOD_OUT_HIGH, NULL)=
+;
+> >>         if (ret < 0)
+> >>                 return ret;
+> >
+> > Hmm... Maybe better this function to return an error pointer or valid
+> > pointer, and in the code you choose what to do with that?
+> >
+> > ...
+> >
+> >>         /* OTG pin */
+> >> -       ret =3D x86_android_tablet_get_gpiod("INT33FF:03", 19, &gpiod)=
+;
+> >> +       ret =3D x86_android_tablet_get_gpiod("INT33FF:03", 19, "bq2589=
+2_0_otg",
+> >> +                                          false, GPIOD_OUT_LOW, NULL)=
+;
+> >
+> > Ditto.
+> >
+> >>         if (ret < 0)
+> >>                 return ret;
+> >
+>
