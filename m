@@ -2,169 +2,249 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF0C3EE3F08
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Sep 2023 17:29:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E681EE3F0D
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Sep 2023 18:47:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231201AbjILR3z (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Sep 2023 13:29:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49862 "EHLO
+        id S234774AbjILSrl (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Sep 2023 14:47:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229784AbjILR3y (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Sep 2023 13:29:54 -0400
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6BA110D9;
-        Tue, 12 Sep 2023 10:29:50 -0700 (PDT)
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-        by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 38CDnUUm002778;
-        Tue, 12 Sep 2023 17:29:39 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-type :
- content-transfer-encoding; s=qcppdkim1;
- bh=zd9e5Dj70FzmypSrLlmnrjpVFXyY6IVIDc43eaceI5M=;
- b=ShL6Y7KdldL8hDa8ICU+KwY0rjNZJy+GBZZh5WMjqRj37nEhoMgsQmyjj7Lvd0xhPn0t
- c/ItcFNpbbEXg0x1mcJ/DlF64xOcNhW9BewcKji97IW5kGPVtxLW4T+qInhtG6UBfTwy
- ldHLPSzm3RVGRGIpQ0dyMS1JAVm0zerOHB8d4AQ9rUqvw/J6xDuA+BLqkEKSdmcMw/S7
- AUd1UpJW0aE9wKNgfDOGkwYEHNPnuufxYV+g4gp4aDdwicLaKbujnCVuEqeaT84+Gi4x
- hQm6C+BATq2JooN7ghBFsW+ppY7Zppw5vvq03taypIqrMD1QOtLNBO4FhCs/0CoqypMd 9Q== 
-Received: from nalasppmta04.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-        by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3t2pu4141t-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 12 Sep 2023 17:29:38 +0000
-Received: from nalasex01a.na.qualcomm.com (nalasex01a.na.qualcomm.com [10.47.209.196])
-        by NALASPPMTA04.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 38CHTbhj032119
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 12 Sep 2023 17:29:37 GMT
-Received: from localhost (10.49.16.6) by nalasex01a.na.qualcomm.com
- (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1118.36; Tue, 12 Sep
- 2023 10:29:37 -0700
-From:   Oza Pawandeep <quic_poza@quicinc.com>
-To:     <sudeep.holla@arm.com>, <catalin.marinas@arm.com>,
-        <will@kernel.org>, <rafael@kernel.org>, <lenb@kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>
-CC:     Oza Pawandeep <quic_poza@quicinc.com>
-Subject: [PATCH v5] cpuidle, ACPI: Evaluate LPI arch_flags for broadcast timer
-Date:   Tue, 12 Sep 2023 10:29:33 -0700
-Message-ID: <20230912172933.3561144-1-quic_poza@quicinc.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S231382AbjILSrk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Sep 2023 14:47:40 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BEC810D3;
+        Tue, 12 Sep 2023 11:47:36 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
+ id d591d3eab9350a03; Tue, 12 Sep 2023 20:47:33 +0200
+Authentication-Results: v370.home.net.pl; spf=softfail (domain owner 
+   discourages use of this host) smtp.mailfrom=rjwysocki.net 
+   (client-ip=195.136.19.94; helo=[195.136.19.94]; 
+   envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN>)
+Received: from kreacher.localnet (unknown [195.136.19.94])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id BAB64663C2D;
+        Tue, 12 Sep 2023 20:47:32 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux ACPI <linux-acpi@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH v1 9/9] ACPI: thermal: Drop valid flag from struct acpi_thermal_trip
+Date:   Tue, 12 Sep 2023 20:47:23 +0200
+Message-ID: <9162925.CDJkKcVGEf@kreacher>
+In-Reply-To: <5708760.DvuYhMxLoT@kreacher>
+References: <5708760.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.49.16.6]
-X-ClientProxiedBy: nalasex01b.na.qualcomm.com (10.47.209.197) To
- nalasex01a.na.qualcomm.com (10.47.209.196)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: GAMAY4Hrs4oy6eoiz21HVZMHI76JZFUS
-X-Proofpoint-ORIG-GUID: GAMAY4Hrs4oy6eoiz21HVZMHI76JZFUS
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.601,FMLib:17.11.176.26
- definitions=2023-09-12_16,2023-09-05_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=35 impostorscore=0 adultscore=0
- malwarescore=0 clxscore=1015 mlxlogscore=27 lowpriorityscore=0 mlxscore=35
- phishscore=0 suspectscore=0 priorityscore=1501 spamscore=35 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2308100000
- definitions=main-2309120147
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrudeiiedgudeftdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeeipdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomhdprhgtphhtthhopehs
+ rhhinhhivhgrshdrphgrnhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohepuggrnhhivghlrdhlvgiitggrnhhosehlihhnrghrohdrohhrgh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Arm® Functional Fixed Hardware Specification defines LPI states,
-which provide an architectural context loss flags field that can
-be used to describe the context that might be lost when an LPI
-state is entered.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-- Core context Lost
-        - General purpose registers.
-        - Floating point and SIMD registers.
-        - System registers, include the System register based
-        - generic timer for the core.
-        - Debug register in the core power domain.
-        - PMU registers in the core power domain.
-        - Trace register in the core power domain.
-- Trace context loss
-- GICR
-- GICD
+Notice that the valid flag in struct acpi_thermal_trip is in fact
+redundant, because the temperature field of invalid trips is always
+equal to THERMAL_TEMP_INVALID, so drop it from there and adjust the
+code accordingly.
 
-Qualcomm's custom CPUs preserves the architectural state,
-including keeping the power domain for local timers active.
-when core is power gated, the local timers are sufficient to
-wake the core up without needing broadcast timer.
+No intentional functional impact.
 
-The patch fixes the evaluation of cpuidle arch_flags, and moves only to
-broadcast timer if core context lost is defined in ACPI LPI.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/thermal.c |   49 +++++++++++++++++++++++--------------------------
+ 1 file changed, 23 insertions(+), 26 deletions(-)
 
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Oza Pawandeep <quic_poza@quicinc.com>
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 4d537d56eb84..a30b6e16628d 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -9,6 +9,7 @@
- #ifndef _ASM_ACPI_H
- #define _ASM_ACPI_H
+Index: linux-pm/drivers/acpi/thermal.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/thermal.c
++++ linux-pm/drivers/acpi/thermal.c
+@@ -81,7 +81,6 @@ static struct workqueue_struct *acpi_the
  
-+#include <linux/cpuidle.h>
- #include <linux/efi.h>
- #include <linux/memblock.h>
- #include <linux/psci.h>
-@@ -44,6 +45,25 @@
+ struct acpi_thermal_trip {
+ 	unsigned long temperature;
+-	bool valid;
+ };
  
- #define ACPI_MADT_GICC_TRBE  (offsetof(struct acpi_madt_generic_interrupt, \
- 	trbe_interrupt) + sizeof(u16))
-+/*
-+ * Arm® Functional Fixed Hardware Specification Version 1.2.
-+ * Table 2: Arm Architecture context loss flags
-+ */
-+#define CPUIDLE_CORE_CTXT		BIT(0) /* Core context Lost */
-+
-+#ifndef arch_update_idle_state_flags
-+static __always_inline void _arch_update_idle_state_flags(u32 arch_flags,
-+							unsigned int *sflags)
-+{
-+	if (arch_flags & CPUIDLE_CORE_CTXT)
-+		*sflags |= CPUIDLE_FLAG_TIMER_STOP;
-+}
-+#define arch_update_idle_state_flags _arch_update_idle_state_flags
-+#endif
-+
-+#define CPUIDLE_TRACE_CTXT		BIT(1) /* Trace context loss */
-+#define CPUIDLE_GICR_CTXT		BIT(2) /* GICR */
-+#define CPUIDLE_GICD_CTXT		BIT(3) /* GICD */
- 
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index dc615ef6550a..5c1d13eecdd1 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1217,8 +1217,7 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
- 		strscpy(state->desc, lpi->desc, CPUIDLE_DESC_LEN);
- 		state->exit_latency = lpi->wake_latency;
- 		state->target_residency = lpi->min_residency;
--		if (lpi->arch_flags)
--			state->flags |= CPUIDLE_FLAG_TIMER_STOP;
-+		arch_update_idle_state_flags(lpi->arch_flags, &state->flags);
- 		if (i != 0 && lpi->entry_method == ACPI_CSTATE_FFH)
- 			state->flags |= CPUIDLE_FLAG_RCU_IDLE;
- 		state->enter = acpi_idle_lpi_enter;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index a73246c3c35e..f8c561a4215e 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1480,6 +1480,10 @@ static inline int lpit_read_residency_count_address(u64 *address)
+ struct acpi_thermal_passive {
+@@ -175,11 +174,9 @@ static int acpi_thermal_temp(struct acpi
+ 						       tz->kelvin_offset);
  }
- #endif
  
-+#ifndef arch_update_idle_state_flags
-+#define arch_update_idle_state_flags(af, sf)	do {} while (0)
-+#endif
-+
- #ifdef CONFIG_ACPI_PPTT
- int acpi_pptt_cpu_is_thread(unsigned int cpu);
- int find_acpi_cpu_topology(unsigned int cpu, int level);
--- 
-2.25.1
+-static void update_acpi_thermal_trip_temp(struct acpi_thermal_trip *acpi_trip,
+-					  int temp)
++static bool acpi_thermal_trip_valid(struct acpi_thermal_trip *acpi_trip)
+ {
+-	acpi_trip->valid = temp != THERMAL_TEMP_INVALID;
+-	acpi_trip->temperature = temp;
++	return acpi_trip->temperature != THERMAL_TEMP_INVALID;
+ }
+ 
+ static long get_passive_temp(struct acpi_thermal *tz)
+@@ -198,11 +195,11 @@ static void acpi_thermal_update_passive_
+ {
+ 	struct acpi_thermal_trip *acpi_trip = &tz->trips.passive.trip;
+ 
+-	if (!acpi_trip->valid || psv > 0)
++	if (!acpi_thermal_trip_valid(acpi_trip) || psv > 0)
+ 		return;
+ 
+-	update_acpi_thermal_trip_temp(acpi_trip, get_passive_temp(tz));
+-	if (!acpi_trip->valid)
++	acpi_trip->temperature = get_passive_temp(tz);
++	if (!acpi_thermal_trip_valid(acpi_trip))
+ 		ACPI_THERMAL_TRIPS_EXCEPTION(tz, "state");
+ }
+ 
+@@ -231,13 +228,13 @@ static void acpi_thermal_update_passive_
+ {
+ 	struct acpi_thermal_trip *acpi_trip = &tz->trips.passive.trip;
+ 
+-	if (!acpi_trip->valid)
++	if (!acpi_thermal_trip_valid(acpi_trip))
+ 		return;
+ 
+ 	if (update_passive_devices(tz, true))
+ 		return;
+ 
+-	update_acpi_thermal_trip_temp(acpi_trip, THERMAL_TEMP_INVALID);
++	acpi_trip->temperature = THERMAL_TEMP_INVALID;
+ 	ACPI_THERMAL_TRIPS_EXCEPTION(tz, "state");
+ }
+ 
+@@ -268,11 +265,11 @@ static void acpi_thermal_update_active_t
+ {
+ 	struct acpi_thermal_trip *acpi_trip = &tz->trips.active[index].trip;
+ 
+-	if (!acpi_trip->valid)
++	if (!acpi_thermal_trip_valid(acpi_trip))
+ 		return;
+ 
+-	update_acpi_thermal_trip_temp(acpi_trip, get_active_temp(tz, index));
+-	if (!acpi_trip->valid)
++	acpi_trip->temperature = get_active_temp(tz, index);
++	if (!acpi_thermal_trip_valid(acpi_trip))
+ 		ACPI_THERMAL_TRIPS_EXCEPTION(tz, "state");
+ }
+ 
+@@ -303,13 +300,13 @@ static void acpi_thermal_update_active_d
+ {
+ 	struct acpi_thermal_trip *acpi_trip = &tz->trips.active[index].trip;
+ 
+-	if (!acpi_trip->valid)
++	if (!acpi_thermal_trip_valid(acpi_trip))
+ 		return;
+ 
+ 	if (update_active_devices(tz, index, true))
+ 		return;
+ 
+-	update_acpi_thermal_trip_temp(acpi_trip, THERMAL_TEMP_INVALID);
++	acpi_trip->temperature = THERMAL_TEMP_INVALID;
+ 	ACPI_THERMAL_TRIPS_EXCEPTION(tz, "state");
+ }
+ 
+@@ -321,7 +318,7 @@ static int acpi_thermal_adjust_trip(stru
+ 	if (!acpi_trip)
+ 		return 0;
+ 
+-	if (acpi_trip->valid)
++	if (acpi_thermal_trip_valid(acpi_trip))
+ 		trip->temperature = acpi_thermal_temp(tz, acpi_trip->temperature);
+ 	else
+ 		trip->temperature = THERMAL_TEMP_INVALID;
+@@ -465,11 +462,11 @@ static bool acpi_thermal_init_passive_tr
+ 	if (!update_passive_devices(tz, false))
+ 		goto fail;
+ 
+-	update_acpi_thermal_trip_temp(&tz->trips.passive.trip, temp);
++	tz->trips.passive.trip.temperature = temp;
+ 	return true;
+ 
+ fail:
+-	update_acpi_thermal_trip_temp(&tz->trips.passive.trip, THERMAL_TEMP_INVALID);
++	tz->trips.passive.trip.temperature = THERMAL_TEMP_INVALID;
+ 	return false;
+ }
+ 
+@@ -487,11 +484,11 @@ static bool acpi_thermal_init_active_tri
+ 	if (!update_active_devices(tz, false, index))
+ 		goto fail;
+ 
+-	update_acpi_thermal_trip_temp(&tz->trips.active[index].trip, temp);
++	tz->trips.active[index].trip.temperature = temp;
+ 	return true;
+ 
+ fail:
+-	update_acpi_thermal_trip_temp(&tz->trips.active[index].trip, THERMAL_TEMP_INVALID);
++	tz->trips.active[index].trip.temperature = THERMAL_TEMP_INVALID;
+ 	return false;
+ }
+ 
+@@ -545,7 +542,7 @@ static int thermal_get_trend(struct ther
+ 		return -EINVAL;
+ 
+ 	acpi_trip = trip->priv;
+-	if (!acpi_trip || !acpi_trip->valid)
++	if (!acpi_trip || !acpi_thermal_trip_valid(acpi_trip))
+ 		return -EINVAL;
+ 
+ 	switch (trip->type) {
+@@ -618,7 +615,7 @@ static int acpi_thermal_cooling_device_c
+ 	if (tz->trips.hot_valid)
+ 		trip++;
+ 
+-	if (tz->trips.passive.trip.valid) {
++	if (acpi_thermal_trip_valid(&tz->trips.passive.trip)) {
+ 		trip++;
+ 		for (i = 0; i < tz->trips.passive.devices.count; i++) {
+ 			handle = tz->trips.passive.devices.handles[i];
+@@ -643,7 +640,7 @@ static int acpi_thermal_cooling_device_c
+ 	}
+ 
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+-		if (!tz->trips.active[i].trip.valid)
++		if (!acpi_thermal_trip_valid(&tz->trips.active[i].trip))
+ 			break;
+ 
+ 		trip++;
+@@ -949,7 +946,7 @@ static int acpi_thermal_add(struct acpi_
+ 	}
+ 
+ 	acpi_trip = &tz->trips.passive.trip;
+-	if (acpi_trip->valid) {
++	if (acpi_thermal_trip_valid(acpi_trip)) {
+ 		passive_delay = tz->trips.passive.tsp * 100;
+ 
+ 		trip->type = THERMAL_TRIP_PASSIVE;
+@@ -961,7 +958,7 @@ static int acpi_thermal_add(struct acpi_
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+ 		acpi_trip =  &tz->trips.active[i].trip;
+ 
+-		if (!acpi_trip->valid)
++		if (!acpi_thermal_trip_valid(acpi_trip))
+ 			break;
+ 
+ 		trip->type = THERMAL_TRIP_ACTIVE;
+@@ -1038,7 +1035,7 @@ static int acpi_thermal_resume(struct de
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+-		if (!tz->trips.active[i].trip.valid)
++		if (!acpi_thermal_trip_valid(&tz->trips.active[i].trip))
+ 			break;
+ 
+ 		for (j = 0; j < tz->trips.active[i].devices.count; j++) {
+
+
 
