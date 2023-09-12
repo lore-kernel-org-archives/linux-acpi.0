@@ -2,52 +2,53 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD828CA0ECF
-	for <linux-acpi@archiver.kernel.org>; Tue, 12 Sep 2023 10:07:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 758FBCA0ED4
+	for <linux-acpi@archiver.kernel.org>; Tue, 12 Sep 2023 10:07:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233836AbjILKH4 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Tue, 12 Sep 2023 06:07:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35724 "EHLO
+        id S233873AbjILKH6 (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Tue, 12 Sep 2023 06:07:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233688AbjILKHl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Sep 2023 06:07:41 -0400
-Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8363A1717
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Sep 2023 03:07:37 -0700 (PDT)
-Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-401da71b83cso61693255e9.2
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Sep 2023 03:07:37 -0700 (PDT)
+        with ESMTP id S233276AbjILKHn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Sep 2023 06:07:43 -0400
+Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10007172D
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Sep 2023 03:07:39 -0700 (PDT)
+Received: by mail-wr1-x42c.google.com with SMTP id ffacd0b85a97d-31dcf18f9e2so5424874f8f.0
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Sep 2023 03:07:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694513256; x=1695118056; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=x4haYmdObfDE5/y07WwdJnqnP4U8yxjngc5oSCKLzDA=;
-        b=eOBil49xQ2KaWxvTRxsfcHKMH0o9oRKWUycF3TRF3ovVXr5HdMCxU0NjXLzvDFkwry
-         io5EdUVDpL1faHiEGAuwKICPpBT988WwXHgs/mc+VRM3TfNB3cPE5tTTvvQG1WKL5QgU
-         /JmQVZtbSrVUvvTnb7q5mKBxdS7Jv0R+R6EjlWZe1Kt1NFjQnQUruVsZSnajSQF40hZU
-         cffbmI0Pkc0R++dtLTRTb7XPr+J54lrhGYT6HXQ9JCgjYfLEBig8oV6zaHztkNzjreM4
-         ZgzDKBNk91G/6URNr4GdCDTfcKAyqlSd5zewrDD/IEpbm+B+pJpW7rPLnT4HDiF93sbf
-         Wp6A==
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694513257; x=1695118057; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ooPiibuin/T1BXM3ci9G/toRB2k62lYI6dDd6XnUFKA=;
+        b=JzQ9L+NIMBtxp4S6so12CVzTrS6VMV+PvLooJ2BjBkgHqO1plgvKW8RCbgKEloeGFD
+         046DZjmXeH5knUu9bc6eutPrKq0yni51vumVr6ShmB12dLDrWw/MQWZC5vkBNr20ItW/
+         DBy00PvwvdN24+s5uxIPwJp0PLfkcByOuT4FFQswwlY/y/ZzRb44/2u0nMMgFUII/hxt
+         ACkRhcuQ0bjVj2RKBtnEM/ZYLN/UzbxefyZBSccVGY9MEZronwaft3F6VI9IYd6erjCW
+         O6F5FWTIEJI2zKBrpUKG/6QK6+jY8ABAp3BzHUt9fCydufEMWx3OjW00/AemRiE4TOZB
+         79LA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694513256; x=1695118056;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=x4haYmdObfDE5/y07WwdJnqnP4U8yxjngc5oSCKLzDA=;
-        b=VC451KBVOt0qgjGhVzGcGd/GDrt1Brt1gAs6ZbM+9FmwIZg48CYxNSZktBa2fwwrek
-         1BwqYA+J9JGi/gitwLtamjVJIPQCiatd36gSAPtyAU31pvdLyjX44nrsuu6/FJS2IhDT
-         JhxFatEb6M+PYlgdqk16rfO4XFW9SI5613Aa5b77IaoCfLCpl2otGsyYxAdd/Vu6vhaL
-         YpQIj3rvXTx5UAKij371S181KI7uhQjETtsfUNhnQUywkkPQfslDLdlrYNf2rF6GZ6jQ
-         ductOTgAiO48Be75KqHrftVJZfnMBmNM+6mwhju6HCpU0A28/yw6GfddJdDranxFh9yG
-         3X6g==
-X-Gm-Message-State: AOJu0YzLowk/ELmq4vCP+zzqBesLsqHCgknycIDUmY0G5KWaBCZWlIFH
-        Qi0Zmm517r+D60c/1hjvosuytg==
-X-Google-Smtp-Source: AGHT+IFP2ZkHAn0oAd5VEal3U/DDMSBmSZPRnW97oOBXBaMn4x42Nik4c/SZV7LTaAhOehrGAWOVXw==
-X-Received: by 2002:a1c:7c11:0:b0:402:98cd:aa22 with SMTP id x17-20020a1c7c11000000b0040298cdaa22mr11221950wmc.41.1694513255919;
-        Tue, 12 Sep 2023 03:07:35 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1694513257; x=1695118057;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ooPiibuin/T1BXM3ci9G/toRB2k62lYI6dDd6XnUFKA=;
+        b=NiYyx7Yl9V49b6V59M2CNIDSTEB6saskCw42e3vMX+H0tmQDl6PUfILDs5jGfD8ZH4
+         QfLkiTcOcNEH5IvsblW2fiLc2CuBRLZJ7s0h7N1yhjfYkBwZJW661R7lkO2GBCfSsvzm
+         VOc6Ern/FXEg5Qob5EqhIeObyQ1xNSqUiFTkumHJekVIL3Gl+pBD6ODD1ssdFKXKE3ZH
+         YQFAwbroWmOuKVhuPh+C8p9NCw7Ga/AopelSOLzzVetmlUMoesuUBfXbLMWV42cem/hP
+         lsoho0VnwfhM6wVXldUplLb/regv1ok2Ew/ZpkEL+zsLzX9dEM51RCTXqoVks4ETRDeR
+         gKjg==
+X-Gm-Message-State: AOJu0YzwDUdoHMtqvpo957cAggkU4L8IF8A5DDWkfqH3vd8sookz8gyU
+        lU0KRQJQa0m9+fu0ZF1dJK/1FA==
+X-Google-Smtp-Source: AGHT+IH6XDJfFYmBXwiNkL8kyXELSWjOJy6fzQulJyqX2CBJnihIyCKZaM/CWTqAl/+JXOsrNEi6LA==
+X-Received: by 2002:a5d:560e:0:b0:314:1ebc:6e19 with SMTP id l14-20020a5d560e000000b003141ebc6e19mr9289691wrv.64.1694513257604;
+        Tue, 12 Sep 2023 03:07:37 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:907f:4cd7:f0ae:6b2a])
-        by smtp.gmail.com with ESMTPSA id h5-20020adfe985000000b0031ae8d86af4sm12351417wrm.103.2023.09.12.03.07.35
+        by smtp.gmail.com with ESMTPSA id h5-20020adfe985000000b0031ae8d86af4sm12351417wrm.103.2023.09.12.03.07.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 Sep 2023 03:07:35 -0700 (PDT)
+        Tue, 12 Sep 2023 03:07:37 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Linus Walleij <linus.walleij@linaro.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -55,10 +56,12 @@ To:     Linus Walleij <linus.walleij@linaro.org>,
 Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-acpi@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH v2 00/11] gpiolib: work towards removing gpiochip_find()
-Date:   Tue, 12 Sep 2023 12:07:16 +0200
-Message-Id: <20230912100727.23197-1-brgl@bgdev.pl>
+Subject: [PATCH v2 02/11] gpiolib: add support for scope-based management to gpio_device
+Date:   Tue, 12 Sep 2023 12:07:18 +0200
+Message-Id: <20230912100727.23197-3-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230912100727.23197-1-brgl@bgdev.pl>
+References: <20230912100727.23197-1-brgl@bgdev.pl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -67,71 +70,29 @@ X-Mailing-List: linux-acpi@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-This is a reduced subset of patches from the initial sumbission[1]
-limited only to changes inside GPIOLIB. Once this is upstream, we can
-then slowly merge patches for other subsystems (like HTE) and then
-eventually remove gpiochip_find() entirely.
+As the few users that need to get the reference to the GPIO device often
+release it right after inspecting its properties, let's add support for
+the automatic reference release to struct gpio_device.
 
-The GPIO subsystem does not handle hot-unplug events very well. We have
-recently patched the user-space part of it so that at least a rouge user
-cannot crash the kernel but in-kernel users are still affected by a lot of
-issues: from incorrect locking or lack thereof to using structures that are
-private to GPIO drivers. Since almost all GPIO controllers can be unbound,
-not to mention that we have USB devices registering GPIO expanders as well as
-I2C-on-USB HID devices on which I2C GPIO expanders can live, various media
-gadgets etc., we really need to make GPIO hotplug/unplug friendly.
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ include/linux/gpio/driver.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Before we can even get to fixing the locking, we need to address a serious
-abuse of the GPIO driver API - accessing struct gpio_chip by anyone who isn't
-the driver owning this object. This structure is owned by the GPIO provider
-and its lifetime is tied to that of that provider. It is destroyed when the
-device is unregistered and this may happen at any moment. struct gpio_device
-is the opaque, reference counted interface to struct gpio_chip (which is the
-low-level implementation) and all access should pass through it.
-
-The end-goal is to make all gpio_device manipulators check the existence of
-gdev->chip and then lock it for the duration of any of the calls using SRCU.
-Before we can get there, we need to first provide a set of functions that will
-replace any gpio_chip functions and convert all in-kernel users.
-
-This series adds several new helpers to the public GPIO API and uses
-them across the core GPIO code.
-
-Note that this does not make everything correct just yet. Especially the
-GPIOLIB internal users release the reference returned by the lookup function
-after getting the descriptor of interest but before requesting it. This will
-eventually be addressed. This is not a regression either.
-
-[1] https://lore.kernel.org/lkml/20230905185309.131295-1-brgl@bgdev.pl/T/
-
-v1 -> v2:
-- drop all non-GPIOLIB patches
-- collect tags
-- fix kernel docs
-- use gpio_device_get_chip() and gpio_device_get_desc() where applicable
-
-Bartosz Golaszewski (11):
-  gpiolib: make gpio_device_get() and gpio_device_put() public
-  gpiolib: add support for scope-based management to gpio_device
-  gpiolib: provide gpio_device_find()
-  gpiolib: provide gpio_device_find_by_label()
-  gpiolib: provide gpio_device_get_desc()
-  gpiolib: reluctantly provide gpio_device_get_chip()
-  gpiolib: replace find_chip_by_name() with gpio_device_find_by_label()
-  gpio: of: replace gpiochip_find_* with gpio_device_find_*
-  gpio: acpi: replace gpiochip_find() with gpio_device_find()
-  gpio: swnode: replace gpiochip_find() with gpio_device_find_by_label()
-  gpio: sysfs: drop the mention of gpiochip_find() from sysfs code
-
- drivers/gpio/gpiolib-acpi.c   |  12 +-
- drivers/gpio/gpiolib-of.c     |  32 +++---
- drivers/gpio/gpiolib-swnode.c |  33 +++---
- drivers/gpio/gpiolib-sysfs.c  |   2 +-
- drivers/gpio/gpiolib.c        | 201 ++++++++++++++++++++++++++--------
- drivers/gpio/gpiolib.h        |  10 --
- include/linux/gpio/driver.h   |  13 +++
- 7 files changed, 211 insertions(+), 92 deletions(-)
-
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index a2060dc3344b..a52c6cc5162b 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -609,6 +609,8 @@ struct gpio_chip *gpiochip_find(void *data,
+ struct gpio_device *gpio_device_get(struct gpio_device *gdev);
+ void gpio_device_put(struct gpio_device *gdev);
+ 
++DEFINE_FREE(gpio_device_put, struct gpio_device *, if (_T) gpio_device_put(_T));
++
+ bool gpiochip_line_is_irq(struct gpio_chip *gc, unsigned int offset);
+ int gpiochip_reqres_irq(struct gpio_chip *gc, unsigned int offset);
+ void gpiochip_relres_irq(struct gpio_chip *gc, unsigned int offset);
 -- 
 2.39.2
 
