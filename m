@@ -2,24 +2,24 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D795EE01E3
-	for <linux-acpi@archiver.kernel.org>; Wed, 13 Sep 2023 16:40:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E668AEE01E2
+	for <linux-acpi@archiver.kernel.org>; Wed, 13 Sep 2023 16:40:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231217AbjIMQkH (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 13 Sep 2023 12:40:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46692 "EHLO
+        id S231309AbjIMQkO (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 13 Sep 2023 12:40:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231136AbjIMQjk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Sep 2023 12:39:40 -0400
+        with ESMTP id S231165AbjIMQjn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Sep 2023 12:39:43 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3B1432106;
-        Wed, 13 Sep 2023 09:39:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3695B2112;
+        Wed, 13 Sep 2023 09:39:23 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3A2C21FB;
-        Wed, 13 Sep 2023 09:39:56 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 36BFD1FB;
+        Wed, 13 Sep 2023 09:40:00 -0700 (PDT)
 Received: from merodach.members.linode.com (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3F3BD3F5A1;
-        Wed, 13 Sep 2023 09:39:17 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3BFF83F5A1;
+        Wed, 13 Sep 2023 09:39:21 -0700 (PDT)
 From:   James Morse <james.morse@arm.com>
 To:     linux-pm@vger.kernel.org, loongarch@lists.linux.dev,
         linux-acpi@vger.kernel.org, linux-arch@vger.kernel.org,
@@ -29,9 +29,9 @@ Cc:     x86@kernel.org, Salil Mehta <salil.mehta@huawei.com>,
         Russell King <linux@armlinux.org.uk>,
         Jean-Philippe Brucker <jean-philippe@linaro.org>,
         jianyong.wu@arm.com, justin.he@arm.com
-Subject: [RFC PATCH v2 13/35] ACPI: Rename acpi_scan_device_not_present() to be about enumeration
-Date:   Wed, 13 Sep 2023 16:38:01 +0000
-Message-Id: <20230913163823.7880-14-james.morse@arm.com>
+Subject: [RFC PATCH v2 15/35] ACPI: processor: Add support for processors described as container packages
+Date:   Wed, 13 Sep 2023 16:38:03 +0000
+Message-Id: <20230913163823.7880-16-james.morse@arm.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20230913163823.7880-1-james.morse@arm.com>
 References: <20230913163823.7880-1-james.morse@arm.com>
@@ -41,56 +41,69 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-acpi_scan_device_not_present() is called when a device in the
-hierarchy is not available for enumeration. Historically enumeration
-was only based on whether the device was present.
+ACPI has two ways of describing processors in the DSDT. Either as a device
+object with HID ACPI0007, or as a type 'C' package inside a Processor
+Container. The ACPI processor driver probes CPUs described as devices, but
+not those described as packages.
 
-To add support for only enumerating devices that are both present
-and enabled, this helper should be renamed. It was only ever about
-enumeration, rename it acpi_scan_device_not_enumerated().
+Duplicate descriptions are not allowed, the ACPI processor driver already
+parses the UID from both devices and containers. acpi_processor_get_info()
+returns an error if the UID exists twice in the DSDT.
 
-No change in behaviour is intended.
+The missing probe for CPUs described as packages creates a problem for
+moving the cpu_register() calls into the acpi_processor driver, as CPUs
+described like this don't get registered, leading to errors from other
+subsystems when they try to add new sysfs entries to the CPU node.
+(e.g. topology_sysfs_init()'s use of topology_add_dev() via cpuhp)
+
+To fix this, parse the processor container and call acpi_processor_add()
+for each processor that is discovered like this. The processor container
+handler is added with acpi_scan_add_handler(), so no detach call will
+arrive.
+
+Qemu TCG describes CPUs using packages in a processor container.
 
 Signed-off-by: James Morse <james.morse@arm.com>
 ---
- drivers/acpi/scan.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/acpi_processor.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index ed01e19514ef..17ab875a7d4e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -289,10 +289,10 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
- 	return 0;
- }
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index c0839bcf78c1..b4bde78121bb 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -625,9 +625,31 @@ static struct acpi_scan_handler processor_handler = {
+ 	},
+ };
  
--static int acpi_scan_device_not_present(struct acpi_device *adev)
-+static int acpi_scan_device_not_enumerated(struct acpi_device *adev)
++static acpi_status acpi_processor_container_walk(acpi_handle handle,
++						 u32 lvl,
++						 void *context,
++						 void **rv)
++{
++	struct acpi_device *adev;
++	acpi_status status;
++
++	adev = acpi_get_acpi_dev(handle);
++	if (!adev)
++		return AE_ERROR;
++
++	status = acpi_processor_add(adev, &processor_device_ids[0]);
++	acpi_put_acpi_dev(adev);
++
++	return status;
++}
++
+ static int acpi_processor_container_attach(struct acpi_device *dev,
+ 					   const struct acpi_device_id *id)
  {
- 	if (!acpi_device_enumerated(adev)) {
--		dev_warn(&adev->dev, "Still not present\n");
-+		dev_warn(&adev->dev, "Still not enumerated\n");
- 		return -EALREADY;
- 	}
- 	acpi_bus_trim(adev);
-@@ -327,7 +327,7 @@ static int acpi_scan_device_check(struct acpi_device *adev)
- 			error = -ENODEV;
- 		}
- 	} else {
--		error = acpi_scan_device_not_present(adev);
-+		error = acpi_scan_device_not_enumerated(adev);
- 	}
- 	return error;
++	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, dev->handle,
++			    ACPI_UINT32_MAX, acpi_processor_container_walk,
++			    NULL, NULL, NULL);
++
+ 	return 1;
  }
-@@ -339,7 +339,7 @@ static int acpi_scan_bus_check(struct acpi_device *adev, void *not_used)
  
- 	acpi_bus_get_status(adev);
- 	if (!acpi_device_is_present(adev)) {
--		acpi_scan_device_not_present(adev);
-+		acpi_scan_device_not_enumerated(adev);
- 		return 0;
- 	}
- 	if (handler && handler->hotplug.scan_dependent)
 -- 
 2.39.2
 
