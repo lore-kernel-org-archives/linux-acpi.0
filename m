@@ -2,25 +2,25 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B02BEED61C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10F78EED61D
 	for <linux-acpi@archiver.kernel.org>; Fri, 15 Sep 2023 17:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235908AbjIOR3l (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Sep 2023 13:29:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48210 "EHLO
+        id S235965AbjIOR3j (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Fri, 15 Sep 2023 13:29:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235980AbjIOR3N (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Sep 2023 13:29:13 -0400
+        with ESMTP id S235944AbjIOR3L (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Sep 2023 13:29:11 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF5931BF2;
-        Fri, 15 Sep 2023 10:29:07 -0700 (PDT)
-Received: from lhrpeml500006.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RnLdz1rJyz67nfn;
-        Sat, 16 Sep 2023 01:24:23 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 907D22119;
+        Fri, 15 Sep 2023 10:29:05 -0700 (PDT)
+Received: from lhrpeml500006.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RnLkb068Nz6K6C2;
+        Sat, 16 Sep 2023 01:28:22 +0800 (CST)
 Received: from SecurePC30232.china.huawei.com (10.122.247.234) by
  lhrpeml500006.china.huawei.com (7.191.161.198) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Fri, 15 Sep 2023 18:29:05 +0100
+ 15.1.2507.31; Fri, 15 Sep 2023 18:29:02 +0100
 From:   <shiju.jose@huawei.com>
 To:     <linux-acpi@vger.kernel.org>, <linux-mm@kvack.org>,
         <linux-kernel@vger.kernel.org>
@@ -34,12 +34,10 @@ CC:     <rafael@kernel.org>, <lenb@kernel.org>, <naoya.horiguchi@nec.com>,
         <gthelen@google.com>, <linuxarm@huawei.com>,
         <jonathan.cameron@huawei.com>, <tanxiaofei@huawei.com>,
         <prime.zeng@hisilicon.com>, <shiju.jose@huawei.com>
-Subject: [RFC PATCH 4/9] ACPI:RASF: Add extract RASF table to register RASF platform devices
-Date:   Sat, 16 Sep 2023 01:28:13 +0800
-Message-ID: <20230915172818.761-5-shiju.jose@huawei.com>
+Subject: [RFC PATCH 0/9] ACPI:RASF: Add support for ACPI RASF, ACPI RAS2 and configure scrubbers
+Date:   Sat, 16 Sep 2023 01:28:09 +0800
+Message-ID: <20230915172818.761-1-shiju.jose@huawei.com>
 X-Mailer: git-send-email 2.35.1.windows.2
-In-Reply-To: <20230915172818.761-1-shiju.jose@huawei.com>
-References: <20230915172818.761-1-shiju.jose@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -51,185 +49,76 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: A Somasundaram <somasundaram.a@hpe.com>
+From: Shiju Jose <shiju.jose@huawei.com>
 
-The driver adds extraction of ACPI RASF table as per ACPI 5.1 & upwards
-revision. ACPI specification section 5.2.20 for RASF table is the reference
-for this implementation. Driver adds a platform device which binds to the
-RASF memory driver.
+This series add,
+1. support for ACPI RASF(RAS feature table) PCC interfaces
+to communicate with the HW patrol scrubber in the platform,
+as per ACPI 5.1 & upwards revision. Section 5.2.20.
 
-Signed-off-by: A Somasundaram <somasundaram.a@hpe.com>
-Co-developed-by: Shiju Jose <shiju.jose@huawei.com>
-Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
----
- drivers/acpi/Kconfig     |  9 ++++
- drivers/acpi/Makefile    |  1 +
- drivers/acpi/rasf_acpi.c | 97 ++++++++++++++++++++++++++++++++++++++++
- include/acpi/rasf_acpi.h | 19 ++++++++
- 4 files changed, 126 insertions(+)
+2. support for ACPI RAS2(RAS2 feature table), as per
+ACPI 6.5 & upwards revision. Section 5.2.21.
+
+3. scrub driver supports configuring parameters of the memory
+scrubbers in the system. This driver has been implemented
+based on the hwmon subsystem.
+
+The features have tested with RASF and RAS2 emulation in the QEMU.
+
+Previous references to the memory scub and RASF topics.
+https://lore.kernel.org/all/20221103155029.2451105-1-jiaqiyan@google.com/
+https://patchwork.kernel.org/project/linux-arm-kernel/patch/CS1PR84MB0038718F49DBC0FF03919E1184390@CS1PR84MB0038.NAMPRD84.PROD.OUTLOOK.COM/
+
+A Somasundaram (2):
+  ACPI:RASF: Add extract RASF table to register RASF platform devices
+  ACPI:RASF: Add common library for RASF and RAS2 PCC interfaces
+
+Shiju Jose (7):
+  memory: scrub: Add scrub driver supports configuring memory scrubbers
+    in the system
+  memory: scrub: sysfs: Add Documentation entries for set of scrub
+    attributes
+  Documentation/scrub-configure.rst: Add documentation for scrub driver
+  memory: RASF: Add memory RASF driver
+  ACPICA: ACPI 6.5: Add support for RAS2 table
+  ACPI:RAS2: Add driver for ACPI RAS2 feature table (RAS2)
+  memory: RAS2: Add memory RAS2 driver
+
+ .../ABI/testing/sysfs-class-scrub-configure   |  82 ++++
+ Documentation/scrub-configure.rst             |  55 +++
+ drivers/acpi/Kconfig                          |  15 +
+ drivers/acpi/Makefile                         |   1 +
+ drivers/acpi/ras2_acpi.c                      |  97 ++++
+ drivers/acpi/rasf_acpi.c                      |  71 +++
+ drivers/acpi/rasf_acpi_common.c               | 272 +++++++++++
+ drivers/memory/Kconfig                        |  15 +
+ drivers/memory/Makefile                       |   3 +
+ drivers/memory/ras2.c                         | 334 +++++++++++++
+ drivers/memory/rasf.c                         | 335 +++++++++++++
+ drivers/memory/rasf_common.c                  | 251 ++++++++++
+ drivers/memory/scrub/Kconfig                  |  11 +
+ drivers/memory/scrub/Makefile                 |   6 +
+ drivers/memory/scrub/memory-scrub.c           | 452 ++++++++++++++++++
+ include/acpi/actbl2.h                         |  55 +++
+ include/acpi/rasf_acpi.h                      |  59 +++
+ include/memory/memory-scrub.h                 |  85 ++++
+ include/memory/rasf.h                         |  82 ++++
+ 19 files changed, 2281 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-class-scrub-configure
+ create mode 100644 Documentation/scrub-configure.rst
+ create mode 100755 drivers/acpi/ras2_acpi.c
  create mode 100755 drivers/acpi/rasf_acpi.c
+ create mode 100755 drivers/acpi/rasf_acpi_common.c
+ create mode 100644 drivers/memory/ras2.c
+ create mode 100644 drivers/memory/rasf.c
+ create mode 100644 drivers/memory/rasf_common.c
+ create mode 100644 drivers/memory/scrub/Kconfig
+ create mode 100644 drivers/memory/scrub/Makefile
+ create mode 100755 drivers/memory/scrub/memory-scrub.c
  create mode 100755 include/acpi/rasf_acpi.h
+ create mode 100755 include/memory/memory-scrub.h
+ create mode 100755 include/memory/rasf.h
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index cee82b473dc5..e5fd8edc5b35 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -279,6 +279,15 @@ config ACPI_CPPC_LIB
- 	  If your platform does not support CPPC in firmware,
- 	  leave this option disabled.
- 
-+config ACPI_RASF
-+	bool "ACPI RASF driver"
-+	depends on ACPI_PROCESSOR
-+	select MAILBOX
-+	help
-+	  The driver adds support for extraction of RASF table from OS
-+	  system table. Driver adds platform device which binds to the
-+	  RASF memory driver.
-+
- config ACPI_PROCESSOR
- 	tristate "Processor"
- 	depends on X86 || IA64 || ARM64 || LOONGARCH
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index eaa09bf52f17..f8a1263f6128 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -104,6 +104,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
- obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
- obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
- obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
-+obj-$(CONFIG_ACPI_RASF)		+= rasf_acpi.o
- obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
- obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
- obj-$(CONFIG_ACPI_PFRUT)	+= pfr_update.o pfr_telemetry.o
-diff --git a/drivers/acpi/rasf_acpi.c b/drivers/acpi/rasf_acpi.c
-new file mode 100755
-index 000000000000..b30ba2a5e4ff
---- /dev/null
-+++ b/drivers/acpi/rasf_acpi.c
-@@ -0,0 +1,97 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * rasf_acpi.c - ACPI RASF table processing functions
-+ *
-+ * (C) Copyright 2014, 2015 Hewlett-Packard Enterprises.
-+ *
-+ * Copyright (c) 2023 HiSilicon Limited.
-+ *
-+ * Support for
-+ * RASF - ACPI 6.5 Specification, section 5.2.20
-+ *
-+ * Code contains RASF init, which extracts the ACPI RASF table and
-+ * RASF platform communication channel identifier for communicating
-+ * with the ACPI compliant platform that contains RASF command
-+ * support in the hardware. Driver adds platform device which
-+ * binds to the RASF memory driver.
-+ */
-+
-+#define pr_fmt(fmt)	"ACPI RASF: " fmt
-+
-+#include <linux/export.h>
-+#include <linux/delay.h>
-+#include <linux/ktime.h>
-+#include <linux/platform_device.h>
-+#include <acpi/rasf_acpi.h>
-+#include <acpi/acpixf.h>
-+
-+static struct platform_device *rasf_add_platform_device(char *name, const void *data,
-+							size_t size)
-+{
-+	int ret;
-+	struct platform_device *pdev;
-+
-+	pdev = platform_device_alloc(name, PLATFORM_DEVID_AUTO);
-+	if (!pdev)
-+		return NULL;
-+
-+	ret = platform_device_add_data(pdev, data, size);
-+	if (ret)
-+		goto dev_put;
-+
-+	ret = platform_device_add(pdev);
-+	if (ret)
-+		goto dev_put;
-+
-+	return pdev;
-+
-+dev_put:
-+	platform_device_put(pdev);
-+
-+	return NULL;
-+}
-+
-+int __init rasf_acpi_init(void)
-+{
-+	acpi_status status;
-+	acpi_size rasf_size;
-+	int pcc_subspace_idx;
-+	struct platform_device *pdev;
-+	struct acpi_table_rasf *pRasfTable;
-+	struct acpi_table_header *pAcpiTable = NULL;
-+
-+	status = acpi_get_table("RASF", 0, &pAcpiTable);
-+	if (ACPI_FAILURE(status) || !pAcpiTable) {
-+		pr_err("ACPI RASF driver failed to initialize, get table failed\n");
-+		return RASF_FAILURE;
-+	}
-+
-+	rasf_size = pAcpiTable->length;
-+	if (rasf_size < sizeof(struct acpi_table_rasf)) {
-+		pr_err("ACPI RASF table present but broken (too short #1)\n");
-+		goto free_rasf_table;
-+	}
-+
-+	pRasfTable = (struct acpi_table_rasf *)pAcpiTable;
-+
-+	/* Extract the PCC subspace channel id from the table */
-+	memcpy(&pcc_subspace_idx, &pRasfTable->channel_id, sizeof(pcc_subspace_idx));
-+	pr_debug("ACPI RASF pcc subspace channel id =%d\n",
-+		 pcc_subspace_idx);
-+	if (pcc_subspace_idx < 0)
-+		goto free_rasf_table;
-+
-+	/* Add the platform device and bind rasf memory driver */
-+	pdev = rasf_add_platform_device("rasf", &pcc_subspace_idx,
-+					sizeof(pcc_subspace_idx));
-+	if (!pdev)
-+		goto free_rasf_table;
-+
-+	acpi_put_table(pAcpiTable);
-+	return RASF_SUCCESS;
-+
-+free_rasf_table:
-+	acpi_put_table(pAcpiTable);
-+	return RASF_FAILURE;
-+}
-+late_initcall(rasf_acpi_init)
-diff --git a/include/acpi/rasf_acpi.h b/include/acpi/rasf_acpi.h
-new file mode 100755
-index 000000000000..1c4c3e94d472
---- /dev/null
-+++ b/include/acpi/rasf_acpi.h
-@@ -0,0 +1,19 @@
-+/* SPDX-License-Identifier: BSD-3-Clause OR GPL-2.0 */
-+/*
-+ * RASF Diagnostic driver header file
-+ *
-+ * (C) Copyright 2014, 2015 Hewlett-Packard Enterprises
-+ *
-+ * Copyright (c) 2023 HiSilicon Limited
-+ */
-+
-+#ifndef _RASF_ACPI_H
-+#define _RASF_ACPI_H
-+
-+#include <linux/acpi.h>
-+#include <linux/types.h>
-+
-+#define RASF_FAILURE 0
-+#define RASF_SUCCESS 1
-+
-+#endif /* _RASF_ACPI_H */
 -- 
 2.34.1
 
