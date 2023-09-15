@@ -2,25 +2,25 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A829EED621
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA329EED624
 	for <linux-acpi@archiver.kernel.org>; Fri, 15 Sep 2023 17:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236131AbjIOR3m (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S236124AbjIOR3m (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Fri, 15 Sep 2023 13:29:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48256 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236057AbjIOR3O (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Sep 2023 13:29:14 -0400
+        with ESMTP id S231697AbjIOR3M (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Sep 2023 13:29:12 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 404F72111;
-        Fri, 15 Sep 2023 10:29:08 -0700 (PDT)
-Received: from lhrpeml500006.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RnLdz49S5z67nH3;
-        Sat, 16 Sep 2023 01:24:23 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 908A8211E;
+        Fri, 15 Sep 2023 10:29:05 -0700 (PDT)
+Received: from lhrpeml500006.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RnLkb2JTKz6K6CT;
+        Sat, 16 Sep 2023 01:28:23 +0800 (CST)
 Received: from SecurePC30232.china.huawei.com (10.122.247.234) by
  lhrpeml500006.china.huawei.com (7.191.161.198) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Fri, 15 Sep 2023 18:29:06 +0100
+ 15.1.2507.31; Fri, 15 Sep 2023 18:29:03 +0100
 From:   <shiju.jose@huawei.com>
 To:     <linux-acpi@vger.kernel.org>, <linux-mm@kvack.org>,
         <linux-kernel@vger.kernel.org>
@@ -34,9 +34,9 @@ CC:     <rafael@kernel.org>, <lenb@kernel.org>, <naoya.horiguchi@nec.com>,
         <gthelen@google.com>, <linuxarm@huawei.com>,
         <jonathan.cameron@huawei.com>, <tanxiaofei@huawei.com>,
         <prime.zeng@hisilicon.com>, <shiju.jose@huawei.com>
-Subject: [RFC PATCH 5/9] ACPI:RASF: Add common library for RASF and RAS2 PCC interfaces
-Date:   Sat, 16 Sep 2023 01:28:14 +0800
-Message-ID: <20230915172818.761-6-shiju.jose@huawei.com>
+Subject: [RFC PATCH 1/9] memory: scrub: Add scrub driver supports configuring memory scrubbers in the system
+Date:   Sat, 16 Sep 2023 01:28:10 +0800
+Message-ID: <20230915172818.761-2-shiju.jose@huawei.com>
 X-Mailer: git-send-email 2.35.1.windows.2
 In-Reply-To: <20230915172818.761-1-shiju.jose@huawei.com>
 References: <20230915172818.761-1-shiju.jose@huawei.com>
@@ -51,438 +51,632 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-From: A Somasundaram <somasundaram.a@hpe.com>
+From: Shiju Jose <shiju.jose@huawei.com>
 
-The code contains PCC interfaces for RASF and RAS2 table, functions to send
-RASF commands as per ACPI 5.1 and RAS2 commands as per ACPI 6.5 & upwards
-revision.
+Add scrub driver supports configuring the memory scrubbers in the
+system. The scrub driver provides the interface for registering the
+scrub devices and to configure the parameters of memory scrubbers in the
+system.
+Driver exposes the scrub parameter attributes to the user via sysfs in
+/sys/class/scrub/scrubX/regionY/
 
-References for this implementation,
-ACPI specification, section 5.2.20 for RASF table, section 5.2.21 for RAS2
-table and chapter 14 for PCC (Platform Communication Channel).
+This driver has been implemented based on the hwmon subsystem.
 
-Driver uses PCC interfaces to communicate to the ACPI HW.
-This code implements PCC interfaces and the functions to send the RASF/RAS2
-commands to be used by OSPM.
-
-Signed-off-by: A Somasundaram <somasundaram.a@hpe.com>
-Co-developed-by: Shiju Jose <shiju.jose@huawei.com>
 Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
 ---
- drivers/acpi/Kconfig            |  12 +-
- drivers/acpi/Makefile           |   2 +-
- drivers/acpi/rasf_acpi.c        |  26 ---
- drivers/acpi/rasf_acpi_common.c | 272 ++++++++++++++++++++++++++++++++
- include/acpi/rasf_acpi.h        |  40 +++++
- 5 files changed, 322 insertions(+), 30 deletions(-)
- create mode 100755 drivers/acpi/rasf_acpi_common.c
+ drivers/memory/Kconfig              |   1 +
+ drivers/memory/Makefile             |   1 +
+ drivers/memory/scrub/Kconfig        |  11 +
+ drivers/memory/scrub/Makefile       |   6 +
+ drivers/memory/scrub/memory-scrub.c | 452 ++++++++++++++++++++++++++++
+ include/memory/memory-scrub.h       |  85 ++++++
+ 6 files changed, 556 insertions(+)
+ create mode 100644 drivers/memory/scrub/Kconfig
+ create mode 100644 drivers/memory/scrub/Makefile
+ create mode 100755 drivers/memory/scrub/memory-scrub.c
+ create mode 100755 include/memory/memory-scrub.h
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index e5fd8edc5b35..057f7fbc9887 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -283,10 +283,16 @@ config ACPI_RASF
- 	bool "ACPI RASF driver"
- 	depends on ACPI_PROCESSOR
- 	select MAILBOX
-+	select PCC
- 	help
--	  The driver adds support for extraction of RASF table from OS
--	  system table. Driver adds platform device which binds to the
--	  RASF memory driver.
-+	  The driver adds support for PCC (platform communication
-+	  channel) interfaces to communicate with the ACPI complaint
-+	  hardware platform supports RASF(RAS Feature table) or
-+	  and RAS2(RAS2 Feature table).
-+	  The driver adds support for RASF(extraction of RASF tables
-+	  from OS system table), PCC interfaces and OSPM interfaces to
-+	  send RASF & RAS2 commands. Driver adds platform device which
-+	  binds to the RASF/RAS2 memory driver.
+diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
+index 8efdd1f97139..d2e015c09d83 100644
+--- a/drivers/memory/Kconfig
++++ b/drivers/memory/Kconfig
+@@ -227,5 +227,6 @@ config STM32_FMC2_EBI
  
- config ACPI_PROCESSOR
- 	tristate "Processor"
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index f8a1263f6128..dd62d936cbe1 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -104,7 +104,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
- obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
- obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
- obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
--obj-$(CONFIG_ACPI_RASF)		+= rasf_acpi.o
-+obj-$(CONFIG_ACPI_RASF)		+= rasf_acpi_common.o rasf_acpi.o
- obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
- obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
- obj-$(CONFIG_ACPI_PFRUT)	+= pfr_update.o pfr_telemetry.o
-diff --git a/drivers/acpi/rasf_acpi.c b/drivers/acpi/rasf_acpi.c
-index b30ba2a5e4ff..4c752fab9c4c 100755
---- a/drivers/acpi/rasf_acpi.c
-+++ b/drivers/acpi/rasf_acpi.c
-@@ -25,32 +25,6 @@
- #include <acpi/rasf_acpi.h>
- #include <acpi/acpixf.h>
+ source "drivers/memory/samsung/Kconfig"
+ source "drivers/memory/tegra/Kconfig"
++source "drivers/memory/scrub/Kconfig"
  
--static struct platform_device *rasf_add_platform_device(char *name, const void *data,
--							size_t size)
--{
--	int ret;
--	struct platform_device *pdev;
--
--	pdev = platform_device_alloc(name, PLATFORM_DEVID_AUTO);
--	if (!pdev)
--		return NULL;
--
--	ret = platform_device_add_data(pdev, data, size);
--	if (ret)
--		goto dev_put;
--
--	ret = platform_device_add(pdev);
--	if (ret)
--		goto dev_put;
--
--	return pdev;
--
--dev_put:
--	platform_device_put(pdev);
--
--	return NULL;
--}
--
- int __init rasf_acpi_init(void)
- {
- 	acpi_status status;
-diff --git a/drivers/acpi/rasf_acpi_common.c b/drivers/acpi/rasf_acpi_common.c
-new file mode 100755
-index 000000000000..3ee34f5d12d3
+ endif
+diff --git a/drivers/memory/Makefile b/drivers/memory/Makefile
+index d2e6ca9abbe0..4b37312cb342 100644
+--- a/drivers/memory/Makefile
++++ b/drivers/memory/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_STM32_FMC2_EBI)	+= stm32-fmc2-ebi.o
+ 
+ obj-$(CONFIG_SAMSUNG_MC)	+= samsung/
+ obj-$(CONFIG_TEGRA_MC)		+= tegra/
++obj-$(CONFIG_SCRUB)		+= scrub/
+ obj-$(CONFIG_TI_EMIF_SRAM)	+= ti-emif-sram.o
+ obj-$(CONFIG_FPGA_DFL_EMIF)	+= dfl-emif.o
+ 
+diff --git a/drivers/memory/scrub/Kconfig b/drivers/memory/scrub/Kconfig
+new file mode 100644
+index 000000000000..fa7d68f53a69
 --- /dev/null
-+++ b/drivers/acpi/rasf_acpi_common.c
-@@ -0,0 +1,272 @@
-+// SPDX-License-Identifier: GPL-2.0-only
++++ b/drivers/memory/scrub/Kconfig
+@@ -0,0 +1,11 @@
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Memory scrub driver configurations
++#
++
++config SCRUB
++	bool "Memory scrub driver"
++	help
++	  This option selects the memory scrub subsystem, supports
++	  configuring the parameters of underlying scrubbers in the
++	  system for the DRAM memories.
+diff --git a/drivers/memory/scrub/Makefile b/drivers/memory/scrub/Makefile
+new file mode 100644
+index 000000000000..1b677132ca13
+--- /dev/null
++++ b/drivers/memory/scrub/Makefile
+@@ -0,0 +1,6 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Makefile for memory scrub drivers
++#
++
++obj-$(CONFIG_SCRUB)		+= memory-scrub.o
+diff --git a/drivers/memory/scrub/memory-scrub.c b/drivers/memory/scrub/memory-scrub.c
+new file mode 100755
+index 000000000000..b3011e7cd062
+--- /dev/null
++++ b/drivers/memory/scrub/memory-scrub.c
+@@ -0,0 +1,452 @@
++// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * rasf_acpi_common.c - ACPI RASF table processing common functions
-+ *
-+ * (C) Copyright 2014, 2015 Hewlett-Packard Enterprises.
++ * Memory scrub controller driver support to configure
++ * the parameters of the memory scrubbers and enable.
 + *
 + * Copyright (c) 2023 HiSilicon Limited.
-+ *
-+ * Support for
-+ * RASF - ACPI 6.5 Specification, section 5.2.20
-+ * RAS2 - ACPI 6.5 Specification, section 5.2.21
-+ * PCC(Platform Communications Channel) - ACPI 6.5 Specification,
-+ * chapter 14.
-+ *
-+ * Code contains common functions for RASF.
-+ * PCC(Platform communication channel) interfaces for the RASF & RAS2
-+ * and the functions for sending RASF & RAS2 commands to the ACPI HW.
 + */
 +
-+#define pr_fmt(fmt)	"ACPI RASF COMMON: " fmt
++#define pr_fmt(fmt)     "MEM SCRUB: " fmt
 +
-+#include <linux/export.h>
++#include <linux/acpi.h>
++#include <linux/bitops.h>
 +#include <linux/delay.h>
-+#include <linux/ktime.h>
 +#include <linux/platform_device.h>
-+#include <acpi/rasf_acpi.h>
-+#include <acpi/acpixf.h>
++#include <linux/kfifo.h>
++#include <linux/spinlock.h>
++#include <memory/memory-scrub.h>
 +
-+static int rasf_check_pcc_chan(struct rasf_context *rasf_ctx)
-+{
-+	int ret = -EIO;
-+	struct acpi_rasf_shared_memory  __iomem *generic_comm_base = rasf_ctx->pcc_comm_addr;
-+	ktime_t next_deadline = ktime_add(ktime_get(), rasf_ctx->deadline);
++/* memory scrubber config definitions */
++#define SCRUB_ID_PREFIX "scrub"
++#define SCRUB_ID_FORMAT SCRUB_ID_PREFIX "%d"
++#define SCRUB_DEV_MAX_NAME_LENGTH	128
 +
-+	while (!ktime_after(ktime_get(), next_deadline)) {
-+		/*
-+		 * As per ACPI spec, the PCC space wil be initialized by
-+		 * platform and should have set the command completion bit when
-+		 * PCC can be used by OSPM
-+		 */
-+		if (readw_relaxed(&generic_comm_base->status) & RASF_PCC_CMD_COMPLETE) {
-+			ret = 0;
-+			break;
-+		}
-+		/*
-+		 * Reducing the bus traffic in case this loop takes longer than
-+		 * a few retries.
-+		 */
-+		udelay(10);
-+	}
++static DEFINE_IDA(scrub_ida);
 +
-+	return ret;
-+}
-+
-+/**
-+ * rasf_send_pcc_cmd() - Send RASF command via PCC channel
-+ * @rasf_ctx:	pointer to the rasf context structure
-+ * @cmd:	command to send
-+ *
-+ * Returns: 0 on success, an error otherwise
-+ */
-+int rasf_send_pcc_cmd(struct rasf_context *rasf_ctx, u16 cmd)
-+{
-+	int ret = -EIO;
-+	struct acpi_rasf_shared_memory  *generic_comm_base =
-+		(struct acpi_rasf_shared_memory *)rasf_ctx->pcc_comm_addr;
-+	static ktime_t last_cmd_cmpl_time, last_mpar_reset;
-+	static int mpar_count;
-+	unsigned int time_delta;
-+
-+	if (cmd == RASF_PCC_CMD_EXEC) {
-+		ret = rasf_check_pcc_chan(rasf_ctx);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/*
-+	 * Handle the Minimum Request Turnaround Time(MRTT)
-+	 * "The minimum amount of time that OSPM must wait after the completion
-+	 * of a command before issuing the next command, in microseconds"
-+	 */
-+	if (rasf_ctx->pcc_mrtt) {
-+		time_delta = ktime_us_delta(ktime_get(), last_cmd_cmpl_time);
-+		if (rasf_ctx->pcc_mrtt > time_delta)
-+			udelay(rasf_ctx->pcc_mrtt - time_delta);
-+	}
-+
-+	/*
-+	 * Handle the non-zero Maximum Periodic Access Rate(MPAR)
-+	 * "The maximum number of periodic requests that the subspace channel can
-+	 * support, reported in commands per minute. 0 indicates no limitation."
-+	 *
-+	 * This parameter should be ideally zero or large enough so that it can
-+	 * handle maximum number of requests that all the cores in the system can
-+	 * collectively generate. If it is not, we will follow the spec and just
-+	 * not send the request to the platform after hitting the MPAR limit in
-+	 * any 60s window
-+	 */
-+	if (rasf_ctx->pcc_mpar) {
-+		if (mpar_count == 0) {
-+			time_delta = ktime_ms_delta(ktime_get(), last_mpar_reset);
-+			if (time_delta < 60 * MSEC_PER_SEC) {
-+				pr_debug("PCC cmd not sent due to MPAR limit");
-+				return -EIO;
-+			}
-+			last_mpar_reset = ktime_get();
-+			mpar_count = rasf_ctx->pcc_mpar;
-+		}
-+		mpar_count--;
-+	}
-+
-+	/* Write to the shared comm region. */
-+	writew_relaxed(cmd, &generic_comm_base->command);
-+
-+	/* Flip CMD COMPLETE bit */
-+	writew_relaxed(0, &generic_comm_base->status);
-+
-+	/* Ring doorbell */
-+	ret = mbox_send_message(rasf_ctx->pcc_channel, &cmd);
-+	if (ret < 0) {
-+		pr_err("Err sending PCC mbox message. cmd:%d, ret:%d\n",
-+				cmd, ret);
-+		return ret;
-+	}
-+
-+	/*
-+	 * For READs we need to ensure the cmd completed to ensure
-+	 * the ensuing read()s can proceed. For WRITEs we dont care
-+	 * because the actual write()s are done before coming here
-+	 * and the next READ or WRITE will check if the channel
-+	 * is busy/free at the entry of this call.
-+	 *
-+	 * If Minimum Request Turnaround Time is non-zero, we need
-+	 * to record the completion time of both READ and WRITE
-+	 * command for proper handling of MRTT, so we need to check
-+	 * for pcc_mrtt in addition to CMD_READ
-+	 */
-+	if (cmd == RASF_PCC_CMD_EXEC || rasf_ctx->pcc_mrtt) {
-+		ret = rasf_check_pcc_chan(rasf_ctx);
-+		if (rasf_ctx->pcc_mrtt)
-+			last_cmd_cmpl_time = ktime_get();
-+	}
-+
-+	if (rasf_ctx->pcc_channel->mbox->txdone_irq)
-+		mbox_chan_txdone(rasf_ctx->pcc_channel, ret);
-+	else
-+		mbox_client_txdone(rasf_ctx->pcc_channel, ret);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(rasf_send_pcc_cmd);
-+
-+/**
-+ * rasf_register_pcc_channel() - Register PCC channel
-+ * @rasf_ctx:	pointer to the rasf context structure
-+ *
-+ * Returns: 0 on success, an error otherwise
-+ */
-+int rasf_register_pcc_channel(struct rasf_context *rasf_ctx)
-+{
-+	u64 usecs_lat;
-+	unsigned int len;
-+	struct pcc_mbox_chan *pcc_chan;
-+	struct mbox_client *rasf_mbox_cl;
-+	struct acpi_pcct_hw_reduced *rasf_ss;
-+
-+	rasf_mbox_cl = &rasf_ctx->mbox_client;
-+	if (!rasf_mbox_cl || rasf_ctx->pcc_subspace_idx < 0)
-+		return -EINVAL;
-+
-+	pcc_chan = pcc_mbox_request_channel(rasf_mbox_cl,
-+				rasf_ctx->pcc_subspace_idx);
-+
-+	if (IS_ERR(pcc_chan)) {
-+		pr_err("Failed to find PCC channel for subspace %d\n",
-+		       rasf_ctx->pcc_subspace_idx);
-+		return -ENODEV;
-+	}
-+	rasf_ctx->pcc_chan = pcc_chan;
-+	rasf_ctx->pcc_channel = pcc_chan->mchan;
-+	/*
-+	 * The PCC mailbox controller driver should
-+	 * have parsed the PCCT (global table of all
-+	 * PCC channels) and stored pointers to the
-+	 * subspace communication region in con_priv.
-+	 */
-+	rasf_ss = rasf_ctx->pcc_channel->con_priv;
-+
-+	if (!rasf_ss) {
-+		pr_err("No PCC subspace found for RASF\n");
-+		pcc_mbox_free_channel(rasf_ctx->pcc_chan);
-+		return -ENODEV;
-+	}
-+
-+	/*
-+	 * This is the shared communication region
-+	 * for the OS and Platform to communicate over.
-+	 */
-+	rasf_ctx->comm_base_addr = rasf_ss->base_address;
-+	len = rasf_ss->length;
-+	pr_debug("PCC subspace for RASF=0x%llx len=%d\n",
-+		  rasf_ctx->comm_base_addr, len);
-+
-+	/*
-+	 * rasf_ss->latency is just a Nominal value. In reality
-+	 * the remote processor could be much slower to reply.
-+	 * So add an arbitrary amount of wait on top of Nominal.
-+	 */
-+	usecs_lat = RASF_NUM_RETRIES * rasf_ss->latency;
-+	rasf_ctx->deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
-+	rasf_ctx->pcc_mrtt = rasf_ss->min_turnaround_time;
-+	rasf_ctx->pcc_mpar = rasf_ss->max_access_rate;
-+	rasf_ctx->pcc_comm_addr = acpi_os_ioremap(rasf_ctx->comm_base_addr, len);
-+	pr_debug("pcc_comm_addr=%p\n", rasf_ctx->pcc_comm_addr);
-+
-+	/* Set flag so that we dont come here for each CPU. */
-+	rasf_ctx->pcc_channel_acquired = true;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(rasf_register_pcc_channel);
-+
-+/**
-+ * rasf_unregister_pcc_channel() - Unregister PCC channel
-+ * @rasf_ctx:	pointer to the rasf context structure
-+ *
-+ * Returns: 0 on success, an error otherwise
-+ */
-+int rasf_unregister_pcc_channel(struct rasf_context *rasf_ctx)
-+{
-+	if (!rasf_ctx->pcc_chan)
-+		return -EINVAL;
-+
-+	pcc_mbox_free_channel(rasf_ctx->pcc_chan);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(rasf_unregister_pcc_channel);
-+
-+/**
-+ * rasf_add_platform_device() - Add a platform device for RASF
-+ * @name:	name of the device we're adding
-+ * @data:	platform specific data for this platform device
-+ * @size:	size of platform specific data
-+ *
-+ * Returns: pointer to platform device on success, an error otherwise
-+ */
-+struct platform_device *rasf_add_platform_device(char *name, const void *data,
-+						 size_t size)
-+{
-+	int ret;
-+	struct platform_device *pdev;
-+
-+	pdev = platform_device_alloc(name, PLATFORM_DEVID_AUTO);
-+	if (!pdev)
-+		return NULL;
-+
-+	ret = platform_device_add_data(pdev, data, size);
-+	if (ret)
-+		goto dev_put;
-+
-+	ret = platform_device_add(pdev);
-+	if (ret)
-+		goto dev_put;
-+
-+	return pdev;
-+
-+dev_put:
-+	platform_device_put(pdev);
-+
-+	return NULL;
-+}
-diff --git a/include/acpi/rasf_acpi.h b/include/acpi/rasf_acpi.h
-index 1c4c3e94d472..e91a451c5dc1 100755
---- a/include/acpi/rasf_acpi.h
-+++ b/include/acpi/rasf_acpi.h
-@@ -11,9 +11,49 @@
- #define _RASF_ACPI_H
- 
- #include <linux/acpi.h>
-+#include <linux/mailbox_controller.h>
-+#include <linux/mailbox_client.h>
- #include <linux/types.h>
-+#include <acpi/pcc.h>
-+
-+#define RASF_PCC_CMD_COMPLETE 1
-+
-+/* RASF specific PCC commands */
-+#define RASF_PCC_CMD_EXEC 0x01
- 
- #define RASF_FAILURE 0
- #define RASF_SUCCESS 1
- 
-+/*
-+ * Arbitrary Retries for PCC commands.
-+ */
-+#define RASF_NUM_RETRIES 600
-+
-+/*
-+ * Data structures for PCC communication and RASF table
-+ */
-+struct rasf_context {
-+	struct device *dev;
++struct scrub_device {
++	char name[SCRUB_DEV_MAX_NAME_LENGTH];
 +	int id;
-+	struct mbox_client mbox_client;
-+	struct mbox_chan *pcc_channel;
-+	struct pcc_mbox_chan *pcc_chan;
-+	void __iomem *pcc_comm_addr;
-+	u64 comm_base_addr;
-+	int pcc_subspace_idx;
-+	bool pcc_channel_acquired;
-+	ktime_t deadline;
-+	unsigned int pcc_mpar;
-+	unsigned int pcc_mrtt;
-+	spinlock_t spinlock; /* Lock to provide mutually exclusive access to PCC channel */
-+	struct device *scrub_dev;
-+	u8 n_regions;
-+	const struct rasf_hw_scrub_ops *ops;
++	struct device dev;
++	const struct scrub_source_info *source_info;
++	struct list_head tzdata;
++	char (*region_name)[];
++	struct attribute_group group;
++	int ngroups;
++	struct attribute_group *region_groups;
++	const struct attribute_group **groups;
 +};
 +
-+struct platform_device *rasf_add_platform_device(char *name, const void *data,
-+						 size_t size);
-+int rasf_send_pcc_cmd(struct rasf_context *rasf_ctx, u16 cmd);
-+int rasf_register_pcc_channel(struct rasf_context *rasf_ctx);
-+int rasf_unregister_pcc_channel(struct rasf_context *rasf_ctx);
- #endif /* _RASF_ACPI_H */
++#define to_scrub_device(d) container_of(d, struct scrub_device, dev)
++#define SCRUB_MAX_SYSFS_ATTR_NAME_LENGTH	64
++
++struct scrub_device_attribute {
++	struct device_attribute dev_attr;
++	const struct scrub_ops *ops;
++	u32 attr;
++	int region_id;
++	char name[SCRUB_MAX_SYSFS_ATTR_NAME_LENGTH];
++};
++
++#define to_scrub_attr(d) \
++	container_of(d, struct scrub_device_attribute, dev_attr)
++#define to_dev_attr(a) container_of(a, struct device_attribute, attr)
++
++static ssize_t name_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%s\n", to_scrub_device(dev)->name);
++}
++static DEVICE_ATTR_RO(name);
++
++static struct attribute *scrub_dev_attrs[] = {
++	&dev_attr_name.attr,
++	NULL
++};
++
++static umode_t scrub_dev_attr_is_visible(struct kobject *kobj,
++					    struct attribute *attr, int n)
++{
++	struct device *dev = kobj_to_dev(kobj);
++	struct scrub_device *scrub_dev = to_scrub_device(dev);
++
++	if (attr == &dev_attr_name.attr && scrub_dev->name == NULL)
++		return 0;
++
++	return attr->mode;
++}
++
++static const struct attribute_group scrub_dev_attr_group = {
++	.attrs		= scrub_dev_attrs,
++	.is_visible	= scrub_dev_attr_is_visible,
++};
++
++static const struct attribute_group *scrub_dev_attr_groups[] = {
++	&scrub_dev_attr_group,
++	NULL
++};
++
++static void scrub_free_attrs(struct attribute **attrs)
++{
++	int i;
++
++	for (i = 0; attrs[i]; i++) {
++		struct device_attribute *dattr = to_dev_attr(attrs[i]);
++		struct scrub_device_attribute *hattr = to_scrub_attr(dattr);
++
++		kfree(hattr);
++	}
++	kfree(attrs);
++}
++
++static void scrub_dev_release(struct device *dev)
++{
++	int count;
++	struct attribute_group *group;
++	struct scrub_device *scrub_dev = to_scrub_device(dev);
++
++	for (count = 0; count < scrub_dev->ngroups; count++) {
++		group = (struct attribute_group *)scrub_dev->groups[count];
++		if (group)
++			scrub_free_attrs(group->attrs);
++	}
++	kfree(scrub_dev->region_name);
++	kfree(scrub_dev->region_groups);
++	kfree(scrub_dev->groups);
++	ida_free(&scrub_ida, scrub_dev->id);
++	kfree(scrub_dev);
++}
++
++static struct class scrub_class = {
++	.name = "scrub",
++	.dev_groups = scrub_dev_attr_groups,
++	.dev_release = scrub_dev_release,
++};
++
++/* sysfs attribute management */
++
++static ssize_t scrub_attr_show(struct device *dev,
++			       struct device_attribute *devattr, char *buf)
++{
++	int ret;
++	u64 val;
++	struct scrub_device_attribute *hattr = to_scrub_attr(devattr);
++
++	ret = hattr->ops->read(dev, hattr->attr, hattr->region_id, &val);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "0x%llx\n", val);
++}
++
++static ssize_t scrub_attr_show_string(struct device *dev,
++				      struct device_attribute *devattr,
++				      char *buf)
++{
++	int ret;
++	struct scrub_device_attribute *hattr = to_scrub_attr(devattr);
++
++	ret = hattr->ops->read_string(dev, hattr->attr, hattr->region_id, buf);
++	if (ret < 0)
++		return ret;
++
++	return strlen(buf);
++}
++
++static ssize_t scrub_attr_store(struct device *dev,
++				struct device_attribute *devattr,
++				const char *buf, size_t count)
++{
++	int ret;
++	long val;
++	struct scrub_device_attribute *hattr = to_scrub_attr(devattr);
++
++	ret = kstrtol(buf, 10, &val);
++	if (ret < 0)
++		return ret;
++
++	ret = hattr->ops->write(dev, hattr->attr, hattr->region_id, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static ssize_t scrub_attr_store_hex(struct device *dev,
++				    struct device_attribute *devattr,
++				    const char *buf, size_t count)
++{
++	int ret;
++	u64 val;
++	struct scrub_device_attribute *hattr = to_scrub_attr(devattr);
++
++	ret = kstrtou64(buf, 16, &val);
++	if (ret < 0)
++		return ret;
++
++	ret = hattr->ops->write(dev, hattr->attr, hattr->region_id, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static bool is_hex_attr(u32 attr)
++{
++	return	(attr == scrub_addr_base) ||
++		(attr == scrub_addr_size);
++}
++
++static bool is_string_attr(u32 attr)
++{
++	return	attr == scrub_speed_available;
++}
++
++static struct attribute *scrub_genattr(const void *drvdata,
++				       u32 attr,
++				       const char *attrb_name,
++				       const struct scrub_ops *ops,
++				       int region_id)
++{
++	umode_t mode;
++	struct attribute *a;
++	struct device_attribute *dattr;
++	bool is_hex = is_hex_attr(attr);
++	struct scrub_device_attribute *hattr;
++	bool is_string = is_string_attr(attr);
++
++	/* The attribute is invisible if there is no template string */
++	if (!attrb_name)
++		return ERR_PTR(-ENOENT);
++
++	mode = ops->is_visible(drvdata, attr, region_id);
++	if (!mode)
++		return ERR_PTR(-ENOENT);
++
++	if ((mode & 0444) && ((is_string && !ops->read_string) ||
++			      (!is_string && !ops->read)))
++		return ERR_PTR(-EINVAL);
++	if ((mode & 0222) && (!ops->write))
++		return ERR_PTR(-EINVAL);
++
++	hattr = kzalloc(sizeof(*hattr), GFP_KERNEL);
++	if (!hattr)
++		return ERR_PTR(-ENOMEM);
++
++	hattr->attr = attr;
++	hattr->ops = ops;
++	hattr->region_id = region_id;
++
++	dattr = &hattr->dev_attr;
++	dattr->show = is_string ? scrub_attr_show_string : scrub_attr_show;
++	dattr->store = is_hex ? scrub_attr_store_hex : scrub_attr_store;
++
++	a = &dattr->attr;
++	sysfs_attr_init(a);
++	a->name = attrb_name;
++	a->mode = mode;
++
++	return a;
++}
++
++static const char * const scrub_common_attrs[] = {
++	[scrub_addr_base] = "addr_base",
++	[scrub_addr_size] = "addr_size",
++	[scrub_enable] = "enable",
++	[scrub_speed] = "speed",
++	[scrub_speed_available] = "speed_available",
++};
++
++static struct attribute **
++scrub_create_attrs(const void *drvdata, const struct scrub_ops *ops, int region_id)
++{
++	u32 attr;
++	int aindex = 0;
++	struct attribute *a;
++	struct attribute **attrs;
++
++	attrs = kcalloc(max_attrs, sizeof(*attrs), GFP_KERNEL);
++	if (!attrs)
++		return ERR_PTR(-ENOMEM);
++
++	for (attr = 0; attr < max_attrs; attr++) {
++		a = scrub_genattr(drvdata, attr, scrub_common_attrs[attr],
++				  ops, region_id);
++		if (IS_ERR(a)) {
++			if (PTR_ERR(a) != -ENOENT) {
++				scrub_free_attrs(attrs);
++				return ERR_PTR(PTR_ERR(a));
++			}
++			continue;
++		}
++		attrs[aindex++] = a;
++	}
++
++	return attrs;
++}
++
++static struct device *
++scrub_device_register(struct device *dev, const char *name, void *drvdata,
++		      const struct scrub_ops *ops,
++		      int nregions)
++{
++	struct device *hdev;
++	struct attribute **attrs;
++	int err, count, region_id;
++	struct attribute_group *group;
++	struct scrub_device *scrub_dev;
++	char (*region_name)[SCRUB_MAX_SYSFS_ATTR_NAME_LENGTH];
++
++	scrub_dev = kzalloc(sizeof(*scrub_dev), GFP_KERNEL);
++	if (!scrub_dev)
++		return ERR_PTR(-ENOMEM);
++	hdev = &scrub_dev->dev;
++
++	scrub_dev->id = ida_alloc(&scrub_ida, GFP_KERNEL);
++	if (scrub_dev->id < 0) {
++		err = -ENOMEM;
++		goto free_scrub_dev;
++	}
++	int ngroups = 2; /* terminating NULL plus &scrub_dev->groups */
++
++	ngroups += nregions;
++
++	scrub_dev->groups = kcalloc(ngroups, sizeof(struct attribute_group *), GFP_KERNEL);
++	if (!scrub_dev->groups) {
++		err = -ENOMEM;
++		goto free_ida;
++	}
++
++	if (nregions) {
++		scrub_dev->region_groups = kcalloc(nregions, sizeof(struct attribute_group),
++						   GFP_KERNEL);
++		if (!scrub_dev->groups) {
++			err = -ENOMEM;
++			goto free_groups;
++		}
++		scrub_dev->region_name = kcalloc(nregions, SCRUB_MAX_SYSFS_ATTR_NAME_LENGTH,
++						 GFP_KERNEL);
++		if (!scrub_dev->region_name) {
++			err = -ENOMEM;
++			goto free_region_groups;
++		}
++	}
++
++	ngroups = 0;
++	scrub_dev->ngroups = 0;
++	if (nregions) {
++		region_name = scrub_dev->region_name;
++		for (region_id = 0; region_id < nregions; region_id++) {
++			attrs = scrub_create_attrs(drvdata, ops, region_id);
++			if (IS_ERR(attrs)) {
++				err = PTR_ERR(attrs);
++				goto free_attrs;
++			}
++			snprintf((char *)region_name, SCRUB_MAX_SYSFS_ATTR_NAME_LENGTH,
++				 "region%d", region_id);
++			scrub_dev->region_groups[region_id].name = (char *)region_name;
++			scrub_dev->region_groups[region_id].attrs = attrs;
++			region_name++;
++			scrub_dev->groups[ngroups++] = &scrub_dev->region_groups[region_id];
++			scrub_dev->ngroups = ngroups;
++		}
++	} else {
++		attrs = scrub_create_attrs(drvdata, ops, -1);
++		if (IS_ERR(attrs)) {
++			err = PTR_ERR(attrs);
++			goto free_region_name;
++		}
++		scrub_dev->group.attrs = attrs;
++		scrub_dev->groups[ngroups++] = &scrub_dev->group;
++		scrub_dev->ngroups = ngroups;
++	}
++
++	hdev->groups = scrub_dev->groups;
++	hdev->class = &scrub_class;
++	hdev->parent = dev;
++	dev_set_drvdata(hdev, drvdata);
++	dev_set_name(hdev, SCRUB_ID_FORMAT, scrub_dev->id);
++	snprintf(scrub_dev->name, SCRUB_DEV_MAX_NAME_LENGTH, "%s", name);
++	err = device_register(hdev);
++	if (err) {
++		put_device(hdev);
++		return ERR_PTR(err);
++	}
++
++	return hdev;
++
++free_attrs:
++	for (count = 0; count < scrub_dev->ngroups; count++) {
++		group = (struct attribute_group *)scrub_dev->groups[count];
++		if (group)
++			scrub_free_attrs(group->attrs);
++	}
++
++free_region_name:
++	kfree(scrub_dev->region_name);
++
++free_region_groups:
++	kfree(scrub_dev->region_groups);
++
++free_groups:
++	kfree(scrub_dev->groups);
++
++free_ida:
++	ida_free(&scrub_ida, scrub_dev->id);
++
++free_scrub_dev:
++	kfree(scrub_dev);
++	return ERR_PTR(err);
++}
++
++static void devm_scrub_release(void *dev)
++{
++	struct device *hdev = dev;
++
++	device_unregister(hdev);
++}
++
++/**
++ * devm_scrub_device_register - register hw scrubber device
++ * @dev: the parent device (mandatory)
++ * @name: hw scrubber name attribute (mandatory)
++ * @drvdata: driver data to attach to created device (mandatory)
++ * @ops: pointer to scrub_ops structure (mandatory)
++ * @nregions: number of scrub regions to create (optional)
++ *
++ * Returns the pointer to the new device. The new device is automatically
++ * unregistered with the parent device.
++ */
++struct device *
++devm_scrub_device_register(struct device *dev, const char *name,
++			   void *drvdata,
++			   const struct scrub_ops *ops,
++			   int nregions)
++{
++	struct device *hdev;
++
++	if (!dev || !name || !ops)
++		return ERR_PTR(-EINVAL);
++
++	hdev = scrub_device_register(dev, name, drvdata, ops, nregions);
++	if (IS_ERR(hdev))
++		return hdev;
++
++	if (devm_add_action_or_reset(dev, devm_scrub_release, hdev))
++		return NULL;
++
++	return hdev;
++}
++EXPORT_SYMBOL_GPL(devm_scrub_device_register);
++
++static int __init memory_scrub_control_init(void)
++{
++	int err;
++
++	err = class_register(&scrub_class);
++	if (err) {
++		pr_err("couldn't register memory scrub control sysfs class\n");
++		return err;
++	}
++
++	return 0;
++}
++subsys_initcall(memory_scrub_control_init);
+diff --git a/include/memory/memory-scrub.h b/include/memory/memory-scrub.h
+new file mode 100755
+index 000000000000..8e999c9daaed
+--- /dev/null
++++ b/include/memory/memory-scrub.h
+@@ -0,0 +1,85 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Memory scrub controller driver support to configure
++ * the parameters of the memory scrubbers and enable.
++ *
++ * Copyright (c) 2023 HiSilicon Limited.
++ */
++
++#ifndef __MEMORY_SCRUB_H
++#define __MEMORY_SCRUB_H
++
++#include <linux/types.h>
++
++enum scrub_types {
++	scrub_common,
++	scrub_max,
++};
++
++enum scrub_attributes {
++	scrub_addr_base,
++	scrub_addr_size,
++	scrub_enable,
++	scrub_speed,
++	scrub_speed_available,
++	max_attrs,
++};
++
++#define SCRUB_ENABLE		BIT(scrub_enable)
++#define SCRUB_ADDR_BASE		BIT(scrub_addr_base)
++#define SCRUB_ADDR_SIZE		BIT(scrub_addr_size)
++#define SCRUB_SPEED		BIT(scrub_speed)
++#define SCRUB_SPEED_AVAILABLE	BIT(scrub_speed_available)
++
++/**
++ * struct scrub_ops - scrub device operations
++ * @is_visible: Callback to return attribute visibility. Mandatory.
++ *		Parameters are:
++ *		@drvdata:
++ *			pointer to driver-private data structure passed
++ *			as argument to scrub_device_register().
++ *		@attr:	scrubber attribute
++ *		@region_id:
++ *			memory region id
++ *		The function returns the file permissions.
++ *		If the return value is 0, no attribute will be created.
++ * @read:	Read callback for data attributes. Mandatory if readable
++ *		data attributes are present.
++ *		Parameters are:
++ *		@dev:	pointer to hardware scrub device
++ *		@attr:	scrubber attribute
++ *		@region_id:
++ *			memory region id
++ *		@val:	pointer to returned value
++ *		The function returns 0 on success or a negative error number.
++ * @read_string: Read callback for string attributes. Mandatory if string
++ *		attributes are present.
++ *		Parameters are:
++ *		@dev:	pointer to hardware scrub device
++ *		@attr:	scrubber attribute
++ *		@region_id:
++ *			memory region id
++ *		@buf:	pointer to buffer to copy string
++ *		The function returns 0 on success or a negative error number.
++ * @write:	Write callback for data attributes. Mandatory if writeable
++ *		data attributes are present.
++ *		Parameters are:
++ *		@dev:	pointer to hardware scrub device
++ *		@attr:	scrubber attribute
++ *		@region_id:
++ *			memory region id
++ *		@val:	value to write
++ *		The function returns 0 on success or a negative error number.
++ */
++struct scrub_ops {
++	umode_t (*is_visible)(const void *drvdata, u32 attr, int region_id);
++	int (*read)(struct device *dev, u32 attr, int region_id, u64 *val);
++	int (*read_string)(struct device *dev, u32 attr, int region_id, char *buf);
++	int (*write)(struct device *dev, u32 attr, int region_id, u64 val);
++};
++
++struct device *
++devm_scrub_device_register(struct device *dev, const char *name,
++			   void *drvdata, const struct scrub_ops *ops,
++			   int nregions);
++#endif /* __MEMORY_SCRUB_H */
 -- 
 2.34.1
 
