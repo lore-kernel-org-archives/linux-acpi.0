@@ -2,22 +2,22 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0830CD13CF
-	for <linux-acpi@archiver.kernel.org>; Sat, 16 Sep 2023 13:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B9B2CD13D9
+	for <linux-acpi@archiver.kernel.org>; Sat, 16 Sep 2023 13:04:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239197AbjIPNDu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        id S239169AbjIPNDu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
         Sat, 16 Sep 2023 09:03:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38192 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232621AbjIPNDe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Sep 2023 09:03:34 -0400
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3251B2;
-        Sat, 16 Sep 2023 06:03:28 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R231e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=22;SR=0;TI=SMTPD_---0VsA36uP_1694869403;
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0VsA36uP_1694869403)
+        with ESMTP id S231487AbjIPNDd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Sep 2023 09:03:33 -0400
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ACA4DD;
+        Sat, 16 Sep 2023 06:03:26 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=22;SR=0;TI=SMTPD_---0VsA36tW_1694869400;
+Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0VsA36tW_1694869400)
           by smtp.aliyun-inc.com;
-          Sat, 16 Sep 2023 21:03:24 +0800
+          Sat, 16 Sep 2023 21:03:21 +0800
 From:   Shuai Xue <xueshuai@linux.alibaba.com>
 To:     keescook@chromium.org, tony.luck@intel.com, gpiccoli@igalia.com,
         rafael@kernel.org, lenb@kernel.org, james.morse@arm.com,
@@ -28,9 +28,9 @@ Cc:     linux-hardening@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
         linux-efi@vger.kernel.org, acpica-devel@lists.linuxfoundation.org,
         xueshuai@linux.alibaba.com, baolin.wang@linux.alibaba.com
-Subject: [RFC PATCH 3/9] ACPI: APEI: ERST: Emit the mce_record tracepoint
-Date:   Sat, 16 Sep 2023 21:03:10 +0800
-Message-Id: <20230916130316.65815-4-xueshuai@linux.alibaba.com>
+Subject: [RFC PATCH 1/9] pstore: move pstore creator id, section type and record struct to common header
+Date:   Sat, 16 Sep 2023 21:03:08 +0800
+Message-Id: <20230916130316.65815-2-xueshuai@linux.alibaba.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230916130316.65815-1-xueshuai@linux.alibaba.com>
 References: <20230916130316.65815-1-xueshuai@linux.alibaba.com>
@@ -40,44 +40,87 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-After /dev/mcelog character device deprecated by commit 5de97c9f6d85
-("x86/mce: Factor out and deprecate the /dev/mcelog driver"), the
-serialized hardware error log, a.k.a MCE record, of previous boot in
-persistent storage is not collected via APEI ERST.
-
-Emit the mce_record tracepoint so that it can consumed by the new
-generation rasdaemon.
+Move pstore creator id, section type and record struct to the common
+header, so that it can be use by MCE and GHES driver.
 
 Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
 ---
- drivers/acpi/apei/erst.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/acpi/apei/erst.c | 19 -------------------
+ include/linux/pstore.h   | 24 ++++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 528ac5eb4871..f789e3df73a9 100644
+index 247989060e29..528ac5eb4871 100644
 --- a/drivers/acpi/apei/erst.c
 +++ b/drivers/acpi/apei/erst.c
-@@ -26,6 +26,8 @@
- #include <linux/vmalloc.h>
- #include <linux/mm.h> /* kvfree() */
- #include <acpi/apei.h>
-+/* only define CREATE_TRACE_POINTS once */
-+#include <trace/events/mce.h>
+@@ -997,25 +997,6 @@ static struct pstore_info erst_info = {
+ 	.erase		= erst_clearer
+ };
  
- #include "apei-internal.h"
+-#define CPER_CREATOR_PSTORE						\
+-	GUID_INIT(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
+-		  0x64, 0x90, 0xb8, 0x9d)
+-#define CPER_SECTION_TYPE_DMESG						\
+-	GUID_INIT(0xc197e04e, 0xd545, 0x4a70, 0x9c, 0x17, 0xa5, 0x54,	\
+-		  0x94, 0x19, 0xeb, 0x12)
+-#define CPER_SECTION_TYPE_DMESG_Z					\
+-	GUID_INIT(0x4f118707, 0x04dd, 0x4055, 0xb5, 0xdd, 0x95, 0x6d,	\
+-		  0x34, 0xdd, 0xfa, 0xc6)
+-#define CPER_SECTION_TYPE_MCE						\
+-	GUID_INIT(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
+-		  0x04, 0x4a, 0x38, 0xfc)
+-
+-struct cper_pstore_record {
+-	struct cper_record_header hdr;
+-	struct cper_section_descriptor sec_hdr;
+-	char data[];
+-} __packed;
+-
+ static int reader_pos;
  
-@@ -1063,8 +1065,10 @@ static ssize_t erst_reader(struct pstore_record *record)
- 		record->compressed = true;
- 	} else if (guid_equal(&rcd->sec_hdr.section_type, &CPER_SECTION_TYPE_DMESG))
- 		record->type = PSTORE_TYPE_DMESG;
--	else if (guid_equal(&rcd->sec_hdr.section_type, &CPER_SECTION_TYPE_MCE))
-+	else if (guid_equal(&rcd->sec_hdr.section_type, &CPER_SECTION_TYPE_MCE)) {
-+		trace_mce_record((struct mce *)rcd->data);
- 		record->type = PSTORE_TYPE_MCE;
-+	}
- 	else
- 		record->type = PSTORE_TYPE_MAX;
+ static int erst_open_pstore(struct pstore_info *psi)
+diff --git a/include/linux/pstore.h b/include/linux/pstore.h
+index 638507a3c8ff..ad44b3baf10e 100644
+--- a/include/linux/pstore.h
++++ b/include/linux/pstore.h
+@@ -17,6 +17,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/time.h>
+ #include <linux/types.h>
++#include <linux/cper.h>
  
+ struct module;
+ 
+@@ -210,6 +211,29 @@ struct pstore_info {
+ extern int pstore_register(struct pstore_info *);
+ extern void pstore_unregister(struct pstore_info *);
+ 
++#define CPER_CREATOR_PSTORE						\
++	GUID_INIT(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
++		  0x64, 0x90, 0xb8, 0x9d)
++#define CPER_SECTION_TYPE_DMESG						\
++	GUID_INIT(0xc197e04e, 0xd545, 0x4a70, 0x9c, 0x17, 0xa5, 0x54,	\
++		  0x94, 0x19, 0xeb, 0x12)
++#define CPER_SECTION_TYPE_DMESG_Z					\
++	GUID_INIT(0x4f118707, 0x04dd, 0x4055, 0xb5, 0xdd, 0x95, 0x6d,	\
++		  0x34, 0xdd, 0xfa, 0xc6)
++#define CPER_SECTION_TYPE_MCE						\
++	GUID_INIT(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
++		  0x04, 0x4a, 0x38, 0xfc)
++
++/*
++ * CPER specification (in UEFI specification 2.3 appendix N) requires
++ * byte-packed.
++ */
++struct cper_pstore_record {
++	struct cper_record_header hdr;
++	struct cper_section_descriptor sec_hdr;
++	char data[];
++} __packed;
++
+ struct pstore_ftrace_record {
+ 	unsigned long ip;
+ 	unsigned long parent_ip;
 -- 
 2.41.0
 
