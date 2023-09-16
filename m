@@ -2,65 +2,174 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E039CD37B3
-	for <linux-acpi@archiver.kernel.org>; Fri, 15 Sep 2023 22:17:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0C64C46CA1
+	for <linux-acpi@archiver.kernel.org>; Sat, 16 Sep 2023 13:04:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237780AbjIOWQu (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Fri, 15 Sep 2023 18:16:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54960 "EHLO
+        id S238089AbjIPNDt (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Sat, 16 Sep 2023 09:03:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237315AbjIOWQS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Sep 2023 18:16:18 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EBD191;
-        Fri, 15 Sep 2023 15:16:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 48254C433C8;
-        Fri, 15 Sep 2023 22:16:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694816173;
-        bh=qYRt/RVr9PQ9rECRycoq3cTVu1PqbT5i+7NbrRo0Id8=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=so5plEGm7r3e/8oZH70zg/cRpAvoY3VF/PEQ7urTS1nQl0YZ73TVIKHPveJ/f1vTf
-         PsJA2/rFtRuJ5IuEqgDkoCuzAmmAPCcb0n+GIfDqyPn+55alelC5q+lMsfZwqbGuIF
-         qresMrEBOK3Lzo1uRcywpwCzYwEEqXql1HcxioiIuvrMeVUYCFfrN29zjDD2g1p/n5
-         7+Kgix5OtORF7HgVQUQODOVd5L8Qhq8QGrziQSfYdToE6jvv5IcOnyU5W6duiL4v/Q
-         VssdowtsCALiui4OUu3KsHaPvJBZBN1gYt4OZItMdjpq/fbgXeHOg8ueH0MOlWrwkj
-         gFGNfVf8S5l+A==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 3118EE26880;
-        Fri, 15 Sep 2023 22:16:13 +0000 (UTC)
-Subject: Re: [GIT PULL] Thermal control updates for v6.6-rc2
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0i4qvW-4=erNtMn=awuzHZM9YhUmuEuCiD9OOqNrA3Y4w@mail.gmail.com>
-References: <CAJZ5v0i4qvW-4=erNtMn=awuzHZM9YhUmuEuCiD9OOqNrA3Y4w@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0i4qvW-4=erNtMn=awuzHZM9YhUmuEuCiD9OOqNrA3Y4w@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git thermal-6.6-rc2
-X-PR-Tracked-Commit-Id: fb2c10245f201278804a6f28e196e95436059d6d
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e2dd7a1683f985235e0b3acb741f530937ebd3c3
-Message-Id: <169481617319.11838.1149923626077619079.pr-tracker-bot@kernel.org>
-Date:   Fri, 15 Sep 2023 22:16:13 +0000
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        with ESMTP id S231226AbjIPNDc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Sep 2023 09:03:32 -0400
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6B111B2;
+        Sat, 16 Sep 2023 06:03:25 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R591e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=22;SR=0;TI=SMTPD_---0VsA36tz_1694869402;
+Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0VsA36tz_1694869402)
+          by smtp.aliyun-inc.com;
+          Sat, 16 Sep 2023 21:03:23 +0800
+From:   Shuai Xue <xueshuai@linux.alibaba.com>
+To:     keescook@chromium.org, tony.luck@intel.com, gpiccoli@igalia.com,
+        rafael@kernel.org, lenb@kernel.org, james.morse@arm.com,
+        bp@alien8.de, tglx@linutronix.de, mingo@redhat.com,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        ardb@kernel.org, robert.moore@intel.com
+Cc:     linux-hardening@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
+        linux-efi@vger.kernel.org, acpica-devel@lists.linuxfoundation.org,
+        xueshuai@linux.alibaba.com, baolin.wang@linux.alibaba.com
+Subject: [RFC PATCH 2/9] ACPI: APEI: Use common ERST struct to read/write serialized MCE record
+Date:   Sat, 16 Sep 2023 21:03:09 +0800
+Message-Id: <20230916130316.65815-3-xueshuai@linux.alibaba.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230916130316.65815-1-xueshuai@linux.alibaba.com>
+References: <20230916130316.65815-1-xueshuai@linux.alibaba.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-The pull request you sent on Fri, 15 Sep 2023 20:31:21 +0200:
+It is confusing to define two creator IDs with the same GUID number, and
+unnecessary to define the same data structure twice.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git thermal-6.6-rc2
+Use common ERST struct to read/write MCE record.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e2dd7a1683f985235e0b3acb741f530937ebd3c3
+Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+---
+ arch/x86/kernel/cpu/mce/apei.c | 82 +++++++++++++++-------------------
+ 1 file changed, 35 insertions(+), 47 deletions(-)
 
-Thank you!
-
+diff --git a/arch/x86/kernel/cpu/mce/apei.c b/arch/x86/kernel/cpu/mce/apei.c
+index 8ed341714686..f5739f13e583 100644
+--- a/arch/x86/kernel/cpu/mce/apei.c
++++ b/arch/x86/kernel/cpu/mce/apei.c
+@@ -20,6 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/acpi.h>
+ #include <linux/cper.h>
++#include <linux/pstore.h>
+ #include <acpi/apei.h>
+ #include <acpi/ghes.h>
+ #include <asm/mce.h>
+@@ -124,58 +125,45 @@ int apei_smca_report_x86_error(struct cper_ia_proc_ctx *ctx_info, u64 lapic_id)
+ 	return 0;
+ }
+ 
+-#define CPER_CREATOR_MCE						\
+-	GUID_INIT(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
+-		  0x64, 0x90, 0xb8, 0x9d)
+-#define CPER_SECTION_TYPE_MCE						\
+-	GUID_INIT(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
+-		  0x04, 0x4a, 0x38, 0xfc)
+-
+-/*
+- * CPER specification (in UEFI specification 2.3 appendix N) requires
+- * byte-packed.
+- */
+-struct cper_mce_record {
+-	struct cper_record_header hdr;
+-	struct cper_section_descriptor sec_hdr;
+-	struct mce mce;
+-} __packed;
+-
+ int apei_write_mce(struct mce *m)
+ {
+-	struct cper_mce_record rcd;
+-
+-	memset(&rcd, 0, sizeof(rcd));
+-	memcpy(rcd.hdr.signature, CPER_SIG_RECORD, CPER_SIG_SIZE);
+-	rcd.hdr.revision = CPER_RECORD_REV;
+-	rcd.hdr.signature_end = CPER_SIG_END;
+-	rcd.hdr.section_count = 1;
+-	rcd.hdr.error_severity = CPER_SEV_FATAL;
++	struct cper_pstore_record *rcd;
++	int record_len = sizeof(*m) + sizeof(*rcd);
++	int data_len = sizeof(*m);
++
++	rcd = kmalloc(record_len, GFP_KERNEL);
++	memset(rcd, 0, sizeof(rcd));
++
++	memcpy(rcd->hdr.signature, CPER_SIG_RECORD, CPER_SIG_SIZE);
++	rcd->hdr.revision = CPER_RECORD_REV;
++	rcd->hdr.signature_end = CPER_SIG_END;
++	rcd->hdr.section_count = 1;
++	rcd->hdr.error_severity = CPER_SEV_FATAL;
+ 	/* timestamp, platform_id, partition_id are all invalid */
+-	rcd.hdr.validation_bits = 0;
+-	rcd.hdr.record_length = sizeof(rcd);
+-	rcd.hdr.creator_id = CPER_CREATOR_MCE;
+-	rcd.hdr.notification_type = CPER_NOTIFY_MCE;
+-	rcd.hdr.record_id = cper_next_record_id();
+-	rcd.hdr.flags = CPER_HW_ERROR_FLAGS_PREVERR;
+-
+-	rcd.sec_hdr.section_offset = (void *)&rcd.mce - (void *)&rcd;
+-	rcd.sec_hdr.section_length = sizeof(rcd.mce);
+-	rcd.sec_hdr.revision = CPER_SEC_REV;
+-	/* fru_id and fru_text is invalid */
+-	rcd.sec_hdr.validation_bits = 0;
+-	rcd.sec_hdr.flags = CPER_SEC_PRIMARY;
+-	rcd.sec_hdr.section_type = CPER_SECTION_TYPE_MCE;
+-	rcd.sec_hdr.section_severity = CPER_SEV_FATAL;
+-
+-	memcpy(&rcd.mce, m, sizeof(*m));
+-
+-	return erst_write(&rcd.hdr);
++	rcd->hdr.validation_bits = 0;
++	rcd->hdr.record_length = record_len;
++	rcd->hdr.creator_id = CPER_CREATOR_PSTORE;
++	rcd->hdr.notification_type = CPER_NOTIFY_MCE;
++	rcd->hdr.record_id = cper_next_record_id();
++	rcd->hdr.flags = CPER_HW_ERROR_FLAGS_PREVERR;
++
++	rcd->sec_hdr.section_offset = (void *)&rcd->data - (void *)&rcd;
++	rcd->sec_hdr.section_length = data_len;
++	rcd->sec_hdr.revision = CPER_SEC_REV;
++	/* ->ru_id and fru_text is invalid */
++	rcd->sec_hdr.validation_bits = 0;
++	rcd->sec_hdr.flags = CPER_SEC_PRIMARY;
++	rcd->sec_hdr.section_type = CPER_SECTION_TYPE_MCE;
++	rcd->sec_hdr.section_severity = CPER_SEV_FATAL;
++
++	memcpy(rcd->data, m, data_len);
++
++	return erst_write(&rcd->hdr);
+ }
+ 
+ ssize_t apei_read_mce(struct mce *m, u64 *record_id)
+ {
+-	struct cper_mce_record rcd;
++	struct cper_pstore_record rcd;
+ 	int rc, pos;
+ 
+ 	rc = erst_get_record_id_begin(&pos);
+@@ -189,14 +177,14 @@ ssize_t apei_read_mce(struct mce *m, u64 *record_id)
+ 	if (*record_id == APEI_ERST_INVALID_RECORD_ID)
+ 		goto out;
+ 	rc = erst_read_record(*record_id, &rcd.hdr, sizeof(rcd), sizeof(rcd),
+-			&CPER_CREATOR_MCE);
++			&CPER_CREATOR_PSTORE);
+ 	/* someone else has cleared the record, try next one */
+ 	if (rc == -ENOENT)
+ 		goto retry;
+ 	else if (rc < 0)
+ 		goto out;
+ 
+-	memcpy(m, &rcd.mce, sizeof(*m));
++	memcpy(m, &rcd.data, sizeof(*m));
+ 	rc = sizeof(*m);
+ out:
+ 	erst_get_record_id_end();
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.41.0
+
