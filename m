@@ -2,155 +2,112 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F13EACD13D2
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Sep 2023 15:36:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 217C3CD13D2
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Sep 2023 15:39:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229456AbjIRPf5 convert rfc822-to-8bit (ORCPT
+        id S229562AbjIRPkC convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Sep 2023 11:35:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53318 "EHLO
+        Mon, 18 Sep 2023 11:40:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229618AbjIRPfg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2023 11:35:36 -0400
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65CC3173E;
-        Mon, 18 Sep 2023 08:31:04 -0700 (PDT)
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-273e3d8b57aso876631a91.0;
-        Mon, 18 Sep 2023 08:31:04 -0700 (PDT)
+        with ESMTP id S229556AbjIRPkB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2023 11:40:01 -0400
+Received: from mail-io1-f42.google.com (mail-io1-f42.google.com [209.85.166.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15EF7CF7;
+        Mon, 18 Sep 2023 08:38:27 -0700 (PDT)
+Received: by mail-io1-f42.google.com with SMTP id ca18e2360f4ac-797ea09af91so27346439f.1;
+        Mon, 18 Sep 2023 08:38:27 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695050794; x=1695655594;
+        d=1e100.net; s=20230601; t=1695051237; x=1695656037;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ttSOZU5jatbg8vHOMifgIm1wH7BtkDUeEHF0pV5Xpts=;
-        b=vNf6NvTwjnydGu15xUPmcJrxyP/D98P7iFNvGorvHSH0pEpTdN6xmbyKxzPgpydTyF
-         3M2RWhpAxaib96rdmwqxvu/oahTN3qjf+xxUilR/KPZX5Y+1AIsSONkUMBfUUV8ELkED
-         fVFGfIkbyP8Sre8+Wx2X3W3BMD4vxiIB6lxdlI3MpN7AXcQ3Mr9X9W7LqFbo0yubfYuB
-         a+gieI2bIeHP+LF5IF0fj4oKv3jrkV/aZ3il7W0nO7goi8L3NYiklg15XPNeg5CMdpF2
-         aZHao4hEX1RY4QuV1s5kDMdo3RqZcbOnMts4ksqXlgS9P+eybL3HowG9aAyeV05yVkzX
-         zKBg==
-X-Gm-Message-State: AOJu0YyjUj++I/WYPTdZ8OUhZzDQEbCAyUYrR32Sci6AyCIxoMYGvos2
-        vQDQWl4k0VBmTNw+XD7VrhAhjvzqJRsT9C+WfjqvFL+Y
-X-Google-Smtp-Source: AGHT+IFY6CslyWtF7cqkve/+Y36/K0OtKaF82z7c5seokvb+l8f2uZUSxPIzROUlIhPAVAw+xxhF7Lokf4RKQXdt8gQ=
-X-Received: by 2002:a4a:dc93:0:b0:573:4a72:6ec with SMTP id
- g19-20020a4adc93000000b005734a7206ecmr9145014oou.1.1695047653501; Mon, 18 Sep
- 2023 07:34:13 -0700 (PDT)
+        bh=MFE3SOieeOg7U2cFR/e5C3Az7OsuKy0SX2uLUyU2L9I=;
+        b=KzuuybhJ/GNbrQIPkvQBI87ganokPfJJLFlAxD2NLdcVKjeo/WN1b+4L0ChCHPmS4q
+         Aw1buvCKmBzRZuiNoZghTnjT2K6+8eG3UI9nJyxbLQSI9lJRZoJ3Le+Zoo3hnW3Rsw0q
+         xEe8rGQnLRZRz4WjtM7bjSsqmhnxfgY+1+0kyyYZds2CmYihbTMKtoLaED51wFSK0ssH
+         bRvRQZd34xmXoHCxABAjr+vVtRT4UgnJzqlug2XMBeP40KE9RCSnjMjBBW1Hl8yxPMn0
+         9L9Y49djGIXidd6D4e7iOAxq4rwMdqhUdcdrBMWznQili55qry75lTEsp8M/ncEMorIk
+         54cw==
+X-Gm-Message-State: AOJu0YzdhWNuViL9syYm3pblU/5o5I/u/lJq2zgdZO6NUhVSGFmjN7/c
+        hVi3lDP0afWa+gNWPsPD8KN106yl3U9+mbBSPu3pvssurGc=
+X-Google-Smtp-Source: AGHT+IESVVkxXNkZBZ+zrTkkHPrBUBVokeQRifMlvtY58nf40YU40O+NE8GM5f1jlNZedx/2FFLkI968pQ4cLx2okKA=
+X-Received: by 2002:a4a:d38e:0:b0:573:764b:3b8d with SMTP id
+ i14-20020a4ad38e000000b00573764b3b8dmr8216476oos.0.1695049777925; Mon, 18 Sep
+ 2023 08:09:37 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230918134527.252-1-guojinhui.liam@bytedance.com>
-In-Reply-To: <20230918134527.252-1-guojinhui.liam@bytedance.com>
+References: <CAJZ5v0j+L=a0UEiCEXUYDtvscaVF29FPro9FNupMkJ7do2eBGw@mail.gmail.com>
+ <20230918124117.187-1-guojinhui.liam@bytedance.com>
+In-Reply-To: <20230918124117.187-1-guojinhui.liam@bytedance.com>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 18 Sep 2023 16:34:02 +0200
-Message-ID: <CAJZ5v0id5sAs711-oCgV7kHfJQOKBWN=JTt1wJkpx4qZqE_18Q@mail.gmail.com>
-Subject: Re: [PATCH v6] driver core: platform: set numa_node before platform_device_add()
+Date:   Mon, 18 Sep 2023 17:09:27 +0200
+Message-ID: <CAJZ5v0jWhC-poYDtemW36Nqm+0ADsG7=wBCUerWJWzQMv-zM2g@mail.gmail.com>
+Subject: Re: [PATCH] driver core: platform: set numa_node before platform_add_device()
 To:     Jinhui Guo <guojinhui.liam@bytedance.com>
-Cc:     rafael@kernel.org, lenb@kernel.org, gregkh@linuxfoundation.org,
-        lizefan.x@bytedance.com, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        kernel test robot <lkp@intel.com>
+Cc:     rafael@kernel.org, gregkh@linuxfoundation.org, lenb@kernel.org,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        lizefan.x@bytedance.com, lkp@intel.com, stable@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 18, 2023 at 3:46 PM Jinhui Guo <guojinhui.liam@bytedance.com> wrote:
+On Mon, Sep 18, 2023 at 2:41 PM Jinhui Guo <guojinhui.liam@bytedance.com> wrote:
 >
-> Setting the devices' numa_node needs to be done in
-> platform_device_register_full(), because that's where the
-> platform device object is allocated.
+> On Mon, 18 Sep 2023 12:30:58 +0200, Rafael J. Wysocki wrote:
+> > On Thu, Sep 14, 2023 at 11:32 PM Jinhui Guo
+> > <guojinhui.liam@bytedance.com> wrote:
+> > >
+> > > platform_add_device()
+> >
+> > According to "git grep" this function is not present in 6.6-rc2.
+> >
+> > If you mean platform_device_add(), please update the patch subject and
+> > changelog accordingly.
+> >
 >
-> Fixes: 4a60406d3592 ("driver core: platform: expose numa_node to users in sysfs")
-> Cc: stable@vger.kernel.org
-> Reported-by: kernel test robot <lkp@intel.com>
-> Closes: https://lore.kernel.org/oe-kbuild-all/202309122309.mbxAnAIe-lkp@intel.com/
-> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Reviewed-by: Rafael J. Wysocki <rafael@kernel.org>
+> This is my mistake, the function name was written wrong.
+> I will fix it in the next patch.
+>
+> > > creates the numa_node attribute of sysfs according
+> > > to whether dev_to_node(dev) is equal to NUMA_NO_NODE. So set the numa node
+> > > of device before creating numa_node attribute of sysfs.
+> >
+> > It would be good to also say that this needs to be done in
+> > platform_device_register_full(), because that's where the platform
+> > device object is allocated.
+> >
+>
+> Thaks for your suggestion. I will modify my decription soon.
+>
+> > However, what about adding the NUMA node information to pdevinfo?  It
+> > would be more straightforward to handle it then AFAICS.
+> >
+>
+> I have tried three potential solutions to fix the bug:
+> 1. The first one is what the current patch do.
+>
+> 2. Add a new function interface only for acpi_create_platform_device() call.
+>    But the code will be a bit redundant.
+>
+> 3. Add an member "numa_node" in `struct platform_device_info`, just as what
+>    `struct device` done:
+>
+> ```
+> struct platform_device_info {
+>         ...;
+> #ifdef CONFIG_NUMA
+>         int             numa_node;
+> #endif
+> ```
+>
+> But not all the call to platform_device_register_full() would set numa_node,
+> and many of them use ` memset(&pdevinfo, 0, sizeof(pdevinfo));` to initialize
+> `struct platform_device_info`. It could initialize numa_node to zero and
+> result in wrong numa_node information in sysfs.
 
-No, I haven't given you this tag.
-
-I don't think that Greg has given you the one above either.
-
-Please don't add tage that you haven't received to your patches,
-because they are not applicable with incorrect tags.
-
-> Signed-off-by: Jinhui Guo <guojinhui.liam@bytedance.com>
-> ---
-> V5 -> V6:
->   1. Update subject to correct function name platform_device_add().
->   2. Provide a more clear and accurate description of the changes
->      made in commit (suggested by Rafael J. Wysocki).
->   3. Add reviewer name.
->
-> V4 -> V5:
->   Add Cc: stable line and changes from the previous submited patches.
->
-> V3 -> V4:
->   Refactor code to be an ACPI function call.
->
-> V2 -> V3:
->   Fix Signed-off name.
->
-> V1 -> V2:
->   Fix compile error without enabling CONFIG_ACPI.
-> ---
->
->  drivers/acpi/acpi_platform.c | 4 +---
->  drivers/base/platform.c      | 1 +
->  include/linux/acpi.h         | 5 +++++
->  3 files changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> index 48d15dd785f6..adcbfbdc343f 100644
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -178,11 +178,9 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
->         if (IS_ERR(pdev))
->                 dev_err(&adev->dev, "platform device creation failed: %ld\n",
->                         PTR_ERR(pdev));
-> -       else {
-> -               set_dev_node(&pdev->dev, acpi_get_node(adev->handle));
-> +       else
->                 dev_dbg(&adev->dev, "created platform device %s\n",
->                         dev_name(&pdev->dev));
-> -       }
->
->         kfree(resources);
->
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index 76bfcba25003..35c891075d95 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -841,6 +841,7 @@ struct platform_device *platform_device_register_full(
->                         goto err;
->         }
->
-> +       set_dev_node(&pdev->dev, ACPI_NODE_GET(ACPI_COMPANION(&pdev->dev)));
->         ret = platform_device_add(pdev);
->         if (ret) {
->  err:
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index a73246c3c35e..6a349d53f19e 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -477,6 +477,10 @@ static inline int acpi_get_node(acpi_handle handle)
->         return 0;
->  }
->  #endif
-> +
-> +#define ACPI_NODE_GET(adev) ((adev) && (adev)->handle ? \
-> +       acpi_get_node((adev)->handle) : NUMA_NO_NODE)
-> +
->  extern int pnpacpi_disabled;
->
->  #define PXM_INVAL      (-1)
-> @@ -770,6 +774,7 @@ const char *acpi_get_subsystem_id(acpi_handle handle);
->  #define ACPI_COMPANION_SET(dev, adev)  do { } while (0)
->  #define ACPI_HANDLE(dev)               (NULL)
->  #define ACPI_HANDLE_FWNODE(fwnode)     (NULL)
-> +#define ACPI_NODE_GET(adev)            NUMA_NO_NODE
->
->  #include <acpi/acpi_numa.h>
->
-> --
-> 2.20.1
->
+Well, platform_device_register_full() need not take that value as the
+numa node number directly.  It may, for example, take the number from
+pdevinfo, subtract 1 from it and use the result of that as the numa
+node number, if not negative.
