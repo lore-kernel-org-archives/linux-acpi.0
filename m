@@ -2,112 +2,238 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 217C3CD13D2
-	for <linux-acpi@archiver.kernel.org>; Mon, 18 Sep 2023 15:39:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05732CD37B0
+	for <linux-acpi@archiver.kernel.org>; Mon, 18 Sep 2023 15:42:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229562AbjIRPkC convert rfc822-to-8bit (ORCPT
+        id S229472AbjIRPm6 convert rfc822-to-8bit (ORCPT
         <rfc822;linux-acpi@archiver.kernel.org>);
-        Mon, 18 Sep 2023 11:40:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54362 "EHLO
+        Mon, 18 Sep 2023 11:42:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229556AbjIRPkB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2023 11:40:01 -0400
-Received: from mail-io1-f42.google.com (mail-io1-f42.google.com [209.85.166.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15EF7CF7;
-        Mon, 18 Sep 2023 08:38:27 -0700 (PDT)
-Received: by mail-io1-f42.google.com with SMTP id ca18e2360f4ac-797ea09af91so27346439f.1;
-        Mon, 18 Sep 2023 08:38:27 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695051237; x=1695656037;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=MFE3SOieeOg7U2cFR/e5C3Az7OsuKy0SX2uLUyU2L9I=;
-        b=KzuuybhJ/GNbrQIPkvQBI87ganokPfJJLFlAxD2NLdcVKjeo/WN1b+4L0ChCHPmS4q
-         Aw1buvCKmBzRZuiNoZghTnjT2K6+8eG3UI9nJyxbLQSI9lJRZoJ3Le+Zoo3hnW3Rsw0q
-         xEe8rGQnLRZRz4WjtM7bjSsqmhnxfgY+1+0kyyYZds2CmYihbTMKtoLaED51wFSK0ssH
-         bRvRQZd34xmXoHCxABAjr+vVtRT4UgnJzqlug2XMBeP40KE9RCSnjMjBBW1Hl8yxPMn0
-         9L9Y49djGIXidd6D4e7iOAxq4rwMdqhUdcdrBMWznQili55qry75lTEsp8M/ncEMorIk
-         54cw==
-X-Gm-Message-State: AOJu0YzdhWNuViL9syYm3pblU/5o5I/u/lJq2zgdZO6NUhVSGFmjN7/c
-        hVi3lDP0afWa+gNWPsPD8KN106yl3U9+mbBSPu3pvssurGc=
-X-Google-Smtp-Source: AGHT+IESVVkxXNkZBZ+zrTkkHPrBUBVokeQRifMlvtY58nf40YU40O+NE8GM5f1jlNZedx/2FFLkI968pQ4cLx2okKA=
-X-Received: by 2002:a4a:d38e:0:b0:573:764b:3b8d with SMTP id
- i14-20020a4ad38e000000b00573764b3b8dmr8216476oos.0.1695049777925; Mon, 18 Sep
- 2023 08:09:37 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAJZ5v0j+L=a0UEiCEXUYDtvscaVF29FPro9FNupMkJ7do2eBGw@mail.gmail.com>
- <20230918124117.187-1-guojinhui.liam@bytedance.com>
-In-Reply-To: <20230918124117.187-1-guojinhui.liam@bytedance.com>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Mon, 18 Sep 2023 17:09:27 +0200
-Message-ID: <CAJZ5v0jWhC-poYDtemW36Nqm+0ADsG7=wBCUerWJWzQMv-zM2g@mail.gmail.com>
-Subject: Re: [PATCH] driver core: platform: set numa_node before platform_add_device()
-To:     Jinhui Guo <guojinhui.liam@bytedance.com>
-Cc:     rafael@kernel.org, gregkh@linuxfoundation.org, lenb@kernel.org,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        lizefan.x@bytedance.com, lkp@intel.com, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S229478AbjIRPm5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2023 11:42:57 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E62A210CF;
+        Mon, 18 Sep 2023 08:41:15 -0700 (PDT)
+Received: from lhrpeml500002.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Rq4nZ3dp0z6K6VQ;
+        Mon, 18 Sep 2023 21:06:58 +0800 (CST)
+Received: from lhrpeml500006.china.huawei.com (7.191.161.198) by
+ lhrpeml500002.china.huawei.com (7.191.160.78) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.31; Mon, 18 Sep 2023 14:07:46 +0100
+Received: from lhrpeml500006.china.huawei.com ([7.191.161.198]) by
+ lhrpeml500006.china.huawei.com ([7.191.161.198]) with mapi id 15.01.2507.031;
+ Mon, 18 Sep 2023 14:07:46 +0100
+From:   Shiju Jose <shiju.jose@huawei.com>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+CC:     "rafael@kernel.org" <rafael@kernel.org>,
+        "lenb@kernel.org" <lenb@kernel.org>,
+        "tony.luck@intel.com" <tony.luck@intel.com>,
+        "james.morse@arm.com" <james.morse@arm.com>,
+        "bp@alien8.de" <bp@alien8.de>,
+        "ying.huang@intel.com" <ying.huang@intel.com>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>,
+        "Jonathan Cameron" <jonathan.cameron@huawei.com>,
+        tanxiaofei <tanxiaofei@huawei.com>,
+        "Zengtao (B)" <prime.zeng@hisilicon.com>,
+        Dave Jiang <dave.jiang@intel.com>
+Subject: RE: [RFC PATCH 1/1] ACPI / APEI: Fix for overwriting aer info when
+ error status data have multiple sections
+Thread-Topic: [RFC PATCH 1/1] ACPI / APEI: Fix for overwriting aer info when
+ error status data have multiple sections
+Thread-Index: AQHZ5/xlHFbbDa4AFUWselBa5XX/GbAcX9qAgAQE/5A=
+Date:   Mon, 18 Sep 2023 13:07:45 +0000
+Message-ID: <c1a4d76b89c44437b328fe8a6d3517dc@huawei.com>
+References: <20230915174435.779-1-shiju.jose@huawei.com>
+ <20230915220219.GA122811@bhelgaas>
+In-Reply-To: <20230915220219.GA122811@bhelgaas>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.48.156.14]
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-On Mon, Sep 18, 2023 at 2:41 PM Jinhui Guo <guojinhui.liam@bytedance.com> wrote:
->
-> On Mon, 18 Sep 2023 12:30:58 +0200, Rafael J. Wysocki wrote:
-> > On Thu, Sep 14, 2023 at 11:32 PM Jinhui Guo
-> > <guojinhui.liam@bytedance.com> wrote:
-> > >
-> > > platform_add_device()
-> >
-> > According to "git grep" this function is not present in 6.6-rc2.
-> >
-> > If you mean platform_device_add(), please update the patch subject and
-> > changelog accordingly.
-> >
->
-> This is my mistake, the function name was written wrong.
-> I will fix it in the next patch.
->
-> > > creates the numa_node attribute of sysfs according
-> > > to whether dev_to_node(dev) is equal to NUMA_NO_NODE. So set the numa node
-> > > of device before creating numa_node attribute of sysfs.
-> >
-> > It would be good to also say that this needs to be done in
-> > platform_device_register_full(), because that's where the platform
-> > device object is allocated.
-> >
->
-> Thaks for your suggestion. I will modify my decription soon.
->
-> > However, what about adding the NUMA node information to pdevinfo?  It
-> > would be more straightforward to handle it then AFAICS.
-> >
->
-> I have tried three potential solutions to fix the bug:
-> 1. The first one is what the current patch do.
->
-> 2. Add a new function interface only for acpi_create_platform_device() call.
->    But the code will be a bit redundant.
->
-> 3. Add an member "numa_node" in `struct platform_device_info`, just as what
->    `struct device` done:
->
-> ```
-> struct platform_device_info {
->         ...;
-> #ifdef CONFIG_NUMA
->         int             numa_node;
-> #endif
-> ```
->
-> But not all the call to platform_device_register_full() would set numa_node,
-> and many of them use ` memset(&pdevinfo, 0, sizeof(pdevinfo));` to initialize
-> `struct platform_device_info`. It could initialize numa_node to zero and
-> result in wrong numa_node information in sysfs.
+Hi Bjorn,
 
-Well, platform_device_register_full() need not take that value as the
-numa node number directly.  It may, for example, take the number from
-pdevinfo, subtract 1 from it and use the result of that as the numa
-node number, if not negative.
+>-----Original Message-----
+>From: Bjorn Helgaas <helgaas@kernel.org>
+>Sent: 15 September 2023 23:02
+>To: Shiju Jose <shiju.jose@huawei.com>
+>Cc: rafael@kernel.org; lenb@kernel.org; tony.luck@intel.com;
+>james.morse@arm.com; bp@alien8.de; ying.huang@intel.com; linux-
+>acpi@vger.kernel.org; linux-pci@vger.kernel.org; linux-kernel@vger.kernel.org;
+>Linuxarm <linuxarm@huawei.com>; Jonathan Cameron
+><jonathan.cameron@huawei.com>; tanxiaofei <tanxiaofei@huawei.com>;
+>Zengtao (B) <prime.zeng@hisilicon.com>; Dave Jiang <dave.jiang@intel.com>
+>Subject: Re: [RFC PATCH 1/1] ACPI / APEI: Fix for overwriting aer info when error
+>status data have multiple sections
+>
+>[+cc Dave, since CXL is also fiddling with aer.c]
+>
+>On Sat, Sep 16, 2023 at 01:44:35AM +0800, shiju.jose@huawei.com wrote:
+>> From: Shiju Jose <shiju.jose@huawei.com>
+>>
+>> ghes_handle_aer() lacks synchronization with aer_recover_work_func(),
+>> so when error status data have multiple sections,
+>> aer_recover_work_func() may use estatus data for aer_capability_regs after it
+>has been overwritten.
+>>
+>> The problem statement is here,
+>> https://lore.kernel.org/all/20230901225755.GA90053@bhelgaas/
+>>
+>> In ghes_handle_aer() allocates memory for aer_capability_regs from the
+>> ghes_estatus_pool and copy data for aer_capability_regs from the
+>> estatus buffer. Free the memory in aer_recover_work_func() after
+>> processing the data using the ghes_estatus_pool_region_free() added.
+>
+>Thanks for working this up!  I had it on my to-do list, but obviously had not gotten
+>to it yet.
+>
+>> Reported-by: Bjorn Helgaas <helgaas@kernel.org>
+>> Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+>> ---
+>>  drivers/acpi/apei/ghes.c | 23 ++++++++++++++++++++++-
+>>  drivers/pci/pcie/aer.c   | 10 ++++++++++
+>>  include/acpi/ghes.h      |  1 +
+>>  3 files changed, 33 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c index
+>> ef59d6ea16da..63ad0541db38 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -209,6 +209,20 @@ int ghes_estatus_pool_init(unsigned int num_ghes)
+>>  	return -ENOMEM;
+>>  }
+>>
+>> +/**
+>> + * ghes_estatus_pool_region_free - free previously allocated memory
+>> + *				   from the ghes_estatus_pool.
+>> + * @addr: address of memory to free.
+>> + * @size: size of memory to free.
+>> + *
+>> + * Returns none.
+>> + */
+>> +void ghes_estatus_pool_region_free(unsigned long addr, u32 size) {
+>> +	gen_pool_free(ghes_estatus_pool, addr, size); }
+>> +EXPORT_SYMBOL_GPL(ghes_estatus_pool_region_free);
+>> +
+>>  static int map_gen_v2(struct ghes *ghes)  {
+>>  	return
+>> apei_map_generic_address(&ghes->generic_v2->read_ack_register);
+>> @@ -564,6 +578,7 @@ static void ghes_handle_aer(struct
+>acpi_hest_generic_data *gdata)
+>>  	    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
+>>  		unsigned int devfn;
+>>  		int aer_severity;
+>> +		u8 *aer_info;
+>>
+>>  		devfn = PCI_DEVFN(pcie_err->device_id.device,
+>>  				  pcie_err->device_id.function);
+>> @@ -577,11 +592,17 @@ static void ghes_handle_aer(struct
+>acpi_hest_generic_data *gdata)
+>>  		if (gdata->flags & CPER_SEC_RESET)
+>>  			aer_severity = AER_FATAL;
+>>
+>> +		aer_info = (void *)gen_pool_alloc(ghes_estatus_pool,
+>> +						  sizeof(struct
+>aer_capability_regs));
+>> +		if (!aer_info)
+>> +			return;
+>> +		memcpy(aer_info, pcie_err->aer_info, sizeof(struct
+>> +aer_capability_regs));
+>
+>This is a very straightforward approach to fixing this, and it looks pretty
+>reasonable, although I'd rather not have to pull more GHES stuff into aer.c
+>(ghes.h and ghes_estatus_pool_region_free()).
+>
+>What I had in mind was to put a queue of aer_capability_regs on the PCI side
+>that could be used by both the APEI path and the native path.
+>
+>In the APEI path, platform firmware reads the error information from the
+>hardware, and it feeds into PCI AER via aer_recover_queue().
+>
+>In the native path, Linux should be reading reads the same error information
+>from the hardware, but it feeds into PCI AER quite differently, via
+>aer_process_err_devices() and handle_error_source().
+>
+>These paths are fundamentally doing the exact same thing, but the data
+>handling and dmesg logging are needlessly different.  I'd like to see them get a
+>little more unified, so the native path could someday also feed into
+>aer_recover_queue().
+>
+>Does that make any sense?
+
+Thanks for letting us know.
+Make sense, solution with in the AER looks better. 
+
+>
+>>  		aer_recover_queue(pcie_err->device_id.segment,
+>>  				  pcie_err->device_id.bus,
+>>  				  devfn, aer_severity,
+>>  				  (struct aer_capability_regs *)
+>> -				  pcie_err->aer_info);
+>> +				  aer_info);
+>>  	}
+>>  #endif
+>>  }
+>> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c index
+>> e85ff946e8c8..388b614c11fd 100644
+>> --- a/drivers/pci/pcie/aer.c
+>> +++ b/drivers/pci/pcie/aer.c
+>> @@ -29,6 +29,7 @@
+>>  #include <linux/kfifo.h>
+>>  #include <linux/slab.h>
+>>  #include <acpi/apei.h>
+>> +#include <acpi/ghes.h>
+>>  #include <ras/ras_event.h>
+>>
+>>  #include "../pci.h"
+>> @@ -996,6 +997,15 @@ static void aer_recover_work_func(struct work_struct
+>*work)
+>>  			continue;
+>>  		}
+>>  		cper_print_aer(pdev, entry.severity, entry.regs);
+>> +		/*
+>> +		 * Memory for aer_capability_regs(entry.regs) is being
+>allocated from the
+>> +		 * ghes_estatus_pool to protect it from overwriting when
+>multiple sections
+>> +		 * are present in the error status. Thus free the same after
+>processing
+>> +		 * the data.
+>> +		 */
+>> +		ghes_estatus_pool_region_free((unsigned long)entry.regs,
+>> +					      sizeof(struct aer_capability_regs));
+>> +
+>>  		if (entry.severity == AER_NONFATAL)
+>>  			pcie_do_recovery(pdev, pci_channel_io_normal,
+>>  					 aer_root_reset);
+>> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h index
+>> 3c8bba9f1114..40d89e161076 100644
+>> --- a/include/acpi/ghes.h
+>> +++ b/include/acpi/ghes.h
+>> @@ -78,6 +78,7 @@ static inline struct list_head
+>> *ghes_get_devices(void) { return NULL; }  #endif
+>>
+>>  int ghes_estatus_pool_init(unsigned int num_ghes);
+>> +void ghes_estatus_pool_region_free(unsigned long addr, u32 size);
+>>
+>>  static inline int acpi_hest_get_version(struct acpi_hest_generic_data
+>> *gdata)  {
+>> --
+>> 2.34.1
+>>
+
+Thanks,
+Shiju
