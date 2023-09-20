@@ -2,37 +2,38 @@ Return-Path: <linux-acpi-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B93FCCE79AD
-	for <linux-acpi@archiver.kernel.org>; Wed, 20 Sep 2023 06:50:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63B9FCE79AC
+	for <linux-acpi@archiver.kernel.org>; Wed, 20 Sep 2023 06:50:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232228AbjITGub (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
-        Wed, 20 Sep 2023 02:50:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37418 "EHLO
+        id S233413AbjITGuc (ORCPT <rfc822;linux-acpi@archiver.kernel.org>);
+        Wed, 20 Sep 2023 02:50:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232386AbjITGua (ORCPT
+        with ESMTP id S233321AbjITGua (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Sep 2023 02:50:30 -0400
 Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 701F183;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7D58AD;
         Tue, 19 Sep 2023 23:50:23 -0700 (PDT)
-Received: from kwepemm600004.china.huawei.com (unknown [172.30.72.54])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4Rr8Fy2FngzMlhg;
-        Wed, 20 Sep 2023 14:46:46 +0800 (CST)
+Received: from kwepemm600004.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4Rr8Fz1Yb8zMlgF;
+        Wed, 20 Sep 2023 14:46:47 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  kwepemm600004.china.huawei.com (7.193.23.242) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Wed, 20 Sep 2023 14:50:20 +0800
+ 15.1.2507.31; Wed, 20 Sep 2023 14:50:21 +0800
 From:   Huisong Li <lihuisong@huawei.com>
 To:     <rafael@kernel.org>, <rafael.j.wysocki@intel.com>,
         <sudeep.holla@arm.com>, <xuwei5@hisilicon.com>
 CC:     <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <soc@kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <liuyonglong@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v2 0/2] mailbox: pcc: export the PCC subspace type
-Date:   Wed, 20 Sep 2023 14:47:01 +0800
-Message-ID: <20230920064703.23543-1-lihuisong@huawei.com>
+Subject: [PATCH v2 2/2] soc: kunpeng_hccs: add the check for PCC subspace type
+Date:   Wed, 20 Sep 2023 14:47:03 +0800
+Message-ID: <20230920064703.23543-3-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20230914115753.9064-1-lihuisong@huawei.com>
+In-Reply-To: <20230920064703.23543-1-lihuisong@huawei.com>
 References: <20230914115753.9064-1-lihuisong@huawei.com>
+ <20230920064703.23543-1-lihuisong@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -44,22 +45,51 @@ Precedence: bulk
 List-ID: <linux-acpi.vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 
-Currently, it seems that the subspace type in all drivers used PCC is fixed
-and not obtained from their platform.
-And PCCT is a best natural way to export it.
+Currently, HCCS driver directly uses Generic Communications Channel Shared
+Memory Region which is used in type0/1/2 to communicate with platform,
+but actually doesn't support type3/4/5.
+So this patch adds the check for PCC subspace type.
 
-v1->v2:
- - add one patch to use PCC subspace type in kunpeng_hccs
-
-Huisong Li (2):
-  mailbox: pcc: export the PCC subspace type
-  soc: kunpeng_hccs: add the check for PCC subspace type
-
- drivers/mailbox/pcc.c                | 10 ++++------
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+---
  drivers/soc/hisilicon/kunpeng_hccs.c | 17 +++++++++++++++++
- include/acpi/pcc.h                   |  1 +
- 3 files changed, 22 insertions(+), 6 deletions(-)
+ 1 file changed, 17 insertions(+)
 
+diff --git a/drivers/soc/hisilicon/kunpeng_hccs.c b/drivers/soc/hisilicon/kunpeng_hccs.c
+index f3810d9d1caa..4ba3bfd45a01 100644
+--- a/drivers/soc/hisilicon/kunpeng_hccs.c
++++ b/drivers/soc/hisilicon/kunpeng_hccs.c
+@@ -174,6 +174,19 @@ static int hccs_register_pcc_channel(struct hccs_dev *hdev)
+ 	return rc;
+ }
+ 
++static int hccs_check_pcc_info(struct hccs_dev *hdev)
++{
++	struct pcc_mbox_chan *pcc_chan = hdev->cl_info.pcc_chan;
++
++	if (pcc_chan->type >= ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE) {
++		dev_err(hdev->dev, "unsupport for subspace type%u.\n",
++			pcc_chan->type);
++		return -EOPNOTSUPP;
++	}
++
++	return 0;
++}
++
+ static int hccs_check_chan_cmd_complete(struct hccs_dev *hdev)
+ {
+ 	struct hccs_mbox_client_info *cl_info = &hdev->cl_info;
+@@ -1224,6 +1237,10 @@ static int hccs_probe(struct platform_device *pdev)
+ 	if (rc)
+ 		return rc;
+ 
++	rc = hccs_check_pcc_info(hdev);
++	if (rc)
++		goto unregister_pcc_chan;
++
+ 	rc = hccs_get_dev_caps(hdev);
+ 	if (rc)
+ 		goto unregister_pcc_chan;
 -- 
 2.33.0
 
