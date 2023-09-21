@@ -1,26 +1,26 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC28517745
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2A241E3F
 	for <linux-acpi@vger.kernel.org>; Thu, 21 Sep 2023 18:10:45 +0000 (UTC)
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BAA2AF6BB;
-	Thu, 21 Sep 2023 11:07:28 -0700 (PDT)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A8A5AF6B1;
+	Thu, 21 Sep 2023 11:07:26 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id 4759fab77295fb91; Thu, 21 Sep 2023 20:07:26 +0200
+ id f5571a811c8c5fc5; Thu, 21 Sep 2023 20:07:25 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by v370.home.net.pl (Postfix) with ESMTPSA id 4C8CC664EBE;
-	Thu, 21 Sep 2023 20:07:26 +0200 (CEST)
+	by v370.home.net.pl (Postfix) with ESMTPSA id 85623664EBE;
+	Thu, 21 Sep 2023 20:07:24 +0200 (CEST)
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux PM <linux-pm@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Lukasz Luba <lukasz.luba@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v1 07/13] thermal: gov_power_allocator: Use trip pointers instead of trip indices
-Date: Thu, 21 Sep 2023 19:55:26 +0200
-Message-ID: <2590280.Lt9SDvczpP@kreacher>
+Subject: [PATCH v1 09/13] thermal: core: Rename trip point index function arguments in governors
+Date: Thu, 21 Sep 2023 19:58:32 +0200
+Message-ID: <3719288.MHq7AAxBmi@kreacher>
 In-Reply-To: <1957441.PYKUYFuaPT@kreacher>
 References: <1957441.PYKUYFuaPT@kreacher>
 Precedence: bulk
@@ -45,264 +45,139 @@ X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Eliminate the __thermal_zone_get_trip() usage that adds unnecessary
-overhead (due to pointless bounds checking and copying of trip point
-data) from the power allocator thermal governor and generally make it
-use trip pointers instead of trip indices where applicable.
+Rename function argumets used for passing trip point indices in thermal
+governors and in the .throttle() callback to "trip_index" to avoid
+confusion with trip pointer names.
 
-The general functionality is not expected to be changed.
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/thermal/gov_power_allocator.c |  102 ++++++++++++----------------------
- 1 file changed, 38 insertions(+), 64 deletions(-)
+ drivers/thermal/gov_bang_bang.c  |    4 ++--
+ drivers/thermal/gov_step_wise.c  |   16 ++++++++--------
+ drivers/thermal/gov_user_space.c |    6 +++---
+ include/linux/thermal.h          |    2 +-
+ 4 files changed, 14 insertions(+), 14 deletions(-)
 
-Index: linux-pm/drivers/thermal/gov_power_allocator.c
+Index: linux-pm/include/linux/thermal.h
 ===================================================================
---- linux-pm.orig/drivers/thermal/gov_power_allocator.c
-+++ linux-pm/drivers/thermal/gov_power_allocator.c
-@@ -16,8 +16,6 @@
- 
- #include "thermal_core.h"
- 
--#define INVALID_TRIP -1
--
- #define FRAC_BITS 10
- #define int_to_frac(x) ((x) << FRAC_BITS)
- #define frac_to_int(x) ((x) >> FRAC_BITS)
-@@ -55,23 +53,23 @@ static inline s64 div_frac(s64 x, s64 y)
-  * @err_integral:	accumulated error in the PID controller.
-  * @prev_err:	error in the previous iteration of the PID controller.
-  *		Used to calculate the derivative term.
-+ * @sustainable_power:	Sustainable power (heat) that this thermal zone can
-+ *			dissipate
-  * @trip_switch_on:	first passive trip point of the thermal zone.  The
-  *			governor switches on when this trip point is crossed.
-  *			If the thermal zone only has one passive trip point,
-- *			@trip_switch_on should be INVALID_TRIP.
-+ *			@trip_switch_on should be NULL.
-  * @trip_max_desired_temperature:	last passive trip point of the thermal
-  *					zone.  The temperature we are
-  *					controlling for.
-- * @sustainable_power:	Sustainable power (heat) that this thermal zone can
-- *			dissipate
-  */
- struct power_allocator_params {
- 	bool allocated_tzp;
- 	s64 err_integral;
- 	s32 prev_err;
--	int trip_switch_on;
--	int trip_max_desired_temperature;
- 	u32 sustainable_power;
-+	const struct thermal_trip *trip_switch_on;
-+	const struct thermal_trip *trip_max_desired_temperature;
+--- linux-pm.orig/include/linux/thermal.h
++++ linux-pm/include/linux/thermal.h
+@@ -199,7 +199,7 @@ struct thermal_governor {
+ 	char name[THERMAL_NAME_LENGTH];
+ 	int (*bind_to_tz)(struct thermal_zone_device *tz);
+ 	void (*unbind_from_tz)(struct thermal_zone_device *tz);
+-	int (*throttle)(struct thermal_zone_device *tz, int trip);
++	int (*throttle)(struct thermal_zone_device *tz, int trip_index);
+ 	struct list_head	governor_list;
  };
  
+Index: linux-pm/drivers/thermal/gov_user_space.c
+===================================================================
+--- linux-pm.orig/drivers/thermal/gov_user_space.c
++++ linux-pm/drivers/thermal/gov_user_space.c
+@@ -25,11 +25,11 @@ static int user_space_bind(struct therma
  /**
-@@ -90,14 +88,12 @@ static u32 estimate_sustainable_power(st
- 	u32 sustainable_power = 0;
- 	struct thermal_instance *instance;
- 	struct power_allocator_params *params = tz->governor_data;
--	const struct thermal_trip *trip_max_desired_temperature =
--			&tz->trips[params->trip_max_desired_temperature];
- 
- 	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
- 		struct thermal_cooling_device *cdev = instance->cdev;
- 		u32 min_power;
- 
--		if (instance->trip != trip_max_desired_temperature)
-+		if (instance->trip != params->trip_max_desired_temperature)
- 			continue;
- 
- 		if (!cdev_is_power_actor(cdev))
-@@ -116,24 +112,23 @@ static u32 estimate_sustainable_power(st
-  * estimate_pid_constants() - Estimate the constants for the PID controller
-  * @tz:		thermal zone for which to estimate the constants
-  * @sustainable_power:	sustainable power for the thermal zone
-- * @trip_switch_on:	trip point number for the switch on temperature
-+ * @trip_switch_on:	trip point for the switch on temperature
-  * @control_temp:	target temperature for the power allocator governor
+  * notify_user_space - Notifies user space about thermal events
+  * @tz: thermal_zone_device
+- * @trip: trip point index
++ * @trip_index: trip point index
   *
-  * This function is used to update the estimation of the PID
-  * controller constants in struct thermal_zone_parameters.
+  * This function notifies the user space through UEvents.
   */
- static void estimate_pid_constants(struct thermal_zone_device *tz,
--				   u32 sustainable_power, int trip_switch_on,
-+				   u32 sustainable_power,
-+				   const struct thermal_trip *trip_switch_on,
- 				   int control_temp)
+-static int notify_user_space(struct thermal_zone_device *tz, int trip)
++static int notify_user_space(struct thermal_zone_device *tz, int trip_index)
  {
--	struct thermal_trip trip;
- 	u32 temperature_threshold = control_temp;
- 	int ret;
- 	s32 k_i;
+ 	char *thermal_prop[5];
+ 	int i;
+@@ -38,7 +38,7 @@ static int notify_user_space(struct ther
  
--	ret = __thermal_zone_get_trip(tz, trip_switch_on, &trip);
--	if (!ret)
--		temperature_threshold -= trip.temperature;
-+	if (trip_switch_on)
-+		temperature_threshold -= trip_switch_on->temperature;
- 
- 	/*
- 	 * estimate_pid_constants() tries to find appropriate default
-@@ -386,7 +381,7 @@ static int allocate_power(struct thermal
- 	struct thermal_instance *instance;
- 	struct power_allocator_params *params = tz->governor_data;
- 	const struct thermal_trip *trip_max_desired_temperature =
--			&tz->trips[params->trip_max_desired_temperature];
-+					params->trip_max_desired_temperature;
- 	u32 *req_power, *max_power, *granted_power, *extra_actor_power;
- 	u32 *weighted_req_power;
- 	u32 total_req_power, max_allocatable_power, total_weighted_req_power;
-@@ -513,46 +508,35 @@ static int allocate_power(struct thermal
- static void get_governor_trips(struct thermal_zone_device *tz,
- 			       struct power_allocator_params *params)
- {
--	int i, last_active, last_passive;
--	bool found_first_passive;
--
--	found_first_passive = false;
--	last_active = INVALID_TRIP;
--	last_passive = INVALID_TRIP;
-+	const struct thermal_trip *last_active = NULL:
-+	const struct thermal_trip *last_passive = NULL;
-+	bool found_first_passive = false;
-+	int i;
- 
- 	for (i = 0; i < tz->num_trips; i++) {
--		struct thermal_trip trip;
--		int ret;
-+		const struct thermal_trip *trip = &tz->trips[i];
- 
--		ret = __thermal_zone_get_trip(tz, i, &trip);
--		if (ret) {
--			dev_warn(&tz->device,
--				 "Failed to get trip point %d type: %d\n", i,
--				 ret);
--			continue;
--		}
--
--		if (trip.type == THERMAL_TRIP_PASSIVE) {
-+		if (trip->type == THERMAL_TRIP_PASSIVE) {
- 			if (!found_first_passive) {
--				params->trip_switch_on = i;
-+				params->trip_switch_on = trip;
- 				found_first_passive = true;
- 			} else  {
--				last_passive = i;
-+				last_passive = trip;
- 			}
--		} else if (trip.type == THERMAL_TRIP_ACTIVE) {
--			last_active = i;
-+		} else if (trip->type == THERMAL_TRIP_ACTIVE) {
-+			last_active = trip;
- 		} else {
- 			break;
- 		}
- 	}
- 
--	if (last_passive != INVALID_TRIP) {
-+	if (last_passive) {
- 		params->trip_max_desired_temperature = last_passive;
- 	} else if (found_first_passive) {
- 		params->trip_max_desired_temperature = params->trip_switch_on;
--		params->trip_switch_on = INVALID_TRIP;
-+		params->trip_switch_on = NULL;
- 	} else {
--		params->trip_switch_on = INVALID_TRIP;
-+		params->trip_switch_on = NULL;
- 		params->trip_max_desired_temperature = last_active;
- 	}
- }
-@@ -567,14 +551,12 @@ static void allow_maximum_power(struct t
+ 	thermal_prop[0] = kasprintf(GFP_KERNEL, "NAME=%s", tz->type);
+ 	thermal_prop[1] = kasprintf(GFP_KERNEL, "TEMP=%d", tz->temperature);
+-	thermal_prop[2] = kasprintf(GFP_KERNEL, "TRIP=%d", trip);
++	thermal_prop[2] = kasprintf(GFP_KERNEL, "TRIP=%d", trip_index);
+ 	thermal_prop[3] = kasprintf(GFP_KERNEL, "EVENT=%d", tz->notify_event);
+ 	thermal_prop[4] = NULL;
+ 	kobject_uevent_env(&tz->device.kobj, KOBJ_CHANGE, thermal_prop);
+Index: linux-pm/drivers/thermal/gov_bang_bang.c
+===================================================================
+--- linux-pm.orig/drivers/thermal/gov_bang_bang.c
++++ linux-pm/drivers/thermal/gov_bang_bang.c
+@@ -89,14 +89,14 @@ static int thermal_zone_trip_update(stru
+  *     (trip_temp - hyst) so that the fan gets turned off again.
+  *
+  */
+-static int bang_bang_control(struct thermal_zone_device *tz, int trip)
++static int bang_bang_control(struct thermal_zone_device *tz, int trip_index)
  {
  	struct thermal_instance *instance;
- 	struct power_allocator_params *params = tz->governor_data;
--	const struct thermal_trip *trip_max_desired_temperature =
--			&tz->trips[params->trip_max_desired_temperature];
- 	u32 req_power;
- 
- 	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
- 		struct thermal_cooling_device *cdev = instance->cdev;
- 
--		if ((instance->trip != trip_max_desired_temperature) ||
-+		if (instance->trip != params->trip_max_desired_temperature ||
- 		    (!cdev_is_power_actor(instance->cdev)))
- 			continue;
- 
-@@ -636,7 +618,6 @@ static int power_allocator_bind(struct t
- {
  	int ret;
- 	struct power_allocator_params *params;
--	struct thermal_trip trip;
- 
- 	ret = check_power_actors(tz);
- 	if (ret)
-@@ -662,12 +643,13 @@ static int power_allocator_bind(struct t
- 	get_governor_trips(tz, params);
- 
- 	if (tz->num_trips > 0) {
--		ret = __thermal_zone_get_trip(tz, params->trip_max_desired_temperature,
--					      &trip);
--		if (!ret)
-+		const struct thermal_trip *trip;
-+
-+		trip = params->trip_max_desired_temperature;
-+		if (trip)
- 			estimate_pid_constants(tz, tz->tzp->sustainable_power,
- 					       params->trip_switch_on,
--					       trip.temperature);
-+					       trip->temperature);
- 	}
- 
- 	reset_pid_controller(params);
-@@ -697,11 +679,10 @@ static void power_allocator_unbind(struc
- 	tz->governor_data = NULL;
- }
- 
--static int power_allocator_throttle(struct thermal_zone_device *tz, int trip_id)
-+static int power_allocator_throttle(struct thermal_zone_device *tz, int trip_index)
- {
- 	struct power_allocator_params *params = tz->governor_data;
--	struct thermal_trip trip;
--	int ret;
-+	const struct thermal_trip *trip = &tz->trips[trip_index];
- 	bool update;
  
  	lockdep_assert_held(&tz->lock);
-@@ -710,12 +691,12 @@ static int power_allocator_throttle(stru
- 	 * We get called for every trip point but we only need to do
- 	 * our calculations once
- 	 */
--	if (trip_id != params->trip_max_desired_temperature)
-+	if (trip != params->trip_max_desired_temperature)
- 		return 0;
  
--	ret = __thermal_zone_get_trip(tz, params->trip_switch_on, &trip);
--	if (!ret && (tz->temperature < trip.temperature)) {
--		update = (tz->last_temperature >= trip.temperature);
-+	trip = params->trip_switch_on;
-+	if (trip && tz->temperature < trip->temperature) {
-+		update = tz->last_temperature >= trip->temperature;
- 		tz->passive = 0;
- 		reset_pid_controller(params);
- 		allow_maximum_power(tz, update);
-@@ -724,14 +705,7 @@ static int power_allocator_throttle(stru
+-	ret = thermal_zone_trip_update(tz, trip);
++	ret = thermal_zone_trip_update(tz, trip_index);
+ 	if (ret)
+ 		return ret;
  
- 	tz->passive = 1;
- 
--	ret = __thermal_zone_get_trip(tz, params->trip_max_desired_temperature, &trip);
--	if (ret) {
--		dev_warn(&tz->device, "Failed to get the maximum desired temperature: %d\n",
--			 ret);
--		return ret;
--	}
--
--	return allocate_power(tz, trip.temperature);
-+	return allocate_power(tz, params->trip_max_desired_temperature->temperature);
+Index: linux-pm/drivers/thermal/gov_step_wise.c
+===================================================================
+--- linux-pm.orig/drivers/thermal/gov_step_wise.c
++++ linux-pm/drivers/thermal/gov_step_wise.c
+@@ -68,23 +68,23 @@ static unsigned long get_target_state(st
+ 	return next_target;
  }
  
- static struct thermal_governor thermal_gov_power_allocator = {
+-static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip_id)
++static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip_index)
+ {
+-	const struct thermal_trip *trip = &tz->trips[trip_id];
++	const struct thermal_trip *trip = &tz->trips[trip_index];
+ 	enum thermal_trend trend;
+ 	struct thermal_instance *instance;
+ 	bool throttle = false;
+ 	int old_target;
+ 
+-	trend = get_tz_trend(tz, trip_id);
++	trend = get_tz_trend(tz, trip_index);
+ 
+ 	if (tz->temperature >= trip->temperature) {
+ 		throttle = true;
+-		trace_thermal_zone_trip(tz, trip_id, trip->type);
++		trace_thermal_zone_trip(tz, trip_index, trip->type);
+ 	}
+ 
+ 	dev_dbg(&tz->device, "Trip%d[type=%d,temp=%d]:trend=%d,throttle=%d\n",
+-		trip_id, trip->type, trip->temperature, trend, throttle);
++		trip_index, trip->type, trip->temperature, trend, throttle);
+ 
+ 	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+ 		if (instance->trip != trip)
+@@ -120,7 +120,7 @@ static void thermal_zone_trip_update(str
+ /**
+  * step_wise_throttle - throttles devices associated with the given zone
+  * @tz: thermal_zone_device
+- * @trip: trip point index
++ * @trip_index: trip point index
+  *
+  * Throttling Logic: This uses the trend of the thermal zone to throttle.
+  * If the thermal zone is 'heating up' this throttles all the cooling
+@@ -128,13 +128,13 @@ static void thermal_zone_trip_update(str
+  * step. If the zone is 'cooling down' it brings back the performance of
+  * the devices by one step.
+  */
+-static int step_wise_throttle(struct thermal_zone_device *tz, int trip)
++static int step_wise_throttle(struct thermal_zone_device *tz, int trip_index)
+ {
+ 	struct thermal_instance *instance;
+ 
+ 	lockdep_assert_held(&tz->lock);
+ 
+-	thermal_zone_trip_update(tz, trip);
++	thermal_zone_trip_update(tz, trip_index);
+ 
+ 	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
+ 		thermal_cdev_update(instance->cdev);
 
 
 
