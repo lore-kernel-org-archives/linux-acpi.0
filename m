@@ -1,28 +1,26 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9F53D39B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7B283F4C1
 	for <linux-acpi@vger.kernel.org>; Thu, 21 Sep 2023 18:10:47 +0000 (UTC)
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72A72AF957;
-	Thu, 21 Sep 2023 11:07:32 -0700 (PDT)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2336CAF96A;
+	Thu, 21 Sep 2023 11:07:34 -0700 (PDT)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id bfbd3e583f736223; Thu, 21 Sep 2023 20:07:30 +0200
+ id 66c059efcc43437d; Thu, 21 Sep 2023 20:07:33 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by v370.home.net.pl (Postfix) with ESMTPSA id 2DCAD664EBE;
-	Thu, 21 Sep 2023 20:07:30 +0200 (CEST)
+	by v370.home.net.pl (Postfix) with ESMTPSA id 0A8DA664EBE;
+	Thu, 21 Sep 2023 20:07:33 +0200 (CEST)
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux PM <linux-pm@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Lukasz Luba <lukasz.luba@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v1 03/13] ACPI: thermal: Collapse trip devices update function wrappers
-Date: Thu, 21 Sep 2023 19:50:08 +0200
-Message-ID: <3198428.5fSG56mABF@kreacher>
-In-Reply-To: <1957441.PYKUYFuaPT@kreacher>
-References: <1957441.PYKUYFuaPT@kreacher>
+Subject: [PATCH v1 00/13] thermal: ACPI: More ACPI thermal improvements and modification of thermal instances
+Date: Thu, 21 Sep 2023 19:46:55 +0200
+Message-ID: <1957441.PYKUYFuaPT@kreacher>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -34,8 +32,8 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrudekiedguddulecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeekpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhn
- thgvlhdrtghomhdprhgtphhtthhopehruhhirdiihhgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtohepuggrnhhivghlrdhlvgiitggrnhhosehlihhnrghrohdrohhrgh
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrudekiedguddvtdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeegfffhudejlefhtdegffekteduhfethffhieettefhkeevgfdvgfefieekiefgheenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepkedprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehsrhhinhhivhgrshdrphgr
+ nhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomhdprhgtphhtthhopegurghnihgvlhdrlhgviigtrghnoheslhhinhgrrhhordhorhhg
 X-DCC--Metrics: v370.home.net.pl 1024; Body=8 Fuz1=8 Fuz2=8
 X-Spam-Status: No, score=-1.9 required=5.0 tests=BAYES_00,
 	RCVD_IN_DNSWL_BLOCKED,SPF_HELO_NONE,SPF_PASS autolearn=ham
@@ -43,77 +41,50 @@ X-Spam-Status: No, score=-1.9 required=5.0 tests=BAYES_00,
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi All,
 
-In order to reduce code duplicationeve further, merge
-acpi_thermal_update_passive/active_devices() into one function
-called acpi_thermal_update_trip_devices() that will be used for
-updating both the passive and active trip points.
+The ACPI thermal driver has undergone some significant changes recently, but
+there is still room for improvements in it.
 
-No intentional functional impact.
+First off, it turns out that a small rearrangement of its internal data
+structures allows code duplication in it to be reduced quite a bit (patches
+[01-04/13].
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/thermal.c |   26 +++++++-------------------
- 1 file changed, 7 insertions(+), 19 deletions(-)
+Next, by changing the way it binds cooling devices to thermal zones (and trips
+within them), the use of trip point indices can be eliminated from it (patch
+[11/13]) which then allows its internal data structures to be simplified even
+further (patch [12/13]).
 
-Index: linux-pm/drivers/acpi/thermal.c
-===================================================================
---- linux-pm.orig/drivers/acpi/thermal.c
-+++ linux-pm/drivers/acpi/thermal.c
-@@ -233,14 +233,16 @@ static bool update_trip_devices(struct a
- 	return true;
- }
- 
--static void acpi_thermal_update_passive_devices(struct acpi_thermal *tz)
-+static void acpi_thermal_update_trip_devices(struct acpi_thermal *tz, int index)
- {
--	struct acpi_thermal_trip *acpi_trip = &tz->trips.passive.trip;
-+	struct acpi_thermal_trip *acpi_trip;
- 
-+	acpi_trip = index == ACPI_THERMAL_TRIP_PASSIVE ?
-+			&tz->trips.passive.trip : &tz->trips.active[index].trip;
- 	if (!acpi_thermal_trip_valid(acpi_trip))
- 		return;
- 
--	if (update_trip_devices(tz, acpi_trip, ACPI_THERMAL_TRIP_PASSIVE, true)) {
-+	if (update_trip_devices(tz, acpi_trip, index, true)) {
- 		return;
- 	}
- 
-@@ -283,20 +285,6 @@ static void acpi_thermal_update_active_t
- 		ACPI_THERMAL_TRIPS_EXCEPTION(tz, "state");
- }
- 
--static void acpi_thermal_update_active_devices(struct acpi_thermal *tz, int index)
--{
--	struct acpi_thermal_trip *acpi_trip = &tz->trips.active[index].trip;
--
--	if (!acpi_thermal_trip_valid(acpi_trip))
--		return;
--
--	if (update_trip_devices(tz, acpi_trip, index, true))
--		return;
--
--	acpi_trip->temperature = THERMAL_TEMP_INVALID;
--	ACPI_THERMAL_TRIPS_EXCEPTION(tz, "state");
--}
--
- static int acpi_thermal_adjust_trip(struct thermal_trip *trip, void *data)
- {
- 	struct acpi_thermal_trip *acpi_trip = trip->priv;
-@@ -324,9 +312,9 @@ static void acpi_thermal_adjust_thermal_
- 		for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++)
- 			acpi_thermal_update_active_trip(tz, i);
- 	} else {
--		acpi_thermal_update_passive_devices(tz);
-+		acpi_thermal_update_trip_devices(tz, ACPI_THERMAL_TRIP_PASSIVE);
- 		for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++)
--			acpi_thermal_update_active_devices(tz, i);
-+			acpi_thermal_update_trip_devices(tz, i);
- 	}
- 
- 	for_each_thermal_trip(tz->thermal_zone, acpi_thermal_adjust_trip, tz);
+However, in order to make those latter changes, it is useful to modify struct
+thermal_instance to carry a trip pointer instead a trip index (patch [05/13])
+which then allows the core to be adjusted to facilitate using trip pointers for
+cooling device binding and unbinding (patch [10/13]).
+
+Meanwhile, the modification of struct thermal_instance mentioned above also
+helps to reduce the thermal governors overhead related to using
+__thermal_zone_get_trip() that carries out bounds checking and copies trip
+point data which both are not necessary in the governor code.  Some related
+cleanups of thermal governors can be done as well (patches [06-09/13].
+
+Finally, it is prudent to visually distinguish the names of structure fields
+and variables that carry temperature values in different units, so patch
+[13/13] changes the names of those items in the ACPI thermal driver that are
+used to store temperature values in deci-Kelvin.
+
+This series is on top of the series of ACPI thermal driver posted last week:
+
+https://patchwork.kernel.org/project/linux-acpi/list/?series=783543
+
+and a couple of recent thermal core patches:
+
+https://patchwork.kernel.org/project/linux-pm/patch/12296181.O9o76ZdvQC@kreacher/
+https://patchwork.kernel.org/project/linux-pm/patch/5981326.lOV4Wx5bFT@kreacher/
+
+It will be exposed in a separate git branch for easier access.
+
+Please see the individual patch changelogs for details.
+
+Thanks!
 
 
 
