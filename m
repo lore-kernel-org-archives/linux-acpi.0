@@ -1,77 +1,152 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7856FB8
-	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 15:47:41 +0000 (UTC)
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F3C4CE3;
-	Mon, 25 Sep 2023 08:47:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695656858; x=1727192858;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=+K5Fipx1dZqTJlRL8mpcXqKkwlqbuDzbtNFslPySHKo=;
-  b=Df785+r9pwtw9+jKeRX2x1aIjh4b+jN+bMkuHwUGalKPq2tNpbajenCV
-   U16XpGRVBrQikPbUAAvSEU8CO/DUuif1095tb33lrgPa3OKo+6uxzQ3AU
-   F+MwlxDkp8n7DVErRcunH3udqKpK2VGKglrwTIkcnvjBTFbKz+svCl+zd
-   vWke0SQT3pJ0Z3aau5Ae/e9QOJGurnmV2vtZL6kXPPNeKOxAXB0bmxOF6
-   AVi9RBSubYyzAUpJRUuKy/MB6vzbqwjtbIbGirf599m5O5sYQzip9uWFB
-   Gf8rVvkKH41QwPKIA78Q2btbWvvTQ9hJvr04eG1RrMo/FrSSi+FfFOL0N
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="445394509"
-X-IronPort-AV: E=Sophos;i="6.03,175,1694761200"; 
-   d="scan'208";a="445394509"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 08:47:36 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="814019337"
-X-IronPort-AV: E=Sophos;i="6.03,175,1694761200"; 
-   d="scan'208";a="814019337"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga008.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 08:47:34 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97-RC0)
-	(envelope-from <andriy.shevchenko@intel.com>)
-	id 1qkno3-00000000Nnc-1SGH;
-	Mon, 25 Sep 2023 18:47:31 +0300
-Date: Mon, 25 Sep 2023 18:47:31 +0300
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: Michal Wilczynski <michal.wilczynski@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, rafael.j.wysocki@intel.com, lenb@kernel.org,
-	dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	ira.weiny@intel.com, rui.zhang@intel.com
-Subject: Re: [PATCH v1 9/9] ACPI: NFIT: Don't use KBUILD_MODNAME for driver
- name
-Message-ID: <ZRGrk8/0UMd9FuFH@smile.fi.intel.com>
-References: <20230925144842.586829-1-michal.wilczynski@intel.com>
- <20230925144842.586829-10-michal.wilczynski@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F3A71B299
+	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 15:58:13 +0000 (UTC)
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8250B92;
+	Mon, 25 Sep 2023 08:58:11 -0700 (PDT)
+Received: from localhost.localdomain (unknown [IPv6:2001:b07:646b:e2:e4be:399f:af39:e0db])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: laura.nao)
+	by madras.collabora.co.uk (Postfix) with ESMTPSA id 58A83660730D;
+	Mon, 25 Sep 2023 16:58:09 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
+	s=mail; t=1695657490;
+	bh=pWW4E+juaK7sF2s3dY0MCFnnwr1NNNbo05xJAUGYROA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ls0Xjum/CtdmRFRNcGlGFVV91i4W5NGWQBarpZh8bf2tuql3/484rhRUzosm61Fkz
+	 XeFO6yosnwhD1iMuW6v6UebEVR4DVGWcs/xMDhybzV0k8I8oW8dEXiY7VcWhpjqgg4
+	 1iQ87heThFs7/BvP4xnEUV/E7brWT00zqhw3NurWGQUCjy6sgRt7YHPC+xr9T92TqQ
+	 BIdIAUWbLAfNY/Bg6TzwVI007mD6949+ArZvts/+OxKCUVP9khlk+0Ews2VXYG2Jbe
+	 e4UpgrrnjqQViZHYuniMt9Eo8mcnfY3E3dxDfCmuKfBg0JnO1QMb90SmJPFpkeQ/c4
+	 aags64so693TQ==
+From: Laura Nao <laura.nao@collabora.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	shuah@kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	groeck@chromium.org,
+	broonie@kernel.org,
+	robh+dt@kernel.org,
+	kernelci@lists.linux.dev,
+	kernel@collabora.com,
+	Laura Nao <laura.nao@collabora.com>
+Subject: [RFC PATCH 1/2] acpi: Add script to extract ACPI device ids in the kernel
+Date: Mon, 25 Sep 2023 17:58:05 +0200
+Message-Id: <20230925155806.1812249-2-laura.nao@collabora.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230925155806.1812249-1-laura.nao@collabora.com>
+References: <20230925155806.1812249-1-laura.nao@collabora.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230925144842.586829-10-michal.wilczynski@intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-X-Spam-Status: No, score=-4.4 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,RCVD_IN_DNSWL_MED,
-	SPF_HELO_NONE,SPF_NONE autolearn=ham autolearn_force=no version=3.4.6
+Content-Transfer-Encoding: 8bit
+X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,RCVD_IN_DNSWL_BLOCKED,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.6
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-On Mon, Sep 25, 2023 at 05:48:42PM +0300, Michal Wilczynski wrote:
-> Driver name is part of the ABI, so it should be hard-coded, as ABI
-> should be always kept backward compatible. Prevent ABI from changing
-> accidentally in case KBUILD_MODNAME change.
+Add a script to extract all the supported acpi device ids
+from kernel sources.
 
-This is up to maintainers, probably we won't have any users outside of existing
-model (instantiating via ACPI ID). All the above is "strictly speaking"...
+The list of IDs returned by the script can be used as a
+reference to determine if a device declared in the ACPI namespace
+with certain _HID/_CID is supported by the kernel or not.
 
+Signed-off-by: Laura Nao <laura.nao@collabora.com>
+---
+ MAINTAINERS                   |  1 +
+ scripts/acpi/acpi-extract-ids | 60 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
+ create mode 100755 scripts/acpi/acpi-extract-ids
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 27751573e314..7540316d82f5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -294,6 +294,7 @@ F:	drivers/pnp/pnpacpi/
+ F:	include/acpi/
+ F:	include/linux/acpi.h
+ F:	include/linux/fwnode.h
++F:	scripts/acpi/acpi-extract-ids
+ F:	tools/power/acpi/
+ 
+ ACPI APEI
+diff --git a/scripts/acpi/acpi-extract-ids b/scripts/acpi/acpi-extract-ids
+new file mode 100755
+index 000000000000..12c8e09281dd
+--- /dev/null
++++ b/scripts/acpi/acpi-extract-ids
+@@ -0,0 +1,60 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Heavily inspired by the scripts/dtc/dt-extract-compatibles script,
++# adapted for the ACPI use case.
++#
++
++import os
++import glob
++import re
++import argparse
++
++
++def parse_acpi_device_ids(file):
++    """ Find all device ID strings in acpi_device_id struct """
++    id_list = []
++
++    with open(file, 'r', encoding='utf-8') as f:
++        data = f.read().replace('\n', '')
++
++        for m in re.finditer(r'acpi_device_id(\s+\S+)?\s+(\S+)\[\](\s+\S+)?\s*=\s*({.*?);', data):
++            id_list += re.findall(r'\"(\S+)\"', m[4])
++
++    return id_list
++
++
++def print_acpi_device_ids(filename, id_list):
++    if not id_list:
++        return
++    if show_filename:
++        compat_str = ' '.join(id_list)
++        print(filename + ": ID(s): " + compat_str)
++    else:
++        print(*id_list, sep='\n')
++
++
++def files_to_parse(path_args):
++    for f in path_args:
++        if os.path.isdir(f):
++            for filename in glob.iglob(f + "/**/*.c", recursive=True):
++                yield filename
++        else:
++            yield f
++
++
++show_filename = False
++
++if __name__ == "__main__":
++    ap = argparse.ArgumentParser()
++    ap.add_argument("cfile", type=str, nargs='*',
++                    help="C source files or directories to parse")
++    ap.add_argument('-H', '--with-filename',
++                    help="Print filename with device ids", action="store_true")
++    args = ap.parse_args()
++
++    show_filename = args.with_filename
++
++    for f in files_to_parse(args.cfile):
++        id_list = parse_acpi_device_ids(f)
++        print_acpi_device_ids(f, id_list)
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.2
 
