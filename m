@@ -1,125 +1,257 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 437E121A1A
-	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 16:28:49 +0000 (UTC)
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79557FB;
-	Mon, 25 Sep 2023 09:28:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-	List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=jROqAEkQNpkWnS8v1ykP5/ZLrZmkwHf52pIZ146JzkU=; b=OPsoFGfj8SogLijb61TbCQuFSt
-	r4U1AjausZZbDS27ervs0UVLeeq/WXWif6Bh/olU2Qkd/m88ZC7i50Q4IEiaSyOcgayZOj/gokqDf
-	9UjOInzdI3xWKacekNqsVxKIqdAhb7mCb+oe1nLzUtlxb+POA2R7L2yk1SUexyVkAICS06SwQu5Gx
-	iurZp+pFY53XFqRieu4DkNjH1s6wiGpzRRAENsy4JQUVQtgWfhktUAeLli2UJKJrWmE5iZN7MaaRa
-	RePP8EhvmHKz5NFOQjXgzyLWPE/f3Lmp9d+DJTdFija9ojwlpSnrC/R/Klx/ZYDf1TIyExMKpNErb
-	cpI4VWNA==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:48484)
-	by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <linux@armlinux.org.uk>)
-	id 1qkoRs-0001Kh-2U;
-	Mon, 25 Sep 2023 17:28:40 +0100
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
-	(envelope-from <linux@shell.armlinux.org.uk>)
-	id 1qkoRo-0007xJ-Iu; Mon, 25 Sep 2023 17:28:36 +0100
-Date: Mon, 25 Sep 2023 17:28:36 +0100
-From: "Russell King (Oracle)" <linux@armlinux.org.uk>
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-acpi@vger.kernel.org, James Morse <james.morse@arm.com>,
-	loongarch@lists.linux.dev, linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-pm@vger.kernel.org, Ingo Molnar <mingo@redhat.com>,
-	Jean-Philippe Brucker <jean-philippe@linaro.org>,
-	jianyong.wu@arm.com, justin.he@arm.com,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Salil Mehta <salil.mehta@huawei.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Peter Zijlstra <peterz@infradead.org>, linux-ia64@vger.kernel.org
-Subject: Re: [PATCH RFC v2] cpu-hotplug: provide prototypes for arch CPU
- registration
-Message-ID: <ZRG1NBNbljy2/LEy@shell.armlinux.org.uk>
-References: <E1qgnh2-007ZRZ-WD@rmk-PC.armlinux.org.uk>
- <871qez1cfd.ffs@tglx>
- <ZQgHUvW8qgyj5Puv@shell.armlinux.org.uk>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FC1D21A08
+	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 16:29:45 +0000 (UTC)
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89712EE
+	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 09:29:43 -0700 (PDT)
+Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-405361bb9f7so67449195e9.2
+        for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 09:29:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1695659382; x=1696264182; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Bu0HFFNzN+SYC+kqOmOQQYu7jnB/SohgqheBtlqneSw=;
+        b=qc66hY+Lyfqg9pdBgbbXv36sD6myTZ12CQrz1PkvZLKbB5gQARWADGpbr4vBwU2SXK
+         nrOKm0E53jjtqL+TlAPNJ+lKaPDHoJ6bKOy3aV+Bfya5kuRj1vJyXOuOTAD7Y5aOOxrE
+         pVjJgEcNYr4WZzZaLyZDkF2BCLwIjUKv5ocHm+EA+8Grx0dsg4g/xl35Ekt9P2GeNwrI
+         4st1vv9cdiLsc8zpG9dtc6GDNUqLg8KDoHjTKY0BIA9XfWLHp8+izq56OTILyu86vbo+
+         eMBlrjFkDy08dwGNbf/Wnf5EZPk5PxqSHkzWZV+R18VVwFOMII6bbyPO2OZYYm4v8b0+
+         bttw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695659382; x=1696264182;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Bu0HFFNzN+SYC+kqOmOQQYu7jnB/SohgqheBtlqneSw=;
+        b=o0JfmxwIpWm2YXiNZykNI8FR2H10D3id/J2HIGgj9WP338YPcBMk30uYWM9xijnjlI
+         lkMlknLd+8fq7iO53hMf3WsbIOFh2bEyVlRM1oMgnyjQWkkGJyc9G3wl7k1n7plC/SO/
+         ta6zns9jlPo0XsmDBkUBgrlpa60xngNUIWCVLgITul2tnw5Ymvhw9vdeNfjt/W0UpquW
+         BIGHaO89mceYQQ3YWmhHoZDURaP0sZWAfWvWJBU6nJRE4EmYhPvzMzQpBmj+WhGEqSpW
+         mP2cO1l+N3T5s4Sq/WI4O2kTqtDPhHKMEqG+iSf5AQPhI33H3e04kttCNU2pABPKzRB+
+         g8TA==
+X-Gm-Message-State: AOJu0YyVSQCRfAGYWQLk3YBE/echQEhT3DMBFCqN3ITxM+clbP8zOUta
+	Y6q6HNWYEbE1a/XxlmOr1kYhCg==
+X-Google-Smtp-Source: AGHT+IHlIsqH28gzyMhBQAhqa8Y+rRKApkko3Bp4ExN76DEwJebGzw6bW9+evO8bQTkviUQFQgJE7A==
+X-Received: by 2002:a05:600c:331c:b0:405:959e:dc6f with SMTP id q28-20020a05600c331c00b00405959edc6fmr1575140wmp.37.1695659381848;
+        Mon, 25 Sep 2023 09:29:41 -0700 (PDT)
+Received: from ?IPV6:2a05:6e02:1041:c10:c0e1:63ab:648b:6287? ([2a05:6e02:1041:c10:c0e1:63ab:648b:6287])
+        by smtp.googlemail.com with ESMTPSA id v21-20020a7bcb55000000b00404719b05b5sm12708972wmj.27.2023.09.25.09.29.41
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 25 Sep 2023 09:29:41 -0700 (PDT)
+Message-ID: <52e946a9-cfc6-3411-68c5-827bdd762af3@linaro.org>
+Date: Mon, 25 Sep 2023 18:29:40 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZQgHUvW8qgyj5Puv@shell.armlinux.org.uk>
-Sender: Russell King (Oracle) <linux@armlinux.org.uk>
-X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,RCVD_IN_DNSWL_BLOCKED,
-	SPF_HELO_NONE,SPF_NONE autolearn=ham autolearn_force=no version=3.4.6
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH v1 4/9] ACPI: thermal: Create and populate trip points
+ table earlier
+Content-Language: en-US
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+ Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>,
+ Zhang Rui <rui.zhang@intel.com>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+References: <5708760.DvuYhMxLoT@kreacher> <13346091.uLZWGnKmhe@kreacher>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+In-Reply-To: <13346091.uLZWGnKmhe@kreacher>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Spam-Status: No, score=-3.6 required=5.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,NICE_REPLY_A,
+	RCVD_IN_DNSWL_BLOCKED,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.6
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-On Mon, Sep 18, 2023 at 09:16:18AM +0100, Russell King (Oracle) wrote:
-> On Fri, Sep 15, 2023 at 09:09:10PM +0200, Thomas Gleixner wrote:
-> > On Thu, Sep 14 2023 at 15:51, Russell King wrote:
-> > > Provide common prototypes for arch_register_cpu() and
-> > > arch_unregister_cpu(). These are called by acpi_processor.c, with
-> > > weak versions, so the prototype for this is already set. It is
-> > > generally not necessary for function prototypes to be conditional
-> > > on preprocessor macros.
-> > >
-> > > Some architectures (e.g. Loongarch) are missing the prototype for this,
-> > > and rather than add it to Loongarch's asm/cpu.h, lets do the job once
-> > > for everyone.
-> > >
-> > > Since this covers everyone, remove the now unnecessary prototypes in
-> > > asm/cpu.h, and we also need to remove the 'static' from one of ia64's
-> > > arch_register_cpu() definitions.
-> > >
-> > > Signed-off-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
-> > > ---
-> > > Spotted during the review of James Morse's patches, I think rather than
-> > > adding prototypes for loongarch to its asm/cpu.h, it would make more
-> > > sense to provide the prototypes in a non-arch specific header file so
-> > > everyone can benefit, rather than having each architecture do its own
-> > > thing.
-> > >
-> > > I'm sending this as RFC as James has yet to comment on my proposal, and
-> > > also to a wider audience, and although it makes a little more work for
-> > > James (to respin his series) it does mean that his series should get a
-> > > little smaller.
-> > 
-> > And it makes tons of sense.
-> > 
-> > > See:
-> > >  https://lore.kernel.org/r/20230913163823.7880-2-james.morse@arm.com
-> > >  https://lore.kernel.org/r/20230913163823.7880-4-james.morse@arm.com
-> > >  https://lore.kernel.org/r/20230913163823.7880-23-james.morse@arm.com
-> > >
-> > > v2: lets try not fat-fingering vim.
-> > 
-> > Yeah. I wondered how you managed to mangle that :)
-> > 
-> > >  arch/ia64/include/asm/cpu.h | 5 -----
-> > >  arch/ia64/kernel/topology.c | 2 +-
-> > 
-> > That's moot as ia64 is queued for removal :)
+On 12/09/2023 20:39, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Okay, one less thing to worry about. Tomorrow, I'll re-spin without the
-> ia64 bits included.
+> Create and populate the driver's trip points table in acpi_thermal_add()
+> so as to allow the its data structures to be simplified going forward.
 > 
-> I would really like to hear from James before we think about merging
-> this, as it will impact James' patch set and would add a dependency
-> for that. I wouldn't want this patch to become a reason to delay
-> James' patch set for another kernel cycle.
+> No intentional functional impact.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-It's been totally quiet for a week both from James and from Thomas,
-I'll send the patch with the ia64 bits dropped.
+Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+
+> ---
+>   drivers/acpi/thermal.c |  105 ++++++++++++++++++++++++-------------------------
+>   1 file changed, 52 insertions(+), 53 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/thermal.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/thermal.c
+> +++ linux-pm/drivers/acpi/thermal.c
+> @@ -688,53 +688,10 @@ static void acpi_thermal_zone_sysfs_remo
+>   }
+>   
+>   static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz,
+> -					      unsigned int trip_count)
+> +					      unsigned int trip_count,
+> +					      int passive_delay)
+>   {
+> -	struct acpi_thermal_trip *acpi_trip;
+> -	struct thermal_trip *trip;
+> -	int passive_delay = 0;
+>   	int result;
+> -	int i;
+> -
+> -	trip = kcalloc(trip_count, sizeof(*trip), GFP_KERNEL);
+> -	if (!trip)
+> -		return -ENOMEM;
+> -
+> -	tz->trip_table = trip;
+> -
+> -	if (tz->trips.critical.valid) {
+> -		trip->type = THERMAL_TRIP_CRITICAL;
+> -		trip->temperature = acpi_thermal_temp(tz, tz->trips.critical.temperature);
+> -		trip++;
+> -	}
+> -
+> -	if (tz->trips.hot.valid) {
+> -		trip->type = THERMAL_TRIP_HOT;
+> -		trip->temperature = acpi_thermal_temp(tz, tz->trips.hot.temperature);
+> -		trip++;
+> -	}
+> -
+> -	acpi_trip = &tz->trips.passive.trip;
+> -	if (acpi_trip->valid) {
+> -		passive_delay = tz->trips.passive.tsp * 100;
+> -
+> -		trip->type = THERMAL_TRIP_PASSIVE;
+> -		trip->temperature = acpi_thermal_temp(tz, acpi_trip->temperature);
+> -		trip->priv = acpi_trip;
+> -		trip++;
+> -	}
+> -
+> -	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+> -		acpi_trip = &tz->trips.active[i].trip;
+> -
+> -		if (!acpi_trip->valid)
+> -			break;
+> -
+> -		trip->type = THERMAL_TRIP_ACTIVE;
+> -		trip->temperature = acpi_thermal_temp(tz, acpi_trip->temperature);
+> -		trip->priv = acpi_trip;
+> -		trip++;
+> -	}
+>   
+>   	tz->thermal_zone = thermal_zone_device_register_with_trips("acpitz",
+>   								   tz->trip_table,
+> @@ -744,10 +701,8 @@ static int acpi_thermal_register_thermal
+>   								   NULL,
+>   								   passive_delay,
+>   								   tz->polling_frequency * 100);
+> -	if (IS_ERR(tz->thermal_zone)) {
+> -		result = PTR_ERR(tz->thermal_zone);
+> -		goto free_trip_table;
+> -	}
+> +	if (IS_ERR(tz->thermal_zone))
+> +		return PTR_ERR(tz->thermal_zone);
+>   
+>   	result = acpi_thermal_zone_sysfs_add(tz);
+>   	if (result)
+> @@ -766,8 +721,6 @@ remove_links:
+>   	acpi_thermal_zone_sysfs_remove(tz);
+>   unregister_tzd:
+>   	thermal_zone_device_unregister(tz->thermal_zone);
+> -free_trip_table:
+> -	kfree(tz->trip_table);
+>   
+>   	return result;
+>   }
+> @@ -886,9 +839,13 @@ static void acpi_thermal_check_fn(struct
+>   
+>   static int acpi_thermal_add(struct acpi_device *device)
+>   {
+> +	struct acpi_thermal_trip *acpi_trip;
+> +	struct thermal_trip *trip;
+>   	struct acpi_thermal *tz;
+>   	unsigned int trip_count;
+> +	int passive_delay = 0;
+>   	int result;
+> +	int i;
+>   
+>   	if (!device)
+>   		return -EINVAL;
+> @@ -930,9 +887,49 @@ static int acpi_thermal_add(struct acpi_
+>   
+>   	acpi_thermal_guess_offset(tz);
+>   
+> -	result = acpi_thermal_register_thermal_zone(tz, trip_count);
+> +	trip = kcalloc(trip_count, sizeof(*trip), GFP_KERNEL);
+> +	if (!trip)
+> +		return -ENOMEM;
+> +
+> +	tz->trip_table = trip;
+> +
+> +	if (tz->trips.critical.valid) {
+> +		trip->type = THERMAL_TRIP_CRITICAL;
+> +		trip->temperature = acpi_thermal_temp(tz, tz->trips.critical.temperature);
+> +		trip++;
+> +	}
+> +
+> +	if (tz->trips.hot.valid) {
+> +		trip->type = THERMAL_TRIP_HOT;
+> +		trip->temperature = acpi_thermal_temp(tz, tz->trips.hot.temperature);
+> +		trip++;
+> +	}
+> +
+> +	acpi_trip = &tz->trips.passive.trip;
+> +	if (acpi_trip->valid) {
+> +		passive_delay = tz->trips.passive.tsp * 100;
+> +
+> +		trip->type = THERMAL_TRIP_PASSIVE;
+> +		trip->temperature = acpi_thermal_temp(tz, acpi_trip->temperature);
+> +		trip->priv = acpi_trip;
+> +		trip++;
+> +	}
+> +
+> +	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+> +		acpi_trip =  &tz->trips.active[i].trip;
+> +
+> +		if (!acpi_trip->valid)
+> +			break;
+> +
+> +		trip->type = THERMAL_TRIP_ACTIVE;
+> +		trip->temperature = acpi_thermal_temp(tz, acpi_trip->temperature);
+> +		trip->priv = acpi_trip;
+> +		trip++;
+> +	}
+> +
+> +	result = acpi_thermal_register_thermal_zone(tz, trip_count, passive_delay);
+>   	if (result)
+> -		goto free_memory;
+> +		goto free_trips;
+>   
+>   	refcount_set(&tz->thermal_check_count, 3);
+>   	mutex_init(&tz->thermal_check_lock);
+> @@ -951,6 +948,8 @@ static int acpi_thermal_add(struct acpi_
+>   flush_wq:
+>   	flush_workqueue(acpi_thermal_pm_queue);
+>   	acpi_thermal_unregister_thermal_zone(tz);
+> +free_trips:
+> +	kfree(tz->trip_table);
+>   free_memory:
+>   	kfree(tz);
+>   
+> 
+> 
+> 
 
 -- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 80Mbps down 10Mbps up. Decent connectivity at last!
+<http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
