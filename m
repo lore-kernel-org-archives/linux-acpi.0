@@ -1,122 +1,162 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1AC47F
-	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 04:01:23 +0000 (UTC)
-X-Greylist: delayed 18621 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 24 Sep 2023 21:01:12 PDT
-Received: from lv.dsns.gov.ua (unknown [194.44.109.99])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52BAD8E
-	for <linux-acpi@vger.kernel.org>; Sun, 24 Sep 2023 21:01:12 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-	by lv.dsns.gov.ua (Postfix) with ESMTP id 738B3763C02
-	for <linux-acpi@vger.kernel.org>; Sun, 24 Sep 2023 22:56:38 +0300 (EEST)
-Received: from lv.dsns.gov.ua ([127.0.0.1])
-	by localhost (lv.dsns.gov.ua [127.0.0.1]) (amavisd-new, port 10032)
-	with ESMTP id o476mApbAEqL for <linux-acpi@vger.kernel.org>;
-	Sun, 24 Sep 2023 22:56:38 +0300 (EEST)
-Received: from localhost (localhost [127.0.0.1])
-	by lv.dsns.gov.ua (Postfix) with ESMTP id 57AB368E798
-	for <linux-acpi@vger.kernel.org>; Sun, 24 Sep 2023 08:17:33 +0300 (EEST)
-DKIM-Filter: OpenDKIM Filter v2.10.3 lv.dsns.gov.ua 57AB368E798
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lv.dsns.gov.ua;
-	s=4E6943BC-98CF-11ED-BCC5-EEFB8C86E64E; t=1695532653;
-	bh=YTxuP/C+h4Yt9JNhuGQl1KKvzVdvwgZMpK7RTIoLC9c=;
-	h=MIME-Version:To:From:Date:Message-Id;
-	b=SdN0Enx/ZIHGcqYlAr1OQ9ronh0+HZF4RLCUlIbEPSPBX08ePmLsqzKuUSI4kkkXq
-	 hq6Ow9BSokRaMu8v7/iYekfOlg3bC/9RFoODfdH8ESbtByNmweJCr28aX1LhMvMnQB
-	 O3a20xm1KCmnBaEnkVYF8ziI6svbcLQ2A0LSWihVhMgNZuzjySSz7CG64jWlzwN1+k
-	 K9krvq2oIYOPpy1sXg/pL0Fp0BDXNUWLv7gB+cBEoISD0kDFQ1pR0SdwmGPyMWjV/R
-	 yamBg95Bz4zWh970eIa3Heh8a3J9H6DEy6UwJDBl8l7tKfhQ8fp5wTlineaq1njE/Q
-	 K24cyJrqOvIxw==
-X-Virus-Scanned: amavisd-new at lv.dsns.gov.ua
-Received: from lv.dsns.gov.ua ([127.0.0.1])
-	by localhost (lv.dsns.gov.ua [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id 0qMnYYa37aCk for <linux-acpi@vger.kernel.org>;
-	Sun, 24 Sep 2023 08:17:33 +0300 (EEST)
-Received: from [192.168.0.37] (unknown [41.216.203.228])
-	by lv.dsns.gov.ua (Postfix) with ESMTPSA id 3019482293D
-	for <linux-acpi@vger.kernel.org>; Sun, 24 Sep 2023 05:28:37 +0300 (EEST)
-Content-Type: text/plain; charset="utf-8"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E3463CB
+	for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2023 05:35:30 +0000 (UTC)
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6261E3;
+	Sun, 24 Sep 2023 22:35:28 -0700 (PDT)
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-4053d53a1bfso44278465e9.1;
+        Sun, 24 Sep 2023 22:35:28 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695620126; x=1696224926;
+        h=content-transfer-encoding:autocrypt:subject:from:cc:to
+         :content-language:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ycf6Wya8ID6XmixPWSJ0vO/RRGDPjUVO7FYG5IN3BB4=;
+        b=SWdHUFVPNRfA6hQgaSnVn6lcyQpVp823siaCaS2m86iHRwXX29aK0HFKSD6iP3eZlw
+         tSWE96tz5MZ/Dx1XyeqH9QcN3oW90S+x3+seNwsISLAeBhVOZGvSKYtXfTHelRx4UQ5b
+         H6A3Ha+GqXsCw7yVdfMzWxHwj/qArp6I0JvWi0FGI37Y48UOFmfIiTd3CpdtZSWkZ6z0
+         DIFE6sVGFyEvWzWOJu0YShlsQ40Yh4iDDppdGJP19OuA0Vr3bkNwc7dEknrQkuXkmBry
+         jCJPUcEshX7VoWknOxlkvvAcAAaUfwuLVJrXkqqOUtMjkd04I14EAg5NsBq7CCynP/1b
+         llSw==
+X-Gm-Message-State: AOJu0Yy3THwC0ilwblNhFknH2DSWlBKeHBlDD4NePH9R/Cw/yORa8yAO
+	6agp1YQaYvi0CmmWd6GY3K3eSuMOrys=
+X-Google-Smtp-Source: AGHT+IEBiJpPI3V9L7bnJ0vKKLWADLc2B/KsUYrdQQriv4CldZCKNYGIcVx9fTl7Xu39XOEKuIMZjQ==
+X-Received: by 2002:adf:e288:0:b0:31f:e1b4:583d with SMTP id v8-20020adfe288000000b0031fe1b4583dmr4215607wri.56.1695620126427;
+        Sun, 24 Sep 2023 22:35:26 -0700 (PDT)
+Received: from [192.168.1.58] (185-219-167-24-static.vivo.cz. [185.219.167.24])
+        by smtp.gmail.com with ESMTPSA id sd18-20020a170906ce3200b009a198078c53sm5753897ejb.214.2023.09.24.22.35.25
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 24 Sep 2023 22:35:25 -0700 (PDT)
+Message-ID: <047d3c51-0a9e-4c3e-beef-625a7aa4f3c3@kernel.org>
+Date: Mon, 25 Sep 2023 07:35:25 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Description: Mail message body
-Subject: =?utf-8?b?VE9UTyBKRSBWw4HFoCBEQVJPVkFDw40gS8OTRDogW0RGRFc0MzAzNFJXMjAy?=
- =?utf-8?q?3=5D?=
-To: linux-acpi@vger.kernel.org
-From: "Pan Richard Wahl" <galaburda@lv.dsns.gov.ua>
-Date: Sat, 23 Sep 2023 19:28:36 -0700
-Reply-To: info@wahlfoundation.org
-Message-Id: <20230924022839.3019482293D@lv.dsns.gov.ua>
-X-Spam-Status: No, score=2.2 required=5.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,NO_DNS_FOR_FROM,RCVD_IN_SBL_CSS,SUBJ_ALL_CAPS,
-	T_SPF_HELO_TEMPERROR,T_SPF_TEMPERROR autolearn=no autolearn_force=no
-	version=3.4.6
-X-Spam-Level: **
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ hmh@hmh.eng.br
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org,
+ Linux kernel mailing list <linux-kernel@vger.kernel.org>
+From: Jiri Slaby <jirislaby@kernel.org>
+Subject: WARNING at drivers/acpi/platform_profile.c:74 in
+ platform_profile_show()
+Autocrypt: addr=jirislaby@kernel.org; keydata=
+ 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
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spam-Status: No, score=-1.4 required=5.0 tests=BAYES_00,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	RCVD_IN_DNSWL_NONE,RCVD_IN_MSPIKE_H2,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.6
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-Drah=C3=BD pr=C3=ADteli,
+Hi,
 
-Jsem Richard Wahl z Vernon Township, New Jersey, USA. Je mi 52 let a vyhr=
-=C3=A1l jsem jackpot 533 milionu $ Mega Millions, co=C5=BE je jeden z nejve=
-t=C5=A1=C3=ADch jackpotu v loterii. Zas=C3=ADl=C3=A1m v=C3=A1m tuto zpr=C3=
-=A1vu, abych v=C3=A1s po=C5=BE=C3=A1dal o souhlas s uskutecnen=C3=ADm fundr=
-aisingov=C3=A9ho projektu, kter=C3=BD jsem ji=C5=BE dlouho chtel uskutecnit.
+according to logs, since 6.3 (up to 6.5.4 now), I repeatedly see:
+ > WARNING: CPU: 14 PID: 962 at drivers/acpi/platform_profile.c:74 
+platform_profile_show+0xb1/0x100 [platform_profile]
+ > Modules linked in: ccm michael_mic ...
+ > CPU: 14 PID: 962 Comm: power-profiles- Kdump: loaded Not tainted 
+6.5.4-6-default #1 openSUSE Tumbleweed (unreleased) 
+dd37106c593be78644bb80e3c1534d801bf4cb36
+ > Hardware name: LENOVO 21CRS0K83K/21CRS0K83K, BIOS R22ET60W (1.30 ) 
+02/09/2023
+ > RIP: 0010:platform_profile_show+0xb1/0x100 [platform_profile]
+ > Code: d0 a8 ...
+ > RSP: 0018:ffff9c1ac0b97db0 EFLAGS: 00010296
+ > RAX: 0000000000000000 RBX: 0000000000000000 RCX: 000000008fc35be0
+ > RDX: 0000000000000000 RSI: ffff9c1ac0b97db4 RDI: ffffffffc0a8b0a0
+ > RBP: ffff8955ca540000 R08: ffff895b9f1ed180 R09: ffff895559ea1bc0
+ > R10: 00000000031a400e R11: 000000000003f680 R12: ffff895b9f1ed180
+ > R13: ffff9c1ac0b97e50 R14: 0000000000000001 R15: ffff9c1ac0b97ee8
+ > FS:  00007f71b0e71900(0000) GS:ffff895b9f100000(0000) 
+knlGS:0000000000000000
+ > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ > CR2: 00007fe402ea3400 CR3: 000000012004c000 CR4: 0000000000750ee0
+ > PKRU: 55555554
+ > Call Trace:
+ >  <TASK>
+ >  sysfs_kf_seq_show+0xab/0x100
+ >  seq_read_iter+0x123/0x480
+ >  vfs_read+0x1b8/0x300
 
-Sotva ti to pripad=C3=A1 podezrel=C3=A9, i kdy=C5=BE je pravda, =C5=BEe me =
-nezn=C3=A1=C5=A1 a =C5=BEe j=C3=A1 nezn=C3=A1m tebe. M=C3=A1m rakovinu v te=
-rmin=C3=A1ln=C3=ADm st=C3=A1diu. Muj o=C5=A1etruj=C3=ADc=C3=AD l=C3=A9kar m=
-i pr=C3=A1ve rekl, =C5=BEe m=C3=A9 dny jsou secteny kvuli m=C3=A9mu zhor=C5=
-=A1uj=C3=ADc=C3=ADmu se zdrav=C3=AD. Podle doktora se mi v mozkov=C3=A9 kle=
-ci chyst=C3=A1 usadit kulka. Trp=C3=ADm touto nemoc=C3=AD v=C3=ADce ne=C5=
-=BE 3 roky a pro=C5=A1el jsem spoustou l=C3=A9cby, abych ji vyl=C3=A9cil. V=
-et=C5=A1inu sv=C3=A9ho majetku jsem rozdal rade charitativn=C3=ADch organiz=
-ac=C3=AD a organizac=C3=AD a dobrovolne jsem v=C3=A1m dal (=E2=82=AC 2,000,=
-000'00 EUR) jako d=C3=A1rek a douf=C3=A1m, =C5=BEe s t=C3=ADm udel=C3=A1te =
-dobr=C3=A9 veci.
+It's:
+WARN_ON((profile < 0) || (profile >= ARRAY_SIZE(profile_names))))
 
-Mu=C5=BEete pros=C3=ADm overit m=C3=A9 v=C3=BDhry prostrednictv=C3=ADm str=
-=C3=A1nky YouTube. VID=C3=8DTE ME ZDE https://www.youtube.com/watch?v=3Dtne=
-02ExNDrw
+So I put there one more print:
+dev_warn(dev, "profile=%d profile_get=%ps\n",
+          profile, cur_profile->profile_get);
 
-TOTO JE V=C3=81=C5=A0 DAROVAC=C3=8D K=C3=93D: [DFDW43034RW2023]
+and I see:
+: profile=-1883022368 profile_get=dytc_profile_get [thinkpad_acpi]
+: profile=-1510173440 profile_get=dytc_profile_get [thinkpad_acpi]
+: profile=-1510173440 profile_get=dytc_profile_get [thinkpad_acpi]
+: profile=-966231712 profile_get=dytc_profile_get [thinkpad_acpi]
+: profile=-1578420592 profile_get=dytc_profile_get [thinkpad_acpi]
+: profile=-1578420592 profile_get=dytc_profile_get [thinkpad_acpi]
+: profile=-1578420592 profile_get=dytc_profile_get [thinkpad_acpi]
 
-Odpovezte na tento e-mail a uvedte k=C3=B3d daru: info@wahlfoundation.org
+where the profile values in hex are like:
+ffffffff8fc35be0
+ffffffffa5fc9500
+ffffffffc6687960
 
-Prijmete pros=C3=ADm muj dar. M=C3=A1m c=C3=A1stku (=E2=82=AC 2,000,000'00 =
-EUR) jako dar. Prijmete pros=C3=ADm tuto c=C3=A1stku, proto=C5=BEe pro v=C3=
-=A1s mu=C5=BEe b=C3=BDt velk=C3=BDm pr=C3=ADnosem. Pokud prijmete moji nab=
-=C3=ADdku, mus=C3=ADte mi odpovedet pr=C3=ADmo prostrednictv=C3=ADm e-mailu=
-: info@wahlfoundation.org
+Looking at simplicity of dytc_profile_get(), I wonder how that can happen.
 
-C=C3=ADt=C3=ADm se velmi =C5=A1patne a m=C3=A1m velk=C3=BD strach, v noci a=
-ni ve dne skoro nesp=C3=ADm. Nemohu zemr=C3=ADt bez darov=C3=A1n=C3=AD v=C5=
-=A1ech techto penez, jinak si mysl=C3=ADm, =C5=BEe by to bylo pl=C3=BDtv=C3=
-=A1n=C3=AD. Toto je m=C3=A9 nejzaz=C5=A1=C3=AD pr=C3=A1n=C3=AD a pros=C3=AD=
-m, pracujte se mnou a provedte to. Mo=C5=BEn=C3=A1 budu m=C3=ADt p=C3=A1r m=
-es=C3=ADcu =C5=BEivota na t=C3=A9to n=C3=A1dhern=C3=A9 zemi, ale chci cinit=
- dobro v=C3=A1mi a ostatn=C3=ADmi. Chci, aby si m=C3=A9 jm=C3=A9no pamatova=
-li na zemi i v nebi.
+I also wonder about dev passed to dytc_profile_get() having empty name 
+(nothing before colon above)? Is that expected?
 
-Sna=C5=BE=C3=ADm se oslovit neziskov=C3=A9 sirotcince a prispet ke zm=C3=AD=
-rnen=C3=AD chudoby a poskytnout n=C3=A1le=C5=BEitou zdravotn=C3=AD p=C3=A9c=
-i jednotlivcum, zejm=C3=A9na behem t=C3=A9to svetov=C3=A9 pandemie a inflac=
-e. Byl bych tak=C3=A9 r=C3=A1d, kdybyste c=C3=A1st tohoto daru investovali =
-do verejn=C3=A9 infrastruktury, abyste pomohli nezamestnan=C3=BDm lidem ve =
-va=C5=A1=C3=AD zemi nab=C3=ADzet pr=C3=A1ci. Vybral jsem si te, proto=C5=BE=
-e ti ver=C3=ADm. Potrebuji va=C5=A1i plnou spolupr=C3=A1ci ohledne tohoto d=
-aru. Zde je v=C3=A1mi zvolen=C3=BD tajn=C3=BD k=C3=B3d: [DFDW43034RW2023] a=
- pros=C3=ADm, nesdelujte k=C3=B3d nikomu, pokud m=C3=A1te z=C3=A1jem a jste=
- ochotni se mnou spolupracovat. Kontaktujte me pros=C3=ADm s va=C5=A1=C3=AD=
-m darovac=C3=ADm/tajn=C3=BDm k=C3=B3dem [DFDW43034RW2023] a cel=C3=BDm jm=
-=C3=A9nem zde na muj soukrom=C3=BD e-mail: info@wahlfoundation.org
+Any ideas?
 
-Pan Richard Wahl
-Email: info@wahlfoundation.org
-Address: Vernon Township, New Jersey, USA
-Richard Wahl Foundation
+thanks,
+-- 
+js
+suse labs
