@@ -1,47 +1,45 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3426523758
-	for <linux-acpi@vger.kernel.org>; Tue,  3 Oct 2023 13:59:40 +0000 (UTC)
-Received: from mail-oo1-f53.google.com (mail-oo1-f53.google.com [209.85.161.53])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA271AB;
-	Tue,  3 Oct 2023 06:59:38 -0700 (PDT)
-Received: by mail-oo1-f53.google.com with SMTP id 006d021491bc7-57b68555467so81057eaf.0;
-        Tue, 03 Oct 2023 06:59:38 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 263092134E
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Oct 2023 14:05:40 +0000 (UTC)
+Received: from mail-oo1-f47.google.com (mail-oo1-f47.google.com [209.85.161.47])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99076AB
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Oct 2023 07:05:38 -0700 (PDT)
+Received: by mail-oo1-f47.google.com with SMTP id 006d021491bc7-57b68555467so81697eaf.0
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Oct 2023 07:05:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696341578; x=1696946378;
+        d=1e100.net; s=20230601; t=1696341938; x=1696946738;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Lq1Clg4a1kKbu7pmXR4HdVffolvp2P+JTuU/UrDnGUQ=;
-        b=EC6wudZeSVJtwtc9NEoz17y3ukbVOOzhosy/qaoVpniclG1P6sLnMtqHcv5B1+21CA
-         BIopuxTnZx/hNOefH02unwlFzYt3cS5EcY70pWyWJM7V9rajCvcznup5GmkuU5aVxk8l
-         t2SqkmsmC7fkJsPCzDI8xkn3xEgQR8IouCUmuYgcsre3ug0DzIDorWM2DF8QVL3nTbC7
-         l6FOJxxQWmUP/1/79T9WBHMqpXzHfWfiuOGuskKAJSzWuXsw7rn60wfE5V8/F1X5fUo+
-         /bF15IiOFvV/p1uSZMlcLiNxuj3Z9sFMvcx+UjafTRZ1frIjnZwNKXDz24hy2PkGIFgf
-         9svg==
-X-Gm-Message-State: AOJu0YxSriwA5aHeTt76azPs59g6PoZAc6hI//h8f4ov7mgQ0eyc5Cdn
-	rmoH7G8Wpixljm6J1QjxHi+MTcHClaOND9qZfZA=
-X-Google-Smtp-Source: AGHT+IFPU3gZRpubYTBPXLnn2ap+DdEYPgfKr0BV5Ro2mPw3Pj481PgTJd+av7mBFohs06B5Vaojab+D16Dgp+FbQf4=
+        bh=96OAizNHn5IUNhRYXlujPgFs8wLFeiew/An0qdOy7WM=;
+        b=fr3Sam5NlaEJUgjMzAmxAAZ7khXPLyCZ5WgWqmLb2cy8FbZZXRfeZjHDqj+tVcTGuD
+         4ifGhZLFZFF28GVsdy2f7jlln13ACOC1ysdtoL/oWzf5OyHLRZP1IJ6BdBRC5BSwyIzP
+         sIZ1S+URRgg2L8sPN1HkcUt4Ockf3vNgLBBpoRRxYtskz2BDcupFD8/a7UB8JawVxYbC
+         FCBQoZSfYv2uZTfqqVbtGt461JSvUpTNpzca2hEFQWRg36jBPYfSH5Yvkzoo2gu2krxs
+         1IIsP5hZk1U8kBL7jAWg/LyzBeLAgA2bLl13gdERxMCB3Hyvr0r/2U2WDCtLbDacSOcH
+         KocA==
+X-Gm-Message-State: AOJu0YzDcpUfq2Dagc8f8b8TXNyQvX8xIT4TxQDMQvpyH08pr3SaXgR/
+	eqP9rTrl1LHNP2sm8/mRf/bBnNkLa8vWtupPeY4=
+X-Google-Smtp-Source: AGHT+IEoWRgZqJ+G6h9wGbvC9T6dDQdcsvYzkNkYsl43dVA2QbxwIO70dLG+rRJz0kdc1utrneTkxpXtNhdDtUn6qlE=
 X-Received: by 2002:a4a:2542:0:b0:57b:3b64:7ea5 with SMTP id
- v2-20020a4a2542000000b0057b3b647ea5mr12208047ooe.1.1696341578006; Tue, 03 Oct
- 2023 06:59:38 -0700 (PDT)
+ v2-20020a4a2542000000b0057b3b647ea5mr12231208ooe.1.1696341937644; Tue, 03 Oct
+ 2023 07:05:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231002134630.2601294-1-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20231002134630.2601294-1-andriy.shevchenko@linux.intel.com>
+References: <169617092924.200640.7431532323074217381.stgit@djiang5-mobl3>
+In-Reply-To: <169617092924.200640.7431532323074217381.stgit@djiang5-mobl3>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 3 Oct 2023 15:59:26 +0200
-Message-ID: <CAJZ5v0ib_N_ojhoC_z9YCOgmT7q2zy1jMBAFc=pmBmrX-j5Drg@mail.gmail.com>
-Subject: Re: [PATCH v1 1/2] ACPI: property: Allow _DSD buffer data only for
- byte accessors
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Date: Tue, 3 Oct 2023 16:05:26 +0200
+Message-ID: <CAJZ5v0hL=qHCJ1a4AAVtUb9RaXjmHSEQQ7sLFrkYHGXdB2jtnw@mail.gmail.com>
+Subject: Re: [PATCH] acpi: Add defines for CDAT SSLBIS
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: rafael@kernel.org, linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 X-Spam-Status: No, score=-1.4 required=5.0 tests=BAYES_00,
@@ -51,73 +49,35 @@ X-Spam-Status: No, score=-1.4 required=5.0 tests=BAYES_00,
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-On Mon, Oct 2, 2023 at 3:46=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Sun, Oct 1, 2023 at 4:35=E2=80=AFPM Dave Jiang <dave.jiang@intel.com> wr=
+ote:
 >
-> In accordance with ACPI specificication and _DSD data buffer
-> representation the data there is an array of bytes. Hence,
-> accessing it with something longer will create a sparse data
-> which is against of how device property APIs work in general
-> and also not defined in the ACPI specification (see [1]).
-> Fix the code to emit an error if non-byte accessor is used to
-> retrieve _DSD buffer data.
+> Add upstream port and any port definition for SSLBIS.
 >
-> Fixes: 369af6bf2c28 ("ACPI: property: Read buffer properties as integers"=
-)
-> Link: https://uefi.org/specs/ACPI/6.5/19_ASL_Reference.html#buffer-declar=
-e-buffer-object [1]
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-Applied along with the [2/2] as 6.7 material.
-
+> Link: https://github.com/acpica/acpica/pull/898
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/property.c | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
+> ---
+>  include/acpi/actbl1.h |    3 +++
+>  1 file changed, 3 insertions(+)
 >
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 413e4fcadcaf..06550d8c619d 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -1102,25 +1102,25 @@ static int acpi_data_prop_read(const struct acpi_=
-device_data *data,
->         switch (proptype) {
->         case DEV_PROP_STRING:
->                 break;
-> -       case DEV_PROP_U8 ... DEV_PROP_U64:
-> +       default:
->                 if (obj->type =3D=3D ACPI_TYPE_BUFFER) {
->                         if (nval > obj->buffer.length)
->                                 return -EOVERFLOW;
-> -                       break;
-> +               } else {
-> +                       if (nval > obj->package.count)
-> +                               return -EOVERFLOW;
->                 }
-> -               fallthrough;
-> -       default:
-> -               if (nval > obj->package.count)
-> -                       return -EOVERFLOW;
->                 break;
->         }
->         if (nval =3D=3D 0)
->                 return -EINVAL;
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index 8d5572ad48cb..a33375e055ad 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -465,6 +465,9 @@ struct acpi_cdat_sslbe {
+>         u16 reserved;
+>  };
 >
-> -       if (obj->type !=3D ACPI_TYPE_BUFFER)
-> -               items =3D obj->package.elements;
-> -       else
-> +       if (obj->type =3D=3D ACPI_TYPE_BUFFER) {
-> +               if (proptype !=3D DEV_PROP_U8)
-> +                       return -EPROTO;
->                 items =3D obj;
-> +       } else
-> +               items =3D obj->package.elements;
-
-The braces that are missing here (as per the coding style) were added
-while applying the patch.
-
+> +#define ACPI_CDAT_SSLBIS_US_PORT       0x0100
+> +#define ACPI_CDAT_SSLBIS_ANY_PORT      0xffff
+> +
+>  /***********************************************************************=
+********
+>   *
+>   * CEDT - CXL Early Discovery Table
 >
->         switch (proptype) {
->         case DEV_PROP_U8:
-> --
 
-Thanks!
+Applied as 6.7 material, thanks!
