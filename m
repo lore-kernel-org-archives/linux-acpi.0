@@ -1,49 +1,33 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39AC41548D
-	for <linux-acpi@vger.kernel.org>; Tue,  3 Oct 2023 14:09:19 +0000 (UTC)
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6D1595;
-	Tue,  3 Oct 2023 07:09:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696342157; x=1727878157;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=Pwk/VZxlKOZi/7FoSiOwBQdjVQGNzZH6YXHnKj3nPAo=;
-  b=cKll2msomjn9dliCeSgLc+ov15r4fVOd5DoO5jJEY6cbsVxgBgsCxgHB
-   9P//bwhkJYnmdyJ9BGrIZ3d5+OFfjeoP6QsxOHFr4ktbYFBzTGhj1csNa
-   tcu/ssyl+4UrCQ52TNBmy8rodV0GlbMHyDgP2aBGGJRtWT5iHt2MrXaSl
-   buBjW+Lf2HEScVxMCa78B/NF7HwZEts9DByTBD/e/qLatOxQ1lGJACRSQ
-   FRxiGvfQby3gYF/ARgpPKv9crlKhjGTLr3docU+bWk6V/IW+l8A0jnT61
-   isHMoTnOJfnHQTVfwOIL57s0Gevp54ewjL0KttuW6BNAK5yQ4CYyIav1p
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10852"; a="381765116"
-X-IronPort-AV: E=Sophos;i="6.03,197,1694761200"; 
-   d="scan'208";a="381765116"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Oct 2023 07:05:09 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10852"; a="841363465"
-X-IronPort-AV: E=Sophos;i="6.03,197,1694761200"; 
-   d="scan'208";a="841363465"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by FMSMGA003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Oct 2023 07:05:06 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97-RC1)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1qng1H-00000002VPj-3mwS;
-	Tue, 03 Oct 2023 17:05:03 +0300
-Date: Tue, 3 Oct 2023 17:05:03 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB3442940B
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Oct 2023 14:29:22 +0000 (UTC)
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id E050DB0;
+	Tue,  3 Oct 2023 07:29:20 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 295DDC15;
+	Tue,  3 Oct 2023 07:29:59 -0700 (PDT)
+Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4C0603F59C;
+	Tue,  3 Oct 2023 07:29:19 -0700 (PDT)
+Date: Tue, 3 Oct 2023 15:29:16 +0100
+From: Sudeep Holla <sudeep.holla@arm.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 1/2] ACPI: property: Allow _DSD buffer data only for
- byte accessors
-Message-ID: <ZRwfjywiffWxWnX5@smile.fi.intel.com>
-References: <20231002134630.2601294-1-andriy.shevchenko@linux.intel.com>
- <CAJZ5v0ib_N_ojhoC_z9YCOgmT7q2zy1jMBAFc=pmBmrX-j5Drg@mail.gmail.com>
+Cc: linux-hwmon@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Jean Delvare <jdelvare@suse.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Huisong Li <lihuisong@huawei.com>
+Subject: Re: [PATCH v2 1/4] ACPI: PCC: Add PCC shared memory region command
+ and status bitfields
+Message-ID: <20231003142916.6nbg5sfwd3tk6ol4@bogus>
+References: <20230927-pcc_defines-v2-0-0b8ffeaef2e5@arm.com>
+ <20230927-pcc_defines-v2-1-0b8ffeaef2e5@arm.com>
+ <CAJZ5v0hG0sDJ4VOY+Gk0Fg1gebNft+z3YK9Jf-7NHb9Ow-C2mg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -53,34 +37,63 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0ib_N_ojhoC_z9YCOgmT7q2zy1jMBAFc=pmBmrX-j5Drg@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-X-Spam-Status: No, score=-4.3 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,RCVD_IN_DNSWL_MED,SPF_HELO_NONE,
-	SPF_NONE autolearn=ham autolearn_force=no version=3.4.6
+In-Reply-To: <CAJZ5v0hG0sDJ4VOY+Gk0Fg1gebNft+z3YK9Jf-7NHb9Ow-C2mg@mail.gmail.com>
+X-Spam-Status: No, score=-4.2 required=5.0 tests=BAYES_00,RCVD_IN_DNSWL_MED,
+	SPF_HELO_NONE,SPF_NONE autolearn=ham autolearn_force=no version=3.4.6
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-On Tue, Oct 03, 2023 at 03:59:26PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Oct 2, 2023 at 3:46 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-
-...
-
-> > +       if (obj->type == ACPI_TYPE_BUFFER) {
-> > +               if (proptype != DEV_PROP_U8)
-> > +                       return -EPROTO;
-> >                 items = obj;
-> > +       } else
-> > +               items = obj->package.elements;
+On Tue, Oct 03, 2023 at 03:29:16PM +0200, Rafael J. Wysocki wrote:
+> On Wed, Sep 27, 2023 at 6:32 PM Sudeep Holla <sudeep.holla@arm.com> wrote:
+> >
+> > Define the common macros to use when referring to various bitfields in
+> > the PCC generic communications channel command and status fields.
+> >
+> > Currently different drivers that need to use these bitfields have defined
+> > these locally. This common macro is intended to consolidate and replace
+> > those.
+> >
+> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> > ---
+> >  include/acpi/pcc.h | 13 +++++++++++++
+> >  1 file changed, 13 insertions(+)
+> >
+> > diff --git a/include/acpi/pcc.h b/include/acpi/pcc.h
+> > index 73e806fe7ce7..021891a7434f 100644
+> > --- a/include/acpi/pcc.h
+> > +++ b/include/acpi/pcc.h
+> > @@ -18,7 +18,20 @@ struct pcc_mbox_chan {
+> >         u16 min_turnaround_time;
+> >  };
+> >
+> > +/* Generic Communications Channel Shared Memory Region */
+> > +#define PCC_SIGNATURE                  0x50424300
+> > +/* Generic Communications Channel Command Field */
+> > +#define PCC_CMD_GENERATE_DB_INTR       BIT(15)
+> > +/* Generic Communications Channel Status Field */
+> > +#define PCC_STATUS_CMD_COMPLETE                BIT(0)
+> > +#define PCC_STATUS_SCI_DOORBELL                BIT(1)
+> > +#define PCC_STATUS_ERROR               BIT(2)
+> > +#define PCC_STATUS_PLATFORM_NOTIFY     BIT(3)
+> > +/* Initiator Responder Communications Channel Flags */
+> > +#define PCC_CMD_COMPLETION_NOTIFY      BIT(0)
+> > +
+> >  #define MAX_PCC_SUBSPACES      256
+> > +
+> >  #ifdef CONFIG_PCC
+> >  extern struct pcc_mbox_chan *
+> >  pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id);
+> >
+> > --
 > 
-> The braces that are missing here (as per the coding style) were added
-> while applying the patch.
+> Do you want me to pick up this lot?
 
-Thank you!
+I have applied this to me branch [1]. It also has long pending PCC driver
+changes. I will send the pull request by end of this week.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Regards,
+Sudeep
 
-
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git/log/?h=for-next/pcc/updates
