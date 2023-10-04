@@ -1,179 +1,139 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 852FB10966
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Oct 2023 13:02:09 +0000 (UTC)
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 238DA98;
-	Wed,  4 Oct 2023 06:02:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696424528; x=1727960528;
-  h=date:from:to:cc:subject:message-id;
-  bh=ZHVR+iEcz2o50eBhM0aiYhokgRtwOBS0DLChfgTPnmI=;
-  b=NSu5sTYZzMDMQkIUYdDJ/y1jKSTQ7Kxy0GlkakvUs8yyOZJazc4UguKR
-   15CcvBCKSJpOh+4CxhBKciRF/g4X3UjX+G07cMB7fUxZylgF+oPwKxYKt
-   QQIV8//gxmfy3NT/M7gStIiZR3yfESpHjv+KOPlhi7uXH3qvjRA+aNkHf
-   kEGdwwo6Uz9D4Dic/8bubH8YUnYAebwCct+uBMWB8sfAqpswK9mWNOFJD
-   /ACap4RrRjuNB7vK/sSu4XElf+L7/nKLqoTNis1JZqzH99CiBC8OjHGO0
-   e8I92ld5NyCXANj7fMRntKymGZS1P9gfffEWCkfefyQJQ6yWKC2ljCBqd
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10853"; a="382027639"
-X-IronPort-AV: E=Sophos;i="6.03,200,1694761200"; 
-   d="scan'208";a="382027639"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Oct 2023 06:02:07 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10853"; a="754924619"
-X-IronPort-AV: E=Sophos;i="6.03,200,1694761200"; 
-   d="scan'208";a="754924619"
-Received: from lkp-server02.sh.intel.com (HELO c3b01524d57c) ([10.239.97.151])
-  by fmsmga007.fm.intel.com with ESMTP; 04 Oct 2023 06:02:06 -0700
-Received: from kbuild by c3b01524d57c with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1qo1Vs-000JFW-15;
-	Wed, 04 Oct 2023 13:02:04 +0000
-Date: Wed, 04 Oct 2023 21:01:46 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org,
- linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 57ecdfe1a18d82998d66297800d217bfe1124824
-Message-ID: <202310042142.cusieYEI-lkp@intel.com>
-User-Agent: s-nail v14.9.24
-X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,
-	RCVD_IN_DNSWL_BLOCKED,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.6
-X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
-	lindbergh.monkeyblade.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55FE31BDC3
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Oct 2023 16:23:34 +0000 (UTC)
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29E8195
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Oct 2023 09:23:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1696436611;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=AxlB9jGPDkVTrNs+dLX6hYItM8N/DBvuylNLWowa8UI=;
+	b=iwwoS4MluQllVM0xxku5VXOR8e0OGJ7inPtVvBgibh/u/GJM43nGCFDkFkSoiHOQT2YpqP
+	pTPhOaJZxoQ0iJuRH//SmRYY8Cp8Q7rCqNAa3ok5yAA2ayYToa6BFilQKQDpPUNgyM10VU
+	1lrTI7RG5VZLH3CdWkkZd2hlaq2xLIk=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-393-kczh6-UgOn2uLNeDCCXT6w-1; Wed, 04 Oct 2023 12:23:30 -0400
+X-MC-Unique: kczh6-UgOn2uLNeDCCXT6w-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A71B11C04B58;
+	Wed,  4 Oct 2023 16:23:29 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.89])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 3AD8A40C2015;
+	Wed,  4 Oct 2023 16:23:28 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Bartosz Golaszewski <brgl@bgdev.pl>,
+	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+	Linus Walleij <linus.walleij@linaro.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	platform-driver-x86@vger.kernel.org,
+	Daniel Scally <djrscally@gmail.com>,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: [PATCH v3 1/5] platform/x86: int3472: Add new skl_int3472_fill_gpiod_lookup() helper
+Date: Wed,  4 Oct 2023 18:23:13 +0200
+Message-ID: <20231004162317.163488-2-hdegoede@redhat.com>
+In-Reply-To: <20231004162317.163488-1-hdegoede@redhat.com>
+References: <20231004162317.163488-1-hdegoede@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
+X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,RCVD_IN_DNSWL_NONE,
+	RCVD_IN_MSPIKE_H4,RCVD_IN_MSPIKE_WL,SPF_HELO_NONE,SPF_NONE
+	autolearn=ham autolearn_force=no version=3.4.6
+X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
+	lindbergh.monkeyblade.net
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 57ecdfe1a18d82998d66297800d217bfe1124824  Merge branch 'acpi-prm' into bleeding-edge
+Add a new skl_int3472_fill_gpiod_lookup() helper.
 
-elapsed time: 1002m
+This is a preparation patch for removing usage of the deprecated
+gpiod_toggle_active_low() and acpi_get_and_request_gpiod() functions.
 
-configs tested: 107
-configs skipped: 2
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/platform/x86/intel/int3472/discrete.c | 32 +++++++++++++------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                             allnoconfig   gcc  
-alpha                            allyesconfig   gcc  
-alpha                               defconfig   gcc  
-arc                              allmodconfig   gcc  
-arc                               allnoconfig   gcc  
-arc                              allyesconfig   gcc  
-arc                                 defconfig   gcc  
-arc                   randconfig-001-20231004   gcc  
-arm                              allmodconfig   gcc  
-arm                               allnoconfig   gcc  
-arm                              allyesconfig   gcc  
-arm                                 defconfig   gcc  
-arm                   randconfig-001-20231004   gcc  
-arm64                            allmodconfig   gcc  
-arm64                             allnoconfig   gcc  
-arm64                            allyesconfig   gcc  
-arm64                               defconfig   gcc  
-csky                             allmodconfig   gcc  
-csky                              allnoconfig   gcc  
-csky                             allyesconfig   gcc  
-csky                                defconfig   gcc  
-i386                             allmodconfig   gcc  
-i386                              allnoconfig   gcc  
-i386                             allyesconfig   gcc  
-i386         buildonly-randconfig-001-20231004   gcc  
-i386         buildonly-randconfig-002-20231004   gcc  
-i386         buildonly-randconfig-003-20231004   gcc  
-i386         buildonly-randconfig-004-20231004   gcc  
-i386         buildonly-randconfig-005-20231004   gcc  
-i386         buildonly-randconfig-006-20231004   gcc  
-i386                              debian-10.3   gcc  
-i386                                defconfig   gcc  
-i386                  randconfig-001-20231004   gcc  
-i386                  randconfig-002-20231004   gcc  
-i386                  randconfig-003-20231004   gcc  
-i386                  randconfig-004-20231004   gcc  
-i386                  randconfig-005-20231004   gcc  
-i386                  randconfig-006-20231004   gcc  
-loongarch                        allmodconfig   gcc  
-loongarch                         allnoconfig   gcc  
-loongarch                        allyesconfig   gcc  
-loongarch                           defconfig   gcc  
-loongarch             randconfig-001-20231004   gcc  
-m68k                             allmodconfig   gcc  
-m68k                              allnoconfig   gcc  
-m68k                             allyesconfig   gcc  
-m68k                                defconfig   gcc  
-microblaze                       allmodconfig   gcc  
-microblaze                        allnoconfig   gcc  
-microblaze                       allyesconfig   gcc  
-microblaze                          defconfig   gcc  
-mips                             allmodconfig   gcc  
-mips                              allnoconfig   gcc  
-mips                             allyesconfig   gcc  
-nios2                            allmodconfig   gcc  
-nios2                             allnoconfig   gcc  
-nios2                            allyesconfig   gcc  
-nios2                               defconfig   gcc  
-openrisc                         allmodconfig   gcc  
-openrisc                          allnoconfig   gcc  
-openrisc                         allyesconfig   gcc  
-openrisc                            defconfig   gcc  
-parisc                           allmodconfig   gcc  
-parisc                            allnoconfig   gcc  
-parisc                           allyesconfig   gcc  
-parisc                              defconfig   gcc  
-parisc64                            defconfig   gcc  
-powerpc                          allmodconfig   gcc  
-powerpc                           allnoconfig   gcc  
-powerpc                          allyesconfig   gcc  
-riscv                            allmodconfig   gcc  
-riscv                             allnoconfig   gcc  
-riscv                            allyesconfig   gcc  
-riscv                               defconfig   gcc  
-riscv                          rv32_defconfig   gcc  
-s390                             allmodconfig   gcc  
-s390                              allnoconfig   gcc  
-s390                             allyesconfig   gcc  
-s390                                defconfig   gcc  
-sh                               allmodconfig   gcc  
-sh                                allnoconfig   gcc  
-sh                               allyesconfig   gcc  
-sh                                  defconfig   gcc  
-sparc                            allmodconfig   gcc  
-sparc                             allnoconfig   gcc  
-sparc                            allyesconfig   gcc  
-sparc                               defconfig   gcc  
-sparc64                          allmodconfig   gcc  
-sparc64                          allyesconfig   gcc  
-sparc64                             defconfig   gcc  
-um                               allmodconfig   clang
-um                                allnoconfig   clang
-um                               allyesconfig   clang
-um                                  defconfig   gcc  
-um                             i386_defconfig   gcc  
-um                           x86_64_defconfig   gcc  
-x86_64                            allnoconfig   gcc  
-x86_64                           allyesconfig   gcc  
-x86_64                              defconfig   gcc  
-x86_64                randconfig-001-20231004   gcc  
-x86_64                randconfig-002-20231004   gcc  
-x86_64                randconfig-003-20231004   gcc  
-x86_64                randconfig-004-20231004   gcc  
-x86_64                randconfig-005-20231004   gcc  
-x86_64                randconfig-006-20231004   gcc  
-x86_64                          rhel-8.3-rust   clang
-x86_64                               rhel-8.3   gcc  
-
+diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
+index e33c2d75975c..351ecf047944 100644
+--- a/drivers/platform/x86/intel/int3472/discrete.c
++++ b/drivers/platform/x86/intel/int3472/discrete.c
+@@ -52,21 +52,15 @@ static void skl_int3472_log_sensor_module_name(struct int3472_discrete_device *i
+ 	}
+ }
+ 
+-static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int3472,
+-					  struct acpi_resource_gpio *agpio,
+-					  const char *func, u32 polarity)
++static int skl_int3472_fill_gpiod_lookup(struct gpiod_lookup *table_entry,
++					 struct acpi_resource_gpio *agpio,
++					 const char *func, u32 polarity)
+ {
+ 	char *path = agpio->resource_source.string_ptr;
+-	struct gpiod_lookup *table_entry;
+ 	struct acpi_device *adev;
+ 	acpi_handle handle;
+ 	acpi_status status;
+ 
+-	if (int3472->n_sensor_gpios >= INT3472_MAX_SENSOR_GPIOS) {
+-		dev_warn(int3472->dev, "Too many GPIOs mapped\n");
+-		return -EINVAL;
+-	}
+-
+ 	status = acpi_get_handle(NULL, path, &handle);
+ 	if (ACPI_FAILURE(status))
+ 		return -EINVAL;
+@@ -75,13 +69,31 @@ static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int347
+ 	if (!adev)
+ 		return -ENODEV;
+ 
+-	table_entry = &int3472->gpios.table[int3472->n_sensor_gpios];
+ 	table_entry->key = acpi_dev_name(adev);
+ 	table_entry->chip_hwnum = agpio->pin_table[0];
+ 	table_entry->con_id = func;
+ 	table_entry->idx = 0;
+ 	table_entry->flags = polarity;
+ 
++	return 0;
++}
++
++static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int3472,
++					  struct acpi_resource_gpio *agpio,
++					  const char *func, u32 polarity)
++{
++	int ret;
++
++	if (int3472->n_sensor_gpios >= INT3472_MAX_SENSOR_GPIOS) {
++		dev_warn(int3472->dev, "Too many GPIOs mapped\n");
++		return -EINVAL;
++	}
++
++	ret = skl_int3472_fill_gpiod_lookup(&int3472->gpios.table[int3472->n_sensor_gpios],
++					    agpio, func, polarity);
++	if (ret)
++		return ret;
++
+ 	int3472->n_sensor_gpios++;
+ 
+ 	return 0;
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.41.0
+
