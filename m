@@ -1,205 +1,226 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4683219F2
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Oct 2023 13:48:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4481250FF
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Oct 2023 13:48:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YflALmyF"
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD4EC10D1;
-	Thu,  5 Oct 2023 06:48:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696513712; x=1728049712;
-  h=date:from:to:cc:subject:message-id;
-  bh=Bsp9ehixeLHcbtUpyA+rx7/7o5Slibw2J6eHfc2hOYE=;
-  b=YflALmyFUKrPrA7oM0a+QtjP3T7vZaosfNicSTCfOruoCc5k3ZLqjMjv
-   W+5xj8p4A0gVHrL0ZmYfiv1pODYzo/fFHRyOyvlmoGvvYU6cmTjeYvPuL
-   RJi0JfaTx3r6MGhuJUdZ7hBg3DhxzWuuKCmkqAmCou0RsveoRIh7eKh2k
-   YBQiT1N1nw5RitlPvulFv+5iQ+EhXAgKQlV0oRj3hxZizC5c8fGUGHD9F
-   SezRKE1QLBZefislW1KuysOlliUwTQe/OpnxCqLaCUA/EYaj+D47mnMIn
-   RWubZNviqmPfPQjpOmsLYrZ3eptfAqq7A93+LVSZeBwlDaLzfh0DGLWlr
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10853"; a="469730089"
-X-IronPort-AV: E=Sophos;i="6.03,202,1694761200"; 
-   d="scan'208";a="469730089"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2023 03:05:46 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10853"; a="781190361"
-X-IronPort-AV: E=Sophos;i="6.03,202,1694761200"; 
-   d="scan'208";a="781190361"
-Received: from lkp-server02.sh.intel.com (HELO c3b01524d57c) ([10.239.97.151])
-  by orsmga008.jf.intel.com with ESMTP; 05 Oct 2023 03:05:43 -0700
-Received: from kbuild by c3b01524d57c with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1qoLEk-000LH9-0Q;
-	Thu, 05 Oct 2023 10:05:42 +0000
-Date: Thu, 05 Oct 2023 18:04:42 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org,
- linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 087dbcb2127272bfc2419ec2dc1e19e6a030f3af
-Message-ID: <202310051838.6aED2Oiq-lkp@intel.com>
-User-Agent: s-nail v14.9.24
-X-Spam-Status: No, score=-4.4 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,RCVD_IN_DNSWL_MED,
-	SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.6
-X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
-	lindbergh.monkeyblade.net
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="c1xWPf3/"
+Received: from mail-vk1-xa2e.google.com (mail-vk1-xa2e.google.com [IPv6:2607:f8b0:4864:20::a2e])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C50721721
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Oct 2023 06:48:43 -0700 (PDT)
+Received: by mail-vk1-xa2e.google.com with SMTP id 71dfb90a1353d-49dd647a477so414839e0c.3
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Oct 2023 06:48:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1696513722; x=1697118522; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=gHY/ZQQzp7Eh1tubbFWWOn2NxVKU0m/orXkn9/Odof0=;
+        b=c1xWPf3/mvf8/i/TrzUZOuGMDYM91CxU4gozBvzeOu2ANTQu3NigwJHRxAYRlObQqp
+         mGf1s0ZoZDZNFUmlPKqBXHnqYT7LXulZN9+sfdJJmqJCFjEgs92Vk0yBa3G/q8oMJ+QZ
+         Zb9QHMuDZbGpMOJo6qUE14TZZBs7zp8GACSN4MIQ877omaJeiqg49MfpeuVURa5DIQUW
+         hH6U04Vo1CtUk7GClCSandDXKRDybCuxZFCy9bdFwGUHJ4UA8Yjqn71+CRQadgPARLBf
+         +1wfv4PZ3iKh2/U6NgKpv95dm+FfiACztMxZUqS0ZZtENf16EiKUaqeRGxGMO2p+1EHd
+         dc8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696513722; x=1697118522;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=gHY/ZQQzp7Eh1tubbFWWOn2NxVKU0m/orXkn9/Odof0=;
+        b=K00ShAjUdkyF24dxfpg75StnCpF+i7vBKWLSiflhEEaw5rJpJ0HBChPKxHrncYXyxV
+         pM7SnLQ/NPmgbbz9SRMupzY5UVh0BclvZyMM1yrpukiBEOYcOlGJN3t0Gd3sjPwnkpm/
+         2skNQ8KJ+VQ7gBqNoQnep6l7RlF/6zpiXJQwhMSO6sh6mmBYip2oFuw8Oc8oW52L00rP
+         ocO8o+qv9QhvQPRBHdLehEkojEsIvUMUMh38W8SUEHqkKhn0eQL1p/I9qFkBPqyJcvDs
+         DUcyZKnvP6E3djbbuko/QPyVmX8/CPBFm7HGD6/RizUyRsu81wLw/LMoLkquBKy+lDVQ
+         Eefg==
+X-Gm-Message-State: AOJu0Yz9YIaHhjd5SbMl8mbb3iHaPpm3Ccu7YyNebScPGkTBkK2Xe74F
+	WLZFK1jWkYWAylHZorujkGvI1l3AmXVDNOlDobB6VQ==
+X-Google-Smtp-Source: AGHT+IEs24zy6ibJecOnCN0EfrO6wFAW3J5eW9qxeqqcBUsb4ootHwEPnzV2453v5/6B/ux1FD3fv13iIIuy1J493K0=
+X-Received: by 2002:a1f:e2c3:0:b0:49c:37a1:2358 with SMTP id
+ z186-20020a1fe2c3000000b0049c37a12358mr4560513vkg.14.1696513722632; Thu, 05
+ Oct 2023 06:48:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-15-brgl@bgdev.pl>
+ <CACRpkda9=VULj4Cy_sit-UpUQnVEbS-RJKAeULVCw8ZCRTq1sw@mail.gmail.com>
+ <CAMRc=MdTk1B4MEh9C624Upm_EcaQgJd9OU-AGfU0G-DU1+qk6A@mail.gmail.com>
+ <36b17290-c643-8d8e-e82b-49afa6b34fbb@nvidia.com> <3624e973-d09a-d211-c6d0-d0ffb8c20c4b@nvidia.com>
+ <90b5f887-8af4-a80d-ea4d-cf2199752de4@nvidia.com> <0e7cae42-0b81-c038-8beb-49102feea8a6@nvidia.com>
+In-Reply-To: <0e7cae42-0b81-c038-8beb-49102feea8a6@nvidia.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Date: Thu, 5 Oct 2023 15:48:31 +0200
+Message-ID: <CAMRc=McSG6qajxt6P3vWQEeT63Pk5tggD05pUoMD1zd5ApZxgA@mail.gmail.com>
+Subject: Re: [RFT PATCH 14/21] hte: tegra194: don't access struct gpio_chip
+To: Dipen Patel <dipenp@nvidia.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
+	Russell King <linux@armlinux.org.uk>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, 
+	Hans de Goede <hdegoede@redhat.com>, Mark Gross <markgross@kernel.org>, 
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, timestamp@lists.linux.dev, 
+	linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-Spam-Status: No, score=-1.9 required=5.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,RCVD_IN_DNSWL_NONE,SPF_HELO_NONE,SPF_NONE
+	autolearn=unavailable autolearn_force=no version=3.4.6
+X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
+	lindbergh.monkeyblade.net
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 087dbcb2127272bfc2419ec2dc1e19e6a030f3af  Merge branch 'pm-sleep-fixes' into linux-next
+On Thu, Oct 5, 2023 at 1:52=E2=80=AFAM Dipen Patel <dipenp@nvidia.com> wrot=
+e:
+>
+> On 10/4/23 3:54 PM, Dipen Patel wrote:
+> > On 10/4/23 1:33 PM, Dipen Patel wrote:
+> >> On 10/4/23 1:30 PM, Dipen Patel wrote:
+> >>> On 10/4/23 5:00 AM, Bartosz Golaszewski wrote:
+> >>>> On Thu, Sep 7, 2023 at 9:28=E2=80=AFAM Linus Walleij <linus.walleij@=
+linaro.org> wrote:
+> >>>>>
+> >>>>> On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bg=
+dev.pl> wrote:
+> >>>>>
+> >>>>>> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> >>>>>>
+> >>>>>> Using struct gpio_chip is not safe as it will disappear if the
+> >>>>>> underlying driver is unbound for any reason. Switch to using refer=
+ence
+> >>>>>> counted struct gpio_device and its dedicated accessors.
+> >>>>>>
+> >>>>>> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org=
+>
+> >>>>>
+> >>>>> As Andy points out add <linux/cleanup.h>, with that fixed:
+> >>>>> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> >>>>>
+> >>>>> I think this can be merged into the gpio tree after leaving some
+> >>>>> slack for the HTE maintainer to look at it, things look so much
+> >>>>> better after this.
+> >>>>>
+> >>>>> Yours,
+> >>>>> Linus Walleij
+> >>>>
+> >>>> Dipen,
+> >>>>
+> >>>> if you could give this patch a test and possibly ack it for me to ta=
+ke
+> >>>> it through the GPIO tree (or go the immutable tag from HTE route) th=
+en
+> >>>> it would be great. This is the last user of gpiochip_find() treewide=
+,
+> >>>> so with it we could remove it entirely for v6.7.
+> >>>
+> >>> Progress so far for the RFT...
+> >>>
+> >>> I tried applying the patch series on 6.6-rc1 and it did not apply cle=
+anly,
+> >>> some patches I needed to manually apply and correct. With all this, i=
+t failed
+> >>> compilation at some spi/spi-bcm2835 driver. I disabled that and was a=
+ble to
+> >>> compile. I thought I should let you know this part.
+> >>>
+> >>> Now, I tried to test the hte and it seems to fail finding the gpio de=
+vice,
+> >>> roughly around this place [1]. I thought it would be your patch serie=
+s so
+> >>> tried to just use 6.6rc1 without your patches and it still failed at =
+the
+> >>> same place. I have to trace back now from which kernel version it bro=
+ke.
+> >>
+> >> [1].
+> >> https://git.kernel.org/pub/scm/linux/kernel/git/pateldipen1984/linux.g=
+it/tree/drivers/hte/hte-tegra194.c?h=3Dfor-next#n781
+> >>
+> >> of course with your patches it would fail for the gdev instead of the =
+chip.
+> >
+> > Small update:
+> >
+> > I put some debugging prints in the gpio match function in the hte-tegra=
+194.c as
+> > below:
+> >
+> > static int tegra_gpiochip_match(struct gpio_chip *chip, void *data)
+> >  {
+> > +       struct device_node *node =3D data;
+> > +       struct fwnode_handle *fw =3D of_node_to_fwnode(data);
+> > +       if (!fw || !chip->fwnode)
+> > +               pr_err("dipen patel: fw is null\n");
+> >
+> > -       pr_err("%s:%d\n", __func__, __LINE__);
+> > +       pr_err("dipen patel, %s:%d: %s, %s, %s, match?:%d, fwnode name:=
+%s\n",
+> > __func__, __LINE__, chip->label, node->name, node->full_name, (chip->fw=
+node =3D=3D
+> > fw), fw->dev->init_name);
+> >         return chip->fwnode =3D=3D of_node_to_fwnode(data);
+> >  }
+> >
+> > The output of the printfs looks like below:
+> > [    3.955194] dipen patel: fw is null -----> this message started appe=
+aring
+> > when I added !chip->fwnode test in the if condition line.
+> >
+> > [    3.958864] dipen patel, tegra_gpiochip_match:689: tegra234-gpio, gp=
+io,
+> > gpio@c2f0000, match?:0, fwnode name:(null)
+> >
+> > I conclude that chip->fwnode is empty. Any idea in which conditions tha=
+t node
+> > would be empty?
+>
+> sorry for spamming, one last message before I sign off for the day....
+>
+> Seems, adding below in the tegra gpio driver resolved the issue I am faci=
+ng, I
+> was able to verify your patch series.
+>
+> diff --git a/drivers/gpio/gpio-tegra186.c b/drivers/gpio/gpio-tegra186.c
+> index d87dd06db40d..a56c159d7136 100644
+> --- a/drivers/gpio/gpio-tegra186.c
+> +++ b/drivers/gpio/gpio-tegra186.c
+> @@ -989,6 +989,8 @@ static int tegra186_gpio_probe(struct platform_device=
+ *pdev)
+>                 offset +=3D port->pins;
+>         }
+>
+> +       gpio->gpio.fwnode =3D of_node_to_fwnode(pdev->dev.of_node);
+> +
+>         return devm_gpiochip_add_data(&pdev->dev, &gpio->gpio, gpio);
+>  }
+>
+> Now, few follow up questions:
+> 1) is this the correct way of setting the chip fwnode in the gpio driver?
 
-elapsed time: 728m
+You shouldn't need this. This driver already does:
 
-configs tested: 130
-configs skipped: 2
+    gpio->gpio.parent =3D &pdev->dev;
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+so fwnode should be assigned in gpiochip_add_data_with_key(). Can you
+check why this doesn't happen?
 
-tested configs:
-alpha                             allnoconfig   gcc  
-alpha                            allyesconfig   gcc  
-alpha                               defconfig   gcc  
-arc                              allmodconfig   gcc  
-arc                               allnoconfig   gcc  
-arc                              allyesconfig   gcc  
-arc                                 defconfig   gcc  
-arc                   randconfig-001-20231005   gcc  
-arm                              alldefconfig   clang
-arm                              allmodconfig   gcc  
-arm                               allnoconfig   gcc  
-arm                              allyesconfig   gcc  
-arm                         bcm2835_defconfig   clang
-arm                                 defconfig   gcc  
-arm                            dove_defconfig   clang
-arm                         lpc32xx_defconfig   clang
-arm                         orion5x_defconfig   clang
-arm                   randconfig-001-20231005   gcc  
-arm                         s3c6400_defconfig   gcc  
-arm                         s5pv210_defconfig   clang
-arm                           spitz_defconfig   clang
-arm                    vt8500_v6_v7_defconfig   clang
-arm64                            allmodconfig   gcc  
-arm64                             allnoconfig   gcc  
-arm64                            allyesconfig   gcc  
-arm64                               defconfig   gcc  
-csky                             allmodconfig   gcc  
-csky                              allnoconfig   gcc  
-csky                             allyesconfig   gcc  
-csky                                defconfig   gcc  
-i386                             allmodconfig   gcc  
-i386                              allnoconfig   gcc  
-i386                             allyesconfig   gcc  
-i386         buildonly-randconfig-001-20231005   gcc  
-i386         buildonly-randconfig-002-20231005   gcc  
-i386         buildonly-randconfig-003-20231005   gcc  
-i386         buildonly-randconfig-004-20231005   gcc  
-i386         buildonly-randconfig-005-20231005   gcc  
-i386         buildonly-randconfig-006-20231005   gcc  
-i386                              debian-10.3   gcc  
-i386                                defconfig   gcc  
-i386                  randconfig-001-20231005   gcc  
-i386                  randconfig-002-20231005   gcc  
-i386                  randconfig-003-20231005   gcc  
-i386                  randconfig-004-20231005   gcc  
-i386                  randconfig-005-20231005   gcc  
-i386                  randconfig-006-20231005   gcc  
-loongarch                        allmodconfig   gcc  
-loongarch                         allnoconfig   gcc  
-loongarch                        allyesconfig   gcc  
-loongarch                           defconfig   gcc  
-loongarch             randconfig-001-20231005   gcc  
-m68k                             allmodconfig   gcc  
-m68k                              allnoconfig   gcc  
-m68k                             allyesconfig   gcc  
-m68k                                defconfig   gcc  
-microblaze                       allmodconfig   gcc  
-microblaze                        allnoconfig   gcc  
-microblaze                       allyesconfig   gcc  
-microblaze                          defconfig   gcc  
-mips                             allmodconfig   gcc  
-mips                              allnoconfig   gcc  
-mips                             allyesconfig   gcc  
-mips                  decstation_64_defconfig   gcc  
-mips                           ip28_defconfig   clang
-mips                  maltasmvp_eva_defconfig   gcc  
-nios2                            allmodconfig   gcc  
-nios2                             allnoconfig   gcc  
-nios2                            allyesconfig   gcc  
-nios2                               defconfig   gcc  
-openrisc                         alldefconfig   gcc  
-openrisc                         allmodconfig   gcc  
-openrisc                          allnoconfig   gcc  
-openrisc                         allyesconfig   gcc  
-openrisc                            defconfig   gcc  
-parisc                           allmodconfig   gcc  
-parisc                            allnoconfig   gcc  
-parisc                           allyesconfig   gcc  
-parisc                              defconfig   gcc  
-parisc64                            defconfig   gcc  
-powerpc                      acadia_defconfig   clang
-powerpc                          allmodconfig   gcc  
-powerpc                           allnoconfig   gcc  
-powerpc                          allyesconfig   gcc  
-powerpc                       ebony_defconfig   clang
-powerpc                     kmeter1_defconfig   clang
-powerpc                     ksi8560_defconfig   clang
-powerpc                         wii_defconfig   gcc  
-riscv                            allmodconfig   gcc  
-riscv                             allnoconfig   clang
-riscv                             allnoconfig   gcc  
-riscv                            allyesconfig   gcc  
-riscv                               defconfig   gcc  
-riscv                          rv32_defconfig   gcc  
-s390                             allmodconfig   gcc  
-s390                              allnoconfig   gcc  
-s390                             allyesconfig   gcc  
-s390                                defconfig   gcc  
-sh                               allmodconfig   gcc  
-sh                                allnoconfig   gcc  
-sh                               allyesconfig   gcc  
-sh                                  defconfig   gcc  
-sh                           se7750_defconfig   gcc  
-sh                             sh03_defconfig   gcc  
-sparc                            allmodconfig   gcc  
-sparc                             allnoconfig   gcc  
-sparc                            allyesconfig   gcc  
-sparc                               defconfig   gcc  
-sparc                       sparc32_defconfig   gcc  
-sparc64                          allmodconfig   gcc  
-sparc64                          allyesconfig   gcc  
-sparc64                             defconfig   gcc  
-um                               allmodconfig   clang
-um                                allnoconfig   clang
-um                               allyesconfig   clang
-um                                  defconfig   gcc  
-um                             i386_defconfig   gcc  
-um                           x86_64_defconfig   gcc  
-x86_64                            allnoconfig   gcc  
-x86_64                           allyesconfig   gcc  
-x86_64                              defconfig   gcc  
-x86_64                randconfig-001-20231005   gcc  
-x86_64                randconfig-002-20231005   gcc  
-x86_64                randconfig-003-20231005   gcc  
-x86_64                randconfig-004-20231005   gcc  
-x86_64                randconfig-005-20231005   gcc  
-x86_64                randconfig-006-20231005   gcc  
-x86_64                          rhel-8.3-rust   clang
-x86_64                               rhel-8.3   gcc  
-xtensa                            allnoconfig   gcc  
-xtensa                           allyesconfig   gcc  
+Bart
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> 2) Or should I use something else in hte matching function instead of fwn=
+ode so
+> to avoid adding above line in the gpio driver?
+>
+> >
+> >>>
+> >>>>
+> >>>> Bart
+> >>>
+> >>
+> >
+>
