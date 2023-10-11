@@ -1,37 +1,37 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5814C1A710
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Oct 2023 08:34:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE0E217996
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Oct 2023 08:34:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EFw91vB4"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SazJ95Dm"
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B09A498;
-	Wed, 11 Oct 2023 01:34:04 -0700 (PDT)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34098A4;
+	Wed, 11 Oct 2023 01:34:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697013244; x=1728549244;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=v8b36hzg0ZJAEO27CltsIvMZPSTrKWI+beze9I7e8Mo=;
-  b=EFw91vB4/xej0KGUSrFs/tX94qbtFBaqHwlOr21M2Bb/5lzUGMfDZExK
-   A7J7EkCKZkwrmCcoEjlE4JenajXsCx8oXQPf1MMrbLcBlgAhjIEbDxOkq
-   lwIWtikjcNYv3o47iwqHUcp8KDyYYCMKe+CmXHCcgVgJE3V6FWZ3QUtjd
-   N5Qd0mb9q7UfwOAXmX3HvpDsNIa0ftYEPEe+dBAaphbkuJFifDD8aOwmo
-   onfG4F2Z3xbWKgpyPiz4KVSqOBPxpAHi/dFNMlC2ynCjl1x9VpUnBn/fy
-   sZy39cQEZQL9nM4Z3uFoHFHEDQ6gJxWMJGpAD+e2YWc22DWs6+3+5ORkt
+  t=1697013247; x=1728549247;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=r721DVipL9bpqgYhSjxYjGmtAilZNRSPBbALGRuuO1M=;
+  b=SazJ95DmJRzLb18tLk8vhYNnA2K7X80EX1QEfw2myssfiNH2SsGEWc0P
+   FhOZEz+7M1M0bKcFuY+iZrNV3lfPRGH7oZoM336FTZLpmLFkscRI/AbRU
+   TQH0SnYuhYjZj6+Lmd55vHHsjsSQ1nzzIZ/Su5E2i6qTGezzbV0TxtgLr
+   E9MdqaGz0gYLyQ7bt9NTCJ2RI3XWz/fmOfrLXTkWTmzJ7SCJLkHeBwBoA
+   uc+lyNvadJZbDXu2VoMT6dleUmI4fno3O1DHrSe7dc22exHqzbHug4GGx
+   /0GWiAzwBoVxPMC4UrfCevs3vVtuY/vM/JzVhDSSzEVfMT32uI9Jwl978
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10859"; a="388480155"
+X-IronPort-AV: E=McAfee;i="6600,9927,10859"; a="388480189"
 X-IronPort-AV: E=Sophos;i="6.03,214,1694761200"; 
-   d="scan'208";a="388480155"
+   d="scan'208";a="388480189"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2023 01:33:58 -0700
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2023 01:34:07 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10859"; a="897548169"
+X-IronPort-AV: E=McAfee;i="6600,9927,10859"; a="897548208"
 X-IronPort-AV: E=Sophos;i="6.03,214,1694761200"; 
-   d="scan'208";a="897548169"
+   d="scan'208";a="897548208"
 Received: from powerlab.fi.intel.com ([10.237.71.25])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2023 01:32:09 -0700
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2023 01:32:19 -0700
 From: Michal Wilczynski <michal.wilczynski@intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: rafael@kernel.org,
@@ -43,11 +43,14 @@ Cc: rafael@kernel.org,
 	rui.zhang@intel.com,
 	linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev,
-	Michal Wilczynski <michal.wilczynski@intel.com>
-Subject: [PATCH v3 0/6] Replace acpi_driver with platform_driver
-Date: Wed, 11 Oct 2023 11:33:28 +0300
-Message-ID: <20231011083334.3987477-1-michal.wilczynski@intel.com>
+	Michal Wilczynski <michal.wilczynski@intel.com>,
+	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v3 3/6] ACPI: AC: Replace acpi_driver with platform_driver
+Date: Wed, 11 Oct 2023 11:33:31 +0300
+Message-ID: <20231011083334.3987477-4-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20231011083334.3987477-1-michal.wilczynski@intel.com>
+References: <20231011083334.3987477-1-michal.wilczynski@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,65 +65,185 @@ X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-Currently there is a number of drivers that somewhat incorrectly
-register themselves as acpi_driver, while they should be registering as
-platform_drivers. acpi_device was never meant to represent actual
-device, it only represents an entry in the ACPI table and ACPI driver
-should be treated as a driver for the ACPI entry of the particular
-device, not the device itself. Drivers of the devices itself should
-register as platform_drivers. Replace acpi_driver with platform_driver
-for all relevant drivers in drivers/acpi directory. This is just the
-first part of the change, as many acpi_drivers are present in many files
-outside of drivers/acpi directory.
+AC driver uses struct acpi_driver incorrectly to register itself. This
+is wrong as the instances of the ACPI devices are not meant to
+be literal devices, they're supposed to describe ACPI entry of a
+particular device.
 
-Additionally during internal review we've decided that it's best to send
-the relevant patches sequentially, in order not to overwhelm the reviewers.
-So I'm starting with NFIT and AC drivers.
+Use platform_driver instead of acpi_driver. In relevant places call
+platform devices instances pdev to make a distinction with ACPI
+devices instances.
 
-This change is possible thanks to recent .notify callback removal in
-drivers/acpi [1]. So flow for the remaining acpi_drivers will look like
-this:
+Drop unnecessary casts from acpi_bus_generate_netlink_event() and
+acpi_notifier_call_chain().
 
-1) Remove .notify callback with separate patchset for drivers/platform
-   and other outstanding places like drivers/hwmon, drivers/iio etc.
-2) Replace acpi_driver with platform_driver, as aside for .notify
-   callback they're mostly functionally compatible.
+Add a blank line to distinguish pdev API vs local ACPI notify function.
 
-Most of the patches in this series could be considered independent, and
-could be merged separately, with a notable exception of the very first
-patch in this series that changes notify installer wrappers to be more
-generic. I decided it would be best not to force the user of this
-wrappers to pass any specific structure, like acpi_device or
-platform_device. It makes sense as it is very often the case that
-drivers declare their own private structure which gets allocated during
-the .probe() callback, and become the heart of the driver. In that case
-it makes much more sense to pass this structure to notify handler.
-Additionally some drivers, like acpi_video that already have custom
-notify handlers do that already.
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+---
+ drivers/acpi/ac.c | 61 +++++++++++++++++++++++++----------------------
+ 1 file changed, 33 insertions(+), 28 deletions(-)
 
-Link: https://lore.kernel.org/linux-acpi/20230703080252.2899090-1-michal.wilczynski@intel.com/ [1]
-
-v3:
- - in AC transformation patch replaced struct device* with
-   struct acpi_device*, as suggested.
-
-v2:
- - dropped first, second and last commit. Last commit was deemed
-   pointless, first and second are already merged.
- - rebased on top of modified first commit (changes in the wrappers)
-
-Michal Wilczynski (6):
-  ACPI: AC: Remove unnecessary checks
-  ACPI: AC: Use string_choices API instead of ternary operator
-  ACPI: AC: Replace acpi_driver with platform_driver
-  ACPI: AC: Rename ACPI device from device to adev
-  ACPI: NFIT: Replace acpi_driver with platform_driver
-  ACPI: NFIT: Remove redundant call to to_acpi_dev()
-
- drivers/acpi/ac.c        | 103 +++++++++++++++++----------------------
- drivers/acpi/nfit/core.c |  38 +++++++--------
- 2 files changed, 64 insertions(+), 77 deletions(-)
-
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index f809f6889b4a..1dd4919be7ac 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -33,8 +33,9 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
+ MODULE_LICENSE("GPL");
+ 
+-static int acpi_ac_add(struct acpi_device *device);
+-static void acpi_ac_remove(struct acpi_device *device);
++static int acpi_ac_probe(struct platform_device *pdev);
++static void acpi_ac_remove(struct platform_device *pdev);
++
+ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data);
+ 
+ static const struct acpi_device_id ac_device_ids[] = {
+@@ -51,17 +52,6 @@ static SIMPLE_DEV_PM_OPS(acpi_ac_pm, NULL, acpi_ac_resume);
+ static int ac_sleep_before_get_state_ms;
+ static int ac_only;
+ 
+-static struct acpi_driver acpi_ac_driver = {
+-	.name = "ac",
+-	.class = ACPI_AC_CLASS,
+-	.ids = ac_device_ids,
+-	.ops = {
+-		.add = acpi_ac_add,
+-		.remove = acpi_ac_remove,
+-		},
+-	.drv.pm = &acpi_ac_pm,
+-};
+-
+ struct acpi_ac {
+ 	struct power_supply *charger;
+ 	struct power_supply_desc charger_desc;
+@@ -129,8 +119,9 @@ static enum power_supply_property ac_props[] = {
+ /* Driver Model */
+ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_device *device = data;
+-	struct acpi_ac *ac = acpi_driver_data(device);
++	struct device *dev = data;
++	struct acpi_ac *ac = dev_get_drvdata(dev);
++	struct acpi_device *device = ACPI_COMPANION(dev);
+ 
+ 	switch (event) {
+ 	default:
+@@ -152,9 +143,10 @@ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+ 
+ 		acpi_ac_get_state(ac);
+ 		acpi_bus_generate_netlink_event(device->pnp.device_class,
+-						  dev_name(&device->dev), event,
+-						  (u32) ac->state);
+-		acpi_notifier_call_chain(device, event, (u32) ac->state);
++						dev_name(dev),
++						event,
++						ac->state);
++		acpi_notifier_call_chain(device, event, ac->state);
+ 		kobject_uevent(&ac->charger->dev.kobj, KOBJ_CHANGE);
+ 	}
+ }
+@@ -211,8 +203,9 @@ static const struct dmi_system_id ac_dmi_table[]  __initconst = {
+ 	{},
+ };
+ 
+-static int acpi_ac_add(struct acpi_device *device)
++static int acpi_ac_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct power_supply_config psy_cfg = {};
+ 	struct acpi_ac *ac;
+ 	int result;
+@@ -224,7 +217,8 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	ac->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_AC_CLASS);
+-	device->driver_data = ac;
++
++	platform_set_drvdata(pdev, ac);
+ 
+ 	result = acpi_ac_get_state(ac);
+ 	if (result)
+@@ -237,7 +231,7 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	ac->charger_desc.properties = ac_props;
+ 	ac->charger_desc.num_properties = ARRAY_SIZE(ac_props);
+ 	ac->charger_desc.get_property = get_ac_property;
+-	ac->charger = power_supply_register(&ac->device->dev,
++	ac->charger = power_supply_register(&pdev->dev,
+ 					    &ac->charger_desc, &psy_cfg);
+ 	if (IS_ERR(ac->charger)) {
+ 		result = PTR_ERR(ac->charger);
+@@ -251,7 +245,7 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	register_acpi_notifier(&ac->battery_nb);
+ 
+ 	result = acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIFY,
+-						 acpi_ac_notify, device);
++						 acpi_ac_notify, &pdev->dev);
+ 	if (result)
+ 		goto err_unregister;
+ 
+@@ -269,7 +263,7 @@ static int acpi_ac_add(struct acpi_device *device)
+ #ifdef CONFIG_PM_SLEEP
+ static int acpi_ac_resume(struct device *dev)
+ {
+-	struct acpi_ac *ac = acpi_driver_data(to_acpi_device(dev));
++	struct acpi_ac *ac = dev_get_drvdata(dev);
+ 	unsigned int old_state;
+ 
+ 	old_state = ac->state;
+@@ -284,11 +278,12 @@ static int acpi_ac_resume(struct device *dev)
+ #define acpi_ac_resume NULL
+ #endif
+ 
+-static void acpi_ac_remove(struct acpi_device *device)
++static void acpi_ac_remove(struct platform_device *pdev)
+ {
+-	struct acpi_ac *ac = acpi_driver_data(device);
++	struct acpi_ac *ac = platform_get_drvdata(pdev);
+ 
+-	acpi_dev_remove_notify_handler(device, ACPI_ALL_NOTIFY,
++	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
++				       ACPI_ALL_NOTIFY,
+ 				       acpi_ac_notify);
+ 	power_supply_unregister(ac->charger);
+ 	unregister_acpi_notifier(&ac->battery_nb);
+@@ -296,6 +291,16 @@ static void acpi_ac_remove(struct acpi_device *device)
+ 	kfree(ac);
+ }
+ 
++static struct platform_driver acpi_ac_driver = {
++	.probe = acpi_ac_probe,
++	.remove_new = acpi_ac_remove,
++	.driver = {
++		.name = "ac",
++		.acpi_match_table = ac_device_ids,
++		.pm = &acpi_ac_pm,
++	},
++};
++
+ static int __init acpi_ac_init(void)
+ {
+ 	int result;
+@@ -308,7 +313,7 @@ static int __init acpi_ac_init(void)
+ 
+ 	dmi_check_system(ac_dmi_table);
+ 
+-	result = acpi_bus_register_driver(&acpi_ac_driver);
++	result = platform_driver_register(&acpi_ac_driver);
+ 	if (result < 0)
+ 		return -ENODEV;
+ 
+@@ -317,7 +322,7 @@ static int __init acpi_ac_init(void)
+ 
+ static void __exit acpi_ac_exit(void)
+ {
+-	acpi_bus_unregister_driver(&acpi_ac_driver);
++	platform_driver_unregister(&acpi_ac_driver);
+ }
+ module_init(acpi_ac_init);
+ module_exit(acpi_ac_exit);
 -- 
 2.41.0
 
