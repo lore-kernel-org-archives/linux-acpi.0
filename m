@@ -1,209 +1,176 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D66A1241E7
-	for <linux-acpi@vger.kernel.org>; Sat, 14 Oct 2023 20:53:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CD581845
+	for <linux-acpi@vger.kernel.org>; Sat, 14 Oct 2023 22:58:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WD8dQPUw"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E669DF
-	for <linux-acpi@vger.kernel.org>; Sat, 14 Oct 2023 13:53:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1697316814;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=NuWj4wrV9zaKh/jpJVFwSK8WbIq3siZjo2RbPjHRdzM=;
-	b=WD8dQPUwbTPuXevgcqLe1Wq4JTWOzifahoeJ0NgxNcPocryXfbRtAwqi7AXCQaZvwJSWG7
-	uFpHDAI5uPH0KU0Dn1Fn2mfTiXxeJOW0rpfdjVzRE7tD7rv1XMKSe00AammKE5CjbsrF14
-	nYpHm4HLTqONVa+LYCVHquPMte/avtA=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-569-aqyFZdt0NLumMmZvRSgGWQ-1; Sat, 14 Oct 2023 16:53:21 -0400
-X-MC-Unique: aqyFZdt0NLumMmZvRSgGWQ-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 72CE43806723;
-	Sat, 14 Oct 2023 20:53:20 +0000 (UTC)
-Received: from shalem.redhat.com (unknown [10.39.192.6])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 44B6D25C0;
-	Sat, 14 Oct 2023 20:53:19 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	Mark Brown <broonie@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	linux-acpi@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org,
-	linux-spi@vger.kernel.org
-Subject: [PATCH 3/4] platform/x86: x86-android-tablets: Add support for SPI device instantiation
-Date: Sat, 14 Oct 2023 22:53:13 +0200
-Message-ID: <20231014205314.59333-4-hdegoede@redhat.com>
-In-Reply-To: <20231014205314.59333-1-hdegoede@redhat.com>
-References: <20231014205314.59333-1-hdegoede@redhat.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IiUniY/W"
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41A9CCE;
+	Sat, 14 Oct 2023 15:58:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1697324281; x=1728860281;
+  h=date:from:to:cc:subject:message-id;
+  bh=I8QU87Z/rCdX+GTJc1A4VcDs4tYPVTA2PevxmkqD2qk=;
+  b=IiUniY/WCF0w8ch2i2h/IOtB4nhC+amPkc+Q+p8WlXV9yCgOguGj4EXo
+   hVR9fjoAKWYSgRpb0OKn9m/qH4Rze9Dmm312gMJAfZmB719wrYnZDmfck
+   ebB6Mv1RznmqOQrP/CM8TXcGadobIMbegieEmHb+l5e2jqqfa7zKbXCNm
+   gKvI6YdDJ/3Dtslv1ceVdVatjErtkiqou00Y63uBa15R4o1u7t7LIA+qQ
+   dKVosrdawJy/sdCgcWuSjUiwsps7mThtkX2hYV/u/cybh/lJq1GHOoxKL
+   zB3ZX4apsvIuXh0Z1EpJJ0WqFGtLr7KCQpwedyUNVtiLdSVGooVEkDCA+
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10863"; a="6917001"
+X-IronPort-AV: E=Sophos;i="6.03,226,1694761200"; 
+   d="scan'208";a="6917001"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2023 15:57:53 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10863"; a="784585328"
+X-IronPort-AV: E=Sophos;i="6.03,226,1694761200"; 
+   d="scan'208";a="784585328"
+Received: from lkp-server02.sh.intel.com (HELO f64821696465) ([10.239.97.151])
+  by orsmga008.jf.intel.com with ESMTP; 14 Oct 2023 15:57:51 -0700
+Received: from kbuild by f64821696465 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1qrnZs-0006lt-2h;
+	Sat, 14 Oct 2023 22:57:48 +0000
+Date: Sun, 15 Oct 2023 06:57:22 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org,
+ linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 6169dd7beafef12d6626425e3dd3d72e71c101fb
+Message-ID: <202310150618.LevCvcO3-lkp@intel.com>
+User-Agent: s-nail v14.9.24
+X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,NO_DNS_FOR_FROM,
+	RCVD_IN_DNSWL_BLOCKED,SPF_HELO_NONE,T_SPF_TEMPERROR autolearn=no
+	autolearn_force=no version=3.4.6
+X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
+	lindbergh.monkeyblade.net
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.1
-X-Spam-Status: No, score=-2.1 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,
-	RCVD_IN_DNSWL_BLOCKED,RCVD_IN_MSPIKE_H4,RCVD_IN_MSPIKE_WL,
-	SPF_HELO_NONE,SPF_NONE autolearn=ham autolearn_force=no version=3.4.6
-X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
-	lindbergh.monkeyblade.net
 
-Some x86 Android tablets have SPI devices which are not properly described
-in their DSDT. Add support for instantiating SPI devices.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 6169dd7beafef12d6626425e3dd3d72e71c101fb  Merge branch 'thermal-core' into bleeding-edge
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- .../platform/x86/x86-android-tablets/core.c   | 62 +++++++++++++++++++
- .../x86-android-tablets/x86-android-tablets.h |  9 +++
- 2 files changed, 71 insertions(+)
+elapsed time: 1497m
 
-diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/platform/x86/x86-android-tablets/core.c
-index b55957bde034..6a5975ac3286 100644
---- a/drivers/platform/x86/x86-android-tablets/core.c
-+++ b/drivers/platform/x86/x86-android-tablets/core.c
-@@ -141,9 +141,11 @@ int x86_acpi_irq_helper_get(const struct x86_acpi_irq_data *data)
- }
- 
- static int i2c_client_count;
-+static int spi_dev_count;
- static int pdev_count;
- static int serdev_count;
- static struct i2c_client **i2c_clients;
-+static struct spi_device **spi_devs;
- static struct platform_device **pdevs;
- static struct serdev_device **serdevs;
- static struct gpio_keys_button *buttons;
-@@ -185,6 +187,46 @@ static __init int x86_instantiate_i2c_client(const struct x86_dev_info *dev_info
- 	return 0;
- }
- 
-+static __init int x86_instantiate_spi_dev(const struct x86_dev_info *dev_info, int idx)
-+{
-+	const struct x86_spi_dev_info *spi_dev_info = &dev_info->spi_dev_info[idx];
-+	struct spi_board_info board_info = spi_dev_info->board_info;
-+	struct spi_controller *controller;
-+	struct acpi_device *adev;
-+	acpi_handle handle;
-+	acpi_status status;
-+
-+	board_info.irq = x86_acpi_irq_helper_get(&spi_dev_info->irq_data);
-+	if (board_info.irq < 0)
-+		return board_info.irq;
-+
-+	status = acpi_get_handle(NULL, spi_dev_info->ctrl_path, &handle);
-+	if (ACPI_FAILURE(status)) {
-+		pr_err("Error could not get %s handle\n", spi_dev_info->ctrl_path);
-+		return -ENODEV;
-+	}
-+
-+	adev = acpi_fetch_acpi_dev(handle);
-+	if (!adev) {
-+		pr_err("Error could not get adev for %s\n", spi_dev_info->ctrl_path);
-+		return -ENODEV;
-+	}
-+
-+	controller = acpi_spi_find_controller_by_adev(adev);
-+	if (!controller) {
-+		pr_err("Error could not get SPI controller for %s\n", spi_dev_info->ctrl_path);
-+		return -ENODEV;
-+	}
-+
-+	spi_devs[idx] = spi_new_device(controller, &board_info);
-+	put_device(&controller->dev);
-+	if (IS_ERR(spi_devs[idx]))
-+		return dev_err_probe(&controller->dev, PTR_ERR(spi_devs[idx]),
-+				     "creating SPI-device %d\n", idx);
-+
-+	return 0;
-+}
-+
- static __init int x86_instantiate_serdev(const struct x86_serdev_info *info, int idx)
- {
- 	struct acpi_device *ctrl_adev, *serdev_adev;
-@@ -263,6 +305,11 @@ static void x86_android_tablet_remove(struct platform_device *pdev)
- 	kfree(pdevs);
- 	kfree(buttons);
- 
-+	for (i = 0; i < spi_dev_count; i++)
-+		spi_unregister_device(spi_devs[i]);
-+
-+	kfree(spi_devs);
-+
- 	for (i = 0; i < i2c_client_count; i++)
- 		i2c_unregister_device(i2c_clients[i]);
- 
-@@ -333,6 +380,21 @@ static __init int x86_android_tablet_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	spi_devs = kcalloc(dev_info->spi_dev_count, sizeof(*spi_devs), GFP_KERNEL);
-+	if (!spi_devs) {
-+		x86_android_tablet_remove(pdev);
-+		return -ENOMEM;
-+	}
-+
-+	spi_dev_count = dev_info->spi_dev_count;
-+	for (i = 0; i < spi_dev_count; i++) {
-+		ret = x86_instantiate_spi_dev(dev_info, i);
-+		if (ret < 0) {
-+			x86_android_tablet_remove(pdev);
-+			return ret;
-+		}
-+	}
-+
- 	/* + 1 to make space for (optional) gpio_keys_button pdev */
- 	pdevs = kcalloc(dev_info->pdev_count + 1, sizeof(*pdevs), GFP_KERNEL);
- 	if (!pdevs) {
-diff --git a/drivers/platform/x86/x86-android-tablets/x86-android-tablets.h b/drivers/platform/x86/x86-android-tablets/x86-android-tablets.h
-index 9d2fb7fded6d..49fed9410adb 100644
---- a/drivers/platform/x86/x86-android-tablets/x86-android-tablets.h
-+++ b/drivers/platform/x86/x86-android-tablets/x86-android-tablets.h
-@@ -14,6 +14,7 @@
- #include <linux/gpio_keys.h>
- #include <linux/i2c.h>
- #include <linux/irqdomain_defs.h>
-+#include <linux/spi/spi.h>
- 
- struct gpio_desc;
- struct gpiod_lookup_table;
-@@ -48,6 +49,12 @@ struct x86_i2c_client_info {
- 	struct x86_acpi_irq_data irq_data;
- };
- 
-+struct x86_spi_dev_info {
-+	struct spi_board_info board_info;
-+	char *ctrl_path;
-+	struct x86_acpi_irq_data irq_data;
-+};
-+
- struct x86_serdev_info {
- 	const char *ctrl_hid;
- 	const char *ctrl_uid;
-@@ -72,10 +79,12 @@ struct x86_dev_info {
- 	const struct software_node *bat_swnode;
- 	struct gpiod_lookup_table * const *gpiod_lookup_tables;
- 	const struct x86_i2c_client_info *i2c_client_info;
-+	const struct x86_spi_dev_info *spi_dev_info;
- 	const struct platform_device_info *pdev_info;
- 	const struct x86_serdev_info *serdev_info;
- 	const struct x86_gpio_button *gpio_button;
- 	int i2c_client_count;
-+	int spi_dev_count;
- 	int pdev_count;
- 	int serdev_count;
- 	int gpio_button_count;
+configs tested: 102
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                             allnoconfig   gcc  
+alpha                            allyesconfig   gcc  
+alpha                               defconfig   gcc  
+arc                              allmodconfig   gcc  
+arc                               allnoconfig   gcc  
+arc                              allyesconfig   gcc  
+arc                                 defconfig   gcc  
+arc                   randconfig-001-20231014   gcc  
+arm                              allmodconfig   gcc  
+arm                               allnoconfig   gcc  
+arm                              allyesconfig   gcc  
+arm                                 defconfig   gcc  
+arm                   randconfig-001-20231014   gcc  
+arm64                            allmodconfig   gcc  
+arm64                             allnoconfig   gcc  
+arm64                            allyesconfig   gcc  
+arm64                               defconfig   gcc  
+csky                             allmodconfig   gcc  
+csky                              allnoconfig   gcc  
+csky                             allyesconfig   gcc  
+csky                                defconfig   gcc  
+i386                             allmodconfig   gcc  
+i386                              allnoconfig   gcc  
+i386                              debian-10.3   gcc  
+i386                                defconfig   gcc  
+i386                  randconfig-001-20231014   gcc  
+i386                  randconfig-002-20231014   gcc  
+i386                  randconfig-003-20231014   gcc  
+i386                  randconfig-004-20231014   gcc  
+i386                  randconfig-005-20231014   gcc  
+i386                  randconfig-006-20231014   gcc  
+loongarch                         allnoconfig   gcc  
+loongarch                        allyesconfig   gcc  
+loongarch                           defconfig   gcc  
+loongarch             randconfig-001-20231014   gcc  
+m68k                             allmodconfig   gcc  
+m68k                              allnoconfig   gcc  
+m68k                             allyesconfig   gcc  
+m68k                                defconfig   gcc  
+microblaze                       allmodconfig   gcc  
+microblaze                        allnoconfig   gcc  
+microblaze                       allyesconfig   gcc  
+microblaze                          defconfig   gcc  
+mips                             allmodconfig   gcc  
+mips                              allnoconfig   gcc  
+mips                             allyesconfig   gcc  
+nios2                            allmodconfig   gcc  
+nios2                             allnoconfig   gcc  
+nios2                            allyesconfig   gcc  
+nios2                               defconfig   gcc  
+openrisc                         allmodconfig   gcc  
+openrisc                          allnoconfig   gcc  
+openrisc                         allyesconfig   gcc  
+openrisc                            defconfig   gcc  
+parisc                           allmodconfig   gcc  
+parisc                            allnoconfig   gcc  
+parisc                           allyesconfig   gcc  
+parisc                              defconfig   gcc  
+parisc64                            defconfig   gcc  
+powerpc                          allmodconfig   gcc  
+powerpc                           allnoconfig   gcc  
+powerpc                          allyesconfig   gcc  
+riscv                            allmodconfig   gcc  
+riscv                             allnoconfig   gcc  
+riscv                            allyesconfig   gcc  
+riscv                               defconfig   gcc  
+riscv                 randconfig-001-20231014   gcc  
+riscv                          rv32_defconfig   gcc  
+s390                             allmodconfig   gcc  
+s390                              allnoconfig   gcc  
+s390                             allyesconfig   gcc  
+s390                                defconfig   gcc  
+s390                  randconfig-001-20231014   gcc  
+sh                               allmodconfig   gcc  
+sh                                allnoconfig   gcc  
+sh                               allyesconfig   gcc  
+sh                                  defconfig   gcc  
+sparc                            allmodconfig   gcc  
+sparc                             allnoconfig   gcc  
+sparc                            allyesconfig   gcc  
+sparc                               defconfig   gcc  
+sparc                 randconfig-001-20231014   gcc  
+sparc64                          allmodconfig   gcc  
+sparc64                          allyesconfig   gcc  
+sparc64                             defconfig   gcc  
+um                               allmodconfig   clang
+um                                allnoconfig   clang
+um                               allyesconfig   clang
+um                                  defconfig   gcc  
+um                             i386_defconfig   gcc  
+um                           x86_64_defconfig   gcc  
+x86_64                            allnoconfig   gcc  
+x86_64                           allyesconfig   gcc  
+x86_64                              defconfig   gcc  
+x86_64                randconfig-001-20231014   gcc  
+x86_64                randconfig-002-20231014   gcc  
+x86_64                randconfig-003-20231014   gcc  
+x86_64                randconfig-004-20231014   gcc  
+x86_64                randconfig-005-20231014   gcc  
+x86_64                randconfig-006-20231014   gcc  
+x86_64                          rhel-8.3-rust   clang
+x86_64                               rhel-8.3   gcc  
+
 -- 
-2.41.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
