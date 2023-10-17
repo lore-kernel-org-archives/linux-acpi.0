@@ -1,105 +1,211 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABBD62DF90
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Oct 2023 19:43:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M1nAayz1"
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46D0AC6;
-	Tue, 17 Oct 2023 12:43:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697571792; x=1729107792;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=JF3kBYiZ7ja2TA5QXy9uKVO4oRFv5C/TTDXBiZDQ1GA=;
-  b=M1nAayz14UVfm+ATwLcVXT4/IFgQXK6SbFv7vZPB3CnF0/GwQTHJLkia
-   jG9ocmghjVekXIpPWPQM5vmhr9mgEfbPpXFzB1CiEr/xBHLFaydF57kzl
-   A9hxbd2tYhWof0XVtJ6X0weSZ763BkBX7B2/ltSe6+l7jSZ2TeLlcAvZi
-   RMIfLEj44vfJa0LHfPnovMWwmEL/hyRbNoGctZM93H00OZQ1BatLnwb5x
-   i65k5ecrdTc9rT5S8uIWuu+sXtIGMM6bPGGwO1WnixcdabN3HtjbdTO9k
-   C9BFVigaVYrsa3MkAp2n1Xssz2pT+9Xoy3Yj1Xiid7lfp47u40jvlJHYp
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="389738671"
-X-IronPort-AV: E=Sophos;i="6.03,233,1694761200"; 
-   d="scan'208";a="389738671"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2023 12:43:11 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="929879025"
-X-IronPort-AV: E=Sophos;i="6.03,233,1694761200"; 
-   d="scan'208";a="929879025"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2023 12:43:08 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97-RC2)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1qspy4-00000006PcA-2yxa;
-	Tue, 17 Oct 2023 22:43:04 +0300
-Date: Tue, 17 Oct 2023 22:43:04 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Jonathan Cameron <jic23@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Antoniu Miclaus <antoniu.miclaus@analog.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Gerald Loacker <gerald.loacker@wolfvision.net>,
-	Gwendal Grignou <gwendal@chromium.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Michael Hennerich <Michael.Hennerich@analog.com>
-Subject: Re: [PATCH v1 2/6] device property: Add
- fwnode_property_match_property_string()
-Message-ID: <ZS7jyHkKJcubVxws@smile.fi.intel.com>
-References: <20230808162800.61651-1-andriy.shevchenko@linux.intel.com>
- <20230808162800.61651-3-andriy.shevchenko@linux.intel.com>
- <20230809185944.1ae78e34@jic23-huawei>
- <ZNTlniWf8Ou9hHOT@smile.fi.intel.com>
- <20230828190101.50f70921@jic23-huawei>
- <CAJZ5v0gOXsX98jQTRSwoYmfYBfva1RHTsDaLL++m7c+kLjStVA@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBB0C430EE
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Oct 2023 20:12:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58156FAA;
+	Tue, 17 Oct 2023 13:12:45 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
+ id b9b0ec6ca16d320a; Tue, 17 Oct 2023 22:12:44 +0200
+Received: from kreacher.localnet (unknown [195.136.19.94])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 7ACE7666BCD;
+	Tue, 17 Oct 2023 22:12:43 +0200 (CEST)
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH v1 2/3] ACPI: thermal_lib: Add functions returning temperature in deci-Kelvin
+Date: Tue, 17 Oct 2023 22:06:52 +0200
+Message-ID: <4861460.GXAFRqVoOG@kreacher>
+In-Reply-To: <5740803.DvuYhMxLoT@kreacher>
+References: <5740803.DvuYhMxLoT@kreacher>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0gOXsX98jQTRSwoYmfYBfva1RHTsDaLL++m7c+kLjStVA@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-X-Spam-Status: No, score=-2.7 required=5.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,RCVD_IN_DNSWL_LOW,SPF_HELO_NONE,
-	SPF_NONE autolearn=ham autolearn_force=no version=3.4.6
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvkedrjedvgddugeefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepjedprhgtphhtthhopehlihhnuhigqdhpmhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegurghnihgvlhdrlhgviigtrghnoheslhhinhgrrhhordhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghp
+ thhtohepshhrihhnihhvrghsrdhprghnughruhhvrggurgeslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehrrghfrggvlheskhgvrhhnvghlrdhorhhg
+X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
+X-Spam-Status: No, score=-1.9 required=5.0 tests=BAYES_00,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.6
 X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on
 	lindbergh.monkeyblade.net
 
-On Tue, Oct 17, 2023 at 09:19:30PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Aug 28, 2023 at 8:00 PM Jonathan Cameron <jic23@kernel.org> wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-...
+Because the ACPI thermal driver generally operates temperature values
+in deci-Kelvin, it needs the library functions returning temperature
+for various trip point types to use deci-Kelvin too.
 
-> Sorry for the delay, I've lost track of this.
+To address that, arrange the ACPI thermal library code in three levels
+of functions where the high-level ones will return temperature in
+milli-Celsius, as needed by the thermal core and the majority of
+thermal drivers, the mid-level ones will return temperature in
+deci-Kelvin and will be called internally by the corresponding high-
+level functions, and all of the mid-level functions will call the same
+low-level one, acpi_trip_temp(), to actually evaluate ACPI objects to
+retrieve themperature values from the platform firmware.
 
-NP!
+Going forward, this will allow the ACPI thermal driver to use the
+mid-level functions to provide temperature values needed by it, so as
+to reduce code duplication related to evaluating trip temperature ACPI
+control methods.
 
-> Honestly, I have no strong opinion, but I think that this is going to
-> reduce some code duplication which is a valid purpose, so please feel
-> free to add
-> 
-> Acked-by: Rafael J. Wysocki <rafael@kernel.org>
-> 
-> to this patch.
+No intentional functional impact.
 
-Thank you!
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/thermal_lib.c |   75 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 60 insertions(+), 15 deletions(-)
 
-Jonathan, are we all set for applying this series?
+Index: linux-pm/drivers/acpi/thermal_lib.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/thermal_lib.c
++++ linux-pm/drivers/acpi/thermal_lib.c
+@@ -3,8 +3,8 @@
+  * Copyright 2023 Linaro Limited
+  * Copyright 2023 Intel Corporation
+  *
+- * Library routines for populating a generic thermal trip point structure
+- * with data obtained by evaluating a specific object in the ACPI Namespace.
++ * Library routines for retrieving trip point temperature values from the
++ * platform firmware via ACPI.
+  */
+ #include <linux/acpi.h>
+ #include <linux/units.h>
+@@ -17,11 +17,11 @@
+  * firmware. Any values out of these boundaries may be considered
+  * bogus and we can assume the firmware has no data to provide.
+  */
+-#define TEMP_MIN_DECIK	2180
+-#define TEMP_MAX_DECIK	4480
++#define TEMP_MIN_DECIK	2180ULL
++#define TEMP_MAX_DECIK	4480ULL
+ 
+-static int thermal_acpi_trip_temp(struct acpi_device *adev, char *obj_name,
+-				  int *ret_temp)
++static int acpi_trip_temp(struct acpi_device *adev, char *obj_name,
++			  int *ret_temp)
+ {
+ 	unsigned long long temp;
+ 	acpi_status status;
+@@ -33,7 +33,7 @@ static int thermal_acpi_trip_temp(struct
+ 	}
+ 
+ 	if (temp >= TEMP_MIN_DECIK && temp <= TEMP_MAX_DECIK) {
+-		*ret_temp = deci_kelvin_to_millicelsius(temp);
++		*ret_temp = temp;
+ 	} else {
+ 		acpi_handle_debug(adev->handle, "%s result %llu out of range\n",
+ 				  obj_name, temp);
+@@ -43,6 +43,44 @@ static int thermal_acpi_trip_temp(struct
+ 	return 0;
+ }
+ 
++int acpi_active_trip_temp(struct acpi_device *adev, int id, int *ret_temp)
++{
++	char obj_name[] = {'_', 'A', 'C', '0' + id, '\0'};
++
++	if (id < 0 || id > 9)
++		return -EINVAL;
++
++	return acpi_trip_temp(adev, obj_name, ret_temp);
++}
++
++int acpi_passive_trip_temp(struct acpi_device *adev, int *ret_temp)
++{
++	return acpi_trip_temp(adev, "_PSV", ret_temp);
++}
++
++int acpi_hot_trip_temp(struct acpi_device *adev, int *ret_temp)
++{
++	return acpi_trip_temp(adev, "_HOT", ret_temp);
++}
++
++int acpi_critical_trip_temp(struct acpi_device *adev, int *ret_temp)
++{
++	return acpi_trip_temp(adev, "_CRT", ret_temp);
++}
++
++static int thermal_temp(int error, int temp_decik, int *ret_temp)
++{
++	if (error)
++		return error;
++
++	if (temp_decik == THERMAL_TEMP_INVALID)
++		*ret_temp = THERMAL_TEMP_INVALID;
++	else
++		*ret_temp = deci_kelvin_to_millicelsius(temp_decik);
++
++	return 0;
++}
++
+ /**
+  * thermal_acpi_active_trip_temp - Retrieve active trip point temperature
+  * @adev: Target thermal zone ACPI device object.
+@@ -57,12 +95,10 @@ static int thermal_acpi_trip_temp(struct
+  */
+ int thermal_acpi_active_trip_temp(struct acpi_device *adev, int id, int *ret_temp)
+ {
+-	char obj_name[] = {'_', 'A', 'C', '0' + id, '\0'};
+-
+-	if (id < 0 || id > 9)
+-		return -EINVAL;
++	int temp_decik;
++	int ret = acpi_active_trip_temp(adev, id, &temp_decik);
+ 
+-	return thermal_acpi_trip_temp(adev, obj_name, ret_temp);
++	return thermal_temp(ret, temp_decik, ret_temp);
+ }
+ EXPORT_SYMBOL_GPL(thermal_acpi_active_trip_temp);
+ 
+@@ -78,7 +114,10 @@ EXPORT_SYMBOL_GPL(thermal_acpi_active_tr
+  */
+ int thermal_acpi_passive_trip_temp(struct acpi_device *adev, int *ret_temp)
+ {
+-	return thermal_acpi_trip_temp(adev, "_PSV", ret_temp);
++	int temp_decik;
++	int ret = acpi_passive_trip_temp(adev, &temp_decik);
++
++	return thermal_temp(ret, temp_decik, ret_temp);
+ }
+ EXPORT_SYMBOL_GPL(thermal_acpi_passive_trip_temp);
+ 
+@@ -95,7 +134,10 @@ EXPORT_SYMBOL_GPL(thermal_acpi_passive_t
+  */
+ int thermal_acpi_hot_trip_temp(struct acpi_device *adev, int *ret_temp)
+ {
+-	return thermal_acpi_trip_temp(adev, "_HOT", ret_temp);
++	int temp_decik;
++	int ret = acpi_hot_trip_temp(adev, &temp_decik);
++
++	return thermal_temp(ret, temp_decik, ret_temp);
+ }
+ EXPORT_SYMBOL_GPL(thermal_acpi_hot_trip_temp);
+ 
+@@ -111,6 +153,9 @@ EXPORT_SYMBOL_GPL(thermal_acpi_hot_trip_
+  */
+ int thermal_acpi_critical_trip_temp(struct acpi_device *adev, int *ret_temp)
+ {
+-	return thermal_acpi_trip_temp(adev, "_CRT", ret_temp);
++	int temp_decik;
++	int ret = acpi_critical_trip_temp(adev, &temp_decik);
++
++	return thermal_temp(ret, temp_decik, ret_temp);
+ }
+ EXPORT_SYMBOL_GPL(thermal_acpi_critical_trip_temp);
 
--- 
-With Best Regards,
-Andy Shevchenko
 
 
