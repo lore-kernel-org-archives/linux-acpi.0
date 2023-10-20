@@ -1,98 +1,75 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E4CC12E65
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Oct 2023 14:00:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EK1q3cEb"
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD772CA;
-	Fri, 20 Oct 2023 07:00:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697810417; x=1729346417;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=mpqyGKvHVXV0RlwNW1oDdHVE8qJd2jWt5MyNnvZCE9A=;
-  b=EK1q3cEbUpn2OV5OCuHvaSKsXPh3GaAQ9smybGebLyz1g2MHeVqQDh7V
-   HyYbmAaaiq5NtGOCA6jPTwo9JWMiPvIUZE9Z8JqXhep/fEcUiejcv7hkN
-   OK2RAEzr1CrOsKxGr/83xKd6X7awfWp5AbjEE0Ez2k5Q9AQZRmhPUumFg
-   /YYfn9D3vcNh4fLpRWkdtl5MQ/2OYO3o4rPT3s6dfg+iTJ2ARPhchU3UR
-   TNorJAxTcM75q0V5E7KzqqfeQiW9iKeJOA3NiBvKmEGI+cLyfpSdph7f1
-   IzCc0axNKzPHsm++GzmOU1g/CLRM+f6z9A9BSNJRKmQxn/opjbm5sstAE
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10869"; a="371573326"
-X-IronPort-AV: E=Sophos;i="6.03,239,1694761200"; 
-   d="scan'208";a="371573326"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2023 07:00:17 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10869"; a="823260129"
-X-IronPort-AV: E=Sophos;i="6.03,239,1694761200"; 
-   d="scan'208";a="823260129"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga008.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2023 07:00:12 -0700
-Date: Fri, 20 Oct 2023 17:00:09 +0300
-From: Raag Jadav <raag.jadav@intel.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: rafael@kernel.org, len.brown@intel.com, robert.moore@intel.com,
-	mika.westerberg@linux.intel.com, mark.rutland@arm.com,
-	will@kernel.org, linux@roeck-us.net, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	acpica-devel@lists.linuxfoundation.org, linux-gpio@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-hwmon@vger.kernel.org,
-	mallikarjunappa.sangannavar@intel.com, bala.senthil@intel.com
-Subject: Re: [PATCH v1 4/8] ACPI: utils: use acpi_dev_uid_match() for
- matching _UID
-Message-ID: <ZTKH6bNPiy1fZKEG@black.fi.intel.com>
-References: <20231020084732.17130-1-raag.jadav@intel.com>
- <20231020084732.17130-5-raag.jadav@intel.com>
- <ZTJYK02w8HZg26eI@smile.fi.intel.com>
- <ZTJmnv6CsZUt0pIS@black.fi.intel.com>
- <ZTKDsBPraERaautV@smile.fi.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F5BB19BAC
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Oct 2023 14:49:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CAE7D5A;
+	Fri, 20 Oct 2023 07:49:51 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
+ id cee7a7d880d2d8a4; Fri, 20 Oct 2023 16:49:50 +0200
+Received: from kreacher.localnet (unknown [195.136.19.94])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 82856667008;
+	Fri, 20 Oct 2023 16:49:49 +0200 (CEST)
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Linux ACPI <linux-acpi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 4/6] device property: Add SOFTWARE_NODE() macro for defining software nodes
+Date: Fri, 20 Oct 2023 16:38:25 +0200
+Message-ID: <1972742.PYKUYFuaPT@kreacher>
+In-Reply-To: <2187487.irdbgypaU6@kreacher>
+References: <2187487.irdbgypaU6@kreacher>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZTKDsBPraERaautV@smile.fi.intel.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvkedrjeekgdejlecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepshgrkhgrrhhirdgrihhluhhssehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghnughrihihrdhshhgvvhgthhgvnhhkoheslhhinhhugidrihhn
+ thgvlhdrtghomhdprhgtphhtthhopehhvghikhhkihdrkhhrohhgvghruhhssehlihhnuhigrdhinhhtvghlrdgtohhm
+X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 
-On Fri, Oct 20, 2023 at 04:42:08PM +0300, Andy Shevchenko wrote:
-> On Fri, Oct 20, 2023 at 02:38:06PM +0300, Raag Jadav wrote:
-> > On Fri, Oct 20, 2023 at 01:36:27PM +0300, Andy Shevchenko wrote:
-> > > On Fri, Oct 20, 2023 at 02:17:28PM +0530, Raag Jadav wrote:
-> > > > Convert manual _UID references to use standard ACPI helpers.
-> > > 
-> > > Yes, while not so obvious this is the correct replacement.
-> > > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > 
-> > I think this is the only case which would suffer from the more obvious
-> > behaviour, i.e.
-> 
-> No, that's not true. The same with override CPU in the other patch, where the
-> check is simply absent, but the result will be the same. So, all with negation
-> will suffer from the "obvious" implementation.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Forgot to add, we don't need to change the original acpi_dev_hid_uid_match()
-behaviour, i.e.
+Add SOFTWARE_NODE() macro in order to make defining software nodes look
+nicer. This is analogous to different PROPERTY_ENTRY_*() macros for
+defining properties.
 
-bool acpi_dev_hid_uid_match(struct acpi_device *adev,
-                            const char *hid2, const char *uid2)
-{
-        const char *hid1 = acpi_device_hid(adev);
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ include/linux/property.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-        if (strcmp(hid1, hid2))
-                return false;
+Index: linux-pm/include/linux/property.h
+===================================================================
+--- linux-pm.orig/include/linux/property.h
++++ linux-pm/include/linux/property.h
+@@ -488,6 +488,13 @@ struct software_node {
+ 	const struct property_entry *properties;
+ };
+ 
++#define SOFTWARE_NODE(_name_, _properties_, _parent_)	\
++	(struct software_node) {			\
++		.name = _name_,				\
++		.properties = _properties_,		\
++		.parent = _parent_,			\
++	}
++
+ bool is_software_node(const struct fwnode_handle *fwnode);
+ const struct software_node *
+ to_software_node(const struct fwnode_handle *fwnode);
 
-        if (!uid2)
-                return true;
 
-        return acpi_dev_uid_match(adev, uid2);
-}
 
-I'm fine with both, this just makes more sense to me.
-
-Raag
