@@ -1,37 +1,37 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 083BF101CA
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Oct 2023 08:48:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1BAB101F2
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Oct 2023 08:48:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DGUfNDHy"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Dipm04id"
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C69FED52;
-	Fri, 20 Oct 2023 01:48:13 -0700 (PDT)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C313D46;
+	Fri, 20 Oct 2023 01:48:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697791693; x=1729327693;
+  t=1697791696; x=1729327696;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references;
-  bh=ycYM//IBzYahr1OT+k/0SqcANs76449DXAt6/AuLX9M=;
-  b=DGUfNDHyfUwZk67l/7ienlCmcACFM+T7a4497ecipvcMGwx61kTH96cj
-   hjnCzgj9WGBuqM+LFN8O8o3+9/xOkEF2BA+lTCQnVDWD7hcve1H7IGHLI
-   nLK7P48ZxPFlyKsutg+LrQgjACIV7Caxs6wZNmXM5vi0MKPZQbrEhQd/W
-   Q8CYhzQeRCI96r5vfj5wRaj9L8v60Swjwd1o024ecpzsmjufeA/421ZF0
-   RGn0sW/HRZCp7U0/Sj+wR41rZlQ3XVciY8XDuSsrJGK3K/ygaQOI3r3Js
-   5U9Pfiy1CSvrtUs17fxQ7GO5GaXDwckDTfuFNsyGTe0ByS2544JgchEqI
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10868"; a="450683524"
+  bh=rSipyHhM4gYIUQSn5eaLq9kVKKAAb0HFtJJ9r0gwffo=;
+  b=Dipm04idYkMzuxfKEQvNTRUbQWb2ofdTihZCQQj2sc6TfyIXHrgtj07j
+   niId35sdlDZojEhH7IIj6anL8A5+17T1e0sEgCUF5qNhnhKi3zMwIteTz
+   Iajuxz2WXrCqx/xLvXl8lEYikhG6R5eBb2YvjTMz8pXtqukDo6HwwTseJ
+   CZRmJr58cLmyW9tLGosDD25+YhqSZVyIozYeO8G6VJJ/sIkxzHM3QcFUu
+   KLLGXVO9v2laRFdNkTAIHec9rFcj/7bRCnVRKtI+2Iyc6MmB81pQ93vOD
+   onaDFmBgBtlNSQOUdMU14QfYM+mezRiTjSL5disOSBKjztHHRTk9NlVBE
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10868"; a="450683586"
 X-IronPort-AV: E=Sophos;i="6.03,238,1694761200"; 
-   d="scan'208";a="450683524"
+   d="scan'208";a="450683586"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2023 01:48:11 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2023 01:48:16 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10868"; a="873832171"
+X-IronPort-AV: E=McAfee;i="6600,9927,10868"; a="873832186"
 X-IronPort-AV: E=Sophos;i="6.03,238,1694761200"; 
-   d="scan'208";a="873832171"
+   d="scan'208";a="873832186"
 Received: from inlubt0316.iind.intel.com ([10.191.20.213])
-  by fmsmga002.fm.intel.com with ESMTP; 20 Oct 2023 01:48:01 -0700
+  by fmsmga002.fm.intel.com with ESMTP; 20 Oct 2023 01:48:11 -0700
 From: Raag Jadav <raag.jadav@intel.com>
 To: rafael@kernel.org,
 	len.brown@intel.com,
@@ -50,9 +50,9 @@ Cc: linux-acpi@vger.kernel.org,
 	mallikarjunappa.sangannavar@intel.com,
 	bala.senthil@intel.com,
 	Raag Jadav <raag.jadav@intel.com>
-Subject: [PATCH v1 4/8] ACPI: utils: use acpi_dev_uid_match() for matching _UID
-Date: Fri, 20 Oct 2023 14:17:28 +0530
-Message-Id: <20231020084732.17130-5-raag.jadav@intel.com>
+Subject: [PATCH v1 6/8] perf: qcom: use acpi_device_uid() for fetching _UID
+Date: Fri, 20 Oct 2023 14:17:30 +0530
+Message-Id: <20231020084732.17130-7-raag.jadav@intel.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20231020084732.17130-1-raag.jadav@intel.com>
 References: <20231020084732.17130-1-raag.jadav@intel.com>
@@ -66,23 +66,24 @@ Convert manual _UID references to use standard ACPI helpers.
 
 Signed-off-by: Raag Jadav <raag.jadav@intel.com>
 ---
- drivers/acpi/utils.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/perf/qcom_l3_pmu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 664b9890b625..e3ba835e6590 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -889,8 +889,7 @@ static int acpi_dev_match_cb(struct device *dev, const void *data)
- 	if (acpi_match_device_ids(adev, match->hid))
- 		return 0;
+diff --git a/drivers/perf/qcom_l3_pmu.c b/drivers/perf/qcom_l3_pmu.c
+index 2887edb4eb0b..f16783d03db7 100644
+--- a/drivers/perf/qcom_l3_pmu.c
++++ b/drivers/perf/qcom_l3_pmu.c
+@@ -742,8 +742,8 @@ static int qcom_l3_cache_pmu_probe(struct platform_device *pdev)
  
--	if (match->uid && (!adev->pnp.unique_id ||
--	    strcmp(adev->pnp.unique_id, match->uid)))
-+	if (!acpi_dev_uid_match(adev, match->uid))
- 		return 0;
+ 	l3pmu = devm_kzalloc(&pdev->dev, sizeof(*l3pmu), GFP_KERNEL);
+ 	name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "l3cache_%s_%s",
+-		      acpi_dev_parent(acpi_dev)->pnp.unique_id,
+-		      acpi_dev->pnp.unique_id);
++		      acpi_device_uid(acpi_dev_parent(acpi_dev)),
++		      acpi_device_uid(acpi_dev));
+ 	if (!l3pmu || !name)
+ 		return -ENOMEM;
  
- 	if (match->hrv == -1)
 -- 
 2.17.1
 
